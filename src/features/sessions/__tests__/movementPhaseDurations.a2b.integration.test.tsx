@@ -191,12 +191,16 @@ describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel
       fireEvent.changeText(screen.getByTestId("movement-phases-invite"), "Montée");
     });
     await settle();
+    // Recette iPhone n° 2 du 31/10/2026 : durée saisie au clavier numérique (la roulette est retirée).
+    const durationInput = () => screen.getByTestId("movement-phases-duration-1-input", { includeHiddenElements: true });
     await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-phases-duration-1"));
+      fireEvent(durationInput(), "focus");
     });
-    fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 30 } });
     await act(async () => {
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      fireEvent.changeText(durationInput(), "30");
+    });
+    await act(async () => {
+      fireEvent(durationInput(), "blur");
     });
     await act(async () => {
       fireEvent.press(screen.getByTestId("movement-finish-action"));

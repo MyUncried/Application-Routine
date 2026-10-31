@@ -2,14 +2,21 @@
  * PRE-9 (story B.4, COMP §6 G1–G8, ARB-06, ARB-09, D-451) — résolution de la destination d'un
  * glisser dans une disposition générale, à partir des boîtes mesurées des éléments rendus.
  *
- * Repère : le contenu défilant de la Composition (ordonnées absolues dans ce contenu). Pendant le
- * glisser la mise en page reste figée (aucun décalage des voisins) : chaque emplacement admis pour
- * l'élément saisi (D-451 : un Exercice partout ; un Circuit au niveau Séance et dans un Cycle ; un
- * Cycle au niveau Séance) reçoit une ordonnée — entre deux membres, sous l'en-tête d'un conteneur
- * (tête), sous son dernier membre (fin) —, et la destination est l'emplacement le plus proche du
- * point de saisie. Un Circuit replié (cartes non rendues) n'offre que sa fin, au milieu de sa boîte.
- * L'élément saisi et son contenu ne sont jamais des destinations ; les rangs sont comptés sans lui
- * (convention de `moveLayoutItem`).
+ * Repère : le contenu défilant de la Composition (ordonnées absolues dans ce contenu). Les boîtes
+ * sont celles de la mise en page (les translations de l'aperçu ne les changent pas) : chaque
+ * emplacement admis pour l'élément saisi (D-451 : un Exercice partout ; un Circuit au niveau Séance
+ * et dans un Cycle ; un Cycle au niveau Séance) reçoit une ordonnée — entre deux membres, sous
+ * l'en-tête d'un conteneur (tête), sous son dernier membre (fin) —, et la destination est
+ * l'emplacement le plus proche du point de saisie. Un Circuit replié (cartes non rendues) n'offre que
+ * sa fin, au milieu de sa boîte. L'élément saisi et son contenu ne sont jamais des destinations ; les
+ * rangs sont comptés sans lui (convention de `moveLayoutItem`).
+ *
+ * [B.4 : « Pendant le glisser la mise en page reste figée (aucun décalage des voisins) » — remplacé
+ * par la recette iPhone n° 2 du 31/10/2026 (Hermann : « le comportement tel qu'il a été défini
+ * initialement […] : déplacement des bords des circuits / cycle et déplacement des cartes pour faire
+ * la place à la carte déplacée ») :] chaque emplacement porte aussi son seuil d'insertion (`insertY` :
+ * ce qui est à cette ordonnée ou plus bas descend pour faire la place) et le haut que l'élément
+ * déposé y occupera (`insertTop`), lus par l'aperçu (`layoutDragShifts.ts`).
  *
  * Fonctions pures.
  */
@@ -30,11 +37,24 @@ export function layoutHeaderKey(kind: "CIRCUIT" | "CYCLE", id: string): string {
   return `header:${kind}:${id}`;
 }
 
-/** Destination résolue : rang (sans l'élément saisi), conteneur à éclairer, ordonnée du repère d'insertion. */
-export type LayoutDropTarget = LayoutDestination & { readonly lineY: number };
+/** PRE-9 B.6 : clé de la boîte mesurée de la rangée d'un Point d'arrêt (point de saisie du glisser). */
+export function layoutStopBoxKey(stopPointId: string): string {
+  return `stop:${stopPointId}`;
+}
 
-/** Écart vertical entre le bord d'un membre et le repère d'insertion qui le borde (tête ou fin). */
+/**
+ * Destination résolue : rang (sans l'élément saisi) dans son conteneur, ordonnée de l'emplacement
+ * (`lineY`, distance au point de saisie), seuil d'insertion (`insertY`) et haut de l'élément déposé
+ * (`insertTop`), dans la mise en page d'origine.
+ */
+export type LayoutDropTarget = LayoutDestination & { readonly lineY: number; readonly insertY: number; readonly insertTop: number };
+
+/** Écart vertical entre le bord d'un membre et l'ordonnée d'emplacement qui le borde (tête ou fin). */
 export const LAYOUT_DROP_EDGE_INSET = 4;
+
+/** Écart entre deux membres d'un conteneur (place ouverte par l'aperçu) ; 0 par défaut. */
+export type LayoutGapOf = (container: LayoutContainerRef) => number;
+const NO_GAP: LayoutGapOf = () => 0;
 
 type Shape<E> = Pick<SessionStructure<E, StructureStopPointLocation>, "elements">;
 
@@ -62,13 +82,14 @@ const sameItem = (a: LayoutItemRef, b: LayoutItemRef) => a.kind === b.kind && a.
 
 /**
  * Emplacements admis pour `source` avec leur ordonnée (voir l'en-tête). Un emplacement dont une
- * mesure manque est omis.
+ * mesure manque est omis. `gapOf` : écart des membres de chaque conteneur (haut de l'élément déposé).
  */
 export function layoutDropCandidates<E>(
   layout: Shape<E>,
   source: LayoutItemRef,
   boxes: ReadonlyMap<string, LayoutBox>,
   idOf: (exercise: E) => string,
+  gapOf: LayoutGapOf = NO_GAP,
 ): readonly LayoutDropTarget[] {
   const candidates: LayoutDropTarget[] = [];
   const bottom = (box: LayoutBox) => box.top + box.height;
@@ -79,6 +100,9 @@ export function layoutDropCandidates<E>(
     const measured = kept.map((member) => boxes.get(layoutItemKey(member.item)));
     if (measured.some((box) => box === undefined)) return false;
     const list = measured as LayoutBox[];
+    const gap = gapOf(container);
+    // Haut du contenu sous l'en-tête (tête du conteneur).
+    const headTop = head === null ? null : head - LAYOUT_DROP_EDGE_INSET + gap;
     for (let index = 0; index <= list.length; index += 1) {
       const before = list[index - 1];
       const after = list[index];
@@ -90,7 +114,12 @@ export function layoutDropCandidates<E>(
             : before !== undefined
               ? (end ?? bottom(before) + 2 * LAYOUT_DROP_EDGE_INSET)
               : head;
-      if (lineY !== null && lineY !== undefined) candidates.push({ container, index, lineY });
+      if (lineY === null || lineY === undefined) continue;
+      // Insertion juste après le membre qui précède (avant les Points d'arrêt de ce rang, convention
+      // de `stopPointsAfterInsertion`), sinon en tête du conteneur.
+      const insertY = before !== undefined ? bottom(before) + 0.5 : after !== undefined && head === null ? after.top - 0.5 : lineY;
+      const insertTop = before !== undefined ? bottom(before) + gap : (headTop ?? after?.top ?? lineY);
+      candidates.push({ container, index, lineY, insertY, insertTop });
     }
     return true;
   };
@@ -107,8 +136,15 @@ export function layoutDropCandidates<E>(
       const last = boxes.get(layoutItemKey(cards[cards.length - 1]!.item))!;
       sequence({ kind: "CIRCUIT", id: circuit.id }, members, head, bottom(last) + LAYOUT_DROP_EDGE_INSET);
     } else if (block !== undefined) {
-      // Circuit replié (ou vidé par la saisie) : sa fin seulement, au milieu de sa boîte.
-      candidates.push({ container: { kind: "CIRCUIT", id: circuit.id }, index: cards.length, lineY: block.top + block.height / 2 });
+      // Circuit replié (ou vidé par la saisie) : sa fin seulement, au milieu de sa boîte ; la place
+      // s'ouvre au bas du Circuit.
+      candidates.push({
+        container: { kind: "CIRCUIT", id: circuit.id },
+        index: cards.length,
+        lineY: block.top + block.height / 2,
+        insertY: bottom(block) - 0.5,
+        insertTop: bottom(block),
+      });
     }
   };
 
@@ -146,9 +182,10 @@ export function resolveLayoutDrop<E>(
   pointerY: number,
   boxes: ReadonlyMap<string, LayoutBox>,
   idOf: (exercise: E) => string,
+  gapOf: LayoutGapOf = NO_GAP,
 ): LayoutDropTarget | null {
   let best: LayoutDropTarget | null = null;
-  for (const candidate of layoutDropCandidates(layout, source, boxes, idOf)) {
+  for (const candidate of layoutDropCandidates(layout, source, boxes, idOf, gapOf)) {
     if (best === null || Math.abs(candidate.lineY - pointerY) < Math.abs(best.lineY - pointerY)) best = candidate;
   }
   return best;

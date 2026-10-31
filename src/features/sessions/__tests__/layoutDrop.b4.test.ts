@@ -63,7 +63,22 @@ describe("PRE-9 B.4 — destination d'un glisser (layoutDrop)", () => {
     const inCa = layoutDropCandidates(layout, { kind: "EXERCISE", id: "e0" }, folded, id).filter(
       (candidate) => candidate.container.kind === "CIRCUIT" && candidate.container.id === "ca",
     );
-    expect(inCa).toEqual([{ container: { kind: "CIRCUIT", id: "ca" }, index: 2, lineY: 134 }]);
+    // [B.4 : `{ …, lineY: 134 }` — recette iPhone n° 2 du 31/10/2026 : la place s'ouvre au bas du Circuit.]
+    expect(inCa).toEqual([{ container: { kind: "CIRCUIT", id: "ca" }, index: 2, lineY: 134, insertY: 167.5, insertTop: 168 }]);
+  });
+
+  it("recette n° 2 du 31/10 : seuil d'insertion et haut de l'élément déposé (écart du conteneur visé)", () => {
+    const gapOf = (container: { kind: string }) => (container.kind === "SESSION" ? 8 : 9);
+    const all = layoutDropCandidates(layout, { kind: "EXERCISE", id: "e0" }, boxes, id, gapOf);
+    const at = (kind: string, index: number) => all.find((candidate) => candidate.container.kind === kind && candidate.index === index);
+    // Entre a1 et a2 : sous a1 (221), place ouverte à 221 + 9.
+    expect(at("CIRCUIT", 1)).toMatchObject({ insertY: 221.5, insertTop: 230 });
+    // Tête du Circuit A : sous son en-tête (132 + 4), contenu à 132 + 9.
+    expect(at("CIRCUIT", 0)).toMatchObject({ lineY: 136, insertY: 136, insertTop: 141 });
+    // Fin du Circuit A : sous a2 (310), avant le bord bas du Circuit (320).
+    expect(at("CIRCUIT", 2)).toMatchObject({ insertY: 310.5, insertTop: 319 });
+    // Séance, en tête (sans en-tête) : au haut de son premier élément.
+    expect(at("SESSION", 0)).toMatchObject({ insertY: 99.5, insertTop: 100 });
   });
 
   it("même destination", () => {

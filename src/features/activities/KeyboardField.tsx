@@ -88,6 +88,13 @@ type CellProps = CommonProps & {
   accessibilityHint?: string;
   /** D-434 : génération de la saisie (`useSheetKeyboard.entryGeneration`). */
   entryGeneration?: number;
+  /**
+   * PRE-9, recette iPhone n° 2 du 31/10/2026 (fiche Mouvement) : touche Entrée du clavier numérique
+   * quand la plateforme en affiche une (Android) ; le clavier reste ouvert (`submitBehavior`
+   * « submit »). Le pavé numérique iOS n'en a pas : l'appelant fournit « Suivant → » par la barre
+   * du clavier (`KeyboardAccessoryBar`). Absent : comportement inchangé.
+   */
+  onSubmitEditing?: () => void;
 };
 
 export function KeyboardField(props: NativeProps | CellProps) {
@@ -166,6 +173,7 @@ function CellEntryField({
   invalid = false,
   accessibilityHint,
   entryGeneration = 0,
+  onSubmitEditing,
   testID,
 }: CellProps) {
   const kind = CELL_ENTRY_KIND[mode];
@@ -236,6 +244,9 @@ function CellEntryField({
             if (composed.text !== current.text) onChangeText(composed.text);
           }}
           keyboardType={kind === "decimal" ? "decimal-pad" : "number-pad"}
+          {...(onSubmitEditing === undefined
+            ? {}
+            : { onSubmitEditing, returnKeyType: "next" as const, submitBehavior: "submit" as const })}
           selectTextOnFocus={false}
           contextMenuHidden
           caretHidden

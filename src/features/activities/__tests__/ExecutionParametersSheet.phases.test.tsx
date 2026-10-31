@@ -797,3 +797,33 @@ describe("Contre-recette iPhone du 30/10/2026 — séparateurs du tableau des ph
     expect(get("execution-sheet-phases-separator")).toBeTruthy();
   });
 });
+
+describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat a", () => {
+  const SELECTION = "execution-sheet-row-phases-selection";
+  it("durée de phase manquante et tableau replié : cadre de la ligne « Phases de l'exercice » rouge (fond dangerSurface, bord danger) ; déployé ou complet : aucun rouge", () => {
+    renderSheet(params());
+    fireEvent.press(get(WITH));
+    // Déployé : les cellules « — » portent l'indication, la ligne reste normale.
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    fireEvent.press(get(CHEVRON));
+    expect(query(TABLE)).toBeNull();
+    expect(styleOf(SELECTION)).toMatchObject({ backgroundColor: colors.dangerSurface, borderWidth: 1, borderColor: colors.danger });
+    // Redéployé : plus de cadre rouge ; une seule durée renseignée ne suffit pas.
+    fireEvent.press(get(CHEVRON));
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    enterDuration(1, "5");
+    fireEvent.press(get(CHEVRON));
+    expect(styleOf(SELECTION).borderColor).toBe(colors.danger);
+    fireEvent.press(get(CHEVRON));
+    enterDuration(2, "3");
+    fireEvent.press(get(CHEVRON));
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    expect(styleOf(SELECTION).backgroundColor).not.toBe(colors.dangerSurface);
+  });
+
+  it("phases complètes, tableau replié : aucun rouge", () => {
+    renderSheet(withPhases([["A", 6], ["B", 3]]));
+    fireEvent.press(get(CHEVRON));
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+  });
+});

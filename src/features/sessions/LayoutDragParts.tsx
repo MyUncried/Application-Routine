@@ -6,7 +6,10 @@
  * - `VanishingBlock` : retrait progressif d'un conteneur vidé par une dépose (précision de Hermann du
  *   30/10/2026, ch07 « Retrait d'un Circuit » : « effacement progressif et lent du Circuit retiré, puis
  *   remontée douce des éléments suivants ») — fondu, PUIS fermeture de sa place ;
- * - `LayoutDropLine` : repère d'insertion de la destination (éclairage, COMP §6) ;
+ * - [`LayoutDropLine` : repère d'insertion de la destination (éclairage, COMP §6) — retiré par la
+ *   recette iPhone n° 2 du 31/10/2026 (Hermann : « Je ne veux pas d'encadré bleu et de trait
+ *   d'insertion ») : la destination est montrée par le déplacement des voisins et des bords des
+ *   conteneurs, `layoutDragShifts.ts`] ;
  * - `CardMotionBlock` (B.5) : carte supprimée (fondu puis fermeture de sa place) ou copie qui apparaît
  *   (ouverture de sa place et fondu), aux durées de l'ancien modèle (D-441, D-442, D-443).
  * Le dernier membre supprimé d'un conteneur emporte le conteneur, retiré par `VanishingBlock` (B.5).
@@ -25,7 +28,6 @@ import {
   MOTION_SHIFT_DURATION_MS,
 } from "@/features/sessions/compositionMotion";
 import type { DragAutoScroll } from "@/features/sessions/useDragAutoScroll";
-import { colors } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
@@ -43,7 +45,8 @@ type BlockDragCallbacks = {
   /** Translation du bloc (doigt et défilement accumulé). */
   readonly onMove: (translationY: number) => void;
   readonly onEnd: (translationY: number) => void;
-  readonly onCancel: () => void;
+  /** Recette n° 2 du 31/10 : translation atteinte, d'où le bloc revient à sa place. */
+  readonly onCancel: (translationY: number) => void;
   readonly autoScroll: DragAutoScroll;
 };
 
@@ -68,7 +71,7 @@ export function useBlockDragGesture({ onStart, onMove, onEnd, onCancel, autoScro
     () => () => {
       if (draggingRef.current) {
         draggingRef.current = false;
-        callbacks.current.onCancel();
+        callbacks.current.onCancel(translationRef.current);
       }
     },
     [],
@@ -106,8 +109,10 @@ export function useBlockDragGesture({ onStart, onMove, onEnd, onCancel, autoScro
       if (!draggingRef.current) return;
       draggingRef.current = false;
       const value = translationRef.current;
-      translation.setValue(0);
+      // Recette n° 2 du 31/10 : l'écran pose d'abord la translation du registre qui relaie celle du
+      // doigt (retour ou mise en place animés), puis celle-ci est remise à 0, dans la même tâche.
       callbacks.current.onEnd(value);
+      translation.setValue(0);
     },
     [translation],
   );
@@ -116,8 +121,8 @@ export function useBlockDragGesture({ onStart, onMove, onEnd, onCancel, autoScro
     originRef.current = null;
     if (!draggingRef.current) return;
     draggingRef.current = false;
+    callbacks.current.onCancel(translationRef.current);
     translation.setValue(0);
-    callbacks.current.onCancel();
   }, [translation]);
 
   const handlers: ViewProps = {
@@ -296,22 +301,6 @@ export function CardMotionBlock({
   );
 }
 
-/** Repère d'insertion de la destination, dans le repère du contenu défilant. */
-export function LayoutDropLine({ y, testID }: { y: number; testID: string }) {
-  return <View pointerEvents="none" style={[styles.line, { top: y - LINE_THICKNESS / 2 }]} testID={testID} />;
-}
-
-const LINE_THICKNESS = 3;
-
 const styles = StyleSheet.create({
   clip: { overflow: "hidden" },
-  line: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    height: LINE_THICKNESS,
-    borderRadius: LINE_THICKNESS / 2,
-    backgroundColor: colors.primary,
-    zIndex: 20,
-  },
 });

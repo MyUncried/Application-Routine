@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { Keyboard, Pressable, StyleSheet, Text, TextInput, View, type AccessibilityActionEvent } from "react-native";
+import { StyleSheet, Text, TextInput, View, type AccessibilityActionEvent } from "react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { WORK_PATTERN_DURATION_BOUNDS, WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
@@ -12,7 +12,8 @@ import {
   setMovementPhaseDuration,
   type MovementPhaseList,
 } from "@/domain/activities/movementPhaseList";
-import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
+import { cellDurationSeconds, mmssDigitsOf } from "@/features/activities/cellEntry";
+import { KeyboardField } from "@/features/activities/KeyboardField";
 import { codePointLength } from "@/domain/sessions/validation";
 import { strings } from "@/shared/i18n";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
@@ -42,6 +43,22 @@ import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
  * bornes 1..3535 s, `WORK_PATTERN_DURATION_BOUNDS`, ouverture sur `00:00` quand elle est vide) ;
  * « Sans durée » la retire. En lecture seule : durée renseignée affichée, rien sinon. Aucun rendu
  * Figma de cette durée (`10450:24387` n'en montre pas) : rendu CHOISI, à valider en recette.]
+ *
+ * [Remplacé le 31/10/2026, PRE-9 — recette iPhone n° 2 (a2b-creer KO, Hermann : « Toucher la durée >
+ * Le clavier disparait et la roulette apparait, sous la photo, pas ergonomique. Comportement
+ * souhaité : - Première entrée de la description de la phase, clavier alphanumérique ouvert. -
+ * Appuyer sur "Entrée" déplace le curseur sur la durée de la même ligne, le clavier doit rester
+ * ouvert mais se transformer en clavier numérique. - Entrer la durée, appuyer sur entrée fait passer
+ * le curseur sur la ligne suivante, le clavier doit rester ouvert et se transformer en clavier
+ * alphanumérique. ») : la roulette et « Sans durée » sont retirés. Entrée sur un libellé place le
+ * curseur sur la durée de la même ligne (au lieu d'ouvrir l'invite juste après la phase, recette du
+ * 27/10, remarque 2). La durée se saisit au clavier numérique dans sa cellule, avec les règles des
+ * cellules de durée du tableau des phases de la Feuille (`KeyboardField` `cellDuration`,
+ * `cellEntry.ts`, D-434 : « MM:SS », première frappe qui remplace, secondes > 59 reportées, hors
+ * bornes ramenée à 1..3535 s) ; vidée : aucune durée. Elle s'applique à chaque frappe. Entrée de la
+ * durée (Android) ou « Suivant → » de la barre du clavier (pavé numérique iOS sans touche Entrée,
+ * `onKeyboardBarChange`) : ligne suivante — libellé de la phase suivante, sinon l'invite. Le
+ * clavier reste ouvert d'un champ à l'autre.]
  */
 
 const t = strings.screens.movement.phases;
@@ -59,6 +76,19 @@ const PROMPT_COLOR = "#AEB3BA";
 const DURATION_WIDTH = 76;
 /** Hauteur de la valeur de durée (ligne de texte) ; cible portée à 44 par `hitSlop`. */
 const DURATION_TOUCH_HEIGHT = 20;
+const DURATION_HIT_SLOP = {
+  top: (minTouchTarget - DURATION_TOUCH_HEIGHT) / 2,
+  bottom: (minTouchTarget - DURATION_TOUCH_HEIGHT) / 2,
+};
+
+/**
+ * PRE-9, recette iPhone n° 2 du 31/10/2026 : actions de la barre du clavier pendant la saisie d'une
+ * durée (« ← Précédent » : libellé de la même ligne ; « Suivant → » : ligne suivante).
+ */
+export type MovementPhasesKeyboardBar = {
+  readonly onPrevious: () => void;
+  readonly onNext: () => void;
+};
 
 /** Libellé admis (F06) : au plus `WORK_PHASE_LIMITS.labelMaxLength` points de code. */
 export function isPhaseLabelWithinLimit(label: string): boolean {
@@ -80,6 +110,11 @@ export type MovementPhasesEditorProps = {
    * changement de ligne ou de mesure (recadrage au-dessus du clavier, comme la Description).
    */
   readonly onActiveRowBottomChange?: (bottom: number) => void;
+  /**
+   * PRE-9, recette iPhone n° 2 du 31/10/2026 : durée en saisie (actions de la barre du clavier) ou
+   * `null`. L'écran affiche la barre (`KeyboardAccessoryBar`) tant qu'elle est fournie.
+   */
+  readonly onKeyboardBarChange?: (bar: MovementPhasesKeyboardBar | null) => void;
   readonly testID?: string;
 };
 
@@ -89,14 +124,17 @@ export function MovementPhasesEditor({
   editable,
   onFocusChange,
   onActiveRowBottomChange,
+  onKeyboardBarChange,
   testID = "movement-phases",
 }: MovementPhasesEditorProps) {
   const [active, setActiveState] = useState(false);
   const onFocusChangeRef = useRef(onFocusChange);
   const onActiveRowBottomRef = useRef(onActiveRowBottomChange);
+  const onKeyboardBarRef = useRef(onKeyboardBarChange);
   useEffect(() => {
     onFocusChangeRef.current = onFocusChange;
     onActiveRowBottomRef.current = onActiveRowBottomChange;
+    onKeyboardBarRef.current = onKeyboardBarChange;
   });
   // Ligne en saisie et cadres des lignes (dans la liste), pour le recadrage au-dessus du clavier.
   const focusedKey = useRef<number | "invite" | null>(null);
@@ -143,9 +181,25 @@ export function MovementPhasesEditor({
   // Recette du 27/10 (remarque 2, accord de Hermann) : comme la Description, Entrée sur une phase
   // ouvre la phase suivante JUSTE APRÈS elle — l'invite se place sous la phase (`null` : en fin).
   const [inviteAfter, setInviteAfter] = useState<number | null>(null);
-  // PRE-9 A.2b : phase dont la roulette de durée est ouverte (une seule à la fois).
-  const [durationOpen, setDurationOpen] = useState<number | null>(null);
-  const openDurationPhase = editable && value.phases.some((phase) => phase.id === durationOpen) ? durationOpen : null;
+  // PRE-9, recette iPhone n° 2 : champs de durée (focus programmé) et durée en saisie.
+  const durationInputs = useRef(new Map<number, TextInput>());
+  const [activeDuration, setActiveDuration] = useState<number | null>(null);
+  // Actions courantes (phases du dernier rendu), relues par la barre du clavier.
+  const lineActions = useRef({
+    previous: (_phaseId: number): void => undefined,
+    next: (_phaseId: number): void => undefined,
+  });
+  useEffect(() => {
+    onKeyboardBarRef.current?.(
+      activeDuration === null
+        ? null
+        : {
+            onPrevious: () => lineActions.current.previous(activeDuration),
+            onNext: () => lineActions.current.next(activeDuration),
+          },
+    );
+  }, [activeDuration]);
+  useEffect(() => () => onKeyboardBarRef.current?.(null), []);
   useEffect(() => {
     if (pendingFocus.current === null) return;
     inputs.current.get(pendingFocus.current)?.focus();
@@ -155,6 +209,31 @@ export function MovementPhasesEditor({
   const showInvite = editable && (phases.length === 0 || active);
   // Place de l'invite : sous la phase `inviteAfter` si elle existe encore, sinon en fin de liste.
   const inviteIndex = inviteAfter !== null && inviteAfter < phases.length - 1 ? inviteAfter : null;
+
+  /**
+   * Ligne suivante depuis la durée de la phase `phaseId` : l'invite si elle est juste sous la phase,
+   * sinon le libellé de la phase suivante, sinon l'invite en fin de liste. Le focus passe d'un champ à
+   * l'autre sans fermer le clavier.
+   */
+  function focusNextLine(phaseId: number) {
+    const index = phases.findIndex((phase) => phase.id === phaseId);
+    if (index < 0) return;
+    const next = phases[index + 1];
+    if (next !== undefined && !(showInvite && inviteIndex === index)) {
+      inputs.current.get(next.id)?.focus();
+      return;
+    }
+    if (next === undefined) setInviteAfter(null);
+    const invite = inputs.current.get("invite");
+    if (invite) invite.focus();
+    else pendingFocus.current = "invite";
+  }
+  useEffect(() => {
+    lineActions.current = {
+      previous: (phaseId) => inputs.current.get(phaseId)?.focus(),
+      next: focusNextLine,
+    };
+  });
 
   function removeAt(index: number) {
     const phase = phases[index];
@@ -211,14 +290,12 @@ export function MovementPhasesEditor({
                   onKeyPress={(event) => {
                     if (event.nativeEvent.key === "Backspace" && phase.label === "") removeAt(index);
                   }}
-                  // Entrée : l'invite s'ouvre juste après cette phase et prend le focus (comme la
-                  // Description, touche « retour » du clavier).
-                  onSubmitEditing={() => {
-                    pendingFocus.current = "invite";
-                    setInviteAfter(index);
-                  }}
+                  // Recette iPhone n° 2 du 31/10/2026 : Entrée place le curseur sur la durée de la même
+                  // ligne, clavier ouvert (il devient numérique) [remplace l'invite ouverte juste après
+                  // la phase, recette du 27/10, remarque 2].
+                  onSubmitEditing={() => durationInputs.current.get(phase.id)?.focus()}
                   submitBehavior="submit"
-                  returnKeyType="default"
+                  returnKeyType="next"
                   onFocus={() => {
                     focusedKey.current = phase.id;
                     setActive(true);
@@ -239,8 +316,7 @@ export function MovementPhasesEditor({
               {renderDuration(phase.id, movementPhaseDefaultDuration(phase), rank)}
             </View>
           );
-          const withWheel = openDurationPhase === phase.id ? [row, renderDurationWheel(phase.id, rank)] : [row];
-          return showInvite && inviteIndex === index ? [...withWheel, renderInvite()] : withWheel;
+          return showInvite && inviteIndex === index ? [row, renderInvite()] : [row];
   });
   if (showInvite && inviteIndex === null) items.push(renderInvite());
 
@@ -260,7 +336,10 @@ export function MovementPhasesEditor({
     </View>
   );
 
-  /** PRE-9 A.2b : durée par défaut de la phase, à droite du libellé. */
+  /**
+   * PRE-9 A.2b : durée par défaut de la phase, à droite du libellé. Recette iPhone n° 2 du 31/10 :
+   * cellule saisie au clavier numérique (`KeyboardField` `cellDuration`), appliquée à chaque frappe.
+   */
   function renderDuration(phaseId: number, seconds: number | null, rank: string) {
     const shown = seconds === null ? null : formatPhraseDuration(seconds);
     if (!editable) {
@@ -270,61 +349,38 @@ export function MovementPhasesEditor({
         </Text>
       );
     }
-    const slop = (minTouchTarget - DURATION_TOUCH_HEIGHT) / 2;
+    const focused = activeDuration === phaseId;
     return (
-      <Pressable
-        onPress={() => {
-          Keyboard.dismiss();
-          setDurationOpen((current) => (current === phaseId ? null : phaseId));
+      <KeyboardField
+        mode="cellDuration"
+        displayValue={shown ?? t.durationPrompt}
+        spokenDisplayValue={shown ?? t.durationNone}
+        editText={seconds === null ? "" : mmssDigitsOf(seconds)}
+        active={focused}
+        onFocus={() => {
+          focusedKey.current = phaseId;
+          setActive(true);
+          setActiveDuration(phaseId);
+          reportActive(phaseId);
         }}
-        accessibilityRole="button"
-        accessibilityLabel={`${t.durationAccessibility.replace("{rank}", rank)}, ${shown ?? t.durationNone}`}
-        accessibilityState={{ expanded: openDurationPhase === phaseId }}
-        hitSlop={{ top: slop, bottom: slop }}
+        onBlur={() => {
+          setActiveDuration((current) => (current === phaseId ? null : current));
+          setActive(false);
+        }}
+        onChangeText={(text) =>
+          onChange(setMovementPhaseDuration(value, phaseId, cellDurationSeconds(text, WORK_PATTERN_DURATION_BOUNDS)))
+        }
+        onSubmitEditing={() => focusNextLine(phaseId)}
+        inputRef={(node) => {
+          if (node) durationInputs.current.set(phaseId, node);
+          else durationInputs.current.delete(phaseId);
+        }}
+        accessibilityLabel={t.durationAccessibility.replace("{rank}", rank)}
+        hitSlop={DURATION_HIT_SLOP}
         style={styles.durationButton}
+        valueStyle={[styles.duration, shown === null && !focused ? styles.durationPrompt : null]}
         testID={`${testID}-duration-${rank}`}
-      >
-        <Text style={[styles.duration, shown === null ? styles.durationPrompt : null]}>{shown ?? t.durationPrompt}</Text>
-      </Pressable>
-    );
-  }
-
-  /** PRE-9 A.2b : roulette de durée sous la ligne de la phase ; ✓ applique, ✕ ferme sans rien changer. */
-  function renderDurationWheel(phaseId: number, rank: string) {
-    const phase = phases.find((candidate) => candidate.id === phaseId);
-    const current = phase === undefined ? null : movementPhaseDefaultDuration(phase);
-    const wheelLabels = strings.screens.exercise.wheelPicker;
-    return (
-      <View key={`duration-${phaseId}`} style={styles.wheel} testID={`${testID}-duration-wheel-${rank}`}>
-        <DurationWheelPicker
-          totalSeconds={current ?? 0}
-          targetBounds={WORK_PATTERN_DURATION_BOUNDS}
-          title={t.durationWheelTitle}
-          onValidate={(seconds) => {
-            setDurationOpen(null);
-            onChange(setMovementPhaseDuration(value, phaseId, seconds));
-          }}
-          onCancel={() => setDurationOpen(null)}
-          minutesAccessibilityLabel={wheelLabels.minutesAccessibilityLabel}
-          secondsAccessibilityLabel={wheelLabels.secondsAccessibilityLabel}
-          cancelAccessibilityLabel={wheelLabels.cancelAccessibilityLabel}
-          validateAccessibilityLabel={wheelLabels.validateAccessibilityLabel}
-        />
-        {current !== null ? (
-          <Pressable
-            onPress={() => {
-              setDurationOpen(null);
-              onChange(setMovementPhaseDuration(value, phaseId, null));
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t.durationClear}
-            style={styles.clearButton}
-            testID={`${testID}-duration-clear-${rank}`}
-          >
-            <Text style={styles.clearLabel}>{t.durationClear}</Text>
-          </Pressable>
-        ) : null}
-      </View>
+      />
     );
   }
 
@@ -420,19 +476,6 @@ const styles = StyleSheet.create({
   },
   durationPrompt: {
     color: PROMPT_COLOR,
-  },
-  wheel: {
-    alignItems: "center",
-    gap: spacing[8],
-  },
-  clearButton: {
-    minHeight: minTouchTarget,
-    justifyContent: "center",
-    paddingHorizontal: spacing[8],
-  },
-  clearLabel: {
-    ...type.body,
-    color: colors.primary,
   },
   text: {
     ...type.body,

@@ -64,6 +64,7 @@ import {
   removeLayoutExercise,
   stepLayoutItem,
   stepLayoutStopPoint,
+  type LayoutContainerRef,
   type LayoutDropControl,
   type LayoutItemMoveOutcome,
   type LayoutItemMoveRefusal,
@@ -154,15 +155,32 @@ import {
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
 import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
-import { CardMotionBlock, LayoutDropLine, useBlockDragGesture, VanishingBlock, type CardMotionMode } from "@/features/sessions/LayoutDragParts";
+import { CardMotionBlock, useBlockDragGesture, VanishingBlock, type CardMotionMode } from "@/features/sessions/LayoutDragParts";
 import {
   layoutHeaderKey,
   layoutItemKey,
+  layoutStopBoxKey,
   resolveLayoutDrop,
   sameLayoutDrop,
   type LayoutBox,
   type LayoutDropTarget,
 } from "@/features/sessions/layoutDrop";
+import {
+  layoutBlockShiftKey,
+  layoutDragShifts,
+  layoutEdgeShiftKey,
+  layoutSessionRailLinks,
+  layoutSettleOffset,
+  layoutShiftKeys,
+  layoutShiftPieces,
+  liftedPiece,
+  liftedShiftKey,
+  sameLayoutDragShifts,
+  type LayoutDragShifts,
+  type LayoutLiftedSource,
+  type LayoutRailLink,
+  type LayoutShiftPiece,
+} from "@/features/sessions/layoutDragShifts";
 import { CycleHeader } from "@/features/sessions/CycleHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
 import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
@@ -251,7 +269,7 @@ import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { TourBoundaryChoiceDialog } from "@/features/sessions/TourBoundaryChoiceDialog";
-import { type AnimatedShiftRegistry, type ShiftRelease, useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
+import { type AnimatedShiftRegistry, nativeShiftKey, type ShiftRelease, useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { type DragAutoScroll, useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import {
@@ -2417,24 +2435,132 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // ---------------------------------------------------------------------------
   /** Boîtes mesurées des éléments et en-têtes rendus (repère du contenu défilant). */
   const layoutBoxesRef = useRef(new Map<string, LayoutBox>());
-  const reportLayoutBox = useCallback((key: string, box: LayoutBox | null) => {
-    if (box === null) layoutBoxesRef.current.delete(key);
-    else layoutBoxesRef.current.set(key, box);
-  }, []);
   const richLayoutRef = useRef(richLayout);
   useLayoutEffect(() => {
     richLayoutRef.current = richLayout;
   });
   /**
-   * Élément saisi et destination éclairée (rendu) ; la référence porte aussi l'ordonnée de saisie.
+   * Recette iPhone n° 2 du 31/10/2026 (Hermann : « le comportement tel qu'il a été défini initialement
+   * […] : déplacement des bords des circuits / cycle et déplacement des cartes pour faire la place à la
+   * carte déplacée ») : éléments affichés de la disposition, dans l'ordre d'affichage — chacun reçoit
+   * une translation de l'aperçu (`layoutDragShifts.ts`), registre partagé de l'ancien modèle.
+   */
+  const layoutPieces = useMemo(
+    () => (richLayout === null ? NO_LAYOUT_PIECES : layoutShiftPieces(richLayout, (exercise) => exercise.id)),
+    [richLayout],
+  );
+  const layoutPiecesRef = useRef(layoutPieces);
+  useLayoutEffect(() => {
+    layoutPiecesRef.current = layoutPieces;
+  });
+  /** Bords des conteneurs : posés à leur place au dépôt (leur fond s'étire sur la hauteur mesurée), comme `CIRCUIT_EDGE_KEYS`. */
+  const layoutEdgeKeys = useMemo<ReadonlySet<string>>(
+    () =>
+      new Set(
+        layoutPieces.flatMap((piece) =>
+          piece.kind === "CIRCUIT" || piece.kind === "CYCLE" ? [nativeShiftKey(piece.topKey), nativeShiftKey(piece.bottomKey)] : [],
+        ),
+      ),
+    [layoutPieces],
+  );
+  const layoutEdgeKeysRef = useRef(layoutEdgeKeys);
+  useLayoutEffect(() => {
+    layoutEdgeKeysRef.current = layoutEdgeKeys;
+  });
+  /**
+   * Élément saisi (rendu) : en glisser, tenu pendant un dialogue (perte, choix de Tour), ou en retour
+   * jusqu'à sa place ; la référence porte l'ordonnée de saisie et la destination courante.
    * PRE-9 B.6 (D-441, ARB-06) : `stopPointId` — Point d'arrêt saisi (la source est alors un repère
    * d'Exercice fictif : un Point peut aller partout où un Exercice irait, chaque emplacement d'un
-   * conteneur étant un emplacement de Point).
+   * conteneur étant un emplacement de Point). [B.4 : destination « éclairée » (cadre, repère
+   * d'insertion) — remplacé par la recette iPhone n° 2 du 31/10/2026 : aperçu par décalages.]
    */
-  const [layoutDrag, setLayoutDrag] = useState<{ readonly source: LayoutItemRef; readonly target: LayoutDropTarget | null; readonly stopPointId?: string } | null>(null);
-  const layoutDragRef = useRef<{ readonly source: LayoutItemRef; readonly handleY: number; target: LayoutDropTarget | null; readonly stopPointId?: string } | null>(null);
+  const [layoutLift, setLayoutLift] = useState<LayoutLift | null>(null);
+  const layoutLiftRef = useRef(layoutLift);
+  useLayoutEffect(() => {
+    layoutLiftRef.current = layoutLift;
+  });
+  const layoutDragRef = useRef<LayoutDragGesture | null>(null);
+  /** Recette n° 2 : pose de départ de la carte ou du Point relâché (story 5.2b), consommée par le registre. */
+  const [layoutRelease, setLayoutRelease] = useState<ShiftRelease | null>(null);
+  /** Aperçu du geste en cours, recalculé (destination ou mesure changée) ; l'état ne change que si les translations changent. */
+  const refreshLayoutShifts = useCallback(() => {
+    const current = layoutDragRef.current;
+    if (current === null) return;
+    const slot = current.target;
+    const next =
+      slot === null
+        ? null
+        : layoutDragShifts(layoutPiecesRef.current, layoutBoxesRef.current, current.lifted, {
+            insertY: slot.insertY,
+            insertTop: slot.insertTop,
+            gap: layoutContainerGap(slot.container),
+          });
+    if (sameLayoutDragShifts(next, current.shifts)) return;
+    current.shifts = next;
+    setLayoutLift((lift) => (lift === null || lift.phase !== "DRAGGING" ? lift : { ...lift, shifts: next }));
+  }, []);
+  const reportLayoutBox = useCallback(
+    (key: string, box: LayoutBox | null) => {
+      if (box === null) layoutBoxesRef.current.delete(key);
+      else layoutBoxesRef.current.set(key, box);
+      // Recette n° 2 : une mesure changée pendant le geste (Circuit saisi qui se replie) recalcule l'aperçu.
+      if (box !== null && layoutDragRef.current !== null) refreshLayoutShifts();
+    },
+    [refreshLayoutShifts],
+  );
+  /**
+   * Recette n° 2 (PRE-6 stories 5.2b, 7.4, 7.6) : suite visuelle du lâcher — `hold` : dialogue ouvert,
+   * l'élément reste où le doigt l'a laissé et l'aperçu est conservé ; `release` : rien n'est appliqué,
+   * retour animé à sa place ; `applied` : la nouvelle disposition est rendue avec des translations
+   * nulles, sauf l'élément déposé, posé sous le lâcher puis amené à sa place. Un Circuit ou un Cycle
+   * lâché est aussitôt porté par la translation du registre (`pose`), qui relaie celle du doigt.
+   */
+  const layoutSettleFor = useCallback((current: LayoutDragGesture, translationY: number): LayoutSettle => {
+    const piece = liftedPiece(layoutPiecesRef.current, current.lifted.boxKey);
+    const key = piece === undefined ? null : liftedShiftKey(piece);
+    const block = piece !== undefined && (piece.kind === "CIRCUIT" || piece.kind === "CYCLE");
+    const slot = current.target;
+    const offset =
+      slot === null
+        ? null
+        : layoutSettleOffset(
+            layoutBoxesRef.current,
+            current.lifted,
+            { insertY: slot.insertY, insertTop: slot.insertTop, gap: layoutContainerGap(slot.container) },
+            translationY,
+          );
+    if (block && key !== null) shiftRegistryRef.current?.pose(nativeShiftKey(key), translationY);
+    let held = false;
+    const toPhase = (phase: "HELD" | "SETTLING") =>
+      setLayoutLift((lift) =>
+        lift === null
+          ? null
+          : { ...lift, phase, shifts: phase === "HELD" ? lift.shifts : null, heldTranslationY: phase === "HELD" ? translationY : null },
+      );
+    return {
+      hold: () => {
+        held = true;
+        if (!block && key !== null) setLayoutRelease({ key: nativeShiftKey(key), from: translationY });
+        toPhase("HELD");
+      },
+      release: () => {
+        if (!held && !block && key !== null) setLayoutRelease({ key: nativeShiftKey(key), from: translationY });
+        toPhase("SETTLING");
+      },
+      applied: () => {
+        if (key !== null && offset !== null) shiftRegistryRef.current?.prepareLayoutCommit(new Map([[nativeShiftKey(key), offset]]), layoutEdgeKeysRef.current);
+        else shiftRegistryRef.current?.prepareLayoutCommit();
+        toPhase("SETTLING");
+      },
+    };
+  }, []);
   /** Déplacement avec perte de séries en attente (COMP §6 : Annuler conserve tout ; Confirmer applique ensemble). */
-  const [pendingLayoutMove, setPendingLayoutMove] = useState<{ readonly run: () => LayoutItemMoveOutcome; readonly targetCount: number } | null>(null);
+  const [pendingLayoutMove, setPendingLayoutMove] = useState<{
+    readonly run: () => LayoutItemMoveOutcome;
+    readonly targetCount: number;
+    readonly settle?: LayoutSettle;
+  } | null>(null);
   const handleVanished = useCallback((key: string) => setVanishing((current) => current.filter((item) => item.key !== key)), []);
   const announceLayoutRefusal = useCallback((reason: LayoutItemMoveRefusal) => {
     const text = strings.screens.composition.layoutMove.refused[reason];
@@ -2462,36 +2588,50 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * début et de fin de Tour (ou de répétition) ouvre le choix, puis l'opération est rejouée sur le
    * brouillon courant avec la résolution choisie (« Annuler » : rien ne change).
    */
-  const runLayoutMoveRef = useRef<(run: () => LayoutItemMoveOutcome) => void>(() => {});
+  // Recette n° 2 du 31/10 : `settle` — suite visuelle d'une dépose (voir `layoutSettleFor`) ; absente
+  // pour un pas à pas.
+  const runLayoutMoveRef = useRef<(run: () => LayoutItemMoveOutcome, settle?: LayoutSettle) => void>(() => {});
   const runLayoutMove = useCallback(
-    (run: () => LayoutItemMoveOutcome) => {
+    (run: () => LayoutItemMoveOutcome, settle?: LayoutSettle) => {
       const outcome = run();
       switch (outcome.status) {
         case "APPLIED":
+          settle?.applied();
           commitLayoutMove(outcome.draft, outcome.removedContainers);
           reportRemovedStopPoints(outcome.removedStopPointIds);
           return;
         case "CONFIRMATION_REQUIRED":
           // Confirmation demandée par le seul contrôle avant dépose : dialogue propre à C.4 (ARB-24) ;
           // d'ici là, aucun contrôle ne la demande (contrôle neutre) — refus sans modification.
-          if (outcome.losses.length > 0) setPendingLayoutMove({ run, targetCount: outcome.targetCount });
-          else announceLayoutRefusal("CONTROL");
+          if (outcome.losses.length > 0) {
+            settle?.hold();
+            setPendingLayoutMove({ run, targetCount: outcome.targetCount, ...(settle !== undefined ? { settle } : {}) });
+          } else {
+            settle?.release();
+            announceLayoutRefusal("CONTROL");
+          }
           return;
-        case "CHOICE_REQUIRED":
-          openTourChoice({
+        case "CHOICE_REQUIRED": {
+          const opened = openTourChoice({
             kind: "LAYOUT",
             scope: outcome.conflict.scope.kind,
             apply: (choice) =>
               runLayoutMoveRef.current(() => {
                 const replay = run();
                 return replay.status === "CHOICE_REQUIRED" ? replay.resolutions[choice] : replay;
-              }),
+              }, settle),
+            cancel: () => settle?.release(),
           });
+          if (opened) settle?.hold();
+          else settle?.release();
           return;
+        }
         case "REFUSED":
+          settle?.release();
           announceLayoutRefusal(outcome.reason);
           return;
         case "UNCHANGED":
+          settle?.release();
           return;
         default: {
           const unreachable: never = outcome;
@@ -2507,39 +2647,51 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   /**
    * PRE-9 B.6 (D-441, ARB-06) : issue d'un déplacement de Point d'arrêt (dépose, « Monter » /
    * « Descendre ») — appliqué ; choix de début ou de fin de répétition ; refus annoncé sans mutation.
+   * Recette n° 2 du 31/10 : `settle`, comme pour un élément.
    */
   const runLayoutStopPointMove = useCallback(
-    (run: () => LayoutStopPointMoveOutcome, focusId?: string) => {
+    (run: () => LayoutStopPointMoveOutcome, focusId?: string, settle?: LayoutSettle) => {
       const outcome = run();
       switch (outcome.status) {
         case "APPLIED":
+          settle?.applied();
           updateDraft(() => outcome.draft);
           if (focusId !== undefined) requestItemFocus(layoutStopFocusKey(focusId));
           return;
-        case "CHOICE_REQUIRED":
-          openTourChoice({
+        case "CHOICE_REQUIRED": {
+          const opened = openTourChoice({
             kind: "LAYOUT",
             scope: outcome.conflict.scope.kind,
             apply: (choice) => {
               const replay = run();
               if (replay.status === "CHOICE_REQUIRED") {
                 const next = replay.resolutions[choice];
+                settle?.applied();
                 updateDraft(() => next);
                 const kept = (next.structure?.stopPoints ?? []).length;
                 const before = (draftRef.current.structure?.stopPoints ?? []).length;
                 if (kept < before) AccessibilityInfo.announceForAccessibility(removedStopPointsAnnouncement(before - kept));
               } else if (replay.status === "APPLIED") {
+                settle?.applied();
                 updateDraft(() => replay.draft);
+              } else {
+                settle?.release();
               }
             },
+            cancel: () => settle?.release(),
           });
+          if (opened) settle?.hold();
+          else settle?.release();
           return;
+        }
         case "REFUSED":
+          settle?.release();
           if (outcome.reason !== "NOT_FOUND" && outcome.reason !== "AT_BOUNDARY") {
             AccessibilityInfo.announceForAccessibility(strings.screens.composition.layoutMove.stopPointRefused);
           }
           return;
         case "UNCHANGED":
+          settle?.release();
           return;
         default: {
           const unreachable: never = outcome;
@@ -2551,14 +2703,40 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
   const startLayoutDrag = useCallback(
     (source: LayoutItemRef, stopPointId?: string): boolean => {
-      // PRE-9 B.5 : ni pendant une suppression animée (mise en page figée).
+      // PRE-9 B.5 : ni pendant une suppression animée (mise en page figée). Recette n° 2 : ni pendant
+      // qu'un élément lâché est tenu (dialogue).
       if (layoutDragRef.current !== null || richLayoutRef.current === null || layoutDeletionRef.current !== null) return false;
+      if (layoutLiftRef.current?.phase === "HELD") return false;
       const handleKey =
         stopPointId !== undefined ? layoutStopBoxKey(stopPointId) : source.kind === "EXERCISE" ? layoutItemKey(source) : layoutHeaderKey(source.kind, source.id);
       const handle = layoutBoxesRef.current.get(handleKey);
       if (handle === undefined) return false;
-      layoutDragRef.current = { source, handleY: handle.top + handle.height / 2, target: null, ...(stopPointId !== undefined ? { stopPointId } : {}) };
-      setLayoutDrag({ source, target: null, ...(stopPointId !== undefined ? { stopPointId } : {}) });
+      // Boîte de l'élément saisi (sa place dans la disposition) et écart du conteneur qu'il quitte.
+      const boxKey = stopPointId !== undefined ? layoutStopBoxKey(stopPointId) : layoutItemKey(source);
+      const box = layoutBoxesRef.current.get(boxKey);
+      const piece = liftedPiece(layoutPiecesRef.current, boxKey);
+      if (box === undefined || piece === undefined) return false;
+      // Story 5.2b : un nouveau geste pendant un retour arrête ce retour (translations à 0, synchrone).
+      if (layoutLiftRef.current !== null) shiftRegistryRef.current?.reset();
+      const lifted: LayoutLiftedSource = { boxKey, gap: layoutContainerGap(piece.container) };
+      layoutDragRef.current = {
+        source,
+        handleY: handle.top + handle.height / 2,
+        target: null,
+        lifted,
+        shifts: null,
+        ...(stopPointId !== undefined ? { stopPointId } : {}),
+      };
+      setLayoutLift({
+        source,
+        stopPointId: stopPointId ?? null,
+        phase: "DRAGGING",
+        shifts: null,
+        heldTranslationY: null,
+        sourceBoxKey: boxKey,
+        sourceKey: liftedShiftKey(piece),
+        height: box.height,
+      });
       closeCircuitControls();
       setRevealedActionsId(null);
       autoScroll.begin();
@@ -2575,43 +2753,75 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     },
     [autoScroll, closeCircuitControls],
   );
-  const moveLayoutDrag = useCallback((translationY: number) => {
-    const current = layoutDragRef.current;
-    const layout = richLayoutRef.current;
-    if (current === null || layout === null) return;
-    const target = resolveLayoutDrop(layout, current.source, current.handleY + translationY, layoutBoxesRef.current, (exercise) => exercise.id);
-    if (sameLayoutDrop(target, current.target) && target?.lineY === current.target?.lineY) return;
-    current.target = target;
-    setLayoutDrag({ source: current.source, target, ...(current.stopPointId !== undefined ? { stopPointId: current.stopPointId } : {}) });
-  }, []);
+  const moveLayoutDrag = useCallback(
+    (translationY: number) => {
+      const current = layoutDragRef.current;
+      const layout = richLayoutRef.current;
+      if (current === null || layout === null) return;
+      const target = resolveLayoutDrop(
+        layout,
+        current.source,
+        current.handleY + translationY,
+        layoutBoxesRef.current,
+        (exercise) => exercise.id,
+        layoutContainerGap,
+      );
+      if (!(sameLayoutDrop(target, current.target) && target?.lineY === current.target?.lineY)) current.target = target;
+      // Recette n° 2 : la place visée s'ouvre, celle de l'élément saisi se referme (registre animé).
+      refreshLayoutShifts();
+    },
+    [refreshLayoutShifts],
+  );
   const endLayoutDrag = useCallback(
     (translationY: number) => {
       moveLayoutDrag(translationY);
       const current = layoutDragRef.current;
       layoutDragRef.current = null;
       autoScroll.end();
-      setLayoutDrag(null);
+      if (current === null) return;
+      const settle = layoutSettleFor(current, translationY);
       // `dropTarget` : emplacement de dépose (B.4), à ne pas confondre avec la Cible d'une série
       // (garde PRE4-1.1/AC1 de `legacyModeConfinement`).
-      const dropTarget = current === null ? null : current.target;
-      if (current === null || dropTarget === null) return;
+      const dropTarget = current.target;
+      if (dropTarget === null) {
+        settle.release();
+        return;
+      }
       const stopPointId = current.stopPointId;
       if (stopPointId !== undefined) {
-        // PRE-9 B.6 (ARB-06) : le Point va à l'emplacement (conteneur, rang) éclairé, selon ses règles.
-        runLayoutStopPointMove(() =>
-          moveLayoutStopPoint(draftRef.current, stopPointId, stopPointLocationIn(dropTarget.container, dropTarget.index), () => Crypto.randomUUID()),
+        // PRE-9 B.6 (ARB-06) : le Point va à l'emplacement (conteneur, rang) visé, selon ses règles.
+        runLayoutStopPointMove(
+          () => moveLayoutStopPoint(draftRef.current, stopPointId, stopPointLocationIn(dropTarget.container, dropTarget.index), () => Crypto.randomUUID()),
+          undefined,
+          settle,
         );
         return;
       }
-      runLayoutMove(() => moveLayoutItem(draftRef.current, current.source, dropTarget, () => Crypto.randomUUID(), LAYOUT_DROP_CONTROL));
+      runLayoutMove(() => moveLayoutItem(draftRef.current, current.source, dropTarget, () => Crypto.randomUUID(), LAYOUT_DROP_CONTROL), settle);
     },
-    [autoScroll, moveLayoutDrag, runLayoutMove, runLayoutStopPointMove],
+    [autoScroll, layoutSettleFor, moveLayoutDrag, runLayoutMove, runLayoutStopPointMove],
   );
-  const cancelLayoutDrag = useCallback(() => {
-    layoutDragRef.current = null;
-    autoScroll.end();
-    setLayoutDrag(null);
-  }, [autoScroll]);
+  const cancelLayoutDrag = useCallback(
+    (translationY = 0) => {
+      const current = layoutDragRef.current;
+      layoutDragRef.current = null;
+      autoScroll.end();
+      // Story 5.2b : geste interrompu — retour en douceur depuis la position atteinte.
+      if (current !== null) layoutSettleFor(current, translationY).release();
+    },
+    [autoScroll, layoutSettleFor],
+  );
+  /** Recette n° 2 : fin du retour (ou de la mise en place) de l'élément lâché — il rejoint la chaîne du rail. */
+  useEffect(() => {
+    if (layoutLift === null || layoutLift.phase !== "SETTLING") return undefined;
+    const settling = layoutLift;
+    const registry = shiftRegistryRef.current;
+    if (registry === null) {
+      setLayoutLift((current) => (current === settling ? null : current));
+      return undefined;
+    }
+    return registry.whenSettled(() => setLayoutLift((current) => (current === settling ? null : current)));
+  }, [layoutLift]);
   /** `stepOccurrence` généralisé (« Monter » / « Descendre »), `null` à la frontière de la séquence. */
   const layoutStepAction = useCallback(
     (source: LayoutItemRef, direction: "UP" | "DOWN"): (() => void) | null => {
@@ -2729,17 +2939,38 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     }
     setLayoutCardMotion((current) => (current?.id === id && current.mode === "APPEARING" ? null : current));
   }, []);
-  // PRE-9 B.6 : un Point d'arrêt saisi est porté par un repère d'Exercice fictif (voir `layoutDrag`).
+  // PRE-9 B.6 : un Point d'arrêt saisi est porté par un repère d'Exercice fictif (voir `layoutLift`).
   const startLayoutStopPointDrag = useCallback((stopPointId: string) => startLayoutDrag(STOP_POINT_DRAG_SOURCE, stopPointId), [startLayoutDrag]);
+  /** Élément en cours de glisser (aspect soulevé, suivi du doigt) ; tenu ou en retour : `layoutLiftView`. */
+  const draggingSource = layoutLift !== null && layoutLift.phase === "DRAGGING" ? layoutLift.source : null;
+  const draggingStopPointId = layoutLift !== null && layoutLift.phase === "DRAGGING" ? layoutLift.stopPointId : null;
+  const liftSource = layoutLift?.source ?? null;
+  const liftStopPointId = layoutLift?.stopPointId ?? null;
+  const liftDragging = layoutLift?.phase === "DRAGGING";
+  const liftSourceBoxKey = layoutLift?.sourceBoxKey ?? null;
+  const liftSourceKey = layoutLift?.sourceKey ?? null;
+  const liftHeight = layoutLift?.height ?? 0;
+  /** Recette n° 2 : élément saisi, tenu ou en retour (premier plan, hors de la chaîne du rail). */
+  const layoutLiftView = useMemo<LayoutLiftView | null>(
+    () => (liftSource === null || liftSourceKey === null ? null : { source: liftSource, stopPointId: liftStopPointId, dragging: liftDragging, sourceKey: liftSourceKey }),
+    [liftDragging, liftSource, liftSourceKey, liftStopPointId],
+  );
+  /**
+   * Recette n° 2 (PRE-6 story 5.2) : liens du rail au niveau Séance ; l'élément saisi, tenu ou en retour
+   * sort de la chaîne (son successeur se relie à travers sa place).
+   */
+  const layoutSessionLinks = useMemo(
+    () => layoutSessionRailLinks(layoutPieces, liftSourceBoxKey === null ? null : { boxKey: liftSourceBoxKey, extra: liftHeight + SEQUENCE_GAP }),
+    [layoutPieces, liftHeight, liftSourceBoxKey],
+  );
   const layoutDragContext = useMemo<LayoutDragContext | null>(
     () =>
       // PRE-9 B.6 : ni glisser ni pas à pas en placement (seuls les emplacements répondent).
       richLayout === null || envelope !== null || placement !== null || pendingLayoutMove !== null || pendingNatureChange !== null
         ? null
         : {
-            source: layoutDrag?.source ?? null,
-            target: layoutDrag === null ? null : layoutDrag.target,
-            stopPointId: layoutDrag?.stopPointId ?? null,
+            source: draggingSource,
+            stopPointId: draggingStopPointId,
             reportBox: reportLayoutBox,
             onStart: startLayoutDrag,
             onStartStopPoint: startLayoutStopPointDrag,
@@ -2752,8 +2983,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [
       cancelLayoutDrag,
       endLayoutDrag,
+      draggingSource,
+      draggingStopPointId,
       envelope,
-      layoutDrag,
       layoutStepAction,
       layoutStopPointStepAction,
       moveLayoutDrag,
@@ -3192,9 +3424,24 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     targets.set(RAIL_KEYS.circuitEnd, shifts.circuitBottom);
     targets.set(RAIL_KEYS.afterCircuit, shifts.afterCircuit);
     targets.set(RAIL_KEYS.end, shifts.end);
+    // Recette iPhone n° 2 du 31/10/2026 : disposition générale — cartes, Points d'arrêt, bords et blocs
+    // des Circuits et des Cycles (au repos : 0 ; aperçu du glisser : `layoutDragShifts`), Fin de séance ;
+    // l'élément lâché tenu pendant un dialogue reste où le doigt l'a laissé.
+    if (layoutPieces.length > 0) {
+      // Valeurs natives dès leur création (`nativeShiftKey`, espace propre à la disposition générale).
+      for (const key of layoutShiftKeys(layoutPieces)) targets.set(nativeShiftKey(key), layoutLift?.shifts?.shifts.get(key) ?? 0);
+      targets.set(nativeShiftKey(RAIL_KEYS.start), 0);
+      targets.set(nativeShiftKey(RAIL_KEYS.end), layoutLift?.shifts?.end ?? 0);
+      if (layoutLift !== null && layoutLift.heldTranslationY !== null) targets.set(nativeShiftKey(layoutLift.sourceKey), layoutLift.heldTranslationY);
+    }
     return targets;
-  }, [deletionShifts, dragPreview, dragShifts, zoneItems]);
-  const shiftRegistry = useAnimatedShiftRegistry(railShiftTargets, animateDragShifts, dragSession.release);
+  }, [deletionShifts, dragPreview, dragShifts, layoutLift, layoutPieces, zoneItems]);
+  // Recette n° 2 : la disposition générale anime toujours ses translations (aperçu, retour, mise en place).
+  const shiftRegistry = useAnimatedShiftRegistry(
+    railShiftTargets,
+    animateDragShifts || (richLayout !== null && !reduceMotion),
+    richLayout !== null ? layoutRelease : dragSession.release,
+  );
   // Story 5.2b : accès du début de geste (`handleRowDragStart`, déclaré plus haut) au registre.
   useLayoutEffect(() => {
     shiftRegistryRef.current = shiftRegistry;
@@ -3287,10 +3534,25 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     (key: string) => shiftRegistry.value(key, railShiftTargets.get(key) ?? 0),
     [railShiftTargets, shiftRegistry],
   );
+  /**
+   * Recette n° 2 du 31/10 : translations d'une disposition générale, dans leur propre espace de clés
+   * (`nativeShiftKey`) — les composants demandent les clés de l'ancien modèle (`railRowKey`…).
+   */
+  const layoutShiftOf = useCallback((key: string) => railShiftOf(nativeShiftKey(key)), [railShiftOf]);
+  /**
+   * Recette n° 2 du 31/10 : rail des cartes d'une disposition générale — liens étirables au niveau
+   * Séance ; carte saisie, tenue ou en retour hors de la chaîne (story 5.2b).
+   */
+  const layoutCardSkipKey = layoutLift === null || layoutLift.stopPointId !== null || layoutLift.source.kind !== "EXERCISE" ? null : layoutLift.sourceKey;
+  const layoutSessionRail = useMemo<SequenceRailContext>(
+    () => ({ links: cardRailLinks(layoutSessionLinks), shiftOf: layoutShiftOf, skippedKeys: skippedKeysOf(layoutCardSkipKey) }),
+    [layoutCardSkipKey, layoutSessionLinks, layoutShiftOf],
+  );
   const circuitTopShift = railShiftOf(RAIL_KEYS.circuitHeader);
   const circuitBottomShift = railShiftOf(RAIL_KEYS.circuitEnd);
   const afterCircuitShift = railShiftOf(RAIL_KEYS.afterCircuit);
-  const endShift = railShiftOf(RAIL_KEYS.end);
+  // Recette n° 2 : disposition générale — Fin de séance dans l'espace de la disposition.
+  const endShift = richLayout !== null ? layoutShiftOf(RAIL_KEYS.end) : railShiftOf(RAIL_KEYS.end);
   /**
    * PRE-6 (story 5.2) : liens du rail segmenté (`resolveRailLinks`, fonction pure) — ordre affiché et
    * écarts de conception ; les translations du glisser sont appliquées par les valeurs animées du
@@ -3911,7 +4173,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       isPlacementActive={isPlacementActive}
       // PRE-9 B.6 : « Ajouter un arrêt » s'applique aussi à une disposition générale. [B.1b : « ||
       // richLayout !== null » (placement indisponible) — retiré le 31/10/2026 par B.6.]
-      isAddStopDisabled={!hasPlacementOffer || draggedKey !== null || layoutDrag !== null}
+      isAddStopDisabled={!hasPlacementOffer || draggedKey !== null || layoutLift !== null}
       addStopFocusRequest={addStopFocusRequest}
       addStopAccessibilityHint={addStopAccessibilityHint}
       testID="composition-context-header"
@@ -4018,7 +4280,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // défilement PAR L'UTILISATEUR est neutralisé — le geste vertical appartient alors
         // exclusivement à la carte soulevée, jamais à la liste. PRE-6 story 7.4 : la liste défile
         // alors seulement d'elle-même, près de ses bords (`useDragAutoScroll`).
-        scrollEnabled={draggedKey === null && layoutDrag === null}
+        scrollEnabled={draggedKey === null && draggingSource === null}
         // Story 7.4 : décalage, contenu et zone visible du défilement automatique.
         onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
         scrollEventThrottle={16}
@@ -4084,7 +4346,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             categoriesReferential={categoriesReferential}
             levelPositions={levelPositions}
             onEdit={handleEditActivity}
-            railShiftOf={railShiftOf}
+            railShiftOf={layoutShiftOf}
             autoScroll={autoScroll}
             envelope={envelopeContext}
             appearingCycleIds={appearingCycleIds}
@@ -4096,6 +4358,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             stops={layoutStops}
             cardMotion={layoutCardMotion}
             onCardMotionDone={handleLayoutCardMotionDone}
+            lift={layoutLiftView}
+            sessionLinks={layoutSessionLinks}
+            sessionRail={layoutSessionRail}
             panelRight={styles.bodyContent.paddingRight}
           />
         ) : null}
@@ -4467,12 +4732,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           </PlacementAttenuation>
           <BoundaryRail kind="end" railCenterX={RAIL_CENTER_X_IN_COLUMN} testID="composition-boundary-final-phase" />
           {/* PRE-6 (story 5.2) : lien de Fin de séance, hors atténuation, jusqu'au haut de son anneau. */}
-          {/* PRE-9 B.1b : disposition générale — rail simplifié, lien fixe à travers l'écart de la séquence. */}
+          {/* PRE-9 B.1b : disposition générale — lien à travers l'écart de la séquence. Recette n° 2 du
+              31/10 : il s'étire avec les translations de l'aperçu (dernier élément du niveau Séance). */}
           {richLayout !== null ? (
-            <RailSegment
+            <RailLink
               centerX={RAIL_CENTER_X_IN_COLUMN}
-              top={-SEQUENCE_GAP}
-              height={SEQUENCE_GAP + BOUNDARY_RING_TOP}
+              entryY={BOUNDARY_RING_TOP}
+              length={SEQUENCE_GAP + BOUNDARY_RING_TOP + (layoutSessionLinks.get(RAIL_KEYS.end)?.extra ?? 0)}
+              shift={endShift}
+              prevShift={layoutShiftOf(layoutSessionLinks.get(RAIL_KEYS.end)?.prevKey ?? RAIL_KEYS.end)}
               testID="composition-rail-link-end"
             />
           ) : endRailLink !== null ? (
@@ -4713,16 +4981,23 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           kind="MOVE"
           seriesCount={pendingLayoutMove.targetCount}
           exerciseCount={1}
-          onCancel={() => setPendingLayoutMove(null)}
+          onCancel={() => {
+            // Recette n° 2 du 31/10 (story 5.2b) : l'élément tenu revient à sa place en douceur.
+            pendingLayoutMove.settle?.release();
+            setPendingLayoutMove(null);
+          }}
           onConfirm={() => {
             const outcome = pendingLayoutMove.run();
             setPendingLayoutMove(null);
             if (outcome.status === "APPLIED" || outcome.status === "CONFIRMATION_REQUIRED") {
+              // Recette n° 2 (story 7.6) : l'élément tenu glisse jusqu'à sa place.
+              pendingLayoutMove.settle?.applied();
               commitLayoutMove(outcome.draft, outcome.removedContainers);
               // PRE-9 B.6 (D-442) : Points retirés sans message, annonce discrète.
               reportRemovedStopPoints(outcome.removedStopPointIds);
-            } else if (outcome.status === "REFUSED") {
-              announceLayoutRefusal(outcome.reason);
+            } else {
+              pendingLayoutMove.settle?.release();
+              if (outcome.status === "REFUSED") announceLayoutRefusal(outcome.reason);
             }
           }}
         />
@@ -5690,6 +5965,23 @@ function StopPointRow({
           centerY={STOP_POINT_LINE_HEIGHT / 2}
           testID={`composition-rail-dot-stop-${point.id}`}
         />
+      ) : rail.skippedKeys.has(railKey) ? (
+        // Recette iPhone n° 2 du 31/10/2026 (b6-ancien, b6-glisser ; Hermann : « le cercle plein sur le
+        // rail ne se déplace pas en même temps, il apparaît lorsque le point est déposé ») : hors de la
+        // chaîne, le point de raccord reste sur l'axe du rail et suit la puce — le doigt pendant le
+        // glisser, puis la rangée (registre) pendant le dialogue et le retour. [Revue 6.2 : « aucun
+        // rail — ni segment ni point de raccord » hors de la chaîne — remplacé pour le point de raccord.]
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { transform: [{ translateY: isDragged ? dragTranslationY : 0 }] }]}
+          testID={`composition-rail-dot-stop-${point.id}-lifted`}
+        >
+          <RailDot
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            centerY={STOP_POINT_LINE_HEIGHT / 2}
+            testID={`composition-rail-dot-stop-${point.id}`}
+          />
+        </View>
       ) : null}
       <StopPointLine
         accessibilityLabel={accessibilityLabel}
@@ -6709,14 +7001,28 @@ function CompositionActivityRow({
        * rail ne glisse pas ; il suit les décalages du bloc (translation du conteneur).
        */}
       {/* PRE-9 B.1b : rail simplifié d'une carte de disposition générale (voir `LayoutSequence`). */}
+      {/* Recette iPhone n° 2 du 31/10 : saisie, tenue ou en retour — hors de la chaîne (story 5.2b) ;
+          au niveau Séance, le lien s'étire jusqu'à l'élément qui la précède (aperçu du glisser). */}
       {layoutRailGap !== undefined ? (
+        rail.skippedKeys.has(railKey) ? null : (
         <>
-          <RailSegment
-            centerX={OCCURRENCE_CARD_MEDIA.centerX}
-            top={-layoutRailGap}
-            height={layoutRailGap + OCCURRENCE_CARD_MEDIA.top}
-            testID={`composition-rail-link-${activity.id}`}
-          />
+          {railLink !== undefined ? (
+            <RailLink
+              centerX={OCCURRENCE_CARD_MEDIA.centerX}
+              entryY={OCCURRENCE_CARD_MEDIA.top}
+              length={railLink.length}
+              shift={dragShiftValue}
+              prevShift={rail.shiftOf(railLink.prevKey)}
+              testID={`composition-rail-link-${activity.id}`}
+            />
+          ) : (
+            <RailSegment
+              centerX={OCCURRENCE_CARD_MEDIA.centerX}
+              top={-layoutRailGap}
+              height={layoutRailGap + OCCURRENCE_CARD_MEDIA.top}
+              testID={`composition-rail-link-${activity.id}`}
+            />
+          )}
           <RailSegment
             centerX={OCCURRENCE_CARD_MEDIA.centerX}
             top={OCCURRENCE_CARD_MEDIA.bottom}
@@ -6724,6 +7030,7 @@ function CompositionActivityRow({
             testID={`composition-rail-tail-${activity.id}`}
           />
         </>
+        )
       ) : railLink !== undefined ? (
         <>
           <RailLink
@@ -6832,8 +7139,11 @@ function vanishingContainers(before: ResolvedLayout, removed: readonly LayoutIte
 type LayoutDragContext = {
   /** Élément saisi, `null` hors glisser. */
   readonly source: LayoutItemRef | null;
-  /** Destination courante (conteneur éclairé, repère d'insertion), `null` sans destination. */
-  readonly target: LayoutDropTarget | null;
+  /*
+   * [B.4 : « `target` : destination courante (conteneur éclairé, repère d'insertion) » — retiré par la
+   * recette iPhone n° 2 du 31/10/2026 : plus d'éclairage ; la destination est montrée par les
+   * translations de l'aperçu (`layoutDragShifts.ts`).]
+   */
   /** Boîte mesurée d'un élément ou d'un en-tête (repère du contenu défilant) ; `null` : oubliée. */
   readonly reportBox: (key: string, box: LayoutBox | null) => void;
   /** Appui long sur une carte ou un en-tête ; `false` : refusé (autre élément saisi, mesure absente). */
@@ -6845,10 +7155,73 @@ type LayoutDragContext = {
   readonly stopPointStepAction: (stopPointId: string, direction: "UP" | "DOWN") => (() => void) | null;
   readonly onMove: (translationY: number) => void;
   readonly onEnd: (translationY: number) => void;
-  readonly onCancel: () => void;
+  /** Geste interrompu ; `translationY` : position atteinte, d'où l'élément revient (story 5.2b). */
+  readonly onCancel: (translationY?: number) => void;
   /** « Monter » / « Descendre » d'un élément (`stepLayoutItem`), `null` à la frontière de la séquence. */
   readonly stepAction: (source: LayoutItemRef, direction: "UP" | "DOWN") => (() => void) | null;
 };
+
+/**
+ * Recette iPhone n° 2 du 31/10/2026 — élément saisi d'une disposition générale : en glisser
+ * (`DRAGGING`, aperçu `shifts`), tenu pendant un dialogue (`HELD`, à `heldTranslationY`), ou en retour
+ * / mise en place jusqu'à sa place (`SETTLING`). `sourceKey` : translation du registre qui le porte
+ * après le lâcher (rangée de la carte ou du Point, bloc du Circuit ou du Cycle).
+ */
+type LayoutLift = {
+  readonly source: LayoutItemRef;
+  readonly stopPointId: string | null;
+  readonly phase: "DRAGGING" | "HELD" | "SETTLING";
+  readonly shifts: LayoutDragShifts | null;
+  readonly heldTranslationY: number | null;
+  readonly sourceBoxKey: string;
+  readonly sourceKey: string;
+  readonly height: number;
+};
+
+/** Geste en cours (référence) : point de saisie, destination courante, aperçu calculé. */
+type LayoutDragGesture = {
+  readonly source: LayoutItemRef;
+  readonly handleY: number;
+  target: LayoutDropTarget | null;
+  readonly stopPointId?: string;
+  readonly lifted: LayoutLiftedSource;
+  shifts: LayoutDragShifts | null;
+};
+
+/** Suite visuelle d'une dépose (voir `layoutSettleFor`). */
+type LayoutSettle = { readonly applied: () => void; readonly hold: () => void; readonly release: () => void };
+
+/** Ce que les blocs lisent de l'élément saisi, tenu ou en retour. */
+type LayoutLiftView = {
+  readonly source: LayoutItemRef;
+  readonly stopPointId: string | null;
+  /** En glisser (suit le doigt) ; sinon tenu ou en retour (porté par le registre). */
+  readonly dragging: boolean;
+  readonly sourceKey: string;
+};
+
+const NO_LAYOUT_PIECES: readonly LayoutShiftPiece[] = [];
+const NO_SESSION_LINKS: ReadonlyMap<string, LayoutRailLink> = new Map();
+/** Recette n° 2 : translation nulle et fixe d'une copie en effacement (hors du registre). */
+const GHOST_SHIFT = new Animated.Value(0);
+const ghostShiftOf = (): Animated.Value => GHOST_SHIFT;
+const GHOST_RAIL: SequenceRailContext = { links: new Map(), shiftOf: ghostShiftOf, skippedKeys: new Set() };
+
+/** Recette n° 2 : liens des cartes du niveau Séance (longueur de conception plus la place franchie). */
+function cardRailLinks(sessionLinks: ReadonlyMap<string, LayoutRailLink>): ReadonlyMap<string, RailLinkGeometry> {
+  return new Map(
+    [...sessionLinks].map(([key, link]) => [key, { prevKey: link.prevKey, length: SEQUENCE_GAP + OCCURRENCE_CARD_MEDIA.top + link.extra }]),
+  );
+}
+
+function skippedKeysOf(key: string | null): ReadonlySet<string> {
+  return key === null ? NO_SKIPPED_KEYS : new Set([key]);
+}
+
+/** L'élément saisi (tenu, en retour) est-il ce Circuit ou ce Cycle entier ? */
+function liftHoldsBlock(lift: LayoutLiftView | null, kind: "CIRCUIT" | "CYCLE", id: string): boolean {
+  return lift !== null && lift.stopPointId === null && lift.source.kind === kind && lift.source.id === id;
+}
 
 /**
  * PRE-9 B.4 (précision de Hermann du 30/10/2026, ch07 « Retrait d'un Circuit ») : conteneur vidé par
@@ -6957,19 +7330,20 @@ type LayoutRenderContext = {
   /** PRE-9 B.5 : carte en mouvement (supprimée, ou copie qui apparaît) ; `null` : aucune. */
   readonly cardMotion: { readonly id: string; readonly mode: Exclude<CardMotionMode, "IDLE"> } | null;
   readonly onCardMotionDone: (id: string, mode: Exclude<CardMotionMode, "IDLE">) => void;
+  /** Recette n° 2 du 31/10 : élément saisi, tenu ou en retour ; `null` : aucun. */
+  readonly lift: LayoutLiftView | null;
+  /** Recette n° 2 : liens du rail au niveau Séance (prédécesseur, longueur ajoutée), par clé de translation. */
+  readonly sessionLinks: ReadonlyMap<string, LayoutRailLink>;
+  /** Recette n° 2 : rail des cartes (liens du niveau Séance, carte hors de la chaîne). */
+  readonly sessionRail: SequenceRailContext;
 };
 
 // ---------------------------------------------------------------------------
 // PRE-9 B.6 — Points d'arrêt et placement d'une disposition générale (D-441, D-442, ARB-02, ARB-06)
 // ---------------------------------------------------------------------------
 
-/** Repère d'Exercice fictif d'un Point d'arrêt saisi : aucun élément ne le porte (voir `layoutDrag`). */
+/** Repère d'Exercice fictif d'un Point d'arrêt saisi : aucun élément ne le porte (voir `layoutLift`). */
 const STOP_POINT_DRAG_SOURCE: LayoutItemRef = { kind: "EXERCISE", id: "\u0000point-d-arret" };
-
-/** Clé de la boîte mesurée d'une rangée de Point (point de saisie du glisser). */
-function layoutStopBoxKey(stopPointId: string): string {
-  return `stop:${stopPointId}`;
-}
 
 /** Clé de focus d'une rangée de Point (celle de l'ancien modèle). */
 function layoutStopFocusKey(stopPointId: string): string {
@@ -7132,32 +7506,45 @@ function LayoutStopRows({
 }) {
   const rows = context.stops.rowsAt(container, position);
   if (rows.length === 0) return null;
+  // Recette iPhone n° 2 du 31/10 (b6-glisser, « deux rails […] décalé à droite du premier ») : hors
+  // Circuit, la rangée déborde de la colonne comme les cartes (`exerciseList`) — son rail et son point
+  // de raccord, posés sur l'axe des médias des cartes, rejoignent le rail unique.
+  const outset = container.kind !== "CIRCUIT";
   return (
     <>
       {rows.map((row) =>
         row.kind === "POINT" ? (
-          <LayoutStopPointRow key={row.id} row={row} gap={gap} frameY={frameY} context={context} />
+          <LayoutStopPointRow key={row.id} row={row} gap={gap} frameY={frameY} outset={outset} context={context} />
         ) : context.stops.placement === null ? null : (
-          <LayoutPlacementStopRow
-            key={row.key}
-            row={row}
-            gap={gap}
-            placement={context.stops.placement}
-            context={context}
-            testID={`composition-layout-placement-${stopContainerTestKey(container)}-${position}`}
-          />
+          <View key={row.key} style={outset ? styles.layoutStopRowOutset : null}>
+            <LayoutPlacementStopRow
+              row={row}
+              gap={gap}
+              placement={context.stops.placement}
+              context={context}
+              testID={`composition-layout-placement-${stopContainerTestKey(container)}-${position}`}
+            />
+          </View>
         ),
       )}
     </>
   );
 }
 
-/** Rail d'une rangée de Point : lien à travers l'écart qui la précède, queue sur sa hauteur. */
-function useStopRowRail(key: string, gap: number, context: LayoutRenderContext): SequenceRailContext {
-  const { railShiftOf } = context;
+/**
+ * Rail d'une rangée de Point : lien à travers l'écart qui la précède, queue sur sa hauteur. Recette
+ * n° 2 du 31/10 : au niveau Séance (`sessionLink`), le lien s'étire jusqu'au bas de l'élément qui la
+ * précède pendant l'aperçu ; dans un conteneur, il suit la rangée (la queue du conteneur, qui suit ses
+ * bords, porte le rail derrière) ; saisi, tenu ou en retour : hors de la chaîne.
+ */
+function useStopRowRail(key: string, gap: number, context: LayoutRenderContext, sessionLink?: LayoutRailLink): SequenceRailContext {
+  const { railShiftOf, lift } = context;
+  const prevKey = sessionLink?.prevKey ?? key;
+  const length = gap + (sessionLink?.extra ?? 0);
+  const skipped = lift !== null && lift.sourceKey === key;
   return useMemo(
-    () => ({ links: new Map([[key, { prevKey: `${key}:previous`, length: gap }]]), shiftOf: railShiftOf, skippedKeys: NO_SKIPPED_KEYS }),
-    [gap, key, railShiftOf],
+    () => ({ links: new Map([[key, { prevKey, length }]]), shiftOf: railShiftOf, skippedKeys: skipped ? new Set([key]) : NO_SKIPPED_KEYS }),
+    [key, length, prevKey, railShiftOf, skipped],
   );
 }
 
@@ -7165,36 +7552,42 @@ function LayoutStopPointRow({
   row,
   gap,
   frameY,
+  outset,
   context,
 }: {
   row: Extract<LayoutStopRow, { kind: "POINT" }>;
   gap: number;
   frameY: number | null;
+  outset: boolean;
   context: LayoutRenderContext;
 }) {
-  const { drag, stops } = context;
+  const { drag, stops, lift } = context;
   const id = row.id;
   const railKey = railStopKey(id);
-  const rail = useStopRowRail(railKey, gap, context);
+  const rail = useStopRowRail(railKey, gap, context, context.sessionLinks.get(railKey));
+  // Recette n° 2 : mesure de la rangée dans sa liste (l'enveloppe ci-dessous en est l'élément ; la
+  // rangée intérieure serait toujours à 0).
   const onLayout = useReportedBox(layoutStopBoxKey(id), frameY, drag?.reportBox);
   const point = useMemo<StopPoint>(() => ({ id, scope: "BEFORE_TOUR", position: 0 }), [id]);
   const isDragged = drag?.stopPointId === id;
+  // Recette n° 2 : tenu pendant un dialogue ou en retour — au premier plan.
+  const isRaised = isDragged || (lift !== null && lift.stopPointId === id);
   const focusKey = layoutStopFocusKey(id);
   const node = (
     <StopPointRow
       point={point}
       accessibilityLabel={row.accessibilityLabel}
       isDragged={isDragged}
-      isRaised={isDragged}
+      isRaised={isRaised}
       rail={rail}
       autoScroll={context.autoScroll}
       fadeOpacity={null}
       fadeLeaving={false}
-      onLayout={onLayout}
+      onLayout={noop}
       focusRequest={stops.focusRequest !== null && stops.focusRequest.key === focusKey ? stops.focusRequest : null}
       onFocusConsumed={stops.onFocusConsumed}
       onDragStart={() => drag?.onStartStopPoint(id) ?? false}
-      onDragCancel={() => drag?.onCancel()}
+      onDragCancel={(translationY) => drag?.onCancel(translationY)}
       onDragMove={(translationY) => drag?.onMove(translationY)}
       onDragEnd={(translationY) => drag?.onEnd(translationY)}
       onMoveUp={drag?.stopPointStepAction(id, "UP") ?? null}
@@ -7203,7 +7596,11 @@ function LayoutStopPointRow({
   );
   // En mode enveloppe, un Point d'arrêt n'est jamais éligible : inactif (comme dans l'ancien modèle).
   return (
-    <View style={isDragged ? styles.dragElevated : null} testID={`composition-layout-stop-point-${id}`}>
+    <View
+      style={[outset ? styles.layoutStopRowOutset : null, isRaised ? styles.dragElevated : null]}
+      onLayout={onLayout}
+      testID={`composition-layout-stop-point-${id}`}
+    >
       {context.envelope === null ? node : <PlacementAttenuation active>{node}</PlacementAttenuation>}
     </View>
   );
@@ -7252,7 +7649,6 @@ type LayoutSequenceProps = LayoutRenderContext & {
   readonly panelRight: number;
 };
 
-const NO_RAIL_LINKS: ReadonlyMap<string, RailLinkGeometry> = new Map();
 const NO_SKIPPED_KEYS: ReadonlySet<string> = new Set();
 const NO_APPEARING_CYCLES: ReadonlySet<string> = new Set();
 /** Identifiants des Cycles d'une disposition générale (niveau Séance) ; aucun sans disposition. */
@@ -7312,8 +7708,18 @@ function vanishingAt(
  *
  * Rail simplifié : chaque élément porte ses segments — lien à travers l'écart qui le précède, anneau
  * sur l'en-tête d'un conteneur, queue jusqu'à son bas ; un conteneur trace sa queue derrière ses
- * membres (visible dans leurs écarts), chaque carte trace le sien sur sa surface. Pas de liens
- * mesurés (`resolveRailLinks`) ni d'animation de glisser.
+ * membres (visible dans leurs écarts), chaque carte trace le sien sur sa surface. [B.1b / B.4 : « Pas
+ * de liens mesurés (`resolveRailLinks`) ni d'animation de glisser » ; « la mise en page reste figée
+ * […] la destination la plus proche est éclairée (conteneur bordé, repère d'insertion) » — remplacé
+ * par la recette iPhone n° 2 du 31/10/2026 (Hermann : « Je ne veux pas d'encadré bleu et de trait
+ * d'insertion, mais le comportement tel qu'il a été défini initialement […] : déplacement des bords
+ * des circuits / cycle et déplacement des cartes pour faire la place à la carte déplacée ») :]
+ * pendant le glisser, les cartes, les Points d'arrêt et les bords des Circuits et des Cycles se
+ * déplacent pour faire la place (`layoutDragShifts.ts`, registre partagé de l'ancien modèle, mêmes
+ * durée et courbe) ; le fond d'un conteneur suit ses deux bords (`CircuitSurface`) et sa queue de rail
+ * s'étire ; au niveau Séance, chaque lien s'étire jusqu'à l'élément qui le précède, l'élément saisi
+ * sortant de la chaîne (story 5.2b) ; l'élément lâché revient ou glisse jusqu'à sa place (stories
+ * 5.2b, 7.6). Aucun éclairage ni repère d'insertion.
  */
 function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps) {
   // Android / web : bas de l'en-tête de chaque Circuit dans le contenu défilant (panneau de nature).
@@ -7321,10 +7727,8 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
   const reportAnchor = useCallback((circuitId: string, y: number) => {
     setAnchors((current) => (current[circuitId] === y ? current : { ...current, [circuitId]: y }));
   }, []);
-  const rail = useMemo<SequenceRailContext>(
-    () => ({ links: NO_RAIL_LINKS, shiftOf: context.railShiftOf, skippedKeys: NO_SKIPPED_KEYS }),
-    [context.railShiftOf],
-  );
+  // Recette n° 2 : liens étirables des cartes du niveau Séance ; carte saisie, tenue ou en retour hors de la chaîne.
+  const { lift, sessionRail: rail } = context;
   const directExercises = layout.elements.flatMap((element) => (element.kind === "EXERCISE" ? [element.exercise] : []));
   const natureCircuitId = layoutNatureCircuitOf(context.openOverlay);
   const natureCircuit =
@@ -7335,9 +7739,8 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
     vanishingAt(context.vanishing, null, key, keys).map((item) => (
       <LayoutVanishing key={`vanishing:${item.key}`} item={item} gap={COMPOSITION_ROW_GAP} rail={rail} context={context} onAnchor={reportAnchor} />
     ));
-  const source = context.drag?.source ?? null;
-  // Trait d'insertion de la dépose (B.4) — emplacement de dépose, pas une Cible de série.
-  const dropLine = context.drag ? context.drag.target : null;
+  // Élément saisi, tenu ou en retour : son bloc passe au premier plan.
+  const source = lift?.source ?? null;
   const session: StopPointContainer = { kind: "SESSION" };
   return (
     <>
@@ -7413,8 +7816,8 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
       })}
       {ghosts(null)}
       <LayoutStopRows container={session} position={layout.elements.length} gap={COMPOSITION_ROW_GAP} frameY={0} context={context} />
-      {/* PRE-9 B.4 (COMP §6 : « L'éclairage de la destination est obligatoire ») : repère d'insertion. */}
-      {dropLine ? <LayoutDropLine y={dropLine.lineY} testID="composition-layout-drop-line" /> : null}
+      {/* [PRE-9 B.4 (COMP §6 : « L'éclairage de la destination est obligatoire ») : repère d'insertion —
+          retiré par la recette iPhone n° 2 du 31/10/2026 ; la place qui s'ouvre montre la destination.] */}
       {/*
        * Android / web : panneau du choix de nature, dans une couche qui couvre tout le contenu
        * défilant (un toucher hors des limites d'un parent n'atteint pas ses enfants sur Android),
@@ -7451,10 +7854,23 @@ function LayoutVanishing({
 }) {
   const { onVanished } = context;
   const done = useCallback(() => onVanished(item.key), [item.key, onVanished]);
+  // Recette n° 2 du 31/10 : copie inerte, hors du registre (translations nulles et fixes).
   const ghostContext = useMemo<LayoutRenderContext>(
-    () => ({ ...context, drag: null, vanishing: [], actions: null, cardMotion: null, stops: NO_LAYOUT_STOPS }),
+    () => ({
+      ...context,
+      drag: null,
+      vanishing: [],
+      actions: null,
+      cardMotion: null,
+      stops: NO_LAYOUT_STOPS,
+      railShiftOf: ghostShiftOf,
+      lift: null,
+      sessionLinks: NO_SESSION_LINKS,
+      sessionRail: GHOST_RAIL,
+    }),
     [context],
   );
+  const ghostRail = GHOST_RAIL;
   const testID = `composition-layout-vanishing-${item.key.replace(":", "-")}`;
   return (
     <VanishingBlock gap={gap} onDone={done} testID={testID}>
@@ -7465,13 +7881,13 @@ function LayoutVanishing({
           offsetY={null}
           railGap={gap}
           raised={false}
-          rail={rail}
+          rail={ghostRail}
           context={ghostContext}
           onAnchor={onAnchor}
           ghost
         />
       ) : item.element.kind === "CYCLE" ? (
-        <LayoutCycleBlock cycle={item.element.cycle} raised={false} rail={rail} context={ghostContext} onAnchor={onAnchor} ghost />
+        <LayoutCycleBlock cycle={item.element.cycle} raised={false} rail={ghostRail} context={ghostContext} onAnchor={onAnchor} ghost />
       ) : null}
     </VanishingBlock>
   );
@@ -7628,8 +8044,12 @@ function LayoutExerciseRow({
   const source = useMemo<LayoutItemRef>(() => ({ kind: "EXERCISE", id: exercise.id }), [exercise.id]);
   const onLayout = useReportedBox(layoutItemKey(source), measureFrameY ?? null, measureFrameY === undefined ? undefined : drag?.reportBox);
   const isDragged = drag?.source?.kind === "EXERCISE" && drag.source.id === exercise.id;
+  // Recette n° 2 du 31/10 (story 5.2b) : tenue pendant un dialogue ou en retour — au premier plan,
+  // hors de la chaîne du rail (elle porte le rail de sa propre surface).
+  const { lift } = context;
+  const isRaised = isDragged || (lift !== null && lift.stopPointId === null && lift.source.kind === "EXERCISE" && lift.source.id === exercise.id);
   const onDragStart = useCallback(() => drag?.onStart(source) ?? false, [drag, source]);
-  const onDragCancel = useCallback(() => drag?.onCancel(), [drag]);
+  const onDragCancel = useCallback((translationY: number) => drag?.onCancel(translationY), [drag]);
   const onDragMove = useCallback((translationY: number) => drag?.onMove(translationY), [drag]);
   const onDragEnd = useCallback((translationY: number) => drag?.onEnd(translationY), [drag]);
   // PRE-9 B.5 : balayage (Dupliquer / Supprimer) et ses actions accessibles ; une carte à la fois.
@@ -7645,7 +8065,7 @@ function LayoutExerciseRow({
       position={position}
       areActionsRevealed={revealedId === exercise.id}
       isDragged={isDragged}
-      isRaised={isDragged}
+      isRaised={isRaised}
       isBlockedByOtherReveal={revealedId !== null && revealedId !== exercise.id}
       bodyZonesReferential={context.bodyZonesReferential}
       categoriesReferential={context.categoriesReferential}
@@ -7676,16 +8096,87 @@ function LayoutExerciseRow({
   );
 }
 
-/** PRE-9 B.4 : cadre de la destination éclairée (Circuit ou Cycle). */
-function LayoutDropHighlight({ active, testID }: { active: boolean; testID: string }) {
-  return active ? <View pointerEvents="none" style={styles.layoutDropTarget} testID={testID} /> : null;
+/*
+ * [PRE-9 B.4 : `LayoutDropHighlight`, « cadre de la destination éclairée (Circuit ou Cycle) » — retiré
+ * par la recette iPhone n° 2 du 31/10/2026 (Hermann : « Je ne veux pas d'encadré bleu et de trait
+ * d'insertion […] les conteneurs ont un liseré bleu ») : le conteneur visé s'agrandit pour faire la
+ * place (`useLayoutContainerMotion`).]
+ */
+
+/**
+ * Recette iPhone n° 2 du 31/10/2026 (amendement de Hermann du 21/10/2026, story 2.3b : le Circuit
+ * « s'agrandit ou se rétracte pendant le geste ») — translations d'un Circuit ou d'un Cycle de la
+ * disposition générale, dans le registre partagé : bord haut (en-tête, anneau, lien du rail), bord bas
+ * (fond, queue du rail) et bloc entier (saisi : retour ou mise en place après le lâcher, ajouté à la
+ * translation du doigt). `active` : un élément est saisi, tenu ou en retour (fond en trois couches).
+ */
+function useLayoutContainerMotion(kind: "CIRCUIT" | "CYCLE", id: string, context: LayoutRenderContext, translation: Animated.Value, ghost: boolean) {
+  const { railShiftOf, lift, sessionLinks } = context;
+  const topKey = layoutEdgeShiftKey(kind, id, "top");
+  const top = railShiftOf(topKey);
+  const bottom = railShiftOf(layoutEdgeShiftKey(kind, id, "bottom"));
+  const block = railShiftOf(layoutBlockShiftKey(kind, id));
+  const blockTranslation = useMemo(() => Animated.add(translation, block), [block, translation]);
+  return {
+    top,
+    bottom,
+    blockTranslation,
+    /** Ce bloc est l'élément saisi, tenu ou en retour : hors de la chaîne du rail. */
+    held: liftHoldsBlock(lift, kind, id),
+    active: !ghost && lift !== null,
+    sessionLink: sessionLinks.get(topKey),
+  };
+}
+
+/**
+ * Recette n° 2 : queue du rail d'un conteneur (de son anneau à son bas) — pendant l'aperçu, son haut
+ * suit le bord haut et son bas le bord bas (étirement par transformations seules, comme la bande de
+ * `CircuitSurface`) ; au repos, segment ordinaire.
+ */
+function LayoutRailTail({
+  centerX,
+  top,
+  containerHeight,
+  topShift,
+  bottomShift,
+  active,
+  testID,
+}: {
+  centerX: number;
+  top: number;
+  containerHeight: number | null;
+  topShift: Animated.Value;
+  bottomShift: Animated.Value;
+  active: boolean;
+  testID: string;
+}) {
+  const height = containerHeight === null ? 0 : containerHeight - top;
+  const base = Math.max(1, height);
+  const transform = useMemo(() => {
+    const scale = Animated.add(1, Animated.divide(Animated.subtract(bottomShift, topShift), base)).interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+      extrapolateLeft: "clamp",
+      extrapolateRight: "extend",
+    });
+    // Haut posé sur le bord haut ; la mise à l'échelle autour du centre est compensée.
+    return [{ translateY: Animated.add(topShift, Animated.multiply(Animated.subtract(scale, 1), base / 2)) }, { scaleY: scale }];
+  }, [base, bottomShift, topShift]);
+  if (!active || height <= 0) return <RailSegment centerX={centerX} top={top} bottom={0} testID={testID} />;
+  return (
+    <Animated.View pointerEvents="none" style={[styles.layoutRailTailTrack, { top, height, transform }]} testID={`${testID}-track`}>
+      <RailSegment centerX={centerX} top={0} bottom={0} testID={testID} />
+    </Animated.View>
+  );
 }
 
 /**
  * PRE-9 B.1b : Circuit d'une disposition générale — en-tête B.1a (lettre, compteur, nature, repli) et
  * cartes. B.4 : saisi par appui long sur son en-tête (`useBlockDragGesture`), il suit le doigt au
  * premier plan ; ses boîtes (bloc, en-tête, cartes) sont rapportées pour la résolution de la
- * destination ; destination éclairée par un cadre. `ghost` : copie inerte en effacement.
+ * destination. [B.4 : « destination éclairée par un cadre » — remplacé par la recette iPhone n° 2 du
+ * 31/10/2026 :] ses bords se déplacent pour faire la place (`useLayoutContainerMotion`), son fond les
+ * suit (`CircuitSurface`). `ghost` : copie inerte en effacement.
  */
 function LayoutCircuitBlock({
   circuit,
@@ -7712,6 +8203,7 @@ function LayoutCircuitBlock({
 }) {
   const [rowHeight, setRowHeight] = useState(CIRCUIT_HEADER_HEIGHT);
   const [blockY, setBlockY] = useState<number | null>(null);
+  const [blockHeight, setBlockHeight] = useState<number | null>(null);
   const [headerBottom, setHeaderBottom] = useState<number | null>(null);
   const [listY, setListY] = useState<number | null>(null);
   useEffect(() => {
@@ -7726,11 +8218,11 @@ function LayoutCircuitBlock({
     onStart: () => drag?.onStart(source) ?? false,
     onMove: (translationY) => drag?.onMove(translationY),
     onEnd: (translationY) => drag?.onEnd(translationY),
-    onCancel: () => drag?.onCancel(),
+    onCancel: (translationY) => drag?.onCancel(translationY),
     autoScroll: context.autoScroll,
   });
+  const motion = useLayoutContainerMotion("CIRCUIT", circuit.id, context, gesture.translation, ghost);
   const isDragged = drag?.source?.kind === "CIRCUIT" && drag.source.id === circuit.id;
-  const isDropTarget = drag?.target?.container.kind === "CIRCUIT" && drag.target.container.id === circuit.id;
   const counterKind = layoutCircuitCounterKind(circuit.id);
   const natureKind = layoutCircuitNatureKind(circuit.id);
   const contentKey = circuit.exercises.map((exercise) => exercise.id).join(" ");
@@ -7746,16 +8238,33 @@ function LayoutCircuitBlock({
   // (fond, anneau et en-tête) ; ses cartes, déjà visibles, restent.
   const entering = context.appearingCircuitIds.has(circuit.id) ? CIRCUIT_ENTERING : undefined;
   const cardsFrameY = offsetY === null || blockY === null || listY === null ? null : offsetY + blockY + listY;
+  // Recette n° 2 : fond en trois couches qui suivent les bords pendant l'aperçu ; au repos, aplat.
+  const layered = motion.active && blockHeight !== null && blockHeight > 0;
+  const link = motion.held ? null : !inCycle && motion.sessionLink !== undefined ? (
+    <RailLink
+      centerX={railX}
+      entryY={ringTop}
+      length={railGap + ringTop + motion.sessionLink.extra}
+      shift={motion.top}
+      prevShift={context.railShiftOf(motion.sessionLink.prevKey)}
+      testID={`${testID}-rail-link`}
+    />
+  ) : (
+    <RailSegment centerX={railX} top={-railGap} height={railGap + ringTop} testID={`${testID}-rail-link`} />
+  );
   return (
     <Animated.View
       style={[
         styles.tourSectionContainer,
         inCycle ? styles.layoutCircuitInCycle : null,
         raised ? styles.dragElevated : null,
-        isDragged ? [styles.layoutBlockDragged, { transform: [{ translateY: gesture.translation }] }] : null,
+        isDragged ? styles.layoutBlockDragged : null,
+        // B.4 : il suit le doigt ; recette n° 2 : puis revient ou glisse jusqu'à sa place (registre).
+        { transform: [{ translateY: motion.blockTranslation }] },
       ]}
       onLayout={(event) => {
         setBlockY(event.nativeEvent.layout.y);
+        setBlockHeight(event.nativeEvent.layout.height);
         reportBlock(event);
       }}
       {...(drag !== null && !ghost ? gesture.handlers : {})}
@@ -7764,23 +8273,38 @@ function LayoutCircuitBlock({
       <Reanimated.View
         entering={entering}
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, styles.layoutCircuitSurface]}
+        style={[StyleSheet.absoluteFill, layered ? null : styles.layoutCircuitSurface]}
         testID={`${testID}-surface`}
-      />
-      <LayoutDropHighlight active={isDropTarget} testID={`${testID}-drop-target`} />
+      >
+        {layered ? (
+          <CircuitSurface top={motion.top} bottom={motion.bottom} dragHeight={blockHeight} testID={`${testID}-surface-layers`} />
+        ) : null}
+      </Reanimated.View>
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
       <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
-        <RailSegment centerX={railX} top={-railGap} height={railGap + ringTop} testID={`${testID}-rail-link`} />
-        <RailSegment centerX={railX} top={ringTop + RAIL_RING_DIAMETER} bottom={0} testID={`${testID}-rail-tail`} />
-        <Reanimated.View entering={entering} style={StyleSheet.absoluteFill} testID={`${testID}-rail-ring-reveal`}>
-          <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
-        </Reanimated.View>
+        <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateY: motion.top }] }]} testID={`${testID}-rail-head`}>
+          {link}
+          <Reanimated.View entering={entering} style={StyleSheet.absoluteFill} testID={`${testID}-rail-ring-reveal`}>
+            <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
+          </Reanimated.View>
+        </Animated.View>
+        <LayoutRailTail
+          centerX={railX}
+          top={ringTop + RAIL_RING_DIAMETER}
+          containerHeight={blockHeight}
+          topShift={motion.top}
+          bottomShift={motion.bottom}
+          active={motion.active}
+          testID={`${testID}-rail-tail`}
+        />
       </View>
       {/* PRE-9 B.6 : en placement, l'en-tête est inactif et masqué à l'accessibilité (seuls les emplacements répondent). */}
-      <View
+      {/* Recette n° 2 : l'en-tête suit le bord haut. */}
+      <Animated.View
         pointerEvents={inPlacement ? "none" : "box-none"}
         accessibilityElementsHidden={inPlacement}
         importantForAccessibility={inPlacement ? "no-hide-descendants" : "auto"}
+        style={{ transform: [{ translateY: motion.top }] }}
         onLayout={(event) => {
           const { y, height } = event.nativeEvent.layout;
           setHeaderBottom(y + height);
@@ -7818,7 +8342,7 @@ function LayoutCircuitBlock({
         }}
         testID={`${testID}-header`}
       />
-      </View>
+      </Animated.View>
       {/* ARB-12 : Circuit replié — ses cartes sont masquées, le brouillon est inchangé. */}
       {/* Recette du 29/10 (obs-3 b) : dévoilement et repli animés (`useCircuitCardsReveal`). */}
       {!reveal.mounted || circuit.exercises.length === 0 ? null : (
@@ -7859,7 +8383,9 @@ function LayoutCircuitBlock({
 
 /**
  * PRE-9 B.1b : Cycle d'une disposition générale — en-tête (jamais replié), Exercices directs et
- * Circuits. B.4 (ARB-09) : Cycle entier saisi par appui long sur son titre ; destination éclairée.
+ * Circuits. B.4 (ARB-09) : Cycle entier saisi par appui long sur son titre. [B.4 : « destination
+ * éclairée » — remplacé par la recette iPhone n° 2 du 31/10/2026 :] ses bords se déplacent pour faire
+ * la place (`useLayoutContainerMotion`), son fond les suit.
  */
 function LayoutCycleBlock({
   cycle,
@@ -7878,6 +8404,7 @@ function LayoutCycleBlock({
 }) {
   const [rowHeight, setRowHeight] = useState(CIRCUIT_HEADER_HEIGHT);
   const [cycleY, setCycleY] = useState<number | null>(null);
+  const [cycleHeight, setCycleHeight] = useState<number | null>(null);
   const { openOverlay, onToggleOverlay, drag } = context;
   const report = ghost ? undefined : drag?.reportBox;
   const source = useMemo<LayoutItemRef>(() => ({ kind: "CYCLE", id: cycle.id }), [cycle.id]);
@@ -7887,11 +8414,11 @@ function LayoutCycleBlock({
     onStart: () => drag?.onStart(source) ?? false,
     onMove: (translationY) => drag?.onMove(translationY),
     onEnd: (translationY) => drag?.onEnd(translationY),
-    onCancel: () => drag?.onCancel(),
+    onCancel: (translationY) => drag?.onCancel(translationY),
     autoScroll: context.autoScroll,
   });
+  const motion = useLayoutContainerMotion("CYCLE", cycle.id, context, gesture.translation, ghost);
   const isDragged = drag?.source?.kind === "CYCLE" && drag.source.id === cycle.id;
-  const isDropTarget = drag?.target?.container.kind === "CYCLE" && drag.target.container.id === cycle.id;
   const counterKind = layoutCycleCounterKind(cycle.id);
   const railX = RAIL_CENTER_X_IN_CIRCUIT;
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
@@ -7928,15 +8455,21 @@ function LayoutCycleBlock({
   // Contre-recette du 30/10 : le Cycle qui vient d'être posé apparaît progressivement (fond, anneau
   // et en-tête), comme les cartes d'un Circuit qui se déploie ; ses membres, déjà visibles, restent.
   const entering = context.appearingCycleIds.has(cycle.id) ? CYCLE_ENTERING : undefined;
+  // Recette n° 2 : fond en trois couches qui suivent les bords pendant l'aperçu ; au repos, aplat.
+  const layered = motion.active && cycleHeight !== null && cycleHeight > 0;
+  const linkLength = SEQUENCE_GAP + ringTop - CYCLE_RING_OUTSET;
   return (
     <Animated.View
       style={[
         styles.layoutCycleContainer,
         raised ? styles.dragElevated : null,
-        isDragged ? [styles.layoutBlockDragged, { transform: [{ translateY: gesture.translation }] }] : null,
+        isDragged ? styles.layoutBlockDragged : null,
+        // B.4 : il suit le doigt ; recette n° 2 : puis revient ou glisse jusqu'à sa place (registre).
+        { transform: [{ translateY: motion.blockTranslation }] },
       ]}
       onLayout={(event) => {
         setCycleY(event.nativeEvent.layout.y);
+        setCycleHeight(event.nativeEvent.layout.height);
         reportBlock(event);
       }}
       {...(drag !== null && !ghost ? gesture.handlers : {})}
@@ -7945,47 +8478,71 @@ function LayoutCycleBlock({
       <Reanimated.View
         entering={entering}
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, styles.layoutCycleSurface]}
+        style={[StyleSheet.absoluteFill, layered ? null : styles.layoutCycleSurface]}
         testID={`${testID}-surface`}
-      />
-      <LayoutDropHighlight active={isDropTarget} testID={`${testID}-drop-target`} />
+      >
+        {layered ? (
+          <CircuitSurface
+            top={motion.top}
+            bottom={motion.bottom}
+            dragHeight={cycleHeight}
+            color={CYCLE_SURFACE_COLOR}
+            testID={`${testID}-surface-layers`}
+          />
+        ) : null}
+      </Reanimated.View>
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
       <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
-        {/* Recette du 29/10 (obs-3 c) : le rail s'arrête à l'anneau extérieur du Cycle. */}
-        <RailSegment
-          centerX={railX}
-          top={-SEQUENCE_GAP}
-          height={SEQUENCE_GAP + ringTop - CYCLE_RING_OUTSET}
-          testID={`${testID}-rail-link`}
-        />
-        <RailSegment
+        {/* Recette n° 2 : anneaux et lien suivent le bord haut. */}
+        <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateY: motion.top }] }]} testID={`${testID}-rail-head`}>
+          {/* Recette du 29/10 (obs-3 c) : le rail s'arrête à l'anneau extérieur du Cycle. */}
+          {motion.held ? null : motion.sessionLink !== undefined ? (
+            <RailLink
+              centerX={railX}
+              entryY={ringTop - CYCLE_RING_OUTSET}
+              length={linkLength + motion.sessionLink.extra}
+              shift={motion.top}
+              prevShift={context.railShiftOf(motion.sessionLink.prevKey)}
+              testID={`${testID}-rail-link`}
+            />
+          ) : (
+            <RailSegment centerX={railX} top={-SEQUENCE_GAP} height={linkLength} testID={`${testID}-rail-link`} />
+          )}
+          <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
+          {/*
+           * Recette du 29/10 (obs-3 c, « deux cercles concentriques ») : anneau extérieur de 16 (Figma
+           * `10748:20132`, « Anneau — Cycle », trait 1 `#7A7A80`) autour du repère de 10 (`10745:20132`).
+           */}
+          <Reanimated.View
+            entering={entering}
+            style={[
+              styles.cycleOuterRing,
+              { left: railX - CYCLE_OUTER_RING_DIAMETER / 2, top: CIRCUIT_PADDING_VERTICAL + rowHeight / 2 - CYCLE_OUTER_RING_DIAMETER / 2 },
+            ]}
+            testID={`${testID}-rail-outer-ring`}
+          />
+        </Animated.View>
+        <LayoutRailTail
           centerX={railX}
           top={ringTop + RAIL_RING_DIAMETER + CYCLE_RING_OUTSET}
-          bottom={0}
+          containerHeight={cycleHeight}
+          topShift={motion.top}
+          bottomShift={motion.bottom}
+          active={motion.active}
           testID={`${testID}-rail-tail`}
-        />
-        <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
-        {/*
-         * Recette du 29/10 (obs-3 c, « deux cercles concentriques ») : anneau extérieur de 16 (Figma
-         * `10748:20132`, « Anneau — Cycle », trait 1 `#7A7A80`) autour du repère de 10 (`10745:20132`).
-         */}
-        <Reanimated.View
-          entering={entering}
-          style={[
-            styles.cycleOuterRing,
-            { left: railX - CYCLE_OUTER_RING_DIAMETER / 2, top: CIRCUIT_PADDING_VERTICAL + rowHeight / 2 - CYCLE_OUTER_RING_DIAMETER / 2 },
-          ]}
-          testID={`${testID}-rail-outer-ring`}
         />
       </View>
       {/* PRE-9 B.2 : en mode enveloppe, l'en-tête du Cycle est inactif (jamais éligible : aucun Cycle dans un Cycle). */}
-      <Reanimated.View entering={entering} onLayout={reportHeader} testID={`${testID}-header-reveal`}>
-        {/* PRE-9 B.6 : en placement, l'en-tête est inactif (seuls les emplacements répondent). */}
-        {context.envelope === null && context.stops.placement === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
-      </Reanimated.View>
+      {/* Recette n° 2 : l'en-tête suit le bord haut (mesure portée par l'enveloppe, élément du Cycle). */}
+      <Animated.View style={{ transform: [{ translateY: motion.top }] }} onLayout={reportHeader} testID={`${testID}-header-track`}>
+        <Reanimated.View entering={entering} testID={`${testID}-header-reveal`}>
+          {/* PRE-9 B.6 : en placement, l'en-tête est inactif (seuls les emplacements répondent). */}
+          {context.envelope === null && context.stops.placement === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
+        </Reanimated.View>
+      </Animated.View>
       {cycle.members.map((member, memberIndex) => {
         const key = layoutElementKey(member);
-        const memberRaised = layoutElementHolds(member, drag?.source ?? null);
+        const memberRaised = layoutElementHolds(member, context.lift?.source ?? null);
         // PRE-9 B.6 (ARB-02a) : Points d'arrêt du Cycle avant ce membre (rencontrés à chaque répétition).
         const stops = (
           <LayoutStopRows
@@ -8056,13 +8613,17 @@ function CircuitSurface({
   top,
   bottom,
   dragHeight,
+  color,
   testID,
 }: {
   top: Animated.Value;
   bottom: Animated.Value;
   dragHeight: number;
+  /** Recette n° 2 du 31/10 : aplat d'un conteneur de la disposition générale (Cycle) ; par défaut, celui du Circuit. */
+  color?: string;
   testID: string;
 }) {
+  const fill = color === undefined ? null : { backgroundColor: color };
   // Base finie et non nulle : la hauteur relevée moins les deux rayons, au moins 1.
   const bandHeight = Number.isFinite(dragHeight)
     ? Math.max(1, dragHeight - 2 * CIRCUIT_RADIUS)
@@ -8091,10 +8652,10 @@ function CircuitSurface({
       testID={testID}
     >
       {/* Bande d'abord, arrondis ensuite : les arrondis recouvrent les jointures (`CIRCUIT_SURFACE_SEAM_OVERLAP`). */}
-      <Animated.View style={[styles.circuitSurfaceBand, { transform: bandTransform }]} testID={`${testID}-band`} />
-      <Animated.View style={[styles.circuitSurfaceTop, { transform: [{ translateY: top }] }]} testID={`${testID}-top`} />
+      <Animated.View style={[styles.circuitSurfaceBand, fill, { transform: bandTransform }]} testID={`${testID}-band`} />
+      <Animated.View style={[styles.circuitSurfaceTop, fill, { transform: [{ translateY: top }] }]} testID={`${testID}-top`} />
       <Animated.View
-        style={[styles.circuitSurfaceBottom, { transform: [{ translateY: bottom }] }]}
+        style={[styles.circuitSurfaceBottom, fill, { transform: [{ translateY: bottom }] }]}
         testID={`${testID}-bottom`}
       />
     </View>
@@ -8301,6 +8862,10 @@ const CYCLE_RING_OUTSET = (CYCLE_OUTER_RING_DIAMETER - RAIL_RING_DIAMETER) / 2;
 const ENVELOPE_DESIGNATED_FILL = "rgba(234, 234, 255, 0.6)";
 const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = CARD_OUTSET + spacing[4];
 const LAYOUT_CYCLE_GAP = CIRCUIT_GAP;
+/** Recette n° 2 du 31/10 : écart entre les membres d'un conteneur (place ouverte ou refermée par l'aperçu). */
+function layoutContainerGap(container: LayoutContainerRef): number {
+  return container.kind === "SESSION" ? SEQUENCE_GAP : container.kind === "CYCLE" ? LAYOUT_CYCLE_GAP : CIRCUIT_GAP;
+}
 /**
  * Haut de l'anneau du Circuit, centré sur la hauteur de l'en-tête (Figma `9819:20017` : y 15 pour
  * 40). Revue 5.2 : l'en-tête a une hauteur MINIMALE de 40 (Dynamic Type) ; l'anneau suit sa hauteur
@@ -8709,18 +9274,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
-  // PRE-9 B.4 (COMP §6, éclairage de la destination) : cadre du Circuit ou du Cycle visé — trait plein
-  // `color/primary` et voile de la désignation d'enveloppe (B.2), sur la boîte du conteneur.
-  layoutDropTarget: {
+  // [PRE-9 B.4 (COMP §6, éclairage de la destination) : `layoutDropTarget`, cadre du Circuit ou du Cycle
+  // visé — retiré par la recette iPhone n° 2 du 31/10/2026 (« Je ne veux pas d'encadré bleu »).]
+  // Recette n° 2 (b6-glisser) : rangée de Point hors Circuit, débord des cartes (rail sur l'axe des médias).
+  layoutStopRowOutset: {
+    marginHorizontal: -CARD_OUTSET,
+  },
+  // Recette n° 2 : queue du rail d'un conteneur, étirée entre ses deux bords pendant l'aperçu.
+  layoutRailTailTrack: {
     position: "absolute",
-    top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    borderRadius: CIRCUIT_RADIUS,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    backgroundColor: ENVELOPE_DESIGNATED_FILL,
   },
   // T02-S02 — carte d'Activité, D-095/D-128/D-138.
   //

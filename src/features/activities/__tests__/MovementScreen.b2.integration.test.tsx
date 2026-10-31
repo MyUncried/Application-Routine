@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react-native";
-import { Keyboard, StyleSheet } from "react-native";
+import { Keyboard, StyleSheet, TextInput } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -10,6 +10,12 @@ import { ActivityDefinitionService } from "@/features/activities/ActivityDefinit
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MOVEMENT_PHOTO_UNDER_CONTEXT } from "@/features/activities/ActivityEditorForm";
 import { MOVEMENT_EDIT_MODE_PARAM, MovementScreen } from "@/features/activities/MovementScreen";
+import {
+  CELL_BACKSPACE,
+  hideExecutionSheetKeyboard,
+  showExecutionSheetKeyboard,
+  typeInExecutionSheetCell,
+} from "@/features/activities/testing/executionSheetActions";
 import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
@@ -542,44 +548,22 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     }
   });
 
-  it("recette du 27/10 (remarque 2) : Entrée sur une phase ouvre la suivante juste après elle, comme la Description", async () => {
-    await renderSheet();
-    await type("movement-phases-invite", "Descente");
-    // Bloc en saisie (la phase créée a le focus) : l'invite reste en fin de liste.
-    await act(async () => {
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
-    });
-    await type("movement-phases-invite", "Remontée");
-    expect(screen.getByTestId("movement-phases-label-1", anyNode).props.returnKeyType).toBe("default");
-    // Entrée sur la phase 1 : l'invite se place sous elle ; la saisie y insère la nouvelle phase.
-    await act(async () => {
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "submitEditing");
-    });
-    await type("movement-phases-invite", "Maintien");
-    expect([1, 2, 3].map((rank) => screen.getByTestId(`movement-phases-label-${rank}`, anyNode).props.value)).toEqual([
-      "Descente",
-      "Maintien",
-      "Remontée",
-    ]);
-  });
+  // [Recette du 27/10 (remarque 2) — « Entrée sur une phase ouvre la suivante juste après elle » :
+  // remplacée le 31/10/2026 par la recette iPhone n° 2 (Entrée → durée de la même ligne), voir
+  // « Recette iPhone n° 2 du 31/10/2026 » plus bas.]
 
-  it("r11-entree-phases : l'invite insérée garde son champ pendant la saisie ; retirer une phase vidée la retire", async () => {
+  it("r11-entree-phases : l'invite garde son champ pendant la saisie ; retirer une phase vidée la retire", async () => {
     await renderSheet();
     await type("movement-phases-invite", "Descente");
     await act(async () => {
       fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
     });
-    await type("movement-phases-invite", "Remontée");
-    await act(async () => {
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "submitEditing");
-    });
-    // Invite sous la phase 1 : la saisie y crée la phase 2 sans démonter le champ de l'invite, qui reste
-    // juste sous la phase créée.
+    // La saisie dans l'invite crée la phase 2 sans démonter le champ de l'invite (recette n° 2 du
+    // 31/10 : l'invite n'est plus insérée au milieu par Entrée).
     const invite = screen.getByTestId("movement-phases-invite", anyNode);
     await type("movement-phases-invite", "Maintien");
     expect(screen.getByTestId("movement-phases-invite", anyNode)).toBe(invite);
+    await type("movement-phases-invite", "Remontée");
     // Retour arrière sur une phase vidée : elle est retirée (le focus passe d'abord à la précédente ;
     // l'absence de fermeture du clavier se vérifie sur l'iPhone).
     await type("movement-phases-label-2", "");
@@ -835,28 +819,33 @@ describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)"
  * laisse les Exercices existants « Inchangés ». Rendu choisi (aucun Figma) : valeur à droite du libellé,
  * roulette de durée partagée sous la ligne.
  */
-describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
-  async function chooseSeconds(seconds: number) {
-    await act(async () => {
-      fireEvent(screen.getByTestId("duration-wheel-seconds", anyNode), "selectionChange", { nativeEvent: { selection: seconds } });
-    });
-    await press("duration-wheel-validate");
-  }
+/** Recette iPhone n° 2 du 31/10/2026 : saisie d'une durée de phase au clavier numérique (focus, frappes, sortie). */
+async function enterPhaseDuration(rank: number, keys: string) {
+  const cell = `movement-phases-duration-${rank}`;
+  await act(async () => {
+    fireEvent(screen.getByTestId(`${cell}-input`, anyNode), "focus");
+  });
+  typeInExecutionSheetCell(cell, keys);
+  await act(async () => {
+    fireEvent(screen.getByTestId(`${cell}-input`, anyNode), "blur");
+  });
+  await settle();
+}
+const shownPhaseDuration = (rank: number) => String(screen.getByTestId(`movement-phases-duration-${rank}-value`, anyNode).props.children);
 
-  it("création : phase sans durée par défaut (« Durée » en invite) ; ✓ de la roulette fixe 30 s, affichée à droite du libellé", async () => {
+describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
+  it("création : phase sans durée par défaut (« Durée » en invite) ; saisie « 30 » au clavier numérique → 30 s, affichée à droite du libellé ; aucune roulette", async () => {
     await renderSheet();
     await type("exercise-name-input", "Squat");
     await type("movement-phases-invite", "Descente");
-    const prompt = screen.getByTestId("movement-phases-duration-1", anyNode);
-    expect(within(prompt).getByText(t.phases.durationPrompt)).toBeTruthy();
-    expect(prompt.props.accessibilityLabel).toBe("Durée de la phase 1, aucune durée");
-    await press("movement-phases-duration-1");
-    expect(screen.getByTestId("movement-phases-duration-wheel-1", anyNode)).toBeTruthy();
-    // Phase vide : aucune action « Sans durée ».
-    expect(screen.queryByTestId("movement-phases-duration-clear-1", anyNode)).toBeNull();
-    await chooseSeconds(30);
-    expect(screen.queryByTestId("movement-phases-duration-wheel-1", anyNode)).toBeNull();
-    expect(within(screen.getByTestId("movement-phases-duration-1", anyNode)).getByText("30 s")).toBeTruthy();
+    expect(shownPhaseDuration(1)).toBe(t.phases.durationPrompt);
+    const cell = screen.getByTestId("movement-phases-duration-1", anyNode);
+    expect(cell.props.accessibilityLabel).toBe("Durée de la phase 1");
+    expect(cell.props.accessibilityValue).toEqual({ text: t.phases.durationNone });
+    expect(screen.getByTestId("movement-phases-duration-1-input", anyNode).props.keyboardType).toBe("number-pad");
+    await enterPhaseDuration(1, "30");
+    expect(screen.queryByTestId("duration-wheel-seconds", anyNode)).toBeNull();
+    expect(shownPhaseDuration(1)).toBe("30 s");
   });
 
   it("édition (Catalogue) : durées seules modifiées → enregistrées sans dialogue C03, même avec un Exercice lié ; l'Exercice existant reste inchangé", async () => {
@@ -873,8 +862,7 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
     const exerciseBefore = await database.getAllAsync("SELECT * FROM activities");
     await renderSheet({ movementId: "m1" });
     await press("activity-editor-edit-movement");
-    await press("movement-phases-duration-2");
-    await chooseSeconds(45);
+    await enterPhaseDuration(2, "45");
     await press("movement-finish-action");
     expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
     expect((await movements().findById("m1"))!.phases).toStrictEqual([
@@ -886,7 +874,7 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
     expect(mockBack).toHaveBeenCalled();
   });
 
-  it("« Sans durée » retire la durée ; renommer et déplacer gardent la durée de la phase ; une phase retirée perd la sienne", async () => {
+  it("durée vidée : aucune durée ; renommer et déplacer gardent la durée de la phase ; une phase retirée perd la sienne", async () => {
     await movements().create(
       movement("m1", "Squat", {
         phases: [
@@ -900,10 +888,9 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
     );
     await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
     expect(within(screen.getByTestId("movement-phases-duration-1", anyNode)).getByText("3 s")).toBeTruthy();
-    // Phase 2 : « Sans durée ».
-    await press("movement-phases-duration-2");
-    await press("movement-phases-duration-clear-2");
-    expect(within(screen.getByTestId("movement-phases-duration-2", anyNode)).getByText(t.phases.durationPrompt)).toBeTruthy();
+    // Phase 2 : durée vidée au clavier (recette n° 2 du 31/10 : remplace « Sans durée » de la roulette).
+    await enterPhaseDuration(2, CELL_BACKSPACE.repeat(4));
+    expect(shownPhaseDuration(2)).toBe(t.phases.durationPrompt);
     // Phase 4 retirée (avec sa durée) ; phase 1 renommée ; phase 3 montée au premier rang.
     await act(async () => {
       fireEvent(screen.getByTestId("movement-phases-label-4", anyNode), "accessibilityAction", { nativeEvent: { actionName: "remove" } });
@@ -931,5 +918,214 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
     expect(screen.getByTestId("movement-phases-duration-1", anyNode).props.children).toBe("1 min 15 s");
     expect(screen.queryByTestId("movement-phases-duration-2", anyNode)).toBeNull();
     expect(screen.getByTestId("movement-phases-duration-1", anyNode).props.accessibilityRole).toBeUndefined();
+  });
+});
+
+describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
+  /** Focus donnés par le code : identifiants des `TextInput` sur lesquels `focus` est appelé. */
+  function spyFocus() {
+    const focus = jest.spyOn(TextInput.prototype as unknown as { focus: () => void }, "focus");
+    return {
+      focused: () => focus.mock.contexts.map((context) => String((context as { props: { testID?: string } }).props.testID)),
+      clear: () => focus.mockClear(),
+      restore: () => focus.mockRestore(),
+    };
+  }
+
+  it("a2b-creer : libellé (clavier texte, Entrée « suivant ») → durée de la même ligne (pavé numérique) → ligne suivante, puis invite après la dernière ; le clavier n'est jamais fermé", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    const dismiss = jest.spyOn(Keyboard, "dismiss");
+    const focus = spyFocus();
+    try {
+      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+      const label1 = screen.getByTestId("movement-phases-label-1", anyNode);
+      expect(label1.props.keyboardType ?? "default").toBe("default");
+      expect(label1.props.returnKeyType).toBe("next");
+      expect(label1.props.submitBehavior).toBe("submit");
+      focus.clear();
+      // Entrée sur le libellé 1 → durée de la ligne 1.
+      await act(async () => {
+        fireEvent(label1, "focus");
+        fireEvent(label1, "submitEditing");
+      });
+      expect(focus.focused()).toEqual(["movement-phases-duration-1-input"]);
+      // Durée saisie, Entrée (Android) → libellé de la ligne 2.
+      const duration1 = screen.getByTestId("movement-phases-duration-1-input", anyNode);
+      expect(duration1.props.keyboardType).toBe("number-pad");
+      expect(duration1.props.submitBehavior).toBe("submit");
+      await act(async () => {
+        fireEvent(label1, "blur");
+        fireEvent(duration1, "focus");
+      });
+      typeInExecutionSheetCell("movement-phases-duration-1", "5");
+      focus.clear();
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "submitEditing");
+      });
+      expect(focus.focused()).toEqual(["movement-phases-label-2"]);
+      // Toujours en saisie (Jest ne simule pas la perte de focus native) : « MM:SS ».
+      expect(shownPhaseDuration(1)).toBe("00:05");
+      // Ligne 2 : durée, puis Entrée → invite (nouvelle phase) en fin de liste.
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
+        fireEvent(screen.getByTestId("movement-phases-duration-2-input", anyNode), "focus");
+      });
+      expect(shownPhaseDuration(1)).toBe("5 s");
+      typeInExecutionSheetCell("movement-phases-duration-2", "130");
+      focus.clear();
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-duration-2-input", anyNode), "submitEditing");
+      });
+      expect(focus.focused()).toEqual(["movement-phases-invite"]);
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-duration-2-input", anyNode), "blur");
+      });
+      expect(shownPhaseDuration(2)).toBe("1 min 30 s");
+      expect(dismiss).not.toHaveBeenCalled();
+    } finally {
+      focus.restore();
+      dismiss.mockRestore();
+    }
+  });
+
+  it("a2b-creer : pavé numérique iOS sans Entrée — barre du clavier pendant la saisie d'une durée : « Suivant → » ligne suivante, « ← Précédent » libellé de la ligne, « Fermer » ferme le clavier ; aucune barre sur un libellé", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    const dismiss = jest.spyOn(Keyboard, "dismiss");
+    const focus = spyFocus();
+    try {
+      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
+      });
+      showExecutionSheetKeyboard();
+      await settle();
+      expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "blur");
+        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
+      });
+      await settle();
+      expect(screen.getByTestId("execution-sheet-keyboard-bar", anyNode)).toBeTruthy();
+      // Aucun « À l'échec » : emplacement réservé vide.
+      expect(screen.queryByTestId("execution-sheet-keyboard-failure", anyNode)).toBeNull();
+      focus.clear();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-keyboard-next", anyNode));
+      });
+      expect(focus.focused()).toEqual(["movement-phases-label-2"]);
+      focus.clear();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-keyboard-previous", anyNode));
+      });
+      expect(focus.focused()).toEqual(["movement-phases-label-1"]);
+      expect(dismiss).not.toHaveBeenCalled();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-keyboard-close", anyNode));
+      });
+      expect(dismiss).toHaveBeenCalled();
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
+      });
+      await settle(5);
+      expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
+      hideExecutionSheetKeyboard();
+    } finally {
+      focus.restore();
+      dismiss.mockRestore();
+    }
+  });
+
+  it("a2b-creer : règles des cellules de durée (D-434) — « MM:SS » en saisie, secondes > 59 reportées, au-delà de 58:55 ramenée à 3 535 s, 0 ramené à 1 s", async () => {
+    await renderSheet();
+    await type("movement-phases-invite", "Descente");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
+    });
+    typeInExecutionSheetCell("movement-phases-duration-1", "175");
+    expect(shownPhaseDuration(1)).toBe("01:75");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
+    });
+    await settle();
+    expect(shownPhaseDuration(1)).toBe("2 min 15 s");
+    await enterPhaseDuration(1, "9999");
+    expect(shownPhaseDuration(1)).toBe("58 min 55 s");
+    await enterPhaseDuration(1, "0");
+    expect(shownPhaseDuration(1)).toBe("1 s");
+  });
+
+  it("a2b-editer : Catalogue — aucune poignée de déplacement dans les phases ; dialogue à l'enregistrement seulement quand la structure change et qu'un Exercice est lié", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    await new SqliteSessionRepository(database, ids("ses"), () => NOW).create({
+      name: "Séance",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [{ type: "EXERCISE", structuralPosition: "IN_TOUR", executionParameters: durationParameters(30), postActivityRecoverySeconds: 0, sourceMovementId: "m1" }],
+    });
+    await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+    // Ni poignée ni geste de déplacement : l'ordre ne change que par les actions VoiceOver.
+    expect(screen.queryAllByTestId(/movement-phases-.*handle/u, anyNode)).toHaveLength(0);
+    // Durées seules : aucun dialogue (SILENT).
+    await enterPhaseDuration(1, "5");
+    await press("movement-finish-action");
+    expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("constat b : 2 phases sans durée, deux durées puis une 3e phase avec sa durée → avertissement, Confirmer enregistre tout (aucune erreur) ; un échec d'écriture garde le brouillon et l'écran", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    await new SqliteSessionRepository(database, ids("ses"), () => NOW).create({
+      name: "Séance",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [{ type: "EXERCISE", structuralPosition: "IN_TOUR", executionParameters: durationParameters(30), postActivityRecoverySeconds: 0, sourceMovementId: "m1" }],
+    });
+    const errors = jest.spyOn(console, "error");
+    try {
+      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+      await enterPhaseDuration(1, "10");
+      await enterPhaseDuration(2, "20");
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-label-2", anyNode), "focus");
+      });
+      await type("movement-phases-invite", "Pause");
+      await enterPhaseDuration(3, "5");
+      // Échec d'écriture simulé : message, brouillon conservé, l'écran reste ouvert.
+      const failing = jest
+        .spyOn(SqliteMovementRepository.prototype, "update")
+        .mockRejectedValueOnce(new Error("CHECK constraint failed"));
+      await press("movement-finish-action");
+      expect(screen.getByTestId("movement-save-dialog", anyNode)).toBeTruthy();
+      await press("movement-save-confirm");
+      await settle(20);
+      expect(screen.getByTestId("movement-save-error", anyNode)).toBeTruthy();
+      expect(mockBack).not.toHaveBeenCalled();
+      expect(shownPhaseDuration(3)).toBe("5 s");
+      failing.mockRestore();
+      errors.mockClear();
+      // Nouvel essai : enregistré, sans erreur.
+      await press("movement-finish-action");
+      await press("movement-save-confirm");
+      await settle(20);
+      expect(errors).not.toHaveBeenCalled();
+      expect((await movements().findById("m1"))!.phases).toStrictEqual([
+        { id: 1, label: "Descente", durationSeconds: 10 },
+        { id: 2, label: "Montée", durationSeconds: 20 },
+        { id: 3, label: "Pause", durationSeconds: 5 },
+      ]);
+      expect(mockBack).toHaveBeenCalled();
+    } finally {
+      errors.mockRestore();
+    }
   });
 });

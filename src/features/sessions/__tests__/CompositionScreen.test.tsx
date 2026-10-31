@@ -9272,13 +9272,15 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         const rank = (element: Element, index: number) =>
           element.key === raisedId ? 1e6 : element.group === raisedGroup ? 1e3 + index : index;
         const chain = elements.filter((element) => element.linkTestID === null || hasLink(element.linkTestID));
-        // Revue 6.2 : un point hors de la chaîne (soulevé, tenu, en retour) ne dessine AUCUN rail —
-        // ni queue ni point de raccord : le lien de ses voisines traverse déjà sa place.
+        // Revue 6.2 : un point hors de la chaîne (soulevé, tenu, en retour) ne dessine aucun segment de
+        // rail : le lien de ses voisines traverse déjà sa place. [« ni point de raccord » — remplacé par
+        // la recette iPhone n° 2 du 31/10/2026 (b6-ancien) : son point de raccord le suit, dans sa
+        // couche propre (`-lifted`), sur l'axe du rail.]
         for (const element of elements) {
           if (element.media !== null || element.linkTestID === null || hasLink(element.linkTestID)) continue;
           const id = element.key.slice("stop:".length);
           expect(screen.queryByTestId(`composition-rail-tail-stop-${id}`, hidden)).toBeNull();
-          expect(screen.queryByTestId(`composition-rail-dot-stop-${id}`, hidden)).toBeNull();
+          expect(screen.getByTestId(`composition-rail-dot-stop-${id}-lifted`, hidden)).toBeTruthy();
         }
         const defects: string[] = [];
         chain.forEach((element, index) => {
@@ -9621,6 +9623,11 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           movePoint("P", dy);
           settle();
           expect(translateY("composition-stop-point-P")).toBe(dy);
+          // Recette iPhone n° 2 du 31/10/2026 (b6-ancien, Hermann : « le cercle plein sur le rail ne se
+          // déplace pas en même temps, il apparaît lorsque le point est déposé ») : le point de raccord
+          // suit la puce, sur l'axe du rail.
+          expect(translateY("composition-rail-dot-stop-P-lifted")).toBe(dy);
+          expect(StyleSheet.flatten(screen.getByTestId("composition-rail-dot-stop-P", hidden).props.style)).toMatchObject({ left: 40 - 3 });
           // B remonte dans la place libérée par P.
           expect(rowShift("B")).toBeLessThan(0);
           expect(screen.queryByTestId("composition-rail-link-stop-P", hidden)).toBeNull();

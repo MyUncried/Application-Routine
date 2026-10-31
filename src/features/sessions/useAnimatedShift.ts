@@ -88,6 +88,7 @@ export class AnimatedShiftRegistry {
     let shift = this.values.get(key);
     if (shift === undefined) {
       shift = new Animated.Value(initial);
+      if (key.startsWith(NATIVE_SHIFT_KEY_PREFIX)) makeNativeAtCreation(shift);
       this.guardNativeEcho(key, shift);
       this.values.set(key, shift);
       this.applied.set(key, initial);
@@ -232,6 +233,24 @@ export class AnimatedShiftRegistry {
       this.nativeStale.delete(key);
       shift.setValue(target);
     }
+    this.clearNativeSyncIfIdle();
+  }
+
+  /**
+   * PRE-9 (recette iPhone n° 2 du 31/10/2026) : pose immédiate, synchrone et native, de la translation
+   * d'une clé — un Circuit ou un Cycle lâché, dont la translation du doigt (valeur propre au geste)
+   * est remise à 0 dans la même tâche : la translation du registre la relaie sans saut. La cible
+   * suivante (`apply`) repart de cette position.
+   */
+  pose(key: string, value: number): void {
+    const shift = this.value(key, value);
+    this.cancel(key);
+    shift.stopAnimation();
+    shift.setValue(value);
+    this.applied.set(key, value);
+    this.carried.delete(key);
+    this.motions.delete(key);
+    this.nativeStale.delete(key);
     this.clearNativeSyncIfIdle();
   }
 
@@ -394,6 +413,27 @@ function setJsValue(value: Animated.Value, next: number): void {
 
 function isPoseMap(pose: ShiftRelease | ReadonlyMap<string, number>): pose is ReadonlyMap<string, number> {
   return pose instanceof Map;
+}
+
+/**
+ * PRE-9 (recette iPhone n° 2 du 31/10/2026) : préfixe des clés dont la valeur est rendue native dès sa
+ * création, avant toute vue attachée (disposition générale). Un lien de rail combine les valeurs de
+ * deux éléments (`Animated.subtract`) ; attacher cette combinaison à une valeur déjà native rend
+ * l'autre valeur native en parcourant ses vues — dont celles d'un composant démonté dans le même
+ * rendu, pas encore détachées (« Unable to find node on an unmounted component », voir l'en-tête du
+ * registre). Une valeur native dès sa création n'est jamais parcourue ainsi : chaque vue s'y attache
+ * seule. Ces valeurs ne reçoivent que des animations sur le pilote natif.
+ */
+export const NATIVE_SHIFT_KEY_PREFIX = "native|";
+
+/** Clé de `key` dans l'espace des valeurs natives dès leur création (idempotent). */
+export function nativeShiftKey(key: string): string {
+  return key.startsWith(NATIVE_SHIFT_KEY_PREFIX) ? key : NATIVE_SHIFT_KEY_PREFIX + key;
+}
+
+function makeNativeAtCreation(value: Animated.Value): void {
+  const internal = value as unknown as { __makeNative?: () => void };
+  internal.__makeNative?.();
 }
 
 /** PRE-6 story 5.2b : translation de départ d'une clé, posée sans animation avant ses cibles. */

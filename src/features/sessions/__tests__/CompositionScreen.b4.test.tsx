@@ -177,16 +177,19 @@ beforeEach(() => {
 });
 
 describe("B.4 — glisser-déposer dans une disposition générale (COMP §6, ARB-06)", () => {
-  it("Exercice de la Séance glissé dans un Circuit : destination éclairée pendant le geste, dépose au rang visé", async () => {
+  // [B.4 : « destination éclairée pendant le geste » — remplacé le 31/10/2026 par la recette iPhone n° 2 :
+  // ni cadre ni trait, les éléments font la place (`CompositionScreen.recette2.test.tsx`).]
+  it("Exercice de la Séance glissé dans un Circuit : ni cadre ni trait d'insertion pendant le geste, dépose au rang visé", async () => {
     await renderComposition(twoCircuitsDraft());
     measureTwoCircuits();
     const before = probe.draft;
     // Centre de e9 : 530 ; entre a1 et a2 : 225,5.
     const card = liftCard("e9", 530, 225.5);
     expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
-    expect(screen.getByTestId("composition-layout-circuit-ca-drop-target", hidden)).toBeTruthy();
+    // Recette iPhone n° 2 du 31/10 (Hermann : « Je ne veux pas d'encadré bleu et de trait d'insertion »).
+    expect(screen.queryByTestId("composition-layout-circuit-ca-drop-target", hidden)).toBeNull();
     expect(screen.queryByTestId("composition-layout-circuit-cb-drop-target", hidden)).toBeNull();
-    expect(screen.getByTestId("composition-layout-drop-line", hidden)).toBeTruthy();
+    expect(screen.queryByTestId("composition-layout-drop-line", hidden)).toBeNull();
     // Aucune écriture avant le relâchement.
     expect(probe.draft).toBe(before);
 

@@ -41,7 +41,7 @@ Story PRE-9, epic B. Plan : `../planning-artifacts/epics.md` § B.6 (dépend de 
 
 **Écran** (`CompositionScreen.tsx`, `TourBoundaryChoiceDialog.tsx`, `fr.ts`) — disposition générale :
 - Points d'arrêt rendus à leur place à tous les niveaux (rangée `StopPointRow` de l'ancien modèle : puce centrée, rail), nommés « Point d'arrêt après {exercice} », « … au début du circuit / du cycle », « … après le circuit / le cycle ».
-- Appui long sur un Point : glisser (même résolution de destination que B.4, ligne d'insertion, défilement automatique) puis `moveLayoutStopPoint` ; refus annoncé ; actions accessibles « Monter » / « Descendre ».
+- Appui long sur un Point : glisser (même résolution de destination que B.4, ligne d'insertion, défilement automatique) puis `moveLayoutStopPoint` ; refus annoncé ; actions accessibles « Monter » / « Descendre ». [Ligne d'insertion remplacée le 31/10/2026 par la recette iPhone n° 2 : décalages des voisins et des bords des conteneurs.]
 - « Ajouter un arrêt » disponible ; mode Placement sur tous les niveaux : sous chaque carte (zone de récupération et emplacement qui la suit, rendu de l'ancien modèle), rangées autonomes en tête de Circuit / de Cycle et après un conteneur ; Circuits dépliés, en-têtes inactifs ; même barre, mêmes libellés, Annuler, second appui = Confirmer.
 - Choix « Début de tour / Fin de tour » (Circuit) ou « Début de répétition / Fin de répétition » (Cycle) : **même dialogue** (`TourBoundaryChoiceDialog`, prop `scope`), pour le placement, la dépose d'un Point, le déplacement d'un élément, la suppression d'un Exercice et le compte ; « Annuler » ne change rien.
 - Points retirés sans message : annonce VoiceOver discrète (« Point d'arrêt retiré »), comme l'ancien modèle.
@@ -63,7 +63,7 @@ Story PRE-9, epic B. Plan : `../planning-artifacts/epics.md` § B.6 (dépend de 
 
 ## Écarts et reports
 
-1. **Glisser d'un Point (disposition générale)** : la mise en page reste figée pendant le geste et la destination est la ligne d'insertion la plus proche (B.4), sans décalage animé des voisins comme dans l'ancien modèle ; refus : la puce revient à sa place sans animation de retour. Non éprouvé sur iPhone.
+1. **Glisser d'un Point (disposition générale)** : la mise en page reste figée pendant le geste et la destination est la ligne d'insertion la plus proche (B.4), sans décalage animé des voisins comme dans l'ancien modèle ; refus : la puce revient à sa place sans animation de retour. Non éprouvé sur iPhone. [Remplacé le 31/10/2026 par la recette iPhone n° 2 : voisins et bords des conteneurs qui font la place, retour animé, point de raccord qui suit la puce ; voir « Recette iPhone n° 2 du 31/10 ».]
 2. **« Monter » / « Descendre » d'un élément** de la disposition générale : franchit d'abord un Point voisin (échange, D-441), puis passe d'emplacement d'élément en emplacement d'élément (B.4). Changement du pas B.4 quand des Points sont présents.
 3. **Suppression avec choix de répétition** : le dialogue précède la suppression, appliquée ensuite sans fondu de la carte (le conteneur vidé s'efface toujours lentement). Une suppression animée dont la réécriture finale demanderait un choix (cas limite : brouillon modifié pendant le fondu) garde le début.
 4. Noms accessibles des Points de la disposition générale : sans « n sur m » pour des homonymes ni lettre de conteneur ; focus VoiceOver non déplacé après un retrait (annonce seulement).
@@ -116,3 +116,34 @@ Préparer une Séance : E0, E1, E2, E3, E4, E5. Poser un Circuit sur E1 et E2 (C
 - À CLARIFIER 4 (Monter / Descendre d'une carte) : « Elle franchit d'abord le point d'arrêt » — comportement livré confirmé.
 - À CLARIFIER 1 (libellés) : « Remplacer le terme « répétition » par « passage » dans la composition de séance pour le nombre de cycles, et dans le message » — réalisé (fr.ts : en-tête et stepper du Cycle, dialogue).
 - À CLARIFIER 2 (point dans une enveloppe) : « a) il entre dans le conteneur » — comportement livré confirmé ; COMP l.64 à lire avec ch07 « B.6 — vocabulaire du Cycle et enveloppe ».
+
+## Recette iPhone n° 2 du 31/10
+
+**Constats de Hermann (verbatim)** :
+- b6-glisser : « aucune animation dynamique des autres éléments pour faire de la place mais des traits d'insertion bleus. Par ailleurs, le cercle plein du rail se retrouve sur un rail parallèle au rail. Il y a donc deux rails, l'initial, et la portion d'un autre avec le cercle plein, décalé à droite du premier. »
+- b6-recup : « Le déplacement des cartes et des bords d'un circuit se font correctement lorsqu'il n'y a pas de circuit ou qu'un seul. Dès qu'on ajoute un deuxième circuit, ou un premier cycle, […] Tous les éléments sont figés, les conteneurs ont un liseré bleu, un ligne verticale bleue apparaît lorsqu'on approche d'un emplacement. A corriger, il faut conserver les principes d'animation déjà validés. »
+- b6-ancien (un seul Circuit) : « Lorsqu'on déplace le point d'arrêt, le cercle plein sur le rail ne se déplace pas en même temps, il apparaît lorsque le point est déposé ».
+
+**Causes** :
+1. Glisser d'un Point (et de tout élément) de la disposition générale sans décalage animé, avec cadre et trait bleus : choix de B.4 (voir la spec B.4, même section).
+2. « Deux rails » : hors d'un Circuit (niveau Séance, Cycle), la rangée d'un Point n'avait pas le débord des cartes (`exerciseList`, −8 de chaque côté) ; son rail et son point de raccord, posés sur l'axe des médias des cartes dans le repère de la rangée, se trouvaient 8 points à droite du rail des cartes. Même décalage pour les rangées autonomes du placement hors Circuit.
+3. Mesure de la rangée d'un Point (disposition générale) relevée sur la rangée intérieure (toujours à 0 dans son enveloppe) : point de saisie faux, destination calculée trop haut.
+4. b6-ancien : un Point hors de la chaîne du rail (soulevé, tenu, en retour) ne dessinait aucun rail, point de raccord compris (revue 6.2) ; le point n'était redessiné qu'à la dépose.
+
+**Corrections** :
+- Aperçu par décalages de la spec B.4 appliqué au Point : sa place se referme, celle visée s'ouvre, les bords du Circuit ou du Cycle visé / quitté se déplacent ; retour animé après un refus ; mise en place animée après une dépose ; tenu pendant le choix « Début / Fin de passage ».
+- Rangée d'un Point hors Circuit (et rangée de placement) : débord des cartes (`layoutStopRowOutset`, −8) — un seul rail.
+- Mesure portée par l'enveloppe de la rangée (`composition-layout-stop-point-<id>`), élément de sa liste.
+- Point de raccord hors de la chaîne : dessiné sur l'axe du rail et suivant la puce (translation du doigt, puis de la rangée dans le registre pendant le dialogue et le retour) — ancien modèle (b6-ancien) et disposition générale ; aucune queue ni lien. [Revue 6.2 : « ni point de raccord » — remplacé, annotation datée dans le code, le test de l'ancien modèle et `src/features/sessions/README.md`.]
+
+**Synchronisation code / documentation** : classe **B** (demandes explicites de Hermann du 31/10) pour l'animation et le point de raccord — cette spec (écart 1 et « Écran » annotés), spec B.4, README (story 6.2, revue) ; classe **A** pour le rail unique (le rail est sur l'axe des médias des cartes : story 5.2, D-435, CE-T03-08 L1478) et la mesure (anomalie). Aucune règle de placement des Points modifiée (RM-219, RM-251, D-441, D-442, ARB-02 : `layoutStopPoints.ts` inchangé).
+
+**Tests** : `CompositionScreen.recette2.test.tsx` (Point du niveau Séance glissé dans un Circuit : débord −8, point de raccord qui suit la puce, place refermée et rouverte, bords du Circuit, dépose) ; `layoutDragShifts.recette2.test.ts` (Point d'un Cycle vers un Circuit : le Cycle se rétracte, le Circuit s'agrandit) ; `CompositionScreen.test.tsx` (ancien modèle, R2 : point de raccord qui suit la puce ; vérification « aucun rail hors de la chaîne » annotée). Résultats : voir le compte rendu de livraison.
+
+### Recette iPhone n° 3 (à jouer)
+
+1. Disposition générale (deux Circuits ou un Cycle), Point d'arrêt au niveau Séance : **un seul rail**, le point de raccord sur le rail des cartes (plus de rail parallèle à droite) ; idem pour un Point dans un Cycle, et pour les emplacements du placement hors Circuit.
+2. Appui long sur ce Point, glisser dans un Circuit entre deux cartes : **ni trait ni cadre** ; les cartes et le bas du Circuit descendent pour faire la place, la place quittée se referme ; le point de raccord suit la puce sur le rail ; relâcher : le Point glisse jusqu'à sa place.
+3. Relâcher le Point juste après le Compte à rebours : refus annoncé, retour animé à sa place.
+4. Point en tête d'un Cycle × 2 face à un Point de fin : choix « Début / Fin de passage » ; pendant le dialogue le Point reste où il a été lâché ; Annuler : retour en douceur.
+5. Séance à un seul Circuit (ancien modèle) : glisser un Point — le point de raccord se déplace avec la puce pendant tout le geste (b6-ancien) ; le reste du comportement est inchangé.

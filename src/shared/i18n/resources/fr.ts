@@ -1301,8 +1301,8 @@ export const fr = {
         durationPrompt: "Durée",
         durationAccessibility: "Durée de la phase {rank}",
         durationNone: "aucune durée",
-        durationWheelTitle: "Durée par défaut",
-        durationClear: "Sans durée",
+        // [Recette iPhone n° 2 du 31/10/2026 : roulette et « Sans durée » retirés (saisie au clavier
+        // numérique) — libellés « Durée par défaut » et « Sans durée » supprimés.]
       },
       catalogue: {
         segment: "Mouvements",

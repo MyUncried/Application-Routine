@@ -676,6 +676,14 @@ export function ExecutionParametersSheet({
   // PRE-5 story 2.4 (FR-2) : avec des phases, Répétitions, À l'échec et Variables sont
   // indisponibles (valeur réelle affichée) ; le domaine refuse d'ailleurs ces transitions.
   const hasWorkPhases = draft.workPhases.length > 0;
+  // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat a, Hermann : « Si la durée d'une phase manque
+  // dans un exercice, le cadre de l'option phase doit être rouge lorsque le tableau des phases est
+  // replié ») : au moins une durée de phase manquante (vide ou 0 s, `hasMissingPhaseDuration`) et
+  // tableau replié → ligne « Phases de l'exercice » en rouge (`Row.invalid`).
+  const isPhasesRowIncomplete =
+    hasWorkPhases &&
+    isPhasesFolded &&
+    draft.workPhases.some((phase) => !(typeof phase.durationSeconds === "number" && phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin));
   // AD-23 : seule autorité de la Condition d'arrêt, sur l'état effectif.
   const stopCondition = stopConditionOf(effective);
   // FR-21 : en identiques à l'échec, la ligne de cible (Durée ou Répétitions) est masquée.
@@ -2129,7 +2137,12 @@ export function ExecutionParametersSheet({
                     style={[styles.variableGroup, isDraggingRow ? null : styles.variableGroupClip]}
                     testID="execution-sheet-phases-group"
                   >
-                    <Row label={t.workPhases} selected={phaseCountOpen} testID="execution-sheet-row-phases">
+                    <Row
+                      label={t.workPhases}
+                      selected={phaseCountOpen}
+                      invalid={isPhasesRowIncomplete}
+                      testID="execution-sheet-row-phases"
+                    >
                       {phasesControl}
                     </Row>
                     {/* Contre-recette iPhone du 30/10 (Hermann : « il ne faut pas de trait de
@@ -2788,6 +2801,7 @@ function Row({
   label,
   labelAccessory = null,
   selected = false,
+  invalid = false,
   longLabel = false,
   below = null,
   onLayout,
@@ -2798,6 +2812,13 @@ function Row({
   label: string;
   labelAccessory?: ReactNode;
   selected?: boolean;
+  /**
+   * PRE-9, recette iPhone n° 2 du 31/10/2026 (constat a) : ligne à compléter — cadre de la ligne en
+   * rouge, mêmes jetons que la carte d'Exercice à compléter (fond `colors.dangerSurface`, bord 1
+   * `colors.danger`). Rendu CHOISI (aucun état Figma de la ligne repliée à compléter), prioritaire
+   * sur la sélection.
+   */
+  invalid?: boolean;
   longLabel?: boolean;
   below?: ReactNode;
   onLayout?: (event: LayoutChangeEvent) => void;
@@ -2824,7 +2845,10 @@ function Row({
     <SheetMotionView bleed={GROUP_PADDING} onLayout={onLayout} testID={testID}>
       <View
         pointerEvents="none"
-        style={[styles.selectionBackground, selected ? styles.selectionBackgroundSelected : null]}
+        style={[
+          styles.selectionBackground,
+          invalid ? styles.selectionBackgroundInvalid : selected ? styles.selectionBackgroundSelected : null,
+        ]}
         testID={`${testID}-selection`}
       />
       {labelAccessory === null ? (
@@ -3718,6 +3742,12 @@ const styles = StyleSheet.create({
   },
   selectionBackgroundSelected: {
     backgroundColor: colors.stepperSurface,
+  },
+  // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat a) : ligne à compléter, cadre rouge.
+  selectionBackgroundInvalid: {
+    backgroundColor: colors.dangerSurface,
+    borderWidth: 1,
+    borderColor: colors.danger,
   },
   // Story 3.3 (T23) : zone d'appui extérieur étendue aux marges de `bodyContent`.
   bodyOutside: {
