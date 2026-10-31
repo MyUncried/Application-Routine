@@ -166,7 +166,9 @@ const searchWidth = (testID: string) => StyleSheet.flatten(screen.getByTestId(`$
  * sous 107.
  */
 function expectSearchFillsToFilter(testID: string) {
-  expect(StyleSheet.flatten(screen.getByTestId(`${testID}-field`).props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0, minWidth: 107 });
+  // Recette CAT.1 du 31/10 (cat1r-champ) : la pilule Filtre garde sa largeur, le champ prend le reste.
+  expect(StyleSheet.flatten(screen.getByTestId(`${testID}-field`).props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0, minWidth: 0 });
+  expect(StyleSheet.flatten(screen.getByTestId("catalogue-context-commands").props.style).flexShrink).toBe(0);
   expect(searchWidth(testID)).toBeUndefined();
   expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).gap).toBe(12);
   expect(StyleSheet.flatten(screen.getByTestId("catalogue-context-commands").props.style).gap).toBe(12);

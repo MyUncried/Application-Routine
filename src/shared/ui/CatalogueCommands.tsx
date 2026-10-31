@@ -158,7 +158,9 @@ export function CatalogueSearchField({
       ? styles.searchTarget
       : typeof width === "number"
         ? [styles.searchContextTarget, { width }]
-        : [styles.searchContextTarget, styles.searchContextFill, { minWidth: width.fillFrom }];
+        : // Recette CAT.1 du 31/10 : le champ prend l'espace restant après la pilule Filtre, même s'il
+          // descend sous `fillFrom` (la pilule complète prime).
+          [styles.searchContextTarget, styles.searchContextFill];
   return (
     <View style={targetStyle} testID={`${testID}-field`}>
       <View style={context ? styles.searchContext : styles.search}>
@@ -263,8 +265,10 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: colors.background,
     // PRE-9 CAT.1 : la pilule cède de la place (résumé tronqué) plutôt que de chevaucher le champ Rechercher.
-    flexShrink: 1,
-    minWidth: 0,
+    // [Remplacé le 31/10/2026, recette CAT.1 (Hermann, cat1r-champ : « Filtre actif : la largeur du
+    // filtre étendu est réduite, le texte Filtres, le texte en dessous et le chevron ne sont plus
+    // visibles ») : la pilule garde sa largeur naturelle ; c'est le champ Rechercher qui cède.]
+    flexShrink: 0,
   },
   pillCircle: {
     width: COMMAND.visual,

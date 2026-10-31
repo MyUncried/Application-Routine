@@ -71,3 +71,9 @@ Synchronisation code / documentation : **classe B** pour les cinq points (décis
 Fichiers : nouveau `src/features/sessions/CatalogueNavigation.tsx` ; modifiés `CatalogueScreen.tsx`, `SessionFilterSheet.tsx` (primitive de section partagée, rendu inchangé), `src/features/activities/FilterSheetPrimitives.tsx`, `MovementFilterSheet.tsx`, `MovementSelectionScreen.tsx`, `MovementCatalogueList.tsx`, `movementCatalogueCounters.ts`, `src/shared/ui/CatalogueCommands.tsx`, `CatalogueContextZone.tsx`.
 
 Tests : nouveau `MovementSelectionScreen.cat1.test.tsx` (pile dépliée si un Mouvement utilisé est masqué, repliée sinon ; zone de contexte sans Créer ; dépliage par « mouvements ») ; mis à jour `movementCatalogueCounters.cat1.test.ts` (mouvements des piles repliées, cartes affichées, `pileKeysOf`, `pilesHidingIds`), `CatalogueScreen.cat1.test.tsx` (compteur, dépliage puis retour à l'état d'avant, champ étendu jusqu'à Filtre), `CatalogueScreen.test.tsx` (CAT-R01 remplacé : style texte de Figma), `CatalogueScreen.e4.test.tsx` (champ étendu), `MovementFilterSheet.b7.test.tsx` (chevrons et repli des sections, pied fixe, feuille réductible, plus d'animation de mise en page).
+
+## Contre-recette iPhone du 31/10/2026
+
+Résultats : OK cat1r-titre, cat1r-compteurs, cat1r-bascule, cat1r-filtre, cat1r-recherche, cat1r-existant, cat1r-point ; KO cat1r-champ : « Filtre actif : la largeur du filtre étendu est réduite, le texte Filtres, le texte en dessous et le chevron ne sont plus visibles ».
+Correction (classe B) : la pilule Filtre étendue et les commandes gardent leur largeur naturelle (`flexShrink: 0`) ; le champ Rechercher prend l'espace restant, même sous 107 pt (le minimum de §2 cède devant la pilule complète). Tests : `CatalogueScreen.e4`, `CatalogueScreen.cat1` mis à jour.
+

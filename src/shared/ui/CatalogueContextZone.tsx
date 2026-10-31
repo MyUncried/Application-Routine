@@ -117,8 +117,9 @@ const styles = StyleSheet.create({
     gap: COMMAND.gap,
   },
   commands: {
-    flexShrink: 1,
-    minWidth: 0,
+    // Recette CAT.1 du 31/10 (cat1r-champ) : les commandes (pilule Filtre complète, Tri, Créer) ne
+    // rétrécissent jamais ; le champ Rechercher prend le reste.
+    flexShrink: 0,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",

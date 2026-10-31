@@ -230,7 +230,9 @@ describe("PRE-8 E.4 — commande Filtre étendue ; PRE-9 CAT.1 — zone de conte
     expect(screen.queryByTestId("catalogue-results")).toBeNull();
     view.unmount();
     renderRow("Archivées");
-    expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-field").props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0, minWidth: 107 });
+    // Recette CAT.1 du 31/10 (cat1r-champ) : la pilule Filtre garde sa largeur, le champ prend le reste.
+    expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-field").props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0, minWidth: 0 });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-context-commands").props.style).flexShrink).toBe(0);
     expect(screen.getByTestId("catalogue-results")).toHaveTextContent("2 résultats");
   });
 });
