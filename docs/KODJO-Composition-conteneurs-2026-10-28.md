@@ -4,6 +4,16 @@ Référence consolidée du 28 octobre 2026. Périmètre : composition de séance
 
 Les règles explicitement décidées dans la source sont intégrées. Les recommandations de la revue ne sont pas des décisions. Figma établit le rendu observé, jamais les calculs ni une preuve de fonctionnement sur appareil. La source affirme une intégration antérieure de D-450 et RM-252 : ces références étaient absentes de `main` au commit `0a40735f`. La présente intégration les rend effectives dans ce référentiel. **Correspondance de registre : la source nomme cette décision D-450 ; la PR ouverte [#402](https://github.com/MyUncried/Application-Routine/pull/402) emploie déjà D-450 pour les filtres des mouvements. Elle est intégrée ici sous D-451, sans modifier son fond.**
 
+<a id="recuperation-exercice-et-defauts-profil"></a>
+
+## Récupération de l’Exercice et défauts du Profil
+
+La Récupération après exercice appartient directement à l’Exercice dans le modèle cible de Séance. La ligne Récupération de la modale Paramètres d’exécution est son unique accès de saisie et de modification ; la Composition affiche exactement cette même valeur, sans objet Récupération autonome ni valeur concurrente. Le bouton Pause / Ajouter un arrêt ne propose que les Points d’arrêt : aucun ajout, réglage ou retrait de récupération par Placement.
+
+À la création d’un nouvel Exercice, sa Récupération reprend « Récupération après un exercice » du Profil ; 30 s n’est pas une constante. Modifier un Exercice conserve sa valeur ; un ancien Exercice sans récupération affiche 0 s sans recevoir le défaut du Profil. Déplacement et duplication conservent la récupération de l’Exercice. À 0 s, aucune récupération n’est exécutée ; les règles existantes de Pause terminale, d’ordre avant Point d’arrêt et de répétition dans un Circuit restent applicables. Les anciens instantanés, exécutions et données historiques restent lisibles sans réécriture ; la règle historique « aucune récupération post-exercice en ACTIVITY » reste limitée à cet ancien parcours, sans réintroduire un Exercice autonome dans la cible.
+
+Toute valeur initialisée depuis un défaut du Profil est présentée dans son cadre à fond orange dans Paramètres d’exécution jusqu’au premier ✓ validant les paramètres de cet Exercice. La règle est générale : elle vise chaque défaut du Profil effectivement repris, pas seulement Récupération. Ouvrir ou fermer la feuille ne vaut pas validation ; ✕ annule les changements et conserve l’état antérieur. ✓ applique les valeurs et leur état validé au brouillon parent ; une réouverture après ce ✓ utilise le rendu normal. La sauvegarde définitive reste celle de la Séance ; abandonner le brouillon restaure l’état enregistré. Changer ultérieurement le Profil ne réinitialise pas les paramètres d’un Exercice existant. Les constantes imposées par un Format ne sont pas des défauts Profil. Le fond orange n’altère ni la valeur ni les règles de calcul, ni les couleurs du texte éditable/verrouillé.
+
 ## 1. Structure autorisée — D-451, RM-025, RM-028, RM-252
 
 | Parent | Membres de composition autorisés | Répétition |

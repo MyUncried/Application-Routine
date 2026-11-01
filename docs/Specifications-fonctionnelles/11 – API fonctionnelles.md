@@ -1,5 +1,15 @@
 # API fonctionnelles
 
+<a id="recuperation-exercice-et-defauts-profil"></a>
+
+## Récupération de l’Exercice et défauts du Profil
+
+La Récupération après exercice appartient directement à l’Exercice dans le modèle cible de Séance. La ligne Récupération de la modale Paramètres d’exécution est son unique accès de saisie et de modification ; la Composition affiche exactement cette même valeur, sans objet Récupération autonome ni valeur concurrente. Le bouton Pause / Ajouter un arrêt ne propose que les Points d’arrêt : aucun ajout, réglage ou retrait de récupération par Placement.
+
+À la création d’un nouvel Exercice, sa Récupération reprend « Récupération après un exercice » du Profil ; 30 s n’est pas une constante. Modifier un Exercice conserve sa valeur ; un ancien Exercice sans récupération affiche 0 s sans recevoir le défaut du Profil. Déplacement et duplication conservent la récupération de l’Exercice. À 0 s, aucune récupération n’est exécutée ; les règles existantes de Pause terminale, d’ordre avant Point d’arrêt et de répétition dans un Circuit restent applicables. Les anciens instantanés, exécutions et données historiques restent lisibles sans réécriture ; la règle historique « aucune récupération post-exercice en ACTIVITY » reste limitée à cet ancien parcours, sans réintroduire un Exercice autonome dans la cible.
+
+Toute valeur initialisée depuis un défaut du Profil est présentée dans son cadre à fond orange dans Paramètres d’exécution jusqu’au premier ✓ validant les paramètres de cet Exercice. La règle est générale : elle vise chaque défaut du Profil effectivement repris, pas seulement Récupération. Ouvrir ou fermer la feuille ne vaut pas validation ; ✕ annule les changements et conserve l’état antérieur. ✓ applique les valeurs et leur état validé au brouillon parent ; une réouverture après ce ✓ utilise le rendu normal. La sauvegarde définitive reste celle de la Séance ; abandonner le brouillon restaure l’état enregistré. Changer ultérieurement le Profil ne réinitialise pas les paramètres d’un Exercice existant. Les constantes imposées par un Format ne sont pas des défauts Profil. Le fond orange n’altère ni la valeur ni les règles de calcul, ni les couleurs du texte éditable/verrouillé.
+
 ## Opérations de famille depuis le catalogue — 28/10/2026
 
 CE-MVT-03 et les [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) définissent réordonner, lier, entrer, sortir et dissoudre le dernier couple au relâchement. Annuler restaure l'opération pendant les 3 secondes du message d'appartenance. Les écritures et invariants sont au chapitre 09 ; aucune nouvelle route technique n'est imposée par ce lot documentaire. Ne pas assimiler dissoudre une famille à supprimer ses mouvements ni modifier les références d'exercices, l'historique ou les performances.
@@ -252,8 +262,8 @@ Contenu identique à la section [« Parcours MVP T03 — Catalogue des Exercices
 
 | ID | Opération | Entrées | Résultat | Règle |
 | --- | --- | --- | --- | --- |
-| API-COM-REC-01 | Ajouter explicitement une récupération | occurrence, durée validée | pause recovery du brouillon | Proposer le défaut Profil à l’ajout, jamais créer de récupération avec une occurrence. Appelée uniquement depuis le sous-brouillon de placement, appliquée par Confirmer (D-442). |
-| API-COM-REC-02 | Modifier la récupération après exercice | ID occurrence, durée ≥ 0 | occurrence mise à jour | `0 s` est une valeur valide et conservée. Appelée uniquement depuis le sous-brouillon de placement : la roulette s’ouvre sur la durée existante (D-442) ; hors placement, la récupération affichée n’est plus une cible. Le retrait passe par la désélection de la récupération en placement et rétablit la Pause terminale (RM-038). |
+| API-COM-REC-01 | Initialiser la récupération de l’Exercice | Création, défaut du Profil | Paramètre de l’Exercice dans le brouillon | Pas d’objet de pause recovery autonome ni d’ajout par Placement ; aucune réinitialisation à l’ouverture d’un Exercice existant. |
+| API-COM-REC-02 | Modifier la récupération de l’Exercice | ID Exercice, durée ≥ 0 | Brouillon Exercice mis à jour | Appel depuis Paramètres d’exécution seulement ; ✓ applique au parent, sauvegarde avec la Séance ; 0 s reste valide. |
 | API-COM-REC-03 | Déplacer une occurrence | ID occurrence, nouvelle position | ordre mis à jour | `postActivityRecoverySeconds` reste inchangé. |
 | API-COM-REC-04 | Dupliquer une occurrence | ID occurrence | copie indépendante | Copie `postActivityRecoverySeconds`. |
 | API-COM-REC-05 | Supprimer une occurrence | ID occurrence | occurrence supprimée | La récupération contextuelle disparaît avec elle. |
@@ -269,22 +279,22 @@ Les API de placement travaillent dans un sous-brouillon : ouverture, ajout/édit
 
 Le modèle logique distingue deux objets de pause : recovery (durée, occurrence source) et breakpoint (position structurelle). La présence explicite n’est pas déduite de la durée. Un identifiant stable permet les opérations idempotentes. L’attachement de recovery à l’occurrence est conservé ; le Point d’arrêt garde ses règles de position structurelle.
 
-postActivityRecoverySeconds devient une projection compatible pour les calculs : durée de recovery si présente,0 sinon. Il n’est pas une seconde source persistée concurrente. Schéma physique et index relèvent du développement. Au main 72d1bf4, seules les migrations 001..008 existent :009 est le numéro suivant constaté, à revalider à l’ouverture de la tranche, pas une réservation globale. Aucune reprise des séances anciennes n’est demandée dans ce lot de conception.
+La récupération est une durée propre à l’Exercice, affichée sans duplication dans la Composition et réglée uniquement dans Paramètres d’exécution. À la création d’un nouvel Exercice, sa Récupération reprend « Récupération après un exercice » du Profil ; 30 s n’est pas une constante. Modifier un Exercice conserve sa valeur ; un ancien Exercice sans récupération affiche 0 s sans recevoir le défaut du Profil. Déplacement et duplication conservent la récupération de l’Exercice. À 0 s, aucune récupération n’est exécutée ; les règles existantes de Pause terminale, d’ordre avant Point d’arrêt et de répétition dans un Circuit restent applicables. Les anciens instantanés, exécutions et données historiques restent lisibles sans réécriture ; la règle historique « aucune récupération post-exercice en ACTIVITY » reste limitée à cet ancien parcours, sans réintroduire un Exercice autonome dans la cible.
 
-Déplacer/dupliquer l’occurrence conserve sa récupération explicite et ses paramètres ; supprimer l’occurrence supprime sa récupération. Les règles structurelles des points d’arrêt restent celles de la Composition : un breakpoint ne suit ni ne se copie avec l’occurrence, et une opération qui rendrait deux breakpoints consécutifs est refusée (D-441, RM-251), sauf le déplacement et la suppression d’une occurrence, appliqués en retirant sans message le ou les breakpoints en cause, le premier d’une paire étant conservé (D-442). Le snapshot copie les pauses effectives ; POST_ACTIVITY_RECOVERY est générée seulement pour recovery positive. Aucune récupération post-exercice en exécution directe. La machine distingue récupération chronométrée et attente au point d’arrêt ; phases existantes réutilisées.
+Déplacer/dupliquer l’occurrence conserve sa récupération et ses autres paramètres ; supprimer l’occurrence supprime sa récupération. Les règles structurelles des points d’arrêt restent celles de la Composition : un breakpoint ne suit ni ne se copie avec l’occurrence, et une opération qui rendrait deux breakpoints consécutifs est refusée (D-441, RM-251), sauf le déplacement et la suppression d’une occurrence, appliqués en retirant sans message le ou les breakpoints en cause, le premier d’une paire étant conservé (D-442). Le snapshot copie les pauses effectives ; POST_ACTIVITY_RECOVERY est générée seulement pour recovery positive. Aucune récupération post-exercice en exécution directe. La machine distingue récupération chronométrée et attente au point d’arrêt ; phases existantes réutilisées.
 
 | Opération | Entrée | Résultat et contrat |
 |---|---|---|
 | Ouvrir le placement | Brouillon Composition | Sous-brouillon isolé, positions autorisées par type |
-| Ajouter recovery | Occurrence, durée validée | Objet explicite ; défaut proposé au moment de l’ajout |
+| Régler la récupération de l’Exercice | Paramètres d’exécution, durée validée | Même valeur dans la Composition ; aucune insertion par Placement |
 | Ajouter breakpoint | Position autorisée | Objet structurel, pas de durée cible ; refusé s’il suit ou précède un autre breakpoint sans Exercice entre eux (RM-251) ; tête de Circuit autorisée ; à N ≥ 2, début et fin de Tour simultanés : choix de celui à conserver ou annulation (D-442) |
 | Déplacer un Point d’arrêt | Identifiant du breakpoint, position cible | Mutation du brouillon à la seule dépose valide ; identité et propriétés conservées ; position interdite ou consécutive refusée sans mutation (D-441, RM-251) |
-| Modifier/retirer | Identifiant de pause | Mutation du sous-brouillon de placement, aucune sauvegarde prématurée ; le retrait d’un breakpoint (D-441) ou d’une recovery (D-442) passe par sa désélection dans le sous-brouillon de placement puis Confirmer ; la modification d’une recovery passe par la roulette en placement (D-442) |
+| Modifier/retirer un Point d’arrêt | Identifiant du Point | Désélection dans le sous-brouillon de Placement puis Confirmer ; Annuler restaure |
 | Confirmer/Annuler | Sous-brouillon | Application atomique ou restitution, décompte correct ; libellé « Confirmer les modifications » dès qu’un retrait ou une modification existe (D-441) |
 | Calculer le total | Plan et séries effectives | exact/estimated/lowerBound/omitted, ou incomplete |
 | Exécuter | Snapshot | Séries/pauses/côtés/récupérations/points selon plan, cadence sonore conservée |
 
-Le scalaire historique `ActivityDefinition.pauseSeconds` représente la Pause après chaque série : sa refonte doit porter cette valeur dans chaque `SeriesParameters.pauseSeconds`. Il ne peut pas être remplacé par la collection de pauses de Composition, qui représente récupération/point d’arrêt. Les deux collections et leurs cycles de vie restent distincts.
+Le scalaire historique `ActivityDefinition.pauseSeconds` représente la Pause après chaque série : sa refonte doit porter cette valeur dans chaque `SeriesParameters.pauseSeconds`. Il ne peut pas être remplacé par la collection des Points d’arrêt de Composition. Les deux collections et leurs cycles de vie restent distincts.
 
 ## Circuits
 

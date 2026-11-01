@@ -1153,3 +1153,7 @@ D-451 : registre chapitre 07 ; RM-252 et SU-04 : chapitre 10 ; CS-D1 à CS-D8 : 
 D-413 : six blocs ; D-431 : notations et accessibilité ; D-447 : présentation de la feuille ; D-448 : Phases du mouvement ; RM-242 à RM-244 : concept Changement de côté, libellé visible De chaque côté. [État cible de CE-UI-10](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#parametres-execution-etat-cible). REC-PARAM-01 est une question de raccordement de Récupération, pas une nouvelle règle métier numérotée.
 
 Menu Créer : [état cible de CE-T03-08](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#composition-menu-creer). MENU-FMT-01 réserve uniquement le remplacement de l’accès Format, sans ajout d’identifiant de règle métier.
+
+## Récupération et défauts Profil — règle courante
+
+REC-PARAM-01 clos. [Récupération de l’Exercice et défauts du Profil](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recuperation-exercice-et-defauts-profil). Propriété Exercice, saisie exclusive dans les paramètres, même valeur en Composition, retrait des récupérations de Placement ; défauts Profil à fond orange jusqu’au premier ✓. Documents dépendants : chapitres 04/07/08/09/10/11/12/13, PRODUCT et DSF Paramètres. Aucun comportement applicatif déclaré livré.
