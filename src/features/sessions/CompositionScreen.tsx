@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   ActivityIndicator,
@@ -7588,17 +7588,81 @@ function layoutElementHolds(element: ResolvedLayoutElement | StructureCycleMembe
  * PRE-9 B.4 : mesure d'une vue (position dans son parent) rapportée dans le repère du contenu
  * défilant (`frameY` : ordonnée du parent) ; oubliée au démontage.
  */
-function useReportedBox(key: string, frameY: number | null, report: ((key: string, box: LayoutBox | null) => void) | undefined) {
-  const [local, setLocal] = useState<{ readonly y: number; readonly height: number } | null>(null);
+function useReportedBox(
+  key: string,
+  frameY: number | null,
+  report: ((key: string, box: LayoutBox | null) => void) | undefined,
+  urgent: boolean,
+) {
+  const [local, onLayout] = useMeasuredFrame(urgent);
   useEffect(() => {
     if (report === undefined || local === null || frameY === null) return undefined;
     report(key, { top: frameY + local.y, height: local.height });
     return () => report(key, null);
   }, [frameY, key, local, report]);
-  return useCallback((event: LayoutChangeEvent) => {
-    const { y, height } = event.nativeEvent.layout;
-    setLocal((current) => (current !== null && current.y === y && current.height === height ? current : { y, height }));
+  return onLayout;
+}
+
+/**
+ * Incident iPhone du 01/11/2026 (Hermann : « J'ai ouvert une séance, replié une carte et ai eu cette
+ * erreur. » — « Maximum update depth exceeded », `onLayout` du Cycle ; non systématique). Sous Fabric,
+ * un événement `layout` est distribué en priorité discrète : l'état qu'il pose est rendu et validé
+ * aussitôt (voie synchrone). Pendant un repli ou un déploiement de Circuit (`useCircuitCardsReveal`,
+ * `CollapsedNamesLine`, fil UI), chaque validation React reprend la hauteur animée la plus récente :
+ * quand un rendu dure plus d'une image (Cycle entier rendu à chaque mesure), chaque validation produit
+ * une nouvelle mesure, donc une nouvelle mise à jour synchrone imbriquée — au-delà de 50, React lève
+ * l'erreur. Les mesures des blocs de la disposition générale sont donc :
+ * - ignorées si elles ne changent pas de plus de `LAYOUT_MEASURE_TOLERANCE` (arrondis, sous-pixels) ;
+ * - au repos (aucun élément saisi, tenu ou en retour), appliquées en transition (`startTransition`) :
+ *   jamais sur la voie synchrone, elles ne s'imbriquent pas et ne retiennent pas l'animation ; elles ne
+ *   servent alors qu'à la géométrie du prochain glisser (boîtes, rail), lue après leur application ;
+ * - pendant le glisser (`urgent`), appliquées aussitôt, comme avant (aperçu sous le doigt).
+ */
+const LAYOUT_MEASURE_TOLERANCE = 0.5;
+
+type MeasuredFrame = { readonly y: number; readonly height: number };
+
+function sameMeasure(a: number, b: number): boolean {
+  return Math.abs(a - b) < LAYOUT_MEASURE_TOLERANCE;
+}
+
+/** Applique une mise à jour de mesure : aussitôt pendant le glisser, en transition au repos. */
+function useMeasureUpdate(urgent: boolean): (update: () => void) => void {
+  const urgentRef = useRef(urgent);
+  useLayoutEffect(() => {
+    urgentRef.current = urgent;
+  });
+  return useCallback((update: () => void) => {
+    if (urgentRef.current) update();
+    else startTransition(update);
   }, []);
+}
+
+/** Position et hauteur d'une vue dans son parent (`onLayout`), voir `LAYOUT_MEASURE_TOLERANCE`. */
+function useMeasuredFrame(urgent: boolean): readonly [MeasuredFrame | null, (event: LayoutChangeEvent) => void] {
+  const [frame, setFrame] = useState<MeasuredFrame | null>(null);
+  const apply = useMeasureUpdate(urgent);
+  const onLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { y, height } = event.nativeEvent.layout;
+      apply(() =>
+        setFrame((current) => (current !== null && sameMeasure(current.y, y) && sameMeasure(current.height, height) ? current : { y, height })),
+      );
+    },
+    [apply],
+  );
+  return [frame, onLayout] as const;
+}
+
+/** Une seule valeur mesurée (`onLayout`), voir `LAYOUT_MEASURE_TOLERANCE`. */
+function useMeasuredValue<T extends number | null>(initial: T, urgent: boolean): readonly [number | T, (value: number) => void] {
+  const [value, setValue] = useState<number | T>(initial);
+  const apply = useMeasureUpdate(urgent);
+  const set = useCallback(
+    (next: number) => apply(() => setValue((current) => (current !== null && sameMeasure(current, next) ? current : next))),
+    [apply],
+  );
+  return [value, set] as const;
 }
 
 /** PRE-9 B.1b : ce que chaque bloc d'une disposition générale reçoit de l'écran. */
@@ -7881,7 +7945,7 @@ function LayoutStopPointRow({
   const rail = useStopRowRail(railKey, gap, context, context.sessionLinks.get(railKey));
   // Recette n° 2 : mesure de la rangée dans sa liste (l'enveloppe ci-dessous en est l'élément ; la
   // rangée intérieure serait toujours à 0).
-  const onLayout = useReportedBox(layoutStopBoxKey(id), frameY, drag?.reportBox);
+  const onLayout = useReportedBox(layoutStopBoxKey(id), frameY, drag?.reportBox, lift !== null);
   const point = useMemo<StopPoint>(() => ({ id, scope: "BEFORE_TOUR", position: 0 }), [id]);
   const isDragged = drag?.stopPointId === id;
   // Recette n° 2 : tenu pendant un dialogue ou en retour — au premier plan.
@@ -8256,7 +8320,7 @@ function LayoutDirectExercise({
   rail: SequenceRailContext;
   context: LayoutRenderContext;
 }) {
-  const onLayout = useReportedBox(layoutItemKey({ kind: "EXERCISE", id: exercise.id }), frameY, context.drag?.reportBox);
+  const onLayout = useReportedBox(layoutItemKey({ kind: "EXERCISE", id: exercise.id }), frameY, context.drag?.reportBox, context.lift !== null);
   const motion = useLayoutCardMotion(exercise.id, context);
   return (
     <CardMotionBlock
@@ -8302,8 +8366,9 @@ function LayoutCircuitCard({
   cardsFrameY: number | null;
 }) {
   const motion = useLayoutCardMotion(exercise.id, context);
-  const [motionY, setMotionY] = useState(0);
-  const onMotionLayout = useCallback((event: LayoutChangeEvent) => setMotionY(event.nativeEvent.layout.y), []);
+  // Incident du 01/11/2026 : mesure filtrée, en transition au repos (`LAYOUT_MEASURE_TOLERANCE`).
+  const [motionY, setMotionY] = useMeasuredValue(0, context.lift !== null);
+  const onMotionLayout = useCallback((event: LayoutChangeEvent) => setMotionY(event.nativeEvent.layout.y), [setMotionY]);
   return (
     <CardMotionBlock
       mode={motion.mode}
@@ -8369,7 +8434,12 @@ function LayoutExerciseRow({
   // Recette iPhone n° 2 du 31/10/2026 (constat c) : la photo d'une carte d'Exercice ouvre sa fiche.
   const openMovement = useCallback(() => onOpenMovement(exercise.id), [exercise.id, onOpenMovement]);
   const source = useMemo<LayoutItemRef>(() => ({ kind: "EXERCISE", id: exercise.id }), [exercise.id]);
-  const onLayout = useReportedBox(layoutItemKey(source), measureFrameY ?? null, measureFrameY === undefined ? undefined : drag?.reportBox);
+  const onLayout = useReportedBox(
+    layoutItemKey(source),
+    measureFrameY ?? null,
+    measureFrameY === undefined ? undefined : drag?.reportBox,
+    context.lift !== null,
+  );
   const isDragged = drag?.source?.kind === "EXERCISE" && drag.source.id === exercise.id;
   // Recette n° 2 du 31/10 (story 5.2b) : tenue pendant un dialogue ou en retour — au premier plan,
   // hors de la chaîne du rail (elle porte le rail de sa propre surface).
@@ -8529,19 +8599,27 @@ function LayoutCircuitBlock({
   onAnchor: (circuitId: string, y: number) => void;
   ghost?: boolean;
 }) {
-  const [rowHeight, setRowHeight] = useState(CIRCUIT_HEADER_HEIGHT);
-  const [blockY, setBlockY] = useState<number | null>(null);
-  const [blockHeight, setBlockHeight] = useState<number | null>(null);
-  const [headerBottom, setHeaderBottom] = useState<number | null>(null);
-  const [listY, setListY] = useState<number | null>(null);
+  // Incident du 01/11/2026 : mesures filtrées, en transition au repos (`LAYOUT_MEASURE_TOLERANCE`).
+  const urgent = context.lift !== null;
+  const [rowHeight, setRowHeight] = useMeasuredValue(CIRCUIT_HEADER_HEIGHT, urgent);
+  const [blockFrame, onBlockFrame] = useMeasuredFrame(urgent);
+  const blockY = blockFrame === null ? null : blockFrame.y;
+  const blockHeight = blockFrame === null ? null : blockFrame.height;
+  const [headerBottom, setHeaderBottom] = useMeasuredValue<number | null>(null, urgent);
+  const [listY, setListY] = useMeasuredValue<number | null>(null, urgent);
   useEffect(() => {
     if (!ghost && offsetY !== null && blockY !== null && headerBottom !== null) onAnchor(circuit.id, offsetY + blockY + headerBottom);
   }, [blockY, circuit.id, ghost, headerBottom, offsetY, onAnchor]);
   const { openOverlay, onToggleOverlay, drag } = context;
   const report = ghost ? undefined : drag?.reportBox;
   const source = useMemo<LayoutItemRef>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
-  const reportBlock = useReportedBox(layoutItemKey(source), offsetY, report);
-  const reportHeader = useReportedBox(layoutHeaderKey("CIRCUIT", circuit.id), offsetY === null || blockY === null ? null : offsetY + blockY, report);
+  const reportBlock = useReportedBox(layoutItemKey(source), offsetY, report, urgent);
+  const reportHeader = useReportedBox(
+    layoutHeaderKey("CIRCUIT", circuit.id),
+    offsetY === null || blockY === null ? null : offsetY + blockY,
+    report,
+    urgent,
+  );
   const gesture = useBlockDragGesture({
     onStart: () => drag?.onStart(source) ?? false,
     onMove: (translationY) => drag?.onMove(translationY),
@@ -8591,8 +8669,7 @@ function LayoutCircuitBlock({
         { transform: [{ translateY: motion.blockTranslation }] },
       ]}
       onLayout={(event) => {
-        setBlockY(event.nativeEvent.layout.y);
-        setBlockHeight(event.nativeEvent.layout.height);
+        onBlockFrame(event);
         reportBlock(event);
       }}
       {...(drag !== null && !ghost ? gesture.handlers : {})}
@@ -8730,14 +8807,18 @@ function LayoutCycleBlock({
   onAnchor: (circuitId: string, y: number) => void;
   ghost?: boolean;
 }) {
-  const [rowHeight, setRowHeight] = useState(CIRCUIT_HEADER_HEIGHT);
-  const [cycleY, setCycleY] = useState<number | null>(null);
-  const [cycleHeight, setCycleHeight] = useState<number | null>(null);
+  // Incident du 01/11/2026 (« Maximum update depth exceeded » au repli d'un Circuit du Cycle) :
+  // position et hauteur en un seul état, filtrées, en transition au repos (`LAYOUT_MEASURE_TOLERANCE`).
+  const urgent = context.lift !== null;
+  const [rowHeight, setRowHeight] = useMeasuredValue(CIRCUIT_HEADER_HEIGHT, urgent);
+  const [cycleFrame, onCycleFrame] = useMeasuredFrame(urgent);
+  const cycleY = cycleFrame === null ? null : cycleFrame.y;
+  const cycleHeight = cycleFrame === null ? null : cycleFrame.height;
   const { openOverlay, onToggleOverlay, drag } = context;
   const report = ghost ? undefined : drag?.reportBox;
   const source = useMemo<LayoutItemRef>(() => ({ kind: "CYCLE", id: cycle.id }), [cycle.id]);
-  const reportBlock = useReportedBox(layoutItemKey(source), ghost ? null : 0, report);
-  const reportHeader = useReportedBox(layoutHeaderKey("CYCLE", cycle.id), cycleY, report);
+  const reportBlock = useReportedBox(layoutItemKey(source), ghost ? null : 0, report, urgent);
+  const reportHeader = useReportedBox(layoutHeaderKey("CYCLE", cycle.id), cycleY, report, urgent);
   const gesture = useBlockDragGesture({
     onStart: () => drag?.onStart(source) ?? false,
     onMove: (translationY) => drag?.onMove(translationY),
@@ -8796,8 +8877,7 @@ function LayoutCycleBlock({
         { transform: [{ translateY: motion.blockTranslation }] },
       ]}
       onLayout={(event) => {
-        setCycleY(event.nativeEvent.layout.y);
-        setCycleHeight(event.nativeEvent.layout.height);
+        onCycleFrame(event);
         reportBlock(event);
       }}
       {...(drag !== null && !ghost ? gesture.handlers : {})}
