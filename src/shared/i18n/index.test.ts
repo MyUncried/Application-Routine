@@ -634,8 +634,9 @@ describe("strings — PRE-3", () => {
     expect(pre3.sheet.modes).toEqual({ DURATION: "Durée", REPETITIONS: "Répétitions" });
     expect(pre3.sheet.failureTarget).toBe("à l’échec");
     // PRE-5 story 2.5 (AC5) : libellés anatomiques `sideModes` retirés (voir « strings — PRE-5 story 2.5 »).
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 5) : libellé accessible de BY_SIDE remplacé.
     expect(pre3.sheet.sideOrders).toEqual({
-      BY_SIDE: "Un côté après l’autre",
+      BY_SIDE: "Chaque série d’un côté, puis chaque série de l’autre",
       BY_SERIES: "Les deux côtés à chaque série",
     });
     for (const label of [pre3.sheet.pause, pre3.sheet.cadence, pre3.sheet.sideRecovery, pre3.sheet.countdown, pre3.sheet.end]) {
@@ -720,9 +721,19 @@ describe("strings — PRE-5 story 2.5", () => {
     expect(sheet.sideSequence).toBe("Enchainement");
     // Notations graphiques exactes de la frame `8328:38193` (D-431), flèche centrale ➜ ; rétablies
     // par la recette du 19/10 (RC-12) après le raccourcissement de RC-11.
-    expect(sheet.sideOrderSubtitles).toEqual({ BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" });
+    // [Remplacé le 01/11/2026 — ordre de Hermann, point 5 (CE-UI-10 §8) : notations « DD… → GG… »
+    // et « DG → DG → … », libellé accessible de BY_SIDE « Chaque série d’un côté, puis chaque série
+    // de l’autre » ; ligne visible « De chaque côté ».]
+    expect(sheet.sideOrderSubtitles).toEqual({ BY_SIDE: "DD… → GG…", BY_SERIES: "DG → DG → …" });
     // Nom accessible neutre des options (D-407).
-    expect(sheet.sideOrders).toEqual({ BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" });
+    expect(sheet.sideOrders).toEqual({
+      BY_SIDE: "Chaque série d’un côté, puis chaque série de l’autre",
+      BY_SERIES: "Les deux côtés à chaque série",
+    });
+    expect(sheet.sideModeRow).toBe("De chaque côté");
+    // Ordre de Hermann, point 4 : titre de la cible commune en Durée ; « Durée de l’exercice » inchangée.
+    expect(sheet.durationGoal).toBe("Objectif de durée");
+    expect(sheet.columns.DURATION).toBe("Durée");
     expect(sheet.cadence).toBe("Cadence");
     expect(sheet.cadenceOptions).toEqual({ OTHER: "Autre", "1": "1 s", NONE: "Sans" }); // RC-10
     expect(sheet.exerciseDuration).toBe("Durée de l’exercice");

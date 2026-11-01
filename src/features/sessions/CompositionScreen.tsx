@@ -27,7 +27,6 @@ import type { Label } from "@/domain/labels/Label";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
 import type { MovementLevelPosition } from "@/domain/activities/movementSuggestion";
-import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
 import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
 import {
@@ -105,18 +104,14 @@ import {
 import {
   EMPTY_PLACEMENT_DRAFT,
   applyPlacementDraft,
-  deselectPlacementRecovery,
   placementConfirmation,
-  placementRecoverySeconds,
   placementSlots,
-  selectPlacementRecovery,
   isPlacementStopPointAdded,
   isPlacementStopPointRemoved,
   togglePlacementStopPointOutcome,
   togglePlacementStopPointRemoval,
   type PlacementContext,
   type PlacementDraft,
-  type PlacementRecoverySlot,
   type PlacementSlot,
   type PlacementStopPointOutcome,
   type PlacementStopPointSlot,
@@ -148,7 +143,6 @@ import { MOVEMENT_SESSION_CONTEXT } from "@/features/activities/MovementScreen";
 import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
 import { useMovementLevelPositions } from "@/features/activities/useMovementLevelPositions";
 import { withLevelSuffix } from "@/features/activities/movementChoicePresentation";
-import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
@@ -197,7 +191,7 @@ import {
 } from "@/features/sessions/layoutDragShifts";
 import { CycleHeader } from "@/features/sessions/CycleHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
-import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
+import { isExerciseParametersIncomplete } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
   clampSwipeTranslateX,
@@ -247,7 +241,6 @@ import {
   occurrenceCardInCircuitSurface,
   occurrenceCardSurface,
   occurrenceCardToVerifySurface,
-  occurrenceRecoveryTouchExtent,
 } from "@/features/sessions/OccurrenceCard";
 import {
   BOUNDARY_RING_TOP,
@@ -271,12 +264,10 @@ import {
   type RailSkippedItem,
   type RailLink as RailLinkGeometry,
 } from "@/features/sessions/compositionRail";
-import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { STOP_POINT_CHIP_TOUCH_EXTENT } from "@/features/sessions/StopPointChip";
 import { formatPlacementConfirmLabel, PlacementBar } from "@/features/sessions/PlacementBar";
 import {
-  PlacementRecoveryFrame,
   PlacementStopPointRow,
   type PlacementStopPointRowPoint,
   type PlacementTouchExtent,
@@ -303,7 +294,6 @@ import {
   MOTION_FADE_TO_SLIDE_DELAY_MS,
   MOTION_SHIFT_DURATION_MS,
 } from "@/features/sessions/compositionMotion";
-import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
@@ -1231,21 +1221,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // Revue 6.3 : effet du dernier toucher en placement, annoncé après le rendu (voir plus bas) ;
   // `withLabel` : suivi du nouveau libellé de « Confirmer » (ajouts, ch13 L1524).
   const placementAnnouncementRef = useRef<{ readonly text: string; readonly withLabel: boolean } | null>(null);
-  /**
-   * Story 7.2 (D-442) : roulette « Durée de récupération » d'une zone NON sélectionnée du placement —
-   * ouverte sur la durée existante (`seconds`), sinon (`null`) sur le défaut du Profil ; ✓ sélectionne
-   * la zone à la durée choisie (`selectPlacementRecovery`), ✕ ne change rien.
+  /*
+   * [Story 7.2 (D-442) : roulette « Durée de récupération » du placement et défaut du Profil relu à
+   * l'entrée en placement — retirés le 01/11/2026 (ordre de Hermann, point 2 ; ch07 « Récupération
+   * de l'Exercice et défauts du Profil ») : le placement ne porte que les Points d'arrêt ; la
+   * récupération de l'Exercice se règle dans Paramètres d'exécution.]
    */
-  const [recoveryWheel, setRecoveryWheel] = useState<{ readonly occurrenceId: string; readonly seconds: number | null } | null>(
-    null,
-  );
-  // D-307 / RM-209 : défaut de récupération du Profil (30 s initialement), relu à chaque entrée
-  // en placement ; sans service Profil, la constante du Domaine. `null` tant qu'il n'est pas
-  // résolu : la roulette ne s'ouvre qu'une fois la valeur connue. Une réponse tardive (après la
-  // sortie du placement, une nouvelle entrée ou le démontage) est ignorée (`profileRequestRef`).
-  const profileService = useContext(ProfileServiceContext);
-  const [recoveryDefaultSeconds, setRecoveryDefaultSeconds] = useState<number | null>(null);
-  const profileRequestRef = useRef(0);
   // Demande de focus sur « Ajouter un arrêt », à la sortie du placement par Confirmer / Annuler.
   const [addStopFocusRequest, setAddStopFocusRequest] = useState(0);
   /*
@@ -1253,23 +1234,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * placement — la roulette de modification, la bulle « Retirer la récupération » et les actions
    * accessibles de la carte (stories 4.2, 5.1) sont retirées ; tout passe par le placement.
    */
-  /** Sortie du placement sans mutation : sous-brouillon jeté, roulette fermée, défaut en cours ignoré. */
+  /** Sortie du placement sans mutation : sous-brouillon jeté. */
   const leavePlacement = useCallback(() => {
-    setRecoveryWheel(null);
     setPlacement(null);
   }, []);
-  // Toute sortie du placement (et le démontage) invalide la lecture du défaut en cours.
-  useEffect(() => {
-    if (placement !== null) return undefined;
-    profileRequestRef.current += 1;
-    return undefined;
-  }, [placement]);
-  useEffect(
-    () => () => {
-      profileRequestRef.current += 1;
-    },
-    [],
-  );
 
   // Géométrie mesurée du contenu défilant, nécessaire à la résolution d'une
   // dépose (`compositionGesture.ts`). Conservée en `ref` : elle ne doit
@@ -1506,27 +1474,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     finishDragPreview(false);
     setIsAddActivityTreeOpen(false);
     setRevealedActionsId(null);
-    setRecoveryWheel(null);
     // PRE-9 B.1a : les emplacements du Circuit (début de Tour, après ses exercices) doivent être
     // visibles — le Circuit replié se déplie à l'entrée en placement.
     setCircuitCollapsedContent(null);
     setPlacement(EMPTY_PLACEMENT_DRAFT);
-    profileRequestRef.current += 1;
-    const request = profileRequestRef.current;
-    if (!profileService) {
-      setRecoveryDefaultSeconds(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
-      return;
-    }
-    setRecoveryDefaultSeconds(null);
-    profileService.getProfile().then(
-      (profile) => {
-        if (profileRequestRef.current === request) setRecoveryDefaultSeconds(profile.postActivityRecoverySecondsDefault);
-      },
-      () => {
-        if (profileRequestRef.current === request) setRecoveryDefaultSeconds(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
-      },
-    );
-  }, [finishDragPreview, flushDeletion, profileService]);
+  }, [finishDragPreview, flushDeletion]);
   /** « Annuler » (et retour système) : l'état d'entrée est restitué, sans aucune mutation. */
   const cancelPlacement = useCallback(() => {
     leavePlacement();
@@ -1730,8 +1682,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [draft, isGeneralLayout, placement, placementContext],
   );
   /**
-   * « Confirmer » : une seule mise à jour fonctionnelle du brouillon (`postActivityRecoverySeconds`
-   * et `stopPoints`, `applyPlacementDraft` : ajouts, modifications de durée et — story 6.3, D-441 —
+   * « Confirmer » : une seule mise à jour fonctionnelle du brouillon (`stopPoints` [récupérations :
+   * retiré le 01/11/2026], `applyPlacementDraft` : ajouts, modifications de durée et — story 6.3, D-441 —
    * retraits programmés, en une fois, sans point consécutif), puis sortie du placement. Disponible
    * dès qu'un changement est applicable (`placementConfirmation` ≠ `NONE`). Identifiants des
    * points tirés hors du calcul d'état.
@@ -1752,7 +1704,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     }
     leavePlacement();
     if (isGeneralLayout) {
-      // PRE-9 B.6 : « Ajouter un arrêt » reste disponible tant qu'une carte existe (récupérations).
+      // PRE-9 B.6 : focus rendu à « Ajouter un arrêt ».
       setAddStopFocusRequest((current) => current + 1);
       return;
     }
@@ -1783,33 +1735,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     else cancelPlacement();
   }, [cancelPlacement, confirmPlacement, confirmation, enterPlacement, placement]);
   /**
-   * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1496) : toucher une zone de récupération — sélectionnée
-   * (ajout, ou récupération existante, 0 comprise, conservée) : désélection (`deselectPlacementRecovery` :
-   * ajout jeté, ou retrait programmé) ; non sélectionnée : roulette, sur la durée existante sinon
-   * sur le défaut du Profil.
-   */
-  const handlePlacementRecoveryPress = useCallback(
-    (occurrenceId: string) => {
-      if (placement === null) return;
-      const occurrence = draft.exercises.find((exercise) => exercise.id === occurrenceId);
-      if (occurrence === undefined || occurrence.type !== "EXERCISE") return;
-      if (placementRecoverySeconds(placement, occurrence) !== null) {
-        const t = strings.screens.composition.placement;
-        // Revue 6.3 (ch13 L1524) : effet, puis libellé de « Confirmer ».
-        placementAnnouncementRef.current = {
-          text: occurrenceId in placement.recoveries ? t.additionCancelledAnnouncement : t.recoveryRemovedAnnouncement,
-          withLabel: true,
-        };
-        // Revue 7.2 : une roulette en attente du défaut du Profil ne s'ouvre pas plus tard.
-        setRecoveryWheel(null);
-        setPlacement(deselectPlacementRecovery(placement, occurrenceId, placementContext));
-        return;
-      }
-      setRecoveryWheel({ occurrenceId, seconds: occurrence.postActivityRecoverySeconds ?? null });
-    },
-    [draft.exercises, placement, placementContext],
-  );
-  /**
    * Toucher un emplacement libre ou ajouté : bascule du Domaine AVEC contexte (story 6.3, D-441) —
    * ajout s'il est proposé, désélection s'il est ajouté. Story 7.2 (D-442) : un ajout qui ferait se
    * suivre un début et une fin de Tour (N ≥ 2) ouvre le choix « Début de tour / Fin de tour ».
@@ -1817,7 +1742,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handlePlacementStopPointToggle = useCallback(
     (location: StopPointLocation) => {
       if (placement === null) return;
-      setRecoveryWheel(null);
       const t = strings.screens.composition.placement;
       if (isGeneralLayout) {
         // PRE-9 B.6 (ARB-02b) : même choix, Circuit (« de tour ») ou Cycle (« de répétition »).
@@ -1860,33 +1784,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       setPlacement(next);
     },
     [draft, isGeneralLayout, openTourChoice, placement, placementContext],
-  );
-  /**
-   * ✓ de la roulette d'une zone de récupération (story 7.2, D-442) : la zone est sélectionnée à la
-   * durée choisie (`selectPlacementRecovery` : ajout, ou récupération existante conservée — retrait
-   * annulé — et modifiée si la durée diffère), annoncée avec le libellé de « Confirmer » (revue 6.3).
-   * Roue non déplacée sur une récupération existante hors grille (donnée historique au-delà de 300 s
-   * ou hors pas 1 / 5 / 30) : sa valeur est conservée telle quelle.
-   */
-  const validatePlacementRecovery = useCallback(
-    (totalSeconds: number) => {
-      const wheel = recoveryWheel;
-      setRecoveryWheel(null);
-      if (wheel === null || placement === null) return;
-      // Revue 7.2 : seule une valeur existante valide (entière, ≥ 0) est conservée telle quelle.
-      const existing = wheel.seconds !== null && Number.isInteger(wheel.seconds) && wheel.seconds >= 0 ? wheel.seconds : null;
-      const seconds = existing !== null && totalSeconds === snapToGrid(existing, RECOVERY_WHEEL_VALUES) ? existing : totalSeconds;
-      const next = selectPlacementRecovery(placement, wheel.occurrenceId, seconds, placementContext);
-      // Revue 7.2 : annoncé seulement si la zone est réellement sélectionnée.
-      if (next === placement) return;
-      const t = strings.screens.composition.placement;
-      placementAnnouncementRef.current = {
-        text: wheel.seconds === null ? t.recoveryAddedAnnouncement : t.recoverySelectedAnnouncement,
-        withLabel: true,
-      };
-      setPlacement(next);
-    },
-    [placement, placementContext, recoveryWheel],
   );
   /**
    * Revue 6.3 (D-441 R3, RM-251) : toucher un point EXISTANT bascule son retrait programmé, visé par
@@ -1998,11 +1895,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const entryOffer = placementOfferOf(entrySlots);
   const hasPlacementOffer = entryOffer.any;
   const addStopAccessibilityHint =
-    entryOffer.any && !entryOffer.additions
-      ? entryOffer.recoveries
-        ? strings.screens.composition.placement.addStopChangesOnlyHint
-        : strings.screens.composition.placement.addStopRemovalOnlyHint
-      : undefined;
+    entryOffer.any && !entryOffer.additions ? strings.screens.composition.placement.addStopRemovalOnlyHint : undefined;
   const slotByOccurrence = useMemo(
     () =>
       new Map(
@@ -2094,7 +1987,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             slotFor: (occurrenceId) => slotByOccurrence.get(occurrenceId) ?? null,
             rowPointOf: (stopPoint) => placementRowPointOf(stopPoint, placementRowEnvironment),
             circuitHeadRowPoint,
-            onPressRecovery: handlePlacementRecoveryPress,
             onToggleStopPoint: handlePlacementStopPointToggle,
             onToggleExistingStopPoint: handlePlacementExistingStopPointToggle,
           },
@@ -2102,7 +1994,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       circuitHeadRowPoint,
       handlePlacementExistingStopPointToggle,
       placementRowEnvironment,
-      handlePlacementRecoveryPress,
       handlePlacementStopPointToggle,
       placement,
       slotByOccurrence,
@@ -2136,11 +2027,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         const occurrence = draft.exercises.find((exercise) => exercise.id === occurrenceId);
         if (occurrence === undefined) return null;
         const after = generalSlotAfter.get(occurrenceId);
-        return { kind: "OCCURRENCE", occurrenceId, recovery: recoverySlotOfOccurrence(occurrence), stopPoint: after?.stopPoint ?? null };
+        return { kind: "OCCURRENCE", occurrenceId: occurrence.id, stopPoint: after?.stopPoint ?? null };
       },
       rowPointOf: (stopPoint) => (stopPoint === null ? null : generalRowPointOf(bySlotKey.get(stopPointKey(stopPoint.location)))),
       circuitHeadRowPoint: null,
-      onPressRecovery: handlePlacementRecoveryPress,
       onToggleStopPoint: handlePlacementStopPointToggle,
       onToggleExistingStopPoint: handlePlacementExistingStopPointToggle,
     };
@@ -2150,7 +2040,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     generalSlotAfter,
     generalSlots,
     handlePlacementExistingStopPointToggle,
-    handlePlacementRecoveryPress,
     handlePlacementStopPointToggle,
     isGeneralLayout,
     placement,
@@ -5228,37 +5117,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
       </WheelPickerOverlay>
 
-      {/*
-       * PRE-6 (story 4.1, `8328:28733`) : roulette « Durée de récupération » d'une zone du placement —
-       * 0..300 s sur la grille 1 / 5 / 30 s (CE-T03-08 §14). Story 7.2 (D-442) : ouverte par le
-       * toucher d'une zone NON sélectionnée, sur la durée existante, sinon sur le défaut du Profil une
-       * fois résolu. ✓ sélectionne la zone à la durée choisie (0 conservé comme présent, D-323) ; ✕ la
-       * laisse telle qu'elle était.
-       */}
-      {(() => {
-        // Revue 7.2 : une durée existante non finie (donnée corrompue) ouvre sur le défaut du Profil.
-        const existingSeconds = recoveryWheel !== null && Number.isFinite(recoveryWheel.seconds) ? recoveryWheel.seconds : null;
-        const wheelSeconds = recoveryWheel === null ? null : (existingSeconds ?? recoveryDefaultSeconds);
-        const isWheelOpen = placement !== null && wheelSeconds !== null;
-        return (
-          <WheelPickerOverlay visible={isWheelOpen}>
-            {isWheelOpen ? (
-              <DurationWheelPicker
-                totalSeconds={wheelSeconds}
-                valueGrid={RECOVERY_WHEEL_VALUES}
-                title={composition.placement.recoveryWheelTitle}
-                onValidate={validatePlacementRecovery}
-                onCancel={() => setRecoveryWheel(null)}
-                minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
-                secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
-                cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
-                validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
-              />
-            ) : null}
-          </WheelPickerOverlay>
-        );
-      })()}
-
       {/* PRE-6 story 7.2 (D-442) : choix « Début de tour / Fin de tour » (dialogue natif). */}
       {pendingTourChoice !== null ? (
         <TourBoundaryChoiceDialog
@@ -5391,6 +5249,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * B.8 : visible, indisponible d'ici là. « Ajouter un circuit / un cycle » ouvre le mode
          * enveloppe ; sans contenu éligible (Séance vide…), l'action est indisponible, non masquée.
          * La sixième entrée, « Format » (ARB-23), sera branchée par C.4.
+         * [Remplacé le 01/11/2026 — ordre de Hermann « Menu Créer et transformation du bouton », règle
+         * écrite ch13 CE-T03-08 « Menu Créer — état cible » : exactement quatre options — « Créer un
+         * exercice » (icône silhouette, ex-« Utiliser un mouvement existant »), « Utiliser une séance
+         * existante », « Ajouter un circuit », « Ajouter un cycle » ; plus d'entrée « Utiliser un
+         * mouvement existant » (la recherche des Mouvements reste dans la saisie du nom de « Créer un
+         * exercice ») ni de rangée « Annuler » : le « + » devient Annuler. Pas d'entrée Format
+         * (MENU-FMT-01, À CLARIFIER).]
          */
         <CreateMenu
           top={addActivityTreeTop}
@@ -5400,7 +5265,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             {
               key: "new",
               label: addToSession.newActivity,
-              icon: "exercise",
+              icon: "movement",
               onPress: () => {
                 setIsAddActivityTreeOpen(false);
                 // PRE-9 A.2 (ARB-22a, D-449) : création d'un Mouvement (CE-MVT-01) en contexte Séance,
@@ -5408,22 +5273,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
                 router.push({ pathname: "/movement", params: { context: MOVEMENT_SESSION_CONTEXT } });
               },
               testID: "composition-add-activity-tree-new",
-            },
-            {
-              key: "existing",
-              label: addToSession.existingActivity,
-              icon: "movement",
-              onPress: () => {
-                setIsAddActivityTreeOpen(false);
-                // PRE-9 A.2 (ARB-22a, Q6) : sélection des Mouvements actifs par le Catalogue des
-                // Mouvements ; plus la sélection des anciennes définitions (`activity_definitions`).
-                // Contre-recette du 30/10 : Mouvements déjà dans la Séance marqués « Dans la séance ».
-                markMovementsInSession(
-                  draft.exercises.flatMap((exercise) => (exercise.sourceMovementId !== undefined ? [exercise.sourceMovementId] : [])),
-                );
-                router.push("/movement-selection");
-              },
-              testID: "composition-add-activity-tree-existing",
             },
             { key: "session", label: addToSession.existingSession, icon: "session", testID: "composition-add-activity-tree-existing-session" },
             {
@@ -5540,8 +5389,6 @@ type PlacementRowContext = {
   readonly rowPointOf: (stopPoint: PlacementStopPointSlot | null) => PlacementStopPointRowPoint | null;
   /** Story 7.2 (D-442) : emplacement libre (ou ajouté) de tête de Circuit, `null` s'il n'est pas dessiné. */
   readonly circuitHeadRowPoint: PlacementStopPointRowPoint | null;
-  /** Story 7.2 (D-442) : toucher d'une zone de récupération (désélection, ou roulette). */
-  readonly onPressRecovery: (occurrenceId: string) => void;
   /** Emplacement libre ou ajouté : bascule de l'ajout. */
   readonly onToggleStopPoint: (location: StopPointLocation) => void;
   /** Revue 6.3 : point existant, bascule de son retrait programmé par identifiant (et annonce). */
@@ -5594,22 +5441,17 @@ function placementLabelerOf(
 
 /**
  * Revue 6.3 : ce que le placement offre — un ajout, ou le retrait d'un point existant identifié.
- * Story 7.2 (D-442) : l'emplacement de tête de Circuit est dessiné (un ajout comme un autre) ; une
- * récupération existante (0 comprise) se modifie et se retire en placement, seul chemin de son
- * réglage : elle suffit à l'ouvrir.
+ * Story 7.2 (D-442) : l'emplacement de tête de Circuit est dessiné (un ajout comme un autre).
+ * [« une récupération existante […] suffit à l'ouvrir » — retiré le 01/11/2026 (ordre de Hermann,
+ * point 2) : le placement ne porte que les Points d'arrêt.]
  */
 function placementOfferOf(slots: readonly PlacementSlot[]): {
   readonly any: boolean;
   readonly additions: boolean;
-  /** Une récupération existante (modifiable ou retirable) est offerte. */
-  readonly recoveries: boolean;
 } {
-  const additions = slots.some(
-    (slot) => slot.recovery?.kind === "AVAILABLE" || (slot.stopPoint !== null && !slot.stopPoint.existing),
-  );
-  const recoveries = slots.some((slot) => slot.recovery?.kind === "EXISTING");
-  const removals = recoveries || slots.some((slot) => slot.stopPoint?.existing === true && slot.stopPoint.stopPointId !== undefined);
-  return { any: additions || removals, additions, recoveries };
+  const additions = slots.some((slot) => slot.stopPoint !== null && !slot.stopPoint.existing);
+  const removals = slots.some((slot) => slot.stopPoint?.existing === true && slot.stopPoint.stopPointId !== undefined);
+  return { any: additions || removals, additions };
 }
 
 /** Ce dont `placementRowPointOf` a besoin (story 6.3). */
@@ -7173,14 +7015,11 @@ function CompositionActivityRow({
    */
   const blockHeight = blockHeightFor(isDragged);
   /**
-   * PRE-6 (story 5.1) : récupération affichée en ligne 3 — hors placement, celle du brouillon ; en
-   * placement (story 7.2, D-442), la durée SÉLECTIONNÉE de la zone (`placementRecoverySeconds` : ajout,
-   * ou existante modifiée ou non, sauf retrait programmé), pour ne jamais contredire le cadre.
+   * PRE-6 (story 5.1) : récupération affichée en ligne 3. PRE-9 (01/11/2026, ordre de Hermann,
+   * point 2) : exactement la Récupération de l'Exercice (même champ que Paramètres d'exécution),
+   * en placement comme hors placement [la durée sélectionnée en placement, story 7.2, est retirée].
    */
-  const displayedRecoverySeconds =
-    placement === null || activity.type !== "EXERCISE"
-      ? activity.postActivityRecoverySeconds
-      : placementRecoverySeconds(placement.draft, activity);
+  const displayedRecoverySeconds = activity.postActivityRecoverySeconds;
   /**
    * Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé (`activityBlockDragged`) ou
    * incomplète (recette du 29/10 : liseré rouge, `occurrenceCardIncompleteSurface`).
@@ -7191,7 +7030,6 @@ function CompositionActivityRow({
    * — zone de récupération en ligne 3 ; point d'arrêt dans la rangée sous la carte.
    */
   const placementSlot = placement === null ? null : placement.slotFor(activity.id);
-  const placementRecovery = placementSlot?.recovery ?? null;
   const placementStopPoint = placementSlot?.stopPoint ?? null;
   /**
    * Ligne 3 de la carte. PRE-6 story 7.2 (D-442) : en placement, toute zone de récupération d'un
@@ -7199,28 +7037,13 @@ function CompositionActivityRow({
    * récupération existante, 0 comprise, conservée — ou non) ; hors placement, la récupération est un
    * simple affichage (`OccurrenceRecovery`) : le toucher et l'appui long reviennent à la carte.
    */
-  let recoveryNode: React.ReactNode;
-  if (placement !== null && placementRecovery !== null) {
-    recoveryNode = (
-      <PlacementRecoveryFrame
-        occurrenceId={activity.id}
-        exerciseName={displayedName}
-        selectedSeconds={displayedRecoverySeconds ?? null}
-        existing={placementRecovery.kind === "EXISTING"}
-        onPress={placement.onPressRecovery}
-        touchExtent={occurrenceRecoveryTouchExtent(isCardBordered)}
-        testID={`composition-placement-slot-${activity.id}-recovery`}
-      />
-    );
-  } else {
-    recoveryNode = (
-      <OccurrenceRecovery
-        recoverySeconds={displayedRecoverySeconds}
-        hiddenFromAccessibility={placement !== null}
-        testID={`composition-activity-recovery-${activity.id}-recovery`}
-      />
-    );
-  }
+  const recoveryNode: React.ReactNode = (
+    <OccurrenceRecovery
+      recoverySeconds={displayedRecoverySeconds}
+      hiddenFromAccessibility={placement !== null}
+      testID={`composition-activity-recovery-${activity.id}-recovery`}
+    />
+  );
   /**
    * Rangée sous la carte, en placement seulement (story 5.3). PRE-6 story 6.2 (D-441) : hors
    * placement, le Point d'arrêt n'est plus dans le bloc de la carte (rangée autonome `StopPointRow`).
@@ -7966,7 +7789,7 @@ type LayoutStopRow =
 
 /** Ce que les blocs d'une disposition générale reçoivent pour les Points d'arrêt (B.6). */
 type LayoutStopsContext = {
-  /** En placement : zone de récupération et emplacement sous chaque carte ; `null` hors placement. */
+  /** En placement : emplacement sous chaque carte ; `null` hors placement. */
   readonly placement: PlacementRowContext | null;
   /** Rangées autonomes à rendre à l'emplacement `position` du conteneur. */
   readonly rowsAt: (container: StopPointContainer, position: number) => readonly LayoutStopRow[];
@@ -7977,23 +7800,12 @@ type LayoutStopsContext = {
 /** Conteneur en effacement : aucun Point, aucun emplacement (rendu inerte). */
 const NO_LAYOUT_STOPS: LayoutStopsContext = { placement: null, rowsAt: () => NO_STOP_ROWS, focusRequest: null, onFocusConsumed: () => {} };
 
-/** Zone de récupération d'une occurrence en placement (même règle que `placement.ts`). */
-function recoverySlotOfOccurrence(occurrence: SessionDraftExercise): PlacementRecoverySlot | null {
-  if (occurrence.type !== "EXERCISE") return null;
-  const seconds = occurrence.postActivityRecoverySeconds;
-  return seconds === null || seconds === undefined ? { kind: "AVAILABLE" } : { kind: "EXISTING", seconds };
-}
-
 /** Offre du placement d'une disposition générale, dans la forme lue par `placementOfferOf`. */
 function layoutOfferSlots(draft: SessionDraft, placement: PlacementDraft): readonly PlacementSlot[] {
   const points = layoutPlacementSlots(draft, placement).flatMap((slot): PlacementSlot[] =>
-    slot.stopPoint === null ? [] : [{ kind: "OCCURRENCE", occurrenceId: null, recovery: null, stopPoint: slot.stopPoint }],
+    slot.stopPoint === null ? [] : [{ kind: "OCCURRENCE", occurrenceId: null, stopPoint: slot.stopPoint }],
   );
-  const recoveries = draft.exercises.flatMap((exercise): PlacementSlot[] => {
-    const recovery = recoverySlotOfOccurrence(exercise);
-    return recovery === null ? [] : [{ kind: "OCCURRENCE", occurrenceId: exercise.id, recovery, stopPoint: null }];
-  });
-  return [...points, ...recoveries];
+  return points;
 }
 
 /** Noms accessibles du placement d'une disposition générale : Points existants, emplacements à ajouter. */

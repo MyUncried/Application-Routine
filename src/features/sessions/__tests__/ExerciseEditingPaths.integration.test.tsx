@@ -1,5 +1,5 @@
 import { router as expoRouter } from "expo-router";
-import { act, fireEvent, renderRouter, screen, testRouter, waitFor, within } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen, waitFor, within } from "expo-router/testing-library";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Stack } from "expo-router/stack";
 import type { ReactNode } from "react";
@@ -534,17 +534,15 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     const tree = screen.getByTestId("composition-add-activity-tree");
     expect(within(tree).getByLabelText(activities.addToSession.newActivity)).toBeTruthy();
-    expect(within(tree).getByLabelText(activities.addToSession.existingActivity)).toBeTruthy();
+    // [« Utiliser un mouvement existant » et rangée « Annuler » — remplacés le 01/11/2026 (ordre de
+    // Hermann, ch13 CE-T03-08 « Menu Créer — état cible ») : plus d'entrée « mouvement existant » ;
+    // Annuler est le « + » transformé, qui ferme le menu sans action.]
+    expect(within(tree).queryByLabelText(activities.addToSession.existingActivity)).toBeNull();
     expect(within(tree).getByLabelText(activities.addToSession.cancel)).toBeTruthy();
-
-    fireEvent.press(within(tree).getByLabelText(activities.addToSession.existingActivity));
+    fireEvent.press(within(tree).getByLabelText(activities.addToSession.cancel));
     await settle();
-    // PRE-9 A.2 — ARB-22a, D-449 : sélection des Mouvements du Catalogue, plus `/activity-selection`.
-    expect(router.getPathname()).toBe("/movement-selection");
-    act(() => {
-      testRouter.back();
-    });
-    await settle(300);
+    expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
+    expect(router.getPathname()).toBe("/composition");
 
     openLegacyExerciseCreation();
     await settle();
@@ -1398,7 +1396,12 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
       `SELECT name, type, post_activity_recovery_seconds FROM ${OCCURRENCES} ORDER BY position`,
     );
     expect(saved.map((row) => row.name).sort()).toEqual(["Fentes", "Planche"]);
-    expect(saved.every((row) => row.type === "EXERCISE" && row.post_activity_recovery_seconds === 0)).toBe(true);
+    // [« aucune Récupération enregistrée » — remplacé le 01/11/2026 (ordre de Hermann, point 2 ; ch07
+    // « Récupération de l'Exercice et défauts du Profil ») : un nouvel Exercice de Séance (Planche)
+    // reprend « Récupération après un exercice » du Profil (30 s par défaut) ; la copie d'une ancienne
+    // définition du Catalogue (Fentes), sans récupération propre, reste à 0 (aucune donnée inventée).]
+    expect(saved.every((row) => row.type === "EXERCISE")).toBe(true);
+    expect(Object.fromEntries(saved.map((row) => [row.name, row.post_activity_recovery_seconds]))).toEqual({ Planche: 30, Fentes: 0 });
   }, 40000);
 
   it("PRE4-4.1/AC11 — Pause entre les côtés visible seulement en bilatéral (Copie bilatérale en Séance)", async () => {
@@ -1410,8 +1413,11 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     await settle();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
     expect(screen.getByTestId("execution-sheet-row-side-recovery")).toBeTruthy();
-    const sheetWords = renderedWords(screen.UNSAFE_getByType(ExecutionParametersSheet as never));
-    expect(sheetWords.filter((word) => /récupération/i.test(word))).toEqual([]);
+    // [« aucun réglage de Récupération dans la Feuille » — remplacé le 01/11/2026 (ordre de Hermann,
+    // point 2) : la Feuille d'un Exercice de Séance porte le bloc 6 « Récupération », seule ligne ;
+    // un Exercice sans récupération antérieure y affiche 0 s.]
+    expect(within(screen.getByTestId("execution-sheet-frame-recovery")).getByTestId("execution-sheet-row-recovery")).toBeTruthy();
+    expect(String(screen.getByTestId("execution-sheet-recovery-text").props.children)).toBe("0 s");
   }, 30000);
 });
 

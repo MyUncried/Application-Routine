@@ -30,6 +30,7 @@ import { draftMediaEqual, toDraftMediaItems } from "@/domain/media/ActivityMedia
 import {
   DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   DEFAULT_EXERCISE_END_SECONDS,
+  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
   type Silhouette,
 } from "@/domain/preferences/Profile";
@@ -44,8 +45,10 @@ import {
   replaceOccurrence,
   replaceOccurrenceWithNewMovement,
   withDraftMovement,
+  withExerciseRecovery,
   withOccurrenceMovement,
   withoutPhasesToVerify,
+  withProfileDefaultsValidated,
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
@@ -150,12 +153,15 @@ function useProfileDefaults() {
     readonly sideRecovery: number;
     readonly countdown: number;
     readonly end: number;
+    /** PRE-9 (01/11/2026, point 2) : « Récupération après un exercice », reprise par un nouvel Exercice de Séance. */
+    readonly recovery: number;
     readonly silhouette: Silhouette | null;
   }>({
     loaded: false,
     sideRecovery: DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
     countdown: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
     end: DEFAULT_EXERCISE_END_SECONDS,
+    recovery: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
     silhouette: null,
   });
   useEffect(() => {
@@ -168,6 +174,7 @@ function useProfileDefaults() {
             sideRecovery: profile.sideChangeRecoverySecondsDefault,
             countdown: profile.exerciseCountdownSecondsDefault,
             end: profile.exerciseEndSecondsDefault,
+            recovery: profile.postActivityRecoverySecondsDefault,
             silhouette: profile.silhouette,
           });
         }
@@ -526,6 +533,12 @@ function CatalogueActivityEditorScreen({
   // A3.1 : « Ajouter un niveau » reprend les paramètres de l'Exercice d'origine, Compte à rebours et
   // Fin compris ; les défauts du Profil ne les remplacent pas.
   const [profileApplied, setProfileApplied] = useState(isEditingExisting || isLevelCreation);
+  /**
+   * PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+   * Profil ») : Compte à rebours et Fin repris du Profil par ce nouvel Exercice, affichés sur fond
+   * orange dans la Feuille jusqu'à son premier ✓.
+   */
+  const [profileDefaultsPending, setProfileDefaultsPending] = useState(false);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [initialCategoryId, setInitialCategoryId] = useState<string | null>(null);
   // Story 4.6 (FR-22-10, AC9) : feuille de Catégorie, focus rendu à l'accès après sa fermeture.
@@ -689,6 +702,7 @@ function CatalogueActivityEditorScreen({
       };
       setInitial(created);
       setValue(created);
+      setProfileDefaultsPending(true);
     }
   }
 
@@ -765,6 +779,8 @@ function CatalogueActivityEditorScreen({
       if (next.name !== nameRef.current) setNameHintVisible(false);
       nameRef.current = next.name;
     }
+    // PRE-9 (01/11/2026, point 2) : ✓ de la Feuille — les défauts du Profil sont validés.
+    if (next.executionParameters !== undefined) setProfileDefaultsPending(false);
     setValue((current) => (current ? { ...current, ...next } : current));
   }
 
@@ -1139,6 +1155,7 @@ function CatalogueActivityEditorScreen({
           isCategoryPickerOpen={categorySheet.isOpen}
           categoryAccessRef={categoryAccessRef}
           profileSideRecoverySecondsDefault={profile.sideRecovery}
+          profileDefaultsPending={profileDefaultsPending}
           contentLocked={contentLocked}
           nextPhaseId={movementNextPhaseId}
           // Recette iPhone n° 2 du 31/10/2026 (constat e) : orange dans la Feuille ; marque retirée à
@@ -1458,7 +1475,9 @@ function CompositionExerciseEditor() {
       ? existingExercise
       : {
           // Nouvelle occurrence : AUCUNE Récupération automatique — PRE-6
-          // (story 1.1, AD-35) : absente (`null`), distincte de « présente à 0 ».
+          // (story 1.1, AD-35) : absente (`null`), distincte de « présente à 0 ». [Remplacé le
+          // 01/11/2026 (ordre de Hermann, point 2) : la Récupération du Profil est reprise à la
+          // lecture du Profil, avec Compte à rebours et Fin, ci-dessous.]
           ...createExerciseDraft(Crypto.randomUUID(), null),
           executionParameters: createEmptyFormValue().executionParameters,
           categoryId: null,
@@ -1508,9 +1527,13 @@ function CompositionExerciseEditor() {
   if (!profileApplied && profile.loaded && local !== null) {
     setProfileApplied(true);
     if (occurrenceEquals(local, instructionSteps, initialSnapshot)) {
-      const created = {
+      const created: SessionDraftExercise = {
         ...initialSnapshot,
         executionParameters: withProfilePhases(initialSnapshot.executionParameters, profile.countdown, profile.end),
+        // PRE-9 (01/11/2026, point 2) : Récupération du nouvel Exercice reprise du Profil ; défauts du
+        // Profil en attente du premier ✓ (fond orange dans la Feuille).
+        postActivityRecoverySeconds: profile.recovery,
+        profileDefaultsPending: true,
       };
       setInitialSnapshot(created);
       setLocal(created);
@@ -1741,14 +1764,16 @@ function CompositionExerciseEditor() {
       if (next.executionParameters === undefined) {
         return merged;
       }
+      // PRE-9 (01/11/2026, point 2) : premier ✓ — défauts du Profil validés.
+      const validatedDefaults = withProfileDefaultsValidated(merged);
       // ✓ de la feuille : paramètres validés avec la ligne de base (AD-13) ;
       // la direction de l'occurrence suit celle des paramètres.
       const validated = validateForSave(next.executionParameters, baselineParameters);
       if (!validated.ok) {
-        return { ...merged, executionParameters: next.executionParameters };
+        return { ...validatedDefaults, executionParameters: next.executionParameters };
       }
       return {
-        ...merged,
+        ...validatedDefaults,
         executionParameters: validated.value,
         sideMode: validated.value.sideMode,
       };
@@ -2244,6 +2269,18 @@ function CompositionExerciseEditor() {
           // Recette iPhone n° 2 du 31/10/2026 (constat e) : orange dans la Feuille ; marque retirée à
           // sa fermeture, du brouillon (copie locale comprise) et de la Séance enregistrée.
           {...(local?.phasesToVerify !== undefined ? { phasesToVerify: local.phasesToVerify } : {})}
+          // PRE-9 (ordre de Hermann du 01/11/2026, point 2) : Récupération de l'Exercice (bloc 6), seul
+          // accès de réglage ; appliquée à la copie locale par le ✓, au brouillon par Terminer.
+          {...(local !== null && local.type === "EXERCISE"
+            ? {
+                recovery: {
+                  seconds: local.postActivityRecoverySeconds,
+                  onApply: (seconds: number) =>
+                    setLocal((current) => (current === null ? current : withExerciseRecovery(current, seconds))),
+                },
+              }
+            : {})}
+          profileDefaultsPending={local?.profileDefaultsPending === true}
           onParametersToVerifyAcknowledged={() => {
             if (local === null) return;
             const exerciseId = local.id;

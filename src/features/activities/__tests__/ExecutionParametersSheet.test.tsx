@@ -311,7 +311,7 @@ afterEach(() => {
 const layoutOf = (testID: string, y: number, height: number) =>
   fireEvent(screen.getByTestId(testID), "layout", { nativeEvent: { layout: { x: 0, y, width: 330, height } } });
 /** PRE-5 story 2.4 (AD-28) : mise en page simulée des cadres ([y, hauteur] dans le contenu défilant). */
-const layoutFrames = (frames: Partial<Record<"execution" | "series" | "sides" | "cadence", readonly [number, number]>>) => {
+const layoutFrames = (frames: Partial<Record<"execution" | "phases" | "series" | "sides" | "cadence", readonly [number, number]>>) => {
   for (const [frame, box] of Object.entries(frames)) layoutOf(`execution-sheet-frame-${frame}`, box[0], box[1]);
 };
 
@@ -388,8 +388,8 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     it("PRE4-Q38 (b), RC-6 — N = 2 : menu de l'Enchainement présent dans Avec, choix appliqué", () => {
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(within(screen.getByTestId(`${SIDE_CONTROL}`)).getByTestId(ORDER_MENU)).toBeTruthy();
-      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
-      expect(orderText()).toBe("Un côté après l’autre");
+      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
+      expect(orderText()).toBe("Chaque série d’un côté, puis chaque série de l’autre");
       chooseOrder("Les deux côtés à chaque série");
       expect(orderText()).toBe("Les deux côtés à chaque série");
     });
@@ -436,7 +436,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressIn");
       fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressOut");
       expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
-      expect(orderText()).toBe("Un côté après l’autre");
+      expect(orderText()).toBe("Chaque série d’un côté, puis chaque série de l’autre");
       // Fermeture du stepper par un appui extérieur (T23), comme en PRE-4.
       fireEvent.press(screen.getByTestId("execution-sheet-body-outside"));
       expect(screen.queryByTestId("execution-sheet-series-increment")).toBeNull();
@@ -649,7 +649,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       "Condition d’arrêt",
       "Séries",
       "Pause après chaque série",
-      "Changement de côté",
+      "De chaque côté", // ordre de Hermann du 01/11/2026, point 5 (remplace « Changement de côté »)
       "Cadence",
     ]) {
       expect(screen.getByText(label)).toBeTruthy();
@@ -718,7 +718,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(screen.getByTestId(SERIES_TYPE).props.accessibilityLabel).toBe("Séries");
     expect(screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityLabel).toBe("Variables, sans effet pour une seule série");
     expect(screen.getByTestId("execution-sheet").props.accessibilityViewIsModal).toBe(true);
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Durée d’une série, 1 min 30 s");
+    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Objectif de durée, 1 min 30 s");
   });
 
   it("INTERACTION/wheel — roulette en place : valeur validée appliquée au brouillon ; ✕ de la roulette sans effet ; ✓ de la feuille applique", () => {
@@ -1194,7 +1194,7 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
 });
 
 describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
-  it("D-341, PRE5-2.5/AC1, AC2, RC-6 — Mode sans choix affiché tant que le mode est vide ; Changement de côté en segmenté `inline` (32 de haut ; RC-12 : Avec de 146 portant la notation de l'Enchainement, Sans de 62) ; notation en police réduite (10) ; libellés de ligne Regular 12", () =>
+  it("D-341, PRE5-2.5/AC1, AC2, RC-6 — Mode sans choix affiché tant que le mode est vide ; Changement de côté en segmenté `inline` (32 de haut ; depuis le 01/11/2026 : Avec de 104 portant « DD… → GG… », Sans de 62) ; notation à la taille standard (12) ; libellés de ligne Regular 12", () =>
     withPlatform("android", () => {
       renderSheet(params({ mode: null, sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" }));
       // PRE-5 story 2.4 (AC3, UX-DR1) : le Mode est un segmenté en ligne (32 de haut, deux
@@ -1205,10 +1205,10 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(StyleSheet.flatten(within(mode).getByText("Durée", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
 
       // PRE-5 story 2.5 (AC1) ; RC-6 (Figma `9462:18986`), RC-11 puis RC-12 : Changement de côté
-      // Avec / Sans, Avec de 146 et Sans de 62 (146 + 2 + 62 + 2 × 3).
-      expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITH`, anyNode).props.style)).toMatchObject({ width: 146 });
+      // Avec / Sans, Avec de 146 et Sans de 62 [remplacé le 01/11/2026 : Avec de 104, Figma `9462:18978` ; 104 + 2 + 62 + 2 × 3 = 174].
+      expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITH`, anyNode).props.style)).toMatchObject({ width: 104 });
       const side = screen.getByTestId(SIDE_CONTROL);
-      expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 216 });
+      expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 174 });
       expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITHOUT`, anyNode).props.style)).toMatchObject({ width: 62 });
       expect(StyleSheet.flatten(within(side).getByText("Sans", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
       expect(within(side).queryByText(/Droite|Gauche|changement/u, anyNode)).toBeNull();
@@ -1218,14 +1218,14 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(screen.queryByText("Enchainement")).toBeNull();
       expect(within(side).queryByText("Avec", anyNode)).toBeNull();
       const order = within(side).getByTestId(ORDER_MENU);
-      expect(StyleSheet.flatten(within(order).getByText("(D1 → D2) ➜ (G1 → G2)", anyNode).props.style)).toMatchObject({
-        fontSize: 10,
+      expect(StyleSheet.flatten(within(order).getByText("DD… → GG…", anyNode).props.style)).toMatchObject({
+        fontSize: 12, // ordre de Hermann du 01/11/2026, point 5 : taille standard, sans réduction (10 auparavant)
         fontWeight: "600",
         color: "#FFFFFF",
       });
       expect(order.props.accessibilityLabel).toBe("Enchainement");
-      expect(order.props.accessibilityValue).toEqual({ text: "Un côté après l’autre" });
-      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
+      expect(order.props.accessibilityValue).toEqual({ text: "Chaque série d’un côté, puis chaque série de l’autre" });
+      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
       // PRE-7 B.3 (B5, arbitrage A3) : ailleurs qu'iOS aussi, le déroulant de l'Enchainement
       // (plus d'`Alert`) : deux notations exactes, nommé « Enchainement », rôle menu.
       const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
@@ -1235,16 +1235,16 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
         const menu = within(screen.getByTestId(ORDER_PANEL)).getByTestId(`${ORDER_MENU}-menu`);
         expect(menu.props.accessibilityRole).toBe("menu");
         expect(menu.props.accessibilityLabel).toBe("Enchainement");
-        expect(within(menu).getAllByRole("menuitem").map((row) => within(row).getByText(/➜/u, anyNode).props.children)).toEqual([
-          "(D1 → D2) ➜ (G1 → G2)",
-          "(D1 → G1) ➜ (D2 → G2)",
+        expect(within(menu).getAllByRole("menuitem").map((row) => within(row).getByText(/→/u, anyNode).props.children)).toEqual([
+          "DD… → GG…",
+          "DG → DG → …",
         ]);
         fireEvent.press(screen.getByTestId(`${ORDER_PANEL}-outside`, anyNode));
       } finally {
         alert.mockRestore();
       }
       // PRE-5 story 2.4 (PR-03) : les titres des lignes passent en Inter Regular 12.
-      expect(StyleSheet.flatten(screen.getByText("Changement de côté").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
+      expect(StyleSheet.flatten(screen.getByText("De chaque côté").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
     }));
 });
 
@@ -2520,7 +2520,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(sideText()).toBe("—");
       const control = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
       expect(control.props.accessibilityRole).toBe("tablist");
-      expect(control.props.accessibilityLabel).toBe("Changement de côté");
+      expect(control.props.accessibilityLabel).toBe("De chaque côté");
       // RC-13 (recette du 20/10) : Avec non sélectionné affiche et annonce « Avec » ; la notation
       // de l'Enchainement n'apparaît qu'une fois Avec sélectionné (N > 1).
       expect(["WITH", "WITHOUT"].map((side) => get(`${SIDE_CONTROL}-${side}`).props.accessibilityLabel)).toEqual(["Avec", "Sans"]);
@@ -2540,7 +2540,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 });
     }));
 
-  it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6, PRE7-B.3 (B5) — iOS : Enchainement par le déroulant de l'option Avec (Figma `9462:18987`) : déclencheur fixe 146 × 26, notation et chevron ; déroulant 146 × 88 ancré sur l'option, rôle menu, deux rangées de 44 dans l'ordre D-431, la choisie en violet ; choix, même choix, extérieur, échappement ; ✓ / ✕ absorbés ; aucun hôte SwiftUI ; absent en Sans", () =>
+  it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6, PRE7-B.3 (B5) — iOS : Enchainement par le déroulant de l'option Avec (Figma `9462:18987`) : déclencheur 104 × 26 (116 avec « DG → DG → … », largeur adaptée au contenu depuis le 01/11/2026), notation 12 et chevron ; déroulant 104 × 88 ancré sur l'option, rôle menu, deux rangées de 44 dans l'ordre D-431, la choisie en violet ; choix, même choix, extérieur, échappement ; ✓ / ✕ absorbés ; aucun hôte SwiftUI ; absent en Sans", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(bilateral());
       const onApply = view.onApply;
@@ -2550,12 +2550,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(screen.UNSAFE_root.findAllByType(Host)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(RNHostView)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(Menu)).toHaveLength(0);
-      expect(StyleSheet.flatten(trigger.props.style)).toMatchObject({ width: 146, height: 26 });
+      expect(StyleSheet.flatten(trigger.props.style)).toMatchObject({ width: 104, height: 26 });
       expect(trigger.props.accessibilityRole).toBe("button");
       expect(trigger.props.accessibilityLabel).toBe("Enchainement");
-      expect(trigger.props.accessibilityValue).toEqual({ text: "Un côté après l’autre" });
+      expect(trigger.props.accessibilityValue).toEqual({ text: "Chaque série d’un côté, puis chaque série de l’autre" });
       expect(trigger.props.accessibilityState).toMatchObject({ expanded: false });
-      expect(within(trigger).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+      expect(within(trigger).getByText("DD… → GG…", hidden)).toBeTruthy();
       expect(query(ORDER_PANEL)).toBeNull();
 
       // Ouverture : déroulant ancré sur l'option Avec (cadre Côtés à y 400, ligne à y 5 de 44 :
@@ -2570,9 +2570,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       const menu = within(panel).getByTestId(`${ORDER_MENU}-menu`, hidden);
       expect(menu.props.accessibilityRole).toBe("menu");
       expect(menu.props.accessibilityLabel).toBe("Enchainement");
-      expect(StyleSheet.flatten(menu.props.style)).toMatchObject({ width: 146, height: 88 });
+      expect(StyleSheet.flatten(menu.props.style)).toMatchObject({ width: 104, height: 88 });
       const rows = within(menu).getAllByRole("menuitem");
-      expect(rows.map((row) => row.props.accessibilityLabel)).toEqual(["Un côté après l’autre", "Les deux côtés à chaque série"]);
+      expect(rows.map((row) => row.props.accessibilityLabel)).toEqual(["Chaque série d’un côté, puis chaque série de l’autre", "Les deux côtés à chaque série"]);
       expect(rows.map((row) => row.props.accessibilityState)).toEqual([{ selected: true }, { selected: false }]);
       expect(rows.map((row) => StyleSheet.flatten(row.props.style))).toEqual([
         expect.objectContaining({ height: 44, backgroundColor: "#5F60EE", paddingHorizontal: 8, alignItems: "flex-start" }),
@@ -2581,13 +2581,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       // Réserve sous les cadres : seul le cadre Côtés est mesuré (bas à 500) ; le déroulant
       // descend à 414 + 88 = 502 → réserve de 2, absente une fois fermé.
       expect(StyleSheet.flatten(get("execution-sheet-panel-room").props.style)).toMatchObject({ height: 2 });
-      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SIDE-notation`).props.style)).toMatchObject({ fontSize: 10, fontWeight: "600", color: "#FFFFFF" });
-      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SERIES-notation`).props.style)).toMatchObject({ fontSize: 10, fontWeight: "400", color: "#4A4A52" });
+      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SIDE-notation`).props.style)).toMatchObject({ fontSize: 12, fontWeight: "600", color: "#FFFFFF" });
+      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SERIES-notation`).props.style)).toMatchObject({ fontSize: 12, fontWeight: "400", color: "#4A4A52" });
       // Chevron vers le haut dans la première rangée seulement.
       expect(within(rows[0]!).queryByTestId(`${ORDER_MENU}-chevron`, hidden)).not.toBeNull();
       expect(within(rows[1]!).queryByTestId(`${ORDER_MENU}-chevron`, hidden)).toBeNull();
       // Libellés longs : nom accessible seulement, jamais affichés ; aucune notation C1S1.
-      expect(screen.queryByText("Un côté après l’autre", hidden)).toBeNull();
+      expect(screen.queryByText("Chaque série d’un côté, puis chaque série de l’autre", hidden)).toBeNull();
       expect(screen.queryByText(/C1S1|C1 S1/u, hidden)).toBeNull();
       expect(popovers()).toEqual([]);
 
@@ -2611,7 +2611,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       fireEvent.press(get(ORDER_MENU));
       fireEvent.press(get(`${ORDER_MENU}-BY_SIDE`));
       expect(query(ORDER_PANEL)).toBeNull();
-      expect(orderText()).toBe("Un côté après l’autre");
+      expect(orderText()).toBe("Chaque série d’un côté, puis chaque série de l’autre");
       // Choix : `setSideOrder`, fermeture, notation affichée dans l'option.
       chooseOrder("Les deux côtés à chaque série");
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
@@ -2628,8 +2628,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
 
       // Réouverture de la Feuille avec BY_SERIES : notation dans le déclencheur fixe, aucun hôte SwiftUI.
       const reopened = renderSheetView(bilateral({ sideOrder: "BY_SERIES" }));
-      expect(StyleSheet.flatten(get(ORDER_MENU).props.style)).toMatchObject({ width: 146, height: 26 });
-      expect(within(get(ORDER_MENU)).getByText("(D1 → G1) ➜ (D2 → G2)", hidden)).toBeTruthy();
+      expect(StyleSheet.flatten(get(ORDER_MENU).props.style)).toMatchObject({ width: 116, height: 26 });
+      expect(within(get(ORDER_MENU)).getByText("DG → DG → …", hidden)).toBeTruthy();
       expect(screen.UNSAFE_root.findAllByType(Host)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(RNHostView)).toHaveLength(0);
       reopened.unmount();
@@ -2885,7 +2885,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     const { onApply } = renderSheet(creation());
     expect(modeText()).toBe("—");
     expect(sideText()).toBe("—");
-    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("Changement de côté");
+    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("De chaque côté");
     expect(screen.queryByTestId(`${SIDE_CONTROL}-indicator`)).toBeNull();
     expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     expect(seriesTypeText()).toBe("Identiques");
@@ -3783,7 +3783,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     const undoAvailable = () => screen.queryByTestId("execution-sheet-adjusted-undo", hidden) !== null;
     expect(undoAvailable()).toBe(true);
-    chooseOrder("Un côté après l’autre");
+    chooseOrder("Chaque série d’un côté, puis chaque série de l’autre");
     expect(undoAvailable()).toBe(true);
     chooseSide("Avec");
     expect(undoAvailable()).toBe(true);
@@ -4474,11 +4474,11 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     expect(["REPETITIONS", "DURATION"].map((mode) => screen.getByTestId(`${MODE_CONTROL}-${mode}`).props.accessibilityState.selected)).toEqual([false, false]);
     // PRE-5 story 2.5 (AC1) : Changement de côté non renseigné — aucune option sélectionnée,
     // chaque option annoncée par son nom, jamais un tiret.
-    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("Changement de côté");
+    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("De chaque côté");
     expect(["WITH", "WITHOUT"].map((side) => screen.getByTestId(`${SIDE_CONTROL}-${side}`).props.accessibilityState.selected)).toEqual([false, false]);
     chooseMode("Durée");
     expect(text("execution-sheet-target-value")).toBe("—");
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Durée d’une série, aucune valeur");
+    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Objectif de durée, aucune valeur");
     expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityHint).toBe("Valeur à renseigner");
     view.unmount();
     const repetitions = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
@@ -4936,7 +4936,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
   const get = (testID: string) => screen.getByTestId(testID, hidden);
   const query = (testID: string) => screen.queryByTestId(testID, hidden);
   const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
-  const FRAMES = ["execution", "series", "sides", "cadence"] as const;
+  // PRE-9 (ordre de Hermann du 01/11/2026, point 3 ; CE-UI-10, D-413) : six blocs — Exécution, Phases du
+  // mouvement, Séries, Côtés, Cadence et durée, Récupération. Le bloc 6 (point 2) n'est pas encore rendu :
+  // les cinq blocs présents sont contrôlés ici, dans l'ordre. [Remplacé le 01/11/2026 : quatre cadres.]
+  const FRAMES = ["execution", "phases", "series", "sides", "cadence"] as const;
   type Cell = number | "FAILURE" | null;
   const toTarget = (value: Cell): SeriesTarget =>
     value === "FAILURE" ? failureTarget() : value === null ? unsetTarget() : numberTarget(value);
@@ -4961,7 +4964,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
       },
     });
 
-  it("PRE5-2.4/AC1 — quatre cadres dans l'ordre Exécution ; Séries ; Côtés ; Cadence et durée, enfants directs de l'hôte des panneaux ; fond #EFF0F2, contour blanc de 1, rayon 12, espacés de 8 ; chaque ligne dans son cadre", () => {
+  it("PRE5-2.4/AC1, PRE-9 (01/11, point 3) — blocs dans l'ordre Exécution ; Phases du mouvement ; Séries ; Côtés ; Cadence et durée (Récupération : Exercice de Séance seulement, `ExecutionParametersSheet.recovery.test.tsx`), enfants directs de l'hôte des panneaux ; fond #EFF0F2, contour blanc de 1, rayon 12, espacés de 8 ; chaque ligne dans son cadre", () => {
     renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, cadenceBeepIntervalSeconds: 2 }));
     // PRE-5 story 2.5 (AC4) : Compte à rebours et Fin, repliés, sont d'abord dépliés.
     showSignals();
@@ -4986,6 +4989,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     });
     const rowsOf: Record<(typeof FRAMES)[number], readonly string[]> = {
       execution: ["row-mode", "row-stop-condition"],
+      phases: ["row-phases", "phases-group"],
       series: ["row-series-type", "variable-group", "row-target", "row-pause"],
       sides: ["row-side", "side-order-menu", "row-side-recovery"],
       cadence: ["row-beep", "row-total", "row-countdown", "row-end"],
@@ -4999,6 +5003,21 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
         });
       }
     }
+    // PRE-9 (01/11, point 3) : le bloc Séries commence par la ligne Séries et ne contient pas les
+    // phases ; le bloc Phases ne porte que sa ligne (et son tableau, déployé).
+    const rowIdsOf = (frame: string) =>
+      within(get(`execution-sheet-frame-${frame}`))
+        .queryAllByTestId(/^execution-sheet-row-[a-z-]+$/, hidden)
+        .map((node) => String(node.props.testID))
+        .filter((id) => !/-(selection|line|content|value-group)$/.test(id));
+    expect(rowIdsOf("phases")).toEqual(["execution-sheet-row-phases"]);
+    expect(rowIdsOf("series")[0]).toBe("execution-sheet-row-series-type");
+    expect(rowIdsOf("series")).not.toContain("execution-sheet-row-phases");
+    expect(within(get("execution-sheet-frame-phases")).getByText("Phases du mouvement", hidden)).toBeTruthy();
+    expect(screen.queryByText("Phases de l’exercice", hidden)).toBeNull();
+    // [Point 2 (à venir) — livré le 01/11/2026 :] sans `recovery` (Exercice du Catalogue, fiche
+    // Mouvement), aucun bloc Récupération ; le bloc 6 est couvert par `ExecutionParametersSheet.recovery.test.tsx`.
+    expect(query("execution-sheet-frame-recovery")).toBeNull();
     // Libellés de ligne Inter Regular 12 (PR-03), plus petits que les valeurs.
     expect(StyleSheet.flatten(screen.getByText("Condition d’arrêt").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
     expect(StyleSheet.flatten(screen.getByText("Séries").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
@@ -5950,10 +5969,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(sideText()).toBe("Sans");
     expect(sideRows()).toEqual({ order: false, recovery: false });
     // Sans sélectionné : Avec affiche « Avec », sans notation ni menu (RC-13, recette du 20/10).
-    expect(within(get(SIDE_CONTROL)).queryByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeNull();
+    expect(within(get(SIDE_CONTROL)).queryByText("DD… → GG…", hidden)).toBeNull();
     expect(within(get(SIDE_CONTROL)).getByText("Avec", hidden)).toBeTruthy();
     chooseSide("Avec");
-    expect(within(get(SIDE_CONTROL)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+    expect(within(get(SIDE_CONTROL)).getByText("DD… → GG…", hidden)).toBeTruthy();
     expect(sideText()).toBe("Avec");
     expect(sideRows()).toEqual({ order: true, recovery: true });
     expect(valueOf("execution-sheet-side-recovery")).toBe("20 s");
@@ -5998,13 +6017,13 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(query(sideChevron)).toBeNull();
     expect(sideRows()).toEqual({ order: true, recovery: true });
     const side = get(SIDE_CONTROL);
-    expect(StyleSheet.flatten(side.props.style)).toMatchObject({ width: 216 });
+    expect(StyleSheet.flatten(side.props.style)).toMatchObject({ width: 174 }); // 216 avant le 01/11/2026 (Avec de 104)
     expect(within(side).getByTestId(ORDER_MENU)).toBeTruthy();
-    expect(within(get(ORDER_MENU)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
-    expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
+    expect(within(get(ORDER_MENU)).getByText("DD… → GG…", hidden)).toBeTruthy();
+    expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
     // Re-choisir l'Enchainement affiché ne change rien ; l'autre s'applique et reste affiché.
-    chooseOrder("Un côté après l’autre");
-    expect(orderText()).toBe("Un côté après l’autre");
+    chooseOrder("Chaque série d’un côté, puis chaque série de l’autre");
+    expect(orderText()).toBe("Chaque série d’un côté, puis chaque série de l’autre");
     chooseOrder("Les deux côtés à chaque série");
     expect(orderText()).toBe("Les deux côtés à chaque série");
     expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Les deux côtés à chaque série");
@@ -6031,10 +6050,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(query(sideChevron)).toBeNull();
     expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec");
     // La ligne réserve la place du segmenté le plus large, segmenté aligné à droite.
-    expect(flat("execution-sheet-side-control-slot")).toMatchObject({ minWidth: 216, flexDirection: "row", justifyContent: "flex-end", alignItems: "center" });
+    expect(flat("execution-sheet-side-control-slot")).toMatchObject({ minWidth: 186, flexDirection: "row", justifyContent: "flex-end", alignItems: "center" });
     chooseSide("Avec");
-    expect(widths()).toEqual({ control: 216, with: 146, without: 62 });
-    expect(within(get(ORDER_MENU)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+    // Depuis le 01/11/2026 (ordre de Hermann, point 5) : Avec adapté au contenu, 104 pour « DD… → GG… ».
+    expect(widths()).toEqual({ control: 174, with: 104, without: 62 });
+    expect(within(get(ORDER_MENU)).getByText("DD… → GG…", hidden)).toBeTruthy();
     expect(within(get(SIDE_CONTROL)).queryByText("Avec", hidden)).toBeNull();
     chooseSide("Sans");
     expect(widths()).toEqual(narrow);
@@ -6109,13 +6129,14 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     const labels = within(get(ORDER_PANEL))
       .getAllByRole("menuitem")
       .map((row) => String(row.props.accessibilityLabel));
-    expect(labels).toEqual(["Un côté après l’autre", "Les deux côtés à chaque série"]);
+    expect(labels).toEqual(["Chaque série d’un côté, puis chaque série de l’autre", "Les deux côtés à chaque série"]);
     expect(SIDE_ORDER_VALUES.map((order) => get(`${ORDER_MENU}-${order}-notation`).props.children)).toEqual([
-      "(D1 → D2) ➜ (G1 → G2)",
-      "(D1 → G1) ➜ (D2 → G2)",
+      "DD… → GG…",
+      "DG → DG → …",
     ]);
     fireEvent.press(get(`${ORDER_PANEL}-outside`));
-    expect(StyleSheet.flatten(get(`${ORDER_MENU}-notation`).props.style)).toMatchObject({ fontSize: 10 });
+    // Ordre de Hermann du 01/11/2026, point 5 : taille standard des options (12), sans réduction.
+    expect(StyleSheet.flatten(get(`${ORDER_MENU}-notation`).props.style)).toMatchObject({ fontSize: 12, fontWeight: "600" });
     chooseOrder("Les deux côtés à chaque série");
     expect(orderText()).toBe("Les deux côtés à chaque série");
     tap("execution-sheet-series-decrement");
@@ -7278,5 +7299,113 @@ describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
       expect([1, 2, 3].map((row) => query(`${cell(row)}-unset`))).toEqual([null, null, null]);
       expect([1, 2, 3].map((row) => String(get(`${cell(row)}-value`).props.children))).toEqual(["10 kg", "0 kg", "15 kg"]);
     });
+  });
+});
+
+/**
+ * PRE-9 — ordre de Hermann du 01/11/2026, points 3 à 5 (CE-UI-10 §2b, §5, §7, §8 ; D-413, D-431) :
+ * bloc « Phases du mouvement » entre Exécution et Séries ; « Objectif de durée » en séries
+ * identiques, mode Durée ; notations « DD… → GG… » / « DG → DG → … » dans Avec et le déroulant,
+ * taille standard, largeur adaptée au contenu ; ligne « De chaque côté » ; règles N = 1 inchangées.
+ */
+describe("ExecutionParametersSheet — PRE-9, ordre de Hermann du 01/11/2026 (points 3 à 5)", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const flat = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
+  const SIDE = "execution-sheet-side-control";
+  const MENU = "execution-sheet-side-order-menu";
+  const bilateral = (overrides: Partial<ExecutionParametersInput> = {}) =>
+    params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10, ...overrides });
+
+  it("point 3 — blocs Exécution → Phases du mouvement → Séries → Côtés → Cadence et durée (Récupération à venir) ; Séries commence par la ligne Séries", () => {
+    renderSheet(params());
+    const frames = get("execution-sheet-panel-host")
+      .children.filter((child): child is ReturnType<typeof screen.getByTestId> => typeof child !== "string")
+      .map((child) => String(child.props.testID))
+      .filter((id) => id.startsWith("execution-sheet-frame-"));
+    expect(frames).toEqual([
+      "execution-sheet-frame-execution",
+      "execution-sheet-frame-phases",
+      "execution-sheet-frame-series",
+      "execution-sheet-frame-sides",
+      "execution-sheet-frame-cadence",
+    ]);
+    expect(within(get("execution-sheet-frame-phases")).getByText("Phases du mouvement", hidden)).toBeTruthy();
+    expect(screen.queryByText("Phases de l’exercice", hidden)).toBeNull();
+    expect(within(get("execution-sheet-frame-series")).queryByTestId("execution-sheet-row-phases", hidden)).toBeNull();
+    expect(flat("execution-sheet-frame-phases").marginTop).toBe(8);
+    expect(flat("execution-sheet-frame-series").marginTop).toBe(8);
+  });
+
+  it("point 4 — identiques + Durée : « Objectif de durée » (titre et nom accessible) ; Répétitions : « Nombre de répétitions » ; « Durée de l’exercice » et en-têtes du tableau variable inchangés", () => {
+    const view = renderSheetView(params());
+    expect(within(get("execution-sheet-row-target")).getByText("Objectif de durée", hidden)).toBeTruthy();
+    expect(get("execution-sheet-target-value").props.accessibilityLabel).toBe("Objectif de durée, 1 min 30 s");
+    expect(screen.queryByText("Durée d’une série", hidden)).toBeNull();
+    expect(screen.getByText("Durée de l’exercice", hidden)).toBeTruthy();
+    view.unmount();
+
+    const repetitions = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(12), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
+    expect(within(get("execution-sheet-row-target")).getByText("Nombre de répétitions", hidden)).toBeTruthy();
+    expect(screen.queryByText("Objectif de durée", hidden)).toBeNull();
+    repetitions.unmount();
+
+    renderSheet(params({ series: variableRows([[30, 10], [45, 20]]) }));
+    expect(query("execution-sheet-row-target")).toBeNull();
+    expect(screen.queryByText("Objectif de durée", hidden)).toBeNull();
+    const header = get("execution-sheet-table-header");
+    expect(within(header).getByText("Durée", hidden)).toBeTruthy();
+    expect(within(header).getByText("Pause", hidden)).toBeTruthy();
+    expect(within(header).getByText("Charge", hidden)).toBeTruthy();
+  });
+
+  it("point 5 — « De chaque côté » sur une ligne ; Avec et déroulant : « DD… → GG… » par défaut (104), « DG → DG → … », taille 12 sans réduction ; libellés accessibles ; aucune Droite / Gauche", () => {
+    const { onApply } = renderSheet(bilateral());
+    const row = get("execution-sheet-row-side-line");
+    expect(within(row).getByText("De chaque côté", hidden)).toBeTruthy();
+    expect(StyleSheet.flatten(within(row).getByText("De chaque côté", hidden).props.style).maxWidth).toBeUndefined();
+    expect(get(SIDE).props.accessibilityLabel).toBe("De chaque côté");
+    // Défaut BY_SIDE : notation dans l'option Avec, largeur adaptée au contenu (104, Figma `9462:18978`).
+    expect(get(`${MENU}-notation`).props.children).toBe("DD… → GG…");
+    expect(flat(`${MENU}-notation`)).toMatchObject({ fontSize: 12, fontWeight: "600" });
+    expect(flat(`${SIDE}-tile-WITH`).width).toBe(104);
+    expect(flat(MENU)).toMatchObject({ width: 104, height: 26 });
+    expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
+    expect(get(MENU).props.accessibilityValue).toEqual({ text: "Chaque série d’un côté, puis chaque série de l’autre" });
+    // Déroulant : mêmes notations, même taille, libellés accessibles.
+    fireEvent.press(get(MENU));
+    const items = within(get("execution-sheet-side-order-panel")).getAllByRole("menuitem");
+    expect(items.map((item) => item.props.accessibilityLabel)).toEqual([
+      "Chaque série d’un côté, puis chaque série de l’autre",
+      "Les deux côtés à chaque série",
+    ]);
+    expect(["BY_SIDE", "BY_SERIES"].map((order) => get(`${MENU}-${order}-notation`).props.children)).toEqual(["DD… → GG…", "DG → DG → …"]);
+    expect(["BY_SIDE", "BY_SERIES"].map((order) => flat(`${MENU}-${order}-notation`).fontSize)).toEqual([12, 12]);
+    expect(flat(`${MENU}-menu`).width).toBe(104);
+    fireEvent.press(get(`${MENU}-BY_SERIES`));
+    expect(get(`${MENU}-notation`).props.children).toBe("DG → DG → …");
+    expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec, Les deux côtés à chaque série");
+    // Le contenu plus long élargit l'option ; la place réservée de la ligne ne change pas.
+    expect(flat(`${SIDE}-tile-WITH`).width).toBe(116);
+    expect(flat("execution-sheet-side-control-slot").minWidth).toBe(186);
+    expect(screen.queryByText(/Droite|Gauche/u, hidden)).toBeNull();
+    validate();
+    expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES" });
+  });
+
+  it("point 5 — N = 1 : règles inchangées (D-415) — pas de notation ni de déroulant, Avec / Sans disponible, BY_SIDE écrit", () => {
+    const { onApply } = renderSheet(
+      bilateral({ sideOrder: "BY_SERIES", series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
+    );
+    expect(query(MENU)).toBeNull();
+    expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec");
+    expect(flat(`${SIDE}-tile-WITH`).width).toBe(62);
+    expect(screen.queryByText(/DD…|DG →/u, hidden)).toBeNull();
+    chooseExecutionSide("Sans");
+    chooseExecutionSide("Avec");
+    expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec");
+    validate();
+    expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" });
   });
 });

@@ -495,7 +495,12 @@ export function MovementSheet({
     };
   }, [variant, mode, levels, origin, router, isArchived, openInEdit]);
 
-  const title = mode === "create" ? t.titles.create : mode === "edit" ? t.titles.edit : t.titles.consult;
+  // Ordre de Hermann du 01/11/2026 (ch13 CE-T03-08 « Menu Créer — état cible », l.5269) : ouverte par
+  // « Créer un exercice » de la Composition (contexte Séance), la fiche porte ce titre et sa
+  // confirmation ce libellé ; les autres contextes gardent les leurs.
+  const isSessionContext = onMovementChosen !== undefined;
+  const title =
+    mode === "create" ? (isSessionContext ? t.titles.sessionCreate : t.titles.create) : mode === "edit" ? t.titles.edit : t.titles.consult;
   const formValue: ActivityEditorFormValue = {
     name: draft.name,
     instructionSteps: draft.instructionSteps,
@@ -561,7 +566,7 @@ export function MovementSheet({
           level={levelMenu}
           mediaService={service}
           mediaDraftId={mediaDraftId}
-          finishLabel={t.finish}
+          finishLabel={isSessionContext ? t.sessionFinish : t.finish}
           onFinish={() => {
             void handleFinish();
           }}

@@ -142,16 +142,19 @@ function unfoldPhases() {
 }
 
 describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", () => {
-  it("PRE5-2.8/AC1 — sans phase : « Phases du mouvement » (D-448, point 8) est la première ligne du cadre Séries, Sans sélectionné, sans tableau ni chevron", () => {
+  // [Remplacé le 01/11/2026 — ordre de Hermann, point 3 : « Phases du mouvement » forme son propre
+  // bloc entre Exécution et Séries ; le bloc Séries commence par la ligne Séries.]
+  it("PRE5-2.8/AC1 — sans phase : « Phases du mouvement » (D-448, point 8) est la seule ligne de son bloc ; Séries commence par la ligne Séries ; Sans sélectionné, sans tableau ni chevron", () => {
     renderSheet(params());
-    const frame = get("execution-sheet-frame-series");
-    const rowIds = within(frame)
-      .queryAllByTestId(/^execution-sheet-row-[a-z-]+$/, hidden)
-      .map((node) => String(node.props.testID))
-      .filter((id) => !/-(selection|line|content|value-group)$/.test(id));
-    expect(rowIds[0]).toBe("execution-sheet-row-phases");
-    // Recette du 20/10 (RC-15) : la ligne suivante est le Type de série (portant le nombre de séries).
-    expect(rowIds[1]).toBe("execution-sheet-row-series-type");
+    const rowIdsOf = (frameID: string) =>
+      within(get(frameID))
+        .queryAllByTestId(/^execution-sheet-row-[a-z-]+$/, hidden)
+        .map((node) => String(node.props.testID))
+        .filter((id) => !/-(selection|line|content|value-group)$/.test(id));
+    expect(rowIdsOf("execution-sheet-frame-phases")).toEqual(["execution-sheet-row-phases"]);
+    // Recette du 20/10 (RC-15) : le bloc Séries commence par la ligne Séries (portant le nombre de séries).
+    expect(rowIdsOf("execution-sheet-frame-series")[0]).toBe("execution-sheet-row-series-type");
+    expect(rowIdsOf("execution-sheet-frame-series")).not.toContain("execution-sheet-row-phases");
     expect(within(get("execution-sheet-row-phases")).getByText(t.workPhases, hidden)).toBeTruthy();
     expect(optionState(WITHOUT)).toMatchObject({ selected: true });
     expect(optionState(WITH)).toMatchObject({ selected: false, disabled: false });
@@ -816,19 +819,25 @@ function separatorsUnder(testID: string) {
   });
 }
 
-describe("Contre-recette iPhone du 30/10/2026 — séparateurs du tableau des phases", () => {
-  it("tableau déployé : aucun trait entre la ligne « Phases » et son tableau ; un trait sous le tableau", () => {
+// [Remplacé le 01/11/2026 — ordre de Hermann, point 3 : le trait sous la ligne « Phases » (ou sous
+// son tableau) n'existe plus ; les phases forment un bloc autonome, séparé du bloc Séries par
+// l'écart de 8 entre blocs (D-413).]
+describe("Contre-recette iPhone du 30/10/2026 — séparateurs du tableau des phases (bloc autonome depuis le 01/11/2026)", () => {
+  it("tableau déployé : aucun trait entre la ligne « Phases » et son tableau, ni dans le bloc ; tableau dans le bloc Phases", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
     unfoldPhases();
-    expect(get(TABLE)).toBeTruthy();
+    expect(within(get("execution-sheet-frame-phases")).getByTestId(TABLE, hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-frame-series")).queryByTestId(TABLE, hidden)).toBeNull();
     expect(separatorsUnder("execution-sheet-phases-group")).toHaveLength(0);
-    expect(separatorsUnder("execution-sheet-phases-separator")).not.toHaveLength(0);
+    expect(separatorsUnder("execution-sheet-frame-phases")).toHaveLength(0);
+    expect(query("execution-sheet-phases-separator")).toBeNull();
   });
 
-  it("sans phases : le trait sous la ligne « Phases » reste", () => {
+  it("sans phases : bloc d'une seule ligne, sans trait", () => {
     renderSheet(params());
     expect(query(TABLE)).toBeNull();
-    expect(get("execution-sheet-phases-separator")).toBeTruthy();
+    expect(separatorsUnder("execution-sheet-frame-phases")).toHaveLength(0);
+    expect(query("execution-sheet-phases-separator")).toBeNull();
   });
 });
 

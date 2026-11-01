@@ -67,6 +67,12 @@ const executionParameters = {
     // PRE-4 story 3.3 (AC8) : action accessible qui range un champ ± ouvert.
     closeField: "Fermer",
     durationTarget: "Durée d’une série",
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 4 ; CE-UI-10, D-413) : en séries identiques,
+    // mode Durée, la ligne de la cible commune de la Feuille s’intitule « Objectif de durée »
+    // (remplace « Durée d’une série » dans la Feuille ; `durationTarget` reste celui de l’étape
+    // de complétion, hors périmètre). « Durée de l’exercice » et les en-têtes du tableau des
+    // séries variables (`columns`) sont inchangés.
+    durationGoal: "Objectif de durée",
     // PRE-4 story 3.5 (H14, décision de Claude du 2026-10-17, révisable par Hermann) :
     // ligne de la Cible commune, symétrique de « Durée d’une série ». Seule la Feuille
     // l’emploie ; l’en-tête de colonne du tableau reste `columns.REPETITIONS`.
@@ -139,15 +145,32 @@ const executionParameters = {
     // retirés ; recette du 19/10 (RC-6) : le chevron de repli d’Avec aussi (`showSideSettings`,
     // `hideSideSettings`).
     sideMode: "Changement de côté",
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 5 ; CE-UI-10 §7) : la ligne visible du
+    // Changement de côté s’intitule « De chaque côté », sur une ligne (même texte pour le nom
+    // accessible du segmenté, comme « Séries », RC-17). Le concept reste Changement de côté.
+    sideModeRow: "De chaque côté",
     sideModeChoices: { WITH: "Avec", WITHOUT: "Sans" },
     // PRE-5 story 2.5 (FR-17, D-431) ; recette du 19/10 (RC-6) : plus de ligne « Enchainement » ;
     // l’option Avec porte la notation et ouvre le menu des deux notations, nommé « Enchainement » ;
     // nom accessible des notations = `sideOrders`. Recette du 19/10 (RC-12) : notation D-431
     // complète rétablie (option Avec de 146), après le raccourcissement de RC-11.
     sideSequence: "Enchainement",
-    sideOrders: { BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" },
-    sideOrderSubtitles: { BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" },
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 5 ; CE-UI-10 §8, D-431) : notations
+    // « DD… → GG… » (un côté après l’autre, par défaut) et « DG → DG → … » (les deux côtés à
+    // chaque série), à la taille standard des options ; D et G désignent les côtés 1 et 2, jamais
+    // la droite et la gauche. Libellés accessibles : « Chaque série d’un côté, puis chaque série
+    // de l’autre » et « Les deux côtés à chaque série ». [Remplacé le 01/11/2026 : notations
+    // « (D1 → D2) ➜ (G1 → G2) » / « (D1 → G1) ➜ (D2 → G2) » en police réduite et libellé
+    // accessible « Un côté après l’autre ».]
+    sideOrders: { BY_SIDE: "Chaque série d’un côté, puis chaque série de l’autre", BY_SERIES: "Les deux côtés à chaque série" },
+    sideOrderSubtitles: { BY_SIDE: "DD… → GG…", BY_SERIES: "DG → DG → …" },
     sideRecovery: "Pause entre les côtés",
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; CE-UI-10 ligne 14) : bloc 6, seule ligne
+    // « Récupération » (Récupération après exercice de l’Exercice de Séance).
+    recovery: "Récupération",
+    // PRE-9 (même ordre) : indice VoiceOver d’une valeur reprise d’un défaut du Profil, rendue sur fond
+    // orange jusqu’au premier ✓ de l’Exercice (rendu choisi sans maquette).
+    profileDefaultHint: "Valeur par défaut du Profil, à confirmer par ✓.",
     // PRE-5 story 2.5 (FR-30, AD-24) : ligne « Cadence » (remplace « Bip de cadence »), segmenté
     // Autre / 5 s / 2 s / 1 s / Sans ; Autre révèle le ± existant.
     cadence: "Cadence",

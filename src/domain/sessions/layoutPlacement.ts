@@ -13,9 +13,10 @@
  *   ne rendrait aucun Point consécutif compte tenu de l'état effectif (RM-251) ; un ajout qui créerait
  *   un conflit de répétition demande le choix (« Début de tour / Fin de tour », ou de répétition,
  *   D-442, ARB-02b).
- * - **Récupération** (RM-209, RM-210, D-442) : attachée à l'occurrence, où qu'elle soit ; zones et
- *   réglages identiques à l'ancien modèle (`placementRecoverySeconds`, `selectPlacementRecovery`,
- *   `deselectPlacementRecovery`, réutilisés tels quels).
+ * - [**Récupération** (RM-209, RM-210, D-442) : zones et réglages de l'ancien modèle — retirés le
+ *   01/11/2026 (ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+ *   Profil ») : la récupération appartient à l'Exercice et se règle dans Paramètres d'exécution ;
+ *   le placement ne porte que les Points d'arrêt.]
  * - **Sous-brouillon** : `PlacementDraft` de l'ancien modèle. Un emplacement de la disposition y est
  *   désigné par son RANG dans la séquence fonctionnelle (`layoutPlacementDesignation` : `position` =
  *   rang, `scope` sans signification de zone) — la structure ne change pas pendant le placement ; la
@@ -251,9 +252,6 @@ export function toggleLayoutPlacementStopPointOutcome(
 
 /** Changements du sous-brouillon réellement applicables (même juge que l'ancien modèle, `applicablePlacement`). */
 type Applicable = {
-  readonly recoveries: ReadonlyMap<string, number>;
-  readonly recoveryChanges: ReadonlyMap<string, number>;
-  readonly recoveryRemovedIds: ReadonlySet<string>;
   readonly removedIds: ReadonlySet<string>;
   readonly kept: readonly LayoutStopPoint[];
   readonly additions: readonly StructureStopPointLocation[];
@@ -263,25 +261,6 @@ function applicable(context: LayoutPlacementContext, placement: PlacementDraft):
   const resolved = resolve(context);
   const removedIds = new Set(resolved.existing.flatMap((point) => (point.id !== undefined && placement.stopPointRemovals.includes(point.id) ? [point.id] : [])));
   const kept = resolved.existing.filter((point) => point.id === undefined || !removedIds.has(point.id));
-
-  const recoveries = new Map<string, number>();
-  const recoveryChanges = new Map<string, number>();
-  const recoveryRemovedIds = new Set<string>();
-  for (const exercise of context.exercises) {
-    const current = exercise.postActivityRecoverySeconds;
-    const present = exercise.type === "EXERCISE" && current !== null && current !== undefined;
-    const added = placement.recoveries[exercise.id];
-    if (added !== undefined && exercise.type === "EXERCISE" && !present) {
-      recoveries.set(exercise.id, added);
-      continue;
-    }
-    if (present && placement.recoveryRemovals.includes(exercise.id)) {
-      recoveryRemovedIds.add(exercise.id);
-      continue;
-    }
-    const changed = placement.recoveryChanges[exercise.id];
-    if (changed !== undefined && present && current !== changed) recoveryChanges.set(exercise.id, changed);
-  }
 
   const additions: StructureStopPointLocation[] = [];
   for (const designation of placement.stopPoints) {
@@ -294,36 +273,28 @@ function applicable(context: LayoutPlacementContext, placement: PlacementDraft):
     const createsConflict = layoutRepetitionConflicts(resolved.analysis, [...retained, place]).some((conflict) => !before.has(scopeKey(conflict.scope)));
     if (!createsConflict) additions.push(place);
   }
-  return { recoveries, recoveryChanges, recoveryRemovedIds, removedIds, kept, additions };
+  return { removedIds, kept, additions };
 }
 
 /** Nature du bouton Confirmer (D-441 ; voir `placementConfirmation`). */
 export function layoutPlacementConfirmation(placement: PlacementDraft, context: LayoutPlacementContext): PlacementConfirmation {
   const changes = applicable(context, placement);
-  if (changes.recoveryChanges.size + changes.removedIds.size + changes.recoveryRemovedIds.size > 0) return { kind: "CHANGES" };
-  const additions = changes.recoveries.size + changes.additions.length;
+  if (changes.removedIds.size > 0) return { kind: "CHANGES" };
+  const additions = changes.additions.length;
   return additions > 0 ? { kind: "ADDITIONS_ONLY", count: additions } : { kind: "NONE" };
 }
 
 /**
  * « Confirmer » (AD-43) : applique au brouillon, en une mise à jour, les changements applicables —
- * récupérations ajoutées, modifiées ou retirées (retrait : Pause terminale rétablie, RM-038), Points
- * retirés puis ajoutés à leur emplacement réel (identifiants fournis par `newStopPointId`). Rien
+ * [récupérations ajoutées, modifiées ou retirées : retiré le 01/11/2026, aucune récupération en
+ * placement] Points retirés puis ajoutés à leur emplacement réel (identifiants fournis par `newStopPointId`). Rien
  * d'applicable : le brouillon lui-même.
  */
 export function applyLayoutPlacementDraft(draft: SessionDraft, placement: PlacementDraft, newStopPointId: () => string): SessionDraft {
   const changes = applicable(draft, placement);
-  const recoveriesChanged = changes.recoveries.size > 0 || changes.recoveryChanges.size > 0 || changes.recoveryRemovedIds.size > 0;
   const pointsChanged = changes.removedIds.size > 0 || changes.additions.length > 0;
-  if (!recoveriesChanged && !pointsChanged) return draft;
-  const exercises = draft.exercises.map((exercise) => {
-    if (changes.recoveryRemovedIds.has(exercise.id)) return { ...exercise, postActivityRecoverySeconds: null };
-    const seconds = changes.recoveries.get(exercise.id) ?? changes.recoveryChanges.get(exercise.id);
-    return seconds === undefined ? exercise : { ...exercise, postActivityRecoverySeconds: seconds };
-  });
-  const next = recoveriesChanged ? { ...draft, exercises } : draft;
-  if (!pointsChanged) return next;
+  if (!pointsChanged) return draft;
   const layout = currentLayout(draft, () => "placement");
   const added = changes.additions.map((place) => ({ ...place, id: newStopPointId() }));
-  return withLayout(next, { ...layout, stopPoints: [...changes.kept, ...added] });
+  return withLayout(draft, { ...layout, stopPoints: [...changes.kept, ...added] });
 }

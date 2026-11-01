@@ -2,11 +2,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { isPlacementStopPointAdded, isPlacementStopPointRemoved, type PlacementDraft } from "@/domain/sessions/placement";
 import type { StopPointLocation } from "@/domain/sessions/StopPoint";
-import { formatCompactDuration } from "@/features/sessions/compositionPresentation";
-import { OCCURRENCE_RECOVERY_FRAME } from "@/features/sessions/OccurrenceCard";
 import { STOP_POINT_CHIP_HEIGHT, StopPointSymbol } from "@/features/sessions/StopPointChip";
 import { strings } from "@/shared/i18n";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, spacing } from "@/shared/ui/tokens";
 
@@ -24,7 +21,7 @@ export const PLACEMENT_STOP_POINT_ROW_HEIGHT = STOP_POINT_CHIP_HEIGHT;
  * jeton (constante locale, `tokens.ts` verrouillé).
  */
 const PLACEMENT_AVAILABLE_SURFACE = "rgba(5, 8, 229, 0.05)";
-/** Rayon commun de la puce et du cadre (Figma : 10). */
+/** Rayon de la puce (Figma : 10) [et du cadre « Récupération », retiré le 01/11/2026]. */
 const PLACEMENT_RADIUS = 10;
 
 /**
@@ -34,28 +31,6 @@ const PLACEMENT_RADIUS = 10;
  */
 const STOP_POINT_PUCE = { borderWidth: 1, paddingHorizontal: spacing[10], paddingVertical: spacing[4], gap: spacing[6] } as const;
 const PUCE_TEXT = { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 10, lineHeight: 12 } as const;
-
-/**
- * Cadre « Récupération » (Figma `9848:18968`) : pointillé 1,5, rayon 10, sablier dans la colonne des
- * symboles (à 4 du bord gauche du cadre, contour compris : le débord gauche est borné à l'écart entre
- * les colonnes), texte Inter Semi Bold 11 `#0508E5` calé à droite à 9,5 du bord droit (contour
- * compris, Figma). Contenu sur la boîte de contenu de la ligne 3 (3 sous le haut du cadre, 15 de haut).
- */
-const RECOVERY_FRAME = {
-  borderWidth: 1.5,
-  paddingLeft: OCCURRENCE_RECOVERY_FRAME.horizontalOutset - 1.5,
-  paddingRight: 9.5 - 1.5,
-  paddingTop: OCCURRENCE_RECOVERY_FRAME.aboveContent - 1.5,
-  // Écart minimal sablier → texte (calé à droite) : Figma laisse 5,5 entre le sablier et
-  // « Récupération ».
-  gap: spacing[4],
-} as const;
-const FRAME_TEXT = { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, lineHeight: 13 } as const;
-
-function fill(template: string, values: Record<string, string>): string {
-  // Remplacement par fonction : un nom contenant `$&` ou `$1` est inséré tel quel.
-  return Object.entries(values).reduce((text, [key, value]) => text.replace(`{${key}}`, () => value), template);
-}
 
 /**
  * Point d'arrêt d'une rangée de placement, préparé par l'écran (story 6.3) :
@@ -180,98 +155,12 @@ export function PlacementStopPointRow({
   );
 }
 
-export type PlacementRecoveryFrameProps = {
-  readonly occurrenceId: string;
-  readonly exerciseName: string;
-  /**
-   * PRE-6 story 7.2 (D-442) : durée SÉLECTIONNÉE de la zone (`placementRecoverySeconds` : ajout, ou
-   * récupération existante — 0 comprise — modifiée ou non et non retirée), `null` si la zone n'est
-   * pas sélectionnée.
-   */
-  readonly selectedSeconds: number | null;
-  /** La récupération existe dans le brouillon (présente avant le placement, 0 comprise). */
-  readonly existing: boolean;
-  /** Toucher : désélection (zone sélectionnée) ou roulette (zone non sélectionnée). */
-  readonly onPress: (occurrenceId: string) => void;
-  /** Étendue verticale de la cible au-delà du contenu de la ligne 3 (`occurrenceRecoveryTouchExtent`). */
-  readonly touchExtent: { readonly top: number; readonly bottom: number };
-  readonly testID: string;
-};
-
-/**
- * Zone de récupération du mode placement (PRE-6 story 4.1 ; story 5.3, D-435, Figma `9848:18968`,
- * ch13 L1486) : cadre « Récupération » dans la ligne 3 de la carte (colonne des valeurs,
- * `OCCURRENCE_RECOVERY_FRAME`).
- *
- * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1496) : toutes les zones de récupération des Exercices
- * sont sélectionnables, comme les Points d'arrêt.
- * - Sélectionnée (ajoutée, ou récupération existante — 0 comprise — conservée) : cadre plein
- *   `primary`, sablier blanc de même taille (13, teinté) et durée seule (« 30 s », format de la
- *   ligne 3) ; toucher la désélectionne (ajout jeté, ou retrait programmé de l'existante).
- * - Non sélectionnée : cadre en pointillés « Récupération » ; toucher ouvre la roulette (durée
- *   existante, sinon défaut du Profil). Une récupération existante désélectionnée (« à retirer »)
- *   garde aussi l'opacité réduite du point existant à retirer (story 6.3) — NON VÉRIFIABLE : Figma
- *   ne dessine pas cet état.
- *
- * Accessibilité : bouton nommé « Ajouter une récupération après {exercice} » (zone sans récupération
- * existante) ou « Récupération après {exercice} » (existante) ; valeur = durée sélectionnée ; état
- * sélectionné ; indices selon l'effet du toucher.
- *
- * Revue 5.3 : dans le flux, sa largeur suit son contenu (la colonne des valeurs s'élargit, les Zones
- * cèdent) ; débord gauche borné à l'écart entre les colonnes. La cible est la boîte du `Pressable`
- * (cadre + étendue verticale, marges négatives), jamais un `hitSlop`.
+/*
+ * [PRE-6 story 4.1 / 5.3 / 7.2 (D-435, D-442) : `PlacementRecoveryFrame`, zone de récupération
+ * sélectionnable du mode placement — retirée le 01/11/2026 (ordre de Hermann, point 2 ; ch07
+ * « Récupération de l'Exercice et défauts du Profil », ch13 CE-T03-08) : le placement ne porte que
+ * les Points d'arrêt ; la récupération de l'Exercice se règle dans Paramètres d'exécution.]
  */
-export function PlacementRecoveryFrame({
-  occurrenceId,
-  exerciseName,
-  selectedSeconds,
-  existing,
-  onPress,
-  touchExtent,
-  testID,
-}: PlacementRecoveryFrameProps) {
-  const t = strings.screens.composition.placement;
-  const selected = selectedSeconds !== null;
-  const toRemove = existing && !selected;
-  const frame = OCCURRENCE_RECOVERY_FRAME;
-  const hint = existing
-    ? selected
-      ? t.existingRecoverySelectedHint
-      : t.existingRecoveryRemovedHint
-    : selected
-      ? t.selectedHint
-      : undefined;
-  return (
-    <Pressable
-      onPress={() => onPress(occurrenceId)}
-      accessibilityRole="button"
-      accessibilityLabel={fill(existing ? t.existingRecoveryAccessibilityLabel : t.addRecoveryAccessibilityLabel, {
-        exercise: exerciseName,
-      })}
-      accessibilityValue={selected ? { text: formatCompactDuration(selectedSeconds) } : undefined}
-      accessibilityState={{ selected }}
-      accessibilityHint={hint}
-      style={{
-        marginTop: -touchExtent.top,
-        marginBottom: -touchExtent.bottom,
-        marginHorizontal: -frame.horizontalOutset,
-        paddingTop: touchExtent.top - frame.aboveContent,
-        paddingBottom: touchExtent.bottom - (frame.height - frame.aboveContent - frame.lineContentHeight),
-      }}
-      testID={testID}
-    >
-      <View
-        style={[styles.frame, selected ? styles.added : styles.available, toRemove ? styles.toRemove : null]}
-        testID={`${testID}-face`}
-      >
-        <KodjoIcon name="card-recovery-hourglass" tintColor={selected ? colors.background : undefined} testID={`${testID}-icon`} />
-        <Text style={[styles.frameText, selected ? styles.addedText : null]} numberOfLines={1}>
-          {selected ? formatCompactDuration(selectedSeconds) : t.recovery}
-        </Text>
-      </View>
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
   row: {
@@ -312,27 +201,5 @@ const styles = StyleSheet.create({
   },
   addedText: {
     color: colors.background,
-  },
-  frame: {
-    height: OCCURRENCE_RECOVERY_FRAME.height,
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "stretch",
-    gap: RECOVERY_FRAME.gap,
-    paddingLeft: RECOVERY_FRAME.paddingLeft,
-    paddingRight: RECOVERY_FRAME.paddingRight,
-    paddingTop: RECOVERY_FRAME.paddingTop,
-    paddingBottom: OCCURRENCE_RECOVERY_FRAME.height - OCCURRENCE_RECOVERY_FRAME.aboveContent - OCCURRENCE_RECOVERY_FRAME.lineContentHeight - RECOVERY_FRAME.borderWidth,
-    borderRadius: PLACEMENT_RADIUS,
-    borderWidth: RECOVERY_FRAME.borderWidth,
-    borderColor: colors.primary,
-    overflow: "hidden",
-  },
-  frameText: {
-    ...FRAME_TEXT,
-    flexGrow: 1,
-    flexShrink: 1,
-    textAlign: "right",
-    color: colors.primary,
   },
 });

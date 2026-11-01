@@ -9,7 +9,7 @@ import {
   toggleLayoutPlacementStopPointOutcome,
   toggleLayoutPlacementStopPointRemoval,
 } from "@/domain/sessions/layoutPlacement";
-import { EMPTY_PLACEMENT_DRAFT, placementRecoverySeconds, selectPlacementRecovery, type PlacementDraft } from "@/domain/sessions/placement";
+import { EMPTY_PLACEMENT_DRAFT, type PlacementDraft } from "@/domain/sessions/placement";
 import { createEmptyDraft, createExerciseDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import type { StructureElement, StructureStopPointLocation } from "@/domain/sessions/structure";
 
@@ -106,14 +106,18 @@ describe("PRE-9 B.6 — bascules, choix et confirmation", () => {
     expect(applyLayoutPlacementDraft(draft, withAddition.placement, () => "q").structure?.stopPoints).toEqual([{ id: "q", circuitId: "cb", position: 0 }]);
   });
 
-  it("RM-209 / RM-210 : la récupération reste attachée à l'occurrence, où qu'elle soit (Circuit d'un Cycle)", () => {
-    const draft = draftOf(2);
-    const placement = selectPlacementRecovery(EMPTY_PLACEMENT_DRAFT, "b1", 20, draft);
-    expect(placementRecoverySeconds(placement, draft.exercises.find((item) => item.id === "b1")!)).toBe(20);
-    expect(layoutPlacementConfirmation(placement, draft)).toEqual({ kind: "ADDITIONS_ONLY", count: 1 });
-    const applied = applyLayoutPlacementDraft(draft, placement, () => "unused");
+  // [RM-209 / RM-210 : récupération réglée en placement — remplacé le 01/11/2026 (ordre de Hermann,
+  // point 2) : la récupération appartient à l'Exercice, le placement ne porte que les Points d'arrêt.]
+  it("PRE-9 (01/11/2026) : le placement ne modifie jamais la récupération de l'Exercice (Circuit d'un Cycle)", () => {
+    const base = draftOf(2);
+    const draft = { ...base, exercises: base.exercises.map((item) => (item.id === "b1" ? { ...item, postActivityRecoverySeconds: 20 } : item)) };
+    expect(layoutPlacementConfirmation(EMPTY_PLACEMENT_DRAFT, draft)).toEqual({ kind: "NONE" });
+    const slot = layoutPlacementSlots(draft).find((candidate) => candidate.stopPoint !== null && !candidate.stopPoint.existing)!;
+    const added = toggleLayoutPlacementStopPointOutcome(EMPTY_PLACEMENT_DRAFT, slot.designation, draft);
+    if (added.status !== "APPLIED") throw new Error(added.status);
+    const applied = applyLayoutPlacementDraft(draft, added.placement, () => "q");
+    expect(applied.exercises).toBe(draft.exercises);
     expect(applied.exercises.find((item) => item.id === "b1")?.postActivityRecoverySeconds).toBe(20);
-    expect(applied.structure).toBe(draft.structure);
   });
 
   it("désignation : rang de l'emplacement dans la séquence, jamais enregistrée", () => {

@@ -167,7 +167,7 @@ Dépend de : B.2. Arbitrages : ARB-08, ARB-17 (décidés).
 
 ### B.6 — Pauses et points d'arrêt sur toute la structure
 Dépend de : B.4. Arbitrages : ARB-02, ARB-02a/b (**validés**, révision 2). Colonne de Point dans un Cycle : migration 016 (A.1).
-- Mode Placement sur tous les niveaux ; RM-219, RM-251, D-441, D-442 évalués sur la séquence fonctionnelle de toute la structure, frontières de chaque conteneur comprises (règles retenues ARB-02) ; récupération attachée à l'occurrence (RM-209/210).
+- Mode Placement sur tous les niveaux ; RM-219, RM-251, D-441, D-442 évalués sur la séquence fonctionnelle de toute la structure, frontières de chaque conteneur comprises (règles retenues ARB-02) ; récupération attachée à l'occurrence (RM-209/210). [Remplacé le 01/11/2026 pour la récupération (ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil », qui clôt REC-PARAM-01) : la Récupération appartient à l'Exercice, reprise du Profil à sa création, réglée uniquement dans Paramètres d'exécution ; le mode Placement ne porte que les Points d'arrêt. Voir `spec-menu-creer-parametres-01-11.md` § « Récupération de l'Exercice et défauts du Profil ».]
 - Point à l'intérieur d'un Cycle rencontré à chaque répétition ; Point au niveau Séance non répété du fait du Cycle (ARB-02a).
 - Cycle répété : frontières entre répétitions, exceptions de début et de fin (RM-219), demande de choix entre Point de début et Point de fin de répétition, retraits et annulations comme pour le Circuit (D-442) — même mécanisme, aucun second (ARB-02b).
 - [Révision 1 : « Points à l'intérieur d'un Cycle : ARB-02a/b, seule partie bloquée » — clos.]

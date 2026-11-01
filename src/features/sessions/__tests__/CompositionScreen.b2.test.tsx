@@ -17,7 +17,8 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
  * PRE-9 story B.2 (COMP §1 et §5, D-451, ARB-06, ARB-19 ; Figma `10705:20223`, `10819:20344`,
- * `10836:20478`) — menu Créer à cinq actions + Annuler, Séance sans Circuit, mode enveloppe (poser
+ * `10836:20478`) — menu Créer à cinq actions + Annuler [01/11/2026 : quatre options, le « + » devient
+ * Annuler — ch13 CE-T03-08 « Menu Créer — état cible »], Séance sans Circuit, mode enveloppe (poser
  * un Circuit ou un Cycle sur un premier contenu). Jest ne prouve pas le rendu sur iPhone.
  */
 
@@ -131,41 +132,66 @@ beforeEach(() => {
 });
 
 describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
-  it("cinq actions puis Annuler, dans l'ordre ; « Utiliser une séance existante » indisponible (B.8)", async () => {
+  // Ordre de Hermann du 01/11/2026, ch13 CE-T03-08 « Menu Créer — état cible » [remplace « cinq
+  // actions puis Annuler, dans l'ordre »] : exactement quatre options, dans cet ordre, puis Annuler
+  // à la place du « + » (pas de rangée Annuler, pas d'entrée Format — MENU-FMT-01).
+  it("exactement quatre options, dans l'ordre, chacune avec son icône ronde ; Annuler n'est pas une option ; « Utiliser une séance existante » indisponible (B.8)", async () => {
     await renderComposition(flatDraft());
     const tree = openMenu();
     const labels = within(tree)
       .getAllByRole("button")
       .map((node) => node.props.accessibilityLabel);
-    expect(labels).toEqual([
-      menu.newActivity,
-      menu.existingActivity,
-      `${menu.existingSession} — indisponible`,
-      menu.addCircuit,
-      menu.addCycle,
-      menu.cancel,
-    ]);
-    expect(labels.slice(0, 2)).toEqual(["Créer un nouveau mouvement", "Utiliser un mouvement existant"]);
+    expect(labels).toEqual([menu.newActivity, `${menu.existingSession} — indisponible`, menu.addCircuit, menu.addCycle, menu.cancel]);
+    expect(menu.newActivity).toBe("Créer un exercice");
+    expect(within(tree).queryByLabelText("Utiliser un mouvement existant")).toBeNull();
+    expect(within(tree).queryByText(/format/i)).toBeNull();
+    const optionIDs = ["new", "existing-session", "circuit", "cycle"].map((key) => `composition-add-activity-tree-${key}`);
+    for (const testID of optionIDs) expect(screen.getByTestId(`${testID}-icon`, hidden)).toBeTruthy();
+    // Annuler n'a ni pilule ni libellé : c'est le « + » transformé.
+    expect(screen.queryByTestId("composition-add-activity-tree-cancel-label", hidden)).toBeNull();
     const session = screen.getByTestId("composition-add-activity-tree-existing-session");
     expect(session.props.accessibilityState).toEqual({ disabled: true });
     expect(within(session).getByText(menu.existingSession)).toBeTruthy();
     expect(screen.getByTestId("composition-add-activity-tree-circuit").props.accessibilityState).toEqual({ disabled: false });
   });
 
-  it("actions existantes inchangées : nouvel exercice, mouvement existant, Annuler", async () => {
+  it("« Créer un exercice » ouvre la création d'un Mouvement en contexte Séance et ferme le menu", async () => {
     await renderComposition(flatDraft());
     openMenu();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-new"));
-    // PRE-9 A.2 — ARB-22a, D-449 : création d'un Mouvement en contexte Séance, puis sélection des
-    // Mouvements du Catalogue (plus `/exercise` ni `/activity-selection`).
+    // PRE-9 A.2 — ARB-22a, D-449 : création d'un Mouvement en contexte Séance (plus `/exercise`).
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/movement", params: { context: "session" } });
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
+  });
+
+  it("le « + » devient Annuler à l'ouverture (croix 34 sur fond gris, au-dessus du voile), ferme sans mutation ni navigation, puis redevient « + »", async () => {
+    const initial = flatDraft();
+    await renderComposition(initial);
+    const plus = screen.getByTestId("composition-add-activity-action");
+    expect(plus.props.accessibilityLabel).toBe(strings.screens.composition.addActivity);
     openMenu();
-    fireEvent.press(screen.getByTestId("composition-add-activity-tree-existing"));
-    expect(mockPush).toHaveBeenLastCalledWith("/movement-selection");
-    openMenu();
-    fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
+    const cancel = screen.getByTestId("composition-add-activity-tree-cancel");
+    expect(cancel.props.accessibilityLabel).toBe(menu.cancel);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-cancel-circle", hidden).props.style)).toMatchObject({
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: "#E5E8F0",
+    });
+    expect(screen.getByTestId("composition-add-activity-tree-cancel-icon", hidden)).toBeTruthy();
+    // Plus de « + » reposé au premier plan : seul celui de la zone de contexte, sous le voile.
+    expect(screen.queryByTestId("composition-add-activity-tree-plus", hidden)).toBeNull();
+    const draftBefore = probe.draft;
+    fireEvent.press(cancel);
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
+    expect(screen.queryByTestId("composition-add-activity-tree-cancel", hidden)).toBeNull();
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(probe.draft).toBe(draftBefore);
+    expect(probe.draft).toEqual(initial);
+    // Le « + » reprend son action d'ouverture.
+    expect(screen.getByTestId("composition-add-activity-action").props.accessibilityLabel).toBe(strings.screens.composition.addActivity);
+    openMenu();
+    expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
   });
 
   it("Séance vide : « Ajouter un circuit » et « Ajouter un cycle » visibles et indisponibles (aucun contenu éligible)", async () => {

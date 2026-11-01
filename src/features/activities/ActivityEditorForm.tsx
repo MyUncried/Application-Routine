@@ -160,6 +160,13 @@ export type ActivityEditorFormProps = {
   phasesToVerify?: readonly number[];
   onParametersToVerifyAcknowledged?: () => void;
   /**
+   * PRE-9 (ordre de Hermann du 01/11/2026, point 2) : Récupération de l'Exercice de Séance, bloc 6 de
+   * la Feuille (`ExecutionParametersSheet.recovery`). Absent (Catalogue, fiche Mouvement) : bloc absent.
+   */
+  recovery?: { readonly seconds: number | null; readonly onApply: (seconds: number) => void };
+  /** PRE-9 (même ordre) : défauts du Profil avant le premier ✓, sur fond orange dans la Feuille. */
+  profileDefaultsPending?: boolean;
+  /**
    * PRE-7 (A2.3, MFN-06) : fin de la saisie du nom (clavier fermé, champ quitté ou validé).
    * PRE-7 (R-5, R04) : l'adaptateur y ferme le panneau sous le nom — Entrée ne sélectionne jamais
    * un résultat. Absent : rien.
@@ -395,6 +402,8 @@ export function ActivityEditorForm({
   nextPhaseId,
   phasesToVerify,
   onParametersToVerifyAcknowledged,
+  recovery,
+  profileDefaultsPending = false,
   onNameEndEditing,
   nameAssist = null,
   nameHint = null,
@@ -1183,6 +1192,8 @@ export function ActivityEditorForm({
           phaseStructureLocked={phaseStructureLocked || contentLocked}
           nextPhaseId={nextPhaseId}
           {...(phasesToVerify !== undefined && phasesToVerify.length > 0 ? { phasesToVerify } : {})}
+          {...(recovery !== undefined ? { recovery } : {})}
+          profileDefaultsPending={profileDefaultsPending}
           onApply={applyParameters}
           onCancel={closeSheet}
         />

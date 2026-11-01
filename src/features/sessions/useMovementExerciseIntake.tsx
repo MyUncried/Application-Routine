@@ -11,10 +11,11 @@ import {
 import {
   DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   DEFAULT_EXERCISE_END_SECONDS,
+  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
 } from "@/domain/preferences/Profile";
 import { exitCircuit } from "@/domain/sessions/circuit";
-import { withoutPhasesToVerify } from "@/domain/sessions/SessionDraft";
+import { withExerciseRecovery, withoutPhasesToVerify, withProfileDefaultsValidated } from "@/domain/sessions/SessionDraft";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import {
@@ -32,23 +33,28 @@ type ProfileDefaults = {
   readonly countdownSeconds: number;
   readonly endSeconds: number;
   readonly sideRecoverySeconds: number;
+  /** PRE-9 (01/11/2026, point 2) : « Récupération après un exercice », reprise par un nouvel Exercice. */
+  readonly recoverySeconds: number;
 };
 
 const DOMAIN_DEFAULTS: ProfileDefaults = {
   countdownSeconds: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   endSeconds: DEFAULT_EXERCISE_END_SECONDS,
   sideRecoverySeconds: DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
+  recoverySeconds: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
 };
 
 function profileDefaultsOf(profile: {
   readonly exerciseCountdownSecondsDefault: number;
   readonly exerciseEndSecondsDefault: number;
   readonly sideChangeRecoverySecondsDefault: number;
+  readonly postActivityRecoverySecondsDefault: number;
 }): ProfileDefaults {
   return {
     countdownSeconds: profile.exerciseCountdownSecondsDefault,
     endSeconds: profile.exerciseEndSecondsDefault,
     sideRecoverySeconds: profile.sideChangeRecoverySecondsDefault,
+    recoverySeconds: profile.postActivityRecoverySecondsDefault,
   };
 }
 
@@ -79,6 +85,12 @@ export type MovementExerciseIntake = {
  * Séance : Compte à rebours et Fin absents (Séance), N hérité d'un Circuit de Séries, structure des
  * phases verrouillée pour l'occurrence d'un Mouvement enregistré (MFN-09), Pause entre les côtés du
  * Profil.
+ *
+ * PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+ * Profil ») : un nouvel Exercice reprend « Récupération après un exercice » du Profil ; la feuille
+ * porte le bloc Récupération (valeur de l'Exercice, 0 s sans récupération antérieure) et rend les
+ * défauts du Profil sur fond orange jusqu'au premier ✓ (`profileDefaultsPending`). ✓ applique la
+ * Récupération et l'état validé au brouillon ; ✕ ne change rien.
  */
 export function useMovementExerciseIntake(): MovementExerciseIntake {
   const { draft, updateDraft } = useSessionDraft();
@@ -193,6 +205,14 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
         presentation="compositionCard"
         // Constat e : phases « à vérifier » en orange dans la feuille.
         {...(marked ? { phasesToVerify: exercise.phasesToVerify } : {})}
+        recovery={{
+          seconds: exercise.postActivityRecoverySeconds,
+          onApply: (seconds) =>
+            updateDraft((current) => ({
+              exercises: current.exercises.map((candidate) => (candidate.id === exercise.id ? withExerciseRecovery(candidate, seconds) : candidate)),
+            })),
+        }}
+        profileDefaultsPending={exercise.profileDefaultsPending === true}
         onApply={(parameters) => {
           const validated = validateForSave(parameters, opening.baseline);
           const applied = validated.ok ? validated.value : parameters;
@@ -204,7 +224,7 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
           updateDraft((current) => {
             const exercises = current.exercises.map((candidate) =>
               candidate.id === exercise.id
-                ? { ...withoutPhasesToVerify(candidate), executionParameters: applied, sideMode: applied.sideMode }
+                ? { ...withProfileDefaultsValidated(withoutPhasesToVerify(candidate)), executionParameters: applied, sideMode: applied.sideMode }
                 : candidate,
             );
             const hasReserveEntry = current.circuitSeriesReserve !== undefined && Object.prototype.hasOwnProperty.call(current.circuitSeriesReserve, exercise.id);

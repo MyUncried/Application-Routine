@@ -3,8 +3,8 @@ import { type RefObject, useLayoutEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
 
-import { AddActivityCircle } from "@/features/sessions/CompositionContextHeader";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, type } from "@/shared/ui/tokens";
 
 /**
@@ -27,12 +27,25 @@ import { colors, type } from "@/shared/ui/tokens";
  *
  * Recette du 29/10, autres demandes de Hermann (qui priment sur Figma `10705:20223`) :
  * - cre-figma : « Faire apparaître la ligne verticale bleue qui lie tous les boutons » — axe bleu
- *   `#1414F5` (gris `#9499A8` dans Figma), du « + » jusqu'au bouton rond d'« Annuler » ;
+ *   `#1414F5` (gris `#9499A8` dans Figma), du « + » jusqu'au bouton rond d'« Annuler » [01/11/2026 : d'Annuler, le « + » transformé, jusqu'à
+ *   « Ajouter un cycle »] ;
  * - obs-4 : « Bouton Annuler : le texte Annuler doit être bleu Kodjo » — `colors.primary` (gris
- *   `#5C6170` dans Figma) ;
+ *   `#5C6170` dans Figma) [sans objet depuis le 01/11/2026 : plus de rangée « Annuler »] ;
  * - f : « faire apparaître le voile grisé et le menu de boutons avec une apparition progressive
  *   lente » — fondu d'entrée de 600 ms (valeur de conception), immédiat si « Réduire les
  *   animations » est actif.
+ *
+ * Ordre de Hermann du 01/11/2026 (« Menu Créer et transformation du bouton »), règle écrite du
+ * chapitre 13, CE-T03-08 « Menu Créer — état cible » (ancre `composition-menu-creer`) : exactement
+ * quatre options, chacune avec son icône ronde à droite ; plus de rangée « Annuler » ni « Utiliser
+ * un mouvement existant ». À l'ouverture, le « + » devient Annuler : croix standard (`icon/fermer`,
+ * `6959:15825`) sur fond gris, 34, à l'emplacement exact du « + », au-dessus du voile ; son toucher
+ * ferme le menu sans action ; à la fermeture, le « + » d'origine réapparaît (le menu se démonte).
+ * L'axe, au-dessus du voile et sous les options, part d'Annuler et s'arrête au centre de la
+ * dernière icône (« Ajouter un cycle »). [Remplacé le 01/11/2026 : « + » reposé au premier plan
+ * (Figma `10705:20340`), rangée « Annuler » sous les options, axe jusqu'à son bouton rond.]
+ * Écart assumé avec Figma `11059:18868` (fond `#FCFCFE`) : la règle écrite demande un fond gris —
+ * celui de l'ancien Annuler de Figma (`#E5E8F0`, contour `#BABFCC`).
  */
 
 const FIGMA_BLUE = "#1414F5";
@@ -53,12 +66,15 @@ const PILL_TO_ICON = 10;
 const ICON_SIZE = 32;
 /** Centre du « + » depuis le bord droit de l'écran (Figma : 402 − 361). */
 const PLUS_CENTER_FROM_RIGHT = 41;
-/** Centre vertical du « + » au-dessus de la première rangée (Figma : 212 − 172). */
-const PLUS_CENTER_ABOVE_FIRST_ROW = 40;
-/** Cible du « + » (44) : l'axe part de son bas (Figma `10705:20312`, y 194). */
+/** Centre vertical du « + » au-dessus de la première rangée (Figma `11059:18868` : 212 − 165). */
+const PLUS_CENTER_ABOVE_FIRST_ROW = 47;
+/** Cible tactile d'Annuler (44), centrée sur le « + ». */
 const PLUS_TARGET = 44;
+/** Annuler (Figma `11059:18868`, « Action / Fermer — Annuler ») : cercle de 34, croix de 24. */
+const CANCEL_SIZE = 34;
+const CANCEL_GLYPH = 24;
 
-export type CreateMenuIcon = "exercise" | "movement" | "session" | "circuit" | "cycle";
+export type CreateMenuIcon = "movement" | "session" | "circuit" | "cycle";
 
 export type CreateMenuOption = {
   readonly key: string;
@@ -73,21 +89,7 @@ const SVG_ICONS = {
   movement: require("../../../assets/composition/menu-mouvement.svg"),
   circuit: require("../../../assets/composition/menu-circuit.svg"),
   cycle: require("../../../assets/composition/menu-cycle.svg"),
-  cancel: require("../../../assets/composition/menu-annuler.svg"),
 } as const;
-
-/** Haltère (Figma `10705:20315`) : barre, poids et bagues blancs. */
-function ExerciseGlyph() {
-  return (
-    <>
-      <View style={[styles.glyph, { left: 5, top: 14, width: 20, height: 2 }]} />
-      <View style={[styles.glyph, { left: 3, top: 9, width: 3, height: 12 }]} />
-      <View style={[styles.glyph, { left: 24, top: 9, width: 3, height: 12 }]} />
-      <View style={[styles.glyph, { left: 7, top: 11, width: 2, height: 8 }]} />
-      <View style={[styles.glyph, { left: 21, top: 11, width: 2, height: 8 }]} />
-    </>
-  );
-}
 
 /** Liste (Figma `10705:20327`) : trois repères et trois lignes blancs. */
 function SessionGlyph() {
@@ -105,12 +107,6 @@ function SessionGlyph() {
 
 function OptionIcon({ icon }: { readonly icon: CreateMenuIcon }) {
   switch (icon) {
-    case "exercise":
-      return (
-        <View style={[styles.iconCircle, styles.iconBlue]}>
-          <ExerciseGlyph />
-        </View>
-      );
     case "session":
       return (
         <View style={[styles.iconCircle, styles.iconBlue]}>
@@ -184,22 +180,23 @@ export function CreateMenu({
   /** Ordonnée de la première rangée (8 sous la zone de contexte). */
   readonly top: number;
   readonly options: readonly CreateMenuOption[];
+  /** Annuler (le « + » transformé) et le voile : ferment le menu sans action. */
   readonly onCancel: () => void;
   readonly cancelLabel: string;
   readonly cancelTestID: string;
-  /** Contre-recette du 30/10 : boîte du « + » d'origine, recouverte par celui du menu. */
+  /** Contre-recette du 30/10 : boîte du « + » d'origine, recouverte par Annuler. */
   readonly plusAnchorRef?: RefObject<View | null>;
 }) {
   const { width } = useWindowDimensions();
   const menuRef = useRef<View>(null);
   const anchor = usePlusAnchor(menuRef, plusAnchorRef);
-  const rows = options.length + 1;
   const plusCenterX = anchor ? anchor.x + anchor.width / 2 : width - PLUS_CENTER_FROM_RIGHT;
   const plusCenterY = anchor ? anchor.y + anchor.height / 2 : top - PLUS_CENTER_ABOVE_FIRST_ROW;
   const iconLeft = plusCenterX - ICON_SIZE / 2;
   const pillLeft = iconLeft - PILL_TO_ICON - PILL_WIDTH;
-  const axisTop = plusCenterY + PLUS_TARGET / 2;
-  const lastRowCenter = top + (rows - 1) * (ROW_HEIGHT + ROW_GAP) + ROW_HEIGHT / 2;
+  // L'axe part du centre d'Annuler (recouvert par son cercle opaque) : il le relie aux icônes.
+  const axisTop = plusCenterY;
+  const lastRowCenter = top + (options.length - 1) * (ROW_HEIGHT + ROW_GAP) + ROW_HEIGHT / 2;
   const unavailable = strings.screens.activities.addToSession.unavailableAccessibilityLabel;
 
   return (
@@ -217,16 +214,6 @@ export function CreateMenu({
         style={[styles.axis, { left: plusCenterX - 1, top: axisTop, height: Math.max(0, lastRowCenter - axisTop) }]}
         testID="composition-add-activity-tree-axis"
       />
-      {/* « + » au premier plan (Figma `10705:20340`) : le toucher referme le menu. */}
-      <Pressable
-        onPress={onCancel}
-        // Doublon visuel du « + » de la zone de contexte : « Annuler » porte cette action pour VoiceOver.
-        accessible={false}
-        style={[styles.plus, { left: plusCenterX - PLUS_TARGET / 2, top: plusCenterY - PLUS_TARGET / 2 }]}
-        testID="composition-add-activity-tree-plus"
-      >
-        <AddActivityCircle />
-      </Pressable>
       {options.map((option, index) => {
         const disabled = option.onPress === undefined;
         const rowTop = top + index * (ROW_HEIGHT + ROW_GAP);
@@ -253,20 +240,16 @@ export function CreateMenu({
           </Pressable>
         );
       })}
+      {/* Annuler : le « + » transformé, à son emplacement exact, au-dessus du voile et de l'axe. */}
       <Pressable
         onPress={onCancel}
         accessibilityRole="button"
         accessibilityLabel={cancelLabel}
-        style={[styles.row, { top: top + options.length * (ROW_HEIGHT + ROW_GAP), left: pillLeft }]}
+        style={[styles.cancelTarget, { left: plusCenterX - PLUS_TARGET / 2, top: plusCenterY - PLUS_TARGET / 2 }]}
         testID={cancelTestID}
       >
-        <View style={[styles.pill, styles.pillCancel]}>
-          <Text style={[styles.label, styles.labelCancel]} numberOfLines={1} testID={`${cancelTestID}-label`}>
-            {cancelLabel}
-          </Text>
-        </View>
-        <View style={[styles.iconCircle, styles.iconCancel, styles.iconCentered]}>
-          <Image source={SVG_ICONS.cancel} style={styles.cancelGlyph} contentFit="contain" />
+        <View style={styles.cancelCircle} testID={`${cancelTestID}-circle`}>
+          <KodjoIcon name="control-close" size={CANCEL_GLYPH} testID={`${cancelTestID}-icon`} />
         </View>
       </Pressable>
     </Reanimated.View>
@@ -284,7 +267,18 @@ const shadow = {
 const styles = StyleSheet.create({
   scrim: { backgroundColor: SCRIM },
   axis: { position: "absolute", width: 2, borderRadius: 1, backgroundColor: AXIS_COLOR },
-  plus: { position: "absolute", width: PLUS_TARGET, height: PLUS_TARGET, alignItems: "center", justifyContent: "center" },
+  cancelTarget: { position: "absolute", width: PLUS_TARGET, height: PLUS_TARGET, alignItems: "center", justifyContent: "center" },
+  cancelCircle: {
+    width: CANCEL_SIZE,
+    height: CANCEL_SIZE,
+    borderRadius: CANCEL_SIZE / 2,
+    borderWidth: 1,
+    backgroundColor: CANCEL_SURFACE,
+    borderColor: CANCEL_BORDER,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadow,
+  },
   row: { position: "absolute", flexDirection: "row", alignItems: "center", gap: PILL_TO_ICON, height: ROW_HEIGHT },
   pill: {
     width: PILL_WIDTH,
@@ -297,11 +291,9 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   pillOption: { backgroundColor: colors.background, borderColor: FIGMA_BLUE },
-  pillCancel: { backgroundColor: CANCEL_SURFACE, borderColor: CANCEL_BORDER },
   pillDisabled: { backgroundColor: CANCEL_SURFACE, borderColor: CANCEL_BORDER },
   label: { ...type.button, textAlign: "center" },
   labelOption: { color: FIGMA_BLUE },
-  labelCancel: { color: colors.primary },
   // Contre-recette du 30/10 (Hermann : « Texte d'options inactive : pas en gras ») : Inter Regular.
   labelDisabled: { color: DISABLED_TEXT, fontFamily: "Inter_400Regular", fontWeight: "400" },
   // Voile opaque à l'œil (posé sur une icône pleine) : l'icône reste lisible, l'option paraît inactive.
@@ -314,12 +306,9 @@ const styles = StyleSheet.create({
   },
   iconCircle: { width: ICON_SIZE, height: ICON_SIZE, borderRadius: ICON_SIZE / 2, borderWidth: 1, overflow: "hidden", ...shadow },
   iconBlue: { backgroundColor: FIGMA_BLUE, borderColor: FIGMA_BLUE },
-  iconCancel: { backgroundColor: CANCEL_SURFACE, borderColor: CANCEL_BORDER },
   iconCentered: { alignItems: "center", justifyContent: "center" },
   iconImage: { width: ICON_SIZE, height: ICON_SIZE },
   glyph: { position: "absolute", backgroundColor: "#FFFFFF", borderRadius: 1 },
   movementGlyph: { width: 20, height: 20 },
   circuitGlyph: { position: "absolute", left: 4, top: 4, width: 23, height: 22 },
-  // Figma `10705:20337` : « + » de 16 tourné de 45°.
-  cancelGlyph: { width: 16, height: 16, transform: [{ rotate: "45deg" }] },
 });

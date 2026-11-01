@@ -189,7 +189,40 @@ export type SessionDraftExercise = {
    * brouillon modifié.
    */
   readonly phasesToVerify?: readonly number[];
+  /**
+   * PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+   * Profil », D-307) : nouvel Exercice dont les valeurs initialisées depuis les défauts du Profil
+   * (Récupération, Compte à rebours, Fin, Pause entre les côtés à l'activation) n'ont pas encore été
+   * validées par un premier ✓ de Paramètres d'exécution — rendues sur fond orange dans la feuille.
+   * Retiré par ce ✓ (`withProfileDefaultsValidated`) ; ✕ le laisse. État du brouillon seulement :
+   * jamais persisté ni comparé (`exerciseEquals`). Un nouvel Exercice ne peut être enregistré avant
+   * ce ✓ — sa Cible reste à renseigner et bloque Continuer (D-389) —, et abandonner le brouillon
+   * restaure l'état enregistré. Conservé à la duplication (même valeur reprise du Profil).
+   */
+  readonly profileDefaultsPending?: true;
 };
+
+/**
+ * PRE-9 (01/11/2026, point 2) : Exercice du brouillon après le premier ✓ validant ses paramètres —
+ * plus de défauts du Profil en attente (même objet s'il n'en porte pas).
+ */
+export function withProfileDefaultsValidated(exercise: SessionDraftExercise): SessionDraftExercise {
+  if (exercise.profileDefaultsPending === undefined) return exercise;
+  const { profileDefaultsPending: _profileDefaultsPending, ...rest } = exercise;
+  return rest;
+}
+
+/**
+ * PRE-9 (01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : Récupération
+ * de l'Exercice réglée par le ✓ de Paramètres d'exécution. Un ancien Exercice sans récupération
+ * (`null`, affiché 0 s) le reste si la valeur validée est 0 : le ✓ sans réglage ne modifie pas le
+ * brouillon. Même objet si rien ne change.
+ */
+export function withExerciseRecovery(exercise: SessionDraftExercise, seconds: number): SessionDraftExercise {
+  if (!Number.isInteger(seconds) || seconds < 0) return exercise;
+  if ((exercise.postActivityRecoverySeconds ?? 0) === seconds) return exercise;
+  return { ...exercise, postActivityRecoverySeconds: seconds };
+}
 
 /**
  * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (« Ouverture de la feuille ») : Exercice du

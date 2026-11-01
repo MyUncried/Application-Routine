@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen, userEvent, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { AccessibilityInfo, Alert, Animated, BackHandler, Keyboard, Platform, ScrollView, StyleSheet, Text, type AlertButton } from "react-native";
 
@@ -39,9 +39,6 @@ import {
   OCCURRENCE_CARD_BORDER_WIDTH,
   OCCURRENCE_CARD_HEIGHT,
   OCCURRENCE_CARD_MEDIA,
-  OCCURRENCE_CARD_TEXT_FRAME,
-  OCCURRENCE_RECOVERY_FRAME,
-  occurrenceRecoveryTouchExtent,
 } from "@/features/sessions/OccurrenceCard";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import type { SessionService } from "@/features/sessions/SessionService";
@@ -486,16 +483,17 @@ describe("CompositionScreen — état initial", () => {
     expect(mockPush).not.toHaveBeenCalledWith("/exercise");
   });
 
-  // PRE-9 A.2 — ARB-22a, D-449 : « Utiliser un mouvement existant » ouvre la sélection des Mouvements
-  // du Catalogue, plus `/activity-selection`.
-  it("navigates to /movement-selection when 'Utiliser un mouvement existant' is selected from the add-activity tree", () => {
+  // PRE-9 A.2 — ARB-22a, D-449 : « Utiliser un mouvement existant » ouvrait la sélection des Mouvements
+  // du Catalogue. [Remplacé le 01/11/2026 (ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état
+  // cible ») : plus d'entrée « Utiliser un mouvement existant » ; la recherche passe par la saisie du
+  // nom dans « Créer un exercice ».]
+  it("no longer offers 'Utiliser un mouvement existant' in the add-activity tree", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByTestId("composition-add-activity-tree-existing"));
 
-    expect(mockPush).toHaveBeenCalledWith("/movement-selection");
-    expect(mockPush).not.toHaveBeenCalledWith("/activity-selection");
+    expect(screen.queryByTestId("composition-add-activity-tree-existing")).toBeNull();
+    expect(screen.queryByLabelText("Utiliser un mouvement existant")).toBeNull();
   });
 
   it("closes the add-activity tree without any navigation on Annuler", () => {
@@ -6028,8 +6026,6 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   const enter = () => fireEvent.press(screen.getByTestId(ADD_STOP));
   const recoveryLabel = (name: string) => p.addRecoveryAccessibilityLabel.replace("{exercise}", name);
   const stopLabel = (name: string) => p.addStopPointAccessibilityLabel.replace("{exercise}", name);
-  const nativeChange = (testID: string, selection: number) =>
-    fireEvent(screen.getByTestId(testID), "selectionChange", { nativeEvent: { selection } });
 
   it("the header action « Ajouter un arrêt » (round 34, target 44) sits left of « + » and enters placement, filled while active", () => {
     renderPlacement(matrix());
@@ -6060,26 +6056,24 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     // Story 7.2 (D-442) : hors placement, la récupération n'est pas une cible.
     expect(screen.getByTestId("composition-activity-recovery-A-recovery").props.onStartShouldSetResponder).toBeUndefined();
     enter();
-    // Story 7.2 (D-442) : en placement, la récupération existante est une zone SÉLECTIONNÉE (cadre).
-    const placedRecovery = screen.getByTestId("composition-placement-slot-A-recovery");
-    expect(placedRecovery.props.onStartShouldSetResponder).toBeDefined();
-    expect(placedRecovery.props.accessibilityLabel).toBe("Récupération après A");
-    expect(placedRecovery.props.accessibilityState).toMatchObject({ selected: true });
-    expect(placedRecovery.props.accessibilityValue).toEqual({ text: "20 s" });
+    // [Story 7.2 (D-442) : « en placement, la récupération existante est une zone SÉLECTIONNÉE (cadre) » —
+    // remplacé le 01/11/2026 (ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+    // Profil ») : aucune zone de récupération en placement ; la récupération de A reste affichée en ligne 3,
+    // non interactive.]
+    expect(screen.queryByTestId("composition-placement-slot-A-recovery", anyNode)).toBeNull();
+    const shownRecovery = screen.getByTestId("composition-activity-recovery-A-recovery", anyNode);
+    expect(shownRecovery.props.onStartShouldSetResponder).toBeUndefined();
+    expect(within(shownRecovery).getByText("20 s", anyNode)).toBeTruthy();
 
     expect(screen.queryByTestId("composition-save-action", anyNode)).toBeNull();
     expect(screen.getByTestId(BAR)).toBeTruthy();
-    // PRE-6 story 5.3 (D-435) : emplacements de point sous A, B, C (aucun avant la Fin, sous D) ;
-    // cadre « Récupération » dans la ligne 3 de A, B, C, D (story 7.2 : celui de A, existante, est
-    // sélectionné).
+    // PRE-6 story 5.3 (D-435) : emplacements de point sous A, B, C (aucun avant la Fin, sous D).
     for (const id of ["A", "B", "C"]) {
       expect(screen.getByTestId(`composition-activity-recovery-slot-${id}`)).toBeTruthy();
     }
     expect(screen.queryByTestId("composition-activity-recovery-slot-D", anyNode)).toBeNull();
     for (const id of ["A", "B", "C", "D"]) {
-      expect(
-        within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId(`composition-placement-slot-${id}-recovery`),
-      ).toBeTruthy();
+      expect(screen.queryByTestId(`composition-placement-slot-${id}-recovery`, anyNode)).toBeNull();
     }
     // « + » atténué et inactif ; revue 5.3 (Figma `8328:29270`) : compteur / œil, bornes et cartes
     // inactifs, non atténués (D6).
@@ -6101,19 +6095,21 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
   });
 
-  it("matrix: recovery after A, B, C, D ; stop points after A, B, C and after the Circuit ; none after D (before the End)", () => {
+  // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+  // Profil » : plus de zone « récupération après A, B, C, D » en placement.]
+  it("matrix: stop points after A, B, C and after the Circuit ; none after D (before the End) ; no recovery zone (PRE-9)", () => {
     renderPlacement(matrix());
     enter();
     for (const name of ["A", "B", "C", "D"]) {
-      expect(screen.getByLabelText(recoveryLabel(name))).toBeTruthy();
+      expect(screen.queryByLabelText(recoveryLabel(name), anyNode)).toBeNull();
     }
     for (const name of ["A", "B", "C"]) {
       expect(screen.getByLabelText(stopLabel(name))).toBeTruthy();
     }
     expect(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel)).toBeTruthy();
     expect(screen.queryByLabelText(stopLabel("D"))).toBeNull();
-    // Ordre de focus : récupération puis point à chaque emplacement. PRE-6 story 5.3 : le cadre est
-    // dans la carte (ligne 3), la puce dessous ; la carte elle-même n'est plus un élément accessible.
+    // Ordre de focus : le point seul à chaque emplacement (PRE-9 : plus de cadre de récupération) ; la
+    // carte elle-même n'est plus un élément accessible.
     const slot = screen.getByTestId("composition-activity-A");
     const labels = slot
       .findAll(
@@ -6123,104 +6119,50 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
           typeof node.props.accessibilityLabel === "string",
       )
       .map((node) => node.props.accessibilityLabel as string);
-    expect(labels.filter((label, index) => labels.indexOf(label) === index)).toEqual([recoveryLabel("A"), stopLabel("A")]);
+    expect(labels.filter((label, index) => labels.indexOf(label) === index)).toEqual([stopLabel("A")]);
   });
 
-  it("a single exercise: a recovery after it, no stop point", () => {
+  // [« a single exercise: a recovery after it, no stop point » — remplacé le 01/11/2026 (ordre de Hermann,
+  // point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : sans Point possible, le placement
+  // n'est pas proposé.]
+  it("a single exercise (PRE-9): no stop point, no recovery zone — « Ajouter un arrêt » is unavailable", () => {
     renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" })]);
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true });
     enter();
-    expect(screen.getByLabelText(recoveryLabel("A"))).toBeTruthy();
+    expect(screen.queryByTestId(BAR)).toBeNull();
+    expect(screen.queryByLabelText(recoveryLabel("A"), anyNode)).toBeNull();
     expect(screen.queryByLabelText(stopLabel("A"))).toBeNull();
     expect(screen.queryByLabelText(p.addStopPointAfterCircuitAccessibilityLabel)).toBeNull();
   });
 
-  it("an existing recovery (B, 20 s) is shown as existing, without an add chip ; an existing point is shown as existing", () => {
+  it("an existing recovery (B, 20 s) stays on B's card, without any recovery zone (PRE-9) ; an existing point is shown as existing", () => {
     renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }), {
       overrides: { stopPoints: [{ id: "kept", scope: "BEFORE_TOUR", position: 1 }] },
     });
     enter();
-    expect(screen.queryByLabelText(recoveryLabel("B"))).toBeNull();
-    // Story 7.2 (D-442) : zone de récupération existante, sélectionnée avec sa durée.
-    const existing = screen.getByLabelText("Récupération après B");
-    expect(existing.props.accessibilityState).toMatchObject({ selected: true });
-    expect(existing.props.accessibilityValue).toEqual({ text: "20 s" });
-    expect(existing.props.accessibilityHint).toBe(p.existingRecoverySelectedHint);
+    expect(screen.queryByLabelText(recoveryLabel("B"), anyNode)).toBeNull();
+    // [Story 7.2 (D-442) : zone de récupération existante sélectionnée — remplacé le 01/11/2026 (PRE-9,
+    // ordre de Hermann, point 2) : la récupération de B est seulement affichée en ligne 3 de sa carte.]
+    expect(screen.queryByLabelText(p.existingRecoveryAccessibilityLabel.replace("{exercise}", "B"), anyNode)).toBeNull();
+    expect(screen.queryByTestId("composition-placement-slot-B-recovery", anyNode)).toBeNull();
+    expect(within(screen.getByTestId("composition-activity-recovery-B-recovery", anyNode)).getByText("20 s", anyNode)).toBeTruthy();
     expect(screen.queryByLabelText(stopLabel("A"))).toBeNull();
     expect(screen.getByLabelText(p.existingStopPointAccessibilityLabel.replace("{exercise}", "A"))).toBeTruthy();
   });
 
-  it("adding a recovery: the wheel opens at the Profile default (30 s), ✓ fills the chip « Récupération 30 s », N = 1", () => {
+  // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil » : tests de la récupération en placement (stories 4.1/4.2/5.3/7.2) retirés — le placement ne porte que les Points d'arrêt ; la récupération se règle dans Paramètres d'exécution. Retirés ici : ajout d'une récupération à la roulette (défaut du Profil 30 s), grille 0..300 s de la roulette, défaut du Profil (45 s), ✕ de la roulette.]
+
+  it("two stop points: N = 2 ; touching an added chip deselects it (N decreases)", () => {
     renderPlacement(matrix());
     enter();
-    expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
-
-    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
-    expect(screen.getByTestId("duration-wheel-title").props.children).toBe("Durée de récupération");
-    expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(0);
-    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(30);
-    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-
-    const chip = screen.getByLabelText(recoveryLabel("A"));
-    expect(chip.props.accessibilityState).toMatchObject({ selected: true });
-    // PRE-6 story 5.3 (D-435) : cadre de la ligne 3, durée seule (format de la ligne 3, story 5.1).
-    expect(within(chip).getByText("30 s")).toBeTruthy();
-    expect(chip.props.accessibilityValue).toEqual({ text: "30 s" });
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
-    expect(confirm().props.accessibilityState).toMatchObject({ disabled: false });
-    // Aucune écriture du brouillon de séance avant « Confirmer ».
-    expect(probe.updates).toBe(0);
-  });
-
-  it("the wheel offers 0..300 s on the 1 / 5 / 30 s grid", () => {
-    renderPlacement(matrix());
-    enter();
-    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
-    const values = (testID: string) =>
-      screen
-        .getByTestId(testID)
-        .findAll((node) => typeof node.type === "string" && Array.isArray(node.props.modifiers))
-        .flatMap((node) => (node.props.modifiers as { $type: string; tag?: number }[]).filter((modifier) => modifier.$type === "tag"))
-        .map((modifier) => modifier.tag);
-    expect(values("duration-wheel-minutes")).toEqual([0, 1, 2, 3, 4, 5]);
-    expect(values("duration-wheel-seconds")).toEqual([0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]);
-    nativeChange("duration-wheel-minutes", 2);
-    expect(values("duration-wheel-seconds")).toEqual([0, 30]);
-    nativeChange("duration-wheel-minutes", 5);
-    expect(values("duration-wheel-seconds")).toEqual([0]);
-  });
-
-  it("the wheel opens at the current Profile default (45 s) when a Profile service is present", async () => {
-    renderPlacement(matrix(), { profileRecoverySeconds: 45 });
-    enter();
-    await act(async () => {});
-    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
-    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(45);
-  });
-
-  it("✕ of the wheel leaves the slot unchanged", () => {
-    renderPlacement(matrix());
-    enter();
-    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
-    nativeChange("duration-wheel-seconds", 45);
-    fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-    expect(screen.getByLabelText(recoveryLabel("A")).props.accessibilityState).toMatchObject({ selected: false });
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
-  });
-
-  it("recovery + stop point at the same location: N = 2 ; touching an added chip deselects it (N decreases)", () => {
-    renderPlacement(matrix());
-    enter();
-    fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
-    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    fireEvent.press(screen.getByLabelText(stopLabel("A")));
     fireEvent.press(screen.getByLabelText(stopLabel("B")));
     expect(screen.getByLabelText(stopLabel("B")).props.accessibilityState).toMatchObject({ selected: true });
     expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 pauses ajoutées");
 
     fireEvent.press(screen.getByLabelText(stopLabel("B")));
     expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
-    fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
+    fireEvent.press(screen.getByLabelText(stopLabel("A")));
     expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
     expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
     expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
@@ -6242,28 +6184,62 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     }
   });
 
-  it("Confirmer applies the sub-draft in a single update (recoveries and stopPoints), then leaves placement", () => {
+  // [« (recoveries and stopPoints) » — remplacé le 01/11/2026 (PRE-9, ordre de Hermann, point 2) : le
+  // sous-brouillon ne porte que les Points d'arrêt ; les récupérations des Exercices ne changent pas.]
+  it("Confirmer applies the sub-draft (stopPoints only) in a single update, then leaves placement", () => {
     renderPlacement(matrix());
     enter();
-    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
-    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    fireEvent.press(screen.getByLabelText(stopLabel("A")));
     fireEvent.press(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel));
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 pauses ajoutées");
     fireEvent.press(confirm());
 
     expect(probe.updates).toBe(1);
-    expect(probe.draft!.exercises.map((exercise) => exercise.postActivityRecoverySeconds)).toEqual([30, null, null, null]);
-    expect(probe.draft!.stopPoints).toEqual([{ id: "generated-copy-id", scope: "AFTER_TOUR", position: 0 }]);
+    expect(probe.draft!.exercises.map((exercise) => exercise.postActivityRecoverySeconds)).toEqual([null, null, null, null]);
+    expect(probe.draft!.stopPoints?.map(({ scope, position }) => ({ scope, position }))).toEqual(
+      expect.arrayContaining([
+        { scope: "BEFORE_TOUR", position: 1 },
+        { scope: "AFTER_TOUR", position: 0 },
+      ]),
+    );
+    expect(probe.draft!.stopPoints).toHaveLength(2);
     expect(screen.queryByTestId(BAR)).toBeNull();
     expect(screen.getByTestId("composition-save-action")).toBeTruthy();
     expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ selected: false });
   });
 
+  it("PRE-9 (01/11/2026) — placement shows no recovery zone; A's 20 s recovery stays on its card; adding a point and Confirmer leaves every recovery unchanged", () => {
+    renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 }, C: { postActivityRecoverySeconds: 45 } }));
+    const recoveriesBefore = probe.draft!.exercises.map((exercise) => exercise.postActivityRecoverySeconds);
+    expect(recoveriesBefore).toEqual([20, null, 45, null]);
+    enter();
+    // Aucune zone ni cadre de récupération, aucune roulette « Durée de récupération ».
+    expect(screen.queryAllByTestId(/^composition-placement-slot-.*-recovery/u, anyNode)).toHaveLength(0);
+    expect(screen.queryByLabelText(recoveryLabel("A"), anyNode)).toBeNull();
+    expect(screen.queryByLabelText(p.existingRecoveryAccessibilityLabel.replace("{exercise}", "A"), anyNode)).toBeNull();
+    // La récupération de A reste affichée en ligne 3 de sa carte (masquée à l'accessibilité en placement).
+    const shown = screen.getByTestId("composition-activity-recovery-A-recovery", anyNode);
+    expect(within(shown).getByText("20 s", anyNode)).toBeTruthy();
+    expect(shown.props.onStartShouldSetResponder).toBeUndefined();
+    fireEvent.press(shown);
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+    expect(screen.queryByTestId("duration-wheel-title")).toBeNull();
+
+    fireEvent.press(screen.getByLabelText(stopLabel("A")));
+    // Seuls les Points d'arrêt sont comptés.
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
+    fireEvent.press(confirm());
+    expect(probe.updates).toBe(1);
+    expect(probe.draft!.exercises.map((exercise) => exercise.postActivityRecoverySeconds)).toEqual(recoveriesBefore);
+    expect(probe.draft!.stopPoints?.map(({ scope, position }) => ({ scope, position }))).toEqual([{ scope: "BEFORE_TOUR", position: 1 }]);
+    expect(within(screen.getByTestId("composition-activity-recovery-A-recovery")).getByText("20 s")).toBeTruthy();
+  });
+
   it("Annuler restores the entry state: same draft (identity), no update", () => {
-    renderPlacement(matrix());
+    renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
     const before = probe.draft;
     enter();
-    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
-    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    fireEvent.press(screen.getByLabelText(stopLabel("B")));
     fireEvent.press(screen.getByLabelText(stopLabel("A")));
     fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
 
@@ -6295,44 +6271,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     }
   });
 
-  it("R = 0 ✓: kept as present at 0, no information shown outside placement", () => {
-    renderPlacement(matrix());
-    enter();
-    fireEvent.press(screen.getByLabelText(recoveryLabel("D")));
-    nativeChange("duration-wheel-seconds", 0);
-    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-    expect(within(screen.getByLabelText(recoveryLabel("D"))).getByText("0 s")).toBeTruthy();
-    fireEvent.press(confirm());
+  // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil » : test de la récupération en placement (story 4.1, « R = 0 ✓ ») retiré — le placement ne porte que les Points d'arrêt ; la récupération se règle dans Paramètres d'exécution.]
 
-    expect(probe.draft!.exercises.find((exercise) => exercise.id === "D")!.postActivityRecoverySeconds).toBe(0);
-    // R = 0 sans point : aucune ligne hors placement (décision Hermann 21/10/2026, remplace D-303).
-    expect(screen.queryByTestId("composition-activity-recovery-D")).toBeNull();
-    expect(screen.queryByTestId("composition-activity-recovery-slot-D")).toBeNull();
-    // Une nouvelle entrée la montre comme existante, sélectionnée à 0 (story 7.2, D-442).
-    enter();
-    expect(screen.queryByLabelText(recoveryLabel("D"))).toBeNull();
-    const zero = screen.getByLabelText("Récupération après D");
-    expect(zero.props.accessibilityState).toMatchObject({ selected: true });
-    expect(within(zero).getByText("0 s")).toBeTruthy();
-  });
-
-  // Story 7.8 : la durée de séance est recalculée en direct. PRE-9 B.1a (D-451, complément du 28/10,
-  // remplace la clause de D-443) : la durée du Circuit, de nouveau affichée, aussi.
-  it("the session and Circuit durations are recalculated live during placement, restored by Annuler", () => {
-    renderPlacement(matrix());
-    const sessionBefore = screen.getByTestId("composition-session-duration").props.children;
-    const circuitDuration = () => screen.getByTestId("composition-circuit-header-duration", anyNode).props.children;
-    const circuitBefore = circuitDuration();
-    enter();
-    fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
-    nativeChange("duration-wheel-minutes", 2);
-    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-    expect(screen.getByTestId("composition-session-duration").props.children).not.toBe(sessionBefore);
-    expect(circuitDuration()).not.toBe(circuitBefore);
-    fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
-    expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
-    expect(circuitDuration()).toBe(circuitBefore);
-  });
+  // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil » : test de la récupération en placement (story 7.8 / B.1a, « the session and Circuit durations are recalculated live during placement ») retiré — seule une récupération modifiait les durées en placement ; un Point d'arrêt ne les change pas ; la récupération se règle dans Paramètres d'exécution.]
   it("entering placement closes every open surface (add tree, revealed Circuit stepper); the Circuit header is inactive", () => {
     renderPlacement(matrix());
     fireEvent.press(screen.getByTestId("composition-add-activity-action"));
@@ -6347,18 +6288,24 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(screen.getByTestId(BAR)).toBeTruthy();
   });
 
-  it("« Ajouter un arrêt » is unavailable when no slot offers anything (empty Composition); story 7.2: an existing recovery alone makes it available (removal only)", () => {
+  // [« story 7.2: an existing recovery alone makes it available (removal only) » — remplacé le 01/11/2026
+  // (PRE-9, ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : une
+  // récupération seule ne rend plus « Ajouter un arrêt » disponible ; plus d'indication
+  // `addStopChangesOnlyHint`.]
+  it("« Ajouter un arrêt » is unavailable when no slot offers anything (empty Composition); PRE-9: an Exercise with only a recovery leaves it unavailable", () => {
     const view = renderPlacement([]);
     expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true, selected: false });
     enter();
     expect(screen.queryByTestId(BAR)).toBeNull();
     view.unmount();
-    // Story 7.2 (D-442) : la récupération existante ne se règle plus qu'en placement — elle suffit.
     renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 20 })]);
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: false });
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityHint).toBe(p.addStopChangesOnlyHint);
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityHint).not.toBe(p.addStopChangesOnlyHint);
+    enter();
+    expect(screen.queryByTestId(BAR)).toBeNull();
+    expect(probe.draft!.exercises[0].postActivityRecoverySeconds).toBe(20);
     screen.unmount();
-    renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" })]);
+    renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" }), anActivity("B", "BEFORE_TOUR", { name: "B" })]);
     expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: false });
     expect(screen.getByTestId(ADD_STOP).props.accessibilityHint).toBeUndefined();
   });
@@ -6417,47 +6364,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
   });
 
-  it("Profile default: a tap before it resolves opens the wheel only once it is known; a late answer after exit is ignored", async () => {
-    const pending: ((seconds: number) => void)[] = [];
-    const profileService = {
-      getProfile: () =>
-        new Promise((resolve) => {
-          pending.push((seconds) =>
-            resolve({ ...createDefaultProfile("profile", "2026-10-21T00:00:00.000Z"), postActivityRecoverySecondsDefault: seconds }),
-          );
-        }),
-    } as unknown as ProfileService;
-    probe.updates = 0;
-    render(
-      <TestSafeAreaProvider>
-        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
-            <ProfileServiceContext.Provider value={profileService}>
-              <CountingDraftWrapper
-                initial={{ name: "Séance", labelId: null, initialCountdownSeconds: 10, finalPhaseSeconds: 5, exercises: matrix() }}
-              >
-                <CompositionScreen />
-              </CountingDraftWrapper>
-            </ProfileServiceContext.Provider>
-          </ReferentialServiceContext.Provider>
-        </ActivityDefinitionServiceContext.Provider>
-      </TestSafeAreaProvider>,
-    );
-    // Première entrée, puis sortie avant la réponse : la réponse tardive est ignorée.
-    enter();
-    fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
-    enter();
-    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
-    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-    await act(async () => {
-      pending[0](99);
-    });
-    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-    await act(async () => {
-      pending[1](45);
-    });
-    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(45);
-  });
+  // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil » : test de la récupération en placement (story 4.1, « Profile default: a tap before it resolves… ») retiré — le placement ne lit plus le défaut du Profil ; la récupération se règle dans Paramètres d'exécution.]
 
   it("in placement, swipe and drag sequences on a card reveal nothing and change nothing", () => {
     renderPlacement(matrix());
@@ -6541,41 +6448,18 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   });
 
   describe("placement mixte et défilement (PRE-6 story 5.3, D-435, `8328:29270`)", () => {
-    // Story 7.2 (D-442) : nom de la zone de récupération existante.
-    const existingLabel = (exercise: string) => p.existingRecoveryAccessibilityLabel.replace("{exercise}", exercise);
-    const frame = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery`);
-    const face = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery-face`);
     const box = (node: ReturnType<typeof screen.getByTestId>) => StyleSheet.flatten(node.props.style);
     const PLACEMENT_SURFACE = "rgba(5, 8, 229, 0.05)";
-    /** Boîte de contenu de la ligne 3 (repère des cibles) : la cible s'étend de \`top\` au-dessus à \`bottom\` en dessous. */
-    const extentOf = (node: ReturnType<typeof screen.getByTestId>) => ({
-      top: -(box(node).marginTop as number),
-      bottom: -(box(node).marginBottom as number),
-    });
 
-    it("matrix — entry: A, B outside the Circuit, no pause: a « Récupération » frame in line 3 of A and B, a centred « Point d’arrêt » chip between A and B", () => {
+    // [« a « Récupération » frame in line 3 of A and B » — remplacé le 01/11/2026 (PRE-9, ordre de Hermann,
+    // point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : plus de cadre de récupération.]
+    it("matrix — entry: A, B outside the Circuit, no pause: no recovery frame (PRE-9), a centred « Point d’arrêt » chip between A and B", () => {
       renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" }), anActivity("B", "BEFORE_TOUR", { name: "B" })]);
       enter();
       for (const id of ["A", "B"]) {
-        // Le cadre est dans la ligne 3 de la colonne des valeurs de la carte, dans le flux.
-        const line3 = within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId("composition-exercise-recovery-slot");
-        expect(within(line3).getByTestId(`composition-placement-slot-${id}-recovery`)).toBeTruthy();
-        expect(within(frame(id)).getByText(p.recovery)).toBeTruthy();
-        expect(box(face(id))).toMatchObject({
-          height: OCCURRENCE_RECOVERY_FRAME.height,
-          borderWidth: 1.5,
-          borderStyle: "dashed",
-          borderColor: colors.primary,
-          borderRadius: 10,
-          backgroundColor: PLACEMENT_SURFACE,
-        });
-        expect(box(face(id)).position).toBeUndefined();
-        expect(StyleSheet.flatten(within(frame(id)).getByText(p.recovery).props.style)).toMatchObject({
-          fontSize: 11,
-          fontWeight: "600",
-          color: colors.primary,
-          textAlign: "right",
-        });
+        expect(screen.queryByTestId(`composition-placement-slot-${id}-recovery`, anyNode)).toBeNull();
+        expect(screen.queryByTestId(`composition-placement-slot-${id}-recovery-face`, anyNode)).toBeNull();
+        expect(within(screen.getByTestId(`composition-exercise-row-${id}`)).queryByText(p.recovery, anyNode)).toBeNull();
       }
       // Puce entre A et B (aucune après B : juste avant la Fin).
       expect(box(screen.getByTestId("composition-placement-slot-A"))).toMatchObject({
@@ -6603,89 +6487,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.queryByTestId("composition-activity-recovery-slot-B")).toBeNull();
     });
 
-    it("matrix — existing R = 0 (story 7.2, D-442): a SELECTED frame « 0 s » on A, named after the exercise; touching it schedules its removal", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 0 } }));
-      enter();
-      expect(screen.queryByLabelText(recoveryLabel("A"))).toBeNull();
-      const existing = frame("A");
-      expect(existing.props.accessibilityLabel).toBe(existingLabel("A"));
-      expect(existing.props.accessibilityState).toMatchObject({ selected: true });
-      expect(existing.props.accessibilityValue).toEqual({ text: "0 s" });
-      expect(within(existing).getByText("0 s")).toBeTruthy();
-      expect(box(face("A"))).toMatchObject({ borderStyle: "solid", backgroundColor: colors.primary });
-      fireEvent.press(existing);
-      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications");
-      fireEvent.press(confirm());
-      expect(probe.draft!.exercises.find((exercise) => exercise.id === "A")!.postActivityRecoverySeconds).toBeNull();
-    });
-
-    it("matrix — existing R = 20 s (story 7.2, D-442): selected frame; touch → deselected (dashed, reduced opacity, hint); touch again → wheel at 20, ✓ 45 → selected at 45; never counted in N", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      enter();
-      const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
-      try {
-        expect(frame("A").props.accessibilityRole).toBe("button");
-        expect(frame("A").props.accessibilityHint).toBe(p.existingRecoverySelectedHint);
-        expect(extentOf(frame("A"))).toEqual(occurrenceRecoveryTouchExtent(true));
-        expect(within(frame("A")).getByText("20 s")).toBeTruthy();
-        // Désélection : retrait programmé, rendu « à retirer ».
-        fireEvent.press(frame("A"));
-        expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
-        expect(frame("A").props.accessibilityValue?.text).toBeUndefined();
-        expect(frame("A").props.accessibilityHint).toBe(p.existingRecoveryRemovedHint);
-        expect(box(face("A"))).toMatchObject({ borderStyle: "dashed", opacity: UNSELECTED_OPACITY });
-        expect(within(frame("A")).getByText(p.recovery)).toBeTruthy();
-        expect(announce).toHaveBeenLastCalledWith(`${p.recoveryRemovedAnnouncement}. Confirmer les modifications`);
-        // Zone non sélectionnée : roulette sur la durée existante.
-        fireEvent.press(frame("A"));
-        expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
-        nativeChange("duration-wheel-seconds", 45);
-        fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-        expect(frame("A").props.accessibilityState).toMatchObject({ selected: true });
-        expect(within(frame("A")).getByText("45 s")).toBeTruthy();
-        expect(announce).toHaveBeenLastCalledWith(`${p.recoverySelectedAnnouncement}. Confirmer les modifications`);
-        expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-441) : durée modifiée seule.
-        expect(probe.updates).toBe(0);
-      } finally {
-        announce.mockRestore();
-      }
-    });
-
-    // Revue 5.3 : sans appui long en placement, un appui lent reste un toucher (roulette).
-    it("matrix — existing R (story 7.2): a slow press (long press) acts as a touch — it deselects, then reopens the wheel; never a bubble", async () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      enter();
-      const user = userEvent.setup();
-      await user.longPress(frame("A"), { duration: 700 });
-      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
-      await user.longPress(frame("A"), { duration: 700 });
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
-      expect(screen.queryByText("Retirer la récupération")).toBeNull();
-    });
-
-    it("matrix — choosing a recovery: the frame opens the wheel at the Profile default (45 s), ✓ selects it (value, hint), N + 1; a second touch removes it", async () => {
-      renderPlacement(matrix(), { profileRecoverySeconds: 45 });
-      enter();
-      await act(async () => {});
-      expect(frame("A").props.accessibilityHint).toBeUndefined();
-      expect(frame("A").props.accessibilityValue?.text).toBeUndefined();
-      fireEvent.press(frame("A"));
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(frame("A").props.accessibilityState).toMatchObject({ selected: true });
-      expect(frame("A").props.accessibilityHint).toBe(p.selectedHint);
-      expect(frame("A").props.accessibilityValue).toEqual({ text: "45 s" });
-      expect(box(face("A"))).toMatchObject({ borderStyle: "solid", backgroundColor: colors.primary });
-      expect(StyleSheet.flatten(within(frame("A")).getByText("45 s").props.style).color).toBe(colors.background);
-      // Sablier de même taille (13) que le sablier gris, teinté en blanc : aucun décalage.
-      const icon = screen.getByTestId("composition-placement-slot-A-recovery-icon", anyNode);
-      expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 13, height: 13, tintColor: colors.background });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
-      fireEvent.press(frame("A"));
-      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
-    });
+    // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil » : tests de la récupération en placement (stories 5.3/7.2 : R = 0 existante, R = 20 s existante, appui lent, choix d'une récupération) retirés — le placement ne porte que les Points d'arrêt ; la récupération se règle dans Paramètres d'exécution.]
 
     it("matrix — choosing a point: the chip is selected, N + 1 ; touched again: deselected", () => {
       renderPlacement(matrix());
@@ -6702,69 +6504,19 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
     });
 
-    it("matrix — in the Circuit: same presentation, gap 9 (frame in line 3, chip row under B and C)", () => {
+    // [« frame in line 3 » — remplacé le 01/11/2026 (PRE-9, ordre de Hermann, point 2) : plus de cadre de
+    // récupération ; la rangée de point sous B et C est inchangée.]
+    it("matrix — in the Circuit: same presentation, gap 9 (chip row under B and C), no recovery frame (PRE-9)", () => {
       renderPlacement(matrix());
       enter();
       for (const id of ["B", "C"]) {
-        expect(
-          within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId(`composition-placement-slot-${id}-recovery`),
-        ).toBeTruthy();
-        // Carte sans bord dans le Circuit : la cible du cadre descend jusqu'au bord de la carte.
-        expect(extentOf(frame(id))).toEqual(occurrenceRecoveryTouchExtent(false));
+        expect(screen.queryByTestId(`composition-placement-slot-${id}-recovery`, anyNode)).toBeNull();
         expect(box(screen.getByTestId(`composition-activity-recovery-slot-${id}`)).marginTop).toBe(9);
         expect(box(screen.getByTestId(`composition-placement-slot-${id}`)).height).toBe(22);
       }
-      expect(extentOf(frame("A"))).toEqual(occurrenceRecoveryTouchExtent(true));
     });
 
-    // Cible du cadre : la boîte du \`Pressable\` (revue 5.3), du bas de la ligne 2 au bord intérieur de
-    // la carte, le cadre de 24 dedans ; à gauche, jamais au-delà de l'écart entre les colonnes.
-    it.each<[string, "BEFORE_TOUR" | "IN_TOUR", boolean]>([
-      ["hors Circuit", "BEFORE_TOUR", true],
-      ["dans le Circuit", "IN_TOUR", false],
-    ])("the frame's touch box (%s) contains the frame, never line 2 nor the Zones, and stops at the card's inner edge", (_label, zone, bordered) => {
-      renderPlacement([anActivity("A", zone, { name: "A" }), anActivity("Z", "AFTER_TOUR", { name: "Z" })]);
-      enter();
-      const target = box(frame("A"));
-      const text = OCCURRENCE_CARD_TEXT_FRAME;
-      const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
-      const textTop = border + (OCCURRENCE_CARD_HEIGHT - 2 * border - text.height) / 2;
-      const line2Bottom = textTop + text.nameLineHeight + text.nameToWorkGap + text.workLineHeight;
-      const contentTop = line2Bottom + text.workToZonesGap + text.zonesLinePaddingTop;
-      const targetTop = contentTop + (target.marginTop as number);
-      const targetBottom = contentTop + OCCURRENCE_RECOVERY_FRAME.lineContentHeight - (target.marginBottom as number);
-      const faceTop = targetTop + (target.paddingTop as number);
-      const faceBottom = faceTop + (box(face("A")).height as number);
-      expect(targetTop).toBe(line2Bottom);
-      expect(faceTop).toBe(contentTop - OCCURRENCE_RECOVERY_FRAME.aboveContent);
-      expect(faceBottom + (target.paddingBottom as number)).toBe(targetBottom);
-      expect(targetBottom).toBe(OCCURRENCE_CARD_HEIGHT - border);
-      expect(targetBottom - targetTop).toBe(bordered ? 29 : 30);
-      // Débord gauche borné à l'écart entre colonnes (4) : ni recouvrement ni toucher des Zones.
-      expect(target.marginHorizontal).toBe(-4);
-      expect(target.position).toBeUndefined();
-      expect(target.hitSlop).toBeUndefined();
-    });
-
-    // Revue 5.3 : le cadre ne s'abrège pas — dans le flux, sa largeur suit son contenu et élargit la
-    // colonne des valeurs (au plus 60 %) ; les Zones cèdent (colonne de gauche \`flex: 1\`).
-    it("the frame sizes to its content and the Zones give way; touching the Zones never opens the wheel", () => {
-      renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", bodyZoneIds: ["knee"] }), anActivity("B", "AFTER_TOUR", { name: "B" })]);
-      enter();
-      const values = box(within(screen.getByTestId("composition-exercise-row-A")).getByTestId("composition-exercise-values-column"));
-      expect(values).toMatchObject({ flexShrink: 0, minWidth: "35%", maxWidth: "60%" });
-      expect(values.width).toBeUndefined();
-      const labels = box(within(screen.getByTestId("composition-exercise-row-A")).getByTestId("composition-exercise-labels-column", anyNode));
-      expect(labels).toMatchObject({ flex: 1, minWidth: 0 });
-      const label = within(frame("A")).getByText(p.recovery);
-      expect(label.props.numberOfLines).toBe(1);
-      expect(box(face("A")).width).toBeUndefined();
-      const zones = within(screen.getByTestId("composition-exercise-row-A")).queryByTestId("composition-exercise-body-zones", anyNode);
-      if (zones !== null) fireEvent.press(zones);
-      fireEvent.press(within(screen.getByTestId("composition-exercise-row-A")).getByTestId("composition-exercise-labels-column", anyNode));
-      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      expect(mockPush).not.toHaveBeenCalled();
-    });
+    // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil » : tests de la récupération en placement (story 5.3 : boîte tactile du cadre hors Circuit / dans le Circuit, largeur du cadre et Zones) retirés — le placement ne porte que les Points d'arrêt ; la récupération se règle dans Paramètres d'exécution.]
 
     it("the chip's touch box spans its row and the gaps around it: disjoint from the neighbouring cards", () => {
       renderPlacement(matrix());
@@ -6808,10 +6560,12 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       fireEvent(card, "longPress");
       expect(mockPush).not.toHaveBeenCalled();
       expect(card.props.accessibilityState).toMatchObject({ selected: false });
-      // Contenu de la carte hors ligne 3 : masqué à l'accessibilité ; le cadre reste exposé.
+      // Contenu de la carte hors ligne 3 : masqué à l'accessibilité. [« le cadre reste exposé » — remplacé
+      // le 01/11/2026 (PRE-9, ordre de Hermann, point 2) : plus de cadre de récupération en placement.]
       expect(screen.queryByText("A")).toBeNull();
       expect(screen.getByText("A", anyNode)).toBeTruthy();
-      expect(screen.getByLabelText(recoveryLabel("A"))).toBeTruthy();
+      expect(screen.queryByLabelText(recoveryLabel("A"), anyNode)).toBeNull();
+      expect(screen.getByLabelText(stopLabel("A"))).toBeTruthy();
       for (const id of ["composition-boundary-countdown-placement", "composition-boundary-final-phase-placement"]) {
         const boundary = screen.getByTestId(id, anyNode);
         expect(boundary.props.pointerEvents).toBe("none");
@@ -6862,17 +6616,26 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.queryByLabelText(stopLabel("D"))).toBeNull();
     });
 
-    it("a non-interactive recovery shown in placement (no recovery slot) is hidden from accessibility", () => {
+    // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 : la composition A, R ne s'ouvrait en placement que
+    // grâce à la zone de récupération de A ; un Exercice B est ajouté pour qu'un Point d'arrêt soit
+    // possible. Toute récupération affichée en placement (Exercice ou activité de récupération) est
+    // désormais non interactive et masquée à l'accessibilité.]
+    it("a non-interactive recovery shown in placement is hidden from accessibility (PRE-9: Exercise recoveries too)", () => {
       renderPlacement([
-        anActivity("A", "BEFORE_TOUR", { name: "A" }),
+        anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 20 }),
         anActivity("R", "BEFORE_TOUR", { name: "R", type: "RECOVERY", postActivityRecoverySeconds: 20 }),
+        anActivity("B", "BEFORE_TOUR", { name: "B" }),
       ]);
       enter();
-      const shown = screen.getByTestId("composition-activity-recovery-R-recovery", anyNode);
-      expect(shown.props.onStartShouldSetResponder).toBeUndefined();
-      expect(shown.props.accessibilityElementsHidden).toBe(true);
-      expect(shown.props.importantForAccessibility).toBe("no-hide-descendants");
-      expect(screen.queryByTestId("composition-activity-recovery-R-recovery")).toBeNull();
+      expect(screen.getByTestId(BAR)).toBeTruthy();
+      for (const id of ["A", "R"]) {
+        const shown = screen.getByTestId(`composition-activity-recovery-${id}-recovery`, anyNode);
+        expect(shown.props.onStartShouldSetResponder).toBeUndefined();
+        expect(shown.props.accessibilityElementsHidden).toBe(true);
+        expect(shown.props.importantForAccessibility).toBe("no-hide-descendants");
+        expect(screen.queryByTestId(`composition-activity-recovery-${id}-recovery`)).toBeNull();
+        expect(screen.queryByTestId(`composition-placement-slot-${id}-recovery`, anyNode)).toBeNull();
+      }
     });
 
     it("rail: continuous through the slot rows (each block's tail runs to its bottom), no rail dot on a slot", () => {
@@ -6946,13 +6709,14 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(body.props.scrollEnabled).toBe(true);
       // Story 7.10 (D-444) : réserve de défilement = hauteur de la zone d'action fixe (114).
       expect(StyleSheet.flatten(body.props.contentContainerStyle).paddingBottom).toBe(finalActionZoneHeight(34));
-      // Derniers emplacements (cadre de la dernière occurrence, point après l'avant-dernière) : dans
-      // le contenu défilant, avant la Fin.
-      expect(within(body).getByTestId("composition-placement-slot-E11-recovery")).toBeTruthy();
+      // Dernier emplacement (point après l'avant-dernière occurrence) : dans le contenu défilant, avant
+      // la Fin. [« cadre de la dernière occurrence » — remplacé le 01/11/2026 (PRE-9, ordre de Hermann,
+      // point 2) : plus de cadre de récupération en placement.]
+      expect(within(body).queryByTestId("composition-placement-slot-E11-recovery", anyNode)).toBeNull();
       expect(within(body).getByTestId("composition-placement-slot-E10-stop-point")).toBeTruthy();
       expect(
-        testIdOrder(screen.toJSON(), ["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]),
-      ).toEqual(["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]);
+        testIdOrder(screen.toJSON(), ["composition-placement-slot-E10-stop-point", "composition-boundary-final-phase-track"]),
+      ).toEqual(["composition-placement-slot-E10-stop-point", "composition-boundary-final-phase-track"]);
       // Story 7.10 (D-444) : la barre de placement est dans la même zone que « Continuer », au-dessus
       // de la zone de sécurité (34 + 8), sans chevaucher l'indicateur d'accueil.
       // Correctif J6f : barre centrée dans la zone protégée, comme « Continuer » (33 / 33).
@@ -6972,33 +6736,6 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     const line = (pointId: string) => screen.getByTestId(`composition-stop-point-${pointId}`);
     const stopChip = (pointId: string) => screen.getByTestId(`composition-stop-point-${pointId}-chip`);
     const displayed = (id: string) => screen.getByTestId(`composition-activity-recovery-${id}-recovery`);
-    const frame = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery`);
-    const recoveries = () => probe.draft!.exercises.map((exercise) => exercise.postActivityRecoverySeconds);
-    const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children as string;
-    /** Exercices de 2 × 60 s, Pause 30 s : une Récupération positive remplace la Pause terminale. */
-    const timed = (overrides: Partial<Record<"A" | "B" | "C" | "D", Partial<SessionDraftExercise>>> = {}) =>
-      matrix({
-        A: { executionParameters: durationParameters(60, 2, 30), ...overrides.A },
-        B: { executionParameters: durationParameters(60, 2, 30), ...overrides.B },
-        C: { executionParameters: durationParameters(60, 2, 30), ...overrides.C },
-        D: { executionParameters: durationParameters(60, 2, 30), ...overrides.D },
-      });
-    /** Durées affichées pour un brouillon donné (référence d'un rendu séparé). */
-    function durationsOf(exercises: readonly SessionDraftExercise[]) {
-      const view = renderPlacement(exercises);
-      const durations = { session: sessionDuration() };
-      view.unmount();
-      return durations;
-    }
-    /** Zone désélectionnée puis roulette rouverte : resélection à \`seconds\` (✓). */
-    function reselect(id: string, seconds: number) {
-      fireEvent.press(frame(id));
-      expect(frame(id).props.accessibilityState).toMatchObject({ selected: false });
-      fireEvent.press(frame(id));
-      nativeChange("duration-wheel-minutes", Math.floor(seconds / 60));
-      nativeChange("duration-wheel-seconds", seconds % 60);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-    }
 
     it("a stop point after A is a centred chip « ❚❚ Point d’arrêt » on its own row after A's card (8328:29428 ; story 5.2 : 9819:20018 ; story 6.2 : autonomous row)", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
@@ -7084,123 +6821,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.queryByTestId("composition-activity-recovery-B")).toBeNull();
     });
 
-    it("placement: deselecting R then Confirmer → R absent in one update, durations = terminal Pause restored (RM-038)", () => {
-      const expected = durationsOf(timed());
-      renderPlacement(timed({ A: { postActivityRecoverySeconds: 120 } }));
-      const sessionBefore = sessionDuration();
-      enter();
-      fireEvent.press(frame("A"));
-      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
-      // Aperçu en direct, avant Confirmer.
-      expect(sessionDuration()).toBe(expected.session);
-      expect(probe.updates).toBe(0);
-      fireEvent.press(confirm());
-      expect(probe.updates).toBe(1);
-      expect(recoveries()[0]).toBeNull();
-      expect(sessionDuration()).not.toBe(sessionBefore);
-      expect(sessionDuration()).toBe(expected.session);
-      expect(screen.queryByTestId("composition-activity-recovery-A-recovery", anyNode)).toBeNull();
-    });
-
-    it("placement: removing a recovery inside the Circuit recalculates the session duration (terminal Pause restored)", () => {
-      const expected = durationsOf(timed());
-      renderPlacement(timed({ B: { postActivityRecoverySeconds: 120 } }));
-      const sessionBefore = sessionDuration();
-      enter();
-      fireEvent.press(frame("B"));
-      fireEvent.press(confirm());
-      expect(sessionDuration()).not.toBe(sessionBefore);
-      expect(sessionDuration()).toBe(expected.session);
-    });
-
-    it("placement: modifying an existing R (20 → 45, deselect then reselect) is not counted in N, Annuler restores it", () => {
-      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
-      const before = probe.draft;
-      enter();
-      fireEvent.press(frame("B"));
-      fireEvent.press(frame("B"));
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(frame("B").props.accessibilityValue).toEqual({ text: "45 s" });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-441) : durée modifiée seule.
-      expect(confirm().props.accessibilityState).toMatchObject({ disabled: false });
-      expect(probe.updates).toBe(0);
-
-      fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
-      expect(probe.draft).toBe(before);
-      expect(within(displayed("B")).getByText("20 s")).toBeTruthy();
-    });
-
-    it("placement: Confirmer with only a modification (N = 0) applies it in one update and leaves placement", () => {
-      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
-      enter();
-      reselect("B", 45);
-      fireEvent.press(confirm());
-      expect(probe.updates).toBe(1);
-      expect(recoveries()).toEqual([null, 45, null, null]);
-      expect(screen.queryByTestId(BAR)).toBeNull();
-      expect(within(displayed("B")).getByText("45 s")).toBeTruthy();
-    });
-
-    it("placement: ✕ on the wheel of a deselected zone leaves it deselected; ✓ 0 keeps it present at 0 (D-323)", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      enter();
-      fireEvent.press(frame("A"));
-      fireEvent.press(frame("A"));
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
-      fireEvent.press(frame("A"));
-      nativeChange("duration-wheel-seconds", 0);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(within(frame("A")).getByText("0 s")).toBeTruthy();
-      fireEvent.press(confirm());
-      expect(recoveries()[0]).toBe(0);
-      // R = 0 sans point : rien hors placement.
-      expect(screen.queryByTestId("composition-recovery-line-label", anyNode)).toBeNull();
-    });
-
-    it("placement: off-grid legacy values (600 s, 7 s) reopen snapped (300, 5) and ✓ without moving keeps them as they are (no change)", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 600 }, B: { postActivityRecoverySeconds: 7 } }));
-      const before = probe.draft;
-      enter();
-      fireEvent.press(frame("A"));
-      fireEvent.press(frame("A"));
-      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(5);
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(0);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      fireEvent.press(frame("B"));
-      fireEvent.press(frame("B"));
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(5);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(frame("A").props.accessibilityValue).toEqual({ text: "10 min" });
-      expect(frame("B").props.accessibilityValue).toEqual({ text: "7 s" });
-      expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
-      fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
-      expect(probe.draft).toBe(before);
-    });
-
-    it("placement: reselecting at the original value cancels the change (Confirmer unavailable)", () => {
-      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
-      enter();
-      reselect("B", 45);
-      reselect("B", 20);
-      expect(frame("B").props.accessibilityState).toMatchObject({ selected: true });
-      expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
-    });
-
-    it("placement: a modification is previewed in the durations before Confirmer", () => {
-      const expected = durationsOf(timed({ B: { postActivityRecoverySeconds: 120 } }));
-      renderPlacement(timed({ B: { postActivityRecoverySeconds: 20 } }));
-      const before = { session: sessionDuration() };
-      enter();
-      reselect("B", 120);
-      expect(probe.updates).toBe(0);
-      expect(sessionDuration()).not.toBe(before.session);
-      expect(sessionDuration()).toBe(expected.session);
-    });
+    // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil » : tests de la récupération en placement (stories 4.2/7.2 : retrait d'une récupération hors et dans le Circuit, modification 20 → 45, Confirmer d'une modification seule, ✕ de la roulette et ✓ 0, valeurs hors grille, resélection à la valeur d'origine, aperçu des durées) retirés — le placement ne porte que les Points d'arrêt ; la récupération se règle dans Paramètres d'exécution.]
 
     // PRE-6 story 6.2 (D-441) : l'appui long d'un point le saisit (glisser) ; plus de bulle ni d'action
     // de retrait (le retrait revient en placement, story 6.3). Story 7.2 (D-442) : la puce saisie est
@@ -7467,7 +7088,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       }
     });
 
-    it("review (ch13 L1524): each addition or cancelled addition — point or recovery — is announced with the new count, once", () => {
+    // [« — point or recovery — » — remplacé le 01/11/2026 (PRE-9, ordre de Hermann, point 2 ; ch07
+    // « Récupération de l'Exercice et défauts du Profil ») : le placement ne porte que les Points d'arrêt.]
+    it("review (ch13 L1524): each addition or cancelled addition of a point is announced with the new count, once", () => {
       const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
       try {
         renderPlacement(matrix());
@@ -7482,20 +7105,15 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         fireEvent.press(screen.getByLabelText(stopLabel("B")));
         expect(announce.mock.calls).toEqual([[`${p.additionCancelledAnnouncement}. Confirmer 1 pause ajoutée`]]);
         announce.mockClear();
-        fireEvent.press(screen.getByLabelText(recoveryLabel("C")));
-        fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-        expect(announce.mock.calls).toEqual([[`${p.recoveryAddedAnnouncement}. Confirmer 2 pauses ajoutées`]]);
+        fireEvent.press(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel));
+        expect(announce.mock.calls).toEqual([[`${p.stopPointAddedAnnouncement}. Confirmer 2 pauses ajoutées`]]);
         announce.mockClear();
-        fireEvent.press(screen.getByLabelText(recoveryLabel("C")));
+        fireEvent.press(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel));
         expect(announce.mock.calls).toEqual([[`${p.additionCancelledAnnouncement}. Confirmer 1 pause ajoutée`]]);
         announce.mockClear();
         fireEvent.press(screen.getByLabelText(stopLabel("A")));
         expect(announce.mock.calls).toEqual([[`${p.additionCancelledAnnouncement}. Confirmer 0 pause ajoutée`]]);
-        // ✕ de la roulette : rien n'est ajouté, rien n'est annoncé.
-        announce.mockClear();
-        fireEvent.press(screen.getByLabelText(recoveryLabel("D")));
-        fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-        expect(announce).not.toHaveBeenCalled();
+        // [« ✕ de la roulette : rien n'est annoncé » — retiré le 01/11/2026 (PRE-9) : plus de roulette en placement.]
       } finally {
         announce.mockRestore();
       }
@@ -7566,7 +7184,10 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(probe.draft?.stopPoints?.[0]).toEqual(P_AFTER_A);
     });
 
-    it("verification gap (11): Annuler after two removals, two additions and one modified recovery restores the very same draft", () => {
+    // [« two additions and one modified recovery » — remplacé le 01/11/2026 (PRE-9, ordre de Hermann,
+    // point 2) : plus d'ajout ni de modification de récupération en placement (la seconde « addition »
+    // était une récupération) ; la récupération de B (20 s) reste inchangée.]
+    it("verification gap (11): Annuler after two removals and one addition restores the very same draft (B's recovery untouched)", () => {
       renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }), {
         overrides: { stopPoints: [P_AFTER_A, { id: "Q", scope: "IN_TOUR", position: 1 }] },
       });
@@ -7575,17 +7196,12 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       fireEvent.press(screen.getByLabelText(existingLabel("A")));
       fireEvent.press(screen.getByLabelText(existingLabel("B")));
       fireEvent.press(screen.getByLabelText(stopLabel("C")));
-      fireEvent.press(screen.getByLabelText(recoveryLabel("C")));
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      // Story 7.2 (D-442) : modification de la récupération existante de B (désélection, roulette).
-      fireEvent.press(screen.getByTestId("composition-placement-slot-B-recovery"));
-      fireEvent.press(screen.getByTestId("composition-placement-slot-B-recovery"));
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      expect(screen.queryByTestId("composition-placement-slot-B-recovery", anyNode)).toBeNull();
       expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications");
       fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
       expect(probe.draft).toBe(before);
       expect(probe.updates).toBe(0);
+      expect(within(screen.getByTestId("composition-activity-recovery-B-recovery")).getByText("20 s")).toBeTruthy();
     });
 
     it("review: after Confirmer, if « Ajouter un arrêt » becomes unavailable, focus goes to the first card", async () => {

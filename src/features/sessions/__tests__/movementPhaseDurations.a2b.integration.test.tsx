@@ -145,6 +145,18 @@ async function openMenuAction(label: string) {
   await settle(300);
 }
 
+/** 01/11/2026 : reprendre un Mouvement existant par « Créer un exercice », saisie du nom, toucher de la carte. */
+async function useExistingMovement(name: string, id: string) {
+  await openMenuAction(addToSession.newActivity);
+  fireEvent.changeText(screen.getByTestId("exercise-name-input"), name);
+  await settle();
+  const result = await screen.findByTestId(`movement-suggestion-result-${id}`);
+  await act(async () => {
+    fireEvent.press(result);
+  });
+  await settle(300);
+}
+
 /** Carte d'Exercice de la Composition, par son nom. */
 const card = (name: string) => screen.getByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, ${name},`));
 
@@ -221,18 +233,15 @@ describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel
     expect(sheetPhaseDurations()).toEqual(["30 s", "—"]);
   }, 40000);
 
-  it("« Utiliser un mouvement existant » : durées reprises par phase ; une modification ultérieure du Mouvement ne change pas l'Exercice déjà posé (« Inchangés »)", async () => {
+  it("Mouvement existant repris par « Créer un exercice » [« Utiliser un mouvement existant » avant le 01/11/2026] : durées reprises par phase ; une modification ultérieure du Mouvement ne change pas l'Exercice déjà posé (« Inchangés »)", async () => {
     await movements().create(
       movement("fentes", "Fentes", { phases: [{ id: 1, label: "Descente", durationSeconds: 3 }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
     );
     renderApp();
     await settle();
-    await openMenuAction(addToSession.existingActivity);
-    fireEvent.press(await screen.findByTestId("movement-card-fentes"));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-selection-add"));
-    });
-    await settle(300);
+    // [« Utiliser un mouvement existant » — entrée retirée du menu Créer le 01/11/2026 (ordre de
+    // Hermann, ch13 CE-T03-08) : le Mouvement est repris par la saisie de son nom dans « Créer un exercice ».]
+    await useExistingMovement("Fentes", "fentes");
     expect(cardNames()).toEqual(["Fentes"]);
     await tapCard("Fentes");
     expect(sheetPhaseDurations()).toEqual(["3 s", "—"]);
@@ -255,12 +264,9 @@ describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel
     await settle(300);
 
     // Un NOUVEL Exercice du même Mouvement reçoit les nouvelles valeurs par défaut.
-    await openMenuAction(addToSession.existingActivity);
-    fireEvent.press(await screen.findByTestId("movement-card-fentes"));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-selection-add"));
-    });
-    await settle(300);
+    // [« Utiliser un mouvement existant » — entrée retirée du menu Créer le 01/11/2026 (ordre de
+    // Hermann, ch13 CE-T03-08) : le Mouvement est repris par la saisie de son nom dans « Créer un exercice ».]
+    await useExistingMovement("Fentes", "fentes");
     expect(cardNames()).toEqual(["Fentes", "Fentes"]);
     const [, second] = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, Fentes,`));
     fireEvent.press(second!);

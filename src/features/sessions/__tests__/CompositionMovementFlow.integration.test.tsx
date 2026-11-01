@@ -33,6 +33,10 @@ import { strings } from "@/shared/i18n";
  * Exercice entré. Demande de Hermann du 29/10/2026 : aucune feuille ne s'ouvre à l'insertion ; les
  * cartes sont posées « Paramètres à compléter » ; toucher une telle carte ouvre directement la
  * feuille de paramètres (pas l'éditeur) ; complète, la carte ouvre l'éditeur comme avant.
+ * [Remplacé le 01/11/2026 (ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état cible ») : l'entrée
+ * « Utiliser un mouvement existant » est retirée du menu ; un Mouvement existant est repris par la
+ * saisie du nom dans « Créer un exercice » (toucher de sa carte de suggestion). La sélection multiple
+ * du Catalogue n'est plus atteinte depuis la Composition.]
  */
 
 jest.mock("expo-sqlite", () => ({ useSQLiteContext: () => ({}) }));
@@ -146,6 +150,18 @@ async function openMenuAction(label: string) {
   await settle(300);
 }
 
+/** 01/11/2026 : reprendre un Mouvement existant par « Créer un exercice », saisie du nom, toucher de la carte. */
+async function useExistingMovement(name: string, id: string) {
+  await openMenuAction(addToSession.newActivity);
+  fireEvent.changeText(screen.getByTestId("exercise-name-input"), name);
+  await settle();
+  const result = await screen.findByTestId(`movement-suggestion-result-${id}`);
+  await act(async () => {
+    fireEvent.press(result);
+  });
+  await settle(300);
+}
+
 /** Carte d'Exercice de la Composition, par son nom. */
 const card = (name: string) => screen.getByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, ${name},`));
 
@@ -167,15 +183,19 @@ async function setDuration45() {
   await settle(300);
 }
 
-describe("PRE-9 A.2 — « Créer un nouveau mouvement » : création d'un Mouvement, puis carte à compléter", () => {
+describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement » avant le 01/11/2026] : création d'un Mouvement, puis carte à compléter", () => {
   it("ouvre la fiche de création du Mouvement (pas l'ancien éditeur) ; Terminer enregistre le Mouvement, revient à la Composition et pose l'Exercice « Paramètres à compléter », sans feuille ; la carte ouvre la feuille, puis, complète, l'éditeur", async () => {
     const router = renderApp();
     await settle();
     await openMenuAction(addToSession.newActivity);
     expect(router.getPathname()).toBe("/movement");
     expect(router.getSearchParams()).toMatchObject({ context: "session" });
-    expect(screen.getByText(strings.screens.movement.titles.create)).toBeTruthy();
-    expect(screen.queryByText(strings.screens.exercise.titleAdd)).toBeNull();
+    // 01/11/2026 (ch13 CE-T03-08) : l'écran porte le titre « Créer un exercice », sa confirmation aussi.
+    expect(screen.queryByText(strings.screens.movement.titles.create)).toBeNull();
+    // [« pas le titre de l'ancien éditeur » (`exercise.titleAdd`) — même libellé depuis le 01/11/2026 ; la route `/movement` le prouve.]
+    expect(within(screen.getByTestId("screen-header")).getAllByText("Créer un exercice").length).toBeGreaterThan(0);
+    expect(within(screen.getByTestId("movement-finish-slot")).getAllByText("Créer un exercice").length).toBeGreaterThan(0);
+    expect(within(screen.getByTestId("movement-finish-slot")).queryByText(strings.screens.movement.finish)).toBeNull();
 
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Burpees");
     fireEvent.press(screen.getByTestId("activity-editor-category-button"));
@@ -200,7 +220,8 @@ describe("PRE-9 A.2 — « Créer un nouveau mouvement » : création d'un Mouve
     // Demande de Hermann du 29/10/2026 : aucune feuille à l'insertion ; carte à compléter (D-389).
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
     expect(cardNames()).toEqual(["Burpees"]);
-    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1");
+    // PRE-9 (01/11/2026, point 2) : Récupération du nouvel Exercice reprise du Profil (30 s par défaut), affichée sur la carte.
+    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1, récupération 30 s");
     expect(screen.getByText(strings.executionParameters.card.incomplete)).toBeTruthy();
     // Toucher la carte à compléter : la feuille de paramètres, par-dessus la Composition, sans l'éditeur.
     await tapCard("Burpees");
@@ -209,7 +230,8 @@ describe("PRE-9 A.2 — « Créer un nouveau mouvement » : création d'un Mouve
     await setDuration45();
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
     // 45 s, avec Compte à rebours et Fin du Profil : durée estimée de l'Exercice.
-    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1, 1 min");
+    // [« 1 min » avant le 01/11/2026 : la Récupération du Profil (30 s) s'ajoute désormais à la durée de l'Exercice.]
+    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1, 2 min, récupération 30 s");
     // [« Paramètres renseignés : la carte ouvre l'éditeur de l'Exercice, comme avant » — remplacé par la
     // recette iPhone n° 2 du 31/10/2026 (constat c) : la carte ouvre la feuille, la photo ouvre l'éditeur.]
     await tapCard("Burpees");
@@ -230,13 +252,8 @@ describe("PRE-9 A.2 — « Créer un nouveau mouvement » : création d'un Mouve
     await movements().create(movement("squats", "Squats"));
     const router = renderApp();
     await settle();
-    // Premier Exercice, par la sélection.
-    await openMenuAction(addToSession.existingActivity);
-    fireEvent.press(await screen.findByTestId("movement-card-squats"));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-selection-add"));
-    });
-    await settle(300);
+    // Premier Exercice [par la sélection — remplacé le 01/11/2026 : par la saisie du nom].
+    await useExistingMovement("Squats", "squats");
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
 
     await openMenuAction(addToSession.newActivity);
@@ -261,35 +278,24 @@ describe("PRE-9 A.2 — « Créer un nouveau mouvement » : création d'un Mouve
   }, 40000);
 });
 
-describe("PRE-9 A.2 — « Utiliser un mouvement existant » : sélection par le Catalogue des Mouvements", () => {
-  it("ouvre la sélection des Mouvements (pas l'ancienne sélection) ; archivés absents ; choisis → Exercices dans l'ordre du Catalogue, posés à compléter ; chaque carte ouvre ses paramètres", async () => {
-    await movements().create(movement("fentes", "Fentes"));
+// [« Utiliser un mouvement existant » : sélection par le Catalogue des Mouvements — entrée retirée du
+// menu Créer le 01/11/2026 (ordre de Hermann, ch13 CE-T03-08). Ordre du Catalogue, sélection multiple
+// et coin « dans la séance » ne sont plus atteints depuis la Composition ; l'écran de sélection reste
+// couvert par `MovementSelectionScreen.cat1.test.tsx`.]
+describe("PRE-9 A.2 — Mouvements existants repris par « Créer un exercice » (01/11/2026)", () => {
+  it("le menu ne propose plus « Utiliser un mouvement existant » ; Mouvements repris par la saisie du nom → Exercices posés à compléter, dans l'ordre d'ajout ; chaque carte ouvre ses paramètres", async () => {
     await movements().create(movement("gainage", "Gainage"));
     await movements().create(movement("abdos", "Abdos"));
-    await movements().create(movement("ancien", "Ancien"));
-    await movements().archive("ancien");
     const router = renderApp();
     await settle();
 
-    await openMenuAction(addToSession.existingActivity);
-    expect(router.getPathname()).toBe("/movement-selection");
-    expect(screen.queryByTestId("activity-selection-list")).toBeNull();
-    expect(await screen.findByTestId("movement-card-fentes")).toBeTruthy();
-    expect(screen.queryByTestId("movement-card-ancien")).toBeNull();
-    expect(screen.getByTestId("movement-selection-add").props.accessibilityState).toMatchObject({ disabled: true });
-
-    // Touchers dans le désordre : l'ordre d'insertion est celui du Catalogue (par nom).
-    fireEvent.press(screen.getByTestId("movement-card-gainage"));
-    fireEvent.press(screen.getByTestId("movement-card-abdos"));
-    fireEvent.press(screen.getByTestId("movement-card-fentes"));
-    fireEvent.press(screen.getByTestId("movement-card-fentes"));
-    expect(screen.getByLabelText("Abdos").props.accessibilityState).toMatchObject({ selected: true });
-    expect(screen.getByLabelText("Fentes").props.accessibilityState).toMatchObject({ selected: false });
-    expect(screen.getByText("Ajouter 2 exercices")).toBeTruthy();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-selection-add"));
-    });
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    expect(within(screen.getByTestId("composition-add-activity-tree")).queryByLabelText(addToSession.existingActivity)).toBeNull();
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
     await settle(300);
+
+    await useExistingMovement("Abdos", "abdos");
+    await useExistingMovement("Gainage", "gainage");
 
     expect(router.getPathname()).toBe("/composition");
     expect(cardNames()).toEqual(["Abdos", "Gainage"]);
@@ -308,34 +314,25 @@ describe("PRE-9 A.2 — « Utiliser un mouvement existant » : sélection par le
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
     expect(router.getPathname()).toBe("/composition");
     const [abdos, gainage] = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, `));
-    expect(String(abdos!.props.accessibilityLabel)).toBe("Exercice, Abdos, 1 sur 2, 1 min");
+    // [« 1 min » avant le 01/11/2026 : Récupération du Profil (30 s) reprise par le nouvel Exercice.]
+    expect(String(abdos!.props.accessibilityLabel)).toBe("Exercice, Abdos, 1 sur 2, 2 min, récupération 30 s");
     // Paramètres à compléter : aucune durée annoncée (D-389).
-    expect(String(gainage!.props.accessibilityLabel)).toBe("Exercice, Gainage, 2 sur 2");
-    // Aucun Mouvement créé ni modifié par la sélection.
-    expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(4);
-
-    // Contre-recette du 30/10 (Hermann) : rouverte, la sélection marque d'un coin replié (annoncé
-    // « dans la séance ») les Mouvements déjà présents ; ils restent sélectionnables.
-    await openMenuAction(addToSession.existingActivity);
-    expect(await screen.findByTestId("movement-card-in-session-abdos")).toBeTruthy();
-    expect(screen.getByTestId("movement-card-in-session-gainage")).toBeTruthy();
-    expect(screen.queryByTestId("movement-card-in-session-fentes")).toBeNull();
-    expect(screen.queryByText("Dans la séance")).toBeNull();
-    fireEvent.press(screen.getByTestId("movement-card-abdos"));
-    expect(screen.getByLabelText("Abdos, dans la séance").props.accessibilityState).toMatchObject({ selected: true });
-    expect(screen.getByLabelText("Fentes").props.accessibilityState).toMatchObject({ selected: false });
+    expect(String(gainage!.props.accessibilityLabel)).toBe("Exercice, Gainage, 2 sur 2, récupération 30 s");
+    // Aucun Mouvement créé ni modifié par la reprise.
+    expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(2);
   }, 40000);
 
-  it("Annuler revient à la Composition sans rien ajouter", async () => {
+  it("Annuler (le « + » transformé) revient à la Composition sans rien ajouter", async () => {
     await movements().create(movement("fentes", "Fentes"));
     const router = renderApp();
     await settle();
-    await openMenuAction(addToSession.existingActivity);
-    fireEvent.press(await screen.findByTestId("movement-card-fentes"));
-    fireEvent.press(screen.getByTestId("movement-selection-cancel"));
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
     await settle(300);
+    expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
     expect(router.getPathname()).toBe("/composition");
     expect(cardNames()).toEqual([]);
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(1);
   }, 40000);
 });

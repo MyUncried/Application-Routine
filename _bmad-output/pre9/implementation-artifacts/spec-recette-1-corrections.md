@@ -58,7 +58,7 @@ Résultats lus dans le cahier en ligne : OK r1-k, r1-stop, r1-circuit, r1-nature
 9. **Paramètres d'exécution, séparateurs** (B) : aucun trait entre la ligne et son tableau déployé (phases, séries) ; trait sous le tableau. Diffère de Figma `9207:18817` (aucun trait sous le tableau des phases) : la demande explicite prévaut.
 10. **Recherche de nom** (B) : plus de limite à 5 résultats (DSF Mouvements, ch10, ch13, Règles v7 annotés).
 11. **Séance incomplète** (C, interprétation) : une Séance est marquée incomplète (fond rouge, liseré rouge, mêmes jetons que la carte d'Exercice) si l'un de ses Exercices est « Paramètres à compléter ». Aucune règle écrite ni maquette pour cet état : À CLARIFIER.
-12. **Menu Créer** (B) : « Créer un nouveau mouvement » (libellé complété et confirmé par Hermann le 30/10).
+12. **Menu Créer** (B) : « Créer un nouveau mouvement » (libellé complété et confirmé par Hermann le 30/10). [Remplacé le 01/11/2026 — ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état cible » : l'entrée du menu et la fiche ouverte s'intitulent « Créer un exercice » ; « Utiliser un mouvement existant » est retirée du menu. Voir `spec-menu-creer-parametres-01-11.md`.]
 13. **Choisir un mouvement existant** (B) : mention « Dans la séance » sous le nom des Mouvements déjà présents (rendu choisi par Hermann le 30/10), carte de hauteur constante (une étape de description au lieu de deux) ; le Mouvement reste sélectionnable.
 14. **Durées des phases portées par le Mouvement** (B) : story A.2b, après B.3 (décision du 30/10) ; DSF Mouvements §2, MVT-09 et ch13 annotés.
 

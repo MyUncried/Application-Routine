@@ -113,7 +113,7 @@ function incomplete(id: string, structuralPosition: SessionDraftExercise["struct
   const created = exerciseOfMovement(
     { id: `movement-${id}`, name: `Exercice ${id}`, description: null, media: [], categoryId: "cardio", bodyZoneIds: [], phases: [], nextPhaseId: 1, aliases: [], levelGroup: null },
     id,
-    { countdownSeconds: 5, endSeconds: 5 },
+    { countdownSeconds: 5, endSeconds: 5, recoverySeconds: 30 },
   );
   return { ...created, structuralPosition };
 }

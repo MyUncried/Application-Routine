@@ -67,7 +67,8 @@
  * toucher ailleurs le ferme sans appliquer et n'ouvre pas le champ touché (T10), ✓ et ✕ sont
  * absorbés tant qu'il est ouvert, sa fermeture passe par sa clé.
  */
-export type SheetSelector = "commonTarget" | "total" | "sideOrder";
+/** PRE-9 (01/11/2026, point 2) : `recovery`, roulette de la Récupération de l'Exercice (bloc 6). */
+export type SheetSelector = "commonTarget" | "total" | "sideOrder" | "recovery";
 /** Valeurs numériques hors tableau réglées par ± (FR-10-05) ; PRE-5 story 2.8 : nombre de phases. */
 export type SheetStepperField = "count" | "pause" | "sideRecovery" | "beep" | "countdown" | "end" | "phaseCount";
 

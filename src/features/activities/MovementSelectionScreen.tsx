@@ -35,6 +35,9 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * les Mouvements choisis deviennent des Exercices configurés dans la Séance » ; Q6 ; D-449) —
  * « Utiliser un mouvement existant » depuis la Composition. Remplace, pour la Composition, la
  * sélection des anciennes définitions (`activity_definitions`), qui n'y est plus atteignable.
+ * [01/11/2026 — ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état cible » : l'entrée « Utiliser un
+ * mouvement existant » est retirée du menu Créer ; cet écran n'est plus atteint depuis la
+ * Composition. Conservé sans suppression (aucune demande de retrait de l'écran).]
  *
  * Réutilise sans les recopier : la liste du Catalogue des Mouvements (`MovementCatalogueList`, en
  * mode sélection : piles, Niveaux, recherche, filtres, Mouvements actifs seuls), la recherche et la

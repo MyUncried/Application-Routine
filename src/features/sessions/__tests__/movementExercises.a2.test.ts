@@ -45,10 +45,12 @@ const existing = (id: string, structuralPosition: SessionDraftExercise["structur
   executionParameters: durationParameters(30),
 });
 
-const DEFAULTS = { countdownSeconds: 7, endSeconds: 3 };
+const DEFAULTS = { countdownSeconds: 7, endSeconds: 3, recoverySeconds: 45 };
 
 describe("PRE-9 A.2 — exerciseOfMovement", () => {
-  it("occurrence du Mouvement : contenu repris, filiation, paramètres vierges avec Compte à rebours et Fin du Profil, sans Récupération", () => {
+  // [« sans Récupération » remplacé le 01/11/2026 (ordre de Hermann, point 2) : Récupération reprise du
+  // Profil, défauts du Profil en attente du premier ✓.]
+  it("occurrence du Mouvement : contenu repris, filiation, paramètres vierges avec Compte à rebours, Fin et Récupération du Profil", () => {
     const created = exerciseOfMovement(movement("m1"), "occ", DEFAULTS);
     expect(created).toMatchObject({
       id: "occ",
@@ -58,7 +60,8 @@ describe("PRE-9 A.2 — exerciseOfMovement", () => {
       categoryId: "cardio",
       bodyZoneIds: ["cuisses"],
       sourceMovementId: "m1",
-      postActivityRecoverySeconds: null,
+      postActivityRecoverySeconds: 45,
+      profileDefaultsPending: true,
     });
     // Recette iPhone du 29/10/2026 : Durée et changement de côté Sans présélectionnés, Cible à renseigner.
     expect(created.executionParameters).toMatchObject({ mode: "DURATION", sideMode: "UNILATERAL", countdownSeconds: 7, endSeconds: 3 });

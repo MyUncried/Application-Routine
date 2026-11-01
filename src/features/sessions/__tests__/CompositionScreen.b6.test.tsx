@@ -275,9 +275,14 @@ describe("PRE-9 B.6 — mode Placement sur une disposition générale (ch08, CE-
     expect(pointsOf(probe.draft)).toEqual([]);
   });
 
-  it("RM-209 / RM-210 : la zone de récupération d'une carte de Circuit de Cycle se règle en placement", async () => {
+  // [« RM-209 / RM-210 : la zone de récupération d'une carte de Circuit de Cycle se règle en placement » —
+  // remplacé le 01/11/2026 (ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+  // Profil ») : le placement ne porte que les Points d'arrêt ; la récupération se règle dans Paramètres
+  // d'exécution.]
+  it("PRE-9 (01/11/2026) : une carte de Circuit de Cycle n'a plus de zone de récupération en placement, seulement son emplacement de Point", async () => {
     await renderComposition(sampleDraft());
     await enterPlacement();
-    expect(screen.getByTestId("composition-placement-slot-b1-recovery")).toBeTruthy();
+    expect(screen.queryByTestId("composition-placement-slot-b1-recovery")).toBeNull();
+    expect(screen.getByTestId("composition-placement-slot-b1-stop-point")).toBeTruthy();
   });
 });

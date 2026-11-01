@@ -137,7 +137,7 @@ import { keyboardFieldOrder, useSheetKeyboard } from "@/features/activities/useS
 import { PHASE_ROW_TEST_ID, WorkPhasesTable, type WorkPhaseCellKind } from "@/features/activities/WorkPhasesTable";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
-import { WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
+import { RECOVERY_WHEEL_VALUES, snapToGrid, WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
 import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -154,11 +154,11 @@ import {
   INLINE_OPTION_WIDTHS,
   SegmentedControl,
   inlineChevronFrameStyle,
-  inlineSelectedCompactLabelStyle,
   inlineSelectedLabelStyle,
 } from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
@@ -218,7 +218,9 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * PRE-5 story 2.4 (AD-23, AD-24, AD-27, AD-28 ; FR-19 à FR-22, FR-26 à FR-28, FR-32) :
  * - quatre cadres gris (`SheetMotionView`) : Exécution (Mode, Condition d'arrêt) ;
  *   Séries (Type de série portant le nombre de séries, tableau, Durée ou Répétitions, Pause) ;
- *   Côtés ; Cadence et durée. Les panneaux sont placés par une seule fonction
+ *   Côtés ; Cadence et durée [remplacé le 01/11/2026, ordre de Hermann, point 3 : six blocs —
+ *   Exécution, Phases du mouvement, Séries, Côtés, Cadence et durée, Récupération (à venir)]. Les
+ *   panneaux sont placés par une seule fonction
  *   (`anchorTop` : y du cadre + y dans le cadre) et rendus hors des cadres ;
  * - Mode, Condition d'arrêt et Type de série sont des segmentés `inline` : plus de
  *   popover natif du Mode ni de panneau du Régime (`popover(mode | regime)` retirées) ;
@@ -279,7 +281,8 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * PRE-5 story 2.8 (FR-2 à FR-9, FR-27 à FR-29, FR-32 ; AD-20, AD-24 à AD-27 ; D-432, D-434) —
  * phases de l'exercice, sans nouvelle règle métier (toutes viennent des transitions du
  * Brouillon de la story 2.1) :
- * - ligne « Phases de l'exercice » en tête du cadre Séries, segmenté `inline` Avec / Sans (Sans
+ * - ligne « Phases de l'exercice » en tête du cadre Séries [remplacé le 01/11/2026 : « Phases du
+ *   mouvement », bloc autonome entre Exécution et Séries], segmenté `inline` Avec / Sans (Sans
  *   par défaut ; Avec disponible si `canEnableWorkPhases` ou si des phases existent). Avec
  *   sélectionné affiche « n phases » (`selectedContent`) et le chevron existant du tableau
  *   (haut déployé, bas replié ; son appui ne fait que replier ou déployer). Toucher « n phases »
@@ -367,6 +370,26 @@ export type ExecutionParametersSheetProps = {
    * à vérifier, elles-mêmes des champs, gardent leur fond orange (lecture à confirmer) ; le rouge prime.]
    */
   readonly phasesToVerify?: readonly number[];
+  /**
+   * PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+   * Profil », CE-UI-10 ligne 14, clôt REC-PARAM-01) : Récupération après exercice de l'Exercice de
+   * Séance — bloc 6 « Récupération » (seule ligne), après Cadence et durée, réglée par la roulette de
+   * durée existante (`DurationWheelPicker`, grille 0..300 s `RECOVERY_WHEEL_VALUES`, CE-T03-08).
+   * `seconds` : valeur de l'Exercice ; `null` (ancien Exercice sans récupération) s'affiche 0 s. Le
+   * ✓ de la feuille appelle `onApply(seconds)` avant `onApply` des paramètres ; ✕ ne change rien.
+   * Absent (Exercice du Catalogue, fiche Mouvement : la récupération n'appartient qu'à l'Exercice de
+   * Séance) : bloc absent.
+   */
+  readonly recovery?: { readonly seconds: number | null; readonly onApply: (seconds: number) => void };
+  /**
+   * PRE-9 (même décision, D-307) : l'Exercice n'a pas encore reçu le premier ✓ validant ses
+   * paramètres. Chaque valeur initialisée depuis un défaut du Profil et présentée dans la feuille
+   * est rendue dans son cadre (pastille de valeur) à fond orange : Récupération ; Pause entre les
+   * côtés copiée du Profil à l'activation pendant cette ouverture ; Compte à rebours et Fin quand
+   * ils sont affichés. Affichage seulement : ni valeur, ni calcul, ni couleur du texte ne changent ;
+   * la valeur à renseigner (rouge) prime. Absent : rendu normal.
+   */
+  readonly profileDefaultsPending?: boolean;
 };
 
 const t = strings.executionParameters.sheet;
@@ -410,6 +433,8 @@ const PHASE_OPTION_OPEN_WIDTH = 150;
 /** Surfaces de la Feuille (AD-15). */
 const TARGET_SELECTOR: SheetSurface = { kind: "selector", selector: "commonTarget" };
 const TOTAL_SELECTOR: SheetSurface = { kind: "selector", selector: "total" };
+/** PRE-9 (01/11/2026, point 2) : roulette de la Récupération (bloc 6). */
+const RECOVERY_SELECTOR: SheetSurface = { kind: "selector", selector: "recovery" };
 /** PRE-7 story B.3 (B5) : déroulant de l'Enchainement (option Avec sélectionnée, N > 1). */
 const SIDE_ORDER_SELECTOR: SheetSurface = { kind: "selector", selector: "sideOrder" };
 const stepperSurface = (field: SheetStepperField): SheetSurface => ({ kind: "stepper", field });
@@ -435,16 +460,20 @@ export { dragDestination, TABLE_ROW_HEIGHT, tableRowIdentity } from "@/features/
  * champ. PRE-5 story 2.4 : le Régime (Type de série) n'a plus de panneau (segmenté en ligne) ;
  * PRE-5 story 2.5 : le Changement de côté et l'Enchainement non plus.
  */
-type PanelControl = "uniformDuration" | "uniformRepetitions" | "total";
+type PanelControl = "uniformDuration" | "uniformRepetitions" | "total" | "recovery";
 type Box = { readonly y: number; readonly height: number };
 const NO_BOX: Box = { y: 0, height: 0 };
 const sameBox = (box: Box | undefined, y: number, height: number) => box !== undefined && box.y === y && box.height === height;
 /**
  * PRE-5 story 2.4 (FR-26, AD-28) — les quatre cadres de la Feuille, dans l'ordre :
  * Exécution ; Séries ; Côtés ; Cadence et durée.
+ * PRE-9 (ordre de Hermann du 01/11/2026, point 3 ; CE-UI-10, D-413) : six blocs — Exécution ;
+ * Phases du mouvement ; Séries ; Côtés ; Cadence et durée ; Récupération. [« Le bloc Récupération
+ * (point 2) n'est pas encore rendu » — remplacé le 01/11/2026 (point 2) : rendu pour un Exercice de
+ * Séance (`recovery`), absent sinon.]
  */
-type SheetFrame = "execution" | "series" | "sides" | "cadence";
-const SHEET_FRAMES: readonly SheetFrame[] = ["execution", "series", "sides", "cadence"];
+type SheetFrame = "execution" | "phases" | "series" | "sides" | "cadence" | "recovery";
+const SHEET_FRAMES: readonly SheetFrame[] = ["execution", "phases", "series", "sides", "cadence", "recovery"];
 /** Boîte d'un cadre dans le contenu défilant (hôte des panneaux), mesurée par `onLayout`. */
 type FrameBox = { readonly y: number; readonly height: number; readonly width: number };
 /** AD-28 : cadre de la ligne qui ouvre chaque panneau (repère unique, `anchorTop`). */
@@ -452,6 +481,7 @@ const PANEL_FRAME: Readonly<Record<PanelControl, SheetFrame>> = {
   uniformDuration: "series",
   uniformRepetitions: "series",
   total: "cadence",
+  recovery: "recovery",
 };
 /**
  * Message d'ajustement (D-5) : l'Inversion du total garde l'état d'avant pour `Annuler` ;
@@ -471,6 +501,7 @@ const PANEL_TEST_IDS: Readonly<Record<PanelControl, string>> = {
   // Story 3.5 : même panneau de la Cible commune, en Répétitions (un seul Mode affiché).
   uniformRepetitions: "execution-sheet-target-panel",
   total: "execution-sheet-total-panel",
+  recovery: "execution-sheet-recovery-panel",
 };
 /** Q41 : la zone de toucher extérieur couvre aussi les marges du corps défilant (`bodyContent`). */
 const PANEL_OUTSIDE_INSETS = { top: spacing[12], right: spacing[24], bottom: spacing[24], left: spacing[24] };
@@ -573,6 +604,8 @@ export function ExecutionParametersSheet({
   onCancel,
   presentation = "default",
   phasesToVerify,
+  recovery,
+  profileDefaultsPending = false,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
@@ -581,6 +614,18 @@ export function ExecutionParametersSheet({
   );
   // PRE-7 (A2.1) : verrou de structure lu à l'ouverture, comme N hérité.
   const [structureLocked] = useState(phaseStructureLocked);
+  /**
+   * PRE-9 (01/11/2026, point 2) : Récupération de l'Exercice dans la feuille, lue à l'ouverture
+   * (0 s sans récupération antérieure) ; transmise au parent par le ✓ seulement.
+   */
+  const [recoverySeconds, setRecoverySeconds] = useState(() => recovery?.seconds ?? 0);
+  /**
+   * PRE-9 (01/11/2026, point 2) : défauts du Profil non encore validés et côtés à l'ouverture — la
+   * Pause entre les côtés n'est un défaut du Profil repris que si le changement de côté est activé
+   * pendant cette ouverture (copie P3-10, `setSideMode`). Lus au montage.
+   */
+  const [openedPendingDefaults] = useState(profileDefaultsPending);
+  const [openedBilateral] = useState(() => isBilateral(parent.sideMode));
   // Story 3.3 (AD-15) : surface ouverte unique — roue (panneau sur iOS), champ ± ou clavier.
   const [surface, dispatchSurface] = useReducer(sheetSurfaceReducer, INITIAL_SHEET_SURFACE_STATE);
   const openSurface = surface.open;
@@ -1211,7 +1256,9 @@ export function ExecutionParametersSheet({
    * PRE-7 (D-448, point 8, recette JA2 du 26/10/2026) : à la mise en page de la ligne Fin qui suit
    * un dépliage de « Durée de l'exercice », le corps défile jusqu'au bas pour que Compte à rebours
    * et Fin soient visibles. Le cadre « Cadence et durée » est le dernier du corps : son bas est le
-   * bas du contenu (aucune réserve de panneau, toute surface étant rangée au dépliage).
+   * bas du contenu (aucune réserve de panneau, toute surface étant rangée au dépliage). [PRE-9,
+   * 01/11/2026 : le bloc Récupération peut le suivre (Exercice de Séance, où Compte à rebours et Fin
+   * sont absents) ; le défilement jusqu'au bas garde alors Fin au-dessus de lui.]
    */
   function revealSignals() {
     if (!revealSignalsRef.current) return;
@@ -1235,7 +1282,12 @@ export function ExecutionParametersSheet({
     if (absorbSheetCommand()) return;
     if (validation.ok) {
       const value = validation.value;
-      closeAnimated(() => onApply(value));
+      const appliedRecovery = recoverySeconds;
+      closeAnimated(() => {
+        // PRE-9 (01/11/2026, point 2) : Récupération appliquée au brouillon parent avec les paramètres.
+        recovery?.onApply(appliedRecovery);
+        onApply(value);
+      });
     }
   }
 
@@ -1374,7 +1426,9 @@ export function ExecutionParametersSheet({
         ? "uniformRepetitions"
         : isOpen(TOTAL_SELECTOR) && totalWheelSeconds !== undefined
           ? "total"
-          : null;
+          : isOpen(RECOVERY_SELECTOR) && recovery !== undefined
+            ? "recovery"
+            : null;
   /**
    * PRE-5 story 2.4 (AD-28) — repère UNIQUE des panneaux, dans les coordonnées du contenu
    * défilant (l'hôte des panneaux, dont les cadres sont les enfants directs) : y du cadre
@@ -1402,11 +1456,16 @@ export function ExecutionParametersSheet({
    * est visible ; l'appui ouvre le champ (`stepper(champ)`, T16, T20) et fait apparaître
    * `InlineStepper`, inchangé (AD-16) ; ses ± ne referment jamais le champ (T22).
    */
-  const stepperField = (field: SheetStepperField, fieldLabel: string, stepper: Omit<InlineStepperProps, "width">) => (
+  const stepperField = (
+    field: SheetStepperField,
+    fieldLabel: string,
+    { profileDefault = false, ...stepper }: Omit<InlineStepperProps, "width"> & { readonly profileDefault?: boolean },
+  ) => (
     <RevealStepper
       isOpen={isOpen(stepperSurface(field))}
       onToggle={() => toggle(stepperSurface(field))}
       fieldLabel={fieldLabel}
+      profileDefault={profileDefault}
       {...stepper}
       width={STEPPER_WIDTH}
     />
@@ -1573,7 +1632,7 @@ export function ExecutionParametersSheet({
   const uniformDurationPill = (
     <ValuePill
       value={uniformDurationText}
-      accessibilityLabel={`${t.durationTarget}, ${spokenValue(uniformDurationText)}`}
+      accessibilityLabel={`${t.durationGoal}, ${spokenValue(uniformDurationText)}`}
       expanded={isOpen(TARGET_SELECTOR)}
       invalid={uniformTargetInvalid}
       invalidHint={uniformTargetHint}
@@ -1680,6 +1739,28 @@ export function ExecutionParametersSheet({
         validateAccessibilityLabel={strings.screens.exercise.wheelPicker.validateAccessibilityLabel}
       />
     );
+  // PRE-9 (01/11/2026, point 2) : roulette de la Récupération — contrôle de durée existant de la
+  // récupération (grille 0..300 s, 1 / 5 / 30 s, CE-T03-08), ouverte sur la valeur la plus proche.
+  // Une valeur existante hors grille (donnée historique) est conservée telle quelle si la roue n'est
+  // pas déplacée (même règle que l'ancienne roulette du placement). ✓ → valeur de la feuille ; ✕ :
+  // rien.
+  const recoveryText = pauseLabel(recoverySeconds);
+  const recoveryWheel =
+    recovery === undefined ? null : (
+      <DurationWheelPicker
+        totalSeconds={recoverySeconds}
+        valueGrid={RECOVERY_WHEEL_VALUES}
+        onValidate={(totalSeconds) => {
+          closeSurface(openKey);
+          setRecoverySeconds((current) => (totalSeconds === snapToGrid(current, RECOVERY_WHEEL_VALUES) ? current : totalSeconds));
+        }}
+        onCancel={() => closeSurface(openKey)}
+        minutesAccessibilityLabel={strings.screens.exercise.wheelPicker.minutesAccessibilityLabel}
+        secondsAccessibilityLabel={strings.screens.exercise.wheelPicker.secondsAccessibilityLabel}
+        cancelAccessibilityLabel={strings.screens.exercise.wheelPicker.cancelAccessibilityLabel}
+        validateAccessibilityLabel={strings.screens.exercise.wheelPicker.validateAccessibilityLabel}
+      />
+    );
   // PRE-5 story 2.5 (AC1, FR-15, FR-16, R-02, R-08) : « Changement de côté » en segmenté
   // `inline`, Avec à gauche, Sans à droite, sans direction ; Avec ⇔ `isBilateral` (un
   // historique `RIGHT_LEFT` ou `LEFT_RIGHT` s'affiche Avec). Non renseigné (`null`) : aucune
@@ -1719,8 +1800,9 @@ export function ExecutionParametersSheet({
               value: "WITH",
               label: t.sideOrderSubtitles[sideOrder],
               accessibilityLabel: `${t.sideModeChoices.WITH}, ${t.sideOrders[sideOrder]}`,
-              width: INLINE_OPTION_WIDTHS.notation,
-              compact: true,
+              // PRE-9 (ordre de Hermann du 01/11/2026, point 5) : taille standard des options (plus
+              // de `compact`), largeur adaptée au contenu (104 pour « DD… → GG… », Figma `9462:18978`).
+              width: sideOrderOptionWidth(sideOrder),
               selectedContent: (
                 <SideOrderTrigger
                   value={sideOrder}
@@ -1735,7 +1817,7 @@ export function ExecutionParametersSheet({
       ]}
       value={sideChoice}
       onChange={chooseSide}
-      accessibilityLabel={t.sideMode}
+      accessibilityLabel={t.sideModeRow}
       testID="execution-sheet-side-control"
     />
   );
@@ -2086,11 +2168,12 @@ export function ExecutionParametersSheet({
         {panelControl === "uniformDuration" ? <View testID="execution-sheet-target-wheel">{uniformDurationWheel}</View> : null}
         {panelControl === "uniformRepetitions" ? <View testID="execution-sheet-target-wheel">{uniformRepetitionsWheel}</View> : null}
         {panelControl === "total" ? <View testID="execution-sheet-total-wheel">{totalWheel}</View> : null}
+        {panelControl === "recovery" ? <View testID="execution-sheet-recovery-wheel">{recoveryWheel}</View> : null}
       </AnchoredPanel>
     );
   // PRE-7 story B.3 (B5, D-447, arbitrages A1 à A3) : déroulant de l'Enchainement sur
   // `AnchoredPanel`, toutes plates-formes, recouvrant exactement l'option Avec (bord haut, bord
-  // droit, 146 × 88). Toucher extérieur ou échappement VoiceOver : fermeture par la clé, Brouillon
+  // droit, largeur de l’option × 88 ; 146 avant le 01/11/2026). Toucher extérieur ou échappement VoiceOver : fermeture par la clé, Brouillon
   // inchangé ; une rangée : `chooseSideOrder`.
   const sideOrderDropdown = sideOrderDropdownOpen ? (
     <AnchoredPanel
@@ -2243,19 +2326,20 @@ export function ExecutionParametersSheet({
                   </Row>
                 </SheetMotionView>
 
-                {/* Cadre Séries : Phases, Type de série (portant le nombre de séries, RC-15) et
-                    tableau, puis Durée ou Répétitions et Pause en identiques. */}
+                {/* PRE-9 (ordre de Hermann du 01/11/2026, point 3 ; CE-UI-10, D-413) : bloc
+                    autonome « Phases du mouvement », entre Exécution et Séries — la ligne Avec /
+                    Sans, puis le tableau des phases (déployé) et le message de retrait d'une
+                    phase. Comportements des phases inchangés. [Remplacé le 01/11/2026 : PRE-5
+                    story 2.8 (FR-4, FR-26, D-432) plaçait cette ligne en tête du cadre Séries,
+                    suivie d'un séparateur.] Même groupe à découpe que le tableau des séries
+                    (E-20 : une seule animation à l'apparition du tableau), découpe levée pendant
+                    un glisser. */}
                 <SheetMotionView
                   appear={false}
-                  onLayout={trackFrame("series")}
+                  onLayout={trackFrame("phases")}
                   style={[styles.frame, styles.frameSpaced]}
-                  testID="execution-sheet-frame-series"
+                  testID="execution-sheet-frame-phases"
                 >
-                  {/* PRE-5 story 2.8 (FR-4, FR-26, D-432) : ligne « Phases de l'exercice » en tête
-                      du cadre Séries, puis le tableau des phases (déployé) et le message de
-                      retrait d'une phase. Même groupe à découpe que le tableau des séries (E-20 :
-                      une seule animation à l'apparition du tableau), découpe levée pendant un
-                      glisser. */}
                   <SheetMotionView
                     appear={false}
                     style={[styles.variableGroup, isDraggingRow ? null : styles.variableGroupClip]}
@@ -2296,12 +2380,23 @@ export function ExecutionParametersSheet({
                     ) : null}
                     {adjustment?.kind === "phaseRemoval" ? adjustmentMessage : null}
                   </SheetMotionView>
-                  {/* Story 2.8 (AC3b, PR-02, Figma `9207:18817`) : aucun séparateur après le tableau
-                      des phases déployé ; sinon, séparateur entre les deux lignes.
-                      [Remplacé le 30/10/2026 — contre-recette iPhone, Hermann : « il faut le trait
-                      de séparation sous le tableau » : séparateur toujours présent, sous le tableau
-                      déployé comme sous la ligne repliée.] */}
-                  <Separator testID="execution-sheet-phases-separator" />
+                </SheetMotionView>
+                {/* Story 2.8 (AC3b, PR-02, Figma `9207:18817`) : aucun séparateur après le tableau
+                    des phases déployé ; sinon, séparateur entre les deux lignes.
+                    [Remplacé le 30/10/2026 — contre-recette iPhone, Hermann : « il faut le trait
+                    de séparation sous le tableau » : séparateur toujours présent.]
+                    [Remplacé le 01/11/2026 — ordre de Hermann, point 3 : les phases forment leur
+                    propre bloc ; l'écart de 8 entre blocs remplace ce séparateur.] */}
+
+                {/* Cadre Séries : commence par la ligne Séries (Type de série portant le nombre de
+                    séries, RC-15) et son tableau, puis Objectif de durée ou Répétitions et Pause en
+                    identiques, puis Charge. */}
+                <SheetMotionView
+                  appear={false}
+                  onLayout={trackFrame("series")}
+                  style={[styles.frame, styles.frameSpaced]}
+                  testID="execution-sheet-frame-series"
+                >
                   {/* Recette du 20/10 (RC-15) : plus de ligne « Nombre de séries » ; le nombre est
                       porté par le segmenté du Type de série (NR Δ38 : règles et accessibilité du
                       stepper conservées, présentation remplacée). */}
@@ -2368,7 +2463,7 @@ export function ExecutionParametersSheet({
                     <>
                       <Separator />
                       <Row
-                        label={t.durationTarget}
+                        label={t.durationGoal}
                         selected={isOpen(TARGET_SELECTOR)}
                         onLayout={trackRow("uniformDuration")}
                         below={
@@ -2496,7 +2591,7 @@ export function ExecutionParametersSheet({
                   testID="execution-sheet-frame-sides"
                 >
                   <Row
-                    label={t.sideMode}
+                    label={t.sideModeRow}
                     // PRE-7 B.3 (B5) : repère du déroulant de l'Enchainement, relatif au cadre Côtés.
                     onLayout={(event) => {
                       const { y, height } = event.nativeEvent.layout;
@@ -2532,6 +2627,9 @@ export function ExecutionParametersSheet({
                           onChange: (value) => update(setSideRecovery(draft, value)),
                           accessibilityLabel: `${t.sideRecovery}, ${t.secondsUnit}`,
                           testID: "execution-sheet-side-recovery",
+                          // PRE-9 (01/11/2026, point 2) : copiée du Profil à l'activation pendant
+                          // cette ouverture, avant le premier ✓ de l'Exercice.
+                          profileDefault: openedPendingDefaults && !openedBilateral,
                         })}
                       </Row>
                     </>
@@ -2637,6 +2735,8 @@ export function ExecutionParametersSheet({
                           onChange: (value) => update(setCountdown(draft, value)),
                           accessibilityLabel: `${t.countdown}, ${t.secondsUnit}`,
                           testID: "execution-sheet-countdown",
+                          // PRE-9 (01/11/2026, point 2) : défaut du Profil repris à la création.
+                          profileDefault: openedPendingDefaults,
                         })}
                       </Row>
                       <Separator />
@@ -2655,12 +2755,52 @@ export function ExecutionParametersSheet({
                           onChange: (value) => update(setEnd(draft, value)),
                           accessibilityLabel: `${t.end}, ${t.secondsUnit}`,
                           testID: "execution-sheet-end",
+                          // PRE-9 (01/11/2026, point 2) : défaut du Profil repris à la création.
+                          profileDefault: openedPendingDefaults,
                         })}
                       </Row>
                     </>
                   ) : null}
                 </SheetMotionView>
-                {contentRoom > 0 ? <View style={{ height: contentRoom }} testID="execution-sheet-panel-room" /> : null}
+
+                {/* PRE-9 — bloc 6 « Récupération » (ordre de Hermann du 01/11/2026, point 2 ; CE-UI-10
+                    ligne 14 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : seule ligne
+                    « Récupération », pastille de valeur et roulette de durée existante (panneau sous
+                    la ligne sur iOS, en ligne ailleurs, comme Durée de l'exercice). Exercice de
+                    Séance seulement. `revealSignals` défile jusqu'au bas du contenu : ce cadre suit
+                    Cadence et durée, dont Compte à rebours et Fin restent au-dessus de lui. */}
+                {recovery !== undefined ? (
+                  <SheetMotionView
+                    appear={false}
+                    onLayout={trackFrame("recovery")}
+                    style={[styles.frame, styles.frameSpaced]}
+                    testID="execution-sheet-frame-recovery"
+                  >
+                    <Row
+                      label={t.recovery}
+                      selected={isOpen(RECOVERY_SELECTOR)}
+                      onLayout={trackRow("recovery")}
+                      below={
+                        !anchoredPanels && isOpen(RECOVERY_SELECTOR) ? (
+                          <SheetMotionView style={styles.inlineControl} testID="execution-sheet-recovery-wheel">
+                            {recoveryWheel}
+                          </SheetMotionView>
+                        ) : null
+                      }
+                      testID="execution-sheet-row-recovery"
+                    >
+                      <ValuePill
+                        value={recoveryText}
+                        accessibilityLabel={`${t.recovery}, ${recoveryText}`}
+                        expanded={isOpen(RECOVERY_SELECTOR)}
+                        profileDefault={openedPendingDefaults}
+                        onPress={() => toggle(RECOVERY_SELECTOR)}
+                        testID="execution-sheet-recovery"
+                      />
+                    </Row>
+                  </SheetMotionView>
+                ) : null}
+                {contentRoom > 0 ?<View style={{ height: contentRoom }} testID="execution-sheet-panel-room" /> : null}
                 {panel}
                 {sideOrderDropdown}
                 </Pressable>
@@ -3007,6 +3147,7 @@ function ValuePill({
   disabled = false,
   invalid = false,
   invalidHint = t.invalidHint,
+  profileDefault = false,
   onPress,
   testID,
 }: {
@@ -3016,6 +3157,8 @@ function ValuePill({
   disabled?: boolean;
   invalid?: boolean;
   invalidHint?: string;
+  /** PRE-9 (01/11/2026, point 2) : défaut du Profil avant le premier ✓ — fond orange ; `invalid` prime. */
+  profileDefault?: boolean;
   onPress: () => void;
   testID: string;
 }) {
@@ -3027,11 +3170,15 @@ function ValuePill({
       onPress={disabled ? ignorePress : onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityHint={invalid ? invalidHint : undefined}
+      accessibilityHint={invalid ? invalidHint : profileDefault ? t.profileDefaultHint : undefined}
       accessibilityState={{ expanded, disabled }}
       // PRE-7 B.1 : pastille de 32 portée à 44 de haut (auparavant 24 + 2 × 10).
       hitSlop={VALUE_PILL_HIT_SLOP}
-      style={[styles.valuePill, invalid ? styles.valuePillInvalid : null, disabled ? styles.unselected : null]}
+      style={[
+        styles.valuePill,
+        invalid ? styles.valuePillInvalid : profileDefault ? styles.valuePillProfileDefault : null,
+        disabled ? styles.unselected : null,
+      ]}
       testID={testID}
     >
       <Text style={styles.valuePillText} testID={`${testID}-text`}>
@@ -3130,8 +3277,9 @@ function RevealStepper({
   isOpen,
   onToggle,
   fieldLabel,
+  profileDefault = false,
   ...stepper
-}: InlineStepperProps & { isOpen: boolean; onToggle: () => void; fieldLabel: string }) {
+}: InlineStepperProps & { isOpen: boolean; onToggle: () => void; fieldLabel: string; profileDefault?: boolean }) {
   const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
   // Même cadre fermé et ouvert (largeur, place). PRE-7 B.1 (D-447, B6) : contenu aligné à droite
   // comme Durée de l'exercice (remplace le centrage Q41) : le champ reste ancré au même bord droit
@@ -3146,11 +3294,13 @@ function RevealStepper({
         onPress={onToggle}
         accessibilityRole="button"
         accessibilityLabel={`${fieldLabel}, ${spokenValue(display)}`}
+        accessibilityHint={profileDefault ? t.profileDefaultHint : undefined}
         accessibilityState={{ expanded: false }}
         style={[styles.stepperFrame, frame]}
         testID={`${stepper.testID}-toggle`}
       >
-        <View style={styles.valuePill} testID={`${stepper.testID}-pill`}>
+        {/* PRE-9 (01/11/2026, point 2) : défaut du Profil avant le premier ✓ — fond orange du cadre. */}
+        <View style={[styles.valuePill, profileDefault ? styles.valuePillProfileDefault : null]} testID={`${stepper.testID}-pill`}>
           <Text style={styles.valuePillText} testID={`${stepper.testID}-value`}>
             {display}
           </Text>
@@ -3424,6 +3574,11 @@ const SIDE_ORDERS: readonly SideOrder[] = ["BY_SIDE", "BY_SERIES"];
  *
  * VoiceOver : bouton nommé « Enchainement », valeur annoncée par le libellé neutre (`sideOrders`,
  * D-407), la notation n'étant pas lue ; état déployé tant que le déroulant est ouvert.
+ *
+ * [Remplacé le 01/11/2026 — ordre de Hermann, point 5 (CE-UI-10 §8) : notation « DD… → GG… » ou
+ * « DG → DG → … » en Semi Bold 12 (taille standard des options, sans réduction), largeur adaptée
+ * au contenu (`sideOrderOptionWidth` : 104 pour « DD… → GG… », Figma `9462:18978`) au lieu de
+ * 146 × 26 en Semi Bold 10.]
  */
 function SideOrderTrigger({
   value,
@@ -3443,7 +3598,7 @@ function SideOrderTrigger({
       accessibilityLabel={t.sideSequence}
       accessibilityValue={{ text: t.sideOrders[value] }}
       accessibilityState={{ expanded }}
-      style={styles.sideOrderTrigger}
+      style={[styles.sideOrderTrigger, { width: sideOrderOptionWidth(value) }]}
       testID={testID}
     >
       <View
@@ -3452,7 +3607,7 @@ function SideOrderTrigger({
         importantForAccessibility="no-hide-descendants"
         style={styles.sideOrderTriggerContent}
       >
-        <Text style={inlineSelectedCompactLabelStyle} testID={`${testID}-notation`}>
+        <Text style={inlineSelectedLabelStyle} testID={`${testID}-notation`}>
           {t.sideOrderSubtitles[value]}
         </Text>
         <View style={inlineChevronFrameStyle}>
@@ -3477,6 +3632,10 @@ function SideOrderTrigger({
  * Toucher une rangée appelle `onChoose` (le parent ferme le déroulant et n'écrit l'Enchainement que
  * s'il change). Rôle menu, rangées de rôle élément de menu nommées par leur libellé neutre
  * (`sideOrders`, D-407), la choisie annoncée sélectionnée.
+ *
+ * [Remplacé le 01/11/2026 — ordre de Hermann, point 5 (CE-UI-10 §8, Figma `9462:18987`) : largeur
+ * de l'option Avec (104 avec « DD… → GG… » choisie) au lieu de 146 ; notations en 12 (Semi Bold
+ * choisie, Regular sinon) au lieu de 10.]
  */
 function SideOrderDropdown({
   value,
@@ -3488,7 +3647,12 @@ function SideOrderDropdown({
   testID: string;
 }) {
   return (
-    <View accessibilityRole="menu" accessibilityLabel={t.sideSequence} style={styles.sideOrderDropdown} testID={`${testID}-menu`}>
+    <View
+      accessibilityRole="menu"
+      accessibilityLabel={t.sideSequence}
+      style={[styles.sideOrderDropdown, { width: sideOrderOptionWidth(value) }]}
+      testID={`${testID}-menu`}
+    >
       {SIDE_ORDERS.map((order, index) => {
         const chosen = order === value;
         return (
@@ -3508,7 +3672,7 @@ function SideOrderDropdown({
               style={styles.sideOrderTriggerContent}
             >
               <Text
-                style={chosen ? inlineSelectedCompactLabelStyle : styles.sideOrderDropdownLabel}
+                style={chosen ? inlineSelectedLabelStyle : styles.sideOrderDropdownLabel}
                 testID={`${testID}-${order}-notation`}
               >
                 {t.sideOrderSubtitles[order]}
@@ -3583,8 +3747,25 @@ const SIDE_ORDER_DROPDOWN_ROW_HEIGHT = 44;
 /** Figma `9462:18987` : marge intérieure gauche des rangées (notation à x 8). */
 const SIDE_ORDER_DROPDOWN_ROW_INSET = 8;
 const SIDE_ORDER_UNCHOSEN_COLOR = "#4A4A52";
-/** Police réduite des notations (10, comme l'option Avec, RC-6) et hauteur de ligne des libellés `inline` (16). */
-const SIDE_ORDER_LABEL_SIZE = 10;
+/**
+ * Police des notations et hauteur de ligne des libellés `inline` (16). PRE-9 (ordre de Hermann du
+ * 01/11/2026, point 5 ; CE-UI-10 §8) : taille standard des options (12, Figma `9462:18979`), sans
+ * réduction. [Remplacé le 01/11/2026 : police réduite de 10 (RC-6).]
+ */
+const SIDE_ORDER_LABEL_SIZE = 12;
+/**
+ * PRE-9 (ordre de Hermann du 01/11/2026, point 5 ; Figma `9462:18978` / `9462:18987`) — option Avec
+ * portant la notation : largeur adaptée au contenu — marge 8, notation, écart 6, chevron 10, marge
+ * 8. Largeur de la notation en Inter Semi Bold 12 : « DD… → GG… » 72 (relevé Figma, d'où 104) ;
+ * « DG → DG → … » 82 relevé en Regular dans le déroulant, porté à 84 en Semi Bold (estimation
+ * d'intégration, non tirée de Figma). Constantes locales, aucun jeton modifié.
+ */
+const SIDE_ORDER_OPTION_INSET = 8;
+const SIDE_ORDER_CHEVRON_FRAME = 10;
+const SIDE_ORDER_NOTATION_WIDTH: Readonly<Record<SideOrder, number>> = { BY_SIDE: 72, BY_SERIES: 84 };
+function sideOrderOptionWidth(order: SideOrder): number {
+  return SIDE_ORDER_OPTION_INSET * 2 + SIDE_ORDER_NOTATION_WIDTH[order] + SIDE_ORDER_CHEVRON_GAP + SIDE_ORDER_CHEVRON_FRAME;
+}
 const SIDE_ORDER_LABEL_LINE_HEIGHT = 16;
 /**
  * PRE-7 story B.3 (B5, arbitrage A1) — repères du segmenté `inline` du Changement de côté (relevé
@@ -3601,8 +3782,12 @@ const SIDE_ORDER_DROPDOWN_RIGHT = FRAME_INSET + SIDE_SEGMENT_PADDING + INLINE_OP
  * Recette du 20/10 (RC-13) : place réservée au segmenté « Changement de côté » dans sa ligne, celle
  * du plus large (Avec 146 + Sans 62 + écart 2 + marges 2 × 3 = 216, RC-12), pour que le libellé
  * reste sur deux lignes quand le segmenté se réduit à 132 (Avec et Sans de 62).
+ * [Remplacé le 01/11/2026 — ordre de Hermann, point 5 : la ligne « De chaque côté » tient sur une
+ * ligne ; place réservée = option Avec la plus large (`sideOrderOptionWidth`, « DG → DG → … ») +
+ * Sans 62 + écart 2 + marges 2 × 3, pour que le libellé ne bouge pas quand le segmenté change.]
  */
-const SIDE_CONTROL_RESERVED_WIDTH = INLINE_OPTION_WIDTHS.notation + INLINE_OPTION_WIDTHS.narrow + 2 + 3 * 2;
+const SIDE_CONTROL_RESERVED_WIDTH =
+  Math.max(sideOrderOptionWidth("BY_SIDE"), sideOrderOptionWidth("BY_SERIES")) + INLINE_OPTION_WIDTHS.narrow + SIDE_SEGMENT_GAP + SIDE_SEGMENT_PADDING * 2;
 /** Recette du 20/10 (RC-14) : charge commune (option de 26) portée à une cible de 44 de haut, dans la ligne de 44. */
 const LOAD_SEGMENT_HIT_SLOP = { top: 9, bottom: 9 };
 /**
@@ -3718,7 +3903,6 @@ const styles = StyleSheet.create({
   // RC-6 ; PRE-7 B.3 (B5) : déclencheur du déroulant de l'Enchainement, de taille fixe, sur toute
   // l'option Avec (146 × 26, RC-12) ; aucun hôte natif dimensionné sur son contenu.
   sideOrderTrigger: {
-    width: INLINE_OPTION_WIDTHS.notation,
     height: INLINE_OPTION_CONTENT_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
@@ -3732,7 +3916,6 @@ const styles = StyleSheet.create({
   },
   // PRE-7 B.3 (B5, Figma `9462:18987`) : déroulant de 146 × 88, rayon des options `inline`.
   sideOrderDropdown: {
-    width: INLINE_OPTION_WIDTHS.notation,
     height: SIDE_ORDER_DROPDOWN_ROW_HEIGHT * 2,
     borderRadius: INLINE_OPTION_CONTENT_RADIUS,
     overflow: "hidden",
@@ -3964,6 +4147,14 @@ const styles = StyleSheet.create({
   // `color.dangerSurface`, #FFF1F0).
   valuePillInvalid: {
     backgroundColor: colors.dangerSurface,
+  },
+  // PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+  // Profil ») : valeur initialisée depuis un défaut du Profil, avant le premier ✓ de l'Exercice — fond
+  // orange du cadre de la valeur, sans liseré, comme le rouge de la valeur à renseigner. Orange pâle de
+  // l'état « Paramètre à vérifier » (`toVerifyColors.surface`) réutilisé : rendu choisi sans maquette,
+  // texte inchangé ; à juger en recette.
+  valuePillProfileDefault: {
+    backgroundColor: toVerifyColors.surface,
   },
   valuePillText: {
     ...type.editableValue,

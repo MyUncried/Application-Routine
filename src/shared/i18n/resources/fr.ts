@@ -498,8 +498,12 @@ export const fr = {
       // PRE-9 B.2 (COMP §5, Figma `10705:20223`) : menu Créer de la Composition — cinq actions puis
       // Annuler, dans l'ordre observé. [Anciens libellés « Un nouvel exercice » / « Un exercice
       // existant » : remplacés le 29/10/2026 par ceux de COMP §5.]
+      // [Remplacé le 01/11/2026 (ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état cible ») :
+      // quatre options, plus de rangée Annuler — `cancel` nomme désormais le « + » transformé ;
+      // « Créer un nouveau mouvement » devient « Créer un exercice » ; `existingActivity` ne sert plus
+      // qu'au titre de l'écran de sélection des Mouvements, qui n'est plus atteint depuis ce menu.]
       addToSession: {
-        newActivity: "Créer un nouveau mouvement",
+        newActivity: "Créer un exercice",
         existingActivity: "Utiliser un mouvement existant",
         existingSession: "Utiliser une séance existante",
         addCircuit: "Ajouter un circuit",
@@ -1265,8 +1269,13 @@ export const fr = {
         create: "Créer un mouvement",
         consult: "Mouvement",
         edit: "Modifier le mouvement",
+        // Ordre de Hermann du 01/11/2026, ch13 CE-T03-08 et l.5269 : écran ouvert par « Créer un
+        // exercice » depuis le menu Créer de la Composition.
+        sessionCreate: "Créer un exercice",
       },
       finish: "Terminer",
+      // Même source : confirmation du mouvement en contexte Séance (les autres contextes gardent « Terminer »).
+      sessionFinish: "Créer un exercice",
       edit: "Modifier le mouvement",
       close: "Fermer",
       loadError: "Le mouvement n’a pas pu être chargé.",

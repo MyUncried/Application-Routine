@@ -14,7 +14,9 @@ import { formatOccurrenceSummary, isIncompleteSummary } from "@/features/session
  * Les deux actions du menu Créer de la Composition passent par les écrans de Mouvement de PRE-8 :
  * « Créer un nouvel exercice » ouvre la création d'un Mouvement (CE-MVT-01, route `/movement` en
  * contexte Séance), « Utiliser un mouvement existant » la sélection des Mouvements actifs du
- * Catalogue (Q6, route `/movement-selection`). Chacun REMET à la Composition, à son retour, le ou
+ * Catalogue (Q6, route `/movement-selection`) [cette entrée est retirée du menu le 01/11/2026 — ordre
+ * de Hermann, ch13 CE-T03-08 « Menu Créer — état cible » : seul « Créer un exercice » reste, la
+ * saisie du nom y propose les Mouvements existants]. Chacun REMET à la Composition, à son retour, le ou
  * les Mouvements choisis (`handMovementsToComposition`) ; la Composition les reprend au retour au
  * premier plan (`takeMovementsHandedToComposition`), en fait des Exercices insérés selon ARB-07
  * (`withMovementExercises`), posés « Paramètres à compléter » sans ouvrir de feuille (demande de
@@ -57,6 +59,8 @@ export function takeMovementsHandedToComposition(): readonly Movement[] | null {
 export type MovementExerciseDefaults = {
   readonly countdownSeconds: number;
   readonly endSeconds: number;
+  /** PRE-9 (01/11/2026, point 2) : « Récupération après un exercice » du Profil. */
+  readonly recoverySeconds: number;
 };
 
 /**
@@ -64,7 +68,10 @@ export type MovementExerciseDefaults = {
  * éditeur pour « Utiliser ce mouvement » (PRE-7 A2.3, MFN-09) : contenu du Mouvement (vue, jamais
  * persistée avec l'occurrence, R-3), filiation `sourceMovementId`, paramètres vierges avec Compte à
  * rebours et Fin du Profil, phases du Mouvement à durées vides (`repriseExecutionParameters`) ;
- * aucune Récupération automatique (`null`, AD-35). Paramètres incomplets tant qu'ils ne sont pas
+ * aucune Récupération automatique (`null`, AD-35) [remplacé le 01/11/2026 (ordre de Hermann, point 2 ;
+ * ch07 « Récupération de l'Exercice et défauts du Profil ») : la Récupération de l'Exercice reprend
+ * « Récupération après un exercice » du Profil, et les défauts du Profil repris restent « en attente »
+ * (`profileDefaultsPending`, fond orange dans la feuille) jusqu'au premier ✓]. Paramètres incomplets tant qu'ils ne sont pas
  * réglés : la Composition le signale et bloque l'enregistrement (D-389).
  * [PRE-9 A.2b, 31/10/2026 — décision de Hermann du 30/10 : « à durées vides » est remplacé par
  * « durées par défaut du Mouvement reprises par identité de phase, vides où le Mouvement n'en a
@@ -76,7 +83,7 @@ export type MovementExerciseDefaults = {
  */
 export function exerciseOfMovement(movement: Movement, id: string, defaults: MovementExerciseDefaults): SessionDraftExercise {
   return {
-    ...createExerciseDraft(id, null),
+    ...createExerciseDraft(id, defaults.recoverySeconds),
     name: movement.name,
     instruction: movement.description,
     categoryId: movement.categoryId,
@@ -84,6 +91,7 @@ export function exerciseOfMovement(movement: Movement, id: string, defaults: Mov
     media: [...movement.media],
     executionParameters: repriseExecutionParameters(movement, createEmptyExecutionParameters(defaults)),
     sourceMovementId: movement.id,
+    profileDefaultsPending: true,
   };
 }
 
