@@ -8,6 +8,20 @@
 
 **Lot cartes du07/10, avant v15 :** [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) ; [DSF cartes sans cadre de durée](DSF-CARTES-DUREE-2026-10-07.md). Pause après chaque série, récupération substitutive,276 textes v15, segments non persistés.
 
+### Composition — accès de création
+
+Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée. L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes. Voir CE-T03-08 pour le bouton Annuler et l’axe. L’accès aux Formats depuis ce menu reste à préciser (MENU-FMT-01).
+
+<a id="recuperation-exercice-et-defauts-profil"></a>
+
+## Récupération de l’Exercice et défauts du Profil
+
+La Récupération après exercice appartient directement à l’Exercice dans le modèle cible de Séance. La ligne Récupération de la modale Paramètres d’exécution est son unique accès de saisie et de modification ; la Composition affiche exactement cette même valeur, sans objet Récupération autonome ni valeur concurrente. Le bouton Pause / Ajouter un arrêt ne propose que les Points d’arrêt : aucun ajout, réglage ou retrait de récupération par Placement.
+
+À la création d’un nouvel Exercice, sa Récupération reprend « Récupération après un exercice » du Profil ; 30 s n’est pas une constante. Modifier un Exercice conserve sa valeur ; un ancien Exercice sans récupération affiche 0 s sans recevoir le défaut du Profil. Déplacement et duplication conservent la récupération de l’Exercice. À 0 s, aucune récupération n’est exécutée ; les règles existantes de Pause terminale, d’ordre avant Point d’arrêt et de répétition dans un Circuit restent applicables. Les anciens instantanés, exécutions et données historiques restent lisibles sans réécriture ; la règle historique « aucune récupération post-exercice en ACTIVITY » reste limitée à cet ancien parcours, sans réintroduire un Exercice autonome dans la cible.
+
+Toute valeur initialisée depuis un défaut du Profil est présentée dans son cadre à fond orange dans Paramètres d’exécution jusqu’au premier ✓ validant les paramètres de cet Exercice. La règle est générale : elle vise chaque défaut du Profil effectivement repris, pas seulement Récupération. Ouvrir ou fermer la feuille ne vaut pas validation ; ✕ annule les changements et conserve l’état antérieur. ✓ applique les valeurs et leur état validé au brouillon parent ; une réouverture après ce ✓ utilise le rendu normal. La sauvegarde définitive reste celle de la Séance ; abandonner le brouillon restaure l’état enregistré. Changer ultérieurement le Profil ne réinitialise pas les paramètres d’un Exercice existant. Les constantes imposées par un Format ne sont pas des défauts Profil. Le fond orange n’altère ni la valeur ni les règles de calcul, ni les couleurs du texte éditable/verrouillé.
+
 ## 1. Finalité
 
 KODJO est l’application mobile éditée par ANKUSHA permettant à un utilisateur de créer, exécuter, planifier et suivre des séances personnelles, notamment des exercices physiques, de mobilité ou de rééducation. Sa signature est `Keep On. Do Just One.`
@@ -85,6 +99,10 @@ Pour un plan bilatéral, cet instantané conserve le changement de côté effect
 
 ### Catalogue des séances
 
+**Résultats de recherche Mouvements — PRE-9.** Les résultats de création de Mouvement utilisent la carte Résultat avec « Ajouter un niveau » à droite (description 179 pt) ; les cartes réutilisées depuis la Composition/création d'un Exercice ne portent aucun bouton (description 253 pt sur deux lignes ellipsées). Les familles conservent le filet bleu centre-à-centre ; le choix « Plus facile | Plus difficile » utilise une seule carte dépliée, sans « Utiliser ce mouvement ». Référence : [spécification de développement](KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01.
+
+**Zones de contexte — PRE-9.** Les Catalogues Mouvements et Séances partagent la bande lilas Recherche et création, leurs champs Recherche, Filtre/Tri/Créer et les compteurs en première ligne selon [la spécification de développement](KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md). Mouvements : « N familles · N mouvements » avec compteurs de filtrage exclusifs et désélectionnables ; Séances : « Un exercice N | Plusieurs N » avec nombres informatifs, bascule inchangée ; sur les états filtrés/archivés, « N résultats » égale la taille réelle de liste après filtres et recherche. Aucun titre de page individuel ; navigation des Catalogues conservée.
+
 Le MVP permet de :
 - créer une Séance avec un nom obligatoire, au moins un Exercice valide et une Étiquette facultative dont la couleur devient la couleur affichée de la Séance ;
 - composer et modifier une Séance ;
@@ -152,7 +170,9 @@ Dans le MVP, les médias déjà associés à un Exercice peuvent être consulté
 
 ### Formats et départs rapides
 
-Les six formats d’entraînement (Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by) et les départs rapides appartiennent au MVP (D-378). Leurs règles sont au chapitre 08, section Formats de séances ; le moteur n’est pas encore développé (D-369).
+**PRE-9, décisions consolidées du 30/10/2026 :** [règles actives de Composition et Formats](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Six Formats configurables avec leurs valeurs initiales et contraintes : Tabata, 30/30, EMOM, AMRAP (12:00 proposé, réglable), For time et Death by ; compatibilité des Circuits déterminée Format par Format. Départs rapides sans Mouvement présélectionné : Renforcement 3×15, Progression 10/12/14, À l'échec 3 séries, Superset Circuit groupé d'un passage/deux emplacements vides, Libre ; **Gainage · Mobilité supprimé**. Seul l'Exercice porte le Format, le Circuit organise ses membres, le Cycle répète sa séquence. L'exécution spécialisée reste hors PRE-9.
+
+Les six formats d’entraînement (Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by) et les départs rapides appartiennent au MVP (D-378). **Dans la cible PRE-9, chaque Exercice porte son éventuel Format et ses réglages ; le Circuit organise les membres sans porter de Format propre.** Plusieurs Formats peuvent se succéder dans une Séance et dans ses Circuits/Cycles. Les Circuits repliés présentent la liste existante de leurs Exercices, enrichie du Format éventuel de chacun (Figma `10717:20056` / `10725:20142`). Leurs règles sont au chapitre 10 et le contrat de Composition au chapitre 13 ; le moteur n’est pas encore développé (D-369).
 
 ### Exécution d’une Séance
 

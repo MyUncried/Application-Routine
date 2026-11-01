@@ -4,6 +4,8 @@ Lot à verser à la documentation. Il remplace et complète `KODJO-Spec-Carte-se
 
 Périmètre : la carte de séance dans le contexte Catalogue, l'écran du catalogue des séances et son panneau de filtres. Les contextes Calendrier, Suivi et Choix ne sont pas modifiés.
 
+> **Limite de portée après les décisions PRE-9 du 29–30/10 :** [Format par Exercice et Formats multiples par Séance](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les prescriptions historiques de cette spécification parlant d'une « séance à format » ou de « la vignette du format de la séance » ne peuvent pas être interprétées comme la création d'un Format unique au niveau Séance. Elles décrivent les exemples de séances ayant un Format identifiable ; **le choix d'une vignette ou d'un libellé unique pour une Séance contenant plusieurs Formats différents n'est pas décidé par le présent lot**. Ne pas inventer une règle de priorité entre les Formats des Exercices. Les autres règles de cartes et de filtres restent inchangées.
+
 ---
 
 ## 1. Une seule carte pour toutes les séances
@@ -52,7 +54,7 @@ La carte archivée ne porte **aucune action** : l'icône ronde de restauration e
 
 **Contrôle segmenté à trois entrées**, Mouvements, Séances, Programmes, sur tous les écrans du catalogue.
 
-**Bascule de vue**, à gauche de la rangée des contrôles : deux textes simples, « Un exercice | Plusieurs ». Elle réalise les vues filtrées de D-449 §6. Aucune des deux n'est sélectionnée par défaut, ce qui correspond à la collection complète.
+**Bascule de vue**, sur la première ligne de la zone de contexte : « Un exercice N | Plusieurs N ». Les libellés conservent la bascule existante (aucun actif par défaut ; toucher la sélection active la désactive) ; les compteurs N, **purement informatifs**, ne deviennent pas cliquables. Les chiffres reflètent les nombres de Séances de chaque vue, et non les exemples 2 et 3 du prototype. Texte de 14 pt, libellés inactifs #595E66, actifs #0508E5 gras, compteurs #333333 Regular, séparateur | #9499A8 à x127. Voir [spécification PRE-9 de la zone de contexte](KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md).
 
 *Limite acceptée :* le retour à la collection complète se fait en désélectionnant l'option active, ce qui ne se devine pas. Une troisième option « Toutes » le résoudrait mais ne tient pas sur la ligne, qui doit laisser la place au contrôle de filtre déployé. La disposition est conservée en l'état.
 

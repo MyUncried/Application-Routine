@@ -283,7 +283,7 @@ Modale Résultat de série (8937:35362) : saisie proposée zéro, minimum zéro,
 - changement de côté Avec / Sans sans désignation anatomique, désignation côté 1 / côté 2 (RM-242 à RM-244) ;
 - cadence à choix rapides (RM-245), Durée de l’exercice et repli des signaux (RM-246), chevrons intégrés (RM-247) ;
 - Condition d’arrêt saisie ou dérivée, roulettes selon le type de série (RM-248 à RM-250) ;
-- présentation de la feuille en quatre cadres (D-413).
+- présentation de la feuille en six blocs (D-413).
 
 Ces évolutions sont des cibles documentées du MVP ; aucune réalisation n’est déclarée.
 
@@ -481,7 +481,7 @@ Les arbitrages explicitement traités sont clos. Cela ne vaut pas qualification 
 
 - **Fenêtres et commandes générales :** portée de Pause/Reprendre, réinitialisation, points d’arrêt et reprise système face à la règle « fenêtre continue ». Cette règle décrit déjà la fin du travail ; elle ne suffit pas à décider silencieusement de supprimer les commandes générales ou de les laisser modifier les échéances.
 - **Fenêtres et bilatéralité :** rattachement des côtés et de leurs pauses à la fenêtre commune. La formule EMOM validée ne doit pas recevoir un multiplicateur caché ; conserver une règle existante seulement si elle est compatible et démontrée.
-- **Death by à plusieurs exercices :** la règle validée lie un tour acquis à une fenêtre accomplie ; le rang global, le changement d’exercice et l’incrément doivent être explicitement raccordés si le parcours autorise plusieurs exercices. L’exemple d’un exercice ne prouve pas ce raccordement.
+- **Death by à plusieurs Exercices / en alternance :** la **configuration est fonctionnellement admise** depuis D-16/D-29 du 29/10/2026 ; le raccordement des rangs, horloges propres, fenêtres actives, changement d'Exercice et arrêt d'un membre doit être spécifié et qualifié pour le **moteur PRE-11**. Ce point n'est plus un arbitrage de configuration PRE-9 ouvert ; l'exemple d'un Exercice ne démontre pas à lui seul la validité de l'exécution multi-Exercices.
 - **Reconfiguration des comptes :** l’éditeur du Volume par tour doit conserver le lien entre nombre de tours et échelle ; l’EMOM « Par exercice » ne doit pas multiplier à la fois séries et tours. La représentation technique doit respecter les séquences et formules déjà décidées.
 
 Ces points ne remettent pas en question les décisions consignées. Ils ne constituent pas des blocages démontrés ; leur effet éventuel se limite au comportement dont une règle manquerait réellement. S’ils ne se résolvent pas par les règles existantes, le dossier VNext doit conserver une clarification localisée, sans inventer de comportement.

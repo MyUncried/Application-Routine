@@ -1,5 +1,21 @@
 # Documentation de KODJO
 
+> **Récupération et défauts Profil :** [règle validée](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recuperation-exercice-et-defauts-profil). Récupération propre à l’Exercice ; même valeur dans Composition ; saisie exclusivement dans la modale ; Pause / Ajouter un arrêt réservé aux Points d’arrêt. Tous les défauts Profil repris sont sur fond orange jusqu’au premier ✓.
+
+> **Composition — menu Créer :** [quatre options et fermeture par le bouton +/Annuler](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#composition-menu-creer). Réutilisation des suggestions de mouvements dans Créer un exercice ; accès Format depuis ce menu à préciser (MENU-FMT-01).
+
+> **Paramètres d’exécution — état cible :** [six blocs, libellés, côtés et durée calculée](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#parametres-execution-etat-cible). D-413, D-431, D-447 et RM-243 actualisés ; Phases du mouvement reste le libellé de référence. Raccordement de la nouvelle ligne Récupération : **REC-PARAM-01 clos : récupération portée par l’Exercice et réglée dans la modale**, sans modification implicite de la Composition ou du contexte ACTIVITY.
+
+> **PRE-9 — contre-revue documentaire indépendante du 30/10/2026 :** [matrice de conformité des travaux 1 à 8 et constats C-01 à C-15](KODJO-PRE9-Matrice-conformite-revue-transverse-2026-10-30.md). Corrections ciblées des libellés CAT.2, du suivi BMAD et des règles FMT-21/FMT-32 ; réserves graphiques Figma maintenues, sans prétention de qualification applicative.
+
+> **Coin inférieur droit « replié » des cartes — contrôle graphique du 30/10 :** [description et réserve de vérification Figma](KODJO-Coin-replie-cartes-2026-10-30.md). Aucun comportement métier n’est déduit ; nœud et variantes concernés à identifier avant d'en prescrire le rendu.
+
+> **PRE-9 — arbitrages et Composition avec Formats consolidés le 30/10/2026 :** [règles actives D-01 à D-30, valeurs initiales, compatibilités et départs rapides](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). ARB-04/22c/26–28 clos. Le Format appartient à l'Exercice ; le Circuit n'en porte pas ; la répétition groupée, le Cycle, l'échelle For time et les bornes AMRAP ont des portées distinctes. Les raccordements de l'exécution spécialisée restent PRE-10/11.
+
+> **Résultats de recherche des Mouvements — PRE-9, 30/10/2026 :** [spécification finale](KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01 au chapitre 13. Cartes Résultat avec « Ajouter un niveau » ; cartes Composition sans bouton et description tronquée ; regroupement des familles et choix de difficulté. Story CAT.2 immédiatement autorisée.
+
+> **Zones de contexte des Catalogues — décision du 30/10/2026, PRE-9 :** [spécification finale de développement](KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md) et CE-CAT-CTX-01 au chapitre 13. Mouvements : compteurs familles/mouvements exclusifs et cumul avec recherche/filtres ; Séances : compteurs informatifs Un exercice/Plusieurs, bascule préservée ; « N résultats » sur filtres/archives. Cible Figma 402 × 874 pt ; story CAT.1 immédiatement réalisable dans PRE-9.
+
 > **Composition actualisée — 28/10/2026 :** [référence consolidée](KODJO-Composition-conteneurs-2026-10-28.md), [analyse critique et réserves](REVUE-COMPOSITION-2026-10-28.md). D-451 : cycles visibles avec exercices directs et multi-circuit dans le MVP ; création par enveloppe, séries groupées/alternées, zéro intentionnel, en-têtes et défilement. Les maquettes de composition ont été vérifiées ; réalisation non qualifiée.
 
 > **Complément du 27/10 — Ajouter un niveau** : choix du sens dans le glissé du catalogue, sans écran intermédiaire. Voir [la spécification Mouvement](DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md), CE-MVT-02 au chapitre 13, captures au chapitre 06 et composants au chapitre 12.

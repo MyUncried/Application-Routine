@@ -1,5 +1,15 @@
 # API fonctionnelles
 
+<a id="recuperation-exercice-et-defauts-profil"></a>
+
+## Récupération de l’Exercice et défauts du Profil
+
+La Récupération après exercice appartient directement à l’Exercice dans le modèle cible de Séance. La ligne Récupération de la modale Paramètres d’exécution est son unique accès de saisie et de modification ; la Composition affiche exactement cette même valeur, sans objet Récupération autonome ni valeur concurrente. Le bouton Pause / Ajouter un arrêt ne propose que les Points d’arrêt : aucun ajout, réglage ou retrait de récupération par Placement.
+
+À la création d’un nouvel Exercice, sa Récupération reprend « Récupération après un exercice » du Profil ; 30 s n’est pas une constante. Modifier un Exercice conserve sa valeur ; un ancien Exercice sans récupération affiche 0 s sans recevoir le défaut du Profil. Déplacement et duplication conservent la récupération de l’Exercice. À 0 s, aucune récupération n’est exécutée ; les règles existantes de Pause terminale, d’ordre avant Point d’arrêt et de répétition dans un Circuit restent applicables. Les anciens instantanés, exécutions et données historiques restent lisibles sans réécriture ; la règle historique « aucune récupération post-exercice en ACTIVITY » reste limitée à cet ancien parcours, sans réintroduire un Exercice autonome dans la cible.
+
+Toute valeur initialisée depuis un défaut du Profil est présentée dans son cadre à fond orange dans Paramètres d’exécution jusqu’au premier ✓ validant les paramètres de cet Exercice. La règle est générale : elle vise chaque défaut du Profil effectivement repris, pas seulement Récupération. Ouvrir ou fermer la feuille ne vaut pas validation ; ✕ annule les changements et conserve l’état antérieur. ✓ applique les valeurs et leur état validé au brouillon parent ; une réouverture après ce ✓ utilise le rendu normal. La sauvegarde définitive reste celle de la Séance ; abandonner le brouillon restaure l’état enregistré. Changer ultérieurement le Profil ne réinitialise pas les paramètres d’un Exercice existant. Les constantes imposées par un Format ne sont pas des défauts Profil. Le fond orange n’altère ni la valeur ni les règles de calcul, ni les couleurs du texte éditable/verrouillé.
+
 ## Opérations de famille depuis le catalogue — 28/10/2026
 
 CE-MVT-03 et les [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) définissent réordonner, lier, entrer, sortir et dissoudre le dernier couple au relâchement. Annuler restaure l'opération pendant les 3 secondes du message d'appartenance. Les écritures et invariants sont au chapitre 09 ; aucune nouvelle route technique n'est imposée par ce lot documentaire. Ne pas assimiler dissoudre une famille à supprimer ses mouvements ni modifier les références d'exercices, l'historique ou les performances.
@@ -252,8 +262,8 @@ Contenu identique à la section [« Parcours MVP T03 — Catalogue des Exercices
 
 | ID | Opération | Entrées | Résultat | Règle |
 | --- | --- | --- | --- | --- |
-| API-COM-REC-01 | Ajouter explicitement une récupération | occurrence, durée validée | pause recovery du brouillon | Proposer le défaut Profil à l’ajout, jamais créer de récupération avec une occurrence. Appelée uniquement depuis le sous-brouillon de placement, appliquée par Confirmer (D-442). |
-| API-COM-REC-02 | Modifier la récupération après exercice | ID occurrence, durée ≥ 0 | occurrence mise à jour | `0 s` est une valeur valide et conservée. Appelée uniquement depuis le sous-brouillon de placement : la roulette s’ouvre sur la durée existante (D-442) ; hors placement, la récupération affichée n’est plus une cible. Le retrait passe par la désélection de la récupération en placement et rétablit la Pause terminale (RM-038). |
+| API-COM-REC-01 | Initialiser la récupération de l’Exercice | Création, défaut du Profil | Paramètre de l’Exercice dans le brouillon | Pas d’objet de pause recovery autonome ni d’ajout par Placement ; aucune réinitialisation à l’ouverture d’un Exercice existant. |
+| API-COM-REC-02 | Modifier la récupération de l’Exercice | ID Exercice, durée ≥ 0 | Brouillon Exercice mis à jour | Appel depuis Paramètres d’exécution seulement ; ✓ applique au parent, sauvegarde avec la Séance ; 0 s reste valide. |
 | API-COM-REC-03 | Déplacer une occurrence | ID occurrence, nouvelle position | ordre mis à jour | `postActivityRecoverySeconds` reste inchangé. |
 | API-COM-REC-04 | Dupliquer une occurrence | ID occurrence | copie indépendante | Copie `postActivityRecoverySeconds`. |
 | API-COM-REC-05 | Supprimer une occurrence | ID occurrence | occurrence supprimée | La récupération contextuelle disparaît avec elle. |
@@ -269,22 +279,22 @@ Les API de placement travaillent dans un sous-brouillon : ouverture, ajout/édit
 
 Le modèle logique distingue deux objets de pause : recovery (durée, occurrence source) et breakpoint (position structurelle). La présence explicite n’est pas déduite de la durée. Un identifiant stable permet les opérations idempotentes. L’attachement de recovery à l’occurrence est conservé ; le Point d’arrêt garde ses règles de position structurelle.
 
-postActivityRecoverySeconds devient une projection compatible pour les calculs : durée de recovery si présente,0 sinon. Il n’est pas une seconde source persistée concurrente. Schéma physique et index relèvent du développement. Au main 72d1bf4, seules les migrations 001..008 existent :009 est le numéro suivant constaté, à revalider à l’ouverture de la tranche, pas une réservation globale. Aucune reprise des séances anciennes n’est demandée dans ce lot de conception.
+La récupération est une durée propre à l’Exercice, affichée sans duplication dans la Composition et réglée uniquement dans Paramètres d’exécution. À la création d’un nouvel Exercice, sa Récupération reprend « Récupération après un exercice » du Profil ; 30 s n’est pas une constante. Modifier un Exercice conserve sa valeur ; un ancien Exercice sans récupération affiche 0 s sans recevoir le défaut du Profil. Déplacement et duplication conservent la récupération de l’Exercice. À 0 s, aucune récupération n’est exécutée ; les règles existantes de Pause terminale, d’ordre avant Point d’arrêt et de répétition dans un Circuit restent applicables. Les anciens instantanés, exécutions et données historiques restent lisibles sans réécriture ; la règle historique « aucune récupération post-exercice en ACTIVITY » reste limitée à cet ancien parcours, sans réintroduire un Exercice autonome dans la cible.
 
-Déplacer/dupliquer l’occurrence conserve sa récupération explicite et ses paramètres ; supprimer l’occurrence supprime sa récupération. Les règles structurelles des points d’arrêt restent celles de la Composition : un breakpoint ne suit ni ne se copie avec l’occurrence, et une opération qui rendrait deux breakpoints consécutifs est refusée (D-441, RM-251), sauf le déplacement et la suppression d’une occurrence, appliqués en retirant sans message le ou les breakpoints en cause, le premier d’une paire étant conservé (D-442). Le snapshot copie les pauses effectives ; POST_ACTIVITY_RECOVERY est générée seulement pour recovery positive. Aucune récupération post-exercice en exécution directe. La machine distingue récupération chronométrée et attente au point d’arrêt ; phases existantes réutilisées.
+Déplacer/dupliquer l’occurrence conserve sa récupération et ses autres paramètres ; supprimer l’occurrence supprime sa récupération. Les règles structurelles des points d’arrêt restent celles de la Composition : un breakpoint ne suit ni ne se copie avec l’occurrence, et une opération qui rendrait deux breakpoints consécutifs est refusée (D-441, RM-251), sauf le déplacement et la suppression d’une occurrence, appliqués en retirant sans message le ou les breakpoints en cause, le premier d’une paire étant conservé (D-442). Le snapshot copie les pauses effectives ; POST_ACTIVITY_RECOVERY est générée seulement pour recovery positive. Aucune récupération post-exercice en exécution directe. La machine distingue récupération chronométrée et attente au point d’arrêt ; phases existantes réutilisées.
 
 | Opération | Entrée | Résultat et contrat |
 |---|---|---|
 | Ouvrir le placement | Brouillon Composition | Sous-brouillon isolé, positions autorisées par type |
-| Ajouter recovery | Occurrence, durée validée | Objet explicite ; défaut proposé au moment de l’ajout |
+| Régler la récupération de l’Exercice | Paramètres d’exécution, durée validée | Même valeur dans la Composition ; aucune insertion par Placement |
 | Ajouter breakpoint | Position autorisée | Objet structurel, pas de durée cible ; refusé s’il suit ou précède un autre breakpoint sans Exercice entre eux (RM-251) ; tête de Circuit autorisée ; à N ≥ 2, début et fin de Tour simultanés : choix de celui à conserver ou annulation (D-442) |
 | Déplacer un Point d’arrêt | Identifiant du breakpoint, position cible | Mutation du brouillon à la seule dépose valide ; identité et propriétés conservées ; position interdite ou consécutive refusée sans mutation (D-441, RM-251) |
-| Modifier/retirer | Identifiant de pause | Mutation du sous-brouillon de placement, aucune sauvegarde prématurée ; le retrait d’un breakpoint (D-441) ou d’une recovery (D-442) passe par sa désélection dans le sous-brouillon de placement puis Confirmer ; la modification d’une recovery passe par la roulette en placement (D-442) |
+| Modifier/retirer un Point d’arrêt | Identifiant du Point | Désélection dans le sous-brouillon de Placement puis Confirmer ; Annuler restaure |
 | Confirmer/Annuler | Sous-brouillon | Application atomique ou restitution, décompte correct ; libellé « Confirmer les modifications » dès qu’un retrait ou une modification existe (D-441) |
 | Calculer le total | Plan et séries effectives | exact/estimated/lowerBound/omitted, ou incomplete |
 | Exécuter | Snapshot | Séries/pauses/côtés/récupérations/points selon plan, cadence sonore conservée |
 
-Le scalaire historique `ActivityDefinition.pauseSeconds` représente la Pause après chaque série : sa refonte doit porter cette valeur dans chaque `SeriesParameters.pauseSeconds`. Il ne peut pas être remplacé par la collection de pauses de Composition, qui représente récupération/point d’arrêt. Les deux collections et leurs cycles de vie restent distincts.
+Le scalaire historique `ActivityDefinition.pauseSeconds` représente la Pause après chaque série : sa refonte doit porter cette valeur dans chaque `SeriesParameters.pauseSeconds`. Il ne peut pas être remplacé par la collection des Points d’arrêt de Composition. Les deux collections et leurs cycles de vie restent distincts.
 
 ## Circuits
 
@@ -307,9 +317,11 @@ L’API de mise à jour des paramètres refuse une modification locale de N lors
 <a id="formats-api"></a>
 ### Formats — contrats de services fonctionnels
 
+**Contrat cible PRE-9 (30/10/2026) :** [décisions D-01 à D-30](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La validation de dépose compare l'**Exercice porteur de son Format** aux contraintes de nature/N du Circuit (six Formats : groupées admises ; alternées Tabata seulement N=8, EMOM/Death by admis, les autres refusés). Elle produit accepté, accepté avec confirmation si des valeurs sont perdues ou refusé **sans mutation**. La simple dépose ne transmet pas de Format ; l'adoption sur un second Exercice est une opération volontaire distincte. Les valeurs initiales sont proposées, non persistées comme constantes lorsqu'elles sont réglables. Les indicateurs d'acquisition/résultats relèvent du contrat du moteur PRE-10/11.
+
 | Opération | Entrée / sortie | Validation et effets |
 |---|---|---|
-| Initialiser depuis un modèle | Entrée choisie → brouillon de séance, format/origine et paramètres | Départ rapide = libre ; ne pas déduire le format du nom |
+| Initialiser depuis un modèle | Entrée choisie → brouillon de Séance, origine et **Exercices porteurs de leur Format/réglages** | Départ rapide = libre ; ne jamais inférer le Format depuis un titre ou le Circuit parent |
 | Modifier un réglage | Brouillon + réglage autorisé → paramètres effectifs, synthèse et durée | Constantes et format inchangés ; refus d’une édition non autorisée |
 | Changer l’organisation | Choix admis → ordre effectif | Tabata/EMOM/Progression selon règles ; interdit For time ; volume conservé |
 | Développer la prescription | Instantané → occurrences finies ou générateur progressif | Unité d’indexation explicite ; aucun double multiplicateur série × tour |
@@ -320,6 +332,8 @@ L’API de mise à jour des paramètres refuse une modification locale de N lors
 | Lire l’historique | Identité d’exécution → instantané et résultat | Jamais de recalcul depuis la séance source actuelle |
 
 [29/10/2026, ARB-03 (registre ch07 « Arbitrages PRE-9 ») : ces opérations portent sur un élément formaté (Circuit ou Exercice), non sur la Séance ; l’identité de son Format est fixée à la création de l’élément ; une Séance peut en contenir plusieurs ; l’origine de création reste celle de la Séance. Contrôle de compatibilité avant toute dépose : ARB-24 (PRE-9 C.4).] [30/10/2026, décision de Hermann du 30/10/2026, correction PRE-9 C.1 : « élément formaté (Circuit ou Exercice) » remplacé par « Exercice formaté » ; aucun Format n’est porté par un Circuit ni transmis à ses membres ; le contrôle de compatibilité porte sur l’organisation et le compte du Circuit qui reçoit l’Exercice formaté (ARB-24 annoté au registre ch07).]
+
+**Décisions d'acquisition à prévoir dans les services d'exécution PRE-10/11 (D-19 à D-21, 29/10/2026).** AMRAP et For time acquièrent un tour complet par appui « Tour terminé », une seule fois par tour ; un tour inachevé n'est pas acquis. À l'échéance d'un AMRAP, la saisie distincte des répétitions partielles propose 0 avant validation (D-20). Un plafond temporel facultatif For time arrête seulement l'Exercice avec résultat incomplet (D-21). Ces comportements ne sont ni une nouvelle condition d'ouverture de PRE-9 ni un format porté par le Circuit.
 
 La saisie du rang de fenêtre ou d’un nombre de tours à chaque passage n’est pas exposée. L’horloge génère les échéances ; les commandes doivent être idempotentes face aux doublons. Le formulaire proposé à zéro n’est pas une mesure avant validation. Erreurs : format incompatible, constante modifiée, objectif ou compte invalide selon sa borne existante, unité incohérente et fenêtre obsolète ne doivent pas être acceptés silencieusement. Les détails des combinaisons non résolues sont tracés dans la revue, pas compensés par une valeur métier arbitraire.
 

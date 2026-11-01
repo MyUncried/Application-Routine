@@ -6,9 +6,27 @@
 
 > **Révision 2 du 29/10/2026** : ARB-01, ARB-02a/b, ARB-10b, ARB-23, ARB-24, ARB-25 validés et clos (`arbitrages-pre9.md` §0 bis). Découpage inchangé : **29 unités**, aucune story ajoutée, supprimée, fusionnée ni redécoupée ; l'entrée « Format » du menu Créer (ARB-23) et les règles de compatibilité des éléments formatés (ARB-24) sont rattachées à C.4, qui porte déjà le flux de Format et les déposes d'éléments formatés. Restent ouverts : ARB-04 et ARB-22c (décision de Hermann), et trois questions d'application nées de la révision 2, chacune limitée à une opération de C.4 : ARB-26, ARB-27, ARB-28.
 
+> **Clarification documentée du 29/10 :** le Format appartient exclusivement à l'Exercice ; la table des porteurs Exercice/Circuit de la révision 2 est supersédée. Les états replié/déplié réutilisent Figma (`10717:20056`, `10725:20142`).
+
+> **Extensions validées le 30/10/2026** : **CAT.1 — Zone de contexte des Catalogues** et **CAT.2 — Résultats de recherche des Mouvements** ; deux stories indépendantes à développer immédiatement dans PRE-9, sans attendre A.1/C.1 ni le moteur. **31 unités au total** : 26 stories de développement, 3 unités documentaires et 2 activités de qualification. Le décompte historique de 29 ci-dessus concerne la révision 2 antérieure aux deux ajouts.
+
+> **Consolidation active du 30/10 :** [décisions D-01 à D-30 et matrice des six Formats](../../../docs/KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). **ARB-04, ARB-22c et ARB-26 à ARB-28 sont clos** ; les mentions « ouverts » dans les révisions antérieures restent historiques. Porteur du Format = Exercice uniquement ; 31 unités BMAD et CAT.1/CAT.2 inchangées.
+
+## Menu Créer — règle active
+
+Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+
+À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+
+L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
+
+**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+
+Les exigences de menu ci-dessous se lisent avec cette règle ; aucune story ne doit réintroduire une entrée retirée.
+
 ## Ordre recommandé
 
-`DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `A.2b` → `B.4` → `B.4b` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
+`CAT.1` et `CAT.2` (immédiatement, indépendantes) ; `DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `A.2b` → `B.4` → `B.4b` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
 
 [29/10–30/10 : B.4b ajoutée après B.4 (recette n° 1, constat i) ; A.2b ajoutée après B.3 (contre-recette du 30/10), décisions de Hermann.]
 
@@ -17,6 +35,34 @@ Hors chemin critique : `Q.0` (activité distincte, à tout moment) ; `A.5` (cond
 [Ordre du 28/10 : `DOC.0` → `Q.0` → `A.1` → (`B.1`, `D.1`, `C.1`) → … → `A.4` → `A.3` → `A.5` → `DOC.1` → `Q.1`. Modifié le 29/10 : Q.0 non bloquant ; D.1 après C.1 (segments des éléments formatés progressifs) ; A.5 conditionnelle.]
 
 Points de contrôle iPhone : après B.2 (structure éditable), après B.6 (Composition complète), après C.4 (premier Format complet), en fin de PRE-9 (passe ciblée).
+
+---
+
+## Epic CAT — Catalogues (extension PRE-9 indépendante)
+
+### CAT.1 — Zones de contexte des Catalogues Mouvements et Séances
+
+**Exécution dès PRE-9**, sans dépendance au moteur ni à la Composition de Séance. Décision fonctionnelle validée le 30/10/2026.
+
+**Spécification complète, source de vérité de développement :** [KODJO — Zones de contexte des Catalogues — PRE-9](../../../docs/KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md), et **CE-CAT-CTX-01** (chapitre 13). Sources Figma `10266:20575`, `10465:23141`, `10495:24099`, `1992:9910`, `4549:6742`.
+
+**Livrer :** bande lilas y=92..207 à 402×874 ; compteurs à x24/y118 ; recherche x16/y155 de 216×44 pt (107×44 en filtré/archivé), placeholder « Rechercher » en 15 pt #7A7A80 ; Filtre/Tri/Créer visuels 34 pt à x260/306/352, y160, touchers 44×44 ; titre de page masqué ; deux compteurs filtrants et exclusifs « N familles · N mouvements » avec décompte des cartes affichées, sans compter les membres cachés ; « Un exercice N | Plusieurs N », bascule existante inchangée et nombres informatifs ; « N résultats » en filtré/archivé, bord droit x378, calcul live après recherche et filtres, singulier pour 1 seulement. Couleurs, graisses, espacement, sources de données et tous les états suivent la spécification complète.
+
+**Tests ciblés :** géométrie et cibles à 402×874 ; navigation et titres ; bascule/désélection mutuellement exclusive Mouvements ; non-régression des vues Séances ; valeurs dérivées des cartes réellement affichées (piles déployées/repliées, archives, 0 résultat, recherche croisée) ; calcul de « N résultats » et accords 0/1/2 ; cumul des critères et actions Filtre/Tri/Créer.
+
+**Livraison :** modifications applicatives ciblées et tests associés ; synchronisation de la documentation dans la même livraison, sans modifier Figma, sans recréer des données fixes de maquette ni modifier les règles de catalogues hors zone.
+### CAT.2 — Résultats de recherche des Mouvements : cartes Résultat et Composition
+
+**À réaliser immédiatement dans PRE-9**, indépendamment du moteur et de la persistance des Formats. N'altère pas CAT.1 ; les deux stories peuvent avancer sans dépendance fonctionnelle nouvelle.
+
+**Référence complète :** [Résultats de recherche des Mouvements — PRE-9](../../../docs/KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md), contrat CE-MVT-RESULT-01, maquettes `10415:21713`, `10415:21814`, `10415:21916`, `10415:21939`, `9882:19049`, `10175:20349`, `10131:21995`.
+
+**Livrer :** carte de Résultat de création Mouvement, bouton « Ajouter un niveau » (66 × 32 pt à x264 ; tactile 78 × 36 pt x258/y31), description 179 pt ; carte Composition sans bouton, 338 × 73 pt, description 253 pt et deux lignes ellipsées, sur tous ses emplois ; regroupement par filet bleu (x3, largeur 2 pt, centres des cartes extrêmes) ; état Niveau avec unique carte 338 × 104 pt, quatrième ligne « Plus facile | Plus difficile », contrôles, séparateur et hauteur de liste spécifiés ; aucune commande « Utiliser ce mouvement » ni second cadre dans cet état.
+
+**Tests et recette :** vérifier les deux contextes de création séparément, les états nom déjà utilisé/options, la liste de cinq exemples sans en figer les valeurs, les six regroupements, l'ouverture/fermeture du choix de Niveau, la création seulement après validation, et les non-régressions clavier, recherche, familles, classement, filtres et Composition. Aucun changement des autres écrans (planification, Profil, Suivi, archivage Séances) au titre de CAT.2.
+
+**Livrable :** code et tests ciblés, preuve de comparaison Figma, modification documentaire de classe B synchronisée, compte rendu des écarts. Pas de fusion dans `main` sans accord explicite.
+
 
 ---
 
@@ -44,7 +90,7 @@ Dépend de : —. Arbitrages : —. Migration 016.
 
 ### A.2 — Créer un Exercice depuis un Mouvement
 Dépend de : A.1, B.2 (menu Créer). Arbitrage : ARB-22a.
-- « Créer un nouvel exercice » ouvre la création de Mouvement puis les paramètres de l'Exercice, dans la Séance [29/10, recette n° 1 (Hermann) : l'Exercice est posé « Paramètres à compléter » ; toucher sa carte ouvre ses paramètres] ; « Utiliser un mouvement existant » ouvre la sélection des Mouvements par le parcours existant du Catalogue (PRE-8, actifs seulement, Q6 ; ARB-22a). L'Exercice est inséré après le dernier Exercice entré, dans son conteneur (ARB-07).
+- « Créer un exercice » ouvre l’éditeur du même titre ; la saisie du nom propose les Mouvements existants ; la confirmation du Mouvement sélectionné porte « Créer un exercice ». Aucun accès séparé Utiliser un mouvement existant. [29/10, recette n° 1 (Hermann) : l'Exercice est posé « Paramètres à compléter » ; toucher sa carte ouvre ses paramètres] (annotation PRE-9 portée sur l’ancienne formulation, à réexaminer)
 - Plus aucune lecture d'`activity_definitions` dans la Composition ; `ActivitySelectionScreen` et les parcours `catalogueDefinitionId` ne sont plus atteignables depuis la Composition.
 
 ### A.2b — Durées des phases portées par le Mouvement
@@ -77,13 +123,13 @@ Dépend de : A.3. Arbitrage : ARB-01. Migration 019. [31/10/2026, Hermann, 31/10
 ### B.1 — Rendu de la structure : Cycles, Circuits, Exercices directs
 Dépend de : A.1. Arbitrages : ARB-12, ARB-13, ARB-19 (décidés).
 - Affichage des trois niveaux, Exercices directs de Séance et de Cycle, en-têtes (nom, chevron, compteur, durée), lettres (pas de lettre pour un conteneur unique ; après Z : AA, AB…, réattribuées selon l'ordre de Composition — ARB-13), hiérarchie par les fonds, Circuit replié (seconde ligne des noms, 68 pt), Cycle non repliable — Figma `10717:20056`, `10725:20142`, `10744:20108`.
-- État replié/déplié non persisté ; Circuit déplié à l'ouverture ; aucun contenu du brouillon perdu pendant un repli (ARB-12).
+- État replié/déplié non persisté ; Circuit déplié à l'ouverture ; **aucun contenu du brouillon perdu pendant un repli** (ARB-12). En position repliée, la deuxième ligne existante liste les noms des Exercices et leur Format éventuel (Figma `10717:20056`, `10725:20142`) ; déplié, les cartes individuelles restent visibles ; pas de nom commun de Format sur le Circuit.
 - Comptes Circuit et Cycle 1..99 éditables (stepper au toucher du nombre), nature éditable par l'adjectif.
 - Composants existants réutilisés (`CircuitHeader`, `OccurrenceCard`, `DisclosureControl`, stepper) ; un rendu non dessiné qui empêche une décision est signalé précisément, sans blocage général (ARB-19).
 
 ### B.2 — Menu Créer et création par enveloppe
 Dépend de : B.1. Arbitrages : ARB-06, ARB-07 (décidés).
-- Menu Créer (COMP §5 ; Figma `10705:20223`) : les cinq actions existantes + Annuler ; la sixième, « Format » (ARB-23), est branchée par C.4 sur le flux de Format, sans second parcours. Un nouvel Exercice est inséré après le dernier Exercice entré, dans son conteneur (ARB-07).
+- Menu Créer : quatre options et bouton +/Annuler selon CE-T03-08 et la règle active ci-dessus. Nouvelle occurrence après le dernier Exercice entré, dans son conteneur ; création par enveloppe inchangée.
 - « Ajouter un circuit / un cycle » : l'utilisateur **pose le conteneur sur un premier contenu** ; le conteneur est créé autour de ce contenu ; jamais de conteneur vide ; une Séance commence sans Circuit (D-451 « aucun cycle implicite », COMP l.19, ch09 l.134 ; rendu Figma `10818:20175`). Contenus éligibles, déduits des règles d'imbrication D-451 : pour un Circuit, un Exercice du niveau Séance ou d'un Cycle ; pour un Cycle, un Exercice ou un Circuit du niveau Séance. Circuit posé sur un Exercice formaté : selon ARB-27 (C.4) ; tant que non tranché, refusé sans altération.
 - Le rendu Figma du mode enveloppe (`10819:20344`, `10836:20478`) est réutilisé pour désigner le premier contenu ; aucune sélection multiple n'est développée. [31/10/2026 : sélection multiple et périmètre ajustable développés par B.4b, à la demande de Hermann.]
 - [28/10 : « mode enveloppe […] Confirmer crée le conteneur avec au moins un membre » avec sélection contiguë sous un même parent — remplacé le 29/10 par ARB-06 ; les contenus suivants rejoignent le conteneur par glisser-déposer (B.4).]
@@ -101,7 +147,7 @@ Dépend de : B.2. Arbitrages : ARB-06, ARB-09, ARB-24 (décidés).
 - **Remplir un conteneur** (ARB-06) : tout contenu peut y être déposé depuis une position non contiguë ou un autre conteneur, sans contrainte de contiguïté ni de parent commun, dans le respect des règles d'imbrication D-451.
 - **Déplacement d'un Cycle entier** par le même geste (ARB-09). [28/10 : « ARB-09 : hors PRE-9 ou appui long » — remplacé.]
 - **Point d'arrêt déposé dans un conteneur**, selon les règles de sa position de destination (ARB-06, B.6).
-- Éléments formatés (en coordination avec C.4) : Circuit ou Exercice formaté déplacé comme tout élément, y compris dans un Cycle, Format et paramètres conservés (ARB-03) ; B.4 fournit le **point d'appel** d'un contrôle avant dépose (accepté / accepté après confirmation / refusé sans mutation), neutre pour les éléments libres ; C.4 y branche les règles des éléments formatés (ARB-24) et leurs tests. Aucune interdiction générale des déplacements dans un Circuit formaté.
+- Éléments formatés (en coordination avec C.4) : les **Exercices** conservent leur Format et réglages à la dépose, y compris vers un Circuit ou un Cycle ; les Circuits déplacés conservent leur nature, compte et membres, mais n'ont aucun Format propre. B.4 fournit le contrôle avant mutation (admis / avec confirmation / refusé sans altération), neutre pour les Exercices libres.
 - Déplacement pas à pas existant (`stepOccurrence`) conservé et généralisé aux positions de l'arbre ; son retrait éventuel demanderait une décision de Hermann (comportement qualifié). [28/10 : « ou retiré explicitement, décision consignée » — corrigé le 29/10.]
 
 ### B.4b — Enveloppe multiple et périmètre ajustable
@@ -129,12 +175,12 @@ Dépend de : B.4. Arbitrages : ARB-02, ARB-02a/b (**validés**, révision 2). Co
 
 ### B.7 — Durées et synthèses
 Dépend de : B.1, D.1. Arbitrage : ARB-11 (décidé).
-- Durée par Circuit et par Cycle dans les en-têtes, total de Séance (≈/≥, D-443) calculés sur le plan développé (D.1) ; durée et arrondi du Cycle selon les règles de la Séance (ARB-11) ; un élément AMRAP contribue par sa durée imposée ; un élément Death by, sans durée calculable, est traité comme un Exercice sans durée conventionnelle, préfixe « ≥ » (application de D-070, à confirmer en revue) ; un Cycle × k multiplie une fois la durée de ses éléments, formatés compris (ARB-25) ; aucune valeur Figma prise comme oracle.
+- Durée par Circuit et par Cycle dans les en-têtes, total de Séance (≈/≥, D-443) calculés sur le plan développé (D.1) ; durée et arrondi du Cycle selon les règles de la Séance (ARB-11) ; un élément AMRAP contribue par sa **durée configurée**, initialement 12:00 ; un élément Death by, sans durée calculable, est traité comme un Exercice sans durée conventionnelle, préfixe « ≥ » (application de D-070, à confirmer en revue) ; un Cycle × k multiplie une fois la durée de ses éléments, formatés compris (ARB-25) ; aucune valeur Figma prise comme oracle.
 
 ### B.8 — Utiliser une Séance existante
 Dépend de : B.2, C.1. Arbitrage : ARB-16 (décidé).
 - Copie de la composition au niveau principal à l'endroit choisi, nouveaux identifiants, mêmes Mouvements, paramètres copiés, sans début/fin propres ni synchronisation (D-449 §3).
-- Éléments formatés copiés avec leur Format et leurs paramètres spécifiques (ARB-16). [28/10 : « copie sans le Format » — remplacé.] Ajout direct d'un nouvel élément formaté depuis la Composition : ARB-23 (ouvert, hors de cette story).
+- Éléments formatés copiés avec leur Format et leurs paramètres spécifiques (ARB-16). [28/10 : « copie sans le Format » — remplacé.] Ajout direct d'un nouvel Exercice formaté depuis la Composition : ARB-23 clos, implémenté via C.4 (hors B.8).
 
 ### B.9 — Nom de séance à trois états
 Dépend de : B.2. Arbitrages : ARB-14, ARB-15 (décidés).
@@ -148,41 +194,41 @@ Dépend de : B.2. Arbitrages : ARB-14, ARB-15 (décidés).
 
 ### C.1 — Persistance et registre des Formats
 Dépend de : A.1. Migration 017.
-- **Format porté par l'élément** (ARB-03) : Format et réglages persistés sur le Circuit ou l'Exercice porteur, relus à l'identique ; origine de création de la Séance (FMT-02) ; version de règle figée dans l'instantané seulement (D.2). Un élément sans Format est libre ; une Séance peut contenir plusieurs éléments formatés, directement ou dans un Cycle.
-- Registre déclaratif des 12 modèles (paramètres, états de verrouillage, bornes, porteur — table à confirmer en revue —, compte du Circuit porteur gouverné par le Format — `architecture-pre9.md` §5 ; les règles de compatibilité sont livrées par C.4), défauts comme données (ARB-04 : un Format sans défauts reste indisponible).
-- **Aucun réglage ni compteur de répétition de l'ensemble** : la répétition intégrale d'un élément formaté passe par un Cycle (ARB-25). [Révision 1 : « support de la répétition de l'ensemble Tabata selon ARB-25 » — option A (multiplicateur dans `format_settings`) retirée.]
+- **Format porté exclusivement par chaque Exercice** (clarification du 29/10) : `format_key` / `format_settings` ne sont pas persistés sur le Circuit ; origine de la Séance distincte ; version de règle dans l'instantané (D.2). Plusieurs Exercices formatés peuvent coexister dans la Séance et un même Circuit, selon leur compatibilité. L'identité du Format suit la copie ou le déplacement de l'Exercice.
+- Registre déclaratif des modèles : contraintes et réglages **par Exercice** ; nature et compte conservés sur le Circuit. La compatibilité est vérifiée entre chacun des Exercices formatés et les paramètres structurels de son conteneur (C.4), sans nouveau porteur ou compteur de Format. [Ancienne table des porteurs Exercice/Circuit : supersédée.]
+- **Aucun compteur supplémentaire de répétition de Format** : le Circuit groupé répète les passages complets de ses membres ; le Cycle répète sa séquence. En alternance, N contraint les séries compatibles ; aucune double multiplication ni modification silencieuse d'une constante (ARB-25 précisé, D-05/16).
 - Format conservé par déplacement, insertion dans une autre Séance (ARB-16) et duplication (ARB-17) : test d'aller-retour stockage par cas.
 - [28/10 : « Format, origine, réglages, organisation et version de règle persistés » sur la Séance — remplacé le 29/10.]
 
 ### C.2 — Sélection du modèle
 Dépend de : C.1, A.2. Arbitrage : ARB-05 (décidé).
 - Grille CE-FMT-01 (entrée `8598:29271`) avec les deux cartes **Exercice** et **Séance**, non fusionnées (ARB-05) : Séance ouvre la Composition vide ; Exercice mène, par la sélection d'un Mouvement (parcours Catalogue, ARB-22a), à une Séance contenant ce seul Exercice ; chaque Format ou départ rapide ouvre son écran de paramètres.
-- Présentation définitive (dont libellé « Mobilité » / « Gainage · Mobilité ») confrontée à Figma pendant la story, sans modification de Figma ni blocage (ARB-19). Enchaînement exact des écrans de la carte Exercice : à confronter à Figma, signalé s'il manque.
-- Format dont les défauts manquent (ARB-04) ou départ rapide non défini (ARB-22c) : vignette indisponible, comme en PRE-8.
+- Présentation définitive (dont **retrait** de Gainage · Mobilité des départs rapides actifs, D-25) confrontée à Figma pendant la story, sans modification de Figma ni blocage (ARB-19). Enchaînement exact des écrans de la carte Exercice : à confronter à Figma, signalé s'il manque.
+- Les défauts de tous les six Formats et des départs rapides sont définis (ARB-04/ARB-22c clos). Aucune vignette n'est rendue indisponible au seul motif de cette ancienne attente ; Gainage · Mobilité est retiré de la grille active.
 
 ### C.3 — Paramètres imposés et récapitulatif
-Dépend de : C.2. Arbitrages : ARB-03, ARB-18, ARB-22a, ARB-25 (décidés) ; ARB-04 (défauts, par Format).
-- Choix des Exercices dans le flux du Format par le parcours Catalogue existant (ARB-22a) ; le porteur (Exercice ou Circuit) suit la table du registre (`architecture-pre9.md` §5).
-- Tabata : aucun champ « Répétition de l'ensemble » ; compte du Circuit 1 en Par exercice, 8 en En alternance, 8 séries par Exercice dans les deux cas (FMT-12/13/14, D-360, ARB-25). Pour les autres Formats, représentation du compte confirmée Format par Format dans la spec de la story (`arbitrages-pre9.md` §0 bis, point 2).
-- **Changement d'organisation d'un Circuit formaté** (ici et en C.6) : volume de chaque Exercice conservé, seul l'ordre change (ch11 l.313 ; CE-FMT-02 §12) ; la conversion générique groupées ↔ alternées de COMP §2 (N conservé, troncature) ne s'applique pas ; interdit pour For time. Répéter un Format = le placer dans un Cycle, dans la Composition ; aucun Cycle n'est créé silencieusement.
-- Par Format : constantes affichées et grisées avec leur raison ; réglables bornés ; calculés en direct (ex. EMOM `N × E × W`, par élément) ; organisation Par exercice / En alternance quand elle existe (nature du Circuit porteur) ; 30/30 : nombre commun de séries dans le Circuit (ARB-18a) ; For time sans segment, zéro admis dans l'échelle avec volume total non nul (ARB-18b) (CE-FMT-02, Figma `8624:*`).
+Dépend de : C.2. Arbitrages : ARB-03, ARB-18, ARB-22a, ARB-25, ARB-04 (**valeurs initiales validées**).
+- Choix des Exercices dans le flux du Format par le Catalogue existant (ARB-22a) ; **le Format appartient à chaque Exercice**, y compris quand les Exercices sont organisés en Circuit. Le registre vérifie les contraintes propres à chaque Format et la compatibilité de l'organisation, sans identité de Format sur le Circuit.
+- Tabata : aucun champ « Répétition de l'ensemble » ; compte du Circuit 1 en Par exercice, 8 en En alternance, 8 séries par Exercice dans les deux cas (FMT-12/13/14, D-360, ARB-25). Pour les autres Formats, appliquer les valeurs initiales et la matrice D-14 à D-16 ; ne pas transformer le compte du Circuit en multiplicateur propre au Format.
+- **Changement d'organisation d'un Circuit contenant des Exercices formatés** : appliquer les règles de compatibilité des Formats présents (Tabata N=8 en alternées, 30/30 et For time non admis en alternées selon D-16, etc.). Une conversion générique ne peut jamais écraser les constantes des Exercices ; la règle du brouillon et les confirmations en cas de perte restent applicables. Un Cycle peut répéter la séquence et un Circuit groupé répéter ses membres, sans multiplication cachée.
+- Par Format : constantes des Exercices affichées et grisées avec leur raison ; valeurs initiales réglables, calculs en direct (ex. EMOM `N × E × W`, par bloc) ; choix Par exercice / En alternance lorsque le Format le permet, représenté par l'organisation compatible du Circuit sans propriété de Format sur celui-ci ; 30/30 : 6 séries initiales, constantes 30 s / 30 s ; For time : échelle initiale 21·15·9, zéro admis dans une position si volume total non nul (CE-FMT-02 ; D-14, D-16, ARB-18).
 
 ### C.4 — Composition préremplie et verrouillage
 Dépend de : C.3, B.2, B.3, B.4. Arbitrages : ARB-15, ARB-23, ARB-24, ARB-25 (décidés).
-- Composition préremplie : une Séance contenant **un élément formaté** (Circuit ou Exercice porteur) nommé du nom du Format ; nom de Séance initial = nom du Format (ARB-15) ; l'utilisateur peut ensuite ajouter des éléments libres ou formatés, avant, après ou autour, y compris dans un Cycle qui les répète (ARB-25).
-- **Entrée « Format » du menu Créer** (ARB-23) : sixième action, qui ouvre le flux de sélection et de configuration (C.2–C.3) et insère l'élément formaté à la position d'ARB-07 ; Circuit formaté lorsque cette position est dans un Circuit : ARB-28.
+- Composition préremplie : une Séance contenant un ou plusieurs **Exercices** porteurs du Format choisi ; nom initial suggéré de Séance = nom du Format (ARB-15). Un Circuit n'est qu'un conteneur ; l'utilisateur peut ensuite y ajouter d'autres Exercices ou organiser les éléments dans un Cycle.
+- **Accès Format depuis la Composition** : raccordement de remplacement réservé par MENU-FMT-01 ; ne pas ajouter Format au menu à quatre options. Les autres contrôles et compatibilités de C.4 restent requis.
 - Modale de paramètres avec champs verrouillés (Figma `8747:14451`) ; contraintes réappliquées après édition **de l'élément** (CE-FMT-03 §14) ; refus métier d'une constante modifiée ; un élément formaté n'est jamais converti silencieusement en élément libre.
-- Exercice ajouté dans un Circuit formaté (création, ARB-07) : contraintes du Format appliquées (EMOM : N conservé, durée recalculée, FMT-22).
-- **Compatibilité ARB-24**, branchée sur le point d'appel de B.4 : Exercice libre → Circuit formaté accepté si le Format l'admet, confirmation si des valeurs renseignées sont remplacées ; Exercice formaté → Séance ou Cycle accepté ; refus sans altération des paramètres ni des données. Exercice formaté → Circuit : critères selon **ARB-26** (refus sans altération tant que non tranché).
-- **Second Exercice pour un Format porté par un Exercice** : selon **ARB-27**.
+- **Ajout volontaire d'un Exercice au Format choisi** : le nouvel Exercice reçoit explicitement le Format avec les réglages confirmés ; la simple dépose d'un Exercice préexistant ne transmet aucun Format au Circuit ou à ses membres (`c458dac6`). Pour EMOM, l'ajout à un EMOM existant conserve les tours selon FMT-22 ; la dépose d'un EMOM entier dans un Circuit alterné est une opération différente (D-16).
+- **Compatibilité D-05/D-07/D-16** : à la dépose, l'Exercice garde son Format et ses paramètres intrinsèques ; nature et compte du Circuit contraignent uniquement l'organisation et le nombre actif compatible de séries. En alternées, adaptation à N avec confirmation si perte selon les règles déjà écrites ; refus sans mutation si une constante de Format serait violée. Adoption volontaire distincte du simple déplacement ; aucun Format sur Circuit.
+- **Second Exercice pour un Format déjà choisi** : adoption volontaire selon D-12 et `c458dac6`, sans transfert implicite depuis un Circuit. Aucun nouveau type de conteneur.
 - Détail graphique local : place du nom du Mouvement dans la carte d'un Exercice formaté (ARB-19).
 - [28/10 : « Composition préremplie conforme à la structure admise (ARB-03) » — remplacé le 29/10.]
 
 ### C.5 — Départs rapides
-Dépend de : C.2. Arbitrages : ARB-22b (décidé) ; ARB-22c (**EN ATTENTE DE DÉFINITION FONCTIONNELLE**).
-- Un seul mécanisme de préremplissage piloté par des données (`architecture-pre9.md` §5), capable des cas A (paramètres seuls), B (Mouvements et paramètres) et C (contenu variable par départ), testé sur des données de test ; aucun parcours propre à un départ.
-- Renforcement, Gainage · Mobilité, Superset, Progression, À l'échec préremplissent une Séance d'éléments libres, sans verrouillage (FMT-28).
-- Le contenu de chaque départ est ajouté comme donnée à la réception de sa définition ; un départ non défini reste indisponible. Seule cette activation est bloquée ; aucune valeur n'est inventée.
+Dépend de : C.2. Arbitrages : ARB-22b, **ARB-22c (clos)** ; D-22 à D-25.
+- Un seul mécanisme de préremplissage piloté par des données (`architecture-pre9.md` §5), capable des trois types validés, **sans Mouvements présélectionnés** dans les départs actuellement décidés.
+- **Renforcement** : 3 séries × 15 répétitions ; **Progression** : 10 / 12 / 14 répétitions ; **À l'échec** : 3 séries à l'échec ; **Superset** : Circuit groupé 1 passage et deux emplacements d'Exercices vides, paramètres libres ; **Libre** : Séance vide.
+- **Gainage · Mobilité supprimé** des départs rapides actifs (D-25) ; ne pas utiliser les exemples Figma comme autres valeurs par défaut. Tests ciblés des préréglages et absence de Mouvement arbitrairement choisi.
 
 ### C.6 — Modifier, dupliquer, rouvrir une Séance contenant des éléments formatés
 Dépend de : C.4. Arbitrages : ARB-17, ARB-21 (décidés).
@@ -203,7 +249,7 @@ Dépend de : A.1, C.1. Arbitrages : ARB-02a/b, ARB-10b, ARB-25 (**validés**, r�
 
 ### D.2 — Instantané de Séance
 Dépend de : D.1, C.1.
-- Type versionné et constructeur purs (sur le modèle de `exerciseSnapshot` v3), indépendants des modifications ultérieures des Mouvements ; Format, réglages effectifs et version de règle **par élément formaté** ; sérialisation et persistance reportées à PRE-10, premier consommateur.
+- Type versionné et constructeur purs (sur le modèle de `exerciseSnapshot` v3), indépendants des modifications ultérieures des Mouvements ; **par Exercice formaté** : identité du Format, réglages effectifs et version de règle. Les Circuits ne portent que nature, compte et appartenance ; sérialisation et persistance reportées à PRE-10, premier consommateur.
 
 ### D.3 — Descripteurs de capacités par Format
 Dépend de : C.1.
@@ -249,7 +295,7 @@ Dépend de : D.3.
 4. Fin de PRE-9 : chaque Format disponible et départ rapide défini, Séance à plusieurs Formats, conversion E.8-b sur les données réelles, non-régression Catalogue PRE-8.
 
 ## Risques de planification
-- Arbitrages encore ouverts et opérations bloquées (`arbitrages-pre9.md` §2 bis) : ARB-04 (mise à disposition des Formats concernés) ; ARB-22c (activation des départs rapides) ; ARB-26, ARB-27, ARB-28 (une opération chacun dans C.4). Aucune story n'est bloquée en entier. [Révision 1 : liste ARB-01, ARB-02a/b, ARB-04, ARB-22c, ARB-24, ARB-25, ARB-23, ARB-10b — clos en révision 2, sauf ARB-04 et ARB-22c.] [28/10 : « ARB-01 à ARB-05 conditionnent environ 11 stories » — remplacé.]
+- [HISTORIQUE de la révision 2, supersédé le 30/10 ; aucun de ces arbitrages n'est encore ouvert] Anciennes opérations bloquées (`arbitrages-pre9.md` §2 bis) : ARB-04 (mise à disposition des Formats concernés) ; ARB-22c (activation des départs rapides) ; ARB-26, ARB-27, ARB-28 (une opération chacun dans C.4). Aucune story n'est bloquée en entier. [Révision 1 : liste ARB-01, ARB-02a/b, ARB-04, ARB-22c, ARB-24, ARB-25, ARB-23, ARB-10b — clos en révision 2, sauf ARB-04 et ARB-22c.] [28/10 : « ARB-01 à ARB-05 conditionnent environ 11 stories » — remplacé.]
 - Le volume du chantier B est le plus élevé ; la découpe B.1–B.9 permet une recette intermédiaire.
 - C.4 regroupe le flux de Format dans la Composition, l'entrée « Format » et la compatibilité des déposes : story la plus dense de l'epic C, à découper en tâches au moment de sa spec si nécessaire, sans nouvelle story.
 - A.1 porte désormais une migration (016) en plus du changement de modèle : tests sur copie de base réelle obligatoires.

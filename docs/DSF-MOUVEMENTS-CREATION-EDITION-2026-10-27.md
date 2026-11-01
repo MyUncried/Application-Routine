@@ -29,13 +29,17 @@ Hors de ce lot : refonte complète des piles et filtres du catalogue, réordonna
 
 ### Création indépendante et recherche
 
-Le formulaire initial est vierge et sa pastille affiche « Niveau ». Saisir un nom déclenche les suggestions ; aucune sélection n'est implicite. Sans sélection, enregistrer crée un mouvement indépendant sans groupe, sous réserve d'un nom disponible. « Utiliser ce mouvement » reprend l'identité existante et ouvre sa fiche en lecture seule ; il ne crée pas un duplicata ni un exercice.
+Le formulaire initial est vierge et sa pastille affiche « Niveau ». Saisir un nom déclenche les suggestions ; aucune sélection n'est implicite. Sans sélection, enregistrer crée un mouvement indépendant sans groupe, sous réserve d'un nom disponible. [Portée historique du 27/10 supersédée par CAT.2 le 30/10 : l'action « Utiliser ce mouvement » figurait sur ces cartes.] Dans les résultats de **création de Mouvement**, les cartes Résultat ne présentent plus ce bouton : « Ajouter un niveau » reste leur seule action interne. La reprise d'un Mouvement existant par les autres parcours prévus conserve son identité, sans créer de duplicata ni d'Exercice.
 
 Conserver R01–R08 de la [spécification v7](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), dont corpus automatique R07, paramètres de classement et recherche par nom/alias. Rechercher aussi les mouvements créés localement dans une séance. Un seul résultat par identité de mouvement, même si plusieurs alias correspondent ; retenir sa meilleure correspondance. Au plus cinq résultats dans le panneau [30/10/2026, contre-recette PRE-9 n° 1 (Hermann) : « Ne pas limiter à 5 le nombre de résultats » — tous les résultats sont listés ; voir ch07 « Contre-recette PRE-9 n° 1 ».] et pas de réordonnancement pendant un appui. Entrée valide la saisie, sans sélectionner un résultat ni enregistrer la fiche.
 
 Nom unique après normalisation des espaces, casse et accents : contrôle pendant la saisie et à l'enregistrement, en excluant l'identité éditée. La normalisation de recherche n'autorise pas à fusionner des noms. Les alias peuvent être partagés. L'erreur indique « Ce nom est déjà utilisé. Reprenez ce mouvement ou choisissez un autre nom. » et conserve le brouillon.
 
 ### Variante et niveau
+
+### Résultats de recherche des Mouvements — rendu PRE-9
+
+**Référence finale active :** [Résultats de recherche des Mouvements — PRE-9](KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md), contrat CE-MVT-RESULT-01. La **carte Résultat** du parcours « Créer un Mouvement » conserve « Ajouter un niveau » à droite (66 × 32 pt à x264, deux lignes), description 179 pt et zone tactile 78 × 36 pt à x258/y31 ; **aucun bouton Utiliser** sur ces cartes. La **carte Composition** du parcours « Créer un Exercice » n'a aucun bouton (338 × 73 pt, description 253 pt tronquée à deux lignes avec « … »), dans tous ses emplois. Les familles conservent leur filet bleu x3, largeur 2 pt, de centre à centre des cartes affichées. L'état « Niveau, plus facile ou plus difficile » utilise un cadre unique 338 × 104 pt et une quatrième ligne « Plus facile | Plus difficile », sans « Utiliser ce mouvement », deuxième cadre ni symboles d'arbre. Les conditions métier de création et le choix de sens demeurent ceux déjà validés.
 
 ### Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026)
 
@@ -44,7 +48,7 @@ Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** d
 | Entrée | Choix du sens | Destination |
 | --- | --- | --- |
 | Catalogue : glissé sur un mouvement → Ajouter un niveau | Deux boutons **Plus facile ↓** et **Plus difficile ↑** se déploient sous les trois actions, dans la liste, sans navigation | Après choix, formulaire du nouveau niveau `10415:21980`, directement |
-| Liste des mouvements proches : Ajouter un niveau | État `10415:21939`, désormais nommé « Mouvement — Niveau, plus facile ou plus difficile » ; le choix Utiliser ce mouvement reste pertinent dans cette origine | Formulaire du nouveau niveau après choix du sens |
+| Liste des mouvements proches en création de Mouvement : Ajouter un niveau | État `10415:21939`, « Mouvement — Niveau, plus facile ou plus difficile » ; **aucun bouton « Utiliser ce mouvement » dans la carte** ; choix Plus facile / Plus difficile présenté sur la quatrième ligne | Formulaire du nouveau niveau après choix du sens |
 | Menu Niveau de la fiche | Ajouter un niveau → Plus facile / Plus difficile, selon D-448 point 9 | Formulaire du nouveau niveau |
 
 Dans le catalogue, les trois actions restent **Partager / Ajouter un niveau / Archiver**. L'ouverture du choix est un état de la carte, pas un écran de navigation : ne pas router vers `10415:21939`, ne pas ajouter de barre de retour ou de commande Utiliser ce mouvement à cette étape. Les cartes suivantes descendent pour libérer l'espace nécessaire ; le filet de la famille s'allonge d'autant. Aucun recouvrement, aucun changement d'ordre ou de rang. Refermer le choix restitue la disposition sans créer de mouvement.

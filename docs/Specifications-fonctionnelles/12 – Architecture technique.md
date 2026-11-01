@@ -1,5 +1,15 @@
 # Architecture technique
 
+<a id="recuperation-exercice-et-defauts-profil"></a>
+
+## Récupération de l’Exercice et défauts du Profil
+
+La Récupération après exercice appartient directement à l’Exercice dans le modèle cible de Séance. La ligne Récupération de la modale Paramètres d’exécution est son unique accès de saisie et de modification ; la Composition affiche exactement cette même valeur, sans objet Récupération autonome ni valeur concurrente. Le bouton Pause / Ajouter un arrêt ne propose que les Points d’arrêt : aucun ajout, réglage ou retrait de récupération par Placement.
+
+À la création d’un nouvel Exercice, sa Récupération reprend « Récupération après un exercice » du Profil ; 30 s n’est pas une constante. Modifier un Exercice conserve sa valeur ; un ancien Exercice sans récupération affiche 0 s sans recevoir le défaut du Profil. Déplacement et duplication conservent la récupération de l’Exercice. À 0 s, aucune récupération n’est exécutée ; les règles existantes de Pause terminale, d’ordre avant Point d’arrêt et de répétition dans un Circuit restent applicables. Les anciens instantanés, exécutions et données historiques restent lisibles sans réécriture ; la règle historique « aucune récupération post-exercice en ACTIVITY » reste limitée à cet ancien parcours, sans réintroduire un Exercice autonome dans la cible.
+
+Toute valeur initialisée depuis un défaut du Profil est présentée dans son cadre à fond orange dans Paramètres d’exécution jusqu’au premier ✓ validant les paramètres de cet Exercice. La règle est générale : elle vise chaque défaut du Profil effectivement repris, pas seulement Récupération. Ouvrir ou fermer la feuille ne vaut pas validation ; ✕ annule les changements et conserve l’état antérieur. ✓ applique les valeurs et leur état validé au brouillon parent ; une réouverture après ce ✓ utilise le rendu normal. La sauvegarde définitive reste celle de la Séance ; abandonner le brouillon restaure l’état enregistré. Changer ultérieurement le Profil ne réinitialise pas les paramètres d’un Exercice existant. Les constantes imposées par un Format ne sont pas des défauts Profil. Le fond orange n’altère ni la valeur ni les règles de calcul, ni les couleurs du texte éditable/verrouillé.
+
 ## Composition — actualisation du 28/10/2026
 
 Implémenter le plan de composition avec parents explicites et ordre, sans injecter de cycle technique. Ne pas renommer automatiquement les enums persistés. Les en-têtes collantes utilisent la hauteur rendue et au plus deux niveaux ; le rail, le survol et les cibles demandent une recette réelle. La forme visuelle du survol et le stepper ouvert ne sont pas qualifiés. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
@@ -18,11 +28,20 @@ Référence Figma : filet 2 px ; message `10484:24052`, 370 × 48 à (16, 738), 
 | --- | --- | --- | --- |
 | DSF / Actions glissées / Mouvement | `10586:45516` | 204 × 80 ; Inter Semi Bold 11 | Partager, Ajouter un niveau, Archiver |
 | DSF / Actions glissées / Mouvement — Choix du sens | `10586:45517` | 204 × 56 ; Inter Semi Bold 11 | Plus facile ↓ / Plus difficile ↑, raccords compris, sous les actions |
-| Carte — Mouvement — Résultat | `10199:22268` | 338 × 107 relevés ; actions Inter Medium 13 | Utiliser ce mouvement / Ajouter un niveau, libellé propagé aux instances |
+| Carte — Mouvement — Résultat | `10199:22268` | Bouton « Ajouter un niveau » 66 × 32 à x264 ; zone tactile 78 × 36 à x258/y31 ; description 179 pt | **Une seule action visible sur la carte de création de Mouvement** ; « Utiliser ce mouvement » absent (CE-MVT-RESULT-01) |
 
 Texte des actions glissées lié à `color/on-primary` (`VariableID:4151:6166`), blanc, déjà référencé. Aucune création de token global requise par le renommage. Réutiliser les propriétés des composants ; ne pas appliquer la typographie de carte aux actions glissées. Relevé : [ajout-niveau-glisse.json](../figma-mouvements-2026-10-27/ajout-niveau-glisse.json).
 
 La hauteur supplémentaire doit participer au layout de la liste pour décaler les cartes suivantes et prolonger le filet de famille. Ne pas monter un overlay qui les recouvre. Les raccords des deux boutons appartiennent au composant Choix du sens ; les flèches doivent être accompagnées des libellés accessibles. Les frames du prototype ne sont pas toutes des instances de ces nouveaux composants : leur existence dans le DSF est la référence de réutilisation, sans prétendre une liaison de toutes les frames.
+
+## Composants Résultat / Composition — PRE-9, 30/10/2026
+
+**Source visuelle active :** Figma `10199:22268` (« Carte — Mouvement — Résultat ») et `10895:19870` (« Carte — Mouvement — Composition »), [spécification fonctionnelle](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01. Ne pas créer un nouveau composant pour ce correctif.
+
+- **Résultat** : description 179 pt ; « Ajouter un niveau » sur deux lignes, x264, 66 × 32 pt, zone tactile x258/y31 de 78 × 36 pt. Ne pas réintroduire « Utiliser ce mouvement » dans cette variante de carte.
+- **Composition** : 338 × 73 pt, description 253 pt sur deux lignes avec « … », **aucun bouton** dans toutes les instances de ce composant.
+- **Familles** : filet bleu x3, largeur 2 pt, de centre à centre des cartes visibles extrêmes. **Choix du sens** : cadre 338 × 104 pt, une ligne supplémentaire « Plus facile | Plus difficile » ; aucun second cadre ou symbole d'arbre.
+- Utiliser les composants et comportements de recherche/famille existants ; la séparation des deux variantes est une règle d'affichage, sans mutation des données ni nouveau service.
 
 ## Design system — fiche Mouvement (lot ciblé du 27/10/2026)
 
@@ -800,7 +819,7 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 - Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T04.
 - L’ajout de `expo-audio`, `expo-speech` et de leur configuration native impose la production d’un nouveau development build iOS et Android ; Expo Go ne constitue pas la preuve finale pour ces comportements natifs.
 - T02-S02 et sa migration `004` constituent désormais un **état historique** supersédé sur la récupération par D-208. Le schéma cible n’utilise plus une récupération générique attachée à l’Exercice.
-- Pour D-208, la base de développement peut être **réinitialisée** : le schéma cible doit représenter `side_recovery_seconds` sur l’Exercice et un objet `recovery` explicite lié à l’occurrence de Séance ; `post_activity_recovery_seconds` peut être une projection technique dérivée, jamais une seconde source autoritaire de récupération (RM-209). Aucune exigence de migration utilisateur de l’ancien `recovery_seconds` n’est portée par cette conception.
+- La récupération après exercice est une donnée de l’Exercice, distincte de la Pause entre les côtés. Adapter le stockage et les lecteurs existants en conservant les durées, les instantanés et les historiques ; aucune suppression de données ni réinitialisation de base n’est autorisée par cette mise à jour documentaire.
 - Les migrations `005`/`006` restent des traces de l’état technique antérieur et des évolutions déjà réalisées ; elles ne doivent pas être interprétées comme le scénario cible de migration D-208. Lors de l’implémentation de D-208, la version de schéma et les éventuels scripts techniques doivent être recalés sur la baseline de base réinitialisée.
 - L’archivage, la restauration et la suppression restent hors du périmètre de livraison T04 ; leur modèle existant n’est pas supprimé.
 
@@ -1783,15 +1802,15 @@ Un seul service génère les occurrences du créneau puis applique les filtres p
 
 Le champ historique générique `recovery_seconds` ne constitue plus le schéma cible. La persistance cible sépare :
 - `ActivityDefinition.side_recovery_seconds` — récupération intrinsèque entre côtés, pertinente uniquement en bilatéral ;
-- objet `recovery` explicitement attaché à `SessionActivity` — unique source persistée de la récupération contextuelle, dont l’absence reste distincte d’une récupération présente à 0 s ; une projection `post_activity_recovery_seconds` peut être matérialisée pour le calcul ou la compatibilité, avec 0 en l’absence d’objet, mais ne devient pas une seconde source autoritaire (RM-209).
+- durée de Récupération après exercice portée par l’Exercice ; une seule source persistée, affichée en Composition et modifiée dans les paramètres. Les anciens objets recovery éventuels ne sont que des données de compatibilité à reprendre sans perte, pas un second modèle actif.
 
-La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
+La reprise des données existantes conserve les durées et les historiques. Le schéma et la migration éventuelle doivent être vérifiés dans le code avant implémentation ; aucun schéma SQL, effacement ou migration exécutée n’est déclaré par cette documentation.
 
 Le moteur ne déduit jamais une récupération post-exercice à partir de l’adjacence. Il lit la valeur portée par l’occurrence. Une Exécution directe d’`ActivityDefinition` ignore toute récupération post-exercice et ne peut produire que `SIDE_RECOVERY` lorsqu’elle est bilatérale.
 
 ## Pauses et symboles
 
-Conserver les shells. Composition : sous-brouillon isolé pour placement multiple et roulette ; commit parent avant sauvegarde finale. Modèle de pauses explicites et projection R unique pour calcul/snapshot. Moteur : phases de récupération et d’attente existantes, cadence sonore et ancres temporelles inchangées. Rendu de durée discriminé (exact/estimated/lowerBound/omitted), sans formater omitted en 0. Pas de migration numérotée ni de version de dépendance prescrite sans lecture du code. DSF et assets : voir ../DSF-PAUSES-ICONES-2026-10-07.md.
+Conserver les shells. Composition : sous-brouillon isolé pour placement multiple et roulette ; commit parent avant sauvegarde finale. Une seule valeur de récupération par Exercice pour calcul/snapshot ; Points d’arrêt structurels distincts. Moteur : phases de récupération et d’attente existantes, cadence sonore et ancres temporelles inchangées. Rendu de durée discriminé (exact/estimated/lowerBound/omitted), sans formater omitted en 0. Pas de migration numérotée ni de version de dépendance prescrite sans lecture du code. DSF et assets : voir ../DSF-PAUSES-ICONES-2026-10-07.md.
 
 ## 12.38 Impacts techniques de la consolidation D-209 à D-217
 
@@ -1823,6 +1842,12 @@ Prévoir transactions de conversion et adaptation, compatibilité tours par déf
 
 <a id="formats-architecture"></a>
 ## Formats — architecture cible du moteur à construire
+
+**Raccordement documentaire PRE-9 du 30/10/2026 :** [matrice et décisions consolidées](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). L'Exercice demeure le seul porteur de Format et de ses réglages. Le registre de Format contient les valeurs initiales décidées (30/30 = 6 séries, EMOM W60/N6, AMRAP 12:00 réglable, For time 21·15·9, Death by 1/1/1, constantes Tabata), non des valeurs de maquette inventées. L'adaptation à N du Circuit alterné est contrôlée avant mutation ; le Circuit groupé répète les blocs complets, le Cycle répète sa séquence, sans double multiplication. L'architecture doit distinguer le **tour de l'échelle For time** du **passage du Circuit**, et la durée AMRAP propre à chaque passage. Fenêtres, acquisition et clôture spécialisés attendent PRE-10/11 ; aucune migration SQL n'est livrée par cette clarification.
+
+**Clarification PRE-9 du 29/10/2026 — répartition des responsabilités.** Le **Format et ses réglages appartiennent à chaque Exercice** de la Séance ; un Circuit n'a ni `format_key` ni `format_settings` en propre. Le Circuit stocke uniquement sa nature (groupées/alternées), son compte et son ordonnancement. La migration 017 proposée dans le plan PRE-9 doit donc porter les attributs de Format sur les activités de Séance, **pas sur `tours`** ; le numéro et le contenu effectifs des migrations restent à vérifier sur le schéma physique au moment du développement. Lors d'une simple dépose, l'Exercice conserve son Format ; l'adoption par un second Exercice résulte d'un choix explicite. La validation doit séparer contraintes propres au Format, organisation et compte du Circuit, sans transfert implicite.
+
+**Contrat de présentation (source Figma)** : lorsqu'un Circuit est replié, sa deuxième ligne existante liste les Exercices et peut afficher leur Format respectif ; lorsqu'il est déplié, les cartes des Exercices sont visibles. La propriété métier du Format n'est pas déduite de cette présentation ; aucun nouvel état persistant du Circuit n'est créé. Figma, page `510:101`, nœuds `10717:20056` et `10725:20142` ; contrat de Composition au chapitre 13.
 
 Séparer prescription versionnée, paramètres contextuels, développement des occurrences, horloge, acquisition de résultat et formatage UI. Réutiliser les circuits de tours/séries ; porter l’unité d’indexation afin qu’un volume par tour ne soit pas interprété comme des séries successives.
 
@@ -1877,7 +1902,7 @@ Le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md#composants-et-tokens
 | Composant | Identifiant | Contrat |
 |---|---|---|
 | Carte — Mouvement | 10124:21979 | Sélection Absente / Vide / Cochée, 322 × 80 ; instances 354 × 80 |
-| Carte — Mouvement — Résultat | 10199:22268 | 338 × 107, photo 57, deux actions ; pas de radio dans la recherche |
+| Carte — Mouvement — Résultat | 10199:22268 | Variante résultats de création Mouvement ; description 179 pt ; « Ajouter un niveau » 66 × 32, zone tactile 78 × 36 ; **aucun bouton Utiliser** |
 | icon/modifier | 9925:41240 | Crayon plein 24, état actif blanc/bleu ; portée dans CE-T03-04, réserve D-445 (clos) |
 | icon/niveau | 9932:44044 | Variantes 1/2/3 ; état vide via Sélecteur classification, rangs supérieurs à compléter |
 | Sélecteur classification | 9003:15638 | Rôles Catégorie / Zone / Niveau ; vide 9925:41506, renseigné 9925:41515 |

@@ -1,5 +1,23 @@
 # Interface : navigation, écrans et conventions communes
 
+<a id="composition-menu-creer"></a>
+
+### Paramètres d’exécution — références courantes
+
+Références contrôlées directement dans Figma : `8328:37972`, `8328:38193`, `9207:18817`, `8328:38632`. Les captures actualisées montrent six blocs. Le libellé « Phases de l’exercice » encore visible dans Figma se lit « Phases du mouvement » selon D-448. Les autres textes illustratifs, notamment « À la cible », ne remplacent pas les libellés normatifs. La structure et les notations du nœud `8328:38193` ont été contrôlées ; son export PNG a expiré, son ancienne capture n’atteste pas le rendu courant.
+
+![Phases du mouvement : bloc et tableau indépendants](images/parametres-2026-11-01/9207-18817.png)
+
+### Composition — menu Créer
+
+Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+
+À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+
+L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
+
+**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+
 ## Composition — actualisation du 28/10/2026
 
 Références de rendu vérifiées le 28/10 : menu 10705:20223 ; deux circuits 10717:20056 et 10725:20142 ; cycle 10744:20108 ; base 10818:20175 ; placement circuit 10819:20344 ; circuit créé 10821:20222 ; placement cycle 10836:20478. Le tableau de la référence consolidée donne les liens. Les captures historiques de composition ne font plus foi pour ces en-têtes. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
@@ -51,6 +69,8 @@ Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres
 **Mouvement — Fiche**
 
 ![Mouvement — Fiche](images/mouvements-2026-10-27/10453-23030.png)
+
+**Référence active PRE-9 — Résultats de recherche des Mouvements :** [spécification finale](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01. Les nœuds Figma `10415:21713`, `10415:21814`, `10415:21916`, `10415:21939` utilisent la carte Résultat avec bouton « Ajouter un niveau ». Les nœuds `9882:19049`, `10175:20349`, `10131:21995` utilisent la carte Composition **sans bouton**. Les **sept copies PNG des écrans cités** ont été actualisées dans leurs chemins physiques existants depuis Figma le 30/10/2026 ; le composant Résultat `10199:22268` a également sa capture actualisée au chapitre 12. Les noms d'exemples des captures ne sont pas des données fixes.
 
 **Mouvement — Mouvements proches**
 
@@ -225,9 +245,9 @@ La règle vaut également :
 - à chaque Tour du Circuit ;
 - après le dernier Exercice de la Séance, avant la Fin de séance.
 
-Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause entre les côtés` et n’est exposé que lorsque `Changement de côté` vaut `Avec` (D-406). La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
+Dans les paramètres de l’Exercice, Récupération après exercice et Pause entre les côtés sont deux lignes distinctes : la première appartient au sixième bloc Récupération ; la seconde ne concerne que les côtés avec Avec. La Composition affiche la valeur de la première, sans nouvel accès de réglage.
 
-**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant le saisit pour le déplacer par glisser-déposer vers une position autorisée ; une dépose interdite est refusée sans modification. Son retrait se fait uniquement en mode Placement, où les Points existants apparaissent sélectionnés et se désélectionnent pour être retirés à la confirmation (D-441, remplace la bulle de retrait du Point). Deux Points d’arrêt ne se suivent jamais sans Exercice entre eux (RM-251). Depuis D-442 (22/10/2026) : le Point saisi est marqué visuellement par un état soulevé, comme une carte ; pendant le glisser d’une carte ou d’un Point, l’approche du bord haut ou bas de la zone visible fait défiler la liste ; la tête de Circuit (début de Tour) est une position autorisée et proposée ; un déplacement d’Exercice qui laisserait un Point à une position non autorisée est appliqué et retire sans message le ou les Points en cause, le premier de deux Points devenus consécutifs étant conservé ; la suppression d’un Exercice suit la même règle, au lieu du refus doux de D-441, et sa carte disparaît en fondu ; à N ≥ 2 Tours ou Séries, un Point de début de Tour et un Point de fin de Tour qui se suivraient donnent lieu au choix de celui à conserver. La Récupération après exercice reste exécutée et, dans la Composition v2, sa valeur affichable est intégrée à la troisième ligne de la carte (D-435) ; hors placement, cette valeur n’est plus une cible : la récupération s’ajoute, se modifie et se retire uniquement en mode Placement (D-442). Le point d’arrêt reste une action distincte. La Composition n’affiche aucun avertissement d’enchaînement sans pause (D-301 retirée par D-442).
+**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant le saisit pour le déplacer par glisser-déposer vers une position autorisée ; une dépose interdite est refusée sans modification. Son retrait se fait uniquement en mode Placement, où les Points existants apparaissent sélectionnés et se désélectionnent pour être retirés à la confirmation (D-441, remplace la bulle de retrait du Point). Deux Points d’arrêt ne se suivent jamais sans Exercice entre eux (RM-251). Depuis D-442 (22/10/2026) : le Point saisi est marqué visuellement par un état soulevé, comme une carte ; pendant le glisser d’une carte ou d’un Point, l’approche du bord haut ou bas de la zone visible fait défiler la liste ; la tête de Circuit (début de Tour) est une position autorisée et proposée ; un déplacement d’Exercice qui laisserait un Point à une position non autorisée est appliqué et retire sans message le ou les Points en cause, le premier de deux Points devenus consécutifs étant conservé ; la suppression d’un Exercice suit la même règle, au lieu du refus doux de D-441, et sa carte disparaît en fondu ; à N ≥ 2 Tours ou Séries, un Point de début de Tour et un Point de fin de Tour qui se suivraient donnent lieu au choix de celui à conserver. La Récupération après exercice reste exécutée et, dans la Composition v2, sa valeur affichable est intégrée à la troisième ligne de la carte (D-435) ; hors placement, cette valeur n’est plus une cible : la récupération est réglée uniquement dans les paramètres de l’Exercice. Le point d’arrêt reste une action distincte. La Composition n’affiche aucun avertissement d’enchaînement sans pause (D-301 retirée par D-442).
 
 **Contexte d’Exécution (D-220).** La ligne immédiatement sous le nom de l’Exercice est toujours renseignée : nom de Séance et Catégorie de l’Exercice lors d’une Exécution de Séance, Catégorie de l’Exercice seule en Exécution directe. L’indication du côté courant, lorsqu’elle existe, reste distincte.
 
@@ -345,6 +365,8 @@ Valeur initiale fonctionnelle de la préférence `Vibration`
 Présentation du Profil avant que l’utilisateur ait créé du contenu
 
 ### Catalogue des séances
+
+**Zone de contexte cible PRE-9.** Le bandeau « Recherche et création » des Catalogues Mouvements et Séances, les deux lignes, les compteurs et leurs états sont définis dans [la spécification finale PRE-9](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md) et le contrat CE-CAT-CTX-01. À 402 × 874 pt, bande lilas `y=92..207`, recherche `216 × 44` à `x=16, y=155` (`107` pt de large en état filtré/archivé), contrôles Filtre/Tri/Créer à `x=260/306/352` et `y=160`, cibles 44 pt ; aucun titre individuel de page. Figma : Mouvements `10266:20575`/`10465:23141`, Séances `1992:9910`/`4549:6742`. Les captures ci-dessous restent des références d'états ; leurs valeurs chiffrées ne sont pas des données statiques à implémenter.
 
 #### Carte unique et écran — référence du 27/10/2026
 
@@ -789,7 +811,7 @@ Références courantes du 12/10, complétées le 13/10 :32 captures du parcours 
 
 #### Placement et contrôles
 
-Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »] avec chevron intérieur à Avec et tableau éventuel, Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). La ligne Durée de l’exercice est toujours affichée, avec « — », « Non calculable » ou la valeur (D-433, qui remplace le cas « sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice directement visibles » de RM-246).
+Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. En-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en six blocs successifs (D-413) : 1 Exécution — Mode, Condition d’arrêt ; 2 Phases du mouvement — ligne Avec / Sans et, lorsqu’il est déployé, tableau Libellé/Durée dans ce même bloc ; 3 Séries — ligne Séries avec nombre et type identiques/variables, cible commune et Pause ou tableau des séries variables, puis Charge ; 4 Côtés — ligne « De chaque côté », puis Enchaînement et Pause entre les côtés selon les règles de déploiement ; 5 Cadence et durée — Cadence, Durée de l’exercice toujours présente, puis signaux lorsqu’ils sont déployés et applicables ; 6 Récupération — seule ligne « Récupération » après le bloc Cadence et durée. Le bloc Séries commence par la ligne Séries et ne contient pas les phases. La ligne Durée de l’exercice reste toujours affichée selon D-433. Récupération appartient à l’Exercice, réglée uniquement dans la modale ; le Placement concerne les Points d’arrêt.
 
 **Décision de Hermann du 26/10/2026 (recette JA, R2) :** nom en saisie : le premier appui dans le corps défilant ferme seulement le clavier, sans ouvrir la Feuille ni la Description ; la rangée Catégorie / Zones / Niveau garde son comportement.
 
@@ -996,7 +1018,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 ### Présentation des phases d’exercice
 
-La ligne Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »] (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée deux phases à renseigner ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La cible de série reste indépendante et modifiable selon les contraintes du format (PHC-20261026). [D-446 du 26/10/2026 : phases disponibles en séries identiques comme variables, avec une seule séquence de durées commune] Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+La ligne « Phases du mouvement » (D-448), Avec / Sans, appartient à son propre bloc, après Exécution et avant Séries (D-413). Le tableau Libellé/Durée détaillé reste dans ce bloc. Les règles d’activation, de phases communes aux séries identiques ou variables, de saisie et de validation restent celles de PHC-20261026 et D-446 ; la cible de série reste indépendante. Figma montre encore « Phases de l’exercice » : le libellé normatif est « Phases du mouvement ».
 
 Le rapport Figma V2 du 15/10 décrit trois écrans dédiés sur Conception — Hors MVP : « Phases (aucune) », « Phases (définies) » et « Phases verrouillées (séries variables) ». Il décrit aussi la ligne ajoutée sur 19 écrans de Prototype MVP et 19 de Conception. Ces nombres sont ceux du rapport fourni, pas un nouvel inventaire direct. Les seize modales de format n’ont pas encore reçu cette ligne selon ce rapport.
 
@@ -1008,19 +1030,19 @@ Les frames relevées le 18/10/2026 ci-dessous montrent la ligne Phases de l’ex
 
 
 
-Séries variables, trois séries à l’échec : Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »] non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397). Écart Figma depuis D-433 (19/10/2026) : la ligne Durée de l’exercice est affichée avec « Non calculable ». [État remplacé par D-446 du 26/10/2026 : en séries variables, Phases de l’exercice [libellé « Phases du mouvement » depuis D-448 du 26/10/2026] reste modifiable ; capture conservée comme référence historique]
+Séries variables, trois séries à l’échec : Phases du mouvement non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397). Écart Figma depuis D-433 (19/10/2026) : la ligne Durée de l’exercice est affichée avec « Non calculable ». [État remplacé par D-446 du 26/10/2026 : en séries variables, Phases de l’exercice [libellé « Phases du mouvement » depuis D-448 du 26/10/2026] reste modifiable ; capture conservée comme référence historique]
 
 #### Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases
 
 [Source Figma — `9207:18817`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9207-18817)
 
-![Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases](images/parametres-2026-10-18/9207-18817.png)
+![Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases](images/parametres-2026-11-01/9207-18817.png)
 
 Tableau de trois phases sous l’option Avec déployée (chevron vers le haut), sans boutons +/− ; Variables non modifiable [remplacé par D-446 du 26/10/2026 : Variables reste modifiable avec phases] ; Durée de l’exercice en texte simple. Écarts Figma : nom de frame hors convention (« Proposition 3 ») et barre bleue résiduelle à gauche de la ligne 1.
 
 ### Feuille Paramètres d’exécution — états intégrés
 
-Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »], décrite à la section « Présentation des phases d’exercice » ci-dessus (D-370 à D-375). Les valeurs affichées sont illustratives. Sur toutes les frames, l’option est affichée « A la cible » : le libellé décidé est « À l’objectif » (D-447, qui remplace « À la cible » de D-411).
+Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases du mouvement, décrite à la section « Présentation des phases d’exercice » ci-dessus (D-370 à D-375). Les valeurs affichées sont illustratives. Sur toutes les frames, l’option est affichée « A la cible » : le libellé décidé est « À l’objectif » (D-447, qui remplace « À la cible » de D-411).
 
 ##### Création activité — Paramètres (modale) — Champs vides
 
@@ -1040,7 +1062,7 @@ Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-
 
 
 
-Mode en contrôle segmenté ; Durée d’une série et Durée de l’exercice à « — ». Écart Figma : Valider y apparaît actif alors qu’une cible manque (D-337).
+Mode en contrôle segmenté ; Objectif de durée et Durée de l’exercice à « — ». Écart Figma : Valider y apparaît actif alors qu’une cible manque (D-337).
 
 ##### Création activité — Paramètres (modale) — Série en durée
 
@@ -1074,7 +1096,7 @@ Roulette de la ligne Durée de l’exercice ; 5 min 30 s est une valeur illustra
 
 [Source Figma — `8328:37972`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37972)
 
-![Création activité — Paramètres (modale) — Changement de côté Replié](images/niveaux-2026-10-25/8328-37972.png)
+![Création activité — Paramètres (modale) — Changement de côté Replié](images/parametres-2026-11-01/8328-37972.png)
 
 
 
@@ -1112,7 +1134,7 @@ Mode segmenté au-dessus d’un tableau de séries variables.
 
 [Source Figma — `8328:38632`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38632)
 
-![Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence](images/niveaux-2026-10-25/8328-38632.png)
+![Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence](images/parametres-2026-11-01/8328-38632.png)
 
 
 
@@ -1815,6 +1837,8 @@ Nœud [8656:34356](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 
 
+**État historique conservé — Gainage · Mobilité.** Les trois captures suivantes et leurs lignes d'inventaire décrivent un départ rapide antérieur, **retiré de la cible PRE-9 par D-25 du 29/10/2026**. Elles ne prescrivent pas son affichage dans la grille « Créer » ; conserver les nœuds et les images comme preuves historiques, sans les réactiver.
+
 <a id="format-8656-34494"></a>
 
 ##### Composition séance — Modèles — Gainage · Mobilité (paramètres)
@@ -2361,7 +2385,7 @@ D-221 : le MVP n’inclut aucune recherche globale ni recherche locale dans les 
 |---|---|---|---|---|
 | Composition ordinaire | Icône et valeur visibles | Informations récupération absentes | Informations point visibles | Conservé |
 | R absente/0 et aucun point | — | Aucune information de pause | — | Conservé hors placement |
-| Placement | Bloc Récupération sélectionnable et valeur si renseignée | Emplacement Récupération sélectionnable | Bloc Point d’arrêt selon sélection | Trait de démarcation supprimé pendant le choix |
+| Placement | Valeur de l’Exercice informative, non sélectionnable | Aucun emplacement Récupération | Bloc Point d’arrêt selon sélection | Rail et connexions selon le layout courant |
 
 Le trait ne désigne pas la ligne entière de contenu. Supprimer les informations ne doit pas supprimer ce trait hors placement ni faire disparaître les contrôles pendant le choix. Même distinction après la dernière occurrence : récupération absente/0 sans phase et sans contenu, trait selon le layout hors placement. Aucun Point d’arrêt terminal n’est créé.
 
@@ -2584,7 +2608,7 @@ Règles de gestion transférées sans modification depuis le [DSF — Cartes, ic
 
 ## Conventions actualisées — cartes et niveaux (25/10/2026)
 
-Référence : [relevé et écarts](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Carte simple repliée 80 pt ; photo 64 à 8/8, texte x84 ; pas de photo ajoutée aux séances ni aux listes mixtes. Carte Mouvement — Résultat : composant distinct de 107 pt avec actions internes, non soumis au gabarit simple. Petites icônes de ligne 14 sans cercle, bilatéralité après les zones en ligne 2. Sablier et horloge alignés dans une réserve commune de largeur adaptée à la valeur la plus longue ; aucun point médian avant l’heure du calendrier semaine.
+Référence : [relevé et écarts](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Carte simple repliée 80 pt ; photo 64 à 8/8, texte x84 ; pas de photo ajoutée aux séances ni aux listes mixtes. Carte Mouvement — Résultat : ancienne mesure 107 pt du relevé du 25/10, **supersédée pour les états PRE-9 du 30/10** par CE-MVT-RESULT-01 ; état déplié « Plus facile | Plus difficile » de 338 × 104 pt. La carte Composition distincte mesure 338 × 73 pt et ne porte aucun bouton. Ne pas appliquer à ces cartes le gabarit simple de 80 pt. Petites icônes de ligne 14 sans cercle, bilatéralité après les zones en ligne 2. Sablier et horloge alignés dans une réserve commune de largeur adaptée à la valeur la plus longue ; aucun point médian avant l’heure du calendrier semaine.
 
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). [bandeau répété dans ce chapitre, sans portée propre : même renvoi à D-445 que celui d’en-tête — annotation du 26/10/2026]
 

@@ -1,5 +1,7 @@
 # DSF — Formats de séances — 14 octobre 2026
 
+> **Complément fonctionnel actif PRE-9 du 30/10/2026 :** [décisions D-01 à D-30 et matrice des six Formats](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La présente DSF demeure la référence des **éléments graphiques effectivement représentés** dans Figma ; elle ne permet pas d'inférer un Format unique porté par Séance/Circuit, une valeur initiale à partir d'un exemple ou la présence de Gainage · Mobilité comme départ actif. Le Format appartient à l'Exercice. Tabata est répétable en Circuit groupé ou Cycle ; AMRAP possède une durée configurable par passage ; For time distingue rang d'échelle et passage du Circuit. L'exécution spécialisée ne relève pas de PRE-9.
+
 Statut : extension documentaire du DSF courant. Aucun composant Figma modifié par ce lot. Sources de layout : Prototype MVP, fichier G6RY5Ebhgwb4AHIOYDwwvg, inventaire/captures du chapitre 06. Comportements : spécification Formats, D-357…369. Le moteur n’est pas livré.
 
 ## 1. Portée et familles
