@@ -18,7 +18,7 @@ Relecture croisée des chapitres 00–13 de la baseline main `55aa34480d51472b54
 | Pause après série | 09 limitait SERIES_PAUSE à l’entre-deux | Pause après chaque série, dernière comprise ; seule substitution terminale prévue, sans règle de pause nouvelle |
 | Calcul/progression universels | Calcul du plan complet et pondération générique appliqués aux fenêtres | Portée des RM-071/072/075/077/125/126 et contrat d’exécution restreinte ; calcul EMOM séparé |
 | Commandes d’exécution | Suivant/fin de cible/arrêt depuis Pause imposés sans réserve | Complément CE-FMT-05/06 et portée du contrat générique ; raccordement R-01 conservé |
-| Tour/série | Volume For time réinterprété comme séries locales | Échelle par tour ; Progression par série ; 04/08/09/11, CE-CIR-03, corpus |
+| Tour/série | Volume For time réinterprété comme séries locales | Échelle For time par passage du Circuit, sans Séries locales ; Progression par série ; 04/08/09/11, CE-CIR-03, corpus |
 | Death by | Limite atteinte assimilée à Terminée ; rang déclaré | Horloge, acquisition explicite, résultat partiel et état incomplet ; 00/08/09/10/11/13 |
 | Valeur grisée | Valeur imposée assimilée à sans effet/tiret | Valeur réelle effective et raison ; DSF et CE-UI-10/CE-FMT-04 |
 | Fenêtre et bip | Même mot cadence risquant de partager la règle | Fenêtre fixe distincte du bip d’exercice ; spécification Bip et chapitres 00/08/12 |
@@ -26,7 +26,7 @@ Relecture croisée des chapitres 00–13 de la baseline main `55aa34480d51472b54
 
 ## Non-régressions vérifiées par lecture
 
-Les phases propres Compte à rebours/Fin d’exercice restent exclues des séances sans booléen. Le repos EMOM n’est pas ajouté à sa fenêtre. Les règles existantes de récupération terminale ne sont pas remplacées par un cas spécial Tabata. Les deux organisations Tabata conservent 16 efforts pour deux exercices. L’échelle For time conserve A21 B21 A15 B15 A9 B9. Les historiques restent fondés sur l’instantané. Les phrases sont segmentées et régénérées ; le corpus rédactionnel ne calcule aucune durée. L’échec reste une cible par série ; les rapports comparatifs ne sont pas conçus dans ce lot. Le moteur n’étant pas développé, ces éléments sont des prescriptions, pas une non-régression applicative mesurée.
+Les phases propres Compte à rebours/Fin d’exercice restent exclues des séances sans booléen. Le repos EMOM n’est pas ajouté à sa fenêtre. Les règles existantes de récupération terminale ne sont pas remplacées par un cas spécial Tabata. Les deux organisations Tabata conservent 16 efforts pour deux exercices. L’échelle For time suit les passages du Circuit. En alternance : A21 B21 A15 B15 A9 B9 ; par exercice : A21 A15 A9 B21 B15 B9. Les historiques restent fondés sur l’instantané. Les phrases sont segmentées et régénérées ; le corpus rédactionnel ne calcule aucune durée. L’échec reste une cible par série ; les rapports comparatifs ne sont pas conçus dans ce lot. Le moteur n’étant pas développé, ces éléments sont des prescriptions, pas une non-régression applicative mesurée.
 
 ## Écarts Figma encore observés
 
