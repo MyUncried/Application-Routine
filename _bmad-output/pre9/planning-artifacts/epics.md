@@ -26,7 +26,7 @@ Les exigences de menu ci-dessous se lisent avec cette règle ; aucune story ne d
 
 ## Ordre recommandé
 
-`CAT.1` et `CAT.2` (immédiatement, indépendantes) ; `DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `B.4` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
+`CAT.1` et `CAT.2` (immédiatement, indépendantes) ; `DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `B.4` → `B.5` → `B.6` → `B.7` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
 
 Hors chemin critique : `Q.0` (activité distincte, à tout moment) ; `A.5` (conditionnelle, après `A.3`, seulement si ses conditions sont réunies).
 
@@ -157,17 +157,19 @@ Dépend de : B.4. Arbitrages : ARB-02, ARB-02a/b (**validés**, révision 2). Co
 - [28/10 : « ARB-02 (bloquant). Migration 017 si option B » — remplacé.]
 
 ### B.7 — Durées et synthèses
+**Périmètre : vérification ciblée de l’existant, pas réécriture du calcul.** Identifier les fonctions et tests déjà livrés et vérifier leur couverture des Cycles, multi-Circuits, Formats, arrondis et récupérations. Modifier uniquement un écart démontré entre comportement actuel et règle validée ; si aucun écart n’est trouvé, clôturer sur les preuves existantes. La liste ci-dessous décrit les résultats attendus, pas des développements tous manquants.
 Dépend de : B.1, D.1. Arbitrage : ARB-11 (décidé).
 - Durée par Circuit et par Cycle dans les en-têtes, total de Séance (≈/≥, D-443) calculés sur le plan développé (D.1) ; durée et arrondi du Cycle selon les règles de la Séance (ARB-11) ; un élément AMRAP contribue par sa **durée configurée**, initialement 12:00 ; un élément Death by, sans durée calculable, est traité comme un Exercice sans durée conventionnelle, préfixe « ≥ » (application de D-070, à confirmer en revue) ; un Cycle × k multiplie une fois la durée de ses éléments, formatés compris (ARB-25) ; aucune valeur Figma prise comme oracle.
 
-### B.8 — Utiliser une Séance existante
+### B.8 — Utiliser une Séance existante — EN PAUSE
+**Décision de Hermann du 01/11/2026 : ne pas développer cette story.** Son utilité sera réévaluée avant toute reprise. Aucun blocage des stories suivantes ; ni suppression d’un comportement existant ni décision supplémentaire sur la visibilité du menu n’est déduite de cette pause.
 Dépend de : B.2, C.1. Arbitrage : ARB-16 (décidé).
 - Copie de la composition au niveau principal à l'endroit choisi, nouveaux identifiants, mêmes Mouvements, paramètres copiés, sans début/fin propres ni synchronisation (D-449 §3).
 - Éléments formatés copiés avec leur Format et leurs paramètres spécifiques (ARB-16). [28/10 : « copie sans le Format » — remplacé.] Ajout direct d'un nouvel Exercice formaté depuis la Composition : ARB-23 clos, implémenté via C.4 (hors B.8).
 
 ### B.9 — Nom de séance à trois états
 Dépend de : B.2. Arbitrages : ARB-14, ARB-15 (décidés).
-- Nom du Format (gris) → nom du premier Exercice (modifiable) → invite au deuxième Exercice (ch08 l.849-855) ; nom du Format comme nom initial proposé (ARB-15).
+- Le nom du Format est une suggestion initiale facultative, modifiable dès l’ouverture, jamais un nom imposé ni un champ verrouillé. Tant que le nom reste suggéré, les règles de proposition liées aux Exercices s’appliquent ; dès qu’il est personnalisé, aucune substitution automatique (ARB-14/ARB-15 précisés le 01/11/2026).
 - Titre personnalisé jamais remplacé automatiquement ; titre encore suggéré recalculé selon les règles existantes (ARB-14).
 - Point signalé (ch08 l.851 suppose un Format unique) : titre suggéré d'une Séance réunissant plusieurs éléments formatés, ou ouverte préremplie de plusieurs Exercices — appliquer ARB-14/ARB-15 sans règle nouvelle ; si elles ne suffisent pas, le cas précis est présenté à Hermann au moment de la story.
 
