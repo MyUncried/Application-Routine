@@ -1147,3 +1147,9 @@ C01–C07 et C09 clos ; C08 différé. Règles MFN-03/04/06/07/08/09/10/11 actua
 ## Composition — correspondance du 28/10/2026
 
 D-451 : registre chapitre 07 ; RM-252 et SU-04 : chapitre 10 ; CS-D1 à CS-D8 : référence Composition du 28/10. D-442/D-443 partiellement remplacées sur les en-têtes ; D-232/D-430 sur le minimum de cible de série. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
+## Paramètres d’exécution — référence courante
+
+D-413 : six blocs ; D-431 : notations et accessibilité ; D-447 : présentation de la feuille ; D-448 : Phases du mouvement ; RM-242 à RM-244 : concept Changement de côté, libellé visible De chaque côté. [État cible de CE-UI-10](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#parametres-execution-etat-cible). REC-PARAM-01 est une question de raccordement de Récupération, pas une nouvelle règle métier numérotée.
+
+Menu Créer : [état cible de CE-T03-08](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#composition-menu-creer). MENU-FMT-01 réserve uniquement le remplacement de l’accès Format, sans ajout d’identifiant de règle métier.

@@ -57,11 +57,17 @@ La durée réapparaît dans les en-têtes observés : la clause de D-443 qui la 
 
 ## 5. Écran de choix et placement
 
-Le menu observé propose, dans l’ordre : Créer un nouvel exercice ; Utiliser un mouvement existant ; Utiliser une séance existante ; Ajouter un circuit ; Ajouter un cycle ; Annuler. Les trois premières entrées alimentent la composition selon D-449. Les deux dernières ouvrent le choix de membres existants ; elles ne créent pas immédiatement un objet vide.
+Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+
+À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+
+L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
+
+**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
 
 Le placement montre l’enveloppe choisie en trait plein et les candidats en pointillé. Pied : « Confirmer le circuit » ou « Confirmer le cycle », avec Annuler. Le cycle accepte des circuits et des exercices directs. Le circuit accepte des exercices. L’illustration de cycle ne montrant que deux circuits n’annule pas l’admission d’un exercice direct.
 
-La création effective exige au moins un membre. La présentation des actions inéligibles, la sélection contiguë/non contiguë, le franchissement d’une frontière de conteneur et le rattachement d’un point d’arrêt à l’enveloppe ne sont pas déduits des captures : réserves explicites de la revue. Les formats comme autre porte d’entrée restent reportés à la définition des formats ; ils ne remplacent pas ce menu dans la cible actuelle.
+La création effective exige au moins un membre. La présentation des actions inéligibles, la sélection contiguë/non contiguë, le franchissement d’une frontière de conteneur et le rattachement d’un point d’arrêt à l’enveloppe ne sont pas déduits des captures : réserves explicites de la revue. Le menu à quatre options suit MENU-FMT-01 ; aucun accès Format supplémentaire n’est déduit des captures.
 
 ## 6. Déplacement — règles G1 à G8
 

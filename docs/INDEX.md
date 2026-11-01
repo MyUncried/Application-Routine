@@ -1,5 +1,9 @@
 # Documentation de KODJO
 
+> **Composition — menu Créer :** [quatre options et fermeture par le bouton +/Annuler](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#composition-menu-creer). Réutilisation des suggestions de mouvements dans Créer un exercice ; accès Format depuis ce menu à préciser (MENU-FMT-01).
+
+> **Paramètres d’exécution — état cible :** [six blocs, libellés, côtés et durée calculée](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#parametres-execution-etat-cible). D-413, D-431, D-447 et RM-243 actualisés ; Phases du mouvement reste le libellé de référence. Raccordement de la nouvelle ligne Récupération : **REC-PARAM-01 à arbitrer**, sans modification implicite de la Composition ou du contexte ACTIVITY.
+
 > **PRE-9 — contre-revue documentaire indépendante du 30/10/2026 :** [matrice de conformité des travaux 1 à 8 et constats C-01 à C-15](KODJO-PRE9-Matrice-conformite-revue-transverse-2026-10-30.md). Corrections ciblées des libellés CAT.2, du suivi BMAD et des règles FMT-21/FMT-32 ; réserves graphiques Figma maintenues, sans prétention de qualification applicative.
 
 > **Coin inférieur droit « replié » des cartes — contrôle graphique du 30/10 :** [description et réserve de vérification Figma](KODJO-Coin-replie-cartes-2026-10-30.md). Aucun comportement métier n’est déduit ; nœud et variantes concernés à identifier avant d'en prescrire le rendu.

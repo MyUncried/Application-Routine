@@ -874,3 +874,14 @@ C01–C07 et C09 clos ; C08 différé. Règles MFN-03/04/06/07/08/09/10/11 actua
 ## Composition — correspondance du 28/10/2026
 
 D-451 → RM-025/RM-028/RM-252/SU-04 → CE-T03-08 ; modèle DM-003/DM-004. Complément 28/10 → RM-027/RM-234 → CE-T03-08/CE-CIR-01/CE-CIR-02. Preuves : synthèse fournie et nodes du tableau Figma ; recette attendue et limites dans la référence consolidée. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
+## Paramètres d’exécution — état cible
+
+| Décision / règle | Contrat / chapitre | Évidence | Statut |
+|---|---|---|---|
+| D-413 : six blocs ; Phases du mouvement séparé ; Séries commence par Séries | CE-UI-10 ; chapitres 04/06/08 | Figma `8328:37972`, `9207:18817` | Décidé |
+| D-431, D-447, RM-243 : notations, neutralité, accessibilité, libellé De chaque côté | CE-UI-10 | Figma `8328:37972`, `8328:38193` et décision explicite de Hermann | Décidé |
+| Cible commune Durée : Objectif de durée ; durée calculée noire, 13 Semi Bold, sans pastille | CE-UI-10 ; RM-246/248/250 | Décision explicite ; durée calculée `8328:38632` | Décidé ; aucune frame dédiée requise pour le libellé de cible commune |
+| REC-PARAM-01 : ligne Récupération initialisée depuis le Profil | CE-UI-10 ; RM-209/211 ; D-304/307/442 | Figma : bloc Récupération ; règles existantes d’ajout explicite/Placement/ACTIVITY | À CLARIFIER sur le raccordement ; comportement non implémentable avant arbitrage |
+
+| Menu Créer : quatre options ; +/Annuler, voile et axe ; libellés de création | CE-T03-08, CE-T03-04 ; chapitres 03/04/06/08/10 | Figma `8328:28172`, `10705:20223` ; décision explicite de Hermann | Décidé ; accès de remplacement Format réservé par MENU-FMT-01 |

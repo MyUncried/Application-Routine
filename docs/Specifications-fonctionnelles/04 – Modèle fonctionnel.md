@@ -4,6 +4,18 @@
 
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
+<a id="composition-menu-creer"></a>
+
+### Composition — menu Créer
+
+Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+
+À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+
+L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
+
+**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+
 ## Modèle cible — D-449
 
 Mouvement = contenu partagé ; Exercice = mouvement avec paramètres dans une séance ; Séance = seul contenu enregistré, lançable et planifiable. La séance contient des exercices, circuits et cycles successifs ; chaque cycle contient des circuits, sans imbrication. Le qualificatif de séance ne dépend jamais du nombre d’exercices. La reprise d’une séance copie sa composition et ses paramètres, avec de nouveaux identifiants de composition et les mêmes références aux mouvements.
@@ -99,6 +111,14 @@ Le statut persistant d’une Séance est binaire : `Active` ou `Archivée`.
 Une Séance peut donc être simultanément `Active`, planifiée et déjà exécutée. `Supprimée` n’est pas un statut persistant : après suppression définitive, la Séance n’existe plus ; les Exécutions historiques restent consultables à partir de leurs Instantanés.
 
 ## Exercices
+
+<a id="parametres-execution-etat-cible"></a>
+
+### Paramètres d’exécution — organisation visible
+
+La feuille de création et de modification présente les six blocs Exécution → Phases du mouvement → Séries → Côtés → Cadence et durée → Récupération. Les phases et leur tableau forment un bloc autonome ; Séries commence par la ligne Séries. La cible commune du mode Durée en séries identiques porte le libellé « Objectif de durée » ; les colonnes variables restent inchangées. Les notations `DD… → GG…` (un côté après l’autre, par défaut) et `DG → DG → …` (les deux côtés à chaque série) désignent les côtés 1 et 2, jamais droite et gauche (RM-243). Le concept Changement de côté reste inchangé, sous le libellé visible « De chaque côté ».
+
+**À CLARIFIER — REC-PARAM-01.** La ligne Récupération de la feuille règle la durée après l’exercice, initialisée depuis « Récupération après un exercice » du Profil (30 s est une illustration, pas une constante), avec le contrôle de durée existant. Son articulation avec l’objet Récupération explicite de Composition et sa projection contextuelle doit être arbitrée : RM-209 et D-304/D-307 interdisent la création automatique ; D-442 réserve ajout, modification et retrait au mode Placement ; RM-211 exclut toute récupération post-exercice en ACTIVITY. Ne pas créer un second objet ni cumuler deux récupérations ; ne pas décider implicitement que la ligne crée un objet, modifie un objet existant ou s’applique en ACTIVITY. Aucun changement de ces comportements, du stockage, des calculs ou de l’exécution avant arbitrage.
 
 ### Concepts métier
 
@@ -339,7 +359,7 @@ Un Exercice possède un mode unique : Durée ou Répétitions, avec cible chiffr
 - **Séries variables** : état explicite, indépendant de l’égalité éventuelle des valeurs.
 - **Pause après chaque série** : libellé d’interface ; Pi est la Pause configurée de la Série i. Elle est exécutée après chaque Série, dernière comprise ; seule PN est remplacée par une récupération positive qui suit l’Exercice. Zéro signifie absence de phase positive.
 - **Charge** : `Avec` / `Sans` ; valeur informative en kilogrammes, commune en séries identiques ou propre à chaque Série variable ; activation distincte des valeurs conservées (D-403, D-404 ; RM-235 à RM-241).
-- **Changement de côté** : `Avec` / `Sans` ; détermine la bilatéralité ; le côté de départ est choisi par l’utilisateur et n’est pas désigné par Kodjo (D-406, RM-242).
+- **Changement de côté** : libellé visible « De chaque côté » dans la feuille ; `Avec` / `Sans` ; détermine la bilatéralité ; le côté de départ est choisi par l’utilisateur et n’est pas désigné par Kodjo (D-406, RM-242).
 - **Ordre des côtés** : libellé visible `Enchainement` (D-413) ; Un côté après l’autre (défaut) / Les deux côtés à chaque série. Sans objet en unilatéral.
 - **Pause entre les côtés** : PC, libellé unique y compris dans le Profil ; initialisée depuis le Profil (défaut 10 s). Le nom technique existant `sideRecoverySeconds` peut être conservé.
 - **Récupération après exercice** : R, ajoutée explicitement et portée uniquement par l’occurrence de Séance (`postActivityRecoverySeconds`), jamais par ActivityDefinition.

@@ -12,6 +12,18 @@
 
 > **Consolidation active du 30/10 :** [décisions D-01 à D-30 et matrice des six Formats](../../../docs/KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). **ARB-04, ARB-22c et ARB-26 à ARB-28 sont clos** ; les mentions « ouverts » dans les révisions antérieures restent historiques. Porteur du Format = Exercice uniquement ; 31 unités BMAD et CAT.1/CAT.2 inchangées.
 
+## Menu Créer — règle active
+
+Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+
+À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+
+L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
+
+**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+
+Les exigences de menu ci-dessous se lisent avec cette règle ; aucune story ne doit réintroduire une entrée retirée.
+
 ## Ordre recommandé
 
 `CAT.1` et `CAT.2` (immédiatement, indépendantes) ; `DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `B.4` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
@@ -76,7 +88,7 @@ Dépend de : —. Arbitrages : —. Migration 016.
 
 ### A.2 — Créer un Exercice depuis un Mouvement
 Dépend de : A.1, B.2 (menu Créer). Arbitrage : ARB-22a.
-- « Créer un nouvel exercice » ouvre la création de Mouvement puis les paramètres de l'Exercice, dans la Séance ; « Utiliser un mouvement existant » ouvre la sélection des Mouvements par le parcours existant du Catalogue (PRE-8, actifs seulement, Q6 ; ARB-22a). L'Exercice est inséré après le dernier Exercice entré, dans son conteneur (ARB-07).
+- « Créer un exercice » ouvre l’éditeur du même titre ; la saisie du nom propose les Mouvements existants ; la confirmation du Mouvement sélectionné porte « Créer un exercice ». Aucun accès séparé Utiliser un mouvement existant.
 - Plus aucune lecture d'`activity_definitions` dans la Composition ; `ActivitySelectionScreen` et les parcours `catalogueDefinitionId` ne sont plus atteignables depuis la Composition.
 
 ### A.4 — Conversion E.8-b
@@ -110,7 +122,7 @@ Dépend de : A.1. Arbitrages : ARB-12, ARB-13, ARB-19 (décidés).
 
 ### B.2 — Menu Créer et création par enveloppe
 Dépend de : B.1. Arbitrages : ARB-06, ARB-07 (décidés).
-- Menu Créer (COMP §5 ; Figma `10705:20223`) : les cinq actions existantes + Annuler ; la sixième, « Format » (ARB-23), est branchée par C.4 sur le flux de Format, sans second parcours. Un nouvel Exercice est inséré après le dernier Exercice entré, dans son conteneur (ARB-07).
+- Menu Créer : quatre options et bouton +/Annuler selon CE-T03-08 et la règle active ci-dessus. Nouvelle occurrence après le dernier Exercice entré, dans son conteneur ; création par enveloppe inchangée.
 - « Ajouter un circuit / un cycle » : l'utilisateur **pose le conteneur sur un premier contenu** ; le conteneur est créé autour de ce contenu ; jamais de conteneur vide ; une Séance commence sans Circuit (D-451 « aucun cycle implicite », COMP l.19, ch09 l.134 ; rendu Figma `10818:20175`). Contenus éligibles, déduits des règles d'imbrication D-451 : pour un Circuit, un Exercice du niveau Séance ou d'un Cycle ; pour un Cycle, un Exercice ou un Circuit du niveau Séance. Circuit posé sur un Exercice formaté : selon ARB-27 (C.4) ; tant que non tranché, refusé sans altération.
 - Le rendu Figma du mode enveloppe (`10819:20344`, `10836:20478`) est réutilisé pour désigner le premier contenu ; aucune sélection multiple n'est développée.
 - [28/10 : « mode enveloppe […] Confirmer crée le conteneur avec au moins un membre » avec sélection contiguë sous un même parent — remplacé le 29/10 par ARB-06 ; les contenus suivants rejoignent le conteneur par glisser-déposer (B.4).]
@@ -187,7 +199,7 @@ Dépend de : C.2. Arbitrages : ARB-03, ARB-18, ARB-22a, ARB-25, ARB-04 (**valeur
 ### C.4 — Composition préremplie et verrouillage
 Dépend de : C.3, B.2, B.3, B.4. Arbitrages : ARB-15, ARB-23, ARB-24, ARB-25 (décidés).
 - Composition préremplie : une Séance contenant un ou plusieurs **Exercices** porteurs du Format choisi ; nom initial suggéré de Séance = nom du Format (ARB-15). Un Circuit n'est qu'un conteneur ; l'utilisateur peut ensuite y ajouter d'autres Exercices ou organiser les éléments dans un Cycle.
-- **Entrée « Format » du menu Créer** (ARB-23) : sixième action réutilisant C.2–C.3 ; elle crée des Exercices formatés, avec placement d’un Circuit structurel si le flux le prévoit ; lorsque le dernier Exercice entré est dans un Circuit, le nouveau Circuit se place immédiatement après lui, dans le même parent (ARB-28). Le Circuit n'est pas porteur d'un Format.
+- **Accès Format depuis la Composition** : raccordement de remplacement réservé par MENU-FMT-01 ; ne pas ajouter Format au menu à quatre options. Les autres contrôles et compatibilités de C.4 restent requis.
 - Modale de paramètres avec champs verrouillés (Figma `8747:14451`) ; contraintes réappliquées après édition **de l'élément** (CE-FMT-03 §14) ; refus métier d'une constante modifiée ; un élément formaté n'est jamais converti silencieusement en élément libre.
 - **Ajout volontaire d'un Exercice au Format choisi** : le nouvel Exercice reçoit explicitement le Format avec les réglages confirmés ; la simple dépose d'un Exercice préexistant ne transmet aucun Format au Circuit ou à ses membres (`c458dac6`). Pour EMOM, l'ajout à un EMOM existant conserve les tours selon FMT-22 ; la dépose d'un EMOM entier dans un Circuit alterné est une opération différente (D-16).
 - **Compatibilité D-05/D-07/D-16** : à la dépose, l'Exercice garde son Format et ses paramètres intrinsèques ; nature et compte du Circuit contraignent uniquement l'organisation et le nombre actif compatible de séries. En alternées, adaptation à N avec confirmation si perte selon les règles déjà écrites ; refus sans mutation si une constante de Format serait violée. Adoption volontaire distincte du simple déplacement ; aucun Format sur Circuit.

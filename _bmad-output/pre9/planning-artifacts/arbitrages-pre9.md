@@ -6,6 +6,18 @@
 >
 > **Révision 2 du 29/10/2026.** Source : mission de Hermann « KODJO — PRE-9 : intégration des derniers arbitrages et finalisation du plan BMAD » (29/10/2026), après la seconde revue de ChatGPT. ARB-01 (conversion), ARB-02a, ARB-02b, ARB-10b, ARB-23, ARB-24 et ARB-25 sont **validés et clos** (§0 bis). [HISTORIQUE 29/10, SUPERSÉDÉ §0 quater] Restaient ouverts ARB-04 et ARB-22c, ainsi que trois questions d'application limitées à C.4 (ARB-26 à ARB-28, §2 bis).
 
+## Menu Créer — règle active
+
+Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+
+À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+
+L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
+
+**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+
+Les exigences de menu ci-dessous se lisent avec cette règle ; aucune story ne doit réintroduire une entrée retirée.
+
 ## 0. Décisions de Hermann du 29/10/2026 (révision 1)
 
 | Réf. | Décision (source : mission du 29/10) | Nature | Remplace |
@@ -43,7 +55,7 @@
 | ARB-01 | Conversion automatique sans perte : chaque ancien Exercice autonome devient une Séance contenant un Exercice ; Mouvements, paramètres, médias, associations et autres données pertinentes conservés ; conversion transactionnelle, annulation complète en cas d'échec ; données historiques non supprimées par la conversion. Suppression physique des anciennes tables : opération distincte, non autorisée automatiquement, exigeant une justification technique, une preuve de conservation et une autorisation explicite de Hermann | **VALIDÉ ET CLOS** (conversion) ; suppression **conditionnelle** | Options B et C |
 | ARB-02a | « Un point d'arrêt placé à l'intérieur d'un Cycle est rencontré à chaque répétition du Cycle. Un point d'arrêt placé à l'extérieur du Cycle, au niveau Séance, ne se répète pas du seul fait que le Cycle est répété. » Règles existantes de placement, de non-consécutivité et de déplacement appliquées | **VALIDÉ ET CLOS** | Proposition de la révision 1, confirmée |
 | ARB-02b | Aux Cycles répétés, mêmes principes que RM-219 et D-442 pour les Circuits : frontières entre répétitions, points devenus consécutifs, exceptions au début et à la fin, demande de choix entre point de début et point de fin de répétition, règles existantes de retrait ou d'annulation. « Ne pas introduire un second mécanisme de gestion des points d'arrêt. » | **VALIDÉ ET CLOS** | Proposition de la révision 1, confirmée |
-| ARB-23 | Option A : entrée « Format » ajoutée au menu Créer de la Composition, qui réutilise le parcours de sélection et de configuration des Formats ; élément inséré à la position prévue par les règles existantes ; menu à **six actions + Annuler** ; pas de second parcours | **VALIDÉ ET CLOS** | Option B (voie B.8 seule) |
+| ARB-23 | Menu Créer limité aux quatre options de CE-T03-08 ; pas d’entrée Format ; accès de remplacement réservé par MENU-FMT-01. | Configuration du menu décidée ; accès Format à préciser | La position d’insertion et les compatibilités des Exercices ne changent pas. |
 | ARB-24 | [HISTORIQUE SUPERSÉDÉ SUR LE PORTAGE] Ancienne règle d'une transmission des contraintes du « Circuit formaté » à l'Exercice entrant ; remplacée par D-05 et l'adoption volontaire (`c458dac6`). **Actif :** simple dépose sans transmission de Format ; contrôle de nature, N et constantes avant mutation ; confirmation seulement si perte, refus sans altération si incompatible. | **Précisé/supersédé sur ce point** | Ancienne proposition de transfert depuis Circuit |
 | ARB-10b | Une occurrence sautée en raison d'une cible nulle autorisée n'exécute pas la récupération directement associée ; les pauses indépendantes explicitement placées dans la Séance restent conservées selon leurs propres règles ; volume total de l'Exercice non nul | **VALIDÉ ET CLOS** | — (cas réservé par COMP §3 l.44, ch10 l.2616) |
 
@@ -177,7 +189,7 @@ Distinction : **règle existante appliquée** (citée) ; **représentation techn
 |---|---|---|---|
 | ARB-01 | Conversion E.8-b | Option A sans retrait de ligne | Conversion automatique sans perte ; suppression conditionnelle |
 | ARB-02a/b | Points d'arrêt à l'intérieur d'un Cycle ; exception RM-219 | Répétés ; exception et demande de choix comme pour le Circuit | Confirmé |
-| ARB-23 | Nouvel élément formaté depuis la Composition | A — entrée « Format » dans le menu Créer | Option A ; menu à six actions + Annuler |
+| ARB-23 | Menu Créer limité aux quatre options de CE-T03-08 ; pas d’entrée Format ; accès de remplacement réservé par MENU-FMT-01. | Configuration du menu décidée ; accès Format à préciser | La position d’insertion et les compatibilités des Exercices ne changent pas. |
 | ARB-24 | Éléments formatés et Circuits | (a) non proposé ; (b) confirmation | (a) remplacé : déplacement permis si les contraintes restent compatibles, sinon refus sans altération — critères : ARB-26 ; (b) confirmé ; second Exercice : ARB-27 |
 | ARB-25 | Support de la répétition de l'ensemble Tabata | A — multiplicateur dans `format_settings` | **Option A retirée** ; le Cycle répète l'élément (option C de la révision 1, généralisée) |
 | ARB-10b | Récupération après occurrence sautée | Sautée avec l'occurrence | Confirmé ; pauses indépendantes conservées. La réserve sur les « tours entièrement nuls » (ch10 l.2616) n'est pas couverte et reste en l'état (le plan les développe par la règle existante : séries nulles sautées) |
@@ -224,9 +236,9 @@ Classe B selon la règle permanente : décisions validées des révisions 1 et 2
 | ch10 Règles | l.2616 « Les effets sur récupération contextuelle et tours entièrement nuls sont réservés » | Lever la seule réserve sur la récupération : récupération associée à une occurrence sautée non exécutée ; pauses indépendantes conservées. La réserve « tours entièrement nuls » est maintenue | ARB-10b | D.1 |
 | ch07 Registre | D-441 (l.121-126), D-442 (l.140, « Début et fin de Tour ») | Annoter : s'appliquent aussi aux répétitions de Cycle | ARB-02b | B.6 |
 | COMP (`KODJO-Composition-conteneurs-2026-10-28.md`) | §3 l.44 « La source ne tranche pas son sort […] réservé » | Renvoi à ARB-10b | ARB-10b | D.1 |
-| COMP | §5 l.60 (menu observé, cinq actions) ; l.64 (enveloppe ; « les formats comme autre porte d'entrée restent reportés ») | Menu à six actions + Annuler (entrée « Format ») ; enveloppe = pose sur un premier contenu puis glisser-déposer | ARB-23, ARB-06 | B.2, C.4 |
+| Menu Créer Composition | CE-T03-08, COMP §5 | Quatre options ; bouton +/Annuler et couches conformes à Figma | Règle active du menu | B.2 ; accès Format réservé |
 | COMP | §6 l.72 (déplacement d'un Cycle) ; l.52 (lettres) | Cycle déplaçable par le même geste ; AA, AB… | ARB-09, ARB-13 | B.4, B.1 |
-| ch13 Contrats d'écran | l.2017 « Bouton + ouvrant le menu à cinq actions » ; l.1768 | Six actions, entrée « Format » ; enveloppe | ARB-23, ARB-06 | B.2, C.4 |
+| Menu Créer Composition | CE-T03-08, COMP §5 | Quatre options ; bouton +/Annuler et couches conformes à Figma | Règle active du menu | B.2 ; accès Format réservé |
 | ch13 Contrats d'écran | CE-FMT-01 §4 | Sortie de la carte Exercice (Mouvement → Séance d'un Exercice) | ARB-05 | C.2 |
 | ch13 Contrats d'écran | CE-FMT-02 (en-tête l.2385, §8 l.2420) ; Annexe Matrice de traçabilité l.557 (CE-FMT-02 §12 ↔ RM-FMT-12 « répétition de l'ensemble ») | Aucun réglage de répétition pour Tabata ; répétition par Cycle dans la Composition | ARB-25 | C.3 |
 | ch13 Contrats d'écran | CE-FMT-03 §14-§16 | Contraintes par élément ; contrôle avant dépose, confirmation avant remplacement de valeurs, refus sans altération (critères : après ARB-26 ; second Exercice : après ARB-27) | ARB-03, ARB-24 | C.4 |

@@ -1,5 +1,23 @@
 # Interface : navigation, écrans et conventions communes
 
+<a id="composition-menu-creer"></a>
+
+### Paramètres d’exécution — références courantes
+
+Références contrôlées directement dans Figma : `8328:37972`, `8328:38193`, `9207:18817`, `8328:38632`. Les captures actualisées montrent six blocs. Le libellé « Phases de l’exercice » encore visible dans Figma se lit « Phases du mouvement » selon D-448. Les autres textes illustratifs, notamment « À la cible », ne remplacent pas les libellés normatifs. La structure et les notations du nœud `8328:38193` ont été contrôlées ; son export PNG a expiré, son ancienne capture n’atteste pas le rendu courant.
+
+![Phases du mouvement : bloc et tableau indépendants](images/parametres-2026-11-01/9207-18817.png)
+
+### Composition — menu Créer
+
+Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+
+À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+
+L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
+
+**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+
 ## Composition — actualisation du 28/10/2026
 
 Références de rendu vérifiées le 28/10 : menu 10705:20223 ; deux circuits 10717:20056 et 10725:20142 ; cycle 10744:20108 ; base 10818:20175 ; placement circuit 10819:20344 ; circuit créé 10821:20222 ; placement cycle 10836:20478. Le tableau de la référence consolidée donne les liens. Les captures historiques de composition ne font plus foi pour ces en-têtes. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
@@ -793,7 +811,7 @@ Références courantes du 12/10, complétées le 13/10 :32 captures du parcours 
 
 #### Placement et contrôles
 
-Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »] avec chevron intérieur à Avec et tableau éventuel, Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). La ligne Durée de l’exercice est toujours affichée, avec « — », « Non calculable » ou la valeur (D-433, qui remplace le cas « sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice directement visibles » de RM-246).
+Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. En-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en six blocs successifs (D-413) : 1 Exécution — Mode, Condition d’arrêt ; 2 Phases du mouvement — ligne Avec / Sans et, lorsqu’il est déployé, tableau Libellé/Durée dans ce même bloc ; 3 Séries — ligne Séries avec nombre et type identiques/variables, cible commune et Pause ou tableau des séries variables, puis Charge ; 4 Côtés — ligne « De chaque côté », puis Enchaînement et Pause entre les côtés selon les règles de déploiement ; 5 Cadence et durée — Cadence, Durée de l’exercice toujours présente, puis signaux lorsqu’ils sont déployés et applicables ; 6 Récupération — seule ligne « Récupération » après le bloc Cadence et durée. Le bloc Séries commence par la ligne Séries et ne contient pas les phases. La ligne Durée de l’exercice reste toujours affichée selon D-433. Le raccordement de Récupération reste réservé par REC-PARAM-01, sans changement implicite du comportement existant.
 
 **Décision de Hermann du 26/10/2026 (recette JA, R2) :** nom en saisie : le premier appui dans le corps défilant ferme seulement le clavier, sans ouvrir la Feuille ni la Description ; la rangée Catégorie / Zones / Niveau garde son comportement.
 
@@ -1000,7 +1018,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 ### Présentation des phases d’exercice
 
-La ligne Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »] (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée deux phases à renseigner ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La cible de série reste indépendante et modifiable selon les contraintes du format (PHC-20261026). [D-446 du 26/10/2026 : phases disponibles en séries identiques comme variables, avec une seule séquence de durées commune] Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+La ligne « Phases du mouvement » (D-448), Avec / Sans, appartient à son propre bloc, après Exécution et avant Séries (D-413). Le tableau Libellé/Durée détaillé reste dans ce bloc. Les règles d’activation, de phases communes aux séries identiques ou variables, de saisie et de validation restent celles de PHC-20261026 et D-446 ; la cible de série reste indépendante. Figma montre encore « Phases de l’exercice » : le libellé normatif est « Phases du mouvement ».
 
 Le rapport Figma V2 du 15/10 décrit trois écrans dédiés sur Conception — Hors MVP : « Phases (aucune) », « Phases (définies) » et « Phases verrouillées (séries variables) ». Il décrit aussi la ligne ajoutée sur 19 écrans de Prototype MVP et 19 de Conception. Ces nombres sont ceux du rapport fourni, pas un nouvel inventaire direct. Les seize modales de format n’ont pas encore reçu cette ligne selon ce rapport.
 
@@ -1012,19 +1030,19 @@ Les frames relevées le 18/10/2026 ci-dessous montrent la ligne Phases de l’ex
 
 
 
-Séries variables, trois séries à l’échec : Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »] non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397). Écart Figma depuis D-433 (19/10/2026) : la ligne Durée de l’exercice est affichée avec « Non calculable ». [État remplacé par D-446 du 26/10/2026 : en séries variables, Phases de l’exercice [libellé « Phases du mouvement » depuis D-448 du 26/10/2026] reste modifiable ; capture conservée comme référence historique]
+Séries variables, trois séries à l’échec : Phases du mouvement non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397). Écart Figma depuis D-433 (19/10/2026) : la ligne Durée de l’exercice est affichée avec « Non calculable ». [État remplacé par D-446 du 26/10/2026 : en séries variables, Phases de l’exercice [libellé « Phases du mouvement » depuis D-448 du 26/10/2026] reste modifiable ; capture conservée comme référence historique]
 
 #### Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases
 
 [Source Figma — `9207:18817`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9207-18817)
 
-![Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases](images/parametres-2026-10-18/9207-18817.png)
+![Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases](images/parametres-2026-11-01/9207-18817.png)
 
 Tableau de trois phases sous l’option Avec déployée (chevron vers le haut), sans boutons +/− ; Variables non modifiable [remplacé par D-446 du 26/10/2026 : Variables reste modifiable avec phases] ; Durée de l’exercice en texte simple. Écarts Figma : nom de frame hors convention (« Proposition 3 ») et barre bleue résiduelle à gauche de la ligne 1.
 
 ### Feuille Paramètres d’exécution — états intégrés
 
-Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »], décrite à la section « Présentation des phases d’exercice » ci-dessus (D-370 à D-375). Les valeurs affichées sont illustratives. Sur toutes les frames, l’option est affichée « A la cible » : le libellé décidé est « À l’objectif » (D-447, qui remplace « À la cible » de D-411).
+Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases du mouvement, décrite à la section « Présentation des phases d’exercice » ci-dessus (D-370 à D-375). Les valeurs affichées sont illustratives. Sur toutes les frames, l’option est affichée « A la cible » : le libellé décidé est « À l’objectif » (D-447, qui remplace « À la cible » de D-411).
 
 ##### Création activité — Paramètres (modale) — Champs vides
 
@@ -1044,7 +1062,7 @@ Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-
 
 
 
-Mode en contrôle segmenté ; Durée d’une série et Durée de l’exercice à « — ». Écart Figma : Valider y apparaît actif alors qu’une cible manque (D-337).
+Mode en contrôle segmenté ; Objectif de durée et Durée de l’exercice à « — ». Écart Figma : Valider y apparaît actif alors qu’une cible manque (D-337).
 
 ##### Création activité — Paramètres (modale) — Série en durée
 
@@ -1078,7 +1096,7 @@ Roulette de la ligne Durée de l’exercice ; 5 min 30 s est une valeur illustra
 
 [Source Figma — `8328:37972`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37972)
 
-![Création activité — Paramètres (modale) — Changement de côté Replié](images/niveaux-2026-10-25/8328-37972.png)
+![Création activité — Paramètres (modale) — Changement de côté Replié](images/parametres-2026-11-01/8328-37972.png)
 
 
 
@@ -1116,7 +1134,7 @@ Mode segmenté au-dessus d’un tableau de séries variables.
 
 [Source Figma — `8328:38632`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38632)
 
-![Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence](images/niveaux-2026-10-25/8328-38632.png)
+![Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence](images/parametres-2026-11-01/8328-38632.png)
 
 
 

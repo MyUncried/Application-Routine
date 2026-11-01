@@ -8,6 +8,18 @@
 
 **Clarification du 29/10/2026, postérieure aux révisions 1–2 (source : arbitrages de Hermann, décision d’adoption volontaire `c458dac6` et vérification Figma des nœuds `10717:20056`, `10725:20142`) : le Format appartient à l’Exercice ; le Circuit n’en porte pas et n’impose que sa nature et son compte. Les passages historiques « Format sur Circuit » ci-dessous sont remplacés par les formulations de cette clarification. Aucun code n’est livré par cette correction documentaire.**
 
+## Menu Créer — règle active
+
+Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+
+À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+
+L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
+
+**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+
+Les exigences de menu ci-dessous se lisent avec cette règle ; aucune story ne doit réintroduire une entrée retirée.
+
 ## 1. Principes
 
 1. **Une seule représentation** : `SessionStructure` (`src/domain/sessions/structure.ts`) devient le modèle unique du brouillon, du service, du dépôt et de l'écran. L'ancien modèle « avant / Circuit / après » ne subsiste que comme lecture de compatibilité, puis disparaît.
@@ -52,7 +64,7 @@ Chaque migration : test sur base en mémoire et **sur copie d'une base réelle**
 - **Découpage de `CompositionScreen.tsx` (6 060 lignes)** : extraction de composants par niveau (`SessionLevelList`, `CycleBlock`, `CircuitBlock`, `ExerciseRow`, en-têtes), l'écran gardant l'orchestration (brouillon, navigation, barre d'action). Objectif : changer de modèle sans régression, par étapes couvertes par les tests d'intégration existants.
 - **Gestes** : `compositionGesture.ts` (`resolveDropTarget`, `resolveDragShifts`) généralisé des trois zones vers des positions d'arbre ; `useDragAutoScroll` réutilisé tel quel ; la carte portée suivie hors rendu (leçon PRE-8 f3-01).
 - **Réutilisation** : `SheetMotion` (repli/dépli), `DisclosureControl`, `CircuitHeader`, `OccurrenceCard`, rail, sélecteurs à roue, `ExecutionParametersSheet`, `DecisionDialog`, `TransientNotification`, `SessionCompositionTree` (rendu de référence déjà testé).
-- **Menu Créer** : feuille d'actions native (primitive iOS) à six actions + Annuler — la sixième, « Format », ouvre le flux de Format existant (C.2–C.3) et insère l'élément (ARB-23) [révision 1 : « cinq actions »] ; mode « enveloppe » comme état de l'écran pour désigner le premier contenu sur lequel le conteneur est posé (ARB-06), rendu Figma réutilisé ; aucune sélection multiple. [28/10 : « trait plein/pointillé, barre « Confirmer le circuit / le cycle » » pour une sélection de membres — remplacé.]
+- **Menu Créer** : réutiliser les composants de menu Figma, les quatre options, le bouton rond +/Annuler et les couches définis dans CE-T03-08 ; aucun menu natif à six actions ; aucun composant nouveau sans nécessité documentée.
 
 ## 5. Formats
 

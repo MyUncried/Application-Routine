@@ -283,7 +283,7 @@ Modale Résultat de série (8937:35362) : saisie proposée zéro, minimum zéro,
 - changement de côté Avec / Sans sans désignation anatomique, désignation côté 1 / côté 2 (RM-242 à RM-244) ;
 - cadence à choix rapides (RM-245), Durée de l’exercice et repli des signaux (RM-246), chevrons intégrés (RM-247) ;
 - Condition d’arrêt saisie ou dérivée, roulettes selon le type de série (RM-248 à RM-250) ;
-- présentation de la feuille en quatre cadres (D-413).
+- présentation de la feuille en six blocs (D-413).
 
 Ces évolutions sont des cibles documentées du MVP ; aucune réalisation n’est déclarée.
 
