@@ -799,30 +799,40 @@ describe("Contre-recette iPhone du 30/10/2026 — séparateurs du tableau des ph
   });
 });
 
-describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat a ; contrôle cr2-phases-rouge", () => {
+describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat a ; contrôle cr2-phases-rouge ; contre-recette n° 3 (cr4-rouge)", () => {
   const SELECTION = "execution-sheet-row-phases-selection";
   const FRAME = `${WITH}-invalid-frame`;
-  it("durée de phase manquante et tableau replié : seul le cadre du champ « n phases » est rouge (bord danger), pas la ligne ; déployé ou complet : aucun rouge", () => {
+  const SURFACE = `${WITH}-invalid-surface`;
+  const INDICATOR = "execution-sheet-phases-control-indicator";
+  const COUNT_TEXT = "execution-sheet-phase-count-text";
+  it("durée de phase manquante, tableau déployé ou replié : le champ « n phases » est rouge (cadre danger, fond dangerSurface, sans fond violet), jamais la ligne ; complet : aucun rouge", () => {
     renderSheet(params());
     fireEvent.press(get(WITH));
-    // Déployé : les cellules « — » portent l'indication, aucun cadre rouge.
-    expect(query(FRAME)).toBeNull();
-    fireEvent.press(get(CHEVRON));
-    expect(query(TABLE)).toBeNull();
+    // Contre-recette n° 3 (cr4-rouge) : déployé, le champ est déjà rouge — plus de fond violet.
+    expect(get(TABLE)).toBeTruthy();
     expect(styleOf(FRAME)).toMatchObject({ borderWidth: 1, borderColor: colors.danger });
+    expect(styleOf(SURFACE).backgroundColor).toBe(colors.dangerSurface);
+    expect(query(INDICATOR)).toBeNull();
+    expect(styleOf(COUNT_TEXT).color).toBe(colors.primary);
+    // Le cadre épouse l'option (pas la ligne) : il est dans le segmenté, pas sous la ligne.
+    expect(get("execution-sheet-phases-control").findAll((node) => node.props.testID === FRAME).length).toBeGreaterThan(0);
     // La ligne « Phases de l'exercice » reste neutre (cr2-phases-rouge).
     expect(styleOf(SELECTION).borderColor).toBeUndefined();
     expect(styleOf(SELECTION).backgroundColor).not.toBe(colors.dangerSurface);
-    // Redéployé : plus de cadre rouge ; une seule durée renseignée ne suffit pas.
     fireEvent.press(get(CHEVRON));
-    expect(query(FRAME)).toBeNull();
+    expect(query(TABLE)).toBeNull();
+    expect(styleOf(FRAME)).toMatchObject({ borderWidth: 1, borderColor: colors.danger });
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    // Une seule durée renseignée ne suffit pas.
+    fireEvent.press(get(CHEVRON));
     enterDuration(1, "5");
-    fireEvent.press(get(CHEVRON));
     expect(styleOf(FRAME).borderColor).toBe(colors.danger);
-    fireEvent.press(get(CHEVRON));
     enterDuration(2, "3");
-    fireEvent.press(get(CHEVRON));
+    // Complet : plus de rouge, le fond violet de la sélection revient.
     expect(query(FRAME)).toBeNull();
+    expect(query(SURFACE)).toBeNull();
+    expect(get(INDICATOR)).toBeTruthy();
+    expect(styleOf(COUNT_TEXT).color).toBe(colors.background);
   });
 
   it("phases complètes, tableau replié : aucun rouge", () => {
@@ -849,17 +859,31 @@ describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à
     );
   }
 
-  it("durée reprise du Mouvement : sa cellule et toute la ligne « Phases » en orange ; les autres cellules normales", () => {
+  const TO_VERIFY_FRAME = `${WITH}-to-verify-frame`;
+  const TO_VERIFY_SURFACE = `${WITH}-to-verify-surface`;
+  const INDICATOR = "execution-sheet-phases-control-indicator";
+
+  it("contre-recette n° 3 (cr4-verifier) : durée reprise du Mouvement — seul le champ « n phases » est orange (cadre et fond, sans violet), déployé ou replié ; la ligne reste neutre ; sa cellule orange, les autres normales", () => {
     renderMarked(withPhases([["A", 6], ["B", 3]]), [2]);
-    expect(styleOf(SELECTION)).toMatchObject({ backgroundColor: toVerifyColors.surface, borderWidth: 1, borderColor: toVerifyColors.border });
+    expect(styleOf(TO_VERIFY_FRAME)).toMatchObject({ borderWidth: 1, borderColor: toVerifyColors.border });
+    expect(styleOf(TO_VERIFY_SURFACE).backgroundColor).toBe(toVerifyColors.surface);
+    expect(query(INDICATOR)).toBeNull();
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    expect(styleOf(SELECTION).backgroundColor).not.toBe(toVerifyColors.surface);
     expect(styleOf(duration(2)).backgroundColor).toBe(toVerifyColors.surface);
     expect(styleOf(duration(1)).backgroundColor).not.toBe(toVerifyColors.surface);
+    fireEvent.press(get(CHEVRON));
+    expect(query(TABLE)).toBeNull();
+    expect(styleOf(TO_VERIFY_FRAME).borderColor).toBe(toVerifyColors.border);
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
   });
 
-  it("« à compléter » prioritaire : une durée manque → ligne sans orange (cellule manquante rouge), la cellule reprise reste orange", () => {
+  it("« à compléter » prioritaire : une durée manque → champ « n phases » rouge, sans orange (cellule manquante rouge), la cellule reprise reste orange", () => {
     const parent = withPhases([["A", 6], ["B", 3]]);
     const series = parent.series as { readonly workPhases: readonly WorkPhase[] };
     renderMarked({ ...parent, series: { ...parent.series, workPhases: [series.workPhases[0]!, { ...series.workPhases[1]!, durationSeconds: 0 }] } } as ExecutionParametersInput, [1]);
+    expect(query(TO_VERIFY_FRAME)).toBeNull();
+    expect(styleOf(`${WITH}-invalid-frame`).borderColor).toBe(colors.danger);
     expect(styleOf(SELECTION).borderColor).toBeUndefined();
     expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
     expect(styleOf(duration(1)).backgroundColor).toBe(toVerifyColors.surface);
@@ -867,6 +891,8 @@ describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à
 
   it("sans marque : aucun orange", () => {
     renderMarked(withPhases([["A", 6], ["B", 3]]), []);
+    expect(query(TO_VERIFY_FRAME)).toBeNull();
+    expect(get(INDICATOR)).toBeTruthy();
     expect(styleOf(SELECTION).borderColor).toBeUndefined();
     expect(styleOf(duration(1)).backgroundColor).not.toBe(toVerifyColors.surface);
   });

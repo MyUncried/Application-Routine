@@ -275,7 +275,14 @@ export function stepLayoutItem(
     }));
     return outcome;
   }
-  const slots = layoutSlots(detached.layout, source.kind);
+  // Contre-recette n° 3 du 31/10/2026 (b6-deplacer, « Monter » ; D-441 : « échange avec l'élément VOISIN
+  // de la séquence mêlée ») : un rang qui porte des Points offre deux emplacements, avant eux et après
+  // eux (`afterStopPoints`), dans l'ordre d'affichage — `[P, A, B]`, B monte : `[P, B, A]` (il échange
+  // avec A), puis franchit P. [Avant : un seul emplacement par rang, avant les Points — B passait
+  // devant A ET devant P en un pas.]
+  const slots = layoutSlots(detached.layout, source.kind).flatMap((slot): LayoutDestination[] =>
+    hasStopPointsAt(detached.layout, slot) ? [slot, { ...slot, afterStopPoints: true }] : [slot],
+  );
   const current = slots.findIndex((slot) => sameDestination(slot, location));
   const step = direction === "UP" ? -1 : 1;
   for (let at = current + step; current >= 0 && at >= 0 && at < slots.length; at += step) {
@@ -283,6 +290,14 @@ export function stepLayoutItem(
     if (outcome.status !== "UNCHANGED") return outcome;
   }
   return { status: "REFUSED", reason: "AT_BOUNDARY" };
+}
+
+/** Contre-recette n° 3 : la disposition (source retirée) porte des Points au rang `slot` de son conteneur. */
+function hasStopPointsAt(layout: Layout, slot: LayoutDestination): boolean {
+  return layout.stopPoints.some((point) => {
+    const container = stopPointContainerOf(point);
+    return container !== null && sameStopPointContainer(container, slot.container) && point.position === slot.index;
+  });
 }
 
 // ---------------------------------------------------------------------------

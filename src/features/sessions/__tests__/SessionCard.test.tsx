@@ -9,6 +9,7 @@ import type { CatalogueSessionRecord } from "@/domain/sessions/SessionRepository
 import type { StructureElement } from "@/domain/sessions/structure";
 import { fitCategoryCount, SessionCard } from "@/features/sessions/SessionCard";
 import { projectSessionForCatalogue, type CatalogueCategoryRef } from "@/features/sessions/sessionCatalogueProjection";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors } from "@/shared/ui/tokens";
 
 /**
@@ -210,5 +211,51 @@ describe("Contre-recette du 30/10 — Séance incomplète", () => {
     const style = StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style);
     expect(style.backgroundColor).toBe(colors.surfaceSubtle);
     expect(style.borderWidth).toBe(0.5);
+  });
+});
+
+/**
+ * PRE-9, contre-recette n° 3 du 31/10/2026 (cr4-verifier, Hermann : « La carte de la séance dans le
+ * catalogue de séances doit aussi être orange. ») : Séance dont un Exercice porte « Paramètre à
+ * vérifier » (phase marquée, durée renseignée) — carte orange (`toVerifyColors`, liseré 1) ; « à
+ * compléter » prime ; marque retirée (feuille ouverte) : carte normale.
+ */
+describe("Contre-recette n° 3 du 31/10 — Séance « Paramètre à vérifier »", () => {
+  const phased = (durationSeconds: number) =>
+    uniformParameters({ count: 3, target: 30, workPhases: [{ id: 1, label: "Tenir", durationSeconds }] });
+  const toVerifyExercise = () => exercise({ executionParameters: phased(5), phasesToVerify: [1] });
+
+  it("un Exercice à vérifier : fond orange, liseré orange de 1 ; le contenu garde sa place", () => {
+    const value = projection([{ kind: "EXERCISE", exercise: exercise() }, { kind: "EXERCISE", exercise: toVerifyExercise() }]);
+    expect(value.incomplete).toBe(false);
+    expect(value.toVerify).toBe(true);
+    render(<SessionCard projection={value} />);
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style)).toMatchObject({
+      backgroundColor: toVerifyColors.surface,
+      borderColor: toVerifyColors.border,
+      borderWidth: 1,
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-play").props.style).right).toBe(7);
+  });
+
+  it("« à compléter » prime : un Exercice à compléter et un à vérifier → carte rouge", () => {
+    const value = projection([
+      { kind: "EXERCISE", exercise: toVerifyExercise() },
+      { kind: "EXERCISE", exercise: exercise({ executionParameters: phased(0) }) },
+    ]);
+    expect(value.incomplete).toBe(true);
+    expect(value.toVerify).toBe(false);
+    render(<SessionCard projection={value} />);
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style)).toMatchObject({
+      backgroundColor: colors.dangerSurface,
+      borderColor: colors.danger,
+    });
+  });
+
+  it("marque retirée (feuille ouverte) : carte normale", () => {
+    const value = projection([{ kind: "EXERCISE", exercise: exercise({ executionParameters: phased(5) }) }]);
+    expect(value.toVerify).toBe(false);
+    render(<SessionCard projection={value} />);
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style).backgroundColor).toBe(colors.surfaceSubtle);
   });
 });

@@ -158,8 +158,10 @@ import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
 import { CardMotionBlock, useBlockDragGesture, VanishingBlock, type CardMotionMode } from "@/features/sessions/LayoutDragParts";
 import {
+  circuitEndDrop,
   hoveredCollapsedCircuit,
   LAYOUT_COLLAPSED_HOVER_DELAY_MS,
+  layoutDropCandidates,
   layoutHeaderKey,
   layoutItemKey,
   layoutStopBoxKey,
@@ -2584,12 +2586,33 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     layoutHoverTimerRef.current = null;
   }, []);
   useEffect(() => clearLayoutHover, [clearLayoutHover]);
+  /** « Réduire les animations » lu par le geste en cours (fin du déploiement d'un Circuit, contre-recette n° 3). */
+  const reduceMotionRef = useRef(reduceMotion);
+  useLayoutEffect(() => {
+    reduceMotionRef.current = reduceMotion;
+  });
+  /** Contre-recette n° 3 : fin du déploiement d'un Circuit ouvert par l'arrêt (posée plus bas). */
+  const finishLayoutExpansionRef = useRef<(current: LayoutDragGesture) => void>(() => {});
   /** Destination sous le doigt (`handleY` + translation, repère du contenu), dans les boîtes courantes. */
   const retargetLayoutDrag = useCallback(
     (current: LayoutDragGesture, translationY: number) => {
       const layout = richLayoutRef.current;
       if (layout === null) return;
       current.lastTranslationY = translationY;
+      // Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : un rang qui porte des Points d'arrêt offre
+      // à l'élément saisi deux emplacements, avant eux et après eux (un Point saisi n'en a qu'un).
+      const stopPoints = current.stopPointId === undefined ? layoutDropStopPointsOf(layout) : NO_LAYOUT_DROP_STOP_POINTS;
+      if (current.expandingCircuitId !== null) {
+        // Contre-recette n° 3 du 31/10/2026 (cr4-replie, « ses cartes descendent mais avec un mouvement
+        // saccadé ») : pendant le déploiement, la destination reste la fin du Circuit qui s'ouvre, relue
+        // dans les boîtes courantes — la place ouverte suit son bas, ses cartes ne reçoivent aucune
+        // translation ; l'aperçu ne change pas à chaque mesure. La destination sous le doigt est
+        // recalculée à la fin du déploiement (`finishLayoutExpansionRef`).
+        const candidates = layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints);
+        const end = circuitEndDrop(candidates, current.expandingCircuitId);
+        if (end !== null) current.target = end;
+        return;
+      }
       const slot = resolveLayoutDrop(
         layout,
         current.source,
@@ -2597,9 +2620,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         layoutBoxesRef.current,
         (exercise) => exercise.id,
         layoutContainerGap,
-        // Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : un rang qui porte des Points d'arrêt offre
-        // à l'élément saisi deux emplacements, avant eux et après eux (un Point saisi n'en a qu'un).
-        current.stopPointId === undefined ? layoutDropStopPointsOf(layout) : NO_LAYOUT_DROP_STOP_POINTS,
+        stopPoints,
       );
       if (!(sameLayoutDrop(slot, current.target) && slot?.lineY === current.target?.lineY)) current.target = slot;
       // Lecture la plus prudente du constat (« l'arrêt d'une carte ») : une carte d'Exercice seulement,
@@ -2615,24 +2636,43 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         if (layoutDragRef.current !== current || hoveredCollapsedCircuit(current.target, isCollapsed) !== hovered) return;
         current.hoverCircuitId = null;
         current.expandedOnHover = true;
+        // Contre-recette n° 3 : un seul mouvement continu — le déploiement (fil UI, `useCircuitCardsReveal`),
+        // la place ouverte à la fin du Circuit et ce qui le suit portés par la mise en page ; puis,
+        // déploiement terminé, la destination sous le doigt et ses décalages animés (registre).
+        current.expandingCircuitId = hovered;
         setLayoutCollapsed((collapsed) => {
           if (!collapsed.has(hovered)) return collapsed;
           const next = new Map(collapsed);
           next.delete(hovered);
           return next;
         });
+        layoutHoverTimerRef.current = setTimeout(
+          () => {
+            layoutHoverTimerRef.current = null;
+            if (layoutDragRef.current === current) finishLayoutExpansionRef.current(current);
+          },
+          reduceMotionRef.current ? 0 : CIRCUIT_REVEAL_DURATION_MS,
+        );
       }, LAYOUT_COLLAPSED_HOVER_DELAY_MS);
     },
     [clearLayoutHover],
   );
+  useLayoutEffect(() => {
+    finishLayoutExpansionRef.current = (current) => {
+      current.expandingCircuitId = null;
+      if (current.lastTranslationY !== null) retargetLayoutDrag(current, current.lastTranslationY);
+      refreshLayoutShifts();
+    };
+  });
   const reportLayoutBox = useCallback(
     (key: string, box: LayoutBox | null) => {
       if (box === null) layoutBoxesRef.current.delete(key);
       else layoutBoxesRef.current.set(key, box);
       const current = layoutDragRef.current;
       // Recette n° 2 : une mesure changée pendant le geste (Circuit saisi qui se replie) recalcule l'aperçu.
-      // Arrêt sur un Circuit replié (31/10) : pendant son déploiement, la destination sous le doigt
-      // immobile est aussi recalculée (ses cartes apparaissent).
+      // Arrêt sur un Circuit replié (31/10) : la destination sous le doigt immobile est aussi recalculée
+      // (ses cartes apparaissent) — [pendant son déploiement : remplacé par la contre-recette n° 3 :]
+      // pendant le déploiement, la fin du Circuit relue ; après, la destination sous le doigt.
       if (box !== null && current !== null) {
         if (current.expandedOnHover && current.lastTranslationY !== null) retargetLayoutDrag(current, current.lastTranslationY);
         refreshLayoutShifts();
@@ -2865,6 +2905,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         lastTranslationY: null,
         hoverCircuitId: null,
         expandedOnHover: false,
+        expandingCircuitId: null,
       };
       setLayoutLift({
         source,
@@ -6572,6 +6613,32 @@ function CompositionActivityRow({
   useLayoutEffect(() => {
     dragY.setValue(cardDragY);
   }, [cardDragY, dragY]);
+  /**
+   * Contre-recette n° 3 du 31/10/2026 (cr4-replie, Hermann : « Si je repose la carte à son emplacement
+   * initial elle disparaît et l'emplacement reste vide. Un appui long sur une autre carte par exemple la
+   * fait réapparaître. Ce problème n'est pas systématique. ») — cause probable (non reproductible sous
+   * Jest) : au lâcher, le rendu qui retire l'état soulevé change la TAILLE de la carte
+   * (`activityBlockDragged`, marges négatives) et porte encore, dans ses propriétés, la valeur JS de
+   * `dragY` (translation du doigt) : `dragY` n'était remis à 0 qu'après ce rendu (effet ci-dessus). Sous
+   * Fabric iOS, une vue dont la translation est gérée par le pilote natif et dont la taille change
+   * recalcule sa translation à partir de ces propriétés gardées (story 7.5, `resyncNative`) : selon
+   * l'ordre, non garanti, entre ce montage et la pose native de 0, la carte restait décalée de la
+   * translation du doigt — grande quand un Circuit déployé au-dessus d'elle pendant le geste l'avait fait
+   * descendre (compensation `layoutSourceDrift`) —, cachée sous l'élément suivant une fois son premier
+   * plan rendu. Le relâcher pose désormais 0 AVANT le rendu (pilote natif et valeur JS), puis la pose
+   * native est renvoyée une tâche après ce rendu.
+   */
+  const releaseDragY = useCallback(() => {
+    dragY.setValue(0);
+  }, [dragY]);
+  const wasDraggedRef = useRef(isDragged);
+  useEffect(() => {
+    const was = wasDraggedRef.current;
+    wasDraggedRef.current = isDragged;
+    if (!was || isDragged) return undefined;
+    const resync = setTimeout(() => dragY.setValue(0), 0);
+    return () => clearTimeout(resync);
+  }, [dragY, isDragged]);
   const [isSwipeSettling, setIsSwipeSettling] = useState(false);
   const swipeSettleTokenRef = useRef(0);
   const settleSwipe = useCallback(
@@ -6740,6 +6807,9 @@ function CompositionActivityRow({
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
       isSwipingRef.current = false;
+      // Contre-recette n° 3 du 31/10/2026 (cr4-replie, « Si je repose la carte à son emplacement initial
+      // elle disparaît ») : voir `releaseDragY`.
+      releaseDragY();
       onDragEnd(translationYRef.current);
       return;
     }
@@ -6755,7 +6825,7 @@ function CompositionActivityRow({
     } else if (!shouldReveal && areActionsRevealed) {
       onHideActions();
     }
-  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, settleSwipe, swipeTranslateX]);
+  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, releaseDragY, settleSwipe, swipeTranslateX]);
 
   /**
    * **Hérité de T02-S02** — le balayage engagé ne doit pas être perdu si le
@@ -6795,9 +6865,11 @@ function CompositionActivityRow({
     setDragTranslationY(0);
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
+      // Contre-recette n° 3 : voir `releaseDragY`.
+      releaseDragY();
       onDragCancel(translationYRef.current);
     }
-  }, [onDragCancel]);
+  }, [onDragCancel, releaseDragY]);
 
   /**
    * Le TOUCHER lui-même est annulé (appel entrant, geste système…) : là, plus
@@ -7411,6 +7483,11 @@ type LayoutDragGesture = {
   hoverCircuitId: string | null;
   /** Un Circuit replié a été déployé par un arrêt pendant ce geste. */
   expandedOnHover: boolean;
+  /**
+   * Contre-recette n° 3 du 31/10/2026 : Circuit en cours de déploiement (`CIRCUIT_REVEAL_DURATION_MS`)
+   * après un arrêt — la destination reste sa fin jusqu'à la fin du déploiement ; `null` : aucun.
+   */
+  expandingCircuitId: string | null;
 };
 
 /**

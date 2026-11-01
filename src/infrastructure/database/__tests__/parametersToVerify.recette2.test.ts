@@ -4,6 +4,7 @@ import { serializeCatalogExecutionParameters, type ExecutionParameters } from "@
 import { splitResolvedParameters, type Movement } from "@/domain/activities/Movement";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { structureExercises } from "@/domain/sessions/structure";
+import { projectSessionForCatalogue } from "@/features/sessions/sessionCatalogueProjection";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
@@ -136,6 +137,27 @@ describe("PRE-9 recette n° 2, constat e — valeur par défaut ajoutée au Mouv
     expect(definition.missingPhaseIds).toEqual([3]);
     // La reprise ne réordonne pas le Catalogue (`updated_at` inchangé).
     expect(await database.getAllAsync("SELECT updated_at FROM activity_definitions")).toEqual(before);
+  });
+
+  it("contre-recette n° 3 (cr4-verifier) : le Catalogue des Séances lit la marque — carte « à vérifier » tant qu'un Exercice est marqué, normale après l'ouverture de sa feuille", async () => {
+    const session = await seed([6, 0, 2], [0, 0, 0]);
+    await movements().update(
+      squat([
+        { id: 1, label: "Descente", durationSeconds: 3 },
+        { id: 2, label: "Pause", durationSeconds: 4 },
+        { id: 3, label: "Montée", durationSeconds: 2 },
+      ]),
+    );
+    const catalogueProjection = async () => {
+      const record = (await sessions().listCatalogue()).find((candidate) => candidate.id === session.id)!;
+      return projectSessionForCatalogue(record, new Map());
+    };
+    const marked = await catalogueProjection();
+    expect(marked.incomplete).toBe(false);
+    expect(marked.toVerify).toBe(true);
+
+    await sessions().acknowledgeParametersToVerify((await occurrenceOf(session.id)).id);
+    expect((await catalogueProjection()).toVerify).toBe(false);
   });
 
   it("« Ouverture de la feuille » : la marque est retirée, rien d'autre n'est écrit ; une nouvelle valeur ajoutée s'ajoute à la marque", async () => {

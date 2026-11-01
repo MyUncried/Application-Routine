@@ -181,14 +181,27 @@ export function layoutDropCandidates<E>(
     const members = circuit.exercises.map((id): Member => ({ item: { kind: "EXERCISE", id } }));
     const cards = members.filter((member) => !sameItem(member.item, source));
     const allMeasured = cards.length > 0 && cards.every((member) => boxes.has(layoutItemKey(member.item)));
+    const container: LayoutContainerRef = { kind: "CIRCUIT", id: circuit.id };
+    // Contre-recette n° 3 du 31/10/2026 (b6-deplacer, Circuit) : l'élément saisi est le seul membre d'un
+    // Circuit déployé qui porte des Points d'arrêt (`[P, E]`, E saisi) — ses emplacements « avant les
+    // Points » et « après les Points » sont offerts comme dans un Cycle (en-tête mesuré) ; sans eux,
+    // « monter E au-dessus du Point » le sortait du Circuit. Sans Point : fin seulement (inchangé).
+    const soleSourceWithPoints =
+      cards.length === 0 &&
+      members.length > 0 &&
+      head !== null &&
+      boxes.has(layoutItemKey(source)) &&
+      stopPoints.some((point) => sameContainer(point.container, container));
     if (allMeasured) {
       const last = boxes.get(layoutItemKey(cards[cards.length - 1]!.item))!;
-      sequence({ kind: "CIRCUIT", id: circuit.id }, members, head, bottom(last) + LAYOUT_DROP_EDGE_INSET);
+      sequence(container, members, head, bottom(last) + LAYOUT_DROP_EDGE_INSET);
+    } else if (soleSourceWithPoints) {
+      sequence(container, members, head, null);
     } else if (block !== undefined) {
       // Circuit replié (ou vidé par la saisie) : sa fin seulement, au milieu de sa boîte ; la place
       // s'ouvre au bas du Circuit.
       candidates.push({
-        container: { kind: "CIRCUIT", id: circuit.id },
+        container,
         index: cards.length,
         lineY: block.top + block.height / 2,
         insertY: bottom(block) - 0.5,
@@ -265,4 +278,20 @@ export const LAYOUT_COLLAPSED_HOVER_DELAY_MS = 500;
 export function hoveredCollapsedCircuit(dropTarget: LayoutDestination | null, isCollapsed: (circuitId: string) => boolean): string | null {
   if (dropTarget === null || dropTarget.container.kind !== "CIRCUIT") return null;
   return isCollapsed(dropTarget.container.id) ? dropTarget.container.id : null;
+}
+
+/**
+ * Contre-recette n° 3 du 31/10/2026 (cr4-replie, Hermann : « le circuit déplie, ses cartes descendent
+ * mais avec un mouvement saccadé ») — pendant le déploiement d'un Circuit replié ouvert par l'arrêt de
+ * la carte, la destination reste sa FIN (celle qui l'a ouvert), relue dans les boîtes courantes : la place
+ * ouverte suit son bas, aucune de ses cartes ne reçoit de translation. `null` : aucun emplacement de fin
+ * (le dernier rang du Circuit, avant ses Points de fin).
+ */
+export function circuitEndDrop(candidates: readonly LayoutDropTarget[], circuitId: string): LayoutDropTarget | null {
+  let end: LayoutDropTarget | null = null;
+  for (const candidate of candidates) {
+    if (candidate.container.kind !== "CIRCUIT" || candidate.container.id !== circuitId || candidate.afterStopPoints === true) continue;
+    if (end === null || candidate.index > end.index) end = candidate;
+  }
+  return end;
 }

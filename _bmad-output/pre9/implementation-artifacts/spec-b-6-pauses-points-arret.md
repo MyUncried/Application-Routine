@@ -169,3 +169,5 @@ Préparer une Séance : E0, E1, E2, E3, E4, E5. Poser un Circuit sur E1 et E2 (C
 **Tests** : `layoutMoves.recette2.test.ts` (Exercice devant le Point de tête : appliqué, même situation que le déplacement du Point ; déposé après le Point : inchangé ; au niveau Séance, avant / après le Point ; Point de fin interdit : refus du Point, retrait tolérant pour l'Exercice) ; `layoutDrop.recette2.test.ts` (3 : emplacements avant / après, doigt au-dessus / au-dessous, entre deux membres).
 
 **À vérifier sur iPhone** : Cycle `[P, E]` — glisser E au-dessus du Point : le Point descend pendant le geste, E se pose devant lui ; relâcher E sous le Point : retour à sa place, rien ne change.
+
+[31/10/2026, contre-recette n° 3 (b6-deplacer KO pour le Circuit) : seul Exercice d'un Circuit qui porte un Point — emplacements « avant » / « après » le Point offerts comme dans un Cycle ; « Monter » / « Descendre » s'arrêtent aussi avant et après les Points d'un rang (`[P, A, B]`, B monte : `[P, B, A]`, puis franchit P). Classe A, règles inchangées ; voir `spec-recette-2-corrections-composition.md`, « Contre-recette n° 3 ».]

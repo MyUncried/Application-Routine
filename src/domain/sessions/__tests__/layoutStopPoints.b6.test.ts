@@ -193,12 +193,14 @@ describe("PRE-9 B.6 — opérations de Composition (D-441 à leur place ; D-442 
     const down = stepLayoutItem(base([S(1, "p")]), { kind: "EXERCISE", id: "e0" }, "DOWN", newId);
     if (down.status !== "APPLIED") throw new Error(down.status);
     expect(down.removedStopPointIds).toEqual(["p"]);
-    // Sans Point voisin : emplacement d'élément voisin (B.4), inséré avant le Point qui occupe ce rang
-    // (convention de l'ancien modèle, `sequenceIndexForOccurrenceIndex`) : [e0, e2, P, e1].
+    // Sans Point voisin : emplacement d'élément voisin (B.4). [B.6 : « inséré avant le Point qui occupe ce
+    // rang […] : [e0, e2, P, e1] » — remplacé le 31/10/2026 par la contre-recette n° 3 (b6-deplacer,
+    // classe A ; CE-T03-08, PRE-6 story 6.1 : échange avec l'élément VOISIN de la séquence, comme
+    // `stepOccurrence`) :] e2 échange avec e1, le Point reste devant eux : [e0, P, e2, e1].
     const plain = stepLayoutItem(base([S(1, "p")]), { kind: "EXERCISE", id: "e2" }, "UP", newId);
     if (plain.status !== "APPLIED") throw new Error(plain.status);
     expect(plain.draft.structure?.elements.slice(0, 3)).toEqual([ex("e0"), ex("e2"), ex("e1")]);
-    expect(pointsOf(plain.draft)).toEqual([{ id: "p", circuitId: null, cycleId: null, position: 2 }]);
+    expect(pointsOf(plain.draft)).toEqual([{ id: "p", circuitId: null, cycleId: null, position: 1 }]);
   });
 
   it("B.3 : déplacement vers un Circuit (alterné compris) avec Points — plus de refus, mêmes règles", () => {

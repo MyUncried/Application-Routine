@@ -7,7 +7,7 @@ import { computeStructureDuration, cycleExercises, structureExercises, type Stru
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { firstMediaPreviewSource, type MediaPreviewSource } from "@/features/activities/MediaPreview";
 import { isDisplayableRecovery } from "@/features/sessions/ActivityRecoveryLine";
-import { formatOccurrenceSummary, isIncompleteSummary } from "@/features/sessions/compositionPresentation";
+import { formatOccurrenceSummary, isIncompleteSummary, isToVerifySummary } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
 
 import { FREE_SESSION_FORMAT, sessionFormatOf, type SessionFormatKey } from "./sessionFormats";
@@ -77,6 +77,14 @@ export type SessionCatalogueProjection = {
    * (D-448 point 7, `isIncompleteSummary`). Lecture seule, rien n'est stocké.
    */
   readonly incomplete: boolean;
+  /**
+   * PRE-9, contre-recette n° 3 du 31/10/2026 (cr4-verifier, Hermann : « La carte de la séance dans le
+   * catalogue de séances doit aussi être orange. ») : au moins un de ses Exercices porte la synthèse
+   * « Paramètre à vérifier » (`isToVerifySummary`, marque `phasesToVerify` encore active) — et aucun
+   * n'est à compléter (`incomplete` prime). La carte suit ses Exercices : la marque d'un Exercice
+   * tombe à l'ouverture de sa feuille des paramètres. Lecture seule, rien n'est stocké.
+   */
+  readonly toVerify: boolean;
 };
 
 const isExercise = (activity: Activity) => activity.type !== "RECOVERY";
@@ -214,6 +222,10 @@ export function projectSessionForCatalogue(
       ? { kind: "VOLUME", volume: formatCatalogueVolume(exercises[0]!) }
       : { kind: "COUNT", count: exerciseCount };
 
+  const summaries = exercises.map((exercise) =>
+    formatOccurrenceSummary({ executionParameters: exercise.executionParameters, phasesToVerify: exercise.phasesToVerify }),
+  );
+  const incomplete = summaries.some(isIncompleteSummary);
   return {
     id: record.id,
     name: record.name,
@@ -228,8 +240,7 @@ export function projectSessionForCatalogue(
     summary,
     duration: computeStructureDuration(record.structure),
     tree: projectSessionTree(record),
-    incomplete: exercises.some((exercise) =>
-      isIncompleteSummary(formatOccurrenceSummary({ executionParameters: exercise.executionParameters })),
-    ),
+    incomplete,
+    toVerify: !incomplete && summaries.some(isToVerifySummary),
   };
 }

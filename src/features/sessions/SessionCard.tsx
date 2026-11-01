@@ -9,6 +9,7 @@ import { formatCatalogueSessionDuration, type CatalogueCategoryRef, type Session
 import { sessionFormatOf } from "@/features/sessions/sessionFormats";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -73,6 +74,9 @@ export function fitCategoryCount(
 export function SessionCard({ projection, expanded = false, onToggleExpanded, children }: SessionCardProps) {
   const archived = projection.status === "ARCHIVED";
   const incomplete = projection.incomplete;
+  // PRE-9, contre-recette n° 3 (cr4-verifier) : carte orange « Paramètre à vérifier » ; le rouge prime.
+  const toVerify = !incomplete && projection.toVerify;
+  const flagged = incomplete || toVerify;
   const id = projection.id;
   const duration = formatCatalogueSessionDuration(projection.duration);
   const summary =
@@ -84,10 +88,14 @@ export function SessionCard({ projection, expanded = false, onToggleExpanded, ch
 
   return (
     <View
-      style={[styles.card, archived ? styles.cardArchived : null, incomplete ? styles.cardIncomplete : null]}
+      style={[
+        styles.card,
+        archived ? styles.cardArchived : null,
+        incomplete ? styles.cardIncomplete : toVerify ? styles.cardToVerify : null,
+      ]}
       testID={`session-card-${id}`}
     >
-      <View style={[styles.header, incomplete ? styles.headerIncomplete : null]}>
+      <View style={[styles.header, flagged ? styles.headerIncomplete : null]}>
         <CardVisual projection={projection} />
         <View style={[styles.texts, archived ? styles.textsArchived : null]}>
           <View style={styles.titleRow}>
@@ -139,7 +147,7 @@ export function SessionCard({ projection, expanded = false, onToggleExpanded, ch
           accessibilityRole="button"
           accessibilityLabel={t.playUnavailableAccessibilityLabel}
           accessibilityState={{ disabled: true }}
-          style={[styles.play, incomplete ? styles.playIncomplete : null]}
+          style={[styles.play, flagged ? styles.playIncomplete : null]}
           testID={`session-card-${id}-play`}
         >
           <KodjoIcon name="action-start" opacity={0.55} />
@@ -289,6 +297,16 @@ const styles = StyleSheet.create({
     borderWidth: INCOMPLETE_BORDER,
     borderColor: colors.danger,
   },
+  // PRE-9, contre-recette n° 3 du 31/10/2026 (cr4-verifier, Hermann : « La carte de la séance dans le
+  // catalogue de séances doit aussi être orange. ») : mêmes jetons que la carte d'Exercice « à
+  // vérifier » de la Composition (`occurrenceCardToVerifySurface` : `toVerifyColors`, bord 1), même
+  // compensation des marges que la carte à compléter. Rendu choisi sans maquette.
+  cardToVerify: {
+    backgroundColor: toVerifyColors.surface,
+    borderWidth: INCOMPLETE_BORDER,
+    borderColor: toVerifyColors.border,
+  },
+  // Carte à compléter ou à vérifier : marges compensées du bord 1.
   headerIncomplete: {
     minHeight: SESSION_CARD_HEADER_HEIGHT - 2 * INCOMPLETE_BORDER,
     padding: EDGE - INCOMPLETE_BORDER,

@@ -12,9 +12,11 @@ import type { ActivityDefinitionService } from "@/features/activities/ActivityDe
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { CIRCUIT_REVEAL_DURATION_MS } from "@/features/sessions/CircuitHeader";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
 import { LAYOUT_COLLAPSED_HOVER_DELAY_MS } from "@/features/sessions/layoutDrop";
 import { SessionDraftContext, type SessionDraftContextValue, type SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
+import { AnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
@@ -163,6 +165,8 @@ async function settle() {
 
 /** Minuteries d'arrêt retenues (identifiant → rappel) ; les autres minuteries restent réelles. */
 const hoverTimers = new Map<number, () => void>();
+/** Contre-recette n° 3 : minuteries de fin de déploiement retenues (`CIRCUIT_REVEAL_DURATION_MS`). */
+const revealTimers = new Map<number, () => void>();
 let nextHoverTimer = 1_000_000;
 
 /** Le délai d'arrêt s'écoule : les minuteries d'arrêt encore programmées se déclenchent. */
@@ -170,6 +174,16 @@ async function elapseHoverDelay() {
   await act(async () => {
     const due = [...hoverTimers.values()];
     hoverTimers.clear();
+    for (const callback of due) callback();
+  });
+  await settle();
+}
+
+/** Contre-recette n° 3 : le déploiement du Circuit se termine (minuteries de fin déclenchées). */
+async function elapseReveal() {
+  await act(async () => {
+    const due = [...revealTimers.values()];
+    revealTimers.clear();
     for (const callback of due) callback();
   });
   await settle();
@@ -221,16 +235,22 @@ beforeEach(() => {
   mockExitGuard.mockReset();
   mockExitGuard.mockReturnValue({ isPendingExit: false, cancelExit: jest.fn(), confirmExit: jest.fn() });
   hoverTimers.clear();
+  revealTimers.clear();
   const realSetTimeout = global.setTimeout;
   const realClearTimeout = global.clearTimeout;
   jest.spyOn(global, "setTimeout").mockImplementation(((callback: () => void, ms?: number, ...args: unknown[]) => {
+    if (ms === CIRCUIT_REVEAL_DURATION_MS) {
+      const id = ++nextHoverTimer;
+      revealTimers.set(id, callback);
+      return id;
+    }
     if (ms !== LAYOUT_COLLAPSED_HOVER_DELAY_MS) return realSetTimeout(callback, ms, ...args);
     const id = ++nextHoverTimer;
     hoverTimers.set(id, callback);
     return id;
   }) as unknown as typeof setTimeout);
   jest.spyOn(global, "clearTimeout").mockImplementation(((id?: number) => {
-    if (typeof id === "number" && hoverTimers.delete(id)) return;
+    if (typeof id === "number" && (hoverTimers.delete(id) || revealTimers.delete(id))) return;
     realClearTimeout(id);
   }) as unknown as typeof clearTimeout);
   // Pilote natif simulé : chaque animation pose sa cible à son départ et se termine aussitôt.
@@ -278,7 +298,12 @@ describe("Recette n° 2 (31/10) — b) arrêt d'une carte sur un Circuit replié
     layout("composition-activity-b1", 0, 80);
     layout("composition-layout-exercise-e9", 490, 80);
     await settle();
-    // b1 descend pour faire la place (80 + 9) ; la carte saisie reste sous le doigt (compensation −62).
+    // [Pendant le déploiement, destination sous le doigt recalculée — remplacé par la contre-recette n° 3 :]
+    // pendant le déploiement, la destination reste la fin du Circuit : b1 ne bouge pas.
+    expect(rowShift("b1")).toBe(0);
+    expect(rowShift("e9")).toBe(-62);
+    await elapseReveal();
+    // Déploiement terminé : b1 descend pour faire la place (80 + 9) ; la carte saisie reste sous le doigt (compensation −62).
     expect(rowShift("b1")).toBe(89);
     expect(rowShift("e9")).toBe(-62);
     fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 374, touches: [] } });
@@ -342,6 +367,7 @@ describe("Recette n° 2 (31/10) — b) arrêt d'une carte sur un Circuit replié
     layout("composition-layout-exercise-e9", 490, 80);
     await settle();
     expect(rowShift("e9")).toBe(-152);
+    await elapseReveal();
     // Doigt à 134 : tête du Circuit A (136), avant a1.
     fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 134, touches: [] } });
     expect(shape(probe.draft)).toBe("e0 ca[e9,a1,a2] cb[b1]");
@@ -402,4 +428,255 @@ describe("Recette n° 2 (31/10) — c) appui long sur la durée d'un Circuit ou 
     const title = screen.getByTestId("composition-layout-circuit-cb-header-collapse", hidden);
     expect((title.props.accessibilityActions as { name: string }[]).map((action) => action.name)).toEqual(["moveUp", "moveDown"]);
   });
+});
+
+/**
+ * Contre-recette n° 3 du 31/10/2026 (cr4-replie, Hermann) :
+ * a) « le circuit déplie, ses cartes descendent mais avec un mouvement saccadé. Les cartes glissent
+ *    ensuite normalement. » ;
+ * b) « Si je repose la carte à son emplacement initial elle disparaît et l'emplacement reste vide. Un
+ *    appui long sur une autre carte par exemple la fait réapparaître. Ce problème n'est pas
+ *    systématique. »
+ * Jest ne prouve ni la fluidité ni l'ordre natif des poses sous Fabric (à vérifier sur iPhone).
+ */
+describe("Contre-recette n° 3 (31/10) — cr4-replie", () => {
+  /** Translation de la carte (vue hôte) telle que rendue — valeur portée par le dernier rendu. */
+  const renderedCardShift = (id: string) =>
+    (
+      (StyleSheet.flatten(screen.getByTestId(`composition-exercise-row-${id}`, hidden).props.style) as { transform?: Record<string, unknown>[] })
+        .transform ?? []
+    ).reduce((sum: number, entry) => {
+      const value = entry.translateY;
+      if (value === undefined) return sum;
+      return sum + (typeof value === "number" ? value : (value as { __getValue: () => number }).__getValue());
+    }, 0);
+  /**
+   * Translation de la carte relâchée portée par le rendu du lâcher : lue quand le registre reçoit la
+   * pose de départ (effet de ce même rendu, avant tout rendu suivant).
+   */
+  function watchReleaseRender(id: string): number[] {
+    const seen: number[] = [];
+    const releases = new Set<unknown>();
+    const original = AnimatedShiftRegistry.prototype.apply;
+    jest.spyOn(AnimatedShiftRegistry.prototype, "apply").mockImplementation(function (this: AnimatedShiftRegistry, targets, animated, release) {
+      // Une pose de départ n'est consommée qu'une fois (par identité) : son premier rendu seulement.
+      if (release !== null && release !== undefined && release.key.endsWith(id) && !releases.has(release)) {
+        releases.add(release);
+        seen.push(renderedCardShift(id));
+      }
+      original.call(this, targets, animated, release);
+    });
+    return seen;
+  }
+  const zIndexOf = (id: string) => (StyleSheet.flatten(screen.getByTestId(`composition-activity-${id}`, hidden).props.style) as { zIndex?: number }).zIndex;
+
+  it("a) pendant le déploiement, la destination reste la fin du Circuit : ses cartes ne bougent pas à chaque mesure ; puis la place s'ouvre sous le doigt", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("cb");
+    layout("composition-layout-circuit-cb", 340, 68);
+    layout("composition-layout-exercise-e9", 428, 80);
+    const card = liftCard("e9", 468);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 374 } });
+    await elapseHoverDelay();
+    expect(expanded("cb")).toBe(true);
+    // Mesures intermédiaires du déploiement (fil UI → rappels de mise en page) : le Circuit grandit.
+    layout("composition-layout-circuit-cb-header-frame", 14, 18);
+    layout("composition-layout-circuit-cb-exercises", 41, 80);
+    layout("composition-activity-b1", 0, 80);
+    for (const height of [80, 95, 110, 124, 130]) {
+      layout("composition-layout-circuit-cb", 340, height);
+      layout("composition-layout-exercise-e9", 340 + height + 20, 80);
+      await settle();
+      // Carte du Circuit : aucune translation (elle apparaît en place) ; la place ouverte suit le bas.
+      expect(rowShift("b1")).toBe(0);
+    }
+    // Un doigt qui bouge pendant le déploiement ne change pas la destination.
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 380 } });
+    await settle();
+    expect(rowShift("b1")).toBe(0);
+    await elapseReveal();
+    // Déploiement terminé : destination sous le doigt (tête du Circuit), b1 descend (80 + 9).
+    expect(rowShift("b1")).toBe(89);
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 380, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[e9,b1]");
+  });
+
+  it("a) lâcher pendant le déploiement : dépose à la fin du Circuit (la place montrée)", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("cb");
+    layout("composition-layout-circuit-cb", 340, 68);
+    layout("composition-layout-exercise-e9", 428, 80);
+    const card = liftCard("e9", 468);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 374 } });
+    await elapseHoverDelay();
+    layout("composition-layout-circuit-cb", 340, 110);
+    layout("composition-layout-circuit-cb-header-frame", 14, 18);
+    layout("composition-layout-circuit-cb-exercises", 41, 80);
+    layout("composition-activity-b1", 0, 80);
+    layout("composition-layout-exercise-e9", 470, 80);
+    await settle();
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 374, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[b1,e9]");
+    // La fin du déploiement n'est plus attendue.
+    expect(revealTimers.size).toBe(0);
+  });
+
+  it("b) carte reposée à sa place (cas simple) : le rendu du lâcher porte une translation nulle de la carte ; rien ne change", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    const seen = watchReleaseRender("e9");
+    const card = liftCard("e9", 530);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 300 } });
+    await settle();
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 545 } });
+    await settle();
+    expect(renderedCardShift("e9")).toBe(15);
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 545, touches: [] } });
+    await settle();
+    expect(seen).toEqual([0]);
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[b1] e9");
+    // Retour terminé : carte à sa place, hors du premier plan.
+    expect(rowShift("e9")).toBe(0);
+    expect(renderedCardShift("e9")).toBe(0);
+    expect(zIndexOf("e9")).toBeUndefined();
+  });
+
+  it("b) après le déploiement d'un Circuit replié AU-DESSUS d'elle, la carte reposée à sa place revient sans décalage", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("ca");
+    layout("composition-layout-circuit-ca", 100, 68);
+    layout("composition-layout-circuit-cb", 188, 130);
+    layout("composition-layout-exercise-e9", 338, 80);
+    const seen = watchReleaseRender("e9");
+    const card = liftCard("e9", 378);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 134 } });
+    await elapseHoverDelay();
+    layout("composition-layout-circuit-ca", 100, 220);
+    layout("composition-layout-circuit-ca-header-frame", 14, 18);
+    layout("composition-layout-circuit-ca-exercises", 41, 169);
+    layout("composition-activity-a1", 0, 80);
+    layout("composition-activity-a2", 89, 80);
+    layout("composition-layout-circuit-cb", 340, 130);
+    layout("composition-layout-exercise-e9", 490, 80);
+    await settle();
+    await elapseReveal();
+    // Compensation : la carte, descendue de 152 dans la mise en page, reste sous le doigt.
+    expect(rowShift("e9")).toBe(-152);
+    // Retour à sa place (après le Circuit B, 478) : la translation du doigt vaut 100.
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 478 } });
+    await settle();
+    expect(renderedCardShift("e9")).toBe(100);
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 478, touches: [] } });
+    await settle();
+    // Le rendu du lâcher ne porte plus la translation du doigt (100) : seule la translation du
+    // registre (position affichée, −52) amène la carte à sa place.
+    expect(seen).toEqual([0]);
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[b1] e9");
+    expect(rowShift("e9")).toBe(0);
+    expect(renderedCardShift("e9")).toBe(0);
+    expect(zIndexOf("e9")).toBeUndefined();
+  });
+});
+
+/**
+ * Contre-recette n° 3 du 31/10/2026 (b6-deplacer, Hermann) : « Exercice dans un cycle / un circuit avec
+ * un point d'arrêt en début de cycle / circuit : le déplacement de l'exercice avant le point d'arrêt est
+ * interdit. Par contre, le déplacement du point d'arrêt après l'exercice à la fin du cycle / circuit est
+ * autorisée. La situation à la fin est pourtant la même mais la solution autorise l'un mais pas
+ * l'autre. » — classe A (RM-219, RM-251, D-441, D-442 : le verdict ne dépend que de la structure
+ * obtenue). Glisser et « Monter » (VoiceOver), Circuit et Cycle, un ou deux membres, N = 1 et 2.
+ */
+describe("Contre-recette n° 3 (31/10) — b6-deplacer : Exercice monté au-dessus du Point de tête de son conteneur", () => {
+  type Point = StructureStopPoint & { readonly id: string };
+  const headPoint = (kind: "CIRCUIT" | "CYCLE"): Point =>
+    (kind === "CIRCUIT" ? { id: "p", circuitId: "ca", position: 0 } : { id: "p", circuitId: null, cycleId: "ca", position: 0 }) as Point;
+  /** e0, conteneur ca [P, ...membres] (Circuit ou Cycle, N), Circuit cb [b1], e9. */
+  const withHeadPoint = (kind: "CIRCUIT" | "CYCLE", members: string[], repeatCount: number): Layout => ({
+    elements: [
+      { kind: "EXERCISE", exercise: "e0" },
+      kind === "CIRCUIT"
+        ? { kind: "CIRCUIT", circuit: { id: "ca", repeatCount, nature: "TOURS", exercises: members } }
+        : { kind: "CYCLE", cycle: { id: "ca", repeatCount, members: members.map((member) => ({ kind: "EXERCISE" as const, exercise: member })) } },
+      { kind: "CIRCUIT", circuit: { id: "cb", repeatCount: 1, nature: "TOURS", exercises: ["b1"] } },
+      { kind: "EXERCISE", exercise: "e9" },
+    ],
+    stopPoints: [headPoint(kind)],
+  });
+  /** e0 0–80 ; conteneur 100– (en-tête 114–132 ; Point 141–171 ; membres de 180, pas de 89) ; cb ; e9. */
+  function measureHeadPoint(kind: "CIRCUIT" | "CYCLE", members: string[]) {
+    const prefix = kind === "CIRCUIT" ? "composition-layout-circuit-ca" : "composition-layout-cycle-ca";
+    const height = 80 + members.length * 89;
+    layout("composition-layout-exercise-e0", 0, 80);
+    layout(prefix, 100, height);
+    if (kind === "CIRCUIT") {
+      layout(`${prefix}-header-frame`, 14, 18);
+      layout(`${prefix}-exercises`, 41, height - 41);
+      layout("composition-layout-stop-point-p", 0, 30);
+      members.forEach((member, index) => layout(`composition-activity-${member}`, 39 + index * 89, 80));
+    } else {
+      layout(`${prefix}-header`, 14, 18);
+      layout("composition-layout-stop-point-p", 41, 30);
+      members.forEach((member, index) => layout(`composition-layout-exercise-${member}`, 80 + index * 89, 80));
+    }
+    const cb = 100 + height + 20;
+    layout("composition-layout-circuit-cb", cb, 130);
+    layout("composition-layout-circuit-cb-header-frame", 14, 18);
+    layout("composition-layout-circuit-cb-exercises", 41, 80);
+    layout("composition-activity-b1", 0, 80);
+    layout("composition-layout-exercise-e9", cb + 150, 80);
+  }
+  const pointOf = (draft: SessionDraft | null) =>
+    (draft?.structure?.stopPoints ?? []).map((point) => ({ container: point.circuitId ?? point.cycleId ?? null, position: point.position }));
+  const containerShape = (kind: "CIRCUIT" | "CYCLE", members: string[]) => (kind === "CIRCUIT" ? `ca[${members.join(",")}]` : `ca{${members.join(",")}}`);
+
+  for (const kind of ["CIRCUIT", "CYCLE"] as const) {
+    for (const repeatCount of [1, 2]) {
+      for (const members of [["a1"], ["a1", "a2"]]) {
+        for (const moved of members) {
+          const after = [moved, ...members.filter((member) => member !== moved)];
+          const label = `${kind === "CIRCUIT" ? "Circuit" : "Cycle"} × ${repeatCount} [P, ${members.join(", ")}]`;
+
+          it(`${label} — glisser ${moved} au-dessus du Point : accepté, ${moved} devant le Point dans le conteneur`, async () => {
+            await renderComposition(draftOf(withHeadPoint(kind, members, repeatCount), ["e0", ...members, "b1", "e9"]));
+            measureHeadPoint(kind, members);
+            const card = liftCard(moved, 180 + members.indexOf(moved) * 89 + 40);
+            // Doigt juste sous l'en-tête, au-dessus du Point.
+            fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 137 } });
+            await settle();
+            fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 137, touches: [] } });
+            await settle();
+            expect(shape(probe.draft)).toBe(`e0 ${containerShape(kind, after)} cb[b1] e9`);
+            expect(pointOf(probe.draft)).toEqual([{ container: "ca", position: 1 }]);
+          });
+
+          it(`${label} — « Monter » ${moved} : ${members.indexOf(moved) === 0 ? "franchit le Point" : "échange avec le membre voisin"}`, async () => {
+            await renderComposition(draftOf(withHeadPoint(kind, members, repeatCount), ["e0", ...members, "b1", "e9"]));
+            fireEvent(screen.getByTestId(`composition-exercise-row-${moved}`), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+            await settle();
+            const first = members.indexOf(moved) === 0;
+            // Décision de Hermann du 31/10 : « Monter » franchit d'abord le Point voisin.
+            expect(shape(probe.draft)).toBe(`e0 ${containerShape(kind, first ? members : [...members].reverse())} cb[b1] e9`);
+            expect(pointOf(probe.draft)).toEqual([{ container: "ca", position: first ? 1 : 0 }]);
+          });
+        }
+
+        it(`${kind === "CIRCUIT" ? "Circuit" : "Cycle"} × ${repeatCount} [P, ${members.join(", ")}] — reposé sous le Point (sa place) : rien ne change`, async () => {
+          const initial = draftOf(withHeadPoint(kind, members, repeatCount), ["e0", ...members, "b1", "e9"]);
+          await renderComposition(initial);
+          measureHeadPoint(kind, members);
+          const card = liftCard("a1", 220);
+          fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 300 } });
+          await settle();
+          fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 222 } });
+          await settle();
+          fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 222, touches: [] } });
+          await settle();
+          expect(probe.draft!.structure).toEqual(initial.structure);
+        });
+      }
+    }
+  }
 });

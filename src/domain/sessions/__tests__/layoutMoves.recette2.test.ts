@@ -116,6 +116,86 @@ describe("Recette n° 2 (b6-deplacer) — Exercice avant le Point de tête de so
   });
 });
 
+/**
+ * Contre-recette n° 3 du 31/10/2026 (b6-deplacer, Hermann : « Exercice dans un cycle / un circuit avec un
+ * point d'arrêt en début de cycle / circuit : le déplacement de l'exercice avant le point d'arrêt est
+ * interdit. Par contre, le déplacement du point d'arrêt après l'exercice à la fin du cycle / circuit est
+ * autorisée. La situation à la fin est pourtant la même ») — classe A : le verdict ne dépend que de la
+ * structure obtenue (RM-219, RM-251, D-441, D-442, ARB-02). Le déplacement de l'Exercice (dépose ou
+ * « Monter ») et celui du Point vers la fin produisent la même structure et le même verdict, sauf la
+ * sanction d'un Point devenu interdit (refus strict du Point, retrait tolérant pour l'Exercice).
+ */
+describe("Contre-recette n° 3 (b6-deplacer) — Exercice devant le Point de tête : même structure, même verdict que le Point déplacé", () => {
+  const circuitOf = (id: string, members: string[], repeatCount: number): StructureElement<string> => ({
+    kind: "CIRCUIT",
+    circuit: { id, repeatCount, nature: "TOURS", exercises: members },
+  });
+  const C = (circuitId: string, position: number, id: string): Point => ({ id, circuitId, position });
+  for (const kind of ["CIRCUIT", "CYCLE"] as const) {
+    for (const repeatCount of [1, 2]) {
+      for (const members of [["a1"], ["a1", "a2"]]) {
+        for (const where of ["first", "middle", "last"] as const) {
+          const label = `${kind === "CIRCUIT" ? "Circuit" : "Cycle"} × ${repeatCount} [P, ${members.join(", ")}] ${where === "first" ? "en tête" : where === "last" ? "en fin" : "au milieu"} de Séance`;
+          it(label, () => {
+            const own = kind === "CIRCUIT" ? circuitOf("c", members, repeatCount) : cycleOf("c", members, repeatCount);
+            // Un second Circuit : disposition générale (jamais l'ancien modèle à Circuit unique).
+            const other = circuitOf("z", ["z1"], 1);
+            const elements = where === "first" ? [own, ex("e9"), other] : where === "last" ? [ex("e0"), other, own] : [ex("e0"), own, ex("e9"), other];
+            const ids = [...(where === "first" ? [] : ["e0"]), ...members, ...(where === "last" ? [] : ["e9"]), "z1"];
+            const draft = draftOf(elements, [kind === "CIRCUIT" ? C("c", 0, "p") : Y("c", 0, "p")], ids);
+            const container = { kind, id: "c" } as const;
+            // Le Point déplacé après le premier membre (fin du conteneur à un membre).
+            const viaPoint = moveLayoutStopPoint(draft, "p", kind === "CIRCUIT" ? C("c", 1, "") : Y("c", 1, ""), newId);
+            const viaDrop = moveLayoutItem(draft, { kind: "EXERCISE", id: "a1" }, { container, index: 0 }, newId);
+            const viaStep = stepLayoutItem(draft, { kind: "EXERCISE", id: "a1" }, "UP", newId);
+            expect(viaDrop).toEqual(viaStep);
+            if (viaPoint.status === "REFUSED") {
+              // Point de fin interdit (fin de Séance, × 1) : refus strict du Point ; l'Exercice est déplacé et le Point retiré.
+              expect(viaPoint.reason).toBe("STOP_POINT_NOT_ALLOWED");
+              expect(viaDrop).toMatchObject({ status: "APPLIED", removedStopPointIds: ["p"] });
+              return;
+            }
+            expect(viaPoint.status).toBe(viaDrop.status);
+            if (viaPoint.status === "APPLIED" && viaDrop.status === "APPLIED") {
+              expect(viaDrop.draft.structure).toEqual(viaPoint.draft.structure);
+              expect(viaDrop.removedStopPointIds).toEqual([]);
+            }
+            if (members.length === 2) {
+              // a2 monté au-dessus du Point : accepté (le Point reste entre a2 et a1).
+              const a2 = appliedDraft(moveLayoutItem(draft, { kind: "EXERCISE", id: "a2" }, { container, index: 0 }, newId));
+              expect(pointsOf(a2)).toEqual([{ id: "p", circuitId: kind === "CIRCUIT" ? "c" : null, cycleId: kind === "CIRCUIT" ? null : "c", position: 1 }]);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  it("« Monter » pas à pas (D-441, élément voisin) : [P, A, B], B monte → [P, B, A], puis franchit P → [B, P, A] ; « Descendre » inverse", () => {
+    for (const kind of ["CIRCUIT", "CYCLE"] as const) {
+      const own = kind === "CIRCUIT" ? circuitOf("c", ["a", "b"], 2) : cycleOf("c", ["a", "b"], 2);
+      const point = kind === "CIRCUIT" ? C("c", 0, "p") : Y("c", 0, "p");
+      const draft = draftOf([ex("e0"), own, ex("e9"), circuitOf("z", ["z1"], 1)], [point], ["e0", "a", "b", "e9", "z1"]);
+      const membersOf = (next: SessionDraft) => {
+        const element = next.structure!.elements[1]!;
+        return element.kind === "CIRCUIT" ? element.circuit.exercises : element.kind === "CYCLE" ? element.cycle.members.map((member) => (member.kind === "EXERCISE" ? member.exercise : "?")) : [];
+      };
+      const once = appliedDraft(stepLayoutItem(draft, { kind: "EXERCISE", id: "b" }, "UP", newId));
+      expect(membersOf(once)).toEqual(["b", "a"]);
+      expect(pointsOf(once).map((p) => p.position)).toEqual([0]);
+      const twice = appliedDraft(stepLayoutItem(once, { kind: "EXERCISE", id: "b" }, "UP", newId));
+      expect(membersOf(twice)).toEqual(["b", "a"]);
+      expect(pointsOf(twice).map((p) => p.position)).toEqual([1]);
+      // Retour par « Descendre » : franchit P, puis échange avec A.
+      const back = appliedDraft(stepLayoutItem(twice, { kind: "EXERCISE", id: "b" }, "DOWN", newId));
+      expect(pointsOf(back).map((p) => p.position)).toEqual([0]);
+      const home = appliedDraft(stepLayoutItem(back, { kind: "EXERCISE", id: "b" }, "DOWN", newId));
+      expect(membersOf(home)).toEqual(["a", "b"]);
+      expect(pointsOf(home).map((p) => p.position)).toEqual([0]);
+    }
+  });
+});
+
 /** Aucun Circuit ni Cycle vide dans une disposition. */
 function emptyContainers(structure: Pick<SessionStructure<string, StructureStopPointLocation>, "elements"> | undefined): string[] {
   if (structure === undefined) return [];

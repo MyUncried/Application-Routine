@@ -158,7 +158,6 @@ import {
   inlineSelectedLabelStyle,
 } from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
-import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
@@ -361,7 +360,11 @@ export type ExecutionParametersSheetProps = {
    * de la ligne de couleur) soient identifiés en orange ») : phases « à vérifier » de l'Exercice, lues
    * à l'ouverture — leurs cellules de durée et la ligne « Phases » en orange (`toVerifyColors`, rendu
    * choisi sans maquette). « Paramètres à compléter » prime : une durée manquante garde son rouge et
-   * la ligne n'est pas orange. Absent : aucun orange.
+   * la ligne n'est pas orange. Absent : aucun orange. [Remplacé le 31/10/2026, contre-recette n° 3
+   * (cr4-verifier, Hermann : « ce n'est pas toute la ligne de la section phase du mouvement qui doit
+   * être orange mais uniquement le cadre du contrôle « X phases » ») : le champ « n phases » (option
+   * Avec sélectionnée) porte le cadre et le fond orange, la ligne reste neutre ; les cellules de durée
+   * à vérifier, elles-mêmes des champs, gardent leur fond orange (lecture à confirmer) ; le rouge prime.]
    */
   readonly phasesToVerify?: readonly number[];
 };
@@ -750,22 +753,26 @@ export function ExecutionParametersSheet({
   // contrôle de la recette n° 2 (cr2-phases-rouge, Hermann : « Seul le cadre du champ du nombre de
   // phases doit être rouge. Pas toute la ligne. ») : cadre rouge de l'option Avec sélectionnée
   // (« n phases », `SegmentedControl` option `invalid`), la ligne reste neutre.]
-  const isPhasesRowIncomplete =
-    hasWorkPhases &&
-    isPhasesFolded &&
-    draft.workPhases.some((phase) => !(typeof phase.durationSeconds === "number" && phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin));
+  // [Remplacé le 31/10/2026, contre-recette n° 3 (cr4-rouge, Hermann : « Tableau de phase déplié et
+  // le cadre du Champ « X phases » à une couleur de fond toujours bleue. Ce n'est pas le cadre de la
+  // ligne qui doit être rouge mais le cadre du champ. ») : la condition « tableau replié » est
+  // retirée — le champ « n phases » est rouge (fond `dangerSurface`, cadre `danger`, sans le violet
+  // de la sélection) tant qu'une durée de phase manque, tableau replié ou déplié.]
+  const hasMissingPhase = draft.workPhases.some(
+    (phase) => !(typeof phase.durationSeconds === "number" && phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin),
+  );
+  const isPhaseCountIncomplete = hasWorkPhases && hasMissingPhase;
   // PRE-9, recette iPhone n° 2 (constat e) : phases « à vérifier » lues à l'ouverture, encore
   // présentes et renseignées ; ligne « Phases » orange sauf si une durée manque (le rouge prime).
+  // [Remplacé le 31/10/2026, contre-recette n° 3 (cr4-verifier) : seul le champ « n phases » est
+  // orange, jamais la ligne.]
   const [openingPhasesToVerify] = useState(() => new Set(phasesToVerify ?? []));
   const toVerifyPhaseIds = new Set(
     draft.workPhases
       .filter((phase) => openingPhasesToVerify.has(phase.id) && typeof phase.durationSeconds === "number" && phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin)
       .map((phase) => phase.id),
   );
-  const hasMissingPhase = draft.workPhases.some(
-    (phase) => !(typeof phase.durationSeconds === "number" && phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin),
-  );
-  const isPhasesRowToVerify = toVerifyPhaseIds.size > 0 && !hasMissingPhase;
+  const isPhaseCountToVerify = toVerifyPhaseIds.size > 0 && !hasMissingPhase;
   // AD-23 : seule autorité de la Condition d'arrêt, sur l'état effectif.
   const stopCondition = stopConditionOf(effective);
   // FR-21 : en identiques à l'échec, la ligne de cible (Durée ou Répétitions) est masquée.
@@ -2018,7 +2025,10 @@ export function ExecutionParametersSheet({
               // RC-16 : réglage ouvert, l'option dessine son fond clair (`#EAEAFF`, comme la charge active).
               ownSurface: phaseCountOpen,
               // Contrôle de la recette n° 2 (cr2-phases-rouge) : seul le cadre du champ « n phases » est rouge.
-              invalid: isPhasesRowIncomplete,
+              // Contre-recette n° 3 (cr4-rouge, cr4-verifier) : tableau replié ou déplié, sans le fond
+              // violet ; « à vérifier » en orange, le rouge prime.
+              invalid: isPhaseCountIncomplete,
+              toVerify: isPhaseCountToVerify,
               selectedContent: (
                 <PhaseCountField
                   isOpen={phaseCountOpen}
@@ -2028,6 +2038,7 @@ export function ExecutionParametersSheet({
                   folded={isPhasesFolded}
                   onChevronPress={togglePhasesTable}
                   disabled={structureLocked}
+                  flagged={isPhaseCountIncomplete || isPhaseCountToVerify}
                 />
               ),
             }
@@ -2242,7 +2253,6 @@ export function ExecutionParametersSheet({
                     <Row
                       label={t.workPhases}
                       selected={phaseCountOpen}
-                      toVerify={isPhasesRowToVerify}
                       testID="execution-sheet-row-phases"
                     >
                       {phasesControl}
@@ -2903,7 +2913,6 @@ function Row({
   label,
   labelAccessory = null,
   selected = false,
-  toVerify = false,
   longLabel = false,
   below = null,
   onLayout,
@@ -2918,11 +2927,12 @@ function Row({
    * [PRE-9, recette iPhone n° 2 du 31/10/2026 (constat a) : `invalid`, ligne à compléter en rouge —
    * retiré le même jour (cr2-phases-rouge : « Seul le cadre du champ du nombre de phases doit être
    * rouge. Pas toute la ligne. »), voir `SegmentedControl` option `invalid`.]
-   * PRE-9, recette iPhone n° 2 (constat e) : ligne « à vérifier » — toute la ligne en orange (fond
-   * `toVerifyColors.surface`, bord 1 `toVerifyColors.border`), rendu choisi sans maquette,
-   * prioritaire sur la sélection.
+   * [PRE-9, recette iPhone n° 2 (constat e) : `toVerify`, ligne « à vérifier » — toute la ligne en
+   * orange (fond `toVerifyColors.surface`, bord 1 `toVerifyColors.border`) — retiré le 31/10/2026,
+   * contre-recette n° 3 (cr4-verifier : « ce n'est pas toute la ligne de la section phase du
+   * mouvement qui doit être orange mais uniquement le cadre du contrôle « X phases » »), voir
+   * `SegmentedControl` option `toVerify`.]
    */
-  toVerify?: boolean;
   longLabel?: boolean;
   below?: ReactNode;
   onLayout?: (event: LayoutChangeEvent) => void;
@@ -2951,7 +2961,7 @@ function Row({
         pointerEvents="none"
         style={[
           styles.selectionBackground,
-          toVerify ? styles.selectionBackgroundToVerify : selected ? styles.selectionBackgroundSelected : null,
+          selected ? styles.selectionBackgroundSelected : null,
         ]}
         testID={`${testID}-selection`}
       />
@@ -3206,6 +3216,7 @@ function SegmentCountField({
   disabled = false,
   disabledSuffix,
   disabledHint,
+  closedLabelStyle,
 }: {
   isOpen: boolean;
   onToggle: () => void;
@@ -3238,6 +3249,8 @@ function SegmentCountField({
   disabled?: boolean;
   disabledSuffix?: string;
   disabledHint?: string;
+  /** PRE-9, contre-recette n° 3 : style du libellé fermé (par défaut `inlineSelectedLabelStyle`, blanc). */
+  closedLabelStyle?: StyleProp<TextStyle>;
 }) {
   const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
   if (!isOpen || disabled) {
@@ -3259,7 +3272,7 @@ function SegmentCountField({
         style={disabled ? [style, styles.unselected] : style}
         testID={`${testID}-toggle`}
       >
-        <Text style={inlineSelectedLabelStyle} testID={textTestID}>
+        <Text style={closedLabelStyle ?? inlineSelectedLabelStyle} testID={textTestID}>
           {closedLabel}
         </Text>
       </Pressable>
@@ -3312,6 +3325,7 @@ function PhaseCountField({
   folded,
   onChevronPress,
   disabled = false,
+  flagged = false,
 }: {
   isOpen: boolean;
   onToggle: () => void;
@@ -3319,6 +3333,12 @@ function PhaseCountField({
   onChange: (count: number) => void;
   folded: boolean;
   onChevronPress: () => void;
+  /**
+   * PRE-9, contre-recette n° 3 du 31/10/2026 (cr4-rouge, cr4-verifier) : option signalée (à compléter
+   * ou à vérifier), dessinée sur un fond clair au lieu du violet — libellé fermé et chevron en
+   * couleur primaire pour rester lisibles.
+   */
+  flagged?: boolean;
   /**
    * PRE-7 (A2.1, D-438, MFN-09) : nombre verrouillé (occurrence) — « n phases » affiché avec
    * l'état indisponible existant de `SegmentCountField` (`unselected`, sans réglage) ; le chevron
@@ -3332,7 +3352,7 @@ function PhaseCountField({
     <KodjoIcon
       name={folded ? "control-chevron-down" : "control-chevron-up"}
       size={dimensions.catalogueDisclosure.chevronDisplaySize}
-      tintColor={isOpen ? colors.disabled : colors.background}
+      tintColor={isOpen ? colors.disabled : flagged ? colors.primary : colors.background}
       testID={`${chevronTestID}-icon`}
     />
   );
@@ -3369,6 +3389,7 @@ function PhaseCountField({
       openAccessory={chevron}
       openHint={t.phasesTableToggleUnavailableHint}
       disabled={disabled}
+      closedLabelStyle={flagged ? [inlineSelectedLabelStyle, styles.phaseCountFlaggedLabel] : undefined}
       testID="execution-sheet-phase-count"
       textTestID="execution-sheet-phase-count-text"
     />
@@ -3650,6 +3671,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   // RC-16 : valeur primaire (comme la charge en saisie), à 8 du − (2 + 6) et à 6 du chevron (2 + 4).
+  // PRE-9, contre-recette n° 3 : « n phases » fermé sur le fond clair d'une option signalée.
+  phaseCountFlaggedLabel: {
+    color: colors.primary,
+  },
   phaseStepperValue: {
     color: colors.primary,
     minWidth: 0,
@@ -3854,13 +3879,9 @@ const styles = StyleSheet.create({
   selectionBackgroundSelected: {
     backgroundColor: colors.stepperSurface,
   },
-  // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat e) : ligne « à vérifier », toute la ligne en
-  // orange. [Constat a : `selectionBackgroundInvalid` (ligne rouge) retiré le même jour, cr2-phases-rouge.]
-  selectionBackgroundToVerify: {
-    backgroundColor: toVerifyColors.surface,
-    borderWidth: 1,
-    borderColor: toVerifyColors.border,
-  },
+  // [PRE-9, recette iPhone n° 2 du 31/10/2026 : `selectionBackgroundInvalid` (ligne rouge, constat a)
+  // retiré le même jour (cr2-phases-rouge) ; `selectionBackgroundToVerify` (ligne orange, constat e)
+  // retiré le 31/10/2026, contre-recette n° 3 (cr4-verifier) — cadre porté par le champ « n phases ».]
   // Story 3.3 (T23) : zone d'appui extérieur étendue aux marges de `bodyContent`.
   bodyOutside: {
     position: "absolute",
