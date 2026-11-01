@@ -1425,3 +1425,10 @@ La suppression accidentelle du sélecteur Jour/Semaine/Mois dans les modales de 
 
 **Traçabilité :** le principe initial « Format porté par un Circuit ou un Exercice » et le transfert implicite proposé vers un Circuit ne sont plus actifs ; l'attribution est par Exercice, l'adoption explicite par choix utilisateur. Les questions d'horloges, de fin de bloc et de résultat restent des raccordements d'exécution PRE-10/11, sans déduction nouvelle à partir de Figma. La migration physique correspondante relève du plan technique PRE-9, sans présumer d'un schéma SQL déjà livré.
 
+## Report de B.8 — Utiliser une Séance existante — 01/11/2026 (sans nouveau numéro D)
+
+Décision de Hermann du 01/11/2026 (classe B) : « B.8 : la décision est de ne pas développer cette fonction pour l’instant. »
+
+- La story B.8 (« Utiliser une Séance existante », ARB-16) n’est pas développée dans PRE-9 jusqu’à nouvelle décision. ARB-16 reste la règle applicable le jour où elle sera développée ; il n’est ni modifié ni rouvert.
+- Dans le menu Créer, l’option « Utiliser une séance existante » reste affichée indisponible (état actuel, inchangé).
+- Suivi : `_bmad-output/pre9/planning-artifacts/epics.md` (B.8, annotation datée), `sprint-status.yaml` (`b-8-utiliser-seance-existante: deferred`).

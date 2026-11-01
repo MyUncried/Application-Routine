@@ -178,6 +178,7 @@ Dépend de : B.1, D.1. Arbitrage : ARB-11 (décidé).
 - Durée par Circuit et par Cycle dans les en-têtes, total de Séance (≈/≥, D-443) calculés sur le plan développé (D.1) ; durée et arrondi du Cycle selon les règles de la Séance (ARB-11) ; un élément AMRAP contribue par sa **durée configurée**, initialement 12:00 ; un élément Death by, sans durée calculable, est traité comme un Exercice sans durée conventionnelle, préfixe « ≥ » (application de D-070, à confirmer en revue) ; un Cycle × k multiplie une fois la durée de ses éléments, formatés compris (ARB-25) ; aucune valeur Figma prise comme oracle.
 
 ### B.8 — Utiliser une Séance existante
+[01/11/2026, décision de Hermann : « B.8 : la décision est de ne pas développer cette fonction pour l’instant. » Story reportée, non développée dans PRE-9 jusqu’à nouvelle décision ; l’option « Utiliser une séance existante » du menu Créer reste affichée indisponible, comme aujourd’hui. Voir ch07 « Report de B.8 ».]
 Dépend de : B.2, C.1. Arbitrage : ARB-16 (décidé).
 - Copie de la composition au niveau principal à l'endroit choisi, nouveaux identifiants, mêmes Mouvements, paramètres copiés, sans début/fin propres ni synchronisation (D-449 §3).
 - Éléments formatés copiés avec leur Format et leurs paramètres spécifiques (ARB-16). [28/10 : « copie sans le Format » — remplacé.] Ajout direct d'un nouvel Exercice formaté depuis la Composition : ARB-23 clos, implémenté via C.4 (hors B.8).
