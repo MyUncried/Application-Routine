@@ -36,7 +36,8 @@ import { strings } from "@/shared/i18n";
  * [Remplacé le 01/11/2026 (ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état cible ») : l'entrée
  * « Utiliser un mouvement existant » est retirée du menu ; un Mouvement existant est repris par la
  * saisie du nom dans « Créer un exercice » (toucher de sa carte de suggestion). La sélection multiple
- * du Catalogue n'est plus atteinte depuis la Composition.]
+ * du Catalogue n'est plus atteinte depuis la Composition.] [Rétablie le même jour par la recette iPhone
+ * du 01/11/2026 (m11-menu, Hermann) : « Utiliser un mouvement existant », 2e option du menu.]
  */
 
 jest.mock("expo-sqlite", () => ({ useSQLiteContext: () => ({}) }));
@@ -278,19 +279,103 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
   }, 40000);
 });
 
+// Recette iPhone du 01/11/2026 (m11-menu, Hermann : « il faut intégrer de nouveau l'option du menu
+// « utiliser un mouvement existant » ») : entrée rétablie (2e, après « Créer un exercice ») ; tests
+// d'avant le 01/11 restaurés (ordre du Catalogue, sélection multiple, coin « dans la séance »).
+describe("PRE-9 A.2 — « Utiliser un mouvement existant » : sélection par le Catalogue des Mouvements", () => {
+  it("ouvre la sélection des Mouvements (pas l'ancienne sélection) ; archivés absents ; choisis → Exercices dans l'ordre du Catalogue, posés à compléter ; chaque carte ouvre ses paramètres", async () => {
+    await movements().create(movement("fentes", "Fentes"));
+    await movements().create(movement("gainage", "Gainage"));
+    await movements().create(movement("abdos", "Abdos"));
+    await movements().create(movement("ancien", "Ancien"));
+    await movements().archive("ancien");
+    const router = renderApp();
+    await settle();
+
+    await openMenuAction(addToSession.existingActivity);
+    expect(router.getPathname()).toBe("/movement-selection");
+    expect(screen.queryByTestId("activity-selection-list")).toBeNull();
+    expect(await screen.findByTestId("movement-card-fentes")).toBeTruthy();
+    expect(screen.queryByTestId("movement-card-ancien")).toBeNull();
+    expect(screen.getByTestId("movement-selection-add").props.accessibilityState).toMatchObject({ disabled: true });
+
+    // Touchers dans le désordre : l'ordre d'insertion est celui du Catalogue (par nom).
+    fireEvent.press(screen.getByTestId("movement-card-gainage"));
+    fireEvent.press(screen.getByTestId("movement-card-abdos"));
+    fireEvent.press(screen.getByTestId("movement-card-fentes"));
+    fireEvent.press(screen.getByTestId("movement-card-fentes"));
+    expect(screen.getByLabelText("Abdos").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByLabelText("Fentes").props.accessibilityState).toMatchObject({ selected: false });
+    expect(screen.getByText("Ajouter 2 exercices")).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-selection-add"));
+    });
+    await settle(300);
+
+    expect(router.getPathname()).toBe("/composition");
+    expect(cardNames()).toEqual(["Abdos", "Gainage"]);
+    // Aucune feuille à l'insertion : les deux cartes sont à compléter.
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    expect(screen.getAllByText(strings.executionParameters.card.incomplete)).toHaveLength(2);
+    // Carte touchée → ses paramètres : Abdos (✓), puis Gainage (✕ : laissé à compléter).
+    await tapCard("Abdos");
+    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+    await setDuration45();
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    await tapCard("Gainage");
+    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    await settle(300);
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    expect(router.getPathname()).toBe("/composition");
+    const [abdos, gainage] = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, `));
+    // [« 1 min » avant le 01/11/2026 : Récupération du Profil (30 s) reprise par le nouvel Exercice.]
+    expect(String(abdos!.props.accessibilityLabel)).toBe("Exercice, Abdos, 1 sur 2, 2 min, récupération 30 s");
+    // Paramètres à compléter : aucune durée annoncée (D-389).
+    expect(String(gainage!.props.accessibilityLabel)).toBe("Exercice, Gainage, 2 sur 2, récupération 30 s");
+    // Aucun Mouvement créé ni modifié par la sélection.
+    expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(4);
+
+    // Contre-recette du 30/10 (Hermann) : rouverte, la sélection marque d'un coin replié (annoncé
+    // « dans la séance ») les Mouvements déjà présents ; ils restent sélectionnables.
+    await openMenuAction(addToSession.existingActivity);
+    expect(await screen.findByTestId("movement-card-in-session-abdos")).toBeTruthy();
+    expect(screen.getByTestId("movement-card-in-session-gainage")).toBeTruthy();
+    expect(screen.queryByTestId("movement-card-in-session-fentes")).toBeNull();
+    expect(screen.queryByText("Dans la séance")).toBeNull();
+    fireEvent.press(screen.getByTestId("movement-card-abdos"));
+    expect(screen.getByLabelText("Abdos, dans la séance").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByLabelText("Fentes").props.accessibilityState).toMatchObject({ selected: false });
+  }, 40000);
+
+  it("Annuler de la sélection revient à la Composition sans rien ajouter", async () => {
+    await movements().create(movement("fentes", "Fentes"));
+    const router = renderApp();
+    await settle();
+    await openMenuAction(addToSession.existingActivity);
+    fireEvent.press(await screen.findByTestId("movement-card-fentes"));
+    fireEvent.press(screen.getByTestId("movement-selection-cancel"));
+    await settle(300);
+    expect(router.getPathname()).toBe("/composition");
+    expect(cardNames()).toEqual([]);
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+  }, 40000);
+});
+
 // [« Utiliser un mouvement existant » : sélection par le Catalogue des Mouvements — entrée retirée du
 // menu Créer le 01/11/2026 (ordre de Hermann, ch13 CE-T03-08). Ordre du Catalogue, sélection multiple
 // et coin « dans la séance » ne sont plus atteints depuis la Composition ; l'écran de sélection reste
-// couvert par `MovementSelectionScreen.cat1.test.tsx`.]
+// couvert par `MovementSelectionScreen.cat1.test.tsx`.] [Rétablie le même jour (recette iPhone du
+// 01/11/2026, m11-menu) : voir le bloc précédent. La reprise par la saisie du nom reste valable.]
 describe("PRE-9 A.2 — Mouvements existants repris par « Créer un exercice » (01/11/2026)", () => {
-  it("le menu ne propose plus « Utiliser un mouvement existant » ; Mouvements repris par la saisie du nom → Exercices posés à compléter, dans l'ordre d'ajout ; chaque carte ouvre ses paramètres", async () => {
+  it("Mouvements repris par la saisie du nom → Exercices posés à compléter, dans l'ordre d'ajout ; chaque carte ouvre ses paramètres [« le menu ne propose plus « Utiliser un mouvement existant » » : remplacé par la recette du 01/11 (m11-menu)]", async () => {
     await movements().create(movement("gainage", "Gainage"));
     await movements().create(movement("abdos", "Abdos"));
     const router = renderApp();
     await settle();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
-    expect(within(screen.getByTestId("composition-add-activity-tree")).queryByLabelText(addToSession.existingActivity)).toBeNull();
+    expect(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(addToSession.existingActivity)).toBeTruthy();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
     await settle(300);
 

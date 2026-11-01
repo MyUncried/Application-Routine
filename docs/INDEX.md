@@ -2,7 +2,7 @@
 
 > **Récupération et défauts Profil :** [règle validée](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recuperation-exercice-et-defauts-profil). Récupération propre à l’Exercice ; même valeur dans Composition ; saisie exclusivement dans la modale ; Pause / Ajouter un arrêt réservé aux Points d’arrêt. Tous les défauts Profil repris sont sur fond orange jusqu’au premier ✓.
 
-> **Composition — menu Créer :** [quatre options et fermeture par le bouton +/Annuler](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#composition-menu-creer). Réutilisation des suggestions de mouvements dans Créer un exercice ; accès Format depuis ce menu à préciser (MENU-FMT-01).
+> **Composition — menu Créer :** [quatre options [cinq depuis le 01/11/2026 : « Utiliser un mouvement existant » rétabli] et fermeture par le bouton +/Annuler](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#composition-menu-creer). Réutilisation des suggestions de mouvements dans Créer un exercice ; accès Format depuis ce menu à préciser (MENU-FMT-01).
 
 > **Paramètres d’exécution — état cible :** [six blocs, libellés, côtés et durée calculée](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#parametres-execution-etat-cible). D-413, D-431, D-447 et RM-243 actualisés ; Phases du mouvement reste le libellé de référence. Raccordement de la nouvelle ligne Récupération : **REC-PARAM-01 clos : récupération portée par l’Exercice et réglée dans la modale**, sans modification implicite de la Composition ou du contexte ACTIVITY.
 

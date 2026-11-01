@@ -1,5 +1,5 @@
 import { router as expoRouter } from "expo-router";
-import { act, fireEvent, renderRouter, screen, waitFor, within } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen, testRouter, waitFor, within } from "expo-router/testing-library";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Stack } from "expo-router/stack";
 import type { ReactNode } from "react";
@@ -537,12 +537,24 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
     // [« Utiliser un mouvement existant » et rangée « Annuler » — remplacés le 01/11/2026 (ordre de
     // Hermann, ch13 CE-T03-08 « Menu Créer — état cible ») : plus d'entrée « mouvement existant » ;
     // Annuler est le « + » transformé, qui ferme le menu sans action.]
-    expect(within(tree).queryByLabelText(activities.addToSession.existingActivity)).toBeNull();
+    // [Rétabli par la recette iPhone du 01/11/2026 (m11-menu, Hermann) : « Utiliser un mouvement
+    // existant » est de nouveau une option, 2e après « Créer un exercice ».]
+    expect(within(tree).getByLabelText(activities.addToSession.existingActivity)).toBeTruthy();
     expect(within(tree).getByLabelText(activities.addToSession.cancel)).toBeTruthy();
     fireEvent.press(within(tree).getByLabelText(activities.addToSession.cancel));
     await settle();
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
     expect(router.getPathname()).toBe("/composition");
+
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(activities.addToSession.existingActivity));
+    await settle();
+    // PRE-9 A.2 — ARB-22a, D-449 : sélection des Mouvements du Catalogue, plus `/activity-selection`.
+    expect(router.getPathname()).toBe("/movement-selection");
+    act(() => {
+      testRouter.back();
+    });
+    await settle(300);
 
     openLegacyExerciseCreation();
     await settle();

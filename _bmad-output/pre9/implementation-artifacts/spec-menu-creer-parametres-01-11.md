@@ -2,6 +2,8 @@
 
 ## Menu Créer
 
+> [01/11/2026, recette iPhone de Hermann (m11-menu, classe B) : « Utiliser un mouvement existant » rétabli, 2e option, icône « Haltère (ancienne) » — cinq options ; zone de contexte sous le voile. Les passages ci-dessous qui retirent cette entrée sont remplacés ; voir « Recette du 01/11 » en fin de document.]
+
 Mis en œuvre sur `pre9-bmad/dev` (départ `90f4135f`). Règles écrites : documentation de `main` intégrée par `90f4135f` (`3759d1fa`, « docs: actualiser paramètres d'exécution et menu Créer »).
 
 ### Ordre (texte de Hermann, 01/11/2026, point 1)
@@ -29,7 +31,7 @@ Aucune modification de `docs/` : la règle y est déjà écrite (lot `3759d1fa`)
 ### Réalisation
 
 - `src/features/sessions/CreateMenu.tsx` : plus de rangée « Annuler » ni de « + » reposé ; Annuler = cercle de 34 (`#E5E8F0`, contour `#BABFCC`, ombre du menu) portant la croix standard `icon/fermer` (`KodjoIcon` `control-close`, 24), cible de 44 centrée sur le « + » mesuré (contre-recette du 30/10 conservée) ; rendu après l'axe et les options, au-dessus du voile ; nom accessible « Annuler ». Axe : du centre d'Annuler (recouvert par son cercle) au centre de la dernière icône. Icône « exercise » (haltère) supprimée, « Créer un exercice » prend la silhouette (`menu-mouvement.svg`). Repli sans mesure : Figma `11059:18868` (47 au-dessus de la première rangée, au lieu de 40).
-- `src/features/sessions/CompositionScreen.tsx` : options « Créer un exercice » (icône silhouette, même action : `/movement?context=session`), « Utiliser une séance existante » (indisponible, B.8), « Ajouter un circuit », « Ajouter un cycle ». Entrée « Utiliser un mouvement existant » retirée (et l'import `markMovementsInSession` devenu inutile). Pas d'entrée Format.
+- `src/features/sessions/CompositionScreen.tsx` : options « Créer un exercice » (icône silhouette, même action : `/movement?context=session`), « Utiliser une séance existante » (indisponible, B.8), « Ajouter un circuit », « Ajouter un cycle ». Entrée « Utiliser un mouvement existant » retirée (et l'import `markMovementsInSession` devenu inutile). Pas d'entrée Format. [Entrée rétablie le 01/11/2026, recette iPhone (m11-menu) — voir « Recette du 01/11 ».]
 - `src/features/activities/MovementScreen.tsx` : en contexte Séance (`onMovementChosen` fourni), titre `movement.titles.sessionCreate` et bouton de confirmation `movement.sessionFinish`, tous deux « Créer un exercice » ; Catalogue et autres contextes inchangés (« Créer un mouvement », « Terminer »). Les actions distinctes « Créer un nouveau mouvement » du dialogue de sauvegarde ne sont pas renommées (ch13 l.1821).
 - `src/shared/i18n/resources/fr.ts` : `addToSession.newActivity` = « Créer un exercice » ; ajout de `movement.titles.sessionCreate`, `movement.sessionFinish`. `existingActivity` conservé (titre de l'écran `/movement-selection`).
 - Inchangés : voile et fondu d'apparition de 600 ms (recette du 29/10, f) ; axe bleu `#1414F5` (recette du 29/10, cre-figma) ; options inactives (obs-4) ; « Pause / Ajouter un arrêt » sous le voile (non reposé au premier plan).
@@ -46,7 +48,7 @@ Conforme : quatre options dans l'ordre ; pilules 243 × 32, écart 10, première
 
 ### Hors périmètre, constats
 
-- L'écran `/movement-selection` (`MovementSelectionScreen`) n'est plus atteint depuis la Composition ; conservé (aucune demande de retrait). Ses tests unitaires restent valides.
+- L'écran `/movement-selection` (`MovementSelectionScreen`) n'est plus atteint depuis la Composition ; conservé (aucune demande de retrait). Ses tests unitaires restent valides. [De nouveau atteint depuis le 01/11/2026 (m11-menu).]
 - MENU-FMT-01 reste À CLARIFIER (accès Format de remplacement non spécifié) : aucune entrée ajoutée.
 - `assets/composition/menu-annuler.svg` n'est plus référencé ; non supprimé.
 
@@ -59,7 +61,7 @@ Annotation datée entre crochets, texte d'origine conservé : `recette-iphone-ap
 - `CreateMenu.test.tsx` : axe d'Annuler à la dernière option ; Annuler = croix 34 sur gris, sans pilule ni libellé, plus de « + » reposé ; Annuler recouvre le « + » mesuré ; repli Figma (47).
 - `CompositionScreen.b2.test.tsx` : exactement quatre options dans l'ordre (puis Annuler, hors liste), icône ronde pour chacune, pas de « Utiliser un mouvement existant » ni de Format ; « Créer un exercice » → `/movement?context=session` ; transformation + → Annuler (34, gris), fermeture sans navigation ni mutation du brouillon (même objet), retour du + et réouverture.
 - `CompositionScreen.test.tsx`, `ExerciseEditingPaths.integration.test.tsx` : entrée « mouvement existant » absente ; Annuler ferme sans action.
-- `CompositionMovementFlow.integration.test.tsx`, `movementPhaseDurations.a2b.integration.test.tsx` : les parcours « Utiliser un mouvement existant » passent par « Créer un exercice » + saisie du nom + toucher de la carte de suggestion ; titre et confirmation « Créer un exercice » en contexte Séance. Les assertions propres à la sélection multiple (ordre du Catalogue, coin « dans la séance ») sont retirées : parcours non atteint depuis la Composition.
+- `CompositionMovementFlow.integration.test.tsx`, `movementPhaseDurations.a2b.integration.test.tsx` : les parcours « Utiliser un mouvement existant » passent par « Créer un exercice » + saisie du nom + toucher de la carte de suggestion ; titre et confirmation « Créer un exercice » en contexte Séance. Les assertions propres à la sélection multiple (ordre du Catalogue, coin « dans la séance ») sont retirées : parcours non atteint depuis la Composition. [Restaurées le 01/11/2026 (m11-menu).]
 - Résultats (`--maxWorkers=1`) : CreateMenu + CompositionScreen.b2 + CompositionScreen 495/495 ; CompositionMovementFlow + ExerciseEditingPaths + movementPhaseDurations.a2b 48/48 ; MovementScreen.b2.integration + i18n `index.test` 102/102. `tsc` et eslint propres sur les fichiers touchés.
 
 Jest ne prouve pas le rendu sur iPhone : recette sur appareil à faire (Annuler à l'emplacement exact du +, fondu, axe).
@@ -164,3 +166,68 @@ La règle (classe B, décision de Hermann) est déjà écrite sur `main` et fusi
 - Jest ne prouve ni le rendu ni VoiceOver sur iPhone : recette à faire (bloc 6, roulette en panneau, fond orange avant le premier ✓ puis rendu normal, carte de la Composition, placement sans récupération).
 - La copie d'une ancienne définition du Catalogue dans une Séance (route `/activity-selection`, plus atteinte depuis le menu Créer) garde une récupération absente (0 s) : la définition n'en porte pas ; aucune valeur n'est inventée.
 - Les libellés i18n de l'ancienne récupération en placement (`recoveryWheelTitle`, `addRecoveryAccessibilityLabel`, annonces…) restent dans `fr.ts` sans usage ; leur retrait relève d'un nettoyage séparé.
+
+## Recette du 01/11
+
+Résultats de la recette iPhone de Hermann du 01/11/2026, recopiés. Départ `58fca0bb` (`pre9-bmad/dev`), aucun commit.
+
+### m11-annuler — KO (classe A)
+
+> « Le Bouton + ne devient pas X, et appuyer dessus n'a aucun effet »
+
+Règle inchangée : CE-T03-08 « Menu Créer — état cible » (le + devient Annuler au-dessus du voile ; son toucher ferme le menu sans action ; la fermeture rétablit +).
+
+**Cause.** `ContextBand` (`src/shared/ui/ScreenShell.tsx`), avec `fadeToTransparent`, porte `zIndex: 1` depuis la contre-recette n° 2 du 30/10 (« Liste qui défile derrière » : la zone de contexte passe au-dessus du corps). Le menu (`CreateMenu`, frère suivant dans `ScreenShell`) n'avait pas de `zIndex` : sur iOS, l'ordre de rendu ne départage que des frères de même `zIndex` — la zone de contexte était peinte et touchée AU-DESSUS du voile et d'Annuler. Le + d'origine recouvrait la croix (même place, mêmes 34 pt) et recevait le toucher (ouvrir le menu, déjà ouvert : sans effet). Jest ne peint ni ne teste le toucher par `zIndex` : les tests passaient.
+
+**Correction.**
+- `CreateMenu.tsx` : couche du menu `CREATE_MENU_LAYER` (`zIndex` 10, `elevation` 10 pour Android), au-dessus de tous ses frères ; la mesure du + est reprise à la mise en page du repère (`onLayout` → `remeasure`), en ignorant une mesure vide ou non finie (première mesure faite avant la mise en page native) ; repli Figma inchangé sans mesure.
+- `CompositionContextHeader.tsx` (`isCreateMenuOpen`) et `CompositionScreen.tsx` : pendant le menu, le + d'origine s'efface (opacité 0, caché à VoiceOver) — une seule commande visible, Annuler, même si la mesure était décalée.
+
+**Tests.** `CreateMenu.test.tsx` : couche `zIndex`/`elevation` > 1 ; mesure absente au montage puis reprise à la mise en page avec un repère décalé (47) ; Annuler dernier enfant du menu. `CompositionScreen.b2.test.tsx` : à l'écran, la zone de contexte (`zIndex` 1) et le menu ont le même ancêtre (`ScreenShell`) et le menu (et Annuler) a un `zIndex` supérieur à celui de la zone de contexte et de « Ajouter un arrêt » — ce test échoue sur `58fca0bb` ; + d'origine à opacité 0 et caché pendant le menu, rétabli à la fermeture.
+
+### m11-menu — classe B
+
+> « On doit changer : il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » […] Par ailleurs, la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus. Le reste est ok »
+
+Réponses de Hermann : position « 2e, après Créer » ; icône « Haltère (ancienne) ».
+
+**Réalisation.** Cinq options : Créer un exercice, Utiliser un mouvement existant, Utiliser une séance existante, Ajouter un circuit, Ajouter un cycle. « Utiliser un mouvement existant » : icône `exercise` (haltère, Figma `10705:20315`, `ExerciseGlyph` rétabli), action d'avant `58fca0bb` — `markMovementsInSession` (coin « dans la séance ») puis `/movement-selection` (sélection multiple, ordre du Catalogue). L'axe s'arrête toujours au centre de l'icône d'« Ajouter un cycle ». Zone de contexte sous le voile : même correction que m11-annuler (seuls Annuler, l'axe et les options au-dessus).
+
+**Documentation (classe B).** ch07 : nouvelle entrée « Menu Créer — recette du 01/11/2026 » (ancre `menu-creer-recette-2026-11-01`), texte recopié. Annotations datées entre crochets, texte d'origine conservé : ch13 CE-T03-08 (« Menu Créer — état cible », MENU-FMT-01, « Référence courante du 28/10 », ligne « Créer » du tableau), ch03, ch04, ch06, ch07 (section « Composition — menu Créer »), ch08, ch10, COMP §5 (`KODJO-Composition-conteneurs-2026-10-28.md`), `KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md`, `PRODUCT.md`, `INDEX.md`, matrice de traçabilité ; dev : `epics.md`, `prd-pre9.md`, `arbitrages-pre9.md`, `architecture-pre9.md`. Commentaires de code et de tests annotés.
+
+**Tests restaurés ou adaptés.** `CompositionScreen.test.tsx` (navigation vers `/movement-selection`, test d'avant `58fca0bb`) ; `CompositionScreen.b2.test.tsx` (cinq options dans l'ordre, haltère, axe jusqu'à « Ajouter un cycle », action) ; `CompositionMovementFlow.integration.test.tsx` (bloc « sélection par le Catalogue des Mouvements » restauré : archivés absents, ordre du Catalogue, « Ajouter 2 exercices », coin « dans la séance », Annuler de la sélection — libellés de carte avec « récupération 30 s ») ; `ExerciseEditingPaths.integration.test.tsx` (entrée présente, route `/movement-selection`) ; `movementPhaseDurations.a2b.integration.test.tsx` (premier Exercice par la sélection, second par la saisie du nom) ; `CreateMenu.test.tsx` (icône haltère).
+
+### cr7-carte — KO (classe A)
+
+> « Circuit avec plusieurs exercices, un ou plusieurs exercices en dehors du circuit, avant ou après : appui long sur un des exercices hors circuit, sans aucun mouvement, cela déplie le Circuit. »
+
+Règle : recette n° 2 du 31/10 (ch07) « L'arrêt d'une carte sur un circuit replié doit l'ouvrir » — la carte doit y avoir été amenée et arrêtée.
+
+**Cause.** Une Séance à un seul Circuit avec des Exercices avant / après relève de l'ancien modèle (Circuit unique, B.1a ; `richLayout === null`). Là, `handleRowDragStart` refusait le soulèvement de TOUTE carte pendant que le Circuit était replié et le dépliait (choix provisoire de B.1a, À CLARIFIER n° 2, prévu pour les cartes du Circuit, appliqué à toutes) : l'appui long sans mouvement dépliait le Circuit. La structure générale (plusieurs Circuits, Cycles : arrêt de 500 ms, `retargetLayoutDrag`) n'était pas en cause : sa place d'origine reste la destination sans mouvement (vérifié par trois tests de non-régression ajoutés à `CompositionScreen.recette2composition.test.tsx`, verts avant et après).
+
+**Correction (`CompositionScreen.tsx`, ancien modèle).**
+- Circuit replié : la carte (ou le Point d'arrêt) hors du Circuit est soulevée sans le déplier ; la géométrie du geste traite le Circuit replié comme un bloc (`buildDragLayout(true)` : rangées masquées omises, bornes de sa boîte repliée).
+- Replié, le Circuit n'offre que sa fin (`collapsedTourEnd` : après sa dernière occurrence, avant ses Points de fin), comme la structure générale ; pendant l'arrêt sur lui, aucune place n'est ouverte (comme cr5-replie) ; un lâcher y dépose à sa fin, puis le changement de contenu le déplie (ARB-12).
+- Une carte (pas un Point d'arrêt, lecture prudente déjà retenue le 31/10) amenée sur le Circuit replié et arrêtée `LAYOUT_COLLAPSED_HOVER_DELAY_MS` (500 ms) le déplie ; le déploiement terminé (`CIRCUIT_REVEAL_DURATION_MS`, immédiat sous « Réduire les animations »), la géométrie est relevée de nouveau (ses cartes deviennent des destinations), l'origine du pointeur reste celle du début du geste ; si le Circuit est au-dessus de la carte, son déplacement dans la mise en page est compensé par la translation de registre de la carte (`sourceDrift`). Passage sans arrêt : rien ne se déplie. Minuterie annulée au lâcher, à l'interruption, au démontage.
+
+**Tests.** `CompositionScreen.test.tsx`, bloc « recette du 01/11 — cr7-carte » (remplace « collapsed: a long press on a card is refused … and the Circuit expands », annoté) : appui long sans mouvement (et petit tremblement) avant puis après le Circuit — carte soulevée, Circuit replié après 2 s, brouillon inchangé ; lâcher sur le Circuit replié avant le délai → fin du Circuit, puis déplié ; carte amenée et arrêtée → déplié à 500 ms (pas à 499), géométrie relevée, dépose en tête du Circuit ; passage sans arrêt → reste replié.
+
+**Limite.** Ancien modèle : la compensation de la carte sous un Circuit qui se déploie au-dessus d'elle est posée à la fin du déploiement (animée), non image par image comme la structure générale (contre-recette n° 5) : la carte peut descendre pendant le déploiement puis remonter sous le doigt. À juger en recette.
+
+Annotations : `spec-b-1a-en-tete-circuit-d451.md` (À CLARIFIER n° 2), `spec-recette-2-corrections-composition.md` (« Ancien modèle (Circuit unique). Non concerné »).
+
+### m11-objectif — classe B
+
+> « Ok. La transition entre les deux textes doit se faire en apparition/disparition en fondu »
+
+**Réalisation.** `ExecutionParametersSheet.tsx` : une seule ligne de cible `execution-sheet-row-target` pour Durée et Répétitions (elle reste en place au changement de mode ; avant, deux lignes, l'une retirée, l'autre révélée par le bas) ; titre `CrossFadeLabel` : texte à clé, entrée `FadeIn` / sortie `FadeOut` Reanimated de `ROW_LABEL_CROSSFADE_MS` = `SHEET_MOTION_MS` (350 ms, aucune durée de fondu n'existait dans la Feuille, Q41) — la sortie reste posée à sa place pendant que l'entrée apparaît (fondu croisé) ; premier titre sans fondu ; « Réduire les animations » (`useSheetMotionReduced`, filet `ReduceMotion.System`) : immédiat. Pastille et roulette suivent le mode comme avant.
+
+**Documentation (classe B).** ch07 : entrée « Paramètres d'exécution — titre de la cible en fondu — recette du 01/11/2026 » (ancre `parametres-titre-cible-fondu-2026-11-01`), texte recopié ; elle remplace, pour ce seul titre, Q41 (PRE-4, 17/10, « aucune opacité animée ») — Q41 n'est écrite que dans `docs/preparation/PRE-4/`, référence figée : non modifiée.
+
+**Tests.** `ExecutionParametersSheet.test.tsx` : une seule ligne de cible ; « Objectif de durée » ↔ « Nombre de répétitions » avec entrée et sortie en fondu (350 ms) ; premier titre sans entrée ; pastille du mode ; « Réduire les animations » : ni entrée ni sortie.
+
+### Contrôles
+
+- `tsc --noEmit` : sans erreur. eslint : fichiers touchés propres. Motif `target === null/0 / target ??` absent du code de production ajouté. Fins de ligne conservées (CRLF : `CompositionContextHeader.tsx`, `ExecutionParametersSheet.tsx`, `movementPhaseDurations.a2b.integration.test.tsx`, documents `docs/` et `planning-artifacts`).
+- Jest (`--maxWorkers=1`, ciblé) : CompositionScreen, CompositionScreen.b2, CreateMenu, CompositionScreen.recette2composition, CompositionMovementFlow, ExerciseEditingPaths, movementPhaseDurations.a2b, ExecutionParametersSheet*, MovementSelectionScreen*, i18n : 16 suites, 1 041 tests verts ; ActivityEditorForm, CompositionScreen.b4b / recette1 / recette2lot3, ExerciseRecovery : 5 suites, 111 tests verts. Suite complète non lancée (consigne mémoire).
+- Jest ne prouve ni l'empilement réel ni le toucher sur iPhone : recette à refaire (Annuler à la place du +, toucher qui ferme ; zone de contexte sous le voile ; cinq options et haltère ; appui long sans mouvement près d'un Circuit replié, avant / après ; arrêt sur le Circuit replié ; fondu du titre de la cible).

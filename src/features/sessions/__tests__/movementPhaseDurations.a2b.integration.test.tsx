@@ -233,7 +233,7 @@ describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel
     expect(sheetPhaseDurations()).toEqual(["30 s", "—"]);
   }, 40000);
 
-  it("Mouvement existant repris par « Créer un exercice » [« Utiliser un mouvement existant » avant le 01/11/2026] : durées reprises par phase ; une modification ultérieure du Mouvement ne change pas l'Exercice déjà posé (« Inchangés »)", async () => {
+  it("Mouvement existant repris par « Utiliser un mouvement existant », puis par « Créer un exercice » : durées reprises par phase ; une modification ultérieure du Mouvement ne change pas l'Exercice déjà posé (« Inchangés »)", async () => {
     await movements().create(
       movement("fentes", "Fentes", { phases: [{ id: 1, label: "Descente", durationSeconds: 3 }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
     );
@@ -241,7 +241,14 @@ describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel
     await settle();
     // [« Utiliser un mouvement existant » — entrée retirée du menu Créer le 01/11/2026 (ordre de
     // Hermann, ch13 CE-T03-08) : le Mouvement est repris par la saisie de son nom dans « Créer un exercice ».]
-    await useExistingMovement("Fentes", "fentes");
+    // [Entrée rétablie le même jour (recette iPhone du 01/11/2026, m11-menu) : premier Exercice par la
+    // sélection des Mouvements, comme avant ; le second reste repris par la saisie du nom.]
+    await openMenuAction(addToSession.existingActivity);
+    fireEvent.press(await screen.findByTestId("movement-card-fentes"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-selection-add"));
+    });
+    await settle(300);
     expect(cardNames()).toEqual(["Fentes"]);
     await tapCard("Fentes");
     expect(sheetPhaseDurations()).toEqual(["3 s", "—"]);

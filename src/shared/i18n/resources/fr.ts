@@ -502,6 +502,8 @@ export const fr = {
       // quatre options, plus de rangée Annuler — `cancel` nomme désormais le « + » transformé ;
       // « Créer un nouveau mouvement » devient « Créer un exercice » ; `existingActivity` ne sert plus
       // qu'au titre de l'écran de sélection des Mouvements, qui n'est plus atteint depuis ce menu.]
+      // [Recette iPhone du 01/11/2026 (m11-menu, Hermann) : « Utiliser un mouvement existant » est de
+      // nouveau une option du menu (2e, après « Créer un exercice ») : cinq options.]
       addToSession: {
         newActivity: "Créer un exercice",
         existingActivity: "Utiliser un mouvement existant",

@@ -1,8 +1,8 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet, View } from "react-native";
 
-import { CreateMenu } from "@/features/sessions/CreateMenu";
+import { CREATE_MENU_LAYER, CreateMenu } from "@/features/sessions/CreateMenu";
 
 /**
  * PRE-9, recette iPhone du 29/10 — menu Créer de la Composition (Figma `10705:20223`) :
@@ -98,5 +98,65 @@ describe("CreateMenu — recette du 29/10", () => {
     renderMenu();
     // Figma `11059:18868` : centre d'Annuler 47 au-dessus de la première rangée, à 41 du bord droit.
     expect(style("opt-cancel").top).toBe(200 - 47 - 22);
+  });
+});
+
+/**
+ * Recette iPhone du 01/11/2026 (m11-annuler KO : « Le Bouton + ne devient pas X, et appuyer dessus n'a
+ * aucun effet » ; m11-menu : « la zone de contexte doit être sous le voile grisé »).
+ */
+describe("CreateMenu — recette du 01/11", () => {
+  it("the menu is a layer above any sibling with a zIndex (the context band has zIndex 1): iOS zIndex and Android elevation", () => {
+    renderMenu();
+    const root = style("composition-add-activity-tree");
+    expect(root.zIndex).toBe(CREATE_MENU_LAYER);
+    expect(root.elevation).toBe(CREATE_MENU_LAYER);
+    expect(CREATE_MENU_LAYER).toBeGreaterThan(1);
+  });
+
+  it("no measurement at mount (native layout not done yet): Annuler is re-anchored on the « + » at the frame layout, with an offset frame", () => {
+    let ready = false;
+    const prototype = View.prototype as unknown as { measureInWindow: Measure };
+    const spy = jest
+      .spyOn(prototype, "measureInWindow")
+      .mockImplementation(function (this: { props?: { testID?: string } }, callback) {
+        if (this.props?.testID === "composition-add-activity-tree-frame") callback(0, 47, 402, 827);
+      });
+    // Première mesure du « + » : vide (0 × 0) ; ensuite sa boîte réelle.
+    const original = { measureInWindow: ((callback) => (ready ? callback(322, 178, 44, 44) : callback(0, 0, 0, 0))) as Measure } as unknown as View;
+    try {
+      renderMenu({ current: original });
+      // Repli de Figma tant qu'aucune mesure n'est valable.
+      expect(style("opt-cancel").top).toBe(200 - 47 - 22);
+      ready = true;
+      fireEvent(screen.getByTestId("composition-add-activity-tree-frame", { includeHiddenElements: true }), "layout", {
+        nativeEvent: { layout: { x: 0, y: 0, width: 402, height: 827 } },
+      });
+    } finally {
+      spy.mockRestore();
+    }
+    // Repère du menu à 47 du haut de la fenêtre : « + » à (322, 131) dans ce repère.
+    expect(style("opt-cancel")).toMatchObject({ left: 322, top: 131, width: 44, height: 44 });
+    expect(style("composition-add-activity-tree-axis")).toMatchObject({ left: 343, top: 153 });
+  });
+
+  it("Annuler is the last child of the menu (painted and touched above the scrim, the axis and the options)", () => {
+    renderMenu();
+    const root = screen.getByTestId("composition-add-activity-tree", { includeHiddenElements: true });
+    const children = root.children.filter((child): child is typeof root => typeof child !== "string");
+    expect(children[children.length - 1]!.props.testID).toBe("opt-cancel");
+  });
+
+  it("« Utiliser un mouvement existant » takes the former dumbbell icon (« Haltère (ancienne) »)", () => {
+    render(
+      <CreateMenu
+        top={200}
+        options={[{ key: "existing", label: "Utiliser un mouvement existant", icon: "exercise", onPress: jest.fn(), testID: "opt-existing" }]}
+        onCancel={jest.fn()}
+        cancelLabel="Annuler"
+        cancelTestID="opt-cancel"
+      />,
+    );
+    expect(screen.getByTestId("create-menu-icon-exercise", { includeHiddenElements: true })).toBeTruthy();
   });
 });

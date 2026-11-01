@@ -18,6 +18,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
+import Reanimated, { FadeIn, FadeOut, ReduceMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -103,6 +104,7 @@ import {
   SheetMotionProvider,
   SheetMotionScrollView,
   SheetMotionView,
+  useSheetMotionReduced,
 } from "@/features/activities/SheetMotion";
 import {
   INITIAL_SHEET_SURFACE_STATE,
@@ -2459,48 +2461,41 @@ export function ExecutionParametersSheet({
 
                   {/* PRE-5 story 2.4 (FR-21) : à l'échec, la ligne de cible est masquée ; la
                       Pause reste visible. */}
-                  {uniformTargetShown && effective.mode === "DURATION" ? (
+                  {/*
+                   * Recette iPhone du 01/11/2026 (m11-objectif, classe B, Hermann : « Ok. La transition
+                   * entre les deux textes doit se faire en apparition/disparition en fondu ») : une
+                   * seule ligne de cible pour les deux modes (elle reste en place au changement de
+                   * mode) ; son titre passe de « Objectif de durée » à « Nombre de répétitions » (et
+                   * inversement) en fondu croisé (`CrossFadeLabel`). [Avant : deux lignes distinctes,
+                   * l'une retirée, l'autre révélée par le bas (Q41).]
+                   */}
+                  {uniformTargetShown && (effective.mode === "DURATION" || effective.mode === "REPETITIONS") ? (
                     <>
                       <Separator />
                       <Row
-                        label={t.durationGoal}
+                        label={effective.mode === "DURATION" ? t.durationGoal : t.repetitionsTarget}
+                        labelNode={
+                          <CrossFadeLabel
+                            text={effective.mode === "DURATION" ? t.durationGoal : t.repetitionsTarget}
+                            testID="execution-sheet-row-target-label"
+                          />
+                        }
                         selected={isOpen(TARGET_SELECTOR)}
-                        onLayout={trackRow("uniformDuration")}
+                        onLayout={trackRow(effective.mode === "DURATION" ? "uniformDuration" : "uniformRepetitions")}
                         below={
                           // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
-                          !anchoredPanels && isOpen(TARGET_SELECTOR) && uniformDurationAvailable ? (
+                          !anchoredPanels && isOpen(TARGET_SELECTOR) && (uniformDurationAvailable || uniformRepetitionsAvailable) ? (
                             <SheetMotionView style={styles.inlineControl} testID="execution-sheet-target-wheel">
-                              {uniformDurationWheel}
+                              {effective.mode === "DURATION" ? uniformDurationWheel : uniformRepetitionsWheel}
                             </SheetMotionView>
                           ) : null
                         }
                         testID="execution-sheet-row-target"
                       >
                         {/* PRE-7 (D-446, remplace PRE-5 story 2.8 FR-3, AC6) : pastille modifiable
-                            ordinaire, avec ou sans phases (durée de série indépendante du motif). */}
-                        {uniformDurationPill}
-                      </Row>
-                    </>
-                  ) : null}
-                  {uniformTargetShown && effective.mode === "REPETITIONS" ? (
-                    <>
-                      <Separator />
-                      <Row
-                        label={t.repetitionsTarget}
-                        selected={isOpen(TARGET_SELECTOR)}
-                        onLayout={trackRow("uniformRepetitions")}
-                        below={
-                          // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
-                          !anchoredPanels && isOpen(TARGET_SELECTOR) && uniformRepetitionsAvailable ? (
-                            <SheetMotionView style={styles.inlineControl} testID="execution-sheet-target-wheel">
-                              {uniformRepetitionsWheel}
-                            </SheetMotionView>
-                          ) : null
-                        }
-                        testID="execution-sheet-row-target"
-                      >
-                        {/* Story 3.5 (AC2) : plus de stepper en ligne ; la pastille ouvre le Sélecteur. */}
-                        {uniformRepetitionsPill}
+                            ordinaire, avec ou sans phases (durée de série indépendante du motif).
+                            Story 3.5 (AC2) : en Répétitions, plus de stepper en ligne ; la pastille ouvre le Sélecteur. */}
+                        {effective.mode === "DURATION" ? uniformDurationPill : uniformRepetitionsPill}
                       </Row>
                     </>
                   ) : null}
@@ -3062,6 +3057,7 @@ function SeriesTableRow({
  */
 function Row({
   label,
+  labelNode,
   labelAccessory = null,
   selected = false,
   longLabel = false,
@@ -3072,6 +3068,8 @@ function Row({
   testID,
 }: {
   label: string;
+  /** Recette du 01/11/2026 (m11-objectif) : rendu du titre à la place du texte simple (`CrossFadeLabel`). */
+  labelNode?: ReactNode;
   labelAccessory?: ReactNode;
   selected?: boolean;
   /**
@@ -3096,7 +3094,7 @@ function Row({
   testID: string;
 }) {
   const grouped = accessibilityLabel === undefined ? null : { accessible: true, accessibilityRole: "text" as const, accessibilityLabel };
-  const labelText = (
+  const labelText = labelNode ?? (
     <Text
       style={[styles.label, longLabel ? styles.longLabel : null]}
       // Regroupement porté par la valeur : le libellé n'est pas annoncé une seconde fois.
@@ -3134,6 +3132,41 @@ function Row({
       )}
       {below}
     </SheetMotionView>
+  );
+}
+
+/**
+ * Recette iPhone du 01/11/2026 (m11-objectif, classe B, Hermann : « La transition entre les deux textes
+ * doit se faire en apparition/disparition en fondu ») — titre d'une ligne qui change de texte : l'ancien
+ * disparaît en fondu pendant que le nouveau apparaît en fondu, à la même place (sortie Reanimated, posée
+ * là où elle était). Durée : celle des mouvements de la Feuille (`SHEET_MOTION_MS`, 350 ms). Seule
+ * exception au « aucune opacité animée » de Q41 (17/10), par cette décision explicite et pour ce seul
+ * titre. « Réduire les animations » : changement immédiat (`useSheetMotionReduced`, filet
+ * `ReduceMotion.System`). Le premier texte n'est pas animé (titre présent à l'ouverture).
+ */
+export const ROW_LABEL_CROSSFADE_MS = SHEET_MOTION_MS;
+const rowLabelFadeIn = FadeIn.duration(ROW_LABEL_CROSSFADE_MS).reduceMotion(ReduceMotion.System);
+const rowLabelFadeOut = FadeOut.duration(ROW_LABEL_CROSSFADE_MS).reduceMotion(ReduceMotion.System);
+
+function CrossFadeLabel({ text, testID }: { readonly text: string; readonly testID: string }) {
+  const reduced = useSheetMotionReduced();
+  // Premier texte : sans fondu (présent à l'ouverture de la Feuille) ; dès le premier changement, fondu.
+  const [firstText] = useState(text);
+  const [changed, setChanged] = useState(false);
+  if (!changed && text !== firstText) setChanged(true);
+  const animated = !reduced && (changed || text !== firstText);
+  return (
+    <View style={styles.crossFadeLabel} testID={`${testID}-frame`}>
+      <Reanimated.Text
+        key={text}
+        entering={animated ? rowLabelFadeIn : undefined}
+        exiting={reduced ? undefined : rowLabelFadeOut}
+        style={styles.label}
+        testID={testID}
+      >
+        {text}
+      </Reanimated.Text>
+    </View>
   );
 }
 
@@ -4121,6 +4154,10 @@ const styles = StyleSheet.create({
   // DSF : « Pause entre les côtés » sur deux lignes, largeur 180 à 402.
   longLabel: {
     maxWidth: 180,
+  },
+  // Recette du 01/11/2026 (m11-objectif) : cadre du titre en fondu croisé (le texte sortant y reste posé).
+  crossFadeLabel: {
+    flexShrink: 1,
   },
   flex: {
     flex: 1,

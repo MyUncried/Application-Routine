@@ -108,6 +108,11 @@ export type CompositionContextHeaderProps = {
   readonly addActionRef?: RefObject<View | null>;
   /** PRE-6 story 4.1 : mode placement en cours — bouton « Ajouter un arrêt » actif, « + » atténué et inactif. */
   readonly isPlacementActive?: boolean;
+  /**
+   * Recette iPhone du 01/11/2026 (m11-annuler) : menu Créer ouvert — le « + » est devenu Annuler, posé
+   * par le menu à sa place exacte, au-dessus du voile ; l'original s'efface (une seule commande visible).
+   */
+  readonly isCreateMenuOpen?: boolean;
   /** PRE-6 story 4.1 : aucun emplacement où ajouter une pause (Composition vide, tout est déjà présent). */
   readonly isAddStopDisabled?: boolean;
   /** PRE-6 story 4.1 : demande de focus d'accessibilité sur « Ajouter un arrêt » (sortie du placement), jamais au montage. */
@@ -156,6 +161,7 @@ export function CompositionContextHeader({
   onAdd,
   onAddStop,
   isPlacementActive = false,
+  isCreateMenuOpen = false,
   isAddStopDisabled = false,
   addStopFocusRequest = 0,
   addStopAccessibilityHint,
@@ -298,7 +304,9 @@ export function CompositionContextHeader({
             accessibilityRole="button"
             accessibilityLabel={composition.addActivity}
             accessibilityState={{ disabled: isPlacementActive }}
-            style={[styles.commandTarget, isPlacementActive ? styles.attenuated : null]}
+            style={[styles.commandTarget, isPlacementActive ? styles.attenuated : null, isCreateMenuOpen ? styles.replaced : null]}
+            accessibilityElementsHidden={isCreateMenuOpen}
+            importantForAccessibility={isCreateMenuOpen ? "no-hide-descendants" : "auto"}
             testID="composition-add-activity-action"
           >
             <AddActivityCircle testID="composition-add-activity-action-circle" iconTestID="composition-add-activity-icon" />
@@ -325,6 +333,8 @@ export function AddActivityCircle({ testID, iconTestID }: { readonly testID?: st
 }
 
 const styles = StyleSheet.create({
+  // Recette du 01/11/2026 (m11-annuler) : « + » remplacé par Annuler pendant le menu Créer.
+  replaced: { opacity: 0 },
   // Figma `8328:28608` : colonne, écart 10, posée à 20 du haut de la zone de
   // contexte (padding haut de `ContextBand` 12 + 8). Revue 5.1b : l'en-tête s'étend de 5 à droite et
   // de 6 en bas (marges négatives compensées) pour CONTENIR les cibles de 44 des commandes ; le nom

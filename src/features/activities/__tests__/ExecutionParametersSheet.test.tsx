@@ -20,6 +20,7 @@ import {
 import {
   dragDestination,
   ExecutionParametersSheet,
+  ROW_LABEL_CROSSFADE_MS,
   SELECTOR_SETTLE_MS,
   SHEET_ROW_MIN_HEIGHT,
   TABLE_ROW_HEIGHT,
@@ -7407,5 +7408,51 @@ describe("ExecutionParametersSheet — PRE-9, ordre de Hermann du 01/11/2026 (po
     expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec");
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" });
+  });
+});
+
+/**
+ * Recette iPhone du 01/11/2026 (m11-objectif, classe B, Hermann : « Ok. La transition entre les deux
+ * textes doit se faire en apparition/disparition en fondu ») — Jest ne joue aucune animation : la ligne
+ * reste montée, son titre change de texte avec une entrée et une sortie en fondu de 350 ms ; aucune
+ * sous « Réduire les animations ».
+ */
+describe("ExecutionParametersSheet — recette du 01/11 (m11-objectif) : titre de la cible en fondu croisé", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const label = () => screen.getByTestId("execution-sheet-row-target-label", hidden);
+
+  it("Durée ↔ Répétitions : une seule ligne de cible ; « Objectif de durée » ↔ « Nombre de répétitions » en fondu (entrée et sortie, 350 ms) ; premier titre sans fondu", () => {
+    renderSheet(params());
+    expect(screen.getAllByTestId("execution-sheet-row-target", hidden)).toHaveLength(1);
+    expect(label().props.children).toBe("Objectif de durée");
+    // Titre présent à l'ouverture : aucune apparition.
+    expect(label().props.entering).toBeUndefined();
+    expect(label().props.exiting).toBeTruthy();
+    expect(ROW_LABEL_CROSSFADE_MS).toBe(350);
+
+    chooseMode("Répétitions");
+    expect(screen.getAllByTestId("execution-sheet-row-target", hidden)).toHaveLength(1);
+    expect(label().props.children).toBe("Nombre de répétitions");
+    expect(label().props.entering).toBeTruthy();
+    expect(label().props.exiting).toBeTruthy();
+    // La pastille suit le mode (cible commune en répétitions).
+    expect(String(screen.getByTestId("execution-sheet-target-value", hidden).props.accessibilityLabel)).toMatch(/^Nombre de répétitions, /);
+
+    chooseMode("Durée");
+    expect(label().props.children).toBe("Objectif de durée");
+    expect(label().props.entering).toBeTruthy();
+    expect(String(screen.getByTestId("execution-sheet-target-value", hidden).props.accessibilityLabel)).toMatch(/^Objectif de durée, /);
+  });
+
+  it("« Réduire les animations » : changement immédiat, sans fondu", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValueOnce(true);
+    renderSheet(params());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    chooseMode("Répétitions");
+    expect(label().props.children).toBe("Nombre de répétitions");
+    expect(label().props.entering).toBeUndefined();
+    expect(label().props.exiting).toBeUndefined();
   });
 });

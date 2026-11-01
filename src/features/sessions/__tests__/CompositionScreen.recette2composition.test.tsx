@@ -1023,3 +1023,69 @@ describe("Contre-recette n° 5 (01/11) — déploiement par l'arrêt : place ouv
     expect(revealTimers.size).toBe(0);
   });
 });
+
+/*
+ * Recette iPhone du 01/11/2026 (cr7-carte, Hermann : « Circuit avec plusieurs exercices, un ou plusieurs
+ * exercices en dehors du circuit, avant ou après : appui long sur un des exercices hors circuit, sans
+ * aucun mouvement, cela déplie le Circuit. ») — règle de la recette n° 2 : « L'arrêt d'une carte sur
+ * un circuit replié doit l'ouvrir » — la carte doit y avoir été amenée. Cause : l'ancien modèle
+ * (Circuit unique, B.1a), corrigé et testé dans `CompositionScreen.test.tsx` (« cr7-carte »). Ici,
+ * garde de non-régression de la structure générale (déjà conforme) : sans déplacement, la place
+ * d'origine d'une carte voisine d'un Circuit replié reste sa destination, aucun arrêt n'est compté.
+ */
+describe("Recette du 01/11 — cr7-carte : appui long sans mouvement à côté d'un Circuit replié (structure générale)", () => {
+  it("carte APRÈS le Circuit replié : soulevée sans mouvement (et petits tremblements), aucune minuterie, le Circuit reste replié ; reposée, rien ne change", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("cb");
+    layout("composition-layout-circuit-cb", 340, 68);
+    layout("composition-layout-exercise-e9", 428, 80);
+    const card = liftCard("e9", 468);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 468 } });
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 201, pageY: 466 } });
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 471 } });
+    await settle();
+    expect(hoverTimers.size).toBe(0);
+    await elapseHoverDelay();
+    expect(expanded("cb")).toBe(false);
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 468, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[b1] e9");
+    expect(expanded("cb")).toBe(false);
+  });
+
+  it("carte AVANT le Circuit replié : même chose", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("ca");
+    // Circuit A replié : 100–168 ; Circuit B 188–318 ; e9 338–418.
+    layout("composition-layout-circuit-ca", 100, 68);
+    layout("composition-layout-circuit-cb", 188, 130);
+    layout("composition-layout-exercise-e9", 338, 80);
+    const card = liftCard("e0", 40);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 40 } });
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 43 } });
+    await settle();
+    expect(hoverTimers.size).toBe(0);
+    await elapseHoverDelay();
+    expect(expanded("ca")).toBe(false);
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 40, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[b1] e9");
+  });
+
+  it("la carte réellement amenée sur le Circuit replié voisin l'ouvre toujours après l'arrêt", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("cb");
+    layout("composition-layout-circuit-cb", 340, 68);
+    layout("composition-layout-exercise-e9", 428, 80);
+    const card = liftCard("e9", 468);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 468 } });
+    await settle();
+    expect(hoverTimers.size).toBe(0);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 374 } });
+    await settle();
+    expect(hoverTimers.size).toBe(1);
+    await elapseHoverDelay();
+    expect(expanded("cb")).toBe(true);
+  });
+});

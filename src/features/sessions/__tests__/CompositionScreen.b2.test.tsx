@@ -135,17 +135,32 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
   // Ordre de Hermann du 01/11/2026, ch13 CE-T03-08 « Menu Créer — état cible » [remplace « cinq
   // actions puis Annuler, dans l'ordre »] : exactement quatre options, dans cet ordre, puis Annuler
   // à la place du « + » (pas de rangée Annuler, pas d'entrée Format — MENU-FMT-01).
-  it("exactement quatre options, dans l'ordre, chacune avec son icône ronde ; Annuler n'est pas une option ; « Utiliser une séance existante » indisponible (B.8)", async () => {
+  // [« exactement quatre options » — remplacé par la recette iPhone du 01/11/2026 (m11-menu, Hermann :
+  // « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » » ; « 2e, après
+  // Créer » ; icône « Haltère (ancienne) ») : cinq options.]
+  it("recette du 01/11 : cinq options, dans l'ordre, chacune avec son icône ronde ; Annuler n'est pas une option ; « Utiliser une séance existante » indisponible (B.8)", async () => {
     await renderComposition(flatDraft());
     const tree = openMenu();
     const labels = within(tree)
       .getAllByRole("button")
       .map((node) => node.props.accessibilityLabel);
-    expect(labels).toEqual([menu.newActivity, `${menu.existingSession} — indisponible`, menu.addCircuit, menu.addCycle, menu.cancel]);
-    expect(menu.newActivity).toBe("Créer un exercice");
-    expect(within(tree).queryByLabelText("Utiliser un mouvement existant")).toBeNull();
+    expect(labels).toEqual([
+      menu.newActivity,
+      menu.existingActivity,
+      `${menu.existingSession} — indisponible`,
+      menu.addCircuit,
+      menu.addCycle,
+      menu.cancel,
+    ]);
+    expect(labels.slice(0, 2)).toEqual(["Créer un exercice", "Utiliser un mouvement existant"]);
     expect(within(tree).queryByText(/format/i)).toBeNull();
-    const optionIDs = ["new", "existing-session", "circuit", "cycle"].map((key) => `composition-add-activity-tree-${key}`);
+    // Haltère (ancienne) pour « Utiliser un mouvement existant ».
+    expect(within(screen.getByTestId("composition-add-activity-tree-existing-icon", hidden)).getByTestId("create-menu-icon-exercise", hidden)).toBeTruthy();
+    // L'axe s'arrête toujours à « Ajouter un cycle » (cinquième rangée).
+    const axis = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-axis", hidden).props.style);
+    const cycleRow = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-cycle").props.style);
+    expect(axis.top + axis.height).toBe(cycleRow.top + 16);
+    const optionIDs = ["new", "existing", "existing-session", "circuit", "cycle"].map((key) => `composition-add-activity-tree-${key}`);
     for (const testID of optionIDs) expect(screen.getByTestId(`${testID}-icon`, hidden)).toBeTruthy();
     // Annuler n'a ni pilule ni libellé : c'est le « + » transformé.
     expect(screen.queryByTestId("composition-add-activity-tree-cancel-label", hidden)).toBeNull();
@@ -153,6 +168,58 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     expect(session.props.accessibilityState).toEqual({ disabled: true });
     expect(within(session).getByText(menu.existingSession)).toBeTruthy();
     expect(screen.getByTestId("composition-add-activity-tree-circuit").props.accessibilityState).toEqual({ disabled: false });
+  });
+
+  it("recette du 01/11 : « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (action d'avant le 01/11) et ferme le menu", async () => {
+    await renderComposition(flatDraft());
+    openMenu();
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-existing"));
+    // PRE-9 A.2 — ARB-22a, D-449 : sélection des Mouvements du Catalogue (plus `/activity-selection`).
+    expect(mockPush).toHaveBeenLastCalledWith("/movement-selection");
+    expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
+  });
+
+  /*
+   * Recette iPhone du 01/11/2026 — m11-annuler KO (« Le Bouton + ne devient pas X, et appuyer dessus
+   * n'a aucun effet ») et m11-menu (« la zone de contexte doit être sous le voile grisé, seuls le
+   * bouton créer -> annuler, et les options doivent être visible dessus »). Cause sur l'appareil : la
+   * zone de contexte (`zIndex: 1`) passait au-dessus du menu, son frère sans `zIndex`. Jest ne peint
+   * ni ne teste le toucher par `zIndex` : l'empilement est vérifié sur les styles des frères.
+   */
+  it("recette du 01/11 : le menu est au-dessus de la zone de contexte (frères de l'écran, zIndex supérieur) ; le « + » d'origine s'efface sous Annuler", async () => {
+    await renderComposition(flatDraft());
+    openMenu();
+    const band = screen.getByTestId("screen-context-band", hidden);
+    const tree = screen.getByTestId("composition-add-activity-tree", hidden);
+    type Node = typeof tree;
+    const ancestors = (node: Node) => {
+      const chain: Node[] = [];
+      for (let current: Node | null = node; current !== null; current = current.parent) chain.push(current);
+      return chain;
+    };
+    // Ancêtre commun : le conteneur de l'écran (`ScreenShell`), dont la zone de contexte et le menu
+    // sont des frères natifs.
+    const bandChain = ancestors(band);
+    const common = ancestors(tree).find((node) => bandChain.includes(node))!;
+    expect(common).toBeTruthy();
+    /** Plus grand `zIndex` sur le chemin d'un nœud jusqu'à l'ancêtre commun (exclu). */
+    const zOf = (node: Node) =>
+      ancestors(node)
+        .slice(0, ancestors(node).indexOf(common))
+        .reduce((z, current) => {
+          const value = (StyleSheet.flatten(current.props.style) as { zIndex?: number } | undefined)?.zIndex;
+          return typeof value === "number" ? Math.max(z, value) : z;
+        }, 0);
+    expect(zOf(band)).toBe(1);
+    expect(zOf(tree)).toBeGreaterThan(zOf(band));
+    expect(zOf(screen.getByTestId("composition-add-activity-tree-cancel"))).toBeGreaterThan(zOf(screen.getByTestId("composition-add-stop-action", hidden)));
+    // Le « + » d'origine (sous le voile) ne se montre plus ni ne s'annonce : Annuler est à sa place.
+    const plus = screen.getByTestId("composition-add-activity-action", hidden);
+    expect(StyleSheet.flatten(plus.props.style).opacity).toBe(0);
+    expect(plus.props.accessibilityElementsHidden).toBe(true);
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
+    const restored = screen.getByTestId("composition-add-activity-action");
+    expect(StyleSheet.flatten(restored.props.style).opacity).toBeUndefined();
   });
 
   it("« Créer un exercice » ouvre la création d'un Mouvement en contexte Séance et ferme le menu", async () => {

@@ -486,14 +486,17 @@ describe("CompositionScreen — état initial", () => {
   // PRE-9 A.2 — ARB-22a, D-449 : « Utiliser un mouvement existant » ouvrait la sélection des Mouvements
   // du Catalogue. [Remplacé le 01/11/2026 (ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état
   // cible ») : plus d'entrée « Utiliser un mouvement existant » ; la recherche passe par la saisie du
-  // nom dans « Créer un exercice ».]
-  it("no longer offers 'Utiliser un mouvement existant' in the add-activity tree", () => {
+  // nom dans « Créer un exercice ».] [Rétabli par la recette iPhone du 01/11/2026 (m11-menu, Hermann :
+  // « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » ») : test d'avant
+  // le 01/11 restauré.]
+  it("navigates to /movement-selection when 'Utiliser un mouvement existant' is selected from the add-activity tree", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-existing"));
 
-    expect(screen.queryByTestId("composition-add-activity-tree-existing")).toBeNull();
-    expect(screen.queryByLabelText("Utiliser un mouvement existant")).toBeNull();
+    expect(mockPush).toHaveBeenCalledWith("/movement-selection");
+    expect(mockPush).not.toHaveBeenCalledWith("/activity-selection");
   });
 
   it("closes the add-activity tree without any navigation on Annuler", () => {
@@ -4302,14 +4305,114 @@ describe("CompositionScreen — repli du Circuit (PRE-9 B.1a, ARB-12)", () => {
     expect(screen.queryByTestId("composition-circuit-header-counter-stepper-increment")).toBeNull();
   });
 
-  it("collapsed: a long press on a card is refused (nothing lifted, nothing written) and the Circuit expands", () => {
-    renderWithProbe(exercises);
-    fireEvent.press(screen.getByTestId(COLLAPSE));
-    const before = probe.draft;
-    fireEvent(screen.getByTestId("composition-exercise-row-warmup"), "longPress");
-    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-warmup").props.style).backgroundColor).toBe(colors.background);
-    expect(isExpanded()).toBe(true);
-    expect(probe.draft).toBe(before);
+  // [« collapsed: a long press on a card is refused (nothing lifted, nothing written) and the Circuit
+  // expands » — remplacé par la recette iPhone du 01/11/2026 (cr7-carte, Hermann : « appui long sur un
+  // des exercices hors circuit, sans aucun mouvement, cela déplie le Circuit. » — KO) : la carte est
+  // soulevée, le Circuit reste replié ; il ne se déplie qu'à l'arrêt d'une carte amenée sur lui
+  // (recette n° 2 du 31/10 : « L'arrêt d'une carte sur un circuit replié doit l'ouvrir »).]
+  describe("recette du 01/11 — cr7-carte : Circuit replié, carte hors du Circuit", () => {
+    const withAfter = [...exercises, anActivity("cool", "AFTER_TOUR", { name: "Retour au calme", executionParameters: durationParameters(60) })];
+    /** Avant : warmup 70–150 ; Circuit replié 160–228 ; après : cool 238–318. */
+    function collapseAndMeasure() {
+      renderWithProbe(withAfter);
+      fireEvent.press(screen.getByTestId(COLLAPSE));
+      fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 80);
+      fireLayout(screen.getByTestId("composition-activity-warmup"), 0, 80);
+      fireLayout(screen.getByTestId("composition-tour-section"), 160, 68);
+      fireLayout(screen.getByTestId("composition-zone-after-tour"), 238, 80);
+      fireLayout(screen.getByTestId("composition-activity-cool"), 0, 80);
+    }
+    const card = (id: string) => screen.getByTestId(`composition-activity-${id}`);
+    function lift(id: string, pageY: number) {
+      fireEvent(card(id), "touchStart", { nativeEvent: { pageX: 200, pageY } });
+      fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "longPress");
+    }
+    const move = (id: string, pageY: number) => fireEvent(card(id), "responderMove", { nativeEvent: { pageX: 200, pageY } });
+    const release = (id: string, pageY: number) => fireEvent(card(id), "touchEnd", { nativeEvent: { pageX: 200, pageY } });
+    const order = () => probe.draft!.exercises.map((exercise) => `${exercise.id}:${exercise.structuralPosition}`);
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it("appui long sans mouvement (avant ou après le Circuit) : la carte est soulevée, le Circuit reste replié ; reposée, rien ne change", () => {
+      collapseAndMeasure();
+      const before = probe.draft;
+      for (const [id, pageY] of [
+        ["warmup", 110],
+        ["cool", 278],
+      ] as const) {
+        lift(id, pageY);
+        expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
+        move(id, pageY);
+        move(id, pageY + 2);
+        act(() => {
+          jest.advanceTimersByTime(2000);
+        });
+        expect(isExpanded()).toBe(false);
+        release(id, pageY);
+        act(() => {
+          jest.advanceTimersByTime(2000);
+        });
+        expect(isExpanded()).toBe(false);
+        expect(probe.draft).toBe(before);
+      }
+    });
+
+    it("lâcher sur le Circuit replié avant le délai : dépose à sa fin (après sa dernière carte) ; le changement de contenu le déplie (ARB-12)", () => {
+      collapseAndMeasure();
+      lift("warmup", 110);
+      move("warmup", 194);
+      expect(isExpanded()).toBe(false);
+      release("warmup", 194);
+      expect(order()).toEqual(["squat:IN_TOUR", "pompes:IN_TOUR", "warmup:IN_TOUR", "cool:AFTER_TOUR"]);
+      expect(isExpanded()).toBe(true);
+    });
+
+    it("carte amenée et arrêtée sur le Circuit replié : il se déplie après le délai ; ses cartes deviennent des destinations", () => {
+      collapseAndMeasure();
+      lift("cool", 278);
+      move("cool", 194);
+      act(() => {
+        jest.advanceTimersByTime(499);
+      });
+      expect(isExpanded()).toBe(false);
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+      expect(isExpanded()).toBe(true);
+      // Déployé : Circuit 160–400 (squat 220–300, pompes 310–390) ; cool descend à 410–490 (+172).
+      fireLayout(screen.getByTestId("composition-tour-section"), 160, 240);
+      fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 170);
+      fireLayout(screen.getByTestId("composition-activity-squat"), 0, 80);
+      fireLayout(screen.getByTestId("composition-activity-pompes"), 90, 80);
+      fireLayout(screen.getByTestId("composition-zone-after-tour"), 410, 80);
+      fireLayout(screen.getByTestId("composition-activity-cool"), 0, 80);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      // Doigt immobile à 194 (pointeur 278 − 84 = 194 dans le contenu) : avant squat (centre 260), en tête du Circuit.
+      release("cool", 194);
+      expect(order()).toEqual(["warmup:BEFORE_TOUR", "cool:IN_TOUR", "squat:IN_TOUR", "pompes:IN_TOUR"]);
+    });
+
+    it("passage sans arrêt : la carte quitte le Circuit replié avant le délai — il reste replié", () => {
+      collapseAndMeasure();
+      lift("cool", 278);
+      move("cool", 194);
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      move("cool", 155);
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+      expect(isExpanded()).toBe(false);
+      release("cool", 155);
+      expect(order()).toEqual(["warmup:BEFORE_TOUR", "cool:BEFORE_TOUR", "squat:IN_TOUR", "pompes:IN_TOUR"]);
+    });
   });
 
   it("collapsed: a change of the Circuit content (« Descendre » into it) expands it, so that nothing stays hidden", () => {

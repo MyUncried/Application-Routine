@@ -884,7 +884,7 @@ D-451 → RM-025/RM-028/RM-252/SU-04 → CE-T03-08 ; modèle DM-003/DM-004. Comp
 | Cible commune Durée : Objectif de durée ; durée calculée noire, 13 Semi Bold, sans pastille | CE-UI-10 ; RM-246/248/250 | Décision explicite ; durée calculée `8328:38632` | Décidé ; aucune frame dédiée requise pour le libellé de cible commune |
 | REC-PARAM-01 clos : récupération propre à l’Exercice, saisie dans les paramètres et cadre orange des défauts Profil | CE-UI-10, CE-T03-08 ; RM-209 | Décision Hermann du 01/11/2026 | Décidé ; développement à réaliser |
 
-| Menu Créer : quatre options ; +/Annuler, voile et axe ; libellés de création | CE-T03-08, CE-T03-04 ; chapitres 03/04/06/08/10 | Figma `8328:28172`, `10705:20223` ; décision explicite de Hermann | Décidé ; accès de remplacement Format réservé par MENU-FMT-01 |
+| Menu Créer : quatre options [cinq depuis le 01/11/2026 — ch07 « Menu Créer — recette du 01/11/2026 »] ; +/Annuler, voile et axe ; libellés de création | CE-T03-08, CE-T03-04 ; chapitres 03/04/06/08/10 | Figma `8328:28172`, `10705:20223` ; décision explicite de Hermann | Décidé ; accès de remplacement Format réservé par MENU-FMT-01 |
 
 ## Récupération et défauts Profil — règle courante
 

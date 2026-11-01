@@ -191,7 +191,7 @@ import {
 } from "@/features/sessions/layoutDragShifts";
 import { CycleHeader } from "@/features/sessions/CycleHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
-import { isExerciseParametersIncomplete } from "@/features/sessions/movementExercises";
+import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
   clampSwipeTranslateX,
@@ -3274,12 +3274,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * de l'élément. Le rang d'un emplacement compte donc la séquence MÊLÉE de la zone, élément glissé
    * retiré — l'indice attendu par `moveOccurrenceInSequence`.
    */
-  const buildDragLayout = useCallback((): CompositionDragLayout | null => {
+  const buildDragLayout = useCallback((collapsedAsBlock = false): CompositionDragLayout | null => {
     // PRE-9 B.1a : Circuit replié — ses rangées ne sont pas affichées (leurs mesures sont celles
     // d'avant le repli) : aucune géométrie fiable, comme une rangée non mesurée.
-    if (isCircuitCollapsed) return null;
+    // Recette iPhone du 01/11/2026 (cr7-carte) : pour le soulèvement d'un élément hors du Circuit
+    // replié (`collapsedAsBlock`), le Circuit replié est un bloc — ses rangées masquées sont omises,
+    // ses bornes sont celles de sa boîte repliée ; une dépose sur lui vise sa fin (`frozenDropSlot`).
+    if (isCircuitCollapsed && !collapsedAsBlock) return null;
     const rows: ActivityRowLayout[] = [];
     for (const zone of STRUCTURAL_ZONES) {
+      if (isCircuitCollapsed && zone === "IN_TOUR") continue;
       for (const item of zoneItems[zone]) {
         const key = zoneItemKey(item);
         const rowLayout = rowLayoutsRef.current.get(key);
@@ -3404,6 +3408,80 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
 
   /**
+   * Recette iPhone du 01/11/2026 (cr7-carte) — Circuit unique replié (ancien modèle) : un élément hors
+   * du Circuit est soulevé sans le déplier ; une carte amenée sur lui et arrêtée
+   * `LAYOUT_COLLAPSED_HOVER_DELAY_MS` le déploie (recette n° 2 du 31/10 : « L'arrêt d'une carte sur un
+   * circuit replié doit l'ouvrir », même délai que la structure générale) ; le déploiement terminé
+   * (`CIRCUIT_REVEAL_DURATION_MS`), la géométrie du geste est relevée de nouveau, ses cartes
+   * deviennent des destinations. Aperçu courant (`legacyPreviewRef`), dernière translation, minuterie.
+   */
+  const legacyPreviewRef = useRef<DragShiftSession["preview"]>(null);
+  useLayoutEffect(() => {
+    legacyPreviewRef.current = dragSession.preview;
+  });
+  const legacyLastTranslationRef = useRef(0);
+  const buildDragLayoutRef = useRef(buildDragLayout);
+  useLayoutEffect(() => {
+    buildDragLayoutRef.current = buildDragLayout;
+  });
+  const legacyHoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Déploiement lancé par l'arrêt, géométrie pas encore relevée de nouveau. */
+  const legacyExpandingRef = useRef(false);
+  const clearLegacyHover = useCallback(() => {
+    if (legacyHoverTimerRef.current !== null) clearTimeout(legacyHoverTimerRef.current);
+    legacyHoverTimerRef.current = null;
+    legacyExpandingRef.current = false;
+  }, []);
+  useEffect(() => clearLegacyHover, [clearLegacyHover]);
+  useEffect(() => {
+    if (draggedKey === null) clearLegacyHover();
+  }, [clearLegacyHover, draggedKey]);
+  /** Fin du déploiement : géométrie relevée de nouveau (Circuit affiché), l'élément soulevé gardé sous le doigt. */
+  const refreezeAfterLegacyExpansion = useCallback(
+    (key: string) => {
+      legacyExpandingRef.current = false;
+      const preview = legacyPreviewRef.current;
+      if (preview === null || preview.key !== key || draggedKeyRef.current !== key) return;
+      // Géométrie du rendu courant (Circuit affiché), non celle du rendu qui a lancé la minuterie.
+      const layout = buildDragLayoutRef.current();
+      const before = preview.originLayout.rows.find((row) => row.id === key);
+      const after = layout?.rows.find((row) => row.id === key);
+      // Géométrie incomplète : celle du Circuit replié reste (une dépose vise sa fin).
+      if (layout === null || before === undefined || after === undefined) return;
+      const { collapsedTourEnd: _collapsed, ...rest } = preview;
+      // L'origine du pointeur reste celle du début du geste (repère du contenu) ; le déplacement de
+      // l'élément dans la mise en page (Circuit déployé au-dessus de lui) est compensé (`sourceDrift`).
+      const relayout = { ...layout, rows: layout.rows.map((row) => (row.id === key ? before : row)) };
+      const unsettled = { ...rest, originLayout: relayout, sourceDrift: after.top - before.top };
+      const next = { ...unsettled, slot: frozenDropSlot(unsettled, legacyLastTranslationRef.current) };
+      setDragSession((current) =>
+        current.preview !== preview ? current : { ...current, preview: next, circuitHeight: layout.tourBottom - layout.tourTop },
+      );
+    },
+    [],
+  );
+  const armLegacyHover = useCallback(
+    (key: string) => {
+      legacyHoverTimerRef.current = setTimeout(() => {
+        legacyHoverTimerRef.current = null;
+        const preview = legacyPreviewRef.current;
+        if (preview === null || preview.key !== key || preview.collapsedTourEnd === undefined || draggedKeyRef.current !== key) return;
+        if (frozenDropSlot(preview, legacyLastTranslationRef.current)?.zone !== "IN_TOUR") return;
+        legacyExpandingRef.current = true;
+        setCircuitCollapsedContent(null);
+        legacyHoverTimerRef.current = setTimeout(
+          () => {
+            legacyHoverTimerRef.current = null;
+            refreezeAfterLegacyExpansion(key);
+          },
+          reduceMotionRef.current ? 0 : CIRCUIT_REVEAL_DURATION_MS,
+        );
+      }, LAYOUT_COLLAPSED_HOVER_DELAY_MS);
+    },
+    [refreezeAfterLegacyExpansion],
+  );
+
+  /**
    * Dépôt. PRE-6 (story 2.3b) : l'emplacement est calculé sur la géométrie FIGÉE au début du geste
    * (`frozenDropSlot`), exactement comme l'aperçu — le dépôt applique donc l'emplacement montré,
    * même si une mesure `onLayout` a changé pendant le geste. Repli sur la géométrie courante
@@ -3419,6 +3497,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // Contre-recette n° 4 du 01/11/2026 (cr5-reposer) : l'élément lâché est aussitôt porté par le
       // registre, dans la tâche même où sa translation de doigt revient à 0 (voir `releaseDragY`).
       shiftRegistryRef.current?.pose(key, translationY);
+      clearLegacyHover();
       const frozen = dragPreview !== null && dragPreview.key === key ? frozenDropSlot(dragPreview, translationY) : null;
       const currentLayout = frozen === null ? buildDragLayout() : null;
       const destination =
@@ -3462,7 +3541,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       } else {
         // Story 7.6 : l'élément déposé glisse de l'endroit du lâcher jusqu'à sa place.
         finishAppliedDrop(
-          dragPreview === null || dragPreview.key !== key
+          dragPreview === null ||
+            dragPreview.key !== key ||
+            // Recette du 01/11/2026 (cr7-carte) : déposé à la fin du Circuit replié — ses rangées ne sont
+            // pas dans la géométrie du geste : aucune pose calculable (le Circuit se déplie, ARB-12).
+            (dragPreview.collapsedTourEnd !== undefined && destination.zone === "IN_TOUR")
             ? null
             : dropSettlePose(dragPreview, destination, translationY, draft, removedAtDrop),
         );
@@ -3470,6 +3553,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     },
     [
       buildDragLayout,
+      clearLegacyHover,
       dragPreview,
       draft,
       finishAppliedDrop,
@@ -3488,6 +3572,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleRowDragStart = useCallback(
     (key: string | null, translationY = 0): boolean => {
       if (key === null) {
+        clearLegacyHover();
         // Geste interrompu : retour en douceur depuis la position atteinte (story 5.2b).
         setDragSession((current) =>
           endDragSession(
@@ -3506,12 +3591,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // PRE-9 B.1a : Circuit replié — un dépôt pourrait viser ses rangées masquées. Le soulèvement
         // est refusé (rien ne bouge, rien n'est écrit) et le Circuit se déplie : un nouvel appui
         // long saisit l'élément, le Circuit visible.
-        if (isCircuitCollapsed) {
-          setCircuitCollapsedContent(null);
-          return false;
-        }
-        const originLayout = buildDragLayout();
+        // [Remplacé par la recette iPhone du 01/11/2026 (cr7-carte, Hermann : « appui long sur un des
+        // exercices hors circuit, sans aucun mouvement, cela déplie le Circuit » — KO) : l'élément est
+        // soulevé, le Circuit reste replié ; replié, il n'offre que sa fin (`collapsedTourEnd`) ; il
+        // ne se déplie qu'à l'arrêt d'une carte amenée sur lui (recette n° 2 du 31/10 : « L'arrêt
+        // d'une carte sur un circuit replié doit l'ouvrir »), voir `handleDragMove`.]
+        const originLayout = buildDragLayout(true);
         if (originLayout === null) return false;
+        legacyLastTranslationRef.current = 0;
         // Story 5.2b : un nouveau geste pendant un retour arrête ce retour et pose toutes les
         // translations à 0, de façon synchrone, AVANT le relevé (la mise en page mesurée, que
         // `buildDragLayout` vient de lire, correspond alors à l'écran).
@@ -3519,7 +3606,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // Story 7.4 : origine du défilement accumulé pendant ce geste.
         autoScroll.begin();
         setDragSession({
-          preview: { key, originLayout, slot: null, heldTranslationY: null },
+          preview: {
+            key,
+            originLayout,
+            slot: null,
+            heldTranslationY: null,
+            ...(isCircuitCollapsed ? { collapsedTourEnd: collapsedTourEndIndex(zoneItems.IN_TOUR) } : {}),
+          },
           animated: true,
           circuitHeight: originLayout.tourBottom - originLayout.tourTop,
           release: null,
@@ -3529,7 +3622,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       handleDragStart(key);
       return true;
     },
-    [autoScroll, buildDragLayout, handleDragStart, isCircuitCollapsed],
+    [autoScroll, buildDragLayout, clearLegacyHover, handleDragStart, isCircuitCollapsed, zoneItems.IN_TOUR],
   );
 
   /**
@@ -3537,19 +3630,30 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * la géométrie figée au début du geste, le même calcul que le dépôt (`handleDropActivity`).
    * Aucune mutation du brouillon ; l'état ne change que si l'emplacement change.
    */
-  const handleDragMove = useCallback((key: string, translationY: number) => {
-    setDragSession((current) => {
-      const preview = current.preview;
-      if (preview === null || preview.key !== key) {
-        return current;
+  const handleDragMove = useCallback(
+    (key: string, translationY: number) => {
+      legacyLastTranslationRef.current = translationY;
+      // Recette du 01/11/2026 (cr7-carte) : arrêt d'une carte sur le Circuit unique replié.
+      const stored = legacyPreviewRef.current;
+      if (stored !== null && stored.key === key && stored.collapsedTourEnd !== undefined && !legacyExpandingRef.current) {
+        const over = stopPointIdOfKey(key) === null && frozenDropSlot(stored, translationY)?.zone === "IN_TOUR";
+        if (!over) clearLegacyHover();
+        else if (legacyHoverTimerRef.current === null) armLegacyHover(key);
       }
-      const slot = frozenDropSlot(preview, translationY);
-      if (slot === null || (preview.slot !== null && preview.slot.zone === slot.zone && preview.slot.index === slot.index)) {
-        return current;
-      }
-      return { ...current, preview: { ...preview, slot } };
-    });
-  }, []);
+      setDragSession((current) => {
+        const preview = current.preview;
+        if (preview === null || preview.key !== key) {
+          return current;
+        }
+        const slot = frozenDropSlot(preview, translationY);
+        if (slot === null || (preview.slot !== null && preview.slot.zone === slot.zone && preview.slot.index === slot.index)) {
+          return current;
+        }
+        return { ...current, preview: { ...preview, slot } };
+      });
+    },
+    [armLegacyHover, clearLegacyHover],
+  );
 
   /**
    * Décalages qui montrent la disposition du dépôt à l'emplacement visé (`resolveDragShifts`,
@@ -3558,6 +3662,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    */
   const dragShifts = useMemo<DragShifts>(() => {
     if (dragPreview === null || dragPreview.slot === null) {
+      return NO_DRAG_SHIFTS;
+    }
+    // Recette du 01/11/2026 (cr7-carte) : arrêt sur le Circuit replié — aucune place ouverte (comme la
+    // structure générale, contre-recette n° 4, cr5-replie) ; un lâcher dépose à sa fin.
+    if (dragPreview.collapsedTourEnd !== undefined && dragPreview.slot.zone === "IN_TOUR") {
       return NO_DRAG_SHIFTS;
     }
     const measured = dragPreview.originLayout.rows.find((row) => row.id === dragPreview.key)?.height;
@@ -3574,13 +3683,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             // Carte v2 (story 5.1) : 80 quelle que soit la zone ; l'écart de carte est nul.
             () => occurrenceCardHeight(),
           );
-    return resolveDragShifts(
+    const shifts = resolveDragShifts(
       dragPreview.originLayout,
       dragPreview.key,
       dragPreview.slot,
       DRAG_SHIFT_GAPS,
       insertionHeight,
     );
+    // Recette du 01/11/2026 (cr7-carte) : Circuit déployé par l'arrêt AU-DESSUS de l'élément soulevé —
+    // sa translation de registre compense son déplacement dans la mise en page (sous le doigt).
+    const drift = dragPreview.sourceDrift ?? 0;
+    return drift === 0 ? shifts : { ...shifts, rows: new Map(shifts.rows).set(dragPreview.key, -drift) };
   }, [dragPreview, draft]);
   // Story 7.5 : le glissement d'une suppression est toujours animé (sauf « Réduire les animations »).
   // Story 7.7 : de même pour le glissement qui fait place à une copie.
@@ -4369,6 +4482,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       }}
       onAddStop={toggleAddStop}
       addActionRef={addActionRef}
+      // Recette du 01/11/2026 (m11-annuler) : le « + » s'efface pendant le menu (Annuler à sa place).
+      isCreateMenuOpen={isAddActivityTreeOpen}
       // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes, dans les
       // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
       onOpenVolumes={openCircuitVolumes}
@@ -5256,6 +5371,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * mouvement existant » (la recherche des Mouvements reste dans la saisie du nom de « Créer un
          * exercice ») ni de rangée « Annuler » : le « + » devient Annuler. Pas d'entrée Format
          * (MENU-FMT-01, À CLARIFIER).]
+         * [Remplacé en partie le 01/11/2026 — recette iPhone (m11-menu), Hermann : « il faut intégrer de
+         * nouveau l'option du menu « utiliser un mouvement existant » » ; position « 2e, après Créer » ;
+         * icône « Haltère (ancienne) » : cinq options — Créer un exercice, Utiliser un mouvement
+         * existant (sélection des Mouvements du Catalogue, action d'avant le 01/11), Utiliser une séance
+         * existante, Ajouter un circuit, Ajouter un cycle. Annuler reste le « + » transformé.]
          */
         <CreateMenu
           top={addActivityTreeTop}
@@ -5273,6 +5393,23 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
                 router.push({ pathname: "/movement", params: { context: MOVEMENT_SESSION_CONTEXT } });
               },
               testID: "composition-add-activity-tree-new",
+            },
+            {
+              key: "existing",
+              label: addToSession.existingActivity,
+              icon: "exercise",
+              onPress: () => {
+                setIsAddActivityTreeOpen(false);
+                // PRE-9 A.2 (ARB-22a, Q6) : sélection des Mouvements actifs par le Catalogue des
+                // Mouvements ; plus la sélection des anciennes définitions (`activity_definitions`).
+                // Contre-recette du 30/10 : Mouvements déjà dans la Séance marqués « Dans la séance ».
+                // Recette du 01/11/2026 (m11-menu) : entrée rétablie (retirée le même jour).
+                markMovementsInSession(
+                  draft.exercises.flatMap((exercise) => (exercise.sourceMovementId !== undefined ? [exercise.sourceMovementId] : [])),
+                );
+                router.push("/movement-selection");
+              },
+              testID: "composition-add-activity-tree-existing",
             },
             { key: "session", label: addToSession.existingSession, icon: "session", testID: "composition-add-activity-tree-existing-session" },
             {
@@ -9495,6 +9632,18 @@ type DragShiftSession = {
     readonly originLayout: CompositionDragLayout;
     readonly slot: DropTarget | null;
     readonly heldTranslationY: number | null;
+    /**
+     * Recette iPhone du 01/11/2026 (cr7-carte) : élément soulevé hors du Circuit replié — rang de
+     * la fin du Circuit dans sa séquence mêlée (après sa dernière occurrence, avant ses Points de
+     * fin), seule destination qu'il offre replié ; absent : Circuit affiché (ou déployé par l'arrêt
+     * et sa géométrie relevée de nouveau).
+     */
+    readonly collapsedTourEnd?: number;
+    /**
+     * Même recette : déplacement, dans la mise en page, de l'élément soulevé depuis le début du geste
+     * (Circuit déployé par l'arrêt AU-DESSUS de lui) — compensé par sa translation de registre.
+     */
+    readonly sourceDrift?: number;
   } | null;
   readonly animated: boolean;
   readonly circuitHeight: number;
@@ -9580,6 +9729,19 @@ function removedByMove(draft: SessionDraft, move: OccurrenceMove): readonly stri
 }
 
 /**
+ * Recette iPhone du 01/11/2026 (cr7-carte) : rang de la fin d'un Circuit replié dans sa séquence
+ * mêlée — après sa dernière occurrence, avant ses Points d'arrêt de fin (comme `circuitEndDrop` de
+ * la structure générale).
+ */
+function collapsedTourEndIndex(items: readonly ZoneItem[]): number {
+  let end = 0;
+  items.forEach((item, index) => {
+    if (item.kind === "OCCURRENCE") end = index + 1;
+  });
+  return end;
+}
+
+/**
  * Emplacement visé sur la géométrie FIGÉE au début du geste : centre relevé de la carte glissée
  * plus son déplacement vertical, résolu par `resolveDropTarget`. Seule source de l'aperçu ET du
  * dépôt. `null` si la carte n'avait pas été mesurée.
@@ -9589,7 +9751,10 @@ function frozenDropSlot(preview: NonNullable<DragShiftSession["preview"]>, trans
   if (row === undefined) {
     return null;
   }
-  return resolveDropTarget(preview.originLayout, preview.key, row.top + row.height / 2 + translationY);
+  const slot = resolveDropTarget(preview.originLayout, preview.key, row.top + row.height / 2 + translationY);
+  // Recette du 01/11/2026 (cr7-carte) : un Circuit replié n'offre que sa fin (comme dans la
+  // structure générale, `layoutDropCandidates`).
+  return preview.collapsedTourEnd !== undefined && slot.zone === "IN_TOUR" ? { zone: "IN_TOUR", index: preview.collapsedTourEnd } : slot;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { type RefObject, useLayoutEffect, useRef, useState } from "react";
+import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
 
@@ -46,6 +46,21 @@ import { colors, type } from "@/shared/ui/tokens";
  * (Figma `10705:20340`), rangée « Annuler » sous les options, axe jusqu'à son bouton rond.]
  * Écart assumé avec Figma `11059:18868` (fond `#FCFCFE`) : la règle écrite demande un fond gris —
  * celui de l'ancien Annuler de Figma (`#E5E8F0`, contour `#BABFCC`).
+ *
+ * Recette iPhone du 01/11/2026 (Hermann) :
+ * - m11-annuler KO (« Le Bouton + ne devient pas X, et appuyer dessus n'a aucun effet ») — cause :
+ *   depuis la contre-recette n° 2 du 30/10, la zone de contexte (`ContextBand` `fadeToTransparent`)
+ *   porte `zIndex: 1` ; le menu, frère suivant sans `zIndex`, était peint et touché SOUS elle sur
+ *   l'appareil (l'ordre de rendu ne compte qu'à `zIndex` égal ; Jest n'en tient pas compte) : le « + »
+ *   de la zone de contexte recouvrait Annuler et recevait le toucher (ouvrir, déjà ouvert : sans
+ *   effet). Le menu est désormais au-dessus de tous ses frères (`MENU_LAYER`) ; la mesure du « + »
+ *   est reprise à la mise en page du repère (première mesure périmée ou absente).
+ * - m11-menu (classe B) : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer
+ *   -> annuler, et les options doivent être visible dessus » — même correction : zone de contexte,
+ *   « Pause / Ajouter un arrêt » compris, sous le voile ; seuls Annuler, l'axe et les options dessus.
+ *   « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » » — 2e, après
+ *   « Créer un exercice », icône « Haltère (ancienne) » (Figma `10705:20315`) ; cinq options, l'axe
+ *   s'arrête toujours à « Ajouter un cycle ».
  */
 
 const FIGMA_BLUE = "#1414F5";
@@ -55,6 +70,11 @@ const CANCEL_BORDER = "#BABFCC";
 const DISABLED_TEXT = "#5C6170";
 const DISABLED_ICON_VEIL = "rgba(229, 232, 240, 0.6)";
 const SCRIM = "rgba(31, 33, 41, 0.42)";
+/**
+ * Recette du 01/11/2026 (m11-annuler) : couche du menu, au-dessus de la zone de contexte (`zIndex: 1`,
+ * `ContextBand`) et de tout autre frère de l'écran.
+ */
+export const CREATE_MENU_LAYER = 10;
 /** Recette du 29/10 (f) : apparition progressive lente du voile et du menu. */
 export const CREATE_MENU_FADE_IN_MS = 600;
 const menuEntering = FadeIn.duration(CREATE_MENU_FADE_IN_MS).reduceMotion(ReduceMotion.System);
@@ -74,7 +94,7 @@ const PLUS_TARGET = 44;
 const CANCEL_SIZE = 34;
 const CANCEL_GLYPH = 24;
 
-export type CreateMenuIcon = "movement" | "session" | "circuit" | "cycle";
+export type CreateMenuIcon = "exercise" | "movement" | "session" | "circuit" | "cycle";
 
 export type CreateMenuOption = {
   readonly key: string;
@@ -90,6 +110,23 @@ const SVG_ICONS = {
   circuit: require("../../../assets/composition/menu-circuit.svg"),
   cycle: require("../../../assets/composition/menu-cycle.svg"),
 } as const;
+
+/**
+ * Haltère (Figma `10705:20315`) : barre, poids et bagues blancs. [Retiré le 01/11/2026 avec « Créer un
+ * exercice » passé à la silhouette ; rétabli le même jour pour « Utiliser un mouvement existant »
+ * (Hermann, recette du 01/11 : icône « Haltère (ancienne) »).]
+ */
+function ExerciseGlyph() {
+  return (
+    <>
+      <View style={[styles.glyph, { left: 5, top: 14, width: 20, height: 2 }]} />
+      <View style={[styles.glyph, { left: 3, top: 9, width: 3, height: 12 }]} />
+      <View style={[styles.glyph, { left: 24, top: 9, width: 3, height: 12 }]} />
+      <View style={[styles.glyph, { left: 7, top: 11, width: 2, height: 8 }]} />
+      <View style={[styles.glyph, { left: 21, top: 11, width: 2, height: 8 }]} />
+    </>
+  );
+}
 
 /** Liste (Figma `10705:20327`) : trois repères et trois lignes blancs. */
 function SessionGlyph() {
@@ -107,6 +144,12 @@ function SessionGlyph() {
 
 function OptionIcon({ icon }: { readonly icon: CreateMenuIcon }) {
   switch (icon) {
+    case "exercise":
+      return (
+        <View style={[styles.iconCircle, styles.iconBlue]} testID="create-menu-icon-exercise">
+          <ExerciseGlyph />
+        </View>
+      );
     case "session":
       return (
         <View style={[styles.iconCircle, styles.iconBlue]}>
@@ -150,23 +193,39 @@ type PlusAnchor = { readonly x: number; readonly y: number; readonly width: numb
  * exactement : un seul « + » visible, au-dessus du voile ; l'axe et les boutons ronds s'alignent sur
  * son centre. Sans mesure (avant la première, ou en test), les cotes de Figma.
  */
-function usePlusAnchor(menuRef: RefObject<View | null>, plusRef: RefObject<View | null> | undefined): PlusAnchor | null {
+function usePlusAnchor(
+  menuRef: RefObject<View | null>,
+  plusRef: RefObject<View | null> | undefined,
+): { readonly anchor: PlusAnchor | null; readonly remeasure: () => void } {
   const [anchor, setAnchor] = useState<PlusAnchor | null>(null);
-  useLayoutEffect(() => {
+  const activeRef = useRef(true);
+  // Recette du 01/11/2026 (m11-annuler) : mesure reprise à chaque mise en page du repère (une mesure
+  // faite avant la mise en page native peut être absente ou périmée).
+  const remeasure = useCallback(() => {
     const menu = menuRef.current;
     const plus = plusRef?.current;
     if (!menu || !plus) return;
-    let active = true;
     menu.measureInWindow((menuX, menuY) => {
       plus.measureInWindow((x, y, width, height) => {
-        if (active && width > 0 && height > 0) setAnchor({ x: x - menuX, y: y - menuY, width, height });
+        if (!activeRef.current || !(width > 0 && height > 0)) return;
+        if (![x, y, menuX, menuY].every(Number.isFinite)) return;
+        const next = { x: x - menuX, y: y - menuY, width, height };
+        setAnchor((current) =>
+          current !== null && current.x === next.x && current.y === next.y && current.width === next.width && current.height === next.height
+            ? current
+            : next,
+        );
       });
     });
-    return () => {
-      active = false;
-    };
   }, [menuRef, plusRef]);
-  return anchor;
+  useLayoutEffect(() => {
+    activeRef.current = true;
+    remeasure();
+    return () => {
+      activeRef.current = false;
+    };
+  }, [remeasure]);
+  return { anchor, remeasure };
 }
 
 export function CreateMenu({
@@ -189,7 +248,7 @@ export function CreateMenu({
 }) {
   const { width } = useWindowDimensions();
   const menuRef = useRef<View>(null);
-  const anchor = usePlusAnchor(menuRef, plusAnchorRef);
+  const { anchor, remeasure } = usePlusAnchor(menuRef, plusAnchorRef);
   const plusCenterX = anchor ? anchor.x + anchor.width / 2 : width - PLUS_CENTER_FROM_RIGHT;
   const plusCenterY = anchor ? anchor.y + anchor.height / 2 : top - PLUS_CENTER_ABOVE_FIRST_ROW;
   const iconLeft = plusCenterX - ICON_SIZE / 2;
@@ -202,13 +261,20 @@ export function CreateMenu({
   return (
     <Reanimated.View
       entering={menuEntering}
-      style={StyleSheet.absoluteFill}
+      style={[StyleSheet.absoluteFill, styles.layer]}
       pointerEvents="box-none"
       testID="composition-add-activity-tree"
     >
       <Pressable onPress={onCancel} accessible={false} testID="composition-add-activity-tree-backdrop" style={[StyleSheet.absoluteFill, styles.scrim]} />
       {/* Repère du menu pour la mesure du « + » d'origine (sans dessin, sans toucher). */}
-      <View ref={menuRef} collapsable={false} pointerEvents="none" style={StyleSheet.absoluteFill} testID="composition-add-activity-tree-frame" />
+      <View
+        ref={menuRef}
+        collapsable={false}
+        pointerEvents="none"
+        onLayout={remeasure}
+        style={StyleSheet.absoluteFill}
+        testID="composition-add-activity-tree-frame"
+      />
       <View
         pointerEvents="none"
         style={[styles.axis, { left: plusCenterX - 1, top: axisTop, height: Math.max(0, lastRowCenter - axisTop) }]}
@@ -265,6 +331,8 @@ const shadow = {
 } as const;
 
 const styles = StyleSheet.create({
+  // Recette du 01/11/2026 (m11-annuler) : au-dessus de la zone de contexte (`zIndex` iOS, `elevation` Android).
+  layer: { zIndex: CREATE_MENU_LAYER, elevation: CREATE_MENU_LAYER },
   scrim: { backgroundColor: SCRIM },
   axis: { position: "absolute", width: 2, borderRadius: 1, backgroundColor: AXIS_COLOR },
   cancelTarget: { position: "absolute", width: PLUS_TARGET, height: PLUS_TARGET, alignItems: "center", justifyContent: "center" },

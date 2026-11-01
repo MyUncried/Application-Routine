@@ -38,6 +38,9 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * [01/11/2026 — ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état cible » : l'entrée « Utiliser un
  * mouvement existant » est retirée du menu Créer ; cet écran n'est plus atteint depuis la
  * Composition. Conservé sans suppression (aucune demande de retrait de l'écran).]
+ * [Recette iPhone du 01/11/2026 (m11-menu, Hermann : « il faut intégrer de nouveau l'option du menu
+ * « utiliser un mouvement existant » ») : entrée rétablie, 2e du menu Créer ; cet écran est de nouveau
+ * atteint depuis la Composition.]
  *
  * Réutilise sans les recopier : la liste du Catalogue des Mouvements (`MovementCatalogueList`, en
  * mode sélection : piles, Niveaux, recherche, filtres, Mouvements actifs seuls), la recherche et la

@@ -16,7 +16,8 @@ import { formatOccurrenceSummary, isIncompleteSummary } from "@/features/session
  * contexte Séance), « Utiliser un mouvement existant » la sélection des Mouvements actifs du
  * Catalogue (Q6, route `/movement-selection`) [cette entrée est retirée du menu le 01/11/2026 — ordre
  * de Hermann, ch13 CE-T03-08 « Menu Créer — état cible » : seul « Créer un exercice » reste, la
- * saisie du nom y propose les Mouvements existants]. Chacun REMET à la Composition, à son retour, le ou
+ * saisie du nom y propose les Mouvements existants] [entrée rétablie le même jour, recette iPhone du
+ * 01/11/2026 (m11-menu, Hermann) : 2e option du menu, après « Créer un exercice »]. Chacun REMET à la Composition, à son retour, le ou
  * les Mouvements choisis (`handMovementsToComposition`) ; la Composition les reprend au retour au
  * premier plan (`takeMovementsHandedToComposition`), en fait des Exercices insérés selon ARB-07
  * (`withMovementExercises`), posés « Paramètres à compléter » sans ouvrir de feuille (demande de

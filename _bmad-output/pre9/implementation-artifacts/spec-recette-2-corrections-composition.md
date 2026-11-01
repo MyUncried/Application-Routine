@@ -22,7 +22,7 @@ Branche `pre9-bmad/dev`, départ `70dae5f4`. Aucun commit.
 - **Rendu choisi (Figma muet).** Délai d'arrêt 500 ms (`LAYOUT_COLLAPSED_HOVER_DELAY_MS`, `layoutDrop.ts`), aligné sur le délai de l'appui long (`LONG_PRESS_DELAY_MS`). À juger sur iPhone.
 - **Comportements conservés.** Passage sans arrêt (la destination change avant le délai) : rien ne se déploie. Lâcher avant le délai : dépose en fin du Circuit replié, comme avant (puis déplié par le changement de contenu, ARB-12). Le minuteur est annulé au lâcher, à l'interruption et au démontage.
 - **Analogie citée.** Familles de mouvements : « Une famille repliée se déplie avant de choisir la position ou à l'approche d'un mouvement entrant [à l'arrêt de la carte portée sur la famille, recette du 28/10/2026] » (ch10 l.416, ch13 l.51).
-- **Ancien modèle (Circuit unique).** Non concerné : un appui long sur une carte pendant que le Circuit unique est replié le déplie et refuse le soulèvement (PRE-9 B.1a) ; aucune carte ne peut donc s'arrêter sur lui.
+- **Ancien modèle (Circuit unique).** Non concerné : un appui long sur une carte pendant que le Circuit unique est replié le déplie et refuse le soulèvement (PRE-9 B.1a) ; aucune carte ne peut donc s'arrêter sur lui. [Remplacé par la recette iPhone du 01/11/2026 (cr7-carte) : la carte hors du Circuit unique replié est soulevée sans le déplier ; la règle « L'arrêt d'une carte sur un circuit replié doit l'ouvrir » s'y applique (même délai de 500 ms) — voir `spec-menu-creer-parametres-01-11.md`, « Recette du 01/11 ».]
 
 ## c) Appui long sur la durée d'un Circuit ou d'un Cycle — classe B
 
