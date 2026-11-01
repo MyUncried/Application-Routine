@@ -27,6 +27,12 @@ describe("stickyRange", () => {
     expect(nested!.start).toBe(alone!.start - 62);
   });
 
+  it("recette n° 3 (r3-cycle) : la marge sous l'en-tête est comprise — poussée plus tôt d'autant", () => {
+    expect(
+      stickyRange({ containerY: 300, containerHeight: 400, headerBottom: 70, bottomInset: 14, insetBottom: 9, stickTop: 24 }),
+    ).toEqual({ start: 276, travel: 400 - 70 - 9 - 14 });
+  });
+
   it("sans mesure, ou sans place pour coller (conteneur replié réduit à son en-tête), aucun en-tête collant", () => {
     expect(stickyRange({ containerY: null, containerHeight: 300, headerBottom: 70, bottomInset: 14, stickTop: 24 })).toBeNull();
     expect(stickyRange({ containerY: 0, containerHeight: null, headerBottom: 70, bottomInset: 14, stickTop: 24 })).toBeNull();
@@ -58,7 +64,7 @@ describe("StickyHeaderFrame", () => {
     enabled,
   });
 
-  function renderFrame(sticky: StickyScroll | null, range: StickyRange | null = { start: 276, travel: 316 }) {
+  function renderFrame(sticky: StickyScroll | null, range: StickyRange | null = { start: 276, travel: 316 }, insetBottom?: number) {
     const frame = (
       <StickyHeaderFrame
         range={range}
@@ -67,6 +73,7 @@ describe("StickyHeaderFrame", () => {
         outsetLeft={16}
         outsetRight={16}
         insetTop={14}
+        insetBottom={insetBottom}
         extension={24}
         rail={{ centerX: 24, ringY: 21, outerRing: 16 }}
         testID="frame"
@@ -85,6 +92,13 @@ describe("StickyHeaderFrame", () => {
     expect(style).toMatchObject({ position: "absolute", left: -16, right: -16, top: -38, bottom: 0, backgroundColor: "#EBEDF5" });
     // Le rail traverse la zone collante (« Le rail doit rester lisible »).
     expect(screen.getByTestId("frame-sticky-rail", { includeHiddenElements: true })).toBeTruthy();
+  });
+
+  it("recette n° 3 (r3-cycle) : le fond collé couvre aussi la marge qui sépare l'en-tête de l'élément suivant", () => {
+    renderFrame(scroll(true), undefined, 9);
+    const surface = screen.getByTestId("frame-sticky-surface", { includeHiddenElements: true });
+    const style = Object.assign({}, ...[surface.props.style].flat(Infinity)) as Record<string, unknown>;
+    expect(style).toMatchObject({ top: -38, bottom: -9 });
   });
 
   it("au repos (sans défilement fourni, ou décollé pendant un déplacement — CS-D7), aucune translation", () => {

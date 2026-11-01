@@ -3961,6 +3961,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     containerHeight: circuitMeasuredHeight > 0 ? circuitMeasuredHeight : null,
     headerBottom: circuitHeaderLayout === null ? null : circuitHeaderLayout.y + circuitHeaderLayout.height,
     bottomInset: CIRCUIT_PADDING_VERTICAL,
+    insetBottom: CIRCUIT_GAP,
     stickTop: CONTEXT_BAND_FADE_HEIGHT,
   });
   // PRE-9 B.1a : l'anneau est centré sur la ligne d'en-tête — tout l'en-tête quand le Circuit est
@@ -4947,6 +4948,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             outsetLeft={CIRCUIT_OUTSET}
             outsetRight={CIRCUIT_OUTSET}
             insetTop={CIRCUIT_PADDING_VERTICAL}
+            insetBottom={CIRCUIT_GAP}
             extension={CONTEXT_BAND_FADE_HEIGHT}
             rail={{ centerX: RAIL_CENTER_X_IN_CIRCUIT, ringY: circuitHeaderRingRowHeight / 2 }}
             onLayout={(event) => {
@@ -8987,6 +8989,7 @@ function LayoutCircuitBlock({
         containerHeight: blockHeight,
         headerBottom,
         bottomInset: CIRCUIT_PADDING_VERTICAL,
+        insetBottom: CIRCUIT_GAP,
         stickTop: (sticky?.top ?? 0) + stickBelow,
       }),
     [blockHeight, headerBottom, stickBelow, sticky, stickyContainerY],
@@ -9082,6 +9085,7 @@ function LayoutCircuitBlock({
         outsetLeft={horizontalInset}
         outsetRight={horizontalInset}
         insetTop={CIRCUIT_PADDING_VERTICAL}
+        insetBottom={CIRCUIT_GAP}
         // Dans un Cycle, le fond au-dessus passe sous l'en-tête collé du Cycle.
         extension={inCycle ? 0 : (sticky?.top ?? 0)}
         rail={{ centerX: railX, ringY: rowHeight / 2 }}
@@ -9213,6 +9217,7 @@ function LayoutCycleBlock({
         containerHeight: cycleHeight,
         headerBottom,
         bottomInset: CONTAINER_PADDING_BOTTOM,
+        insetBottom: LAYOUT_CYCLE_GAP,
         stickTop: sticky?.top ?? 0,
       }),
     [cycleHeight, cycleY, headerBottom, sticky],
@@ -9368,6 +9373,7 @@ function LayoutCycleBlock({
           outsetLeft={CIRCUIT_OUTSET}
           outsetRight={CIRCUIT_OUTSET}
           insetTop={CIRCUIT_PADDING_VERTICAL}
+          insetBottom={LAYOUT_CYCLE_GAP}
           extension={sticky?.top ?? 0}
           rail={{ centerX: railX, ringY: rowHeight / 2, outerRing: CYCLE_OUTER_RING_DIAMETER }}
           testID={`${testID}-header-sticky`}
@@ -9426,7 +9432,8 @@ function LayoutCycleBlock({
                 rail={rail}
                 context={context}
                 onAnchor={onAnchor}
-                stickBelow={headerBottom ?? 0}
+                // Recette n° 3 (r3-cycle) : sous l'en-tête collé du Cycle, marge basse comprise.
+                stickBelow={(headerBottom ?? 0) + LAYOUT_CYCLE_GAP}
               />
             </EnvelopeFrame>
           );

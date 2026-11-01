@@ -38,6 +38,9 @@ export function useStickyScroll(): StickyScroll | null {
  * duquel le haut du conteneur dépasse le seuil (CS-D2) ; `travel` : translation maximale, atteinte
  * quand le bas du conteneur (moins sa marge basse) rejoint le bas de l'en-tête — au-delà, l'en-tête
  * est poussé avec son conteneur. `null` : géométrie inconnue ou conteneur sans place pour coller.
+ *
+ * Recette iPhone n° 3 du 01/11/2026 (r3-cycle) : l'en-tête collé intègre la marge qui le sépare de
+ * l'élément suivant (`insetBottom`) ; c'est le bas de cette marge que le conteneur pousse.
  */
 export type StickyRange = { readonly start: number; readonly travel: number };
 
@@ -46,6 +49,7 @@ export function stickyRange({
   containerHeight,
   headerBottom,
   bottomInset,
+  insetBottom = 0,
   stickTop,
 }: {
   /** Haut du conteneur dans le contenu défilant. */
@@ -55,11 +59,13 @@ export function stickyRange({
   headerBottom: number | null;
   /** Marge basse du conteneur, que l'en-tête ne franchit pas. */
   bottomInset: number;
+  /** Marge sous l'en-tête, jusqu'à l'élément suivant, couverte par le fond collé. */
+  insetBottom?: number;
   /** Seuil, dans le repère du corps défilant (deux niveaux : sous l'en-tête collé du Cycle, CS-D4). */
   stickTop: number;
 }): StickyRange | null {
   if (containerY === null || containerHeight === null || headerBottom === null) return null;
-  const travel = containerHeight - headerBottom - bottomInset;
+  const travel = containerHeight - headerBottom - insetBottom - bottomInset;
   if (!(travel > 0)) return null;
   return { start: containerY - stickTop, travel };
 }
@@ -87,6 +93,7 @@ export function StickyHeaderFrame({
   outsetLeft,
   outsetRight,
   insetTop,
+  insetBottom = 0,
   extension,
   rail,
   style,
@@ -107,6 +114,8 @@ export function StickyHeaderFrame({
   outsetRight: number;
   /** Marge haute du conteneur, couverte par le fond collé. */
   insetTop: number;
+  /** Marge sous l'en-tête, jusqu'à l'élément suivant, couverte par le fond collé (r3-cycle). */
+  insetBottom?: number;
   /** Fond prolongé au-dessus de la marge haute (niveau Séance : part fondue de la zone de contexte). */
   extension: number;
   rail: StickyRail | null;
@@ -148,7 +157,7 @@ export function StickyHeaderFrame({
         pointerEvents="none"
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
-        style={[styles.slab, { left: -outsetLeft, right: -outsetRight, top: slabTop, backgroundColor: color, opacity }]}
+        style={[styles.slab, { left: -outsetLeft, right: -outsetRight, top: slabTop, bottom: insetBottom > 0 ? -insetBottom : 0, backgroundColor: color, opacity }]}
         testID={`${testID}-sticky-surface`}
       >
         {rail === null ? null : (
@@ -184,7 +193,6 @@ const styles = StyleSheet.create({
   },
   slab: {
     position: "absolute",
-    bottom: 0,
   },
   outerRing: {
     position: "absolute",

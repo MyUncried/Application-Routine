@@ -50,3 +50,9 @@ Classe **A** (conformité à COMP §7 CS-D2 à CS-D8, déjà écrite) ; aucune s
 ## Recette iPhone
 
 À vérifier sur appareil (une suite verte ne vaut pas recette) : collage et relève par poussée entre deux Circuits ; Cycle et Circuit collés ensemble ; commandes de l'en-tête collé ; repli d'un Circuit collé ; appui long sur un en-tête collé ; rail lisible ; agrandissement du texte.
+
+### Recette iPhone n° 3 du 01/11/2026
+
+Tous les points sont validés sauf **r3-cycle** (KO). Hermann : « Le comportement fonctionne mais il faut que l'entête du cycle et du circuit qui reste affiché intègre aussi la marge du dessous qui se trouve juste au dessus du prochain élément (circuit, exercices, point d'arrêt). actuellement l'arrêt se fait juste au niveau de la ligne de texte cycle ou du circuit. »
+
+Correction, classe **B** (précision visuelle demandée explicitement ; elle ne crée aucune règle métier, COMP §7 inchangé) : le fond collé couvre aussi la marge sous l'en-tête, jusqu'à l'élément suivant (`insetBottom` de `StickyHeaderFrame` et de `stickyRange`). La marge est de 9 pt sous l'en-tête d'un Circuit (`CIRCUIT_GAP`) comme sous celui d'un Cycle (`LAYOUT_CYCLE_GAP`). La poussée s'applique au bas de cette marge. Les Circuits d'un Cycle collent sous l'en-tête du Cycle, marge comprise. Tests : `StickyHeader.test.tsx` (deux cas ajoutés). À revérifier sur iPhone.
