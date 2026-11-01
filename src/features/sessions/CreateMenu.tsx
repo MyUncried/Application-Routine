@@ -114,7 +114,8 @@ const SVG_ICONS = {
 /**
  * Haltère (Figma `10705:20315`) : barre, poids et bagues blancs. [Retiré le 01/11/2026 avec « Créer un
  * exercice » passé à la silhouette ; rétabli le même jour pour « Utiliser un mouvement existant »
- * (Hermann, recette du 01/11 : icône « Haltère (ancienne) »).]
+ * (Hermann, recette du 01/11 : icône « Haltère (ancienne) »), puis passé à « Créer un exercice »
+ * (contre-recette du 01/11, m12-menu : symboles des deux premières lignes inversés).]
  */
 function ExerciseGlyph() {
   return (

@@ -605,8 +605,11 @@ describe("CircuitHeader — repli du Circuit (ARB-12)", () => {
   it("recette n° 2 du 31/10 (b4-cycle) : déployé, la ligne des noms se referme avec les cartes puis est démontée — aucun saut", async () => {
     const { rerender } = renderHeader({ memberNames: ["Squat", "Pompes"], isCollapsed: true });
     const reveal = screen.getByTestId("header-names-reveal", anyNode);
-    // Repliée : hauteur libre, opaque.
-    expect(StyleSheet.flatten(reveal.props.style)).toMatchObject({ opacity: 1 });
+    // Repliée : opaque. [Hauteur libre — remplacé par la contre-recette du 01/11 (m12-levee) :] hauteur
+    // explicite, la hauteur naturelle (ici, avant toute mesure : écart de 7 et ligne de 15).
+    expect(StyleSheet.flatten(reveal.props.style)).toMatchObject({ opacity: 1, height: 22 });
+    // Contre-recette du 01/11 (m12-levee) : le texte est hors du flux de la découpe, mesuré sans contrainte.
+    expect(StyleSheet.flatten(screen.getByTestId("header-names", anyNode).props.style)).toMatchObject({ position: "absolute", top: 0, left: 0, right: 0 });
     rerender({ isCollapsed: false });
     // Pendant le déploiement, la ligne reste montée (elle se referme avec les cartes).
     expect(screen.getByTestId("header-names", anyNode)).toBeTruthy();

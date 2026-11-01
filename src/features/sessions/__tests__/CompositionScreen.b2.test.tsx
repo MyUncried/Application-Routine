@@ -154,8 +154,9 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     ]);
     expect(labels.slice(0, 2)).toEqual(["Créer un exercice", "Utiliser un mouvement existant"]);
     expect(within(tree).queryByText(/format/i)).toBeNull();
-    // Haltère (ancienne) pour « Utiliser un mouvement existant ».
-    expect(within(screen.getByTestId("composition-add-activity-tree-existing-icon", hidden)).getByTestId("create-menu-icon-exercise", hidden)).toBeTruthy();
+    // Contre-recette du 01/11 (m12-menu) : haltère pour « Créer un exercice », silhouette pour « Utiliser un mouvement existant ».
+    expect(within(screen.getByTestId("composition-add-activity-tree-new-icon", hidden)).getByTestId("create-menu-icon-exercise", hidden)).toBeTruthy();
+    expect(within(screen.getByTestId("composition-add-activity-tree-existing-icon", hidden)).queryByTestId("create-menu-icon-exercise", hidden)).toBeNull();
     // L'axe s'arrête toujours à « Ajouter un cycle » (cinquième rangée).
     const axis = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-axis", hidden).props.style);
     const cycleRow = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-cycle").props.style);

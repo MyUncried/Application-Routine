@@ -28,7 +28,7 @@ import type { LayoutContainerRef } from "@/domain/sessions/layoutMoves";
 import { layoutStopPointId, stopPointContainerOf, type LayoutStopPoint } from "@/domain/sessions/layoutStopPoints";
 import type { SessionStructure, StructureCircuit, StructureCycleMember, StructureElement, StructureStopPointLocation } from "@/domain/sessions/structure";
 import { RAIL_KEYS, railRowKey, railStopKey } from "@/features/sessions/compositionRail";
-import { layoutItemKey, layoutStopBoxKey, type LayoutBox, type LayoutDropTarget } from "@/features/sessions/layoutDrop";
+import { circuitEndDrop, layoutItemKey, layoutStopBoxKey, nearestLayoutDrop, type LayoutBox, type LayoutDropTarget } from "@/features/sessions/layoutDrop";
 
 /** Clé de translation d'un bord (haut : en-tête et anneau ; bas) d'un Circuit ou d'un Cycle. */
 export function layoutEdgeShiftKey(kind: "CIRCUIT" | "CYCLE", id: string, edge: "top" | "bottom"): string {
@@ -253,3 +253,37 @@ export function liftedShiftKey(piece: LayoutShiftPiece): string {
   return piece.kind === "CIRCUIT" || piece.kind === "CYCLE" ? layoutBlockShiftKey(piece.kind, piece.id) : piece.topKey;
 }
 
+/**
+ * Contre-recette du 01/11/2026 (m12-levee, Hermann : « lorsqu'on met une carte sur un circuit replié,
+ * il a tendance à fuir en bas ou en haut avant qu'on arrive vraiment à poser la carte dessus ») —
+ * destination d'une carte d'Exercice saisie, quand des Circuits sont repliés. Cause : la visée d'un
+ * Circuit replié se faisait dans la mise en page d'origine (`resolveLayoutDrop`), alors que l'aperçu le
+ * montrait déplacé (place refermée de l'élément saisi, place ouverte avant ou après lui) ; et la place
+ * se refermait dès qu'il était visé, ce qui le déplaçait de nouveau sous le doigt. Désormais :
+ * - un Circuit replié est visé quand le doigt est sur lui TEL QU'IL EST AFFICHÉ (boîte d'origine plus
+ *   les translations courantes de ses bords) : la destination est sa fin (`circuitEndDrop`) ;
+ * - hors de lui, sa fin n'est jamais retenue ; l'emplacement le plus proche parmi les autres l'est.
+ * L'écran garde l'aperçu inchangé tant que le Circuit replié est visé (il ne bouge pas sous le doigt).
+ */
+export function resolveDropOverCollapsedCircuits(
+  candidates: readonly LayoutDropTarget[],
+  pointerY: number,
+  collapsedCircuitIds: Iterable<string>,
+  boxes: ReadonlyMap<string, LayoutBox>,
+  shifts: ReadonlyMap<string, number> | null,
+): LayoutDropTarget | null {
+  const collapsed = new Set(collapsedCircuitIds);
+  for (const id of collapsed) {
+    const box = boxes.get(layoutItemKey({ kind: "CIRCUIT", id }));
+    if (box === undefined) continue;
+    const top = box.top + (shifts?.get(layoutEdgeShiftKey("CIRCUIT", id, "top")) ?? 0);
+    const bottom = box.top + box.height + (shifts?.get(layoutEdgeShiftKey("CIRCUIT", id, "bottom")) ?? 0);
+    if (pointerY < top || pointerY > bottom) continue;
+    const end = circuitEndDrop(candidates, id);
+    if (end !== null) return end;
+  }
+  return nearestLayoutDrop(
+    candidates.filter((candidate) => candidate.container.kind !== "CIRCUIT" || !collapsed.has(candidate.container.id)),
+    pointerY,
+  );
+}

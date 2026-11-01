@@ -183,6 +183,7 @@ import {
   layoutShiftPieces,
   liftedPiece,
   liftedShiftKey,
+  resolveDropOverCollapsedCircuits,
   sameLayoutDragShifts,
   type LayoutDragShifts,
   type LayoutLiftedSource,
@@ -2481,6 +2482,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     // place ouverte et compensation animées avec lui, fil natif) ; aucune mesure ne le modifie, aucune
     // pose de compensation depuis le fil JS, aucun rendu de l'écran par mesure.
     if (current.expansion !== null) return;
+    // Contre-recette du 01/11/2026 (m12-levee : « il a tendance à fuir en bas ou en haut ») : pendant
+    // l'arrêt sur un Circuit replié, l'aperçu reste celui d'avant (place ouverte à côté de lui) — il ne
+    // bouge pas sous le doigt ; la place passe à sa fin au départ de son déploiement
+    // (`startLayoutExpansion`, animé avec lui). [Remplace, pendant l'arrêt, « la place n'est pas
+    // ouverte » de la contre-recette n° 4 ci-dessous.]
+    if (current.hoverCircuitId !== null && current.expandingCircuitId === null && current.shifts !== null) return;
     const slot = current.target;
     // Contre-recette n° 4 du 01/11/2026 (cr5-replie, Hermann : « le cadre du circuit se déplie […] mais
     // sans qu'elles n'apparaissent » ; « le bord bas remonte et redescend ») : pendant l'arrêt sur un
@@ -2552,15 +2559,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         if (end !== null) current.target = end;
         return;
       }
-      const slot = resolveLayoutDrop(
-        layout,
-        current.source,
-        current.handleY + translationY,
-        layoutBoxesRef.current,
-        (exercise) => exercise.id,
-        layoutContainerGap,
-        stopPoints,
-      );
+      const pointerY = current.handleY + translationY;
+      // Contre-recette du 01/11/2026 (m12-levee : le Circuit replié « a tendance à fuir ») : une carte
+      // d'Exercice vise un Circuit replié tel qu'il est affiché (`resolveDropOverCollapsedCircuits`).
+      const slot =
+        current.stopPointId === undefined && current.source.kind === "EXERCISE" && layoutCollapsedRef.current.size > 0
+          ? resolveDropOverCollapsedCircuits(
+              layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints),
+              pointerY,
+              layoutCollapsedRef.current.keys(),
+              layoutBoxesRef.current,
+              current.shifts?.shifts ?? null,
+            )
+          : resolveLayoutDrop(layout, current.source, pointerY, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints);
       if (!(sameLayoutDrop(slot, current.target) && slot?.lineY === current.target?.lineY)) current.target = slot;
       // Lecture la plus prudente du constat (« l'arrêt d'une carte ») : une carte d'Exercice seulement,
       // pas un Point d'arrêt saisi (À CLARIFIER, spec-recette-2-corrections-composition.md).
@@ -3420,6 +3431,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     legacyPreviewRef.current = dragSession.preview;
   });
   const legacyLastTranslationRef = useRef(0);
+  /** Contre-recette du 01/11/2026 (m12-levee) : translations affichées (`dragShifts`), base de la visée du Circuit replié. */
+  const legacyDragShiftsRef = useRef<DragShifts | null>(null);
   const buildDragLayoutRef = useRef(buildDragLayout);
   useLayoutEffect(() => {
     buildDragLayoutRef.current = buildDragLayout;
@@ -3466,7 +3479,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         legacyHoverTimerRef.current = null;
         const preview = legacyPreviewRef.current;
         if (preview === null || preview.key !== key || preview.collapsedTourEnd === undefined || draggedKeyRef.current !== key) return;
-        if (frozenDropSlot(preview, legacyLastTranslationRef.current)?.zone !== "IN_TOUR") return;
+        if (frozenDropSlot(preview, legacyLastTranslationRef.current, legacyDragShiftsRef.current)?.zone !== "IN_TOUR") return;
         legacyExpandingRef.current = true;
         setCircuitCollapsedContent(null);
         legacyHoverTimerRef.current = setTimeout(
@@ -3498,7 +3511,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // registre, dans la tâche même où sa translation de doigt revient à 0 (voir `releaseDragY`).
       shiftRegistryRef.current?.pose(key, translationY);
       clearLegacyHover();
-      const frozen = dragPreview !== null && dragPreview.key === key ? frozenDropSlot(dragPreview, translationY) : null;
+      const frozen = dragPreview !== null && dragPreview.key === key ? frozenDropSlot(dragPreview, translationY, legacyDragShiftsRef.current) : null;
       const currentLayout = frozen === null ? buildDragLayout() : null;
       const destination =
         frozen ?? (currentLayout === null ? null : resolveDropTarget(currentLayout, key, itemAbsoluteCenterY(key, zone) + translationY));
@@ -3636,7 +3649,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // Recette du 01/11/2026 (cr7-carte) : arrêt d'une carte sur le Circuit unique replié.
       const stored = legacyPreviewRef.current;
       if (stored !== null && stored.key === key && stored.collapsedTourEnd !== undefined && !legacyExpandingRef.current) {
-        const over = stopPointIdOfKey(key) === null && frozenDropSlot(stored, translationY)?.zone === "IN_TOUR";
+        const over = stopPointIdOfKey(key) === null && frozenDropSlot(stored, translationY, legacyDragShiftsRef.current)?.zone === "IN_TOUR";
         if (!over) clearLegacyHover();
         else if (legacyHoverTimerRef.current === null) armLegacyHover(key);
       }
@@ -3645,11 +3658,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         if (preview === null || preview.key !== key) {
           return current;
         }
-        const slot = frozenDropSlot(preview, translationY);
+        const slot = frozenDropSlot(preview, translationY, legacyDragShiftsRef.current);
         if (slot === null || (preview.slot !== null && preview.slot.zone === slot.zone && preview.slot.index === slot.index)) {
           return current;
         }
-        return { ...current, preview: { ...preview, slot } };
+        // Contre-recette du 01/11/2026 (m12-levee) : arrivée sur le Circuit replié — l'aperçu d'avant reste.
+        const entersCollapsed = preview.collapsedTourEnd !== undefined && slot.zone === "IN_TOUR" && preview.slot?.zone !== "IN_TOUR";
+        return { ...current, preview: { ...preview, slot, ...(entersCollapsed ? { hoverBaseSlot: preview.slot } : {}) } };
       });
     },
     [armLegacyHover, clearLegacyHover],
@@ -3664,9 +3679,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     if (dragPreview === null || dragPreview.slot === null) {
       return NO_DRAG_SHIFTS;
     }
-    // Recette du 01/11/2026 (cr7-carte) : arrêt sur le Circuit replié — aucune place ouverte (comme la
-    // structure générale, contre-recette n° 4, cr5-replie) ; un lâcher dépose à sa fin.
-    if (dragPreview.collapsedTourEnd !== undefined && dragPreview.slot.zone === "IN_TOUR") {
+    // Recette du 01/11/2026 (cr7-carte) : arrêt sur le Circuit replié — [aucune place ouverte (comme la
+    // structure générale, contre-recette n° 4, cr5-replie) — remplacé par la contre-recette du 01/11
+    // (m12-levee, « il a tendance à fuir en bas ou en haut ») :] l'aperçu d'avant l'arrêt reste
+    // (`hoverBaseSlot`) ; un lâcher dépose à sa fin.
+    const shownSlot =
+      dragPreview.collapsedTourEnd !== undefined && dragPreview.slot.zone === "IN_TOUR" ? (dragPreview.hoverBaseSlot ?? null) : dragPreview.slot;
+    if (shownSlot === null) {
       return NO_DRAG_SHIFTS;
     }
     const measured = dragPreview.originLayout.rows.find((row) => row.id === dragPreview.key)?.height;
@@ -3679,14 +3698,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             draft,
             draggedOccurrenceId,
             measured,
-            dragPreview.slot,
+            shownSlot,
             // Carte v2 (story 5.1) : 80 quelle que soit la zone ; l'écart de carte est nul.
             () => occurrenceCardHeight(),
           );
     const shifts = resolveDragShifts(
       dragPreview.originLayout,
       dragPreview.key,
-      dragPreview.slot,
+      shownSlot,
       DRAG_SHIFT_GAPS,
       insertionHeight,
     );
@@ -3695,6 +3714,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     const drift = dragPreview.sourceDrift ?? 0;
     return drift === 0 ? shifts : { ...shifts, rows: new Map(shifts.rows).set(dragPreview.key, -drift) };
   }, [dragPreview, draft]);
+  useLayoutEffect(() => {
+    legacyDragShiftsRef.current = dragShifts;
+  });
   // Story 7.5 : le glissement d'une suppression est toujours animé (sauf « Réduire les animations »).
   // Story 7.7 : de même pour le glissement qui fait place à une copie.
   const animateDragShifts = (deletion !== null || appearance !== null || dragSession.animated) && !reduceMotion;
@@ -5385,7 +5407,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             {
               key: "new",
               label: addToSession.newActivity,
-              icon: "movement",
+              icon: "exercise",
               onPress: () => {
                 setIsAddActivityTreeOpen(false);
                 // PRE-9 A.2 (ARB-22a, D-449) : création d'un Mouvement (CE-MVT-01) en contexte Séance,
@@ -5397,7 +5419,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             {
               key: "existing",
               label: addToSession.existingActivity,
-              icon: "exercise",
+              icon: "movement",
               onPress: () => {
                 setIsAddActivityTreeOpen(false);
                 // PRE-9 A.2 (ARB-22a, Q6) : sélection des Mouvements actifs par le Catalogue des
@@ -9644,6 +9666,12 @@ type DragShiftSession = {
      * (Circuit déployé par l'arrêt AU-DESSUS de lui) — compensé par sa translation de registre.
      */
     readonly sourceDrift?: number;
+    /**
+     * Contre-recette du 01/11/2026 (m12-levee, cr7-carte : le Circuit replié « fuit ») : emplacement
+     * visé juste avant l'arrêt sur le Circuit replié — son aperçu (place ouverte à côté du Circuit) reste
+     * affiché pendant l'arrêt : le Circuit ne bouge pas sous le doigt.
+     */
+    readonly hoverBaseSlot?: DropTarget | null;
   } | null;
   readonly animated: boolean;
   readonly circuitHeight: number;
@@ -9746,12 +9774,27 @@ function collapsedTourEndIndex(items: readonly ZoneItem[]): number {
  * plus son déplacement vertical, résolu par `resolveDropTarget`. Seule source de l'aperçu ET du
  * dépôt. `null` si la carte n'avait pas été mesurée.
  */
-function frozenDropSlot(preview: NonNullable<DragShiftSession["preview"]>, translationY: number): DropTarget | null {
+function frozenDropSlot(
+  preview: NonNullable<DragShiftSession["preview"]>,
+  translationY: number,
+  shown: DragShifts | null = null,
+): DropTarget | null {
   const row = preview.originLayout.rows.find((candidate) => candidate.id === preview.key);
   if (row === undefined) {
     return null;
   }
-  const slot = resolveDropTarget(preview.originLayout, preview.key, row.top + row.height / 2 + translationY);
+  // Contre-recette du 01/11/2026 (m12-levee, cr7-carte : le Circuit replié « fuit ») : replié, le
+  // Circuit est visé tel qu'il est affiché (`shown` : translations courantes de ses bords), non à sa
+  // place d'origine.
+  const layout =
+    preview.collapsedTourEnd === undefined || shown === null
+      ? preview.originLayout
+      : {
+          ...preview.originLayout,
+          tourTop: preview.originLayout.tourTop + shown.circuitTop,
+          tourBottom: preview.originLayout.tourBottom + shown.circuitBottom,
+        };
+  const slot = resolveDropTarget(layout, preview.key, row.top + row.height / 2 + translationY);
   // Recette du 01/11/2026 (cr7-carte) : un Circuit replié n'offre que sa fin (comme dans la
   // structure générale, `layoutDropCandidates`).
   return preview.collapsedTourEnd !== undefined && slot.zone === "IN_TOUR" ? { zone: "IN_TOUR", index: preview.collapsedTourEnd } : slot;

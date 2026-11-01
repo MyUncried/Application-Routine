@@ -247,8 +247,13 @@ export function resolveLayoutDrop<E>(
   gapOf: LayoutGapOf = NO_GAP,
   stopPoints: readonly LayoutDropStopPoint[] = [],
 ): LayoutDropTarget | null {
+  return nearestLayoutDrop(layoutDropCandidates(layout, source, boxes, idOf, gapOf, stopPoints), pointerY);
+}
+
+/** Emplacement le plus proche de `pointerY` parmi `candidates` (à égalité, le premier). */
+export function nearestLayoutDrop(candidates: readonly LayoutDropTarget[], pointerY: number): LayoutDropTarget | null {
   let best: LayoutDropTarget | null = null;
-  for (const candidate of layoutDropCandidates(layout, source, boxes, idOf, gapOf, stopPoints)) {
+  for (const candidate of candidates) {
     if (best === null || Math.abs(candidate.lineY - pointerY) < Math.abs(best.lineY - pointerY)) best = candidate;
   }
   return best;

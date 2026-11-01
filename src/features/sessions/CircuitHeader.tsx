@@ -478,6 +478,14 @@ const COLLAPSED_NAMES_FALLBACK_HEIGHT = COLLAPSED_NAMES_GAP + NAMES_TEXT.lineHei
  * referme et s'efface pendant que les cartes s'ouvrent, puis est démontée. La hauteur du Circuit passe
  * ainsi continûment d'un état à l'autre (la somme des deux mouvements), sans saut. « Réduire les
  * animations » : immédiat.
+ *
+ * Contre-recette du 01/11/2026 (m12-levee, Hermann : « Lorsqu'on replie un circuit il se replie d'abord
+ * jusqu'à une hauteur qui est plus petite que sa hauteur repliée, puis il se déplie jusqu'à sa hauteur
+ * repliée ») — cause : le texte, dans la découpe (`maxHeight`), était mesuré avec la hauteur disponible
+ * de la découpe ; sa hauteur « naturelle », base de l'animation, se réduisait avec elle à chaque image
+ * (la ligne restait presque fermée) jusqu'à la fin, où la découpe libérée la rouvrait d'un coup. Le
+ * texte est désormais posé hors du flux de la découpe (position absolue) : mesuré sans contrainte, à sa
+ * vraie hauteur ; la découpe a une hauteur explicite (part de la hauteur naturelle, entière à la fin).
  */
 function CollapsedNamesLine({ isCollapsed, text, testID }: { isCollapsed: boolean; text: string; testID: string }) {
   const reduceMotion = useReduceMotion();
@@ -504,10 +512,9 @@ function CollapsedNamesLine({ isCollapsed, text, testID }: { isCollapsed: boolea
   }, [isCollapsed, progress, reduceMotion]);
   const style = useAnimatedStyle(() => ({
     opacity: progress.value,
-    maxHeight:
-      progress.value >= 1 ? UNCONSTRAINED_HEIGHT : progress.value * (naturalHeight.value > 0 ? naturalHeight.value : COLLAPSED_NAMES_FALLBACK_HEIGHT),
+    height: Math.min(1, progress.value) * (naturalHeight.value > 0 ? naturalHeight.value : COLLAPSED_NAMES_FALLBACK_HEIGHT),
   }));
-  /** Hauteur naturelle (texte non contraint par la découpe, écart compris), base de l'animation. */
+  /** Hauteur naturelle (texte hors du flux de la découpe, non contraint ; écart compris), base de l'animation. */
   const onTextLayout = useCallback(
     (event: LayoutChangeEvent) => {
       const { height } = event.nativeEvent.layout;
@@ -518,7 +525,7 @@ function CollapsedNamesLine({ isCollapsed, text, testID }: { isCollapsed: boolea
   if (!mounted && !isCollapsed) return null;
   return (
     <Reanimated.View style={[styles.namesClip, style]} testID={`${testID}-names-reveal`}>
-      <Text style={styles.names} numberOfLines={1} onLayout={onTextLayout} testID={`${testID}-names`}>
+      <Text style={[styles.names, styles.namesText]} numberOfLines={1} onLayout={onTextLayout} testID={`${testID}-names`}>
         {text}
       </Text>
     </Reanimated.View>
@@ -1182,6 +1189,13 @@ const styles = StyleSheet.create({
   // Recette n° 2 du 31/10 : découpe de la ligne des noms pendant son ouverture / sa fermeture.
   namesClip: {
     overflow: "hidden",
+  },
+  // Contre-recette du 01/11 (m12-levee) : texte hors du flux de la découpe, mesuré sans contrainte.
+  namesText: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
   },
 });
 
