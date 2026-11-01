@@ -14,14 +14,19 @@ import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
  * sérialisée dans la route.
  */
 export default function CompositionRoute() {
-  const params = useLocalSearchParams<{ sessionId?: string }>();
+  const params = useLocalSearchParams<{ sessionId?: string; keepDraft?: string }>();
   const { hydrateFromSession } = useSessionDraft();
   const sessionId =
     typeof params.sessionId === "string" && params.sessionId.length > 0 ? params.sessionId : null;
 
+  // PRE-9 C.2 : ouverte depuis « Créer » (CE-FMT-01), la Composition reprend le brouillon que la
+  // grille vient d'initialiser (vierge, ou avec l'Exercice choisi) au lieu d'en créer un nouveau.
+  const keepDraft = params.keepDraft === "1" && sessionId === null;
+
   useEffect(() => {
+    if (keepDraft) return;
     hydrateFromSession?.(sessionId);
-  }, [sessionId, hydrateFromSession]);
+  }, [keepDraft, sessionId, hydrateFromSession]);
 
   // Correction non-flash (LOT_3_OF_3) : `sessionId` est désormais transmis
   // EN PROP, et pas seulement via l'effet de réhydratation ci-dessus. Cet

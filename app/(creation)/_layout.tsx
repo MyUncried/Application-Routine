@@ -59,6 +59,10 @@ export default function CreationLayout() {
         <Stack.Screen name="activity-selection" />
         {/* PRE-9 A.2 (ARB-22a) : « Utiliser un mouvement existant » depuis la Composition. */}
         <Stack.Screen name="movement-selection" />
+        {/* PRE-9 C.2 (CE-FMT-01) : « Créer », choix du modèle et du format. */}
+        <Stack.Screen name="session-model" />
+        {/* PRE-9 C.3 (CE-FMT-02) : paramètres du modèle et récapitulatif. */}
+        <Stack.Screen name="format-parameters" />
       </Stack>
     </SessionDraftProvider>
   );

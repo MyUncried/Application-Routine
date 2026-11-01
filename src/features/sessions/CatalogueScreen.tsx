@@ -223,7 +223,8 @@ export function CatalogueScreen() {
       return;
     }
     isOpeningEditorRef.current = true;
-    router.push("/composition");
+    // PRE-9 C.2 (CE-FMT-01 §3) : la création d'une Séance passe par « Créer », choix du modèle et du format.
+    router.push("/session-model");
   };
 
   return (

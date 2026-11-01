@@ -41,6 +41,7 @@ import {
 } from "@/domain/activities/executionCalculations";
 
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
+import type { ElementFormat } from "./formats";
 import type { Activity, ActivityType, Session } from "./Session";
 import type { SideMode } from "./sideMode";
 
@@ -57,7 +58,52 @@ export type ActivityDurationFacts = {
   /** Récupération explicite de l'occurrence — remplace la seule Pause terminale si elle est positive ; `null` (absente, PRE-6 AD-35) et `0` ne remplacent rien. */
   readonly postActivityRecoverySeconds?: number | null;
   readonly sideMode?: SideMode;
+  /** PRE-9 (C.1, ARB-03) : Format porté par l'Exercice ; absent/`null` = libre. */
+  readonly format?: ElementFormat | null;
 };
+
+/**
+ * PRE-9 B.7 (epics § B.7, D.1) : durée initiale d'un AMRAP (ch07, « Défauts validés » : « AMRAP
+ * durée 12:00 réglable »), retenue tant que son réglage n'est pas renseigné.
+ */
+export const AMRAP_INITIAL_DURATION_SECONDS = 12 * 60;
+
+/**
+ * PRE-9 B.7 — écart corrigé : un Exercice AMRAP ou Death by est développé en **segment progressif**,
+ * sans séries ni récupération propres (D.1, `planExpansion.ts`) ; sa durée ne se lit donc pas sur ses
+ * paramètres d'exécution. AMRAP : sa durée configurée (initialement 12:00), exacte. Death by : aucune
+ * durée calculable — traité comme un Exercice sans durée conventionnelle, borne minimale « ≥ »
+ * (D-070, epics § B.7). `null` : Exercice libre ou Format fini (développé par ses séries ordinaires).
+ */
+export function progressiveFormatDuration(activity: ActivityDurationFacts): ExerciseDurationResult | null {
+  const format = activity.format ?? null;
+  if (format === null) return null;
+  switch (format.key) {
+    case "AMRAP": {
+      const configured = format.settings.durationSeconds;
+      const seconds = typeof configured === "number" && configured > 0 ? configured : AMRAP_INITIAL_DURATION_SECONDS;
+      return { kind: "exact", knownSeconds: seconds, seconds, events: [] };
+    }
+    case "DEATH_BY":
+      return { kind: "lowerBound", knownSeconds: 0, seconds: 0, events: [] };
+    case "EMOM": {
+      // FMT-21 (CE-FMT-02 §5 : « EMOM : durée calculée N×E×W, sans double multiplication ») : chaque
+      // Exercice EMOM occupe ses N fenêtres de W ; E Exercices donnent N × E × W.
+      const window = emomWindowSeconds(format);
+      const rounds = format.settings.roundCount;
+      if (window === null || typeof rounds !== "number" || rounds < 1) return null;
+      return { kind: "exact", knownSeconds: rounds * window, seconds: rounds * window, events: [] };
+    }
+    default:
+      return null;
+  }
+}
+
+/** EMOM : fenêtre W réglée (`windowSeconds`) ; `null` si absente. */
+function emomWindowSeconds(format: ElementFormat): number | null {
+  const window = format.settings.windowSeconds;
+  return typeof window === "number" && window > 0 ? window : null;
+}
 
 /**
  * Résultat typé de la durée d'UNE occurrence (`exact | estimated |
@@ -68,6 +114,10 @@ export type ActivityDurationFacts = {
  */
 export function computeActivityDurationResult(activity: ActivityDurationFacts): ExerciseDurationResult {
   const parameters = activity.executionParameters;
+  const progressive = progressiveFormatDuration(activity);
+  if (progressive !== null) {
+    return progressive;
+  }
   if (parameters.mode === null) {
     return { kind: "omitted", knownSeconds: 0, events: [] };
   }
@@ -196,7 +246,14 @@ export function seriesCircuitContribution(
   passages: number,
 ): SessionDurationContribution {
   const parameters = activity.executionParameters;
-  if (parameters.mode === null || activity.type === "RECOVERY") {
+  // PRE-9 B.7 : EMOM alterné (D-16, son N adapté à celui du Circuit) : une fenêtre W par tour.
+  const format = activity.format ?? null;
+  if (format !== null && format.key === "EMOM") {
+    const window = emomWindowSeconds(format);
+    if (window !== null) return { result: { kind: "exact", knownSeconds: window, seconds: window, events: [] }, multiplicity: passages };
+  }
+  // PRE-9 B.7 : un membre progressif (Death by alterné, D-16) joue un segment à chaque tour (D.1).
+  if (parameters.mode === null || activity.type === "RECOVERY" || progressiveFormatDuration(activity) !== null) {
     return { result: computeActivityDurationResult(activity), multiplicity: passages };
   }
   return {

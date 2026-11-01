@@ -37,14 +37,14 @@ type ProfileDefaults = {
   readonly recoverySeconds: number;
 };
 
-const DOMAIN_DEFAULTS: ProfileDefaults = {
+export const DOMAIN_DEFAULTS: ProfileDefaults = {
   countdownSeconds: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   endSeconds: DEFAULT_EXERCISE_END_SECONDS,
   sideRecoverySeconds: DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
   recoverySeconds: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
 };
 
-function profileDefaultsOf(profile: {
+export function profileDefaultsOf(profile: {
   readonly exerciseCountdownSecondsDefault: number;
   readonly exerciseEndSecondsDefault: number;
   readonly sideChangeRecoverySecondsDefault: number;

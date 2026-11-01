@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -62,6 +62,13 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  */
 export function MovementSelectionScreen() {
   const router = useRouter();
+  /**
+   * PRE-9 C.2 (CE-FMT-01, ARB-05, ARB-22a) : depuis la carte « Exercice » de « Créer », un seul
+   * Mouvement est choisi (`single`) et la Composition s'ouvre ensuite avec ce seul Exercice (`then`).
+   */
+  const params = useLocalSearchParams<{ single?: string; then?: string; model?: string }>();
+  const single = params.single === "1";
+  const opensComposition = params.then === "composition";
   const actionZone = usePrimaryActionZone();
   const service = useActivityDefinitionService();
   const catalogue = useMemo(() => service.movementCatalogue, [service]);
@@ -98,7 +105,7 @@ export function MovementSelectionScreen() {
 
   function toggle(movement: Movement) {
     setSelected((current) => {
-      const next = new Map(current);
+      const next = new Map(single ? [...current].filter(([id]) => id === movement.id) : current);
       if (next.has(movement.id)) next.delete(movement.id);
       else next.set(movement.id, movement);
       return next;
@@ -117,7 +124,13 @@ export function MovementSelectionScreen() {
         .filter((entry) => !entry.archived && selected.has(entry.movement.id))
         .map((entry) => entry.movement);
       handMovementsToComposition(ordered);
-      router.back();
+      if (opensComposition) router.replace({ pathname: "/composition", params: { keepDraft: "1" } });
+      // PRE-9 C.3 : un modèle de « Créer » enchaîne sur ses paramètres ; le retour revient au choix.
+      else if (params.then === "format-parameters" && typeof params.model === "string") {
+        addingRef.current = false;
+        setIsAdding(false);
+        router.push({ pathname: "/format-parameters", params: { model: params.model } });
+      } else router.back();
     } catch (error) {
       console.error("Le catalogue des mouvements n'a pas pu être relu.", error);
       addingRef.current = false;

@@ -85,6 +85,11 @@ export type CompositionContextHeaderProps = {
   readonly name: string;
   readonly onChangeName: (name: string) => void;
   readonly onNameFocus: () => void;
+  /**
+   * PRE-9 B.9 (ch08 « Nom de séance — trois états », état 3) : dès le deuxième Exercice, le champ
+   * vide montre l'invite grise « Entrer un nom de séance » ; l'obligation de nommer apparaît.
+   */
+  readonly namePrompt?: boolean;
   /** Étiquette affectée (référentiel chargé), `null` sinon. */
   readonly sessionLabel: Label | null;
   /** Couleur DÉRIVÉE de l'Étiquette (V2-PRE-1), teinte de son icône (story 7.2, D-442). */
@@ -154,6 +159,7 @@ export function CompositionContextHeader({
   name,
   onChangeName,
   onNameFocus,
+  namePrompt = false,
   sessionLabel,
   sessionColor,
   onOpenLabelPicker,
@@ -195,8 +201,8 @@ export function CompositionContextHeader({
           value={name}
           onChangeText={onChangeName}
           onFocus={onNameFocus}
-          placeholder={composition.name}
-          placeholderTextColor={colors.textPrimary}
+          placeholder={namePrompt ? composition.namePrompt : composition.name}
+          placeholderTextColor={namePrompt ? colors.textSecondary : colors.textPrimary}
           accessibilityLabel={composition.name}
           maxLength={NAME_MAX_LENGTH}
           style={styles.nameInput}

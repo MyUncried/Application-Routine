@@ -16,6 +16,8 @@ import {
   View,
   type GestureResponderEvent,
   type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   type ViewProps,
 } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
@@ -191,6 +193,16 @@ import {
   type LayoutShiftPiece,
 } from "@/features/sessions/layoutDragShifts";
 import { CycleHeader } from "@/features/sessions/CycleHeader";
+import { sessionNamePromptShown } from "@/domain/sessions/sessionNaming";
+import {
+  StickyHeaderFrame,
+  StickyScrollContext,
+  stickyCollapseOffset,
+  stickyRange,
+  useStickyScroll,
+  type StickyRange,
+  type StickyScroll,
+} from "@/features/sessions/StickyHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
 import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
@@ -1126,6 +1138,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * défilant (`composition-body`), commandé par `scrollTo` sans animation à chaque trame.
    */
   const bodyScrollRef = useRef<ScrollView>(null);
+  /**
+   * PRE-9 B.4c (COMP §7) : décalage de défilement du corps, sur le pilote natif, partagé par les
+   * en-têtes collantes (`StickyHeaderFrame`) ; dernier décalage connu côté JS (CS-D6).
+   */
+  const bodyScrollY = useRef(new Animated.Value(0)).current;
+  const bodyOffsetRef = useRef(0);
   const autoScroll = useDragAutoScroll({
     scrollTo: (offset) => bodyScrollRef.current?.scrollTo({ y: offset, animated: false }),
     measure: (callback) => bodyScrollRef.current?.getNativeScrollRef()?.measureInWindow((_x, y, _width, height) => callback(y, height)),
@@ -1134,6 +1152,24 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     // reste celui du conteneur entier (la réserve est déjà dans la hauteur du contenu).
     bottomObstruction: () => actionZoneReserveRef.current,
   });
+  const autoScrollRef = useRef(autoScroll);
+  useLayoutEffect(() => {
+    autoScrollRef.current = autoScroll;
+  });
+  const handleBodyScroll = useCallback((offset: number) => {
+    bodyOffsetRef.current = offset;
+    autoScrollRef.current.handleScroll(offset);
+  }, []);
+  // PRE-9 B.4c : le décalage alimente les en-têtes collantes sur le pilote natif ; l'écouteur garde le
+  // défilement automatique (story 7.4) et le dernier décalage connu.
+  const bodyScrollEvent = useMemo(
+    () =>
+      Animated.event([{ nativeEvent: { contentOffset: { y: bodyScrollY } } }], {
+        useNativeDriver: true,
+        listener: (event: NativeSyntheticEvent<NativeScrollEvent>) => handleBodyScroll(event.nativeEvent.contentOffset.y),
+      }),
+    [bodyScrollY, handleBodyScroll],
+  );
   /** Hauteur mesurée du conteneur du Circuit ; `0` tant qu'il n'est pas mesuré (fond statique). */
   const [circuitMeasuredHeight, setCircuitMeasuredHeight] = useState(0);
   // « Réduire les animations » (D-7) : décalages immédiats.
@@ -3900,6 +3936,33 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // suivent sa hauteur mesurée ; son haut reste à la marge du Circuit (14), dans le flux.
   const circuitHeaderHeight =
     circuitHeaderLayout !== null && circuitHeaderLayout.height > 0 ? circuitHeaderLayout.height : CIRCUIT_HEADER_HEIGHT;
+  /**
+   * PRE-9 B.4c (COMP §7) : en-têtes collantes. Seuil sous la part fondue de la zone de contexte (le
+   * corps remonte dessous). CS-D7 : décollées pendant un déplacement (carte, Circuit, Cycle, trait de
+   * périmètre) ; aussi en mode enveloppe, où les mesures sont relatives aux cadres (voir spec B.4c).
+   */
+  const stickyEnabled = draggedKey === null && layoutLift === null && !isEnvelopeEdgeDragging && !isEnvelopeActive;
+  const stickyScroll = useMemo<StickyScroll>(
+    () => ({
+      scrollY: bodyScrollY,
+      offset: () => bodyOffsetRef.current,
+      scrollTo: (offset) => {
+        bodyScrollRef.current?.scrollTo({ y: offset, animated: false });
+        handleBodyScroll(offset);
+      },
+      top: CONTEXT_BAND_FADE_HEIGHT,
+      enabled: stickyEnabled,
+    }),
+    [bodyScrollY, handleBodyScroll, stickyEnabled],
+  );
+  // Circuit unique (rendu historique) : géométrie de son en-tête collant.
+  const legacyStickyRange = stickyRange({
+    containerY: circuitMeasuredHeight > 0 ? circuitSectionTop : null,
+    containerHeight: circuitMeasuredHeight > 0 ? circuitMeasuredHeight : null,
+    headerBottom: circuitHeaderLayout === null ? null : circuitHeaderLayout.y + circuitHeaderLayout.height,
+    bottomInset: CIRCUIT_PADDING_VERTICAL,
+    stickTop: CONTEXT_BAND_FADE_HEIGHT,
+  });
   // PRE-9 B.1a : l'anneau est centré sur la ligne d'en-tête — tout l'en-tête quand le Circuit est
   // déplié ; replié, la seule première ligne (mesurée), la ligne des noms étant dessous. La queue
   // de l'anneau descend toujours jusqu'au bas de l'en-tête (rail continu).
@@ -4491,6 +4554,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       name={draft.name}
       onChangeName={(text) => updateDraft({ name: text })}
       onNameFocus={closeOverlay}
+      namePrompt={sessionNamePromptShown(draft.exercises)}
       sessionLabel={sessionLabel}
       sessionColor={sessionColor}
       onOpenLabelPicker={() => {
@@ -4612,7 +4676,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * inchangé — hors périmètre de cette correction (D ne s'applique
        * qu'aux sélecteurs numériques à roulette).
        */}
-      <ScrollView
+      <StickyScrollContext.Provider value={stickyScroll}>
+      <Animated.ScrollView
         ref={bodyScrollRef}
         style={styles.body}
         contentContainerStyle={[
@@ -4630,11 +4695,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // alors seulement d'elle-même, près de ses bords (`useDragAutoScroll`).
         scrollEnabled={draggedKey === null && draggingSource === null && !isEnvelopeEdgeDragging}
         // Story 7.4 : décalage, contenu et zone visible du défilement automatique.
-        onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+        // PRE-9 B.4c : aussi le décalage des en-têtes collantes (pilote natif).
+        onScroll={bodyScrollEvent}
         scrollEventThrottle={16}
         // Revue 7.4 : sur iOS, le dernier `onScroll` d'un défilement peut être filtré (`scrollEventThrottle`).
-        onScrollEndDrag={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
-        onMomentumScrollEnd={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+        onScrollEndDrag={(event) => handleBodyScroll(event.nativeEvent.contentOffset.y)}
+        onMomentumScrollEnd={(event) => handleBodyScroll(event.nativeEvent.contentOffset.y)}
         onContentSizeChange={(_width, height) => {
           bodyContentHeightRef.current = height;
           autoScroll.handleContentSize(height);
@@ -4873,6 +4939,24 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               />
             </Reanimated.View>
           </Animated.View>
+          {/* PRE-9 B.4c (COMP §7, CS-D2) : en-tête collant ; la mesure de l'en-tête est portée par son cadre. */}
+          <StickyHeaderFrame
+            range={legacyStickyRange}
+            enabled
+            color={CIRCUIT_SURFACE_COLOR}
+            outsetLeft={CIRCUIT_OUTSET}
+            outsetRight={CIRCUIT_OUTSET}
+            insetTop={CIRCUIT_PADDING_VERTICAL}
+            extension={CONTEXT_BAND_FADE_HEIGHT}
+            rail={{ centerX: RAIL_CENTER_X_IN_CIRCUIT, ringY: circuitHeaderRingRowHeight / 2 }}
+            onLayout={(event) => {
+              const { y, height } = event.nativeEvent.layout;
+              setCircuitHeaderLayout((current) =>
+                current !== null && current.y === y && current.height === height ? current : { y, height },
+              );
+            }}
+            testID="composition-circuit-header-sticky"
+          >
           <CircuitHeader
             nature={circuitNature}
             count={tourRepeatCount}
@@ -4903,20 +4987,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             titleInset={SEQUENCE_LABEL_INSET}
             // PRE-9 B.1a (ARB-12) : repli non persisté, déplié à l'ouverture de l'écran.
             isCollapsed={isCircuitCollapsed}
-            onToggleCollapsed={toggleCircuitCollapsed}
-            memberNames={circuitMemberNames}
-            onLayout={(event) => {
-              const { y, height } = event.nativeEvent.layout;
-              setCircuitHeaderLayout((current) =>
-                current !== null && current.y === y && current.height === height ? current : { y, height },
-              );
+            // B.4c (CS-D6) : replié collé, l'en-tête reste sous le doigt (hauteur réelle, aucune constante).
+            onToggleCollapsed={() => {
+              alignStuckHeader(stickyScroll, legacyStickyRange, isCircuitCollapsed);
+              toggleCircuitCollapsed();
             }}
+            memberNames={circuitMemberNames}
             onRowLayout={(event) => {
               const { height } = event.nativeEvent.layout;
               setCircuitHeaderRowHeight((current) => (current === height ? current : height));
             }}
             testID="composition-circuit-header"
           />
+          </StickyHeaderFrame>
           {/*
            * PRE-9 B.1a (référence §4) : Circuit replié — ses cartes et ses points sont masqués.
            * Recette du 29/10 (obs-3 b) : dévoilement et repli animés (`useCircuitCardsReveal`).
@@ -5132,7 +5215,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           />
         ) : null}
         </ReadOnlyFrame>
-      </ScrollView>
+      </Animated.ScrollView>
+      </StickyScrollContext.Provider>
 
       {/*
        * CMP-06 (contre-recette iPhone, correction consolidée, 2026-09-03) :
@@ -8795,6 +8879,17 @@ function LayoutRailTail({
  * 31/10/2026 :] ses bords se déplacent pour faire la place (`useLayoutContainerMotion`), son fond les
  * suit (`CircuitSurface`). `ghost` : copie inerte en effacement.
  */
+/**
+ * PRE-9 B.4c (COMP §7) : en-tête collé ramené à sa place dans le flux, sous le doigt — avant de
+ * replier son Circuit (CS-D6 : le recalage tient à la hauteur réelle du conteneur, sans constante),
+ * ou avant sa saisie (CS-D7 : décollé sans saut). Sans effet s'il n'est pas collé, ou s'il se déplie.
+ */
+function alignStuckHeader(sticky: StickyScroll | null, range: StickyRange | null, expanding: boolean): void {
+  if (sticky === null || !sticky.enabled || expanding) return;
+  const offset = stickyCollapseOffset(range, sticky.offset());
+  if (offset !== null) sticky.scrollTo(offset);
+}
+
 function LayoutCircuitBlock({
   circuit,
   inCycle,
@@ -8805,6 +8900,7 @@ function LayoutCircuitBlock({
   context,
   onAnchor,
   ghost = false,
+  stickBelow = 0,
 }: {
   circuit: StructureCircuit<SessionDraftExercise>;
   inCycle: boolean;
@@ -8817,6 +8913,8 @@ function LayoutCircuitBlock({
   context: LayoutRenderContext;
   onAnchor: (circuitId: string, y: number) => void;
   ghost?: boolean;
+  /** PRE-9 B.4c (CS-D4) : dans un Cycle, bas de l'en-tête collé du Cycle, sous lequel il colle. */
+  stickBelow?: number;
 }) {
   // Incident du 01/11/2026 : mesures filtrées, en transition au repos (`LAYOUT_MEASURE_TOLERANCE`).
   const urgent = context.lift !== null;
@@ -8879,6 +8977,21 @@ function LayoutCircuitBlock({
   const railX = RAIL_CENTER_X_IN_COLUMN + (inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET);
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
   const testID = ghost ? `composition-layout-vanishing-circuit-${circuit.id}-block` : `composition-layout-circuit-${circuit.id}`;
+  // PRE-9 B.4c (COMP §7) : en-tête collant — sous la zone de contexte, ou sous l'en-tête collé du Cycle.
+  const sticky = useStickyScroll();
+  const stickyContainerY = offsetY === null || blockY === null ? null : offsetY + blockY;
+  const circuitStickyRange = useMemo(
+    () =>
+      stickyRange({
+        containerY: stickyContainerY,
+        containerHeight: blockHeight,
+        headerBottom,
+        bottomInset: CIRCUIT_PADDING_VERTICAL,
+        stickTop: (sticky?.top ?? 0) + stickBelow,
+      }),
+    [blockHeight, headerBottom, stickBelow, sticky, stickyContainerY],
+  );
+  const horizontalInset = inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET;
   // Contre-recette du 30/10 (constat b) : le Circuit qui vient d'être posé apparaît progressivement
   // (fond, anneau et en-tête) ; ses cartes, déjà visibles, restent.
   const entering = context.appearingCircuitIds.has(circuit.id) ? CIRCUIT_ENTERING : undefined;
@@ -8954,13 +9067,25 @@ function LayoutCircuitBlock({
         pointerEvents={inPlacement ? "none" : "box-none"}
         accessibilityElementsHidden={inPlacement}
         importantForAccessibility={inPlacement ? "no-hide-descendants" : "auto"}
-        style={{ transform: [{ translateY: motion.top }] }}
+        style={[styles.stickyHeaderLayer, { transform: [{ translateY: motion.top }] }]}
         onLayout={(event) => {
           const { y, height } = event.nativeEvent.layout;
           setHeaderBottom(y + height);
           reportHeader(event);
         }}
         testID={`${testID}-header-frame`}
+      >
+      <StickyHeaderFrame
+        range={circuitStickyRange}
+        enabled={!ghost}
+        color={CIRCUIT_SURFACE_COLOR}
+        outsetLeft={horizontalInset}
+        outsetRight={horizontalInset}
+        insetTop={CIRCUIT_PADDING_VERTICAL}
+        // Dans un Cycle, le fond au-dessus passe sous l'en-tête collé du Cycle.
+        extension={inCycle ? 0 : (sticky?.top ?? 0)}
+        rail={{ centerX: railX, ringY: rowHeight / 2 }}
+        testID={`${testID}-header-sticky`}
       >
       <CircuitHeader
         entering={entering}
@@ -8979,10 +9104,22 @@ function LayoutCircuitBlock({
         isChoicePending={context.isChoicePending}
         titleInset={SEQUENCE_LABEL_INSET}
         isCollapsed={isCollapsed}
-        onToggleCollapsed={() => context.onToggleCollapsed(circuit)}
+        // PRE-9 B.4c (CS-D6) : replié collé, l'en-tête reste sous le doigt.
+        onToggleCollapsed={() => {
+          alignStuckHeader(sticky, circuitStickyRange, isCollapsed);
+          context.onToggleCollapsed(circuit);
+        }}
         memberNames={circuit.exercises.map((exercise) => occurrenceCardName(exercise, context.levelPositions))}
         // PRE-9 B.4 (COMP §6) : appui long sur l'en-tête — le Circuit déployé est replié, puis suit le doigt.
-        onLongPress={drag !== null && !ghost ? gesture.begin : undefined}
+        // B.4c (CS-D7) : collé, il est d'abord ramené à sa place dans le flux, sous le doigt, puis décollé.
+        onLongPress={
+          drag !== null && !ghost
+            ? () => {
+                alignStuckHeader(sticky, circuitStickyRange, false);
+                gesture.begin();
+              }
+            : undefined
+        }
         moveActions={
           drag !== null && !ghost ? { moveUp: drag.stepAction(source, "UP"), moveDown: drag.stepAction(source, "DOWN") } : undefined
         }
@@ -8992,6 +9129,7 @@ function LayoutCircuitBlock({
         }}
         testID={`${testID}-header`}
       />
+      </StickyHeaderFrame>
       </Animated.View>
       {/* ARB-12 : Circuit replié — ses cartes sont masquées, le brouillon est inchangé. */}
       {/* Recette du 29/10 (obs-3 b) : dévoilement et repli animés (`useCircuitCardsReveal`). */}
@@ -9065,6 +9203,20 @@ function LayoutCycleBlock({
   const source = useMemo<LayoutItemRef>(() => ({ kind: "CYCLE", id: cycle.id }), [cycle.id]);
   const reportBlock = useReportedBox(layoutItemKey(source), ghost ? null : 0, report, urgent);
   const reportHeader = useReportedBox(layoutHeaderKey("CYCLE", cycle.id), cycleY, report, urgent);
+  // PRE-9 B.4c (COMP §7) : en-tête collant du Cycle ; ses Circuits collent sous lui (CS-D4).
+  const [headerBottom, setHeaderBottom] = useMeasuredValue<number | null>(null, urgent);
+  const sticky = useStickyScroll();
+  const cycleStickyRange = useMemo(
+    () =>
+      stickyRange({
+        containerY: cycleY,
+        containerHeight: cycleHeight,
+        headerBottom,
+        bottomInset: CONTAINER_PADDING_BOTTOM,
+        stickTop: sticky?.top ?? 0,
+      }),
+    [cycleHeight, cycleY, headerBottom, sticky],
+  );
   const gesture = useBlockDragGesture({
     onStart: () => drag?.onStart(source) ?? false,
     onMove: (translationY) => drag?.onMove(translationY),
@@ -9100,7 +9252,15 @@ function LayoutCycleBlock({
         if (height > 0) setRowHeight(height);
       }}
       // PRE-9 B.4 (ARB-09) : appui long sur le titre — le Cycle entier suit le doigt.
-      onLongPress={drag !== null && !ghost ? gesture.begin : undefined}
+      // B.4c (CS-D7) : collé, il est d'abord ramené à sa place dans le flux, sous le doigt.
+      onLongPress={
+        drag !== null && !ghost
+          ? () => {
+              alignStuckHeader(sticky, cycleStickyRange, false);
+              gesture.begin();
+            }
+          : undefined
+      }
       moveActions={
         drag !== null && !ghost ? { moveUp: drag.stepAction(source, "UP"), moveDown: drag.stepAction(source, "DOWN") } : undefined
       }
@@ -9192,11 +9352,31 @@ function LayoutCycleBlock({
       </View>
       {/* PRE-9 B.2 : en mode enveloppe, l'en-tête du Cycle est inactif (jamais éligible : aucun Cycle dans un Cycle). */}
       {/* Recette n° 2 : l'en-tête suit le bord haut (mesure portée par l'enveloppe, élément du Cycle). */}
-      <Animated.View style={{ transform: [{ translateY: motion.top }] }} onLayout={reportHeader} testID={`${testID}-header-track`}>
+      <Animated.View
+        style={[styles.stickyHeaderLayer, { transform: [{ translateY: motion.top }] }]}
+        onLayout={(event) => {
+          const { y, height } = event.nativeEvent.layout;
+          setHeaderBottom(y + height);
+          reportHeader(event);
+        }}
+        testID={`${testID}-header-track`}
+      >
+        <StickyHeaderFrame
+          range={cycleStickyRange}
+          enabled={!ghost}
+          color={CYCLE_SURFACE_COLOR}
+          outsetLeft={CIRCUIT_OUTSET}
+          outsetRight={CIRCUIT_OUTSET}
+          insetTop={CIRCUIT_PADDING_VERTICAL}
+          extension={sticky?.top ?? 0}
+          rail={{ centerX: railX, ringY: rowHeight / 2, outerRing: CYCLE_OUTER_RING_DIAMETER }}
+          testID={`${testID}-header-sticky`}
+        >
         <Reanimated.View entering={entering} testID={`${testID}-header-reveal`}>
           {/* PRE-9 B.6 : en placement, l'en-tête est inactif (seuls les emplacements répondent). */}
           {context.envelope === null && context.stops.placement === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
         </Reanimated.View>
+        </StickyHeaderFrame>
       </Animated.View>
       {cycle.members.map((member, memberIndex) => {
         const key = layoutElementKey(member);
@@ -9246,6 +9426,7 @@ function LayoutCycleBlock({
                 rail={rail}
                 context={context}
                 onAnchor={onAnchor}
+                stickBelow={headerBottom ?? 0}
               />
             </EnvelopeFrame>
           );
@@ -10042,6 +10223,10 @@ const styles = StyleSheet.create({
   },
   // Correctif 2.3b : zone (liste ou Circuit) qui porte la carte soulevée, au-dessus de ses sœurs
   // du corps défilant.
+  // PRE-9 B.4c : l'en-tête (collant) passe au-dessus des membres de son conteneur, qui défilent dessous.
+  stickyHeaderLayer: {
+    zIndex: 2,
+  },
   dragElevated: {
     zIndex: 1,
   },

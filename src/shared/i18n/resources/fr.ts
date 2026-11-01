@@ -516,6 +516,54 @@ export const fr = {
         unavailableAccessibilityLabel: "{action} — indisponible",
       },
     },
+    // PRE-9 C.3 (CE-FMT-02) : paramètres du modèle et récapitulatif.
+    formatParameters: {
+      titlePrefix: "Composer une séance",
+      backAccessibilityLabel: "Retour au choix des mouvements",
+      movements: "Mouvements",
+      parameters: "Paramètres d’exécution",
+      totalDuration: "Durée totale",
+      execution: "Exécution",
+      organisation: { SEQUENCE: "À la suite", ALTERNATED: "En alternance" },
+      lockedReason: "Valeurs grisées imposées par le format",
+      save: "Enregistrer dans la séance",
+      increase: "Augmenter",
+      decrease: "Diminuer",
+      parameterLabels: {
+        seriesPerExercise: "Nombre de séries",
+        seriesCount: "Nombre de séries",
+        workSeconds: "Travail par série",
+        pauseSeconds: "Pause",
+        roundCount: "Nombre de tours",
+        windowSeconds: "Intervalle",
+        durationSeconds: "Durée",
+        volumePerRound: "Répétitions, tour",
+        startRepetitions: "Répétitions au départ",
+        incrementRepetitions: "Incrément par tour",
+        repetitions: "Répétitions par série",
+        repetitionsPerSeries: "Répétitions, série",
+        passages: "Nombre de passages",
+      },
+    },
+    // PRE-9 C.2 (CE-FMT-01, Figma `8598:29271`) : « Créer » — choix du modèle et du format.
+    sessionModels: {
+      title: "Créer",
+      closeAccessibilityLabel: "Fermer",
+      cards: {
+        EXERCISE_CARD: { title: "Exercice", subtitle: "à composer" },
+        SESSION_CARD: { title: "Séance", subtitle: "à composer" },
+        TABATA: { title: "Tabata", subtitle: "8 × 20/10" },
+        INTERVALS_30_30: { title: "Intervalles", subtitle: "30 s / 30 s" },
+        EMOM: { title: "EMOM", subtitle: "1 série / minute" },
+        AMRAP: { title: "AMRAP", subtitle: "max de tours" },
+        FOR_TIME: { title: "For time", subtitle: "au chrono" },
+        DEATH_BY: { title: "Death by", subtitle: "+1 par tour" },
+        STRENGTH: { title: "Renforcement", subtitle: "3 × 15 rép." },
+        SUPERSET: { title: "Superset", subtitle: "2 enchaînés" },
+        PROGRESSION: { title: "Progression", subtitle: "+ à chaque série" },
+        UNTIL_FAILURE: { title: "À l’échec", subtitle: "3 séries" },
+      },
+    },
     composition: {
       // Complément d'alignement du 07/10 (ajout D) : titre d'écran.
       title: "Composer une séance",
@@ -523,6 +571,8 @@ export const fr = {
       // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) de l’en-tête de la Composition.
       closeAccessibilityLabel: "Fermer",
       name: "Nom de la séance",
+      // PRE-9 B.9 (ch08 « Nom de séance — trois états », état 3) : invite dès le deuxième Exercice.
+      namePrompt: "Entrer un nom de séance",
       colorPicker: {
         label: "Couleur",
         paletteAccessibilityLabel: "Palette de couleurs",
