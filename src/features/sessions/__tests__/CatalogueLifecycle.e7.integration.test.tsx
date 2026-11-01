@@ -136,7 +136,8 @@ describe("PRE-8 E.7 — raccordements sur SQLite réelle", () => {
     fireEvent.press(cardFor("Gainage").swipe);
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/composition", params: { sessionId: created.id } });
     fireEvent.press(screen.getByTestId("catalogue-create-action"));
-    expect(mockPush).toHaveBeenLastCalledWith("/composition");
+    // PRE-9 C.2 : Créer ouvre « Créer » (choix du modèle).
+    expect(mockPush).toHaveBeenLastCalledWith("/session-model");
   });
 
   it("Dupliquer, Archiver puis Annuler, Archiver, filtre Archivées, Restaurer, Archiver, Supprimer confirmé", async () => {

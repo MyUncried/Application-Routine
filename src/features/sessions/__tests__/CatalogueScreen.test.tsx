@@ -423,7 +423,8 @@ describe("CatalogueScreen — cadre commun", () => {
 
     expect(screen.queryByTestId("catalogue-create-tree")).toBeNull();
     expect(mockPush).toHaveBeenCalledTimes(1);
-    expect(mockPush).toHaveBeenCalledWith("/composition");
+    // PRE-9 C.2 (CE-FMT-01 §3) : Créer ouvre « Créer », choix du modèle (remplace E.4).
+    expect(mockPush).toHaveBeenCalledWith("/session-model");
   });
 
   it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {

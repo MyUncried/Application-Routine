@@ -387,6 +387,9 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     openLegacyExerciseCreation();
     await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
+    // PRE-9 B.9 (ch08, état 2) : le premier Exercice propose son nom ; vidé, le nom manque de nouveau.
+    expect(screen.getByLabelText(composition.name).props.value).toBe("Pompes");
+    fireEvent.changeText(screen.getByLabelText(composition.name), "");
 
     expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject(
       { disabled: true },
