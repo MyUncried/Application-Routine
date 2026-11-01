@@ -2,6 +2,10 @@ Ce document devient le registre permanent des décisions de conception du produi
 
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
+## Précisions B.7, B.8 et B.9 — décisions du 01/11/2026
+
+B.7 vérifie les calculs existants et ne les modifie qu’en présence d’un écart démontré. B.8 (Utiliser une séance existante, ARB-16) est mise en pause, sans empêcher la suite ni supprimer les comportements déjà présents. Pour B.9, le nom du Format est une suggestion initiale modifiable dès l’ouverture, jamais imposée ni verrouillée ; un nom personnalisé n’est jamais remplacé automatiquement. Cette précision remplace le caractère non modifiable du premier état de nommage, sans changer les autres règles d’ARB-14/ARB-15.
+
 ## Récupération de l’Exercice et défauts du Profil
 
 **Décision validée par Hermann le 01/11/2026.** Remplace la propriété contextuelle et l’ajout par Placement de D-208, D-304, D-307, D-435, D-442 et RM-209 sur ce périmètre. Les règles des Points d’arrêt, de durée et les historiques non concernés restent applicables. Cette décision clôt REC-PARAM-01.

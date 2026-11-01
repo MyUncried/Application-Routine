@@ -100,7 +100,7 @@ Sections, dans l'ordre : Statut des séances, **Catégories**, **Zones corporell
 
 Le nom suit trois états, décidés le 27/10. Il s'agit d'une décision nouvelle : D-449 §2 précise que les règles de saisie du titre ne sont pas modifiées par la clôture.
 
-1. **À l'ouverture**, la séance porte le **nom de son format**, en gris, non modifiable.
+1. **À l'ouverture**, la séance porte le **nom de son format**, en gris, non modifiable. [Remplacé le 01/11/2026 — précision de Hermann (ch07 « Précisions B.7, B.8 et B.9 », main fce276fd) : le nom du Format peut être suggéré ; le champ est modifiable dès l’ouverture ; un nom personnalisé n’est jamais remplacé automatiquement ; le Format reste affiché séparément sur la carte.]
 2. **À l'ajout du premier exercice**, elle prend le **nom de cet exercice**, désormais éditable.
 3. **À l'ajout du second exercice**, le nom devient l'invite **« Entrer un nom de séance »**, en gris, éditable : l'obligation de nommer apparaît au moment où le nom d'un exercice ne suffit plus.
 

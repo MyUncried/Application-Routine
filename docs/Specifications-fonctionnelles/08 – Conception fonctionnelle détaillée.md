@@ -888,8 +888,8 @@ Le panneau de filtres suit le §6 de la source : Statut, Catégories, Zones corp
 
 ### Nom de séance — trois états validés le 27/10/2026
 
-1. À l'ouverture, nom du format, en gris, non modifiable.
+1. À l’ouverture, le nom du Format peut être proposé comme suggestion initiale. Le champ est modifiable immédiatement ; le Format n’impose jamais le nom de la Séance.
 2. À l'ajout du premier exercice, nom de cet exercice, éditable.
 3. À l'ajout du second exercice, invite « Entrer un nom de séance », grise et éditable ; l'obligation de nommer apparaît.
 
-Aucun suffixe de niveau dans le nom. Cette règle concerne la création/composition et sera traitée dans son lot. Les retours après retrait d'exercices et la préservation d'un titre déjà personnalisé ne sont pas spécifiés par ce texte ; aucune règle supplémentaire n'est inventée ici.
+Aucun suffixe de niveau dans le nom. Cette règle concerne la création/composition et sera traitée dans son lot. Un titre personnalisé n’est jamais remplacé automatiquement (ARB-14). Seul un titre resté suggéré suit les règles de recalcul applicables ; les cas non définis de retrait d’Exercices ne créent aucune nouvelle substitution.
