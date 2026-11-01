@@ -436,6 +436,16 @@ function makeNativeAtCreation(value: Animated.Value): void {
   internal.__makeNative?.();
 }
 
+/**
+ * Contre-recette n° 4 du 01/11/2026 (cr5-reposer) : rend native une valeur animée existante
+ * (idempotent) — son `setValue` suivant est une opération du pilote natif, envoyée dans le même lot que
+ * les poses du registre faites dans la même tâche (translation du doigt d'une carte ou d'un Point
+ * d'arrêt remise à 0 au lâcher, relayée par la translation de sa rangée, sans image intermédiaire).
+ */
+export function makeAnimatedValueNative(value: Animated.Value): void {
+  makeNativeAtCreation(value);
+}
+
 /** PRE-6 story 5.2b : translation de départ d'une clé, posée sans animation avant ses cibles. */
 export type ShiftRelease = { readonly key: string; readonly from: number };
 

@@ -526,8 +526,20 @@ function CollapsedNamesLine({ isCollapsed, text, testID }: { isCollapsed: boolea
  * Contre-recette du 30/10 (obs-3) : `bottomOverlap` — réduction de la marge basse du Circuit quand
  * ses cartes sont déployées (marge basse négative de la liste, de 0 à −`bottomOverlap`) ; repliées
  * (liste démontée), la marge basse reste entière.
+ *
+ * Contre-recette n° 4 du 01/11/2026 (Hermann, cr5-replie : « le cadre du circuit se déplie jusqu'à la
+ * hauteur qu'il aurait avec les cartes qui le constitue, mais sans qu'elles n'apparaissent » ; constat
+ * c : « pour l'autre les cartes s'effacent d'abord, le circuit est vide, puis il se replie ») — la
+ * hauteur naturelle, base de l'animation, n'était relevée que sur la liste AU REPOS (`onLayout` ignoré
+ * pendant l'animation). Une liste montée pendant un déploiement (Circuit monté replié — déplacé dans
+ * ou hors d'un Cycle, contenu changé — puis déployé) n'était plus mesurée au repos ensuite : hauteur
+ * inconnue (0), donc `maxHeight` libre — déploiement d'un coup à pleine hauteur avec un simple fondu,
+ * et repli suivant en fondu puis saut à la fin. `measuresContent` : la hauteur naturelle est relevée
+ * sur le CONTENU de la liste (`onContentLayout`, vue intérieure non contrainte par `maxHeight`), à
+ * chaque mesure, pendant l'animation comme au repos ; tant qu'elle est inconnue, la liste animée reste
+ * fermée (0) au lieu d'être libre. Sans `measuresContent` (ancien modèle) : comportement d'origine.
  */
-export function useCircuitCardsReveal(collapsed: boolean, gap: number, bottomOverlap = 0) {
+export function useCircuitCardsReveal(collapsed: boolean, gap: number, bottomOverlap = 0, measuresContent = false) {
   const reduceMotion = useReduceMotion();
   const [mounted, setMounted] = useState(!collapsed);
   const [animating, setAnimating] = useState(false);
@@ -559,8 +571,7 @@ export function useCircuitCardsReveal(collapsed: boolean, gap: number, bottomOve
     opacity: progress.value,
     marginTop: (progress.value - 1) * gap,
     marginBottom: -progress.value * bottomOverlap,
-    maxHeight:
-      progress.value >= 1 || naturalHeight.value <= 0 ? UNCONSTRAINED_HEIGHT : progress.value * naturalHeight.value,
+    maxHeight: circuitRevealMaxHeight(progress.value, naturalHeight.value, measuresContent),
   }));
   /** Mesure de la liste au repos (hauteur naturelle), base de l'animation suivante. */
   const onLayout = useCallback(
@@ -569,12 +580,34 @@ export function useCircuitCardsReveal(collapsed: boolean, gap: number, bottomOve
     },
     [animating, naturalHeight],
   );
+  /** Contre-recette n° 4 : hauteur naturelle du contenu, relevée à chaque mesure (animation comprise). */
+  const onContentLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height > 0) naturalHeight.set(height);
+    },
+    [naturalHeight],
+  );
   return {
     /** Faux une fois le repli terminé : la liste n'est pas rendue. */
     mounted: mounted || !collapsed,
     style: [animating ? styles.reveal : null, animatedStyle],
     onLayout,
+    onContentLayout,
   };
+}
+
+/**
+ * Hauteur maximale de la liste des cartes à la progression `progress` (0 replié, 1 déployé) :
+ * déployée, libre ; en animation, la part de la hauteur naturelle. Hauteur naturelle inconnue : libre
+ * sans `measuresContent` (ancien modèle) ; fermée (0) avec, jusqu'à la première mesure du contenu
+ * (contre-recette n° 4 du 01/11/2026).
+ */
+export function circuitRevealMaxHeight(progress: number, naturalHeight: number, measuresContent: boolean): number {
+  "worklet";
+  if (progress >= 1) return UNCONSTRAINED_HEIGHT;
+  if (naturalHeight > 0) return progress * naturalHeight;
+  return measuresContent ? 0 : UNCONSTRAINED_HEIGHT;
 }
 
 /** Dévoilement des cartes d'un Circuit, appliqué à la vue (Reanimated) de leur liste. */

@@ -56,7 +56,13 @@ import {
   type EnvelopeTarget,
   type EnvelopeUnit,
 } from "@/domain/sessions/layoutOperations";
-import { EnvelopeHandle, envelopeTargetKey, useEnvelopePerimeterDrag } from "@/features/sessions/EnvelopePerimeter";
+import {
+  type EnvelopeEdgeDrag,
+  EnvelopeHandle,
+  EnvelopeMovingSegment,
+  envelopeTargetKey,
+  useEnvelopePerimeterDrag,
+} from "@/features/sessions/EnvelopePerimeter";
 import {
   duplicateLayoutExercise,
   moveLayoutItem,
@@ -277,7 +283,13 @@ import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { TourBoundaryChoiceDialog } from "@/features/sessions/TourBoundaryChoiceDialog";
-import { type AnimatedShiftRegistry, nativeShiftKey, type ShiftRelease, useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
+import {
+  type AnimatedShiftRegistry,
+  makeAnimatedValueNative,
+  nativeShiftKey,
+  type ShiftRelease,
+  useAnimatedShiftRegistry,
+} from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { type DragAutoScroll, useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import {
@@ -362,11 +374,13 @@ type EnvelopeContext = {
   readonly placementOf: (target: EnvelopeUnit) => EnvelopeSpanPlacement | null;
   readonly onDesignate: (target: EnvelopeTarget, name: string) => void;
   readonly onStepEdge: (span: EnvelopeSpan, edge: EnvelopeEdge, direction: 1 | -1) => void;
-  readonly onEdgeDragStart: (span: EnvelopeSpan, edge: EnvelopeEdge) => void;
+  readonly onEdgeDragStart: (span: EnvelopeSpan, edge: EnvelopeEdge, translation: Animated.Value) => void;
   readonly onEdgeDragEnd: (pageY?: number) => void;
   readonly registerFrame: (key: string, view: View | null) => void;
   /** Recette n° 2 (b4b-etendre) : défilement automatique pendant le glisser d'un trait. */
   readonly autoScroll: DragAutoScroll;
+  /** Contre-recette n° 4 du 01/11/2026 (b4b-etendre) : glisser d'un trait en cours, le bord du cadre le suit. */
+  readonly edgeDrag: EnvelopeEdgeDrag | null;
 };
 
 const NO_ENVELOPE_SPANS: readonly EnvelopeSpan[] = [];
@@ -1597,9 +1611,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setIsEnvelopeEdgeDragging(locked);
   }, []);
   const beginEnvelopeEdgeDrag = useCallback(
-    (span: EnvelopeSpan, edge: EnvelopeEdge) => {
+    (span: EnvelopeSpan, edge: EnvelopeEdge, translation: Animated.Value) => {
       lockBodyScroll(true);
-      beginPerimeterDrag(span, edge);
+      beginPerimeterDrag(span, edge, translation);
     },
     [beginPerimeterDrag, lockBodyScroll],
   );
@@ -1667,6 +1681,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       onEdgeDragEnd: endEnvelopeEdgeDrag,
       registerFrame: perimeterDrag.registerFrame,
       autoScroll,
+      edgeDrag: perimeterDrag.edgeDrag,
     };
   }, [
     autoScroll,
@@ -1677,6 +1692,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     draft,
     endEnvelopeEdgeDrag,
     envelope,
+    perimeterDrag.edgeDrag,
     perimeterDrag.registerFrame,
     stepEnvelopeEdge,
   ]);
@@ -2543,6 +2559,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * d'insertion) — remplacé par la recette iPhone n° 2 du 31/10/2026 : aperçu par décalages.]
    */
   const [layoutLift, setLayoutLift] = useState<LayoutLift | null>(null);
+  /**
+   * Contre-recette n° 4 du 01/11/2026 (constat a, Hermann : « lorsque le circuit se déplace vers le bas
+   * lorsqu'il se replie, il n'est plus aligné avec le doigt pendant le déplacement. lorsqu'on replie un
+   * circuit son positionnement haut ne doit pas bouger, uniquement la partie basse doit remonter. ») —
+   * cause retenue : le Circuit saisi se replie (COMP §6) ; le contenu défilant raccourcit d'autant ;
+   * liste défilée vers son bas, le décalage de défilement dépasse le nouveau maximum et iOS le ramène
+   * dans les bornes : tout le contenu, Circuit compris, descend sous le doigt immobile. Pendant le
+   * geste et jusqu'à la fin du retour, le contenu garde au moins sa hauteur du début du geste
+   * (`minHeight`) : le haut du Circuit reste sous le doigt, seul son bas remonte.
+   */
+  const [layoutContentFloor, setLayoutContentFloor] = useState<number | null>(null);
+  const bodyContentHeightRef = useRef<number | null>(null);
+  if (layoutLift === null && layoutContentFloor !== null) setLayoutContentFloor(null);
   const layoutLiftRef = useRef(layoutLift);
   useLayoutEffect(() => {
     layoutLiftRef.current = layoutLift;
@@ -2555,14 +2584,24 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     const current = layoutDragRef.current;
     if (current === null) return;
     const slot = current.target;
+    // Contre-recette n° 4 du 01/11/2026 (cr5-replie, Hermann : « le cadre du circuit se déplie […] mais
+    // sans qu'elles n'apparaissent » ; « le bord bas remonte et redescend ») : pendant l'arrêt sur un
+    // Circuit replié (avant son déploiement) et pendant son déploiement, la place n'est pas ouverte —
+    // le cadre grandit avec ses cartes (mise en page, `useCircuitCardsReveal`), sans translation de ses
+    // bords qui s'ajouterait à cette croissance (fond étiré d'après une hauteur relevée au fil JS, en
+    // retard) ; la place s'ouvre aussitôt après, sous le doigt (`finishLayoutExpansionRef`). Un lâcher
+    // entre-temps dépose toujours à la fin du Circuit (`current.target`).
+    const opensPlace = current.hoverCircuitId === null && current.expandingCircuitId === null;
     const computed =
       slot === null
         ? null
-        : layoutDragShifts(layoutPiecesRef.current, layoutBoxesRef.current, current.lifted, {
-            insertY: slot.insertY,
-            insertTop: slot.insertTop,
-            gap: layoutContainerGap(slot.container),
-          });
+        : layoutDragShifts(
+            layoutPiecesRef.current,
+            layoutBoxesRef.current,
+            current.lifted,
+            // Place de l'élément saisi refermée ; aucune place ouverte tant que le Circuit n'est pas déployé.
+            opensPlace ? { insertY: slot.insertY, insertTop: slot.insertTop, gap: layoutContainerGap(slot.container) } : null,
+          );
     // Recette iPhone n° 2 du 31/10/2026 (arrêt sur un Circuit replié) : un Circuit déployé AU-DESSUS de
     // l'élément saisi le déplace dans la mise en page ; la translation du registre qui le porte compense
     // ce déplacement (`layoutSourceDrift`), posée sans animation : il reste sous le doigt.
@@ -2703,7 +2742,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             { insertY: slot.insertY, insertTop: slot.insertTop, gap: layoutContainerGap(slot.container) },
             translationY,
           );
-    if (block && key !== null) shiftRegistryRef.current?.pose(nativeShiftKey(key), translationY);
+    // [Recette n° 2 : seul un Circuit ou un Cycle lâché était aussitôt porté par le registre — étendu
+    // par la contre-recette n° 4 du 01/11/2026 (cr5-reposer, « elle disparait et réapparait ») :] une
+    // carte ou un Point d'arrêt aussi, dans la même tâche que la remise à 0 de sa translation de doigt
+    // (`releaseDragY`, puce du Point) : aucune image à sa place dans la mise en page.
+    if (key !== null) shiftRegistryRef.current?.pose(nativeShiftKey(key), translationY);
     let held = false;
     const toPhase = (phase: "HELD" | "SETTLING") =>
       setLayoutLift((lift) =>
@@ -2921,6 +2964,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       setRevealedActionsId(null);
       autoScroll.begin();
       if (source.kind === "CIRCUIT" && stopPointId === undefined) {
+        // Contre-recette n° 4 (constat a) : le repli ne raccourcit pas le contenu défilant pendant le geste.
+        setLayoutContentFloor(bodyContentHeightRef.current);
         // COMP §6 : « Un appui long sur l'en-tête d'un circuit déployé commence par le replier puis
         // amorce son déplacement. »
         const circuit = structureCircuits(richLayoutRef.current).find((item) => item.id === source.id);
@@ -3400,6 +3445,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    */
   const handleDropItem = useCallback(
     (key: string, zone: StructuralPosition, translationY: number) => {
+      // Contre-recette n° 4 du 01/11/2026 (cr5-reposer) : l'élément lâché est aussitôt porté par le
+      // registre, dans la tâche même où sa translation de doigt revient à 0 (voir `releaseDragY`).
+      shiftRegistryRef.current?.pose(key, translationY);
       const frozen = dragPreview !== null && dragPreview.key === key ? frozenDropSlot(dragPreview, translationY) : null;
       const currentLayout = frozen === null ? buildDragLayout() : null;
       const destination =
@@ -4459,7 +4507,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       <ScrollView
         ref={bodyScrollRef}
         style={styles.body}
-        contentContainerStyle={[styles.bodyContent, { paddingBottom: actionZone.scrollReserve }]}
+        contentContainerStyle={[
+          styles.bodyContent,
+          { paddingBottom: actionZone.scrollReserve },
+          // Contre-recette n° 4 (constat a) : hauteur gardée pendant le glisser d'un Circuit (voir `layoutContentFloor`).
+          layoutContentFloor !== null ? { minHeight: layoutContentFloor } : null,
+        ]}
         // Story 7.10 (revue) : l'indicateur de défilement s'arrête au haut de la zone d'action.
         scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
         keyboardShouldPersistTaps="handled"
@@ -4474,7 +4527,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // Revue 7.4 : sur iOS, le dernier `onScroll` d'un défilement peut être filtré (`scrollEventThrottle`).
         onScrollEndDrag={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
         onMomentumScrollEnd={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
-        onContentSizeChange={(_width, height) => autoScroll.handleContentSize(height)}
+        onContentSizeChange={(_width, height) => {
+          bodyContentHeightRef.current = height;
+          autoScroll.handleContentSize(height);
+        }}
         onLayout={(event) => autoScroll.handleLayout(event.nativeEvent.layout.height)}
         // PRE-6 (story 3.1, RC-4) : faire défiler la liste referme le choix de nature du Circuit.
         onScrollBeginDrag={closeCircuitControls}
@@ -5676,6 +5732,48 @@ function EnvelopeFrame({
     joinsAbove ? { top: -gap / 2, borderTopWidth: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 } : null,
     joinsBelow ? { bottom: -gap / 2, borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : null,
   ];
+  /**
+   * Contre-recette n° 4 du 01/11/2026 (b4b-etendre, Hermann : « ce n'est pas seulement le trait qui doit
+   * se déplacer mais le bord du cadre avec le trait ») : pendant le glisser d'un trait de ce périmètre
+   * (unités mesurées), la part du cadre de cette unité suit le trait (`EnvelopeMovingSegment`) à la
+   * place de son aplat ; au relâchement, le périmètre se cale comme avant.
+   */
+  const edgeDrag = envelope.edgeDrag;
+  const dragRect = placement === null || edgeDrag === null || edgeDrag.span !== placement.span ? undefined : edgeDrag.rects.get(envelopeTargetKey(target));
+  let moving: React.ReactNode = null;
+  if (placement !== null && edgeDrag !== null && dragRect !== undefined) {
+    const segmentTop = joinsAbove ? -gap / 2 : 0;
+    const segmentBottom = joinsBelow ? gap / 2 : 0;
+    const edgeY = edgeDrag.edge === "BOTTOM" ? edgeDrag.bottom : edgeDrag.top;
+    const minimum = 2 * frameRadius;
+    moving = (
+      <View
+        pointerEvents="none"
+        style={[
+          styles.envelopeMovingFrame,
+          { top: segmentTop, bottom: -segmentBottom },
+          frameOutset === 0 ? null : { left: -frameOutset, right: -frameOutset },
+        ]}
+        testID={`${testID}-moving`}
+      >
+        <EnvelopeMovingSegment
+          edge={edgeDrag.edge}
+          translation={edgeDrag.translation}
+          height={dragRect.bottom - dragRect.top - segmentTop + segmentBottom}
+          radius={frameRadius}
+          first={placement.first}
+          last={placement.last}
+          edgeOffset={edgeY - (dragRect.top + segmentTop)}
+          limit={edgeDrag.edge === "BOTTOM" ? edgeDrag.top + minimum - edgeDrag.bottom : edgeDrag.bottom - minimum - edgeDrag.top}
+          fill={ENVELOPE_DESIGNATED_FILL}
+          borderColor={colors.primary}
+          borderWidth={ENVELOPE_FRAME_BORDER_WIDTH}
+          testID={`${testID}-moving-segment`}
+        />
+      </View>
+    );
+  }
+  const shownFrameStyle = moving === null ? frameStyle : [...frameStyle, styles.envelopeTargetMoving];
   const handle = (edge: EnvelopeEdge) =>
     placement === null ? null : (
       <EnvelopeHandle
@@ -5693,7 +5791,7 @@ function EnvelopeFrame({
         extendLabel={edge === "TOP" ? t.extendUp : t.extendDown}
         reduceLabel={edge === "TOP" ? t.reduceFromTop : t.reduceFromBottom}
         onStep={(direction) => envelope.onStepEdge(placement.span, edge, direction)}
-        onDragStart={() => envelope.onEdgeDragStart(placement.span, edge)}
+        onDragStart={(translation) => envelope.onEdgeDragStart(placement.span, edge, translation)}
         onDragEnd={envelope.onEdgeDragEnd}
         autoScroll={envelope.autoScroll}
         testID={`${testID}-handle-${edge === "TOP" ? "top" : "bottom"}`}
@@ -5716,12 +5814,13 @@ function EnvelopeFrame({
           accessibilityRole="button"
           accessibilityLabel={label}
           accessibilityState={{ selected: isDesignated }}
-          style={frameStyle}
+          style={shownFrameStyle}
           testID={`${testID}-target`}
         />
       ) : isStopPoint && placement !== null ? (
-        <View pointerEvents="none" style={frameStyle} testID={`${testID}-frame`} />
+        <View pointerEvents="none" style={shownFrameStyle} testID={`${testID}-frame`} />
       ) : null}
+      {moving}
       {placement?.adjustable === true && placement.first ? handle("TOP") : null}
       {placement?.adjustable === true && placement.last ? handle("BOTTOM") : null}
     </View>
@@ -6034,6 +6133,24 @@ function StopPointRow({
   const fingerDyRef = useRef(0);
   const isDraggingRef = useRef(false);
   const [dragTranslationY, setDragTranslationY] = useState(0);
+  /**
+   * Contre-recette n° 4 du 01/11/2026 (cr5-reposer, Hermann : « Cela arrive systématiquement aussi si
+   * je déplace un point d'arrêt ») — translation de la puce soulevée, valeur animée native dès sa
+   * création (comme `dragY` d'une carte) : au lâcher, elle revient à 0 dans la même tâche que la pose
+   * de la rangée par le registre (`layoutSettleFor`, `handleDropItem`) — même lot du pilote natif, la
+   * puce ne passe par aucune image à sa place. [Auparavant, translation rendue (état) : la puce revenait
+   * à sa place au rendu du lâcher, avant la pose de départ de la rangée par le registre.] Rendue native au
+   * lâcher (`releaseChipY`), comme `dragY` d'une carte.
+   */
+  const [chipY] = useState(() => new Animated.Value(0));
+  const releaseChipY = useCallback(() => {
+    makeAnimatedValueNative(chipY);
+    chipY.setValue(0);
+  }, [chipY]);
+  const chipDragY = isDragged ? dragTranslationY : 0;
+  useLayoutEffect(() => {
+    chipY.setValue(chipDragY);
+  }, [chipDragY, chipY]);
   // Une rangée démontée pendant son glisser (point retiré du brouillon) annule le geste.
   const onDragCancelRef = useRef(onDragCancel);
   useEffect(() => {
@@ -6107,16 +6224,19 @@ function StopPointRow({
       setDragTranslationY(0);
       if (!isDraggingRef.current) return;
       isDraggingRef.current = false;
+      // Contre-recette n° 4 : voir `chipY`.
+      releaseChipY();
       onDragEnd(translationYRef.current);
     },
-    [onDragEnd],
+    [onDragEnd, releaseChipY],
   );
   const handleResponderTerminate = useCallback(() => {
     setDragTranslationY(0);
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
+    releaseChipY();
     onDragCancel(translationYRef.current);
-  }, [onDragCancel]);
+  }, [onDragCancel, releaseChipY]);
   /** Revue 6.2 : toucher annulé par le système — plus d'origine ; un glisser engagé est interrompu. */
   const handleTouchCancel = useCallback(() => {
     originRef.current = null;
@@ -6184,9 +6304,9 @@ function StopPointRow({
         // chaîne, le point de raccord reste sur l'axe du rail et suit la puce — le doigt pendant le
         // glisser, puis la rangée (registre) pendant le dialogue et le retour. [Revue 6.2 : « aucun
         // rail — ni segment ni point de raccord » hors de la chaîne — remplacé pour le point de raccord.]
-        <View
+        <Animated.View
           pointerEvents="none"
-          style={[StyleSheet.absoluteFill, { transform: [{ translateY: isDragged ? dragTranslationY : 0 }] }]}
+          style={[StyleSheet.absoluteFill, { transform: [{ translateY: chipY }] }]}
           testID={`composition-rail-dot-stop-${point.id}-lifted`}
         >
           <RailDot
@@ -6194,7 +6314,7 @@ function StopPointRow({
             centerY={STOP_POINT_LINE_HEIGHT / 2}
             testID={`composition-rail-dot-stop-${point.id}`}
           />
-        </View>
+        </Animated.View>
       ) : null}
       <StopPointLine
         accessibilityLabel={accessibilityLabel}
@@ -6202,7 +6322,7 @@ function StopPointRow({
         accessibilityActions={accessibilityActions}
         onAccessibilityAction={(name) => actionHandlers[name as StopPointAccessibilityActionName]?.()}
         onLongPress={handleLongPress}
-        translateY={isDragged ? dragTranslationY : 0}
+        translateY={chipY}
         // Story 7.2 (D-442) : point saisi marqué soulevé, comme une carte.
         lifted={isDragged}
         chipRef={chipRef}
@@ -6627,8 +6747,23 @@ function CompositionActivityRow({
    * descendre (compensation `layoutSourceDrift`) —, cachée sous l'élément suivant une fois son premier
    * plan rendu. Le relâcher pose désormais 0 AVANT le rendu (pilote natif et valeur JS), puis la pose
    * native est renvoyée une tâche après ce rendu.
+   *
+   * [Contre-recette n° 4 du 01/11/2026 (cr5-reposer, Hermann : « lorsqu'on lâche la carte elle disparait
+   * et réapparait immédiatement, très vite avant de se placer. Cela arrive systématiquement aussi si je
+   * déplace un point d'arrêt. ») — la pose à 0 ci-dessus, faite seule, ramenait la carte à sa place
+   * dans la mise en page jusqu'à ce que le registre reprenne la translation (pose de départ appliquée
+   * dans l'effet du rendu du lâcher, une ou plusieurs images plus tard) : image à un autre endroit à
+   * CHAQUE lâcher. Complété :] dans la même tâche, l'écran pose aussitôt la translation du registre de
+   * la carte à la position affichée (`layoutSettleFor`, `handleDropItem`) ; `dragY` est rendu natif au
+   * lâcher, avant sa remise à 0 : les deux poses partent dans le même lot du pilote natif — la somme affichée ne change
+   * pas ; le rendu du lâcher porte 0 (carte) et la position affichée (registre), cohérents avec le
+   * pilote natif (le correctif de la contre-recette n° 3 reste en place).
    */
   const releaseDragY = useCallback(() => {
+    // Contre-recette n° 4 : valeur rendue native au lâcher (idempotent) — sa remise à 0 part dans le même
+    // lot du pilote natif que la pose de la rangée par le registre, faite dans cette même tâche. (Pas dès
+    // la création : elle partage sa transformation avec `swipeX`, animée par ailleurs.)
+    makeAnimatedValueNative(dragY);
     dragY.setValue(0);
   }, [dragY]);
   const wasDraggedRef = useRef(isDragged);
@@ -8636,7 +8771,8 @@ function LayoutCircuitBlock({
   const isCollapsed = context.collapsed.get(circuit.id) === contentKey && context.stops.placement === null;
   const circuitContainer = useMemo<StopPointContainer>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
   const inPlacement = context.stops.placement !== null;
-  const reveal = useCircuitCardsReveal(isCollapsed, CIRCUIT_GAP, CIRCUIT_CARDS_BOTTOM_OVERLAP);
+  // Contre-recette n° 4 du 01/11/2026 : hauteur naturelle relevée sur le contenu (`measuresContent`).
+  const reveal = useCircuitCardsReveal(isCollapsed, CIRCUIT_GAP, CIRCUIT_CARDS_BOTTOM_OVERLAP, true);
   const railX = RAIL_CENTER_X_IN_COLUMN + (inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET);
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
   const testID = ghost ? `composition-layout-vanishing-circuit-${circuit.id}-block` : `composition-layout-circuit-${circuit.id}`;
@@ -8646,7 +8782,13 @@ function LayoutCircuitBlock({
   const cardsFrameY = offsetY === null || blockY === null || listY === null ? null : offsetY + blockY + listY;
   // Recette n° 2 : fond en trois couches qui suivent les bords pendant l'aperçu ; au repos, aplat.
   const layered = motion.active && blockHeight !== null && blockHeight > 0;
-  const link = motion.held ? null : !inCycle && motion.sessionLink !== undefined ? (
+  // Contre-recette n° 4 du 01/11/2026 (constat a, Hermann : « la partie du rail qui va du cercle au bord
+  // haut du circuit disparait pendant le mouvement ») : saisi, tenu ou en retour, le Circuit sort de la
+  // chaîne du rail — [« aucun lien » : remplacé :] seul le lien vers son prédécesseur (au-dessus de son
+  // bord haut) disparaît ; le segment de son bord haut à son anneau, dans le Circuit, reste dessiné.
+  const link = motion.held ? (
+    <RailSegment centerX={railX} top={0} height={ringTop} testID={`${testID}-rail-link`} />
+  ) : !inCycle && motion.sessionLink !== undefined ? (
     <RailLink
       centerX={railX}
       entryY={ringTop}
@@ -8752,13 +8894,13 @@ function LayoutCircuitBlock({
       {/* Recette du 29/10 (obs-3 b) : dévoilement et repli animés (`useCircuitCardsReveal`). */}
       {!reveal.mounted || circuit.exercises.length === 0 ? null : (
         <Reanimated.View
-          style={[styles.exerciseList, styles.exerciseListInCircuit, reveal.style]}
-          onLayout={(event) => {
-            reveal.onLayout(event);
-            setListY(event.nativeEvent.layout.y);
-          }}
+          style={[styles.layoutCircuitCardsClip, reveal.style]}
+          onLayout={(event) => setListY(event.nativeEvent.layout.y)}
           testID={`${testID}-exercises`}
         >
+          {/* Contre-recette n° 4 du 01/11/2026 (cr5-replie, constat c) : contenu non contraint, dont la
+              hauteur naturelle est relevée à chaque mesure (`onContentLayout`), base du dépliage et du repli. */}
+          <View style={styles.layoutCircuitCards} onLayout={reveal.onContentLayout} testID={`${testID}-exercises-content`}>
           {circuit.exercises.map((exercise, index) => [
             // PRE-9 B.6 (RM-220, ARB-02a) : Points d'arrêt du Circuit avant cette carte (rencontrés à chaque Tour).
             <LayoutStopRows
@@ -8780,6 +8922,7 @@ function LayoutCircuitBlock({
             />,
           ])}
           <LayoutStopRows container={circuitContainer} position={circuit.exercises.length} gap={CIRCUIT_GAP} frameY={cardsFrameY} context={context} />
+          </View>
         </Reanimated.View>
       )}
     </Animated.View>
@@ -8904,7 +9047,10 @@ function LayoutCycleBlock({
         {/* Recette n° 2 : anneaux et lien suivent le bord haut. */}
         <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateY: motion.top }] }]} testID={`${testID}-rail-head`}>
           {/* Recette du 29/10 (obs-3 c) : le rail s'arrête à l'anneau extérieur du Cycle. */}
-          {motion.held ? null : motion.sessionLink !== undefined ? (
+          {/* Contre-recette n° 4 (constat a) : saisi, le segment du bord haut à l'anneau reste dessiné. */}
+          {motion.held ? (
+            <RailSegment centerX={railX} top={0} height={ringTop - CYCLE_RING_OUTSET} testID={`${testID}-rail-link`} />
+          ) : motion.sessionLink !== undefined ? (
             <RailLink
               centerX={railX}
               entryY={ringTop - CYCLE_RING_OUTSET}
@@ -9268,6 +9414,8 @@ const CYCLE_OUTER_RING_DIAMETER = 16;
 const CYCLE_RING_OUTSET = (CYCLE_OUTER_RING_DIAMETER - RAIL_RING_DIAMETER) / 2;
 /** PRE-9 B.2 : fond du contenu désigné en mode enveloppe — lavande du Cycle, translucide (valeur locale). */
 const ENVELOPE_DESIGNATED_FILL = "rgba(234, 234, 255, 0.6)";
+/** Épaisseur du contour du cadre du mode enveloppe (B.2). */
+const ENVELOPE_FRAME_BORDER_WIDTH = 2;
 const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = CARD_OUTSET + spacing[4];
 const LAYOUT_CYCLE_GAP = CIRCUIT_GAP;
 /** Recette n° 2 du 31/10 : écart entre les membres d'un conteneur (place ouverte ou refermée par l'aperçu). */
@@ -9648,6 +9796,15 @@ const styles = StyleSheet.create({
   exerciseListInCircuit: {
     gap: CIRCUIT_GAP,
   },
+  // Contre-recette n° 4 du 01/11/2026 : liste des cartes d'un Circuit de la disposition générale —
+  // découpe animée (`useCircuitCardsReveal`, marges et hauteur) autour d'un contenu non contraint qui
+  // porte l'écart entre les cartes (mêmes positions des cartes qu'auparavant).
+  layoutCircuitCardsClip: {
+    marginHorizontal: -CARD_OUTSET,
+  },
+  layoutCircuitCards: {
+    gap: CIRCUIT_GAP,
+  },
   // T02-S01, révisé V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : conteneur de
   // position d'une carte d'Activité — support du groupe d'actions glissées,
   // DERRIÈRE la carte principale (`position: "absolute"`, D-128), que la
@@ -9984,7 +10141,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderRadius: dimensions.standardCard.radius,
-    borderWidth: 2,
+    borderWidth: ENVELOPE_FRAME_BORDER_WIDTH,
     borderColor: colors.primary,
   },
   envelopeTargetCandidate: {
@@ -9993,6 +10150,17 @@ const styles = StyleSheet.create({
   envelopeTargetDesignated: {
     borderStyle: "solid",
     backgroundColor: ENVELOPE_DESIGNATED_FILL,
+  },
+  // Contre-recette n° 4 du 01/11/2026 (b4b-etendre) : pendant le glisser d'un trait, l'aplat du cadre
+  // laisse place à la part qui suit le trait (`EnvelopeMovingSegment`) ; la cible tactile reste.
+  envelopeTargetMoving: {
+    borderWidth: 0,
+    backgroundColor: "transparent",
+  },
+  envelopeMovingFrame: {
+    position: "absolute",
+    left: 0,
+    right: 0,
   },
   // PRE-9 B.4b : contenu portant le trait bas d'un périmètre, au-dessus de ses frères suivants.
   envelopeFrameRaised: {

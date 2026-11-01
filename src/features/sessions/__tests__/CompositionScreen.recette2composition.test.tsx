@@ -532,7 +532,8 @@ describe("Contre-recette n° 3 (31/10) — cr4-replie", () => {
     await settle();
     fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 545 } });
     await settle();
-    expect(renderedCardShift("e9")).toBe(15);
+    // Contre-recette n° 4 : translation du doigt native dès sa création — lue sur la valeur animée (vivante).
+    expect(translationOf("composition-exercise-row-e9")).toBe(15);
     fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 545, touches: [] } });
     await settle();
     expect(seen).toEqual([0]);
@@ -568,7 +569,7 @@ describe("Contre-recette n° 3 (31/10) — cr4-replie", () => {
     // Retour à sa place (après le Circuit B, 478) : la translation du doigt vaut 100.
     fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 478 } });
     await settle();
-    expect(renderedCardShift("e9")).toBe(100);
+    expect(translationOf("composition-exercise-row-e9")).toBe(100);
     fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 478, touches: [] } });
     await settle();
     // Le rendu du lâcher ne porte plus la translation du doigt (100) : seule la translation du
@@ -679,4 +680,192 @@ describe("Contre-recette n° 3 (31/10) — b6-deplacer : Exercice monté au-dess
       }
     }
   }
+});
+
+/**
+ * Contre-recette n° 4 du 01/11/2026 (iPhone, Hermann), voir spec-recette-2-corrections-composition.md :
+ * cr5-replie, cr5-reposer, constats a et c. Jest ne prouve ni la fluidité, ni l'ordre des images, ni
+ * l'alignement sous le doigt sur iPhone.
+ */
+describe("Contre-recette n° 4 (01/11) — glisser dans la structure générale", () => {
+  /** Translation rendue (vue hôte, valeur du dernier rendu) d'une vue animée. */
+  const rendered = (testID: string) =>
+    (
+      (StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style) as { transform?: Record<string, unknown>[] }).transform ?? []
+    ).reduce((sum: number, entry) => {
+      const value = entry.translateY;
+      if (value === undefined) return sum;
+      return sum + (typeof value === "number" ? value : (value as { __getValue: () => number }).__getValue());
+    }, 0);
+  /** Valeur lue quand le registre reçoit la pose de départ de l'élément relâché (effet du rendu du lâcher). */
+  function watchRelease(keySuffix: string, read: () => number): number[] {
+    const seen: number[] = [];
+    const releases = new Set<unknown>();
+    const original = AnimatedShiftRegistry.prototype.apply;
+    jest.spyOn(AnimatedShiftRegistry.prototype, "apply").mockImplementation(function (this: AnimatedShiftRegistry, targets, animated, release) {
+      if (release !== null && release !== undefined && release.key.endsWith(keySuffix) && !releases.has(release)) {
+        releases.add(release);
+        seen.push(read());
+      }
+      original.call(this, targets, animated, release);
+    });
+    return seen;
+  }
+
+  it("cr5-replie : arrêt sur un Circuit replié — aucune place ouverte avant ni pendant le déploiement (le cadre grandit avec ses cartes), puis la place s'ouvre", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("cb");
+    layout("composition-layout-circuit-cb", 340, 68);
+    layout("composition-layout-exercise-e9", 428, 80);
+    const card = liftCard("e9", 468);
+    const bottomEdge = () => translationOf("composition-layout-circuit-cb-surface-layers-bottom");
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 374 } });
+    await settle();
+    // Avant correction : le bord bas du Circuit replié descendait de la place (80 + 9) sans ses cartes.
+    expect(bottomEdge()).toBe(0);
+    await elapseHoverDelay();
+    expect(expanded("cb")).toBe(true);
+    layout("composition-layout-circuit-cb-header-frame", 14, 18);
+    layout("composition-layout-circuit-cb-exercises", 41, 80);
+    layout("composition-activity-b1", 0, 80);
+    for (const height of [80, 105, 130]) {
+      layout("composition-layout-circuit-cb", 340, height);
+      layout("composition-layout-exercise-e9", 340 + height + 20, 80);
+      await settle();
+      // Pendant le déploiement : le bord bas suit la mise en page seule (aucune translation ajoutée).
+      expect(bottomEdge()).toBe(0);
+      expect(rowShift("b1")).toBe(0);
+    }
+    await elapseReveal();
+    // Aussitôt après : la place s'ouvre sous le doigt (tête du Circuit, avant b1).
+    expect(rowShift("b1")).toBe(89);
+    expect(bottomEdge()).toBe(89);
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 374, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[e9,b1]");
+  });
+
+  it("cr5-replie : lâcher pendant l'arrêt (place non montrée) — dépose toujours à la fin du Circuit replié", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("cb");
+    layout("composition-layout-circuit-cb", 340, 68);
+    layout("composition-layout-exercise-e9", 428, 80);
+    const card = liftCard("e9", 468);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 374 } });
+    await settle();
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 374, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[b1,e9]");
+  });
+
+  it("cr5-reposer : carte reposée à sa place — le rendu du lâcher la garde où elle est affichée (registre = translation du doigt, carte 0)", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    const parts: number[] = [];
+    const seen = watchRelease("e9", () => {
+      parts.push(rendered("composition-exercise-row-e9"));
+      return rowShift("e9") + rendered("composition-exercise-row-e9");
+    });
+    const card = liftCard("e9", 530);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 300 } });
+    await settle();
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 545 } });
+    await settle();
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 545, touches: [] } });
+    // Avant correction : 0 (registre pas encore posé, carte déjà à 0) — une image à sa place.
+    expect(seen).toEqual([15]);
+    // Correctif de la contre-recette n° 3 conservé : la translation propre de la carte est rendue à 0.
+    expect(parts).toEqual([0]);
+    await settle();
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[b1] e9");
+    expect(rowShift("e9")).toBe(0);
+  });
+
+  it("cr5-reposer : carte déposée ailleurs — sa translation de registre est posée à la position affichée dès le lâcher", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    const poses: [string, number][] = [];
+    const original = AnimatedShiftRegistry.prototype.pose;
+    jest.spyOn(AnimatedShiftRegistry.prototype, "pose").mockImplementation(function (this: AnimatedShiftRegistry, key, value) {
+      poses.push([key, value]);
+      original.call(this, key, value);
+    });
+    const card = liftCard("e9", 530);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 40 } });
+    await settle();
+    poses.length = 0;
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 40, touches: [] } });
+    expect(poses[0]).toEqual([expect.stringMatching(/e9$/), -490]);
+    expect(shape(probe.draft)).toBe("e9 e0 ca[a1,a2] cb[b1]");
+  });
+
+  it("cr5-reposer : Point d'arrêt reposé à sa place — la puce revient à 0 et la rangée prend la translation, au même rendu", async () => {
+    const withPoint: Layout = { ...twoCircuits, stopPoints: [{ id: "p", circuitId: null, position: 1 }] as unknown as Layout["stopPoints"] };
+    await renderComposition(draftOf(withPoint, ["e0", "a1", "a2", "b1", "e9"]));
+    layout("composition-layout-exercise-e0", 0, 80);
+    layout("composition-layout-stop-point-p", 88, 22);
+    layout("composition-layout-circuit-ca", 118, 220);
+    layout("composition-layout-circuit-ca-header-frame", 14, 18);
+    layout("composition-layout-circuit-ca-exercises", 41, 169);
+    layout("composition-activity-a1", 0, 80);
+    layout("composition-activity-a2", 89, 80);
+    layout("composition-layout-circuit-cb", 346, 130);
+    layout("composition-layout-circuit-cb-header-frame", 14, 18);
+    layout("composition-layout-circuit-cb-exercises", 41, 80);
+    layout("composition-activity-b1", 0, 80);
+    layout("composition-layout-exercise-e9", 484, 80);
+    const chip: number[] = [];
+    const seen = watchRelease("stop:p", () => {
+      chip.push(rendered("composition-stop-point-p"));
+      return rendered("composition-stop-point-row-p") + rendered("composition-stop-point-p");
+    });
+    const row = screen.getByTestId("composition-stop-point-row-p", hidden);
+    fireEvent(row, "touchStart", { nativeEvent: { pageX: 200, pageY: 99 } });
+    fireEvent(screen.getByTestId("composition-stop-point-p-chip"), "longPress");
+    fireEvent(row, "responderMove", { nativeEvent: { pageX: 200, pageY: 160 } });
+    await settle();
+    fireEvent(row, "responderMove", { nativeEvent: { pageX: 200, pageY: 104 } });
+    await settle();
+    expect(translationOf("composition-stop-point-p")).toBe(5);
+    fireEvent(row, "touchEnd", { nativeEvent: { pageX: 200, pageY: 104, touches: [] } });
+    // Avant correction : 0 (puce rendue à 0, rangée pas encore posée) — une image à sa place.
+    expect(seen).toEqual([5]);
+    expect(chip).toEqual([0]);
+    await settle();
+    expect(probe.draft?.structure?.stopPoints).toEqual([expect.objectContaining({ id: "p", position: 1 })]);
+  });
+
+  it("constat a : Circuit saisi — le segment du rail de son bord haut à son anneau reste dessiné ; le contenu défilant garde sa hauteur pendant le repli", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    const body = () => screen.getByTestId("composition-body");
+    fireEvent(body(), "contentSizeChange", 402, 900);
+    const minHeight = () => (StyleSheet.flatten(body().props.contentContainerStyle) as { minHeight?: number }).minHeight;
+    expect(minHeight()).toBeUndefined();
+    const block = screen.getByTestId("composition-layout-circuit-cb", hidden);
+    fireEvent(block, "touchStart", { nativeEvent: { pageX: 300, pageY: 363 } });
+    fireEvent(screen.getByTestId("composition-layout-circuit-cb-header-duration", hidden), "longPress");
+    await settle();
+    expect(expanded("cb")).toBe(false);
+    // [Avant : aucun lien pendant la saisie.] Segment du bord haut (0) à l'anneau.
+    const link = StyleSheet.flatten(screen.getByTestId("composition-layout-circuit-cb-rail-link", hidden).props.style) as { top?: number; height?: number };
+    expect(link.top).toBe(0);
+    expect(link.height).toBeGreaterThan(0);
+    // Repli du Circuit saisi : le contenu ne raccourcit pas (aucun recadrage du défilement sous le doigt).
+    expect(minHeight()).toBe(900);
+    fireEvent(block, "touchMove", { nativeEvent: { pageX: 300, pageY: 10, touches: [{}] } });
+    fireEvent(block, "touchEnd", { nativeEvent: { pageX: 300, pageY: 10, touches: [] } });
+    await settle();
+    expect(shape(probe.draft)).toBe("cb[b1] e0 ca[a1,a2] e9");
+    expect(minHeight()).toBeUndefined();
+  });
+
+  it("constat c : les cartes d'un Circuit sont dans un contenu non contraint, mesuré à chaque mise en page (base du repli et du déploiement)", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    const content = screen.getByTestId("composition-layout-circuit-ca-exercises-content", hidden);
+    expect(typeof content.props.onLayout).toBe("function");
+    expect(StyleSheet.flatten(content.props.style)).toMatchObject({ gap: 9 });
+    expect(StyleSheet.flatten(content.props.style).maxHeight).toBeUndefined();
+    expect(screen.getByTestId("composition-activity-a1", hidden)).toBeTruthy();
+  });
 });

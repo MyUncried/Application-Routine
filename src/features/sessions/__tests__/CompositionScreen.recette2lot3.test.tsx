@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useLayoutEffect, useMemo, useState, type ReactNode } from "react";
-import { Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createEmptyDraft, createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -202,5 +202,59 @@ describe("Recette n° 2, lot 3 (constat c) — carte → paramètres, photo → 
     await act(async () => undefined);
     fireEvent.press(photo);
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise", params: { exerciseId: "a" } });
+  });
+});
+
+/**
+ * Contre-recette n° 4 du 01/11/2026 (b4b-etendre, Hermann : « le comportement est correct, mais ce n'est
+ * pas seulement le trait qui doit se déplacer mais le bord du cadre avec le trait ») — classe B.
+ */
+describe("Contre-recette n° 4 (b4b-etendre) — le bord du cadre suit le trait pendant le glisser", () => {
+  /** Valeur vivante d'une translation ou d'une échelle (valeur animée de la vue composite). */
+  function liveTransform(testID: string, key: "translateY" | "scaleY"): number | undefined {
+    let node = screen.getByTestId(testID, hidden);
+    for (let parent = node.parent; parent !== null && parent.props.testID === testID; parent = parent.parent) if (parent.props.style !== undefined) node = parent;
+    const transform = ((StyleSheet.flatten(node.props.style) ?? {}) as { transform?: Record<string, unknown>[] }).transform ?? [];
+    const entry = transform.find((item) => item[key] !== undefined)?.[key];
+    if (entry === undefined) return undefined;
+    return typeof entry === "number" ? entry : (entry as { __getValue: () => number }).__getValue();
+  }
+
+  it("trait bas tiré de 60 : le bord bas du cadre (trait de bord et arrondis) descend de 60, sa bande s'allonge ; relâché, le cadre se cale", async () => {
+    // Quatre cartes de 80, écart 8 (fenêtre) : a 0–80, b 88–168, c 176–256, d 264–344.
+    const tops: Record<string, number> = { a: 0, b: 88, c: 176, d: 264 };
+    jest.spyOn(View.prototype as unknown as { measureInWindow: () => void }, "measureInWindow").mockImplementation(function (
+      this: { props: { testID?: string } },
+      ...args: unknown[]
+    ) {
+      const callback = args[0] as (x: number, y: number, width: number, height: number) => void;
+      const id = /^composition-envelope-exercise-([a-d])$/.exec(this.props.testID ?? "")?.[1];
+      if (id !== undefined) callback(0, tops[id]!, 354, 80);
+    });
+    await renderComposition(flatDraft());
+    enter("CIRCUIT");
+    press("b");
+    const handle = screen.getByTestId("composition-envelope-exercise-b-handle-bottom");
+    fireEvent(handle, "responderGrant", { nativeEvent: { pageY: 170 } });
+    // Le cadre de b laisse place à sa part qui suit le trait (bande et arrondis).
+    expect(StyleSheet.flatten(screen.getByTestId("composition-envelope-exercise-b-target").props.style)).toMatchObject({ borderWidth: 0 });
+    expect(screen.getByTestId("composition-envelope-exercise-b-moving-segment-bottom", hidden)).toBeTruthy();
+    expect(liveTransform("composition-envelope-exercise-b-moving-segment-bottom", "translateY")).toBe(0);
+    expect(liveTransform("composition-envelope-exercise-b-moving-segment-band", "scaleY")).toBeCloseTo(1);
+    fireEvent(screen.getByTestId("composition-envelope-exercise-b-handle-bottom"), "responderMove", { nativeEvent: { pageY: 230 } });
+    // Avant correction : seul le trait bougeait.
+    expect(liveTransform("composition-envelope-exercise-b-handle-bottom", "translateY")).toBe(60);
+    expect(liveTransform("composition-envelope-exercise-b-moving-segment-bottom", "translateY")).toBe(60);
+    expect(liveTransform("composition-envelope-exercise-b-moving-segment-band", "scaleY")).toBeGreaterThan(1);
+    // Le bord haut reste en place.
+    expect(liveTransform("composition-envelope-exercise-b-moving-segment-top", "translateY")).toBeUndefined();
+    // Remonté au-delà du haut du cadre : le bord s'arrête (le cadre ne se retourne pas).
+    fireEvent(screen.getByTestId("composition-envelope-exercise-b-handle-bottom"), "responderMove", { nativeEvent: { pageY: -200 } });
+    expect(liveTransform("composition-envelope-exercise-b-moving-segment-bottom", "translateY")).toBeGreaterThan(-80);
+    // Relâché au milieu de c (216) : calage inchangé — un seul cadre b–c, aplat rendu.
+    fireEvent(screen.getByTestId("composition-envelope-exercise-b-handle-bottom"), "responderRelease", { nativeEvent: { pageY: 230 } });
+    expect(screen.queryByTestId("composition-envelope-exercise-b-moving-segment", hidden)).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-envelope-exercise-b-target").props.style)).toMatchObject({ borderBottomWidth: 0 });
+    expect(screen.getByTestId("composition-envelope-exercise-c-handle-bottom")).toBeTruthy();
   });
 });

@@ -40,7 +40,7 @@ B.2 : un seul contenu désigné (`EnvelopeState.designated`) ; un autre toucher 
 **Écran** (`CompositionScreen.tsx`, `EnvelopePerimeter.tsx` nouveau, `fr.ts`) :
 - Mode enveloppe : toucher désigne / retire ; « Confirmer » disponible dès un périmètre ; libellé « Confirmer les circuits / les cycles » dès deux périmètres ; annonces VoiceOver (désigné, retiré, étendue, « n circuits / cycles créés »).
 - Cadre d'un périmètre de plusieurs contenus : un seul cadre plein, continu — chaque contenu ouvre son bord intérieur et franchit la moitié de l'écart (8 au niveau Séance, 9 dans un Cycle) ; un périmètre qui contient un Circuit prend la largeur et l'arrondi du Circuit (débord 16, rayon 18) pour tous ses contenus.
-- Traits (`EnvelopeHandle`) : au-dessus du bord haut du premier contenu et sous le bord bas du dernier, seulement si l'étendue compte plus d'un contenu. Appui puis glissement (système de répondeurs natif) : le trait suit le doigt ; au relâchement, le bord se cale sur la limite de contenu la plus proche (`edgeIndexAt`, mesures `measureInWindow` prises à l'appui). VoiceOver : élément « ajustable » (balayer vers le haut : étendre, vers le bas : réduire), actions nommées « Étendre vers le haut / le bas », « Réduire par le haut / le bas », valeur « n éléments ».
+- Traits (`EnvelopeHandle`) : au-dessus du bord haut du premier contenu et sous le bord bas du dernier, seulement si l'étendue compte plus d'un contenu. Appui puis glissement (système de répondeurs natif) : le trait suit le doigt [01/11/2026, contre-recette n° 4 : avec le bord du cadre] ; au relâchement, le bord se cale sur la limite de contenu la plus proche (`edgeIndexAt`, mesures `measureInWindow` prises à l'appui). VoiceOver : élément « ajustable » (balayer vers le haut : étendre, vers le bas : réduire), actions nommées « Étendre vers le haut / le bas », « Réduire par le haut / le bas », valeur « n éléments ».
 - Annuler : aucune mutation.
 
 ## Synchronisation code / documentation
@@ -60,7 +60,7 @@ B.2 : un seul contenu désigné (`EnvelopeState.designated`) ; un autre toucher 
 
 ## Écarts et limites
 
-1. **Calage au relâchement**, non en continu : le trait suit le doigt, le cadre se recale au relâchement (un recalage en continu démonterait le trait sous le doigt, porté par le contenu de bord).
+1. **Calage au relâchement**, non en continu : le trait suit le doigt, le cadre se recale au relâchement (un recalage en continu démonterait le trait sous le doigt, porté par le contenu de bord). [01/11/2026, contre-recette n° 4 (b4b-etendre) : précisé — pendant le glisser, le bord du cadre suit le trait sous le doigt ; le calage reste fait au relâchement ; voir « Contre-recette n° 4 du 01/11/2026 ».]
 2. **Pas de défilement automatique** pendant le glisser d'un trait : pour étendre au-delà de l'écran, défiler d'abord, ou utiliser les actions VoiceOver. [31/10/2026, recette iPhone n° 2 (b4b-etendre) : remplacé — liste figée pendant le glisser, défilement automatique près des bords ; voir « Recette iPhone n° 2 du 31/10/2026 — lot 3 ».]
 3. **Pas de franchissement de frontière** : un périmètre reste chez les frères d'un même parent (un Circuit dans un Cycle ne s'étend pas hors du Cycle) — réserve COMP §5 maintenue.
 4. **Séance à Points d'arrêt** : aucune extension (traits absents), comme les déplacements B.3 / B.4 ; sélection multiple limitée par la règle B.2 (aucun conteneur qui ferait sortir de l'ancien modèle). Levée attendue avec B.6.
@@ -126,3 +126,25 @@ Préparer une Séance de cinq Exercices E1 à E5, sans Circuit.
 **Tests** : `layoutOperations.recette2.test.ts` (8 : traits sur un Point, Point en fin de tour, sans Point désigné, Cycle — arrêt sur le Point puis le contenu suivant et retour, Point de tête, Point au bord d'un autre périmètre, périmètre invalide, ancien modèle) ; `layoutOperations.b4b.test.ts` (étendue avec le Point, annotation datée) ; `CompositionScreen.recette2lot3.test.tsx` (trait et cadre sur la rangée du Point, Point entre deux contenus encadré, liste figée de l'appui au relâchement).
 
 **À vérifier sur iPhone** : le trait reste sous le doigt ; l'écran ne bouge pas, sauf près des bords (défilement automatique) ; calage correct après un défilement automatique ; rangée du Point encadrée sans jointure.
+
+## Contre-recette n° 4 du 01/11/2026 (iPhone)
+
+**Constat de Hermann (verbatim)**, étape de recette : « Glisser le trait bas jusqu'au milieu de E4, relâcher → un seul cadre continu E2 à E4 ; le trait haut ne dépasse pas un Circuit voisin ; réduire le bas jusqu'à E3 ; jamais moins d'un contenu. Confirmer → Circuit [E2, E3], lettres dans l'ordre. » — b4b-etendre, encore KO depuis la recette n° 2 : « le comportement est correct, mais ce n'est pas seulement le trait qui doit se déplacer mais le bord du cadre avec le trait ».
+
+**Cause** : le correctif du lot 3 gardait le trait sous le doigt ; le cadre (ses parts par unité, `EnvelopeFrame`) n'était recalculé qu'au relâchement (écart 1, « Calage au relâchement ») — pendant le glisser, seul le trait bougeait.
+
+**Correction (classe B, précision du rendu du geste)** : pendant le glisser d'un trait, le bord correspondant du cadre — trait de bord, arrondis, fond et bords gauche et droit — suit le trait sous le doigt :
+- au début du glisser, les unités du périmètre sont mesurées (`measureInWindow`, comme pour le calage) ; `useEnvelopePerimeterDrag` publie alors le glisser en cours (`edgeDrag` : périmètre, bord, translation du trait, mesures) ;
+- chaque unité du périmètre remplace l'aplat de sa part du cadre par une part animée (`EnvelopeMovingSegment`) : une bande (bords gauche et droit, fond) étirée ou réduite d'après la translation du trait (`envelopeSegmentMotion`), et, à la première et à la dernière unité, les arrondis — celui du côté du trait porté par sa translation, l'autre fixe ; étendu, le cadre recouvre les contenus suivants (ou précédents) ; réduit, les parts des unités dépassées par le trait sont coupées ;
+- le cadre garde au moins la hauteur de ses deux arrondis (il ne se retourne pas) ; le trait, lui, suit toujours le doigt ;
+- au relâchement : calage sur la limite de contenu la plus proche, inchangé (`edgeIndexAt`, `adjustEnvelopeSpan`) ; « jamais moins d'un contenu » inchangé. VoiceOver (pas à pas) inchangé.
+
+**Remplace** (texte conservé, annoté) : « Réalisé », traits [« le trait suit le doigt »] ; écart 1 [« le trait suit le doigt, le cadre se recale au relâchement »] — précisés.
+
+**Fichiers** : `src/features/sessions/EnvelopePerimeter.tsx` (`EnvelopeEdgeDrag`, `edgeDrag`, `envelopeSegmentMotion`, `EnvelopeMovingSegment` ; `onDragStart` reçoit la translation du trait) ; `src/features/sessions/CompositionScreen.tsx` (`EnvelopeContext.edgeDrag`, `EnvelopeFrame`).
+
+**Tests** : `EnvelopePerimeter.test.ts` (3 : bord bas étendu et réduit, unité coupée par le trait, bord haut) ; `CompositionScreen.recette2lot3.test.tsx` (1 : trait bas tiré de 60 — le bord bas du cadre descend de 60, la bande s'allonge, le bord haut reste ; remonté au-delà du haut, le bord s'arrête ; relâché au milieu de la carte suivante, cadre continu calé comme avant). Avant correction : aucune part animée (seul le trait translaté).
+
+**Synchronisation code / documentation** : classe **B** (demande explicite de Hermann du 01/11/2026) ; ch07, section « Recette iPhone n° 2 du 31/10/2026 — lot 3 » (entrée ajoutée, entrée b4b-etendre annotée) ; cette spec (écart 1 et « Réalisé » annotés). Recherche des formulations contraires (« trait suit le doigt », « cadre se recale », « bord du cadre ») : ch13 et COMP §6 ne décrivent pas le rendu du glisser d'un trait ; aucune autre.
+
+**À vérifier sur iPhone** : bord bas tiré vers le bas puis remonté, sur un et plusieurs contenus, avec un Point d'arrêt dans le périmètre ; bord haut de même ; jointures sans liseré entre les parts ; fond sans double teinte aux jointures ; défilement automatique pendant l'extension (le bord suit le trait).

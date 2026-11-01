@@ -17,12 +17,16 @@
  * - Recette iPhone n° 2 du 31/10/2026 (Hermann) : b4b-etendre — liste figée pendant le glisser d'un trait,
  *   défilement automatique près des bords, trait sous le doigt ; b4b-saisie — les unités d'un périmètre
  *   comprennent les Points d'arrêt du parent (`EnvelopeUnit`), mesurés et calés comme les contenus.
+ * - Contre-recette n° 4 du 01/11/2026 (b4b-etendre, Hermann : « le comportement est correct, mais ce
+ *   n'est pas seulement le trait qui doit se déplacer mais le bord du cadre avec le trait ») : pendant le
+ *   glisser, le bord du cadre (trait de bord, arrondis, fond) suit le trait sous le doigt
+ *   (`EnvelopeMovingSegment`, `envelopeSegmentMotion`) ; le calage au relâchement est inchangé.
  *
  * Rendu des traits : aucune maquette Figma (`10819:20344`, `10836:20478` n'en montrent pas) — rendu
  * minimal choisi, cohérent avec le cadre désigné (même bleu), à juger en recette (ARB-19).
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, StyleSheet, View, type AccessibilityActionEvent, type GestureResponderEvent } from "react-native";
 
 import {
@@ -72,6 +76,22 @@ type DragSession = {
 };
 
 /**
+ * Contre-recette n° 4 du 01/11/2026 (b4b-etendre) : glisser d'un trait en cours, une fois les unités du
+ * périmètre mesurées — chaque cadre de ses unités en déduit sa part du bord qui suit le trait.
+ */
+export type EnvelopeEdgeDrag = {
+  readonly span: EnvelopeSpan;
+  readonly edge: EnvelopeEdge;
+  /** Translation du trait (doigt et défilement automatique), repère du contenu. */
+  readonly translation: Animated.Value;
+  /** Limites mesurées au début du glisser (fenêtre) des unités du périmètre, par clé. */
+  readonly rects: ReadonlyMap<string, EnvelopeRect>;
+  /** Haut de la première unité et bas de la dernière (fenêtre), au début du glisser. */
+  readonly top: number;
+  readonly bottom: number;
+};
+
+/**
  * Glisser d'un trait : `registerFrame` reçoit la vue de chaque cadre du mode enveloppe ; `begin`
  * mesure les contenus atteignables ; au relâchement, `end` remplace dans la sélection le périmètre
  * saisi par celui dont le bord est calé sous le doigt (`onReplace`). Pendant le glisser, le trait suit
@@ -90,19 +110,33 @@ export function useEnvelopePerimeterDrag({
 }) {
   const frames = useRef(new Map<string, View>());
   const session = useRef<DragSession | null>(null);
+  const [edgeDrag, setEdgeDrag] = useState<EnvelopeEdgeDrag | null>(null);
   const registerFrame = useCallback((key: string, view: View | null) => {
     if (view === null) frames.current.delete(key);
     else frames.current.set(key, view);
   }, []);
   const begin = useCallback(
-    (span: EnvelopeSpan, edge: EnvelopeEdge) => {
+    (span: EnvelopeSpan, edge: EnvelopeEdge, translation?: Animated.Value) => {
       const reach = envelopeSpanReach(draft, container, span, spans);
       if (reach === null) return;
       const rects: (EnvelopeRect | null)[] = reach.run.map(() => null);
-      session.current = { origin: span, edge, reach, rects };
+      const active: DragSession = { origin: span, edge, reach, rects };
+      session.current = active;
+      // Contre-recette n° 4 : unités du périmètre mesurées — le bord du cadre peut suivre le trait.
+      const publish = () => {
+        if (translation === undefined || session.current !== active) return;
+        const own = new Map<string, EnvelopeRect>();
+        for (let index = reach.start; index <= reach.end; index += 1) {
+          const rect = rects[index];
+          if (rect === null || rect === undefined) return;
+          own.set(envelopeTargetKey(reach.run[index]!), rect);
+        }
+        setEdgeDrag({ span, edge, translation, rects: own, top: rects[reach.start]!.top, bottom: rects[reach.end]!.bottom });
+      };
       reach.run.forEach((target, index) => {
         frames.current.get(envelopeTargetKey(target))?.measureInWindow((_x, y, _width, height) => {
           rects[index] = { top: y, bottom: y + height };
+          publish();
         });
       });
     },
@@ -113,6 +147,7 @@ export function useEnvelopePerimeterDrag({
     (pageY?: number) => {
       const active = session.current;
       session.current = null;
+      setEdgeDrag(null);
       if (active === null || pageY === undefined) return;
       const index = edgeIndexAt(active.rects, active.edge, active.reach, pageY);
       if (index === null) return;
@@ -122,7 +157,138 @@ export function useEnvelopePerimeterDrag({
     },
     [container, draft, onReplace, spans],
   );
-  return { registerFrame, begin, end };
+  return { registerFrame, begin, end, edgeDrag };
+}
+
+/**
+ * Contre-recette n° 4 du 01/11/2026 (b4b-etendre) — mouvement de la bande d'une part de cadre (unité
+ * du périmètre) pendant le glisser du trait `edge` : la part est faite d'une bande (bords gauche et
+ * droit, fond), étirée ou réduite (`scaleY` autour de son bord opposé au trait) d'après la translation
+ * du trait, et, pour la première et la dernière unité, d'un arrondi (trait de bord) — fixe du côté
+ * opposé, porté par la translation du côté du trait. Repère de la part : 0 à `height` ; `edgeOffset` :
+ * position du bord saisi au début du glisser dans ce repère (dernière unité, bord bas : `height` ;
+ * première unité, bord haut : 0). Entrée de l'interpolation : translation du trait ; sortie : échelle.
+ */
+export type EnvelopeSegmentMotion = {
+  readonly bandTop: number;
+  readonly bandHeight: number;
+  readonly origin: "top" | "bottom";
+  readonly inputRange: readonly [number, number];
+  readonly outputRange: readonly [number, number];
+  readonly extrapolateLeft: "clamp" | "extend";
+  readonly extrapolateRight: "clamp" | "extend";
+};
+
+export function envelopeSegmentMotion(
+  edge: EnvelopeEdge,
+  { height, radius, first, last, edgeOffset }: { height: number; radius: number; first: boolean; last: boolean; edgeOffset: number },
+): EnvelopeSegmentMotion {
+  const bandTop = first ? radius : 0;
+  const bandEnd = last ? height - radius : height;
+  const bandHeight = Math.max(1, bandEnd - bandTop);
+  if (edge === "BOTTOM") {
+    // Bande de `bandTop` jusqu'au haut de l'arrondi bas, posé sur le trait (`edgeOffset` + translation).
+    const start = radius + bandTop - edgeOffset;
+    return {
+      bandTop,
+      bandHeight,
+      origin: "top",
+      inputRange: [start, start + bandHeight],
+      outputRange: [0, 1],
+      extrapolateLeft: "clamp",
+      extrapolateRight: last ? "extend" : "clamp",
+    };
+  }
+  // Bord haut : bande du bas de l'arrondi haut, posé sous le trait, jusqu'à `bandEnd`.
+  const end = bandEnd - edgeOffset - radius;
+  return {
+    bandTop,
+    bandHeight,
+    origin: "bottom",
+    inputRange: [end - bandHeight, end],
+    outputRange: [1, 0],
+    extrapolateLeft: first ? "extend" : "clamp",
+    extrapolateRight: "clamp",
+  };
+}
+
+/**
+ * Part du cadre d'une unité pendant le glisser d'un trait (voir `envelopeSegmentMotion`), à la place de
+ * l'aplat du cadre désigné de cette unité. `limit` : translation au-delà de laquelle le bord ne suit
+ * plus le trait (le cadre garde au moins la hauteur de ses deux arrondis : il ne se retourne pas).
+ */
+export function EnvelopeMovingSegment({
+  edge,
+  translation,
+  height,
+  radius,
+  first,
+  last,
+  edgeOffset,
+  limit,
+  fill,
+  borderColor,
+  borderWidth,
+  testID,
+}: {
+  edge: EnvelopeEdge;
+  translation: Animated.Value;
+  height: number;
+  radius: number;
+  first: boolean;
+  last: boolean;
+  edgeOffset: number;
+  limit: number;
+  fill: string;
+  borderColor: string;
+  borderWidth: number;
+  testID: string;
+}) {
+  const motion = envelopeSegmentMotion(edge, { height, radius, first, last, edgeOffset });
+  const bounded = useMemo(
+    () =>
+      edge === "BOTTOM"
+        ? translation.interpolate({ inputRange: [limit, limit + 1], outputRange: [limit, limit + 1], extrapolateLeft: "clamp", extrapolateRight: "extend" })
+        : translation.interpolate({ inputRange: [limit - 1, limit], outputRange: [limit - 1, limit], extrapolateLeft: "extend", extrapolateRight: "clamp" }),
+    [edge, limit, translation],
+  );
+  const [inputFrom, inputTo] = motion.inputRange;
+  const [outputFrom, outputTo] = motion.outputRange;
+  const scale = useMemo(
+    () =>
+      bounded.interpolate({
+        inputRange: [inputFrom, inputTo],
+        outputRange: [outputFrom, outputTo],
+        extrapolateLeft: motion.extrapolateLeft,
+        extrapolateRight: motion.extrapolateRight,
+      }),
+    [bounded, inputFrom, inputTo, motion.extrapolateLeft, motion.extrapolateRight, outputFrom, outputTo],
+  );
+  const sides = { borderLeftWidth: borderWidth, borderRightWidth: borderWidth, borderColor, backgroundColor: fill };
+  // Arrondi du côté du trait (première unité, bord haut ; dernière, bord bas) : porté par sa translation.
+  const cap = (side: EnvelopeEdge) => (
+    <Animated.View
+      style={[
+        sides,
+        styles.layer,
+        side === "TOP"
+          ? { top: 0, height: radius, borderTopWidth: borderWidth, borderTopLeftRadius: radius, borderTopRightRadius: radius }
+          : { top: height - radius, height: radius, borderBottomWidth: borderWidth, borderBottomLeftRadius: radius, borderBottomRightRadius: radius },
+        side === edge ? { transform: [{ translateY: bounded }] } : null,
+      ]}
+      testID={`${testID}-${side === "TOP" ? "top" : "bottom"}`}
+    />
+  );
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={testID}>
+      <Animated.View
+        style={[sides, styles.layer, { top: motion.bandTop, height: motion.bandHeight, transformOrigin: motion.origin, transform: [{ scaleY: scale }] }]}
+        testID={`${testID}-band`}
+      />
+      {first ? cap("TOP") : null}
+      {last ? cap("BOTTOM") : null}
+    </View>
+  );
 }
 
 /** Dimensions du trait (valeurs de conception locales, Figma muet ; `tokens.ts` gelé). */
@@ -144,7 +310,8 @@ export type EnvelopeHandleProps = {
   readonly reduceLabel: string;
   /** Étendre (`+1`) ou réduire (`-1`) d'un contenu. */
   readonly onStep: (direction: 1 | -1) => void;
-  readonly onDragStart: () => void;
+  /** Contre-recette n° 4 du 01/11/2026 : reçoit la translation du trait (le bord du cadre la suit). */
+  readonly onDragStart: (translation: Animated.Value) => void;
   /** Relâchement à `pageY` ; sans valeur : glisser interrompu (aucun changement). */
   readonly onDragEnd: (pageY?: number) => void;
   /**
@@ -221,7 +388,7 @@ export function EnvelopeHandle({ edge, label, value, extendLabel, reduceLabel, o
         originRef.current = event.nativeEvent.pageY;
         fingerDyRef.current = 0;
         draggingRef.current = true;
-        onDragStart();
+        onDragStart(translation);
         autoScroll.begin();
         // Story 7.4 : le trait suit le défilement automatique, même sans mouvement du doigt.
         autoScroll.attach((scrollDelta) => translation.setValue(fingerDyRef.current + scrollDelta));
@@ -242,6 +409,12 @@ export function EnvelopeHandle({ edge, label, value, extendLabel, reduceLabel, o
 }
 
 const styles = StyleSheet.create({
+  // Contre-recette n° 4 : couche d'une part de cadre qui suit le trait (bande, arrondis).
+  layer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+  },
   hit: {
     position: "absolute",
     left: "50%",

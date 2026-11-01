@@ -12,6 +12,7 @@ import {
   CircuitHeader,
   CIRCUIT_HIDE_DURATION_MS,
   CIRCUIT_REVEAL_DURATION_MS,
+  circuitRevealMaxHeight,
   useCircuitCardsReveal,
   circuitCountSpokenValue,
   circuitNatureAdjective,
@@ -644,5 +645,36 @@ describe("useCircuitCardsReveal", () => {
   it("collapsed at mount: nothing rendered", () => {
     render(<Cards collapsed />);
     expect(screen.queryByTestId("cards")).toBeNull();
+  });
+});
+
+/**
+ * Contre-recette n° 4 du 01/11/2026 (cr5-replie : « le cadre du circuit se déplie […] mais sans qu'elles
+ * n'apparaissent » ; constat c : « pour l'autre les cartes s'effacent d'abord, le circuit est vide, puis
+ * il se replie ») — hauteur de la liste pendant l'animation. Le simulacre de Reanimated ne garde pas les
+ * valeurs partagées d'un rendu à l'autre : la règle est vérifiée sur la fonction du fil UI.
+ */
+describe("circuitRevealMaxHeight (contre-recette n° 4)", () => {
+  it("hauteur naturelle connue : la part de cette hauteur ; déployée : libre", () => {
+    expect(circuitRevealMaxHeight(0.5, 200, true)).toBe(100);
+    expect(circuitRevealMaxHeight(0, 200, true)).toBe(0);
+    expect(circuitRevealMaxHeight(1, 200, true)).toBeGreaterThanOrEqual(100000);
+  });
+
+  it("hauteur naturelle inconnue : la liste mesurée par son contenu reste fermée (jamais pleine hauteur d'un coup)", () => {
+    expect(circuitRevealMaxHeight(0.01, 0, true)).toBe(0);
+    expect(circuitRevealMaxHeight(0.99, 0, true)).toBe(0);
+    // Ancien modèle (liste mesurée au repos seulement) : comportement d'origine, libre.
+    expect(circuitRevealMaxHeight(0.5, 0, false)).toBeGreaterThanOrEqual(100000);
+  });
+
+  it("le hook expose la mesure du contenu, relevée pendant l'animation comme au repos", () => {
+    let reveal: ReturnType<typeof useCircuitCardsReveal> | null = null;
+    function Probe() {
+      reveal = useCircuitCardsReveal(false, 9, 0, true);
+      return null;
+    }
+    render(<Probe />);
+    expect(typeof reveal!.onContentLayout).toBe("function");
   });
 });
