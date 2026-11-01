@@ -214,6 +214,11 @@ describe("PRE-9 — Exercice d'une Séance ouvert au gabarit Mouvement (CE-MVT-0
 
     // Phases lues dans la Feuille, structure verrouillée (Mouvement enregistré, MFN-09).
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    // Hermann, 01/11/2026 : « Lorsque la modale des paramètres s'ouvre, le tableau des phases doit
+    // être fermé s'il n'y a aucune valeur à vérifier ou à renseigner. » Durées complètes : replié,
+    // déployé par son chevron.
+    expect(screen.queryByTestId("execution-sheet-phases-table")).toBeNull();
+    fireEvent.press(screen.getByTestId("execution-sheet-phases-control-WITH-chevron"));
     expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.value).toBe("Descente");
     expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBe(false);
   });
@@ -275,6 +280,9 @@ describe("PRE-9 — Exercice d'une Séance ouvert au gabarit Mouvement (CE-MVT-0
     // Feuille des paramètres (structure modifiable : Mouvement NOUVEAU), durée gardée par identité.
     expect(screen.queryByTestId("movement-section-phases")).toBeNull();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    // Hermann, 01/11/2026 : durée complète, tableau des phases replié à l'ouverture — chevron d'abord.
+    expect(screen.queryByTestId("execution-sheet-phases-table")).toBeNull();
+    fireEvent.press(screen.getByTestId("execution-sheet-phases-control-WITH-chevron"));
     const phaseLabel = screen.getByTestId("execution-sheet-phase-row-1-label");
     expect(phaseLabel.props.editable).not.toBe(false);
     fireEvent(phaseLabel, "focus");

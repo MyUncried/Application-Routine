@@ -129,6 +129,18 @@ function enterLabel(n: number, text: string) {
   fireEvent(get(label(n)), "blur");
 }
 
+/**
+ * Hermann, 01/11/2026 (remplace « déployé à l'ouverture » de PRE-5 story 2.8, FR-28) : « Lorsque la
+ * modale des paramètres s'ouvre, le tableau des phases doit être fermé s'il n'y a aucune valeur à
+ * vérifier ou à renseigner. » Durées complètes, aucune marque : la Feuille s'ouvre tableau replié ;
+ * les scénarios qui supposent le tableau le déploient d'abord par le chevron de l'option Avec.
+ */
+function unfoldPhases() {
+  expect(query(TABLE)).toBeNull();
+  fireEvent.press(get(CHEVRON));
+  expect(get(TABLE)).toBeTruthy();
+}
+
 describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", () => {
   it("PRE5-2.8/AC1 — sans phase : « Phases du mouvement » (D-448, point 8) est la première ligne du cadre Séries, Sans sélectionné, sans tableau ni chevron", () => {
     renderSheet(params());
@@ -232,6 +244,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE-7 R-2 (D-446, complément du 26/10/2026) — phases en identiques N = 3 : Variables disponible ; le toucher garde la ligne et les phases, durées comprises (recette du 29/10/2026 : tableau replié, redéployé par son chevron)", () => {
     const { onApply } = renderSheet(withPhases([["A", 5], ["B", 2]]));
+    unfoldPhases();
     expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ disabled: false, selected: false });
     fireEvent.press(get("execution-sheet-series-type-control-VARIABLE"));
     expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ selected: true });
@@ -261,6 +274,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC2, AC3 (D-432, QR-1, RC-4) — stepper révélé : − indisponible à 2 ; + jusqu'à 6 (durée de la dernière) puis indisponible ; − retire la dernière avec « Phase supprimée — Annuler » ; toucher la valeur le referme", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
+    unfoldPhases();
     expect(query(`${STEPPER}-increment`)).toBeNull();
     fireEvent.press(get(COUNT_TOGGLE));
     expect(get("execution-sheet-row-phases-selection")).toBeTruthy();
@@ -304,6 +318,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("RC-16 — fermé : « n phases » ouvre le réglage, le chevron replie / déploie sans l'ouvrir ; actions indépendantes, place du chevron réservée", () => {
     renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
+    unfoldPhases();
     const closed = get(COUNT_TOGGLE).parent!;
     // Libellé puis chevron, à 12 l’un de l’autre (D-448, point 8 ; 6 auparavant), dans l’option de 110.
     expect(styleOf(CHEVRON)).toMatchObject({ width: 10, height: 10, marginLeft: 12 });
@@ -320,6 +335,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("RC-16 — ouvert : « − | n phases | chevron | + » sur #EAEAFF, texte primaire, segmenté de 32 (PRE-7 B.1, B3 ; 34 auparavant) ; − et + règlent 2..6 ; chevron visible mais indisponible (annoncé) ; valeur, chevron ou toucher ailleurs ferment sans changer le nombre ni le repli", () => {
     renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
+    unfoldPhases();
     fireEvent.press(get(COUNT_TOGGLE));
     // Ordre dans le réglage : −, valeur, chevron, +.
     const ids: string[] = [];
@@ -359,6 +375,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
   for (const field of ["label", "duration"] as const) {
     it(`RC-17 — activer un champ du tableau des phases (${field}) ferme le réglage (surface clavier, une seule surface) ; nombre et repli inchangés ; chevron de nouveau actif`, () => {
       renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
+      unfoldPhases();
       fireEvent.press(get(COUNT_TOGGLE));
       expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: true });
       fireEvent(get(field === "label" ? label(2) : `${duration(2)}-input`), "focus");
@@ -373,6 +390,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC2 (FR-28) — chevron : replie le tableau (chevron bas), nombre et phases inchangés ; redéploie", () => {
     const { onApply } = renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
+    unfoldPhases();
     fireEvent.press(get(CHEVRON));
     expect(query(TABLE)).toBeNull();
     expect(chevronIcon()).toEqual(DOWN);
@@ -388,6 +406,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC3b, AC7 (FR-8) — croix : à 3 phases, retrait + « Phase supprimée — Annuler », Annuler restitue ordre, libellé et durée ; D inchangée (D-446) ; à 2, croix disponible (PRE-7 A2.1, D-438 remplace D-371 et D-432 pour le retrait)", () => {
     renderSheet(withPhases([["Descente", 6], ["Maintien", 3], ["Montée", 5]]));
+    unfoldPhases();
     expect(get(remove(2)).props.accessibilityLabel).toBe("Supprimer la phase 2");
     expect(get(remove(2)).props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent.press(get(remove(2)));
@@ -408,6 +427,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC3b — croix pendant une saisie : l'appui range le champ ouvert sans retirer", () => {
     renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
+    unfoldPhases();
     fireEvent(get(`${duration(1)}-input`), "focus");
     expect(styleOf(duration(1)).backgroundColor).toBe("#EAEAFF");
     fireEvent.press(get(remove(3)));
@@ -416,6 +436,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC5 (D-434) — durée au clavier MMSS : 1,7,5 → « 2 min 15 s » ; vidée → « — » ; 9999 → 58 min 55 s ; 0 → 0 s (D-448, point 6) ; PRE-7 (D-446) : D inchangée", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
+    unfoldPhases();
     expect(get(`${duration(1)}-input`).props.keyboardType).toBe("number-pad");
     enterDuration(1, "175");
     expect(shownDuration(1)).toBe("2 min 15 s");
@@ -436,6 +457,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC4 (FR-6) — libellé au clavier texte : « Descente » puis Retour ; vide → « Phase n » ; au-delà de 20 points de code refusé ; sans barre", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
+    unfoldPhases();
     expect(get(label(1)).props.keyboardType).toBe("default");
     expect(get(label(1)).props.submitBehavior).toBe("blurAndSubmit");
     expect(get(label(1)).props.accessibilityLabel).toBe("Phase 1, libellé");
@@ -457,6 +479,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC5 (D-434) — navigation : Suivant de la durée 1 → durée 2 (jamais un libellé) ; « À l’échec » absent ; extrémités indisponibles ; repère de la ligne active", () => {
     renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
+    unfoldPhases();
     fireEvent(get(`${duration(1)}-input`), "focus");
     showExecutionSheetKeyboard();
     expect(get("execution-sheet-keyboard-bar")).toBeTruthy();
@@ -563,6 +586,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     ],
   ])("PRE5-2.8/AC7 — %s, somme normalisée > 3 535 s : ✓ indisponible ; PRE-7 (D-446) : cellules de durée marquées, jamais la Cible", (_case, parent, shownTarget) => {
     renderSheet(parent);
+    unfoldPhases();
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
     enterDuration(2, "1000");
     // D-446 : la Cible garde sa valeur ; la somme hors bornes (durée du motif) bloque ✓.
@@ -580,6 +604,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8 (Q47) — champ de phase focalisé : le premier appui sur ✓ ou ✕ sort du champ, sans valider ni abandonner", () => {
     const { onApply, onCancel } = renderSheet(withPhases([["A", 6], ["B", 3]]));
+    unfoldPhases();
     fireEvent(get(label(1)), "focus");
     validate();
     expect(onApply).not.toHaveBeenCalled();
@@ -592,6 +617,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC3b (FR-4, CE-UI-10) — actions accessibles Monter / Descendre : le libellé suit sa phase ; D inchangée", () => {
     const { onApply } = renderSheet(withPhases([["Descente", 6], ["Maintien", 3]]));
+    unfoldPhases();
     const handle = get(`${row(1)}-handle`);
     expect(handle.props.accessibilityLabel).toBe("Déplacer la phase 1");
     expect((handle.props.accessibilityActions as { name: string; label: string }[]).map((action) => action.label)).toEqual([
@@ -608,6 +634,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC3b (FR-29, Figma `9207:18817`) — tableau : en-têtes « Libellé » et « Durée », séparés de 20, ni pied ni ± ; recette du 29/10/2026 : colonnes distribuées à parts égales", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
+    unfoldPhases();
     const header = get("execution-sheet-phases-table-header");
     expect(within(header).getByText("Libellé", hidden)).toBeTruthy();
     expect(within(header).getByText("Durée", hidden)).toBeTruthy();
@@ -646,6 +673,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
         },
       }),
     );
+    unfoldPhases();
     expect(seriesDurationText()).toBe("2 min");
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
     enterDuration(1, "8");
@@ -665,6 +693,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE-7 (D-446) — avec des phases : À l’échec puis Répétitions choisis ; ✓ enregistre, phases conservées", () => {
     const { onApply } = renderSheet(withPhases([["Montée", 5], ["Descente", 2]]));
+    unfoldPhases();
     fireEvent.press(get("execution-sheet-stop-condition-control-FAILURE"));
     expect(optionState("execution-sheet-stop-condition-control-FAILURE")).toMatchObject({ selected: true });
     fireEvent.press(get("execution-sheet-mode-control-REPETITIONS"));
@@ -691,6 +720,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC3b (RC-5) — glisser la poignée de la phase 1 d'une ligne : réglage du nombre rangé au départ, repère d'insertion pendant le geste, phases échangées, ✓ dans le nouvel ordre", () => {
     const { onApply } = renderSheet(withPhases([["Descente", 6], ["Maintien", 3]]));
+    unfoldPhases();
     fireEvent.press(get(COUNT_TOGGLE));
     expect(get(`${STEPPER}-increment`)).toBeTruthy();
     const handle = get(`${row(1)}-handle`);
@@ -742,6 +772,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC8 (FR-32, NR Δ38) — six phases : six lignes, + indisponible ; le stepper « Nombre de séries » de PRE-4 reste inchangé", () => {
     renderSheet(withPhases([["A", 1], ["B", 1], ["C", 1], ["D", 1], ["E", 1], ["F", 1]]));
+    unfoldPhases();
     expect(phaseRows()).toHaveLength(6);
     expect(countText()).toBe("6 phases");
     fireEvent.press(get(COUNT_TOGGLE));
@@ -757,6 +788,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 describe("ExecutionParametersSheet — recette iPhone du 29/10/2026 : tableau des phases replié par un autre contrôle", () => {
   it("toucher le réglage du nombre de phases le laisse ouvert ; un autre segmenté (Cadence) ou la valeur de la Cible le replie (sortie animée existante) ; phases conservées, chevron pour le redéployer", () => {
     renderSheet(withPhases([["A", 5], ["B", 2]]));
+    unfoldPhases();
     expect(phaseRows()).toHaveLength(2);
     // Option Avec (réglage du nombre) : partie de la ligne des phases, le tableau reste.
     fireEvent.press(get(WITH));
@@ -787,6 +819,7 @@ function separatorsUnder(testID: string) {
 describe("Contre-recette iPhone du 30/10/2026 — séparateurs du tableau des phases", () => {
   it("tableau déployé : aucun trait entre la ligne « Phases » et son tableau ; un trait sous le tableau", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
+    unfoldPhases();
     expect(get(TABLE)).toBeTruthy();
     expect(separatorsUnder("execution-sheet-phases-group")).toHaveLength(0);
     expect(separatorsUnder("execution-sheet-phases-separator")).not.toHaveLength(0);
@@ -837,6 +870,7 @@ describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat a ; contrôle cr
 
   it("phases complètes, tableau replié : aucun rouge", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
+    unfoldPhases();
     fireEvent.press(get(CHEVRON));
     expect(query(FRAME)).toBeNull();
     expect(styleOf(SELECTION).borderColor).toBeUndefined();
@@ -891,6 +925,7 @@ describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à
 
   it("sans marque : aucun orange", () => {
     renderMarked(withPhases([["A", 6], ["B", 3]]), []);
+    unfoldPhases();
     expect(query(TO_VERIFY_FRAME)).toBeNull();
     expect(get(INDICATOR)).toBeTruthy();
     expect(styleOf(SELECTION).borderColor).toBeUndefined();
@@ -944,5 +979,85 @@ describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat d : feuille ouve
     expect(query("execution-sheet-scrim-shade")).toBeNull();
     fireEvent.press(get("execution-sheet-cancel"));
     expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Hermann, 01/11/2026 — tableau des phases replié à l'ouverture s'il n'y a rien à vérifier ni à renseigner (remplace « déployé à l'ouverture », PRE-5 story 2.8)", () => {
+  function renderOpening(parent: ExecutionParametersInput, extra: { readonly phasesToVerify?: readonly number[]; readonly presentation?: "compositionCard" } = {}) {
+    render(
+      <TestSafeAreaProvider>
+        <ExecutionParametersSheet parent={parent} profileSideRecoverySecondsDefault={10} {...extra} onApply={jest.fn()} onCancel={jest.fn()} />
+      </TestSafeAreaProvider>,
+    );
+  }
+  const withMissing = () => {
+    const parent = withPhases([["A", 6], ["B", 3]]);
+    const series = parent.series as { readonly workPhases: readonly WorkPhase[] };
+    return { ...parent, series: { ...parent.series, workPhases: [series.workPhases[0]!, { ...series.workPhases[1]!, durationSeconds: null }] } } as ExecutionParametersInput;
+  };
+
+  it.each([
+    ["éditeur", {}],
+    ["carte de la Composition", { presentation: "compositionCard" as const }],
+    ["marque vide", { phasesToVerify: [] as readonly number[] }],
+  ])("durées complètes, aucune marque (%s) : tableau replié, chevron bas « Afficher », nombre et phases intacts", (_case, extra) => {
+    renderOpening(withPhases([["A", 6], ["B", 3], ["C", 5]]), extra);
+    expect(optionState(WITH)).toMatchObject({ selected: true });
+    expect(query(TABLE)).toBeNull();
+    expect(phaseRows()).toHaveLength(0);
+    expect(countText()).toBe("3 phases");
+    expect(chevronIcon()).toEqual(DOWN);
+    expect(get(CHEVRON).props.accessibilityLabel).toBe(t.showPhases);
+    fireEvent.press(get(CHEVRON));
+    expect([1, 2, 3].map(shownLabel)).toEqual(["A", "B", "C"]);
+    expect([1, 2, 3].map(shownDuration)).toEqual(["6 s", "3 s", "5 s"]);
+  });
+
+  it.each([
+    ["vide", withMissing()],
+    ["0 s", withPhases([["A", 6], ["B", 0]])],
+  ])("une durée de phase à renseigner (%s) : tableau déployé, chevron haut", (_case, parent) => {
+    renderOpening(parent);
+    expect(get(TABLE)).toBeTruthy();
+    expect(phaseRows()).toHaveLength(2);
+    expect(chevronIcon()).toEqual(UP);
+    expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
+  });
+
+  it("une durée « à vérifier » : tableau déployé, sa cellule orange ; une marque d'une phase absente ne déploie pas", () => {
+    renderOpening(withPhases([["A", 6], ["B", 3]]), { phasesToVerify: [2] });
+    expect(get(TABLE)).toBeTruthy();
+    expect(chevronIcon()).toEqual(UP);
+    expect(styleOf(duration(2)).backgroundColor).toBe(toVerifyColors.surface);
+    screen.unmount();
+    renderOpening(withPhases([["A", 6], ["B", 3]]), { phasesToVerify: [9] });
+    expect(query(TABLE)).toBeNull();
+  });
+
+  it("activation de l'option Avec : tableau déployé (inchangé), depuis Sans comme après Sans → Avec", () => {
+    renderOpening(params());
+    fireEvent.press(get(WITH));
+    expect(get(TABLE)).toBeTruthy();
+    expect(chevronIcon()).toEqual(UP);
+    screen.unmount();
+    renderOpening(withPhases([["A", 6], ["B", 3]]));
+    expect(query(TABLE)).toBeNull();
+    fireEvent.press(get(WITHOUT));
+    fireEvent.press(get(WITH));
+    expect(phaseRows()).toHaveLength(2);
+    expect(chevronIcon()).toEqual(UP);
+  });
+
+  it("chevron : déploie puis replie, sans changer le nombre ni les phases", () => {
+    renderOpening(withPhases([["A", 6], ["B", 3]]));
+    expect(query(TABLE)).toBeNull();
+    fireEvent.press(get(CHEVRON));
+    expect(phaseRows()).toHaveLength(2);
+    expect(chevronIcon()).toEqual(UP);
+    expect(get(CHEVRON).props.accessibilityLabel).toBe(t.hidePhases);
+    fireEvent.press(get(CHEVRON));
+    expect(query(TABLE)).toBeNull();
+    expect(chevronIcon()).toEqual(DOWN);
+    expect(countText()).toBe("2 phases");
   });
 });

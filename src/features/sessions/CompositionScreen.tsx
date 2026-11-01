@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Animated,
   BackHandler,
+  Easing,
   Keyboard,
   Platform,
   Pressable,
@@ -154,6 +155,7 @@ import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import {
   CIRCUIT_HEADER_HEIGHT,
+  CIRCUIT_REVEAL_BEZIER,
   CIRCUIT_REVEAL_DURATION_MS,
   CircuitHeader,
   useCircuitCardsReveal,
@@ -288,6 +290,7 @@ import {
   makeAnimatedValueNative,
   nativeShiftKey,
   type ShiftRelease,
+  type ShiftTiming,
   useAnimatedShiftRegistry,
 } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -2583,6 +2586,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const refreshLayoutShifts = useCallback(() => {
     const current = layoutDragRef.current;
     if (current === null) return;
+    // Contre-recette n° 5 du 01/11/2026 (Hermann : « Oui, ouvrir la place pendant le déploiement. le
+    // circuit s'ouvre proprement mais la carte elle fait encore plusieurs soubresauts qu'il faut
+    // éliminer. ») : déploiement lancé — l'aperçu reste celui posé à son départ (`startLayoutExpansion`,
+    // place ouverte et compensation animées avec lui, fil natif) ; aucune mesure ne le modifie, aucune
+    // pose de compensation depuis le fil JS, aucun rendu de l'écran par mesure.
+    if (current.expansion !== null) return;
     const slot = current.target;
     // Contre-recette n° 4 du 01/11/2026 (cr5-replie, Hermann : « le cadre du circuit se déplie […] mais
     // sans qu'elles n'apparaissent » ; « le bord bas remonte et redescend ») : pendant l'arrêt sur un
@@ -2590,7 +2599,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     // le cadre grandit avec ses cartes (mise en page, `useCircuitCardsReveal`), sans translation de ses
     // bords qui s'ajouterait à cette croissance (fond étiré d'après une hauteur relevée au fil JS, en
     // retard) ; la place s'ouvre aussitôt après, sous le doigt (`finishLayoutExpansionRef`). Un lâcher
-    // entre-temps dépose toujours à la fin du Circuit (`current.target`).
+    // entre-temps dépose toujours à la fin du Circuit (`current.target`). [Pendant le déploiement :
+    // remplacé par la contre-recette n° 5 du 01/11/2026 — la place s'ouvre avec le déploiement
+    // (`startLayoutExpansion`) ; reste vrai pendant l'arrêt et jusqu'au départ du déploiement.]
     const opensPlace = current.hoverCircuitId === null && current.expandingCircuitId === null;
     const computed =
       slot === null
@@ -2699,10 +2710,71 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   useLayoutEffect(() => {
     finishLayoutExpansionRef.current = (current) => {
       current.expandingCircuitId = null;
+      current.expansion = null;
       if (current.lastTranslationY !== null) retargetLayoutDrag(current, current.lastTranslationY);
       refreshLayoutShifts();
     };
   });
+  /**
+   * Contre-recette n° 5 du 01/11/2026 — départ du déploiement d'un Circuit ouvert par l'arrêt
+   * (`useCircuitCardsReveal`, `onRevealStart`, dans la tâche même de son départ ; `growth` : croissance
+   * prévue du Circuit, d'après la hauteur de ses cartes).
+   *
+   * 1. Classe B, réponse de Hermann à la question de la contre-recette n° 4 : « Oui, ouvrir la place
+   *    pendant le déploiement. » — la place s'ouvre à la fin du Circuit pendant son déploiement, dans le
+   *    même mouvement : bord bas du Circuit (et de son Cycle) et éléments suivants translatés de la place
+   *    de l'élément saisi, avec la courbe et la durée du déploiement (`CIRCUIT_REVEAL_SHIFT_TIMING`). Le
+   *    déploiement terminé (`finishLayoutExpansionRef`), la destination sous le doigt est calculée une
+   *    fois et ses décalages animés une fois (inchangé).
+   * 2. Classe A (« la carte elle fait encore plusieurs soubresauts ») — cause : un Circuit déployé
+   *    AU-DESSUS de l'élément saisi le fait descendre dans la mise en page, image par image (fil UI) ;
+   *    la compensation (`layoutSourceDrift`) était reposée depuis le fil JS à chaque mesure, après coup,
+   *    et chaque mesure rendait l'écran entier (`setLayoutLift`) : la carte descendait puis remontait
+   *    à chaque pas, plus encore quand le fil JS, chargé, regroupait les mesures. Désormais la
+   *    compensation de tout le déploiement est lancée une seule fois, sur le pilote natif, avec la même
+   *    courbe et la même durée que la croissance du Circuit, partie dans la même tâche ; pendant le
+   *    déploiement, aucune mesure ne la repose (`refreshLayoutShifts`) ; à sa fin, l'écart résiduel
+   *    éventuel (mesure réelle) est posé une fois.
+   */
+  const startLayoutExpansion = useCallback(
+    (circuitId: string, growth: number) => {
+      const current = layoutDragRef.current;
+      if (current === null || current.expandingCircuitId !== circuitId || current.expansion !== null) return;
+      const boxes = layoutBoxesRef.current;
+      const slot = current.target;
+      const opening =
+        slot === null
+          ? null
+          : layoutDragShifts(layoutPiecesRef.current, boxes, current.lifted, {
+              insertY: slot.insertY,
+              insertTop: slot.insertTop,
+              gap: layoutContainerGap(slot.container),
+            });
+      const circuitBox = boxes.get(layoutItemKey({ kind: "CIRCUIT", id: circuitId }));
+      const liftedBox = boxes.get(current.lifted.boxKey);
+      // L'élément saisi est sous le Circuit (même dans son Cycle) : la croissance le fait descendre.
+      const below =
+        circuitBox !== undefined && liftedBox !== undefined && liftedBox.top >= circuitBox.top + circuitBox.height - LAYOUT_MEASURE_TOLERANCE;
+      const compensation = -(layoutSourceDrift(current, boxes) + (below ? growth : 0));
+      const next: LayoutDragShifts = { shifts: new Map(opening?.shifts ?? []).set(current.liftedKey, compensation), end: opening?.end ?? 0 };
+      current.expansion = next;
+      current.shifts = next;
+      const timed = new Map<string, number>([[nativeShiftKey(RAIL_KEYS.end), next.end]]);
+      for (const [key, value] of next.shifts) timed.set(nativeShiftKey(key), value);
+      shiftRegistryRef.current?.retarget(timed, reduceMotionRef.current ? null : CIRCUIT_REVEAL_SHIFT_TIMING);
+      setLayoutLift((lift) => (lift === null || lift.phase !== "DRAGGING" ? lift : { ...lift, shifts: next }));
+      // Fin du déploiement comptée depuis son départ réel (après la mesure du contenu).
+      clearLayoutHover();
+      layoutHoverTimerRef.current = setTimeout(
+        () => {
+          layoutHoverTimerRef.current = null;
+          if (layoutDragRef.current === current) finishLayoutExpansionRef.current(current);
+        },
+        reduceMotionRef.current ? 0 : CIRCUIT_REVEAL_DURATION_MS,
+      );
+    },
+    [clearLayoutHover],
+  );
   const reportLayoutBox = useCallback(
     (key: string, box: LayoutBox | null) => {
       if (box === null) layoutBoxesRef.current.delete(key);
@@ -2728,7 +2800,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    */
   const layoutSettleFor = useCallback((current: LayoutDragGesture, fingerTranslationY: number): LayoutSettle => {
     // Recette n° 2 du 31/10 (arrêt sur un Circuit replié) : position affichée, compensation comprise.
-    const translationY = fingerTranslationY - layoutSourceDrift(current, layoutBoxesRef.current);
+    // Contre-recette n° 5 : pendant un déploiement, la compensation est celle qu'anime le registre
+    // (estimée sur sa courbe), non la dernière mesure (en retard sur le fil UI).
+    const animatedCompensation =
+      current.expansion === null ? null : (shiftRegistryRef.current?.estimate(nativeShiftKey(current.liftedKey)) ?? null);
+    const translationY =
+      animatedCompensation === null
+        ? fingerTranslationY - layoutSourceDrift(current, layoutBoxesRef.current)
+        : fingerTranslationY + animatedCompensation;
     const piece = liftedPiece(layoutPiecesRef.current, current.lifted.boxKey);
     const key = piece === undefined ? null : liftedShiftKey(piece);
     const block = piece !== undefined && (piece.kind === "CIRCUIT" || piece.kind === "CYCLE");
@@ -2949,6 +3028,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         hoverCircuitId: null,
         expandedOnHover: false,
         expandingCircuitId: null,
+        expansion: null,
       };
       setLayoutLift({
         source,
@@ -3190,6 +3270,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             source: draggingSource,
             stopPointId: draggingStopPointId,
             reportBox: reportLayoutBox,
+            onCircuitReveal: startLayoutExpansion,
             onStart: startLayoutDrag,
             onStartStopPoint: startLayoutStopPointDrag,
             onMove: moveLayoutDrag,
@@ -3213,6 +3294,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       reportLayoutBox,
       richLayout,
       startLayoutDrag,
+      startLayoutExpansion,
       startLayoutStopPointDrag,
     ],
   );
@@ -7568,6 +7650,11 @@ type LayoutDragContext = {
    */
   /** Boîte mesurée d'un élément ou d'un en-tête (repère du contenu défilant) ; `null` : oubliée. */
   readonly reportBox: (key: string, box: LayoutBox | null) => void;
+  /**
+   * Contre-recette n° 5 du 01/11/2026 : départ du déploiement d'un Circuit (`growth` : croissance
+   * prévue de sa hauteur), dans la tâche même de ce départ — voir `startLayoutExpansion`.
+   */
+  readonly onCircuitReveal: (circuitId: string, growth: number) => void;
   /** Appui long sur une carte ou un en-tête ; `false` : refusé (autre élément saisi, mesure absente). */
   readonly onStart: (source: LayoutItemRef) => boolean;
   /** PRE-9 B.6 : Point d'arrêt saisi (`null` : aucun) et son appui long ; même mouvement, même dépose. */
@@ -7623,6 +7710,12 @@ type LayoutDragGesture = {
    * après un arrêt — la destination reste sa fin jusqu'à la fin du déploiement ; `null` : aucun.
    */
   expandingCircuitId: string | null;
+  /**
+   * Contre-recette n° 5 du 01/11/2026 : aperçu figé du déploiement en cours (`startLayoutExpansion`) —
+   * place ouverte à la fin du Circuit et compensation de l'élément saisi, lancées avec le déploiement ;
+   * `null` : aucun déploiement lancé.
+   */
+  expansion: LayoutDragShifts | null;
 };
 
 /**
@@ -8685,21 +8778,41 @@ function LayoutRailTail({
 }) {
   const height = containerHeight === null ? 0 : containerHeight - top;
   const base = Math.max(1, height);
-  const transform = useMemo(() => {
-    const scale = Animated.add(1, Animated.divide(Animated.subtract(bottomShift, topShift), base)).interpolate({
+  /**
+   * Contre-recette n° 5 du 01/11/2026 : comme la bande de `CircuitSurface` — la piste garde sa hauteur
+   * de mise en page (`bottom: 0`, fil UI) et suit le bord haut quand les bords s'écartent ; un
+   * prolongement d'un point, sous elle, est étiré de l'écart (aucune hauteur relevée au fil JS) ; quand
+   * ils se rapprochent, elle se resserre comme avant, d'après la hauteur relevée.
+   */
+  const { transform, extensionTransform } = useMemo(() => {
+    const spread = Animated.subtract(bottomShift, topShift);
+    const closing = spread.interpolate({ inputRange: [-1, 0], outputRange: [-1, 0], extrapolateLeft: "extend", extrapolateRight: "clamp" });
+    const opening = spread.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolateLeft: "clamp", extrapolateRight: "extend" });
+    const scale = Animated.add(1, Animated.divide(closing, base)).interpolate({
       inputRange: [0, 1],
       outputRange: [0, 1],
-      extrapolateLeft: "clamp",
-      extrapolateRight: "extend",
+      extrapolate: "clamp",
     });
-    // Haut posé sur le bord haut ; la mise à l'échelle autour du centre est compensée.
-    return [{ translateY: Animated.add(topShift, Animated.multiply(Animated.subtract(scale, 1), base / 2)) }, { scaleY: scale }];
+    return {
+      // Haut posé sur le bord haut ; la mise à l'échelle autour du centre est compensée.
+      transform: [{ translateY: Animated.add(topShift, Animated.multiply(Animated.subtract(scale, 1), base / 2)) }, { scaleY: scale }],
+      extensionTransform: [{ translateY: Animated.add(topShift, Animated.add(Animated.multiply(opening, 0.5), -0.5)) }, { scaleY: opening }],
+    };
   }, [base, bottomShift, topShift]);
   if (!active || height <= 0) return <RailSegment centerX={centerX} top={top} bottom={0} testID={testID} />;
   return (
-    <Animated.View pointerEvents="none" style={[styles.layoutRailTailTrack, { top, height, transform }]} testID={`${testID}-track`}>
-      <RailSegment centerX={centerX} top={0} bottom={0} testID={testID} />
-    </Animated.View>
+    <>
+      <Animated.View pointerEvents="none" style={[styles.layoutRailTailTrack, { top, bottom: 0, transform }]} testID={`${testID}-track`}>
+        <RailSegment centerX={centerX} top={0} bottom={0} testID={testID} />
+      </Animated.View>
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.layoutRailTailTrack, styles.layoutRailTailExtension, { transform: extensionTransform }]}
+        testID={`${testID}-extension`}
+      >
+        <RailSegment centerX={centerX} top={0} bottom={0} testID={`${testID}-extension-segment`} />
+      </Animated.View>
+    </>
   );
 }
 
@@ -8771,8 +8884,27 @@ function LayoutCircuitBlock({
   const isCollapsed = context.collapsed.get(circuit.id) === contentKey && context.stops.placement === null;
   const circuitContainer = useMemo<StopPointContainer>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
   const inPlacement = context.stops.placement !== null;
+  /**
+   * Contre-recette n° 5 du 01/11/2026 : hauteur de la ligne des noms du Circuit replié (en-tête replié
+   * moins sa ligne), relevée replié ; elle disparaît au déploiement.
+   */
+  const collapsedNamesHeightRef = useRef(0);
+  useLayoutEffect(() => {
+    if (isCollapsed && headerBottom !== null) collapsedNamesHeightRef.current = Math.max(0, headerBottom - CIRCUIT_PADDING_VERTICAL - rowHeight);
+  });
+  const onCircuitReveal = drag?.onCircuitReveal;
+  /**
+   * Contre-recette n° 5 : départ du déploiement — croissance prévue du Circuit : ses cartes (hauteur
+   * naturelle du contenu) et l'écart qui les précède, moins la marge basse réduite et la ligne des noms
+   * qui se referme (`useCircuitCardsReveal`, `CollapsedNamesLine` : même progression).
+   */
+  const onRevealStart = useCallback(
+    (naturalHeight: number) =>
+      onCircuitReveal?.(circuit.id, naturalHeight + CIRCUIT_GAP - CIRCUIT_CARDS_BOTTOM_OVERLAP - collapsedNamesHeightRef.current),
+    [circuit.id, onCircuitReveal],
+  );
   // Contre-recette n° 4 du 01/11/2026 : hauteur naturelle relevée sur le contenu (`measuresContent`).
-  const reveal = useCircuitCardsReveal(isCollapsed, CIRCUIT_GAP, CIRCUIT_CARDS_BOTTOM_OVERLAP, true);
+  const reveal = useCircuitCardsReveal(isCollapsed, CIRCUIT_GAP, CIRCUIT_CARDS_BOTTOM_OVERLAP, true, ghost ? undefined : onRevealStart);
   const railX = RAIL_CENTER_X_IN_COLUMN + (inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET);
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
   const testID = ghost ? `composition-layout-vanishing-circuit-${circuit.id}-block` : `composition-layout-circuit-${circuit.id}`;
@@ -8824,7 +8956,7 @@ function LayoutCircuitBlock({
         testID={`${testID}-surface`}
       >
         {layered ? (
-          <CircuitSurface top={motion.top} bottom={motion.bottom} dragHeight={blockHeight} testID={`${testID}-surface-layers`} />
+          <CircuitSurface top={motion.top} bottom={motion.bottom} dragHeight={blockHeight} extendsOnSpread testID={`${testID}-surface-layers`} />
         ) : null}
       </Reanimated.View>
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
@@ -9038,6 +9170,7 @@ function LayoutCycleBlock({
             bottom={motion.bottom}
             dragHeight={cycleHeight}
             color={CYCLE_SURFACE_COLOR}
+            extendsOnSpread
             testID={`${testID}-surface-layers`}
           />
         ) : null}
@@ -9168,11 +9301,17 @@ function CircuitSurface({
   bottom,
   dragHeight,
   color,
+  extendsOnSpread = false,
   testID,
 }: {
   top: Animated.Value;
   bottom: Animated.Value;
   dragHeight: number;
+  /**
+   * Contre-recette n° 5 du 01/11/2026 : disposition générale — écartement des bords porté par un
+   * prolongement (voir plus bas) ; sans (ancien modèle, Circuit unique) : bande étirée, comme avant.
+   */
+  extendsOnSpread?: boolean;
   /** Recette n° 2 du 31/10 : aplat d'un conteneur de la disposition générale (Cycle) ; par défaut, celui du Circuit. */
   color?: string;
   testID: string;
@@ -9182,21 +9321,44 @@ function CircuitSurface({
   const bandHeight = Number.isFinite(dragHeight)
     ? Math.max(1, dragHeight - 2 * CIRCUIT_RADIUS)
     : 1;
-  const bandTransform = useMemo(
-    () => [
-      { translateY: Animated.multiply(Animated.add(top, bottom), 0.5) },
-      {
-        // Jamais négatif : un retrait plus haut que la bande l'écrase à 0 sans la retourner.
-        scaleY: Animated.add(1, Animated.divide(Animated.subtract(bottom, top), bandHeight)).interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, 1],
-          extrapolateLeft: "clamp",
-          extrapolateRight: "extend",
-        }),
-      },
-    ],
-    [bandHeight, bottom, top],
-  );
+  /**
+   * Contre-recette n° 5 du 01/11/2026 (place ouverte pendant le déploiement, sans soubresaut du bord
+   * bas) — la bande n'est plus étirée d'après la hauteur relevée au fil JS (`dragHeight`, en retard
+   * pendant un déploiement) quand les bords s'écartent : elle garde sa hauteur de mise en page (fil UI)
+   * et suit le bord haut ; un prolongement d'un point, posé sur le bas de la bande dans la mise en page,
+   * est étiré de l'écart entre les bords (translations seules). Quand les bords se rapprochent
+   * (place refermée), la bande se resserre comme avant (`dragHeight`). [Recette n° 2 : bande toujours
+   * étirée de `bottom − top` rapporté à `dragHeight` — remplacé pour l'écartement.]
+   */
+  const { bandTransform, extensionTransform } = useMemo(() => {
+    const spread = Animated.subtract(bottom, top);
+    // Rapprochement seul (≤ 0) et écartement seul (≥ 0) ; ancien modèle : tout écart étire la bande.
+    const closing = extendsOnSpread
+      ? spread.interpolate({ inputRange: [-1, 0], outputRange: [-1, 0], extrapolateLeft: "extend", extrapolateRight: "clamp" })
+      : spread;
+    const opening = extendsOnSpread
+      ? spread.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolateLeft: "clamp", extrapolateRight: "extend" })
+      : Animated.multiply(spread, 0);
+    return {
+      bandTransform: [
+        { translateY: Animated.add(top, Animated.multiply(closing, 0.5)) },
+        {
+          // Jamais négatif : un retrait plus haut que la bande l'écrase à 0 sans la retourner ; 1 à l'écartement.
+          scaleY: Animated.add(1, Animated.divide(closing, bandHeight)).interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1],
+            extrapolateLeft: "clamp",
+            extrapolateRight: extendsOnSpread ? "clamp" : "extend",
+          }),
+        },
+      ],
+      extensionTransform: [
+        // Prolongement (1 point, sous le bas de la bande) : de bas de bande + `top` à bas de bande + `bottom`.
+        { translateY: Animated.add(top, Animated.add(Animated.multiply(opening, 0.5), -0.5)) },
+        { scaleY: opening },
+      ],
+    };
+  }, [bandHeight, bottom, extendsOnSpread, top]);
   return (
     <View
       pointerEvents="none"
@@ -9207,6 +9369,9 @@ function CircuitSurface({
     >
       {/* Bande d'abord, arrondis ensuite : les arrondis recouvrent les jointures (`CIRCUIT_SURFACE_SEAM_OVERLAP`). */}
       <Animated.View style={[styles.circuitSurfaceBand, fill, { transform: bandTransform }]} testID={`${testID}-band`} />
+      {extendsOnSpread ? (
+        <Animated.View style={[styles.circuitSurfaceExtension, fill, { transform: extensionTransform }]} testID={`${testID}-extension`} />
+      ) : null}
       <Animated.View style={[styles.circuitSurfaceTop, fill, { transform: [{ translateY: top }] }]} testID={`${testID}-top`} />
       <Animated.View
         style={[styles.circuitSurfaceBottom, fill, { transform: [{ translateY: bottom }] }]}
@@ -9406,6 +9571,12 @@ const CYCLE_ENTERING = FadeIn.duration(MOTION_FADE_DURATION_MS).reduceMotion(Red
  * muet ; immédiat si « Réduire les animations » est actif.
  */
 const CIRCUIT_ENTERING = FadeIn.duration(CIRCUIT_REVEAL_DURATION_MS).reduceMotion(ReduceMotion.System);
+/**
+ * Contre-recette n° 5 du 01/11/2026 : translations du registre lancées avec le déploiement d'un
+ * Circuit pendant un glisser (place ouverte à sa fin, compensation de l'élément saisi) — même durée et
+ * même courbe que ce déploiement (`useCircuitCardsReveal`), sur le pilote natif.
+ */
+const CIRCUIT_REVEAL_SHIFT_TIMING: ShiftTiming = { duration: CIRCUIT_REVEAL_DURATION_MS, easing: Easing.bezier(...CIRCUIT_REVEAL_BEZIER) };
 /**
  * Recette du 29/10 (obs-3 c) : anneau extérieur du Cycle (Figma `10748:20132`, 16 de diamètre, trait
  * 1), concentrique au repère de 10 ; le rail s'arrête à son bord (3 au-delà du repère).
@@ -9874,6 +10045,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
+  /** Contre-recette n° 5 : prolongement de la queue du rail (1 point sous le bas du conteneur), étiré à l'écartement. */
+  layoutRailTailExtension: {
+    bottom: -1,
+    height: 1,
+  },
   // T02-S02 — carte d'Activité, D-095/D-128/D-138.
   //
   // Le `Pressable` porte la surface de la carte ; `overflow: "hidden"` découpe son
@@ -10062,6 +10238,15 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: CIRCUIT_RADIUS,
     bottom: CIRCUIT_RADIUS,
+    left: 0,
+    right: 0,
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
+  },
+  /** Contre-recette n° 5 : prolongement de la bande (1 point sous son bas), étiré quand les bords s'écartent. */
+  circuitSurfaceExtension: {
+    position: "absolute",
+    bottom: CIRCUIT_RADIUS - 1,
+    height: 1,
     left: 0,
     right: 0,
     backgroundColor: CIRCUIT_SURFACE_COLOR,

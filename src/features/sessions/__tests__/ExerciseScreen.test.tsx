@@ -1856,6 +1856,16 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     };
   })();
   const openSheet = () => fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  /**
+   * Hermann, 01/11/2026 (remplace « déployé à l'ouverture », PRE-5 story 2.8) : « Lorsque la modale
+   * des paramètres s'ouvre, le tableau des phases doit être fermé s'il n'y a aucune valeur à vérifier
+   * ou à renseigner. » Durées complètes : le tableau s'ouvre replié, déployé ici par son chevron.
+   */
+  const unfoldPhases = () => {
+    expect(screen.queryByTestId("execution-sheet-phases-table")).toBeNull();
+    fireEvent.press(screen.getByTestId("execution-sheet-phases-control-WITH-chevron"));
+    expect(screen.getByTestId("execution-sheet-phases-table")).toBeTruthy();
+  };
   const isStructureLocked = () =>
     screen.getByTestId("execution-sheet-phase-row-1-remove").props.accessibilityState?.disabled === true &&
     screen.getByTestId("execution-sheet-phases-control-WITHOUT").props.accessibilityState?.disabled === true;
@@ -1866,6 +1876,7 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
       exercises: [canonicalOccurrence({ executionParameters: PHASED, sideMode: "UNILATERAL", sourceMovementId: "mov-1" })],
     });
     openSheet();
+    unfoldPhases();
     expect(isStructureLocked()).toBe(true);
     expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBe(false);
     fireEvent(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "focus");
@@ -1904,6 +1915,7 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     // dans la Feuille des paramètres (Mouvement NOUVEAU du brouillon).
     expect(screen.queryByTestId("movement-section-phases")).toBeNull();
     openSheet();
+    unfoldPhases();
     expect(isStructureLocked()).toBe(false);
     expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).not.toBe(false);
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
@@ -1924,6 +1936,7 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     // Phases — structure modifiable dans la Feuille des paramètres.
     expect(screen.queryByTestId("movement-section-phases")).toBeNull();
     openSheet();
+    unfoldPhases();
     expect(isStructureLocked()).toBe(false);
     expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).not.toBe(false);
     screen.unmount();
@@ -1957,6 +1970,7 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     });
     await screen.findByDisplayValue("Planche");
     openSheet();
+    unfoldPhases();
     // Catalogue : structure modifiable, croix disponible dès deux phases (D-438).
     expect(isStructureLocked()).toBe(false);
     fireEvent.press(screen.getByTestId("execution-sheet-phase-count-toggle"));

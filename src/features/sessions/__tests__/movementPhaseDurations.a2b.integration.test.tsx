@@ -265,6 +265,11 @@ describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel
     const [, second] = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, Fentes,`));
     fireEvent.press(second!);
     await settle(300);
+    // Hermann, 01/11/2026 : « Lorsque la modale des paramètres s'ouvre, le tableau des phases doit
+    // être fermé s'il n'y a aucune valeur à vérifier ou à renseigner. » Durées complètes, aucune
+    // marque « à vérifier » (Exercice posé après la modification du Mouvement) : replié, chevron d'abord.
+    expect(screen.queryByTestId("execution-sheet-phases-table")).toBeNull();
+    fireEvent.press(screen.getByTestId("execution-sheet-phases-control-WITH-chevron"));
     expect(sheetPhaseDurations()).toEqual(["9 s", "9 s"]);
   }, 40000);
 });

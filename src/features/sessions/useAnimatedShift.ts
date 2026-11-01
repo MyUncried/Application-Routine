@@ -9,6 +9,14 @@ import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/com
  */
 export const DRAG_SHIFT_DURATION_MS = MOTION_SHIFT_DURATION_MS;
 
+/**
+ * Contre-recette n° 5 du 01/11/2026 : durée et courbe d'une animation du registre ; par défaut, celles
+ * du jeu de mouvements partagé (`DRAG_SHIFT_DURATION_MS`, `MOTION_EASING`).
+ */
+export type ShiftTiming = { readonly duration: number; readonly easing: (value: number) => number };
+
+const DEFAULT_SHIFT_TIMING: ShiftTiming = { duration: DRAG_SHIFT_DURATION_MS, easing: MOTION_EASING };
+
 /** Revue 7.6 : retard estimé du départ natif d'une animation (une image). */
 const NATIVE_START_LAG_MS = 16;
 
@@ -73,7 +81,7 @@ export class AnimatedShiftRegistry {
    * — la valeur JS n'avance pas sur le pilote natif — et position de départ reportée d'une clé dont
    * l'animation, relancée, n'a pas encore démarré.
    */
-  private readonly motions = new Map<string, { readonly from: number; readonly to: number; readonly start: number }>();
+  private readonly motions = new Map<string, { readonly from: number; readonly to: number; readonly start: number; readonly timing: ShiftTiming }>();
   private readonly carried = new Map<string, number>();
   /** Revue 7.6 : clés dont l'animation arrêtée doit encore renvoyer sa valeur atteinte. */
   private readonly echoExpected = new Set<string>();
@@ -255,6 +263,47 @@ export class AnimatedShiftRegistry {
   }
 
   /**
+   * Contre-recette n° 5 du 01/11/2026 (Hermann : « Oui, ouvrir la place pendant le déploiement. […] la
+   * carte elle fait encore plusieurs soubresauts qu'il faut éliminer. ») : anime les seules clés de
+   * `targets` (les autres sont laissées telles quelles) avec la durée et la courbe `timing` — celles du
+   * déploiement d'un Circuit, lancé dans la même tâche — depuis leur position courante ; `timing` nul
+   * ou de durée nulle (« Réduire les animations ») : pose immédiate. Un `apply` suivant portant les
+   * mêmes cibles ne relance rien.
+   */
+  retarget(targets: ReadonlyMap<string, number>, timing: ShiftTiming | null): void {
+    for (const [key, target] of targets) {
+      const shift = this.value(key, target);
+      const busy = this.running.has(key) || this.pending.has(key);
+      if (this.applied.get(key) === target && !busy) continue;
+      const at = this.position(key);
+      this.applied.set(key, target);
+      this.cancel(key);
+      this.nativeStale.delete(key);
+      if (timing === null || timing.duration <= 0) {
+        shift.stopAnimation();
+        shift.setValue(target);
+        this.carried.delete(key);
+        this.motions.delete(key);
+        continue;
+      }
+      this.carried.set(key, at);
+      const token = ++this.nextToken;
+      this.pending.set(key, token);
+      queueMicrotask(() => this.start(key, token, shift, target, timing));
+    }
+    this.clearNativeSyncIfIdle();
+    this.notifyIfSettled();
+  }
+
+  /**
+   * Contre-recette n° 5 du 01/11/2026 : translation estimée d'une clé (en mouvement : d'après sa
+   * courbe et le temps écoulé ; au repos : sa cible), `null` si la clé n'existe pas.
+   */
+  estimate(key: string): number | null {
+    return this.values.has(key) ? this.position(key) : null;
+  }
+
+  /**
    * PRE-6 story 5.2b : nouveau geste pendant un retour — arrête toutes les animations et pose
    * toutes les valeurs à 0, de façon synchrone : l'écran rejoint la mise en page mesurée avant le
    * relevé du geste (`originLayout`).
@@ -303,7 +352,7 @@ export class AnimatedShiftRegistry {
     };
   }
 
-  private start(key: string, token: number, shift: Animated.Value, target: number): void {
+  private start(key: string, token: number, shift: Animated.Value, target: number, timing: ShiftTiming = DEFAULT_SHIFT_TIMING): void {
     if (this.pending.get(key) !== token || this.values.get(key) !== shift || this.applied.get(key) !== target) {
       return;
     }
@@ -311,12 +360,13 @@ export class AnimatedShiftRegistry {
     const from = this.carried.get(key) ?? jsValueOf(shift) ?? target;
     this.carried.delete(key);
     // Revue 7.6 : l'animation native ne part qu'à l'image suivante — l'estimation en tient compte.
-    this.motions.set(key, { from, to: target, start: Date.now() + NATIVE_START_LAG_MS });
+    this.motions.set(key, { from, to: target, start: Date.now() + NATIVE_START_LAG_MS, timing });
     const animation = Animated.timing(shift, {
       toValue: target,
-      duration: DRAG_SHIFT_DURATION_MS,
-      // Story 7.6 : arrêt progressif, sans rebond (`compositionMotion.ts`).
-      easing: MOTION_EASING,
+      duration: timing.duration,
+      // Story 7.6 : arrêt progressif, sans rebond (`compositionMotion.ts`). Contre-recette n° 5 : ou
+      // courbe du déploiement d'un Circuit (`retarget`).
+      easing: timing.easing,
       useNativeDriver: true,
     });
     this.running.set(key, animation);
@@ -337,8 +387,8 @@ export class AnimatedShiftRegistry {
   private position(key: string): number {
     const motion = this.motions.get(key);
     if (this.running.has(key) && motion !== undefined) {
-      const progress = Math.min(1, Math.max(0, (Date.now() - motion.start) / DRAG_SHIFT_DURATION_MS));
-      return motion.from + (motion.to - motion.from) * MOTION_EASING(progress);
+      const progress = Math.min(1, Math.max(0, (Date.now() - motion.start) / motion.timing.duration));
+      return motion.from + (motion.to - motion.from) * motion.timing.easing(progress);
     }
     return this.carried.get(key) ?? this.applied.get(key) ?? 0;
   }

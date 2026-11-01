@@ -346,9 +346,16 @@ describe("PRE-7 A2.2 — Exercice du Catalogue existant (édition directe)", () 
   });
 });
 
-/** Feuille des paramètres : troisième phase ajoutée (changement structurel du geste), durée 2 s, puis ✓. */
+/**
+ * Feuille des paramètres : troisième phase ajoutée (changement structurel du geste), durée 2 s, puis ✓.
+ * Hermann, 01/11/2026 : « Lorsque la modale des paramètres s'ouvre, le tableau des phases doit être
+ * fermé s'il n'y a aucune valeur à vérifier ou à renseigner. » Durées complètes : le tableau, replié
+ * à l'ouverture, est d'abord déployé par son chevron pour saisir la durée de la nouvelle phase.
+ */
 function addThirdPhase() {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  expect(screen.queryByTestId("execution-sheet-phases-table")).toBeNull();
+  fireEvent.press(screen.getByTestId("execution-sheet-phases-control-WITH-chevron"));
   fireEvent.press(screen.getByTestId("execution-sheet-phase-count-toggle"));
   fireEvent(screen.getByTestId("execution-sheet-phase-count-increment"), "pressIn");
   fireEvent(screen.getByTestId("execution-sheet-phase-count-increment"), "pressOut");

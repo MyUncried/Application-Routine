@@ -90,6 +90,36 @@ Départ `4dd8c04a`. Résultats de Hermann du 31/10/2026 sur iPhone, recopiés.
 - `parametersToVerify.recette2.test.ts` : +1 (SQLite réelle : `listCatalogue` → projection `toVerify`, puis faux après `acknowledgeParametersToVerify`).
 - Régressions voisines : `ExecutionParametersSheet.test.tsx`, `.mfn.a21`, `.r7`, `SegmentedControl.test.tsx`, `ExerciseScreen.test.tsx`, `MovementScreen.recette2.integration`, `CatalogueScreen.test.tsx`, `CatalogueScreen.e4`, `SessionCatalogueList.e5`, `OccurrenceCardIncomplete`, `sessionCatalogueProjection.e1`, `compositionPresentation.toVerify`, `legacyModeConfinement`. `npx tsc --noEmit` et ESLint sur les fichiers modifiés. Suite complète non exécutée. Une suite verte ne vaut pas recette sur iPhone.
 
+## 01/11/2026 — tableau des phases replié à l'ouverture
+
+### Décision (texte de Hermann, recopié)
+
+« Lorsque la modale des paramètres s'ouvre, le tableau des phases doit être fermé s'il n'y a aucune valeur à vérifier ou à renseigner. »
+
+Classe **B** (évolution validée). Règle remplacée, pour l'ouverture seulement : PRE-5 story 2.8 (FR-4, FR-28, CE-UI-10), « tableau des phases […] déployé à l'ouverture et à chaque activation » — formulation portée par le commentaire de `isPhasesFolded` dans `ExecutionParametersSheet.tsx` ; ni le chapitre 13 ni les artefacts PRE-5 de cette branche (`_bmad-output/pre5/planning-artifacts/epics.md` AC2, `implementation-artifacts/spec-2-8-…md`) ne l'écrivent en toutes lettres (ils décrivent le chevron et l'activation, « tableau déployé ») : ils ne sont pas modifiés (story close).
+
+### Réalisé
+
+`ExecutionParametersSheet.tsx` : état initial de `isPhasesFolded` calculé sur le Brouillon d'ouverture — replié, sauf si une durée de phase manque (non numérique ou < `WORK_PHASE_LIMITS.durationMin`, donc vide ou 0 s) ou si l'identité de la phase figure dans `phasesToVerify` (constat e). Même feuille pour les trois chemins : Catalogue et Exercice de Séance (`ActivityEditorForm`, marque lue de la définition ou de l'occurrence), carte de la Composition (`useMovementExerciseIntake`, marque de l'occurrence). Inchangés : l'activation d'Avec déploie (`setIsPhasesFolded(false)`), le chevron bascule, un autre contrôle replie (29/10), rouge / orange du champ « n phases » (cr4-rouge, cr4-verifier).
+
+### Recette iPhone (Hermann)
+
+- R4-1. Exercice dont toutes les durées de phase sont renseignées, sans « Paramètre à vérifier » → ouvrir la feuille (Catalogue, fiche d'Exercice de Séance, carte de la Composition) : tableau des phases replié, chevron vers le bas ; le chevron le déploie.
+- R4-2. Exercice avec une durée de phase vide (ou 0 s) → feuille : tableau déployé, cellule rouge.
+- R4-3. Exercice « Paramètre à vérifier » → feuille : tableau déployé, cellule reprise orange.
+- R4-4. Exercice sans phase → Avec : tableau déployé (inchangé).
+
+### Synchronisation code / documentation
+
+- Classe **B** : ch07, section « Recette iPhone n° 2 du 31/10/2026 — contrôle (phases, feuille des paramètres, valeurs par défaut) », entrée du 01/11/2026 (texte recopié, règle remplacée nommée) ; ch13 CE-UI-10, ligne 2b des Règles communes et § 12 « Chevrons de Variables et d'Avec » (annotations datées, texte d'origine conservé) ; commentaire de `isPhasesFolded` (texte d'origine conservé, annotation datée).
+- Recherche ciblée (« déployé à l'ouverture », « tableau des phases » + « ouverture », « à chaque activation », FR-28, CE-UI-10) dans `docs/` et `_bmad-output/` : aucune autre formulation de l'état d'ouverture du tableau des phases. `reconcile-sources-parent.md` (PRE-5, « état […] réinitialisé à l'ouverture ») reste exact : l'état reste local et recalculé à chaque ouverture.
+
+### Tests (ciblés, `npx jest --maxWorkers=1 …`)
+
+- `ExecutionParametersSheet.phases.test.tsx` : nouveau bloc « Hermann, 01/11/2026 » — durées complètes sans marque (éditeur, carte de la Composition, marque vide) → replié, chevron bas, phases intactes au dépliage ; durée vide ou 0 s → déployé ; « à vérifier » → déployé (marque d'une phase absente : replié) ; activation d'Avec (depuis Sans, et Sans → Avec) → déployé ; chevron déploie puis replie. Les scénarios existants qui supposent le tableau déployé à l'ouverture le déploient d'abord par le chevron (`unfoldPhases`, qui vérifie aussi le repli initial) ; assertions inchangées.
+- Même adaptation : `ExecutionParametersSheet.mfn.a21.test.tsx`, `.r7.test.tsx`, `ExerciseScreen.test.tsx` (Feuille MFN), `ExerciseScreen.mfn.a22.integration.test.tsx` (`addThirdPhase`), `ExerciseScreen.sessionMovement.integration.test.tsx`, `movementPhaseDurations.a2b.integration.test.tsx` (troisième ouverture, durées 9 s / 9 s).
+- Régressions voisines vertes : `ExecutionParametersSheet*` (6 suites), `ExerciseScreen*`, `movementPhaseDurations.a2b`, `ExerciseEditingPaths.integration`, `ExerciseEditorNoWrite.integration`, `CompositionExerciseFlow`, `CompositionMovementFlow`, `CompositionSaveFlow`, `CompositionScreen.recette1`, `.recette2lot3`, `ActivityEditorForm`, `MovementScreen*`. `npx tsc --noEmit` et ESLint (fichiers touchés) propres.
+
 ## Fichiers
 
 - Code : `src/features/activities/MovementPhasesEditor.tsx`, `ActivityEditorForm.tsx`, `KeyboardField.tsx`, `ExecutionParametersSheet.tsx`, `ActivityCard.tsx`, `ActivitySelectionScreen.tsx`, `ActivityDefinitionService.ts` ; `src/shared/ui/SegmentedControl.tsx`, `src/shared/ui/toVerifyColors.ts` (nouveau) ; `src/shared/i18n/index.ts` ; `src/domain/activities/parametersToVerify.ts` (nouveau), `ActivityDefinition.ts`, `ActivityDefinitionRepository.ts`, `Movement.ts`, `movementSave.ts` (commentaires) ; `src/domain/sessions/Session.ts`, `SessionDraft.ts`, `SessionRepository.ts` ; `src/features/sessions/compositionPresentation.ts`, `OccurrenceCard.tsx`, `CompositionScreen.tsx` (carte : état orange seulement), `useMovementExerciseIntake.tsx`, `ExerciseScreen.tsx`, `SessionService.ts`, `movementExercises.ts` (commentaire) ; `src/infrastructure/database/migrations/migration019.ts` (nouveau), `migrateDatabase.ts`, `constants.ts`, `types/DatabaseRows.ts`, `repositories/SqliteMovementRepository.ts`, `SqliteSessionRepository.ts`, `SqliteActivityDefinitionRepository.ts`, `README.md`.

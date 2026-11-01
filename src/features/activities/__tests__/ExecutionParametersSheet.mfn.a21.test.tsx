@@ -107,6 +107,17 @@ function enterDuration(n: number, keys: string) {
   fireEvent(get(`${duration(n)}-input`), "blur");
 }
 
+/**
+ * Hermann, 01/11/2026 (remplace « déployé à l'ouverture » de PRE-5 story 2.8, FR-28) : « Lorsque la
+ * modale des paramètres s'ouvre, le tableau des phases doit être fermé s'il n'y a aucune valeur à
+ * vérifier ou à renseigner. » Durées complètes : le tableau est déployé par son chevron d'abord.
+ */
+function unfoldPhases() {
+  expect(query(TABLE)).toBeNull();
+  fireEvent.press(get(CHEVRON));
+  expect(get(TABLE)).toBeTruthy();
+}
+
 function stepperTap(button: "increment" | "decrement") {
   fireEvent(get(`${STEPPER}-${button}`), "pressIn");
   fireEvent(get(`${STEPPER}-${button}`), "pressOut");
@@ -115,6 +126,7 @@ function stepperTap(button: "increment" | "decrement") {
 describe("ExecutionParametersSheet — PRE-7 story A2.1 : croix à deux phases (D-438, MFN/AC26)", () => {
   it("[A 6 s, B 3 s], croix de B : Sans ; PRE-7 (D-446 §4) : « Durée d'une série » 9 s inchangée, modifiable ; « Phase supprimée — Annuler » ; Annuler restitue les deux phases", () => {
     const { onApply } = renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]));
+    unfoldPhases();
     expect(stateOf(remove(1)).disabled).toBe(false);
     expect(stateOf(remove(2)).disabled).toBe(false);
     fireEvent.press(get(remove(2)));
@@ -170,6 +182,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : croix à deux phases (
 
   it("phase unique relue des données : croix indisponible (Sans reste le geste)", () => {
     renderSheet(withPhases([[1, "Seule", 9]]));
+    unfoldPhases();
     expect(stateOf(remove(1)).disabled).toBe(true);
   });
 });
@@ -203,6 +216,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : durée manquante (D-43
 describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée d'une occurrence (D-438, MFN-09, MFN/AC28)", () => {
   it("avec phases : Sans, nombre, croix, poignées et libellés indisponibles ; chevron actif ; durées modifiables, D inchangée (D-446)", () => {
     const { onApply } = renderSheet(withPhases([[1, "Descente", 6], [2, "Maintien", 3]]), { phaseStructureLocked: true });
+    unfoldPhases();
     expect(stateOf(WITHOUT).disabled).toBe(true);
     fireEvent.press(get(WITHOUT));
     expect(stateOf(WITH)).toMatchObject({ selected: true });
@@ -249,6 +263,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
 
   it("avec phases, durée vidée : ✓ indisponible, phase conservée (une durée vide empêche seulement d'enregistrer)", () => {
     renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]), { phaseStructureLocked: true });
+    unfoldPhases();
     fireEvent(get(`${duration(2)}-input`), "focus");
     typeInExecutionSheetCell(duration(2), CELL_BACKSPACE.repeat(String(get(`${duration(2)}-input`).props.value).length));
     fireEvent(get(`${duration(2)}-input`), "blur");
@@ -258,6 +273,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
 
   it("avec phases, re-choisir Avec pendant une saisie de durée : la saisie est appliquée, aucune surface ne reste ouverte (aucun réglage du nombre)", () => {
     const { onApply } = renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]), { phaseStructureLocked: true });
+    unfoldPhases();
     fireEvent(get(`${duration(2)}-input`), "focus");
     typeInExecutionSheetCell(duration(2), "5");
     fireEvent.press(get(WITH));
@@ -289,6 +305,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
 
   it("sans verrou (Catalogue, création locale) : structure modifiable", () => {
     renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]));
+    unfoldPhases();
     expect(stateOf(WITHOUT).disabled).toBe(false);
     expect(stateOf(COUNT_TOGGLE).disabled).toBeFalsy();
     // Poignée : arbre antérieur (aucun état exposé), glisser et actions accessibles disponibles.
@@ -303,6 +320,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : compteur de phase du M
   it("structure [1, 2, 3], compteur 5 : retrait de 3, ✓, réouverture, + → nouvelle phase d'identité 5", () => {
     const parent = withPhases([[1, "A", 6], [2, "B", 3], [3, "C", 5]]);
     const first = renderSheet(parent, { nextPhaseId: 5 });
+    unfoldPhases();
     fireEvent.press(get(remove(3)));
     validate();
     const reopened = applied(first.onApply);

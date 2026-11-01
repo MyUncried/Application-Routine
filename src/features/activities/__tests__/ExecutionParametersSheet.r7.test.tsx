@@ -69,6 +69,17 @@ function enterDuration(n: number, keys: string) {
   fireEvent(get(`${duration(n)}-input`), "blur");
 }
 
+/**
+ * Hermann, 01/11/2026 (remplace « déployé à l'ouverture » de PRE-5 story 2.8, FR-28) : « Lorsque la
+ * modale des paramètres s'ouvre, le tableau des phases doit être fermé s'il n'y a aucune valeur à
+ * vérifier ou à renseigner. » Durées complètes : le tableau est déployé par son chevron d'abord.
+ */
+function unfoldPhases() {
+  expect(screen.queryByTestId("execution-sheet-phases-table", hidden)).toBeNull();
+  fireEvent.press(get("execution-sheet-phases-control-WITH-chevron"));
+  expect(get("execution-sheet-phases-table")).toBeTruthy();
+}
+
 describe("R-7 — Feuille des paramètres", () => {
   it("PH-5 — Durée, phase vide (3 × 30 s, pause 60 s, phases 3 s / —) : total affiché, cellule rouge, ✓ indisponible", () => {
     const { onApply } = renderSheet(params(phases(3, 0)));
@@ -92,6 +103,7 @@ describe("R-7 — Feuille des paramètres", () => {
 
   it("point 6 — « 0000 » dans une durée de phase : 0 s affichée, cellule rouge, ✓ indisponible ; le total reste affiché", () => {
     const { onApply } = renderSheet(params(phases(3, 2)));
+    unfoldPhases();
     expect(validateDisabled()).toBe(false);
     enterDuration(1, "0000");
     expect(shownDuration(1)).toBe(formatPhraseDuration(0));

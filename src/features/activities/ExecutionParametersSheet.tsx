@@ -590,8 +590,19 @@ export function ExecutionParametersSheet({
   /**
    * PRE-5 story 2.8 (FR-4, FR-28) : tableau des phases replié par le chevron de l'option Avec ;
    * déployé à l'ouverture et à chaque activation. Le nombre et les phases n'en dépendent pas.
+   * [Remplacé le 01/11/2026 pour l'ouverture (Hermann : « Lorsque la modale des paramètres s'ouvre,
+   * le tableau des phases doit être fermé s'il n'y a aucune valeur à vérifier ou à renseigner. ») :
+   * replié à l'ouverture, sauf si une durée de phase manque ou est « à vérifier » ; déployé à
+   * chaque activation, inchangé.]
    */
-  const [isPhasesFolded, setIsPhasesFolded] = useState(false);
+  const [isPhasesFolded, setIsPhasesFolded] = useState(() => {
+    const toVerify = new Set(phasesToVerify ?? []);
+    const needsAttention = draft.workPhases.some(
+      (phase) =>
+        toVerify.has(phase.id) || !(typeof phase.durationSeconds === "number" && phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin),
+    );
+    return !needsAttention;
+  });
   /**
    * PRE-5 story 2.5 (AC4, AD-28) : section « Durée de l'exercice » déployée (Compte à rebours
    * et Fin rendus) ; repliée à l'ouverture de la Feuille. Indépendante de la valeur de durée.

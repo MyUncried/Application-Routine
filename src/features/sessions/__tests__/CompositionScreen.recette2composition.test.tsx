@@ -712,7 +712,11 @@ describe("Contre-recette n° 4 (01/11) — glisser dans la structure générale"
     return seen;
   }
 
-  it("cr5-replie : arrêt sur un Circuit replié — aucune place ouverte avant ni pendant le déploiement (le cadre grandit avec ses cartes), puis la place s'ouvre", async () => {
+  // [« ni pendant le déploiement » : remplacé par la contre-recette n° 5 du 01/11/2026 (« Oui, ouvrir la
+  // place pendant le déploiement. ») — la place s'ouvre au départ du déploiement, qui attend la mesure du
+  // contenu ; ce test ne la fournit pas : il vérifie l'arrêt et l'attente de ce départ (voir « Contre-recette
+  // n° 5 » plus bas).]
+  it("cr5-replie : arrêt sur un Circuit replié — aucune place ouverte avant le départ du déploiement (le cadre grandit avec ses cartes), puis la place s'ouvre", async () => {
     await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
     measureTwoCircuits();
     await collapse("cb");
@@ -867,5 +871,155 @@ describe("Contre-recette n° 4 (01/11) — glisser dans la structure générale"
     expect(StyleSheet.flatten(content.props.style)).toMatchObject({ gap: 9 });
     expect(StyleSheet.flatten(content.props.style).maxHeight).toBeUndefined();
     expect(screen.getByTestId("composition-activity-a1", hidden)).toBeTruthy();
+  });
+});
+
+/**
+ * Contre-recette n° 5 du 01/11/2026 (Hermann, cr6-replie KO) : « Oui, ouvrir la place pendant le
+ * déploiement. le circuit s'ouvre proprement mais la carte elle fait encore plusieurs soubresauts qu'il
+ * faut éliminer. » — 1. classe B : la place s'ouvre à la fin du Circuit pendant son déploiement, dans le
+ * même mouvement (courbe et durée du déploiement, départ dans la même tâche) ; 2. classe A : la
+ * compensation de la carte saisie (Circuit déployé au-dessus d'elle) est lancée une seule fois, sur le
+ * pilote natif, avec le déploiement — aucune pose depuis le fil JS à chaque mesure. Jest ne prouve ni
+ * la synchronisation des deux fils natifs ni le ressenti sur iPhone.
+ */
+describe("Contre-recette n° 5 (01/11) — déploiement par l'arrêt : place ouverte avec lui, carte immobile sous le doigt", () => {
+  /** Animations lancées (cible, durée) ; le pilote natif simulé pose sa cible au départ. */
+  function recordTimings(): { toValue: number; duration: number | undefined }[] {
+    const seen: { toValue: number; duration: number | undefined }[] = [];
+    jest.spyOn(Animated, "timing").mockImplementation((value, config) => {
+      seen.push({ toValue: config.toValue as number, duration: config.duration });
+      const animated = value as Animated.Value;
+      return {
+        start: (callback?: Animated.EndCallback) => {
+          animated.setValue(config.toValue as number);
+          callback?.({ finished: true });
+        },
+        stop: () => undefined,
+        reset: () => undefined,
+      };
+    });
+    return seen;
+  }
+  const bottomEdge = () => translationOf("composition-layout-circuit-cb-surface-layers-bottom");
+  /** Translation du registre qui porte e9 (sa rangée). */
+  const liftedKey = "native|rail:row:e9";
+
+  /**
+   * e9 sous le Circuit B replié (340–408, en-tête replié 40 : ligne 18 + noms 22), saisie (428), arrêtée
+   * sur B (374) jusqu'à son déploiement. Croissance prévue de B : cartes 80 + écart 9 − marge basse
+   * réduite 6 − noms 22 = 61 ; e9 descend d'autant dans la mise en page.
+   */
+  async function hoverUntilExpanded() {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("cb");
+    layout("composition-layout-circuit-cb", 340, 68);
+    layout("composition-layout-circuit-cb-header-frame", 14, 40);
+    layout("composition-layout-exercise-e9", 428, 80);
+    await settle();
+    const card = liftCard("e9", 468);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 374 } });
+    await settle();
+    // Pendant l'arrêt (inchangé, contre-recette n° 4) : aucune place ouverte.
+    expect(bottomEdge()).toBe(0);
+    await elapseHoverDelay();
+    expect(expanded("cb")).toBe(true);
+    return card;
+  }
+  /** Départ du déploiement : première mesure du contenu de B (ses cartes, 80). */
+  async function revealStarts() {
+    await act(async () => {
+      layout("composition-layout-circuit-cb-exercises-content", 0, 80);
+    });
+    await settle();
+  }
+  /** Mesures du déploiement (fil UI → rappels, en retard) : B grandit, e9 descend dans la mise en page. */
+  async function grow(heights: readonly number[], check: () => void) {
+    // La ligne des noms s'est refermée : en-tête de 18.
+    layout("composition-layout-circuit-cb-header-frame", 14, 18);
+    layout("composition-layout-circuit-cb-exercises", 41, 80);
+    layout("composition-activity-b1", 0, 80);
+    for (const height of heights) {
+      layout("composition-layout-circuit-cb", 340, height);
+      layout("composition-layout-exercise-e9", 340 + height + 20, 80);
+      await settle();
+      check();
+    }
+  }
+
+  it("la place s'ouvre à la fin du Circuit pendant son déploiement, avec sa courbe et sa durée ; puis destination sous le doigt", async () => {
+    const card = await hoverUntilExpanded();
+    // Le déploiement attend la mesure de son contenu : rien n'est encore lancé.
+    expect(bottomEdge()).toBe(0);
+    const timings = recordTimings();
+    await revealStarts();
+    // Bord bas de B et compensation de e9 lancés ensemble, à la durée du déploiement (700 ms).
+    expect(bottomEdge()).toBe(89);
+    expect(timings).toEqual(
+      expect.arrayContaining([
+        { toValue: 89, duration: CIRCUIT_REVEAL_DURATION_MS },
+        { toValue: -61, duration: CIRCUIT_REVEAL_DURATION_MS },
+      ]),
+    );
+    await grow([80, 104, 129], () => {
+      // Pendant le déploiement : la place reste ouverte (bord bas), les cartes de B apparaissent en place.
+      expect(bottomEdge()).toBe(89);
+      expect(rowShift("b1")).toBe(0);
+    });
+    await elapseReveal();
+    // Déploiement terminé : destination sous le doigt (tête de B, avant b1), décalages animés une fois.
+    expect(rowShift("b1")).toBe(89);
+    expect(timings.filter((timing) => timing.toValue === 89 && timing.duration !== CIRCUIT_REVEAL_DURATION_MS)).toHaveLength(1);
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 374, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[e9,b1]");
+  });
+
+  it("Circuit AU-DESSUS de la carte saisie : compensation lancée une fois avec le déploiement — aucune pose ni nouvel aperçu à chaque mesure", async () => {
+    const card = await hoverUntilExpanded();
+    const poses = jest.spyOn(AnimatedShiftRegistry.prototype, "pose");
+    const applies = jest.spyOn(AnimatedShiftRegistry.prototype, "apply");
+    await revealStarts();
+    // Compensation de toute la croissance prévue (61), lancée par le registre au départ.
+    expect(rowShift("e9")).toBe(-61);
+    const appliesAtStart = applies.mock.calls.length;
+    await grow([70, 85, 101, 117, 126, 129], () => {
+      // Avant correction : la compensation suivait chaque mesure (−2, −17, −33…), posée après coup.
+      expect(rowShift("e9")).toBe(-61);
+    });
+    expect(poses).not.toHaveBeenCalled();
+    // Aucun aperçu nouveau pendant les mesures : chaque cible reçue est celle du départ.
+    const later = applies.mock.calls.slice(appliesAtStart);
+    expect(later.every(([targets]) => targets.get(liftedKey) === -61)).toBe(true);
+    await elapseReveal();
+    // Mesure réelle = prévision : rien à corriger à la fin.
+    expect(poses).not.toHaveBeenCalled();
+    expect(rowShift("e9")).toBe(-61);
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 374, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[e9,b1]");
+  });
+
+  it("prévision inexacte : l'écart résiduel est posé une seule fois, à la fin du déploiement", async () => {
+    await hoverUntilExpanded();
+    const poses = jest.spyOn(AnimatedShiftRegistry.prototype, "pose");
+    await revealStarts();
+    // B grandit en réalité de 67 (et non 61).
+    await grow([100, 135], () => undefined);
+    expect(poses).not.toHaveBeenCalled();
+    await elapseReveal();
+    expect(poses.mock.calls.filter(([key]) => key === liftedKey)).toEqual([[liftedKey, -67]]);
+    expect(rowShift("e9")).toBe(-67);
+  });
+
+  it("lâcher pendant le déploiement : dépose à la fin du Circuit, depuis la position affichée (compensation animée comprise)", async () => {
+    const card = await hoverUntilExpanded();
+    await revealStarts();
+    await grow([100], () => undefined);
+    const poses = jest.spyOn(AnimatedShiftRegistry.prototype, "pose");
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 374, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[b1,e9]");
+    // Translation du doigt (374 − 468 = −94) plus la compensation animée (−61).
+    expect(poses.mock.calls.filter(([key]) => key === liftedKey)[0]).toEqual([liftedKey, -155]);
+    expect(revealTimers.size).toBe(0);
   });
 });

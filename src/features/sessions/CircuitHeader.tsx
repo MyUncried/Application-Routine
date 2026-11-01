@@ -1,4 +1,4 @@
-import { type ComponentProps, useCallback, useEffect, useRef, useState } from "react";
+import { type ComponentProps, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Animated,
   Pressable,
@@ -48,7 +48,19 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  */
 export const CIRCUIT_REVEAL_DURATION_MS = 700;
 export const CIRCUIT_HIDE_DURATION_MS = 900;
-const CIRCUIT_REVEAL_EASING = ReanimatedEasing.bezier(0.4, 0, 0.2, 1);
+/**
+ * Courbe du repli et du déploiement (points de contrôle de la courbe de Bézier). Contre-recette n° 5
+ * du 01/11/2026 : partagée avec les translations du registre qui accompagnent un déploiement pendant
+ * un glisser (place ouverte à la fin du Circuit, compensation de la carte saisie) — même courbe, même
+ * durée, départ dans la même tâche.
+ */
+export const CIRCUIT_REVEAL_BEZIER = [0.4, 0, 0.2, 1] as const;
+const CIRCUIT_REVEAL_EASING = ReanimatedEasing.bezier(...CIRCUIT_REVEAL_BEZIER);
+/**
+ * Contre-recette n° 5 du 01/11/2026 : délai maximal d'attente de la mesure du contenu avant un
+ * déploiement (`useCircuitCardsReveal`, `onRevealStart`) ; au-delà, le déploiement part sans elle.
+ */
+export const CIRCUIT_REVEAL_START_FALLBACK_MS = 120;
 /** Hauteur maximale « libre » hors animation (aucune contrainte sur le contenu). */
 const UNCONSTRAINED_HEIGHT = 100000;
 
@@ -538,8 +550,23 @@ function CollapsedNamesLine({ isCollapsed, text, testID }: { isCollapsed: boolea
  * sur le CONTENU de la liste (`onContentLayout`, vue intérieure non contrainte par `maxHeight`), à
  * chaque mesure, pendant l'animation comme au repos ; tant qu'elle est inconnue, la liste animée reste
  * fermée (0) au lieu d'être libre. Sans `measuresContent` (ancien modèle) : comportement d'origine.
+ *
+ * Contre-recette n° 5 du 01/11/2026 (Hermann : « Oui, ouvrir la place pendant le déploiement. le
+ * circuit s'ouvre proprement mais la carte elle fait encore plusieurs soubresauts qu'il faut
+ * éliminer. ») — avec `measuresContent`, un déploiement part quand la hauteur naturelle du contenu est
+ * connue (déjà relevée, sinon à la première mesure du contenu monté ; au plus tard après
+ * `CIRCUIT_REVEAL_START_FALLBACK_MS`) : le mouvement part de 0 avec sa hauteur finale, sans saut quand la
+ * mesure arrive en cours de route. `onRevealStart(hauteur naturelle)` est appelé dans la tâche même du
+ * départ (fil JS) : l'écran y lance, sur le pilote natif, les translations qui accompagnent ce
+ * déploiement avec la même courbe et la même durée.
  */
-export function useCircuitCardsReveal(collapsed: boolean, gap: number, bottomOverlap = 0, measuresContent = false) {
+export function useCircuitCardsReveal(
+  collapsed: boolean,
+  gap: number,
+  bottomOverlap = 0,
+  measuresContent = false,
+  onRevealStart?: (naturalHeight: number) => void,
+) {
   const reduceMotion = useReduceMotion();
   const [mounted, setMounted] = useState(!collapsed);
   const [animating, setAnimating] = useState(false);
@@ -553,6 +580,21 @@ export function useCircuitCardsReveal(collapsed: boolean, gap: number, bottomOve
   const progress = useSharedValue(collapsed ? 0 : 1);
   const naturalHeight = useSharedValue(0);
   const previous = useRef(collapsed);
+  /** Contre-recette n° 5 : hauteur naturelle du contenu connue du fil JS (dernière mesure). */
+  const naturalRef = useRef(0);
+  /** Contre-recette n° 5 : déploiement en attente de la mesure du contenu (`null` : aucun). */
+  const pendingStartRef = useRef<(() => void) | null>(null);
+  const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onRevealStartRef = useRef(onRevealStart);
+  useLayoutEffect(() => {
+    onRevealStartRef.current = onRevealStart;
+  });
+  useEffect(
+    () => () => {
+      if (fallbackRef.current !== null) clearTimeout(fallbackRef.current);
+    },
+    [],
+  );
   useEffect(() => {
     if (previous.current === collapsed) return;
     previous.current = collapsed;
@@ -561,12 +603,27 @@ export function useCircuitCardsReveal(collapsed: boolean, gap: number, bottomOve
       if (isCollapsed) setMounted(false);
     };
     const duration = reduceMotion ? 0 : collapsed ? CIRCUIT_HIDE_DURATION_MS : CIRCUIT_REVEAL_DURATION_MS;
-    progress.set(
-      withTiming(collapsed ? 0 : 1, { duration, easing: CIRCUIT_REVEAL_EASING }, (finished) => {
-        if (finished === true) scheduleOnRN(finish, collapsed);
-      }),
-    );
-  }, [collapsed, progress, reduceMotion]);
+    const start = () => {
+      pendingStartRef.current = null;
+      if (fallbackRef.current !== null) clearTimeout(fallbackRef.current);
+      fallbackRef.current = null;
+      progress.set(
+        withTiming(collapsed ? 0 : 1, { duration, easing: CIRCUIT_REVEAL_EASING }, (finished) => {
+          if (finished === true) scheduleOnRN(finish, collapsed);
+        }),
+      );
+      if (!collapsed && measuresContent && naturalRef.current > 0) onRevealStartRef.current?.(naturalRef.current);
+    };
+    // Contre-recette n° 5 : un déploiement attend la hauteur naturelle du contenu (voir l'en-tête).
+    if (!collapsed && measuresContent && naturalRef.current <= 0 && duration > 0) {
+      pendingStartRef.current = start;
+      if (fallbackRef.current !== null) clearTimeout(fallbackRef.current);
+      fallbackRef.current = setTimeout(() => pendingStartRef.current?.(), CIRCUIT_REVEAL_START_FALLBACK_MS);
+      return;
+    }
+    pendingStartRef.current = null;
+    start();
+  }, [collapsed, measuresContent, progress, reduceMotion]);
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
     marginTop: (progress.value - 1) * gap,
@@ -584,7 +641,11 @@ export function useCircuitCardsReveal(collapsed: boolean, gap: number, bottomOve
   const onContentLayout = useCallback(
     (event: LayoutChangeEvent) => {
       const { height } = event.nativeEvent.layout;
-      if (height > 0) naturalHeight.set(height);
+      if (height <= 0) return;
+      naturalHeight.set(height);
+      naturalRef.current = height;
+      // Contre-recette n° 5 : le déploiement en attente part avec cette mesure.
+      pendingStartRef.current?.();
     },
     [naturalHeight],
   );

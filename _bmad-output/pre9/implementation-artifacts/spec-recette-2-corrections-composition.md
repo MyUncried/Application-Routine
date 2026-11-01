@@ -104,7 +104,7 @@ Résultats de Hermann recopiés. Départ `4dd8c04a`, aucun commit. Registre : ch
 
 ### À vérifier sur iPhone (Jest ne le prouve pas)
 
-1. Déploiement par l'arrêt : mouvement continu des cartes et du fond du Circuit, puis ouverture douce de la place sous le doigt. Risque résiduel : quand le Circuit déployé est AU-DESSUS de la carte saisie, la compensation (`layoutSourceDrift`) est posée à chaque mesure, depuis le fil JS : la carte peut trembler légèrement sous le doigt pendant les 700 ms ; de même, le fond en trois couches (`CircuitSurface`) est mis à l'échelle d'après une hauteur relevée au fil JS (léger décalage possible à la jointure basse pendant le déploiement).
+1. Déploiement par l'arrêt : mouvement continu des cartes et du fond du Circuit, puis ouverture douce de la place sous le doigt. Risque résiduel : quand le Circuit déployé est AU-DESSUS de la carte saisie, la compensation (`layoutSourceDrift`) est posée à chaque mesure, depuis le fil JS : la carte peut trembler légèrement sous le doigt pendant les 700 ms [01/11/2026, contre-recette n° 5 : constaté (« plusieurs soubresauts ») et corrigé — compensation lancée avec le déploiement, sur le pilote natif] ; de même, le fond en trois couches (`CircuitSurface`) est mis à l'échelle d'après une hauteur relevée au fil JS (léger décalage possible à la jointure basse pendant le déploiement).
 2. Carte reposée à sa place, avec et sans Circuit déployé pendant le geste, plusieurs fois (défaut intermittent) : elle reste visible et revient à sa place. Si le défaut persiste, la cause est ailleurs (ordre natif à instrumenter sur l'appareil).
 3. b6 : Circuit `[P, E]` — glisser E au-dessus du Point (E devant P, dans le Circuit) ; le reposer sous le Point (rien ne change) ; « Monter » E (VoiceOver). Conteneur `[P, E1, E2]` : « Monter » E2 échange avec E1, puis franchit P. Circuit × N ≥ 2 : même dialogue « Début / Fin de tour » que pour le Point quand un conflit est créé.
 
@@ -147,7 +147,7 @@ Résultats de Hermann recopiés (testés sur `0196c566`, avant `8e45fcd8`). Dép
 4. `8e45fcd8` (mesures au repos appliquées en transition) ne touche pas la mesure du dépliage (`useCircuitCardsReveal.onLayout`, valeur partagée posée directement) ; pendant le glisser, les mesures restent immédiates : aucun effet sur 1 à 3.
 
 **Corrections** :
-- `refreshLayoutShifts` : pendant l'arrêt sur un Circuit replié (`hoverCircuitId`) et pendant son déploiement (`expandingCircuitId`), l'aperçu referme la place de l'élément saisi mais n'en ouvre aucune (`layoutDragShifts(…, null)`) : le cadre grandit avec ses cartes, par la seule mise en page ; à la fin du déploiement (`finishLayoutExpansionRef`), la place s'ouvre sous le doigt (registre, 320 ms), juste après le même mouvement. La destination de dépose pendant ce temps reste la fin du Circuit (un lâcher y dépose, inchangé).
+- `refreshLayoutShifts` : pendant l'arrêt sur un Circuit replié (`hoverCircuitId`) et pendant son déploiement (`expandingCircuitId`), l'aperçu referme la place de l'élément saisi mais n'en ouvre aucune (`layoutDragShifts(…, null)`) : le cadre grandit avec ses cartes, par la seule mise en page ; à la fin du déploiement (`finishLayoutExpansionRef`), la place s'ouvre sous le doigt (registre, 320 ms), juste après le même mouvement. [01/11/2026, contre-recette n° 5 : « et pendant son déploiement » remplacé — la place s'ouvre au départ du déploiement, avec lui (`startLayoutExpansion`) ; voir « Contre-recette n° 5 (01/11) ».] La destination de dépose pendant ce temps reste la fin du Circuit (un lâcher y dépose, inchangé).
 - `useCircuitCardsReveal(…, measuresContent)` : hauteur naturelle relevée sur le CONTENU de la liste (`onContentLayout`, vue intérieure non contrainte par `maxHeight`, `-exercises-content`), à chaque mesure, pendant l'animation comme au repos ; inconnue, la liste animée reste fermée (`circuitRevealMaxHeight` : 0) au lieu d'être libre. Structure générale seulement ; l'ancien modèle garde la mesure au repos.
 - Règles appliquées : mouvements progressifs du repli et du déploiement (obs-3 b, 29/10 et 30/10) ; « la place qui s'ouvre montre la destination » (recette n° 2), appliquée à la fin du déploiement.
 
@@ -200,10 +200,69 @@ Résultats de Hermann recopiés (testés sur `0196c566`, avant `8e45fcd8`). Dép
 
 ### À CLARIFIER
 
-1. Pendant l'arrêt (500 ms) et le déploiement (700 ms) d'un Circuit replié, la destination (fin du Circuit) n'est plus montrée par une place ouverte ; un lâcher y dépose toujours. Lecture prudente du constat (« le cadre se déplie […] sans qu'elles n'apparaissent ») ; ouvrir la place en même temps que le déploiement reste possible si Hermann le préfère.
+1. Pendant l'arrêt (500 ms) et le déploiement (700 ms) d'un Circuit replié, la destination (fin du Circuit) n'est plus montrée par une place ouverte ; un lâcher y dépose toujours. Lecture prudente du constat (« le cadre se déplie […] sans qu'elles n'apparaissent ») ; ouvrir la place en même temps que le déploiement reste possible si Hermann le préfère. [01/11/2026 : tranché par Hermann — « Oui, ouvrir la place pendant le déploiement. » ; voir « Contre-recette n° 5 (01/11) ».]
 
 ### Synchronisation code / documentation
 
 - **Classe B** (item 3, repli ; item 5) : règle recopiée textuellement dans ch07 (entrée « constat a ») ; complète COMP §6 (G4). Recherche des formulations contraires (« replie », « se replie », « replié d'abord », « commence par le replier ») : ch03, ch04, COMP §6, ch07 — aucune ne fixe le bord qui bouge au repli ; aucune annotation nécessaire. Item 5 : voir la spec B.4b (écart 1 et « Réalisé » annotés ; ch07, lot 3).
 - **Classe A** (items 1, 2, 4 ; rail de l'item 3) : règles citées ; ch07 (entrées ajoutées, annotations datées) ; cette spec (contre-recette n° 3 remplacée en partie, voir « Remplace » ci-dessus).
 - **Classe D** : poses natives simultanées au lâcher, mesure du contenu, hauteur gardée du contenu défilant.
+
+## Contre-recette n° 5 (01/11) (iPhone)
+
+Résultat de Hermann recopié (testé sur `bc3d409e`). Départ `bc3d409e`, aucun commit. Registre : ch07, section « Recette iPhone n° 2 du 31/10/2026 — suggestions de nom, Circuit replié, durée des en-têtes » (entrée « Contre-recette n° 5 du 01/11/2026 — cr6-replie » ; annotations datées de « Arrêt d'une carte sur un Circuit replié », « Contre-recette n° 3 — cr4-replie » et « Contre-recette n° 4 — cr5-replie », dont son « À clarifier »).
+
+> cr6-replie KO : « Oui, ouvrir la place pendant le déploiement. le circuit s'ouvre proprement mais la carte elle fait encore plusieurs soubresauts qu'il faut éliminer. »
+
+### 1. Place ouverte pendant le déploiement (classe B — réponse à l'À CLARIFIER 1 de la contre-recette n° 4)
+
+**Règle** (décision explicite de Hermann du 01/11/2026) : « Oui, ouvrir la place pendant le déploiement. » — pendant le déploiement d'un Circuit replié ouvert par l'arrêt, la place s'ouvre à sa fin dans le même mouvement : le cadre et ses cartes grandissent, la place à la fin du Circuit grandit avec eux ; aucun rebond du bord bas (ce qui rendait cr6 « s'ouvre proprement » est gardé). Pendant l'arrêt (500 ms, avant le déploiement) : toujours aucune place (inchangé, la réponse ne porte que sur le déploiement). Déploiement terminé : destination sous le doigt calculée une fois, décalages animés une fois (inchangé).
+
+**Remplace** (texte conservé, annotations datées) : contre-recette n° 4, item 1, « Corrections » — [« pendant l'arrêt sur un Circuit replié (`hoverCircuitId`) et pendant son déploiement (`expandingCircuitId`), l'aperçu referme la place de l'élément saisi mais n'en ouvre aucune »] : vrai pendant l'arrêt et jusqu'au départ du déploiement ; pendant le déploiement, la place s'ouvre avec lui. ch07 : « ni pendant l'arrêt ni pendant le déploiement, aucune place n'est ouverte » (entrées « Arrêt d'une carte », « cr4-replie », « cr5-replie ») annoté.
+
+**Réalisation** :
+- `useCircuitCardsReveal(…, measuresContent, onRevealStart)` (`CircuitHeader.tsx`) : un déploiement part quand la hauteur naturelle du contenu est connue (déjà relevée ; sinon à la première mesure du contenu monté ; au plus tard après `CIRCUIT_REVEAL_START_FALLBACK_MS`, 120 ms) — il part de 0 avec sa hauteur finale (auparavant, hauteur inconnue au départ : liste fermée jusqu'à la mesure, puis rattrapage d'un coup). `onRevealStart(hauteur)` est appelé dans la tâche même du départ.
+- `LayoutCircuitBlock` : croissance prévue du Circuit = hauteur des cartes + écart `CIRCUIT_GAP` − marge basse réduite `CIRCUIT_CARDS_BOTTOM_OVERLAP` − ligne des noms du Circuit replié (en-tête replié moins sa ligne, relevé replié) ; transmise à l'écran (`LayoutDragContext.onCircuitReveal`).
+- `startLayoutExpansion` (écran) : si ce Circuit est celui ouvert par l'arrêt, l'aperçu du déploiement est calculé une fois — place ouverte à la fin du Circuit (`layoutDragShifts` avec la destination « fin du Circuit », géométrie repliée : bord bas du Circuit, de son Cycle, éléments suivants ; ses cartes, non encore mesurées, ne reçoivent rien) — et lancé par le registre, dans la même tâche que le déploiement, avec sa durée et sa courbe (`AnimatedShiftRegistry.retarget`, `CIRCUIT_REVEAL_SHIFT_TIMING` : 700 ms, Bézier 0,4 / 0 / 0,2 / 1, `CIRCUIT_REVEAL_BEZIER` partagé avec Reanimated). La fin du déploiement est comptée depuis ce départ (`finishLayoutExpansionRef`).
+- `refreshLayoutShifts` : déploiement lancé (`expansion`), l'aperçu n'est plus recalculé à chaque mesure.
+- `CircuitSurface` (disposition générale seulement, `extendsOnSpread` ; Circuit et Cycle) et `LayoutRailTail` (fond en trois couches, queue du rail) : quand les bords s'écartent (place ouverte), la bande et la piste gardent leur hauteur de mise en page (fil UI) et suivent le bord haut ; un prolongement d'un point, posé sous elles, est étiré de l'écart — aucune hauteur relevée au fil JS (cause n° 2 de cr5-replie : bord bas qui « remonte et redescend »). Quand les bords se rapprochent (place refermée), resserrement d'après la hauteur relevée, comme avant.
+
+### 2. Soubresauts de la carte portée pendant le déploiement (classe A)
+
+**Mécanismes examinés** (ce qui déplace la carte portée pendant les 700 ms) :
+1. **Croissance du Circuit au-dessus d'elle — cause retenue.** Cas de la recette (carte sous le Circuit replié, remontée sur lui ; `cr5-replie` de `recette2composition` reproduit cette géométrie) : la croissance du Circuit (fil UI, Reanimated, image par image) fait descendre la carte dans la mise en page ; la compensation (`layoutSourceDrift`, registre) n'était posée qu'à la mesure suivante, depuis le fil JS (`onLayout` → `reportLayoutBox` → `refreshLayoutShifts` → `pose`) : à chaque image, la carte descendait puis remontait une ou plusieurs images plus tard. Chaque mesure changeait la compensation, donc l'aperçu : `setLayoutLift` à chaque mesure, rendu de l'écran entier sur la voie synchrone (incident du 01/11) — le fil JS chargé regroupait les mesures, d'où des pas plus grands, irréguliers : « plusieurs soubresauts ». Prouvé sous Jest au niveau des valeurs : avant correction, la translation de la carte suit chaque mesure (−2, −17, −33…), une pose par mesure.
+2. Place ouverte (part 1) : translations du registre, sans effet sur la mise en page de la carte (elle est exclue de l'aperçu, `layoutDragShifts`).
+3. Translation du doigt (`dragY`, valeur JS posée au rendu de la carte) : immobile pendant l'arrêt ; mais retardée quand le fil JS est saturé par les rendus du point 1 — corrigé par la même mesure (plus aucun rendu de l'écran par mesure).
+4. `layoutContentFloor` : glisser d'un Circuit seulement ; défilement automatique : seulement doigt dans la bande de bord — non concernés par le cas de la recette (voir « À vérifier »).
+5. Re-rendus de `setLayoutLift` réappliquant une transformation périmée : la carte est portée par des valeurs natives (registre, `nativeShiftKey`) ; supprimés de toute façon pendant le déploiement.
+
+**Correction** : la compensation de tout le déploiement est lancée une seule fois, au départ du déploiement, sur le pilote natif, avec sa durée et sa courbe : −(déplacement déjà mesuré + croissance prévue du Circuit si la carte est sous lui, même dans son Cycle) (`startLayoutExpansion`). Pendant le déploiement, aucune mesure ne la repose ni ne rend l'aperçu. À la fin, la destination sous le doigt est recalculée et, si la mesure réelle diffère de la prévision, l'écart est posé une seule fois (`refreshLayoutShifts`, `pose`). Un lâcher pendant le déploiement part de la position affichée estimée sur la courbe du registre (`AnimatedShiftRegistry.estimate`), non de la dernière mesure (en retard).
+
+**Option écartée** : carte portée dans une couche au-dessus du contenu (indépendante de la mise en page) — refonte du rendu du glisser (copie de la carte, rail, retour, poses au lâcher), risque élevé de régression sur les corrections de cr5-reposer ; compensation calculée sur le fil UI (Reanimated) — exacte pendant le déploiement, mais son relais par le registre (pilote natif d'Animated) ne peut pas être fait dans la même image : saut de la carte à la fin du déploiement ou au lâcher.
+
+Règles appliquées : la carte portée reste sous le doigt (recette n° 2, arrêt sur un Circuit replié) ; mouvements progressifs (obs-3 b, 29/10 et 30/10) ; « la place qui s'ouvre montre la destination » (recette n° 2).
+
+### Fichiers
+
+- `src/features/sessions/CircuitHeader.tsx` : `CIRCUIT_REVEAL_BEZIER`, `CIRCUIT_REVEAL_START_FALLBACK_MS`, `useCircuitCardsReveal(…, onRevealStart)` (départ à hauteur connue).
+- `src/features/sessions/useAnimatedShift.ts` : `ShiftTiming`, `AnimatedShiftRegistry.retarget`, `estimate` ; durée et courbe gardées par mouvement (`position`).
+- `src/features/sessions/CompositionScreen.tsx` : `LayoutDragGesture.expansion`, `startLayoutExpansion`, `refreshLayoutShifts`, `finishLayoutExpansionRef`, `layoutSettleFor`, `LayoutDragContext.onCircuitReveal`, `LayoutCircuitBlock` (croissance prévue), `CircuitSurface`, `LayoutRailTail`, `CIRCUIT_REVEAL_SHIFT_TIMING`.
+- Tests : `CompositionScreen.recette2composition.test.tsx` (4 nouveaux ; test cr5-replie renommé et annoté — il ne fournit pas la mesure du contenu, donc vérifie l'arrêt et l'attente du départ), `CircuitHeader.test.tsx` (2 nouveaux).
+- Preuves d'échec avant correction (sources remises à `bc3d409e`, tests nouveaux) : 6 échecs sur 6 — bord bas à 0 au départ du déploiement (attendu 89) ; translation de la carte 0 au départ (attendu −61, puis elle suivait chaque mesure) ; aucun départ signalé (`onRevealStart`).
+
+### Vérifications
+
+- `npx jest` ciblé (`--maxWorkers=1`) : `CompositionScreen.{b1b,b2,b4,b4b,b5,b6,recette1,recette2,recette2lot3,recette2composition,incident0111}`, `layoutDrop.{b4,recette2}`, `layoutDragShifts.recette2`, `useAnimatedShift`, `CircuitHeader`, `EnvelopePerimeter`, `compositionGesture`, `legacyModeConfinement` : 19 suites, 266 tests, verts. Ancien modèle : `CompositionScreen.test` 470/470 — premier passage : 2 échecs (bande du fond du Circuit unique, `CircuitSurface` partagé : translation et échelle attendues de la bande étirée) ; le prolongement est réservé à la disposition générale (`extendsOnSpread`), l'ancien modèle garde la bande étirée, inchangée.
+- `npx tsc --noEmit`, `eslint` des fichiers touchés : sans erreur. Garde `legacyModeConfinement` (motif `target`) : aucune occurrence ajoutée.
+
+### À vérifier sur iPhone (Jest ne le prouve pas)
+
+1. cr6-replie : carte sous un Circuit replié, remontée et arrêtée sur lui — pendant le déploiement, la carte reste immobile sous le doigt (aucun soubresaut) ; le cadre et ses cartes grandissent et la place à la fin du Circuit grandit avec eux, sans rebond du bord bas ni de la queue du rail ; puis la place se déplace une fois sous le doigt. Aussi : carte au-dessus du Circuit (descendue sur lui), Circuit dans un Cycle, Circuit déplacé dans puis hors d'un Cycle avant le test (hauteur des cartes inconnue au départ : départ retardé d'une ou deux images).
+2. Risque résiduel : la croissance du Circuit (Reanimated) et la compensation (pilote natif d'Animated) partent dans la même tâche mais sur deux mécanismes distincts — un décalage d'une image au départ donnerait un léger glissement continu de la carte (quelques points au plus, sans à-coup) ; si la prévision de croissance est fausse (ligne des noms sur deux lignes, taille de texte), un petit saut unique à la fin du déploiement. Défilement automatique (doigt dans la bande de bord pendant le déploiement) : non traité.
+3. Lâcher pendant le déploiement : la carte part de là où elle est vers la fin du Circuit, sans saut.
+
+### Synchronisation code / documentation
+
+- **Classe B** (item 1) : réponse de Hermann recopiée textuellement dans ch07 (entrée « Contre-recette n° 5 du 01/11/2026 — cr6-replie ») et ci-dessus. Recherche des formulations contraires (« aucune place », « pendant le déploiement », « n'en ouvre aucune ») : ch07 (trois entrées annotées, « À clarifier » de cr5-replie marqué tranché) ; cette spec (contre-recette n° 4, item 1 et À CLARIFIER 1, annotés) ; COMP §6, ch13 : aucune mention du déploiement par l'arrêt.
+- **Classe A** (item 2) : règles citées ; ch07 (même entrée).
+- **Classe D** : départ du déploiement à hauteur connue, `retarget` / `estimate` du registre, fond et rail sans hauteur relevée à l'écartement.

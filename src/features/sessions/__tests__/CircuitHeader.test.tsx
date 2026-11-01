@@ -678,3 +678,49 @@ describe("circuitRevealMaxHeight (contre-recette n° 4)", () => {
     expect(typeof reveal!.onContentLayout).toBe("function");
   });
 });
+
+/**
+ * Contre-recette n° 5 du 01/11/2026 (Hermann : « Oui, ouvrir la place pendant le déploiement. le
+ * circuit s'ouvre proprement mais la carte elle fait encore plusieurs soubresauts qu'il faut
+ * éliminer. ») — un déploiement mesuré par son contenu part avec sa hauteur naturelle connue ; l'écran
+ * est prévenu dans la tâche même du départ (`onRevealStart`), pour y lancer les translations qui
+ * l'accompagnent (place ouverte, compensation de la carte saisie).
+ */
+describe("useCircuitCardsReveal — départ du déploiement (contre-recette n° 5)", () => {
+  function Cards({ collapsed, onStart }: { collapsed: boolean; onStart: (height: number) => void }) {
+    const reveal = useCircuitCardsReveal(collapsed, 9, 6, true, onStart);
+    return reveal.mounted ? (
+      <View style={reveal.style as never} testID="cards">
+        <View onLayout={reveal.onContentLayout} testID="cards-content" />
+      </View>
+    ) : null;
+  }
+  const measure = (height: number) =>
+    fireEvent(screen.getByTestId("cards-content"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 300, height } } });
+
+  it("hauteur inconnue : le déploiement attend la mesure du contenu, puis part avec elle", async () => {
+    const onStart = jest.fn();
+    const view = render(<Cards collapsed onStart={onStart} />);
+    view.rerender(<Cards collapsed={false} onStart={onStart} />);
+    expect(onStart).not.toHaveBeenCalled();
+    measure(169);
+    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(onStart).toHaveBeenCalledWith(169);
+    // Mesure suivante (pendant ou après le déploiement) : aucun second départ.
+    measure(170);
+    expect(onStart).toHaveBeenCalledTimes(1);
+    await act(async () => {});
+  });
+
+  it("hauteur déjà relevée : départ immédiat avec elle ; un repli ne prévient pas l'écran", async () => {
+    const onStart = jest.fn();
+    const view = render(<Cards collapsed={false} onStart={onStart} />);
+    measure(80);
+    view.rerender(<Cards collapsed onStart={onStart} />);
+    await act(async () => {});
+    expect(onStart).not.toHaveBeenCalled();
+    view.rerender(<Cards collapsed={false} onStart={onStart} />);
+    expect(onStart).toHaveBeenCalledWith(80);
+    await act(async () => {});
+  });
+});
