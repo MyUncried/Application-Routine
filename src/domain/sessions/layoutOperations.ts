@@ -39,10 +39,11 @@
  * Fonctions pures ; même référence lorsque rien ne change.
  */
 
-import { clampSeriesCount, seriesCountOf, type SeriesRow } from "@/domain/activities/ExecutionParameters";
+import { clampSeriesCount, seriesCountOf, seriesRowsOf, unsetTarget, type SeriesRow } from "@/domain/activities/ExecutionParameters";
 
 import { adaptExercise, DEFAULT_CIRCUIT_NATURE, lostSeriesCount, type CircuitLoss, type CircuitLossReport, type CircuitNature } from "./circuit";
-import { circuitCompatibility } from "./formats";
+import { enterCarrier, exitCarrier, exitNeedsChoice } from "./carrierMembership";
+import { circuitCompatibility, isSinglePassage, type ElementFormat, type ElementFormatKey } from "./formats";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import {
   layoutStopPointId,
@@ -160,13 +161,31 @@ export function formattedMemberFits(exercise: SessionDraftExercise, nature: Circ
   if (compatibility.status === "REFUSED") {
     return false;
   }
-  return nature === "TOURS" || seriesCountOf(exercise.executionParameters) === count;
+  // EMOM alterné : compte de séries adapté au Circuit, comme un Exercice standard (§6.1, §10).
+  return nature === "TOURS" || compatibility.adaptsSeriesCount || seriesCountOf(exercise.executionParameters) === count;
 }
 
 /** Vrai si un membre formaté du Circuit ne supporterait pas la nature ou le compte demandés (voir l'en-tête). */
 function blockedByFormattedMember(draft: SessionDraft, circuit: StructureCircuit<string>, nature: CircuitNature, count: number): boolean {
+  // Circuit porteur : ses membres suivent les règles du Format d'origine (§6), pas la matrice §6.1.
+  if ((circuit.format ?? null) !== null) return false;
   const inCircuit = followsCount(draft, circuit);
   return draft.exercises.some((exercise) => inCircuit(exercise) && !formattedMemberFits(exercise, nature, count));
+}
+
+/**
+ * PRE-9 C.4 (référence Formats §1, §5, §7.5, §11, §14) : réglage d'un Circuit porteur — durée de chaque
+ * bloc AMRAP, durée de chaque tour (EMOM, Death by groupé), temps limite For time (`null` : « Sans
+ * limite »), repos entre les blocs ou les tours. Le Format d'origine et la nature restent fixés ; un
+ * réglage modifié ne retire pas le Format. Sans effet sur un Circuit standard.
+ */
+export function setLayoutCircuitFormatSetting(draft: SessionDraft, circuitId: string, id: string, value: number | null): SessionDraft {
+  const circuit = layoutCircuit(draft, circuitId);
+  const carried = circuit?.format ?? null;
+  if (circuit === undefined || carried === null || draft.structure === undefined) return draft;
+  const { [id]: _previous, ...others } = carried.settings;
+  const format: ElementFormat = { key: carried.key, settings: value === null ? others : { ...others, [id]: Math.max(0, Math.round(value)) } };
+  return { ...draft, structure: withLayoutCircuit(draft.structure, circuitId, (current) => ({ ...current, format })) };
 }
 
 /**
@@ -232,6 +251,21 @@ function circuitCountChanged(draft: SessionDraft, circuitId: string, requested: 
     return { ...draft, structure };
   }
   const inCircuit = followsCount(draft, circuit);
+  // PRE-9 C.4 (référence Formats §11, A6) : Circuit porteur For time — séries existantes conservées,
+  // lignes ajoutées à compléter, surplus retiré, sans copie, extrapolation ni confirmation ; buy-in et
+  // buy-out restent à une exécution. Death by alterné : compte ouvert, inchangé.
+  if (circuit.format?.key === "FOR_TIME") {
+    const exercises = draft.exercises.map((exercise) => {
+      if (!inCircuit(exercise) || isSinglePassage(exercise.format)) return exercise;
+      const rows = seriesRowsOf(exercise.executionParameters);
+      const last = rows.at(-1);
+      const resized = Array.from({ length: count }, (_, index) =>
+        rows[index] ?? { target: unsetTarget(), pauseSeconds: last?.pauseSeconds ?? 0, loadKg: last?.loadKg ?? 0 },
+      );
+      return { ...exercise, executionParameters: { ...exercise.executionParameters, series: { kind: "VARIABLE" as const, rows: resized, workPhases: exercise.executionParameters.series.workPhases } } };
+    });
+    return { ...draft, structure, exercises };
+  }
   const reserve: Record<string, readonly SeriesRow[]> = { ...(draft.circuitSeriesReserve ?? {}) };
   const exercises = draft.exercises.map((exercise) => {
     if (!inCircuit(exercise)) {
@@ -267,7 +301,8 @@ export function prepareLayoutNatureChange(draft: SessionDraft, circuitId: string
 /** Applique un changement de nature du Circuit désigné, sans confirmation (à la charge de l'appelant). */
 export function applyLayoutNatureChange(draft: SessionDraft, circuitId: string, nature: CircuitNature): SessionDraft {
   const circuit = layoutCircuit(draft, circuitId);
-  if (circuit === undefined || draft.structure === undefined || nature === circuit.nature) {
+  // PRE-9 C.4 (référence Formats §1) : nature d'un Circuit porteur fixée par son Format d'origine.
+  if (circuit === undefined || draft.structure === undefined || nature === circuit.nature || (circuit.format ?? null) !== null) {
     return draft;
   }
   if (blockedByFormattedMember(draft, circuit, nature, circuit.repeatCount)) {
@@ -866,6 +901,12 @@ export type LayoutCircuitMembershipSettlement = {
   readonly refusedExerciseIds: readonly string[];
   /** Réserve du brouillon, présente (éventuellement `undefined`) si une sortie l'a modifiée. */
   readonly reservePatch: Pick<SessionDraft, "circuitSeriesReserve"> | Record<string, never>;
+  /**
+   * PRE-9 C.4 (référence Formats §13) : Exercices sortis d'un Circuit porteur, dont la destination
+   * dépend du choix « Conserver le format » (`exercises` : version retenue par défaut) ou « Adopter un
+   * format libre » (`free`). Vide : aucun choix à demander.
+   */
+  readonly pendingExits: readonly { readonly exerciseId: string; readonly formatKey: ElementFormatKey; readonly free: SessionDraftExercise }[];
 };
 
 /**
@@ -889,6 +930,7 @@ export function settleLayoutCircuitMembership(
 ): LayoutCircuitMembershipSettlement {
   const previousIds = new Set(previous.exercises.map((exercise) => exercise.id));
   const previousCircuitId = (id: string) => (previousIds.has(id) ? circuitOfExercise(previous.structure, id)?.id : undefined);
+  const previousCircuit = (id: string) => (previousIds.has(id) ? circuitOfExercise(previous.structure, id) : undefined);
   const nextIds = new Set(next.exercises.map((exercise) => exercise.id));
 
   let reserve = previous.circuitSeriesReserve;
@@ -910,10 +952,18 @@ export function settleLayoutCircuitMembership(
   const refusedExerciseIds: string[] = [];
   let targetCount = 0;
   let changed = false;
-  const exercises = next.exercises.map((exercise) => {
+  const pendingExits: { exerciseId: string; formatKey: ElementFormatKey; free: SessionDraftExercise }[] = [];
+  const settleEntry = (exercise: SessionDraftExercise): SessionDraftExercise => {
     const circuit = circuitOfExercise(next.structure, exercise.id);
     if (circuit === undefined || exercise.type !== "EXERCISE" || previousCircuitId(exercise.id) === circuit.id) {
       return exercise;
+    }
+    // PRE-9 C.4 (référence Formats §6) : entrée dans un Circuit porteur — paramètres compatibles repris,
+    // le reste à compléter, sans conversion ni confirmation de perte.
+    if ((circuit.format ?? null) !== null) {
+      const entered = enterCarrier(exercise, circuit);
+      changed ||= entered !== exercise;
+      return entered;
     }
     if (!formattedMemberFits(exercise, circuit.nature, circuit.repeatCount)) {
       refusedExerciseIds.push(exercise.id);
@@ -932,6 +982,19 @@ export function settleLayoutCircuitMembership(
     const adapted = adaptExercise(exercise, circuit.repeatCount, []).exercise;
     changed ||= adapted !== exercise;
     return adapted;
+  };
+  const exercises = next.exercises.map((exercise) => {
+    // PRE-9 C.4 (référence Formats §13) : sortie d'un Circuit porteur vers un autre emplacement qu'un
+    // Circuit porteur — buy-in / buy-out libres d'office ; sinon choix (« Conserver » par défaut).
+    const before = previousCircuit(exercise.id);
+    const after = circuitOfExercise(next.structure, exercise.id);
+    if (before !== undefined && (before.format ?? null) !== null && after?.id !== before.id && (after?.format ?? null) === null && exercise.type === "EXERCISE") {
+      changed = true;
+      if (!exitNeedsChoice(exercise)) return settleEntry(exitCarrier(exercise, before, "FREE"));
+      pendingExits.push({ exerciseId: exercise.id, formatKey: before.format!.key, free: settleEntry(exitCarrier(exercise, before, "FREE")) });
+      return settleEntry(exitCarrier(exercise, before, "KEEP"));
+    }
+    return settleEntry(exercise);
   });
 
   return {
@@ -939,6 +1002,7 @@ export function settleLayoutCircuitMembership(
     losses,
     targetCount,
     refusedExerciseIds,
+    pendingExits,
     reservePatch: reserveChanged
       ? { circuitSeriesReserve: reserve === undefined || Object.keys(reserve).length === 0 ? undefined : reserve }
       : {},

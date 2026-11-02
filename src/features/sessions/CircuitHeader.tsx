@@ -307,7 +307,25 @@ export type CircuitHeaderProps = {
   readonly onLongPress?: () => void;
   /** PRE-9 B.4 : alternatives accessibles au glisser (« Monter » / « Descendre »). */
   readonly moveActions?: ContainerMoveActions;
+  /** PRE-9 C.4 : Circuit porteur d'un Format (voir `CarrierHeader`) ; absent : Circuit standard. */
+  readonly carrier?: CarrierHeader;
   readonly testID: string;
+};
+
+/**
+ * PRE-9 C.4 (référence Formats du 02/11/2026 §1, §5, §7.5, §10 à §12 ; CE-FMT-03) — en-tête d'un Circuit
+ * porteur : le nom du Format d'origine remplace « Circuit » ; le compte se lit en « bloc(s) » (AMRAP) ou
+ * en tours, ou « jusqu'à l'échec » (Death by, régime ouvert, sans stepper) ; la nature est fixée (texte,
+ * sans menu) ; à droite, la durée portée par le Circuit — durée de chaque bloc ou de chaque tour en bleu,
+ * modifiable ; « Sans limite » (gris, tactile) ou « ≤ X min » (For time) ; rien pour le Death by alterné.
+ */
+export type CarrierHeader = {
+  readonly title: string;
+  readonly unit: { readonly singular: string; readonly plural: string } | null;
+  readonly openLabel: string;
+  readonly duration: { readonly text: string; readonly tone: "EDITABLE" | "MUTED" } | null;
+  readonly onPressDuration?: () => void;
+  readonly durationAccessibilityLabel?: string;
 };
 
 /** PRE-9 B.4 : actions accessibles de déplacement pas à pas d'un conteneur, `null` si indisponible. */
@@ -380,10 +398,11 @@ export function CircuitHeader({
   titleInset = 0,
   onLongPress,
   moveActions,
+  carrier,
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
-  const title = containerTitle(t.title, letter);
+  const title = carrier !== undefined ? carrier.title : containerTitle(t.title, letter);
   // Recette n° 2 du 31/10 : la durée porte aussi l'appui long de saisie.
   const durationGrab = durationGrabProps(onLongPress);
   return (
@@ -438,20 +457,41 @@ export function CircuitHeader({
             onSelectNature={onSelectNature}
             natureFocusRequest={natureFocusRequest}
             externalRef={counterRef}
+            carrier={carrier}
             testID={`${testID}-counter`}
           />
         </View>
-        {/* Lue avec le nom (VoiceOver), elle est retirée de l'accessibilité ici. */}
-        <Text
-          {...durationGrab}
-          style={[styles.duration, durationGrab.style]}
-          numberOfLines={1}
-          accessible={false}
-          importantForAccessibility="no"
-          testID={`${testID}-duration`}
-        >
-          {duration}
-        </Text>
+        {carrier !== undefined ? (
+          carrier.duration === null ? (
+            <View style={styles.duration} testID={`${testID}-duration`} />
+          ) : (
+            <Pressable
+              onPress={carrier.onPressDuration}
+              disabled={carrier.onPressDuration === undefined}
+              accessibilityRole="button"
+              accessibilityLabel={carrier.durationAccessibilityLabel ?? carrier.duration.text}
+              hitSlop={8}
+              style={styles.carrierDurationTarget}
+              testID={`${testID}-duration`}
+            >
+              <Text style={[styles.duration, carrier.duration.tone === "EDITABLE" ? styles.carrierDurationEditable : styles.carrierDurationMuted]} numberOfLines={1}>
+                {carrier.duration.text}
+              </Text>
+            </Pressable>
+          )
+        ) : (
+          /* Lue avec le nom (VoiceOver), elle est retirée de l'accessibilité ici. */
+          <Text
+            {...durationGrab}
+            style={[styles.duration, durationGrab.style]}
+            numberOfLines={1}
+            accessible={false}
+            importantForAccessibility="no"
+            testID={`${testID}-duration`}
+          >
+            {duration}
+          </Text>
+        )}
       </View>
       {/*
        * [Recette du 29/10 (obs-3 b) : « la ligne des noms apparaît en fondu, avec le repli des cartes »
@@ -782,8 +822,10 @@ function CircuitCounter({
   onSelectNature,
   natureFocusRequest,
   externalRef,
+  carrier,
   testID,
 }: {
+  carrier?: CarrierHeader;
   nature: CircuitNature;
   count: number;
   isOpen: boolean;
@@ -804,6 +846,11 @@ function CircuitCounter({
 
   return (
     <View style={styles.counter} testID={`${testID}-row`}>
+      {carrier !== undefined && carrier.unit === null ? (
+        <Text style={styles.adjective} numberOfLines={1} testID={`${testID}-open`}>
+          {carrier.openLabel}
+        </Text>
+      ) : (
       <CountStepper
         count={count}
         min={CIRCUIT_COUNT_MIN}
@@ -817,9 +864,10 @@ function CircuitCounter({
         decrementAccessibilityLabel={t.decrementAccessibilityLabel}
         incrementAccessibilityLabel={t.incrementAccessibilityLabel}
         externalRef={externalRef}
-        unitLabel={circuitUnitLabel(count)}
+        unitLabel={carrier?.unit != null ? (count === 1 ? carrier.unit.singular : carrier.unit.plural) : circuitUnitLabel(count)}
         counterTestID={testID}
       />
+      )}
       {/* Le point médian n'est pas interactif ni annoncé. */}
       <Text
         style={styles.separator}
@@ -831,6 +879,12 @@ function CircuitCounter({
         {` ${MIDDLE_DOT} `}
       </Text>
       <View style={styles.adjectiveSlot} testID={`${testID}-adjective-slot`}>
+        {carrier !== undefined ? (
+          // Nature fixée par le Format d'origine (§1) : texte, sans menu.
+          <Text style={[styles.adjective, styles.carrierNature]} numberOfLines={1} testID={`${testID}-adjective`}>
+            {circuitNatureAdjective(nature)}
+          </Text>
+        ) : (
         <CircuitNatureMenu
           nature={nature}
           trigger={<NatureAdjective nature={nature} testID={`${testID}-adjective`} />}
@@ -844,6 +898,7 @@ function CircuitCounter({
           focusRequest={natureFocusRequest}
           testID={`${testID}-nature`}
         />
+        )}
       </View>
     </View>
   );
@@ -1165,6 +1220,24 @@ const styles = StyleSheet.create({
   adjective: {
     ...UNIT_TEXT,
     color: colors.primary,
+  },
+  // PRE-9 C.4 : Circuit porteur — nature fixée (texte, sans menu) ; durée portée par le Circuit.
+  carrierNature: {
+    color: colors.textPrimary,
+  },
+  carrierDurationTarget: {
+    flex: 1,
+    minWidth: 0,
+  },
+  carrierDurationEditable: {
+    color: colors.primary,
+    flex: 0,
+    marginLeft: 0,
+  },
+  carrierDurationMuted: {
+    color: "#7A7A80",
+    flex: 0,
+    marginLeft: 0,
   },
   // Durée calée à droite : elle cède la place la première (base 0).
   duration: {

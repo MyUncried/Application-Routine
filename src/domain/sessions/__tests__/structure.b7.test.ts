@@ -36,9 +36,10 @@ describe("Exercice AMRAP autonome", () => {
     expect(computeActivityDurationResult(exercise("a", amrap(600), 45))).toMatchObject({ kind: "exact", seconds: 645, knownSeconds: 645 });
   });
 
-  it("réglage non renseigné : durée initiale 12 min", () => {
+  it("durée initiale 12 min ; sans Durée propre (membre d'un Circuit porteur), un passage lu sur ses paramètres, la durée étant celle du Circuit", () => {
     expect(AMRAP_INITIAL_DURATION_SECONDS).toBe(720);
-    expect(computeActivityDurationResult(exercise("a", amrap()))).toMatchObject({ kind: "exact", seconds: 720 });
+    expect(computeActivityDurationResult(exercise("a", amrap(0)))).toMatchObject({ kind: "exact", seconds: 720 });
+    expect(computeActivityDurationResult(exercise("m", amrap()))).toEqual(computeActivityDurationResult(exercise("m", null, 0, repetitionParameters(10, 6))));
   });
 
   it("Cycle × 2, Circuit standard groupé × 3 : un bloc complet à chaque exécution (§6.1)", () => {

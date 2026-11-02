@@ -42,7 +42,8 @@
 import type { CircuitLoss } from "./circuit";
 import { copyCircuitReserveEntry } from "./circuitMembership";
 import { duplicateActivity } from "./composition";
-import { currentLayout, settleLayoutCircuitMembership, withLayout } from "./layoutOperations";
+import { currentLayout, settleLayoutCircuitMembership, withLayout, type LayoutCircuitMembershipSettlement } from "./layoutOperations";
+import { isSinglePassage, type ElementFormatKey } from "./formats";
 import {
   analyzeLayoutStopPoints,
   isLayoutStopPointAllowed,
@@ -66,7 +67,7 @@ import {
   type LayoutDestination,
   type LayoutItemRef,
 } from "./layoutTree";
-import type { SessionDraft } from "./SessionDraft";
+import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
 import type { TourBoundaryChoice } from "./StopPoint";
 import type { SessionStructure, StructureCircuit, StructureStopPointLocation } from "./structure";
 
@@ -133,6 +134,17 @@ export type LayoutItemMoveOutcome =
       readonly conflict: LayoutRepetitionConflictInfo;
       readonly resolutions: Readonly<Record<TourBoundaryChoice, LayoutItemMoveResult>>;
     }
+  /**
+   * PRE-9 C.4 (référence Formats §13, CE-FMT-03) : un Exercice sort d'un Circuit porteur d'un Format ;
+   * « Conserver le format » (`KEEP`, par défaut) ou « Adopter un format libre » (`FREE`) ; « Annuler » :
+   * rien ne change. Chaque résolution est l'issue complète à appliquer.
+   */
+  | {
+      readonly status: "FORMAT_EXIT_CHOICE";
+      readonly exerciseId: string;
+      readonly formatKey: ElementFormatKey;
+      readonly resolutions: Readonly<Record<"KEEP" | "FREE", LayoutItemMoveOutcome>>;
+    }
   /** Destination identique à la position actuelle : rien à faire. */
   | { readonly status: "UNCHANGED" }
   | { readonly status: "REFUSED"; readonly reason: LayoutItemMoveRefusal; readonly controlReason?: string };
@@ -169,8 +181,37 @@ export function moveLayoutItem(
   if (settlement.refusedExerciseIds.length > 0) {
     return { status: "REFUSED", reason: "FORMAT_INCOMPATIBLE" };
   }
+  // PRE-9 C.4 (§13) : sortie d'un Circuit porteur — choix demandé avant toute écriture.
+  const [exit] = settlement.pendingExits;
+  if (exit !== undefined) {
+    const resolve = (exercises: readonly SessionDraftExercise[]) => settleMove(draft, layout, moved, removed, exercises, settlement, source, destination, control);
+    return {
+      status: "FORMAT_EXIT_CHOICE",
+      exerciseId: exit.exerciseId,
+      formatKey: exit.formatKey,
+      resolutions: {
+        KEEP: resolve(settlement.exercises),
+        FREE: resolve(settlement.exercises.map((exercise) => (exercise.id === exit.exerciseId ? exit.free : exercise))),
+      },
+    };
+  }
+  return settleMove(draft, layout, moved, removed, settlement.exercises, settlement, source, destination, control);
+}
+
+/** Fin commune d'un déplacement : contrôle avant dépose, pertes, Points d'arrêt (voir `moveLayoutItem`). */
+function settleMove(
+  draft: SessionDraft,
+  layout: Layout,
+  moved: Layout,
+  removed: readonly LayoutItemRef[],
+  exercises: readonly SessionDraftExercise[],
+  settlement: LayoutCircuitMembershipSettlement,
+  source: LayoutItemRef,
+  destination: LayoutDestination,
+  control: LayoutDropControl,
+): LayoutItemMoveOutcome {
   const finish = (result: Layout, removedStopPointIds: readonly string[]): LayoutItemMoveResult | Extract<LayoutItemMoveOutcome, { status: "REFUSED" }> => {
-    const next = withLayout({ ...draft, exercises: settlement.exercises, ...settlement.reservePatch }, result);
+    const next = withLayout({ ...draft, exercises, ...settlement.reservePatch }, result);
     const check = control({ before: draft, after: next, source, destination });
     if (check.status === "REFUSED") return { status: "REFUSED", reason: "CONTROL", controlReason: check.reason };
     if (settlement.losses.length > 0 || check.status === "CONFIRM") {
@@ -398,6 +439,10 @@ export function duplicateLayoutExercise(
 ): LayoutExerciseEditOutcome {
   if (draft.exercises.some((exercise) => exercise.id === newId)) {
     throw new Error(`duplicateLayoutExercise : l'identifiant de copie « ${newId} » existe déjà dans la Composition.`);
+  }
+  // PRE-9 C.4 (référence Formats §6 point 4) : un buy-in ou un buy-out ne se duplique pas.
+  if (isSinglePassage(draft.exercises.find((exercise) => exercise.id === exerciseId)?.format)) {
+    return { status: "REFUSED", reason: "NOT_FOUND" };
   }
   const layout = currentLayout(draft, newContainerId);
   const inserted = insertCopyAfter(layout, exerciseId, newId);

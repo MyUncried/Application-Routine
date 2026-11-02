@@ -271,10 +271,10 @@ describe("PRE-9 B.3 — Exercices formatés : refus sans altération (D-05, D-17
   let next = 0;
   const newId = () => `f-${++next}`;
 
-  it("matrice §6.1 : groupées admises sans modification ; alternées : AMRAP refusé, EMOM admis sans adaptation (séries = N)", () => {
+  it("matrice §6.1 : groupées admises sans modification ; alternées : AMRAP refusé, EMOM admis, son compte de séries adapté au Circuit", () => {
     expect(formattedMemberFits(formatted("t", "EMOM", 8), "TOURS", 3)).toBe(true);
     expect(formattedMemberFits(formatted("t", "EMOM", 8), "SERIES", 8)).toBe(true);
-    expect(formattedMemberFits(formatted("t", "EMOM", 8), "SERIES", 3)).toBe(false);
+    expect(formattedMemberFits(formatted("t", "EMOM", 8), "SERIES", 3)).toBe(true);
     expect(formattedMemberFits(formatted("m", "AMRAP", 1), "SERIES", 1)).toBe(false);
     expect(formattedMemberFits(formatted("m", "AMRAP", 1), "TOURS", 1)).toBe(true);
     expect(formattedMemberFits(exercise("libre"), "SERIES", 2)).toBe(true);
@@ -291,11 +291,12 @@ describe("PRE-9 B.3 — Exercices formatés : refus sans altération (D-05, D-17
       [formatted("m", "AMRAP", 1), formatted("t", "EMOM", 8), exercise("x", durationParameters(30, 8)), exercise("y")],
     );
     expect(moveExerciseToCircuit(draft, "m", "c8", 0, newId)).toEqual({ status: "REFUSED", reason: "FORMAT_INCOMPATIBLE" });
-    expect(moveExerciseToCircuit(draft, "t", "c3", 0, newId)).toEqual({ status: "REFUSED", reason: "FORMAT_INCOMPATIBLE" });
+    // EMOM de 8 séries vers un alterné à 3 : adapté comme un Exercice standard, perte confirmée (D-09, §6.1).
+    expect(moveExerciseToCircuit(draft, "t", "c3", 0, newId).status).toBe("CONFIRMATION_REQUIRED");
     expect(moveExerciseToCircuit(draft, "t", "c8", 0, newId).status).toBe("APPLIED");
   });
 
-  it("N ou nature d'un Circuit qui modifieraient les séries d'un membre formaté : non appliqués (D-17)", () => {
+  it("N : un membre EMOM alterné suit le compte (§6.1) ; nature qui refuserait un membre AMRAP : non appliquée", () => {
     const draft = draftOf(
       [
         { kind: "CIRCUIT", circuit: { id: "c8", repeatCount: 8, nature: "SERIES", exercises: ["t"] } },
@@ -303,7 +304,7 @@ describe("PRE-9 B.3 — Exercices formatés : refus sans altération (D-05, D-17
       ],
       [formatted("t", "EMOM", 8), formatted("m", "AMRAP", 1)],
     );
-    expect(setLayoutCircuitCount(draft, "c8", 7)).toBe(draft);
+    expect(countOf(setLayoutCircuitCount(draft, "c8", 7), "t")).toBe(7);
     expect(applyLayoutNatureChange(draft, "g", "SERIES")).toBe(draft);
     expect(prepareLayoutNatureChange(draft, "g", "SERIES").losses).toEqual([]);
     // Groupées : compte libre, séries intrinsèques inchangées.

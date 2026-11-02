@@ -4,6 +4,7 @@ import { startTransition, useCallback, useContext, useEffect, useLayoutEffect, u
 import {
   AccessibilityInfo,
   ActivityIndicator,
+  Alert,
   Animated,
   BackHandler,
   Easing,
@@ -51,6 +52,7 @@ import {
   layoutCircuitCountOutcome,
   layoutCycleCountOutcome,
   prepareLayoutNatureChange,
+  setLayoutCircuitFormatSetting,
   toggleEnvelopeDesignation,
   wrapSpansInContainers,
   type EnvelopeEdge,
@@ -205,6 +207,9 @@ import {
 } from "@/features/sessions/StickyHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
 import { FormatsWindow } from "@/features/sessions/FormatsWindow";
+import { isSinglePassage, singlePassageLabel } from "@/domain/sessions/formats";
+import { CarrierDurationSheet } from "@/features/sessions/CarrierDurationSheet";
+import { carrierDurationSetting, carrierHeaderOf } from "@/features/sessions/carrierPresentation";
 import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
@@ -2429,6 +2434,20 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [openTourChoice, reportRemovedStopPoints, updateDraft],
   );
   const handleLayoutCircuitCount = useCallback((circuitId: string, count: number) => handleLayoutCount("CIRCUIT", circuitId, count), [handleLayoutCount]);
+  // PRE-9 C.4 (référence Formats §7.5, §11) : durée portée par un Circuit porteur — roulette de durée.
+  const [carrierDurationEdit, setCarrierDurationEdit] = useState<{
+    readonly circuitId: string;
+    readonly setting: "blockSeconds" | "windowSeconds" | "timeCapSeconds";
+    readonly seconds: number | null;
+  } | null>(null);
+  const handleEditCarrierDuration = (circuit: StructureCircuit<SessionDraftExercise>) => {
+    const format = circuit.format ?? null;
+    if (format === null) return;
+    const setting = carrierDurationSetting(format, circuit.nature);
+    if (setting === null) return;
+    const value = format.settings[setting];
+    setCarrierDurationEdit({ circuitId: circuit.id, setting, seconds: typeof value === "number" ? value : null });
+  };
   const handleLayoutCycleCount = useCallback((cycleId: string, count: number) => handleLayoutCount("CYCLE", cycleId, count), [handleLayoutCount]);
   /** PRE-9 B.1b (ARB-12) : repli d'un Circuit de la disposition — état de l'écran, brouillon inchangé. */
   const toggleLayoutCircuitCollapsed = useCallback(
@@ -2858,6 +2877,30 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           });
           if (opened) settle?.hold();
           else settle?.release();
+          return;
+        }
+        case "FORMAT_EXIT_CHOICE": {
+          // PRE-9 C.4 (référence Formats §13, `11410:20123`) : « Conserver le format X » (principale, par
+          // défaut), « Adopter un format libre », « Annuler » (emplacement et paramètres antérieurs).
+          settle?.hold();
+          const exitTexts = strings.screens.composition.formatExit;
+          const formatName = strings.screens.sessionModels.cards[outcome.formatKey].title;
+          const name = draftRef.current.exercises.find((exercise) => exercise.id === outcome.exerciseId)?.name ?? "";
+          const replay = (choice: "KEEP" | "FREE") =>
+            runLayoutMoveRef.current(() => {
+              const again = run();
+              return again.status === "FORMAT_EXIT_CHOICE" ? again.resolutions[choice] : again;
+            }, settle);
+          Alert.alert(
+            exitTexts.title.replace("{format}", formatName),
+            exitTexts.message.replace("{name}", name).replace("{format}", formatName),
+            [
+              { text: exitTexts.keep.replace("{format}", formatName), style: "default", isPreferred: true, onPress: () => replay("KEEP") },
+              { text: exitTexts.free, onPress: () => replay("FREE") },
+              { text: exitTexts.cancel, style: "cancel", onPress: () => settle?.release() },
+            ],
+            { cancelable: true, onDismiss: () => settle?.release() },
+          );
           return;
         }
         case "REFUSED":
@@ -4755,6 +4798,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             openOverlay={openOverlay}
             onToggleOverlay={toggleOverlay}
             onCircuitCount={handleLayoutCircuitCount}
+            onEditCarrierDuration={handleEditCarrierDuration}
             onCycleCount={handleLayoutCycleCount}
             onSelectNature={handleLayoutSelectNature}
             onDismissNature={dismissLayoutNatureMenu}
@@ -5552,6 +5596,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onCancel={() => setIsAddActivityTreeOpen(false)}
           cancelLabel={addToSession.cancel}
           cancelTestID="composition-add-activity-tree-cancel"
+        />
+      ) : null}
+
+      {carrierDurationEdit !== null ? (
+        <CarrierDurationSheet
+          seconds={carrierDurationEdit.seconds}
+          allowsNone={carrierDurationEdit.setting === "timeCapSeconds"}
+          onValidate={(seconds) => {
+            const edit = carrierDurationEdit;
+            setCarrierDurationEdit(null);
+            updateDraft((current) => setLayoutCircuitFormatSetting(current, edit.circuitId, edit.setting, seconds));
+          }}
+          onCancel={() => setCarrierDurationEdit(null)}
         />
       ) : null}
 
@@ -6638,6 +6695,8 @@ type CompositionActivityRowProps = {
   readonly fadeLeaving?: boolean;
   readonly onDuplicate: () => void;
   readonly onDelete: () => void;
+  /** PRE-9 C.4 (référence Formats §5) : « Buy-in » / « Buy-out » à la place de la récupération, ou rien. */
+  readonly passageLabel?: string | null;
   /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
   readonly onMoveUp: (() => void) | null;
   readonly onMoveDown: (() => void) | null;
@@ -6798,6 +6857,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
  *    autre chemin n'appelle `onDragStart`.
  */
 function CompositionActivityRow({
+  passageLabel = null,
   activity,
   areActionsRevealed,
   isDragged,
@@ -7306,13 +7366,19 @@ function CompositionActivityRow({
    * récupération existante, 0 comprise, conservée — ou non) ; hors placement, la récupération est un
    * simple affichage (`OccurrenceRecovery`) : le toucher et l'appui long reviennent à la carte.
    */
-  const recoveryNode: React.ReactNode = (
-    <OccurrenceRecovery
-      recoverySeconds={displayedRecoverySeconds}
-      hiddenFromAccessibility={placement !== null}
-      testID={`composition-activity-recovery-${activity.id}-recovery`}
-    />
-  );
+  const recoveryNode: React.ReactNode =
+    passageLabel != null ? (
+      // Référence Formats §5 : troisième ligne, à la place de la récupération, alignée à droite.
+      <Text style={styles.passageLabel} numberOfLines={1} testID={`composition-activity-passage-${activity.id}`}>
+        {passageLabel}
+      </Text>
+    ) : (
+      <OccurrenceRecovery
+        recoverySeconds={displayedRecoverySeconds}
+        hiddenFromAccessibility={placement !== null}
+        testID={`composition-activity-recovery-${activity.id}-recovery`}
+      />
+    );
   /**
    * Rangée sous la carte, en placement seulement (story 5.3). PRE-6 story 6.2 (D-441) : hors
    * placement, le Point d'arrêt n'est plus dans le bloc de la carte (rangée autonome `StopPointRow`).
@@ -7991,6 +8057,8 @@ type LayoutRenderContext = {
   readonly openOverlay: OverlayKind | null;
   readonly onToggleOverlay: (kind: OverlayKind) => void;
   readonly onCircuitCount: (circuitId: string, count: number) => void;
+  /** PRE-9 C.4 : toucher de la durée d'un Circuit porteur. */
+  readonly onEditCarrierDuration: (circuit: StructureCircuit<SessionDraftExercise>) => void;
   readonly onCycleCount: (cycleId: string, count: number) => void;
   readonly onSelectNature: (circuitId: string, nature: CircuitNature) => void;
   readonly onDismissNature: (circuitId: string) => void;
@@ -8799,6 +8867,13 @@ function LayoutExerciseRow({
       layoutRailGap={railGap}
       layoutDraggable={drag !== null}
       layoutSwipeable={actions !== null}
+      passageLabel={
+        circuit !== null && (circuit.format ?? null) !== null && isSinglePassage(exercise.format)
+          ? singlePassageLabel(position.index) === "BUY_IN"
+            ? strings.screens.composition.carrier.buyIn
+            : strings.screens.composition.carrier.buyOut
+          : null
+      }
     />
   );
 }
@@ -9124,6 +9199,7 @@ function LayoutCircuitBlock({
         isCounterOpen={openOverlay === counterKind}
         onToggleCounter={() => onToggleOverlay(counterKind)}
         onChangeCount={(count) => context.onCircuitCount(circuit.id, count)}
+        carrier={carrierHeaderOf(circuit, () => context.onEditCarrierDuration(circuit))}
         isNatureMenuOpen={openOverlay === natureKind}
         onOpenNatureMenu={() => onToggleOverlay(natureKind)}
         onCloseNatureMenu={() => context.onDismissNature(circuit.id)}
@@ -10067,6 +10143,8 @@ const DRAG_SHIFT_GAPS = {
 } as const;
 
 const styles = StyleSheet.create({
+  // PRE-9 C.4 (référence Formats §5) : « Buy-in » / « Buy-out » sur la troisième ligne de la carte, à droite.
+  passageLabel: { alignSelf: "flex-end", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, color: colors.primary },
   // T01-S10 : corps des états de réhydratation en modification.
   editStateBody: {
     flex: 1,

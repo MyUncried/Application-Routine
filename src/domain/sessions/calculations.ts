@@ -91,8 +91,10 @@ export function progressiveFormatDuration(activity: ActivityDurationFacts): Exer
   const recovery = Math.max(0, activity.postActivityRecoverySeconds ?? 0);
   switch (format.key) {
     case "AMRAP": {
+      // Membre d'un Circuit porteur (sans Durée propre) : un passage de la boucle, compté par le Circuit.
       const configured = format.settings.durationSeconds;
-      const seconds = (typeof configured === "number" && configured > 0 ? configured : AMRAP_INITIAL_DURATION_SECONDS) + recovery;
+      if (typeof configured !== "number") return null;
+      const seconds = (configured > 0 ? configured : AMRAP_INITIAL_DURATION_SECONDS) + recovery;
       return { kind: "exact", knownSeconds: seconds, seconds, events: [] };
     }
     case "DEATH_BY":

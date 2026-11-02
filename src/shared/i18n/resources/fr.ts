@@ -863,6 +863,29 @@ export const fr = {
       },
       // PRE-9 B.4 (ch13 « annonce de la raison d'un refus de dépose ») : annonces VoiceOver d'une dépose
       // refusée sans modification dans une disposition générale. Formulations à valider.
+      // PRE-9 C.4 (référence Formats du 02/11/2026 §13, `11410:20123`) : sortie d'un Exercice d'un Circuit
+      // porteur d'un Format. Message illustratif, variable selon le mouvement et le Format.
+      // PRE-9 C.4 (référence Formats du 02/11/2026 §5, §11, §12) : en-tête d'un Circuit porteur.
+      carrier: {
+        blockUnit: { singular: "bloc", plural: "blocs" },
+        roundUnit: { singular: "tour", plural: "tours" },
+        untilFailure: "jusqu’à l’échec",
+        noLimit: "Sans limite",
+        buyIn: "Buy-in",
+        buyOut: "Buy-out",
+        durationLabels: {
+          blockSeconds: "Durée de chaque bloc",
+          windowSeconds: "Durée de chaque tour",
+          timeCapSeconds: "Temps limite",
+        },
+      },
+      formatExit: {
+        title: "Sortir du circuit {format} ?",
+        message: "{name} devient un {format} simple, ou un exercice libre.",
+        keep: "Conserver le format {format}",
+        free: "Adopter un format libre",
+        cancel: "Annuler",
+      },
       layoutMove: {
         refused: {
           NESTING: "Dépose impossible : un circuit ne va pas dans un circuit, ni un cycle dans un cycle",
