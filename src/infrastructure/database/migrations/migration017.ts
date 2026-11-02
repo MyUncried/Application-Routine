@@ -22,7 +22,8 @@ const quoted = (values: readonly string[]) => values.map((value) => `'${value}'`
 
 /**
  * Valeurs figées à la version 17 (une migration ne change pas après sa livraison) ; égales au
- * registre du domaine (`ELEMENT_FORMAT_KEYS`, `SESSION_ORIGINS`), vérifié par `migration017.test.ts`.
+ * registre du domaine (`STORABLE_FORMAT_KEYS` depuis le 02/11/2026 — quatre Formats et deux clés
+ * relues libres —, `SESSION_ORIGINS`), vérifié par `migration017.test.ts`.
  */
 export const MIGRATION_017_FORMAT_KEYS = ["TABATA", "INTERVALS_30_30", "EMOM", "AMRAP", "FOR_TIME", "DEATH_BY"] as const;
 export const MIGRATION_017_SESSION_ORIGINS = [

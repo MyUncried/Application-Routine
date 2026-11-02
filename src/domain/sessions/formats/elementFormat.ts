@@ -1,21 +1,19 @@
 /**
- * PRE-9 (C.1, ARB-03 ; correction du 30/10, D-02) — Format porté par un Exercice et ses réglages.
- * Le Circuit ne porte aucun Format (il porte son organisation et son nombre de tours).
+ * PRE-9 (C.1, réalignement du 02/11/2026) — Format porté par un Exercice ou un Circuit, et ses
+ * réglages (référence Formats du 02/11, §1 et §14).
  *
- * Les réglages sont les valeurs des seuls paramètres réglables du Format (FMT-04) : une constante
- * vient du registre et n'est jamais enregistrée (FMT-03), une valeur calculée non plus (FMT-05). Un
- * réglage absent n'est pas renseigné : sa complétude relève de la validité de configuration (C.3,
- * D.4). La version de règle n'est figée que dans l'instantané (D.2, ch09 l.593-598).
+ * Les réglages sont les valeurs du rôle du porteur (`formatParametersOf`) : Exercice autonome,
+ * Circuit porteur (Format d'origine) ou membre d'un Circuit porteur. Un réglage absent est
+ * facultatif ou à renseigner : sa complétude relève de la validité de configuration (D.4).
  *
- * Contrôle structurel (`elementFormatViolations`) : Format connu, réglages connus,
- * réglables, entiers et au-dessus de leur borne. Aucune règle propre au Format (compte commun,
- * volume non nul, organisation) n'est appliquée ici (C.3).
+ * Contrôle structurel (`elementFormatViolations`) : Format connu, réglages connus du rôle, entiers
+ * au-dessus de leur borne de saisie. La version de règle n'est figée que dans l'instantané (D.2).
  *
- * Stockage : JSON versionné `{ "version": 1, "values": { … } }` (sur le modèle
- * d'`execution_parameters`), relu strictement (`decodeFormatSettings`).
+ * Stockage : JSON versionné `{ "version": 1, "values": { … } }`, relu strictement
+ * (`decodeFormatSettings`).
  */
 
-import { FORMAT_REGISTRY, isElementFormatKey, type ElementFormatKey, type FormatParameter } from "./registry";
+import { formatParametersOf, isElementFormatKey, type ElementFormatKey, type FormatParameter, type FormatRole } from "./registry";
 
 export type FormatSettingValue = number | readonly number[];
 
@@ -29,26 +27,32 @@ export type ElementFormat = {
 export type ElementFormatViolationCode =
   | "FORMAT_UNKNOWN"
   | "FORMAT_SETTING_UNKNOWN"
-  | "FORMAT_SETTING_NOT_ADJUSTABLE"
+  | "FORMAT_ROLE_FORBIDDEN"
   | "FORMAT_SETTING_INVALID";
 
 export const FORMAT_SETTINGS_VERSION = 1;
 
 function settingValueValid(parameter: FormatParameter, value: unknown): boolean {
-  const valid = (item: unknown) =>
-    typeof item === "number" && Number.isInteger(item) && (parameter.min === undefined || item >= parameter.min);
-  if (parameter.list !== undefined) {
-    return Array.isArray(value) && value.length > 0 && value.every(valid);
-  }
-  return valid(value);
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    (parameter.min === undefined || value >= parameter.min) &&
+    (parameter.unit !== "FLAG" || value <= 1)
+  );
 }
 
-/** Violations structurelles d'un Format porté par un Exercice (voir l'en-tête), sans doublon. */
-export function elementFormatViolations(format: ElementFormat): readonly ElementFormatViolationCode[] {
+/** Violations structurelles d'un Format dans le rôle de son porteur (voir l'en-tête), sans doublon. */
+export function elementFormatViolations(
+  format: ElementFormat,
+  role: FormatRole = { kind: "EXERCISE" },
+): readonly ElementFormatViolationCode[] {
   if (!isElementFormatKey(format.key)) {
     return ["FORMAT_UNKNOWN"];
   }
-  const descriptor = FORMAT_REGISTRY[format.key];
+  const parameters = formatParametersOf(format.key, role);
+  if (parameters === null) {
+    return ["FORMAT_ROLE_FORBIDDEN"];
+  }
   const violations = new Set<ElementFormatViolationCode>();
   const settings: Readonly<Record<string, unknown>> =
     typeof format.settings === "object" && format.settings !== null && !Array.isArray(format.settings) ? format.settings : {};
@@ -56,11 +60,9 @@ export function elementFormatViolations(format: ElementFormat): readonly Element
     violations.add("FORMAT_SETTING_INVALID");
   }
   for (const [id, value] of Object.entries(settings)) {
-    const parameter = descriptor.parameters.find((candidate) => candidate.id === id);
+    const parameter = parameters.find((candidate) => candidate.id === id);
     if (parameter === undefined) {
       violations.add("FORMAT_SETTING_UNKNOWN");
-    } else if (parameter.lock !== "ADJUSTABLE") {
-      violations.add("FORMAT_SETTING_NOT_ADJUSTABLE");
     } else if (!settingValueValid(parameter, value)) {
       violations.add("FORMAT_SETTING_INVALID");
     }

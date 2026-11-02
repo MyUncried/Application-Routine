@@ -204,6 +204,7 @@ import {
   type StickyScroll,
 } from "@/features/sessions/StickyHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
+import { FormatsWindow } from "@/features/sessions/FormatsWindow";
 import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
@@ -1010,6 +1011,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // V2-CAT-01 (plan §4.4) : arbre `Ajouter une activité` — `Une nouvelle
   // activité` / `Une activité existante` / `Annuler`.
   const [isAddActivityTreeOpen, setIsAddActivityTreeOpen] = useState(false);
+  // PRE-9 C.2 (référence Formats du 02/11/2026 §7, CE-FMT-01) : fenêtre « Formats d'entraînement ».
+  const [isFormatsWindowOpen, setIsFormatsWindowOpen] = useState(false);
   /** Contre-recette du 30/10 : « + » de la zone de contexte, mesuré par le menu Créer. */
   const addActionRef = useRef<View>(null);
   /**
@@ -5519,7 +5522,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               },
               testID: "composition-add-activity-tree-existing",
             },
-            { key: "session", label: addToSession.existingSession, icon: "session", testID: "composition-add-activity-tree-existing-session" },
+            // Référence Formats du 02/11/2026 (§7, Figma `10705:20223`) : « Utiliser un format d'entraînement »
+            // remplace « Utiliser une séance existante » à cette place ; le menu s'efface, la fenêtre Formats s'ouvre.
+            {
+              key: "format",
+              label: addToSession.useFormat,
+              icon: "format",
+              onPress: () => {
+                setIsAddActivityTreeOpen(false);
+                setIsFormatsWindowOpen(true);
+              },
+              testID: "composition-add-activity-tree-format",
+            },
             {
               key: "circuit",
               label: addToSession.addCircuit,
@@ -5540,6 +5554,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           cancelTestID="composition-add-activity-tree-cancel"
         />
       ) : null}
+
+      {/* PRE-9 C.2 : la croix ou le voile ramènent à la Composition, sans rien ajouter ; une carte ouvre son questionnaire (C.3). */}
+      <FormatsWindow
+        visible={isFormatsWindowOpen}
+        onClose={() => setIsFormatsWindowOpen(false)}
+        onSelect={(model) => {
+          setIsFormatsWindowOpen(false);
+          router.push({ pathname: "/format-questionnaire", params: { model } });
+        }}
+      />
 
       {/* PRE-9 A.2 (ARB-22a) : paramètres des Exercices créés depuis des Mouvements. */}
       {movementExerciseSheet}

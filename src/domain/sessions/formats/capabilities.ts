@@ -1,7 +1,8 @@
 /**
  * PRE-9 (story D.3, ch11 l.315, ch12 l.1824-1834, FMT-01 à FMT-40, ARB-03) — descripteurs de
- * capacités d'exécution des douze modèles de la grille, appliqués à leur élément porteur (un
- * Exercice formaté, correction C.1 du 30/10, D-02 ; ou des éléments libres).
+ * capacités d'exécution des modèles de la fenêtre Formats, appliqués à leur élément porteur (Exercice
+ * autonome ou Circuit porteur depuis le 02/11/2026 ; ou des éléments libres). [« douze modèles » et
+ * « Exercice formaté seul (D-02) » — remplacés le 02/11/2026.]
  *
  * Donnée documentaire sourcée, **sans logique d'exécution** : ce que le futur moteur (PRE-10,
  * PRE-11) devra savoir faire pour chaque modèle. Toute capacité que les sources ne définissent pas
@@ -13,19 +14,24 @@
  * (« Ne pas implémenter le moteur d'exécution spécialisé dans PRE-9 »). La disponibilité du moteur
  * est distincte de la validité de configuration (D.4).
  *
+ * Réalignement du 02/11/2026 (référence Formats §1, §9, FMT-01) : Tabata et les départs rapides sont
+ * des préconfigurations standards (éléments libres) ; les quatre Formats spécialisés sont portés par
+ * l'Exercice autonome ou par le Circuit porteur. Les questions de rang et de fin du Death by alterné
+ * sont tranchées (A2 : Circuit porteur, arrêt collectif au premier échec).
+ *
  * Fonctions pures, sans React ni SQLite.
  */
 
-import { type ElementFormatKey, type QuickStartKey } from "./registry";
+import { type ElementFormatKey, type PreconfigurationKey } from "./registry";
 
-export type CapabilityModelKey = ElementFormatKey | QuickStartKey | "FREE";
+export type CapabilityModelKey = ElementFormatKey | PreconfigurationKey | "FREE";
 
 export const UNDEFINED_CAPABILITY = "NON_DEFINI" as const;
 type Undefined = { readonly status: typeof UNDEFINED_CAPABILITY; readonly question: string };
 type Maybe<T> = T | Undefined;
 
-/** Porteur : éléments libres (aucun Format porté, FMT-28) ou Exercice formaté (D-02 : jamais un Circuit). */
-export type CapabilityCarrier = "FREE_ELEMENTS" | "EXERCISE";
+/** Porteur : éléments libres (aucun Format porté, FMT-28) ou Exercice autonome / Circuit porteur (FMT-01, 02/11/2026). */
+export type CapabilityCarrier = "FREE_ELEMENTS" | "EXERCISE_OR_CIRCUIT";
 
 /** Plan fini (développé par D.1) ou progressif (segment, borne de l'élément). */
 export type CapabilityExpansion = "FINITE" | "PROGRESSIVE";
@@ -105,37 +111,12 @@ const freeModel = (model: CapabilityModelKey): FormatCapabilityDescriptor => ({
 });
 
 export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapabilityDescriptor>> = {
-  TABATA: {
-    model: "TABATA",
-    carrier: "EXERCISE",
-    expansion: "FINITE",
-    timeReferences: ["STEP", "SERIES_PAUSE"],
-    triggers: ["STEP_DEADLINE"],
-    onExpiry: "STEP_ENDS",
-    end: "ELEMENT_COMPLETED",
-    progression: "FIXED",
-    results: GENERIC_RESULTS,
-    undefinedAspects: [{ status: UNDEFINED_CAPABILITY, question: "Résultat spécifique d'un Tabata partiel (au-delà des statuts génériques)." }],
-    executionAvailable: false,
-    sources: ["FMT-10…18", "ch12 l.1828", "ARB-25", "recherche/03-formats §1.4"],
-  },
-  INTERVALS_30_30: {
-    model: "INTERVALS_30_30",
-    carrier: "EXERCISE",
-    expansion: "FINITE",
-    timeReferences: ["STEP", "SERIES_PAUSE"],
-    triggers: ["STEP_DEADLINE"],
-    onExpiry: "STEP_ENDS",
-    end: "ELEMENT_COMPLETED",
-    progression: "FIXED",
-    results: GENERIC_RESULTS,
-    undefinedAspects: [{ status: UNDEFINED_CAPABILITY, question: "Résultat spécifique d'un 30/30 partiel (au-delà des statuts génériques)." }],
-    executionAvailable: false,
-    sources: ["FMT-19", "FMT-27", "ARB-18a", "recherche/03-formats §1.4"],
-  },
+  // Préconfigurations standards (référence du 02/11, §9, FMT-10, FMT-19) : éléments libres.
+  TABATA: freeModel("TABATA"),
+  INTERVALS_30_30: freeModel("INTERVALS_30_30"),
   EMOM: {
     model: "EMOM",
-    carrier: "EXERCISE",
+    carrier: "EXERCISE_OR_CIRCUIT",
     expansion: "FINITE",
     timeReferences: ["ELEMENT_WINDOW", "STEP", "PHASES"],
     triggers: ["WINDOW_DEADLINE", "WORK_DONE_TAP"],
@@ -152,7 +133,7 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
   },
   AMRAP: {
     model: "AMRAP",
-    carrier: "EXERCISE",
+    carrier: "EXERCISE_OR_CIRCUIT",
     expansion: "PROGRESSIVE",
     timeReferences: ["ELEMENT_DEADLINE", "STEP", "PHASES"],
     triggers: ["ELEMENT_BOUND", "TARGET_REACHED", "NEXT"],
@@ -166,12 +147,16 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
   },
   FOR_TIME: {
     model: "FOR_TIME",
-    carrier: "EXERCISE",
+    carrier: "EXERCISE_OR_CIRCUIT",
     expansion: "FINITE",
     timeReferences: ["ELEMENT_STOPWATCH", "STEP", "PHASES"],
     triggers: ["TARGET_REACHED", "NEXT"],
-    // Aucune limite de temps dans les sources : aucune échéance n'expire.
-    onExpiry: "NOT_APPLICABLE",
+    // Référence du 02/11/2026 (§11, FMT-32, D-21) : temps limite facultatif ; atteint, il arrête l'élément
+    // avec un résultat incomplet, sans finir la Séance. L'étape en cours à cet instant n'est pas décrite.
+    onExpiry: {
+      status: UNDEFINED_CAPABILITY,
+      question: "Étape en cours lorsque le temps limite facultatif du For time est atteint (élément arrêté, résultat incomplet ; détail PRE-10/11).",
+    },
     end: "WORK_ACCOMPLISHED",
     progression: "FIXED",
     results: [...GENERIC_RESULTS, "ELAPSED_TIME"],
@@ -181,7 +166,7 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
   },
   DEATH_BY: {
     model: "DEATH_BY",
-    carrier: "EXERCISE",
+    carrier: "EXERCISE_OR_CIRCUIT",
     expansion: "PROGRESSIVE",
     timeReferences: ["ELEMENT_WINDOW", "WINDOW_RANK_FROM_CLOCK"],
     triggers: ["WINDOW_DEADLINE", "WORK_DONE_TAP", "DECLARED_STOP"],
@@ -191,21 +176,14 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     results: [...GENERIC_RESULTS, "ACQUIRED_ROUNDS_AND_PARTIAL_REPETITIONS"],
     undefinedAspects: [
       { status: UNDEFINED_CAPABILITY, question: "Suite après une fenêtre non acquise (A4)." },
-      // Correction C.1 du 30/10 : chaque Exercice porte son propre Death by (D-02) ; l'ancienne réserve R-03
-      // (un Death by porté par un Circuit de plusieurs Exercices) n'a plus d'objet.
-      {
-        status: UNDEFINED_CAPABILITY,
-        question:
-          "Death by membre d'un Circuit : rang à la reprise d'un nouveau passage groupé (rang initial ou poursuite, non décidé) ; " +
-          "raccordement des rangs, fenêtres et de la fin d'un membre en alternance (D-29, PRE-10/11).",
-      },
       NEXT_AFTER_PROGRESSIVE,
     ],
     executionAvailable: false,
-    sources: ["FMT-33…38", "D-368", "CE-FMT-05 §15", "ch05 l.484", "D-16", "D-18", "D-29", "recherche/03-formats §1.4"],
+    // 02/11 (A2, §6.1, §12) : un Death by autonome rejoué dans un Circuit groupé repart de son départ initial et
+    // finit localement ; le Death by alterné est porté par le Circuit, arrêt collectif au premier échec.
+    sources: ["FMT-33…38", "§12", "A2", "§6.1", "D-368", "CE-FMT-05 §15", "ch05 l.484", "D-16", "D-18", "D-29", "recherche/03-formats §1.4"],
   },
   STRENGTH: freeModel("STRENGTH"),
-  CORE_MOBILITY: freeModel("CORE_MOBILITY"),
   SUPERSET: freeModel("SUPERSET"),
   PROGRESSION: freeModel("PROGRESSION"),
   UNTIL_FAILURE: freeModel("UNTIL_FAILURE"),

@@ -78,7 +78,7 @@ import {
   type StructureStopPointLocation,
 } from "./structure";
 import { validateStructuredSessionInput, type StructureExerciseInput, type StructuredSessionInput } from "./structuredInput";
-import { cloneElementFormat, elementFormatsEqual, type ElementFormat, type SessionOrigin } from "./formats";
+import { cloneElementFormat, elementFormatsEqual, encodeFormatSettings, type ElementFormat, type SessionOrigin } from "./formats";
 import { normalizeInstruction, normalizeName, validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
 /**
@@ -894,7 +894,11 @@ function richLayoutSignature(layout: SessionDraft["structure"]): string {
   if (layout === undefined || legacyFromStructure(layout) !== null) {
     return "";
   }
-  const circuit = (item: StructureCircuit<string>) => `C(${item.id},${item.repeatCount},${item.nature})[${item.exercises.join(",")}]`;
+  // Réalignement du 02/11/2026 : le Format d'origine et les réglages d'un Circuit porteur comptent.
+  const carried = (item: StructureCircuit<string>) =>
+    item.format === undefined || item.format === null ? "" : `,${item.format.key}:${encodeFormatSettings(item.format.settings)}`;
+  const circuit = (item: StructureCircuit<string>) =>
+    `C(${item.id},${item.repeatCount},${item.nature}${carried(item)})[${item.exercises.join(",")}]`;
   const elements = layout.elements.map((element) => {
     switch (element.kind) {
       case "EXERCISE":

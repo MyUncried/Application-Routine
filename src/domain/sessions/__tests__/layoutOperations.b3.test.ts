@@ -263,24 +263,24 @@ describe("PRE-9 B.3 — déplacement vers un Circuit (COMP §6 ; geste en B.4)",
   });
 });
 
-describe("PRE-9 B.3 — Exercices formatés : refus sans altération (D-05, D-17, matrice §2.2 ; adaptation des réglages : C.4)", () => {
-  const formatted = (id: string, key: "TABATA" | "AMRAP" | "EMOM", count: number): SessionDraftExercise => ({
+describe("PRE-9 B.3 — Exercices formatés : refus sans altération (D-05, D-17 ; matrice §6.1 du 02/11/2026 ; adaptation des séries : C.4)", () => {
+  const formatted = (id: string, key: "AMRAP" | "EMOM", count: number): SessionDraftExercise => ({
     ...exercise(id, durationParameters(20, count, 10)),
     format: { key, settings: {} },
   });
   let next = 0;
   const newId = () => `f-${++next}`;
 
-  it("matrice : groupées admises sans modification ; alternées admises seulement sans adaptation (Tabata à N = 8)", () => {
-    expect(formattedMemberFits(formatted("t", "TABATA", 8), "TOURS", 3)).toBe(true);
-    expect(formattedMemberFits(formatted("t", "TABATA", 8), "SERIES", 8)).toBe(true);
-    expect(formattedMemberFits(formatted("t", "TABATA", 8), "SERIES", 3)).toBe(false);
+  it("matrice §6.1 : groupées admises sans modification ; alternées : AMRAP refusé, EMOM admis sans adaptation (séries = N)", () => {
+    expect(formattedMemberFits(formatted("t", "EMOM", 8), "TOURS", 3)).toBe(true);
+    expect(formattedMemberFits(formatted("t", "EMOM", 8), "SERIES", 8)).toBe(true);
+    expect(formattedMemberFits(formatted("t", "EMOM", 8), "SERIES", 3)).toBe(false);
     expect(formattedMemberFits(formatted("m", "AMRAP", 1), "SERIES", 1)).toBe(false);
-    expect(formattedMemberFits(formatted("e", "EMOM", 1), "SERIES", 1)).toBe(false);
+    expect(formattedMemberFits(formatted("m", "AMRAP", 1), "TOURS", 1)).toBe(true);
     expect(formattedMemberFits(exercise("libre"), "SERIES", 2)).toBe(true);
   });
 
-  it("déplacement d'un AMRAP vers un Circuit alterné refusé ; Tabata de 8 séries admis dans un alterné à 8", () => {
+  it("déplacement d'un AMRAP vers un Circuit alterné refusé ; EMOM de 8 séries admis dans un alterné à 8", () => {
     const draft = draftOf(
       [
         { kind: "EXERCISE", exercise: "m" },
@@ -288,7 +288,7 @@ describe("PRE-9 B.3 — Exercices formatés : refus sans altération (D-05, D-17
         { kind: "CIRCUIT", circuit: { id: "c8", repeatCount: 8, nature: "SERIES", exercises: ["x"] } },
         { kind: "CIRCUIT", circuit: { id: "c3", repeatCount: 3, nature: "SERIES", exercises: ["y"] } },
       ],
-      [formatted("m", "AMRAP", 1), formatted("t", "TABATA", 8), exercise("x", durationParameters(30, 8)), exercise("y")],
+      [formatted("m", "AMRAP", 1), formatted("t", "EMOM", 8), exercise("x", durationParameters(30, 8)), exercise("y")],
     );
     expect(moveExerciseToCircuit(draft, "m", "c8", 0, newId)).toEqual({ status: "REFUSED", reason: "FORMAT_INCOMPATIBLE" });
     expect(moveExerciseToCircuit(draft, "t", "c3", 0, newId)).toEqual({ status: "REFUSED", reason: "FORMAT_INCOMPATIBLE" });
@@ -301,7 +301,7 @@ describe("PRE-9 B.3 — Exercices formatés : refus sans altération (D-05, D-17
         { kind: "CIRCUIT", circuit: { id: "c8", repeatCount: 8, nature: "SERIES", exercises: ["t"] } },
         { kind: "CIRCUIT", circuit: { id: "g", repeatCount: 3, nature: "TOURS", exercises: ["m"] } },
       ],
-      [formatted("t", "TABATA", 8), formatted("m", "AMRAP", 1)],
+      [formatted("t", "EMOM", 8), formatted("m", "AMRAP", 1)],
     );
     expect(setLayoutCircuitCount(draft, "c8", 7)).toBe(draft);
     expect(applyLayoutNatureChange(draft, "g", "SERIES")).toBe(draft);

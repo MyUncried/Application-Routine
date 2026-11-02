@@ -1,13 +1,15 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { durationParameters, repetitionParameters, variableParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { failureTarget } from "@/domain/activities/ExecutionParameters";
 import { configurationValidity, engineAvailability, type ValidityExercise } from "@/domain/sessions/configurationValidity";
 import type { ElementFormat } from "@/domain/sessions/formats";
 import type { SessionStructure, StructureElement } from "@/domain/sessions/structure";
 
 /**
- * PRE-9 (story D.4, ARB-21) — validité de configuration par élément et pour la Séance, motifs
- * lisibles, aucune réparation ; disponibilité du moteur distincte.
+ * PRE-9 (story D.4, ARB-21 ; réalignement du 02/11/2026, référence Formats §3, §6, §6.1, §11, §12) —
+ * validité de configuration par élément et pour la Séance, motifs lisibles, aucune réparation ;
+ * disponibilité du moteur distincte.
  */
 
 const exercise = (id: string, parameters = durationParameters(30), format?: ElementFormat): ValidityExercise => ({
@@ -19,8 +21,9 @@ const exercise = (id: string, parameters = durationParameters(30), format?: Elem
 
 const of = (elements: readonly StructureElement<ValidityExercise>[]): SessionStructure<ValidityExercise> => ({ elements, stopPoints: [] });
 
-const TABATA: ElementFormat = { key: "TABATA", settings: {} };
-const tabataExercise = (id: string) => exercise(id, durationParameters(20, 8, 10), TABATA);
+const AMRAP_CIRCUIT: ElementFormat = { key: "AMRAP", settings: { blockSeconds: 720, restBetweenBlocksSeconds: 120 } };
+const LOOP: ElementFormat = { key: "AMRAP", settings: { incrementPerRound: 0 } };
+const BUY_IN: ElementFormat = { key: "AMRAP", settings: { incrementPerRound: 0, passageOnce: 1 } };
 
 describe("PRE-9 D.4 — validité de configuration", () => {
   it("Séance libre complète : valide", () => {
@@ -45,102 +48,102 @@ describe("PRE-9 D.4 — validité de configuration", () => {
     expect(configurationValidity(of([]))).toEqual({ status: "invalid", issues: [{ elementId: null, reason: "INVALID_STRUCTURE" }] });
   });
 
-  it("Tabata : constantes respectées → valide ; série, durée, pause ou mode modifiés → constante modifiée (CE-FMT-04 §14), sans réparation", () => {
-    const circuit = (exercises: readonly ValidityExercise[], repeatCount = 8, nature: "TOURS" | "SERIES" = "SERIES"): StructureElement<ValidityExercise> => ({
+  it("Tabata et 30/30 sont des Exercices standards : aucune constante, toute modification admise (FMT-10, FMT-19, CE-FMT-04)", () => {
+    const circuit: StructureElement<ValidityExercise> = {
       kind: "CIRCUIT",
-      circuit: { id: "t", repeatCount, nature, exercises },
+      circuit: { id: "t", repeatCount: 4, nature: "SERIES", exercises: [exercise("a", durationParameters(25, 4, 15)), exercise("b", repetitionParameters(12, 4, 10))] },
+    };
+    expect(configurationValidity(of([circuit]))).toEqual({ status: "valid" });
+  });
+
+  it("Circuit porteur AMRAP : buy-in et boucle valides ; boucle sans membre « À chaque tour » invalide (§6.1, R09), sans réparation", () => {
+    const carrier = (exercises: readonly ValidityExercise[]): StructureElement<ValidityExercise> => ({
+      kind: "CIRCUIT",
+      circuit: { id: "c", repeatCount: 3, nature: "TOURS", format: AMRAP_CIRCUIT, exercises },
     });
-    expect(configurationValidity(of([circuit([tabataExercise("a"), tabataExercise("b")])]))).toEqual({ status: "valid" });
-    // Groupées : admises quel que soit le compte (D-15) — l'ancien « Circuit d'un tour » n'est plus exigé.
-    expect(configurationValidity(of([circuit([tabataExercise("a"), tabataExercise("b")], 1, "TOURS")]))).toEqual({ status: "valid" });
-    expect(configurationValidity(of([circuit([tabataExercise("a"), tabataExercise("b")], 3, "TOURS")]))).toEqual({ status: "valid" });
-    const broken = [
-      exercise("count", durationParameters(20, 7, 10), TABATA),
-      exercise("work", durationParameters(25, 8, 10), TABATA),
-      exercise("pause", durationParameters(20, 8, 15), TABATA),
-      exercise("mode", repetitionParameters(20, 8, 10), TABATA),
-    ];
-    const structure = of([circuit(broken)]);
+    expect(configurationValidity(of([carrier([exercise("in", repetitionParameters(50), BUY_IN), exercise("l", durationParameters(30), LOOP)])]))).toEqual({
+      status: "valid",
+    });
+    const structure = of([carrier([exercise("in", repetitionParameters(50), BUY_IN)])]);
     const before = JSON.stringify(structure);
-    expect(configurationValidity(structure)).toEqual({
-      status: "invalid",
-      issues: broken.map((item) => ({ elementId: item.id, reason: "LOCKED_CONSTANT_CHANGED" })),
-    });
+    expect(configurationValidity(structure)).toEqual({ status: "invalid", issues: [{ elementId: "c", reason: "EMPTY_LOOP" }] });
     expect(JSON.stringify(structure)).toBe(before);
-    // Tabata porté par un Exercice unique.
-    expect(configurationValidity(of([{ kind: "EXERCISE", exercise: exercise("solo", durationParameters(20, 8, 10), TABATA) }]))).toEqual({ status: "valid" });
   });
 
-  it("aucune transmission (D-26, D-27) : un Exercice libre membre d'un Circuit n'hérite d'aucune constante d'un membre formaté", () => {
-    const mixed = of([
-      { kind: "CIRCUIT", circuit: { id: "c", repeatCount: 8, nature: "SERIES", exercises: [tabataExercise("a"), exercise("libre", durationParameters(45, 3, 15))] } },
-    ]);
-    expect(configurationValidity(mixed)).toEqual({ status: "valid" });
-  });
-
-  it("chaque Exercice formaté contrôlé contre l'organisation et le compte de son propre Circuit (matrice §2.2) : refus explicite", () => {
-    const amrap: ElementFormat = { key: "AMRAP", settings: { durationSeconds: 720 } };
-    const intervals: ElementFormat = { key: "INTERVALS_30_30", settings: { seriesCount: 6 } };
+  it("valeurs imposées : buy-in en Répétitions à l'objectif ; Death by et For time autonomes en Répétitions ; For time sans À l'échec (§3, §11, §12)", () => {
+    const deathBy: ElementFormat = { key: "DEATH_BY", settings: { intervalSeconds: 60, incrementPerRound: 1 } };
+    const forTime: ElementFormat = { key: "FOR_TIME", settings: {} };
+    const failure = repetitionParameters(21, 3);
+    const withFailure = { ...failure, series: { ...failure.series, target: failureTarget() } } as typeof failure;
     const result = configurationValidity(
       of([
-        // Tabata alterné, N ≠ 8 (D-16).
-        { kind: "CIRCUIT", circuit: { id: "t", repeatCount: 3, nature: "SERIES", exercises: [tabataExercise("a")] } },
-        // AMRAP et 30/30 alternés refusés (D-16) ; l'Exercice libre voisin n'est pas concerné.
-        {
-          kind: "CIRCUIT",
-          circuit: { id: "x", repeatCount: 6, nature: "SERIES", exercises: [exercise("amrap", durationParameters(30), amrap), exercise("i", durationParameters(30, 6, 30), intervals), exercise("libre")] },
-        },
-        // Groupées : admises pour tous (D-15).
-        { kind: "CIRCUIT", circuit: { id: "g", repeatCount: 3, nature: "TOURS", exercises: [exercise("amrap2", durationParameters(30), amrap)] } },
+        { kind: "CIRCUIT", circuit: { id: "c", repeatCount: 2, nature: "TOURS", format: AMRAP_CIRCUIT, exercises: [exercise("in", durationParameters(30), BUY_IN), exercise("l", durationParameters(30), LOOP)] } },
+        { kind: "EXERCISE", exercise: exercise("d", durationParameters(30), deathBy) },
+        { kind: "EXERCISE", exercise: exercise("ok", repetitionParameters(1), deathBy) },
+        { kind: "EXERCISE", exercise: exercise("f", withFailure, forTime) },
       ]),
     );
     expect(result).toEqual({
       status: "invalid",
       issues: [
-        { elementId: "a", reason: "INCOMPATIBLE_CIRCUIT" },
-        { elementId: "amrap", reason: "INCOMPATIBLE_CIRCUIT" },
-        { elementId: "i", reason: "INCOMPATIBLE_CIRCUIT" },
+        { elementId: "in", reason: "LOCKED_CONSTANT_CHANGED" },
+        { elementId: "d", reason: "LOCKED_CONSTANT_CHANGED" },
+        { elementId: "f", reason: "LOCKED_CONSTANT_CHANGED" },
       ],
     });
   });
 
-  it("For time alterné : non décidé (main / branche non fusionnée) — jamais bloquant, signalé comme question ouverte", () => {
-    const forTime: ElementFormat = { key: "FOR_TIME", settings: { volumePerRound: [21, 15, 9] } };
+  it("Exercice formaté autonome dans un Circuit standard (§6.1) : AMRAP, For time et Death by alternés refusés ; EMOM admis ; groupées admises", () => {
+    const amrap: ElementFormat = { key: "AMRAP", settings: { durationSeconds: 720, incrementPerRound: 0 } };
+    const deathBy: ElementFormat = { key: "DEATH_BY", settings: { intervalSeconds: 60, incrementPerRound: 1 } };
+    const emom: ElementFormat = { key: "EMOM", settings: { intervalSeconds: 60 } };
     const result = configurationValidity(
-      of([{ kind: "CIRCUIT", circuit: { id: "f", repeatCount: 3, nature: "SERIES", exercises: [exercise("b", durationParameters(30), forTime), exercise("c")] } }]),
+      of([
+        {
+          kind: "CIRCUIT",
+          circuit: {
+            id: "x",
+            repeatCount: 6,
+            nature: "SERIES",
+            exercises: [exercise("amrap", repetitionParameters(10), amrap), exercise("death", repetitionParameters(1), deathBy), exercise("emom", repetitionParameters(10, 6), emom)],
+          },
+        },
+        { kind: "CIRCUIT", circuit: { id: "g", repeatCount: 3, nature: "TOURS", exercises: [exercise("amrap2", repetitionParameters(10), amrap), exercise("death2", repetitionParameters(1), deathBy)] } },
+      ]),
     );
-    expect(result.status).toBe("valid");
-    expect(result.openQuestions).toEqual([{ elementId: "b", circuitId: "f", question: expect.stringContaining("À CLARIFIER") }]);
-    // Groupé : admis, sans question.
-    expect(
-      configurationValidity(of([{ kind: "CIRCUIT", circuit: { id: "f", repeatCount: 3, nature: "TOURS", exercises: [exercise("b", durationParameters(30), forTime)] } }])),
-    ).toEqual({ status: "valid" });
-  });
-
-  it("réglage non renseigné ; échelle For time entièrement nulle (ARB-18b) ; zéro admis dans une position", () => {
-    const emom: ElementFormat = { key: "EMOM", settings: { windowSeconds: 60 } };
-    const zeroLadder: ElementFormat = { key: "FOR_TIME", settings: { volumePerRound: [0, 0] } };
-    const partialZero: ElementFormat = { key: "FOR_TIME", settings: { volumePerRound: [21, 0, 9] } };
-    expect(
-      configurationValidity(
-        of([
-          { kind: "EXERCISE", exercise: exercise("e", durationParameters(30), emom) },
-          { kind: "EXERCISE", exercise: exercise("z", durationParameters(30), zeroLadder) },
-          { kind: "EXERCISE", exercise: exercise("p", durationParameters(30), partialZero) },
-        ]),
-      ),
-    ).toEqual({
+    expect(result).toEqual({
       status: "invalid",
       issues: [
+        { elementId: "amrap", reason: "INCOMPATIBLE_CIRCUIT" },
+        { elementId: "death", reason: "INCOMPATIBLE_CIRCUIT" },
+      ],
+    });
+  });
+
+  it("membre d'un Circuit porteur : sans réglage de membre ou d'une autre clé → refusé ; réglage obligatoire manquant signalé", () => {
+    const deathByCircuit: ElementFormat = { key: "DEATH_BY", settings: {} };
+    const result = configurationValidity(
+      of([
+        { kind: "CIRCUIT", circuit: { id: "c", repeatCount: 2, nature: "TOURS", format: AMRAP_CIRCUIT, exercises: [exercise("libre"), exercise("autre", durationParameters(30), { key: "EMOM", settings: {} })] } },
+        // Death by alterné : intervalle local à chaque membre (A2) ; manquant → réglage à renseigner.
+        { kind: "CIRCUIT", circuit: { id: "d", repeatCount: 1, nature: "SERIES", format: deathByCircuit, exercises: [exercise("m", repetitionParameters(1), { key: "DEATH_BY", settings: { incrementPerRound: 1 } })] } },
+        { kind: "EXERCISE", exercise: exercise("e", repetitionParameters(10), { key: "EMOM", settings: {} }) },
+      ]),
+    );
+    expect(result).toEqual({
+      status: "invalid",
+      issues: [
+        { elementId: "libre", reason: "MISSING_SETTING" },
+        { elementId: "autre", reason: "INVALID_STRUCTURE" },
+        { elementId: "m", reason: "MISSING_SETTING" },
         { elementId: "e", reason: "MISSING_SETTING" },
-        { elementId: "z", reason: "ZERO_VOLUME" },
       ],
     });
   });
 
   it("disponibilité du moteur distincte de la validité : aucune en PRE-9, même pour une configuration valide (ARB-21)", () => {
-    expect(configurationValidity(of([{ kind: "EXERCISE", exercise: exercise("a", durationParameters(20, 8, 10), TABATA) }])).status).toBe("valid");
-    expect(engineAvailability(TABATA)).toBe(false);
+    expect(configurationValidity(of([{ kind: "EXERCISE", exercise: exercise("a") }])).status).toBe("valid");
+    expect(engineAvailability({ key: "EMOM", settings: { intervalSeconds: 60 } })).toBe(false);
     expect(engineAvailability(null)).toBe(false);
   });
 });

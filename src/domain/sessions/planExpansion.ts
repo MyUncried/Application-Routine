@@ -24,7 +24,14 @@
  *   interne à un Cycle à chaque répétition, ARB-02a). Le développement ne produit jamais deux
  *   Points successifs, ni un Point avant le premier ou après le dernier Exercice exécuté (RM-251,
  *   RM-219, D-441, D-442 : « supprimer le point en trop »), sans rien retirer de la Séance.
- * - **Formats** (correction C.1 du 30/10, D-02) : le Format est porté par l'**Exercice** seul ; le
+ * - **Circuit porteur d'un Format** (réalignement du 02/11/2026, référence Formats §1, §2.1, §10 à §12) :
+ *   AMRAP — un segment progressif par bloc (rattaché au Circuit), séparés par le repos entre les blocs ;
+ *   le buy-in et la boucle sont dans le segment (le buy-in consomme le premier bloc) ; Death by (dans
+ *   chaque intervalle ou alterné) — un segment unique, arrêt collectif au premier échec ; EMOM dans
+ *   chaque intervalle et For time — tours ordinaires de leurs membres (nature fixée), le Format du
+ *   Circuit en élément de rattachement. Un Death by autonome rejoué dans un Circuit groupé repart de
+ *   son départ initial (§6.1) : question levée.
+ * - **Formats** [correction C.1 du 30/10, D-02 — remplacée le 02/11/2026 pour le Circuit porteur] : le Format est porté par l'**Exercice** seul ; le
  *   Circuit n'en porte aucun et n'en transmet aucun. Un Exercice formaté fini (Tabata, Intervalles
  *   30/30, EMOM, For time) est développé par sa structure ordinaire (ses séries) ; ses étapes portent
  *   l'Exercice comme élément de rattachement. Un Exercice AMRAP ou Death by produit un **segment
@@ -104,8 +111,10 @@ export type PlanStep =
       readonly kind: "PROGRESSIVE_SEGMENT";
       readonly stepId: string;
       readonly elementId: string;
-      /** Toujours un Exercice (D-02). */
-      readonly elementKind: "EXERCISE";
+      /** Exercice autonome, ou Circuit porteur (réalignement du 02/11/2026). */
+      readonly elementKind: "EXERCISE" | "CIRCUIT";
+      /** Bloc AMRAP d'un Circuit porteur (1..n), absent sinon. */
+      readonly block?: number;
       readonly format: ElementFormat;
       readonly context: PlanContext;
       /** Point non décidé qui concerne ce segment (voir l'en-tête), absent sinon ; jamais une règle supposée. */
@@ -214,12 +223,21 @@ export function expandStructure<E extends PlanExercise>(input: PlanExpansionInpu
   };
 
   const circuit = (item: StructureCircuit<E>, prefix: string, cycle: PlanCycleContext | null) => {
+    const carried = item.format ?? null;
+    if (carried !== null && PROGRESSIVE_FORMATS.has(carried.key)) {
+      carrierSegments(item, carried, prefix, cycle);
+      return;
+    }
     const alternated = item.nature === "SERIES";
     for (let tour = 1; tour <= item.repeatCount; tour += 1) {
-      const circuitContext: PlanContext = { cycle, circuit: { id: item.id, tour, count: item.repeatCount }, formattedElementId: null };
-      // Chaque membre est rattaché à son propre Format, jamais à celui d'un autre membre (D-26, D-27).
+      const circuitContext: PlanContext = {
+        cycle,
+        circuit: { id: item.id, tour, count: item.repeatCount },
+        formattedElementId: carried === null ? null : item.id,
+      };
+      // Circuit standard : chaque membre est rattaché à son propre Format (§6.1) ; Circuit porteur : au Circuit.
       const memberContext = (exercise: E): PlanContext =>
-        (exercise.format ?? null) === null ? circuitContext : { ...circuitContext, formattedElementId: exercise.id };
+        carried !== null || (exercise.format ?? null) === null ? circuitContext : { ...circuitContext, formattedElementId: exercise.id };
       const tourPrefix = `${prefix}/circuit:${item.id}#${tour}`;
       const only = alternated ? tour : null;
       const plays = (exercise: E) => only === null || progressiveFormat(exercise) !== null || seriesCount(exercise) >= only;
@@ -237,6 +255,27 @@ export function expandStructure<E extends PlanExercise>(input: PlanExpansionInpu
         }
         pointsAt({ circuitId: item.id, cycleId: null }, index + 1, tourPrefix, circuitContext);
       });
+    }
+  };
+
+  /** Circuit porteur AMRAP (un segment par bloc, repos entre les blocs) ou Death by (un segment). */
+  const carrierSegments = (item: StructureCircuit<E>, format: ElementFormat, prefix: string, cycle: PlanCycleContext | null) => {
+    const blocks = format.key === "AMRAP" ? Math.max(1, item.repeatCount) : 1;
+    const rest = format.settings.restBetweenBlocksSeconds;
+    for (let block = 1; block <= blocks; block += 1) {
+      const context: PlanContext = { cycle, circuit: { id: item.id, tour: block, count: blocks }, formattedElementId: item.id };
+      steps.push({
+        kind: "PROGRESSIVE_SEGMENT",
+        stepId: `${prefix}/circuit:${item.id}#${block}/segment`,
+        elementId: item.id,
+        elementKind: "CIRCUIT",
+        format,
+        context,
+        ...(format.key === "AMRAP" ? { block } : {}),
+      });
+      if (block < blocks && typeof rest === "number" && rest > 0) {
+        steps.push({ kind: "RECOVERY", stepId: `${prefix}/circuit:${item.id}#${block}/rest`, exerciseId: item.id, seconds: rest, context });
+      }
     }
   };
 
@@ -292,10 +331,9 @@ function progressiveInCircuitQuestion(format: ElementFormat, alternated: boolean
   if (alternated) {
     return "Circuit alterné : unité exécutée par ce membre progressif à chaque tour, raccordement des rangs, fenêtres et de sa fin — PRE-10/11 (D-29).";
   }
-  if (format.key === "DEATH_BY") {
-    return "Circuit groupé : rang de reprise de ce Death by au passage suivant (rang initial ou poursuite) — non décidé.";
-  }
-  // AMRAP groupé : chaque passage recommence un bloc à sa durée configurée complète (D-15, D-30) — décidé.
+  // Circuit groupé : chaque passage rejoue l'AMRAP ou le Death by depuis ses réglages initiaux (§6.1,
+  // décision complémentaire de Hermann du 02/11/2026) — décidé.
+  void format;
   return null;
 }
 

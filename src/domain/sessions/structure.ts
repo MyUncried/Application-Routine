@@ -34,11 +34,13 @@ import {
 } from "@/domain/activities/executionCalculations";
 
 import {
+  carrierCircuitDuration,
   computeActivityDurationResult,
   seriesCircuitContribution,
   type ActivityDurationFacts,
 } from "./calculations";
 import { isCircuitNature, type CircuitNature } from "./circuit";
+import type { ElementFormat } from "./formats/elementFormat";
 import type { StructuralPosition } from "./Session";
 
 /** Borne du compte d'un Circuit, inchangée (D-058). */
@@ -53,9 +55,14 @@ export type StructureCircuit<E> = {
   readonly repeatCount: number;
   readonly nature: CircuitNature;
   readonly exercises: readonly E[];
-  // PRE-9 (correction C.1 du 30/10, D-02) : le Circuit ne porte aucun Format ; il porte son organisation
-  // (`nature`) et son nombre de tours (`repeatCount`). Les colonnes `tours.format_*` (migration 017) sont
-  // des vestiges inutilisés.
+  /**
+   * PRE-9 (réalignement C.1 du 02/11/2026, référence Formats §1, FMT-01) : **Format d'origine** d'un
+   * Circuit porteur (AMRAP, For time, EMOM, Death by), hérité du questionnaire et non modifiable ; nature
+   * fixée par le Format ; réglages du Circuit (durée de bloc, intervalle commun, temps limite…). Absent
+   * (`null`) : Circuit standard. [30/10, correction C.1 : « le Circuit ne porte aucun Format » —
+   * remplacé le 02/11/2026.] Colonnes `tours.format_*` (migration 017).
+   */
+  readonly format?: ElementFormat | null;
 };
 
 /** Membre d'un Cycle (D-451) : Exercice direct ou Circuit. */
@@ -219,6 +226,11 @@ function circuitContributions<E extends ActivityDurationFacts>(
   circuit: StructureCircuit<E>,
   cycleRepeatCount: number,
 ): SessionDurationContribution[] {
+  // Réalignement du 02/11/2026 : un Circuit porteur d'un Format a la durée de son Format (§1, §2.1).
+  const carried = carrierCircuitDuration(circuit);
+  if (carried !== null) {
+    return [{ result: carried, multiplicity: cycleRepeatCount }];
+  }
   switch (circuit.nature) {
     case "TOURS":
       return circuit.exercises.map((exercise) => ({
@@ -363,6 +375,10 @@ export function legacyFromStructure<E, P extends StructureStopPointLocation>(
     return null;
   }
   if (structure.elements.some((element) => element.kind === "CYCLE")) {
+    return null;
+  }
+  // Réalignement du 02/11/2026 : un Circuit porteur d'un Format n'existe pas dans l'ancien modèle.
+  if (structure.elements.some((element) => element.kind === "CIRCUIT" && (element.circuit.format ?? null) !== null)) {
     return null;
   }
   if (circuitIndexes.length === 0) {

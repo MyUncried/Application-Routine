@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type ViewStyle } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
 
 import { strings } from "@/shared/i18n";
@@ -94,7 +94,7 @@ const PLUS_TARGET = 44;
 const CANCEL_SIZE = 34;
 const CANCEL_GLYPH = 24;
 
-export type CreateMenuIcon = "exercise" | "movement" | "session" | "circuit" | "cycle";
+export type CreateMenuIcon = "exercise" | "movement" | "session" | "format" | "circuit" | "cycle";
 
 export type CreateMenuOption = {
   readonly key: string;
@@ -155,6 +155,17 @@ function OptionIcon({ icon }: { readonly icon: CreateMenuIcon }) {
       return (
         <View style={[styles.iconCircle, styles.iconBlue]}>
           <SessionGlyph />
+        </View>
+      );
+    case "format":
+      // Référence Formats du 02/11/2026 (Figma `11288:19968`) : cadre arrondi blanc de 20 posé à 6, trois traits de 12
+      // (cotes diminuées du liseré de 1 du cercle, qui décale les enfants positionnés).
+      return (
+        <View style={[styles.iconCircle, styles.iconBlue]} testID="create-menu-icon-format">
+          <View style={styles.formatFrame} />
+          {[10, 14.2, 18.4].map((top) => (
+            <View key={top} style={[styles.formatLine, { top }]} />
+          ))}
         </View>
       );
     case "movement":
@@ -308,18 +319,37 @@ export function CreateMenu({
         );
       })}
       {/* Annuler : le « + » transformé, à son emplacement exact, au-dessus du voile et de l'axe. */}
-      <Pressable
+      <CloseCircleButton
         onPress={onCancel}
-        accessibilityRole="button"
-        accessibilityLabel={cancelLabel}
+        label={cancelLabel}
         style={[styles.cancelTarget, { left: plusCenterX - PLUS_TARGET / 2, top: plusCenterY - PLUS_TARGET / 2 }]}
         testID={cancelTestID}
-      >
-        <View style={styles.cancelCircle} testID={`${cancelTestID}-circle`}>
-          <KodjoIcon name="control-close" size={CANCEL_GLYPH} testID={`${cancelTestID}-icon`} />
-        </View>
-      </Pressable>
+      />
     </Reanimated.View>
+  );
+}
+
+/**
+ * Croix standard sur fond gris, 34 px, cible de 44 (Figma « Action / Fermer — Annuler ») : Annuler du menu
+ * Créer, et fermeture de la fenêtre Formats (référence Formats du 02/11/2026, `9977:19613`).
+ */
+export function CloseCircleButton({
+  onPress,
+  label,
+  style,
+  testID,
+}: {
+  readonly onPress: () => void;
+  readonly label: string;
+  readonly style?: StyleProp<ViewStyle>;
+  readonly testID: string;
+}) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={style} testID={testID}>
+      <View style={styles.cancelCircle} testID={`${testID}-circle`}>
+        <KodjoIcon name="control-close" size={CANCEL_GLYPH} testID={`${testID}-icon`} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -337,6 +367,8 @@ const styles = StyleSheet.create({
   scrim: { backgroundColor: SCRIM },
   axis: { position: "absolute", width: 2, borderRadius: 1, backgroundColor: AXIS_COLOR },
   cancelTarget: { position: "absolute", width: PLUS_TARGET, height: PLUS_TARGET, alignItems: "center", justifyContent: "center" },
+  formatFrame: { position: "absolute", left: 5, top: 5, width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, borderColor: "#FFFFFF" },
+  formatLine: { position: "absolute", left: 9, width: 12, height: 1.6, borderRadius: 0.8, backgroundColor: "#FFFFFF" },
   cancelCircle: {
     width: CANCEL_SIZE,
     height: CANCEL_SIZE,

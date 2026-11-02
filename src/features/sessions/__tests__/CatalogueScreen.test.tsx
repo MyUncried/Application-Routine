@@ -423,8 +423,8 @@ describe("CatalogueScreen — cadre commun", () => {
 
     expect(screen.queryByTestId("catalogue-create-tree")).toBeNull();
     expect(mockPush).toHaveBeenCalledTimes(1);
-    // PRE-9 C.2 (CE-FMT-01 §3) : Créer ouvre « Créer », choix du modèle (remplace E.4).
-    expect(mockPush).toHaveBeenCalledWith("/session-model");
+    // Référence Formats du 02/11/2026 (§7) : Créer ouvre la Composition ; les Formats s'ouvrent depuis son menu Créer.
+    expect(mockPush).toHaveBeenCalledWith("/composition");
   });
 
   it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {

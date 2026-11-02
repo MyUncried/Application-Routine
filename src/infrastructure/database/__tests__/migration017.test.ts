@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 import { splitResolvedParameters } from "@/domain/activities/Movement";
 import { serializeCatalogExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
-import { ELEMENT_FORMAT_KEYS, SESSION_ORIGINS } from "@/domain/sessions/formats";
+import { ELEMENT_FORMAT_KEYS, LEGACY_PRECONFIGURATION_FORMAT_KEYS, SESSION_ORIGINS, STORABLE_FORMAT_KEYS } from "@/domain/sessions/formats";
 import { toSessionDraft } from "@/domain/sessions/SessionDraft";
 import { SessionService } from "@/features/sessions/SessionService";
 import { DATABASE_VERSION } from "@/infrastructure/database/constants";
@@ -204,9 +204,11 @@ async function seededVersion16(): Promise<NodeSqliteDatabase> {
 }
 
 describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de création)", () => {
-  it("version courante 19 (017 à 019, A.2b et recette n° 2 constat e) ; listes figées de la 017 égales au registre du domaine", () => {
+  it("version courante 19 (017 à 019, A.2b et recette n° 2 constat e) ; listes figées de la 017 égales aux clés stockables et aux origines du registre du domaine (réalignement du 02/11/2026)", () => {
     expect(DATABASE_VERSION).toBe(19);
-    expect([...MIGRATION_017_FORMAT_KEYS]).toEqual([...ELEMENT_FORMAT_KEYS]);
+    expect([...MIGRATION_017_FORMAT_KEYS]).toEqual([...STORABLE_FORMAT_KEYS]);
+    // Clés stockables = quatre Formats spécialisés + clés Tabata et 30/30 écrites avant le 02/11 (relues libres).
+    expect([...STORABLE_FORMAT_KEYS].sort()).toEqual([...ELEMENT_FORMAT_KEYS, ...LEGACY_PRECONFIGURATION_FORMAT_KEYS].sort());
     expect([...MIGRATION_017_SESSION_ORIGINS]).toEqual([...SESSION_ORIGINS]);
   });
 

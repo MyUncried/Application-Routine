@@ -42,7 +42,7 @@
 import { clampSeriesCount, seriesCountOf, type SeriesRow } from "@/domain/activities/ExecutionParameters";
 
 import { adaptExercise, DEFAULT_CIRCUIT_NATURE, lostSeriesCount, type CircuitLoss, type CircuitLossReport, type CircuitNature } from "./circuit";
-import { circuitCompatibility, FORMAT_REGISTRY } from "./formats";
+import { circuitCompatibility } from "./formats";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import {
   layoutStopPointId,
@@ -155,16 +155,12 @@ export function formattedMemberFits(exercise: SessionDraftExercise, nature: Circ
   if (format === null || exercise.type !== "EXERCISE") {
     return true;
   }
-  const compatibility = circuitCompatibility(format.key, { nature, repeatCount: count });
+  // Réalignement du 02/11/2026 (§6.1) : matrice des Exercices formatés autonomes dans un Circuit standard.
+  const compatibility = circuitCompatibility(format.key, { nature });
   if (compatibility.status === "REFUSED") {
     return false;
   }
-  if (nature === "TOURS") {
-    return true;
-  }
-  const rule = FORMAT_REGISTRY[format.key].inCircuit[nature];
-  const adaptsSetting = rule.status === "ADMITTED" && rule.adaptsSetting !== undefined;
-  return compatibility.status === "ADMITTED" && !adaptsSetting && seriesCountOf(exercise.executionParameters) === count;
+  return nature === "TOURS" || seriesCountOf(exercise.executionParameters) === count;
 }
 
 /** Vrai si un membre formaté du Circuit ne supporterait pas la nature ou le compte demandés (voir l'en-tête). */

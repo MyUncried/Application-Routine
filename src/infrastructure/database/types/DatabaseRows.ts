@@ -52,8 +52,10 @@ export type CircuitRow = {
   repeat_count: number;
   side_mode: SideMode;
   nature: CircuitNature;
-  // PRE-9 (correction C.1 du 30/10, D-02) : `tours.format_key` / `format_settings` (migration 017) sont des
-  // vestiges inutilisés, ni lus ni écrits ; le Circuit ne porte aucun Format.
+  // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine d'un Circuit porteur (migration 017).
+  // [30/10 : « vestiges inutilisés, ni lus ni écrits » — remplacé le 02/11/2026.]
+  format_key?: string | null;
+  format_settings?: string | null;
 };
 
 /**

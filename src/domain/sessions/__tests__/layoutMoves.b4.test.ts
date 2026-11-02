@@ -226,9 +226,9 @@ describe("PRE-9 B.4 — Circuit alterné, Exercices formatés, contrôle avant d
       status: "REFUSED",
       reason: "FORMAT_INCOMPATIBLE",
     });
-    const tabata: SessionDraftExercise = { ...exercise("e0", 2), format: { key: "TABATA", settings: {} } };
-    // Tabata à 8 séries admis seulement si N = 8 ; ici N = 2 : refus.
-    expect(moveLayoutItem(sample({ e0: { ...tabata, executionParameters: durationParameters(20, 8) } }), { kind: "EXERCISE", id: "e0" }, circuit("cb", 0), ids).status).toBe("REFUSED");
+    // Death by autonome refusé dans un Circuit standard alterné (§6.1, décision complémentaire du 02/11/2026).
+    const deathBy: SessionDraftExercise = { ...exercise("e0", 2), format: { key: "DEATH_BY", settings: {} } };
+    expect(moveLayoutItem(sample({ e0: deathBy }), { kind: "EXERCISE", id: "e0" }, circuit("cb", 0), ids).status).toBe("REFUSED");
   });
 
   it("point d'appel du contrôle avant dépose : neutre par défaut ; confirmation ou refus rendus par le contrôle", () => {

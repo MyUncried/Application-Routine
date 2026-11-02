@@ -15,8 +15,10 @@ import { structureCircuits, structureExercises } from "@/domain/sessions/structu
  * formaté, plan développable depuis l'instantané.
  */
 
-const EMOM: ElementFormat = { key: "EMOM", settings: { windowSeconds: 60, roundCount: 6 } };
-const TABATA: ElementFormat = { key: "TABATA", settings: {} };
+const EMOM: ElementFormat = { key: "EMOM", settings: { intervalSeconds: 60 } };
+// Réalignement du 02/11/2026 : Tabata est une préconfiguration standard ; ses Exercices ne portent aucun Format.
+const CARRIER: ElementFormat = { key: "FOR_TIME", settings: { restBetweenRoundsSeconds: 0 } };
+const MEMBER: ElementFormat = { key: "FOR_TIME", settings: {} };
 
 const activity = (id: string, extra: Partial<Activity> = {}): Activity => ({
   id,
@@ -56,7 +58,7 @@ const session = (): StructuredSession => ({
           repeatCount: 2,
           members: [
             // Circuit sans Format ; chaque membre porte son propre Tabata (correction C.1 du 30/10, D-02).
-            { kind: "CIRCUIT", circuit: { id: "t", repeatCount: 8, nature: "SERIES", exercises: [activity("A", { format: TABATA }), activity("B", { format: TABATA })] } },
+            { kind: "CIRCUIT", circuit: { id: "t", repeatCount: 8, nature: "SERIES", exercises: [activity("A"), activity("B")] } },
             { kind: "EXERCISE", exercise: activity("E", { format: EMOM, postActivityRecoverySeconds: 30 }) },
           ],
         },
@@ -75,8 +77,7 @@ describe("PRE-9 D.2 — instantané de Séance", () => {
     expect(structureCircuits(snapshot.structure)[0]).not.toHaveProperty("format");
     const exercises = structureExercises(snapshot.structure);
     expect(exercises.map((item) => item.id)).toEqual(["A", "B", "E", "L"]);
-    const frozenTabata = { ...TABATA, ruleVersion: FORMAT_RULES_VERSION };
-    expect(exercises.map((item) => item.format)).toEqual([frozenTabata, frozenTabata, { ...EMOM, ruleVersion: FORMAT_RULES_VERSION }, null]);
+    expect(exercises.map((item) => item.format)).toEqual([null, null, { ...EMOM, ruleVersion: FORMAT_RULES_VERSION }, null]);
     expect(exercises[0]!.exercise).toMatchObject({ snapshotVersion: 3, sourceMovementId: "mv-A", name: "Mouvement A", categoryId: "cardio", bodyZoneIds: ["dos"] });
     expect(exercises[2]!.exercise?.recoverySeconds).toBe(30);
     expect(snapshot.structure.stopPoints).toEqual([{ id: "p", circuitId: null, position: 1 }]);
@@ -86,14 +87,17 @@ describe("PRE-9 D.2 — instantané de Séance", () => {
     const source = session();
     const snapshot = createSessionSnapshot(source);
     const before = JSON.stringify(snapshot);
-    const cycle = source.structure.elements[0]!;
-    if (cycle.kind !== "CYCLE") throw new Error("fixture");
-    const tabata = cycle.cycle.members[0]!;
-    if (tabata.kind !== "CIRCUIT") throw new Error("fixture");
-    (tabata.circuit.exercises[0]!.format!.settings as Record<string, unknown>).extra = 1;
-    (tabata.circuit.exercises[0]!.bodyZoneIds as string[]).push("jambes");
+    // Réalignement du 02/11/2026 : l'Exercice formaté de la fixture est l'EMOM « E » (Tabata n'est plus un Format).
+    const emom = structureExercises(source.structure).find((item) => item.id === "E")!;
+    (emom.format!.settings as Record<string, unknown>).intervalSeconds = 90;
+    (emom.format!.settings as Record<string, unknown>).extra = 1;
+    (emom.bodyZoneIds as string[]).push("jambes");
     (source as { name: string }).name = "Renommée";
     expect(JSON.stringify(snapshot)).toBe(before);
+    const frozen = structureExercises(snapshot.structure).find((item) => item.id === "E")!;
+    // Valeurs littérales : la fixture partage l'objet `EMOM`, modifié ci-dessus.
+    expect(frozen.format).toEqual({ key: "EMOM", settings: { intervalSeconds: 60 }, ruleVersion: FORMAT_RULES_VERSION });
+    expect(frozen.exercise?.bodyZoneIds).toEqual(["dos"]);
     expect(Object.isFrozen(snapshot)).toBe(true);
     expect(Object.isFrozen(snapshot.structure.elements)).toBe(true);
     expect(Object.isFrozen(structureExercises(snapshot.structure)[0]!.executionParameters)).toBe(true);
@@ -109,23 +113,25 @@ describe("PRE-9 D.2 — instantané de Séance", () => {
     expect(plan.at(-1)!.kind).toBe("FINAL_PHASE");
   });
 
-  it("aucun Format de Circuit n'entre dans l'instantané, même porté par une entrée non typée ; les membres gardent le leur", () => {
+  it("réalignement du 02/11/2026 : le Format d'origine d'un Circuit porteur entre dans l'instantané avec sa version de règle ; ses membres gardent leurs réglages", () => {
     const source = session();
     const cycle = source.structure.elements[0]!;
     if (cycle.kind !== "CYCLE") throw new Error("fixture");
     const member = cycle.cycle.members[0]!;
     if (member.kind !== "CIRCUIT") throw new Error("fixture");
-    (member.circuit as { format?: ElementFormat }).format = EMOM;
-    const snapshot = createSessionSnapshot(source);
-    expect(structureCircuits(snapshot.structure)[0]).not.toHaveProperty("format");
-    expect(structureExercises(snapshot.structure).slice(0, 2).map((item) => item.format?.key)).toEqual(["TABATA", "TABATA"]);
-  });
-
-  it("Exercice formaté dans un Circuit : le plan se développe depuis l'instantané, rattaché à chaque Exercice", () => {
-    const plan = expandStructure({ structure: createSessionSnapshot(session()).structure });
+    const carried = { ...member.circuit, format: CARRIER, exercises: member.circuit.exercises.map((item) => ({ ...item, format: MEMBER })) };
+    const withCarrier = { ...source, structure: { ...source.structure, elements: [{ ...cycle, cycle: { ...cycle.cycle, members: [{ kind: "CIRCUIT" as const, circuit: carried }] } }, ...source.structure.elements.slice(1)] } };
+    const snapshot = createSessionSnapshot(withCarrier);
+    expect(structureCircuits(snapshot.structure)[0]!.format).toEqual({ ...CARRIER, ruleVersion: FORMAT_RULES_VERSION });
+    expect(structureExercises(snapshot.structure).slice(0, 2).map((item) => item.format)).toEqual([
+      { ...MEMBER, ruleVersion: FORMAT_RULES_VERSION },
+      { ...MEMBER, ruleVersion: FORMAT_RULES_VERSION },
+    ]);
+    // Le plan se développe depuis l'instantané, étapes rattachées au Circuit porteur.
+    const plan = expandStructure({ structure: snapshot.structure });
     const inCircuit = plan.filter((step) => step.kind === "SERIES" && step.context.circuit !== null);
     expect(inCircuit).toHaveLength(32);
-    expect(inCircuit.every((step) => step.kind === "SERIES" && step.context.formattedElementId === step.exerciseId)).toBe(true);
+    expect(inCircuit.every((step) => step.kind === "SERIES" && step.context.formattedElementId === "t")).toBe(true);
   });
 
   it("Exercice incomplet ou sans filiation : instantané refusé (MFN-08), comme l'instantané d'Exercice", () => {

@@ -284,7 +284,6 @@ function renderApp(options: { readonly definitionDatabase?: Database; readonly p
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
-      "(creation)/session-model": require("../../../../app/(creation)/session-model").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -441,9 +440,6 @@ describe("PRE-8 E.8-a — Modifier une ancienne définition depuis la sélection
     const router = renderApp();
     await settle();
     fireEvent.press(screen.getByLabelText(sessions.createAction));
-    await settle();
-    // PRE-9 C.2 : « Créer » (choix du modèle) → Séance, Composition vide.
-    fireEvent.press(screen.getByTestId("session-model-SESSION_CARD"));
     await settle();
     expect(router.getPathname()).toBe("/composition");
     fireEvent.changeText(screen.getByLabelText(composition.name), "Brouillon E8a");
@@ -1387,9 +1383,6 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     await settle(300);
     // PRE-8 (E.4) : Créer ouvre directement la Composition sur le segment Séances.
     fireEvent.press(screen.getByLabelText(sessions.createAction));
-    await settle();
-    // PRE-9 C.2 : « Créer » (choix du modèle) → Séance, Composition vide.
-    fireEvent.press(screen.getByTestId("session-model-SESSION_CARD"));
     await settle();
     fireEvent.changeText(screen.getByLabelText(composition.name), "Gainage du soir");
     openLegacyExerciseCreation();

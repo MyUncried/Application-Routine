@@ -223,8 +223,10 @@ export function CatalogueScreen() {
       return;
     }
     isOpeningEditorRef.current = true;
-    // PRE-9 C.2 (CE-FMT-01 §3) : la création d'une Séance passe par « Créer », choix du modèle et du format.
-    router.push("/session-model");
+    // Référence Formats du 02/11/2026 (§7 : « Catalogue des séances → Créer → Composition de séance → menu
+    // Créer → Utiliser un format d'entraînement ») : « Créer » ouvre la Composition. [C.2 du 01/11 : grille
+    // « Créer » (`/session-model`) — remplacée le 02/11/2026 par la fenêtre Formats de la Composition.]
+    router.push("/composition");
   };
 
   return (

@@ -19,6 +19,7 @@ import {
   decodeFormatSettings,
   encodeFormatSettings,
   isElementFormatKey,
+  isLegacyPreconfigurationFormatKey,
   isSessionOrigin,
   type ElementFormat,
   type SessionOrigin,
@@ -865,17 +866,16 @@ async function writeStructure(
   const writeCircuit = async (circuit: StructureCircuitInput, cycleId: string | null, position: number) => {
     if (existing?.circuits.has(circuit.id)) {
       await transaction.runAsync(
-        // PRE-9 (correction C.1 du 30/10, D-02) : `tours.format_*` (migration 017) sont des vestiges inutilisés,
-        // ni écrits ni lus ; le Circuit ne porte aucun Format.
-        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ? WHERE id = ? AND session_id = ?",
-        [cycleId, position, circuit.repeatCount, circuit.nature, circuit.id, sessionId],
+        // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine d'un Circuit porteur (`tours.format_*`, migration 017).
+        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ?, format_key = ?, format_settings = ? WHERE id = ? AND session_id = ?",
+        [cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.id, sessionId],
       );
     } else {
       // V2-PRE-1 : le Circuit n'a plus de direction propre — toujours `'UNILATERAL'` en base.
       await transaction.runAsync(
-        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature)
-         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?)`,
-        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature],
+        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings)
+         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?, ?, ?)`,
+        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format)],
       );
     }
     for (const [index, exercise] of circuit.exercises.entries()) {
@@ -947,11 +947,19 @@ function formatSqlValues(format: ElementFormat | null | undefined): [string | nu
   return format === undefined || format === null ? [null, null] : [format.key, encodeFormatSettings(format.settings)];
 }
 
-/** PRE-9 (C.1) : Format relu d'une ligne d'Exercice ; clé inconnue, réglages sans clé ou JSON illisible → contrat rompu. */
+/**
+ * PRE-9 (C.1) : Format relu d'une ligne d'Exercice ou de Circuit ; clé inconnue, réglages sans clé ou JSON
+ * illisible → contrat rompu. Réalignement du 02/11/2026 : les clés Tabata et 30/30 écrites avant cette date
+ * se relisent comme des Exercices standards (préconfigurations, FMT-10, FMT-19) ; leurs valeurs sont déjà
+ * dans les paramètres d'exécution.
+ */
 function rowFormat(row: { readonly format_key?: string | null; readonly format_settings?: string | null }): ElementFormat | null {
   const key = row.format_key ?? null;
   const json = row.format_settings ?? null;
   if (key === null && json === null) {
+    return null;
+  }
+  if (isLegacyPreconfigurationFormatKey(key)) {
     return null;
   }
   const settings = json === null ? null : decodeFormatSettings(json);
@@ -967,7 +975,10 @@ function formatField(row: { readonly format_key?: string | null; readonly format
 }
 
 function structureCarriesFormat(structure: SessionStructure<Activity>): boolean {
-  return structureExercises(structure).some((activity) => (activity.format ?? null) !== null);
+  return (
+    structureExercises(structure).some((activity) => (activity.format ?? null) !== null) ||
+    structureCircuits(structure).some((circuit) => (circuit.format ?? null) !== null)
+  );
 }
 
 /** Parent d'un Exercice : Circuit, Cycle (membre direct, PRE-9 A.1) ou niveau principal (les deux `null`). */
@@ -1260,8 +1271,8 @@ async function readAssembledSessions(
     ids,
   );
   const circuits = await database.getAllAsync<CircuitRow>(
-    // PRE-9 (correction C.1 du 30/10) : `tours.format_*` non lus (vestiges de la migration 017).
-    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature FROM tours WHERE session_id IN (${placeholders})`,
+    // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine des Circuits porteurs.
+    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings FROM tours WHERE session_id IN (${placeholders})`,
     ids,
   );
   // PRE-9 (recette iPhone n° 2, constat e, `migration019`) : marque « à vérifier », lue seulement.
@@ -1388,6 +1399,7 @@ export function assembleStructure(
     id: row.id,
     repeatCount: row.repeat_count,
     nature: row.nature,
+    ...formatField(row),
     exercises: inRankOrder(activitiesByContainer.get(row.id) ?? []).map((activity, rank) =>
       toActivity(activity, movements, "IN_TOUR", rank),
     ),

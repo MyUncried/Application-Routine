@@ -95,13 +95,18 @@ function snapshotExercise(activity: Activity): SessionSnapshotExercise {
 /** Instantané gelé d'une Séance relue dans sa structure générale (voir l'en-tête). */
 export function createSessionSnapshot(session: StructuredSession): SessionSnapshot {
   const mapped = mapStructure(session.structure, snapshotExercise);
-  // Champs du Circuit recopiés un à un : aucune propriété étrangère (ancien Format de Circuit) n'entre dans l'instantané.
-  const circuitOf = (circuit: StructureCircuit<SessionSnapshotExercise>): StructureCircuit<SessionSnapshotExercise> => ({
-    id: circuit.id,
-    repeatCount: circuit.repeatCount,
-    nature: circuit.nature,
-    exercises: circuit.exercises,
-  });
+  // Champs du Circuit recopiés un à un. Réalignement du 02/11/2026 : le Format d'origine d'un Circuit
+  // porteur entre dans l'instantané avec sa version de règle (ch09 « Instantané »).
+  const circuitOf = (circuit: StructureCircuit<SessionSnapshotExercise>): StructureCircuit<SessionSnapshotExercise> => {
+    const format = snapshotFormat(circuit.format);
+    return {
+      id: circuit.id,
+      repeatCount: circuit.repeatCount,
+      nature: circuit.nature,
+      ...(format !== null ? { format } : {}),
+      exercises: circuit.exercises,
+    };
+  };
   const elements = mapped.elements.map((element): StructureElement<SessionSnapshotExercise> => {
     switch (element.kind) {
       case "EXERCISE":

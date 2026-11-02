@@ -124,3 +124,18 @@ Tout le côté Exercice : `activities.format_key` / `format_settings`, codage ve
 ### Tests de la correction
 
 Adaptés et ajoutés : `formats.c1` (14), `elementFormats.c1` (10, SQLite réelle), `planExpansion.d1` (14), `sessionSnapshot.d2` (6), `formatCapabilities.d3` (4), `configurationValidity.d4` (8). Relancés sans changement : `migration017`, `SqliteSessionRepository`, `sessionStructure.a4`, `cycleMembers.a1`, `sessionLifecycle.e5`, `mfnServices.a13`, `layoutOperations.b2`, `layoutOperations.b1b`, `structure.a1`, `structure.a2`, `SessionDraft`, `sessionFormats.c1`. `tsc --noEmit` et ESLint (fichiers modifiés) sans erreur. Suite complète : à lancer par Hermann.
+
+## Réalignement ciblé du 02/11/2026 (référence Formats, main `88f3ffc7`)
+
+Source : `docs/KODJO-Formats-entrainement-2026-11-02.md` §1, §2, §6, §6.1, §11, §12, §14 ; FMT-01 à FMT-04, FMT-09 (ch10) ; ch09 « formats-donnees ». Écart prouvé : le code livré le 30/10 interdisait le Format sur le Circuit et traitait Tabata et 30/30 comme des Formats à constantes.
+
+- **Registre** (`formats/registry.ts`) : quatre Formats spécialisés (AMRAP, EMOM, For time, Death by) ; Tabata et cinq départs rapides = préconfigurations (`PRECONFIGURATION_KEYS`). Réglages par rôle : Exercice autonome, Circuit porteur (nature fixée : AMRAP groupées, For time alternées, EMOM groupées, Death by groupées ou alternées), membre d'un Circuit porteur (Passage, Incrément, Intervalle local du Death by alterné). Matrice §6.1 des Exercices formatés autonomes dans un Circuit standard. `FORMAT_RULES_VERSION` = 2.
+- **Porteur Circuit** : `StructureCircuit.format` (Format d'origine) ; un membre enregistre la clé du Circuit et ses seuls réglages de membre (`formats/carriers.ts`) ; un membre d'une autre clé est refusé (aucun Format imbriqué).
+- **Persistance** : colonnes `tours.format_*` de la migration 017, écrites et relues — **aucune migration nouvelle**, 017 inchangée. Les clés `TABATA` / `INTERVALS_30_30` écrites avant le 02/11 sont relues comme Exercices standards (leurs valeurs sont dans les paramètres d'exécution) ; réenregistrées, leurs colonnes repassent à NULL.
+- **D.1** : Circuit porteur AMRAP → un segment progressif par bloc, repos entre les blocs ; Death by porteur → un segment (arrêt collectif) ; EMOM / For time porteurs → tours ordinaires rattachés au Circuit. Question « rang de reprise du Death by groupé » levée (§6.1 : repart du départ initial).
+- **D.2** : Format d'origine copié dans l'instantané avec sa version de règle.
+- **D.3** : Tabata et 30/30 = modèles libres ; porteur « Exercice ou Circuit » ; temps limite For time : étape en cours à l'échéance NON_DEFINI (D-21, PRE-10/11).
+- **D.4** : constantes Tabata/30/30 retirées ; valeurs imposées des Formats spécialisés (Répétitions, À l'objectif) ; `EMPTY_LOOP` (boucle AMRAP / For time sans membre « À chaque tour », R09) ; compatibilité §6.1.
+- **B.7 (durées)** : AMRAP autonome + récupération ; EMOM = séries × Intervalle + récupération ; For time = temps mesuré (≥), la cadence n'entre dans aucune estimation ; Circuit porteur AMRAP = blocs × durée + repos ; EMOM porteur = tours × intervalle. Tabata À la suite déjà conforme (530 s, A1) — aucun changement.
+
+Synchronisation : classe **A** (le code rejoint la référence active publiée par Hermann) ; documents normatifs déjà à jour sur main ; aucune spécification modifiée. Tests : `formats.c1`, `configurationValidity.d4`, `planExpansion.d1`, `sessionSnapshot.d2`, `formatCapabilities.d3`, `structure.b7`, `layoutOperations.b3`, `layoutMoves.b4`, `elementFormats.c1` (base), `migration017`.

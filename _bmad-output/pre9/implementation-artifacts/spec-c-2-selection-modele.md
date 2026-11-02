@@ -31,3 +31,16 @@ Classe **A** (CE-FMT-01, ARB-05, D-24, D-25). Formulation contraire du code PRE-
 ## Tests
 
 `__tests__/SessionModelScreen.c2.test.tsx` : groupes et ordre, Mobilité absente, Séance, Exercice (sélection unique), Format → paramètres, double appui.
+
+## Reprise du 02/11/2026 — fenêtre « Formats d'entraînement » (remplace ce qui précède)
+
+[Le contenu ci-dessus (grille « Créer » ouverte par le Catalogue, cartes Exercice et Séance, `8598:29271`) est **remplacé** par la référence Formats du 02/11/2026 (§7, CE-FMT-01, CE-T03-08) ; texte d'origine conservé.]
+
+- Catalogue des Séances → « Créer » → Composition (retour au comportement E.4).
+- Menu Créer de la Composition, cinq options (Figma `10705:20223`) : Créer un exercice, **Utiliser des mouvements existants**, **Utiliser un format d'entraînement** (icône `11288:19968` : cadre arrondi et trois traits), Ajouter un circuit, Ajouter un cycle. « Utiliser une séance existante » n'est plus proposée.
+- Fenêtre `FormatsWindow` (Figma `9977:19613`) : `Modal` natif transparent, voile `rgba(31,33,41,0.42)`, fenêtre 370 de large (marges 16), rayon 28, titre « Formats d'entraînement », croix 34 (composant Annuler du menu, `CloseCircleButton`) ; grille de deux colonnes, cartes 163 × 105 (rayon 20, bande 46, motifs repris), sous-titres de la maquette ; ordre : Tabata, 30/30, EMOM, AMRAP, For time, Death by, Renforcement, Superset, Progression, À l'échec. Croix ou voile → Composition, rien ajouté ; carte → questionnaire plein écran (C.3).
+- Retirés : route `/session-model`, sélection d'un seul Mouvement (`single`/`then`) de la carte Exercice.
+
+**B.8** : la branche ne contient aucun comportement « Utiliser une séance existante » (l'option était affichée inactive depuis B.2) ; le retrait de l'option ne supprime donc rien de livré. La déclaration « B.8 développée et recettée » (02/11) ne correspond pas à cette branche — signalé, sans conséquence fonctionnelle.
+
+Synchronisation : classe **A** (référence active). Tests : `FormatsWindow.c2`, `CompositionScreen.b2` (menu et ouverture de la fenêtre), `CatalogueScreen`, `CatalogueLifecycle.e7`, `ExerciseEditingPaths`, `creationLayout`.

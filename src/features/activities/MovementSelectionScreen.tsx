@@ -20,7 +20,7 @@ import {
   type MovementCatalogueFilters,
 } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
-import { handMovementsToComposition, movementsInSession } from "@/features/sessions/movementExercises";
+import { handMovementsToComposition, handMovementsToFormat, movementsInSession } from "@/features/sessions/movementExercises";
 import { strings } from "@/shared/i18n";
 import { CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
@@ -63,18 +63,21 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
 export function MovementSelectionScreen() {
   const router = useRouter();
   /**
-   * PRE-9 C.2 (CE-FMT-01, ARB-05, ARB-22a) : depuis la carte « Exercice » de « Créer », un seul
-   * Mouvement est choisi (`single`) et la Composition s'ouvre ensuite avec ce seul Exercice (`then`).
+   * PRE-9 C.3 (référence Formats du 02/11/2026 §7.1 à §7.3) : modale du Catalogue ouverte par un
+   * questionnaire ou un récapitulatif de Format (`purpose`) — sélection multiple des mouvements de la
+   * boucle, ou unique pour le buy-in (« Mouvement du buy-in ») ; le champ Rechercher reprend le texte
+   * déjà saisi (`query`). [C.2 du 01/11 : carte « Exercice » de « Créer » (`single`, `then`) — retirée
+   * le 02/11/2026 avec la grille.]
    */
-  const params = useLocalSearchParams<{ single?: string; then?: string; model?: string }>();
-  const single = params.single === "1";
-  const opensComposition = params.then === "composition";
+  const params = useLocalSearchParams<{ purpose?: string; query?: string }>();
+  const purpose = params.purpose === "format-loop" ? "LOOP" : params.purpose === "format-buy-in" ? "BUY_IN" : null;
+  const single = purpose === "BUY_IN";
   const actionZone = usePrimaryActionZone();
   const service = useActivityDefinitionService();
   const catalogue = useMemo(() => service.movementCatalogue, [service]);
   const tCatalogue = strings.screens.movement.catalogue;
   const tSelection = strings.screens.activities.selection;
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(typeof params.query === "string" ? params.query : "");
   const [filters, setFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -123,14 +126,9 @@ export function MovementSelectionScreen() {
         .flatMap((item) => (item.kind === "PILE" ? item.members : [item.entry]))
         .filter((entry) => !entry.archived && selected.has(entry.movement.id))
         .map((entry) => entry.movement);
-      handMovementsToComposition(ordered);
-      if (opensComposition) router.replace({ pathname: "/composition", params: { keepDraft: "1" } });
-      // PRE-9 C.3 : un modèle de « Créer » enchaîne sur ses paramètres ; le retour revient au choix.
-      else if (params.then === "format-parameters" && typeof params.model === "string") {
-        addingRef.current = false;
-        setIsAdding(false);
-        router.push({ pathname: "/format-parameters", params: { model: params.model } });
-      } else router.back();
+      if (purpose !== null) handMovementsToFormat(ordered, purpose);
+      else handMovementsToComposition(ordered);
+      router.back();
     } catch (error) {
       console.error("Le catalogue des mouvements n'a pas pu être relu.", error);
       addingRef.current = false;
@@ -147,7 +145,7 @@ export function MovementSelectionScreen() {
   return (
     <ScreenShell>
       <FixedHeader
-        title={strings.screens.activities.addToSession.existingActivity}
+        title={purpose === "BUY_IN" ? strings.screens.formatModel.buyInPickerTitle : strings.screens.activities.addToSession.existingActivity}
         onBack={() => router.back()}
         backAccessibilityLabel={tSelection.backAccessibilityLabel}
       />

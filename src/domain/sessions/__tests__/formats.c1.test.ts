@@ -3,13 +3,14 @@ import { describe, expect, it } from "@jest/globals";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import {
   circuitCompatibility,
+  circuitFormatParametersOf,
   decodeFormatSettings,
   elementFormatsEqual,
   elementFormatViolations,
   encodeFormatSettings,
   ELEMENT_FORMAT_KEYS,
-  FORMAT_REGISTRY,
-  formatDefaultsComplete,
+  initialFormatSettings,
+  PRECONFIGURATION_KEYS,
   type ElementFormat,
 } from "@/domain/sessions/formats";
 import type { Activity } from "@/domain/sessions/Session";
@@ -17,85 +18,75 @@ import type { StructuredSession } from "@/domain/sessions/SessionRepository";
 import { exerciseEquals, toSessionDraft, toStructuredSessionInput } from "@/domain/sessions/SessionDraft";
 import { insertExerciseInLayout, withLayout } from "@/domain/sessions/layoutOperations";
 import { toDuplicateSessionDraft } from "@/domain/sessions/sessionDuplication";
-import { structureCircuits, structureExercises, type SessionStructure, type StructureCircuit } from "@/domain/sessions/structure";
+import { structureCircuits, structureExercises, type SessionStructure } from "@/domain/sessions/structure";
 import { validateStructuredSessionInput, type StructureExerciseInput, type StructuredSessionInput } from "@/domain/sessions/structuredInput";
 
 /**
- * PRE-9 (story C.1, ARB-03, ARB-04, ARB-17, ARB-25, FMT-01 à FMT-40 ; correction du 30/10, D-02) —
- * registre déclaratif des Formats, Format porté par l'Exercice seul (jamais par le Circuit) :
- * contrôle structurel, compatibilité avec l'organisation du Circuit (matrice §2.2), codage des
- * réglages, transport par le brouillon et la duplication. Les règles propres à chaque Format (C.3)
- * et les gestes de dépose (C.4) ne sont pas éprouvés ici.
+ * PRE-9 (story C.1, réalignement du 02/11/2026 — référence Formats §1, §2, §6.1, §14 ; FMT-01, FMT-02,
+ * FMT-09) — registre des quatre Formats spécialisés, porteurs (Exercice autonome, Circuit porteur,
+ * membre), compatibilité d'un Exercice formaté autonome avec un Circuit standard, codage des réglages,
+ * transport par le brouillon et la duplication.
  */
 
-const EMOM: ElementFormat = { key: "EMOM", settings: { windowSeconds: 60, roundCount: 6 } };
-const TABATA: ElementFormat = { key: "TABATA", settings: {} };
+const EMOM: ElementFormat = { key: "EMOM", settings: { intervalSeconds: 60 } };
+const AMRAP_CIRCUIT: ElementFormat = { key: "AMRAP", settings: { blockSeconds: 720, restBetweenBlocksSeconds: 120 } };
+const AMRAP_MEMBER: ElementFormat = { key: "AMRAP", settings: { incrementPerRound: 0 } };
+const BUY_IN: ElementFormat = { key: "AMRAP", settings: { incrementPerRound: 0, passageOnce: 1 } };
 
-describe("PRE-9 C.1 — registre des Formats", () => {
-  it("six Formats contraignants (FMT-01) ; constantes Tabata (FMT-10) et 30/30 (FMT-19) ; aucun réglage de répétition de l'ensemble (ARB-25)", () => {
-    expect(ELEMENT_FORMAT_KEYS).toEqual(["TABATA", "INTERVALS_30_30", "EMOM", "AMRAP", "FOR_TIME", "DEATH_BY"]);
-    const constants = (key: keyof typeof FORMAT_REGISTRY) =>
-      Object.fromEntries(FORMAT_REGISTRY[key].parameters.filter((parameter) => parameter.lock === "LOCKED").map((parameter) => [parameter.id, parameter.value]));
-    expect(constants("TABATA")).toEqual({ seriesPerExercise: 8, workSeconds: 20, pauseSeconds: 10 });
-    expect(constants("INTERVALS_30_30")).toEqual({ workSeconds: 30, pauseSeconds: 30 });
-    for (const key of ELEMENT_FORMAT_KEYS) {
-      expect(FORMAT_REGISTRY[key].parameters.map((parameter) => parameter.id)).not.toContain("setRepeatCount");
-    }
+describe("PRE-9 C.1 — registre des Formats (02/11/2026)", () => {
+  it("quatre Formats spécialisés ; Tabata et cinq départs rapides sont des préconfigurations sans identité de Format (FMT-01, FMT-02)", () => {
+    expect(ELEMENT_FORMAT_KEYS).toEqual(["EMOM", "AMRAP", "FOR_TIME", "DEATH_BY"]);
+    expect(PRECONFIGURATION_KEYS).toEqual(["TABATA", "INTERVALS_30_30", "STRENGTH", "SUPERSET", "PROGRESSION", "UNTIL_FAILURE"]);
   });
 
-  it("aucun porteur Circuit : le registre ne décrit que la compatibilité de l'Exercice formaté avec l'organisation de son Circuit (D-02)", () => {
-    for (const key of ELEMENT_FORMAT_KEYS) {
-      expect(FORMAT_REGISTRY[key]).not.toHaveProperty("carriers");
-      expect(Object.keys(FORMAT_REGISTRY[key].inCircuit).sort()).toEqual(["SERIES", "TOURS"]);
-    }
+  it("valeurs initiales de chaque rôle : AMRAP 12 min, incrément 0 ; Circuit AMRAP bloc 12 min, repos 2 min ; EMOM et Death by intervalle 1 min ; Death by incrément 1 ; For time sans limite", () => {
+    expect(initialFormatSettings("AMRAP", { kind: "EXERCISE" })).toEqual({ durationSeconds: 720, incrementPerRound: 0 });
+    expect(initialFormatSettings("AMRAP", { kind: "CIRCUIT", nature: "TOURS" })).toEqual({ blockSeconds: 720, restBetweenBlocksSeconds: 120 });
+    expect(initialFormatSettings("AMRAP", { kind: "MEMBER", nature: "TOURS" })).toEqual({ incrementPerRound: 0 });
+    expect(initialFormatSettings("EMOM", { kind: "EXERCISE" })).toEqual({ intervalSeconds: 60 });
+    expect(initialFormatSettings("EMOM", { kind: "CIRCUIT", nature: "TOURS" })).toEqual({ windowSeconds: 60 });
+    expect(initialFormatSettings("DEATH_BY", { kind: "EXERCISE" })).toEqual({ intervalSeconds: 60, incrementPerRound: 1 });
+    expect(initialFormatSettings("DEATH_BY", { kind: "MEMBER", nature: "SERIES" })).toEqual({ incrementPerRound: 1, intervalSeconds: 60 });
+    expect(initialFormatSettings("FOR_TIME", { kind: "EXERCISE" })).toEqual({});
+    expect(initialFormatSettings("FOR_TIME", { kind: "CIRCUIT", nature: "SERIES" })).toEqual({ restBetweenRoundsSeconds: 0 });
   });
 
-  it("matrice §2.2 : groupées admises pour les six, quel que soit le compte (D-15) ; alternées cellule par cellule (D-16) ; For time alterné non décidé, jamais bloquant", () => {
-    const status = (key: (typeof ELEMENT_FORMAT_KEYS)[number], nature: "TOURS" | "SERIES", repeatCount: number) =>
-      circuitCompatibility(key, { nature, repeatCount }).status;
-    for (const key of ELEMENT_FORMAT_KEYS) {
-      for (const count of [1, 3, 8]) {
-        expect(status(key, "TOURS", count)).toBe("ADMITTED");
-      }
-    }
-    // Tabata groupé : l'ancien « Circuit d'un tour » n'est plus exigé.
-    expect(status("TABATA", "TOURS", 4)).toBe("ADMITTED");
-    expect(status("TABATA", "SERIES", 8)).toBe("ADMITTED");
-    expect(circuitCompatibility("TABATA", { nature: "SERIES", repeatCount: 6 })).toEqual({ status: "REFUSED", cause: "COUNT", sources: ["D-16", "FMT-13"] });
-    expect(status("EMOM", "SERIES", 5)).toBe("ADMITTED");
-    expect(FORMAT_REGISTRY.EMOM.inCircuit.SERIES).toMatchObject({ status: "ADMITTED", adaptsSetting: "roundCount" });
-    expect(status("DEATH_BY", "SERIES", 4)).toBe("ADMITTED");
-    expect(circuitCompatibility("INTERVALS_30_30", { nature: "SERIES", repeatCount: 6 })).toEqual({ status: "REFUSED", cause: "ORGANISATION", sources: ["D-16"] });
-    expect(status("AMRAP", "SERIES", 3)).toBe("REFUSED");
-    const forTime = circuitCompatibility("FOR_TIME", { nature: "SERIES", repeatCount: 3 });
-    expect(forTime.status).toBe("UNDECIDED");
-    expect(forTime.status === "UNDECIDED" && forTime.question).toMatch(/À CLARIFIER/);
+  it("Circuit porteur : nature fixée par le Format (§1) ; Death by alterné sans intervalle au Circuit (A2)", () => {
+    expect(circuitFormatParametersOf("AMRAP", "SERIES")).toBeNull();
+    expect(circuitFormatParametersOf("FOR_TIME", "TOURS")).toBeNull();
+    expect(circuitFormatParametersOf("EMOM", "SERIES")).toBeNull();
+    expect(circuitFormatParametersOf("DEATH_BY", "TOURS")!.map((parameter) => parameter.id)).toEqual(["windowSeconds"]);
+    expect(circuitFormatParametersOf("DEATH_BY", "SERIES")).toEqual([]);
   });
 
-  it("défauts comme données (ARB-04, ouvert) : aucun défaut inventé ; seul Tabata, sans réglable, a une configuration initiale complète", () => {
+  it("Exercice formaté autonome dans un Circuit standard (§6.1, FMT-09) : groupées admises ; alternées refusées sauf EMOM (séries adaptées)", () => {
     for (const key of ELEMENT_FORMAT_KEYS) {
-      expect(FORMAT_REGISTRY[key].parameters.every((parameter) => parameter.default === undefined)).toBe(true);
+      expect(circuitCompatibility(key, { nature: "TOURS" }).status).toBe("ADMITTED");
     }
-    expect(ELEMENT_FORMAT_KEYS.filter(formatDefaultsComplete)).toEqual(["TABATA"]);
+    expect(circuitCompatibility("EMOM", { nature: "SERIES" })).toEqual({ status: "ADMITTED", adaptsSeriesCount: true });
+    for (const key of ["AMRAP", "FOR_TIME", "DEATH_BY"] as const) {
+      expect(circuitCompatibility(key, { nature: "SERIES" }).status).toBe("REFUSED");
+    }
   });
 });
 
-describe("PRE-9 C.1 — contrôle structurel d'un Format porté", () => {
-  it("accepte des réglages partiels (non renseignés) et refuse constante, valeur calculée, inconnu, hors borne, liste vide", () => {
+describe("PRE-9 C.1 — contrôle structurel d'un Format porté, selon son rôle", () => {
+  it("réglages partiels admis ; inconnu, hors borne et rôle impossible refusés ; incrément Death by ≥ 1, AMRAP ≥ 0 (§14.1)", () => {
     expect(elementFormatViolations(EMOM)).toEqual([]);
-    expect(elementFormatViolations({ key: "EMOM", settings: { roundCount: 4 } })).toEqual([]);
-    expect(elementFormatViolations({ key: "TABATA", settings: { workSeconds: 20 } })).toEqual(["FORMAT_SETTING_NOT_ADJUSTABLE"]);
-    expect(elementFormatViolations({ key: "EMOM", settings: { totalSeconds: 360 } })).toEqual(["FORMAT_SETTING_NOT_ADJUSTABLE"]);
+    expect(elementFormatViolations({ key: "EMOM", settings: {} })).toEqual([]);
     expect(elementFormatViolations({ key: "EMOM", settings: { cadence: 60 } })).toEqual(["FORMAT_SETTING_UNKNOWN"]);
-    expect(elementFormatViolations({ key: "EMOM", settings: { windowSeconds: 0.5 } })).toEqual(["FORMAT_SETTING_INVALID"]);
-    expect(elementFormatViolations({ key: "FOR_TIME", settings: { volumePerRound: [] } })).toEqual(["FORMAT_SETTING_INVALID"]);
-    expect(elementFormatViolations({ key: "DEATH_BY", settings: {} })).toEqual([]);
+    expect(elementFormatViolations({ key: "EMOM", settings: { intervalSeconds: 0.5 } })).toEqual(["FORMAT_SETTING_INVALID"]);
+    expect(elementFormatViolations({ key: "DEATH_BY", settings: { incrementPerRound: 0 } })).toEqual(["FORMAT_SETTING_INVALID"]);
+    expect(elementFormatViolations({ key: "AMRAP", settings: { incrementPerRound: 0 } })).toEqual([]);
     expect(elementFormatViolations({ key: "HIIT" as never, settings: {} })).toEqual(["FORMAT_UNKNOWN"]);
-  });
-
-  it("For time : zéro admis dans une position de l'échelle (ARB-18b) ; le volume total non nul relève de C.3", () => {
-    expect(elementFormatViolations({ key: "FOR_TIME", settings: { volumePerRound: [21, 0, 9] } })).toEqual([]);
-    expect(elementFormatViolations({ key: "FOR_TIME", settings: { volumePerRound: [21, -1] } })).toEqual(["FORMAT_SETTING_INVALID"]);
+    expect(elementFormatViolations(AMRAP_CIRCUIT, { kind: "CIRCUIT", nature: "TOURS" })).toEqual([]);
+    expect(elementFormatViolations(AMRAP_CIRCUIT, { kind: "CIRCUIT", nature: "SERIES" })).toEqual(["FORMAT_ROLE_FORBIDDEN"]);
+    expect(elementFormatViolations(BUY_IN, { kind: "MEMBER", nature: "TOURS" })).toEqual([]);
+    expect(elementFormatViolations({ key: "AMRAP", settings: { passageOnce: 2 } }, { kind: "MEMBER", nature: "TOURS" })).toEqual([
+      "FORMAT_SETTING_INVALID",
+    ]);
+    // Passage n'existe pas pour l'Exercice autonome (§3).
+    expect(elementFormatViolations(BUY_IN)).toEqual(["FORMAT_SETTING_UNKNOWN"]);
   });
 
   it("codage versionné, clés triées, lecture stricte", () => {
@@ -105,8 +96,8 @@ describe("PRE-9 C.1 — contrôle structurel d'un Format porté", () => {
     for (const corrupt of ["", "{", "null", '{"version":2,"values":{}}', '{"version":1,"values":[]}', '{"version":1,"values":{"a":"6"}}']) {
       expect(decodeFormatSettings(corrupt)).toBeNull();
     }
-    expect(elementFormatsEqual(EMOM, { key: "EMOM", settings: { roundCount: 6, windowSeconds: 60 } })).toBe(true);
-    expect(elementFormatsEqual(EMOM, { key: "EMOM", settings: { roundCount: 7, windowSeconds: 60 } })).toBe(false);
+    expect(elementFormatsEqual(EMOM, { key: "EMOM", settings: { intervalSeconds: 60 } })).toBe(true);
+    expect(elementFormatsEqual(EMOM, { key: "EMOM", settings: { intervalSeconds: 75 } })).toBe(false);
     expect(elementFormatsEqual(null, undefined)).toBe(true);
   });
 });
@@ -130,46 +121,42 @@ const session = (structure: StructuredSessionInput["structure"], origin?: Struct
 });
 
 describe("PRE-9 C.1 — validation d'une Séance à éléments formatés", () => {
-  it("plusieurs Exercices formatés, dans un Circuit, directement et dans un Cycle (D-01) : valide, Formats et origine conservés", () => {
+  it("Circuit porteur AMRAP (buy-in et membre de boucle), Exercice EMOM dans un Cycle, Exercice libre : valide, Formats et origine conservés", () => {
     const result = validateStructuredSessionInput(
       session(
         {
           elements: [
-            { kind: "CIRCUIT", circuit: { id: "c1", repeatCount: 8, nature: "SERIES", exercises: [exerciseInput("a", TABATA), exerciseInput("b", TABATA)] } },
+            {
+              kind: "CIRCUIT",
+              circuit: { id: "c1", repeatCount: 3, nature: "TOURS", format: AMRAP_CIRCUIT, exercises: [exerciseInput("a", BUY_IN), exerciseInput("b", AMRAP_MEMBER)] },
+            },
             { kind: "CYCLE", cycle: { id: "y1", repeatCount: 2, members: [{ kind: "EXERCISE", exercise: exerciseInput("e", EMOM) }] } },
             { kind: "EXERCISE", exercise: exerciseInput("libre") },
           ],
           stopPoints: [],
         },
-        "TABATA",
+        "AMRAP",
       ),
     );
     if (!result.ok) throw new Error(JSON.stringify(result.violations));
-    expect(result.value.origin).toBe("TABATA");
-    expect(structureCircuits(result.value.structure)[0]).not.toHaveProperty("format");
-    expect(structureExercises(result.value.structure).map((item) => item.format ?? null)).toEqual([TABATA, TABATA, EMOM, null]);
+    expect(result.value.origin).toBe("AMRAP");
+    expect(structureCircuits(result.value.structure)[0]!.format).toEqual(AMRAP_CIRCUIT);
+    expect(structureExercises(result.value.structure).map((item) => item.format ?? null)).toEqual([BUY_IN, AMRAP_MEMBER, EMOM, null]);
   });
 
-  it("violations agrégées, chacune une fois", () => {
+  it("refus : nature non admise par le Format du Circuit, membre d'une autre clé (aucun Format imbriqué, §6), réglage hors borne, origine inconnue", () => {
+    const refused = (circuit: Parameters<typeof session>[0]["elements"][number]) =>
+      validateStructuredSessionInput(session({ elements: [circuit], stopPoints: [] }));
+    const nature = refused({ kind: "CIRCUIT", circuit: { id: "c", repeatCount: 3, nature: "SERIES", format: AMRAP_CIRCUIT, exercises: [exerciseInput("x", AMRAP_MEMBER)] } });
+    expect(nature.ok).toBe(false);
+    const nested = refused({ kind: "CIRCUIT", circuit: { id: "c", repeatCount: 3, nature: "TOURS", format: AMRAP_CIRCUIT, exercises: [exerciseInput("x", EMOM)] } });
+    expect(nested.ok).toBe(false);
     const result = validateStructuredSessionInput(
-      session(
-        {
-          elements: [
-            { kind: "EXERCISE", exercise: exerciseInput("a", { key: "EMOM", settings: { roundCount: 0 } }) },
-            { kind: "EXERCISE", exercise: exerciseInput("b", { key: "EMOM", settings: { windowSeconds: -1 } }) },
-            // Entrée non typée portant un Format sur le Circuit (D-02) : refusée, jamais transmise.
-            { kind: "CIRCUIT", circuit: { id: "c", repeatCount: 1, nature: "TOURS", exercises: [exerciseInput("x")], format: { key: "DEATH_BY", settings: {} } } as never },
-          ],
-          stopPoints: [],
-        },
-        "PLANK" as never,
-      ),
+      session({ elements: [{ kind: "EXERCISE", exercise: exerciseInput("a", { key: "EMOM", settings: { intervalSeconds: 0 } }) }], stopPoints: [] }, "PLANK" as never),
     );
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    // Format sur un Circuit contrôlé avant les Exercices ; deux réglages hors borne, une seule violation.
     expect(result.violations).toEqual([
-      { code: "FORBIDDEN_PLACEMENT", field: "element.format" },
       { code: "OUT_OF_RANGE", field: "element.formatSettings" },
       { code: "UNRECOGNIZED", field: "session.origin" },
     ]);
@@ -207,61 +194,54 @@ const stored = (structure: SessionStructure<Activity>, origin?: StructuredSessio
 });
 
 describe("PRE-9 C.1 — brouillon et duplication", () => {
-  // Circuit sans Format ; son premier membre porte Tabata, le second est libre.
-  const legacyShaped = stored(
+  // Exercice EMOM autonome, puis Circuit porteur AMRAP [buy-in, membre de boucle].
+  const carrier = stored(
     {
       elements: [
         { kind: "EXERCISE", exercise: activity("avant", EMOM) },
-        { kind: "CIRCUIT", circuit: { id: "c1", repeatCount: 1, nature: "TOURS", exercises: [activity("t1", TABATA, "IN_TOUR"), activity("t2", undefined, "IN_TOUR")] } },
+        {
+          kind: "CIRCUIT",
+          circuit: { id: "c1", repeatCount: 3, nature: "TOURS", format: AMRAP_CIRCUIT, exercises: [activity("t1", BUY_IN, "IN_TOUR"), activity("t2", AMRAP_MEMBER, "IN_TOUR")] },
+        },
       ],
       stopPoints: [],
     },
-    "SESSION_CARD",
+    "AMRAP",
   );
 
-  it("brouillon : Format de chaque Exercice (copie indépendante), membre de Circuit compris, et origine relus puis réécrits ; aucun Format de Circuit", () => {
-    const draft = toSessionDraft(legacyShaped);
-    expect(draft.origin).toBe("SESSION_CARD");
+  it("brouillon : Format du Circuit porteur et de chaque Exercice (copies indépendantes) relus puis réécrits ; origine conservée", () => {
+    const draft = toSessionDraft(carrier);
+    expect(draft.origin).toBe("AMRAP");
+    // Circuit porteur : disposition générale (absent de l'ancien modèle).
+    expect(structureCircuits(draft.structure!)[0]!.format).toEqual(AMRAP_CIRCUIT);
     const formatted = draft.exercises.find((item) => item.id === "avant")!;
     expect(formatted.format).toEqual(EMOM);
     expect(formatted.format).not.toBe(EMOM);
     const result = toStructuredSessionInput(draft, () => "unused");
     if (!result.ok) throw new Error(JSON.stringify(result.violations));
-    expect(result.value.origin).toBe("SESSION_CARD");
-    expect(structureCircuits(result.value.structure)).toEqual([expect.objectContaining({ id: "c1" })]);
-    expect(structureCircuits(result.value.structure)[0]).not.toHaveProperty("format");
-    expect(structureExercises(result.value.structure).map((item) => item.format ?? null)).toEqual([EMOM, TABATA, null]);
+    expect(result.value.origin).toBe("AMRAP");
+    expect(structureCircuits(result.value.structure)[0]!.format).toEqual(AMRAP_CIRCUIT);
+    expect(structureExercises(result.value.structure).map((item) => item.format ?? null)).toEqual([EMOM, BUY_IN, AMRAP_MEMBER]);
   });
 
   it("un changement de réglage seul rend l'Exercice modifié", () => {
-    const [item] = toSessionDraft(legacyShaped).exercises;
-    expect(exerciseEquals(item!, { ...item!, format: { key: "EMOM", settings: { windowSeconds: 60, roundCount: 7 } } })).toBe(false);
-    expect(exerciseEquals(item!, { ...item!, format: { key: "EMOM", settings: { roundCount: 6, windowSeconds: 60 } } })).toBe(true);
+    const [item] = toSessionDraft(carrier).exercises;
+    expect(exerciseEquals(item!, { ...item!, format: { key: "EMOM", settings: { intervalSeconds: 75 } } })).toBe(false);
+    expect(exerciseEquals(item!, { ...item!, format: { key: "EMOM", settings: { intervalSeconds: 60 } } })).toBe(true);
   });
 
-  it("duplication (ARB-17) : Format et réglages de chaque Exercice copiés (membre de Circuit compris), rien transmis au voisin, origine non recopiée", () => {
+  it("duplication (ARB-17) : Format du Circuit porteur et de ses membres copiés, identités nouvelles, origine non recopiée", () => {
     let next = 0;
-    const draft = toDuplicateSessionDraft(legacyShaped, () => `dup-${++next}`, ["Séance"]);
+    const draft = toDuplicateSessionDraft(carrier, () => `dup-${++next}`, ["Séance"]);
     expect(draft).not.toHaveProperty("origin");
-    expect(draft.exercises.map((item) => item.format ?? null)).toEqual([EMOM, TABATA, null]);
     const result = toStructuredSessionInput(draft, () => "fresh-circuit");
     if (!result.ok) throw new Error(JSON.stringify(result.violations));
     const [circuit] = structureCircuits(result.value.structure);
-    expect(circuit).not.toHaveProperty("format");
-    expect(circuit!.exercises.map((item) => item.format ?? null)).toEqual([TABATA, null]);
+    expect(circuit!.id).not.toBe("c1");
+    expect(circuit!.format).toEqual(AMRAP_CIRCUIT);
+    expect(circuit!.exercises.map((item) => item.format ?? null)).toEqual([BUY_IN, AMRAP_MEMBER]);
   });
 
-  it("le type interdit un Format sur un Circuit", () => {
-    const circuit: StructureCircuit<StructureExerciseInput> = {
-      id: "c",
-      repeatCount: 1,
-      nature: "TOURS",
-      exercises: [],
-      // @ts-expect-error — le Circuit ne porte aucun Format (D-02).
-      format: TABATA,
-    };
-    expect(circuit.id).toBe("c");
-  });
 });
 
 describe("PRE-9 C.1 — dépose, déplacement et duplication dans un Circuit : aucun Format transmis (D-12, D-26, D-27)", () => {

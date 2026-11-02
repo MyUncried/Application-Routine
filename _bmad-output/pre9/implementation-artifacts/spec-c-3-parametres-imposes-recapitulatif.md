@@ -37,3 +37,15 @@ Classe **A** (règles écrites ci-dessus) ; points 1 à 5 consignés ici, sans r
 ## Tests
 
 `src/domain/sessions/__tests__/sessionModels.c3.test.ts` (valeurs initiales, constantes, EMOM N × W, For time ARB-18b, départs rapides sans Format, organisation, Superset, brouillon).
+
+## Reprise du 02/11/2026 — questionnaires et récapitulatifs (remplace ce qui précède)
+
+[Le contenu ci-dessus (écran unique de paramètres, constantes Tabata/30/30 grisées, À CLARIFIER 1 à 5) est **remplacé** par la référence Formats du 02/11/2026 §7, §9 à §12, §15 et CE-FMT-02. Les points 1 (Superset sans emplacement vide : A4), 2 (Récupération entre les mouvements : §9, §10, §12), 3 (Déroulé : §15) et 4 (libellé EMOM : « Dans chaque intervalle ») sont tranchés ; le point 5 (saisie) suit CE-FMT-02.]
+
+- **Domaine** `formatModels.ts` : réponses du questionnaire (valeurs initiales décidées seulement ; pause et récupération non décidées = Profil, §14.3), options d'Exécution (Tabata/30/30/Renforcement/Progression/À l'échec : À la suite | En alternance ; EMOM : Dans chaque intervalle | À la suite | En alternance ; Death by : À la suite | En alternance | Dans chaque intervalle ; aucune pour AMRAP, For time, Superset), valeurs par mouvement, adaptation à N (A6, §9.3 : lignes « à compléter », surplus retiré), structure produite (§1 : Exercices standards, Exercices formatés autonomes, Circuit standard, Circuit porteur), ajout au brouillon (`appendModelToDraft`). `formatTimeline.ts` : Déroulé calculé (§15).
+- **Écran** `FormatModelScreen` (routes `format-questionnaire`, `format-summary`) : croix au questionnaire, Retour au récapitulatif (réponses conservées par `FormatModelDraftProvider`, titre inchangé) ; zone de contexte (couleur, motif agrandi, nom, accroche) ; « + Ajouter » → champ de saisie et « Ouvrir le catalogue » (le Catalogue reprend le texte saisi) ; suggestions en cartes « Mouvement sélectionné » ; choix → récapitulatif ; cartes à suppression glissée (dernier mouvement de boucle bloqué) ; tableaux AMRAP (Rép. | Par tour | Max), For time (tours), Progression (séries, répétitions et charge locales, clavier numérique/décimal, Suivant) ; Déroulé à 25 px du bouton ; « Enregistrer dans la séance » → brouillon, retour à la Composition, nom du modèle suggéré (B.9).
+- Modale « Mouvement du buy-in » (sélection unique) ; « Changer » remplace le buy-in.
+
+Écarts restants (C.3) : réordonnancement par appui long non réalisé (actions VoiceOver Monter / Descendre seulement) ; police d'accroche « Mali » non embarquée (Inter italique) ; « Charge Avec/Sans » se règle dans la modale du mouvement de la Composition, pas encore depuis le récapitulatif ; nombre de séries variables For time / Progression édité par cellule, sans roulette.
+
+Synchronisation : classe **A**. Tests : `formatModels.c3` (20), `FormatModelScreen.c3` (3).

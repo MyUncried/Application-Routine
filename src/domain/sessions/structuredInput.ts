@@ -38,8 +38,11 @@ import type {
 } from "./Session";
 import { validateCreateSessionInput } from "./validation";
 import {
+  carrierNatureAdmitted,
   elementFormatViolations,
+  exerciseFormatRole,
   isSessionOrigin,
+  type FormatRole,
   type ElementFormat,
   type ElementFormatViolationCode,
   type SessionOrigin,
@@ -90,26 +93,40 @@ function generalStopPointsForbidden(structure: StructureInput): boolean {
 const FORMAT_VIOLATIONS: Record<ElementFormatViolationCode, ValidationViolation> = {
   FORMAT_UNKNOWN: { code: "UNRECOGNIZED", field: "element.format" },
   FORMAT_SETTING_UNKNOWN: { code: "UNRECOGNIZED", field: "element.formatSettings" },
-  FORMAT_SETTING_NOT_ADJUSTABLE: { code: "MUST_BE_ABSENT", field: "element.formatSettings" },
+  FORMAT_ROLE_FORBIDDEN: { code: "FORBIDDEN_PLACEMENT", field: "element.format" },
   FORMAT_SETTING_INVALID: { code: "OUT_OF_RANGE", field: "element.formatSettings" },
 };
 
-/**
- * PRE-9 (correction C.1 du 30/10, D-02) : le Circuit ne porte aucun Format. Le type ne le permet
- * plus ; une entrée non typée qui en porterait un est refusée, jamais transmise aux membres.
- */
 const FORMAT_ON_CIRCUIT: ValidationViolation = { code: "FORBIDDEN_PLACEMENT", field: "element.format" };
 
-function circuitCarriesFormat(structure: StructureInput): boolean {
-  return structureCircuits(structure).some((circuit) => {
-    const stray = (circuit as { readonly format?: unknown }).format;
-    return stray !== undefined && stray !== null;
-  });
-}
-
-/** PRE-9 (C.1) : Formats portés par les Exercices de la structure, à tout niveau. */
-function formatsOf(structure: StructureInput): readonly ElementFormat[] {
-  return structureExercises(structure).flatMap((exercise) => (exercise.format !== undefined && exercise.format !== null ? [exercise.format] : []));
+/**
+ * PRE-9 (réalignement C.1 du 02/11/2026, référence Formats §1) : Formats portés, chacun dans le rôle
+ * de son porteur — Circuit porteur (nature admise par son Format), membre d'un Circuit porteur (clé du
+ * Format d'origine), Exercice autonome. Un membre d'une autre clé est refusé (aucun Format imbriqué, §6).
+ */
+function carriedFormats(structure: StructureInput): readonly { readonly format: ElementFormat; readonly role: FormatRole }[] | null {
+  const carried: { format: ElementFormat; role: FormatRole }[] = [];
+  const inCircuit = new Set<StructureExerciseInput>();
+  for (const circuit of structureCircuits(structure)) {
+    const own = circuit.format ?? null;
+    if (own !== null) {
+      if (!carrierNatureAdmitted(own.key, circuit.nature)) return null;
+      carried.push({ format: own, role: { kind: "CIRCUIT", nature: circuit.nature } });
+    }
+    const role = exerciseFormatRole(circuit);
+    for (const exercise of circuit.exercises) {
+      inCircuit.add(exercise);
+      const format = exercise.format ?? null;
+      if (format === null) continue;
+      if (own !== null && format.key !== own.key) return null;
+      carried.push({ format, role });
+    }
+  }
+  for (const exercise of structureExercises(structure)) {
+    const format = exercise.format ?? null;
+    if (format !== null && !inCircuit.has(exercise)) carried.push({ format, role: { kind: "EXERCISE" } });
+  }
+  return carried;
 }
 
 function asActivity(exercise: StructureExerciseInput, structuralPosition: StructuralPosition): CreateSessionActivityInput {
@@ -194,15 +211,16 @@ export function validateStructuredSessionInput(input: StructuredSessionInput): V
   for (const violation of validateStructureShape(input.structure, (exercise) => exercise.id)) {
     violations.push(STRUCTURE_VIOLATIONS[violation.code]);
   }
-  if (circuitCarriesFormat(input.structure)) {
-    violations.push(FORMAT_ON_CIRCUIT);
-  }
   if (generalStopPointsForbidden(input.structure)) {
     violations.push(STOP_POINT_FORBIDDEN);
   }
-  // PRE-9 (C.1) : contrôle structurel de chaque Format porté (registre) ; règles propres : C.3.
-  for (const format of formatsOf(input.structure)) {
-    for (const code of elementFormatViolations(format)) {
+  // PRE-9 (C.1, réalignement du 02/11) : contrôle structurel de chaque Format porté, dans son rôle.
+  const carried = carriedFormats(input.structure);
+  if (carried === null) {
+    violations.push(FORMAT_ON_CIRCUIT);
+  }
+  for (const { format, role } of carried ?? []) {
+    for (const code of elementFormatViolations(format, role)) {
       if (!violations.includes(FORMAT_VIOLATIONS[code])) {
         violations.push(FORMAT_VIOLATIONS[code]);
       }

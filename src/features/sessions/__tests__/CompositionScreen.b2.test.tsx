@@ -138,7 +138,9 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
   // [« exactement quatre options » — remplacé par la recette iPhone du 01/11/2026 (m11-menu, Hermann :
   // « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » » ; « 2e, après
   // Créer » ; icône « Haltère (ancienne) ») : cinq options.]
-  it("recette du 01/11 : cinq options, dans l'ordre, chacune avec son icône ronde ; Annuler n'est pas une option ; « Utiliser une séance existante » indisponible (B.8)", async () => {
+  // [Référence Formats du 02/11/2026 (§7, CE-T03-08, Figma `10705:20223`) : « Utiliser des mouvements
+  // existants » (2e) et « Utiliser un format d'entraînement » (3e, remplace « Utiliser une séance existante »).]
+  it("référence du 02/11 : cinq options, dans l'ordre, chacune avec son icône ronde ; Annuler n'est pas une option ; « Utiliser un format d'entraînement » ouvre la fenêtre Formats", async () => {
     await renderComposition(flatDraft());
     const tree = openMenu();
     const labels = within(tree)
@@ -147,13 +149,13 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     expect(labels).toEqual([
       menu.newActivity,
       menu.existingActivity,
-      `${menu.existingSession} — indisponible`,
+      menu.useFormat,
       menu.addCircuit,
       menu.addCycle,
       menu.cancel,
     ]);
-    expect(labels.slice(0, 2)).toEqual(["Créer un exercice", "Utiliser un mouvement existant"]);
-    expect(within(tree).queryByText(/format/i)).toBeNull();
+    expect(labels.slice(0, 3)).toEqual(["Créer un exercice", "Utiliser des mouvements existants", "Utiliser un format d’entraînement"]);
+    expect(within(tree).queryByText(/séance existante/i)).toBeNull();
     // Contre-recette du 01/11 (m12-menu) : haltère pour « Créer un exercice », silhouette pour « Utiliser un mouvement existant ».
     expect(within(screen.getByTestId("composition-add-activity-tree-new-icon", hidden)).getByTestId("create-menu-icon-exercise", hidden)).toBeTruthy();
     expect(within(screen.getByTestId("composition-add-activity-tree-existing-icon", hidden)).queryByTestId("create-menu-icon-exercise", hidden)).toBeNull();
@@ -161,14 +163,18 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     const axis = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-axis", hidden).props.style);
     const cycleRow = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-cycle").props.style);
     expect(axis.top + axis.height).toBe(cycleRow.top + 16);
-    const optionIDs = ["new", "existing", "existing-session", "circuit", "cycle"].map((key) => `composition-add-activity-tree-${key}`);
+    const optionIDs = ["new", "existing", "format", "circuit", "cycle"].map((key) => `composition-add-activity-tree-${key}`);
     for (const testID of optionIDs) expect(screen.getByTestId(`${testID}-icon`, hidden)).toBeTruthy();
     // Annuler n'a ni pilule ni libellé : c'est le « + » transformé.
     expect(screen.queryByTestId("composition-add-activity-tree-cancel-label", hidden)).toBeNull();
-    const session = screen.getByTestId("composition-add-activity-tree-existing-session");
-    expect(session.props.accessibilityState).toEqual({ disabled: true });
-    expect(within(session).getByText(menu.existingSession)).toBeTruthy();
+    expect(within(screen.getByTestId("composition-add-activity-tree-format-icon", hidden)).getByTestId("create-menu-icon-format", hidden)).toBeTruthy();
     expect(screen.getByTestId("composition-add-activity-tree-circuit").props.accessibilityState).toEqual({ disabled: false });
+    // Le menu s'efface ; la fenêtre Formats s'ouvre sur la Composition.
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-format"));
+    expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
+    expect(screen.getByTestId("formats-window")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("format-model-TABATA"));
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-questionnaire", params: { model: "TABATA" } });
   });
 
   it("recette du 01/11 : « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (action d'avant le 01/11) et ferme le menu", async () => {

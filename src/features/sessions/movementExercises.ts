@@ -56,6 +56,23 @@ export function takeMovementsHandedToComposition(): readonly Movement[] | null {
   return taken;
 }
 
+/**
+ * PRE-9 C.3 (référence Formats du 02/11/2026 §7.2, §7.3) : Mouvements choisis dans la modale du
+ * Catalogue pour un questionnaire ou un récapitulatif de Format — canal distinct de la Composition.
+ */
+let movementsForFormat: { readonly movements: readonly Movement[]; readonly role: "LOOP" | "BUY_IN" } | null = null;
+
+export function handMovementsToFormat(movements: readonly Movement[], role: "LOOP" | "BUY_IN"): void {
+  movementsForFormat = movements.length > 0 ? { movements: [...movements], role } : null;
+}
+
+/** Reprend (une seule fois) les Mouvements remis au parcours Formats ; `null` : aucun. */
+export function takeMovementsHandedToFormat(): { readonly movements: readonly Movement[]; readonly role: "LOOP" | "BUY_IN" } | null {
+  const taken = movementsForFormat;
+  movementsForFormat = null;
+  return taken;
+}
+
 /** Valeurs du Profil copiées dans un nouvel Exercice (P3-10 : jamais relues ensuite). */
 export type MovementExerciseDefaults = {
   readonly countdownSeconds: number;
