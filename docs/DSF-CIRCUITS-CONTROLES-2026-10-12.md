@@ -74,7 +74,7 @@ Ce lot met à jour le DSF documentaire et les preuves visuelles ; il ne modifie 
 
 ## Raccordement Formats du 14/10/2026
 
-Le [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md) complète ce document : organisation Par exercice/En alternance, compte nommé selon son unité, constantes Tabata grisées mais effectives et phrases contextuelles. L’état imposé effectif conserve une valeur réelle ; ne pas lui appliquer le tiret des valeurs sans effet. Les cartes de modèles illustrées ne changent pas la règle des cartes catalogue. Les points de layout non qualifiés restent signalés dans la [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md).
+Le [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md) et la [référence fonctionnelle du 02/11](KODJO-Formats-entrainement-2026-11-02.md) précisent les organisations, le portage Circuit/Exercice, les préconfigurations modifiables et le tableau Progression. Les anciennes constantes Tabata grisées sont remplacées ; les règles standards non concernées de ce DSF restent applicables.
 
 ### Cible variable — accès au choix
 

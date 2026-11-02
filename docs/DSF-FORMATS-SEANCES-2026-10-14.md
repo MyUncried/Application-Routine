@@ -1,53 +1,45 @@
-# DSF — Formats de séances — 14 octobre 2026
+# DSF — Formats de séances — référence actualisée le 2 novembre 2026
 
-> **Complément fonctionnel actif PRE-9 du 30/10/2026 :** [décisions D-01 à D-30 et matrice des six Formats](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La présente DSF demeure la référence des **éléments graphiques effectivement représentés** dans Figma ; elle ne permet pas d'inférer un Format unique porté par Séance/Circuit, une valeur initiale à partir d'un exemple ou la présence de Gainage · Mobilité comme départ actif. Le Format appartient à l'Exercice. Tabata est répétable en Circuit groupé ou Cycle ; AMRAP possède une durée configurable par passage ; For time distingue rang d'échelle et passage du Circuit. L'exécution spécialisée ne relève pas de PRE-9.
-
-Statut : extension documentaire du DSF courant. Aucun composant Figma modifié par ce lot. Sources de layout : Prototype MVP, fichier G6RY5Ebhgwb4AHIOYDwwvg, inventaire/captures du chapitre 06. Comportements : spécification Formats, D-357…369. Le moteur n’est pas livré.
+Source fonctionnelle : [Formats d’entraînement](KODJO-Formats-entrainement-2026-11-02.md). Source graphique : Figma G6RY5Ebhgwb4AHIOYDwwvg, page Prototype MVP ; galerie du chapitre 06. Les anciennes prescriptions de constantes Tabata/30/30 et de portage exclusivement Exercice sont remplacées. Aucun composant Figma n’est créé par cette livraison documentaire.
 
 ## 1. Portée et familles
 
-CE-FMT-01 : cartes de choix de modèle. CE-FMT-02 : paramètres globaux/récapitulatif. CE-FMT-03 : composition. CE-FMT-04 : modales contextualisées. CE-FMT-05/06 : compléments fonctionnels d’exécution/arrêt ; layouts spécifiques non qualifiés, ne pas inventer une maquette.
+CE-FMT-01 : fenêtre Formats à deux colonnes sur voile. CE-FMT-02 : questionnaires et récapitulatifs, tableau Progression. CE-FMT-03 : Composition et sortie. CE-FMT-04 : modales contextualisées. CE-FMT-05/06 : contrats fonctionnels d’exécution futurs, pas une preuve de moteur livré.
 
-Les cartes illustrées du sélecteur de modèles ne changent pas la règle des cartes du catalogue : pas de visuel de séance ; visuel réservé aux cartes d’exercices, absent dans une liste mixte séances/exercices. Le modèle de départ est une entrée de création, pas un média persistant de la séance.
+Pas de visuel de Séance persisté depuis la grille ; les cartes modèles ne remplacent pas les cartes catalogue. Réutiliser les composants existants de blocs, lignes, segmentés, tableaux, navigation et durée.
 
-## 2. Choix d’organisation
+## 2. Navigation et organisations
 
-Libellé « Exécution ». Options « Par exercice » et « En alternance ». Dernière ligne du bloc de paramètres ; dans le récapitulatif Tabata, après Durée totale. Séparateur avant cette dernière ligne ; distribution verticale régulière. Libellé et options sur une même ligne ; taille du texte identique aux paramètres voisins.
+Questionnaires : croix, fermeture vers Composition. Tous les récapitulatifs : Retour vers le questionnaire avec réponses conservées et titre inchangé. Fenêtre Formats : croix interne ou voile ferme la fenêtre ; aucune carte Exercice/Séance ou Libre.
 
-Relevé du contrôle courant : conteneur segmenté 236 × 28, texte 13 ; ligne 34. Ce sont des repères de la maquette 402 × 874, pas des dimensions imposées à tous les appareils. Réutiliser le composant segmenté du DSF (`5548:9818`, variantes `7388:13779`/`7388:13786`) selon l’état sélectionné ; conserver couleurs, arrondis et alignements de la source. Adapter aux Safe Areas et au texte agrandi sans rogner une option.
+Tabata : À la suite ou En alternance ; EMOM et Death by : Dans chaque intervalle, À la suite ou En alternance. For time : aucun choix additionnel d’exécution. Les segmentés reprennent les styles standards et la taille normale des options, sans nouveau contrôle.
 
-Tabata : « Séries par exercice — 8 », compatible avec les deux choix. EMOM : durée calculée en direct. Progression : répétitions par série ; alternance comptée en séries. For time : aucun segment d’organisation ; « Volume par tour ».
+## 3. Valeurs modifiables, calculées ou imposées
 
-## 3. Valeur imposée mais effective
+Tabata et 30/30 sont standards : aucun verrouillage dû à leur origine. Un paramètre imposé par un Format spécialisé reste réel, visible et grisé avec sa raison ; une durée calculée non modifiable est noire sans pastille selon CE-UI-10, distincte du gris verrouillé. Les valeurs reprises du Profil gardent le fond orange jusqu’au premier ✓, sans assimiler un défaut de modèle à un défaut Profil.
 
-État distinct d’une valeur inactive sans effet : valeur réelle visible, non modifiable, raison à l’appui. Pour Tabata, Durée, 8, 20 s et 10 s sont grisées conformément à l’arbitrage et à la modale `8747:14451`. Elles restent effectives : aucun tiret. Un contrôle désactivé ne suffit pas à expliquer la cause ; la raison du format doit être lisible et accessible.
+30/30 initial : 6 séries identiques, Objectif de durée 30 s, Pause 30 s, durée 6 min, Récupération 0 s. Le 30/30 ne crée pas de récupération pour représenter une pause.
 
-Ce cas complète les états de lignes de la modale existante (famille `7092:13605`), sans annoncer qu’un nouveau composant maître a été créé. Il ne remplace pas les règles de tiret pour une donnée réellement sans effet, ni les règles d’héritage du nombre de séries par le circuit. Préserver contraste, nom/valeur/état accessibles, voile et tailles de la modale courante.
+Cadence AMRAP/For time : Sans sélectionné par défaut, Autre et 1 s disponibles ; aucune incidence sur calcul temporel ou résultat. Death by reste Sans.
 
-## 4. Volumes, cartes et phrases
+## 4. Composition et volumes
 
-Tabata par exercice : carte `8 × 20 s`, sans pause dans ce volume ; pas de cadre autour de la durée. La pause de 10 s demeure visible dans la modale comme « Pause après chaque série ». Ne pas créer une récupération pour la rendre visible sur la composition.
+Circuits porteurs : identité Format d’origine et nature fixée, valeurs applicables modifiables. AMRAP affiche bloc(s), tours réservés à la boucle. Death by alterné affiche « Death by · jusqu’à l’échec · alternées » sans durée ; chaque membre garde l’intervalle local. Groupé coordonné : Durée de chaque tour = intervalle commun, en bleu modifiable. Circuit Tabata standard, nom Circuit et compte modifiable.
 
-EMOM par exercice : garder le compte global de passages distinct de la représentation locale ; aucune multiplication série × tour supplémentaire. Progression alternée : séries ; For time : volume par tour.
+Cartes et phrases lisent les paramètres effectifs ; aucun texte persisté ne pilote un calcul. Dialogue de sortie AMRAP : composant DSF / Overlays / Confirmation, Trois actions, Conserver le format AMRAP principal bleu par défaut, Adopter un format libre secondaire, Annuler.
 
-Les phrases sont rendues en segments `{texte, gras}`, issus des paramètres, non stockées. Le texte For time normatif est conservé dans le corpus Formats associé. Un calcul illustratif faux dans Figma n’est pas une nouvelle règle ; les écarts de libellé/unité/constante sont suivis séparément.
+## 5. Tableau Progression et déroulé
+
+Questionnaire sans ligne de répétitions globale ; récapitulatif : tableau Mouvement sous Nombre de séries, avant Pause/Durée totale/Exécution. Fond blanc rayon 8 dans cadre gris, titres gris et séparateurs fins ; trait sous Nombre de séries. Une ligne par mouvement, colonnes S1…SN, répétitions puis charge si Avec pour cet Exercice ; aucun interrupteur global.
+
+Tap cellule : clavier numérique répétitions, décimal charge, Suivant vers la cellule suivante dans l’ordre de la série. Tableau et cellule actifs visibles au-dessus du clavier ; autres réglages via modale. En référence 874 px, en-tête 28 px, ligne avec charge 44 px, espace 12 px avant Déroulé. Les paramètres réutilisent les données standards de séries, pas une nouvelle structure fonctionnelle.
+
+Écart bas du cadre Déroulé → haut du bouton d’action : 25 px dans les écrans Formats concernés. Le titre suit son cadre. Hauteur égale pour données constantes ou déroulé générique, proportionnelle aux répétitions variables ; les charges ne deviennent pas des durées.
 
 ## Phases dans les modales de format
 
-Pour un exercice éligible et une durée de travail imposée, la dernière phase affiche le restant calculé. Les précédentes sont modifiables dans ce budget. Ajout à0 ; réorganisation conservant les valeurs ; suppression reportant le temps sur la dernière restante. Le style calculé reste distinct d’une option sans effet. Réutiliser le tableau décrit dans le DSF Deux modes et les contrats CE-UI-10/CE-FMT-04.
+Appliquer D-446 et CE-UI-10 : phases compatibles selon les paramètres effectifs ; aucune dernière phase calculée ni adaptation proportionnelle historique. Phases du mouvement dans son bloc dédié. Ne pas confondre durée d’effort et intervalle EMOM/Death by.
 
-L’intégration d’un exercice de durée différente affiche le message informatif d’adaptation proportionnelle ; aucune confirmation supplémentaire ni nouveau dialogue bloquant. Le placement du message réutilise la notification existante. Une fenêtre EMOM ne vaut pas automatiquement durée de travail imposée. Les seize modales de format restent sans ligne Phases selon le rapport Figma du15/10 ; aucune capture n’est annoncée conforme à cet ajout.
+## Preuves et limites
 
-## 5. Preuves et limites
-
-46 captures et leurs empreintes dans `Specifications-fonctionnelles/images/formats-2026-10-14/manifest.json`. Les écarts F-01…04 sont dans la revue transverse. Aucun layout spécifique de confirmation/résultat Death by n’est qualifié par cette galerie. La couverture des captures ne détermine pas à elle seule la possibilité de développer : appliquer la clarification de portée ci-dessous.
-
-Voir [matrice](MATRICE-FORMATS-SEANCES-2026-10-14.md), [revue transverse](REVUE-COHERENCE-FORMATS-2026-10-14.md) et [spécification](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception).
-
-## Clarification d’autorité et de portée — 14/10/2026
-
-Les spécifications définissent les règles métier, les calculs et les comportements. Figma illustre les scénarios de présentation des écrans et contrôles. Un scénario absent de Figma ne constitue pas une lacune fonctionnelle lorsque son comportement est spécifié. Les shells, composants, DSF et contrats existants permettent de décliner des états sans dessiner chaque combinaison.
-
-R-01 à R-05 sont des sujets de vérification ciblée, pas cinq blocages démontrés ni un préalable global au développement. R-01 concerne les commandes du moteur à fenêtres ; R-02 son exécution bilatérale ; R-03 l’enchaînement Death by multi-exercices. Leurs réponses doivent être recherchées dans les spécifications avant toute question. R-04 concerne uniquement la synchronisation des champs de l’éditeur For time s’ils sont modifiables séparément ; le contrôle du double comptage EMOM relève de l’implémentation et de ses tests. R-05 ne bloque rien du seul fait de captures absentes : une clarification de présentation n’est nécessaire que si l’implantation d’un élément nouveau ne peut pas être déterminée depuis les contrats et le DSF.
-
-Aucun de ces constats ne suspend globalement la création/composition. Seule une règle effectivement absente ou contradictoire doit être clarifiée avant l’implémentation du comportement concerné. Les mentions de preuve visuelle partielle décrivent la couverture des illustrations, pas une obligation de produire une nouvelle maquette.
+La galerie active et son inventaire indiquent pour chaque nœud la capture disponible ou la limite d’export. Figma décrit le rendu et les états représentés, la spécification les comportements et calculs. Une capture ne prouve pas le fonctionnement ; un état sans maquette dédiée ne bloque pas un comportement suffisamment spécifié. Aucun moteur, résultat d’exécution ni nouvelle obligation de recette globale n’est livré par ce DSF.

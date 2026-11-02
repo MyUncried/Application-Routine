@@ -1,3 +1,18 @@
+# PRE-9 — Arbitrages actifs pour la reprise Formats
+
+[référence active Formats du 02/11/2026](../../../docs/KODJO-Formats-entrainement-2026-11-02.md). Décisions A1–A7, puis règle Death by alterné à intervalles locaux, Progression au tableau, Retour sur tous les récapitulatifs et espacement 25 px validés par Hermann.
+
+- Portage Exercice autonome ou Circuit selon la cible ; plus d’exclusivité Exercice.
+- Tabata et 30/30 standards modifiables ; quatre Formats spécialisés ; cinq départs rapides sans Libre.
+- Death by autonome refusé en Circuit standard alterné, admis en groupé avec fin locale et redémarrage ; coordonné alterné porté par Circuit, intervalles locaux, aucune durée d’en-tête.
+- AMRAP blocs/tours, buy-in unique, récupération de boucle sur Exercice ; For time variable et Progression : nouvelles séries à compléter, surplus retiré sans confirmation.
+- Cadence AMRAP/For time facultative sans incidence temporelle ; pauses/Points suspendent les horloges.
+- B.4c/B.7/B.8/B.9 développés et recettés selon Hermann ; C.2–C.4 arrêtés pour réalignement. B10 reste différé. L’exécution spécialisée reste PRE-10/11.
+
+## Registre antérieur — historique sur le périmètre Formats
+
+**Les prescriptions contradictoires de tout le registre antérieur ci-dessous sont remplacées par la référence du 02/11.** En particulier, ne pas réactiver l’exclusivité Exercice, les constantes Tabata/30/30, la grille Libre/Exercice/Séance, les emplacements Superset vides ou les interdictions générales de cadence. Les décisions de structure non remplacées demeurent applicables.
+
 # PRE-9 — Arbitrages (28/10/2026, révisions 1 et 2 du 29/10/2026)
 
 > Points **réellement ouverts** après recherche des décisions existantes (`recherche/02-decisions-seance-composition.md`, `recherche/03-formats.md`, `recherche/04-figma.md`). Les décisions déjà prises ne sont pas rouvertes. Les recommandations sont des propositions de Claude, **non des décisions**. Classement : **STRUCTURANT** (bloque une story ou le contrat avant PRE-10) · **LOCAL** (bloque une seule story, peut être tranché au moment de la story) · **AVANT PRE-10** (n'empêche pas PRE-9).
@@ -8,13 +23,13 @@
 
 ## Menu Créer — règle active
 
-Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée. [Remplacé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » » ; position « 2e, après Créer » ; icône « Haltère (ancienne) » [inversé le 01/11/2026 — contre-recette iPhone de Hermann (m12-menu) : « Inverser les symbole des deux premiers lignes, créer un exercice vs utiliser un mouvement » : « Créer un exercice » porte l’haltère, « Utiliser un mouvement existant » la silhouette du mouvement]. Le menu présente cinq options, dans cet ordre : « Créer un exercice », « Utiliser un mouvement existant », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (sélection multiple, Mouvements déjà dans la Séance marqués « dans la séance ») ; la recherche par saisie du nom dans Créer un exercice reste disponible ; l’axe s’arrête toujours à Ajouter un cycle. Voir ch07 « Menu Créer — recette du 01/11/2026 ».]
+Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
 
 À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
-**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. [Cinq options depuis le 01/11/2026 (ch07 « Menu Créer — recette du 01/11/2026 ») ; toujours aucune entrée Format.] La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option [d’accès Format ; la cinquième option rétablie le 01/11/2026 est « Utiliser un mouvement existant »] ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à cinq options ci-dessus.
 
 Les exigences de menu ci-dessous se lisent avec cette règle ; aucune story ne doit réintroduire une entrée retirée.
 
@@ -250,3 +265,4 @@ Classe B selon la règle permanente : décisions validées des révisions 1 et 2
 | `PRODUCT.md` | l.58, l.132, l.134 (déjà listées §4) ; l.153-155 Formats | Vérifier la mention « plusieurs Formats par Séance » au moment de C.4 ; aucune contradiction trouvée l.153-155 | ARB-03 | DOC.1 |
 | `INDEX.md` | — | Aucun passage concerné (recherche ciblée du 29/10) | — | — |
 | Artefacts PRE-8 | `epic-e-catalogue-seances.md` l.244-249 (« Proposition de conversion, à arbitrer ») | Annoter : conversion décidée (ARB-01) | ARB-01 | DOC.0 |
+

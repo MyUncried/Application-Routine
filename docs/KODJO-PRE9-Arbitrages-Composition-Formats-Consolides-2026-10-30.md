@@ -1,6 +1,8 @@
 # KODJO — PRE-9 : décisions consolidées sur la Composition et les Formats
 
-**Statut : règles de configuration validées, consolidées pour la documentation normative et le plan BMAD.** Ce texte constitue la version active de référence pour le **périmètre Composition/configuration PRE-9**. Il n'atteste ni du code développé, ni de la qualification du moteur PRE-10/11.
+**Statut : consolidation antérieure, remplacée sur le périmètre Formats par la [référence active du 02/11/2026](KODJO-Formats-entrainement-2026-11-02.md). Les décisions de structure D-451 non concernées restent applicables. Les prescriptions de porteur, constantes, grille, matrice et adoption ci-dessous sont historiques ; elles ne constituent plus la cible de développement.
+
+> **LECTURE HISTORIQUE POUR LES FORMATS.** Appliquer le document du 02/11 aux conflits ; ne pas remettre en vigueur l’exclusivité Exercice, les six Formats contraignants ou la matrice antérieure.
 
 ## 1. Sources et priorité documentaire
 
@@ -77,13 +79,13 @@ Les **valeurs initiales réglables ne sont jamais des constantes imposées**. Le
 
 ### Menu Créer de la Composition
 
-Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée. [Remplacé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » » ; position « 2e, après Créer » ; icône « Haltère (ancienne) » [inversé le 01/11/2026 — contre-recette iPhone de Hermann (m12-menu) : « Inverser les symbole des deux premiers lignes, créer un exercice vs utiliser un mouvement » : « Créer un exercice » porte l’haltère, « Utiliser un mouvement existant » la silhouette du mouvement]. Le menu présente cinq options, dans cet ordre : « Créer un exercice », « Utiliser un mouvement existant », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (sélection multiple, Mouvements déjà dans la Séance marqués « dans la séance ») ; la recherche par saisie du nom dans Créer un exercice reste disponible ; l’axe s’arrête toujours à Ajouter un cycle. Voir ch07 « Menu Créer — recette du 01/11/2026 ».]
+Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
 
 À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
-**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. [Cinq options depuis le 01/11/2026 (ch07 « Menu Créer — recette du 01/11/2026 ») ; toujours aucune entrée Format.] La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option [d’accès Format ; la cinquième option rétablie le 01/11/2026 est « Utiliser un mouvement existant »] ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à cinq options ci-dessus.
 
 ## 3. Modèle et présentation
 
@@ -109,3 +111,4 @@ Ne pas confondre **tour d'échelle For time**, **passage d'un Circuit**, **séri
 | CE-FMT-03 §14 | Réappliquer **les constantes de l'Exercice formaté** et les contraintes de nature/N du Circuit, sans transfert implicite. |
 
 **Aucune modification de code, migration SQL, Figma ou document de développement PRE-10/11 n'est entraînée par le présent texte.** Les anciennes règles ne doivent pas rester simultanément prescrites comme actives dans le registre, le PRD ou le plan BMAD.
+

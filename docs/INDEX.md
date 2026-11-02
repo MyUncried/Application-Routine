@@ -1,5 +1,13 @@
 # Documentation de KODJO
 
+## Formats — base de reprise du 2 novembre 2026
+
+- [Spécification active](KODJO-Formats-entrainement-2026-11-02.md) : tous les questionnaires, récapitulatifs, modales, portage et règles actualisés.
+- [Contrats CE-FMT-01 à 04](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-01).
+- [Galerie et état des captures](Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#formats-galerie).
+- [Plan PRE-9 révisé](../_bmad-output/pre9/planning-artifacts/epics.md).
+
+
 > **Récupération et défauts Profil :** [règle validée](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recuperation-exercice-et-defauts-profil). Récupération propre à l’Exercice ; même valeur dans Composition ; saisie exclusivement dans la modale ; Pause / Ajouter un arrêt réservé aux Points d’arrêt. Tous les défauts Profil repris sont sur fond orange jusqu’au premier ✓.
 
 > **Composition — menu Créer :** [quatre options [cinq depuis le 01/11/2026 : « Utiliser un mouvement existant » rétabli] et fermeture par le bouton +/Annuler](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#composition-menu-creer). Réutilisation des suggestions de mouvements dans Créer un exercice ; accès Format depuis ce menu à préciser (MENU-FMT-01).
@@ -98,3 +106,4 @@ Les relations actives vers le mouvement doivent rester intègres, depuis les dé
 - [Carte et catalogue des séances — spécification du 27/10/2026](KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md).
 - [Catalogue des séances — douze écrans, composants, tokens et écarts](DSF-CATALOGUE-SEANCES-2026-10-27.md).
 - [Périmètre proposé et prompt de préparation BMAD — Catalogue des séances](preparation/catalogue-seances-2026-10-27/PERIMETRE-ET-PROMPT-BMAD.md).
+

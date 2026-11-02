@@ -599,28 +599,22 @@ Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et com
 <a id="formats-donnees"></a>
 #### Formats — données fonctionnelles et invariants
 
-**Décisions consolidées du 30/10/2026 :** [Formats et Composition PRE-9](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les réglages initialisés **sur les Exercices** sont ceux des six Formats décidés ; ne pas créer de schéma de Format sur Circuit ni de multiplicateur propre au Format. Les quatre départs rapides actifs et Libre constituent une **origine de création** distincte, sans Mouvement présélectionné ; Gainage · Mobilité n'est plus une origine active. Une occurrence répétée d'AMRAP garde sa durée réglable, et For time conserve l'indice propre de son échelle, indépendant du passage de Circuit.
+**Cible Formats active — 02/11/2026 :** [Formats d’entraînement — référence active du 2 novembre](../KODJO-Formats-entrainement-2026-11-02.md). Quatre Formats spécialisés (AMRAP, EMOM, For time, Death by) ; Tabata et cinq départs rapides standards modifiables (30/30, Renforcement, Superset, Progression, À l’échec). L’Exercice autonome ou le Circuit porte le Format selon le temps commun et la fin coordonnée ; le Circuit expose Format d’origine non modifiable et sa nature fixée, ses réglages applicables restant modifiables. Death by alterné : Format au Circuit, intervalle propre à chaque membre, aucune durée d’en-tête. Le portage exclusivement Exercice, les verrous Tabata/30/30 et le départ Libre dans la grille ne sont plus des règles actives.
 
-**Clarification fonctionnelle du 29/10/2026 — Format porté par l'Exercice.** Les lignes historiques qui plaçaient Format et réglages au niveau de la Séance ou du Circuit sont supersédées pour le modèle cible PRE-9 ; le Circuit reste une structure d'ordonnancement. Le détail d'affichage des Circuits repliés est documenté au chapitre 13 et référencé à Figma (`10717:20056`, `10725:20142`).
+| Objet | Données effectives / invariants |
+|---|---|
+| Séance | Origine de création distincte ; liste ordonnée d’Exercices/Circuits/Cycles ; nom suggéré modifiable, personnalisé préservé. |
+| Exercice autonome | Format spécialisé facultatif et réglages ; absence = standard. Paramètres compatibles conservés lors d’une entrée/sortie ; autres à compléter. |
+| Circuit porteur | Format d’origine hérité, non modifiable ; nature fixée ; compte applicable, durée de bloc, intervalle commun groupé ou borne For time modifiables selon le Format. Régime ouvert Death by distinct d’un compte fini. |
+| Circuit standard | Organisation et membres ; aucun Format commun caché ; compatibilité de chaque Exercice contrôlée. |
+| Membre | Mode/cible/charge/phases/côtés compatibles ; récupération propre ; Passage lorsque applicable ; incréments. Death by alterné : intervalle local conservé et modifiable ; groupé coordonné : intervalle commun du Circuit. |
+| Progression | Séries variables standards : répétitions et charge par série et par Exercice ; Charge Avec/Sans local ; tableau = éditeur des mêmes données. |
+| AMRAP | Blocs configurés distincts des tours réalisés ; buy-in unique dans le premier bloc ; résultat distinct par bloc. |
+| Instantané | Identité et réglages du bon porteur, membres, horloges communes ou intervalles locaux, version de règle ; aucune réécriture de l’historique. |
+| Résultats | Death by : rang, acquisitions et partiels, motif et achèvement distincts ; aucun compte réalisé plafonné par une borne de saisie. |
 
-| Porteur | Information | Règle de cohérence |
-|---|---|---|
-| Séance | Origine de création | Distincte du Format ; les départs rapides n'ajoutent pas de contrainte métier à eux seuls. |
-| Exercice dans la Séance | Format facultatif, identité et réglages propres | Six Formats possibles ; absent = Exercice libre. Le Format n'est jamais déduit du titre, de valeurs similaires ou du Circuit parent ; il demeure lié à l'Exercice lors d'une copie ou dépose. [29/10/2026, ARB-03 (registre ch07 « Arbitrages PRE-9 ») : porteur = élément de la Séance (Circuit, ou Exercice lorsqu’un Circuit n’est pas nécessaire), non la Séance ; plusieurs éléments formatés par Séance, directement ou dans un Cycle ; élément sans Format = libre. Livré par PRE-9 C.1.] [30/10/2026, décision de Hermann du 30/10/2026, correction PRE-9 C.1 : « Circuit, ou Exercice lorsqu’un Circuit n’est pas nécessaire » remplacé — porteur = Exercice seul ; le Circuit ne porte ni Format ni réglages de Format.] (annotation PRE-9 portée sur l’ancienne formulation, à réexaminer) |
-| Circuit | Organisation groupée/alternée, nombre de passages et membres ordonnés | **Aucune identité ni réglage de Format propre au Circuit.** Il organise ses Exercices et leur nombre de passages ; en alternance, N contraint le compte actif compatible de leurs séries selon les règles existantes. [29/10/2026, ARB-03 : portés par l’élément formaté ; l’organisation d’un Circuit formaté est sa nature (séries groupées ou alternées). Format et réglages conservés par l’insertion dans une autre Séance et par la duplication (ARB-16, ARB-17).] [30/10/2026, décision de Hermann du 30/10/2026, correction PRE-9 C.1 : « Circuit formaté » remplacé — Format et réglages appartiennent à l’Exercice ; l’organisation applicable est la nature et le nombre de tours du Circuit qui le contient, sans Format de Circuit ; aucun Format transmis aux membres.] (annotation PRE-9 portée sur l’ancienne formulation, à réexaminer) |
-| Action d'adoption volontaire | Format choisi pour un nouvel Exercice | Un Exercice peut adopter explicitement le Format déjà sélectionné ; une simple dépose d'un Exercice formaté ne le transmet ni au Circuit ni aux autres membres. Confirmation seulement si des valeurs renseignées sont perdues. |
-| Prescription | Valeurs ordonnées et unité d’indexation | Série pour Progression, **tour de l'échelle** pour For time, distinct du passage du Circuit englobant. Pas de réinterprétation implicite. |
-| Occurrence contextualisée | Valeur effective, provenance et caractère imposé | Le Format est contrôlé par Exercice ; ne pas réécrire le Mouvement partagé pour appliquer le contexte. |
-| Instantané | Format par Exercice, origine de Séance, réglages effectifs et version de règle | Lecture stable après modification/suppression de la source, y compris quand le Circuit est déplacé ou répété. |
-| Fenêtre exécutée | Rang, début, échéance, objectif, signal de fin du travail | Une fin de travail ne change pas l’échéance ; horloge indépendante de l’audio. |
-| Acquisition Death by | Fenêtre confirmée, tour acquis | Au plus une acquisition par fenêtre ; aucun tour acquis sans appui. |
-| Clôture Death by | Répétitions partielles confirmées, motif, état d’achèvement | Formulaire proposé à 0, résultat déclaré après validation ; limite/abandon distincts, état incomplet dans les deux cas. |
+Ne pas stocker une phrase ou durée dérivée comme prescription concurrente. Les fenêtres et acquisitions conservent leurs invariants ; le son ne prouve pas une répétition. Le guidage AMRAP/For time ne contribue à aucun calcul temporel. La forme SQL et le numéro de migration relèvent de la vérification de l’existant au développement, sans réécrire une migration livrée.
 
-La durée EMOM est dérivée N × E × W ; le repos résiduel appartient à sa fenêtre, ce n’est pas une récupération ajoutée. Les valeurs calculées ne constituent pas une deuxième prescription persistée. Les phrases ne sont pas stockées : segments régénérés à l’affichage.
-
-Compatibilité : les anciennes séances sans format restent libres, leurs historiques inchangés. L’état fonctionnel « incomplet » du Death by n’est pas converti silencieusement en l’ancien statut Terminée/Interrompue ; son raccordement au schéma physique doit conserver les trois axes motif/résultat/achèvement. Les exigences générales de relevé qualifié du 13/10 restent applicables ; la clôture Death by ne rend pas obligatoire la saisie des relevés d’autres exercices.
-
-<a id="compatibilite-series"></a>
 #### Persistance des séries et compatibilité
 
 ##### Compatibilité, données, API et instantanés
@@ -1500,3 +1494,4 @@ Le calcul porte sur la famille complète, membres archivés compris, avant filtr
 ## Projection Catalogue des séances — 27/10/2026
 
 La carte unique est une projection de la Séance D-449, pas une nouvelle nature d'objet. Son nombre d'exercices est le nombre de composants exercice présents dans la composition, sans multiplication par tours/cycles/séries et sans compter les récupérations. Catégories et zones proviennent des mouvements référencés ; les catégories affichées sont dédupliquées dans l'ordre de première apparition. Étiquette conservée dans les données et les filtres, absente de la carte. Visuel dérivé selon la cascade du §1 de la [spécification](../KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md) ; aucun nouveau champ photo de séance n'est imposé. Le détail conserve l'arbre Cycle/Circuit/Exercice, au plus deux décalages ; il ne transforme pas ni n'aplatit la composition persistée. Niveaux absents du nom et de la carte, filiation et instantanés inchangés. Les règles de titre du §8 relèvent de l'édition et ne réécrivent pas automatiquement les séances existantes à la lecture du catalogue.
+

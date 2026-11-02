@@ -350,7 +350,7 @@ Contenu identique à la section [« Conception de planification »](03%20%E2%80%
 <a id="formats-perimetre"></a>
 ## Formats — conception cible et livraison
 
-Cette évolution documente les six formats et les départs rapides selon [Formats de séances — comportements consolidés](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-de-séances--comportements-consolidés). Les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378). Toute frame d’écran ou d’état sur la page Figma `Prototype MVP` appartient au périmètre fonctionnel MVP (D-426). Sa présence ne constitue en revanche pas une preuve de développement ou de livraison dans une tranche PRE-3/PRE-4. Le moteur n’est pas encore développé ; le lot courant est exclusivement documentaire. Les preuves et périmètres PRE-3/PRE-4 restent figés. Rapports, classement, charge additionnelle, tempo et entrée Pyramide ne sont pas ajoutés au périmètre.
+**Règle remplacée sur la classification :** quatre Formats spécialisés et préconfigurations modifiables selon [Formats d’entraînement — référence active du 2 novembre](../KODJO-Formats-entrainement-2026-11-02.md).
 
 ## Utilisateur prioritaire du MVP
 
@@ -410,7 +410,7 @@ Le guidage de cadence pendant l’Exécution appartient au MVP (D-378). Les deux
 <a id="formats-vision"></a>
 ## Formats et création rapide
 
-Les six formats proposent des contraintes d’exécution, tandis que les six autres entrées accélèrent la création d’une séance libre. Les six formats et ces départs rapides appartiennent au MVP (D-378). L’utilisateur peut modifier les réglages autorisés du format après composition, sans modifier ses constantes ni changer son identité. Les calculs et synthèses suivent la configuration effective. Les rapports comparatifs, charge additionnelle et tempo restent hors de cette évolution.
+**Règle remplacée sur la classification :** quatre Formats spécialisés et préconfigurations modifiables selon [Formats d’entraînement — référence active du 2 novembre](../KODJO-Formats-entrainement-2026-11-02.md).
 
 ## Périmètre du MVP
 
@@ -540,3 +540,4 @@ Les phases forment un motif cyclique de guidage : un passage complet correspond 
 Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
 
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
+

@@ -10,13 +10,13 @@ Références contrôlées directement dans Figma : `8328:37972`, `8328:38193`, `
 
 ### Composition — menu Créer
 
-Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée. [Remplacé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » » ; position « 2e, après Créer » ; icône « Haltère (ancienne) » [inversé le 01/11/2026 — contre-recette iPhone de Hermann (m12-menu) : « Inverser les symbole des deux premiers lignes, créer un exercice vs utiliser un mouvement » : « Créer un exercice » porte l’haltère, « Utiliser un mouvement existant » la silhouette du mouvement]. Le menu présente cinq options, dans cet ordre : « Créer un exercice », « Utiliser un mouvement existant », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (sélection multiple, Mouvements déjà dans la Séance marqués « dans la séance ») ; la recherche par saisie du nom dans Créer un exercice reste disponible ; l’axe s’arrête toujours à Ajouter un cycle. Voir ch07 « Menu Créer — recette du 01/11/2026 ».]
+Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
 
 À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
-**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. [Cinq options depuis le 01/11/2026 (ch07 « Menu Créer — recette du 01/11/2026 ») ; toujours aucune entrée Format.] La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option [d’accès Format ; la cinquième option rétablie le 01/11/2026 est « Utiliser un mouvement existant »] ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à cinq options ci-dessus.
 
 ## Composition — actualisation du 28/10/2026
 
@@ -1647,384 +1647,487 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 <a id="formats-galerie"></a>
 ### Formats de séances — inventaire et captures
 
-46 états de formats représentés dans Figma ; seules les captures classées comme références principales sont conservées ci-dessous. Les captures décrivent le layout observé ; les règles de [Formats de séances](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#formats-conception) priment pour les comportements et les calculs. Les écarts F-01…04 sont suivis dans la revue transverse. Une capture sans écart signalé ne vaut pas recette fonctionnelle. Les écrans d’exécution et de confirmation Death by ne sont pas illustrés par cet inventaire ; leurs contrats restent partiels sur le layout.
-
-Le relevé du 12/10 sur Conception reste historique ; les références ci-dessous décrivent désormais le parcours observé sur Prototype MVP. Leur présence ne change pas le périmètre de livraison PRE-3/PRE-4.
-
-#### Pages de choix, paramètres, récapitulatif et composition
-
 <a id="format-8598-29271"></a>
+<a id="format-8624-30749"></a>
+<a id="format-8624-30880"></a>
+<a id="format-8624-31043"></a>
+<a id="format-8624-31157"></a>
+<a id="format-8624-31263"></a>
+<a id="format-8656-33941"></a>
+<a id="format-8656-34356"></a>
+<a id="format-8656-34494"></a>
+<a id="format-8656-34548"></a>
+<a id="format-8656-34628"></a>
+<a id="format-8656-34887"></a>
+<a id="format-8656-35145"></a>
+<a id="format-8656-35415"></a>
+<a id="format-8747-14320"></a>
+<a id="format-8795-14449"></a>
+<a id="format-8795-14681"></a>
 
-##### Composition séance — Modèles
+Les anciennes ancres de frames sont conservées uniquement pour les liens historiques ; l’inventaire actuel ci-dessous remplace leurs captures et noms de parcours.
 
-Nœud [8598:29271](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29271) · Contrat [CE-FMT-01](13%20–%20Contrats%20d’écran.md#ce-fmt-01). Capture du layout courant ; données illustratives.
+**Référence active du 2 novembre 2026 :** [spécification Formats](../KODJO-Formats-entrainement-2026-11-02.md), contrats CE-FMT-01 à 04 du chapitre 13. Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP (`510:101`) : **57 frames actuelles** dans les deux rangées Formats et modales/séances. Les anciens noms de frames, copies et captures de ce parcours sont remplacés par cet inventaire ; les autres familles du chapitre restent inchangées.
 
-![Composition séance — Modèles](images/navigation-2026-10-27/8598-29271.png)
+**56 captures PNG réexportées et intégrées** ; la modale 30/30 `8656:34070` reste à réexporter, le quota Figma ayant été atteint. Ses règles et son état courant sont documentés (effort 30 s, Pause 30 s, 6 séries, récupération 0 s, valeurs modifiables) ; son ancienne image n’est pas présentée comme une capture courante. Les textes et états ont été contrôlés auparavant sur ce nœud. Aucun état interactif n’est certifié par une image.
+
+Questionnaires : croix vers Composition. Récapitulatifs : Retour vers questionnaire avec réponses conservées (18 frames de récapitulatif, dont une déjà en Retour avant le dernier relevé). Progression : tableau par mouvement sous Nombre de séries et clavier direct ; Déroulé à 25 px du bouton. Le manifeste relie nœud, fichier, empreinte, contrat et statut d’export, sans URL d’asset temporaire.
+
+<a id="format-9977-19613"></a>
+
+##### P-Formats — Choix du format, deux colonnes
+
+Nœud [9977:19613](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9977-19613) · Contrat [CE-FMT-01](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-01).
+
+![P-Formats — Choix du format, deux colonnes](images/figma-9977-19613.png)
 
 <a id="format-8624-29980"></a>
 
-##### Composition séance — Modèles — Tabata (quels exercices)
+##### P-Tabata — Questionnaire
 
-Nœud [8624:29980](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-29980) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). F-01 : compte présenté comme tours et pause comme récupération ; représentation à aligner.
+Nœud [8624:29980](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-29980) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-![Composition séance — Modèles — Tabata (quels exercices)](images/formats-2026-10-14/figma-8624-29980.png)
+![P-Tabata — Questionnaire](images/figma-8624-29980.png)
+
+<a id="format-11335-20151"></a>
+
+##### P-Tabata — Questionnaire, saisie d’un mouvement
+
+Nœud [11335:20151](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-20151) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![P-Tabata — Questionnaire, saisie d’un mouvement](images/figma-11335-20151.png)
 
 <a id="format-8598-29503"></a>
 
-##### Composition séance — Modèles — Tabata (sélection des exercices)
+##### P-Tabata — Choix des mouvements
 
-Nœud [8598:29503](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29503) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8598:29503](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29503) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-![Composition séance — Modèles — Tabata (sélection des exercices)](images/formats-2026-10-14/figma-8598-29503.png)
+![P-Tabata — Choix des mouvements](images/figma-8598-29503.png)
 
 <a id="format-8624-30306"></a>
 
-##### Composition séance — Modèles — Tabata (récapitulatif)
+##### P-Tabata — Récapitulatif, à la suite
 
-Nœud [8624:30306](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). F-01 : compte corrigé, récupération encore à distinguer de la pause.
+Nœud [8624:30306](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-![Composition séance — Modèles — Tabata (récapitulatif)](images/formats-2026-10-14/figma-8624-30306.png)
+![P-Tabata — Récapitulatif, à la suite](images/figma-8624-30306.png)
 
-<a id="format-8624-30749"></a>
+<a id="format-11146-18902"></a>
 
-##### Composition séance — Tabata (préremplie)
+##### P-Tabata — Récapitulatif, en alternance
 
-Nœud [8624:30749](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30749) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). F-01 : ancienne représentation par tours/récupérations ; ne pas en dériver la prescription.
+Nœud [11146:18902](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11146-18902) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
+![P-Tabata — Récapitulatif, en alternance](images/figma-11146-18902.png)
 
 <a id="format-8624-30040"></a>
 
-##### Composition séance — Modèles — EMOM (paramètres)
+##### EMOM — Questionnaire
 
-Nœud [8624:30040](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30040) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8624:30040](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30040) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
+![EMOM — Questionnaire](images/figma-8624-30040.png)
 
 <a id="format-8624-30392"></a>
 
-##### Composition séance — Modèles — EMOM (récapitulatif)
+##### EMOM — Récapitulatif, dans chaque intervalle
 
-Nœud [8624:30392](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30392) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8624:30392](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30392) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
+![EMOM — Récapitulatif, dans chaque intervalle](images/figma-8624-30392.png)
 
+<a id="format-11158-18922"></a>
 
-<a id="format-8624-30880"></a>
+##### EMOM — Récapitulatif, en alternance
 
-##### Composition séance — EMOM (préremplie)
+Nœud [11158:18922](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11158-18922) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-Nœud [8624:30880](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30880) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
+![EMOM — Récapitulatif, en alternance](images/figma-11158-18922.png)
 
+<a id="format-11158-19033"></a>
 
+##### EMOM — Récapitulatif, à la suite
+
+Nœud [11158:19033](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11158-19033) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![EMOM — Récapitulatif, à la suite](images/figma-11158-19033.png)
 
 <a id="format-8624-30143"></a>
 
-##### Composition séance — Modèles — AMRAP (paramètres)
+##### AMRAP — Questionnaire
 
-Nœud [8624:30143](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30143) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8624:30143](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30143) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
+![AMRAP — Questionnaire](images/figma-8624-30143.png)
 
+<a id="format-11335-19986"></a>
+
+##### AMRAP — Questionnaire, saisie d’un mouvement
+
+Nœud [11335:19986](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-19986) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![AMRAP — Questionnaire, saisie d’un mouvement](images/figma-11335-19986.png)
+
+<a id="format-11410-20361"></a>
+
+##### AMRAP — Questionnaire, plusieurs blocs
+
+Nœud [11410:20361](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11410-20361) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![AMRAP — Questionnaire, plusieurs blocs](images/figma-11410-20361.png)
+
+<a id="format-11220-19121"></a>
+
+##### AMRAP — Choix des mouvements
+
+Nœud [11220:19121](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11220-19121) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![AMRAP — Choix des mouvements](images/figma-11220-19121.png)
+
+<a id="format-11220-19397"></a>
+
+##### AMRAP — Choix du buy-in
+
+Nœud [11220:19397](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11220-19397) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![AMRAP — Choix du buy-in](images/figma-11220-19397.png)
 
 <a id="format-8624-30521"></a>
 
-##### Composition séance — Modèles — AMRAP (récapitulatif)
+##### AMRAP — Récapitulatif, incrément et max
 
-Nœud [8624:30521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30521) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8624:30521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30521) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
+![AMRAP — Récapitulatif, incrément et max](images/figma-8624-30521.png)
 
+<a id="format-11388-22086"></a>
 
-<a id="format-8624-31043"></a>
+##### AMRAP — Récapitulatif, suppression glissée
 
-##### Composition séance — AMRAP (préremplie)
+Nœud [11388:22086](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11388-22086) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-Nœud [8624:31043](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-31043) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
+![AMRAP — Récapitulatif, suppression glissée](images/figma-11388-22086.png)
 
+<a id="format-11195-19094"></a>
 
+##### AMRAP — Récapitulatif, buy-in et incrément
+
+Nœud [11195:19094](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11195-19094) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![AMRAP — Récapitulatif, buy-in et incrément](images/figma-11195-19094.png)
 
 <a id="format-8624-30198"></a>
 
-##### Composition séance — Modèles — Death by (paramètres)
+##### Death by — Questionnaire
 
-Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30198) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). F-04 : description du résultat à compléter avec les répétitions partielles.
+Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30198) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
+![Death by — Questionnaire](images/figma-8624-30198.png)
 
 <a id="format-8624-30602"></a>
 
-##### Composition séance — Modèles — Death by (récapitulatif)
+##### Death by — Récapitulatif
 
-Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
+![Death by — Récapitulatif](images/figma-8624-30602.png)
 
+<a id="format-11376-20189"></a>
 
-<a id="format-8624-31157"></a>
+##### Death by — Récapitulatif, dans chaque intervalle
 
-##### Composition séance — Death by (préremplie)
+Nœud [11376:20189](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11376-20189) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-Nœud [8624:31157](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-31157) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
+![Death by — Récapitulatif, dans chaque intervalle](images/figma-11376-20189.png)
 
+<a id="format-11376-20325"></a>
 
+##### Death by — Récapitulatif, en alternance
+
+Nœud [11376:20325](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11376-20325) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![Death by — Récapitulatif, en alternance](images/figma-11376-20325.png)
+
+<a id="format-11411-20474"></a>
+
+##### Death by — Récapitulatif, à la suite
+
+Nœud [11411:20474](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11411-20474) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![Death by — Récapitulatif, à la suite](images/figma-11411-20474.png)
 
 <a id="format-8624-30255"></a>
 
-##### Composition séance — Modèles — For time (paramètres)
+##### For time — Questionnaire
 
-Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30255) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30255) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
+![For time — Questionnaire](images/figma-8624-30255.png)
 
 <a id="format-8624-30672"></a>
 
-##### Composition séance — Modèles — For time (récapitulatif)
+##### For time — Récapitulatif
 
-Nœud [8624:30672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30672) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8624:30672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30672) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
-
-<a id="format-8624-31263"></a>
-
-##### Composition séance — For time (préremplie)
-
-Nœud [8624:31263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-31263) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
+![For time — Récapitulatif](images/figma-8624-30672.png)
 
 <a id="format-8656-33799"></a>
 
-##### Composition séance — Modèles — Intervalles 30/30 (paramètres)
+##### 30/30 — Questionnaire
 
-Nœud [8656:33799](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33799) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:33799](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33799) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
+![30/30 — Questionnaire](images/figma-8656-33799.png)
 
 <a id="format-8656-33857"></a>
 
-##### Composition séance — Modèles — Intervalles 30/30 (récapitulatif)
+##### 30/30 — Récapitulatif
 
-Nœud [8656:33857](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33857) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:33857](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33857) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
-
-<a id="format-8656-33941"></a>
-
-##### Composition séance — Intervalles 30/30 (préremplie)
-
-Nœud [8656:33941](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33941) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
+![30/30 — Récapitulatif](images/figma-8656-33857.png)
 
 <a id="format-8656-34196"></a>
 
-##### Composition séance — Modèles — Renforcement (paramètres)
+##### Renforcement — Questionnaire
 
-Nœud [8656:34196](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34196) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:34196](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34196) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
+![Renforcement — Questionnaire](images/figma-8656-34196.png)
 
 <a id="format-8656-34263"></a>
 
-##### Composition séance — Modèles — Renforcement (récapitulatif)
+##### Renforcement — Récapitulatif
 
-Nœud [8656:34263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34263) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:34263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34263) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
-
-<a id="format-8656-34356"></a>
-
-##### Composition séance — Renforcement (préremplie)
-
-Nœud [8656:34356](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34356) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
-
-**État historique conservé — Gainage · Mobilité.** Les trois captures suivantes et leurs lignes d'inventaire décrivent un départ rapide antérieur, **retiré de la cible PRE-9 par D-25 du 29/10/2026**. Elles ne prescrivent pas son affichage dans la grille « Créer » ; conserver les nœuds et les images comme preuves historiques, sans les réactiver.
-
-<a id="format-8656-34494"></a>
-
-##### Composition séance — Modèles — Gainage · Mobilité (paramètres)
-
-Nœud [8656:34494](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34494) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
-
-
-
-<a id="format-8656-34548"></a>
-
-##### Composition séance — Modèles — Gainage · Mobilité (récapitulatif)
-
-Nœud [8656:34548](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34548) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
-
-
-
-<a id="format-8656-34628"></a>
-
-##### Composition séance — Gainage · Mobilité (préremplie)
-
-Nœud [8656:34628](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34628) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
+![Renforcement — Récapitulatif](images/figma-8656-34263.png)
 
 <a id="format-8656-34753"></a>
 
-##### Composition séance — Modèles — Superset (paramètres)
+##### Superset — Questionnaire
 
-Nœud [8656:34753](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34753) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:34753](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34753) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
+![Superset — Questionnaire](images/figma-8656-34753.png)
 
 <a id="format-8656-34807"></a>
 
-##### Composition séance — Modèles — Superset (récapitulatif)
+##### Superset — Récapitulatif
 
-Nœud [8656:34807](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34807) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:34807](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34807) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
-
-<a id="format-8656-34887"></a>
-
-##### Composition séance — Superset (préremplie)
-
-Nœud [8656:34887](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34887) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
+![Superset — Récapitulatif](images/figma-8656-34807.png)
 
 <a id="format-8656-35005"></a>
 
-##### Composition séance — Modèles — Progression (paramètres)
+##### Progression — Questionnaire
 
-Nœud [8656:35005](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35005) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:35005](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35005) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
+![Progression — Questionnaire](images/figma-8656-35005.png)
 
 <a id="format-8656-35062"></a>
 
-##### Composition séance — Modèles — Progression (récapitulatif)
+##### Progression — Récapitulatif
 
-Nœud [8656:35062](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35062) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:35062](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35062) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
-
-<a id="format-8656-35145"></a>
-
-##### Composition séance — Progression (préremplie)
-
-Nœud [8656:35145](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35145) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
+![Progression — Récapitulatif](images/figma-8656-35062.png)
 
 <a id="format-8656-35273"></a>
 
-##### Composition séance — Modèles — À l’échec (paramètres)
+##### À l’échec — Questionnaire
 
-Nœud [8656:35273](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35273) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:35273](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35273) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
+![À l’échec — Questionnaire](images/figma-8656-35273.png)
 
 <a id="format-8656-35331"></a>
 
-##### Composition séance — Modèles — À l’échec (récapitulatif)
+##### À l’échec — Récapitulatif
 
-Nœud [8656:35331](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35331) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
+Nœud [8656:35331](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35331) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
-
-
-<a id="format-8656-35415"></a>
-
-##### Composition séance — À l’échec (préremplie)
-
-Nœud [8656:35415](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35415) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
-
-<a id="format-8747-14320"></a>
-
-##### Composition séance — Tabata (préremplie) — Par exercice
-
-Nœud [8747:14320](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8747-14320) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
-
-<a id="format-8795-14449"></a>
-
-##### Composition séance — EMOM (préremplie) — Par exercice
-
-Nœud [8795:14449](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14449) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
-
-<a id="format-8795-14681"></a>
-
-##### Composition séance — Progression (préremplie) — Par alternance
-
-Nœud [8795:14681](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14681) · Contrat [CE-FMT-03](13%20–%20Contrats%20d’écran.md#ce-fmt-03). Capture du layout courant ; données illustratives.
-
-
-
-#### Modales de paramètres d’exercice
-
-<a id="format-8598-30059"></a>
-
-##### Modification activité — Paramètres (modale) — Exercice Tabata
-
-Nœud [8598:30059](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30059) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). F-01 : ancienne représentation effort par tour/récupération.
-
-
-
-<a id="format-8598-30515"></a>
-
-##### Modification activité — Paramètres (modale) — Exercice EMOM
-
-Nœud [8598:30515](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30515) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
-
-
-
-<a id="format-8598-30873"></a>
-
-##### Modification activité — Paramètres (modale) — Exercice AMRAP
-
-Nœud [8598:30873](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30873) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
-
-
-
-<a id="format-8598-31210"></a>
-
-##### Modification activité — Paramètres (modale) — Exercice Death by
-
-Nœud [8598:31210](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31210) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
-
-
-
-<a id="format-8598-31560"></a>
-
-##### Modification activité — Paramètres (modale) — Exercice For time
-
-Nœud [8598:31560](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31560) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). F-02 : phrase « à chaque tour » incompatible avec l’échelle par tour validée.
-
-
-
-<a id="format-8656-34070"></a>
-
-##### Modification activité — Paramètres (modale) — Exercice Intervalles 30/30
-
-Nœud [8656:34070](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34070) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). F-03 : valeur de travail 20 s incompatible avec la constante de format 30 s.
-
-
+![À l’échec — Récapitulatif](images/figma-8656-35331.png)
 
 <a id="format-8747-14451"></a>
 
-##### Modification activité — Paramètres (modale) — Exercice Tabata — Par exercice
+##### Tabata — Modale exercice, standard
 
-Nœud [8747:14451](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8747-14451) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
+Nœud [8747:14451](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8747-14451) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
 
+![Tabata — Modale exercice, standard](images/figma-8747-14451.png)
 
+<a id="format-11294-19682"></a>
+
+##### Tabata — Séance, circuit en alternance
+
+Nœud [11294:19682](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11294-19682) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03).
+
+![Tabata — Séance, circuit en alternance](images/figma-11294-19682.png)
+
+<a id="format-8598-30059"></a>
+
+##### Tabata — Modale exercice, en alternance
+
+Nœud [8598:30059](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30059) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![Tabata — Modale exercice, en alternance](images/figma-8598-30059.png)
 
 <a id="format-8795-14588"></a>
 
-##### Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice
+##### EMOM — Modale exercice, standard
 
-Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14588) · Contrat [CE-FMT-04](13%20–%20Contrats%20d’écran.md#ce-fmt-04). Capture du layout courant ; données illustratives.
+Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14588) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
 
+![EMOM — Modale exercice, standard](images/figma-8795-14588.png)
 
+<a id="format-11308-19978"></a>
 
+##### EMOM — Séance, circuit dans chaque intervalle
+
+Nœud [11308:19978](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11308-19978) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03).
+
+![EMOM — Séance, circuit dans chaque intervalle](images/figma-11308-19978.png)
+
+<a id="format-8598-30515"></a>
+
+##### EMOM — Modale exercice, dans chaque intervalle
+
+Nœud [8598:30515](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30515) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![EMOM — Modale exercice, dans chaque intervalle](images/figma-8598-30515.png)
+
+<a id="format-11270-19541"></a>
+
+##### AMRAP — Séance, circuit avec buy-in
+
+Nœud [11270:19541](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11270-19541) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03).
+
+![AMRAP — Séance, circuit avec buy-in](images/figma-11270-19541.png)
+
+<a id="format-11410-20123"></a>
+
+##### AMRAP — Séance, sortie d’un exercice du circuit (confirmation)
+
+Nœud [11410:20123](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11410-20123) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03).
+
+![AMRAP — Séance, sortie d’un exercice du circuit (confirmation)](images/figma-11410-20123.png)
+
+<a id="format-11264-19453"></a>
+
+##### AMRAP — Modale exercice, buy-in
+
+Nœud [11264:19453](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11264-19453) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![AMRAP — Modale exercice, buy-in](images/figma-11264-19453.png)
+
+<a id="format-8598-30873"></a>
+
+##### AMRAP — Modale exercice, dans un circuit
+
+Nœud [8598:30873](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30873) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![AMRAP — Modale exercice, dans un circuit](images/figma-8598-30873.png)
+
+<a id="format-11275-19598"></a>
+
+##### AMRAP — Modale exercice, dans un circuit, durée à l’échec
+
+Nœud [11275:19598](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11275-19598) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![AMRAP — Modale exercice, dans un circuit, durée à l’échec](images/figma-11275-19598.png)
+
+<a id="format-11255-19238"></a>
+
+##### AMRAP — Modale exercice simple, à la cible
+
+Nœud [11255:19238](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11255-19238) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![AMRAP — Modale exercice simple, à la cible](images/figma-11255-19238.png)
+
+<a id="format-11260-19348"></a>
+
+##### AMRAP — Modale exercice simple, à l’échec (Max)
+
+Nœud [11260:19348](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11260-19348) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![AMRAP — Modale exercice simple, à l’échec (Max)](images/figma-11260-19348.png)
+
+<a id="format-8598-31210"></a>
+
+##### Death by — Modale exercice, standard
+
+Nœud [8598:31210](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31210) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![Death by — Modale exercice, standard](images/figma-8598-31210.png)
+
+<a id="format-11373-20188"></a>
+
+##### Death by — Séance, circuit dans chaque intervalle
+
+Nœud [11373:20188](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11373-20188) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03).
+
+![Death by — Séance, circuit dans chaque intervalle](images/figma-11373-20188.png)
+
+<a id="format-11411-20181"></a>
+
+##### Death by — Séance, circuit en alternance
+
+Nœud [11411:20181](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11411-20181) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03).
+
+![Death by — Séance, circuit en alternance](images/figma-11411-20181.png)
+
+<a id="format-11373-20396"></a>
+
+##### Death by — Modale exercice, dans chaque intervalle
+
+Nœud [11373:20396](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11373-20396) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![Death by — Modale exercice, dans chaque intervalle](images/figma-11373-20396.png)
+
+<a id="format-8598-31560"></a>
+
+##### For time — Modale exercice, standard
+
+Nœud [8598:31560](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31560) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![For time — Modale exercice, standard](images/figma-8598-31560.png)
+
+<a id="format-11312-20093"></a>
+
+##### For time — Séance, circuit avec buy-in et buy-out
+
+Nœud [11312:20093](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11312-20093) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03).
+
+![For time — Séance, circuit avec buy-in et buy-out](images/figma-11312-20093.png)
+
+<a id="format-11312-19699"></a>
+
+##### For time — Modale exercice, dans un circuit
+
+Nœud [11312:19699](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11312-19699) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![For time — Modale exercice, dans un circuit](images/figma-11312-19699.png)
+
+<a id="format-11312-19895"></a>
+
+##### For time — Modale exercice, buy-in ou buy-out
+
+Nœud [11312:19895](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11312-19895) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+![For time — Modale exercice, buy-in ou buy-out](images/figma-11312-19895.png)
+
+<a id="format-8656-34070"></a>
+
+##### 30/30 — Modale exercice
+
+Nœud [8656:34070](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34070) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04).
+
+**Export courant indisponible — quota Figma.** Voir CE-FMT-04 et la spécification active ; aucune ancienne image n’est certifiée à jour.
 
 ### États complémentaires observés — Douleur, résultats et exécution des formats
 
@@ -2626,42 +2729,18 @@ Le 25/10/2026, 97 exports ont réussi, dont tous les nouveaux états du parcours
 | P-Création activité — Paramètres (modale) — Séries variables (déplacement) | `8328:39279` | Réexport nécessaire ; référence antérieure conservée |
 | P-Création activité — Paramètres (modale) — Séries variables, cas mixte | `8470:13303` | Réexport nécessaire ; référence antérieure conservée |
 | P-Composition séance — Modèles | `8598:29271` | Réexport nécessaire ; référence antérieure conservée |
-| P-Composition séance — Modèles — Tabata (quels exercices) | `8624:29980` | Réexport nécessaire ; référence antérieure conservée |
-| P-Composition séance — Modèles — Tabata (sélection des exercices) | `8598:29503` | Réexport nécessaire ; référence antérieure conservée |
-| P-Composition séance — Modèles — Tabata (récapitulatif) | `8624:30306` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — EMOM (paramètres) | `8624:30040` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — EMOM (récapitulatif) | `8624:30392` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — EMOM (préremplie) | `8624:30880` | Réexport nécessaire ; référence antérieure conservée |
-| Modification activité — Paramètres (modale) — Exercice EMOM | `8598:30515` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — AMRAP (récapitulatif) | `8624:30521` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — AMRAP (préremplie) | `8624:31043` | Réexport nécessaire ; référence antérieure conservée |
-| Modification activité — Paramètres (modale) — Exercice AMRAP | `8598:30873` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — Death by (paramètres) | `8624:30198` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — Death by (récapitulatif) | `8624:30602` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Death by (préremplie) | `8624:31157` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — For time (paramètres) | `8624:30255` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — For time (récapitulatif) | `8624:30672` | Réexport nécessaire ; référence antérieure conservée |
-| Modification activité — Paramètres (modale) — Exercice For time | `8598:31560` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — Intervalles 30/30 (paramètres) | `8656:33799` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — Intervalles 30/30 (récapitulatif) | `8656:33857` | Réexport nécessaire ; référence antérieure conservée |
 | Modification activité — Paramètres (modale) — Exercice Intervalles 30/30 | `8656:34070` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — Renforcement (paramètres) | `8656:34196` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — Renforcement (récapitulatif) | `8656:34263` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Renforcement (préremplie) | `8656:34356` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Modèles — Gainage · Mobilité (paramètres) | `8656:34494` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Modèles — Gainage · Mobilité (récapitulatif) | `8656:34548` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Gainage · Mobilité (préremplie) | `8656:34628` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — Superset (paramètres) | `8656:34753` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Superset (préremplie) | `8656:34887` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — Progression (paramètres) | `8656:35005` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — Progression (récapitulatif) | `8656:35062` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Progression (préremplie) | `8656:35145` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — À l’échec (paramètres) | `8656:35273` | Réexport nécessaire ; référence antérieure conservée |
-| Composition séance — Modèles — À l’échec (récapitulatif) | `8656:35331` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — À l’échec (préremplie) | `8656:35415` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Tabata (préremplie) — Par exercice | `8747:14320` | Réexport nécessaire ; référence antérieure conservée |
-| Modification activité — Paramètres (modale) — Exercice Tabata — Par exercice | `8747:14451` | Réexport nécessaire ; référence antérieure conservée |
-| Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice | `8795:14588` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Progression (préremplie) — Par alternance | `8795:14681` | Réexport nécessaire ; référence antérieure conservée |
 | P-Création exercice — Paramètres — Tableau de 3 phases | `9207:18817` | Réexport nécessaire ; référence antérieure conservée |
 
@@ -2688,3 +2767,4 @@ Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.
 ### Contrôle transversal de navigation — 27 octobre 2026
 
 La référence courante est le composant `6513:20151`, utilisé sur les 62 écrans recensés de Prototype MVP. Le [relevé exhaustif](../DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md) associe chaque écran à sa capture courante et au contrat commun CE-UI-05, et fournit les dix exports SVG disponibles dans `KodjoIcon`. La présence de Communauté dans la barre ne vaut pas spécification de ses fonctionnalités ; une destination non livrée reste explicitement désactivée. Les anciennes preuves datées à quatre destinations ne constituent plus la cible.
+

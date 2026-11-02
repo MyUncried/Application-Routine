@@ -1366,7 +1366,7 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 ### CE-UI-10 — Paramètres d’exécution — feuille basse
 
-**Complément Formats du 14/10 :** Complément format : CE-FMT-04. Les valeurs imposées restent réelles et effectives ; Tabata affiche Durée/8/20 s/10 s grisées et non modifiables, avec raison. Ne pas appliquer à cet état le tiret d’une valeur sans effet. La Condition d’arrêt qui résulte d’une cible chiffrée imposée est À l’objectif (D-411 ; libellé D-447), présentée grisée comme les autres valeurs imposées (D-424).
+**Complément Formats actif :** Tabata et 30/30 standards modifiables ; contraintes effectives des Formats spécialisés selon CE-FMT-04 et la référence du 02/11.
 
 #### 1. Identification
 
@@ -1611,7 +1611,7 @@ Portée depuis le 18/10 (D-412) : ce sélecteur à option À l’échec est celu
 
 #### Raccordement aux formats de séance
 
-Les paramètres autorisés du format restent modifiables dans la séance composée ; leurs valeurs calculées sont actualisées. Les constantes ne deviennent pas éditables dans l’exercice contextualisé. Tabata par exercice affiche Durée, 8 séries, 20 s, 10 s : valeurs réelles grisées et non modifiables, avec raison ; aucun tiret de valeur sans effet. L’origine de préremplissage seule ne verrouille rien. Le total EMOM est exclusivement calculé, jamais contrôle pilote. Le volume For time est indexé par tour et n’est pas une liste de séries locales.
+Paramètres selon le bon porteur et CE-FMT-04 ; Tabata/30/30 ne verrouillent rien. For time utilise les séries de l’Exercice, indexées par tour dans son Circuit porteur.
 
 <a id="rendu-phrase"></a>
 ### Rendu et accessibilité de la phrase
@@ -1810,13 +1810,13 @@ Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fer
 
 ### CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation
 
-**Complément Formats du 14/10 :** Pour une séance issue d’un format, appliquer CE-FMT-03 : réglages autorisés toujours éditables, identité et constantes conservées, synthèse et calculs actualisés. Conserver les contraintes du format ; la nature utilise les libellés groupées/alternées et le circuit l’unité tour(s). La portée d’un format sur plusieurs conteneurs reste reportée à la définition des formats.
+**Complément Formats actif :** Tabata et 30/30 standards modifiables ; contraintes effectives des Formats spécialisés selon CE-FMT-04 et la référence du 02/11.
 
 <a id="composition-menu-creer"></a>
 
-**Nom de la Séance.** Le nom du Format peut être suggéré initialement ; le champ reste modifiable dès l’ouverture. Aucun Format n’impose le nom, et un nom personnalisé n’est jamais remplacé automatiquement. B.8, Utiliser une séance existante, est mise en pause : ne pas développer ce parcours avant décision de reprise ; cette pause ne décide pas d’un retrait de l’option du menu.
+**Nom de la Séance.** Le nom du Format peut être suggéré initialement ; le champ reste modifiable dès l’ouverture. Aucun Format n’impose le nom, et un nom personnalisé n’est jamais remplacé automatiquement. B.8 est déclarée développée et recettée par Hermann le 02/11 ; le parcours Formats actuel ne réintroduit pas cette option dans le menu à cinq entrées.
 
-**Menu Créer — état cible.** Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée. [Remplacé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » » ; position « 2e, après Créer » ; icône « Haltère (ancienne) » [inversé le 01/11/2026 — contre-recette iPhone de Hermann (m12-menu) : « Inverser les symbole des deux premiers lignes, créer un exercice vs utiliser un mouvement » : « Créer un exercice » porte l’haltère, « Utiliser un mouvement existant » la silhouette du mouvement]. Le menu présente cinq options, dans cet ordre : « Créer un exercice », « Utiliser un mouvement existant », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (sélection multiple, Mouvements déjà dans la Séance marqués « dans la séance ») ; la recherche par saisie du nom dans Créer un exercice reste disponible ; l’axe s’arrête toujours à Ajouter un cycle. Voir ch07 « Menu Créer — recette du 01/11/2026 ».]
+Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
 
 À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
@@ -1824,7 +1824,7 @@ L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton d
 
 Références Figma : « Composition séance — Initial » `8328:28172` et « Composition séance — Créer (menu) » `10705:20223`.
 
-**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. [Cinq options depuis le 01/11/2026 (ch07 « Menu Créer — recette du 01/11/2026 ») ; toujours aucune entrée Format.] La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option [d’accès Format ; la cinquième option rétablie le 01/11/2026 est « Utiliser un mouvement existant »] ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à cinq options ci-dessus.
 
 **Référence courante du 28/10 :** [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md) remplace les dispositions antérieures contraires de ce contrat : menu à quatre options [cinq depuis le 01/11/2026, voir « Menu Créer — état cible »], création par enveloppe non vide, multi-circuit, cycle visible et non repliable, appui long G1–G8 et défilement CS-D1–CS-D8. La sélection d’enveloppe transfrontière et les frontières des points d’arrêt restent explicitement réservées ; les maquettes ne valent pas règle implicite. [31/10/2026, PRE-9 B.4b : sélection multiple (un conteneur par contenu désigné) et périmètre du conteneur en cours de pose ajustable par deux traits haut et bas, sur des contenus contigus du même parent — sans franchissement de frontière ; voir ch07 « A.2b et B.4b — précisions de Hermann du 31/10/2026 » et COMP §5.]
 
@@ -2075,7 +2075,7 @@ Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écr
 | Exercices | D-435 réintroduit uniquement la récupération contextuelle affichable sur la troisième ligne de la carte de Composition v2, sans afficher les Pauses propres aux Séries ; le trait de démarcation conserve les règles de D-303. La donnée `postActivityRecoverySeconds` appartient toujours à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée (remplacé par D-443 du 23/10/2026 : durée bornée à 0..60 s, pas 1 s, affichée en secondes seulement, sans minutes ; cadre aligné à droite sur le cadre des cartes d’Exercice) ; valeur initiale 5 s. |
 | Résumé | Durée de ce Circuit seule, placée dans l’en-tête du conteneur Circuit immédiatement sous `Nombre de tours` ; « N exercice(s) » n’est pas affiché à cet emplacement (D-390). La durée concerne exclusivement ce Circuit (D-382) et intègre les durées intrinsèques de ses Exercices ainsi que leurs récupérations après exercice. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, le nombre `0 exercice` de D-091 n’est pas affiché à cet emplacement ; seule la durée l’est, sous la forme « — min » (D-390, D-399). Cette durée est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442). Le complément du 28/10 remplace ce rendu D-443 : durée à droite de l’en-tête, compteur à abscisse fixe et stepper révélé au toucher. |
-| Créer | Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée. [Remplacé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » » ; position « 2e, après Créer » ; icône « Haltère (ancienne) » [inversé le 01/11/2026 — contre-recette iPhone de Hermann (m12-menu) : « Inverser les symbole des deux premiers lignes, créer un exercice vs utiliser un mouvement » : « Créer un exercice » porte l’haltère, « Utiliser un mouvement existant » la silhouette du mouvement]. Le menu présente cinq options, dans cet ordre : « Créer un exercice », « Utiliser un mouvement existant », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (sélection multiple, Mouvements déjà dans la Séance marqués « dans la séance ») ; la recherche par saisie du nom dans Créer un exercice reste disponible ; l’axe s’arrête toujours à Ajouter un cycle. Voir ch07 « Menu Créer — recette du 01/11/2026 ».] À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste. Les conteneurs sont créés par enveloppe sur un contenu admissible selon D-451. |
+| Créer | Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
 | Continuer | Désactivé lorsque le nom est vide, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123) ; valide et enregistre la Séance avec son Étiquette éventuelle. Bouton d’action principal standardisé, fixe en bas de l’écran dans sa zone protégée (D-444). |
 
 Le cycle visible contient des circuits et des exercices directs et répète sa séquence de 1 à 99 fois, défaut 1 ; aucun cycle technique implicite (D-451, RM-252). La condition métier d’exécutabilité demeure la présence d’au moins un Exercice valide.
@@ -2098,7 +2098,7 @@ Carte : régime identiques → forme N×valeur ; variables → valeurs séparée
 
 ### CE-CIR-01 — Choix de nature du circuit
 
-**Clarification du 29/10 remplaçant le complément précédent :** le Circuit ne porte pas de Format propre ; son choix de nature et de compte ne peut pas rendre invalide le Format d'un Exercice membre. Les contraintes intrinsèques de chaque Exercice formaté demeurent applicables, y compris l'indexation du tour d'échelle For time, distincte du passage du Circuit englobant. Le changement de nature s'appuie sur les règles de compatibilité et de confirmation existantes, sans transfert implicite du Format.
+**Règle active du 02/11 :** Circuits porteurs à nature fixée, autres Circuits standards ; compatibilité et entrée/sortie selon la référence Formats ; aucun refus général de portage Circuit.
 
 #### 1. Identification
 
@@ -2184,7 +2184,7 @@ Tours→séries avec exercices<N,=N,>N ; séries→tours ; Annuler après perte 
 
 ### CE-CIR-02 — Confirmation d’adaptation avec perte
 
-**Complément Formats du 14/10 :** Les confirmations de conversion libre restent applicables seulement aux conversions autorisées. Un format n’est pas changé par cette confirmation ; aucune conversion For time en séries locales.
+**Complément Formats actif :** Tabata et 30/30 standards modifiables ; contraintes effectives des Formats spécialisés selon CE-FMT-04 et la référence du 02/11.
 
 #### 1. Identification
 
@@ -2270,7 +2270,7 @@ Confirmer/Annuler conversions et ajouts ; comparaison complète avant/après ; t
 
 ### CE-CIR-03 — Volumes du circuit
 
-**Complément Formats du 14/10 :** Pour For time, l’échelle est un Volume par tour ; pour Progression, des répétitions par série. Le nombre de valeurs et le compte correspondant restent cohérents ; le parcours détaillé de redimensionnement For time reste le raccordement R-04 de la revue.
+**Complément Formats actif :** Tabata et 30/30 standards modifiables ; contraintes effectives des Formats spécialisés selon CE-FMT-04 et la référence du 02/11.
 
 #### 1. Identification
 
@@ -2358,352 +2358,345 @@ A2/B4 avec tirets ; 45 s/60 s/90 s→0:45/1:00/1:30 ; échec✓ ; variables éga
 
 ## Formats de séances
 
-**Décisions de configuration actives (30/10/2026)** : [consolidation D-01 à D-30, valeurs et compatibilité](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les contrats CE-FMT-01/02/03 ci-dessous sont à lire avec cette référence pour les Formats multiples et les départs rapides définis.
+**Cible Formats active — 02/11/2026 :** [Formats d’entraînement — référence active du 2 novembre](../KODJO-Formats-entrainement-2026-11-02.md). Quatre Formats spécialisés (AMRAP, EMOM, For time, Death by) ; Tabata et cinq départs rapides standards modifiables (30/30, Renforcement, Superset, Progression, À l’échec). L’Exercice autonome ou le Circuit porte le Format selon le temps commun et la fin coordonnée ; le Circuit expose Format d’origine non modifiable et sa nature fixée, ses réglages applicables restant modifiables. Death by alterné : Format au Circuit, intervalle propre à chaque membre, aucune durée d’en-tête. Le portage exclusivement Exercice, les verrous Tabata/30/30 et le départ Libre dans la grille ne sont plus des règles actives.
 
 ### CE-FMT-01 — Choix du modèle et du format
 <a id="ce-fmt-01"></a>
 
 #### 1. Identification
 
-Entrée 8598:29271 ; page complète, shell de composition existant. Captures au chapitre 06, ancre formats-galerie.
-
-Règles applicables : RM-FMT-01, RM-FMT-02, RM-FMT-28, RM-FMT-40 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Fenêtre P-Formats — Choix du format, deux colonnes (`9977:19613`), page Prototype MVP ; captures chapitre 06, ancre formats-galerie.
 
 #### 2. Finalité fonctionnelle
 
-Choisir un des six formats contraignants ou un départ rapide libre, sans les confondre.
+Choisir un modèle d’entraînement depuis Composition sans confondre identité spécialisée et préconfiguration standard.
 
 #### 3. Contexte d’entrée
 
-Action de création d’une séance depuis les entrées existantes ; aucune nouvelle condition de compte communautaire.
+Composition → menu Créer → Utiliser un format d’entraînement.
 
 #### 4. Contexte de sortie / destinations
 
-Choix → parcours de paramètres correspondant CE-FMT-02 ; Libre → composition existante ; retour selon navigation du shell.
+Choix → questionnaire plein écran ; croix de fenêtre ou toucher le voile → Composition.
 
 #### 5. Données affichées et source de vérité
 
-Catalogue de modèles ; format et origine distincts. Le nom de la carte n’est pas utilisé comme identifiant métier.
+Quatre Formats spécialisés et six préconfigurations standards (Tabata plus cinq départs) dans une grille commune ; origine et porteur ne sont pas déduits du titre.
 
 #### 6. Classification des valeurs Figma
 
-Images et exemples illustrent le choix. Une photographie de carte modèle ne crée pas un visuel attaché à chaque séance sauvegardée.
+Les cartes et couleurs illustrent les modèles ; aucun visuel de Séance persisté ni contrainte supplémentaire déduit.
 
 #### 7. Structure de l’écran
 
-Titre, groupes de cartes de modèles, libellés et descriptions, navigation existante.
+Fenêtre avec marges latérales sur le voile de Composition, titre Formats d’entraînement et croix interne ; pas de barre de navigation.
 
 #### 8. Éléments obligatoires
 
-Distinguer les six Formats et les départs rapides actifs **Renforcement, Progression, À l'échec, Superset et Libre** ; **Gainage · Mobilité retiré** (D-25). Conserver les deux cartes de création Exercice / Séance, sans créer d'Exercice autonome.
+Tabata, 30/30, EMOM, AMRAP, For time, Death by, Renforcement, Superset, Progression, À l’échec ; aucune carte Un exercice, Une séance, Libre ou Gainage · Mobilité.
 
 #### 9. Layout déterministe
 
-Conserver la grille, proportions, couleurs, images et espacements du nœud 8598:29271. Ne pas convertir les cartes modèles en cartes catalogue. DSF Formats §2.
+Grille deux colonnes sans défilement à la référence Figma ; réutiliser le composant de fenêtre existant.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Grille adaptée à la largeur utile ; Safe Areas ; texte agrandi sans couper le nom ni rendre une carte inaccessible, défilement vertical si nécessaire.
+Respecter largeur utile, texte agrandi et Safe Areas ; ne pas rendre une entrée inaccessible.
 
 #### 11. États de l’écran
 
-Liste disponible ; sélection ; navigation en cours ; erreur d’initialisation du brouillon. Aucun état sélectionné persistant inventé.
+Ouverte, fermeture, modèle choisi ; aucun état de sélection durable supplémentaire.
 
 #### 12. Contrôles et interactions
 
-Tap sur carte initialise le brouillon adapté puis ouvre ses paramètres ; empêcher une double création par double tap.
+Toucher carte ouvre son questionnaire ; la fenêtre s’efface au profit du parcours choisi.
 
 #### 13. Gestes
 
-Tap carte et retour ; aucun glissement requis pour accéder à une entrée.
+Toucher carte, croix ou voile ; aucune action de glisser nécessaire.
 
 #### 14. Validation
 
-Entrée reconnue ; aucune affectation d’un format par comparaison de titre ou valeurs.
+Modèle reconnu ; aucune création silencieuse de mouvement ou d’exercice libre placeholder (B10 différé).
 
 #### 15. Brouillon et persistance
 
-Le choix initialise l'origine de Séance et les paramètres du **Format sur les Exercices choisis**, ou les préremplissages des départs rapides libres ; aucun Format propre n'est créé sur la Séance ou le Circuit. La sauvegarde explicite de Séance reste celle du parcours existant.
+Le choix initialise le parcours local ; l’ajout et la sauvegarde finale suivent CE-FMT-02/03.
 
 #### 16. Navigation et conservation d’état
 
-Retour ne transforme pas silencieusement un brouillon déjà composé en autre format ; conservation selon le parcours de brouillon existant.
+Questionnaires : croix vers Composition ; récapitulatifs : Retour vers questionnaire, réponses conservées.
 
 #### 17. Erreurs et cas limites
 
-Ancienne séance sans format reste libre. Carte indisponible ne doit pas créer un objet partiellement typé.
+Une erreur ne crée pas de structure partielle persistée ; anciens contenus libres restent libres.
 
 #### 18. Accessibilité
 
-Nom accessible de carte égal au modèle ; ordre de focus égal à la lecture ; image décorative non redondante.
+Libellés accessibles des modèles et fermeture ; ordre de lecture de la grille conservé.
 
 #### 19. Invariants
 
-FMT-01–03, 28, 40 ; pas de verrouillage pour un départ rapide.
+FMT-01/02/03/28/40 ; MENU-FMT-01 et ARB-05 remplacés sur cette grille.
 
 #### 20. Recette déterministe
 
-REC-01, REC-25 ; choisir chaque entrée et vérifier format/origine, puis la possibilité de modifier une séance libre.
+Chaque entrée mène au bon questionnaire ; croix/voile restaurent Composition sans ajout ; aucune carte retirée réintroduite.
 
-### CE-FMT-02 — Paramètres globaux et récapitulatif
+### CE-FMT-02 — Questionnaires, récapitulatifs et tableau Progression
+<a id="ce-fmt-02--paramètres-globaux-et-récapitulatif"></a>
+<a id="ce-fmt-02--paramètres-globaux-et-récapitulatif"></a>
 <a id="ce-fmt-02"></a>
 
 #### 1. Identification
 
-Famille des paramètres, sélection Tabata et récapitulatifs : inventaire chapitre 06, CE-FMT-02 ; plusieurs états, pas un écran universel inventé.
-
-Règles applicables : RM-FMT-05, RM-FMT-11, RM-FMT-13, RM-FMT-14, RM-FMT-15, RM-FMT-20, RM-FMT-21, RM-FMT-22, RM-FMT-27, RM-FMT-29, RM-FMT-30, RM-FMT-31, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Famille des questionnaires et récapitulatifs du chapitre 06 ; Progression `8656:35005`, `8656:35062` ; AMRAP plusieurs blocs `11410:20361` ; Death by À la suite `11411:20474`.
 
 #### 2. Finalité fonctionnelle
 
-Régler les paramètres autorisés et lire les constantes/calculs avant composition.
+Configurer le modèle et les Mouvements choisis, vérifier le déroulé puis ajouter la structure au brouillon.
 
 #### 3. Contexte d’entrée
 
-Choix d’un modèle ; brouillon initialisé et exercices sélectionnés selon son parcours.
+Modèle choisi ou Retour depuis son récapitulatif.
 
 #### 4. Contexte de sortie / destinations
 
-Validation → CE-FMT-03 ; retour → étape précédente en conservant les valeurs selon brouillon existant.
+Questionnaire croix → Composition ; récapitulatif Retour → questionnaire avec réponses conservées, titre inchangé ; Enregistrer dans la séance → Composition enrichie.
 
 #### 5. Données affichées et source de vérité
 
-Paramètres effectifs du brouillon **par Exercice formaté**. **Défauts validés** : Tabata 8×20 s/10 s imposés ; 30/30 6 séries (30 s/30 s imposés) ; EMOM fenêtre 60 s, 6 passages ; AMRAP durée 12:00 réglable ; For time échelle 21·15·9 ; Death by départ 1, incrément 1, fenêtre 1 min. EMOM : durée calculée N×E×W, sans double multiplication. For time : Volume **par tour de l'échelle**, distinct du passage du Circuit englobant.
+Paramètres effectifs, Mouvements choisis, cibles et charges par série, organisation, durée dérivée et déroulé ; source fonctionnelle : référence Formats du 02/11.
 
 #### 6. Classification des valeurs Figma
 
-Constantes Tabata et 30/30 normatives ; seules les **valeurs initiales explicitement décidées** font référence ; les autres chiffres de maquette sont illustratifs, aucune formule tirée de la maquette.
+Valeurs initiales modifiables distinctes des valeurs imposées et des exemples ; chiffres et charges de démonstration ne deviennent pas des constantes.
 
 #### 7. Structure de l’écran
 
-En-tête, exercices et bloc de paramètres, durée calculée lorsqu’applicable, action de composition.
+Contexte et Mouvements, Paramètres d’exécution, déroulé et bouton ; Progression insère le tableau Mouvement immédiatement sous Nombre de séries, avant Pause/Durée totale/Exécution.
 
 #### 8. Éléments obligatoires
 
-Tabata : Séries par exercice 8 ; Exécution si plusieurs exercices. EMOM : compte/fenêtre/organisation et total. For time : Volume par tour sans sélecteur. Progression : répétitions par série et organisation.
+Questionnaire Progression : Nombre de séries, Pause, Durée totale ; aucune cible globale sans Mouvement. Récapitulatif : une ligne par mouvement et une colonne par série ; répétitions, charge en dessous si Avec pour cet Exercice ; aucun interrupteur de charge global.
 
 #### 9. Layout déterministe
 
-Exécution en dernière ligne après Durée totale lorsqu’elle existe ; séparateur entre les deux dernières lignes. Titre et options sur une ligne, typographie des paramètres voisins. Sources 8624:30306, 8624:30392, 8656:35062 ; DSF §2.
+Déroulé à 25 px au-dessus du bouton ; tableau blanc rayon 8 dans cadre gris, en-tête gris, traits fins et séparateur sous Nombre de séries. Progression 874 px ; en-tête 28 px, ligne avec charge 44 px, 12 px avant Déroulé dans l’exemple.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Largeur du segment limitée à l’espace de valeur ; petits écrans et texte agrandi préservent les libellés et l’accès aux options. Pas de clavier sur une valeur calculée.
+Clavier numérique répétitions, décimal charge (D-405) ; case et tableau restent visibles au-dessus ; réutiliser focus et adaptation de scroll existants.
 
 #### 11. États de l’écran
 
-Paramètres initiaux/modifiés ; organisation sélectionnée ; sélection d’exercices ; erreur de saisie ; total recalculé. Un exercice Tabata : pas de question d’organisation inutile.
+Questionnaire initial, mouvements ajoutés, récapitulatif, valeur à compléter, clavier sur cellule, erreur de validation ; charge active propre à chaque mouvement.
 
 #### 12. Contrôles et interactions
 
-Changer un réglage recalcule synthèse et durée. Segment change ordre, pas volume. Aucun champ Durée totale éditable EMOM. For time ne propose pas le segment.
+Tap cellule ouvre la saisie directe ; Suivant passe répétitions S1, charge S1 si active, répétitions S2… ; modale du mouvement accessible pour autres paramètres. N augmenté : colonne nouvelle à compléter ; diminué : dernière colonne retirée, sans confirmation de perte.
 
 #### 13. Gestes
 
-Tap sur réglage/option et contrôles existants ; pas de nouvelle gestuelle.
+Tap, clavier et Suivant ; réordonnancement/suppression selon règles existantes ; dernier membre de boucle protégé.
 
 #### 14. Validation
 
-Paramètres valides suivant leurs bornes normatives ; aucune borne nouvelle déduite des chiffres de Figma. Échelle et unité cohérentes.
+Champs manquants distincts du zéro, volumes valides ; deux mouvements sélectionnés pour Superset ; pas de valeur inventée pour compléter Progression ou For time.
 
 #### 15. Brouillon et persistance
 
-Réglages conservés dans brouillon ; la synthèse est générée, jamais stockée comme source.
+Les réponses et cellules restent dans le brouillon du parcours. Enregistrer ajoute la structure au brouillon Composition ; sauvegarde de Séance ultérieure explicite, historique inchangé.
 
 #### 16. Navigation et conservation d’état
 
-Retour conserve les réglages ; changement du nombre d’exercices EMOM conserve N et recalcule le total.
+Retour conserve toutes les réponses du modèle. Une fermeture de questionnaire ne sauvegarde pas définitivement la Séance.
 
 #### 17. Erreurs et cas limites
 
-Ne pas arrondir les tours EMOM pour préserver une durée antérieure. Éditeur de longueur For time : raccordement R-04 explicitement non qualifié.
+AMRAP simple avec repos de boucle positif crée un Circuit un membre. For time variable s’adapte à N sans conversion ni dialogue de perte. B10 sans Mouvement reste différé.
 
 #### 18. Accessibilité
 
-Segment expose nom, choix et sélection ; total calculé annoncé sans provoquer une annonce à chaque rendu ; constante expliquée autrement que par couleur.
+Libellé de cellule associant mouvement, série, répétitions ou charge ; ordre Suivant identique à la saisie ; contrôles standards réutilisés.
 
 #### 19. Invariants
 
-FMT-04–05, 10–15, 19–22, 26–32 ; pas de durée saisie pour les formats cadencés à compte.
+FMT-08/14/15/19/20/26/28/29/30/31 ; cadence AMRAP/For time sans effet temporel ; données de tableau identiques aux séries de l’Exercice.
 
 #### 20. Recette déterministe
 
-REC-02, 04–05, 09–11, 14, 16–18, 28 ; vérifier même volume avant/après organisation.
+Questionnaire→récapitulatif→Retour conserve réponses ; Progression 3→4 ajoute une colonne vide, 3→2 retire la dernière ; saisie mixte avec/sans charge ; 40 min pour 3×12 + 2×2 ; Tabata À la suite 530 s.
 
-### CE-FMT-03 — Composition d’une séance issue d’un format
+### CE-FMT-03 — Composition d’une séance issue d’un modèle
+<a id="ce-fmt-03--composition-dune-séance-issue-dun-format"></a>
+<a id="ce-fmt-03--composition-d’une-séance-issue-d’un-format"></a>
+<a id="ce-fmt-03--composition-dune-séance-issue-dun-format"></a>
+<a id="ce-fmt-03--composition-d’une-séance-issue-d’un-format"></a>
 <a id="ce-fmt-03"></a>
 
 #### 1. Identification
 
-Famille des compositions préremplies ; notamment Tabata 8747:14320, EMOM 8795:14449, Progression 8795:14681. Complète CE-T03-08.
-
-Règles applicables : RM-218, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-06, RM-FMT-07, RM-FMT-12, RM-FMT-16, RM-FMT-18, RM-FMT-22, RM-FMT-29, RM-FMT-40, RM-FMT-41, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Composition multi-conteneurs ; AMRAP `11270:19541`, sortie `11410:20123`, Death by alterné `11411:20181` ; référence D-451.
 
 #### 2. Finalité fonctionnelle
 
-Éditer les réglages autorisés **des Exercices formatés de la Séance** et consulter leurs prescriptions effectives sans créer de Format propre à la Séance ou au Circuit.
+Organiser et sauvegarder les structures créées par questionnaire en respectant le porteur du Format.
 
 #### 3. Contexte d’entrée
 
-Validation du récapitulatif ou réouverture d’une séance sauvegardée.
+Enregistrer dans la séance depuis questionnaire/récapitulatif ou réouverture d’une Séance.
 
 #### 4. Contexte de sortie / destinations
 
-Modale de paramètres CE-FMT-04 ; sauvegarde de séance ; départ vers exécution selon règles existantes.
+Composition conserve son parcours de sauvegarde ; modale du membre au toucher ; sortie de Circuit selon dialogue Conserver/Libre/Annuler.
 
 #### 5. Données affichées et source de vérité
 
-**Formats et paramètres sur les Exercices**, origine sur la Séance, organisation et compte sur les Circuits, cartes et synthèse calculées depuis la Composition courante.
+Structure complète et bon porteur ; origine de Séance distincte, titre suggéré immédiatement modifiable, titre personnalisé jamais écrasé.
 
 #### 6. Classification des valeurs Figma
 
-Valeurs d’exemple ne font pas autorité sur durée calculée. Le 1 tour de représentation par exercice ne remplace pas le compte de passages EMOM.
+Exemples de durées et noms de mouvements ne sont pas des fixtures applicatives ; Format d’origine du Circuit est une identité métier explicite.
 
 #### 7. Structure de l’écran
 
-Shell de Composition existant ; carte v2 de CE-T03-08 à trois lignes, média intégré et récupération contextuelle en ligne 3 ; Circuit sur aplat et rail segmenté, points d’arrêt entre les cartes, sans modifier l’organisation fonctionnelle du format ni les commandes de composition.
+Mêmes Cycles/Circuits/cartes de Composition ; aucun nouveau type de conteneur.
 
 #### 8. Éléments obligatoires
 
-Tabata par exercice : un tour dans la configuration de référence, cartes 8×20 s. Progression alternée : compte en séries. Réglages autorisés restent accessibles.
+Circuit porteur à nature fixée et réglages applicables modifiables ; AMRAP affiche bloc(s) ; Death by alterné aucune durée d’en-tête, intervalles propres aux membres.
 
 #### 9. Layout déterministe
 
-Conserver l’implantation v2 des cartes de CE-T03-08 et du chapitre 06 pour toutes les 14 compositions préremplies représentées dans Figma, y compris Tabata/EMOM/Progression et leurs variantes. Volume dans l’emplacement existant sans cadre ajouté ; la deuxième ligne peut porter Répétitions + cadence sans faire descendre la récupération. Pas de pause dans le libellé 8×20 s ; aucune récupération fictive pour montrer la pause. Compteurs, constantes, ordre, héritages et résultats de calcul inchangés.
+Fonds, rail, repli et en-têtes existants réutilisés ; en-tête collant déjà livré conservé ; aucun titre Tabata imposé au Circuit standard.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Défilement du contenu et actions du shell ; Safe Areas ; ordre visuel cohérent avec l’ordre accessible. Textes longs conservent les règles existantes.
+Conserver Safe Areas, scroll et ordre structurel ; éviter une seconde Composition mono-Circuit.
 
 #### 11. États de l’écran
 
-Brouillon initial/modifié/sauvegardé ; réorganisation ; erreur de sauvegarde ; constantes effectives en lecture seule.
+Brouillon complet, paramètres à compléter, conteneur un membre conservé, conteneur vidé retiré ; boucle sans membre répétitif invalide.
 
 #### 12. Contrôles et interactions
 
-Édition autorisée d'un Exercice formaté recalcule immédiatement synthèse et métriques ; l'ajout/retrait volontaire d'un Exercice dans le même Format EMOM conserve N (FMT-22). La simple dépose ne modifie ni ne transmet le Format des Exercices.
+Entrée Circuit porteur : paramètres compatibles conservés, autres à compléter sans confirmation de perte. Déplacement direct : règles d’arrivée ; aucune étape de sortie intermédiaire.
 
 #### 13. Gestes
 
-Gestes de composition existants ; pas de mouvement de conversion du format ajouté.
+Glisser entre conteneurs existants ; buy-in/out non réordonnables et non duplicables ; leur mouvement peut être ajouté normalement à la boucle.
 
 #### 14. Validation
 
-Au moins un Exercice valide ; en groupées, le Circuit répète le bloc complet de chaque membre ; le Cycle répète sa séquence, sans compteur de répétition propre au Format. Déposes : six Formats admis en groupées ; alternées Tabata seulement N=8, EMOM et Death by admis, 30/30, For time et AMRAP refusés (D-15/D-16). Aucune double multiplication du compte du Format par sa représentation locale. Contraintes réappliquées après édition **à leurs niveaux respectifs** : constantes propres au Format de chaque Exercice, organisation et nombre de passages du Circuit. La simple dépose d'un Exercice formaté ne transmet aucun Format au Circuit ou aux autres membres ; l'adoption volontaire par un nouvel Exercice constitue une action distincte, avec confirmation si des valeurs existantes sont perdues. Le Circuit ne porte aucune identité de Format.
+Circuit standard : matrice active ; Death by autonome groupé admis avec fin locale/redémarrage, standard alterné refusé sans mutation. Validation D.4 distincte de disponibilité du moteur.
 
 #### 15. Brouillon et persistance
 
-Persister **Format et réglages par Exercice**, origine sur la Séance, nature et compte sur chaque Circuit ; ne persister aucun Format sur le Circuit. Générer les phrases en segments ; ne pas modifier le Mouvement partagé pour un héritage contextuel.
+Sauvegarde et duplication conservent membres, porteurs, récupération et paramètres ; instantanés passés inchangés.
 
 #### 16. Navigation et conservation d’état
 
-Réouverture restaure paramètres effectifs ; annuler suit le brouillon existant ; historiques conservés.
+Dialogue AMRAP Trois actions : Conserver le format AMRAP principal bleu par défaut, Adopter un format libre secondaire, Annuler restitue l’état antérieur ; compatible repris, reste à compléter ; buy-in/out sortent libres directement.
 
 #### 17. Erreurs et cas limites
 
-Anciennes séances restent libres ; suppression d’exercice recalcule les valeurs dérivées. Redimensionnement For time reste R-04, sans destruction implicite inventée.
+Sortie membre Durée vers AMRAP autonome : cible répétitions à renseigner, aucune conversion secondes/répétitions. Boucle vide signalée sans suppression arbitraire du buy-in/out.
 
 #### 18. Accessibilité
 
-Cartes, compte et unité lisibles ; expliquer le verrouillage ; déplacement accessible suit le contrat de composition existant.
+Raisons de verrouillage réelles lisibles et commandes de conteneur actives selon le contexte ; pas de nouveaux impératifs VoiceOver ajoutés par cette révision.
 
 #### 19. Invariants
 
-Pas de récupération supplémentaire imposée par Tabata ; le défaut Profil de l’Exercice reste applicable ; phases propres d’exercice exclues des séances ; bilatéralité dans fenêtres reste R-02.
+FMT-01/04/09/12/13/21/26/30/31/34 ; aucun Format commun caché dans un Circuit standard ; aucune identité déduite du titre.
 
 #### 20. Recette déterministe
 
-REC-02–07, 11, 16–17, 25–26 ; vérifier le même résultat après sauvegarde/réouverture et l’historique inchangé. Vérifier en outre les 14 variantes préremplies du 21/10 : cartes v2, synthèses et récupérations affichées seulement pour les occurrences concernées, aucune modification d’ordre/compte, aucune constante déduite des démonstrations Figma.
+Séance AMRAP puis For time relue/dupliquée à l’identique ; entrée/sortie inter-Circuits ; un membre conservé ; buy-in/out protégés ; Death by alterné coordonné distinct du standard groupé.
 
 ### CE-FMT-04 — Paramètres d’exercice contextualisés par un format
 <a id="ce-fmt-04"></a>
 
 #### 1. Identification
 
-Famille des modales ; Tabata par exercice 8747:14451, EMOM par exercice 8795:14588 et autres nœuds CE-FMT-04 de la galerie. Complète CE-UI-10.
-
-Règles applicables : RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-10, RM-FMT-17, RM-FMT-19, RM-FMT-42, RM-246 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Famille des modales de la galerie, complète CE-UI-10 ; Tabata `8747:14451`, 30/30 `8656:34070` et modales AMRAP/EMOM/Death by/For time.
 
 #### 2. Finalité fonctionnelle
 
-Lire les paramètres effectifs imposés et éditer seulement ceux autorisés dans le contexte de séance.
+Lire et modifier les valeurs effectives selon le porteur, sans confondre défaut, constante, valeur calculée et valeur à compléter.
 
 #### 3. Contexte d’entrée
 
-Ouverture depuis une carte de composition ; occurrence et format connus.
+Ouverture depuis la carte d’un Exercice ou le parcours du modèle.
 
 #### 4. Contexte de sortie / destinations
 
-Validation/fermeture → même composition, état conforme au brouillon existant.
+✓ applique au brouillon parent ; ✕ annule les changements locaux et restaure les valeurs antérieures.
 
 #### 5. Données affichées et source de vérité
 
-Paramètres effectifs de l’occurrence, provenance de la contrainte, phrase générée. Ne pas afficher les valeurs brutes du catalogue si elles sont remplacées par le format.
+Prescription de l’Exercice, réglages du Circuit lorsqu’ils sont partagés, phrase générée ; aucune écriture sur le Mouvement partagé.
 
 #### 6. Classification des valeurs Figma
 
-Tabata Durée/8/20 s/10 s : constantes métier ; exemples EMOM ne définissent pas de nouvelle borne. Le texte de fond reste celui de la séance.
+Tabata 8/20/10 et 30/30 6/30/30 sont des valeurs modifiables ; ils ne justifient aucun grisé propre. Constantes des Formats spécialisés effectives et grisées ; Profil orange avant première validation selon CE-UI-10.
 
 #### 7. Structure de l’écran
 
-Modale du système existant : titre, phrase, lignes paramètres, contrôle de fermeture et voile.
+Feuille standard et ses six blocs : Exécution, Phases du mouvement, Séries, Côtés, Cadence et durée, Récupération ; champs non applicables retirés selon le modèle.
 
 #### 8. Éléments obligatoires
 
-Quatre valeurs Tabata réelles grisées non modifiables et raison visible. Valeur effective imposée ≠ valeur sans effet : aucun tiret de remplacement.
+AMRAP autonome en Répétitions ; membres AMRAP selon mode compatible ; Passage/incrément lorsqu’applicables ; For time borne héritée grisée ; Death by départ/incrément visibles avec À l’échec ; intervalle local en Death by alterné.
 
 #### 9. Layout déterministe
 
-Réutiliser tailles, alignements, voile et lignes de la modale de référence. Le grisé approuvé s’applique au contrôle/à la valeur ; garder les libellés et la raison lisibles. Aucun nouveau voile. Les lignes reprises de CE-UI-10 en gardent les libellés et les groupes (D-413), dont Mode et Condition d’arrêt ; les exceptions propres au format ne sont pas remplacées par des champs génériques supplémentaires. Ouverte depuis une Séance, la modale ne présente pas Compte à rebours ni Fin d’exercice propres (RM-246).
+Rendu DSF actuel, texte valeur calculée non modifiable noir sans pastille ; bleu éditable et gris verrouillé. Aucune copie d’un ancien layout à quatre cadres.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Hauteur/scroll et Safe Areas selon CE-UI-10 ; clavier uniquement pour les champs autorisés ; texte de justification accessible au grossissement.
+Feuille/scroll/claviers standards ; Charge Avec/Sans par Exercice et charges variables conservées.
 
 #### 11. États de l’écran
 
-Imposé effectif ; éditable ; erreur de saisie. Ne pas confondre avec indisponible sans effet ou héritage structurel du nombre de séries.
+Éditable, verrouillé effectif, calculé, à compléter, origine Profil non validée ; pas d’état sans effet déguisé en constante.
 
 #### 12. Contrôles et interactions
 
-Tap sur constante n’ouvre pas un éditeur. Changement autorisé actualise la phrase et les calculs sans écraser la définition catalogue.
-
-Phases éligibles : dernière durée calculée, contraintes assurées pendant la saisie. À l’intégration, adaptation proportionnelle dans la copie seulement si total différent, à la hausse comme à la baisse, avec message informatif sans confirmation. [remplacé par PHC-20261026 et D-446 du 26/10/2026 (Q9) : phases compatibles avec tous les formats, contraintes du format sur le mode, la cible et les séries seulement ; aucune dernière durée calculée, aucune adaptation proportionnelle ni message] Durée de fenêtre EMOM et durée d’effort restent distinctes. Les règles détaillées de CE-UI-10 s’appliquent.
+Réglages autorisés actualisent la prescription ; cadence facultative AMRAP/For time sans modifier durées ou résultats ; Death by Cadence Sans. Modale accessible pour réglages autres que les cellules éditées directement dans le tableau Progression.
 
 #### 13. Gestes
 
-Fermeture et interactions existantes de modale ; pas d’appui long requis pour comprendre la raison.
+Interactions standards des paramètres ; la saisie directe au clavier de Progression est limitée au récapitulatif CE-FMT-02.
 
 #### 14. Validation
 
-Refuser une modification des constantes au niveau métier, même si une commande UI incorrecte est envoyée.
+Valider contraintes réelles au domaine, paramètres obligatoires et compatibilité ; aucun refus fondé sur d’anciennes constantes Tabata/30/30.
 
 #### 15. Brouillon et persistance
 
-Valeurs modifiées dans le brouillon contextualisé ; phrase non persistée ; validation selon contrat existant.
+Même état que tableau et Composition, aucune prescription parallèle ; Récupération propre à l’Exercice, aucun ajout par le bouton Pause/Arrêt.
 
 #### 16. Navigation et conservation d’état
 
-Retour ferme la modale et restitue le focus à la carte ; annulation ne laisse pas de mutation partielle du format.
+Fermeture restitue la carte ; aucune mutation partielle après annulation ; instantanés passés inchangés.
 
 #### 17. Erreurs et cas limites
 
-For time : phrase par tour, jamais « 21,15 puis9 à chaque tour ». Intervalles : 30/30, jamais 20/30. Les captures en écart restent identifiées.
+30/30 : effort 30 s, Pause 30 s, pas une récupération de 30 s. For time : 3×21 décrit trois tours de 21, distinct de 21-15-9.
 
 #### 18. Accessibilité
 
-Lecture de la valeur réelle et de la raison ; état non modifiable annoncé ; grisé seul insuffisant ; contraste selon DSF.
+Libellés et états explicites ; contrastes et composants existants ; pas de nouveau lot d’accessibilité imposé.
 
 #### 19. Invariants
 
-FMT-17, 19, 30–32, 42 ; les constantes restent effectives dans le moteur futur.
+FMT-03/04/17/19/26/29/30/31/34/42 ; phases compatibles selon D-446 sans adaptation proportionnelle inventée.
 
 #### 20. Recette déterministe
 
-REC-08, 18 ; vérifier absence d’éditeur sur les quatre constantes et absence de tiret ; contrôle des segments et de l’unité tour.
-
-Vérifier les exemples20s du contrat CE-UI-10, le message d’adaptation [sans objet depuis PHC-20261026 : aucune adaptation proportionnelle], l’indépendance du catalogue et l’absence de conversion vers un mode incompatible. Les modales Figma de format n’illustrent pas encore les phases selon le rapport du15/10.
-
+Tabata et 30/30 modifiables ; cadence AMRAP/For time activable sans effet temporel ; Death by alterné conserve son intervalle local, groupé coordonné référence celui du Circuit ; annulation réversible.
 
 ### CE-FMT-05 — Exécution des fenêtres et formats à borne ouverte
 <a id="ce-fmt-05"></a>
@@ -2724,7 +2717,7 @@ Démarrage d’un instantané valide ; format et paramètres effectifs figés.
 
 #### 4. Contexte de sortie / destinations
 
-EMOM : fin du nombre prévu de fenêtres ; AMRAP : échéance globale ; Death by : CE-FMT-06. Pas de fin par un compte d’exercices supposé.
+EMOM : fin des fenêtres prévues ; AMRAP : échéance de chaque bloc ; Death by : portée locale autonome ou collective au Circuit selon la référence active, puis CE-FMT-06. Pas de fin par un compte d’exercices supposé.
 
 #### 5. Données affichées et source de vérité
 
@@ -3408,7 +3401,7 @@ Fin 0/>0 ; plan terminé/partiel ; arrêt depuis Pause confirmé/annulé ; inter
 
 ### CE-EXEC-SESSION-01 — Exécution d’une Séance — phases, commandes et confirmations
 
-**Complément Formats du 14/10 :** Les commandes et transitions génériques ci-dessous décrivent les plans libres finis. Les fenêtres EMOM/Death by et la borne AMRAP suivent CE-FMT-05 ; l’arrêt Death by suit CE-FMT-06. Ne pas appliquer Suivant, fin de cible, arrêt depuis Pause ou formule de progression générique aux fenêtres sans le raccordement explicitement signalé.
+**Complément Formats actif :** Tabata et 30/30 standards modifiables ; contraintes effectives des Formats spécialisés selon CE-FMT-04 et la référence du 02/11.
 
 #### 1. Identification
 
@@ -4697,7 +4690,7 @@ SESSION/ACTIVITY, statuts, source modifiée/supprimée, instantané conservé, a
 
 ### CE-UI-08 — Synthèse de Séance
 
-**Complément Formats du 14/10 :** Pour Death by, montrer le résultat tours acquis + répétitions partielles et le motif, avec achèvement incomplet dans les deux cas. Ne pas transformer « limite atteinte » en Terminée. La représentation visuelle de ce résultat reste à illustrer ; CE-FMT-06. La représentation d’un Death by incomplet sera définie dans le chantier Suivi (D-381, D-365).
+**Complément Formats actif :** Tabata et 30/30 standards modifiables ; contraintes effectives des Formats spécialisés selon CE-FMT-04 et la référence du 02/11.
 
 #### 1. Identification
 
@@ -5552,7 +5545,7 @@ Le splash affiche exactement `KODJO`, `Keep On. Do Just One.` et `Votre assistan
 
 ### CE-T03-03 — Catalogue — action `Créer` contextuelle
 
-**Complément Formats du 14/10 :** L’entrée par modèle/format suit CE-FMT-01 et CE-FMT-02. La création libre reste disponible. Format et origine sont séparés ; aucune contrainte ne vient du seul nom du modèle.
+**Complément Formats actif :** Tabata et 30/30 standards modifiables ; contraintes effectives des Formats spécialisés selon CE-FMT-04 et la référence du 02/11.
 
 #### 1. Identification
 
@@ -5871,3 +5864,4 @@ Les contrats d’exécution ACTIVITY et SESSION appliquent PHC-20261026 : boucla
 ### Contrôle transversal de navigation — 27 octobre 2026
 
 La référence courante est le composant `6513:20151`, utilisé sur les 62 écrans recensés de Prototype MVP. Le [relevé exhaustif](../DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md) associe chaque écran à sa capture courante et au contrat commun CE-UI-05, et fournit les dix exports SVG disponibles dans `KodjoIcon`. La présence de Communauté dans la barre ne vaut pas spécification de ses fonctionnalités ; une destination non livrée reste explicitement désactivée. Les anciennes preuves datées à quatre destinations ne constituent plus la cible.
+
