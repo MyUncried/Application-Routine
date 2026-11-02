@@ -1,5 +1,7 @@
 # KODJO — PRE-9 : matrice de conformité documentaire des travaux 1 à 8
 
+> **Relevé historique, non prescriptif pour la reprise Formats du 02/11/2026.** Les conclusions de conformité décrivent leur baseline datée ; elles ne valident pas la cible nouvelle. Appliquer la [référence active](KODJO-Formats-entrainement-2026-11-02.md), les contrats et la galerie actualisés ; les anciennes contraintes de porteur, Tabata/30/30 et parcours sont remplacées.
+
 **Revue indépendante du 30 octobre 2026.** Base de comparaison : `main @ 1810d9f0031d69fb0c627b7806a6563b9c82d36f` (fusion documentaire PR #413, à partir de `547bb7ef`). Corrections ciblées sur `docs/pre9-revue-transverse-20261030`. La présente matrice est **un contrôle documentaire**, non une certification de développement PRE-9 ni du moteur PRE-10/11.
 
 **Références :** [arbitrages et règles consolidés](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md) ; [registre D-01 à D-30 / décisions](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) ; [règles métier](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) ; [contrats d'écran](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md). Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » (`510:101`), et composants de « Design system — Fondations » (`2291:2`). Une valeur ou un nom affiché dans une maquette ne devient pas un défaut métier sans décision.

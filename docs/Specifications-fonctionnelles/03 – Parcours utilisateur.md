@@ -4,13 +4,13 @@
 
 ### Composition — menu Créer
 
-Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
 
 À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
-**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à cinq options ci-dessus.
 
 ## Composition — actualisation du 28/10/2026
 
@@ -654,15 +654,9 @@ D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, 
 <a id="formats-parcours"></a>
 #### Formats et départs rapides — parcours
 
-1. Choisir une entrée : six formats contraignants ou six origines libres.
-2. Lire les constantes et régler les paramètres autorisés. Le parcours Tabata inclut une sélection d’exercices ; ne pas imposer quatre étapes identiques à toutes les entrées.
-3. Au récapitulatif, vérifier l’ordre des exercices et les paramètres. Tabata, EMOM et Progression proposent « Exécution : Par exercice / En alternance » selon leurs conditions ; For time ne propose pas ce contrôle.
-4. Composer la séance préremplie. Les réglages autorisés restent éditables, avec synthèse et durée calculée actualisées. Les constantes ne deviennent pas éditables dans la modale d’exercice.
-5. Démarrer à partir d’un instantané. EMOM/Death by : l’appui sur le cadran révèle le repos sans avancer la fenêtre. Death by : il confirme aussi l’objectif accompli, ce qui acquiert le tour.
-6. Arrêt Death by : un seul déclencheur ouvre les deux issues « Limite atteinte » et « Abandonner ». Si la dernière fenêtre n’est pas acquise, renseigner les répétitions partielles, proposées à zéro. Résultat conservé, état incomplet dans les deux cas.
+Composition → menu Créer → Utiliser un format d’entraînement → fenêtre Formats en deux colonnes → questionnaire → choix des Mouvements / récapitulatif → Enregistrer dans la séance (brouillon de Composition) → sauvegarde explicite de Séance. Questionnaire : croix de fermeture vers Composition. Récapitulatif : Retour vers questionnaire avec réponses conservées, titre inchangé. Progression : saisie directe de chaque série et charge au récapitulatif ; charge active par Exercice, jamais globale.
 
-Navigation, annulation et sauvegarde reprennent les brouillons existants ; le choix d’un segment ne sauvegarde pas la séance à lui seul. Les captures actuelles et les variantes sont au chapitre 06, contrats CE-FMT-01…06 au chapitre 13.
-
+**Cible Formats active — 02/11/2026 :** [Formats d’entraînement — référence active du 2 novembre](../KODJO-Formats-entrainement-2026-11-02.md). Quatre Formats spécialisés (AMRAP, EMOM, For time, Death by) ; Tabata et cinq départs rapides standards modifiables (30/30, Renforcement, Superset, Progression, À l’échec). L’Exercice autonome ou le Circuit porte le Format selon le temps commun et la fin coordonnée ; le Circuit expose Format d’origine non modifiable et sa nature fixée, ses réglages applicables restant modifiables. Death by alterné : Format au Circuit, intervalle propre à chaque membre, aucune durée d’en-tête. Le portage exclusivement Exercice, les verrous Tabata/30/30 et le départ Libre dans la grille ne sont plus des règles actives.
 
 ## Parcours de niveaux — actualisation du 25/10
 
@@ -702,3 +696,4 @@ Les phases forment un motif cyclique de guidage : un passage complet correspond 
 Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
 
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
+

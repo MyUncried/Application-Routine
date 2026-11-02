@@ -1,3 +1,7 @@
+# État initial PRE-9 — relevé historique
+
+Le relevé ci-dessous décrit la baseline antérieure et **ne constitue pas la cible active**. Pour le portage, le parcours, les règles et les états UI de reprise, appliquer [référence active Formats du 02/11/2026](../../../docs/KODJO-Formats-entrainement-2026-11-02.md). Les états de livraison sont ceux déclarés par Hermann et consignés au suivi ; aucune absence décrite dans ce relevé ancien ne prouve une absence sur la branche de développement actuelle.
+
 # PRE-9 — État initial, matrice des écarts et dépendances (28/10/2026)
 
 Baseline : `main @ 547bb7ef` (PR #409, PRE-8 intégrée). Cadrage : `docs/KODJO-Strategie-PRE9-PRE10-PRE11-Cadrage-Moteur-2026-10-28.md` (branche `docs/pre9-strategie-moteur-20261028` @ `10b4d6ee`, lu sans fusion ; **document de cadrage, non décisionnel**). Preuves détaillées : `recherche/01` à `04` (fichier:ligne, décisions, nodes Figma).
@@ -97,3 +101,4 @@ A.1 structure D-451 complète (migration 016) ──┬─> B.1 rendu D-451 ─�
 Dépendances externes : ARB-04 (mise à disposition des Formats concernés), ARB-22c (activation des départs rapides) et ARB-26 à ARB-28 (une opération chacun dans C.4) — chacune ne bloque que l'opération citée (`arbitrages-pre9.md` §2 bis) ; A.5 dépend en outre d'une autorisation explicite de Hermann. [Révision 1 : « ARB-01 (A.4, A.3, A.5), ARB-02a/b, ARB-04, ARB-22c, ARB-23, ARB-24, ARB-25, ARB-10b » — clos en révision 2 sauf ARB-04 et ARB-22c.] [28/10 : « décisions ARB-01 à ARB-05 ; maquettes non dessinées (ARB-19) ; instruction A2, A4, A6 avant PRE-10 » — remplacé le 29/10.]
 
 **Ajustement du découpage indicatif** : le chantier A est scindé. Sa partie « fondation » (A.1, qui complète aussi la structure D-451 par les Exercices directs de Cycle) précède tout le reste, car Composition, Formats et contrat lisent et écrivent la même structure ; sa partie « fin des anciens Exercices » (A.2–A.5) suit le menu Créer de la Composition, qui fournit le parcours de remplacement. Sans ce réordonnancement, B et C seraient développés sur un brouillon voué à disparaître.
+

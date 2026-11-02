@@ -67,17 +67,17 @@ La durée réapparaît dans les en-têtes observés : la clause de D-443 qui la 
 
 ## 5. Écran de choix et placement
 
-Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
 
 À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
-**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à cinq options ci-dessus.
 
 Le placement montre l’enveloppe choisie en trait plein et les candidats en pointillé. Pied : « Confirmer le circuit » ou « Confirmer le cycle », avec Annuler. Le cycle accepte des circuits et des exercices directs. Le circuit accepte des exercices. L’illustration de cycle ne montrant que deux circuits n’annule pas l’admission d’un exercice direct.
 
-La création effective exige au moins un membre. La présentation des actions inéligibles, la sélection contiguë/non contiguë, le franchissement d’une frontière de conteneur et le rattachement d’un point d’arrêt à l’enveloppe ne sont pas déduits des captures : réserves explicites de la revue. Le menu à quatre options suit MENU-FMT-01 ; aucun accès Format supplémentaire n’est déduit des captures.
+La création effective exige au moins un membre. La présentation des actions inéligibles, la sélection contiguë/non contiguë, le franchissement d’une frontière de conteneur et le rattachement d’un point d’arrêt à l’enveloppe ne sont pas déduits des captures : réserves explicites de la revue. La fenêtre Formats est accessible depuis le menu à cinq options ; ses comportements suivent la référence active du 02/11/2026.
 
 ## 6. Déplacement — règles G1 à G8
 
@@ -140,3 +140,4 @@ L’écran « Extension par la borne » de la source n’est plus présent dans 
 | Cycle entier, tour tout nul | Contrats encore à compléter ; aucune validation de recette revendiquée |
 
 Les tests de code et la recette sur appareil ne font pas partie de cette livraison documentaire.
+

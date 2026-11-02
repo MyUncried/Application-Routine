@@ -1157,3 +1157,8 @@ Menu Créer : [état cible de CE-T03-08](13%20%E2%80%93%20Contrats%20d%E2%80%99%
 ## Récupération et défauts Profil — règle courante
 
 REC-PARAM-01 clos. [Récupération de l’Exercice et défauts du Profil](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recuperation-exercice-et-defauts-profil). Propriété Exercice, saisie exclusive dans les paramètres, même valeur en Composition, retrait des récupérations de Placement ; défauts Profil à fond orange jusqu’au premier ✓. Documents dépendants : chapitres 04/07/08/09/10/11/12/13, PRODUCT et DSF Paramètres. Aucun comportement applicatif déclaré livré.
+
+
+## Formats — raccordement du 02/11/2026
+
+FMT-01 à FMT-42 conservent leurs identifiants ; prescriptions remplacées sur leur portée selon la [référence active](../KODJO-Formats-entrainement-2026-11-02.md). CE-FMT-01 : fenêtre de choix ; CE-FMT-02 : questionnaires/récapitulatifs/tableau Progression ; CE-FMT-03 : Composition et entrée/sortie ; CE-FMT-04 : paramètres contextualisés. Les captures courantes et les références de nœuds figurent au chapitre 06, ancre formats-galerie. Progression reprend séries et charges standards, D-405 pour le clavier décimal ; A1–A7 et les compléments d’Hermann sont consignés au registre, sans nouveaux identifiants arbitraires.

@@ -317,23 +317,20 @@ L’API de mise à jour des paramètres refuse une modification locale de N lors
 <a id="formats-api"></a>
 ### Formats — contrats de services fonctionnels
 
-**Contrat cible PRE-9 (30/10/2026) :** [décisions D-01 à D-30](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La validation de dépose compare l'**Exercice porteur de son Format** aux contraintes de nature/N du Circuit (six Formats : groupées admises ; alternées Tabata seulement N=8, EMOM/Death by admis, les autres refusés). Elle produit accepté, accepté avec confirmation si des valeurs sont perdues ou refusé **sans mutation**. La simple dépose ne transmet pas de Format ; l'adoption sur un second Exercice est une opération volontaire distincte. Les valeurs initiales sont proposées, non persistées comme constantes lorsqu'elles sont réglables. Les indicateurs d'acquisition/résultats relèvent du contrat du moteur PRE-10/11.
+**Cible Formats active — 02/11/2026 :** [Formats d’entraînement — référence active du 2 novembre](../KODJO-Formats-entrainement-2026-11-02.md). Quatre Formats spécialisés (AMRAP, EMOM, For time, Death by) ; Tabata et cinq départs rapides standards modifiables (30/30, Renforcement, Superset, Progression, À l’échec). L’Exercice autonome ou le Circuit porte le Format selon le temps commun et la fin coordonnée ; le Circuit expose Format d’origine non modifiable et sa nature fixée, ses réglages applicables restant modifiables. Death by alterné : Format au Circuit, intervalle propre à chaque membre, aucune durée d’en-tête. Le portage exclusivement Exercice, les verrous Tabata/30/30 et le départ Libre dans la grille ne sont plus des règles actives.
 
-| Opération | Entrée / sortie | Validation et effets |
-|---|---|---|
-| Initialiser depuis un modèle | Entrée choisie → brouillon de Séance, origine et **Exercices porteurs de leur Format/réglages** | Départ rapide = libre ; ne jamais inférer le Format depuis un titre ou le Circuit parent |
-| Modifier un réglage | Brouillon + réglage autorisé → paramètres effectifs, synthèse et durée | Constantes et format inchangés ; refus d’une édition non autorisée |
-| Changer l’organisation | Choix admis → ordre effectif | Tabata/EMOM/Progression selon règles ; interdit For time ; volume conservé |
-| Développer la prescription | Instantané → occurrences finies ou générateur progressif | Unité d’indexation explicite ; aucun double multiplicateur série × tour |
-| Calculer les métriques | Prescription effective → durée typée | EMOM N × E × W ; aucun repos résiduel ajouté ; aucune durée Death by inventée |
-| Signaler le travail accompli | Identité d’exécution et de fenêtre courante | Révèle repos ; échéance inchangée ; Death by acquiert au plus une fois la fenêtre |
-| Clore Death by | Motif limite/abandon + répétitions partielles applicables | Résultat confirmé, état incomplet ; un seul déclencheur de confirmation |
-| Générer les modalités | Paramètres effectifs → segments ordonnés texte/gras | Pas de phrase persistée ; unité par tour/série préservée |
-| Lire l’historique | Identité d’exécution → instantané et résultat | Jamais de recalcul depuis la séance source actuelle |
+| Opération | Résultat et validation |
+|---|---|
+| Initialiser un modèle | Questionnaire et Mouvements choisis → structure de brouillon adaptée ; bon porteur du Format et paramètres standards ; aucun Mouvement arbitraire ni création sans mouvement. |
+| Éditer un réglage | Identité de Format conservée, valeur autorisée modifiable ; synthèse/durée dérivées ; Tabata/30/30 restent standards modifiables. |
+| Entrer dans un Circuit porteur | Paramètres compatibles conservés, autres UNSET/à compléter ; règles d’arrivée sans questionnaire de conversion ni confirmation de perte. |
+| Entrer dans un Circuit standard | Matrice de compatibilité ; Death by groupé admis, standard alterné refusé sans mutation. |
+| Sortir | Choix Conserver / Libre / Annuler, compatible repris, reste à compléter ; Annuler conserve parents et données ; buy-in/out deviennent libres directement. |
+| Adapter N variable | For time et Progression : valeurs existantes conservées, nouvelle ligne/colonne à compléter, surplus retiré sans confirmation ni volume inventé. |
+| Éditer tableau Progression | Même cible/charge de série que la modale ; clavier numérique/décimal et focus Suivant ; charge active par Exercice. |
+| Sauvegarder / dupliquer / instantané | Structure multi-Circuits et bon porteur conservés atomiquement ; historique immuable ; source de calcul identique à la validation. |
 
-**Décisions d'acquisition à prévoir dans les services d'exécution PRE-10/11 (D-19 à D-21, 29/10/2026).** AMRAP et For time acquièrent un tour complet par appui « Tour terminé », une seule fois par tour ; un tour inachevé n'est pas acquis. À l'échéance d'un AMRAP, la saisie distincte des répétitions partielles propose 0 avant validation (D-20). Un plafond temporel facultatif For time arrête seulement l'Exercice avec résultat incomplet (D-21). Ces comportements ne sont ni une nouvelle condition d'ouverture de PRE-9 ni un format porté par le Circuit.
-
-La saisie du rang de fenêtre ou d’un nombre de tours à chaque passage n’est pas exposée. L’horloge génère les échéances ; les commandes doivent être idempotentes face aux doublons. Le formulaire proposé à zéro n’est pas une mesure avant validation. Erreurs : format incompatible, constante modifiée, objectif ou compte invalide selon sa borne existante, unité incohérente et fenêtre obsolète ne doivent pas être acceptés silencieusement. Les détails des combinaisons non résolues sont tracés dans la revue, pas compensés par une valeur métier arbitraire.
+Les calculs distinguent intervalle commun, intervalle local séquentiel, bloc AMRAP et borne For time. L’exécution effective des fenêtres reste PRE-10/11.
 
 ## Bilatéralité
 
@@ -603,3 +600,4 @@ Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-
 Créer un circuit ou un cycle enveloppe des membres existants éligibles ; Annuler ne doit pas laisser de conteneur provisoire. Déplacer un membre concerne parent et ordre ; vider le conteneur le fait disparaître, un singleton reste présent. Modifier le compte d’un cycle redéveloppe sa séquence ; un exercice direct de cycle est exécuté une fois par répétition (RM-252). La cible zéro reste distincte d’une donnée manquante.
 
 Un dépôt qui tronque des séries dans un circuit alterné exige confirmation : Annuler conserve emplacement et données d’origine, Confirmer applique déplacement et adaptation ensemble (chapitre 10, Ajout et sortie du circuit, désormais dans le MVP). Ces contrats fonctionnels ne définissent ni schéma SQL ni endpoint nouveau. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+

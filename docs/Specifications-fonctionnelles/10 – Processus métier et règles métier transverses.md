@@ -24,13 +24,13 @@ Le relevé utilisateur signale huit libellés visibles et seize noms de calques 
 
 ### Composition — menu Créer
 
-Le menu Créer de la Composition présente exactement quatre options, dans cet ordre : « Créer un exercice », « Utiliser une séance existante », « Ajouter un circuit », « Ajouter un cycle ». Chaque option porte son icône ronde à droite ; « Créer un exercice » réutilise l’icône de silhouette du mouvement. La recherche par saisie du nom dans Créer un exercice propose déjà les mouvements existants sous forme de cartes avec titre, niveau, photo et extrait de description : aucune entrée séparée « Utiliser un mouvement existant » n’est proposée.
+Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
 
 À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
-**À CLARIFIER — MENU-FMT-01.** Le menu à quatre options ne comporte pas d’entrée Format. La prescription antérieure d’ARB-23 d’ajouter Format à ce menu n’est plus active. Le parcours de remplacement permettant d’ajouter un Format depuis la Composition n’est pas spécifié par cette modification ; ne pas inventer de cinquième option ni supprimer les Formats de l’Exercice. Les accès aux Formats extérieurs à ce menu ne sont pas modifiés.
+**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à cinq options ci-dessus.
 
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
@@ -1230,7 +1230,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 
 ## Formats de séances
 
-**Consolidation PRE-9 du 30/10/2026 — règles actives.** [Référence D-01 à D-30, valeurs initiales et compatibilités](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Le Format et les réglages sont portés uniquement par l'Exercice ; Circuit = nature groupée/alternée, compte et membres, sans Format propre. Un Circuit groupé admet les six Formats et répète le bloc entier de ses membres. En alternance, Tabata admis seulement si N=8 ; EMOM et Death by admis ; 30/30, For time et AMRAP refusés. La simple dépose conserve le Format, l'adoption d'un Format est volontaire, le contrôle avant mutation refuse toute dénaturation et confirme la perte de valeurs. Un Cycle répète sa séquence sans multiplicateur de Format ajouté. Les valeurs de défaut et départs rapides sont décidés ; les règles spécialisées d'exécution relèvent de PRE-10/11. Les passages historiquement rédigés à l'échelle d'une Séance ou d'un Circuit unique sont supersédés dans cette portée.
+**Cible Formats active — 02/11/2026 :** [Formats d’entraînement — référence active du 2 novembre](../KODJO-Formats-entrainement-2026-11-02.md). Quatre Formats spécialisés (AMRAP, EMOM, For time, Death by) ; Tabata et cinq départs rapides standards modifiables (30/30, Renforcement, Superset, Progression, À l’échec). L’Exercice autonome ou le Circuit porte le Format selon le temps commun et la fin coordonnée ; le Circuit expose Format d’origine non modifiable et sa nature fixée, ses réglages applicables restant modifiables. Death by alterné : Format au Circuit, intervalle propre à chaque membre, aucune durée d’en-tête. Le portage exclusivement Exercice, les verrous Tabata/30/30 et le départ Libre dans la grille ne sont plus des règles actives.
 
 <a id="formats-regles"></a>
 ### Formats — règles métier transverses
@@ -1238,12 +1238,12 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-01"></a>
 #### RM-FMT-01
 
-**FMT-01 — Format appliqué (cible PRE-9, clarification du 29/10).** Un **Exercice** de la Séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by ; ses réglages définissent ses contraintes et son comportement. La Séance peut comporter plusieurs Exercices de Formats différents, y compris dans des Circuits et Cycles. Un Circuit ne porte aucun Format propre. [Ancienne formulation « Une séance peut porter […] Ce champ […] », supersédée pour le modèle cible.]
+**FMT-01.** Quatre Formats spécialisés : AMRAP, EMOM, For time et Death by. Exercice autonome porteur ou Circuit porteur selon le partage temporel et la fin coordonnée ; Format d’origine du Circuit hérité et non modifiable, nature fixée. Tabata et 30/30 sont des préconfigurations standards.
 
 <a id="fmt-02"></a>
 #### RM-FMT-02
 
-**FMT-02 — Origine de création.** Le modèle de départ est conservé séparément. Il classe la provenance, sans imposer à lui seul de comportement. Renforcement, Superset, Progression, À l’échec et Libre alimentent cette origine sans devenir des Formats ; **Gainage · Mobilité est supprimé des départs rapides actifs (D-25)**.
+**FMT-02.** Origine de création de la Séance distincte du Format. Tabata et cinq départs rapides (30/30, Renforcement, Superset, Progression, À l’échec) restent librement modifiables ; aucune entrée Libre ni Gainage · Mobilité dans la grille active.
 
 <a id="fmt-03"></a>
 #### RM-FMT-03
@@ -1253,7 +1253,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-04"></a>
 #### RM-FMT-04
 
-**FMT-04 — Réglages du Format d'un Exercice (cible PRE-9).** Les réglages autorisés restent modifiables après la Composition, **sur l'Exercice porteur** ; ils ne deviennent pas des paramètres de Format du Circuit ni de la Séance. Les constantes imposées restent protégées, l'historique inchangé. [Ancienne portée « réglages de séance » supersédée pour les Formats multiples.]
+**FMT-04.** Les réglages effectivement portés par l’Exercice ou le Circuit restent modifiables selon le Format, identité conservée. En Death by alterné, intervalle local au membre et aucune durée d’en-tête ; groupé coordonné, intervalle commun du Circuit.
 
 <a id="fmt-05"></a>
 #### RM-FMT-05
@@ -1278,32 +1278,32 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-09"></a>
 #### RM-FMT-09
 
-**FMT-09 — Réemploi des circuits.** Conserver les Circuits de tours/séries de SRC-04, également utilisables avec des Exercices formatés. Un Format d'Exercice peut **limiter les organisations compatibles** du Circuit sans devenir un Format porté par celui-ci. Les choix de Composition libre demeurent disponibles lorsqu'ils respectent les contraintes des membres. [L'ancienne formulation « un format peut imposer une organisation » est précisée, sans transférer le Format au Circuit.]
+**FMT-09.** Circuit standard et Circuit porteur utilisent les conteneurs existants. Compatibilité standard : AMRAP/For time groupés admis et alternés refusés ; EMOM groupé/alterné admis ; Death by autonome groupé admis avec fin locale et redémarrage, standard alterné refusé. Tabata/30/30 suivent les règles standards sans restriction N=8.
 
 <a id="fmt-10"></a>
 #### RM-FMT-10
 
-**FMT-10.** Le format impose huit séries par exercice, 20 secondes d’effort par série et une pause de 10 secondes après chaque série.
+**FMT-10.** Tabata préconfigure 8 séries de 20 s et Pause 10 s par Exercice ; ce sont des valeurs modifiables, pas des constantes imposées.
 
 <a id="fmt-11"></a>
 #### RM-FMT-11
 
-**FMT-11.** Avec plusieurs exercices, le réglage global propose « Par exercice » et « En alternance ». Avec un exercice unique, la question est inutile puisque l’enchaînement est identique.
+**FMT-11.** Tabata avec plusieurs mouvements : À la suite ou En alternance. Le Nombre de séries désigne les séries de chaque mouvement, pas un total réparti entre eux.
 
 <a id="fmt-12"></a>
 #### RM-FMT-12
 
-**FMT-12.** Par exercice : A1…A8, puis B1…B8. La configuration illustrée comporte un circuit d’un tour et deux cartes affichant chacune `8 × 20 s`. **Répéter le bloc entier** se fait par le passage d'un Circuit groupé ou par un Cycle ; aucun réglage de répétition de l'ensemble propre au Tabata (ARB-25 précisé, D-17). Les huit séries restent imposées.
+**FMT-12.** Tabata À la suite : Exercices standards successifs sans Circuit ; A1…A8 puis B1…B8 dans l’exemple. La récupération remplace la Pause terminale : avec 60 s entre les mouvements, total 530 s, soit 8 min 50 s. Aucune exception B06 conservée.
 
 <a id="fmt-13"></a>
 #### RM-FMT-13
 
-**FMT-13.** En alternance : A1, B1, A2, B2…A8, B8. Le circuit à séries alternées existant exprime cette organisation avec huit séries par exercice. Les huit séries ne deviennent pas huit efforts au total répartis entre A et B.
+**FMT-13.** Tabata en alternance : Circuit standard à N tours ; une série de chaque membre par tour, chaque mouvement gardant ses N séries. À 8 séries de 20/10 pour A et B, 8 min sans autres phases ; aucun verrouillage métier N=8.
 
 <a id="fmt-14"></a>
 #### RM-FMT-14
 
-**FMT-14.** Le récapitulatif nomme le compte commun « Séries par exercice — 8 », compatible avec les deux organisations. Il ne présente pas ce compte comme huit tours de circuit dans le cas par exercice.
+**FMT-14.** Questionnaire et récapitulatif Tabata : Nombre de séries, compte de chaque mouvement ; synthèse et déroulé actualisés selon les réglages courants.
 
 <a id="fmt-15"></a>
 #### RM-FMT-15
@@ -1318,7 +1318,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-17"></a>
 #### RM-FMT-17
 
-**FMT-17.** La modale correspondante affiche Mode d’exécution = Durée, Nombre de séries = 8, Objectif de durée = 20 s et Pause après chaque série = 10 s. Les quatre valeurs sont visibles, grisées et non modifiables ; leur caractère imposé par Tabata est expliqué. Elles restent effectives et ne sont pas remplacées par un tiret.
+**FMT-17.** Modale Tabata standard : Mode, Condition d’arrêt, Séries, Objectif de durée et Pause sont modifiables. Répétitions, À l’échec et Variables ne sont pas verrouillés à cause de l’origine Tabata.
 
 <a id="fmt-18"></a>
 #### RM-FMT-18
@@ -1328,17 +1328,17 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-19"></a>
 #### RM-FMT-19
 
-**FMT-19.** Les constantes sont 30 secondes de travail et 30 secondes de pause. La borne réglée est un compte, jamais une durée totale saisie. La durée se déduit des occurrences effectivement prévues et de leurs phases. Les réglages de compte et la récupération éventuelle restent ceux du format décrit par SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) ; ne pas déduire d’un chiffre de maquette une règle supplémentaire.
+**FMT-19.** 30/30 est un départ standard modifiable : 6 séries identiques, effort 30 s, Pause 30 s, durée 6 min, récupération 0 s initialement. Pause de série et récupération de l’Exercice sont distinctes ; aucune constante propre 30/30.
 
 <a id="fmt-20"></a>
 #### RM-FMT-20
 
-**FMT-20 — Réglages.** L’utilisateur règle la cadence, c’est-à-dire la durée d’une fenêtre, le nombre de tours et l’organisation « Par exercice » ou « En alternance ».
+**FMT-20.** EMOM : intervalle et compte ; avec plusieurs mouvements, Dans chaque intervalle, À la suite ou En alternance. L’intervalle n’est pas le Bip de cadence.
 
 <a id="fmt-21"></a>
 #### RM-FMT-21
 
-**FMT-21 — Durée.** La durée intrinsèque du bloc EMOM est calculée : `nombre de tours × nombre d’exercices × durée de fenêtre`, jamais saisie. Un Circuit groupé répète le bloc complet à chaque passage ; un Cycle répète sa séquence sans double multiplication des tours internes (D-15/D-17). Les phases propres de Séance restent distinctes.
+**FMT-21.** EMOM autonome : N×W ; À la suite avec E membres : E×N×W et récupérations configurées ; alterné standard : E×N×W ; dans chaque intervalle : Circuit groupé porteur, intervalle commun W et durée N×W. Aucune double multiplication.
 
 <a id="fmt-22"></a>
 #### RM-FMT-22
@@ -1363,37 +1363,37 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-26"></a>
 #### RM-FMT-26
 
-**FMT-26.** L’AMRAP a une durée imposée réglable. Les **tours internes du bloc AMRAP** sont répétés jusqu'à l'échéance **de ce bloc** ; chaque répétition extérieure du bloc, dans un Circuit groupé ou un Cycle, recommence avec sa **durée configurée** (12:00 est uniquement la valeur initiale), sans échéance commune englobant les passages. Le nombre de tours réalisés est un résultat, pas une borne saisie. [Portée historique « échéance globale » remplacée pour les répétitions extérieures par D-15/D-30.]
+**FMT-26.** AMRAP : blocs chronométrés indépendants et tours de boucle distincts ; chaque bloc repart du départ et de la durée réglée, résultat distinct. Buy-in unique dans le premier bloc. Repos de boucle initialise la récupération du dernier membre, consomme le bloc et le suit après réordre. Un mouvement avec repos de boucle positif crée un Circuit d’un membre.
 
 <a id="fmt-27"></a>
 #### RM-FMT-27
 
-**FMT-27.** Pour les formats cadencés Tabata, Intervalles et EMOM, la borne saisie est un compte. Cette règle ne s’applique pas à l’AMRAP ni au For time. Elle ne change pas les possibilités des séances libres en dehors du périmètre décidé.
+**FMT-27.** Le compte fini des préconfigurations standards et de l’EMOM est distinct des tours de boucle AMRAP et du régime ouvert Death by. Les comptes réalisés et objectifs calculés ne sont pas plafonnés par les bornes de saisie.
 
 <a id="fmt-28"></a>
 #### RM-FMT-28
 
-**FMT-28.** Renforcement (**3×15**), Superset (Circuit groupé **1 passage**, deux emplacements d'Exercices **vides**, paramètres libres), Progression (**10/12/14**), À l'échec (**3 séries**) et Libre ne font que préremplir une Séance libre. **Aucun Mouvement présélectionné ; Gainage · Mobilité supprimé.** Aucun verrouillage métier ne provient de cette origine (D-22 à D-25).
+**FMT-28.** Renforcement 3×15, Progression 10/12/14, À l’échec 3 séries, Superset groupé à un passage avec deux mouvements choisis, et 30/30 sont des départs modifiables. Pas d’emplacements vides, de Mouvement présélectionné arbitraire ni de départ Libre dans la grille ; cas sans mouvement différé B10.
 
 <a id="fmt-29"></a>
 #### RM-FMT-29
 
-**FMT-29.** Progression propose « Par exercice » et « En alternance ». Ses valeurs sont des répétitions **par série**. En alternance, les passages restent comptés en séries : A10, B10, A12, B12, A14, B14. Par exercice : A10, A12, A14, puis B10, B12, B14. L’ordre n’efface ni ne réindexe la prescription.
+**FMT-29.** Progression : séries variables et Charge Avec/Sans propres à chaque Exercice. Questionnaire : Nombre de séries, Pause, Durée totale, aucune cible globale sans mouvement. Récapitulatif : tableau Mouvement sous Nombre de séries, répétitions et charge par cellule, clavier numérique/décimal, Suivant, tableau visible au-dessus du clavier. Nouvelle colonne à compléter, surplus retiré sans confirmation. Déroulé proportionnel aux répétitions ; aucun interrupteur global de charge.
 
 <a id="fmt-30"></a>
 #### RM-FMT-30
 
-**FMT-30.** Le paramètre s’appelle « Volume par tour ». Pour `21 · 15 · 9`, chaque Exercice suit le **tour de l'échelle For time** : 21 répétitions au premier rang, 15 au deuxième, 9 au troisième. Ce « tour » est distinct du **passage d'un Circuit englobant** ; chaque passage extérieur répète l'échelle **entière depuis 21** (D-15).
+**FMT-30.** For time autonome : séries identiques ou variables ; dans un Circuit porteur alterné, série i au tour i (21-15-9 dans l’exemple). Dans un Circuit standard groupé, un For time autonome rejoue l’échelle entière à chaque passage.
 
 <a id="fmt-31"></a>
 #### RM-FMT-31
 
-**FMT-31.** Aucun sélecteur « Par exercice / En alternance » n’est proposé pour For time. L’échelle reste indexée par tour ; elle n’est pas transformée en trois séries successives à l’intérieur de chaque exercice.
+**FMT-31.** For time multi-mouvements ou buy-in/out : Circuit porteur alterné, aucun choix d’exécution supplémentaire. Changer N adapte les séries : existantes conservées, nouvelles à compléter, surplus retiré sans confirmation de perte ni volume inventé.
 
 <a id="fmt-32"></a>
 #### RM-FMT-32
 
-**FMT-32.** La phrase normative est : « 21 répétitions au premier tour, 15 au deuxième, 9 au troisième. Le plus vite possible. » Le travail prescrit borne le format ; le temps réellement nécessaire pour l’accomplir est un résultat. **D-21 (29/10/2026) :** un plafond temporel facultatif peut borner l’Exercice For time ; à son atteinte l’Exercice s’arrête avec un résultat incomplet, sans imposer l’arrêt de la Séance. La valeur du plafond n’est pas inventée ; son exécution relève de PRE-10/11.
+**FMT-32.** For time : travail fixé, temps mesuré ; borne temporelle optionnelle, Sans limite au questionnaire/récapitulatif, Aucune sur la durée maximum autonome. La borne héritée est rappelée grisée au membre. À l’atteinte, résultat incomplet sans fin forcée de toute la Séance. La phrase suit les valeurs effectives (3×21 ne devient pas 21-15-9).
 
 <a id="fmt-33"></a>
 #### RM-FMT-33
@@ -1403,7 +1403,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-34"></a>
 #### RM-FMT-34
 
-**FMT-34.** Un seul bouton termine **l'élément Death by**, et non la Séance entière, avec confirmation « Limite atteinte » ou « Abandonner » ; la Séance peut enchaîner son élément suivant (D-18). [Ancienne règle « met fin à la séance » remplacée ; source normative antérieure main @ c73079e9 non alignée, correctif historique de branche @ 990542fd.]
+**FMT-34.** Death by : échec de l’Exercice autonome termine cet élément seulement ; dans Circuit standard groupé, poursuite puis redémarrage au départ au passage suivant. Death by coordonné groupé ou alterné porte le Format au Circuit ; premier échec termine ce Circuit, puis la Séance poursuit. À la suite : Exercices indépendants et récupération configurée entre eux.
 
 <a id="fmt-35"></a>
 #### RM-FMT-35
@@ -1443,7 +1443,16 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-42"></a>
 #### RM-FMT-42
 
-**FMT-42.** Les phrases restent générées depuis les paramètres sous forme de segments `{texte, gras}` et ne sont pas persistées comme vérité métier. Le For time conserve son texte validé et son indexation par tour.
+**FMT-42.** Phrases générées depuis les paramètres effectifs, non persistées comme prescription. Guidage facultatif AMRAP/For time Sans par défaut : aucun effet sur durée, estimation, cible, progression, transitions ou comptage réel. Death by garde Cadence Sans.
+
+<a id="formats-parcours-et-tableau-progression"></a>
+### Formats — parcours et édition du tableau Progression
+
+Tous les récapitulatifs utilisent Retour vers le questionnaire du modèle, réponses conservées et titre inchangé ; tous les questionnaires gardent la croix vers Composition. Enregistrer dans la séance ajoute au brouillon ; la Composition sauvegarde définitivement. Fenêtre Formats : croix ou voile ferme la fenêtre. Écart cadre Déroulé → bouton d’action : 25 px sur la rangée Formats ; hauteur 874 px en référence.
+
+Entrée dans Circuit porteur : paramètres compatibles repris, reste à compléter sans conversion arbitraire ni confirmation de perte. Sortie : Conserver le format / Adopter un format libre / Annuler ; buy-in/out sortent libres directement et ne sont pas duplicables. Boucle vide invalide. Pause ou Point d’arrêt suspend les horloges, reprise sans remise à zéro.
+
+Progression : même collection de séries variables que l’Exercice ; saisie directe répétitions puis charge S1, puis S2… ; numérique ou décimal (D-405), clavier laissant la case visible, Charge Avec/Sans local via la modale ; aucun contrôle global. Le tableau blanc arrondi de rayon 8 est inséré dans le bloc gris sous Nombre de séries, avant Pause/Durée totale/Exécution ; trait séparateur sous Nombre de séries, en-tête 28 px et ligne avec charge 44 px dans l’exemple, 12 px avant Déroulé. Les chiffres de charge du Figma sont des exemples, pas des défauts universels.
 
 <a id="recette-formats"></a>
 ### Cas de recette des formats
@@ -1461,7 +1470,7 @@ Ces recettes sont prescrites, **non exécutées sur l’application**. Elles con
 | REC-05 | Même Tabata en alternance | A1 B1…A8 B8 ; même volume | 10–11, 13 |
 | REC-06 | Tabata unilatéral sans autres phases | 480 s pour A/B avec toutes les pauses ; aucune récupération ajoutée | 10, 18 |
 | REC-07 | Ouvrir la composition par exercice | Cartes 8 × 20 s ; aucune pause incorporée au libellé de volume | 16 |
-| REC-08 | Ouvrir la modale Tabata | Quatre valeurs réelles grisées, non éditables ; raison visible | 17 |
+| REC-08 | Ouvrir la modale Tabata | Valeurs standards modifiables ; aucun verrouillage dû au Tabata | 17 |
 | REC-09 | Tabata avec un exercice | Pas de question d’organisation inutile | 11 |
 | REC-10 | EMOM 2 exercices, 6 tours, fenêtre 60 s | 12 min calculées, aucune saisie de durée totale | 20–21 |
 | REC-11 | Ajouter un troisième exercice | 6 tours conservés ; 18 min | 22 |
@@ -1494,10 +1503,10 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 
 #### 3.1 Format, origine et paramètres
 
-- **FMT-01 — Format appliqué (cible PRE-9, clarification du 29/10).** Un **Exercice** de la Séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by ; ses réglages définissent ses contraintes et son comportement. La Séance peut comporter plusieurs Exercices de Formats différents, y compris dans des Circuits et Cycles. Un Circuit ne porte aucun Format propre. [Ancienne formulation « Une séance peut porter […] Ce champ […] », supersédée pour le modèle cible.]
-- **FMT-02 — Origine de création.** Le modèle de départ est conservé séparément. Il classe la provenance, sans imposer à lui seul de comportement. Renforcement, Superset, Progression, À l’échec et Libre alimentent cette origine sans devenir des Formats ; **Gainage · Mobilité est supprimé des départs rapides actifs (D-25)**.
+- **FMT-01.** Quatre Formats spécialisés : AMRAP, EMOM, For time et Death by. Exercice autonome porteur ou Circuit porteur selon le partage temporel et la fin coordonnée ; Format d’origine du Circuit hérité et non modifiable, nature fixée. Tabata et 30/30 sont des préconfigurations standards.
+- **FMT-02.** Origine de création de la Séance distincte du Format. Tabata et cinq départs rapides (30/30, Renforcement, Superset, Progression, À l’échec) restent librement modifiables ; aucune entrée Libre ni Gainage · Mobilité dans la grille active.
 - **FMT-03 — Identité du format.** Le format est fixé à la création et ne devient pas un autre format par édition ordinaire. Les constantes restent imposées.
-- **FMT-04 — Réglages du Format d'un Exercice (cible PRE-9).** Les réglages autorisés restent modifiables après la Composition, **sur l'Exercice porteur** ; ils ne deviennent pas des paramètres de Format du Circuit ni de la Séance. Les constantes imposées restent protégées, l'historique inchangé. [Ancienne portée « réglages de séance » supersédée pour les Formats multiples.]
+- **FMT-04.** Les réglages effectivement portés par l’Exercice ou le Circuit restent modifiables selon le Format, identité conservée. En Death by alterné, intervalle local au membre et aucune durée d’en-tête ; groupé coordonné, intervalle commun du Circuit.
 - **FMT-05 — Valeurs dérivées.** Toute modification d’un réglage ou de la composition met à jour les valeurs calculées et la synthèse courante. Une valeur calculée n’est pas un second réglage concurrent.
 - **FMT-06 — Historique.** Modifier la séance ne modifie pas rétroactivement les paramètres ni les résultats de ses exécutions passées. Cette préservation réutilise l’exigence générale d’instantané ; elle n’invente pas un nouvel historique parallèle.
 - **FMT-07 — Présentation et synthèse.** Le texte descriptif du modèle peut rester fixe ; la synthèse de la séance décrit ses paramètres effectifs. Une synthèse ne disparaît pas au seul motif que la séance a été composée ou modifiée.
@@ -1511,7 +1520,7 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 | Borne | Qu’est-ce qui termine l’exécution prévue ? | Compte atteint ; durée écoulée ; travail accompli ; arrêt déclaré |
 
 - **FMT-08 — Indexation explicite.** Une échelle de valeurs est indexée sur l’unité nommée par le paramètre. Une liste numérique ne change pas d’unité par simple changement de libellé ou réinterprétation technique.
-- **FMT-09 — Réemploi des circuits.** Conserver les Circuits de tours/séries de SRC-04, également utilisables avec des Exercices formatés. Un Format d'Exercice peut **limiter les organisations compatibles** du Circuit sans devenir un Format porté par celui-ci. Les choix de Composition libre demeurent disponibles lorsqu'ils respectent les contraintes des membres. [L'ancienne formulation « un format peut imposer une organisation » est précisée, sans transférer le Format au Circuit.]
+- **FMT-09.** Circuit standard et Circuit porteur utilisent les conteneurs existants. Compatibilité standard : AMRAP/For time groupés admis et alternés refusés ; EMOM groupé/alterné admis ; Death by autonome groupé admis avec fin locale et redémarrage, standard alterné refusé. Tabata/30/30 suivent les règles standards sans restriction N=8.
 
 « Exécution » sur un contrôle d’organisation ne remplace pas le mode Durée/Répétitions de l’exercice. À l’échec reste une cible par série, pas un troisième mode ni un format supplémentaire.
 
@@ -1519,36 +1528,36 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 
 #### 4.1 Tabata
 
-- **FMT-10.** Le format impose huit séries par exercice, 20 secondes d’effort par série et une pause de 10 secondes après chaque série.
-- **FMT-11.** Avec plusieurs exercices, le réglage global propose « Par exercice » et « En alternance ». Avec un exercice unique, la question est inutile puisque l’enchaînement est identique.
-- **FMT-12.** Par exercice : A1…A8, puis B1…B8. La configuration illustrée comporte un circuit d’un tour et deux cartes affichant chacune `8 × 20 s`. **Répéter le bloc entier** se fait par le passage d'un Circuit groupé ou par un Cycle ; aucun réglage de répétition de l'ensemble propre au Tabata (ARB-25 précisé, D-17). Les huit séries restent imposées.
-- **FMT-13.** En alternance : A1, B1, A2, B2…A8, B8. Le circuit à séries alternées existant exprime cette organisation avec huit séries par exercice. Les huit séries ne deviennent pas huit efforts au total répartis entre A et B.
-- **FMT-14.** Le récapitulatif nomme le compte commun « Séries par exercice — 8 », compatible avec les deux organisations. Il ne présente pas ce compte comme huit tours de circuit dans le cas par exercice.
+- **FMT-10.** Tabata préconfigure 8 séries de 20 s et Pause 10 s par Exercice ; ce sont des valeurs modifiables, pas des constantes imposées.
+- **FMT-11.** Tabata avec plusieurs mouvements : À la suite ou En alternance. Le Nombre de séries désigne les séries de chaque mouvement, pas un total réparti entre eux.
+- **FMT-12.** Tabata À la suite : Exercices standards successifs sans Circuit ; A1…A8 puis B1…B8 dans l’exemple. La récupération remplace la Pause terminale : avec 60 s entre les mouvements, total 530 s, soit 8 min 50 s. Aucune exception B06 conservée.
+- **FMT-13.** Tabata en alternance : Circuit standard à N tours ; une série de chaque membre par tour, chaque mouvement gardant ses N séries. À 8 séries de 20/10 pour A et B, 8 min sans autres phases ; aucun verrouillage métier N=8.
+- **FMT-14.** Questionnaire et récapitulatif Tabata : Nombre de séries, compte de chaque mouvement ; synthèse et déroulé actualisés selon les réglages courants.
 - **FMT-15.** Le contrôle « Exécution » est en dernière ligne du bloc Paramètres, après Durée totale, avec séparateur. Son libellé et les options sont alignés sur la même ligne ; la taille de texte est celle des paramètres voisins. Le layout précis relève du DSF et du Figma courant.
 - **FMT-16.** Dans la composition par exercice, la carte affiche le volume `8 × 20 s`, sans afficher la pause dans cette expression.
-- **FMT-17.** La modale correspondante affiche Mode d’exécution = Durée, Nombre de séries = 8, Objectif de durée = 20 s et Pause après chaque série = 10 s. Les quatre valeurs sont visibles, grisées et non modifiables ; leur caractère imposé par Tabata est expliqué. Elles restent effectives et ne sont pas remplacées par un tiret.
+- **FMT-17.** Modale Tabata standard : Mode, Condition d’arrêt, Séries, Objectif de durée et Pause sont modifiables. Répétitions, À l’échec et Variables ne sont pas verrouillés à cause de l’origine Tabata.
 - **FMT-18.** Les 10 secondes constituent la pause après chaque série. Une récupération de séance n’est pas créée pour rendre cette pause visible. Aucune récupération supplémentaire n’est ajoutée par défaut. Si une récupération positive est explicitement ajoutée là où le modèle l’autorise, sa substitution à la dernière pause suit SRC-04/05, sans double comptage.
 
 Exemple normatif unilatéral, sans récupération ni autre phase : deux exercices × huit séries × (20 + 10) secondes = **480 secondes, soit 8 minutes** dans les deux organisations. Il s’agit du total de ces efforts et pauses, pas du total incluant le compte à rebours et la fin de séance.
 
-La copie avec 1 tour et 8 × 20 s est nommée « Par exercice », indépendamment de sa position de deuxième écran sur le canvas. L’ordre des copies Figma n’est pas une identité métier.
+À la suite crée des Exercices successifs sans Circuit ; En alternance un Circuit standard. Les noms de frames ne créent aucune propriété métier.
 
 #### 4.2 Intervalles 30/30
 
-- **FMT-19.** Les constantes sont 30 secondes de travail et 30 secondes de pause. La borne réglée est un compte, jamais une durée totale saisie. La durée se déduit des occurrences effectivement prévues et de leurs phases. Les réglages de compte et la récupération éventuelle restent ceux du format décrit par SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) ; ne pas déduire d’un chiffre de maquette une règle supplémentaire.
+- **FMT-19.** 30/30 est un départ standard modifiable : 6 séries identiques, effort 30 s, Pause 30 s, durée 6 min, récupération 0 s initialement. Pause de série et récupération de l’Exercice sont distinctes ; aucune constante propre 30/30.
 
 La généralisation aux formats cadencés porte sur la borne par compte. Elle ne suffit pas à créer, à elle seule, un sélecteur d’organisation pour tous les formats : ce sélecteur est explicitement décidé pour Tabata, EMOM et Progression, et explicitement exclu pour For time.
 
 ### Formats de séances — comportements consolidés — EMOM : fenêtres et borne
 
-- **FMT-20 — Réglages.** L’utilisateur règle la cadence, c’est-à-dire la durée d’une fenêtre, le nombre de tours et l’organisation « Par exercice » ou « En alternance ».
-- **FMT-21 — Durée.** La durée intrinsèque du bloc EMOM est calculée : `nombre de tours × nombre d’exercices × durée de fenêtre`, jamais saisie. Un Circuit groupé répète le bloc complet à chaque passage ; un Cycle répète sa séquence sans double multiplication des tours internes (D-15/D-17). Les phases propres de Séance restent distinctes.
+- **FMT-20.** EMOM : intervalle et compte ; avec plusieurs mouvements, Dans chaque intervalle, À la suite ou En alternance. L’intervalle n’est pas le Bip de cadence.
+- **FMT-21.** EMOM autonome : N×W ; À la suite avec E membres : E×N×W et récupérations configurées ; alterné standard : E×N×W ; dans chaque intervalle : Circuit groupé porteur, intervalle commun W et durée N×W. Aucune double multiplication.
 - **FMT-22 — Composition.** Ajouter ou retirer un exercice conserve le nombre de tours et recalcule la durée. La durée n’entraîne aucun arrondi du nombre de tours ni dernier tour tronqué.
 - **FMT-23 — Fenêtre.** Chaque fenêtre va jusqu’à son terme ; la suivante commence à l’échéance. Terminer l’objectif avant l’échéance ne raccourcit pas la fenêtre. Ne pas terminer l’objectif ne prolonge pas la fenêtre.
 - **FMT-24 — Appui.** L’appui sur le cadran indique que le travail de la fenêtre est terminé et révèle le repos restant. Il ne passe pas à la fenêtre suivante.
 - **FMT-25 — Repos.** Le repos de la fenêtre est le temps qui reste entre la fin effective du travail et son échéance. Il est variable, non réglable et inclus dans la fenêtre ; il ne s’ajoute pas une deuxième fois à la durée totale. Sans fin de travail signalée avant l’échéance, aucune durée de repos positive n’est inventée.
 
-Avec deux exercices et six passages chacun : « Par exercice » regroupe les six fenêtres de A puis les six de B ; « En alternance » alterne A et B six fois. La fenêtre commune et le nombre total de fenêtres restent identiques. Cette description est fonctionnelle : le raccordement aux champs du circuit doit éviter de multiplier une seconde fois les séries et les tours.
+Avec deux membres : EMOM À la suite ou alterné = 12 min pour N6/W60 ; dans chaque intervalle = 6 min, selon FMT-21.
 
 Exemple : 6 tours × 2 exercices × 60 s = **12 min**. Ajouter C donne **18 min**, toujours avec 6 tours. Fin du travail à 35 s dans une fenêtre de 60 s : **25 s de repos**. La durée de la fenêtre n’est pas le paramètre « Bip de cadence » de l’exercice ; ce sont deux informations distinctes.
 
@@ -1556,23 +1565,23 @@ Exemple : 6 tours × 2 exercices × 60 s = **12 min**. Ajouter C donne **18 min*
 
 #### 6.1 AMRAP
 
-- **FMT-26.** L’AMRAP a une durée imposée réglable. Les **tours internes du bloc AMRAP** sont répétés jusqu'à l'échéance **de ce bloc** ; chaque répétition extérieure du bloc, dans un Circuit groupé ou un Cycle, recommence avec sa **durée configurée** (12:00 est uniquement la valeur initiale), sans échéance commune englobant les passages. Le nombre de tours réalisés est un résultat, pas une borne saisie. [Portée historique « échéance globale » remplacée pour les répétitions extérieures par D-15/D-30.]
-- **FMT-27.** Pour les formats cadencés Tabata, Intervalles et EMOM, la borne saisie est un compte. Cette règle ne s’applique pas à l’AMRAP ni au For time. Elle ne change pas les possibilités des séances libres en dehors du périmètre décidé.
+- **FMT-26.** AMRAP : blocs chronométrés indépendants et tours de boucle distincts ; chaque bloc repart du départ et de la durée réglée, résultat distinct. Buy-in unique dans le premier bloc. Repos de boucle initialise la récupération du dernier membre, consomme le bloc et le suit après réordre. Un mouvement avec repos de boucle positif crée un Circuit d’un membre.
+- **FMT-27.** Le compte fini des préconfigurations standards et de l’EMOM est distinct des tours de boucle AMRAP et du régime ouvert Death by. Les comptes réalisés et objectifs calculés ne sont pas plafonnés par les bornes de saisie.
 
 SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) exclut pour l’AMRAP le circuit à séries alternées et les séries variables : ne pas lui appliquer le sélecteur de Progression par généralisation. Les objectifs par exercice restent les valeurs prescrites du format.
 
 #### 6.2 Départs rapides et Progression
 
-- **FMT-28.** Renforcement (**3×15**), Superset (Circuit groupé **1 passage**, deux emplacements d'Exercices **vides**, paramètres libres), Progression (**10/12/14**), À l'échec (**3 séries**) et Libre ne font que préremplir une Séance libre. **Aucun Mouvement présélectionné ; Gainage · Mobilité supprimé.** Aucun verrouillage métier ne provient de cette origine (D-22 à D-25).
-- **FMT-29.** Progression propose « Par exercice » et « En alternance ». Ses valeurs sont des répétitions **par série**. En alternance, les passages restent comptés en séries : A10, B10, A12, B12, A14, B14. Par exercice : A10, A12, A14, puis B10, B12, B14. L’ordre n’efface ni ne réindexe la prescription.
+- **FMT-28.** Renforcement 3×15, Progression 10/12/14, À l’échec 3 séries, Superset groupé à un passage avec deux mouvements choisis, et 30/30 sont des départs modifiables. Pas d’emplacements vides, de Mouvement présélectionné arbitraire ni de départ Libre dans la grille ; cas sans mouvement différé B10.
+- **FMT-29.** Progression : séries variables et Charge Avec/Sans propres à chaque Exercice. Questionnaire : Nombre de séries, Pause, Durée totale, aucune cible globale sans mouvement. Récapitulatif : tableau Mouvement sous Nombre de séries, répétitions et charge par cellule, clavier numérique/décimal, Suivant, tableau visible au-dessus du clavier. Nouvelle colonne à compléter, surplus retiré sans confirmation. Déroulé proportionnel aux répétitions ; aucun interrupteur global de charge.
 
-Les exemples 3 × 15, postures, deux exercices enchaînés, 10 · 12 · 14 et trois séries à l’échec sont des préremplissages de leurs modèles respectifs, pas des constantes du moteur. La charge additionnelle et une entrée Pyramide distincte restent hors périmètre.
+Les exemples 3 × 15, postures, deux exercices enchaînés, 10 · 12 · 14 et trois séries à l’échec sont des préremplissages de leurs modèles respectifs, pas des constantes du moteur. La charge par série est admise dans la Progression ; une entrée Pyramide distincte reste hors périmètre.
 
 #### 6.3 For time
 
-- **FMT-30.** Le paramètre s’appelle « Volume par tour ». Pour `21 · 15 · 9`, chaque Exercice suit le **tour de l'échelle For time** : 21 répétitions au premier rang, 15 au deuxième, 9 au troisième. Ce « tour » est distinct du **passage d'un Circuit englobant** ; chaque passage extérieur répète l'échelle **entière depuis 21** (D-15).
-- **FMT-31.** Aucun sélecteur « Par exercice / En alternance » n’est proposé pour For time. L’échelle reste indexée par tour ; elle n’est pas transformée en trois séries successives à l’intérieur de chaque exercice.
-- **FMT-32.** La phrase normative est : « 21 répétitions au premier tour, 15 au deuxième, 9 au troisième. Le plus vite possible. » Le travail prescrit borne le format ; le temps réellement nécessaire pour l’accomplir est un résultat. **D-21 (29/10/2026) :** un plafond temporel facultatif peut borner l’Exercice For time ; à son atteinte l’Exercice s’arrête avec un résultat incomplet, sans imposer l’arrêt de la Séance. La valeur du plafond n’est pas inventée ; son exécution relève de PRE-10/11.
+- **FMT-30.** For time autonome : séries identiques ou variables ; dans un Circuit porteur alterné, série i au tour i (21-15-9 dans l’exemple). Dans un Circuit standard groupé, un For time autonome rejoue l’échelle entière à chaque passage.
+- **FMT-31.** For time multi-mouvements ou buy-in/out : Circuit porteur alterné, aucun choix d’exécution supplémentaire. Changer N adapte les séries : existantes conservées, nouvelles à compléter, surplus retiré sans confirmation de perte ni volume inventé.
+- **FMT-32.** For time : travail fixé, temps mesuré ; borne temporelle optionnelle, Sans limite au questionnaire/récapitulatif, Aucune sur la durée maximum autonome. La borne héritée est rappelée grisée au membre. À l’atteinte, résultat incomplet sans fin forcée de toute la Séance. La phrase suit les valeurs effectives (3×21 ne devient pas 21-15-9).
 
 Avec A et B : A21, B21, A15, B15, A9, B9. Les trois valeurs décrivent trois tours. Le modèle doit garantir la cohérence entre nombre de tours et valeurs applicables, sans inventer un objectif pour une entrée manquante. La mécanique exacte de l’éditeur d’échelle sera raccordée au contrat d’écran courant, sans recopier automatiquement la règle des séries variables si elle change l’unité.
 
@@ -1585,7 +1594,7 @@ Avec A et B : A21, B21, A15, B15, A9, B9. Les trois valeurs décrivent trois tou
 #### 7.1 Fenêtres, objectif et acquisition
 
 - **FMT-33.** Le rang de fenêtre est déduit de l’horloge d’exécution ; l’utilisateur ne déclare jamais un nombre de tours à chaque passage. L’objectif est calculé depuis le rang, le départ et l’incrément du format. Dans le cas de référence : une répétition la première minute, puis une de plus à chaque minute.
-- **FMT-34.** Un seul bouton termine **l'élément Death by**, et non la Séance entière, avec confirmation « Limite atteinte » ou « Abandonner » ; la Séance peut enchaîner son élément suivant (D-18). [Ancienne règle « met fin à la séance » remplacée ; source normative antérieure main @ c73079e9 non alignée, correctif historique de branche @ 990542fd.]
+- **FMT-34.** Death by : échec de l’Exercice autonome termine cet élément seulement ; dans Circuit standard groupé, poursuite puis redémarrage au départ au passage suivant. Death by coordonné groupé ou alterné porte le Format au Circuit ; premier échec termine ce Circuit, puis la Séance poursuit. À la suite : Exercices indépendants et récupération configurée entre eux.
 - **FMT-35.** Un tour est acquis lorsque l’objectif de sa fenêtre est accompli, signalé par l’appui sur le cadran. Cet appui révèle le repos restant ; il ne fait pas avancer la fenêtre et ne compte pas les mouvements individuellement.
 - **FMT-36.** Une fenêtre entamée sans appui n’est pas un tour acquis. Son échéance ne vaut pas confirmation implicite. Le rang courant et le nombre de tours acquis sont deux données distinctes. Un appui répété dans la même fenêtre ne peut acquérir deux tours.
 
@@ -2661,3 +2670,4 @@ Le §8 de la source et le chapitre 08 définissent séparément les trois états
 | RM-252 | Un exercice directement membre d’un cycle est exécuté une fois, avec ses séries propres, à chaque répétition du cycle. Un exercice au niveau séance est exécuté une fois. Les circuits du cycle conservent leur compte propre ; le cycle répète leur développement complet. |
 
 Une série nulle conserve son indice, saute son étape et sa pause ; elle n’est pas une série manquante. RM-251 conserve la déduplication des arrêts dans le plan développé. Les effets sur récupération contextuelle et tours entièrement nuls sont réservés, voir la revue critique ; ne pas les inventer à partir d’une capture.
+
