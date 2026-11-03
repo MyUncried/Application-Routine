@@ -106,14 +106,15 @@ describe("PRE-8 B.8 — archivage, restauration et suppression du Mouvement", ()
     expect(await catalogue().deleteArchived("m1")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
   });
 
-  it("refuse aussi l'archivage d'un Mouvement référencé par un Exercice du Catalogue (définition persistée)", async () => {
+  it("archive un Mouvement référencé par un ancien Exercice du Catalogue (décision du 03/11/2026) : définition intacte ; suppression définitive toujours refusée", async () => {
     await repository().create(movement("gainage", "Gainage"));
     await database.runAsync(
       "INSERT INTO activity_definitions (id, movement_id, execution_parameters, created_at, updated_at) VALUES ('def', 'gainage', '{}', ?, ?)",
       [NOW, NOW],
     );
-    expect(await catalogue().archive("gainage")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
+    expect(await catalogue().archive("gainage")).toEqual({ status: "DONE" });
     expect(await count("activity_definitions")).toBe(1);
+    expect(await catalogue().deleteArchived("gainage")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
   });
 
   it("archive un Mouvement inutilisé : rangs affichés des actifs recalculés (b8-3), famille et ordre intacts", async () => {

@@ -81,8 +81,9 @@ Demande de Hermann du 03/11/2026, avant la contre-recette : « on doit pouvoir a
 
 | Comportement | Classe | Traitement |
 |---|---|---|
-| Garde d'archivage : seuls les Exercices des Séances actives (et les définitions du Catalogue) bloquent ; le dialogue « Archivage impossible » compte ces seuls Exercices | B | `SqliteMovementRepository.archive` (`countMovementActiveOccurrences`) ; registre ch. 07, règle « Archivage » du 27/10 annotée comme remplacée, nouvelle section du 03/11/2026 |
-| Suppression définitive depuis les Archives | — | Inchangée (Q8) : refusée tant qu'une Séance, même archivée, référence le Mouvement |
+| Garde d'archivage : seuls les Exercices des Séances actives bloquent ; le dialogue « Archivage impossible » compte ces seuls Exercices | B | `SqliteMovementRepository.archive` (`countMovementActiveOccurrences`) ; registre ch. 07, règle « Archivage » du 27/10 annotée comme remplacée, nouvelle section du 03/11/2026 |
+| Définitions de l'ancien Catalogue des Exercices (non affiché, conversion A.4) : ne bloquent plus. Recette : le dialogue comptait ces définitions (« utilisé par N exercices » sans Séance active) ; question à Hermann, réponse « Ne bloquent plus » | B | Même garde ; registre ch. 07 (section du 03/11/2026) ; `epics.md` A.4 annoté (Mouvements archivés) |
+| Suppression définitive depuis les Archives | — | Inchangée (Q8) : refusée tant qu'une Séance, même archivée, ou une définition référence le Mouvement |
 | Restauration d'une Séance archivée dont un Mouvement est archivé | A | Aucun contrôle ajouté : RM-120 (l'élément archivé reste valable dans ses usages existants) et Q6 (il n'est plus proposé à un nouvel usage) s'appliquent |
 
-Tests : `movementLifecycle.b8.test.ts` (refus compté sur les seules Séances actives ; archivage accepté quand toutes les Séances sont archivées, suppression définitive refusée). Aucune migration.
+Tests : `movementLifecycle.b8.test.ts` (refus compté sur les seules Séances actives ; archivage accepté quand toutes les Séances sont archivées ou quand seule une définition référence le Mouvement ; suppression définitive refusée). Aucune migration.

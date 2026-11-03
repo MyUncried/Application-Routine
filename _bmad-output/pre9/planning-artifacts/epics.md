@@ -89,6 +89,7 @@ Ajoutée le 30/10/2026 à la demande de Hermann (contre-recette PRE-9 n° 1) ; p
 ### A.4 — Conversion E.8-b
 Dépend de : A.2. Arbitrage : ARB-01 (**validé**, révision 2). Migration 020 (état annoncé par Hermann ; contrôler la branche avant exécution).
 - Conversion automatique et transactionnelle, testée sur copie de base réelle : chaque définition devient une Séance d'un Exercice (titre Q-E1), Mouvement, paramètres, médias, associations et autres données pertinentes conservés ; annulation complète en cas d'échec ; rapport dans `migration_notices` ; comptage et comparaison source → Séances consignés (preuve réutilisée par A.5).
+- [03/11/2026, Hermann : les définitions ne bloquent plus l'archivage d'un Mouvement — registre ch. 07, « Archivage d'un Mouvement utilisé seulement dans des Séances archivées ». La conversion doit donc accepter une définition dont le Mouvement est archivé : la Séance produite référence ce Mouvement archivé, sans le restaurer.]
 - **Aucune ligne historique n'est retirée ni supprimée** par la conversion. [28/10 : « retrait de la définition dans la même transaction » — remplacé le 29/10 : conversion distinguée de la suppression.]
 - [Révision 1 : « Si ARB-01 retient l'option B ou C, la story est réécrite » — sans objet, option A validée.]
 

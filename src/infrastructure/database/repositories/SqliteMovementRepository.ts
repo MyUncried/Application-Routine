@@ -591,9 +591,10 @@ export class SqliteMovementRepository implements MovementRepository {
         outcome = { status: "ALREADY_ARCHIVED" };
         return;
       }
-      // PRE-9 (03/11/2026) : seuls les Exercices des Séances actives (et les définitions du Catalogue)
-      // bloquent ; les Séances archivées gardent leurs Exercices, rien n'est supprimé.
-      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementActiveOccurrences(transaction, id));
+      // PRE-9 (décisions de Hermann du 03/11/2026) : seuls les Exercices des Séances actives bloquent ;
+      // ni les Séances archivées ni les définitions de l'ancien Catalogue des Exercices (non affiché,
+      // conversion A.4) — elles gardent leur lien vers le Mouvement archivé, rien n'est supprimé.
+      const exerciseCount = await countMovementActiveOccurrences(transaction, id);
       if (exerciseCount > 0) {
         outcome = { status: "REFERENCED", exerciseCount };
         return;
