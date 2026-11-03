@@ -141,7 +141,8 @@ export interface MovementRepository {
   /**
    * PRE-8 (B.8, arbitrages de Hermann du 27/10/2026) : archive un Mouvement actif, dans UNE
    * transaction. Refusé, sans aucune écriture, tant qu'un Exercice persisté le référence
-   * (`REFERENCED`) : Exercice d'une Séance active ou archivée, ou définition du Catalogue. Une
+   * (`REFERENCED`) : Exercice d'une Séance active, ou définition du Catalogue ; une Séance archivée
+   * ne bloque plus (décision de Hermann du 03/11/2026, PRE-9). Une
    * exécution historique seule ne bloque pas (instantané autonome). Aucune suppression d'Exercice,
    * de Séance ou de planification ; l'appartenance et la position dans la famille sont conservées,
    * aucun rang n'est recalculé (Q5).

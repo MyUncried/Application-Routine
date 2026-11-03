@@ -83,17 +83,27 @@ const ranks = async () =>
   Object.fromEntries((await catalogue().listEntries()).map((entry) => [entry.movement.id, [entry.level?.rank, entry.level?.total, entry.archived]]));
 
 describe("PRE-8 B.8 — archivage, restauration et suppression du Mouvement", () => {
-  it("refuse l'archivage d'un Mouvement utilisé par un Exercice de Séance active ou archivée, sans rien écrire", async () => {
+  it("refuse l'archivage d'un Mouvement utilisé par un Exercice de Séance active, sans rien écrire ; les Séances archivées ne comptent pas", async () => {
     await repository().create(movement("m1", "Pompes"));
-    const sessionId = await sessionUsing("m1");
-    expect(await catalogue().archive("m1")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
-    await database.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [NOW, sessionId]);
-    expect(await catalogue().archive("m1")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
+    const first = await sessionUsing("m1");
     await sessionUsing("m1");
     expect(await catalogue().archive("m1")).toEqual({ status: "REFERENCED", exerciseCount: 2 });
+    await database.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [NOW, first]);
+    expect(await catalogue().archive("m1")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
     expect(await repository().listArchivedIds()).toEqual(new Set());
     expect(await count("sessions")).toBe(2);
     expect(await count("activities")).toBe(2);
+  });
+
+  it("archive un Mouvement utilisé seulement dans des Séances archivées (décision du 03/11/2026) : Séances et Exercices intacts ; suppression définitive toujours refusée", async () => {
+    await repository().create(movement("m1", "Pompes"));
+    const sessionId = await sessionUsing("m1");
+    await database.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [NOW, sessionId]);
+    expect(await catalogue().archive("m1")).toEqual({ status: "DONE" });
+    expect(await repository().listArchivedIds()).toEqual(new Set(["m1"]));
+    expect(await count("sessions")).toBe(1);
+    expect(await count("activities")).toBe(1);
+    expect(await catalogue().deleteArchived("m1")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
   });
 
   it("refuse aussi l'archivage d'un Mouvement référencé par un Exercice du Catalogue (définition persistée)", async () => {

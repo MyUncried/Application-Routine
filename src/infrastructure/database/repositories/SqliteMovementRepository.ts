@@ -471,6 +471,20 @@ export async function countMovementOccurrences(database: Database, id: string): 
   return row?.count ?? 0;
 }
 
+/**
+ * PRE-9 (recette du 03/11/2026, décision de Hermann) : occurrences du Mouvement dans les seules
+ * Séances actives. Garde de l'archivage : une Séance archivée ne bloque plus l'archivage.
+ */
+export async function countMovementActiveOccurrences(database: Database, id: string): Promise<number> {
+  const row = await database.getFirstAsync<{ count: number }>(
+    `SELECT COUNT(*) AS count FROM activities
+     JOIN sessions ON sessions.id = activities.session_id
+     WHERE activities.source_movement_id = ? AND sessions.status = 'ACTIVE'`,
+    [id],
+  );
+  return row?.count ?? 0;
+}
+
 /** Nombre de définitions du Catalogue qui référencent le Mouvement. */
 export async function countMovementDefinitions(database: Database, id: string): Promise<number> {
   const row = await database.getFirstAsync<{ count: number }>(
@@ -577,7 +591,9 @@ export class SqliteMovementRepository implements MovementRepository {
         outcome = { status: "ALREADY_ARCHIVED" };
         return;
       }
-      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementOccurrences(transaction, id));
+      // PRE-9 (03/11/2026) : seuls les Exercices des Séances actives (et les définitions du Catalogue)
+      // bloquent ; les Séances archivées gardent leurs Exercices, rien n'est supprimé.
+      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementActiveOccurrences(transaction, id));
       if (exerciseCount > 0) {
         outcome = { status: "REFERENCED", exerciseCount };
         return;

@@ -74,3 +74,15 @@ Retours de Hermann (cahier de recette, section f3), traités avant la suite de l
 2. « Il manque l'option de la récupération entre les mouvements » (même contexte, alternance) : la référence §9.1 et la maquette `11146:18902` n'ont pas cette ligne en alternance (Récupération 0 s) ; elle existe en « À la suite ». Sens attendu en alternance à préciser (après chaque mouvement, après chaque tour, après le Circuit).
 
 Tests : `FormatModelScreen.c3` (+4 : 8 min 50 s, cadres EMOM, suppression du dernier mouvement, questionnaire vierge sans identité partagée), `formatModels.c3` (+1 : identités remplacées).
+
+## Recette iPhone n° 3 du 03/11/2026 — archivage d'un Mouvement utilisé seulement dans des Séances archivées
+
+Demande de Hermann du 03/11/2026, avant la contre-recette : « on doit pouvoir archiver un mouvement qui n’est utilisé que dans des séances archivées. Aujourd’hui c’est bloqué, on ne peut archiver un mouvement si il est utilisé dans une séance, quelque soit son statut d’activité. »
+
+| Comportement | Classe | Traitement |
+|---|---|---|
+| Garde d'archivage : seuls les Exercices des Séances actives (et les définitions du Catalogue) bloquent ; le dialogue « Archivage impossible » compte ces seuls Exercices | B | `SqliteMovementRepository.archive` (`countMovementActiveOccurrences`) ; registre ch. 07, règle « Archivage » du 27/10 annotée comme remplacée, nouvelle section du 03/11/2026 |
+| Suppression définitive depuis les Archives | — | Inchangée (Q8) : refusée tant qu'une Séance, même archivée, référence le Mouvement |
+| Restauration d'une Séance archivée dont un Mouvement est archivé | A | Aucun contrôle ajouté : RM-120 (l'élément archivé reste valable dans ses usages existants) et Q6 (il n'est plus proposé à un nouvel usage) s'appliquent |
+
+Tests : `movementLifecycle.b8.test.ts` (refus compté sur les seules Séances actives ; archivage accepté quand toutes les Séances sont archivées, suppression définitive refusée). Aucune migration.
