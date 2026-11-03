@@ -97,8 +97,8 @@
       "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30392.png",
-      "sha256": "d68e0214e31385c2ee94fee60c5aefebdaa17acc3f931d5a3251dd21018cf8a1",
-      "bytes": 90809
+      "sha256": "43852efd64b902864346d8c078e37f44f59e386167057cb07ba72c24a2943cef",
+      "bytes": 93195
     },
     {
       "node_id": "11158:18922",
@@ -109,8 +109,8 @@
       "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11158-18922.png",
-      "sha256": "e7d9a2e2677c1f41ce873ae9443e595670d997d77272bcc1b6a158a3b0fbc208",
-      "bytes": 90388
+      "sha256": "d35616847816ea2521cabca3cbce32c27a9cb523111c8a6cd8cf3d3ebc479656",
+      "bytes": 92778
     },
     {
       "node_id": "11158:19033",
@@ -121,8 +121,8 @@
       "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11158-19033.png",
-      "sha256": "d6d13633a3af0c38953efa5d8f9a9f361685356c3c999f040d3a4e779129a49a",
-      "bytes": 95061
+      "sha256": "19b3edcb250308d2f8f293fd3b4cad4529b25e3335821d39dc6e52aeeb08cbbe",
+      "bytes": 97467
     },
     {
       "node_id": "8624:30143",
@@ -469,8 +469,8 @@
       "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8795-14588.png",
-      "sha256": "d614a250ce2475d875dab93a20d1a78943be5c0596cf0d3f00d6e3db64b37367",
-      "bytes": 97780
+      "sha256": "6952f63e1df566e8b0136601ca3bf3bb7fdf5c2a0762a21e09eadf8a5767e0ff",
+      "bytes": 97845
     },
     {
       "node_id": "11308:19978",
@@ -493,8 +493,8 @@
       "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8598-30515.png",
-      "sha256": "50ca501a6870c3c63fd2d841f203829c7954d4b6f711e970c09a029fb081717f",
-      "bytes": 132306
+      "sha256": "8266ea4f62e4e1b884eadaaf00341f28b79adfe3e71a5856f229cd92b1dabb83",
+      "bytes": 132385
     },
     {
       "node_id": "11270:19541",
@@ -700,5 +700,7 @@
     }
   ],
   "updated": "2026-11-03",
-  "updated_exports": 37
+  "updated_exports": 37,
+  "last_revision": "2026-11-03-r3",
+  "last_revision_exports": 5
 }

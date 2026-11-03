@@ -1,6 +1,6 @@
 # Mise à jour des spécifications — Formats d'entraînement et portage du format par le circuit
 
-**Référence active — mise à jour du 3 novembre 2026.** Décisions d’Hermann, contre-revue A1 à A7 et modifications des écrans du 3 novembre intégrées. [Source de la mise à jour](sources/formats-2026-11-03/KODJO-Mise-a-jour-ecrans-formats-2026-11-03.md). Remplace les prescriptions antérieures contradictoires sur le périmètre Formats et départs rapides. Les sources de baselines restent conservées hors dépôt ; les archives OpenSpec ne sont pas modifiées.
+**Référence active — mise à jour du 3 novembre 2026.** Décisions d’Hermann, contre-revue A1 à A7 et modifications des écrans du 3 novembre intégrées. [Source de la mise à jour](sources/formats-2026-11-03/KODJO-Mise-a-jour-ecrans-formats-2026-11-03(3).md). Remplace les prescriptions antérieures contradictoires sur le périmètre Formats et départs rapides. Les sources de baselines restent conservées hors dépôt ; les archives OpenSpec ne sont pas modifiées.
 
 Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » (`510:101`). Les noms exacts des frames sont des références ; les paramètres, parcours et règles ci-dessous constituent la cible fonctionnelle. Galerie et statut des exports : chapitre 06, ancre formats-galerie. La configuration appartient à PRE-9 ; le moteur spécialisé reste PRE-10/11.
 
@@ -119,7 +119,7 @@ Tout Exercice ajouté ou déplacé dans un Circuit porteur d’un Format suit le
 |---|---|---|
 | AMRAP | Mode Répétitions ou Durée ; cible par passage ou À l’échec ; Incrément par tour en Répétitions ; Passage ; Récupération ; autres paramètres standards compatibles | Séries et durée globale ; l’Objectif de durée d’un passage reste local en mode Durée |
 | For time | Mode Répétitions, Condition d’arrêt À l’objectif ; Séries identiques ou variables, nombre = nombre de tours ; Cadence facultative sans incidence sur les durées ; Passage ; Récupération initiale 0 s ; Durée de l’exercice héritée, grisée | Borne temporelle et compte du Circuit ; la borne reste rappelée en lecture seule, exception explicite au retrait (§11) |
-| EMOM dans chaque intervalle | Mode Répétitions imposé (Durée grisé), Condition d’arrêt, Nombre de répétitions, Charge, Récupération initiale 0 s ; autres paramètres standards compatibles | Séries, Intervalle, Durée de l’exercice |
+| EMOM dans chaque intervalle | Mode Répétitions par défaut ou Durée, Condition d’arrêt, cible chiffrée propre au mode, Charge, Récupération initiale 0 s ; autres paramètres standards compatibles | Séries, Intervalle, Durée de l’exercice |
 | Death by dans chaque intervalle | Mode Répétitions, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, Cadence Sans, Récupération initiale 0 s | Compte ouvert et intervalle commun du Circuit ; durée globale non portée localement |
 | Death by en alternance | Mode Répétitions, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, **Intervalle propre modifiable dans la modale**, Cadence Sans, Récupération initiale 0 s | Identité Death by et compte ouvert au Circuit ; aucune durée dans son en-tête |
 
@@ -210,7 +210,7 @@ Affiché seulement si l’interrupteur Buy-in est activé. Mode catalogue dans l
 - **Paramètres d’exécution du récapitulatif** : Durée de chaque bloc (ou Durée de l’exercice si autonome), déjà prévue par la base. Nombre de blocs, Repos entre les blocs et Repos après chaque tour de boucle sont les réglages repris du questionnaire ; cette révision n’ajoute pas silencieusement des contrôles d’édition au récapitulatif. Aucun nouveau contrôle d’édition de ces autres réglages n’est ajouté ici ; le bouton Retour permet de les modifier au questionnaire, avec réponses conservées.
 - **Tableau des mouvements** : colonnes Mouvement | Rép. | Par tour | Max.
   - Par tour : affichée seulement si le Volume croissant est activé.
-  - Max (bouton radio) : exclusif avec Rép. ; activé, il grise Rép. et Par tour.
+  - Max (bouton radio) : exclusif avec Rép. ; activé, il masque et désactive les cases Rép. et Par tour, et renseigne la Condition d’arrêt À l’échec.
   - Ligne du buy-in : volume seul, ni Par tour ni Max.
 - **Déroulé** : frise des tours (buy-in, puis alternance des mouvements de la boucle, valeurs croissantes, « max »), calé en bas de l'écran, au-dessus du bouton. Si le contenu dépasse, le contenu de la modale défile, le bouton reste en bas.
 - **Bouton** « Enregistrer dans la séance » : crée l’Exercice ou le Circuit selon la section 1 dans le brouillon de Composition, sans sauvegarde définitive de la Séance à ce stade.
@@ -228,6 +228,38 @@ Affiché seulement si l’interrupteur Buy-in est activé. Mode catalogue dans l
   - « AMRAP — Modale exercice, dans un circuit » ;
   - « AMRAP — Modale exercice, dans un circuit, durée à l'échec » ;
   - « AMRAP — Modale exercice simple, à la cible » et « … à l'échec ».
+
+<a id="formats-formulaire-controles"></a>
+### 7.6 Tableaux, champs standards et contrôle du formulaire
+
+**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage.
+
+| Tableau | Case | Champ standard de l’Exercice |
+|---|---|---|
+| EMOM | Mode Rép. / Durée | Mode d’exécution Répétitions / Durée |
+| EMOM | Objectif en Rép. | Nombre de répétitions, cible chiffrée de chaque série |
+| EMOM | Objectif en Durée | Objectif de durée de chaque série |
+| Death by | Départ | Nombre de répétitions de départ |
+| Death by | Incrément | Incrément par intervalle ≥ +1 |
+| AMRAP | Rép. | Nombre de répétitions lu par tour |
+| AMRAP | Par tour | Incrément par tour |
+| AMRAP | Max | Condition d’arrêt À l’échec ; cases Rép. et Par tour masquées et inactives |
+| Progression | Répétitions de série k | Cible de la série k dans les séries variables |
+| Progression | Charge de série k | Charge de la série k, seulement si Charge de l’Exercice = Avec |
+
+La complétude porte sur les champs requis applicables : les cases Rép. et Par tour masquées et inactives par Max ne constituent pas des cibles numériques manquantes. Une charge Sans ne rend pas ses valeurs inactives obligatoires.
+
+**Initialisation :** valeurs initiales propres au Format à la création de la ligne : EMOM en Répétitions ; Death by départ 1 et incrément +1 ; Progression 10, 12, 14 pour ses trois séries initiales ; AMRAP selon le questionnaire. Les valeurs déjà saisies ne sont pas réinitialisées à chaque ouverture. Seuls les défauts effectivement repris du Profil gardent le fond orange jusqu’à la première validation (§14.3). Une nouvelle série supplémentaire de Progression reste à renseigner selon §9.3.
+
+**Changement de mode EMOM :** le Mode appartient à chaque Exercice. Rép. → Durée ou Durée → Rép. rend l’objectif à renseigner dans la nouvelle unité, sans conversion numérique ni valeur déduite. Séries, charge, côtés et phases compatibles sont conservés ; la nouvelle cible doit être renseignée pour activer Enregistrer. Une modification depuis le tableau ou depuis la modale est immédiatement reflétée dans l’autre vue du même brouillon.
+
+**Contrôle EMOM des durées — seuil inclusif :** en simple, alternance ou À la suite, bloquer si un objectif de durée est ≥ à l’Intervalle de cet Exercice ; Dans chaque intervalle, bloquer si la somme des objectifs de durée des membres est ≥ à l’intervalle commun. Les membres en Répétitions contribuent pour 0 à ce seul contrôle de durée connue : ni cadence ni phases ne servent à leur attribuer une durée ; cela ne signifie pas qu’ils ne réalisent aucun travail. Message explicatif sous le tableau, cadres des objectifs de durée concernés et de l’Intervalle sur fond rouge, validation désactivée tant que l’erreur subsiste. Le cas égal est refusé comme le dépassement. Même règle après l’ajout, dans la modale d’Exercice et lors de la modification d’intervalle depuis l’en-tête du Circuit : ne pas valider la modification incohérente. Une valeur candidate invalide peut être affichée dans la saisie, pas enregistrée comme configuration valide. Aucun changement de moteur ni nouveau champ de données.
+
+Exemples de contrôle pour W=60 s : 40 s est admissible ; 60 s et 70 s sont refusés. Dans chaque intervalle : 20 s + 30 s est admissible ; 30 s + 30 s et 30 s + 40 s sont refusés ; 10 répétitions + 30 s ne déclenche pas ce contrôle (durée connue 30 s), sous réserve des autres validations. L’objectif absent n’est pas remplacé par zéro : il bloque déjà la validation du formulaire.
+
+Le message peut être « Les durées atteignent ou dépassent l’intervalle de 1 min : il ne reste pas de temps pour le reste du travail ni pour le repos. » Il décrit la condition réelle, y compris l’égalité. Les durées de phase, pauses, récupérations et estimations des membres en Répétitions ne sont pas ajoutées silencieusement à la formule décidée, qui porte sur les objectifs de durée.
+
+Ce contrôle de formulaire ne modifie pas les frontières temporelles du moteur. Le cas B10 sans Mouvement demeure différé ; aucune nouvelle règle de création sans Mouvement n’est déduite de l’activation conditionnelle du bouton.
 
 ## 8. Limite connue
 
@@ -271,18 +303,18 @@ La Progression utilise les **séries variables standards** : répétitions et ch
 
 - **Questionnaire** (`8656:35005`) : Nombre de séries, Pause et Durée totale. Aucune ligne globale « Répétitions par série · 10 · 12 · 14 » sans mouvement ; déroulé générique 1, 2, 3 avec hauteurs égales. Les valeurs par mouvement se règlent au récapitulatif.
 - **Récapitulatif** (`8656:35062`) : tableau **Mouvement**, juste sous Nombre de séries et avant Pause, Durée totale et Exécution. Une ligne par mouvement, une colonne par série. Cadre blanc arrondi de rayon 8 dans le bloc gris, en-têtes gris, séparateurs fins et trait horizontal sous Nombre de séries. Hauteur de référence de l’écran : 874 px.
-- **Charge** : aucun interrupteur global. Le réglage Avec/Sans appartient à chaque Exercice. Sans charge, la cellule présente les répétitions ; Avec, la charge se place sous les répétitions. Exemples illustratifs : Squats sautés 10/12/14 sans charge ; Fentes avant 12 à 10 kg, 10 à 12 kg, 8 à 14 kg. Ces exemples ne deviennent pas des valeurs imposées à chaque mouvement.
-- **Saisie** : toucher une cellule ouvre le clavier sur cette cellule ; numérique pour les répétitions, décimal pour la charge (D-405). Suivant parcourt répétitions S1, charge S1 lorsqu’active, répétitions S2, etc. Le tableau reste visible au-dessus du clavier. La modale du mouvement reste accessible pour les autres paramètres, notamment Charge Avec/Sans. Cette saisie directe est propre au tableau Progression ; les autres contrôles standards gardent leurs interactions.
+- **Charge** : aucun interrupteur global. Le réglage Avec/Sans appartient à chaque Exercice. Sans charge, la cellule présente les répétitions ; Avec, la charge se place sous les répétitions. Exemples illustratifs : Squats sautés 10/12/14 sans charge ; Fentes avant 12 à 10 kg, 10 à 12 kg, 8 à 14 kg. Les répétitions 10/12/14 sont les valeurs initiales des trois séries de chaque nouvelle ligne (§7.6), librement modifiables ; la séquence de Fentes et les charges de cet exemple ne constituent pas un autre défaut.
+- **Saisie** : toucher une cellule ouvre le clavier sur cette cellule ; numérique pour les répétitions, décimal pour la charge (D-405). Suivant parcourt répétitions S1, charge S1 lorsqu’active, répétitions S2, etc. Le tableau reste visible au-dessus du clavier. La modale du mouvement reste accessible pour les autres paramètres, notamment Charge Avec/Sans. Le parcours série par série décrit ici est propre au tableau Progression ; les tableaux EMOM, Death by et AMRAP éditent leurs propres cases selon les contrôles standards et le §7.6.
 - **Nombre de séries** : passer de 3 à 4 ajoute une colonne à compléter ; passer à 2 retire la dernière, sans confirmation de perte. Aucune valeur de répétitions ou charge n’est inventée pour la nouvelle colonne. La validation standard signale les champs obligatoires manquants.
 - **Déroulé** : il lit le tableau courant, avec hauteurs proportionnelles aux répétitions ; la charge ne devient pas un facteur de calcul temporel. En-tête de tableau de référence 28 px, ligne avec charge 44 px, 12 px au-dessus du déroulé.
 
 ## 10. Application de la règle à l'EMOM
 
-Champ propre au format, porté par l'exercice (Type d'exercice = EMOM) : **Intervalle** (1 min par défaut), qui remplace la Pause. Chaque série démarre au début d'un intervalle ; le repos est le temps restant jusqu'à l'intervalle suivant. Les paramètres standards compatibles restent applicables ; **Mode Répétitions imposé**, option Durée grisée et non sélectionnable, dans toutes les organisations. Ce n’est pas un simple défaut initial.
+Champ propre au format, porté par l'exercice (Type d'exercice = EMOM) : **Intervalle** (1 min par défaut), qui remplace la Pause. Chaque série démarre au début d'un intervalle ; le repos est le temps restant jusqu'à l'intervalle suivant. Les paramètres standards compatibles restent applicables ; **Répétitions par défaut et Durée possible**, par Exercice et dans toutes les organisations. Un EMOM peut associer 10 burpees et 20 s de gainage dans chaque minute, ou un seul gainage de 40 s par minute. Les objectifs en Durée sont soumis au contrôle strict de l’intervalle du §7.6.
 
 Paramètres du questionnaire : Nombre de séries (6), Intervalle (1 min) ; avec plusieurs mouvements, choix de l'Exécution : **Dans chaque intervalle | À la suite | En alternance**.
 
-Exemple : 2 mouvements, 6 séries, intervalle 1 min, 10 répétitions.
+Exemple chiffré ci-dessous : 2 mouvements, 6 séries, intervalle 1 min, 10 répétitions par mouvement. Le mode et la cible restent propres à chaque Exercice ; les tableaux actuels montrent aussi un mélange 10 répétitions / 30 s.
 
 | Exécution | Ce qui se passe | Structure créée | Paramétrage de chaque exercice | Durée |
 |---|---|---|---|---|
@@ -297,7 +329,11 @@ Exemple : 2 mouvements, 6 séries, intervalle 1 min, 10 répétitions.
 
 Le Nombre de séries garde le même sens qu’au Tabata (séries de chaque mouvement).
 
-**Récapitulatifs à plusieurs mouvements :** tableau « Mouvement | Rép. » juste sous Nombre de séries, pour Dans chaque intervalle, En alternance et À la suite. Une valeur par Exercice (exemples : Squats sautés 10, Fentes avant 15), sans cible commune écrasant les valeurs locales. Tableau blanc arrondi dans cadre gris, en-têtes gris et séparateurs fins, valeurs alignées à droite sur le texte des autres valeurs. La ligne « Repos · jusqu’à la cadence » est retirée ; le repos résiduel n’est ni un paramètre réglable ni le Bip de cadence. Les formules de durée et le rythme des fenêtres restent inchangés.
+**EMOM : Répétitions par défaut, Durée possible par Exercice**, y compris les mélanges dans un intervalle commun. Aux récapitulatifs multi-mouvements, tableau **Mouvement | Objectif | Mode** immédiatement sous Nombre de séries. Mode à droite, popover Rép. / Durée comme Exécution ; Objectif modifiable à sa gauche, « 10 » sans unité de répétitions, « 30 s » avec unité de durée. Champs Mode de largeur commune, champs Objectif de largeur commune et contenu centré. Changer le mode change celui de l’Exercice et laisse l’objectif à renseigner, sans conversion ni valeur inventée ; séries, charge, côtés et phases compatibles sont conservés. Retirer la ligne « Repos · jusqu’à la cadence » : le repos est le restant de fenêtre, pas un paramètre. Death by multi-mouvements : tableau **Mouvement | Départ | Incrément** sous Intervalle, valeurs propres à chaque Exercice et incrément ≥ +1 ; le cas à un mouvement conserve ses lignes.
+
+**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage.
+
+**Contrôle EMOM des durées — seuil inclusif :** en simple, alternance ou À la suite, bloquer si un objectif de durée est ≥ à l’Intervalle de cet Exercice ; Dans chaque intervalle, bloquer si la somme des objectifs de durée des membres est ≥ à l’intervalle commun. Les membres en Répétitions contribuent pour 0 à ce seul contrôle de durée connue : ni cadence ni phases ne servent à leur attribuer une durée ; cela ne signifie pas qu’ils ne réalisent aucun travail. Message explicatif sous le tableau, cadres des objectifs de durée concernés et de l’Intervalle sur fond rouge, validation désactivée tant que l’erreur subsiste. Le cas égal est refusé comme le dépassement. Même règle après l’ajout, dans la modale d’Exercice et lors de la modification d’intervalle depuis l’en-tête du Circuit : ne pas valider la modification incohérente. Une valeur candidate invalide peut être affichée dans la saisie, pas enregistrée comme configuration valide. Aucun changement de moteur ni nouveau champ de données.
 
 ## 11. Application de la règle au For time
 

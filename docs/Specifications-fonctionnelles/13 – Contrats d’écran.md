@@ -2480,7 +2480,7 @@ Modale sur Composition voilée ; en-tête nom du Format, sans bloc ni champ Titr
 
 Questionnaire Progression : Nombre de séries, Pause, Durée totale ; aucune cible globale sans Mouvement. Récapitulatif : une ligne par mouvement et une colonne par série ; répétitions, charge en dessous si Avec pour cet Exercice ; aucun interrupteur de charge global.
 
-EMOM multi-mouvements : Mouvement | Rép. juste sous Nombre de séries. Death by multi-mouvements : Mouvement | Départ | Incrément juste sous Intervalle, en remplacement des deux lignes communes, valeurs locales et incrément ≥ +1 ; un seul mouvement conserve ses lignes. Aucune ligne Repos · jusqu’à la cadence. Petite carte : zones corporelles avec pastille 12 px gris à la place de la description, toutes variantes.
+EMOM multi-mouvements : Mouvement | Objectif | Mode juste sous Nombre de séries ; Mode Rép. / Durée en popover à droite, Objectif modifiable à gauche, valeurs sans unité en Rép. et avec unité en Durée. Largeur commune pour les champs Mode, largeur commune pour les champs Objectif, contenu centré ; les deux colonnes partagent un bord commun. Cette présentation spécifique remplace pour EMOM l’alignement numérique générique décrit plus bas. Death by multi-mouvements : Mouvement | Départ | Incrément juste sous Intervalle, en remplacement des deux lignes communes, valeurs locales et incrément ≥ +1 ; un seul mouvement conserve ses lignes. Aucune ligne Repos · jusqu’à la cadence. Petite carte : zones corporelles avec pastille 12 px gris à la place de la description, toutes variantes.
 
 #### 9. Layout déterministe
 
@@ -2510,6 +2510,10 @@ Tap, clavier et Suivant ; réordonnancement/suppression selon règles existantes
 
 #### 14. Validation
 
+**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage.
+
+**Contrôle EMOM des durées — seuil inclusif :** en simple, alternance ou À la suite, bloquer si un objectif de durée est ≥ à l’Intervalle de cet Exercice ; Dans chaque intervalle, bloquer si la somme des objectifs de durée des membres est ≥ à l’intervalle commun. Les membres en Répétitions contribuent pour 0 à ce seul contrôle de durée connue : ni cadence ni phases ne servent à leur attribuer une durée ; cela ne signifie pas qu’ils ne réalisent aucun travail. Message explicatif sous le tableau, cadres des objectifs de durée concernés et de l’Intervalle sur fond rouge, validation désactivée tant que l’erreur subsiste. Le cas égal est refusé comme le dépassement. Même règle après l’ajout, dans la modale d’Exercice et lors de la modification d’intervalle depuis l’en-tête du Circuit : ne pas valider la modification incohérente. Une valeur candidate invalide peut être affichée dans la saisie, pas enregistrée comme configuration valide. Aucun changement de moteur ni nouveau champ de données.
+
 Champs manquants distincts du zéro, volumes valides ; deux mouvements sélectionnés pour Superset ; pas de valeur inventée pour compléter Progression ou For time.
 
 #### 15. Brouillon et persistance
@@ -2532,11 +2536,11 @@ Libellé de cellule associant mouvement, série, répétitions ou charge ; ordre
 
 FMT-08/14/15/19/20/26/28/29/30/31 ; cadence AMRAP/For time sans effet temporel ; données de tableau identiques aux séries de l’Exercice.
 
-Mode EMOM imposé à Répétitions ; Durée grisée non sélectionnable. Tableaux EMOM/Death by projettent les paramètres des Exercices existants, aucun champ de stockage supplémentaire.
+EMOM Répétitions par défaut, Durée possible par Exercice ; tableau et modale partagent Mode et cible. Changement de mode : objectif à renseigner sans conversion ; autres paramètres compatibles conservés. Max AMRAP renseigne À l’échec et masque/désactive Rép. et Par tour. Progression initialise ses trois séries à 10, 12, 14 ; les séries supplémentaires sont à renseigner. Tableaux EMOM/Death by/AMRAP/Progression : mêmes champs standards que la modale, aucun second stockage ni champ supplémentaire.
 
 #### 20. Recette déterministe
 
-Questionnaire→Valider les paramètres→récapitulatif→Retour conserve réponses sans ajout ; Enregistrer ajoute une seule fois au brouillon. Recherche Squ→Ouvrir le mode catalogue conserve Squ et filtre ; Fermer sans ajout ; Ajouter multiple, buy-in unique ; croix efface. Photo→Fiche consultation→croix conserve état. EMOM A10/B15 et Death by A1/+1, B2/+2 sont distincts après enregistrement/réouverture. Aucun nom de Séance dans les formulaires. Alignement texte et bouton fixe vérifiés sur référence ; Progression 3→4 ajoute une colonne vide, 3→2 retire la dernière ; saisie mixte avec/sans charge ; 40 min pour 3×12 + 2×2 ; Tabata À la suite 530 s.
+Questionnaire→Valider les paramètres→récapitulatif→Retour conserve réponses sans ajout ; Enregistrer ajoute une seule fois au brouillon. Recherche Squ→Ouvrir le mode catalogue conserve Squ et filtre ; Fermer sans ajout ; Ajouter multiple, buy-in unique ; croix efface. Photo→Fiche consultation→croix conserve état. EMOM A10 Rép. / B30 s Durée et Death by A1/+1, B2/+2 sont distincts après enregistrement/réouverture. Passer Rép.→Durée→Rép. laisse à chaque fois une cible à renseigner, bouton désactivé jusqu’à complétude. W60 : 59 s admis, 60/70 refusés ; commun 20+30 admis, 30+30 refusé ; Rép.10 + Durée30 admis par ce contrôle. Message sous tableau, objectifs et intervalle rouges ; contrôle aussi depuis modale et en-tête après ajout. Les états incomplets post-modification de Composition restent distincts du formulaire de création. Aucun nom de Séance dans les formulaires. Alignement texte et bouton fixe vérifiés sur référence ; Progression 3→4 ajoute une colonne vide, 3→2 retire la dernière ; saisie mixte avec/sans charge ; 40 min pour 3×12 + 2×2 ; Tabata À la suite 530 s.
 
 ### CE-FMT-03 — Composition d’une séance issue d’un modèle
 <a id="ce-fmt-03--composition-dune-séance-issue-dun-format"></a>
@@ -2658,7 +2662,7 @@ Feuille standard et ses six blocs : Exécution, Phases du mouvement, Séries, C�
 
 #### 8. Éléments obligatoires
 
-EMOM en Répétitions imposé, Durée grisée non sélectionnable (standard et dans chaque intervalle) ; AMRAP autonome en Répétitions ; membres AMRAP selon mode compatible ; Passage/incrément lorsqu’applicables ; For time borne héritée grisée ; Death by départ/incrément visibles avec À l’échec ; intervalle local en Death by alterné.
+EMOM Répétitions par défaut ou Durée (standard et dans chaque intervalle), cible propre à chaque Exercice ; AMRAP autonome en Répétitions ; membres AMRAP selon mode compatible ; Passage/incrément lorsqu’applicables ; For time borne héritée grisée ; Death by départ/incrément visibles avec À l’échec ; intervalle local en Death by alterné.
 
 #### 9. Layout déterministe
 
@@ -2681,6 +2685,10 @@ Réglages autorisés actualisent la prescription ; cadence facultative AMRAP/For
 Interactions standards des paramètres ; la saisie directe au clavier de Progression est limitée au récapitulatif CE-FMT-02.
 
 #### 14. Validation
+
+**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage.
+
+**Contrôle EMOM des durées — seuil inclusif :** en simple, alternance ou À la suite, bloquer si un objectif de durée est ≥ à l’Intervalle de cet Exercice ; Dans chaque intervalle, bloquer si la somme des objectifs de durée des membres est ≥ à l’intervalle commun. Les membres en Répétitions contribuent pour 0 à ce seul contrôle de durée connue : ni cadence ni phases ne servent à leur attribuer une durée ; cela ne signifie pas qu’ils ne réalisent aucun travail. Message explicatif sous le tableau, cadres des objectifs de durée concernés et de l’Intervalle sur fond rouge, validation désactivée tant que l’erreur subsiste. Le cas égal est refusé comme le dépassement. Même règle après l’ajout, dans la modale d’Exercice et lors de la modification d’intervalle depuis l’en-tête du Circuit : ne pas valider la modification incohérente. Une valeur candidate invalide peut être affichée dans la saisie, pas enregistrée comme configuration valide. Aucun changement de moteur ni nouveau champ de données.
 
 Valider contraintes réelles au domaine, paramètres obligatoires et compatibilité ; aucun refus fondé sur d’anciennes constantes Tabata/30/30.
 
@@ -2705,6 +2713,8 @@ Libellés et états explicites ; contrastes et composants existants ; pas de nou
 FMT-03/04/17/19/26/29/30/31/34/42 ; phases compatibles selon D-446 sans adaptation proportionnelle inventée.
 
 #### 20. Recette déterministe
+
+Objectif EMOM 40 s / intervalle 60 s valide ; porter l’objectif à 60 s, ou l’intervalle à 40 s, affiche l’erreur et bloque la validation. Circuit commun avec deux membres de 30 s : intervalle 60 s refusé ; passage à 61 s lève cette erreur si le reste est valide. Changer l’objectif depuis la modale se reflète dans le tableau, et inversement.
 
 Tabata et 30/30 modifiables ; cadence AMRAP/For time activable sans effet temporel ; Death by alterné conserve son intervalle local, groupé coordonné référence celui du Circuit ; annulation réversible.
 

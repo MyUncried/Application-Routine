@@ -1333,7 +1333,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-20"></a>
 #### RM-FMT-20
 
-**FMT-20.** EMOM : Mode Répétitions imposé, option Durée grisée et non sélectionnable, quelle que soit l’organisation ; intervalle et compte ; avec plusieurs mouvements, Dans chaque intervalle, À la suite ou En alternance. Chaque Exercice conserve sa cible propre, exposée au récapitulatif dans Mouvement | Rép. L’intervalle n’est pas le Bip de cadence.
+**FMT-20.** EMOM : Répétitions par défaut, Durée possible et modes propres à chaque Exercice, y compris mélangés dans un intervalle commun. Tableau Mouvement | Objectif | Mode ; changement de mode sans conversion, objectif à renseigner. Intervalle et compte selon Dans chaque intervalle, À la suite ou En alternance. L’intervalle n’est pas le Bip de cadence. Formulaire complet et contrôle strict des objectifs de durée selon [Contrôles du formulaire Formats](../KODJO-Formats-entrainement-2026-11-02.md#formats-formulaire-controles) : objectif ≥ intervalle local ou somme des objectifs de durée ≥ intervalle commun bloque la validation ; les membres en Répétitions ne contribuent pas à cette somme.
 
 <a id="fmt-21"></a>
 #### RM-FMT-21
@@ -1550,7 +1550,7 @@ La généralisation aux formats cadencés porte sur la borne par compte. Elle ne
 
 ### Formats de séances — comportements consolidés — EMOM : fenêtres et borne
 
-- **FMT-20.** EMOM : Mode Répétitions imposé, option Durée grisée et non sélectionnable, quelle que soit l’organisation ; intervalle et compte ; avec plusieurs mouvements, Dans chaque intervalle, À la suite ou En alternance. Chaque Exercice conserve sa cible propre, exposée au récapitulatif dans Mouvement | Rép. L’intervalle n’est pas le Bip de cadence.
+- **FMT-20.** EMOM : Répétitions par défaut, Durée possible et modes propres à chaque Exercice, y compris mélangés dans un intervalle commun. Tableau Mouvement | Objectif | Mode ; changement de mode sans conversion, objectif à renseigner. Intervalle et compte selon Dans chaque intervalle, À la suite ou En alternance. L’intervalle n’est pas le Bip de cadence. Formulaire complet et contrôle strict des objectifs de durée selon [Contrôles du formulaire Formats](../KODJO-Formats-entrainement-2026-11-02.md#formats-formulaire-controles) : objectif ≥ intervalle local ou somme des objectifs de durée ≥ intervalle commun bloque la validation ; les membres en Répétitions ne contribuent pas à cette somme.
 - **FMT-21.** EMOM autonome : N×W ; À la suite avec E membres : E×N×W et récupérations configurées ; alterné standard : E×N×W ; dans chaque intervalle : Circuit groupé porteur, intervalle commun W et durée N×W. Aucune double multiplication.
 - **FMT-22 — Composition.** Ajouter ou retirer un exercice conserve le nombre de tours et recalcule la durée. La durée n’entraîne aucun arrondi du nombre de tours ni dernier tour tronqué.
 - **FMT-23 — Fenêtre.** Chaque fenêtre va jusqu’à son terme ; la suivante commence à l’échéance. Terminer l’objectif avant l’échéance ne raccourcit pas la fenêtre. Ne pas terminer l’objectif ne prolonge pas la fenêtre.

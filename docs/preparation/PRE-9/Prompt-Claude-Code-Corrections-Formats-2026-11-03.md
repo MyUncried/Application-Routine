@@ -13,7 +13,7 @@ Lis tout le périmètre affecté, pas seulement le diff du code :
 - Chapitre 08, section Formats ; chapitre 13, CE-FMT-01, CE-FMT-02 et CE-FMT-04.
 - Chapitre 10 FMT-20 et FMT-21–25 ; chapitres 04/09/12 pour les invariants et le stockage existant.
 - `_bmad-output/pre9/planning-artifacts/epics.md` C.2–C.4 et `architecture-pre9.md`.
-- Source détaillée : `docs/sources/formats-2026-11-03/KODJO-Mise-a-jour-ecrans-formats-2026-11-03.md`.
+- Source détaillée : `docs/sources/formats-2026-11-03/KODJO-Mise-a-jour-ecrans-formats-2026-11-03(3).md`.
 
 Figma est la référence visuelle actuelle : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP `510:101`. Contrôle directement les frames et composants concernés avec le connecteur disponible. Les captures datées du 3 novembre sont indexées dans `docs/figma-formats-2026-11-02/captures.json`. Leurs identifiants restent stables même si les frames ont été déplacées sur le canevas.
 
@@ -52,13 +52,15 @@ Dans questionnaire et récapitulatif, toucher la **photo** de la petite carte ou
 
 Croix et titre « Fiche du mouvement », fond blanc et trait conservés, apparition par le bas, largeur complète et coins hauts 24 px. Fermer restitue réponses, recherche, sélection et état de la vue sous-jacente. L’appui sur le reste de la carte garde son comportement existant ; l’appui photo ne doit pas sélectionner/supprimer le mouvement par propagation du geste.
 
-## 4. EMOM
+## 4. EMOM : Objectif et Mode propres à chaque Exercice
 
-**Mode Répétitions imposé**, Durée grisée et non sélectionnable, dans les modales standard et dans chaque intervalle et toutes les organisations. Applique la contrainte dans la validation des nouvelles configurations, pas seulement dans le rendu. Ne convertis ni ne réécris silencieusement des données historiques.
+**Répétitions est le défaut, Durée reste possible** dans toutes les organisations ; mélange de modes autorisé. Retire la consigne antérieure de verrouillage à Répétitions et tout refus de Durée introduit pour l’appliquer. Les paramètres standard des modales EMOM restent sélectionnables conformément aux règles actives ; aucun nouveau verrou.
 
-Récapitulatifs à plusieurs mouvements, dans chaque intervalle / alternance / à la suite : tableau **Mouvement | Rép.** juste sous Nombre de séries. Chaque ligne modifie les paramètres existants de son Exercice ; A=10 et B=15 restent distincts lors de l’enregistrement puis de la réouverture. Réutilise tableaux et saisies existants, sans second stockage.
+Récapitulatifs à plusieurs mouvements dans chaque intervalle / alternance / à la suite : tableau **Mouvement | Objectif | Mode** juste sous Nombre de séries. Mode à droite, popover Rép. / Durée comme Exécution ; Objectif modifiable à sa gauche. Répétitions sans unité (« 10 »), Durée avec unité (« 30 s »). Tous les champs Mode ont la même largeur et tous les champs Objectif une largeur commune, contenu centré ; respecte les alignements Figma spécifiques à ce tableau.
 
-Supprime la ligne **Repos · jusqu’à la cadence**. Le repos reste le temps résiduel de fenêtre ; aucun changement de formule ou de rythme du moteur n’est demandé.
+Chaque ligne modifie les champs standards Mode et cible de son Exercice. Mode changé → objectif à renseigner dans la nouvelle unité, sans conversion ni valeur inventée ; séries, charge, côtés et phases compatibles conservés. Enregistrer reste désactivé tant que la cible manque. Tableau et modale restent synchronisés, pas de second stockage.
+
+Supprime la ligne Repos · jusqu’à la cadence. Le repos reste le temps résiduel de fenêtre, sans changement de formule ou de rythme du moteur.
 
 ## 5. Death by
 
@@ -71,6 +73,24 @@ Conserve les règles de portage actuelles, l’intervalle local Death by altern�
 Dans le composant **Carte — Mouvement sélectionné**, 370 × 52 sur la référence, remplace la description tronquée par les zones corporelles précédées de leur pastille, 12 px gris comme en Composition. Applique aux variantes Possible/Bloquée/Aucune et à tous leurs usages : suggestions, mode catalogue, récapitulatifs. Préserve suppression glissée, dernier membre protégé et réordonnancement. Ne généralise pas le changement aux autres familles de cartes.
 
 Dans les cadres des questionnaires/récapitulatifs, aligne les valeurs non modifiables sur le **texte** des valeurs modifiables, pas sur le bord de leur pastille : retrait 10 px sur la référence. Même alignement dans les colonnes numériques des tableaux. Tableau blanc arrondi dans cadre gris, en-têtes gris et séparateurs fins.
+
+## 7. Tableaux alimentant les Exercices et initialisation
+
+Relis le §7.6 de la référence Formats, tableau de correspondance complet. EMOM : Mode et cible propre à l’unité ; Death by : départ et incrément ; AMRAP : répétitions, incrément par tour et Max alimentant Condition d’arrêt À l’échec (Rép. et Par tour masqués et inactifs) ; Progression : cible/charge de chaque série, charge si Avec pour cet Exercice. Modales et tableaux éditent les mêmes champs, sans nouvelle table ni champ de stockage.
+
+Valeurs initiales par ligne à la création : EMOM Répétitions ; Death by départ 1/+1 ; Progression 10/12/14 pour ses trois séries initiales, séries ajoutées ensuite à renseigner ; AMRAP selon questionnaire. Ne réinitialise pas les valeurs modifiées lors des réouvertures. Seuls les défauts effectivement repris du Profil gardent leur fond orange avant première validation.
+
+## 8. Contrôle du formulaire et des durées EMOM
+
+« Enregistrer dans la séance » est actif **seulement si tous les paramètres requis sont renseignés et cohérents**. Valeur manquante signalée dans son cadre ; aucune création incomplète depuis le récapitulatif. Ne détourne pas l’état « Paramètres à compléter » pour autoriser cette sortie : il reste applicable aux Exercices modifiés ensuite dans la Composition, selon les règles d’entrée/sortie existantes. La complétude porte sur les champs requis actifs : Max AMRAP n’exige pas les valeurs numériques qu’il masque et désactive, et Charge Sans n’exige pas de charge. La règle porte sur Enregistrer au récapitulatif, sans inventer une nouvelle condition sur Valider les paramètres au questionnaire ni trancher B10 sans Mouvement.
+
+Réutilise une même validation de cohérence pour les entrées concernées :
+- Simple / alternance / À la suite : un objectif de durée ≥ Intervalle de l’Exercice est invalide.
+- Dans chaque intervalle : somme des objectifs de durée des membres ≥ intervalle commun est invalide. Les membres en Répétitions comptent pour 0 dans cette somme connue ; ne les convertis pas depuis cadence ou phases. Une cible manquante bloque séparément ; elle n’est pas remplacée par zéro.
+- Message sous le tableau, par exemple « Les durées atteignent ou dépassent l’intervalle de 1 min : il ne reste pas de temps pour le reste du travail ni pour le repos. » ; cadres des objectifs de durée concernés et de l’intervalle sur fond rouge ; Enregistrer désactivé. Le seuil est inclusif : l’égalité est refusée.
+- Après ajout à Composition, applique la même règle aux modifications depuis la modale d’Exercice et depuis l’en-tête d’intervalle Circuit. Affiche la valeur candidate en erreur et bloque sa validation ; n’enregistre pas une configuration incohérente. Réutilise les interactions de validation existantes ; pas de nouveau dialogue, ni modification silencieuse des autres objectifs pour faire entrer la valeur.
+
+Vérifie au domaine et aux frontières de sauvegarde que le contrôle ne peut pas être contourné par une autre entrée du même formulaire. Ne réécris pas les anciens historiques et ne lance pas de migration implicite. Les mécanismes du moteur restent inchangés.
 
 ## Références Figma prioritaires
 
@@ -95,8 +115,12 @@ Ajoute ou adapte les tests utiles :
 - transitions questionnaire/récapitulatif/Retour/croix, conservation des valeurs et du nom de Séance, absence d’ajout avant Enregistrer et absence de double ajout ;
 - mode catalogue conservant la recherche, effacement, filtres/tri/piles, Ajouter et fermer sans ajout, sélection unique buy-in ;
 - photo ouvrant la consultation seule et fermeture conservant l’état, geste distinct de la sélection ;
-- EMOM imposant Répétitions et refusant une nouvelle configuration Durée ;
-- tableaux EMOM et Death by avec valeurs différentes par mouvement, persistance et relecture à l’identique ; incrément minimum ;
+- EMOM autorisant Répétitions et Durée, y compris A=10 Rép. et B=30 s dans la même fenêtre ; changement dans chaque sens laissant une cible à renseigner sans conversion ni perte des paramètres compatibles ;
+- tableaux EMOM et Death by avec valeurs et modes différents par mouvement, synchronisation tableau/modale, persistance et relecture à l’identique ; incrément minimum ;
+- formulaire incomplet : Enregistrer désactivé et aucune structure ajoutée, puis activation après complétude ; l’état incomplet d’une modification ultérieure de Composition reste distinct ;
+- seuil EMOM W=60 : 59 s admis, 60 et 70 refusés ; commun 20+30 admis, 30+30 et 30+40 refusés ; Rép.10 + Durée30 n’échoue pas à ce contrôle ; une estimation de durée en Répétitions ne contribue pas à la somme ;
+- contrôle après ajout depuis modale et en-tête Circuit, erreur rouge/message, validation bloquée puis rétablie après correction ;
+- correspondances AMRAP Max/Condition d’arrêt, masquage des cibles, Progression initialisée 10/12/14, séries suivantes à renseigner et défauts Profil orange sans confusion avec les valeurs de Format ;
 - petites cartes toutes variantes sans régression de suppression/réordonnancement ;
 - non-régression des porteurs, calculs de durées et ajouts au brouillon existants.
 
