@@ -20,8 +20,11 @@ import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/t
  * la projection de lecture (`projectSessionForCatalogue`, E.1).
  *
  * - Visuel carré 64 à 8 du bord (média de l'Exercice, sinon vignette Libre) ; texte à 84.
- * - Nom, suivi du chevron SEULEMENT pour plusieurs Exercices ; ce chevron est le seul contrôle de
- *   déploiement (E.3) ; il pointe vers le haut une fois ouvert.
+ * - [Nom, suivi du chevron SEULEMENT pour plusieurs Exercices ; ce chevron est le seul contrôle de
+ *   déploiement (E.3) ; il pointe vers le haut une fois ouvert. — remplacé le 03/11/2026]
+ *   Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « toutes les séances, même celles
+ *   avec un seul exercice doivent avoir un chevron et une vue déployée. ») : nom suivi du chevron
+ *   pour TOUTE Séance (un Exercice, plusieurs, ou aucun) ; il pointe vers le haut une fois ouvert.
  * - Catégories précédées de leur pastille, dédupliquées, « +N » quand elles dépassent la largeur,
  *   jamais coupées au milieu d'un mot (`fitCategoryCount`). Ni étiquette ni zone sur la carte.
  * - Synthèse : format, sinon N exercices, sinon volume ; puis la durée en minutes et secondes, sans
@@ -30,14 +33,23 @@ import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/t
  *   indisponible (aucune Exécution ; CE-T03-01). Un toucher sur elle n'ouvre rien.
  * - Archivée : aucune action directe ; la colonne de texte va jusqu'à la marge.
  *
- * Le toucher de la carte (ouvrir la Composition) et le glissé sont portés par l'appelant
- * (`SwipeActionsRow`, E.5) ; le chevron et Lecture interceptent leur propre toucher.
+ * [Le toucher de la carte (ouvrir la Composition) et le glissé sont portés par l'appelant
+ * (`SwipeActionsRow`, E.5) ; le chevron et Lecture interceptent leur propre toucher. — remplacé le
+ * 03/11/2026]
+ * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « l'appui sur la photo ou l'appui sur
+ * la zone déployée ouvre la séance en modification, l'appui sur le reste de la carte (dont le
+ * chevron) déploie la séance. ») : le visuel et la composition déployée interceptent leur toucher
+ * et ouvrent la Composition (`onOpen`) ; le toucher du reste de la carte (déploiement) et le glissé
+ * sont portés par l'appelant (`SwipeActionsRow`, E.5) ; le chevron déploie aussi et Lecture
+ * intercepte son propre toucher.
  */
 
 export type SessionCardProps = {
   readonly projection: SessionCatalogueProjection;
   readonly expanded?: boolean;
   readonly onToggleExpanded?: () => void;
+  /** Recette iPhone n° 3 du 03/11/2026 : toucher du visuel ou de la composition déployée. */
+  readonly onOpen?: () => void;
   /** E.3 : composition déployée, rendue sous l'en-tête. */
   readonly children?: ReactNode;
 };
@@ -71,7 +83,7 @@ export function fitCategoryCount(
   return Math.min(total, 1);
 }
 
-export function SessionCard({ projection, expanded = false, onToggleExpanded, children }: SessionCardProps) {
+export function SessionCard({ projection, expanded = false, onToggleExpanded, onOpen, children }: SessionCardProps) {
   const archived = projection.status === "ARCHIVED";
   const incomplete = projection.incomplete;
   // PRE-9, contre-recette n° 3 (cr4-verifier) : carte orange « Paramètre à vérifier » ; le rouge prime.
@@ -96,32 +108,36 @@ export function SessionCard({ projection, expanded = false, onToggleExpanded, ch
       testID={`session-card-${id}`}
     >
       <View style={[styles.header, flagged ? styles.headerIncomplete : null]}>
-        <CardVisual projection={projection} />
+        {/* Recette iPhone n° 3 du 03/11/2026 : le visuel ouvre la Séance en modification. Pour
+            VoiceOver, la carte reste un seul élément (ouverture : action nommée de l'appelant). */}
+        <Pressable onPress={onOpen} accessible={false} testID={`session-card-${id}-visual-open`}>
+          <CardVisual projection={projection} />
+        </Pressable>
         <View style={[styles.texts, archived ? styles.textsArchived : null]}>
           <View style={styles.titleRow}>
             <Text style={styles.name} numberOfLines={1} testID={`session-card-${id}-name`}>
               {projection.name}
             </Text>
-            {projection.expandable ? (
-              <Pressable
-                onPress={onToggleExpanded}
-                accessibilityRole="button"
-                accessibilityLabel={fillTemplate(expanded ? t.collapseAccessibilityLabel : t.expandAccessibilityLabel, {
-                  name: projection.name,
-                })}
-                accessibilityState={{ expanded }}
-                hitSlop={CHEVRON_HIT_SLOP}
-                style={styles.chevron}
-                testID={`session-card-${id}-disclosure`}
-              >
-                <Image
-                  source={CHEVRON_ICON}
-                  style={[styles.chevronIcon, expanded ? styles.chevronOpen : null]}
-                  accessible={false}
-                  testID={`session-card-${id}-chevron${expanded ? "-open" : ""}`}
-                />
-              </Pressable>
-            ) : null}
+            {/* Recette iPhone n° 3 du 03/11/2026 : chevron sur toute Séance (ancienne condition
+                `projection.expandable`, plusieurs Exercices, retirée). */}
+            <Pressable
+              onPress={onToggleExpanded}
+              accessibilityRole="button"
+              accessibilityLabel={fillTemplate(expanded ? t.collapseAccessibilityLabel : t.expandAccessibilityLabel, {
+                name: projection.name,
+              })}
+              accessibilityState={{ expanded }}
+              hitSlop={CHEVRON_HIT_SLOP}
+              style={styles.chevron}
+              testID={`session-card-${id}-disclosure`}
+            >
+              <Image
+                source={CHEVRON_ICON}
+                style={[styles.chevronIcon, expanded ? styles.chevronOpen : null]}
+                accessible={false}
+                testID={`session-card-${id}-chevron${expanded ? "-open" : ""}`}
+              />
+            </Pressable>
           </View>
           <CategoryLine categories={projection.categories} testID={`session-card-${id}-categories`} />
           <View style={styles.synthesisRow}>
@@ -153,7 +169,12 @@ export function SessionCard({ projection, expanded = false, onToggleExpanded, ch
           <KodjoIcon name="action-start" opacity={0.55} />
         </Pressable>
       ) : null}
-      {expanded ? children : null}
+      {expanded ? (
+        // Recette iPhone n° 3 du 03/11/2026 : la zone déployée ouvre la Séance en modification.
+        <Pressable onPress={onOpen} accessible={false} testID={`session-card-${id}-expanded-open`}>
+          {children}
+        </Pressable>
+      ) : null}
     </View>
   );
 }

@@ -309,6 +309,13 @@ export type CircuitHeaderProps = {
   readonly moveActions?: ContainerMoveActions;
   /** PRE-9 C.4 : Circuit porteur d'un Format (voir `CarrierHeader`) ; absent : Circuit standard. */
   readonly carrier?: CarrierHeader;
+  /**
+   * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « remplacer le nom mot "Circuit" par
+   * le nom du format ») : nom du modèle d'origine d'un Circuit standard créé par la fenêtre Formats
+   * (« Tabata », « Renforcement »…), affiché à la place de « Circuit » (lettre conservée) ; absent :
+   * « Circuit ». Un Circuit porteur affiche le nom de son Format (`carrier`).
+   */
+  readonly originTitle?: string;
   readonly testID: string;
 };
 
@@ -399,10 +406,11 @@ export function CircuitHeader({
   onLongPress,
   moveActions,
   carrier,
+  originTitle,
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
-  const title = carrier !== undefined ? carrier.title : containerTitle(t.title, letter);
+  const title = carrier !== undefined ? carrier.title : containerTitle(originTitle ?? t.title, letter);
   // Recette n° 2 du 31/10 : la durée porte aussi l'appui long de saisie.
   const durationGrab = durationGrabProps(onLongPress);
   return (
@@ -880,10 +888,16 @@ function CircuitCounter({
       </Text>
       <View style={styles.adjectiveSlot} testID={`${testID}-adjective-slot`}>
         {carrier !== undefined ? (
-          // Nature fixée par le Format d'origine (§1) : texte, sans menu.
-          <Text style={[styles.adjective, styles.carrierNature]} numberOfLines={1} testID={`${testID}-adjective`}>
-            {circuitNatureAdjective(nature)}
-          </Text>
+          // Nature fixée par le Format d'origine (§1) : texte, sans menu. Recette iPhone n° 3 du 03/11/2026
+          // (autres constats, Hermann : « le texte "groupé" n'est plus aligné verticalement avec les autres
+          // champs de la ligne ») : posé dans la même boîte de 44 que l'adjectif du menu (`adjectiveTarget` :
+          // contenu décalé de `TARGET_CONTENT_OFFSET`), il retrouve la ligne du compteur et de la durée —
+          // seul dans l'emplacement aux marges négatives, il remontait de 17.
+          <View style={styles.adjectiveTarget} testID={`${testID}-adjective-target`}>
+            <Text style={[styles.adjective, styles.carrierNature]} numberOfLines={1} testID={`${testID}-adjective`}>
+              {circuitNatureAdjective(nature)}
+            </Text>
+          </View>
         ) : (
         <CircuitNatureMenu
           nature={nature}

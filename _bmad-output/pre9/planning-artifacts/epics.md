@@ -22,7 +22,7 @@ Les exigences de menu ci-dessous se lisent avec cette règle ; aucune story ne d
 
 ## Ordre de reprise
 
-B.4c, B.7, B.8, B.9 : terminés et recettés selon Hermann. Reprise : lecture complète de la nouvelle base → contrôle ciblé et adaptation de C.1/D.1 si requis → C.2 → C.3 → C.4 → **recette iPhone n°3** → C.5 → C.6 → D.2 → D.3 → D.4 → D.5 → A.4 (migration 020 annoncée, à vérifier sur la branche) → A.3 → DOC.1 → Q.1 → recette de fin PRE-9.
+B.4c, B.7, B.8, B.9 : terminés et recettés selon Hermann. Reprise : lecture complète de la nouvelle base → contrôle ciblé et adaptation de C.1/D.1 si requis → C.2 → C.3 → C.4 → **recette iPhone n°3** → C.5 → C.6 → D.2 → D.3 → D.4 → D.5 → A.4 (migration 020 annoncée, à vérifier sur la branche) [renumérotée 021 le 03/11/2026, Hermann : « 020, A.4→021, A.5→022 » ; 020 = modèle d'origine des Circuits, recette n° 3] → A.3 → DOC.1 → Q.1 → recette de fin PRE-9.
 
 A.1/B.1/B.2/B.3/B.4 fournissent la structure multi-conteneurs : les réutiliser, ne pas reconstruire une Composition mono-Circuit. Les livraisons antérieures non vérifiées sur la branche locale sont rapprochées de l’état déclaré, sans les reclasser arbitrairement backlog. A.5 reste conditionnelle ; aucun moteur PRE-10/11 n’est ajouté à PRE-9.
 
@@ -87,7 +87,7 @@ Ajoutée le 30/10/2026 à la demande de Hermann (contre-recette PRE-9 n° 1) ; p
 - Durée facultative par phase dans la fiche Mouvement ; reprise par identité stable de phase dans un nouvel Exercice ; modification locale dans la Séance sans effet sur le Mouvement. À préciser avant développement : effet d'une modification ultérieure des durées du Mouvement sur les Exercices existants (règle proposée : aucun) ; persistance (forme du stockage des phases). [31/10/2026, Hermann : modification ultérieure des durées du Mouvement — « Inchangés » : les Exercices existants gardent leurs durées locales ; les durées du Mouvement ne servent que de valeurs par défaut à la création d'un Exercice. Persistance : choix technique (classe D).] [31/10/2026, Hermann : « Oui, migration 018 (Recommandé) » — « Colonne ajoutée, existant intact (durées vides), preuves de conservation, d'échec et de reprise ; A.4 → 019, A.5 → 020, plan annoté. » Réalisation : `_bmad-output/pre9/implementation-artifacts/spec-a-2b-durees-phases-mouvement.md`.]
 
 ### A.4 — Conversion E.8-b
-Dépend de : A.2. Arbitrage : ARB-01 (**validé**, révision 2). Migration 020 (état annoncé par Hermann ; contrôler la branche avant exécution).
+Dépend de : A.2. Arbitrage : ARB-01 (**validé**, révision 2). Migration 020 (état annoncé par Hermann ; contrôler la branche avant exécution). [03/11/2026, recette iPhone n° 3, Hermann : « 020, A.4→021, A.5→022 » : migration **021** ; 020 = modèle d’origine des Circuits.]
 - Conversion automatique et transactionnelle, testée sur copie de base réelle : chaque définition devient une Séance d'un Exercice (titre Q-E1), Mouvement, paramètres, médias, associations et autres données pertinentes conservés ; annulation complète en cas d'échec ; rapport dans `migration_notices` ; comptage et comparaison source → Séances consignés (preuve réutilisée par A.5).
 - [03/11/2026, Hermann : les définitions ne bloquent plus l'archivage d'un Mouvement — registre ch. 07, « Archivage d'un Mouvement utilisé seulement dans des Séances archivées ». La conversion doit donc accepter une définition dont le Mouvement est archivé : la Séance produite référence ce Mouvement archivé, sans le restaurer.]
 - **Aucune ligne historique n'est retirée ni supprimée** par la conversion. [28/10 : « retrait de la définition dans la même transaction » — remplacé le 29/10 : conversion distinguée de la suppression.]
@@ -99,7 +99,7 @@ Dépend de : A.4. [Révision 1 : « la décision ARB-01 ; si option A, de A.4 »
 - Test de garde : plus aucune lecture ni écriture d'`activity_definitions` hors migration.
 
 ### A.5 — Retrait de la table des définitions (**conditionnelle**)
-Dépend de : A.3. Arbitrage : ARB-01. Migration 019. [31/10/2026, Hermann, 31/10/2026 : « Oui, migration 018 (Recommandé) » — « A.4 → 019, A.5 → 020, plan annoté » : migration **020**.] [31/10/2026, recette iPhone n° 2 (constat e, décision de Hermann du 31/10) : migration 019 attribuée à la marque « Paramètre à vérifier » : migration **021**.] **Hors engagement PRE-9 par défaut.**
+Dépend de : A.3. Arbitrage : ARB-01. Migration 019. [31/10/2026, Hermann, 31/10/2026 : « Oui, migration 018 (Recommandé) » — « A.4 → 019, A.5 → 020, plan annoté » : migration **020**.] [31/10/2026, recette iPhone n° 2 (constat e, décision de Hermann du 31/10) : migration 019 attribuée à la marque « Paramètre à vérifier » : migration **021**.] [03/11/2026, recette iPhone n° 3, Hermann : « 020, A.4→021, A.5→022 » : migration **022**.] **Hors engagement PRE-9 par défaut.**
 - Lancée seulement si trois conditions sont réunies : (1) justification de non-utilisation — le test de garde de A.3 est vert et aucun parcours ne lit la table ; (2) conservation des données démontrée — comptage et comparaison source → Séances sur copie de base réelle (A.4) ; (3) autorisation explicite de Hermann.
 - Sinon la table est conservée, sans parcours actif ; l'état est consigné à la clôture de PRE-9.
 - Si lancée : migration distincte supprimant `activity_definitions` et `activity_definition_body_zones` ; garde de non-régression sur toutes les migrations antérieures.

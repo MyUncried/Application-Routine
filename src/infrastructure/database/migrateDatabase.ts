@@ -21,6 +21,7 @@ import { applyMigration016 } from "./migrations/migration016";
 import { applyMigration017 } from "./migrations/migration017";
 import { applyMigration018 } from "./migrations/migration018";
 import { applyMigration019 } from "./migrations/migration019";
+import { applyMigration020 } from "./migrations/migration020";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -242,6 +243,15 @@ export async function migrateDatabase(
     if (pending(18)) {
       await applyMigration019(transaction);
       version = 19;
+    }
+
+    // PRE-9 (recette iPhone n° 3 du 03/11/2026, autres constats, décision de Hermann du 03/11) : modèle
+    // d'origine d'un Circuit créé par la fenêtre Formats, colonne additive nullable `tours.origin_model`
+    // (CHECK sur les dix clés de modèle) ; tout Circuit existant reste « Circuit ». Un échec annule tout
+    // et laisse `user_version` à 19.
+    if (pending(19)) {
+      await applyMigration020(transaction);
+      version = 20;
     }
 
     if (version !== targetVersion) {

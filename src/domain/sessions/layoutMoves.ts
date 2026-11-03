@@ -97,7 +97,51 @@ export type LayoutDropControl = (context: {
 export const neutralDropControl: LayoutDropControl = () => ({ status: "ACCEPTED" });
 
 /** [B.4 : refus `STOP_POINTS` tant que la Séance portait des Points d'arrêt — retiré le 31/10/2026 par B.6.] */
-export type LayoutItemMoveRefusal = "NOT_FOUND" | "NESTING" | "FORMAT_INCOMPATIBLE" | "CONTROL" | "AT_BOUNDARY";
+export type LayoutItemMoveRefusal = "NOT_FOUND" | "NESTING" | "FORMAT_INCOMPATIBLE" | "CONTROL" | "AT_BOUNDARY" | "PASSAGE_FIXED";
+
+/**
+ * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « La carte d'exercice Buy-In ne doit pas
+ * pouvoir être déplacée dans le circuit ») ; référence Formats du 02/11/2026 §6 point 4 : « ils ne sont
+ * pas réordonnables à l'intérieur du Circuit : buy-in en première position, buy-out en dernière ; aucun
+ * Exercice n'est inséré avant le buy-in ni après le buy-out » ; « ils peuvent sortir du Circuit ».
+ *
+ * Vrai si déposer `source` à `destination` enfreint cette règle dans un Circuit porteur d'un Format :
+ * buy-in (premier membre « Passage = Une fois ») déplacé ailleurs qu'en tête de SON Circuit, buy-out
+ * (dernier membre « Une fois », hors tête) ailleurs qu'en fin, ou tout autre Exercice déposé avant le
+ * buy-in ou après le buy-out. Une destination hors de ce Circuit (sortie) n'est jamais concernée. Le
+ * rôle est déduit de la position, comme le libellé de la carte (§5). `isSinglePassageId` : vrai pour
+ * un Exercice « Passage = Une fois ». `destination.index` compte les membres SANS la source.
+ */
+export function breaksFixedPassage(
+  layout: Pick<Layout, "elements">,
+  isSinglePassageId: (exerciseId: string) => boolean,
+  source: LayoutItemRef,
+  destination: LayoutDestination,
+): boolean {
+  if (destination.container.kind !== "CIRCUIT") return false;
+  const circuitId = destination.container.id;
+  const circuit = layout.elements
+    .flatMap((element) =>
+      element.kind === "CIRCUIT"
+        ? [element.circuit]
+        : element.kind === "CYCLE"
+          ? element.cycle.members.flatMap((member) => (member.kind === "CIRCUIT" ? [member.circuit] : []))
+          : [],
+    )
+    .find((item) => item.id === circuitId);
+  if (circuit === undefined || (circuit.format ?? null) === null) return false;
+  const members = circuit.exercises;
+  const last = members.length - 1;
+  const buyIn = members.length > 0 && isSinglePassageId(members[0]!) ? members[0]! : null;
+  const buyOut = last > 0 && isSinglePassageId(members[last]!) ? members[last]! : null;
+  const isSource = (id: string | null) => id !== null && source.kind === "EXERCISE" && source.id === id;
+  const keptCount = members.filter((id) => !isSource(id)).length;
+  if (isSource(buyIn)) return destination.index !== 0;
+  if (isSource(buyOut)) return destination.index !== keptCount;
+  if (buyIn !== null && destination.index === 0) return true;
+  if (buyOut !== null && destination.index === keptCount) return true;
+  return false;
+}
 
 /** Issue appliquée, ou à confirmer, d'un déplacement (voir `LayoutItemMoveOutcome`). */
 export type LayoutItemMoveResult =
@@ -167,6 +211,10 @@ export function moveLayoutItem(
   const detached = detach(layout, source);
   if (detached === null || (source.kind === "EXERCISE" && !draft.exercises.some((exercise) => exercise.id === source.id))) {
     return { status: "REFUSED", reason: "NOT_FOUND" };
+  }
+  // Recette iPhone n° 3 du 03/11/2026 : buy-in en tête, buy-out en fin de leur Circuit porteur (§6 point 4).
+  if (breaksFixedPassage(layout, (id) => isSinglePassage(draft.exercises.find((exercise) => exercise.id === id)?.format), source, destination)) {
+    return { status: "REFUSED", reason: "PASSAGE_FIXED" };
   }
   const attached = attach(detached.layout, detached.node, destination);
   if (attached === "NESTING") return { status: "REFUSED", reason: "NESTING" };
@@ -328,7 +376,10 @@ export function stepLayoutItem(
   const step = direction === "UP" ? -1 : 1;
   for (let at = current + step; current >= 0 && at >= 0 && at < slots.length; at += step) {
     const outcome = moveLayoutItem(draft, source, slots[at]!, newContainerId, control);
-    if (outcome.status !== "UNCHANGED") return outcome;
+    // Recette iPhone n° 3 du 03/11/2026 : un emplacement interdit par le buy-in / buy-out est franchi, comme
+    // une position inchangée — « Monter » / « Descendre » mène au premier emplacement admis (le buy-in
+    // sort du Circuit, une autre carte passe hors du Circuit plutôt qu'avant lui).
+    if (outcome.status !== "UNCHANGED" && !(outcome.status === "REFUSED" && outcome.reason === "PASSAGE_FIXED")) return outcome;
   }
   return { status: "REFUSED", reason: "AT_BOUNDARY" };
 }

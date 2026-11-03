@@ -379,11 +379,11 @@ function openAndCloseSheet() {
 
 /**
  * Ouvre la Séance persistée depuis le Catalogue (segment Séances), puis attend Composition chargée.
- * PRE-8 (E.2, E.5) : carte unique, touchée par sa zone glissable (`session-card-<id>-swipe-card`).
+ * PRE-8 (E.2, E.5) : carte unique, touchée par sa zone glissable (`session-card-<id>-swipe-card`). [— remplacé le 03/11/2026 : touchée par son visuel (`session-card-<id>-visual-open`), recette iPhone n° 3 du 03/11/2026.]
  */
 async function openSessionFromCatalogue() {
   await settle();
-  const [card] = await screen.findAllByTestId(/^session-card-.+-swipe-card$/);
+  const [card] = await screen.findAllByTestId(/^session-card-.+-visual-open$/);
   fireEvent.press(card!);
   await waitFor(() => expect(screen.getByLabelText(composition.name)).toBeTruthy());
   await settle();

@@ -133,7 +133,8 @@ describe("PRE-8 E.7 — raccordements sur SQLite réelle", () => {
     const repository = new SqliteSessionRepository(database);
     const created = await repository.createStructured(input("Gainage", 2));
     await renderCatalogue();
-    fireEvent.press(cardFor("Gainage").swipe);
+    // Recette iPhone n° 3 du 03/11/2026 : le visuel ouvre la Séance (le reste de la carte déploie).
+    fireEvent.press(screen.getByTestId(`session-card-${cardFor("Gainage").id}-visual-open`));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/composition", params: { sessionId: created.id } });
     fireEvent.press(screen.getByTestId("catalogue-create-action"));
     // Référence Formats du 02/11/2026 (§7) : Créer ouvre la Composition.

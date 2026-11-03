@@ -40,6 +40,7 @@ import {
   type ActivityDurationFacts,
 } from "./calculations";
 import { isCircuitNature, type CircuitNature } from "./circuit";
+import type { FormatModelKey } from "./formatModels";
 import type { ElementFormat } from "./formats/elementFormat";
 import type { StructuralPosition } from "./Session";
 
@@ -63,6 +64,17 @@ export type StructureCircuit<E> = {
    * remplacé le 02/11/2026.] Colonnes `tours.format_*` (migration 017).
    */
   readonly format?: ElementFormat | null;
+  /**
+   * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « Tabata deux mouvements en alterné :
+   * il faut que le nom du circuit soit "Tabata", idem pour tous les formats, remplacer le nom mot
+   * "Circuit" par le nom du format ») : **modèle d'origine** d'un Circuit créé par la fenêtre Formats
+   * (`buildModelElements`) — nom affiché à la place de « Circuit ». Simple marque d'origine : aucune règle
+   * de calcul ni de validation n'en dépend ; conservé quand le Circuit est déplacé, renommé d'une lettre,
+   * réglé (compte, nature) ou enveloppé dans un Cycle ; absent (`null`) pour un Circuit créé dans la
+   * Composition. Colonne `tours.origin_model` (migration 020) ; les Circuits antérieurs restent
+   * « Circuit ».
+   */
+  readonly originModel?: FormatModelKey | null;
 };
 
 /** Membre d'un Cycle (D-451) : Exercice direct ou Circuit. */
@@ -379,6 +391,12 @@ export function legacyFromStructure<E, P extends StructureStopPointLocation>(
   }
   // Réalignement du 02/11/2026 : un Circuit porteur d'un Format n'existe pas dans l'ancien modèle.
   if (structure.elements.some((element) => element.kind === "CIRCUIT" && (element.circuit.format ?? null) !== null)) {
+    return null;
+  }
+  // Recette iPhone n° 3 du 03/11/2026 : l'ancien modèle ne porte que le compte et la nature du Circuit
+  // (`tourRepeatCount`, `circuitNature`) ; un Circuit nommé d'après son modèle d'origine y perdrait ce
+  // nom — il reste dans la structure générale, comme un Circuit porteur.
+  if (structure.elements.some((element) => element.kind === "CIRCUIT" && (element.circuit.originModel ?? null) !== null)) {
     return null;
   }
   if (circuitIndexes.length === 0) {

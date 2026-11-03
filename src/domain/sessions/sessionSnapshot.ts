@@ -104,6 +104,8 @@ export function createSessionSnapshot(session: StructuredSession): SessionSnapsh
       repeatCount: circuit.repeatCount,
       nature: circuit.nature,
       ...(format !== null ? { format } : {}),
+      // Recette iPhone n° 3 du 03/11/2026 : modèle d'origine (nom affiché), sans effet sur l'exécution.
+      ...((circuit.originModel ?? null) !== null ? { originModel: circuit.originModel } : {}),
       exercises: circuit.exercises,
     };
   };

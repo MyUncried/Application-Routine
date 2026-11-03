@@ -216,14 +216,84 @@ describe("FormatModelScreen", () => {
     expect(circuit!.exercises).toHaveLength(2);
   });
 
-  async function pick(query: string, id: string) {
-    fireEvent.press(screen.getByTestId("format-movements-link"));
+  async function pick(query: string, id: string, section = "format-movements") {
+    fireEvent.press(screen.getByTestId(`${section}-link`));
     fireEvent.changeText(screen.getByTestId("format-search"), query);
     const suggestion = await screen.findByTestId(`format-suggestion-${id}`);
     await act(async () => {
       fireEvent.press(suggestion);
     });
   }
+
+  it("recette n° 3 du 03/11 (autres constats) : AMRAP Buy-in — sections Buy-in et En boucle dès le questionnaire ; buy-in choisi requis ; jamais un mouvement de boucle", async () => {
+    mockModel = "AMRAP";
+    const draftRef = { current: createEmptyDraft() };
+    render(<Harness draftRef={draftRef} />);
+    await screen.findByText(t.titles.AMRAP);
+    fireEvent(screen.getByTestId("format-buyIn"), "valueChange", true);
+    expect(screen.getByText(t.buyInSection)).toBeTruthy();
+    expect(screen.getByText(t.loopSection)).toBeTruthy();
+    expect(screen.queryByTestId("format-movements-link")).toBeNull();
+    // Deux mouvements en boucle : le bouton reste indisponible sans buy-in.
+    await pick("Squ", "mv-squats", "format-loop");
+    await pick("Fen", "mv-fentes", "format-loop");
+    expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    // Buy-in choisi dans sa section (même champ de saisie) : en tête, bouton disponible.
+    await pick("Squ", "mv-squats", "format-buy-in");
+    expect(screen.getByTestId("format-buy-in-link")).toHaveTextContent(t.change);
+    expect(within(screen.getByTestId("format-buy-in-cards")).getByText("Squats sautés")).toBeTruthy();
+    expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
+    // Récapitulatif : « Changer » ouvre le même champ, pas le Catalogue.
+    fireEvent.press(screen.getByTestId("harness-stage"));
+    fireEvent.press(screen.getByTestId("format-buy-in-link"));
+    expect(screen.getByTestId("format-search")).toBeTruthy();
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("format-loop-link"));
+    expect(screen.getByTestId("format-loop-link")).toHaveTextContent(t.openCatalogue);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-save"));
+    });
+    const [circuit] = structureCircuits(draftRef.current.structure!);
+    expect(circuit!.exercises).toHaveLength(3);
+    expect(draftRef.current.exercises.map((exercise) => [exercise.name, exercise.format?.settings.passageOnce ?? 0])).toEqual([
+      ["Squats sautés", 1],
+      ["Squats sautés", 0],
+      ["Fentes avant", 0],
+    ]);
+  });
+
+  it("recette n° 3 du 03/11 (autres constats) : Buy-in désactivé — la section disparaît avec son mouvement", async () => {
+    mockModel = "AMRAP";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.AMRAP);
+    fireEvent(screen.getByTestId("format-buyIn"), "valueChange", true);
+    await pick("Squ", "mv-squats", "format-buy-in");
+    await pick("Fen", "mv-fentes", "format-loop");
+    fireEvent(screen.getByTestId("format-buyIn"), "valueChange", false);
+    expect(screen.queryByText(t.buyInSection)).toBeNull();
+    expect(screen.queryByText("Squats sautés")).toBeNull();
+    expect(screen.getByText("Fentes avant")).toBeTruthy();
+  });
+
+  it("recette n° 3 du 03/11 (autres constats) : appui court sur un mouvement choisi — fiche en lecture seule", async () => {
+    mockModel = "TABATA";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.TABATA);
+    await pick("Squ", "mv-squats");
+    fireEvent.press(screen.getByTestId("format-movement-0"));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/movement-sheet", params: { movementId: "mv-squats" } });
+  });
+
+  it("recette n° 3 du 03/11 (f3-depart) : Renforcement — la Pause est affichée et réglable", async () => {
+    mockModel = "STRENGTH";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.STRENGTH);
+    expect(screen.getByTestId("format-row-pauseSeconds")).toBeTruthy();
+    expect(screen.getByTestId("format-pauseSeconds-badge")).toHaveTextContent("0 s");
+    fireEvent.press(screen.getByTestId("format-pauseSeconds-badge"));
+    fireEvent.press(screen.getByTestId("format-pauseSeconds-increase"));
+    expect(screen.getByTestId("format-pauseSeconds-value")).toHaveTextContent("5 s");
+  });
 
   it("recette n° 3 (f3-tabata) : Tabata À la suite à deux mouvements — durée exacte « 8 min 50 s », sans arrondi", async () => {
     mockModel = "TABATA";

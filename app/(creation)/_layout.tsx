@@ -77,6 +77,9 @@ export default function CreationLayout() {
             ce dernier comportement qu'il faut aussi pour le premier mouvement ») : le récapitulatif remplace
             le questionnaire sur place, sans transition, à l'aller comme au Retour. */}
         <Stack.Screen name="format-summary" options={{ animation: "none" }} />
+        {/* Recette n° 3 du 03/11/2026 (autres constats) : fiche d'un mouvement du questionnaire ou du
+            récapitulatif, en modale par le bas, lecture seule ; fermeture par sa croix (geste natif désactivé, T02-S02). */}
+        <Stack.Screen name="movement-sheet" options={{ presentation: "modal" }} />
       </Stack>
       </FormatModelDraftProvider>
     </SessionDraftProvider>

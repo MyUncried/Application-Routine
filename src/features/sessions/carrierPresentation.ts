@@ -1,5 +1,6 @@
 import type { ElementFormat } from "@/domain/sessions/formats";
 import type { CircuitNature } from "@/domain/sessions/circuit";
+import type { FormatModelKey } from "@/domain/sessions/formatModels";
 import type { CarrierHeader } from "@/features/sessions/CircuitHeader";
 import { strings } from "@/shared/i18n";
 
@@ -61,4 +62,18 @@ export function carrierHeaderOf(
     ...(setting !== null && onPressDuration !== undefined ? { onPressDuration } : {}),
     ...(durationLabel !== undefined ? { durationAccessibilityLabel: durationLabel } : {}),
   };
+}
+
+/**
+ * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « Tabata deux mouvements en alterné : il
+ * faut que le nom du circuit soit "Tabata", idem pour tous les formats ») — nom affiché d'un Circuit à la
+ * place de « Circuit » : nom du Format d'un Circuit porteur, sinon nom de son modèle d'origine (fenêtre
+ * Formats) ; `undefined` pour un Circuit créé dans la Composition (« Circuit »).
+ */
+export function circuitDisplayTitle(circuit: {
+  readonly format?: ElementFormat | null;
+  readonly originModel?: FormatModelKey | null;
+}): string | undefined {
+  const key = circuit.format?.key ?? circuit.originModel ?? null;
+  return key === null ? undefined : strings.screens.sessionModels.cards[key].title;
 }

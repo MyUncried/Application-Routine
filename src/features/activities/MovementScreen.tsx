@@ -203,6 +203,7 @@ export function MovementSheet({
   variantOf,
   variantPlacement,
   openInEdit = false,
+  readOnly = false,
   onMovementChosen,
 }: {
   readonly movementId: string | null;
@@ -210,6 +211,12 @@ export function MovementSheet({
   readonly variantPlacement: VariantPlacement;
   /** Recette A/B (F07) : fiche ouverte depuis le Catalogue des Mouvements, directement en édition. */
   readonly openInEdit?: boolean;
+  /**
+   * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « Mouvement de l'écran du questionnaire ou du
+   * récapitulatif : un appui court doit ouvrir la fiche du mouvement en modale, par le bas, lecture seule sans
+   * possibilité de modification ») : consultation sans crayon ni menu Niveau (route `movement-sheet`).
+   */
+  readonly readOnly?: boolean;
   /**
    * PRE-9 A.2 (ARB-22a, CE-MVT-01 §3-§4) : création depuis une Séance. Terminer enregistre le
    * Mouvement puis le rend à l'appelant (« revient au contexte appelant avec l'identité
@@ -456,6 +463,7 @@ export function MovementSheet({
     // F07 : ouverte en édition depuis le Catalogue, la fiche garde le menu Niveau (consulter un autre
     // membre, ajouter un niveau) ; une édition entrée par le crayon le garde fermé, comme avant.
     if (origin === null) return { position: levels.position, menu: null };
+    if (readOnly) return { position: displayedLevelPosition(levels, origin.id), menu: null };
     if (mode === "edit" && !openInEdit) return { position: displayedLevelPosition(levels, origin.id), menu: null };
     const total = levels.position?.total ?? 0;
     return {
@@ -493,7 +501,7 @@ export function MovementSheet({
         },
       },
     };
-  }, [variant, mode, levels, origin, router, isArchived, openInEdit]);
+  }, [variant, mode, levels, origin, router, isArchived, openInEdit, readOnly]);
 
   // Ordre de Hermann du 01/11/2026 (ch13 CE-T03-08 « Menu Créer — état cible », l.5269) : ouverte par
   // « Créer un exercice » de la Composition (contexte Séance), la fiche porte ce titre et sa
@@ -515,7 +523,7 @@ export function MovementSheet({
         title={title}
         onClose={() => router.back()}
         accessibilityLabel={t.close}
-        trailing={loadState === "ready" && mode === "consult" && !isArchived ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
+        trailing={loadState === "ready" && mode === "consult" && !isArchived && !readOnly ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
       />
       {loadState === "error" ? (
         <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="movement-load-error">

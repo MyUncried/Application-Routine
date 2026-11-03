@@ -607,3 +607,24 @@ export function resolveOccurrenceCategory(
   const category = categories.find((candidate) => candidate.id === categoryId);
   return category ? { name: category.name, color: category.color } : null;
 }
+
+/** Tonalité d'un Circuit replié (voir `collapsedCircuitTone`) ; `null` : aplat habituel. */
+export type CollapsedCircuitTone = "INCOMPLETE" | "TO_VERIFY" | null;
+
+/**
+ * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « Circuit replié : si des exercices ont
+ * des paramètres à compléter ou à vérifier, son format (couleur de fond, liseré) doit le refléter (il
+ * reprend sa couleur normale lorsqu'on le déplie et qu'on voit les cartes d'exercices elles mêmes
+ * colorées, ou lorsque tous les paramètres ont été complétés / validés). ») — tonalité d'un Circuit
+ * replié, d'après la synthèse même de la carte de ses Exercices (`formatOccurrenceSummary`) :
+ * « à compléter » (rouge) dès qu'une carte l'est — il prime, comme sur la carte —, sinon « à vérifier »
+ * (orange) dès qu'une carte l'est, sinon aucune. L'écran ne l'applique qu'au Circuit replié.
+ */
+export function collapsedCircuitTone(
+  exercises: readonly Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify">[],
+): CollapsedCircuitTone {
+  const summaries = exercises.map((exercise) => formatOccurrenceSummary(exercise));
+  if (summaries.some(isIncompleteSummary)) return "INCOMPLETE";
+  if (summaries.some(isToVerifySummary)) return "TO_VERIFY";
+  return null;
+}

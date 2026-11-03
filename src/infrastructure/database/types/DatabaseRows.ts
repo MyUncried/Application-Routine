@@ -56,6 +56,8 @@ export type CircuitRow = {
   // [30/10 : « vestiges inutilisés, ni lus ni écrits » — remplacé le 02/11/2026.]
   format_key?: string | null;
   format_settings?: string | null;
+  // Recette iPhone n° 3 du 03/11/2026 : modèle d'origine (nom affiché), `NULL` = « Circuit » (migration 020).
+  origin_model?: string | null;
 };
 
 /**

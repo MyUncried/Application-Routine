@@ -40,6 +40,8 @@ export function treeLineLabel(line: CatalogueTreeLine): { readonly name: string;
       const unit = circuitStrings.countUnit;
       return {
         name: fillTemplate(t.circuitLine, {
+          // Recette iPhone n° 3 du 03/11/2026 : nom du Format ou du modèle d'origine, sinon « Circuit ».
+          title: line.title ?? circuitStrings.title,
           count: String(line.repeatCount),
           unit: line.repeatCount === 1 ? unit.singular : unit.plural,
           nature: circuitStrings.natureAdjective[line.nature],

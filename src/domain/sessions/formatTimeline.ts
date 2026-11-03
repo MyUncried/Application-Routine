@@ -14,7 +14,7 @@
  * Sans mouvement (questionnaire), une suite générique 1, 2, 3… de hauteurs égales. Fonctions pures.
  */
 
-import type { FormatModelKey, ModelAnswers, ModelExecution, ModelMovement } from "./formatModels";
+import { hasChosenBuyIn, type FormatModelKey, type ModelAnswers, type ModelExecution, type ModelMovement } from "./formatModels";
 
 export type TimelineBlock =
   | {
@@ -160,7 +160,7 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
         }
         return { blocks: openGeneric(), end: { kind: "DURATION" }, legendRecovery: false };
       }
-      const buyIn = answers.buyIn === true && several;
+      const buyIn = hasChosenBuyIn(answers, movements);
       const loop = movements.slice(buyIn ? 1 : 0);
       const increasing = answers.increasingVolume === true;
       const labelAt = (movement: ModelMovement, round: number | null) => {

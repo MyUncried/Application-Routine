@@ -897,8 +897,10 @@ function richLayoutSignature(layout: SessionDraft["structure"]): string {
   // Réalignement du 02/11/2026 : le Format d'origine et les réglages d'un Circuit porteur comptent.
   const carried = (item: StructureCircuit<string>) =>
     item.format === undefined || item.format === null ? "" : `,${item.format.key}:${encodeFormatSettings(item.format.settings)}`;
+  // Recette iPhone n° 3 du 03/11/2026 : le modèle d'origine (nom affiché du Circuit) compte aussi.
+  const origin = (item: StructureCircuit<string>) => ((item.originModel ?? null) === null ? "" : `,o:${item.originModel}`);
   const circuit = (item: StructureCircuit<string>) =>
-    `C(${item.id},${item.repeatCount},${item.nature}${carried(item)})[${item.exercises.join(",")}]`;
+    `C(${item.id},${item.repeatCount},${item.nature}${carried(item)}${origin(item)})[${item.exercises.join(",")}]`;
   const elements = layout.elements.map((element) => {
     switch (element.kind) {
       case "EXERCISE":

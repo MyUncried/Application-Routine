@@ -15,6 +15,7 @@ import { MovementNotFoundError } from "@/domain/activities/MovementRepository";
 import { phasesToVerifyField } from "@/domain/activities/parametersToVerify";
 import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "@/domain/sessions/circuit";
 import { SessionValidationError } from "@/domain/sessions/errors";
+import { isFormatModelKey, type FormatModelKey } from "@/domain/sessions/formatModels";
 import {
   decodeFormatSettings,
   encodeFormatSettings,
@@ -867,15 +868,16 @@ async function writeStructure(
     if (existing?.circuits.has(circuit.id)) {
       await transaction.runAsync(
         // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine d'un Circuit porteur (`tours.format_*`, migration 017).
-        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ?, format_key = ?, format_settings = ? WHERE id = ? AND session_id = ?",
-        [cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.id, sessionId],
+        // Recette iPhone n° 3 du 03/11/2026 : modèle d'origine du Circuit (`tours.origin_model`, migration 020).
+        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ?, format_key = ?, format_settings = ?, origin_model = ? WHERE id = ? AND session_id = ?",
+        [cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.originModel ?? null, circuit.id, sessionId],
       );
     } else {
       // V2-PRE-1 : le Circuit n'a plus de direction propre — toujours `'UNILATERAL'` en base.
       await transaction.runAsync(
-        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings)
-         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?, ?, ?)`,
-        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format)],
+        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings, origin_model)
+         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?, ?, ?, ?)`,
+        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.originModel ?? null],
       );
     }
     for (const [index, exercise] of circuit.exercises.entries()) {
@@ -972,6 +974,17 @@ function rowFormat(row: { readonly format_key?: string | null; readonly format_s
 function formatField(row: { readonly format_key?: string | null; readonly format_settings?: string | null }): { readonly format?: ElementFormat } {
   const format = rowFormat(row);
   return format === null ? {} : { format };
+}
+
+/**
+ * Recette iPhone n° 3 du 03/11/2026 (`migration020`) : modèle d'origine relu d'une ligne de Circuit ;
+ * `NULL` → absent (« Circuit ») ; clé inconnue → contrat rompu (reflet du CHECK).
+ */
+function originModelField(row: { readonly origin_model?: string | null }): { readonly originModel?: FormatModelKey } {
+  const value = row.origin_model ?? null;
+  if (value === null) return {};
+  if (!isFormatModelKey(value)) throw contractError();
+  return { originModel: value };
 }
 
 function structureCarriesFormat(structure: SessionStructure<Activity>): boolean {
@@ -1272,7 +1285,7 @@ async function readAssembledSessions(
   );
   const circuits = await database.getAllAsync<CircuitRow>(
     // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine des Circuits porteurs.
-    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings FROM tours WHERE session_id IN (${placeholders})`,
+    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings, origin_model FROM tours WHERE session_id IN (${placeholders})`,
     ids,
   );
   // PRE-9 (recette iPhone n° 2, constat e, `migration019`) : marque « à vérifier », lue seulement.
@@ -1400,6 +1413,7 @@ export function assembleStructure(
     repeatCount: row.repeat_count,
     nature: row.nature,
     ...formatField(row),
+    ...originModelField(row),
     exercises: inRankOrder(activitiesByContainer.get(row.id) ?? []).map((activity, rank) =>
       toActivity(activity, movements, "IN_TOUR", rank),
     ),

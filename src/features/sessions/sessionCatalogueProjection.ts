@@ -7,6 +7,7 @@ import { computeStructureDuration, cycleExercises, structureExercises, type Stru
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { firstMediaPreviewSource, type MediaPreviewSource } from "@/features/activities/MediaPreview";
 import { isDisplayableRecovery } from "@/features/sessions/ActivityRecoveryLine";
+import { circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
 import { formatOccurrenceSummary, isIncompleteSummary, isToVerifySummary } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
 
@@ -51,6 +52,11 @@ export type CatalogueTreeLine =
       readonly depth: number;
       readonly repeatCount: number;
       readonly nature: CircuitNature;
+      /**
+       * Recette iPhone n° 3 du 03/11/2026 (autres constats) : nom du Format (Circuit porteur) ou du modèle
+       * d'origine, à la place de « Circuit » ; absent : « Circuit ».
+       */
+      readonly title?: string;
     }
   | { readonly kind: "EXERCISE"; readonly key: string; readonly depth: number; readonly name: string; readonly volume: string }
   | { readonly kind: "RECOVERY"; readonly key: string; readonly depth: number; readonly seconds: number };
@@ -143,12 +149,27 @@ const exerciseCountOf = (exercises: readonly Activity[]) => exercises.filter(isE
 const isShownContainer = (repeatCount: number, exercises: readonly Activity[]) =>
   repeatCount > 1 || exerciseCountOf(exercises) > 1;
 
+/** Recette iPhone n° 3 du 03/11/2026 : nom du Circuit (Format ou modèle d'origine), comme la Composition. */
+function titleOf(circuit: StructureCircuit<Activity>): { readonly title?: string } {
+  const title = circuitDisplayTitle(circuit);
+  return title === undefined ? {} : { title };
+}
+
 function circuitLines(circuit: StructureCircuit<Activity>, depth: number): CatalogueTreeLine[] {
   const shown = isShownContainer(circuit.repeatCount, circuit.exercises);
   const childDepth = shown ? depth + 1 : depth;
   return [
     ...(shown
-      ? [{ kind: "CIRCUIT" as const, key: circuit.id, depth, repeatCount: circuit.repeatCount, nature: circuit.nature }]
+      ? [
+          {
+            kind: "CIRCUIT" as const,
+            key: circuit.id,
+            depth,
+            repeatCount: circuit.repeatCount,
+            nature: circuit.nature,
+            ...titleOf(circuit),
+          },
+        ]
       : []),
     ...circuit.exercises.flatMap((exercise) => exerciseLines(exercise, childDepth)),
   ];
@@ -232,6 +253,7 @@ export function projectSessionForCatalogue(
     status: record.status,
     labelId: record.labelId,
     exerciseCount,
+    // [Recette iPhone n° 3 du 03/11/2026 : chevron et vue déployée pour toute séance — ce champ n'est plus lu par la carte.]
     expandable: exerciseCount > 1,
     categories,
     bodyZoneIds,

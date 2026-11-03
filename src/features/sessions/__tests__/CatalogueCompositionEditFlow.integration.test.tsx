@@ -309,7 +309,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
       const router = renderCatalogueRouter();
       await flush();
 
-      fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+      fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
 
       expect(router.getPathname()).toBe("/composition");
       // Seul l identifiant transite par la route — jamais la Séance sérialisée.
@@ -333,7 +333,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
     await flush(); // la lecture est en vol : `findSessionStatus` n'est pas résolu
 
     expect(screen.getByTestId("composition-edit-state")).toBeTruthy();
@@ -354,7 +354,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
     await flush();
 
     await act(async () => {
@@ -380,7 +380,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
     await flush();
     await act(async () => {
       repository.statusGate.resolve("ACTIVE");
@@ -401,7 +401,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
     await flush();
     await act(async () => {
       repository.statusGate.resolve("ACTIVE");

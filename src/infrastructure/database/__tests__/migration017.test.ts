@@ -113,7 +113,7 @@ const TABLES = [
 
 /** Colonnes ajoutées par la 017, retirées pour comparer les lignes d'avant ligne pour ligne. */
 // [Recette iPhone n° 2 du 31/10/2026 : `phases_to_verify` (migration 019) ajoutée au démarrage, ignorée ici.]
-const ADDED = new Set(["format_key", "format_settings", "origin", "phases_to_verify"]);
+const ADDED = new Set(["format_key", "format_settings", "origin", "phases_to_verify", "origin_model"]);
 
 async function snapshot(database: Database): Promise<Record<string, unknown>> {
   const result: Record<string, unknown> = {};
@@ -205,7 +205,7 @@ async function seededVersion16(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de création)", () => {
   it("version courante 19 (017 à 019, A.2b et recette n° 2 constat e) ; listes figées de la 017 égales aux clés stockables et aux origines du registre du domaine (réalignement du 02/11/2026)", () => {
-    expect(DATABASE_VERSION).toBe(19);
+    expect(DATABASE_VERSION).toBe(20);
     expect([...MIGRATION_017_FORMAT_KEYS]).toEqual([...STORABLE_FORMAT_KEYS]);
     // Clés stockables = quatre Formats spécialisés + clés Tabata et 30/30 écrites avant le 02/11 (relues libres).
     expect([...STORABLE_FORMAT_KEYS].sort()).toEqual([...ELEMENT_FORMAT_KEYS, ...LEGACY_PRECONFIGURATION_FORMAT_KEYS].sort());
@@ -219,7 +219,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(19);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await snapshot(database)).toEqual(before);
     expect(await columns(database, "tours")).toEqual(expect.arrayContaining(["format_key", "format_settings"]));
     expect(await columns(database, "activities")).toEqual(expect.arrayContaining(["format_key", "format_settings"]));
@@ -234,7 +234,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
     // Démarrage suivant : rien n'est rejoué.
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(19);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await snapshot(database)).toEqual(before);
   });
 
@@ -277,7 +277,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(19);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await snapshot(database)).toEqual(before);
   });
 
@@ -285,7 +285,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(19);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await database.getAllAsync("SELECT COUNT(*) AS count FROM migration_notices")).toEqual([{ count: 0 }]);
     expect(await columns(database, "sessions")).toContain("origin");
   });

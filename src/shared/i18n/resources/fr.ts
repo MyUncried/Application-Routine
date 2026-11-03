@@ -231,7 +231,10 @@ export const fr = {
         // PRE-9 B.1b (référence « Composition : circuits, cycles et création » §2 : « L’unité reste
         // tour(s) ») : « Circuit · N tours · groupées|alternées » [remplace « Circuit · N tours|séries »
         // (unité accordée à la nature), 29/10/2026].
-        circuitLine: "Circuit · {count} {unit} · {nature}",
+        // [« Circuit · {count} {unit} · {nature} » — recette iPhone n° 3 du 03/11/2026 (autres constats,
+        // Hermann : « remplacer le nom mot "Circuit" par le nom du format ») : {title} = « Circuit », ou nom
+        // du Format / du modèle d'origine (« Tabata · 8 tours · alternées »).]
+        circuitLine: "{title} · {count} {unit} · {nature}",
         recovery: "Récupération",
         compositionAccessibilityLabel: "Composition de la séance",
         // E.5 (CE-T03-01 révisé ; ch06 « Supprimer cette séance ? ») : actions glissées et cycle de vie.
@@ -907,6 +910,8 @@ export const fr = {
           // [B.4 : « STOP_POINTS: Dépose impossible tant que la séance contient des points d’arrêt » —
           // refus retiré le 31/10/2026 par B.6.]
           CONTROL: "Dépose impossible",
+          // Recette iPhone n° 3 du 03/11/2026 (référence Formats §6 point 4). Formulation à valider.
+          PASSAGE_FIXED: "Dépose impossible : le buy-in reste en tête du circuit, le buy-out à la fin",
           NOT_FOUND: "",
           AT_BOUNDARY: "",
         },

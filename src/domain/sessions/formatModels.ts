@@ -192,7 +192,20 @@ export type MovementValues = {
 export type ModelMovement = {
   readonly exercise: SessionDraftExercise;
   readonly values: MovementValues;
+  /**
+   * AMRAP : mouvement choisi dans la section Buy-in (toujours en tête). Recette iPhone n° 3 du 03/11/2026
+   * (autres constats, Hermann : « Activer Buy-in > Sélectionner deux mouvements > Valider les paramètres :
+   * l'écran suivant ajoute une section Buy-in et y intègre le dernier mouvement ajouté » ; « Il faut
+   * sélectionner le mouvement de Buy-in pour que le bouton d'action soit activé ») : le buy-in est un choix
+   * explicite, jamais déduit du rang. [C.3 : premier mouvement = buy-in dès que Buy-in est activé — remplacé.]
+   */
+  readonly buyIn?: true;
 };
+
+/** AMRAP : un buy-in est choisi (Buy-in activé, premier mouvement marqué) et suivi d'au moins un mouvement de boucle. */
+export function hasChosenBuyIn(answers: ModelAnswers, movements: readonly ModelMovement[]): boolean {
+  return answers.buyIn === true && movements.length > 1 && movements[0]?.buyIn === true;
+}
 
 const PROGRESSION_INITIAL = [10, 12, 14];
 const FOR_TIME_INITIAL = [21, 15, 9];
@@ -263,7 +276,7 @@ function variable(base: ExecutionParametersInput, rows: readonly SeriesRow[]): E
   return { ...base, mode: "REPETITIONS", series: { kind: "VARIABLE", rows, workPhases: base.series.workPhases } };
 }
 
-function basePause(exercise: SessionDraftExercise): number {
+export function basePause(exercise: SessionDraftExercise): number {
   const series = exercise.executionParameters.series;
   return series.kind === "UNIFORM" ? series.pauseSeconds : (series.rows[0]?.pauseSeconds ?? 0);
 }
@@ -280,12 +293,17 @@ function withParameters(exercise: SessionDraftExercise, executionParameters: Exe
 
 type BuiltElement = StructureElement<SessionDraftExercise>;
 
-function standardCircuit(id: string, nature: CircuitNature, repeatCount: number, exercises: readonly SessionDraftExercise[]): BuiltElement {
-  return { kind: "CIRCUIT", circuit: { id, nature, repeatCount, exercises } };
+/**
+ * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « il faut que le nom du circuit soit
+ * "Tabata", idem pour tous les formats ») : tout Circuit construit par un modèle porte son modèle
+ * d'origine (`originModel`), affiché à la place de « Circuit ».
+ */
+function standardCircuit(key: FormatModelKey, id: string, nature: CircuitNature, repeatCount: number, exercises: readonly SessionDraftExercise[]): BuiltElement {
+  return { kind: "CIRCUIT", circuit: { id, nature, repeatCount, exercises, originModel: key } };
 }
 
-function carrierCircuit(id: string, nature: CircuitNature, repeatCount: number, format: ElementFormat, exercises: readonly SessionDraftExercise[]): BuiltElement {
-  const circuit: StructureCircuit<SessionDraftExercise> = { id, nature, repeatCount, format, exercises };
+function carrierCircuit(key: FormatModelKey, id: string, nature: CircuitNature, repeatCount: number, format: ElementFormat, exercises: readonly SessionDraftExercise[]): BuiltElement {
+  const circuit: StructureCircuit<SessionDraftExercise> = { id, nature, repeatCount, format, exercises, originModel: key };
   return { kind: "CIRCUIT", circuit };
 }
 
@@ -321,7 +339,7 @@ export function buildModelElements(
       const exercises = movements.map(({ exercise }) =>
         withParameters(exercise, uniform(exercise.executionParameters, "DURATION", count, numberTarget(answers.workSeconds ?? 0), answers.pauseSeconds ?? 0), 0, null),
       );
-      if (execution === "ALTERNATED") return [standardCircuit(newId(), "SERIES", count, exercises)];
+      if (execution === "ALTERNATED") return [standardCircuit(key, newId(), "SERIES", count, exercises)];
       return inSequence(exercises, key === "TABATA" && several ? answers.recoveryBetweenSeconds : undefined);
     }
     case "STRENGTH":
@@ -335,7 +353,7 @@ export function buildModelElements(
           null,
         ),
       );
-      return execution === "ALTERNATED" ? [standardCircuit(newId(), "SERIES", count, exercises)] : inSequence(exercises, undefined);
+      return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(exercises, undefined);
     }
     case "PROGRESSION": {
       const count = answers.seriesCount ?? 1;
@@ -348,7 +366,7 @@ export function buildModelElements(
         }));
         return withParameters(exercise, variable(exercise.executionParameters, rows), exercise.postActivityRecoverySeconds ?? 0, null);
       });
-      return execution === "ALTERNATED" ? [standardCircuit(newId(), "SERIES", count, exercises)] : inSequence(exercises, undefined);
+      return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(exercises, undefined);
     }
     case "SUPERSET": {
       // §9.2, A4 : Circuit standard groupé d'un passage, paramètres libres (répétitions à compléter).
@@ -360,7 +378,7 @@ export function buildModelElements(
           null,
         ),
       );
-      return [standardCircuit(newId(), "TOURS", answers.roundCount ?? 1, exercises)];
+      return [standardCircuit(key, newId(), "TOURS", answers.roundCount ?? 1, exercises)];
     }
     case "EMOM": {
       const count = answers.seriesCount ?? 1;
@@ -373,7 +391,7 @@ export function buildModelElements(
             settings: {},
           }),
         );
-        return [carrierCircuit(newId(), "TOURS", count, { key: "EMOM", settings: { windowSeconds: interval } }, members)];
+        return [carrierCircuit(key, newId(), "TOURS", count, { key: "EMOM", settings: { windowSeconds: interval } }, members)];
       }
       const exercises = movements.map(({ exercise }) =>
         withParameters(exercise, uniform(exercise.executionParameters, exercise.executionParameters.mode ?? "REPETITIONS", count, firstTarget(exercise), 0), 0, {
@@ -381,7 +399,7 @@ export function buildModelElements(
           settings: { intervalSeconds: interval },
         }),
       );
-      return execution === "ALTERNATED" ? [standardCircuit(newId(), "SERIES", count, exercises)] : inSequence(exercises, several ? answers.recoveryBetweenSeconds : undefined);
+      return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(exercises, several ? answers.recoveryBetweenSeconds : undefined);
     }
     case "DEATH_BY": {
       const interval = answers.intervalSeconds ?? MINUTE;
@@ -390,14 +408,14 @@ export function buildModelElements(
       const params = (exercise: SessionDraftExercise) => uniform(exercise.executionParameters, "REPETITIONS", 1, start, 0);
       if (execution === "EACH_INTERVAL") {
         const members = movements.map(({ exercise }) => withParameters(exercise, params(exercise), 0, { key: "DEATH_BY", settings: { incrementPerRound: increment } }));
-        return [carrierCircuit(newId(), "TOURS", 1, { key: "DEATH_BY", settings: { windowSeconds: interval } }, members)];
+        return [carrierCircuit(key, newId(), "TOURS", 1, { key: "DEATH_BY", settings: { windowSeconds: interval } }, members)];
       }
       if (execution === "ALTERNATED") {
         // A2 : Format au Circuit, intervalles propres aux membres, aucune durée d'en-tête.
         const members = movements.map(({ exercise }) =>
           withParameters(exercise, params(exercise), 0, { key: "DEATH_BY", settings: { incrementPerRound: increment, intervalSeconds: interval } }),
         );
-        return [carrierCircuit(newId(), "SERIES", 1, { key: "DEATH_BY", settings: {} }, members)];
+        return [carrierCircuit(key, newId(), "SERIES", 1, { key: "DEATH_BY", settings: {} }, members)];
       }
       const exercises = movements.map(({ exercise }) =>
         withParameters(exercise, params(exercise), 0, { key: "DEATH_BY", settings: { intervalSeconds: interval, incrementPerRound: increment } }),
@@ -408,7 +426,7 @@ export function buildModelElements(
       const duration = answers.durationSeconds ?? 12 * MINUTE;
       const blocks = answers.blockCount ?? 1;
       const loopRest = answers.loopRestSeconds ?? 0;
-      const buyIn = answers.buyIn === true && several;
+      const buyIn = hasChosenBuyIn(answers, movements);
       const increasing = answers.increasingVolume === true;
       const params = (exercise: SessionDraftExercise, values: MovementValues, once: boolean) =>
         once || values.max !== true
@@ -438,7 +456,7 @@ export function buildModelElements(
         });
       });
       return [
-        carrierCircuit(newId(), "TOURS", blocks, { key: "AMRAP", settings: { blockSeconds: duration, restBetweenBlocksSeconds: answers.restBetweenBlocksSeconds ?? 0 } }, members),
+        carrierCircuit(key, newId(), "TOURS", blocks, { key: "AMRAP", settings: { blockSeconds: duration, restBetweenBlocksSeconds: answers.restBetweenBlocksSeconds ?? 0 } }, members),
       ];
     }
     case "FOR_TIME": {
@@ -464,6 +482,7 @@ export function buildModelElements(
       );
       return [
         carrierCircuit(
+          key,
           newId(),
           "SERIES",
           rounds,

@@ -114,3 +114,23 @@ Signalé par Hermann comme « le dernier mouvement du catalogue ne peut pas int�
 | Seul actif d'un groupe : libre pour le geste ; posé ailleurs, il quitte son groupe (laissé aux archivés ; un archivé seul n'a plus de groupe) | B (réponse de Hermann « Il quitte l'ancienne ») | `SqliteMovementRepository.placeInFamily` (membres actifs, `leftBehind`), `MovementCatalogueList` (`groupSizes` sur les actifs) ; registre ch. 07 ; règles Familles D4 annotées (deux copies) |
 
 Tests : `movementFamilies.fam.test.ts` (création et entrée depuis un seul actif, archivés conservés, Annuler) ; `MovementCatalogueList.fam.test.tsx` (filet et création au geste).
+
+## Recette iPhone n° 3 du 03/11/2026 — autres constats (deuxième lot)
+
+Hermann : « tous ce qui est dans "Autres constats" doit être corrigé » ; inclut les notes KO f3r-deplacer, f3r-recherche et f3-depart. Décisions recopiées au registre ch. 07 (« Recette iPhone n° 3 — autres constats du 03/11/2026 »). À CLARIFIER 1 de la recette n° 3 (nom « Tabata ») : résolu (B).
+
+| Comportement | Classe | Traitement |
+|---|---|---|
+| Nom du modèle d'origine à la place de « Circuit » (Composition, Catalogue), compteur décalé à droite | B | migration 020 `tours.origin_model` ; `structure.ts`, `formatModels.ts`, `SqliteSessionRepository`, `sessionSnapshot`, `SessionDraft`, `CircuitHeader`, `carrierPresentation`, `sessionCatalogueProjection`, `SessionCompositionTree`, `fr.ts` ; référence Formats (Tabata en alternance), relevé Figma du 02/11 annoté ; sprint-status et epics (A.4 → 021, A.5 → 022) |
+| « groupées » aligné sur la ligne (Circuit porteur) | A/D | `CircuitHeader` (même boîte que l'adjectif du menu) |
+| Circuit replié teinté à compléter / à vérifier | B | `collapsedCircuitTone` (`compositionPresentation.ts`), `CompositionScreen` |
+| Appui long sur toute la surface du Circuit | B | `LayoutDragParts` (`onSurfaceLongPress`), `CompositionScreen` |
+| Buy-in / buy-out fixés dans le Circuit porteur (sortie permise) | A (référence Formats §6 point 4) | `layoutMoves.ts` (`PASSAGE_FIXED`), `layoutDrop.ts`, `fr.ts` (texte de refus à valider) |
+| AMRAP : sections Buy-in / En boucle dès le questionnaire, buy-in explicite requis | B | `ModelMovement.buyIn`, `hasChosenBuyIn` (`formatModels.ts`, `formatTimeline.ts`), `FormatModelScreen` |
+| Barre Précédent / Suivant / Fermer des tableaux AMRAP, For time, Progression ; cellule révélée au-dessus du clavier | B | `FormatModelScreen` (`KeyboardAccessoryBar`) |
+| Même champ de saisie au récapitulatif (« + Ajouter », « Changer ») ; clavier maintenu ; suggestions jusqu'au clavier | B | `FormatModelScreen` |
+| Fiche du mouvement en modale, lecture seule | B | route `movement-sheet`, `MovementSheet readOnly` |
+| Pause du Renforcement | B | `FormatModelScreen` (valeur héritée de la pause des Exercices) |
+| Catalogue des séances : chevron pour toute séance ; photo / zone déployée → modification, reste → déploiement | B | `SessionCard`, `SessionCatalogueList` ; spécification carte/catalogue §1 et ch. 06, 08, 10, 13 annotés ; champ `expandable` de la projection devenu sans lecteur (annoté) |
+
+Interprétations techniques à confirmer sur iPhone : VoiceOver de la carte de séance (activer = déployer, « Modifier la séance » en action nommée) ; lettre conservée après le nom (« Tabata B ») ; nom conservé après changement de nature ; carte du buy-in encore saisissable pour sortir du Circuit (référence §6 point 4). Question f3-depart sur la durée du Renforcement : réponse donnée en conversation (pas de changement de calcul).

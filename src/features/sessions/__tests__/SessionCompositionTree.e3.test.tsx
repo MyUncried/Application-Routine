@@ -141,11 +141,17 @@ describe("PRE-8 E.3 — déploiement dans la liste", () => {
     expect(onOpen).not.toHaveBeenCalled();
   });
 
-  it("une Séance d'un seul exercice n'a rien à déployer", () => {
-    renderList();
-    expect(screen.queryByTestId("session-card-seul-disclosure")).toBeNull();
+  // [« une Séance d'un seul exercice n'a rien à déployer » — remplacé le 03/11/2026] Recette iPhone
+  // n° 3 du 03/11/2026 (autres constats, Hermann : « toutes les séances, même celles avec un seul
+  // exercice doivent avoir un chevron et une vue déployée. »).
+  it("une Séance d'un seul exercice a aussi un chevron et une vue déployée", () => {
+    const onOpen = renderList();
+    expect(screen.getByTestId("session-card-seul-disclosure").props.accessibilityState).toEqual({ expanded: false });
     const actions = screen.getByTestId("session-card-seul-swipe-card").props.accessibilityActions as { name: string }[];
-    expect(actions.map((action) => action.name)).not.toContain("toggleComposition");
+    expect(actions.map((action) => action.name)).toContain("toggleComposition");
+    fireEvent.press(screen.getByTestId("session-card-seul-disclosure"));
+    expect(screen.getByTestId("session-card-seul-composition")).toBeTruthy();
+    expect(onOpen).not.toHaveBeenCalled();
   });
 
   it("VoiceOver : action nommée de déploiement, état annoncé, composition ajoutée au nom", () => {
@@ -159,10 +165,36 @@ describe("PRE-8 E.3 — déploiement dans la liste", () => {
     expect(expandedCard.props.accessibilityLabel).toContain("Composition de la séance : Mobilisation du genou 45 s");
   });
 
-  it("toucher la carte ouvre la Séance ; le chevron n'ouvre rien", () => {
+  // [« toucher la carte ouvre la Séance ; le chevron n'ouvre rien » — remplacé le 03/11/2026] Recette
+  // iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « l'appui sur la photo ou l'appui sur la
+  // zone déployée ouvre la séance en modification, l'appui sur le reste de la carte (dont le chevron)
+  // déploie la séance. »).
+  it("toucher le reste de la carte déploie et replie, sans ouvrir la Séance", () => {
     const onOpen = renderList();
-    fireEvent.press(screen.getByTestId("session-card-genou-swipe-card"));
-    expect(onOpen).toHaveBeenCalledWith("genou");
+    fireEvent.press(screen.getByTestId("session-card-seul-swipe-card"));
+    expect(screen.getByTestId("session-card-seul-composition")).toBeTruthy();
+    expect(screen.getByTestId("session-card-seul-swipe-card").props.accessibilityState).toEqual({ expanded: true });
+    fireEvent.press(screen.getByTestId("session-card-seul-swipe-card"));
+    expect(screen.queryByTestId("session-card-seul-composition")).toBeNull();
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("toucher le visuel ou la zone déployée ouvre la Séance", () => {
+    const onOpen = renderList();
+    fireEvent.press(screen.getByTestId("session-card-seul-visual-open"));
+    expect(onOpen).toHaveBeenCalledWith("seul");
+    fireEvent.press(screen.getByTestId("session-card-genou-disclosure"));
+    fireEvent.press(screen.getByTestId("session-card-genou-expanded-open"));
+    expect(onOpen).toHaveBeenLastCalledWith("genou");
+    expect(onOpen).toHaveBeenCalledTimes(2);
+  });
+
+  it("VoiceOver : l'ouverture est une action nommée « Modifier la séance »", () => {
+    const onOpen = renderList();
+    const card = screen.getByTestId("session-card-seul-swipe-card");
+    expect(card.props.accessibilityActions).toContainEqual({ name: "openSession", label: "Modifier la séance" });
+    fireEvent(card, "accessibilityAction", { nativeEvent: { actionName: "openSession" } });
+    expect(onOpen).toHaveBeenCalledWith("seul");
   });
 });
 

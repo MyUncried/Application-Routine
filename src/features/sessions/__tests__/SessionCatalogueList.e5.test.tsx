@@ -113,7 +113,34 @@ describe("PRE-8 E.5 — actions selon l'état", () => {
   it("actions accessibles : Planifier absent (indisponible), Dupliquer et Archiver présents", () => {
     renderList([session("a")]);
     const names = (screen.getByTestId("session-card-a-swipe-card").props.accessibilityActions as { name: string }[]).map((action) => action.name);
-    expect(names).toEqual(["duplicate", "archive", "toggleComposition"]);
+    // Recette iPhone n° 3 du 03/11/2026 : ouverture en action nommée (l'activation déploie).
+    expect(names).toEqual(["duplicate", "archive", "openSession", "toggleComposition"]);
+  });
+
+  it("carte ouverte par le glissé : toucher le visuel n'ouvre pas la Séance", () => {
+    const onOpen = jest.fn();
+    render(
+      <SessionServiceContext.Provider value={makeService() as unknown as SessionService}>
+        <SessionCatalogueList sessions={[session("a", "ACTIVE", 1)]} emptyMessage={null} onOpenSession={onOpen} />
+      </SessionServiceContext.Provider>,
+    );
+    reveal("a");
+    fireEvent.press(screen.getByTestId("session-card-a-visual-open"));
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("carte archivée : chevron, déploiement, et le visuel ouvre la Séance (même chemin)", () => {
+    const onOpen = jest.fn();
+    render(
+      <SessionServiceContext.Provider value={makeService() as unknown as SessionService}>
+        <SessionCatalogueList sessions={[session("z", "ARCHIVED", 1)]} emptyMessage={null} onOpenSession={onOpen} />
+      </SessionServiceContext.Provider>,
+    );
+    fireEvent.press(screen.getByTestId("session-card-z-swipe-card"));
+    expect(screen.getByTestId("session-card-z-composition")).toBeTruthy();
+    expect(onOpen).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("session-card-z-visual-open"));
+    expect(onOpen).toHaveBeenCalledWith("z");
   });
 });
 

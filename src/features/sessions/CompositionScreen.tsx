@@ -209,7 +209,7 @@ import { CreateMenu } from "@/features/sessions/CreateMenu";
 import { FormatsWindow } from "@/features/sessions/FormatsWindow";
 import { isSinglePassage, singlePassageLabel } from "@/domain/sessions/formats";
 import { CarrierDurationSheet } from "@/features/sessions/CarrierDurationSheet";
-import { carrierDurationSetting, carrierHeaderOf } from "@/features/sessions/carrierPresentation";
+import { carrierDurationSetting, carrierHeaderOf, circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
 import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
@@ -237,6 +237,7 @@ import {
 } from "@/features/sessions/ActivityRecoveryLine";
 import { CompositionContextHeader } from "@/features/sessions/CompositionContextHeader";
 import {
+  collapsedCircuitTone,
   formatCompactDuration,
   formatBoundarySecondsValue,
   formatCircuitDuration,
@@ -248,6 +249,7 @@ import {
   isIncompleteSummary,
   isToVerifySummary,
   resolveOccurrenceCategory,
+  type CollapsedCircuitTone,
   type OccurrenceCircuitContext,
 } from "@/features/sessions/compositionPresentation";
 import {
@@ -2612,7 +2614,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // dans les boîtes courantes — la place ouverte suit son bas, ses cartes ne reçoivent aucune
         // translation ; l'aperçu ne change pas à chaque mesure. La destination sous le doigt est
         // recalculée à la fin du déploiement (`finishLayoutExpansionRef`).
-        const candidates = layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints);
+        const candidates = layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints, isFixedPassageExercise);
         const end = circuitEndDrop(candidates, current.expandingCircuitId);
         if (end !== null) current.target = end;
         return;
@@ -2623,13 +2625,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       const slot =
         current.stopPointId === undefined && current.source.kind === "EXERCISE" && layoutCollapsedRef.current.size > 0
           ? resolveDropOverCollapsedCircuits(
-              layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints),
+              layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints, isFixedPassageExercise),
               pointerY,
               layoutCollapsedRef.current.keys(),
               layoutBoxesRef.current,
               current.shifts?.shifts ?? null,
             )
-          : resolveLayoutDrop(layout, current.source, pointerY, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints);
+          : resolveLayoutDrop(layout, current.source, pointerY, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints, isFixedPassageExercise);
       if (!(sameLayoutDrop(slot, current.target) && slot?.lineY === current.target?.lineY)) current.target = slot;
       // Lecture la plus prudente du constat (« l'arrêt d'une carte ») : une carte d'Exercice seulement,
       // pas un Point d'arrêt saisi (À CLARIFIER, spec-recette-2-corrections-composition.md).
@@ -4531,6 +4533,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const circuitMemberNames = zoneItems.IN_TOUR.flatMap((item) =>
     item.kind === "OCCURRENCE" ? [occurrenceCardName(item.occurrence, levelPositions)] : [],
   );
+  // Recette iPhone n° 3 du 03/11/2026 (autres constats) : Circuit replié teinté comme ses cartes masquées
+  // (« à compléter » prime sur « à vérifier ») ; déplié, aplat habituel (`collapsedCircuitTone`).
+  const legacyCircuitTone = isCircuitCollapsed
+    ? collapsedCircuitTone(zoneItems.IN_TOUR.flatMap((item) => (item.kind === "OCCURRENCE" ? [item.occurrence] : [])))
+    : null;
   /**
    * PRE-9 B.1a (ARB-12) : le nom ou le chevron replie ou déplie le Circuit — état de l'écran seul,
    * sans écriture du brouillon. Le stepper révélé et le choix de nature se referment (un seul
@@ -4935,14 +4942,20 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
                 bottom={circuitBottomShift}
                 // Revue 7.5 : pendant une suppression, hauteur du Circuit relevée à son début.
                 dragHeight={deletion !== null ? deletion.layout.tourBottom - deletion.layout.tourTop : dragSession.circuitHeight}
+                // Recette iPhone n° 3 du 03/11/2026 : Circuit replié à compléter ou à vérifier.
+                color={collapsedToneFill(legacyCircuitTone)}
                 testID="composition-tour-section-surface"
               />
             ) : (
               <View
-                style={[StyleSheet.absoluteFill, styles.tourSectionStaticSurface]}
+                style={[StyleSheet.absoluteFill, styles.tourSectionStaticSurface, collapsedToneSurface(legacyCircuitTone)]}
                 testID="composition-tour-section-static-surface"
               />
             )}
+            {/* Recette n° 3 du 03/11 : liseré du Circuit replié teinté, au repos (les couches suivent le glisser). */}
+            {circuitMeasuredHeight > 0 && legacyCircuitTone !== null && draggedKey === null ? (
+              <View style={[StyleSheet.absoluteFill, collapsedToneBorder(legacyCircuitTone)]} testID="composition-tour-section-tone-border" />
+            ) : null}
           </Reanimated.View>
           {/* Zone propre au conteneur Circuit — voir `NatureOutsideZone`. */}
           {isCircuitControl(openOverlay) ? (
@@ -4991,7 +5004,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           <StickyHeaderFrame
             range={legacyStickyRange}
             enabled
-            color={CIRCUIT_SURFACE_COLOR}
+            color={collapsedToneFill(legacyCircuitTone) ?? CIRCUIT_SURFACE_COLOR}
             outsetLeft={CIRCUIT_OUTSET}
             outsetRight={CIRCUIT_OUTSET}
             insetTop={CIRCUIT_PADDING_VERTICAL}
@@ -9038,12 +9051,20 @@ function LayoutCircuitBlock({
     report,
     urgent,
   );
+  /**
+   * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « Les éléments se déplacent tous, ok.
+   * Mais l'appui long doit être actif sur toute la surface du circuit ») : la saisie de l'en-tête
+   * (`onLongPress`) est aussi portée par toute la surface du bloc (`onSurfaceLongPress`) ; une carte
+   * d'Exercice garde son propre appui long. Renseignée après le calcul de la plage collante.
+   */
+  const surfaceGrabRef = useRef<() => void>(() => undefined);
   const gesture = useBlockDragGesture({
     onStart: () => drag?.onStart(source) ?? false,
     onMove: (translationY) => drag?.onMove(translationY),
     onEnd: (translationY) => drag?.onEnd(translationY),
     onCancel: (translationY) => drag?.onCancel(translationY),
     autoScroll: context.autoScroll,
+    ...(drag !== null && !ghost ? { onSurfaceLongPress: () => surfaceGrabRef.current() } : {}),
   });
   const motion = useLayoutContainerMotion("CIRCUIT", circuit.id, context, gesture.translation, ghost);
   const isDragged = drag?.source?.kind === "CIRCUIT" && drag.source.id === circuit.id;
@@ -9052,6 +9073,8 @@ function LayoutCircuitBlock({
   const contentKey = circuit.exercises.map((exercise) => exercise.id).join(" ");
   // PRE-9 B.6 : jamais replié en placement (emplacements du Circuit visibles), comme le Circuit unique (B.1a).
   const isCollapsed = context.collapsed.get(circuit.id) === contentKey && context.stops.placement === null;
+  // Recette iPhone n° 3 du 03/11/2026 (autres constats) : Circuit replié teinté comme ses cartes masquées.
+  const tone = isCollapsed ? collapsedCircuitTone(circuit.exercises) : null;
   const circuitContainer = useMemo<StopPointContainer>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
   const inPlacement = context.stops.placement !== null;
   /**
@@ -9094,6 +9117,13 @@ function LayoutCircuitBlock({
     [blockHeight, headerBottom, stickBelow, sticky, stickyContainerY],
   );
   const horizontalInset = inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET;
+  // Recette n° 3 du 03/11 : même saisie que l'appui long de l'en-tête (B.4c, CS-D7).
+  useLayoutEffect(() => {
+    surfaceGrabRef.current = () => {
+      alignStuckHeader(sticky, circuitStickyRange, false);
+      gesture.begin();
+    };
+  });
   // Contre-recette du 30/10 (constat b) : le Circuit qui vient d'être posé apparaît progressivement
   // (fond, anneau et en-tête) ; ses cartes, déjà visibles, restent.
   const entering = context.appearingCircuitIds.has(circuit.id) ? CIRCUIT_ENTERING : undefined;
@@ -9138,11 +9168,18 @@ function LayoutCircuitBlock({
       <Reanimated.View
         entering={entering}
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, layered ? null : styles.layoutCircuitSurface]}
+        style={[StyleSheet.absoluteFill, layered ? null : styles.layoutCircuitSurface, layered ? null : collapsedToneSurface(tone)]}
         testID={`${testID}-surface`}
       >
         {layered ? (
-          <CircuitSurface top={motion.top} bottom={motion.bottom} dragHeight={blockHeight} extendsOnSpread testID={`${testID}-surface-layers`} />
+          <CircuitSurface
+            top={motion.top}
+            bottom={motion.bottom}
+            dragHeight={blockHeight}
+            extendsOnSpread
+            color={collapsedToneFill(tone)}
+            testID={`${testID}-surface-layers`}
+          />
         ) : null}
       </Reanimated.View>
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
@@ -9180,7 +9217,7 @@ function LayoutCircuitBlock({
       <StickyHeaderFrame
         range={circuitStickyRange}
         enabled={!ghost}
-        color={CIRCUIT_SURFACE_COLOR}
+        color={collapsedToneFill(tone) ?? CIRCUIT_SURFACE_COLOR}
         outsetLeft={horizontalInset}
         outsetRight={horizontalInset}
         insetTop={CIRCUIT_PADDING_VERTICAL}
@@ -9200,6 +9237,8 @@ function LayoutCircuitBlock({
         onToggleCounter={() => onToggleOverlay(counterKind)}
         onChangeCount={(count) => context.onCircuitCount(circuit.id, count)}
         carrier={carrierHeaderOf(circuit, () => context.onEditCarrierDuration(circuit))}
+        // Recette iPhone n° 3 du 03/11/2026 (autres constats) : nom du modèle d'origine à la place de « Circuit ».
+        originTitle={circuitDisplayTitle(circuit)}
         isNatureMenuOpen={openOverlay === natureKind}
         onOpenNatureMenu={() => onToggleOverlay(natureKind)}
         onCloseNatureMenu={() => context.onDismissNature(circuit.id)}
@@ -9799,6 +9838,28 @@ const CIRCUIT_RADIUS = 18;
  * sur iPhone ; la demande de Hermann prime sur Figma.]
  */
 const CIRCUIT_SURFACE_COLOR = "#EBEDF5";
+
+/**
+ * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « Circuit replié : si des exercices ont
+ * des paramètres à compléter ou à vérifier, son format (couleur de fond, liseré) doit le refléter ») —
+ * fond et liseré du Circuit replié : ceux de la carte d'Exercice à compléter
+ * (`occurrenceCardIncompleteSurface`) ou à vérifier (`occurrenceCardToVerifySurface`) ; `null` : aplat
+ * habituel. Le rayon reste celui du Circuit.
+ */
+function collapsedToneSurface(tone: CollapsedCircuitTone) {
+  return tone === "INCOMPLETE" ? occurrenceCardIncompleteSurface : tone === "TO_VERIFY" ? occurrenceCardToVerifySurface : null;
+}
+
+/** Fond de la tonalité (couches animées, en-tête collé) ; `undefined` : celui du Circuit. */
+function collapsedToneFill(tone: CollapsedCircuitTone): string | undefined {
+  return collapsedToneSurface(tone)?.backgroundColor;
+}
+
+/** Liseré seul de la tonalité, au rayon du Circuit (posé sur les couches animées de l'ancien modèle). */
+function collapsedToneBorder(tone: CollapsedCircuitTone) {
+  const surface = collapsedToneSurface(tone);
+  return surface === null ? null : { borderRadius: CIRCUIT_RADIUS, borderWidth: surface.borderWidth, borderColor: surface.borderColor };
+}
 /**
  * PRE-9 B.1b (COMP §4 : « cycle pleine largeur, circuit 386, exercice 370 ; fonds du plus soutenu au
  * plus clair » ; Figma `10744:20108`) — valeurs locales NON ÉCRITES dans les sources, à confirmer :
@@ -9849,6 +9910,11 @@ const ENVELOPE_FRAME_BORDER_WIDTH = 2;
 const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = CARD_OUTSET + spacing[4];
 const LAYOUT_CYCLE_GAP = CIRCUIT_GAP;
 /** Recette n° 2 du 31/10 : écart entre les membres d'un conteneur (place ouverte ou refermée par l'aperçu). */
+/** Recette iPhone n° 3 du 03/11/2026 : buy-in / buy-out (« Passage = Une fois »), fixés en tête ou en fin de leur Circuit porteur. */
+function isFixedPassageExercise(exercise: SessionDraftExercise): boolean {
+  return isSinglePassage(exercise.format);
+}
+
 function layoutContainerGap(container: LayoutContainerRef): number {
   return container.kind === "SESSION" ? SEQUENCE_GAP : container.kind === "CYCLE" ? LAYOUT_CYCLE_GAP : CIRCUIT_GAP;
 }

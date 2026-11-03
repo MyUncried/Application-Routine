@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Text } from "react-native";
 
 import { durationParameters, repetitionParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
@@ -65,11 +65,14 @@ const many = () =>
   ]);
 
 describe("PRE-8 E.2 — carte unique", () => {
-  it("un exercice : volume en synthèse, aucun chevron, Lecture présente et indisponible", () => {
+  // [« aucun chevron » pour un exercice — remplacé le 03/11/2026] Recette iPhone n° 3 du 03/11/2026
+  // (autres constats, Hermann : « toutes les séances, même celles avec un seul exercice doivent avoir
+  // un chevron et une vue déployée. »).
+  it("un exercice : volume en synthèse, chevron, Lecture présente et indisponible", () => {
     render(<SessionCard projection={one()} />);
     expect(screen.getByTestId("session-card-s1-name")).toHaveTextContent("Renforcement du genou");
     expect(screen.getByTestId("session-card-s1-summary")).toHaveTextContent("3 × 1 min 30 s");
-    expect(screen.queryByTestId("session-card-s1-disclosure")).toBeNull();
+    expect(screen.getByTestId("session-card-s1-disclosure").props.accessibilityState).toEqual({ expanded: false });
     const play = screen.getByTestId("session-card-s1-play");
     expect(play.props.accessibilityLabel).toBe("Lancer la séance — indisponible");
     expect(play.props.accessibilityState).toEqual({ disabled: true });
@@ -141,8 +144,36 @@ describe("PRE-8 E.2 — carte unique", () => {
   });
 
   it("le toucher de Lecture est intercepté et n'ouvre rien", () => {
-    render(<SessionCard projection={one()} />);
+    const onOpen = jest.fn();
+    render(<SessionCard projection={one()} onOpen={onOpen} />);
     expect(() => fireEvent.press(screen.getByTestId("session-card-s1-play"))).not.toThrow();
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  // Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « l'appui sur la photo ou l'appui
+  // sur la zone déployée ouvre la séance en modification, l'appui sur le reste de la carte (dont le
+  // chevron) déploie la séance. »).
+  it("un exercice déployé : le visuel et la zone déployée ouvrent, le chevron déploie", () => {
+    const onOpen = jest.fn();
+    const onToggle = jest.fn();
+    render(
+      <SessionCard projection={one()} expanded onToggleExpanded={onToggle} onOpen={onOpen}>
+        <Text testID="composition">Composition</Text>
+      </SessionCard>,
+    );
+    expect(screen.getByTestId("session-card-s1-chevron-open")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("session-card-s1-visual-open"));
+    fireEvent.press(screen.getByTestId("composition"));
+    expect(onOpen).toHaveBeenCalledTimes(2);
+    fireEvent.press(screen.getByTestId("session-card-s1-disclosure"));
+    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(onOpen).toHaveBeenCalledTimes(2);
+  });
+
+  it("Séance vide : chevron aussi ; repliée, aucune zone déployée", () => {
+    render(<SessionCard projection={projection([])} onOpen={() => undefined} />);
+    expect(screen.getByTestId("session-card-s1-disclosure")).toBeTruthy();
+    expect(screen.queryByTestId("session-card-s1-expanded-open")).toBeNull();
   });
 });
 

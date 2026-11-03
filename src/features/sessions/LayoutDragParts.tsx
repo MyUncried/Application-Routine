@@ -21,6 +21,7 @@ import Reanimated, { Easing as ReanimatedEasing, useAnimatedStyle, useSharedValu
 import { scheduleOnRN } from "react-native-worklets";
 
 import { CIRCUIT_HIDE_DURATION_MS, CIRCUIT_REVEAL_DURATION_MS } from "@/features/sessions/CircuitHeader";
+import { LONG_PRESS_DELAY_MS, TOUCH_SLOP } from "@/features/sessions/compositionGesture";
 import {
   MOTION_APPEAR_DURATION_MS,
   MOTION_FADE_DURATION_MS,
@@ -48,6 +49,15 @@ type BlockDragCallbacks = {
   /** Recette n° 2 du 31/10 : translation atteinte, d'où le bloc revient à sa place. */
   readonly onCancel: (translationY: number) => void;
   readonly autoScroll: DragAutoScroll;
+  /**
+   * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « l'appui long doit être actif sur toute
+   * la surface du circuit ») — appui long sur la SURFACE du bloc (marges, écarts entre cartes, ligne des
+   * noms du Circuit replié, textes non interactifs de l'en-tête) : appelé après `LONG_PRESS_DELAY_MS`
+   * sans mouvement au-delà de `TOUCH_SLOP`. Le bloc ne devient répondeur que pour un toucher qu'aucun
+   * descendant n'a pris (le système de répondeurs interroge d'abord le plus profond) : une carte
+   * d'Exercice, les cibles de l'en-tête et le défilement gardent leurs gestes. Absent : inchangé.
+   */
+  readonly onSurfaceLongPress?: () => void;
 };
 
 /**
@@ -56,16 +66,25 @@ type BlockDragCallbacks = {
  * descendants (`onTouch*` sont dispatchés aux ancêtres) et capte le répondeur une fois le glisser
  * engagé. `translation` : valeur animée à appliquer au bloc.
  */
-export function useBlockDragGesture({ onStart, onMove, onEnd, onCancel, autoScroll }: BlockDragCallbacks) {
+export function useBlockDragGesture({ onStart, onMove, onEnd, onCancel, autoScroll, onSurfaceLongPress }: BlockDragCallbacks) {
   const [translation] = useState(() => new Animated.Value(0));
   const originRef = useRef<number | null>(null);
   const fingerDyRef = useRef(0);
   const translationRef = useRef(0);
   const draggingRef = useRef(false);
-  const callbacks = useRef({ onMove, onEnd, onCancel });
+  const callbacks = useRef({ onMove, onEnd, onCancel, onSurfaceLongPress });
   useEffect(() => {
-    callbacks.current = { onMove, onEnd, onCancel };
-  }, [onCancel, onEnd, onMove]);
+    callbacks.current = { onMove, onEnd, onCancel, onSurfaceLongPress };
+  }, [onCancel, onEnd, onMove, onSurfaceLongPress]);
+  /** Recette n° 3 du 03/11 : appui long de surface en attente (minuterie) et point de départ du toucher. */
+  const surfaceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const surfaceStartRef = useRef<{ readonly x: number; readonly y: number } | null>(null);
+  const clearSurfaceTimer = useCallback(() => {
+    if (surfaceTimerRef.current !== null) clearTimeout(surfaceTimerRef.current);
+    surfaceTimerRef.current = null;
+    surfaceStartRef.current = null;
+  }, []);
+  useEffect(() => clearSurfaceTimer, [clearSurfaceTimer]);
   // Bloc démonté pendant son glisser : geste annulé.
   useEffect(
     () => () => {
@@ -136,10 +155,43 @@ export function useBlockDragGesture({ onStart, onMove, onEnd, onCancel, autoScro
     onTouchEnd: finish,
     onTouchCancel: cancel,
     onMoveShouldSetResponderCapture: () => draggingRef.current,
-    onResponderMove: track,
-    onResponderRelease: finish,
+    onResponderMove: (event) => {
+      // Recette n° 3 : un mouvement au-delà de la tolérance avant le délai n'est pas un appui long.
+      const start = surfaceStartRef.current;
+      if (
+        start !== null &&
+        Math.max(Math.abs(event.nativeEvent.pageX - start.x), Math.abs(event.nativeEvent.pageY - start.y)) > TOUCH_SLOP
+      ) {
+        clearSurfaceTimer();
+      }
+      track(event);
+    },
+    onResponderRelease: (event) => {
+      clearSurfaceTimer();
+      finish(event);
+    },
     onResponderTerminationRequest: () => !draggingRef.current,
-    onResponderTerminate: cancel,
+    onResponderTerminate: () => {
+      clearSurfaceTimer();
+      cancel();
+    },
+    ...(onSurfaceLongPress === undefined
+      ? {}
+      : {
+          // Recette n° 3 : toucher non pris par un descendant — le bloc le garde pour l'appui long de surface.
+          // Toujours vrai : déjà répondeur pendant le glisser, le bloc le reste (aucun transfert).
+          onStartShouldSetResponder: () => true,
+          onResponderGrant: (event: GestureResponderEvent) => {
+            clearSurfaceTimer();
+            if (draggingRef.current) return;
+            surfaceStartRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
+            surfaceTimerRef.current = setTimeout(() => {
+              surfaceTimerRef.current = null;
+              surfaceStartRef.current = null;
+              callbacks.current.onSurfaceLongPress?.();
+            }, LONG_PRESS_DELAY_MS);
+          },
+        }),
   };
   return { begin, handlers, translation };
 }

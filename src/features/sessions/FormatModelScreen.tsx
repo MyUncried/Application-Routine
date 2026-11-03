@@ -4,6 +4,7 @@ import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -22,8 +23,10 @@ import { rankMovements } from "@/domain/activities/movementSuggestion";
 import {
   answerBounds,
   appendModelToDraft,
+  basePause,
   buildModelElements,
   executionOptions,
+  hasChosenBuyIn,
   initialAnswers,
   initialMovementValues,
   isFormatModelKey,
@@ -39,8 +42,10 @@ import {
 import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessions/formatTimeline";
 import type { MovementChoice } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
+import type { KeyboardFrame } from "@/features/activities/useSheetKeyboard";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { useFormatModelDraft } from "@/features/sessions/FormatModelDraftContext";
 import { FormatModelIllustration, formatModelColors } from "@/features/sessions/FormatsWindow";
@@ -51,6 +56,7 @@ import { strings } from "@/shared/i18n";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { FINAL_ACTION_TOP_MARGIN } from "@/shared/ui/finalAction";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
  * PRE-9 C.3 — questionnaire et récapitulatif d'un modèle de la fenêtre Formats (référence Formats du
@@ -91,6 +97,79 @@ const CARD_GAP = 8;
 const CARD_STEP_DEFAULT = 68;
 /** Bas du cadre Déroulé à 25 px du haut du bouton (référence §15). */
 const TIMELINE_TO_BUTTON = 25;
+/** Hauteur minimale du cadre des suggestions ; écart laissé au-dessus du clavier. */
+const SUGGESTIONS_MIN_HEIGHT = 160;
+const SUGGESTIONS_TO_KEYBOARD = 8;
+/** Barre Précédent / Suivant / Fermer des tableaux : hauteur avant mesure ; marge de révélation d'une cellule. */
+const KEYBOARD_BAR_HEIGHT = 52;
+const CELL_REVEAL_MARGIN = 12;
+
+/**
+ * Cadre du clavier (haut, en coordonnées de la fenêtre), `null` clavier fermé — événements `Keyboard` standards,
+ * comme la feuille des paramètres d'exécution (`useSheetKeyboard`).
+ */
+function useKeyboardFrame(): KeyboardFrame | null {
+  const [frame, setFrame] = useState<KeyboardFrame | null>(null);
+  useEffect(() => {
+    const ios = Platform.OS === "ios";
+    const show = Keyboard.addListener(ios ? "keyboardWillShow" : "keyboardDidShow", (event) =>
+      setFrame({ screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 }),
+    );
+    const change = ios
+      ? Keyboard.addListener("keyboardWillChangeFrame", (event) =>
+          setFrame((current) => (current === null ? current : { screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 })),
+        )
+      : null;
+    const hide = Keyboard.addListener(ios ? "keyboardWillHide" : "keyboardDidHide", () => setFrame(null));
+    return () => {
+      show.remove();
+      change?.remove();
+      hide.remove();
+    };
+  }, []);
+  return frame;
+}
+
+/**
+ * Ordre de saisie des cellules des tableaux du récapitulatif (Suivant / Précédent) — recette iPhone n° 3 du
+ * 03/11/2026 (autres constats, Hermann : « Il faut pouvoir entrer les valeurs du nombre de répétition et de
+ * l'incrément : clavier ouvert, boutons précédent / suivant / fermer identique au clavier du tableau des séries
+ * variables »). Cellules désactivées (Max) exclues.
+ */
+function tableCellOrder(model: FormatModelKey, movements: readonly ModelMovement[], answers: ModelAnswers): string[] {
+  const order: string[] = [];
+  movements.forEach((item, index) => {
+    switch (model) {
+      case "AMRAP": {
+        const isBuyIn = answers.buyIn === true && item.buyIn === true;
+        if (!isBuyIn && item.values.max === true) return;
+        order.push(`amrap-${index}-r`);
+        if (answers.increasingVolume === true && !isBuyIn) order.push(`amrap-${index}-i`);
+        return;
+      }
+      case "FOR_TIME":
+        for (let column = 0; column < (answers.roundCount ?? 1); column += 1) order.push(`fortime-${index}-${column}`);
+        return;
+      case "PROGRESSION":
+        (item.values.cells ?? []).forEach((_, column) => {
+          order.push(`progression-${index}-${column}-r`);
+          if (item.exercise.executionParameters.loadEnabled) order.push(`progression-${index}-${column}-l`);
+        });
+        return;
+      default:
+        return;
+    }
+  });
+  return order;
+}
+
+/** Branchement d'une cellule de tableau sur la navigation au clavier. */
+type CellBinding = (key: string) => {
+  readonly inputRef: (input: TextInput | null) => void;
+  readonly onFocus: () => void;
+  readonly onBlur: () => void;
+  readonly onSubmit: (() => void) | undefined;
+};
 
 function formatSeconds(seconds: number): string {
   return formatPhraseDuration(Math.max(0, Math.round(seconds)));
@@ -386,12 +465,15 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
       });
       setMovements((current) => {
         const mapped = entries.map(({ exercise, values }) => ({ exercise, values }));
-        // Buy-in : premier mouvement (choisi d'abord, §7.3), remplacé par « Changer » (§7.4).
-        if (role === "BUY_IN") return current.length > 0 && hasBuyIn.current ? [...mapped.slice(0, 1), ...current.slice(1)] : [...mapped.slice(0, 1), ...current];
+        // Buy-in : choix explicite de la section Buy-in, toujours en tête, remplacé par « Changer » (§7.3, §7.4 ;
+        // recette n° 3 du 03/11/2026 : jamais un mouvement de boucle pris pour le buy-in).
+        if (role === "BUY_IN") {
+          const [chosen] = mapped;
+          return chosen === undefined ? current : [{ ...chosen, buyIn: true as const }, ...current.filter((item) => item.buyIn !== true)];
+        }
         return [...current, ...mapped];
       });
       for (const { movement } of entries) movementsById.current.set(movement.id, movement);
-      if (role === "BUY_IN") hasBuyIn.current = true;
       // Recette n° 3 du 03/11/2026 : le choix d'un mouvement reste sur l'écran (plus de passage automatique
       // au récapitulatif) — « Valider ces paramètres » ou « Enregistrer dans la séance » (`validatesFirst`).
     },
@@ -400,8 +482,6 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
 
   // Mouvements remis par la modale du Catalogue au retour sur l'écran.
   const movementsById = useRef(new Map<string, Movement>());
-  // Buy-in déjà choisi : « Changer » le remplace (le premier mouvement reste le buy-in).
-  const hasBuyIn = useRef(answers.buyIn === true && movements.length > 0);
   useFocusEffect(
     useCallback(() => {
       const handed = takeMovementsHandedToFormat();
@@ -409,11 +489,31 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     }, [addMovements]),
   );
 
-  // Champ de saisie d'un mouvement (§7.1).
-  const [searchOpen, setSearchOpen] = useState(false);
+  // Champ de saisie d'un mouvement (§7.1), ouvert dans une section : Mouvements (ou En boucle) ou Buy-in —
+  // recette n° 3 du 03/11/2026 (f3r-recherche, Hermann : « Sur le deuxième écran des valeurs des paramètres,
+  // appuyer sur "+ Ajouter" ouvre directement le catalogue alors que le comportement doit être exactement le
+  // même que pour le premier écran. Idem pour le bouton "Changer" ») : même champ dans chaque section, aux deux étapes.
+  const [searchRole, setSearchRole] = useState<"LOOP" | "BUY_IN" | null>(null);
+  const searchOpen = searchRole !== null;
   const [query, setQuery] = useState("");
-  // Cadre des suggestions : il défile seul, au-dessus du clavier (environ la moitié de la hauteur restante).
-  const suggestionsMaxHeight = Math.max(160, Math.round(useWindowDimensions().height * 0.32));
+  const windowHeight = useWindowDimensions().height;
+  const keyboardFrame = useKeyboardFrame();
+  const reduceMotion = useReduceMotion();
+  // Cadre des suggestions : il défile seul — recette n° 3 du 03/11/2026 (autres constats, Hermann : « taper des
+  // lettres : la zone de recherche apparaît. Il faut qu'elle descende jusqu'au clavier au minimum par défaut ») :
+  // son bas rejoint le haut du clavier. [Hauteur maximale d'un tiers de l'écran — remplacée.]
+  const suggestionsRef = useRef<View>(null);
+  const [suggestionsTop, setSuggestionsTop] = useState<number | null>(null);
+  const measureSuggestions = useCallback(() => {
+    suggestionsRef.current?.measureInWindow((_x, y) => setSuggestionsTop(y));
+  }, []);
+  useEffect(() => {
+    if (keyboardFrame !== null) measureSuggestions();
+  }, [keyboardFrame, measureSuggestions]);
+  const suggestionsHeight =
+    keyboardFrame !== null && suggestionsTop !== null
+      ? Math.max(SUGGESTIONS_MIN_HEIGHT, keyboardFrame.screenY - suggestionsTop - SUGGESTIONS_TO_KEYBOARD)
+      : Math.max(SUGGESTIONS_MIN_HEIGHT, Math.round(windowHeight * 0.32));
   const ranked = useMemo(() => {
     if (query.trim().length === 0) return [];
     const byId = new Map(choices.map((choice) => [choice.movement.id, choice]));
@@ -424,7 +524,7 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   }, [choices, query]);
   const openCatalogue = (purpose: "format-loop" | "format-buy-in") => {
     router.push({ pathname: "/movement-selection", params: { purpose, ...(query.trim().length > 0 ? { query } : {}) } });
-    setSearchOpen(false);
+    setSearchRole(null);
     setQuery("");
   };
 
@@ -448,7 +548,10 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   // dernier mouvement. Il faut pouvoir le faire, mais à ce moment le bouton d'action "Enregistrer dans la
   // séance" doit être grisé. ») : sans mouvement de boucle, l'enregistrement est indisponible. [C.3, §7.4 :
   // dernier mouvement de boucle protégé (variante « Suppression = Bloquée ») — remplacé.]
-  const canSave = movements.length > (model === "AMRAP" && answers.buyIn === true ? 1 : 0);
+  // Recette n° 3 du 03/11/2026 (autres constats, Hermann : « Il faut sélectionner le mouvement de Buy-in pour
+  // que le bouton d'action soit activé ») : Buy-in activé, il faut le buy-in et au moins un mouvement en boucle.
+  const buyIn = model === "AMRAP" && answers.buyIn === true;
+  const canSave = buyIn ? hasChosenBuyIn(answers, movements) : movements.length > 0;
   const save = () => {
     if (busyRef.current || !canSave) return;
     busyRef.current = true;
@@ -490,15 +593,16 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   const close = () => router.back();
 
   // Lignes de paramètres du modèle.
-  const stepRow = (id: ModelAnswerKey, label: string, options: { last?: boolean; format?: (value: number) => string } = {}) => {
-    const value = answers[id];
+  // `fallback` : valeur héritée affichée tant que la réponse n'est pas fixée (Pause du Renforcement : pause des Exercices).
+  const stepRow = (id: ModelAnswerKey, label: string, options: { last?: boolean; format?: (value: number) => string; fallback?: number } = {}) => {
+    const value = answers[id] ?? options.fallback;
     const bounds = answerBounds(id);
     const isSeconds = SECONDS_KEYS.has(id);
     const numeric = typeof value === "number" ? value : null;
     const text = numeric === null ? t().noLimit : options.format !== undefined ? options.format(numeric) : isSeconds ? formatSeconds(numeric) : String(numeric);
     const onStep = (direction: 1 | -1) =>
       setAnswers((current) => {
-        const raw = current[id];
+        const raw = current[id] ?? options.fallback;
         if (typeof raw !== "number") return direction > 0 ? withAnswer(current, id, bounds.min) : current;
         const next = raw + direction * (isSeconds ? durationStep(raw, direction) : 1);
         // Temps limite (§11) : sous le minimum, « Sans limite ».
@@ -522,7 +626,14 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     <Row key={id} label={label} testID={`format-row-${id}`}>
       <Switch
         value={answers[id] === true}
-        onValueChange={(value) => setAnswers((current) => withAnswer(current, id, value))}
+        onValueChange={(value) => {
+          setAnswers((current) => withAnswer(current, id, value));
+          // Buy-in désactivé : la section Buy-in disparaît avec son mouvement.
+          if (id === "buyIn" && !value) {
+            setMovements((current) => current.filter((item) => item.buyIn !== true));
+            setSearchRole((current) => (current === "BUY_IN" ? null : current));
+          }
+        }}
         accessibilityLabel={label}
         testID={`format-${id}`}
       />
@@ -587,7 +698,8 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
       case "FOR_TIME":
         return [stepRow("roundCount", r.roundCount), stepRow("restBetweenRoundsSeconds", r.restBetweenRoundsSeconds), stepRow("timeCapSeconds", r.timeCapSeconds, { last: true })];
       case "STRENGTH":
-        return withExecution([stepRow("seriesCount", r.seriesCount), stepRow("repetitions", r.repetitions), ...(answers.pauseSeconds !== undefined ? [stepRow("pauseSeconds", r.pauseSeconds)] : []), totalRow(!showExecution)]);
+        // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Il manque le champ de la Pause ») : Pause toujours affichée.
+        return withExecution([stepRow("seriesCount", r.seriesCount), stepRow("repetitions", r.repetitions), stepRow("pauseSeconds", r.pauseSeconds, { fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0 }), totalRow(!showExecution)]);
       case "UNTIL_FAILURE":
         return withExecution([stepRow("seriesCount", r.seriesCount), readRow(r.targetPerSeries, t().atFailure, "target"), totalRow(!showExecution)]);
       case "PROGRESSION":
@@ -601,8 +713,8 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     }
   }
 
-  const buyIn = model === "AMRAP" && answers.buyIn === true;
   const scrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
   const [revealedId, setRevealedId] = useState<string | null>(null);
 
   // Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « L'appui long sur la carte du mouvement
@@ -614,7 +726,9 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   const touchY = useRef(0);
   const dragStartY = useRef<number | null>(null);
   const cardStep = useRef(CARD_STEP_DEFAULT);
-  const firstMovable = buyIn ? 1 : 0;
+  // Buy-in choisi : en tête, jamais déplacé ni dépassé.
+  const buyInCount = buyIn && movements[0]?.buyIn === true ? 1 : 0;
+  const firstMovable = buyInCount;
   const dragTarget = (current: { from: number; dy: number }) =>
     Math.max(firstMovable, Math.min(movements.length - 1, current.from + Math.round(current.dy / cardStep.current)));
   const startDrag = (index: number) => {
@@ -659,6 +773,106 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     </View>
   );
 
+  // Cellules des tableaux : focus, Suivant / Précédent, révélation au-dessus du clavier et de sa barre.
+  const cellInputs = useRef(new Map<string, TextInput | null>());
+  const [focusedCell, setFocusedCell] = useState<string | null>(null);
+  const [barHeight, setBarHeight] = useState(KEYBOARD_BAR_HEIGHT);
+  const cellOrder = useMemo(() => (stage === "summary" ? tableCellOrder(model, movements, answers) : []), [answers, model, movements, stage]);
+  const focusCell = (key: string | undefined) => {
+    if (key !== undefined) cellInputs.current.get(key)?.focus();
+  };
+  const cellBinding: CellBinding = (key) => {
+    const at = cellOrder.indexOf(key);
+    return {
+      inputRef: (input) => {
+        cellInputs.current.set(key, input);
+      },
+      onFocus: () => setFocusedCell(key),
+      onBlur: () => setFocusedCell((current) => (current === key ? null : current)),
+      onSubmit: at >= 0 && at < cellOrder.length - 1 ? () => focusCell(cellOrder[at + 1]) : undefined,
+    };
+  };
+  const focusedAt = focusedCell === null ? -1 : cellOrder.indexOf(focusedCell);
+  useEffect(() => {
+    if (focusedCell === null || keyboardFrame === null) return;
+    const input = cellInputs.current.get(focusedCell);
+    input?.measureInWindow((_x, y, _width, height) => {
+      const limit = keyboardFrame.screenY - (Platform.OS === "ios" ? barHeight : 0) - CELL_REVEAL_MARGIN;
+      const delta = y + height - limit;
+      if (delta > 0) scrollRef.current?.scrollTo({ y: scrollY.current + delta, animated: !reduceMotion });
+    });
+  }, [barHeight, focusedCell, keyboardFrame, reduceMotion]);
+
+  // Section de mouvements : en-tête, lien « + Ajouter » / « Changer » (champ de saisie), puis « Ouvrir le catalogue ».
+  const movementSection = (role: "LOOP" | "BUY_IN", label: string, link: string, testID: string) => {
+    const open = searchRole === role;
+    const purpose = role === "BUY_IN" ? "format-buy-in" : "format-loop";
+    return (
+      <>
+        <SectionHeader
+          label={label}
+          link={open ? t().openCatalogue : link}
+          onLink={() => {
+            if (open) openCatalogue(purpose);
+            else {
+              setQuery("");
+              setSuggestionsTop(null);
+              setSearchRole(role);
+            }
+          }}
+          testID={testID}
+        />
+        {open ? (
+          <View style={styles.search}>
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              autoFocus
+              placeholder={t().searchPlaceholder}
+              // Recette n° 3 du 03/11/2026 (f3r-recherche : « appuyer sur entrée fait disparaître le clavier […]
+              // Le clavier ne doit pas disparaître ») : Entrée ne retire pas le focus.
+              submitBehavior="submit"
+              onBlur={() => {
+                if (query.trim().length === 0) setSearchRole((current) => (current === role ? null : current));
+              }}
+              style={styles.searchInput}
+              accessibilityLabel={t().searchPlaceholder}
+              testID="format-search"
+            />
+            {ranked.length > 0 ? (
+              <View ref={suggestionsRef} onLayout={measureSuggestions} collapsable={false}>
+                <ScrollView
+                  style={[styles.suggestions, { height: suggestionsHeight }]}
+                  contentContainerStyle={styles.suggestionsContent}
+                  // f3r-recherche : « faire défiler la liste vers le haut puis vers le bas […] fait disparaître le
+                  // clavier […] Le clavier ne doit pas disparaître avec ces mouvements. »
+                  keyboardShouldPersistTaps="always"
+                  keyboardDismissMode="none"
+                  nestedScrollEnabled
+                  testID="format-suggestions"
+                >
+                  {ranked.map((choice) => (
+                    <SelectedMovementCard
+                      key={choice.movement.id}
+                      movement={choice.movement}
+                      levelRank={choice.level?.rank ?? null}
+                      onPress={() => {
+                        setSearchRole(null);
+                        setQuery("");
+                        addMovements([choice.movement], role);
+                      }}
+                      testID={`format-suggestion-${choice.movement.id}`}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+      </>
+    );
+  };
+
   return (
     <ScreenShell>
       <FixedHeader
@@ -673,7 +887,12 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         // écran figé pendant la saisie d'un mouvement avec suggestions, et pendant le déplacement d'une carte.
         scrollEnabled={drag === null && !(searchOpen && ranked.length > 0)}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="none"
         automaticallyAdjustKeyboardInsets
+        onScroll={(event) => {
+          scrollY.current = event.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
         contentContainerStyle={[styles.content, { paddingBottom: actionZone.scrollReserve - FINAL_ACTION_TOP_MARGIN + TIMELINE_TO_BUTTON }]}
         testID={`format-${stage}`}
       >
@@ -693,60 +912,18 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         </View>
 
         {/* Mouvements (§7.1 à §7.4). */}
-        {buyIn && stage === "summary" ? (
+        {/* Recette n° 3 du 03/11/2026 (autres constats, Hermann : « Activer Buy-in : la section Buy-in apparaît, le
+            nom de l'autre section change (en boucle...) ») : sections Buy-in et En boucle dès le questionnaire. */}
+        {buyIn ? (
           <>
-            <SectionHeader label={t().buyInSection} link={t().change} onLink={() => openCatalogue("format-buy-in")} testID="format-buy-in" />
-            {cardList(movements.slice(0, 1), 0, true)}
-            <SectionHeader label={t().loopSection} link={t().add} onLink={() => openCatalogue("format-loop")} testID="format-loop" />
-            {cardList(movements.slice(1), 1, false)}
+            {movementSection("BUY_IN", t().buyInSection, buyInCount > 0 ? t().change : t().add, "format-buy-in")}
+            {cardList(movements.slice(0, buyInCount), 0, true)}
+            {movementSection("LOOP", t().loopSection, t().add, "format-loop")}
+            {cardList(movements.slice(buyInCount), buyInCount, false)}
           </>
         ) : (
           <>
-            <SectionHeader
-              label={t().movements}
-              link={searchOpen ? t().openCatalogue : t().add}
-              onLink={() => (searchOpen ? openCatalogue(buyIn && movements.length === 0 ? "format-buy-in" : "format-loop") : setSearchOpen(true))}
-              testID="format-movements"
-            />
-            {searchOpen ? (
-              <View style={styles.search}>
-                <TextInput
-                  value={query}
-                  onChangeText={setQuery}
-                  autoFocus
-                  placeholder={t().searchPlaceholder}
-                  onBlur={() => {
-                    if (query.trim().length === 0) setSearchOpen(false);
-                  }}
-                  style={styles.searchInput}
-                  accessibilityLabel={t().searchPlaceholder}
-                  testID="format-search"
-                />
-                {ranked.length > 0 ? (
-                  <ScrollView
-                    style={[styles.suggestions, { maxHeight: suggestionsMaxHeight }]}
-                    contentContainerStyle={styles.suggestionsContent}
-                    keyboardShouldPersistTaps="handled"
-                    nestedScrollEnabled
-                    testID="format-suggestions"
-                  >
-                    {ranked.map((choice) => (
-                      <SelectedMovementCard
-                        key={choice.movement.id}
-                        movement={choice.movement}
-                        levelRank={choice.level?.rank ?? null}
-                        onPress={() => {
-                          setSearchOpen(false);
-                          setQuery("");
-                          addMovements([choice.movement], buyIn && movements.length === 0 ? "BUY_IN" : "LOOP");
-                        }}
-                        testID={`format-suggestion-${choice.movement.id}`}
-                      />
-                    ))}
-                  </ScrollView>
-                ) : null}
-              </View>
-            ) : null}
+            {movementSection("LOOP", t().movements, t().add, "format-movements")}
             {cardList(movements, 0, false)}
           </>
         )}
@@ -754,7 +931,7 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         <Text style={styles.section}>{t().parameters}</Text>
         <View style={styles.panel} testID="format-parameters">
           {rows}
-          {model === "PROGRESSION" && stage === "summary" ? <ProgressionTable movements={movements} onChange={updateValues} /> : null}
+          {model === "PROGRESSION" && stage === "summary" ? <ProgressionTable movements={movements} onChange={updateValues} cell={cellBinding} /> : null}
           {model === "PROGRESSION" ? (
             <>
               {answers.pauseSeconds !== undefined ? stepRow("pauseSeconds", t().rows.pauseSeconds) : null}
@@ -762,8 +939,10 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
             </>
           ) : null}
         </View>
-        {model === "AMRAP" && stage === "summary" ? <AmrapTable movements={movements} buyIn={buyIn} increasing={answers.increasingVolume === true} onChange={updateValues} /> : null}
-        {model === "FOR_TIME" && stage === "summary" ? <ForTimeTable movements={movements} rounds={answers.roundCount ?? 1} onChange={updateValues} /> : null}
+        {model === "AMRAP" && stage === "summary" ? (
+          <AmrapTable movements={movements} buyIn={buyIn} increasing={answers.increasingVolume === true} onChange={updateValues} cell={cellBinding} />
+        ) : null}
+        {model === "FOR_TIME" && stage === "summary" ? <ForTimeTable movements={movements} rounds={answers.roundCount ?? 1} onChange={updateValues} cell={cellBinding} /> : null}
 
         <View style={styles.spacer} />
         <Text style={styles.section}>{t().timeline}</Text>
@@ -782,6 +961,20 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           <PrimaryActionButton label={t().save} onPress={save} disabled={!canSave} testID="format-save" />
         )}
       </PrimaryActionZone>
+      {/* Barre du clavier des tableaux, identique à celle du tableau des séries variables (iOS). */}
+      {Platform.OS === "ios" && focusedCell !== null && keyboardFrame !== null ? (
+        <KeyboardAccessoryBar
+          keyboardFrame={keyboardFrame}
+          containerBottom={windowHeight}
+          reduceMotion={reduceMotion}
+          onHeight={setBarHeight}
+          canPrevious={focusedAt > 0}
+          canNext={focusedAt >= 0 && focusedAt < cellOrder.length - 1}
+          onPrevious={() => focusCell(cellOrder[focusedAt - 1])}
+          onNext={() => focusCell(cellOrder[focusedAt + 1])}
+          onClose={() => Keyboard.dismiss()}
+        />
+      ) : null}
     </ScreenShell>
   );
 
@@ -796,14 +989,11 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     const target = drag === null ? index : dragTarget(drag);
     const shift =
       drag === null || lifted ? 0 : index > drag.from && index <= target ? -cardStep.current : index < drag.from && index >= target ? cardStep.current : 0;
-    const remove = () => {
-      if (isBuyInCard) hasBuyIn.current = false;
-      setMovements((current) => current.filter((_, at) => at !== index));
-    };
+    const remove = () => setMovements((current) => current.filter((_, at) => at !== index));
     const move = (direction: -1 | 1) =>
       setMovements((current) => {
         const target = index + direction;
-        if (target < (buyIn ? 1 : 0) || target >= current.length || isBuyInCard) return current;
+        if (target < firstMovable || target >= current.length || isBuyInCard) return current;
         const next = [...current];
         [next[index], next[target]] = [next[target]!, next[index]!];
         return next;
@@ -821,7 +1011,15 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           revealed={revealedId === item.exercise.id}
           onReveal={() => setRevealedId(item.exercise.id)}
           onHide={() => setRevealedId(null)}
-          onPress={() => setRevealedId(null)}
+          // Recette n° 3 du 03/11/2026 (autres constats, Hermann : « un appui court doit ouvrir la fiche du
+          // mouvement en modale, par le bas, lecture seule sans possibilité de modification »).
+          onPress={() => {
+            if (revealedId !== null) {
+              setRevealedId(null);
+              return;
+            }
+            if (movement !== null) router.push({ pathname: "/movement-sheet", params: { movementId: movement.id } });
+          }}
           accessibilityLabel={item.exercise.name}
           extraAccessibilityActions={[
             { name: "moveUp", label: t().moveUp, onAction: () => move(-1) },
@@ -941,6 +1139,8 @@ function NumberCell({
   label,
   inputRef,
   onSubmit,
+  onFocus,
+  onBlur,
   testID,
 }: {
   value: number | null;
@@ -950,7 +1150,9 @@ function NumberCell({
   prefix?: string;
   label: string;
   inputRef?: (input: TextInput | null) => void;
-  onSubmit?: () => void;
+  onSubmit?: (() => void) | undefined;
+  onFocus?: () => void;
+  onBlur?: () => void;
   testID: string;
 }) {
   // Saisie directe au clavier numérique (répétitions) ou décimal (charge, D-405).
@@ -977,6 +1179,8 @@ function NumberCell({
       returnKeyType={onSubmit !== undefined ? "next" : "done"}
       onSubmitEditing={onSubmit}
       submitBehavior={onSubmit !== undefined ? "submit" : "blurAndSubmit"}
+      onFocus={onFocus}
+      onBlur={onBlur}
       placeholder={t().dash}
       placeholderTextColor={DISABLED_VALUE}
       accessibilityLabel={label}
@@ -991,11 +1195,13 @@ function AmrapTable({
   buyIn,
   increasing,
   onChange,
+  cell,
 }: {
   movements: readonly ModelMovement[];
   buyIn: boolean;
   increasing: boolean;
   onChange: (index: number, values: MovementValues) => void;
+  cell: CellBinding;
 }) {
   const tt = t().table;
   return (
@@ -1007,7 +1213,7 @@ function AmrapTable({
         <Text style={styles.tableHead}>{tt.max}</Text>
       </View>
       {movements.map((item, index) => {
-        const isBuyIn = buyIn && index === 0;
+        const isBuyIn = buyIn && item.buyIn === true;
         const max = !isBuyIn && item.values.max === true;
         const name = `${item.exercise.name}${isBuyIn ? tt.buyInSuffix : ""}`;
         return (
@@ -1019,6 +1225,7 @@ function AmrapTable({
               value={item.values.repetitions ?? null}
               disabled={max}
               onChange={(value) => onChange(index, { ...item.values, repetitions: value })}
+              {...cell(`amrap-${index}-r`)}
               label={`${name}, ${tt.repetitions}`}
               testID={`format-amrap-reps-${index}`}
             />
@@ -1031,6 +1238,7 @@ function AmrapTable({
                   prefix="+ "
                   disabled={max}
                   onChange={(value) => onChange(index, { ...item.values, increment: value ?? 0 })}
+                  {...cell(`amrap-${index}-i`)}
                   label={`${name}, ${tt.perRound}`}
                   testID={`format-amrap-increment-${index}`}
                 />
@@ -1057,7 +1265,17 @@ function AmrapTable({
   );
 }
 
-function ForTimeTable({ movements, rounds, onChange }: { movements: readonly ModelMovement[]; rounds: number; onChange: (index: number, values: MovementValues) => void }) {
+function ForTimeTable({
+  movements,
+  rounds,
+  onChange,
+  cell,
+}: {
+  movements: readonly ModelMovement[];
+  rounds: number;
+  onChange: (index: number, values: MovementValues) => void;
+  cell: CellBinding;
+}) {
   const tt = t().table;
   const columns = Array.from({ length: rounds }, (_, index) => index);
   return (
@@ -1083,6 +1301,7 @@ function ForTimeTable({ movements, rounds, onChange }: { movements: readonly Mod
                 const volumes = Array.from({ length: rounds }, (_, at) => (at === column ? value : (item.values.volumes?.[at] ?? null)));
                 onChange(index, { ...item.values, volumes });
               }}
+              {...cell(`fortime-${index}-${column}`)}
               label={`${item.exercise.name}, ${tt.round.replace("{n}", String(column + 1))}, ${tt.repetitionsKind}`}
               testID={`format-for-time-${index}-${column}`}
             />
@@ -1098,23 +1317,18 @@ function ForTimeTable({ movements, rounds, onChange }: { movements: readonly Mod
  * et charge sous les répétitions si l'Exercice est « Avec » charge (réglage propre à chaque Exercice).
  * Toucher une cellule ouvre le clavier ; Suivant parcourt répétitions S1, charge S1, répétitions S2…
  */
-function ProgressionTable({ movements, onChange }: { movements: readonly ModelMovement[]; onChange: (index: number, values: MovementValues) => void }) {
+function ProgressionTable({
+  movements,
+  onChange,
+  cell,
+}: {
+  movements: readonly ModelMovement[];
+  onChange: (index: number, values: MovementValues) => void;
+  cell: CellBinding;
+}) {
   const tt = t().table;
   const count = Math.max(0, ...movements.map((item) => item.values.cells?.length ?? 0));
   const columns = Array.from({ length: count }, (_, index) => index);
-  const inputs = useRef(new Map<string, TextInput | null>());
-  const order: string[] = [];
-  movements.forEach((item, index) =>
-    columns.forEach((column) => {
-      order.push(`${index}-${column}-r`);
-      if (item.exercise.executionParameters.loadEnabled) order.push(`${index}-${column}-l`);
-    }),
-  );
-  const next = (key: string) => () => {
-    const at = order.indexOf(key);
-    const following = order[at + 1];
-    if (following !== undefined) inputs.current.get(following)?.focus();
-  };
   return (
     <View style={styles.progressionTable} testID="format-progression-table">
       <View style={styles.tableHeader}>
@@ -1137,25 +1351,23 @@ function ProgressionTable({ movements, onChange }: { movements: readonly ModelMo
               {item.exercise.name}
             </Text>
             {columns.map((column) => {
-              const cell = item.values.cells?.[column] ?? { repetitions: null, loadKg: null };
+              const entry = item.values.cells?.[column] ?? { repetitions: null, loadKg: null };
               const column1 = tt.series.replace("{n}", String(column + 1));
               return (
                 <View key={column} style={styles.progressionCell}>
                   <NumberCell
-                    value={cell.repetitions}
+                    value={entry.repetitions}
                     onChange={(value) => setCell(column, { repetitions: value })}
-                    inputRef={(input) => inputs.current.set(`${index}-${column}-r`, input)}
-                    onSubmit={next(`${index}-${column}-r`)}
+                    {...cell(`progression-${index}-${column}-r`)}
                     label={tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", column1).replace("{kind}", tt.repetitionsKind)}
                     testID={`format-progression-${index}-${column}-reps`}
                   />
                   {withLoad ? (
                     <NumberCell
-                      value={cell.loadKg}
+                      value={entry.loadKg}
                       decimal
                       onChange={(value) => setCell(column, { loadKg: value })}
-                      inputRef={(input) => inputs.current.set(`${index}-${column}-l`, input)}
-                      onSubmit={next(`${index}-${column}-l`)}
+                      {...cell(`progression-${index}-${column}-l`)}
                       label={tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", column1).replace("{kind}", tt.loadKind)}
                       testID={`format-progression-${index}-${column}-load`}
                     />
@@ -1209,7 +1421,8 @@ const styles = StyleSheet.create({
   tableRowLoad: { minHeight: 44 },
   tableCellText: { fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   tableDash: { width: 56, textAlign: "center", color: DISABLED_VALUE },
-  cell: { width: 56, textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR, paddingVertical: 2 },
+  // Recette n° 3 du 03/11/2026 (autres constats : « le champ Rép. n'est pas modifiable ») : zone tactile de la hauteur de la ligne.
+  cell: { width: 56, minHeight: 36, textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR, paddingVertical: 2 },
   cellDisabled: { color: DISABLED_VALUE },
   progressionCell: { width: 56, alignItems: "center" },
   radioSlot: { width: 56, alignItems: "center", justifyContent: "center", minHeight: 36 },

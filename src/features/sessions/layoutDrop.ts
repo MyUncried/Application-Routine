@@ -24,8 +24,15 @@
  * Fonctions pures.
  */
 
-import type { LayoutContainerRef, LayoutDestination, LayoutItemRef } from "@/domain/sessions/layoutMoves";
-import type { SessionStructure, StructureCircuit, StructureCycleMember, StructureElement, StructureStopPointLocation } from "@/domain/sessions/structure";
+import { breaksFixedPassage, type LayoutContainerRef, type LayoutDestination, type LayoutItemRef } from "@/domain/sessions/layoutMoves";
+import {
+  mapStructure,
+  type SessionStructure,
+  type StructureCircuit,
+  type StructureCycleMember,
+  type StructureElement,
+  type StructureStopPointLocation,
+} from "@/domain/sessions/structure";
 
 /** Boîte verticale mesurée, dans le repère du contenu défilant. */
 export type LayoutBox = { readonly top: number; readonly height: number };
@@ -95,6 +102,11 @@ export type LayoutDropStopPoint = { readonly container: LayoutContainerRef; read
 /**
  * Emplacements admis pour `source` avec leur ordonnée (voir l'en-tête). Un emplacement dont une
  * mesure manque est omis. `gapOf` : écart des membres de chaque conteneur (haut de l'élément déposé).
+ *
+ * Recette iPhone n° 3 du 03/11/2026 (Hermann : « La carte d'exercice Buy-In ne doit pas pouvoir être
+ * déplacée dans le circuit ») : `singlePassage` (Exercice « Passage = Une fois ») — les emplacements
+ * que `breaksFixedPassage` interdit (buy-in hors tête, buy-out hors fin de leur Circuit porteur, toute
+ * carte avant le buy-in ou après le buy-out) ne sont pas offerts : l'aperçu n'y ouvre aucune place.
  */
 export function layoutDropCandidates<E>(
   layout: Shape<E>,
@@ -103,6 +115,7 @@ export function layoutDropCandidates<E>(
   idOf: (exercise: E) => string,
   gapOf: LayoutGapOf = NO_GAP,
   stopPoints: readonly LayoutDropStopPoint[] = [],
+  singlePassage?: (exercise: E) => boolean,
 ): readonly LayoutDropTarget[] {
   const candidates: LayoutDropTarget[] = [];
   const bottom = (box: LayoutBox) => box.top + box.height;
@@ -234,7 +247,14 @@ export function layoutDropCandidates<E>(
       }
     }
   }
-  return candidates;
+  if (singlePassage === undefined) return candidates;
+  const fixed = new Set<string>();
+  const ids = mapStructure({ elements: layout.elements, stopPoints: [] }, (exercise) => {
+    const id = idOf(exercise);
+    if (singlePassage(exercise)) fixed.add(id);
+    return id;
+  });
+  return fixed.size === 0 ? candidates : candidates.filter((candidate) => !breaksFixedPassage(ids, (id) => fixed.has(id), source, candidate));
 }
 
 /** Emplacement admis le plus proche de `pointerY` (à égalité, le premier dans l'ordre de recherche). */
@@ -246,8 +266,9 @@ export function resolveLayoutDrop<E>(
   idOf: (exercise: E) => string,
   gapOf: LayoutGapOf = NO_GAP,
   stopPoints: readonly LayoutDropStopPoint[] = [],
+  singlePassage?: (exercise: E) => boolean,
 ): LayoutDropTarget | null {
-  return nearestLayoutDrop(layoutDropCandidates(layout, source, boxes, idOf, gapOf, stopPoints), pointerY);
+  return nearestLayoutDrop(layoutDropCandidates(layout, source, boxes, idOf, gapOf, stopPoints, singlePassage), pointerY);
 }
 
 /** Emplacement le plus proche de `pointerY` parmi `candidates` (à égalité, le premier). */

@@ -143,7 +143,7 @@ describe("AMRAP (§1, §2, §2.1, §2.2)", () => {
 
   it("3 blocs de 12 min, repos 2 min : 40 min ; buy-in en premier, une fois, récupération 0 s ; repos de boucle sur le dernier membre seulement", () => {
     const changed: ModelAnswers = { ...withAnswer(answers, "blockCount", 3), buyIn: true, loopRestSeconds: 30 };
-    const movements = movementsOf("AMRAP", changed, ["in", "a", "b"]);
+    const movements = movementsOf("AMRAP", changed, ["in", "a", "b"]).map((item, index) => (index === 0 ? { ...item, buyIn: true as const } : item));
     const [element] = build("AMRAP", changed, movements);
     const circuit = element!.kind === "CIRCUIT" ? element!.circuit : null;
     expect(circuit).toMatchObject({ repeatCount: 3, format: { key: "AMRAP", settings: { blockSeconds: 720, restBetweenBlocksSeconds: 120 } } });
@@ -154,6 +154,13 @@ describe("AMRAP (§1, §2, §2.1, §2.2)", () => {
     ]);
     expect(seconds([element!])).toBe(2400);
     expect(configurationValidity({ elements: [element!], stopPoints: [] }).status).toBe("valid");
+  });
+
+  it("recette n° 3 du 03/11 : Buy-in activé sans mouvement de buy-in choisi — aucun mouvement de boucle n'est pris pour le buy-in", () => {
+    const changed: ModelAnswers = { ...answers, buyIn: true };
+    const [element] = build("AMRAP", changed, movementsOf("AMRAP", changed, ["a", "b"]));
+    const circuit = element!.kind === "CIRCUIT" ? element!.circuit : null;
+    expect(circuit!.exercises.map((exercise) => exercise.format?.settings.passageOnce ?? 0)).toEqual([0, 0]);
   });
 
   it("Max : condition À l'échec, incrément masqué (0) ; Volume croissant : incrément par tour du membre", () => {

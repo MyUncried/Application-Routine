@@ -115,7 +115,14 @@ export const DATABASE_NAME = "kodjo.db";
  * vérifier) — colonnes additives nullables, tout Exercice existant reste sans marque. 001..018
  * inchangées. [Plan : A.4 → 020, A.5 → 021.]
  */
-export const DATABASE_VERSION = 19;
+/**
+ * **PRE-9 (version 20, `migration020`, recette iPhone n° 3 du 03/11/2026, autres constats, décision de
+ * Hermann du 03/11)** : modèle d'origine d'un Circuit créé par la fenêtre Formats (`tours.origin_model`,
+ * `CHECK` sur les dix clés de modèle figées, `NULL` = « Circuit ») — colonne additive nullable, tout
+ * Circuit existant reste « Circuit ». 001..019 inchangées. [Le plan « A.4 → 020, A.5 → 021 » est
+ * décalé d'un rang : A.4 et A.5 prendront les prochaines versions disponibles.]
+ */
+export const DATABASE_VERSION = 20;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;
