@@ -1442,3 +1442,11 @@ Demande de Hermann du 03/11/2026 (classe B) : « on doit pouvoir archiver un mou
 - Inchangé : une exécution historique ne bloque pas ; aucune suppression automatique d'Exercice, de Séance ou de planification ; les Séances archivées gardent leurs Exercices, qui référencent le Mouvement archivé (RM-120 : un élément archivé reste valable dans ses usages existants).
 - Inchangé (Q8) : la suppression définitive depuis les Archives reste refusée tant qu'un Exercice persisté, y compris d'une Séance archivée ou d'une définition de l'ancien Catalogue, référence le Mouvement ; jamais de suppression en cascade.
 - Suivi : `_bmad-output/pre9/implementation-artifacts/spec-c-3-parametres-imposes-recapitulatif.md` (section « Recette iPhone n° 3 — archivage d'un Mouvement »).
+
+## Familles — seul membre actif après archivage — décision de Hermann du 03/11/2026 (sans nouveau numéro D)
+
+Constat de recette (03/11/2026) : un mouvement dont l'autre membre de famille avait été archivé se déplaçait sans filet et revenait à sa place, quelle que soit la carte visée (règles C6 et D4 du 28/10 : il restait membre de sa famille). Question à Hermann : « que doit faire le geste quand on le pose sur une autre carte ou dans une autre famille ? » — réponse : « Il quitte l'ancienne (Recommandé) » : « Il quitte sa famille archivée et forme une famille ou y entre, comme un mouvement libre. Les membres archivés gardent leur famille entre eux ; s'il en reste un seul, il n'a plus de famille. Restaurer l'un d'eux ne le ramène pas dans sa famille d'origine. »
+
+- Précise D4 et C6 (règles des familles du 28/10/2026) : le seul membre **actif** d'un groupe est libre pour le geste (création C1, entrée C2). Posé ailleurs, il quitte son groupe ; le groupe reste aux membres archivés ; un archivé resté seul n'a plus de groupe.
+- Inchangé : une carte posée sur ce mouvement entre dans son groupe (D4) ; un membre d'une famille comptant au moins deux membres actifs ne se pose pas ailleurs (C6) ; Annuler rétablit toutes les appartenances modifiées (E).
+- Suivi : `_bmad-output/pre9/implementation-artifacts/spec-c-3-parametres-imposes-recapitulatif.md` (recette n° 3 du 03/11/2026).

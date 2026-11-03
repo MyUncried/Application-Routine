@@ -137,6 +137,30 @@ describe("PRE-8 familles — SqliteMovementRepository", () => {
     expect(await family("group-1")).toEqual(["x", "a", "b"]);
   });
 
+  it("décision du 03/11/2026 : le seul actif d'une famille (autre membre archivé) est libre — posé sur un isolé, il crée une famille ; l'archivé resté seul n'a plus de groupe ; Annuler rétablit tout", async () => {
+    await repository().placeInFamily("b", "a", "ABOVE");
+    await repository().archive("b");
+    const outcome = await repository().placeInFamily("a", "x", "ABOVE");
+    expect(outcome).toMatchObject({ status: "OK", operation: "CREATED", groupId: "group-2" });
+    expect(await family("group-2")).toEqual(["x", "a"]);
+    expect((await repository().findById("b"))?.levelGroup ?? null).toBeNull();
+    if (outcome.status !== "OK" || !("previous" in outcome)) throw new Error("outcome");
+    expect(await repository().restoreFamilyMemberships(outcome.previous)).toBe(true);
+    expect(await family("group-1")).toEqual(["a", "b"]);
+    expect((await repository().findById("x"))?.levelGroup ?? null).toBeNull();
+  });
+
+  it("décision du 03/11/2026 : le seul actif entre dans une autre famille ; les archivés restés à deux gardent leur famille", async () => {
+    await repository().placeInFamily("b", "a", "ABOVE");
+    await repository().placeInFamily("c", "b", "ABOVE");
+    await repository().archive("b");
+    await repository().archive("c");
+    await repository().placeInFamily("y", "x", "ABOVE");
+    expect(await repository().placeInFamily("a", "x", "BELOW")).toMatchObject({ status: "OK", operation: "JOINED", groupId: "group-2" });
+    expect(await family("group-2")).toEqual(["a", "x", "y"]);
+    expect(await family("group-1")).toEqual(["b", "c"]);
+  });
+
   it("E (FAM-08) : Annuler rétablit l'état exact, y compris les deux membres d'une création ou d'une dissolution", async () => {
     const initial = await memberships();
     const created = await repository().placeInFamily("x", "a", "ABOVE");

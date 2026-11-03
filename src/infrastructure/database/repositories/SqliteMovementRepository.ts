@@ -728,7 +728,18 @@ export class SqliteMovementRepository implements MovementRepository {
       if (!moving || !anchor) return;
       const timestamp = this.now();
       // Un Mouvement seul dans son groupe (singleton) se présente sans famille : il est libre (C1, C2).
-      const movingAlone = moving.groupId === null || (await groupMemberIds(transaction, moving.groupId)).length === 1;
+      // Décision de Hermann du 03/11/2026 : seul ACTIF de son groupe (les autres membres archivés, D4), il
+      // est libre aussi — posé ailleurs, il quitte ce groupe (`leftBehind`), qui reste aux archivés.
+      const movingAlone = moving.groupId === null || (await activeGroupMemberIds(transaction, moving.groupId)).length === 1;
+      const leftBehind = async (destination: string | null): Promise<MovementPriorMemberships> => {
+        if (moving.groupId === null || moving.groupId === destination) return [];
+        const archived = (await groupMemberIds(transaction, moving.groupId)).filter((id) => id !== movementId);
+        if (archived.length !== 1) return [];
+        // Un seul archivé restant : plus de famille (pas de groupe d'un membre sans autre membre).
+        const lone = await readMembership(transaction, archived[0]!);
+        await writeMembership(transaction, archived[0]!, null, null, timestamp);
+        return lone === null ? [] : [lone];
+      };
       const anchorAlone = anchor.groupId === null || (anchor.groupId !== moving.groupId && (await groupMemberIds(transaction, anchor.groupId)).length === 1);
       if (anchorAlone) {
         // C1 : création d'une famille à deux membres — la seule écriture de deux lignes.
@@ -737,7 +748,7 @@ export class SqliteMovementRepository implements MovementRepository {
           return;
         }
         const groupId = this.uuidFactory();
-        const previous = [moving, anchor];
+        const previous = [moving, anchor, ...(await leftBehind(groupId))];
         const above = side === "ABOVE";
         await writeMembership(transaction, anchorId, groupId, above ? 0 : 1, timestamp);
         await writeMembership(transaction, movementId, groupId, above ? 1 : 0, timestamp);
@@ -759,6 +770,7 @@ export class SqliteMovementRepository implements MovementRepository {
       const upper = ordered[insertAt] ?? null;
       const key = keyBetween(lower?.sortKey ?? null, upper?.sortKey ?? null);
       const operation = sameFamily ? "REORDERED" : "JOINED";
+      const released = await leftBehind(groupId);
       if (key === null) {
         // Précision épuisée entre deux clés voisines : seule exception, la famille est renumérotée.
         const previous = [moving, ...(await Promise.all(ordered.map((member) => readMembership(transaction, member.movementId))))].filter(
@@ -766,11 +778,11 @@ export class SqliteMovementRepository implements MovementRepository {
         );
         const ids = ordered.map((member) => member.movementId);
         await writeGroupOrder(transaction, groupId, [...ids.slice(0, insertAt), movementId, ...ids.slice(insertAt)], timestamp);
-        outcome = { status: "OK", operation, groupId, previous };
+        outcome = { status: "OK", operation, groupId, previous: [...previous, ...released] };
         return;
       }
       await writeMembership(transaction, movementId, groupId, key, timestamp);
-      outcome = { status: "OK", operation, groupId, previous: [moving] };
+      outcome = { status: "OK", operation, groupId, previous: [moving, ...released] };
     });
     return outcome;
   }
@@ -942,6 +954,15 @@ export async function joinMovementGroup(
 async function groupMemberIds(transaction: Database, groupId: string): Promise<string[]> {
   const rows = await transaction.getAllAsync<{ id: string }>(
     "SELECT id FROM movements WHERE level_group_id = ? ORDER BY level_sort_key ASC, id ASC",
+    [groupId],
+  );
+  return rows.map((row) => row.id);
+}
+
+/** Membres non archivés d'un groupe (décision de Hermann du 03/11/2026 : seul actif = libre). */
+async function activeGroupMemberIds(transaction: Database, groupId: string): Promise<string[]> {
+  const rows = await transaction.getAllAsync<{ id: string }>(
+    "SELECT id FROM movements WHERE level_group_id = ? AND archived_at IS NULL ORDER BY level_sort_key ASC, id ASC",
     [groupId],
   );
   return rows.map((row) => row.id);

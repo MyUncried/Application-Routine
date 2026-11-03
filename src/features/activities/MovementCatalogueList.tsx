@@ -342,9 +342,11 @@ export function MovementCatalogueList({
   const groupSizes = useMemo(() => {
     const sizes = new Map<string, number>();
     if (state.status === "ready") {
+      // Décision de Hermann du 03/11/2026 : seuls les membres actifs comptent — le seul actif d'une
+      // famille dont les autres sont archivés (D4) est libre.
       for (const entry of state.entries) {
         const groupId = entry.movement.levelGroup?.groupId;
-        if (groupId) sizes.set(groupId, (sizes.get(groupId) ?? 0) + 1);
+        if (groupId && !entry.archived) sizes.set(groupId, (sizes.get(groupId) ?? 0) + 1);
       }
     }
     return sizes;

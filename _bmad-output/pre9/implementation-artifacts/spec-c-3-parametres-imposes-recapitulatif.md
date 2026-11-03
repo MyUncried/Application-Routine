@@ -104,3 +104,13 @@ Constats de Hermann (cahier de recette, « Autres constats »), à corriger avan
 À CLARIFIER 3 : le même comportement (« Valider ces paramètres ») vaut-il pour les autres modèles à récapitulatif enrichi (For time, Progression : tableaux), ou pour tous ? Appliqué à l'AMRAP seul, comme demandé.
 
 Tests : `FormatModelScreen.c3.test.tsx` (dépilement vers la Composition d'une Séance existante ; AMRAP : choix sur place, « Valider ces paramètres »).
+
+## Recette iPhone n° 3 du 03/11/2026 — familles : seul membre actif après archivage
+
+Signalé par Hermann comme « le dernier mouvement du catalogue ne peut pas intégrer ou créer une famille ». Précisions : « Je peux avec appuie long déplacer la dernière carte du catalogue, mais les autres cartes ne se déplacent pas et il n'y a pas de filet. Relâcher la carte où que ce soit la ramène à sa position. Déplacer une autre carte vers celle-ci fait apparaître le filet, une famille se crée au relâchement. » Cause : ce mouvement était le seul actif d'une famille dont l'autre membre avait été archivé pendant le nettoyage ; C6 et D4 le traitaient comme membre (non libre). Sa place en fin de liste était fortuite.
+
+| Comportement | Classe | Traitement |
+|---|---|---|
+| Seul actif d'un groupe : libre pour le geste ; posé ailleurs, il quitte son groupe (laissé aux archivés ; un archivé seul n'a plus de groupe) | B (réponse de Hermann « Il quitte l'ancienne ») | `SqliteMovementRepository.placeInFamily` (membres actifs, `leftBehind`), `MovementCatalogueList` (`groupSizes` sur les actifs) ; registre ch. 07 ; règles Familles D4 annotées (deux copies) |
+
+Tests : `movementFamilies.fam.test.ts` (création et entrée depuis un seul actif, archivés conservés, Annuler) ; `MovementCatalogueList.fam.test.tsx` (filet et création au geste).

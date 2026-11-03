@@ -155,6 +155,27 @@ describe("PRE-8 familles — geste dans le Catalogue des Mouvements", () => {
     expect(await membership("gainage")).toBeNull();
   });
 
+  it("décision du 03/11/2026 : le seul actif d'une famille dont l'autre membre est archivé se pose sur un isolé et crée une famille", async () => {
+    const repository = movements();
+    for (const [id, name] of [["gainage", "Gainage"], ["mob", "Mobilisation du genou"], ["planche", "Planche"]] as const) {
+      await repository.create(movement(id, name));
+    }
+    await repository.placeInFamily("planche", "gainage", "ABOVE");
+    await repository.archive("planche");
+    await renderList();
+    await layOut([{ key: "gainage" }, { key: "mob" }]);
+    // « Gainage » (centre 40) porté dans la moitié basse de « Mobilisation » (92 à 172).
+    await grab("gainage");
+    await moveBy(95);
+    expect(screen.getByTestId("movement-card-mob-formation-rail")).toBeTruthy();
+    await release();
+    expect(notice()).toBe("Nouvelle famille de niveaux créée");
+    const created = await membership("gainage");
+    expect(created).not.toBeNull();
+    expect((await membership("mob"))?.groupId).toBe(created!.groupId);
+    expect(await membership("planche")).toBeNull();
+  });
+
   it("A, E3 (FAM-01) : réordonner dans une pile — niveaux recalculés en direct, filet inchangé, aucun message", async () => {
     const repository = movements();
     await repository.create(movement("squat", "Squats"));
