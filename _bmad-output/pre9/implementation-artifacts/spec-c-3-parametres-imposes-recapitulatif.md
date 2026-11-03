@@ -101,7 +101,7 @@ Constats de Hermann (cahier de recette, « Autres constats »), à corriger avan
 | AMRAP : rester sur le questionnaire après le choix d'un mouvement ; bouton « Valider ces paramètres » | B | Questionnaire AMRAP : aucun passage automatique au récapitulatif ; bouton « Valider ces paramètres » (indisponible sans mouvement de boucle) ouvre le récapitulatif. Référence Formats §7.1 (Bouton) annotée |
 | AMRAP : Retour sans possibilité d'avancer | B | Résolu par « Valider ces paramètres » |
 
-À CLARIFIER 3 : le même comportement (« Valider ces paramètres ») vaut-il pour les autres modèles à récapitulatif enrichi (For time, Progression : tableaux), ou pour tous ? Appliqué à l'AMRAP seul, comme demandé.
+À CLARIFIER 3 : le même comportement (« Valider ces paramètres ») vaut-il pour les autres modèles à récapitulatif enrichi (For time, Progression : tableaux), ou pour tous ? Appliqué à l'AMRAP seul, comme demandé. [Résolu le 03/11/2026, Hermann : « Il faut être homogène entre tous les écrans similaires, "Valider ces paramètres" pour passer du questionnaire initial au récapitulatif avec les données à compléter, "Enregistrer dans la séance" lorsque le prochain écran est la séance. » (classe B) — « Valider ces paramètres » : AMRAP, For time, Progression ; « Enregistrer dans la séance » dès le questionnaire : Tabata, 30/30, EMOM, Death by, Renforcement, Superset, À l'échec ; aucun passage automatique au récapitulatif. Référence Formats annotée (fenêtre Formats, §7.1).]
 
 Tests : `FormatModelScreen.c3.test.tsx` (dépilement vers la Composition d'une Séance existante ; AMRAP : choix sur place, « Valider ces paramètres »).
 

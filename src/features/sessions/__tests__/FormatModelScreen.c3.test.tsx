@@ -140,7 +140,7 @@ describe("FormatModelScreen", () => {
     expect(mockBack).toHaveBeenCalled();
   });
 
-  it("« + Ajouter » ouvre le champ et devient « Ouvrir le catalogue » ; la saisie propose les Mouvements ; le choix ouvre le récapitulatif ; Retour : réponses conservées", async () => {
+  it("« + Ajouter » ouvre le champ et devient « Ouvrir le catalogue » ; la saisie propose les Mouvements ; Tabata : le choix reste sur le questionnaire, « Enregistrer dans la séance » (décision du 03/11)", async () => {
     mockModel = "TABATA";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
@@ -156,11 +156,9 @@ describe("FormatModelScreen", () => {
     await act(async () => {
       fireEvent.press(suggestion);
     });
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith({ pathname: "/format-summary", params: { model: "TABATA" } }));
-
-    // Récapitulatif (même brouillon de modèle) : Retour, carte du mouvement, réponses conservées.
-    fireEvent.press(screen.getByTestId("harness-stage"));
-    expect(screen.getByTestId("screen-header-back").props.accessibilityLabel).toBe(t.backAccessibilityLabel);
+    // Décision du 03/11/2026 : l'écran suivant est la séance — pas de récapitulatif, enregistrement sur place.
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("format-validate")).toBeNull();
     expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
     expect(screen.getByTestId("format-seriesCount-value")).toHaveTextContent("6");
 
@@ -176,17 +174,17 @@ describe("FormatModelScreen", () => {
     expect(mockDismissTo).not.toHaveBeenCalled();
   });
 
-  it("recette n° 3 du 03/11 : AMRAP — les choix restent sur le questionnaire ; « Valider ces paramètres » ouvre le récapitulatif", async () => {
-    mockModel = "AMRAP";
+  it.each(["AMRAP", "FOR_TIME", "PROGRESSION"] as const)("recette n° 3 du 03/11 : %s — les choix restent sur le questionnaire ; « Valider ces paramètres » ouvre le récapitulatif", async (model) => {
+    mockModel = model;
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByText(t.titles.AMRAP);
+    await screen.findByText(t.titles[model]);
     expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.queryByTestId("format-save")).toBeNull();
     await pick("Squ", "mv-squats");
     expect(mockPush).not.toHaveBeenCalled();
     expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
     fireEvent.press(screen.getByTestId("format-validate"));
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/format-summary", params: { model: "AMRAP" } });
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/format-summary", params: { model } });
     fireEvent.press(screen.getByTestId("harness-stage"));
     expect(screen.getByTestId("format-save")).toBeTruthy();
   });

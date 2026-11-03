@@ -308,8 +308,13 @@ function TimelineFrame({ timeline, endLabel, band, names, testID }: { timeline: 
 
 type Stage = "questionnaire" | "summary";
 
-/** Modèles dont le questionnaire garde les mouvements choisis et passe au récapitulatif par « Valider ces paramètres ». */
-const validatesFirst = (model: FormatModelKey) => model === "AMRAP";
+/**
+ * Décision de Hermann du 03/11/2026 : « Il faut être homogène entre tous les écrans similaires, "Valider ces
+ * paramètres" pour passer du questionnaire initial au récapitulatif avec les données à compléter,
+ * "Enregistrer dans la séance" lorsque le prochain écran est la séance. » Récapitulatif à compléter
+ * (tableaux) : AMRAP, For time, Progression. Les autres modèles enregistrent depuis le questionnaire.
+ */
+const validatesFirst = (model: FormatModelKey) => model === "AMRAP" || model === "FOR_TIME" || model === "PROGRESSION";
 
 /** Compteur des ouvertures de questionnaire (identité du brouillon de modèle de chaque ouverture). */
 let openings = 0;
@@ -387,11 +392,10 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
       });
       for (const { movement } of entries) movementsById.current.set(movement.id, movement);
       if (role === "BUY_IN") hasBuyIn.current = true;
-      // Recette n° 3 du 03/11/2026 (autres constats, Hermann : AMRAP — « il faut rester sur l'écran et que
-      // le bouton d'action soit "Valider ces paramètres" ») : l'AMRAP reste sur le questionnaire.
-      if (stage === "questionnaire" && !validatesFirst(model)) router.push({ pathname: "/format-summary", params: { model } });
+      // Recette n° 3 du 03/11/2026 : le choix d'un mouvement reste sur l'écran (plus de passage automatique
+      // au récapitulatif) — « Valider ces paramètres » ou « Enregistrer dans la séance » (`validatesFirst`).
     },
-    [defaults, model, modelDraft, router, setMovements, stage],
+    [defaults, model, modelDraft, setMovements],
   );
 
   // Mouvements remis par la modale du Catalogue au retour sur l'écran.
