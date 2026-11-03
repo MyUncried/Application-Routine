@@ -1667,11 +1667,19 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 Les anciennes ancres de frames sont conservées uniquement pour les liens historiques ; l’inventaire actuel ci-dessous remplace leurs captures et noms de parcours.
 
-**Référence active du 2 novembre 2026 :** [spécification Formats](../KODJO-Formats-entrainement-2026-11-02.md), contrats CE-FMT-01 à 04 du chapitre 13. Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP (`510:101`) : **57 frames actuelles** dans les deux rangées Formats et modales/séances. Les anciens noms de frames, copies et captures de ce parcours sont remplacés par cet inventaire ; les autres familles du chapitre restent inchangées.
+**Référence active actualisée le 3 novembre 2026 :** [spécification Formats](../KODJO-Formats-entrainement-2026-11-02.md), contrats CE-FMT-01 à 04 du chapitre 13. Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP (`510:101`) : **58 frames actuelles** dans les deux rangées Formats et modales/séances. Les anciens noms de frames, copies et captures de ce parcours sont remplacés par cet inventaire ; les autres familles du chapitre restent inchangées.
 
-**56 captures PNG réexportées et intégrées** ; la modale 30/30 `8656:34070` reste à réexporter, le quota Figma ayant été atteint. Ses règles et son état courant sont documentés (effort 30 s, Pause 30 s, 6 séries, récupération 0 s, valeurs modifiables) ; son ancienne image n’est pas présentée comme une capture courante. Les textes et états ont été contrôlés auparavant sur ce nœud. Aucun état interactif n’est certifié par une image.
+**Captures du parcours actualisées le 3 novembre :** 37 PNG réexportés (13 questionnaires, 18 récapitulatifs, 3 états de mode catalogue, 2 modales EMOM et la nouvelle Fiche du mouvement superposée). Les autres captures restent datées du 2 novembre ; la modale 30/30 `8656:34070` conserve sa réserve d’export antérieure, sans être présentée comme capture courante. Le manifeste existant indique la date et le statut de chaque image.
 
-Questionnaires : croix vers Composition. Récapitulatifs : Retour vers questionnaire avec réponses conservées (18 frames de récapitulatif, dont une déjà en Retour avant le dernier relevé). Progression : tableau par mouvement sous Nombre de séries et clavier direct ; Déroulé à 25 px du bouton. Le manifeste relie nœud, fichier, empreinte, contrat et statut d’export, sans URL d’asset temporaire.
+Le questionnaire et le récapitulatif sont des **modales sur la Composition**, ouvertes par le bas, pleine largeur, sous le titre de Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers la Composition ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes.
+
+« Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique.
+
+Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite carte ouvre la **Fiche du mouvement** en consultation seule, en modale par-dessus celle du Format, sur un second voile. Apparition par le bas, pleine largeur, coins hauts arrondis 24 px ; en-tête croix et titre « Fiche du mouvement », fond blanc et trait conservés. Nom, catégorie, zones corporelles, niveau, média, description et phases habituels ; aucun bouton d’action. Fermer restitue exactement l’état du parcours sous-jacent. Toucher le reste de la carte conserve son comportement existant.
+
+**EMOM : Mode Répétitions imposé**, option Durée grisée et non sélectionnable dans les deux modales standard et « dans chaque intervalle », dans toutes les organisations. Aux récapitulatifs multi-mouvements, tableau **Mouvement | Rép.** immédiatement sous Nombre de séries ; une cible propre à chaque Exercice. Retirer la ligne « Repos · jusqu’à la cadence » : le repos est le restant de fenêtre, pas un paramètre. Death by multi-mouvements : tableau **Mouvement | Départ | Incrément** immédiatement sous Intervalle ; remplace les deux valeurs communes, départ et incrément propres à chaque Exercice, incrément ≥ +1. Le Death by à un mouvement conserve ses lignes.
+
+Référence 402 × 874 : modale à y=95, pleine largeur, coins hauts 24 px, coins bas carrés, sans poignée. En-tête « DSF / Overlays / En-tête de modale », variante Sélection sans validation ; titre Inter Semi Bold 18 centré, croix au questionnaire et icon/retour au récapitulatif. Fond transparent et trait masqué uniquement dans ces modales Formats ; la Fiche du mouvement conserve fond blanc et trait. Zone de contexte 109 px depuis le haut de la modale, couleur et motif du Format ; tagline centrée 14/20 sur deux lignes. Bouton à y=802 de l’écran de référence et déroulé 25 px au-dessus. Contenu défilant, bouton en bas, clavier au premier plan ; ces cotes décrivent le rendu de référence, pas une hauteur fixe imposée à tous les appareils. Valeurs non modifiables et colonnes numériques alignées sur le texte des valeurs modifiables, avec un retrait de 10 px par rapport au bord droit de leur pastille.
 
 <a id="format-9977-19613"></a>
 
@@ -1720,6 +1728,16 @@ Nœud [8624:30306](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 Nœud [11146:18902](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11146-18902) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
 
 ![P-Tabata — Récapitulatif, en alternance](images/figma-11146-18902.png)
+
+<a id="format-11472-20899"></a>
+
+##### P-Tabata — Récapitulatif, fiche du mouvement (modale)
+
+Nœud [11472:20899](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11472-20899) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02).
+
+![P-Tabata — Récapitulatif, fiche du mouvement (modale)](images/figma-11472-20899.png)
+
+Fiche habituelle en consultation seule au-dessus du récapitulatif ; croix pour revenir dans le même état.
 
 <a id="format-8624-30040"></a>
 

@@ -14,6 +14,18 @@ L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton d
 
 Les exigences de menu ci-dessous se lisent avec cette règle ; aucune story ne doit réintroduire une entrée retirée.
 
+## Parcours Formats — mise à jour du 03/11/2026
+
+Le questionnaire et le récapitulatif sont des **modales sur la Composition**, ouvertes par le bas, pleine largeur, sous le titre de Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers la Composition ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes.
+
+« Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique.
+
+Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite carte ouvre la **Fiche du mouvement** en consultation seule, en modale par-dessus celle du Format, sur un second voile. Apparition par le bas, pleine largeur, coins hauts arrondis 24 px ; en-tête croix et titre « Fiche du mouvement », fond blanc et trait conservés. Nom, catégorie, zones corporelles, niveau, média, description et phases habituels ; aucun bouton d’action. Fermer restitue exactement l’état du parcours sous-jacent. Toucher le reste de la carte conserve son comportement existant.
+
+**EMOM : Mode Répétitions imposé**, option Durée grisée et non sélectionnable dans les deux modales standard et « dans chaque intervalle », dans toutes les organisations. Aux récapitulatifs multi-mouvements, tableau **Mouvement | Rép.** immédiatement sous Nombre de séries ; une cible propre à chaque Exercice. Retirer la ligne « Repos · jusqu’à la cadence » : le repos est le restant de fenêtre, pas un paramètre. Death by multi-mouvements : tableau **Mouvement | Départ | Incrément** immédiatement sous Intervalle ; remplace les deux valeurs communes, départ et incrément propres à chaque Exercice, incrément ≥ +1. Le Death by à un mouvement conserve ses lignes.
+
+Réutiliser les composants modaux, recherche, contrôles, cartes et tableaux existants. État local de parcours conservé entre les vues, sans nom de Séance ni nouvelle table de valeurs. Aucun développement du moteur PRE-10/11 dans ce correctif.
+
 ## 1. Principes
 
 1. **Une seule représentation** : `SessionStructure` (`src/domain/sessions/structure.ts`) devient le modèle unique du brouillon, du service, du dépôt et de l'écran. L'ancien modèle « avant / Circuit / après » ne subsiste que comme lecture de compatibilité, puis disparaît.

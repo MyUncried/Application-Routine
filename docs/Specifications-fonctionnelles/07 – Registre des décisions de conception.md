@@ -1210,3 +1210,13 @@ A1–A7, buy-in/out non duplicables, guidage AMRAP/For time sans effet temporel,
 
 B.4c, B.7, B.8 et B.9 sont développés et recettés selon déclaration d’Hermann du 02/11/2026 ; cette déclaration remplace la pause antérieure de B.8 dans le suivi. La nouvelle liste de menu ne supprime pas son comportement déjà livré. C.2–C.4 ont été arrêtés pour intégrer la nouvelle base documentaire ; les adaptations C.1/D.1/D.2/D.3 ne doivent pas conserver les interdictions antérieures du portage Circuit.
 
+
+## Formats — modales et paramètres par mouvement — 3 novembre 2026
+
+Décision métier transmise par Hermann dans [la mise à jour des écrans Formats](../sources/formats-2026-11-03/KODJO-Mise-a-jour-ecrans-formats-2026-11-03.md), propagée dans la [référence active](../KODJO-Formats-entrainement-2026-11-02.md), CE-FMT-02/04 et les chapitres concernés. Aucun nouveau numéro D attribué.
+
+Questionnaire et récapitulatif sont des modales sur Composition, sans nom de Séance : « Valider les paramètres » ouvre le récapitulatif ; « Enregistrer dans la séance » ajoute au brouillon. Mode catalogue intégré à la modale, recherche conservée, effacement, Filtrer/Trier/Replier-déplier, sans compteur du Catalogue ; buy-in à sélection unique. Photo d’une carte : Fiche du mouvement en modale de consultation superposée, fermeture avec état conservé. La petite carte montre les zones corporelles et leur pastille à la place de la description, toutes variantes.
+
+EMOM : Répétitions imposé dans toutes les organisations ; Durée grisée non sélectionnable. Tableau Mouvement | Rép. par Exercice au récapitulatif, aucune ligne Repos · jusqu’à la cadence. Death by multi-mouvements : Mouvement | Départ | Incrément, valeurs locales, incrément ≥ +1 ; cas à un mouvement inchangé. Valeurs non modifiables alignées sur le texte des valeurs modifiables (retrait 10 px dans le rendu de référence).
+
+Remplace les descriptions du questionnaire plein écran, du nom de Séance dans le parcours, de l’ouverture d’une modale catalogue séparée depuis un questionnaire et d’un mode EMOM seulement initialisé à Répétitions. La modale Catalogue appelée directement depuis le menu Composition et les cartes hors de cette famille ne sont pas modifiées par cette règle. Les mécanismes de fenêtres et de calcul de durée ne changent pas ; les configurations EMOM nouvellement créées/validées doivent respecter Répétitions. Aucun changement rétroactif des données historiques ni migration implicite n’est prescrit.

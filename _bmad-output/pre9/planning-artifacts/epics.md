@@ -184,7 +184,7 @@ Dépend de : A.1. Vérifier l’existant livré avant modification ; ne pas ré�
 
 Dépend de : C.1, Composition existante. CE-FMT-01.
 - Menu Créer cinq options ; fenêtre `9977:19613` sur voile, deux colonnes : Tabata, 30/30, EMOM, AMRAP, For time, Death by, Renforcement, Superset, Progression, À l’échec.
-- Aucune carte Exercice/Séance, Libre ou Gainage · Mobilité ; questionnaire plein écran, croix vers Composition ; récapitulatif Retour vers questionnaire avec réponses conservées.
+- Aucune carte Exercice/Séance, Libre ou Gainage · Mobilité ; questionnaire et récapitulatif en modale sur Composition, sans bloc Titre de séance ; questionnaire croix vers Composition, Valider les paramètres vers récapitulatif ; récapitulatif Retour avec réponses conservées, Enregistrer dans la séance vers brouillon.
 - Réutiliser Catalogue/saisie de Mouvements et composants ; pas de création Mouvement libre ou lancement direct de minuteur (B10 différé).
 
 ### C.3 — Questionnaires, récapitulatifs et séries variables
@@ -193,6 +193,9 @@ Dépend de : C.2. CE-FMT-02 ; paramètres et structures de la référence active
 - Tabata et 30/30 modifiables ; EMOM trois organisations ; AMRAP blocs distincts des tours, repos de boucle et inter-blocs, buy-in unique ; For time borne optionnelle et séries par tour ; Death by À la suite, alterné coordonné et dans chaque intervalle.
 - Progression : questionnaire sans cibles globales de répétitions ; récapitulatif tableau Mouvement sous Nombre de séries, répétitions et charge par série/mouvement. Charge Avec/Sans local via modale, aucun interrupteur global. Saisie directe numérique/décimale, Suivant, tableau visible au-dessus du clavier.
 - Augmenter N : lignes/colonnes nouvelles à compléter ; diminuer : surplus retiré, sans confirmation de perte dans les cas For time/Progression arbitrés. Déroulé à 25 px du bouton, proportions selon valeurs réelles ; 3 blocs AMRAP 12 min + 2 repos 2 min = 40 min.
+- Mode catalogue intégré à la même modale, recherche conservée, croix d’effacement, Filtrer/Trier/Replier-déplier, Ajouter et Fermer sans ajout ; buy-in unique. Photo : Fiche du mouvement en consultation seule superposée, retour dans le même état. Petite carte : zones corporelles avec pastille au lieu de la description, toutes variantes.
+- EMOM Répétitions imposé, Durée non sélectionnable ; tableau Mouvement | Rép. sous Nombre de séries, sans ligne Repos. Death by multi-mouvements : Mouvement | Départ | Incrément sous Intervalle, paramètres locaux, incrément ≥ +1.
+- Rendu modal et alignement texte des valeurs non modifiables selon CE-FMT-02 ; contenu défilant, bouton ancré, clavier au-dessus.
 - Aucune nouvelle constante ni formule depuis un chiffre illustratif ; les modèles standard réutilisent leurs paramètres existants.
 
 ### C.4 — Composition préremplie, paramètres et compatibilité

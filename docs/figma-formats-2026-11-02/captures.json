@@ -1,7 +1,7 @@
 {
   "file_key": "G6RY5Ebhgwb4AHIOYDwwvg",
   "page_id": "510:101",
-  "exported": 56,
+  "exported": 57,
   "pending": 1,
   "screens": [
     {
@@ -22,11 +22,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-29980.png",
-      "sha256": "e3b7754be38452a896b582292dddc9e54662a598d1524e85080f0436edaf08c2",
-      "bytes": 51785
+      "sha256": "9d5ac9c1a43934d8cbdaaa915a106015436a52c0671d641b23d738af80fab8c2",
+      "bytes": 58519
     },
     {
       "node_id": "11335:20151",
@@ -34,11 +34,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11335-20151.png",
-      "sha256": "3fd228ef4eac6b736ef14e97e67bfe76abc5cf0d343d09064c1e9a29a71ca031",
-      "bytes": 110078
+      "sha256": "6e444cca1b8b8d76814070ba58a1d7f9c9c3a9efe4b06c0a9c5eaf5c92b925bf",
+      "bytes": 111880
     },
     {
       "node_id": "8598:29503",
@@ -46,11 +46,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8598-29503.png",
-      "sha256": "e7632349a3f96db8b8c10814ebef65793f7d1e296a49a2acc6b757c5aabd374b",
-      "bytes": 117509
+      "sha256": "4bcd2e853a8f83c19c4c34f1bc38b4b63ed5ed6e54cf66282f450efea848a111",
+      "bytes": 106196
     },
     {
       "node_id": "8624:30306",
@@ -58,11 +58,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30306.png",
-      "sha256": "a929bbe2ce1669cd5de7f0c131274369a52fa83c555e1c3aec779a2ad6b632bd",
-      "bytes": 86022
+      "sha256": "45ff5611193469ed9f0ddcb592f5c6c86b72be7f61c4eeac29d07045738b75bf",
+      "bytes": 89470
     },
     {
       "node_id": "11146:18902",
@@ -70,11 +70,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11146-18902.png",
-      "sha256": "a3cbb9a90695e9eb40e645bdfe4cc60acc6a9a096278c849d37bcba8ec213bbe",
-      "bytes": 82357
+      "sha256": "6c3b812f37107911eafce15d455bc4e336c55631d23122c8819235273ad9f079",
+      "bytes": 85704
     },
     {
       "node_id": "8624:30040",
@@ -82,11 +82,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30040.png",
-      "sha256": "bf5433fac0f239ec416e6667b12bc7455b80e3839467183277770a5b426b736a",
-      "bytes": 55930
+      "sha256": "003165443649ff87dfcdeeb501ab8c56d0711f37e57f4d6bc5e027f3ed8944ad",
+      "bytes": 60965
     },
     {
       "node_id": "8624:30392",
@@ -94,11 +94,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30392.png",
-      "sha256": "1e3e3c0071a59b109eb440cf4a8b8ab7ac2106eef9e04e1b65764a9ba04d4b03",
-      "bytes": 85688
+      "sha256": "d68e0214e31385c2ee94fee60c5aefebdaa17acc3f931d5a3251dd21018cf8a1",
+      "bytes": 90809
     },
     {
       "node_id": "11158:18922",
@@ -106,23 +106,23 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11158-18922.png",
-      "sha256": "c007abd3c9ffaf95630d72dbd4d96713cf36b89e407c44d82b6b97dcbbc88219",
-      "bytes": 85402
+      "sha256": "e7d9a2e2677c1f41ce873ae9443e595670d997d77272bcc1b6a158a3b0fbc208",
+      "bytes": 90388
     },
     {
       "node_id": "11158:19033",
       "name": "EMOM — Récapitulatif, à la suite",
       "contract": "CE-FMT-02",
       "width": 402,
-      "height": 874,
-      "date": "2026-11-02",
+      "height": 893,
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11158-19033.png",
-      "sha256": "8fb67072769ee9095458d74e2269d5dd02a53f4c0144d7622e464787ce1615a3",
-      "bytes": 89878
+      "sha256": "d6d13633a3af0c38953efa5d8f9a9f361685356c3c999f040d3a4e779129a49a",
+      "bytes": 95061
     },
     {
       "node_id": "8624:30143",
@@ -130,11 +130,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30143.png",
-      "sha256": "158c6dcdf7f59007f2d0a2e5d215ded38d53c19a750781f999dd52d160d1d50c",
-      "bytes": 58430
+      "sha256": "960acbe3774a76a57a36331c1dd0782c632de971409edcfb0265f904ebe8501a",
+      "bytes": 63716
     },
     {
       "node_id": "11335:19986",
@@ -142,11 +142,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11335-19986.png",
-      "sha256": "020bd426251ea7f9ee15138bbfec166fb827a9a964f230673e281366ef1147b9",
-      "bytes": 112109
+      "sha256": "fc18eed569d0dc15366835cff8c23a91365e99f50c5dacf2fe1bc28ed4f020c2",
+      "bytes": 112977
     },
     {
       "node_id": "11410:20361",
@@ -154,11 +154,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11410-20361.png",
-      "sha256": "ec29c77f8dd2a4f2b17a57a296c6b27236bed70640bb188f302a320d55d2549d",
-      "bytes": 60865
+      "sha256": "9e249124f183d309cf6f5c3fd7b661da724c809009412558c9417c89fb4b1566",
+      "bytes": 66518
     },
     {
       "node_id": "11220:19121",
@@ -166,11 +166,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11220-19121.png",
-      "sha256": "38ad1441c042aee029a480087d4e7008daea911d024b947d9e204c18db97ff75",
-      "bytes": 117430
+      "sha256": "e125118f6fd733ce9b105bf314f1d96ac569b9362cd58b07a0dad00538f38071",
+      "bytes": 107334
     },
     {
       "node_id": "11220:19397",
@@ -178,11 +178,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11220-19397.png",
-      "sha256": "5232902d16f97af9a51e2ea12420977d266df26543855982d4685d166ca6ccea",
-      "bytes": 116757
+      "sha256": "2003666d47d020bf9cad17393885bec94f29d6eb5054744e10c9de95297b4cc8",
+      "bytes": 107662
     },
     {
       "node_id": "8624:30521",
@@ -190,11 +190,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30521.png",
-      "sha256": "c5efcbef931fcce9341d5bf4ab20e088d5c4314df5285e7d7eed8cbbd35746ea",
-      "bytes": 86125
+      "sha256": "0e0dd31b7cccf6f21bd5501b424cfe38f44e779bed5227fe7132bf4b5d4ef1bc",
+      "bytes": 88645
     },
     {
       "node_id": "11388:22086",
@@ -202,11 +202,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11388-22086.png",
-      "sha256": "880274b094d6e02a00afa4ec58707da3eafd2516c45fe9d1afad855d9f3163f4",
-      "bytes": 82431
+      "sha256": "baaf8e320a4217f79b8b5a33b930abc2ef13a9e646c15850b31b2a4f38eb024d",
+      "bytes": 84991
     },
     {
       "node_id": "11195:19094",
@@ -214,11 +214,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11195-19094.png",
-      "sha256": "da8e5bb7fce535aecdf4598cbec58131cc8d5d44081cb80106e2709f6be318fd",
-      "bytes": 106825
+      "sha256": "e84298420bb01b95fdbf5028b93ac045e48c7646308ea4154a84a368ef0cc5fe",
+      "bytes": 108296
     },
     {
       "node_id": "8624:30198",
@@ -226,11 +226,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30198.png",
-      "sha256": "68767c862f051736766870e7060f16db6eac7089f2cf6f2ba9d3f5d8cd3dc460",
-      "bytes": 55448
+      "sha256": "a6503495dd2afea9c3bed9a176f2dbe5d547877c6a2c45939e1919c6d41268b3",
+      "bytes": 60362
     },
     {
       "node_id": "8624:30602",
@@ -238,11 +238,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30602.png",
-      "sha256": "325f589bc13bdae8bd83689a8f134093381e01922d085f99d0df523f053afb16",
-      "bytes": 70375
+      "sha256": "34f30d2f5215e08661714fcfe171c12ff69113da0ece12f7f5d67de6a153dc73",
+      "bytes": 73870
     },
     {
       "node_id": "11376:20189",
@@ -250,11 +250,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11376-20189.png",
-      "sha256": "aca253ca0e58591847906d8e140fb11dbf6b850b436fe131bc25b7701ea340a0",
-      "bytes": 86396
+      "sha256": "b55e198703ff463d3a88d4e19a0b04f397996173798141fe6746e82d395c4573",
+      "bytes": 88486
     },
     {
       "node_id": "11376:20325",
@@ -262,11 +262,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11376-20325.png",
-      "sha256": "7cb85186a9db271c047c1f6c6f304a0eee5f5144d5a8818dadb6e561ed9a5423",
-      "bytes": 86784
+      "sha256": "05cf0873052d4f5aeb4dd69728bd88a65b1f0240f123a3ea3df4e1e120919401",
+      "bytes": 88789
     },
     {
       "node_id": "11411:20474",
@@ -274,11 +274,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-11411-20474.png",
-      "sha256": "caafe4b7927a940dd9ce9db15e359d0ebde9812957733b31553ef0836e62aefa",
-      "bytes": 90670
+      "sha256": "b36432fbf3f9da80964ea05b2b311c6f1788bc0ca497c3c885b6542930ee6d65",
+      "bytes": 92669
     },
     {
       "node_id": "8624:30255",
@@ -286,11 +286,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30255.png",
-      "sha256": "0d761773979f18b965ada42fe7cbaa279e84e4ba1a5b62b0419fc0fa33f8f246",
-      "bytes": 54542
+      "sha256": "697d0e86c1eed480459b48ee63522818610e7a7148fdda85ba7778654bac3f74",
+      "bytes": 59992
     },
     {
       "node_id": "8624:30672",
@@ -298,11 +298,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8624-30672.png",
-      "sha256": "559e3d00604524e338c353c08b4fb7ce9c18491637971698eb96bfc8bd8c114b",
-      "bytes": 87040
+      "sha256": "d382ad0869248bbb879aa436cd016df7fb2ba45e6ef95d382399519c855f9334",
+      "bytes": 89697
     },
     {
       "node_id": "8656:33799",
@@ -310,11 +310,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-33799.png",
-      "sha256": "fa332f781062dd859fc8c6dd67d5218990ceb32efa879d18e34bfca447159ee4",
-      "bytes": 54265
+      "sha256": "e19e507fe2492c230fae7ae5ad09071e004c473961863c781d93fe3b35c9ea19",
+      "bytes": 59793
     },
     {
       "node_id": "8656:33857",
@@ -322,11 +322,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-33857.png",
-      "sha256": "d0f30918bd80bd0f4ad599a926275243fc8d8cbe05f6274121ef60834b90d65e",
-      "bytes": 84204
+      "sha256": "25b6afb8e5d490c155859a12d39d008dfc9194e410981d0ae2fc5bc875cc1791",
+      "bytes": 86356
     },
     {
       "node_id": "8656:34196",
@@ -334,11 +334,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-34196.png",
-      "sha256": "a37cd6db416367618984c775ac07a41616ec28802feac8549cd8a2ac0daf3ca7",
-      "bytes": 53648
+      "sha256": "4aa54b3d99105e67b2e3a09f5f43dac24a029c52f662639edcd997a7faed12d7",
+      "bytes": 59441
     },
     {
       "node_id": "8656:34263",
@@ -346,11 +346,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-34263.png",
-      "sha256": "40db6c6f62f0a771595847cd827f653d59b567ff204584cd3f61647b10cc7bc3",
-      "bytes": 84837
+      "sha256": "0753c154c3446e921cd0747e4e592cf0e33188d8b0d0fb8a99e583c899adeba2",
+      "bytes": 87036
     },
     {
       "node_id": "8656:34753",
@@ -358,11 +358,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-34753.png",
-      "sha256": "639ed101b3a490a6ae8ede037846b6fe04204a860c798c4e88238451d6483a96",
-      "bytes": 52852
+      "sha256": "7cc1e5b6d4728aa4863cc9da2b61ce9116afca369b3fff995a43f22535187c68",
+      "bytes": 59318
     },
     {
       "node_id": "8656:34807",
@@ -370,11 +370,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-34807.png",
-      "sha256": "3c2809f41fe7aa25fb5f812a01ff8ffc1c9807694331185f1a0e858b935d1bd5",
-      "bytes": 82614
+      "sha256": "cb3b3f63022d99121bb4dfa37e44133f10130fe87b41044b434c1e928ec1668b",
+      "bytes": 85797
     },
     {
       "node_id": "8656:35005",
@@ -382,11 +382,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-35005.png",
-      "sha256": "e552edb8aab4958a194f351a629027866ae60a46d453f3997acab9ed01806b24",
-      "bytes": 48145
+      "sha256": "c3eeaffaf1aecfcc7fdb9a5d6255c2ff059725e79d08630c5e66c8bed1273fe1",
+      "bytes": 55033
     },
     {
       "node_id": "8656:35062",
@@ -394,11 +394,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-35062.png",
-      "sha256": "ed9cc9b884cdd07b2efaefd5b325c4a2ca0d2851f947bdceb08dd2140c40ece1",
-      "bytes": 87062
+      "sha256": "a9687998860a474f93b502454321ac12369c3815ca02c0219c1ec3f625a4f43b",
+      "bytes": 90084
     },
     {
       "node_id": "8656:35273",
@@ -406,11 +406,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-35273.png",
-      "sha256": "5b58d3aa1571b86b48f9c28fcef9df9039db0174a68e68b27107f5f6e2ec5070",
-      "bytes": 51810
+      "sha256": "78f0a860d45082e848e9568b3acd3e536bc35364b9162c4d1ce2be0ad58ca69e",
+      "bytes": 58686
     },
     {
       "node_id": "8656:35331",
@@ -418,11 +418,11 @@
       "contract": "CE-FMT-02",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8656-35331.png",
-      "sha256": "a3e3801f046299674148c9a8747ed4ced22ee3290dd16a32f09f0ac9abeeff42",
-      "bytes": 82963
+      "sha256": "487cd129802144adefaffcd64fd4519e96667e081346a759d8a9d738a2f6d27e",
+      "bytes": 86182
     },
     {
       "node_id": "8747:14451",
@@ -466,11 +466,11 @@
       "contract": "CE-FMT-04",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8795-14588.png",
-      "sha256": "6952f63e1df566e8b0136601ca3bf3bb7fdf5c2a0762a21e09eadf8a5767e0ff",
-      "bytes": 97845
+      "sha256": "d614a250ce2475d875dab93a20d1a78943be5c0596cf0d3f00d6e3db64b37367",
+      "bytes": 97780
     },
     {
       "node_id": "11308:19978",
@@ -490,11 +490,11 @@
       "contract": "CE-FMT-04",
       "width": 402,
       "height": 874,
-      "date": "2026-11-02",
+      "date": "2026-11-03",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8598-30515.png",
-      "sha256": "8266ea4f62e4e1b884eadaaf00341f28b79adfe3e71a5856f229cd92b1dabb83",
-      "bytes": 132385
+      "sha256": "50ca501a6870c3c63fd2d841f203829c7954d4b6f711e970c09a029fb081717f",
+      "bytes": 132306
     },
     {
       "node_id": "11270:19541",
@@ -685,6 +685,20 @@
       "date": "2026-11-02",
       "status": "export-blocked-quota",
       "reason": "Figma MCP Full seat Professional tool-call limit reached; previous image not used as current evidence"
+    },
+    {
+      "node_id": "11472:20899",
+      "file": "docs/Specifications-fonctionnelles/images/figma-11472-20899.png",
+      "sha256": "f3c3ef81834e9ceed0838d0414f0a93ec5991438cb02e8a47a82e267900044a7",
+      "bytes": 138344,
+      "width": 402,
+      "height": 874,
+      "date": "2026-11-03",
+      "status": "exported",
+      "name": "P-Tabata — Récapitulatif, fiche du mouvement (modale)",
+      "contract": "CE-FMT-02"
     }
-  ]
+  ],
+  "updated": "2026-11-03",
+  "updated_exports": 37
 }

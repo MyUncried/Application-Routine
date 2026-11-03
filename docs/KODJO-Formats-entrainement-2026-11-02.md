@@ -1,6 +1,6 @@
 # Mise à jour des spécifications — Formats d'entraînement et portage du format par le circuit
 
-**Référence active — 2 novembre 2026.** Décisions d’Hermann, contre-revue A1 à A7 et relevé Figma `KODJO-Modifications-Figma-2026-11-02(1).md` intégrés. Remplace les prescriptions antérieures contradictoires sur le périmètre Formats et départs rapides. Les sources de baselines restent conservées hors dépôt ; les archives OpenSpec ne sont pas modifiées.
+**Référence active — mise à jour du 3 novembre 2026.** Décisions d’Hermann, contre-revue A1 à A7 et modifications des écrans du 3 novembre intégrées. [Source de la mise à jour](sources/formats-2026-11-03/KODJO-Mise-a-jour-ecrans-formats-2026-11-03.md). Remplace les prescriptions antérieures contradictoires sur le périmètre Formats et départs rapides. Les sources de baselines restent conservées hors dépôt ; les archives OpenSpec ne sont pas modifiées.
 
 Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » (`510:101`). Les noms exacts des frames sont des références ; les paramètres, parcours et règles ci-dessous constituent la cible fonctionnelle. Galerie et statut des exports : chapitre 06, ancre formats-galerie. La configuration appartient à PRE-9 ; le moteur spécialisé reste PRE-10/11.
 
@@ -119,7 +119,7 @@ Tout Exercice ajouté ou déplacé dans un Circuit porteur d’un Format suit le
 |---|---|---|
 | AMRAP | Mode Répétitions ou Durée ; cible par passage ou À l’échec ; Incrément par tour en Répétitions ; Passage ; Récupération ; autres paramètres standards compatibles | Séries et durée globale ; l’Objectif de durée d’un passage reste local en mode Durée |
 | For time | Mode Répétitions, Condition d’arrêt À l’objectif ; Séries identiques ou variables, nombre = nombre de tours ; Cadence facultative sans incidence sur les durées ; Passage ; Récupération initiale 0 s ; Durée de l’exercice héritée, grisée | Borne temporelle et compte du Circuit ; la borne reste rappelée en lecture seule, exception explicite au retrait (§11) |
-| EMOM dans chaque intervalle | Mode, Condition d’arrêt, Nombre de répétitions, Charge, Récupération initiale 0 s ; autres paramètres standards compatibles | Séries, Intervalle, Durée de l’exercice |
+| EMOM dans chaque intervalle | Mode Répétitions imposé (Durée grisé), Condition d’arrêt, Nombre de répétitions, Charge, Récupération initiale 0 s ; autres paramètres standards compatibles | Séries, Intervalle, Durée de l’exercice |
 | Death by dans chaque intervalle | Mode Répétitions, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, Cadence Sans, Récupération initiale 0 s | Compte ouvert et intervalle commun du Circuit ; durée globale non portée localement |
 | Death by en alternance | Mode Répétitions, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, **Intervalle propre modifiable dans la modale**, Cadence Sans, Récupération initiale 0 s | Identité Death by et compte ouvert au Circuit ; aucune durée dans son en-tête |
 
@@ -157,7 +157,9 @@ Fenêtre « Formats d'entraînement » (écran « P-Formats — Choix du format,
 - le menu Créer s'efface ; la fenêtre s'affiche sur la composition de séance, sous le même fond voilé, avec une marge à gauche et à droite ; pas de barre de navigation ;
 - titre « Formats d'entraînement » et croix de fermeture dans la fenêtre ; un tap sur le fond voilé ferme aussi la fenêtre et ramène à la composition ;
 - tous les formats (formats spécifiques et départs rapides) s'affichent dans une seule grille sur deux colonnes, sans défilement et sans distinction visible : l'utilisateur choisit selon son objectif, la différence apparaît dans le questionnaire et les paramètres ;
-- le choix ouvre le questionnaire en plein écran. Les questionnaires conservent la croix de fermeture, qui quitte le parcours et revient à la Composition. Tous les récapitulatifs utilisent le bouton Retour : il revient au questionnaire du même modèle avec les réponses conservées ; le titre de l’en-tête reste inchangé. Fermer et revenir sont deux actions distinctes, sans sauvegarde définitive implicite.
+- le choix ouvre le questionnaire en modale sur la Composition. Le questionnaire et le récapitulatif sont des **modales sur la Composition**, ouvertes par le bas, pleine largeur, sous le titre de Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers la Composition ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes.
+
+Référence 402 × 874 : modale à y=95, pleine largeur, coins hauts 24 px, coins bas carrés, sans poignée. En-tête « DSF / Overlays / En-tête de modale », variante Sélection sans validation ; titre Inter Semi Bold 18 centré, croix au questionnaire et icon/retour au récapitulatif. Fond transparent et trait masqué uniquement dans ces modales Formats ; la Fiche du mouvement conserve fond blanc et trait. Zone de contexte 109 px depuis le haut de la modale, couleur et motif du Format ; tagline centrée 14/20 sur deux lignes. Bouton à y=802 de l’écran de référence et déroulé 25 px au-dessus. Contenu défilant, bouton en bas, clavier au premier plan ; ces cotes décrivent le rendu de référence, pas une hauteur fixe imposée à tous les appareils. Valeurs non modifiables et colonnes numériques alignées sur le texte des valeurs modifiables, avec un retrait de 10 px par rapport au bord droit de leur pastille.
 
 Le menu Créer de la composition de séance propose :
 - Créer un exercice → fiche d'exercice ;
@@ -174,8 +176,9 @@ Quel que soit le chemin emprunté, la validation de la séance ramène au Catalo
 Le questionnaire ne porte que les paramètres indépendants des mouvements.
 
 - **Zone de contexte** : couleur et motif AMRAP, tagline sur deux lignes (« Douze minutes, autant de tours que vous pouvez. Aucun repos prescrit, on compte les tours. »).
-- **Mouvements** : titre de section avec « + Ajouter », qui ouvre le catalogue.
-- **Ajout d'un mouvement** (règle valable pour le premier écran de tous les formats) : à l'état initial, le titre Mouvements porte « + Ajouter ». Un premier appui fait apparaître un champ de saisie sous le titre (curseur et clavier ouverts) et transforme « + Ajouter » en **« Ouvrir le catalogue »**. L'utilisateur tape le nom d'un mouvement et choisit parmi les suggestions du catalogue, ou ouvre la modale du catalogue. Si l'utilisateur quitte le champ sans rien saisir, le champ se referme et le lien redevient « + Ajouter ». Si l'utilisateur ouvre le catalogue après avoir commencé à taper, le champ Rechercher du catalogue reprend le texte saisi et les résultats sont déjà filtrés. Les résultats de la saisie utilisent la carte « Carte — Mouvement sélectionné » en variante « Suppression=Aucune », avec le filet qui relie les niveaux d'un même mouvement. Écrans : « P-Tabata — Questionnaire, saisie d'un mouvement » et « AMRAP — Questionnaire, saisie d'un mouvement ».
+- **Mouvements** : titre de section avec « + Ajouter », qui ouvre la saisie locale.
+- **Ajout d’un mouvement** (tous Formats) : « + Ajouter » affiche un champ sous le titre, avec focus et clavier, et devient « Ouvrir le mode catalogue ». Le champ propose les Mouvements existants ; quitter une saisie vide referme le champ et rétablit « + Ajouter ». Les suggestions utilisent la petite carte « Carte — Mouvement sélectionné », variante Suppression=Aucune, avec filet des niveaux d’une famille. La carte montre nom et zones corporelles précédées de leur pastille (12 px gris), sans description tronquée. « Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique.
+- **Fiche du mouvement** : Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite carte ouvre la **Fiche du mouvement** en consultation seule, en modale par-dessus celle du Format, sur un second voile. Apparition par le bas, pleine largeur, coins hauts arrondis 24 px ; en-tête croix et titre « Fiche du mouvement », fond blanc et trait conservés. Nom, catégorie, zones corporelles, niveau, média, description et phases habituels ; aucun bouton d’action. Fermer restitue exactement l’état du parcours sous-jacent. Toucher le reste de la carte conserve son comportement existant.
 - **Paramètres d'exécution** :
   - Durée : 12 min ;
   - Nombre d’AMRAP : 1 (nombre de blocs) ;
@@ -184,23 +187,23 @@ Le questionnaire ne porte que les paramètres indépendants des mouvements.
   - Buy-in : interrupteur, désactivé par défaut ;
   - Volume croissant à chaque tour : interrupteur, désactivé par défaut.
 - **Déroulé** générique (cases 1, 2, 3… n), calé en bas de l'écran, au-dessus du bouton ; il réagit aux réponses.
-- **Bouton** « Enregistrer dans la séance » : ajoute la structure créée au brouillon de Composition ; la Séance doit ensuite être validée depuis la Composition pour être sauvegardée dans le Catalogue. L’abandon du brouillon ne conserve pas l’ajout.
+- **Bouton** « Valider les paramètres » : ouvre le récapitulatif avec les réponses conservées, sans ajout à la Composition. « Enregistrer dans la séance » appartient au récapitulatif ; la sauvegarde définitive reste dans la Composition.
 - **Sans mouvement — B10 en attente** : la représentation « Mouvement libre », les conditions de validation sans Mouvement et le lancement direct d’un minuteur ne sont pas validés dans cette révision. Ne pas implémenter la règle antérieure « toujours actif, même sans mouvement » ni une obligation nouvelle déduite de son retrait. Le parcours d’ajout avec des Mouvements et les validations existantes restent la base de travail ; le cas sans mouvement sera traité séparément.
 
 **État plusieurs blocs** : écran « AMRAP — Questionnaire, plusieurs blocs » (`11410:20361`). Trois blocs de 12 min avec deux repos de 2 min : **40 min** au total. Le déroulé affiche Bloc 1, repos, Bloc 2, repos, Bloc 3 ; les repos sont gris et sans libellé dans la frise, les largeurs proportionnelles aux durées. Cet exemple représente les blocs configurés, pas les tours de boucle réalisés. La ligne de repos entre blocs est conditionnelle ; le Repos après chaque tour de boucle demeure un réglage distinct.
 
 ### 7.2 Choix des mouvements (« AMRAP — Choix des mouvements »)
 
-Modale du catalogue des mouvements, sélection multiple : mouvements de la boucle.
+État « mode catalogue » du questionnaire existant, sans modale distincte ; sélection multiple des mouvements de la boucle. « Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique.
 
 ### 7.3 Choix du buy-in (« AMRAP — Choix du buy-in »)
 
-Affiché seulement si l'interrupteur Buy-in est activé. Modale du catalogue intitulée « Mouvement du buy-in », sélection unique.
+Affiché seulement si l’interrupteur Buy-in est activé. Mode catalogue dans la même modale, section « Mouvement du buy-in », sélection unique. « Ajouter » applique ce choix ; « Fermer le mode catalogue » revient sans ajout.
 
 ### 7.4 Récapitulatif (« AMRAP — Récapitulatif, incrément et max » et « AMRAP — Récapitulatif, buy-in et incrément »)
 
-- **En-tête** : bouton Retour vers le questionnaire avec réponses conservées ; zone de contexte avec la tagline. Cette règle vaut pour tous les récapitulatifs des Formats et départs rapides.
-- **Mouvements** : composant « Carte — Mouvement sélectionné » (image réduite, nom et description sur deux lignes) ; suppression par glissement vers la gauche (voir ci-dessous).
+- **En-tête modal** : Retour vers le questionnaire avec réponses conservées, titre = nom du Format ; contexte et tagline selon §7. Aucun bloc ni champ de nom de Séance. Cette règle vaut pour tous les récapitulatifs des Formats et départs rapides.
+- **Mouvements** : composant « Carte — Mouvement sélectionné » (photo 44 px, nom puis zones corporelles précédées de leur pastille en 12 px gris, sans description tronquée) ; suppression par glissement vers la gauche (voir ci-dessous).
   - Réordonnancement par appui long (norme de l'application).
   - Variante « Suppression = Bloquée » pour le dernier mouvement de la boucle.
   - Avec buy-in : section « Buy-in · une fois, au départ » avec « Changer », puis section « En boucle · dans le temps restant » avec « + Ajouter ». Sans buy-in : section « Mouvements » avec « + Ajouter ».
@@ -209,10 +212,12 @@ Affiché seulement si l'interrupteur Buy-in est activé. Modale du catalogue int
   - Par tour : affichée seulement si le Volume croissant est activé.
   - Max (bouton radio) : exclusif avec Rép. ; activé, il grise Rép. et Par tour.
   - Ligne du buy-in : volume seul, ni Par tour ni Max.
-- **Déroulé** : frise des tours (buy-in, puis alternance des mouvements de la boucle, valeurs croissantes, « max »), calé en bas de l'écran, au-dessus du bouton. Si le contenu dépasse, l'écran défile.
+- **Déroulé** : frise des tours (buy-in, puis alternance des mouvements de la boucle, valeurs croissantes, « max »), calé en bas de l'écran, au-dessus du bouton. Si le contenu dépasse, le contenu de la modale défile, le bouton reste en bas.
 - **Bouton** « Enregistrer dans la séance » : crée l’Exercice ou le Circuit selon la section 1 dans le brouillon de Composition, sans sauvegarde définitive de la Séance à ce stade.
 
 - **Suppression d'un mouvement** (récapitulatif, règle valable pour tous les formats) : glisser la carte vers la gauche fait apparaître l'action rouge « Supprimer », au format des actions glissées de l'application. Pour le dernier mouvement de la boucle (variante « Suppression = Bloquée »), l'action apparaît grisée et la carte revient en place. Les résultats de recherche (variante « Suppression = Aucune ») ne se glissent pas. Réordonnancement par appui long. Écran : « AMRAP — Récapitulatif, suppression glissée ».
+
+**Fiche du mouvement au récapitulatif :** Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite carte ouvre la **Fiche du mouvement** en consultation seule, en modale par-dessus celle du Format, sur un second voile. Apparition par le bas, pleine largeur, coins hauts arrondis 24 px ; en-tête croix et titre « Fiche du mouvement », fond blanc et trait conservés. Nom, catégorie, zones corporelles, niveau, média, description et phases habituels ; aucun bouton d’action. Fermer restitue exactement l’état du parcours sous-jacent. Toucher le reste de la carte conserve son comportement existant.
 
 ### 7.5 Dans la séance (« AMRAP — Séance, circuit avec buy-in »)
 
@@ -273,7 +278,7 @@ La Progression utilise les **séries variables standards** : répétitions et ch
 
 ## 10. Application de la règle à l'EMOM
 
-Champ propre au format, porté par l'exercice (Type d'exercice = EMOM) : **Intervalle** (1 min par défaut), qui remplace la Pause. Chaque série démarre au début d'un intervalle ; le repos est le temps restant jusqu'à l'intervalle suivant. Tous les autres champs sont standards.
+Champ propre au format, porté par l'exercice (Type d'exercice = EMOM) : **Intervalle** (1 min par défaut), qui remplace la Pause. Chaque série démarre au début d'un intervalle ; le repos est le temps restant jusqu'à l'intervalle suivant. Les paramètres standards compatibles restent applicables ; **Mode Répétitions imposé**, option Durée grisée et non sélectionnable, dans toutes les organisations. Ce n’est pas un simple défaut initial.
 
 Paramètres du questionnaire : Nombre de séries (6), Intervalle (1 min) ; avec plusieurs mouvements, choix de l'Exécution : **Dans chaque intervalle | À la suite | En alternance**.
 
@@ -290,7 +295,9 @@ Exemple : 2 mouvements, 6 séries, intervalle 1 min, 10 répétitions.
 
 Écrans Figma : modales « EMOM — Modale exercice, standard » (valable pour un seul mouvement, à la suite et en alternance) et « EMOM — Modale exercice, dans chaque intervalle » ; séance « EMOM — Séance, circuit dans chaque intervalle ».
 
-Le Nombre de séries garde le même sens qu'au Tabata (séries de chaque mouvement).
+Le Nombre de séries garde le même sens qu’au Tabata (séries de chaque mouvement).
+
+**Récapitulatifs à plusieurs mouvements :** tableau « Mouvement | Rép. » juste sous Nombre de séries, pour Dans chaque intervalle, En alternance et À la suite. Une valeur par Exercice (exemples : Squats sautés 10, Fentes avant 15), sans cible commune écrasant les valeurs locales. Tableau blanc arrondi dans cadre gris, en-têtes gris et séparateurs fins, valeurs alignées à droite sur le texte des autres valeurs. La ligne « Repos · jusqu’à la cadence » est retirée ; le repos résiduel n’est ni un paramètre réglable ni le Bip de cadence. Les formules de durée et le rythme des fenêtres restent inchangés.
 
 ## 11. Application de la règle au For time
 
@@ -356,6 +363,8 @@ Paramètres du questionnaire : Intervalle (1 min), Nombre de répétitions de d�
 | Cadence | « Sans » (autres valeurs grisées) |
 | Durée de l'exercice | Absente : mesurée à l'exécution |
 | Récupération | 0 s |
+
+**Récapitulatifs Death by à plusieurs mouvements :** tableau « Mouvement | Départ | Incrément » juste sous Intervalle dans les trois organisations. Il remplace les lignes communes Nombre de répétitions et Incrément par intervalle ; chaque Exercice conserve son départ et son incrément ≥ +1 (exemples 1/+1 et 2/+2). Le cas à un mouvement conserve ses lignes. Présentation et alignement identiques au tableau EMOM ; pas de nouveau champ ni de stockage commun concurrent.
 
 **Plusieurs mouvements :**
 - **À la suite** : Exercices Death by successifs, sans Circuit. Chacun porte son propre Format, son intervalle, son objectif initial et son incrément. L’échec termine cet Exercice ; sa récupération configurée s’exécute, puis le suivant démarre depuis ses propres valeurs initiales. Les résultats de ces tests sont distincts.
@@ -459,7 +468,7 @@ Pour un AMRAP à plusieurs blocs, le questionnaire représente la séquence des 
 
 ## 16. Inventaire Figma
 
-Fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » (`510:101`). Inventaire complété par les corrections du 2 novembre 2026 ; ce périmètre ne couvre pas les modifications hors du travail sur les Formats.
+Fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » (`510:101`). Inventaire actualisé sur Figma le 3 novembre 2026 ; ce périmètre ne couvre pas les modifications hors du travail sur les Formats.
 
 ### 16.1 Écrans
 
@@ -468,7 +477,7 @@ Fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » (`510:101`). Inventai
 | Format | Écrans |
 |---|---|
 | Fenêtre des formats | « P-Formats — Choix du format, deux colonnes » (fenêtre sur fond voilé) |
-| Tabata | « P-Tabata — Questionnaire », « … Questionnaire, saisie d'un mouvement », « … Choix des mouvements », « … Récapitulatif, à la suite », « … Récapitulatif, en alternance » |
+| Tabata | « P-Tabata — Questionnaire », « … Questionnaire, saisie d'un mouvement », « … Choix des mouvements », « … Récapitulatif, à la suite », « … Récapitulatif, en alternance », « P-Tabata — Récapitulatif, fiche du mouvement (modale) » (`11472:20899`) |
 | EMOM | « EMOM — Questionnaire », « … Récapitulatif, dans chaque intervalle », « … en alternance », « … à la suite » |
 | AMRAP | « AMRAP — Questionnaire », « … Questionnaire, saisie d'un mouvement », « AMRAP — Questionnaire, plusieurs blocs » (`11410:20361`), « … Choix des mouvements », « … Choix du buy-in », « … Récapitulatif, incrément et max », « … Récapitulatif, suppression glissée », « … Récapitulatif, buy-in et incrément » |
 | Death by | « Death by — Questionnaire », « … Récapitulatif », « … Récapitulatif, dans chaque intervalle », « … Récapitulatif, en alternance », « Death by — Récapitulatif, à la suite » (`11411:20474`) |
@@ -496,14 +505,18 @@ Fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » (`510:101`). Inventai
 
 | Composant | Statut | Contenu |
 |---|---|---|
-| Carte — Mouvement sélectionné (Design system — Fondations) | Ajouté | Variantes Suppression = Possible \| Bloquée \| Aucune ; 370 × 52, photo 44 px ; pas de croix, suppression par glissement vers la gauche. Utilisé dans les questionnaires (résultats de saisie, variante Aucune) et les récapitulatifs |
+| Carte — Mouvement sélectionné (Design system — Fondations) | Ajouté | Variantes Suppression = Possible \| Bloquée \| Aucune ; 370 × 52, photo 44 px ; nom puis zones corporelles précédées de la pastille, 12 px gris, sans description tronquée, dans Possible/Bloquée/Aucune ; pas de croix, suppression par glissement vers la gauche. Utilisé dans les questionnaires (résultats de saisie, variante Aucune) et les récapitulatifs |
 | DSF / Navigation / En-tête fixe | Modifié | Variante Retour : halo blanc du bouton et courbure de la zone de contexte visibles (contenu non rogné) |
-| DSF / Overlays / En-tête de modale | Modifié | Variantes Classification et Roulette : zone de titre élargie (x 48, largeur 282) |
+| DSF / Overlays / En-tête de modale | Réutilisé | Variante Sélection pour questionnaire (croix) et récapitulatif (icon/retour), titre centré Inter Semi Bold 18 ; fond transparent et trait masqué localement dans les Formats, fond blanc et trait conservés pour la Fiche du mouvement. Variantes Classification/Roulette conservées |
+| Replier / déplier les piles | Réutilisé / adapté | Contrôle 34 × 34 à droite de la recherche, même gabarit et état inactif que Trier, cible tactile 44 × 44 |
+| Effacer la recherche | Réutilisé | Dès qu’un texte est présent : pastille grise 20 px, cible tactile 44 × 44 |
 | Valeur modifiable | Réutilisé | Variante État = Grisé pour les champs imposés par le format (Récupération du buy-in / buy-out, Durée de l'exercice héritée…) |
 | Action glissée — Supprimer | Réutilisé | Modèle des actions glissées du catalogue des mouvements, appliqué à la suppression d'un mouvement dans le récapitulatif |
 | Carte — Mouvement — Résultat | Référence | Rendu des résultats lors de la création d'un mouvement, repris pour la saisie d'un mouvement dans les questionnaires |
 | Interrupteur, Radio | Réutilisés | Interrupteurs du questionnaire AMRAP (Buy-in, Volume croissant), colonne Max du récapitulatif |
 | DSF / Overlays / Confirmation | Réutilisé | Variante Trois actions pour le choix de sortie AMRAP : Conserver le format AMRAP / Adopter un format libre / Annuler (`11410:20123`) |
+
+**État visuel du 3 novembre :** 13 questionnaires et 18 récapitulatifs de la rangée sont présentés en modale sur la Composition ; les trois états de choix des mouvements/buy-in restent dans cette modale. Nouvelle frame de consultation superposée `11472:20899`. Le nom visible derrière le voile appartient à la Composition, jamais au formulaire du Format. Tagline Death by : « Une répétition de plus à chaque minute. On continue tant qu’on termine dans la minute. »
 
 ### 16.3 Tokens
 

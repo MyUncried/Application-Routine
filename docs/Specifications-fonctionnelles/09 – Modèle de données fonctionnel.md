@@ -599,6 +599,8 @@ Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et com
 <a id="formats-donnees"></a>
 #### Formats — données fonctionnelles et invariants
 
+**Complément du 03/11/2026 :** EMOM exclusivement en Mode Répétitions, Durée non sélectionnable, dans toutes les organisations. Les tableaux multi-mouvements éditent les paramètres existants de chaque Exercice : répétitions EMOM, départ et incrément Death by ≥ +1 ; aucune valeur commune concurrente ni nouveau champ de données. Recherche, sélection et consultation modale restent dans le brouillon du parcours ; le questionnaire ne modifie pas le nom de Séance.
+
 **Cible Formats active — 02/11/2026 :** [Formats d’entraînement — référence active du 2 novembre](../KODJO-Formats-entrainement-2026-11-02.md). Quatre Formats spécialisés (AMRAP, EMOM, For time, Death by) ; Tabata et cinq départs rapides standards modifiables (30/30, Renforcement, Superset, Progression, À l’échec). L’Exercice autonome ou le Circuit porte le Format selon le temps commun et la fin coordonnée ; le Circuit expose Format d’origine non modifiable et sa nature fixée, ses réglages applicables restant modifiables. Death by alterné : Format au Circuit, intervalle propre à chaque membre, aucune durée d’en-tête. Le portage exclusivement Exercice, les verrous Tabata/30/30 et le départ Libre dans la grille ne sont plus des règles actives.
 
 | Objet | Données effectives / invariants |

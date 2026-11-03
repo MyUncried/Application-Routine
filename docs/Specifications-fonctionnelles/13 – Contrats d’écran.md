@@ -2377,7 +2377,7 @@ Composition → menu Créer → Utiliser un format d’entraînement.
 
 #### 4. Contexte de sortie / destinations
 
-Choix → questionnaire plein écran ; croix de fenêtre ou toucher le voile → Composition.
+Choix → questionnaire en modale sur la Composition, sans nom de Séance ; croix de fenêtre ou toucher le voile → Composition.
 
 #### 5. Données affichées et source de vérité
 
@@ -2462,7 +2462,7 @@ Modèle choisi ou Retour depuis son récapitulatif.
 
 #### 4. Contexte de sortie / destinations
 
-Questionnaire croix → Composition ; récapitulatif Retour → questionnaire avec réponses conservées, titre inchangé ; Enregistrer dans la séance → Composition enrichie.
+Questionnaire croix → Composition ; Valider les paramètres → récapitulatif modal sans ajout ; récapitulatif Retour → questionnaire avec réponses conservées ; Enregistrer dans la séance → Composition enrichie. Mode catalogue intégré : Ajouter → sélection appliquée ; Fermer le mode catalogue → saisie sans ajout. Photo → Fiche du mouvement superposée, croix → même état du parcours.
 
 #### 5. Données affichées et source de vérité
 
@@ -2474,19 +2474,23 @@ Valeurs initiales modifiables distinctes des valeurs imposées et des exemples ;
 
 #### 7. Structure de l’écran
 
-Contexte et Mouvements, Paramètres d’exécution, déroulé et bouton ; Progression insère le tableau Mouvement immédiatement sous Nombre de séries, avant Pause/Durée totale/Exécution.
+Modale sur Composition voilée ; en-tête nom du Format, sans bloc ni champ Titre de séance. Contexte et Mouvements, Paramètres d’exécution, déroulé et bouton ; Progression insère le tableau Mouvement immédiatement sous Nombre de séries, avant Pause/Durée totale/Exécution.
 
 #### 8. Éléments obligatoires
 
 Questionnaire Progression : Nombre de séries, Pause, Durée totale ; aucune cible globale sans Mouvement. Récapitulatif : une ligne par mouvement et une colonne par série ; répétitions, charge en dessous si Avec pour cet Exercice ; aucun interrupteur de charge global.
 
+EMOM multi-mouvements : Mouvement | Rép. juste sous Nombre de séries. Death by multi-mouvements : Mouvement | Départ | Incrément juste sous Intervalle, en remplacement des deux lignes communes, valeurs locales et incrément ≥ +1 ; un seul mouvement conserve ses lignes. Aucune ligne Repos · jusqu’à la cadence. Petite carte : zones corporelles avec pastille 12 px gris à la place de la description, toutes variantes.
+
 #### 9. Layout déterministe
+
+Référence 402 × 874 : modale à y=95, pleine largeur, coins hauts 24 px, coins bas carrés, sans poignée. En-tête « DSF / Overlays / En-tête de modale », variante Sélection sans validation ; titre Inter Semi Bold 18 centré, croix au questionnaire et icon/retour au récapitulatif. Fond transparent et trait masqué uniquement dans ces modales Formats ; la Fiche du mouvement conserve fond blanc et trait. Zone de contexte 109 px depuis le haut de la modale, couleur et motif du Format ; tagline centrée 14/20 sur deux lignes. Bouton à y=802 de l’écran de référence et déroulé 25 px au-dessus. Contenu défilant, bouton en bas, clavier au premier plan ; ces cotes décrivent le rendu de référence, pas une hauteur fixe imposée à tous les appareils. Valeurs non modifiables et colonnes numériques alignées sur le texte des valeurs modifiables, avec un retrait de 10 px par rapport au bord droit de leur pastille.
 
 Déroulé à 25 px au-dessus du bouton ; tableau blanc rayon 8 dans cadre gris, en-tête gris, traits fins et séparateur sous Nombre de séries. Progression 874 px ; en-tête 28 px, ligne avec charge 44 px, 12 px avant Déroulé dans l’exemple.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Clavier numérique répétitions, décimal charge (D-405) ; case et tableau restent visibles au-dessus ; réutiliser focus et adaptation de scroll existants.
+Clavier numérique répétitions, décimal charge (D-405) ; case et tableau restent visibles au-dessus ; réutiliser focus et adaptation de scroll existants. Le clavier reste au-dessus des modales ; contenu défilant, bouton ancré en bas. Mode catalogue : résultats sur toute la hauteur disponible, sans compteur global.
 
 #### 11. États de l’écran
 
@@ -2495,6 +2499,10 @@ Questionnaire initial, mouvements ajoutés, récapitulatif, valeur à compléter
 #### 12. Contrôles et interactions
 
 Tap cellule ouvre la saisie directe ; Suivant passe répétitions S1, charge S1 si active, répétitions S2… ; modale du mouvement accessible pour autres paramètres. N augmenté : colonne nouvelle à compléter ; diminué : dernière colonne retirée, sans confirmation de perte.
+
+« Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique.
+
+Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite carte ouvre la **Fiche du mouvement** en consultation seule, en modale par-dessus celle du Format, sur un second voile. Apparition par le bas, pleine largeur, coins hauts arrondis 24 px ; en-tête croix et titre « Fiche du mouvement », fond blanc et trait conservés. Nom, catégorie, zones corporelles, niveau, média, description et phases habituels ; aucun bouton d’action. Fermer restitue exactement l’état du parcours sous-jacent. Toucher le reste de la carte conserve son comportement existant.
 
 #### 13. Gestes
 
@@ -2510,7 +2518,7 @@ Les réponses et cellules restent dans le brouillon du parcours. Enregistrer ajo
 
 #### 16. Navigation et conservation d’état
 
-Retour conserve toutes les réponses du modèle. Une fermeture de questionnaire ne sauvegarde pas définitivement la Séance.
+Retour conserve toutes les réponses du modèle. Mode catalogue et consultation du Mouvement restituent recherche, sélection et réponses ; aucun second brouillon de Séance créé. Une fermeture de questionnaire ne sauvegarde pas définitivement la Séance.
 
 #### 17. Erreurs et cas limites
 
@@ -2524,9 +2532,11 @@ Libellé de cellule associant mouvement, série, répétitions ou charge ; ordre
 
 FMT-08/14/15/19/20/26/28/29/30/31 ; cadence AMRAP/For time sans effet temporel ; données de tableau identiques aux séries de l’Exercice.
 
+Mode EMOM imposé à Répétitions ; Durée grisée non sélectionnable. Tableaux EMOM/Death by projettent les paramètres des Exercices existants, aucun champ de stockage supplémentaire.
+
 #### 20. Recette déterministe
 
-Questionnaire→récapitulatif→Retour conserve réponses ; Progression 3→4 ajoute une colonne vide, 3→2 retire la dernière ; saisie mixte avec/sans charge ; 40 min pour 3×12 + 2×2 ; Tabata À la suite 530 s.
+Questionnaire→Valider les paramètres→récapitulatif→Retour conserve réponses sans ajout ; Enregistrer ajoute une seule fois au brouillon. Recherche Squ→Ouvrir le mode catalogue conserve Squ et filtre ; Fermer sans ajout ; Ajouter multiple, buy-in unique ; croix efface. Photo→Fiche consultation→croix conserve état. EMOM A10/B15 et Death by A1/+1, B2/+2 sont distincts après enregistrement/réouverture. Aucun nom de Séance dans les formulaires. Alignement texte et bouton fixe vérifiés sur référence ; Progression 3→4 ajoute une colonne vide, 3→2 retire la dernière ; saisie mixte avec/sans charge ; 40 min pour 3×12 + 2×2 ; Tabata À la suite 530 s.
 
 ### CE-FMT-03 — Composition d’une séance issue d’un modèle
 <a id="ce-fmt-03--composition-dune-séance-issue-dun-format"></a>
@@ -2648,7 +2658,7 @@ Feuille standard et ses six blocs : Exécution, Phases du mouvement, Séries, C�
 
 #### 8. Éléments obligatoires
 
-AMRAP autonome en Répétitions ; membres AMRAP selon mode compatible ; Passage/incrément lorsqu’applicables ; For time borne héritée grisée ; Death by départ/incrément visibles avec À l’échec ; intervalle local en Death by alterné.
+EMOM en Répétitions imposé, Durée grisée non sélectionnable (standard et dans chaque intervalle) ; AMRAP autonome en Répétitions ; membres AMRAP selon mode compatible ; Passage/incrément lorsqu’applicables ; For time borne héritée grisée ; Death by départ/incrément visibles avec À l’échec ; intervalle local en Death by alterné.
 
 #### 9. Layout déterministe
 

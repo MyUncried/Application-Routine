@@ -1,8 +1,8 @@
 # Documentation de KODJO
 
-## Formats — base de reprise du 2 novembre 2026
+## Formats — base de reprise actualisée le 3 novembre 2026
 
-- [Spécification active](KODJO-Formats-entrainement-2026-11-02.md) : tous les questionnaires, récapitulatifs, modales, portage et règles actualisés.
+- [Spécification active](KODJO-Formats-entrainement-2026-11-02.md) : questionnaires et récapitulatifs modaux, mode catalogue intégré, fiche en consultation, tableaux EMOM/Death by et EMOM Répétitions imposé. [Source du 3 novembre](sources/formats-2026-11-03/KODJO-Mise-a-jour-ecrans-formats-2026-11-03.md).
 - [Contrats CE-FMT-01 à 04](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-01).
 - [Galerie et état des captures](Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#formats-galerie).
 - [Plan PRE-9 révisé](../_bmad-output/pre9/planning-artifacts/epics.md).
