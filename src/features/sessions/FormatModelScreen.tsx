@@ -1,8 +1,9 @@
+import { Button as SwiftUIButton, Host, Image as SwiftUIImage, Menu, RNHostView, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import { accessibilityLabel as swiftUIAccessibilityLabel, accessibilityValue as swiftUIAccessibilityValue } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActionSheetIOS,
   Platform,
   Pressable,
   ScrollView,
@@ -11,8 +12,11 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from "react-native";
 
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
 import type { Movement } from "@/domain/activities/Movement";
 import { rankMovements } from "@/domain/activities/movementSuggestion";
 import {
@@ -20,6 +24,7 @@ import {
   appendModelToDraft,
   buildModelElements,
   executionOptions,
+  initialAnswers,
   initialMovementValues,
   isFormatModelKey,
   modelDuration,
@@ -31,13 +36,12 @@ import {
   type ModelMovement,
   type MovementValues,
 } from "@/domain/sessions/formatModels";
-import { modelTimeline, type Timeline } from "@/domain/sessions/formatTimeline";
+import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessions/formatTimeline";
 import type { MovementChoice } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
-import { formatSessionDurationEstimate } from "@/features/sessions/compositionPresentation";
 import { useFormatModelDraft } from "@/features/sessions/FormatModelDraftContext";
 import { FormatModelIllustration, formatModelColors } from "@/features/sessions/FormatsWindow";
 import { exerciseOfMovement, takeMovementsHandedToFormat, type MovementExerciseDefaults } from "@/features/sessions/movementExercises";
@@ -82,14 +86,24 @@ const RECOVERY_BLOCK = "#D9DBE0";
 const BUY_IN_BLOCK = "#7984C7";
 const CHIP = "#5B5BF0";
 const CONTEXT_HEIGHT = 109;
+/** Écart entre deux cartes de mouvement ; pas de déplacement par défaut (carte 60 + écart) avant mesure. */
+const CARD_GAP = 8;
+const CARD_STEP_DEFAULT = 68;
 /** Bas du cadre Déroulé à 25 px du haut du bouton (référence §15). */
 const TIMELINE_TO_BUTTON = 25;
 
 function formatSeconds(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const rest = seconds % 60;
-  if (minutes === 0) return `${rest} s`;
-  return rest === 0 ? `${minutes} min` : `${minutes} min ${rest}`;
+  return formatPhraseDuration(Math.max(0, Math.round(seconds)));
+}
+
+/**
+ * Durée totale du modèle, exacte — recette iPhone n° 3 du 02/11/2026 (f3-tabata : « 8 min 45 » affiché,
+ * arrondi au quart de minute de la Composition) : le questionnaire affiche la durée calculée sans arrondi
+ * (référence Formats §9.1, FMT-12 : Tabata À la suite « 8 min 50 s »). « ≥ » pour une borne minimale.
+ */
+function modelDurationText(duration: SessionDurationResult): string {
+  const text = formatSeconds(Number.isFinite(duration.seconds) ? duration.seconds : 0);
+  return duration.kind === "lowerBound" ? `${strings.shared.durationNature.lowerBoundPrefix}${text}` : text;
 }
 
 /** Pas d'un réglage de durée : 5 s sous la minute, 15 s jusqu'à 5 min, puis la minute. */
@@ -191,33 +205,74 @@ function Row({ label, children, last = false, testID }: { label: string; childre
 // Déroulé
 // ---------------------------------------------------------------------------
 
+/**
+ * Blocs regroupés par intervalle commun (EMOM / Death by « dans chaque intervalle », Figma `8624:30392`) —
+ * recette iPhone n° 3 du 02/11/2026 (f3-emom, Hermann : « Illustration du déroulé "Dans chaque intervalle"
+ * incorrect (un seul cadre pour deux mouvements) ») : les blocs des mouvements d'un même intervalle sont
+ * accolés dans un cadre unique ; les intervalles sont séparés. « … » reste isolé.
+ */
+function groupedBlocks(blocks: readonly TimelineBlock[], size: number): (TimelineBlock | readonly TimelineBlock[])[] {
+  const result: (TimelineBlock | readonly TimelineBlock[])[] = [];
+  let group: TimelineBlock[] = [];
+  for (const block of blocks) {
+    if (block.kind !== "WORK") {
+      if (group.length > 0) result.push(group);
+      group = [];
+      result.push(block);
+      continue;
+    }
+    group.push(block);
+    if (group.length === size) {
+      result.push(group);
+      group = [];
+    }
+  }
+  if (group.length > 0) result.push(group);
+  return result;
+}
+
 function TimelineFrame({ timeline, endLabel, band, names, testID }: { timeline: Timeline; endLabel: string; band: string; names: readonly string[]; testID: string }) {
   const height = 22;
+  const renderBlock = (block: TimelineBlock, index: number, inGroup = false) => {
+    if (block.kind === "ELLIPSIS") {
+      return (
+        <Text key={index} style={styles.timelineEllipsis}>
+          …
+        </Text>
+      );
+    }
+    if (block.kind === "REST") {
+      return <View key={index} style={[styles.timelineBlock, { flex: block.weight, height, backgroundColor: RECOVERY_BLOCK }]} />;
+    }
+    const color = block.buyIn === true ? BUY_IN_BLOCK : movementShade(band, block.movement ?? 0);
+    return (
+      <View key={index} style={[styles.timelineBlock, inGroup ? styles.timelineBlockInGroup : null, { flex: block.weight, height: Math.max(8, height * block.height), backgroundColor: color }]}>
+        {block.label !== null ? (
+          <Text style={[styles.timelineLabel, block.buyIn === true ? styles.timelineLabelOnDark : null]} numberOfLines={1}>
+            {block.label}
+          </Text>
+        ) : null}
+      </View>
+    );
+  };
   return (
     <View style={styles.timeline} testID={testID}>
       <View style={styles.timelineBlocks}>
-        {timeline.blocks.map((block, index) => {
-          if (block.kind === "ELLIPSIS") {
-            return (
-              <Text key={index} style={styles.timelineEllipsis}>
-                …
-              </Text>
-            );
-          }
-          if (block.kind === "REST") {
-            return <View key={index} style={[styles.timelineBlock, { flex: block.weight, height, backgroundColor: RECOVERY_BLOCK }]} />;
-          }
-          const color = block.buyIn === true ? BUY_IN_BLOCK : movementShade(band, block.movement ?? 0);
-          return (
-            <View key={index} style={[styles.timelineBlock, { flex: block.weight, height: Math.max(8, height * block.height), backgroundColor: color }]}>
-              {block.label !== null ? (
-                <Text style={[styles.timelineLabel, block.buyIn === true ? styles.timelineLabelOnDark : null]} numberOfLines={1}>
-                  {block.label}
-                </Text>
-              ) : null}
-            </View>
-          );
-        })}
+        {timeline.grouped === true && names.length > 1
+          ? groupedBlocks(timeline.blocks, names.length).map((item, index) =>
+              Array.isArray(item) ? (
+                <View
+                  key={index}
+                  style={[styles.timelineGroup, { flex: (item as readonly TimelineBlock[]).reduce((sum, block) => sum + (block.kind === "ELLIPSIS" ? 0 : block.weight), 0) }]}
+                  testID={`${testID}-group-${index}`}
+                >
+                  {(item as readonly TimelineBlock[]).map((block, at) => renderBlock(block, at, true))}
+                </View>
+              ) : (
+                renderBlock(item as TimelineBlock, index)
+              ),
+            )
+          : timeline.blocks.map((block, index) => renderBlock(block, index))}
       </View>
       <View style={styles.timelineMarks}>
         <Text style={styles.timelineMark}>0</Text>
@@ -253,6 +308,9 @@ function TimelineFrame({ timeline, endLabel, band, names, testID }: { timeline: 
 
 type Stage = "questionnaire" | "summary";
 
+/** Compteur des ouvertures de questionnaire (identité du brouillon de modèle de chaque ouverture). */
+let openings = 0;
+
 export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   const router = useRouter();
   const params = useLocalSearchParams<{ model?: string }>();
@@ -263,13 +321,20 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   const profileService = useContext(ProfileServiceContext);
   const actionZone = usePrimaryActionZone();
 
-  // Questionnaire ouvert depuis la fenêtre Formats : brouillon de modèle neuf.
+  // Questionnaire ouvert depuis la fenêtre Formats : brouillon de modèle neuf, à chaque ouverture —
+  // recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « ajouter un deuxième format ouvre le
+  // questionnaire déjà validé avec ses mouvements et ses paramètres au lieu d'ouvrir un questionnaire
+  // vierge »). Le retour depuis le récapitulatif ne remonte pas le questionnaire : réponses conservées.
+  const [opening] = useState(() => `opening-${++openings}`);
+  const fresh = stage === "summary" || modelDraft?.opening === opening;
   useEffect(() => {
-    if (stage === "questionnaire" && (modelDraft === null || modelDraft.model !== routeModel)) start(routeModel);
-  }, [modelDraft, routeModel, stage, start]);
+    if (stage === "questionnaire" && modelDraft?.opening !== opening) start(routeModel, opening);
+    // Une seule fois par ouverture : le brouillon de cette ouverture n'est jamais recréé.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opening]);
   const model = modelDraft?.model ?? routeModel;
-  const answers = useMemo(() => modelDraft?.answers ?? ({} as ModelAnswers), [modelDraft]);
-  const movements = useMemo(() => modelDraft?.movements ?? [], [modelDraft]);
+  const answers = useMemo(() => (fresh ? modelDraft?.answers : undefined) ?? initialAnswers(routeModel), [fresh, modelDraft, routeModel]);
+  const movements = useMemo(() => (fresh ? modelDraft?.movements : undefined) ?? [], [fresh, modelDraft]);
   const modelName = strings.screens.sessionModels.cards[model].title;
   const colors = formatModelColors(model);
 
@@ -337,6 +402,8 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   // Champ de saisie d'un mouvement (§7.1).
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  // Cadre des suggestions : il défile seul, au-dessus du clavier (environ la moitié de la hauteur restante).
+  const suggestionsMaxHeight = Math.max(160, Math.round(useWindowDimensions().height * 0.32));
   const ranked = useMemo(() => {
     if (query.trim().length === 0) return [];
     const byId = new Map(choices.map((choice) => [choice.movement.id, choice]));
@@ -363,12 +430,17 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
       : timeline.end.kind === "MEASURED"
         ? t().measured
         : duration !== null
-          ? formatSessionDurationEstimate(duration)
+          ? modelDurationText(duration)
           : genericDuration(model, answers);
 
   const busyRef = useRef(false);
+  // Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « Il n'est pas possible de supprimer le
+  // dernier mouvement. Il faut pouvoir le faire, mais à ce moment le bouton d'action "Enregistrer dans la
+  // séance" doit être grisé. ») : sans mouvement de boucle, l'enregistrement est indisponible. [C.3, §7.4 :
+  // dernier mouvement de boucle protégé (variante « Suppression = Bloquée ») — remplacé.]
+  const canSave = movements.length > (model === "AMRAP" && answers.buyIn === true ? 1 : 0);
   const save = () => {
-    if (busyRef.current || movements.length === 0) return;
+    if (busyRef.current || !canSave) return;
     busyRef.current = true;
     const built = buildModelElements(model, answers, movements, newId);
     const next = appendModelToDraft(sessionDraft.draft, built, newId);
@@ -435,36 +507,14 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
       </Text>
     </Row>
   );
-  const totalRow = (last: boolean) => readRow(t().totalDuration, movements.length === 0 && duration === null ? genericDuration(model, answers) : duration === null ? t().dash : formatSessionDurationEstimate(duration), "total", last);
+  const totalRow = (last: boolean) => readRow(t().totalDuration, movements.length === 0 && duration === null ? genericDuration(model, answers) : duration === null ? t().dash : modelDurationText(duration), "total", last);
 
   const options = executionOptions(model);
   const showExecution = options.length > 0 && movements.length > 1;
   const execution: ModelExecution = answers.execution ?? options[0] ?? "SEQUENCE";
   const executionRow = () => (
     <Row key="execution" label={t().execution} last testID="format-row-execution">
-      <Pressable
-        onPress={() => {
-          const labels = options.map((option) => t().executions[option]);
-          const pick = (index: number) => {
-            const option = options[index];
-            if (option !== undefined) setAnswers((current) => ({ ...current, execution: option }));
-          };
-          if (Platform.OS === "ios") {
-            ActionSheetIOS.showActionSheetWithOptions({ options: [...labels, strings.screens.activities.addToSession.cancel], cancelButtonIndex: labels.length, title: t().execution }, (index) => {
-              if (index < labels.length) pick(index);
-            });
-          } else {
-            pick((options.indexOf(execution) + 1) % options.length);
-          }
-        }}
-        accessibilityRole="button"
-        accessibilityLabel={`${t().execution}, ${t().executions[execution]}`}
-        style={styles.chip}
-        testID="format-execution"
-      >
-        <Text style={styles.chipText}>{t().executions[execution]}</Text>
-        <Text style={styles.chipChevron}>⌃</Text>
-      </Pressable>
+      <ExecutionMenu options={options} execution={execution} onSelect={(option) => setAnswers((current) => ({ ...current, execution: option }))} />
     </Row>
   );
 
@@ -527,16 +577,73 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   const scrollRef = useRef<ScrollView>(null);
   const [revealedId, setRevealedId] = useState<string | null>(null);
 
+  // Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « L'appui long sur la carte du mouvement
+  // devrait permettre de déplacer la carte ») : appui long, la carte se soulève et suit le doigt ; au
+  // relâchement elle prend la place atteinte. Même procédé que le Catalogue des Mouvements (suivi du doigt
+  // par la liste, défilement suspendu pendant le geste). Le buy-in reste en tête. Actions VoiceOver
+  // Monter / Descendre conservées.
+  const [drag, setDrag] = useState<{ readonly from: number; readonly dy: number } | null>(null);
+  const touchY = useRef(0);
+  const dragStartY = useRef<number | null>(null);
+  const cardStep = useRef(CARD_STEP_DEFAULT);
+  const firstMovable = buyIn ? 1 : 0;
+  const dragTarget = (current: { from: number; dy: number }) =>
+    Math.max(firstMovable, Math.min(movements.length - 1, current.from + Math.round(current.dy / cardStep.current)));
+  const startDrag = (index: number) => {
+    if (index < firstMovable) return;
+    setRevealedId(null);
+    dragStartY.current = touchY.current;
+    setDrag({ from: index, dy: 0 });
+  };
+  const endDrag = () => {
+    const current = drag;
+    setDrag(null);
+    dragStartY.current = null;
+    if (current === null) return;
+    const to = dragTarget(current);
+    if (to === current.from) return;
+    setMovements((list) => {
+      const next = [...list];
+      const [moved] = next.splice(current.from, 1);
+      if (moved === undefined) return list;
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
+  const cardList = (items: readonly ModelMovement[], offset: number, isBuyIn: boolean) => (
+    <View
+      onTouchStart={(event) => {
+        touchY.current = event.nativeEvent.pageY;
+      }}
+      onTouchMove={
+        drag !== null
+          ? (event) => {
+              const start = dragStartY.current ?? event.nativeEvent.pageY;
+              setDrag({ ...drag, dy: event.nativeEvent.pageY - start });
+            }
+          : undefined
+      }
+      onTouchEnd={drag !== null ? endDrag : undefined}
+      onTouchCancel={drag !== null ? () => setDrag(null) : undefined}
+      testID={isBuyIn ? "format-buy-in-cards" : "format-movement-cards"}
+    >
+      {items.map((item, at) => movementCard(item, at + offset, isBuyIn))}
+    </View>
+  );
+
   return (
     <ScreenShell>
       <FixedHeader
-        title={`${t().titlePrefix} ${modelName}`}
+        title={t().titles[model]}
         onBack={close}
         backAccessibilityLabel={stage === "questionnaire" ? t().closeAccessibilityLabel : t().backAccessibilityLabel}
         closeIcon={stage === "questionnaire"}
       />
       <ScrollView
         ref={scrollRef}
+        // Recette n° 3 (f3-questionnaire : « L'écran doit rester fixe et le résultat défiler dans son cadre ») :
+        // écran figé pendant la saisie d'un mouvement avec suggestions, et pendant le déplacement d'une carte.
+        scrollEnabled={drag === null && !(searchOpen && ranked.length > 0)}
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         contentContainerStyle={[styles.content, { paddingBottom: actionZone.scrollReserve - FINAL_ACTION_TOP_MARGIN + TIMELINE_TO_BUTTON }]}
@@ -561,9 +668,9 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         {buyIn && stage === "summary" ? (
           <>
             <SectionHeader label={t().buyInSection} link={t().change} onLink={() => openCatalogue("format-buy-in")} testID="format-buy-in" />
-            {movements.slice(0, 1).map((item, index) => movementCard(item, index, true))}
+            {cardList(movements.slice(0, 1), 0, true)}
             <SectionHeader label={t().loopSection} link={t().add} onLink={() => openCatalogue("format-loop")} testID="format-loop" />
-            {movements.slice(1).map((item, index) => movementCard(item, index + 1, false))}
+            {cardList(movements.slice(1), 1, false)}
           </>
         ) : (
           <>
@@ -588,7 +695,13 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
                   testID="format-search"
                 />
                 {ranked.length > 0 ? (
-                  <View style={styles.suggestions} testID="format-suggestions">
+                  <ScrollView
+                    style={[styles.suggestions, { maxHeight: suggestionsMaxHeight }]}
+                    contentContainerStyle={styles.suggestionsContent}
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled
+                    testID="format-suggestions"
+                  >
                     {ranked.map((choice) => (
                       <SelectedMovementCard
                         key={choice.movement.id}
@@ -602,11 +715,11 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
                         testID={`format-suggestion-${choice.movement.id}`}
                       />
                     ))}
-                  </View>
+                  </ScrollView>
                 ) : null}
               </View>
             ) : null}
-            {movements.map((item, index) => movementCard(item, index, false))}
+            {cardList(movements, 0, false)}
           </>
         )}
 
@@ -635,7 +748,7 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         />
       </ScrollView>
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
-        <PrimaryActionButton label={t().save} onPress={save} disabled={movements.length === 0} testID="format-save" />
+        <PrimaryActionButton label={t().save} onPress={save} disabled={!canSave} testID="format-save" />
       </PrimaryActionZone>
     </ScreenShell>
   );
@@ -646,10 +759,15 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
 
   function movementCard(item: ModelMovement, index: number, isBuyInCard: boolean) {
     const movement = movementOf(item);
-    // Variante « Suppression = Bloquée » pour le dernier mouvement de la boucle (§7.4).
-    const loopCount = movements.length - (buyIn ? 1 : 0);
-    const blocked = !isBuyInCard && loopCount <= 1;
-    const remove = () => setMovements((current) => current.filter((_, at) => at !== index));
+    // Pendant le geste : carte portée soulevée, cartes franchies décalées d'un pas.
+    const lifted = drag !== null && drag.from === index;
+    const target = drag === null ? index : dragTarget(drag);
+    const shift =
+      drag === null || lifted ? 0 : index > drag.from && index <= target ? -cardStep.current : index < drag.from && index >= target ? cardStep.current : 0;
+    const remove = () => {
+      if (isBuyInCard) hasBuyIn.current = false;
+      setMovements((current) => current.filter((_, at) => at !== index));
+    };
     const move = (direction: -1 | 1) =>
       setMovements((current) => {
         const target = index + direction;
@@ -659,19 +777,25 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         return next;
       });
     return (
-      <View key={item.exercise.id} style={styles.cardSlot}>
+      <View
+        key={item.exercise.id}
+        style={[styles.cardSlot, lifted ? [styles.liftedCard, { transform: [{ translateY: drag?.dy ?? 0 }] }] : shift !== 0 ? { transform: [{ translateY: shift }] } : null]}
+        onLayout={(event) => {
+          if (index === firstMovable) cardStep.current = event.nativeEvent.layout.height + CARD_GAP;
+        }}
+      >
         <SwipeActionsRow
-          actions={[{ key: "delete", label: t().delete, backgroundColor: "#E5484D", disabled: blocked, onPress: remove }]}
+          actions={[{ key: "delete", label: t().delete, backgroundColor: "#E5484D", onPress: remove }]}
           revealed={revealedId === item.exercise.id}
           onReveal={() => setRevealedId(item.exercise.id)}
           onHide={() => setRevealedId(null)}
           onPress={() => setRevealedId(null)}
           accessibilityLabel={item.exercise.name}
-          {...(blocked ? { accessibilityHint: t().lastLoopMovement } : {})}
           extraAccessibilityActions={[
             { name: "moveUp", label: t().moveUp, onAction: () => move(-1) },
             { name: "moveDown", label: t().moveDown, onAction: () => move(1) },
           ]}
+          {...(isBuyInCard ? {} : { onLongPress: () => startDrag(index) })}
           testID={`format-movement-${index}`}
         >
           {movement !== null ? (
@@ -691,6 +815,57 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     if (id === undefined) return null;
     return movementsById.current.get(id) ?? choices.find((choice) => choice.movement.id === id)?.movement ?? null;
   }
+}
+
+/**
+ * Choix de l'Exécution — recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « Le format de la
+ * fenêtre du popover de l'Exécution est différent de celui utilisé jusqu'à présent dans les autres
+ * écrans ») : sur iOS, `Menu` SwiftUI natif d'`@expo/ui` hébergé par `Host` / `RNHostView`, même
+ * procédé que le choix de nature du Circuit (`CircuitNatureMenu`) ; option courante cochée, toucher
+ * extérieur sans choix. [C.3 : feuille d'actions `ActionSheetIOS` — remplacée.] Android et web : la
+ * pastille fait défiler les options.
+ */
+function ExecutionMenu({ options, execution, onSelect }: { options: readonly ModelExecution[]; execution: ModelExecution; onSelect: (option: ModelExecution) => void }) {
+  const chip = (
+    <View style={styles.chip}>
+      <Text style={styles.chipText}>{t().executions[execution]}</Text>
+      <Text style={styles.chipChevron}>⌃</Text>
+    </View>
+  );
+  if (Platform.OS === "ios") {
+    return (
+      <Host key={execution} matchContents testID="format-execution">
+        <Menu
+          label={
+            <RNHostView matchContents>
+              <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                {chip}
+              </View>
+            </RNHostView>
+          }
+          modifiers={[swiftUIAccessibilityLabel(t().execution), swiftUIAccessibilityValue(t().executions[execution])]}
+        >
+          {options.map((option) => (
+            <SwiftUIButton key={option} onPress={() => onSelect(option)} testID={`format-execution-${option}`}>
+              {option === execution
+                ? [<SwiftUIText key="title">{t().executions[option]}</SwiftUIText>, <SwiftUIImage key="check" systemName="checkmark" />]
+                : [<SwiftUIText key="title">{t().executions[option]}</SwiftUIText>]}
+            </SwiftUIButton>
+          ))}
+        </Menu>
+      </Host>
+    );
+  }
+  return (
+    <Pressable
+      onPress={() => onSelect(options[(options.indexOf(execution) + 1) % options.length] ?? execution)}
+      accessibilityRole="button"
+      accessibilityLabel={`${t().execution}, ${t().executions[execution]}`}
+      testID="format-execution"
+    >
+      {chip}
+    </Pressable>
+  );
 }
 
 function SectionHeader({ label, link, onLink, testID }: { label: string; link: string; onLink: () => void; testID: string }) {
@@ -974,8 +1149,10 @@ const styles = StyleSheet.create({
   link: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, color: VALUE_COLOR },
   search: { marginHorizontal: 16, gap: 8, marginBottom: 8 },
   searchInput: { height: 44, borderRadius: 12, backgroundColor: PANEL, paddingHorizontal: 16, fontFamily: "Inter_400Regular", fontSize: 16, color: LABEL },
-  suggestions: { gap: 8, padding: 8, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E3E8F0" },
-  cardSlot: { marginHorizontal: 16, marginBottom: 8 },
+  suggestions: { flexGrow: 0, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E3E8F0" },
+  suggestionsContent: { gap: 8, padding: 8 },
+  cardSlot: { marginHorizontal: 16, marginBottom: CARD_GAP },
+  liftedCard: { zIndex: 2, shadowColor: "#000000", shadowOpacity: 0.16, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
   fallbackCard: { minHeight: 52, justifyContent: "center", paddingHorizontal: 12, borderRadius: 12, backgroundColor: PANEL },
   panel: { marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16 },
   row: { minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 4, gap: 8 },
@@ -1011,6 +1188,8 @@ const styles = StyleSheet.create({
   timeline: { marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16, paddingVertical: 8, gap: 4 },
   timelineBlocks: { flexDirection: "row", alignItems: "flex-end", gap: 3, height: 22 },
   timelineBlock: { minWidth: 4, borderRadius: 3, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  timelineGroup: { flexDirection: "row", alignItems: "flex-end", borderRadius: 3, overflow: "hidden" },
+  timelineBlockInGroup: { borderRadius: 0, minWidth: 2 },
   timelineLabel: { fontFamily: "Inter_400Regular", fontSize: 10, color: LABEL, opacity: 0.8 },
   timelineLabelOnDark: { color: "#FFFFFF", opacity: 1 },
   timelineEllipsis: { fontSize: 10, color: LABEL, paddingHorizontal: 2, alignSelf: "center" },

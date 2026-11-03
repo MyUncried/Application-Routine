@@ -62,6 +62,8 @@ const t = strings.screens.formatModel;
 
 function Harness({ draftRef }: { draftRef: { current: SessionDraft } }) {
   const [stage, setStage] = useState<"questionnaire" | "summary">("questionnaire");
+  // Réouverture du questionnaire depuis la fenêtre Formats : écran remonté, brouillon de modèle conservé par le fournisseur.
+  const [opening, setOpening] = useState(0);
   const [draft, setDraft] = useState<SessionDraft>(draftRef.current);
   const value = {
     draft,
@@ -85,7 +87,16 @@ function Harness({ draftRef }: { draftRef: { current: SessionDraft } }) {
       <ActivityDefinitionServiceContext.Provider value={service}>
         <SessionDraftContext.Provider value={value}>
           <FormatModelDraftProvider>
-            <FormatModelScreen stage={stage} />
+            <FormatModelScreen key={opening} stage={stage} />
+            <Pressable
+              onPress={() => {
+                setStage("questionnaire");
+                setOpening((value) => value + 1);
+              }}
+              testID="harness-reopen"
+            >
+              <Text>reopen</Text>
+            </Pressable>
             <Pressable onPress={() => setStage(stage === "questionnaire" ? "summary" : "questionnaire")} testID="harness-stage">
               <Text>{stage}</Text>
             </Pressable>
@@ -106,7 +117,7 @@ describe("FormatModelScreen", () => {
   it("questionnaire Tabata : croix, paramètres 8 / 20 s / 10 s, durée 4 min, Déroulé générique ; enregistrer impossible sans mouvement", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    expect(await screen.findByText(`${t.titlePrefix} Tabata`)).toBeTruthy();
+    expect(await screen.findByText("Configurer un Tabata")).toBeTruthy();
     expect(screen.getByTestId("format-seriesCount-badge")).toHaveTextContent("8");
     expect(screen.getByTestId("format-workSeconds-badge")).toHaveTextContent("20 s");
     expect(screen.getByTestId("format-pauseSeconds-badge")).toHaveTextContent("10 s");
@@ -121,7 +132,7 @@ describe("FormatModelScreen", () => {
     mockModel = "TABATA";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
-    await screen.findByText(`${t.titlePrefix} Tabata`);
+    await screen.findByText(t.titles.TABATA);
     // Réglage modifié avant d'ajouter un mouvement : 6 séries.
     fireEvent.press(screen.getByTestId("format-seriesCount-badge"));
     fireEvent.press(screen.getByTestId("format-seriesCount-decrease"));
@@ -155,7 +166,7 @@ describe("FormatModelScreen", () => {
     mockModel = "AMRAP";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
-    await screen.findByText(`${t.titlePrefix} AMRAP`);
+    await screen.findByText(t.titles.AMRAP);
     for (const query of ["Squ", "Fen"]) {
       fireEvent.press(screen.getByTestId("format-movements-link"));
       fireEvent.changeText(screen.getByTestId("format-search"), query);
@@ -176,5 +187,73 @@ describe("FormatModelScreen", () => {
     const [circuit] = structureCircuits(draftRef.current.structure!);
     expect(circuit).toMatchObject({ nature: "TOURS", repeatCount: 1, format: { key: "AMRAP", settings: { blockSeconds: 720 } } });
     expect(circuit!.exercises).toHaveLength(2);
+  });
+
+  async function pick(query: string, id: string) {
+    fireEvent.press(screen.getByTestId("format-movements-link"));
+    fireEvent.changeText(screen.getByTestId("format-search"), query);
+    const suggestion = await screen.findByTestId(`format-suggestion-${id}`);
+    await act(async () => {
+      fireEvent.press(suggestion);
+    });
+  }
+
+  it("recette n° 3 (f3-tabata) : Tabata À la suite à deux mouvements — durée exacte « 8 min 50 s », sans arrondi", async () => {
+    mockModel = "TABATA";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.TABATA);
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    fireEvent.press(screen.getByTestId("harness-stage"));
+    expect(screen.getByTestId("format-total")).toHaveTextContent("8 min 50 s");
+    expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("8 min 50 s");
+    expect(screen.getByTestId("format-recoveryBetweenSeconds-badge")).toHaveTextContent("1 min");
+  });
+
+  it("recette n° 3 (f3-emom) : EMOM dans chaque intervalle — un cadre par intervalle avec les deux mouvements", async () => {
+    mockModel = "EMOM";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.EMOM);
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    fireEvent.press(screen.getByTestId("harness-stage"));
+    const groups = screen.getAllByTestId(/^format-timeline-group-/);
+    expect(groups).toHaveLength(6);
+    expect(groups[0]!.props.children).toHaveLength(2);
+  });
+
+  it("recette n° 3 (f3-questionnaire) : le dernier mouvement se supprime, l'enregistrement devient indisponible", async () => {
+    mockModel = "TABATA";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.TABATA);
+    await pick("Squ", "mv-squats");
+    fireEvent.press(screen.getByTestId("harness-stage"));
+    expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: false });
+    fireEvent(screen.getByTestId("format-movement-0-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(screen.queryByTestId("format-movement-card-0")).toBeNull();
+    expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("recette n° 3 (f3-questionnaire) : un deuxième format de la même séance ouvre un questionnaire vierge ; aucune identité d'Exercice partagée", async () => {
+    mockModel = "TABATA";
+    const draftRef = { current: createEmptyDraft() };
+    render(<Harness draftRef={draftRef} />);
+    await screen.findByText(t.titles.TABATA);
+    await pick("Squ", "mv-squats");
+    fireEvent.press(screen.getByTestId("harness-stage"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-save"));
+    });
+    fireEvent.press(screen.getByTestId("harness-reopen"));
+    await waitFor(() => expect(screen.queryByTestId("format-movement-card-0")).toBeNull());
+    expect(screen.getByTestId("format-seriesCount-badge")).toHaveTextContent("8");
+    await pick("Squ", "mv-squats");
+    fireEvent.press(screen.getByTestId("harness-stage"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-save"));
+    });
+    const ids = draftRef.current.exercises.map((exercise) => exercise.id);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
   });
 });

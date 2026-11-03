@@ -60,12 +60,23 @@ export default function CreationLayout() {
         <Stack.Screen name="exercise" />
         <Stack.Screen name="activity-selection" />
         {/* PRE-9 A.2 (ARB-22a) : « Utiliser un mouvement existant » depuis la Composition. */}
-        <Stack.Screen name="movement-selection" />
+        {/* Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « Ouvrir le catalogue : un écran
+            apparaît par la droite, c'est perturbant […] il faut donner l'impression qu'on ne change pas
+            d'écran ») : depuis un questionnaire de Format, le Catalogue apparaît en fondu. */}
+        <Stack.Screen
+          name="movement-selection"
+          options={({ route }) => ({
+            animation: String((route.params as { purpose?: string } | undefined)?.purpose ?? "").startsWith("format-") ? "fade" : "default",
+          })}
+        />
         {/* PRE-9 C.3 (référence Formats du 02/11/2026, CE-FMT-02) : questionnaire et récapitulatif d'un modèle
             de la fenêtre Formats ; brouillon de modèle partagé (`FormatModelDraftProvider`). [C.2/C.3 du 01/11 :
             routes `session-model` et `format-parameters` — retirées le 02/11/2026.] */}
         <Stack.Screen name="format-questionnaire" />
-        <Stack.Screen name="format-summary" />
+        {/* Recette n° 3 (f3-questionnaire : le premier mouvement choisi faisait glisser tout l'écran ; « c'est
+            ce dernier comportement qu'il faut aussi pour le premier mouvement ») : le récapitulatif remplace
+            le questionnaire sur place, sans transition, à l'aller comme au Retour. */}
+        <Stack.Screen name="format-summary" options={{ animation: "none" }} />
       </Stack>
       </FormatModelDraftProvider>
     </SessionDraftProvider>

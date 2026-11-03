@@ -143,6 +143,27 @@ export function FixedHeader({
   );
 }
 
+/**
+ * Action circulaire « Fermer » standard (D-142 : cercle visible 38, icône 24, cible 48), la même que le ✕
+ * de `FixedHeader` — PRE-9, recette iPhone n° 3 du 02/11/2026 (f3-fenetre, Hermann : « Le bouton Annuler
+ * n'est pas au format standard de ce bouton, il existe un composant ») : pour les fenêtres sans en-tête
+ * d'écran (fenêtre Formats).
+ */
+export function CloseCircleAction({ onPress, accessibilityLabel, style, testID }: { onPress: () => void; accessibilityLabel: string; style?: StyleProp<ViewStyle>; testID: string }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      hitSlop={(minTouchTarget - dimensions.backAction.visualCircle) / 2}
+      style={[styles.backCircle, style]}
+      testID={testID}
+    >
+      <KodjoIcon name="control-close" size={dimensions.backAction.icon} testID={`${testID}-icon`} />
+    </Pressable>
+  );
+}
+
 /** Séparateur horizontal sous le Header — un seul token (`colors.divider`) pour tous les écrans consommateurs. */
 export function HeaderSeparator() {
   return <View testID="screen-header-separator" style={styles.separator} />;

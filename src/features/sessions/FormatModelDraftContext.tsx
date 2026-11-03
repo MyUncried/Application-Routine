@@ -22,11 +22,13 @@ export type FormatModelDraft = {
   readonly movements: readonly ModelMovement[];
   /** Nom saisi dans la zone de contexte ; vide : aucun nom saisi. */
   readonly name: string;
+  /** Ouverture du questionnaire qui a créé ce brouillon (recette n° 3 : brouillon neuf à chaque ouverture). */
+  readonly opening: string;
 };
 
 type FormatModelDraftContextValue = {
   readonly draft: FormatModelDraft | null;
-  readonly start: (model: FormatModelKey) => void;
+  readonly start: (model: FormatModelKey, opening: string) => void;
   readonly setAnswers: (update: (answers: ModelAnswers) => ModelAnswers) => void;
   readonly setMovements: (update: (movements: readonly ModelMovement[]) => readonly ModelMovement[]) => void;
   readonly setName: (name: string) => void;
@@ -37,8 +39,8 @@ const FormatModelDraftContext = createContext<FormatModelDraftContextValue | nul
 
 export function FormatModelDraftProvider({ children }: { readonly children: ReactNode }) {
   const [draft, setDraft] = useState<FormatModelDraft | null>(null);
-  const start = useCallback((model: FormatModelKey) => {
-    setDraft({ model, answers: initialAnswers(model), movements: [], name: "" });
+  const start = useCallback((model: FormatModelKey, opening: string) => {
+    setDraft({ model, answers: initialAnswers(model), movements: [], name: "", opening });
   }, []);
   const setAnswers = useCallback((update: (answers: ModelAnswers) => ModelAnswers) => {
     setDraft((current) => {

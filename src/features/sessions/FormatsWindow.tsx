@@ -3,8 +3,8 @@ import { createContext, useContext, type ReactElement } from "react";
 import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import type { ElementFormatKey, PreconfigurationKey } from "@/domain/sessions/formats";
-import { CloseCircleButton } from "@/features/sessions/CreateMenu";
 import { strings } from "@/shared/i18n";
+import { CloseCircleAction } from "@/shared/ui/ScreenShell";
 
 /**
  * PRE-9 C.2 — fenêtre « Formats d'entraînement » (référence Formats du 02/11/2026 §7, CE-FMT-01,
@@ -348,7 +348,7 @@ export function FormatsWindow({
         />
         <View style={[styles.window, { width: windowWidth }]} accessibilityViewIsModal testID="formats-window">
           <View style={styles.header}>
-            <CloseCircleButton onPress={onClose} label={t().closeAccessibilityLabel} style={styles.close} testID="formats-window-close" />
+            <CloseCircleAction onPress={onClose} accessibilityLabel={t().closeAccessibilityLabel} style={styles.close} testID="formats-window-close" />
             <Text style={styles.windowTitle} accessibilityRole="header">
               {t().title}
             </Text>
@@ -389,14 +389,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  // Croix de 34 posée à 16 / 19 dans la fenêtre ; cible de 44.
+  // Recette n° 3 (f3-fenetre) : action Fermer standard (cercle 38, cible 48 par hitSlop).
   close: {
-    width: 44,
-    height: 44,
-    marginLeft: -5,
     marginTop: -6,
-    alignItems: "center",
-    justifyContent: "center",
   },
   windowTitle: {
     fontFamily: "Inter_500Medium",

@@ -202,7 +202,7 @@ Affiché seulement si l'interrupteur Buy-in est activé. Modale du catalogue int
 - **En-tête** : bouton Retour vers le questionnaire avec réponses conservées ; zone de contexte avec la tagline. Cette règle vaut pour tous les récapitulatifs des Formats et départs rapides.
 - **Mouvements** : composant « Carte — Mouvement sélectionné » (image réduite, nom et description sur deux lignes) ; suppression par glissement vers la gauche (voir ci-dessous).
   - Réordonnancement par appui long (norme de l'application).
-  - Variante « Suppression = Bloquée » pour le dernier mouvement de la boucle.
+  - Variante « Suppression = Bloquée » pour le dernier mouvement de la boucle. [Remplacé le 02/11/2026, recette iPhone n° 3 (f3-questionnaire), décision de Hermann : « Il n'est pas possible de supprimer le dernier mouvement. Il faut pouvoir le faire, mais à ce moment le bouton d'action "Enregistrer dans la séance" doit être grisé. »]
   - Avec buy-in : section « Buy-in · une fois, au départ » avec « Changer », puis section « En boucle · dans le temps restant » avec « + Ajouter ». Sans buy-in : section « Mouvements » avec « + Ajouter ».
 - **Paramètres d’exécution du récapitulatif** : Durée de chaque bloc (ou Durée de l’exercice si autonome), déjà prévue par la base. Nombre de blocs, Repos entre les blocs et Repos après chaque tour de boucle sont les réglages repris du questionnaire ; cette révision n’ajoute pas silencieusement des contrôles d’édition au récapitulatif. Aucun nouveau contrôle d’édition de ces autres réglages n’est ajouté ici ; le bouton Retour permet de les modifier au questionnaire, avec réponses conservées.
 - **Tableau des mouvements** : colonnes Mouvement | Rép. | Par tour | Max.
@@ -212,7 +212,7 @@ Affiché seulement si l'interrupteur Buy-in est activé. Modale du catalogue int
 - **Déroulé** : frise des tours (buy-in, puis alternance des mouvements de la boucle, valeurs croissantes, « max »), calé en bas de l'écran, au-dessus du bouton. Si le contenu dépasse, l'écran défile.
 - **Bouton** « Enregistrer dans la séance » : crée l’Exercice ou le Circuit selon la section 1 dans le brouillon de Composition, sans sauvegarde définitive de la Séance à ce stade.
 
-- **Suppression d'un mouvement** (récapitulatif, règle valable pour tous les formats) : glisser la carte vers la gauche fait apparaître l'action rouge « Supprimer », au format des actions glissées de l'application. Pour le dernier mouvement de la boucle (variante « Suppression = Bloquée »), l'action apparaît grisée et la carte revient en place. Les résultats de recherche (variante « Suppression = Aucune ») ne se glissent pas. Réordonnancement par appui long. Écran : « AMRAP — Récapitulatif, suppression glissée ».
+- **Suppression d'un mouvement** (récapitulatif, règle valable pour tous les formats) : glisser la carte vers la gauche fait apparaître l'action rouge « Supprimer », au format des actions glissées de l'application. Pour le dernier mouvement de la boucle (variante « Suppression = Bloquée »), l'action apparaît grisée et la carte revient en place. [Remplacé le 02/11/2026 (recette n° 3, Hermann) : le dernier mouvement se supprime ; sans mouvement de boucle, « Enregistrer dans la séance » est grisé.] Les résultats de recherche (variante « Suppression = Aucune ») ne se glissent pas. Réordonnancement par appui long. Écran : « AMRAP — Récapitulatif, suppression glissée ».
 
 ### 7.5 Dans la séance (« AMRAP — Séance, circuit avec buy-in »)
 

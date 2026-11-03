@@ -515,8 +515,32 @@ function elementExercises(element: BuiltElement): readonly SessionDraftExercise[
  * « Enregistrer dans la séance » : la structure produite rejoint la fin du brouillon de Composition,
  * Circuits et Exercices existants conservés ; aucune sauvegarde définitive (CE-FMT-02, FMT-29).
  */
-export function appendModelToDraft(draft: SessionDraft, elements: readonly BuiltElement[], newContainerId: () => string): SessionDraft {
-  if (elements.length === 0) return draft;
+export function appendModelToDraft(draft: SessionDraft, built: readonly BuiltElement[], newContainerId: () => string): SessionDraft {
+  if (built.length === 0) return draft;
+  // Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire) : un identifiant déjà présent dans la Composition
+  // (questionnaire rouvert sur un brouillon déjà enregistré) est remplacé — deux occurrences ne partagent
+  // jamais une identité (sélection, appui long et déplacement les confondraient).
+  const taken = new Set(draft.exercises.map((exercise) => exercise.id));
+  const fresh = (exercise: SessionDraftExercise): SessionDraftExercise => {
+    if (!taken.has(exercise.id)) {
+      taken.add(exercise.id);
+      return exercise;
+    }
+    let id = newContainerId();
+    for (let attempt = 1; taken.has(id); attempt += 1) id = `${newContainerId()}-${attempt}`;
+    taken.add(id);
+    return { ...exercise, id };
+  };
+  const elements = built.map((element): BuiltElement => {
+    switch (element.kind) {
+      case "EXERCISE":
+        return { kind: "EXERCISE", exercise: fresh(element.exercise) };
+      case "CIRCUIT":
+        return { kind: "CIRCUIT", circuit: { ...element.circuit, exercises: element.circuit.exercises.map(fresh) } };
+      default:
+        throw new Error("Un modèle ne produit pas de Cycle.");
+    }
+  });
   const added = elements.flatMap(elementExercises).map((exercise) => ({ ...exercise, structuralPosition: "BEFORE_TOUR" as const }));
   const layout = currentLayout(draft, newContainerId);
   const ids = (element: BuiltElement): StructureElement<string> => {

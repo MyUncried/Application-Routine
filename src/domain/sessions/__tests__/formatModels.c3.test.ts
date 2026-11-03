@@ -268,4 +268,15 @@ describe("Enregistrer dans la séance (C.4) : ajout au brouillon, Composition mu
     const draft = createEmptyDraft();
     expect(appendModelToDraft(draft, build("TABATA", initialAnswers("TABATA"), []), newId)).toBe(draft);
   });
+
+  it("recette n° 3 (f3-questionnaire) : une identité d'Exercice déjà présente est remplacée — jamais deux occurrences de même identité", () => {
+    const answers = { ...initialAnswers("TABATA"), execution: "ALTERNATED" as const };
+    const once = appendModelToDraft(createEmptyDraft(), build("TABATA", answers, movementsOf("TABATA", answers, ["a", "b"])), newId);
+    const twice = appendModelToDraft(once, build("TABATA", answers, movementsOf("TABATA", answers, ["a", "b"])), newId);
+    const ids = twice.exercises.map((exercise) => exercise.id);
+    expect(ids).toHaveLength(4);
+    expect(new Set(ids).size).toBe(4);
+    const circuits = structureCircuits(twice.structure!);
+    expect(circuits.flatMap((circuit) => circuit.exercises).sort()).toEqual([...ids].sort());
+  });
 });

@@ -525,7 +525,20 @@ export const fr = {
     // récapitulatifs. Libellés et accroches repris des maquettes du 02/11 (`8624:29980` et suivantes) ;
     // aucune valeur de maquette n'en est un défaut.
     formatModel: {
-      titlePrefix: "Composer une séance",
+      // Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « Le titre de la modale doit être
+      // "Configurer un X" et non plus "Composer une séance X" »). [C.3 : préfixe « Composer une séance » — remplacé.]
+      titles: {
+        TABATA: "Configurer un Tabata",
+        INTERVALS_30_30: "Configurer un 30/30",
+        EMOM: "Configurer un EMOM",
+        AMRAP: "Configurer un AMRAP",
+        FOR_TIME: "Configurer un For time",
+        DEATH_BY: "Configurer un Death by",
+        STRENGTH: "Configurer un Renforcement",
+        SUPERSET: "Configurer un Superset",
+        PROGRESSION: "Configurer une Progression",
+        UNTIL_FAILURE: "Configurer un À l’échec",
+      },
       closeAccessibilityLabel: "Fermer",
       backAccessibilityLabel: "Retour au questionnaire",
       namePlaceholder: "Nom de la séance",
@@ -555,7 +568,6 @@ export const fr = {
       delete: "Supprimer",
       moveUp: "Monter",
       moveDown: "Descendre",
-      lastLoopMovement: "Dernier mouvement de la boucle : suppression impossible",
       toComplete: "à compléter",
       rows: {
         seriesCount: "Nombre de séries",

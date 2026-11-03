@@ -49,3 +49,28 @@ Classe **A** (règles écrites ci-dessus) ; points 1 à 5 consignés ici, sans r
 Écarts restants (C.3) : réordonnancement par appui long non réalisé (actions VoiceOver Monter / Descendre seulement) ; police d'accroche « Mali » non embarquée (Inter italique) ; « Charge Avec/Sans » se règle dans la modale du mouvement de la Composition, pas encore depuis le récapitulatif ; nombre de séries variables For time / Progression édité par cellule, sans roulette.
 
 Synchronisation : classe **A**. Tests : `formatModels.c3` (20), `FormatModelScreen.c3` (3).
+
+## Recette iPhone n° 3 du 02/11/2026 — corrections (f3-fenetre, f3-questionnaire, f3-tabata, f3-emom)
+
+Retours de Hermann (cahier de recette, section f3), traités avant la suite de la recette :
+
+| Retour | Classe | Correction |
+|---|---|---|
+| f3-fenetre : « Le bouton Annuler n'est pas au format standard de ce bouton, il existe un composant » | A (D-142) | Fenêtre Formats : action Fermer standard (`CloseCircleAction`, `ScreenShell.tsx`, même cercle 38 / icône 24 / cible 48 que le ✕ de `FixedHeader`). |
+| f3-questionnaire : « ajouter un deuxième format ouvre le questionnaire déjà validé avec ses mouvements et ses paramètres au lieu d'ouvrir un questionnaire vierge » ; sélection et appui long confondant les exercices identiques ; déplacements impossibles | A (CE-FMT-02 : questionnaire neuf) — anomalie | Brouillon de modèle neuf à chaque ouverture (`opening`) ; `appendModelToDraft` remplace toute identité d'Exercice déjà présente. Cause des sélections multiples, de l'appui long qui supprimait les autres exercices, des déplacements sans dépose et de l'erreur « Encountered two children with the same key » : deux Exercices de même identité. Une Composition déjà enregistrée avec ces doublons reste à recréer. |
+| « Le titre de la modale doit être "Configurer un X" et non plus "Composer une séance X" » | B | `formatModel.titles` : « Configurer un Tabata », … ; « Configurer une Progression » (accord), « Configurer un À l’échec ». [C.3 : « Composer une séance {modèle}» — remplacé.] |
+| « L'appui long sur la carte du mouvement devrait permettre de déplacer la carte » | A (§7.4 « Réordonnancement par appui long ») | Appui long : carte soulevée qui suit le doigt, cartes franchies décalées, dépose à la place atteinte ; buy-in fixe en tête ; Monter / Descendre VoiceOver conservés. |
+| « Le format de la fenêtre du popover de l'Exécution est différent de celui utilisé jusqu'à présent » | A (P-4, procédé de `CircuitNatureMenu`) | `Menu` SwiftUI natif (`@expo/ui`), option courante cochée. [C.3 : `ActionSheetIOS` — remplacé.] |
+| « Le résultat de la recherche défile avec tout l'écran. L'écran doit rester fixe et le résultat défiler dans son cadre » | B | Suggestions dans un cadre défilant (hauteur bornée) ; l'écran ne défile pas tant que des suggestions sont affichées. |
+| Premier mouvement choisi : « fait glisser tout l'écran à gauche […] C'est ce dernier comportement qu'il faut aussi pour le premier » | B | Route `format-summary` sans transition (aller et Retour). |
+| « Ouvrir le catalogue : un écran apparaît par la droite, c'est perturbant et il faut donner l'impression qu'on ne change pas d'écran » | B | `movement-selection` ouvert en fondu depuis un questionnaire (inchangé depuis la Composition). |
+| « Il n'est pas possible de supprimer le dernier mouvement. Il faut pouvoir le faire, mais […] "Enregistrer dans la séance" doit être grisé » | B | Suppression toujours permise ; enregistrement indisponible sans mouvement de boucle. Référence Formats §7.4 annotée. |
+| f3-tabata : « Durée totale 8 min 45 (arrondi au 15 min près) » | A (§9.1, FMT-12 : 8 min 50 s) | Durée totale et repère du Déroulé exacts au questionnaire (`formatPhraseDuration`), « ≥ » pour une borne ; l'arrondi au quart de minute reste celui de la Composition. |
+| f3-emom : « Illustration du déroulé "Dans chaque intervalle" incorrect (un seul cadre pour deux mouvements) » | A (Figma `8624:30392`, §15) | Un cadre par intervalle, mouvements accolés (EMOM et Death by « dans chaque intervalle »). |
+
+À CLARIFIER (non appliqué) :
+
+1. « Tabata deux mouvements alternés — Le nom Circuit doit être remplacé par Tabata » : contraire à la décision du 02/11 (`KODJO-Modifications-Figma-2026-11-02`, `11294:19682` : « L'en-tête du circuit devient « Circuit · 8 tours · alternées » (au lieu de « Tabata »). C'est un circuit standard, sans Format d'origine »). Un Circuit standard ne porte ni nom ni origine persistés : afficher « Tabata » demande une donnée nouvelle (migration) et une règle de vie de ce nom (changement de nature, ajout d'un membre).
+2. « Il manque l'option de la récupération entre les mouvements » (même contexte, alternance) : la référence §9.1 et la maquette `11146:18902` n'ont pas cette ligne en alternance (Récupération 0 s) ; elle existe en « À la suite ». Sens attendu en alternance à préciser (après chaque mouvement, après chaque tour, après le Circuit).
+
+Tests : `FormatModelScreen.c3` (+4 : 8 min 50 s, cadres EMOM, suppression du dernier mouvement, questionnaire vierge sans identité partagée), `formatModels.c3` (+1 : identités remplacées).
