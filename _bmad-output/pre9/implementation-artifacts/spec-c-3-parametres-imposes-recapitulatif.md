@@ -87,3 +87,20 @@ Demande de Hermann du 03/11/2026, avant la contre-recette : « on doit pouvoir a
 | Restauration d'une Séance archivée dont un Mouvement est archivé | A | Aucun contrôle ajouté : RM-120 (l'élément archivé reste valable dans ses usages existants) et Q6 (il n'est plus proposé à un nouvel usage) s'appliquent |
 
 Tests : `movementLifecycle.b8.test.ts` (refus compté sur les seules Séances actives ; archivage accepté quand toutes les Séances sont archivées ou quand seule une définition référence le Mouvement ; suppression définitive refusée). Aucune migration.
+
+## Recette iPhone n° 3 du 03/11/2026 — autres constats (enregistrement, AMRAP)
+
+Constats de Hermann (cahier de recette, « Autres constats »), à corriger avant la suite des tests :
+
+> Séance avec deux exercices Tabata : Ajout d'un tabata mode alterné avec deux exercices : Enregistrer > Cela ouvre un écran de composition de séance vierge > Fermeture de l'écran > La séance inchangée est toujours au catalogue.
+> AMRAP : La sélection d'un mouvement fait directement passer à l'écran suivant du questionnaire (il faut rester sur l'écran et que le bouton d'action soit "Valider ces paramètres". Appuyer sur retour faire revenir au premier écran sans possibilité d'avancer de nouveau sur le deuxième écran. Appuyer sur "Enregistrer dans la séance" amène à l'écran de conception de séance vierge.
+
+| Constat | Classe | Correction |
+|---|---|---|
+| « Enregistrer dans la séance » ouvre une Composition vierge (Séance ouverte depuis le Catalogue) | A (référence Formats §7.1 : l'enregistrement ajoute au brouillon de Composition) | Cause : `router.dismissTo("/composition")` remplace les paramètres de la route ; la Composition perdait `sessionId` et réinitialisait le brouillon. Retour par dépilement jusqu'à la Composition (`router.dismiss(n)`, paramètres intacts) |
+| AMRAP : rester sur le questionnaire après le choix d'un mouvement ; bouton « Valider ces paramètres » | B | Questionnaire AMRAP : aucun passage automatique au récapitulatif ; bouton « Valider ces paramètres » (indisponible sans mouvement de boucle) ouvre le récapitulatif. Référence Formats §7.1 (Bouton) annotée |
+| AMRAP : Retour sans possibilité d'avancer | B | Résolu par « Valider ces paramètres » |
+
+À CLARIFIER 3 : le même comportement (« Valider ces paramètres ») vaut-il pour les autres modèles à récapitulatif enrichi (For time, Progression : tableaux), ou pour tous ? Appliqué à l'AMRAP seul, comme demandé.
+
+Tests : `FormatModelScreen.c3.test.tsx` (dépilement vers la Composition d'une Séance existante ; AMRAP : choix sur place, « Valider ces paramètres »).

@@ -16,13 +16,24 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 const mockPush = jest.fn();
 const mockBack = jest.fn();
 const mockDismissTo = jest.fn();
+const mockDismiss = jest.fn();
 let mockModel = "TABATA";
+// Pile de création : Composition d'une Séance du Catalogue (`sessionId`), questionnaire, récapitulatif.
+const mockStack = {
+  index: 2,
+  routes: [
+    { name: "composition", params: { sessionId: "ses-1" } },
+    { name: "format-questionnaire", params: { model: "TABATA" } },
+    { name: "format-summary", params: { model: "TABATA" } },
+  ],
+};
 
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
   return {
     ...actual,
-    useRouter: () => ({ push: mockPush, back: mockBack, dismissTo: mockDismissTo }),
+    useRouter: () => ({ push: mockPush, back: mockBack, dismissTo: mockDismissTo, dismiss: mockDismiss }),
+    useNavigation: () => ({ getState: () => mockStack }),
     useLocalSearchParams: () => ({ model: mockModel }),
     useFocusEffect: () => undefined,
   };
@@ -112,6 +123,7 @@ describe("FormatModelScreen", () => {
     mockPush.mockReset();
     mockBack.mockReset();
     mockDismissTo.mockReset();
+    mockDismiss.mockReset();
   });
 
   it("questionnaire Tabata : croix, paramètres 8 / 20 s / 10 s, durée 4 min, Déroulé générique ; enregistrer impossible sans mouvement", async () => {
@@ -159,7 +171,24 @@ describe("FormatModelScreen", () => {
     expect(draftRef.current.exercises).toHaveLength(1);
     expect(draftRef.current.exercises[0]!).not.toHaveProperty("format");
     expect(draftRef.current.name).toBe("Tabata");
-    expect(mockDismissTo).toHaveBeenCalledWith("/composition");
+    // Recette n° 3 du 03/11 : on dépile jusqu'à la Composition (paramètre `sessionId` conservé), sans `dismissTo`.
+    expect(mockDismiss).toHaveBeenCalledWith(2);
+    expect(mockDismissTo).not.toHaveBeenCalled();
+  });
+
+  it("recette n° 3 du 03/11 : AMRAP — les choix restent sur le questionnaire ; « Valider ces paramètres » ouvre le récapitulatif", async () => {
+    mockModel = "AMRAP";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.AMRAP);
+    expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.queryByTestId("format-save")).toBeNull();
+    await pick("Squ", "mv-squats");
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("format-validate"));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/format-summary", params: { model: "AMRAP" } });
+    fireEvent.press(screen.getByTestId("harness-stage"));
+    expect(screen.getByTestId("format-save")).toBeTruthy();
   });
 
   it("récapitulatif AMRAP à deux mouvements : tableau Mouvement | Rép. | Max ; Circuit porteur ajouté au brouillon", async () => {

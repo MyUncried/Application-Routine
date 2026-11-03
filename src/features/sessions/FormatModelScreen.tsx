@@ -1,7 +1,7 @@
 import { Button as SwiftUIButton, Host, Image as SwiftUIImage, Menu, RNHostView, Text as SwiftUIText } from "@expo/ui/swift-ui";
 import { accessibilityLabel as swiftUIAccessibilityLabel, accessibilityValue as swiftUIAccessibilityValue } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Platform,
@@ -308,11 +308,15 @@ function TimelineFrame({ timeline, endLabel, band, names, testID }: { timeline: 
 
 type Stage = "questionnaire" | "summary";
 
+/** Modèles dont le questionnaire garde les mouvements choisis et passe au récapitulatif par « Valider ces paramètres ». */
+const validatesFirst = (model: FormatModelKey) => model === "AMRAP";
+
 /** Compteur des ouvertures de questionnaire (identité du brouillon de modèle de chaque ouverture). */
 let openings = 0;
 
 export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   const router = useRouter();
+  const navigation = useNavigation();
   const params = useLocalSearchParams<{ model?: string }>();
   const routeModel: FormatModelKey = isFormatModelKey(params.model) ? params.model : "TABATA";
   const { draft: modelDraft, start, setAnswers, setMovements, setName } = useFormatModelDraft();
@@ -383,7 +387,9 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
       });
       for (const { movement } of entries) movementsById.current.set(movement.id, movement);
       if (role === "BUY_IN") hasBuyIn.current = true;
-      if (stage === "questionnaire") router.push({ pathname: "/format-summary", params: { model } });
+      // Recette n° 3 du 03/11/2026 (autres constats, Hermann : AMRAP — « il faut rester sur l'écran et que
+      // le bouton d'action soit "Valider ces paramètres" ») : l'AMRAP reste sur le questionnaire.
+      if (stage === "questionnaire" && !validatesFirst(model)) router.push({ pathname: "/format-summary", params: { model } });
     },
     [defaults, model, modelDraft, router, setMovements, stage],
   );
@@ -456,8 +462,26 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     const typed = modelDraft?.name.trim() ?? "";
     if (typed.length > 0) sessionDraft.updateDraft({ name: typed });
     else sessionDraft.suggestDraftName?.(modelName);
-    router.dismissTo("/composition");
+    backToComposition();
   };
+
+  // Recette n° 3 du 03/11/2026 (autres constats : « Enregistrer > Cela ouvre un écran de composition de
+  // séance vierge ») : `dismissTo("/composition")` remplaçait les paramètres de la Composition — une
+  // Séance ouverte depuis le Catalogue perdait son `sessionId` et repartait d'un brouillon vierge. On
+  // dépile jusqu'à la Composition, paramètres intacts.
+  const backToComposition = () => {
+    const state = navigation.getState();
+    const routes = state?.routes ?? [];
+    const at = routes.map((route) => route.name).lastIndexOf("composition");
+    if (state !== undefined && at >= 0 && state.index > at) router.dismiss(state.index - at);
+    else router.dismissTo("/composition");
+  };
+
+  const validate = () => {
+    if (!canSave) return;
+    router.push({ pathname: "/format-summary", params: { model } });
+  };
+  const validating = stage === "questionnaire" && validatesFirst(model);
 
   const close = () => router.back();
 
@@ -748,7 +772,11 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         />
       </ScrollView>
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
-        <PrimaryActionButton label={t().save} onPress={save} disabled={!canSave} testID="format-save" />
+        {validating ? (
+          <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
+        ) : (
+          <PrimaryActionButton label={t().save} onPress={save} disabled={!canSave} testID="format-save" />
+        )}
       </PrimaryActionZone>
     </ScreenShell>
   );

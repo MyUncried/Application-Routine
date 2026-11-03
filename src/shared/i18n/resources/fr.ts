@@ -563,6 +563,8 @@ export const fr = {
       atFailure: "à l’échec",
       dash: "—",
       save: "Enregistrer dans la séance",
+      // Recette n° 3 du 03/11/2026 : bouton du questionnaire AMRAP (passage au récapitulatif).
+      validate: "Valider ces paramètres",
       increase: "Augmenter",
       decrease: "Diminuer",
       delete: "Supprimer",
