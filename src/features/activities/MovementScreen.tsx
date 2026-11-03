@@ -204,6 +204,7 @@ export function MovementSheet({
   variantPlacement,
   openInEdit = false,
   readOnly = false,
+  onBodyMeasure,
   onMovementChosen,
 }: {
   readonly movementId: string | null;
@@ -217,6 +218,11 @@ export function MovementSheet({
    * possibilité de modification ») : consultation sans crayon ni menu Niveau (route `movement-sheet`).
    */
   readonly readOnly?: boolean;
+  /**
+   * Recette n° 3 bis du 03/11/2026 (f3s-fiche) : consultation seule en feuille — sans bouton Terminer ni marge
+   * haute de zone sûre ; hauteurs du corps rendues pour ajuster la feuille à son contenu.
+   */
+  readonly onBodyMeasure?: (measure: { readonly frame: number; readonly content: number }) => void;
   /**
    * PRE-9 A.2 (ARB-22a, CE-MVT-01 §3-§4) : création depuis une Séance. Terminer enregistre le
    * Mouvement puis le rend à l'appelant (« revient au contexte appelant avec l'identité
@@ -524,6 +530,7 @@ export function MovementSheet({
         onClose={() => router.back()}
         accessibilityLabel={t.close}
         trailing={loadState === "ready" && mode === "consult" && !isArchived && !readOnly ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
+        {...(readOnly ? { topInset: 0 } : {})}
       />
       {loadState === "error" ? (
         <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="movement-load-error">
@@ -580,6 +587,8 @@ export function MovementSheet({
           }}
           isFinishDisabled={mode === "consult" || isSaving || !isValid || originChoice.nameTaken}
           errorMessage={saveError ? t.saveError : null}
+          hideFinish={readOnly}
+          {...(onBodyMeasure !== undefined ? { onBodyMeasure } : {})}
           finishSlotTestID="movement-finish-slot"
           finishActionTestID="movement-finish-action"
           errorTestID="movement-save-error"

@@ -103,6 +103,11 @@ const SUGGESTIONS_TO_KEYBOARD = 8;
 /** Barre Précédent / Suivant / Fermer des tableaux : hauteur avant mesure ; marge de révélation d'une cellule. */
 const KEYBOARD_BAR_HEIGHT = 52;
 const CELL_REVEAL_MARGIN = 12;
+/** Tableau de la Progression : zone protégée des noms, colonne d'une série, hauteurs des lignes (une ou deux cellules). */
+const PROGRESSION_NAME_WIDTH = 112;
+const PROGRESSION_COLUMN_WIDTH = 56;
+const PROGRESSION_ROW_HEIGHT = 36;
+const PROGRESSION_LOAD_ROW_HEIGHT = 72;
 
 /**
  * Cadre du clavier (haut, en coordonnées de la fenêtre), `null` clavier fermé — événements `Keyboard` standards,
@@ -168,7 +173,6 @@ type CellBinding = (key: string) => {
   readonly inputRef: (input: TextInput | null) => void;
   readonly onFocus: () => void;
   readonly onBlur: () => void;
-  readonly onSubmit: (() => void) | undefined;
 };
 
 function formatSeconds(seconds: number): string {
@@ -701,9 +705,12 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Il manque le champ de la Pause ») : Pause toujours affichée.
         return withExecution([stepRow("seriesCount", r.seriesCount), stepRow("repetitions", r.repetitions), stepRow("pauseSeconds", r.pauseSeconds, { fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0 }), totalRow(!showExecution)]);
       case "UNTIL_FAILURE":
-        return withExecution([stepRow("seriesCount", r.seriesCount), readRow(r.targetPerSeries, t().atFailure, "target"), totalRow(!showExecution)]);
+        // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « A l'échec : ne pas mettre le champ de la durée totale,
+        // retirer la ligne »).
+        return withExecution([stepRow("seriesCount", r.seriesCount), readRow(r.targetPerSeries, t().atFailure, "target", !showExecution)]);
       case "PROGRESSION":
-        return withExecution([stepRow("seriesCount", r.seriesCount, { last: stage === "summary" })]);
+        // Suivies du tableau (récapitulatif), de la Pause, de la durée totale et de l'Exécution (sous le tableau).
+        return [stepRow("seriesCount", r.seriesCount, { last: stage === "summary" })];
       case "SUPERSET":
         return [stepRow("roundCount", r.supersetRounds, { format: (value) => `${value} ${value > 1 ? t().roundUnit.many : t().roundUnit.one}` }), readRow(r.repetitions, t().dash, "repetitions"), totalRow(true)];
       default: {
@@ -781,17 +788,13 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   const focusCell = (key: string | undefined) => {
     if (key !== undefined) cellInputs.current.get(key)?.focus();
   };
-  const cellBinding: CellBinding = (key) => {
-    const at = cellOrder.indexOf(key);
-    return {
-      inputRef: (input) => {
-        cellInputs.current.set(key, input);
-      },
-      onFocus: () => setFocusedCell(key),
-      onBlur: () => setFocusedCell((current) => (current === key ? null : current)),
-      onSubmit: at >= 0 && at < cellOrder.length - 1 ? () => focusCell(cellOrder[at + 1]) : undefined,
-    };
-  };
+  const cellBinding: CellBinding = (key) => ({
+    inputRef: (input) => {
+      cellInputs.current.set(key, input);
+    },
+    onFocus: () => setFocusedCell(key),
+    onBlur: () => setFocusedCell((current) => (current === key ? null : current)),
+  });
   const focusedAt = focusedCell === null ? -1 : cellOrder.indexOf(focusedCell);
   useEffect(() => {
     if (focusedCell === null || keyboardFrame === null) return;
@@ -886,7 +889,12 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         // Recette n° 3 (f3-questionnaire : « L'écran doit rester fixe et le résultat défiler dans son cadre ») :
         // écran figé pendant la saisie d'un mouvement avec suggestions, et pendant le déplacement d'une carte.
         scrollEnabled={drag === null && !(searchOpen && ranked.length > 0)}
-        keyboardShouldPersistTaps="handled"
+        // Recette n° 3 bis du 03/11/2026 (f3s-recherche, Hermann : « appuyer sur entrer ou sur une autre partie de
+        // l'écran ne change rien, le clavier reste ouvert » ; « faire défiler vers le bas et le haut ne ferme pas le
+        // clavier ») : pendant la saisie d'un mouvement, un toucher hors du champ ne le quitte plus (avec
+        // « handled », l'écran figé prenait le toucher et retirait le clavier, y compris en fin de défilement
+        // des suggestions).
+        keyboardShouldPersistTaps={searchOpen ? "always" : "handled"}
         keyboardDismissMode="none"
         automaticallyAdjustKeyboardInsets
         onScroll={(event) => {
@@ -932,10 +940,17 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         <View style={styles.panel} testID="format-parameters">
           {rows}
           {model === "PROGRESSION" && stage === "summary" ? <ProgressionTable movements={movements} onChange={updateValues} cell={cellBinding} /> : null}
+          {/* Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Progression : il manque la pause » ; « ne pas calculer de
+              durée total sur l'écran Questionnaire, l'utilisateur ne voit pas les valeur par défaut utilisées » ; « la ligne
+              du mode d'exécution est la dernière, après la durée totale »). */}
           {model === "PROGRESSION" ? (
             <>
-              {answers.pauseSeconds !== undefined ? stepRow("pauseSeconds", t().rows.pauseSeconds) : null}
-              {totalRow(!showExecution)}
+              {stepRow("pauseSeconds", t().rows.pauseSeconds, {
+                fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0,
+                last: stage === "questionnaire" && !showExecution,
+              })}
+              {stage === "summary" ? totalRow(!showExecution) : null}
+              {showExecution ? executionRow() : null}
             </>
           ) : null}
         </View>
@@ -1138,7 +1153,6 @@ function NumberCell({
   prefix = "",
   label,
   inputRef,
-  onSubmit,
   onFocus,
   onBlur,
   testID,
@@ -1150,7 +1164,6 @@ function NumberCell({
   prefix?: string;
   label: string;
   inputRef?: (input: TextInput | null) => void;
-  onSubmit?: (() => void) | undefined;
   onFocus?: () => void;
   onBlur?: () => void;
   testID: string;
@@ -1175,10 +1188,10 @@ function NumberCell({
         onChange(cleaned.trim() === "" || Number.isNaN(parsed) ? null : Math.max(0, parsed));
       }}
       editable={!disabled}
+      // Recette n° 3 bis du 03/11/2026 (f3s-clavier, Hermann : « Supprimer le bouton "Next" du clavier ») :
+      // pavé numérique sans touche de retour, comme le tableau des séries variables ; Précédent / Suivant /
+      // Fermer dans la barre au-dessus du clavier.
       keyboardType={decimal ? "decimal-pad" : "number-pad"}
-      returnKeyType={onSubmit !== undefined ? "next" : "done"}
-      onSubmitEditing={onSubmit}
-      submitBehavior={onSubmit !== undefined ? "submit" : "blurAndSubmit"}
       onFocus={onFocus}
       onBlur={onBlur}
       placeholder={t().dash}
@@ -1317,6 +1330,12 @@ function ForTimeTable({
  * et charge sous les répétitions si l'Exercice est « Avec » charge (réglage propre à chaque Exercice).
  * Toucher une cellule ouvre le clavier ; Suivant parcourt répétitions S1, charge S1, répétitions S2…
  */
+/**
+ * Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « ajout de séries : réserver une largeur de zone protégée pour le
+ * titre des mouvements, décaler les séries vers la gauche, mais elles disparaissent à la limite de la zone protégée,
+ * faire défiler à droite et à gauche permet d'afficher les colonnes des séries ») : colonne des noms fixe ; colonnes
+ * des séries calées à droite dans un défilement horizontal, qui suit la série ajoutée et la cellule saisie.
+ */
 function ProgressionTable({
   movements,
   onChange,
@@ -1329,55 +1348,109 @@ function ProgressionTable({
   const tt = t().table;
   const count = Math.max(0, ...movements.map((item) => item.values.cells?.length ?? 0));
   const columns = Array.from({ length: count }, (_, index) => index);
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollX = useRef(0);
+  const viewport = useRef(0);
+  const shownCount = useRef(count);
+  // Série ajoutée : les colonnes se décalent vers la gauche, la dernière reste visible.
+  useEffect(() => {
+    if (count > shownCount.current) scrollRef.current?.scrollToEnd({ animated: false });
+    shownCount.current = count;
+  }, [count]);
+  // Cellule saisie (Suivant / Précédent) : sa colonne est amenée dans la partie visible.
+  const revealColumn = (column: number) => {
+    const left = column * PROGRESSION_COLUMN_WIDTH;
+    const right = left + PROGRESSION_COLUMN_WIDTH;
+    if (left < scrollX.current) scrollRef.current?.scrollTo({ x: left, animated: false });
+    else if (right > scrollX.current + viewport.current) scrollRef.current?.scrollTo({ x: right - viewport.current, animated: false });
+  };
+  const bind = (key: string, column: number) => {
+    const binding = cell(key);
+    return {
+      ...binding,
+      onFocus: () => {
+        revealColumn(column);
+        binding.onFocus();
+      },
+    };
+  };
+  const rowHeight = (item: ModelMovement) => (item.exercise.executionParameters.loadEnabled ? PROGRESSION_LOAD_ROW_HEIGHT : PROGRESSION_ROW_HEIGHT);
   return (
-    <View style={styles.progressionTable} testID="format-progression-table">
-      <View style={styles.tableHeader}>
-        <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        {columns.map((column) => (
-          <Text key={column} style={styles.tableHead}>
-            {tt.series.replace("{n}", String(column + 1))}
-          </Text>
-        ))}
-      </View>
-      {movements.map((item, index) => {
-        const withLoad = item.exercise.executionParameters.loadEnabled;
-        const setCell = (column: number, patch: { repetitions?: number | null; loadKg?: number | null }) => {
-          const cells = (item.values.cells ?? []).map((cell, at) => (at === column ? { ...cell, ...patch } : cell));
-          onChange(index, { ...item.values, cells });
-        };
-        return (
-          <View key={item.exercise.id} style={[styles.tableRow, withLoad ? styles.tableRowLoad : null]}>
-            <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
+    <View style={[styles.progressionTable, styles.progressionColumns]} testID="format-progression-table">
+      <View style={styles.progressionNames} testID="format-progression-names">
+        <View style={styles.progressionHeader}>
+          <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
+        </View>
+        {movements.map((item) => (
+          <View key={item.exercise.id} style={[styles.progressionRow, { height: rowHeight(item) }]}>
+            <Text style={styles.tableCellText} numberOfLines={1}>
               {item.exercise.name}
             </Text>
-            {columns.map((column) => {
-              const entry = item.values.cells?.[column] ?? { repetitions: null, loadKg: null };
-              const column1 = tt.series.replace("{n}", String(column + 1));
-              return (
-                <View key={column} style={styles.progressionCell}>
-                  <NumberCell
-                    value={entry.repetitions}
-                    onChange={(value) => setCell(column, { repetitions: value })}
-                    {...cell(`progression-${index}-${column}-r`)}
-                    label={tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", column1).replace("{kind}", tt.repetitionsKind)}
-                    testID={`format-progression-${index}-${column}-reps`}
-                  />
-                  {withLoad ? (
-                    <NumberCell
-                      value={entry.loadKg}
-                      decimal
-                      onChange={(value) => setCell(column, { loadKg: value })}
-                      {...cell(`progression-${index}-${column}-l`)}
-                      label={tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", column1).replace("{kind}", tt.loadKind)}
-                      testID={`format-progression-${index}-${column}-load`}
-                    />
-                  ) : null}
-                </View>
-              );
-            })}
           </View>
-        );
-      })}
+        ))}
+      </View>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        style={styles.progressionScroll}
+        contentContainerStyle={styles.progressionScrollContent}
+        onLayout={(event) => {
+          viewport.current = event.nativeEvent.layout.width;
+        }}
+        onScroll={(event) => {
+          scrollX.current = event.nativeEvent.contentOffset.x;
+        }}
+        scrollEventThrottle={16}
+        testID="format-progression-series"
+      >
+        <View style={styles.progressionSeries}>
+          <View style={[styles.progressionHeader, styles.progressionCells]}>
+            {columns.map((column) => (
+              <Text key={column} style={styles.tableHead}>
+                {tt.series.replace("{n}", String(column + 1))}
+              </Text>
+            ))}
+          </View>
+          {movements.map((item, index) => {
+            const withLoad = item.exercise.executionParameters.loadEnabled;
+            const setCell = (column: number, patch: { repetitions?: number | null; loadKg?: number | null }) => {
+              const cells = (item.values.cells ?? []).map((entry, at) => (at === column ? { ...entry, ...patch } : entry));
+              onChange(index, { ...item.values, cells });
+            };
+            return (
+              <View key={item.exercise.id} style={[styles.progressionRow, styles.progressionCells, { height: rowHeight(item) }]}>
+                {columns.map((column) => {
+                  const entry = item.values.cells?.[column] ?? { repetitions: null, loadKg: null };
+                  const column1 = tt.series.replace("{n}", String(column + 1));
+                  return (
+                    <View key={column} style={styles.progressionCell}>
+                      <NumberCell
+                        value={entry.repetitions}
+                        onChange={(value) => setCell(column, { repetitions: value })}
+                        {...bind(`progression-${index}-${column}-r`, column)}
+                        label={tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", column1).replace("{kind}", tt.repetitionsKind)}
+                        testID={`format-progression-${index}-${column}-reps`}
+                      />
+                      {withLoad ? (
+                        <NumberCell
+                          value={entry.loadKg}
+                          decimal
+                          onChange={(value) => setCell(column, { loadKg: value })}
+                          {...bind(`progression-${index}-${column}-l`, column)}
+                          label={tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", column1).replace("{kind}", tt.loadKind)}
+                          testID={`format-progression-${index}-${column}-load`}
+                        />
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -1424,7 +1497,16 @@ const styles = StyleSheet.create({
   // Recette n° 3 du 03/11/2026 (autres constats : « le champ Rép. n'est pas modifiable ») : zone tactile de la hauteur de la ligne.
   cell: { width: 56, minHeight: 36, textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR, paddingVertical: 2 },
   cellDisabled: { color: DISABLED_VALUE },
-  progressionCell: { width: 56, alignItems: "center" },
+  progressionCell: { width: PROGRESSION_COLUMN_WIDTH, alignItems: "center" },
+  progressionColumns: { flexDirection: "row" },
+  progressionNames: { width: PROGRESSION_NAME_WIDTH, paddingLeft: 12, paddingRight: 8 },
+  progressionHeader: { flexDirection: "row", alignItems: "center", height: 28, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
+  progressionRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
+  // Colonnes calées à droite : une série ajoutée décale les précédentes vers la gauche.
+  progressionCells: { justifyContent: "flex-end" },
+  progressionSeries: { flexGrow: 1 },
+  progressionScroll: { flex: 1 },
+  progressionScrollContent: { flexGrow: 1, paddingRight: 12 },
   radioSlot: { width: 56, alignItems: "center", justifyContent: "center", minHeight: 36 },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: "#9499A8", alignItems: "center", justifyContent: "center" },
   radioOn: { borderColor: VALUE_COLOR, backgroundColor: VALUE_COLOR },

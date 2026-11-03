@@ -370,8 +370,8 @@ describe("B.2 — mode enveloppe (ARB-06 ; Figma 10819:20344, 10836:20478)", () 
     const circuits = structureCircuits(probe.draft!.structure!);
     expect(circuits.map((circuit) => circuit.exercises)).toEqual([["a"], ["c"]]);
     const [first, second] = circuits;
-    expect(screen.getByTestId(`composition-layout-circuit-${first!.id}-header-title`, hidden).props.children).toBe("Circuit A");
-    expect(screen.getByTestId(`composition-layout-circuit-${second!.id}-header-title`, hidden).props.children).toBe("Circuit B");
+    expect(screen.getByTestId(`composition-layout-circuit-${first!.id}-header-title`, hidden).props.children).toBe("Circuit"); // f3s-nom : sans lettre.
+    expect(screen.getByTestId(`composition-layout-circuit-${second!.id}-header-title`, hidden).props.children).toBe("Circuit");
     expect(within(screen.getByTestId(`composition-layout-circuit-${second!.id}`)).getByTestId("composition-exercise-row-c")).toBeTruthy();
   });
 

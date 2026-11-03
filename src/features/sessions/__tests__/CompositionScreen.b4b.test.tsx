@@ -154,9 +154,10 @@ describe("B.4b — sélection multiple (« Un Circuit par Exercice »)", () => {
       [1, "TOURS"],
     ]);
     expect(circuits.map((circuit) => screen.getByTestId(`composition-layout-circuit-${circuit.id}-header-title`, hidden).props.children)).toEqual([
-      "Circuit A",
-      "Circuit B",
-      "Circuit C",
+      // Recette n° 3 bis du 03/11/2026 (f3s-nom) : plus de lettre après le nom d'un Circuit.
+      "Circuit",
+      "Circuit",
+      "Circuit",
     ]);
   });
 

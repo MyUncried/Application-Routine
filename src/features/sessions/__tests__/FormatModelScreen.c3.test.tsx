@@ -295,6 +295,57 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-pauseSeconds-value")).toHaveTextContent("5 s");
   });
 
+  it("recette n° 3 bis du 03/11 (f3s-recherche) : saisie d'un mouvement — un toucher hors du champ ne retire pas le clavier", async () => {
+    mockModel = "TABATA";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.TABATA);
+    expect(screen.getByTestId("format-questionnaire").props.keyboardShouldPersistTaps).toBe("handled");
+    fireEvent.press(screen.getByTestId("format-movements-link"));
+    expect(screen.getByTestId("format-questionnaire").props.keyboardShouldPersistTaps).toBe("always");
+    expect(screen.getByTestId("format-questionnaire").props.keyboardDismissMode).toBe("none");
+    expect(screen.getByTestId("format-search").props.submitBehavior).toBe("submit");
+  });
+
+  it("recette n° 3 bis du 03/11 (f3s-clavier) : cellules des tableaux sans touche « Next » — navigation par la barre", async () => {
+    mockModel = "AMRAP";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.AMRAP);
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    fireEvent.press(screen.getByTestId("harness-stage"));
+    const cell = screen.getByTestId("format-amrap-reps-0");
+    expect(cell.props.keyboardType).toBe("number-pad");
+    expect(cell.props.returnKeyType).toBeUndefined();
+    expect(cell.props.onSubmitEditing).toBeUndefined();
+  });
+
+  it("recette n° 3 du 03/11 (f3-depart) : À l'échec — aucune ligne de durée totale", async () => {
+    mockModel = "UNTIL_FAILURE";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.UNTIL_FAILURE);
+    expect(screen.getByTestId("format-row-target")).toBeTruthy();
+    expect(screen.queryByTestId("format-row-total")).toBeNull();
+  });
+
+  it("recette n° 3 du 03/11 (f3-depart) : Progression — Pause affichée, pas de durée au questionnaire, Exécution en dernier ; tableau à noms fixes et séries défilantes", async () => {
+    mockModel = "PROGRESSION";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByText(t.titles.PROGRESSION);
+    const rowsOf = () => within(screen.getByTestId("format-parameters")).getAllByTestId(/^format-row-/).map((row) => row.props.testID);
+    expect(rowsOf()).toEqual(["format-row-seriesCount", "format-row-pauseSeconds"]);
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    expect(rowsOf()).toEqual(["format-row-seriesCount", "format-row-pauseSeconds", "format-row-execution"]);
+    fireEvent.press(screen.getByTestId("harness-stage"));
+    expect(rowsOf()).toEqual(["format-row-seriesCount", "format-row-pauseSeconds", "format-row-total", "format-row-execution"]);
+    const names = screen.getByTestId("format-progression-names");
+    expect(within(names).getByText("Squats sautés")).toBeTruthy();
+    const series = screen.getByTestId("format-progression-series");
+    expect(series.props.horizontal).toBe(true);
+    expect(within(series).queryByText("Squats sautés")).toBeNull();
+    expect(within(series).getByTestId("format-progression-0-0-reps")).toBeTruthy();
+  });
+
   it("recette n° 3 (f3-tabata) : Tabata À la suite à deux mouvements — durée exacte « 8 min 50 s », sans arrondi", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);

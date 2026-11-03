@@ -119,7 +119,11 @@ function Harness({
   bodyZones = BODY_ZONE_FIXTURES,
   exerciseSignals,
   safeAreaBottom,
+  hideFinish,
+  onBodyMeasure,
 }: {
+  hideFinish?: boolean;
+  onBodyMeasure?: (measure: { readonly frame: number; readonly content: number }) => void;
   /** PRE-5 story 3.2 (AC2) : encart bas de sécurité ; absent = métriques de test (34). */
   safeAreaBottom?: number;
   bodyZones?: readonly BodyZone[];
@@ -164,6 +168,8 @@ function Harness({
           finishSlotTestID="test-finish-slot"
           finishActionTestID="test-finish-action"
           errorTestID="test-save-error"
+          {...(hideFinish !== undefined ? { hideFinish } : {})}
+          {...(onBodyMeasure !== undefined ? { onBodyMeasure } : {})}
         />
       </ReferentialServiceContext.Provider>
     </SafeArea>
@@ -199,6 +205,20 @@ function boldSegments(): string[] {
     .filter((child): child is { props: { children: string } } => typeof child === "object" && child !== null)
     .map((child) => child.props.children);
 }
+
+describe("ActivityEditorForm — recette n° 3 bis du 03/11/2026 (f3s-fiche)", () => {
+  it("fiche en consultation seule : aucune zone Terminer ; hauteurs visible et du contenu du corps rendues", () => {
+    const onBodyMeasure = jest.fn();
+    render(<Harness hideFinish onBodyMeasure={onBodyMeasure} />);
+    expect(screen.queryByTestId("test-finish-slot")).toBeNull();
+    expect(screen.queryByTestId("test-finish-action")).toBeNull();
+    const body = screen.getByTestId("exercise-body");
+    fireEvent(body, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 500 } } });
+    expect(onBodyMeasure).not.toHaveBeenCalled();
+    fireEvent(body, "contentSizeChange", 390, 320);
+    expect(onBodyMeasure).toHaveBeenLastCalledWith({ frame: 500, content: 320 });
+  });
+});
 
 describe("ActivityEditorForm — contrats conservés", () => {
   it("renders and reports the name field", () => {

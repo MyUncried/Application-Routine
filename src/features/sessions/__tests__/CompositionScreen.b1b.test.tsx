@@ -174,8 +174,9 @@ describe("B.1b — rendu d'une disposition générale", () => {
 
     // Cycle unique : aucune lettre ; deux Circuits : A et B (ARB-13).
     expect(text(`${CY}-title`)).toBe("Cycle");
-    expect(text(`${CA}-title`)).toBe("Circuit A");
-    expect(text(`${CB}-title`)).toBe("Circuit B");
+    // Recette n° 3 bis du 03/11/2026 (f3s-nom) : plus de lettre après le nom d'un Circuit (le Cycle garde la sienne).
+    expect(text(`${CA}-title`)).toBe("Circuit");
+    expect(text(`${CB}-title`)).toBe("Circuit");
     // Comptes (31/10 : « répétition » → « passage », Hermann) : « 2 passages » (sans adjectif), « 3 tours · groupées », « 2 tours · groupées ».
     expect(text(`${CY}-counter-value`)).toBe(2);
     expect(text(`${CY}-counter-unit`)).toBe("passages");
@@ -363,9 +364,10 @@ describe("B.1b — rendu d'une disposition générale", () => {
     );
     expect(text("composition-layout-cycle-c1-header-title")).toBe("Cycle A");
     expect(text("composition-layout-cycle-c2-header-title")).toBe("Cycle B");
-    expect(text("composition-layout-circuit-k1-header-title")).toBe("Circuit A");
-    expect(text("composition-layout-circuit-k2-header-title")).toBe("Circuit B");
-    expect(text("composition-layout-circuit-k3-header-title")).toBe("Circuit C");
+    // f3s-nom : sans lettre.
+    expect(text("composition-layout-circuit-k1-header-title")).toBe("Circuit");
+    expect(text("composition-layout-circuit-k2-header-title")).toBe("Circuit");
+    expect(text("composition-layout-circuit-k3-header-title")).toBe("Circuit");
   });
 
   it("disposition de l'ancien modèle (Circuit unique) : rendu historique inchangé", async () => {

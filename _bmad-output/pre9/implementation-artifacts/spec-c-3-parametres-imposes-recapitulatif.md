@@ -134,3 +134,22 @@ Hermann : « tous ce qui est dans "Autres constats" doit être corrigé » ; inc
 | Catalogue des séances : chevron pour toute séance ; photo / zone déployée → modification, reste → déploiement | B | `SessionCard`, `SessionCatalogueList` ; spécification carte/catalogue §1 et ch. 06, 08, 10, 13 annotés ; champ `expandable` de la projection devenu sans lecteur (annoté) |
 
 Interprétations techniques à confirmer sur iPhone : VoiceOver de la carte de séance (activer = déployer, « Modifier la séance » en action nommée) ; lettre conservée après le nom (« Tabata B ») ; nom conservé après changement de nature ; carte du buy-in encore saisissable pour sortir du Circuit (référence §6 point 4). Question f3-depart sur la durée du Renforcement : réponse donnée en conversation (pas de changement de calcul).
+
+## Contre-recette n° 3 bis du 03/11/2026 — corrections (f3s-nom, f3s-clavier, f3s-recherche, f3s-fiche, f3s-pause, f3-depart)
+
+Hermann : « je propose de corriger ces constats avant que je ne continue ». Commit de départ 89f9c026. Décisions recopiées au registre ch. 07 (« Contre-recette n° 3 bis — 03/11/2026 »).
+
+| Comportement | Classe | Traitement |
+|---|---|---|
+| En-tête d'un Circuit sans lettre (le Cycle garde la sienne) | B | `CircuitHeader` (prop `letter` retirée), `CompositionScreen` ; référence de composition du 28/10, ch. 13, ARB-13 annotés |
+| Compteur à position identique (Circuit et Cycle), nom tronqué ; colonnes durée / compteur réservées depuis le bord droit, largeurs mesurées une fois par taille de texte | B (interprétation de la place « minimum » à confirmer) | `useContainerColumns` (`CircuitHeader`), `CycleHeader` ; référence Formats §9, référence de composition, ch. 13 annotés |
+| « alternée » et durée mal alignées (Renforcement en alternance) | C → traité par la disposition ci-dessus, cause non reproduite hors appareil | à vérifier sur iPhone |
+| Clavier des tableaux sans touche « Next » | B | `NumberCell` (`FormatModelScreen`) ; référence Formats §7.4, §9.3 |
+| Saisie d'un mouvement : toucher ailleurs, Entrée, défilement ne ferment pas le clavier | B (précision de §7.1) | `FormatModelScreen` (`keyboardShouldPersistTaps` « always » pendant la saisie) ; référence Formats §7.1 |
+| Fiche du mouvement : feuille ajustée à son contenu, plafonnée sous le titre de l'écran ; titre sans marge de zone sûre ; sans bouton Terminer | B | route `movement-sheet` (`formSheet`, hauteur mesurée), `MovementSheet` (`onBodyMeasure`), `ActivityEditorForm` (`hideFinish`, `onBodyMeasure`), `FixedHeader.topInset`, `EditorHeader` |
+| À l'échec : sans Durée totale | B | `FormatModelScreen` ; référence Formats §9.2 |
+| Progression : Pause affichée, Durée totale au récapitulatif seulement, Exécution en dernier ; tableau à noms fixes et séries défilantes | B | `FormatModelScreen` (`ProgressionTable`) ; référence Formats §9.3 |
+
+Interprétations à confirmer sur iPhone : place réservée à la durée (« ≈ 88 min 45 s ») et au compteur (« 99 tours · alternées ») ; compteur Death by « jusqu'à l'échec · alternées » plus large que la réserve (il prend sa place sur le nom) ; hauteur de la feuille plafonnée au bas du titre de l'écran (fraction calculée depuis la zone sûre initiale).
+
+Tests : `FormatModelScreen.c3.test.tsx` (saisie, clavier, À l'échec, Progression), `recette3.circuits.test.tsx` (nom sans lettre, colonnes mesurées), `ActivityEditorForm.test.tsx` (fiche sans Terminer, mesures du corps), tests B.1b, B.2, B.4b (titres sans lettre). Jest ne prouve ni le rendu ni le geste sur iPhone.

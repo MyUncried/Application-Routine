@@ -207,6 +207,13 @@ export type ActivityEditorFormProps = {
   finishActionTestID: string;
   errorTestID?: string;
   /**
+   * Recette n° 3 bis du 03/11/2026 (f3s-fiche, Hermann : « retirer le bouton d'action en bas de la modale ») :
+   * fiche en consultation seule présentée en feuille — aucune zone `Terminer`.
+   */
+  hideFinish?: boolean;
+  /** Hauteurs visible et du contenu du corps défilant (feuille ajustée à son contenu). */
+  onBodyMeasure?: (measure: { readonly frame: number; readonly content: number }) => void;
+  /**
    * PRE-8 (B.2, CE-MVT-01) : `"movement"` rend la fiche Mouvement — contenu partagé seul :
    * médias dans le gabarit photo pleine largeur en tête du corps, Description, puis bloc « Phases
    * du mouvement » (`movementPhases`, libellés sans durée [PRE-9 A.2b, 31/10/2026 : et durée par
@@ -418,6 +425,8 @@ export function ActivityEditorForm({
   finishSlotTestID,
   finishActionTestID,
   errorTestID,
+  hideFinish = false,
+  onBodyMeasure,
   variant = "exercise",
   movementPhases = null,
   executionParametersCard = false,
@@ -696,7 +705,12 @@ export function ActivityEditorForm({
   // Recette du 27/10 (r13-limite, demande de Hermann) : fiche Mouvement, clavier ouvert — le défilement
   // s'arrête quand la dernière ligne des Phases est juste au-dessus du clavier : la réserve de la zone
   // d'action (masquée par le clavier) est remplacée par l'écart au clavier.
-  const bodyBottomReserve = isMovement && isMovementKeyboardShown ? DESCRIPTION_KEYBOARD_GAP : actionZone.scrollReserve;
+  const bodyBottomReserve = isMovement && isMovementKeyboardShown ? DESCRIPTION_KEYBOARD_GAP : hideFinish ? READ_ONLY_BOTTOM_RESERVE : actionZone.scrollReserve;
+  const bodyMeasure = useRef({ frame: 0, content: 0 });
+  const reportBody = (patch: Partial<{ frame: number; content: number }>) => {
+    bodyMeasure.current = { ...bodyMeasure.current, ...patch };
+    if (onBodyMeasure !== undefined && bodyMeasure.current.frame > 0 && bodyMeasure.current.content > 0) onBodyMeasure(bodyMeasure.current);
+  };
 
   function openSheet() {
     Keyboard.dismiss();
@@ -1000,8 +1014,10 @@ export function ActivityEditorForm({
           scrollEventThrottle={16}
           onLayout={(event) => {
             bodyHeightRef.current = event.nativeEvent.layout.height;
+            reportBody({ frame: event.nativeEvent.layout.height });
             if (isDescriptionFocused) revealDescription();
           }}
+          onContentSizeChange={onBodyMeasure !== undefined ? (_width, height) => reportBody({ content: height }) : undefined}
           testID="exercise-body"
         >
           {/* P7 (FR-02-02, AC3) : la Description précède la Carte Paramètres d'exécution. */}
@@ -1162,6 +1178,7 @@ export function ActivityEditorForm({
           accessible dès sa fermeture (D-349).
           PRE-6 story 7.10 (D-444, remplace FR-37 « 24 du bord de l'écran ») : zone d'action
           principale fixe (zone protégée, bouton centré, correctif J6f), dégradé blanc. */}
+      {hideFinish ? null : (
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID={finishSlotTestID}>
         {errorMessage ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID={errorTestID}>
@@ -1170,6 +1187,7 @@ export function ActivityEditorForm({
         ) : null}
         <PrimaryActionButton label={finishLabel} onPress={onFinish} disabled={finishDisabled} testID={finishActionTestID} />
       </PrimaryActionZone>
+      )}
 
       {isNativeLevelMenuOpen ? (
         <Pressable
@@ -1383,6 +1401,8 @@ function useMediaImport(
 
 /** N-05 : marge entre le bas de la Description et le clavier pendant la saisie. */
 const DESCRIPTION_KEYBOARD_GAP = 12;
+/** Fiche en consultation seule (`hideFinish`) : marge sous le dernier contenu, sans zone d'action. */
+const READ_ONLY_BOTTOM_RESERVE = 32;
 /** Recette 3 (N-05) : bouton d’envoi standard des champs (32, comme « Saisie inline »). */
 const DESCRIPTION_SEND_SIZE = 32;
 

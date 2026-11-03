@@ -9230,7 +9230,6 @@ function LayoutCircuitBlock({
       <CircuitHeader
         entering={entering}
         nature={circuit.nature}
-        letter={context.letters.get(circuit.id)}
         count={circuit.repeatCount}
         duration={formatLayoutDuration([{ kind: "CIRCUIT", circuit }])}
         isCounterOpen={openOverlay === counterKind}

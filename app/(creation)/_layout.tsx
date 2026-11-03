@@ -78,8 +78,10 @@ export default function CreationLayout() {
             le questionnaire sur place, sans transition, à l'aller comme au Retour. */}
         <Stack.Screen name="format-summary" options={{ animation: "none" }} />
         {/* Recette n° 3 du 03/11/2026 (autres constats) : fiche d'un mouvement du questionnaire ou du
-            récapitulatif, en modale par le bas, lecture seule ; fermeture par sa croix (geste natif désactivé, T02-S02). */}
-        <Stack.Screen name="movement-sheet" options={{ presentation: "modal" }} />
+            récapitulatif, en modale par le bas, lecture seule ; fermeture par sa croix (geste natif désactivé, T02-S02).
+            Recette n° 3 bis (f3s-fiche) : feuille ajustée à son contenu, au plus jusqu'au titre de l'écran (hauteur
+            fixée par la route). */}
+        <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet" }} />
       </Stack>
       </FormatModelDraftProvider>
     </SessionDraftProvider>

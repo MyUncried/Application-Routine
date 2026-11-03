@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 
 import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
@@ -25,14 +25,12 @@ import { treeLineLabel } from "@/features/sessions/SessionCompositionTree";
 
 function renderHeader({
   nature = "SERIES",
-  letter,
   format,
   originModel,
-}: { nature?: CircuitNature; letter?: string; format?: ElementFormat; originModel?: FormatModelKey } = {}) {
+}: { nature?: CircuitNature; format?: ElementFormat; originModel?: FormatModelKey } = {}) {
   render(
     <CircuitHeader
       nature={nature}
-      letter={letter}
       count={8}
       duration="4 min"
       isCounterOpen={false}
@@ -54,26 +52,16 @@ function renderHeader({
 }
 
 describe("point 1 — nom du Circuit = nom du format", () => {
-  it("Circuit standard d'un modèle : « Tabata » à la place de « Circuit », lettre conservée ; sans modèle : « Circuit »", () => {
+  it("Circuit standard d'un modèle : « Tabata » à la place de « Circuit » ; sans modèle : « Circuit » — sans lettre (f3s-nom)", () => {
     renderHeader({ originModel: "TABATA" });
     expect(screen.getByTestId("header-title")).toHaveTextContent("Tabata");
     expect(screen.getByTestId("header-collapse").props.accessibilityLabel).toBe("Tabata, 4 min");
     screen.unmount();
-    renderHeader({ originModel: "STRENGTH", letter: "B" });
-    expect(screen.getByTestId("header-title")).toHaveTextContent("Renforcement B");
+    renderHeader({ originModel: "STRENGTH" });
+    expect(screen.getByTestId("header-title").props.children).toBe("Renforcement");
     screen.unmount();
-    renderHeader({ letter: "A" });
-    expect(screen.getByTestId("header-title")).toHaveTextContent("Circuit A");
-  });
-
-  it("le compteur suit le titre réel : largeur minimale seulement, aucun écart fixe depuis le bord (un titre long décale le compteur)", () => {
-    renderHeader({ originModel: "PROGRESSION" });
-    const target = StyleSheet.flatten(screen.getByTestId("header-collapse").props.style);
-    expect(target.width).toBeUndefined();
-    expect(target.minWidth).toBeGreaterThan(0);
-    const slot = StyleSheet.flatten(screen.getByTestId("header-counter-slot").props.style);
-    expect(slot.position).toBeUndefined();
-    expect(slot.flexShrink).toBe(0);
+    renderHeader();
+    expect(screen.getByTestId("header-title").props.children).toBe("Circuit");
   });
 
   it("circuitDisplayTitle : Format du porteur, sinon modèle d'origine, sinon rien", () => {
@@ -165,5 +153,30 @@ describe("point 5 — glisser : aucun emplacement interdit par le buy-in / buy-o
         .filter((candidate) => candidate.container.kind === "CIRCUIT")
         .map((candidate) => candidate.index),
     ).toEqual([0, 1, 2, 3]);
+  });
+});
+
+// En dernier : les largeurs mesurées sont gardées pour la suite du fichier (une mesure par taille de texte).
+describe("recette n° 3 bis (f3s-nom) — colonnes de la ligne d'en-tête", () => {
+  it("avant mesure : sonde rendue ; après : nom extensible et tronqué, compteur et durée à largeur réservée depuis le bord droit", () => {
+    renderHeader({ originModel: "PROGRESSION" });
+    const probe = screen.getByTestId("container-columns-probe", { includeHiddenElements: true });
+    expect(probe.props.accessibilityElementsHidden).toBe(true);
+    const rows = screen.getAllByTestId(/^container-columns-probe-counter-/, { includeHiddenElements: true });
+    rows.forEach((row, index) => fireEvent(row, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 100 + index, height: 18 } } }));
+    fireEvent(screen.getByTestId("container-columns-probe-duration", { includeHiddenElements: true }), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 70.4, height: 15 } } });
+    expect(screen.queryByTestId("container-columns-probe", { includeHiddenElements: true })).toBeNull();
+    const target = StyleSheet.flatten(screen.getByTestId("header-collapse").props.style);
+    expect(target).toEqual(expect.objectContaining({ flexGrow: 1, flexShrink: 1, minWidth: 0 }));
+    expect(screen.getByTestId("header-title").props.numberOfLines).toBe(1);
+    const slot = StyleSheet.flatten(screen.getByTestId("header-counter-slot").props.style);
+    expect(slot).toEqual(expect.objectContaining({ minWidth: 100 + rows.length - 1, flexShrink: 0 }));
+    const duration = StyleSheet.flatten(screen.getByTestId("header-duration").props.style);
+    expect(duration).toEqual(expect.objectContaining({ minWidth: 71, flexGrow: 0, flexShrink: 0, textAlign: "right" }));
+    // Un autre en-tête (Cycle compris) reprend les mêmes largeurs, sans nouvelle mesure.
+    screen.unmount();
+    renderHeader({ originModel: "TABATA" });
+    expect(screen.queryByTestId("container-columns-probe", { includeHiddenElements: true })).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId("header-counter-slot").props.style).minWidth).toBe(100 + rows.length - 1);
   });
 });

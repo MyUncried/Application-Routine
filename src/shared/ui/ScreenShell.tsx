@@ -58,6 +58,11 @@ export type FixedHeaderProps = {
    */
   trailing?: ReactNode;
   /**
+   * Recette n° 3 bis du 03/11/2026 (f3s-fiche, Hermann : « Il y a une gros espace entre le haut de la modale et
+   * le titre ») : marge haute de l'en-tête — dans une feuille, 0 au lieu de la zone sûre de l'écran.
+   */
+  topInset?: number;
+  /**
    * PRE-9 CAT.1 (zones de contexte des Catalogues, CE-CAT-CTX-01 : « Masquer le titre de page
    * individuel ») : contenu rendu à la place du titre (navigation Mouvements / Séances / Programmes
    * des Catalogues). Absent : titre inchangé.
@@ -98,8 +103,10 @@ export function FixedHeader({
   backIconTintColor,
   trailing,
   content,
+  topInset,
 }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
+  const top = topInset ?? insets.top;
   const backHitSlop = (minTouchTarget - dimensions.backAction.visualCircle) / 2;
 
   return (
@@ -109,7 +116,7 @@ export function FixedHeader({
         styles.header,
         // X-4 (recette PRE-3, 12/10) : hauteur MINIMALE — identique à taille normale,
         // elle grandit avec le texte agrandi au lieu de rogner le titre.
-        { paddingTop: insets.top, minHeight: insets.top + dimensions.header.contentHeight },
+        { paddingTop: top, minHeight: top + dimensions.header.contentHeight },
         horizontalPadding === undefined ? null : { paddingHorizontal: horizontalPadding },
         layoutStyle,
       ]}

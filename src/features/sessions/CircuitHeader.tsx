@@ -18,6 +18,7 @@ import Reanimated, {
 import { scheduleOnRN } from "react-native-worklets";
 
 import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
 import { LONG_PRESS_DELAY_MS } from "@/features/sessions/compositionGesture";
@@ -194,6 +195,116 @@ export function durationGrabProps(onLongPress: (() => void) | undefined) {
     : { onLongPress, suppressHighlighting: true, style: durationGrabStyle.target };
 }
 
+/**
+ * Recette n° 3 bis du 03/11/2026 (f3s-nom, Hermann : « Un titre long ne doit pas décaler le compteur, par contre
+ * on peut décider maintenant de décaler le compteur au maximum vers la droite, en considérant la place minimum
+ * nécessaire pour l'affichage de la durée. Le compteur doit rester aligné pour le circuit et pour le cycle, sa
+ * position identique pour toutes les séances. Et s'il n'y a pas suffisamment de place on tronque le nom du
+ * circuit. ») — colonnes de la ligne d'en-tête d'un Circuit ou d'un Cycle, depuis le bord droit commun :
+ * - durée : largeur de la plus longue durée affichée d'un conteneur (« ≈ 88 min 45 s »), calée à droite ;
+ * - compteur : largeur du plus long compteur fermé (« 99 tours · alternées », « 99 blocs · groupées »,
+ *   « 99 passages »…), commencé à la même abscisse partout ;
+ * - nom : la place restante, tronqué (ellipse) au besoin.
+ * Largeurs MESURÉES dans les styles réels (taille du texte comprise), une fois par taille de texte. Un compteur
+ * plus large que la réserve (« jusqu'à l'échec · alternées » du Death by, stepper ouvert) prend sa place sur le
+ * nom. [Remplace l'abscisse fixe de 103 depuis le début du nom (recette du 29/10), devenue un minimum du nom.]
+ */
+type ContainerColumnWidths = { readonly fontScale: number; readonly counter: number; readonly duration: number };
+let measuredColumns: ContainerColumnWidths | null = null;
+
+/** Compteurs fermés de référence : nombre à deux chiffres, unité au pluriel, adjectif éventuel. */
+function counterReferences(): readonly { readonly unit: string; readonly adjective: string | null }[] {
+  const s = strings.screens.composition;
+  const adjectives = [s.circuit.natureAdjective.TOURS, s.circuit.natureAdjective.SERIES];
+  const circuitUnits = [s.circuit.countUnit.plural, s.carrier.blockUnit.plural, s.carrier.roundUnit.plural];
+  return [
+    ...circuitUnits.flatMap((unit) => adjectives.map((adjective) => ({ unit, adjective }))),
+    { unit: s.cycle.countUnit.plural, adjective: null },
+  ];
+}
+
+const DURATION_REFERENCE = `${strings.shared.durationNature.estimatedPrefix}${formatPhraseDuration(88 * 60 + 45)}`;
+
+/**
+ * Colonnes de la ligne d'en-tête (`title`, `counter`, `duration` : styles à ajouter) et sonde de mesure à
+ * rendre dans la ligne tant que les largeurs de la taille de texte courante ne sont pas connues.
+ */
+export function useContainerColumns() {
+  const { fontScale } = useWindowDimensions();
+  const [widths, setWidths] = useState<ContainerColumnWidths | null>(() => (measuredColumns?.fontScale === fontScale ? measuredColumns : null));
+  const current = widths?.fontScale === fontScale ? widths : measuredColumns?.fontScale === fontScale ? measuredColumns : null;
+  if (current === null) {
+    return {
+      probe: (
+        <ContainerColumnsProbe
+          fontScale={fontScale}
+          onMeasured={(measured) => {
+            measuredColumns = measured;
+            setWidths(measured);
+          }}
+        />
+      ),
+      title: null,
+      counter: null,
+      duration: null,
+    };
+  }
+  return {
+    probe: null,
+    title: columnStyles.title,
+    counter: { minWidth: current.counter },
+    duration: [columnStyles.duration, { minWidth: current.duration }],
+  };
+}
+
+function ContainerColumnsProbe({ fontScale, onMeasured }: { fontScale: number; onMeasured: (widths: ContainerColumnWidths) => void }) {
+  const references = counterReferences();
+  const counters = useRef<(number | null)[]>(references.map(() => null));
+  const duration = useRef<number | null>(null);
+  const done = useRef(false);
+  const report = () => {
+    if (done.current || duration.current === null || counters.current.some((width) => width === null)) return;
+    done.current = true;
+    onMeasured({ fontScale, counter: Math.ceil(Math.max(...counters.current.map((width) => width ?? 0))), duration: Math.ceil(duration.current) });
+  };
+  return (
+    <View style={columnStyles.probe} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="container-columns-probe">
+      {references.map((reference, index) => (
+        <View
+          key={`${reference.unit}-${reference.adjective ?? ""}`}
+          style={columnStyles.probeRow}
+          testID={`container-columns-probe-counter-${index}`}
+          onLayout={(event) => {
+            counters.current[index] = event.nativeEvent.layout.width;
+            report();
+          }}
+        >
+          <View style={styles.numberTarget}>
+            <Text style={styles.number}>99</Text>
+            <Text style={styles.unit}>{reference.unit}</Text>
+          </View>
+          {reference.adjective === null ? null : (
+            <>
+              <Text style={styles.separator}>{` ${MIDDLE_DOT} `}</Text>
+              <Text style={styles.adjective}>{reference.adjective}</Text>
+            </>
+          )}
+        </View>
+      ))}
+      <Text
+        style={[styles.duration, columnStyles.probeText]}
+        testID="container-columns-probe-duration"
+        onLayout={(event) => {
+          duration.current = event.nativeEvent.layout.width;
+          report();
+        }}
+      >
+        {DURATION_REFERENCE}
+      </Text>
+    </View>
+  );
+}
+
 /** Largeur minimale du titre (nom, et chevron du Circuit) : le compteur commence à `COUNTER_OFFSET`. */
 export const CONTAINER_TITLE_MIN_WIDTH = COUNTER_OFFSET - TITLE_TO_COUNTER_GAP;
 
@@ -226,8 +337,9 @@ export function containerTitle(title: string, letter: string | undefined): strin
 
 export type CircuitHeaderProps = {
   readonly nature: CircuitNature;
-  /** PRE-9 B.1b (ARB-13) : lettre de désignation (« A »…) ; absente pour un Circuit unique. */
-  readonly letter?: string;
+  // [PRE-9 B.1b (ARB-13) : lettre de désignation (« A »…) après le nom — retirée par la recette n° 3 bis du
+  // 03/11/2026 (f3s-nom, Hermann : « Retirer le suffixe en lettre des circuits, il n'est plus nécessaire car on a
+  // déjà la deuxième ligne qui liste son contenu »).]
   /** N du Circuit (1..99). */
   readonly count: number;
   /**
@@ -312,7 +424,8 @@ export type CircuitHeaderProps = {
   /**
    * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « remplacer le nom mot "Circuit" par
    * le nom du format ») : nom du modèle d'origine d'un Circuit standard créé par la fenêtre Formats
-   * (« Tabata », « Renforcement »…), affiché à la place de « Circuit » (lettre conservée) ; absent :
+   * (« Tabata », « Renforcement »…), affiché à la place de « Circuit » [lettre conservée — retirée le 03/11/2026,
+   * f3s-nom] ; absent :
    * « Circuit ». Un Circuit porteur affiche le nom de son Format (`carrier`).
    */
   readonly originTitle?: string;
@@ -381,7 +494,6 @@ export function containerMoveAccessibility(actions: ContainerMoveActions | undef
  */
 export function CircuitHeader({
   nature,
-  letter,
   count,
   duration,
   isCounterOpen,
@@ -410,7 +522,8 @@ export function CircuitHeader({
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
-  const title = carrier !== undefined ? carrier.title : containerTitle(originTitle ?? t.title, letter);
+  const title = carrier !== undefined ? carrier.title : (originTitle ?? t.title);
+  const columns = useContainerColumns();
   // Recette n° 2 du 31/10 : la durée porte aussi l'appui long de saisie.
   const durationGrab = durationGrabProps(onLongPress);
   return (
@@ -427,6 +540,7 @@ export function CircuitHeader({
       testID={testID}
     >
       <Reanimated.View entering={entering} testID={`${testID}-reveal`}>
+      {columns.probe}
       <View style={styles.row} onLayout={onRowLayout} testID={`${testID}-row`}>
         {/* ARB-12 : le nom et le chevron forment une seule cible réelle de 44 de haut. */}
         <Pressable
@@ -438,7 +552,7 @@ export function CircuitHeader({
           // Revue 5.2 : VoiceOver lit la durée juste après le nom (elle est affichée à droite).
           accessibilityLabel={`${title}, ${duration}`}
           accessibilityState={{ expanded: !isCollapsed }}
-          style={styles.titleTarget}
+          style={[styles.titleTarget, columns.title]}
           testID={`${testID}-collapse`}
         >
           <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>
@@ -451,7 +565,7 @@ export function CircuitHeader({
             testID={`${testID}-chevron`}
           />
         </Pressable>
-        <View style={styles.counterSlot} testID={`${testID}-counter-slot`}>
+        <View style={[styles.counterSlot, columns.counter]} testID={`${testID}-counter-slot`}>
           <CircuitCounter
             nature={nature}
             count={count}
@@ -471,7 +585,7 @@ export function CircuitHeader({
         </View>
         {carrier !== undefined ? (
           carrier.duration === null ? (
-            <View style={styles.duration} testID={`${testID}-duration`} />
+            <View style={[styles.duration, columns.duration]} testID={`${testID}-duration`} />
           ) : (
             <Pressable
               onPress={carrier.onPressDuration}
@@ -479,7 +593,7 @@ export function CircuitHeader({
               accessibilityRole="button"
               accessibilityLabel={carrier.durationAccessibilityLabel ?? carrier.duration.text}
               hitSlop={8}
-              style={styles.carrierDurationTarget}
+              style={[styles.carrierDurationTarget, columns.duration]}
               testID={`${testID}-duration`}
             >
               <Text style={[styles.duration, carrier.duration.tone === "EDITABLE" ? styles.carrierDurationEditable : styles.carrierDurationMuted]} numberOfLines={1}>
@@ -491,7 +605,7 @@ export function CircuitHeader({
           /* Lue avec le nom (VoiceOver), elle est retirée de l'accessibilité ici. */
           <Text
             {...durationGrab}
-            style={[styles.duration, durationGrab.style]}
+            style={[styles.duration, columns.duration, durationGrab.style]}
             numberOfLines={1}
             accessible={false}
             importantForAccessibility="no"
@@ -1290,6 +1404,39 @@ const styles = StyleSheet.create({
  * Recette n° 2 du 31/10 : zone d'appui long de la durée — étendue au-dessus et au-dessous de la ligne
  * comme la cible du titre (44 de haut), marges négatives : la mise en page de la ligne est inchangée.
  */
+const columnStyles = StyleSheet.create({
+  // f3s-nom : le nom prend la place restante et cède (ellipse) avant le compteur et la durée.
+  title: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  duration: {
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: "auto",
+    marginLeft: COUNTER_TO_DURATION_GAP,
+  },
+  // Sonde hors écran, sans contrainte de largeur.
+  probe: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: 1000,
+    opacity: 0,
+  },
+  probeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+  },
+  probeText: {
+    flex: 0,
+    alignSelf: "flex-start",
+    marginLeft: 0,
+  },
+});
+
 const durationGrabStyle = StyleSheet.create({
   target: {
     marginTop: -TARGET_OVERFLOW_ABOVE_ROW,

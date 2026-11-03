@@ -9,6 +9,7 @@ import {
   containerMoveAccessibility,
   containerTitle,
   durationGrabProps,
+  useContainerColumns,
   type ContainerMoveActions,
 } from "@/features/sessions/CircuitHeader";
 import { LONG_PRESS_DELAY_MS } from "@/features/sessions/compositionGesture";
@@ -86,8 +87,11 @@ export function CycleHeader({
   const title = containerTitle(t.title, letter);
   // Recette n° 2 du 31/10 : la durée porte aussi l'appui long de saisie (comme le titre).
   const durationGrab = durationGrabProps(onLongPress);
+  // Recette n° 3 bis du 03/11/2026 (f3s-nom) : compteur à la même abscisse que celui du Circuit, depuis le bord droit.
+  const columns = useContainerColumns();
   return (
     <View style={[styles.header, { paddingLeft: titleInset }]} testID={testID}>
+      {columns.probe}
       <View style={styles.row} onLayout={onRowLayout} testID={`${testID}-row`}>
         {/* PRE-9 B.4 : le titre porte l'appui long (aucun appui court) ; il reste un en-tête pour VoiceOver. */}
         <Pressable
@@ -95,11 +99,11 @@ export function CycleHeader({
           delayLongPress={LONG_PRESS_DELAY_MS}
           disabled={onLongPress === undefined}
           accessible={false}
-          style={styles.titleTarget}
+          style={[styles.titleTarget, columns.title]}
           testID={`${testID}-grab`}
         >
           <Text
-            style={styles.title}
+            style={[styles.title, columns.title === null ? null : styles.titleShrinkable]}
             numberOfLines={1}
             accessibilityRole="header"
             accessibilityLabel={`${title}, ${duration}`}
@@ -109,7 +113,7 @@ export function CycleHeader({
             {title}
           </Text>
         </Pressable>
-        <View style={styles.counterSlot} testID={`${testID}-counter-slot`}>
+        <View style={[styles.counterSlot, columns.counter]} testID={`${testID}-counter-slot`}>
           <View style={styles.counter} testID={`${testID}-counter-row`}>
             <CountStepper
               count={count}
@@ -134,7 +138,7 @@ export function CycleHeader({
         {/* Lue avec le nom (VoiceOver), elle est retirée de l'accessibilité ici. */}
         <Text
           {...durationGrab}
-          style={[styles.duration, durationGrab.style]}
+          style={[styles.duration, columns.duration, durationGrab.style]}
           numberOfLines={1}
           accessible={false}
           importantForAccessibility="no"
@@ -168,6 +172,10 @@ const styles = StyleSheet.create({
     minWidth: CONTAINER_TITLE_MIN_WIDTH,
     ...type.compactCardTitle,
     color: colors.textPrimary,
+  },
+  // f3s-nom : colonnes mesurées — le nom cède (ellipse) avant le compteur.
+  titleShrinkable: {
+    minWidth: 0,
   },
   counterSlot: {
     flexShrink: 0,

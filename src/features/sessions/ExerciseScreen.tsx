@@ -234,11 +234,14 @@ export function EditorHeader({
   onClose,
   accessibilityLabel,
   trailing,
+  topInset,
 }: {
   title: string;
   onClose: () => void;
   accessibilityLabel: string;
   trailing?: ReactNode;
+  /** Feuille : marge haute de l'en-tête (`FixedHeader.topInset`). */
+  topInset?: number;
 }) {
   const { width } = useWindowDimensions();
   return (
@@ -255,6 +258,7 @@ export function EditorHeader({
       titleStyle={EDITOR_HEADER.title}
       backIconTintColor={EDITOR_HEADER.closeIconTint}
       trailing={trailing}
+      {...(topInset !== undefined ? { topInset } : {})}
     />
   );
 }
