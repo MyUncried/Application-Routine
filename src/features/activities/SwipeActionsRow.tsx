@@ -45,6 +45,17 @@ import { colors, fixedRadii, type } from "@/shared/ui/tokens";
  * aligné sur le bord supérieur, quelle que soit la hauteur de la carte (carte de Séance déployée) ;
  * `accessibilityState` transmis à la carte (déploiement annoncé). Sans ces options, comportement B
  * inchangé (bloc de la hauteur de la carte).
+ *
+ * PRE-9, recette iPhone du 04/11/2026 (Circuit replié à actions glissées) :
+ * - `passive` : rangée montée mais inerte (ni glissement, ni action, ni toucher simple, ni accessibilité propre ;
+ *   l'appui long reste transmis) — l'appelant la
+ *   garde montée quel que soit l'état de la carte, pour ne pas remonter son contenu (le remontage relançait
+ *   les mesures et les animations de l'en-tête du Circuit : soubresaut au repli et au déploiement) ;
+ * - `translation` : valeur animée fournie par l'appelant, pour faire glisser avec la carte d'autres couches
+ *   (le cadre du Circuit) ;
+ * - `actionsInsets` : débords du bloc d'actions au-delà de la rangée (hauteur du cadre entier, bord droit) ;
+ * - toucher d'une action : le geste en cours est clos (un léger glissé du doigt pendant l'appui ne rouvre
+ *   pas les actions que l'action vient de refermer).
  */
 
 export type SwipeAction = {
@@ -82,6 +93,11 @@ export function SwipeActionsRow({
   extraAccessibilityActions = [],
   actionsHeight,
   accessibilityState,
+  passive = false,
+  translation,
+  actionsInsets,
+  actionWidth = SWIPE_ACTION_WIDTH,
+  actionsRadius,
   children,
   testID,
 }: {
@@ -101,10 +117,20 @@ export function SwipeActionsRow({
   /** E.5 : hauteur fixe du bloc d'actions, aligné en haut ; absent : hauteur de la carte. */
   readonly actionsHeight?: number;
   readonly accessibilityState?: AccessibilityState;
+  /** Recette du 04/11 : rangée inerte, gardée montée (contenu jamais remonté). */
+  readonly passive?: boolean;
+  /** Recette du 04/11 : translation horizontale partagée avec l'appelant (valeur stable). */
+  readonly translation?: Animated.Value;
+  /** Recette du 04/11 : débords du bloc d'actions (valeurs positives : au-delà de la rangée). */
+  readonly actionsInsets?: { readonly top?: number; readonly bottom?: number; readonly right?: number };
+  /** Recette du 04/11 (CE-FMT-05, §7.9.6) : largeur d'une action (68 par défaut, Catalogue). */
+  readonly actionWidth?: number;
+  /** Recette du 04/11 (CE-FMT-05) : rayon des extrémités du bloc d'actions (12 par défaut). */
+  readonly actionsRadius?: number;
   readonly children: ReactNode;
   readonly testID: string;
 }) {
-  const groupWidth = enabled ? actions.length * SWIPE_ACTION_WIDTH : 0;
+  const groupWidth = enabled && !passive ? actions.length * actionWidth : 0;
   const offset = groupWidth > 0 ? groupWidth + SWIPE_ACTIONS_GAP : 0;
   const reduceMotion = useReduceMotion();
   const originRef = useRef<{ x: number; y: number } | null>(null);
@@ -112,7 +138,12 @@ export function SwipeActionsRow({
   const baseRef = useRef(0);
   const [translateX, setTranslateX] = useState(revealed ? -offset : 0);
   const translateXRef = useRef(translateX);
-  const [swipeX] = useState(() => new Animated.Value(revealed ? -offset : 0));
+  const [swipeX] = useState(() => {
+    const initial = revealed ? -offset : 0;
+    if (translation === undefined) return new Animated.Value(initial);
+    translation.setValue(initial);
+    return translation;
+  });
   const [isSettling, setIsSettling] = useState(false);
   const settleTokenRef = useRef(0);
 
@@ -216,13 +247,25 @@ export function SwipeActionsRow({
           pointerEvents={translateX < 0 ? "auto" : "none"}
           accessibilityElementsHidden={translateX >= 0}
           importantForAccessibility={translateX < 0 ? "auto" : "no-hide-descendants"}
-          style={[styles.actions, { width: groupWidth }, actionsHeight !== undefined ? { bottom: undefined, height: actionsHeight } : null]}
+          style={[
+            styles.actions,
+            { width: groupWidth },
+            actionsHeight !== undefined ? { bottom: undefined, height: actionsHeight } : null,
+            actionsInsets === undefined
+              ? null
+              : { top: -(actionsInsets.top ?? 0), bottom: -(actionsInsets.bottom ?? 0), right: -(actionsInsets.right ?? 0) },
+          ]}
           testID={`${testID}-actions`}
         >
           {actions.map((action, index) => (
             <Pressable
               key={action.key}
-              onPress={action.onPress}
+              onPress={() => {
+                // Recette du 04/11 : le geste est clos — la fin du toucher ne réévalue pas l'ouverture.
+                originRef.current = null;
+                isSwipingRef.current = false;
+                action.onPress();
+              }}
               disabled={action.disabled === true}
               accessibilityRole="button"
               accessibilityLabel={action.label}
@@ -231,6 +274,14 @@ export function SwipeActionsRow({
                 styles.action,
                 index === 0 ? styles.actionFirst : null,
                 index === actions.length - 1 ? styles.actionLast : null,
+                actionWidth !== SWIPE_ACTION_WIDTH ? { width: actionWidth } : null,
+                actionsRadius === undefined
+                  ? null
+                  : index === 0
+                    ? { borderTopLeftRadius: actionsRadius, borderBottomLeftRadius: actionsRadius }
+                    : index === actions.length - 1
+                      ? { borderTopRightRadius: actionsRadius, borderBottomRightRadius: actionsRadius }
+                      : null,
                 { backgroundColor: action.disabled === true ? colors.disabled : action.backgroundColor },
               ]}
               testID={`${testID}-action-${action.key}`}
@@ -249,9 +300,12 @@ export function SwipeActionsRow({
         </View>
       ) : null}
       <AnimatedPressable
+        // Inerte, la carte reste une cible active (jamais `disabled`) : elle garde les touchers non pris par son
+        // contenu, dont l'appui long transmis à l'appelant (saisie du bloc), comme au repli.
+        accessible={!passive}
         onPress={() => {
           // Carte ouverte : appui neutre (seul un balayage droit la referme).
-          if (!revealed && !isSwipingRef.current) onPress();
+          if (!passive && !revealed && !isSwipingRef.current) onPress();
         }}
         onLongPress={
           onLongPress === undefined
@@ -260,17 +314,22 @@ export function SwipeActionsRow({
                 if (!revealed && !isSwipingRef.current) onLongPress();
               }
         }
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel}
-        accessibilityHint={accessibilityHint}
-        accessibilityState={accessibilityState}
-        accessibilityActions={[
-          ...(enabled ? actions.filter((action) => action.disabled !== true) : []).map(
-            (action): AccessibilityActionInfo => ({ name: action.key, label: action.label }),
-          ),
-          ...extraAccessibilityActions.map((action): AccessibilityActionInfo => ({ name: action.name, label: action.label })),
-        ]}
+        accessibilityRole={passive ? undefined : "button"}
+        accessibilityLabel={passive ? undefined : accessibilityLabel}
+        accessibilityHint={passive ? undefined : accessibilityHint}
+        accessibilityState={passive ? undefined : accessibilityState}
+        accessibilityActions={
+          passive
+            ? []
+            : [
+                ...(enabled ? actions.filter((action) => action.disabled !== true) : []).map(
+                  (action): AccessibilityActionInfo => ({ name: action.key, label: action.label }),
+                ),
+                ...extraAccessibilityActions.map((action): AccessibilityActionInfo => ({ name: action.name, label: action.label })),
+              ]
+        }
         onAccessibilityAction={(event) => {
+          if (passive) return;
           const name = event.nativeEvent.actionName;
           const extra = extraAccessibilityActions.find((action) => action.name === name);
           if (extra) extra.onAction();

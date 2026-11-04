@@ -14,7 +14,7 @@
  * Sans mouvement (questionnaire), une suite générique 1, 2, 3… de hauteurs égales. Fonctions pures.
  */
 
-import { hasChosenBuyIn, type FormatModelKey, type ModelAnswers, type ModelExecution, type ModelMovement } from "./formatModels";
+import { hasChosenBuyIn, movementRole, type FormatModelKey, type ModelAnswers, type ModelExecution, type ModelMovement } from "./formatModels";
 
 export type TimelineBlock =
   | {
@@ -202,14 +202,28 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
     case "FOR_TIME": {
       const rounds = answers.roundCount ?? 1;
       if (count === 0) return { blocks: generic(rounds), end: { kind: "MEASURED" }, legendRecovery: false };
-      const volumes = movements.flatMap((movement) => Array.from({ length: rounds }, (_, at) => movement.values.volumes?.[at] ?? null));
+      // Recette du 04/11/2026 (interrupteurs Buy-in / Buy-out) : buy-in une fois au départ, tours, buy-out une fois à la fin.
+      const indexed = movements.map((movement, index) => ({ movement, index, role: movementRole(movement) }));
+      const tours = indexed.filter((item) => item.role === "TOUR");
+      const volumes = tours.flatMap(({ movement }) => Array.from({ length: rounds }, (_, at) => movement.values.volumes?.[at] ?? null));
       const max = Math.max(1, ...volumes.map((value) => value ?? 0));
-      const blocks = Array.from({ length: rounds }, (_, round) =>
-        movements.map((movement, index) => {
-          const value = movement.values.volumes?.[round] ?? null;
-          return work(index, value === null ? "—" : String(value), value === null ? 0.35 : Math.max(0.35, value / max));
-        }),
-      ).flat();
+      const once = (role: "BUY_IN" | "BUY_OUT") =>
+        indexed
+          .filter((item) => item.role === role)
+          .map(({ movement, index }): TimelineBlock => {
+            const value = movement.values.volumes?.[0] ?? null;
+            return { kind: "WORK", movement: index, label: `${value ?? "—"} · ${role === "BUY_IN" ? "buy-in" : "buy-out"}`, weight: 2.5, height: 1, buyIn: true };
+          });
+      const blocks = [
+        ...once("BUY_IN"),
+        ...Array.from({ length: rounds }, (_, round) =>
+          tours.map(({ movement, index }) => {
+            const value = movement.values.volumes?.[round] ?? null;
+            return work(index, value === null ? "—" : String(value), value === null ? 0.35 : Math.max(0.35, value / max));
+          }),
+        ).flat(),
+        ...once("BUY_OUT"),
+      ];
       return { blocks, end: { kind: "MEASURED" }, legendRecovery: false };
     }
     default: {

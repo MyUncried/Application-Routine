@@ -862,13 +862,21 @@ export function wrapSpansInContainers(
  * PRE-9 B.6 (D-441 ; « comme actuellement », ARB-07) : comme l'insertion de l'ancien modèle
  * (`appendActivityAfterLastDisplayed`, Points inchangés), le nouvel Exercice prend place après le
  * repère ET après le Point qui le suit éventuellement ; les Points suivants restent à leur place.
+ *
+ * Recette iPhone du 04/11/2026 (constat général a) : le repère peut aussi être un Circuit
+ * (`{ kind: "CIRCUIT", id }`) — l'Exercice est alors placé juste après ce Circuit, dans le conteneur du
+ * Circuit, hors de lui (Circuit issu d'un format : `insertIntoRichLayout`).
  */
-export function insertExerciseInLayout(draft: SessionDraft, exercise: SessionDraftExercise, afterExerciseId: string | null): SessionDraft {
+export function insertExerciseInLayout(
+  draft: SessionDraft,
+  exercise: SessionDraftExercise,
+  after: string | { readonly kind: "CIRCUIT"; readonly id: string } | null,
+): SessionDraft {
   const layout = draft.structure;
   if (layout === undefined || legacyFromStructure(layout) !== null) {
     return { ...draft, exercises: [...draft.exercises, exercise] };
   }
-  const anchor = afterExerciseId === null ? null : layoutItemLocation(layout, { kind: "EXERCISE", id: afterExerciseId });
+  const anchor = after === null ? null : layoutItemLocation(layout, typeof after === "string" ? { kind: "EXERCISE", id: after } : after);
   const container: LayoutContainerRef = anchor?.container ?? { kind: "SESSION" };
   const index = anchor === null ? layout.elements.length : anchor.index + 1;
   const attached = attach({ elements: layout.elements, stopPoints: [] }, { kind: "EXERCISE", id: exercise.id }, { container, index });

@@ -75,3 +75,34 @@ Rien n'est qualifié sans recette. À rejouer à cause des changements : parcour
 - **A.3** (branche de travail intégrée, `7ada8e12`) : migration 021 — suppression de toutes les lignes de `activity_definitions` (table conservée vide ; A.5 non autorisée) ; retrait de « Modifier » (E.8-a), de `ActivitySelectionScreen`, du parcours `catalogueDefinitionId` et des écritures / lectures de définitions ; gardes du Mouvement sans définitions ; test de garde `legacyDefinitionsGuard.a3`. Documentation : ch07 (E.8-a, ARB-01, archivage, Q8), ch12, epics, arbitrages, sprint-status. À CLARIFIER (classe C) : `Category.isUsed` — règle provisoire prudente (Catégorie utilisée si un Mouvement la référence).
 - **Migration 022** : `tours.name` (nom du Circuit), écrite et relue par le dépôt ; tests `migration022` ; tests historiques 014 à 021 alignés sur la version 22 (colonne ignorée des comparaisons).
 - **Qualification** : voir le rapport de fin de mission (suite complète).
+
+## 10. Recette iPhone du 04/11/2026 — écarts et corrections
+
+Cahier « Recette Formats 04/11 » (https://claude.ai/artifact/XJCJLC7eHKcANDMrN1yNku), section « Écarts relevés le 04/11 — un par ligne » : 29 écarts, identifiants `e-*`. Texte exact de Hermann dans les notes des fiches f4-modale, f4-catalogue, f4-replie et « Autres constats » (a, b). Rien n'est qualifié sur iPhone.
+
+| Écart | Correction | Classe | Documents |
+|---|---|---|---|
+| e-voile | La fenêtre Formats s'efface seule, son voile reste ; la route s'ouvre sans transition, la modale monte dans le même voile (`FORMATS_SCRIM`) ; descente animée à la fermeture | B (comportement) | ch07 « Recette iPhone du 04/11/2026 » |
+| e-contexte-fondu, e-contexte-fixe | Zone de contexte figée au-dessus du contenu, part fondue de 22 px (rampe D-224) | B (rendu) | ch07 idem |
+| e-tabata | Tabata : « Enregistrer dans la séance » au questionnaire, sans récapitulatif ; les autres modèles inchangés | B | référence Formats §7.1 annotée, PRODUCT, ch07 |
+| e-emom-largeur | Colonne Objectif 84 px (EMOM, AMRAP) | A (rendu) | — |
+| e-emom-mode | EMOM créé sans unité, objectif à renseigner ; barre Répétitions / Durée d'emblée ; valeur tapée sans unité lue en Répétitions (choix technique) | B | référence §7.6 et §10 annotées, PRODUCT, ch07 |
+| e-emom-trait, e-amrap-trait | Case à renseigner : « — » sur fond rouge | B | référence §7.6, ch07 |
+| e-fortime-buyin | Interrupteurs Buy-in et Buy-out au questionnaire For time ; sections, mouvement requis, Rôles, Déroulé (buy-in au départ, buy-out à la fin) ; réédition : interrupteurs déduits des Rôles | B | référence §11 annotée, ch07 |
+| e-fortime-fond, -unite, -charge | Tableau For time sans fond, zones de saisie blanches, colonne Unité décalée de 20 px, charges en 11 px régulier, ligne plus basse | A (rendu) | — |
+| e-amrap-max, -colonnes | Max sur 28 px aligné à droite, titre centré au-dessus ; colonnes Par tour / Charge 58 px | A (rendu) | — |
+| e-deathby | Tableau Départ / Incrément dès deux mouvements, au questionnaire aussi | B | référence §12 annotée, ch07 |
+| e-cat-fixe, e-cat-recherche, e-cat-defiler | En mode catalogue, en-tête de section et ligne de recherche dans la zone figée ; même champ que la saisie (croix intérieure), commandes qui apparaissent pendant que le champ se rétrécit ; défilement jamais bloqué | B (rendu) | ch07 |
+| e-cat-filet | Toucher le filet d'une pile la replie ; « Déplier » les rouvre toutes | A | — |
+| e-cat-selection | Carte sélectionnée : liseré 2 px, fond `#E8E9FF` | A (rendu) | — |
+| e-cat-filtre-ouvrir, -fermer | Feuille de filtre `docked` : haut à la limite de la zone de contexte, montée 480 ms, descente 380 ms vers le bas | A (rendu) | — |
+| e-replie-* (agent) | Enveloppe de glissement toujours montée (cause du soubresaut), actions sur toute la hauteur, cadre qui glisse avec un écart de 8, Circuit au-dessus du clavier au renommage, options refermées après Dupliquer | A / B | ch13 CE-FMT-05, référence §7.8 |
+| e-ajout-fin (agent) | Exercice ajouté après un Circuit issu d'un Format, hors de lui (même conteneur) ; Circuit manuel inchangé (ARB-07) | B | ch07 et arbitrages ARB-07 annotés |
+| e-segmente (agent) | Non modifié : aucune cause démontrée ; seule la largeur de l'option sélectionnée change (Figma) | — | question ouverte |
+
+**Questions ouvertes (À CLARIFIER) :**
+1. Contrôle segmenté (constat b) : anomalie (le contrôle bouge) ou règle (option sélectionnée à droite) ? Quel contrôle (Phases, Charge, Côtés, Séries) ?
+2. Ajout d'un mouvement quand le dernier élément est un Circuit composé à la main : dans le Circuit (ARB-07) ou après lui ?
+3. Circuit de Format dans un Cycle : l'Exercice ajouté reste dans le Cycle, après le Circuit (choix de l'agent).
+4. Tabata seul sans récapitulatif : faut-il étendre aux autres modèles sans tableau (30/30, Renforcement, À l'échec, Superset) ?
+5. EMOM : une valeur tapée sans avoir choisi l'unité est lue en Répétitions.

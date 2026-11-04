@@ -75,3 +75,59 @@ describe("insertIntoRichLayout", () => {
     ]);
   });
 });
+
+describe("Recette iPhone du 04/11/2026 (constat général a) — dernier Exercice dans un Circuit issu d'un format", () => {
+  const shapeOf = (structure: Layout | undefined) =>
+    structure?.elements.map((element) =>
+      element.kind === "EXERCISE"
+        ? element.exercise
+        : element.kind === "CIRCUIT"
+          ? { circuit: element.circuit.id, exercises: element.circuit.exercises }
+          : { cycle: element.cycle.id, members: element.cycle.members.map((member) => (member.kind === "EXERCISE" ? member.exercise : { circuit: member.circuit.id, exercises: member.circuit.exercises })) },
+    );
+
+  it("Circuit créé par la fenêtre Formats (Modèle d'origine) : après le Circuit, au niveau de la Séance, hors de lui", () => {
+    const layout: Layout = {
+      elements: [
+        { kind: "EXERCISE", exercise: "e0" },
+        { kind: "CIRCUIT", circuit: { id: "tabata", repeatCount: 8, nature: "SERIES", exercises: ["t1", "t2"], originModel: "TABATA" } },
+      ],
+      stopPoints: [],
+    };
+    const result = insertIntoRichLayout(draftOf(layout, ["e0", "t1", "t2"]), [exercise("n1"), exercise("n2")]);
+    expect(shapeOf(result?.structure)).toEqual(["e0", { circuit: "tabata", exercises: ["t1", "t2"] }, "n1", "n2"]);
+    expect(result?.losses).toEqual([]);
+  });
+
+  it("Circuit porteur d'un Format (AMRAP) : après le Circuit, hors de lui", () => {
+    const layout: Layout = {
+      elements: [{ kind: "CIRCUIT", circuit: { id: "amrap", repeatCount: 1, nature: "TOURS", exercises: ["a1"], format: { key: "AMRAP" } as never } }],
+      stopPoints: [],
+    };
+    const result = insertIntoRichLayout(draftOf(layout, ["a1"]), [exercise("n")]);
+    expect(shapeOf(result?.structure)).toEqual([{ circuit: "amrap", exercises: ["a1"] }, "n"]);
+  });
+
+  it("Circuit issu d'un format dans un Cycle : après le Circuit, dans le Cycle (hors du Circuit)", () => {
+    const layout: Layout = {
+      elements: [
+        { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, members: [{ kind: "CIRCUIT", circuit: { id: "emom", repeatCount: 1, nature: "TOURS", exercises: ["m1"], originModel: "EMOM" } }] } },
+      ],
+      stopPoints: [],
+    };
+    const result = insertIntoRichLayout(draftOf(layout, ["m1"]), [exercise("n")]);
+    expect(shapeOf(result?.structure)).toEqual([{ cycle: "cy", members: [{ circuit: "emom", exercises: ["m1"] }, "n"] }]);
+  });
+
+  it("Circuit composé à la main : inchangé (ARB-07, dans le Circuit)", () => {
+    const layout: Layout = {
+      elements: [
+        { kind: "CIRCUIT", circuit: { id: "tabata", repeatCount: 8, nature: "SERIES", exercises: ["t1"], originModel: "TABATA" } },
+        { kind: "CIRCUIT", circuit: { id: "c", repeatCount: 1, nature: "TOURS", exercises: ["c1"] } },
+      ],
+      stopPoints: [],
+    };
+    const result = insertIntoRichLayout(draftOf(layout, ["t1", "c1"]), [exercise("n")]);
+    expect(shapeOf(result?.structure)).toEqual([{ circuit: "tabata", exercises: ["t1"] }, { circuit: "c", exercises: ["c1", "n"] }]);
+  });
+});

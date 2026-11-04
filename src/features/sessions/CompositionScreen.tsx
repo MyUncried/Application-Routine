@@ -2449,7 +2449,28 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    */
   const [revealedCircuitId, setRevealedCircuitId] = useState<string | null>(null);
   const [renamingCircuitId, setRenamingCircuitId] = useState<string | null>(null);
+  /**
+   * Recette iPhone du 04/11/2026 (Hermann : « Renommer : le circuit doit se retrouver au dessus du clavier et être
+   * visible ») : clavier ouvert pendant la saisie du nom d'un Circuit — haut du clavier (repère de la fenêtre) et sa
+   * hauteur, réservée sous le contenu pour que le Circuit puisse remonter au-dessus.
+   */
+  const [renameKeyboard, setRenameKeyboard] = useState<{ readonly top: number; readonly height: number } | null>(null);
+  const isRenamingCircuit = renamingCircuitId !== null;
+  useLayoutEffect(() => {
+    if (!isRenamingCircuit) return undefined;
+    const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (event) =>
+      setRenameKeyboard({ top: event.endCoordinates.screenY, height: event.endCoordinates.height }),
+    );
+    const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", () => setRenameKeyboard(null));
+    return () => {
+      show.remove();
+      hide.remove();
+      setRenameKeyboard(null);
+    };
+  }, [isRenamingCircuit]);
   const circuitActions: CircuitActionsContext = {
+    keyboardTop: renameKeyboard?.top ?? null,
+    scrollBy: (delta) => bodyScrollRef.current?.scrollTo({ y: Math.max(0, bodyOffsetRef.current + delta), animated: true }),
     revealedId: revealedCircuitId,
     onReveal: setRevealedCircuitId,
     renamingId: renamingCircuitId,
@@ -4803,7 +4824,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         style={styles.body}
         contentContainerStyle={[
           styles.bodyContent,
-          { paddingBottom: actionZone.scrollReserve },
+          // Recette du 04/11 : clavier de la saisie du nom d'un Circuit — place réservée pour le remonter au-dessus.
+          { paddingBottom: actionZone.scrollReserve + (renameKeyboard?.height ?? 0) },
           // Contre-recette n° 4 (constat a) : hauteur gardée pendant le glisser d'un Circuit (voir `layoutContentFloor`).
           layoutContentFloor !== null ? { minHeight: layoutContentFloor } : null,
         ]}
@@ -8152,6 +8174,10 @@ function useMeasuredValue<T extends number | null>(initial: T, urgent: boolean):
  * issu d'un modèle (Modèle d'origine renseigné). Le Circuit déplié ne se glisse pas.
  */
 type CircuitActionsContext = {
+  /** Recette du 04/11 : haut du clavier (fenêtre) pendant la saisie du nom d'un Circuit, sinon `null`. */
+  readonly keyboardTop: number | null;
+  /** Recette du 04/11 : défilement relatif du corps (animé). */
+  readonly scrollBy: (delta: number) => void;
   readonly revealedId: string | null;
   readonly onReveal: (circuitId: string | null) => void;
   readonly renamingId: string | null;
@@ -9216,6 +9242,27 @@ function LayoutCircuitBlock({
     [blockHeight, headerBottom, stickBelow, sticky, stickyContainerY],
   );
   const horizontalInset = inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET;
+  /**
+   * Recette iPhone du 04/11/2026 (Circuit replié, glisser gauche) : le cadre du Circuit (son aplat) glisse avec son
+   * en-tête — translation partagée avec la rangée glissée (`SwipeActionsRow`).
+   */
+  const [swipeX] = useState(() => new Animated.Value(0));
+  const blockRef = useRef<View>(null);
+  const isRenaming = context.circuitActions.renamingId === circuit.id;
+  const keyboardTop = isRenaming ? context.circuitActions.keyboardTop : null;
+  const scrollBy = context.circuitActions.scrollBy;
+  // Recette du 04/11 (« Renommer : le circuit doit se retrouver au dessus du clavier et être visible »).
+  useEffect(() => {
+    if (keyboardTop === null) return undefined;
+    const frame = requestAnimationFrame(() =>
+      blockRef.current?.measureInWindow((_x, y, _width, height) => {
+        const overlap = y + height + RENAME_KEYBOARD_MARGIN - keyboardTop;
+        if (overlap > 0) scrollBy(overlap);
+      }),
+    );
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- une fois par ouverture du clavier.
+  }, [keyboardTop]);
   // Recette n° 3 du 03/11 : même saisie que l'appui long de l'en-tête (B.4c, CS-D7).
   useLayoutEffect(() => {
     surfaceGrabRef.current = () => {
@@ -9249,6 +9296,7 @@ function LayoutCircuitBlock({
   );
   return (
     <Animated.View
+      ref={blockRef}
       style={[
         styles.tourSectionContainer,
         inCycle ? styles.layoutCircuitInCycle : null,
@@ -9264,6 +9312,8 @@ function LayoutCircuitBlock({
       {...(drag !== null && !ghost ? gesture.handlers : {})}
       testID={testID}
     >
+      {/* Recette du 04/11 : l'aplat glisse avec l'en-tête du Circuit replié (actions révélées à sa droite). */}
+      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { transform: [{ translateX: swipeX }] }]} testID={`${testID}-surface-swipe`}>
       <Reanimated.View
         entering={entering}
         pointerEvents="none"
@@ -9281,6 +9331,7 @@ function LayoutCircuitBlock({
           />
         ) : null}
       </Reanimated.View>
+      </Animated.View>
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
       <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
         <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateY: motion.top }] }]} testID={`${testID}-rail-head`}>
@@ -9378,7 +9429,11 @@ function LayoutCircuitBlock({
       />
         );
         // MAJ 04/11/2026 §6 quinquies : seul le Circuit replié se glisse (déplié, le geste concurrencerait celui des cartes).
-        if (!isCollapsed || ghost || inPlacement || context.circuitActions.renamingId === circuit.id) return header;
+        // Recette iPhone du 04/11/2026 (« le soubresaut dû au redimensionnement du cadre du circuit a réapparu ») : la
+        // rangée glissée reste montée dans tous les états (inerte hors repli) — l'envelopper au seul repli remontait
+        // l'en-tête à chaque repli et déploiement, et relançait ses mesures et la ligne des noms
+        // (`CollapsedNamesLine`), dont l'animation garantit le repli sans à-coup (contre-recettes n° 4 et n° 5).
+        const swipeEnabled = isCollapsed && !ghost && !inPlacement && !isRenaming;
         const actions = context.circuitActions;
         const fromModel = (circuit.originModel ?? null) !== null;
         const tc = strings.screens.composition.circuitActions;
@@ -9391,7 +9446,18 @@ function LayoutCircuitBlock({
         return (
           <SwipeActionsRow
             actions={swipeActions}
-            revealed={actions.revealedId === circuit.id}
+            passive={!swipeEnabled}
+            translation={swipeX}
+            // Recette du 04/11 : actions sur toute la hauteur du cadre du Circuit, alignées sur son bord droit ;
+            // CE-FMT-05 (§7.9.6) : actions de 70, extrémités du bloc au rayon du cadre du Circuit.
+            actionWidth={CIRCUIT_SWIPE_ACTION_WIDTH}
+            actionsRadius={CIRCUIT_RADIUS}
+            actionsInsets={{
+              top: CIRCUIT_PADDING_VERTICAL,
+              bottom: blockHeight !== null && headerBottom !== null ? Math.max(0, blockHeight - headerBottom) : CIRCUIT_PADDING_VERTICAL,
+              right: horizontalInset,
+            }}
+            revealed={swipeEnabled && actions.revealedId === circuit.id}
             onReveal={() => actions.onReveal(circuit.id)}
             onHide={() => actions.onReveal(null)}
             onPress={() => {
@@ -9399,7 +9465,8 @@ function LayoutCircuitBlock({
               else context.onToggleCollapsed(circuit);
             }}
             accessibilityLabel={circuit.name ?? circuitDisplayTitle(circuit) ?? strings.screens.composition.circuit.title}
-            {...(drag !== null ? { onLongPress: () => gesture.begin() } : {})}
+            // Recette du 04/11 : déplié (rangée inerte), l'appui long hors des cibles de l'en-tête saisit le bloc, comme sa surface.
+            {...(drag !== null && !ghost ? { onLongPress: () => surfaceGrabRef.current() } : {})}
             testID={`${testID}-swipe`}
           >
             {header}
@@ -9961,6 +10028,10 @@ const CONTAINER_PADDING_BOTTOM = OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.
 /** Circuit déployé : réduction de sa marge basse (14 → 8), portée par la liste de ses cartes. */
 const CIRCUIT_CARDS_BOTTOM_OVERLAP = CIRCUIT_PADDING_VERTICAL - CONTAINER_PADDING_BOTTOM;
 const CIRCUIT_GAP = 9;
+/** Recette du 04/11 : écart entre le bas du Circuit renommé et le haut du clavier. */
+const RENAME_KEYBOARD_MARGIN = spacing[16];
+/** CE-FMT-05 (ch13 §7.9.6, Figma « Circuit issu d'un format, actions glissées ») : actions de 70. */
+const CIRCUIT_SWIPE_ACTION_WIDTH = 70;
 const CIRCUIT_RADIUS = 18;
 /**
  * Aplat du Circuit (Figma `9819:19906`, `#F3F4F9`) : couleur hors registre ch12, constante locale

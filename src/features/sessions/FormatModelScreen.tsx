@@ -16,6 +16,8 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import Reanimated, { FadeIn, LinearTransition, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
@@ -28,11 +30,12 @@ import {
   executionOptions,
   allowedModes,
   emomDurationOverflow,
-  hasChosenBuyIn,
+  hasRequiredRoles,
   initialAnswers,
   initialMovementValues,
   isFormatModelKey,
   modelDuration,
+  roleSwitches,
   summaryIssues,
   withAnswer,
   withMovementMode,
@@ -70,12 +73,12 @@ import {
   tableCellOrder,
   type CellBinding,
 } from "@/features/sessions/FormatTables";
-import { FormatModelIllustration, formatModelColors } from "@/features/sessions/FormatsWindow";
+import { FORMATS_SCRIM, FormatModelIllustration, formatModelColors } from "@/features/sessions/FormatsWindow";
 import { exerciseOfMovement, takeMovementsHandedToFormat, type MovementExerciseDefaults } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovementExerciseIntake";
 import { strings } from "@/shared/i18n";
-import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
+import { CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { FINAL_ACTION_TOP_MARGIN } from "@/shared/ui/finalAction";
@@ -384,11 +387,53 @@ type Stage = "questionnaire" | "summary";
 /** Haut de la modale : sous le titre de la Composition (y = 95 sur 874, mise à jour du 04/11/2026 §1). */
 const MODAL_TOP = 95;
 
+/**
+ * Recette du 04/11/2026 (f4-modale, Hermann : « la zone colorée doit devenir progressivement transparente selon le même
+ * format que la zone de contexte du catalogue ou de la composition de séance » ; « La zone colorée doit rester figée sur
+ * l'écran ») : zone de contexte fixe, au-dessus du contenu qui défile dessous ; sous sa partie peinte, une part fondue
+ * de la même couleur vers la transparence — même rampe de couches que la bande de contexte (`ContextBand`, D-224).
+ */
+const CONTEXT_FADE_HEIGHT = 22;
+const CONTEXT_FADE_LAYERS = Array.from({ length: 12 }, (_, index) => {
+  const before = index / 12;
+  const after = (index + 1) / 12;
+  return { height: Number((CONTEXT_FADE_HEIGHT * (1 - before)).toFixed(4)), opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)) };
+});
+/** Montée et descente de la modale dans le voile resté en place (recette du 04/11/2026). */
+const SHEET_IN = { duration: 320, reduceMotion: ReduceMotion.System };
+const SHEET_OUT = { duration: 260, reduceMotion: ReduceMotion.System };
+
 /** Compteur des ouvertures de questionnaire (identité du brouillon de modèle de chaque ouverture). */
 let openings = 0;
 
 export function FormatModelScreen({ stage: initialStage }: { readonly stage: Stage }) {
   const [stage, setStage] = useState<Stage>(initialStage);
+  // Recette du 04/11/2026 (f4-modale) : ouverte depuis la fenêtre Formats (questionnaire), le voile est déjà là et reste ;
+  // ouverte depuis la Composition (réédition, récapitulatif), il apparaît en fondu. La modale monte du bas.
+  const screenHeight = useWindowDimensions().height;
+  const veilOpacity = useSharedValue(initialStage === "questionnaire" ? 1 : 0);
+  const sheetY = useSharedValue(screenHeight);
+  useEffect(() => {
+    sheetY.value = withTiming(0, SHEET_IN);
+    veilOpacity.value = withTiming(1, SHEET_IN);
+    // Une seule montée, à l'ouverture.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const veilStyle = useAnimatedStyle(() => ({ opacity: veilOpacity.value }));
+  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: sheetY.value }] }));
+  const leaving = useRef(false);
+  /** Descente de la modale et effacement du voile, puis `then` (retour à la Composition). */
+  const dismissWith = (then: () => void) => {
+    if (leaving.current) return;
+    leaving.current = true;
+    Keyboard.dismiss();
+    veilOpacity.set(withTiming(0, SHEET_OUT));
+    sheetY.set(
+      withTiming(screenHeight, SHEET_OUT, (finished) => {
+        if (finished === true) scheduleOnRN(then);
+      }),
+    );
+  };
   const router = useRouter();
   const navigation = useNavigation();
   const params = useLocalSearchParams<{ model?: string; circuitId?: string }>();
@@ -473,7 +518,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const levelOf = useCallback((movementId: string) => entries.find((entry) => entry.movement.id === movementId)?.level?.rank ?? null, [entries]);
 
   const addMovements = useCallback(
-    (added: readonly Movement[], role: "LOOP" | "BUY_IN") => {
+    (added: readonly Movement[], role: "LOOP" | "BUY_IN" | "BUY_OUT") => {
       if (defaults === null || modelDraft === null) return;
       const entries = added.map((movement) => {
         const exercise = exerciseOfMovement(movement, Crypto.randomUUID(), defaults);
@@ -487,7 +532,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           const [chosen] = mapped;
           return chosen === undefined ? current : [{ ...chosen, buyIn: true as const }, ...current.filter((item) => item.buyIn !== true)];
         }
-        return [...current, ...mapped];
+        // For time (recette du 04/11/2026) : buy-out choisi dans sa section, toujours en fin, remplacé par « Changer ».
+        if (role === "BUY_OUT") {
+          const [chosen] = mapped;
+          return chosen === undefined ? current : [...current.filter((item) => item.buyOut !== true), { ...chosen, buyOut: true as const }];
+        }
+        // Mouvements de la boucle : avant le buy-out.
+        const outs = current.filter((item) => item.buyOut === true);
+        return [...current.filter((item) => item.buyOut !== true), ...mapped, ...outs];
       });
       for (const { movement } of entries) movementsById.current.set(movement.id, movement);
       // Recette n° 3 du 03/11/2026 : le choix d'un mouvement reste sur l'écran (plus de passage automatique
@@ -509,7 +561,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // recette n° 3 du 03/11/2026 (f3r-recherche, Hermann : « Sur le deuxième écran des valeurs des paramètres,
   // appuyer sur "+ Ajouter" ouvre directement le catalogue alors que le comportement doit être exactement le
   // même que pour le premier écran. Idem pour le bouton "Changer" ») : même champ dans chaque section, aux deux étapes.
-  const [searchRole, setSearchRole] = useState<"LOOP" | "BUY_IN" | null>(null);
+  const [searchRole, setSearchRole] = useState<"LOOP" | "BUY_IN" | "BUY_OUT" | null>(null);
   const searchInput = useRef<TextInput>(null);
   const submitting = useRef(false);
   const searchOpen = searchRole !== null;
@@ -542,18 +594,30 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [pilesCollapsed, setPilesCollapsed] = useState(false);
+  // Recette du 04/11/2026 (f4-catalogue, Hermann : « le filet bleu à gauche doit être actif et permettre de replier les
+  // piles ») : toucher le filet d'une pile la replie ; « Déplier » les rouvre toutes.
+  const [collapsedPiles, setCollapsedPiles] = useState<ReadonlySet<string>>(new Set());
+  // f4-catalogue (« elle se rétrécit en largeur, le bouton croix apparaît à l'intérieur, et les 3 boutons apparaissent ») :
+  // le champ de saisie garde son format ; les commandes apparaissent après son premier rendu, le champ se rétrécit.
+  const [commandsShown, setCommandsShown] = useState(false);
+  const [catalogueFocus, setCatalogueFocus] = useState(false);
+  const [bandHeight, setBandHeight] = useState(CONTEXT_HEIGHT);
   const [picked, setPicked] = useState<ReadonlyMap<string, Movement>>(new Map());
   const suggestionItems = useMemo(() => (query.trim().length === 0 ? [] : visibleMovementItems(entries, query, EMPTY_MOVEMENT_FILTERS)), [entries, query]);
   const ranked = useMemo(() => suggestionItems.flatMap((item) => (item.kind === "PILE" ? item.members : [item.entry])), [suggestionItems]);
   const catalogueItems = useMemo(() => (catalogueMode ? visibleMovementItems(entries, query, catalogueFilters) : []), [catalogueFilters, catalogueMode, entries, query]);
   const openCatalogue = () => {
     setPicked(new Map());
+    setCatalogueFocus(searchInput.current?.isFocused() === true);
+    setCommandsShown(false);
     setCatalogueMode(true);
+    requestAnimationFrame(() => setCommandsShown(true));
   };
   const closeCatalogue = () => {
     setCatalogueMode(false);
     setPicked(new Map());
     setIsFilterOpen(false);
+    setCommandsShown(false);
   };
   const togglePicked = (movement: Movement) =>
     setPicked((current) => {
@@ -602,7 +666,11 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // dernier mouvement de boucle protégé (variante « Suppression = Bloquée ») — remplacé.]
   // Recette n° 3 du 03/11/2026 (autres constats, Hermann : « Il faut sélectionner le mouvement de Buy-in pour
   // que le bouton d'action soit activé ») : Buy-in activé, il faut le buy-in et au moins un mouvement en boucle.
-  const buyIn = model === "AMRAP" && answers.buyIn === true;
+  const switches = roleSwitches(model);
+  const loopLabelOf = () => (model === "FOR_TIME" ? t().forTimeLoopSection : t().loopSection);
+  const buyIn = switches.includes("buyIn") && answers.buyIn === true;
+  // For time (recette du 04/11/2026, Hermann : « Questionnaire : il manque les interrupteurs Buy-in et Buy-out »).
+  const buyOut = switches.includes("buyOut") && answers.buyOut === true;
   // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « on ne doit pas pouvoir "Ajouter à la séance" si toutes les
   // valeurs des paramètres ne sont pas renseignées ») : au récapitulatif, chaque cellule du tableau est renseignée.
   // MAJ 04/11 §4.4 (décision de Hermann du 3 novembre) : récapitulatif complet et cohérent — objectifs renseignés,
@@ -611,14 +679,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const emomOverflow = useMemo(() => (model === "EMOM" ? emomDurationOverflow(answers, movements) : []), [answers, model, movements]);
   // C.5 (référence Formats §9.2, A4) : le Superset demande deux mouvements choisis.
   const enoughMovements = model === "SUPERSET" ? movements.length >= 2 : movements.length > 0;
-  const canSave = (buyIn ? hasChosenBuyIn(answers, movements) : enoughMovements) && issues.length === 0;
+  const canSave = enoughMovements && hasRequiredRoles(model, answers, movements) && issues.length === 0;
   const save = () => {
     if (busyRef.current || !canSave) return;
     busyRef.current = true;
     if (reedit !== null) {
       const next = applyModelReedit(sessionDraft.draft, reedit.circuitId, reedit.opened, { model, answers, movements, variable }, newId);
       sessionDraft.updateDraft({ exercises: next.exercises, ...(next.structure !== undefined ? { structure: next.structure } : {}) });
-      backToComposition();
+      dismissWith(backToComposition);
       return;
     }
     const built = buildModelElements(model, answers, movements, newId);
@@ -634,7 +702,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     // B.9 : le nom du modèle est suggéré (jamais imposé). Mise à jour du 04/11/2026 §2 : aucun nom de Séance
     // dans le parcours ; un nom déjà saisi dans la Composition est conservé.
     sessionDraft.suggestDraftName?.(modelName);
-    backToComposition();
+    dismissWith(backToComposition);
   };
 
   // Recette n° 3 du 03/11/2026 (autres constats : « Enregistrer > Cela ouvre un écran de composition de
@@ -656,14 +724,17 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     setSearchRole(null);
     setStage("summary");
   };
-  const validating = stage === "questionnaire";
+  // Recette du 04/11/2026 (f4-modale, Hermann : « Tabata : Après sélection des mouvements, le bouton d'action doit
+  // directement être "Enregistrer dans la séance" ») : le Tabata s'enregistre depuis son questionnaire, sans récapitulatif.
+  // [MAJ 04/11 §2 : « Valider les paramètres » pour tous les modèles — remplacé pour le Tabata.]
+  const validating = stage === "questionnaire" && model !== "TABATA";
 
   const close = () => {
     if (stage === "summary") {
       Keyboard.dismiss();
       setSearchRole(null);
       setStage("questionnaire");
-    } else router.back();
+    } else dismissWith(() => router.back());
   };
 
   // Lignes de paramètres du modèle.
@@ -715,7 +786,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       </Row>
     );
   };
-  const switchRow = (id: "buyIn" | "increasingVolume" | "withLoad", label: string) => (
+  const switchRow = (id: "buyIn" | "buyOut" | "increasingVolume" | "withLoad", label: string) => (
     <Row key={id} label={label} testID={`format-row-${id}`}>
       <Switch
         value={answers[id] === true}
@@ -725,6 +796,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           if (id === "buyIn" && !value) {
             setMovements((current) => current.filter((item) => item.buyIn !== true));
             setSearchRole((current) => (current === "BUY_IN" ? null : current));
+          }
+          if (id === "buyOut" && !value) {
+            setMovements((current) => current.filter((item) => item.buyOut !== true));
+            setSearchRole((current) => (current === "BUY_OUT" ? null : current));
           }
         }}
         accessibilityLabel={label}
@@ -777,10 +852,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : [],
         );
       case "DEATH_BY":
-        // MAJ 04/11 §4.3 : à plusieurs mouvements, le tableau Départ | Incrément remplace les lignes communes.
+        // MAJ 04/11 §4.3 : à plusieurs mouvements, le tableau Départ | Incrément remplace les lignes communes — recette du
+        // 04/11/2026 (f4-modale, Hermann : « Il faut que ce soit le cas dès la saisie du deuxième mouvement pour la première
+        // fois, pas seulement après la validation des paramètres ») : au questionnaire aussi.
         return withExecution([
           stepRow("intervalSeconds", r.intervalSeconds),
-          ...(stage === "summary" && several
+          ...(several
             ? []
             : [
                 stepRow("startRepetitions", r.startRepetitions, { format: (value) => `${value} ${t().repetitionsUnit}` }),
@@ -805,7 +882,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           stepRow("roundCount", r.roundCount),
           stepRow("restBetweenRoundsSeconds", r.restBetweenRoundsSeconds),
           stepRow("timeCapSeconds", r.timeCapSeconds, { last: stage === "summary" }),
-          ...(stage === "questionnaire" ? [switchRow("withLoad", r.withLoad)] : []),
+          ...(stage === "questionnaire" ? [switchRow("buyIn", r.buyIn), switchRow("buyOut", r.buyOut), switchRow("withLoad", r.withLoad)] : []),
         ];
       case "STRENGTH":
         // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Il manque le champ de la Pause ») : Pause toujours affichée.
@@ -840,12 +917,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const dragStartY = useRef<number | null>(null);
   const cardStep = useRef(CARD_STEP_DEFAULT);
   // Buy-in choisi : en tête, jamais déplacé ni dépassé.
-  const buyInCount = buyIn && movements[0]?.buyIn === true ? 1 : 0;
+  // Buy-in en tête, buy-out en fin (ordre tenu à l'ajout) : jamais déplacés ni dépassés.
+  const buyInCount = buyIn ? movements.filter((item) => item.buyIn === true).length : 0;
+  const buyOutCount = buyOut ? movements.filter((item) => item.buyOut === true).length : 0;
   const firstMovable = buyInCount;
+  const lastMovable = movements.length - 1 - buyOutCount;
   const dragTarget = (current: { from: number; dy: number }) =>
-    Math.max(firstMovable, Math.min(movements.length - 1, current.from + Math.round(current.dy / cardStep.current)));
+    Math.max(firstMovable, Math.min(lastMovable, current.from + Math.round(current.dy / cardStep.current)));
   const startDrag = (index: number) => {
-    if (index < firstMovable) return;
+    if (index < firstMovable || index > lastMovable) return;
     setRevealedId(null);
     dragStartY.current = touchY.current;
     setDrag({ from: index, dy: 0 });
@@ -865,7 +945,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       return next;
     });
   };
-  const cardList = (items: readonly ModelMovement[], offset: number, isBuyIn: boolean) => (
+  const cardList = (items: readonly ModelMovement[], offset: number, isBuyIn: boolean, isBuyOut = false) => (
     <View
       onTouchStart={(event) => {
         touchY.current = event.nativeEvent.pageY;
@@ -880,9 +960,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       }
       onTouchEnd={drag !== null ? endDrag : undefined}
       onTouchCancel={drag !== null ? () => setDrag(null) : undefined}
-      testID={isBuyIn ? "format-buy-in-cards" : "format-movement-cards"}
+      testID={isBuyIn ? "format-buy-in-cards" : isBuyOut ? "format-buy-out-cards" : "format-movement-cards"}
     >
-      {items.map((item, at) => movementCard(item, at + offset, isBuyIn))}
+      {items.map((item, at) => movementCard(item, at + offset, isBuyIn || isBuyOut))}
     </View>
   );
 
@@ -890,7 +970,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const cellInputs = useRef(new Map<string, TextInput | null>());
   const [focusedCell, setFocusedCell] = useState<string | null>(null);
   const [barHeight, setBarHeight] = useState(KEYBOARD_BAR_HEIGHT);
-  const cellOrder = useMemo(() => (stage === "summary" ? tableCellOrder(model, movements, answers) : []), [answers, model, movements, stage]);
+  const tableShown = stage === "summary" || (model === "DEATH_BY" && movements.length > 1);
+  const cellOrder = useMemo(() => (tableShown ? tableCellOrder(model, movements, answers) : []), [answers, model, movements, tableShown]);
   // Unité de l'objectif au clavier (MAJ 04/11 §4.5) : barre Répétitions | Durée, puis unité choisie, Précédent, Suivant.
   const [unitPicking, setUnitPicking] = useState(false);
   const focusedCellKey = focusedCell === null ? null : parseCellKey(focusedCell);
@@ -900,7 +981,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       ? null
       : {
           current: movements[unitRow]!.values.mode ?? ("REPETITIONS" as const),
-          picking: unitPicking,
+          // Ligne sans unité (EMOM, recette du 04/11/2026) : la barre propose d'abord Répétitions | Durée.
+          picking: unitPicking || movements[unitRow]!.values.mode === undefined,
           allowed: allowedModes(model, movements, unitRow),
           onPick: (mode: "REPETITIONS" | "DURATION") => {
             setUnitPicking(false);
@@ -936,11 +1018,23 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   }, [barHeight, focusedCell, keyboardFrame, reduceMotion]);
 
   // Familles de Niveaux : cartes reliées par le filet des niveaux (suggestions et mode catalogue).
-  const familyCards = (items: readonly MovementCatalogueItem[], card: (entry: MovementCatalogueEntry) => React.ReactNode, collapsed: boolean) =>
+  const familyCards = (items: readonly MovementCatalogueItem[], card: (entry: MovementCatalogueEntry) => React.ReactNode, collapsed: boolean, railActive = false) =>
     items.map((item) =>
-      item.kind === "PILE" && !collapsed ? (
+      item.kind === "PILE" && !collapsed && !(railActive && collapsedPiles.has(item.key)) ? (
         <View key={item.key} style={styles.family} testID={`format-family-${item.key}`}>
-          <View style={styles.familyLine} />
+          {railActive ? (
+            <Pressable
+              onPress={() => setCollapsedPiles((current) => new Set([...current, item.key]))}
+              accessibilityRole="button"
+              accessibilityLabel={t().collapsePiles}
+              style={styles.familyRailZone}
+              testID={`format-family-${item.key}-rail`}
+            >
+              <View style={styles.familyRailLine} />
+            </Pressable>
+          ) : (
+            <View style={styles.familyLine} />
+          )}
           {item.members.map((entry) => card(entry))}
         </View>
       ) : (
@@ -950,67 +1044,113 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
 
   // Section de mouvements : en-tête, lien « + Ajouter » / « Changer » (champ de saisie), puis « Ouvrir le mode
   // catalogue » / « Fermer le mode catalogue ».
-  const movementSection = (role: "LOOP" | "BUY_IN", label: string, link: string, testID: string) => {
+  const sectionLink = (role: "LOOP" | "BUY_IN" | "BUY_OUT", link: string) => {
     const open = searchRole === role;
     const inCatalogue = open && catalogueMode;
+    return {
+      text: inCatalogue ? t().closeCatalogue : open ? t().openCatalogue : link,
+      onPress: () => {
+        if (inCatalogue) closeCatalogue();
+        else if (open) openCatalogue();
+        else {
+          // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « changer de Buy-in doit effacer le mouvement avant de
+          // positionner le curseur sur le champ ») : « Changer » retire le buy-in (ou le buy-out) choisi, puis ouvre le champ.
+          if (role === "BUY_IN") setMovements((current) => current.filter((item) => item.buyIn !== true));
+          if (role === "BUY_OUT") setMovements((current) => current.filter((item) => item.buyOut !== true));
+          setQuery("");
+          setSuggestionsTop(null);
+          setSearchRole(role);
+        }
+      },
+    };
+  };
+  // Mode catalogue : en-tête de la section et ligne de recherche, figés dans la zone de contexte (recette du 04/11/2026,
+  // f4-catalogue : « la zone colorée jusqu'à la ligne de recherche et avec les boutons de filtre, de tri et de pli doit
+  // rester figée, le catalogue doit dérouler par-dessous »).
+  const catalogueHead = () => {
+    if (searchRole === null) return null;
+    const role = searchRole;
+    const label = role === "BUY_IN" ? t().buyInPickerTitle : role === "BUY_OUT" ? t().buyOutPickerTitle : buyIn || buyOut ? loopLabelOf() : t().movements;
+    const link = sectionLink(role, t().add);
+    const testID = role === "BUY_IN" ? "format-buy-in" : role === "BUY_OUT" ? "format-buy-out" : buyIn || buyOut ? "format-loop" : "format-movements";
     return (
       <>
-        <SectionHeader
-          label={role === "BUY_IN" && inCatalogue ? t().buyInPickerTitle : label}
-          link={inCatalogue ? t().closeCatalogue : open ? t().openCatalogue : link}
-          onLink={() => {
-            if (inCatalogue) closeCatalogue();
-            else if (open) openCatalogue();
-            else {
-              // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « changer de Buy-in doit effacer le mouvement avant de
-              // positionner le curseur sur le champ ») : « Changer » retire le buy-in choisi, puis ouvre le champ.
-              if (role === "BUY_IN") setMovements((current) => current.filter((item) => item.buyIn !== true));
-              setQuery("");
-              setSuggestionsTop(null);
-              setSearchRole(role);
-            }
-          }}
-          testID={testID}
-        />
-        {inCatalogue ? (
-          <View style={styles.search} testID="format-catalogue">
-            <View style={styles.catalogueCommands}>
-              <CatalogueSearchField
+        <SectionHeader label={label} link={link.text} onLink={link.onPress} testID={testID} />
+        <View style={[styles.search, styles.catalogueHead]} testID="format-catalogue">
+          <View style={styles.catalogueCommands}>
+            <Reanimated.View layout={LinearTransition.duration(220)} style={styles.catalogueField}>
+              <TextInput
                 value={query}
                 onChangeText={setQuery}
-                placeholder={strings.screens.movement.catalogue.searchPlaceholder}
+                autoFocus={catalogueFocus}
+                placeholder={t().searchPlaceholder}
+                returnKeyType="search"
+                submitBehavior="submit"
+                style={[styles.searchInput, query.length > 0 ? styles.searchInputWithClear : null]}
                 accessibilityLabel={strings.screens.movement.catalogue.searchAccessibilityLabel}
-                clearLabel={strings.screens.movement.catalogue.searchClear}
                 testID="format-catalogue-search"
               />
-              <FilterCommand
-                label={strings.screens.sessions.filterAction}
-                title={strings.screens.movement.catalogue.filters.command}
-                summary={filterSummary}
-                clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
-                editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
-                onOpen={() => setIsFilterOpen(true)}
-                onClear={() => {
-                  setCatalogueFilters(EMPTY_MOVEMENT_FILTERS);
-                  setFilterLabels([]);
-                }}
-                testID="format-catalogue-filter"
-              />
-              <CommandCircle label={strings.screens.sessions.sortAction} icon="sort" disabled testID="format-catalogue-sort" />
-              <Pressable
-                onPress={() => setPilesCollapsed((value) => !value)}
-                accessibilityRole="button"
-                accessibilityLabel={pilesCollapsed ? t().expandPiles : t().collapsePiles}
-                accessibilityState={{ selected: pilesCollapsed }}
-                hitSlop={5}
-                style={[styles.pilesToggle, pilesCollapsed ? styles.pilesToggleOn : null]}
-                testID="format-catalogue-piles"
-              >
-                <View style={[styles.pilesGlyph, pilesCollapsed ? styles.pilesGlyphOn : null]} />
-                <View style={[styles.pilesGlyph, pilesCollapsed ? styles.pilesGlyphOn : null]} />
-                <View style={[styles.pilesGlyph, pilesCollapsed ? styles.pilesGlyphOn : null]} />
-              </Pressable>
-            </View>
+              {query.length > 0 ? (
+                <Pressable
+                  onPress={() => setQuery("")}
+                  accessibilityRole="button"
+                  accessibilityLabel={strings.screens.movement.catalogue.searchClear}
+                  hitSlop={8}
+                  style={styles.searchClear}
+                  testID="format-catalogue-search-clear"
+                >
+                  <KodjoIcon name="control-close" size={12} />
+                </Pressable>
+              ) : null}
+            </Reanimated.View>
+            {commandsShown ? (
+              <Reanimated.View entering={FadeIn.duration(220)} style={styles.catalogueButtons}>
+                <FilterCommand
+                  label={strings.screens.sessions.filterAction}
+                  title={strings.screens.movement.catalogue.filters.command}
+                  summary={filterSummary}
+                  clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
+                  editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
+                  onOpen={() => setIsFilterOpen(true)}
+                  onClear={() => {
+                    setCatalogueFilters(EMPTY_MOVEMENT_FILTERS);
+                    setFilterLabels([]);
+                  }}
+                  testID="format-catalogue-filter"
+                />
+                <CommandCircle label={strings.screens.sessions.sortAction} icon="sort" disabled testID="format-catalogue-sort" />
+                <Pressable
+                  onPress={() => {
+                    setPilesCollapsed((value) => !value);
+                    setCollapsedPiles(new Set());
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={pilesCollapsed ? t().expandPiles : t().collapsePiles}
+                  accessibilityState={{ selected: pilesCollapsed }}
+                  hitSlop={5}
+                  style={[styles.pilesToggle, pilesCollapsed ? styles.pilesToggleOn : null]}
+                  testID="format-catalogue-piles"
+                >
+                  <View style={[styles.pilesGlyph, pilesCollapsed ? styles.pilesGlyphOn : null]} />
+                  <View style={[styles.pilesGlyph, pilesCollapsed ? styles.pilesGlyphOn : null]} />
+                  <View style={[styles.pilesGlyph, pilesCollapsed ? styles.pilesGlyphOn : null]} />
+                </Pressable>
+              </Reanimated.View>
+            ) : null}
+          </View>
+        </View>
+      </>
+    );
+  };
+  const movementSection = (role: "LOOP" | "BUY_IN" | "BUY_OUT", label: string, link: string, testID: string) => {
+    const open = searchRole === role;
+    const inCatalogue = open && catalogueMode;
+    const sectionAction = sectionLink(role, link);
+    return (
+      <>
+        {inCatalogue ? null : <SectionHeader label={label} link={sectionAction.text} onLink={sectionAction.onPress} testID={testID} />}
+        {inCatalogue ? (
+          <View style={styles.search}>
             <View style={styles.catalogueList} testID="format-catalogue-results">
               {familyCards(
                 catalogueItems,
@@ -1026,6 +1166,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                   />
                 ),
                 pilesCollapsed,
+                true,
               )}
             </View>
           </View>
@@ -1099,13 +1240,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
 
   return (
     <View style={styles.modalRoot} testID="format-modal">
-      <View style={styles.veil} />
-      <View style={[styles.sheet, { top: MODAL_TOP }]} testID="format-sheet">
+      <Reanimated.View style={[styles.veil, veilStyle]} testID="format-veil" />
+      <Reanimated.View style={[styles.sheet, { top: MODAL_TOP }, sheetStyle]} testID="format-sheet">
       <ScrollView
         ref={scrollRef}
         // Recette n° 3 (f3-questionnaire : « L'écran doit rester fixe et le résultat défiler dans son cadre ») :
-        // écran figé pendant la saisie d'un mouvement avec suggestions, et pendant le déplacement d'une carte.
-        scrollEnabled={drag === null && !(searchOpen && ranked.length > 0)}
+        // écran figé pendant la saisie d'un mouvement avec suggestions, et pendant le déplacement d'une carte. Recette du
+        // 04/11/2026 (f4-catalogue : « lorsqu'un texte est tapé dans la zone de recherche on doit pouvoir continuer de faire
+        // défiler la liste des mouvements ») : jamais figé en mode catalogue.
+        scrollEnabled={drag === null && (catalogueMode || !(searchOpen && ranked.length > 0))}
         // Recette n° 3 bis du 03/11/2026 (f3s-recherche, Hermann : « appuyer sur entrer ou sur une autre partie de
         // l'écran ne change rien, le clavier reste ouvert » ; « faire défiler vers le bas et le haut ne ferme pas le
         // clavier ») : pendant la saisie d'un mouvement, un toucher hors du champ ne le quitte plus (avec
@@ -1118,47 +1261,24 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           scrollY.current = event.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={16}
-        contentContainerStyle={[styles.content, { paddingBottom: actionZone.scrollReserve - FINAL_ACTION_TOP_MARGIN + TIMELINE_TO_BUTTON }]}
+        contentContainerStyle={[styles.content, { paddingTop: bandHeight, paddingBottom: actionZone.scrollReserve - FINAL_ACTION_TOP_MARGIN + TIMELINE_TO_BUTTON }]}
         testID={`format-${stage}`}
       >
-        {/* Zone de contexte (109 px) : couleur et motif du modèle ; en-tête transparent « Sélection » — croix au
-            questionnaire, Retour au récapitulatif, nom du Format centré ; accroche centrée sur deux lignes. */}
-        <View style={[styles.context, { backgroundColor: colors.background }]}>
-          <FormatModelIllustration model={model} />
-          <View style={styles.modalHeader} testID="screen-header">
-            <Pressable
-              onPress={close}
-              accessibilityRole="button"
-              accessibilityLabel={stage === "questionnaire" ? t().closeAccessibilityLabel : t().backAccessibilityLabel}
-              hitSlop={(minTouchTarget - dimensions.backAction.visualCircle) / 2}
-              style={styles.headerCircle}
-              testID="screen-header-back"
-            >
-              <KodjoIcon name={stage === "questionnaire" ? "control-close" : "control-back"} size={dimensions.backAction.icon} testID="screen-header-back-icon" />
-            </Pressable>
-            <Text style={styles.modalTitle} accessibilityRole="header" numberOfLines={1} testID="format-title">
-              {modelName}
-            </Text>
-          </View>
-          <Text style={styles.tagline}>{t().taglines[model]}</Text>
-        </View>
-
         {/* Mouvements (§7.1 à §7.4). */}
         {/* Recette n° 3 du 03/11/2026 (autres constats, Hermann : « Activer Buy-in : la section Buy-in apparaît, le
             nom de l'autre section change (en boucle...) ») : sections Buy-in et En boucle dès le questionnaire. */}
         {catalogueMode && searchRole !== null ? (
-          // Mode catalogue : seule la section concernée, ses résultats jusqu'au bas de la modale.
-          searchRole === "BUY_IN" ? (
-            movementSection("BUY_IN", t().buyInSection, t().change, "format-buy-in")
-          ) : (
-            movementSection("LOOP", buyIn ? t().loopSection : t().movements, t().add, buyIn ? "format-loop" : "format-movements")
-          )
-        ) : buyIn ? (
+          // Mode catalogue : seule la section concernée, ses résultats jusqu'au bas de la modale (en-tête et recherche
+          // dans la zone fixe).
+          movementSection(searchRole, "", t().add, "format-catalogue-section")
+        ) : buyIn || buyOut ? (
           <>
-            {movementSection("BUY_IN", t().buyInSection, buyInCount > 0 ? t().change : t().add, "format-buy-in")}
-            {cardList(movements.slice(0, buyInCount), 0, true)}
-            {movementSection("LOOP", t().loopSection, t().add, "format-loop")}
-            {cardList(movements.slice(buyInCount), buyInCount, false)}
+            {buyIn ? movementSection("BUY_IN", t().buyInSection, buyInCount > 0 ? t().change : t().add, "format-buy-in") : null}
+            {buyIn ? cardList(movements.slice(0, buyInCount), 0, true) : null}
+            {movementSection("LOOP", loopLabelOf(), t().add, "format-loop")}
+            {cardList(movements.slice(buyInCount, movements.length - buyOutCount), buyInCount, false)}
+            {buyOut ? movementSection("BUY_OUT", t().buyOutSection, buyOutCount > 0 ? t().change : t().add, "format-buy-out") : null}
+            {buyOut ? cardList(movements.slice(movements.length - buyOutCount), movements.length - buyOutCount, false, true) : null}
           </>
         ) : (
           <>
@@ -1192,7 +1312,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             </>
           ) : null}
         </View>
-        {stage === "summary" && hasSummaryTable(model, movements) ? (
+        {(stage === "summary" || model === "DEATH_BY") && hasSummaryTable(model, movements) ? (
           <>
             {model === "AMRAP" ? (
               <AmrapTable movements={movements} increasing={answers.increasingVolume === true} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
@@ -1200,8 +1320,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             {model === "EMOM" ? <EmomTable movements={movements} withLoad={answers.withLoad === true} fixedLoad={emomFixedLoad(movements, answers)} overflow={emomOverflow} onChange={updateValues} cell={cellBinding} /> : null}
             {model === "DEATH_BY" ? <DeathByTable movements={movements} onChange={updateValues} cell={cellBinding} /> : null}
             {model === "FOR_TIME" ? (
-              <View style={[styles.panel, styles.tablePanel]}>
-                <SeriesTable model="FOR_TIME" movements={movements} count={answers.roundCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
+              // Recette du 04/11/2026 (f4-modale, For time : « le fond du tableau doit être transparent, seules les zones de
+              // textes doivent avoir un fond blanc ») : tableau sans cadre.
+              <View style={styles.tableBare}>
+                <SeriesTable model="FOR_TIME" bare movements={movements} count={answers.roundCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
               </View>
             ) : null}
             {/* Contrôle EMOM des durées (MAJ 04/11 §4.4) : message sous le tableau, cadres rouges, validation bloquée. */}
@@ -1225,6 +1347,37 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         </>
         )}
       </ScrollView>
+      {/* Zone de contexte figée (109 px, prolongée en mode catalogue jusqu'à la ligne de recherche) : couleur et motif du
+          modèle ; croix au questionnaire, Retour au récapitulatif, nom du Format centré ; accroche ; part fondue dessous. */}
+      <View style={styles.band} pointerEvents="box-none" testID="format-context-band">
+        <View style={{ backgroundColor: colors.background }} onLayout={(event) => setBandHeight(event.nativeEvent.layout.height)}>
+          <View style={styles.context}>
+            <FormatModelIllustration model={model} />
+            <View style={styles.modalHeader} testID="screen-header">
+              <Pressable
+                onPress={close}
+                accessibilityRole="button"
+                accessibilityLabel={stage === "questionnaire" ? t().closeAccessibilityLabel : t().backAccessibilityLabel}
+                hitSlop={(minTouchTarget - dimensions.backAction.visualCircle) / 2}
+                style={styles.headerCircle}
+                testID="screen-header-back"
+              >
+                <KodjoIcon name={stage === "questionnaire" ? "control-close" : "control-back"} size={dimensions.backAction.icon} testID="screen-header-back-icon" />
+              </Pressable>
+              <Text style={styles.modalTitle} accessibilityRole="header" numberOfLines={1} testID="format-title">
+                {modelName}
+              </Text>
+            </View>
+            <Text style={styles.tagline}>{t().taglines[model]}</Text>
+          </View>
+          {catalogueMode ? catalogueHead() : null}
+        </View>
+        <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.bandFade} testID="format-context-fade">
+          {CONTEXT_FADE_LAYERS.map((layer) => (
+            <View key={layer.height} style={[styles.bandFadeLayer, { height: layer.height, opacity: layer.opacity, backgroundColor: colors.background }]} />
+          ))}
+        </View>
+      </View>
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
         {catalogueMode ? (
           <PrimaryActionButton label={t().addPicked} onPress={addPicked} disabled={picked.size === 0} testID="format-catalogue-add" />
@@ -1234,9 +1387,11 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           <PrimaryActionButton label={reedit !== null ? t().saveChanges : t().save} onPress={save} disabled={!canSave} testID="format-save" />
         )}
       </PrimaryActionZone>
-      </View>
+      </Reanimated.View>
       {isFilterOpen ? (
         <MovementFilterSheet
+          // Recette du 04/11/2026 (f4-catalogue) : feuille arrêtée à la limite de la zone de contexte, montée et descente lentes.
+          docked={{ top: MODAL_TOP + bandHeight }}
           filters={catalogueFilters}
           onApply={(next, labels) => {
             setCatalogueFilters(next);
@@ -1279,7 +1434,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const move = (direction: -1 | 1) =>
       setMovements((current) => {
         const target = index + direction;
-        if (target < firstMovable || target >= current.length || isBuyInCard) return current;
+        if (target < firstMovable || target > lastMovable || isBuyInCard) return current;
         const next = [...current];
         [next[index], next[target]] = [next[target]!, next[index]!];
         return next;
@@ -1415,7 +1570,19 @@ function genericDuration(model: FormatModelKey, answers: ModelAnswers): string {
 const styles = StyleSheet.create({
   content: { flexGrow: 1 },
   modalRoot: { flex: 1, backgroundColor: "transparent" },
-  veil: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: tokenColors.overlayScrim },
+  // Même voile que la fenêtre Formats, qui reste en place à l'ouverture (recette du 04/11/2026).
+  veil: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: FORMATS_SCRIM },
+  band: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 1 },
+  bandFade: { height: CONTEXT_FADE_HEIGHT },
+  bandFadeLayer: { position: "absolute", top: 0, left: 0, right: 0 },
+  catalogueHead: { marginBottom: 10 },
+  catalogueField: { flex: 1, justifyContent: "center" },
+  catalogueButtons: { flexDirection: "row", alignItems: "center", gap: 8 },
+  searchInputWithClear: { paddingRight: 36 },
+  searchClear: { position: "absolute", right: 10, width: 22, height: 22, borderRadius: 11, backgroundColor: "#DDE0E6", alignItems: "center", justifyContent: "center" },
+  familyRailZone: { position: "absolute", left: -6, top: 26, bottom: 26, width: 16, alignItems: "center", zIndex: 1 },
+  familyRailLine: { width: 2, flex: 1, borderRadius: 1, backgroundColor: "#B9BDF5" },
+  tableBare: { marginTop: 12, marginHorizontal: 16 },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" },
   context: { height: CONTEXT_HEIGHT, paddingHorizontal: 16, paddingTop: 10 },
   modalHeader: { height: dimensions.backAction.visualCircle + 2, flexDirection: "row", alignItems: "center", justifyContent: "center" },

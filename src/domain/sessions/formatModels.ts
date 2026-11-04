@@ -84,6 +84,11 @@ export type ModelAnswers = {
   readonly restBetweenBlocksSeconds?: number;
   readonly loopRestSeconds?: number;
   readonly buyIn?: boolean;
+  /**
+   * For time : interrupteur « Buy-out » du questionnaire (recette du 04/11/2026, Hermann : « Questionnaire : il manque les
+   * interrupteurs Buy-in et Buy-out ») ; `buyIn` sert aussi au For time.
+   */
+  readonly buyOut?: boolean;
   readonly increasingVolume?: boolean;
   /** « Avec charge » (Progression, For time, AMRAP, EMOM) : désactivé par défaut (MAJ 04/11 §6 quater bis). */
   readonly withLoad?: boolean;
@@ -118,7 +123,7 @@ export function initialAnswers(key: FormatModelKey): ModelAnswers {
     case "AMRAP":
       return { durationSeconds: 12 * MINUTE, blockCount: 1, restBetweenBlocksSeconds: 2 * MINUTE, loopRestSeconds: 0, buyIn: false, increasingVolume: false, withLoad: false };
     case "FOR_TIME":
-      return { roundCount: 3, timeCapSeconds: null, restBetweenRoundsSeconds: 0, withLoad: false };
+      return { roundCount: 3, timeCapSeconds: null, restBetweenRoundsSeconds: 0, buyIn: false, buyOut: false, withLoad: false };
     case "DEATH_BY":
       return { intervalSeconds: MINUTE, startRepetitions: 1, increment: 1, recoveryBetweenSeconds: MINUTE, execution: "SEQUENCE" };
     case "STRENGTH":
@@ -168,6 +173,7 @@ const ANSWER_BOUNDS: Readonly<Record<ModelAnswerKey, { readonly min: number; rea
   restBetweenBlocksSeconds: { min: 0, max: 3600 },
   loopRestSeconds: { min: 0, max: 3600 },
   buyIn: { min: 0, max: 1 },
+  buyOut: { min: 0, max: 1 },
   increasingVolume: { min: 0, max: 1 },
   withLoad: { min: 0, max: 1 },
   roundCount: { min: 1, max: 99 },
@@ -251,6 +257,26 @@ export function hasChosenBuyIn(answers: ModelAnswers, movements: readonly ModelM
   return answers.buyIn === true && movements.some((movement) => movement.buyIn === true) && movements.some((movement) => movement.buyIn !== true);
 }
 
+/** Modèles dont le questionnaire porte les interrupteurs de Rôle : AMRAP (Buy-in), For time (Buy-in, Buy-out). */
+export function roleSwitches(key: FormatModelKey): readonly ("buyIn" | "buyOut")[] {
+  return key === "AMRAP" ? ["buyIn"] : key === "FOR_TIME" ? ["buyIn", "buyOut"] : [];
+}
+
+/**
+ * Rôles requis par les interrupteurs : Buy-in activé, un buy-in choisi ; Buy-out activé (For time), un buy-out choisi ;
+ * toujours au moins un mouvement en Tour (référence Formats §3). Sans interrupteur actif : au moins un mouvement.
+ */
+export function hasRequiredRoles(key: FormatModelKey, answers: ModelAnswers, movements: readonly ModelMovement[]): boolean {
+  const switches = roleSwitches(key);
+  const needIn = switches.includes("buyIn") && answers.buyIn === true;
+  const needOut = switches.includes("buyOut") && answers.buyOut === true;
+  return (
+    movements.some((movement) => movementRole(movement) === "TOUR") &&
+    (!needIn || movements.some((movement) => movement.buyIn === true)) &&
+    (!needOut || movements.some((movement) => movement.buyOut === true))
+  );
+}
+
 const PROGRESSION_INITIAL = [10, 12, 14];
 const FOR_TIME_INITIAL = [21, 15, 9];
 
@@ -266,8 +292,10 @@ export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers
     case "AMRAP":
       return { mode: "REPETITIONS", repetitions: baseTarget(exercise, "REPETITIONS"), max: false, increment: null, loadKg: null };
     case "EMOM":
-      // MAJ 04/11 §4.4 : EMOM en mode Répétitions à la création.
-      return { mode: "REPETITIONS", repetitions: baseTarget(exercise, "REPETITIONS"), loadKg: null, loadIncrement: 0 };
+      // Recette du 04/11/2026 (Hermann, EMOM : « Aucun mode d'exécution par défaut, le champ de valeur a un fond rouge ») :
+      // ligne sans unité, objectif à renseigner ; l'unité se choisit au clavier. [MAJ 04/11 §4.4 et référence §7.6 « EMOM
+      // en mode Répétitions » à la création — remplacé.]
+      return { repetitions: null, loadKg: null, loadIncrement: 0 };
     case "DEATH_BY":
       return { start: answers.startRepetitions ?? 1, startIncrement: answers.increment ?? 1 };
     case "FOR_TIME":
@@ -285,7 +313,9 @@ export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers
  * Les charges et le reste sont conservés.
  */
 export function withMovementMode(values: MovementValues, mode: ExecutionMode): MovementValues {
-  if ((values.mode ?? "REPETITIONS") === mode) return values;
+  // Ligne sans unité (EMOM à la création) : l'unité choisie est posée, l'objectif reste à renseigner.
+  if (values.mode === undefined) return { ...values, mode };
+  if (values.mode === mode) return values;
   return {
     ...values,
     mode,
@@ -385,7 +415,8 @@ export function summaryIssues(key: FormatModelKey, answers: ModelAnswers, moveme
         case "DEATH_BY":
           return !several || (values.start != null && values.start >= 1 && values.startIncrement != null && values.startIncrement >= 1);
         case "FOR_TIME":
-          return Array.from({ length: answers.roundCount ?? 1 }, (_, at) => values.volumes?.[at] ?? null).every((volume) => volume !== null);
+          // Buy-in et buy-out : une seule exécution (une case).
+          return Array.from({ length: movementRole(movement) === "TOUR" ? (answers.roundCount ?? 1) : 1 }, (_, at) => values.volumes?.[at] ?? null).every((volume) => volume !== null);
         case "PROGRESSION":
           return Array.from({ length: answers.seriesCount ?? 1 }, (_, at) => values.cells?.[at] ?? null).every((cell) => cell !== null && cell.repetitions !== null);
         default:

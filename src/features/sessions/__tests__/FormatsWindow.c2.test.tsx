@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import { fireEvent, render, screen, within } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 
 import { FORMAT_MODEL_ORDER, FormatsWindow } from "@/features/sessions/FormatsWindow";
 import { strings } from "@/shared/i18n";
@@ -32,13 +32,17 @@ describe("FormatsWindow", () => {
     expect(screen.queryByText(/Mobilité|Libre|Une séance|Un exercice/)).toBeNull();
   });
 
-  it("la croix et le voile ferment la fenêtre ; une carte transmet son modèle", () => {
+  it("la croix et le voile ferment la fenêtre ; une carte transmet son modèle", async () => {
     const { onClose, onSelect } = renderWindow();
     fireEvent.press(screen.getByTestId("formats-window-close"));
     // Voile : masqué à VoiceOver par la fenêtre modale (la croix reste accessible).
     fireEvent.press(screen.getByTestId("formats-window-scrim", { includeHiddenElements: true }));
     expect(onClose).toHaveBeenCalledTimes(2);
     fireEvent.press(screen.getByTestId("format-model-AMRAP"));
-    expect(onSelect).toHaveBeenCalledWith("AMRAP");
+    // Recette du 04/11/2026 : la fenêtre s'efface, le voile reste ; le modèle est transmis à la fin de l'effacement.
+    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("AMRAP"));
+    // Un second toucher pendant l'effacement est ignoré.
+    fireEvent.press(screen.getByTestId("format-model-EMOM"));
+    expect(onSelect).toHaveBeenCalledTimes(1);
   });
 });

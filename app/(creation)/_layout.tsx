@@ -76,8 +76,12 @@ export default function CreationLayout() {
             bas, la Composition restant visible sous le voile ; l'étape (questionnaire / récapitulatif) change sur
             place, sans navigation. `format-summary` ouvre directement le récapitulatif (réédition depuis la
             Composition, §6 sexies). [Écrans pleins, récapitulatif poussé sans transition — remplacés.] */}
-        <Stack.Screen name="format-questionnaire" options={{ presentation: "transparentModal", animation: "slide_from_bottom" }} />
-        <Stack.Screen name="format-summary" options={{ presentation: "transparentModal", animation: "slide_from_bottom" }} />
+        {/* Recette du 04/11/2026 (f4-modale, Hermann : « Le voile grisé déjà en place […] doit simplement rester et
+            accueillir la modale des formats ») : la route s'affiche sans transition ; la modale monte seule, par le bas,
+            dans le voile de la fenêtre Formats resté en place (`FormatModelScreen`). [`slide_from_bottom` de la route,
+            voile compris — remplacé.] */}
+        <Stack.Screen name="format-questionnaire" options={{ presentation: "transparentModal", animation: "none" }} />
+        <Stack.Screen name="format-summary" options={{ presentation: "transparentModal", animation: "none" }} />
         {/* Recette n° 3 du 03/11/2026 (autres constats) : fiche d'un mouvement du questionnaire ou du
             récapitulatif, en modale par le bas, lecture seule ; fermeture par sa croix (geste natif désactivé, T02-S02).
             Recette n° 3 bis (f3s-fiche) : feuille ajustée à son contenu, au plus jusqu'au titre de l'écran (hauteur

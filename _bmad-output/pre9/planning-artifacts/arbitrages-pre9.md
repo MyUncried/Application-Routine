@@ -175,7 +175,7 @@ Distinction : **règle existante appliquée** (citée) ; **représentation techn
 | ID | Question | Règle existante | Story | Statut au 29/10 |
 |---|---|---|---|---|
 | ARB-06 | Création par enveloppe | COMP l.64 ; ch13 l.1768 ; REVUE C10 | B.2, B.4 | **DÉCIDÉ** (§0) — pose sur un premier contenu, puis glisser-déposer d'autres contenus, non contigus, de conteneurs différents, Point d'arrêt compris. [Recommandation initiale « contiguë, même parent, point d'arrêt refusé, action grisée » : remplacée.] |
-| ARB-07 | Position d'insertion d'un nouvel Exercice | comportement actuel | B.2 | **DÉCIDÉ** — après le dernier Exercice entré, dans son conteneur. [Recommandation initiale « fin du niveau Séance ou du conteneur déployé » : remplacée.] |
+| ARB-07 | Position d'insertion d'un nouvel Exercice | comportement actuel | B.2 | **DÉCIDÉ** — après le dernier Exercice entré, dans son conteneur. [Recommandation initiale « fin du niveau Séance ou du conteneur déployé » : remplacée.] [Complété le 04/11/2026, recette iPhone (Hermann) : dernier Exercice dans un Circuit issu d'un format — insertion juste après ce Circuit, hors de lui ; voir ch07 ARB-07.] |
 | ARB-08 | Duplication d'un Circuit ou d'un Cycle | aucune règle | B.5 | **DÉCIDÉ** — hors PRE-9. [Recommandation initiale « copie juste après la source » : remplacée.] |
 | ARB-09 | Déplacement d'un Cycle entier | aucun geste (COMP l.72) | B.4 | **DÉCIDÉ** — autorisé, même geste de glisser-déposer. [Recommandation initiale « hors PRE-9 » : remplacée.] |
 | ARB-10 | Cible nulle et volume | COMP §3 l.40 ; ch10 l.2616 | B.3 | **DÉCIDÉ** — cible nulle permise selon les règles, volume total de l'Exercice non nul. Récupération après occurrence sautée : ARB-10b, clos en révision 2 (§0 bis). |

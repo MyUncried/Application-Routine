@@ -43,6 +43,18 @@ const SERIES_UNIT_WIDTH = 52;
 const SERIES_COLUMN_WIDTH = 56;
 const ROW_HEIGHT = 36;
 const LOAD_ROW_HEIGHT = 72;
+/**
+ * Recette du 04/11/2026 (f4-modale) — EMOM : « "12 min 30" ne tient pas dans son cadre sur une ligne » ; AMRAP : « aligner
+ * les pastilles Max à droite sur les textes, centrer le titre de la colonne en conséquence ; décaler les autres colonnes
+ * d'autant, réduire l'espace entre les colonnes » ; For time : « décaler la colonne de l'unité plus à droite », charges
+ * « police plus petite, pas en gras, espace vertical réduit avec la ligne d'objectifs au-dessus ».
+ */
+const OBJECTIVE_WIDTH = 84;
+const NARROW_WIDTH = 58;
+const MAX_WIDTH = 28;
+const BARE_NAME_WIDTH = 124;
+const COMPACT_LOAD_HEIGHT = 24;
+const BARE_LOAD_ROW_HEIGHT = ROW_HEIGHT + COMPACT_LOAD_HEIGHT + 2;
 
 const t = () => strings.screens.formatModel;
 
@@ -177,8 +189,14 @@ export function TableCell({
   onBlur,
   label,
   width = COLUMN_WIDTH,
+  boxed = false,
+  compact = false,
   testID,
 }: {
+  /** Tableau sans cadre (For time) : la zone de saisie porte un fond blanc. */
+  readonly boxed?: boolean;
+  /** Charge sous l'objectif (For time) : police réduite, non grasse, ligne plus basse. */
+  readonly compact?: boolean;
   readonly kind: CellEntryKind;
   readonly value: number | null;
   readonly onChange: (value: number | null) => void;
@@ -228,6 +246,8 @@ export function TableCell({
       style={[
         styles.cell,
         { width },
+        boxed ? styles.cellBoxed : null,
+        compact ? styles.cellCompact : null,
         disabled ? styles.cellDisabled : null,
         !disabled && missing ? styles.cellMissing : null,
         active || focused ? styles.cellActive : null,
@@ -263,10 +283,10 @@ export function AmrapTable({
     <View style={styles.table} testID="format-amrap-table">
       <View style={styles.tableHeader}>
         <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={styles.tableHead}>{tt.objective}</Text>
-        {increasing ? <Text style={styles.tableHead}>{tt.perRound}</Text> : null}
-        {withLoad ? <Text style={styles.tableHead}>{tt.load}</Text> : null}
-        <Text style={styles.tableHead}>{tt.max}</Text>
+        <Text style={[styles.tableHead, { width: OBJECTIVE_WIDTH }]}>{tt.objective}</Text>
+        {increasing ? <Text style={[styles.tableHead, { width: NARROW_WIDTH }]}>{tt.perRound}</Text> : null}
+        {withLoad ? <Text style={[styles.tableHead, { width: NARROW_WIDTH }]}>{tt.load}</Text> : null}
+        <Text style={[styles.tableHead, styles.maxHead]}>{tt.max}</Text>
       </View>
       {movements.map((item, index) => {
         const values = item.values;
@@ -283,7 +303,7 @@ export function AmrapTable({
               kind={mode === "DURATION" ? "duration" : "integer"}
               value={values.repetitions ?? null}
               format={(value) => formatObjective(mode, value)}
-              placeholder={tt.toFill}
+              width={OBJECTIVE_WIDTH}
               missing={!max && values.repetitions == null}
               disabled={max}
               onChange={(value) => onChange(index, { ...values, repetitions: value })}
@@ -298,6 +318,7 @@ export function AmrapTable({
                   value={values.increment ?? null}
                   format={(value) => `+ ${mode === "DURATION" ? formatSeconds(value) : value}`}
                   placeholder="+"
+                  width={NARROW_WIDTH}
                   missing={!max && values.increment == null}
                   disabled={max}
                   onChange={(value) => onChange(index, { ...values, increment: value })}
@@ -306,7 +327,7 @@ export function AmrapTable({
                   testID={`format-amrap-increment-${index}`}
                 />
               ) : (
-                <Text style={styles.tableDash}>{t().dash}</Text>
+                <Text style={[styles.tableDash, { width: NARROW_WIDTH }]}>{t().dash}</Text>
               )
             ) : null}
             {withLoad ? (
@@ -314,6 +335,7 @@ export function AmrapTable({
                 kind="decimal"
                 value={values.loadKg ?? null}
                 format={formatLoad}
+                width={NARROW_WIDTH}
                 onChange={(value) => onChange(index, { ...values, loadKg: value })}
                 {...cell(cellKey("load", index))}
                 label={`${name}, ${tt.load}`}
@@ -325,7 +347,7 @@ export function AmrapTable({
               accessibilityRole="radio"
               accessibilityState={{ checked: max }}
               accessibilityLabel={`${name}, ${tt.max}`}
-              style={styles.radioSlot}
+              style={[styles.radioSlot, styles.maxSlot]}
               testID={`format-amrap-max-${index}`}
             >
               <View style={[styles.radio, max ? styles.radioOn : null]}>{max ? <View style={styles.radioDot} /> : null}</View>
@@ -360,7 +382,7 @@ export function EmomTable({
     <View style={styles.table} testID="format-emom-table">
       <View style={styles.tableHeader}>
         <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={styles.tableHead}>{tt.objective}</Text>
+        <Text style={[styles.tableHead, { width: OBJECTIVE_WIDTH }]}>{tt.objective}</Text>
         {withLoad ? <Text style={styles.tableHead}>{tt.load}</Text> : null}
         {withLoad ? <Text style={styles.tableHead}>{tt.perSeries}</Text> : null}
       </View>
@@ -377,9 +399,10 @@ export function EmomTable({
               kind={mode === "DURATION" ? "duration" : "integer"}
               value={values.repetitions ?? null}
               format={(value) => formatObjective(mode, value)}
-              placeholder={tt.toFill}
+              width={OBJECTIVE_WIDTH}
               missing={values.repetitions == null || overflow.includes(index)}
-              onChange={(value) => onChange(index, { ...values, repetitions: value })}
+              // Ligne sans unité (recette du 04/11/2026) : une valeur tapée sans choisir l'unité est lue en Répétitions.
+              onChange={(value) => onChange(index, { ...values, repetitions: value, ...(value !== null && mode === undefined ? { mode: "REPETITIONS" as const } : {}) })}
               {...cell(cellKey("obj", index))}
               label={`${name}, ${tt.objective}`}
               testID={`format-emom-objective-${index}`}
@@ -475,7 +498,10 @@ export function SeriesTable({
   withLoad,
   onChange,
   cell,
+  bare = false,
 }: {
+  /** For time (recette du 04/11/2026) : tableau sans fond, zones de saisie blanches, charges compactes. */
+  readonly bare?: boolean;
   readonly model: "FOR_TIME" | "PROGRESSION";
   readonly movements: readonly ModelMovement[];
   readonly count: number;
@@ -510,7 +536,8 @@ export function SeriesTable({
     };
   };
   const heading = (column: number) => (model === "FOR_TIME" ? tt.round : tt.series).replace("{n}", String(column + 1));
-  const rowHeight = withLoad ? LOAD_ROW_HEIGHT : ROW_HEIGHT;
+  const rowHeight = withLoad ? (bare ? BARE_LOAD_ROW_HEIGHT : LOAD_ROW_HEIGHT) : ROW_HEIGHT;
+  const nameWidth = bare ? BARE_NAME_WIDTH : SERIES_NAME_WIDTH;
   // Valeurs d'une ligne : For time (volumes, loads) ; Progression (cells).
   const objectiveAt = (values: MovementValues, column: number) => (model === "FOR_TIME" ? (values.volumes?.[column] ?? null) : (values.cells?.[column]?.repetitions ?? null));
   const loadAt = (values: MovementValues, column: number) => (model === "FOR_TIME" ? (values.loads?.[column] ?? null) : (values.cells?.[column]?.loadKg ?? null));
@@ -533,8 +560,8 @@ export function SeriesTable({
     return { ...values, cells };
   };
   return (
-    <View style={[styles.seriesTable, styles.seriesColumns]} testID={model === "FOR_TIME" ? "format-for-time-table" : "format-progression-table"}>
-      <View style={styles.seriesNames} testID={model === "FOR_TIME" ? "format-for-time-names" : "format-progression-names"}>
+    <View style={[styles.seriesTable, bare ? styles.seriesTableBare : null, styles.seriesColumns]} testID={model === "FOR_TIME" ? "format-for-time-table" : "format-progression-table"}>
+      <View style={[styles.seriesNames, { width: nameWidth + SERIES_UNIT_WIDTH }, bare ? styles.seriesNamesBare : null]} testID={model === "FOR_TIME" ? "format-for-time-names" : "format-progression-names"}>
         <View style={styles.seriesHeader}>
           <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
           <Text style={[styles.tableHead, { width: SERIES_UNIT_WIDTH }]}>{tt.unit}</Text>
@@ -585,13 +612,14 @@ export function SeriesTable({
                   const objective = objectiveAt(values, column);
                   const label = tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", heading(column));
                   return (
-                    <View key={column} style={styles.seriesCell}>
+                    <View key={column} style={[styles.seriesCell, bare ? styles.seriesCellBare : null]}>
                       <TableCell
                         kind={mode === "DURATION" ? "duration" : "integer"}
                         value={objective}
                         format={(value) => (mode === "DURATION" ? formatSeconds(value) : String(value))}
                         missing={objective === null}
                         width={SERIES_COLUMN_WIDTH}
+                        boxed={bare}
                         onChange={(value) => onChange(index, set(values, column, { objective: value }))}
                         {...bind(cellKey("obj", index, column), column)}
                         label={label.replace("{kind}", tt.objectiveKind)}
@@ -603,6 +631,8 @@ export function SeriesTable({
                           value={loadAt(values, column)}
                           format={formatLoad}
                           width={SERIES_COLUMN_WIDTH}
+                          boxed={bare}
+                          compact={bare}
                           onChange={(value) => onChange(index, set(values, column, { load: value }))}
                           {...bind(cellKey("load", index, column), column)}
                           label={label.replace("{kind}", tt.loadKind)}
@@ -633,6 +663,13 @@ const styles = StyleSheet.create({
   // Recette n° 3 du 03/11/2026 (« le champ Rép. n'est pas modifiable ») : zone tactile de la hauteur de la ligne.
   cell: { minHeight: ROW_HEIGHT, textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR, paddingVertical: 2, borderRadius: 6 },
   cellDisabled: { color: DISABLED_VALUE },
+  cellBoxed: { backgroundColor: "#FFFFFF" },
+  cellCompact: { minHeight: COMPACT_LOAD_HEIGHT, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 11 },
+  maxHead: { width: MAX_WIDTH },
+  maxSlot: { width: MAX_WIDTH },
+  seriesTableBare: { marginVertical: 0, backgroundColor: "transparent" },
+  seriesNamesBare: { paddingLeft: 0 },
+  seriesCellBare: { gap: 2 },
   // Contre-recette n° 3 ter du 03/11/2026 (« Les champs de valeur du tableau encore à renseigner doivent être avec un
   // fond rouge ») : fond rouge léger des valeurs à renseigner ou en cause.
   cellMissing: { backgroundColor: tokenColors.dangerSurface },

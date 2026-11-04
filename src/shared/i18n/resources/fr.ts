@@ -560,6 +560,10 @@ export const fr = {
       buyInSection: "Buy-in · une fois, au départ",
       loopSection: "En boucle · dans le temps restant",
       buyInPickerTitle: "Mouvement du buy-in",
+      // Recette du 04/11/2026 (For time : interrupteurs Buy-in et Buy-out au questionnaire).
+      buyOutSection: "Buy-out · une fois, à la fin",
+      buyOutPickerTitle: "Mouvement du buy-out",
+      forTimeLoopSection: "En boucle · à chaque tour",
       parameters: "Paramètres d’exécution",
       totalDuration: "Durée totale",
       execution: "Exécution",
@@ -602,6 +606,7 @@ export const fr = {
         restBetweenBlocksSeconds: "Repos entre deux AMRAP",
         loopRestSeconds: "Repos après chaque tour de boucle",
         buyIn: "Buy-in",
+        buyOut: "Buy-out",
         increasingVolume: "Volume croissant à chaque tour",
         // Mise à jour consolidée du 04/11/2026 §6 quater et §6 quater bis.
         withLoad: "Avec charge",

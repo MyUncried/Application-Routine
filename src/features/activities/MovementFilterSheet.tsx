@@ -76,7 +76,10 @@ export function MovementFilterSheet({
   filters,
   onApply,
   onClose,
+  docked,
 }: {
+  /** Mode catalogue d'un Format (recette du 04/11/2026) : feuille arrêtée sous la zone de contexte, montée et descente lentes. */
+  readonly docked?: { readonly top: number };
   readonly filters: MovementCatalogueFilters;
   readonly onApply: (filters: MovementCatalogueFilters, labels: readonly string[]) => void;
   readonly onClose: () => void;
@@ -124,6 +127,7 @@ export function MovementFilterSheet({
       onClose={onClose}
       onApply={() => onApply(draft, selectedLabels(draft, categories, bodyZones))}
       testIDPrefix="movement-filter"
+      {...(docked === undefined ? {} : { docked })}
       footer={<ResetFiltersButton label={t.reset} onPress={() => setDraft(draftOf(EMPTY_MOVEMENT_FILTERS))} testID="movement-filter-reset" />}
     >
       <FilterGroup {...group("STATUS", t.status)}>

@@ -60,14 +60,14 @@ export function takeMovementsHandedToComposition(): readonly Movement[] | null {
  * PRE-9 C.3 (référence Formats du 02/11/2026 §7.2, §7.3) : Mouvements choisis dans la modale du
  * Catalogue pour un questionnaire ou un récapitulatif de Format — canal distinct de la Composition.
  */
-let movementsForFormat: { readonly movements: readonly Movement[]; readonly role: "LOOP" | "BUY_IN" } | null = null;
+let movementsForFormat: { readonly movements: readonly Movement[]; readonly role: "LOOP" | "BUY_IN" | "BUY_OUT" } | null = null;
 
-export function handMovementsToFormat(movements: readonly Movement[], role: "LOOP" | "BUY_IN"): void {
+export function handMovementsToFormat(movements: readonly Movement[], role: "LOOP" | "BUY_IN" | "BUY_OUT"): void {
   movementsForFormat = movements.length > 0 ? { movements: [...movements], role } : null;
 }
 
 /** Reprend (une seule fois) les Mouvements remis au parcours Formats ; `null` : aucun. */
-export function takeMovementsHandedToFormat(): { readonly movements: readonly Movement[]; readonly role: "LOOP" | "BUY_IN" } | null {
+export function takeMovementsHandedToFormat(): { readonly movements: readonly Movement[]; readonly role: "LOOP" | "BUY_IN" | "BUY_OUT" } | null {
   const taken = movementsForFormat;
   movementsForFormat = null;
   return taken;

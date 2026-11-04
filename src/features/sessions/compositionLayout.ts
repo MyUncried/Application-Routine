@@ -9,7 +9,7 @@
 
 import type { CircuitLoss } from "@/domain/sessions/circuit";
 import { circuitOfExercise, insertExerciseInLayout, settleLayoutCircuitMembership } from "@/domain/sessions/layoutOperations";
-import { legacyFromStructure, computeStructureDuration, structureExercises, type SessionStructure, type StructureCycleMember, type StructureElement, type StructureStopPointLocation } from "@/domain/sessions/structure";
+import { legacyFromStructure, computeStructureDuration, structureExercises, type SessionStructure, type StructureCircuit, type StructureCycleMember, type StructureElement, type StructureStopPointLocation } from "@/domain/sessions/structure";
 import type { SessionDraft, SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { formatSessionDurationEstimate } from "@/features/sessions/compositionPresentation";
 
@@ -109,7 +109,14 @@ export function insertIntoRichLayout(
     return null;
   }
   const displayed = structureExercises(resolved);
-  let anchor = displayed[displayed.length - 1]?.id ?? null;
+  const last = displayed[displayed.length - 1]?.id ?? null;
+  const lastCircuit = last === null ? undefined : circuitOfExercise(draft.structure, last);
+  // Recette iPhone du 04/11/2026 (constat général a, Hermann : « Ajout d'un mouvement existant ou création d'un
+  // nouveau mouvement : il doit être positionné à la dernière place de la séance, toujours en dehors d'un circuit
+  // s'il est issu d'un format. ») : dernier Exercice dans un Circuit issu d'un format (Modèle d'origine ou Format
+  // d'origine) — insertion juste après ce Circuit, dans son conteneur, hors de lui. [ARB-07 inchangé ailleurs.]
+  let anchor: Parameters<typeof insertExerciseInLayout>[2] =
+    lastCircuit !== undefined && isFromFormat(lastCircuit) ? { kind: "CIRCUIT", id: lastCircuit.id } : last;
   let next = draft;
   for (const exercise of additions) {
     next = insertExerciseInLayout(next, exercise, anchor);
@@ -118,6 +125,14 @@ export function insertIntoRichLayout(
   const settled = settleLayoutCircuitMembership(draft, next);
   const enteringCount = additions.filter((exercise) => circuitOfExercise(next.structure, exercise.id)?.nature === "SERIES").length;
   return { exercises: settled.exercises, structure: next.structure, losses: settled.losses, targetCount: settled.targetCount, enteringCount };
+}
+
+/**
+ * Recette du 04/11/2026 : Circuit issu d'un format — créé par la fenêtre Formats (Modèle d'origine) ou porteur d'un
+ * Format d'origine (« Composition séance — Circuit issu d'un format », MAJ consolidée du 04/11 §6 sexies).
+ */
+function isFromFormat(circuit: Pick<StructureCircuit<string>, "originModel" | "format">): boolean {
+  return (circuit.originModel ?? null) !== null || (circuit.format ?? null) !== null;
 }
 
 /** Insertion dans une disposition générale (`insertIntoRichLayout`), avec le réglage du Circuit d'arrivée (B.3). */

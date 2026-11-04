@@ -1,6 +1,8 @@
 import { Image } from "expo-image";
-import { createContext, useContext, type ReactElement } from "react";
+import { createContext, useContext, useEffect, useState, type ReactElement } from "react";
 import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import Reanimated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 import type { ElementFormatKey, PreconfigurationKey } from "@/domain/sessions/formats";
 import { strings } from "@/shared/i18n";
@@ -53,6 +55,12 @@ const TITLE_COLOR = "#14171C";
 const SUBTITLE_COLOR = "#5C636E";
 const WINDOW_TITLE_COLOR = "#3A3A3F";
 const SCRIM = "rgba(31, 33, 41, 0.42)";
+/** Voile de la fenêtre, repris tel quel par la modale du Format qui lui succède (recette du 04/11/2026). */
+export const FORMATS_SCRIM = SCRIM;
+/** Effacement de la fenêtre au choix d'un modèle ; le voile reste. */
+const HANDOFF_FADE_MS = 160;
+/** Le voile de la fenêtre reste affiché le temps que la modale du Format, dessous, pose le sien. */
+const HANDOFF_HOLD_MS = 120;
 const WHITE_85 = "rgba(255,255,255,0.85)";
 const WHITE_50 = "rgba(255,255,255,0.5)";
 const WHITE_35 = "rgba(255,255,255,0.35)";
@@ -336,8 +344,41 @@ export function FormatsWindow({
   const { width: screenWidth } = useWindowDimensions();
   const windowWidth = screenWidth - 2 * WINDOW_MARGIN;
   const cardWidth = Math.floor((windowWidth - 2 * WINDOW_PADDING - COLUMN_GAP) / 2);
+  // Recette du 04/11/2026 (f4-modale, Hermann : « Le voile grisé déjà en place ne doit pas disparaître en fondu et être
+  // remplacé par un autre qui apparaît de bas en haut. Il doit simplement rester et accueillir la modale des formats ») :
+  // au choix d'un modèle, seule la fenêtre s'efface ; le voile reste le temps que la modale, ouverte dessous avec le
+  // même voile, soit en place, puis la fenêtre native se retire sans fondu.
+  const [handoff, setHandoff] = useState(false);
+  const [holding, setHolding] = useState(false);
+  const windowOpacity = useSharedValue(1);
+  // Réouverture : fenêtre de nouveau visible et active.
+  const [shownBefore, setShownBefore] = useState(visible);
+  if (visible !== shownBefore) {
+    setShownBefore(visible);
+    if (visible) setHandoff(false);
+  }
+  useEffect(() => {
+    if (visible) {
+      windowOpacity.set(1);
+      return;
+    }
+    if (!holding) return;
+    const timer = setTimeout(() => setHolding(false), HANDOFF_HOLD_MS);
+    return () => clearTimeout(timer);
+  }, [holding, visible, windowOpacity]);
+  const windowStyle = useAnimatedStyle(() => ({ opacity: windowOpacity.value }));
+  const choose = (key: FormatModelKey) => {
+    if (handoff) return;
+    setHandoff(true);
+    setHolding(true);
+    windowOpacity.set(
+      withTiming(0, { duration: HANDOFF_FADE_MS }, (finished) => {
+        if (finished === true) scheduleOnRN(onSelect, key);
+      }),
+    );
+  };
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+    <Modal visible={visible || holding} transparent animationType={handoff ? "none" : "fade"} onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.root} testID="formats-window-root">
         <Pressable
           style={[StyleSheet.absoluteFill, styles.scrim]}
@@ -346,7 +387,7 @@ export function FormatsWindow({
           accessibilityLabel={t().closeAccessibilityLabel}
           testID="formats-window-scrim"
         />
-        <View style={[styles.window, { width: windowWidth }]} accessibilityViewIsModal testID="formats-window">
+        <Reanimated.View style={[styles.window, { width: windowWidth }, windowStyle]} pointerEvents={handoff ? "none" : "auto"} accessibilityViewIsModal testID="formats-window">
           <View style={styles.header}>
             <CloseCircleAction onPress={onClose} accessibilityLabel={t().closeAccessibilityLabel} style={styles.close} testID="formats-window-close" />
             <Text style={styles.windowTitle} accessibilityRole="header">
@@ -355,10 +396,10 @@ export function FormatsWindow({
           </View>
           <View style={styles.grid} testID="formats-window-grid">
             {[...MODELS_FORMATS, ...MODELS_QUICK_STARTS].map((model) => (
-              <ModelCard key={model.key} model={model} width={cardWidth} onPress={() => onSelect(model.key)} />
+              <ModelCard key={model.key} model={model} width={cardWidth} onPress={() => choose(model.key)} />
             ))}
           </View>
-        </View>
+        </Reanimated.View>
       </View>
     </Modal>
   );

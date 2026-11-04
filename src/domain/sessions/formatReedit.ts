@@ -169,6 +169,9 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
       answers.roundCount = circuit.repeatCount;
       answers.restBetweenRoundsSeconds = typeof format?.settings.restBetweenRoundsSeconds === "number" ? format.settings.restBetweenRoundsSeconds : 0;
       answers.timeCapSeconds = typeof format?.settings.timeCapSeconds === "number" ? format.settings.timeCapSeconds : null;
+      // Interrupteurs Buy-in / Buy-out du questionnaire (recette du 04/11/2026) : déduits des Rôles.
+      answers.buyIn = roles.includes("BUY_IN");
+      answers.buyOut = roles.includes("BUY_OUT");
       answers.withLoad = exercises.some((exercise) => exercise.executionParameters.loadEnabled);
       break;
     default:

@@ -133,30 +133,34 @@ describe("FormatModelScreen", () => {
     mockDismiss.mockReset();
   });
 
-  it("questionnaire Tabata en modale : croix, nom du Format, aucun nom de Séance ; paramètres 8 / 20 s / 10 s, durée 4 min ; « Valider les paramètres » indisponible sans mouvement", async () => {
+  it("questionnaire Tabata en modale : croix, nom du Format, aucun nom de Séance ; paramètres 8 / 20 s / 10 s, durée 4 min ; « Enregistrer dans la séance » (recette du 04/11) indisponible sans mouvement", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     expect(await screen.findByTestId("format-title")).toHaveTextContent("Tabata");
     expect(screen.getByTestId("format-sheet")).toBeTruthy();
     expect(screen.queryByTestId("format-name")).toBeNull();
-    expect(screen.getByTestId("format-validate")).toHaveTextContent("Valider les paramètres");
-    expect(screen.queryByTestId("format-save")).toBeNull();
+    // Recette du 04/11/2026 (Hermann : « Tabata : après sélection des mouvements, le bouton d'action doit directement être
+    // "Enregistrer dans la séance" ») : pas de récapitulatif. [MAJ 04/11 §2 « Valider les paramètres » — remplacé pour le Tabata.]
+    expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer dans la séance");
+    expect(screen.queryByTestId("format-validate")).toBeNull();
     expect(screen.getByTestId("format-seriesCount-badge")).toHaveTextContent("8");
     expect(screen.getByTestId("format-workSeconds-badge")).toHaveTextContent("20 s");
     expect(screen.getByTestId("format-pauseSeconds-badge")).toHaveTextContent("10 s");
     expect(screen.getByTestId("format-total")).toHaveTextContent("4 min");
     expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("4 min");
-    expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
+    // Recette du 04/11/2026 : la modale redescend, puis retour à la Composition.
     fireEvent.press(screen.getByTestId("screen-header-back"));
-    expect(mockBack).toHaveBeenCalled();
+    await waitFor(() => expect(mockBack).toHaveBeenCalled());
   });
 
-  it("« + Ajouter » ouvre le champ et devient « Ouvrir le mode catalogue » ; la saisie propose les Mouvements ; Tabata : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {
-    mockModel = "TABATA";
+  it("« + Ajouter » ouvre le champ et devient « Ouvrir le mode catalogue » ; la saisie propose les Mouvements ; 30/30 : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {
+    // Recette du 04/11/2026 : le Tabata s'enregistre depuis son questionnaire ; le 30/30 garde le récapitulatif.
+    mockModel = "INTERVALS_30_30";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
     await screen.findByTestId("format-title");
-    // Réglage modifié avant d'ajouter un mouvement : 6 séries.
+    // Réglage modifié avant d'ajouter un mouvement : 4 séries.
     fireEvent.press(screen.getByTestId("format-seriesCount-badge"));
     fireEvent.press(screen.getByTestId("format-seriesCount-decrease"));
     fireEvent.press(screen.getByTestId("format-seriesCount-decrease"));
@@ -169,14 +173,14 @@ describe("FormatModelScreen", () => {
     });
     // MAJ 04/11 §2 bis : le récapitulatif s'ouvre sur place, sans navigation ; Retour revient au questionnaire.
     expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
-    expect(screen.getByTestId("format-seriesCount-value")).toHaveTextContent("6");
+    expect(screen.getByTestId("format-seriesCount-value")).toHaveTextContent("4");
     toSummary();
     expect(mockPush).not.toHaveBeenCalled();
     expect(screen.getByTestId("format-summary")).toBeTruthy();
     fireEvent.press(screen.getByTestId("screen-header-back"));
     expect(mockBack).not.toHaveBeenCalled();
     expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
-    expect(screen.getByTestId("format-seriesCount").props.accessibilityValue).toEqual({ text: "6" });
+    expect(screen.getByTestId("format-seriesCount").props.accessibilityValue).toEqual({ text: "4" });
     toSummary();
 
     await act(async () => {
@@ -185,9 +189,9 @@ describe("FormatModelScreen", () => {
     // Ajout au brouillon : un Exercice standard ; nom du modèle suggéré ; retour à la Composition.
     expect(draftRef.current.exercises).toHaveLength(1);
     expect(draftRef.current.exercises[0]!).not.toHaveProperty("format");
-    expect(draftRef.current.name).toBe("Tabata");
+    expect(draftRef.current.name).toBe(strings.screens.sessionModels.cards.INTERVALS_30_30.title);
     // Recette n° 3 du 03/11 : on dépile jusqu'à la Composition (paramètre `sessionId` conservé), sans `dismissTo`.
-    expect(mockDismiss).toHaveBeenCalled();
+    await waitFor(() => expect(mockDismiss).toHaveBeenCalled());
     expect(mockDismissTo).not.toHaveBeenCalled();
   });
 
@@ -386,7 +390,6 @@ describe("FormatModelScreen", () => {
     await screen.findByTestId("format-title");
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
-    toSummary();
     expect(screen.getByTestId("format-total")).toHaveTextContent("8 min 50 s");
     expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("8 min 50 s");
     expect(screen.getByTestId("format-recoveryBetweenSeconds-badge")).toHaveTextContent("1 min");
@@ -409,7 +412,6 @@ describe("FormatModelScreen", () => {
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     await pick("Squ", "mv-squats");
-    toSummary();
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent(screen.getByTestId("format-movement-0-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     expect(screen.queryByTestId("format-movement-card-0")).toBeNull();
@@ -422,7 +424,6 @@ describe("FormatModelScreen", () => {
     render(<Harness draftRef={draftRef} />);
     await screen.findByTestId("format-title");
     await pick("Squ", "mv-squats");
-    toSummary();
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });
@@ -430,7 +431,6 @@ describe("FormatModelScreen", () => {
     await waitFor(() => expect(screen.queryByTestId("format-movement-card-0")).toBeNull());
     expect(screen.getByTestId("format-seriesCount-badge")).toHaveTextContent("8");
     await pick("Squ", "mv-squats");
-    toSummary();
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });
@@ -449,7 +449,8 @@ describe("FormatModelScreen", () => {
     expect(mockPush).not.toHaveBeenCalled();
     expect(screen.getByTestId("format-movements-link")).toHaveTextContent(t.closeCatalogue);
     expect(screen.getByTestId("format-catalogue-search").props.value).toBe("Squ");
-    expect(screen.getByTestId("format-catalogue-filter")).toBeTruthy();
+    // Recette du 04/11/2026 (e-cat-recherche) : le champ se rétrécit, puis les trois commandes apparaissent.
+    expect(await screen.findByTestId("format-catalogue-filter")).toBeTruthy();
     expect(screen.getByTestId("format-catalogue-sort")).toBeTruthy();
     expect(screen.getByTestId("format-catalogue-piles")).toBeTruthy();
     expect(screen.queryByTestId("format-parameters")).toBeNull();
@@ -474,6 +475,107 @@ describe("FormatModelScreen", () => {
     expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
   });
 
+  // ---------------------------------------------------------------------------
+  // Recette iPhone du 04/11/2026 (cahier « Recette Formats 04/11 », écarts un par ligne)
+  // ---------------------------------------------------------------------------
+
+  it("recette du 04/11 (e-fortime-buyin) : For time — interrupteurs Buy-in et Buy-out ; sections ; buy-in et buy-out requis ; Rôles écrits", async () => {
+    mockModel = "FOR_TIME";
+    const draftRef = { current: createEmptyDraft() };
+    render(<Harness draftRef={draftRef} />);
+    await screen.findByTestId("format-title");
+    fireEvent(screen.getByTestId("format-buyIn"), "valueChange", true);
+    fireEvent(screen.getByTestId("format-buyOut"), "valueChange", true);
+    expect(screen.getByText(t.buyInSection)).toBeTruthy();
+    expect(screen.getByText(t.forTimeLoopSection)).toBeTruthy();
+    expect(screen.getByText(t.buyOutSection)).toBeTruthy();
+    await pick("Squ", "mv-squats", "format-loop");
+    expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    await pick("Fen", "mv-fentes", "format-buy-out");
+    await pick("Squ", "mv-squats", "format-buy-in");
+    expect(within(screen.getByTestId("format-buy-out-cards")).getByText("Fentes avant")).toBeTruthy();
+    expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
+    // Un mouvement ajouté à la boucle se place avant le buy-out.
+    await pick("Fen", "mv-fentes", "format-loop");
+    expect(within(screen.getByTestId("format-buy-out-cards")).getAllByText("Fentes avant")).toHaveLength(1);
+    toSummary();
+    // Buy-in et buy-out : une case (une seule exécution).
+    fireEvent.changeText(screen.getByTestId("format-for-time-0-0"), "50");
+    fireEvent.changeText(screen.getByTestId("format-for-time-3-0"), "20");
+    expect(screen.queryByTestId("format-for-time-0-1")).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-save"));
+    });
+    expect(draftRef.current.exercises.map((exercise) => [exercise.name, exercise.format?.settings.circuitRole ?? 0])).toEqual([
+      ["Squats sautés", 1],
+      ["Squats sautés", 0],
+      ["Fentes avant", 0],
+      ["Fentes avant", 2],
+    ]);
+  });
+
+  it("recette du 04/11 (e-emom-mode, e-emom-trait) : EMOM — aucune unité par défaut, objectif vide en rouge (trait), enregistrement indisponible", async () => {
+    mockModel = "EMOM";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    await pick("Squ", "mv-squats");
+    toSummary();
+    const cell = screen.getByTestId("format-emom-objective-0");
+    expect(cell.props.value).toBe("");
+    expect(cell.props.placeholder).toBe(t.dash);
+    expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent(cell, "focus");
+    fireEvent.changeText(cell, "12");
+    expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: false });
+  });
+
+  it("recette du 04/11 (e-amrap-trait) : AMRAP — objectif vide affiché par un trait", async () => {
+    mockModel = "AMRAP";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    await pick("Squ", "mv-squats");
+    toSummary();
+    fireEvent.changeText(screen.getByTestId("format-amrap-reps-0"), "");
+    expect(screen.getByTestId("format-amrap-reps-0").props.placeholder).toBe(t.dash);
+  });
+
+  it("recette du 04/11 (e-deathby) : Death by — le tableau Départ | Incrément apparaît au questionnaire dès le deuxième mouvement", async () => {
+    mockModel = "DEATH_BY";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    await pick("Squ", "mv-squats");
+    expect(screen.queryByTestId("format-death-by-table")).toBeNull();
+    expect(screen.getByTestId("format-row-startRepetitions")).toBeTruthy();
+    await pick("Fen", "mv-fentes");
+    expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
+    expect(screen.getByTestId("format-death-by-table")).toBeTruthy();
+    expect(screen.queryByTestId("format-row-startRepetitions")).toBeNull();
+    // Retour à un mouvement : le tableau disparaît.
+    fireEvent(screen.getByTestId("format-movement-1-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(screen.queryByTestId("format-death-by-table")).toBeNull();
+  });
+
+  it("recette du 04/11 (e-contexte-fixe, e-cat-fixe, e-cat-recherche) : zone de contexte figée ; en mode catalogue elle porte l'en-tête et la recherche (même champ, croix intérieure)", async () => {
+    mockModel = "TABATA";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    const band = screen.getByTestId("format-context-band");
+    expect(within(band).getByTestId("format-title")).toBeTruthy();
+    expect(within(band).getByTestId("format-context-fade", { includeHiddenElements: true })).toBeTruthy();
+    expect(within(screen.getByTestId("format-questionnaire")).queryByTestId("format-title")).toBeNull();
+    fireEvent.press(screen.getByTestId("format-movements-link"));
+    fireEvent.changeText(screen.getByTestId("format-search"), "Squ");
+    fireEvent.press(screen.getByTestId("format-movements-link"));
+    expect(within(band).getByTestId("format-catalogue-search")).toBeTruthy();
+    expect(within(band).getByTestId("format-movements-link")).toHaveTextContent(t.closeCatalogue);
+    expect(within(screen.getByTestId("format-questionnaire")).getByTestId("format-catalogue-results")).toBeTruthy();
+    // Défilement conservé avec un texte saisi (e-cat-defiler).
+    expect(screen.getByTestId("format-questionnaire").props.scrollEnabled).toBe(true);
+    fireEvent.press(screen.getByTestId("format-catalogue-search-clear"));
+    expect(screen.getByTestId("format-catalogue-search").props.value).toBe("");
+    expect(screen.queryByTestId("format-catalogue-search-clear")).toBeNull();
+  });
+
   it("MAJ 04/11 §6 sexies : Modifier le format — récapitulatif prérempli, « Enregistrer les modifications », Retour au questionnaire ; mise à jour en place", async () => {
     mockModel = "TABATA";
     // Séance avec un Circuit Tabata en alternance (créé par le parcours).
@@ -482,7 +584,6 @@ describe("FormatModelScreen", () => {
     await screen.findByTestId("format-title");
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
-    toSummary();
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });
@@ -495,12 +596,12 @@ describe("FormatModelScreen", () => {
     expect(await screen.findByTestId("format-summary")).toBeTruthy();
     expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer les modifications");
     expect(screen.getByTestId("format-movement-card-1")).toBeTruthy();
-    // Retour : questionnaire du modèle, réponses reconstruites ; Valider revient au récapitulatif.
+    // Retour : questionnaire du modèle, réponses reconstruites ; le Tabata enregistre depuis son questionnaire (recette du 04/11).
     fireEvent.press(screen.getByTestId("screen-header-back"));
     expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
     fireEvent.press(screen.getByTestId("format-pauseSeconds-badge"));
     fireEvent.press(screen.getByTestId("format-pauseSeconds-increase"));
-    toSummary();
+    expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer les modifications");
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });

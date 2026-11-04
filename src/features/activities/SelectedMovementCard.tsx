@@ -135,7 +135,9 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
   },
-  selected: { borderColor: LEVEL_COLOR },
+  // Recette du 04/11/2026 (f4-catalogue, Hermann : « le liseré des cartes sélectionnées doit avoir un trait d’épaisseur plus
+  // large et un fond bleu ») : liseré de 2, fond bleu clair ; la marge intérieure compense le liseré (contenu immobile).
+  selected: { borderColor: LEVEL_COLOR, borderWidth: 2, padding: INSET - 1, backgroundColor: "#E8E9FF" },
   pressed: { opacity: 0.7 },
   photo: { width: PHOTO, height: PHOTO, borderRadius: 8, overflow: "hidden", backgroundColor: PHOTO_FILL },
   photoFill: { width: PHOTO, height: PHOTO },

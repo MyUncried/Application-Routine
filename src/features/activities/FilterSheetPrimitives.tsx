@@ -1,7 +1,8 @@
 import { Image } from "expo-image";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CREATE_MENU_FADE_IN_MS } from "@/features/sessions/CreateMenu";
@@ -47,6 +48,13 @@ const SHEET_SLIDE_IN_MS = 300;
  * outre toujours réductibles sous la hauteur maximale (auparavant seulement avec un pied fixe).
  */
 const SHEET_TIMING = { duration: SHEET_SLIDE_IN_MS, reduceMotion: ReduceMotion.System };
+/**
+ * Recette du 04/11/2026 (mode catalogue d'un Format, Hermann : « apparition de la fenêtre du filtre doit se faire plus
+ * lentement, jusqu'à la limite de la zone de contexte » ; « la disparition de la page du filtre doit se faire de haut
+ * en bas, plus lentement ») : variante `docked` — montée et descente plus lentes, haut de la feuille à la limite donnée.
+ */
+const DOCKED_IN = { duration: 480, reduceMotion: ReduceMotion.System };
+const DOCKED_OUT = { duration: 380, reduceMotion: ReduceMotion.System };
 
 export function FilterSheetFrame({
   title,
@@ -57,7 +65,10 @@ export function FilterSheetFrame({
   footer,
   testIDPrefix,
   children,
+  docked,
 }: {
+  /** Haut de la feuille (en points depuis le haut de la fenêtre), montée et descente lentes ; absente : feuille standard. */
+  readonly docked?: { readonly top: number };
   readonly title: string;
   readonly closeLabel: string;
   readonly applyLabel: string;
@@ -72,11 +83,31 @@ export function FilterSheetFrame({
   const { height: windowHeight } = useWindowDimensions();
   const slide = useSharedValue(windowHeight);
   useEffect(() => {
-    slide.value = withTiming(0, SHEET_TIMING);
+    slide.value = withTiming(0, docked === undefined ? SHEET_TIMING : DOCKED_IN);
+    // Une seule montée, à l'ouverture.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slide]);
   const slideStyle = useAnimatedStyle(() => ({ transform: [{ translateY: slide.value }] }));
+  // Variante `docked` : la feuille redescend avant de rendre la main (fermeture ou validation).
+  const leaving = useRef(false);
+  const leave = (then: () => void) => {
+    if (docked === undefined) {
+      then();
+      return;
+    }
+    if (leaving.current) return;
+    leaving.current = true;
+    slide.set(
+      withTiming(windowHeight, DOCKED_OUT, (finished) => {
+        if (finished === true) scheduleOnRN(then);
+      }),
+    );
+  };
+  const close = () => leave(onClose);
+  const apply = () => leave(onApply);
+  const frame = docked === undefined ? { maxHeight: windowHeight * SHEET_MAX_HEIGHT_RATIO } : { height: Math.max(0, windowHeight - docked.top) };
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onClose} testID={`${testIDPrefix}-sheet`}>
+    <Modal transparent visible animationType="none" onRequestClose={close} testID={`${testIDPrefix}-sheet`}>
       <View style={styles.backdrop}>
         <Reanimated.View
           entering={scrimEntering}
@@ -85,14 +116,14 @@ export function FilterSheetFrame({
           testID={`${testIDPrefix}-scrim`}
         />
         <Reanimated.View
-          style={[styles.sheet, { maxHeight: windowHeight * SHEET_MAX_HEIGHT_RATIO, paddingBottom: insets.bottom + spacing[16] }, slideStyle]}
+          style={[styles.sheet, frame, { paddingBottom: insets.bottom + spacing[16] }, slideStyle]}
           accessibilityViewIsModal
           testID={`${testIDPrefix}-panel`}
         >
           <View style={styles.handle} testID={`${testIDPrefix}-handle`} />
           <View style={styles.header} testID={`${testIDPrefix}-header`}>
             <Pressable
-              onPress={onClose}
+              onPress={close}
               accessibilityRole="button"
               accessibilityLabel={closeLabel}
               hitSlop={HEADER_ACTION_HIT_SLOP}
@@ -105,7 +136,7 @@ export function FilterSheetFrame({
               {title}
             </Text>
             <Pressable
-              onPress={onApply}
+              onPress={apply}
               accessibilityRole="button"
               accessibilityLabel={applyLabel}
               hitSlop={HEADER_ACTION_HIT_SLOP}

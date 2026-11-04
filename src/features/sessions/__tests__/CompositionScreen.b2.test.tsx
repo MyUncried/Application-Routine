@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import { Platform, StyleSheet } from "react-native";
 
@@ -174,7 +174,8 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
     expect(screen.getByTestId("formats-window")).toBeTruthy();
     fireEvent.press(screen.getByTestId("format-model-TABATA"));
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-questionnaire", params: { model: "TABATA" } });
+    // Recette du 04/11/2026 : la fenêtre s'efface (voile conservé) avant d'ouvrir le questionnaire.
+    await waitFor(() => expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-questionnaire", params: { model: "TABATA" } }));
   });
 
   it("recette du 01/11 : « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (action d'avant le 01/11) et ferme le menu", async () => {

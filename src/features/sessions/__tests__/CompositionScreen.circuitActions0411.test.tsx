@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useLayoutEffect, useMemo, useState, type ReactNode } from "react";
-import { Alert, Platform } from "react-native";
+import { Alert, Keyboard, Platform, StyleSheet } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -123,7 +123,10 @@ beforeEach(() => {
 describe("Circuit replié — actions glissées (MAJ 04/11 §6 quinquies, §6 sexies)", () => {
   it("déplié : aucune action glissée ; replié et issu d'un modèle : quatre actions, « Modifier le format » rouvre le récapitulatif", async () => {
     await renderComposition(draftOf("TABATA"));
-    expect(screen.queryByTestId("composition-layout-circuit-ca-swipe-card")).toBeNull();
+    // Recette du 04/11 : rangée montée mais inerte quand le Circuit est déplié (aucune action, aucune cible propre).
+    const expanded = screen.getByTestId("composition-layout-circuit-ca-swipe-card");
+    expect(expanded.props.accessibilityActions).toEqual([]);
+    expect(expanded.props.accessible).toBe(false);
     fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse"));
     const actions = screen.getByTestId("composition-layout-circuit-ca-swipe-card").props.accessibilityActions.map((item: { name: string }) => item.name);
     expect(actions).toEqual(["rename", "edit-format", "duplicate", "delete"]);
@@ -170,3 +173,86 @@ describe("Circuit replié — actions glissées (MAJ 04/11 §6 quinquies, §6 se
     expect(screen.getByTestId(`composition-layout-circuit-${circuits[1]!.id}-header-rename`).props.value).toBe("Tabata (C)");
   });
 });
+
+describe("Recette iPhone du 04/11/2026 — Circuit replié glissé", () => {
+  const swipe = "composition-layout-circuit-ca-swipe";
+  const wait = (ms: number) => act(async () => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  const swipeOpen = () =>
+    act(async () => {
+      fireEvent(screen.getByTestId(swipe), "touchStart", { nativeEvent: { pageX: 360, pageY: 10 } });
+      fireEvent(screen.getByTestId(swipe), "touchMove", { nativeEvent: { pageX: 40, pageY: 12 } });
+      fireEvent(screen.getByTestId(swipe), "touchEnd", { nativeEvent: { pageX: 40, pageY: 12 } });
+    });
+  const translateX = (testID: string) => {
+    const style = StyleSheet.flatten(screen.getByTestId(testID).props.style) as { transform?: { translateX?: number }[] };
+    return style.transform?.find((item) => item.translateX !== undefined)?.translateX ?? 0;
+  };
+
+  it("repli et déploiement : l'en-tête n'est pas remonté (ligne des noms animée, pas retirée d'un coup)", async () => {
+    await renderComposition(draftOf("TABATA"));
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse"));
+    await act(async () => undefined);
+    expect(screen.getByTestId("composition-layout-circuit-ca-header-names-reveal")).toBeTruthy();
+    // Déploiement : la ligne des noms se referme par son animation (même instance), elle est encore montée.
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse"));
+    expect(screen.getByTestId("composition-layout-circuit-ca-header-names-reveal")).toBeTruthy();
+    expect(screen.getByTestId(`${swipe}-card`).props.accessibilityActions).toEqual([]);
+  });
+
+  it("glisser gauche : actions sur toute la hauteur du cadre, alignées sur son bord droit ; le cadre glisse avec l'en-tête", async () => {
+    await renderComposition(draftOf("TABATA"));
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse"));
+    await swipeOpen();
+    const actions = StyleSheet.flatten(screen.getByTestId(`${swipe}-actions`).props.style) as { top: number; right: number; bottom: number };
+    expect(actions.top).toBe(-14);
+    expect(actions.right).toBe(-16);
+    // CE-FMT-05 : actions de 70, bloc arrondi au rayon du cadre du Circuit (18) à ses extrémités.
+    expect(StyleSheet.flatten(screen.getByTestId(`${swipe}-action-rename`).props.style)).toMatchObject({ width: 70, borderTopLeftRadius: 18 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${swipe}-action-delete`).props.style)).toMatchObject({ width: 70, borderBottomRightRadius: 18 });
+    await wait(400);
+    // Quatre actions de 70 et l'écart de 8 : le cadre et l'en-tête glissent ensemble (même valeur, suivie au doigt).
+    expect(translateX(`${swipe}-card`)).toBe(-(4 * 70 + 8));
+    expect(translateX("composition-layout-circuit-ca-surface-swipe")).toBe(-(4 * 70 + 8));
+  });
+
+  it("Dupliquer : les actions se referment, même si le doigt a glissé pendant l'appui", async () => {
+    await renderComposition(draftOf("TABATA"));
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse"));
+    await swipeOpen();
+    await wait(400);
+    await act(async () => {
+      fireEvent(screen.getByTestId(swipe), "touchStart", { nativeEvent: { pageX: 300, pageY: 10 } });
+      fireEvent(screen.getByTestId(swipe), "touchMove", { nativeEvent: { pageX: 288, pageY: 10 } });
+      fireEvent.press(screen.getByTestId(`${swipe}-action-duplicate`));
+    });
+    await act(async () => {
+      fireEvent(screen.getByTestId(swipe), "touchEnd", { nativeEvent: { pageX: 288, pageY: 10 } });
+    });
+    await wait(400);
+    expect(structureCircuits(probe.draft!.structure!)).toHaveLength(3);
+    // Position de repos fermée (le retour à 0 lui-même passe par le pilote natif, non simulé sous Jest).
+    expect(screen.queryByTestId(`${swipe}-actions`)).toBeNull();
+  });
+  it("Renommer : clavier ouvert, place réservée sous le contenu pour remonter le Circuit au-dessus du clavier", async () => {
+    const listeners = new Map<string, Set<(event: unknown) => void>>();
+    const spy = jest.spyOn(Keyboard, "addListener").mockImplementation(((name: string, listener: (event: unknown) => void) => {
+      const set = listeners.get(name) ?? new Set<(event: unknown) => void>();
+      set.add(listener);
+      listeners.set(name, set);
+      return { remove: () => set.delete(listener) };
+    }) as unknown as typeof Keyboard.addListener);
+    const emit = (name: string) =>
+      act(async () => listeners.get(name)?.forEach((listener) => listener({ endCoordinates: { screenX: 0, screenY: 500, width: 390, height: 344 } })));
+    const padding = () => (StyleSheet.flatten(screen.getByTestId("composition-body").props.contentContainerStyle) as { paddingBottom: number }).paddingBottom;
+    await renderComposition(draftOf(null));
+    const before = padding();
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse"));
+    await action("rename");
+    await emit("keyboardWillShow");
+    expect(padding()).toBe(before + 344);
+    await emit("keyboardWillHide");
+    expect(padding()).toBe(before);
+    spy.mockRestore();
+  });
+});
+

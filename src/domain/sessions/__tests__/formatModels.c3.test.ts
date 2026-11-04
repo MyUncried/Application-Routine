@@ -56,7 +56,8 @@ describe("valeurs initiales décidées (aucune valeur de maquette)", () => {
     expect(initialAnswers("EMOM")).toMatchObject({ seriesCount: 6, intervalSeconds: 60, execution: "EACH_INTERVAL" });
     expect(initialAnswers("AMRAP")).toMatchObject({ durationSeconds: 720, blockCount: 1, restBetweenBlocksSeconds: 120, loopRestSeconds: 0, buyIn: false, increasingVolume: false });
     // MAJ 04/11 §6 quater bis : « Avec charge » désactivé par défaut.
-    expect(initialAnswers("FOR_TIME")).toEqual({ roundCount: 3, timeCapSeconds: null, restBetweenRoundsSeconds: 0, withLoad: false });
+    // Recette du 04/11/2026 : interrupteurs Buy-in et Buy-out du For time, désactivés par défaut.
+    expect(initialAnswers("FOR_TIME")).toEqual({ roundCount: 3, timeCapSeconds: null, restBetweenRoundsSeconds: 0, buyIn: false, buyOut: false, withLoad: false });
     expect(initialAnswers("DEATH_BY")).toMatchObject({ intervalSeconds: 60, startRepetitions: 1, increment: 1 });
     expect(initialAnswers("STRENGTH")).toMatchObject({ seriesCount: 3, repetitions: 15 });
     expect(initialAnswers("PROGRESSION")).not.toHaveProperty("repetitions");
