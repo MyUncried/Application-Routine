@@ -12,7 +12,12 @@ export function isMovementCreationRoute(params: object | undefined): boolean {
   return !present(values.movementId) && !present(values.variantOf);
 }
 
-/** Options de la route `/movement` (navigateur racine) : geste natif désactivé dans tous les cas, comme auparavant. */
-export function movementRouteOptions(params: object | undefined) {
-  return isMovementCreationRoute(params) ? NATIVE_SHEET_OPTIONS : ({ gestureEnabled: false } as const);
+/**
+ * Options de la route `/movement` (navigateur racine). Hermann, 04/11/2026 : « catalogue des mouvements, appuyer sur la photo ouvre la fiche des mouvements en modification, elle doit être ouverte sous forme de modale iOS » : la fiche en modification est aussi une feuille native ;
+ * la consultation et l'ajout d'un niveau, ouverts depuis cette fiche par la même route, le sont également (un écran
+ * poussé depuis une feuille passerait derrière elle). Geste natif désactivé dans tous les cas.
+ * [Création seule en feuille, consultation, modification et ajout de niveau en écrans poussés — remplacé.]
+ */
+export function movementRouteOptions(_params: object | undefined) {
+  return NATIVE_SHEET_OPTIONS;
 }

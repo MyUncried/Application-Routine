@@ -105,7 +105,9 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
    * fiche des mouvements du questionnaire par exemple) les 3 modales et écrans suivants : Catalogue des mouvements :
    * Filtres ; Catalogue des mouvements : Créer un mouvement ; Catalogue des séances : Filtres ».
    */
-  it("presents the Movement creation route as a native iOS form sheet; consultation, edition and new level stay pushed screens", () => {
+  // Hermann, 04/11/2026 : « catalogue des mouvements, appuyer sur la photo ouvre la fiche des mouvements en modification,
+  // elle doit être ouverte sous forme de modale iOS » — toute la route `/movement` est une feuille native.
+  it("presents the Movement route as a native iOS form sheet: creation, edition, consultation and new level", () => {
     screenCalls.length = 0;
     render(<RootLayout />);
 
@@ -115,9 +117,9 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
     expect(options({ route: {} })).toMatchObject(sheet);
     // Création depuis la Composition : même route, même écran (cohérence).
     expect(options({ route: { params: { context: "session" } } })).toMatchObject(sheet);
-    expect(options({ route: { params: { movementId: "m1" } } })).toEqual({ gestureEnabled: false });
-    expect(options({ route: { params: { movementId: "m1", mode: "edit" } } })).toEqual({ gestureEnabled: false });
-    expect(options({ route: { params: { variantOf: "m1", placement: "AFTER_ORIGIN" } } })).toEqual({ gestureEnabled: false });
+    expect(options({ route: { params: { movementId: "m1" } } })).toMatchObject(sheet);
+    expect(options({ route: { params: { movementId: "m1", mode: "edit" } } })).toMatchObject(sheet);
+    expect(options({ route: { params: { variantOf: "m1", placement: "AFTER_ORIGIN" } } })).toMatchObject(sheet);
   });
 
   it("presents the Catalogue filters as a native iOS form sheet, without grabber, on a white background", () => {
