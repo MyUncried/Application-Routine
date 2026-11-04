@@ -208,6 +208,10 @@ describe("FormatModelScreen", () => {
     expect(within(table).getByText(t.table.max)).toBeTruthy();
     expect(within(table).queryByText(t.table.perRound)).toBeNull();
     fireEvent.press(screen.getByTestId("format-amrap-max-1"));
+    // Contre-recette n° 3 ter du 03/11/2026 : récapitulatif complet exigé — Rép. vide en rouge, bouton grisé.
+    fireEvent.changeText(screen.getByTestId("format-amrap-reps-0"), "");
+    expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.changeText(screen.getByTestId("format-amrap-reps-0"), "10");
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });
@@ -243,11 +247,18 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-buy-in-link")).toHaveTextContent(t.change);
     expect(within(screen.getByTestId("format-buy-in-cards")).getByText("Squats sautés")).toBeTruthy();
     expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
-    // Récapitulatif : « Changer » ouvre le même champ, pas le Catalogue.
+    // Récapitulatif : « Changer » ouvre le même champ, pas le Catalogue — contre-recette n° 3 ter : le buy-in est
+    // d'abord effacé ; on le choisit à nouveau.
     fireEvent.press(screen.getByTestId("harness-stage"));
     fireEvent.press(screen.getByTestId("format-buy-in-link"));
     expect(screen.getByTestId("format-search")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("format-buy-in-cards")?.children ?? []).toHaveLength(0);
+    fireEvent.changeText(screen.getByTestId("format-search"), "Squ");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-suggestion-mv-squats"));
+    });
+    for (const index of [0, 1, 2]) fireEvent.changeText(screen.getByTestId(`format-amrap-reps-${index}`), "10");
     fireEvent.press(screen.getByTestId("format-loop-link"));
     expect(screen.getByTestId("format-loop-link")).toHaveTextContent(t.openCatalogue);
     await act(async () => {

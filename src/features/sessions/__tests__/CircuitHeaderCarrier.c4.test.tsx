@@ -53,10 +53,11 @@ describe("CircuitHeader — Circuit porteur", () => {
     expect(screen.getByTestId("header-duration")).toHaveTextContent("Sans limite");
   });
 
-  it("Death by alterné : « jusqu'à l'échec », aucune durée d'en-tête (A2)", () => {
+  // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « Changer "jusqu'à l'échec" par "à l'échec" »).
+  it("Death by alterné : « à l'échec », aucune durée d'en-tête (A2)", () => {
     renderCarrier({ key: "DEATH_BY", settings: {} }, "SERIES", 1);
     expect(screen.getByTestId("header-title")).toHaveTextContent("Death by");
-    expect(screen.getByTestId("header-counter-open")).toHaveTextContent("jusqu’à l’échec");
+    expect(screen.getByTestId("header-counter-open")).toHaveTextContent("à l’échec");
     expect(screen.getByTestId("header-duration")).toHaveTextContent("");
   });
 });

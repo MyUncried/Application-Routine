@@ -153,3 +153,23 @@ Hermann : « je propose de corriger ces constats avant que je ne continue ». Co
 Interprétations à confirmer sur iPhone : place réservée à la durée (« ≈ 88 min 45 s ») et au compteur (« 99 tours · alternées ») ; compteur Death by « jusqu'à l'échec · alternées » plus large que la réserve (il prend sa place sur le nom) ; hauteur de la feuille plafonnée au bas du titre de l'écran (fraction calculée depuis la zone sûre initiale).
 
 Tests : `FormatModelScreen.c3.test.tsx` (saisie, clavier, À l'échec, Progression), `recette3.circuits.test.tsx` (nom sans lettre, colonnes mesurées), `ActivityEditorForm.test.tsx` (fiche sans Terminer, mesures du corps), tests B.1b, B.2, B.4b (titres sans lettre). Jest ne prouve ni le rendu ni le geste sur iPhone.
+
+## Contre-recette n° 3 ter du 03/11/2026 — corrections (f3-deathby, f3-duree, f3-fortime, f3t-recherche, notes a, b, c, e)
+
+Départ `3be15e40`. Hermann : « j'ai fais un certain nombre de tests, tu peux corriger les écarts constatés, avant que je ne continue ». Décisions recopiées : registre ch07, « Contre-recette n° 3 ter — 03/11/2026 ».
+
+| Constat | Correction | Classe | Documents |
+|---|---|---|---|
+| Death by « jusqu'à l'échec » → « à l'échec » | Libellés de l'en-tête porteur, du repère de fin du Déroulé, du sous-titre Death by de la fenêtre Formats | B | Formats §12 (annotation), ch07 |
+| Death by, carte : « 1 / +1 rép. » | `formatOccurrenceSummary` : départ / incrément pour un Exercice Death by (synthèse à compléter inchangée) | B | Formats §12, ch07 |
+| f3-duree : roulette dans une feuille blanche ; « Sans limite » hors de la roulette | `CarrierDurationSheet` : `WheelPickerOverlay` + `DurationWheelPicker`, « Sans limite » en option au-dessus de la roue (procédé de l'option « à l'échec ») | B | Formats §11, ch07 |
+| f3-duree : « Que veut dire la durée de chaque bloc ? » | Question, aucune modification : durée d'un bloc AMRAP (§2.1), modifiable en touchant la valeur bleue de l'en-tête | — | — |
+| f3-fortime : valeurs perdues en réduisant puis augmentant N | `adaptMovementsToAnswers` / `extendList` : réserve au-delà de N (For time, Progression) ; tableaux et ordre de saisie bornés à N | B | Formats §11 A6, ch07 |
+| a) enregistrement avec des valeurs manquantes | `hasCompleteValues` : récapitulatif complet exigé | B | Formats §7.4, ch07 |
+| c) cellules vides en rouge ; incrément « + » sans 0 | `NumberCell` : fond `dangerSurface` si vide ; incrément AMRAP initial `null`, texte « + » | B | Formats §7.4, ch07 |
+| c) « Changer » le buy-in efface le mouvement | Section Buy-in : « Changer » retire le buy-in avant d'ouvrir le champ | B | Formats §7.4, ch07 |
+| f3t-recherche : Entrée ferme le clavier | Cause non reproduite (`submitBehavior="submit"` déjà posé) ; après Entrée, le champ reprend le focus s'il l'a perdu, sans se refermer | A | — |
+| b) photo d'une carte → fiche du Mouvement en feuille | **En attente** : la photo est le seul accès à l'éditeur de l'Exercice depuis la Composition ; question posée à Hermann | C | ch07 |
+| c) AMRAP / Death by : réglages de Format dans la modale des paramètres | **Non traité**, décision de Hermann (« si il n'était pas prévu […] ne rien faire, les règles vont changer de toute façon ») ; écart C.4 (CE-FMT-04) maintenu | — | ch07 |
+| e) plus aucun circuit ne s'ouvre après déplacement d'un exercice en tête | **Non reproduit** hors appareil ; étapes précises demandées à Hermann | C | — |
+| f3t-fiche : espace blanc en bas | « ne rien changer pour l'instant » | — | — |

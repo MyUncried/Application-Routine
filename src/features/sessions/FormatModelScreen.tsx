@@ -27,6 +27,7 @@ import {
   buildModelElements,
   executionOptions,
   hasChosenBuyIn,
+  hasCompleteValues,
   initialAnswers,
   initialMovementValues,
   isFormatModelKey,
@@ -56,6 +57,7 @@ import { strings } from "@/shared/i18n";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { FINAL_ACTION_TOP_MARGIN } from "@/shared/ui/finalAction";
+import { colors as tokenColors } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
@@ -156,10 +158,10 @@ function tableCellOrder(model: FormatModelKey, movements: readonly ModelMovement
         for (let column = 0; column < (answers.roundCount ?? 1); column += 1) order.push(`fortime-${index}-${column}`);
         return;
       case "PROGRESSION":
-        (item.values.cells ?? []).forEach((_, column) => {
+        for (let column = 0; column < (answers.seriesCount ?? 1); column += 1) {
           order.push(`progression-${index}-${column}-r`);
           if (item.exercise.executionParameters.loadEnabled) order.push(`progression-${index}-${column}-l`);
-        });
+        }
         return;
       default:
         return;
@@ -498,6 +500,8 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   // appuyer sur "+ Ajouter" ouvre directement le catalogue alors que le comportement doit être exactement le
   // même que pour le premier écran. Idem pour le bouton "Changer" ») : même champ dans chaque section, aux deux étapes.
   const [searchRole, setSearchRole] = useState<"LOOP" | "BUY_IN" | null>(null);
+  const searchInput = useRef<TextInput>(null);
+  const submitting = useRef(false);
   const searchOpen = searchRole !== null;
   const [query, setQuery] = useState("");
   const windowHeight = useWindowDimensions().height;
@@ -555,7 +559,10 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   // Recette n° 3 du 03/11/2026 (autres constats, Hermann : « Il faut sélectionner le mouvement de Buy-in pour
   // que le bouton d'action soit activé ») : Buy-in activé, il faut le buy-in et au moins un mouvement en boucle.
   const buyIn = model === "AMRAP" && answers.buyIn === true;
-  const canSave = buyIn ? hasChosenBuyIn(answers, movements) : movements.length > 0;
+  // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « on ne doit pas pouvoir "Ajouter à la séance" si toutes les
+  // valeurs des paramètres ne sont pas renseignées ») : au récapitulatif, chaque cellule du tableau est renseignée.
+  const canSave =
+    (buyIn ? hasChosenBuyIn(answers, movements) : movements.length > 0) && (stage !== "summary" || hasCompleteValues(model, answers, movements));
   const save = () => {
     if (busyRef.current || !canSave) return;
     busyRef.current = true;
@@ -818,6 +825,9 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           onLink={() => {
             if (open) openCatalogue(purpose);
             else {
+              // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « changer de Buy-in doit effacer le mouvement avant de
+              // positionner le curseur sur le champ ») : « Changer » retire le buy-in choisi, puis ouvre le champ.
+              if (role === "BUY_IN") setMovements((current) => current.filter((item) => item.buyIn !== true));
               setQuery("");
               setSuggestionsTop(null);
               setSearchRole(role);
@@ -828,14 +838,26 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         {open ? (
           <View style={styles.search}>
             <TextInput
+              ref={searchInput}
               value={query}
               onChangeText={setQuery}
               autoFocus
               placeholder={t().searchPlaceholder}
               // Recette n° 3 du 03/11/2026 (f3r-recherche : « appuyer sur entrée fait disparaître le clavier […]
-              // Le clavier ne doit pas disparaître ») : Entrée ne retire pas le focus.
+              // Le clavier ne doit pas disparaître ») : Entrée ne retire pas le focus. Contre-recette n° 3 ter
+              // (f3t-recherche, Hermann : « Appuyer sur entrée fermé le clavier ») : cause non reproduite hors appareil ;
+              // après Entrée, le champ reprend le focus s'il l'a perdu, sans se refermer.
               submitBehavior="submit"
+              returnKeyType="search"
+              onSubmitEditing={() => {
+                submitting.current = true;
+                requestAnimationFrame(() => {
+                  submitting.current = false;
+                  if (searchInput.current?.isFocused() === false) searchInput.current.focus();
+                });
+              }}
               onBlur={() => {
+                if (submitting.current) return;
                 if (query.trim().length === 0) setSearchRole((current) => (current === role ? null : current));
               }}
               style={styles.searchInput}
@@ -939,7 +961,9 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         <Text style={styles.section}>{t().parameters}</Text>
         <View style={styles.panel} testID="format-parameters">
           {rows}
-          {model === "PROGRESSION" && stage === "summary" ? <ProgressionTable movements={movements} onChange={updateValues} cell={cellBinding} /> : null}
+          {model === "PROGRESSION" && stage === "summary" ? (
+            <ProgressionTable movements={movements} series={answers.seriesCount ?? 1} onChange={updateValues} cell={cellBinding} />
+          ) : null}
           {/* Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Progression : il manque la pause » ; « ne pas calculer de
               durée total sur l'écran Questionnaire, l'utilisateur ne voit pas les valeur par défaut utilisées » ; « la ligne
               du mode d'exécution est la dernière, après la durée totale »). */}
@@ -1151,6 +1175,7 @@ function NumberCell({
   decimal = false,
   disabled = false,
   prefix = "",
+  placeholder,
   label,
   inputRef,
   onFocus,
@@ -1162,6 +1187,8 @@ function NumberCell({
   decimal?: boolean;
   disabled?: boolean;
   prefix?: string;
+  /** Texte de la cellule vide ; « — » par défaut. */
+  placeholder?: string;
   label: string;
   inputRef?: (input: TextInput | null) => void;
   onFocus?: () => void;
@@ -1194,10 +1221,12 @@ function NumberCell({
       keyboardType={decimal ? "decimal-pad" : "number-pad"}
       onFocus={onFocus}
       onBlur={onBlur}
-      placeholder={t().dash}
-      placeholderTextColor={DISABLED_VALUE}
+      placeholder={placeholder ?? t().dash}
+      placeholderTextColor={placeholder !== undefined ? VALUE_COLOR : DISABLED_VALUE}
       accessibilityLabel={label}
-      style={[styles.cell, disabled ? styles.cellDisabled : null]}
+      // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « Les champs de valeur du tableau encore à renseigner doivent
+      // être avec un fond rouge ») : fond rouge léger des valeurs à renseigner, celui du tableau des séries variables.
+      style={[styles.cell, disabled ? styles.cellDisabled : value === null ? styles.cellMissing : null]}
       testID={testID}
     />
   );
@@ -1247,10 +1276,11 @@ function AmrapTable({
                 <Text style={styles.tableDash}>{t().dash}</Text>
               ) : (
                 <NumberCell
-                  value={item.values.increment ?? 0}
+                  value={item.values.increment ?? null}
                   prefix="+ "
+                  placeholder="+"
                   disabled={max}
-                  onChange={(value) => onChange(index, { ...item.values, increment: value ?? 0 })}
+                  onChange={(value) => onChange(index, { ...item.values, increment: value })}
                   {...cell(`amrap-${index}-i`)}
                   label={`${name}, ${tt.perRound}`}
                   testID={`format-amrap-increment-${index}`}
@@ -1311,7 +1341,9 @@ function ForTimeTable({
               key={column}
               value={item.values.volumes?.[column] ?? null}
               onChange={(value) => {
-                const volumes = Array.from({ length: rounds }, (_, at) => (at === column ? value : (item.values.volumes?.[at] ?? null)));
+                // Valeurs au-delà du nombre de tours gardées en réserve (f3-fortime, `adaptMovementsToAnswers`).
+                const kept = item.values.volumes ?? [];
+                const volumes = Array.from({ length: Math.max(rounds, kept.length) }, (_, at) => (at === column ? value : (kept[at] ?? null)));
                 onChange(index, { ...item.values, volumes });
               }}
               {...cell(`fortime-${index}-${column}`)}
@@ -1338,15 +1370,18 @@ function ForTimeTable({
  */
 function ProgressionTable({
   movements,
+  series,
   onChange,
   cell,
 }: {
   movements: readonly ModelMovement[];
+  /** Nombre de séries affichées ; les cellules au-delà restent en réserve (f3-fortime). */
+  series: number;
   onChange: (index: number, values: MovementValues) => void;
   cell: CellBinding;
 }) {
   const tt = t().table;
-  const count = Math.max(0, ...movements.map((item) => item.values.cells?.length ?? 0));
+  const count = series;
   const columns = Array.from({ length: count }, (_, index) => index);
   const scrollRef = useRef<ScrollView>(null);
   const scrollX = useRef(0);
@@ -1497,6 +1532,7 @@ const styles = StyleSheet.create({
   // Recette n° 3 du 03/11/2026 (autres constats : « le champ Rép. n'est pas modifiable ») : zone tactile de la hauteur de la ligne.
   cell: { width: 56, minHeight: 36, textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR, paddingVertical: 2 },
   cellDisabled: { color: DISABLED_VALUE },
+  cellMissing: { backgroundColor: tokenColors.dangerSurface, borderRadius: 6 },
   progressionCell: { width: PROGRESSION_COLUMN_WIDTH, alignItems: "center" },
   progressionColumns: { flexDirection: "row" },
   progressionNames: { width: PROGRESSION_NAME_WIDTH, paddingLeft: 12, paddingRight: 8 },

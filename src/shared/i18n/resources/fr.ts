@@ -559,7 +559,7 @@ export const fr = {
       executions: { SEQUENCE: "À la suite", ALTERNATED: "En alternance", EACH_INTERVAL: "Dans chaque intervalle" },
       timeline: "Déroulé",
       recovery: "Récupération",
-      untilFailure: "jusqu’à l’échec",
+      untilFailure: "à l’échec",
       measured: "temps mesuré",
       noLimit: "Sans limite",
       untilCadence: "jusqu’à la cadence",
@@ -638,7 +638,7 @@ export const fr = {
         EMOM: { title: "EMOM", subtitle: "tenir un rythme" },
         AMRAP: { title: "AMRAP", subtitle: "volume maximal" },
         FOR_TIME: { title: "For time", subtitle: "vitesse d’exécution" },
-        DEATH_BY: { title: "Death by", subtitle: "jusqu’à l’échec" },
+        DEATH_BY: { title: "Death by", subtitle: "à l’échec" },
         STRENGTH: { title: "Renforcement", subtitle: "force musculaire" },
         SUPERSET: { title: "Superset", subtitle: "intensité sans repos" },
         PROGRESSION: { title: "Progression", subtitle: "montée en charge" },
@@ -886,7 +886,7 @@ export const fr = {
       carrier: {
         blockUnit: { singular: "bloc", plural: "blocs" },
         roundUnit: { singular: "tour", plural: "tours" },
-        untilFailure: "jusqu’à l’échec",
+        untilFailure: "à l’échec",
         noLimit: "Sans limite",
         buyIn: "Buy-in",
         buyOut: "Buy-out",
@@ -1090,6 +1090,8 @@ export const fr = {
         accessibilityRecovery: "récupération {duration}",
         // PRE-6 (story 5.1, D-435, Figma `9808:19924`) : séparateur entre la synthèse et la durée
         // estimée des Répétitions avec bip, sur la ligne 2 de la carte v2 (« 10 rép. / ≈ 1 min »).
+        // Contre-recette n° 3 ter du 03/11/2026 (f3-deathby) : « 1 / +1 rép. ».
+        deathBy: "{start} / +{increment} {unit}",
         workEstimateSeparator: " / ",
       },
     },

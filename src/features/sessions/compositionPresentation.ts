@@ -23,6 +23,7 @@ import { computeActivityDurationResult, computeStructuredSessionDuration } from 
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "@/domain/sessions/circuit";
 import { groupActivitiesByZone, occurrenceDisplayName } from "@/domain/sessions/composition";
 import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
+import type { ElementFormat } from "@/domain/sessions/formats/elementFormat";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
 import { formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
@@ -431,8 +432,29 @@ export const OCCURRENCE_SUMMARY_MAX_VALUES = 3;
  * répétés ; aucun texte de pause ni de récupération. En Circuit de Séries, N
  * est celui des paramètres déjà adaptés par la story 1.4 : aucune règle propre.
  */
-export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify">): string {
-  return withParametersToVerify(occurrenceSummaryOf(facts), facts);
+export function formatOccurrenceSummary(
+  facts: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify"> & { readonly format?: ElementFormat | null },
+): string {
+  return withParametersToVerify(deathBySummary(occurrenceSummaryOf(facts), facts), facts);
+}
+
+/**
+ * Contre-recette n° 3 ter du 03/11/2026 (f3-deathby, Hermann : « Composition de la séance > carte d'exercice :
+ * l'information du chrono devrait être 1 / +1 rép. ») : Exercice Death by — objectif de départ et incrément par
+ * intervalle (« 1 / +1 rép. »), à la place de la synthèse des séries. [Référence Formats §12 : « Les cartes
+ * montrent « 1 → n rép. » dans l'exemple » — remplacé.] Synthèse à compléter ou à vérifier inchangée.
+ */
+function deathBySummary(summary: string, facts: Pick<ExerciseRowSummaryFacts, "executionParameters"> & { readonly format?: ElementFormat | null }): string {
+  if (facts.format?.key !== "DEATH_BY" || isIncompleteSummary(summary)) return summary;
+  const parameters = facts.executionParameters;
+  const first = seriesRowsOf(parameters)[0]?.target;
+  if (first === undefined || first.kind !== "NUMBER") return summary;
+  const setting = facts.format.settings.incrementPerRound;
+  const increment = typeof setting === "number" ? setting : 1;
+  return strings.screens.composition.occurrenceCard.deathBy
+    .replace("{start}", String(first.value))
+    .replace("{increment}", String(increment))
+    .replace("{unit}", strings.executionParameters.sheet.repetitionsUnit);
 }
 
 function occurrenceSummaryOf(facts: Pick<ExerciseRowSummaryFacts, "executionParameters">): string {

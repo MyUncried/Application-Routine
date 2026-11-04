@@ -195,7 +195,16 @@ describe("For time (§11, A6)", () => {
     expect(four[0]!.values.volumes).toEqual([21, 15, 9, null]);
     const [element] = build("FOR_TIME", withAnswer(answers, "roundCount", 4), four);
     expect(element!.kind === "EXERCISE" && seriesRowsOf(element!.exercise.executionParameters).at(-1)!.target).toEqual({ kind: "UNSET" });
-    expect(adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 2), movements)[0]!.values.volumes).toEqual([21, 15]);
+    // Contre-recette n° 3 ter du 03/11/2026 (f3-fortime) : à 2, la valeur du tour 3 reste en réserve (non construite) ;
+    // repasser à 3 la retrouve.
+    const two = adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 2), movements);
+    expect(two[0]!.values.volumes).toEqual([21, 15, 9]);
+    const [built] = build("FOR_TIME", withAnswer(answers, "roundCount", 2), two);
+    expect(built!.kind === "EXERCISE" && seriesRowsOf(built!.exercise.executionParameters).map((row) => row.target)).toEqual([
+      { kind: "NUMBER", value: 21 },
+      { kind: "NUMBER", value: 15 },
+    ]);
+    expect(adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 3), two)[0]!.values.volumes).toEqual([21, 15, 9]);
   });
 });
 
@@ -250,7 +259,8 @@ describe("départs rapides (§9.2, §9.3)", () => {
     expect(movements[1]!.values.cells!.every((cell) => cell.loadKg !== null)).toBe(true);
     const four = adaptMovementsToAnswers("PROGRESSION", withAnswer(answers, "seriesCount", 4), movements);
     expect(four[0]!.values.cells).toEqual([...[10, 12, 14].map((repetitions) => ({ repetitions, loadKg: null })), { repetitions: null, loadKg: null }]);
-    expect(adaptMovementsToAnswers("PROGRESSION", withAnswer(answers, "seriesCount", 2), movements)[0]!.values.cells).toHaveLength(2);
+    // Contre-recette n° 3 ter (f3-fortime) : la série 3 reste en réserve à N = 2.
+    expect(adaptMovementsToAnswers("PROGRESSION", withAnswer(answers, "seriesCount", 2), movements)[0]!.values.cells).toHaveLength(3);
     const [element] = build("PROGRESSION", withAnswer(answers, "seriesCount", 4), four);
     expect(element!.kind === "EXERCISE" && seriesRowsOf(element!.exercise.executionParameters).map((row) => row.target.kind)).toEqual(["NUMBER", "NUMBER", "NUMBER", "UNSET"]);
   });

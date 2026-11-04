@@ -180,8 +180,13 @@ export type MovementValues = {
   /** AMRAP : répétitions par tour, ou Max (À l'échec) ; buy-in : volume. */
   readonly repetitions?: number | null;
   readonly max?: boolean;
-  /** AMRAP (Volume croissant) : incrément par tour, ≥ 0. */
-  readonly increment?: number;
+  /**
+   * AMRAP (Volume croissant) : incrément par tour, ≥ 0 ; `null` = à compléter. Contre-recette n° 3 ter du
+   * 03/11/2026 (Hermann : « Les cellules d'incrément doivent être rouges et avec "+" uniquement (sans le 0). Au
+   * focus, il ne doit pas y avoir de 0 déjà renseigné ») : aucun incrément initial. [Incrément initial 0 —
+   * remplacé pour le récapitulatif ; l'entrée d'un Exercice dans un Circuit AMRAP (§6) n'est pas concernée.]
+   */
+  readonly increment?: number | null;
   /** For time : volume de chaque tour (Séries variables), `null` = à compléter. */
   readonly volumes?: readonly (number | null)[];
   /** Progression : répétitions et charge de chaque série. */
@@ -225,7 +230,7 @@ function baseLoad(exercise: SessionDraftExercise): number {
 export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers, exercise: SessionDraftExercise): MovementValues {
   switch (key) {
     case "AMRAP":
-      return { repetitions: baseRepetitions(exercise), max: false, increment: 0 };
+      return { repetitions: baseRepetitions(exercise), max: false, increment: null };
     case "FOR_TIME":
       return { volumes: resizeList(FOR_TIME_INITIAL, answers.roundCount ?? 3) };
     case "PROGRESSION": {
@@ -237,16 +242,60 @@ export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers
   }
 }
 
+/**
+ * Récapitulatif complet : chaque valeur affichée du tableau est renseignée — contre-recette n° 3 ter du
+ * 03/11/2026 (Hermann : « on ne doit pas pouvoir "Ajouter à la séance" si toutes les valeurs des paramètres ne
+ * sont pas renseignées »). AMRAP : répétitions (sauf Max), incrément si Volume croissant ; buy-in : volume.
+ * For time : volume de chaque tour. Progression : répétitions de chaque série, charge si l'Exercice est « Avec ».
+ */
+export function hasCompleteValues(key: FormatModelKey, answers: ModelAnswers, movements: readonly ModelMovement[]): boolean {
+  const buyIn = answers.buyIn === true;
+  return movements.every((movement, index) => {
+    const values = movement.values;
+    switch (key) {
+      case "AMRAP": {
+        if (buyIn && index === 0 && movement.buyIn === true) return values.repetitions != null;
+        if (values.max === true) return true;
+        return values.repetitions != null && (answers.increasingVolume !== true || values.increment != null);
+      }
+      case "FOR_TIME":
+        return Array.from({ length: answers.roundCount ?? 1 }, (_, at) => values.volumes?.[at] ?? null).every((volume) => volume !== null);
+      case "PROGRESSION": {
+        const withLoad = movement.exercise.executionParameters.loadEnabled;
+        return Array.from({ length: answers.seriesCount ?? 1 }, (_, at) => values.cells?.[at] ?? null).every(
+          (cell) => cell !== null && cell.repetitions !== null && (!withLoad || cell.loadKg !== null),
+        );
+      }
+      default:
+        return true;
+    }
+  });
+}
+
 /** Liste adaptée à N : valeurs existantes conservées, lignes ajoutées « à compléter », surplus retiré (A6). */
 export function resizeList<T>(values: readonly T[], count: number): (T | null)[] {
   return Array.from({ length: count }, (_, index) => (index < values.length ? values[index]! : null));
 }
 
-/** Adaptation des valeurs par mouvement après un changement de N (For time : tours ; Progression : séries). */
+/** Liste allongée à N au moins : valeurs existantes, au-delà comprises, conservées ; lignes ajoutées « à compléter ». */
+export function extendList<T>(values: readonly T[], count: number): (T | null)[] {
+  return Array.from({ length: Math.max(count, values.length) }, (_, index) => (index < values.length ? values[index]! : null));
+}
+
+/**
+ * Adaptation des valeurs par mouvement après un changement de N (For time : tours ; Progression : séries).
+ *
+ * Contre-recette n° 3 ter du 03/11/2026 (f3-fortime, Hermann : « passage de 3 à 4 séries, entrer les données,
+ * puis retour à 3 : les valeurs ont disparues, elles devraient être retrouvées, idem si je repasse à 4, etc. ») :
+ * pendant le questionnaire et le récapitulatif, les valeurs au-delà de N sont gardées en réserve, non affichées
+ * et sans effet sur la structure produite (`buildModelElements` ne lit que les N premières) ; repasser à un N
+ * plus grand les retrouve. [§11 A6 : « à la diminution, retirer les lignes au-delà du nouveau N » — remplacé pour
+ * le récapitulatif ; la structure enregistrée ne contient toujours que N lignes.]
+ */
 export function adaptMovementsToAnswers(key: FormatModelKey, answers: ModelAnswers, movements: readonly ModelMovement[]): readonly ModelMovement[] {
   if (key === "FOR_TIME") {
     const count = answers.roundCount ?? 3;
-    return movements.map((movement) => ({ ...movement, values: { ...movement.values, volumes: resizeList(movement.values.volumes ?? [], count) } }));
+    return movements.map((movement) => ({ ...movement, values: { ...movement.values, volumes: extendList(movement.values.volumes ?? [], count) } }));
   }
   if (key === "PROGRESSION") {
     const count = answers.seriesCount ?? 3;
@@ -254,7 +303,7 @@ export function adaptMovementsToAnswers(key: FormatModelKey, answers: ModelAnswe
       ...movement,
       values: {
         ...movement.values,
-        cells: resizeList(movement.values.cells ?? [], count).map((cell) => cell ?? { repetitions: null, loadKg: null }),
+        cells: extendList(movement.values.cells ?? [], count).map((cell) => cell ?? { repetitions: null, loadKg: null }),
       },
     }));
   }
