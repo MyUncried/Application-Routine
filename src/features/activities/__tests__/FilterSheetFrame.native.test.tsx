@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
-import { Text } from "react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
+import { StyleSheet, Text } from "react-native";
 
 import { FilterSheetFrame } from "@/features/activities/FilterSheetPrimitives";
 import { PendingFilterSheet } from "@/features/activities/FilterSheetRoute";
@@ -53,6 +53,16 @@ describe("FilterSheetFrame — feuille native (04/11/2026)", () => {
     fireEvent.press(screen.getByTestId("f-apply"));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onApply).toHaveBeenCalledTimes(1);
+  });
+
+  it("recette du 04/11 (captures de Hermann) : en-tête fixé en haut, au premier plan ; la liste réserve sa hauteur", () => {
+    renderFrame();
+    const header = screen.getByTestId("f-native-header");
+    expect(StyleSheet.flatten(header.props.style)).toMatchObject({ position: "absolute", top: 0, zIndex: 2 });
+    expect(within(header).getByTestId("f-close")).toBeTruthy();
+    expect(within(header).getByTestId("f-apply")).toBeTruthy();
+    fireEvent(header, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 80 } } });
+    expect(StyleSheet.flatten(screen.getByTestId("f-scroll").props.contentContainerStyle).paddingTop).toBe(96);
   });
 
   it("hauteur utile = feuille − partie visible du défilement + contenu, pour ajuster la feuille à son contenu", () => {

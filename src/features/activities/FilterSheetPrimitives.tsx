@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type LayoutChangeEvent } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
@@ -34,6 +34,8 @@ const CHEVRON_ICON = require("../../../assets/icons/filtre-chevron-modifier.svg"
  */
 const scrimEntering = FadeIn.duration(CREATE_MENU_FADE_IN_MS).reduceMotion(ReduceMotion.System);
 const SHEET_SLIDE_IN_MS = 300;
+/** Hauteur de l'en-tête de la feuille native avant sa mesure : marge haute 12, en-tête 56, filet 1. */
+const NATIVE_HEADER_ESTIMATE = 69;
 /**
  * Recette iPhone CAT.1 du 30/10/2026 (Hermann, cat-resultats : « la modale du filtre de mouvements
  * […] ne fait pas apparaître toutes les sections (elle n'est pas assez haute), elle s'arrête avant
@@ -121,8 +123,7 @@ export function FilterSheetFrame({
     measures.current = next;
     if (next.root > 0 && next.frame > 0 && next.content > 0) native?.onNeededHeight?.(Math.ceil(next.root - next.frame + next.content));
   };
-  const body = (
-    <>
+  const headerRow = (
       <View style={styles.header} testID={`${testIDPrefix}-header`}>
         <Pressable
           onPress={close}
@@ -148,10 +149,19 @@ export function FilterSheetFrame({
           <KodjoIcon name="wheel-action-validate" />
         </Pressable>
       </View>
-      <View style={styles.headerDivider} testID={`${testIDPrefix}-header-divider`} />
+  );
+  const headerDivider = <View style={styles.headerDivider} testID={`${testIDPrefix}-header-divider`} />;
+  // Recette du 04/11/2026 (Hermann, captures : la première ligne des filtres « se retrouve décalée en haut au niveau du
+  // titre de la modale. Impossible de sortir de la modale ») : en feuille native, la liste démarrait au haut de la feuille,
+  // par-dessus l'en-tête (✕ et ✓ recouverts). L'en-tête est fixé en haut, au premier plan ; la liste réserve sa hauteur.
+  const [nativeHeaderHeight, setNativeHeaderHeight] = useState(NATIVE_HEADER_ESTIMATE);
+  const body = (
+    <>
+      {native !== undefined ? null : headerRow}
+      {native !== undefined ? null : headerDivider}
       <ScrollView
         style={native !== undefined ? styles.nativeScroll : styles.scroll}
-        contentContainerStyle={[styles.body, footer ? styles.bodyWithFooter : null]}
+        contentContainerStyle={[styles.body, footer ? styles.bodyWithFooter : null, native !== undefined ? { paddingTop: nativeHeaderHeight + spacing[16] } : null]}
         testID={`${testIDPrefix}-scroll`}
         {...(native !== undefined
           ? {
@@ -176,8 +186,16 @@ export function FilterSheetFrame({
         onLayout={(event) => measure({ root: event.nativeEvent.layout.height })}
         testID={`${testIDPrefix}-sheet`}
       >
-        <View style={styles.nativeTop} />
         {body}
+        <View
+          style={styles.nativeHeader}
+          onLayout={(event) => setNativeHeaderHeight(event.nativeEvent.layout.height)}
+          testID={`${testIDPrefix}-native-header`}
+        >
+          <View style={styles.nativeTop} />
+          {headerRow}
+          {headerDivider}
+        </View>
       </View>
     );
   }
@@ -371,6 +389,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   // Place de la poignée retirée (marge haute 8 + hauteur 4) : l'en-tête garde sa distance au haut de la feuille.
+  // En-tête de la feuille native, fixé en haut et au premier plan (recette du 04/11/2026).
+  nativeHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 2,
+    backgroundColor: colors.background,
+  },
   nativeTop: {
     height: spacing[8] + 4,
   },
