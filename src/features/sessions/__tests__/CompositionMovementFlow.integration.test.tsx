@@ -118,6 +118,8 @@ function renderApp() {
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
+      // Recette iPhone du 04/11/2026 (décision de Hermann) : fiche de l'Exercice en lecture seule, ouverte par la photo.
+      "(creation)/exercise-sheet": require("../../../../app/(creation)/exercise-sheet").default,
       // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » retirée avec les anciennes définitions du Catalogue.]
       "(creation)/movement-selection": require("../../../../app/(creation)/movement-selection").default,
     },
@@ -240,7 +242,23 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
     await act(async () => undefined);
     fireEvent.press(screen.getByLabelText(composition.exerciseRow.openMovementAccessibilityLabel));
     await act(async () => undefined);
-    expect(router.getPathname()).toBe("/exercise");
+    // [« /exercise » (éditeur) — remplacé le 04/11/2026, décision de Hermann (recette iPhone du 04/11) : la
+    // photo ouvre la fiche de l'Exercice en lecture seule (`/exercise-sheet`) : sans bouton d'action, synthèse
+    // des paramètres non touchable, sections vides (Description, photo) absentes.]
+    expect(router.getPathname()).toBe("/exercise-sheet");
+    expect(router.getSearchParams()).toMatchObject({ exerciseId: expect.any(String) });
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    expect(screen.getByTestId("exercise-name-input").props.value).toBe("Burpees");
+    expect(screen.getByTestId("exercise-name-input").props.editable).toBe(false);
+    expect(screen.queryByTestId("exercise-sheet-finish-slot")).toBeNull();
+    expect(screen.queryByTestId("exercise-parameters-card")).toBeNull();
+    expect(screen.getByTestId("exercise-parameters-card-readonly")).toBeTruthy();
+    expect(screen.queryByTestId("exercise-section-description")).toBeNull();
+    expect(screen.queryByTestId("movement-photo-template")).toBeNull();
+    // Précision de Hermann du 04/11/2026 : zone de contexte gardée telle quelle (Catégorie, Zones).
+    expect(screen.getByTestId("exercise-reference-row")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("exercise-parameters-phrase"));
+    await act(async () => undefined);
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
   }, 40000);
 

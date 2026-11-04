@@ -248,6 +248,21 @@ export type ActivityEditorFormProps = {
   bodyLocked?: boolean;
   /** Recette A/B B.10 (b2-5) : Entrée garde le clavier et le focus sur le Nom (aucune fin de saisie). */
   keepNameFocusOnSubmit?: boolean;
+  /**
+   * Recette iPhone du 04/11/2026 (décision de Hermann, fiche d'un Exercice ouverte par la photo de sa carte
+   * de Composition : « pas d'affichage du titre de section ni de son champ si aucune valeur n'y est
+   * renseignée ») : une section sans valeur (Description sans étape, aucun média, aucune phase, aucun
+   * paramètre) n'est pas rendue — ni titre ni champ. Défaut `false` : rendu inchangé. Précision de Hermann du
+   * même jour (« on garde les informations de la zone de contexte telles qu'elles sont, renseignées ou pas ») :
+   * la zone de contexte (Nom, Catégorie, Zones, Niveau) n'est jamais concernée.
+   */
+  hideEmptySections?: boolean;
+  /**
+   * Même décision (« en lecture seule (donc pas d'accès aux paramètres d'exécution en modification) ») : la
+   * synthèse des paramètres d'exécution est un texte, pas un bouton — aucune Feuille ne s'ouvre. Défaut
+   * `false` : carte touchable, inchangée.
+   */
+  parametersReadOnly?: boolean;
 };
 
 /** PRE-8 (B.2, CE-MVT-01 §9) : gabarit photo de référence, 402 × 329, mis à la largeur du terminal. */
@@ -434,6 +449,8 @@ export function ActivityEditorForm({
   autoFocusName = false,
   bodyLocked = false,
   keepNameFocusOnSubmit = false,
+  hideEmptySections = false,
+  parametersReadOnly = false,
 }: ActivityEditorFormProps) {
   const isMovement = variant === "movement";
   const windowSize = useWindowDimensions();
@@ -649,6 +666,11 @@ export function ActivityEditorForm({
   // Recette iPhone du 2026-10-18 (E-21, décision de Hermann) : l'invite H22 de la Carte
   // vide est retirée ; sans Mode validé, la Carte reste vide comme en PRE-3 (Phrase vide).
   const phrase = segments ? phraseText(segments) : parameters.mode === null ? "" : card.incomplete;
+  // Recette iPhone du 04/11/2026 (`hideEmptySections`) : sections sans valeur non rendues.
+  const showDescription = !hideEmptySections || value.instructionSteps.some((step) => step.trim().length > 0);
+  const showMedia = !hideEmptySections || value.media.length > 0;
+  const showPhases = !hideEmptySections || (movementPhases?.value.phases.length ?? 0) > 0;
+  const showParameters = !hideEmptySections || phrase.length > 0;
   const zoneNames = bodyZones.filter((zone) => value.bodyZoneIds.includes(zone.id)).map((zone) => zone.name);
   // Q53 (9), décision de Hermann du 2026-10-18 : aucun avis textuel ni annonce VoiceOver pour
   // une Zone ou une Catégorie retirée encore affectée (« ce n'est pas un besoin ») ; restent le
@@ -743,6 +765,28 @@ export function ActivityEditorForm({
         editable={!isBodyLocked}
         {...(template ? { template } : {})}
       />
+    );
+  }
+
+  function renderPhrase() {
+    return (
+      <Text
+        // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
+        style={[styles.phrase, isIncompleteSummary(phrase) ? styles.phraseIncomplete : null]}
+        testID="exercise-parameters-phrase"
+      >
+        {segments
+          ? segments.map((segment, index) =>
+              segment.gras ? (
+                <Text key={index} style={styles.phraseBold}>
+                  {segment.texte}
+                </Text>
+              ) : (
+                presentationText(segment.texte)
+              ),
+            )
+          : phrase}
+      </Text>
     );
   }
 
@@ -970,7 +1014,7 @@ export function ActivityEditorForm({
         ) : null}
       </View>
 
-      {isMovement ? (
+      {isMovement && showMedia ? (
         // PRE-8 (B.2, CE-MVT-01 §7, §9) ; recette A/B (F01, F02) : média pleine largeur, fixe, sous la
         // zone de contexte (qui le recouvre de `MOVEMENT_PHOTO_UNDER_CONTEXT`) et hors du défilement du
         // contenu inférieur. Le gabarit garde sa hauteur sans média (ajout depuis le gabarit vide).
@@ -1021,6 +1065,7 @@ export function ActivityEditorForm({
           testID="exercise-body"
         >
           {/* P7 (FR-02-02, AC3) : la Description précède la Carte Paramètres d'exécution. */}
+          {showDescription ? (
           <View
             style={styles.section}
             onLayout={(event) => {
@@ -1072,13 +1117,14 @@ export function ActivityEditorForm({
               </Pressable>
             ) : null}
           </View>
+          ) : null}
 
           {isMovement ? (
             // PRE-8 (B.2, CE-MVT-01 §7) : phases du Mouvement (libellés, ordre), jamais de durée.
             // [PRE-9 A.2b, 31/10/2026 (Hermann, 30/10) : plus une durée par défaut facultative par phase.]
-            movementPhases ? (
+            movementPhases && showPhases ? (
               <View
-                style={[styles.section, styles.followingSection]}
+                style={[styles.section, showDescription ? styles.followingSection : null]}
                 onLayout={(event) => {
                   phasesLayoutRef.current = { y: event.nativeEvent.layout.y, height: event.nativeEvent.layout.height };
                   if (isPhasesFocused) revealPhases();
@@ -1116,17 +1162,31 @@ export function ActivityEditorForm({
           ) : null}
           {/* PRE-9 (recette iPhone du 29/10) : Exercice d'une Séance ouvert au gabarit Mouvement — la
               carte des paramètres locaux suit les phases (`executionParametersCard`). */}
-          {!isMovement || executionParametersCard ? (
+          {(!isMovement || executionParametersCard) && showParameters ? (
             <>
           {/* Q23 (AC14) : aucun bouton ni nom du Mode à droite du titre ; la Carte est la
               seule zone touchable et le seul focus (AC6) ; le Mode se choisit dans la Feuille. */}
-          <View style={[styles.section, styles.followingSection]} testID="exercise-section-parameters">
+          <View
+            style={[
+              styles.section,
+              // Recette du 04/11/2026 (`hideEmptySections`) : première section rendue, sans écart au-dessus.
+              showDescription || (isMovement && movementPhases !== null && showPhases) ? styles.followingSection : null,
+            ]}
+            testID="exercise-section-parameters"
+          >
             <Text style={styles.sectionTitle} accessibilityRole="header">
               {card.title}
             </Text>
             {/* PRE-5 story 3.2 (R-14, FR-36) : la Carte ne porte plus que la Phrase — ni Compte à
                 rebours, ni Fin, ni filet, à l'écran comme dans le nom accessible (la Feuille et
-                les données les gardent). */}
+                les données les gardent).
+                Recette du 04/11/2026 (`parametersReadOnly`) : même carte et même Phrase, sans bouton
+                ni Feuille (lecture seule). */}
+            {parametersReadOnly ? (
+              <View style={styles.parametersCard} accessible accessibilityLabel={phrase} testID="exercise-parameters-card-readonly">
+                {renderPhrase()}
+              </View>
+            ) : (
             <Pressable
               ref={parametersCardRef}
               onPress={openSheet}
@@ -1135,24 +1195,9 @@ export function ActivityEditorForm({
               style={styles.parametersCard}
               testID="exercise-parameters-card"
             >
-              <Text
-                // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
-                style={[styles.phrase, isIncompleteSummary(phrase) ? styles.phraseIncomplete : null]}
-                testID="exercise-parameters-phrase"
-              >
-                {segments
-                  ? segments.map((segment, index) =>
-                      segment.gras ? (
-                        <Text key={index} style={styles.phraseBold}>
-                          {segment.texte}
-                        </Text>
-                      ) : (
-                        presentationText(segment.texte)
-                      ),
-                    )
-                  : phrase}
-              </Text>
+              {renderPhrase()}
             </Pressable>
+            )}
           </View>
             </>
           ) : null}
@@ -1160,7 +1205,7 @@ export function ActivityEditorForm({
           {/* PRE-5 story 3.2, arbitrage G-7 de Hermann du 19/10 : aucun titre « Médias » visible
               (Figma `8328:35698`) ; le titre reste un en-tête VoiceOver, sans place à l'écran.
               PRE-8 (B.2) : section absente de la fiche Mouvement (médias dans le gabarit photo). */}
-          {isMovement ? null : (
+          {isMovement || !showMedia ? null : (
           <View style={[styles.section, styles.followingSection]} testID="activity-editor-section-media">
             <Text style={styles.accessibilityOnlyTitle} accessibilityRole="header" testID="activity-editor-media-title">
               {strings.executionParameters.media.section}

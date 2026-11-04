@@ -201,7 +201,7 @@ describe("Recette n° 2, lot 3 (constat c) — carte → paramètres, photo → 
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     await act(async () => undefined);
     fireEvent.press(photo);
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise", params: { exerciseId: "a" } });
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise-sheet", params: { exerciseId: "a" } }); // [04/11/2026 : fiche en lecture seule, décision de Hermann — remplace « /exercise ».]
   });
 });
 

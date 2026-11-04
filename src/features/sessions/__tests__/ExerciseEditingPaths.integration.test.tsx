@@ -414,6 +414,17 @@ function openLegacyExerciseCreation() {
   });
 }
 
+/**
+ * [Remplacé le 04/11/2026 — décision de Hermann (recette iPhone du 04/11) : l'appui court sur la photo d'une
+ * carte d'Exercice ouvre la fiche de l'Exercice en lecture seule (`/exercise-sheet`), plus l'éditeur.] Les
+ * contrats de l'éditeur d'une occurrence existante restent vérifiés en l'ouvrant par sa route.
+ */
+function openOccurrenceEditor(exerciseId: string) {
+  act(() => {
+    expoRouter.push({ pathname: "/exercise", params: { exerciseId } });
+  });
+}
+
 // [PRE-9 A.3 du 04/11/2026 : « PRE-8 E.8-a — Modifier une ancienne définition depuis la sélection d'Exercices » retiré(s) avec les anciennes définitions du Catalogue.]
 
 describe("PRE4-4.1/AC4 — Modifier une Copie en Séance", () => {
@@ -448,7 +459,7 @@ describe("PRE4-4.1/AC4 — Modifier une Copie en Séance", () => {
     const router = renderApp();
     await openSessionFromCatalogue();
 
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expect(router.getPathname()).toBe("/exercise");
     expect(router.getSearchParams()).toMatchObject({ exerciseId: copy.id });
@@ -560,7 +571,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
     await openSessionFromCatalogue();
     const before = await dump();
 
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expect(editorContext(router.getSearchParams())).toEqual({ exerciseId: copy.id });
     expect(editorSpy).toHaveBeenCalled();
@@ -694,7 +705,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     const router = renderApp();
     await openSessionFromCatalogue();
 
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     const opened = editorContent();
     expect(opened).toEqual({
@@ -715,7 +726,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
 
     editorSpy.mockClear();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expect(editorContent()).toEqual(opened);
     expect(await database.getAllAsync("SELECT * FROM movements")).toEqual(definitionBefore);
@@ -742,7 +753,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     const [created] = await database.getAllAsync<{ id: string }>(`SELECT id FROM ${OCCURRENCES} WHERE name = 'Gainage'`);
     editorSpy.mockClear();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${created!.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(created!.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expect(editorContent()).toEqual(entered);
     expect(await database.getAllAsync("SELECT name FROM movements WHERE id = ?", [definition.id])).toEqual([{ name: "Fentes" }]);
@@ -894,7 +905,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     const definitionBefore = await database.getAllAsync("SELECT * FROM movements");
     const router = renderApp();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
 
     enterFailureOnSavedExercise();
@@ -906,7 +917,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
 
     editorSpy.mockClear();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expect(editorContent()).toEqual(entered);
     expect(await database.getAllAsync("SELECT * FROM movements")).toEqual(definitionBefore);
@@ -931,7 +942,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     const [created] = await database.getAllAsync<{ id: string }>(`SELECT id FROM ${OCCURRENCES} WHERE name = 'Gainage'`);
     editorSpy.mockClear();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${created!.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(created!.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expect(editorContent()).toEqual(entered);
     expect(await database.getAllAsync("SELECT name FROM movements WHERE id = ?", [definition.id])).toEqual([{ name: "Fentes" }]);
@@ -999,14 +1010,14 @@ describe("PRE4-4.2/AC12 — abandon avec confirmation, navigation réelle", () =
     const { copy } = await savedSessionWithCopy(definition);
     const router = renderApp();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     fireEvent.press(screen.getByLabelText(exercise.backAccessibilityLabel));
     await settle(300);
     expect(router.getPathname()).toBe("/composition");
     expect(screen.queryByText(exercise.exitConfirmModal.title)).toBeNull();
 
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     // PRE-7 A2.2 (MFN-09) : la modification porte sur un paramètre, le nom étant verrouillé.
     editCopyParameters();
@@ -1028,7 +1039,7 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     const { copy } = await savedSessionWithCopy(definition);
     renderApp();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
     expect(screen.getByTestId("execution-sheet-row-side-recovery")).toBeTruthy();
@@ -1059,7 +1070,7 @@ describe("PRE4-4.1/AC12 — aucun libellé « Circuit » ni « Tour » dans l'É
     const { copy } = await savedSessionWithCopy(definition);
     renderApp();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expectNoCircuitOrTour();
     fireEvent.press(screen.getByLabelText(exercise.backAccessibilityLabel));
@@ -1080,7 +1091,7 @@ describe("PRE4-4.1/AC13 — source supprimée pendant l'édition (Copie en Séan
     const { copy } = await savedSessionWithCopy(definition);
     const router = renderApp();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     // PRE-7 A2.2 (MFN-09) : la modification porte sur un paramètre, le nom étant verrouillé.
     editCopyParameters();
@@ -1223,7 +1234,7 @@ describe("PRE4-4.4/AC2 — ajouter une photo puis une vidéo dans les quatre par
     await openSessionFromCatalogue();
     const before = await dump();
 
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expect(screen.queryByTestId("media-add")).toBeNull();
     expect(galleryLabels()).toEqual(["Photo 1 sur 2", "Photo 2 sur 2"]);
@@ -1267,7 +1278,7 @@ describe("PRE4-4.4/AC7 — Copie en Séance : réordonner et retirer sans effet 
     const router = renderApp();
     await openSessionFromCatalogue();
 
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expect(editorContent().media).toEqual(["p1", "p2"]);
     expect(() => openMediaMenu(2)).toThrow();
@@ -1301,7 +1312,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     const router = renderApp();
     await openSessionFromCatalogue();
 
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit"]);
     expect(screen.getByTestId("exercise-instruction-input").props.editable).toBe(false);
@@ -1313,7 +1324,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     expect(screen.queryByText(exercise.exitConfirmModal.title)).toBeNull();
     expect(router.getPathname()).toBe("/composition");
 
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copy.id}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copy.id); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     await settle();
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();

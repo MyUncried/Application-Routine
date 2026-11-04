@@ -210,10 +210,12 @@ describe("B.1b — rendu d'une disposition générale", () => {
 
   // [B.1b : « toucher une carte ouvre l'éditeur de cet Exercice » — remplacé par la recette iPhone n° 2 du
   // 31/10/2026 (constat c, Hermann) : la carte ouvre les paramètres d'exécution, la photo ouvre l'Exercice.]
+  // [Remplacé le 04/11/2026, décision de Hermann (recette iPhone du 04/11) : la photo ouvre la fiche de l’Exercice
+  // en lecture seule (`/exercise-sheet`), plus l’éditeur.]
   it("toucher la photo d'une carte ouvre l'éditeur de cet Exercice, comme dans l'ancien modèle (recette n° 2, constat c)", async () => {
     await renderComposition(richDraft());
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-a2"));
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise", params: { exerciseId: "a2" } });
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise-sheet", params: { exerciseId: "a2" } });
   });
 
   // [B.1b : « ni glisser, ni balayage, ni actions accessibles » — remplacé pour le glisser et « Monter »

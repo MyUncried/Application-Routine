@@ -95,6 +95,10 @@ export default function CreationLayout() {
             Recette n° 3 bis (f3s-fiche) : feuille ajustée à son contenu, au plus jusqu'au titre de l'écran (hauteur
             fixée par la route). */}
         <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet" }} />
+        {/* Recette iPhone du 04/11/2026 (décision de Hermann) : appui court sur la photo d'une carte d'Exercice de
+            la Composition — fiche de l'Exercice en lecture seule, « au format de la modale iOS, apparition et
+            disparition par le bas » ; feuille native sans poignée, fond blanc, hauteur ajustée par la route. */}
+        <Stack.Screen name="exercise-sheet" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
       </Stack>
       </FormatModelDraftProvider>
     </SessionDraftProvider>

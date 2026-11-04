@@ -84,11 +84,28 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
       "format-summary",
       // Recette iPhone n° 3 du 03/11/2026 : fiche d'un mouvement en modale, lecture seule.
       "movement-sheet",
+      // Recette iPhone du 04/11/2026 (décision de Hermann) : fiche d'un Exercice ouverte par la photo, lecture seule.
+      "exercise-sheet",
     ]);
     // Aucune route ne RÉACTIVE le geste par une option locale : la
     // désactivation héritée reste donc effective partout.
     for (const call of screenCalls) {
       expect(call.options?.gestureEnabled).not.toBe(true);
     }
+  });
+
+  // Recette iPhone du 04/11/2026 — décision de Hermann : « Affichage au format de la modale iOS, apparition et
+  // disparition par le bas. » : feuille native, sans poignée, fond blanc (comme les feuilles adoptées le 04/11).
+  it("presents the read-only Exercise sheet as a native iOS form sheet, without grabber, on a white background", () => {
+    stackCalls.length = 0;
+    screenCalls.length = 0;
+    render(<CreationLayout />);
+
+    const sheet = screenCalls.find((call) => call.name === "exercise-sheet");
+    expect(sheet?.options).toMatchObject({
+      presentation: "formSheet",
+      sheetGrabberVisible: false,
+      contentStyle: { backgroundColor: "#FFFFFF" },
+    });
   });
 });

@@ -946,7 +946,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     // Recette iPhone n° 2 du 31/10/2026 (constat c) : [la carte] — remplacé : la photo ouvre l'Exercice.
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-ex-1"));
     expect(mockPush).toHaveBeenCalledWith({
-      pathname: "/exercise",
+      pathname: "/exercise-sheet", // [04/11/2026 : la photo ouvre la fiche en lecture seule, décision de Hermann — remplace « /exercise ».]
       params: { exerciseId: "ex-1" },
     });
   });
@@ -983,7 +983,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     // Recette iPhone n° 2 du 31/10/2026 (constat c) : [la carte] — remplacé : la photo ouvre l'Exercice.
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-ex-2"));
     expect(mockPush).toHaveBeenCalledWith({
-      pathname: "/exercise",
+      pathname: "/exercise-sheet", // [04/11/2026 : la photo ouvre la fiche en lecture seule, décision de Hermann — remplace « /exercise ».]
       params: { exerciseId: "ex-2" },
     });
 
@@ -2570,7 +2570,7 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     await act(async () => undefined);
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-ex-2"));
     expect(mockPush).toHaveBeenCalledWith({
-      pathname: "/exercise",
+      pathname: "/exercise-sheet", // [04/11/2026 : la photo ouvre la fiche en lecture seule, décision de Hermann — remplace « /exercise ».]
       params: { exerciseId: "ex-2" },
     });
   });
@@ -2991,7 +2991,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     ).toBe("auto");
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-ex-2"));
     expect(mockPush).toHaveBeenCalledWith({
-      pathname: "/exercise",
+      pathname: "/exercise-sheet", // [04/11/2026 : la photo ouvre la fiche en lecture seule, décision de Hermann — remplace « /exercise ».]
       params: { exerciseId: "ex-2" },
     });
   });

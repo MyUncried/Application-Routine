@@ -188,6 +188,16 @@ function openLegacyExerciseCreation() {
   });
 }
 
+/**
+ * [Remplacé le 04/11/2026 — décision de Hermann (recette iPhone du 04/11) : la photo d'une carte d'Exercice
+ * ouvre la fiche en lecture seule (`/exercise-sheet`), plus l'éditeur.] L'éditeur est ouvert par sa route.
+ */
+function openOccurrenceEditor(exerciseId: string) {
+  act(() => {
+    expoRouter.push({ pathname: "/exercise", params: { exerciseId } });
+  });
+}
+
 describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 ; PRE-6 story 2.1)", () => {
   it("persists a full multi-Activity, multi-Category session without any data loss, resets the draft and returns to the Catalogue only on success", async () => {
     const { router, database } = await renderCreationRouter();
@@ -314,7 +324,7 @@ describe("R-3 — création locale, copie et description corrigée depuis la cop
     expect(screen.getByText("Gainage (copie)")).toBeTruthy();
 
     // Ouvrir la copie : contenu modifiable (Mouvement NEW du brouillon) ; description corrigée.
-    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copyId}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
+    openOccurrenceEditor(copyId); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     const step = await screen.findByLabelText(exercise.instruction.stepAccessibilityLabel.replace("{n}", "1"));
     fireEvent.changeText(step, "Dos droit");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));

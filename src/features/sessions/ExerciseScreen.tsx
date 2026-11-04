@@ -85,7 +85,7 @@ import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
  * jamais `BODY_ZONES`. `refreshToken` relit le référentiel à la fermeture du
  * sélecteur de Zones (R6).
  */
-function useBodyZonesReferential(
+export function useBodyZonesReferential(
   activityDefinitionService: ActivityDefinitionService,
   refreshToken: number = 0,
 ): readonly BodyZone[] {
@@ -115,7 +115,7 @@ function useBodyZonesReferential(
  * Catégories (affichage de la pilule) — rechargées à la fermeture du
  * sélecteur, pour refléter une création / un renommage / un retrait.
  */
-function useCategories() {
+export function useCategories() {
   const referentialService = useReferentialService();
   const [categories, setCategories] = useState<readonly Category[]>([]);
   const reload = useCallback(() => {
@@ -135,7 +135,7 @@ function useCategories() {
  * création d'un nouvel Exercice uniquement — jamais relus pour un objet
  * existant, P3-10), silhouette du sélecteur de Zones.
  */
-function useProfileDefaults() {
+export function useProfileDefaults() {
   const profileService = useProfileService();
   const [defaults, setDefaults] = useState<{
     readonly loaded: boolean;
@@ -182,7 +182,7 @@ function useProfileDefaults() {
   return defaults;
 }
 
-function toEditorCategory(categoryId: string | null, categories: readonly Category[]): EditorCategory {
+export function toEditorCategory(categoryId: string | null, categories: readonly Category[]): EditorCategory {
   if (!categoryId) return null;
   const found = categories.find((candidate) => candidate.id === categoryId);
   // Q53 (8) : une Catégorie retirée encore affectée reste affichée (nom et pastille) ; Q53 (9) :
@@ -341,7 +341,7 @@ export function EditMovementAction({ onPress, active = false }: { onPress: () =>
  * de Séance (choix par mouvement, `movementChoice`), même sans groupe (« Niveau »). `menu` `null` :
  * pastille affichée seule (contenu en cours d'édition par le crayon).
  */
-function editorLevelOf(
+export function editorLevelOf(
   levels: MovementLevels | "error" | null,
   menu: Omit<MovementLevelMenuModel, "levels"> | null,
 ): EditorLevel | null {
@@ -526,7 +526,7 @@ function openedOccurrenceOf(
  * PRE-7 (R-3, C05) : l'occurrence référence un Mouvement déjà enregistré (et non un Mouvement
  * NOUVEAU de la table du brouillon) — son contenu n'est pas modifiable sans le crayon (R-4).
  */
-function isPersistedMovementOccurrence(exercise: SessionDraftExercise, movements: SessionDraft["movements"]): boolean {
+export function isPersistedMovementOccurrence(exercise: SessionDraftExercise, movements: SessionDraft["movements"]): boolean {
   const movementId = (exercise.sourceMovementId ?? "").trim();
   return movementId.length > 0 && movements?.[movementId]?.change !== "NEW";
 }
@@ -536,7 +536,7 @@ function isPersistedMovementOccurrence(exercise: SessionDraftExercise, movements
  * occurrence (identités, libellés, ordre — jamais de durée), vue du gabarit Mouvement. Le compteur
  * ne recule pas sous celui du Mouvement du brouillon (MFN-02).
  */
-function occurrencePhaseList(exercise: SessionDraftExercise, movements: SessionDraft["movements"]): MovementPhaseList {
+export function occurrencePhaseList(exercise: SessionDraftExercise, movements: SessionDraft["movements"]): MovementPhaseList {
   const phases = exercise.executionParameters.series.workPhases.map((phase) => ({ id: phase.id, label: phase.label }));
   const floor = phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1;
   const movementId = (exercise.sourceMovementId ?? "").trim();

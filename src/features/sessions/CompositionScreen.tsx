@@ -4584,11 +4584,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     },
     [closeCircuitControls, draft.exercises, openExerciseParameters, router],
   );
-  /** Recette iPhone n° 2 du 31/10/2026 (constat c) : photo d'une carte d'Exercice — fiche de l'Exercice / du Mouvement. */
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (constat c) : photo d'une carte d'Exercice — fiche de l'Exercice / du Mouvement.
+   * [Remplacé le 04/11/2026 — décision de Hermann (recette iPhone du 04/11) : « Affichage de la fiche d'exercice
+   * avec photo, description phase et synthèse des paramètres d'exécution. Pas de bouton d'action en bas, en lecture
+   * seule […]. Affichage au format de la modale iOS, apparition et disparition par le bas. » : la photo ouvre la
+   * fiche en lecture seule (`/exercise-sheet`), plus l'éditeur `/exercise`. Seules les cartes d'Exercice ont une
+   * photo touchable (`onOpenMovement` réservé au type `EXERCISE`).]
+   */
   const handleOpenMovement = useCallback(
     (activityId: string) => {
       closeCircuitControls();
-      router.push({ pathname: "/exercise", params: { exerciseId: activityId } });
+      router.push({ pathname: "/exercise-sheet", params: { exerciseId: activityId } });
     },
     [closeCircuitControls, router],
   );

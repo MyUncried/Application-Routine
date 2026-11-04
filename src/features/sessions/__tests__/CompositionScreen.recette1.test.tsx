@@ -249,7 +249,7 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-a"));
     await act(async () => undefined);
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise", params: { exerciseId: "a" } });
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise-sheet", params: { exerciseId: "a" } }); // [04/11/2026 : fiche en lecture seule, décision de Hermann — remplace « /exercise ».]
   });
 
   it("disposition générale (deux Circuits) : même comportement", async () => {
@@ -277,7 +277,7 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
     expect(mockPush).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-a"));
     await act(async () => undefined);
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise", params: { exerciseId: "a" } });
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise-sheet", params: { exerciseId: "a" } }); // [04/11/2026 : fiche en lecture seule, décision de Hermann — remplace « /exercise ».]
   });
 });
 
