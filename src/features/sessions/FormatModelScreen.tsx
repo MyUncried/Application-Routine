@@ -136,8 +136,6 @@ const SUGGESTIONS_TO_KEYBOARD = 8;
 /** Barre Précédent / Suivant / Fermer des tableaux : hauteur avant mesure ; marge de révélation d'une cellule. */
 const KEYBOARD_BAR_HEIGHT = 52;
 const CELL_REVEAL_MARGIN = 12;
-/** Écart maximal admis entre le bas de la feuille native et le bas de l'écran (bord flottant d'iOS 26). */
-const MAX_SHEET_BOTTOM_GAP = 40;
 /** Tableau de la Progression : zone protégée des noms, colonne d'une série, hauteurs des lignes (une ou deux cellules). */
 
 /**
@@ -1031,57 +1029,49 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // un tableau plus haut que la place disponible garde au moins la case active visible.
   const tableRef = useRef<View>(null);
   // Hermann, 04/11/2026 : « la dernière ligne du tableau est bien au-dessus du clavier, mais pas au-dessus de la barre
-  // optionnelle du clavier » — la feuille native d'iOS 26 ne descend pas jusqu'au bas de l'écran : la barre et
-  // l'alignement partent du bas mesuré de la feuille, et non de la hauteur de la fenêtre.
+  // optionnelle du clavier ». Mesures relevées sur iPhone : dans la feuille native, `measureInWindow` compte depuis le haut
+  // de la feuille (racine à y = 0, hauteur 780 puis 802 quand le clavier s'ouvre), alors que le clavier est situé depuis le
+  // haut de l'écran. Chaque mesure est ramenée à l'écran par la position de la feuille relevée au même moment (bas de la
+  // feuille au bas de l'écran) ; la barre, elle, part du bas de la fenêtre (placement constaté juste).
   const rootRef = useRef<View>(null);
-  const [rootBottom, setRootBottom] = useState<number | null>(null);
-  // Hermann, 04/11/2026 : « je ne vois plus le nouveau clavier dans EMOM » — la mesure peut être prise pendant la montée
-  // de la feuille ou dans un autre repère : seul un petit écart sous la feuille (bord flottant d'iOS 26) est retenu ; sinon,
-  // le bas de la fenêtre (placement d'avant, visible).
-  const measureRoot = useCallback(() => {
-    rootRef.current?.measureInWindow((_x, y, _width, height) => {
-      const gap = windowHeight - (y + height);
-      const bottom = height > 0 && gap >= 0 && gap <= MAX_SHEET_BOTTOM_GAP ? y + height : windowHeight;
-      setRootBottom((current) => (current === bottom ? current : bottom));
-    });
-  }, [windowHeight]);
   useEffect(() => {
-    if (keyboardFrame === null) return;
-    measureRoot();
-    const settle = setTimeout(measureRoot, (keyboardFrame.duration > 0 ? keyboardFrame.duration : 250) + 60);
-    return () => clearTimeout(settle);
-  }, [keyboardFrame, measureRoot]);
-  useEffect(() => {
-    if (focusedCell === null || keyboardFrame === null) return;
-    const limit = Math.min(keyboardFrame.screenY, rootBottom ?? keyboardFrame.screenY) - (Platform.OS === "ios" ? barHeight : 0) - CELL_REVEAL_MARGIN;
-    const revealCell = () =>
-      cellInputs.current.get(focusedCell)?.measureInWindow((_x, y, _width, height) => {
-        const delta = y + height - limit;
-        if (delta > 0) scrollRef.current?.scrollTo({ y: scrollY.current + delta, animated: !reduceMotion });
-      });
+    // Position de clavier parasite (0 relevé sur iPhone) : aucun alignement.
+    if (focusedCell === null || keyboardFrame === null || keyboardFrame.screenY <= 0 || keyboardFrame.screenY >= windowHeight) return;
+    const limit = keyboardFrame.screenY - (Platform.OS === "ios" ? barHeight : 0) - CELL_REVEAL_MARGIN;
+    const scrollBy = (delta: number) => scrollRef.current?.scrollTo({ y: Math.max(0, scrollY.current + delta), animated: !reduceMotion });
     const align = () => {
-      const table = tableRef.current;
-      if (table === null) {
-        revealCell();
-        return;
-      }
-      table.measureInWindow((_x, y, _width, height) => {
-        const visibleTop = MODAL_TOP + bandHeight;
-        if (height > limit - visibleTop) {
+      const root = rootRef.current;
+      if (root === null) return;
+      root.measureInWindow((_rootX, rootY, _rootWidth, rootHeight) => {
+        // Décalage du repère mesuré vers l'écran : nul si les mesures sont déjà celles de l'écran.
+        const offset = windowHeight - (rootY + rootHeight);
+        const revealCell = () =>
+          cellInputs.current.get(focusedCell)?.measureInWindow((_x, y, _width, height) => {
+            const delta = y + height + offset - limit;
+            if (delta > 0) scrollBy(delta);
+          });
+        const table = tableRef.current;
+        if (table === null) {
           revealCell();
           return;
         }
-        const delta = y + height - limit;
-        if (Math.abs(delta) >= 1) scrollRef.current?.scrollTo({ y: Math.max(0, scrollY.current + delta), animated: !reduceMotion });
+        table.measureInWindow((_x, y, _width, height) => {
+          const visibleTop = rootY + offset + bandHeight;
+          if (height > limit - visibleTop) {
+            revealCell();
+            return;
+          }
+          const delta = y + height + offset - limit;
+          if (Math.abs(delta) >= 1) scrollBy(delta);
+        });
       });
     };
     align();
     // Hermann, 04/11/2026 : « Lorsque le clavier [s'ouvre], la dernière ligne du tableau doit rester au-dessus du clavier. »
-    // À l'annonce du clavier, la marge que la liste lui réserve n'est pas encore posée et le défilement peut être borné :
-    // l'alignement est refait une fois le clavier en place.
+    // La feuille grandit et la liste réserve sa marge au clavier après l'annonce : l'alignement est refait une fois en place.
     const settle = setTimeout(align, (keyboardFrame.duration > 0 ? keyboardFrame.duration : 250) + 120);
     return () => clearTimeout(settle);
-  }, [bandHeight, barHeight, focusedCell, keyboardFrame, reduceMotion, rootBottom]);
+  }, [bandHeight, barHeight, focusedCell, keyboardFrame, reduceMotion, windowHeight]);
 
   // Familles de Niveaux : cartes reliées par le filet des niveaux (suggestions et mode catalogue).
   const familyCards = (items: readonly MovementCatalogueItem[], card: (entry: MovementCatalogueEntry) => React.ReactNode, collapsed: boolean, railActive = false) =>
@@ -1305,7 +1295,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   };
 
   return (
-    <View ref={rootRef} collapsable={false} onLayout={measureRoot} style={styles.modalRoot} testID="format-modal">
+    <View ref={rootRef} collapsable={false} style={styles.modalRoot} testID="format-modal">
       <View style={styles.nativeSheet} testID="format-sheet">
       <ScrollView
         ref={scrollRef}
@@ -1472,7 +1462,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       {Platform.OS === "ios" && focusedCell !== null && keyboardFrame !== null ? (
         <KeyboardAccessoryBar
           keyboardFrame={keyboardFrame}
-          containerBottom={rootBottom ?? windowHeight}
+          containerBottom={windowHeight}
           reduceMotion={reduceMotion}
           onHeight={setBarHeight}
           canPrevious={focusedAt > 0}
