@@ -1162,3 +1162,7 @@ REC-PARAM-01 clos. [Récupération de l’Exercice et défauts du Profil](10%20%
 ## Formats — raccordement du 02/11/2026
 
 FMT-01 à FMT-42 conservent leurs identifiants ; prescriptions remplacées sur leur portée selon la [référence active](../KODJO-Formats-entrainement-2026-11-02.md). CE-FMT-01 : fenêtre de choix ; CE-FMT-02 : questionnaires/récapitulatifs/tableau Progression ; CE-FMT-03 : Composition et entrée/sortie ; CE-FMT-04 : paramètres contextualisés. Les captures courantes et les références de nœuds figurent au chapitre 06, ancre formats-galerie. Progression reprend séries et charges standards, D-405 pour le clavier décimal ; A1–A7 et les compléments d’Hermann sont consignés au registre, sans nouveaux identifiants arbitraires.
+
+## Formats — raccordement du 4 novembre 2026
+
+CE-FMT-05 (chapitre 13) : actions du Circuit et réédition. Décisions : chapitre 07, formats-decisions-20261104. Règles : chapitre 10, formats-reedition-roles-charges ; FMT-12/20/26/29/30/31 actualisées. Données : chapitre 09 (Nom, Modèle d’origine et Rôle). Parcours : chapitres 06/08 ; API et architecture : chapitres 11/12 ; captures : chapitre 06, formats-galerie. Les recettes sont prescrites, non exécutées sur application.

@@ -24,7 +24,7 @@
 | **D-02** | **Précisée / remplacée sur le porteur :** le Format et ses réglages appartiennent à l'Exercice, **jamais au Circuit**. L'ancien partage « Exercice ou Circuit porteur » n'est pas actif. |
 | **D-03** | Nom initial proposé de l'élément formaté : nom du Format ; le **Circuit conserve son nom structurel** (« Circuit A », etc.), et affiche, quand il est replié, les Formats de ses Exercices sur sa deuxième ligne existante. Aucun titre commun de Format n'est déduit pour le Circuit. |
 | **D-04** | Création par enveloppe : poser Circuit/Cycle sur un premier contenu, puis glisser les autres depuis toute position admissible ; ni Circuit dans Circuit, ni Cycle dans Cycle. |
-| **D-05** | Principes resserrés : le Format reste propre à l'Exercice ; le Circuit fixe uniquement son organisation (groupée/alternée) et son nombre de passages. Il ne réécrit pas les paramètres intrinsèques des membres ; l'élément entrant adopte l'organisation et, s'il est réglable, le compte compatible N. Refuser les déposes qui dénatureraient l'Exercice formaté. |
+| **D-05** | Principes applicables au Circuit standard : le Format reste propre à l’Exercice ; le Circuit fixe uniquement son organisation (groupée/alternée) et son nombre de passages. Il ne réécrit pas les paramètres intrinsèques des membres ; l'élément entrant adopte l'organisation et, s'il est réglable, le compte compatible N. Refuser les déposes qui dénatureraient l'Exercice formaté. |
 | **D-06** | **Remplacée** par les principes resserrés D-05 : ne pas figer systématiquement « tous les paramètres » d'un hypothétique Circuit formaté. Les constantes propres aux Formats des membres restent contrôlées. |
 | **D-07** | En alternance, conserver le régime de séries et les paramètres propres compatibles ; adapter le nombre actif de séries à N. Confirmation avant perte de valeurs ; sortie : conserver le nombre actif et les paramètres actuels selon le chapitre 10. |
 | **D-08** | En groupées, le compte du Circuit répète le passage **complet** de chacun des membres, séries et pauses comprises, sans modifier leurs séries intrinsèques. |
@@ -112,3 +112,7 @@ Ne pas confondre **tour d'échelle For time**, **passage d'un Circuit**, **séri
 
 **Aucune modification de code, migration SQL, Figma ou document de développement PRE-10/11 n'est entraînée par le présent texte.** Les anciennes règles ne doivent pas rester simultanément prescrites comme actives dans le registre, le PRD ou le plan BMAD.
 
+
+## Décisions Formats du 4 novembre
+
+Les prescriptions de ce document sur le portage exclusivement Exercice et les parcours antérieurs ne sont plus la cible des Circuits porteurs. La [référence Formats active](KODJO-Formats-entrainement-2026-11-02.md), §§1/3/7.6–7.9, et les décisions du chapitre 07 gouvernent Rôle explicite, plusieurs buy-in/out duplicables, charges, regroupement dès deux Exercices et réédition depuis la Composition. La matrice de compatibilité des Circuits standards reste applicable dans sa portée.

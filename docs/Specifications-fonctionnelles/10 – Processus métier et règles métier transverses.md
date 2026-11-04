@@ -1293,7 +1293,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-12"></a>
 #### RM-FMT-12
 
-**FMT-12.** Tabata À la suite : Exercices standards successifs sans Circuit ; A1…A8 puis B1…B8 dans l’exemple. La récupération remplace la Pause terminale : avec 60 s entre les mouvements, total 530 s, soit 8 min 50 s. Aucune exception B06 conservée.
+**FMT-12.** Tabata À la suite : Circuit standard groupé à un tour dès deux Exercices ; A1…A8 puis B1…B8. La récupération remplace la Pause terminale : avec 60 s entre mouvements, 530 s = 8 min 50 s.
 
 <a id="fmt-13"></a>
 #### RM-FMT-13
@@ -1333,7 +1333,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-20"></a>
 #### RM-FMT-20
 
-**FMT-20.** EMOM : Répétitions par défaut, Durée possible et modes propres à chaque Exercice, y compris mélangés dans un intervalle commun. Tableau Mouvement | Objectif | Mode ; changement de mode sans conversion, objectif à renseigner. Intervalle et compte selon Dans chaque intervalle, À la suite ou En alternance. L’intervalle n’est pas le Bip de cadence. Formulaire complet et contrôle strict des objectifs de durée selon [Contrôles du formulaire Formats](../KODJO-Formats-entrainement-2026-11-02.md#formats-formulaire-controles) : objectif ≥ intervalle local ou somme des objectifs de durée ≥ intervalle commun bloque la validation ; les membres en Répétitions ne contribuent pas à cette somme.
+**FMT-20.** **EMOM : Répétitions par défaut, Durée possible par Exercice.** Tableau Mouvement | Objectif, valeur avec unité et choix Répétitions/Durée dans la barre du clavier numérique ; aucune colonne Mode ni popover Mode. Avec charge : Objectif | Charge | + / série. Death by multi-mouvements : Mouvement | Départ | Incrément, valeurs propres à chaque membre, incrément ≥ +1. La ligne Repos EMOM est absente ; le repos est le restant de fenêtre. **Contrôle EMOM des durées — seuil inclusif :** le travail prévu d’un Exercice en Durée est sa cible, multipliée par deux s’il est fait de chaque côté, plus la pause entre les côtés applicable. En simple, alternance et À la suite, travail prévu ≥ intervalle propre bloque la validation ; Dans chaque intervalle, somme du travail prévu des membres ≥ intervalle commun bloque la validation. Les membres en Répétitions contribuent pour 0 à ce contrôle de durée connue, sans garantie que le travail total tiendra dans la fenêtre. Message sous le tableau, cadres des valeurs concernées et de l’intervalle rouges ; validation bloquée dans le récapitulatif, la modale et lors de l’édition de l’intervalle du Circuit. À 60 s : 40 s d’un seul côté admis, 40 s de chaque côté refusés ; 30 s + 30 s refusés ; 10 répétitions + 30 s ne déclenche pas ce seul contrôle.
 
 <a id="fmt-21"></a>
 #### RM-FMT-21
@@ -1363,7 +1363,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-26"></a>
 #### RM-FMT-26
 
-**FMT-26.** AMRAP : blocs chronométrés indépendants et tours de boucle distincts ; chaque bloc repart du départ et de la durée réglée, résultat distinct. Buy-in unique dans le premier bloc. Repos de boucle initialise la récupération du dernier membre, consomme le bloc et le suit après réordre. Un mouvement avec repos de boucle positif crée un Circuit d’un membre.
+**FMT-26.** AMRAP : blocs chronométrés indépendants et tours de boucle distincts ; départ et durée réinitialisés à chaque bloc. Plusieurs buy-in s’enchaînent une seule fois dans le premier bloc. Buy-in À l’échec admis, résultat saisi à la clôture du bloc sans retarder la boucle ; pas de buy-out AMRAP. Incrément par tour en Répétitions ou Durée, grisé pour Buy-in et À l’échec. Tours dessinés illustratifs.
 
 <a id="fmt-27"></a>
 #### RM-FMT-27
@@ -1378,17 +1378,17 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-29"></a>
 #### RM-FMT-29
 
-**FMT-29.** Progression : séries variables et Charge Avec/Sans propres à chaque Exercice. Questionnaire : Nombre de séries, Pause, Durée totale, aucune cible globale sans mouvement. Récapitulatif : tableau Mouvement sous Nombre de séries, répétitions et charge par cellule, clavier numérique/décimal, Suivant, tableau visible au-dessus du clavier. Nouvelle colonne à compléter, surplus retiré sans confirmation. Déroulé proportionnel aux répétitions ; aucun interrupteur global de charge.
+**FMT-29.** Progression : séries variables standards ; questionnaire Nombre de séries, Pause, interrupteur Avec charge (Sans par défaut), Durée totale. Objectifs Répétitions ou Durée, tableau Unité puis séries, quatre colonnes visibles au plus ; défilement des séries avec nom/unité fixes. Charge facultative par série. Clavier numérique/décimal ; Suivant parcourt les objectifs puis les charges puis la ligne suivante. N augmenté : nouvelles cases à compléter ; N diminué : surplus retiré sans confirmation.
 
 <a id="fmt-30"></a>
 #### RM-FMT-30
 
-**FMT-30.** For time autonome : séries identiques ou variables ; dans un Circuit porteur alterné, série i au tour i (21-15-9 dans l’exemple). Dans un Circuit standard groupé, un For time autonome rejoue l’échelle entière à chaque passage.
+**FMT-30.** For time autonome : séries identiques ou variables. Dans le Circuit porteur, série i au tour i ; Répétitions ou Durée admises avec au moins un Exercice en Répétitions sur l’ensemble du Circuit, buy-in/out compris. En Circuit standard groupé, un For time autonome rejoue l’échelle entière à chaque passage.
 
 <a id="fmt-31"></a>
 #### RM-FMT-31
 
-**FMT-31.** For time multi-mouvements ou buy-in/out : Circuit porteur alterné, aucun choix d’exécution supplémentaire. Changer N adapte les séries : existantes conservées, nouvelles à compléter, surplus retiré sans confirmation de perte ni volume inventé.
+**FMT-31.** For time multi-mouvements ou buy-in/out : Circuit porteur alterné. Rôle explicite Buy-in/Tour/Buy-out, zones et duplications selon la référence Formats §3. Conserver un membre Tour ; au moins un membre en Répétitions dans l’ensemble du Circuit. Changer N conserve les séries existantes, ajoute des cases à compléter et retire le surplus sans conversion ni confirmation de perte.
 
 <a id="fmt-32"></a>
 #### RM-FMT-32
@@ -1450,11 +1450,27 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 
 Tous les récapitulatifs utilisent Retour vers le questionnaire du modèle, réponses conservées et titre inchangé ; tous les questionnaires gardent la croix vers Composition. Enregistrer dans la séance ajoute au brouillon ; la Composition sauvegarde définitivement. Fenêtre Formats : croix ou voile ferme la fenêtre. Écart cadre Déroulé → bouton d’action : 25 px sur la rangée Formats ; hauteur 874 px en référence.
 
-Entrée dans Circuit porteur : paramètres compatibles repris, reste à compléter sans conversion arbitraire ni confirmation de perte. Sortie : Conserver le format / Adopter un format libre / Annuler ; buy-in/out sortent libres directement et ne sont pas duplicables. Boucle vide invalide. Pause ou Point d’arrêt suspend les horloges, reprise sans remise à zéro.
+Entrée dans Circuit porteur : paramètres compatibles repris, reste à compléter sans conversion arbitraire ni confirmation de perte. Sortie : Conserver le format / Adopter un format libre / Annuler ; buy-in/out sortent libres directement et sont duplicables dans leur propre zone, une seule exécution par copie. Boucle vide invalide. Pause ou Point d’arrêt suspend les horloges, reprise sans remise à zéro.
 
-Progression : même collection de séries variables que l’Exercice ; saisie directe répétitions puis charge S1, puis S2… ; numérique ou décimal (D-405), clavier laissant la case visible, Charge Avec/Sans local via la modale ; aucun contrôle global. Le tableau blanc arrondi de rayon 8 est inséré dans le bloc gris sous Nombre de séries, avant Pause/Durée totale/Exécution ; trait séparateur sous Nombre de séries, en-tête 28 px et ligne avec charge 44 px dans l’exemple, 12 px avant Déroulé. Les chiffres de charge du Figma sont des exemples, pas des défauts universels.
+Progression : même collection de séries variables que l’Exercice ; saisie des objectifs S1→Sn, puis charges S1→Sn, puis mouvement suivant ; numérique ou décimal (D-405), clavier laissant la case visible, Charge Avec/Sans local via la modale ; interrupteur Avec charge au questionnaire, Sans par défaut. Le tableau blanc arrondi de rayon 8 est inséré dans le bloc gris sous Nombre de séries, avant Pause/Durée totale/Exécution ; trait séparateur sous Nombre de séries, en-tête 28 px et ligne avec charge 44 px dans l’exemple, 12 px avant Déroulé. Les chiffres de charge du Figma sont des exemples, pas des défauts universels.
 
 <a id="recette-formats"></a>
+
+<a id="formats-reedition-roles-charges"></a>
+### Formats — Rôles, charges et réédition depuis la Composition
+
+**Formats — état cible du 4 novembre 2026.** Rôle dans le circuit : Buy-in/Tour pour AMRAP, Buy-in/Tour/Buy-out pour For time ; zones ordonnées, plusieurs buy-in/out, duplication dans la même zone, une seule exécution. AMRAP : incrément par tour en répétitions ou durée ; buy-in à l’échec possible, résultat à la clôture du premier bloc, sans saisie intercalée pendant le chrono. For time : membres en Répétitions ou Durée, au moins un Exercice en Répétitions dans l’ensemble du Circuit, buy-in/out compris. Dès deux Exercices créés par un modèle : Circuit ; À la suite et départs rapides correspondants : Circuit standard groupé à un tour. Nom du Circuit modifiable, modèle comme titre initial. Modèle d’origine distinct du Format d’origine d’exécution ; un Circuit standard n’acquiert aucun Format partagé par sa provenance. Réédition depuis le récapitulatif, mise à jour en place des seuls champs modifiés, annulation sans effet, valeurs hétérogènes « variable » sans uniformisation automatique. Avec/Sans charge effectif conservé, y compris les valeurs inactives sous Sans. Charges facultatives, vide ≠ zéro ; progression EMOM matérialisée par série et jamais réappliquée automatiquement sur des charges personnalisées.
+
+**Contrôle EMOM des durées — seuil inclusif :** le travail prévu d’un Exercice en Durée est sa cible, multipliée par deux s’il est fait de chaque côté, plus la pause entre les côtés applicable. En simple, alternance et À la suite, travail prévu ≥ intervalle propre bloque la validation ; Dans chaque intervalle, somme du travail prévu des membres ≥ intervalle commun bloque la validation. Les membres en Répétitions contribuent pour 0 à ce contrôle de durée connue, sans garantie que le travail total tiendra dans la fenêtre. Message sous le tableau, cadres des valeurs concernées et de l’intervalle rouges ; validation bloquée dans le récapitulatif, la modale et lors de l’édition de l’intervalle du Circuit. À 60 s : 40 s d’un seul côté admis, 40 s de chaque côté refusés ; 30 s + 30 s refusés ; 10 répétitions + 30 s ne déclenche pas ce seul contrôle.
+
+**Rôles et garde-fous.** Le Rôle explicite fixe la zone : Buy-in puis Tour puis Buy-out (For time). Changer en Buy-in/out place en fin de zone ; revenir Tour place en tête de boucle. Glisser réordonne dans la zone. Plusieurs buy-in/out autorisés ; copie après l’original dans sa zone, une exécution. Au moins un Tour ; dernier Tour ni supprimable, ni sortant, ni convertible en buy-in/out si un prélude/postlude subsiste. For time : au moins un membre en Répétitions dans tout le Circuit, contrôle aussi lors de suppression/sortie/changement de mode. Récupération buy-in/out à 0 verrouillée, incrément inactif ; valeurs conservées et rétablies au retour Tour. For time buy-in/out : À l’objectif ; passage depuis À l’échec laisse la cible à renseigner. AMRAP buy-in À l’échec : Terminé poursuit immédiatement, résultat saisi à la clôture du premier bloc.
+
+**Charges.** Progression et For time : charge par série/tour ; AMRAP fixe ; EMOM départ/incrément produisant les charges effectives des séries. Une suite personnalisée est affichée « variable », sans recalcul automatique ; confirmation uniquement pour un recalcul écrasant des charges personnalisées. Charge vide facultative, aucune valeur zéro créée ; incrément inactif sans départ. Sans conserve les valeurs sans les appliquer. À la réédition, Avec charge actif si au moins un membre est effectivement Avec, jamais par la seule présence de valeurs inactives.
+
+**Réédition.** Modèle d’origine non modifiable renseigné sur les Circuits issus d’un modèle, y compris standards ; distinct de Format d’origine, vide sur un Circuit standard. Aucun modèle déduit d’un nom ou de valeurs. Sans cette provenance, pas d’action Modifier le format. Réouvrir le récapitulatif à partir de l’état actuel ; Retour vers questionnaire ; Enregistrer les modifications met à jour en place les seuls champs modifiés, conserve nom/position/identifiants des membres conservés et autres réglages. Hétérogénéité : « variable », pas une valeur manquante ; remplacement sur modification explicite du champ commun avec confirmation d’écrasement. Changement de structure : compatibilité appliquée, reste à renseigner, validation bloquée si incomplet ; pas de confirmation supplémentaire de perte. Fermeture sans enregistrement : aucun effet. Instantanés déjà figés et résultats passés inchangés.
+
+**Recettes prescrites, non exécutées sur application.** Vérifier charge Sans avec valeurs mémorisées ; suite EMOM personnalisée puis réouverture ; champ commun variable puis modification explicite ; changement d’organisation EMOM commun → À la suite ; conservation du nom et des identifiants ; fermer sans enregistrer ; For time boucle en Durée avec buy-in en Répétitions ; suppression/changement du dernier membre en Répétitions ; copie d’un buy-in/out ; plusieurs buy-in AMRAP et résultat différé au premier bloc.
+
 ### Cas de recette des formats
 
 #### Recettes fonctionnelles et preuves attendues
@@ -1530,7 +1546,7 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 
 - **FMT-10.** Tabata préconfigure 8 séries de 20 s et Pause 10 s par Exercice ; ce sont des valeurs modifiables, pas des constantes imposées.
 - **FMT-11.** Tabata avec plusieurs mouvements : À la suite ou En alternance. Le Nombre de séries désigne les séries de chaque mouvement, pas un total réparti entre eux.
-- **FMT-12.** Tabata À la suite : Exercices standards successifs sans Circuit ; A1…A8 puis B1…B8 dans l’exemple. La récupération remplace la Pause terminale : avec 60 s entre les mouvements, total 530 s, soit 8 min 50 s. Aucune exception B06 conservée.
+- **FMT-12.** Tabata À la suite : Circuit standard groupé à un tour dès deux Exercices ; A1…A8 puis B1…B8. La récupération remplace la Pause terminale : avec 60 s entre mouvements, 530 s = 8 min 50 s.
 - **FMT-13.** Tabata en alternance : Circuit standard à N tours ; une série de chaque membre par tour, chaque mouvement gardant ses N séries. À 8 séries de 20/10 pour A et B, 8 min sans autres phases ; aucun verrouillage métier N=8.
 - **FMT-14.** Questionnaire et récapitulatif Tabata : Nombre de séries, compte de chaque mouvement ; synthèse et déroulé actualisés selon les réglages courants.
 - **FMT-15.** Le contrôle « Exécution » est en dernière ligne du bloc Paramètres, après Durée totale, avec séparateur. Son libellé et les options sont alignés sur la même ligne ; la taille de texte est celle des paramètres voisins. Le layout précis relève du DSF et du Figma courant.
@@ -1540,7 +1556,7 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 
 Exemple normatif unilatéral, sans récupération ni autre phase : deux exercices × huit séries × (20 + 10) secondes = **480 secondes, soit 8 minutes** dans les deux organisations. Il s’agit du total de ces efforts et pauses, pas du total incluant le compte à rebours et la fin de séance.
 
-À la suite crée des Exercices successifs sans Circuit ; En alternance un Circuit standard. Les noms de frames ne créent aucune propriété métier.
+À la suite crée des Exercices dans un Circuit standard groupé à un tour ; En alternance un Circuit standard. Les noms de frames ne créent aucune propriété métier.
 
 #### 4.2 Intervalles 30/30
 
@@ -1550,7 +1566,7 @@ La généralisation aux formats cadencés porte sur la borne par compte. Elle ne
 
 ### Formats de séances — comportements consolidés — EMOM : fenêtres et borne
 
-- **FMT-20.** EMOM : Répétitions par défaut, Durée possible et modes propres à chaque Exercice, y compris mélangés dans un intervalle commun. Tableau Mouvement | Objectif | Mode ; changement de mode sans conversion, objectif à renseigner. Intervalle et compte selon Dans chaque intervalle, À la suite ou En alternance. L’intervalle n’est pas le Bip de cadence. Formulaire complet et contrôle strict des objectifs de durée selon [Contrôles du formulaire Formats](../KODJO-Formats-entrainement-2026-11-02.md#formats-formulaire-controles) : objectif ≥ intervalle local ou somme des objectifs de durée ≥ intervalle commun bloque la validation ; les membres en Répétitions ne contribuent pas à cette somme.
+- **FMT-20.** **EMOM : Répétitions par défaut, Durée possible par Exercice.** Tableau Mouvement | Objectif, valeur avec unité et choix Répétitions/Durée dans la barre du clavier numérique ; aucune colonne Mode ni popover Mode. Avec charge : Objectif | Charge | + / série. Death by multi-mouvements : Mouvement | Départ | Incrément, valeurs propres à chaque membre, incrément ≥ +1. La ligne Repos EMOM est absente ; le repos est le restant de fenêtre. **Contrôle EMOM des durées — seuil inclusif :** le travail prévu d’un Exercice en Durée est sa cible, multipliée par deux s’il est fait de chaque côté, plus la pause entre les côtés applicable. En simple, alternance et À la suite, travail prévu ≥ intervalle propre bloque la validation ; Dans chaque intervalle, somme du travail prévu des membres ≥ intervalle commun bloque la validation. Les membres en Répétitions contribuent pour 0 à ce contrôle de durée connue, sans garantie que le travail total tiendra dans la fenêtre. Message sous le tableau, cadres des valeurs concernées et de l’intervalle rouges ; validation bloquée dans le récapitulatif, la modale et lors de l’édition de l’intervalle du Circuit. À 60 s : 40 s d’un seul côté admis, 40 s de chaque côté refusés ; 30 s + 30 s refusés ; 10 répétitions + 30 s ne déclenche pas ce seul contrôle.
 - **FMT-21.** EMOM autonome : N×W ; À la suite avec E membres : E×N×W et récupérations configurées ; alterné standard : E×N×W ; dans chaque intervalle : Circuit groupé porteur, intervalle commun W et durée N×W. Aucune double multiplication.
 - **FMT-22 — Composition.** Ajouter ou retirer un exercice conserve le nombre de tours et recalcule la durée. La durée n’entraîne aucun arrondi du nombre de tours ni dernier tour tronqué.
 - **FMT-23 — Fenêtre.** Chaque fenêtre va jusqu’à son terme ; la suivante commence à l’échéance. Terminer l’objectif avant l’échéance ne raccourcit pas la fenêtre. Ne pas terminer l’objectif ne prolonge pas la fenêtre.
@@ -1565,7 +1581,7 @@ Exemple : 6 tours × 2 exercices × 60 s = **12 min**. Ajouter C donne **18 min*
 
 #### 6.1 AMRAP
 
-- **FMT-26.** AMRAP : blocs chronométrés indépendants et tours de boucle distincts ; chaque bloc repart du départ et de la durée réglée, résultat distinct. Buy-in unique dans le premier bloc. Repos de boucle initialise la récupération du dernier membre, consomme le bloc et le suit après réordre. Un mouvement avec repos de boucle positif crée un Circuit d’un membre.
+- **FMT-26.** AMRAP : blocs chronométrés indépendants et tours de boucle distincts ; départ et durée réinitialisés à chaque bloc. Plusieurs buy-in s’enchaînent une seule fois dans le premier bloc. Buy-in À l’échec admis, résultat saisi à la clôture du bloc sans retarder la boucle ; pas de buy-out AMRAP. Incrément par tour en Répétitions ou Durée, grisé pour Buy-in et À l’échec. Tours dessinés illustratifs.
 - **FMT-27.** Le compte fini des préconfigurations standards et de l’EMOM est distinct des tours de boucle AMRAP et du régime ouvert Death by. Les comptes réalisés et objectifs calculés ne sont pas plafonnés par les bornes de saisie.
 
 SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) exclut pour l’AMRAP le circuit à séries alternées et les séries variables : ne pas lui appliquer le sélecteur de Progression par généralisation. Les objectifs par exercice restent les valeurs prescrites du format.
@@ -1573,14 +1589,14 @@ SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-
 #### 6.2 Départs rapides et Progression
 
 - **FMT-28.** Renforcement 3×15, Progression 10/12/14, À l’échec 3 séries, Superset groupé à un passage avec deux mouvements choisis, et 30/30 sont des départs modifiables. Pas d’emplacements vides, de Mouvement présélectionné arbitraire ni de départ Libre dans la grille ; cas sans mouvement différé B10.
-- **FMT-29.** Progression : séries variables et Charge Avec/Sans propres à chaque Exercice. Questionnaire : Nombre de séries, Pause, Durée totale, aucune cible globale sans mouvement. Récapitulatif : tableau Mouvement sous Nombre de séries, répétitions et charge par cellule, clavier numérique/décimal, Suivant, tableau visible au-dessus du clavier. Nouvelle colonne à compléter, surplus retiré sans confirmation. Déroulé proportionnel aux répétitions ; aucun interrupteur global de charge.
+- **FMT-29.** Progression : séries variables standards ; questionnaire Nombre de séries, Pause, interrupteur Avec charge (Sans par défaut), Durée totale. Objectifs Répétitions ou Durée, tableau Unité puis séries, quatre colonnes visibles au plus ; défilement des séries avec nom/unité fixes. Charge facultative par série. Clavier numérique/décimal ; Suivant parcourt les objectifs puis les charges puis la ligne suivante. N augmenté : nouvelles cases à compléter ; N diminué : surplus retiré sans confirmation.
 
 Les exemples 3 × 15, postures, deux exercices enchaînés, 10 · 12 · 14 et trois séries à l’échec sont des préremplissages de leurs modèles respectifs, pas des constantes du moteur. La charge par série est admise dans la Progression ; une entrée Pyramide distincte reste hors périmètre.
 
 #### 6.3 For time
 
-- **FMT-30.** For time autonome : séries identiques ou variables ; dans un Circuit porteur alterné, série i au tour i (21-15-9 dans l’exemple). Dans un Circuit standard groupé, un For time autonome rejoue l’échelle entière à chaque passage.
-- **FMT-31.** For time multi-mouvements ou buy-in/out : Circuit porteur alterné, aucun choix d’exécution supplémentaire. Changer N adapte les séries : existantes conservées, nouvelles à compléter, surplus retiré sans confirmation de perte ni volume inventé.
+- **FMT-30.** For time autonome : séries identiques ou variables. Dans le Circuit porteur, série i au tour i ; Répétitions ou Durée admises avec au moins un Exercice en Répétitions sur l’ensemble du Circuit, buy-in/out compris. En Circuit standard groupé, un For time autonome rejoue l’échelle entière à chaque passage.
+- **FMT-31.** For time multi-mouvements ou buy-in/out : Circuit porteur alterné. Rôle explicite Buy-in/Tour/Buy-out, zones et duplications selon la référence Formats §3. Conserver un membre Tour ; au moins un membre en Répétitions dans l’ensemble du Circuit. Changer N conserve les séries existantes, ajoute des cases à compléter et retire le surplus sans conversion ni confirmation de perte.
 - **FMT-32.** For time : travail fixé, temps mesuré ; borne temporelle optionnelle, Sans limite au questionnaire/récapitulatif, Aucune sur la durée maximum autonome. La borne héritée est rappelée grisée au membre. À l’atteinte, résultat incomplet sans fin forcée de toute la Séance. La phrase suit les valeurs effectives (3×21 ne devient pas 21-15-9).
 
 Avec A et B : A21, B21, A15, B15, A9, B9. Les trois valeurs décrivent trois tours. Le modèle doit garantir la cohérence entre nombre de tours et valeurs applicables, sans inventer un objectif pour une entrée manquante. La mécanique exacte de l’éditeur d’échelle sera raccordée au contrat d’écran courant, sans recopier automatiquement la règle des séries variables si elle change l’unité.

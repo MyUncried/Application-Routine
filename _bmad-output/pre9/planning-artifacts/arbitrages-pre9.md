@@ -1,13 +1,17 @@
 # PRE-9 — Arbitrages actifs pour la reprise Formats
 
-[référence active Formats du 02/11/2026](../../../docs/KODJO-Formats-entrainement-2026-11-02.md). Décisions A1–A7, puis règle Death by alterné à intervalles locaux, Progression au tableau, Retour sur tous les récapitulatifs et espacement 25 px validés par Hermann.
+[référence active Formats du 04/11/2026](../../../docs/KODJO-Formats-entrainement-2026-11-02.md). Décisions A1–A7, puis règle Death by alterné à intervalles locaux, Progression au tableau, Retour sur tous les récapitulatifs et espacement 25 px validés par Hermann.
 
 - Portage Exercice autonome ou Circuit selon la cible ; plus d’exclusivité Exercice.
 - Tabata et 30/30 standards modifiables ; quatre Formats spécialisés ; cinq départs rapides sans Libre.
 - Death by autonome refusé en Circuit standard alterné, admis en groupé avec fin locale et redémarrage ; coordonné alterné porté par Circuit, intervalles locaux, aucune durée d’en-tête.
-- AMRAP blocs/tours, buy-in unique, récupération de boucle sur Exercice ; For time variable et Progression : nouvelles séries à compléter, surplus retiré sans confirmation.
+- AMRAP blocs/tours, plusieurs buy-in exécutés une fois dans le premier bloc, récupération de boucle sur Exercice ; For time variable et Progression : nouvelles séries à compléter, surplus retiré sans confirmation.
 - Cadence AMRAP/For time facultative sans incidence temporelle ; pauses/Points suspendent les horloges.
 - B.4c/B.7/B.8/B.9 développés et recettés selon Hermann ; C.2–C.4 arrêtés pour réalignement. B10 reste différé. L’exécution spécialisée reste PRE-10/11.
+
+## Décisions complémentaires du 4 novembre
+
+Rôle explicite et zones, copies buy-in/out dans la même zone, au moins un membre Tour ; For time Répétitions ou Durée avec un membre en Répétitions dans tout le Circuit. Charges des questionnaires et clavier selon la source finale. Dès deux Exercices créés : Circuit, groupé à un tour pour À la suite. Nom du Circuit et Modèle d’origine distinct du Format d’origine. Réédition en place depuis le récapitulatif, état effectif et valeurs hétérogènes préservés ; contrôle EMOM incluant les côtés. Ces décisions remplacent les prescriptions contraires du registre antérieur, notamment l’exclusion de la duplication de Circuit (ARB-08) pour le seul Circuit ; le Cycle reste hors de cette nouvelle action.
 
 ## Registre antérieur — historique sur le périmètre Formats
 
