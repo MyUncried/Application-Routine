@@ -1,8 +1,8 @@
 # Documentation de KODJO
 
-## Formats — base de reprise du 2 novembre 2026
+## Formats — base de reprise actualisée le 4 novembre 2026
 
-- [Spécification active](KODJO-Formats-entrainement-2026-11-02.md) : tous les questionnaires, récapitulatifs, modales, portage et règles actualisés.
+- [Spécification active](KODJO-Formats-entrainement-2026-11-02.md) : questionnaires et récapitulatifs modaux, mode catalogue intégré, fiche en consultation, tableaux EMOM Objectif et unité au clavier et Death by, données partagées avec les Exercices, formulaire complet et contrôle des durées ≥ intervalle. [Source finale du 4 novembre](sources/formats-2026-11-04/KODJO-Mise-a-jour-ecrans-formats-consolidee-2026-11-04_finale.md).
 - [Contrats CE-FMT-01 à 04](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-01).
 - [Galerie et état des captures](Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#formats-galerie).
 - [Plan PRE-9 révisé](../_bmad-output/pre9/planning-artifacts/epics.md).
@@ -18,7 +18,7 @@
 
 > **Coin inférieur droit « replié » des cartes — contrôle graphique du 30/10 :** [description et réserve de vérification Figma](KODJO-Coin-replie-cartes-2026-10-30.md). Aucun comportement métier n’est déduit ; nœud et variantes concernés à identifier avant d'en prescrire le rendu.
 
-> **PRE-9 — arbitrages et Composition avec Formats consolidés le 30/10/2026 :** [règles actives D-01 à D-30, valeurs initiales, compatibilités et départs rapides](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). ARB-04/22c/26–28 clos. Le Format appartient à l'Exercice ; le Circuit n'en porte pas ; la répétition groupée, le Cycle, l'échelle For time et les bornes AMRAP ont des portées distinctes. Les raccordements de l'exécution spécialisée restent PRE-10/11.
+> **PRE-9 — arbitrages et Composition avec Formats consolidés le 30/10/2026 :** [règles actives D-01 à D-30, valeurs initiales, compatibilités et départs rapides](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). ARB-04/22c/26–28 clos. Portage selon le partage temporel : Exercice autonome ou Circuit porteur ; la répétition groupée, le Cycle, l'échelle For time et les bornes AMRAP ont des portées distinctes. Les raccordements de l'exécution spécialisée restent PRE-10/11.
 
 > **Résultats de recherche des Mouvements — PRE-9, 30/10/2026 :** [spécification finale](KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01 au chapitre 13. Cartes Résultat avec « Ajouter un niveau » ; cartes Composition sans bouton et description tronquée ; regroupement des familles et choix de difficulté. Story CAT.2 immédiatement autorisée.
 
@@ -107,3 +107,9 @@ Les relations actives vers le mouvement doivent rester intègres, depuis les dé
 - [Catalogue des séances — douze écrans, composants, tokens et écarts](DSF-CATALOGUE-SEANCES-2026-10-27.md).
 - [Périmètre proposé et prompt de préparation BMAD — Catalogue des séances](preparation/catalogue-seances-2026-10-27/PERIMETRE-ET-PROMPT-BMAD.md).
 
+
+## Formats — cible finale du 4 novembre
+
+**Formats — état cible du 4 novembre 2026.** Rôle dans le circuit : Buy-in/Tour pour AMRAP, Buy-in/Tour/Buy-out pour For time ; zones ordonnées, plusieurs buy-in/out, duplication dans la même zone, une seule exécution. AMRAP : incrément par tour en répétitions ou durée ; buy-in à l’échec possible, résultat à la clôture du premier bloc, sans saisie intercalée pendant le chrono. For time : membres en Répétitions ou Durée, au moins un Exercice en Répétitions dans l’ensemble du Circuit, buy-in/out compris. Dès deux Exercices créés par un modèle : Circuit ; À la suite et départs rapides correspondants : Circuit standard groupé à un tour. Nom du Circuit modifiable, modèle comme titre initial. Modèle d’origine distinct du Format d’origine d’exécution ; un Circuit standard n’acquiert aucun Format partagé par sa provenance. Réédition depuis le récapitulatif, mise à jour en place des seuls champs modifiés, annulation sans effet, valeurs hétérogènes « variable » sans uniformisation automatique. Avec/Sans charge effectif conservé, y compris les valeurs inactives sous Sans. Charges facultatives, vide ≠ zéro ; progression EMOM matérialisée par série et jamais réappliquée automatiquement sur des charges personnalisées.
+
+[Source finale validée](sources/formats-2026-11-04/KODJO-Mise-a-jour-ecrans-formats-consolidee-2026-11-04_finale.md). Référence active : [Formats](KODJO-Formats-entrainement-2026-11-02.md), notamment §3 et §7.6–7.9. Contrats CE-FMT-01 à CE-FMT-05 ; plan PRE-9 actualisé.

@@ -201,15 +201,20 @@ Dépend de : A.1. Vérifier l’existant livré avant modification ; ne pas ré�
 
 Dépend de : C.1, Composition existante. CE-FMT-01.
 - Menu Créer cinq options ; fenêtre `9977:19613` sur voile, deux colonnes : Tabata, 30/30, EMOM, AMRAP, For time, Death by, Renforcement, Superset, Progression, À l’échec.
-- Aucune carte Exercice/Séance, Libre ou Gainage · Mobilité ; questionnaire plein écran, croix vers Composition ; récapitulatif Retour vers questionnaire avec réponses conservées.
+- Aucune carte Exercice/Séance, Libre ou Gainage · Mobilité ; questionnaire et récapitulatif en modale sur Composition, sans bloc Titre de séance ; questionnaire croix vers Composition, Valider les paramètres vers récapitulatif ; récapitulatif Retour avec réponses conservées, Enregistrer dans la séance vers brouillon.
 - Réutiliser Catalogue/saisie de Mouvements et composants ; pas de création Mouvement libre ou lancement direct de minuteur (B10 différé).
 
 ### C.3 — Questionnaires, récapitulatifs et séries variables
 
 Dépend de : C.2. CE-FMT-02 ; paramètres et structures de la référence active.
-- Tabata et 30/30 modifiables ; EMOM trois organisations ; AMRAP blocs distincts des tours, repos de boucle et inter-blocs, buy-in unique ; For time borne optionnelle et séries par tour ; Death by À la suite, alterné coordonné et dans chaque intervalle.
-- Progression : questionnaire sans cibles globales de répétitions ; récapitulatif tableau Mouvement sous Nombre de séries, répétitions et charge par série/mouvement. Charge Avec/Sans local via modale, aucun interrupteur global. Saisie directe numérique/décimale, Suivant, tableau visible au-dessus du clavier.
+- Tabata et 30/30 modifiables ; EMOM trois organisations ; AMRAP blocs distincts des tours, repos de boucle et inter-blocs, sélection unique par ajout de buy-in, plusieurs buy-in possibles ; For time borne optionnelle et séries par tour ; Death by À la suite, alterné coordonné et dans chaque intervalle.
+- Progression : questionnaire sans cibles globales de répétitions ; récapitulatif tableau Mouvement sous Nombre de séries, répétitions et charge par série/mouvement. Charge Avec/Sans local via modale, interrupteur Avec charge au questionnaire, Sans par défaut. Saisie directe numérique/décimale, Suivant, tableau visible au-dessus du clavier.
 - Augmenter N : lignes/colonnes nouvelles à compléter ; diminuer : surplus retiré, sans confirmation de perte dans les cas For time/Progression arbitrés. Déroulé à 25 px du bouton, proportions selon valeurs réelles ; 3 blocs AMRAP 12 min + 2 repos 2 min = 40 min.
+- Mode catalogue intégré à la même modale, recherche conservée, croix d’effacement, Filtrer/Trier/Replier-déplier, Ajouter et Fermer sans ajout ; sélection unique par ajout de buy-in, plusieurs buy-in possibles. Photo : Fiche du mouvement en consultation seule superposée, retour dans le même état. Petite carte : zones corporelles avec pastille au lieu de la description, toutes variantes.
+- EMOM Répétitions par défaut, Durée possible ; tableau Mouvement | Objectif sous Nombre de séries, mode par Exercice et objectif à renseigner sans conversion lors du changement ; sans ligne Repos. Death by multi-mouvements : Mouvement | Départ | Incrément sous Intervalle, paramètres locaux, incrément ≥ +1.
+- Rendu modal et alignement texte des valeurs non modifiables selon CE-FMT-02 ; contenu défilant, bouton ancré, clavier au-dessus.
+- Formulaire complet et cohérent avant Enregistrer : aucun ajout à Composition avec cible à renseigner. Contrôle EMOM ≥ intervalle (objectif local ou somme des objectifs de durée en commun, Répétitions exclues) : message, cadres rouges, validation bloquée ; même garde dans la modale et l’en-tête Circuit après ajout. État Paramètres à compléter réservé aux modifications ultérieures de Composition.
+- Tableaux = champs standards des Exercices, synchronisés avec leurs modales. Max AMRAP grise et désactive Objectif/Par tour, sans masquer ; Charge reste modifiable ; initialisation Death by 1/+1, Progression 10/12/14 selon la source révisée ; aucune réinitialisation des valeurs saisies à la réouverture.
 - Aucune nouvelle constante ni formule depuis un chiffre illustratif ; les modèles standard réutilisent leurs paramètres existants.
 
 ### C.4 — Composition préremplie, paramètres et compatibilité
@@ -218,7 +223,7 @@ Dépend de : C.3 et fondations multi-conteneurs A.1/B.1/B.2/B.3/B.4. CE-FMT-03/0
 - Enregistrer dans la séance ajoute à son brouillon ; sauvegarde finale depuis Composition. Garder le nom suggéré modifiable et préserver le titre personnalisé.
 - Entrée Circuit porteur : paramètres compatibles repris, reste à compléter sans conversion arbitraire ni confirmation de perte ; déplacement direct entre Circuits selon arrivée. Sortie : Conserver / Libre / Annuler ; annulation restitue l’état antérieur.
 - Circuit standard : AMRAP/For time groupés admis, alternés refusés ; EMOM selon la référence ; Death by autonome groupé admis avec fin locale/redémarrage, standard alterné refusé sans mutation. Pas de transfert implicite du Format au conteneur.
-- Buy-in/out non duplicables, récupération fixée 0 s ; boucle vide invalide ; Circuit un membre conservé. AMRAP un mouvement avec repos de boucle > 0 crée un Circuit.
+- Buy-in/out duplicables après l’original dans leur zone, exécutés une fois, récupération fixée 0 s ; boucle vide invalide ; Circuit un membre conservé. AMRAP un mouvement avec repos de boucle > 0 crée un Circuit.
 - Nature fixée seulement pour Circuit porteur ; réglages autorisés modifiables ; Death by alterné sans durée d’en-tête et intervalles propres en modale. Pas de verrous Tabata/30/30 ; cadence AMRAP/For time facultative sans incidence temporelle.
 - Tests d’aller-retour, conversions/annulation et multi-Circuits ; recette iPhone n°3 après livraison C.4.
 
@@ -305,3 +310,9 @@ Dépend de : D.3.
 - A.1 porte désormais une migration (016) en plus du changement de modèle : tests sur copie de base réelle obligatoires.
 - La dette de vérification globale PRE-8 (Q.0) est traitée séparément ; une régression constatée pendant A.1 est qualifiée avec Q.0 si elle n'est pas encore faite.
 
+
+## Formats — base finale du 4 novembre 2026
+
+**Formats — état cible du 4 novembre 2026.** Rôle dans le circuit : Buy-in/Tour pour AMRAP, Buy-in/Tour/Buy-out pour For time ; zones ordonnées, plusieurs buy-in/out, duplication dans la même zone, une seule exécution. AMRAP : incrément par tour en répétitions ou durée ; buy-in à l’échec possible, résultat à la clôture du premier bloc, sans saisie intercalée pendant le chrono. For time : membres en Répétitions ou Durée, au moins un Exercice en Répétitions dans l’ensemble du Circuit, buy-in/out compris. Dès deux Exercices créés par un modèle : Circuit ; À la suite et départs rapides correspondants : Circuit standard groupé à un tour. Nom du Circuit modifiable, modèle comme titre initial. Modèle d’origine distinct du Format d’origine d’exécution ; un Circuit standard n’acquiert aucun Format partagé par sa provenance. Réédition depuis le récapitulatif, mise à jour en place des seuls champs modifiés, annulation sans effet, valeurs hétérogènes « variable » sans uniformisation automatique. Avec/Sans charge effectif conservé, y compris les valeurs inactives sous Sans. Charges facultatives, vide ≠ zéro ; progression EMOM matérialisée par série et jamais réappliquée automatiquement sur des charges personnalisées.
+
+C.1 : Nom du Circuit, Modèle d’origine distinct du Format d’origine, Rôle explicite du membre, conservation de charge inactive. C.2/C.3 : écrans actuels, clavier et charges, formulaires complets/cohérents. C.4 : regroupement multi-exercices, zones et garde-fous, actions Circuit, réédition en place. C.5/C.6 : départs rapides et édition/duplication selon cette même base. D.1 : développement selon le bon porteur et les Rôles, plusieurs buy-in/out, membres en Durée et incréments. D.2 : instantané des données effectives et provenance, historique immuable. D.3/D.4 : capacités et validations alignées, contrôle EMOM bilatéral. D.5 : correspondances aux capacités réellement livrées, sans déclarer le moteur spécialisé développé. Exécution spécialisée PRE-10/11 ; ne pas la développer par fragments sous couvert des seuls écrans. B.4c/B.7/B.8/B.9 sont développés et recettés selon Hermann ; reprendre au périmètre Formats après lecture intégrale des règles actuelles.

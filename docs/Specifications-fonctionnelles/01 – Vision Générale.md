@@ -454,3 +454,8 @@ Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice
 Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
 Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.
+
+### Vocabulaire — provenance et rôle dans un Circuit
+
+- **Modèle d’origine :** modèle ayant créé le Circuit, conservé pour rouvrir son questionnaire ; distinct du Format qui gouverne l’exécution.
+- **Rôle dans le circuit :** fonction d’un membre AMRAP/For time : Buy-in, Tour ou Buy-out (For time). Le Rôle est explicite et détermine sa zone ; il ne désigne pas le Format de l’Exercice.
