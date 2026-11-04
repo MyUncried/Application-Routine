@@ -553,6 +553,13 @@ export function ActivityEditorForm({
   const reduceMotion = useReduceMotion();
   const editableLift = useSharedValue(0);
   const editableLayerRef = useRef<View>(null);
+  // Sonde plein cadre (repère des mesures, feuille native ou écran) et hauteur de la fenêtre, relues par l'écoute du clavier.
+  const frameProbeRef = useRef<View>(null);
+  const windowHeightRef = useRef(windowSize.height);
+  const frameOffsetRef = useRef(0);
+  useEffect(() => {
+    windowHeightRef.current = windowSize.height;
+  }, [windowSize.height]);
   // État rendu de la remontée (recalcule le style animé ; lisible par les tests).
   const [editableLiftPx, setEditableLiftPx] = useState(0);
   const [keyboardInset, setKeyboardInset] = useState(0);
@@ -619,11 +626,28 @@ export function ActivityEditorForm({
     const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (event) => {
       const k = movementKeyboardRef.current;
       k.shown = true;
-      k.top = event.endCoordinates.screenY;
       if (event.duration > 0) k.duration = event.duration;
-      setKeyboardInset(Math.max(0, k.bottom - k.top));
-      setIsMovementKeyboardShown(true);
-      adjustMovementLayerRef.current();
+      const apply = (offset: number) => {
+        // Haut du clavier dans le repère des mesures de la fiche (écran, ou feuille native).
+        k.top = event.endCoordinates.screenY - offset;
+        setKeyboardInset(Math.max(0, k.bottom - k.top));
+        setIsMovementKeyboardShown(true);
+        adjustMovementLayerRef.current();
+      };
+      // Recette du 04/11/2026 (Hermann : « une régression sur l'écran de création de mouvement : quand j'écris les phases,
+      // clavier ouvert, l'écran ne se positionne pas avec la dernière ligne des phases juste au-dessus du clavier. Ce devrait
+      // être le cas aussi quand on ouvre et rédige la description ») : en feuille native iOS, `measureInWindow` compte depuis
+      // le haut de la feuille, le clavier depuis le haut de l'écran. Le cadre de l'écran (sonde plein cadre, bas de la
+      // feuille au bas de l'écran) donne le décalage ; nul en plein écran.
+      // Application immédiate avec le dernier décalage connu, puis correction à la mesure (la feuille grandit avec le clavier).
+      apply(frameOffsetRef.current);
+      frameProbeRef.current?.measureInWindow((_x, y, _width, height) => {
+        if (height <= 0) return;
+        const offset = Math.max(0, windowHeightRef.current - (y + height));
+        if (Math.abs(offset - frameOffsetRef.current) < 1) return;
+        frameOffsetRef.current = offset;
+        if (movementKeyboardRef.current.shown) apply(offset);
+      });
     });
     const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", (event) => {
       const k = movementKeyboardRef.current;
@@ -797,6 +821,18 @@ export function ActivityEditorForm({
 
   return (
     <>
+      <View
+        ref={frameProbeRef}
+        collapsable={false}
+        pointerEvents="none"
+        style={StyleSheet.absoluteFill}
+        onLayout={() =>
+          frameProbeRef.current?.measureInWindow((_x, y, _width, height) => {
+            if (height > 0) frameOffsetRef.current = Math.max(0, windowHeightRef.current - (y + height));
+          })
+        }
+        testID="exercise-frame-probe"
+      />
       <View
         style={[styles.contextBand, isMovement ? styles.movementContextBand : null, { paddingHorizontal: sideMargin }]}
         onLayout={(event) => {
