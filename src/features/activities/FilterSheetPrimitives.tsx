@@ -155,10 +155,7 @@ export function FilterSheetFrame({
   // titre de la modale. Impossible de sortir de la modale ») : en feuille native, la liste démarrait au haut de la feuille,
   // par-dessus l'en-tête (✕ et ✓ recouverts). L'en-tête est fixé en haut, au premier plan ; la liste réserve sa hauteur.
   const [nativeHeaderHeight, setNativeHeaderHeight] = useState(NATIVE_HEADER_ESTIMATE);
-  const body = (
-    <>
-      {native !== undefined ? null : headerRow}
-      {native !== undefined ? null : headerDivider}
+  const scroll = (
       <ScrollView
         style={native !== undefined ? styles.nativeScroll : styles.scroll}
         contentContainerStyle={[styles.body, footer ? styles.bodyWithFooter : null, native !== undefined ? { paddingTop: nativeHeaderHeight + spacing[16] } : null]}
@@ -167,11 +164,28 @@ export function FilterSheetFrame({
           ? {
               onLayout: (event: LayoutChangeEvent) => measure({ frame: event.nativeEvent.layout.height }),
               onContentSizeChange: (_width: number, height: number) => measure({ content: height }),
+              // Feuille native : aucun ajustement automatique des marges du défilement par le système.
+              contentInsetAdjustmentBehavior: "never" as const,
+              automaticallyAdjustContentInsets: false,
             }
           : {})}
       >
         {children}
       </ScrollView>
+  );
+  const body = (
+    <>
+      {native !== undefined ? null : headerRow}
+      {native !== undefined ? null : headerDivider}
+      {native !== undefined ? (
+        // Recette du 04/11/2026 (zone des critères blanche en feuille native) : la liste défilante n'est plus le premier
+        // élément de la feuille — enveloppée comme dans les feuilles qui fonctionnent (fiche, questionnaire).
+        <View style={styles.nativeScrollHost} collapsable={false}>
+          {scroll}
+        </View>
+      ) : (
+        scroll
+      )}
       {footer ? (
         <View style={styles.footer} testID={`${testIDPrefix}-footer`}>
           {footer}
@@ -400,6 +414,9 @@ const styles = StyleSheet.create({
   },
   nativeTop: {
     height: spacing[8] + 4,
+  },
+  nativeScrollHost: {
+    flex: 1,
   },
   nativeScroll: {
     flexGrow: 1,

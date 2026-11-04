@@ -60,8 +60,11 @@ export function PendingFilterSheet({
 export function FilterSheetRoute() {
   // `router` impératif (stable) : l'effet ci-dessous ne doit se rejouer qu'au démontage, jamais pendant l'affichage.
   const request = useFilterSheetRequest();
-  const [needed, setNeeded] = useState<number | null>(null);
-  const detent = useTitleCappedSheetDetent(needed);
+  // Recette du 04/11/2026 (filtres vides ou décalés, traces relevées sur iPhone : la feuille changeait de hauteur après
+  // l'ouverture, au chargement des Catégories et des Zones, et la liste n'était plus visible ni défilable) : hauteur fixe,
+  // plafonnée sous le titre de l'écran, comme les feuilles qui fonctionnent (questionnaire, Créer un mouvement).
+  // [Hauteur ajustée au contenu — remplacée.]
+  const detent = useTitleCappedSheetDetent(null);
   const [opened] = useState(request);
   useEffect(() => {
     // Ouverture sans demande (rechargement, lien direct) : rien à filtrer, la feuille se referme.
@@ -72,7 +75,7 @@ export function FilterSheetRoute() {
   return (
     <>
       <Stack.Screen options={{ sheetAllowedDetents: [detent] }} />
-      <PendingFilterSheet onLeave={() => router.back()} onNeededHeight={setNeeded} />
+      <PendingFilterSheet onLeave={() => router.back()} />
     </>
   );
 }
