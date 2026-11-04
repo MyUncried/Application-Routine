@@ -16,8 +16,8 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import Reanimated, { FadeIn, LinearTransition, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
+import Reanimated, { FadeIn, LinearTransition } from "react-native-reanimated";
+import { initialWindowMetrics } from "react-native-safe-area-context";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
@@ -399,40 +399,32 @@ const CONTEXT_FADE_LAYERS = Array.from({ length: 12 }, (_, index) => {
   const after = (index + 1) / 12;
   return { height: Number((CONTEXT_FADE_HEIGHT * (1 - before)).toFixed(4)), opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)) };
 });
-/** Montée et descente de la modale dans le voile resté en place (recette du 04/11/2026). */
-const SHEET_IN = { duration: 320, reduceMotion: ReduceMotion.System };
-const SHEET_OUT = { duration: 260, reduceMotion: ReduceMotion.System };
+/** Écart iOS entre la zone sûre haute et le haut d'une feuille à sa plus grande hauteur (comme la fiche du mouvement). */
+const LARGE_SHEET_TOP_GAP = 10;
+
+/**
+ * ESSAI du 04/11/2026 (feuille native) : fraction de la grande hauteur de feuille qui place le haut de la feuille à
+ * y = MODAL_TOP — même calcul que la fiche du mouvement (`movement-sheet`).
+ */
+export function useFormatSheetDetent(): number {
+  const { height } = useWindowDimensions();
+  const safeTop = initialWindowMetrics?.insets.top ?? 0;
+  const largest = height - safeTop - LARGE_SHEET_TOP_GAP;
+  return Math.min(1, Math.round(((height - MODAL_TOP) / largest) * 1000) / 1000);
+}
 
 /** Compteur des ouvertures de questionnaire (identité du brouillon de modèle de chaque ouverture). */
 let openings = 0;
 
 export function FormatModelScreen({ stage: initialStage }: { readonly stage: Stage }) {
   const [stage, setStage] = useState<Stage>(initialStage);
-  // Recette du 04/11/2026 (f4-modale) : ouverte depuis la fenêtre Formats (questionnaire), le voile est déjà là et reste ;
-  // ouverte depuis la Composition (réédition, récapitulatif), il apparaît en fondu. La modale monte du bas.
-  const screenHeight = useWindowDimensions().height;
-  const veilOpacity = useSharedValue(initialStage === "questionnaire" ? 1 : 0);
-  const sheetY = useSharedValue(screenHeight);
-  useEffect(() => {
-    sheetY.value = withTiming(0, SHEET_IN);
-    veilOpacity.value = withTiming(1, SHEET_IN);
-    // Une seule montée, à l'ouverture.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const veilStyle = useAnimatedStyle(() => ({ opacity: veilOpacity.value }));
-  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: sheetY.value }] }));
+  // ESSAI du 04/11/2026 (feuille native iOS) : montée, descente et voile sont ceux du système.
   const leaving = useRef(false);
-  /** Descente de la modale et effacement du voile, puis `then` (retour à la Composition). */
   const dismissWith = (then: () => void) => {
     if (leaving.current) return;
     leaving.current = true;
     Keyboard.dismiss();
-    veilOpacity.set(withTiming(0, SHEET_OUT));
-    sheetY.set(
-      withTiming(screenHeight, SHEET_OUT, (finished) => {
-        if (finished === true) scheduleOnRN(then);
-      }),
-    );
+    then();
   };
   const router = useRouter();
   const navigation = useNavigation();
@@ -1240,8 +1232,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
 
   return (
     <View style={styles.modalRoot} testID="format-modal">
-      <Reanimated.View style={[styles.veil, veilStyle]} testID="format-veil" />
-      <Reanimated.View style={[styles.sheet, { top: MODAL_TOP }, sheetStyle]} testID="format-sheet">
+      <View style={styles.nativeSheet} testID="format-sheet">
       <ScrollView
         ref={scrollRef}
         // Recette n° 3 (f3-questionnaire : « L'écran doit rester fixe et le résultat défiler dans son cadre ») :
@@ -1387,7 +1378,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           <PrimaryActionButton label={reedit !== null ? t().saveChanges : t().save} onPress={save} disabled={!canSave} testID="format-save" />
         )}
       </PrimaryActionZone>
-      </Reanimated.View>
+      </View>
       {isFilterOpen ? (
         <MovementFilterSheet
           // Recette du 04/11/2026 (f4-catalogue) : feuille arrêtée à la limite de la zone de contexte, montée et descente lentes.
@@ -1573,6 +1564,7 @@ const styles = StyleSheet.create({
   // Même voile que la fenêtre Formats, qui reste en place à l'ouverture (recette du 04/11/2026).
   veil: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: FORMATS_SCRIM },
   band: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 1 },
+  nativeSheet: { flex: 1, backgroundColor: "#FFFFFF", overflow: "hidden" },
   bandFade: { height: CONTEXT_FADE_HEIGHT },
   bandFadeLayer: { position: "absolute", top: 0, left: 0, right: 0 },
   catalogueHead: { marginBottom: 10 },

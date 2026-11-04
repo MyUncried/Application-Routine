@@ -80,8 +80,12 @@ export default function CreationLayout() {
             accueillir la modale des formats ») : la route s'affiche sans transition ; la modale monte seule, par le bas,
             dans le voile de la fenêtre Formats resté en place (`FormatModelScreen`). [`slide_from_bottom` de la route,
             voile compris — remplacé.] */}
-        <Stack.Screen name="format-questionnaire" options={{ presentation: "transparentModal", animation: "none" }} />
-        <Stack.Screen name="format-summary" options={{ presentation: "transparentModal", animation: "none" }} />
+        {/* ESSAI du 04/11/2026 (branche pre9-bmad/essai-feuille-native, Hermann : « Pourquoi la modale des formats ne
+            bénéficie-t-elle pas de cet effet "lumière" qui est appliqué à la modale de présentation de la fiche des
+            mouvements ? » ; « Est-il possible de tester la première option, notamment sur la question du voile ? ») :
+            feuille native iOS (Liquid Glass du système), haut à y = 95 par sa hauteur ; voile du système. */}
+        <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false }} />
+        <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false }} />
         {/* Recette n° 3 du 03/11/2026 (autres constats) : fiche d'un mouvement du questionnaire ou du
             récapitulatif, en modale par le bas, lecture seule ; fermeture par sa croix (geste natif désactivé, T02-S02).
             Recette n° 3 bis (f3s-fiche) : feuille ajustée à son contenu, au plus jusqu'au titre de l'écran (hauteur

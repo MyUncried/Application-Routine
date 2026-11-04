@@ -59,8 +59,12 @@ const SCRIM = "rgba(31, 33, 41, 0.42)";
 export const FORMATS_SCRIM = SCRIM;
 /** Effacement de la fenêtre au choix d'un modèle ; le voile reste. */
 const HANDOFF_FADE_MS = 160;
-/** Le voile de la fenêtre reste affiché le temps que la modale du Format, dessous, pose le sien. */
-const HANDOFF_HOLD_MS = 120;
+/**
+ * ESSAI du 04/11/2026 (feuille native) : la fenêtre native se retire sans animation ; un voile identique, posé dans la
+ * Composition, prend le relais et s'efface pendant que la feuille d'iOS monte avec son propre voile (fondu croisé).
+ */
+const HANDOFF_PUSH_DELAY_MS = 60;
+const HANDOFF_VEIL_FADE_MS = 420;
 const WHITE_85 = "rgba(255,255,255,0.85)";
 const WHITE_50 = "rgba(255,255,255,0.5)";
 const WHITE_35 = "rgba(255,255,255,0.35)";
@@ -349,36 +353,50 @@ export function FormatsWindow({
   // au choix d'un modèle, seule la fenêtre s'efface ; le voile reste le temps que la modale, ouverte dessous avec le
   // même voile, soit en place, puis la fenêtre native se retire sans fondu.
   const [handoff, setHandoff] = useState(false);
-  const [holding, setHolding] = useState(false);
+  const [released, setReleased] = useState(false);
+  const [relay, setRelay] = useState(false);
   const windowOpacity = useSharedValue(1);
+  const relayOpacity = useSharedValue(1);
   // Réouverture : fenêtre de nouveau visible et active.
   const [shownBefore, setShownBefore] = useState(visible);
   if (visible !== shownBefore) {
     setShownBefore(visible);
-    if (visible) setHandoff(false);
+    if (visible) {
+      setHandoff(false);
+      setReleased(false);
+    }
   }
   useEffect(() => {
-    if (visible) {
-      windowOpacity.set(1);
-      return;
-    }
-    if (!holding) return;
-    const timer = setTimeout(() => setHolding(false), HANDOFF_HOLD_MS);
-    return () => clearTimeout(timer);
-  }, [holding, visible, windowOpacity]);
+    if (visible) windowOpacity.set(1);
+  }, [visible, windowOpacity]);
   const windowStyle = useAnimatedStyle(() => ({ opacity: windowOpacity.value }));
+  const relayStyle = useAnimatedStyle(() => ({ opacity: relayOpacity.value }));
+  const release = (key: FormatModelKey) => {
+    setReleased(true);
+    setRelay(true);
+    relayOpacity.set(1);
+    setTimeout(() => {
+      onSelect(key);
+      relayOpacity.set(
+        withTiming(0, { duration: HANDOFF_VEIL_FADE_MS }, (finished) => {
+          if (finished === true) scheduleOnRN(setRelay, false);
+        }),
+      );
+    }, HANDOFF_PUSH_DELAY_MS);
+  };
   const choose = (key: FormatModelKey) => {
     if (handoff) return;
     setHandoff(true);
-    setHolding(true);
     windowOpacity.set(
       withTiming(0, { duration: HANDOFF_FADE_MS }, (finished) => {
-        if (finished === true) scheduleOnRN(onSelect, key);
+        if (finished === true) scheduleOnRN(release, key);
       }),
     );
   };
   return (
-    <Modal visible={visible || holding} transparent animationType={handoff ? "none" : "fade"} onRequestClose={onClose} statusBarTranslucent>
+    <>
+    {relay ? <Reanimated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.scrim, styles.relay, relayStyle]} testID="formats-window-relay" /> : null}
+    <Modal visible={visible && !released} transparent animationType={handoff ? "none" : "fade"} onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.root} testID="formats-window-root">
         <Pressable
           style={[StyleSheet.absoluteFill, styles.scrim]}
@@ -402,6 +420,7 @@ export function FormatsWindow({
         </Reanimated.View>
       </View>
     </Modal>
+    </>
   );
 }
 
@@ -413,6 +432,10 @@ const styles = StyleSheet.create({
   },
   scrim: {
     backgroundColor: SCRIM,
+  },
+  relay: {
+    zIndex: 1000,
+    elevation: 1000,
   },
   window: {
     backgroundColor: "#FFFFFF",

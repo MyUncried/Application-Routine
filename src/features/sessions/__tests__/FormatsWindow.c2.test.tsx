@@ -41,8 +41,8 @@ describe("FormatsWindow", () => {
     fireEvent.press(screen.getByTestId("format-model-AMRAP"));
     // Recette du 04/11/2026 : la fenêtre s'efface, le voile reste ; le modèle est transmis à la fin de l'effacement.
     await waitFor(() => expect(onSelect).toHaveBeenCalledWith("AMRAP"));
-    // Un second toucher pendant l'effacement est ignoré.
-    fireEvent.press(screen.getByTestId("format-model-EMOM"));
+    // Essai feuille native : la fenêtre se retire, un voile relais (même voile) s'efface pendant que la feuille monte.
     expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("format-model-EMOM")).toBeNull();
   });
 });

@@ -1,6 +1,14 @@
-import { FormatModelScreen } from "@/features/sessions/FormatModelScreen";
+import { Stack } from "expo-router";
+
+import { FormatModelScreen, useFormatSheetDetent } from "@/features/sessions/FormatModelScreen";
 
 /** Route du questionnaire d'un modèle de la fenêtre Formats (PRE-9 C.3, CE-FMT-02). */
 export default function FormatQuestionnaireRoute() {
-  return <FormatModelScreen stage="questionnaire" />;
+  const detent = useFormatSheetDetent();
+  return (
+    <>
+      <Stack.Screen options={{ sheetAllowedDetents: [detent] }} />
+      <FormatModelScreen stage="questionnaire" />
+    </>
+  );
 }
