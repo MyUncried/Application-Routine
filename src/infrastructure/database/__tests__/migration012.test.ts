@@ -12,12 +12,12 @@ import type { Database } from "@/infrastructure/database/Database";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { MIGRATION_NOTICE_EXERCISES_AND_SESSIONS_RESET } from "@/infrastructure/database/migrations/migration012";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repositories/SqliteMigrationNoticeRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { buildVersion11 } from "@/infrastructure/database/testing/buildVersion11";
 import { failOnWrite } from "@/infrastructure/database/testing/failOnWrite";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 /**
@@ -300,7 +300,7 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
 
     expect(await version(database)).toBe(12);
     // PRE-8 : la version courante est 15 (`migration014` A.3, `migration015` B.8), éprouvées par leurs tests.
-    expect(DATABASE_VERSION).toBe(20);
+    expect(DATABASE_VERSION).toBe(21);
     // Personnalisations conservées, ligne pour ligne (créations, renommages, retraits compris).
     expect(await referentials(database)).toEqual(kept);
     expect(await database.getFirstAsync("SELECT name, is_active FROM categories WHERE id = 'cat-custom'")).toEqual({ name: "Grimpe", is_active: 1 });
@@ -409,7 +409,8 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
     await initializeDatabase(database);
     database = reopen(database);
 
-    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW);
+    // [A.3 du 04/11/2026 : Mouvement créé sans ancienne définition du Catalogue (dépôt retiré) ; la copie
+    // dans la Séance part d'une vue de définition construite en mémoire.]
     const validated = validateActivityDefinitionInput({
       name: "Fentes",
       description: null,
@@ -420,7 +421,19 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
     if (!validated.ok) {
       throw new Error(JSON.stringify(validated.violations));
     }
-    const definition = await definitions.create(validated.value);
+    const { movementId } = await createTestMovement(database, validated.value, { kind: "INDEPENDENT" }, ids("def"), () => NOW);
+    const definition = {
+      id: "def-fentes",
+      movementId,
+      name: validated.value.name,
+      description: validated.value.description,
+      executionParameters: validated.value.executionParameters,
+      categoryId: "cat-custom",
+      bodyZoneIds: validated.value.bodyZoneIds,
+      sideMode: validated.value.executionParameters.sideMode,
+      createdAt: NOW,
+      updatedAt: NOW,
+    };
     const draft = { ...createEmptyDraft(), name: "Jambes", exercises: [activityDefinitionToDraftExercise(definition, "occ-new", null)] };
     const input = toCreateSessionInput(draft);
     if (!input.ok) {
@@ -438,7 +451,7 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
     expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await dumpAll(database)).toEqual(before);
     expect(await count(database, "migration_notices")).toBe(1);
-    expect(await count(database, "activity_definitions")).toBe(1);
+    expect(await count(database, "movements")).toBeGreaterThanOrEqual(1);
     expect(await count(database, "sessions")).toBe(1);
   });
 

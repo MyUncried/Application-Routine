@@ -22,6 +22,7 @@ import { applyMigration017 } from "./migrations/migration017";
 import { applyMigration018 } from "./migrations/migration018";
 import { applyMigration019 } from "./migrations/migration019";
 import { applyMigration020 } from "./migrations/migration020";
+import { applyMigration021 } from "./migrations/migration021";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -252,6 +253,16 @@ export async function migrateDatabase(
     if (pending(19)) {
       await applyMigration020(transaction);
       version = 20;
+    }
+
+    // PRE-9 (A.3, décision de Hermann du 04/11/2026 : « Hermann abandonne la conversion sans perte
+    // prévue par A.4 : les anciens exercices concernés par cette conversion peuvent être supprimés
+    // plutôt que migrés. ») : suppression des anciennes définitions du Catalogue, table conservée
+    // vide (sa suppression, A.5, reste non autorisée). Un échec annule tout et laisse
+    // `user_version` à 20.
+    if (pending(20)) {
+      await applyMigration021(transaction);
+      version = 21;
     }
 
     if (version !== targetVersion) {

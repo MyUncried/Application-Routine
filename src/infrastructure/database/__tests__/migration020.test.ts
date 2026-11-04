@@ -174,7 +174,7 @@ const tabataInput = (): StructuredSessionInput => ({
 
 describe("PRE-9 recette n° 3 — migration 020 (modèle d'origine d'un Circuit)", () => {
   it("version courante 20 ; clés figées = les dix modèles de la fenêtre Formats", () => {
-    expect(DATABASE_VERSION).toBe(20);
+    expect(DATABASE_VERSION).toBe(21);
     expect([...MIGRATION_020_MODEL_KEYS].sort()).toEqual([...FORMAT_MODEL_KEYS].sort());
   });
 
@@ -185,7 +185,7 @@ describe("PRE-9 recette n° 3 — migration 020 (modèle d'origine d'un Circuit)
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(20);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await snapshot(database)).toEqual(before);
     expect(await columns(database, "tours")).toContain("origin_model");
     expect(await database.getAllAsync("SELECT id, origin_model FROM tours")).toEqual([{ id: "tour-1", origin_model: null }]);
@@ -195,7 +195,7 @@ describe("PRE-9 recette n° 3 — migration 020 (modèle d'origine d'un Circuit)
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(20);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await snapshot(database)).toEqual(before);
   });
 
@@ -212,7 +212,7 @@ describe("PRE-9 recette n° 3 — migration 020 (modèle d'origine d'un Circuit)
   it("une erreur après l'ajout de la colonne annule tout et laisse la base au schéma 019 ; le démarrage suivant migre", async () => {
     let database = await seededVersion19();
     const before = await snapshot(database);
-    const failing = failOnExec(database, /^PRAGMA user_version = 20/);
+    const failing = failOnExec(database, /^PRAGMA user_version = 21/);
     await expect(migrateDatabase(failing.database, () => T)).rejects.toThrow("Injected failure");
     expect(failing.executed.some((source) => source.startsWith("ALTER TABLE tours ADD COLUMN origin_model"))).toBe(true);
     database = reopen(database);
@@ -222,7 +222,7 @@ describe("PRE-9 recette n° 3 — migration 020 (modèle d'origine d'un Circuit)
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(20);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await columns(database, "tours")).toContain("origin_model");
     expect(await snapshot(database)).toEqual(before);
   });
@@ -231,7 +231,7 @@ describe("PRE-9 recette n° 3 — migration 020 (modèle d'origine d'un Circuit)
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(20);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     await seedMovements(database);
     let sequence = 0;
     const repository = new SqliteSessionRepository(database, () => `gen-${++sequence}`, () => T);
