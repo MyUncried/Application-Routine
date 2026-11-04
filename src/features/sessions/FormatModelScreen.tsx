@@ -991,10 +991,28 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           },
           onReopen: () => setUnitPicking(true),
         };
+  // Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » — signe choisi par « ± » dans la barre du clavier.
+  const [cellSigns, setCellSigns] = useState<Readonly<Record<string, 1 | -1>>>({});
+  const signRow = focusedCellKey !== null && focusedCellKey.kind === "linc" && model === "EMOM" ? focusedCellKey.row : null;
+  const signBar =
+    signRow === null || focusedCell === null || movements[signRow] === undefined
+      ? null
+      : (() => {
+          const values = movements[signRow]!.values;
+          const negative = (cellSigns[focusedCell] ?? ((values.loadIncrement ?? 0) < 0 ? -1 : 1)) < 0;
+          return {
+            negative,
+            onPress: () => {
+              setCellSigns((current) => ({ ...current, [focusedCell]: negative ? 1 : -1 }));
+              if (values.loadIncrement != null && values.loadIncrement !== 0) updateValues(signRow, { ...values, loadIncrement: -values.loadIncrement, seriesLoads: undefined });
+            },
+          };
+        })();
   const focusCell = (key: string | undefined) => {
     if (key !== undefined) cellInputs.current.get(key)?.focus();
   };
   const cellBinding: CellBinding = (key) => ({
+    ...(cellSigns[key] !== undefined ? { sign: cellSigns[key] } : {}),
     inputRef: (input) => {
       cellInputs.current.set(key, input);
     },
@@ -1335,7 +1353,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             {model === "AMRAP" ? (
               <AmrapTable movements={movements} increasing={answers.increasingVolume === true} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
             ) : null}
-            {model === "EMOM" ? <EmomTable movements={movements} withLoad={answers.withLoad === true} fixedLoad={emomFixedLoad(movements, answers)} overflow={emomOverflow} onChange={updateValues} cell={cellBinding} /> : null}
+            {model === "EMOM" ? <EmomTable movements={movements} seriesCount={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} fixedLoad={emomFixedLoad(movements, answers)} overflow={emomOverflow} onChange={updateValues} cell={cellBinding} /> : null}
             {model === "DEATH_BY" ? <DeathByTable movements={movements} onChange={updateValues} cell={cellBinding} /> : null}
             {model === "FOR_TIME" ? (
               // Recette du 04/11/2026 (f4-modale, For time : « le fond du tableau doit être transparent, seules les zones de
@@ -1432,6 +1450,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           onNext={() => focusCell(cellOrder[focusedAt + 1])}
           onClose={() => Keyboard.dismiss()}
           units={unitsBar}
+          sign={signBar}
         />
       ) : null}
     </View>

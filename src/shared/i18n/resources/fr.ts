@@ -640,6 +640,8 @@ export const fr = {
         durationUnit: "durée",
         toFill: "à renseigner",
         variable: "variable",
+        // Recette du 04/11/2026 : incrément de charge EMOM négatif, charge arrêtée à 0.
+        noLoadFrom: "sans charge à partir de la série {n}",
         cellLabel: "{movement}, {column}, {kind}",
         repetitionsKind: "répétitions",
         loadKind: "charge",

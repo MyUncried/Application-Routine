@@ -342,7 +342,15 @@ export function allowedModes(key: FormatModelKey, movements: readonly ModelMovem
 
 /** Charges EMOM effectives : départ, puis + incrément à chaque série (MAJ 04/11 §6 quater bis). */
 export function emomSeriesLoads(start: number, increment: number, count: number): number[] {
-  return Array.from({ length: count }, (_, index) => roundLoad(start + increment * index));
+  // Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » ; bouton ± dans la barre du clavier ; « Arrêter à 0 — Les séries concernées passent sans charge (0), une simple mention en gris sous la ligne, sans alerte ni blocage : "sans charge à partir de la série X" » : jamais sous 0 (0 = sans charge, AD-19).
+  return Array.from({ length: count }, (_, index) => Math.max(0, roundLoad(start + increment * index)));
+}
+
+/** EMOM, incrément négatif : numéro (à partir de 1) de la première série sans charge, ou `null`. */
+export function emomNoLoadFrom(start: number | null | undefined, increment: number | null | undefined, count: number): number | null {
+  if (start == null || start <= 0 || increment == null || increment >= 0) return null;
+  const index = emomSeriesLoads(start, increment, count).findIndex((load) => load <= 0);
+  return index < 0 ? null : index + 1;
 }
 
 /** Charge au quart de kilogramme (valeurs admises, AD-19). */

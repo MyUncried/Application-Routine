@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
 import {
+  emomNoLoadFrom,
   movementRole,
   type FormatModelKey,
   type ModelAnswers,
@@ -65,6 +66,8 @@ export type CellBinding = (key: string) => {
   readonly onBlur: () => void;
   /** Cellule active (surlignée). */
   readonly active: boolean;
+  /** Signe imposé par la barre (± de l'incrément de charge EMOM) ; absent : signe de la valeur. */
+  readonly sign?: 1 | -1;
 };
 
 /** Clé de cellule : `genre-ligne-colonne` (obj : objectif, inc : par tour, load : charge, linc : + / série, start, sinc). */
@@ -191,8 +194,11 @@ export function TableCell({
   width = COLUMN_WIDTH,
   boxed = false,
   compact = false,
+  sign,
   testID,
 }: {
+  /** Case signée (incrément de charge EMOM, recette du 04/11/2026) : signe imposé, « − » affiché devant la valeur. */
+  readonly sign?: 1 | -1;
   /** Tableau sans cadre (For time) : la zone de saisie porte un fond blanc. */
   readonly boxed?: boolean;
   /** Charge sous l'objectif (For time) : police réduite, non grasse, ligne plus basse. */
@@ -218,7 +224,9 @@ export function TableCell({
   const [entry, setEntry] = useState<CellEntryState>({ text: "", fresh: true });
   // Hermann, 04/11/2026 : « Appuyer sur durée doit mettre le champ dans le format cible 00:00 pour guider la première
   // saisie » — en saisie, une durée s'affiche toujours « MM:SS », « 00:00 » quand elle est vide.
-  const shown = focused ? (kind === "duration" ? formatMmss(entry.text) : entry.text) : value === null ? "" : format(value);
+  const effectiveSign = sign ?? (value !== null && value < 0 ? -1 : 1);
+  const signPrefix = effectiveSign < 0 ? "−" : "";
+  const shown = focused ? (kind === "duration" ? formatMmss(entry.text) : signPrefix + entry.text) : value === null ? "" : format(value);
   // « Appuyer manuellement sur un champ doit positionner le curseur à droite de la valeur » : la saisie se compose par la
   // droite, le curseur y reste.
   const caret = focused ? { start: shown.length, end: shown.length } : undefined;
@@ -228,7 +236,7 @@ export function TableCell({
       value={shown}
       onFocus={() => {
         setFocused(true);
-        setEntry({ text: entryOf(kind, value), fresh: true });
+        setEntry({ text: entryOf(kind, value === null ? null : Math.abs(value)), fresh: true });
         onFocus?.();
       }}
       onBlur={() => {
@@ -238,7 +246,8 @@ export function TableCell({
       onChangeText={(next) => {
         const state = composeCellEntry(kind, entry, shown, next);
         setEntry(state);
-        onChange(valueOf(kind, state.text));
+        const magnitude = valueOf(kind, state.text);
+        onChange(magnitude === null ? null : effectiveSign * magnitude);
       }}
       editable={!disabled}
       selection={caret}
@@ -369,6 +378,7 @@ export function AmrapTable({
 /** EMOM (MAJ 04/11 §4.2, §6 quater bis) : Mouvement | Objectif | (Charge | + / série). */
 export function EmomTable({
   movements,
+  seriesCount = 1,
   withLoad,
   fixedLoad,
   overflow,
@@ -376,6 +386,8 @@ export function EmomTable({
   cell,
 }: {
   readonly movements: readonly ModelMovement[];
+  /** Nombre de séries (charge arrêtée à 0 : « sans charge à partir de la série X »). */
+  readonly seriesCount?: number;
   readonly withLoad: boolean;
   /** « Dans chaque intervalle » : charge fixe, « + / série » inactif. */
   readonly fixedLoad: boolean;
@@ -398,7 +410,8 @@ export function EmomTable({
         const name = rowName(item);
         const mode = values.mode;
         return (
-          <View key={item.exercise.id} style={styles.tableRow} testID={`format-emom-row-${index}`}>
+          <View key={item.exercise.id}>
+          <View style={styles.tableRow} testID={`format-emom-row-${index}`}>
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
@@ -431,7 +444,7 @@ export function EmomTable({
               <TableCell
                 kind="decimal"
                 value={values.loadIncrement ?? null}
-                format={(value) => `+ ${formatLoad(value)}`}
+                format={(value) => (value < 0 ? `− ${formatLoad(-value)}` : `+ ${formatLoad(value)}`)}
                 placeholder={values.loadIncrement === null ? tt.variable : t().dash}
                 // L'incrément est grisé tant qu'aucune charge de départ n'est renseignée.
                 disabled={fixedLoad || values.loadKg == null}
@@ -441,6 +454,13 @@ export function EmomTable({
                 testID={`format-emom-load-increment-${index}`}
               />
             ) : null}
+          </View>
+          {withLoad && !fixedLoad && emomNoLoadFrom(values.loadKg, values.loadIncrement, seriesCount) !== null ? (
+            // Hermann, 04/11/2026 : « une simple mention en gris sous la ligne, sans alerte ni blocage ».
+            <Text style={styles.rowNote} testID={`format-emom-no-load-${index}`}>
+              {tt.noLoadFrom.replace("{n}", String(emomNoLoadFrom(values.loadKg, values.loadIncrement, seriesCount)))}
+            </Text>
+          ) : null}
           </View>
         );
       })}
@@ -672,6 +692,7 @@ const styles = StyleSheet.create({
   // Recette n° 3 du 03/11/2026 (« le champ Rép. n'est pas modifiable ») : zone tactile de la hauteur de la ligne.
   cell: { minHeight: ROW_HEIGHT, textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR, paddingVertical: 2, borderRadius: 6 },
   cellDisabled: { color: DISABLED_VALUE },
+  rowNote: { paddingHorizontal: 12, paddingBottom: 6, marginTop: -4, textAlign: "right", fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
   // « 00:00 » de guidage, atténué tant que rien n'est tapé.
   cellGuide: { color: DISABLED_VALUE },
   cellBoxed: { backgroundColor: "#FFFFFF" },

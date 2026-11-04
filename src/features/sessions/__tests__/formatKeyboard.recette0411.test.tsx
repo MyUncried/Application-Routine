@@ -2,6 +2,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
+import { emomNoLoadFrom, emomSeriesLoads } from "@/domain/sessions/formatModels";
 import { TableCell } from "@/features/sessions/FormatTables";
 
 /**
@@ -45,6 +46,34 @@ describe("barre d'unité des tableaux de Formats", () => {
     fireEvent.press(screen.getByTestId("keyboard-unit-duration"));
     expect(onPick).toHaveBeenCalledWith("DURATION");
     expect(screen.getByTestId("execution-sheet-keyboard-close")).toBeTruthy();
+  });
+});
+
+describe("incrément de charge EMOM négatif (Hermann, 04/11/2026)", () => {
+  it("charges arrêtées à 0 ; première série sans charge", () => {
+    expect(emomSeriesLoads(12, -2.5, 6)).toEqual([12, 9.5, 7, 4.5, 2, 0]);
+    expect(emomNoLoadFrom(12, -2.5, 6)).toBe(6);
+    expect(emomNoLoadFrom(12, -2.5, 5)).toBeNull();
+    expect(emomNoLoadFrom(12, 2.5, 6)).toBeNull();
+  });
+
+  it("case signée : « − » devant la valeur, saisie en valeur absolue, valeur rendue négative", () => {
+    const onChange = jest.fn();
+    render(<TableCell kind="decimal" value={null} sign={-1} onChange={onChange} format={String} label="+ / série" testID="inc" />);
+    fireEvent(screen.getByTestId("inc"), "focus");
+    expect(screen.getByTestId("inc").props.value).toBe("−");
+    fireEvent.changeText(screen.getByTestId("inc"), "−2");
+    expect(onChange).toHaveBeenLastCalledWith(-2);
+  });
+
+  it("barre : « ± » dans le premier emplacement, état annoncé", () => {
+    const onPress = jest.fn();
+    render(
+      <KeyboardAccessoryBar keyboardFrame={{ screenY: 500, duration: 0 }} containerBottom={800} reduceMotion onHeight={() => undefined} canPrevious canNext onPrevious={() => undefined} onNext={() => undefined} onClose={() => undefined} sign={{ negative: true, onPress }} />,
+    );
+    fireEvent.press(screen.getByTestId("keyboard-sign"));
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("keyboard-sign").props.accessibilityState).toMatchObject({ selected: true });
   });
 });
 

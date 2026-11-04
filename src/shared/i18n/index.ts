@@ -107,6 +107,9 @@ const executionParameters = {
       repetitions: "Répétitions",
       duration: "Durée",
       unitSpoken: "Unité de l’objectif : {unit}, toucher pour changer",
+      // Recette du 04/11/2026 : signe de l'incrément de charge EMOM.
+      sign: "±",
+      signSpoken: "Changer le signe",
     },
     moveUp: "Monter la série {n}",
     moveDown: "Descendre la série {n}",

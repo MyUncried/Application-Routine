@@ -131,7 +131,10 @@ export function KeyboardAccessoryBar({
   onClose,
   failure = null,
   units = null,
+  sign = null,
 }: {
+  /** Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » ; bouton ± dans la barre du clavier ; « Arrêter à 0 — Les séries concernées passent sans charge (0), une simple mention en gris sous la ligne, sans alerte ni blocage : "sans charge à partir de la série X" » : « ± » inverse le signe de la case (incrément de charge EMOM). */
+  sign?: { readonly negative: boolean; readonly onPress: () => void } | null;
   keyboardFrame: KeyboardFrame;
   /** Bas de la zone de la `Modal` qui contient la barre (coordonnées de la fenêtre). */
   containerBottom: number;
@@ -319,6 +322,8 @@ export function KeyboardAccessoryBar({
               {button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
             </View>
           </View>
+        ) : sign !== null ? (
+          button(labels.sign, labels.signSpoken, true, sign.onPress, "keyboard-sign", { selected: sign.negative })
         ) : failure === null ? (
           // B9 (arbitrage A4) : emplacement réservé, vide et non accessible.
           <View
