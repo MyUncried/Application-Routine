@@ -480,8 +480,8 @@ export function DeathByTable({ movements, onChange, cell }: { readonly movements
     <View style={styles.table} testID="format-death-by-table">
       <View style={styles.tableHeader}>
         <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={styles.tableHead}>{tt.start}</Text>
-        <Text style={styles.tableHead}>{tt.increment}</Text>
+        <Text style={[styles.tableHead, { width: OBJECTIVE_WIDTH }]}>{tt.start}</Text>
+        <Text style={[styles.tableHead, { width: OBJECTIVE_WIDTH }]}>{tt.increment}</Text>
       </View>
       {movements.map((item, index) => {
         const values = item.values;
@@ -494,7 +494,9 @@ export function DeathByTable({ movements, onChange, cell }: { readonly movements
             <TableCell
               kind="integer"
               value={values.start ?? null}
-              format={String}
+              // Hermann, 04/11/2026 : « death by, il manque les unités au tableau des objectifs » — valeurs en répétitions.
+              format={(value) => `${value} ${t().repetitionsUnit}`}
+              width={OBJECTIVE_WIDTH}
               missing={values.start == null || values.start < 1}
               onChange={(value) => onChange(index, { ...values, start: value })}
               {...cell(cellKey("start", index))}
@@ -504,7 +506,8 @@ export function DeathByTable({ movements, onChange, cell }: { readonly movements
             <TableCell
               kind="integer"
               value={values.startIncrement ?? null}
-              format={(value) => `+ ${value}`}
+              format={(value) => `+ ${value} ${t().repetitionsUnit}`}
+              width={OBJECTIVE_WIDTH}
               placeholder="+"
               missing={values.startIncrement == null || values.startIncrement < 1}
               onChange={(value) => onChange(index, { ...values, startIncrement: value })}

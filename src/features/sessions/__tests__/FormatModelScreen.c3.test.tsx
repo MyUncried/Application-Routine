@@ -559,6 +559,9 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
     expect(screen.getByTestId("format-death-by-table")).toBeTruthy();
     expect(screen.queryByTestId("format-row-startRepetitions")).toBeNull();
+    // Hermann, 04/11/2026 : « death by, il manque les unités au tableau des objectifs ».
+    expect(screen.getByTestId("format-death-by-start-0").props.value).toBe(`1 ${t.repetitionsUnit}`);
+    expect(screen.getByTestId("format-death-by-increment-0").props.value).toBe(`+ 1 ${t.repetitionsUnit}`);
     // Retour à un mouvement : le tableau disparaît.
     fireEvent(screen.getByTestId("format-movement-1-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     expect(screen.queryByTestId("format-death-by-table")).toBeNull();
