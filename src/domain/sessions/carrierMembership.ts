@@ -93,13 +93,14 @@ export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCir
       return withFormat(exercise, { key: "AMRAP", settings }, uniform(parameters, parameters.mode, 1, kept, 0));
     }
     case "FOR_TIME": {
-      // Répétitions, À l'objectif ; une série par tour ; cible commune chiffrée reprise, sinon à compléter.
+      // Rôle Tour, À l'objectif ; une série par tour ; cible commune chiffrée reprise, sinon à compléter. MAJ 04/11/2026
+      // §6 bis 2 : Répétitions ou Durée, le Mode est conservé (sans conversion). [Passage en Répétitions — remplacé.]
       const rows = Array.from({ length: Math.max(1, circuit.repeatCount) }, () => ({
-        target: parameters.mode === "REPETITIONS" ? numeric : unsetTarget(),
+        target: numeric,
         pauseSeconds: 0,
         loadKg: commonLoad(parameters) ?? 0,
       }));
-      return withFormat(exercise, { key: "FOR_TIME", settings: {} }, { ...parameters, mode: "REPETITIONS", series: { kind: "VARIABLE", rows, workPhases: parameters.series.workPhases } }, 0);
+      return withFormat(exercise, { key: "FOR_TIME", settings: {} }, { ...parameters, mode: parameters.mode ?? "REPETITIONS", series: { kind: "VARIABLE", rows, workPhases: parameters.series.workPhases } }, 0);
     }
     case "EMOM": {
       // Séries, Intervalle et Durée de l'exercice portés par le Circuit ; une passe par tour ; récupération 0 s.

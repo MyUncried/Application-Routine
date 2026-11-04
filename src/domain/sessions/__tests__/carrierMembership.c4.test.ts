@@ -48,13 +48,14 @@ describe("entrée dans un Circuit porteur (§6 point 1)", () => {
     expect(seriesRowsOf(mixed.executionParameters)[0]!.target).toEqual({ kind: "UNSET" });
   });
 
-  it("For time : une série par tour, Répétitions, récupération 0 s ; une Durée n'est jamais convertie en répétitions", () => {
+  // [« Répétitions » imposé au membre For time — remplacé le 04/11/2026 (MAJ §6 bis 2) : Répétitions ou Durée, Mode conservé.]
+  it("For time : une série par tour, récupération 0 s ; une Durée reste en Durée, jamais convertie en répétitions", () => {
     const entered = enterCarrier(exercise("a"), FOR_TIME_CIRCUIT);
     expect(seriesRowsOf(entered.executionParameters).map((row) => row.target)).toEqual(Array.from({ length: 3 }, () => ({ kind: "NUMBER", value: 12 })));
     expect(entered.postActivityRecoverySeconds).toBe(0);
     const timed = enterCarrier(exercise("d", durationParameters(30)), FOR_TIME_CIRCUIT);
-    expect(timed.executionParameters.mode).toBe("REPETITIONS");
-    expect(seriesRowsOf(timed.executionParameters).every((row) => row.target.kind === "UNSET")).toBe(true);
+    expect(timed.executionParameters.mode).toBe("DURATION");
+    expect(seriesRowsOf(timed.executionParameters).every((row) => row.target.kind === "NUMBER" && row.target.value === 30)).toBe(true);
   });
 
   it("Death by alterné : départ repris, incrément ≥ 1, intervalle propre au membre (A2) ; un Format d'une autre clé est remplacé, jamais imbriqué", () => {
@@ -136,8 +137,13 @@ describe("Composition : déplacement, duplication, compte et nature", () => {
     expect(buyIn.status === "APPLIED" && buyIn.draft.exercises.find((item) => item.id === "in")).not.toHaveProperty("format");
   });
 
-  it("buy-in non duplicable (§6 point 4) ; membre de boucle duplicable", () => {
-    expect(duplicateLayoutExercise(carrierDraft(), "in", "copy", newId).status).toBe("REFUSED");
+  // [« buy-in non duplicable (§6 point 4) » — remplacé le 04/11/2026 (MAJ §6 bis 2) : la copie d'un buy-in est un
+  // second buy-in, juste après l'original dans sa zone.]
+  it("MAJ 04/11 §6 bis 2 : buy-in duplicable — second buy-in juste après l'original ; membre de boucle duplicable", () => {
+    const outcome = duplicateLayoutExercise(carrierDraft(), "in", "copy", newId);
+    expect(outcome.status).toBe("APPLIED");
+    const circuit = outcome.status === "APPLIED" ? structureCircuits(outcome.draft.structure!)[0]! : null;
+    expect(circuit!.exercises.slice(0, 2)).toEqual(["in", "copy"]);
     expect(duplicateLayoutExercise(carrierDraft(), "a", "copy2", newId).status).not.toBe("REFUSED");
   });
 

@@ -49,9 +49,13 @@
  * - **À CLARIFIER, non encodé** (porté par `openQuestion` du segment) : rang de reprise d'un Death by
  *   au passage suivant d'un Circuit groupé (aucune règle retrouvée ; la proposition « chaque nouvelle
  *   exécution repart de ses réglages initiaux » n'est pas validée) ; unité exécutée par un membre
- *   progressif à chaque tour d'un Circuit alterné. For time dans un Circuit : l'échelle « Volume par
- *   tour » n'est pas lue ici (séries ordinaires seulement) — échelle rejouée en entier à chaque
- *   passage (main) ou indexée par passage (branche non fusionnée), non tranché.
+ *   progressif à chaque tour d'un Circuit alterné. [For time dans un Circuit : « l'échelle "Volume par
+ *   tour" n'est pas lue ici […] non tranché » — remplacé : le Circuit For time est alterné, la série k
+ *   d'un membre de la boucle est son volume du tour k (référence Formats §11).]
+ * - **Circuit porteur For time — zones des Rôles** (mise à jour consolidée du 04/11/2026 §6 bis 2) : les
+ *   buy-in sont joués une seule fois, dans l'ordre, avant le tour 1 ; les membres de Rôle Tour jouent leur
+ *   série i au tour i ; les buy-out une seule fois, dans l'ordre, après le dernier tour ; le repos entre les
+ *   tours (`restBetweenRoundsSeconds`) sépare deux tours. Ce que le chrono mesure relève de PRE-10/11.
  * - **Identité d'étape** stable, dérivée du chemin et des indices de répétition, de tour, de série
  *   et de côté (`stepId`).
  * - **Bornes** : Compte à rebours initial en tête et Fin de séance en fin, une seule fois, hors de
@@ -62,7 +66,7 @@ import { buildExecutionLedger, type LedgerSide } from "@/domain/activities/execu
 import { seriesRowsOf, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 
 import type { ActivityType } from "./Session";
-import { ELEMENT_FORMAT_KEYS, FORMAT_CAPABILITIES, type ElementFormat } from "./formats";
+import { circuitRoleOf, ELEMENT_FORMAT_KEYS, FORMAT_CAPABILITIES, type ElementFormat } from "./formats";
 import { type SessionStructure, type StructureCircuit, type StructureStopPointLocation } from "./structure";
 
 /** Formats développés en segment progressif : expansion `PROGRESSIVE` de leur descripteur (D.3). */
@@ -229,6 +233,10 @@ export function expandStructure<E extends PlanExercise>(input: PlanExpansionInpu
       return;
     }
     const alternated = item.nature === "SERIES";
+    if (carried?.key === "FOR_TIME") {
+      forTimeCircuit(item, carried, prefix, cycle);
+      return;
+    }
     for (let tour = 1; tour <= item.repeatCount; tour += 1) {
       const circuitContext: PlanContext = {
         cycle,
@@ -256,6 +264,25 @@ export function expandStructure<E extends PlanExercise>(input: PlanExpansionInpu
         pointsAt({ circuitId: item.id, cycleId: null }, index + 1, tourPrefix, circuitContext);
       });
     }
+  };
+
+  /** Circuit porteur For time : zones buy-in, tours alternés, buy-out ; repos entre les tours (voir l'en-tête). */
+  const forTimeCircuit = (item: StructureCircuit<E>, format: ElementFormat, prefix: string, cycle: PlanCycleContext | null) => {
+    const roles = item.exercises.map((exercise, index) => circuitRoleOf(exercise.format, index));
+    const zone = (role: string) => item.exercises.filter((_, index) => roles[index] === role);
+    const rest = format.settings.restBetweenRoundsSeconds;
+    const count = Math.max(1, item.repeatCount);
+    const contextAt = (tour: number): PlanContext => ({ cycle, circuit: { id: item.id, tour, count }, formattedElementId: item.id });
+    for (const exercise of zone("BUY_IN")) occurrence(exercise, null, `${prefix}/circuit:${item.id}#buy-in`, contextAt(1));
+    const tours = zone("TOUR");
+    for (let tour = 1; tour <= count; tour += 1) {
+      const tourPrefix = `${prefix}/circuit:${item.id}#${tour}`;
+      for (const exercise of tours) if (seriesCount(exercise) >= tour) occurrence(exercise, tour, tourPrefix, contextAt(tour));
+      if (tour < count && typeof rest === "number" && rest > 0) {
+        steps.push({ kind: "RECOVERY", stepId: `${tourPrefix}/rest`, exerciseId: item.id, seconds: rest, context: contextAt(tour) });
+      }
+    }
+    for (const exercise of zone("BUY_OUT")) occurrence(exercise, null, `${prefix}/circuit:${item.id}#buy-out`, contextAt(count));
   };
 
   /** Circuit porteur AMRAP (un segment par bloc, repos entre les blocs) ou Death by (un segment). */

@@ -8,13 +8,20 @@
  *   - `MISSING_TARGET` : une cible à renseigner (tiret, COMP §3 ; série ajoutée à compléter, A6) ;
  *   - `ZERO_VOLUME` : toutes les cibles numériques d'un Exercice valent 0 (COMP §3, ARB-10) ;
  *   - `LOCKED_CONSTANT_CHANGED` : un Exercice s'écarte d'une valeur imposée par un Format
- *     spécialisé (AMRAP autonome et For time en Répétitions, Death by en Répétitions, buy-in /
- *     buy-out en Répétitions à l'objectif, §3, §11, §12). Tabata et 30/30 n'imposent rien (FMT-10,
+ *     spécialisé (AMRAP autonome, For time seul et Death by en Répétitions ; For time à l'objectif, buy-in
+ *     et buy-out compris, §3, §11, §12). [Buy-in / buy-out et membres For time en Répétitions — remplacé le
+ *     04/11/2026 : Répétitions ou Durée ; buy-in AMRAP à l'échec admis.] Tabata et 30/30 n'imposent rien (FMT-10,
  *     FMT-19, CE-FMT-04 : « aucun refus fondé sur d'anciennes constantes Tabata/30/30 ») ;
  *   - `MISSING_SETTING` : un réglage obligatoire du rôle non renseigné ;
  *   - `INCOMPATIBLE_CIRCUIT` : un Exercice formaté autonome est membre d'un Circuit standard dont
  *     l'organisation est refusée (§6.1 : AMRAP, For time et Death by alternés) ;
- *   - `EMPTY_LOOP` : Circuit porteur AMRAP ou For time sans membre « À chaque tour » (§6.1, R09) ;
+ *   - `EMPTY_LOOP` : Circuit porteur AMRAP ou For time sans membre de Rôle Tour (§6.1, R09 ; MAJ 04/11 §6 bis 2) ;
+ *   - `ROLE_ZONES` : membres d'un Circuit AMRAP ou For time hors de l'ordre des zones buy-in, tour, buy-out, ou
+ *     buy-out dans un AMRAP (MAJ 04/11 §6 bis 2) ;
+ *   - `NO_REPETITIONS` : Circuit For time sans aucun Exercice en Répétitions, buy-in et buy-out compris (§11) ;
+ *   - `EMOM_DURATION` : travail prévu en Durée (× 2 de chaque côté, plus la pause entre les côtés) qui atteint
+ *     ou dépasse l'intervalle — de l'Exercice, ou commun dans chaque intervalle (somme des membres) ; seuil
+ *     inclusif (décision de Hermann du 03/11/2026, MAJ 04/11 §4.4) ;
  *   - `INVALID_STRUCTURE` : forme de la structure, Format porté invalide (registre, nature non
  *     admise, membre d'un Circuit porteur d'une autre clé), Séance sans Exercice.
  * - **Disponibilité du moteur** (`engineAvailability`) : lue dans le descripteur de capacités
@@ -33,12 +40,13 @@ import {
   elementFormatViolations,
   exerciseFormatRole,
   FORMAT_CAPABILITIES,
+  circuitRoleOf,
   formatParametersOf,
-  isSinglePassage,
   loopMembers,
   type ElementFormat,
   type FormatRole,
 } from "./formats";
+import { plannedWorkOfParameters } from "./formatModels";
 import type { ActivityType } from "./Session";
 import {
   structureCircuits,
@@ -56,6 +64,9 @@ export type ConfigurationReason =
   | "MISSING_SETTING"
   | "INCOMPATIBLE_CIRCUIT"
   | "EMPTY_LOOP"
+  | "ROLE_ZONES"
+  | "NO_REPETITIONS"
+  | "EMOM_DURATION"
   | "INVALID_STRUCTURE";
 
 /** Motif rattaché à un élément (Exercice, Circuit) ou à la Séance (`elementId` nul). */
@@ -80,12 +91,13 @@ function breaksImposedValues(exercise: ValidityExercise, format: ElementFormat, 
   const parameters = exercise.executionParameters;
   const repetitionsOnly =
     (role.kind === "EXERCISE" && (format.key === "AMRAP" || format.key === "FOR_TIME" || format.key === "DEATH_BY")) ||
-    (role.kind === "MEMBER" && (format.key === "FOR_TIME" || format.key === "DEATH_BY" || isSinglePassage(format)));
+    (role.kind === "MEMBER" && format.key === "DEATH_BY");
   if (repetitionsOnly && parameters.mode !== "REPETITIONS") {
     return true;
   }
-  // For time et Passage « Une fois » : Condition d'arrêt À l'objectif (§3, §11).
-  const targetOnly = format.key === "FOR_TIME" || isSinglePassage(format);
+  // For time : Condition d'arrêt À l'objectif, buy-in et buy-out compris (§3, §11 ; MAJ 04/11 §6 bis 2 : le buy-in
+  // AMRAP peut être à l'échec).
+  const targetOnly = format.key === "FOR_TIME";
   return targetOnly && seriesRowsOf(parameters).some((row) => row.target.kind === "FAILURE");
 }
 
@@ -128,6 +140,22 @@ export function configurationValidity<E extends ValidityExercise>(
     if ((carried.key === "AMRAP" || carried.key === "FOR_TIME") && loopMembers(circuit.exercises).length === 0) {
       add(circuit.id, "EMPTY_LOOP");
     }
+    if (carried.key === "AMRAP" || carried.key === "FOR_TIME") {
+      const roles = circuit.exercises.map((exercise, index) => circuitRoleOf(exercise.format, index));
+      const ranks = roles.map((value) => (value === "BUY_IN" ? 0 : value === "TOUR" ? 1 : 2));
+      if (ranks.some((rank, index) => index > 0 && rank < ranks[index - 1]!) || (carried.key === "AMRAP" && roles.includes("BUY_OUT"))) {
+        add(circuit.id, "ROLE_ZONES");
+      }
+    }
+    if (carried.key === "FOR_TIME" && circuit.exercises.every((exercise) => exercise.type === "EXERCISE" && exercise.executionParameters.mode === "DURATION")) {
+      add(circuit.id, "NO_REPETITIONS");
+    }
+    // Dans chaque intervalle : somme du travail prévu des membres ≥ intervalle commun.
+    const window = carried.settings.windowSeconds;
+    if (carried.key === "EMOM" && typeof window === "number") {
+      const sum = circuit.exercises.reduce((total, exercise) => total + plannedWorkOfParameters(exercise.executionParameters), 0);
+      if (sum > 0 && sum >= window) add(circuit.id, "EMOM_DURATION");
+    }
   }
 
   for (const exercise of exercises) {
@@ -148,6 +176,12 @@ export function configurationValidity<E extends ValidityExercise>(
       } else {
         if (missingSetting(format, role)) add(exercise.id, "MISSING_SETTING");
         if (breaksImposedValues(exercise, format, role)) add(exercise.id, "LOCKED_CONSTANT_CHANGED");
+        // EMOM (simple, en alternance, À la suite) : travail prévu ≥ son Intervalle.
+        const interval = format.settings.intervalSeconds;
+        if (format.key === "EMOM" && typeof interval === "number") {
+          const work = plannedWorkOfParameters(exercise.executionParameters);
+          if (work > 0 && work >= interval) add(exercise.id, "EMOM_DURATION");
+        }
         // Exercice formaté autonome dans un Circuit standard (§6.1).
         if (circuit !== null && circuitCompatibility(format.key, circuit).status === "REFUSED") {
           add(exercise.id, "INCOMPATIBLE_CIRCUIT");

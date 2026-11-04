@@ -42,8 +42,9 @@
 import type { CircuitLoss } from "./circuit";
 import { copyCircuitReserveEntry } from "./circuitMembership";
 import { duplicateActivity } from "./composition";
-import { currentLayout, settleLayoutCircuitMembership, withLayout, type LayoutCircuitMembershipSettlement } from "./layoutOperations";
-import { isSinglePassage, type ElementFormatKey } from "./formats";
+import { circuitOfExercise, currentLayout, settleLayoutCircuitMembership, withLayout, type LayoutCircuitMembershipSettlement } from "./layoutOperations";
+import { memberRemovalBlock, zonesOrdered } from "./circuitRoles";
+import { circuitRoleOf, isSinglePassage, type CircuitRole, type ElementFormatKey } from "./formats";
 import {
   analyzeLayoutStopPoints,
   isLayoutStopPointAllowed,
@@ -97,7 +98,7 @@ export type LayoutDropControl = (context: {
 export const neutralDropControl: LayoutDropControl = () => ({ status: "ACCEPTED" });
 
 /** [B.4 : refus `STOP_POINTS` tant que la Séance portait des Points d'arrêt — retiré le 31/10/2026 par B.6.] */
-export type LayoutItemMoveRefusal = "NOT_FOUND" | "NESTING" | "FORMAT_INCOMPATIBLE" | "CONTROL" | "AT_BOUNDARY" | "PASSAGE_FIXED";
+export type LayoutItemMoveRefusal = "NOT_FOUND" | "NESTING" | "FORMAT_INCOMPATIBLE" | "CONTROL" | "AT_BOUNDARY" | "PASSAGE_FIXED" | "LAST_TOUR" | "LAST_REPETITIONS";
 
 /**
  * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « La carte d'exercice Buy-In ne doit pas
@@ -117,6 +118,7 @@ export function breaksFixedPassage(
   isSinglePassageId: (exerciseId: string) => boolean,
   source: LayoutItemRef,
   destination: LayoutDestination,
+  roleOf?: (exerciseId: string, index: number) => CircuitRole,
 ): boolean {
   if (destination.container.kind !== "CIRCUIT") return false;
   const circuitId = destination.container.id;
@@ -131,6 +133,17 @@ export function breaksFixedPassage(
     .find((item) => item.id === circuitId);
   if (circuit === undefined || (circuit.format ?? null) === null) return false;
   const members = circuit.exercises;
+  // Mise à jour consolidée du 04/11/2026 (§6 bis 2) : le Rôle fixe la zone (buy-in, tour, buy-out) ; le
+  // glisser-déposer réordonne à l'intérieur d'une zone, changer de zone passe par le Rôle. Un Exercice venu
+  // d'ailleurs entre dans la boucle (Tour). [Règle positionnelle ci-dessous — remplacée quand les Rôles sont lus.]
+  if (roleOf !== undefined) {
+    const sourceId = source.kind === "EXERCISE" ? source.id : null;
+    const kept = members.filter((id) => id !== sourceId);
+    const roles = kept.map((id) => roleOf(id, members.indexOf(id)));
+    const moved = sourceId !== null && members.includes(sourceId) ? roleOf(sourceId, members.indexOf(sourceId)) : "TOUR";
+    const next = [...roles.slice(0, destination.index), moved, ...roles.slice(destination.index)];
+    return !zonesOrdered(next);
+  }
   const last = members.length - 1;
   const buyIn = members.length > 0 && isSinglePassageId(members[0]!) ? members[0]! : null;
   const buyOut = last > 0 && isSinglePassageId(members[last]!) ? members[last]! : null;
@@ -212,9 +225,18 @@ export function moveLayoutItem(
   if (detached === null || (source.kind === "EXERCISE" && !draft.exercises.some((exercise) => exercise.id === source.id))) {
     return { status: "REFUSED", reason: "NOT_FOUND" };
   }
-  // Recette iPhone n° 3 du 03/11/2026 : buy-in en tête, buy-out en fin de leur Circuit porteur (§6 point 4).
-  if (breaksFixedPassage(layout, (id) => isSinglePassage(draft.exercises.find((exercise) => exercise.id === id)?.format), source, destination)) {
+  // Recette iPhone n° 3 du 03/11/2026 : buy-in en tête, buy-out en fin de leur Circuit porteur (§6 point 4) ;
+  // MAJ 04/11 §6 bis 2 : zones des Rôles, réordonnancement interne seulement.
+  const formatOf = (id: string) => draft.exercises.find((exercise) => exercise.id === id)?.format;
+  if (breaksFixedPassage(layout, (id) => isSinglePassage(formatOf(id)), source, destination, (id, index) => circuitRoleOf(formatOf(id), index))) {
     return { status: "REFUSED", reason: "PASSAGE_FIXED" };
+  }
+  // Dernier membre de la boucle (buy-in ou buy-out présents), ou dernier en Répétitions d'un For time : pas de sortie.
+  if (source.kind === "EXERCISE") {
+    const from = circuitOfExercise(layout, source.id);
+    const leaves = from !== undefined && !(destination.container.kind === "CIRCUIT" && destination.container.id === from.id);
+    const block = leaves ? memberRemovalBlock(draft, layout, source.id) : null;
+    if (block !== null) return { status: "REFUSED", reason: block };
   }
   const attached = attach(detached.layout, detached.node, destination);
   if (attached === "NESTING") return { status: "REFUSED", reason: "NESTING" };
@@ -426,7 +448,7 @@ export type LayoutExerciseEditOutcome =
    * consécutif — refus doux de D-441, en pratique impossible (la copie est insérée juste après sa
    * source, avant le Point qui la suivait).
    */
-  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "STOP_POINT_CONFLICT" };
+  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "STOP_POINT_CONFLICT" | "LAST_TOUR" | "LAST_REPETITIONS" };
 
 /**
  * PRE-9 B.5 (epics B.5 ; COMP §1 : « Il disparaît lorsque son dernier membre en sort ») — suppression
@@ -445,6 +467,10 @@ export type LayoutExerciseEditOutcome =
  */
 export function removeLayoutExercise(draft: SessionDraft, exerciseId: string, newContainerId: () => string): LayoutExerciseEditOutcome {
   const layout = currentLayout(draft, newContainerId);
+  // MAJ 04/11 §6 bis 2 : le dernier membre de la boucle ne se supprime pas tant qu'un buy-in ou buy-out reste ;
+  // For time : ni le dernier Exercice en Répétitions de l'ensemble du Circuit.
+  const block = memberRemovalBlock(draft, layout, exerciseId);
+  if (block !== null) return { status: "REFUSED", reason: block };
   const detached = detach(layout, { kind: "EXERCISE", id: exerciseId });
   if (detached === null || !draft.exercises.some((exercise) => exercise.id === exerciseId)) {
     return { status: "REFUSED", reason: "NOT_FOUND" };
@@ -491,10 +517,9 @@ export function duplicateLayoutExercise(
   if (draft.exercises.some((exercise) => exercise.id === newId)) {
     throw new Error(`duplicateLayoutExercise : l'identifiant de copie « ${newId} » existe déjà dans la Composition.`);
   }
-  // PRE-9 C.4 (référence Formats §6 point 4) : un buy-in ou un buy-out ne se duplique pas.
-  if (isSinglePassage(draft.exercises.find((exercise) => exercise.id === exerciseId)?.format)) {
-    return { status: "REFUSED", reason: "NOT_FOUND" };
-  }
+  // [PRE-9 C.4 (référence Formats §6 point 4) : « un buy-in ou un buy-out ne se duplique pas » — remplacé le
+  // 04/11/2026 (MAJ §6 bis 2) : la copie d'un buy-in est un second buy-in, juste après l'original dans sa zone (de
+  // même pour un buy-out) ; la copie garde le Rôle de sa source.]
   const layout = currentLayout(draft, newContainerId);
   const inserted = insertCopyAfter(layout, exerciseId, newId);
   const exercises = duplicateActivity(draft.exercises, exerciseId, newId);

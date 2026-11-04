@@ -80,6 +80,7 @@ import {
 } from "@/domain/activities/executionCalculations";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { formatLoadKg } from "@/domain/activities/exerciseLoad";
+import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import { AnchoredPanel } from "@/features/activities/AnchoredPanel";
 import {
   CADENCE_OPTION_SECONDS,
@@ -87,6 +88,13 @@ import {
   cadenceOptionOf,
   type CadenceOption,
 } from "@/features/activities/cadenceOption";
+import {
+  emomOverflowOf,
+  FormatSettingsFrame,
+  initialFormatSheetValue,
+  type FormatSheetContext,
+  type FormatSheetValue,
+} from "@/features/activities/FormatSettingsFrame";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
 import { loadOptionWidth } from "@/features/activities/loadOptionWidth";
@@ -392,6 +400,13 @@ export type ExecutionParametersSheetProps = {
    * la valeur à renseigner (rouge) prime. Absent : rendu normal.
    */
   readonly profileDefaultsPending?: boolean;
+  /**
+   * PRE-9 (CE-FMT-04 ; mise à jour consolidée des écrans Formats du 04/11/2026 §4.4, §6 bis 2) : réglages de
+   * Format de l'Exercice selon son porteur (Rôle, Incrément, Intervalle, Durée, borne For time), cadre placé
+   * sous Exécution ; appliqués par le ✓ avec les paramètres (`format.onApply`), ignorés par ✕. Contrôle EMOM
+   * des durées : ✓ indisponible tant que le travail prévu atteint l'intervalle. Absent : aucun cadre.
+   */
+  readonly format?: FormatSheetContext;
 };
 
 const t = strings.executionParameters.sheet;
@@ -608,6 +623,7 @@ export function ExecutionParametersSheet({
   phasesToVerify,
   recovery,
   profileDefaultsPending = false,
+  format,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
@@ -621,6 +637,8 @@ export function ExecutionParametersSheet({
    * (0 s sans récupération antérieure) ; transmise au parent par le ✓ seulement.
    */
   const [recoverySeconds, setRecoverySeconds] = useState(() => recovery?.seconds ?? 0);
+  // PRE-9 (CE-FMT-04) : réglages de Format, locaux jusqu'au ✓.
+  const [formatValue, setFormatValue] = useState<FormatSheetValue | null>(() => (format === undefined ? null : initialFormatSheetValue(format)));
   /**
    * PRE-9 (01/11/2026, point 2) : défauts du Profil non encore validés et côtés à l'ouverture — la
    * Pause entre les côtés n'est un défaut du Profil repris que si le changement de côté est activé
@@ -1282,13 +1300,16 @@ export function ExecutionParametersSheet({
 
   function handleValidate() {
     if (absorbSheetCommand()) return;
-    if (validation.ok) {
+    if (validation.ok && !emomOverflow) {
       const value = validation.value;
       const appliedRecovery = recoverySeconds;
+      const appliedFormat = formatValue;
       closeAnimated(() => {
         // PRE-9 (01/11/2026, point 2) : Récupération appliquée au brouillon parent avec les paramètres.
         recovery?.onApply(appliedRecovery);
         onApply(value);
+        // CE-FMT-04 : réglages de Format appliqués après les paramètres (Rôle : replacement dans sa zone).
+        if (format !== undefined && appliedFormat !== null) format.onApply(appliedFormat.settings, appliedFormat.role);
       });
     }
   }
@@ -1316,7 +1337,10 @@ export function ExecutionParametersSheet({
   }
 
   const targetLabel = effective.mode === "REPETITIONS" ? repetitionsLabel : secondsLabel;
-  const validateDisabled = !validation.ok && !sheetCommandsAbsorbed(surface);
+  // MAJ 04/11 §4.4 : contrôle EMOM des durées au seuil inclusif, dans la modale comme au récapitulatif.
+  const emomOverflow =
+    format !== undefined && formatValue !== null && validation.ok ? emomOverflowOf(format, formatValue, plannedWorkOfParameters(validation.value)) : false;
+  const validateDisabled = (!validation.ok || emomOverflow) && !sheetCommandsAbsorbed(surface);
   const validateLabel = validation.ok
     ? t.validateAccessibilityLabel
     : `${t.validateAccessibilityLabel}, ${t.validateUnavailableSuffix}`;
@@ -2312,6 +2336,17 @@ export function ExecutionParametersSheet({
                     enfants directs de l'hôte des panneaux (repère `anchorTop`). Chaque cadre
                     glisse quand son contenu change (Q39) ; séparateurs seulement entre les
                     lignes d'un même cadre. */}
+                {/* PRE-9 (CE-FMT-04) : réglages de Format de l'Exercice, selon son porteur. */}
+                {format !== undefined && formatValue !== null ? (
+                  <FormatSettingsFrame
+                    context={format}
+                    value={formatValue}
+                    onChange={setFormatValue}
+                    mode={validation.ok ? validation.value.mode : null}
+                    atFailure={validation.ok && stopConditionOf(validation.value) === "FAILURE"}
+                    emomOverflow={emomOverflow}
+                  />
+                ) : null}
                 {/* Cadre Exécution : Mode, Condition d'arrêt. */}
                 <SheetMotionView
                   appear={false}

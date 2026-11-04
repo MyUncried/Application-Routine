@@ -932,7 +932,12 @@ export const fr = {
           // refus retiré le 31/10/2026 par B.6.]
           CONTROL: "Dépose impossible",
           // Recette iPhone n° 3 du 03/11/2026 (référence Formats §6 point 4). Formulation à valider.
-          PASSAGE_FIXED: "Dépose impossible : le buy-in reste en tête du circuit, le buy-out à la fin",
+          // [Recette n° 3 du 03/11 : « le buy-in reste en tête du circuit, le buy-out à la fin » — remplacé le 04/11/2026
+          // (zones des Rôles, MAJ §6 bis 2).]
+          PASSAGE_FIXED: "Dépose impossible : pour changer de zone, modifiez le rôle de l’exercice",
+          // MAJ 04/11/2026 §6 bis 2 : message court invitant à passer d’abord un autre Exercice en Tour.
+          LAST_TOUR: "Passez d’abord un autre exercice en Tour : il en faut au moins un dans la boucle",
+          LAST_REPETITIONS: "Il faut au moins un exercice en Répétitions dans ce For time",
           NOT_FOUND: "",
           AT_BOUNDARY: "",
         },

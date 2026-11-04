@@ -2819,7 +2819,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleVanished = useCallback((key: string) => setVanishing((current) => current.filter((item) => item.key !== key)), []);
   const announceLayoutRefusal = useCallback((reason: LayoutItemMoveRefusal) => {
     const text = strings.screens.composition.layoutMove.refused[reason];
-    if (text !== "") AccessibilityInfo.announceForAccessibility(text);
+    // MAJ 04/11/2026 §6 bis 2 : message court visible pour les gardes des Rôles (alerte native, P-4).
+    if (reason === "LAST_TOUR" || reason === "LAST_REPETITIONS") Alert.alert(text);
+    else if (text !== "") AccessibilityInfo.announceForAccessibility(text);
   }, []);
   /**
    * Écrit un déplacement accepté ; les conteneurs vidés restent rendus le temps de leur effacement.
@@ -3160,6 +3162,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         });
         return;
       }
+      if (outcome.status === "REFUSED" && (outcome.reason === "LAST_TOUR" || outcome.reason === "LAST_REPETITIONS")) {
+        announceLayoutRefusal(outcome.reason);
+        return;
+      }
       if (outcome.status !== "APPLIED") return;
       // « Réduire les animations » : aucun mouvement, le brouillon est écrit aussitôt.
       if (reduceMotion) {
@@ -3191,7 +3197,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       layoutDeletionRef.current = pending;
       setLayoutCardMotion({ id: exerciseId, mode: "LEAVING" });
     },
-    [commitLayoutMove, openTourChoice, reduceMotion, reportRemovedStopPoints, updateDraft],
+    [announceLayoutRefusal, commitLayoutMove, openTourChoice, reduceMotion, reportRemovedStopPoints, updateDraft],
   );
   /**
    * PRE-9 B.5 (D-441 ; ARB-17 ; correction C.1 du 30/10) — Dupliquer d'une carte d'une disposition

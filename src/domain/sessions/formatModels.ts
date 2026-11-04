@@ -328,6 +328,16 @@ export type SummaryIssue =
  * Travail prévu d'un Exercice en Durée, dans un intervalle EMOM (MAJ 04/11 §4.4) : son objectif de durée,
  * × 2 s'il est fait de chaque côté, plus la pause entre les côtés si elle s'applique ; 0 en Répétitions.
  */
+/** Travail prévu d'un Exercice d'après ses paramètres (première série), pour le contrôle EMOM de la modale. */
+export function plannedWorkOfParameters(parameters: Pick<ExecutionParametersInput, "mode" | "series" | "sideMode" | "sideRecoverySeconds">): number {
+  if (parameters.mode !== "DURATION") return 0;
+  const series = parameters.series;
+  const first = series.kind === "UNIFORM" ? series.target : series.rows[0]?.target;
+  if (first === undefined || first.kind !== "NUMBER") return 0;
+  const bilateral = isBilateral(parameters.sideMode);
+  return first.value * (bilateral ? 2 : 1) + (bilateral ? parameters.sideRecoverySeconds : 0);
+}
+
 export function plannedWorkSeconds(exercise: SessionDraftExercise, values: MovementValues): number {
   if ((values.mode ?? "REPETITIONS") !== "DURATION" || values.repetitions == null) return 0;
   const parameters = exercise.executionParameters;

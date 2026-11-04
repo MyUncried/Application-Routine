@@ -237,6 +237,26 @@ const executionParameters = {
     inheritedSeriesCountSuffix: "imposé par le circuit",
     inheritedSeriesCount: "Nombre de séries imposé par le circuit",
   },
+  // PRE-9 — réglages de Format dans la modale de l’Exercice (CE-FMT-04 ; mise à jour consolidée des écrans Formats
+  // du 04/11/2026 §6 bis 2, §4.4).
+  format: {
+    title: "{format}",
+    names: { AMRAP: "AMRAP", FOR_TIME: "For time", EMOM: "EMOM", DEATH_BY: "Death by" },
+    role: "Rôle",
+    roles: { BUY_IN: "Buy-in", TOUR: "Tour", BUY_OUT: "Buy-out" },
+    lastTourHint: "Dernier exercice de la boucle : passez d’abord un autre exercice en Tour.",
+    incrementPerRound: "Incrément par tour",
+    incrementPerInterval: "Incrément par intervalle",
+    repetitionsUnit: "rép.",
+    interval: "Intervalle",
+    duration: "Durée de l’exercice",
+    timeCap: "Durée maximum du For time",
+    noCap: "Aucune",
+    noLimit: "Sans limite",
+    stopCondition: "Condition d’arrêt",
+    atFailure: "À l’échec",
+    emomOverflow: "La durée atteint ou dépasse l’intervalle : il ne reste pas de temps pour le reste du travail ni pour le repos.",
+  },
   media: {
     section: "Médias",
     add: "Ajouter des photos ou vidéos",
