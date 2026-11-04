@@ -3845,7 +3845,10 @@ const SIDE_ORDER_LABEL_LINE_HEIGHT = 16;
 const SIDE_SEGMENT_HEIGHT = 32;
 const SIDE_SEGMENT_PADDING = 3;
 const SIDE_SEGMENT_GAP = 2;
-const SIDE_ORDER_DROPDOWN_RIGHT = FRAME_INSET + SIDE_SEGMENT_PADDING + INLINE_OPTION_WIDTHS.narrow + SIDE_SEGMENT_GAP;
+// Contrôle segmenté du 04/11/2026 (Hermann : « on choisit l'option d'aligner l'option sélectionnée à droite » ; « le
+// popover de changement de côté est tronqué lorsque Avec est sélectionné ») : Avec, sélectionné, est désormais la dernière
+// option, à droite — le déroulant part du bord droit du segmenté, marge seule. [Marge + Sans 62 + écart 2 — remplacé.]
+const SIDE_ORDER_DROPDOWN_RIGHT = FRAME_INSET + SIDE_SEGMENT_PADDING;
 /**
  * Recette du 20/10 (RC-13) : place réservée au segmenté « Changement de côté » dans sa ligne, celle
  * du plus large (Avec 146 + Sans 62 + écart 2 + marges 2 × 3 = 216, RC-12), pour que le libellé

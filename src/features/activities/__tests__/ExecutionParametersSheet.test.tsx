@@ -2566,7 +2566,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       layoutOf("execution-sheet-row-side", 5, 44);
       fireEvent.press(trigger);
       const panel = get(ORDER_PANEL);
-      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 414, right: 80 });
+      // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière. Le déroulant part du bord droit (16). [right: 80 — remplacé.]
+      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 414, right: 16 });
       expect(get(ORDER_MENU).props.accessibilityState).toMatchObject({ expanded: true });
       const menu = within(panel).getByTestId(`${ORDER_MENU}-menu`, hidden);
       expect(menu.props.accessibilityRole).toBe("menu");
@@ -5109,7 +5110,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     view.unmount();
     renderSheet(variableSheet(["FAILURE", "FAILURE"]));
     expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’échec");
-    expect(derivedOptions()).toEqual(["FAILURE", "TARGET"]);
+    // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière.
+    expect(derivedOptions()).toEqual(["TARGET", "FAILURE"]);
   });
 
   it("PRE5-2.4/AC5 — variables mixtes (30 s, échec) : une seule option « À l’objectif et à l’échec », même largeur totale ; recalculé à chaque cellule, les deux options reviennent quand le détail redevient homogène", () => {
@@ -6431,7 +6433,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
   it("PRE5-2.7/AC2 — variables : l'option garde « Avec » (aucun champ dans le segment), colonne Charge au titre non interactif, une cellule clavier par série", () => {
     renderSheet(variableLoads([20, 0, 5]));
     expect(loadChoice()).toBe("WITH");
-    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière.
+    expect(controlLabels()).toEqual(["Sans", "Avec"]);
     expect(within(get(LOAD_CONTROL)).queryByTestId(UNIFORM, hidden)).toBeNull();
     expect(get(`${LOAD_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec");
     const header = within(get("execution-sheet-table-header")).getByText("Charge", hidden);
@@ -6465,7 +6468,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
   it("PRE5-2.7/AC5 (Δ48) — Répétitions × Variables : colonne Charge, saisie par cellule, cibles et pauses inchangées", () => {
     const { onApply } = renderSheet(variableLoads([10, 20], true, { mode: "REPETITIONS" }));
     expect(selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"])).toBe("REPETITIONS");
-    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière.
+    expect(controlLabels()).toEqual(["Sans", "Avec"]);
     focus(cell(2));
     type(cell(2), "1,3");
     blur(cell(2));
@@ -6633,7 +6637,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     renderSheet(variableLoads([0, 0], false));
     fireEvent.press(get(`${LOAD_CONTROL}-WITH`));
     expect(focused()).toEqual([]);
-    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière.
+    expect(controlLabels()).toEqual(["Sans", "Avec"]);
   });
 
   it("RC-14 — largeur de l'option Avec : 62 si la valeur tient (« 99,75 kg ») ; sinon le strict nécessaire (« 487,75 kg » → 67), pendant la saisie comprise ; en variables, 62", () => {
@@ -7195,8 +7200,13 @@ describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
   const query = (testID: string) => screen.queryByTestId(testID, hidden);
   const OTHER = `${CADENCE_CONTROL}-OTHER`;
   const otherLabel = () => ({
-    // Libellé de la première option (Autre), rendu à côté de sa zone de sélection.
-    text: within(get(CADENCE_CONTROL)).queryAllByText(/./u, hidden).slice(0, 1).map((node) => String(node.props.children)),
+    // Libellé de l'option Autre, rendu à côté de sa zone de sélection : première option, ou dernière quand elle est
+    // sélectionnée (contrôle segmenté du 04/11/2026, option choisie à droite).
+    text: (() => {
+      const texts = within(get(CADENCE_CONTROL)).queryAllByText(/./u, hidden);
+      const at = get(OTHER).props.accessibilityState?.selected === true ? texts.length - 1 : 0;
+      return texts.slice(at, at + 1).map((node) => String(node.props.children));
+    })(),
     spoken: get(OTHER).props.accessibilityLabel as string,
   });
 
