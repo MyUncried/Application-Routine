@@ -32,7 +32,8 @@ async function renderSheet(filters: MovementCatalogueFilters = EMPTY_MOVEMENT_FI
   render(
     <TestSafeAreaProvider>
       <ReferentialServiceContext.Provider value={referentials}>
-        <MovementFilterSheet filters={filters} onApply={onApply} onClose={onClose} />
+        {/* Demande de Hermann du 04/11/2026 : la feuille des Catalogues est le contenu d'une feuille native iOS. */}
+        <MovementFilterSheet native={{}} filters={filters} onApply={onApply} onClose={onClose} />
       </ReferentialServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
@@ -69,9 +70,12 @@ describe("PRE-8 B.7 — feuille des filtres des Mouvements", () => {
     expect(onApply.mock.calls[0]![1]).toEqual(["Actifs", "Archivés", "Sans exercice", "Renforcement", "Genoux"]);
   });
 
-  it("recette A/B du 27/10 : cadre standard des feuilles (Paramètres d’exécution) — poignée, ✕ et ✓ ronds 38, filet", async () => {
+  // [Adapté le 04/11/2026 — demande de Hermann : « Afficher en mode modale iOS (mode d'apparition identique à la fiche
+  // des mouvements du questionnaire par exemple) […] Catalogue des mouvements : Filtres » : feuille native iOS, sans
+  // poignée dessinée (comme la fiche). Poignée de la recette A/B du 27/10 — remplacée.]
+  it("recette A/B du 27/10 : cadre standard des feuilles (Paramètres d’exécution) — ✕ et ✓ ronds 38, filet ; sans poignée (04/11)", async () => {
     await renderSheet();
-    expect(screen.getByTestId("movement-filter-handle")).toBeTruthy();
+    expect(screen.queryByTestId("movement-filter-handle")).toBeNull();
     expect(screen.getByTestId("movement-filter-header-divider")).toBeTruthy();
     for (const [id, background] of [
       ["movement-filter-close", colors.wheelActionCancelBackground],
@@ -118,16 +122,15 @@ describe("Recette iPhone CAT.1 du 30/10/2026 — feuille des filtres des Mouveme
     expect(screen.getByTestId("movement-filter-zone-genoux").props.accessibilityState).toMatchObject({ checked: true });
   });
 
-  it("toutes les sections atteignables : Réinitialiser fixé en pied hors défilement ; feuille et zone défilante réductibles, montée sans animation de mise en page", async () => {
+  // [Adapté le 04/11/2026 — demande de Hermann (« Afficher en mode modale iOS […] Catalogue des mouvements : Filtres ») :
+  // la feuille est celle du système, ajustée à la hauteur utile par sa route ; plus de panneau dessiné ni de translation.
+  // Panneau réductible à hauteur maximale (CAT.1 du 30/10) — remplacé.]
+  it("toutes les sections atteignables : Réinitialiser fixé en pied hors défilement ; la zone défilante occupe la feuille native", async () => {
     await renderSheet();
     expect(screen.getByTestId("movement-filter-footer")).toBeTruthy();
     const scroll = screen.getByTestId("movement-filter-scroll");
-    expect(StyleSheet.flatten(scroll.props.style)).toMatchObject({ flexShrink: 1, flexGrow: 0 });
-    const panel = screen.getByTestId("movement-filter-panel");
-    const style = StyleSheet.flatten(panel.props.style);
-    expect(style.flexShrink).toBe(1);
-    expect(typeof style.maxHeight).toBe("number");
-    // Animation de mise en page (cadre natif figé au montage) retirée : simple translation.
-    expect(panel.props.entering).toBeUndefined();
+    expect(StyleSheet.flatten(scroll.props.style)).toMatchObject({ flexShrink: 1, flexGrow: 1 });
+    expect(screen.queryByTestId("movement-filter-panel")).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId("movement-filter-sheet").props.style)).toMatchObject({ flex: 1 });
   });
 });

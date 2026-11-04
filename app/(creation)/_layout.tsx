@@ -99,6 +99,11 @@ export default function CreationLayout() {
             la Composition — fiche de l'Exercice en lecture seule, « au format de la modale iOS, apparition et
             disparition par le bas » ; feuille native sans poignée, fond blanc, hauteur ajustée par la route. */}
         <Stack.Screen name="exercise-sheet" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
+        {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche des
+            mouvements du questionnaire par exemple) […] Catalogue des mouvements : Filtres ») : Filtres du Catalogue des
+            mouvements ouvert par Créer (`movement-selection`), même feuille native que dans le Catalogue (cohérence).
+            [Modale React Native dessinée — voile en fondu, montée par translation, poignée — remplacée.] */}
+        <Stack.Screen name="selection-filters" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
       </Stack>
       </FormatModelDraftProvider>
     </SessionDraftProvider>

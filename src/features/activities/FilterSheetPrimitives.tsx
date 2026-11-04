@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { useEffect, useRef, type ReactNode } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type LayoutChangeEvent } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -66,9 +66,17 @@ export function FilterSheetFrame({
   testIDPrefix,
   children,
   docked,
+  native,
 }: {
   /** Haut de la feuille (en points depuis le haut de la fenêtre), montée et descente lentes ; absente : feuille standard. */
   readonly docked?: { readonly top: number };
+  /**
+   * Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche des
+   * mouvements du questionnaire par exemple) […] Catalogue des mouvements : Filtres […] Catalogue des séances :
+   * Filtres ») : contenu d'une feuille native iOS (route `formSheet`) — ni `Modal`, ni voile, ni montée, ni poignée
+   * dessinés : le système les porte. `onNeededHeight` : hauteur utile, pour ajuster la feuille à son contenu.
+   */
+  readonly native?: { readonly onNeededHeight?: (height: number) => void };
   readonly title: string;
   readonly closeLabel: string;
   readonly applyLabel: string;
@@ -83,6 +91,7 @@ export function FilterSheetFrame({
   const { height: windowHeight } = useWindowDimensions();
   const slide = useSharedValue(windowHeight);
   useEffect(() => {
+    if (native !== undefined) return;
     slide.value = withTiming(0, docked === undefined ? SHEET_TIMING : DOCKED_IN);
     // Une seule montée, à l'ouverture.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,6 +114,73 @@ export function FilterSheetFrame({
   };
   const close = () => leave(onClose);
   const apply = () => leave(onApply);
+  // Feuille native : hauteur utile = hauteur de la feuille − partie visible du défilement + contenu du défilement.
+  const measures = useRef({ root: 0, frame: 0, content: 0 });
+  const measure = (patch: Partial<{ root: number; frame: number; content: number }>) => {
+    const next = { ...measures.current, ...patch };
+    measures.current = next;
+    if (next.root > 0 && next.frame > 0 && next.content > 0) native?.onNeededHeight?.(Math.ceil(next.root - next.frame + next.content));
+  };
+  const body = (
+    <>
+      <View style={styles.header} testID={`${testIDPrefix}-header`}>
+        <Pressable
+          onPress={close}
+          accessibilityRole="button"
+          accessibilityLabel={closeLabel}
+          hitSlop={HEADER_ACTION_HIT_SLOP}
+          style={styles.cancelCircle}
+          testID={`${testIDPrefix}-close`}
+        >
+          <KodjoIcon name="wheel-action-cancel" />
+        </Pressable>
+        <Text style={styles.title} accessibilityRole="header">
+          {title}
+        </Text>
+        <Pressable
+          onPress={apply}
+          accessibilityRole="button"
+          accessibilityLabel={applyLabel}
+          hitSlop={HEADER_ACTION_HIT_SLOP}
+          style={styles.validateCircle}
+          testID={`${testIDPrefix}-apply`}
+        >
+          <KodjoIcon name="wheel-action-validate" />
+        </Pressable>
+      </View>
+      <View style={styles.headerDivider} testID={`${testIDPrefix}-header-divider`} />
+      <ScrollView
+        style={native !== undefined ? styles.nativeScroll : styles.scroll}
+        contentContainerStyle={[styles.body, footer ? styles.bodyWithFooter : null]}
+        testID={`${testIDPrefix}-scroll`}
+        {...(native !== undefined
+          ? {
+              onLayout: (event: LayoutChangeEvent) => measure({ frame: event.nativeEvent.layout.height }),
+              onContentSizeChange: (_width: number, height: number) => measure({ content: height }),
+            }
+          : {})}
+      >
+        {children}
+      </ScrollView>
+      {footer ? (
+        <View style={styles.footer} testID={`${testIDPrefix}-footer`}>
+          {footer}
+        </View>
+      ) : null}
+    </>
+  );
+  if (native !== undefined) {
+    return (
+      <View
+        style={[styles.nativeSheet, { paddingBottom: insets.bottom + spacing[16] }]}
+        onLayout={(event) => measure({ root: event.nativeEvent.layout.height })}
+        testID={`${testIDPrefix}-sheet`}
+      >
+        <View style={styles.nativeTop} />
+        {body}
+      </View>
+    );
+  }
   const frame = docked === undefined ? { maxHeight: windowHeight * SHEET_MAX_HEIGHT_RATIO } : { height: Math.max(0, windowHeight - docked.top) };
   return (
     <Modal transparent visible animationType="none" onRequestClose={close} testID={`${testIDPrefix}-sheet`}>
@@ -121,40 +197,7 @@ export function FilterSheetFrame({
           testID={`${testIDPrefix}-panel`}
         >
           <View style={styles.handle} testID={`${testIDPrefix}-handle`} />
-          <View style={styles.header} testID={`${testIDPrefix}-header`}>
-            <Pressable
-              onPress={close}
-              accessibilityRole="button"
-              accessibilityLabel={closeLabel}
-              hitSlop={HEADER_ACTION_HIT_SLOP}
-              style={styles.cancelCircle}
-              testID={`${testIDPrefix}-close`}
-            >
-              <KodjoIcon name="wheel-action-cancel" />
-            </Pressable>
-            <Text style={styles.title} accessibilityRole="header">
-              {title}
-            </Text>
-            <Pressable
-              onPress={apply}
-              accessibilityRole="button"
-              accessibilityLabel={applyLabel}
-              hitSlop={HEADER_ACTION_HIT_SLOP}
-              style={styles.validateCircle}
-              testID={`${testIDPrefix}-apply`}
-            >
-              <KodjoIcon name="wheel-action-validate" />
-            </Pressable>
-          </View>
-          <View style={styles.headerDivider} testID={`${testIDPrefix}-header-divider`} />
-          <ScrollView style={styles.scroll} contentContainerStyle={[styles.body, footer ? styles.bodyWithFooter : null]} testID={`${testIDPrefix}-scroll`}>
-            {children}
-          </ScrollView>
-          {footer ? (
-            <View style={styles.footer} testID={`${testIDPrefix}-footer`}>
-              {footer}
-            </View>
-          ) : null}
+          {body}
         </Reanimated.View>
       </View>
     </Modal>
@@ -319,6 +362,20 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flexGrow: 0,
+    flexShrink: 1,
+  },
+  // Feuille native (demande du 04/11/2026) : le contenu remplit la feuille du système, fond blanc ; le défilement
+  // occupe la hauteur restante (la feuille est ajustée à la hauteur utile par sa route).
+  nativeSheet: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  // Place de la poignée retirée (marge haute 8 + hauteur 4) : l'en-tête garde sa distance au haut de la feuille.
+  nativeTop: {
+    height: spacing[8] + 4,
+  },
+  nativeScroll: {
+    flexGrow: 1,
     flexShrink: 1,
   },
   body: {

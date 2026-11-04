@@ -7,6 +7,8 @@ import type { ActivityDefinitionService } from "@/features/activities/ActivityDe
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { PendingFilterSheet } from "@/features/activities/FilterSheetRoute";
+import { releaseFilterSheet } from "@/features/activities/filterSheetRelay";
 import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
@@ -99,12 +101,16 @@ async function renderCatalogue() {
     listBodyZones: jest.fn(async () => []),
     listLabels: jest.fn(async () => []),
   } as unknown as ReferentialService;
+  releaseFilterSheet();
   render(
     <TestSafeAreaProvider>
       <SessionServiceContext.Provider value={service}>
         <ReferentialServiceContext.Provider value={referentials}>
           <ActivityDefinitionServiceContext.Provider value={{ listActivityDefinitions: jest.fn(async () => []) } as unknown as ActivityDefinitionService}>
             <CatalogueScreen />
+            {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Filtres ») : la feuille de filtres est
+                la route `catalogue-filters` ; son contenu est rendu ici, comme la route le rendrait au-dessus. */}
+            <PendingFilterSheet onLeave={() => releaseFilterSheet()} />
           </ActivityDefinitionServiceContext.Provider>
         </ReferentialServiceContext.Provider>
       </SessionServiceContext.Provider>

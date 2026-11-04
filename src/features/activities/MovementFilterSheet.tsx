@@ -77,9 +77,12 @@ export function MovementFilterSheet({
   onApply,
   onClose,
   docked,
+  native,
 }: {
   /** Mode catalogue d'un Format (recette du 04/11/2026) : feuille arrêtée sous la zone de contexte, montée et descente lentes. */
   readonly docked?: { readonly top: number };
+  /** Demande de Hermann du 04/11/2026 : contenu d'une feuille native iOS (`FilterSheetFrame`, `native`). */
+  readonly native?: { readonly onNeededHeight?: (height: number) => void };
   readonly filters: MovementCatalogueFilters;
   readonly onApply: (filters: MovementCatalogueFilters, labels: readonly string[]) => void;
   readonly onClose: () => void;
@@ -128,6 +131,7 @@ export function MovementFilterSheet({
       onApply={() => onApply(draft, selectedLabels(draft, categories, bodyZones))}
       testIDPrefix="movement-filter"
       {...(docked === undefined ? {} : { docked })}
+      {...(native === undefined ? {} : { native })}
       footer={<ResetFiltersButton label={t.reset} onPress={() => setDraft(draftOf(EMPTY_MOVEMENT_FILTERS))} testID="movement-filter-reset" />}
     >
       <FilterGroup {...group("STATUS", t.status)}>

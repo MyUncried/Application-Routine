@@ -86,6 +86,9 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
       "movement-sheet",
       // Recette iPhone du 04/11/2026 (décision de Hermann) : fiche d'un Exercice ouverte par la photo, lecture seule.
       "exercise-sheet",
+      // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Filtres ») :
+      // Filtres du Catalogue des mouvements ouvert par Créer, en feuille native.
+      "selection-filters",
     ]);
     // Aucune route ne RÉACTIVE le geste par une option locale : la
     // désactivation héritée reste donc effective partout.
@@ -102,6 +105,21 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
     render(<CreationLayout />);
 
     const sheet = screenCalls.find((call) => call.name === "exercise-sheet");
+    expect(sheet?.options).toMatchObject({
+      presentation: "formSheet",
+      sheetGrabberVisible: false,
+      contentStyle: { backgroundColor: "#FFFFFF" },
+    });
+  });
+
+  // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche des
+  // mouvements du questionnaire par exemple) […] Catalogue des mouvements : Filtres ») : feuille native, fond blanc.
+  it("presents the movement selection filters as a native iOS form sheet, without grabber, on a white background", () => {
+    stackCalls.length = 0;
+    screenCalls.length = 0;
+    render(<CreationLayout />);
+
+    const sheet = screenCalls.find((call) => call.name === "selection-filters");
     expect(sheet?.options).toMatchObject({
       presentation: "formSheet",
       sheetGrabberVisible: false,

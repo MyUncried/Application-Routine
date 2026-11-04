@@ -90,7 +90,10 @@ export function SessionFilterSheet({
   filters,
   onApply,
   onClose,
+  native,
 }: {
+  /** Demande de Hermann du 04/11/2026 : contenu d'une feuille native iOS (`FilterSheetFrame`, `native`). */
+  readonly native?: { readonly onNeededHeight?: (height: number) => void };
   readonly filters: SessionCatalogueFilters;
   readonly onApply: (filters: SessionCatalogueFilters, labels: readonly string[]) => void;
   readonly onClose: () => void;
@@ -131,6 +134,7 @@ export function SessionFilterSheet({
       onClose={onClose}
       onApply={() => onApply(draft, selectedSessionFilterLabels(draft, categories, bodyZones, labels))}
       testIDPrefix="session-filter"
+      {...(native === undefined ? {} : { native })}
       footer={<ResetFiltersButton label={t.reset} onPress={() => setDraft(draftOf(EMPTY_SESSION_FILTERS))} testID="session-filter-reset" />}
     >
       {/* Statut : format compact, pastilles à droite du titre, sur la même ligne (4549:6533, 4549:6534). */}

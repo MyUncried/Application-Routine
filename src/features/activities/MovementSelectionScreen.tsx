@@ -6,7 +6,7 @@ import type { Movement } from "@/domain/activities/Movement";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
 import { MovementCounterToggles } from "@/features/activities/MovementCounterToggles";
-import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
+import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import {
   sameMovementSummary,
   toggledMovementCounter,
@@ -82,7 +82,20 @@ export function MovementSelectionScreen({ inSheet = false }: { readonly inSheet?
   const [query, setQuery] = useState(typeof params.query === "string" ? params.query : "");
   const [filters, setFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Filtres ») : même
+  // feuille native iOS que dans le Catalogue (même composant, cohérence), route `selection-filters` du parcours de
+  // création. [Modale React Native rendue ici — remplacée.]
+  const openFilters = () => {
+    requestFilterSheet({
+      kind: "movements",
+      filters,
+      onApply: (next, labels) => {
+        setFilters(next);
+        setFilterLabels(labels);
+      },
+    });
+    router.push("/selection-filters");
+  };
   const [selected, setSelected] = useState<ReadonlyMap<string, Movement>>(new Map());
   const [isAdding, setIsAdding] = useState(false);
   const [inSessionIds] = useState(movementsInSession);
@@ -180,7 +193,7 @@ export function MovementSelectionScreen({ inSheet = false }: { readonly inSheet?
               summary={filterSummary}
               clearLabel={tCatalogue.filters.clearAccessibility}
               editLabel={tCatalogue.filters.editAccessibility}
-              onOpen={() => setIsFilterOpen(true)}
+              onOpen={openFilters}
               onClear={() => {
                 setFilters(EMPTY_MOVEMENT_FILTERS);
                 setFilterLabels([]);
@@ -229,18 +242,6 @@ export function MovementSelectionScreen({ inSheet = false }: { readonly inSheet?
           labelTestID="movement-selection-add-label"
         />
       </PrimaryActionZone>
-
-      {isFilterOpen ? (
-        <MovementFilterSheet
-          filters={filters}
-          onApply={(next, labels) => {
-            setFilters(next);
-            setFilterLabels(labels);
-            setIsFilterOpen(false);
-          }}
-          onClose={() => setIsFilterOpen(false)}
-        />
-      ) : null}
     </ScreenShell>
   );
 }

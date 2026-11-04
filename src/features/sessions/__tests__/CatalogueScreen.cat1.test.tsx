@@ -10,6 +10,8 @@ import { ActivityDefinitionService } from "@/features/activities/ActivityDefinit
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { PendingFilterSheet } from "@/features/activities/FilterSheetRoute";
+import { releaseFilterSheet } from "@/features/activities/filterSheetRelay";
 import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
 import type { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
@@ -120,12 +122,16 @@ const referentials = {
 
 function renderScreen(sessions: readonly CatalogueSessionRecord[] = SESSIONS) {
   const service = { listCatalogueSessions: jest.fn(async () => sessions) } as unknown as SessionService;
+  releaseFilterSheet();
   render(
     <TestSafeAreaProvider>
       <SessionServiceContext.Provider value={service}>
         <ReferentialServiceContext.Provider value={referentials}>
           <ActivityDefinitionServiceContext.Provider value={activityService()}>
             <CatalogueScreen />
+            {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Filtres ») : la feuille de filtres est
+                la route `catalogue-filters` ; son contenu est rendu ici, comme la route le rendrait au-dessus. */}
+            <PendingFilterSheet onLeave={() => releaseFilterSheet()} />
           </ActivityDefinitionServiceContext.Provider>
         </ReferentialServiceContext.Provider>
       </SessionServiceContext.Provider>
@@ -271,6 +277,8 @@ describe("PRE-9 CAT.1 — Catalogue des Séances", () => {
     renderScreen();
     await focus();
     await press("catalogue-filter-action");
+    // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des séances : Filtres ») : route en feuille native.
+    expect(mockPush).toHaveBeenLastCalledWith("/catalogue-filters");
     fireEvent.press(screen.getByTestId("session-filter-status-archived"));
     await press("session-filter-apply");
     expect(sessionsShown()).toEqual(["mobilite", "etirements"]);
@@ -369,6 +377,8 @@ describe("PRE-9 CAT.1 — Catalogue des Mouvements", () => {
   it("filtre du panneau actif : champ étendu jusqu'à Filtre (≥ 107), « N résultats » = cartes affichées, recalculé avec compteur et recherche", async () => {
     await openMovements();
     await press("catalogue-filter-action");
+    // Demande de Hermann du 04/11/2026 (« […] Catalogue des mouvements : Filtres ») : même route en feuille native.
+    expect(mockPush).toHaveBeenLastCalledWith("/catalogue-filters");
     fireEvent.press(screen.getByTestId("movement-filter-status-active"));
     await press("movement-filter-apply");
     expectSearchFillsToFilter("movement-catalogue-search");

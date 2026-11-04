@@ -33,7 +33,8 @@ function renderSheet(filters: SessionCatalogueFilters = EMPTY_SESSION_FILTERS) {
   render(
     <TestSafeAreaProvider>
       <ReferentialServiceContext.Provider value={referentials}>
-        <SessionFilterSheet filters={filters} onApply={onApply} onClose={onClose} />
+        {/* Demande de Hermann du 04/11/2026 : la feuille des Catalogues est le contenu d'une feuille native iOS. */}
+        <SessionFilterSheet native={{}} filters={filters} onApply={onApply} onClose={onClose} />
       </ReferentialServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
@@ -52,7 +53,9 @@ describe("PRE-8 E.6 — panneau de filtres des Séances", () => {
   it("cadre standard, sections dans l'ordre ; sans filtre, Statut seul visible, autres repliées", async () => {
     renderSheet();
     await flush();
-    expect(screen.getByTestId("session-filter-handle")).toBeTruthy();
+    // [04/11/2026 — demande de Hermann (« Afficher en mode modale iOS […] Catalogue des séances : Filtres ») : feuille
+    // native iOS, sans poignée dessinée. Poignée — remplacée.]
+    expect(screen.queryByTestId("session-filter-handle")).toBeNull();
     expect(screen.getByTestId("session-filter-close")).toBeTruthy();
     expect(screen.getByTestId("session-filter-apply")).toBeTruthy();
     expect(screen.getByTestId("session-filter-header-divider")).toBeTruthy();

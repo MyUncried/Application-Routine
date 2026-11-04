@@ -156,7 +156,11 @@ function toEditorCategory(categoryId: string | null, categories: readonly Catego
  */
 export const MOVEMENT_SESSION_CONTEXT = "session";
 
-export function MovementScreen() {
+/**
+ * `inSheet` — demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Créer un
+ * mouvement ») : création présentée en feuille native iOS (route `/movement`), en-tête sans marge de zone sûre haute.
+ */
+export function MovementScreen({ inSheet = false }: { readonly inSheet?: boolean } = {}) {
   const params = useLocalSearchParams<{ movementId?: string; variantOf?: string; placement?: string; mode?: string; context?: string }>();
   const placement: VariantPlacement = params.placement === "BEFORE_ORIGIN" ? "BEFORE_ORIGIN" : "AFTER_ORIGIN";
   const openInEdit = params.mode === MOVEMENT_EDIT_MODE_PARAM;
@@ -168,6 +172,7 @@ export function MovementScreen() {
         movementId={null}
         variantOf={null}
         variantPlacement="AFTER_ORIGIN"
+        inSheet={inSheet}
         onMovementChosen={(movement) => handMovementsToComposition([movement])}
       />
     );
@@ -179,6 +184,7 @@ export function MovementScreen() {
       variantOf={params.variantOf ?? null}
       variantPlacement={placement}
       openInEdit={openInEdit}
+      inSheet={inSheet}
     />
   );
 }
@@ -204,9 +210,12 @@ export function MovementSheet({
   variantPlacement,
   openInEdit = false,
   readOnly = false,
+  inSheet = false,
   onBodyMeasure,
   onMovementChosen,
 }: {
+  /** Demande de Hermann du 04/11/2026 : création en feuille native iOS — en-tête sans marge de zone sûre haute. */
+  readonly inSheet?: boolean;
   readonly movementId: string | null;
   readonly variantOf: string | null;
   readonly variantPlacement: VariantPlacement;
@@ -530,7 +539,7 @@ export function MovementSheet({
         onClose={() => router.back()}
         accessibilityLabel={t.close}
         trailing={loadState === "ready" && mode === "consult" && !isArchived && !readOnly ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
-        {...(readOnly ? { topInset: 0 } : {})}
+        {...(readOnly || inSheet ? { topInset: 0 } : {})}
       />
       {loadState === "error" ? (
         <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="movement-load-error">

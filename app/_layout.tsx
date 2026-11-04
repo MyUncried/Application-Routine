@@ -9,9 +9,11 @@ import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
+import { movementRouteOptions } from "@/features/activities/movementRoutePresentation";
 import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
 import { KodjoSplash } from "@/shared/ui/KodjoSplash";
+import { NATIVE_SHEET_OPTIONS } from "@/shared/ui/nativeSheet";
 import { RootErrorBoundary } from "@/shared/ui/RootErrorBoundary";
 import { RootErrorFallback } from "@/shared/ui/RootErrorFallback";
 import { installDevPerformanceGuard } from "@/shared/utils/devPerformanceGuard";
@@ -142,7 +144,13 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(creation)" options={{ gestureEnabled: false }} />
               <Stack.Screen name="profile-edit" />
-              <Stack.Screen name="movement" options={{ gestureEnabled: false }} />
+              {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche
+                  des mouvements du questionnaire par exemple) […] Catalogue des mouvements : Créer un mouvement ») :
+                  la création d'un Mouvement est une feuille native iOS ; consultation, modification et ajout d'un
+                  niveau restent des écrans poussés. [Création en écran poussé — remplacée.] */}
+              <Stack.Screen name="movement" options={({ route }) => movementRouteOptions(route.params)} />
+              {/* Même demande : Filtres des Catalogues (Mouvements, Séances) en feuille native iOS. */}
+              <Stack.Screen name="catalogue-filters" options={NATIVE_SHEET_OPTIONS} />
             </Stack>
           ) : null}
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}

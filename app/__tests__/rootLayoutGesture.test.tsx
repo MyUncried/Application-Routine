@@ -99,4 +99,37 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
     expect(profileEdit).toBeDefined();
     expect(profileEdit?.options?.gestureEnabled).toBeUndefined();
   });
+
+  /**
+   * Demande de Hermann du 04/11/2026 (texte exact) : « Afficher en mode modale iOS (mode d'apparition identique à la
+   * fiche des mouvements du questionnaire par exemple) les 3 modales et écrans suivants : Catalogue des mouvements :
+   * Filtres ; Catalogue des mouvements : Créer un mouvement ; Catalogue des séances : Filtres ».
+   */
+  it("presents the Movement creation route as a native iOS form sheet; consultation, edition and new level stay pushed screens", () => {
+    screenCalls.length = 0;
+    render(<RootLayout />);
+
+    const movement = screenCalls.find((call) => call.name === "movement");
+    const options = movement?.options as unknown as (props: { route: { params?: object } }) => Record<string, unknown>;
+    const sheet = { presentation: "formSheet", sheetGrabberVisible: false, contentStyle: { backgroundColor: "#FFFFFF" }, gestureEnabled: false };
+    expect(options({ route: {} })).toMatchObject(sheet);
+    // Création depuis la Composition : même route, même écran (cohérence).
+    expect(options({ route: { params: { context: "session" } } })).toMatchObject(sheet);
+    expect(options({ route: { params: { movementId: "m1" } } })).toEqual({ gestureEnabled: false });
+    expect(options({ route: { params: { movementId: "m1", mode: "edit" } } })).toEqual({ gestureEnabled: false });
+    expect(options({ route: { params: { variantOf: "m1", placement: "AFTER_ORIGIN" } } })).toEqual({ gestureEnabled: false });
+  });
+
+  it("presents the Catalogue filters as a native iOS form sheet, without grabber, on a white background", () => {
+    screenCalls.length = 0;
+    render(<RootLayout />);
+
+    const filters = screenCalls.find((call) => call.name === "catalogue-filters");
+    expect(filters?.options).toMatchObject({
+      presentation: "formSheet",
+      sheetGrabberVisible: false,
+      contentStyle: { backgroundColor: "#FFFFFF" },
+      gestureEnabled: false,
+    });
+  });
 });

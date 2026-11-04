@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
 import { MovementCounterToggles } from "@/features/activities/MovementCounterToggles";
-import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
+import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
 import {
   sameMovementSummary,
@@ -24,7 +24,6 @@ import { isSessionCatalogueFiltered, sessionCatalogueContext } from "@/features/
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { toggledView, type SessionCatalogueView } from "@/features/sessions/sessionCatalogueView";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
-import { SessionFilterSheet } from "@/features/sessions/SessionFilterSheet";
 import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
@@ -90,7 +89,6 @@ export function CatalogueScreen() {
   // filtre : Actives. Réinitialiser ne touche pas la vue (Q-E3, Q-E4).
   const [sessionFilters, setSessionFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
   const [sessionFilterLabels, setSessionFilterLabels] = useState<readonly string[]>([]);
-  const [isSessionFilterOpen, setIsSessionFilterOpen] = useState(false);
   const sessionFilterSummary =
     sessionFilterLabels.length === 0
       ? null
@@ -119,7 +117,6 @@ export function CatalogueScreen() {
   // PRE-8 (B.7, arbitrage Q2 du 27/10) : filtres des Mouvements conservés pendant la session (état de
   // l'écran, jamais persisté), réinitialisés au relancement ; aucun filtre : Actifs seul.
   const [movementFilters, setMovementFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
-  const [isMovementFilterOpen, setIsMovementFilterOpen] = useState(false);
   // Recette A/B (D05) : libellés des critères choisis, pour le résumé de la commande étendue.
   const [movementFilterLabels, setMovementFilterLabels] = useState<readonly string[]>([]);
   // Recette A/B (D02) : recherche des Mouvements dans la zone de contexte, conservée pendant la
@@ -140,6 +137,31 @@ export function CatalogueScreen() {
       : movementFilterLabels.length === 1
         ? movementFilterLabels[0]!
         : fillTemplate(strings.screens.movement.catalogue.filters.activeSummary, { count: String(movementFilterLabels.length) });
+  // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche des
+  // mouvements du questionnaire par exemple) […] Catalogue des mouvements : Filtres […] Catalogue des séances :
+  // Filtres ») : feuille native iOS (route `catalogue-filters`) ; ✓ applique ici, ✕ ferme sans appliquer.
+  const openMovementFilters = () => {
+    requestFilterSheet({
+      kind: "movements",
+      filters: movementFilters,
+      onApply: (filters, labels) => {
+        setMovementFilters(filters);
+        setMovementFilterLabels(labels);
+      },
+    });
+    router.push("/catalogue-filters");
+  };
+  const openSessionFilters = () => {
+    requestFilterSheet({
+      kind: "sessions",
+      filters: sessionFilters,
+      onApply: (filters, labels) => {
+        setSessionFilters(filters);
+        setSessionFilterLabels(labels);
+      },
+    });
+    router.push("/catalogue-filters");
+  };
 
   const { reload: reloadSessions, cancelPending: cancelPendingSessions } = sessionCatalogue;
   const catalogueSegmentParam = params.catalogueSegment;
@@ -299,7 +321,7 @@ export function CatalogueScreen() {
                 summary={movementFilterSummary}
                 clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
                 editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
-                onOpen={() => setIsMovementFilterOpen(true)}
+                onOpen={openMovementFilters}
                 onClear={() => {
                   setMovementFilters(EMPTY_MOVEMENT_FILTERS);
                   setMovementFilterLabels([]);
@@ -324,7 +346,7 @@ export function CatalogueScreen() {
             onChangeQuery={setSessionQuery}
             filterSummary={sessionFilterSummary}
             filterCount={sessionFilterCount}
-            onOpenFilters={() => setIsSessionFilterOpen(true)}
+            onOpenFilters={openSessionFilters}
             onResetFilters={() => {
               setSessionFilters(EMPTY_SESSION_FILTERS);
               setSessionFilterLabels([]);
@@ -334,29 +356,9 @@ export function CatalogueScreen() {
         ) : null}
       </ContextBand>
 
-      {isSessionFilterOpen ? (
-        <SessionFilterSheet
-          filters={sessionFilters}
-          onApply={(filters, labels) => {
-            setSessionFilters(filters);
-            setSessionFilterLabels(labels);
-            setIsSessionFilterOpen(false);
-          }}
-          onClose={() => setIsSessionFilterOpen(false)}
-        />
-      ) : null}
-
-      {isMovementFilterOpen ? (
-        <MovementFilterSheet
-          filters={movementFilters}
-          onApply={(filters, labels) => {
-            setMovementFilters(filters);
-            setMovementFilterLabels(labels);
-            setIsMovementFilterOpen(false);
-          }}
-          onClose={() => setIsMovementFilterOpen(false)}
-        />
-      ) : null}
+      {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Filtres […]
+          Catalogue des séances : Filtres ») : feuilles de filtres présentées par la route `catalogue-filters`
+          (`openSessionFilters`, `openMovementFilters`). [Modales React Native rendues ici — remplacées.] */}
 
       {/*
        * Correction CAT-R04 (contre-recette iPhone, `[ChatGPT]
