@@ -51,6 +51,12 @@ import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
  * fonctionnent à l'identique — seul le geste natif de bord d'écran est
  * neutralisé.
  */
+/**
+ * Feuilles natives du parcours (essai adopté le 04/11/2026) — Hermann : « l'écran blanc s'arrête avant la fin de l'écran ce
+ * qui crée une séparation » : fond blanc sur toute la hauteur de la feuille, sous le contenu.
+ */
+const SHEET_CONTENT = { backgroundColor: "#FFFFFF" } as const;
+
 export default function CreationLayout() {
   return (
     <SessionDraftProvider>
@@ -65,7 +71,7 @@ export default function CreationLayout() {
             d'écran ») : depuis un questionnaire de Format, le Catalogue apparaît en fondu. */}
         {/* ESSAI du 04/11/2026 (Hermann : « l'utiliser aussi pour la modale du catalogue des mouvements lorsqu'on l'appelle à
             partir du bouton Créer ») : feuille native iOS. [Écran poussé, fondu depuis un questionnaire — remplacés par l'essai.] */}
-        <Stack.Screen name="movement-selection" options={{ presentation: "formSheet", sheetGrabberVisible: false }} />
+        <Stack.Screen name="movement-selection" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
         {/* PRE-9 C.3 (référence Formats du 02/11/2026, CE-FMT-02) : questionnaire et récapitulatif d'un modèle
             de la fenêtre Formats ; brouillon de modèle partagé (`FormatModelDraftProvider`). [C.2/C.3 du 01/11 :
             routes `session-model` et `format-parameters` — retirées le 02/11/2026.] */}
@@ -81,9 +87,9 @@ export default function CreationLayout() {
             bénéficie-t-elle pas de cet effet "lumière" qui est appliqué à la modale de présentation de la fiche des
             mouvements ? » ; « Est-il possible de tester la première option, notamment sur la question du voile ? ») :
             feuille native iOS (Liquid Glass du système), haut à y = 95 par sa hauteur ; voile du système. */}
-        <Stack.Screen name="formats-window" options={{ presentation: "formSheet", sheetGrabberVisible: false, sheetAllowedDetents: "fitToContents" }} />
-        <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false }} />
-        <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false }} />
+        <Stack.Screen name="formats-window" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT, sheetAllowedDetents: "fitToContents" }} />
+        <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
+        <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
         {/* Recette n° 3 du 03/11/2026 (autres constats) : fiche d'un mouvement du questionnaire ou du
             récapitulatif, en modale par le bas, lecture seule ; fermeture par sa croix (geste natif désactivé, T02-S02).
             Recette n° 3 bis (f3s-fiche) : feuille ajustée à son contenu, au plus jusqu'au titre de l'écran (hauteur

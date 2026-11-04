@@ -39,7 +39,6 @@ const t = () => strings.screens.sessionModels;
 
 // Valeurs du nœud Figma `9977:19613` : fenêtre 370 × 647 (rayon 28) posée à 16 / 128 ; cartes 163 × 105
 // (rayon 20), bande de motif 46, écart de 12 entre colonnes et de 10 entre rangées ; titre 17 Medium.
-const WINDOW_MARGIN = 16;
 const WINDOW_RADIUS = 28;
 const WINDOW_PADDING = 16;
 const GRID_TOP = 66;
