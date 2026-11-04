@@ -1028,9 +1028,22 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // toutes les lignes du tableau doivent être visibles. » Le bas du tableau est placé au-dessus du clavier et de sa barre ;
   // un tableau plus haut que la place disponible garde au moins la case active visible.
   const tableRef = useRef<View>(null);
+  // Hermann, 04/11/2026 : « la dernière ligne du tableau est bien au-dessus du clavier, mais pas au-dessus de la barre
+  // optionnelle du clavier » — la feuille native d'iOS 26 ne descend pas jusqu'au bas de l'écran : la barre et
+  // l'alignement partent du bas mesuré de la feuille, et non de la hauteur de la fenêtre.
+  const rootRef = useRef<View>(null);
+  const [rootBottom, setRootBottom] = useState<number | null>(null);
+  const measureRoot = useCallback(() => {
+    rootRef.current?.measureInWindow((_x, y, _width, height) => {
+      if (height > 0) setRootBottom((current) => (current === y + height ? current : y + height));
+    });
+  }, []);
+  useEffect(() => {
+    if (keyboardFrame !== null) measureRoot();
+  }, [keyboardFrame, measureRoot]);
   useEffect(() => {
     if (focusedCell === null || keyboardFrame === null) return;
-    const limit = keyboardFrame.screenY - (Platform.OS === "ios" ? barHeight : 0) - CELL_REVEAL_MARGIN;
+    const limit = Math.min(keyboardFrame.screenY, rootBottom ?? keyboardFrame.screenY) - (Platform.OS === "ios" ? barHeight : 0) - CELL_REVEAL_MARGIN;
     const revealCell = () =>
       cellInputs.current.get(focusedCell)?.measureInWindow((_x, y, _width, height) => {
         const delta = y + height - limit;
@@ -1058,7 +1071,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     // l'alignement est refait une fois le clavier en place.
     const settle = setTimeout(align, (keyboardFrame.duration > 0 ? keyboardFrame.duration : 250) + 120);
     return () => clearTimeout(settle);
-  }, [bandHeight, barHeight, focusedCell, keyboardFrame, reduceMotion]);
+  }, [bandHeight, barHeight, focusedCell, keyboardFrame, reduceMotion, rootBottom]);
 
   // Familles de Niveaux : cartes reliées par le filet des niveaux (suggestions et mode catalogue).
   const familyCards = (items: readonly MovementCatalogueItem[], card: (entry: MovementCatalogueEntry) => React.ReactNode, collapsed: boolean, railActive = false) =>
@@ -1282,7 +1295,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   };
 
   return (
-    <View style={styles.modalRoot} testID="format-modal">
+    <View ref={rootRef} collapsable={false} onLayout={measureRoot} style={styles.modalRoot} testID="format-modal">
       <View style={styles.nativeSheet} testID="format-sheet">
       <ScrollView
         ref={scrollRef}
@@ -1449,7 +1462,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       {Platform.OS === "ios" && focusedCell !== null && keyboardFrame !== null ? (
         <KeyboardAccessoryBar
           keyboardFrame={keyboardFrame}
-          containerBottom={windowHeight}
+          containerBottom={rootBottom ?? windowHeight}
           reduceMotion={reduceMotion}
           onHeight={setBarHeight}
           canPrevious={focusedAt > 0}
