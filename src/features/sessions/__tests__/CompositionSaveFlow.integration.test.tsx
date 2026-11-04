@@ -4,7 +4,6 @@ import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
@@ -135,7 +134,6 @@ async function renderCreationRouter() {
     new SqliteCategoryRepository(database),
   );
   const activityDefinitionService = new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database),
     new SqliteCategoryRepository(database),
     new SqliteBodyZoneRepository(database),
     new SqliteLabelRepository(database),
@@ -170,9 +168,7 @@ async function renderCreationRouter() {
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      "(creation)/activity-selection": require("../../../../app/(creation)/activity-selection")
-        .default,
+      // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » retirée avec les anciennes définitions du Catalogue.]
     },
     { initialUrl: "/composition", wrapper: Wrapper },
   );

@@ -34,7 +34,8 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * PRE-9 A.2 (ARB-22a : « La sélection des Mouvements réutilise le parcours existant du Catalogue ;
  * les Mouvements choisis deviennent des Exercices configurés dans la Séance » ; Q6 ; D-449) —
  * « Utiliser un mouvement existant » depuis la Composition. Remplace, pour la Composition, la
- * sélection des anciennes définitions (`activity_definitions`), qui n'y est plus atteignable.
+ * sélection des anciennes définitions du Catalogue, qui n'y est plus atteignable. [PRE-9 A.3 du
+ * 04/11/2026 : cette sélection et les définitions elles-mêmes sont supprimées.]
  * [01/11/2026 — ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état cible » : l'entrée « Utiliser un
  * mouvement existant » est retirée du menu Créer ; cet écran n'est plus atteint depuis la
  * Composition. Conservé sans suppression (aucune demande de retrait de l'écran).]

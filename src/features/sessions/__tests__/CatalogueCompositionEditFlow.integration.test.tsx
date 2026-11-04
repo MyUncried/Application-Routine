@@ -16,7 +16,6 @@ import type {
   UpdateStructuredSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
 import { withStructure } from "@/domain/sessions/testing/structuredSession";
-import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -234,25 +233,7 @@ class NoopCategoryRepository implements CategoryRepository {
   }
 }
 
-/**
- * V2-CAT-01 : le Catalogue charge désormais aussi le segment `Activités`
- * (`useActivityCatalogue`, qui exige un `ActivityDefinitionServiceContext`) —
- * ce parcours ne porte sur aucune Activité, un Repository vide suffit.
- */
-class NoopActivityDefinitionRepository implements ActivityDefinitionRepository {
-  create(): Promise<ActivityDefinition> {
-    return Promise.reject(new Error("not used by this Session-only navigation test"));
-  }
-  findById(): Promise<ActivityDefinition | null> {
-    return Promise.resolve(null);
-  }
-  listAll(): Promise<readonly ActivityDefinition[]> {
-    return Promise.resolve([]);
-  }
-  update(): Promise<ActivityDefinition | null> {
-    return Promise.reject(new Error("not used by this Session-only navigation test"));
-  }
-}
+// [PRE-9 A.3 du 04/11/2026 : dépôt factice des définitions retiré avec les anciennes définitions du Catalogue.]
 
 let repository: FakeSessionRepository;
 
@@ -264,7 +245,6 @@ function TestWrapper({ children }: { children: ReactNode }) {
       <ActivityDefinitionServiceProvider
         service={
           new ActivityDefinitionService(
-            new NoopActivityDefinitionRepository(),
             new NoopCategoryRepository(),
             new FakeBodyZoneRepository(),
           )

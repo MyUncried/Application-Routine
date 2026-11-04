@@ -9,6 +9,11 @@
  * suppression explicite est refusée tant qu'une définition le référence
  * (MFN-03) ; les filiations des copies (`sourceMovementId`) ne sont ni lues ni
  * modifiées.
+ *
+ * [PRE-9 A.3 du 04/11/2026 : les anciennes définitions du Catalogue sont supprimées (migration 021,
+ * décision de Hermann du 04/11/2026 : « Hermann abandonne la conversion sans perte prévue par A.4 :
+ * les anciens exercices concernés par cette conversion peuvent être supprimés plutôt que migrés. ») ;
+ * seule une occurrence de Séance empêche désormais la suppression explicite.]
  */
 
 import type { Movement } from "./Movement";
@@ -17,8 +22,8 @@ import type { Movement } from "./Movement";
 export type DeleteMovementOutcome =
   | { readonly status: "DELETED" }
   | { readonly status: "NOT_FOUND" }
-  /** Au moins une définition ou une occurrence de Séance (R-3) référence le Mouvement : rien n'est supprimé. */
-  | { readonly status: "REFERENCED"; readonly definitionCount: number; readonly occurrenceCount: number };
+  /** Au moins une occurrence de Séance (R-3) référence le Mouvement : rien n'est supprimé. */
+  | { readonly status: "REFERENCED"; readonly occurrenceCount: number };
 
 /** Issue d'une opération de groupe de niveaux (MFN-05, D-439). */
 export type MovementGroupOutcome =
@@ -85,9 +90,7 @@ export interface MovementRepository {
    * (celle du brouillon en cours, dont l'éditeur compte lui-même les occurrences).
    */
   countOccurrences(id: string, excludingSessionId?: string): Promise<number>;
-  /** Nombre de définitions du Catalogue qui référencent le Mouvement. */
-  countDefinitions(id: string): Promise<number>;
-  /** Suppression explicite, refusée si une définition ou une occurrence de Séance le référence (MFN-03, R-3). */
+  /** Suppression explicite, refusée si une occurrence de Séance le référence (MFN-03, R-3). */
   delete(id: string): Promise<DeleteMovementOutcome>;
   /**
    * Rattache `movementId` au groupe de `originId`, en dernier ; le groupe est

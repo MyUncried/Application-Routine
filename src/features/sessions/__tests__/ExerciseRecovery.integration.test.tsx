@@ -15,7 +15,6 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
@@ -85,7 +84,6 @@ function RootStack() {
 
 function renderApp() {
   const service = new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database),
     new SqliteCategoryRepository(database),
     new SqliteBodyZoneRepository(database),
     new SqliteLabelRepository(database),

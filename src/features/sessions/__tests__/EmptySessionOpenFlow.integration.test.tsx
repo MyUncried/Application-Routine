@@ -15,7 +15,6 @@ import type {
   UpdateStructuredSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
 import { withStructure } from "@/domain/sessions/testing/structuredSession";
-import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -162,20 +161,7 @@ class NoopCategoryRepository implements CategoryRepository {
   }
 }
 
-class NoopActivityDefinitionRepository implements ActivityDefinitionRepository {
-  create(): Promise<ActivityDefinition> {
-    return Promise.reject(new Error("not used"));
-  }
-  findById(): Promise<ActivityDefinition | null> {
-    return Promise.resolve(null);
-  }
-  listAll(): Promise<readonly ActivityDefinition[]> {
-    return Promise.resolve([]);
-  }
-  update(): Promise<ActivityDefinition | null> {
-    return Promise.reject(new Error("not used"));
-  }
-}
+// [PRE-9 A.3 du 04/11/2026 : dépôt factice des définitions retiré avec les anciennes définitions du Catalogue.]
 
 function TestWrapper({ children }: { children: ReactNode }) {
   return (
@@ -185,7 +171,6 @@ function TestWrapper({ children }: { children: ReactNode }) {
       <ActivityDefinitionServiceProvider
         service={
           new ActivityDefinitionService(
-            new NoopActivityDefinitionRepository(),
             new NoopCategoryRepository(),
             new EmptyBodyZoneRepository(),
           )

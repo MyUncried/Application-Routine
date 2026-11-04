@@ -11,7 +11,6 @@ import {
   repetitionParameters,
   variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
-import type { ActivityDefinition } from "@/domain/activities";
 import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import type { DraftMediaItem } from "@/domain/media/ActivityMedia";
 import type { ImportItem } from "@/domain/media/ActivityMediaImportService";
@@ -65,7 +64,7 @@ jest.mock("@/infrastructure/media/VideoPoster", () => ({ generateVideoPoster: je
 jest.mock("expo-crypto", () => ({ randomUUID: jest.fn(() => "generated-exercise-id") }));
 
 const mockBack = jest.fn();
-let mockSearchParams: { exerciseId?: string; catalogueDefinitionId?: string } = {};
+let mockSearchParams: { exerciseId?: string } = {};
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
   return {
@@ -251,7 +250,7 @@ function canonicalOccurrence(overrides: Partial<SessionDraftExercise> = {}): Ses
 
 /** Rend la route avec un brouillon de Composition, des services doublés et une Catégorie disponible. */
 function renderRoute(options: {
-  readonly params?: { exerciseId?: string; catalogueDefinitionId?: string };
+  readonly params?: { exerciseId?: string };
   readonly exercises?: readonly SessionDraftExercise[];
   readonly service?: Partial<ActivityDefinitionService>;
   readonly profile?: Partial<ReturnType<typeof createDefaultProfile>>;
@@ -424,74 +423,11 @@ describe("ExerciseScreen — modale d'abandon (D-094)", () => {
 });
 
 describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
-  it("P3-01/Catalogue:create — Terminer écrit UNE définition (paramètres canoniques, Catégorie, Zones, médias) et jamais le brouillon de Séance", async () => {
-    const createActivityDefinition = jest
-      .fn<ActivityDefinitionService["createActivityDefinition"]>()
-      .mockResolvedValue({ ok: true, value: {} as ActivityDefinition });
-    const { updateDraft, service } = renderRoute({ params: { catalogueDefinitionId: "new" }, service: { createActivityDefinition } });
-    await fillNewExercise();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    expect(createActivityDefinition).toHaveBeenCalledTimes(1);
-    expect(createActivityDefinition.mock.calls[0]![0]).toMatchObject({
-      name: "Squat",
-      category: { kind: "EXISTING", categoryId: "cardio" },
-      bodyZoneIds: ["cuisses"],
-      executionParameters: expect.objectContaining({
-        mode: "DURATION",
-        series: { kind: "UNIFORM", count: 1, target: { kind: "NUMBER", value: 45 }, pauseSeconds: 0, loadKg: 0, workPhases: [] },
-      }),
-      media: [],
-    });
-    expect(updateDraft).not.toHaveBeenCalled();
-    expect(service.commitMediaDraft).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(mockBack).toHaveBeenCalled());
-  });
+  // [PRE-9 A.3 du 04/11/2026 : parcours Catalogue (création, modification, échec et accessibilité de l'écriture d'une définition) retirés avec les anciennes définitions du Catalogue.]
 
-  it("P3-01/Catalogue:edit — tous les champs rouverts (variable, côtés, bip, CR/Fin, médias) ; Terminer met à jour cette définition", async () => {
-    const definition: ActivityDefinition = {
-      id: "def-1",
-      movementId: "mov-1",
-      name: "Fentes",
-      description: "Dos droit",
-      categoryId: "cardio",
-      bodyZoneIds: ["cuisses"],
-      sideMode: "RIGHT_LEFT",
-      sideRecoverySeconds: 7,
-      executionParameters: CANONICAL,
-      media: [{ id: "l1", activityDefinitionId: "def-1", assetId: "p1", position: 0, asset: PHOTO.asset }],
-      createdAt: "now",
-      updatedAt: "now",
-    };
-    const updateActivityDefinition = jest
-      .fn<ActivityDefinitionService["updateActivityDefinition"]>()
-      .mockResolvedValue({ status: "UPDATED", value: definition });
-    renderRoute({
-      params: { catalogueDefinitionId: "def-1" },
-      service: { getActivityDefinition: jest.fn(async () => definition), updateActivityDefinition },
-    });
-    expect(await screen.findByDisplayValue("Fentes")).toBeTruthy();
-    expect(screen.getByDisplayValue("Dos droit")).toBeTruthy();
-    // PRE-5 story 3.2 (R-14) : CR/Fin ne sont plus sur la Carte ; la Feuille les rouvre.
-    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
-    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("3 s");
-    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("2 s");
-    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    expect(screen.getByTestId("media-item-1")).toBeTruthy();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    expect(updateActivityDefinition).toHaveBeenCalledWith(
-      "def-1",
-      expect.objectContaining({ executionParameters: CANONICAL, media: [{ assetId: "p1", asset: PHOTO.asset }] }),
-    );
-  });
 
   it("P3-01/Session:create — la copie est appliquée au brouillon de Composition seulement (aucun service d'écriture)", async () => {
-    const createActivityDefinition = jest.fn<ActivityDefinitionService["createActivityDefinition"]>();
-    const { updateDraft } = renderRoute({ service: { createActivityDefinition } });
+    const { updateDraft } = renderRoute({});
     await fillNewExercise();
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     expect(updateDraft).toHaveBeenCalledTimes(1);
@@ -504,7 +440,6 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
         series: expect.objectContaining({ target: { kind: "NUMBER", value: 45 } }),
       }),
     });
-    expect(createActivityDefinition).not.toHaveBeenCalled();
   });
 
   it("P3-01/Session:edit — l'occurrence rouvre ses paramètres canoniques et médias ; Terminer les conserve", () => {
@@ -609,7 +544,7 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
 
   it("P3-16/sheet-boundary — ✕ laisse le parent identique ; ✓ applique au parent sans aucun appel de service ; la phrase change", () => {
     const existing = canonicalOccurrence();
-    const { updateDraft, service } = renderRoute({ params: { exerciseId: "occ-1" }, exercises: [existing] });
+    const { updateDraft } = renderRoute({ params: { exerciseId: "occ-1" }, exercises: [existing] });
     const before = screen.getByTestId("exercise-parameters-card").props.accessibilityLabel;
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
     tapExecutionSheetStep("execution-sheet-series-increment");
@@ -622,7 +557,6 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).not.toBe(before);
     expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toContain("3 séries");
     expect(updateDraft).not.toHaveBeenCalled();
-    expect(service.createActivityDefinition).toBeUndefined();
     expect(lastGuardBlock()).toBe(true);
   });
 
@@ -644,29 +578,6 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     expect(service.abandonMediaDraft).toHaveBeenCalledWith("occurrence:occ-1");
   });
 
-  it("P3-16/failure-doubletap — une seule opération en vol ; échec : brouillon et médias conservés, erreur annoncée ; réessai unique", async () => {
-    let fail = true;
-    const createActivityDefinition = jest.fn<ActivityDefinitionService["createActivityDefinition"]>(async () => {
-      if (fail) throw new Error("rollback");
-      return { ok: true, value: {} as ActivityDefinition };
-    });
-    renderRoute({ params: { catalogueDefinitionId: "new" }, service: { createActivityDefinition } });
-    await fillNewExercise();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    expect(createActivityDefinition).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId("activity-editor-save-error")).toBeTruthy();
-    expect(screen.getByDisplayValue("Squat")).toBeTruthy();
-    expect(mockBack).not.toHaveBeenCalled();
-    fail = false;
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    expect(createActivityDefinition).toHaveBeenCalledTimes(2);
-    await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
-  });
 
   it("P3-23/cancel-local-error — annulation neutre ; élément échoué visible avec Réessayer ; brouillon intact ; réessai sans doublon", async () => {
     const failed: ImportItem = {
@@ -712,188 +623,9 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     expect(updateDraft).toHaveBeenCalledTimes(1);
   });
 
-  it("ACCESSIBILITY/editor-finish — Nom, description et Terminer identifiables ; état indisponible exposé ; erreur annoncée sans perte", async () => {
-    const createActivityDefinition = jest.fn<ActivityDefinitionService["createActivityDefinition"]>().mockResolvedValue({
-      ok: false,
-      violations: [{ code: "REQUIRED", field: "activityDefinition.name" }],
-    });
-    renderRoute({ params: { catalogueDefinitionId: "new" }, service: { createActivityDefinition } });
-    expect(screen.getByLabelText("Nom de l’exercice")).toBeTruthy();
-    // PRE-5 story 3.1 (AC6) : titre « Description de l’exercice », première étape nommée « Étape 1 ».
-    expect(screen.getByText("Description de l’exercice")).toBeTruthy();
-    expect(screen.getByLabelText("Étape 1")).toBeTruthy();
-    expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({ disabled: true });
-    await fillNewExercise();
-    await act(async () => {
-      fireEvent.press(screen.getByLabelText(t.finishAction));
-    });
-    expect(screen.getByTestId("activity-editor-save-error").props.accessibilityLiveRegion).toBe("polite");
-    expect(screen.getByDisplayValue("Squat")).toBeTruthy();
-    expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({ disabled: false });
-  });
 });
 
-/**
- * PRE-4 (story 1.1, AD-13, H25) — validation unique avec la ligne de base
- * relue à l'ouverture de l'Éditeur (parcours Catalogue).
- */
-describe("ExerciseScreen — PRE-4 story 1.1 (ligne de base, Cible à renseigner)", () => {
-  function legacyDefinition(executionParameters: ExecutionParameters): ActivityDefinition {
-    return {
-      id: "def-legacy",
-      movementId: "mov-1",
-      name: "Gainage",
-      description: null,
-      executionParameters,
-      categoryId: "cardio",
-      bodyZoneIds: ["cuisses"],
-      sideMode: executionParameters.sideMode,
-      sideRecoverySeconds: executionParameters.sideRecoverySeconds,
-      media: [],
-      createdAt: "now",
-      updatedAt: "now",
-    };
-  }
-
-  function renderDefinition(definition: ActivityDefinition) {
-    const updateActivityDefinition = jest
-      .fn<ActivityDefinitionService["updateActivityDefinition"]>()
-      .mockResolvedValue({ status: "UPDATED", value: definition });
-    renderRoute({
-      params: { catalogueDefinitionId: definition.id },
-      service: { getActivityDefinition: jest.fn(async () => definition), updateActivityDefinition },
-    });
-    return updateActivityDefinition;
-  }
-
-  /** Story 3.3 : appui bref sur un ± de la Feuille ; le champ hors tableau est ouvert au besoin. */
-  const step = tapExecutionSheetStep;
-
-  it("PRE4-1.1/AC24 — Cible Durée historique de 5999 s : renommer puis Terminer enregistre la Cible 5999 s inchangée", async () => {
-    const updateActivityDefinition = renderDefinition(legacyDefinition(durationParameters(5999, 1, 0)));
-    fireEvent.changeText(await screen.findByDisplayValue("Gainage"), "Gainage lent");
-    expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: false });
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    expect(updateActivityDefinition).toHaveBeenCalledTimes(1);
-    expect(updateActivityDefinition.mock.calls[0]![1]).toMatchObject({
-      name: "Gainage lent",
-      executionParameters: { series: { kind: "UNIFORM", target: { kind: "NUMBER", value: 5999 } } },
-    });
-  });
-
-  it("PRE4-1.1/AC24 — même Exercice : ✓ de la Feuille disponible sans toucher la Cible, qui reste 5999 s", async () => {
-    const updateActivityDefinition = renderDefinition(legacyDefinition(durationParameters(5999, 1, 0)));
-    await screen.findByDisplayValue("Gainage");
-    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
-    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    expect(updateActivityDefinition.mock.calls[0]![1].executionParameters.series).toEqual({
-      kind: "UNIFORM",
-      count: 1,
-      target: { kind: "NUMBER", value: 5999 },
-      pauseSeconds: 0, loadKg: 0, workPhases: [],
-    });
-  });
-
-  it("PRE4-1.1/AC24 — Bip historique de 11 : changer une Pause, ✓ puis Terminer conserve le Bip 11", async () => {
-    const updateActivityDefinition = renderDefinition(
-      legacyDefinition(durationParameters(30, 2, 10, { cadenceBeepIntervalSeconds: 11 })),
-    );
-    await screen.findByDisplayValue("Gainage");
-    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    step("execution-sheet-pause-increment");
-    expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
-    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    const saved = updateActivityDefinition.mock.calls[0]![1].executionParameters;
-    expect(saved.cadenceBeepIntervalSeconds).toBe(11);
-    expect(saved.series).toMatchObject({ kind: "UNIFORM", pauseSeconds: 11, loadKg: 0, workPhases: [] });
-  });
-
-  describe("PRE4-3.2/AC12 — ligne historique déplacée dans la Feuille, puis Terminer (ligne de base de l'Éditeur)", () => {
-    const legacyRows = () =>
-      legacyDefinition(variableParameters({ mode: "DURATION", rows: [[30, 10], [5999, 20], [7, 30]], cadenceBeepIntervalSeconds: 11 }));
-    const moveAction = (row: number, actionName: "moveUp" | "moveDown") =>
-      fireEvent(screen.getByTestId(`execution-sheet-table-row-${row}-handle`), "accessibilityAction", {
-        nativeEvent: { actionName },
-      });
-    const expectAvailable = (testID: string) =>
-      expect(screen.getByTestId(testID).props.accessibilityState).toMatchObject({ disabled: false });
-    const moved = {
-      kind: "VARIABLE",
-      rows: [
-        { target: { kind: "NUMBER", value: 5999 }, pauseSeconds: 20, loadKg: 0 },
-        { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 },
-        { target: { kind: "NUMBER", value: 7 }, pauseSeconds: 30, loadKg: 0 },
-      ],
-      workPhases: [],
-    };
-
-    it("PRE4-3.2/AC12 — 5999 s déplacée en tête, ✓ : Terminer reste disponible et enregistre [5999, 30, 7] et le Bip 11 inchangés", async () => {
-      const updateActivityDefinition = renderDefinition(legacyRows());
-      await screen.findByDisplayValue("Gainage");
-      fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-      moveAction(2, "moveUp");
-      expectAvailable("execution-sheet-validate");
-      fireEvent.press(screen.getByTestId("execution-sheet-validate"));
-      expectAvailable("activity-editor-finish-action");
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-      });
-      expect(updateActivityDefinition).toHaveBeenCalledTimes(1);
-      const saved = updateActivityDefinition.mock.calls[0]![1].executionParameters;
-      expect(saved.series).toEqual(moved);
-      expect(saved.cadenceBeepIntervalSeconds).toBe(11);
-    });
-
-    it("PRE4-3.2/AC12 — Feuille rouverte après ce ✓ : ✓ et Terminer restent disponibles, valeurs inchangées", async () => {
-      const updateActivityDefinition = renderDefinition(legacyRows());
-      await screen.findByDisplayValue("Gainage");
-      fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-      moveAction(2, "moveUp");
-      fireEvent.press(screen.getByTestId("execution-sheet-validate"));
-      fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-      expectAvailable("execution-sheet-validate");
-      fireEvent.press(screen.getByTestId("execution-sheet-validate"));
-      expectAvailable("activity-editor-finish-action");
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-      });
-      const saved = updateActivityDefinition.mock.calls[0]![1].executionParameters;
-      expect(saved.series).toEqual(moved);
-      expect(saved.cadenceBeepIntervalSeconds).toBe(11);
-    });
-  });
-
-  it("PRE4-1.1/AC23 — Cible héritée à renseigner : « Paramètres à compléter. », Terminer et ✓ indisponibles ; une Cible réglée est enregistrée NUMBER, jamais FAILURE", async () => {
-    const updateActivityDefinition = renderDefinition(legacyDefinition(repetitionParameters("UNSET", 3, 10)));
-    await screen.findByDisplayValue("Gainage");
-    expect(screen.getByTestId("exercise-parameters-phrase").props.children).toBe("Paramètres à compléter");
-    expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
-    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    expect(screen.getByTestId("execution-sheet-target-value-text").props.children).toBe("—");
-    expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
-    // Story 3.5 : Sélecteur ouvert sur 1 (« — », Q25), ✓ sans tourner applique 1.
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    fireEvent.press(screen.getByTestId("number-wheel-validate"));
-    expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
-    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
-    expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: false });
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    const saved = updateActivityDefinition.mock.calls[0]![1].executionParameters;
-    expect(saved.series).toEqual({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 1 }, pauseSeconds: 10, loadKg: 0, workPhases: [] });
-    expect(JSON.stringify(saved)).not.toContain("FAILURE");
-  });
-});
+// [PRE-9 A.3 du 04/11/2026 : « PRE-4 story 1.1 (ligne de base, Cible à renseigner) », parcours Catalogue, retiré avec les anciennes définitions du Catalogue ; le chemin Séance reste vérifié ci-dessous.]
 
 /**
  * PRE-4 (story 1.1, AC24, H25) — chemin Séance (`CompositionExerciseEditor`,
@@ -940,23 +672,11 @@ describe("ExerciseScreen — PRE-4 story 1.1, chemin Séance (occurrence hérit�
 });
 
 describe("ExerciseScreen — adaptateur Catalogue (contrats conservés)", () => {
-  it("shows an explicit error — never an endless loading state — when the definition is absent, and Réessayer reloads", async () => {
-    const getActivityDefinition = jest
-      .fn<ActivityDefinitionService["getActivityDefinition"]>()
-      .mockRejectedValueOnce(new Error("io"))
-      .mockResolvedValueOnce(null);
-    renderRoute({ params: { catalogueDefinitionId: "def-x" }, service: { getActivityDefinition } });
-    expect(await screen.findByTestId("activity-editor-load-error")).toBeTruthy();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-load-retry"));
-    });
-    expect(getActivityDefinition).toHaveBeenCalledTimes(2);
-    expect(screen.getByTestId("activity-editor-load-error")).toBeTruthy();
-  });
+  // [PRE-9 A.3 du 04/11/2026 : erreur de chargement d'une définition retirée avec les anciennes définitions du Catalogue.]
 
   // PRE-5 story 3.2 (FR-38) : la pastille devient le glyphe Catégorie plein teinté de sa couleur.
   it("shows the Category's glyph tinted with its color before its name", async () => {
-    renderRoute({ params: { catalogueDefinitionId: "new" } });
+    renderRoute({});
     await chooseCategory();
     await waitFor(() =>
       expect(StyleSheet.flatten(screen.getByTestId("activity-editor-category-glyph").props.style).tintColor).toBe("#3B82F6"),
@@ -976,32 +696,10 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
   const FIGMA_DIR = path.resolve(__dirname, "../../../../docs/preparation/PRE-4/figma");
   const REFERENCE_FRAMES = ["8328-35698", "8328-35740", "8328-36278", "8328-36711", "8328-36853", "8328-37022", "8328-36781"];
 
-  const DEFINITION: ActivityDefinition = {
-    id: "def-1",
-    movementId: "mov-1",
-    name: "Fentes",
-    description: "Dos droit",
-    categoryId: "cardio",
-    bodyZoneIds: ["cuisses"],
-    sideMode: "RIGHT_LEFT",
-    sideRecoverySeconds: 7,
-    executionParameters: CANONICAL,
-    media: [],
-    createdAt: "now",
-    updatedAt: "now",
-  };
-
-  /** Rend chacun des quatre parcours et renvoie le titre affiché. */
-  async function renderPath(pathName: "CC" | "MC" | "CS" | "MS") {
-    if (pathName === "CC") return renderRoute({ params: { catalogueDefinitionId: "new" } });
-    if (pathName === "MC") {
-      const view = renderRoute({
-        params: { catalogueDefinitionId: "def-1" },
-        service: { getActivityDefinition: jest.fn(async () => DEFINITION) },
-      });
-      await screen.findByDisplayValue("Fentes");
-      return view;
-    }
+  /**
+   * Rend chacun des parcours et renvoie le titre affiché. [PRE-9 A.3 du 04/11/2026 : Les parcours Catalogue (CC, MC) : seuls CS et MS restent ; retiré avec les anciennes définitions du Catalogue.]
+   */
+  async function renderPath(pathName: "CS" | "MS") {
     if (pathName === "CS") return renderRoute({});
     const existing = canonicalOccurrence();
     return renderRoute({ params: { exerciseId: existing.id }, exercises: [existing] });
@@ -1025,8 +723,6 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
 
   it("PRE4-4.2/AC2 — titre « Créer un exercice » en CC et CS, « Modifier un exercice » en MC et MS ; aucun nom de frame", async () => {
     for (const [pathName, title] of [
-      ["CC", "Créer un exercice"],
-      ["MC", "Modifier un exercice"],
       ["CS", "Créer un exercice"],
       // PRE-9 (recette iPhone du 29/10, CE-MVT-01) : MS au gabarit Mouvement.
       ["MS", "Modifier le mouvement"],
@@ -1054,7 +750,7 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
   }
 
   it("PRE4-4.2/AC4 — ✕ circulaire en haut à gauche dans les quatre parcours (prop locale de FixedHeader), annoncé « Retour » ; halo centré sur le ✕ ; les autres écrans gardent le chevron ; ✕ centré à 36 du bord (PRE-5 3.2, arbitrage G-1)", async () => {
-    for (const pathName of ["CC", "MC", "CS", "MS"] as const) {
+    for (const pathName of ["CS", "MS"] as const) {
       await renderPath(pathName);
       expect(within(screen.getByTestId("screen-header")).UNSAFE_getByType(KodjoIcon).props.name).toBe("control-close");
       // Libellé du code de départ, en attente d'arbitrage (Q48).
@@ -1147,7 +843,7 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
         act(() => {
           Dimensions.set({ window: { ...window, width }, screen: { ...screenSize, width } });
         });
-        for (const pathName of ["CC", "MC", "CS", "MS"] as const) {
+        for (const pathName of ["CS", "MS"] as const) {
           await renderPath(pathName);
           const { padding, leftInset, haloCenter, closeCenter } = haloAgainstHeader();
           expect(padding).toBe(editorSideMargin(width));
@@ -1168,26 +864,7 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     }
   });
 
-  it("PRE4-4.2/AC5 — MC, erreur de chargement : le corps d'erreur suit la marge de l'Éditeur (16 à 360, 24 à 390)", async () => {
-    const window = Dimensions.get("window");
-    const screenSize = Dimensions.get("screen");
-    try {
-      for (const width of [360, 390]) {
-        act(() => {
-          Dimensions.set({ window: { ...window, width }, screen: { ...screenSize, width } });
-        });
-        renderRoute({ params: { catalogueDefinitionId: "def-x" }, service: { getActivityDefinition: jest.fn(async () => null) } });
-        const body = await screen.findByTestId("activity-editor-load-error");
-        expect(StyleSheet.flatten(body.props.style).paddingHorizontal).toBe(editorSideMargin(width));
-        expect(StyleSheet.flatten(screen.getByTestId("screen-header").props.style).paddingHorizontal).toBe(editorSideMargin(width));
-        screen.unmount();
-      }
-    } finally {
-      act(() => {
-        Dimensions.set({ window, screen: screenSize });
-      });
-    }
-  });
+  // [PRE-9 A.3 du 04/11/2026 : « MC, erreur de chargement » et « appuis répétés » (écriture d'une définition) retirés avec les anciennes définitions du Catalogue.]
 
   it("PRE4-4.2/AC9 — Terminer inactif, y compris pour l'accessibilité, tant que manque : nom de 1 à 80, une Catégorie, une Zone (nouvel Exercice), des Paramètres exécutables ; héritage toléré en modification", async () => {
     // Bornes du nom (règle du domaine, saisie bornée par `maxLength`).
@@ -1200,8 +877,9 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     expect(isActivityEditorFormValid(valid, { ...options, hasCategory: false })).toBe(false);
     expect(isActivityEditorFormValid({ ...valid, bodyZoneIds: [] }, options)).toBe(false);
 
-    renderRoute({ params: { catalogueDefinitionId: "new" } });
-    const finish = () => screen.getByTestId("activity-editor-finish-action");
+    // [PRE-9 A.3 du 04/11/2026 : Le parcours Catalogue (CC) retiré avec les anciennes définitions du Catalogue.] Création en Séance (CS).
+    renderRoute({});
+    const finish = () => screen.getByTestId("exercise-finish-action");
     const expectDisabled = (disabled: boolean) => {
       expect(finish().props.accessibilityState).toMatchObject({ disabled });
     };
@@ -1238,31 +916,6 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     expect(screen.getByTestId("exercise-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("PRE4-4.2/AC10 — appuis répétés : une seule opération ; échec : message du code de départ, Brouillon conservé, réessai possible", async () => {
-    let fail = true;
-    const createActivityDefinition = jest.fn<ActivityDefinitionService["createActivityDefinition"]>(async () => {
-      if (fail) throw new Error("Injected failure");
-      return { ok: true, value: {} as ActivityDefinition };
-    });
-    renderRoute({ params: { catalogueDefinitionId: "new" }, service: { createActivityDefinition } });
-    await fillNewExercise();
-    fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos droit.");
-    await act(async () => {
-      for (let tap = 0; tap < 3; tap += 1) fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    expect(createActivityDefinition).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId("activity-editor-save-error").props.children).toBe("L’exercice n’a pas pu être enregistré. Réessayez.");
-    expect(screen.getByDisplayValue("Squat")).toBeTruthy();
-    expect(screen.getByDisplayValue("Dos droit.")).toBeTruthy();
-    expect(mockBack).not.toHaveBeenCalled();
-    fail = false;
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    expect(createActivityDefinition).toHaveBeenCalledTimes(2);
-    expect(createActivityDefinition.mock.calls[1]![0]).toMatchObject({ name: "Squat", description: "Dos droit.", bodyZoneIds: ["cuisses"] });
-    await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
-  });
 
   it("PRE4-4.2/AC11 — états de l'écran : modification d'un Exercice existant ; abandon confirmé et annulé ; erreur d'enregistrement", async () => {
     // Modification d'un Exercice existant (MS) : titre, valeurs relues, Phrase affichée.
@@ -1286,31 +939,12 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     expect(confirmExit).toHaveBeenCalledTimes(1);
     screen.unmount();
     mockExitGuard.mockReturnValue(defaultExitGuardResult());
-
-    // Erreur d'enregistrement (MC) : message annoncé, Éditeur conservé.
-    const updateActivityDefinition = jest.fn<ActivityDefinitionService["updateActivityDefinition"]>(async () => {
-      throw new Error("Injected failure");
-    });
-    renderRoute({
-      params: { catalogueDefinitionId: "def-1" },
-      service: { getActivityDefinition: jest.fn(async () => DEFINITION), updateActivityDefinition },
-    });
-    await screen.findByDisplayValue("Fentes");
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    const error = screen.getByTestId("activity-editor-save-error");
-    expect(error.props.children).toBe("L’exercice n’a pas pu être enregistré. Réessayez.");
-    expect(error.props.accessibilityLiveRegion).toBe("polite");
-    expect(screen.getByDisplayValue("Fentes")).toBeTruthy();
-    expect(mockBack).not.toHaveBeenCalled();
+    // [PRE-9 A.3 du 04/11/2026 : L'erreur d'enregistrement d'une définition (MC) retiré avec les anciennes définitions du Catalogue.]
   });
 
   it("PRE4-4.2/AC12 — sans modification, sortie immédiate ; avec modification, dialogue : textes de création en CC et CS, de modification en MC et MS ; Annuler neutre, Confirmer destructif", async () => {
     for (const [pathName, title, message] of [
-      ["CC", "Abandonner la création ?", "Les informations saisies seront perdues et l’exercice ne sera pas créé."],
       ["CS", "Abandonner la création ?", "Les informations saisies seront perdues et l’exercice ne sera pas créé."],
-      ["MC", "Abandonner les modifications ?", "Les modifications apportées à cet exercice seront perdues."],
       ["MS", "Abandonner les modifications ?", "Les modifications apportées à cet exercice seront perdues."],
     ] as const) {
       mockExitGuard.mockReset();
@@ -1378,7 +1012,7 @@ describe("ExerciseScreen — PRE-4 story 4.3", () => {
   const PLEIN_HOMME = require("../../../../assets/icons/body-zone-homme-plein.svg") as unknown;
 
   it("PRE4-4.3/AC2 — CC : icône Catégorie pleine au repos, feuille ouverte et après ✕ (PRE-5 3.2, arbitrage G-5), « développé » seulement pendant l'ouverture ; après ✓, le glyphe teinté + nom remplace l'icône (PRE-5 3.2)", async () => {
-    renderRoute({ params: { catalogueDefinitionId: "new" } });
+    renderRoute({});
     const button = () => screen.getByTestId("activity-editor-category-button");
     expect(await screen.findByTestId("activity-editor-category-icon")).toBeTruthy();
     expect(iconSource("activity-editor-category-icon")).toEqual(PLEIN_CATEGORIE);
@@ -1447,7 +1081,7 @@ describe("ExerciseScreen — PRE-4 story 4.3", () => {
     const categoryModal = () => screen.UNSAFE_queryAllByType(Modal).filter((modal) => modal.props.onDismiss !== undefined);
     try {
       for (const route of [
-        { params: { catalogueDefinitionId: "new" } },
+        {},
         { params: { exerciseId: "occ-1" }, exercises: [canonicalOccurrence({ categoryId: null })] },
       ] as Parameters<typeof renderRoute>[0][]) {
         renderRoute(route);
@@ -1519,9 +1153,6 @@ describe("ExerciseScreen — PRE-4 story 4.3 (AC12)", () => {
   it("PRE4-4.3/AC12 — CC : une Catégorie créée par ↑ est enregistrée dans le référentiel seul ; l'Exercice ne l'est qu'à Terminer ; un échec de création garde le Brouillon", async () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
     const reduceMotion = jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
-    const createActivityDefinition = jest
-      .fn<ActivityDefinitionService["createActivityDefinition"]>()
-      .mockResolvedValue({ ok: true, value: {} as ActivityDefinition });
     const DANSE: Category = { ...A_CATEGORY, id: "danse", name: "Danse", canonicalKey: "danse", isPredefined: false, displayOrder: null };
     const referential: Category[] = [A_CATEGORY];
     const createCategory = jest
@@ -1531,9 +1162,8 @@ describe("ExerciseScreen — PRE-4 story 4.3 (AC12)", () => {
         return { status: "OK", value: DANSE };
       })
       .mockRejectedValueOnce(new Error("disque plein"));
-    renderRoute({
-      params: { catalogueDefinitionId: "new" },
-      service: { createActivityDefinition },
+    // [PRE-9 A.3 du 04/11/2026 : Le parcours Catalogue (CC) retiré avec les anciennes définitions du Catalogue.] Création en Séance (CS) : Terminer n'inscrit l'Exercice que dans le brouillon.
+    const { updateDraft } = renderRoute({
       referential: {
         listCategories: jest.fn(async () => [...referential]),
         createCategory,
@@ -1563,7 +1193,7 @@ describe("ExerciseScreen — PRE-4 story 4.3 (AC12)", () => {
     });
     // Référentiel écrit seul ; l'Exercice n'est pas enregistré.
     expect(createCategory).toHaveBeenCalledTimes(1);
-    expect(createActivityDefinition).not.toHaveBeenCalled();
+    expect(updateDraft).not.toHaveBeenCalled();
     expect((await screen.findByTestId("category-picker-tag-danse")).props.accessibilityState).toEqual({ selected: true });
     // Échec injecté à la création suivante : message du code de départ, feuille ouverte,
     // « Danse » toujours marquée, Brouillon de l'Éditeur intact, aucun Exercice enregistré.
@@ -1574,7 +1204,7 @@ describe("ExerciseScreen — PRE-4 story 4.3 (AC12)", () => {
     expect(screen.getByTestId("category-picker-write-error").props.children).toBe(strings.referenceData.writeError);
     expect(screen.getByTestId("category-picker-tag-danse").props.accessibilityState).toEqual({ selected: true });
     expect(draft()).toEqual(before);
-    expect(createActivityDefinition).not.toHaveBeenCalled();
+    expect(updateDraft).not.toHaveBeenCalled();
     // ✓ affecte « Danse » ; `Terminer` enregistre l'Exercice avec la Catégorie créée.
     await act(async () => {
       fireEvent.press(screen.getByTestId("category-picker-confirm"));
@@ -1582,13 +1212,13 @@ describe("ExerciseScreen — PRE-4 story 4.3 (AC12)", () => {
     await waitFor(() => expect(screen.queryByTestId("category-picker-sheet")).toBeNull());
     expect(draft()).toEqual(before);
     await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
+      fireEvent.press(screen.getByTestId("exercise-finish-action"));
     });
-    expect(createActivityDefinition).toHaveBeenCalledTimes(1);
-    expect(createActivityDefinition.mock.calls[0]![0]).toMatchObject({
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    expect(updateDraft.mock.calls[0]![0].exercises![0]).toMatchObject({
       name: "Squat",
-      description: "Dos droit",
-      category: { kind: "EXISTING", categoryId: "danse" },
+      instruction: "Dos droit",
+      categoryId: "danse",
       bodyZoneIds: ["cuisses"],
     });
     reduceMotion.mockRestore();
@@ -1946,116 +1576,9 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     expect(screen.getByTestId("execution-sheet-phases-control-WITH").props.accessibilityState?.disabled).toBe(false);
   });
 
-  it("Catalogue : la Feuille reçoit le compteur de phase du Mouvement — une phase ajoutée reçoit l'identité du compteur (7), jamais max + 1 (MFN/AC30)", async () => {
-    const definition: ActivityDefinition = {
-      id: "def-1",
-      movementId: "mov-1",
-      movementNextPhaseId: 7,
-      name: "Planche",
-      description: "",
-      categoryId: "cardio",
-      bodyZoneIds: ["cuisses"],
-      sideMode: "UNILATERAL",
-      executionParameters: PHASED,
-      media: [],
-      createdAt: "now",
-      updatedAt: "now",
-    };
-    const updateActivityDefinition = jest
-      .fn<ActivityDefinitionService["updateActivityDefinition"]>()
-      .mockResolvedValue({ status: "UPDATED", value: definition });
-    renderRoute({
-      params: { catalogueDefinitionId: "def-1" },
-      service: { getActivityDefinition: jest.fn(async () => definition), updateActivityDefinition },
-    });
-    await screen.findByDisplayValue("Planche");
-    openSheet();
-    unfoldPhases();
-    // Catalogue : structure modifiable, croix disponible dès deux phases (D-438).
-    expect(isStructureLocked()).toBe(false);
-    fireEvent.press(screen.getByTestId("execution-sheet-phase-count-toggle"));
-    fireEvent(screen.getByTestId("execution-sheet-phase-count-increment"), "pressIn");
-    fireEvent(screen.getByTestId("execution-sheet-phase-count-increment"), "pressOut");
-    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
-    });
-    const input = updateActivityDefinition.mock.calls[0]![1];
-    const series = input.executionParameters.series;
-    expect(series.kind === "UNIFORM" ? series.workPhases.map((phase) => phase.id) : []).toEqual([1, 2, 7]);
-  });
+  // [PRE-9 A.3 du 04/11/2026 : Feuille ouverte au Catalogue (compteur de phase, frères incomplets) retirée avec les anciennes définitions du Catalogue.]
 
-  it("frère incomplet ouvert au Catalogue : Carte « Paramètres à compléter. », Terminer inactif ; Feuille : durée « — », D « — », ✓ indisponible", async () => {
-    const incomplete: ExecutionParameters = {
-      ...PHASED,
-      series: {
-        ...(PHASED.series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>),
-        target: { kind: "UNSET" },
-        workPhases: [
-          { id: 1, label: "Descente", durationSeconds: 6 },
-          { id: 2, label: "Maintien", durationSeconds: 0 },
-        ],
-      },
-    };
-    const definition: ActivityDefinition = {
-      id: "def-2",
-      movementId: "mov-1",
-      movementNextPhaseId: 3,
-      missingPhaseIds: [2],
-      name: "Planche",
-      description: "",
-      categoryId: "cardio",
-      bodyZoneIds: ["cuisses"],
-      sideMode: "UNILATERAL",
-      executionParameters: incomplete,
-      media: [],
-      createdAt: "now",
-      updatedAt: "now",
-    };
-    renderRoute({ params: { catalogueDefinitionId: "def-2" }, service: { getActivityDefinition: jest.fn(async () => definition) } });
-    await screen.findByDisplayValue("Planche");
-    expect(String(screen.getByTestId("exercise-parameters-phrase").props.children)).toBe(strings.executionParameters.card.incomplete);
-    expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
-    openSheet();
-    const sheet = strings.executionParameters.sheet;
-    expect(String(screen.getByTestId("execution-sheet-phase-row-2-duration-value").props.children)).toBe(sheet.unset);
-    // PRE-7 (D-446) : « Durée d'une série » garde sa pastille modifiable, ici « — » (Cible lue à renseigner).
-    expect(String(screen.getByTestId("execution-sheet-target-value-text").props.children)).toBe(sheet.unset);
-    expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
-  });
 
-  it("PRE-7 (D-446) — frère incomplet à Cible chiffrée ouvert au Catalogue : Carte « Paramètres à compléter. », Terminer inactif", async () => {
-    const incomplete: ExecutionParameters = {
-      ...PHASED,
-      series: {
-        ...(PHASED.series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>),
-        target: { kind: "NUMBER", value: 6 },
-        workPhases: [
-          { id: 1, label: "Descente", durationSeconds: 6 },
-          { id: 2, label: "Maintien", durationSeconds: 0 },
-        ],
-      },
-    };
-    const definition: ActivityDefinition = {
-      id: "def-3",
-      movementId: "mov-1",
-      movementNextPhaseId: 3,
-      missingPhaseIds: [2],
-      name: "Planche",
-      description: "",
-      categoryId: "cardio",
-      bodyZoneIds: ["cuisses"],
-      sideMode: "UNILATERAL",
-      executionParameters: incomplete,
-      media: [],
-      createdAt: "now",
-      updatedAt: "now",
-    };
-    renderRoute({ params: { catalogueDefinitionId: "def-3" }, service: { getActivityDefinition: jest.fn(async () => definition) } });
-    await screen.findByDisplayValue("Planche");
-    expect(String(screen.getByTestId("exercise-parameters-phrase").props.children)).toBe(strings.executionParameters.card.incomplete);
-    expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
-  });
 });
 
 /**

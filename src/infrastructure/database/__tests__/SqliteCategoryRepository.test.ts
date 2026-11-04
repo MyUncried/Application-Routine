@@ -4,7 +4,7 @@ import { initializeDatabase } from "@/infrastructure/database/initializeDatabase
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import { seedCatalogueDefinition } from "@/infrastructure/database/testing/seedCatalogueDefinition";
+import { seedMovement } from "@/infrastructure/database/testing/seedMovement";
 
 function makeUuidFactory(prefix: string) {
   let counter = 0;
@@ -207,9 +207,18 @@ describe("SqliteCategoryRepository", () => {
       expect(await repository.isUsed("cardio")).toBe(false);
     });
 
-    it("is true once an Exercise of the Catalogue references the Category", async () => {
-      // PRE-7 (A1.2) : la Catégorie est portée par le Mouvement de l'Exercice.
-      await seedCatalogueDefinition(database, { id: "def-1", categoryId: "cardio" });
+    // [A.3 du 04/11/2026 : règle conservatrice, À CLARIFIER (classe C) — utilisée dès qu'un Mouvement,
+    // archivé ou non, la référence ; les anciennes définitions du Catalogue sont supprimées.]
+    it("is true once a Movement references the Category (Catégorie portée par le Mouvement)", async () => {
+      await seedMovement(database, { movementId: "mov-def-1", categoryId: "cardio" });
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      expect(await repository.isUsed("cardio")).toBe(true);
+      expect(await repository.isUsed("renforcement")).toBe(false);
+    });
+
+    it("stays true when the only referencing Movement is archived", async () => {
+      await seedMovement(database, { movementId: "mov-archived", categoryId: "cardio" });
+      await database.runAsync("UPDATE movements SET archived_at = 'now' WHERE id = 'mov-archived'");
       const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
       expect(await repository.isUsed("cardio")).toBe(true);
     });

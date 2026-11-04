@@ -72,8 +72,8 @@ const FENTES = movement("mv-fentes", "Fentes avant");
 const service = {
   supportsMovementSearch: true,
   listMovementChoices: async () => [
-    { movement: SQUATS, definitionCount: 0, level: { rank: 3, total: 3 } },
-    { movement: FENTES, definitionCount: 0, level: null },
+    { movement: SQUATS, level: { rank: 3, total: 3 } },
+    { movement: FENTES, level: null },
   ],
 } as never;
 

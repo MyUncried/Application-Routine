@@ -3,11 +3,11 @@ import { Menu } from "@expo/ui/swift-ui";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { Platform, View } from "react-native";
 
-import { activityDefinitionToDraftExercise, type CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
+import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { Category } from "@/domain/categories/Category";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
-import { createEmptyDraft, toSessionDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import { createEmptyDraft, createExerciseDraft, toSessionDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ProfileService } from "@/features/preferences/ProfileService";
@@ -18,10 +18,10 @@ import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import { SessionDraftContext, type SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { createTestMovement, type TestMovementOrigin } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
@@ -74,7 +74,6 @@ let sequence = 0;
 const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW),
     undefined,
     new SqliteBodyZoneRepository(database),
     undefined,
@@ -102,14 +101,23 @@ const input = (name: string, description: string): CreateActivityDefinitionInput
   executionParameters: durationParameters(30, 3, 10),
 });
 
-async function create(
-  value: CreateActivityDefinitionInput,
-  origin: Parameters<ActivityDefinitionService["createActivityDefinitionWithOrigin"]>[1] = { kind: "INDEPENDENT" },
-) {
-  const result = await service().createActivityDefinitionWithOrigin(value, origin);
-  if (result.status !== "CREATED") throw new Error(result.status);
-  return result.value;
+/** [PRE-9 A.3 du 04/11/2026 : Mouvement créé directement, sans ancienne définition du Catalogue.] */
+async function create(value: CreateActivityDefinitionInput, origin: TestMovementOrigin = { kind: "INDEPENDENT" }) {
+  const { movementId } = await createTestMovement(database, value, origin, ids("mov"), () => NOW);
+  return { ...value, movementId };
 }
+
+/** Occurrence de Séance du Mouvement créé, contenu copié. */
+const occurrenceOf = (movement: CreateActivityDefinitionInput & { readonly movementId: string }, id: string): SessionDraftExercise => ({
+  ...createExerciseDraft(id, null),
+  name: movement.name,
+  instruction: movement.description,
+  categoryId: movement.category.kind === "EXISTING" ? movement.category.categoryId : null,
+  bodyZoneIds: [...movement.bodyZoneIds],
+  executionParameters: movement.executionParameters,
+  sideMode: movement.executionParameters.sideMode,
+  sourceMovementId: movement.movementId,
+});
 
 /** Groupe de deux niveaux : « Squats assistés » → « Squats ». */
 async function twoLevels() {
@@ -128,7 +136,7 @@ async function sessionWithSquats() {
   const created = await sessionService().createSession({
     ...createEmptyDraft(),
     name: "Jambes",
-    exercises: [activityDefinitionToDraftExercise(levels.squats, "occ-1", null)],
+    exercises: [occurrenceOf(levels.squats, "occ-1")],
   });
   if (!created.ok) throw new Error(JSON.stringify(created.violations));
   return { ...levels, draft: toSessionDraft(created.value) };
@@ -192,14 +200,7 @@ const ROOT = ["activity-editor-level-change", "activity-editor-level-add", "acti
 const submenuLabel = () => screen.getByTestId("activity-editor-level-change", anyNode).props.label;
 
 describe("PRE-7 R-9 — menu Niveau à trois entrées (D-448 point 9)", () => {
-  it("Catalogue en modification : « Naviguer vers », « Ajouter un niveau », « Réordonner les niveaux »", async () => {
-    const { squats } = await twoLevels();
-    await renderEditor({ catalogueDefinitionId: squats.id });
-    expect(rootEntries()).toEqual(ROOT);
-    expect(submenuLabel()).toBe("Naviguer vers");
-    expect(screen.getByTestId("activity-editor-level-add", anyNode).props.label).toBe("Ajouter un niveau");
-    expect(screen.getByTestId("activity-editor-level-reorder", anyNode).props.label).toBe("Réordonner les niveaux");
-  });
+  // [PRE-9 A.3 du 04/11/2026 : contexte « Catalogue en modification » retiré avec les anciennes définitions du Catalogue.]
 
   it("occurrence de Séance : même racine, sous-menu « Changer de niveau »", async () => {
     const { draft } = await sessionWithSquats();
@@ -208,12 +209,7 @@ describe("PRE-7 R-9 — menu Niveau à trois entrées (D-448 point 9)", () => {
     expect(submenuLabel()).toBe("Changer de niveau");
   });
 
-  it("reprise au Catalogue : même racine, sous-menu « Changer de niveau »", async () => {
-    const { squats } = await twoLevels();
-    await renderEditor({ catalogueDefinitionId: "new", movementId: squats.movementId });
-    expect(rootEntries()).toEqual(ROOT);
-    expect(submenuLabel()).toBe("Changer de niveau");
-  });
+  // [PRE-9 A.3 du 04/11/2026 : contexte « reprise au Catalogue » retiré avec les anciennes définitions du Catalogue.]
 });
 
 // PRE-9 (recette iPhone du 29/10 ; CE-MVT-01 §3, §13, DSF Mouvements l.67, ch13 l.268) : « crayon interrupteur de l'occurrence de Séance » (R-9) retiré —

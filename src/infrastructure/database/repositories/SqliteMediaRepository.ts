@@ -1,12 +1,8 @@
-import type { ActivityMediaWithAsset, MediaLinkInput } from "@/domain/media/ActivityMedia";
+import type { MediaLinkInput } from "@/domain/media/ActivityMedia";
 import { isValidNewMediaAsset, type MediaAsset } from "@/domain/media/MediaAsset";
 import type { MediaRepository } from "@/domain/media/MediaRepository";
 import type { Database } from "@/infrastructure/database/Database";
-import type {
-  JoinedMediaAssetColumns,
-  MovementMediaRow,
-  MediaAssetRow,
-} from "@/infrastructure/database/types/DatabaseRows";
+import type { JoinedMediaAssetColumns, MediaAssetRow } from "@/infrastructure/database/types/DatabaseRows";
 
 /** Colonnes de l'asset jointes à un lien (`asset_*`). */
 export const JOINED_ASSET_COLUMNS = `
@@ -31,8 +27,8 @@ export class MediaAssetWriteError extends Error {
 
 /**
  * Médias ordonnés (V2-PRE-1, `migration007` ; PRE-3, `migration009`).
- * PRE-7 (A1.2, `migration012`) : les médias d'un Exercice du Catalogue sont
- * ceux de son Mouvement (`movement_media`, contenu partagé). PRE-7 (R-3,
+ * PRE-7 (A1.2, `migration012`) : les médias d'un Exercice sont ceux de son
+ * Mouvement (`movement_media`, contenu partagé). PRE-7 (R-3,
  * `migration013`, D-445 C05) : les occurrences de Séance n'ont plus de liens
  * propres (`session_activity_media` supprimée) ; elles lisent ceux du Mouvement.
  * Plusieurs médias DISTINCTS peuvent exister pour un même Exercice. Un
@@ -42,13 +38,6 @@ export class MediaAssetWriteError extends Error {
  */
 export class SqliteMediaRepository implements MediaRepository {
   constructor(private readonly database: Database) {}
-
-  async listForActivityDefinition(
-    activityDefinitionId: string,
-  ): Promise<readonly ActivityMediaWithAsset[]> {
-    const byDefinition = await listDefinitionMediaByIds(this.database, [activityDefinitionId]);
-    return byDefinition.get(activityDefinitionId) ?? [];
-  }
 
   async findAsset(assetId: string): Promise<MediaAsset | null> {
     const row = await this.database.getFirstAsync<MediaAssetRow>(
@@ -97,53 +86,6 @@ export function mapJoinedAsset(assetId: string, row: JoinedMediaAssetColumns): M
     width: row.asset_width,
     height: row.asset_height,
   });
-}
-
-/** PRE-7 (A1.2) : lien de média du Mouvement, exposé comme média de la définition qui le référence. */
-function mapDefinitionMediaRow(row: MovementMediaRow & { activity_definition_id: string }): ActivityMediaWithAsset {
-  return {
-    id: row.id,
-    activityDefinitionId: row.activity_definition_id,
-    assetId: row.asset_id,
-    position: row.position,
-    asset: mapJoinedAsset(row.asset_id, row),
-  };
-}
-
-function placeholders(values: readonly unknown[]): string {
-  return values.map(() => "?").join(", ");
-}
-
-/** Liens ordonnés (ceux de leur Mouvement) de plusieurs définitions en UNE requête (aucun N+1). */
-export async function listDefinitionMediaByIds(
-  database: Database,
-  activityDefinitionIds: readonly string[],
-): Promise<ReadonlyMap<string, readonly ActivityMediaWithAsset[]>> {
-  const byId = new Map<string, ActivityMediaWithAsset[]>();
-  if (activityDefinitionIds.length === 0) {
-    return byId;
-  }
-  const rows = await database.getAllAsync<MovementMediaRow & { activity_definition_id: string }>(
-    `SELECT
-       movement_media.id AS id,
-       activity_definitions.id AS activity_definition_id,
-       movement_media.movement_id AS movement_id,
-       movement_media.asset_id AS asset_id,
-       movement_media.position AS position,
-       ${JOINED_ASSET_COLUMNS}
-     FROM activity_definitions
-     JOIN movement_media ON movement_media.movement_id = activity_definitions.movement_id
-     JOIN media_assets ON media_assets.id = movement_media.asset_id
-     WHERE activity_definitions.id IN (${placeholders(activityDefinitionIds)})
-     ORDER BY activity_definitions.id ASC, movement_media.position ASC`,
-    activityDefinitionIds,
-  );
-  for (const row of rows) {
-    const list = byId.get(row.activity_definition_id) ?? [];
-    list.push(mapDefinitionMediaRow(row));
-    byId.set(row.activity_definition_id, list);
-  }
-  return byId;
 }
 
 /**

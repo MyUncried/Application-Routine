@@ -14,7 +14,6 @@ import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
 import type { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -50,7 +49,6 @@ let sequence = 0;
 const movements = () => new SqliteMovementRepository(database, () => `grp-${++sequence}`, () => NOW);
 const activityService = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, () => `def-${++sequence}`, () => NOW),
     undefined,
     undefined,
     undefined,

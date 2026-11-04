@@ -51,7 +51,6 @@ describe("PRE-8 B.1 — Mouvement autonome depuis le Catalogue", () => {
     const result = await service().createIndependent(movement("m1", "Squats", { phases: [{ id: 1, label: "Descente" }], nextPhaseId: 2 }));
     expect(result).toMatchObject({ status: "SAVED", movement: { id: "m1", levelGroup: null } });
     expect(await service().findMovement("m1")).toMatchObject({ name: "Squats", phases: [{ id: 1, label: "Descente" }] });
-    expect(await count("activity_definitions")).toBe(0);
     expect(await count("activities")).toBe(0);
     expect(await service().listEntries()).toEqual([expect.objectContaining({ level: null, exerciseCount: 0 })]);
   });

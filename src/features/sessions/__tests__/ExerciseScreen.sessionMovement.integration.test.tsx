@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
-import { activityDefinitionToDraftExercise, type CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
+import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { durationParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { Category } from "@/domain/categories/Category";
@@ -25,10 +25,10 @@ import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import { SessionDraftContext, type SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -91,7 +91,6 @@ let sequence = 0;
 const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW),
     undefined,
     new SqliteBodyZoneRepository(database),
     undefined,
@@ -170,21 +169,30 @@ async function press(testID: string) {
   await settle(50);
 }
 
-/** Séance enregistrée avec deux occurrences du Mouvement d'un Exercice du Catalogue, relue en brouillon. */
+/**
+ * Séance enregistrée avec deux occurrences d'un Mouvement enregistré, relue en brouillon. [PRE-9 A.3
+ * du 04/11/2026 : Mouvement créé directement, sans ancienne définition du Catalogue.]
+ */
 async function sessionWithTwoOccurrences(parameters: ExecutionParameters = PHASED) {
-  const result = await service().createActivityDefinitionWithOrigin(input(parameters), { kind: "INDEPENDENT" });
-  if (result.status !== "CREATED") throw new Error(result.status);
-  const definition = result.value;
+  const value = input(parameters);
+  const { movementId } = await createTestMovement(database, value, { kind: "INDEPENDENT" }, ids("mov"), () => NOW);
+  const occurrence = (id: string): SessionDraftExercise => ({
+    ...createExerciseDraft(id, null),
+    name: value.name,
+    instruction: value.description,
+    categoryId: value.category.kind === "EXISTING" ? value.category.categoryId : null,
+    bodyZoneIds: [...value.bodyZoneIds],
+    executionParameters: value.executionParameters,
+    sideMode: value.executionParameters.sideMode,
+    sourceMovementId: movementId,
+  });
   const created = await sessionService().createSession({
     ...createEmptyDraft(),
     name: "Jambes",
-    exercises: [
-      activityDefinitionToDraftExercise(definition, "occ-1", null),
-      activityDefinitionToDraftExercise(definition, "occ-2", null),
-    ],
+    exercises: [occurrence("occ-1"), occurrence("occ-2")],
   });
   if (!created.ok) throw new Error(JSON.stringify(created.violations));
-  return { definition, draft: toSessionDraft(created.value) };
+  return { movementId, draft: toSessionDraft(created.value) };
 }
 
 const occurrenceOf = (id: string) => currentDraft.exercises.find((exercise) => exercise.id === id)!;

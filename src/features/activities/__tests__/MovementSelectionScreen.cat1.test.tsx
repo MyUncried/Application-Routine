@@ -9,7 +9,6 @@ import type { ReferentialService } from "@/features/reference-data/ReferentialSe
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { markMovementsInSession } from "@/features/sessions/movementExercises";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -70,7 +69,6 @@ afterEach(() => {
 async function renderSelection(inSession: readonly string[]) {
   markMovementsInSession(inSession);
   const service = new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, () => `def-${++sequence}`, () => NOW),
     undefined,
     undefined,
     undefined,

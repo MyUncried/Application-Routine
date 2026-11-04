@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import {
   activityDefinitionToDraftExercise,
-  activityDefinitionToInput,
   validateActivityDefinitionInput,
   type ActivityDefinition,
   type CreateActivityDefinitionInput,
@@ -20,8 +19,8 @@ import type { Session } from "@/domain/sessions/Session";
 import { createEmptyDraft, toCreateSessionInput, toSessionDraft, toUpdateSessionInput } from "@/domain/sessions/SessionDraft";
 import { DATABASE_VERSION } from "@/infrastructure/database/constants";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 /**
@@ -35,6 +34,12 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
  * seule v4 (forme Catalogue des définitions, forme résolue des copies) ; une
  * ligne v2 ou v3 n'est plus relue ni convertie. Les mêmes valeurs (charge sous
  * Sans, phases, côtés) sont prouvées sur les formats v4.
+ *
+ * [A.3 du 04/11/2026 : les cas propres aux anciennes définitions du Catalogue (écriture, relecture,
+ * refus d'une ligne Catalogue ancienne ou corrompue) sont retirés avec leur dépôt — décision de Hermann
+ * du 04/11/2026 : « Hermann abandonne la conversion sans perte prévue par A.4 : les anciens exercices
+ * concernés par cette conversion peuvent être supprimés plutôt que migrés. » Les copies de Séance
+ * partent d'un Mouvement créé seul et d'une vue de définition construite en mémoire.]
  */
 
 const phased = (sideMode: "RIGHT_LEFT" | "LEFT_RIGHT" = "LEFT_RIGHT"): ExecutionParameters =>
@@ -54,9 +59,6 @@ const phased = (sideMode: "RIGHT_LEFT" | "LEFT_RIGHT" = "LEFT_RIGHT"): Execution
     ],
   });
 
-const variableUnderSans = (): ExecutionParameters =>
-  variableParameters({ mode: "REPETITIONS", rows: [[12, 10, 20], [10, 10, 0], ["FAILURE", 0, 12.75]], sideMode: "RIGHT_LEFT", loadEnabled: false });
-
 /** Donnée PRE-4 (v2) : la forme que `migration010` et les builds PRE-4 écrivent. */
 const pre4 = (): ExecutionParameters =>
   variableParameters({ mode: "DURATION", rows: [[30, 10], [45, 20]], sideMode: "LEFT_RIGHT", sideOrder: "BY_SERIES", sideRecoverySeconds: 5, cadenceBeepIntervalSeconds: 2 });
@@ -75,7 +77,22 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
     database.close();
   });
 
-  const definitions = () => new SqliteActivityDefinitionRepository(database, ids("def"));
+  /** Mouvement créé seul, vu comme la définition dont la copie est faite (paramètres saisis). */
+  async function definitionOf(value: CreateActivityDefinitionInput): Promise<ActivityDefinition> {
+    const { movementId } = await createTestMovement(database, value, { kind: "INDEPENDENT" }, ids("mov"));
+    return {
+      id: `def-${movementId}`,
+      movementId,
+      name: value.name,
+      description: value.description,
+      executionParameters: value.executionParameters,
+      categoryId: "cardio",
+      bodyZoneIds: value.bodyZoneIds,
+      sideMode: value.executionParameters.sideMode,
+      createdAt: "now",
+      updatedAt: "now",
+    };
+  }
   const sessions = () => new SqliteSessionRepository(database, ids("ses"));
 
   // PRE-7 (R-3, C01) : chaque définition créée ici est un Mouvement distinct, de nom unique.
@@ -93,14 +110,6 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
       throw new Error(JSON.stringify(validated.violations));
     }
     return validated.value;
-  }
-
-  async function storedDefinitionJson(id: string): Promise<string> {
-    const row = await database.getFirstAsync<{ execution_parameters: string }>(
-      "SELECT execution_parameters FROM activity_definitions WHERE id = ?",
-      [id],
-    );
-    return row!.execution_parameters;
   }
 
   /** PRE-7 (R-3, C05) : une occurrence stocke la forme Catalogue v5 (durées par `phaseId`, sans libellé). */
@@ -122,33 +131,8 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
     return (await sessions().findById((await sessions().create(created.value)).id))!;
   }
 
-  it("PRE-7 (A1.2, D-440) — Définition PRE-4 (v2) ou PRE-5 (v3) restée en base : refusée, jamais relue ni convertie", async () => {
-    const created = await definitions().create(input(pre4()));
-    // PRE-7 (R-2) : la forme canonique v5, et la même grammaire sous l'étiquette v3, sont refusées.
-    const canonical = serializeExecutionParameters(pre4());
-    for (const legacy of [serializeV2(pre4()), canonical, canonical.replace('"version":5', '"version":3')]) {
-      await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [legacy, created.id]);
-      await expect(definitions().findById(created.id)).rejects.toThrow(ExecutionParametersDataError);
-    }
-  });
-
-  it("Définition v4 : charge sous Sans (valeurs non nulles), phases (id, libellés, durées) et LEFT_RIGHT / RIGHT_LEFT conservés après écriture et relecture", async () => {
-    for (const parameters of [phased("LEFT_RIGHT"), phased("RIGHT_LEFT"), variableUnderSans()]) {
-      const created = await definitions().create(input(parameters));
-      // PRE-7 (A1.2) : forme Catalogue v4, libellés portés par le Mouvement.
-      const catalog = serializeCatalogExecutionParameters(splitResolvedParameters(parameters).parameters);
-      expect(await storedDefinitionJson(created.id)).toBe(catalog);
-      const reread = (await definitions().findById(created.id))!;
-      expect(reread.executionParameters).toEqual(parameters);
-      expect(reread.sideMode).toBe(parameters.sideMode);
-      // Réécrite inchangée (identités de phases conservées par le Mouvement).
-      await definitions().update(created.id, activityDefinitionToInput(reread));
-      expect(await storedDefinitionJson(created.id)).toBe(catalog);
-    }
-  });
-
   it("projection d'une Copie à phases : duration_seconds = Σ des phases, dans le CHECK 1..5999 (FR-40)", async () => {
-    const definition = (await definitions().findById((await definitions().create(input(phased()))).id))!;
+    const definition = await definitionOf(input(phased()));
     await continueNew(definition, "occ-1");
     const row = await database.getFirstAsync<Record<string, unknown>>(
       "SELECT execution_mode, duration_seconds, series_count, pause_seconds, side_mode FROM activities WHERE id = 'occ-1'",
@@ -157,7 +141,7 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
   });
 
   it("Copie de Séance v2, v3 ou v4 restée en base refusée (D-440 ; PRE-7, Q2) ; copie v5 (forme Catalogue, R-3) à phases et charge sous Sans relue à l'identique", async () => {
-    const pre4Definition = (await definitions().findById((await definitions().create(input(pre4()))).id))!;
+    const pre4Definition = await definitionOf(input(pre4()));
     const session = await continueNew(pre4Definition, "occ-1");
     expect(await storedActivityJsons()).toEqual([occurrenceJson(pre4())]);
     // PRE-7 (R-2, D-446) : forme canonique et forme résolue confondues en v5 ; la v3 et la v4 ne sont plus lues des copies.
@@ -167,7 +151,7 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
       await expect(sessions().findById(session.id)).rejects.toThrow(ExecutionParametersDataError);
     }
 
-    const phasedDefinition = (await definitions().findById((await definitions().create(input(phased()))).id))!;
+    const phasedDefinition = await definitionOf(input(phased()));
     const phasedSession = await continueNew(phasedDefinition, "occ-2");
     const copy = phasedSession.cycle.beforeTour?.[0] ?? phasedSession.cycle.tour.exercises[0]!;
     expect(copy.executionParameters).toEqual(phased());
@@ -181,24 +165,9 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
     expect((await storedActivityJsons())[1]).toBe(occurrenceJson(phased()));
   });
 
-  it("une ligne Catalogue v5 incomplète, v3, v4 (PRE-7, Q2) ou de version inconnue lève ExecutionParametersDataError (sans perte silencieuse)", async () => {
-    const created = await definitions().create(input(phased()));
-    const json = await storedDefinitionJson(created.id);
-    expect(json.startsWith('{"version":5,')).toBe(true);
-    for (const corrupt of [
-      json.replace(',"loadEnabled":false', ""),
-      json.replace('"version":5', '"version":3'),
-      json.replace('"version":5', '"version":4'),
-      json.replace('"version":5', '"version":9'),
-    ]) {
-      await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [corrupt, created.id]);
-      await expect(definitions().findById(created.id)).rejects.toThrow(ExecutionParametersDataError);
-    }
-  });
-
   // PRE-5 n'ajoutait aucune migration ; PRE-6 ajoute `migration011`, PRE-7 `migration012` (A1.2) et `migration013` (R-3), PRE-8 `migration014` (A.3) et `migration015` (B.8).
   it("PRE-5 n'ajoute aucune migration : DATABASE_VERSION vaut 18 depuis PRE-9 (A.2b) et la base migrée est à la version courante", async () => {
-    expect(DATABASE_VERSION).toBe(20);
+    expect(DATABASE_VERSION).toBe(21);
     const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
     expect(version?.user_version).toBe(DATABASE_VERSION);
   });

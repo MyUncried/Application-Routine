@@ -24,7 +24,8 @@ export type CategoryMutationResult =
  * d'une Catégorie personnalisée DANS LA TRANSACTION D'EXERCICE reste portée
  * par `SqliteActivityDefinitionRepository` (D-107) — les opérations
  * explicites ci-dessous (modale de sélection) sont distinctes et jamais
- * invoquées par cette transaction.
+ * invoquées par cette transaction. [PRE-9 A.3 du 04/11/2026 : ce dépôt des anciennes définitions
+ * du Catalogue est retiré avec elles.]
  */
 export interface CategoryRepository {
   /**
@@ -47,6 +48,10 @@ export interface CategoryRepository {
   recolor(id: string, color: CategoryColor): Promise<CategoryMutationResult>;
   /** Retire logiquement — les affectations existantes sont conservées, jamais de nouvelle affectation (T16). */
   retire(id: string): Promise<CategoryMutationResult>;
-  /** `true` si au moins un Exercice du Catalogue utilise cette Catégorie — détermine le message de suppression (§4.10 L135). */
+  /**
+   * `true` si la Catégorie est utilisée — détermine le message de suppression (§4.10 L135).
+   * [PRE-9 A.3 du 04/11/2026 : « utilisée » = référencée par au moins un Mouvement, archivé ou non
+   * (règle conservatrice, À CLARIFIER, classe C) ; auparavant : par un Exercice du Catalogue.]
+   */
   isUsed(id: string): Promise<boolean>;
 }

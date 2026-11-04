@@ -32,7 +32,7 @@ function choice(id: string, name: string, overrides: Partial<MovementChoice> = {
     aliases: [],
     levelGroup: groupId === null ? null : { groupId, sortKey: overrides.level?.rank ?? 1 },
   };
-  return { movement, definitionCount: 1, level: null, ...overrides };
+  return { movement, level: null, ...overrides };
 }
 
 const squats = choice("squats", "Squats", { level: { rank: 2, total: 2 } }, "famille-squat");

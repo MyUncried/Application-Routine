@@ -5,69 +5,31 @@ import { SqliteMediaRepository ,
   MediaAssetWriteError,} from "@/infrastructure/database/repositories/SqliteMediaRepository";
 import { replaceMovementMediaLinks } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import { seedCatalogueDefinition } from "@/infrastructure/database/testing/seedCatalogueDefinition";
+import { seedMovement } from "@/infrastructure/database/testing/seedMovement";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 
-/** PRE-7 (A1.2) : définition et son Mouvement `mov-{id}`, qui porte les médias. */
+/**
+ * Mouvement `mov-{id}`, qui porte les médias. [PRE-9 A.3 du 04/11/2026 : plus d'ancienne définition du
+ * Catalogue ; la lecture des médias d'une définition (`listForActivityDefinition`) est retirée avec
+ * elles — les liens sont relus sur `movement_media`.]
+ */
 async function seedActivityDefinition(database: NodeSqliteDatabase, id: string): Promise<void> {
-  // PRE-7 (R-3, C01) : un nom de Mouvement par définition (nom unique).
-  await seedCatalogueDefinition(database, { id, name: `Squat ${id}` });
+  await seedMovement(database, { movementId: `mov-${id}`, name: `Squat ${id}` });
 }
 
-describe("SqliteMediaRepository", () => {
-  let database: NodeSqliteDatabase;
-
-  beforeEach(async () => {
-    database = NodeSqliteDatabase.openInMemory();
-    await migrateDatabase(database);
-  });
-
-  afterEach(() => {
-    database.close();
-  });
-
-  it("returns an empty list for an Exercise without media", async () => {
-    await seedActivityDefinition(database, "def-1");
-    const repository = new SqliteMediaRepository(database);
-    expect(await repository.listForActivityDefinition("def-1")).toEqual([]);
-  });
-
-  it("lists several distinct media assets for the same Exercise, ordered by position", async () => {
-    await seedActivityDefinition(database, "def-1");
-    await database.runAsync(
-      "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now'), ('asset-2', 'file://a2', 'now')",
-    );
-    await database.runAsync(
-      `INSERT INTO movement_media (id, movement_id, asset_id, position) VALUES
-        ('am-2', 'mov-def-1', 'asset-2', 1),
-        ('am-1', 'mov-def-1', 'asset-1', 0)`,
-    );
-
-    const repository = new SqliteMediaRepository(database);
-    const items = await repository.listForActivityDefinition("def-1");
-
-    expect(items.map((item) => item.id)).toEqual(["am-1", "am-2"]);
-    expect(items.map((item) => item.asset.uri)).toEqual(["file://a1", "file://a2"]);
-  });
-
-  it("never mixes media from a different Exercise", async () => {
-    await seedActivityDefinition(database, "def-1");
-    await seedActivityDefinition(database, "def-2");
-    await database.runAsync(
-      "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now'), ('asset-2', 'file://a2', 'now')",
-    );
-    await database.runAsync(
-      `INSERT INTO movement_media (id, movement_id, asset_id, position) VALUES
-        ('am-1', 'mov-def-1', 'asset-1', 0),
-        ('am-2', 'mov-def-2', 'asset-2', 0)`,
-    );
-
-    const repository = new SqliteMediaRepository(database);
-    const items = await repository.listForActivityDefinition("def-1");
-
-    expect(items.map((item) => item.id)).toEqual(["am-1"]);
-  });
-});
+/** Liens ordonnés du Mouvement, avec la taille de leur asset. */
+async function listMovementMedia(
+  database: NodeSqliteDatabase,
+  movementId: string,
+): Promise<readonly { readonly assetId: string; readonly position: number; readonly asset: { readonly sizeBytes: number | null } }[]> {
+  const rows = await database.getAllAsync<{ asset_id: string; position: number; size_bytes: number | null }>(
+    `SELECT movement_media.asset_id, movement_media.position, media_assets.size_bytes
+     FROM movement_media JOIN media_assets ON media_assets.id = movement_media.asset_id
+     WHERE movement_media.movement_id = ? ORDER BY movement_media.position`,
+    [movementId],
+  );
+  return rows.map((row) => ({ assetId: row.asset_id, position: row.position, asset: { sizeBytes: row.size_bytes } }));
+}
 
 /**
  * PRE-3 — écritures transactionnelles des médias (NodeSqliteDatabase REAL).
@@ -113,8 +75,7 @@ describe("SqliteMediaRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
         uuid,
       ),
     );
-    const repository = new SqliteMediaRepository(database);
-    const listed = await repository.listForActivityDefinition("def-1");
+    const listed = await listMovementMedia(database, "mov-def-1");
     expect(listed.map((item) => [item.assetId, item.position])).toEqual([
       ["b", 0],
       ["a", 1],
@@ -126,7 +87,7 @@ describe("SqliteMediaRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
         replaceMovementMediaLinks(transaction, "mov-def-1", [{ assetId: "ghost" }], uuid),
       ),
     ).rejects.toThrow();
-    expect((await repository.listForActivityDefinition("def-1")).map((item) => item.assetId)).toEqual(["b", "a"]);
+    expect((await listMovementMedia(database, "mov-def-1")).map((item) => item.assetId)).toEqual(["b", "a"]);
     // Asset invalide : refusé avant toute écriture.
     await expect(
       database.withExclusiveTransactionAsync((transaction) =>

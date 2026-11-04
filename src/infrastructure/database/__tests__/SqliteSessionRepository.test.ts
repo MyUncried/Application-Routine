@@ -22,7 +22,7 @@ import {
  RetiredBodyZoneError,
  RetiredLabelError,
  RetiredOccurrenceCategoryError } from "@/infrastructure/database/repositories/SqliteSessionRepository";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { splitResolvedParameters } from "@/domain/activities/Movement";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
@@ -1674,15 +1674,14 @@ describe("SqliteSessionRepository", () => {
     // contenu recopié, aucune affectation nouvelle ; la garde ne porte que sur les Mouvements
     // nouveaux ou corrigés depuis la Séance.
     async function definitionWithZones(bodyZoneIds: readonly string[]): Promise<string> {
-      const definitions = new SqliteActivityDefinitionRepository(database, () => "def-q53");
-      const definition = await definitions.create({
-        name: "Squat",
-        description: null,
-        category: { kind: "EXISTING", categoryId: "cardio" },
-        bodyZoneIds,
-        executionParameters: durationParameters(30),
-      });
-      return definition.movementId;
+      // [A.3 du 04/11/2026 : Mouvement créé sans ancienne définition du Catalogue.]
+      const created = await createTestMovement(
+        database,
+        { name: "Squat", description: null, category: { kind: "EXISTING", categoryId: "cardio" }, bodyZoneIds, executionParameters: durationParameters(30) },
+        { kind: "INDEPENDENT" },
+        ids("q53"),
+      );
+      return created.movementId;
     }
 
     it("PRE4-Q53/create-copy — nouvelle Séance avec la Copie d'un Exercice dont une Zone a été retirée : enregistrée, affectation conservée", async () => {
@@ -1786,14 +1785,14 @@ describe("SqliteSessionRepository", () => {
    */
   describe("PRE4-Q53 (8) — Catégorie et Étiquette retirées héritées", () => {
     it("PRE4-Q53/category-copy — nouvelle Séance avec la Copie d'une Définition dont la Catégorie a été retirée : enregistrée ; occurrence existante passant à une autre Catégorie retirée : refusée", async () => {
-      const definitions = new SqliteActivityDefinitionRepository(database, () => "def-q53-cat");
-      const definition = await definitions.create({
-        name: "Squat",
-        description: null,
-        category: { kind: "EXISTING", categoryId: "cardio" },
-        bodyZoneIds: ["cuisses"],
-        executionParameters: durationParameters(30),
-      });
+      // [A.3 du 04/11/2026 : Mouvement créé sans ancienne définition du Catalogue.]
+      let sequence = 0;
+      const definition = await createTestMovement(
+        database,
+        { name: "Squat", description: null, category: { kind: "EXISTING", categoryId: "cardio" }, bodyZoneIds: ["cuisses"], executionParameters: durationParameters(30) },
+        { kind: "INDEPENDENT" },
+        () => `q53-cat-${++sequence}`,
+      );
       await database.runAsync("UPDATE categories SET is_active = 0 WHERE id IN ('cardio', 'mobilite')");
       const repository = new ViewedSessionRepository(database, () => `q53c-${randomUUID()}`);
       const created = await repository.create({
@@ -2291,9 +2290,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     expect(updated?.id).toBe(read.id);
     expect(updated?.executionParameters).toEqual(edited);
     expect(updated?.media?.map((item) => item.assetId)).toEqual(["p1", "v1"]);
-    // Aucune définition Catalogue n'est créée ni modifiée par la Séance.
-    const definitions = await database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM activity_definitions");
-    expect(definitions?.count).toBe(0);
+    // [A.3 du 04/11/2026 : contrôle « aucune définition Catalogue créée » retiré avec les anciennes définitions.]
   });
 
   it("PRE4-4.1/AC13 — occurrence existante supprimée entre l'ouverture et l'enregistrement : ACTIVITY_NOT_FOUND, base inchangée ; occurrence nouvelle du Brouillon : insérée", async () => {

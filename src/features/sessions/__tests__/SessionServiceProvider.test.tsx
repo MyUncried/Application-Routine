@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 import { useContext, useEffect, type ReactNode } from "react";
 import { Text } from "react-native";
 
-import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
 import { MigrationNoticeRepositoryContext } from "@/features/sessions/MigrationNoticeRepositoryContext";
 import type { MigrationNoticeRepository } from "@/domain/migration/MigrationNotice";
@@ -24,16 +23,7 @@ import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import { createEmptyDraft, createExerciseDraft } from "@/domain/sessions/SessionDraft";
 import { occurrencesOf } from "@/domain/sessions/testing/structuredSession";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
-import {
-  LOCAL_PROFILE_SINGLETON_KEY,
-  LOCAL_USER_SINGLETON_KEY,
-} from "@/infrastructure/database/constants";
-import { MIGRATION_001 } from "@/infrastructure/database/migrations/migration001";
-import { MIGRATION_002 } from "@/infrastructure/database/migrations/migration002";
-import { MIGRATION_003 } from "@/infrastructure/database/migrations/migration003";
-import { MIGRATION_004 } from "@/infrastructure/database/migrations/migration004";
-import { MIGRATION_005 } from "@/infrastructure/database/migrations/migration005";
-import { MIGRATION_006 } from "@/infrastructure/database/migrations/migration006";
+import { LOCAL_PROFILE_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
 import { NodeSqliteDatabase as mockNodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
@@ -595,170 +585,8 @@ describe("SessionServiceProvider — câblage réel des Zones corporelles et des
     expect(categories.map((category) => category.name)).toContain("Autre");
   }, 20000);
 
-  it("creates a Catalogue ActivityDefinition with a Body Zone and a brand-new Category, and reads it back, through the real provider wiring", async () => {
-    const { activityDefinitionService } = await renderReadyProvider();
-
-    const zones = await activityDefinitionService.listBodyZones();
-    const dos = zones.find((zone) => zone.name === "Dos");
-    expect(dos).toBeTruthy();
-
-    const createResult = await activityDefinitionService.createActivityDefinition({
-      name: "Pompes",
-      description: null,
-      executionParameters: durationParameters(30, 3, 10),
-      category: { kind: "NEW", name: "Nouvelle catégorie", color: "#3B82F6" },
-      bodyZoneIds: [dos!.id],
-    });
-    expect(createResult.ok).toBe(true);
-    if (!createResult.ok) {
-      return;
-    }
-
-    const reloaded = await activityDefinitionService.getActivityDefinition(createResult.value.id);
-    expect(reloaded?.bodyZoneIds).toEqual([dos!.id]);
-
-    const categories = await activityDefinitionService.listCategories();
-    const newCategory = categories.find((category) => category.name === "Nouvelle catégorie");
-    expect(newCategory).toBeTruthy();
-    expect(reloaded?.categoryId).toBe(newCategory!.id);
-  }, 20000);
-
-  /**
-   * Base migrée à partir de DONNÉES HISTORIQUES réelles : `migration001` à
-   * `migration006` appliquées avec des lignes déjà présentes (une
-   * `ActivityDefinition` du schéma `migration006`, SANS `category_id` —
-   * cette colonne n'existe pas avant `migration007` — avec une association
-   * `activity_definition_body_zones` déjà persistée), `PRAGMA user_version`
-   * positionné à `6`, PUIS la base est remise au double `expo-sqlite` : c'est
-   * le VRAI `onInit` de `SessionServiceProvider` (`initializeDatabase` →
-   * `migrateDatabase`) qui détecte la version 6 et applique `migration007`
-   * puis les suivantes — exactement le scénario « mise à niveau d'une
-   * installation existante » du plan (§3, §14.2, §16). PRE-7 (A1.2) : la
-   * chaîne se termine par `migration012`, qui supprime une seule fois les
-   * Exercices historiques en conservant Catégories et Zones (D-440 assouplie).
-   *
-   * `execAsync`/`runAsync` de `NodeSqliteDatabase` n'attendent ici
-   * délibérément AUCUN `await` : leur corps s'exécute intégralement de façon
-   * SYNCHRONE (`node:sqlite` est synchrone ; seule la valeur de retour est
-   * enveloppée dans une Promise déjà résolue) — nécessaire puisque
-   * `openInMemory()` lui-même doit rester synchrone (le double `expo-sqlite`
-   * ne l'attend jamais).
-   */
-  it("edits a Catalogue ActivityDefinition in a database migrated from historical data (migrations 001-006 with rows, then 007 to 012), and shows its Category name and Zones on reopening — through the real provider wiring", async () => {
-    const onReady = jest.fn();
-    const originalOpenInMemory = mockNodeSqliteDatabase.openInMemory;
-    const openInMemorySpy = jest
-      .spyOn(mockNodeSqliteDatabase, "openInMemory")
-      .mockImplementationOnce(() => {
-        const db = originalOpenInMemory();
-        db.execAsync(MIGRATION_001);
-        // `migrateDatabase.ts` ne sème l'utilisateur local singleton
-        // (`users`) qu'au passage FRAIS par la version 0 — reproduit ici à
-        // l'identique puisque cette base historique n'emprunte jamais ce
-        // chemin (elle démarre directement à la version 6).
-        db.runAsync(
-          "INSERT INTO users (singleton_key, id, created_at) VALUES (?, ?, ?)",
-          [LOCAL_USER_SINGLETON_KEY, "usr_legacy", "2026-01-01T00:00:00.000Z"],
-        );
-        db.execAsync(MIGRATION_002);
-        db.execAsync(MIGRATION_003);
-        db.execAsync(MIGRATION_004);
-        db.execAsync(MIGRATION_005);
-        db.execAsync(MIGRATION_006);
-        db.runAsync(
-          `INSERT INTO activity_definitions (
-             id, name, description, execution_mode, duration_seconds, repetition_count,
-             series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
-           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            "legacy-def-1",
-            "Fentes historiques",
-            null,
-            "DURATION",
-            40,
-            null,
-            2,
-            10,
-            20,
-            "UNILATERAL",
-            "2026-01-01T00:00:00.000Z",
-            "2026-01-01T00:00:00.000Z",
-          ],
-        );
-        db.runAsync(
-          "INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES (?, ?)",
-          ["legacy-def-1", "dos"],
-        );
-        db.execAsync("PRAGMA user_version = 6");
-        return db;
-      });
-
-    let activityDefinitionService: ActivityDefinitionService | null = null;
-
-    function Harness({ showContent }: { showContent: boolean }) {
-      return (
-        <SessionServiceProvider onReady={onReady}>
-          {showContent ? (
-            <Consumer
-              onRender={() => {}}
-              onRenderActivityDefinitionService={(service) => {
-                activityDefinitionService = service;
-              }}
-            />
-          ) : null}
-        </SessionServiceProvider>
-      );
-    }
-
-    const { rerender } = render(<Harness showContent={false} />);
-    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
-    act(() => {
-      rerender(<Harness showContent={true} />);
-    });
-    await waitFor(() => expect(activityDefinitionService).not.toBeNull());
-
-    const service = activityDefinitionService!;
-
-    // PRE-7 (A1.2, D-440 assouplie) : la chaîne du démarrage va jusqu'à `migration012`,
-    // qui supprime une seule fois les Exercices historiques (aucune filiation
-    // reconstituable) ; Catégories et Zones sont conservées. Le câblage réel est
-    // prouvé sur un Exercice recréé dans la base migrée.
-    expect(await service.getActivityDefinition("legacy-def-1")).toBeNull();
-    const categories = await service.listCategories();
-    expect(categories.find((category) => category.id === "autre")?.name).toBe("Autre");
-    expect((await service.listBodyZones()).some((zone) => zone.id === "dos")).toBe(true);
-
-    const created = await service.createActivityDefinition({
-      name: "Fentes historiques",
-      description: null,
-      executionParameters: durationParameters(40, 2, 10),
-      category: { kind: "EXISTING", categoryId: "autre" },
-      bodyZoneIds: ["dos"],
-    });
-    expect(created.ok).toBe(true);
-    if (!created.ok) {
-      throw new Error("Expected the Exercise creation to succeed.");
-    }
-    const beforeEdit = await service.getActivityDefinition(created.value.id);
-    expect(beforeEdit?.bodyZoneIds).toEqual(["dos"]);
-    expect(beforeEdit?.categoryId).toBe("autre");
-
-    const updateResult = await service.updateActivityDefinition(created.value.id, {
-      name: "Fentes historiques modifiées",
-      description: beforeEdit!.description,
-      executionParameters: beforeEdit!.executionParameters,
-      category: { kind: "EXISTING", categoryId: "autre" },
-      bodyZoneIds: beforeEdit!.bodyZoneIds,
-    });
-    expect(updateResult.status).toBe("UPDATED");
-
-    const reopened = await service.getActivityDefinition(created.value.id);
-    expect(reopened?.name).toBe("Fentes historiques modifiées");
-    expect(reopened?.categoryId).toBe("autre");
-    expect(reopened?.bodyZoneIds).toEqual(["dos"]);
-
-    openInMemorySpy.mockRestore();
-  }, 20000);
+  // [PRE-9 A.3 du 04/11/2026 : création et modification d'un Exercice du Catalogue (y compris sur une base
+  // migrée depuis des données historiques) retirées avec les anciennes définitions du Catalogue.]
 });
 
 describe("SessionServiceProvider — câblage réel des Étiquettes pour la couleur de Séance (revue indépendante 5950755410, même famille que le défaut des Zones corporelles)", () => {

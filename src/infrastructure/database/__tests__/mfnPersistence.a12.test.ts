@@ -2,20 +2,11 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import {
   activityDefinitionToDraftExercise,
-  activityDefinitionToInput,
   validateActivityDefinitionInput,
   type ActivityDefinition,
   type CreateActivityDefinitionInput,
 } from "@/domain/activities/ActivityDefinition";
-import {
-  ExecutionParametersDataError,
-  ExecutionParametersValidationError,
-  readCatalogExecutionParameters,
-  serializeCatalogExecutionParameters,
-  type ExecutionParameters,
-  type WorkPhase,
-} from "@/domain/activities/ExecutionParameters";
-import { SharedCorrectionRefusedError } from "@/domain/activities/sharedCorrection";
+import type { ExecutionParameters, WorkPhase } from "@/domain/activities/ExecutionParameters";
 import { durationParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { duplicateActivity } from "@/domain/sessions/composition";
@@ -31,9 +22,9 @@ import {
 import { SessionValidationError } from "@/domain/sessions/errors";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 /**
@@ -47,6 +38,12 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
  * Mouvement par clé étrangère RESTRICT et en relit le contenu ; l'indicateur
  * « déjà utilisé » est remplacé par le comptage des occurrences persistées
  * (`countOccurrences`) ; le nom de Mouvement est unique.
+ *
+ * [A.3 du 04/11/2026 : les anciennes définitions du Catalogue sont supprimées (migration 021, décision de
+ * Hermann du 04/11/2026 : « Hermann abandonne la conversion sans perte prévue par A.4 : les anciens
+ * exercices concernés par cette conversion peuvent être supprimés plutôt que migrés. ») et leur dépôt
+ * retiré : les cas de création, correction partagée et relecture d'une définition sont supprimés ; la
+ * « définition » copiée dans une Séance est un Mouvement créé seul, vu en mémoire.]
  */
 
 const NOW = "2026-10-24T08:00:00.000Z";
@@ -80,7 +77,24 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
   let database: NodeSqliteDatabase;
   let sequence = 0;
   const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
-  const definitions = () => new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW);
+  /** Mouvement créé seul, vu comme la définition dont la copie est faite (A.3). */
+  const definitions = () => ({
+    async create(value: CreateActivityDefinitionInput): Promise<ActivityDefinition> {
+      const { movementId } = await createTestMovement(database, value, { kind: "INDEPENDENT" }, ids("def"), () => NOW);
+      return {
+        id: `def-${movementId}`,
+        movementId,
+        name: value.name,
+        description: value.description,
+        executionParameters: value.executionParameters,
+        categoryId: value.category.kind === "EXISTING" ? value.category.categoryId : undefined,
+        bodyZoneIds: value.bodyZoneIds,
+        sideMode: value.executionParameters.sideMode,
+        createdAt: NOW,
+        updatedAt: NOW,
+      };
+    },
+  });
   const sessions = () => new SqliteSessionRepository(database, ids("ses"), () => NOW);
   const movements = () => new SqliteMovementRepository(database, ids("mov"), () => NOW);
 
@@ -108,14 +122,6 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
     return validated.value;
   }
 
-  async function storedCatalogJson(id: string) {
-    const row = await database.getFirstAsync<{ execution_parameters: string }>(
-      "SELECT execution_parameters FROM activity_definitions WHERE id = ?",
-      [id],
-    );
-    return readCatalogExecutionParameters(row!.execution_parameters);
-  }
-
   // PRE-7 (R-3, C05) : un Exercice créé dans la Séance est une création locale terminée
   // (Mouvement NEW à son identifiant, comme l'éditeur d'occurrence) — `withLocalMovements`.
   async function save(draft: SessionDraft): Promise<Session> {
@@ -140,157 +146,8 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
 
   const occurrencesOf = (session: Session) => [...(session.cycle.beforeTour ?? []), ...session.cycle.tour.exercises, ...(session.cycle.afterTour ?? [])];
 
-  it("création Catalogue à phases [6, 3] : un Mouvement (contenu, structure, compteur 3) et une définition v4 ; relue identique", async () => {
-    const parameters = phased(phases(6, 3));
-    const created = await definitions().create(input(parameters, { media: [{ assetId: "p1", asset: photo("p1") }] }));
-
-    const movement = await movements().findById(created.movementId);
-    expect(movement).toEqual({
-      id: created.movementId,
-      name: "Squat",
-      description: "Buste droit",
-      media: [{ assetId: "p1", asset: photo("p1") }],
-      categoryId: "cardio",
-      bodyZoneIds: ["cuisses"],
-      phases: [
-        { id: 1, label: "Phase 1" },
-        { id: 2, label: "Phase 2" },
-      ],
-      nextPhaseId: 3,
-      aliases: [],
-      levelGroup: null,
-    });
-    // Forme Catalogue v4 : durées par `phaseId`, sans libellé.
-    const catalog = await storedCatalogJson(created.id);
-    expect(catalog.series.kind === "UNIFORM" && catalog.series.phaseDurations).toEqual([
-      { phaseId: 1, durationSeconds: 6 },
-      { phaseId: 2, durationSeconds: 3 },
-    ]);
-    expect(created.executionParameters).toEqual(parameters);
-    expect(created.missingPhaseIds).toBeUndefined();
-    expect(await definitions().findById(created.id)).toEqual(created);
-    expect((await definitions().listAll()).map((item) => item.id)).toEqual([created.id]);
-  });
-
-  it("Catégorie inconnue : rollback complet, ni Mouvement, ni définition, ni média", async () => {
-    await expect(
-      definitions().create(
-        input(phased(phases(6, 3)), {
-          category: { kind: "EXISTING", categoryId: "inconnue" },
-          media: [{ assetId: "p1", asset: photo("p1") }],
-        }),
-      ),
-    ).rejects.toThrow();
-    for (const table of ["activity_definitions", "movements", "movement_phases", "movement_body_zones", "movement_media", "media_assets"]) {
-      expect({ table, rows: await database.getAllAsync(`SELECT * FROM ${table}`) }).toEqual({ table, rows: [] });
-    }
-  });
-
-  it("phase retirée puis ajoutée : [1,2,3] → [1,2] → [1,2,+] ; la phase ajoutée reçoit 4, jamais 3 (compteur monotone)", async () => {
-    const created = await definitions().create(input(phased(phases(4, 5, 6))));
-    const removed = await definitions().update(created.id, input(phased(phases(4, 5))));
-    expect((await movements().findById(created.movementId))?.nextPhaseId).toBe(4);
-    // PRE-7 A2.1 (MFN/AC30) : la définition relue expose ce compteur, que l'éditeur transmet à la Feuille.
-    expect((await definitions().findById(created.id))?.movementNextPhaseId).toBe(4);
-    expect((await definitions().listAll()).find((definition) => definition.id === created.id)?.movementNextPhaseId).toBe(4);
-    // Une identité de brouillon déjà retirée (3, ancien max + 1) n'est de toute façon pas réallouée : le Mouvement alloue 4.
-    const added = await definitions().update(
-      created.id,
-      input(phased([...phases(4, 5), { id: 3, label: "Nouvelle", durationSeconds: 7 }])),
-    );
-    expect(removed?.executionParameters.series.kind === "UNIFORM" && removed.executionParameters.series.workPhases.map((p) => p.id)).toEqual([1, 2]);
-    expect(added?.executionParameters.series.kind === "UNIFORM" && added.executionParameters.series.workPhases).toEqual([
-      { id: 1, label: "Phase 1", durationSeconds: 4 },
-      { id: 2, label: "Phase 2", durationSeconds: 5 },
-      { id: 4, label: "Nouvelle", durationSeconds: 7 },
-    ]);
-    const movement = await movements().findById(created.movementId);
-    expect(movement?.phases.map((phase) => phase.id)).toEqual([1, 2, 4]);
-    expect(movement?.nextPhaseId).toBe(5);
-    expect((await definitions().findById(created.id))?.movementNextPhaseId).toBe(5);
-    // Déplacement et renommage : identités conservées, compteur inchangé.
-    const moved = await definitions().update(
-      created.id,
-      input(
-        phased([
-          { id: 4, label: "Nouvelle", durationSeconds: 7 },
-          { id: 1, label: "Descente", durationSeconds: 4 },
-          { id: 2, label: "Phase 2", durationSeconds: 5 },
-        ]),
-      ),
-    );
-    expect(moved?.executionParameters.series.kind === "UNIFORM" && moved.executionParameters.series.workPhases.map((p) => [p.id, p.label])).toEqual([
-      [4, "Nouvelle"],
-      [1, "Descente"],
-      [2, "Phase 2"],
-    ]);
-    expect((await movements().findById(created.movementId))?.nextPhaseId).toBe(5);
-  });
-
-  it("exercice frère incomplet relu : durée null → missingPhaseIds renseigné, Cible UNSET ; phase retirée du Mouvement → ignorée (R-3) ; durées corrompues → ExecutionParametersDataError", async () => {
-    const created = await definitions().create(input(phased(phases(6, 3))));
-    const catalog = await storedCatalogJson(created.id);
-    if (catalog.series.kind !== "UNIFORM") throw new Error("uniform expected");
-    const incomplete = serializeCatalogExecutionParameters({
-      ...catalog,
-      series: {
-        ...catalog.series,
-        target: { kind: "UNSET" },
-        phaseDurations: [
-          { phaseId: 1, durationSeconds: 6 },
-          { phaseId: 2, durationSeconds: null },
-        ],
-      },
-    });
-    await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [incomplete, created.id]);
-    const sibling = await definitions().findById(created.id);
-    expect(sibling?.missingPhaseIds).toEqual([2]);
-    expect(sibling?.executionParameters.series).toMatchObject({
-      kind: "UNIFORM",
-      target: { kind: "UNSET" },
-      workPhases: [
-        { id: 1, label: "Phase 1", durationSeconds: 6 },
-        { id: 2, label: "Phase 2", durationSeconds: 0 },
-      ],
-    });
-    // L'Exercice édité doit être complet : réenregistré tel quel, il est refusé sans écriture (D-438).
-    await expect(definitions().update(created.id, activityDefinitionToInput(sibling!))).rejects.toThrow(ExecutionParametersValidationError);
-    // Copie de Séance d'un frère incomplet : refusée (aucune copie exécutable inventée).
-    const copy = activityDefinitionToDraftExercise(sibling!, "occ-1", null);
-    expect(toCreateSessionInput({ ...createEmptyDraft(), name: "Jambes", exercises: [copy] }).ok).toBe(false);
-
-    // PRE-7 (R-3, v7 §2) : phase retirée du Mouvement — sa durée (manquante) est ignorée, jamais réassociée.
-    await database.runAsync("DELETE FROM movement_phases WHERE movement_id = ? AND phase_id = 2", [created.movementId]);
-    const pruned = await definitions().findById(created.id);
-    expect(pruned?.executionParameters.series.workPhases).toEqual([{ id: 1, label: "Phase 1", durationSeconds: 6 }]);
-    expect(pruned?.missingPhaseIds ?? []).toEqual([]);
-    // Durées corrompues (identité dupliquée) : donnée corrompue, jamais une association approchée.
-    const corrupt = incomplete.replace('"phaseId":2', '"phaseId":1');
-    expect(corrupt).not.toBe(incomplete);
-    await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [corrupt, created.id]);
-    await expect(definitions().findById(created.id)).rejects.toThrow(ExecutionParametersDataError);
-  });
-
-  // PRE-7 (A1.3) : la garde provisoire d'A1.2 (`SharedMovementStructureError`) est levée au profit de la
-  // correction partagée explicite ; sans complétion du frère, le changement de structure reste refusé sans écriture.
-  it("Mouvement partagé : changer l'ensemble de ses phases sans complétion du frère est refusé sans écriture (SharedCorrectionRefusedError) ; le contenu partagé reste modifiable", async () => {
-    const created = await definitions().create(input(phased(phases(6, 3))));
-    // PRE-7 (R-3, C01) : nom distinct à la création (le Mouvement provisoire du frère est supprimé ci-dessous).
-    const sibling = await definitions().create(input(phased(phases(6, 3)), { name: "Squat frère" }));
-    // Rattachement direct en base (les services d'origine « même geste » sont livrés en A1.3).
-    await database.runAsync("UPDATE activity_definitions SET movement_id = ? WHERE id = ?", [created.movementId, sibling.id]);
-    await database.runAsync("DELETE FROM movements WHERE id = ?", [sibling.movementId]);
-    const before = await database.getAllAsync("SELECT * FROM movement_phases ORDER BY rowid");
-
-    // Phase ajoutée : la durée du frère manque, sa complétion n'est pas fournie.
-    await expect(definitions().update(created.id, input(phased(phases(6, 3, 4))))).rejects.toThrow(SharedCorrectionRefusedError);
-    expect(await database.getAllAsync("SELECT * FROM movement_phases ORDER BY rowid")).toEqual(before);
-
-    const renamed = await definitions().update(created.id, input(phased(phases(6, 3)), { name: "Squat partagé" }));
-    expect(renamed?.name).toBe("Squat partagé");
-    expect((await definitions().findById(sibling.id))?.name).toBe("Squat partagé");
-  });
-
+  // [A.3 du 04/11/2026 : cas de création, correction partagée (frères, compteur de phases) et relecture
+  // d'une ancienne définition du Catalogue retirés avec leur dépôt.]
   it("copie du Catalogue et duplication : référence portée écrite telle quelle, conservée à la mise à jour ; occurrences comptées au succès seulement (C03)", async () => {
     const definition = await definitions().create(input(phased(phases(6, 3))));
     const copy = activityDefinitionToDraftExercise(definition, "occ-1", null);
@@ -322,10 +179,9 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
       definition.movementId,
       definition.movementId,
     ]);
-    // PRE-7 (R-3, D-445) : référence active avec clé étrangère RESTRICT — sans définition, le Mouvement
-    // encore référencé par les occurrences n'est jamais supprimé ; la Séance se relit intacte.
-    await database.runAsync("DELETE FROM activity_definitions");
-    expect(await movements().delete(definition.movementId)).toEqual({ status: "REFERENCED", definitionCount: 0, occurrenceCount: 2 });
+    // PRE-7 (R-3, D-445) : référence active avec clé étrangère RESTRICT — le Mouvement encore référencé
+    // par les occurrences n'est jamais supprimé ; la Séance se relit intacte.
+    expect(await movements().delete(definition.movementId)).toEqual({ status: "REFERENCED", occurrenceCount: 2 });
     const kept = (await sessions().findById(session.id))!;
     expect(occurrencesOf(kept).map((item) => item.sourceMovementId)).toEqual([definition.movementId, definition.movementId]);
     expect(occurrencesOf(kept)[0]!.executionParameters).toEqual(phased(phases(6, 3)));
@@ -362,7 +218,6 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
       aliases: [],
       levelGroup: null,
     });
-    expect(await database.getAllAsync("SELECT id FROM activity_definitions")).toEqual([]);
     // Recherche : le geste local est proposé (MFN-04).
     expect((await movements().search("gainage")).map((item) => item.id)).toEqual(["occ-local"]);
 
@@ -438,7 +293,6 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
     expect(occurrencesOf(reread).map((item) => item.executionParameters)).toEqual([phased(phases(6, 3)), durationParameters(45, 2, 15)]);
     expect(await movements().countOccurrences(definition.movementId)).toBe(1);
     expect(await movements().countOccurrences("occ-local")).toBe(1);
-    expect(await definitions().findById(definition.id)).toEqual(definition);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
   });
 
@@ -499,7 +353,6 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
     ]);
     expect(await movements().findById("occ-added")).toMatchObject({ id: "occ-added", name: "Pompes", categoryId: "renforcement", bodyZoneIds: ["bras"] });
     expect(await movements().countOccurrences("occ-added")).toBe(1);
-    expect(await database.getAllAsync("SELECT id FROM activity_definitions")).toEqual([{ id: definition.id }]);
   });
 
   it("définition B non utilisée ajoutée à une Séance EXISTANTE (update) : son Mouvement est utilisé par une occurrence persistée (C03)", async () => {

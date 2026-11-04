@@ -1,5 +1,7 @@
 # features/activities
 
+> [PRE-9 A.3 du 04/11/2026 — décision de Hermann : « Hermann abandonne la conversion sans perte prévue par A.4 : les anciens exercices concernés par cette conversion peuvent être supprimés plutôt que migrés. » Les anciennes définitions du Catalogue sont supprimées (migration 021) ; sont retirés avec elles : `ActivitySelectionScreen.tsx` (et la route `activity-selection`, commande « Modifier » E.8-a), `useActivityCatalogue.ts`, `ActivityCatalogueList.tsx`, `ActivityCard.tsx`, `SiblingCompletionStep.tsx`, l'éditeur `CatalogueActivityEditorScreen` d'`ExerciseScreen` et les opérations de définition d'`ActivityDefinitionService` (nom conservé). Les mentions ci-dessous de ces modules sont historiques.]
+
 Éditeur d'Exercice et Feuille « Paramètres d'exécution ». Ce relevé ne couvre que les modules de la Feuille ajoutés ou réorganisés par PRE-4 ; les autres fichiers portent leur propre documentation en tête.
 
 - `ExecutionParametersSheet.tsx` — la Feuille : sous-brouillon isolé du parent (`ExecutionParametersDraft`, domaine), ✕ abandonne, ✓ applique d'un bloc après `validateForSave`, sans écriture SQLite.

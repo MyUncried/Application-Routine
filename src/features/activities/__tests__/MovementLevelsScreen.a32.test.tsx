@@ -6,10 +6,9 @@ import { ActivityDefinitionService } from "@/features/activities/ActivityDefinit
 import { MovementLevelsScreen } from "@/features/activities/MovementLevelsScreen";
 import { TABLE_ROW_HEIGHT } from "@/features/activities/sheetTable";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import { seedCatalogueDefinition } from "@/infrastructure/database/testing/seedCatalogueDefinition";
+import { seedMovement } from "@/infrastructure/database/testing/seedMovement";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 jest.mock("expo-crypto", () => ({ randomUUID: jest.fn(() => "generated-id") }));
@@ -29,7 +28,6 @@ const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
 const movements = () => new SqliteMovementRepository(database, ids("grp"), () => NOW);
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW),
     undefined,
     undefined,
     undefined,
@@ -50,15 +48,11 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-/** « Squats assistés » (1, un Exercice) → « Squats » (2, deux) → « Mobilisation du genou » (3, geste local). */
+/** « Squats assistés » (1) → « Squats » (2) → « Mobilisation du genou » (3). */
 async function threeLevels() {
-  await seedCatalogueDefinition(database, { id: "d1", movementId: "assistes", name: "Squats assistés" });
-  await seedCatalogueDefinition(database, { id: "d2", movementId: "squats", name: "Squats" });
-  await database.runAsync(
-    "INSERT INTO activity_definitions (id, movement_id, execution_parameters, created_at, updated_at) SELECT 'd3', movement_id, execution_parameters, created_at, updated_at FROM activity_definitions WHERE id = 'd2'",
-  );
-  await seedCatalogueDefinition(database, { id: "d4", movementId: "genou", name: "Mobilisation du genou" });
-  await database.runAsync("DELETE FROM activity_definitions WHERE id = 'd4'");
+  await seedMovement(database, { movementId: "assistes", name: "Squats assistés" });
+  await seedMovement(database, { movementId: "squats", name: "Squats" });
+  await seedMovement(database, { movementId: "genou", name: "Mobilisation du genou" });
   await movements().attachToGroup("squats", "assistes");
   await movements().attachToGroup("genou", "assistes");
 }
@@ -91,14 +85,14 @@ const actionNames = (n: number) =>
   (screen.getByTestId(`${row(n)}-handle`).props.accessibilityActions as { name: string; label: string }[]).map((action) => action.label);
 
 describe("PRE-7 A3.2 — MovementLevelsScreen", () => {
-  it("consultation : titre, liste ordonnée (rang, geste, nombre d'Exercices ; geste local sans nombre), ✕ ferme", async () => {
+  it("consultation : titre, liste ordonnée (rang, geste ; aucun nombre d'Exercices), ✕ ferme", async () => {
     await threeLevels();
     const { onClose } = await renderScreen();
     expect(screen.getByText("Niveaux")).toBeTruthy();
     expect(names()).toEqual(["Squats assistés", "Squats", "Mobilisation du genou"]);
-    expect(screen.getByTestId(`${row(1)}-count`).props.children).toBe("1 exercice");
-    expect(screen.getByTestId(`${row(2)}-count`).props.children).toBe("2 exercices");
-    expect(screen.queryByTestId(`${row(3)}-count`)).toBeNull();
+    // [PRE-9 A.3 du 04/11/2026 : nombre d'Exercices du Catalogue par niveau retiré avec les anciennes
+    // définitions du Catalogue.]
+    for (const n of [1, 2, 3]) expect(screen.queryByTestId(`${row(n)}-count`)).toBeNull();
     expect(screen.getByLabelText("Niveau 2")).toBeTruthy();
     expect(screen.getByTestId(`${row(2)}-handle`).props.accessibilityLabel).toBe("Déplacer le niveau 2");
     // Bornes : pas de Monter au premier, pas de Descendre au dernier.

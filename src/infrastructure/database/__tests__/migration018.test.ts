@@ -98,7 +98,7 @@ const TABLES = [
   "movement_phases",
   "movement_aliases",
   "movement_body_zones",
-  "activity_definitions",
+  // [A.3 du 04/11/2026 : les anciennes définitions sont vidées par la 021 (`migration021.test.ts`) ; retirées de la comparaison.]
   "sessions",
   "tours",
   "activities",
@@ -179,7 +179,7 @@ async function seededVersion17(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvement)", () => {
   it("version courante 19 (018 puis 019) ; bornes figées de la 018 égales à celles des phases (1..3535 s)", () => {
-    expect(DATABASE_VERSION).toBe(20);
+    expect(DATABASE_VERSION).toBe(21);
     expect(MIGRATION_018_PHASE_DURATION_BOUNDS).toEqual(WORK_PATTERN_DURATION_BOUNDS);
   });
 
@@ -230,7 +230,7 @@ describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvem
   it("une erreur après l'ajout de la colonne annule tout et laisse la base au schéma 017 ; le démarrage suivant migre", async () => {
     let database = await seededVersion17();
     const before = await snapshot(database);
-    const failing = failOnExec(database, /^PRAGMA user_version = 20/);
+    const failing = failOnExec(database, /^PRAGMA user_version = 21/);
     await expect(migrateDatabase(failing.database, () => T)).rejects.toThrow("Injected failure");
     // L'ajout de la colonne avait bien été exécuté dans la transaction.
     expect(failing.executed.some((source) => source.startsWith("ALTER TABLE movement_phases ADD COLUMN duration_seconds"))).toBe(true);

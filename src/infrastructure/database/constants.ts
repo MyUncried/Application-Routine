@@ -122,7 +122,15 @@ export const DATABASE_NAME = "kodjo.db";
  * Circuit existant reste « Circuit ». 001..019 inchangées. [Le plan « A.4 → 020, A.5 → 021 » est
  * décalé d'un rang : A.4 et A.5 prendront les prochaines versions disponibles.]
  */
-export const DATABASE_VERSION = 20;
+/**
+ * **PRE-9 (version 21, `migration021`, story A.3, décision de Hermann du 04/11/2026 : « Hermann
+ * abandonne la conversion sans perte prévue par A.4 : les anciens exercices concernés par cette
+ * conversion peuvent être supprimés plutôt que migrés. »)** : suppression de toutes les anciennes
+ * définitions d'Exercice du Catalogue ; la table reste, vide (sa suppression, A.5, reste non
+ * autorisée et prendra la version 23, la 22 étant réservée au nom du Circuit). Mouvements, Séances,
+ * historique et instantanés conservés. 001..020 inchangées.
+ */
+export const DATABASE_VERSION = 21;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

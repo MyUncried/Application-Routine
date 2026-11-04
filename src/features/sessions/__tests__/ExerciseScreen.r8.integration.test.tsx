@@ -16,9 +16,9 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -73,7 +73,6 @@ const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
 const movements = () => new SqliteMovementRepository(database, ids("grp"), () => NOW);
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW),
     undefined,
     new SqliteBodyZoneRepository(database),
     undefined,
@@ -115,11 +114,13 @@ const input = (overrides: Partial<CreateActivityDefinitionInput> = {}): CreateAc
   ...overrides,
 });
 
-/** Exercice « Squats » du Catalogue, mouvement à deux phases. */
+/**
+ * Mouvement « Squats » enregistré, à deux phases. [PRE-9 A.3 du 04/11/2026 : créé directement, sans
+ * ancienne définition du Catalogue ; la création au Catalogue (`catalogueDefinitionId=new`) est
+ * retirée avec elles : les cas « Catalogue » sont rejoués sur la création en Séance.]
+ */
 async function catalogueSquats(overrides: Partial<CreateActivityDefinitionInput> = {}) {
-  const result = await service().createActivityDefinitionWithOrigin(input(overrides), { kind: "INDEPENDENT" });
-  if (result.status !== "CREATED") throw new Error(result.status);
-  return result.value;
+  return createTestMovement(database, input(overrides), { kind: "INDEPENDENT" }, ids("mov"), () => NOW);
 }
 
 function fakeReferential(): ReferentialService {
@@ -211,7 +212,7 @@ describe("PRE-7 R-8 — début de mot (D-448 point 1)", () => {
   it("Catalogue avec Squats et Squats sautés bas : « Squ » ouvre le panneau avec ces deux cartes", async () => {
     const squats = await catalogueSquats();
     const jumps = await catalogueSquats({ name: "Squats sautés bas" });
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     await typeName("Squ");
     expect(screen.getByTestId("movement-suggestion-panel")).toBeTruthy();
     expect(resultIds()).toEqual([squats.movementId, jumps.movementId]);
@@ -229,7 +230,7 @@ describe("PRE-7 R-8 — début de mot (D-448 point 1)", () => {
 
   it("hors étape de variante, la fin de saisie ferme un panneau ouvert par un seul début de mot", async () => {
     await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     await typeName("Squ");
     expect(screen.getByTestId("movement-suggestion-panel")).toBeTruthy();
     await endNameEditing();
@@ -241,7 +242,7 @@ describe("PRE-7 R-8 — début de mot (D-448 point 1)", () => {
     for (const name of ["Squats A", "Squats B", "Squats C", "Squats D", "Squats E", "Squats F"]) {
       await catalogueSquats({ name });
     }
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     await typeName("Squ");
     expect(resultIds()).toHaveLength(6);
   });
@@ -250,7 +251,7 @@ describe("PRE-7 R-8 — début de mot (D-448 point 1)", () => {
 describe("PRE-7 R-8 — lien de recherche retiré (D-448 point 2)", () => {
   it("Catalogue et Séance, création disponible : aucun lien « Rechercher un mouvement »", async () => {
     await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     expect(screen.queryByTestId("activity-editor-movement-search")).toBeNull();
     expect(screen.queryByText(editor.movementSearch.open)).toBeNull();
     await typeName("Squ");
@@ -269,7 +270,7 @@ describe("PRE-7 R-8 — lien de recherche retiré (D-448 point 2)", () => {
 describe("PRE-9 CAT.2 — éditeur d'Exercice : cartes Composition, fin de saisie", () => {
   it("Catalogue et Séance : aucune étape de variante ; fin de saisie : panneau fermé, nom conservé ; la frappe le rouvre", async () => {
     const squats = await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     await typeName("Squ");
     expect(resultIds()).toEqual([squats.movementId]);
     expect(screen.queryByTestId(`movement-suggestion-result-${squats.movementId}-variant`)).toBeNull();

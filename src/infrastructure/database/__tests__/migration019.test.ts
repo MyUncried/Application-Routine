@@ -11,7 +11,6 @@ import type { Database } from "@/infrastructure/database/Database";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { MIGRATION_019_TABLES } from "@/infrastructure/database/migrations/migration019";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
@@ -99,7 +98,7 @@ const TABLES = [
   "movement_phases",
   "movement_aliases",
   "movement_body_zones",
-  "activity_definitions",
+  // [A.3 du 04/11/2026 : les anciennes définitions sont vidées par la 021 (`migration021.test.ts`) ; retirées de la comparaison.]
   "sessions",
   "tours",
   "activities",
@@ -167,7 +166,7 @@ async function seededVersion18(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 recette n° 2, constat e — migration 019 (marque « Paramètre à vérifier »)", () => {
   it("version courante 19 ; tables de la 019 : occurrences de Séance et Exercices du Catalogue", () => {
-    expect(DATABASE_VERSION).toBe(20);
+    expect(DATABASE_VERSION).toBe(21);
     expect(MIGRATION_019_TABLES).toEqual(["activities", "activity_definitions"]);
   });
 
@@ -191,7 +190,8 @@ describe("PRE-9 recette n° 2, constat e — migration 019 (marque « Paramètre
       { id: 1, label: "Descente", durationSeconds: 3 },
       { id: 2, label: "Montée" },
     ]);
-    expect((await new SqliteActivityDefinitionRepository(database).findById("def-1"))?.phasesToVerify).toBeUndefined();
+    // [A.3 du 04/11/2026 : l'Exercice du Catalogue def-1 est supprimé par la migration 021.]
+    expect(await database.getAllAsync("SELECT id FROM activity_definitions")).toEqual([]);
     expect((await new SqliteSessionRepository(database).findStructuredById("session-1"))?.structure.elements).toHaveLength(1);
 
     await initializeDatabase(database);
@@ -203,7 +203,7 @@ describe("PRE-9 recette n° 2, constat e — migration 019 (marque « Paramètre
   it("une erreur après l'ajout des colonnes annule tout et laisse la base au schéma 018 ; le démarrage suivant migre", async () => {
     let database = await seededVersion18();
     const before = await snapshot(database);
-    const failing = failOnExec(database, /^PRAGMA user_version = 20/);
+    const failing = failOnExec(database, /^PRAGMA user_version = 21/);
     await expect(migrateDatabase(failing.database, () => T)).rejects.toThrow("Injected failure");
     // Les deux ajouts avaient bien été exécutés dans la transaction.
     expect(failing.executed.some((source) => source.startsWith("ALTER TABLE activities ADD COLUMN phases_to_verify"))).toBe(true);

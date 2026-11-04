@@ -1672,7 +1672,7 @@ export function readCatalogExecutionParameters(json: string | null | undefined):
  * copies ») — version de la forme RÉSOLUE persistée par les copies de Séance
  * (`activities.execution_parameters`) après la migration 012 : grammaire
  * canonique (libellés de phases compris). La colonne détermine la forme :
- * `activity_definitions` porte la forme Catalogue, `activities` la forme
+ * la table des définitions du Catalogue porte la forme Catalogue, `activities` la forme
  * résolue. PRE-7 (R-2, D-446) : version 5, égale à la version canonique en
  * mémoire ; les deux formes ne se distinguent plus par leur numéro, seulement
  * par la colonne (phases avec libellés ou durées par `phaseId`).
