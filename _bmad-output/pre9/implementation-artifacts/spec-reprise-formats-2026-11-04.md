@@ -110,6 +110,8 @@ Demande et adoption de Hermann (texte exact au registre ch07, « Recette iPhone 
 - `MovementSelectionScreen` : `inSheet` (pas de marge de zone sûre en haut).
 - Remplacé : voile conservé / relais (e-voile), fenêtre centrée, tap sur le voile pour fermer (à constater sur la feuille native).
 
+**Réponses de Hermann du 04/11/2026 :** contrôle segmenté — « Peut-on tester la deuxième option ? » (option sélectionnée à droite : essai) ; Circuit libre — « Dans le circuit si il est libre, en dehors si c'est un circuit issu d'un format » (conforme au code) ; Circuit de Format dans un Cycle — « Dans le Cycle, après le Circuit » (conforme) ; récapitulatif — « Tous les modèles sans tableau » (30/30, Renforcement, À l'échec, Superset sans récapitulatif, réalisé). Restent ouvertes ci-dessous : 5 (EMOM sans unité lue en Répétitions).
+
 **Questions ouvertes (À CLARIFIER) :**
 1. Contrôle segmenté (constat b) : anomalie (le contrôle bouge) ou règle (option sélectionnée à droite) ? Quel contrôle (Phases, Charge, Côtés, Séries) ?
 2. Ajout d'un mouvement quand le dernier élément est un Circuit composé à la main : dans le Circuit (ARB-07) ou après lui ?

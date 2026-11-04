@@ -154,13 +154,13 @@ describe("FormatModelScreen", () => {
     await waitFor(() => expect(mockDismiss.mock.calls.length + mockDismissTo.mock.calls.length).toBeGreaterThan(0));
   });
 
-  it("« + Ajouter » ouvre le champ et devient « Ouvrir le mode catalogue » ; la saisie propose les Mouvements ; 30/30 : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {
-    // Recette du 04/11/2026 : le Tabata s'enregistre depuis son questionnaire ; le 30/30 garde le récapitulatif.
-    mockModel = "INTERVALS_30_30";
+  it("« + Ajouter » ouvre le champ et devient « Ouvrir le mode catalogue » ; la saisie propose les Mouvements ; Progression : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {
+    // Recette du 04/11/2026 : les modèles sans tableau s'enregistrent depuis leur questionnaire ; la Progression garde le récapitulatif.
+    mockModel = "PROGRESSION";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
     await screen.findByTestId("format-title");
-    // Réglage modifié avant d'ajouter un mouvement : 4 séries.
+    // Réglage modifié avant d'ajouter un mouvement : 1 série.
     fireEvent.press(screen.getByTestId("format-seriesCount-badge"));
     fireEvent.press(screen.getByTestId("format-seriesCount-decrease"));
     fireEvent.press(screen.getByTestId("format-seriesCount-decrease"));
@@ -173,14 +173,14 @@ describe("FormatModelScreen", () => {
     });
     // MAJ 04/11 §2 bis : le récapitulatif s'ouvre sur place, sans navigation ; Retour revient au questionnaire.
     expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
-    expect(screen.getByTestId("format-seriesCount-value")).toHaveTextContent("4");
+    expect(screen.getByTestId("format-seriesCount-value")).toHaveTextContent("1");
     toSummary();
     expect(mockPush).not.toHaveBeenCalled();
     expect(screen.getByTestId("format-summary")).toBeTruthy();
     fireEvent.press(screen.getByTestId("screen-header-back"));
     expect(mockBack).not.toHaveBeenCalled();
     expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
-    expect(screen.getByTestId("format-seriesCount").props.accessibilityValue).toEqual({ text: "4" });
+    expect(screen.getByTestId("format-seriesCount").props.accessibilityValue).toEqual({ text: "1" });
     toSummary();
 
     await act(async () => {
@@ -189,13 +189,22 @@ describe("FormatModelScreen", () => {
     // Ajout au brouillon : un Exercice standard ; nom du modèle suggéré ; retour à la Composition.
     expect(draftRef.current.exercises).toHaveLength(1);
     expect(draftRef.current.exercises[0]!).not.toHaveProperty("format");
-    expect(draftRef.current.name).toBe(strings.screens.sessionModels.cards.INTERVALS_30_30.title);
+    expect(draftRef.current.name).toBe(strings.screens.sessionModels.cards.PROGRESSION.title);
     // Recette n° 3 du 03/11 : on dépile jusqu'à la Composition (paramètre `sessionId` conservé), sans `dismissTo`.
     await waitFor(() => expect(mockDismiss).toHaveBeenCalled());
     expect(mockDismissTo).not.toHaveBeenCalled();
   });
 
-  it.each(["AMRAP", "FOR_TIME", "PROGRESSION", "EMOM", "DEATH_BY", "STRENGTH"] as const)("recette n° 3 du 03/11, MAJ 04/11 : %s — les choix restent sur le questionnaire ; « Valider les paramètres » ouvre le récapitulatif", async (model) => {
+  // Réponse de Hermann du 04/11/2026 : « Tous les modèles sans tableau » s'enregistrent depuis leur questionnaire.
+  it.each(["TABATA", "INTERVALS_30_30", "STRENGTH", "UNTIL_FAILURE", "SUPERSET"] as const)("recette du 04/11 : %s (sans tableau) — « Enregistrer dans la séance » dès le questionnaire, sans récapitulatif", async (model) => {
+    mockModel = model;
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    expect(screen.queryByTestId("format-validate")).toBeNull();
+    expect(screen.getByTestId("format-save")).toHaveTextContent(t.save);
+  });
+
+  it.each(["AMRAP", "FOR_TIME", "PROGRESSION", "EMOM", "DEATH_BY"] as const)("recette n° 3 du 03/11, MAJ 04/11 : %s — les choix restent sur le questionnaire ; « Valider les paramètres » ouvre le récapitulatif", async (model) => {
     mockModel = model;
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");

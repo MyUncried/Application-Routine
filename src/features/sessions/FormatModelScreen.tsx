@@ -413,6 +413,9 @@ export function useFormatSheetDetent(): number {
   return Math.min(1, Math.round(((height - MODAL_TOP) / largest) * 1000) / 1000);
 }
 
+/** Modèles sans tableau de récapitulatif : enregistrés depuis leur questionnaire (recette du 04/11/2026). */
+const MODELS_WITHOUT_SUMMARY: ReadonlySet<FormatModelKey> = new Set(["TABATA", "INTERVALS_30_30", "STRENGTH", "UNTIL_FAILURE", "SUPERSET"]);
+
 /** Compteur des ouvertures de questionnaire (identité du brouillon de modèle de chaque ouverture). */
 let openings = 0;
 
@@ -718,8 +721,11 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   };
   // Recette du 04/11/2026 (f4-modale, Hermann : « Tabata : Après sélection des mouvements, le bouton d'action doit
   // directement être "Enregistrer dans la séance" ») : le Tabata s'enregistre depuis son questionnaire, sans récapitulatif.
-  // [MAJ 04/11 §2 : « Valider les paramètres » pour tous les modèles — remplacé pour le Tabata.]
-  const validating = stage === "questionnaire" && model !== "TABATA";
+  // [MAJ 04/11 §2 : « Valider les paramètres » pour tous les modèles — remplacé pour le Tabata.] Réponse de Hermann du 04/11/2026
+  // (« Faut-il faire de même pour les autres modèles sans tableau ? » → « Tous les modèles sans tableau ») : 30/30,
+  // Renforcement, À l'échec et Superset aussi ; les modèles à tableau (EMOM, AMRAP, For time, Death by, Progression) gardent
+  // « Valider les paramètres ».
+  const validating = stage === "questionnaire" && !MODELS_WITHOUT_SUMMARY.has(model);
 
   const close = () => {
     if (stage === "summary") {
