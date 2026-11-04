@@ -195,8 +195,11 @@ export function TableCell({
   boxed = false,
   compact = false,
   sign,
+  signed = false,
   testID,
 }: {
+  /** Case signée : « + » ou « − » toujours affiché devant la valeur en saisie. */
+  readonly signed?: boolean;
   /** Case signée (incrément de charge EMOM, recette du 04/11/2026) : signe imposé, « − » affiché devant la valeur. */
   readonly sign?: 1 | -1;
   /** Tableau sans cadre (For time) : la zone de saisie porte un fond blanc. */
@@ -225,7 +228,8 @@ export function TableCell({
   // Hermann, 04/11/2026 : « Appuyer sur durée doit mettre le champ dans le format cible 00:00 pour guider la première
   // saisie » — en saisie, une durée s'affiche toujours « MM:SS », « 00:00 » quand elle est vide.
   const effectiveSign = sign ?? (value !== null && value < 0 ? -1 : 1);
-  const signPrefix = effectiveSign < 0 ? "−" : "";
+  // Case signée (incrément de charge EMOM) — Hermann, 04/11/2026 : « le + doit apparaître dans la cellule lors de la saisie ».
+  const signPrefix = effectiveSign < 0 ? "−" : signed ? "+" : "";
   const shown = focused ? (kind === "duration" ? formatMmss(entry.text) : signPrefix + entry.text) : value === null ? "" : format(value);
   // « Appuyer manuellement sur un champ doit positionner le curseur à droite de la valeur » : la saisie se compose par la
   // droite, le curseur y reste.
@@ -447,6 +451,7 @@ export function EmomTable({
                 format={(value) => (value < 0 ? `− ${formatLoad(-value)}` : `+ ${formatLoad(value)}`)}
                 placeholder={values.loadIncrement === null ? tt.variable : t().dash}
                 // L'incrément est grisé tant qu'aucune charge de départ n'est renseignée.
+                signed
                 disabled={fixedLoad || values.loadKg == null}
                 onChange={(value) => onChange(index, { ...values, loadIncrement: value ?? 0, seriesLoads: undefined })}
                 {...cell(cellKey("linc", index))}

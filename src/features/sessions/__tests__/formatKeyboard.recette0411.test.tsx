@@ -20,6 +20,7 @@ describe("barre d'unité des tableaux de Formats", () => {
         keyboardFrame={{ screenY: 500, duration: 0 }}
         containerBottom={800}
         reduceMotion
+        animated
         onHeight={() => undefined}
         canPrevious
         canNext
@@ -66,10 +67,16 @@ describe("incrément de charge EMOM négatif (Hermann, 04/11/2026)", () => {
     expect(onChange).toHaveBeenLastCalledWith(-2);
   });
 
+  it("case signée positive : « + » devant la valeur en saisie", () => {
+    render(<TableCell kind="decimal" value={2.5} signed onChange={() => undefined} format={String} label="± / série" testID="inc" />);
+    fireEvent(screen.getByTestId("inc"), "focus");
+    expect(screen.getByTestId("inc").props.value).toBe("+2,5");
+  });
+
   it("barre : « ± » dans le premier emplacement, état annoncé", () => {
     const onPress = jest.fn();
     render(
-      <KeyboardAccessoryBar keyboardFrame={{ screenY: 500, duration: 0 }} containerBottom={800} reduceMotion onHeight={() => undefined} canPrevious canNext onPrevious={() => undefined} onNext={() => undefined} onClose={() => undefined} sign={{ negative: true, onPress }} />,
+      <KeyboardAccessoryBar keyboardFrame={{ screenY: 500, duration: 0 }} containerBottom={800} reduceMotion animated onHeight={() => undefined} canPrevious canNext onPrevious={() => undefined} onNext={() => undefined} onClose={() => undefined} sign={{ negative: true, onPress }} />,
     );
     fireEvent.press(screen.getByTestId("keyboard-sign"));
     expect(onPress).toHaveBeenCalledTimes(1);

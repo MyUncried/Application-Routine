@@ -1036,20 +1036,28 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         const delta = y + height - limit;
         if (delta > 0) scrollRef.current?.scrollTo({ y: scrollY.current + delta, animated: !reduceMotion });
       });
-    const table = tableRef.current;
-    if (table === null) {
-      revealCell();
-      return;
-    }
-    table.measureInWindow((_x, y, _width, height) => {
-      const visibleTop = MODAL_TOP + bandHeight;
-      if (height > limit - visibleTop) {
+    const align = () => {
+      const table = tableRef.current;
+      if (table === null) {
         revealCell();
         return;
       }
-      const delta = y + height - limit;
-      if (delta !== 0) scrollRef.current?.scrollTo({ y: Math.max(0, scrollY.current + delta), animated: !reduceMotion });
-    });
+      table.measureInWindow((_x, y, _width, height) => {
+        const visibleTop = MODAL_TOP + bandHeight;
+        if (height > limit - visibleTop) {
+          revealCell();
+          return;
+        }
+        const delta = y + height - limit;
+        if (Math.abs(delta) >= 1) scrollRef.current?.scrollTo({ y: Math.max(0, scrollY.current + delta), animated: !reduceMotion });
+      });
+    };
+    align();
+    // Hermann, 04/11/2026 : « Lorsque le clavier [s'ouvre], la dernière ligne du tableau doit rester au-dessus du clavier. »
+    // À l'annonce du clavier, la marge que la liste lui réserve n'est pas encore posée et le défilement peut être borné :
+    // l'alignement est refait une fois le clavier en place.
+    const settle = setTimeout(align, (keyboardFrame.duration > 0 ? keyboardFrame.duration : 250) + 120);
+    return () => clearTimeout(settle);
   }, [bandHeight, barHeight, focusedCell, keyboardFrame, reduceMotion]);
 
   // Familles de Niveaux : cartes reliées par le filet des niveaux (suggestions et mode catalogue).
@@ -1449,6 +1457,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           onPrevious={() => focusCell(cellOrder[focusedAt - 1])}
           onNext={() => focusCell(cellOrder[focusedAt + 1])}
           onClose={() => Keyboard.dismiss()}
+          animated
           units={unitsBar}
           sign={signBar}
         />

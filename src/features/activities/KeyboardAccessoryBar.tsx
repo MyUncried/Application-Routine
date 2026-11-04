@@ -132,7 +132,10 @@ export function KeyboardAccessoryBar({
   failure = null,
   units = null,
   sign = null,
+  animated = false,
 }: {
+  /** Barre des tableaux de Formats : quatre emplacements fixes, apparitions, disparitions et déplacements en fondu lent. */
+  animated?: boolean;
   /** Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » ; bouton ± dans la barre du clavier ; « Arrêter à 0 — Les séries concernées passent sans charge (0), une simple mention en gris sous la ligne, sans alerte ni blocage : "sans charge à partir de la série X" » : « ± » inverse le signe de la case (incrément de charge EMOM). */
   sign?: { readonly negative: boolean; readonly onPress: () => void } | null;
   keyboardFrame: KeyboardFrame;
@@ -184,29 +187,44 @@ export function KeyboardAccessoryBar({
   const widestLabel = labelWidths.previous > 0 && labelWidths.next > 0 ? Math.max(labelWidths.previous, labelWidths.next) : 0;
   const compact = keyboardBarCompact(barWidth, widestLabel);
 
-  // Unités : position (0 = emplacement de gauche, 1 = à sa droite) et opacité de chaque unité ; Précédent / Suivant.
-  const [unitAnim] = useState(() => ({
+  // Barre des tableaux de Formats (`animated`) — Hermann, 04/11/2026 : « Appuyer sur Suivant / Précédent fait apparaître ou
+  // disparaître l'unité choisie, active / désactive le bouton Précédent / Suivant. Toutes ces apparitions / disparitions,
+  // tous ces changements de format doivent se faire avec fondu progressif lent (même vitesse). » Tous les boutons restent
+  // montés : seules leurs opacités et positions changent.
+  const [anim] = useState(() => ({
     REPETITIONS: { x: new Animated.Value(0), opacity: new Animated.Value(1) },
     DURATION: { x: new Animated.Value(1), opacity: new Animated.Value(1) },
-    nav: new Animated.Value(1),
+    units: new Animated.Value(units === null ? 0 : 1),
+    sign: new Animated.Value(sign === null ? 0 : 1),
+    previous: new Animated.Value(1),
+    next: new Animated.Value(1),
   }));
   const otherShown = useRef<boolean | null>(null);
   const hasUnits = units !== null;
+  const hasSign = sign !== null;
   const unitsPicking = units?.picking ?? false;
-  const unitsCurrent = units?.current ?? "REPETITIONS";
+  // Dernière unité affichée, gardée pendant l'effacement de la barre d'unité (case de charge).
+  const [shownCurrent, setShownCurrent] = useState<ExecutionMode>(units?.current ?? "REPETITIONS");
+  if (units !== null && units.current !== shownCurrent) setShownCurrent(units.current);
+  const [shownNegative, setShownNegative] = useState(sign?.negative ?? false);
+  if (sign !== null && sign.negative !== shownNegative) setShownNegative(sign.negative);
   useEffect(() => {
-    if (!hasUnits) return;
-    const current = unitAnim[unitsCurrent];
-    const other = unitAnim[unitsCurrent === "DURATION" ? "REPETITIONS" : "DURATION"];
+    const current = anim[shownCurrent];
+    const other = anim[shownCurrent === "DURATION" ? "REPETITIONS" : "DURATION"];
     const first = otherShown.current === null;
+    const picking = hasUnits && unitsPicking;
     // L'autre unité réapparaît toujours à droite de l'unité courante.
-    if (unitsPicking && otherShown.current !== true) other.x.setValue(1);
-    otherShown.current = unitsPicking;
+    if (picking && otherShown.current !== true) other.x.setValue(1);
+    otherShown.current = picking;
+    const navOpacity = (enabled: boolean) => (picking ? 0 : enabled ? 1 : BAR_DISABLED_OPACITY);
     const targets: [Animated.Value, number][] = [
       [current.x, 0],
       [current.opacity, 1],
-      [other.opacity, unitsPicking ? 1 : 0],
-      [unitAnim.nav, unitsPicking ? 0 : 1],
+      [other.opacity, picking ? 1 : 0],
+      [anim.units, hasUnits ? 1 : 0],
+      [anim.sign, hasSign ? 1 : 0],
+      [anim.previous, navOpacity(canPrevious)],
+      [anim.next, navOpacity(canNext)],
     ];
     if (first || reduceMotion) {
       for (const [value, to] of targets) value.setValue(to);
@@ -217,7 +235,7 @@ export function KeyboardAccessoryBar({
     );
     animation.start();
     return () => animation.stop();
-  }, [hasUnits, unitsPicking, unitsCurrent, reduceMotion, unitAnim]);
+  }, [anim, canNext, canPrevious, hasSign, hasUnits, reduceMotion, shownCurrent, unitsPicking]);
   const slotWidth = keyboardBarSlotWidth(barWidth);
   const step = slotWidth + BAR_SLOT_GAP;
 
@@ -281,49 +299,91 @@ export function KeyboardAccessoryBar({
         }}
         testID="execution-sheet-keyboard-bar"
       >
-        {units !== null ? (
-          // Quatre emplacements fixes ; les unités se déplacent et apparaissent en fondu lent au-dessus d'eux.
+        {animated ? (
+          // Quatre emplacements fixes ; unités, ± et flèches apparaissent, disparaissent et se déplacent en fondu lent.
           <View style={styles.unitsRow} testID="keyboard-units">
-            {(["REPETITIONS", "DURATION"] as const).map((mode) => {
-              const isCurrent = units.current === mode;
-              const enabled = units.allowed.includes(mode) && (isCurrent || units.picking);
-              const label = mode === "DURATION" ? labels.duration : labels.repetitions;
-              return (
-                <Animated.View
-                  key={mode}
-                  pointerEvents={isCurrent || units.picking ? "auto" : "none"}
-                  style={[
-                    styles.unitSlot,
-                    { width: slotWidth, zIndex: isCurrent ? 2 : 1, opacity: unitAnim[mode].opacity, transform: [{ translateX: Animated.multiply(unitAnim[mode].x, step) }] },
-                  ]}
-                >
-                  <Pressable
-                    onPress={() => (isCurrent && !units.picking ? units.onReopen() : units.onPick(mode))}
-                    disabled={!enabled}
-                    accessibilityRole="button"
-                    accessibilityLabel={isCurrent && !units.picking ? labels.unitSpoken.replace("{unit}", label) : label}
-                    accessibilityState={{ disabled: !enabled, selected: isCurrent }}
-                    hitSlop={BAR_BUTTON_HIT_SLOP}
-                    style={[styles.unitButton, styles.button, units.allowed.includes(mode) ? null : styles.disabled]}
-                    testID={mode === "DURATION" ? "keyboard-unit-duration" : "keyboard-unit-repetitions"}
+            <Animated.View pointerEvents={hasUnits ? "box-none" : "none"} style={[styles.layer, { opacity: anim.units }]} accessibilityElementsHidden={!hasUnits} importantForAccessibility={hasUnits ? "auto" : "no-hide-descendants"}>
+              {(["REPETITIONS", "DURATION"] as const).map((mode) => {
+                const isCurrent = shownCurrent === mode;
+                const picking = units?.picking ?? false;
+                const allowed = units?.allowed.includes(mode) ?? false;
+                const enabled = units !== null && allowed && (isCurrent || picking);
+                const label = mode === "DURATION" ? labels.duration : labels.repetitions;
+                return (
+                  <Animated.View
+                    key={mode}
+                    pointerEvents={units !== null && (isCurrent || picking) ? "auto" : "none"}
+                    style={[
+                      styles.unitSlot,
+                      { width: slotWidth, zIndex: isCurrent ? 2 : 1, opacity: anim[mode].opacity, transform: [{ translateX: Animated.multiply(anim[mode].x, step) }] },
+                    ]}
                   >
-                    <Text style={[styles.label, isCurrent ? styles.labelSelected : null]}>{label}</Text>
-                  </Pressable>
-                </Animated.View>
-              );
-            })}
-            <Animated.View pointerEvents={units.picking ? "none" : "auto"} style={[styles.unitSlot, { width: slotWidth, left: step, opacity: unitAnim.nav }]}>
-              {button(compact ? labels.previousArrow : labels.previous, labels.previousSpoken, canPrevious, onPrevious, "execution-sheet-keyboard-previous")}
+                    <Pressable
+                      onPress={() => {
+                        if (units === null) return;
+                        if (isCurrent && !units.picking) units.onReopen();
+                        else units.onPick(mode);
+                      }}
+                      disabled={!enabled}
+                      accessibilityRole="button"
+                      accessibilityLabel={isCurrent && !picking ? labels.unitSpoken.replace("{unit}", label) : label}
+                      accessibilityState={{ disabled: !enabled, selected: isCurrent }}
+                      hitSlop={BAR_BUTTON_HIT_SLOP}
+                      style={[styles.unitButton, styles.button, allowed || units === null ? null : styles.disabled]}
+                      testID={mode === "DURATION" ? "keyboard-unit-duration" : "keyboard-unit-repetitions"}
+                    >
+                      <Text style={[styles.label, isCurrent ? styles.labelSelected : null]}>{label}</Text>
+                    </Pressable>
+                  </Animated.View>
+                );
+              })}
             </Animated.View>
-            <Animated.View pointerEvents={units.picking ? "none" : "auto"} style={[styles.unitSlot, { width: slotWidth, left: 2 * step, opacity: unitAnim.nav }]}>
-              {button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
+            <Animated.View pointerEvents={hasSign ? "auto" : "none"} style={[styles.unitSlot, { width: slotWidth, opacity: anim.sign }]} accessibilityElementsHidden={!hasSign} importantForAccessibility={hasSign ? "auto" : "no-hide-descendants"}>
+              <Pressable
+                onPress={() => sign?.onPress()}
+                disabled={!hasSign}
+                accessibilityRole="button"
+                accessibilityLabel={labels.signSpoken}
+                accessibilityState={{ disabled: !hasSign, selected: shownNegative }}
+                hitSlop={BAR_BUTTON_HIT_SLOP}
+                style={[styles.unitButton, styles.button]}
+                testID="keyboard-sign"
+              >
+                <Text style={[styles.label, styles.signLabel]}>{labels.sign}</Text>
+              </Pressable>
+            </Animated.View>
+            <Animated.View pointerEvents={canPrevious && !(hasUnits && unitsPicking) ? "auto" : "none"} style={[styles.unitSlot, { width: slotWidth, left: step, opacity: anim.previous }]}>
+              <Pressable
+                onPress={onPrevious}
+                disabled={!canPrevious}
+                accessibilityRole="button"
+                accessibilityLabel={labels.previousSpoken}
+                accessibilityState={{ disabled: !canPrevious }}
+                hitSlop={BAR_BUTTON_HIT_SLOP}
+                style={[styles.unitButton, styles.button]}
+                testID="execution-sheet-keyboard-previous"
+              >
+                <Text style={styles.label}>{compact ? labels.previousArrow : labels.previous}</Text>
+              </Pressable>
+            </Animated.View>
+            <Animated.View pointerEvents={canNext && !(hasUnits && unitsPicking) ? "auto" : "none"} style={[styles.unitSlot, { width: slotWidth, left: 2 * step, opacity: anim.next }]}>
+              <Pressable
+                onPress={onNext}
+                disabled={!canNext}
+                accessibilityRole="button"
+                accessibilityLabel={labels.nextSpoken}
+                accessibilityState={{ disabled: !canNext }}
+                hitSlop={BAR_BUTTON_HIT_SLOP}
+                style={[styles.unitButton, styles.button]}
+                testID="execution-sheet-keyboard-next"
+              >
+                <Text style={styles.label}>{compact ? labels.nextArrow : labels.next}</Text>
+              </Pressable>
             </Animated.View>
             <View style={[styles.unitSlot, { width: slotWidth, left: 3 * step }]}>
               {button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
             </View>
           </View>
-        ) : sign !== null ? (
-          button(labels.sign, labels.signSpoken, true, sign.onPress, "keyboard-sign", { selected: sign.negative })
         ) : failure === null ? (
           // B9 (arbitrage A4) : emplacement réservé, vide et non accessible.
           <View
@@ -339,15 +399,15 @@ export function KeyboardAccessoryBar({
             selected: failure.selected,
           })
         )}
-        {units !== null ? null : button(
+        {animated ? null : button(
           compact ? labels.previousArrow : labels.previous,
           labels.previousSpoken,
           canPrevious,
           onPrevious,
           "execution-sheet-keyboard-previous",
         )}
-        {units !== null ? null : button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
-        {units !== null ? null : button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
+        {animated ? null : button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
+        {animated ? null : button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
       </View>
     </Animated.View>
   );
@@ -408,6 +468,20 @@ const styles = StyleSheet.create({
   },
   unitButton: {
     flex: 1,
+  },
+  layer: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  // Hermann, 04/11/2026 : « Faire le signe +/− beaucoup plus gros dans son cadre ».
+  signLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    fontSize: 26,
+    lineHeight: 30,
   },
   label: {
     fontFamily: "Inter_400Regular",

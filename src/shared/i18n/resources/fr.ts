@@ -633,7 +633,8 @@ export const fr = {
         objective: "Objectif",
         objectiveKind: "objectif",
         load: "Charge",
-        perSeries: "+ / série",
+        // Hermann, 04/11/2026 : « le titre de la colonne doit remplacer le signe + par le signe double + et − ».
+        perSeries: "± / série",
         start: "Départ",
         increment: "Incrément",
         unit: "Unité",
