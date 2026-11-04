@@ -34,3 +34,17 @@ Seuls ces cas ne se résolvent pas par les règles existantes (`arbitrages-pre9.
 ## Synchronisation code / documentation
 
 Document sans code ; aucune règle modifiée (classe A : synthèse des sources citées). Aucun document normatif touché.
+
+## Annexe du 4 novembre 2026 — base Formats finale et dépendances du moteur
+
+Source : mise à jour consolidée des écrans Formats du 04/11/2026 (§6 bis 2, §6 quater bis, §6 sexies) ; réalisation : `spec-reprise-formats-2026-11-04.md` § 5. Les correspondances ci-dessous complètent le tableau ; aucune capacité d'exécution n'est déclarée développée (`executionAvailable: false`).
+
+| Capacité nouvelle | Formats | Configuration livrée (PRE-9) | Exécution |
+|---|---|---|---|
+| Buy-in / buy-out multiples, zones ordonnées, une seule exécution | AMRAP (buy-in), For time (buy-in, buy-out) | Rôle explicite `circuitRole`, zones, gardes ; D.1 For time (buy-in avant le tour 1, buy-out après le dernier) | PRE-10/11 |
+| Buy-in AMRAP à l'échec, résultat saisi à la clôture du premier bloc | AMRAP | Max admis sur le buy-in ; descripteur `buyInResult: AT_FIRST_BLOCK_CLOSE` | PRE-11 |
+| Incrément par tour dans l'unité de l'objectif (durée) | AMRAP | `incrementPerRound` en secondes pour un objectif en Durée | PRE-11 |
+| Membres For time en Durée (durée fixe ajoutée au chrono), au moins un en Répétitions | For time | Mode conservé, `NO_REPETITIONS` en D.4 | PRE-10 |
+| Charges par série (progression EMOM, par tour For time, fixe AMRAP) | EMOM, For time, AMRAP | Charges matérialisées par série dans les paramètres ; instantané figé | Lecture seule (aucun recalcul) |
+
+[29/10 : ligne « Death by à plusieurs Exercices (R-03) » — à relire avec le tableau Départ / Incrément par mouvement du 04/11 (§4.3) ; non tranché ici.]

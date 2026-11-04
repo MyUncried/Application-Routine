@@ -84,6 +84,21 @@ export type FormatCapabilityDescriptor = {
   /** Points non définis propres au modèle (en plus de `onExpiry`), avec leur question. */
   readonly undefinedAspects: readonly Undefined[];
   readonly executionAvailable: false;
+  /**
+   * Mise à jour consolidée des écrans Formats du 04/11/2026 (§6 bis 2, §6 quater bis) — besoins de configuration
+   * que le moteur PRE-10/11 devra lire (descriptif, aucune exécution) : Rôles admis dans le Circuit porteur
+   * (zones ordonnées, plusieurs buy-in/out, une seule exécution), Condition d'arrêt admise d'un buy-in, saisie
+   * différée du résultat d'un buy-in à l'échec, Modes admis des membres, incrément par tour dans l'unité de
+   * l'objectif, charges lues par série dans l'instantané (jamais recalculées).
+   */
+  readonly configuration?: {
+    readonly roles: readonly ("BUY_IN" | "TOUR" | "BUY_OUT")[];
+    readonly buyInStop: readonly ("TARGET" | "FAILURE")[];
+    readonly buyInResult: "AT_FIRST_BLOCK_CLOSE" | "NOT_APPLICABLE";
+    readonly memberModes: readonly ("REPETITIONS" | "DURATION")[];
+    readonly incrementUnit: "OBJECTIVE" | "NOT_APPLICABLE";
+    readonly loads: "PER_SERIES_FROM_SNAPSHOT";
+  };
   readonly sources: readonly string[];
 };
 
@@ -143,6 +158,8 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     results: [...GENERIC_RESULTS, "ROUNDS_COMPLETED"],
     undefinedAspects: [{ status: UNDEFINED_CAPABILITY, question: "Tour partiel à l'échéance (A6, PRE-11)." }, NEXT_AFTER_PROGRESSIVE],
     executionAvailable: false,
+    // MAJ 04/11 §6 bis 2 : buy-in pris sur le premier bloc, « Terminé » lance la boucle sans saisie intercalée.
+    configuration: { roles: ["BUY_IN", "TOUR"], buyInStop: ["TARGET", "FAILURE"], buyInResult: "AT_FIRST_BLOCK_CLOSE", memberModes: ["REPETITIONS", "DURATION"], incrementUnit: "OBJECTIVE", loads: "PER_SERIES_FROM_SNAPSHOT" },
     sources: ["FMT-26", "REC-15", "ch12 l.1829", "ARB-03", "recherche/03-formats §1.4"],
   },
   FOR_TIME: {
@@ -162,6 +179,9 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     results: [...GENERIC_RESULTS, "ELAPSED_TIME"],
     undefinedAspects: [],
     executionAvailable: false,
+    // MAJ 04/11 §6 bis 2 : buy-in et buy-out à l'objectif ; une durée fixe s'ajoute au chrono ; au moins un Exercice
+    // de l'ensemble du Circuit en Répétitions.
+    configuration: { roles: ["BUY_IN", "TOUR", "BUY_OUT"], buyInStop: ["TARGET"], buyInResult: "NOT_APPLICABLE", memberModes: ["REPETITIONS", "DURATION"], incrementUnit: "NOT_APPLICABLE", loads: "PER_SERIES_FROM_SNAPSHOT" },
     sources: ["FMT-30…32", "ARB-18b", "recherche/03-formats §1.4"],
   },
   DEATH_BY: {
