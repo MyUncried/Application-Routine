@@ -4,6 +4,7 @@ import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Keyboard,
   Platform,
   Pressable,
@@ -42,7 +43,10 @@ import {
   type ModelMovement,
   type MovementValues,
 } from "@/domain/sessions/formatModels";
+import { applyModelReedit, modelStateOfCircuit, type ModelReeditState } from "@/domain/sessions/formatReedit";
 import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessions/formatTimeline";
+import { currentLayout } from "@/domain/sessions/layoutOperations";
+import { structureCircuits } from "@/domain/sessions/structure";
 import type { MovementChoice } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
@@ -387,10 +391,26 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [stage, setStage] = useState<Stage>(initialStage);
   const router = useRouter();
   const navigation = useNavigation();
-  const params = useLocalSearchParams<{ model?: string }>();
+  const params = useLocalSearchParams<{ model?: string; circuitId?: string }>();
   const routeModel: FormatModelKey = isFormatModelKey(params.model) ? params.model : "TABATA";
-  const { draft: modelDraft, start, setAnswers, setMovements } = useFormatModelDraft();
+  const { draft: modelDraft, start, startWith, setAnswers, setMovements } = useFormatModelDraft();
   const sessionDraft = useSessionDraft();
+  /**
+   * Mise à jour consolidée du 04/11/2026 (§6 sexies) : « Modifier le format » — récapitulatif du Modèle d'origine
+   * prérempli depuis l'état actuel du Circuit (`circuitId`), relu une fois à l'ouverture ; « Enregistrer les
+   * modifications » met le Circuit à jour en place ; fermer sans enregistrer ne change rien.
+   */
+  const [reedit] = useState<{ readonly circuitId: string; readonly opened: ModelReeditState } | null>(() => {
+    const circuitId = typeof params.circuitId === "string" ? params.circuitId : null;
+    // Disposition courante (y compris une Séance représentable dans l'ancien modèle à Circuit unique).
+    const structure = currentLayout(sessionDraft.draft, () => "layout");
+    const circuit = circuitId === null ? undefined : structureCircuits(structure).find((item) => item.id === circuitId);
+    if (circuitId === null || circuit === undefined) return null;
+    const exercises = circuit.exercises.flatMap((id) => sessionDraft.draft.exercises.filter((exercise) => exercise.id === id));
+    return { circuitId, opened: modelStateOfCircuit(routeModel, { ...circuit, exercises }) };
+  });
+  // Réglages communs hétérogènes : « variable » jusqu'à une saisie explicite (§6 sexies.7).
+  const [variable, setVariable] = useState<ReadonlySet<ModelAnswerKey>>(() => reedit?.opened.variable ?? new Set());
   const service = useActivityDefinitionService();
   const profileService = useContext(ProfileServiceContext);
   const actionZone = usePrimaryActionZone();
@@ -400,9 +420,11 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // questionnaire déjà validé avec ses mouvements et ses paramètres au lieu d'ouvrir un questionnaire
   // vierge »). Le retour depuis le récapitulatif ne remonte pas le questionnaire : réponses conservées.
   const [opening] = useState(() => `opening-${++openings}`);
-  const fresh = initialStage === "summary" || modelDraft?.opening === opening;
+  const fresh = modelDraft?.opening === opening;
   useEffect(() => {
-    if (initialStage === "questionnaire" && modelDraft?.opening !== opening) start(routeModel, opening);
+    if (modelDraft?.opening === opening) return;
+    if (reedit !== null) startWith(routeModel, opening, reedit.opened.answers, reedit.opened.movements);
+    else start(routeModel, opening);
     // Une seule fois par ouverture : le brouillon de cette ouverture n'est jamais recréé.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opening]);
@@ -591,6 +613,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const save = () => {
     if (busyRef.current || !canSave) return;
     busyRef.current = true;
+    if (reedit !== null) {
+      const next = applyModelReedit(sessionDraft.draft, reedit.circuitId, reedit.opened, { model, answers, movements, variable }, newId);
+      sessionDraft.updateDraft({ exercises: next.exercises, ...(next.structure !== undefined ? { structure: next.structure } : {}) });
+      backToComposition();
+      return;
+    }
     const built = buildModelElements(model, answers, movements, newId);
     const next = appendModelToDraft(sessionDraft.draft, built, newId);
     sessionDraft.updateDraft({
@@ -643,8 +671,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const bounds = answerBounds(id);
     const isSeconds = SECONDS_KEYS.has(id);
     const numeric = typeof value === "number" ? value : null;
-    const text = numeric === null ? t().noLimit : options.format !== undefined ? options.format(numeric) : isSeconds ? formatSeconds(numeric) : String(numeric);
-    const onStep = (direction: 1 | -1) =>
+    const isVariable = variable.has(id);
+    const text = isVariable ? t().variable : numeric === null ? t().noLimit : options.format !== undefined ? options.format(numeric) : isSeconds ? formatSeconds(numeric) : String(numeric);
+    const applyStep = (direction: 1 | -1) =>
       setAnswers((current) => {
         const raw = current[id] ?? options.fallback;
         if (typeof raw !== "number") return direction > 0 ? withAnswer(current, id, bounds.min) : current;
@@ -653,6 +682,23 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         if (id === "timeCapSeconds" && next < bounds.min) return withAnswer(current, id, null);
         return withAnswer(current, id, next);
       });
+    // §6 sexies.7 : remplacer un réglage « variable » écrase des valeurs personnalisées — confirmation courte.
+    const onStep = (direction: 1 | -1) => {
+      if (!isVariable) {
+        applyStep(direction);
+        return;
+      }
+      Alert.alert(t().variableConfirmTitle, t().variableConfirmMessage, [
+        { text: t().variableConfirmCancel, style: "cancel" },
+        {
+          text: t().variableConfirmReplace,
+          onPress: () => {
+            setVariable((current) => new Set([...current].filter((key) => key !== id)));
+            setAnswers((current) => withAnswer(current, id, (initialAnswers(model)[id] as number | undefined) ?? bounds.min));
+          },
+        },
+      ]);
+    };
     return (
       <Row key={id} label={label} last={options.last === true} testID={`format-row-${id}`}>
         <ValueStepper
@@ -660,8 +706,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           label={label}
           text={text}
           onStep={onStep}
-          canDecrease={numeric !== null && (numeric > bounds.min || id === "timeCapSeconds")}
-          canIncrease={numeric === null || numeric < bounds.max}
+          canDecrease={isVariable || (numeric !== null && (numeric > bounds.min || id === "timeCapSeconds"))}
+          canIncrease={isVariable || numeric === null || numeric < bounds.max}
           testID={`format-${id}`}
         />
       </Row>
@@ -1183,7 +1229,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         ) : validating ? (
           <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
         ) : (
-          <PrimaryActionButton label={t().save} onPress={save} disabled={!canSave} testID="format-save" />
+          <PrimaryActionButton label={reedit !== null ? t().saveChanges : t().save} onPress={save} disabled={!canSave} testID="format-save" />
         )}
       </PrimaryActionZone>
       </View>

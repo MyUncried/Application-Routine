@@ -29,6 +29,8 @@ export type FormatModelDraft = {
 type FormatModelDraftContextValue = {
   readonly draft: FormatModelDraft | null;
   readonly start: (model: FormatModelKey, opening: string) => void;
+  /** Réédition depuis la Composition (MAJ 04/11/2026 §6 sexies) : réponses et mouvements reconstruits. */
+  readonly startWith: (model: FormatModelKey, opening: string, answers: ModelAnswers, movements: readonly ModelMovement[]) => void;
   readonly setAnswers: (update: (answers: ModelAnswers) => ModelAnswers) => void;
   readonly setMovements: (update: (movements: readonly ModelMovement[]) => readonly ModelMovement[]) => void;
   readonly setName: (name: string) => void;
@@ -41,6 +43,9 @@ export function FormatModelDraftProvider({ children }: { readonly children: Reac
   const [draft, setDraft] = useState<FormatModelDraft | null>(null);
   const start = useCallback((model: FormatModelKey, opening: string) => {
     setDraft({ model, answers: initialAnswers(model), movements: [], name: "", opening });
+  }, []);
+  const startWith = useCallback((model: FormatModelKey, opening: string, answers: ModelAnswers, movements: readonly ModelMovement[]) => {
+    setDraft({ model, answers, movements, name: "", opening });
   }, []);
   const setAnswers = useCallback((update: (answers: ModelAnswers) => ModelAnswers) => {
     setDraft((current) => {
@@ -57,7 +62,10 @@ export function FormatModelDraftProvider({ children }: { readonly children: Reac
     setDraft((current) => (current === null ? current : { ...current, name }));
   }, []);
   const clear = useCallback(() => setDraft(null), []);
-  const value = useMemo(() => ({ draft, start, setAnswers, setMovements, setName, clear }), [draft, start, setAnswers, setMovements, setName, clear]);
+  const value = useMemo(
+    () => ({ draft, start, startWith, setAnswers, setMovements, setName, clear }),
+    [draft, start, startWith, setAnswers, setMovements, setName, clear],
+  );
   return <FormatModelDraftContext.Provider value={value}>{children}</FormatModelDraftContext.Provider>;
 }
 

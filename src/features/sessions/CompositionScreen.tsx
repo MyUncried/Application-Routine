@@ -209,6 +209,8 @@ import { CreateMenu } from "@/features/sessions/CreateMenu";
 import { FormatsWindow } from "@/features/sessions/FormatsWindow";
 import { isSinglePassage, singlePassageLabel } from "@/domain/sessions/formats";
 import { CarrierDurationSheet } from "@/features/sessions/CarrierDurationSheet";
+import { duplicateLayoutCircuit, removeLayoutCircuit, renameLayoutCircuit } from "@/domain/sessions/circuitActions";
+import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { carrierDurationSetting, carrierHeaderOf, circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
 import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
@@ -2437,6 +2439,62 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
   const handleLayoutCircuitCount = useCallback((circuitId: string, count: number) => handleLayoutCount("CIRCUIT", circuitId, count), [handleLayoutCount]);
   // PRE-9 C.4 (référence Formats §7.5, §11) : durée portée par un Circuit porteur — roulette de durée.
+  /**
+   * Mise à jour consolidée des écrans Formats du 04/11/2026 (§6 quinquies, §6 sexies) — Circuit replié : actions
+   * glissées, saisie en ligne de son nom (Renommer, puis la copie d'une duplication), confirmation de suppression
+   * (alerte native, P-4), « Modifier le format » qui rouvre le récapitulatif du Modèle d'origine.
+   */
+  const [revealedCircuitId, setRevealedCircuitId] = useState<string | null>(null);
+  const [renamingCircuitId, setRenamingCircuitId] = useState<string | null>(null);
+  const circuitActions: CircuitActionsContext = {
+    revealedId: revealedCircuitId,
+    onReveal: setRevealedCircuitId,
+    renamingId: renamingCircuitId,
+    onRename: (circuit) => {
+      setRevealedCircuitId(null);
+      setRenamingCircuitId(circuit.id);
+    },
+    onSubmitName: (circuitId, name) => {
+      setRenamingCircuitId(null);
+      updateDraft((current) => renameLayoutCircuit(current, circuitId, name, () => Crypto.randomUUID()));
+    },
+    onEditFormat: (circuit) => {
+      setRevealedCircuitId(null);
+      const model = circuit.originModel ?? null;
+      if (model === null) return;
+      router.push({ pathname: "/format-summary", params: { model, circuitId: circuit.id } });
+    },
+    onDuplicate: (circuit) => {
+      setRevealedCircuitId(null);
+      const duplicated = duplicateLayoutCircuit(draftRef.current, circuit.id, circuitDisplayTitle(circuit) ?? strings.screens.composition.circuit.title, () => Crypto.randomUUID());
+      if (duplicated === null) return;
+      updateDraft(() => duplicated.draft);
+      // La copie, repliée, passe aussitôt en saisie de son titre (« nom (C) », sélectionné).
+      setLayoutCollapsed((current) => {
+        const copy = structureCircuits(duplicated.draft.structure!).find((item) => item.id === duplicated.copyId);
+        const next = new Map(current);
+        if (copy !== undefined) next.set(copy.id, copy.exercises.join(" "));
+        return next;
+      });
+      setRenamingCircuitId(duplicated.copyId);
+    },
+    onDelete: (circuit) => {
+      setRevealedCircuitId(null);
+      const tc = strings.screens.composition.circuitActions;
+      const count = circuit.exercises.length;
+      Alert.alert(tc.deleteTitle, count === 1 ? tc.deleteMessageOne : tc.deleteMessage.replace("{count}", String(count)), [
+        { text: tc.cancel, style: "cancel" },
+        {
+          text: tc.confirmDelete,
+          style: "destructive",
+          onPress: () => {
+            const removed = removeLayoutCircuit(draftRef.current, circuit.id, () => Crypto.randomUUID());
+            if (removed !== null) updateDraft(() => removed);
+          },
+        },
+      ]);
+    },
+  };
   const [carrierDurationEdit, setCarrierDurationEdit] = useState<{
     readonly circuitId: string;
     readonly setting: "blockSeconds" | "windowSeconds" | "timeCapSeconds";
@@ -4812,6 +4870,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onToggleOverlay={toggleOverlay}
             onCircuitCount={handleLayoutCircuitCount}
             onEditCarrierDuration={handleEditCarrierDuration}
+            circuitActions={circuitActions}
             onCycleCount={handleLayoutCycleCount}
             onSelectNature={handleLayoutSelectNature}
             onDismissNature={dismissLayoutNatureMenu}
@@ -8071,6 +8130,22 @@ function useMeasuredValue<T extends number | null>(initial: T, urgent: boolean):
 }
 
 /** PRE-9 B.1b : ce que chaque bloc d'une disposition générale reçoit de l'écran. */
+/**
+ * Mise à jour consolidée des écrans Formats du 04/11/2026 (§6 quinquies, §6 sexies) — actions glissées d'un Circuit
+ * replié : Renommer | Dupliquer | Supprimer, et « Modifier le format » (entre Renommer et Dupliquer) pour un Circuit
+ * issu d'un modèle (Modèle d'origine renseigné). Le Circuit déplié ne se glisse pas.
+ */
+type CircuitActionsContext = {
+  readonly revealedId: string | null;
+  readonly onReveal: (circuitId: string | null) => void;
+  readonly renamingId: string | null;
+  readonly onRename: (circuit: StructureCircuit<SessionDraftExercise>) => void;
+  readonly onSubmitName: (circuitId: string, name: string) => void;
+  readonly onEditFormat: (circuit: StructureCircuit<SessionDraftExercise>) => void;
+  readonly onDuplicate: (circuit: StructureCircuit<SessionDraftExercise>) => void;
+  readonly onDelete: (circuit: StructureCircuit<SessionDraftExercise>) => void;
+};
+
 type LayoutRenderContext = {
   readonly letters: ReadonlyMap<string, string>;
   readonly openOverlay: OverlayKind | null;
@@ -8078,6 +8153,8 @@ type LayoutRenderContext = {
   readonly onCircuitCount: (circuitId: string, count: number) => void;
   /** PRE-9 C.4 : toucher de la durée d'un Circuit porteur. */
   readonly onEditCarrierDuration: (circuit: StructureCircuit<SessionDraftExercise>) => void;
+  /** MAJ 04/11/2026 §6 quinquies et §6 sexies : actions glissées du Circuit replié et saisie de son nom. */
+  readonly circuitActions: CircuitActionsContext;
   readonly onCycleCount: (cycleId: string, count: number) => void;
   readonly onSelectNature: (circuitId: string, nature: CircuitNature) => void;
   readonly onDismissNature: (circuitId: string) => void;
@@ -9233,6 +9310,8 @@ function LayoutCircuitBlock({
         rail={{ centerX: railX, ringY: rowHeight / 2 }}
         testID={`${testID}-header-sticky`}
       >
+      {(() => {
+        const header = (
       <CircuitHeader
         entering={entering}
         nature={circuit.nature}
@@ -9275,8 +9354,42 @@ function LayoutCircuitBlock({
           const { height } = event.nativeEvent.layout;
           if (height > 0) setRowHeight(height);
         }}
+        {...((circuit.name ?? null) !== null ? { customTitle: circuit.name! } : {})}
+        {...(context.circuitActions.renamingId === circuit.id
+          ? { rename: { initial: circuit.name ?? circuitDisplayTitle(circuit) ?? strings.screens.composition.circuit.title, onSubmit: (name: string) => context.circuitActions.onSubmitName(circuit.id, name) } }
+          : {})}
         testID={`${testID}-header`}
       />
+        );
+        // MAJ 04/11/2026 §6 quinquies : seul le Circuit replié se glisse (déplié, le geste concurrencerait celui des cartes).
+        if (!isCollapsed || ghost || inPlacement || context.circuitActions.renamingId === circuit.id) return header;
+        const actions = context.circuitActions;
+        const fromModel = (circuit.originModel ?? null) !== null;
+        const tc = strings.screens.composition.circuitActions;
+        const swipeActions = [
+          { key: "rename", label: tc.rename, backgroundColor: colors.primary, onPress: () => actions.onRename(circuit) },
+          ...(fromModel ? [{ key: "edit-format", label: tc.editFormat, backgroundColor: "#7B61FF", onPress: () => actions.onEditFormat(circuit) }] : []),
+          { key: "duplicate", label: tc.duplicate, backgroundColor: "#8E93A0", onPress: () => actions.onDuplicate(circuit) },
+          { key: "delete", label: tc.delete, backgroundColor: colors.danger, onPress: () => actions.onDelete(circuit) },
+        ];
+        return (
+          <SwipeActionsRow
+            actions={swipeActions}
+            revealed={actions.revealedId === circuit.id}
+            onReveal={() => actions.onReveal(circuit.id)}
+            onHide={() => actions.onReveal(null)}
+            onPress={() => {
+              if (actions.revealedId === circuit.id) actions.onReveal(null);
+              else context.onToggleCollapsed(circuit);
+            }}
+            accessibilityLabel={circuit.name ?? circuitDisplayTitle(circuit) ?? strings.screens.composition.circuit.title}
+            {...(drag !== null ? { onLongPress: () => gesture.begin() } : {})}
+            testID={`${testID}-swipe`}
+          >
+            {header}
+          </SwipeActionsRow>
+        );
+      })()}
       </StickyHeaderFrame>
       </Animated.View>
       {/* ARB-12 : Circuit replié — ses cartes sont masquées, le brouillon est inchangé. */}

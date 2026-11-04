@@ -18,6 +18,9 @@ const mockBack = jest.fn();
 const mockDismissTo = jest.fn();
 const mockDismiss = jest.fn();
 let mockModel = "TABATA";
+let mockCircuitId: string | null = null;
+let mockUuid = 0;
+jest.mock("expo-crypto", () => ({ randomUUID: () => `uuid-${++mockUuid}` }));
 // Pile de création : Composition d'une Séance du Catalogue (`sessionId`), questionnaire, récapitulatif.
 const mockStack = {
   index: 2,
@@ -34,7 +37,7 @@ jest.mock("expo-router", () => {
     ...actual,
     useRouter: () => ({ push: mockPush, back: mockBack, dismissTo: mockDismissTo, dismiss: mockDismiss }),
     useNavigation: () => ({ getState: () => mockStack }),
-    useLocalSearchParams: () => ({ model: mockModel }),
+    useLocalSearchParams: () => ({ model: mockModel, ...(mockCircuitId !== null ? { circuitId: mockCircuitId } : {}) }),
     useFocusEffect: () => undefined,
   };
 });
@@ -76,8 +79,8 @@ const service = {
 
 const t = strings.screens.formatModel;
 
-function Harness({ draftRef }: { draftRef: { current: SessionDraft } }) {
-  const [stage, setStage] = useState<"questionnaire" | "summary">("questionnaire");
+function Harness({ draftRef, initialStage = "questionnaire" }: { draftRef: { current: SessionDraft }; initialStage?: "questionnaire" | "summary" }) {
+  const [stage, setStage] = useState<"questionnaire" | "summary">(initialStage);
   void setStage;
   // Réouverture du questionnaire depuis la fenêtre Formats : écran remonté, brouillon de modèle conservé par le fournisseur.
   const [opening, setOpening] = useState(0);
@@ -123,6 +126,7 @@ function Harness({ draftRef }: { draftRef: { current: SessionDraft } }) {
 
 describe("FormatModelScreen", () => {
   beforeEach(() => {
+    mockCircuitId = null;
     mockPush.mockReset();
     mockBack.mockReset();
     mockDismissTo.mockReset();
@@ -468,5 +472,41 @@ describe("FormatModelScreen", () => {
     fireEvent.press(screen.getByTestId("format-catalogue-card-mv-fentes"));
     fireEvent.press(screen.getByTestId("format-movements-link"));
     expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
+  });
+
+  it("MAJ 04/11 §6 sexies : Modifier le format — récapitulatif prérempli, « Enregistrer les modifications », Retour au questionnaire ; mise à jour en place", async () => {
+    mockModel = "TABATA";
+    // Séance avec un Circuit Tabata en alternance (créé par le parcours).
+    const first = { current: createEmptyDraft() };
+    const view = render(<Harness draftRef={first} />);
+    await screen.findByTestId("format-title");
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    toSummary();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-save"));
+    });
+    view.unmount();
+    const [circuit] = structureCircuits(first.current.structure!);
+    const ids = circuit!.exercises;
+    mockCircuitId = circuit!.id;
+    const draftRef = { current: first.current };
+    render(<Harness draftRef={draftRef} initialStage="summary" />);
+    expect(await screen.findByTestId("format-summary")).toBeTruthy();
+    expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer les modifications");
+    expect(screen.getByTestId("format-movement-card-1")).toBeTruthy();
+    // Retour : questionnaire du modèle, réponses reconstruites ; Valider revient au récapitulatif.
+    fireEvent.press(screen.getByTestId("screen-header-back"));
+    expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("format-pauseSeconds-badge"));
+    fireEvent.press(screen.getByTestId("format-pauseSeconds-increase"));
+    toSummary();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-save"));
+    });
+    const [updated] = structureCircuits(draftRef.current.structure!);
+    expect(updated!.id).toBe(circuit!.id);
+    expect(updated!.exercises).toEqual(ids);
+    expect(draftRef.current.exercises.every((exercise) => exercise.executionParameters.series.kind === "UNIFORM" && exercise.executionParameters.series.pauseSeconds === 15)).toBe(true);
   });
 });

@@ -73,8 +73,18 @@ export type StructureCircuit<E> = {
    * réglé (compte, nature) ou enveloppé dans un Cycle ; absent (`null`) pour un Circuit créé dans la
    * Composition. Colonne `tours.origin_model` (migration 020) ; les Circuits antérieurs restent
    * « Circuit ».
+   *
+   * Mise à jour consolidée du 04/11/2026 (§6 sexies.2) : **Modèle d'origine**, distinct du Format d'origine
+   * (`format`, qui gouverne l'exécution d'un Circuit porteur) — il rouvre le parcours du modèle (« Modifier le
+   * format ») et ne change rien à l'exécution d'un Circuit standard.
    */
   readonly originModel?: FormatModelKey | null;
+  /**
+   * Mise à jour consolidée du 04/11/2026 (§6 quinquies) : **Nom du Circuit**, choisi par Renommer. Absent
+   * (`null`) : nom par défaut — celui du Modèle d'origine, sinon « Circuit ». Le nom ne remplace que le titre ;
+   * renommer ne modifie ni le Format ni sa nature. Colonne `tours.name` (migration 022).
+   */
+  readonly name?: string | null;
 };
 
 /** Membre d'un Cycle (D-451) : Exercice direct ou Circuit. */

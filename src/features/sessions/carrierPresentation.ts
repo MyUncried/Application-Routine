@@ -73,7 +73,11 @@ export function carrierHeaderOf(
 export function circuitDisplayTitle(circuit: {
   readonly format?: ElementFormat | null;
   readonly originModel?: FormatModelKey | null;
+  readonly name?: string | null;
 }): string | undefined {
+  // MAJ 04/11/2026 §6 quinquies : nom choisi par Renommer, sinon nom du modèle d'origine, sinon « Circuit ».
+  const named = circuit.name?.trim() ?? "";
+  if (named.length > 0) return named;
   const key = circuit.format?.key ?? circuit.originModel ?? null;
   return key === null ? undefined : strings.screens.sessionModels.cards[key].title;
 }

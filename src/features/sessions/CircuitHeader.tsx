@@ -4,10 +4,13 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
   useWindowDimensions,
   type LayoutChangeEvent,
+  type StyleProp,
   type ViewProps,
+  type ViewStyle,
 } from "react-native";
 import Reanimated, {
   Easing as ReanimatedEasing,
@@ -107,6 +110,37 @@ const MIDDLE_DOT = "·";
  * `color/text-primary`).
  */
 const TITLE_TEXT = type.compactCardTitle;
+
+/**
+ * Mise à jour consolidée du 04/11/2026 (§6 quinquies) : saisie en ligne du nom du Circuit (Renommer, Dupliquer) —
+ * clavier ouvert, texte sélectionné, validation par la touche Retour (ou en quittant le champ) ; un nom vide
+ * reprend le nom par défaut (appelant).
+ */
+function RenameField({ initial, onSubmit, style, testID }: { readonly initial: string; readonly onSubmit: (name: string) => void; readonly style: StyleProp<ViewStyle>; readonly testID: string }) {
+  const [text, setText] = useState(initial);
+  const submitted = useRef(false);
+  const submit = () => {
+    if (submitted.current) return;
+    submitted.current = true;
+    onSubmit(text);
+  };
+  return (
+    <View style={[styles.titleTarget, style]}>
+      <TextInput
+        value={text}
+        onChangeText={setText}
+        autoFocus
+        selectTextOnFocus
+        returnKeyType="done"
+        onSubmitEditing={submit}
+        onBlur={submit}
+        accessibilityLabel={strings.screens.composition.circuitActions.renameLabel}
+        style={[styles.title, styles.renameInput]}
+        testID={testID}
+      />
+    </View>
+  );
+}
 const NUMBER_TEXT = type.compactCardTitle;
 const UNIT_TEXT = type.editableValue;
 const DURATION_TEXT = type.cardDuration;
@@ -430,6 +464,13 @@ export type CircuitHeaderProps = {
    * « Circuit ». Un Circuit porteur affiche le nom de son Format (`carrier`).
    */
   readonly originTitle?: string;
+  /**
+   * Mise à jour consolidée du 04/11/2026 (§6 quinquies) : nom choisi par Renommer ; il remplace le titre (y compris
+   * le nom du Format d'un Circuit porteur), la deuxième ligne garde l'organisation.
+   */
+  readonly customTitle?: string;
+  /** Renommer : le titre passe en saisie en ligne (clavier), validée par Retour ; texte sélectionné à l'ouverture. */
+  readonly rename?: { readonly initial: string; readonly onSubmit: (name: string) => void };
   readonly testID: string;
 };
 
@@ -520,10 +561,12 @@ export function CircuitHeader({
   moveActions,
   carrier,
   originTitle,
+  customTitle,
+  rename,
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
-  const title = carrier !== undefined ? carrier.title : (originTitle ?? t.title);
+  const title = customTitle ?? (carrier !== undefined ? carrier.title : (originTitle ?? t.title));
   const columns = useContainerColumns();
   // Recette n° 2 du 31/10 : la durée porte aussi l'appui long de saisie.
   const durationGrab = durationGrabProps(onLongPress);
@@ -544,6 +587,9 @@ export function CircuitHeader({
       {columns.probe}
       <View style={styles.row} onLayout={onRowLayout} testID={`${testID}-row`}>
         {/* ARB-12 : le nom et le chevron forment une seule cible réelle de 44 de haut. */}
+        {rename !== undefined ? (
+          <RenameField initial={rename.initial} onSubmit={rename.onSubmit} style={columns.title} testID={`${testID}-rename`} />
+        ) : (
         <Pressable
           onPress={onToggleCollapsed}
           onLongPress={onLongPress}
@@ -566,6 +612,7 @@ export function CircuitHeader({
             testID={`${testID}-chevron`}
           />
         </Pressable>
+        )}
         <View style={[styles.counterSlot, columns.counter]} testID={`${testID}-counter-slot`}>
           <CircuitCounter
             nature={nature}
@@ -1245,6 +1292,7 @@ const styles = StyleSheet.create({
     ...TITLE_TEXT,
     color: colors.textPrimary,
   },
+  renameInput: { flex: 1, padding: 0, borderBottomWidth: 1, borderBottomColor: colors.primary },
   // Compteur à abscisse fixe après le nom (référence §4) ; il ne rétrécit jamais.
   counterSlot: {
     flexShrink: 0,

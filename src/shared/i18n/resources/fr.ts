@@ -573,6 +573,13 @@ export const fr = {
       atFailure: "à l’échec",
       dash: "—",
       save: "Enregistrer dans la séance",
+      // Mise à jour consolidée du 04/11/2026 (§6 sexies) : réédition depuis la Composition.
+      saveChanges: "Enregistrer les modifications",
+      variable: "variable",
+      variableConfirmTitle: "Remplacer les valeurs personnalisées ?",
+      variableConfirmMessage: "Les exercices ont des valeurs différentes. La nouvelle valeur s’appliquera à tous.",
+      variableConfirmCancel: "Annuler",
+      variableConfirmReplace: "Remplacer",
       // Recette n° 3 du 03/11/2026 : bouton du questionnaire AMRAP (passage au récapitulatif).
       validate: "Valider les paramètres",
       increase: "Augmenter",
@@ -1104,6 +1111,19 @@ export const fr = {
       // PRE-6 story 2.2 (D-238, Figma `5544:6797`) : carte d'occurrence de la Composition.
       // Synthèse « N × cible » des séries identiques, « … » après trois cibles variables ;
       // nom accessible « Exercice, {nom}, {n} sur {m}, {durée} » (CE-T03-08 §18).
+      // Mise à jour consolidée des écrans Formats du 04/11/2026 (§6 quinquies, §6 sexies) : Circuit replié.
+      circuitActions: {
+        rename: "Renommer",
+        editFormat: "Modifier le format",
+        duplicate: "Dupliquer",
+        delete: "Supprimer",
+        renameLabel: "Nom du circuit",
+        deleteTitle: "Supprimer ce circuit ?",
+        deleteMessage: "Le circuit et ses {count} exercices seront supprimés de la séance.",
+        deleteMessageOne: "Le circuit et son exercice seront supprimés de la séance.",
+        cancel: "Annuler",
+        confirmDelete: "Supprimer",
+      },
       occurrenceCard: {
         seriesTimes: "{n} × {target}",
         valuesOverflow: "…",
