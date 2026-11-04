@@ -37,7 +37,8 @@ function settingValueValid(parameter: FormatParameter, value: unknown): boolean 
     typeof value === "number" &&
     Number.isInteger(value) &&
     (parameter.min === undefined || value >= parameter.min) &&
-    (parameter.unit !== "FLAG" || value <= 1)
+    (parameter.unit !== "FLAG" || value <= 1) &&
+    (parameter.unit !== "ROLE" || value <= 2)
   );
 }
 

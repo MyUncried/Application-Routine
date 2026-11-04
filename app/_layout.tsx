@@ -3,6 +3,7 @@ import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
 import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
 import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
 import { useFonts } from "@expo-google-fonts/inter/useFonts";
+import { Mali_500Medium_Italic } from "@expo-google-fonts/mali/500Medium_Italic";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
@@ -79,6 +80,7 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    Mali_500Medium_Italic,
   });
   const [databaseReady, setDatabaseReady] = useState(false);
   const [rootError, setRootError] = useState<Error | null>(null);

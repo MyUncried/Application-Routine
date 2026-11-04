@@ -103,6 +103,10 @@ const executionParameters = {
       nextArrow: "→",
       nextSpoken: "Suivant",
       close: "Fermer",
+      // Mise à jour consolidée des écrans Formats du 04/11/2026 (§4.5, §6 quater) : unité de l'objectif.
+      repetitions: "Répétitions",
+      duration: "Durée",
+      unitSpoken: "Unité de l’objectif : {unit}, toucher pour changer",
     },
     moveUp: "Monter la série {n}",
     moveDown: "Descendre la série {n}",

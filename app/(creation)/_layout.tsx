@@ -72,11 +72,12 @@ export default function CreationLayout() {
         {/* PRE-9 C.3 (référence Formats du 02/11/2026, CE-FMT-02) : questionnaire et récapitulatif d'un modèle
             de la fenêtre Formats ; brouillon de modèle partagé (`FormatModelDraftProvider`). [C.2/C.3 du 01/11 :
             routes `session-model` et `format-parameters` — retirées le 02/11/2026.] */}
-        <Stack.Screen name="format-questionnaire" />
-        {/* Recette n° 3 (f3-questionnaire : le premier mouvement choisi faisait glisser tout l'écran ; « c'est
-            ce dernier comportement qu'il faut aussi pour le premier mouvement ») : le récapitulatif remplace
-            le questionnaire sur place, sans transition, à l'aller comme au Retour. */}
-        <Stack.Screen name="format-summary" options={{ animation: "none" }} />
+        {/* Mise à jour consolidée du 04/11/2026 (§1) : le parcours Format est une modale sur la Composition, par le
+            bas, la Composition restant visible sous le voile ; l'étape (questionnaire / récapitulatif) change sur
+            place, sans navigation. `format-summary` ouvre directement le récapitulatif (réédition depuis la
+            Composition, §6 sexies). [Écrans pleins, récapitulatif poussé sans transition — remplacés.] */}
+        <Stack.Screen name="format-questionnaire" options={{ presentation: "transparentModal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="format-summary" options={{ presentation: "transparentModal", animation: "slide_from_bottom" }} />
         {/* Recette n° 3 du 03/11/2026 (autres constats) : fiche d'un mouvement du questionnaire ou du
             récapitulatif, en modale par le bas, lecture seule ; fermeture par sa croix (geste natif désactivé, T02-S02).
             Recette n° 3 bis (f3s-fiche) : feuille ajustée à son contenu, au plus jusqu'au titre de l'écran (hauteur

@@ -29,8 +29,9 @@ import type { CircuitNature } from "../circuit";
  * PRE-9 (D.2) : version des règles de Format du registre, figée par élément formaté dans
  * l'instantané de Séance (ch09 l.593-598) ; incrémentée à tout changement de règle d'un Format.
  * 2 : référence du 02/11/2026 (quatre Formats, portage par le Circuit).
+ * 3 : décisions du 04/11/2026 (Rôle dans le circuit, buy-in / buy-out multiples, Durée et À l'échec admis selon le Rôle).
  */
-export const FORMAT_RULES_VERSION = 2;
+export const FORMAT_RULES_VERSION = 3;
 
 /** Formats spécialisés (FMT-01, référence du 02/11/2026). */
 export const ELEMENT_FORMAT_KEYS = ["EMOM", "AMRAP", "FOR_TIME", "DEATH_BY"] as const;
@@ -76,8 +77,11 @@ export const SESSION_ORIGINS = [
 
 export type SessionOrigin = (typeof SESSION_ORIGINS)[number];
 
-/** Unité d'un réglage. `FLAG` : 1 = vrai (Passage « Une fois »). */
-export type FormatParameterUnit = "SECONDS" | "REPETITIONS" | "FLAG";
+/**
+ * Unité d'un réglage. `FLAG` : 1 = vrai (ancien Passage « Une fois »). `ROLE` : Rôle dans le circuit (1 = Buy-in,
+ * 2 = Buy-out ; absent = Tour). `TARGET` : dans l'unité de l'objectif de l'Exercice (répétitions ou secondes).
+ */
+export type FormatParameterUnit = "SECONDS" | "REPETITIONS" | "FLAG" | "ROLE" | "TARGET";
 
 export type FormatParameter = {
   readonly id: string;
@@ -116,8 +120,15 @@ export type FormatDescriptor = {
 };
 
 const MINUTE = 60;
-const PASSAGE: FormatParameter = { id: "passageOnce", unit: "FLAG", min: 0, optional: true, sources: ["§2", "§3", "§11"] };
-const AMRAP_INCREMENT: FormatParameter = { id: "incrementPerRound", unit: "REPETITIONS", min: 0, initial: 0, sources: ["§2", "§14.1"] };
+/**
+ * Mise à jour consolidée du 04/11/2026 (§6 bis 2 ; référence Formats §3, §6) : « Rôle dans le circuit » (Buy-in /
+ * Tour / Buy-out) remplace « Passage » (Une fois / À chaque tour). Donnée explicite : la position en découle.
+ * `passageOnce` (écrit avant le 04/11) reste lisible : relu Buy-in en tête, Buy-out ailleurs (`circuitRoleOf`).
+ */
+const ROLE: FormatParameter = { id: "circuitRole", unit: "ROLE", min: 1, optional: true, sources: ["§3", "§6", "MAJ 04/11 §6 bis 2"] };
+const LEGACY_PASSAGE: FormatParameter = { id: "passageOnce", unit: "FLAG", min: 0, optional: true, sources: ["§2", "§3", "§11"] };
+/** Incrément par tour : dans l'unité de l'objectif (« + 2 rép. », « + 5 s »), mise à jour du 04/11/2026 §6 bis 2. */
+const AMRAP_INCREMENT: FormatParameter = { id: "incrementPerRound", unit: "TARGET", min: 0, initial: 0, sources: ["§2", "§14.1", "MAJ 04/11 §6 bis 2"] };
 const DEATH_BY_INCREMENT: FormatParameter = { id: "incrementPerRound", unit: "REPETITIONS", min: 1, initial: 1, sources: ["§12", "§14.1"] };
 const INTERVAL: FormatParameter = { id: "intervalSeconds", unit: "SECONDS", min: 1, initial: MINUTE, sources: ["§10", "§12", "§14"] };
 
@@ -137,7 +148,7 @@ export const FORMAT_REGISTRY: Readonly<Record<ElementFormatKey, FormatDescriptor
         { id: "restBetweenBlocksSeconds", unit: "SECONDS", min: 0, initial: 2 * MINUTE, sources: ["§2", "§7.1"] },
       ],
     },
-    member: { TOURS: [AMRAP_INCREMENT, PASSAGE] },
+    member: { TOURS: [AMRAP_INCREMENT, ROLE, LEGACY_PASSAGE] },
     openRounds: false,
     inStandardCircuit: {
       TOURS: { status: "ADMITTED", sources: ["§6.1", "A5"] },
@@ -155,7 +166,7 @@ export const FORMAT_REGISTRY: Readonly<Record<ElementFormatKey, FormatDescriptor
         { id: "restBetweenRoundsSeconds", unit: "SECONDS", min: 0, initial: 0, sources: ["§11"] },
       ],
     },
-    member: { SERIES: [PASSAGE] },
+    member: { SERIES: [ROLE, LEGACY_PASSAGE] },
     openRounds: false,
     inStandardCircuit: {
       TOURS: { status: "ADMITTED", sources: ["§6.1", "A5"] },

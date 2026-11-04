@@ -19,20 +19,22 @@ import {
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
 import type { Movement } from "@/domain/activities/Movement";
-import { rankMovements } from "@/domain/activities/movementSuggestion";
 import {
   answerBounds,
   appendModelToDraft,
   basePause,
   buildModelElements,
   executionOptions,
+  allowedModes,
+  emomDurationOverflow,
   hasChosenBuyIn,
-  hasCompleteValues,
   initialAnswers,
   initialMovementValues,
   isFormatModelKey,
   modelDuration,
+  summaryIssues,
   withAnswer,
+  withMovementMode,
   type FormatModelKey,
   type ModelAnswerKey,
   type ModelAnswers,
@@ -44,20 +46,35 @@ import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessi
 import type { MovementChoice } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
+import type { MovementCatalogueEntry } from "@/features/activities/MovementCatalogueService";
+import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
+import { EMPTY_MOVEMENT_FILTERS, visibleMovementItems, type MovementCatalogueFilters, type MovementCatalogueItem } from "@/features/activities/movementCatalogueView";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import type { KeyboardFrame } from "@/features/activities/useSheetKeyboard";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { useFormatModelDraft } from "@/features/sessions/FormatModelDraftContext";
+import {
+  AmrapTable,
+  DeathByTable,
+  EmomTable,
+  SeriesTable,
+  hasSummaryTable,
+  parseCellKey,
+  tableCellOrder,
+  type CellBinding,
+} from "@/features/sessions/FormatTables";
 import { FormatModelIllustration, formatModelColors } from "@/features/sessions/FormatsWindow";
 import { exerciseOfMovement, takeMovementsHandedToFormat, type MovementExerciseDefaults } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovementExerciseIntake";
 import { strings } from "@/shared/i18n";
+import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
-import { FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { FINAL_ACTION_TOP_MARGIN } from "@/shared/ui/finalAction";
-import { colors as tokenColors } from "@/shared/ui/tokens";
+import { colors as tokenColors, dimensions, minTouchTarget } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
@@ -78,7 +95,13 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * - **Enregistrer dans la séance** ajoute la structure au brouillon de Composition, puis revient à la
  *   Composition ; la Séance n'est sauvegardée que depuis la Composition.
  *
- * Écart signalé : la police d'accroche « Mali Medium Italic » n'est pas embarquée — Inter italique.
+ * Mise à jour consolidée du 04/11/2026 (§1, §2, §2 bis ; référence Formats §7) : questionnaire et récapitulatif
+ * sont une **modale sur la Composition** (par le bas, pleine largeur, sous le titre de la Composition à y = 95 de
+ * l'écran de référence, coins hauts 24, voile), sans nom de Séance. Une seule route : l'étape change sur place —
+ * « Valider les paramètres » ouvre le récapitulatif de **tous** les modèles, Retour revient au questionnaire,
+ * réponses conservées ; « Enregistrer dans la séance » n'appartient qu'au récapitulatif. [Écran plein, champ du
+ * nom de Séance et enregistrement depuis le questionnaire des modèles sans tableau — remplacés.] Accroche en
+ * « Mali Medium Italic » 14/20 centrée (écart de police de C.3 levé).
  */
 
 const t = () => strings.screens.formatModel;
@@ -106,10 +129,6 @@ const SUGGESTIONS_TO_KEYBOARD = 8;
 const KEYBOARD_BAR_HEIGHT = 52;
 const CELL_REVEAL_MARGIN = 12;
 /** Tableau de la Progression : zone protégée des noms, colonne d'une série, hauteurs des lignes (une ou deux cellules). */
-const PROGRESSION_NAME_WIDTH = 112;
-const PROGRESSION_COLUMN_WIDTH = 56;
-const PROGRESSION_ROW_HEIGHT = 36;
-const PROGRESSION_LOAD_ROW_HEIGHT = 72;
 
 /**
  * Cadre du clavier (haut, en coordonnées de la fenêtre), `null` clavier fermé — événements `Keyboard` standards,
@@ -137,45 +156,6 @@ function useKeyboardFrame(): KeyboardFrame | null {
   return frame;
 }
 
-/**
- * Ordre de saisie des cellules des tableaux du récapitulatif (Suivant / Précédent) — recette iPhone n° 3 du
- * 03/11/2026 (autres constats, Hermann : « Il faut pouvoir entrer les valeurs du nombre de répétition et de
- * l'incrément : clavier ouvert, boutons précédent / suivant / fermer identique au clavier du tableau des séries
- * variables »). Cellules désactivées (Max) exclues.
- */
-function tableCellOrder(model: FormatModelKey, movements: readonly ModelMovement[], answers: ModelAnswers): string[] {
-  const order: string[] = [];
-  movements.forEach((item, index) => {
-    switch (model) {
-      case "AMRAP": {
-        const isBuyIn = answers.buyIn === true && item.buyIn === true;
-        if (!isBuyIn && item.values.max === true) return;
-        order.push(`amrap-${index}-r`);
-        if (answers.increasingVolume === true && !isBuyIn) order.push(`amrap-${index}-i`);
-        return;
-      }
-      case "FOR_TIME":
-        for (let column = 0; column < (answers.roundCount ?? 1); column += 1) order.push(`fortime-${index}-${column}`);
-        return;
-      case "PROGRESSION":
-        for (let column = 0; column < (answers.seriesCount ?? 1); column += 1) {
-          order.push(`progression-${index}-${column}-r`);
-          if (item.exercise.executionParameters.loadEnabled) order.push(`progression-${index}-${column}-l`);
-        }
-        return;
-      default:
-        return;
-    }
-  });
-  return order;
-}
-
-/** Branchement d'une cellule de tableau sur la navigation au clavier. */
-type CellBinding = (key: string) => {
-  readonly inputRef: (input: TextInput | null) => void;
-  readonly onFocus: () => void;
-  readonly onBlur: () => void;
-};
 
 function formatSeconds(seconds: number): string {
   return formatPhraseDuration(Math.max(0, Math.round(seconds)));
@@ -231,8 +211,11 @@ function ValueStepper({
   onStep,
   canDecrease,
   canIncrease,
+  alert = false,
   testID,
 }: {
+  /** Valeur en cause (contrôle EMOM des durées, MAJ 04/11 §4.4) : cadre rouge. */
+  alert?: boolean;
   label: string;
   text: string;
   onStep: (direction: 1 | -1) => void;
@@ -261,7 +244,7 @@ function ValueStepper({
           <Pressable onPress={() => onStep(-1)} disabled={!canDecrease} hitSlop={8} accessibilityLabel={t().decrease} testID={`${testID}-decrease`}>
             <Text style={[styles.stepperSign, !canDecrease ? styles.stepperSignDisabled : null]}>−</Text>
           </Pressable>
-          <Pressable onPress={() => setOpen(false)} style={styles.badge} testID={`${testID}-value`}>
+          <Pressable onPress={() => setOpen(false)} style={[styles.badge, alert ? styles.badgeAlert : null]} testID={`${testID}-value`}>
             <Text style={styles.badgeText}>{text}</Text>
           </Pressable>
           <Pressable onPress={() => onStep(1)} disabled={!canIncrease} hitSlop={8} accessibilityLabel={t().increase} testID={`${testID}-increase`}>
@@ -269,7 +252,7 @@ function ValueStepper({
           </Pressable>
         </View>
       ) : (
-        <Pressable onPress={() => setOpen(true)} style={styles.badge} hitSlop={6} testID={`${testID}-badge`}>
+        <Pressable onPress={() => setOpen(true)} style={[styles.badge, alert ? styles.badgeAlert : null]} hitSlop={6} testID={`${testID}-badge`}>
           <Text style={styles.badgeText}>{text}</Text>
         </Pressable>
       )}
@@ -393,23 +376,19 @@ function TimelineFrame({ timeline, endLabel, band, names, testID }: { timeline: 
 
 type Stage = "questionnaire" | "summary";
 
-/**
- * Décision de Hermann du 03/11/2026 : « Il faut être homogène entre tous les écrans similaires, "Valider ces
- * paramètres" pour passer du questionnaire initial au récapitulatif avec les données à compléter,
- * "Enregistrer dans la séance" lorsque le prochain écran est la séance. » Récapitulatif à compléter
- * (tableaux) : AMRAP, For time, Progression. Les autres modèles enregistrent depuis le questionnaire.
- */
-const validatesFirst = (model: FormatModelKey) => model === "AMRAP" || model === "FOR_TIME" || model === "PROGRESSION";
+/** Haut de la modale : sous le titre de la Composition (y = 95 sur 874, mise à jour du 04/11/2026 §1). */
+const MODAL_TOP = 95;
 
 /** Compteur des ouvertures de questionnaire (identité du brouillon de modèle de chaque ouverture). */
 let openings = 0;
 
-export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
+export function FormatModelScreen({ stage: initialStage }: { readonly stage: Stage }) {
+  const [stage, setStage] = useState<Stage>(initialStage);
   const router = useRouter();
   const navigation = useNavigation();
   const params = useLocalSearchParams<{ model?: string }>();
   const routeModel: FormatModelKey = isFormatModelKey(params.model) ? params.model : "TABATA";
-  const { draft: modelDraft, start, setAnswers, setMovements, setName } = useFormatModelDraft();
+  const { draft: modelDraft, start, setAnswers, setMovements } = useFormatModelDraft();
   const sessionDraft = useSessionDraft();
   const service = useActivityDefinitionService();
   const profileService = useContext(ProfileServiceContext);
@@ -420,9 +399,9 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   // questionnaire déjà validé avec ses mouvements et ses paramètres au lieu d'ouvrir un questionnaire
   // vierge »). Le retour depuis le récapitulatif ne remonte pas le questionnaire : réponses conservées.
   const [opening] = useState(() => `opening-${++openings}`);
-  const fresh = stage === "summary" || modelDraft?.opening === opening;
+  const fresh = initialStage === "summary" || modelDraft?.opening === opening;
   useEffect(() => {
-    if (stage === "questionnaire" && modelDraft?.opening !== opening) start(routeModel, opening);
+    if (initialStage === "questionnaire" && modelDraft?.opening !== opening) start(routeModel, opening);
     // Une seule fois par ouverture : le brouillon de cette ouverture n'est jamais recréé.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opening]);
@@ -445,14 +424,22 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     };
   }, [profileService]);
 
-  // Niveaux des Mouvements (cartes) et suggestions de saisie.
-  const [choices, setChoices] = useState<readonly MovementChoice[]>([]);
+  // Entrées du Catalogue des Mouvements (familles, Niveaux, archivage) : suggestions de saisie, mode catalogue et
+  // Niveau des cartes. Sans service du Catalogue (tests), relecture des choix de mouvements.
+  const [entries, setEntries] = useState<readonly MovementCatalogueEntry[]>([]);
   useEffect(() => {
     if (!service.supportsMovementSearch) return;
     let cancelled = false;
-    service.listMovementChoices().then(
+    const catalogue = service.movementCatalogue ?? null;
+    const read: Promise<readonly MovementCatalogueEntry[]> =
+      catalogue !== null
+        ? catalogue.listEntries()
+        : service.listMovementChoices().then((found: readonly MovementChoice[]) =>
+            found.map((choice) => ({ movement: choice.movement, level: choice.level ?? null, exerciseCount: 0, archived: choice.archived === true })),
+          );
+    read.then(
       (found) => {
-        if (!cancelled) setChoices(found.filter((choice) => choice.archived !== true));
+        if (!cancelled) setEntries(found);
       },
       (error: unknown) => console.error("Les mouvements n'ont pas pu être lus.", error),
     );
@@ -460,7 +447,7 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
       cancelled = true;
     };
   }, [service]);
-  const levelOf = useCallback((movementId: string) => choices.find((choice) => choice.movement.id === movementId)?.level?.rank ?? null, [choices]);
+  const levelOf = useCallback((movementId: string) => entries.find((entry) => entry.movement.id === movementId)?.level?.rank ?? null, [entries]);
 
   const addMovements = useCallback(
     (added: readonly Movement[], role: "LOOP" | "BUY_IN") => {
@@ -522,19 +509,53 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     keyboardFrame !== null && suggestionsTop !== null
       ? Math.max(SUGGESTIONS_MIN_HEIGHT, keyboardFrame.screenY - suggestionsTop - SUGGESTIONS_TO_KEYBOARD)
       : Math.max(SUGGESTIONS_MIN_HEIGHT, Math.round(windowHeight * 0.32));
-  const ranked = useMemo(() => {
-    if (query.trim().length === 0) return [];
-    const byId = new Map(choices.map((choice) => [choice.movement.id, choice]));
-    return rankMovements(query, choices.map((choice) => choice.movement)).flatMap((item) => {
-      const choice = byId.get(item.id);
-      return choice === undefined ? [] : [choice];
+  // Mode catalogue (mise à jour consolidée du 04/11/2026 §3 ; référence Formats §7.1 à §7.3) : « Ouvrir le mode
+  // catalogue » reste dans la modale — recherche détachée avec croix d'effacement, Filtrer, Trier (inactif, comme au
+  // Catalogue) et Replier / déplier les piles, petites cartes avec filet des niveaux, sans compteur ; « Ajouter »
+  // applique la sélection (unique pour le buy-in), « Fermer le mode catalogue » revient à la saisie sans ajout.
+  // [Modale du Catalogue séparée (`/movement-selection`), ouverte en fondu — remplacée.]
+  const [catalogueMode, setCatalogueMode] = useState(false);
+  const [catalogueFilters, setCatalogueFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
+  const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [pilesCollapsed, setPilesCollapsed] = useState(false);
+  const [picked, setPicked] = useState<ReadonlyMap<string, Movement>>(new Map());
+  const suggestionItems = useMemo(() => (query.trim().length === 0 ? [] : visibleMovementItems(entries, query, EMPTY_MOVEMENT_FILTERS)), [entries, query]);
+  const ranked = useMemo(() => suggestionItems.flatMap((item) => (item.kind === "PILE" ? item.members : [item.entry])), [suggestionItems]);
+  const catalogueItems = useMemo(() => (catalogueMode ? visibleMovementItems(entries, query, catalogueFilters) : []), [catalogueFilters, catalogueMode, entries, query]);
+  const openCatalogue = () => {
+    setPicked(new Map());
+    setCatalogueMode(true);
+  };
+  const closeCatalogue = () => {
+    setCatalogueMode(false);
+    setPicked(new Map());
+    setIsFilterOpen(false);
+  };
+  const togglePicked = (movement: Movement) =>
+    setPicked((current) => {
+      const next = new Map(searchRole === "BUY_IN" ? [...current].filter(([id]) => id === movement.id) : current);
+      if (next.has(movement.id)) next.delete(movement.id);
+      else next.set(movement.id, movement);
+      return next;
     });
-  }, [choices, query]);
-  const openCatalogue = (purpose: "format-loop" | "format-buy-in") => {
-    router.push({ pathname: "/movement-selection", params: { purpose, ...(query.trim().length > 0 ? { query } : {}) } });
+  const addPicked = () => {
+    if (picked.size === 0 || searchRole === null) return;
+    // Ordre de présentation du Catalogue (sans recherche ni filtre), jamais l'ordre des touchers (V2-CAT-01 §4.4).
+    const ordered = visibleMovementItems(entries, "", EMPTY_MOVEMENT_FILTERS)
+      .flatMap((item) => (item.kind === "PILE" ? item.members : [item.entry]))
+      .filter((entry) => picked.has(entry.movement.id))
+      .map((entry) => entry.movement);
+    const role = searchRole;
+    closeCatalogue();
     setSearchRole(null);
     setQuery("");
+    Keyboard.dismiss();
+    addMovements(ordered, role);
   };
+  const openSheet = (movement: Movement) => router.push({ pathname: "/movement-sheet", params: { movementId: movement.id } });
+  const filterSummary =
+    filterLabels.length === 0 ? null : filterLabels.length === 1 ? filterLabels[0]! : fillTemplate(strings.screens.movement.catalogue.filters.activeSummary, { count: String(filterLabels.length) });
 
   // Structure produite, durée et Déroulé, recalculés à chaque réponse ou cellule (§15).
   const newId = useCallback(() => Crypto.randomUUID(), []);
@@ -561,8 +582,11 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   const buyIn = model === "AMRAP" && answers.buyIn === true;
   // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « on ne doit pas pouvoir "Ajouter à la séance" si toutes les
   // valeurs des paramètres ne sont pas renseignées ») : au récapitulatif, chaque cellule du tableau est renseignée.
-  const canSave =
-    (buyIn ? hasChosenBuyIn(answers, movements) : movements.length > 0) && (stage !== "summary" || hasCompleteValues(model, answers, movements));
+  // MAJ 04/11 §4.4 (décision de Hermann du 3 novembre) : récapitulatif complet et cohérent — objectifs renseignés,
+  // contrôle EMOM des durées ; une charge vide ne bloque pas.
+  const issues = useMemo(() => (stage === "summary" ? summaryIssues(model, answers, movements) : []), [answers, model, movements, stage]);
+  const emomOverflow = useMemo(() => (model === "EMOM" ? emomDurationOverflow(answers, movements) : []), [answers, model, movements]);
+  const canSave = (buyIn ? hasChosenBuyIn(answers, movements) : movements.length > 0) && issues.length === 0;
   const save = () => {
     if (busyRef.current || !canSave) return;
     busyRef.current = true;
@@ -576,10 +600,9 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
       ...(next.circuitNature !== undefined ? { circuitNature: next.circuitNature } : {}),
       ...(sessionDraft.draft.origin === undefined || sessionDraft.draft.origin === null ? { origin: model } : {}),
     });
-    // B.9 : un nom saisi ici est personnalisé ; sinon le nom du modèle est suggéré (jamais imposé).
-    const typed = modelDraft?.name.trim() ?? "";
-    if (typed.length > 0) sessionDraft.updateDraft({ name: typed });
-    else sessionDraft.suggestDraftName?.(modelName);
+    // B.9 : le nom du modèle est suggéré (jamais imposé). Mise à jour du 04/11/2026 §2 : aucun nom de Séance
+    // dans le parcours ; un nom déjà saisi dans la Composition est conservé.
+    sessionDraft.suggestDraftName?.(modelName);
     backToComposition();
   };
 
@@ -595,13 +618,22 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     else router.dismissTo("/composition");
   };
 
+  // « Valider les paramètres » : récapitulatif sur place, sans ajout ; Retour : questionnaire, réponses conservées.
   const validate = () => {
     if (!canSave) return;
-    router.push({ pathname: "/format-summary", params: { model } });
+    Keyboard.dismiss();
+    setSearchRole(null);
+    setStage("summary");
   };
-  const validating = stage === "questionnaire" && validatesFirst(model);
+  const validating = stage === "questionnaire";
 
-  const close = () => router.back();
+  const close = () => {
+    if (stage === "summary") {
+      Keyboard.dismiss();
+      setSearchRole(null);
+      setStage("questionnaire");
+    } else router.back();
+  };
 
   // Lignes de paramètres du modèle.
   // `fallback` : valeur héritée affichée tant que la réponse n'est pas fixée (Pause du Renforcement : pause des Exercices).
@@ -623,6 +655,7 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     return (
       <Row key={id} label={label} last={options.last === true} testID={`format-row-${id}`}>
         <ValueStepper
+          alert={id === "intervalSeconds" && stage === "summary" && emomOverflow.length > 0}
           label={label}
           text={text}
           onStep={onStep}
@@ -633,7 +666,7 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
       </Row>
     );
   };
-  const switchRow = (id: "buyIn" | "increasingVolume", label: string) => (
+  const switchRow = (id: "buyIn" | "increasingVolume" | "withLoad", label: string) => (
     <Row key={id} label={label} testID={`format-row-${id}`}>
       <Switch
         value={answers[id] === true}
@@ -685,14 +718,25 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           ...(model === "TABATA" && several && sequence && showExecution ? [] : []),
         ]).concat(model === "TABATA" && several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : []);
       case "EMOM":
-        return withExecution([stepRow("seriesCount", r.seriesCount), stepRow("intervalSeconds", r.intervalSeconds), readRow(r.rest, t().untilCadence, "rest"), totalRow(!showExecution)]).concat(
+        // MAJ 04/11 §4.2 : ligne « Repos · jusqu'à la cadence » retirée ; §6 quater bis : « Avec charge » avant la durée totale.
+        return withExecution([
+          stepRow("seriesCount", r.seriesCount),
+          stepRow("intervalSeconds", r.intervalSeconds),
+          ...(stage === "questionnaire" ? [switchRow("withLoad", r.withLoad)] : []),
+          totalRow(!showExecution),
+        ]).concat(
           several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : [],
         );
       case "DEATH_BY":
+        // MAJ 04/11 §4.3 : à plusieurs mouvements, le tableau Départ | Incrément remplace les lignes communes.
         return withExecution([
           stepRow("intervalSeconds", r.intervalSeconds),
-          stepRow("startRepetitions", r.startRepetitions, { format: (value) => `${value} ${t().repetitionsUnit}` }),
-          stepRow("increment", r.increment, { format: (value) => `+ ${value} ${t().repetitionsUnit}` }),
+          ...(stage === "summary" && several
+            ? []
+            : [
+                stepRow("startRepetitions", r.startRepetitions, { format: (value) => `${value} ${t().repetitionsUnit}` }),
+                stepRow("increment", r.increment, { format: (value) => `+ ${value} ${t().repetitionsUnit}` }),
+              ]),
           readRow(r.stopCondition, t().atFailure, "stop", !showExecution),
         ]).concat(several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : []);
       case "AMRAP": {
@@ -704,10 +748,16 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           stepRow("loopRestSeconds", r.loopRestSeconds),
           switchRow("buyIn", r.buyIn),
           switchRow("increasingVolume", r.increasingVolume),
+          switchRow("withLoad", r.withLoad),
         ];
       }
       case "FOR_TIME":
-        return [stepRow("roundCount", r.roundCount), stepRow("restBetweenRoundsSeconds", r.restBetweenRoundsSeconds), stepRow("timeCapSeconds", r.timeCapSeconds, { last: true })];
+        return [
+          stepRow("roundCount", r.roundCount),
+          stepRow("restBetweenRoundsSeconds", r.restBetweenRoundsSeconds),
+          stepRow("timeCapSeconds", r.timeCapSeconds, { last: stage === "summary" }),
+          ...(stage === "questionnaire" ? [switchRow("withLoad", r.withLoad)] : []),
+        ];
       case "STRENGTH":
         // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Il manque le champ de la Pause ») : Pause toujours affichée.
         return withExecution([stepRow("seriesCount", r.seriesCount), stepRow("repetitions", r.repetitions), stepRow("pauseSeconds", r.pauseSeconds, { fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0 }), totalRow(!showExecution)]);
@@ -792,6 +842,25 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   const [focusedCell, setFocusedCell] = useState<string | null>(null);
   const [barHeight, setBarHeight] = useState(KEYBOARD_BAR_HEIGHT);
   const cellOrder = useMemo(() => (stage === "summary" ? tableCellOrder(model, movements, answers) : []), [answers, model, movements, stage]);
+  // Unité de l'objectif au clavier (MAJ 04/11 §4.5) : barre Répétitions | Durée, puis unité choisie, Précédent, Suivant.
+  const [unitPicking, setUnitPicking] = useState(false);
+  const focusedCellKey = focusedCell === null ? null : parseCellKey(focusedCell);
+  const unitRow = focusedCellKey !== null && focusedCellKey.kind === "obj" ? focusedCellKey.row : null;
+  const unitsBar =
+    unitRow === null || movements[unitRow] === undefined
+      ? null
+      : {
+          current: movements[unitRow]!.values.mode ?? ("REPETITIONS" as const),
+          picking: unitPicking,
+          allowed: allowedModes(model, movements, unitRow),
+          onPick: (mode: "REPETITIONS" | "DURATION") => {
+            setUnitPicking(false);
+            const current = movements[unitRow]!;
+            if (!allowedModes(model, movements, unitRow).includes(mode)) return;
+            updateValues(unitRow, withMovementMode(current.values, mode));
+          },
+          onReopen: () => setUnitPicking(true),
+        };
   const focusCell = (key: string | undefined) => {
     if (key !== undefined) cellInputs.current.get(key)?.focus();
   };
@@ -799,8 +868,12 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     inputRef: (input) => {
       cellInputs.current.set(key, input);
     },
-    onFocus: () => setFocusedCell(key),
+    onFocus: () => {
+      setUnitPicking(false);
+      setFocusedCell(key);
+    },
     onBlur: () => setFocusedCell((current) => (current === key ? null : current)),
+    active: focusedCell === key,
   });
   const focusedAt = focusedCell === null ? -1 : cellOrder.indexOf(focusedCell);
   useEffect(() => {
@@ -813,17 +886,32 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
     });
   }, [barHeight, focusedCell, keyboardFrame, reduceMotion]);
 
-  // Section de mouvements : en-tête, lien « + Ajouter » / « Changer » (champ de saisie), puis « Ouvrir le catalogue ».
+  // Familles de Niveaux : cartes reliées par le filet des niveaux (suggestions et mode catalogue).
+  const familyCards = (items: readonly MovementCatalogueItem[], card: (entry: MovementCatalogueEntry) => React.ReactNode, collapsed: boolean) =>
+    items.map((item) =>
+      item.kind === "PILE" && !collapsed ? (
+        <View key={item.key} style={styles.family} testID={`format-family-${item.key}`}>
+          <View style={styles.familyLine} />
+          {item.members.map((entry) => card(entry))}
+        </View>
+      ) : (
+        card(item.kind === "PILE" ? item.members[0]! : item.entry)
+      ),
+    );
+
+  // Section de mouvements : en-tête, lien « + Ajouter » / « Changer » (champ de saisie), puis « Ouvrir le mode
+  // catalogue » / « Fermer le mode catalogue ».
   const movementSection = (role: "LOOP" | "BUY_IN", label: string, link: string, testID: string) => {
     const open = searchRole === role;
-    const purpose = role === "BUY_IN" ? "format-buy-in" : "format-loop";
+    const inCatalogue = open && catalogueMode;
     return (
       <>
         <SectionHeader
-          label={label}
-          link={open ? t().openCatalogue : link}
+          label={role === "BUY_IN" && inCatalogue ? t().buyInPickerTitle : label}
+          link={inCatalogue ? t().closeCatalogue : open ? t().openCatalogue : link}
           onLink={() => {
-            if (open) openCatalogue(purpose);
+            if (inCatalogue) closeCatalogue();
+            else if (open) openCatalogue();
             else {
               // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « changer de Buy-in doit effacer le mouvement avant de
               // positionner le curseur sur le champ ») : « Changer » retire le buy-in choisi, puis ouvre le champ.
@@ -835,7 +923,64 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           }}
           testID={testID}
         />
-        {open ? (
+        {inCatalogue ? (
+          <View style={styles.search} testID="format-catalogue">
+            <View style={styles.catalogueCommands}>
+              <CatalogueSearchField
+                value={query}
+                onChangeText={setQuery}
+                placeholder={strings.screens.movement.catalogue.searchPlaceholder}
+                accessibilityLabel={strings.screens.movement.catalogue.searchAccessibilityLabel}
+                clearLabel={strings.screens.movement.catalogue.searchClear}
+                testID="format-catalogue-search"
+              />
+              <FilterCommand
+                label={strings.screens.sessions.filterAction}
+                title={strings.screens.movement.catalogue.filters.command}
+                summary={filterSummary}
+                clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
+                editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
+                onOpen={() => setIsFilterOpen(true)}
+                onClear={() => {
+                  setCatalogueFilters(EMPTY_MOVEMENT_FILTERS);
+                  setFilterLabels([]);
+                }}
+                testID="format-catalogue-filter"
+              />
+              <CommandCircle label={strings.screens.sessions.sortAction} icon="sort" disabled testID="format-catalogue-sort" />
+              <Pressable
+                onPress={() => setPilesCollapsed((value) => !value)}
+                accessibilityRole="button"
+                accessibilityLabel={pilesCollapsed ? t().expandPiles : t().collapsePiles}
+                accessibilityState={{ selected: pilesCollapsed }}
+                hitSlop={5}
+                style={[styles.pilesToggle, pilesCollapsed ? styles.pilesToggleOn : null]}
+                testID="format-catalogue-piles"
+              >
+                <View style={[styles.pilesGlyph, pilesCollapsed ? styles.pilesGlyphOn : null]} />
+                <View style={[styles.pilesGlyph, pilesCollapsed ? styles.pilesGlyphOn : null]} />
+                <View style={[styles.pilesGlyph, pilesCollapsed ? styles.pilesGlyphOn : null]} />
+              </Pressable>
+            </View>
+            <View style={styles.catalogueList} testID="format-catalogue-results">
+              {familyCards(
+                catalogueItems,
+                (entry) => (
+                  <SelectedMovementCard
+                    key={entry.movement.id}
+                    movement={entry.movement}
+                    levelRank={entry.level?.rank ?? null}
+                    selected={picked.has(entry.movement.id)}
+                    onPress={() => togglePicked(entry.movement)}
+                    onPhotoPress={() => openSheet(entry.movement)}
+                    testID={`format-catalogue-card-${entry.movement.id}`}
+                  />
+                ),
+                pilesCollapsed,
+              )}
+            </View>
+          </View>
+        ) : open ? (
           <View style={styles.search}>
             <TextInput
               ref={searchInput}
@@ -876,19 +1021,24 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
                   nestedScrollEnabled
                   testID="format-suggestions"
                 >
-                  {ranked.map((choice) => (
-                    <SelectedMovementCard
-                      key={choice.movement.id}
-                      movement={choice.movement}
-                      levelRank={choice.level?.rank ?? null}
-                      onPress={() => {
-                        setSearchRole(null);
-                        setQuery("");
-                        addMovements([choice.movement], role);
-                      }}
-                      testID={`format-suggestion-${choice.movement.id}`}
-                    />
-                  ))}
+                  {familyCards(
+                    suggestionItems,
+                    (choice) => (
+                      <SelectedMovementCard
+                        key={choice.movement.id}
+                        movement={choice.movement}
+                        levelRank={choice.level?.rank ?? null}
+                        onPress={() => {
+                          setSearchRole(null);
+                          setQuery("");
+                          addMovements([choice.movement], role);
+                        }}
+                        onPhotoPress={() => openSheet(choice.movement)}
+                        testID={`format-suggestion-${choice.movement.id}`}
+                      />
+                    ),
+                    false,
+                  )}
                 </ScrollView>
               </View>
             ) : null}
@@ -899,13 +1049,9 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   };
 
   return (
-    <ScreenShell>
-      <FixedHeader
-        title={t().titles[model]}
-        onBack={close}
-        backAccessibilityLabel={stage === "questionnaire" ? t().closeAccessibilityLabel : t().backAccessibilityLabel}
-        closeIcon={stage === "questionnaire"}
-      />
+    <View style={styles.modalRoot} testID="format-modal">
+      <View style={styles.veil} />
+      <View style={[styles.sheet, { top: MODAL_TOP }]} testID="format-sheet">
       <ScrollView
         ref={scrollRef}
         // Recette n° 3 (f3-questionnaire : « L'écran doit rester fixe et le résultat défiler dans son cadre ») :
@@ -926,25 +1072,39 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
         contentContainerStyle={[styles.content, { paddingBottom: actionZone.scrollReserve - FINAL_ACTION_TOP_MARGIN + TIMELINE_TO_BUTTON }]}
         testID={`format-${stage}`}
       >
-        {/* Zone de contexte : couleur et motif du modèle, nom, accroche (Figma `8624:29980`). */}
+        {/* Zone de contexte (109 px) : couleur et motif du modèle ; en-tête transparent « Sélection » — croix au
+            questionnaire, Retour au récapitulatif, nom du Format centré ; accroche centrée sur deux lignes. */}
         <View style={[styles.context, { backgroundColor: colors.background }]}>
           <FormatModelIllustration model={model} />
-          <TextInput
-            value={modelDraft?.name ?? ""}
-            onChangeText={setName}
-            placeholder={t().namePlaceholder}
-            placeholderTextColor={LABEL}
-            accessibilityLabel={t().namePlaceholder}
-            style={styles.name}
-            testID="format-name"
-          />
+          <View style={styles.modalHeader} testID="screen-header">
+            <Pressable
+              onPress={close}
+              accessibilityRole="button"
+              accessibilityLabel={stage === "questionnaire" ? t().closeAccessibilityLabel : t().backAccessibilityLabel}
+              hitSlop={(minTouchTarget - dimensions.backAction.visualCircle) / 2}
+              style={styles.headerCircle}
+              testID="screen-header-back"
+            >
+              <KodjoIcon name={stage === "questionnaire" ? "control-close" : "control-back"} size={dimensions.backAction.icon} testID="screen-header-back-icon" />
+            </Pressable>
+            <Text style={styles.modalTitle} accessibilityRole="header" numberOfLines={1} testID="format-title">
+              {modelName}
+            </Text>
+          </View>
           <Text style={styles.tagline}>{t().taglines[model]}</Text>
         </View>
 
         {/* Mouvements (§7.1 à §7.4). */}
         {/* Recette n° 3 du 03/11/2026 (autres constats, Hermann : « Activer Buy-in : la section Buy-in apparaît, le
             nom de l'autre section change (en boucle...) ») : sections Buy-in et En boucle dès le questionnaire. */}
-        {buyIn ? (
+        {catalogueMode && searchRole !== null ? (
+          // Mode catalogue : seule la section concernée, ses résultats jusqu'au bas de la modale.
+          searchRole === "BUY_IN" ? (
+            movementSection("BUY_IN", t().buyInSection, t().change, "format-buy-in")
+          ) : (
+            movementSection("LOOP", buyIn ? t().loopSection : t().movements, t().add, buyIn ? "format-loop" : "format-movements")
+          )
+        ) : buyIn ? (
           <>
             {movementSection("BUY_IN", t().buyInSection, buyInCount > 0 ? t().change : t().add, "format-buy-in")}
             {cardList(movements.slice(0, buyInCount), 0, true)}
@@ -958,11 +1118,13 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           </>
         )}
 
+        {catalogueMode ? null : (
+        <>
         <Text style={styles.section}>{t().parameters}</Text>
         <View style={styles.panel} testID="format-parameters">
           {rows}
           {model === "PROGRESSION" && stage === "summary" ? (
-            <ProgressionTable movements={movements} series={answers.seriesCount ?? 1} onChange={updateValues} cell={cellBinding} />
+            <SeriesTable model="PROGRESSION" movements={movements} count={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
           ) : null}
           {/* Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Progression : il manque la pause » ; « ne pas calculer de
               durée total sur l'écran Questionnaire, l'utilisateur ne voit pas les valeur par défaut utilisées » ; « la ligne
@@ -973,15 +1135,34 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
                 fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0,
                 last: stage === "questionnaire" && !showExecution,
               })}
+              {/* MAJ 04/11 §6 quater : « Avec charge » au questionnaire seulement, après Pause (pas de durée totale au
+                  questionnaire, contre-recette n° 3 bis). */}
+              {stage === "questionnaire" ? switchRow("withLoad", t().rows.withLoad) : null}
               {stage === "summary" ? totalRow(!showExecution) : null}
               {showExecution ? executionRow() : null}
             </>
           ) : null}
         </View>
-        {model === "AMRAP" && stage === "summary" ? (
-          <AmrapTable movements={movements} buyIn={buyIn} increasing={answers.increasingVolume === true} onChange={updateValues} cell={cellBinding} />
+        {stage === "summary" && hasSummaryTable(model, movements) ? (
+          <>
+            {model === "AMRAP" ? (
+              <AmrapTable movements={movements} increasing={answers.increasingVolume === true} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
+            ) : null}
+            {model === "EMOM" ? <EmomTable movements={movements} withLoad={answers.withLoad === true} overflow={emomOverflow} onChange={updateValues} cell={cellBinding} /> : null}
+            {model === "DEATH_BY" ? <DeathByTable movements={movements} onChange={updateValues} cell={cellBinding} /> : null}
+            {model === "FOR_TIME" ? (
+              <View style={[styles.panel, styles.tablePanel]}>
+                <SeriesTable model="FOR_TIME" movements={movements} count={answers.roundCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
+              </View>
+            ) : null}
+            {/* Contrôle EMOM des durées (MAJ 04/11 §4.4) : message sous le tableau, cadres rouges, validation bloquée. */}
+            {model === "EMOM" && emomOverflow.length > 0 ? (
+              <Text style={styles.alert} accessibilityRole="alert" testID="format-emom-overflow">
+                {t().emomOverflow.replace("{interval}", formatSeconds(answers.intervalSeconds ?? 60))}
+              </Text>
+            ) : null}
+          </>
         ) : null}
-        {model === "FOR_TIME" && stage === "summary" ? <ForTimeTable movements={movements} rounds={answers.roundCount ?? 1} onChange={updateValues} cell={cellBinding} /> : null}
 
         <View style={styles.spacer} />
         <Text style={styles.section}>{t().timeline}</Text>
@@ -992,14 +1173,30 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           names={movements.map((_, index) => movementName(index))}
           testID="format-timeline"
         />
+        </>
+        )}
       </ScrollView>
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
-        {validating ? (
+        {catalogueMode ? (
+          <PrimaryActionButton label={t().addPicked} onPress={addPicked} disabled={picked.size === 0} testID="format-catalogue-add" />
+        ) : validating ? (
           <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
         ) : (
           <PrimaryActionButton label={t().save} onPress={save} disabled={!canSave} testID="format-save" />
         )}
       </PrimaryActionZone>
+      </View>
+      {isFilterOpen ? (
+        <MovementFilterSheet
+          filters={catalogueFilters}
+          onApply={(next, labels) => {
+            setCatalogueFilters(next);
+            setFilterLabels(labels);
+            setIsFilterOpen(false);
+          }}
+          onClose={() => setIsFilterOpen(false)}
+        />
+      ) : null}
       {/* Barre du clavier des tableaux, identique à celle du tableau des séries variables (iOS). */}
       {Platform.OS === "ios" && focusedCell !== null && keyboardFrame !== null ? (
         <KeyboardAccessoryBar
@@ -1012,9 +1209,10 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           onPrevious={() => focusCell(cellOrder[focusedAt - 1])}
           onNext={() => focusCell(cellOrder[focusedAt + 1])}
           onClose={() => Keyboard.dismiss()}
+          units={unitsBar}
         />
       ) : null}
-    </ScreenShell>
+    </View>
   );
 
   function updateValues(index: number, values: MovementValues) {
@@ -1068,7 +1266,7 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
           testID={`format-movement-${index}`}
         >
           {movement !== null ? (
-            <SelectedMovementCard movement={movement} levelRank={levelOf(movement.id)} testID={`format-movement-card-${index}`} />
+            <SelectedMovementCard movement={movement} levelRank={levelOf(movement.id)} onPhotoPress={() => openSheet(movement)} testID={`format-movement-card-${index}`} />
           ) : (
             <View style={styles.fallbackCard}>
               <Text style={styles.rowLabel}>{item.exercise.name}</Text>
@@ -1082,7 +1280,7 @@ export function FormatModelScreen({ stage }: { readonly stage: Stage }) {
   function movementOf(item: ModelMovement): Movement | null {
     const id = item.exercise.sourceMovementId;
     if (id === undefined) return null;
-    return movementsById.current.get(id) ?? choices.find((choice) => choice.movement.id === id)?.movement ?? null;
+    return movementsById.current.get(id) ?? entries.find((entry) => entry.movement.id === id)?.movement ?? null;
   }
 }
 
@@ -1165,341 +1363,39 @@ function genericDuration(model: FormatModelKey, answers: ModelAnswers): string {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Tableaux du récapitulatif
-// ---------------------------------------------------------------------------
-
-function NumberCell({
-  value,
-  onChange,
-  decimal = false,
-  disabled = false,
-  prefix = "",
-  placeholder,
-  label,
-  inputRef,
-  onFocus,
-  onBlur,
-  testID,
-}: {
-  value: number | null;
-  onChange: (value: number | null) => void;
-  decimal?: boolean;
-  disabled?: boolean;
-  prefix?: string;
-  /** Texte de la cellule vide ; « — » par défaut. */
-  placeholder?: string;
-  label: string;
-  inputRef?: (input: TextInput | null) => void;
-  onFocus?: () => void;
-  onBlur?: () => void;
-  testID: string;
-}) {
-  // Saisie directe au clavier numérique (répétitions) ou décimal (charge, D-405).
-  const [text, setText] = useState(value === null ? "" : String(value));
-  // Valeur changée hors de la saisie (adaptation à N, Max) : texte resynchronisé pendant le rendu.
-  const [shown, setShown] = useState(value);
-  if (shown !== value) {
-    setShown(value);
-    const parsed = decimal ? Number.parseFloat(text) : Number.parseInt(text, 10);
-    if (!(value !== null && parsed === value)) setText(value === null ? "" : String(value));
-  }
-  return (
-    <TextInput
-      ref={inputRef}
-      value={text === "" ? "" : `${prefix}${text}`}
-      onChangeText={(raw) => {
-        const cleaned = raw.replace(prefix, "").replace(",", ".");
-        setText(cleaned);
-        const parsed = decimal ? Number.parseFloat(cleaned) : Number.parseInt(cleaned, 10);
-        onChange(cleaned.trim() === "" || Number.isNaN(parsed) ? null : Math.max(0, parsed));
-      }}
-      editable={!disabled}
-      // Recette n° 3 bis du 03/11/2026 (f3s-clavier, Hermann : « Supprimer le bouton "Next" du clavier ») :
-      // pavé numérique sans touche de retour, comme le tableau des séries variables ; Précédent / Suivant /
-      // Fermer dans la barre au-dessus du clavier.
-      keyboardType={decimal ? "decimal-pad" : "number-pad"}
-      onFocus={onFocus}
-      onBlur={onBlur}
-      placeholder={placeholder ?? t().dash}
-      placeholderTextColor={placeholder !== undefined ? VALUE_COLOR : DISABLED_VALUE}
-      accessibilityLabel={label}
-      // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « Les champs de valeur du tableau encore à renseigner doivent
-      // être avec un fond rouge ») : fond rouge léger des valeurs à renseigner, celui du tableau des séries variables.
-      style={[styles.cell, disabled ? styles.cellDisabled : value === null ? styles.cellMissing : null]}
-      testID={testID}
-    />
-  );
-}
-
-function AmrapTable({
-  movements,
-  buyIn,
-  increasing,
-  onChange,
-  cell,
-}: {
-  movements: readonly ModelMovement[];
-  buyIn: boolean;
-  increasing: boolean;
-  onChange: (index: number, values: MovementValues) => void;
-  cell: CellBinding;
-}) {
-  const tt = t().table;
-  return (
-    <View style={styles.table} testID="format-amrap-table">
-      <View style={styles.tableHeader}>
-        <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={styles.tableHead}>{tt.repetitions}</Text>
-        {increasing ? <Text style={styles.tableHead}>{tt.perRound}</Text> : null}
-        <Text style={styles.tableHead}>{tt.max}</Text>
-      </View>
-      {movements.map((item, index) => {
-        const isBuyIn = buyIn && item.buyIn === true;
-        const max = !isBuyIn && item.values.max === true;
-        const name = `${item.exercise.name}${isBuyIn ? tt.buyInSuffix : ""}`;
-        return (
-          <View key={item.exercise.id} style={styles.tableRow} testID={`format-amrap-row-${index}`}>
-            <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
-              {name}
-            </Text>
-            <NumberCell
-              value={item.values.repetitions ?? null}
-              disabled={max}
-              onChange={(value) => onChange(index, { ...item.values, repetitions: value })}
-              {...cell(`amrap-${index}-r`)}
-              label={`${name}, ${tt.repetitions}`}
-              testID={`format-amrap-reps-${index}`}
-            />
-            {increasing ? (
-              isBuyIn ? (
-                <Text style={styles.tableDash}>{t().dash}</Text>
-              ) : (
-                <NumberCell
-                  value={item.values.increment ?? null}
-                  prefix="+ "
-                  placeholder="+"
-                  disabled={max}
-                  onChange={(value) => onChange(index, { ...item.values, increment: value })}
-                  {...cell(`amrap-${index}-i`)}
-                  label={`${name}, ${tt.perRound}`}
-                  testID={`format-amrap-increment-${index}`}
-                />
-              )
-            ) : null}
-            {isBuyIn ? (
-              <View style={styles.radioSlot} />
-            ) : (
-              <Pressable
-                onPress={() => onChange(index, { ...item.values, max: !max })}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: max }}
-                accessibilityLabel={`${name}, ${tt.max}`}
-                style={styles.radioSlot}
-                testID={`format-amrap-max-${index}`}
-              >
-                <View style={[styles.radio, max ? styles.radioOn : null]}>{max ? <View style={styles.radioDot} /> : null}</View>
-              </Pressable>
-            )}
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
-function ForTimeTable({
-  movements,
-  rounds,
-  onChange,
-  cell,
-}: {
-  movements: readonly ModelMovement[];
-  rounds: number;
-  onChange: (index: number, values: MovementValues) => void;
-  cell: CellBinding;
-}) {
-  const tt = t().table;
-  const columns = Array.from({ length: rounds }, (_, index) => index);
-  return (
-    <View style={styles.table} testID="format-for-time-table">
-      <View style={styles.tableHeader}>
-        <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        {columns.map((column) => (
-          <Text key={column} style={styles.tableHead}>
-            {tt.round.replace("{n}", String(column + 1))}
-          </Text>
-        ))}
-      </View>
-      {movements.map((item, index) => (
-        <View key={item.exercise.id} style={styles.tableRow}>
-          <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
-            {item.exercise.name}
-          </Text>
-          {columns.map((column) => (
-            <NumberCell
-              key={column}
-              value={item.values.volumes?.[column] ?? null}
-              onChange={(value) => {
-                // Valeurs au-delà du nombre de tours gardées en réserve (f3-fortime, `adaptMovementsToAnswers`).
-                const kept = item.values.volumes ?? [];
-                const volumes = Array.from({ length: Math.max(rounds, kept.length) }, (_, at) => (at === column ? value : (kept[at] ?? null)));
-                onChange(index, { ...item.values, volumes });
-              }}
-              {...cell(`fortime-${index}-${column}`)}
-              label={`${item.exercise.name}, ${tt.round.replace("{n}", String(column + 1))}, ${tt.repetitionsKind}`}
-              testID={`format-for-time-${index}-${column}`}
-            />
-          ))}
-        </View>
-      ))}
-    </View>
-  );
-}
-
-/**
- * Tableau Progression (§9.3, CE-FMT-02) : une ligne par mouvement, une colonne par série ; répétitions,
- * et charge sous les répétitions si l'Exercice est « Avec » charge (réglage propre à chaque Exercice).
- * Toucher une cellule ouvre le clavier ; Suivant parcourt répétitions S1, charge S1, répétitions S2…
- */
-/**
- * Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « ajout de séries : réserver une largeur de zone protégée pour le
- * titre des mouvements, décaler les séries vers la gauche, mais elles disparaissent à la limite de la zone protégée,
- * faire défiler à droite et à gauche permet d'afficher les colonnes des séries ») : colonne des noms fixe ; colonnes
- * des séries calées à droite dans un défilement horizontal, qui suit la série ajoutée et la cellule saisie.
- */
-function ProgressionTable({
-  movements,
-  series,
-  onChange,
-  cell,
-}: {
-  movements: readonly ModelMovement[];
-  /** Nombre de séries affichées ; les cellules au-delà restent en réserve (f3-fortime). */
-  series: number;
-  onChange: (index: number, values: MovementValues) => void;
-  cell: CellBinding;
-}) {
-  const tt = t().table;
-  const count = series;
-  const columns = Array.from({ length: count }, (_, index) => index);
-  const scrollRef = useRef<ScrollView>(null);
-  const scrollX = useRef(0);
-  const viewport = useRef(0);
-  const shownCount = useRef(count);
-  // Série ajoutée : les colonnes se décalent vers la gauche, la dernière reste visible.
-  useEffect(() => {
-    if (count > shownCount.current) scrollRef.current?.scrollToEnd({ animated: false });
-    shownCount.current = count;
-  }, [count]);
-  // Cellule saisie (Suivant / Précédent) : sa colonne est amenée dans la partie visible.
-  const revealColumn = (column: number) => {
-    const left = column * PROGRESSION_COLUMN_WIDTH;
-    const right = left + PROGRESSION_COLUMN_WIDTH;
-    if (left < scrollX.current) scrollRef.current?.scrollTo({ x: left, animated: false });
-    else if (right > scrollX.current + viewport.current) scrollRef.current?.scrollTo({ x: right - viewport.current, animated: false });
-  };
-  const bind = (key: string, column: number) => {
-    const binding = cell(key);
-    return {
-      ...binding,
-      onFocus: () => {
-        revealColumn(column);
-        binding.onFocus();
-      },
-    };
-  };
-  const rowHeight = (item: ModelMovement) => (item.exercise.executionParameters.loadEnabled ? PROGRESSION_LOAD_ROW_HEIGHT : PROGRESSION_ROW_HEIGHT);
-  return (
-    <View style={[styles.progressionTable, styles.progressionColumns]} testID="format-progression-table">
-      <View style={styles.progressionNames} testID="format-progression-names">
-        <View style={styles.progressionHeader}>
-          <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        </View>
-        {movements.map((item) => (
-          <View key={item.exercise.id} style={[styles.progressionRow, { height: rowHeight(item) }]}>
-            <Text style={styles.tableCellText} numberOfLines={1}>
-              {item.exercise.name}
-            </Text>
-          </View>
-        ))}
-      </View>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        style={styles.progressionScroll}
-        contentContainerStyle={styles.progressionScrollContent}
-        onLayout={(event) => {
-          viewport.current = event.nativeEvent.layout.width;
-        }}
-        onScroll={(event) => {
-          scrollX.current = event.nativeEvent.contentOffset.x;
-        }}
-        scrollEventThrottle={16}
-        testID="format-progression-series"
-      >
-        <View style={styles.progressionSeries}>
-          <View style={[styles.progressionHeader, styles.progressionCells]}>
-            {columns.map((column) => (
-              <Text key={column} style={styles.tableHead}>
-                {tt.series.replace("{n}", String(column + 1))}
-              </Text>
-            ))}
-          </View>
-          {movements.map((item, index) => {
-            const withLoad = item.exercise.executionParameters.loadEnabled;
-            const setCell = (column: number, patch: { repetitions?: number | null; loadKg?: number | null }) => {
-              const cells = (item.values.cells ?? []).map((entry, at) => (at === column ? { ...entry, ...patch } : entry));
-              onChange(index, { ...item.values, cells });
-            };
-            return (
-              <View key={item.exercise.id} style={[styles.progressionRow, styles.progressionCells, { height: rowHeight(item) }]}>
-                {columns.map((column) => {
-                  const entry = item.values.cells?.[column] ?? { repetitions: null, loadKg: null };
-                  const column1 = tt.series.replace("{n}", String(column + 1));
-                  return (
-                    <View key={column} style={styles.progressionCell}>
-                      <NumberCell
-                        value={entry.repetitions}
-                        onChange={(value) => setCell(column, { repetitions: value })}
-                        {...bind(`progression-${index}-${column}-r`, column)}
-                        label={tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", column1).replace("{kind}", tt.repetitionsKind)}
-                        testID={`format-progression-${index}-${column}-reps`}
-                      />
-                      {withLoad ? (
-                        <NumberCell
-                          value={entry.loadKg}
-                          decimal
-                          onChange={(value) => setCell(column, { loadKg: value })}
-                          {...bind(`progression-${index}-${column}-l`, column)}
-                          label={tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", column1).replace("{kind}", tt.loadKind)}
-                          testID={`format-progression-${index}-${column}-load`}
-                        />
-                      ) : null}
-                    </View>
-                  );
-                })}
-              </View>
-            );
-          })}
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   content: { flexGrow: 1 },
-  context: { height: CONTEXT_HEIGHT, paddingHorizontal: 16, paddingTop: 20 },
-  name: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 20, color: LABEL, padding: 0 },
-  tagline: { fontFamily: "Inter_500Medium", fontStyle: "italic", fontSize: 13, lineHeight: 18, color: TAGLINE, marginTop: 10 },
+  modalRoot: { flex: 1, backgroundColor: "transparent" },
+  veil: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: tokenColors.overlayScrim },
+  sheet: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" },
+  context: { height: CONTEXT_HEIGHT, paddingHorizontal: 16, paddingTop: 10 },
+  modalHeader: { height: dimensions.backAction.visualCircle + 2, flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  headerCircle: {
+    position: "absolute",
+    left: 0,
+    width: dimensions.backAction.visualCircle,
+    height: dimensions.backAction.visualCircle,
+    borderRadius: dimensions.backAction.visualCircle / 2,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalTitle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: LABEL, textAlign: "center", paddingHorizontal: 48 },
+  // Mise à jour du 04/11/2026 §1 : accroche 14/20 centrée, sur deux lignes, en Mali Medium Italic (Figma).
+  tagline: { fontFamily: "Mali_500Medium_Italic", fontSize: 14, lineHeight: 20, color: TAGLINE, marginTop: 4, textAlign: "center" },
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 16, marginTop: 5, marginBottom: 8 },
   sectionLabel: { fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
   section: { fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION, marginHorizontal: 16, marginTop: 22, marginBottom: 8 },
   link: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, color: VALUE_COLOR },
   search: { marginHorizontal: 16, gap: 8, marginBottom: 8 },
+  catalogueCommands: { flexDirection: "row", alignItems: "center", gap: 8 },
+  catalogueList: { gap: 8, paddingTop: 4 },
+  family: { gap: 8, paddingLeft: 8 },
+  familyLine: { position: "absolute", left: 2, top: 26, bottom: 26, width: 2, borderRadius: 1, backgroundColor: "#B9BDF5" },
+  pilesToggle: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: "#C9CDD6", alignItems: "center", justifyContent: "center", gap: 2 },
+  pilesToggleOn: { borderColor: VALUE_COLOR },
+  pilesGlyph: { width: 14, height: 3, borderRadius: 1.5, borderWidth: 1, borderColor: "#7A7F8C" },
+  pilesGlyphOn: { borderColor: VALUE_COLOR },
   searchInput: { height: 44, borderRadius: 12, backgroundColor: PANEL, paddingHorizontal: 16, fontFamily: "Inter_400Regular", fontSize: 16, color: LABEL },
   suggestions: { flexGrow: 0, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E3E8F0" },
   suggestionsContent: { gap: 8, padding: 8 },
@@ -1520,34 +1416,10 @@ const styles = StyleSheet.create({
   chip: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: CHIP, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
   chipText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, color: "#FFFFFF" },
   chipChevron: { fontSize: 12, color: "#FFFFFF" },
-  table: { marginHorizontal: 16, marginTop: 12, borderRadius: 16, backgroundColor: PANEL, overflow: "hidden" },
-  progressionTable: { marginVertical: 8, borderRadius: 8, backgroundColor: "#FFFFFF", overflow: "hidden" },
-  tableHeader: { flexDirection: "row", alignItems: "center", height: 28, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
-  tableHead: { width: 56, textAlign: "center", fontFamily: "Inter_400Regular", fontSize: 12, color: SECTION },
-  tableName: { flex: 1, textAlign: "left", width: undefined },
-  tableRow: { flexDirection: "row", alignItems: "center", minHeight: 36, paddingHorizontal: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
-  tableRowLoad: { minHeight: 44 },
-  tableCellText: { fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
-  tableDash: { width: 56, textAlign: "center", color: DISABLED_VALUE },
-  // Recette n° 3 du 03/11/2026 (autres constats : « le champ Rép. n'est pas modifiable ») : zone tactile de la hauteur de la ligne.
-  cell: { width: 56, minHeight: 36, textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR, paddingVertical: 2 },
-  cellDisabled: { color: DISABLED_VALUE },
-  cellMissing: { backgroundColor: tokenColors.dangerSurface, borderRadius: 6 },
-  progressionCell: { width: PROGRESSION_COLUMN_WIDTH, alignItems: "center" },
-  progressionColumns: { flexDirection: "row" },
-  progressionNames: { width: PROGRESSION_NAME_WIDTH, paddingLeft: 12, paddingRight: 8 },
-  progressionHeader: { flexDirection: "row", alignItems: "center", height: 28, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
-  progressionRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
-  // Colonnes calées à droite : une série ajoutée décale les précédentes vers la gauche.
-  progressionCells: { justifyContent: "flex-end" },
-  progressionSeries: { flexGrow: 1 },
-  progressionScroll: { flex: 1 },
-  progressionScrollContent: { flexGrow: 1, paddingRight: 12 },
-  radioSlot: { width: 56, alignItems: "center", justifyContent: "center", minHeight: 36 },
-  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: "#9499A8", alignItems: "center", justifyContent: "center" },
-  radioOn: { borderColor: VALUE_COLOR, backgroundColor: VALUE_COLOR },
-  radioDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FFFFFF" },
   spacer: { flexGrow: 1, minHeight: 12 },
+  tablePanel: { marginTop: 12, paddingHorizontal: 0 },
+  alert: { marginHorizontal: 16, marginTop: 8, fontFamily: "Inter_400Regular", fontSize: 12, lineHeight: 16, color: tokenColors.danger },
+  badgeAlert: { backgroundColor: tokenColors.dangerSurface },
   timeline: { marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16, paddingVertical: 8, gap: 4 },
   timelineBlocks: { flexDirection: "row", alignItems: "flex-end", gap: 3, height: 22 },
   timelineBlock: { minWidth: 4, borderRadius: 3, alignItems: "center", justifyContent: "center", overflow: "hidden" },

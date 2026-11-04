@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 
+import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
 import type { KeyboardFrame } from "@/features/activities/useSheetKeyboard";
 import { strings } from "@/shared/i18n";
 import { colors } from "@/shared/ui/tokens";
@@ -122,6 +123,7 @@ export function KeyboardAccessoryBar({
   onNext,
   onClose,
   failure = null,
+  units = null,
 }: {
   keyboardFrame: KeyboardFrame;
   /** Bas de la zone de la `Modal` qui contient la barre (coordonnées de la fenêtre). */
@@ -136,6 +138,18 @@ export function KeyboardAccessoryBar({
   onClose: () => void;
   /** D-434 : « À l'échec » (cellule Cible d'une série), ou `null` (Pause, Charge). */
   failure?: { readonly selected: boolean; readonly onPress: () => void } | null;
+  /**
+   * Mise à jour consolidée des écrans Formats du 04/11/2026 (§4.5, §6 quater) — unité de l'objectif d'une ligne de
+   * tableau. `picking` : la barre propose Répétitions | Durée | Fermer (unités non admises indisponibles) ; sinon
+   * l'unité choisie, sélectionnée, puis Précédent, Suivant et Fermer — la toucher repropose les deux unités.
+   */
+  units?: {
+    readonly current: ExecutionMode;
+    readonly picking: boolean;
+    readonly allowed: readonly ExecutionMode[];
+    readonly onPick: (mode: ExecutionMode) => void;
+    readonly onReopen: () => void;
+  } | null;
 }) {
   const lift = keyboardBarLift(keyboardFrame, containerBottom);
   // Première montée : la barre part de sous le bas de sa zone, comme une barre native.
@@ -220,7 +234,28 @@ export function KeyboardAccessoryBar({
         }}
         testID="execution-sheet-keyboard-bar"
       >
-        {failure === null ? (
+        {units !== null && units.picking ? (
+          <>
+            {button(labels.repetitions, labels.repetitions, units.allowed.includes("REPETITIONS"), () => units.onPick("REPETITIONS"), "keyboard-unit-repetitions", {
+              selected: units.current === "REPETITIONS",
+            })}
+            {button(labels.duration, labels.duration, units.allowed.includes("DURATION"), () => units.onPick("DURATION"), "keyboard-unit-duration", {
+              selected: units.current === "DURATION",
+            })}
+            <View style={styles.slot} pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
+            {button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
+          </>
+        ) : null}
+        {units !== null && units.picking ? null : units !== null ? (
+          button(
+            units.current === "DURATION" ? labels.duration : labels.repetitions,
+            labels.unitSpoken.replace("{unit}", units.current === "DURATION" ? labels.duration : labels.repetitions),
+            true,
+            units.onReopen,
+            "keyboard-unit-current",
+            { selected: true },
+          )
+        ) : failure === null ? (
           // B9 (arbitrage A4) : emplacement réservé, vide et non accessible.
           <View
             style={styles.slot}
@@ -235,15 +270,15 @@ export function KeyboardAccessoryBar({
             selected: failure.selected,
           })
         )}
-        {button(
+        {units !== null && units.picking ? null : button(
           compact ? labels.previousArrow : labels.previous,
           labels.previousSpoken,
           canPrevious,
           onPrevious,
           "execution-sheet-keyboard-previous",
         )}
-        {button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
-        {button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
+        {units !== null && units.picking ? null : button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
+        {units !== null && units.picking ? null : button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
       </View>
     </Animated.View>
   );

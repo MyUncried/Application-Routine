@@ -8882,7 +8882,7 @@ function LayoutExerciseRow({
       layoutSwipeable={actions !== null}
       passageLabel={
         circuit !== null && (circuit.format ?? null) !== null && isSinglePassage(exercise.format)
-          ? singlePassageLabel(position.index) === "BUY_IN"
+          ? singlePassageLabel(exercise.format, position.index) === "BUY_IN"
             ? strings.screens.composition.carrier.buyIn
             : strings.screens.composition.carrier.buyOut
           : null

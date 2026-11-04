@@ -19,9 +19,37 @@ export function exerciseFormatRole(circuit: CircuitLike | null): FormatRole {
   return circuit !== null && (circuit.format ?? null) !== null ? { kind: "MEMBER", nature: circuit.nature } : { kind: "EXERCISE" };
 }
 
-/** Passage « Une fois » : buy-in (premier membre) ou buy-out (dernier membre), AMRAP et For time (§3). */
+/**
+ * Rôle dans le circuit (mise à jour consolidée du 04/11/2026 §6 bis 2) : Buy-in | Tour pour AMRAP, Buy-in | Tour |
+ * Buy-out pour For time. Le Circuit est découpé en trois zones ordonnées — buy-in, tour (la boucle), buy-out ;
+ * plusieurs buy-in et buy-out sont admis, exécutés une seule fois dans l'ordre.
+ */
+export type CircuitRole = "BUY_IN" | "TOUR" | "BUY_OUT";
+
+const ROLE_CODES: Readonly<Record<Exclude<CircuitRole, "TOUR">, number>> = { BUY_IN: 1, BUY_OUT: 2 };
+
+/**
+ * Rôle d'un membre. `circuitRole` explicite ; à défaut, ancien `passageOnce` (écrit avant le 04/11, seulement en
+ * tête ou en fin) : Buy-in en tête ou dans un AMRAP (qui n'a pas de buy-out), Buy-out sinon ; Tour par défaut.
+ * `index` : rang du membre dans son Circuit, pour la seule relecture de l'ancien Passage.
+ */
+export function circuitRoleOf(format: ElementFormat | null | undefined, index = 0): CircuitRole {
+  const code = format?.settings.circuitRole;
+  if (code === ROLE_CODES.BUY_IN) return "BUY_IN";
+  if (code === ROLE_CODES.BUY_OUT) return format?.key === "AMRAP" ? "BUY_IN" : "BUY_OUT";
+  if (format?.settings.passageOnce === 1) return index === 0 || format.key === "AMRAP" ? "BUY_IN" : "BUY_OUT";
+  return "TOUR";
+}
+
+/** Réglages d'un membre avec son Rôle (l'ancien Passage est remplacé, Tour : aucune clé). */
+export function withCircuitRole(format: ElementFormat, role: CircuitRole): ElementFormat {
+  const { passageOnce: _legacy, circuitRole: _previous, ...settings } = format.settings;
+  return { key: format.key, settings: role === "TOUR" ? settings : { ...settings, circuitRole: ROLE_CODES[role] } };
+}
+
+/** Buy-in ou buy-out : une seule exécution (§3). [Passage « Une fois » — remplacé le 04/11/2026 par le Rôle.] */
 export function isSinglePassage(format: ElementFormat | null | undefined): boolean {
-  return format?.settings.passageOnce === 1;
+  return circuitRoleOf(format) !== "TOUR";
 }
 
 /** Formats dont le Circuit porteur propose Passage (buy-in / buy-out, §3). */
@@ -42,7 +70,12 @@ export function loopMembers<E extends { readonly format?: ElementFormat | null }
   return exercises.filter((exercise) => !isSinglePassage(exercise.format));
 }
 
-/** Libellé de passage d'un membre « Une fois » : déduit de sa position (§5). */
-export function singlePassageLabel(index: number): "BUY_IN" | "BUY_OUT" {
-  return index === 0 ? "BUY_IN" : "BUY_OUT";
+/** Libellé d'un membre buy-in ou buy-out : son Rôle (l'ancien Passage se relit par sa position). */
+export function singlePassageLabel(format: ElementFormat | null | undefined, index: number): "BUY_IN" | "BUY_OUT" {
+  return circuitRoleOf(format, index) === "BUY_OUT" ? "BUY_OUT" : "BUY_IN";
+}
+
+/** Rôles admis par le Format d'un Circuit porteur (AMRAP : pas de buy-out). */
+export function admittedCircuitRoles(key: ElementFormatKey): readonly CircuitRole[] {
+  return key === "FOR_TIME" ? ["BUY_IN", "TOUR", "BUY_OUT"] : key === "AMRAP" ? ["BUY_IN", "TOUR"] : [];
 }
