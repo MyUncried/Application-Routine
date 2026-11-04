@@ -60,6 +60,7 @@ import {
   DeathByTable,
   EmomTable,
   SeriesTable,
+  emomFixedLoad,
   hasSummaryTable,
   parseCellKey,
   tableCellOrder,
@@ -1148,7 +1149,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             {model === "AMRAP" ? (
               <AmrapTable movements={movements} increasing={answers.increasingVolume === true} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
             ) : null}
-            {model === "EMOM" ? <EmomTable movements={movements} withLoad={answers.withLoad === true} overflow={emomOverflow} onChange={updateValues} cell={cellBinding} /> : null}
+            {model === "EMOM" ? <EmomTable movements={movements} withLoad={answers.withLoad === true} fixedLoad={emomFixedLoad(movements, answers)} overflow={emomOverflow} onChange={updateValues} cell={cellBinding} /> : null}
             {model === "DEATH_BY" ? <DeathByTable movements={movements} onChange={updateValues} cell={cellBinding} /> : null}
             {model === "FOR_TIME" ? (
               <View style={[styles.panel, styles.tablePanel]}>

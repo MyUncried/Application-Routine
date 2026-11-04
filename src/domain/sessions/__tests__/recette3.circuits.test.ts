@@ -47,9 +47,9 @@ describe("point 1 — modèle d'origine du Circuit (nom affiché)", () => {
     expect(strength[0]!.kind === "CIRCUIT" && strength[0]!.circuit.originModel).toBe("STRENGTH");
     const amrap = buildModelElements("AMRAP", { durationSeconds: 600 }, [movement("a"), movement("b")], newId);
     expect(amrap[0]!.kind === "CIRCUIT" && amrap[0]!.circuit).toMatchObject({ originModel: "AMRAP", format: { key: "AMRAP" } });
-    // Exercices successifs : aucun Circuit, aucun modèle d'origine.
+    // MAJ 04/11 §6 ter : À la suite, Circuit standard groupé à 1 tour, avec son modèle d'origine. [Exercices successifs — remplacé.]
     const sequence = buildModelElements("TABATA", { seriesCount: 8, workSeconds: 20, pauseSeconds: 10, execution: "SEQUENCE" }, [movement("a"), movement("b")], newId);
-    expect(sequence.every((element) => element.kind === "EXERCISE")).toBe(true);
+    expect(sequence[0]!.kind === "CIRCUIT" && sequence[0]!.circuit).toMatchObject({ originModel: "TABATA", nature: "TOURS", repeatCount: 1 });
   });
 
   it("un Circuit nommé n'est pas représentable dans l'ancien modèle : il garde son nom dans le brouillon et à l'enregistrement", () => {

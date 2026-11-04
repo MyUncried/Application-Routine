@@ -102,7 +102,7 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
         order.push(cellKey("obj", row));
         if (withLoad) {
           order.push(cellKey("load", row));
-          if (values.loadKg != null) order.push(cellKey("linc", row));
+          if (values.loadKg != null && !emomFixedLoad(movements, answers)) order.push(cellKey("linc", row));
         }
         return;
       case "DEATH_BY":
@@ -120,6 +120,11 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
     }
   });
   return order;
+}
+
+/** EMOM « dans chaque intervalle » : une série par tour et par membre, charge fixe (« + / série » inactif). */
+export function emomFixedLoad(movements: readonly ModelMovement[], answers: ModelAnswers): boolean {
+  return movements.length > 1 && (answers.execution ?? "EACH_INTERVAL") === "EACH_INTERVAL";
 }
 
 export function formatSeconds(seconds: number): string {
@@ -336,12 +341,15 @@ export function AmrapTable({
 export function EmomTable({
   movements,
   withLoad,
+  fixedLoad,
   overflow,
   onChange,
   cell,
 }: {
   readonly movements: readonly ModelMovement[];
   readonly withLoad: boolean;
+  /** « Dans chaque intervalle » : charge fixe, « + / série » inactif. */
+  readonly fixedLoad: boolean;
   /** Lignes en cause dans le contrôle des durées (cadre rouge). */
   readonly overflow: readonly number[];
   readonly onChange: RowChange;
@@ -394,7 +402,7 @@ export function EmomTable({
                 format={(value) => `+ ${formatLoad(value)}`}
                 placeholder={values.loadIncrement === null ? tt.variable : t().dash}
                 // L'incrément est grisé tant qu'aucune charge de départ n'est renseignée.
-                disabled={values.loadKg == null}
+                disabled={fixedLoad || values.loadKg == null}
                 onChange={(value) => onChange(index, { ...values, loadIncrement: value ?? 0, seriesLoads: undefined })}
                 {...cell(cellKey("linc", index))}
                 label={`${name}, ${tt.perSeries}`}

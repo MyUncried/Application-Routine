@@ -55,7 +55,8 @@ describe("valeurs initiales décidées (aucune valeur de maquette)", () => {
     expect(initialAnswers("INTERVALS_30_30")).toMatchObject({ seriesCount: 6, workSeconds: 30, pauseSeconds: 30 });
     expect(initialAnswers("EMOM")).toMatchObject({ seriesCount: 6, intervalSeconds: 60, execution: "EACH_INTERVAL" });
     expect(initialAnswers("AMRAP")).toMatchObject({ durationSeconds: 720, blockCount: 1, restBetweenBlocksSeconds: 120, loopRestSeconds: 0, buyIn: false, increasingVolume: false });
-    expect(initialAnswers("FOR_TIME")).toEqual({ roundCount: 3, timeCapSeconds: null, restBetweenRoundsSeconds: 0 });
+    // MAJ 04/11 §6 quater bis : « Avec charge » désactivé par défaut.
+    expect(initialAnswers("FOR_TIME")).toEqual({ roundCount: 3, timeCapSeconds: null, restBetweenRoundsSeconds: 0, withLoad: false });
     expect(initialAnswers("DEATH_BY")).toMatchObject({ intervalSeconds: 60, startRepetitions: 1, increment: 1 });
     expect(initialAnswers("STRENGTH")).toMatchObject({ seriesCount: 3, repetitions: 15 });
     expect(initialAnswers("PROGRESSION")).not.toHaveProperty("repetitions");
@@ -82,9 +83,13 @@ describe("Tabata et 30/30 : Exercices standards (§9, FMT-10 à FMT-13)", () => 
     expect(seconds(elements)).toBe(240);
   });
 
-  it("À la suite : récupération entre les mouvements (1 min) sur le premier, qui remplace sa dernière Pause : 8 min 50 s (A1) ; en alternance : Circuit standard 8 tours alternés, 8 min", () => {
+  it("À la suite : Circuit standard « groupées » à 1 tour (MAJ 04/11 §6 ter), récupération entre les mouvements (1 min) sur le premier : 8 min 50 s (A1) ; en alternance : Circuit standard 8 tours alternés, 8 min", () => {
     const sequence = build("TABATA", answers, movementsOf("TABATA", answers, ["a", "b"]));
-    expect(sequence.map((element) => element.kind)).toEqual(["EXERCISE", "EXERCISE"]);
+    expect(sequence.map((element) => element.kind)).toEqual(["CIRCUIT"]);
+    const grouped = sequence[0]!.kind === "CIRCUIT" ? sequence[0]!.circuit : null;
+    expect(grouped).toMatchObject({ nature: "TOURS", repeatCount: 1, originModel: "TABATA" });
+    expect(grouped).not.toHaveProperty("format");
+    expect(grouped!.exercises.map((exercise) => exercise.postActivityRecoverySeconds)).toEqual([60, 0]);
     expect(seconds(sequence)).toBe(530);
     const alternated = build("TABATA", { ...answers, execution: "ALTERNATED" }, movementsOf("TABATA", answers, ["a", "b"]));
     expect(alternated).toHaveLength(1);
@@ -147,7 +152,8 @@ describe("AMRAP (§1, §2, §2.1, §2.2)", () => {
     const [element] = build("AMRAP", changed, movements);
     const circuit = element!.kind === "CIRCUIT" ? element!.circuit : null;
     expect(circuit).toMatchObject({ repeatCount: 3, format: { key: "AMRAP", settings: { blockSeconds: 720, restBetweenBlocksSeconds: 120 } } });
-    expect(circuit!.exercises.map((exercise) => [exercise.format?.settings.passageOnce ?? 0, exercise.postActivityRecoverySeconds])).toEqual([
+    // MAJ 04/11 §6 bis 2 : Rôle dans le circuit (1 = Buy-in), qui remplace le Passage « Une fois ».
+    expect(circuit!.exercises.map((exercise) => [exercise.format?.settings.circuitRole ?? 0, exercise.postActivityRecoverySeconds])).toEqual([
       [1, 0],
       [0, 0],
       [0, 30],
@@ -248,7 +254,7 @@ describe("départs rapides (§9.2, §9.3)", () => {
     expect(circuit!.exercises.every((exercise) => seriesRowsOf(exercise.executionParameters)[0]!.target.kind === "UNSET")).toBe(true);
   });
 
-  it("Progression : 10/12/14 par mouvement ; charge seulement si l'Exercice est Avec charge ; N 3→4 : colonne à compléter, 3→2 : dernière retirée", () => {
+  it("Progression : 10/12/14 par mouvement ; charge par série seulement avec « Avec charge » (MAJ 04/11 §6 quater) ; N 3→4 : colonne à compléter, 3→2 : dernière retirée", () => {
     const answers = initialAnswers("PROGRESSION");
     const withLoad = { ...base("l"), executionParameters: { ...repetitionParameters(10, 3, 45), loadEnabled: true } };
     const movements: ModelMovement[] = [
@@ -256,13 +262,17 @@ describe("départs rapides (§9.2, §9.3)", () => {
       { exercise: withLoad, values: initialMovementValues("PROGRESSION", answers, withLoad) },
     ];
     expect(movements[0]!.values.cells).toEqual([10, 12, 14].map((repetitions) => ({ repetitions, loadKg: null })));
-    expect(movements[1]!.values.cells!.every((cell) => cell.loadKg !== null)).toBe(true);
+    // Aucune charge initiale inventée : la case vide est une série sans charge.
+    expect(movements[1]!.values.cells!.every((cell) => cell.loadKg === null)).toBe(true);
     const four = adaptMovementsToAnswers("PROGRESSION", withAnswer(answers, "seriesCount", 4), movements);
     expect(four[0]!.values.cells).toEqual([...[10, 12, 14].map((repetitions) => ({ repetitions, loadKg: null })), { repetitions: null, loadKg: null }]);
     // Contre-recette n° 3 ter (f3-fortime) : la série 3 reste en réserve à N = 2.
     expect(adaptMovementsToAnswers("PROGRESSION", withAnswer(answers, "seriesCount", 2), movements)[0]!.values.cells).toHaveLength(3);
     const [element] = build("PROGRESSION", withAnswer(answers, "seriesCount", 4), four);
-    expect(element!.kind === "EXERCISE" && seriesRowsOf(element!.exercise.executionParameters).map((row) => row.target.kind)).toEqual(["NUMBER", "NUMBER", "NUMBER", "UNSET"]);
+    // MAJ 04/11 §6 ter : deux Exercices, Circuit standard groupé à 1 tour.
+    const first = element!.kind === "CIRCUIT" ? element!.circuit.exercises[0]! : null;
+    expect(seriesRowsOf(first!.executionParameters).map((row) => row.target.kind)).toEqual(["NUMBER", "NUMBER", "NUMBER", "UNSET"]);
+    expect(element!.kind === "CIRCUIT" && element!.circuit.exercises[1]!.executionParameters.loadEnabled).toBe(false);
   });
 });
 

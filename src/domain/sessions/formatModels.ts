@@ -587,8 +587,11 @@ export function buildModelElements(
       const interval = answers.intervalSeconds ?? MINUTE;
       if (execution === "EACH_INTERVAL") {
         // §10 : Circuit porteur, tours = N, durée de chaque tour = intervalle ; membres sans Intervalle propre.
-        // Chaque membre fait une série par tour : ses N séries portent ses charges par série (MAJ 04/11 §6 quater bis).
-        const members = movements.map(({ exercise, values }) => withParameters(exercise, emomParameters(exercise, values, count, withLoad), 0, { key: "EMOM", settings: {} }));
+        // Chaque membre fait une série par tour (Circuit « groupées » de N tours) : il n'a qu'une série, donc une charge
+        // fixe — la progression « + / série » n'y est pas représentable (À CLARIFIER, spec C.4 § Reprise du 04/11).
+        const members = movements.map(({ exercise, values }) =>
+          withParameters(exercise, emomParameters(exercise, { ...values, loadIncrement: 0, seriesLoads: undefined }, 1, withLoad), 0, { key: "EMOM", settings: {} }),
+        );
         return [carrierCircuit(key, newId(), "TOURS", count, { key: "EMOM", settings: { windowSeconds: interval } }, members)];
       }
       const exercises = movements.map(({ exercise, values }) =>
