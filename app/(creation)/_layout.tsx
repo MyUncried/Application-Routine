@@ -63,12 +63,9 @@ export default function CreationLayout() {
         {/* Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « Ouvrir le catalogue : un écran
             apparaît par la droite, c'est perturbant […] il faut donner l'impression qu'on ne change pas
             d'écran ») : depuis un questionnaire de Format, le Catalogue apparaît en fondu. */}
-        <Stack.Screen
-          name="movement-selection"
-          options={({ route }) => ({
-            animation: String((route.params as { purpose?: string } | undefined)?.purpose ?? "").startsWith("format-") ? "fade" : "default",
-          })}
-        />
+        {/* ESSAI du 04/11/2026 (Hermann : « l'utiliser aussi pour la modale du catalogue des mouvements lorsqu'on l'appelle à
+            partir du bouton Créer ») : feuille native iOS. [Écran poussé, fondu depuis un questionnaire — remplacés par l'essai.] */}
+        <Stack.Screen name="movement-selection" options={{ presentation: "formSheet", sheetGrabberVisible: false }} />
         {/* PRE-9 C.3 (référence Formats du 02/11/2026, CE-FMT-02) : questionnaire et récapitulatif d'un modèle
             de la fenêtre Formats ; brouillon de modèle partagé (`FormatModelDraftProvider`). [C.2/C.3 du 01/11 :
             routes `session-model` et `format-parameters` — retirées le 02/11/2026.] */}
@@ -84,6 +81,7 @@ export default function CreationLayout() {
             bénéficie-t-elle pas de cet effet "lumière" qui est appliqué à la modale de présentation de la fiche des
             mouvements ? » ; « Est-il possible de tester la première option, notamment sur la question du voile ? ») :
             feuille native iOS (Liquid Glass du système), haut à y = 95 par sa hauteur ; voile du système. */}
+        <Stack.Screen name="formats-window" options={{ presentation: "formSheet", sheetGrabberVisible: false, sheetAllowedDetents: "fitToContents" }} />
         <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false }} />
         <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false }} />
         {/* Recette n° 3 du 03/11/2026 (autres constats) : fiche d'un mouvement du questionnaire ou du

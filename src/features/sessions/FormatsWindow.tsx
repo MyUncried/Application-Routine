@@ -1,8 +1,6 @@
 import { Image } from "expo-image";
-import { createContext, useContext, useEffect, useState, type ReactElement } from "react";
-import { Modal, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
-import Reanimated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
+import { createContext, useContext, useState, type ReactElement } from "react";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import type { ElementFormatKey, PreconfigurationKey } from "@/domain/sessions/formats";
 import { strings } from "@/shared/i18n";
@@ -55,16 +53,6 @@ const TITLE_COLOR = "#14171C";
 const SUBTITLE_COLOR = "#5C636E";
 const WINDOW_TITLE_COLOR = "#3A3A3F";
 const SCRIM = "rgba(31, 33, 41, 0.42)";
-/** Voile de la fenêtre, repris tel quel par la modale du Format qui lui succède (recette du 04/11/2026). */
-export const FORMATS_SCRIM = SCRIM;
-/** Effacement de la fenêtre au choix d'un modèle ; le voile reste. */
-const HANDOFF_FADE_MS = 160;
-/**
- * ESSAI du 04/11/2026 (feuille native) : la fenêtre native se retire sans animation ; un voile identique, posé dans la
- * Composition, prend le relais et s'efface pendant que la feuille d'iOS monte avec son propre voile (fondu croisé).
- */
-const HANDOFF_PUSH_DELAY_MS = 60;
-const HANDOFF_VEIL_FADE_MS = 420;
 const WHITE_85 = "rgba(255,255,255,0.85)";
 const WHITE_50 = "rgba(255,255,255,0.5)";
 const WHITE_35 = "rgba(255,255,255,0.35)";
@@ -337,90 +325,45 @@ function ModelCard({ model, width, onPress }: { model: SessionModel; width: numb
 }
 
 export function FormatsWindow({
-  visible,
   onClose,
   onSelect,
 }: {
-  readonly visible: boolean;
   readonly onClose: () => void;
   readonly onSelect: (key: FormatModelKey) => void;
 }) {
+  // ESSAI du 04/11/2026 (Hermann : « On garde cette modale native pour les questionnaires, les récapitulatifs, les fiches
+  // de mouvement. Applique-la aussi à la modale du format d'entraînement que je voie ce que cela fait de bout en bout ») :
+  // la fenêtre est une feuille native iOS (route `formats-window`), pleine largeur, ajustée à son contenu ; le
+  // questionnaire s'ouvre par-dessus, comme iOS empile ses feuilles. [Fenêtre centrée dans un `Modal` transparent,
+  // voile conservé puis voile relais — remplacés par l'essai.]
   const { width: screenWidth } = useWindowDimensions();
-  const windowWidth = screenWidth - 2 * WINDOW_MARGIN;
-  const cardWidth = Math.floor((windowWidth - 2 * WINDOW_PADDING - COLUMN_GAP) / 2);
-  // Recette du 04/11/2026 (f4-modale, Hermann : « Le voile grisé déjà en place ne doit pas disparaître en fondu et être
-  // remplacé par un autre qui apparaît de bas en haut. Il doit simplement rester et accueillir la modale des formats ») :
-  // au choix d'un modèle, seule la fenêtre s'efface ; le voile reste le temps que la modale, ouverte dessous avec le
-  // même voile, soit en place, puis la fenêtre native se retire sans fondu.
-  const [handoff, setHandoff] = useState(false);
-  const [released, setReleased] = useState(false);
-  const [relay, setRelay] = useState(false);
-  const windowOpacity = useSharedValue(1);
-  const relayOpacity = useSharedValue(1);
-  // Réouverture : fenêtre de nouveau visible et active.
-  const [shownBefore, setShownBefore] = useState(visible);
-  if (visible !== shownBefore) {
-    setShownBefore(visible);
-    if (visible) {
-      setHandoff(false);
-      setReleased(false);
-    }
-  }
-  useEffect(() => {
-    if (visible) windowOpacity.set(1);
-  }, [visible, windowOpacity]);
-  const windowStyle = useAnimatedStyle(() => ({ opacity: windowOpacity.value }));
-  const relayStyle = useAnimatedStyle(() => ({ opacity: relayOpacity.value }));
-  const release = (key: FormatModelKey) => {
-    setReleased(true);
-    setRelay(true);
-    relayOpacity.set(1);
-    setTimeout(() => {
-      onSelect(key);
-      relayOpacity.set(
-        withTiming(0, { duration: HANDOFF_VEIL_FADE_MS }, (finished) => {
-          if (finished === true) scheduleOnRN(setRelay, false);
-        }),
-      );
-    }, HANDOFF_PUSH_DELAY_MS);
-  };
-  const choose = (key: FormatModelKey) => {
-    if (handoff) return;
-    setHandoff(true);
-    windowOpacity.set(
-      withTiming(0, { duration: HANDOFF_FADE_MS }, (finished) => {
-        if (finished === true) scheduleOnRN(release, key);
-      }),
-    );
-  };
+  const cardWidth = Math.floor((screenWidth - 2 * WINDOW_PADDING - COLUMN_GAP) / 2);
+  const [chosen, setChosen] = useState(false);
   return (
-    <>
-    {relay ? <Reanimated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.scrim, styles.relay, relayStyle]} testID="formats-window-relay" /> : null}
-    <Modal visible={visible && !released} transparent animationType={handoff ? "none" : "fade"} onRequestClose={onClose} statusBarTranslucent>
-      <View style={styles.root} testID="formats-window-root">
-        <Pressable
-          style={[StyleSheet.absoluteFill, styles.scrim]}
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel={t().closeAccessibilityLabel}
-          testID="formats-window-scrim"
-        />
-        <Reanimated.View style={[styles.window, { width: windowWidth }, windowStyle]} pointerEvents={handoff ? "none" : "auto"} accessibilityViewIsModal testID="formats-window">
-          <View style={styles.header}>
-            <CloseCircleAction onPress={onClose} accessibilityLabel={t().closeAccessibilityLabel} style={styles.close} testID="formats-window-close" />
-            <Text style={styles.windowTitle} accessibilityRole="header">
-              {t().title}
-            </Text>
-          </View>
-          <View style={styles.grid} testID="formats-window-grid">
-            {[...MODELS_FORMATS, ...MODELS_QUICK_STARTS].map((model) => (
-              <ModelCard key={model.key} model={model} width={cardWidth} onPress={() => choose(model.key)} />
-            ))}
-          </View>
-        </Reanimated.View>
+    <View style={styles.sheetWindow} accessibilityViewIsModal testID="formats-window">
+      <View style={styles.header}>
+        <CloseCircleAction onPress={onClose} accessibilityLabel={t().closeAccessibilityLabel} style={styles.close} testID="formats-window-close" />
+        <Text style={styles.windowTitle} accessibilityRole="header">
+          {t().title}
+        </Text>
       </View>
-    </Modal>
-    </>
+      <View style={styles.grid} testID="formats-window-grid">
+        {[...MODELS_FORMATS, ...MODELS_QUICK_STARTS].map((model) => (
+          <ModelCard
+            key={model.key}
+            model={model}
+            width={cardWidth}
+            onPress={() => {
+              // Un seul questionnaire par toucher (double toucher pendant la présentation).
+              if (chosen) return;
+              setChosen(true);
+              onSelect(model.key);
+              setTimeout(() => setChosen(false), 600);
+            }}
+          />
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -433,9 +376,10 @@ const styles = StyleSheet.create({
   scrim: {
     backgroundColor: SCRIM,
   },
-  relay: {
-    zIndex: 1000,
-    elevation: 1000,
+  sheetWindow: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: WINDOW_PADDING,
+    paddingBottom: 34,
   },
   window: {
     backgroundColor: "#FFFFFF",

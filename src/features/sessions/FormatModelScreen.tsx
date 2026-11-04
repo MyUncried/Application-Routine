@@ -73,7 +73,7 @@ import {
   tableCellOrder,
   type CellBinding,
 } from "@/features/sessions/FormatTables";
-import { FORMATS_SCRIM, FormatModelIllustration, formatModelColors } from "@/features/sessions/FormatsWindow";
+import { FormatModelIllustration, formatModelColors } from "@/features/sessions/FormatsWindow";
 import { exerciseOfMovement, takeMovementsHandedToFormat, type MovementExerciseDefaults } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovementExerciseIntake";
@@ -726,7 +726,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       Keyboard.dismiss();
       setSearchRole(null);
       setStage("questionnaire");
-    } else dismissWith(() => router.back());
+    // Essai feuille native : la croix ramène à la Composition, même si la fenêtre Formats est empilée dessous.
+    } else dismissWith(backToComposition);
   };
 
   // Lignes de paramètres du modèle.
@@ -1561,8 +1562,6 @@ function genericDuration(model: FormatModelKey, answers: ModelAnswers): string {
 const styles = StyleSheet.create({
   content: { flexGrow: 1 },
   modalRoot: { flex: 1, backgroundColor: "transparent" },
-  // Même voile que la fenêtre Formats, qui reste en place à l'ouverture (recette du 04/11/2026).
-  veil: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: FORMATS_SCRIM },
   band: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 1 },
   nativeSheet: { flex: 1, backgroundColor: "#FFFFFF", overflow: "hidden" },
   bandFade: { height: CONTEXT_FADE_HEIGHT },

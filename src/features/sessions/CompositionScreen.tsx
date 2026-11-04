@@ -209,7 +209,6 @@ import {
   type StickyScroll,
 } from "@/features/sessions/StickyHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
-import { FormatsWindow } from "@/features/sessions/FormatsWindow";
 import { isSinglePassage, singlePassageLabel } from "@/domain/sessions/formats";
 import { CarrierDurationSheet } from "@/features/sessions/CarrierDurationSheet";
 import { duplicateLayoutCircuit, removeLayoutCircuit, renameLayoutCircuit } from "@/domain/sessions/circuitActions";
@@ -1023,8 +1022,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // V2-CAT-01 (plan §4.4) : arbre `Ajouter une activité` — `Une nouvelle
   // activité` / `Une activité existante` / `Annuler`.
   const [isAddActivityTreeOpen, setIsAddActivityTreeOpen] = useState(false);
-  // PRE-9 C.2 (référence Formats du 02/11/2026 §7, CE-FMT-01) : fenêtre « Formats d'entraînement ».
-  const [isFormatsWindowOpen, setIsFormatsWindowOpen] = useState(false);
   /** Contre-recette du 30/10 : « + » de la zone de contexte, mesuré par le menu Créer. */
   const addActionRef = useRef<View>(null);
   /**
@@ -5677,7 +5674,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               icon: "format",
               onPress: () => {
                 setIsAddActivityTreeOpen(false);
-                setIsFormatsWindowOpen(true);
+                // Essai du 04/11/2026 : fenêtre « Formats d'entraînement » en feuille native iOS (route `formats-window`).
+                router.push("/formats-window");
               },
               testID: "composition-add-activity-tree-format",
             },
@@ -5727,16 +5725,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onCancel={() => setCarrierDurationEdit(null)}
         />
       ) : null}
-
-      {/* PRE-9 C.2 : la croix ou le voile ramènent à la Composition, sans rien ajouter ; une carte ouvre son questionnaire (C.3). */}
-      <FormatsWindow
-        visible={isFormatsWindowOpen}
-        onClose={() => setIsFormatsWindowOpen(false)}
-        onSelect={(model) => {
-          setIsFormatsWindowOpen(false);
-          router.push({ pathname: "/format-questionnaire", params: { model } });
-        }}
-      />
 
       {/* PRE-9 A.2 (ARB-22a) : paramètres des Exercices créés depuis des Mouvements. */}
       {movementExerciseSheet}

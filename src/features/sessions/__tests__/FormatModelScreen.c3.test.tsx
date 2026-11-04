@@ -149,9 +149,9 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-total")).toHaveTextContent("4 min");
     expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("4 min");
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
-    // Recette du 04/11/2026 : la modale redescend, puis retour à la Composition.
+    // Essai feuille native : la croix ramène à la Composition (fenêtre Formats empilée dessous comprise).
     fireEvent.press(screen.getByTestId("screen-header-back"));
-    await waitFor(() => expect(mockBack).toHaveBeenCalled());
+    await waitFor(() => expect(mockDismiss.mock.calls.length + mockDismissTo.mock.calls.length).toBeGreaterThan(0));
   });
 
   it("« + Ajouter » ouvre le champ et devient « Ouvrir le mode catalogue » ; la saisie propose les Mouvements ; 30/30 : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {

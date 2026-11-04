@@ -172,10 +172,8 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     // Le menu s'efface ; la fenêtre Formats s'ouvre sur la Composition.
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-format"));
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
-    expect(screen.getByTestId("formats-window")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("format-model-TABATA"));
-    // Recette du 04/11/2026 : la fenêtre s'efface (voile conservé) avant d'ouvrir le questionnaire.
-    await waitFor(() => expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-questionnaire", params: { model: "TABATA" } }));
+    // Essai du 04/11/2026 : la fenêtre Formats est une feuille native iOS (route `formats-window`).
+    await waitFor(() => expect(mockPush).toHaveBeenLastCalledWith("/formats-window"));
   });
 
   it("recette du 01/11 : « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (action d'avant le 01/11) et ferme le menu", async () => {

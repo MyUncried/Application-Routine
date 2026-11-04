@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { fireEvent, render, screen, within } from "@testing-library/react-native";
 
 import { FORMAT_MODEL_ORDER, FormatsWindow } from "@/features/sessions/FormatsWindow";
 import { strings } from "@/shared/i18n";
@@ -16,7 +16,7 @@ describe("FormatsWindow", () => {
     const onSelect = jest.fn();
     render(
       <TestSafeAreaProvider>
-        <FormatsWindow visible onClose={onClose} onSelect={onSelect} />
+        <FormatsWindow onClose={onClose} onSelect={onSelect} />
       </TestSafeAreaProvider>,
     );
     return { onClose, onSelect };
@@ -32,17 +32,14 @@ describe("FormatsWindow", () => {
     expect(screen.queryByText(/Mobilité|Libre|Une séance|Un exercice/)).toBeNull();
   });
 
-  it("la croix et le voile ferment la fenêtre ; une carte transmet son modèle", async () => {
+  it("la croix ferme la fenêtre ; une carte transmet son modèle, une seule fois par toucher", () => {
+    // Essai du 04/11/2026 : feuille native iOS (route `formats-window`) ; le voile est celui du système.
     const { onClose, onSelect } = renderWindow();
     fireEvent.press(screen.getByTestId("formats-window-close"));
-    // Voile : masqué à VoiceOver par la fenêtre modale (la croix reste accessible).
-    fireEvent.press(screen.getByTestId("formats-window-scrim", { includeHiddenElements: true }));
-    expect(onClose).toHaveBeenCalledTimes(2);
+    expect(onClose).toHaveBeenCalledTimes(1);
     fireEvent.press(screen.getByTestId("format-model-AMRAP"));
-    // Recette du 04/11/2026 : la fenêtre s'efface, le voile reste ; le modèle est transmis à la fin de l'effacement.
-    await waitFor(() => expect(onSelect).toHaveBeenCalledWith("AMRAP"));
-    // Essai feuille native : la fenêtre se retire, un voile relais (même voile) s'efface pendant que la feuille monte.
+    fireEvent.press(screen.getByTestId("format-model-EMOM"));
     expect(onSelect).toHaveBeenCalledTimes(1);
-    expect(screen.queryByTestId("format-model-EMOM")).toBeNull();
+    expect(onSelect).toHaveBeenCalledWith("AMRAP");
   });
 });

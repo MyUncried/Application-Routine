@@ -61,7 +61,8 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * Catalogue), « N résultats » en état filtré — sans Créer. Les piles dont un Mouvement déjà utilisé
  * est masqué s'ouvrent dépliées (`MovementCatalogueList`, `pilesHidingIds`).
  */
-export function MovementSelectionScreen() {
+/** `inSheet` (essai du 04/11/2026) : présenté en feuille native iOS — pas de marge de zone sûre en haut. */
+export function MovementSelectionScreen({ inSheet = false }: { readonly inSheet?: boolean } = {}) {
   const router = useRouter();
   /**
    * PRE-9 C.3 (référence Formats du 02/11/2026 §7.1 à §7.3) : modale du Catalogue ouverte par un
@@ -149,6 +150,7 @@ export function MovementSelectionScreen() {
         title={purpose === "BUY_IN" ? strings.screens.formatModel.buyInPickerTitle : strings.screens.activities.addToSession.existingActivity}
         onBack={() => router.back()}
         backAccessibilityLabel={tSelection.backAccessibilityLabel}
+        {...(inSheet ? { topInset: 0 } : {})}
       />
       <ContextBand padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}>
         <CatalogueContextZone
