@@ -110,7 +110,7 @@ Demande et adoption de Hermann (texte exact au registre ch07, « Recette iPhone 
 - `MovementSelectionScreen` : `inSheet` (pas de marge de zone sûre en haut).
 - Remplacé : voile conservé / relais (e-voile), fenêtre centrée, tap sur le voile pour fermer (à constater sur la feuille native).
 
-**Réponses de Hermann du 04/11/2026 :** contrôle segmenté — « Peut-on tester la deuxième option ? » (option sélectionnée à droite : essai) ; Circuit libre — « Dans le circuit si il est libre, en dehors si c'est un circuit issu d'un format » (conforme au code) ; Circuit de Format dans un Cycle — « Dans le Cycle, après le Circuit » (conforme) ; récapitulatif — « Tous les modèles sans tableau » (30/30, Renforcement, À l'échec, Superset sans récapitulatif, réalisé). Restent ouvertes ci-dessous : 5 (EMOM sans unité lue en Répétitions).
+**Réponses de Hermann du 04/11/2026 :** contrôle segmenté — « Peut-on tester la deuxième option ? » (option sélectionnée à droite : essai) ; Circuit libre — « Dans le circuit si il est libre, en dehors si c'est un circuit issu d'un format » (conforme au code) ; Circuit de Format dans un Cycle — « Dans le Cycle, après le Circuit » (conforme) ; récapitulatif — « Tous les modèles sans tableau » (30/30, Renforcement, À l'échec, Superset sans récapitulatif, réalisé). Question 5 tranchée (Hermann : « si la valeur est saisie avant le choix, elle est renseignée comme une répétition, mais le choix reste affiché ») : réalisé (barre Répétitions | Durée maintenue ; Durée choisie ensuite = à renseigner).
 
 **Questions ouvertes (À CLARIFIER) :**
 1. Contrôle segmenté (constat b) : anomalie (le contrôle bouge) ou règle (option sélectionnée à droite) ? Quel contrôle (Phases, Charge, Côtés, Séries) ?

@@ -104,4 +104,15 @@ describe("EMOM : aucun mode d'exécution par défaut (recette du 04/11/2026)", (
     expect(withMovementMode(values, "DURATION")).toMatchObject({ mode: "DURATION", repetitions: null });
     expect(withMovementMode({ mode: "REPETITIONS", repetitions: 12 }, "DURATION")).toMatchObject({ mode: "DURATION", repetitions: null });
   });
+
+  it("valeur saisie avant le choix (Hermann, 04/11) : lue en Répétitions, unité encore à choisir ; Répétitions la garde, Durée la remet à renseigner", () => {
+    const answers = initialAnswers("EMOM");
+    const typed: MovementValues = { ...initialMovementValues("EMOM", answers, base("a")), repetitions: 12 };
+    expect(typed.mode).toBeUndefined();
+    expect(summaryIssues("EMOM", answers, [{ exercise: base("a"), values: typed }])).toEqual([]);
+    const [built] = buildModelElements("EMOM", answers, [{ exercise: base("a"), values: typed }], newId);
+    expect(built?.kind === "EXERCISE" ? built.exercise.executionParameters.mode : built?.kind === "CIRCUIT" ? built.circuit.exercises[0]?.executionParameters.mode : null).toBe("REPETITIONS");
+    expect(withMovementMode(typed, "REPETITIONS")).toMatchObject({ mode: "REPETITIONS", repetitions: 12 });
+    expect(withMovementMode(typed, "DURATION")).toMatchObject({ mode: "DURATION", repetitions: null });
+  });
 });

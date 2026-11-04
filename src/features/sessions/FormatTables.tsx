@@ -401,8 +401,10 @@ export function EmomTable({
               format={(value) => formatObjective(mode, value)}
               width={OBJECTIVE_WIDTH}
               missing={values.repetitions == null || overflow.includes(index)}
-              // Ligne sans unité (recette du 04/11/2026) : une valeur tapée sans choisir l'unité est lue en Répétitions.
-              onChange={(value) => onChange(index, { ...values, repetitions: value, ...(value !== null && mode === undefined ? { mode: "REPETITIONS" as const } : {}) })}
+              // Ligne sans unité — Hermann, 04/11/2026 : « si la valeur est saisie avant le choix, elle est renseignée comme une
+              // répétition, mais le choix reste affiché » : la valeur est lue en Répétitions, l'unité reste à choisir (barre
+              // Répétitions | Durée).
+              onChange={(value) => onChange(index, { ...values, repetitions: value })}
               {...cell(cellKey("obj", index))}
               label={`${name}, ${tt.objective}`}
               testID={`format-emom-objective-${index}`}

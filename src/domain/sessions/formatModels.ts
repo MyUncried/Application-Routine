@@ -313,8 +313,9 @@ export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers
  * Les charges et le reste sont conservés.
  */
 export function withMovementMode(values: MovementValues, mode: ExecutionMode): MovementValues {
-  // Ligne sans unité (EMOM à la création) : l'unité choisie est posée, l'objectif reste à renseigner.
-  if (values.mode === undefined) return { ...values, mode };
+  // Ligne sans unité (EMOM à la création) : une valeur déjà saisie est une valeur en Répétitions (Hermann, 04/11/2026) ;
+  // choisir Répétitions la garde, choisir Durée est un changement d'unité (objectif à renseigner, sans conversion).
+  if (values.mode === undefined) return mode === "REPETITIONS" ? { ...values, mode } : withMovementMode({ ...values, mode: "REPETITIONS" }, mode);
   if (values.mode === mode) return values;
   return {
     ...values,
