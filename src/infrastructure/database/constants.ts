@@ -130,7 +130,11 @@ export const DATABASE_NAME = "kodjo.db";
  * autorisée et prendra la version 23, la 22 étant réservée au nom du Circuit). Mouvements, Séances,
  * historique et instantanés conservés. 001..020 inchangées.
  */
-export const DATABASE_VERSION = 21;
+/**
+ * **PRE-9 (version 22, `migration022`, reprise Formats du 04/11/2026)** : nom du Circuit (`tours.name`, `NULL` =
+ * nom par défaut) — colonne additive nullable. 001..021 inchangées.
+ */
+export const DATABASE_VERSION = 22;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

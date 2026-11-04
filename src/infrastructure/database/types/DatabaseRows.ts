@@ -58,6 +58,8 @@ export type CircuitRow = {
   format_settings?: string | null;
   // Recette iPhone n° 3 du 03/11/2026 : modèle d'origine (nom affiché), `NULL` = « Circuit » (migration 020).
   origin_model?: string | null;
+  /** Reprise Formats du 04/11/2026 (migration 022) : nom du Circuit, `NULL` = nom par défaut. */
+  name?: string | null;
 };
 
 /**

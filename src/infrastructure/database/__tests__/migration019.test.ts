@@ -110,7 +110,7 @@ async function snapshot(database: Database): Promise<Record<string, unknown>> {
   const result: Record<string, unknown> = {};
   for (const table of TABLES) {
     const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1, 2`);
-    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => column !== "phases_to_verify" && column !== "origin_model")));
+    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && column !== "phases_to_verify" && column !== "origin_model")));
   }
   return result;
 }
@@ -166,7 +166,7 @@ async function seededVersion18(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 recette n° 2, constat e — migration 019 (marque « Paramètre à vérifier »)", () => {
   it("version courante 19 ; tables de la 019 : occurrences de Séance et Exercices du Catalogue", () => {
-    expect(DATABASE_VERSION).toBe(21);
+    expect(DATABASE_VERSION).toBe(22);
     expect(MIGRATION_019_TABLES).toEqual(["activities", "activity_definitions"]);
   });
 
@@ -203,7 +203,7 @@ describe("PRE-9 recette n° 2, constat e — migration 019 (marque « Paramètre
   it("une erreur après l'ajout des colonnes annule tout et laisse la base au schéma 018 ; le démarrage suivant migre", async () => {
     let database = await seededVersion18();
     const before = await snapshot(database);
-    const failing = failOnExec(database, /^PRAGMA user_version = 21/);
+    const failing = failOnExec(database, /^PRAGMA user_version = 22/);
     await expect(migrateDatabase(failing.database, () => T)).rejects.toThrow("Injected failure");
     // Les deux ajouts avaient bien été exécutés dans la transaction.
     expect(failing.executed.some((source) => source.startsWith("ALTER TABLE activities ADD COLUMN phases_to_verify"))).toBe(true);

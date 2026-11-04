@@ -869,15 +869,16 @@ async function writeStructure(
       await transaction.runAsync(
         // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine d'un Circuit porteur (`tours.format_*`, migration 017).
         // Recette iPhone n° 3 du 03/11/2026 : modèle d'origine du Circuit (`tours.origin_model`, migration 020).
-        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ?, format_key = ?, format_settings = ?, origin_model = ? WHERE id = ? AND session_id = ?",
-        [cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.originModel ?? null, circuit.id, sessionId],
+        // Reprise Formats du 04/11/2026 : nom du Circuit (`tours.name`, migration 022).
+        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ?, format_key = ?, format_settings = ?, origin_model = ?, name = ? WHERE id = ? AND session_id = ?",
+        [cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.originModel ?? null, circuit.name ?? null, circuit.id, sessionId],
       );
     } else {
       // V2-PRE-1 : le Circuit n'a plus de direction propre — toujours `'UNILATERAL'` en base.
       await transaction.runAsync(
-        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings, origin_model)
-         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?, ?, ?, ?)`,
-        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.originModel ?? null],
+        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings, origin_model, name)
+         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?, ?, ?, ?, ?)`,
+        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.originModel ?? null, circuit.name ?? null],
       );
     }
     for (const [index, exercise] of circuit.exercises.entries()) {
@@ -1285,7 +1286,7 @@ async function readAssembledSessions(
   );
   const circuits = await database.getAllAsync<CircuitRow>(
     // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine des Circuits porteurs.
-    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings, origin_model FROM tours WHERE session_id IN (${placeholders})`,
+    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings, origin_model, name FROM tours WHERE session_id IN (${placeholders})`,
     ids,
   );
   // PRE-9 (recette iPhone n° 2, constat e, `migration019`) : marque « à vérifier », lue seulement.
@@ -1414,6 +1415,7 @@ export function assembleStructure(
     nature: row.nature,
     ...formatField(row),
     ...originModelField(row),
+    ...(row.name !== undefined && row.name !== null ? { name: row.name } : {}),
     exercises: inRankOrder(activitiesByContainer.get(row.id) ?? []).map((activity, rank) =>
       toActivity(activity, movements, "IN_TOUR", rank),
     ),

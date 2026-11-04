@@ -72,4 +72,6 @@ Rien n'est qualifié sans recette. À rejouer à cause des changements : parcour
 
 ## 9. Intégration A.3 et qualification
 
-(Complété à l'intégration.)
+- **A.3** (branche de travail intégrée, `7ada8e12`) : migration 021 — suppression de toutes les lignes de `activity_definitions` (table conservée vide ; A.5 non autorisée) ; retrait de « Modifier » (E.8-a), de `ActivitySelectionScreen`, du parcours `catalogueDefinitionId` et des écritures / lectures de définitions ; gardes du Mouvement sans définitions ; test de garde `legacyDefinitionsGuard.a3`. Documentation : ch07 (E.8-a, ARB-01, archivage, Q8), ch12, epics, arbitrages, sprint-status. À CLARIFIER (classe C) : `Category.isUsed` — règle provisoire prudente (Catégorie utilisée si un Mouvement la référence).
+- **Migration 022** : `tours.name` (nom du Circuit), écrite et relue par le dépôt ; tests `migration022` ; tests historiques 014 à 021 alignés sur la version 22 (colonne ignorée des comparaisons).
+- **Qualification** : voir le rapport de fin de mission (suite complète).

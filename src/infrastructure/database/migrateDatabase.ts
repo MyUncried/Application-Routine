@@ -23,6 +23,7 @@ import { applyMigration018 } from "./migrations/migration018";
 import { applyMigration019 } from "./migrations/migration019";
 import { applyMigration020 } from "./migrations/migration020";
 import { applyMigration021 } from "./migrations/migration021";
+import { applyMigration022 } from "./migrations/migration022";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -263,6 +264,13 @@ export async function migrateDatabase(
     if (pending(20)) {
       await applyMigration021(transaction);
       version = 21;
+    }
+
+    // PRE-9 (reprise Formats du 04/11/2026, §6 quinquies) : nom du Circuit, colonne additive nullable
+    // `tours.name` ; tout Circuit existant garde son nom par défaut. Un échec laisse `user_version` à 21.
+    if (pending(21)) {
+      await applyMigration022(transaction);
+      version = 22;
     }
 
     if (version !== targetVersion) {
