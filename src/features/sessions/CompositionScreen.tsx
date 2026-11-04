@@ -43,10 +43,13 @@ import {
   type CircuitNature,
 } from "@/domain/sessions/circuit";
 import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import {
   adjustEnvelopeSpan,
   applyLayoutNatureChange,
   containerLetters,
+  currentLayout as currentDraftLayout,
   envelopeCandidates,
   envelopeSpanReach,
   layoutCircuitCountOutcome,
@@ -5683,6 +5686,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           allowsNone={carrierDurationEdit.setting === "timeCapSeconds"}
           onValidate={(seconds) => {
             const edit = carrierDurationEdit;
+            // MAJ 04/11/2026 §4.4 : EMOM dans chaque intervalle — un intervalle commun atteint par la somme du travail
+            // prévu des membres (seuil inclusif) est refusé ; la roulette reste ouverte.
+            if (edit.setting === "windowSeconds" && seconds !== null) {
+              const circuit = structureCircuits(currentDraftLayout(draftRef.current, () => Crypto.randomUUID())).find((item) => item.id === edit.circuitId);
+              const work = (circuit?.exercises ?? []).reduce((sum, id) => {
+                const member = draftRef.current.exercises.find((item) => item.id === id);
+                return sum + (member === undefined ? 0 : plannedWorkOfParameters(member.executionParameters));
+              }, 0);
+              if (circuit?.format?.key === "EMOM" && work > 0 && work >= seconds) {
+                Alert.alert(strings.screens.formatModel.emomOverflow.replace("{interval}", formatPhraseDuration(seconds)));
+                return;
+              }
+            }
             setCarrierDurationEdit(null);
             updateDraft((current) => setLayoutCircuitFormatSetting(current, edit.circuitId, edit.setting, seconds));
           }}

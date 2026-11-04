@@ -330,7 +330,7 @@ function TimelineFrame({ timeline, endLabel, band, names, testID }: { timeline: 
   };
   return (
     <View style={styles.timeline} testID={testID}>
-      <View style={styles.timelineBlocks}>
+      <View style={[styles.timelineBlocks, timeline.continuous === true ? styles.timelineContinuous : null]} testID={timeline.continuous === true ? `${testID}-continuous` : undefined}>
         {timeline.grouped === true && names.length > 1
           ? groupedBlocks(timeline.blocks, names.length).map((item, index) =>
               Array.isArray(item) ? (
@@ -609,7 +609,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // contrôle EMOM des durées ; une charge vide ne bloque pas.
   const issues = useMemo(() => (stage === "summary" ? summaryIssues(model, answers, movements) : []), [answers, model, movements, stage]);
   const emomOverflow = useMemo(() => (model === "EMOM" ? emomDurationOverflow(answers, movements) : []), [answers, model, movements]);
-  const canSave = (buyIn ? hasChosenBuyIn(answers, movements) : movements.length > 0) && issues.length === 0;
+  // C.5 (référence Formats §9.2, A4) : le Superset demande deux mouvements choisis.
+  const enoughMovements = model === "SUPERSET" ? movements.length >= 2 : movements.length > 0;
+  const canSave = (buyIn ? hasChosenBuyIn(answers, movements) : enoughMovements) && issues.length === 0;
   const save = () => {
     if (busyRef.current || !canSave) return;
     busyRef.current = true;
@@ -1469,6 +1471,8 @@ const styles = StyleSheet.create({
   badgeAlert: { backgroundColor: tokenColors.dangerSurface },
   timeline: { marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16, paddingVertical: 8, gap: 4 },
   timelineBlocks: { flexDirection: "row", alignItems: "flex-end", gap: 3, height: 22 },
+  // MAJ 04/11 §6 bis 1 : bloc continu, courts séparateurs (1 px) contenus dans la barre.
+  timelineContinuous: { gap: 1, borderRadius: 3, overflow: "hidden" },
   timelineBlock: { minWidth: 4, borderRadius: 3, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   timelineGroup: { flexDirection: "row", alignItems: "flex-end", borderRadius: 3, overflow: "hidden" },
   timelineBlockInGroup: { borderRadius: 0, minWidth: 2 },

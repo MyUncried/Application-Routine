@@ -38,6 +38,11 @@ export type Timeline = {
   readonly blocks: readonly TimelineBlock[];
   /** Blocs de travail regroupés par intervalle commun (EMOM / Death by « dans chaque intervalle »). */
   readonly grouped?: true;
+  /**
+   * AMRAP (mise à jour consolidée du 04/11/2026 §6 bis 1) : bloc continu de 0 à la Durée, tours illustratifs de
+   * durée variable séparés par de courts séparateurs ; ce n'est pas une estimation des tours réalisables.
+   */
+  readonly continuous?: true;
   readonly end: TimelineEnd;
   /** Légende : mouvements colorés, récupération. */
   readonly legendRecovery: boolean;
@@ -55,6 +60,21 @@ function heights(values: readonly (number | null)[]): number[] {
 
 /** Rangs affichés d'un nombre ouvert : premiers blocs, « … », derniers (§15 règle 6). */
 const OPEN_FIRST = 6;
+
+/**
+ * Tours illustratifs d'un bloc AMRAP (MAJ 04/11 §6 bis 1) : durées irrégulières, proportionnées à la durée du bloc ;
+ * illustration seulement — aucune estimation des tours réalisables.
+ */
+const ILLUSTRATIVE_ROUNDS = [1.25, 1, 1.12, 0.92, 1.05];
+const ILLUSTRATIVE_LAST = 0.55;
+function illustrativeRounds(durationSeconds: number): TimelineBlock[] {
+  const total = ILLUSTRATIVE_ROUNDS.reduce((sum, value) => sum + value, ILLUSTRATIVE_LAST);
+  const scale = durationSeconds / total;
+  return [
+    ...ILLUSTRATIVE_ROUNDS.map((value, index): TimelineBlock => ({ kind: "WORK", movement: null, label: index === 0 ? "Tour 1" : `T${index + 1}`, weight: value * scale, height: 1 })),
+    { kind: "WORK", movement: null, label: null, weight: ILLUSTRATIVE_LAST * scale, height: 1 },
+  ];
+}
 
 function interleave<T>(lists: readonly (readonly T[])[]): T[] {
   const length = Math.max(0, ...lists.map((list) => list.length));
@@ -153,12 +173,13 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
           const rest = answers.restBetweenBlocksSeconds ?? 0;
           const blocks: TimelineBlock[] = [];
           for (let index = 1; index <= blocksCount; index += 1) {
-            blocks.push(work(null, `Bloc ${index}`, 1, duration));
+            blocks.push(...illustrativeRounds(duration));
             if (index < blocksCount && rest > 0) blocks.push({ kind: "REST", label: null, weight: rest });
           }
-          return { blocks, end: { kind: "DURATION" }, legendRecovery: false };
+          return { blocks, continuous: true, end: { kind: "DURATION" }, legendRecovery: false };
         }
-        return { blocks: openGeneric(), end: { kind: "DURATION" }, legendRecovery: false };
+        // MAJ 04/11 §6 bis 1 : un seul bloc continu, tours illustratifs « Tour 1 », « T2 »… ; le dernier, coupé, sans numéro.
+        return { blocks: illustrativeRounds(answers.durationSeconds ?? 720), continuous: true, end: { kind: "DURATION" }, legendRecovery: false };
       }
       const buyIn = hasChosenBuyIn(answers, movements);
       const loop = movements.slice(buyIn ? 1 : 0);
@@ -176,7 +197,7 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
         { kind: "ELLIPSIS" },
         ...roundBlocks(null),
       ];
-      return { blocks, end: { kind: "DURATION" }, legendRecovery: false };
+      return { blocks, continuous: true, end: { kind: "DURATION" }, legendRecovery: false };
     }
     case "FOR_TIME": {
       const rounds = answers.roundCount ?? 1;
