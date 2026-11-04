@@ -2367,6 +2367,8 @@ A2/B4 avec tirets ; 45 s/60 s/90 s→0:45/1:00/1:30 ; échec✓ ; variables éga
 
 Fenêtre P-Formats — Choix du format, deux colonnes (`9977:19613`), page Prototype MVP ; captures chapitre 06, ancre formats-galerie.
 
+[04/11/2026 (essai adopté), Hermann : « Pourquoi la modale des formats ne bénéficie-t-elle pas de cet effet "lumière" qui est appliqué à la modale de présentation de la fiche des mouvements ? » ; « On garde cette modale native pour les questionnaires, les récapitulatifs, les fiches de mouvement. Applique-la aussi à la modale du format d'entraînement » ; « et l'utiliser aussi pour la modale du catalogue des mouvements lorsqu'on l'appelle à partir du bouton Créer » ; « On adopte le native d'iOS ». La fenêtre « Formats d'entraînement », le questionnaire, le récapitulatif et le Catalogue des mouvements ouvert par Créer sont des **feuilles natives iOS** (effet Liquid Glass du système) : la fenêtre Formats monte du bas, pleine largeur, ajustée à ses cartes ; un modèle ouvre son questionnaire **empilé** sur elle ; la croix du questionnaire et « Enregistrer dans la séance » reviennent à la Composition ; le voile est celui d'iOS ; fond blanc sur toute la hauteur de la feuille. Remplace la fenêtre centrée sur un fond voilé, la fermeture par tap sur le voile (non garantie par la feuille native, à constater en recette) et la règle « le voile déjà en place reste et accueille la modale » ; registre ch07, « Recette iPhone du 04/11/2026 ».]
+
 #### 2. Finalité fonctionnelle
 
 Choisir un modèle d’entraînement depuis Composition sans confondre identité spécialisée et préconfiguration standard.

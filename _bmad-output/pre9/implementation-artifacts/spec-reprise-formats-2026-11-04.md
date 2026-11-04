@@ -100,6 +100,16 @@ Cahier « Recette Formats 04/11 » (https://claude.ai/artifact/XJCJLC7eHKcANDMrN
 | e-ajout-fin (agent) | Exercice ajouté après un Circuit issu d'un Format, hors de lui (même conteneur) ; Circuit manuel inchangé (ARB-07) | B | ch07 et arbitrages ARB-07 annotés |
 | e-segmente (agent) | Non modifié : aucune cause démontrée ; seule la largeur de l'option sélectionnée change (Figma) | — | question ouverte |
 
+## 11. Feuilles natives iOS (essai adopté le 04/11/2026)
+
+Demande et adoption de Hermann (texte exact au registre ch07, « Recette iPhone du 04/11/2026 ») ; classe B, P-4 (primitive native). Branche d'essai `pre9-bmad/essai-feuille-native` (db1a048e, a1677dd1, 2933ca54) avancée sans fusion dans `pre9-bmad/dev`.
+
+- Routes `formats-window` (nouvelle, `formSheet` ajusté au contenu), `format-questionnaire`, `format-summary`, `movement-selection` : `formSheet`, sans poignée, fond blanc sur toute la hauteur ; haut des feuilles pleine hauteur à y = 95 (`useFormatSheetDetent`, même calcul que la fiche du mouvement).
+- `FormatsWindow` : contenu de feuille (plus de `Modal`, plus de voile relais) ; la Composition pousse `/formats-window`.
+- `FormatModelScreen` : plus de voile ni d'animation propres ; croix du questionnaire → Composition (`backToComposition`, fenêtre Formats empilée comprise).
+- `MovementSelectionScreen` : `inSheet` (pas de marge de zone sûre en haut).
+- Remplacé : voile conservé / relais (e-voile), fenêtre centrée, tap sur le voile pour fermer (à constater sur la feuille native).
+
 **Questions ouvertes (À CLARIFIER) :**
 1. Contrôle segmenté (constat b) : anomalie (le contrôle bouge) ou règle (option sélectionnée à droite) ? Quel contrôle (Phases, Charge, Côtés, Séries) ?
 2. Ajout d'un mouvement quand le dernier élément est un Circuit composé à la main : dans le Circuit (ARB-07) ou après lui ?
