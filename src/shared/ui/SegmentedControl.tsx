@@ -212,7 +212,7 @@ export type SegmentedControlProps<T extends string> = {
  * lui-même, sans mesure ; le même cadre unique animé y glisse.
  */
 export function SegmentedControl<T extends string>({
-  options,
+  options: givenOptions,
   value,
   onChange,
   accessibilityLabel,
@@ -228,6 +228,13 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   const parameters = variant === "parameters";
   const inline = variant === "inline";
+  // ESSAI du 04/11/2026 (constat b de la recette, Hermann : « lorsqu'on sélectionne l'option d'un contrôle segmenté dont le
+  // cadre n'est pas aligné à droite, il se déplace pour être aligné à droite et que l'option non sélectionnée soit à sa
+  // gauche » ; « Peut-on tester la deuxième option ? ») : variante `inline` (feuille des Paramètres d'exécution), l'option
+  // sélectionnée est toujours la dernière, à droite ; les autres gardent leur ordre, à sa gauche.
+  const options = inline && value !== null && givenOptions.some((option) => option.value === value)
+    ? [...givenOptions.filter((option) => option.value !== value), ...givenOptions.filter((option) => option.value === value)]
+    : givenOptions;
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   // `inline` : largeur connue d'avance (options de largeur fixe, propre à
   // l'option si elle en donne une, RC-6), sans mesure.
