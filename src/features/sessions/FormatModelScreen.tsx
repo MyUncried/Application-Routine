@@ -1006,15 +1006,33 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     active: focusedCell === key,
   });
   const focusedAt = focusedCell === null ? -1 : cellOrder.indexOf(focusedCell);
+  // Hermann, 04/11/2026 : « Ouvrir le clavier doit positionner le bas du tableau des objectifs juste au-dessus du clavier,
+  // toutes les lignes du tableau doivent être visibles. » Le bas du tableau est placé au-dessus du clavier et de sa barre ;
+  // un tableau plus haut que la place disponible garde au moins la case active visible.
+  const tableRef = useRef<View>(null);
   useEffect(() => {
     if (focusedCell === null || keyboardFrame === null) return;
-    const input = cellInputs.current.get(focusedCell);
-    input?.measureInWindow((_x, y, _width, height) => {
-      const limit = keyboardFrame.screenY - (Platform.OS === "ios" ? barHeight : 0) - CELL_REVEAL_MARGIN;
+    const limit = keyboardFrame.screenY - (Platform.OS === "ios" ? barHeight : 0) - CELL_REVEAL_MARGIN;
+    const revealCell = () =>
+      cellInputs.current.get(focusedCell)?.measureInWindow((_x, y, _width, height) => {
+        const delta = y + height - limit;
+        if (delta > 0) scrollRef.current?.scrollTo({ y: scrollY.current + delta, animated: !reduceMotion });
+      });
+    const table = tableRef.current;
+    if (table === null) {
+      revealCell();
+      return;
+    }
+    table.measureInWindow((_x, y, _width, height) => {
+      const visibleTop = MODAL_TOP + bandHeight;
+      if (height > limit - visibleTop) {
+        revealCell();
+        return;
+      }
       const delta = y + height - limit;
-      if (delta > 0) scrollRef.current?.scrollTo({ y: scrollY.current + delta, animated: !reduceMotion });
+      if (delta !== 0) scrollRef.current?.scrollTo({ y: Math.max(0, scrollY.current + delta), animated: !reduceMotion });
     });
-  }, [barHeight, focusedCell, keyboardFrame, reduceMotion]);
+  }, [bandHeight, barHeight, focusedCell, keyboardFrame, reduceMotion]);
 
   // Familles de Niveaux : cartes reliées par le filet des niveaux (suggestions et mode catalogue).
   const familyCards = (items: readonly MovementCatalogueItem[], card: (entry: MovementCatalogueEntry) => React.ReactNode, collapsed: boolean, railActive = false) =>
@@ -1291,7 +1309,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         <View style={styles.panel} testID="format-parameters">
           {rows}
           {model === "PROGRESSION" && stage === "summary" ? (
-            <SeriesTable model="PROGRESSION" movements={movements} count={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
+            <View ref={tableRef} collapsable={false} testID="format-objectives">
+              <SeriesTable model="PROGRESSION" movements={movements} count={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
+            </View>
           ) : null}
           {/* Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Progression : il manque la pause » ; « ne pas calculer de
               durée total sur l'écran Questionnaire, l'utilisateur ne voit pas les valeur par défaut utilisées » ; « la ligne
@@ -1311,7 +1331,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           ) : null}
         </View>
         {(stage === "summary" || model === "DEATH_BY") && hasSummaryTable(model, movements) ? (
-          <>
+          <View ref={tableRef} collapsable={false} testID="format-objectives">
             {model === "AMRAP" ? (
               <AmrapTable movements={movements} increasing={answers.increasingVolume === true} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
             ) : null}
@@ -1330,7 +1350,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                 {t().emomOverflow.replace("{interval}", formatSeconds(answers.intervalSeconds ?? 60))}
               </Text>
             ) : null}
-          </>
+          </View>
         ) : null}
 
         <View style={styles.spacer} />

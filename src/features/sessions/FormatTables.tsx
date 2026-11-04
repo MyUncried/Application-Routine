@@ -216,7 +216,12 @@ export function TableCell({
 }) {
   const [focused, setFocused] = useState(false);
   const [entry, setEntry] = useState<CellEntryState>({ text: "", fresh: true });
-  const shown = focused ? (kind === "duration" ? (entry.text === "" ? "" : formatMmss(entry.text)) : entry.text) : value === null ? "" : format(value);
+  // Hermann, 04/11/2026 : « Appuyer sur durée doit mettre le champ dans le format cible 00:00 pour guider la première
+  // saisie » — en saisie, une durée s'affiche toujours « MM:SS », « 00:00 » quand elle est vide.
+  const shown = focused ? (kind === "duration" ? formatMmss(entry.text) : entry.text) : value === null ? "" : format(value);
+  // « Appuyer manuellement sur un champ doit positionner le curseur à droite de la valeur » : la saisie se compose par la
+  // droite, le curseur y reste.
+  const caret = focused ? { start: shown.length, end: shown.length } : undefined;
   return (
     <TextInput
       ref={inputRef}
@@ -236,6 +241,7 @@ export function TableCell({
         onChange(valueOf(kind, state.text));
       }}
       editable={!disabled}
+      selection={caret}
       // Recette n° 3 bis du 03/11/2026 (f3s-clavier, « Supprimer le bouton "Next" du clavier ») : pavé numérique sans
       // touche de retour ; Précédent / Suivant / Fermer dans la barre au-dessus du clavier.
       keyboardType={kind === "decimal" ? "decimal-pad" : "number-pad"}
@@ -251,6 +257,7 @@ export function TableCell({
         disabled ? styles.cellDisabled : null,
         !disabled && missing ? styles.cellMissing : null,
         active || focused ? styles.cellActive : null,
+        focused && kind === "duration" && entry.text === "" ? styles.cellGuide : null,
       ]}
       testID={testID}
     />
@@ -665,6 +672,8 @@ const styles = StyleSheet.create({
   // Recette n° 3 du 03/11/2026 (« le champ Rép. n'est pas modifiable ») : zone tactile de la hauteur de la ligne.
   cell: { minHeight: ROW_HEIGHT, textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR, paddingVertical: 2, borderRadius: 6 },
   cellDisabled: { color: DISABLED_VALUE },
+  // « 00:00 » de guidage, atténué tant que rien n'est tapé.
+  cellGuide: { color: DISABLED_VALUE },
   cellBoxed: { backgroundColor: "#FFFFFF" },
   cellCompact: { minHeight: COMPACT_LOAD_HEIGHT, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 11 },
   maxHead: { width: MAX_WIDTH },

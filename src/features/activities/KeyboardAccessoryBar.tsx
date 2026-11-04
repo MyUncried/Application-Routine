@@ -78,6 +78,13 @@ const BAR_BUTTON_MIN_WIDTH = 44;
 const BAR_MEASURE_WIDTH = 2000;
 /** Bouton indisponible (extrémité) : atténué. */
 const BAR_DISABLED_OPACITY = 0.35;
+/**
+ * Barre d'unité des tableaux de Formats — Hermann, 04/11/2026 : « Toutes les apparitions, disparitions de boutons doivent se
+ * faire en fondu progressif lent, idem pour le déplacement des boutons » ; « Le bouton sélectionné en position à gauche
+ * pendant la frappe, y reste lorsqu'on appuie dessus pour afficher l'autre option, qui elle apparaît à sa droite. Si
+ * celle-ci est sélectionnée, elle se déplace lentement vers la gauche et éclipse l'option non sélectionnée. »
+ */
+const UNIT_ANIMATION_MS = 450;
 /** Durée de la première montée quand l'événement du clavier n'en donne aucune. */
 const BAR_FALLBACK_DURATION_MS = 250;
 /** Courbe proche de celle du clavier iOS. */
@@ -174,6 +181,43 @@ export function KeyboardAccessoryBar({
   const widestLabel = labelWidths.previous > 0 && labelWidths.next > 0 ? Math.max(labelWidths.previous, labelWidths.next) : 0;
   const compact = keyboardBarCompact(barWidth, widestLabel);
 
+  // Unités : position (0 = emplacement de gauche, 1 = à sa droite) et opacité de chaque unité ; Précédent / Suivant.
+  const [unitAnim] = useState(() => ({
+    REPETITIONS: { x: new Animated.Value(0), opacity: new Animated.Value(1) },
+    DURATION: { x: new Animated.Value(1), opacity: new Animated.Value(1) },
+    nav: new Animated.Value(1),
+  }));
+  const otherShown = useRef<boolean | null>(null);
+  const hasUnits = units !== null;
+  const unitsPicking = units?.picking ?? false;
+  const unitsCurrent = units?.current ?? "REPETITIONS";
+  useEffect(() => {
+    if (!hasUnits) return;
+    const current = unitAnim[unitsCurrent];
+    const other = unitAnim[unitsCurrent === "DURATION" ? "REPETITIONS" : "DURATION"];
+    const first = otherShown.current === null;
+    // L'autre unité réapparaît toujours à droite de l'unité courante.
+    if (unitsPicking && otherShown.current !== true) other.x.setValue(1);
+    otherShown.current = unitsPicking;
+    const targets: [Animated.Value, number][] = [
+      [current.x, 0],
+      [current.opacity, 1],
+      [other.opacity, unitsPicking ? 1 : 0],
+      [unitAnim.nav, unitsPicking ? 0 : 1],
+    ];
+    if (first || reduceMotion) {
+      for (const [value, to] of targets) value.setValue(to);
+      return;
+    }
+    const animation = Animated.parallel(
+      targets.map(([value, to]) => Animated.timing(value, { toValue: to, duration: UNIT_ANIMATION_MS, easing: Easing.inOut(Easing.cubic), useNativeDriver: true })),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [hasUnits, unitsPicking, unitsCurrent, reduceMotion, unitAnim]);
+  const slotWidth = keyboardBarSlotWidth(barWidth);
+  const step = slotWidth + BAR_SLOT_GAP;
+
   const button = (
     label: string,
     spoken: string,
@@ -234,27 +278,47 @@ export function KeyboardAccessoryBar({
         }}
         testID="execution-sheet-keyboard-bar"
       >
-        {units !== null && units.picking ? (
-          <>
-            {button(labels.repetitions, labels.repetitions, units.allowed.includes("REPETITIONS"), () => units.onPick("REPETITIONS"), "keyboard-unit-repetitions", {
-              selected: units.current === "REPETITIONS",
+        {units !== null ? (
+          // Quatre emplacements fixes ; les unités se déplacent et apparaissent en fondu lent au-dessus d'eux.
+          <View style={styles.unitsRow} testID="keyboard-units">
+            {(["REPETITIONS", "DURATION"] as const).map((mode) => {
+              const isCurrent = units.current === mode;
+              const enabled = units.allowed.includes(mode) && (isCurrent || units.picking);
+              const label = mode === "DURATION" ? labels.duration : labels.repetitions;
+              return (
+                <Animated.View
+                  key={mode}
+                  pointerEvents={isCurrent || units.picking ? "auto" : "none"}
+                  style={[
+                    styles.unitSlot,
+                    { width: slotWidth, zIndex: isCurrent ? 2 : 1, opacity: unitAnim[mode].opacity, transform: [{ translateX: Animated.multiply(unitAnim[mode].x, step) }] },
+                  ]}
+                >
+                  <Pressable
+                    onPress={() => (isCurrent && !units.picking ? units.onReopen() : units.onPick(mode))}
+                    disabled={!enabled}
+                    accessibilityRole="button"
+                    accessibilityLabel={isCurrent && !units.picking ? labels.unitSpoken.replace("{unit}", label) : label}
+                    accessibilityState={{ disabled: !enabled, selected: isCurrent }}
+                    hitSlop={BAR_BUTTON_HIT_SLOP}
+                    style={[styles.unitButton, styles.button, units.allowed.includes(mode) ? null : styles.disabled]}
+                    testID={mode === "DURATION" ? "keyboard-unit-duration" : "keyboard-unit-repetitions"}
+                  >
+                    <Text style={[styles.label, isCurrent ? styles.labelSelected : null]}>{label}</Text>
+                  </Pressable>
+                </Animated.View>
+              );
             })}
-            {button(labels.duration, labels.duration, units.allowed.includes("DURATION"), () => units.onPick("DURATION"), "keyboard-unit-duration", {
-              selected: units.current === "DURATION",
-            })}
-            <View style={styles.slot} pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
-            {button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
-          </>
-        ) : null}
-        {units !== null && units.picking ? null : units !== null ? (
-          button(
-            units.current === "DURATION" ? labels.duration : labels.repetitions,
-            labels.unitSpoken.replace("{unit}", units.current === "DURATION" ? labels.duration : labels.repetitions),
-            true,
-            units.onReopen,
-            "keyboard-unit-current",
-            { selected: true },
-          )
+            <Animated.View pointerEvents={units.picking ? "none" : "auto"} style={[styles.unitSlot, { width: slotWidth, left: step, opacity: unitAnim.nav }]}>
+              {button(compact ? labels.previousArrow : labels.previous, labels.previousSpoken, canPrevious, onPrevious, "execution-sheet-keyboard-previous")}
+            </Animated.View>
+            <Animated.View pointerEvents={units.picking ? "none" : "auto"} style={[styles.unitSlot, { width: slotWidth, left: 2 * step, opacity: unitAnim.nav }]}>
+              {button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
+            </Animated.View>
+            <View style={[styles.unitSlot, { width: slotWidth, left: 3 * step }]}>
+              {button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
+            </View>
+          </View>
         ) : failure === null ? (
           // B9 (arbitrage A4) : emplacement réservé, vide et non accessible.
           <View
@@ -270,15 +334,15 @@ export function KeyboardAccessoryBar({
             selected: failure.selected,
           })
         )}
-        {units !== null && units.picking ? null : button(
+        {units !== null ? null : button(
           compact ? labels.previousArrow : labels.previous,
           labels.previousSpoken,
           canPrevious,
           onPrevious,
           "execution-sheet-keyboard-previous",
         )}
-        {units !== null && units.picking ? null : button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
-        {units !== null && units.picking ? null : button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
+        {units !== null ? null : button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
+        {units !== null ? null : button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
       </View>
     </Animated.View>
   );
@@ -324,6 +388,21 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: BAR_DISABLED_OPACITY,
+  },
+  // Barre d'unité : rangée de la hauteur d'un bouton, emplacements posés en absolu (marges de la barre conservées).
+  unitsRow: {
+    flex: 1,
+    minHeight: BAR_BUTTON_HEIGHT,
+  },
+  unitSlot: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    flexDirection: "row",
+  },
+  unitButton: {
+    flex: 1,
   },
   label: {
     fontFamily: "Inter_400Regular",
