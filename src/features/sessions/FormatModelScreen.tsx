@@ -136,6 +136,8 @@ const SUGGESTIONS_TO_KEYBOARD = 8;
 /** Barre Précédent / Suivant / Fermer des tableaux : hauteur avant mesure ; marge de révélation d'une cellule. */
 const KEYBOARD_BAR_HEIGHT = 52;
 const CELL_REVEAL_MARGIN = 12;
+/** Écart maximal admis entre le bas de la feuille native et le bas de l'écran (bord flottant d'iOS 26). */
+const MAX_SHEET_BOTTOM_GAP = 40;
 /** Tableau de la Progression : zone protégée des noms, colonne d'une série, hauteurs des lignes (une ou deux cellules). */
 
 /**
@@ -1033,13 +1035,21 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // l'alignement partent du bas mesuré de la feuille, et non de la hauteur de la fenêtre.
   const rootRef = useRef<View>(null);
   const [rootBottom, setRootBottom] = useState<number | null>(null);
+  // Hermann, 04/11/2026 : « je ne vois plus le nouveau clavier dans EMOM » — la mesure peut être prise pendant la montée
+  // de la feuille ou dans un autre repère : seul un petit écart sous la feuille (bord flottant d'iOS 26) est retenu ; sinon,
+  // le bas de la fenêtre (placement d'avant, visible).
   const measureRoot = useCallback(() => {
     rootRef.current?.measureInWindow((_x, y, _width, height) => {
-      if (height > 0) setRootBottom((current) => (current === y + height ? current : y + height));
+      const gap = windowHeight - (y + height);
+      const bottom = height > 0 && gap >= 0 && gap <= MAX_SHEET_BOTTOM_GAP ? y + height : windowHeight;
+      setRootBottom((current) => (current === bottom ? current : bottom));
     });
-  }, []);
+  }, [windowHeight]);
   useEffect(() => {
-    if (keyboardFrame !== null) measureRoot();
+    if (keyboardFrame === null) return;
+    measureRoot();
+    const settle = setTimeout(measureRoot, (keyboardFrame.duration > 0 ? keyboardFrame.duration : 250) + 60);
+    return () => clearTimeout(settle);
   }, [keyboardFrame, measureRoot]);
   useEffect(() => {
     if (focusedCell === null || keyboardFrame === null) return;
