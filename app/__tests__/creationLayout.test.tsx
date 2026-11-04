@@ -66,7 +66,7 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
    * geste natif.
    */
   // PRE-4, décision Q54 : la route `categories` est supprimée.
-  it("covers composition, exercise AND activity-selection — no route of the flow is left with the native gesture", () => {
+  it("covers composition, exercise and the other creation routes — no route of the flow is left with the native gesture", () => {
     stackCalls.length = 0;
     screenCalls.length = 0;
     render(<CreationLayout />);
@@ -74,7 +74,7 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
     expect(screenCalls.map((call) => call.name)).toEqual([
       "composition",
       "exercise",
-      "activity-selection",
+      // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » (anciennes définitions du Catalogue) retirée.]
       // PRE-9 A.2 (ARB-22a) : sélection des Mouvements depuis la Composition, même `Stack`.
       "movement-selection",
       // PRE-9 C.3 (référence Formats du 02/11/2026) : questionnaire et récapitulatif d'un modèle.

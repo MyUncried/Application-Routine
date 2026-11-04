@@ -50,9 +50,9 @@ type UuidFactory = () => string;
  * Mouvement (`migration012` : `movements`, `movement_phases`,
  * `movement_body_zones`, `movement_media`). Les fonctions transactionnelles
  * exportées (`insertMovement`, `updateMovementContent`, `readMovementRecords`,
- * `countMovementDefinitions`, `countMovementOccurrences`) sont réutilisées par les
- * repositories de définitions et de Séances, dans LEUR transaction : création
- * Catalogue (Mouvement + définition), création et correction depuis une Séance.
+ * `countMovementOccurrences`) sont réutilisées par le repository des Séances, dans
+ * SA transaction : création et correction depuis une Séance. [PRE-9 A.3 du
+ * 04/11/2026 : le repository des anciennes définitions du Catalogue est retiré.]
  *
  * PRE-7 (R-3, `migration013`, D-445 C01, C03, C05) : nom principal unique sur la
  * clé canonique — contrôlé avant l'écriture et garanti par l'index UNIQUE en
@@ -60,8 +60,9 @@ type UuidFactory = () => string;
  * (`movement_aliases`) ; plus d'indicateur « déjà utilisé » ; les occurrences de
  * Séance référencent le Mouvement par clé étrangère RESTRICT et lisent son contenu.
  *
- * Aucun ramassage automatique (MFN-04) ; suppression refusée si une définition
- * référence le Mouvement (MFN-03) ; les filiations des copies ne sont jamais
+ * Aucun ramassage automatique (MFN-04) ; suppression refusée si une occurrence de
+ * Séance référence le Mouvement (MFN-03, R-3 ; [PRE-9 A.3 du 04/11/2026 : les
+ * anciennes définitions, supprimées par la migration 021, ne comptent plus]) ; les filiations des copies ne sont jamais
  * lues ni modifiées. Groupe de niveaux (MFN-05, D-439) : identifiant et clé de
  * tri toujours ensemble, au plus un groupe ; les clés sont renumérotées
  * 0..n-1 dans l'ordre du groupe à chaque opération (aucun rang persisté : le
@@ -296,8 +297,8 @@ export async function updateMovementContent(
  * doit mettre à jour les exercices qui utilisent cet exercice, mais que les champs […] soient
  * identifiés en orange, avec le texte « Paramètre à vérifier » » ; « Champs vides seulement »,
  * « Séances et Catalogue ») — dans la transaction de l'enregistrement du Mouvement : chaque
- * Exercice lié (occurrences de Séance `activities.source_movement_id`, Exercices du Catalogue
- * `activity_definitions.movement_id`) reçoit les valeurs par défaut ajoutées dans ses SEULES durées
+ * Exercice lié (occurrences de Séance `activities.source_movement_id` ; [PRE-9 A.3 du 04/11/2026 :
+ * les anciennes définitions du Catalogue, supprimées, ne sont plus visées]) reçoit les valeurs par défaut ajoutées dans ses SEULES durées
  * de phase vides (même identité de phase, `fillEmptyPhaseDurations`) ; ces phases s'ajoutent à sa
  * marque `phases_to_verify` (`migration019`). Une durée déjà renseignée n'est jamais remplacée ; un
  * Exercice dont les paramètres sont illisibles, ou dont le motif sortirait des bornes, reste tel
@@ -310,43 +311,28 @@ async function propagateAddedPhaseDefaults(
   phaseIds: readonly number[],
 ): Promise<void> {
   if (defaults.size === 0) return;
-  const targets = [
-    {
-      table: "activities",
-      rows: await transaction.getAllAsync<{ id: string; execution_parameters: string | null; phases_to_verify: string | null }>(
-        `SELECT id, execution_parameters, phases_to_verify FROM activities
-         WHERE source_movement_id = ? AND type = 'EXERCISE' AND execution_parameters IS NOT NULL`,
-        [movementId],
-      ),
-    },
-    {
-      table: "activity_definitions",
-      rows: await transaction.getAllAsync<{ id: string; execution_parameters: string | null; phases_to_verify: string | null }>(
-        "SELECT id, execution_parameters, phases_to_verify FROM activity_definitions WHERE movement_id = ?",
-        [movementId],
-      ),
-    },
-  ] as const;
-  for (const { table, rows } of targets) {
-    for (const row of rows) {
-      let parameters: CatalogExecutionParameters;
-      let marked: number[];
-      try {
-        parameters = readCatalogExecutionParameters(row.execution_parameters);
-        marked = decodePhasesToVerify(row.phases_to_verify);
-      } catch {
-        continue;
-      }
-      const result = fillEmptyPhaseDurations(parameters, defaults, phaseIds);
-      if (result === null) continue;
-      // `updated_at` inchangé : la reprise n'est pas une modification de l'utilisateur (l'ordre du
-      // Catalogue des Exercices, trié par `updated_at`, ne bouge pas).
-      await transaction.runAsync(`UPDATE ${table} SET execution_parameters = ?, phases_to_verify = ? WHERE id = ?`, [
-        serializeCatalogExecutionParameters(result.parameters),
-        encodePhasesToVerify(mergePhasesToVerify(marked, result.filled)),
-        row.id,
-      ]);
+  const rows = await transaction.getAllAsync<{ id: string; execution_parameters: string | null; phases_to_verify: string | null }>(
+    `SELECT id, execution_parameters, phases_to_verify FROM activities
+     WHERE source_movement_id = ? AND type = 'EXERCISE' AND execution_parameters IS NOT NULL`,
+    [movementId],
+  );
+  for (const row of rows) {
+    let parameters: CatalogExecutionParameters;
+    let marked: number[];
+    try {
+      parameters = readCatalogExecutionParameters(row.execution_parameters);
+      marked = decodePhasesToVerify(row.phases_to_verify);
+    } catch {
+      continue;
     }
+    const result = fillEmptyPhaseDurations(parameters, defaults, phaseIds);
+    if (result === null) continue;
+    // `updated_at` inchangé : la reprise n'est pas une modification de l'utilisateur.
+    await transaction.runAsync("UPDATE activities SET execution_parameters = ?, phases_to_verify = ? WHERE id = ?", [
+      serializeCatalogExecutionParameters(result.parameters),
+      encodePhasesToVerify(mergePhasesToVerify(marked, result.filled)),
+      row.id,
+    ]);
   }
 }
 
@@ -485,14 +471,6 @@ export async function countMovementActiveOccurrences(database: Database, id: str
   return row?.count ?? 0;
 }
 
-/** Nombre de définitions du Catalogue qui référencent le Mouvement. */
-export async function countMovementDefinitions(database: Database, id: string): Promise<number> {
-  const row = await database.getFirstAsync<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM activity_definitions WHERE movement_id = ?",
-    [id],
-  );
-  return row?.count ?? 0;
-}
 
 const MOVEMENT_COLUMNS = `id, name, normalized_name, description, category_id, next_phase_id,
   level_group_id, level_sort_key, created_at, updated_at`;
@@ -546,10 +524,6 @@ export class SqliteMovementRepository implements MovementRepository {
     return row?.count ?? 0;
   }
 
-  async countDefinitions(id: string): Promise<number> {
-    return countMovementDefinitions(this.database, id);
-  }
-
   async delete(id: string): Promise<DeleteMovementOutcome> {
     let outcome: DeleteMovementOutcome = { status: "NOT_FOUND" };
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
@@ -560,11 +534,12 @@ export class SqliteMovementRepository implements MovementRepository {
       if (!existing) {
         return;
       }
-      const definitionCount = await countMovementDefinitions(transaction, id);
       // PRE-7 (R-3, D-445) : une occurrence de Séance est une référence active, intègre.
+      // [PRE-9 A.3 du 04/11/2026 : les anciennes définitions du Catalogue, supprimées par la
+      // migration 021, ne sont plus comptées.]
       const occurrenceCount = await countMovementOccurrences(transaction, id);
-      if (definitionCount > 0 || occurrenceCount > 0) {
-        outcome = { status: "REFERENCED", definitionCount, occurrenceCount };
+      if (occurrenceCount > 0) {
+        outcome = { status: "REFERENCED", occurrenceCount };
         return;
       }
       // Phases, Zones, alias et liens de médias partent en cascade ; les assets ne sont jamais touchés.
@@ -593,7 +568,8 @@ export class SqliteMovementRepository implements MovementRepository {
       }
       // PRE-9 (décisions de Hermann du 03/11/2026) : seuls les Exercices des Séances actives bloquent ;
       // ni les Séances archivées ni les définitions de l'ancien Catalogue des Exercices (non affiché,
-      // conversion A.4) — elles gardent leur lien vers le Mouvement archivé, rien n'est supprimé.
+      // conversion A.4) — elles gardent leur lien vers le Mouvement archivé, rien n'est supprimé. [PRE-9 A.3 du
+      // 04/11/2026 : A.4 abandonnée, ces définitions sont supprimées par la migration 021.]
       const exerciseCount = await countMovementActiveOccurrences(transaction, id);
       if (exerciseCount > 0) {
         outcome = { status: "REFERENCED", exerciseCount };
@@ -640,7 +616,9 @@ export class SqliteMovementRepository implements MovementRepository {
         outcome = { status: "NOT_ARCHIVED" };
         return;
       }
-      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementOccurrences(transaction, id));
+      // [PRE-9 A.3 du 04/11/2026 : seules les occurrences de Séance comptent ; les anciennes
+      // définitions du Catalogue sont supprimées par la migration 021.]
+      const exerciseCount = await countMovementOccurrences(transaction, id);
       if (exerciseCount > 0) {
         outcome = { status: "REFERENCED", exerciseCount };
         return;

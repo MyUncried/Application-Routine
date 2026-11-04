@@ -15,7 +15,6 @@ import {
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { toSessionDurationResult } from "@/domain/sessions/calculations";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
@@ -94,7 +93,6 @@ async function seedAndRender(stopPoints: NonNullable<SessionDraft["stopPoints"]>
   }
   const sessionId = created.value.id;
   const activityDefinitionService = new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database),
     new SqliteCategoryRepository(database),
     new SqliteBodyZoneRepository(database),
     new SqliteLabelRepository(database),

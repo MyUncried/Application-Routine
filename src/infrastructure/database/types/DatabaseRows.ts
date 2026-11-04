@@ -145,21 +145,10 @@ export type CategoryRow = {
  * `initial_countdown_seconds`/`final_phase_seconds` disparaissent : le Compte
  * à rebours initial et la Fin de séance sont exclus de la durée affichée.
  */
-/**
- * Une ligne par `ActivityDefinition` persistée (PRE-7, A1.2, `migration012`) :
- * relation intègre vers son Mouvement et paramètres propres en forme
- * Catalogue v4 (`readCatalogExecutionParameters`). Le contenu partagé est
- * porté par `movements`.
+/*
+ * [PRE-9 A.3 du 04/11/2026 : le type de ligne des anciennes définitions du Catalogue
+ * (`ActivityDefinitionRow`) est retiré avec leur dépôt ; la table reste, vidée par `migration021`.]
  */
-export type ActivityDefinitionRow = {
-  id: string;
-  movement_id: string;
-  execution_parameters: string;
-  /** PRE-9 (recette iPhone n° 2, constat e, `migration019`) : phases « à vérifier » (JSON), `NULL` = aucune. */
-  phases_to_verify?: string | null;
-  created_at: string;
-  updated_at: string;
-};
 
 /** PRE-7 (A1.2, `migration012`) : une ligne par Mouvement (contenu partagé du geste, D-437). */
 export type MovementRow = {

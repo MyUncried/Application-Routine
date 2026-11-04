@@ -7,6 +7,7 @@ import { MIGRATION_002 } from "@/infrastructure/database/migrations/migration002
 import { MIGRATION_003 } from "@/infrastructure/database/migrations/migration003";
 import { MIGRATION_004 } from "@/infrastructure/database/migrations/migration004";
 import { MIGRATION_005 } from "@/infrastructure/database/migrations/migration005";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { MIGRATION_006 } from "@/infrastructure/database/migrations/migration006";
 import { MIGRATION_007 } from "@/infrastructure/database/migrations/migration007";
@@ -26,7 +27,6 @@ import {
   variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
 import type { Database } from "@/infrastructure/database/Database";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { newMovementInput, ViewedSessionRepository } from "@/infrastructure/database/testing/sessionMovements";
 import { applyMigration011 } from "@/infrastructure/database/migrations/migration011";
@@ -398,7 +398,7 @@ describe("migrateDatabase", () => {
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012` (R-3 : version courante 13).
       expect(version?.user_version).toBe(11);
-      expect(DATABASE_VERSION).toBe(20);
+      expect(DATABASE_VERSION).toBe(21);
 
       await seedStructure(database);
       await expect(
@@ -800,7 +800,7 @@ describe("migrateDatabase", () => {
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012` (R-3 : version courante 13).
       expect(version?.user_version).toBe(11);
-      expect(DATABASE_VERSION).toBe(20);
+      expect(DATABASE_VERSION).toBe(21);
 
       const tables = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",
@@ -1522,7 +1522,7 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     await populateVersion8();
     // PRE-7 (A1.2) : chaîne arrêtée à la version 11 ; les lignes v11 sont relues par le lecteur
     // v2/v3 du domaine (celui des repositories jusqu'à 011). Les repositories du schéma 012
-    // refusent de même un JSON corrompu (`SqliteActivityDefinitionRepository.test.ts`, P3-17).
+    // refusent de même un JSON corrompu (P3-17). [A.3 du 04/11/2026 : dépôt des anciennes définitions retiré.]
     await migrateDatabase(database, undefined, 11);
     const json = async (table: "activity_definitions" | "activities", id: string) =>
       (await database.getFirstAsync<{ execution_parameters: string }>(`SELECT execution_parameters FROM ${table} WHERE id = ?`, [id]))!
@@ -1558,21 +1558,15 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     });
   }
 
-  it("P3-17/migration/scalar-projection — JSON et projections concordants ; le JSON fait autorité ; relecture Catalogue et Séance identique", async () => {
+  // [A.3 du 04/11/2026 : la relecture Catalogue (dépôt des anciennes définitions, retiré) est supprimée ;
+  // la relecture de la Séance reste.]
+  it("P3-17/migration/scalar-projection — JSON et projections concordants ; le JSON fait autorité ; relecture Séance identique", async () => {
     // PRE-7 (A1.2) : schéma 012 — la définition ne porte plus de projection scalaire (forme
     // Catalogue v4 seule) ; l'occurrence garde la projection unique, jamais relue comme source.
     await migrateDatabase(database);
-    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
     // PRE-7 (R-3, C05) : occurrences décrites par leur vue ; le Mouvement est écrit explicitement.
     const sessions = new ViewedSessionRepository(database, ids("ses"));
     const canonical = variableRepetitions();
-    const definition = await definitions.create({
-      name: "Fentes",
-      description: null,
-      category: { kind: "EXISTING", categoryId: "cardio" },
-      bodyZoneIds: ["cuisses"],
-      executionParameters: canonical,
-    });
     const session = await sessions.create({
       name: "Jambes",
       initialCountdownSeconds: 10,
@@ -1605,9 +1599,7 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     });
     // Un writer concurrent qui ne toucherait que les scalaires ne prend jamais l'autorité.
     await database.runAsync("UPDATE activities SET series_count = 7, pause_seconds = 99 WHERE session_id = ?", [session.id]);
-    const rereadDefinition = await definitions.findById(definition.id);
     const rereadSession = await sessions.findById(session.id);
-    expect(rereadDefinition?.executionParameters).toEqual(canonical);
     expect(rereadSession?.cycle.tour.exercises[0]?.executionParameters).toEqual(canonical);
   });
 
@@ -1670,7 +1662,9 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     }
   }
 
-  it("P3-17/migration/per-statement-rollback — échec injecté à chaque instruction asset/définition/occurrence/lien : données intactes, réessai unique", async () => {
+  // [A.3 du 04/11/2026 : la création passe par le Mouvement seul (`createTestMovement`) ; plus d'ancienne
+  // définition du Catalogue.]
+  it("P3-17/migration/per-statement-rollback — échec injecté à chaque instruction asset/Mouvement/occurrence/lien : données intactes, réessai unique", async () => {
     // PRE-7 (A1.2) : schéma 012 — Mouvement, ses Zones et ses médias écrits dans la même transaction.
     await migrateDatabase(database);
     const photo = {
@@ -1702,7 +1696,6 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     const counts = async () =>
       database.getFirstAsync<Record<string, number>>(
         `SELECT
-          (SELECT COUNT(*) FROM activity_definitions) AS definitions,
           (SELECT COUNT(*) FROM movements) AS movements,
           (SELECT COUNT(*) FROM movement_body_zones) AS zones,
           (SELECT COUNT(*) FROM media_assets) AS assets,
@@ -1716,23 +1709,27 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     const probe = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(probe);
     const probeWrites = new FailingDatabase(probe, Number.POSITIVE_INFINITY);
-    await new SqliteActivityDefinitionRepository(probeWrites, ids("probe")).create(definitionInput);
+    await createTestMovement(probeWrites, definitionInput, { kind: "INDEPENDENT" }, ids("probe"));
     probe.close();
     expect(probeWrites.writes).toBeGreaterThanOrEqual(6);
 
     for (let failAt = 1; failAt <= probeWrites.writes; failAt += 1) {
       const failing = new FailingDatabase(database, failAt);
-      await expect(new SqliteActivityDefinitionRepository(failing, ids("fail")).create(definitionInput)).rejects.toThrow(
+      await expect(createTestMovement(failing, definitionInput, { kind: "INDEPENDENT" }, ids("fail"))).rejects.toThrow(
         `Injected failure at write ${failAt}`,
       );
       expect(await counts()).toEqual(initial);
     }
 
-    // Réessai : une seule définition, deux assets, deux liens dans l'ordre.
-    const created = await new SqliteActivityDefinitionRepository(database, ids("def")).create(definitionInput);
-    expect(created.media?.map((item) => item.assetId)).toEqual([video.id, photo.id]);
+    // Réessai : un seul Mouvement, deux assets, deux liens dans l'ordre.
+    const created = await createTestMovement(database, definitionInput, { kind: "INDEPENDENT" }, ids("def"));
+    expect(
+      (await database.getAllAsync<{ asset_id: string }>("SELECT asset_id FROM movement_media WHERE movement_id = ? ORDER BY position", [created.movementId])).map(
+        (row) => row.asset_id,
+      ),
+    ).toEqual([video.id, photo.id]);
     const afterDefinition = await counts();
-    expect(afterDefinition).toEqual({ ...initial, definitions: 1, movements: 1, zones: 2, assets: 2, links: 2 });
+    expect(afterDefinition).toEqual({ ...initial, movements: 1, zones: 2, assets: 2, links: 2 });
 
     // PRE-7 (R-3, D-445 C05) : une occurrence du Mouvement de la définition (aucun lien propre) et
     // une création locale (Mouvement NEW, assets partagés, nouveaux liens du Mouvement), échec à
@@ -1761,7 +1758,7 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     });
     const sessionProbe = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(sessionProbe);
-    const probeDefinition = await new SqliteActivityDefinitionRepository(sessionProbe, ids("probe")).create(definitionInput);
+    const probeDefinition = await createTestMovement(sessionProbe, definitionInput, { kind: "INDEPENDENT" }, ids("probe"));
     const sessionWrites = new FailingDatabase(sessionProbe, Number.POSITIVE_INFINITY);
     await new SqliteSessionRepository(sessionWrites, ids("probe")).create(sessionInput(probeDefinition.movementId));
     sessionProbe.close();

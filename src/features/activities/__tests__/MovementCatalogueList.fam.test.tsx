@@ -8,7 +8,6 @@ import { ActivityDefinitionServiceContext } from "@/features/activities/Activity
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
 import { EMPTY_MOVEMENT_FILTERS } from "@/features/activities/movementCatalogueView";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
@@ -27,7 +26,6 @@ let sequence = 0;
 const movements = () => new SqliteMovementRepository(database, () => `grp-${++sequence}`, () => NOW);
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, () => `def-${++sequence}`, () => NOW),
     undefined,
     undefined,
     undefined,

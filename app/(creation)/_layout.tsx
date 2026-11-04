@@ -58,7 +58,7 @@ export default function CreationLayout() {
       <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
         <Stack.Screen name="composition" />
         <Stack.Screen name="exercise" />
-        <Stack.Screen name="activity-selection" />
+        {/* [PRE-9 A.3 du 04/11/2026 : route « activity-selection » (sélection des anciennes définitions) retirée.] */}
         {/* PRE-9 A.2 (ARB-22a) : « Utiliser un mouvement existant » depuis la Composition. */}
         {/* Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « Ouvrir le catalogue : un écran
             apparaît par la droite, c'est perturbant […] il faut donner l'impression qu'on ne change pas

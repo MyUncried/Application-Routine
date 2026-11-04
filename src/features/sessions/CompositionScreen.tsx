@@ -5569,7 +5569,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               onPress: () => {
                 setIsAddActivityTreeOpen(false);
                 // PRE-9 A.2 (ARB-22a, Q6) : sélection des Mouvements actifs par le Catalogue des
-                // Mouvements ; plus la sélection des anciennes définitions (`activity_definitions`).
+                // Mouvements ; plus la sélection des anciennes définitions du Catalogue (retirée, A.3).
                 // Contre-recette du 30/10 : Mouvements déjà dans la Séance marqués « Dans la séance ».
                 // Recette du 01/11/2026 (m11-menu) : entrée rétablie (retirée le même jour).
                 markMovementsInSession(

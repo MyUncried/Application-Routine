@@ -1,4 +1,11 @@
 /**
+ * [PRE-9 A.3 du 04/11/2026 : les anciennes définitions du Catalogue sont supprimées (migration 021) et
+ * plus aucun code applicatif ne les lit ni ne les écrit — décision de Hermann du 04/11/2026 : « Hermann
+ * abandonne la conversion sans perte prévue par A.4 : les anciens exercices concernés par cette
+ * conversion peuvent être supprimés plutôt que migrés. » Ce module de domaine pur reste (types et
+ * validation encore référencés par des tests et par `SessionDraft`) ; son retrait relève d'un lot
+ * ultérieur.]
+ *
  * Domaine `ActivityDefinition` (V2-CAT-01, complété V2-PRE-1) : racine
  * persistante autonome d'un Exercice du Catalogue — distincte d'une
  * `SessionActivity` (celle-ci reste rattachée à une Séance et porte sa
@@ -68,7 +75,7 @@ export type ActivityDefinition = {
   /**
    * PRE-7 (A1.1, A1.2, D-437, MFN-01, MFN-03) : relation ACTIVE vers le
    * Mouvement (`Movement.ts`) dont l'Exercice porte les paramètres —
-   * OBLIGATOIRE, intègre (`activity_definitions.movement_id`, clé étrangère
+   * OBLIGATOIRE, intègre (`movement_id` de la table des définitions, clé étrangère
    * restrictive, migration 012). Nom, description, médias, Catégorie, Zones et
    * libellés de phases exposés ci-dessus sont ceux du Mouvement, résolus à la
    * lecture.
@@ -94,7 +101,7 @@ export type ActivityDefinition = {
    */
   readonly missingPhaseIds?: readonly number[];
   /**
-   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (`activity_definitions.phases_to_verify`,
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (`phases_to_verify` de la table des définitions,
    * `migration019`) : phases dont la durée a été reprise d'une valeur par défaut ajoutée au
    * Mouvement (« Paramètre à vérifier », orange) ; absent : rien à vérifier.
    */

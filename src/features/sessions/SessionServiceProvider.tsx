@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { DATABASE_NAME } from "@/infrastructure/database/constants";
 import { ExpoDatabase } from "@/infrastructure/database/ExpoDatabase";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
@@ -133,8 +132,8 @@ function SessionServiceInitializer({
   // migration.
   const activityDefinitionService = useMemo(() => {
     const database = new ExpoDatabase(nativeDatabase);
+    // [PRE-9 A.3 du 04/11/2026 : plus de repository des anciennes définitions du Catalogue.]
     return new ActivityDefinitionService(
-      new SqliteActivityDefinitionRepository(database),
       new SqliteCategoryRepository(database),
       new SqliteBodyZoneRepository(database),
       new SqliteLabelRepository(database),
@@ -144,7 +143,7 @@ function SessionServiceInitializer({
         importService: new ActivityMediaImportService(new PhotoLibraryPicker(), getLocalMediaStore(), () => Crypto.randomUUID()),
         repository: new SqliteMediaRepository(database),
       },
-      // PRE-7 (A1.3) : lecture du Mouvement pour l'évaluation d'une correction partagée (MFN-08).
+      // PRE-7 (A1.3) : lecture du Mouvement (usage, niveaux, recherche).
       new SqliteMovementRepository(database),
     );
   }, [nativeDatabase]);

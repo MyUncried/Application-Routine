@@ -89,9 +89,13 @@ export class MovementCatalogueService {
     return this.movements.findById(movementId);
   }
 
-  /** Exercices liés au Mouvement, chacun une fois, sans multiplier séries, tours ni planifications. */
+  /**
+   * Exercices liés au Mouvement, chacun une fois, sans multiplier séries, tours ni planifications.
+   * [PRE-9 A.3 du 04/11/2026 : occurrences de Séance seulement ; les anciennes définitions du
+   * Catalogue sont supprimées par la migration 021.]
+   */
   async countLinkedExercises(movementId: string): Promise<number> {
-    return (await this.movements.countDefinitions(movementId)) + (await this.movements.countOccurrences(movementId));
+    return this.movements.countOccurrences(movementId);
   }
 
   /** Tous les Mouvements, Mouvements sans Exercice compris, avec rang dérivé et Exercices liés. */

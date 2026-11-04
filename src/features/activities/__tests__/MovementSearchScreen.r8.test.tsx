@@ -17,7 +17,8 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 const t = strings.screens.activities.editor.movementSearch;
 
-function choice(id: string, name: string, definitionCount = 1): MovementChoice {
+// [PRE-9 A.3 du 04/11/2026 : `definitionCount` retiré avec les anciennes définitions du Catalogue.]
+function choice(id: string, name: string): MovementChoice {
   const movement: Movement = {
     id,
     name,
@@ -30,14 +31,14 @@ function choice(id: string, name: string, definitionCount = 1): MovementChoice {
     aliases: [],
     levelGroup: null,
   };
-  return { movement, definitionCount, level: null };
+  return { movement, level: null };
 }
 
 const CHOICES = [
   choice("squats", "Squats"),
   choice("sautes-haut", "Squats sautés haut"),
   choice("sautes-bas", "Squats sautés bas"),
-  choice("genou", "Mobilisation du genou", 0),
+  choice("genou", "Mobilisation du genou"),
 ];
 
 const resultIds = () =>

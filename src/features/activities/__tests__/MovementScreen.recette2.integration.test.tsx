@@ -12,7 +12,6 @@ import { ProfileServiceContext } from "@/features/preferences/ProfileServiceCont
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
@@ -62,7 +61,6 @@ const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
 const movements = () => new SqliteMovementRepository(database, ids("grp"), () => NOW);
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW),
     undefined,
     new SqliteBodyZoneRepository(database),
     undefined,

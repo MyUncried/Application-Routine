@@ -3,7 +3,6 @@ import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testi
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
-import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
@@ -133,28 +132,7 @@ class NoopCategoryRepository implements CategoryRepository {
   }
 }
 
-/**
- * V2-PRE-1 (device check Hermann, commentaire 5948936550) : `CompositionScreen`
- * et `ExerciseScreen` consomment désormais `ActivityDefinitionService` (Zones
- * corporelles) — un contexte factice minimal (aucune dépendance SQLite
- * réelle) est donc nécessaire pour ce parcours Composition↔Activité, qui ne
- * porte sur aucune Zone ni Catégorie (couvert par `CatalogueCompositionEditFlow
- * .integration.test.tsx`).
- */
-class NoopActivityDefinitionRepository implements ActivityDefinitionRepository {
-  create(): Promise<ActivityDefinition> {
-    return Promise.reject(new Error("not used by this Composition/Activity navigation test"));
-  }
-  findById(): Promise<ActivityDefinition | null> {
-    return Promise.resolve(null);
-  }
-  listAll(): Promise<readonly ActivityDefinition[]> {
-    return Promise.resolve([]);
-  }
-  update(): Promise<ActivityDefinition | null> {
-    return Promise.reject(new Error("not used by this Composition/Activity navigation test"));
-  }
-}
+// [PRE-9 A.3 du 04/11/2026 : dépôt factice des définitions retiré avec les anciennes définitions du Catalogue.]
 
 /**
  * V2-PRE-2 (plan §6.1/§7) : `ExerciseScreen` lit désormais le Profil
@@ -210,7 +188,6 @@ function SessionServiceTestWrapper({ children }: { children: ReactNode }) {
       <ActivityDefinitionServiceProvider
         service={
           new ActivityDefinitionService(
-            new NoopActivityDefinitionRepository(),
             new NoopCategoryRepository(),
             new NoopBodyZoneRepository(),
           )
@@ -271,9 +248,7 @@ function renderCreationRouter() {
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      "(creation)/activity-selection": require("../../../../app/(creation)/activity-selection")
-        .default,
+      // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » retirée avec les anciennes définitions du Catalogue.]
     },
     { initialUrl: "/composition", wrapper: SessionServiceTestWrapper },
   );
