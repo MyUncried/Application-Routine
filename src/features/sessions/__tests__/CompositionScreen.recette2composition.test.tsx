@@ -1089,3 +1089,61 @@ describe("Recette du 01/11 — cr7-carte : appui long sans mouvement à côté d
     expect(expanded("cb")).toBe(true);
   });
 });
+
+describe("Contre-recette n° 3 ter (03/11) — Circuits repliés, carte montée en tête : ils se déplient encore", () => {
+  it("deux Circuits repliés ; e9 déposé tout en haut en passant sur eux ; chaque Circuit se déplie au toucher", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("ca");
+    await collapse("cb");
+    layout("composition-layout-circuit-ca", 100, 68);
+    layout("composition-layout-circuit-cb", 188, 68);
+    layout("composition-layout-exercise-e9", 276, 80);
+    const card = liftCard("e9", 316);
+    for (const y of [220, 130, 40, -10]) {
+      fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: y } });
+      await settle();
+    }
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: -10, touches: [] } });
+    await settle();
+    expect(shape(probe.draft)).toBe("e9 e0 ca[a1,a2] cb[b1]");
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse", hidden));
+    await settle();
+    expect(expanded("ca")).toBe(true);
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-cb-header-collapse", hidden));
+    await settle();
+    expect(expanded("cb")).toBe(true);
+  });
+});
+
+describe("Contre-recette n° 3 ter (03/11) — variante : arrêts sur les Circuits repliés pendant la montée", () => {
+  it("arrêt sur cb puis sur ca (déployés par l'arrêt), dépose en tête ; les Circuits restent dépliables", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    await collapse("ca");
+    await collapse("cb");
+    layout("composition-layout-circuit-ca", 100, 68);
+    layout("composition-layout-circuit-cb", 188, 68);
+    layout("composition-layout-exercise-e9", 276, 80);
+    const card = liftCard("e9", 316);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 220 } });
+    await settle();
+    await elapseHoverDelay();
+    await elapseReveal();
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 130 } });
+    await settle();
+    await elapseHoverDelay();
+    await elapseReveal();
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: -10 } });
+    await settle();
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: -10, touches: [] } });
+    await settle();
+    const states = () => [expanded("ca"), expanded("cb")];
+    const before = states();
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse", hidden));
+    await settle();
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-cb-header-collapse", hidden));
+    await settle();
+    expect({ before, after: states(), shape: shape(probe.draft) }).toEqual({ before, after: before.map((value) => !value), shape: "e9 e0 ca[a1,a2] cb[b1]" });
+  });
+});

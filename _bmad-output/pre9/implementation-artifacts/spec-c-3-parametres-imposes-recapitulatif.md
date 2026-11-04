@@ -169,7 +169,7 @@ Départ `3be15e40`. Hermann : « j'ai fais un certain nombre de tests, tu peux c
 | c) cellules vides en rouge ; incrément « + » sans 0 | `NumberCell` : fond `dangerSurface` si vide ; incrément AMRAP initial `null`, texte « + » | B | Formats §7.4, ch07 |
 | c) « Changer » le buy-in efface le mouvement | Section Buy-in : « Changer » retire le buy-in avant d'ouvrir le champ | B | Formats §7.4, ch07 |
 | f3t-recherche : Entrée ferme le clavier | Cause non reproduite (`submitBehavior="submit"` déjà posé) ; après Entrée, le champ reprend le focus s'il l'a perdu, sans se refermer | A | — |
-| b) photo d'une carte → fiche du Mouvement en feuille | **En attente** : la photo est le seul accès à l'éditeur de l'Exercice depuis la Composition ; question posée à Hermann | C | ch07 |
+| b) photo d'une carte → fiche du Mouvement en feuille | **Conservée** (Hermann, 04/11 : « pour l'instant conservons l'accès à la fiche d'exercice ») : la photo ouvre toujours l'Exercice ; choix ouvert après navigation | — | ch07 |
 | c) AMRAP / Death by : réglages de Format dans la modale des paramètres | **Non traité**, décision de Hermann (« si il n'était pas prévu […] ne rien faire, les règles vont changer de toute façon ») ; écart C.4 (CE-FMT-04) maintenu | — | ch07 |
-| e) plus aucun circuit ne s'ouvre après déplacement d'un exercice en tête | **Non reproduit** hors appareil ; étapes précises demandées à Hermann | C | — |
+| e) plus aucun circuit ne se déplie (Circuits repliés, exercice déplacé en tête — précisé par Hermann le 04/11) | **Non reproduit** : deux tests (dépose en tête, avec et sans arrêt sur les Circuits repliés) montrent l'état de repli correct ; le journal Expo montrait une erreur React répétée (clés en double dans la sonde de colonnes de l'en-tête, `CircuitHeader`) — corrigée, lien avec le constat non démontré | C | — |
 | f3t-fiche : espace blanc en bas | « ne rien changer pour l'instant » | — | — |

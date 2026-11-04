@@ -271,7 +271,8 @@ function ContainerColumnsProbe({ fontScale, onMeasured }: { fontScale: number; o
     <View style={columnStyles.probe} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="container-columns-probe">
       {references.map((reference, index) => (
         <View
-          key={`${reference.unit}-${reference.adjective ?? ""}`}
+          // Clé par rang : « tours » est à la fois l’unité du Circuit et celle des tours d’un porteur (clés en double).
+          key={index}
           style={columnStyles.probeRow}
           testID={`container-columns-probe-counter-${index}`}
           onLayout={(event) => {
