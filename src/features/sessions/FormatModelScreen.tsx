@@ -29,6 +29,7 @@ import {
   buildModelElements,
   executionOptions,
   allowedModes,
+  lastRepetitionsLocked,
   emomDurationOverflow,
   hasRequiredRoles,
   initialAnswers,
@@ -642,6 +643,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // MAJ 04/11 §4.4 (décision de Hermann du 3 novembre) : récapitulatif complet et cohérent — objectifs renseignés,
   // contrôle EMOM des durées ; une charge vide ne bloque pas.
   const issues = useMemo(() => (stage === "summary" ? summaryIssues(model, answers, movements) : []), [answers, model, movements, stage]);
+  // Recette du 05/11/2026 (n-amrap, Hermann : « cette règle des cases rouges non saisies est générale, pas seulement spécifique à
+  // l’AMRAP ») : un réglage requis non renseigné est une case vide et rouge, au questionnaire comme au récapitulatif.
+  const missingSettings = useMemo(
+    () => new Set(summaryIssues(model, answers, movements).flatMap((issue) => (issue.kind === "MISSING_SETTING" ? [issue.id] : []))),
+    [answers, model, movements],
+  );
   const emomOverflow = useMemo(() => (model === "EMOM" ? emomDurationOverflow(answers, movements) : []), [answers, model, movements]);
   // C.5 (référence Formats §9.2, A4) : le Superset demande deux mouvements choisis.
   const enoughMovements = model === "SUPERSET" ? movements.length >= 2 : movements.length > 0;
@@ -711,8 +718,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       Keyboard.dismiss();
       setSearchRole(null);
       setStage("questionnaire");
-    // Essai feuille native : la croix ramène à la Composition, même si la fenêtre Formats est empilée dessous.
-    } else dismissWith(backToComposition);
+      return;
+    }
+    // Recette du 05/11/2026 (n-cat-format, Hermann : « Questionnaire : Croix > Retour à la modale "Créer un exercice" ») : ouvert
+    // depuis la modale de création, le questionnaire y revient. [Essai feuille native : la croix ramenait à la Composition, même
+    // si la fenêtre Formats était empilée dessous — remplacé.] Réédition (« Modifier le format ») : retour à la Composition.
+    const routes = navigation.getState()?.routes ?? [];
+    const at = routes.findIndex((route) => route.name === "format-questionnaire");
+    if (at > 0 && routes[at - 1]?.name === "formats-window") dismissWith(() => router.back());
+    else dismissWith(backToComposition);
   };
 
   // Cases au clavier (lignes de paramètres et tableaux) : focus, Suivant / Précédent, révélation au-dessus du clavier et de sa
@@ -750,6 +764,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const isSeconds = options.seconds ?? SECONDS_KEYS.has(id);
     const numeric = typeof value === "number" ? value : null;
     const isVariable = variable.has(id);
+    const missingNow = !isVariable && numeric === null && missingSettings.has(id);
     // Hermann, 05/11/2026 : « Un point à corriger pour tous les écrans questionnaires, récapitulatif : on utilise
   // systématiquement le clavier pour renseigner les valeurs, plus aucun stepper et de roulette. L'appui sur suivant permet de
   // passer d'une valeur à l'autre, aussi entre deux lignes ou d'une ligne à un tableau. »
@@ -777,10 +792,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           kind={isSeconds ? "duration" : "integer"}
           value={isVariable ? null : numeric}
           format={(entered) => (options.format !== undefined ? options.format(entered) : isSeconds ? formatSeconds(entered) : String(entered))}
-          placeholder={isVariable ? t().variable : (options.placeholder ?? t().noLimit)}
+          placeholder={isVariable ? t().variable : missingNow ? "" : (options.placeholder ?? t().noLimit)}
           badge
           durationMin={bounds.min}
-          missing={options.missing === true || (id === "intervalSeconds" && stage === "summary" && emomOverflow.length > 0) || (model === "DEATH_BY" && (id === "startRepetitions" || id === "increment") && numeric === null)}
+          missing={missingNow || options.missing === true || (id === "intervalSeconds" && stage === "summary" && emomOverflow.length > 0) || (model === "DEATH_BY" && (id === "startRepetitions" || id === "increment") && numeric === null)}
           onChange={(entered) => {
             if (entered === null) {
               if (id === "timeCapSeconds") setAnswers((current) => withAnswer(current, id, null));
@@ -1128,7 +1143,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           },
           onReopen: () => setUnitPicking(true),
         }
-      : unitRow === null || movements[unitRow] === undefined
+      : unitRow === null || movements[unitRow] === undefined || model === "TABATA" || model === "INTERVALS_30_30"
       ? null
       : {
           current: movements[unitRow]!.values.mode ?? ("REPETITIONS" as const),
@@ -1524,6 +1539,13 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             ) : null}
           </View>
         ) : null}
+        {/* Recette du 05/11/2026 (n-charge-colonne, Hermann) : « Pour le seul exercice restant en Répétitions, l'option Durée est
+            désactivée, avec un message court » (AMRAP, For time). */}
+        {unitRow !== null && lastRepetitionsLocked(model, movements, unitRow) ? (
+          <Text style={styles.unitNote} accessibilityRole="alert" testID="format-last-repetitions">
+            {t().lastRepetitionsLocked}
+          </Text>
+        ) : null}
         {tableHere && (rows.some((row) => !isRowBeforeTable(row)) || model === "PROGRESSION") ? (
           <View style={[styles.panel, styles.panelAfterTable]} testID="format-parameters-after">
             {rows.filter((row) => !isRowBeforeTable(row))}
@@ -1804,6 +1826,7 @@ const styles = StyleSheet.create({
   familyRailZone: { position: "absolute", left: -6, top: 26, bottom: 26, width: 16, alignItems: "center", zIndex: 1 },
   familyRailLine: { width: 2, flex: 1, borderRadius: 1, backgroundColor: "#B9BDF5" },
   // Complément du 5 novembre 2026 (Hermann), §12 : cadre propre du tableau, séparé de 8 des cadres voisins.
+  unitNote: { marginHorizontal: 24, marginTop: 6, fontFamily: "Inter_400Regular", fontSize: 12, lineHeight: 16, color: SECTION },
   tableFrame: { marginTop: 8, marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 8, paddingVertical: 4 },
   panelAfterTable: { marginTop: 8 },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" },

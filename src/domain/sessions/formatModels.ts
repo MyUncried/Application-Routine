@@ -394,19 +394,38 @@ export function withMovementMode(values: MovementValues, mode: ExecutionMode): M
     ...(values.cells !== undefined ? { cells: values.cells.map((cell) => ({ ...cell, repetitions: null })) } : {}),
     // Death by (Complément du 5 novembre 2026 (Hermann), §13) : « Le changement d'unité ne convertit pas les valeurs et laisse les champs incompatibles à renseigner. »
     ...(values.start !== undefined ? { start: null, startIncrement: null } : {}),
+    // Recette du 05/11/2026 (n-charge-colonne, Hermann : « Max en Répétitions seulement. Dans un circuit AMRAP, un exercice en
+    // Durée a toujours un objectif fixe ») : passer en Durée retire Max.
+    ...(mode === "DURATION" && values.max === true ? { max: false } : {}),
   };
+}
+
+/**
+ * Seul Exercice restant en Répétitions dont la Durée est refusée (For time ; AMRAP, boucle seulement) — recette du 05/11/2026
+ * (n-charge-colonne, Hermann : « Au moins un exercice de la boucle en Répétitions, comme pour le For time, pour la même raison :
+ * sinon le nombre de tours se calcule d'avance. Pour le seul exercice restant en Répétitions, l'option Durée est désactivée,
+ * avec un message court »).
+ */
+export function lastRepetitionsLocked(key: FormatModelKey, movements: readonly ModelMovement[], index: number): boolean {
+  const current = movements[index];
+  if (current === undefined || (current.values.mode ?? "REPETITIONS") !== "REPETITIONS") return false;
+  if (key === "FOR_TIME") return movements.filter((_, at) => at !== index).every((movement) => (movement.values.mode ?? "REPETITIONS") !== "REPETITIONS");
+  if (key === "AMRAP") {
+    if (movementRole(current) !== "TOUR") return false;
+    return movements.filter((movement, at) => at !== index && movementRole(movement) === "TOUR").every((movement) => (movement.values.mode ?? "REPETITIONS") !== "REPETITIONS");
+  }
+  return false;
 }
 
 /** Unités proposées au clavier selon le contexte (MAJ 04/11 §4.5). */
 export function allowedModes(key: FormatModelKey, movements: readonly ModelMovement[], index: number): readonly ExecutionMode[] {
   const both: readonly ExecutionMode[] = ["REPETITIONS", "DURATION"];
-  if (key === "AMRAP") return movements.length > 1 ? both : ["REPETITIONS"];
-  if (key === "FOR_TIME") {
-    // Au moins un Exercice de l'ensemble du Circuit en Répétitions (buy-in et buy-out compris).
-    const others = movements.filter((_, at) => at !== index);
-    const lastRepetitions = movements.length > 0 && others.every((movement) => (movement.values.mode ?? "REPETITIONS") !== "REPETITIONS");
-    return lastRepetitions && (movements[index]?.values.mode ?? "REPETITIONS") === "REPETITIONS" ? ["REPETITIONS"] : both;
-  }
+  // Recette du 05/11/2026 (n-tabata ; décision de Hermann du 05/11/2026, « Durée seule, sans choix ») : objectif du Tabata et du
+  // 30/30 toujours en Durée. [Complément du 5 novembre 2026, §15 : « modifiable au clavier, Répétitions ou Durée » — remplacé.]
+  if (key === "TABATA" || key === "INTERVALS_30_30") return ["DURATION"];
+  // AMRAP : au moins un Exercice de la boucle en Répétitions (n-charge-colonne) ; buy-in libre. [Un seul mouvement en Répétitions,
+  // plusieurs en Répétitions ou Durée — précisé.] For time : au moins un Exercice de l'ensemble du Circuit (buy-in et buy-out compris).
+  if (key === "AMRAP" || key === "FOR_TIME") return lastRepetitionsLocked(key, movements, index) ? ["REPETITIONS"] : both;
   return both;
 }
 

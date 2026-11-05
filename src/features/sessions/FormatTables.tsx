@@ -45,32 +45,43 @@ const SERIES_NAME_WIDTH = 104;
 const SERIES_UNIT_WIDTH = 52;
 const SERIES_COLUMN_WIDTH = 56;
 const ROW_HEIGHT = 36;
-const LOAD_ROW_HEIGHT = 72;
 /**
  * Recette du 04/11/2026 (f4-modale) — EMOM : « "12 min 30" ne tient pas dans son cadre sur une ligne » ; AMRAP : « aligner
  * les pastilles Max à droite sur les textes, centrer le titre de la colonne en conséquence ; décaler les autres colonnes
  * d'autant, réduire l'espace entre les colonnes » ; For time : « décaler la colonne de l'unité plus à droite », charges
  * « police plus petite, pas en gras, espace vertical réduit avec la ligne d'objectifs au-dessus ».
  */
-const OBJECTIVE_WIDTH = 84;
-const NARROW_WIDTH = 58;
-const MAX_WIDTH = 28;
-const BARE_NAME_WIDTH = 124;
 const COMPACT_LOAD_HEIGHT = 24;
+// [Hauteurs For time serrées (e-fortime-charge), colonnes élargies en durée (e-fortime-unite) et ligne « (+ kg) » sous l'unité
+// (Complément du 5 novembre 2026, §9) — remplacées par la mise en page ci-dessous (recette du 05/11/2026, n-charge-switch).]
 /**
- * For time avec charge — recette du 05/11/2026 (e-fortime-charge, Hermann : « L'espace vertical entre les deux lignes (durée /
- * rep et charge) doit être minimum ») : objectif et charge serrés l'un contre l'autre.
+ * Recette du 05/11/2026 (n-charge-switch, Hermann) — tableau des séries : « Supprimer la colonne Unité. Sous le nom du mouvement,
+ * en petit (taille actuelle de "+kg") mettre le texte suivant : "(durée, " ou "(rép, " puis "+kg)" ou "-kg)" » ; « Afficher par
+ * défaut trois séries » (décision du 05/11/2026 : trois colonnes visibles) ; « Le nom du mouvement doit toujours être aligné
+ * verticalement avec sa ligne de valeur des objectifs » ; charges « plus petites, et plus proches de la ligne du dessus ».
  */
-const BARE_OBJECTIVE_HEIGHT = 26;
-const BARE_LOAD_ROW_HEIGHT = BARE_OBJECTIVE_HEIGHT + COMPACT_LOAD_HEIGHT + 6;
+const SERIES_LINE_HEIGHT = 26;
+const SERIES_LOAD_LINE_HEIGHT = 16;
+const SERIES_ROW_PADDING = 4;
+const SERIES_SUBTITLE_HEIGHT = 14;
+const SERIES_NAMES_WIDTH = 128;
+const SERIES_VISIBLE_COLUMNS = 3;
 /**
- * For time, colonnes des tours quand une ligne est en durée — recette du 05/11/2026 (e-fortime-unite, Hermann : « Une durée de
- * 12 min 28 s ne tient pas dans le tableau, si besoin ne présenter que les deux premières colonnes ») : colonnes élargies, les
- * suivantes se découvrent en faisant défiler le tableau.
+ * Recette du 05/11/2026 (n-charge-colonne, Hermann : « décaler la première colonne d'un tableau la plus à droite possible, en
+ * respectant la marge […]. Réduire au minimum l'espace entre les colonnes pour laisser un maximum de place au nom du mouvement,
+ * considérer l'espace max pris par une valeur en durée si c'est une option ») : colonnes à la largeur de leur plus longue valeur.
  */
-const SERIES_DURATION_COLUMN_WIDTH = 84;
-/** Complément du 5 novembre 2026 (Hermann) (Figma) : ligne portant « (+ kg) » sous l'unité, 44 de haut. */
-const CHARGE_TOGGLE_ROW_HEIGHT = 44;
+const FIT_DURATION_WIDTH = 66;
+const FIT_REPETITIONS_WIDTH = 52;
+const FIT_INCREMENT_WIDTH = 58;
+const FIT_PAUSE_WIDTH = 60;
+const FIT_LOAD_WIDTH = 60;
+const FIT_MAX_WIDTH = 32;
+
+/** Largeur d'une colonne d'objectif : une durée possible (« 12 min 30 ») ou seulement des répétitions (« 10 rép. »). */
+function objectiveWidth(movements: readonly ModelMovement[], durationPossible: boolean): number {
+  return durationPossible || movements.some((item) => item.values.mode === "DURATION") ? FIT_DURATION_WIDTH : FIT_REPETITIONS_WIDTH;
+}
 
 const t = () => strings.screens.formatModel;
 
@@ -236,8 +247,11 @@ export function TableCell({
   durationMin,
   entrySuffix = "",
   load = false,
+  small = false,
   testID,
 }: {
+  /** Charge sous l'objectif du tableau des séries (recette du 05/11/2026, n-charge-switch) : Regular 11, ligne de 16. */
+  readonly small?: boolean;
   /** Complément du 5 novembre 2026 (Hermann) : case de charge — valeur entre parenthèses, Regular 12, case vide « (—) » grise. */
   readonly load?: boolean;
   /**
@@ -343,6 +357,7 @@ export function TableCell({
         compact ? styles.cellCompact : null,
         tight ? styles.cellTight : null,
         load ? styles.cellLoad : null,
+        small ? styles.cellSmall : null,
         disabled ? styles.cellDisabled : null,
         !disabled && missing ? styles.cellMissing : null,
         active || focused ? styles.cellActive : null,
@@ -377,13 +392,14 @@ export function AmrapTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
+  const objectiveColumn = objectiveWidth(movements, movements.length > 1);
   return (
     <View style={styles.table} testID="format-amrap-table">
       <View style={styles.tableHeader}>
         <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={[styles.tableHead, { width: OBJECTIVE_WIDTH }]}>{tt.objective}</Text>
-        {increasing ? <Text style={[styles.tableHead, { width: NARROW_WIDTH }]}>{tt.perRound}</Text> : null}
-        {withLoad ? <Text style={[styles.tableHead, { width: NARROW_WIDTH }]}>{tt.load}</Text> : null}
+        <Text style={[styles.tableHead, { width: objectiveColumn }]}>{tt.objective}</Text>
+        {increasing ? <Text style={[styles.tableHead, { width: FIT_INCREMENT_WIDTH }]}>{tt.perRound}</Text> : null}
+        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }]}>{tt.load}</Text> : null}
         <Text style={[styles.tableHead, styles.maxHead]}>{tt.max}</Text>
       </View>
       {movements.map((item, index) => {
@@ -401,7 +417,7 @@ export function AmrapTable({
               kind={mode === "DURATION" ? "duration" : "integer"}
               value={values.repetitions ?? null}
               format={(value) => formatObjective(mode, value)}
-              width={OBJECTIVE_WIDTH}
+              width={objectiveColumn}
               missing={!max && values.repetitions == null}
               disabled={max}
               onChange={(value) => onChange(index, { ...values, repetitions: value })}
@@ -417,7 +433,7 @@ export function AmrapTable({
                   // Complément du 5 novembre 2026 (Hermann), §8 : incrément signé (« − 1 rép. », « − 5 s »), signe saisi par « ± » de la barre du clavier.
                   format={(value) => `${value < 0 ? "−" : "+"} ${mode === "DURATION" ? formatSeconds(Math.abs(value)) : Math.abs(value)}`}
                   placeholder="+"
-                  width={NARROW_WIDTH}
+                  width={FIT_INCREMENT_WIDTH}
                   missing={!max && values.increment == null}
                   disabled={max}
                   onChange={(value) => onChange(index, { ...values, increment: value })}
@@ -426,21 +442,23 @@ export function AmrapTable({
                   testID={`format-amrap-increment-${index}`}
                 />
               ) : (
-                <Text style={[styles.tableDash, { width: NARROW_WIDTH }]}>{t().dash}</Text>
+                <Text style={[styles.tableDash, { width: FIT_INCREMENT_WIDTH }]}>{t().dash}</Text>
               )
             ) : null}
             {withLoad ? (
-              <ChargeCell values={values} index={index} name={name} width={NARROW_WIDTH} onChange={onChange} onAddLoad={onAddLoad} cell={cell} testID={`format-amrap-load-${index}`} />
+              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} onAddLoad={onAddLoad} cell={cell} testID={`format-amrap-load-${index}`} />
             ) : null}
+            {/* Recette du 05/11/2026 (n-charge-colonne, Hermann : « Max en Répétitions seulement ») : Max indisponible en Durée. */}
             <Pressable
               onPress={() => onChange(index, { ...values, max: !max })}
+              disabled={mode === "DURATION"}
               accessibilityRole="radio"
-              accessibilityState={{ checked: max }}
+              accessibilityState={{ checked: max, disabled: mode === "DURATION" }}
               accessibilityLabel={`${name}, ${tt.max}`}
               style={[styles.radioSlot, styles.maxSlot]}
               testID={`format-amrap-max-${index}`}
             >
-              <View style={[styles.radio, max ? styles.radioOn : null]}>{max ? <View style={styles.radioDot} /> : null}</View>
+              <View style={[styles.radio, max ? styles.radioOn : null, mode === "DURATION" ? styles.radioDisabled : null]}>{max ? <View style={styles.radioDot} /> : null}</View>
             </Pressable>
           </View>
         );
@@ -506,8 +524,22 @@ function ChargeCell({
 }
 
 /** « (+ kg) » / « (− kg) » — Complément du 5 novembre 2026 (Hermann), Figma : Inter SemiBold 11, bleu KODJO, texte seul. */
-export function ChargeToggle({ on, onPress, name, testID }: { readonly on: boolean; readonly onPress: () => void; readonly name: string; readonly testID: string }) {
+export function ChargeToggle({
+  on,
+  onPress,
+  name,
+  testID,
+  short = false,
+}: {
+  readonly on: boolean;
+  readonly onPress: () => void;
+  readonly name: string;
+  readonly testID: string;
+  /** Sous le nom du mouvement (tableau des séries) : « +kg) » / « −kg) », à la suite de « (rép, ». */
+  readonly short?: boolean;
+}) {
   const tt = t().table;
+  const label = short ? (on ? tt.removeLoadShort : tt.addLoadShort) : on ? tt.removeLoad : tt.addLoad;
   return (
     <Pressable
       onPress={onPress}
@@ -516,7 +548,7 @@ export function ChargeToggle({ on, onPress, name, testID }: { readonly on: boole
       accessibilityLabel={`${name}, ${on ? tt.removeLoadAccessibility : tt.addLoadAccessibility}`}
       testID={testID}
     >
-      <Text style={styles.chargeToggle}>{on ? tt.removeLoad : tt.addLoad}</Text>
+      <Text style={styles.chargeToggle}>{label}</Text>
     </Pressable>
   );
 }
@@ -540,13 +572,15 @@ export function DeathByTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
+  const startColumn = objectiveWidth(movements, false);
+  const incrementColumn = startColumn + 10;
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-death-by-table">
       <View style={styles.tableHeader}>
         <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={[styles.tableHead, { width: OBJECTIVE_WIDTH }]}>{tt.start}</Text>
-        <Text style={[styles.tableHead, { width: OBJECTIVE_WIDTH }]}>{tt.increment}</Text>
-        {withLoad ? <Text style={[styles.tableHead, { width: NARROW_WIDTH }]}>{tt.load}</Text> : null}
+        <Text style={[styles.tableHead, { width: startColumn }]}>{tt.start}</Text>
+        <Text style={[styles.tableHead, { width: incrementColumn }]}>{tt.increment}</Text>
+        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }]}>{tt.load}</Text> : null}
       </View>
       {movements.map((item, index) => {
         const values = item.values;
@@ -563,7 +597,7 @@ export function DeathByTable({
               value={values.start ?? null}
               // Hermann, 04/11/2026 : « death by, il manque les unités au tableau des objectifs ».
               format={(value) => formatObjective(mode, value)}
-              width={OBJECTIVE_WIDTH}
+              width={startColumn}
               missing={values.start == null || values.start < 1}
               onChange={(value) => onChange(index, { ...values, start: value })}
               {...cell(cellKey("start", index))}
@@ -574,7 +608,7 @@ export function DeathByTable({
               kind={kind}
               value={values.startIncrement ?? null}
               format={(value) => `+ ${formatObjective(mode, value)}`}
-              width={OBJECTIVE_WIDTH}
+              width={incrementColumn}
               placeholder="+"
               missing={values.startIncrement == null || values.startIncrement < 1}
               onChange={(value) => onChange(index, { ...values, startIncrement: value })}
@@ -583,7 +617,7 @@ export function DeathByTable({
               testID={`format-death-by-increment-${index}`}
             />
             {withLoad ? (
-              <ChargeCell values={values} index={index} name={name} width={NARROW_WIDTH} onChange={onChange} onAddLoad={onAddLoad} cell={cell} testID={`format-death-by-load-${index}`} />
+              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} onAddLoad={onAddLoad} cell={cell} testID={`format-death-by-load-${index}`} />
             ) : null}
           </View>
         );
@@ -620,13 +654,14 @@ export function ObjectivePauseTable({
 }) {
   const tt = t().table;
   const defaultMode = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
+  const objectiveColumn = model === "UNTIL_FAILURE" ? FIT_DURATION_WIDTH : defaultMode === "DURATION" ? FIT_DURATION_WIDTH : objectiveWidth(movements, true);
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-objective-pause-table">
       <View style={styles.tableHeader}>
         <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={[styles.tableHead, { width: OBJECTIVE_WIDTH }]}>{tt.objective}</Text>
-        <Text style={[styles.tableHead, { width: NARROW_WIDTH }]}>{tt.pause}</Text>
-        {withLoad ? <Text style={[styles.tableHead, { width: NARROW_WIDTH }]}>{tt.load}</Text> : null}
+        <Text style={[styles.tableHead, { width: objectiveColumn }]}>{tt.objective}</Text>
+        <Text style={[styles.tableHead, { width: FIT_PAUSE_WIDTH }]}>{tt.pause}</Text>
+        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }]}>{tt.load}</Text> : null}
       </View>
       {movements.map((item, index) => {
         const values = item.values;
@@ -640,7 +675,7 @@ export function ObjectivePauseTable({
               {name}
             </Text>
             {model === "UNTIL_FAILURE" ? (
-              <Text style={[styles.tableCellText, styles.failureText, { width: OBJECTIVE_WIDTH }]} testID={`format-objective-${index}`}>
+              <Text style={[styles.tableCellText, styles.failureText, { width: objectiveColumn }]} testID={`format-objective-${index}`}>
                 {t().atFailure}
               </Text>
             ) : (
@@ -648,7 +683,7 @@ export function ObjectivePauseTable({
                 kind={mode === "DURATION" ? "duration" : "integer"}
                 value={objective}
                 format={(value) => formatObjective(mode, value)}
-                width={OBJECTIVE_WIDTH}
+                width={objectiveColumn}
                 missing={objective === null}
                 onChange={(value) => onChange(index, { ...values, mode, repetitions: value })}
                 {...cell(cellKey("obj", index))}
@@ -661,14 +696,14 @@ export function ObjectivePauseTable({
               durationMin={0}
               value={pause}
               format={formatSeconds}
-              width={NARROW_WIDTH}
+              width={FIT_PAUSE_WIDTH}
               onChange={(value) => (value === null ? undefined : onChange(index, { ...values, pause: value }))}
               {...cell(cellKey("pause", index))}
               label={`${name}, ${tt.pause}`}
               testID={`format-pause-${index}`}
             />
             {withLoad ? (
-              <ChargeCell values={values} index={index} name={name} width={NARROW_WIDTH} onChange={onChange} onAddLoad={onAddLoad} cell={cell} testID={`format-objective-load-${index}`} />
+              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} onAddLoad={onAddLoad} cell={cell} testID={`format-objective-load-${index}`} />
             ) : null}
           </View>
         );
@@ -713,7 +748,10 @@ export function SeriesTable({
 }) {
   const tt = t().table;
   const columns = Array.from({ length: count }, (_, index) => index);
-  const columnWidth = model !== "PROGRESSION" && movements.some((item) => item.values.mode === "DURATION") ? SERIES_DURATION_COLUMN_WIDTH : SERIES_COLUMN_WIDTH;
+  // Trois colonnes visibles (n-charge-switch, décision du 05/11/2026), au moins la largeur d'une valeur.
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const minimumWidth = movements.some((item) => item.values.mode === "DURATION") ? FIT_DURATION_WIDTH : SERIES_COLUMN_WIDTH;
+  const columnWidth = viewportWidth > 0 ? Math.max(minimumWidth, Math.floor(viewportWidth / SERIES_VISIBLE_COLUMNS)) : minimumWidth;
   const propagate = copiesFirstSeries(model);
   const charged = (values: MovementValues) => withLoad && values.loadOn === true;
   const scrollRef = useRef<ScrollView>(null);
@@ -741,9 +779,12 @@ export function SeriesTable({
     };
   };
   const heading = (column: number) => (model === "FOR_TIME" || model === "SUPERSET" ? tt.round : tt.series).replace("{n}", String(column + 1));
-  const rowHeightOf = (values: MovementValues) => (charged(values) ? (bare ? BARE_LOAD_ROW_HEIGHT : LOAD_ROW_HEIGHT) : withLoad ? CHARGE_TOGGLE_ROW_HEIGHT : ROW_HEIGHT);
+  // Ligne : objectif (aligné sur le nom), puis charge ou sous-titre « (rép, +kg) » du nom.
+  const rowHeightOf = (values: MovementValues) =>
+    SERIES_ROW_PADDING * 2 + SERIES_LINE_HEIGHT + (charged(values) ? SERIES_LOAD_LINE_HEIGHT : SERIES_SUBTITLE_HEIGHT);
   const prefix = model === "FOR_TIME" ? "format-for-time" : model === "EMOM" ? "format-emom" : model === "SUPERSET" ? "format-superset" : "format-progression";
-  const nameWidth = bare ? BARE_NAME_WIDTH : SERIES_NAME_WIDTH;
+  const unitOf = (values: MovementValues) =>
+    values.mode === undefined && model === "EMOM" ? t().dash : (values.mode ?? "REPETITIONS") === "DURATION" ? tt.durationUnitShort : tt.repetitionsUnitShort;
   // Valeurs d'une ligne : For time (volumes, loads) ; Progression (cells).
   const objectiveAt = (values: MovementValues, column: number) => (model === "FOR_TIME" ? (values.volumes?.[column] ?? null) : (values.cells?.[column]?.repetitions ?? null));
   const loadAt = (values: MovementValues, column: number) => (model === "FOR_TIME" ? (values.loads?.[column] ?? null) : (values.cells?.[column]?.loadKg ?? null));
@@ -764,24 +805,21 @@ export function SeriesTable({
   };
   return (
     <View style={[styles.seriesTable, bare ? styles.seriesTableBare : null, styles.seriesColumns]} testID={`${prefix}-table`}>
-      <View style={[styles.seriesNames, { width: nameWidth + SERIES_UNIT_WIDTH }, bare ? styles.seriesNamesBare : null]} testID={`${prefix}-names`}>
+      <View style={[styles.seriesNames, { width: SERIES_NAMES_WIDTH }, bare ? styles.seriesNamesBare : null]} testID={`${prefix}-names`}>
         <View style={styles.seriesHeader}>
           <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-          <Text style={[styles.tableHead, { width: SERIES_UNIT_WIDTH }, bare ? styles.unitTextBare : null]}>{tt.unit}</Text>
         </View>
         {movements.map((item, index) => (
-          <View key={item.exercise.id} style={[styles.seriesRow, { height: rowHeightOf(item.values) }]}>
-            <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
+          <View key={item.exercise.id} style={[styles.seriesNameRow, { height: rowHeightOf(item.values) }]}>
+            <Text style={[styles.tableCellText, styles.seriesNameLine]} numberOfLines={1}>
               {rowName(item)}
             </Text>
-            <View style={[styles.unitColumn, { width: SERIES_UNIT_WIDTH }, charged(item.values) ? styles.unitColumnCharged : null]}>
-              <Text style={[styles.unitText, bare ? styles.unitTextBare : null]}>
-                {/* EMOM sans unité choisie (recette du 04/11/2026) : « — ». */}
-                {item.values.mode === undefined && model === "EMOM" ? t().dash : (item.values.mode ?? "REPETITIONS") === "DURATION" ? tt.durationUnit : t().repetitionsUnit}
-              </Text>
-              {/* Complément du 5 novembre 2026 (Hermann), §9 : « (+ kg) » sous l'unité ; chargé, « (− kg) » en face de la ligne de charge. */}
+            {/* Unité et charge sous le nom : « (rép, +kg) », « (durée, −kg) » ; sans « Avec charge », « (rép) ». */}
+            <View style={styles.seriesSubtitle} testID={`${prefix}-${index}-unit`}>
+              <Text style={styles.seriesSubtitleText}>{`(${unitOf(item.values)}${withLoad ? ", " : ")"}`}</Text>
               {withLoad ? (
                 <ChargeToggle
+                  short
                   on={item.values.loadOn === true}
                   onPress={() => (item.values.loadOn === true ? onChange(index, { ...item.values, loadOn: false }) : onAddLoad(index))}
                   name={rowName(item)}
@@ -801,6 +839,8 @@ export function SeriesTable({
         contentContainerStyle={styles.seriesScrollContent}
         onLayout={(event) => {
           viewport.current = event.nativeEvent.layout.width;
+          const width = event.nativeEvent.layout.width - 12;
+          setViewportWidth((current) => (current === width ? current : width));
         }}
         onScroll={(event) => {
           scrollX.current = event.nativeEvent.contentOffset.x;
@@ -822,7 +862,7 @@ export function SeriesTable({
             // Buy-in / buy-out du For time : une seule exécution (première colonne).
             const shown = model === "FOR_TIME" && movementRole(item) !== "TOUR" ? 1 : count;
             return (
-              <View key={item.exercise.id} style={[styles.seriesRow, styles.seriesCells, { height: rowHeightOf(values) }]}>
+              <View key={item.exercise.id} style={[styles.seriesRow, styles.seriesValueRow, styles.seriesCells, { height: rowHeightOf(values) }]}>
                 {columns.map((column) => {
                   if (column >= shown) return <View key={column} style={{ width: columnWidth }} />;
                   const objective = objectiveAt(values, column);
@@ -836,7 +876,7 @@ export function SeriesTable({
                         missing={objective === null || overflow.some((cellAt) => cellAt.index === index && cellAt.column === column)}
                         width={columnWidth}
                         boxed={bare}
-                        tight={bare && charged(values)}
+                        tight
                         onChange={(value) => onChange(index, set(values, column, { objective: value }))}
                         {...bind(cellKey("obj", index, column), column)}
                         label={label.replace("{kind}", tt.objectiveKind)}
@@ -852,8 +892,10 @@ export function SeriesTable({
                           entrySuffix=" kg"
                           width={columnWidth}
                           load
-                          // Recette du 05/11/2026 (k-fortime-pastille, Hermann : « Ne pas mettre de cadre blanc pour les valeurs de charge »).
-                          compact={bare}
+                          // Recette du 05/11/2026 (k-fortime-pastille, Hermann : « Ne pas mettre de cadre blanc pour les valeurs de charge ») ;
+                          // n-charge-switch : charges plus petites, serrées sous l'objectif, dans tous les tableaux des séries.
+                          compact
+                          small
                           barOnly={bare}
                           onChange={(value) => onChange(index, set(values, column, { load: value }))}
                           {...bind(cellKey("load", index, column), column)}
@@ -893,7 +935,7 @@ const styles = StyleSheet.create({
   // lignes de paramètres. [Zone de la largeur de la colonne — remplacée.]
   cellBoxed: { backgroundColor: "#FFFFFF", minWidth: 48, paddingHorizontal: 10, borderRadius: 10, alignSelf: "center" },
   cellCompact: { minHeight: COMPACT_LOAD_HEIGHT, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 11 },
-  cellTight: { minHeight: BARE_OBJECTIVE_HEIGHT, paddingVertical: 0 },
+  cellTight: { minHeight: SERIES_LINE_HEIGHT, height: SERIES_LINE_HEIGHT, paddingVertical: 0 },
   // Complément du 5 novembre 2026 (Hermann) (Figma) : charge sur la ligne de charge, entre parenthèses, Regular 12 bleu ; case vide « (—) » grise.
   cellLoad: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, backgroundColor: "transparent" },
   chargeToggle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, color: VALUE_COLOR },
@@ -902,8 +944,8 @@ const styles = StyleSheet.create({
   tableInFrame: { backgroundColor: "transparent", marginHorizontal: 0, marginTop: 0 },
   failureText: { textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", color: LABEL },
   cellBadge: { minHeight: 26, minWidth: 48, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: "#FFFFFF" },
-  maxHead: { width: MAX_WIDTH },
-  maxSlot: { width: MAX_WIDTH },
+  maxHead: { width: FIT_MAX_WIDTH },
+  maxSlot: { width: FIT_MAX_WIDTH },
   seriesTableBare: { marginVertical: 0, backgroundColor: "transparent" },
   seriesNamesBare: { paddingLeft: 0 },
   seriesCellBare: { gap: 2 },
@@ -919,6 +961,7 @@ const styles = StyleSheet.create({
   radioSlot: { width: COLUMN_WIDTH, alignItems: "center", justifyContent: "center", minHeight: ROW_HEIGHT },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: "#9499A8", alignItems: "center", justifyContent: "center" },
   radioOn: { borderColor: VALUE_COLOR, backgroundColor: VALUE_COLOR },
+  radioDisabled: { borderColor: DISABLED_VALUE, opacity: 0.5 },
   radioDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FFFFFF" },
   seriesTable: { marginVertical: 8, borderRadius: 8, backgroundColor: "#FFFFFF", overflow: "hidden" },
   seriesColumns: { flexDirection: "row" },
@@ -926,8 +969,14 @@ const styles = StyleSheet.create({
   seriesHeader: { flexDirection: "row", alignItems: "center", height: 28, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
   seriesRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
   seriesCells: { justifyContent: "flex-end" },
-  seriesCell: { width: SERIES_COLUMN_WIDTH, alignItems: "center" },
+  seriesCell: { width: SERIES_COLUMN_WIDTH, alignItems: "center", gap: 0 },
   seriesBody: { flexGrow: 1 },
+  seriesNameRow: { justifyContent: "flex-start", paddingTop: SERIES_ROW_PADDING, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
+  seriesNameLine: { height: SERIES_LINE_HEIGHT, lineHeight: SERIES_LINE_HEIGHT },
+  seriesSubtitle: { flexDirection: "row", alignItems: "center", height: SERIES_SUBTITLE_HEIGHT },
+  seriesSubtitleText: { fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
+  seriesValueRow: { alignItems: "flex-start", paddingTop: SERIES_ROW_PADDING },
+  cellSmall: { minHeight: SERIES_LOAD_LINE_HEIGHT, paddingVertical: 0, fontSize: 11, lineHeight: SERIES_LOAD_LINE_HEIGHT },
   seriesScroll: { flex: 1 },
   seriesScrollContent: { flexGrow: 1, paddingRight: 12 },
 });

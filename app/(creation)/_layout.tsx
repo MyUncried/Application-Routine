@@ -62,7 +62,13 @@ export default function CreationLayout() {
     <SessionDraftProvider>
       <FormatModelDraftProvider>
       <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
-        <Stack.Screen name="composition" />
+        {/* Recette du 05/11/2026 (n-cat-creer, n-cat-libre, Hermann : « Utiliser la modale iOS ; apparition en fondu plus lentement » ;
+            « faire apparaître l'écran de composition de séance derrière la modale "Créer un exercice" en même temps ») : ouverte par
+            « Créer » du Catalogue (`create=1`), la Composition apparaît en fondu lent pendant que la modale native monte. */}
+        <Stack.Screen
+          name="composition"
+          options={({ route }) => ((route.params as { create?: string } | undefined)?.create === "1" ? { animation: "fade", animationDuration: 450 } : {})}
+        />
         <Stack.Screen name="exercise" />
         {/* [PRE-9 A.3 du 04/11/2026 : route « activity-selection » (sélection des anciennes définitions) retirée.] */}
         {/* PRE-9 A.2 (ARB-22a) : « Utiliser un mouvement existant » depuis la Composition. */}

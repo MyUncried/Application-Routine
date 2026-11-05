@@ -552,6 +552,8 @@ export const fr = {
       // Complément du 5 novembre 2026 (§13) : avertissement non bloquant du Death by.
       deathByFirstRankWarning: "Le premier intervalle ne peut pas être tenu : le défi s’arrêtera avant de commencer.",
       addPicked: "Ajouter",
+      // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
+      lastRepetitionsLocked: "Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.",
       collapsePiles: "Replier les piles",
       expandPiles: "Déplier les piles",
       openMovementSheet: "Fiche du mouvement {name}",
@@ -653,6 +655,11 @@ export const fr = {
         // [« sans charge à partir de la série {n} » (EMOM, 04/11) — retiré le 05/11/2026.]
         addLoad: "(+ kg)",
         removeLoad: "(− kg)",
+        // Recette du 05/11/2026 (n-charge-switch, Hermann) : sous le nom du mouvement du tableau des séries — « (rép, +kg) », « (durée, −kg) ».
+        repetitionsUnitShort: "rép",
+        durationUnitShort: "durée",
+        addLoadShort: "+kg)",
+        removeLoadShort: "−kg)",
         addLoadAccessibility: "ajouter une charge",
         removeLoadAccessibility: "retirer la charge",
         loadEmpty: "(—)",
@@ -1532,7 +1539,8 @@ export const fr = {
       // Recette A/B B.10 (b2-4) : ↑ des Phases, qui ferme le clavier comme celui de la Description.
       phasesSubmitAccessibilityLabel: "Valider les phases",
       phases: {
-        title: "Phases du mouvement (pour minuter l’exécution)",
+        // Recette du 05/11/2026 (n-fiche, Hermann) : « (si il faut les minuter pendant l'exécution) ». [« (pour minuter l'exécution) » — remplacé.]
+        title: "Phases du mouvement (s’il faut les minuter pendant l’exécution)",
         firstPlaceholder: "Nommez la première phase",
         nextPlaceholder: "Phase suivante",
         labelAccessibility: "Phase {rank}",

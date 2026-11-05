@@ -309,7 +309,8 @@ describe("FormatModelScreen", () => {
     toSummary();
     // Activation globale : aucune ligne de charge tant que « (+ kg) » n'est pas touché.
     expect(screen.queryByTestId("format-progression-0-0-load")).toBeNull();
-    expect(screen.getByTestId("format-progression-0-charge")).toHaveTextContent(t.table.addLoad);
+    expect(screen.getByTestId("format-progression-0-charge")).toHaveTextContent(t.table.addLoadShort); // Recette du 05/11 (n-charge-switch) : « (rép, +kg) » sous le nom.
+    expect(screen.getByTestId("format-progression-0-unit")).toHaveTextContent("(rép, +kg)");
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-progression-0-charge"));
     });
@@ -814,6 +815,28 @@ describe("FormatModelScreen", () => {
     // Mode catalogue : en-tête et recherche dans la zone figée, sans décalage.
     fireEvent.press(screen.getByTestId("format-movements-link"));
     expect(withOffset - content().paddingTop).toBe(8);
+  });
+
+
+  // Recette du 05/11/2026 (n-cat-format, Hermann : « Questionnaire : Croix > Retour à la modale "Créer un exercice" »).
+  it("recette du 05/11 (n-cat-format) : ouvert depuis la modale de création, la croix du questionnaire y revient", async () => {
+    const saved = mockStack.routes;
+    mockStack.routes = [
+      { name: "composition", params: { sessionId: "ses-1" } },
+      { name: "formats-window", params: { model: "TABATA" } },
+      { name: "format-questionnaire", params: { model: "TABATA" } },
+    ];
+    try {
+      mockModel = "TABATA";
+      render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+      await screen.findByTestId("format-title");
+      fireEvent.press(screen.getByTestId("screen-header-back"));
+      await waitFor(() => expect(mockBack).toHaveBeenCalled());
+      expect(mockDismiss).not.toHaveBeenCalled();
+      expect(mockDismissTo).not.toHaveBeenCalled();
+    } finally {
+      mockStack.routes = saved;
+    }
   });
 
 });

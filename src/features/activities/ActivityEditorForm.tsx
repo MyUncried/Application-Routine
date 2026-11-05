@@ -1108,21 +1108,10 @@ export function ActivityEditorForm({
           onContentSizeChange={onBodyMeasure !== undefined ? (_width, height) => reportBody({ content: height }) : undefined}
           testID="exercise-body"
         >
-          {inThisSession !== undefined ? (
-            <View style={styles.section} accessible accessibilityLabel={[strings.executionParameters.card.inThisSession, phrase, inThisSession.recovery].filter(Boolean).join(". ")} testID="exercise-section-in-this-session">
-              <Text style={styles.sectionTitle} accessibilityRole="header">
-                {strings.executionParameters.card.inThisSession}
-              </Text>
-              <Text style={styles.phrase}>
-                {renderPhrase()}
-                {inThisSession.recovery !== null ? ` ${inThisSession.recovery}` : null}
-              </Text>
-            </View>
-          ) : null}
           {/* P7 (FR-02-02, AC3) : la Description précède la Carte Paramètres d'exécution. */}
           {showDescription ? (
           <View
-            style={[styles.section, inThisSession !== undefined ? styles.followingSection : null]}
+            style={styles.section}
             onLayout={(event) => {
               descriptionLayoutRef.current.sectionY = event.nativeEvent.layout.y;
             }}
@@ -1268,6 +1257,24 @@ export function ActivityEditorForm({
             {renderMediaList()}
           </View>
           )}
+          {/* Recette du 05/11/2026 (n-fiche, Hermann : « Mettre la section "Dans cette séance" en dernier »). [Sous la photo, avant la
+              description — remplacé.] */}
+          {inThisSession !== undefined ? (
+            <View
+              style={[styles.section, showDescription || (isMovement && movementPhases !== null && showPhases) ? styles.followingSection : null]}
+              accessible
+              accessibilityLabel={[strings.executionParameters.card.inThisSession, phrase, inThisSession.recovery].filter(Boolean).join(". ")}
+              testID="exercise-section-in-this-session"
+            >
+              <Text style={styles.sectionTitle} accessibilityRole="header">
+                {strings.executionParameters.card.inThisSession}
+              </Text>
+              <Text style={styles.phrase}>
+                {renderPhrase()}
+                {inThisSession.recovery !== null ? ` ${inThisSession.recovery}` : null}
+              </Text>
+            </View>
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
       </View>

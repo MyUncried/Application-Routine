@@ -49,6 +49,11 @@ export function handMovementsToComposition(movements: readonly Movement[]): void
   handedMovements = movements.length > 0 ? [...movements] : null;
 }
 
+/** Lecture (sans consommation) : des Mouvements attendent la Composition. */
+export function hasMovementsHandedToComposition(): boolean {
+  return handedMovements !== null;
+}
+
 /** Reprend (une seule fois) les Mouvements remis ; `null` : aucun. */
 export function takeMovementsHandedToComposition(): readonly Movement[] | null {
   const taken = handedMovements;

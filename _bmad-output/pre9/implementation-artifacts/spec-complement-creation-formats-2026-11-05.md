@@ -60,3 +60,19 @@ Questions posées sur deux contradictions réelles entre les annotations de rece
 ## 7. Recette iPhone ciblée à faire
 
 Voir le rapport de mission, § « Vérifications restant à effectuer sur appareil ».
+
+## 8. Recette iPhone ciblée du 05/11/2026 — corrections (classe B ; décisions recopiées dans ch07)
+
+| Ligne | Constat / demande | Correction |
+| --- | --- | --- |
+| n-cat-creer | Modale iOS, fondu plus lent ; la Composition ne doit pas être vue au retour au Catalogue | Composition ouverte par « Créer » : fondu de 450 ms (`_layout`) pendant que la feuille native monte ; croix de la modale sur brouillon vide : `dismissTo` du Catalogue directement (`formats-window.tsx`). |
+| n-cat-libre | Exercice libre → fiche ; validée → Composition ; annulée → modale | La fiche de création s'ouvre par-dessus la modale (plus de `back()` préalable) ; au retour d'une fiche validée (Mouvement remis), la modale se retire (`hasMovementsHandedToComposition`). |
+| n-cat-format | Croix du questionnaire → modale « Créer un exercice » | `FormatModelScreen.close` : retour à la modale quand elle est dessous ; réédition inchangée. |
+| n-menu | « Créer un exercice » ouvre la Composition | Non reproduit hors appareil (même `push("/formats-window")` que l'ancienne option Format, validée sur iPhone). Cause plausible : « Exercice libre » refermait la modale avant d'ouvrir la fiche, laissant voir la Composition — corrigé par n-cat-libre. **À revérifier.** |
+| n-fiche | « Dans cette séance » en dernier ; libellé des phases | Section déplacée en fin de fiche ; `movement.phases.title` « Phases du mouvement (s'il faut les minuter pendant l'exécution) ». |
+| n-amrap | Cases rouges non saisies : règle générale | Lignes de réglages : un réglage requis manquant (`MISSING_SETTING`) est vide et rouge dès le questionnaire. |
+| n-charge-colonne | AMRAP : Max en Répétitions ; au moins un exercice de boucle en Répétitions ; message court ; colonnes resserrées | `allowedModes` / `lastRepetitionsLocked` (AMRAP, boucle ; For time inchangé) ; `withMovementMode` retire Max en Durée ; Max grisé en Durée ; message `format-last-repetitions` ; colonnes à la largeur de leur plus longue valeur (AMRAP, Death by, Objectif / Pause / Charge). |
+| n-charge-switch | Colonne Unité retirée ; « (rép, +kg) » sous le nom ; charges plus petites et serrées ; trois séries visibles ; nom aligné sur l'objectif | `SeriesTable` refait (nom 128, sous-titre Regular 11, ligne objectif 26 alignée sur le nom, charge Regular 11 sur 16, colonnes = largeur visible / 3). **Suivant et charges : non reproduit** — l'ordre de Suivant passe déjà par la charge d'un mouvement chargé (Objectif → Pause → Charge) ; à préciser si l'arrêt est attendu sur un mouvement sans charge (« (+ kg) »). |
+| n-tabata | Tabata et 30/30 : objectif | Décision « Durée seule, sans choix » : `allowedModes` → Durée ; pas de choix d'unité dans la barre. |
+
+Tests : `app/__tests__/formatsWindowRoute.test.tsx` (4), `FormatModelScreen.c3` (croix du questionnaire vers la modale), `formats.complement0511` (« recette du 05/11 : unités de l'objectif », 3).

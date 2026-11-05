@@ -6,6 +6,8 @@ import { configurationValidity } from "@/domain/sessions/configurationValidity";
 import { DEATH_BY_INTERVAL_LIMIT, deathByIntervalLimit, type DeathByMember } from "@/domain/sessions/deathByLimit";
 import {
   adaptMovementsToAnswers,
+  allowedModes,
+  lastRepetitionsLocked,
   amrapRoundTarget,
   buildModelElements,
   chargePerSeries,
@@ -293,5 +295,33 @@ describe("Renforcement, À l'échec, Progression, For time : valeurs initiales c
     const answers = initialAnswers("SUPERSET");
     const [movement] = adaptMovementsToAnswers("SUPERSET", { ...answers, roundCount: 4 }, [row("SUPERSET", answers, "a", { cells: cells([12, 12, 12]) })]);
     expect(movement!.values.cells!.map((cell) => cell.repetitions)).toEqual([12, 12, 12, null]);
+  });
+});
+
+// Recette iPhone du 05/11/2026 (n-tabata, n-charge-colonne) — décisions de Hermann.
+describe("recette du 05/11 : unités de l’objectif", () => {
+  it("Tabata et 30/30 : objectif en Durée seule (décision « Durée seule, sans choix »)", () => {
+    for (const key of ["TABATA", "INTERVALS_30_30"] as const) {
+      const answers = initialAnswers(key);
+      expect(allowedModes(key, [row(key, answers, "a"), row(key, answers, "b")], 0)).toEqual(["DURATION"]);
+    }
+  });
+
+  it("AMRAP : au moins un exercice de la boucle en Répétitions ; le seul restant ne passe pas en Durée ; buy-in libre", () => {
+    const answers = { ...initialAnswers("AMRAP"), buyIn: true };
+    const buyIn = { ...row("AMRAP", answers, "i", { mode: "REPETITIONS" }), buyIn: true as const };
+    const a = row("AMRAP", answers, "a", { mode: "REPETITIONS" });
+    const b = row("AMRAP", answers, "b", { mode: "DURATION" });
+    expect(allowedModes("AMRAP", [buyIn, a, b], 1)).toEqual(["REPETITIONS"]);
+    expect(lastRepetitionsLocked("AMRAP", [buyIn, a, b], 1)).toBe(true);
+    expect(allowedModes("AMRAP", [buyIn, a, b], 0)).toEqual(["REPETITIONS", "DURATION"]);
+    const c = row("AMRAP", answers, "c", { mode: "REPETITIONS" });
+    expect(allowedModes("AMRAP", [a, c], 0)).toEqual(["REPETITIONS", "DURATION"]);
+    // Un seul mouvement : Répétitions.
+    expect(allowedModes("AMRAP", [a], 0)).toEqual(["REPETITIONS"]);
+  });
+
+  it("AMRAP : Max en Répétitions seulement — passer en Durée retire Max", () => {
+    expect(withMovementMode({ mode: "REPETITIONS", repetitions: 10, max: true }, "DURATION")).toMatchObject({ mode: "DURATION", max: false });
   });
 });
