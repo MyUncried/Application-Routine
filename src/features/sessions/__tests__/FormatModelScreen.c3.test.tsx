@@ -280,8 +280,13 @@ describe("FormatModelScreen", () => {
     await pick("Fen", "mv-fentes");
     expect(alert).not.toHaveBeenCalled();
     await pick("Squ", "mv-squats");
-    expect(alert).toHaveBeenCalledWith(t.supersetLimitTitle, t.supersetLimitMessage);
+    const [title, message, buttons] = alert.mock.calls[0] as [string, string, { text: string; onPress: () => void }[]];
+    expect([title, message]).toEqual([t.supersetLimitTitle, t.supersetLimitMessage]);
     expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
+    // Recette du 05/11 (g-superset-deux) : « J'ai compris » ferme la saisie, texte effacé, retour au questionnaire.
+    expect(buttons.map((button) => button.text)).toEqual([t.supersetLimitAcknowledge]);
+    act(() => buttons[0]!.onPress());
+    expect(screen.queryByTestId("format-search")).toBeNull();
     alert.mockRestore();
   });
 
@@ -310,7 +315,8 @@ describe("FormatModelScreen", () => {
     await screen.findByTestId("format-title");
     fireEvent.press(screen.getByTestId("format-movements-link"));
     fireEvent.changeText(screen.getByTestId("format-search"), "zzzz");
-    expect(screen.getByTestId("format-suggestions")).toBeTruthy();
+    // Recette du 05/11 (g-recherche-vide) : « Afficher "aucun résultat" dans le cadre de la zone de recherche ».
+    expect(screen.getByTestId("format-suggestions-empty")).toHaveTextContent(t.noSearchResult);
     expect(screen.queryByTestId("format-suggestion-mv-squats")).toBeNull();
   });
 

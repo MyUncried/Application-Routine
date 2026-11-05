@@ -6,6 +6,7 @@ import { isValidElement, useCallback, useContext, useEffect, useMemo, useRef, us
 import {
   Alert,
   Keyboard,
+  LayoutAnimation,
   Platform,
   Pressable,
   ScrollView,
@@ -518,6 +519,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // lettres : la zone de recherche apparaît. Il faut qu'elle descende jusqu'au clavier au minimum par défaut ») :
   // son bas rejoint le haut du clavier. [Hauteur maximale d'un tiers de l'écran — remplacée.]
   const suggestionsRef = useRef<View>(null);
+  const safeBottom = initialWindowMetrics?.insets.bottom ?? 0;
   const rootRef = useRef<View>(null);
   const [suggestionsTop, setSuggestionsTop] = useState<number | null>(null);
   // Recette du 05/11/2026 (constat c, Hermann : « je ne peux pas faire défiler tous les résultats, un ou des mouvements
@@ -541,10 +543,25 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const settle = setTimeout(measureSuggestions, (keyboardFrame.duration > 0 ? keyboardFrame.duration : 250) + 120);
     return () => clearTimeout(settle);
   }, [keyboardFrame, measureSuggestions]);
+  // Recette du 05/11/2026 (g-recherche-rebond, Hermann : « Le clavier descend après le rebond, ok, mais la zone de recherche
+  // doit alors occuper toute la hauteur de l'écran jusqu'en bas et ne pas s'arrêter à hauteur du clavier qui a disparu. Elle doit
+  // donc s'étendre avec le clavier, et se raccourcir avec lorsqu'il réapparaît ») : sans clavier, le cadre descend jusqu'au bas
+  // de l'écran (zone sûre déduite) ; le changement suit l'animation du clavier.
   const suggestionsHeight =
-    keyboardFrame !== null && suggestionsTop !== null
-      ? Math.max(SUGGESTIONS_MIN_HEIGHT, keyboardFrame.screenY - suggestionsTop - SUGGESTIONS_TO_KEYBOARD)
-      : Math.max(SUGGESTIONS_MIN_HEIGHT, Math.round(windowHeight * 0.32));
+    suggestionsTop === null
+      ? Math.max(SUGGESTIONS_MIN_HEIGHT, Math.round(windowHeight * 0.32))
+      : Math.max(
+          SUGGESTIONS_MIN_HEIGHT,
+          (keyboardFrame !== null && keyboardFrame.screenY > 0 && keyboardFrame.screenY < windowHeight ? keyboardFrame.screenY : windowHeight - safeBottom) -
+            suggestionsTop -
+            SUGGESTIONS_TO_KEYBOARD,
+        );
+  const keyboardShown = keyboardFrame !== null;
+  const [suggestionsKeyboard, setSuggestionsKeyboard] = useState(keyboardShown);
+  if (suggestionsKeyboard !== keyboardShown) {
+    setSuggestionsKeyboard(keyboardShown);
+    if (!reduceMotion) LayoutAnimation.configureNext({ duration: keyboardFrame?.duration || 250, update: { type: LayoutAnimation.Types.keyboard } });
+  }
   // Mode catalogue (mise à jour consolidée du 04/11/2026 §3 ; référence Formats §7.1 à §7.3) : « Ouvrir le mode
   // catalogue » reste dans la modale — recherche détachée avec croix d'effacement, Filtrer, Trier (inactif, comme au
   // Catalogue) et Replier / déplier les piles, petites cartes avec filet des niveaux, sans compteur ; « Ajouter »
@@ -582,7 +599,21 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Recette du 04/11/2026 (x-sans-recap, Hermann : « Superset : questionnaire : il manque la ligne de récupération après
   // la paire ; on ne doit pas pouvoir sélectionner plus de deux exercices, afficher un message ») : deux exercices au plus ; au-delà, message et aucun ajout.
   const supersetFull = (adding: number) => model === "SUPERSET" && movements.length + adding > 2;
-  const warnSupersetFull = () => Alert.alert(t().supersetLimitTitle, t().supersetLimitMessage);
+  // Recette du 05/11/2026 (g-superset-deux, Hermann : « Remplacer Ok par J'ai compris. Lorsque l'utilisateur a appuyé il faut
+  // fermer le clavier, le mode catalogue s'il est ouvert, supprimer le texte de la zone de saisie et revenir à l'écran
+  // questionnaire »).
+  const warnSupersetFull = () =>
+    Alert.alert(t().supersetLimitTitle, t().supersetLimitMessage, [
+      {
+        text: t().supersetLimitAcknowledge,
+        onPress: () => {
+          Keyboard.dismiss();
+          if (catalogueMode) closeCatalogue();
+          setQuery("");
+          setSearchRole(null);
+        },
+      },
+    ]);
   const togglePicked = (movement: Movement) => {
     if (!picked.has(movement.id) && searchRole === "LOOP" && supersetFull(picked.size + 1)) {
       warnSupersetFull();
@@ -1110,7 +1141,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           }
           accessibilityRole="button"
           accessibilityLabel={t().expandPiles}
-          style={[styles.familyRailZone, { bottom: 26 + leaves * PILE_LEAF_STEP }]}
+          // Recette du 05/11/2026 (g-cat-pile, Hermann : « Le filet ne reste pas sur la pile ») : le filet longe la carte du
+          // dessus (marges de 8), au lieu de partir du milieu de la première carte comme pour une pile dépliée.
+          style={[styles.familyRailZone, { top: 8, bottom: 8 + leaves * PILE_LEAF_STEP }]}
           testID={`format-family-${item.key}-expand`}
         >
           <View style={styles.familyRailLine} />
@@ -1311,6 +1344,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                 des résultats, vide. */}
             {query.trim().length > 0 ? (
               <View ref={suggestionsRef} onLayout={measureSuggestions} collapsable={false}>
+                {/* Recette du 05/11/2026 (g-recherche-vide, Hermann : « Afficher "aucun résultat" dans le cadre de la zone de
+                    recherche »). */}
                 <ScrollView
                   style={[styles.suggestions, { height: suggestionsHeight }]}
                   contentContainerStyle={styles.suggestionsContent}
@@ -1330,6 +1365,11 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                   nestedScrollEnabled
                   testID="format-suggestions"
                 >
+                  {suggestionItems.length === 0 ? (
+                    <Text style={styles.noResult} testID="format-suggestions-empty">
+                      {t().noSearchResult}
+                    </Text>
+                  ) : null}
                   {familyCards(
                     suggestionItems,
                     (choice) => (
@@ -1744,6 +1784,7 @@ const styles = StyleSheet.create({
   searchInput: { height: 44, borderRadius: 12, backgroundColor: PANEL, paddingHorizontal: 16, fontFamily: "Inter_400Regular", fontSize: 16, color: LABEL },
   suggestions: { flexGrow: 0, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E3E8F0" },
   suggestionsContent: { gap: 8, padding: 8 },
+  noResult: { paddingHorizontal: 4, paddingVertical: 4, fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   cardSlot: { marginHorizontal: 16, marginBottom: CARD_GAP },
   liftedCard: { zIndex: 2, shadowColor: "#000000", shadowOpacity: 0.16, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
   fallbackCard: { minHeight: 52, justifyContent: "center", paddingHorizontal: 12, borderRadius: 12, backgroundColor: PANEL },

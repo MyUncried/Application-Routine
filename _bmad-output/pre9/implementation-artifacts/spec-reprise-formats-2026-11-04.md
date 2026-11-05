@@ -138,7 +138,7 @@ Cahier « Recette Formats 04/11 », bloc « Constats » (c à f) et lignes KO du
 | e-cat-filet | B | Pile repliée : deux feuilles sous la carte du dessus, filet conservé qui déplie la pile ; « Replier » replie chaque pile | ch07 |
 | e-replie-glisse | B | Bloc d'actions translaté avec le Circuit (`slideActions`) | Formats §7.8 (annotation), ch07 |
 
-**À CLARIFIER.** Le format compact ' et " a aussi été appliqué aux blocs For time en durée (et aux blocs buy-in / buy-out), par cohérence du Déroulé ; Hermann ne l'a demandé que pour l'AMRAP. À confirmer ou à retirer.
+**À CLARIFIER — tranché.** Le format compact ' et " a aussi été appliqué aux blocs For time en durée (et aux blocs buy-in / buy-out). [05/11/2026, Hermann (g-fortime-deroule) : « On garde, même format de durée pour tous les déroulés » — classe B.]
 
 **Non traité.** e-voile (« Il reste cet effet "flash", est-il possible de le supprimer ou de l'atténuer ? ») : l'empilement de deux feuilles natives est animé par iOS ; aucune correction n'est proposée sans essai sur iPhone. Constats a et b : déjà traités (ajout en fin de Séance ; contrôle segmenté, option sélectionnée à droite).
 
@@ -151,3 +151,16 @@ Hermann : « Un point à corriger pour tous les écrans questionnaires, récapit
 Classe B. Réalisation : chaque valeur des lignes de paramètres se tape dans sa pastille (pavé numérique ; durée « MM:SS » remplie par la droite, comme dans les tableaux) ; la barre du clavier (Précédent, Suivant, Fermer) enchaîne les lignes dans l'ordre affiché puis les cases du tableau ; bornes appliquées à la saisie ; une case vidée garde sa valeur, sauf le Temps limite qui repasse à « Sans limite » ; une valeur « variable » demande la confirmation existante à l'entrée dans la case. Composant : `TableCell` (variante `badge`) dans `stepRow` ; ordre de Suivant = lignes de paramètres (ordre affiché), puis `tableCellOrder` (Progression : tableau entre Nombre de séries et Pause). Stepper `ValueStepper` supprimé.
 
 **Interprétations à confirmer :** case vidée → valeur précédente conservée (Temps limite → « Sans limite ») ; valeur hors bornes ramenée à la borne ; le contrôle d'Exécution (menu) et les interrupteurs restent des contrôles tactiles. Documents : référence Formats §7.1, ch13 CE-FMT-02 § 10, ch07.
+
+### 12.2 Contre-recette du 05/11/2026
+
+| Ligne | Classe | Correction |
+|---|---|---|
+| g-cat-pile, e-cat-filet — « Le filet ne reste pas sur la pile » | A (rendu) | Filet de la pile repliée le long de la carte du dessus (marges de 8) ; il était de hauteur négative sur une carte de 52 |
+| g-fortime-cadre — largeur des zones de saisie | B | Zones de saisie For time en pastille (largeur de la valeur, min 48, rayon 10), comme les valeurs des lignes de paramètres |
+| g-recherche-vide — « aucun résultat » | B | Texte « Aucun résultat » dans le cadre des suggestions |
+| g-recherche-rebond — cadre jusqu'en bas | B | Sans clavier, le cadre des suggestions descend jusqu'au bas de l'écran (zone sûre déduite) ; changement animé au rythme du clavier |
+| g-superset-deux — « J'ai compris » | B | Bouton « J'ai compris » ; puis clavier fermé, mode catalogue fermé, texte effacé, retour au questionnaire |
+| g-fortime-deroule | B | Format ' et " conservé pour tous les Déroulés |
+
+Documents : ch07 (« Recette iPhone du 05/11/2026 »). Rien n'est vérifié sur iPhone.

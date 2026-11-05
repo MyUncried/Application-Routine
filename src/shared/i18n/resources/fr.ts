@@ -584,6 +584,8 @@ export const fr = {
       variableConfirmMessage: "Les exercices ont des valeurs différentes. La nouvelle valeur s’appliquera à tous.",
       supersetLimitTitle: "Deux exercices au maximum",
       supersetLimitMessage: "Le Superset enchaîne deux exercices. Retirez-en un pour en choisir un autre.",
+      supersetLimitAcknowledge: "J’ai compris",
+      noSearchResult: "Aucun résultat",
       variableConfirmCancel: "Annuler",
       variableConfirmReplace: "Remplacer",
       // Recette n° 3 du 03/11/2026 : bouton du questionnaire AMRAP (passage au récapitulatif).

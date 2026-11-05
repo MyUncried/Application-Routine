@@ -295,7 +295,7 @@ export function TableCell({
       accessibilityLabel={label}
       style={[
         styles.cell,
-        badge ? styles.cellBadge : { width },
+        badge ? styles.cellBadge : boxed ? null : { width },
         boxed ? styles.cellBoxed : null,
         compact ? styles.cellCompact : null,
         tight ? styles.cellTight : null,
@@ -738,7 +738,10 @@ const styles = StyleSheet.create({
   rowNote: { paddingHorizontal: 12, paddingBottom: 6, marginTop: -4, textAlign: "right", fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
   // « 00:00 » de guidage, atténué tant que rien n'est tapé.
   cellGuide: { color: DISABLED_VALUE },
-  cellBoxed: { backgroundColor: "#FFFFFF" },
+  // Recette du 05/11/2026 (g-fortime-cadre, Hermann : « La largeur du cadre des zones de saisie n'est pas conforme. Elle doit
+  // être identique aux autres zones de texte modifiable ») : pastille blanche à la largeur de sa valeur, comme les valeurs des
+  // lignes de paramètres. [Zone de la largeur de la colonne — remplacée.]
+  cellBoxed: { backgroundColor: "#FFFFFF", minWidth: 48, paddingHorizontal: 10, borderRadius: 10, alignSelf: "center" },
   cellCompact: { minHeight: COMPACT_LOAD_HEIGHT, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 11 },
   cellTight: { minHeight: BARE_OBJECTIVE_HEIGHT, paddingVertical: 0 },
   cellBadge: { minHeight: 26, minWidth: 48, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: "#FFFFFF" },
