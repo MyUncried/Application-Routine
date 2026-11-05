@@ -263,6 +263,13 @@ export type ActivityEditorFormProps = {
    * `false` : carte touchable, inchangée.
    */
   parametersReadOnly?: boolean;
+  /**
+   * Fiche de l'Exercice ouverte par sa photo dans la Composition — complément du 5 novembre 2026 (Hermann, §10, Figma
+   * `11580:21528`) : section « Dans cette séance » sous le média, avant la Description : la Phrase des paramètres de
+   * l'Exercice, suivie de sa Récupération propre (`recovery`, phrase complète, ou `null` si elle n'est pas renseignée).
+   * Remplace alors la carte des paramètres (lecture seule).
+   */
+  inThisSession?: { readonly recovery: string | null };
 };
 
 /** PRE-8 (B.2, CE-MVT-01 §9) : gabarit photo de référence, 402 × 329, mis à la largeur du terminal. */
@@ -451,6 +458,7 @@ export function ActivityEditorForm({
   keepNameFocusOnSubmit = false,
   hideEmptySections = false,
   parametersReadOnly = false,
+  inThisSession,
 }: ActivityEditorFormProps) {
   const isMovement = variant === "movement";
   const windowSize = useWindowDimensions();
@@ -1100,10 +1108,21 @@ export function ActivityEditorForm({
           onContentSizeChange={onBodyMeasure !== undefined ? (_width, height) => reportBody({ content: height }) : undefined}
           testID="exercise-body"
         >
+          {inThisSession !== undefined ? (
+            <View style={styles.section} accessible accessibilityLabel={[strings.executionParameters.card.inThisSession, phrase, inThisSession.recovery].filter(Boolean).join(". ")} testID="exercise-section-in-this-session">
+              <Text style={styles.sectionTitle} accessibilityRole="header">
+                {strings.executionParameters.card.inThisSession}
+              </Text>
+              <Text style={styles.phrase}>
+                {renderPhrase()}
+                {inThisSession.recovery !== null ? ` ${inThisSession.recovery}` : null}
+              </Text>
+            </View>
+          ) : null}
           {/* P7 (FR-02-02, AC3) : la Description précède la Carte Paramètres d'exécution. */}
           {showDescription ? (
           <View
-            style={styles.section}
+            style={[styles.section, inThisSession !== undefined ? styles.followingSection : null]}
             onLayout={(event) => {
               descriptionLayoutRef.current.sectionY = event.nativeEvent.layout.y;
             }}
@@ -1198,7 +1217,7 @@ export function ActivityEditorForm({
           ) : null}
           {/* PRE-9 (recette iPhone du 29/10) : Exercice d'une Séance ouvert au gabarit Mouvement — la
               carte des paramètres locaux suit les phases (`executionParametersCard`). */}
-          {(!isMovement || executionParametersCard) && showParameters ? (
+          {(!isMovement || executionParametersCard) && showParameters && inThisSession === undefined ? (
             <>
           {/* Q23 (AC14) : aucun bouton ni nom du Mode à droite du titre ; la Carte est la
               seule zone touchable et le seul focus (AC6) ; le Mode se choisit dans la Feuille. */}

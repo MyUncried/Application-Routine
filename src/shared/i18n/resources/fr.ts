@@ -515,8 +515,9 @@ export const fr = {
         existingActivity: "Utiliser des mouvements existants",
         existingSession: "Utiliser une séance existante",
         useFormat: "Utiliser un format d’entraînement",
-        addCircuit: "Ajouter un circuit",
-        addCycle: "Ajouter un cycle",
+        // Complément du 5 novembre 2026 (§3) : « Créer un circuit », « Créer un cycle ». [« Ajouter un … » — remplacé.]
+        addCircuit: "Créer un circuit",
+        addCycle: "Créer un cycle",
         cancel: "Annuler",
         // Action indisponible : même traitement que « Un circuit » du menu du Catalogue (atténuée,
         // nom suivi de « indisponible »). Formulation à valider.
@@ -670,6 +671,9 @@ export const fr = {
     // PRE-9 C.2, référence Formats du 02/11/2026 (CE-FMT-01, Figma `9977:19613`) : fenêtre « Formats
     // d'entraînement » — dix cartes, sans carte Exercice, Séance, Libre ni Gainage · Mobilité.
     sessionModels: {
+      // Complément du 5 novembre 2026 (§4) : modale de création « Créer un exercice », section « Formats d'entraînement ».
+      creationTitle: "Créer un exercice",
+      freeExercise: { title: "Exercice libre", subtitle: "un mouvement, puis ses paramètres" },
       title: "Formats d’entraînement",
       closeAccessibilityLabel: "Fermer",
       cards: {

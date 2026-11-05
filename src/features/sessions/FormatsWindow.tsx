@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-na
 
 import type { ElementFormatKey, PreconfigurationKey } from "@/domain/sessions/formats";
 import { strings } from "@/shared/i18n";
+import { OptionIcon } from "@/features/sessions/CreateMenu";
 import { CloseCircleAction } from "@/shared/ui/ScreenShell";
 
 /**
@@ -323,12 +324,21 @@ function ModelCard({ model, width, onPress }: { model: SessionModel; width: numb
   );
 }
 
+/**
+ * Modale de création commune — complément du 5 novembre 2026 (Hermann, §1 et §4 ; CE-CREATION-01, Figma `9977:19613`) :
+ * titre « Créer un exercice », carte pleine largeur « Exercice libre » (« un mouvement, puis ses paramètres ») au-dessus de
+ * la grille, titre de section « Formats d'entraînement ». Ouverte depuis « Créer » du Catalogue des séances et depuis
+ * « Créer un exercice » du menu de la Composition. « Exercice libre » est une entrée de création, pas un Format.
+ * [Fenêtre « Formats d'entraînement » seule, ouverte par « Utiliser un format d'entraînement » — remplacée.]
+ */
 export function FormatsWindow({
   onClose,
   onSelect,
+  onFreeExercise,
 }: {
   readonly onClose: () => void;
   readonly onSelect: (key: FormatModelKey) => void;
+  readonly onFreeExercise: () => void;
 }) {
   // ESSAI du 04/11/2026 (Hermann : « On garde cette modale native pour les questionnaires, les récapitulatifs, les fiches
   // de mouvement. Applique-la aussi à la modale du format d'entraînement que je voie ce que cela fait de bout en bout ») :
@@ -343,9 +353,34 @@ export function FormatsWindow({
       <View style={styles.header}>
         <CloseCircleAction onPress={onClose} accessibilityLabel={t().closeAccessibilityLabel} style={styles.close} testID="formats-window-close" />
         <Text style={styles.windowTitle} accessibilityRole="header">
-          {t().title}
+          {t().creationTitle}
         </Text>
       </View>
+      <Pressable
+        onPress={() => {
+          if (chosen) return;
+          setChosen(true);
+          onFreeExercise();
+          setTimeout(() => setChosen(false), 600);
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={`${t().freeExercise.title}, ${t().freeExercise.subtitle}`}
+        style={({ pressed }) => [styles.freeCard, pressed ? styles.cardPressed : null]}
+        testID="formats-window-free-exercise"
+      >
+        <View style={styles.freeTexts}>
+          <Text style={styles.title} numberOfLines={1}>
+            {t().freeExercise.title}
+          </Text>
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {t().freeExercise.subtitle}
+          </Text>
+        </View>
+        <OptionIcon icon="exercise" />
+      </Pressable>
+      <Text style={styles.sectionTitle} accessibilityRole="header" testID="formats-window-section">
+        {t().title}
+      </Text>
       <View style={styles.grid} testID="formats-window-grid">
         {[...MODELS_FORMATS, ...MODELS_QUICK_STARTS].map((model) => (
           <ModelCard
@@ -408,6 +443,26 @@ const styles = StyleSheet.create({
     marginLeft: 7,
     marginTop: -6,
     flexShrink: 1,
+  },
+  // Figma `9977:19613` : carte 338 × 64, rayon 20, fond #F0F2F7 ; pictogramme rond bleu de 32 à droite.
+  freeCard: {
+    height: 64,
+    borderRadius: CARD_RADIUS,
+    backgroundColor: "#F0F2F7",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 16,
+  },
+  freeTexts: {
+    flex: 1,
+  },
+  // Figma : « Formats d'entraînement », Inter Regular 13, #5C636E, 16 sous la carte, 8 au-dessus de la grille.
+  sectionTitle: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: SUBTITLE_COLOR,
+    marginTop: 16,
+    marginBottom: 8,
   },
   grid: {
     flexDirection: "row",

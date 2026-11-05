@@ -471,15 +471,15 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
   });
 
-  // PRE-9 A.2 — ARB-22a, D-449 : « Créer un nouvel exercice » ouvre la création d'un Mouvement
-  // (contexte Séance), plus l'ancien éditeur `/exercise`.
-  it("navigates to the Movement creation (session context) when 'Créer un nouvel exercice' is selected from the add-activity tree", () => {
+  // Complément du 5 novembre 2026 (§3) : « Créer un exercice » ouvre la modale de création commune (Exercice libre et
+  // Formats). [PRE-9 A.2 : création directe d'un Mouvement en contexte Séance — remplacé ; « Exercice libre » y mène.]
+  it("navigates to the creation modal when 'Créer un exercice' is selected from the add-activity tree", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-new"));
 
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/movement", params: { context: "session" } });
+    expect(mockPush).toHaveBeenCalledWith("/formats-window");
     expect(mockPush).not.toHaveBeenCalledWith("/exercise");
   });
 
@@ -489,14 +489,14 @@ describe("CompositionScreen — état initial", () => {
   // nom dans « Créer un exercice ».] [Rétabli par la recette iPhone du 01/11/2026 (m11-menu, Hermann :
   // « il faut intégrer de nouveau l'option du menu « utiliser un mouvement existant » ») : test d'avant
   // le 01/11 restauré.]
-  it("navigates to /movement-selection when 'Utiliser un mouvement existant' is selected from the add-activity tree", () => {
+  // [Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu.]
+  it("the add-activity tree no longer offers 'Utiliser des mouvements existants' nor 'Utiliser un format d'entraînement'", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByTestId("composition-add-activity-tree-existing"));
 
-    expect(mockPush).toHaveBeenCalledWith("/movement-selection");
-    expect(mockPush).not.toHaveBeenCalledWith("/activity-selection");
+    expect(screen.queryByTestId("composition-add-activity-tree-existing")).toBeNull();
+    expect(screen.queryByTestId("composition-add-activity-tree-format")).toBeNull();
   });
 
   it("closes the add-activity tree without any navigation on Annuler", () => {
@@ -5728,325 +5728,14 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
   });
 });
 
-describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.4, CE-CIR-03)", () => {
-  // PRE-6 story 7.7 : actions glissées animées.
-  swipeMotion();
-  type Draft = SessionDraftContextValue["draft"];
-  const anyNode = { includeHiddenElements: true } as const;
-  const probe: { draft: Draft | null } = { draft: null };
-  function DraftProbe() {
-    const value = useContext(SessionDraftContext);
-    useEffect(() => {
-      probe.draft = value?.draft ?? null;
-    }, [value]);
-    return null;
-  }
-  function renderWithProbe(exercises: readonly SessionDraftExercise[], overrides?: Partial<Draft>) {
-    return render(
-      <TestSafeAreaProvider>
-        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
-            <StatefulDraftWrapper initialExercises={exercises} draftOverrides={overrides}>
-              <CompositionScreen />
-              <DraftProbe />
-            </StatefulDraftWrapper>
-          </ReferentialServiceContext.Provider>
-        </ActivityDefinitionServiceContext.Provider>
-      </TestSafeAreaProvider>,
-    );
-  }
-  // PRE-6 story 5.1b (D4 remplacé) : l'œil est dans la zone de contexte.
-  const EYE = "composition-volumes-action";
-  const SHEET = "composition-circuit-volumes-sheet";
-  const circuitExercises = () => [
-    anActivity("before", "BEFORE_TOUR", { name: "Échauffement", executionParameters: repetitionParameters(20, 6) }),
-    anActivity("a", "IN_TOUR", { name: "Squat assisté", executionParameters: repetitionParameters(10, 2) }),
-    anActivity("b", "IN_TOUR", { name: "Extension du genou", executionParameters: durationParameters(45, 4) }),
-  ];
-
-  // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil quitte l'en-tête du Circuit
-  // pour les commandes contextuelles de la zone de contexte ; même disponibilité (toujours présent,
-  // dans les deux natures, Circuit vide compris), même nom accessible.
-  it("story 5.1b — the eye sits in the context zone, first of the contextual commands, never in the Circuit header; in both natures and with an empty Circuit", () => {
-    renderWithProbe([]);
-    const context = screen.getByTestId("composition-context-header");
-    const eye = within(context).getByLabelText("Voir les volumes du circuit");
-    expect(eye.props.testID).toBe(EYE);
-    expect(eye.props.accessibilityRole).toBe("button");
-    expect(eye.props.accessibilityState).toMatchObject({ disabled: false });
-    // PRE-9 B.2 — D-451, COMP §1 : Séance vide, aucun Circuit (l'œil reste disponible, comportement inchangé).
-    expect(screen.queryByTestId("composition-circuit-header")).toBeNull();
-    // Ordre des commandes contextuelles : œil, « Ajouter un arrêt », « + ».
-    const order = screen
-      .getByTestId("composition-info-row")
-      .findAll((node) => typeof node.props.testID === "string")
-      .map((node) => node.props.testID as string);
-    expect(order.indexOf(EYE)).toBeGreaterThanOrEqual(0);
-    expect(order.indexOf(EYE)).toBeLessThan(order.indexOf("composition-add-stop-action"));
-    expect(order.indexOf("composition-add-stop-action")).toBeLessThan(order.indexOf("composition-add-activity-action"));
-    screen.unmount();
-    renderWithProbe(circuitExercises(), { circuitNature: "SERIES", tourRepeatCount: 4 });
-    expect(screen.getByTestId(EYE)).toBeTruthy();
-    expect(within(screen.getByTestId("composition-circuit-header")).queryByLabelText("Voir les volumes du circuit", anyNode)).toBeNull();
-  });
-
-  // Gabarit des commandes contextuelles (ch13 L1480 / L1591 : 34 / dessin 20 / écart 10 / cibles 44).
-  // Revue 5.1b : les cibles sont des boîtes RÉELLES de 44 × 44, jointives, sans marge négative ni
-  // hitSlop, contenues par des parents dont les limites les englobent (rangée de 44, en-tête étendu).
-  it("story 5.1b — real touch boxes: eye, « Ajouter un arrêt » and « + » are adjoining 44 × 44 boxes inside parents that contain them; circles 34, eye drawn at 20", () => {
-    renderWithProbe([]);
-    const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID, anyNode).props.style);
-    const commands = [EYE, "composition-add-stop-action", "composition-add-activity-action"];
-    for (const testID of commands) {
-      const node = screen.getByTestId(testID);
-      expect(node.props.hitSlop).toBeUndefined();
-      const box = style(testID);
-      expect(box).toMatchObject({ width: 44, height: 44, alignItems: "center", justifyContent: "center" });
-      // Aucune marge : la boîte occupe sa place dans le flux, rien ne dépasse de son parent.
-      for (const key of ["margin", "marginHorizontal", "marginVertical", "marginLeft", "marginRight", "marginTop", "marginBottom"] as const) {
-        expect(box[key]).toBeUndefined();
-      }
-      expect(style(`${testID}-circle`)).toMatchObject({ width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.primary });
-    }
-    // Cercles du « + » et de l'œil : même gabarit (fond blanc).
-    expect(style(`${EYE}-circle`).backgroundColor).toBe(colors.background);
-    expect(style("composition-add-activity-action-circle").backgroundColor).toBe(colors.background);
-    expect(style(`${EYE}-icon`)).toMatchObject({ width: 20, height: 20 });
-    // Groupe : boîtes jointives (aucun écart), hauteur 44 — l'écart visuel de 10 vient des marges des cercles.
-    const actions = style("composition-context-actions");
-    expect(actions).toMatchObject({ flexDirection: "row", height: 44, flexShrink: 0 });
-    expect(actions.gap ?? 0).toBe(0);
-    expect(44 - 34).toBe(10);
-    const order = screen
-      .getByTestId("composition-context-actions")
-      .findAll((node) => commands.includes(node.props.testID as string) && node.props.accessibilityRole === "button")
-      .map((node) => node.props.testID as string);
-    expect([...new Set(order)]).toEqual(commands);
-    // Parents : la rangée mesure 44 (marges −6, encombrement 32) ; l'en-tête s'étend de 5 à droite
-    // (dernière boîte, Figma : zone jusqu'à x 359) et de 6 en bas, compensés, le nom garde sa largeur.
-    expect(style("composition-info-row")).toMatchObject({ height: 44, marginVertical: -6 });
-    expect(style("composition-context-header")).toMatchObject({ marginRight: -5, paddingBottom: 6, marginBottom: -6 });
-    expect(style("composition-name-color-field").marginRight).toBe(5);
-  });
-
-  // Revue 5.1b : un seul contrôle actif (CIR-10) — l'œil, hors de la liste, referme aussi les
-  // actions glissées révélées et la bulle « Retirer ».
-  it("story 5.1b — opening the volumes closes the revealed swipe actions", () => {
-    renderWithProbe(circuitExercises());
-    fireSwipeLeft("before");
-    expect(screen.getByTestId("composition-activity-actions-before")).toBeTruthy();
-    fireEvent.press(screen.getByTestId(EYE));
-    expect(screen.getByTestId(SHEET)).toBeTruthy();
-    settleMotion();
-    expect(screen.queryByTestId("composition-activity-actions-before")).toBeNull();
-  });
-
-  it("story 5.1b — while a card is lifted (drag), the eye is disabled and opens nothing", () => {
-    renderWithProbe(circuitExercises());
-    measureDisplayedRows();
-    fireEvent(screen.getByTestId("composition-exercise-row-a"), "longPress");
-    expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
-    const eye = screen.getByTestId(EYE);
-    expect(eye.props.accessibilityState).toMatchObject({ disabled: true });
-    // État passager : pas d'atténuation.
-    expect(StyleSheet.flatten(eye.props.style).opacity).toBeUndefined();
-    fireEvent.press(eye);
-    expect(screen.queryByTestId(SHEET)).toBeNull();
-  });
-
-  // Restauré de la story 3.4 (`CircuitHeader.test.tsx`) : aucun focus au montage, un seul à la fermeture.
-  it("story 5.1b — the eye never takes the focus on mount; exactly one focus event when the sheet closes", () => {
-    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-    const targets = () =>
-      focus.mock.calls
-        .filter(([target]) => (target as unknown as { props: { testID?: string } }).props.testID === EYE)
-        .map(([, event]) => event);
-    try {
-      focus.mockClear();
-      renderWithProbe(circuitExercises());
-      expect(targets()).toEqual([]);
-      fireEvent.press(screen.getByTestId(EYE));
-      expect(targets()).toEqual([]);
-      const onDismiss = screen.getByTestId("composition-circuit-volumes-modal", anyNode).props.onDismiss as () => void;
-      act(() => fireEvent.press(screen.getByTestId("composition-circuit-volumes-close")));
-      act(() => onDismiss());
-      expect(targets()).toEqual(["focus"]);
-    } finally {
-      focus.mockRestore();
-    }
-  });
-
-  it("story 5.1b — placement: the eye is attenuated and inactive like « + » (unavailable), back to normal once the placement ends", () => {
-    renderWithProbe(circuitExercises());
-    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
-    const eye = screen.getByTestId(EYE);
-    expect(eye.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(StyleSheet.flatten(eye.props.style).opacity).toBe(0.45);
-    fireEvent.press(eye);
-    expect(screen.queryByTestId(SHEET)).toBeNull();
-    fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
-    expect(screen.getByTestId(EYE).props.accessibilityState).toMatchObject({ disabled: false });
-    expect(StyleSheet.flatten(screen.getByTestId(EYE).props.style).opacity).toBeUndefined();
-  });
-
-  it("opening the sheet shows the Domain grid, occurrences outside the Circuit excluded (story 7.3: the stepper is never « revealed »)", () => {
-    renderWithProbe(circuitExercises());
-
-    fireEvent.press(screen.getByTestId(EYE));
-    expect(screen.getByTestId(SHEET)).toBeTruthy();
-    expect(screen.queryByTestId("composition-circuit-nature-outside", anyNode)).toBeNull();
-
-    const sheet = screen.getByTestId(SHEET);
-    expect(within(sheet).getByLabelText(
-      "Squat assisté, série 1 : 10 répétitions, série 2 : 10 répétitions, série 3 : pas de série, série 4 : pas de série",
-    )).toBeTruthy();
-    expect(within(sheet).getByLabelText(
-      "Extension du genou, série 1 : 45 s, série 2 : 45 s, série 3 : 45 s, série 4 : 45 s",
-    )).toBeTruthy();
-    expect(within(sheet).queryByText("Échauffement", anyNode)).toBeNull();
-    expect(screen.getByTestId("composition-circuit-volumes-cell-b-1", anyNode).props.children).toBe("0:45");
-  });
-
-  it("Series nature (N = 3): same grid, from each exercise's own series", () => {
-    renderWithProbe(
-      [
-        anActivity("a", "IN_TOUR", { name: "Squat assisté", executionParameters: repetitionParameters(12, 3) }),
-        anActivity("b", "IN_TOUR", { name: "Pompes", executionParameters: allFailureParameters(3) }),
-      ],
-      { circuitNature: "SERIES", tourRepeatCount: 3 },
-    );
-    fireEvent.press(screen.getByTestId(EYE));
-    expect(screen.getByTestId("composition-circuit-volumes-unit-b", anyNode).props.children).toBe("À l’échec");
-    expect(screen.getByTestId("composition-circuit-volumes-cell-b-3", anyNode).props.children).toBe("✓");
-    expect(screen.getByTestId("composition-circuit-volumes-cell-a-3", anyNode).props.children).toBe("12");
-  });
-
-  it.each([
-    ["X", () => fireEvent.press(screen.getByTestId("composition-circuit-volumes-close"))],
-    ["scrim", () => fireEvent.press(screen.getByTestId("composition-circuit-volumes-scrim", anyNode))],
-    ["system back", () => fireEvent(screen.getByTestId("composition-circuit-volumes-modal", anyNode), "requestClose")],
-  ])("closing by %s leaves the draft strictly identical; the focus goes back to the eye once the Modal is dismissed (iOS)", (_label, close) => {
-    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-    const focusTargets = () =>
-      focus.mock.calls.map(([target, event]) => [(target as unknown as { props: { testID?: string } }).props.testID, event]);
-    try {
-      renderWithProbe(circuitExercises(), { circuitNature: "SERIES", tourRepeatCount: 2 });
-      const before = probe.draft!;
-      focus.mockClear();
-      fireEvent.press(screen.getByTestId(EYE));
-      expect(probe.draft).toBe(before);
-      const onDismiss = screen.getByTestId("composition-circuit-volumes-modal", anyNode).props.onDismiss as () => void;
-      act(() => close());
-      expect(screen.queryByTestId(SHEET)).toBeNull();
-      expect(probe.draft).toBe(before);
-      expect(sessionDraftsEqual(probe.draft!, before)).toBe(true);
-      // Pas de focus tant que la `Modal` native n'a pas fini de disparaître.
-      expect(focusTargets()).toEqual([]);
-      act(() => onDismiss());
-      expect(focusTargets()).toEqual([[EYE, "focus"]]);
-    } finally {
-      focus.mockRestore();
-    }
-  });
-
-  it("a stale or repeated close does nothing more (one focus request, sheet stays closed)", () => {
-    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-    try {
-      renderWithProbe(circuitExercises());
-      fireEvent.press(screen.getByTestId(EYE));
-      const modal = screen.getByTestId("composition-circuit-volumes-modal", anyNode);
-      const onDismiss = modal.props.onDismiss as () => void;
-      const staleClose = modal.props.onRequestClose as () => void;
-      focus.mockClear();
-      act(() => {
-        staleClose();
-        staleClose();
-      });
-      act(() => onDismiss());
-      act(() => staleClose());
-      expect(screen.queryByTestId(SHEET)).toBeNull();
-      expect(focus).toHaveBeenCalledTimes(1);
-    } finally {
-      focus.mockRestore();
-    }
-  });
-
-  it("focus loss (useFocusEffect cleanup) closes the sheet with the draft unchanged, without moving the focus", () => {
-    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-    try {
-      mockFocusHarness.callbacks = [];
-      renderWithProbe(circuitExercises());
-      fireEvent.press(screen.getByTestId(EYE));
-      expect(screen.getByTestId(SHEET)).toBeTruthy();
-      const before = probe.draft;
-      const onDismiss = screen.getByTestId("composition-circuit-volumes-modal", anyNode).props.onDismiss as () => void;
-      focus.mockClear();
-      act(() => {
-        mockFocusHarness.callbacks.forEach((callback) => (callback() as unknown as (() => void) | undefined)?.());
-      });
-      expect(screen.queryByTestId(SHEET)).toBeNull();
-      act(() => onDismiss());
-      expect(probe.draft).toBe(before);
-      expect(focus).not.toHaveBeenCalled();
-    } finally {
-      focus.mockRestore();
-    }
-  });
-
-  it("Android: the eye closes the open nature panel (one active control); closing the sheet gives the focus back without onDismiss", () => {
-    const platformBefore = Platform.OS;
-    Platform.OS = "android";
-    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-    try {
-      renderWithProbe(circuitExercises());
-      fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
-      fireLayout(screen.getByTestId("composition-circuit-header"), 12, 44);
-      const PANEL = "composition-circuit-header-counter-nature-panel";
-      fireEvent.press(screen.getByTestId("composition-circuit-header-counter-nature"));
-      expect(screen.getByTestId(PANEL)).toBeTruthy();
-      const before = probe.draft;
-      // Panneau ouvert : le reste de l'écran est masqué pour l'accessibilité, l'œil reste touchable.
-      fireEvent.press(screen.getByTestId(EYE, anyNode));
-      expect(screen.queryByTestId(PANEL, anyNode)).toBeNull();
-      expect(screen.getByTestId(SHEET)).toBeTruthy();
-      focus.mockClear();
-      fireEvent.press(screen.getByTestId("composition-circuit-volumes-close"));
-      expect(screen.queryByTestId(SHEET)).toBeNull();
-      expect(probe.draft).toBe(before);
-      const targets = focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
-      expect(targets).toEqual([EYE]);
-    } finally {
-      focus.mockRestore();
-      Platform.OS = platformBefore;
-    }
-  });
-
-  it("empty Circuit: the sheet opens on the empty state, without fictitious value", () => {
-    renderWithProbe([anActivity("before", "BEFORE_TOUR")]);
-    fireEvent.press(screen.getByTestId(EYE));
-    expect(screen.getByTestId("composition-circuit-volumes-empty").props.children).toBe("Aucun exercice dans le circuit");
-    expect(screen.queryByTestId("composition-circuit-volumes-grid", anyNode)).toBeNull();
-  });
-
-  it("a pending exit (abandon dialog) closes the sheet: never two stacked modals", () => {
-    renderWithProbe(circuitExercises());
-    fireEvent.press(screen.getByTestId(EYE));
-    const before = probe.draft;
-    mockExitGuard.mockReturnValue({ ...defaultExitGuardResult(), isPendingExit: true });
-    screen.rerender(
-      <TestSafeAreaProvider>
-        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
-            <StatefulDraftWrapper initialExercises={circuitExercises()}>
-              <CompositionScreen />
-              <DraftProbe />
-            </StatefulDraftWrapper>
-          </ReferentialServiceContext.Provider>
-        </ActivityDefinitionServiceContext.Provider>
-      </TestSafeAreaProvider>,
-    );
-    expect(screen.queryByTestId(SHEET)).toBeNull();
-    expect(probe.draft).toBe(before);
+// Complément du 5 novembre 2026 (Hermann, §6) : le bouton œil « Voir les volumes » et la fenêtre « Volumes du circuit »
+// (CE-CIR-03) sont retirés ; « Ajouter un arrêt » et « + » gardent leur place. [Tests de la story 3.4 / 5.1b — remplacés.]
+describe("CompositionScreen — œil et « Volumes du circuit » retirés (complément du 5 novembre 2026)", () => {
+  it("la zone de contexte ne porte plus l'œil : seuls « Ajouter un arrêt » et « + »", () => {
+    renderScreen();
+    expect(screen.queryByTestId("composition-volumes-action")).toBeNull();
+    expect(screen.queryByTestId("composition-circuit-volumes")).toBeNull();
+    expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
   });
 });
 

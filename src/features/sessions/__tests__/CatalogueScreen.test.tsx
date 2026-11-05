@@ -423,8 +423,9 @@ describe("CatalogueScreen — cadre commun", () => {
 
     expect(screen.queryByTestId("catalogue-create-tree")).toBeNull();
     expect(mockPush).toHaveBeenCalledTimes(1);
-    // Référence Formats du 02/11/2026 (§7) : Créer ouvre la Composition ; les Formats s'ouvrent depuis son menu Créer.
-    expect(mockPush).toHaveBeenCalledWith("/composition");
+    // Complément du 5 novembre 2026 (§1–§2, CE-CREATION-01) : Créer ouvre la modale de création commune sur un nouveau
+    // brouillon (Composition d'arrivée, `create=1`). [Référence du 02/11 : Composition vide — remplacé.]
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/composition", params: { create: "1" } });
   });
 
   it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {

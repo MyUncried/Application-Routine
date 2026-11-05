@@ -114,7 +114,7 @@ describe("ExerciseSheet — fiche d'un Exercice de la Composition en lecture seu
       exercise({ instruction: encodeInstructionSteps(["Dos droit", "Genoux alignés"]), media: [PHOTO], executionParameters: parameters }),
     );
 
-    expect(screen.getByText(strings.screens.movement.titles.consult)).toBeTruthy();
+    expect(screen.getByText(strings.executionParameters.card.exerciseSheetTitle)).toBeTruthy();
     expect(screen.getByTestId("exercise-name-input").props.value).toBe("Squats");
     expect(screen.getByTestId("exercise-name-input").props.editable).toBe(false);
     expect(screen.getByTestId("movement-photo-template")).toBeTruthy();
@@ -125,7 +125,11 @@ describe("ExerciseSheet — fiche d'un Exercice de la Composition en lecture seu
     expect(screen.getByText("Montée")).toBeTruthy();
     const phrase = generateExecutionPhrase(parameters);
     expect(phrase).not.toBeNull();
-    expect(screen.getByTestId("exercise-parameters-card-readonly").props.accessibilityLabel).toBe(phraseText(phrase!));
+    // Complément du 5 novembre 2026 (§10) : section « Dans cette séance » — Phrase, puis Récupération propre à l'Exercice.
+    const section = screen.getByTestId("exercise-section-in-this-session");
+    expect(section.props.accessibilityLabel).toContain(phraseText(phrase!));
+    expect(screen.getByText(strings.executionParameters.card.inThisSession)).toBeTruthy();
+    expect(screen.queryByTestId("exercise-section-parameters")).toBeNull();
     // Pas de bouton d'action en bas.
     expect(screen.queryByTestId("exercise-sheet-finish-slot")).toBeNull();
     expect(screen.queryByTestId("exercise-sheet-finish-action")).toBeNull();
@@ -152,7 +156,7 @@ describe("ExerciseSheet — fiche d'un Exercice de la Composition en lecture seu
     await renderSheet(exercise());
 
     expect(screen.queryByTestId("exercise-parameters-card")).toBeNull();
-    const card = screen.getByTestId("exercise-parameters-card-readonly");
+    const card = screen.getByTestId("exercise-section-in-this-session");
     expect(card.props.accessibilityRole).toBeUndefined();
     expect(card.props.onPress).toBeUndefined();
     fireEvent.press(screen.getByTestId("exercise-parameters-phrase"));
@@ -169,7 +173,17 @@ describe("ExerciseSheet — fiche d'un Exercice de la Composition en lecture seu
     expect(screen.queryByText(strings.screens.movement.descriptionTitle)).toBeNull();
     expect(screen.queryByTestId("movement-photo-template")).toBeNull();
     expect(screen.queryByTestId("movement-section-phases")).toBeNull();
-    expect(screen.getByTestId("exercise-section-parameters")).toBeTruthy();
+    expect(screen.getByTestId("exercise-section-in-this-session")).toBeTruthy();
+  });
+
+  it("complément du 05/11 : « Dans cette séance » présente la Récupération propre à l'Exercice", async () => {
+    await renderSheet(exercise({ postActivityRecoverySeconds: 30 }));
+    expect(screen.getByTestId("exercise-section-in-this-session").props.accessibilityLabel).toContain("Récupération de 30 s avant l’exercice suivant.");
+  });
+
+  it("complément du 05/11 : récupération à 0 annoncée, récupération non renseignée omise", async () => {
+    await renderSheet(exercise({ postActivityRecoverySeconds: 0 }));
+    expect(screen.getByTestId("exercise-section-in-this-session").props.accessibilityLabel).toContain(strings.executionParameters.card.noRecoveryBeforeNext);
   });
 
   it("la croix ferme la fiche (retour à la Composition)", async () => {

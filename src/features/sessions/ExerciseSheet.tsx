@@ -18,11 +18,19 @@ import {
   useCategories,
   useProfileDefaults,
 } from "@/features/sessions/ExerciseScreen";
+import { formatCompactDuration } from "@/features/sessions/compositionPresentation";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 
 const noop = () => undefined;
+
+/** Récupération propre à l'Exercice, en phrase ; `null` si elle n'est pas renseignée. */
+function recoverySentence(seconds: number | null | undefined): string | null {
+  if (seconds === null || seconds === undefined) return null;
+  const card = strings.executionParameters.card;
+  return seconds > 0 ? card.recoveryBeforeNext.replace("{duration}", formatCompactDuration(seconds)) : card.noRecoveryBeforeNext;
+}
 
 function renseignedPhases(list: MovementPhaseList): MovementPhaseList {
   return { ...list, phases: list.phases.filter((phase) => phase.label.trim().length > 0) };
@@ -112,7 +120,8 @@ export function ExerciseSheet({
       <EditorHeader
         // Titre de consultation de la fiche d'un Exercice existant (`CompositionExerciseEditor`, Figma
         // `10419:22924` « Mouvement — Repris (lecture seule) ») ; le nom de l'Exercice suit, en tête de fiche.
-        title={strings.screens.movement.titles.consult}
+        // Complément du 5 novembre 2026 (§10, Figma `11580:21528`) : titre « Fiche de l'exercice ».
+        title={strings.executionParameters.card.exerciseSheetTitle}
         onClose={() => router.back()}
         accessibilityLabel={strings.screens.movement.close}
         topInset={0}
@@ -136,6 +145,9 @@ export function ExerciseSheet({
           contentLocked
           hideEmptySections
           parametersReadOnly
+          // Complément du 5 novembre 2026 (§10) : « Dans cette séance » — Phrase des paramètres et Récupération propre à
+          // l'Exercice (Figma `11580:21528` : « Récupération de 30 s avant l'exercice suivant. »).
+          inThisSession={{ recovery: recoverySentence(exercise.postActivityRecoverySeconds) }}
           mediaService={service}
           mediaDraftId={mediaDraftId}
           finishLabel=""

@@ -35,7 +35,6 @@ import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/session
 import {
   DEFAULT_CIRCUIT_NATURE,
   applyNatureChange,
-  circuitVolumes,
   circuitCountOutcome,
   prepareNatureChange,
   type CircuitCountResolution,
@@ -146,7 +145,7 @@ import {
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { firstMediaPreviewSource } from "@/features/activities/MediaPreview";
-import { MOVEMENT_SESSION_CONTEXT } from "@/features/activities/MovementScreen";
+
 import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
 import { useMovementLevelPositions } from "@/features/activities/useMovementLevelPositions";
 import { withLevelSuffix } from "@/features/activities/movementChoicePresentation";
@@ -163,7 +162,6 @@ import {
   type CircuitCardsReveal,
 } from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
-import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
 import { CardMotionBlock, useBlockDragGesture, VanishingBlock, type CardMotionMode } from "@/features/sessions/LayoutDragParts";
 import {
@@ -214,7 +212,7 @@ import { CarrierDurationSheet } from "@/features/sessions/CarrierDurationSheet";
 import { duplicateLayoutCircuit, removeLayoutCircuit, renameLayoutCircuit } from "@/domain/sessions/circuitActions";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { carrierDurationSetting, carrierHeaderOf, circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
-import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
+import { isExerciseParametersIncomplete } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
   clampSwipeTranslateX,
@@ -1233,20 +1231,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // de perte (jamais à l'ouverture d'un dialogue, au début d'une sortie ni à la perte du focus).
   const [natureFocusRequest, setNatureFocusRequest] = useState(0);
   const requestNatureFocus = useCallback(() => setNatureFocusRequest((current) => current + 1), []);
-  // PRE-6 (story 3.4) : demande de focus sur l'œil, à la fermeture de la feuille des volumes.
-  const [volumesFocusRequest, setVolumesFocusRequest] = useState(0);
   // PRE-6 story 5.1b (revue) : cibles de focus après le retrait du point « après le Circuit » quand
   // aucune occurrence ne le suit — compteur de l'en-tête du Circuit, à défaut la borne de Fin.
   const circuitCounterRef = useRef<View | null>(null);
   const finalBoundaryRef = useRef<View | null>(null);
-  // Feuille montée jusqu'à la fin de sa disparition native (`onDismissed`), pour que le focus ne
-  // soit rendu à l'œil qu'une fois la `Modal` réellement fermée.
-  const [isVolumesSheetMounted, setIsVolumesSheetMounted] = useState(false);
-  // Vrai seulement pour une fermeture par l'utilisateur (X, voile, glisser, retour) : une sortie
-  // ou la perte du premier plan referme la feuille sans déplacer le focus.
-  const volumesClosedByUserRef = useRef(false);
-  // Grille du Domaine recalculée seulement quand le brouillon change (la feuille la mémorise).
-  const volumes = useMemo(() => circuitVolumes(draft), [draft]);
   // Android / web : position de l'en-tête dans le conteneur Circuit, pour ancrer le panneau du
   // choix dans le corps défilant (un parent qui le contient entièrement).
   const [circuitHeaderLayout, setCircuitHeaderLayout] = useState<{ y: number; height: number } | null>(null);
@@ -1334,8 +1322,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const [observedPendingExit, setObservedPendingExit] = useState(isPendingExit);
   if (isPendingExit !== observedPendingExit) {
     setObservedPendingExit(isPendingExit);
-    // Story 3.4 : la feuille des volumes aussi — jamais deux modales empilées.
-    if (isPendingExit && (isCircuitControl(openOverlay) || openOverlay === "circuitVolumes")) {
+    if (isPendingExit && isCircuitControl(openOverlay)) {
       setOpenOverlay(null);
     }
     // Story 3.2 : la sortie annule une conversion en attente — jamais deux dialogues empilés.
@@ -1431,8 +1418,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       () => () => {
         closeCircuitControls();
         setPendingNatureChange(null);
-        // Story 3.4 : la feuille des volumes se referme aussi (aucune mutation).
-        setOpenOverlay((current) => (current === "circuitVolumes" ? null : current));
         // Story 4.1 : le placement est abandonné sans mutation.
         leavePlacement();
         // PRE-9 B.2 : le mode enveloppe aussi.
@@ -1444,38 +1429,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     ),
   );
 
-  /**
-   * PRE-6 (story 3.4, CE-CIR-03) : l'œil ouvre « Volumes du circuit » et referme, dans le même
-   * geste, le choix de nature (un seul contrôle actif, CIR-10).
-   * PRE-6 story 5.1b (revue) : l'œil étant dans la zone de contexte, hors de la liste, il referme
-   * aussi les actions glissées révélées ; il n'ouvre rien pendant le glisser d'une carte (il y est
-   * aussi désactivé).
-   */
-  const openCircuitVolumes = useCallback(() => {
-    if (draggedKey !== null) return;
-    Keyboard.dismiss();
-    setRevealedActionsId(null);
-    volumesClosedByUserRef.current = false;
-    setIsVolumesSheetMounted(true);
-    setOpenOverlay("circuitVolumes");
-  }, [draggedKey]);
-  /**
-   * Fermeture (X, voile, glisser, retour) : lecture seule, aucune écriture. Sans effet si la
-   * feuille n'est plus ouverte (rappel tardif ou répété).
-   */
-  const closeCircuitVolumes = useCallback(() => {
-    if (openOverlay !== "circuitVolumes") return;
-    volumesClosedByUserRef.current = true;
-    setOpenOverlay(null);
-  }, [openOverlay]);
-  /** Disparition native terminée : la feuille est démontée ; focus rendu à l'œil après une fermeture par l'utilisateur. */
-  const handleCircuitVolumesDismissed = useCallback(() => {
-    setIsVolumesSheetMounted(false);
-    if (volumesClosedByUserRef.current) {
-      volumesClosedByUserRef.current = false;
-      setVolumesFocusRequest((current) => current + 1);
-    }
-  }, []);
+  // Complément du 5 novembre 2026 (Hermann, §3 et §6, CE-T03-08, CE-CIR-03 retiré) : l'œil « Voir les volumes » et la feuille « Volumes du circuit » sont retirés ; les volumes restent lisibles
+  // sur les cartes et dans les paramètres de chaque Exercice. [PRE-6 story 3.4 / 5.1b — remplacé.]
   // Glisser (appui long) ou révéler les actions d'une carte referme aussi le choix de nature.
   const handleRevealActions = useCallback(
     (activityId: string | null) => {
@@ -4716,13 +4671,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       addActionRef={addActionRef}
       // Recette du 01/11/2026 (m11-annuler) : le « + » s'efface pendant le menu (Annuler à sa place).
       isCreateMenuOpen={isAddActivityTreeOpen}
-      // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes, dans les
-      // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
-      onOpenVolumes={openCircuitVolumes}
-      volumesFocusRequest={volumesFocusRequest}
-      // PRE-9 B.1b : disposition générale — les Volumes (Circuit unique) et le placement des pauses
-      // (B.6) ne s'appliquent pas encore à plusieurs Circuits ni aux Cycles : indisponibles.
-      isVolumesDisabled={draggedKey !== null || richLayout !== null}
       isPlacementActive={isPlacementActive}
       // PRE-9 B.6 : « Ajouter un arrêt » s'applique aussi à une disposition générale. [B.1b : « ||
       // richLayout !== null » (placement indisponible) — retiré le 31/10/2026 par B.6.]
@@ -5505,17 +5453,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
       ) : null}
 
-      {/* PRE-6 (story 3.4, CE-CIR-03, Figma `8328:34965` / `8328:35135`) : feuille en lecture
-          seule, alimentée par la seule grille du Domaine ; sa fermeture n'écrit rien. */}
-      {isVolumesSheetMounted ? (
-        <CircuitVolumesSheet
-          visible={openOverlay === "circuitVolumes"}
-          volumes={volumes}
-          onClose={closeCircuitVolumes}
-          onDismissed={handleCircuitVolumesDismissed}
-          testID="composition-circuit-volumes"
-        />
-      ) : null}
 
       {isPendingExit && placement === null && envelope === null ? (
         <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} />
@@ -5643,6 +5580,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           top={addActivityTreeTop}
           // Contre-recette du 30/10 : un seul « + », reposé exactement sur celui de la zone de contexte.
           plusAnchorRef={addActionRef}
+          // Complément du 5 novembre 2026 (Hermann, §3 et §6, CE-T03-08, CE-CIR-03 retiré) : trois options, dans cet ordre — Créer un exercice (modale de création commune : Exercice libre et
+          // Formats, CE-CREATION-01), Créer un circuit, Créer un cycle ; « Utiliser des mouvements existants » et « Utiliser
+          // un format d'entraînement » retirés (suggestions et mode catalogue de la fiche de création ; Formats dans la modale).
           options={[
             {
               key: "new",
@@ -5650,41 +5590,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               icon: "exercise",
               onPress: () => {
                 setIsAddActivityTreeOpen(false);
-                // PRE-9 A.2 (ARB-22a, D-449) : création d'un Mouvement (CE-MVT-01) en contexte Séance,
-                // puis Exercice posé « Paramètres à compléter » (`useMovementExerciseIntake`) ; plus l'ancien éditeur.
-                router.push({ pathname: "/movement", params: { context: MOVEMENT_SESSION_CONTEXT } });
-              },
-              testID: "composition-add-activity-tree-new",
-            },
-            {
-              key: "existing",
-              label: addToSession.existingActivity,
-              icon: "movement",
-              onPress: () => {
-                setIsAddActivityTreeOpen(false);
-                // PRE-9 A.2 (ARB-22a, Q6) : sélection des Mouvements actifs par le Catalogue des
-                // Mouvements ; plus la sélection des anciennes définitions du Catalogue (retirée, A.3).
-                // Contre-recette du 30/10 : Mouvements déjà dans la Séance marqués « Dans la séance ».
-                // Recette du 01/11/2026 (m11-menu) : entrée rétablie (retirée le même jour).
-                markMovementsInSession(
-                  draft.exercises.flatMap((exercise) => (exercise.sourceMovementId !== undefined ? [exercise.sourceMovementId] : [])),
-                );
-                router.push("/movement-selection");
-              },
-              testID: "composition-add-activity-tree-existing",
-            },
-            // Référence Formats du 02/11/2026 (§7, Figma `10705:20223`) : « Utiliser un format d'entraînement »
-            // remplace « Utiliser une séance existante » à cette place ; le menu s'efface, la fenêtre Formats s'ouvre.
-            {
-              key: "format",
-              label: addToSession.useFormat,
-              icon: "format",
-              onPress: () => {
-                setIsAddActivityTreeOpen(false);
-                // Essai du 04/11/2026 : fenêtre « Formats d'entraînement » en feuille native iOS (route `formats-window`).
                 router.push("/formats-window");
               },
-              testID: "composition-add-activity-tree-format",
+              testID: "composition-add-activity-tree-new",
             },
             {
               key: "circuit",

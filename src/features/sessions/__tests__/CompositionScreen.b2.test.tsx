@@ -140,49 +140,25 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
   // Créer » ; icône « Haltère (ancienne) ») : cinq options.]
   // [Référence Formats du 02/11/2026 (§7, CE-T03-08, Figma `10705:20223`) : « Utiliser des mouvements
   // existants » (2e) et « Utiliser un format d'entraînement » (3e, remplace « Utiliser une séance existante »).]
-  it("référence du 02/11 : cinq options, dans l'ordre, chacune avec son icône ronde ; Annuler n'est pas une option ; « Utiliser un format d'entraînement » ouvre la fenêtre Formats", async () => {
+  // Complément du 5 novembre 2026 (Hermann, §3, CE-T03-08, Figma `10705:20223`) : trois options, dans cet ordre — Créer un
+  // exercice, Créer un circuit, Créer un cycle ; l'axe s'arrête à « Créer un cycle ». [Référence du 02/11 : cinq options —
+  // remplacée.]
+  it("complément du 05/11 : trois options, dans l'ordre, chacune avec son icône ronde ; Annuler n'est pas une option ; l'axe s'arrête à « Créer un cycle »", async () => {
     await renderComposition(flatDraft());
     const tree = openMenu();
     const labels = within(tree)
       .getAllByRole("button")
       .map((node) => node.props.accessibilityLabel);
-    expect(labels).toEqual([
-      menu.newActivity,
-      menu.existingActivity,
-      menu.useFormat,
-      menu.addCircuit,
-      menu.addCycle,
-      menu.cancel,
-    ]);
-    expect(labels.slice(0, 3)).toEqual(["Créer un exercice", "Utiliser des mouvements existants", "Utiliser un format d’entraînement"]);
-    expect(within(tree).queryByText(/séance existante/i)).toBeNull();
-    // Contre-recette du 01/11 (m12-menu) : haltère pour « Créer un exercice », silhouette pour « Utiliser un mouvement existant ».
+    expect(labels).toEqual([menu.newActivity, menu.addCircuit, menu.addCycle, menu.cancel]);
+    expect(labels.slice(0, 3)).toEqual(["Créer un exercice", "Créer un circuit", "Créer un cycle"]);
+    expect(within(tree).queryByText(/existant|format d’entraînement/i)).toBeNull();
     expect(within(screen.getByTestId("composition-add-activity-tree-new-icon", hidden)).getByTestId("create-menu-icon-exercise", hidden)).toBeTruthy();
-    expect(within(screen.getByTestId("composition-add-activity-tree-existing-icon", hidden)).queryByTestId("create-menu-icon-exercise", hidden)).toBeNull();
-    // L'axe s'arrête toujours à « Ajouter un cycle » (cinquième rangée).
     const axis = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-axis", hidden).props.style);
     const cycleRow = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-cycle").props.style);
     expect(axis.top + axis.height).toBe(cycleRow.top + 16);
-    const optionIDs = ["new", "existing", "format", "circuit", "cycle"].map((key) => `composition-add-activity-tree-${key}`);
-    for (const testID of optionIDs) expect(screen.getByTestId(`${testID}-icon`, hidden)).toBeTruthy();
-    // Annuler n'a ni pilule ni libellé : c'est le « + » transformé.
+    for (const key of ["new", "circuit", "cycle"]) expect(screen.getByTestId(`composition-add-activity-tree-${key}-icon`, hidden)).toBeTruthy();
     expect(screen.queryByTestId("composition-add-activity-tree-cancel-label", hidden)).toBeNull();
-    expect(within(screen.getByTestId("composition-add-activity-tree-format-icon", hidden)).getByTestId("create-menu-icon-format", hidden)).toBeTruthy();
     expect(screen.getByTestId("composition-add-activity-tree-circuit").props.accessibilityState).toEqual({ disabled: false });
-    // Le menu s'efface ; la fenêtre Formats s'ouvre sur la Composition.
-    fireEvent.press(screen.getByTestId("composition-add-activity-tree-format"));
-    expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
-    // Essai du 04/11/2026 : la fenêtre Formats est une feuille native iOS (route `formats-window`).
-    await waitFor(() => expect(mockPush).toHaveBeenLastCalledWith("/formats-window"));
-  });
-
-  it("recette du 01/11 : « Utiliser un mouvement existant » ouvre la sélection des Mouvements du Catalogue (action d'avant le 01/11) et ferme le menu", async () => {
-    await renderComposition(flatDraft());
-    openMenu();
-    fireEvent.press(screen.getByTestId("composition-add-activity-tree-existing"));
-    // PRE-9 A.2 — ARB-22a, D-449 : sélection des Mouvements du Catalogue (plus `/activity-selection`).
-    expect(mockPush).toHaveBeenLastCalledWith("/movement-selection");
-    expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
   });
 
   /*
@@ -228,12 +204,11 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     expect(StyleSheet.flatten(restored.props.style).opacity).toBeUndefined();
   });
 
-  it("« Créer un exercice » ouvre la création d'un Mouvement en contexte Séance et ferme le menu", async () => {
+  it("complément du 05/11 : « Créer un exercice » ouvre la modale de création commune et ferme le menu", async () => {
     await renderComposition(flatDraft());
     openMenu();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-new"));
-    // PRE-9 A.2 — ARB-22a, D-449 : création d'un Mouvement en contexte Séance (plus `/exercise`).
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/movement", params: { context: "session" } });
+    expect(mockPush).toHaveBeenLastCalledWith("/formats-window");
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
   });
 

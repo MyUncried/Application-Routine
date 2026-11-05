@@ -143,7 +143,8 @@ function SessionGlyph() {
   );
 }
 
-function OptionIcon({ icon }: { readonly icon: CreateMenuIcon }) {
+/** Pictogramme rond d'une option du menu Créer (repris par la carte « Exercice libre » de la modale de création). */
+export function OptionIcon({ icon }: { readonly icon: CreateMenuIcon }) {
   switch (icon) {
     case "exercise":
       return (

@@ -127,16 +127,7 @@ export type CompositionContextHeaderProps = {
    * n'offre qu'un retrait (aucun ajout possible, des points existants).
    */
   readonly addStopAccessibilityHint?: string;
-  /**
-   * PRE-6 story 5.1b (story 3.4, CE-CIR-03) : toucher de l'œil — l'écran ouvre « Volumes du
-   * circuit » et referme le compteur et le choix de nature (un seul contrôle actif). Indisponible
-   * en placement, comme le « + » (atténué et inactif).
-   */
-  readonly onOpenVolumes: () => void;
-  /** Story 3.4 : demande de focus sur l'œil (fermeture de la feuille des volumes), jamais au montage. */
-  readonly volumesFocusRequest?: number;
-  /** Revue 5.1b : œil inactif pendant le glisser d'une carte (sans atténuation, état passager). */
-  readonly isVolumesDisabled?: boolean;
+  // Complément du 5 novembre 2026 (Hermann, §3 et §6, CE-T03-08, CE-CIR-03 retiré) : bouton œil « Voir les volumes » et feuille « Volumes du circuit » retirés. [PRE-6 story 5.1b / 3.4 — remplacé.]
   readonly testID?: string;
 };
 
@@ -171,9 +162,6 @@ export function CompositionContextHeader({
   isAddStopDisabled = false,
   addStopFocusRequest = 0,
   addStopAccessibilityHint,
-  onOpenVolumes,
-  volumesFocusRequest = 0,
-  isVolumesDisabled = false,
   addActionRef,
   testID = "composition-context-header",
 }: CompositionContextHeaderProps) {
@@ -185,14 +173,6 @@ export function CompositionContextHeader({
     lastAddStopFocusRequestRef.current = addStopFocusRequest;
     if (addStopRef.current) AccessibilityInfo.sendAccessibilityEvent(addStopRef.current, "focus");
   }, [addStopFocusRequest]);
-  // Story 3.4, repris par la story 5.1b : focus rendu à l'œil à la fermeture des volumes.
-  const volumesRef = useRef<View>(null);
-  const lastVolumesFocusRequestRef = useRef(volumesFocusRequest);
-  useEffect(() => {
-    if (volumesFocusRequest === lastVolumesFocusRequestRef.current) return;
-    lastVolumesFocusRequestRef.current = volumesFocusRequest;
-    if (volumesRef.current) AccessibilityInfo.sendAccessibilityEvent(volumesRef.current, "focus");
-  }, [volumesFocusRequest]);
   const addStopUnavailable = !isPlacementActive && isAddStopDisabled;
   return (
     <View style={styles.container} testID={testID}>
@@ -261,20 +241,6 @@ export function CompositionContextHeader({
         </View>
         {/* Revue 5.1b : trois boîtes tactiles réelles de 44, sans écart, cercles de 34 centrés. */}
         <View style={styles.actions} testID="composition-context-actions">
-          <Pressable
-            ref={volumesRef}
-            onPress={onOpenVolumes}
-            disabled={isPlacementActive || isVolumesDisabled}
-            accessibilityRole="button"
-            accessibilityLabel={composition.circuit.volumes.openAccessibilityLabel}
-            accessibilityState={{ disabled: isPlacementActive || isVolumesDisabled }}
-            style={[styles.commandTarget, isPlacementActive ? styles.attenuated : null]}
-            testID="composition-volumes-action"
-          >
-            <View style={[styles.commandCircle, styles.plainCircle]} testID="composition-volumes-action-circle">
-              <KodjoIcon name="view-volumes" size={VOLUMES_ICON_SIZE} testID="composition-volumes-action-icon" />
-            </View>
-          </Pressable>
           <Pressable
             ref={addStopRef}
             onPress={onAddStop}

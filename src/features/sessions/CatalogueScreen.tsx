@@ -245,10 +245,10 @@ export function CatalogueScreen() {
       return;
     }
     isOpeningEditorRef.current = true;
-    // Référence Formats du 02/11/2026 (§7 : « Catalogue des séances → Créer → Composition de séance → menu
-    // Créer → Utiliser un format d'entraînement ») : « Créer » ouvre la Composition. [C.2 du 01/11 : grille
-    // « Créer » (`/session-model`) — remplacée le 02/11/2026 par la fenêtre Formats de la Composition.]
-    router.push("/composition");
+    // Complément du 5 novembre 2026 (Hermann, §1–§2, CE-CREATION-01) : « Créer » ouvre la modale de création commune
+    // (Exercice libre et Formats) sur un nouveau brouillon de Séance, en mémoire ; rien n'est enregistré avant la
+    // validation de la Composition. [Référence du 02/11 : « Créer » ouvrait directement la Composition — remplacé.]
+    router.push({ pathname: "/composition", params: { create: "1" } });
   };
 
   return (

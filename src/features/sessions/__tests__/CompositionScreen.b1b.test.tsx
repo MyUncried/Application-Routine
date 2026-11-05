@@ -231,7 +231,8 @@ describe("B.1b — rendu d'une disposition générale", () => {
     expect(screen.queryByTestId("composition-activity-actions-a1", hidden)).toBeNull();
     expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
     expect(screen.getByTestId("composition-add-stop-action").props.accessibilityState).toMatchObject({ disabled: false });
-    expect(screen.getByTestId("composition-volumes-action").props.accessibilityState).toMatchObject({ disabled: true });
+    // [Complément du 5 novembre 2026 (§6) : œil des Volumes retiré.]
+    expect(screen.queryByTestId("composition-volumes-action")).toBeNull();
   });
 
   it("stepper du Circuit A : seul ce Circuit change (structure du brouillon) ; Circuit B et Cycle inchangés", async () => {

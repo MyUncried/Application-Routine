@@ -20,6 +20,11 @@ const executionParameters = {
     openAccessibilityLabel: "Modifier les paramètres d’exécution",
     // Recette iPhone du 30/10/2026 (Hermann : « Il faut enlever le point après "compléter" »).
     incomplete: "Paramètres à compléter",
+    // Complément du 5 novembre 2026 (§10) : fiche de l’Exercice ouverte par sa photo dans la Composition (Figma `11580:21528`).
+    inThisSession: "Dans cette séance",
+    exerciseSheetTitle: "Fiche de l’exercice",
+    recoveryBeforeNext: "Récupération de {duration} avant l’exercice suivant.",
+    noRecoveryBeforeNext: "Aucune récupération avant l’exercice suivant.",
     // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat e, Hermann : « avec le texte « Paramètre à
     // vérifier » à la place de « Paramètre à compléter » ») : texte exact de Hermann (singulier) ;
     // « Paramètres à compléter » prime.

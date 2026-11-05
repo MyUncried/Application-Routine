@@ -14,22 +14,35 @@ describe("FormatsWindow", () => {
   function renderWindow() {
     const onClose = jest.fn();
     const onSelect = jest.fn();
+    const onFreeExercise = jest.fn();
     render(
       <TestSafeAreaProvider>
-        <FormatsWindow onClose={onClose} onSelect={onSelect} />
+        <FormatsWindow onClose={onClose} onSelect={onSelect} onFreeExercise={onFreeExercise} />
       </TestSafeAreaProvider>,
     );
-    return { onClose, onSelect };
+    return { onClose, onSelect, onFreeExercise };
   }
 
   it("titre, croix et dix cartes dans l'ordre de Figma : Tabata, 30/30, EMOM, AMRAP, For time, Death by, Renforcement, Superset, Progression, À l'échec", () => {
     renderWindow();
-    expect(screen.getByText(strings.screens.sessionModels.title)).toBeTruthy();
+    // Complément du 5 novembre 2026 (§1, §4) : titre « Créer un exercice », section « Formats d’entraînement ».
+    expect(screen.getByText(strings.screens.sessionModels.creationTitle)).toBeTruthy();
+    expect(screen.getByTestId("formats-window-section")).toHaveTextContent(strings.screens.sessionModels.title);
     expect(FORMAT_MODEL_ORDER).toEqual(["TABATA", "INTERVALS_30_30", "EMOM", "AMRAP", "FOR_TIME", "DEATH_BY", "STRENGTH", "SUPERSET", "PROGRESSION", "UNTIL_FAILURE"]);
     const cards = within(screen.getByTestId("formats-window-grid")).getAllByRole("button");
     expect(cards.map((card) => card.props.testID)).toEqual(FORMAT_MODEL_ORDER.map((key) => `format-model-${key}`));
     expect(screen.getByText("30/30")).toBeTruthy();
-    expect(screen.queryByText(/Mobilité|Libre|Une séance|Un exercice/)).toBeNull();
+    expect(screen.queryByText(/Mobilité|Une séance|Un exercice/)).toBeNull();
+  });
+
+  it("complément du 05/11 : carte « Exercice libre » pleine largeur au-dessus de la grille, hors des Formats", () => {
+    const { onFreeExercise, onSelect } = renderWindow();
+    const free = screen.getByTestId("formats-window-free-exercise");
+    expect(free.props.accessibilityLabel).toBe("Exercice libre, un mouvement, puis ses paramètres");
+    expect(within(screen.getByTestId("formats-window-grid")).queryByTestId("formats-window-free-exercise")).toBeNull();
+    fireEvent.press(free);
+    expect(onFreeExercise).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
   });
 
   it("la croix ferme la fenêtre ; une carte transmet son modèle, une seule fois par toucher", () => {
