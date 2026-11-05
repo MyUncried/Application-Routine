@@ -63,6 +63,10 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
   const loadOf = (load: number | undefined) => (parameters.loadEnabled && load !== undefined && load > 0 ? load : null);
   const settings = exercise.format?.settings ?? {};
   const failure = rows.length > 0 && rows.every((row) => row.target.kind === "FAILURE");
+  // Complément du 5 novembre 2026 (Hermann), §16 : chaque mouvement reprend son état de charge effectif enregistré ; les charges conservées sous « Sans » ne
+  // reconstruisent pas l'activation (ch09).
+  const loadOn = parameters.loadEnabled === true ? { loadOn: true as const } : {};
+  const cells = () => rows.map((row) => ({ repetitions: row.target.kind === "NUMBER" ? row.target.value : null, loadKg: loadOf(row.loadKg) }));
   switch (model) {
     case "AMRAP":
       return {
@@ -71,28 +75,30 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
         max: failure,
         increment: typeof settings.incrementPerRound === "number" ? settings.incrementPerRound : 0,
         loadKg: loadOf(loads[0]),
+        ...loadOn,
       };
-    case "EMOM": {
-      const start = loadOf(loads[0]);
-      const steps = loads.slice(1).map((load, index) => load - loads[index]!);
-      const step = common(steps);
-      return {
-        mode,
-        repetitions: firstNumber(rows),
-        loadKg: start,
-        ...(step === "variable" ? { loadIncrement: null, seriesLoads: loads } : { loadIncrement: step ?? 0 }),
-      };
-    }
+    case "EMOM":
+    case "SUPERSET":
+      // Complément du 5 novembre 2026 (Hermann), §11, §14 : valeurs effectives de chaque série, sans réinitialisation.
+      return { mode, cells: cells(), ...loadOn };
     case "DEATH_BY":
-      return { start: firstNumber(rows), startIncrement: typeof settings.incrementPerRound === "number" ? settings.incrementPerRound : 1 };
+      return { mode, start: firstNumber(rows), startIncrement: typeof settings.incrementPerRound === "number" ? settings.incrementPerRound : 1, loadKg: loadOf(loads[0]), ...loadOn };
     case "FOR_TIME":
       return {
         mode,
         volumes: rows.map((row) => (row.target.kind === "NUMBER" ? row.target.value : null)),
         loads: rows.map((row) => loadOf(row.loadKg)),
+        ...loadOn,
       };
     case "PROGRESSION":
-      return { mode, cells: rows.map((row) => ({ repetitions: row.target.kind === "NUMBER" ? row.target.value : null, loadKg: loadOf(row.loadKg) })) };
+      return { mode, cells: cells(), ...loadOn };
+    case "TABATA":
+    case "INTERVALS_30_30":
+    case "STRENGTH":
+    case "UNTIL_FAILURE":
+      // Complément du 5 novembre 2026 (Hermann), §15–§17 : objectif, pause et charge commune propres à l'Exercice.
+      // Objectif et Pause propres : repris seulement s'ils diffèrent entre les Exercices (`modelStateOfCircuit`).
+      return { mode, loadKg: loadOf(loads[0]), ...loadOn };
     default:
       return {};
   }
@@ -114,6 +120,8 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
   const roles = exercises.map((exercise, index) => circuitRoleOf(exercise.format, index));
   const tours = exercises.filter((_, index) => roles[index] === "TOUR");
   const recovery = exercises.map((exercise) => exercise.postActivityRecoverySeconds ?? 0);
+  // Complément du 5 novembre 2026 (Hermann), §16 : interrupteur « Avec charge » actif si au moins un membre est effectivement « Avec ».
+  answers.withLoad = exercises.some((exercise) => exercise.executionParameters.loadEnabled === true);
   // Exécution : nature et Format du Circuit.
   if (format !== null && (model === "EMOM" || model === "DEATH_BY")) answers.execution = circuit.nature === "SERIES" ? "ALTERNATED" : "EACH_INTERVAL";
   else if (circuit.nature === "SERIES") answers.execution = "ALTERNATED";
@@ -136,7 +144,12 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
       break;
     case "SUPERSET":
       answers.roundCount = circuit.repeatCount;
-      set("recoveryBetweenSeconds", recovery.at(-1));
+      // Complément du 5 novembre 2026 (Hermann), §11 : Récupération du dernier Exercice actuel ; absente : à renseigner (zéro explicite conservé).
+      {
+        const last = exercises.at(-1)?.postActivityRecoverySeconds;
+        if (last === null || last === undefined) delete answers.recoveryBetweenSeconds;
+        else answers.recoveryBetweenSeconds = last;
+      }
       break;
     case "EMOM":
       set("seriesCount", format !== null ? circuit.repeatCount : common(exercises.map((exercise) => rowsOf(exercise).length)));
@@ -177,11 +190,27 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
     default:
       break;
   }
-  const movements = exercises.map((exercise, index): ModelMovement => ({
-    exercise,
-    values: valuesOf(model, exercise),
-    ...(roles[index] === "BUY_IN" ? { buyIn: true as const } : roles[index] === "BUY_OUT" ? { buyOut: true as const } : {}),
-  }));
+  const movements = exercises.map((exercise, index): ModelMovement => {
+    let values = valuesOf(model, exercise);
+    // EMOM « dans chaque intervalle » d'avant le 05/11/2026 : membres à une série jouée à chaque tour — la série est reprise
+    // pour chacun des N tours (même prescription), sans valeur inventée.
+    if (model === "EMOM" && format !== null && values.cells !== undefined && values.cells.length === 1 && circuit.repeatCount > 1) {
+      values = { ...values, cells: Array.from({ length: circuit.repeatCount }, () => values.cells![0]!) };
+    }
+    // Complément du 5 novembre 2026 (§15–§17) : un réglage commun hétérogène (« variable ») est repris par Exercice dans le
+    // tableau ; un réglage commun reste porté par le questionnaire, qui modifie ainsi les mêmes prescriptions effectives.
+    if (model === "TABATA" || model === "INTERVALS_30_30" || model === "STRENGTH" || model === "UNTIL_FAILURE") {
+      const objectiveKey = model === "STRENGTH" ? "repetitions" : "workSeconds";
+      const firstRow = rowsOf(exercise)[0];
+      if (variable.has("pauseSeconds")) values = { ...values, pause: firstRow?.pauseSeconds ?? 0 };
+      if (model !== "UNTIL_FAILURE" && variable.has(objectiveKey)) values = { ...values, repetitions: firstNumber(rowsOf(exercise)) };
+    }
+    return {
+      exercise,
+      values,
+      ...(roles[index] === "BUY_IN" ? { buyIn: true as const } : roles[index] === "BUY_OUT" ? { buyOut: true as const } : {}),
+    };
+  });
   return { model, answers: answers as ModelAnswers, movements, variable };
 }
 

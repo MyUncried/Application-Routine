@@ -14,7 +14,7 @@
  * Sans mouvement (questionnaire), une suite générique 1, 2, 3… de hauteurs égales. Fonctions pures.
  */
 
-import { hasChosenBuyIn, movementRole, type FormatModelKey, type ModelAnswers, type ModelExecution, type ModelMovement } from "./formatModels";
+import { amrapRoundTarget, hasChosenBuyIn, movementRole, type FormatModelKey, type ModelAnswers, type ModelExecution, type ModelMovement } from "./formatModels";
 
 export type TimelineBlock =
   | {
@@ -63,6 +63,12 @@ export function compactBlockDuration(totalSeconds: number): string {
 
 /** Objectif d'un bloc : nombre de répétitions, ou durée compacte si le mouvement est en durée. */
 const objectiveLabel = (movement: ModelMovement, value: number) => (movement.values.mode === "DURATION" ? compactBlockDuration(value) : String(value));
+
+/** Valeur de la série `at` d'un mouvement à valeurs par série (EMOM, Superset) ; « — » : à renseigner. */
+const cellLabel = (movement: ModelMovement, at: number) => {
+  const value = movement.values.cells?.[at]?.repetitions ?? null;
+  return value === null ? "—" : objectiveLabel(movement, value);
+};
 
 /** Hauteurs proportionnelles aux volumes (§15 règle 3) ; constantes si le volume ne varie pas. */
 function heights(values: readonly (number | null)[]): number[] {
@@ -142,19 +148,23 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
     }
     case "SUPERSET": {
       if (count === 0) return { blocks: generic(2), end: duration, legendRecovery: false };
-      return {
-        blocks: [...movements.map((_, index) => work(index, "—")), { kind: "REST", label: null, weight: 1 }],
-        end: duration,
-        legendRecovery: true,
-      };
+      // Complément du 5 novembre 2026 (Hermann), §11 : séries alternées — A1, B1, récupération, A2, B2… ; valeurs du tour.
+      const rounds = answers.roundCount ?? 3;
+      const blocks: TimelineBlock[] = [];
+      for (let round = 0; round < rounds; round += 1) {
+        movements.forEach((movement, index) => blocks.push(work(index, cellLabel(movement, round))));
+        if (round < rounds - 1) blocks.push({ kind: "REST", label: null, weight: 1 });
+      }
+      return { blocks, end: duration, legendRecovery: true };
     }
     case "EMOM": {
       const n = answers.seriesCount ?? 1;
-      if (count <= 1) return { blocks: count === 0 ? generic(n) : generic(n).map((block) => ({ ...block, movement: 0 })), end: duration, legendRecovery: false };
+      // Complément du 5 novembre 2026 (Hermann), §14 : valeur de chaque série S1…Sn.
+      if (count <= 1) return { blocks: count === 0 ? generic(n) : Array.from({ length: n }, (_, at) => work(0, cellLabel(movements[0]!, at))), end: duration, legendRecovery: false };
       if (execution === "EACH_INTERVAL") {
-        return { blocks: Array.from({ length: n }, () => movements.map((_, index) => work(index, null))).flat(), grouped: true, end: duration, legendRecovery: false };
+        return { blocks: Array.from({ length: n }, (_, at) => movements.map((movement, index) => work(index, cellLabel(movement, at)))).flat(), grouped: true, end: duration, legendRecovery: false };
       }
-      const lists = movements.map((_, index) => Array.from({ length: n }, () => work(index, null)));
+      const lists = movements.map((movement, index) => Array.from({ length: n }, (_, at) => work(index, cellLabel(movement, at))));
       const recovery = execution === "SEQUENCE" && (answers.recoveryBetweenSeconds ?? 0) > 0;
       return { blocks: execution === "ALTERNATED" ? interleave(lists) : sequence(lists, recovery), end: duration, legendRecovery: recovery };
     }
@@ -163,8 +173,10 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
       const increment = answers.increment ?? 1;
       const ranks = Array.from({ length: OPEN_FIRST }, (_, index) => start + index * increment);
       const sized = heights(ranks);
+      // Complément du 5 novembre 2026 (Hermann), §13 : valeurs dans l'unité du mouvement (« 10 s », « 20 s »…).
+      const rankLabel = (movement: number | null, value: number) => (movement !== null && movements[movement] !== undefined ? objectiveLabel(movements[movement]!, value) : String(value));
       const open = (movement: number | null) => [
-        ...ranks.map((value, index) => work(movement, String(value), sized[index])),
+        ...ranks.map((value, index) => work(movement, rankLabel(movement, value), sized[index])),
         { kind: "ELLIPSIS" as const },
         work(movement, "n", 1),
       ];
@@ -202,7 +214,8 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
         if (movement.values.max === true) return "max";
         const base = movement.values.repetitions ?? repetitionsOf(movement);
         if (base === null) return "—";
-        return round === null ? "n" : objectiveLabel(movement, base + (increasing ? (movement.values.increment ?? 0) * round : 0));
+        // Complément du 5 novembre 2026 (Hermann), §8 : progression descendante bornée à 1 (5, 3, 1, 1…).
+        return round === null ? "n" : objectiveLabel(movement, increasing ? amrapRoundTarget(base, movement.values.increment ?? 0, round) : base);
       };
       const roundBlocks = (round: number | null) => loop.map((movement, index) => work(index + (buyIn ? 1 : 0), labelAt(movement, round)));
       const blocks: TimelineBlock[] = [

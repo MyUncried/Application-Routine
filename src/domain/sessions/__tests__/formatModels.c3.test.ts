@@ -111,13 +111,15 @@ describe("EMOM (§10, FMT-21) : 2 mouvements, 6 séries, 1 min", () => {
   const answers = initialAnswers("EMOM");
   const two = () => movementsOf("EMOM", answers, ["a", "b"]);
 
-  it("dans chaque intervalle : Circuit porteur EMOM, 6 tours groupés, durée de chaque tour 1 min ; membres sans Séries ni Intervalle : 6 min", () => {
+  // [Complément du 5 novembre 2026 (§14, §17) : chaque membre porte une série par tour (S1…S6), sans multiplication N × N ;
+  // « membres sans Séries » — remplacé.]
+  it("dans chaque intervalle : Circuit porteur EMOM, 6 tours groupés, durée de chaque tour 1 min ; membres à une série par tour, sans Intervalle : 6 min", () => {
     const [element] = build("EMOM", answers, two());
     const circuit = element!.kind === "CIRCUIT" ? element!.circuit : null;
     expect(circuit).toMatchObject({ nature: "TOURS", repeatCount: 6, format: { key: "EMOM", settings: { windowSeconds: 60 } } });
     expect(circuit!.exercises.map((exercise) => [seriesCountOf(exercise.executionParameters), exercise.format])).toEqual([
-      [1, { key: "EMOM", settings: {} }],
-      [1, { key: "EMOM", settings: {} }],
+      [6, { key: "EMOM", settings: {} }],
+      [6, { key: "EMOM", settings: {} }],
     ]);
     expect(seconds([element!])).toBe(360);
   });
@@ -247,10 +249,13 @@ describe("départs rapides (§9.2, §9.3)", () => {
     expect(failure[0]!.kind === "EXERCISE" && seriesRowsOf(failure[0]!.exercise.executionParameters).every((row) => row.target.kind === "FAILURE")).toBe(true);
   });
 
-  it("Superset : deux mouvements choisis, Circuit standard groupé d'un passage, répétitions à compléter (A4)", () => {
+  // [Complément du 5 novembre 2026 (§11) : Circuit standard à séries alternées, 3 tours par défaut — « groupé d'un passage »
+  // remplacé.]
+  it("Superset : deux mouvements choisis, Circuit standard à séries alternées de 3 tours, objectifs à compléter (A4)", () => {
     const [element] = build("SUPERSET", initialAnswers("SUPERSET"), movementsOf("SUPERSET", initialAnswers("SUPERSET"), ["a", "b"]));
     const circuit = element!.kind === "CIRCUIT" ? element!.circuit : null;
-    expect(circuit).toMatchObject({ nature: "TOURS", repeatCount: 1 });
+    expect(circuit).toMatchObject({ nature: "SERIES", repeatCount: 3 });
+    expect(circuit!.exercises.every((exercise) => seriesRowsOf(exercise.executionParameters).length === 3)).toBe(true);
     expect(circuit).not.toHaveProperty("format");
     expect(circuit!.exercises.every((exercise) => seriesRowsOf(exercise.executionParameters)[0]!.target.kind === "UNSET")).toBe(true);
   });

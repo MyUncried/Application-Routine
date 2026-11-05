@@ -551,6 +551,8 @@ export const fr = {
       // Mise à jour consolidée du 04/11/2026 §3 : mode catalogue intégré à la modale.
       openCatalogue: "Ouvrir le mode catalogue",
       emomOverflow: "Les durées atteignent ou dépassent l’intervalle de {interval} : il ne reste pas de temps pour le reste du travail ni pour le repos.",
+      // Complément du 5 novembre 2026 (§13) : avertissement non bloquant du Death by.
+      deathByFirstRankWarning: "Le premier intervalle ne peut pas être tenu : le défi s’arrêtera avant de commencer.",
       closeCatalogue: "Fermer le mode catalogue",
       addPicked: "Ajouter",
       collapsePiles: "Replier les piles",
@@ -603,7 +605,8 @@ export const fr = {
         pauseSeconds: "Pause",
         repetitions: "Répétitions par série",
         intervalSeconds: "Intervalle",
-        startRepetitions: "Nombre de répétitions",
+        // Complément du 5 novembre 2026 (§13) : « Objectif de départ » (Répétitions ou Durée). [« Nombre de répétitions » — remplacé.]
+        startRepetitions: "Objectif de départ",
         increment: "Incrément par intervalle",
         durationSeconds: "Durée",
         blockDuration: "Durée de chaque bloc",
@@ -620,7 +623,10 @@ export const fr = {
         timeCapSeconds: "Temps limite",
         restBetweenRoundsSeconds: "Repos entre les tours",
         recoveryBetweenSeconds: "Récupération entre les mouvements",
-        recoveryAfterPair: "Récupération après la paire",
+        // Complément du 5 novembre 2026 (§11) : « Récupération après le tour ». [« … après la paire » — remplacé.]
+        recoveryAfterPair: "Récupération après le tour",
+        // Complément du 5 novembre 2026 (§16) : ligne Charge d’un mouvement seul, sous Durée totale.
+        load: "Charge",
         rest: "Repos",
         stopCondition: "Condition d’arrêt",
         targetPerSeries: "Cible par série",
@@ -646,8 +652,14 @@ export const fr = {
         durationUnit: "durée",
         toFill: "à renseigner",
         variable: "variable",
-        // Recette du 04/11/2026 : incrément de charge EMOM négatif, charge arrêtée à 0.
-        noLoadFrom: "sans charge à partir de la série {n}",
+        // Complément du 5 novembre 2026 (§9, §15–§16) : charge décidée par mouvement, entre parenthèses ; Pause par mouvement.
+        // [« sans charge à partir de la série {n} » (EMOM, 04/11) — retiré le 05/11/2026.]
+        addLoad: "(+ kg)",
+        removeLoad: "(− kg)",
+        addLoadAccessibility: "ajouter une charge",
+        removeLoadAccessibility: "retirer la charge",
+        loadEmpty: "(—)",
+        pause: "Pause",
         cellLabel: "{movement}, {column}, {kind}",
         repetitionsKind: "répétitions",
         loadKind: "charge",

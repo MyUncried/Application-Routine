@@ -72,7 +72,8 @@ describe("PRE-9 D.4 — validité de configuration", () => {
 
   // [« buy-in en Répétitions à l'objectif » — remplacé le 04/11/2026 (MAJ §6 bis 2) : buy-in en Répétitions ou en
   // Durée, À l'échec admis pour un buy-in AMRAP ; For time toujours à l'objectif.]
-  it("valeurs imposées : buy-in AMRAP en Durée admis ; Death by et For time autonomes en Répétitions ; For time sans À l'échec (§3, §11, §12)", () => {
+  // [Complément du 5 novembre 2026 (§13) : le Death by admet Répétitions ou Durée — « Death by autonome en Répétitions » remplacé.]
+  it("valeurs imposées : buy-in AMRAP en Durée admis ; Death by en Durée admis ; For time sans À l'échec (§3, §11, §12)", () => {
     const deathBy: ElementFormat = { key: "DEATH_BY", settings: { intervalSeconds: 60, incrementPerRound: 1 } };
     const forTime: ElementFormat = { key: "FOR_TIME", settings: {} };
     const failure = repetitionParameters(21, 3);
@@ -87,10 +88,7 @@ describe("PRE-9 D.4 — validité de configuration", () => {
     );
     expect(result).toEqual({
       status: "invalid",
-      issues: [
-        { elementId: "d", reason: "LOCKED_CONSTANT_CHANGED" },
-        { elementId: "f", reason: "LOCKED_CONSTANT_CHANGED" },
-      ],
+      issues: [{ elementId: "f", reason: "LOCKED_CONSTANT_CHANGED" }],
     });
   });
 

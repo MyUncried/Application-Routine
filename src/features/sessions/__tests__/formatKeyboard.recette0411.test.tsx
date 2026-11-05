@@ -2,7 +2,6 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
-import { emomNoLoadFrom, emomSeriesLoads } from "@/domain/sessions/formatModels";
 import { TableCell } from "@/features/sessions/FormatTables";
 
 /**
@@ -50,13 +49,9 @@ describe("barre d'unité des tableaux de Formats", () => {
   });
 });
 
-describe("incrément de charge EMOM négatif (Hermann, 04/11/2026)", () => {
-  it("charges arrêtées à 0 ; première série sans charge", () => {
-    expect(emomSeriesLoads(12, -2.5, 6)).toEqual([12, 9.5, 7, 4.5, 2, 0]);
-    expect(emomNoLoadFrom(12, -2.5, 6)).toBe(6);
-    expect(emomNoLoadFrom(12, -2.5, 5)).toBeNull();
-    expect(emomNoLoadFrom(12, 2.5, 6)).toBeNull();
-  });
+// [Incrément de charge EMOM négatif et « sans charge à partir de la série X » (Hermann, 04/11/2026) — remplacés le 05/11/2026
+// (complément, §14 : charges saisies par série). La case signée et le bouton « ± » servent désormais l'incrément AMRAP (§8).]
+describe("case signée et bouton « ± » (incrément AMRAP signé, complément du 5 novembre 2026)", () => {
 
   it("case signée : « − » devant la valeur, saisie en valeur absolue, valeur rendue négative", () => {
     const onChange = jest.fn();

@@ -90,29 +90,33 @@ describe("For time : interrupteurs Buy-in et Buy-out (recette du 04/11/2026)", (
 });
 
 describe("EMOM : aucun mode d'exécution par défaut (recette du 04/11/2026)", () => {
-  it("ligne sans unité, objectif à renseigner (récapitulatif incomplet)", () => {
+  // [Complément du 5 novembre 2026 (§14) : objectifs par série S1…Sn (`cells`) — tests adaptés ; la règle du 04/11 (aucune
+  // unité par défaut, objectifs à renseigner, valeur saisie avant le choix lue en Répétitions) est conservée.]
+  it("ligne sans unité, objectifs S1…Sn à renseigner (récapitulatif incomplet)", () => {
     const answers = initialAnswers("EMOM");
     const movement = row("EMOM", answers, "a");
     expect(movement.values.mode).toBeUndefined();
-    expect(movement.values.repetitions).toBeNull();
+    expect(movement.values.cells).toHaveLength(6);
+    expect(movement.values.cells!.every((cell) => cell.repetitions === null)).toBe(true);
     expect(summaryIssues("EMOM", answers, [movement])).toEqual([{ kind: "MISSING", index: 0 }]);
   });
 
-  it("choisir une unité la pose, l'objectif reste à renseigner ; puis le changement d'unité garde sa règle", () => {
+  it("choisir une unité la pose, les objectifs restent à renseigner ; puis le changement d'unité garde sa règle", () => {
     const values = initialMovementValues("EMOM", initialAnswers("EMOM"), base("a"));
-    expect(withMovementMode(values, "REPETITIONS")).toMatchObject({ mode: "REPETITIONS", repetitions: null });
-    expect(withMovementMode(values, "DURATION")).toMatchObject({ mode: "DURATION", repetitions: null });
-    expect(withMovementMode({ mode: "REPETITIONS", repetitions: 12 }, "DURATION")).toMatchObject({ mode: "DURATION", repetitions: null });
+    expect(withMovementMode(values, "REPETITIONS")).toMatchObject({ mode: "REPETITIONS" });
+    expect(withMovementMode(values, "DURATION").cells!.every((cell) => cell.repetitions === null)).toBe(true);
+    const typed = { mode: "REPETITIONS" as const, cells: [{ repetitions: 12, loadKg: null }] };
+    expect(withMovementMode(typed, "DURATION").cells).toEqual([{ repetitions: null, loadKg: null }]);
   });
 
   it("valeur saisie avant le choix (Hermann, 04/11) : lue en Répétitions, unité encore à choisir ; Répétitions la garde, Durée la remet à renseigner", () => {
-    const answers = initialAnswers("EMOM");
-    const typed: MovementValues = { ...initialMovementValues("EMOM", answers, base("a")), repetitions: 12 };
+    const answers = { ...initialAnswers("EMOM"), seriesCount: 2 };
+    const typed: MovementValues = { cells: [{ repetitions: 12, loadKg: null }, { repetitions: 12, loadKg: null }] };
     expect(typed.mode).toBeUndefined();
     expect(summaryIssues("EMOM", answers, [{ exercise: base("a"), values: typed }])).toEqual([]);
     const [built] = buildModelElements("EMOM", answers, [{ exercise: base("a"), values: typed }], newId);
     expect(built?.kind === "EXERCISE" ? built.exercise.executionParameters.mode : built?.kind === "CIRCUIT" ? built.circuit.exercises[0]?.executionParameters.mode : null).toBe("REPETITIONS");
-    expect(withMovementMode(typed, "REPETITIONS")).toMatchObject({ mode: "REPETITIONS", repetitions: 12 });
-    expect(withMovementMode(typed, "DURATION")).toMatchObject({ mode: "DURATION", repetitions: null });
+    expect(withMovementMode(typed, "REPETITIONS").cells![0]!.repetitions).toBe(12);
+    expect(withMovementMode(typed, "DURATION").cells![0]!.repetitions).toBeNull();
   });
 });

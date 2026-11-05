@@ -1339,7 +1339,9 @@ export function ExecutionParametersSheet({
   const targetLabel = effective.mode === "REPETITIONS" ? repetitionsLabel : secondsLabel;
   // MAJ 04/11 §4.4 : contrôle EMOM des durées au seuil inclusif, dans la modale comme au récapitulatif.
   const emomOverflow =
-    format !== undefined && formatValue !== null && validation.ok ? emomOverflowOf(format, formatValue, plannedWorkOfParameters(validation.value)) : false;
+    format !== undefined && formatValue !== null && validation.ok
+      ? emomOverflowOf(format, formatValue, (rank) => plannedWorkOfParameters(validation.value, rank), seriesRowsOf(validation.value).length)
+      : false;
   const validateDisabled = (!validation.ok || emomOverflow) && !sheetCommandsAbsorbed(surface);
   const validateLabel = validation.ok
     ? t.validateAccessibilityLabel

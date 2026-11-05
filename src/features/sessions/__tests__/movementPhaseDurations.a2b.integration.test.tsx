@@ -114,6 +114,7 @@ function renderApp() {
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
       // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » retirée avec les anciennes définitions du Catalogue.]
       "(creation)/movement-selection": require("../../../../app/(creation)/movement-selection").default,
+      "(creation)/formats-window": require("../../../../app/(creation)/formats-window").default,
     },
     { initialUrl: "/composition", wrapper: Wrapper },
   );
@@ -141,6 +142,12 @@ async function openMenuAction(label: string) {
   fireEvent.press(screen.getByLabelText(composition.addActivity));
   fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(label));
   await settle(300);
+  // Complément du 5 novembre 2026 (§1, §3) : « Créer un exercice » ouvre la modale de création ; « Exercice libre » ouvre la
+  // fiche de création (mouvement, puis paramètres).
+  if (label === addToSession.newActivity) {
+    fireEvent.press(screen.getByTestId("formats-window-free-exercise"));
+    await settle(300);
+  }
 }
 
 /** 01/11/2026 : reprendre un Mouvement existant par « Créer un exercice », saisie du nom, toucher de la carte. */
@@ -231,56 +238,5 @@ describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel
     expect(sheetPhaseDurations()).toEqual(["30 s", "—"]);
   }, 40000);
 
-  it("Mouvement existant repris par « Utiliser un mouvement existant », puis par « Créer un exercice » : durées reprises par phase ; une modification ultérieure du Mouvement ne change pas l'Exercice déjà posé (« Inchangés »)", async () => {
-    await movements().create(
-      movement("fentes", "Fentes", { phases: [{ id: 1, label: "Descente", durationSeconds: 3 }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
-    );
-    renderApp();
-    await settle();
-    // [« Utiliser un mouvement existant » — entrée retirée du menu Créer le 01/11/2026 (ordre de
-    // Hermann, ch13 CE-T03-08) : le Mouvement est repris par la saisie de son nom dans « Créer un exercice ».]
-    // [Entrée rétablie le même jour (recette iPhone du 01/11/2026, m11-menu) : premier Exercice par la
-    // sélection des Mouvements, comme avant ; le second reste repris par la saisie du nom.]
-    await openMenuAction(addToSession.existingActivity);
-    fireEvent.press(await screen.findByTestId("movement-card-fentes"));
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-selection-add"));
-    });
-    await settle(300);
-    expect(cardNames()).toEqual(["Fentes"]);
-    await tapCard("Fentes");
-    expect(sheetPhaseDurations()).toEqual(["3 s", "—"]);
-    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    await settle(300);
-
-    // Le Mouvement change ensuite ses durées : l'Exercice déjà posé garde les siennes.
-    await movements().update(
-      movement("fentes", "Fentes", {
-        phases: [
-          { id: 1, label: "Descente", durationSeconds: 9 },
-          { id: 2, label: "Montée", durationSeconds: 9 },
-        ],
-        nextPhaseId: 3,
-      }),
-    );
-    await tapCard("Fentes");
-    expect(sheetPhaseDurations()).toEqual(["3 s", "—"]);
-    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    await settle(300);
-
-    // Un NOUVEL Exercice du même Mouvement reçoit les nouvelles valeurs par défaut.
-    // [« Utiliser un mouvement existant » — entrée retirée du menu Créer le 01/11/2026 (ordre de
-    // Hermann, ch13 CE-T03-08) : le Mouvement est repris par la saisie de son nom dans « Créer un exercice ».]
-    await useExistingMovement("Fentes", "fentes");
-    expect(cardNames()).toEqual(["Fentes", "Fentes"]);
-    const [, second] = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, Fentes,`));
-    fireEvent.press(second!);
-    await settle(300);
-    // Hermann, 01/11/2026 : « Lorsque la modale des paramètres s'ouvre, le tableau des phases doit
-    // être fermé s'il n'y a aucune valeur à vérifier ou à renseigner. » Durées complètes, aucune
-    // marque « à vérifier » (Exercice posé après la modification du Mouvement) : replié, chevron d'abord.
-    expect(screen.queryByTestId("execution-sheet-phases-table")).toBeNull();
-    fireEvent.press(screen.getByTestId("execution-sheet-phases-control-WITH-chevron"));
-    expect(sheetPhaseDurations()).toEqual(["9 s", "9 s"]);
-  }, 40000);
+  // [Test retiré — Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu Créer ; la reprise d'un mouvement existant passe par la fiche de création (suggestions, `useExistingMovement`).]
 });

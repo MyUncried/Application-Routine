@@ -122,6 +122,7 @@ function renderApp() {
       "(creation)/exercise-sheet": require("../../../../app/(creation)/exercise-sheet").default,
       // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » retirée avec les anciennes définitions du Catalogue.]
       "(creation)/movement-selection": require("../../../../app/(creation)/movement-selection").default,
+      "(creation)/formats-window": require("../../../../app/(creation)/formats-window").default,
     },
     { initialUrl: "/composition", wrapper: Wrapper },
   );
@@ -149,6 +150,12 @@ async function openMenuAction(label: string) {
   fireEvent.press(screen.getByLabelText(composition.addActivity));
   fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(label));
   await settle(300);
+  // Complément du 5 novembre 2026 (§1, §3) : « Créer un exercice » ouvre la modale de création ; « Exercice libre » ouvre la
+  // fiche de création (mouvement, puis paramètres).
+  if (label === addToSession.newActivity) {
+    fireEvent.press(screen.getByTestId("formats-window-free-exercise"));
+    await settle(300);
+  }
 }
 
 /** 01/11/2026 : reprendre un Mouvement existant par « Créer un exercice », saisie du nom, toucher de la carte. */
@@ -252,7 +259,8 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
     expect(screen.getByTestId("exercise-name-input").props.editable).toBe(false);
     expect(screen.queryByTestId("exercise-sheet-finish-slot")).toBeNull();
     expect(screen.queryByTestId("exercise-parameters-card")).toBeNull();
-    expect(screen.getByTestId("exercise-parameters-card-readonly")).toBeTruthy();
+    // Complément du 5 novembre 2026 (§10) : section « Dans cette séance » (Phrase et Récupération), à la place de la carte.
+    expect(screen.getByTestId("exercise-section-in-this-session")).toBeTruthy();
     expect(screen.queryByTestId("exercise-section-description")).toBeNull();
     expect(screen.queryByTestId("movement-photo-template")).toBeNull();
     // Précision de Hermann du 04/11/2026 : zone de contexte gardée telle quelle (Catégorie, Zones).
@@ -299,83 +307,8 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
 // « utiliser un mouvement existant » ») : entrée rétablie (2e, après « Créer un exercice ») ; tests
 // d'avant le 01/11 restaurés (ordre du Catalogue, sélection multiple, coin « dans la séance »).
 describe("PRE-9 A.2 — « Utiliser un mouvement existant » : sélection par le Catalogue des Mouvements", () => {
-  it("ouvre la sélection des Mouvements (pas l'ancienne sélection) ; archivés absents ; choisis → Exercices dans l'ordre du Catalogue, posés à compléter ; chaque carte ouvre ses paramètres", async () => {
-    await movements().create(movement("fentes", "Fentes"));
-    await movements().create(movement("gainage", "Gainage"));
-    await movements().create(movement("abdos", "Abdos"));
-    await movements().create(movement("ancien", "Ancien"));
-    await movements().archive("ancien");
-    const router = renderApp();
-    await settle();
-
-    await openMenuAction(addToSession.existingActivity);
-    expect(router.getPathname()).toBe("/movement-selection");
-    expect(screen.queryByTestId("activity-selection-list")).toBeNull();
-    expect(await screen.findByTestId("movement-card-fentes")).toBeTruthy();
-    expect(screen.queryByTestId("movement-card-ancien")).toBeNull();
-    expect(screen.getByTestId("movement-selection-add").props.accessibilityState).toMatchObject({ disabled: true });
-
-    // Touchers dans le désordre : l'ordre d'insertion est celui du Catalogue (par nom).
-    fireEvent.press(screen.getByTestId("movement-card-gainage"));
-    fireEvent.press(screen.getByTestId("movement-card-abdos"));
-    fireEvent.press(screen.getByTestId("movement-card-fentes"));
-    fireEvent.press(screen.getByTestId("movement-card-fentes"));
-    expect(screen.getByLabelText("Abdos").props.accessibilityState).toMatchObject({ selected: true });
-    expect(screen.getByLabelText("Fentes").props.accessibilityState).toMatchObject({ selected: false });
-    expect(screen.getByText("Ajouter 2 exercices")).toBeTruthy();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-selection-add"));
-    });
-    await settle(300);
-
-    expect(router.getPathname()).toBe("/composition");
-    expect(cardNames()).toEqual(["Abdos", "Gainage"]);
-    // Aucune feuille à l'insertion : les deux cartes sont à compléter.
-    expect(screen.queryByTestId("execution-sheet")).toBeNull();
-    expect(screen.getAllByText(strings.executionParameters.card.incomplete)).toHaveLength(2);
-    // Carte touchée → ses paramètres : Abdos (✓), puis Gainage (✕ : laissé à compléter).
-    await tapCard("Abdos");
-    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
-    await setDuration45();
-    expect(screen.queryByTestId("execution-sheet")).toBeNull();
-    await tapCard("Gainage");
-    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    await settle(300);
-    expect(screen.queryByTestId("execution-sheet")).toBeNull();
-    expect(router.getPathname()).toBe("/composition");
-    const [abdos, gainage] = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, `));
-    // [« 1 min » avant le 01/11/2026 : Récupération du Profil (30 s) reprise par le nouvel Exercice.]
-    expect(String(abdos!.props.accessibilityLabel)).toBe("Exercice, Abdos, 1 sur 2, 2 min, récupération 30 s");
-    // Paramètres à compléter : aucune durée annoncée (D-389).
-    expect(String(gainage!.props.accessibilityLabel)).toBe("Exercice, Gainage, 2 sur 2, récupération 30 s");
-    // Aucun Mouvement créé ni modifié par la sélection.
-    expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(4);
-
-    // Contre-recette du 30/10 (Hermann) : rouverte, la sélection marque d'un coin replié (annoncé
-    // « dans la séance ») les Mouvements déjà présents ; ils restent sélectionnables.
-    await openMenuAction(addToSession.existingActivity);
-    expect(await screen.findByTestId("movement-card-in-session-abdos")).toBeTruthy();
-    expect(screen.getByTestId("movement-card-in-session-gainage")).toBeTruthy();
-    expect(screen.queryByTestId("movement-card-in-session-fentes")).toBeNull();
-    expect(screen.queryByText("Dans la séance")).toBeNull();
-    fireEvent.press(screen.getByTestId("movement-card-abdos"));
-    expect(screen.getByLabelText("Abdos, dans la séance").props.accessibilityState).toMatchObject({ selected: true });
-    expect(screen.getByLabelText("Fentes").props.accessibilityState).toMatchObject({ selected: false });
-  }, 40000);
-
-  it("Annuler de la sélection revient à la Composition sans rien ajouter", async () => {
-    await movements().create(movement("fentes", "Fentes"));
-    const router = renderApp();
-    await settle();
-    await openMenuAction(addToSession.existingActivity);
-    fireEvent.press(await screen.findByTestId("movement-card-fentes"));
-    fireEvent.press(screen.getByTestId("movement-selection-cancel"));
-    await settle(300);
-    expect(router.getPathname()).toBe("/composition");
-    expect(cardNames()).toEqual([]);
-    expect(screen.queryByTestId("execution-sheet")).toBeNull();
-  }, 40000);
+  // [Test retiré — Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu Créer ; la reprise d'un mouvement existant passe par la fiche de création (suggestions, `useExistingMovement`).]
+  // [Test retiré — Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu Créer ; la reprise d'un mouvement existant passe par la fiche de création (suggestions, `useExistingMovement`).]
 });
 
 // [« Utiliser un mouvement existant » : sélection par le Catalogue des Mouvements — entrée retirée du
@@ -391,7 +324,8 @@ describe("PRE-9 A.2 — Mouvements existants repris par « Créer un exercice »
     await settle();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
-    expect(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(addToSession.existingActivity)).toBeTruthy();
+    // Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu.
+    expect(within(screen.getByTestId("composition-add-activity-tree")).queryByLabelText(addToSession.existingActivity)).toBeNull();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
     await settle(300);
 

@@ -38,6 +38,9 @@ import {
   modelDuration,
   roleSwitches,
   summaryIssues,
+  chargePerSeries,
+  deathByFirstRankWarning,
+  supersetRecovery,
   withAnswer,
   withMovementMode,
   type FormatModelKey,
@@ -66,10 +69,11 @@ import { useFormatModelDraft } from "@/features/sessions/FormatModelDraftContext
 import {
   AmrapTable,
   DeathByTable,
-  EmomTable,
+  ObjectivePauseTable,
   SeriesTable,
-  emomFixedLoad,
   TableCell,
+  cellKey,
+  formatLoad,
   hasSummaryTable,
   parseCellKey,
   tableCellOrder,
@@ -364,8 +368,16 @@ export function useFormatSheetDetent(): number {
   return Math.min(1, Math.round(((height - MODAL_TOP) / largest) * 1000) / 1000);
 }
 
-/** Modèles sans tableau de récapitulatif : enregistrés depuis leur questionnaire (recette du 04/11/2026). */
-const MODELS_WITHOUT_SUMMARY: ReadonlySet<FormatModelKey> = new Set(["TABATA", "INTERVALS_30_30", "STRENGTH", "UNTIL_FAILURE", "SUPERSET"]);
+/**
+ * Modèles sans tableau de récapitulatif : enregistrés depuis leur questionnaire (recette du 04/11/2026). Décision de Hermann du
+ * 05/11/2026 (« Récap si tableau ») : le principe est gardé — le Superset a désormais toujours un tableau (récapitulatif) ;
+ * Tabata, 30/30, Renforcement et À l'échec n'en ont qu'à partir de deux mouvements (§15–§16 du complément) : un seul mouvement
+ * s'enregistre depuis le questionnaire. [Superset sans récapitulatif — remplacé.]
+ */
+function savesFromQuestionnaire(model: FormatModelKey, movementCount: number): boolean {
+  if (model === "TABATA" || model === "INTERVALS_30_30" || model === "STRENGTH" || model === "UNTIL_FAILURE") return movementCount < 2;
+  return false;
+}
 
 /** Compteur des ouvertures de questionnaire (identité du brouillon de modèle de chaque ouverture). */
 let openings = 0;
@@ -730,7 +742,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // (« Faut-il faire de même pour les autres modèles sans tableau ? » → « Tous les modèles sans tableau ») : 30/30,
   // Renforcement, À l'échec et Superset aussi ; les modèles à tableau (EMOM, AMRAP, For time, Death by, Progression) gardent
   // « Valider les paramètres ».
-  const validating = stage === "questionnaire" && !MODELS_WITHOUT_SUMMARY.has(model);
+  const validating = stage === "questionnaire" && !savesFromQuestionnaire(model, movements.length);
 
   const close = () => {
     if (stage === "summary") {
@@ -766,10 +778,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
 
   // Lignes de paramètres du modèle.
   // `fallback` : valeur héritée affichée tant que la réponse n'est pas fixée (Pause du Renforcement : pause des Exercices).
-  const stepRow = (id: ModelAnswerKey, label: string, options: { last?: boolean; format?: (value: number) => string; fallback?: number } = {}) => {
+  const stepRow = (
+    id: ModelAnswerKey,
+    label: string,
+    options: { last?: boolean; format?: (value: number) => string; fallback?: number; seconds?: boolean; placeholder?: string; missing?: boolean } = {},
+  ) => {
     const value = answers[id] ?? options.fallback;
     const bounds = answerBounds(id);
-    const isSeconds = SECONDS_KEYS.has(id);
+    const isSeconds = options.seconds ?? SECONDS_KEYS.has(id);
     const numeric = typeof value === "number" ? value : null;
     const isVariable = variable.has(id);
     // Hermann, 05/11/2026 : « Un point à corriger pour tous les écrans questionnaires, récapitulatif : on utilise
@@ -799,10 +815,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           kind={isSeconds ? "duration" : "integer"}
           value={isVariable ? null : numeric}
           format={(entered) => (options.format !== undefined ? options.format(entered) : isSeconds ? formatSeconds(entered) : String(entered))}
-          placeholder={isVariable ? t().variable : t().noLimit}
+          placeholder={isVariable ? t().variable : (options.placeholder ?? t().noLimit)}
           badge
           durationMin={bounds.min}
-          missing={id === "intervalSeconds" && stage === "summary" && emomOverflow.length > 0}
+          missing={options.missing === true || (id === "intervalSeconds" && stage === "summary" && emomOverflow.length > 0) || (model === "DEATH_BY" && (id === "startRepetitions" || id === "increment") && numeric === null)}
           onChange={(entered) => {
             if (entered === null) {
               if (id === "timeCapSeconds") setAnswers((current) => withAnswer(current, id, null));
@@ -860,21 +876,108 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     </Row>
   );
 
+  // Complément du 5 novembre 2026 (Hermann), §13 : Death by à un mouvement — Objectif de départ et Incrément dans l'unité du mouvement.
+  const deathByDuration = model === "DEATH_BY" && movements[0]?.values.mode === "DURATION";
+
+  /**
+   * Complément du 5 novembre 2026 (Hermann), §15–§16 : un seul mouvement (Tabata, 30/30, Renforcement, À l'échec, Death by) — ligne « Charge » dans le cadre des
+   * paramètres, sous Durée totale ; une charge commune, saisie au clavier (pavé décimal) ; vide : sans charge.
+   */
+  const chargeRow = () => {
+    const movement = movements[0];
+    if (movement === undefined) return null;
+    const key = answerFieldKey("withLoad").replace("withLoad", "charge");
+    const binding = cellBinding(key);
+    return (
+      <Row key={key} label={t().rows.load} last testID="format-row-charge">
+        <TableCell
+          kind="decimal"
+          value={movement.values.loadOn === true ? (movement.values.loadKg ?? null) : null}
+          format={formatLoad}
+          entrySuffix=" kg"
+          placeholder={t().dash}
+          badge
+          onChange={(value) => updateValues(0, { ...movement.values, loadKg: value, loadOn: value !== null })}
+          {...binding}
+          label={t().rows.load}
+          testID="format-charge"
+        />
+      </Row>
+    );
+  };
+
+  /** Complément du 5 novembre 2026 (Hermann), §9 : « (+ kg) » — la charge de ce mouvement apparaît et le clavier s'ouvre sur sa première case. */
+  const addLoad = (index: number) => {
+    const movement = movements[index];
+    if (movement === undefined) return;
+    updateValues(index, { ...movement.values, loadOn: true });
+    const first = chargePerSeries(model) ? cellKey("load", index, 0) : cellKey("load", index);
+    setTimeout(() => focusCell(first), 0);
+  };
+
+  // Complément du 5 novembre 2026 (§9) : « Vider toutes les cases retire la ligne à la fermeture du clavier, et « + kg »
+  // revient ; il n'y a rien à restaurer. »
+  useEffect(() => {
+    const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", () =>
+      setMovements((current) => {
+        let changed = false;
+        const next = current.map((movement) => {
+          const values = movement.values;
+          if (values.loadOn !== true) return movement;
+          const loads = values.cells !== undefined ? values.cells.map((cell) => cell.loadKg) : values.loads !== undefined ? values.loads : [values.loadKg ?? null];
+          if (loads.some((load) => load !== null && load !== undefined)) return movement;
+          changed = true;
+          return { ...movement, values: { ...values, loadOn: false } };
+        });
+        return changed ? next : current;
+      }),
+    );
+    return () => hide.remove();
+  }, [setMovements]);
+
   const rows = parameterRows();
+  // Complément du 5 novembre 2026 (Hermann), §12 : lignes posées au-dessus du tableau (nombre de séries, de tours, intervalle du Death by, durée de l'AMRAP),
+  // les autres dans le cadre qui le suit.
+  const tableHere = (stage === "summary" || (model === "DEATH_BY" && movements.length > 1)) && hasSummaryTable(model, movements);
+  const BEFORE_TABLE = new Set([answerFieldKey("seriesCount"), answerFieldKey("roundCount"), ...(model === "DEATH_BY" ? [answerFieldKey("intervalSeconds")] : []), ...(model === "AMRAP" ? [answerFieldKey("durationSeconds")] : [])]);
+  const isRowBeforeTable = (row: React.ReactNode) => isValidElement(row) && typeof row.key === "string" && BEFORE_TABLE.has(row.key);
+  // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Progression : il manque la pause » ; « ne pas calculer de durée total sur
+  // l'écran Questionnaire » ; « la ligne du mode d'exécution est la dernière, après la durée totale ») ; MAJ 04/11 §6 quater :
+  // « Avec charge » au questionnaire seulement, après Pause.
+  function progressionTail(): React.ReactNode {
+    if (model !== "PROGRESSION") return null;
+    return (
+      <>
+        {stepRow("pauseSeconds", t().rows.pauseSeconds, {
+          fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0,
+          last: stage === "questionnaire" && !showExecution,
+        })}
+        {stage === "questionnaire" ? switchRow("withLoad", t().rows.withLoad) : null}
+        {stage === "summary" ? totalRow(!showExecution) : null}
+        {showExecution ? executionRow() : null}
+      </>
+    );
+  }
   function parameterRows(): React.ReactNode[] {
     const several = movements.length > 1;
     const sequence = execution === "SEQUENCE";
     const withExecution = (items: React.ReactNode[]) => (showExecution ? [...items, executionRow()] : items);
     const r = t().rows;
+    // Complément du 5 novembre 2026 (Hermann), §16 : « Avec charge » dans les dix questionnaires (désactivé par défaut).
+    const loadSwitch = stage === "questionnaire" ? [switchRow("withLoad", r.withLoad)] : [];
+    // Complément du 5 novembre 2026 (Hermann), §15–§16 : un seul mouvement — ligne Charge sous Durée totale ; plusieurs : tableau par mouvement (récapitulatif),
+    // lignes communes Travail par série / Répétitions par série / Pause retirées des paramètres.
+    const single = answers.withLoad === true && movements.length === 1 ? [chargeRow()] : [];
+    const byMovement = stage === "summary" && several;
     switch (model) {
       case "TABATA":
       case "INTERVALS_30_30":
         return withExecution([
           stepRow("seriesCount", r.seriesCount),
-          stepRow("workSeconds", r.workSeconds),
-          stepRow("pauseSeconds", r.pauseSeconds),
-          totalRow(!showExecution),
-          ...(model === "TABATA" && several && sequence && showExecution ? [] : []),
+          ...(byMovement ? [] : [stepRow("workSeconds", r.workSeconds), stepRow("pauseSeconds", r.pauseSeconds)]),
+          ...loadSwitch,
+          totalRow(!showExecution && single.length === 0),
+          ...single,
         ]).concat(model === "TABATA" && several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : []);
       case "EMOM":
         // MAJ 04/11 §4.2 : ligne « Repos · jusqu'à la cadence » retirée ; §6 quater bis : « Avec charge » avant la durée totale.
@@ -890,15 +993,18 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // MAJ 04/11 §4.3 : à plusieurs mouvements, le tableau Départ | Incrément remplace les lignes communes — recette du
         // 04/11/2026 (f4-modale, Hermann : « Il faut que ce soit le cas dès la saisie du deuxième mouvement pour la première
         // fois, pas seulement après la validation des paramètres ») : au questionnaire aussi.
+        // Complément du 5 novembre 2026 (Hermann), §13 : « Objectif de départ » et incrément dans l'unité du mouvement (Répétitions ou Durée, au clavier).
         return withExecution([
           stepRow("intervalSeconds", r.intervalSeconds),
           ...(several
             ? []
             : [
-                stepRow("startRepetitions", r.startRepetitions, { format: (value) => `${value} ${t().repetitionsUnit}` }),
-                stepRow("increment", r.increment, { format: (value) => `+ ${value} ${t().repetitionsUnit}` }),
+                stepRow("startRepetitions", r.startRepetitions, { seconds: deathByDuration, format: deathByDuration ? formatSeconds : (value) => `${value} ${t().repetitionsUnit}`, placeholder: t().dash }),
+                stepRow("increment", r.increment, { seconds: deathByDuration, format: (value) => `+ ${deathByDuration ? formatSeconds(value) : `${value} ${t().repetitionsUnit}`}`, placeholder: "+" }),
               ]),
-          readRow(r.stopCondition, t().atFailure, "stop", !showExecution),
+          readRow(r.stopCondition, t().atFailure, "stop", !showExecution && loadSwitch.length === 0 && single.length === 0),
+          ...loadSwitch,
+          ...single,
         ]).concat(several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : []);
       case "AMRAP": {
         if (stage === "summary") return [stepRow("durationSeconds", (answers.blockCount ?? 1) > 1 || several || (answers.loopRestSeconds ?? 0) > 0 ? r.blockDuration : r.durationSeconds, { last: true })];
@@ -921,11 +1027,29 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         ];
       case "STRENGTH":
         // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Il manque le champ de la Pause ») : Pause toujours affichée.
-        return withExecution([stepRow("seriesCount", r.seriesCount), stepRow("repetitions", r.repetitions), stepRow("pauseSeconds", r.pauseSeconds, { fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0 }), totalRow(!showExecution)]);
+        return withExecution([
+          stepRow("seriesCount", r.seriesCount),
+          ...(byMovement
+            ? []
+            : [stepRow("repetitions", r.repetitions), stepRow("pauseSeconds", r.pauseSeconds, { fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0 })]),
+          ...loadSwitch,
+          totalRow(!showExecution && single.length === 0),
+          ...single,
+        ]);
       case "UNTIL_FAILURE":
         // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « A l'échec : ne pas mettre le champ de la durée totale,
-        // retirer la ligne »).
-        return withExecution([stepRow("seriesCount", r.seriesCount), readRow(r.targetPerSeries, t().atFailure, "target", !showExecution)]);
+        // retirer la ligne »). Complément du 5 novembre 2026 (Hermann), §16 (Figma « À l'échec — Questionnaire ») : Pause et « Avec charge » ; ligne Charge en dernier.
+        return withExecution([
+          stepRow("seriesCount", r.seriesCount, { last: byMovement && !showExecution }),
+          ...(byMovement
+            ? []
+            : [
+                readRow(r.targetPerSeries, t().atFailure, "target"),
+                stepRow("pauseSeconds", r.pauseSeconds, { fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0, last: !showExecution && loadSwitch.length === 0 && single.length === 0 }),
+              ]),
+          ...loadSwitch,
+          ...single,
+        ]);
       case "PROGRESSION":
         // Suivies du tableau (récapitulatif), de la Pause, de la durée totale et de l'Exécution (sous le tableau).
         return [stepRow("seriesCount", r.seriesCount, { last: stage === "summary" })];
@@ -933,10 +1057,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // Recette du 04/11/2026 (x-sans-recap, Hermann : « Superset : questionnaire : il manque la ligne de récupération après
   // la paire ; on ne doit pas pouvoir sélectionner plus de deux exercices, afficher un message ») : la récupération après la paire (portée par le dernier exercice, §9.2) est réglable ; valeur initiale =
         // récupération après l'activité du dernier exercice.
+        // Complément du 5 novembre 2026 (Hermann), §11 : « Répétitions par série » retirée (l'objectif dépend du mouvement) ; Circuit (3 tours), « Récupération
+        // après le tour » (Récupération du dernier Exercice actuel ; absente : à renseigner, zéro conservé), Durée totale.
         return [
           stepRow("roundCount", r.supersetRounds, { format: (value) => `${value} ${value > 1 ? t().roundUnit.many : t().roundUnit.one}` }),
-          readRow(r.repetitions, t().dash, "repetitions"),
-          stepRow("recoveryBetweenSeconds", r.recoveryAfterPair, { fallback: movements[movements.length - 1]?.exercise.postActivityRecoverySeconds ?? 0 }),
+          stepRow("recoveryBetweenSeconds", r.recoveryAfterPair, { fallback: movements[movements.length - 1]?.exercise.postActivityRecoverySeconds ?? undefined, placeholder: t().dash, missing: movements.length > 0 && supersetRecovery(answers, movements) === null }),
+          ...loadSwitch,
           totalRow(true),
         ];
       default: {
@@ -1014,17 +1140,31 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Unité de l'objectif au clavier (MAJ 04/11 §4.5) : barre Répétitions | Durée, puis unité choisie, Précédent, Suivant.
   const focusedCellKey = focusedCell === null ? null : parseCellKey(focusedCell);
   const unitRow = focusedCellKey !== null && focusedCellKey.kind === "obj" ? focusedCellKey.row : null;
-  // Recette du 05/11/2026 (constat f, Hermann : « Death by : le clavier du tableau d'objectifs n'a pas d'unité ») : Départ et
-  // Incrément se comptent en répétitions — la barre montre l'unité Répétitions, seule admise.
-  const deathByRow = focusedCellKey !== null && model === "DEATH_BY" && (focusedCellKey.kind === "start" || focusedCellKey.kind === "sinc") ? focusedCellKey.row : null;
+  // Recette du 05/11/2026 (constat f, Hermann : « Death by : le clavier du tableau d'objectifs n'a pas d'unité ») : la barre
+  // montre l'unité de Départ et d'Incrément. Complément du 5 novembre 2026 (Hermann), §13 : Répétitions ou Durée, choisie au clavier ; un seul mouvement : sur
+  // l'Objectif de départ et l'Incrément du questionnaire. [Répétitions seule admise — remplacé.]
+  const deathByAnswerField = model === "DEATH_BY" && movements.length === 1 && (focusedCell === answerFieldKey("startRepetitions") || focusedCell === answerFieldKey("increment"));
+  const deathByRow =
+    deathByAnswerField ? 0 : focusedCellKey !== null && model === "DEATH_BY" && (focusedCellKey.kind === "start" || focusedCellKey.kind === "sinc") ? focusedCellKey.row : null;
   const unitsBar =
     deathByRow !== null && movements[deathByRow] !== undefined
       ? {
-          current: "REPETITIONS" as const,
-          picking: false,
-          allowed: ["REPETITIONS" as const],
-          onPick: () => undefined,
-          onReopen: () => undefined,
+          current: movements[deathByRow]!.values.mode ?? ("REPETITIONS" as const),
+          picking: unitPicking,
+          allowed: ["REPETITIONS" as const, "DURATION" as const],
+          onPick: (mode: "REPETITIONS" | "DURATION") => {
+            setUnitPicking(false);
+            const current = movements[deathByRow]!;
+            if ((current.values.mode ?? "REPETITIONS") === mode) return;
+            updateValues(deathByRow, withMovementMode(current.values, mode));
+            // Un seul mouvement : départ et incrément du questionnaire à renseigner dans la nouvelle unité, sans conversion.
+            if (deathByAnswerField)
+              setAnswers((answersNow) => {
+                const { startRepetitions: _start, increment: _increment, ...rest } = answersNow;
+                return rest;
+              });
+          },
+          onReopen: () => setUnitPicking(true),
         }
       : unitRow === null || movements[unitRow] === undefined
       ? null
@@ -1041,19 +1181,20 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           },
           onReopen: () => setUnitPicking(true),
         };
-  // Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » — signe choisi par « ± » dans la barre du clavier.
-  const signRow = focusedCellKey !== null && focusedCellKey.kind === "linc" && model === "EMOM" ? focusedCellKey.row : null;
+  // Complément du 5 novembre 2026 (Hermann), §8 : « ± | Précédent | Suivant | Fermer » sur l'Incrément par tour AMRAP (incrément signé). [EMOM : incrément de
+  // charge signé (Hermann, 04/11/2026) — remplacé : l'EMOM n'a plus d'incrément, §14.]
+  const signRow = focusedCellKey !== null && focusedCellKey.kind === "inc" && model === "AMRAP" ? focusedCellKey.row : null;
   const signBar =
     signRow === null || focusedCell === null || movements[signRow] === undefined
       ? null
       : (() => {
           const values = movements[signRow]!.values;
-          const negative = (cellSigns[focusedCell] ?? ((values.loadIncrement ?? 0) < 0 ? -1 : 1)) < 0;
+          const negative = (cellSigns[focusedCell] ?? ((values.increment ?? 0) < 0 ? -1 : 1)) < 0;
           return {
             negative,
             onPress: () => {
               setCellSigns((current) => ({ ...current, [focusedCell]: negative ? 1 : -1 }));
-              if (values.loadIncrement != null && values.loadIncrement !== 0) updateValues(signRow, { ...values, loadIncrement: -values.loadIncrement, seriesLoads: undefined });
+              if (values.increment != null && values.increment !== 0) updateValues(signRow, { ...values, increment: -values.increment });
             },
           };
         })();
@@ -1063,7 +1204,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Ordre de Suivant : valeurs des lignes de paramètres dans l'ordre affiché, puis cases du tableau (Progression : tableau
   // entre le nombre de séries et la Pause, rangés dans le même cadre).
   const rowFields = rows.flatMap((node) => (isValidElement(node) && typeof node.key === "string" && node.key.startsWith(ANSWER_FIELD_PREFIX) ? [node.key] : []));
-  const fieldOrder = model === "PROGRESSION" ? [...rowFields, ...cellOrder, answerFieldKey("pauseSeconds")] : [...rowFields, ...cellOrder];
+  // Complément du 5 novembre 2026 (Hermann), §12 : lignes du cadre au-dessus du tableau, cases du tableau, puis lignes du cadre qui le suit.
+  const beforeFields = tableHere ? rowFields.filter((key) => BEFORE_TABLE.has(key)) : rowFields;
+  const afterFields = tableHere ? rowFields.filter((key) => !BEFORE_TABLE.has(key)) : [];
+  const fieldOrder = [...beforeFields, ...cellOrder, ...afterFields, ...(model === "PROGRESSION" ? [answerFieldKey("pauseSeconds")] : [])];
   const focusedAt = focusedCell === null ? -1 : fieldOrder.indexOf(focusedCell);
   // Hermann, 04/11/2026 : « Ouvrir le clavier doit positionner le bas du tableau des objectifs juste au-dessus du clavier,
   // toutes les lignes du tableau doivent être visibles. » Le bas du tableau est placé au-dessus du clavier et de sa barre ;
@@ -1288,7 +1432,16 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const sectionAction = sectionLink(role, link);
     return (
       <>
-        {inCatalogue ? null : <SectionHeader label={label} link={sectionAction.text} onLink={sectionAction.onPress} testID={testID} />}
+        {inCatalogue ? null : (
+          <SectionHeader
+            label={label}
+            link={sectionAction.text}
+            onLink={sectionAction.onPress}
+            // Complément du 5 novembre 2026 (Hermann), §11 : « + Ajouter » se désactive dès que deux mouvements sont choisis (à la réouverture aussi).
+            disabled={model === "SUPERSET" && role === "LOOP" && !open && movements.length >= 2}
+            testID={testID}
+          />
+        )}
         {inCatalogue ? (
           <View style={styles.search}>
             <View style={styles.catalogueList} testID="format-catalogue-results">
@@ -1459,53 +1612,63 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         {catalogueMode ? null : (
         <>
         <Text style={styles.section}>{t().parameters}</Text>
+        {/* Complément du 5 novembre 2026 (Hermann), §12 : tableau des mouvements isolé dans son propre cadre, entre le cadre du nombre de séries (ou de tours,
+            d'intervalle, de durée) et celui des paramètres qui suivent ; cadres séparés de 8. */}
         <View style={styles.panel} testID="format-parameters">
-          {rows}
-          {model === "PROGRESSION" && stage === "summary" ? (
-            <View ref={tableRef} collapsable={false} testID="format-objectives">
-              <SeriesTable model="PROGRESSION" movements={movements} count={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
-            </View>
-          ) : null}
-          {/* Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Progression : il manque la pause » ; « ne pas calculer de
-              durée total sur l'écran Questionnaire, l'utilisateur ne voit pas les valeur par défaut utilisées » ; « la ligne
-              du mode d'exécution est la dernière, après la durée totale »). */}
-          {model === "PROGRESSION" ? (
-            <>
-              {stepRow("pauseSeconds", t().rows.pauseSeconds, {
-                fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0,
-                last: stage === "questionnaire" && !showExecution,
-              })}
-              {/* MAJ 04/11 §6 quater : « Avec charge » au questionnaire seulement, après Pause (pas de durée totale au
-                  questionnaire, contre-recette n° 3 bis). */}
-              {stage === "questionnaire" ? switchRow("withLoad", t().rows.withLoad) : null}
-              {stage === "summary" ? totalRow(!showExecution) : null}
-              {showExecution ? executionRow() : null}
-            </>
-          ) : null}
+          {tableHere ? rows.filter(isRowBeforeTable) : rows}
+          {tableHere ? null : progressionTail()}
         </View>
-        {(stage === "summary" || model === "DEATH_BY") && hasSummaryTable(model, movements) ? (
-          <View ref={tableRef} collapsable={false} testID="format-objectives">
-            {model === "AMRAP" ? (
-              <AmrapTable movements={movements} increasing={answers.increasingVolume === true} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
+        {tableHere ? (
+          <View ref={tableRef} collapsable={false} style={styles.tableFrame} testID="format-objectives">
+            {model === "PROGRESSION" ? (
+              <SeriesTable model="PROGRESSION" movements={movements} count={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
             ) : null}
-            {model === "EMOM" ? <EmomTable movements={movements} seriesCount={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} fixedLoad={emomFixedLoad(movements, answers)} overflow={emomOverflow} onChange={updateValues} cell={cellBinding} /> : null}
-            {model === "DEATH_BY" ? <DeathByTable movements={movements} onChange={updateValues} cell={cellBinding} /> : null}
+            {model === "AMRAP" ? (
+              <AmrapTable movements={movements} increasing={answers.increasingVolume === true} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
+            ) : null}
+            {model === "EMOM" ? (
+              <SeriesTable model="EMOM" bare movements={movements} count={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} overflow={emomOverflow} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
+            ) : null}
+            {model === "SUPERSET" ? (
+              <SeriesTable model="SUPERSET" bare movements={movements} count={answers.roundCount ?? 3} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
+            ) : null}
+            {model === "DEATH_BY" ? <DeathByTable movements={movements} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} /> : null}
+            {model === "TABATA" || model === "INTERVALS_30_30" || model === "STRENGTH" || model === "UNTIL_FAILURE" ? (
+              <ObjectivePauseTable
+                model={model}
+                movements={movements}
+                objectiveFallback={model === "STRENGTH" ? answers.repetitions : answers.workSeconds}
+                pauseFallback={(index) => answers.pauseSeconds ?? (movements[index] !== undefined ? basePause(movements[index].exercise) : 0)}
+                withLoad={answers.withLoad === true}
+                onChange={updateValues}
+                onAddLoad={addLoad}
+                cell={cellBinding}
+              />
+            ) : null}
             {model === "FOR_TIME" ? (
               // Recette du 04/11/2026 (f4-modale, For time : « le fond du tableau doit être transparent, seules les zones de
-              // textes doivent avoir un fond blanc ») : zones de saisie blanches. Recette du 05/11/2026 (constat d, Hermann :
-              // « For time, tableau des mouvements : […] Le tableau doit être entouré d'un cadre identique à celui des autres
-              // paramètres d'exécution, dédié ») : cadre propre, comme le cadre des paramètres. [Tableau sans cadre — remplacé.]
-              <View style={styles.tableBare}>
-                <SeriesTable model="FOR_TIME" bare movements={movements} count={answers.roundCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
-              </View>
-            ) : null}
-            {/* Contrôle EMOM des durées (MAJ 04/11 §4.4) : message sous le tableau, cadres rouges, validation bloquée. */}
-            {model === "EMOM" && emomOverflow.length > 0 ? (
-              <Text style={styles.alert} accessibilityRole="alert" testID="format-emom-overflow">
-                {t().emomOverflow.replace("{interval}", formatSeconds(answers.intervalSeconds ?? 60))}
-              </Text>
+              // textes doivent avoir un fond blanc ») : zones de saisie blanches. Recette du 05/11/2026 (constat d) : cadre propre.
+              <SeriesTable model="FOR_TIME" bare movements={movements} count={answers.roundCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
             ) : null}
           </View>
+        ) : null}
+        {tableHere && (rows.some((row) => !isRowBeforeTable(row)) || model === "PROGRESSION") ? (
+          <View style={[styles.panel, styles.panelAfterTable]} testID="format-parameters-after">
+            {rows.filter((row) => !isRowBeforeTable(row))}
+            {progressionTail()}
+          </View>
+        ) : null}
+        {/* Contrôle EMOM des durées (MAJ 04/11 §4.4 ; Complément du 5 novembre 2026 (Hermann), §14) : message, cadres rouges, validation bloquée. */}
+        {model === "EMOM" && tableHere && emomOverflow.length > 0 ? (
+          <Text style={styles.alert} accessibilityRole="alert" testID="format-emom-overflow">
+            {t().emomOverflow.replace("{interval}", formatSeconds(answers.intervalSeconds ?? 60))}
+          </Text>
+        ) : null}
+        {/* Complément du 5 novembre 2026 (Hermann), §13 : avertissement non bloquant du Death by, seulement si le premier rang ne tient pas dans l'intervalle. */}
+        {model === "DEATH_BY" && deathByFirstRankWarning(answers, movements) ? (
+          <Text style={styles.alert} accessibilityRole="alert" testID="format-death-by-warning">
+            {t().deathByFirstRankWarning}
+          </Text>
         ) : null}
 
         <View style={styles.spacer} />
@@ -1714,12 +1877,12 @@ function ExecutionMenu({ options, execution, onSelect }: { options: readonly Mod
   );
 }
 
-function SectionHeader({ label, link, onLink, testID }: { label: string; link: string; onLink: () => void; testID: string }) {
+function SectionHeader({ label, link, onLink, disabled = false, testID }: { label: string; link: string; onLink: () => void; disabled?: boolean; testID: string }) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionLabel}>{label}</Text>
-      <Pressable onPress={onLink} hitSlop={10} accessibilityRole="button" accessibilityLabel={link} testID={`${testID}-link`}>
-        <Text style={styles.link}>{link}</Text>
+      <Pressable onPress={onLink} disabled={disabled} hitSlop={10} accessibilityRole="button" accessibilityLabel={link} accessibilityState={{ disabled }} testID={`${testID}-link`}>
+        <Text style={[styles.link, disabled ? styles.linkDisabled : null]}>{link}</Text>
       </Pressable>
     </View>
   );
@@ -1745,6 +1908,8 @@ function genericDuration(model: FormatModelKey, answers: ModelAnswers): string {
 const styles = StyleSheet.create({
   content: { flexGrow: 1 },
   modalRoot: { flex: 1, backgroundColor: "transparent" },
+  // Complément du 5 novembre 2026 (Hermann) (Figma « Superset — Récapitulatif ») : « + Ajouter » grisé.
+  linkDisabled: { opacity: 0.4 },
   band: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 1 },
   nativeSheet: { flex: 1, backgroundColor: "#FFFFFF", overflow: "hidden" },
   bandFade: { height: CONTEXT_FADE_HEIGHT },
@@ -1756,7 +1921,9 @@ const styles = StyleSheet.create({
   searchClear: { position: "absolute", right: 10, width: 22, height: 22, borderRadius: 11, backgroundColor: "#DDE0E6", alignItems: "center", justifyContent: "center" },
   familyRailZone: { position: "absolute", left: -6, top: 26, bottom: 26, width: 16, alignItems: "center", zIndex: 1 },
   familyRailLine: { width: 2, flex: 1, borderRadius: 1, backgroundColor: "#B9BDF5" },
-  tableBare: { marginTop: 12, marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16, paddingVertical: 4 },
+  // Complément du 5 novembre 2026 (Hermann), §12 : cadre propre du tableau, séparé de 8 des cadres voisins.
+  tableFrame: { marginTop: 8, marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 8, paddingVertical: 4 },
+  panelAfterTable: { marginTop: 8 },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" },
   context: { height: CONTEXT_HEIGHT, paddingHorizontal: 16, paddingTop: 10 },
   modalHeader: { height: dimensions.backAction.visualCircle + 2, flexDirection: "row", alignItems: "center", justifyContent: "center" },

@@ -247,8 +247,14 @@ export function expandStructure<E extends PlanExercise>(input: PlanExpansionInpu
       const memberContext = (exercise: E): PlanContext =>
         carried !== null || (exercise.format ?? null) === null ? circuitContext : { ...circuitContext, formattedElementId: exercise.id };
       const tourPrefix = `${prefix}/circuit:${item.id}#${tour}`;
-      const only = alternated ? tour : null;
-      const plays = (exercise: E) => only === null || progressiveFormat(exercise) !== null || seriesCount(exercise) >= only;
+      // Complément du 5 novembre 2026 (Hermann, §14, §17) : EMOM « dans chaque intervalle », chaque membre porte une série par
+      // tour — au tour k, il joue sa série k (sans multiplication N × N) ; un membre d'une seule série (avant le 05/11) la joue
+      // à chaque tour.
+      const onlyFor = (exercise: E): number | null => (alternated || (carried?.key === "EMOM" && seriesCount(exercise) > 1) ? tour : null);
+      const plays = (exercise: E) => {
+        const only = onlyFor(exercise);
+        return only === null || progressiveFormat(exercise) !== null || seriesCount(exercise) >= only;
+      };
       // Un tour où aucun Exercice ne joue est omis en entier, points compris (alternées).
       if (!item.exercises.some(plays)) {
         continue;
@@ -259,7 +265,7 @@ export function expandStructure<E extends PlanExercise>(input: PlanExpansionInpu
         if (open !== null) {
           progressive(exercise.id, open, tourPrefix, memberContext(exercise), progressiveInCircuitQuestion(open, alternated));
         } else if (plays(exercise)) {
-          occurrence(exercise, only, tourPrefix, memberContext(exercise));
+          occurrence(exercise, onlyFor(exercise), tourPrefix, memberContext(exercise));
         }
         pointsAt({ circuitId: item.id, cycleId: null }, index + 1, tourPrefix, circuitContext);
       });

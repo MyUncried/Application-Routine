@@ -206,8 +206,10 @@ describe("FormatModelScreen", () => {
     expect(mockDismissTo).not.toHaveBeenCalled();
   });
 
-  // Réponse de Hermann du 04/11/2026 : « Tous les modèles sans tableau » s'enregistrent depuis leur questionnaire.
-  it.each(["TABATA", "INTERVALS_30_30", "STRENGTH", "UNTIL_FAILURE", "SUPERSET"] as const)("recette du 04/11 : %s (sans tableau) — « Enregistrer dans la séance » dès le questionnaire, sans récapitulatif", async (model) => {
+  // Réponse de Hermann du 04/11/2026 : « Tous les modèles sans tableau » s'enregistrent depuis leur questionnaire. Décision du
+  // 05/11/2026 (« Récap si tableau ») : le Superset a désormais un tableau, donc un récapitulatif ; les quatre autres, avec un
+  // seul mouvement (ou aucun).
+  it.each(["TABATA", "INTERVALS_30_30", "STRENGTH", "UNTIL_FAILURE"] as const)("recette du 04/11 : %s (sans tableau) — « Enregistrer dans la séance » dès le questionnaire, sans récapitulatif", async (model) => {
     mockModel = model;
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -270,24 +272,61 @@ describe("FormatModelScreen", () => {
     });
   }
 
-  it("recette du 05/11 (x-sans-recap) : Superset — ligne « Récupération après la paire » ; trois exercices refusés avec un message", async () => {
+  // [Recette du 05/11 (x-sans-recap) : troisième exercice refusé avec un message — complément du 5 novembre 2026 (§11) :
+  // « + Ajouter » se désactive dès que deux mouvements sont choisis ; « Valider les paramètres » ne s'active qu'avec deux.]
+  it("complément du 05/11 : Superset — « Récupération après le tour », 3 tours ; « + Ajouter » désactivé à deux ; récapitulatif par tour", async () => {
     mockModel = "SUPERSET";
-    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     expect(screen.getByTestId("format-row-recoveryBetweenSeconds")).toHaveTextContent(t.rows.recoveryAfterPair, { exact: false });
+    expect(t.rows.recoveryAfterPair).toBe("Récupération après le tour");
+    expect(shown("roundCount")).toBe("3 tours");
+    expect(screen.queryByTestId("format-row-repetitions")).toBeNull();
     await pick("Squ", "mv-squats");
+    expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
     await pick("Fen", "mv-fentes");
-    expect(alert).not.toHaveBeenCalled();
+    expect(screen.getByTestId("format-movements-link").props.accessibilityState).toMatchObject({ disabled: true });
+    toSummary();
+    expect(screen.getByTestId("format-superset-table")).toBeTruthy();
+    // Chaque tour prérempli avec la valeur du premier.
+    const first = screen.getByTestId("format-superset-0-0-reps");
+    fireEvent(first, "focus");
+    fireEvent.changeText(first, "12");
+    expect(screen.getByTestId("format-superset-0-2-reps").props.value).toBe("12");
+  });
+
+  it("complément du 05/11 (§9, §16) : « Avec charge » dans tous les questionnaires ; (+ kg) par mouvement ; (− kg) puis (+ kg) retrouve la valeur ; interrupteur coupé puis rétabli aussi", async () => {
+    for (const model of ["TABATA", "INTERVALS_30_30", "SUPERSET", "STRENGTH", "UNTIL_FAILURE", "DEATH_BY", "AMRAP", "EMOM", "FOR_TIME", "PROGRESSION"]) {
+      mockModel = model;
+      const view = render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+      await screen.findByTestId("format-title");
+      expect(screen.getByTestId("format-withLoad").props.value).toBe(false);
+      view.unmount();
+    }
+    mockModel = "PROGRESSION";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    fireEvent(screen.getByTestId("format-withLoad"), "valueChange", true);
     await pick("Squ", "mv-squats");
-    const [title, message, buttons] = alert.mock.calls[0] as [string, string, { text: string; onPress: () => void }[]];
-    expect([title, message]).toEqual([t.supersetLimitTitle, t.supersetLimitMessage]);
-    expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
-    // Recette du 05/11 (g-superset-deux) : « J'ai compris » ferme la saisie, texte effacé, retour au questionnaire.
-    expect(buttons.map((button) => button.text)).toEqual([t.supersetLimitAcknowledge]);
-    act(() => buttons[0]!.onPress());
-    expect(screen.queryByTestId("format-search")).toBeNull();
-    alert.mockRestore();
+    toSummary();
+    // Activation globale : aucune ligne de charge tant que « (+ kg) » n'est pas touché.
+    expect(screen.queryByTestId("format-progression-0-0-load")).toBeNull();
+    expect(screen.getByTestId("format-progression-0-charge")).toHaveTextContent(t.table.addLoad);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-progression-0-charge"));
+    });
+    const load = screen.getByTestId("format-progression-0-0-load");
+    fireEvent(load, "focus");
+    fireEvent.changeText(screen.getByTestId("format-progression-0-0-load"), "12");
+    fireEvent(screen.getByTestId("format-progression-0-0-load"), "blur");
+    expect(screen.getByTestId("format-progression-0-0-load").props.value).toBe("(12 kg)");
+    // « (− kg) » : ligne retirée, valeur gardée dans le brouillon ; « (+ kg) » la retrouve.
+    fireEvent.press(screen.getByTestId("format-progression-0-charge"));
+    expect(screen.queryByTestId("format-progression-0-0-load")).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-progression-0-charge"));
+    });
+    expect(screen.getByTestId("format-progression-0-0-load").props.value).toBe("(12 kg)");
   });
 
   it("Hermann, 05/11 : valeurs au clavier, plus de stepper — bornes à la saisie, Temps limite vidé = « Sans limite »", async () => {
@@ -445,7 +484,13 @@ describe("FormatModelScreen", () => {
     await pick("Fen", "mv-fentes");
     expect(rowsOf()).toEqual(["format-row-seriesCount", "format-row-pauseSeconds", "format-row-withLoad", "format-row-execution"]);
     toSummary();
-    expect(rowsOf()).toEqual(["format-row-seriesCount", "format-row-pauseSeconds", "format-row-total", "format-row-execution"]);
+    // Complément du 5 novembre 2026 (§12) : nombre de séries, tableau dans son propre cadre, puis Pause, durée totale, Exécution.
+    expect(rowsOf()).toEqual(["format-row-seriesCount"]);
+    expect(within(screen.getByTestId("format-parameters-after")).getAllByTestId(/^format-row-/).map((row) => row.props.testID)).toEqual([
+      "format-row-pauseSeconds",
+      "format-row-total",
+      "format-row-execution",
+    ]);
     const names = screen.getByTestId("format-progression-names");
     expect(within(names).getByText("Squats sautés")).toBeTruthy();
     const series = screen.getByTestId("format-progression-series");
@@ -590,7 +635,8 @@ describe("FormatModelScreen", () => {
     await screen.findByTestId("format-title");
     await pick("Squ", "mv-squats");
     toSummary();
-    const cell = screen.getByTestId("format-emom-objective-0");
+    // Complément du 5 novembre 2026 (§14) : tableau par série (S1…S6).
+    const cell = screen.getByTestId("format-emom-0-0-reps");
     expect(cell.props.value).toBe("");
     expect(cell.props.placeholder).toBe(t.dash);
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
@@ -657,6 +703,8 @@ describe("FormatModelScreen", () => {
     await screen.findByTestId("format-title");
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
+    // Décision de Hermann du 05/11/2026 (« Récap si tableau ») : Tabata à deux mouvements → récapitulatif (tableau par mouvement).
+    toSummary();
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });
@@ -669,10 +717,13 @@ describe("FormatModelScreen", () => {
     expect(await screen.findByTestId("format-summary")).toBeTruthy();
     expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer les modifications");
     expect(screen.getByTestId("format-movement-card-1")).toBeTruthy();
-    // Retour : questionnaire du modèle, réponses reconstruites ; le Tabata enregistre depuis son questionnaire (recette du 04/11).
+    // Retour : questionnaire du modèle, réponses reconstruites. Décision du 05/11/2026 (« Récap si tableau ») : à deux mouvements,
+    // le Tabata repasse par son récapitulatif (tableau par mouvement), qui reprend la Pause commune modifiée.
     fireEvent.press(screen.getByTestId("screen-header-back"));
     expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
     typeValue("pauseSeconds", "15");
+    toSummary();
+    expect(screen.getByTestId("format-pause-0").props.value).toBe("15 s");
     expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer les modifications");
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));

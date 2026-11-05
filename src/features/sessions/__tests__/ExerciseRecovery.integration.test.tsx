@@ -116,6 +116,7 @@ function renderApp() {
       movement: require("../../../../app/movement").default,
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
+      "(creation)/formats-window": require("../../../../app/(creation)/formats-window").default,
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
     },
     { initialUrl: "/composition", wrapper: Wrapper },
@@ -136,6 +137,9 @@ async function settle(ms = 0) {
 async function useExistingMovement(name: string, id: string) {
   fireEvent.press(screen.getByLabelText(composition.addActivity));
   fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(addToSession.newActivity));
+  await settle(300);
+  // Complément du 5 novembre 2026 (§1, §3) : modale de création, puis « Exercice libre ».
+  fireEvent.press(screen.getByTestId("formats-window-free-exercise"));
   await settle(300);
   fireEvent.changeText(screen.getByTestId("exercise-name-input"), name);
   await settle();

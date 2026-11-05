@@ -69,7 +69,9 @@ export type CapabilityResult =
   | "COMPLETION_LEVEL"
   | "ROUNDS_COMPLETED"
   | "ELAPSED_TIME"
-  | "ACQUIRED_ROUNDS_AND_PARTIAL_REPETITIONS";
+  | "ACQUIRED_ROUNDS_AND_PARTIAL_REPETITIONS"
+  /** Complément du 5 novembre 2026 (Hermann), §13 : Death by arrêté avant un rang dont le travail prévu ne tient pas dans sa fenêtre (« limite de l'intervalle atteinte »). */
+  | "INTERVAL_LIMIT_REACHED";
 
 export type FormatCapabilityDescriptor = {
   readonly model: CapabilityModelKey;
@@ -98,6 +100,17 @@ export type FormatCapabilityDescriptor = {
     readonly memberModes: readonly ("REPETITIONS" | "DURATION")[];
     readonly incrementUnit: "OBJECTIVE" | "NOT_APPLICABLE";
     readonly loads: "PER_SERIES_FROM_SNAPSHOT";
+  };
+  /**
+   * Complément du 5 novembre 2026 (Hermann) — prescriptions que le moteur PRE-10/11 devra lire (descriptif, aucune exécution) : EMOM, objectifs et charges
+   * effectifs par série, aucun incrément ; AMRAP, incrément signé et objectif calculé borné à 1 ; Death by, Répétitions ou
+   * Durée, incrément ≥ + 1 dans l'unité, arrêt avant un rang incompatible (`deathByLimit.ts`).
+   */
+  readonly prescription?: {
+    readonly memberModes?: readonly ("REPETITIONS" | "DURATION")[];
+    readonly perSeries?: true;
+    readonly increment?: "SIGNED_FLOOR_ONE" | "POSITIVE_MIN_ONE" | "NONE";
+    readonly intervalLimit?: "STOP_BEFORE_INCOMPATIBLE_RANK";
   };
   readonly sources: readonly string[];
 };
@@ -139,6 +152,7 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     end: "LAST_WINDOW",
     progression: "FIXED",
     results: GENERIC_RESULTS,
+    prescription: { memberModes: ["REPETITIONS", "DURATION"], perSeries: true, increment: "NONE" },
     undefinedAspects: [
       { status: UNDEFINED_CAPABILITY, question: "Résultat d'une fenêtre non terminée (A6, PRE-11)." },
       { status: UNDEFINED_CAPABILITY, question: "Coexistence de la fenêtre avec une série Durée, des phases ou des côtés (A2, R-02)." },
@@ -156,6 +170,7 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     end: "ELEMENT_BOUND",
     progression: "CONTENT_REPEATED",
     results: [...GENERIC_RESULTS, "ROUNDS_COMPLETED"],
+    prescription: { increment: "SIGNED_FLOOR_ONE" },
     undefinedAspects: [{ status: UNDEFINED_CAPABILITY, question: "Tour partiel à l'échéance (A6, PRE-11)." }, NEXT_AFTER_PROGRESSIVE],
     executionAvailable: false,
     // MAJ 04/11 §6 bis 2 : buy-in pris sur le premier bloc, « Terminé » lance la boucle sans saisie intercalée.
@@ -193,7 +208,8 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     onExpiry: "WINDOW_WITHOUT_TAP_NOT_ACQUIRED",
     end: "DECLARED_STOP",
     progression: "DYNAMIC_TARGET",
-    results: [...GENERIC_RESULTS, "ACQUIRED_ROUNDS_AND_PARTIAL_REPETITIONS"],
+    results: [...GENERIC_RESULTS, "ACQUIRED_ROUNDS_AND_PARTIAL_REPETITIONS", "INTERVAL_LIMIT_REACHED"],
+    prescription: { memberModes: ["REPETITIONS", "DURATION"], increment: "POSITIVE_MIN_ONE", intervalLimit: "STOP_BEFORE_INCOMPATIBLE_RANK" },
     undefinedAspects: [
       { status: UNDEFINED_CAPABILITY, question: "Suite après une fenêtre non acquise (A4)." },
       NEXT_AFTER_PROGRESSIVE,

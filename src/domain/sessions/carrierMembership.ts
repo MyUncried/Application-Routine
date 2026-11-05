@@ -103,15 +103,16 @@ export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCir
       return withFormat(exercise, { key: "FOR_TIME", settings: {} }, { ...parameters, mode: parameters.mode ?? "REPETITIONS", series: { kind: "VARIABLE", rows, workPhases: parameters.series.workPhases } }, 0);
     }
     case "EMOM": {
-      // Séries, Intervalle et Durée de l'exercice portés par le Circuit ; une passe par tour ; récupération 0 s.
-      return withFormat(exercise, { key: "EMOM", settings: {} }, uniform(parameters, parameters.mode, 1, target, 0), 0);
+      // Intervalle et Durée de l'exercice portés par le Circuit ; récupération 0 s. Complément du 5 novembre 2026 (Hermann), §14 : une série par tour (S1…Sn),
+      // cible commune reprise sur chaque série. [Une série jouée à chaque tour — remplacé.]
+      return withFormat(exercise, { key: "EMOM", settings: {} }, uniform(parameters, parameters.mode, Math.max(1, circuit.repeatCount), target, 0), 0);
     }
     case "DEATH_BY": {
-      // Répétitions, départ repris s'il est chiffré ; incrément ≥ 1 ; intervalle propre en alternance.
-      const start = parameters.mode === "REPETITIONS" ? numeric : unsetTarget();
+      // Départ repris s'il est chiffré ; incrément ≥ 1 ; intervalle propre en alternance. Complément du 5 novembre 2026 (Hermann), §13 : Répétitions ou Durée, le
+      // Mode est conservé, sans conversion. [Répétitions imposées — remplacé.]
       const settings: Record<string, number> = { incrementPerRound: keepIncrement(1) ?? 1 };
       if (circuit.nature === "SERIES") settings.intervalSeconds = ownSetting(exercise, "intervalSeconds") ?? initial.intervalSeconds ?? 60;
-      return withFormat(exercise, { key: "DEATH_BY", settings }, uniform(parameters, "REPETITIONS", 1, start, 0), 0);
+      return withFormat(exercise, { key: "DEATH_BY", settings }, uniform(parameters, parameters.mode ?? "REPETITIONS", 1, numeric, 0), 0);
     }
     default: {
       const unreachable: never = carried.key;
@@ -125,7 +126,8 @@ function isMemberShaped(exercise: SessionDraftExercise, key: ElementFormat["key"
   const settings = exercise.format?.settings ?? {};
   if ("durationSeconds" in settings || "timeCapSeconds" in settings) return false;
   if (key === "DEATH_BY" && nature === "TOURS" && "intervalSeconds" in settings) return false;
-  if ((key === "EMOM" || key === "DEATH_BY") && seriesRowsOf(exercise.executionParameters).length > 1) return false;
+  // Complément du 5 novembre 2026 (Hermann), §14 : un membre EMOM porte une série par tour (S1…Sn) ; seul le Death by garde une série unique.
+  if (key === "DEATH_BY" && seriesRowsOf(exercise.executionParameters).length > 1) return false;
   return true;
 }
 
@@ -166,10 +168,12 @@ export function exitCarrier(exercise: SessionDraftExercise, circuit: CarrierCirc
     }
     case "EMOM": {
       // EMOM simple : Intervalle = durée de chaque tour, Séries = nombre de tours.
+      // Complément du 5 novembre 2026 (Hermann), §14 : les séries effectives S1…Sn du membre sont conservées.
+      const tours = Math.max(1, circuit.repeatCount);
       return withFormat(
         exercise,
         { key: "EMOM", settings: { intervalSeconds: setting("windowSeconds") ?? 60 } },
-        uniform(parameters, parameters.mode, Math.max(1, circuit.repeatCount), target, 0),
+        seriesRowsOf(parameters).length === tours && tours > 1 ? parameters : uniform(parameters, parameters.mode, tours, target, 0),
       );
     }
     case "DEATH_BY": {
@@ -178,7 +182,7 @@ export function exitCarrier(exercise: SessionDraftExercise, circuit: CarrierCirc
       return withFormat(
         exercise,
         { key: "DEATH_BY", settings: { intervalSeconds: interval, incrementPerRound: ownSetting(exercise, "incrementPerRound") ?? 1 } },
-        uniform(parameters, "REPETITIONS", 1, numeric, 0),
+        uniform(parameters, parameters.mode ?? "REPETITIONS", 1, numeric, 0),
       );
     }
     default: {

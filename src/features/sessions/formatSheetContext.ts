@@ -49,15 +49,18 @@ export function formatSheetContextOf(
     case "EMOM": {
       if (carrier === undefined) {
         rows.push("interval");
-        emom = { windowSeconds: null, othersWorkSeconds: 0 };
+        emom = { windowSeconds: null, othersWorkByRank: [] };
       } else {
         // Dans chaque intervalle : intervalle commun du Circuit, somme du travail prévu des membres.
         const window = carrier.format?.settings.windowSeconds;
-        const others = carrier.exercises
+        // Complément du 5 novembre 2026 (Hermann), §14 : somme des autres membres rang par rang.
+        const members = carrier.exercises
           .filter((id) => id !== exerciseId)
           .map((id) => draft.exercises.find((candidate) => candidate.id === id))
-          .reduce((sum, member) => sum + (member === undefined ? 0 : plannedWorkOfParameters(member.executionParameters)), 0);
-        emom = { windowSeconds: typeof window === "number" ? window : 60, othersWorkSeconds: others };
+          .filter((member) => member !== undefined);
+        const ranks = Math.max(carrier.repeatCount, 1);
+        const othersWorkByRank = Array.from({ length: ranks }, (_, rank) => members.reduce((sum, member) => sum + plannedWorkOfParameters(member.executionParameters, rank), 0));
+        emom = { windowSeconds: typeof window === "number" ? window : 60, othersWorkByRank };
       }
       break;
     }

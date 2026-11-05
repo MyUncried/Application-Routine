@@ -89,9 +89,9 @@ function breaksImposedValues(exercise: ValidityExercise, format: ElementFormat, 
     return false;
   }
   const parameters = exercise.executionParameters;
-  const repetitionsOnly =
-    (role.kind === "EXERCISE" && (format.key === "AMRAP" || format.key === "FOR_TIME" || format.key === "DEATH_BY")) ||
-    (role.kind === "MEMBER" && format.key === "DEATH_BY");
+  // Complément du 5 novembre 2026 (Hermann), §13 : le Death by admet Répétitions ou Durée (le Mode appartient à l'Exercice). [Death by en Répétitions
+  // seulement — remplacé.] L'AMRAP autonome reste en Répétitions (§17 : « ne généralise pas Durée à l'AMRAP autonome »).
+  const repetitionsOnly = role.kind === "EXERCISE" && (format.key === "AMRAP" || format.key === "FOR_TIME");
   if (repetitionsOnly && parameters.mode !== "REPETITIONS") {
     return true;
   }
@@ -150,11 +150,17 @@ export function configurationValidity<E extends ValidityExercise>(
     if (carried.key === "FOR_TIME" && circuit.exercises.every((exercise) => exercise.type === "EXERCISE" && exercise.executionParameters.mode === "DURATION")) {
       add(circuit.id, "NO_REPETITIONS");
     }
-    // Dans chaque intervalle : somme du travail prévu des membres ≥ intervalle commun.
+    // Dans chaque intervalle : pour chaque rang k, somme du travail prévu des membres ≥ intervalle commun (Complément du 5 novembre 2026 (Hermann), §14 : chaque
+    // série/fenêtre est vérifiée, aussi après modification depuis la Composition).
     const window = carried.settings.windowSeconds;
     if (carried.key === "EMOM" && typeof window === "number") {
-      const sum = circuit.exercises.reduce((total, exercise) => total + plannedWorkOfParameters(exercise.executionParameters), 0);
-      if (sum > 0 && sum >= window) add(circuit.id, "EMOM_DURATION");
+      for (let rank = 0; rank < circuit.repeatCount; rank += 1) {
+        const sum = circuit.exercises.reduce((total, exercise) => total + plannedWorkOfParameters(exercise.executionParameters, rank), 0);
+        if (sum > 0 && sum >= window) {
+          add(circuit.id, "EMOM_DURATION");
+          break;
+        }
+      }
     }
   }
 
@@ -179,8 +185,14 @@ export function configurationValidity<E extends ValidityExercise>(
         // EMOM (simple, en alternance, À la suite) : travail prévu ≥ son Intervalle.
         const interval = format.settings.intervalSeconds;
         if (format.key === "EMOM" && typeof interval === "number") {
-          const work = plannedWorkOfParameters(exercise.executionParameters);
-          if (work > 0 && work >= interval) add(exercise.id, "EMOM_DURATION");
+          const count = seriesRowsOf(exercise.executionParameters).length;
+          for (let rank = 0; rank < count; rank += 1) {
+            const work = plannedWorkOfParameters(exercise.executionParameters, rank);
+            if (work > 0 && work >= interval) {
+              add(exercise.id, "EMOM_DURATION");
+              break;
+            }
+          }
         }
         // Exercice formaté autonome dans un Circuit standard (§6.1).
         if (circuit !== null && circuitCompatibility(format.key, circuit).status === "REFUSED") {

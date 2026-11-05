@@ -7,7 +7,6 @@ import {
   allowedModes,
   buildModelElements,
   emomDurationOverflow,
-  emomSeriesLoads,
   initialAnswers,
   initialMovementValues,
   summaryIssues,
@@ -72,26 +71,30 @@ describe("unité de l'objectif (MAJ 04/11 §4.4, §4.5)", () => {
 describe("contrôle EMOM des durées — seuil inclusif (décision du 03/11, MAJ 04/11 §4.4)", () => {
   const answers: ModelAnswers = { ...initialAnswers("EMOM"), intervalSeconds: 60 };
 
+  // [Complément du 5 novembre 2026 (§14) : valeurs par série S1…Sn — test adapté]
+  const cells = (count: number, value: number | null) => Array.from({ length: count }, () => ({ repetitions: value, loadKg: null }));
+  const one = { ...answers, seriesCount: 1 };
+
   it("dans chaque intervalle : 30 s + 30 s pour 60 s bloque ; les membres en Répétitions comptent pour 0", () => {
-    const movements = [row("EMOM", answers, "a", { mode: "DURATION", repetitions: 30 }), row("EMOM", answers, "b", { mode: "DURATION", repetitions: 30 })];
-    expect(emomDurationOverflow(answers, movements)).toEqual([0, 1]);
-    expect(summaryIssues("EMOM", answers, movements)).toContainEqual({ kind: "EMOM_DURATION", indexes: [0, 1] });
-    const mixed = [row("EMOM", answers, "a", { mode: "DURATION", repetitions: 30 }), row("EMOM", answers, "b", { repetitions: 10 })];
-    expect(emomDurationOverflow(answers, mixed)).toEqual([]);
+    const movements = [row("EMOM", one, "a", { mode: "DURATION", cells: cells(1, 30) }), row("EMOM", one, "b", { mode: "DURATION", cells: cells(1, 30) })];
+    expect(emomDurationOverflow(one, movements)).toEqual([{ index: 0, column: 0 }, { index: 1, column: 0 }]);
+    expect(summaryIssues("EMOM", one, movements)).toContainEqual({ kind: "EMOM_DURATION", indexes: [0, 1], cells: [{ index: 0, column: 0 }, { index: 1, column: 0 }] });
+    const mixed = [row("EMOM", one, "a", { mode: "DURATION", cells: cells(1, 30) }), row("EMOM", one, "b", { mode: "REPETITIONS", cells: cells(1, 10) })];
+    expect(emomDurationOverflow(one, mixed)).toEqual([]);
   });
 
   it("de chaque côté : objectif × 2 plus la pause entre les côtés (40 s de chaque côté = 80 s ≥ 60 s)", () => {
-    const sided = { ...answers, execution: "SEQUENCE" as const };
+    const sided = { ...one, execution: "SEQUENCE" as const };
     const exercise = base("a", { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 5 });
-    const movement: ModelMovement = { exercise, values: { mode: "DURATION", repetitions: 25 } };
+    const movement: ModelMovement = { exercise, values: { mode: "DURATION", cells: cells(1, 25) } };
     // 25 × 2 + 5 = 55 s < 60 s ; 28 × 2 + 5 = 61 s ≥ 60 s.
     expect(emomDurationOverflow(sided, [movement])).toEqual([]);
-    expect(emomDurationOverflow(sided, [{ ...movement, values: { mode: "DURATION", repetitions: 28 } }])).toEqual([0]);
+    expect(emomDurationOverflow(sided, [{ ...movement, values: { mode: "DURATION", cells: cells(1, 28) } }])).toEqual([{ index: 0, column: 0 }]);
   });
 
   it("EMOM simple : 60 s pour 60 s bloque (seuil inclusif), 59 s non", () => {
-    expect(emomDurationOverflow(answers, [row("EMOM", answers, "a", { mode: "DURATION", repetitions: 60 })])).toEqual([0]);
-    expect(emomDurationOverflow(answers, [row("EMOM", answers, "a", { mode: "DURATION", repetitions: 59 })])).toEqual([]);
+    expect(emomDurationOverflow(one, [row("EMOM", one, "a", { mode: "DURATION", cells: cells(1, 60) })])).toEqual([{ index: 0, column: 0 }]);
+    expect(emomDurationOverflow(one, [row("EMOM", one, "a", { mode: "DURATION", cells: cells(1, 59) })])).toEqual([]);
   });
 });
 
@@ -117,21 +120,16 @@ describe("formulaire complet (MAJ 04/11 §4.4) : une charge vide ne bloque pas",
 });
 
 describe("charges des Formats (MAJ 04/11 §6 quater bis)", () => {
-  it("EMOM : charges effectives des séries calculées depuis départ et incrément (12 kg, + 2,5 kg, 6 séries)", () => {
-    expect(emomSeriesLoads(12, 2.5, 6)).toEqual([12, 14.5, 17, 19.5, 22, 24.5]);
-    const answers: ModelAnswers = { ...initialAnswers("EMOM"), withLoad: true };
-    const [element] = buildModelElements("EMOM", answers, [row("EMOM", answers, "a", { repetitions: 3, loadKg: 12, loadIncrement: 2.5 })], newId);
-    const exercise = element!.kind === "EXERCISE" ? element!.exercise : null;
-    expect(exercise!.executionParameters.loadEnabled).toBe(true);
-    expect(seriesRowsOf(exercise!.executionParameters).map((series) => series.loadKg)).toEqual([12, 14.5, 17, 19.5, 22, 24.5]);
-  });
+  // [EMOM : charges calculées depuis départ et incrément (`emomSeriesLoads`) — remplacé le 05/11/2026 par les charges saisies
+  // série par série (complément, §14) ; voir `formats.complement0511.test.ts`.]
 
   it("interrupteur désactivé : aucune charge créée ; AMRAP : charge fixe, Max ne grise pas la charge", () => {
     const off = initialAnswers("AMRAP");
-    const [plain] = buildModelElements("AMRAP", off, [row("AMRAP", off, "a", { repetitions: 10, loadKg: 20 })], newId);
+    const [plain] = buildModelElements("AMRAP", off, [row("AMRAP", off, "a", { repetitions: 10, loadKg: 20, loadOn: true })], newId);
     expect(plain!.kind === "EXERCISE" && plain!.exercise.executionParameters.loadEnabled).toBe(false);
     const on: ModelAnswers = { ...off, withLoad: true };
-    const [loaded] = buildModelElements("AMRAP", on, [row("AMRAP", on, "a", { max: true, loadKg: 20 })], newId);
+    // Complément du 5 novembre 2026 (§16) : charge appliquée au mouvement par « (+ kg) » (`loadOn`).
+    const [loaded] = buildModelElements("AMRAP", on, [row("AMRAP", on, "a", { max: true, loadKg: 20, loadOn: true })], newId);
     const exercise = loaded!.kind === "EXERCISE" ? loaded!.exercise : null;
     expect(exercise!.executionParameters.loadEnabled).toBe(true);
     expect(seriesRowsOf(exercise!.executionParameters)[0]).toMatchObject({ target: { kind: "FAILURE" }, loadKg: 20 });
@@ -139,7 +137,7 @@ describe("charges des Formats (MAJ 04/11 §6 quater bis)", () => {
 
   it("For time : une charge par tour ; case vide = tour sans charge (0 kg, jamais une saisie)", () => {
     const answers: ModelAnswers = { ...initialAnswers("FOR_TIME"), withLoad: true };
-    const [element] = buildModelElements("FOR_TIME", answers, [row("FOR_TIME", answers, "a", { loads: [40, 45, null] })], newId);
+    const [element] = buildModelElements("FOR_TIME", answers, [row("FOR_TIME", answers, "a", { loads: [40, 45, null], loadOn: true })], newId);
     const exercise = element!.kind === "EXERCISE" ? element!.exercise : null;
     expect(seriesRowsOf(exercise!.executionParameters).map((series) => series.loadKg)).toEqual([40, 45, 0]);
     expect(exercise!.executionParameters.loadEnabled).toBe(true);

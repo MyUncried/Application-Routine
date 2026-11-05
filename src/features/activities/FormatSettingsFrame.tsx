@@ -39,7 +39,8 @@ export type FormatSheetContext = {
    * Contrôle EMOM des durées : intervalle porté par le Circuit (`windowSeconds`, dans chaque intervalle) et
    * travail prévu des autres membres ; absent : l'intervalle est celui de l'Exercice (`intervalSeconds`).
    */
-  readonly emom?: { readonly windowSeconds: number | null; readonly othersWorkSeconds: number };
+  /** Complément du 5 novembre 2026 (Hermann), §14 : travail prévu des autres membres de l'intervalle commun, rang par rang (S1…Sn). */
+  readonly emom?: { readonly windowSeconds: number | null; readonly othersWorkByRank: readonly number[] };
   readonly onApply: (settings: FormatSettings, role: CircuitRole | null) => void;
 };
 
@@ -57,11 +58,18 @@ export function emomIntervalOf(context: FormatSheetContext, value: FormatSheetVa
   return typeof own === "number" ? own : null;
 }
 
-/** Dépassement EMOM au seuil inclusif : travail prévu (de l'Exercice, plus celui des autres membres) ≥ intervalle. */
-export function emomOverflowOf(context: FormatSheetContext, value: FormatSheetValue, plannedWorkSeconds: number): boolean {
+/**
+ * Dépassement EMOM au seuil inclusif : pour une série/fenêtre au moins, travail prévu de l'Exercice (plus celui des autres membres
+ * au même rang) ≥ intervalle — Complément du 5 novembre 2026 (Hermann), §14 : chaque série est vérifiée. Les membres en Répétitions ne comptent pas.
+ */
+export function emomOverflowOf(context: FormatSheetContext, value: FormatSheetValue, workOfRank: (rank: number) => number, ranks: number): boolean {
   const interval = emomIntervalOf(context, value);
-  if (interval === null || plannedWorkSeconds <= 0) return false;
-  return plannedWorkSeconds + (context.emom?.othersWorkSeconds ?? 0) >= interval;
+  if (interval === null) return false;
+  for (let rank = 0; rank < ranks; rank += 1) {
+    const own = workOfRank(rank);
+    if (own > 0 && own + (context.emom?.othersWorkByRank[rank] ?? 0) >= interval) return true;
+  }
+  return false;
 }
 
 const t = () => strings.executionParameters.format;
@@ -197,18 +205,21 @@ export function FormatSettingsFrame({
       case "increment": {
         const deathBy = context.key === "DEATH_BY";
         const current = numberOf("incrementPerRound", deathBy ? 1 : 0);
-        // AMRAP : grisé pour un buy-in ou à l'échec (rien à augmenter) ; valeur conservée sans effet.
+        // AMRAP : grisé pour un buy-in ou à l'échec (rien à augmenter) ; valeur conservée sans effet. Complément du 5 novembre 2026 (Hermann) : AMRAP signé (§8) ;
+        // Death by en Répétitions ou Durée, ≥ + 1 dans l'unité (§13).
         const locked = !deathBy && (value.role === "BUY_IN" || value.role === "BUY_OUT" || atFailure);
-        const unit = !deathBy && mode === "DURATION" ? formatPhraseDuration(current) : `${current} ${t().repetitionsUnit}`;
+        const magnitude = Math.abs(current);
+        const unit = mode === "DURATION" ? formatPhraseDuration(magnitude) : `${magnitude} ${t().repetitionsUnit}`;
+        const minimum = deathBy ? 1 : -999;
         rows.push(
           <Stepper
             key="increment"
             label={deathBy ? t().incrementPerInterval : t().incrementPerRound}
-            text={`+ ${unit}`}
+            text={`${current < 0 ? "−" : "+"} ${unit}`}
             locked={locked}
-            canDecrease={current > (deathBy ? 1 : 0)}
+            canDecrease={current > minimum}
             canIncrease={current < 999}
-            onStep={(direction) => set("incrementPerRound", Math.max(deathBy ? 1 : 0, current + direction * (!deathBy && mode === "DURATION" ? 5 : 1)))}
+            onStep={(direction) => set("incrementPerRound", Math.max(minimum, current + direction * (!deathBy && mode === "DURATION" ? 5 : 1)))}
             testID="execution-sheet-format-increment"
           />,
         );

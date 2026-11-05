@@ -489,22 +489,13 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
     // Annuler est le « + » transformé, qui ferme le menu sans action.]
     // [Rétabli par la recette iPhone du 01/11/2026 (m11-menu, Hermann) : « Utiliser un mouvement
     // existant » est de nouveau une option, 2e après « Créer un exercice ».]
-    expect(within(tree).getByLabelText(activities.addToSession.existingActivity)).toBeTruthy();
+    // [Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu Créer.]
+    expect(within(tree).queryByLabelText(activities.addToSession.existingActivity)).toBeNull();
     expect(within(tree).getByLabelText(activities.addToSession.cancel)).toBeTruthy();
     fireEvent.press(within(tree).getByLabelText(activities.addToSession.cancel));
     await settle();
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
     expect(router.getPathname()).toBe("/composition");
-
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(activities.addToSession.existingActivity));
-    await settle();
-    // PRE-9 A.2 — ARB-22a, D-449 : sélection des Mouvements du Catalogue, plus `/activity-selection`.
-    expect(router.getPathname()).toBe("/movement-selection");
-    act(() => {
-      testRouter.back();
-    });
-    await settle(300);
 
     openLegacyExerciseCreation();
     await settle();

@@ -90,13 +90,16 @@ export type ModelAnswers = {
    */
   readonly buyOut?: boolean;
   readonly increasingVolume?: boolean;
-  /** « Avec charge » (Progression, For time, AMRAP, EMOM) : désactivé par défaut (MAJ 04/11 §6 quater bis). */
+  /**
+   * « Avec charge » : désactivé par défaut. Complément du 5 novembre 2026 (Hermann), §16 : dans les dix questionnaires ; son activation rend disponibles les
+   * commandes locales « (+ kg) » / « (− kg) » sans charger les mouvements. [Progression, For time, AMRAP, EMOM seulement — remplacé.]
+   */
   readonly withLoad?: boolean;
   readonly roundCount?: number;
   /** For time : temps limite ; `null` = « Sans limite » (§11). */
   readonly timeCapSeconds?: number | null;
   readonly restBetweenRoundsSeconds?: number;
-  /** Récupération entre les mouvements (À la suite, §9, §10, §12) ; Superset : après la paire. */
+  /** Récupération entre les mouvements (À la suite, §9, §10, §12) ; Superset : « Récupération après le tour » (dernier Exercice). */
   readonly recoveryBetweenSeconds?: number;
   readonly execution?: ModelExecution;
 };
@@ -106,18 +109,34 @@ export type ModelAnswerKey = Exclude<keyof ModelAnswers, "execution">;
 
 const MINUTE = 60;
 
-/** Modèles dotés de l'interrupteur « Avec charge » (Tabata et 30/30 : non, MAJ 04/11 §6 quater bis). */
-export function hasLoadSwitch(key: FormatModelKey): boolean {
-  return key === "PROGRESSION" || key === "FOR_TIME" || key === "AMRAP" || key === "EMOM";
+/**
+ * Modèles dotés de l'interrupteur « Avec charge » — Complément du 5 novembre 2026 (Hermann), §16 : les dix questionnaires. [Progression, For time, AMRAP et
+ * EMOM seulement (MAJ 04/11 §6 quater bis) — remplacé.]
+ */
+export function hasLoadSwitch(_key: FormatModelKey): boolean {
+  return true;
+}
+
+/**
+ * Charge décidée série par série (ligne de charge sous l'objectif, bouton « (+ kg) » / « (− kg) » sous l'unité) ou commune
+ * au mouvement (colonne Charge, ou ligne Charge sous Durée totale avec un seul mouvement) — Complément du 5 novembre 2026 (Hermann), §9, §14–§17.
+ */
+export function chargePerSeries(key: FormatModelKey): boolean {
+  return key === "PROGRESSION" || key === "FOR_TIME" || key === "SUPERSET" || key === "EMOM";
+}
+
+/** Charge appliquée à un mouvement : interrupteur du questionnaire et bouton local activés (§16). */
+export function chargeActive(answers: ModelAnswers, values: MovementValues): boolean {
+  return answers.withLoad === true && values.loadOn === true;
 }
 
 /** Valeurs initiales décidées (ch07 « Défauts validés », référence §7.1, §9, §10, §11, §12 ; FMT-28). */
 export function initialAnswers(key: FormatModelKey): ModelAnswers {
   switch (key) {
     case "TABATA":
-      return { seriesCount: 8, workSeconds: 20, pauseSeconds: 10, recoveryBetweenSeconds: MINUTE, execution: "SEQUENCE" };
+      return { seriesCount: 8, workSeconds: 20, pauseSeconds: 10, recoveryBetweenSeconds: MINUTE, withLoad: false, execution: "SEQUENCE" };
     case "INTERVALS_30_30":
-      return { seriesCount: 6, workSeconds: 30, pauseSeconds: 30, execution: "SEQUENCE" };
+      return { seriesCount: 6, workSeconds: 30, pauseSeconds: 30, withLoad: false, execution: "SEQUENCE" };
     case "EMOM":
       return { seriesCount: 6, intervalSeconds: MINUTE, recoveryBetweenSeconds: MINUTE, withLoad: false, execution: "EACH_INTERVAL" };
     case "AMRAP":
@@ -125,15 +144,16 @@ export function initialAnswers(key: FormatModelKey): ModelAnswers {
     case "FOR_TIME":
       return { roundCount: 3, timeCapSeconds: null, restBetweenRoundsSeconds: 0, buyIn: false, buyOut: false, withLoad: false };
     case "DEATH_BY":
-      return { intervalSeconds: MINUTE, startRepetitions: 1, increment: 1, recoveryBetweenSeconds: MINUTE, execution: "SEQUENCE" };
+      return { intervalSeconds: MINUTE, startRepetitions: 1, increment: 1, recoveryBetweenSeconds: MINUTE, withLoad: false, execution: "SEQUENCE" };
     case "STRENGTH":
-      return { seriesCount: 3, repetitions: 15, execution: "SEQUENCE" };
+      return { seriesCount: 3, repetitions: 15, withLoad: false, execution: "SEQUENCE" };
     case "SUPERSET":
-      return { roundCount: 1 };
+      // Complément du 5 novembre 2026 (Hermann), §11 : Circuit standard à séries alternées, 3 tours par défaut. [Un passage groupé — remplacé.]
+      return { roundCount: 3, withLoad: false };
     case "PROGRESSION":
       return { seriesCount: 3, withLoad: false, execution: "SEQUENCE" };
     case "UNTIL_FAILURE":
-      return { seriesCount: 3, execution: "SEQUENCE" };
+      return { seriesCount: 3, withLoad: false, execution: "SEQUENCE" };
     default: {
       const unreachable: never = key;
       return unreachable;
@@ -211,25 +231,36 @@ export type MovementValues = {
   /** AMRAP : Max (Condition d'arrêt À l'échec) — grise l'Objectif et Par tour, pas la Charge. */
   readonly max?: boolean;
   /**
-   * AMRAP (Volume croissant) : incrément par tour, ≥ 0, dans l'unité de l'objectif ; `null` = à renseigner.
-   * Contre-recette n° 3 ter du 03/11/2026 (« Les cellules d'incrément doivent être rouges et avec "+" uniquement
-   * (sans le 0) ») : aucun incrément initial au récapitulatif.
+   * AMRAP (Volume croissant) : incrément par tour, dans l'unité de l'objectif ; `null` = à renseigner. Contre-recette n° 3
+   * ter du 03/11/2026 (« Les cellules d'incrément doivent être rouges et avec "+" uniquement (sans le 0) ») : aucun incrément
+   * initial au récapitulatif (décision de Hermann du 05/11/2026 : case vide, rouge). Complément du 5 novembre 2026 (Hermann), §8 : incrément signé (« − 1 rép. »,
+   * « − 5 s ») ; objectif calculé borné à 1 (`amrapRoundTarget`). [≥ 0 — remplacé.]
    */
   readonly increment?: number | null;
-  /** AMRAP : charge fixe ; EMOM : charge de départ. `null` : sans charge (jamais une charge 0, §6 quater bis). */
+  /**
+   * Charge commune du mouvement (AMRAP, Tabata, 30/30, Renforcement, À l'échec, Death by) ; `null` : sans charge (jamais une
+   * charge 0). Gardée dans le brouillon quand la charge est retirée (« (− kg) », interrupteur) : restauration temporaire (§16).
+   */
   readonly loadKg?: number | null;
-  /** EMOM : incrément de charge par série, + 0 par défaut (charge fixe) ; `null` : « variable » (réédition). */
-  readonly loadIncrement?: number | null;
-  /** EMOM : charges effectives des séries, quand elles ne suivent plus départ + incrément (réédition). */
-  readonly seriesLoads?: readonly number[];
-  /** Death by à plusieurs mouvements : départ et incrément propres au mouvement (MAJ 04/11 §4.3, ≥ + 1). */
+  /**
+   * Complément du 5 novembre 2026 (Hermann), §9, §16 : charge décidée mouvement par mouvement — « (+ kg) » l'active, « (− kg) » la retire en gardant ses valeurs
+   * dans le brouillon ; absente : sans charge. [EMOM : charge de départ et incrément par série (`loadIncrement`,
+   * `seriesLoads`) — remplacés par une charge par série (`cells`), §14.]
+   */
+  readonly loadOn?: boolean;
+  /** Tabata, 30/30, Renforcement, À l'échec à plusieurs mouvements : Pause propre au mouvement (§15–§17) ; absente : commune. */
+  readonly pause?: number | null;
+  /**
+   * Death by : départ et incrément propres au mouvement (MAJ 04/11 §4.3), dans l'unité du mouvement — Complément du 5 novembre 2026 (Hermann), §13 : Répétitions
+   * ou Durée, incrément ≥ + 1 dans l'unité.
+   */
   readonly start?: number | null;
   readonly startIncrement?: number | null;
   /** For time : objectif de chaque tour (Séries variables), `null` = à renseigner. */
   readonly volumes?: readonly (number | null)[];
   /** For time : charge de chaque tour, `null` = sans charge. */
   readonly loads?: readonly (number | null)[];
-  /** Progression : objectif et charge de chaque série. */
+  /** Progression, EMOM (S1…Sn), Superset (Tour 1…n) : objectif et charge de chaque série (Complément du 5 novembre 2026 (Hermann), §11, §14, §17). */
   readonly cells?: readonly SeriesCell[];
 };
 
@@ -293,11 +324,14 @@ export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers
       return { mode: "REPETITIONS", repetitions: baseTarget(exercise, "REPETITIONS"), max: false, increment: null, loadKg: null };
     case "EMOM":
       // Recette du 04/11/2026 (Hermann, EMOM : « Aucun mode d'exécution par défaut, le champ de valeur a un fond rouge ») :
-      // ligne sans unité, objectif à renseigner ; l'unité se choisit au clavier. [MAJ 04/11 §4.4 et référence §7.6 « EMOM
-      // en mode Répétitions » à la création — remplacé.]
-      return { repetitions: null, loadKg: null, loadIncrement: 0 };
+      // ligne sans unité, objectifs à renseigner ; l'unité se choisit au clavier. Complément du 5 novembre 2026 (Hermann), §14 : une valeur par série S1…Sn,
+      // préremplies depuis S1 (`withSeriesValue`), sans incrément.
+      return { cells: emptyCells(answers.seriesCount ?? 6) };
+    case "SUPERSET":
+      // Complément du 5 novembre 2026 (Hermann), §11 : tableau par tour, chaque tour prérempli avec la valeur du premier ; cases initiales à renseigner.
+      return { mode: "REPETITIONS", cells: emptyCells(answers.roundCount ?? 3) };
     case "DEATH_BY":
-      return { start: answers.startRepetitions ?? 1, startIncrement: answers.increment ?? 1 };
+      return { mode: "REPETITIONS", start: answers.startRepetitions ?? 1, startIncrement: answers.increment ?? 1 };
     case "FOR_TIME":
       return { mode: "REPETITIONS", volumes: resizeList(FOR_TIME_INITIAL, answers.roundCount ?? 3), loads: [] };
     case "PROGRESSION":
@@ -305,6 +339,39 @@ export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers
     default:
       return {};
   }
+}
+
+function emptyCells(count: number): SeriesCell[] {
+  return Array.from({ length: count }, () => ({ repetitions: null, loadKg: null }));
+}
+
+/**
+ * Saisie d'une case de série (EMOM, Superset, Progression) — Complément du 5 novembre 2026 (Hermann), §11, §14, §17 (« chaque série est préremplie avec la
+ * valeur de S1 ») : la valeur écrite dans S1 se reporte sur les autres séries encore vides ou restées égales à l'ancienne
+ * valeur de S1 ; une série déjà modifiée garde sa valeur. Les autres colonnes ne touchent qu'elles-mêmes.
+ */
+export function withSeriesValue(cells: readonly SeriesCell[], column: number, field: keyof SeriesCell, value: number | null, propagate: boolean): SeriesCell[] {
+  const next = cells.map((cell) => ({ ...cell }));
+  while (next.length <= column) next.push({ repetitions: null, loadKg: null });
+  const previous = next[column]![field];
+  next[column] = { ...next[column]!, [field]: value };
+  if (propagate && column === 0) {
+    for (let at = 1; at < next.length; at += 1) {
+      const current = next[at]![field];
+      if (current === null || current === previous) next[at] = { ...next[at]!, [field]: value };
+    }
+  }
+  return next;
+}
+
+/**
+ * AMRAP — objectif calculé du tour `round` (0 = premier) : départ + incrément × tour, borné à 1 dans son unité si la
+ * progression descend (Complément du 5 novembre 2026 (Hermann), §8 : « 5, 3, 1, 1, 1… » ; la boucle ne se termine pas à cette borne). Une progression
+ * montante n'est pas bornée. Sans incrément actif (buy-in, Max) : l'objectif de départ.
+ */
+export function amrapRoundTarget(start: number, increment: number, round: number): number {
+  const value = start + increment * round;
+  return increment < 0 ? Math.max(1, value) : value;
 }
 
 /**
@@ -320,10 +387,13 @@ export function withMovementMode(values: MovementValues, mode: ExecutionMode): M
   return {
     ...values,
     mode,
-    ...(values.repetitions !== undefined ? { repetitions: null } : {}),
+    // Objectif porté par la ligne (AMRAP), ou commun du questionnaire (Tabata, 30/30, Renforcement) : à renseigner.
+    ...(values.volumes === undefined && values.cells === undefined && values.start === undefined ? { repetitions: null } : {}),
     ...(values.increment !== undefined && values.increment !== 0 ? { increment: null } : {}),
     ...(values.volumes !== undefined ? { volumes: values.volumes.map(() => null) } : {}),
     ...(values.cells !== undefined ? { cells: values.cells.map((cell) => ({ ...cell, repetitions: null })) } : {}),
+    // Death by (Complément du 5 novembre 2026 (Hermann), §13) : « Le changement d'unité ne convertit pas les valeurs et laisse les champs incompatibles à renseigner. »
+    ...(values.start !== undefined ? { start: null, startIncrement: null } : {}),
   };
 }
 
@@ -340,65 +410,86 @@ export function allowedModes(key: FormatModelKey, movements: readonly ModelMovem
   return both;
 }
 
-/** Charges EMOM effectives : départ, puis + incrément à chaque série (MAJ 04/11 §6 quater bis). */
-export function emomSeriesLoads(start: number, increment: number, count: number): number[] {
-  // Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » ; bouton ± dans la barre du clavier ; « Arrêter à 0 — Les séries concernées passent sans charge (0), une simple mention en gris sous la ligne, sans alerte ni blocage : "sans charge à partir de la série X" » : jamais sous 0 (0 = sans charge, AD-19).
-  return Array.from({ length: count }, (_, index) => Math.max(0, roundLoad(start + increment * index)));
-}
+// [EMOM : charge de départ et incrément de charge par série (`emomSeriesLoads`, `emomNoLoadFrom`, « sans charge à partir de
+// la série X », Hermann, 04/11/2026) — remplacés le 05/11/2026 (Complément du 5 novembre 2026 (Hermann), §14 : « Aucune mention de charge calculée
+// nulle/négative ne s'applique » ; charges saisies série par série).]
 
-/** EMOM, incrément négatif : numéro (à partir de 1) de la première série sans charge, ou `null`. */
-export function emomNoLoadFrom(start: number | null | undefined, increment: number | null | undefined, count: number): number | null {
-  if (start == null || start <= 0 || increment == null || increment >= 0) return null;
-  const index = emomSeriesLoads(start, increment, count).findIndex((load) => load <= 0);
-  return index < 0 ? null : index + 1;
-}
-
-/** Charge au quart de kilogramme (valeurs admises, AD-19). */
-function roundLoad(value: number): number {
-  return Math.round(value * 4) / 4;
-}
+/** Case d'un tableau en cause (ligne, colonne de série ; 0 pour une ligne sans séries). */
+export type IssueCell = { readonly index: number; readonly column: number };
 
 /** Valeur d'un problème de formulaire : ligne et champ, ou réglage commun. */
 export type SummaryIssue =
   | { readonly kind: "MISSING"; readonly index: number }
-  | { readonly kind: "EMOM_DURATION"; readonly indexes: readonly number[] };
+  | { readonly kind: "MISSING_SETTING"; readonly id: ModelAnswerKey }
+  | { readonly kind: "EMOM_DURATION"; readonly indexes: readonly number[]; readonly cells: readonly IssueCell[] };
 
 /**
  * Travail prévu d'un Exercice en Durée, dans un intervalle EMOM (MAJ 04/11 §4.4) : son objectif de durée,
  * × 2 s'il est fait de chaque côté, plus la pause entre les côtés si elle s'applique ; 0 en Répétitions.
  */
-/** Travail prévu d'un Exercice d'après ses paramètres (première série), pour le contrôle EMOM de la modale. */
-export function plannedWorkOfParameters(parameters: Pick<ExecutionParametersInput, "mode" | "series" | "sideMode" | "sideRecoverySeconds">): number {
+/**
+ * Travail prévu d'un Exercice d'après ses paramètres, pour la série `rank` (0 = première) : contrôle EMOM de la modale et de la
+ * Composition (Complément du 5 novembre 2026 (Hermann), §14 : chaque série/fenêtre). Hors des séries : 0.
+ */
+export function plannedWorkOfParameters(parameters: Pick<ExecutionParametersInput, "mode" | "series" | "sideMode" | "sideRecoverySeconds">, rank = 0): number {
   if (parameters.mode !== "DURATION") return 0;
   const series = parameters.series;
-  const first = series.kind === "UNIFORM" ? series.target : series.rows[0]?.target;
-  if (first === undefined || first.kind !== "NUMBER") return 0;
+  const row = series.kind === "UNIFORM" ? (rank < series.count ? series.target : undefined) : series.rows[rank]?.target;
+  if (row === undefined || row.kind !== "NUMBER") return 0;
   const bilateral = isBilateral(parameters.sideMode);
-  return first.value * (bilateral ? 2 : 1) + (bilateral ? parameters.sideRecoverySeconds : 0);
+  return row.value * (bilateral ? 2 : 1) + (bilateral ? parameters.sideRecoverySeconds : 0);
 }
 
-export function plannedWorkSeconds(exercise: SessionDraftExercise, values: MovementValues): number {
-  if ((values.mode ?? "REPETITIONS") !== "DURATION" || values.repetitions == null) return 0;
+/** Travail prévu connu d'un objectif en Durée (les deux côtés et la pause entre côtés compris) ; 0 en Répétitions. */
+export function plannedWorkOfTarget(exercise: SessionDraftExercise, mode: ExecutionMode | undefined, seconds: number | null | undefined): number {
+  if ((mode ?? "REPETITIONS") !== "DURATION" || seconds == null) return 0;
   const parameters = exercise.executionParameters;
   const bilateral = isBilateral(parameters.sideMode);
-  return values.repetitions * (bilateral ? 2 : 1) + (bilateral ? parameters.sideRecoverySeconds : 0);
+  return seconds * (bilateral ? 2 : 1) + (bilateral ? parameters.sideRecoverySeconds : 0);
+}
+
+/** Travail prévu connu de la série `column` d'un mouvement EMOM. */
+export function plannedWorkSeconds(exercise: SessionDraftExercise, values: MovementValues, column = 0): number {
+  return plannedWorkOfTarget(exercise, values.mode, values.cells?.[column]?.repetitions ?? null);
 }
 
 /**
- * Contrôle EMOM des durées — seuil inclusif (décision de Hermann du 03/11/2026, MAJ 04/11 §4.4) : EMOM simple, en
- * alternance ou À la suite, le travail prévu d'un Exercice atteint ou dépasse son Intervalle ; « dans chaque
- * intervalle », la somme du travail prévu des membres atteint ou dépasse l'intervalle commun. Rend les lignes
- * en cause (vide : aucun dépassement).
+ * Contrôle EMOM des durées — seuil inclusif (décision de Hermann du 03/11/2026, MAJ 04/11 §4.4) — Complément du 5 novembre 2026 (Hermann), §14 : vérifié pour
+ * chaque série/fenêtre ; EMOM simple, en alternance ou À la suite, le travail prévu de la série k d'un Exercice atteint ou
+ * dépasse son Intervalle ; « dans chaque intervalle », la somme des travaux connus des membres pour le rang k atteint ou
+ * dépasse l'intervalle commun. Les membres en Répétitions ne reçoivent aucune durée. Rend les cases en cause.
  */
-export function emomDurationOverflow(answers: ModelAnswers, movements: readonly ModelMovement[]): readonly number[] {
+export function emomDurationOverflow(answers: ModelAnswers, movements: readonly ModelMovement[]): readonly IssueCell[] {
   const interval = answers.intervalSeconds ?? MINUTE;
-  const work = movements.map((movement) => plannedWorkSeconds(movement.exercise, movement.values));
+  const count = answers.seriesCount ?? 1;
   const eachInterval = movements.length > 1 && (answers.execution ?? "EACH_INTERVAL") === "EACH_INTERVAL";
-  if (eachInterval) {
-    const sum = work.reduce((total, value) => total + value, 0);
-    return sum >= interval ? work.flatMap((value, index) => (value > 0 ? [index] : [])) : [];
+  const cells: IssueCell[] = [];
+  for (let column = 0; column < count; column += 1) {
+    const work = movements.map((movement) => plannedWorkSeconds(movement.exercise, movement.values, column));
+    if (eachInterval) {
+      const sum = work.reduce((total, value) => total + value, 0);
+      if (sum >= interval) work.forEach((value, index) => (value > 0 ? cells.push({ index, column }) : undefined));
+    } else {
+      work.forEach((value, index) => (value >= interval ? cells.push({ index, column }) : undefined));
+    }
   }
-  return work.flatMap((value, index) => (value >= interval ? [index] : []));
+  return cells;
+}
+
+/**
+ * Death by — Complément du 5 novembre 2026 (Hermann), §13 : seul un **premier rang** dont le travail prévu connu atteint ou dépasse l'intervalle produit un
+ * avertissement non bloquant (« Le premier intervalle ne peut pas être tenu : le défi s'arrêtera avant de commencer. ») ; la
+ * fin normale d'une progression en Durée n'est pas signalée. Intervalle commun : somme des membres ; sinon, chaque membre.
+ */
+export function deathByFirstRankWarning(answers: ModelAnswers, movements: readonly ModelMovement[]): boolean {
+  if (movements.length === 0) return false;
+  const interval = answers.intervalSeconds ?? MINUTE;
+  const several = movements.length > 1;
+  const work = movements.map((movement) =>
+    plannedWorkOfTarget(movement.exercise, movement.values.mode, several ? movement.values.start : (answers.startRepetitions ?? null)),
+  );
+  if (several && (answers.execution ?? "SEQUENCE") === "EACH_INTERVAL") return work.reduce((total, value) => total + value, 0) >= interval && work.some((value) => value > 0);
+  return work.some((value) => value > 0 && value >= interval);
 }
 
 /**
@@ -420,9 +511,17 @@ export function summaryIssues(key: FormatModelKey, answers: ModelAnswers, moveme
           return values.repetitions != null && (!tour || answers.increasingVolume !== true || values.increment != null);
         }
         case "EMOM":
-          return values.repetitions != null;
+        case "SUPERSET": {
+          const count = key === "EMOM" ? (answers.seriesCount ?? 1) : (answers.roundCount ?? 1);
+          return Array.from({ length: count }, (_, at) => values.cells?.[at]?.repetitions ?? null).every((value) => value !== null);
+        }
         case "DEATH_BY":
           return !several || (values.start != null && values.start >= 1 && values.startIncrement != null && values.startIncrement >= 1);
+        case "TABATA":
+        case "INTERVALS_30_30":
+        case "STRENGTH":
+          // Objectif propre au mouvement (tableau) : `null` après un changement d'unité.
+          return values.repetitions !== null;
         case "FOR_TIME":
           // Buy-in et buy-out : une seule exécution (une case).
           return Array.from({ length: movementRole(movement) === "TOUR" ? (answers.roundCount ?? 1) : 1 }, (_, at) => values.volumes?.[at] ?? null).every((volume) => volume !== null);
@@ -436,9 +535,21 @@ export function summaryIssues(key: FormatModelKey, answers: ModelAnswers, moveme
   });
   if (key === "EMOM") {
     const overflow = emomDurationOverflow(answers, movements);
-    if (overflow.length > 0) issues.push({ kind: "EMOM_DURATION", indexes: overflow });
+    if (overflow.length > 0) issues.push({ kind: "EMOM_DURATION", indexes: [...new Set(overflow.map((cell) => cell.index))], cells: overflow });
   }
+  // Death by à un mouvement : départ et incrément du questionnaire, à renseigner après un changement d'unité.
+  if (key === "DEATH_BY" && !several) {
+    if (answers.startRepetitions === undefined) issues.push({ kind: "MISSING_SETTING", id: "startRepetitions" });
+    if (answers.increment === undefined) issues.push({ kind: "MISSING_SETTING", id: "increment" });
+  }
+  // Superset (Complément du 5 novembre 2026 (Hermann), §11) : « Récupération après le tour » — valeur absente à compléter, zéro explicite conservé.
+  if (key === "SUPERSET" && movements.length > 0 && supersetRecovery(answers, movements) === null) issues.push({ kind: "MISSING_SETTING", id: "recoveryBetweenSeconds" });
   return issues;
+}
+
+/** Superset : « Récupération après le tour » = Récupération du dernier Exercice actuel ; `null` : à renseigner. */
+export function supersetRecovery(answers: ModelAnswers, movements: readonly ModelMovement[]): number | null {
+  return answers.recoveryBetweenSeconds ?? movements[movements.length - 1]?.exercise.postActivityRecoverySeconds ?? null;
 }
 
 /** Récapitulatif complet et cohérent (voir `summaryIssues`). */
@@ -471,8 +582,8 @@ export function adaptMovementsToAnswers(key: FormatModelKey, answers: ModelAnswe
     const count = answers.roundCount ?? 3;
     return movements.map((movement) => ({ ...movement, values: { ...movement.values, volumes: extendList(movement.values.volumes ?? [], count) } }));
   }
-  if (key === "PROGRESSION") {
-    const count = answers.seriesCount ?? 3;
+  if (key === "PROGRESSION" || key === "EMOM" || key === "SUPERSET") {
+    const count = key === "SUPERSET" ? (answers.roundCount ?? 3) : (answers.seriesCount ?? 3);
     return movements.map((movement) => ({
       ...movement,
       values: {
@@ -512,6 +623,33 @@ function withLoadSwitch(parameters: ExecutionParametersInput, enabled: boolean, 
 function withUniformLoad(parameters: ExecutionParametersInput, loadKg: number | null | undefined): ExecutionParametersInput {
   if (parameters.series.kind !== "UNIFORM" || loadKg === null || loadKg === undefined) return parameters;
   return { ...parameters, series: { ...parameters.series, loadKg } };
+}
+
+/**
+ * Charge commune d'un mouvement (Complément du 5 novembre 2026 (Hermann), §15–§17 : AMRAP, Tabata, 30/30, Renforcement, À l'échec, Death by) : « Avec » si la
+ * charge est appliquée au mouvement et renseignée ; sinon « Sans », valeurs de l'Exercice de base conservées (AD-19).
+ */
+function withCommonLoad(parameters: ExecutionParametersInput, answers: ModelAnswers, values: MovementValues): ExecutionParametersInput {
+  const load = chargeActive(answers, values) ? (values.loadKg ?? null) : null;
+  return withLoadSwitch(withUniformLoad(parameters, load), true, load !== null && load > 0);
+}
+
+/**
+ * Séries d'un mouvement à valeurs par série (Progression, EMOM, Superset) : objectif et charge de la série k ; charge de la série
+ * k si la charge est appliquée au mouvement, sinon charge de l'Exercice de base conservée sous « Sans ». Des séries toutes
+ * identiques restent « Identiques ».
+ */
+function seriesParameters(exercise: SessionDraftExercise, answers: ModelAnswers, values: MovementValues, count: number, pauseSeconds: number, mode: ExecutionMode): ExecutionParametersInput {
+  const cells = resizeList(values.cells ?? [], count);
+  const active = chargeActive(answers, values);
+  const rows = cells.map((cell, at) => ({ target: target(cell?.repetitions ?? null), pauseSeconds, loadKg: active ? (cell?.loadKg ?? 0) : baseRowLoad(exercise, at) }));
+  const anyLoad = active && cells.some((cell) => cell?.loadKg != null && cell.loadKg > 0);
+  const same = rows.every((row) => JSON.stringify(row) === JSON.stringify(rows[0]));
+  const parameters =
+    same && rows[0] !== undefined
+      ? { ...uniform(exercise.executionParameters, mode, count, rows[0].target, pauseSeconds), series: { kind: "UNIFORM" as const, count, target: rows[0].target, pauseSeconds, loadKg: rows[0].loadKg, workPhases: exercise.executionParameters.series.workPhases } }
+      : variable(exercise.executionParameters, mode, rows);
+  return withLoadSwitch(parameters, active, anyLoad);
 }
 
 export function basePause(exercise: SessionDraftExercise): number {
@@ -559,15 +697,13 @@ function inSequence(key: FormatModelKey, newId: () => string, exercises: readonl
   return [standardCircuit(key, newId(), "TOURS", 1, recovered)];
 }
 
-/** Paramètres EMOM d'une ligne : objectif dans son unité, charge de départ et incrément par série. */
-function emomParameters(exercise: SessionDraftExercise, values: MovementValues, count: number, withLoad: boolean): ExecutionParametersInput {
-  const mode = values.mode ?? "REPETITIONS";
-  const base = uniform(exercise.executionParameters, mode, count, target(values.repetitions), 0);
-  const start = values.loadKg ?? null;
-  if (!withLoad || start === null) return withLoadSwitch(base, withLoad, false);
-  const loads = values.seriesLoads !== undefined && values.loadIncrement === null ? resizeList(values.seriesLoads, count).map((load) => load ?? 0) : emomSeriesLoads(start, values.loadIncrement ?? 0, count);
-  if (loads.every((load) => load === loads[0])) return withLoadSwitch(withUniformLoad(base, loads[0] ?? start), true, true);
-  return withLoadSwitch(variable(exercise.executionParameters, mode, loads.map((loadKg) => ({ target: target(values.repetitions), pauseSeconds: 0, loadKg }))), true, true);
+/**
+ * Objectif d'un mouvement des tableaux Objectif | Pause | Charge (Complément du 5 novembre 2026 (Hermann), §15–§17) : celui de la ligne, sinon le réglage commun
+ * du questionnaire (dans l'unité par défaut du modèle) ; `null` : à renseigner (changement d'unité).
+ */
+function rowObjective(values: MovementValues, fallback: number | undefined, defaultMode: ExecutionMode): number | null {
+  if (values.repetitions !== undefined) return values.repetitions;
+  return (values.mode ?? defaultMode) === defaultMode ? (fallback ?? null) : null;
 }
 
 /**
@@ -583,78 +719,80 @@ export function buildModelElements(
   if (movements.length === 0) return [];
   const several = movements.length > 1;
   const execution = several ? (answers.execution ?? executionOptions(key)[0] ?? "SEQUENCE") : "SEQUENCE";
-  const withLoad = answers.withLoad === true;
   switch (key) {
     case "TABATA":
     case "INTERVALS_30_30": {
-      // §9, §9.2 : Exercices standards (Mode Durée, N séries identiques, travail, pause) ; aucune constante.
+      // §9, §9.2 : Exercices standards (N séries identiques, travail, pause) ; aucune constante. Complément du 5 novembre 2026 (Hermann), §15, §17 : objectif
+      // (Durée ou Répétitions), pause et charge commune propres à chaque mouvement ; réglages du questionnaire par défaut.
       const count = answers.seriesCount ?? 1;
-      const exercises = movements.map(({ exercise }) =>
-        withParameters(exercise, uniform(exercise.executionParameters, "DURATION", count, numberTarget(answers.workSeconds ?? 0), answers.pauseSeconds ?? 0), 0, null),
-      );
+      const exercises = movements.map(({ exercise, values }) => {
+        const mode = values.mode ?? "DURATION";
+        const parameters = uniform(exercise.executionParameters, mode, count, target(rowObjective(values, answers.workSeconds, "DURATION")), values.pause ?? answers.pauseSeconds ?? 0);
+        return withParameters(exercise, withCommonLoad(parameters, answers, values), 0, null);
+      });
       if (execution === "ALTERNATED") return [standardCircuit(key, newId(), "SERIES", count, exercises)];
       return inSequence(key, newId, exercises, key === "TABATA" && several ? answers.recoveryBetweenSeconds : undefined);
     }
     case "STRENGTH":
     case "UNTIL_FAILURE": {
       const count = answers.seriesCount ?? 1;
-      const exercises = movements.map(({ exercise }) =>
-        withParameters(
-          exercise,
-          uniform(exercise.executionParameters, "REPETITIONS", count, key === "STRENGTH" ? numberTarget(answers.repetitions ?? 0) : failureTarget(), pauseOf(answers, exercise)),
-          exercise.postActivityRecoverySeconds ?? 0,
-          null,
-        ),
-      );
+      // Complément du 5 novembre 2026 (Hermann), §16–§17 : objectif (Répétitions ou Durée ; À l'échec dans le Mode choisi), pause et charge commune par mouvement.
+      const exercises = movements.map(({ exercise, values }) => {
+        const mode = values.mode ?? "REPETITIONS";
+        const seriesTarget = key === "STRENGTH" ? target(rowObjective(values, answers.repetitions, "REPETITIONS")) : failureTarget();
+        const parameters = uniform(exercise.executionParameters, mode, count, seriesTarget, values.pause ?? pauseOf(answers, exercise));
+        return withParameters(exercise, withCommonLoad(parameters, answers, values), exercise.postActivityRecoverySeconds ?? 0, null);
+      });
       return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(key, newId, exercises, undefined);
     }
     case "PROGRESSION": {
       const count = answers.seriesCount ?? 1;
+      // Complément du 5 novembre 2026 (Hermann), §9 : charge décidée mouvement par mouvement (« (+ kg) ») ; séries variables (10 / 12 / 14 conservés).
       const exercises = movements.map(({ exercise, values }) => {
         const pause = pauseOf(answers, exercise);
         const cells = resizeList(values.cells ?? [], count);
-        const rows = cells.map((cell) => ({ target: target(cell?.repetitions ?? null), pauseSeconds: pause, loadKg: withLoad ? (cell?.loadKg ?? 0) : 0 }));
-        const anyLoad = withLoad && cells.some((cell) => cell?.loadKg != null && cell.loadKg > 0);
-        const parameters = withLoad ? variable(exercise.executionParameters, values.mode ?? "REPETITIONS", rows) : variable(exercise.executionParameters, values.mode ?? "REPETITIONS", rows.map((row, at) => ({ ...row, loadKg: baseRowLoad(exercise, at) })));
-        return withParameters(exercise, withLoadSwitch(parameters, withLoad, anyLoad), exercise.postActivityRecoverySeconds ?? 0, null);
+        const active = chargeActive(answers, values);
+        const rows = cells.map((cell, at) => ({ target: target(cell?.repetitions ?? null), pauseSeconds: pause, loadKg: active ? (cell?.loadKg ?? 0) : baseRowLoad(exercise, at) }));
+        const anyLoad = active && cells.some((cell) => cell?.loadKg != null && cell.loadKg > 0);
+        return withParameters(exercise, withLoadSwitch(variable(exercise.executionParameters, values.mode ?? "REPETITIONS", rows), active, anyLoad), exercise.postActivityRecoverySeconds ?? 0, null);
       });
       return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(key, newId, exercises, undefined);
     }
     case "SUPERSET": {
-      // §9.2, A4 : Circuit standard groupé d'un passage, paramètres libres (répétitions à compléter).
-      const exercises = movements.map(({ exercise }, index) =>
-        withParameters(
-          exercise,
-          uniform(exercise.executionParameters, "REPETITIONS", 1, unsetTarget(), basePause(exercise)),
-          index === movements.length - 1 ? (answers.recoveryBetweenSeconds ?? exercise.postActivityRecoverySeconds ?? 0) : 0,
-          null,
-        ),
+      // Complément du 5 novembre 2026 (Hermann), §11, §17 : Circuit standard à séries alternées (A1, B1, récupération, A2, B2…), N tours ; chaque membre porte N
+      // séries (objectif et charge du tour k), sans multiplication N × N. « Récupération après le tour » = Récupération du
+      // dernier Exercice ; aucun repos ajouté entre les membres par cette préconfiguration. [Circuit groupé d'un passage — remplacé.]
+      const count = answers.roundCount ?? 3;
+      const recovery = supersetRecovery(answers, movements) ?? 0;
+      const exercises = movements.map(({ exercise, values }, index) =>
+        withParameters(exercise, seriesParameters(exercise, answers, values, count, basePause(exercise), values.mode ?? "REPETITIONS"), index === movements.length - 1 ? recovery : 0, null),
       );
-      return [standardCircuit(key, newId(), "TOURS", answers.roundCount ?? 1, exercises)];
+      return [standardCircuit(key, newId(), "SERIES", count, exercises)];
     }
     case "EMOM": {
       const count = answers.seriesCount ?? 1;
       const interval = answers.intervalSeconds ?? MINUTE;
+      // Complément du 5 novembre 2026 (Hermann), §14, §17 : objectif et charge de chaque série S1…Sn (séries variables, nombre de séries = Nombre de séries de
+      // l'EMOM) ; aucun incrément d'objectif ni de charge.
+      const params = (exercise: SessionDraftExercise, values: MovementValues) => seriesParameters(exercise, answers, values, count, 0, values.mode ?? "REPETITIONS");
       if (execution === "EACH_INTERVAL") {
-        // §10 : Circuit porteur, tours = N, durée de chaque tour = intervalle ; membres sans Intervalle propre.
-        // Chaque membre fait une série par tour (Circuit « groupées » de N tours) : il n'a qu'une série, donc une charge
-        // fixe — la progression « + / série » n'y est pas représentable (À CLARIFIER, spec C.4 § Reprise du 04/11).
-        const members = movements.map(({ exercise, values }) =>
-          withParameters(exercise, emomParameters(exercise, { ...values, loadIncrement: 0, seriesLoads: undefined }, 1, withLoad), 0, { key: "EMOM", settings: {} }),
-        );
+        // §10 : Circuit porteur, tours = N, durée de chaque tour = intervalle ; membres sans Intervalle propre. Chaque membre
+        // porte ses N séries : au tour k, il joue sa série k (comme le For time), sans multiplication N × N.
+        const members = movements.map(({ exercise, values }) => withParameters(exercise, params(exercise, values), 0, { key: "EMOM", settings: {} }));
         return [carrierCircuit(key, newId(), "TOURS", count, { key: "EMOM", settings: { windowSeconds: interval } }, members)];
       }
-      const exercises = movements.map(({ exercise, values }) =>
-        withParameters(exercise, emomParameters(exercise, values, count, withLoad), 0, { key: "EMOM", settings: { intervalSeconds: interval } }),
-      );
+      const exercises = movements.map(({ exercise, values }) => withParameters(exercise, params(exercise, values), 0, { key: "EMOM", settings: { intervalSeconds: interval } }));
       return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(key, newId, exercises, several ? answers.recoveryBetweenSeconds : undefined);
     }
     case "DEATH_BY": {
       const interval = answers.intervalSeconds ?? MINUTE;
       // MAJ 04/11 §4.3 : à plusieurs mouvements, départ et incrément propres à chacun (tableau) ; seul, ceux du questionnaire.
-      const startOf = (values: MovementValues) => numberTarget((several ? values.start : null) ?? answers.startRepetitions ?? 1);
+      // Complément du 5 novembre 2026 (Hermann), §13 : Répétitions ou Durée (Mode de l'Exercice) ; départ et incrément dans cette unité, incrément ≥ + 1 ; charge
+      // commune par mouvement (§16).
+      const startOf = (values: MovementValues) => target(several ? (values.start ?? null) : (answers.startRepetitions ?? null));
       const incrementOf = (values: MovementValues) => Math.max(1, (several ? values.startIncrement : null) ?? answers.increment ?? 1);
-      const params = (exercise: SessionDraftExercise, values: MovementValues) => uniform(exercise.executionParameters, "REPETITIONS", 1, startOf(values), 0);
+      const params = (exercise: SessionDraftExercise, values: MovementValues) =>
+        withCommonLoad(uniform(exercise.executionParameters, values.mode ?? "REPETITIONS", 1, startOf(values), 0), answers, values);
       if (execution === "EACH_INTERVAL") {
         const members = movements.map(({ exercise, values }) => withParameters(exercise, params(exercise, values), 0, { key: "DEATH_BY", settings: { incrementPerRound: incrementOf(values) } }));
         return [carrierCircuit(key, newId(), "TOURS", 1, { key: "DEATH_BY", settings: { windowSeconds: interval } }, members)];
@@ -681,9 +819,9 @@ export function buildModelElements(
       const params = (exercise: SessionDraftExercise, values: MovementValues) => {
         const mode = several ? (values.mode ?? "REPETITIONS") : "REPETITIONS";
         const base = uniform(exercise.executionParameters, mode, 1, values.max === true ? failureTarget() : target(values.repetitions), 0);
-        const load = withLoad ? (values.loadKg ?? null) : null;
-        return withLoadSwitch(withUniformLoad(base, load), withLoad, load !== null && load > 0);
+        return withCommonLoad(base, answers, values);
       };
+      // Complément du 5 novembre 2026 (Hermann), §8 : incrément signé ; aucun incrément pour le buy-in ni pour Max (À l'échec).
       const incrementOf = (values: MovementValues, role: CircuitRole) => (role !== "TOUR" || !increasing || values.max === true ? 0 : (values.increment ?? 0));
       // §1, §2.2 : Exercice autonome seulement pour un mouvement, un bloc, sans buy-in ni repos de boucle.
       if (!several && blocks === 1 && loopRest === 0) {
@@ -715,16 +853,18 @@ export function buildModelElements(
       const rounds = answers.roundCount ?? 1;
       const rest = answers.restBetweenRoundsSeconds ?? 0;
       const cap = answers.timeCapSeconds ?? null;
-      // MAJ 04/11 §6 quater bis : un objectif et une charge par tour (charge facultative), dans l'unité de la ligne.
+      // MAJ 04/11 §6 quater bis : un objectif et une charge par tour (charge facultative), dans l'unité de la ligne. Complément du 5 novembre 2026 (Hermann), §9 :
+      // charge décidée mouvement par mouvement (« (+ kg) »).
       const parameters = (exercise: SessionDraftExercise, values: MovementValues, pauseSeconds: number, count: number) => {
         const loads = resizeList(values.loads ?? [], count);
+        const active = chargeActive(answers, values);
         const rows = resizeList(values.volumes ?? [], count).map((volume, at) => ({
           target: target(volume ?? null),
           pauseSeconds,
-          loadKg: withLoad ? (loads[at] ?? 0) : baseRowLoad(exercise, at),
+          loadKg: active ? (loads[at] ?? 0) : baseRowLoad(exercise, at),
         }));
-        const anyLoad = withLoad && loads.some((load) => load != null && load > 0);
-        return withLoadSwitch(variable(exercise.executionParameters, values.mode ?? "REPETITIONS", rows), withLoad, anyLoad);
+        const anyLoad = active && loads.some((load) => load != null && load > 0);
+        return withLoadSwitch(variable(exercise.executionParameters, values.mode ?? "REPETITIONS", rows), active, anyLoad);
       };
       if (!several) {
         const [{ exercise, values }] = movements as [ModelMovement];
