@@ -884,7 +884,7 @@ D-451 → RM-025/RM-028/RM-252/SU-04 → CE-T03-08 ; modèle DM-003/DM-004. Comp
 | Cible commune Durée : Objectif de durée ; durée calculée noire, 13 Semi Bold, sans pastille | CE-UI-10 ; RM-246/248/250 | Décision explicite ; durée calculée `8328:38632` | Décidé ; aucune frame dédiée requise pour le libellé de cible commune |
 | REC-PARAM-01 clos : récupération propre à l’Exercice, saisie dans les paramètres et cadre orange des défauts Profil | CE-UI-10, CE-T03-08 ; RM-209 | Décision Hermann du 01/11/2026 | Décidé ; développement à réaliser |
 
-| Menu Créer : quatre options ; +/Annuler, voile et axe ; libellés de création | CE-T03-08, CE-T03-04 ; chapitres 03/04/06/08/10 | Figma `8328:28172`, `10705:20223` ; décision explicite de Hermann | Décidé ; accès de remplacement Format réservé par MENU-FMT-01 |
+| Menu Créer : trois options ; +/Annuler, voile et axe ; libellés de création | CE-T03-08, CE-T03-04 ; chapitres 03/04/06/08/10 | Figma `8328:28172`, `10705:20223` ; décision explicite de Hermann | Décidé ; accès commun Exercice libre / Formats par CE-CREATION-01 |
 
 ## Récupération et défauts Profil — règle courante
 
@@ -898,3 +898,7 @@ FMT-01 à FMT-42 conservent leurs identifiants ; prescriptions remplacées sur l
 ## Formats — raccordement du 4 novembre 2026
 
 CE-FMT-05 (chapitre 13) : actions du Circuit et réédition. Décisions : chapitre 07, formats-decisions-20261104. Règles : chapitre 10, formats-reedition-roles-charges ; FMT-12/20/26/29/30/31 actualisées. Données : chapitre 09 (Nom, Modèle d’origine et Rôle). Parcours : chapitres 06/08 ; API et architecture : chapitres 11/12 ; captures : chapitre 06, formats-galerie. Les recettes sont prescrites, non exécutées sur application.
+
+## Création et Formats — 5 novembre
+
+CE-CREATION-01 : modale commune et destinations Catalogue/Composition ; CE-CIR-03 retiré. CE-FMT-02/04/05 : tableaux, charges, Death by et réouverture. Règles et décisions : chapitres 10 et 07, ancre creation-formats-20261105. FMT-20/28/29/33 actualisées ; données/API/architecture aux chapitres 09/11/12. Les scénarios de la source finale sont prescrits, non exécutés sur application.

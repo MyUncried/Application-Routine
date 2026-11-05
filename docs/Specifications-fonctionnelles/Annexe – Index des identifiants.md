@@ -1152,7 +1152,7 @@ D-451 : registre chapitre 07 ; RM-252 et SU-04 : chapitre 10 ; CS-D1 à CS-D8 : 
 
 D-413 : six blocs ; D-431 : notations et accessibilité ; D-447 : présentation de la feuille ; D-448 : Phases du mouvement ; RM-242 à RM-244 : concept Changement de côté, libellé visible De chaque côté. [État cible de CE-UI-10](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#parametres-execution-etat-cible). REC-PARAM-01 est une question de raccordement de Récupération, pas une nouvelle règle métier numérotée.
 
-Menu Créer : [état cible de CE-T03-08](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#composition-menu-creer). MENU-FMT-01 réserve uniquement le remplacement de l’accès Format, sans ajout d’identifiant de règle métier.
+Menu Créer : [état cible de CE-T03-08](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#composition-menu-creer). MENU-FMT-01 est remplacée par CE-CREATION-01 : accès commun Exercice libre / Formats.
 
 ## Récupération et défauts Profil — règle courante
 
@@ -1166,3 +1166,7 @@ FMT-01 à FMT-42 conservent leurs identifiants ; prescriptions remplacées sur l
 ## Formats — raccordement du 4 novembre 2026
 
 CE-FMT-05 (chapitre 13) : actions du Circuit et réédition. Décisions : chapitre 07, formats-decisions-20261104. Règles : chapitre 10, formats-reedition-roles-charges ; FMT-12/20/26/29/30/31 actualisées. Données : chapitre 09 (Nom, Modèle d’origine et Rôle). Parcours : chapitres 06/08 ; API et architecture : chapitres 11/12 ; captures : chapitre 06, formats-galerie. Les recettes sont prescrites, non exécutées sur application.
+
+## Création et Formats — 5 novembre
+
+CE-CREATION-01 : modale commune et destinations Catalogue/Composition ; CE-CIR-03 retiré. CE-FMT-02/04/05 : tableaux, charges, Death by et réouverture. Règles et décisions : chapitres 10 et 07, ancre creation-formats-20261105. FMT-20/28/29/33 actualisées ; données/API/architecture aux chapitres 09/11/12. Les scénarios de la source finale sont prescrits, non exécutés sur application.

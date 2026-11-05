@@ -85,3 +85,7 @@ La sélection simple Catégorie `8328:35810` montre encore un ✓, alors que le 
 ## Vérifications du lot
 
 54 PNG décodés et valides, tous en 402 × 874, 54 identifiants distincts et exactement une insertion par capture dans les deux galeries. Contrôle visuel des 54 exports par planches de contact, puis lecture détaillée des états Circuit et du tableau variable. Liens locaux des galeries, du DSF et de cette matrice résolus. CE-CIR-01/02/03 : 21 rubriques chacun. Contrôle des espaces et conflits Git effectué. Aucun test applicatif exécuté, aucun maître Figma modifié.
+
+## Portée actualisée le 5 novembre 2026
+
+Ce relevé daté ne gouverne plus l’accès œil/Volumes en Composition (retiré, CE-CIR-03), ni les présentations des récapitulatifs remplacées par la référence Formats active : EMOM par série, Superset alterné trois tours, charges locales après activation globale et restauration temporaire dans le brouillon. Les autres observations historiques restent datées.

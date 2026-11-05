@@ -23,3 +23,7 @@ Les frames internes « Modale — Paramètres d’exécution », « Voile modal 
 ## Mise à jour Composition — 28/10/2026
 
 [Inventaire courant, règles et réserves](KODJO-Composition-conteneurs-2026-10-28.md). Les en-têtes du 28/10 remplacent le stepper permanent, l’unité interactive, le masquage de durée et le circuit unique des relevés historiques. Le tableau des dix nodes vérifiés est la référence de ce lot. Aucun écran d’extension par la borne ne fait partie du parcours courant.
+
+## Portée actualisée le 5 novembre 2026
+
+Ce relevé daté ne gouverne plus l’accès œil/Volumes en Composition (retiré, CE-CIR-03), ni les présentations des récapitulatifs remplacées par la référence Formats active : EMOM par série, Superset alterné trois tours, charges locales après activation globale et restauration temporaire dans le brouillon. Les autres observations historiques restent datées.

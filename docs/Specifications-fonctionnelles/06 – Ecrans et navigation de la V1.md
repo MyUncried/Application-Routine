@@ -10,13 +10,13 @@ Références contrôlées directement dans Figma : `8328:37972`, `8328:38193`, `
 
 ### Composition — menu Créer
 
-Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
+Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
 
 À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
-**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à cinq options ci-dessus.
+**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à trois options ci-dessus.
 
 ## Composition — actualisation du 28/10/2026
 
@@ -259,7 +259,7 @@ Les espaces de contexte et de section, les pieds d’action et les surfaces de m
 
 ### Évolution des vues de composition
 
-Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et CE-CIR-03 (volumes), ajoutés au chapitre 13, complètent CE-T03-08 et CE-UI-10. En-tête : chiffre pour ± (remplacé par D-442 : stepper − / + toujours affiché et actif autour du nombre), pastille d’unité pour nature, œil permanent sur la ligne du titre pour la grille. Les cartes affichent les volumes, pas seulement N séries variables.
+Les contrats CE-CIR-01 (choix de nature) et CE-CIR-02 (confirmation de perte) complètent CE-T03-08 et CE-UI-10. En-tête : chiffre pour ± (remplacé par D-442 : stepper − / + toujours affiché et actif autour du nombre), pastille d’unité pour nature, bouton œil retiré ; détail des volumes consultable dans les paramètres des Exercices. Les cartes affichent les volumes, pas seulement N séries variables.
 
 **Alignement documentaire du 12/10 :** 54 captures réexportées, [DSF courant](../DSF-CIRCUITS-CONTROLES-2026-10-12.md) et . Les écarts visuels résiduels y sont explicites ; aucune conformité complète de Figma ou de l’application n’est revendiquée. La page modèles `8334:28437` et le parcours Tabata `8388:28362`, `8388:28484`, `8388:32052`, `8388:32181` sont dans la page Figma Conception — Hors MVP ; ce nom de page ne définit pas le périmètre : les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378).
 
@@ -594,7 +594,7 @@ L’icône affichée à gauche de `Nombre de tours` est exclusivement une instan
 
 Le Circuit porte une nature tours (défaut) ou séries et un compte de 1 à 99, initialisé à 1.
 
-Le chiffre du compteur ouvre les boutons −/+ (remplacé par D-442 du 22/10/2026 : le stepper − / + est toujours affiché et actif autour du nombre, présenté au format « Valeur modifiable » ; les cibles tactiles du −, du + et de la pastille d’unité sont espacées et d’au moins 44 pt ; nombre, unité et durée ont la taille du titre « Circuit ») ; la pastille portant uniquement tours/séries ouvre le choix de nature. Le bouton œil permanent, sur la ligne du titre, ouvre les volumes. La durée affichée du Circuit est une estimation, arrondie à la minute la plus proche au-delà de 3 minutes (D-442 ; remplacé par D-443 du 23/10/2026 : la durée du Circuit n’est plus affichée dans son en-tête, et le stepper du nombre de Tours ou de Séries y est aligné à droite). Les captures actuelles et les mesures figurent dans le DSF du 12/10 ; les ± visibles dans ces exemples illustrent l’édition, pas le repos (remplacé par D-442 : les ± sont visibles au repos).
+Le chiffre du compteur ouvre les boutons −/+ (remplacé par D-442 du 22/10/2026 : le stepper − / + est toujours affiché et actif autour du nombre, présenté au format « Valeur modifiable » ; les cibles tactiles du −, du + et de la pastille d’unité sont espacées et d’au moins 44 pt ; nombre, unité et durée ont la taille du titre « Circuit ») ; la pastille portant uniquement tours/séries ouvre le choix de nature. Le bouton œil et la fenêtre Volumes du Circuit sont retirés (05/11). La durée affichée du Circuit est une estimation, arrondie à la minute la plus proche au-delà de 3 minutes (D-442 ; remplacé par D-443 du 23/10/2026 : la durée du Circuit n’est plus affichée dans son en-tête, et le stepper du nombre de Tours ou de Séries y est aligné à droite). Les captures actuelles et les mesures figurent dans le DSF du 12/10 ; les ± visibles dans ces exemples illustrent l’édition, pas le repos (remplacé par D-442 : les ± sont visibles au repos).
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Exercices ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement le jalon structurel concerné et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Circuit dans ses états applicables.
 
@@ -1667,17 +1667,17 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 Les anciennes ancres de frames sont conservées uniquement pour les liens historiques ; l’inventaire actuel ci-dessous remplace leurs captures et noms de parcours.
 
-**Référence active actualisée le 4 novembre 2026 :** [spécification Formats](../KODJO-Formats-entrainement-2026-11-02.md), contrats CE-FMT-01 à 05 du chapitre 13. Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP (`510:101`) : **68 frames du périmètre Formats et actions de Circuit** dans les deux rangées Formats et modales/séances. Les anciens noms de frames, copies et captures de ce parcours sont remplacés par cet inventaire ; les autres familles du chapitre restent inchangées.
+**Référence active actualisée le 5 novembre 2026 :** [spécification Formats](../KODJO-Formats-entrainement-2026-11-02.md), contrats CE-FMT-01 à 05 du chapitre 13. Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP (`510:101`) : **87 frames du périmètre Formats, création, consultation et Composition** dans les deux rangées Formats et modales/séances. Les anciens noms de frames, copies et captures de ce parcours sont remplacés par cet inventaire ; les autres familles du chapitre restent inchangées.
 
-**Captures actualisées le 4 novembre :** 68 PNG exportés depuis le fichier courant, incluant les états de clavier AMRAP/Progression, les actions du Circuit et le récapitulatif rouvert depuis la Composition. La modale 30/30 précédemment en réserve est désormais exportée. Chaque image est reliée à son node et à son contrat ; métadonnées, dimensions et empreinte dans `docs/figma-formats-2026-11-02/captures.json`. Ces captures ne prouvent aucun fonctionnement applicatif.
+**Captures actualisées le 5 novembre :** 87 PNG exportés depuis le fichier courant ; dimensions et empreintes dans le manifeste. Les anciens écrans de volumes ne sont plus des références actives. Les images prouvent les dispositions représentées, pas les interactions ni le fonctionnement du code.
 
-Le questionnaire et le récapitulatif sont des **modales sur la Composition**, ouvertes par le bas, pleine largeur, sous le titre de Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers la Composition ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes.
+Le questionnaire et le récapitulatif sont des **modales**, ouvertes depuis la modale de création commune au Catalogue et à la Composition. Depuis la Composition, ils sont ouverts par le bas, pleine largeur, sous son titre ; depuis le Catalogue, aucun brouillon de Séance n’est créé avant l’arrivée en Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers le point de départ conservé (Catalogue ou Composition) ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes.
 
 « Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique.
 
 Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite carte ouvre la **Fiche du mouvement** en consultation seule, en modale par-dessus celle du Format, sur un second voile. Apparition par le bas, pleine largeur, coins hauts arrondis 24 px ; en-tête croix et titre « Fiche du mouvement », fond blanc et trait conservés. Nom, catégorie, zones corporelles, niveau, média, description et phases habituels ; aucun bouton d’action. Fermer restitue exactement l’état du parcours sous-jacent. Toucher le reste de la carte conserve son comportement existant.
 
-**EMOM : Répétitions par défaut, Durée possible par Exercice.** Tableau Mouvement | Objectif, valeur avec unité et choix Répétitions/Durée dans la barre du clavier numérique ; aucune colonne Mode ni popover Mode. Avec charge : Objectif | Charge | + / série. Death by multi-mouvements : Mouvement | Départ | Incrément, valeurs propres à chaque membre, incrément ≥ +1. La ligne Repos EMOM est absente ; le repos est le restant de fenêtre.
+**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
 
 **Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage.
 
@@ -1685,75 +1685,83 @@ Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite 
 
 Référence 402 × 874 : modale à y=95, pleine largeur, coins hauts 24 px, coins bas carrés, sans poignée. En-tête « DSF / Overlays / En-tête de modale », variante Sélection sans validation ; titre Inter Semi Bold 18 centré, croix au questionnaire et icon/retour au récapitulatif. Fond transparent et trait masqué uniquement dans ces modales Formats ; la Fiche du mouvement conserve fond blanc et trait. Zone de contexte 109 px depuis le haut de la modale, couleur et motif du Format ; tagline centrée 14/20 sur deux lignes. Bouton à y=802 de l’écran de référence et déroulé 25 px au-dessus. Contenu défilant, bouton en bas, clavier au premier plan ; ces cotes décrivent le rendu de référence, pas une hauteur fixe imposée à tous les appareils. Valeurs non modifiables et colonnes numériques alignées sur le texte des valeurs modifiables, avec un retrait de 10 px par rapport au bord droit de leur pastille.
 
-<a id="format-9977-19613"></a>
+<a id="format-10705-20223"></a>
 
-##### P-Formats — Choix du format, deux colonnes
+##### Composition séance — Créer (menu)
 
-Nœud [9977:19613](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9977-19613) · Contrat [CE-FMT-01](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-01) · Export du 04/11/2026.
+Nœud [10705:20223](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10705-20223) · Contrat CE-CREATION-01 · Export du 05/11/2026.
 
-![P-Formats — Choix du format, deux colonnes](images/figma-9977-19613.png)
+![Composition séance — Créer (menu)](images/figma-10705-20223.png)
 
-<a id="format-8624-29980"></a>
+<a id="format-10717-20056"></a>
 
-##### P-Tabata — Questionnaire
+##### Composition séance — Deux circuits repliés
 
-Nœud [8624:29980](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-29980) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [10717:20056](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10717-20056) · Contrat CE-T03-08 · Export du 05/11/2026.
 
-![P-Tabata — Questionnaire](images/figma-8624-29980.png)
+![Composition séance — Deux circuits repliés](images/figma-10717-20056.png)
 
-<a id="format-11335-20151"></a>
+<a id="format-10725-20142"></a>
 
-##### P-Tabata — Questionnaire, saisie d’un mouvement
+##### Composition séance — Deux circuits Un replié
 
-Nœud [11335:20151](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-20151) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [10725:20142](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10725-20142) · Contrat CE-T03-08 · Export du 05/11/2026.
 
-![P-Tabata — Questionnaire, saisie d’un mouvement](images/figma-11335-20151.png)
+![Composition séance — Deux circuits Un replié](images/figma-10725-20142.png)
 
-<a id="format-8598-29503"></a>
+<a id="format-10744-20108"></a>
 
-##### P-Tabata — Choix des mouvements
+##### Composition séance — Cycle
 
-Nœud [8598:29503](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29503) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [10744:20108](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10744-20108) · Contrat CE-T03-08 · Export du 05/11/2026.
 
-![P-Tabata — Choix des mouvements](images/figma-8598-29503.png)
+![Composition séance — Cycle](images/figma-10744-20108.png)
 
-<a id="format-8624-30306"></a>
+<a id="format-10818-20175"></a>
 
-##### P-Tabata — Récapitulatif, à la suite
+##### Composition séance — Base (sans circuit)
 
-Nœud [8624:30306](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [10818:20175](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10818-20175) · Contrat CE-T03-08 · Export du 05/11/2026.
 
-![P-Tabata — Récapitulatif, à la suite](images/figma-8624-30306.png)
+![Composition séance — Base (sans circuit)](images/figma-10818-20175.png)
+
+<a id="format-10819-20344"></a>
+
+##### Composition séance — Ajouter un circuit (emplacement)
+
+Nœud [10819:20344](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10819-20344) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Ajouter un circuit (emplacement)](images/figma-10819-20344.png)
+
+<a id="format-10821-20222"></a>
+
+##### Composition séance — Circuit créé
+
+Nœud [10821:20222](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10821-20222) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Circuit créé](images/figma-10821-20222.png)
+
+<a id="format-10836-20478"></a>
+
+##### Composition séance — Ajouter un cycle (emplacement)
+
+Nœud [10836:20478](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10836-20478) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Ajouter un cycle (emplacement)](images/figma-10836-20478.png)
 
 <a id="format-11146-18902"></a>
 
 ##### P-Tabata — Récapitulatif, en alternance
 
-Nœud [11146:18902](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11146-18902) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11146:18902](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11146-18902) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![P-Tabata — Récapitulatif, en alternance](images/figma-11146-18902.png)
-
-<a id="format-8624-30040"></a>
-
-##### EMOM — Questionnaire
-
-Nœud [8624:30040](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30040) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![EMOM — Questionnaire](images/figma-8624-30040.png)
-
-<a id="format-8624-30392"></a>
-
-##### EMOM — Récapitulatif, dans chaque intervalle
-
-Nœud [8624:30392](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30392) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![EMOM — Récapitulatif, dans chaque intervalle](images/figma-8624-30392.png)
 
 <a id="format-11158-18922"></a>
 
 ##### EMOM — Récapitulatif, en alternance
 
-Nœud [11158:18922](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11158-18922) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11158:18922](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11158-18922) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![EMOM — Récapitulatif, en alternance](images/figma-11158-18922.png)
 
@@ -1761,39 +1769,23 @@ Nœud [11158:18922](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### EMOM — Récapitulatif, à la suite
 
-Nœud [11158:19033](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11158-19033) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11158:19033](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11158-19033) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![EMOM — Récapitulatif, à la suite](images/figma-11158-19033.png)
 
-<a id="format-8624-30143"></a>
+<a id="format-11195-19094"></a>
 
-##### AMRAP — Questionnaire
+##### AMRAP — Récapitulatif, buy-in et incrément
 
-Nœud [8624:30143](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30143) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11195:19094](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11195-19094) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
-![AMRAP — Questionnaire](images/figma-8624-30143.png)
-
-<a id="format-11335-19986"></a>
-
-##### AMRAP — Questionnaire, saisie d’un mouvement
-
-Nœud [11335:19986](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-19986) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![AMRAP — Questionnaire, saisie d’un mouvement](images/figma-11335-19986.png)
-
-<a id="format-11410-20361"></a>
-
-##### AMRAP — Questionnaire, plusieurs blocs
-
-Nœud [11410:20361](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11410-20361) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![AMRAP — Questionnaire, plusieurs blocs](images/figma-11410-20361.png)
+![AMRAP — Récapitulatif, buy-in et incrément](images/figma-11195-19094.png)
 
 <a id="format-11220-19121"></a>
 
 ##### AMRAP — Choix des mouvements
 
-Nœud [11220:19121](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11220-19121) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11220:19121](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11220-19121) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![AMRAP — Choix des mouvements](images/figma-11220-19121.png)
 
@@ -1801,263 +1793,15 @@ Nœud [11220:19121](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### AMRAP — Choix du buy-in
 
-Nœud [11220:19397](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11220-19397) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11220:19397](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11220-19397) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![AMRAP — Choix du buy-in](images/figma-11220-19397.png)
-
-<a id="format-8624-30521"></a>
-
-##### AMRAP — Récapitulatif, incrément et max
-
-Nœud [8624:30521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30521) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![AMRAP — Récapitulatif, incrément et max](images/figma-8624-30521.png)
-
-<a id="format-11388-22086"></a>
-
-##### AMRAP — Récapitulatif, suppression glissée
-
-Nœud [11388:22086](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11388-22086) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![AMRAP — Récapitulatif, suppression glissée](images/figma-11388-22086.png)
-
-<a id="format-11195-19094"></a>
-
-##### AMRAP — Récapitulatif, buy-in et incrément
-
-Nœud [11195:19094](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11195-19094) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![AMRAP — Récapitulatif, buy-in et incrément](images/figma-11195-19094.png)
-
-<a id="format-8624-30198"></a>
-
-##### Death by — Questionnaire
-
-Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30198) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Death by — Questionnaire](images/figma-8624-30198.png)
-
-<a id="format-8624-30602"></a>
-
-##### Death by — Récapitulatif
-
-Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Death by — Récapitulatif](images/figma-8624-30602.png)
-
-<a id="format-11376-20189"></a>
-
-##### Death by — Récapitulatif, dans chaque intervalle
-
-Nœud [11376:20189](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11376-20189) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Death by — Récapitulatif, dans chaque intervalle](images/figma-11376-20189.png)
-
-<a id="format-11376-20325"></a>
-
-##### Death by — Récapitulatif, en alternance
-
-Nœud [11376:20325](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11376-20325) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Death by — Récapitulatif, en alternance](images/figma-11376-20325.png)
-
-<a id="format-11411-20474"></a>
-
-##### Death by — Récapitulatif, à la suite
-
-Nœud [11411:20474](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11411-20474) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Death by — Récapitulatif, à la suite](images/figma-11411-20474.png)
-
-<a id="format-8624-30255"></a>
-
-##### For time — Questionnaire
-
-Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30255) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![For time — Questionnaire](images/figma-8624-30255.png)
-
-<a id="format-8624-30672"></a>
-
-##### For time — Récapitulatif
-
-Nœud [8624:30672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30672) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![For time — Récapitulatif](images/figma-8624-30672.png)
-
-<a id="format-8656-33799"></a>
-
-##### 30/30 — Questionnaire
-
-Nœud [8656:33799](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33799) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![30/30 — Questionnaire](images/figma-8656-33799.png)
-
-<a id="format-8656-33857"></a>
-
-##### 30/30 — Récapitulatif
-
-Nœud [8656:33857](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33857) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![30/30 — Récapitulatif](images/figma-8656-33857.png)
-
-<a id="format-8656-34196"></a>
-
-##### Renforcement — Questionnaire
-
-Nœud [8656:34196](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34196) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Renforcement — Questionnaire](images/figma-8656-34196.png)
-
-<a id="format-8656-34263"></a>
-
-##### Renforcement — Récapitulatif
-
-Nœud [8656:34263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34263) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Renforcement — Récapitulatif](images/figma-8656-34263.png)
-
-<a id="format-8656-34753"></a>
-
-##### Superset — Questionnaire
-
-Nœud [8656:34753](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34753) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Superset — Questionnaire](images/figma-8656-34753.png)
-
-<a id="format-8656-34807"></a>
-
-##### Superset — Récapitulatif
-
-Nœud [8656:34807](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34807) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Superset — Récapitulatif](images/figma-8656-34807.png)
-
-<a id="format-8656-35005"></a>
-
-##### Progression — Questionnaire
-
-Nœud [8656:35005](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35005) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Progression — Questionnaire](images/figma-8656-35005.png)
-
-<a id="format-8656-35062"></a>
-
-##### Progression — Récapitulatif
-
-Nœud [8656:35062](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35062) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![Progression — Récapitulatif](images/figma-8656-35062.png)
-
-<a id="format-8656-35273"></a>
-
-##### À l’échec — Questionnaire
-
-Nœud [8656:35273](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35273) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![À l’échec — Questionnaire](images/figma-8656-35273.png)
-
-<a id="format-8656-35331"></a>
-
-##### À l’échec — Récapitulatif
-
-Nœud [8656:35331](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35331) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
-
-![À l’échec — Récapitulatif](images/figma-8656-35331.png)
-
-<a id="format-8747-14451"></a>
-
-##### Tabata — Modale exercice, standard
-
-Nœud [8747:14451](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8747-14451) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
-
-![Tabata — Modale exercice, standard](images/figma-8747-14451.png)
-
-<a id="format-11294-19682"></a>
-
-##### Tabata — Séance, circuit en alternance
-
-Nœud [11294:19682](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11294-19682) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03) · Export du 04/11/2026.
-
-![Tabata — Séance, circuit en alternance](images/figma-11294-19682.png)
-
-<a id="format-8598-30059"></a>
-
-##### Tabata — Modale exercice, en alternance
-
-Nœud [8598:30059](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30059) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
-
-![Tabata — Modale exercice, en alternance](images/figma-8598-30059.png)
-
-<a id="format-8795-14588"></a>
-
-##### EMOM — Modale exercice, standard
-
-Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14588) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
-
-![EMOM — Modale exercice, standard](images/figma-8795-14588.png)
-
-<a id="format-11308-19978"></a>
-
-##### EMOM — Séance, circuit dans chaque intervalle
-
-Nœud [11308:19978](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11308-19978) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03) · Export du 04/11/2026.
-
-![EMOM — Séance, circuit dans chaque intervalle](images/figma-11308-19978.png)
-
-<a id="format-8598-30515"></a>
-
-##### EMOM — Modale exercice, dans chaque intervalle
-
-Nœud [8598:30515](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30515) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
-
-![EMOM — Modale exercice, dans chaque intervalle](images/figma-8598-30515.png)
-
-<a id="format-11270-19541"></a>
-
-##### AMRAP — Séance, circuit avec buy-in
-
-Nœud [11270:19541](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11270-19541) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03) · Export du 04/11/2026.
-
-![AMRAP — Séance, circuit avec buy-in](images/figma-11270-19541.png)
-
-<a id="format-11410-20123"></a>
-
-##### AMRAP — Séance, sortie d’un exercice du circuit (confirmation)
-
-Nœud [11410:20123](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11410-20123) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03) · Export du 04/11/2026.
-
-![AMRAP — Séance, sortie d’un exercice du circuit (confirmation)](images/figma-11410-20123.png)
-
-<a id="format-11264-19453"></a>
-
-##### AMRAP — Modale exercice, buy-in
-
-Nœud [11264:19453](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11264-19453) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
-
-![AMRAP — Modale exercice, buy-in](images/figma-11264-19453.png)
-
-<a id="format-8598-30873"></a>
-
-##### AMRAP — Modale exercice, dans un circuit
-
-Nœud [8598:30873](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30873) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
-
-![AMRAP — Modale exercice, dans un circuit](images/figma-8598-30873.png)
-
-<a id="format-11275-19598"></a>
-
-##### AMRAP — Modale exercice, dans un circuit, durée à l’échec
-
-Nœud [11275:19598](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11275-19598) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
-
-![AMRAP — Modale exercice, dans un circuit, durée à l’échec](images/figma-11275-19598.png)
 
 <a id="format-11255-19238"></a>
 
 ##### AMRAP — Modal'incrément le exercice simple, à la cible
 
-Nœud [11255:19238](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11255-19238) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11255:19238](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11255-19238) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![AMRAP — Modal'incrément le exercice simple, à la cible](images/figma-11255-19238.png)
 
@@ -2065,63 +1809,55 @@ Nœud [11255:19238](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### AMRAP — Modale exercice simple, à l’échec (Max)
 
-Nœud [11260:19348](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11260-19348) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
+Nœud [11260:19348](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11260-19348) · Contrat CE-FMT-04 · Export du 05/11/2026.
 
 ![AMRAP — Modale exercice simple, à l’échec (Max)](images/figma-11260-19348.png)
 
-<a id="format-8598-31210"></a>
+<a id="format-11264-19453"></a>
 
-##### Death by — Modale exercice, standard
+##### AMRAP — Modale exercice, buy-in
 
-Nœud [8598:31210](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31210) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
+Nœud [11264:19453](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11264-19453) · Contrat CE-FMT-04 · Export du 05/11/2026.
 
-![Death by — Modale exercice, standard](images/figma-8598-31210.png)
+![AMRAP — Modale exercice, buy-in](images/figma-11264-19453.png)
 
-<a id="format-11373-20188"></a>
+<a id="format-11270-19541"></a>
 
-##### Death by — Séance, circuit dans chaque intervalle
+##### AMRAP — Séance, circuit avec buy-in
 
-Nœud [11373:20188](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11373-20188) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03) · Export du 04/11/2026.
+Nœud [11270:19541](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11270-19541) · Contrat CE-FMT-03 · Export du 05/11/2026.
 
-![Death by — Séance, circuit dans chaque intervalle](images/figma-11373-20188.png)
+![AMRAP — Séance, circuit avec buy-in](images/figma-11270-19541.png)
 
-<a id="format-11411-20181"></a>
+<a id="format-11275-19598"></a>
 
-##### Death by — Séance, circuit en alternance
+##### AMRAP — Modale exercice, dans un circuit, durée à l’échec
 
-Nœud [11411:20181](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11411-20181) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03) · Export du 04/11/2026.
+Nœud [11275:19598](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11275-19598) · Contrat CE-FMT-04 · Export du 05/11/2026.
 
-![Death by — Séance, circuit en alternance](images/figma-11411-20181.png)
+![AMRAP — Modale exercice, dans un circuit, durée à l’échec](images/figma-11275-19598.png)
 
-<a id="format-11373-20396"></a>
+<a id="format-11294-19682"></a>
 
-##### Death by — Modale exercice, dans chaque intervalle
+##### Tabata — Séance, circuit en alternance
 
-Nœud [11373:20396](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11373-20396) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
+Nœud [11294:19682](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11294-19682) · Contrat CE-FMT-03 · Export du 05/11/2026.
 
-![Death by — Modale exercice, dans chaque intervalle](images/figma-11373-20396.png)
+![Tabata — Séance, circuit en alternance](images/figma-11294-19682.png)
 
-<a id="format-8598-31560"></a>
+<a id="format-11308-19978"></a>
 
-##### For time — Modale exercice, standard
+##### EMOM — Séance, circuit dans chaque intervalle
 
-Nœud [8598:31560](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31560) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
+Nœud [11308:19978](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11308-19978) · Contrat CE-FMT-03 · Export du 05/11/2026.
 
-![For time — Modale exercice, standard](images/figma-8598-31560.png)
-
-<a id="format-11312-20093"></a>
-
-##### For time — Séance, circuit avec buy-in et buy-out
-
-Nœud [11312:20093](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11312-20093) · Contrat [CE-FMT-03](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-03) · Export du 04/11/2026.
-
-![For time — Séance, circuit avec buy-in et buy-out](images/figma-11312-20093.png)
+![EMOM — Séance, circuit dans chaque intervalle](images/figma-11308-19978.png)
 
 <a id="format-11312-19699"></a>
 
 ##### For time — Modale exercice, dans un circuit
 
-Nœud [11312:19699](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11312-19699) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
+Nœud [11312:19699](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11312-19699) · Contrat CE-FMT-04 · Export du 05/11/2026.
 
 ![For time — Modale exercice, dans un circuit](images/figma-11312-19699.png)
 
@@ -2129,23 +1865,111 @@ Nœud [11312:19699](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### For time — Modale exercice, buy-in ou buy-out
 
-Nœud [11312:19895](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11312-19895) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
+Nœud [11312:19895](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11312-19895) · Contrat CE-FMT-04 · Export du 05/11/2026.
 
 ![For time — Modale exercice, buy-in ou buy-out](images/figma-11312-19895.png)
 
-<a id="format-8656-34070"></a>
+<a id="format-11312-20093"></a>
 
-##### 30/30 — Modale exercice
+##### For time — Séance, circuit avec buy-in et buy-out
 
-Nœud [8656:34070](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34070) · Contrat [CE-FMT-04](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-04) · Export du 04/11/2026.
+Nœud [11312:20093](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11312-20093) · Contrat CE-FMT-03 · Export du 05/11/2026.
 
-![30/30 — Modale exercice](images/figma-8656-34070.png)
+![For time — Séance, circuit avec buy-in et buy-out](images/figma-11312-20093.png)
+
+<a id="format-11335-19986"></a>
+
+##### AMRAP — Questionnaire, saisie d’un mouvement
+
+Nœud [11335:19986](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-19986) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![AMRAP — Questionnaire, saisie d’un mouvement](images/figma-11335-19986.png)
+
+<a id="format-11335-20151"></a>
+
+##### P-Tabata — Questionnaire, saisie d’un mouvement
+
+Nœud [11335:20151](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-20151) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![P-Tabata — Questionnaire, saisie d’un mouvement](images/figma-11335-20151.png)
+
+<a id="format-11373-20188"></a>
+
+##### Death by — Séance, circuit dans chaque intervalle
+
+Nœud [11373:20188](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11373-20188) · Contrat CE-FMT-03 · Export du 05/11/2026.
+
+![Death by — Séance, circuit dans chaque intervalle](images/figma-11373-20188.png)
+
+<a id="format-11373-20396"></a>
+
+##### Death by — Modale exercice, dans chaque intervalle
+
+Nœud [11373:20396](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11373-20396) · Contrat CE-FMT-04 · Export du 05/11/2026.
+
+![Death by — Modale exercice, dans chaque intervalle](images/figma-11373-20396.png)
+
+<a id="format-11376-20189"></a>
+
+##### Death by — Récapitulatif, dans chaque intervalle
+
+Nœud [11376:20189](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11376-20189) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Death by — Récapitulatif, dans chaque intervalle](images/figma-11376-20189.png)
+
+<a id="format-11376-20325"></a>
+
+##### Death by — Récapitulatif, en alternance
+
+Nœud [11376:20325](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11376-20325) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Death by — Récapitulatif, en alternance](images/figma-11376-20325.png)
+
+<a id="format-11388-22086"></a>
+
+##### AMRAP — Récapitulatif, suppression glissée
+
+Nœud [11388:22086](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11388-22086) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![AMRAP — Récapitulatif, suppression glissée](images/figma-11388-22086.png)
+
+<a id="format-11410-20123"></a>
+
+##### AMRAP — Séance, sortie d’un exercice du circuit (confirmation)
+
+Nœud [11410:20123](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11410-20123) · Contrat CE-FMT-03 · Export du 05/11/2026.
+
+![AMRAP — Séance, sortie d’un exercice du circuit (confirmation)](images/figma-11410-20123.png)
+
+<a id="format-11410-20361"></a>
+
+##### AMRAP — Questionnaire, plusieurs blocs
+
+Nœud [11410:20361](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11410-20361) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![AMRAP — Questionnaire, plusieurs blocs](images/figma-11410-20361.png)
+
+<a id="format-11411-20181"></a>
+
+##### Death by — Séance, circuit en alternance
+
+Nœud [11411:20181](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11411-20181) · Contrat CE-FMT-03 · Export du 05/11/2026.
+
+![Death by — Séance, circuit en alternance](images/figma-11411-20181.png)
+
+<a id="format-11411-20474"></a>
+
+##### Death by — Récapitulatif, à la suite
+
+Nœud [11411:20474](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11411-20474) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Death by — Récapitulatif, à la suite](images/figma-11411-20474.png)
 
 <a id="format-11472-20899"></a>
 
 ##### P-Tabata — Récapitulatif, fiche du mouvement (modale)
 
-Nœud [11472:20899](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11472-20899) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11472:20899](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11472-20899) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![P-Tabata — Récapitulatif, fiche du mouvement (modale)](images/figma-11472-20899.png)
 
@@ -2153,7 +1977,7 @@ Nœud [11472:20899](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### AMRAP — Récapitulatif, saisie de l’objectif au clavier (répétitions)
 
-Nœud [11488:20964](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11488-20964) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11488:20964](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11488-20964) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![AMRAP — Récapitulatif, saisie de l’objectif au clavier (répétitions)](images/figma-11488-20964.png)
 
@@ -2161,7 +1985,7 @@ Nœud [11488:20964](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### AMRAP — Récapitulatif, saisie de l’objectif au clavier (durée)
 
-Nœud [11488:21171](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11488-21171) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11488:21171](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11488-21171) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![AMRAP — Récapitulatif, saisie de l’objectif au clavier (durée)](images/figma-11488-21171.png)
 
@@ -2169,7 +1993,7 @@ Nœud [11488:21171](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Composition séance — Circuit replié, actions glissées
 
-Nœud [11515:21221](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11515-21221) · Contrat [CE-FMT-05](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-05) · Export du 04/11/2026.
+Nœud [11515:21221](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11515-21221) · Contrat CE-T03-08 · Export du 05/11/2026.
 
 ![Composition séance — Circuit replié, actions glissées](images/figma-11515-21221.png)
 
@@ -2177,7 +2001,7 @@ Nœud [11515:21221](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Composition séance — Circuit replié, suppression (confirmation)
 
-Nœud [11515:21387](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11515-21387) · Contrat [CE-FMT-05](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-05) · Export du 04/11/2026.
+Nœud [11515:21387](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11515-21387) · Contrat CE-T03-08 · Export du 05/11/2026.
 
 ![Composition séance — Circuit replié, suppression (confirmation)](images/figma-11515-21387.png)
 
@@ -2185,7 +2009,7 @@ Nœud [11515:21387](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Composition séance — Circuit dupliqué, saisie du titre
 
-Nœud [11515:21558](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11515-21558) · Contrat [CE-FMT-05](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-05) · Export du 04/11/2026.
+Nœud [11515:21558](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11515-21558) · Contrat CE-T03-08 · Export du 05/11/2026.
 
 ![Composition séance — Circuit dupliqué, saisie du titre](images/figma-11515-21558.png)
 
@@ -2193,7 +2017,7 @@ Nœud [11515:21558](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Progression — Récapitulatif, clavier étape 1 (unité)
 
-Nœud [11546:21334](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11546-21334) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11546:21334](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11546-21334) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![Progression — Récapitulatif, clavier étape 1 (unité)](images/figma-11546-21334.png)
 
@@ -2201,7 +2025,7 @@ Nœud [11546:21334](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Progression — Récapitulatif, clavier étape 2 (valeurs)
 
-Nœud [11546:21502](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11546-21502) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11546:21502](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11546-21502) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![Progression — Récapitulatif, clavier étape 2 (valeurs)](images/figma-11546-21502.png)
 
@@ -2209,7 +2033,7 @@ Nœud [11546:21502](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Progression — Récapitulatif, clavier étape 3 (changement d’unité)
 
-Nœud [11546:21672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11546-21672) · Contrat [CE-FMT-02](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-02) · Export du 04/11/2026.
+Nœud [11546:21672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11546-21672) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
 ![Progression — Récapitulatif, clavier étape 3 (changement d’unité)](images/figma-11546-21672.png)
 
@@ -2217,7 +2041,7 @@ Nœud [11546:21672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Composition séance — Circuit issu d’un format, actions glissées
 
-Nœud [11551:21479](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11551-21479) · Contrat [CE-FMT-05](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-05) · Export du 04/11/2026.
+Nœud [11551:21479](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11551-21479) · Contrat CE-T03-08 · Export du 05/11/2026.
 
 ![Composition séance — Circuit issu d’un format, actions glissées](images/figma-11551-21479.png)
 
@@ -2225,9 +2049,337 @@ Nœud [11551:21479](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Tabata — Récapitulatif rouvert depuis la Composition
 
-Nœud [11551:21673](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11551-21673) · Contrat [CE-FMT-05](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-05) · Export du 04/11/2026.
+Nœud [11551:21673](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11551-21673) · Contrat CE-FMT-05 · Export du 05/11/2026.
 
 ![Tabata — Récapitulatif rouvert depuis la Composition](images/figma-11551-21673.png)
+
+<a id="format-11564-21558"></a>
+
+##### AMRAP — Récapitulatif, saisie d’un incrément négatif au clavier
+
+Nœud [11564:21558](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11564-21558) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![AMRAP — Récapitulatif, saisie d’un incrément négatif au clavier](images/figma-11564-21558.png)
+
+<a id="format-11575-21457"></a>
+
+##### Progression — Récapitulatif, ajout d’une charge (+ kg)
+
+Nœud [11575:21457](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11575-21457) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Progression — Récapitulatif, ajout d’une charge (+ kg)](images/figma-11575-21457.png)
+
+<a id="format-11580-21528"></a>
+
+##### Composition séance — Fiche de l’exercice (modale)
+
+Nœud [11580:21528](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11580-21528) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Fiche de l’exercice (modale)](images/figma-11580-21528.png)
+
+<a id="format-1992-9910"></a>
+
+##### P-Catalogue des séances — Liste par défaut
+
+Nœud [1992:9910](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-9910) · Contrat CE-CAT-01 · Export du 05/11/2026.
+
+![P-Catalogue des séances — Liste par défaut](images/figma-1992-9910.png)
+
+<a id="format-8328-28172"></a>
+
+##### Composition séance — Initial
+
+Nœud [8328:28172](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28172) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Initial](images/figma-8328-28172.png)
+
+<a id="format-8328-28238"></a>
+
+##### Composition séance — Nom saisi
+
+Nœud [8328:28238](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28238) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Nom saisi](images/figma-8328-28238.png)
+
+<a id="format-8328-28304"></a>
+
+##### Composition séance — Compte à rebours
+
+Nœud [8328:28304](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28304) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Compte à rebours](images/figma-8328-28304.png)
+
+<a id="format-8328-28377"></a>
+
+##### Composition séance — Abandon (confirmation)
+
+Nœud [8328:28377](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28377) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Abandon (confirmation)](images/figma-8328-28377.png)
+
+<a id="format-8328-28605"></a>
+
+##### Composition séance — Standard
+
+Nœud [8328:28605](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28605) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Standard](images/figma-8328-28605.png)
+
+<a id="format-8328-34520"></a>
+
+##### Composition séance — Standard — Séries variables
+
+Nœud [8328:34520](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34520) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Standard — Séries variables](images/figma-8328-34520.png)
+
+<a id="format-8598-29503"></a>
+
+##### P-Tabata — Choix des mouvements
+
+Nœud [8598:29503](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29503) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![P-Tabata — Choix des mouvements](images/figma-8598-29503.png)
+
+<a id="format-8598-30059"></a>
+
+##### Tabata — Modale exercice, en alternance
+
+Nœud [8598:30059](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30059) · Contrat CE-FMT-04 · Export du 05/11/2026.
+
+![Tabata — Modale exercice, en alternance](images/figma-8598-30059.png)
+
+<a id="format-8598-30515"></a>
+
+##### EMOM — Modale exercice, dans chaque intervalle
+
+Nœud [8598:30515](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30515) · Contrat CE-FMT-04 · Export du 05/11/2026.
+
+![EMOM — Modale exercice, dans chaque intervalle](images/figma-8598-30515.png)
+
+<a id="format-8598-30873"></a>
+
+##### AMRAP — Modale exercice, dans un circuit
+
+Nœud [8598:30873](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30873) · Contrat CE-FMT-04 · Export du 05/11/2026.
+
+![AMRAP — Modale exercice, dans un circuit](images/figma-8598-30873.png)
+
+<a id="format-8598-31210"></a>
+
+##### Death by — Modale exercice, standard
+
+Nœud [8598:31210](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31210) · Contrat CE-FMT-04 · Export du 05/11/2026.
+
+![Death by — Modale exercice, standard](images/figma-8598-31210.png)
+
+<a id="format-8598-31560"></a>
+
+##### For time — Modale exercice, standard
+
+Nœud [8598:31560](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31560) · Contrat CE-FMT-04 · Export du 05/11/2026.
+
+![For time — Modale exercice, standard](images/figma-8598-31560.png)
+
+<a id="format-8624-29980"></a>
+
+##### P-Tabata — Questionnaire
+
+Nœud [8624:29980](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-29980) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![P-Tabata — Questionnaire](images/figma-8624-29980.png)
+
+<a id="format-8624-30040"></a>
+
+##### EMOM — Questionnaire
+
+Nœud [8624:30040](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30040) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![EMOM — Questionnaire](images/figma-8624-30040.png)
+
+<a id="format-8624-30143"></a>
+
+##### AMRAP — Questionnaire
+
+Nœud [8624:30143](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30143) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![AMRAP — Questionnaire](images/figma-8624-30143.png)
+
+<a id="format-8624-30198"></a>
+
+##### Death by — Questionnaire
+
+Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30198) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Death by — Questionnaire](images/figma-8624-30198.png)
+
+<a id="format-8624-30255"></a>
+
+##### For time — Questionnaire
+
+Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30255) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![For time — Questionnaire](images/figma-8624-30255.png)
+
+<a id="format-8624-30306"></a>
+
+##### P-Tabata — Récapitulatif, à la suite
+
+Nœud [8624:30306](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![P-Tabata — Récapitulatif, à la suite](images/figma-8624-30306.png)
+
+<a id="format-8624-30392"></a>
+
+##### EMOM — Récapitulatif, dans chaque intervalle
+
+Nœud [8624:30392](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30392) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![EMOM — Récapitulatif, dans chaque intervalle](images/figma-8624-30392.png)
+
+<a id="format-8624-30521"></a>
+
+##### AMRAP — Récapitulatif, incrément et max
+
+Nœud [8624:30521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30521) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![AMRAP — Récapitulatif, incrément et max](images/figma-8624-30521.png)
+
+<a id="format-8624-30602"></a>
+
+##### Death by — Récapitulatif
+
+Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Death by — Récapitulatif](images/figma-8624-30602.png)
+
+<a id="format-8624-30672"></a>
+
+##### For time — Récapitulatif
+
+Nœud [8624:30672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30672) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![For time — Récapitulatif](images/figma-8624-30672.png)
+
+<a id="format-8656-33799"></a>
+
+##### 30/30 — Questionnaire
+
+Nœud [8656:33799](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33799) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![30/30 — Questionnaire](images/figma-8656-33799.png)
+
+<a id="format-8656-33857"></a>
+
+##### 30/30 — Récapitulatif
+
+Nœud [8656:33857](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33857) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![30/30 — Récapitulatif](images/figma-8656-33857.png)
+
+<a id="format-8656-34070"></a>
+
+##### 30/30 — Modale exercice
+
+Nœud [8656:34070](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34070) · Contrat CE-FMT-04 · Export du 05/11/2026.
+
+![30/30 — Modale exercice](images/figma-8656-34070.png)
+
+<a id="format-8656-34196"></a>
+
+##### Renforcement — Questionnaire
+
+Nœud [8656:34196](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34196) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Renforcement — Questionnaire](images/figma-8656-34196.png)
+
+<a id="format-8656-34263"></a>
+
+##### Renforcement — Récapitulatif
+
+Nœud [8656:34263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34263) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Renforcement — Récapitulatif](images/figma-8656-34263.png)
+
+<a id="format-8656-34753"></a>
+
+##### Superset — Questionnaire
+
+Nœud [8656:34753](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34753) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Superset — Questionnaire](images/figma-8656-34753.png)
+
+<a id="format-8656-34807"></a>
+
+##### Superset — Récapitulatif
+
+Nœud [8656:34807](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34807) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Superset — Récapitulatif](images/figma-8656-34807.png)
+
+<a id="format-8656-35005"></a>
+
+##### Progression — Questionnaire
+
+Nœud [8656:35005](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35005) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Progression — Questionnaire](images/figma-8656-35005.png)
+
+<a id="format-8656-35062"></a>
+
+##### Progression — Récapitulatif
+
+Nœud [8656:35062](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35062) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![Progression — Récapitulatif](images/figma-8656-35062.png)
+
+<a id="format-8656-35273"></a>
+
+##### À l’échec — Questionnaire
+
+Nœud [8656:35273](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35273) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![À l’échec — Questionnaire](images/figma-8656-35273.png)
+
+<a id="format-8656-35331"></a>
+
+##### À l’échec — Récapitulatif
+
+Nœud [8656:35331](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35331) · Contrat CE-FMT-02 · Export du 05/11/2026.
+
+![À l’échec — Récapitulatif](images/figma-8656-35331.png)
+
+<a id="format-8747-14451"></a>
+
+##### Tabata — Modale exercice, standard
+
+Nœud [8747:14451](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8747-14451) · Contrat CE-FMT-04 · Export du 05/11/2026.
+
+![Tabata — Modale exercice, standard](images/figma-8747-14451.png)
+
+<a id="format-8795-14588"></a>
+
+##### EMOM — Modale exercice, standard
+
+Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14588) · Contrat CE-FMT-04 · Export du 05/11/2026.
+
+![EMOM — Modale exercice, standard](images/figma-8795-14588.png)
+
+<a id="format-9779-19874"></a>
+
+##### Composition séance — Standard — Illustration (photos)
+
+Nœud [9779:19874](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9779-19874) · Contrat CE-T03-08 · Export du 05/11/2026.
+
+![Composition séance — Standard — Illustration (photos)](images/figma-9779-19874.png)
+
+<a id="format-9977-19613"></a>
+
+##### P-Formats — Choix du format, deux colonnes
+
+Nœud [9977:19613](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9977-19613) · Contrat CE-CREATION-01 · Export du 05/11/2026.
+
+![P-Formats — Choix du format, deux colonnes](images/figma-9977-19613.png)
 
 ### États complémentaires observés — Douleur, résultats et exécution des formats
 
@@ -2648,42 +2800,7 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 
 #### La fenêtre des volumes du circuit
 
-##### Le besoin
-
-Dans un circuit, la composition ne dit pas ce que contient chaque série de chaque exercice : il faut ouvrir chaque exercice pour le savoir. La vue d'ensemble manque au moment où elle est la plus utile — quand on compose.
-
-##### La règle
-
-Un bouton œil, posé **sur la ligne du titre de l'en-tête de circuit**, ouvre une fenêtre **en lecture seule** présentant une grille :
-
-- une colonne `Exercice` ;
-- une colonne par série, `S 1` … `S n` ;
-- une **dernière colonne d’unité ou de mode**, à droite : `rép.`, `min:ss` ou `À l’échec`. Les rendus complétés sont définis dans [Grille des volumes](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#grille-des-volumes).
-
-**Pas de pauses, pas de récupérations.** On y lit des volumes, pas un déroulé.
-
-##### Le bouton est permanent, dans les deux natures
-
-Il serait défendable de ne l'offrir qu'au circuit à séries alternées, où il est le plus utile. Il est **présent dans les deux natures**, et actif dans les deux : un en-tête de circuit a une composition fixe, qui ne se réorganise pas quand on change sa nature.
-
-##### La grille accepte deux régimes dans la même colonne
-
-Un circuit peut contenir un exercice en séries variables et un autre en séries identiques. La grille les présente dans les mêmes colonnes :
-
-- une ligne **plate** — « 45 · 45 · 45 » — pour un exercice en séries identiques ;
-- une ligne de valeurs propres — « 10 · 12 · 14 », par exemple — pour un exercice en séries variables ; elles peuvent aussi décroître ou être égales.
-
-La grille montre les valeurs. Elle ne permet pas de déduire le régime lorsque des séries variables ont des valeurs égales ; le régime reste une donnée explicite de l’exercice.
-
-##### Sens de lecture, et défilement
-
-Le tableau se lit **par colonne** dans un circuit à séries alternées — une colonne est un passage — et **par ligne** dans un circuit à séries groupées — une ligne est un exercice et toutes ses séries. Les deux lectures sont légitimes ; **la structure n'en privilégie aucune**.
-
-Si l'on veut guider la lecture : coloriser une colonne sur deux, ou une ligne sur deux. Pour la place : **figer la colonne de titre et la colonne d'unité**, et faire défiler les colonnes de séries.
-
-**Au-delà de la hauteur de l'écran, la fenêtre défile.** Ce n'est pas une décision de conception, c'est le comportement par défaut ; il n'appelle aucune règle particulière. Mesure utile au dimensionnement : à douze séries, le contenu dépasse de 153 px.
-
----
+**Retirée le 5 novembre 2026.** Aucun bouton œil ni fenêtre Volumes du Circuit depuis la Composition. CE-CIR-03 est retiré ; volumes détaillés consultables dans les paramètres des Exercices et les récapitulatifs des modèles. Les règles de représentation des volumes utilisées ailleurs restent applicables.
 
 #### Ce que porte la carte d'un exercice, en composition
 

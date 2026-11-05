@@ -43,3 +43,7 @@ Appliquer D-446 et CE-UI-10 : phases compatibles selon les paramètres effectifs
 ## Preuves et limites
 
 La galerie active et son inventaire indiquent pour chaque nœud la capture disponible ou la limite d’export. Figma décrit le rendu et les états représentés, la spécification les comportements et calculs. Une capture ne prouve pas le fonctionnement ; un état sans maquette dédiée ne bloque pas un comportement suffisamment spécifié. Aucun moteur, résultat d’exécution ni nouvelle obligation de recette globale n’est livré par ce DSF.
+
+## Portée actualisée le 5 novembre 2026
+
+Ce relevé daté ne gouverne plus l’accès œil/Volumes en Composition (retiré, CE-CIR-03), ni les présentations des récapitulatifs remplacées par la référence Formats active : EMOM par série, Superset alterné trois tours, charges locales après activation globale et restauration temporaire dans le brouillon. Les autres observations historiques restent datées.
