@@ -2492,7 +2492,7 @@ Déroulé à 25 px au-dessus du bouton ; tableau blanc rayon 8 dans cadre gris, 
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Clavier numérique répétitions, décimal charge (D-405) ; case et tableau restent visibles au-dessus ; réutiliser focus et adaptation de scroll existants. Le clavier reste au-dessus des modales ; contenu défilant, bouton ancré en bas. Mode catalogue : résultats sur toute la hauteur disponible, sans compteur global.
+Clavier numérique répétitions, décimal charge (D-405) ; case et tableau restent visibles au-dessus ; réutiliser focus et adaptation de scroll existants. Le clavier reste au-dessus des modales ; contenu défilant, bouton ancré en bas. Mode catalogue : résultats sur toute la hauteur disponible, sans compteur global. [05/11/2026, Hermann : « Un point à corriger pour tous les écrans questionnaires, récapitulatif : on utilise systématiquement le clavier pour renseigner les valeurs, plus aucun stepper et de roulette. L'appui sur suivant permet de passer d'une valeur à l'autre, aussi entre deux lignes ou d'une ligne à un tableau. » — chaque valeur des lignes de paramètres se tape dans sa pastille (pavé numérique ; durée « MM:SS » remplie par la droite, comme dans les tableaux) ; la barre du clavier (Précédent, Suivant, Fermer) enchaîne les lignes dans l'ordre affiché puis les cases du tableau ; bornes appliquées à la saisie ; une case vidée garde sa valeur, sauf le Temps limite qui repasse à « Sans limite » ; une valeur « variable » demande la confirmation existante à l'entrée dans la case. Les lignes de paramètres n'ont plus de stepper ; registre ch07, « Recette iPhone du 05/11/2026 — décisions de Hermann ».]
 
 #### 11. États de l’écran
 

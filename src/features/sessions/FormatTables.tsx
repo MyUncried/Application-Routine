@@ -175,9 +175,9 @@ function entryOf(kind: CellEntryKind, value: number | null): string {
   return String(value).replace(".", ",");
 }
 
-function valueOf(kind: CellEntryKind, text: string): number | null {
+function valueOf(kind: CellEntryKind, text: string, durationMin = DURATION_BOUNDS.min): number | null {
   if (text === "") return null;
-  if (kind === "duration") return cellDurationSeconds(text, DURATION_BOUNDS);
+  if (kind === "duration") return cellDurationSeconds(text, { min: durationMin, max: DURATION_BOUNDS.max });
   if (kind === "integer") return Number(text);
   const parsed = Number.parseFloat(text.replace(",", "."));
   // Charge au quart de kilogramme (AD-19).
@@ -209,8 +209,18 @@ export function TableCell({
   signed = false,
   barOnly = false,
   tight = false,
+  badge = false,
+  durationMin,
   testID,
 }: {
+  /**
+   * Valeur d'une ligne de paramètres (questionnaire, récapitulatif) — Hermann, 05/11/2026 : « on utilise systématiquement le
+   * clavier pour renseigner les valeurs, plus aucun stepper ». Pastille blanche à largeur libre ; le texte de la case vide
+   * (« Sans limite », « variable ») s'affiche comme une valeur.
+   */
+  readonly badge?: boolean;
+  /** Durée minimale admise (0 pour une pause) ; 1 s par défaut. */
+  readonly durationMin?: number;
   /**
    * Case atteinte seulement par Précédent / Suivant de la barre du clavier — recette du 05/11/2026 (e-fortime-charge, Hermann :
    * « Une seule zone tactile utile qui est la première, la charge s'atteint avec les boutons suivant / précédent du clavier »).
@@ -270,7 +280,7 @@ export function TableCell({
       onChangeText={(next) => {
         const state = composeCellEntry(kind, entry, shown, next);
         setEntry(state);
-        const magnitude = valueOf(kind, state.text);
+        const magnitude = valueOf(kind, state.text, durationMin);
         onChange(magnitude === null ? null : effectiveSign * magnitude);
       }}
       editable={!disabled}
@@ -281,11 +291,11 @@ export function TableCell({
       keyboardType={kind === "decimal" ? "decimal-pad" : "number-pad"}
       contextMenuHidden
       placeholder={placeholder ?? t().dash}
-      placeholderTextColor={missing ? VALUE_COLOR : DISABLED_VALUE}
+      placeholderTextColor={missing || badge ? VALUE_COLOR : DISABLED_VALUE}
       accessibilityLabel={label}
       style={[
         styles.cell,
-        { width },
+        badge ? styles.cellBadge : { width },
         boxed ? styles.cellBoxed : null,
         compact ? styles.cellCompact : null,
         tight ? styles.cellTight : null,
@@ -731,6 +741,7 @@ const styles = StyleSheet.create({
   cellBoxed: { backgroundColor: "#FFFFFF" },
   cellCompact: { minHeight: COMPACT_LOAD_HEIGHT, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 11 },
   cellTight: { minHeight: BARE_OBJECTIVE_HEIGHT, paddingVertical: 0 },
+  cellBadge: { minHeight: 26, minWidth: 48, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: "#FFFFFF" },
   maxHead: { width: MAX_WIDTH },
   maxSlot: { width: MAX_WIDTH },
   seriesTableBare: { marginVertical: 0, backgroundColor: "transparent" },

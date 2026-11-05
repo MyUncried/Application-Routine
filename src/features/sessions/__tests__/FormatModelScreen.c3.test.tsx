@@ -49,6 +49,19 @@ jest.mock("expo-router", () => {
  * Composition, sans nom de Séance ; « Valider les paramètres » ouvre le récapitulatif de tous les modèles.
  */
 
+/** Valeur d'une ligne de paramètres (saisie au clavier, Hermann, 05/11/2026). */
+function shown(id: string): string {
+  return screen.getByTestId(`format-${id}`).props.value as string;
+}
+
+/** Saisie au clavier d'une ligne de paramètres : focus, chiffres tapés, sortie de la case. */
+function typeValue(id: string, digits: string) {
+  const input = screen.getByTestId(`format-${id}`);
+  fireEvent(input, "focus");
+  fireEvent.changeText(screen.getByTestId(`format-${id}`), `${screen.getByTestId(`format-${id}`).props.value as string}${digits}`);
+  fireEvent(screen.getByTestId(`format-${id}`), "blur");
+}
+
 function toSummary() {
   fireEvent.press(screen.getByTestId("format-validate"));
 }
@@ -143,9 +156,9 @@ describe("FormatModelScreen", () => {
     // "Enregistrer dans la séance" ») : pas de récapitulatif. [MAJ 04/11 §2 « Valider les paramètres » — remplacé pour le Tabata.]
     expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer dans la séance");
     expect(screen.queryByTestId("format-validate")).toBeNull();
-    expect(screen.getByTestId("format-seriesCount-badge")).toHaveTextContent("8");
-    expect(screen.getByTestId("format-workSeconds-badge")).toHaveTextContent("20 s");
-    expect(screen.getByTestId("format-pauseSeconds-badge")).toHaveTextContent("10 s");
+    expect(shown("seriesCount")).toBe("8");
+    expect(shown("workSeconds")).toBe("20 s");
+    expect(shown("pauseSeconds")).toBe("10 s");
     expect(screen.getByTestId("format-total")).toHaveTextContent("4 min");
     expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("4 min");
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
@@ -161,9 +174,7 @@ describe("FormatModelScreen", () => {
     render(<Harness draftRef={draftRef} />);
     await screen.findByTestId("format-title");
     // Réglage modifié avant d'ajouter un mouvement : 1 série.
-    fireEvent.press(screen.getByTestId("format-seriesCount-badge"));
-    fireEvent.press(screen.getByTestId("format-seriesCount-decrease"));
-    fireEvent.press(screen.getByTestId("format-seriesCount-decrease"));
+    typeValue("seriesCount", "1");
     fireEvent.press(screen.getByTestId("format-movements-link"));
     expect(screen.getByText(t.openCatalogue)).toBeTruthy();
     fireEvent.changeText(screen.getByTestId("format-search"), "Squ");
@@ -173,14 +184,14 @@ describe("FormatModelScreen", () => {
     });
     // MAJ 04/11 §2 bis : le récapitulatif s'ouvre sur place, sans navigation ; Retour revient au questionnaire.
     expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
-    expect(screen.getByTestId("format-seriesCount-value")).toHaveTextContent("1");
+    expect(shown("seriesCount")).toBe("1");
     toSummary();
     expect(mockPush).not.toHaveBeenCalled();
     expect(screen.getByTestId("format-summary")).toBeTruthy();
     fireEvent.press(screen.getByTestId("screen-header-back"));
     expect(mockBack).not.toHaveBeenCalled();
     expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
-    expect(screen.getByTestId("format-seriesCount").props.accessibilityValue).toEqual({ text: "1" });
+    expect(shown("seriesCount")).toBe("1");
     toSummary();
 
     await act(async () => {
@@ -274,6 +285,25 @@ describe("FormatModelScreen", () => {
     alert.mockRestore();
   });
 
+  it("Hermann, 05/11 : valeurs au clavier, plus de stepper — bornes à la saisie, Temps limite vidé = « Sans limite »", async () => {
+    mockModel = "FOR_TIME";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    expect(screen.queryByTestId("format-roundCount-increase")).toBeNull();
+    expect(screen.getByTestId("format-roundCount").props.keyboardType).toBe("number-pad");
+    typeValue("roundCount", "5");
+    expect(shown("roundCount")).toBe("5");
+    // Durée « MM:SS » remplie par la droite : 1, 2, 0, 0 → 12:00.
+    typeValue("timeCapSeconds", "1200");
+    expect(shown("timeCapSeconds")).toBe("12 min");
+    const cap = screen.getByTestId("format-timeCapSeconds");
+    fireEvent(cap, "focus");
+    fireEvent.changeText(screen.getByTestId("format-timeCapSeconds"), "");
+    fireEvent(screen.getByTestId("format-timeCapSeconds"), "blur");
+    expect(screen.getByTestId("format-timeCapSeconds").props.placeholder).toBe(t.noLimit);
+    expect(shown("timeCapSeconds")).toBe("");
+  });
+
   it("recette du 05/11 (constat c) : un texte sans résultat garde le cadre des résultats, vide", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
@@ -360,10 +390,9 @@ describe("FormatModelScreen", () => {
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     expect(screen.getByTestId("format-row-pauseSeconds")).toBeTruthy();
-    expect(screen.getByTestId("format-pauseSeconds-badge")).toHaveTextContent("0 s");
-    fireEvent.press(screen.getByTestId("format-pauseSeconds-badge"));
-    fireEvent.press(screen.getByTestId("format-pauseSeconds-increase"));
-    expect(screen.getByTestId("format-pauseSeconds-value")).toHaveTextContent("5 s");
+    expect(shown("pauseSeconds")).toBe("0 s");
+    typeValue("pauseSeconds", "5");
+    expect(shown("pauseSeconds")).toBe("5 s");
   });
 
   it("recette n° 3 bis du 03/11 (f3s-recherche) : saisie d'un mouvement — un toucher hors du champ ne retire pas le clavier", async () => {
@@ -426,7 +455,7 @@ describe("FormatModelScreen", () => {
     await pick("Fen", "mv-fentes");
     expect(screen.getByTestId("format-total")).toHaveTextContent("8 min 50 s");
     expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("8 min 50 s");
-    expect(screen.getByTestId("format-recoveryBetweenSeconds-badge")).toHaveTextContent("1 min");
+    expect(shown("recoveryBetweenSeconds")).toBe("1 min");
   });
 
   it("recette n° 3 (f3-emom) : EMOM dans chaque intervalle — un cadre par intervalle avec les deux mouvements", async () => {
@@ -463,7 +492,7 @@ describe("FormatModelScreen", () => {
     });
     fireEvent.press(screen.getByTestId("harness-reopen"));
     await waitFor(() => expect(screen.queryByTestId("format-movement-card-0")).toBeNull());
-    expect(screen.getByTestId("format-seriesCount-badge")).toHaveTextContent("8");
+    expect(shown("seriesCount")).toBe("8");
     await pick("Squ", "mv-squats");
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
@@ -636,8 +665,7 @@ describe("FormatModelScreen", () => {
     // Retour : questionnaire du modèle, réponses reconstruites ; le Tabata enregistre depuis son questionnaire (recette du 04/11).
     fireEvent.press(screen.getByTestId("screen-header-back"));
     expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("format-pauseSeconds-badge"));
-    fireEvent.press(screen.getByTestId("format-pauseSeconds-increase"));
+    typeValue("pauseSeconds", "15");
     expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer les modifications");
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));

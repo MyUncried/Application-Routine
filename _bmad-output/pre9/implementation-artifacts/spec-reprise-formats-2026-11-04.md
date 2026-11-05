@@ -143,3 +143,11 @@ Cahier « Recette Formats 04/11 », bloc « Constats » (c à f) et lignes KO du
 **Non traité.** e-voile (« Il reste cet effet "flash", est-il possible de le supprimer ou de l'atténuer ? ») : l'empilement de deux feuilles natives est animé par iOS ; aucune correction n'est proposée sans essai sur iPhone. Constats a et b : déjà traités (ajout en fin de Séance ; contrôle segmenté, option sélectionnée à droite).
 
 Tests : `formats.recette0511.test.tsx` (durée compacte, Déroulé AMRAP, charge For time, glissement des options), `FormatModelScreen.c3` (Superset, cadre vide). Rien n'est vérifié sur iPhone.
+
+### 12.1 Valeurs au clavier (05/11/2026)
+
+Hermann : « Un point à corriger pour tous les écrans questionnaires, récapitulatif : on utilise systématiquement le clavier pour renseigner les valeurs, plus aucun stepper et de roulette. L'appui sur suivant permet de passer d'une valeur à l'autre, aussi entre deux lignes ou d'une ligne à un tableau. »
+
+Classe B. Réalisation : chaque valeur des lignes de paramètres se tape dans sa pastille (pavé numérique ; durée « MM:SS » remplie par la droite, comme dans les tableaux) ; la barre du clavier (Précédent, Suivant, Fermer) enchaîne les lignes dans l'ordre affiché puis les cases du tableau ; bornes appliquées à la saisie ; une case vidée garde sa valeur, sauf le Temps limite qui repasse à « Sans limite » ; une valeur « variable » demande la confirmation existante à l'entrée dans la case. Composant : `TableCell` (variante `badge`) dans `stepRow` ; ordre de Suivant = lignes de paramètres (ordre affiché), puis `tableCellOrder` (Progression : tableau entre Nombre de séries et Pause). Stepper `ValueStepper` supprimé.
+
+**Interprétations à confirmer :** case vidée → valeur précédente conservée (Temps limite → « Sans limite ») ; valeur hors bornes ramenée à la borne ; le contrôle d'Exécution (menu) et les interrupteurs restent des contrôles tactiles. Documents : référence Formats §7.1, ch13 CE-FMT-02 § 10, ch07.

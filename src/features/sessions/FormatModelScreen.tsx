@@ -2,7 +2,7 @@ import { Button as SwiftUIButton, Host, Image as SwiftUIImage, Menu, RNHostView,
 import { accessibilityLabel as swiftUIAccessibilityLabel, accessibilityValue as swiftUIAccessibilityValue } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { isValidElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Keyboard,
@@ -68,6 +68,7 @@ import {
   EmomTable,
   SeriesTable,
   emomFixedLoad,
+  TableCell,
   hasSummaryTable,
   parseCellKey,
   tableCellOrder,
@@ -120,7 +121,6 @@ const SEPARATOR = "#E0E3E8";
 const LABEL = "#141414";
 const SECTION = "#595E66";
 const TAGLINE = "#5C636E";
-const DISABLED_VALUE = "#B4B8C2";
 const RECOVERY_BLOCK = "#D9DBE0";
 const BUY_IN_BLOCK = "#7984C7";
 const CHIP = "#5B5BF0";
@@ -184,10 +184,10 @@ function modelDurationText(duration: SessionDurationResult): string {
   return duration.kind === "lowerBound" ? `${strings.shared.durationNature.lowerBoundPrefix}${text}` : text;
 }
 
-/** Pas d'un réglage de durée : 5 s sous la minute, 15 s jusqu'à 5 min, puis la minute. */
-function durationStep(seconds: number, direction: 1 | -1): number {
-  const probe = direction > 0 ? seconds : seconds - 1;
-  return probe < 60 ? 5 : probe < 300 ? 15 : 60;
+/** Case de saisie d'une ligne de paramètres (clé partagée avec les cases des tableaux pour Précédent / Suivant). */
+const ANSWER_FIELD_PREFIX = "ans-";
+function answerFieldKey(id: ModelAnswerKey): string {
+  return `${ANSWER_FIELD_PREFIX}${id}`;
 }
 
 const SECONDS_KEYS: ReadonlySet<ModelAnswerKey> = new Set([
@@ -215,63 +215,8 @@ function movementShade(band: string, index: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Valeur modifiable et pas à pas
+// Ligne de paramètre
 // ---------------------------------------------------------------------------
-
-function ValueStepper({
-  label,
-  text,
-  onStep,
-  canDecrease,
-  canIncrease,
-  alert = false,
-  testID,
-}: {
-  /** Valeur en cause (contrôle EMOM des durées, MAJ 04/11 §4.4) : cadre rouge. */
-  alert?: boolean;
-  label: string;
-  text: string;
-  onStep: (direction: 1 | -1) => void;
-  canDecrease: boolean;
-  canIncrease: boolean;
-  testID: string;
-}) {
-  // « L'ouverture d'un stepper remplace le badge en place » (DSF / Forms / Valeur modifiable).
-  const [open, setOpen] = useState(false);
-  return (
-    <View
-      accessible
-      accessibilityRole="adjustable"
-      accessibilityLabel={label}
-      accessibilityValue={{ text }}
-      accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
-      onAccessibilityAction={(event) => {
-        if (event.nativeEvent.actionName === "increment" && canIncrease) onStep(1);
-        if (event.nativeEvent.actionName === "decrement" && canDecrease) onStep(-1);
-      }}
-      style={styles.stepperHost}
-      testID={testID}
-    >
-      {open ? (
-        <View style={styles.stepper}>
-          <Pressable onPress={() => onStep(-1)} disabled={!canDecrease} hitSlop={8} accessibilityLabel={t().decrease} testID={`${testID}-decrease`}>
-            <Text style={[styles.stepperSign, !canDecrease ? styles.stepperSignDisabled : null]}>−</Text>
-          </Pressable>
-          <Pressable onPress={() => setOpen(false)} style={[styles.badge, alert ? styles.badgeAlert : null]} testID={`${testID}-value`}>
-            <Text style={styles.badgeText}>{text}</Text>
-          </Pressable>
-          <Pressable onPress={() => onStep(1)} disabled={!canIncrease} hitSlop={8} accessibilityLabel={t().increase} testID={`${testID}-increase`}>
-            <Text style={[styles.stepperSign, !canIncrease ? styles.stepperSignDisabled : null]}>+</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <Pressable onPress={() => setOpen(true)} style={[styles.badge, alert ? styles.badgeAlert : null]} hitSlop={6} testID={`${testID}-badge`}>
-          <Text style={styles.badgeText}>{text}</Text>
-        </Pressable>
-      )}
-    </View>
-  );
-}
 
 function Row({ label, children, last = false, testID }: { label: string; children: React.ReactNode; last?: boolean; testID?: string }) {
   return (
@@ -765,6 +710,29 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     } else dismissWith(backToComposition);
   };
 
+  // Cases au clavier (lignes de paramètres et tableaux) : focus, Suivant / Précédent, révélation au-dessus du clavier et de sa
+  // barre. Déclarées avant les lignes, qui s'y branchent.
+  const cellInputs = useRef(new Map<string, TextInput | null>());
+  const [focusedCell, setFocusedCell] = useState<string | null>(null);
+  const [barHeight, setBarHeight] = useState(KEYBOARD_BAR_HEIGHT);
+  const [unitPicking, setUnitPicking] = useState(false);
+  const [cellSigns, setCellSigns] = useState<Readonly<Record<string, 1 | -1>>>({});
+  const focusCell = (key: string | undefined) => {
+    if (key !== undefined) cellInputs.current.get(key)?.focus();
+  };
+  const cellBinding: CellBinding = (key) => ({
+    ...(cellSigns[key] !== undefined ? { sign: cellSigns[key] } : {}),
+    inputRef: (input) => {
+      cellInputs.current.set(key, input);
+    },
+    onFocus: () => {
+      setUnitPicking(false);
+      setFocusedCell(key);
+    },
+    onBlur: () => setFocusedCell((current) => (current === key ? null : current)),
+    active: focusedCell === key,
+  });
+
   // Lignes de paramètres du modèle.
   // `fallback` : valeur héritée affichée tant que la réponse n'est pas fixée (Pause du Renforcement : pause des Exercices).
   const stepRow = (id: ModelAnswerKey, label: string, options: { last?: boolean; format?: (value: number) => string; fallback?: number } = {}) => {
@@ -773,42 +741,50 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const isSeconds = SECONDS_KEYS.has(id);
     const numeric = typeof value === "number" ? value : null;
     const isVariable = variable.has(id);
-    const text = isVariable ? t().variable : numeric === null ? t().noLimit : options.format !== undefined ? options.format(numeric) : isSeconds ? formatSeconds(numeric) : String(numeric);
-    const applyStep = (direction: 1 | -1) =>
-      setAnswers((current) => {
-        const raw = current[id] ?? options.fallback;
-        if (typeof raw !== "number") return direction > 0 ? withAnswer(current, id, bounds.min) : current;
-        const next = raw + direction * (isSeconds ? durationStep(raw, direction) : 1);
-        // Temps limite (§11) : sous le minimum, « Sans limite ».
-        if (id === "timeCapSeconds" && next < bounds.min) return withAnswer(current, id, null);
-        return withAnswer(current, id, next);
-      });
-    // §6 sexies.7 : remplacer un réglage « variable » écrase des valeurs personnalisées — confirmation courte.
-    const onStep = (direction: 1 | -1) => {
-      if (!isVariable) {
-        applyStep(direction);
-        return;
-      }
+    // Hermann, 05/11/2026 : « Un point à corriger pour tous les écrans questionnaires, récapitulatif : on utilise
+  // systématiquement le clavier pour renseigner les valeurs, plus aucun stepper et de roulette. L'appui sur suivant permet de
+  // passer d'une valeur à l'autre, aussi entre deux lignes ou d'une ligne à un tableau. »
+    // La valeur se tape dans sa pastille (pavé numérique, durée « MM:SS » remplie par la droite comme dans les tableaux) ;
+    // la barre du clavier enchaîne les lignes puis le tableau. Bornes appliquées à la saisie ; une case vidée garde la
+    // valeur précédente, sauf le Temps limite qui repasse à « Sans limite ». [Stepper − / + — remplacé.]
+    const key = answerFieldKey(id);
+    const binding = cellBinding(key);
+    // §6 sexies.7 : remplacer un réglage « variable » écrase des valeurs personnalisées — confirmation courte, à l'entrée
+    // dans la case ; Annuler quitte la case sans rien changer.
+    const confirmVariable = () =>
       Alert.alert(t().variableConfirmTitle, t().variableConfirmMessage, [
-        { text: t().variableConfirmCancel, style: "cancel" },
+        { text: t().variableConfirmCancel, style: "cancel", onPress: () => cellInputs.current.get(key)?.blur() },
         {
           text: t().variableConfirmReplace,
           onPress: () => {
-            setVariable((current) => new Set([...current].filter((key) => key !== id)));
+            setVariable((current) => new Set([...current].filter((item) => item !== id)));
             setAnswers((current) => withAnswer(current, id, (initialAnswers(model)[id] as number | undefined) ?? bounds.min));
           },
         },
       ]);
-    };
     return (
-      <Row key={id} label={label} last={options.last === true} testID={`format-row-${id}`}>
-        <ValueStepper
-          alert={id === "intervalSeconds" && stage === "summary" && emomOverflow.length > 0}
+      <Row key={key} label={label} last={options.last === true} testID={`format-row-${id}`}>
+        <TableCell
+          kind={isSeconds ? "duration" : "integer"}
+          value={isVariable ? null : numeric}
+          format={(entered) => (options.format !== undefined ? options.format(entered) : isSeconds ? formatSeconds(entered) : String(entered))}
+          placeholder={isVariable ? t().variable : t().noLimit}
+          badge
+          durationMin={bounds.min}
+          missing={id === "intervalSeconds" && stage === "summary" && emomOverflow.length > 0}
+          onChange={(entered) => {
+            if (entered === null) {
+              if (id === "timeCapSeconds") setAnswers((current) => withAnswer(current, id, null));
+              return;
+            }
+            setAnswers((current) => withAnswer(current, id, entered));
+          }}
+          {...binding}
+          onFocus={() => {
+            binding.onFocus();
+            if (isVariable) confirmVariable();
+          }}
           label={label}
-          text={text}
-          onStep={onStep}
-          canDecrease={isVariable || (numeric !== null && (numeric > bounds.min || id === "timeCapSeconds"))}
-          canIncrease={isVariable || numeric === null || numeric < bounds.max}
           testID={`format-${id}`}
         />
       </Row>
@@ -1002,14 +978,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     </View>
   );
 
-  // Cellules des tableaux : focus, Suivant / Précédent, révélation au-dessus du clavier et de sa barre.
-  const cellInputs = useRef(new Map<string, TextInput | null>());
-  const [focusedCell, setFocusedCell] = useState<string | null>(null);
-  const [barHeight, setBarHeight] = useState(KEYBOARD_BAR_HEIGHT);
   const tableShown = stage === "summary" || (model === "DEATH_BY" && movements.length > 1);
   const cellOrder = useMemo(() => (tableShown ? tableCellOrder(model, movements, answers) : []), [answers, model, movements, tableShown]);
   // Unité de l'objectif au clavier (MAJ 04/11 §4.5) : barre Répétitions | Durée, puis unité choisie, Précédent, Suivant.
-  const [unitPicking, setUnitPicking] = useState(false);
   const focusedCellKey = focusedCell === null ? null : parseCellKey(focusedCell);
   const unitRow = focusedCellKey !== null && focusedCellKey.kind === "obj" ? focusedCellKey.row : null;
   // Recette du 05/11/2026 (constat f, Hermann : « Death by : le clavier du tableau d'objectifs n'a pas d'unité ») : Départ et
@@ -1040,7 +1011,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           onReopen: () => setUnitPicking(true),
         };
   // Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » — signe choisi par « ± » dans la barre du clavier.
-  const [cellSigns, setCellSigns] = useState<Readonly<Record<string, 1 | -1>>>({});
   const signRow = focusedCellKey !== null && focusedCellKey.kind === "linc" && model === "EMOM" ? focusedCellKey.row : null;
   const signBar =
     signRow === null || focusedCell === null || movements[signRow] === undefined
@@ -1056,22 +1026,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             },
           };
         })();
-  const focusCell = (key: string | undefined) => {
-    if (key !== undefined) cellInputs.current.get(key)?.focus();
-  };
-  const cellBinding: CellBinding = (key) => ({
-    ...(cellSigns[key] !== undefined ? { sign: cellSigns[key] } : {}),
-    inputRef: (input) => {
-      cellInputs.current.set(key, input);
-    },
-    onFocus: () => {
-      setUnitPicking(false);
-      setFocusedCell(key);
-    },
-    onBlur: () => setFocusedCell((current) => (current === key ? null : current)),
-    active: focusedCell === key,
-  });
-  const focusedAt = focusedCell === null ? -1 : cellOrder.indexOf(focusedCell);
+  // Hermann, 05/11/2026 : « Un point à corriger pour tous les écrans questionnaires, récapitulatif : on utilise
+  // systématiquement le clavier pour renseigner les valeurs, plus aucun stepper et de roulette. L'appui sur suivant permet de
+  // passer d'une valeur à l'autre, aussi entre deux lignes ou d'une ligne à un tableau. »
+  // Ordre de Suivant : valeurs des lignes de paramètres dans l'ordre affiché, puis cases du tableau (Progression : tableau
+  // entre le nombre de séries et la Pause, rangés dans le même cadre).
+  const rowFields = rows.flatMap((node) => (isValidElement(node) && typeof node.key === "string" && node.key.startsWith(ANSWER_FIELD_PREFIX) ? [node.key] : []));
+  const fieldOrder = model === "PROGRESSION" ? [...rowFields, ...cellOrder, answerFieldKey("pauseSeconds")] : [...rowFields, ...cellOrder];
+  const focusedAt = focusedCell === null ? -1 : fieldOrder.indexOf(focusedCell);
   // Hermann, 04/11/2026 : « Ouvrir le clavier doit positionner le bas du tableau des objectifs juste au-dessus du clavier,
   // toutes les lignes du tableau doivent être visibles. » Le bas du tableau est placé au-dessus du clavier et de sa barre ;
   // un tableau plus haut que la place disponible garde au moins la case active visible.
@@ -1098,7 +1060,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             if (delta > 0) scrollBy(delta);
           });
         const table = tableRef.current;
-        if (table === null) {
+        if (table === null || focusedCell.startsWith(ANSWER_FIELD_PREFIX)) {
           revealCell();
           return;
         }
@@ -1573,9 +1535,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           reduceMotion={reduceMotion}
           onHeight={setBarHeight}
           canPrevious={focusedAt > 0}
-          canNext={focusedAt >= 0 && focusedAt < cellOrder.length - 1}
-          onPrevious={() => focusCell(cellOrder[focusedAt - 1])}
-          onNext={() => focusCell(cellOrder[focusedAt + 1])}
+          canNext={focusedAt >= 0 && focusedAt < fieldOrder.length - 1}
+          onPrevious={() => focusCell(fieldOrder[focusedAt - 1])}
+          onNext={() => focusCell(fieldOrder[focusedAt + 1])}
           onClose={() => Keyboard.dismiss()}
           animated
           units={unitsBar}
@@ -1790,19 +1752,12 @@ const styles = StyleSheet.create({
   rowSeparated: { borderBottomWidth: 1, borderBottomColor: SEPARATOR },
   rowLabel: { flexShrink: 1, fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   readValue: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: LABEL },
-  stepperHost: { minHeight: 26, justifyContent: "center" },
-  stepper: { flexDirection: "row", alignItems: "center", gap: 10 },
-  stepperSign: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: VALUE_COLOR, minWidth: 18, textAlign: "center" },
-  stepperSignDisabled: { color: DISABLED_VALUE },
-  badge: { backgroundColor: "#FFFFFF", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR },
   chip: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: CHIP, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
   chipText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, color: "#FFFFFF" },
   chipChevron: { fontSize: 12, color: "#FFFFFF" },
   spacer: { flexGrow: 1, minHeight: 12 },
   tablePanel: { marginTop: 12, paddingHorizontal: 0 },
   alert: { marginHorizontal: 16, marginTop: 8, fontFamily: "Inter_400Regular", fontSize: 12, lineHeight: 16, color: tokenColors.danger },
-  badgeAlert: { backgroundColor: tokenColors.dangerSurface },
   timeline: { marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16, paddingVertical: 8, gap: 4 },
   timelineBlocks: { flexDirection: "row", alignItems: "flex-end", gap: 3, height: 22 },
   // MAJ 04/11 §6 bis 1 : bloc continu, courts séparateurs (1 px) contenus dans la barre.
