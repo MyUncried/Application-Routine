@@ -50,6 +50,20 @@ export type Timeline = {
 
 const work = (movement: number | null, label: string | null, height = 1, weight = 1): TimelineBlock => ({ kind: "WORK", movement, label, weight, height });
 
+/**
+ * Durée compacte d'un bloc — recette du 05/11/2026 (constat e, Hermann : « AMRAP Déroulé : si l'objectif est en durée, les
+ * blocs affichent des secondes, mettre le format compact de durée avec ' et " ») : 30", 1'30", 2'.
+ */
+export function compactBlockDuration(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes === 0) return `${seconds}"`;
+  return seconds === 0 ? `${minutes}'` : `${minutes}'${String(seconds).padStart(2, "0")}"`;
+}
+
+/** Objectif d'un bloc : nombre de répétitions, ou durée compacte si le mouvement est en durée. */
+const objectiveLabel = (movement: ModelMovement, value: number) => (movement.values.mode === "DURATION" ? compactBlockDuration(value) : String(value));
+
 /** Hauteurs proportionnelles aux volumes (§15 règle 3) ; constantes si le volume ne varie pas. */
 function heights(values: readonly (number | null)[]): number[] {
   const numbers = values.map((value) => value ?? 0);
@@ -188,11 +202,11 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
         if (movement.values.max === true) return "max";
         const base = movement.values.repetitions ?? repetitionsOf(movement);
         if (base === null) return "—";
-        return round === null ? "n" : String(base + (increasing ? (movement.values.increment ?? 0) * round : 0));
+        return round === null ? "n" : objectiveLabel(movement, base + (increasing ? (movement.values.increment ?? 0) * round : 0));
       };
       const roundBlocks = (round: number | null) => loop.map((movement, index) => work(index + (buyIn ? 1 : 0), labelAt(movement, round)));
       const blocks: TimelineBlock[] = [
-        ...(buyIn ? [{ kind: "WORK" as const, movement: 0, label: `${movements[0]!.values.repetitions ?? "—"} · buy-in`, weight: 2.5, height: 1, buyIn: true as const }] : []),
+        ...(buyIn ? [{ kind: "WORK" as const, movement: 0, label: `${movements[0]!.values.repetitions == null ? "—" : objectiveLabel(movements[0]!, movements[0]!.values.repetitions)} · buy-in`, weight: 2.5, height: 1, buyIn: true as const }] : []),
         ...[0, 1, 2].flatMap((round) => roundBlocks(round)),
         { kind: "ELLIPSIS" },
         ...roundBlocks(null),
@@ -212,14 +226,14 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
           .filter((item) => item.role === role)
           .map(({ movement, index }): TimelineBlock => {
             const value = movement.values.volumes?.[0] ?? null;
-            return { kind: "WORK", movement: index, label: `${value ?? "—"} · ${role === "BUY_IN" ? "buy-in" : "buy-out"}`, weight: 2.5, height: 1, buyIn: true };
+            return { kind: "WORK", movement: index, label: `${value === null ? "—" : objectiveLabel(movement, value)} · ${role === "BUY_IN" ? "buy-in" : "buy-out"}`, weight: 2.5, height: 1, buyIn: true };
           });
       const blocks = [
         ...once("BUY_IN"),
         ...Array.from({ length: rounds }, (_, round) =>
           tours.map(({ movement, index }) => {
             const value = movement.values.volumes?.[round] ?? null;
-            return work(index, value === null ? "—" : String(value), value === null ? 0.35 : Math.max(0.35, value / max));
+            return work(index, value === null ? "—" : objectiveLabel(movement, value), value === null ? 0.35 : Math.max(0.35, value / max));
           }),
         ).flat(),
         ...once("BUY_OUT"),

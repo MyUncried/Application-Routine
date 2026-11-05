@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useState } from "react";
-import { Pressable, Text } from "react-native";
+import { Alert, Pressable, Text } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
@@ -258,6 +258,31 @@ describe("FormatModelScreen", () => {
       fireEvent.press(suggestion);
     });
   }
+
+  it("recette du 05/11 (x-sans-recap) : Superset — ligne « Récupération après la paire » ; trois exercices refusés avec un message", async () => {
+    mockModel = "SUPERSET";
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    expect(screen.getByTestId("format-row-recoveryBetweenSeconds")).toHaveTextContent(t.rows.recoveryAfterPair, { exact: false });
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    expect(alert).not.toHaveBeenCalled();
+    await pick("Squ", "mv-squats");
+    expect(alert).toHaveBeenCalledWith(t.supersetLimitTitle, t.supersetLimitMessage);
+    expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
+    alert.mockRestore();
+  });
+
+  it("recette du 05/11 (constat c) : un texte sans résultat garde le cadre des résultats, vide", async () => {
+    mockModel = "AMRAP";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    fireEvent.press(screen.getByTestId("format-movements-link"));
+    fireEvent.changeText(screen.getByTestId("format-search"), "zzzz");
+    expect(screen.getByTestId("format-suggestions")).toBeTruthy();
+    expect(screen.queryByTestId("format-suggestion-mv-squats")).toBeNull();
+  });
 
   it("recette n° 3 du 03/11 (autres constats) : AMRAP Buy-in — sections Buy-in et En boucle dès le questionnaire ; buy-in choisi requis ; jamais un mouvement de boucle", async () => {
     mockModel = "AMRAP";

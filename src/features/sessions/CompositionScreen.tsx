@@ -9447,6 +9447,8 @@ function LayoutCircuitBlock({
             // CE-FMT-05 (§7.9.6) : actions de 70, extrémités du bloc au rayon du cadre du Circuit.
             actionWidth={CIRCUIT_SWIPE_ACTION_WIDTH}
             actionsRadius={CIRCUIT_RADIUS}
+            // Recette du 05/11/2026 (e-replie-glisse) : les options glissent avec le Circuit, à l'ouverture et à la fermeture.
+            slideActions
             actionsInsets={{
               top: CIRCUIT_PADDING_VERTICAL,
               bottom: blockHeight !== null && headerBottom !== null ? Math.max(0, blockHeight - headerBottom) : CIRCUIT_PADDING_VERTICAL,

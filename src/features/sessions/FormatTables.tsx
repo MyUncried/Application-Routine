@@ -55,7 +55,18 @@ const NARROW_WIDTH = 58;
 const MAX_WIDTH = 28;
 const BARE_NAME_WIDTH = 124;
 const COMPACT_LOAD_HEIGHT = 24;
-const BARE_LOAD_ROW_HEIGHT = ROW_HEIGHT + COMPACT_LOAD_HEIGHT + 2;
+/**
+ * For time avec charge — recette du 05/11/2026 (e-fortime-charge, Hermann : « L'espace vertical entre les deux lignes (durée /
+ * rep et charge) doit être minimum ») : objectif et charge serrés l'un contre l'autre.
+ */
+const BARE_OBJECTIVE_HEIGHT = 26;
+const BARE_LOAD_ROW_HEIGHT = BARE_OBJECTIVE_HEIGHT + COMPACT_LOAD_HEIGHT + 6;
+/**
+ * For time, colonnes des tours quand une ligne est en durée — recette du 05/11/2026 (e-fortime-unite, Hermann : « Une durée de
+ * 12 min 28 s ne tient pas dans le tableau, si besoin ne présenter que les deux premières colonnes ») : colonnes élargies, les
+ * suivantes se découvrent en faisant défiler le tableau.
+ */
+const SERIES_DURATION_COLUMN_WIDTH = 84;
 
 const t = () => strings.screens.formatModel;
 
@@ -196,8 +207,17 @@ export function TableCell({
   compact = false,
   sign,
   signed = false,
+  barOnly = false,
+  tight = false,
   testID,
 }: {
+  /**
+   * Case atteinte seulement par Précédent / Suivant de la barre du clavier — recette du 05/11/2026 (e-fortime-charge, Hermann :
+   * « Une seule zone tactile utile qui est la première, la charge s'atteint avec les boutons suivant / précédent du clavier »).
+   */
+  readonly barOnly?: boolean;
+  /** Objectif au-dessus d'une charge (For time) : case plus basse (recette du 05/11/2026, e-fortime-charge). */
+  readonly tight?: boolean;
   /** Case signée : « + » ou « − » toujours affiché devant la valeur en saisie. */
   readonly signed?: boolean;
   /** Case signée (incrément de charge EMOM, recette du 04/11/2026) : signe imposé, « − » affiché devant la valeur. */
@@ -254,6 +274,7 @@ export function TableCell({
         onChange(magnitude === null ? null : effectiveSign * magnitude);
       }}
       editable={!disabled}
+      pointerEvents={barOnly ? "none" : undefined}
       selection={caret}
       // Recette n° 3 bis du 03/11/2026 (f3s-clavier, « Supprimer le bouton "Next" du clavier ») : pavé numérique sans
       // touche de retour ; Précédent / Suivant / Fermer dans la barre au-dessus du clavier.
@@ -267,6 +288,7 @@ export function TableCell({
         { width },
         boxed ? styles.cellBoxed : null,
         compact ? styles.cellCompact : null,
+        tight ? styles.cellTight : null,
         disabled ? styles.cellDisabled : null,
         !disabled && missing ? styles.cellMissing : null,
         active || focused ? styles.cellActive : null,
@@ -548,6 +570,7 @@ export function SeriesTable({
 }) {
   const tt = t().table;
   const columns = Array.from({ length: count }, (_, index) => index);
+  const columnWidth = model === "FOR_TIME" && movements.some((item) => item.values.mode === "DURATION") ? SERIES_DURATION_COLUMN_WIDTH : SERIES_COLUMN_WIDTH;
   const scrollRef = useRef<ScrollView>(null);
   const scrollX = useRef(0);
   const viewport = useRef(0);
@@ -557,8 +580,8 @@ export function SeriesTable({
     shownCount.current = count;
   }, [count]);
   const revealColumn = (column: number) => {
-    const left = column * SERIES_COLUMN_WIDTH;
-    const right = left + SERIES_COLUMN_WIDTH;
+    const left = column * columnWidth;
+    const right = left + columnWidth;
     if (left < scrollX.current) scrollRef.current?.scrollTo({ x: left, animated: false });
     else if (right > scrollX.current + viewport.current) scrollRef.current?.scrollTo({ x: right - viewport.current, animated: false });
   };
@@ -601,14 +624,14 @@ export function SeriesTable({
       <View style={[styles.seriesNames, { width: nameWidth + SERIES_UNIT_WIDTH }, bare ? styles.seriesNamesBare : null]} testID={model === "FOR_TIME" ? "format-for-time-names" : "format-progression-names"}>
         <View style={styles.seriesHeader}>
           <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-          <Text style={[styles.tableHead, { width: SERIES_UNIT_WIDTH }]}>{tt.unit}</Text>
+          <Text style={[styles.tableHead, { width: SERIES_UNIT_WIDTH }, bare ? styles.unitTextBare : null]}>{tt.unit}</Text>
         </View>
         {movements.map((item) => (
           <View key={item.exercise.id} style={[styles.seriesRow, { height: rowHeight }]}>
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {rowName(item)}
             </Text>
-            <Text style={[styles.unitText, { width: SERIES_UNIT_WIDTH }]}>{(item.values.mode ?? "REPETITIONS") === "DURATION" ? tt.durationUnit : t().repetitionsUnit}</Text>
+            <Text style={[styles.unitText, { width: SERIES_UNIT_WIDTH }, bare ? styles.unitTextBare : null]}>{(item.values.mode ?? "REPETITIONS") === "DURATION" ? tt.durationUnit : t().repetitionsUnit}</Text>
           </View>
         ))}
       </View>
@@ -631,7 +654,7 @@ export function SeriesTable({
         <View style={styles.seriesBody}>
           <View style={[styles.seriesHeader, styles.seriesCells]}>
             {columns.map((column) => (
-              <Text key={column} style={[styles.tableHead, { width: SERIES_COLUMN_WIDTH }]}>
+              <Text key={column} style={[styles.tableHead, { width: columnWidth }]}>
                 {heading(column)}
               </Text>
             ))}
@@ -645,18 +668,19 @@ export function SeriesTable({
             return (
               <View key={item.exercise.id} style={[styles.seriesRow, styles.seriesCells, { height: rowHeight }]}>
                 {columns.map((column) => {
-                  if (column >= shown) return <View key={column} style={{ width: SERIES_COLUMN_WIDTH }} />;
+                  if (column >= shown) return <View key={column} style={{ width: columnWidth }} />;
                   const objective = objectiveAt(values, column);
                   const label = tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", heading(column));
                   return (
-                    <View key={column} style={[styles.seriesCell, bare ? styles.seriesCellBare : null]}>
+                    <View key={column} style={[styles.seriesCell, { width: columnWidth }, bare ? styles.seriesCellBare : null]}>
                       <TableCell
                         kind={mode === "DURATION" ? "duration" : "integer"}
                         value={objective}
                         format={(value) => (mode === "DURATION" ? formatSeconds(value) : String(value))}
                         missing={objective === null}
-                        width={SERIES_COLUMN_WIDTH}
+                        width={columnWidth}
                         boxed={bare}
+                        tight={bare && withLoad}
                         onChange={(value) => onChange(index, set(values, column, { objective: value }))}
                         {...bind(cellKey("obj", index, column), column)}
                         label={label.replace("{kind}", tt.objectiveKind)}
@@ -667,9 +691,10 @@ export function SeriesTable({
                           kind="decimal"
                           value={loadAt(values, column)}
                           format={formatLoad}
-                          width={SERIES_COLUMN_WIDTH}
+                          width={columnWidth}
                           boxed={bare}
                           compact={bare}
+                          barOnly={bare}
                           onChange={(value) => onChange(index, set(values, column, { load: value }))}
                           {...bind(cellKey("load", index, column), column)}
                           label={label.replace("{kind}", tt.loadKind)}
@@ -705,11 +730,14 @@ const styles = StyleSheet.create({
   cellGuide: { color: DISABLED_VALUE },
   cellBoxed: { backgroundColor: "#FFFFFF" },
   cellCompact: { minHeight: COMPACT_LOAD_HEIGHT, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 11 },
+  cellTight: { minHeight: BARE_OBJECTIVE_HEIGHT, paddingVertical: 0 },
   maxHead: { width: MAX_WIDTH },
   maxSlot: { width: MAX_WIDTH },
   seriesTableBare: { marginVertical: 0, backgroundColor: "transparent" },
   seriesNamesBare: { paddingLeft: 0 },
   seriesCellBare: { gap: 2 },
+  // Recette du 05/11/2026 (e-fortime-unite, Hermann : « Décaler encore au maximum à droite ») : unité calée contre les tours.
+  unitTextBare: { textAlign: "right", paddingRight: 4 },
   // Contre-recette n° 3 ter du 03/11/2026 (« Les champs de valeur du tableau encore à renseigner doivent être avec un
   // fond rouge ») : fond rouge léger des valeurs à renseigner ou en cause.
   cellMissing: { backgroundColor: tokenColors.dangerSurface },

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Image } from "expo-image";
 import {
   Animated,
@@ -98,6 +98,7 @@ export function SwipeActionsRow({
   actionsInsets,
   actionWidth = SWIPE_ACTION_WIDTH,
   actionsRadius,
+  slideActions = false,
   children,
   testID,
 }: {
@@ -127,6 +128,12 @@ export function SwipeActionsRow({
   readonly actionWidth?: number;
   /** Recette du 04/11 (CE-FMT-05) : rayon des extrémités du bloc d'actions (12 par défaut). */
   readonly actionsRadius?: number;
+  /**
+   * Recette du 05/11/2026 (e-replie-glisse, Hermann : « il faut que le cadre des options apparaisse par glissement de droite à
+   * gauche aussi en même temps que le circuit, et qu'il disparaisse de la même manière de gauche à droite par glissement ») :
+   * le bloc d'actions suit la translation de la rangée au lieu d'être découvert sur place.
+   */
+  readonly slideActions?: boolean;
   readonly children: ReactNode;
   readonly testID: string;
 }) {
@@ -207,6 +214,11 @@ export function SwipeActionsRow({
   };
 
   const showActions = translateX < 0 || isSettling;
+  const actionsSlide = useMemo(
+    () =>
+      offset > 0 ? swipeX.interpolate({ inputRange: [-offset, 0], outputRange: [0, offset], extrapolate: "clamp" }) : swipeX,
+    [offset, swipeX],
+  );
 
   return (
     <View
@@ -243,7 +255,7 @@ export function SwipeActionsRow({
       testID={testID}
     >
       {showActions ? (
-        <View
+        <Animated.View
           pointerEvents={translateX < 0 ? "auto" : "none"}
           accessibilityElementsHidden={translateX >= 0}
           importantForAccessibility={translateX < 0 ? "auto" : "no-hide-descendants"}
@@ -254,6 +266,7 @@ export function SwipeActionsRow({
             actionsInsets === undefined
               ? null
               : { top: -(actionsInsets.top ?? 0), bottom: -(actionsInsets.bottom ?? 0), right: -(actionsInsets.right ?? 0) },
+            slideActions && offset > 0 ? { transform: [{ translateX: actionsSlide }] } : null,
           ]}
           testID={`${testID}-actions`}
         >
@@ -297,7 +310,7 @@ export function SwipeActionsRow({
               <Image source={JOIN_HARDER} style={[styles.join, styles.joinRight]} accessible={false} testID={`${testID}-join-harder`} />
             </>
           ) : null}
-        </View>
+        </Animated.View>
       ) : null}
       <AnimatedPressable
         // Inerte, la carte reste une cible active (jamais `disabled`) : elle garde les touchers non pris par son

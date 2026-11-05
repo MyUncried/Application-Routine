@@ -133,6 +133,11 @@ const TIMELINE_TO_BUTTON = 25;
 /** Hauteur minimale du cadre des suggestions ; écart laissé au-dessus du clavier. */
 const SUGGESTIONS_MIN_HEIGHT = 160;
 const SUGGESTIONS_TO_KEYBOARD = 8;
+/** Dépassement du bout de la liste des suggestions (rebond) qui retire le clavier (recette du 05/11/2026, constat c). */
+const SUGGESTIONS_BOUNCE = 12;
+/** Pile repliée du mode catalogue : décalage vertical et retrait latéral de chaque feuille (Catalogue des mouvements). */
+const PILE_LEAF_STEP = 6;
+const PILE_LEAF_INSET = 8;
 /** Barre Précédent / Suivant / Fermer des tableaux : hauteur avant mesure ; marge de révélation d'une cellule. */
 const KEYBOARD_BAR_HEIGHT = 52;
 const CELL_REVEAL_MARGIN = 12;
@@ -568,12 +573,28 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // lettres : la zone de recherche apparaît. Il faut qu'elle descende jusqu'au clavier au minimum par défaut ») :
   // son bas rejoint le haut du clavier. [Hauteur maximale d'un tiers de l'écran — remplacée.]
   const suggestionsRef = useRef<View>(null);
+  const rootRef = useRef<View>(null);
   const [suggestionsTop, setSuggestionsTop] = useState<number | null>(null);
+  // Recette du 05/11/2026 (constat c, Hermann : « je ne peux pas faire défiler tous les résultats, un ou des mouvements
+  // restent cachés inaccessibles derrière le clavier ») : dans la feuille native, `measureInWindow` compte depuis le haut de
+  // la feuille, le clavier depuis le haut de l'écran — le haut du cadre est ramené à l'écran (même conversion que le tableau).
   const measureSuggestions = useCallback(() => {
-    suggestionsRef.current?.measureInWindow((_x, y) => setSuggestionsTop(y));
-  }, []);
+    const box = suggestionsRef.current;
+    if (box === null) return;
+    const read = (offset: number) => box.measureInWindow((_x, y) => setSuggestionsTop(y + offset));
+    const root = rootRef.current;
+    if (root === null) {
+      read(0);
+      return;
+    }
+    root.measureInWindow((_rootX, rootY, _rootWidth, rootHeight) => read(windowHeight - (rootY + rootHeight)));
+  }, [windowHeight]);
   useEffect(() => {
-    if (keyboardFrame !== null) measureSuggestions();
+    if (keyboardFrame === null) return;
+    measureSuggestions();
+    // La feuille grandit à l'ouverture du clavier : nouvelle mesure une fois en place.
+    const settle = setTimeout(measureSuggestions, (keyboardFrame.duration > 0 ? keyboardFrame.duration : 250) + 120);
+    return () => clearTimeout(settle);
   }, [keyboardFrame, measureSuggestions]);
   const suggestionsHeight =
     keyboardFrame !== null && suggestionsTop !== null
@@ -599,7 +620,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [bandHeight, setBandHeight] = useState(CONTEXT_HEIGHT);
   const [picked, setPicked] = useState<ReadonlyMap<string, Movement>>(new Map());
   const suggestionItems = useMemo(() => (query.trim().length === 0 ? [] : visibleMovementItems(entries, query, EMPTY_MOVEMENT_FILTERS)), [entries, query]);
-  const ranked = useMemo(() => suggestionItems.flatMap((item) => (item.kind === "PILE" ? item.members : [item.entry])), [suggestionItems]);
   const catalogueItems = useMemo(() => (catalogueMode ? visibleMovementItems(entries, query, catalogueFilters) : []), [catalogueFilters, catalogueMode, entries, query]);
   const openCatalogue = () => {
     setPicked(new Map());
@@ -614,13 +634,22 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     setIsFilterOpen(false);
     setCommandsShown(false);
   };
-  const togglePicked = (movement: Movement) =>
+  // Recette du 04/11/2026 (x-sans-recap, Hermann : « Superset : questionnaire : il manque la ligne de récupération après
+  // la paire ; on ne doit pas pouvoir sélectionner plus de deux exercices, afficher un message ») : deux exercices au plus ; au-delà, message et aucun ajout.
+  const supersetFull = (adding: number) => model === "SUPERSET" && movements.length + adding > 2;
+  const warnSupersetFull = () => Alert.alert(t().supersetLimitTitle, t().supersetLimitMessage);
+  const togglePicked = (movement: Movement) => {
+    if (!picked.has(movement.id) && searchRole === "LOOP" && supersetFull(picked.size + 1)) {
+      warnSupersetFull();
+      return;
+    }
     setPicked((current) => {
       const next = new Map(searchRole === "BUY_IN" ? [...current].filter(([id]) => id === movement.id) : current);
       if (next.has(movement.id)) next.delete(movement.id);
       else next.set(movement.id, movement);
       return next;
     });
+  };
   const addPicked = () => {
     if (picked.size === 0 || searchRole === null) return;
     // Ordre de présentation du Catalogue (sans recherche ni filtre), jamais l'ordre des touchers (V2-CAT-01 §4.4).
@@ -894,7 +923,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // Suivies du tableau (récapitulatif), de la Pause, de la durée totale et de l'Exécution (sous le tableau).
         return [stepRow("seriesCount", r.seriesCount, { last: stage === "summary" })];
       case "SUPERSET":
-        return [stepRow("roundCount", r.supersetRounds, { format: (value) => `${value} ${value > 1 ? t().roundUnit.many : t().roundUnit.one}` }), readRow(r.repetitions, t().dash, "repetitions"), totalRow(true)];
+        // Recette du 04/11/2026 (x-sans-recap, Hermann : « Superset : questionnaire : il manque la ligne de récupération après
+  // la paire ; on ne doit pas pouvoir sélectionner plus de deux exercices, afficher un message ») : la récupération après la paire (portée par le dernier exercice, §9.2) est réglable ; valeur initiale =
+        // récupération après l'activité du dernier exercice.
+        return [
+          stepRow("roundCount", r.supersetRounds, { format: (value) => `${value} ${value > 1 ? t().roundUnit.many : t().roundUnit.one}` }),
+          readRow(r.repetitions, t().dash, "repetitions"),
+          stepRow("recoveryBetweenSeconds", r.recoveryAfterPair, { fallback: movements[movements.length - 1]?.exercise.postActivityRecoverySeconds ?? 0 }),
+          totalRow(true),
+        ];
       default: {
         const unreachable: never = model;
         return unreachable;
@@ -975,8 +1012,19 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [unitPicking, setUnitPicking] = useState(false);
   const focusedCellKey = focusedCell === null ? null : parseCellKey(focusedCell);
   const unitRow = focusedCellKey !== null && focusedCellKey.kind === "obj" ? focusedCellKey.row : null;
+  // Recette du 05/11/2026 (constat f, Hermann : « Death by : le clavier du tableau d'objectifs n'a pas d'unité ») : Départ et
+  // Incrément se comptent en répétitions — la barre montre l'unité Répétitions, seule admise.
+  const deathByRow = focusedCellKey !== null && model === "DEATH_BY" && (focusedCellKey.kind === "start" || focusedCellKey.kind === "sinc") ? focusedCellKey.row : null;
   const unitsBar =
-    unitRow === null || movements[unitRow] === undefined
+    deathByRow !== null && movements[deathByRow] !== undefined
+      ? {
+          current: "REPETITIONS" as const,
+          picking: false,
+          allowed: ["REPETITIONS" as const],
+          onPick: () => undefined,
+          onReopen: () => undefined,
+        }
+      : unitRow === null || movements[unitRow] === undefined
       ? null
       : {
           current: movements[unitRow]!.values.mode ?? ("REPETITIONS" as const),
@@ -1033,7 +1081,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // de la feuille (racine à y = 0, hauteur 780 puis 802 quand le clavier s'ouvre), alors que le clavier est situé depuis le
   // haut de l'écran. Chaque mesure est ramenée à l'écran par la position de la feuille relevée au même moment (bas de la
   // feuille au bas de l'écran) ; la barre, elle, part du bas de la fenêtre (placement constaté juste).
-  const rootRef = useRef<View>(null);
   useEffect(() => {
     // Position de clavier parasite (0 relevé sur iPhone) : aucun alignement.
     if (focusedCell === null || keyboardFrame === null || keyboardFrame.screenY <= 0 || keyboardFrame.screenY >= windowHeight) return;
@@ -1074,9 +1121,47 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   }, [bandHeight, barHeight, focusedCell, keyboardFrame, reduceMotion, windowHeight]);
 
   // Familles de Niveaux : cartes reliées par le filet des niveaux (suggestions et mode catalogue).
+  // Recette du 05/11/2026 (e-cat-filet, Hermann : « Les cartes se replient, mais il n'y a pas de pile, seule celle de haut
+  // niveau apparaît sans affichage d'une pile. […] le filet reste présent sur la carte du dessus, appuyer sur le filet déplie
+  // la pile ; la pile se matérialise avec les deux cartes qui dépassent par le bas (modèle du catalogue des mouvements) ») :
+  // en mode catalogue, une pile repliée garde son filet et montre deux feuilles sous la carte du dessus.
+  const collapsedPile = (item: Extract<MovementCatalogueItem, { kind: "PILE" }>, card: (entry: MovementCatalogueEntry) => React.ReactNode) => {
+    const leaves = Math.min(item.members.length - 1, 2);
+    return (
+      <View key={item.key} style={[styles.family, { paddingBottom: leaves * PILE_LEAF_STEP }]} testID={`format-family-${item.key}-collapsed`}>
+        {Array.from({ length: leaves }, (_, index) => leaves - index).map((depth) => (
+          <View
+            key={`leaf-${depth}`}
+            style={[styles.pileLeaf, { top: depth * PILE_LEAF_STEP, bottom: (leaves - depth) * PILE_LEAF_STEP, left: 8 + depth * PILE_LEAF_INSET, right: depth * PILE_LEAF_INSET }]}
+            accessible={false}
+            importantForAccessibility="no"
+            testID={`format-family-${item.key}-leaf-${depth}`}
+          />
+        ))}
+        <Pressable
+          onPress={() =>
+            setCollapsedPiles((current) => {
+              const next = new Set(current);
+              next.delete(item.key);
+              return next;
+            })
+          }
+          accessibilityRole="button"
+          accessibilityLabel={t().expandPiles}
+          style={[styles.familyRailZone, { bottom: 26 + leaves * PILE_LEAF_STEP }]}
+          testID={`format-family-${item.key}-expand`}
+        >
+          <View style={styles.familyRailLine} />
+        </Pressable>
+        {card(item.members[0]!)}
+      </View>
+    );
+  };
   const familyCards = (items: readonly MovementCatalogueItem[], card: (entry: MovementCatalogueEntry) => React.ReactNode, collapsed: boolean, railActive = false) =>
     items.map((item) =>
-      item.kind === "PILE" && !collapsed && !(railActive && collapsedPiles.has(item.key)) ? (
+      item.kind === "PILE" && railActive && collapsedPiles.has(item.key) ? (
+        collapsedPile(item, card)
+      ) : item.kind === "PILE" && !collapsed ? (
         <View key={item.key} style={styles.family} testID={`format-family-${item.key}`}>
           {railActive ? (
             <Pressable
@@ -1141,7 +1226,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                 autoFocus={catalogueFocus}
                 placeholder={t().searchPlaceholder}
                 returnKeyType="search"
-                submitBehavior="submit"
+                // Recette du 05/11/2026 (constat d, Hermann : « appuyer sur "Entrée" / "Bouton de clavier de recherche" devrait
+                // afficher le résultat de la recherche, fermer le clavier et enlever le focus de la zone de recherche. Cliquer
+                // dans la zone de recherche doit rouvrir le clavier »).
+                submitBehavior="blurAndSubmit"
                 style={[styles.searchInput, query.length > 0 ? styles.searchInputWithClear : null]}
                 accessibilityLabel={strings.screens.movement.catalogue.searchAccessibilityLabel}
                 testID="format-catalogue-search"
@@ -1177,8 +1265,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                 <CommandCircle label={strings.screens.sessions.sortAction} icon="sort" disabled testID="format-catalogue-sort" />
                 <Pressable
                   onPress={() => {
+                    // Replier : chaque pile repliée (feuilles et filet, e-cat-filet) ; Déplier : toutes rouvertes.
+                    setCollapsedPiles(pilesCollapsed ? new Set() : new Set(catalogueItems.flatMap((item) => (item.kind === "PILE" ? [item.key] : []))));
                     setPilesCollapsed((value) => !value);
-                    setCollapsedPiles(new Set());
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={pilesCollapsed ? t().expandPiles : t().collapsePiles}
@@ -1221,7 +1310,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                     testID={`format-catalogue-card-${entry.movement.id}`}
                   />
                 ),
-                pilesCollapsed,
+                false,
                 true,
               )}
             </View>
@@ -1255,7 +1344,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
               accessibilityLabel={t().searchPlaceholder}
               testID="format-search"
             />
-            {ranked.length > 0 ? (
+            {/* Recette du 05/11/2026 (constat c, Hermann : « le résultat ne retourne rien, et le contenu de l'écran remonte. Ok.
+                Mais il faut laisser affichée la zone de recherche vide par-dessus ») : un texte tapé sans résultat garde le cadre
+                des résultats, vide. */}
+            {query.trim().length > 0 ? (
               <View ref={suggestionsRef} onLayout={measureSuggestions} collapsable={false}>
                 <ScrollView
                   style={[styles.suggestions, { height: suggestionsHeight }]}
@@ -1264,6 +1356,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                   // clavier […] Le clavier ne doit pas disparaître avec ces mouvements. »
                   keyboardShouldPersistTaps="always"
                   keyboardDismissMode="none"
+                  // Recette du 05/11/2026 (constat c, Hermann : « Faire défiler le résultat de la recherche vers le bas jusqu'au
+                  // rebond de la limite : le clavier reste en place. Il devrait se retirer vers le bas (c'est le comportement
+                  // dans le mode catalogue), et réapparaître si on met le focus sur la recherche ») : un rebond au bout de la
+                  // liste retire le clavier ; le texte et les résultats restent, toucher le champ rouvre le clavier.
+                  onScrollEndDrag={(event) => {
+                    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+                    const end = Math.max(0, contentSize.height - layoutMeasurement.height);
+                    if (contentOffset.y < -SUGGESTIONS_BOUNCE || contentOffset.y > end + SUGGESTIONS_BOUNCE) Keyboard.dismiss();
+                  }}
                   nestedScrollEnabled
                   testID="format-suggestions"
                 >
@@ -1275,6 +1376,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                         movement={choice.movement}
                         levelRank={choice.level?.rank ?? null}
                         onPress={() => {
+                          if (role === "LOOP" && supersetFull(1)) {
+                            warnSupersetFull();
+                            return;
+                          }
                           setSearchRole(null);
                           setQuery("");
                           addMovements([choice.movement], role);
@@ -1303,7 +1408,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // écran figé pendant la saisie d'un mouvement avec suggestions, et pendant le déplacement d'une carte. Recette du
         // 04/11/2026 (f4-catalogue : « lorsqu'un texte est tapé dans la zone de recherche on doit pouvoir continuer de faire
         // défiler la liste des mouvements ») : jamais figé en mode catalogue.
-        scrollEnabled={drag === null && (catalogueMode || !(searchOpen && ranked.length > 0))}
+        scrollEnabled={drag === null && (catalogueMode || !(searchOpen && query.trim().length > 0))}
         // Recette n° 3 bis du 03/11/2026 (f3s-recherche, Hermann : « appuyer sur entrer ou sur une autre partie de
         // l'écran ne change rien, le clavier reste ouvert » ; « faire défiler vers le bas et le haut ne ferme pas le
         // clavier ») : pendant la saisie d'un mouvement, un toucher hors du champ ne le quitte plus (avec
@@ -1378,7 +1483,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             {model === "DEATH_BY" ? <DeathByTable movements={movements} onChange={updateValues} cell={cellBinding} /> : null}
             {model === "FOR_TIME" ? (
               // Recette du 04/11/2026 (f4-modale, For time : « le fond du tableau doit être transparent, seules les zones de
-              // textes doivent avoir un fond blanc ») : tableau sans cadre.
+              // textes doivent avoir un fond blanc ») : zones de saisie blanches. Recette du 05/11/2026 (constat d, Hermann :
+              // « For time, tableau des mouvements : […] Le tableau doit être entouré d'un cadre identique à celui des autres
+              // paramètres d'exécution, dédié ») : cadre propre, comme le cadre des paramètres. [Tableau sans cadre — remplacé.]
               <View style={styles.tableBare}>
                 <SeriesTable model="FOR_TIME" bare movements={movements} count={answers.roundCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} cell={cellBinding} />
               </View>
@@ -1640,7 +1747,7 @@ const styles = StyleSheet.create({
   searchClear: { position: "absolute", right: 10, width: 22, height: 22, borderRadius: 11, backgroundColor: "#DDE0E6", alignItems: "center", justifyContent: "center" },
   familyRailZone: { position: "absolute", left: -6, top: 26, bottom: 26, width: 16, alignItems: "center", zIndex: 1 },
   familyRailLine: { width: 2, flex: 1, borderRadius: 1, backgroundColor: "#B9BDF5" },
-  tableBare: { marginTop: 12, marginHorizontal: 16 },
+  tableBare: { marginTop: 12, marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16, paddingVertical: 4 },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" },
   context: { height: CONTEXT_HEIGHT, paddingHorizontal: 16, paddingTop: 10 },
   modalHeader: { height: dimensions.backAction.visualCircle + 2, flexDirection: "row", alignItems: "center", justifyContent: "center" },
@@ -1665,6 +1772,8 @@ const styles = StyleSheet.create({
   catalogueCommands: { flexDirection: "row", alignItems: "center", gap: 8 },
   catalogueList: { gap: 8, paddingTop: 4 },
   family: { gap: 8, paddingLeft: 8 },
+  // Feuilles d'une pile repliée (modèle du Catalogue des mouvements : blanc, bordure #E0E3ED, rayon 12, retrait de 8 puis 16).
+  pileLeaf: { position: "absolute", borderRadius: 12, borderWidth: 1, borderColor: "#E0E3ED", backgroundColor: "#FFFFFF" },
   familyLine: { position: "absolute", left: 2, top: 26, bottom: 26, width: 2, borderRadius: 1, backgroundColor: "#B9BDF5" },
   pilesToggle: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: "#C9CDD6", alignItems: "center", justifyContent: "center", gap: 2 },
   pilesToggleOn: { borderColor: VALUE_COLOR },

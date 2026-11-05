@@ -118,3 +118,28 @@ Demande et adoption de Hermann (texte exact au registre ch07, « Recette iPhone 
 3. Circuit de Format dans un Cycle : l'Exercice ajouté reste dans le Cycle, après le Circuit (choix de l'agent).
 4. Tabata seul sans récapitulatif : faut-il étendre aux autres modèles sans tableau (30/30, Renforcement, À l'échec, Superset) ?
 5. EMOM : une valeur tapée sans avoir choisi l'unité est lue en Répétitions.
+
+## 12. Recette iPhone du 05/11/2026 — écarts et corrections
+
+Cahier « Recette Formats 04/11 », bloc « Constats » (c à f) et lignes KO du 05/11 ; décisions recopiées au registre ch07, « Recette iPhone du 05/11/2026 — décisions de Hermann ».
+
+| Écart | Classe | Correction | Documents |
+|---|---|---|---|
+| c — résultats cachés derrière le clavier | A | Hauteur du cadre des suggestions ramenée au repère de l'écran (feuille native), nouvelle mesure une fois le clavier en place | — |
+| c — texte sans résultat | B | Cadre des suggestions conservé, vide ; écran figé tant qu'un texte est tapé | Formats §7 (annotation), ch07 |
+| c — rebond en bout de liste | B | Rebond (haut ou bas) des suggestions : clavier retiré, texte et résultats conservés | Formats §7 (annotation), ch07 |
+| d — Entrée du mode catalogue | B | `submitBehavior="blurAndSubmit"` : résultat affiché, clavier fermé, focus retiré | Formats §7 (annotation), ch07 |
+| d — For time, cadre du tableau | B | Cadre dédié identique au cadre des paramètres | Formats §7.6 (annotation), ch07 |
+| e — Déroulé AMRAP en durée | B | Durée compacte ' et " (`compactBlockDuration`) | ch07 |
+| f — Death by, unité au clavier | B | Barre : Répétitions, seule unité admise, sur Départ et Incrément | ch07 |
+| e-fortime-charge | B | Objectif et charge serrés ; charge sans zone tactile (Précédent / Suivant) | Formats §7.6 (annotation), ch07 |
+| e-fortime-unite | B | Unité calée à droite ; colonnes de 84 dès qu'une ligne est en durée | Formats §7.6 (annotation), ch07 |
+| x-sans-recap — Superset | B | Ligne « Récupération après la paire » ; troisième exercice refusé (alerte « Deux exercices au maximum ») | ch07 |
+| e-cat-filet | B | Pile repliée : deux feuilles sous la carte du dessus, filet conservé qui déplie la pile ; « Replier » replie chaque pile | ch07 |
+| e-replie-glisse | B | Bloc d'actions translaté avec le Circuit (`slideActions`) | Formats §7.8 (annotation), ch07 |
+
+**À CLARIFIER.** Le format compact ' et " a aussi été appliqué aux blocs For time en durée (et aux blocs buy-in / buy-out), par cohérence du Déroulé ; Hermann ne l'a demandé que pour l'AMRAP. À confirmer ou à retirer.
+
+**Non traité.** e-voile (« Il reste cet effet "flash", est-il possible de le supprimer ou de l'atténuer ? ») : l'empilement de deux feuilles natives est animé par iOS ; aucune correction n'est proposée sans essai sur iPhone. Constats a et b : déjà traités (ajout en fin de Séance ; contrôle segmenté, option sélectionnée à droite).
+
+Tests : `formats.recette0511.test.tsx` (durée compacte, Déroulé AMRAP, charge For time, glissement des options), `FormatModelScreen.c3` (Superset, cadre vide). Rien n'est vérifié sur iPhone.
