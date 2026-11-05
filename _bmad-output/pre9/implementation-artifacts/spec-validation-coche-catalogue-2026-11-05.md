@@ -41,6 +41,13 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - Feuille des filtres arrêtée sous cette zone.
 - Tests `FormatModelScreen.c3` adaptés (règle remplacée citée).
 
+## 2 quinquies. Mouvements — demandes du 05/11/2026 au soir (classe B)
+
+- Saisie du nom (Catalogue des mouvements) : toucher du corps de la carte Résultat → fiche du mouvement en consultation (`router.replace`, sans garde d'abandon : le nom tapé ne servait qu'à chercher) ; aussi dans l'écran de recherche. `MovementResultCard.onOpen`, `MovementSuggestionPanel.onOpenResult`, `MovementSearchScreen.onOpen`, `useMovementOriginChoice.onOpenMovement`.
+- Fiche « Modifier un mouvement » : coche « Valider » à droite de l'en-tête (`EditorHeader.validate` → `FixedHeader.validate`), bouton du bas retiré en modification ; le message d'erreur d'enregistrement reste affiché en bas.
+- « Créer un circuit » dans une séance qui porte un circuit formaté : non reproduit, puis constaté fonctionnel par Hermann ; test `CompositionScreen.envelopeFormat`.
+- Tests : `MovementScreen.b2.integration` (carte qui charge le mouvement ; coche en modification ; aide `finishID`).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

@@ -72,6 +72,8 @@ export type MovementOriginChoiceOptions = {
    * carte Composition n'a aucun bouton). PRE-9 A.2 (CE-MVT-01 §3) : exclu depuis une Séance.
    */
   readonly onVariant?: (choice: MovementChoice, placement: VariantPlacement) => void;
+  /** Carte Résultat (Catalogue) : toucher du corps — charge le mouvement (demande de Hermann du 05/11/2026, soir). */
+  readonly onOpenMovement?: (choice: MovementChoice) => void;
   /**
    * Recette A/B B.10 (remarque 6) : libellés des actions des cartes du panneau (fiche Mouvement) ;
    * absent : libellés de l'éditeur d'Exercice, inchangés.
@@ -131,6 +133,7 @@ export function useMovementOriginChoice({
   cardVariant,
   onSameMovement,
   onVariant,
+  onOpenMovement,
   actionLabels,
 }: MovementOriginChoiceOptions): MovementOriginChoiceState {
   const t = strings.screens.activities.editor.movementSuggestion;
@@ -258,6 +261,15 @@ export function useMovementOriginChoice({
         onSameMovement?.(choice);
       }}
       {...(offersLevel ? { onCreateVariant: (choice: MovementChoice) => setVariantOf(choice.movement.id) } : {})}
+      {...(offersLevel && onOpenMovement !== undefined
+        ? {
+            onOpenResult: (choice: MovementChoice) => {
+              setVariantOf(null);
+              setFrozen(null);
+              onOpenMovement(choice);
+            },
+          }
+        : {})}
       onChooseVariant={(choice, placement) => {
         setVariantOf(null);
         setFrozen(null);
@@ -281,6 +293,14 @@ export function useMovementOriginChoice({
                 setIsSearchOpen(false);
                 onVariant?.(choice, placement);
               },
+              ...(onOpenMovement !== undefined
+                ? {
+                    onOpen: (choice: MovementChoice) => {
+                      setIsSearchOpen(false);
+                      onOpenMovement(choice);
+                    },
+                  }
+                : {}),
             }
           : {
               onUse: (choice: MovementChoice) => {

@@ -1295,6 +1295,15 @@ export function ActivityEditorForm({
         <PrimaryActionButton label={finishLabel} onPress={onFinish} disabled={finishDisabled} testID={finishActionTestID} />
       </PrimaryActionZone>
       )}
+      {/* Demande de Hermann du 05/11/2026 (soir) : fiche « Modifier un mouvement » validée par la coche de l’en-tête, sans bouton en
+          bas — le message d’erreur d’enregistrement reste affiché en bas. */}
+      {hideFinish && errorMessage ? (
+        <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID={finishSlotTestID}>
+          <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID={errorTestID}>
+            {errorMessage}
+          </Text>
+        </PrimaryActionZone>
+      ) : null}
 
       {isNativeLevelMenuOpen ? (
         <Pressable

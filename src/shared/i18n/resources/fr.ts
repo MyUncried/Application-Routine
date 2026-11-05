@@ -1514,6 +1514,8 @@ export const fr = {
       finish: "Terminer",
       // Même source : confirmation du mouvement en contexte Séance (les autres contextes gardent « Terminer »).
       sessionFinish: "Créer un exercice",
+      // Demande de Hermann du 05/11/2026 (soir) : fiche « Modifier un mouvement », coche Valider de l'en-tête.
+      validate: "Valider",
       edit: "Modifier le mouvement",
       close: "Fermer",
       loadError: "Le mouvement n’a pas pu être chargé.",

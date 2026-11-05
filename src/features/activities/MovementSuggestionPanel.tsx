@@ -77,6 +77,8 @@ export type MovementSuggestionPanelProps = {
   readonly onUse: (choice: MovementChoice) => void;
   /** « Ajouter un niveau » (carte Résultat) ; absent : carte Composition. */
   readonly onCreateVariant?: (choice: MovementChoice) => void;
+  /** Carte Résultat : toucher du corps — ouvre le mouvement (demande de Hermann du 05/11/2026, soir). */
+  readonly onOpenResult?: (choice: MovementChoice) => void;
   readonly onChooseVariant: (choice: MovementChoice, placement: VariantPlacement) => void;
   /** Cadre de retour : revient à la liste, sans choix. */
   readonly onBack: () => void;
@@ -128,6 +130,7 @@ export function MovementSuggestionPanel({
   cardVariant = "result",
   variantOf,
   onUse,
+  onOpenResult,
   onCreateVariant,
   onChooseVariant,
   onBack,
@@ -230,6 +233,7 @@ export function MovementSuggestionPanel({
                   onCreateVariant={() => (variantChoice !== null ? onBack() : onCreateVariant(choice))}
                   onChooseVariant={(placement) => onChooseVariant(choice, placement)}
                   {...(actionLabels ? { actionLabels } : {})}
+                  {...(onOpenResult !== undefined ? { onOpen: () => onOpenResult(choice) } : {})}
                   testID={testID}
                 />
               ) : (

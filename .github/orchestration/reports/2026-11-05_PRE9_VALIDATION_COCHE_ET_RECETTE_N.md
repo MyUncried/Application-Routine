@@ -57,6 +57,10 @@
 
 Recherche sans focus, invite petite et gris clair, zone colorée fixe remontée de 8 (101) avec la ligne « Mouvements » à sa place absolue, zone de recherche figée sous elle (fond blanc 65 % → 10 %, champ de 36). Tests : suites des Formats (17 suites, 195 tests) vertes ; `tsc` et ESLint propres. Rendu non vérifié sur appareil.
 
+## Complément — mouvements (demandes du 05/11/2026 au soir)
+
+Carte Résultat de la saisie du nom : ouvre le mouvement. Fiche « Modifier un mouvement » : coche Valider en haut à droite, bouton du bas retiré (erreur d'enregistrement toujours affichée). « Créer un circuit » avec un circuit formaté : non reproduit, déclaré fonctionnel par Hermann ; test ajouté. Tests : 93 suites, 2 048 tests verts (activités, mouvements, en-têtes) ; `tsc` et ESLint propres.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

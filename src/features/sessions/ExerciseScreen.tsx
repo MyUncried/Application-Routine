@@ -224,11 +224,14 @@ export function EditorHeader({
   accessibilityLabel,
   trailing,
   topInset,
+  validate,
 }: {
   title: string;
   onClose: () => void;
   accessibilityLabel: string;
   trailing?: ReactNode;
+  /** Coche « Valider » à droite de l'en-tête (variante « Fermer et valider », §18–§19). */
+  validate?: { readonly onPress: () => void; readonly enabled: boolean; readonly accessibilityLabel: string };
   /** Feuille : marge haute de l'en-tête (`FixedHeader.topInset`). */
   topInset?: number;
 }) {
@@ -248,6 +251,7 @@ export function EditorHeader({
       backIconTintColor={EDITOR_HEADER.closeIconTint}
       trailing={trailing}
       {...(topInset !== undefined ? { topInset } : {})}
+      {...(validate !== undefined ? { validate } : {})}
     />
   );
 }

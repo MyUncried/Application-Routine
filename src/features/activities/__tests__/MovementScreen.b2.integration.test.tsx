@@ -171,6 +171,14 @@ async function count(table: string): Promise<number> {
   return (await database.getFirstAsync<{ count: number }>(`SELECT COUNT(*) AS count FROM ${table}`))!.count;
 }
 
+/**
+ * Demande de Hermann du 05/11/2026 (soir) : « fiche modifier un mouvement : retirer le bouton d'action en bas, mettre un bouton
+ * d'action standard Valider en haut à droite » — en modification, la coche de l'en-tête ; en création, « Terminer » en bas.
+ */
+function finishID(): string {
+  return screen.queryByTestId("screen-header-validate", { includeHiddenElements: true }) !== null ? "screen-header-validate" : "movement-finish-action";
+}
+
 describe("PRE-8 B.2 — fiche Mouvement", () => {
   it("MVT-11 : gabarit photo, description et phases ; aucune carte Paramètres ni accordéon Médias ; pastille « Niveau »", async () => {
     await renderSheet();
@@ -236,12 +244,12 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     await movements().create(movement("m1", "Pompes"));
     await renderSheet({ movementId: "m1" });
     await press("activity-editor-edit-movement");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(mockBack).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
 
     await type("movement-phases-invite", "Montée");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
     expect((await movements().findById("m1"))!.phases).toEqual([{ id: 1, label: "Montée" }]);
   });
@@ -258,7 +266,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     await renderSheet({ movementId: "m1" });
     await press("activity-editor-edit-movement");
     await type("movement-phases-invite", "Descente");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.getByTestId("movement-save-dialog", anyNode)).toBeTruthy();
     expect(screen.queryByTestId("movement-save-choice-UPDATE", anyNode)).toBeNull();
     // Annuler : brouillon intact, aucune écriture.
@@ -266,7 +274,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect((await movements().findById("m1"))!.phases).toEqual([]);
 
     await type("exercise-name-input", "Pompes larges");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.getByTestId("movement-save-choice-NEW_MOVEMENT", anyNode)).toBeTruthy();
     expect(screen.queryByText(strings.screens.activities.editor.movementSave.newMovementDetail, anyNode)).toBeNull();
     expect(screen.getByTestId("movement-save-confirm", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
@@ -287,7 +295,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect(screen.queryByTestId("movement-phases-label-1", anyNode)).toBeNull();
     await type("exercise-name-input", "Squats sautés");
     expect(screen.queryByTestId("exercise-name-hint", anyNode)).toBeNull();
-    await press("movement-finish-action");
+    await press(finishID());
     const families = await service().movementCatalogue!.listFamilies();
     expect(families[0]!.members.map((entry) => [entry.movement.name, entry.level])).toEqual([
       ["Squats", { rank: 1, total: 2 }],
@@ -303,7 +311,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     await press("activity-editor-edit-movement");
     await type("movement-phases-invite", "Descente");
     database.close();
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.getByTestId("movement-save-error", anyNode)).toBeTruthy();
     expect(screen.getByTestId("movement-phases-label-1", anyNode).props.value).toBe("Descente");
     expect(mockBack).not.toHaveBeenCalled();
@@ -319,9 +327,12 @@ describe("PRE-8 — recette A/B : fiche et formulaire Mouvement", () => {
     expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(true);
     expect(screen.getByTestId("movement-phases-label-1", anyNode).props.value).toBe("Descente");
     expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
-    // Aucun changement : pas de garde d'abandon ; Terminer revient sans écrire.
+    // Demande de Hermann du 05/11/2026 (soir) : en modification, coche Valider à droite de l'en-tête, plus de bouton en bas.
+    expect(screen.queryByTestId("movement-finish-action", anyNode)).toBeNull();
+    expect(screen.getByTestId("screen-header-validate", anyNode).props.accessibilityLabel).toBe("Valider");
+    // Aucun changement : pas de garde d'abandon ; Valider revient sans écrire.
     expect(lastShouldBlock()).toBe(false);
-    await press("movement-finish-action");
+    await press("screen-header-validate");
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
@@ -432,7 +443,9 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
   // PRE-9 CAT.2 (CE-MVT-RESULT-01) et décision de Hermann du 30/10/2026 : « À partir du catalogue des
   // mouvements, cette option n'est pas utile, seul la création d'un niveau est une action
   // pertinente » [remplace « Ouvrir ce mouvement » de la remarque 6].
-  it("CAT.2 : carte Résultat — « Ajouter un niveau » seul ; aucune action « Ouvrir / Utiliser ce mouvement », le toucher de la carte n'ouvre rien", async () => {
+  // [CAT.2 : « le toucher de la carte n'ouvre rien » (décision du 30/10/2026) — remplacé par la demande de Hermann du 05/11/2026 (soir) :
+  // « catalogue des mouvements : saisie du nom : appui sur une carte. Rien ne se passe, on devrait pourtant charger le mouvement ».]
+  it("CAT.2 : carte Résultat — « Ajouter un niveau » ; aucune action « Utiliser ce mouvement » ; le toucher de la carte charge le mouvement (05/11 soir)", async () => {
     await movements().create(movement("squat", "Squats"));
     await renderSheet();
     await type("exercise-name-input", "Squats");
@@ -442,12 +455,12 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(within(card).queryByText(t.suggestion.useMovement, anyNode)).toBeNull();
     expect(within(card).queryByText("Utiliser ce mouvement", anyNode)).toBeNull();
     expect(screen.queryByTestId("movement-suggestion-result-squat-use", anyNode)).toBeNull();
-    fireEvent.press(screen.getByTestId("movement-suggestion-result-squat-summary", anyNode));
-    expect(mockReplace).not.toHaveBeenCalled();
-    // Nom déjà utilisé : message affiché, Terminer indisponible, le brouillon reste ouvert.
+    // Nom déjà utilisé : message affiché, Terminer indisponible.
     expect(screen.getByTestId("movement-suggestion-message", anyNode)).toBeTruthy();
     expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+    expect(mockReplace).not.toHaveBeenCalled();
+    await press("movement-suggestion-result-squat-summary");
+    expect(mockReplace).toHaveBeenCalledWith({ pathname: "/movement", params: { movementId: "squat" } });
   });
 
   it("CAT.2 : « Ajouter un niveau » déplie la carte (Plus facile | Plus difficile), puis le choix ouvre le nouveau Niveau sans rien créer", async () => {
@@ -861,7 +874,7 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
     await renderSheet({ movementId: "m1" });
     await press("activity-editor-edit-movement");
     await enterPhaseDuration(2, "45");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
     expect((await movements().findById("m1"))!.phases).toStrictEqual([
       { id: 1, label: "Descente" },
@@ -906,7 +919,7 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
     await act(async () => {
       fireEvent(screen.getByTestId("movement-phases-label-2", anyNode), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
     });
-    await press("movement-finish-action");
+    await press(finishID());
     expect((await movements().findById("m1"))!.phases).toStrictEqual([
       { id: 3, label: "Montée", durationSeconds: 2 },
       { id: 1, label: "Flexion", durationSeconds: 3 },
@@ -1040,7 +1053,7 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
     expect(screen.queryAllByTestId(/movement-phases-.*handle/u, anyNode)).toHaveLength(0);
     // Durées seules : aucun dialogue (SILENT).
     await enterPhaseDuration(1, "5");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
@@ -1070,7 +1083,7 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
       const failing = jest
         .spyOn(SqliteMovementRepository.prototype, "update")
         .mockRejectedValueOnce(new Error("CHECK constraint failed"));
-      await press("movement-finish-action");
+      await press(finishID());
       expect(screen.getByTestId("movement-save-dialog", anyNode)).toBeTruthy();
       await press("movement-save-confirm");
       await settle(20);
@@ -1080,7 +1093,7 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
       failing.mockRestore();
       errors.mockClear();
       // Nouvel essai : enregistré, sans erreur.
-      await press("movement-finish-action");
+      await press(finishID());
       await press("movement-save-confirm");
       await settle(20);
       expect(errors).not.toHaveBeenCalled();

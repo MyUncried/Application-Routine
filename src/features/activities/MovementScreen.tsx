@@ -264,6 +264,9 @@ export function MovementSheet({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [isDone, setIsDone] = useState(false);
+  // Demande de Hermann du 05/11/2026 (soir) : depuis le Catalogue, toucher une carte de la saisie du nom charge ce mouvement
+  // (fiche en consultation, à la place de la fiche de création) ; le nom tapé pour chercher n'est pas un brouillon à garder.
+  const [openingMovementId, setOpeningMovementId] = useState<string | null>(null);
   const [pendingDecision, setPendingDecision] = useState<{ readonly decision: MovementSaveDecision; readonly movement: Movement } | null>(null);
   const [isLevelsScreenOpen, setIsLevelsScreenOpen] = useState(false);
   // PRE-8 (B.8) : un Mouvement archivé s'ouvre en consultation seule (ni crayon, ni ajout de niveau),
@@ -335,13 +338,18 @@ export function MovementSheet({
   }, [load]);
 
   const isDirty = draftKey(draft) !== draftKey(initial);
-  const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(isDirty && !isDone, () => {
+  const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(isDirty && !isDone && openingMovementId === null, () => {
     service.abandonMediaDraft(mediaDraftId).catch(() => undefined);
   });
 
   useEffect(() => {
     if (isDone) router.back();
   }, [isDone, router]);
+  useEffect(() => {
+    if (openingMovementId === null) return;
+    service.abandonMediaDraft(mediaDraftId).catch(() => undefined);
+    router.replace({ pathname: "/movement", params: { movementId: openingMovementId } });
+  }, [mediaDraftId, openingMovementId, router, service]);
 
   const onlyNameEntered = draftKey({ ...draft, name: "", categoryId: null, bodyZoneIds: [] }) === draftKey(EMPTY_DRAFT);
   const searchContext = useMemo(() => ({ categoryId: draft.categoryId, bodyZoneIds: draft.bodyZoneIds }), [draft.categoryId, draft.bodyZoneIds]);
@@ -375,6 +383,7 @@ export function MovementSheet({
           },
         }
       : {}),
+    ...(onMovementChosen === undefined ? { onOpenMovement: (choice: MovementChoice) => setOpeningMovementId(choice.movement.id) } : {}),
     onVariant: onMovementChosen !== undefined ? undefined : (choice, placement) => {
       setSaveError(false);
       setVariant({ originId: choice.movement.id, placement, position: variantLevelPosition(choice.level, placement) });
@@ -540,6 +549,19 @@ export function MovementSheet({
         accessibilityLabel={t.close}
         trailing={loadState === "ready" && mode === "consult" && !isArchived && !readOnly ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
         {...(readOnly || inSheet ? { topInset: 0 } : {})}
+        // Demande de Hermann du 05/11/2026 (soir) : « fiche modifier un mouvement : retirer le bouton d'action en bas, mettre un
+        // bouton d'action standard Valider en haut à droite » — coche d'en-tête (§18–§19), même règle d'activation que « Terminer ».
+        {...(loadState === "ready" && mode === "edit" && !readOnly
+          ? {
+              validate: {
+                onPress: () => {
+                  void handleFinish();
+                },
+                enabled: !(isSaving || !isValid || originChoice.nameTaken),
+                accessibilityLabel: t.validate,
+              },
+            }
+          : {})}
       />
       {loadState === "error" ? (
         <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="movement-load-error">
@@ -596,7 +618,7 @@ export function MovementSheet({
           }}
           isFinishDisabled={mode === "consult" || isSaving || !isValid || originChoice.nameTaken}
           errorMessage={saveError ? t.saveError : null}
-          hideFinish={readOnly}
+          hideFinish={readOnly || mode === "edit"}
           {...(onBodyMeasure !== undefined ? { onBodyMeasure } : {})}
           finishSlotTestID="movement-finish-slot"
           finishActionTestID="movement-finish-action"

@@ -168,6 +168,8 @@ export type MovementResultCardProps = {
   readonly onChooseVariant: (placement: VariantPlacement) => void;
   /** Libellés propres à l'appelant ; absent : ceux de la fiche Mouvement. */
   readonly actionLabels?: MovementResultActionLabels;
+  /** Toucher du corps de la carte : ouvre le mouvement. Demande de Hermann du 05/11/2026 (soir) : « catalogue des mouvements : saisie du nom : appui sur une carte. Rien ne se passe, on devrait pourtant charger le mouvement. » [Corps de la carte Résultat non activable (décision du 30/10/2026) — remplacé.] */
+  readonly onOpen?: () => void;
   readonly testID: string;
 };
 
@@ -187,6 +189,7 @@ export function MovementResultCard({
   onCreateVariant,
   onChooseVariant,
   actionLabels,
+  onOpen,
   testID,
 }: MovementResultCardProps) {
   const t = strings.screens.activities.editor.movementSuggestion;
@@ -195,15 +198,19 @@ export function MovementResultCard({
 
   return (
     <View style={[styles.card, styles.resultShadow, variantExpanded ? styles.cardExpanded : null]} testID={testID}>
-      {/* Corps non activable (décision de Hermann du 30/10/2026) : seule « Ajouter un niveau » agit. */}
-      <View
+      {/* Corps : ouvre le mouvement quand l'appelant le permet (demande de Hermann du 05/11/2026, soir) ; « Ajouter un niveau »
+          garde sa zone. [Corps non activable (décision du 30/10/2026) — remplacé.] */}
+      <Pressable
+        onPress={onOpen}
+        disabled={onOpen === undefined}
         style={[styles.body, variantExpanded ? styles.bodyExpanded : null]}
         accessible
+        accessibilityRole={onOpen !== undefined ? "button" : undefined}
         accessibilityLabel={content.summary}
         testID={`${testID}-summary`}
       >
         <CardBody content={content} descriptionRight={RESULT_DESCRIPTION_RIGHT} testID={testID} />
-      </View>
+      </Pressable>
       <LevelLabel level={content.level} testID={testID} />
       <Pressable
         onPress={onCreateVariant}

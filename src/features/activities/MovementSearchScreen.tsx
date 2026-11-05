@@ -23,6 +23,8 @@ export type MovementSearchScreenProps = {
    * (ancien « Utiliser ce mouvement »). Rendu en cartes Composition quand `onChooseVariant` est absent.
    */
   readonly onUse?: (choice: MovementChoice) => void;
+  /** Carte Résultat : toucher du corps — ouvre le mouvement (demande de Hermann du 05/11/2026, soir). */
+  readonly onOpen?: (choice: MovementChoice) => void;
   /** « Ajouter un niveau » puis Plus facile / Plus difficile (C02) : cartes Résultat, sans réutilisation. */
   readonly onChooseVariant?: (choice: MovementChoice, placement: VariantPlacement) => void;
   /** ✕ (et retour système) : retour au brouillon appelant, intact. */
@@ -60,7 +62,7 @@ const GAP = 10;
  * en-tête, champ et note de `9959:19623`, désormais catalogue d'entretien, réutilisés (NON
  * VÉRIFIABLE). `Modal` native plein écran au-dessus de l'éditeur, dont le brouillon reste monté.
  */
-export function MovementSearchScreen({ choices, initialQuery, context, onUse, onChooseVariant, onClose }: MovementSearchScreenProps) {
+export function MovementSearchScreen({ choices, initialQuery, context, onUse, onOpen, onChooseVariant, onClose }: MovementSearchScreenProps) {
   const t = strings.screens.activities.editor.movementSearch;
   const sideMargin = editorSideMargin(useWindowDimensions().width);
   const [query, setQuery] = useState(initialQuery);
@@ -155,6 +157,7 @@ export function MovementSearchScreen({ choices, initialQuery, context, onUse, on
                 variantExpanded={variantOf === item.movement.id}
                 onCreateVariant={() => setVariantOf((current) => (current === item.movement.id ? null : item.movement.id))}
                 onChooseVariant={(placement) => onChooseVariant(item, placement)}
+                {...(onOpen !== undefined ? { onOpen: () => onOpen(item) } : {})}
                 testID={`movement-search-result-${item.movement.id}`}
               />
             ) : (
