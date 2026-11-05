@@ -33,6 +33,14 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - écart dernière carte → « Paramètres d'exécution » réduit de 8 : marge haute du titre 16 au lieu de 22, avec l'écart des cartes 6 au lieu de 8 (Figma : 24 → 16). Titre du Déroulé inchangé.
 - Test `FormatModelScreen.c3` (« §19 : … espacements »).
 
+## 2 quater. Ajout d'un mouvement — demande du 05/11/2026 au soir (classe B)
+
+- Recherche du mode catalogue sans focus à l'ouverture (`autoFocus` faux) ; invite Regular 14 gris clair (`#B4B8C2`), texte saisi 16 noir.
+- Zone de contexte (zone colorée) de taille fixe : 101 (au lieu de 109), plus prolongée en mode catalogue ; ligne « Mouvements » à sa place absolue (101 + 16 = 117, comme avant).
+- En mode catalogue, la ligne « Mouvements » et la recherche forment une zone figée sous la zone de contexte (`format-search-zone`), à l'emplacement de la ligne « Mouvements » ; fond blanc de 65 % en haut à 10 % en bas (12 bandes) ; champ de 36 de haut (au lieu de 44) ; marge basse 4.
+- Feuille des filtres arrêtée sous cette zone.
+- Tests `FormatModelScreen.c3` adaptés (règle remplacée citée).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

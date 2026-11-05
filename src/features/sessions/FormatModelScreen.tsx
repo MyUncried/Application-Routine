@@ -124,11 +124,17 @@ const PANEL = "#F9FAFC";
 const SEPARATOR = "#E0E3E8";
 const LABEL = "#141414";
 const SECTION = "#595E66";
+/** Invite de la recherche du mode catalogue, gris clair (demande de Hermann du 05/11/2026, soir). */
+const SEARCH_PLACEHOLDER = "#B4B8C2";
 const TAGLINE = "#5C636E";
 const RECOVERY_BLOCK = "#D9DBE0";
 const BUY_IN_BLOCK = "#7984C7";
 const CHIP = "#5B5BF0";
-const CONTEXT_HEIGHT = 109;
+/**
+ * Zone de contexte (zone colorée) — demande de Hermann du 05/11/2026 (« il faut remonter un le bord bas de la zone colorée, et
+ * laisser la ligne Mouvement à sa place (en dimension absolue) ») : 101 au lieu de 109 ; la ligne « Mouvements » reste à 109 + 8.
+ */
+const CONTEXT_HEIGHT = 101;
 /**
  * Écart entre deux cartes de mouvement ; pas de déplacement par défaut (carte 60 + écart) avant mesure. Complément du
  * 5 novembre 2026 (Hermann), §19 : 6 (au lieu de 8).
@@ -139,7 +145,16 @@ const CARD_STEP_DEFAULT = 60 + CARD_GAP;
  * Complément du 5 novembre 2026 (Hermann), §19 : la ligne « Mouvements » (titre et « + Ajouter ») descend de 8 — elle empiétait
  * sur le bas de la zone de contexte (illustration et accroche). Hors mode catalogue (en-tête et recherche dans la zone figée).
  */
-const MOVEMENTS_TOP_OFFSET = 8;
+const MOVEMENTS_TOP_OFFSET = 8 + 8;
+/**
+ * Fond de la zone de recherche du mode catalogue — demande de Hermann du 05/11/2026 : « sa couleur de fond doit être remise en
+ * blanc avec opacité de 65% en haut jusqu'à 10% en bas de son cadre » (bandes successives, sans bibliothèque de dégradé).
+ */
+const SEARCH_ZONE_STEPS = 12;
+const SEARCH_ZONE_LAYERS = Array.from({ length: SEARCH_ZONE_STEPS }, (_, index) => ({
+  top: `${(index * 100) / SEARCH_ZONE_STEPS}%` as const,
+  opacity: Number((0.65 - (0.55 * (index + 0.5)) / SEARCH_ZONE_STEPS).toFixed(4)),
+}));
 /** Complément du 5 novembre 2026 (Hermann), §18–§19 : plus de bouton en bas ; marge sous le Déroulé, au-dessus de la zone sûre. */
 const CONTENT_BOTTOM_MARGIN = 24;
 /** Pile repliée du mode catalogue : décalage vertical et retrait latéral de chaque feuille (Catalogue des mouvements). */
@@ -545,6 +560,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [commandsShown, setCommandsShown] = useState(false);
   const [catalogueFocus, setCatalogueFocus] = useState(false);
   const [bandHeight, setBandHeight] = useState(CONTEXT_HEIGHT);
+  const [searchZoneHeight, setSearchZoneHeight] = useState(0);
   const [picked, setPicked] = useState<ReadonlyMap<string, Movement>>(new Map());
   const catalogueItems = useMemo(() => (catalogueMode ? visibleMovementItems(entries, query, catalogueFilters) : []), [catalogueFilters, catalogueMode, entries, query]);
   // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » (ou « Changer ») ouvre directement le mode catalogue — champ de
@@ -552,7 +568,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // « Ouvrir / Fermer le mode catalogue » (recette n° 3 du 03/11/2026, f3r-recherche ; MAJ 04/11 §3) — remplacés.]
   const openCatalogue = () => {
     setPicked(new Map());
-    setCatalogueFocus(true);
+    // Demande de Hermann du 05/11/2026 (soir) : pas de focus par défaut dans la recherche.
+    setCatalogueFocus(false);
     setCommandsShown(false);
     setCatalogueMode(true);
     requestAnimationFrame(() => setCommandsShown(true));
@@ -1333,14 +1350,18 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
               <TextInput
                 value={query}
                 onChangeText={setQuery}
+                // Demande de Hermann du 05/11/2026 (soir) : « on ne met pas le focus dans la barre de recherche par défaut ».
+                // [§19 : « champ de recherche actif, clavier ouvert » — remplacé.]
                 autoFocus={catalogueFocus}
                 placeholder={t().searchPlaceholder}
+                // « L'invite nom du mouvement est écrite en plus petit et surtout en gris clair, et ensuite en noir. »
+                placeholderTextColor={SEARCH_PLACEHOLDER}
                 returnKeyType="search"
                 // Recette du 05/11/2026 (constat d, Hermann : « appuyer sur "Entrée" / "Bouton de clavier de recherche" devrait
                 // afficher le résultat de la recherche, fermer le clavier et enlever le focus de la zone de recherche. Cliquer
                 // dans la zone de recherche doit rouvrir le clavier »).
                 submitBehavior="blurAndSubmit"
-                style={[styles.searchInput, query.length > 0 ? styles.searchInputWithClear : null]}
+                style={[styles.searchInput, styles.catalogueSearchInput, query.length > 0 ? styles.searchInputWithClear : styles.searchInputEmpty]}
                 accessibilityLabel={strings.screens.movement.catalogue.searchAccessibilityLabel}
                 testID="format-catalogue-search"
               />
@@ -1468,7 +1489,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           scrollY.current = event.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={16}
-        contentContainerStyle={[styles.content, { paddingTop: bandHeight + (catalogueMode ? 0 : MOVEMENTS_TOP_OFFSET), paddingBottom: safeBottom + CONTENT_BOTTOM_MARGIN }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: bandHeight + MOVEMENTS_TOP_OFFSET + (catalogueMode ? searchZoneHeight : 0), paddingBottom: safeBottom + CONTENT_BOTTOM_MARGIN },
+        ]}
         testID={`format-${stage}`}
       >
         {/* Mouvements (§7.1 à §7.4). */}
@@ -1617,7 +1641,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             </View>
             <Text style={styles.tagline}>{t().taglines[model]}</Text>
           </View>
-          {catalogueMode ? catalogueHead() : null}
         </View>
         <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.bandFade} testID="format-context-fade">
           {CONTEXT_FADE_LAYERS.map((layer) => (
@@ -1625,11 +1648,30 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           ))}
         </View>
       </View>
+      {/* Demande de Hermann du 05/11/2026 (soir) : « La zone colorée ne doit pas changer de dimension » — en mode catalogue, la ligne
+          « Mouvements » et la recherche restent figées sous la zone de contexte, à la place de la ligne « Mouvements » du
+          questionnaire ; fond blanc de 65 % (haut) à 10 % (bas). [Zone de contexte prolongée jusqu'à la ligne de recherche
+          (recette du 04/11/2026, f4-catalogue) — remplacée.] */}
+      {catalogueMode ? (
+        <View
+          style={[styles.searchZone, { top: bandHeight + MOVEMENTS_TOP_OFFSET }]}
+          pointerEvents="box-none"
+          onLayout={(event) => setSearchZoneHeight(event.nativeEvent.layout.height)}
+          testID="format-search-zone"
+        >
+          <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+            {SEARCH_ZONE_LAYERS.map((layer) => (
+              <View key={layer.top} style={[styles.searchZoneLayer, { top: layer.top, opacity: layer.opacity }]} />
+            ))}
+          </View>
+          {catalogueHead()}
+        </View>
+      ) : null}
       </View>
       {isFilterOpen ? (
         <MovementFilterSheet
           // Recette du 04/11/2026 (f4-catalogue) : feuille arrêtée à la limite de la zone de contexte, montée et descente lentes.
-          docked={{ top: MODAL_TOP + bandHeight }}
+          docked={{ top: MODAL_TOP + bandHeight + MOVEMENTS_TOP_OFFSET + searchZoneHeight }}
           filters={catalogueFilters}
           onApply={(next, labels) => {
             setCatalogueFilters(next);
@@ -1818,7 +1860,12 @@ const styles = StyleSheet.create({
   nativeSheet: { flex: 1, backgroundColor: "#FFFFFF", overflow: "hidden" },
   bandFade: { height: CONTEXT_FADE_HEIGHT },
   bandFadeLayer: { position: "absolute", top: 0, left: 0, right: 0 },
-  catalogueHead: { marginBottom: 10 },
+  catalogueHead: { marginBottom: 4 },
+  searchZone: { position: "absolute", left: 0, right: 0, zIndex: 1 },
+  searchZoneLayer: { position: "absolute", left: 0, right: 0, height: `${100 / SEARCH_ZONE_STEPS + 0.5}%`, backgroundColor: "#FFFFFF" },
+  // Recherche du mode catalogue moins haute (demande de Hermann du 05/11/2026, soir) ; invite plus petite, en gris clair.
+  catalogueSearchInput: { height: 36 },
+  searchInputEmpty: { fontSize: 14 },
   catalogueField: { flex: 1, justifyContent: "center" },
   catalogueButtons: { flexDirection: "row", alignItems: "center", gap: 8 },
   searchInputWithClear: { paddingRight: 36 },

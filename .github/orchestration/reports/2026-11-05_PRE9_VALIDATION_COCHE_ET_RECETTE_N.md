@@ -53,6 +53,10 @@
 - **Recette n-*** (commit de ce rapport) : `formats-window.tsx` (fiche par-dessus, croix vers le Catalogue, retrait après fiche validée), `_layout.tsx` (fondu de la Composition), `FormatModelScreen` (croix du questionnaire vers la modale, cases rouges générales, message « seul en répétitions », barre d'unités absente pour Tabata / 30/30), `ActivityEditorForm` (« Dans cette séance » en dernier), `fr.ts` (titre des phases, libellés courts), `formatModels.ts` (`allowedModes`, `lastRepetitionsLocked`, Max retiré en Durée), `FormatTables.tsx` (tableau des séries sans colonne Unité, sous-titre, trois colonnes visibles, colonnes resserrées, Max grisé en Durée).
 - **Documentation** : ch07 (demande §18–§19 points 1–3 ; décisions de la recette n-* et deux arbitrages), `spec-validation-coche-catalogue-2026-11-05.md`, `spec-complement-creation-formats-2026-11-05.md` § 8 ; cahier de recette (section « Corrections du 5 novembre au soir »).
 
+## Complément — ajout d’un mouvement (demande du 05/11/2026 au soir)
+
+Recherche sans focus, invite petite et gris clair, zone colorée fixe remontée de 8 (101) avec la ligne « Mouvements » à sa place absolue, zone de recherche figée sous elle (fond blanc 65 % → 10 %, champ de 36). Tests : suites des Formats (17 suites, 195 tests) vertes ; `tsc` et ESLint propres. Rendu non vérifié sur appareil.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

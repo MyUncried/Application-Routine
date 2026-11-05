@@ -180,7 +180,8 @@ describe("FormatModelScreen", () => {
     // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » ouvre directement le mode catalogue (champ actif, clavier ouvert) ; [saisie intermédiaire avec suggestions et lien « Ouvrir / Fermer le mode catalogue » — remplacés].
     fireEvent.press(screen.getByTestId("format-movements-link"));
     expect(screen.queryByTestId("format-search")).toBeNull();
-    expect(screen.getByTestId("format-catalogue-search").props.autoFocus).toBe(true);
+    // Demande de Hermann du 05/11/2026 (soir) : « on ne met pas le focus dans la barre de recherche par défaut ».
+    expect(screen.getByTestId("format-catalogue-search").props.autoFocus).toBe(false);
     fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Squ");
     fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-squats"));
     await act(async () => {
@@ -442,13 +443,14 @@ describe("FormatModelScreen", () => {
   });
 
   // [Recette n° 3 bis du 03/11 (f3s-recherche) : champ de saisie intermédiaire — retiré (§19).]
-  it("complément du 05/11 (§19) : « + Ajouter » ouvre le mode catalogue — recherche active, filtres, tri et piles à côté ; plus de lien Ouvrir / Fermer", async () => {
+  it("complément du 05/11 (§19) : « + Ajouter » ouvre le mode catalogue — recherche sans focus (Hermann, 05/11 soir), filtres, tri et piles à côté ; plus de lien Ouvrir / Fermer", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     fireEvent.press(screen.getByTestId("format-movements-link"));
     expect(screen.queryByTestId("format-search")).toBeNull();
-    expect(screen.getByTestId("format-catalogue-search").props.autoFocus).toBe(true);
+    // Demande de Hermann du 05/11/2026 (soir) : « on ne met pas le focus dans la barre de recherche par défaut ».
+    expect(screen.getByTestId("format-catalogue-search").props.autoFocus).toBe(false);
     expect(await screen.findByTestId("format-catalogue-filter")).toBeTruthy();
     expect(screen.getByTestId("format-catalogue-sort")).toBeTruthy();
     expect(screen.getByTestId("format-catalogue-piles")).toBeTruthy();
@@ -689,8 +691,10 @@ describe("FormatModelScreen", () => {
     expect(within(screen.getByTestId("format-questionnaire")).queryByTestId("format-title")).toBeNull();
     fireEvent.press(screen.getByTestId("format-movements-link"));
     fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Squ");
-    expect(within(band).getByTestId("format-catalogue-search")).toBeTruthy();
-    expect(within(band).queryByTestId("format-movements-link")).toBeNull();
+    // Demande de Hermann du 05/11/2026 (soir) : « La zone colorée ne doit pas changer de dimension » — recherche figée sous elle.
+    expect(within(band).queryByTestId("format-catalogue-search")).toBeNull();
+    expect(within(screen.getByTestId("format-search-zone")).getByTestId("format-catalogue-search")).toBeTruthy();
+    expect(screen.queryByTestId("format-movements-link")).toBeNull();
     expect(within(screen.getByTestId("format-questionnaire")).getByTestId("format-catalogue-results")).toBeTruthy();
     // Défilement conservé avec un texte saisi (e-cat-defiler).
     expect(screen.getByTestId("format-questionnaire").props.scrollEnabled).toBe(true);
@@ -812,9 +816,11 @@ describe("FormatModelScreen", () => {
     });
     expect(slots.map((style) => style.marginBottom)).toEqual([6, 6]);
     expect(StyleSheet.flatten(screen.getByTestId("format-parameters-title").props.style)).toMatchObject({ marginTop: 16 });
-    // Mode catalogue : en-tête et recherche dans la zone figée, sans décalage.
+    // Demande de Hermann du 05/11/2026 (soir) : zone colorée remontée de 8 (101), ligne « Mouvements » à sa place absolue (101 + 16).
+    expect(withOffset).toBe(101 + 16);
+    // Mode catalogue : la recherche figée se place à l'emplacement de la ligne « Mouvements ».
     fireEvent.press(screen.getByTestId("format-movements-link"));
-    expect(withOffset - content().paddingTop).toBe(8);
+    expect(StyleSheet.flatten(screen.getByTestId("format-search-zone").props.style)).toMatchObject({ top: 101 + 16 });
   });
 
 
