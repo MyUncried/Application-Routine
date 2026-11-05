@@ -61,6 +61,10 @@ Recherche sans focus, invite petite et gris clair, zone colorée fixe remontée 
 
 Carte Résultat de la saisie du nom : ouvre le mouvement. Fiche « Modifier un mouvement » : coche Valider en haut à droite, bouton du bas retiré (erreur d'enregistrement toujours affichée). « Créer un circuit » avec un circuit formaté : non reproduit, déclaré fonctionnel par Hermann ; test ajouté. Tests : 93 suites, 2 048 tests verts (activités, mouvements, en-têtes) ; `tsc` et ESLint propres.
 
+## Complément — titres de modales centrés (05/11/2026)
+
+En-têtes de modale à ✕ (et feuille « Ajouter un mouvement ») : titre centré sur la page. Tests : suite complète 303 suites, 5 363 tests, 1 échec sous charge seulement (`CompositionScreen.recette1`, instabilité connue, verte isolée, aussi avant la modification) ; `tsc` et ESLint propres. Vérification iPhone à faire.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

@@ -48,6 +48,13 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - « Créer un circuit » dans une séance qui porte un circuit formaté : non reproduit, puis constaté fonctionnel par Hermann ; test `CompositionScreen.envelopeFormat`.
 - Tests : `MovementScreen.b2.integration` (carte qui charge le mouvement ; coche en modification ; aide `finishID`).
 
+## 2 sexies. Titres de modales centrés — demande du 05/11/2026 (classe B)
+
+- « Centrer horizontalement tous les titres de modales sur leur page. »
+- `FixedHeader.centeredTitle` (par défaut : `closeIcon` ou `validate`) : titre en calque absolu sur toute la largeur, réserve symétrique mesurée (`onLayout` de l'action gauche et du groupe de droite) ; copie invisible dans la ligne pour garder la hauteur minimale X-4 ; un seul titre exposé à l'accessibilité. `MovementSelectionScreen` en feuille : `centeredTitle`.
+- Déjà centrés, inchangés : `ModalHeader`, `FilterSheetPrimitives`, sélecteurs de référentiel, `FormatModelScreen`, dialogues.
+- Tests : `ScreenShell.test` (3).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

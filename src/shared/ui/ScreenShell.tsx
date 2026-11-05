@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { useState, type ReactNode } from "react";
+import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -76,6 +76,12 @@ export type FixedHeaderProps = {
    * supprimé. Absente : rendu inchangé.
    */
   validate?: { readonly onPress: () => void; readonly enabled: boolean; readonly accessibilityLabel: string };
+  /**
+   * Demande de Hermann du 05/11/2026 : « Centrer horizontalement tous les titres de modales sur leur page. » — titre
+   * centré sur la largeur de la page, quelles que soient les actions de gauche et de droite. Par défaut : en-têtes de
+   * modale (✕ `closeIcon` ou coche `validate`) ; les écrans de navigation gardent leur titre à gauche.
+   */
+  centeredTitle?: boolean;
 };
 
 /**
@@ -113,10 +119,19 @@ export function FixedHeader({
   content,
   topInset,
   validate,
+  centeredTitle,
 }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
   const top = topInset ?? insets.top;
   const backHitSlop = (minTouchTarget - dimensions.backAction.visualCircle) / 2;
+  const centered = content === undefined && (centeredTitle ?? (closeIcon || validate !== undefined));
+  // Titre centré : il est posé sur toute la largeur de l'en-tête, avec une réserve symétrique égale à la plus large
+  // des deux bordures occupées (action de gauche, actions de droite), pour ne jamais passer sous une action.
+  const [headerWidth, setHeaderWidth] = useState(0);
+  const [leftEdge, setLeftEdge] = useState(0);
+  const [rightStart, setRightStart] = useState<number | null>(null);
+  const rightEdge = rightStart === null || headerWidth === 0 ? 0 : Math.max(0, headerWidth - rightStart);
+  const sideReserve = Math.max(leftEdge, rightEdge, layout.screenGutter) + spacing[4];
 
   return (
     <View
@@ -129,6 +144,7 @@ export function FixedHeader({
         horizontalPadding === undefined ? null : { paddingHorizontal: horizontalPadding },
         layoutStyle,
       ]}
+      {...(centered ? { onLayout: (event: LayoutChangeEvent) => setHeaderWidth(event.nativeEvent.layout.width) } : {})}
     >
       {onBack ? (
         <Pressable
@@ -138,6 +154,9 @@ export function FixedHeader({
           hitSlop={backHitSlop}
           style={[styles.backCircle, backCircleStyle]}
           testID="screen-header-back"
+          {...(centered
+            ? { onLayout: (event: LayoutChangeEvent) => setLeftEdge(event.nativeEvent.layout.x + event.nativeEvent.layout.width + backHitSlop) }
+            : {})}
         >
           <KodjoIcon
             name={closeIcon || validate !== undefined ? "control-close" : "control-back"}
@@ -149,13 +168,51 @@ export function FixedHeader({
       ) : null}
       {content !== undefined ? (
         content
+      ) : centered ? (
+        <View
+          pointerEvents="none"
+          style={[styles.centeredTitleLayer, { top, paddingHorizontal: sideReserve }]}
+          testID="screen-header-title-layer"
+        >
+          <Text style={[styles.title, titleStyle, styles.centeredTitle]} accessibilityRole="header">
+            {title}
+          </Text>
+        </View>
       ) : (
         <Text style={[styles.title, titleStyle]} accessibilityRole="header">
           {title}
         </Text>
       )}
-      {trailing ?? null}
-      {validate !== undefined ? (
+      {centered ? (
+        // Place du titre dans la ligne, invisible : elle pousse les actions de droite et garde la hauteur MINIMALE de
+        // l'en-tête (X-4) — l'en-tête grandit encore avec le texte agrandi.
+        <Text
+          style={[styles.title, titleStyle, styles.centeredSpacer]}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          {title}
+        </Text>
+      ) : null}
+      {centered && (trailing != null || validate !== undefined) ? (
+        <View
+          style={styles.trailingGroup}
+          onLayout={(event: LayoutChangeEvent) => setRightStart(event.nativeEvent.layout.x)}
+          testID="screen-header-trailing"
+        >
+          {trailing ?? null}
+          {validate !== undefined ? (
+            <ModalValidateAction
+              onPress={validate.onPress}
+              enabled={validate.enabled}
+              accessibilityLabel={validate.accessibilityLabel}
+              testID="screen-header-validate"
+            />
+          ) : null}
+        </View>
+      ) : null}
+      {!centered ? (trailing ?? null) : null}
+      {!centered && validate !== undefined ? (
         <ModalValidateAction
           onPress={validate.onPress}
           enabled={validate.enabled}
@@ -307,6 +364,27 @@ const styles = StyleSheet.create({
     ...type.screenHeaderTitle,
     flex: 1,
     color: colors.textPrimary,
+  },
+  centeredTitleLayer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  centeredTitle: {
+    flex: 0,
+    textAlign: "center",
+  },
+  centeredSpacer: {
+    flex: 1,
+    opacity: 0,
+  },
+  trailingGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[12],
   },
   separator: {
     height: 1,

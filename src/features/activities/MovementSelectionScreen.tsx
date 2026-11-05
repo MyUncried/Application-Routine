@@ -163,7 +163,7 @@ export function MovementSelectionScreen({ inSheet = false }: { readonly inSheet?
         title={purpose === "BUY_IN" ? strings.screens.formatModel.buyInPickerTitle : strings.screens.activities.addToSession.existingActivity}
         onBack={() => router.back()}
         backAccessibilityLabel={tSelection.backAccessibilityLabel}
-        {...(inSheet ? { topInset: 0 } : {})}
+        {...(inSheet ? { topInset: 0, centeredTitle: true } : {})}
       />
       <ContextBand padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}>
         <CatalogueContextZone

@@ -148,3 +148,42 @@ describe("ScreenShell — X-4 (recette PRE-3, 12/10)", () => {
     expect(screen.getByRole("header").props.numberOfLines).toBeUndefined();
   });
 });
+
+describe("FixedHeader — titres de modales centrés (demande de Hermann du 05/11/2026)", () => {
+  // « Centrer horizontalement tous les titres de modales sur leur page. »
+  function layout(testID: string, x: number, width: number) {
+    fireEvent(screen.getByTestId(testID), "layout", { nativeEvent: { layout: { x, y: 0, width, height: 48 } } });
+  }
+
+  it("en-tête de modale (✕) : titre posé sur toute la largeur, centré, réserve symétrique égale au plus large côté", () => {
+    renderWithSafeArea(
+      <FixedHeader
+        title="Modifier un mouvement"
+        onBack={jest.fn()}
+        backAccessibilityLabel="Fermer"
+        closeIcon
+        validate={{ onPress: jest.fn(), enabled: true, accessibilityLabel: "Valider" }}
+      />,
+    );
+    const layer = screen.getByTestId("screen-header-title-layer");
+    expect(StyleSheet.flatten(layer.props.style)).toMatchObject({ position: "absolute", left: 0, right: 0, alignItems: "center" });
+    expect(StyleSheet.flatten(screen.getByRole("header").props.style).textAlign).toBe("center");
+    layout("screen-header", 0, 390);
+    layout("screen-header-back", 16, 38);
+    layout("screen-header-trailing", 336, 38);
+    // Gauche : 16 + 38 + 5 (cible) = 59 ; droite : 390 − 336 = 54 → réserve 59 + 4 des deux côtés.
+    expect(StyleSheet.flatten(screen.getByTestId("screen-header-title-layer").props.style).paddingHorizontal).toBe(63);
+    // Un seul titre exposé à l'accessibilité.
+    expect(screen.getAllByRole("header")).toHaveLength(1);
+  });
+
+  it("écran de navigation (chevron Retour) : titre inchangé, aligné à gauche", () => {
+    renderWithSafeArea(<FixedHeader title="Profil" onBack={jest.fn()} backAccessibilityLabel="Retour" />);
+    expect(screen.queryByTestId("screen-header-title-layer")).toBeNull();
+  });
+
+  it("centrage forcé (feuille sans ✕) par centeredTitle", () => {
+    renderWithSafeArea(<FixedHeader title="Ajouter un mouvement" onBack={jest.fn()} backAccessibilityLabel="Retour" centeredTitle />);
+    expect(screen.getByTestId("screen-header-title-layer")).toBeTruthy();
+  });
+});
