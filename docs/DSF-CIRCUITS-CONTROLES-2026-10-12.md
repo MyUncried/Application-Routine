@@ -79,3 +79,7 @@ Le [DSF Formats](DSF-FORMATS-SEANCES-2026-10-14.md) et la [référence fonctionn
 ### Cible variable — accès au choix
 
 Toucher la cellule cible ouvre la roulette sur sa cible courante, numérique ou À l’échec. Le choix s’applique à cette cellule seulement. Le pied commun est retiré (D-413) ; chaque cellule utilise le sélecteur de son champ (D-417). ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette.
+
+## Portée remplacée — 5 novembre 2026
+
+Le bouton œil et la fenêtre des Volumes du Circuit (CE-CIR-03) sont retirés de la Composition. Les dispositions datées de ce DSF qui les décrivent ne constituent plus la cible ; les autres contrôles restent applicables. Voir la référence Formats active et le contrat CE-CREATION-01.

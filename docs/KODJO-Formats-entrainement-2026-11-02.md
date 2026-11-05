@@ -1,6 +1,6 @@
 # Mise à jour des spécifications — Formats d'entraînement et portage du format par le circuit
 
-**Référence active — mise à jour du 4 novembre 2026.** [Source finale validée](sources/formats-2026-11-04/KODJO-Mise-a-jour-ecrans-formats-consolidee-2026-11-04_finale.md). Les règles ci-dessous constituent la cible ; elles ne prouvent pas leur réalisation. Les archives OpenSpec restent inchangées.
+**Référence active — mise à jour du 5 novembre 2026.** [Complément final validé du 5 novembre](sources/formats-2026-11-05/KODJO-Complement-Parcours-creation-2026-11-05.md) ; [base du 4 novembre](sources/formats-2026-11-04/KODJO-Mise-a-jour-ecrans-formats-consolidee-2026-11-04_finale.md). Les règles ci-dessous constituent la cible ; elles ne prouvent pas leur réalisation. Les archives OpenSpec restent inchangées.
 
 Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » (`510:101`). Les noms exacts des frames sont des références ; les paramètres, parcours et règles ci-dessous constituent la cible fonctionnelle. Galerie et statut des exports : chapitre 06, ancre formats-galerie. La configuration appartient à PRE-9 ; le moteur spécialisé reste PRE-10/11.
 
@@ -113,7 +113,7 @@ La ligne n'existe que dans ces deux Circuits, et y est toujours présente ; « T
 
 La modale d'un buy-in n'a ni ligne Séries ni ligne Pause : aucune modale AMRAP n'a de Séries, le tour en tient lieu, et le temps qui suit le buy-in est sa Récupération.
 
-**Incrément par tour (AMRAP).** La ligne est **toujours présente** dans la modale d'un Exercice AMRAP, à « + 0 » par défaut ; on la laisse à 0 quand on n'en veut pas. Elle s'exprime dans l'unité de l'objectif : « + 2 rép. » en Répétitions, « + 5 s » en Durée (par exemple un gainage qui s'allonge à chaque tour). Elle est **grisée**, non modifiable, quand elle ne peut rien porter :
+**Incrément par tour (AMRAP).** Ligne toujours présente, +0 par défaut, signe positif/négatif ; calcul borné à 1 dans l’unité, sans fin automatique de boucle. Inactif pour Buy-in et À l’échec.
 - Rôle Buy-in : pas de tour suivant ;
 - Condition d'arrêt À l'échec : pas d'objectif chiffré à augmenter.
 
@@ -161,11 +161,11 @@ Tout Exercice ajouté ou déplacé dans un Circuit porteur d’un Format suit le
 
 | Circuit | Paramètres de l’Exercice | Paramètres portés par le Circuit / retirés de la saisie locale |
 |---|---|---|
-| AMRAP | Mode Répétitions ou Durée ; cible par passage ou À l’échec ; Incrément par tour en Répétitions ou Durée ; Rôle ; Récupération ; autres paramètres standards compatibles | Séries et durée globale ; l’Objectif de durée d’un passage reste local en mode Durée |
+| AMRAP | Mode Répétitions ou Durée ; cible par passage ou À l’échec ; Incrément par tour signé en Répétitions ou Durée ; Rôle ; Récupération ; autres paramètres standards compatibles | Séries et durée globale ; l’Objectif de durée d’un passage reste local en mode Durée |
 | For time | Mode Répétitions ou Durée sous la garde du §3, Condition d’arrêt À l’objectif ; Séries identiques ou variables, nombre = nombre de tours ; Cadence facultative sans incidence sur les durées ; Rôle ; Récupération initiale 0 s ; Durée de l’exercice héritée, grisée | Borne temporelle et compte du Circuit ; la borne reste rappelée en lecture seule, exception explicite au retrait (§11) |
 | EMOM dans chaque intervalle | Mode Répétitions par défaut ou Durée, Condition d’arrêt, cible chiffrée propre au mode, Charge, Récupération initiale 0 s ; autres paramètres standards compatibles | Séries, Intervalle, Durée de l’exercice |
-| Death by dans chaque intervalle | Mode Répétitions, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, Cadence Sans, Récupération initiale 0 s | Compte ouvert et intervalle commun du Circuit ; durée globale non portée localement |
-| Death by en alternance | Mode Répétitions, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, **Intervalle propre modifiable dans la modale**, Cadence Sans, Récupération initiale 0 s | Identité Death by et compte ouvert au Circuit ; aucune durée dans son en-tête |
+| Death by dans chaque intervalle | Mode Répétitions ou Durée, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, Cadence Sans, Récupération initiale 0 s | Compte ouvert et intervalle commun du Circuit ; durée globale non portée localement |
+| Death by en alternance | Mode Répétitions ou Durée, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, **Intervalle propre modifiable dans la modale**, Cadence Sans, Récupération initiale 0 s | Identité Death by et compte ouvert au Circuit ; aucune durée dans son en-tête |
 
 6. **Déplacement direct entre deux Circuits porteurs de Formats** : seule la règle d’entrée du Circuit d’arrivée s’applique. Les paramètres compatibles sont conservés et les autres à compléter, sans confirmation de perte, sans étape intermédiaire d’Exercice seul et sans choix de sortie du §13. Un Circuit ne se déplace pas à l’intérieur d’un autre Circuit.
 7. **Dernier Exercice du Circuit** :
@@ -193,32 +193,38 @@ Une boucle AMRAP ou For time doit conserver au moins un membre de Rôle Tour. Le
 
 ## 7. Parcours de composition
 
-Écrans Figma de référence (page « Prototype MVP ») : rangée des formats, « AMRAP — … », et rangée des modales, « AMRAP — … ».
+Une seule **modale de création** est ouverte depuis deux endroits :
+- le bouton **Créer** du **Catalogue des séances** ;
+- l'option **Créer un exercice** du menu Créer de la **Composition**.
 
-Entrée : Catalogue des séances → Créer → Composition de séance → menu Créer → « Utiliser un format d'entraînement » → fenêtre « Formats d'entraînement » → AMRAP → questionnaire.
+Elle propose :
+- **Exercice libre** : la fiche de création d'un exercice vierge, mouvement puis paramètres d'exécution (parcours existant « Ajouter un exercice ») ;
+- **les Formats**, dans la grille à deux colonnes existante : chaque Format ouvre son questionnaire, puis son récapitulatif.
 
-Fenêtre « Formats d'entraînement » (écran « P-Formats — Choix du format, deux colonnes ») :
+| Départ | Choix | Suite | Arrivée |
+|---|---|---|---|
+| Catalogue des séances, Créer | Exercice libre | Fiche de création : mouvement, puis paramètres | Composition d'une **nouvelle** Séance, contenant cet Exercice |
+| Catalogue des séances, Créer | Un Format | Questionnaire, récapitulatif, « Enregistrer dans la séance » | Composition d'une **nouvelle** Séance, contenant la structure du Format |
+| Composition, Créer un exercice | Exercice libre | Fiche de création | Retour à la Composition, Exercice ajouté |
+| Composition, Créer un exercice | Un Format | Questionnaire, récapitulatif | Retour à la Composition, structure ajoutée |
+
+*(Annotations de recette PRE-9 conservées à la fusion de `main` aab49948 le 05/11/2026 : elles restent applicables tant que le complément du 5 novembre ne les remplace pas.)*
 
 [04/11/2026 (essai adopté), Hermann : « Pourquoi la modale des formats ne bénéficie-t-elle pas de cet effet "lumière" qui est appliqué à la modale de présentation de la fiche des mouvements ? » ; « On garde cette modale native pour les questionnaires, les récapitulatifs, les fiches de mouvement. Applique-la aussi à la modale du format d'entraînement » ; « et l'utiliser aussi pour la modale du catalogue des mouvements lorsqu'on l'appelle à partir du bouton Créer » ; « On adopte le native d'iOS ». La fenêtre « Formats d'entraînement », le questionnaire, le récapitulatif et le Catalogue des mouvements ouvert par Créer sont des **feuilles natives iOS** (effet Liquid Glass du système) : la fenêtre Formats monte du bas, pleine largeur, ajustée à ses cartes ; un modèle ouvre son questionnaire **empilé** sur elle ; la croix du questionnaire et « Enregistrer dans la séance » reviennent à la Composition ; le voile est celui d'iOS ; fond blanc sur toute la hauteur de la feuille. Remplace la fenêtre centrée sur un fond voilé, la fermeture par tap sur le voile (non garantie par la feuille native, à constater en recette) et la règle « le voile déjà en place reste et accueille la modale » ; registre ch07, « Recette iPhone du 04/11/2026 ».]
 
-- le menu Créer s'efface ; la fenêtre s'affiche sur la composition de séance, sous le même fond voilé, avec une marge à gauche et à droite ; pas de barre de navigation ;
-- titre « Formats d'entraînement » et croix de fermeture dans la fenêtre ; un tap sur le fond voilé ferme aussi la fenêtre et ramène à la composition ;
-- tous les formats (formats spécifiques et départs rapides) s'affichent dans une seule grille sur deux colonnes, sans défilement et sans distinction visible : l'utilisateur choisit selon son objectif, la différence apparaît dans le questionnaire et les paramètres ;
-- le choix ouvre le questionnaire en modale sur la Composition. Le questionnaire et le récapitulatif sont des **modales sur la Composition**, ouvertes par le bas, pleine largeur, sous le titre de Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers la Composition ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes.
 
-Référence 402 × 874 : modale à y=95, pleine largeur, coins hauts 24 px, coins bas carrés, sans poignée. En-tête « DSF / Overlays / En-tête de modale », variante Sélection sans validation ; titre Inter Semi Bold 18 centré, croix au questionnaire et icon/retour au récapitulatif. Fond transparent et trait masqué uniquement dans ces modales Formats ; la Fiche du mouvement conserve fond blanc et trait. Zone de contexte 109 px depuis le haut de la modale, couleur et motif du Format ; tagline centrée 14/20 sur deux lignes. Bouton à y=802 de l’écran de référence et déroulé 25 px au-dessus. Contenu défilant, bouton en bas, clavier au premier plan ; ces cotes décrivent le rendu de référence, pas une hauteur fixe imposée à tous les appareils. Valeurs non modifiables et colonnes numériques alignées sur le texte des valeurs modifiables, avec un retrait de 10 px par rapport au bord droit de leur pastille.
+- **Nouvelle Séance depuis le catalogue** : un nouveau **brouillon** de Séance est ouvert à l’arrivée dans la Composition, avec son contenu déjà en place. La sauvegarde définitive n’intervient qu’à la validation de la Composition ; son nom se saisit dans la Composition (le parcours Format n'affiche plus le nom de la Séance). Quitter la Composition sans enregistrer déclenche la confirmation d'abandon existante.
+- **Fermer** la modale de création, le questionnaire (croix) ou la fiche de création sans valider : retour au point de départ, aucune Séance enregistrée créée ni modifiée. Le point de départ du parcours est conservé pour revenir au Catalogue ou à la Composition concernée, sans altérer son état antérieur.
+- La modale de création remplace, depuis le catalogue, l'ouverture directe d'une Composition vide.
 
-[03/11/2026, Hermann : « Il faut être homogène entre tous les écrans similaires, "Valider ces paramètres" pour passer du questionnaire initial au récapitulatif avec les données à compléter, "Enregistrer dans la séance" lorsque le prochain écran est la séance. » — appliqué alors avec « Enregistrer dans la séance » dès le questionnaire pour Tabata, 30/30, EMOM, Death by, Renforcement, Superset et À l'échec. Remplacé le 04/11/2026 par la mise à jour consolidée (§2 bis) : tous les questionnaires portent « Valider les paramètres » et ouvrent un récapitulatif ; le principe d'homogénéité est conservé. Fusion du 04/11/2026 de `main` 560f87bd dans `pre9-bmad/dev`.]
+Le menu passe de cinq à **trois** options, dans cet ordre :
+1. **Créer un exercice** : ouvre la modale de création (§1) ;
+2. **Créer un circuit** : comportement actuel de « Ajouter un circuit » (choix de l'emplacement) ;
+3. **Créer un cycle** : comportement actuel de « Ajouter un cycle ».
 
-Le menu Créer de la composition de séance propose :
-- Créer un exercice → fiche d'exercice ;
-- Utiliser des mouvements existants → modale Catalogue des mouvements ;
-- Utiliser un format d'entraînement → fenêtre « Formats d'entraînement » (les formats libres « Un exercice » et « Une séance » n'y figurent plus), puis questionnaire du format ;
-- Ajouter un circuit ; Ajouter un cycle.
+« Utiliser des mouvements existants » et « Utiliser un format d'entraînement » sont retirés du menu : la sélection d'un mouvement existant se fait dans la fiche de création (suggestions pendant la saisie du nom, ou mode catalogue), et les Formats sont dans la modale de création. Les autres règles du menu sont conservées : bouton + transformé en Annuler, voile, axe vertical (qui s'arrête à Créer un cycle), fermeture.
 
-Ce menu comporte cinq options, dans cet ordre. Il remplace MENU-FMT-01, ARB-05 dans sa portée sur les cartes Exercice/Séance et le départ Libre de la grille, ainsi que l’ancienne liste à quatre options. « Utiliser une séance existante » n’est plus proposée ici ; B.8 est développée et recettée selon Hermann le 02/11 ; la nouvelle liste de menu ne supprime pas son comportement livré. La fenêtre des Formats ne présente plus les cartes « Un exercice » / « Une séance ». Le comportement +/Annuler, l’axe et le voile du menu existant restent applicables.
-
-Quel que soit le chemin emprunté, la validation de la séance ramène au Catalogue des séances, actualisé.
+Questionnaires et récapitulatifs conservent les gabarits modaux, Retour au questionnaire et le contenu du parcours. Depuis le Catalogue, leur fond visuel ne vaut pas création ni sauvegarde d’une Séance vide. Le récapitulatif ajoute au nouveau brouillon ou au brouillon existant selon le point de départ ; la réédition d’un Circuit garde son parcours et son bouton distinct « Enregistrer les modifications » (§7.9).
 
 ### 7.1 Questionnaire (« AMRAP — Questionnaire »)
 
@@ -285,85 +291,85 @@ Affiché seulement si l’interrupteur Buy-in est activé. Mode catalogue dans l
   - « AMRAP — Modale exercice simple, à la cible » et « … à l'échec ».
 
 <a id="formats-formulaire-controles"></a>
-### 7.6 Tableaux, champs standards et contrôle du formulaire
+### 7.6 Tableaux et données effectives
 
-**Principe.** Chaque ligne d'un tableau de récapitulatif correspond à **un Exercice** de la structure créée. Ses cases écrivent directement dans les **champs standards de cet Exercice**. Il n'y a pas de second stockage : rouvrir le récapitulatif ou la modale de l'Exercice montre les mêmes valeurs.
+Les unités proposées restent limitées par le modèle et le contexte de l’Exercice ; le tableau ci-dessous ne généralise pas Durée à l’AMRAP autonome ni à un autre cas qui l’exclut. Le principe du §7.6 de la référence Formats est inchangé : chaque ligne d'un tableau correspond à un Exercice, et chaque case écrit dans un champ standard de cet Exercice, sans second stockage. Correspondances à jour :
 
-| Tableau | Case | Champ de l'Exercice alimenté |
+| Format et tableau | Case | Champ de l'Exercice alimenté |
 |---|---|---|
-| EMOM — Mouvement \| Objectif | Unité choisie au clavier (Répétitions / Durée) | **Mode d'exécution** = Répétitions / Durée |
-| | Objectif, en Répétitions | **Nombre de répétitions** (cible chiffrée de chaque série) |
-| | Objectif, en Durée | **Objectif de durée** (de chaque série) |
-| Death by — Mouvement \| Départ \| Incrément | Départ | **Nombre de répétitions** de départ |
-| | Incrément | **Incrément par intervalle** (au minimum + 1) |
-| AMRAP — Mouvement \| Objectif \| Par tour \| Max | Unité choisie au clavier | **Mode d'exécution** = Répétitions / Durée |
-| | Objectif | **Nombre de répétitions** (lu « par tour ») ou **Objectif de durée** |
-| | Par tour | **Incrément par tour** |
-| | Max | **Condition d'arrêt** = À l'échec (Objectif et Par tour grisés, inactifs ; Charge modifiable) |
+| Tous les tableaux | Colonne Unité, ou unité choisie au clavier | **Mode d'exécution** = Répétitions / Durée |
+| Tous les tableaux | « (+ kg) » / « (− kg) » | **Charge** = Avec / Sans (restauration dans le brouillon seulement, §16 du complément du 5 novembre) |
+| Tous les questionnaires | Interrupteur « Avec charge » désactivé | **Charge** = Sans pour tous les Exercices (restauration dans le brouillon seulement, §16 du complément du 5 novembre) |
+| Progression — S1…Sn | Objectif et charge de la série k | **Séries variables** : cible et charge de la série k |
+| For time — Tour 1…n | Objectif et charge du tour k | **Séries variables** : cible et charge de la série k ; nombre de séries = nombre de tours |
+| Superset — Tour 1…n | Objectif et charge du tour k | **Séries variables** : cible et charge de la série k ; nombre de séries = nombre de tours (Circuit standard à séries alternées : A1, B1, récupération, A2, B2…) ; « Récupération après le tour » = **Récupération** du dernier Exercice |
+| EMOM — S1…Sn | Objectif et charge de la série k | **Séries variables** : cible et charge de la série k ; nombre de séries = Nombre de séries de l'EMOM |
+| Tabata, 30/30 — Objectif \| Pause \| Charge | Objectif | **Objectif de durée** (ou Nombre de répétitions) de chaque série, **séries identiques** |
+| | Pause | **Pause** après chaque série |
 | | Charge | **Charge** commune de l'Exercice |
-| Progression — Mouvement \| Unité \| S1…Sn | Objectif de la série k | **Séries variables** : cible de la série k |
-| | Charge de la série k | **Séries variables** : charge de la série k (seulement si la Charge de l'Exercice est « Avec » ; case vide = série sans charge, aucune valeur 0) |
-| For time — Mouvement \| Unité \| Tour 1…n | Objectif du tour k | **Séries** : cible de la série k (nombre de séries = nombre de tours) |
-| | Charge du tour k | Charge de la série k |
-| EMOM — Charge \| + / série | Charge et incrément | **Charge par série** : charge de départ sur la première série, augmentée de l'incrément à chaque série suivante. Les charges par série font référence ; départ et incrément sont une saisie qui les calcule (§7.7) |
+| Renforcement — Objectif \| Pause \| Charge | Objectif | **Nombre de répétitions** (ou Objectif de durée) de chaque série, séries identiques |
+| | Pause, Charge | **Pause** après chaque série ; **Charge** commune |
+| À l'échec — Objectif \| Pause \| Charge | Objectif | **Condition d'arrêt** = À l'échec, dans le Mode choisi ; séries identiques |
+| | Pause, Charge | **Pause** après chaque série ; **Charge** commune |
+| AMRAP — Objectif \| Par tour \| Charge \| Max | Objectif, Par tour, Max | Inchangé (§7.6 de la référence Formats) |
+| | Charge | **Charge** commune |
+| Death by — Départ \| Incrément \| Charge | Départ | **Objectif de départ** (répétitions ou durée, §13 du complément du 5 novembre) |
+| | Incrément | **Incrément par intervalle** (au minimum + 1 dans l'unité) |
+| | Charge | **Charge** commune |
+| Un seul mouvement (Tabata, 30/30, Renforcement, À l'échec) | Ligne Charge sous Durée totale | **Charge** commune |
 
-**Valeurs initiales.** À la création, chaque ligne reçoit les valeurs initiales du Format : EMOM en mode Répétitions ; Death by au départ 1 et à l'incrément + 1 ; Progression à 10, 12 et 14 ; AMRAP selon le questionnaire. Seules les valeurs effectivement initialisées depuis le Profil gardent le fond orange avant la première validation (§14.3 de la référence Formats).
+**Préremplissage et réouverture.** La copie de la valeur de S1 concerne l’EMOM et le Superset décrits ici. Elle ne remplace pas les valeurs initiales propres aux autres modèles : la Progression conserve notamment 10 / 12 / 14 ; une échelle For time explicitement choisie n’est pas uniformisée. Les cases initiales non définies restent à renseigner, sans prendre les chiffres illustratifs Figma comme défauts. L’ajout ultérieur de séries/tours conserve les règles existantes de nouvelles cases à compléter. À la réouverture (« Modifier le format »), les cases affichent les valeurs effectives de chaque série, sans réinitialisation ni changement silencieux Identiques/Variables. Un réglage commun dont les valeurs diffèrent entre Exercices affiche « variable » (§7.9 de la référence Formats).
 
-[04/11/2026 (recette iPhone), Hermann : « EMOM : Aucun mode d'exécution par défaut, le champ de valeur a un fond rouge » — à la création, une ligne EMOM n'a pas d'unité : objectif « à renseigner » (fond rouge), l'unité se choisit au clavier (Répétitions | Durée). Remplace « EMOM en mode Répétitions » / « Répétitions par défaut » ; registre ch07, « Recette iPhone du 04/11/2026 ».] [04/11/2026 (recette iPhone), Hermann : « remplacer "A renseigner" par un trait horizontal » (EMOM et AMRAP) — une case à renseigner affiche « — » sur fond rouge.]
+**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
 
-**Changement d'unité (tous les tableaux).** Passer une ligne de Répétitions à Durée, ou l'inverse, au clavier, change le Mode de l'Exercice. L'objectif devient **« à renseigner »** dans la nouvelle unité. Il n'y a ni conversion entre répétitions et secondes ni valeur inventée. Le reste de l'Exercice est conservé : séries, charge, côtés, phases compatibles. C'est la même règle que pour les entrées et les sorties de Circuit (§6).
+*(Annotations de recette PRE-9 conservées à la fusion de `main` aab49948 le 05/11/2026 : elles restent applicables tant que le complément du 5 novembre ne les remplace pas.)*
 
-**Enregistrement — décision de Hermann du 3 novembre.** Le récapitulatif est un formulaire : **« Enregistrer dans la séance » (ou « Enregistrer les modifications » à la réouverture, §7.9) n'est actif que si tous les paramètres à renseigner le sont et si la configuration est cohérente**. Un objectif « à renseigner » (par exemple après un changement de mode) ou des durées EMOM incompatibles avec l'intervalle (ci-dessous) désactivent le bouton. La valeur manquante est signalée dans son cadre. L'état « Paramètres à compléter » reste réservé aux Exercices modifiés après coup dans la Composition (entrée dans un Circuit, sortie d'un Format, §6 et §13 de la référence Formats) ; il ne s'applique pas à la sortie du parcours Format.
+[04/11/2026 (recette iPhone), Hermann : « EMOM : Aucun mode d'exécution par défaut, le champ de valeur a un fond rouge » — à la création, une ligne EMOM n'a pas d'unité : objectif « à renseigner » (fond rouge), l'unité se choisit au clavier (Répétitions | Durée). Remplace « EMOM en mode Répétitions » / « Répétitions par défaut » ; registre ch07, « Recette iPhone du 04/11/2026 ».]
 
-**Cohérence avec la modale.** Les valeurs du tableau et celles de la modale de l'Exercice sont **les mêmes données**. Modifier l'une modifie l'autre.
+[04/11/2026 (recette iPhone), Hermann : « remplacer "A renseigner" par un trait horizontal » (EMOM et AMRAP) — une case à renseigner affiche « — » sur fond rouge.]
 
-**Durées incompatibles avec l'intervalle (EMOM) — décision de Hermann du 3 novembre.**
-- **Condition** : la durée de travail prévue dans un intervalle **atteint ou dépasse** cet intervalle.
-  - **Travail prévu d'un Exercice** : son objectif de durée, multiplié par 2 s'il est fait de chaque côté, plus la pause entre les côtés si elle s'applique (40 s de chaque côté = 80 s au moins).
-  - EMOM simple, en alternance ou à la suite : le travail prévu d'un Exercice est supérieur ou égal à son Intervalle (70 s pour 60 s).
-  - EMOM dans chaque intervalle : la **somme** du travail prévu des membres est supérieure ou égale à l'intervalle commun (30 s + 30 s pour 60 s). Les membres en Répétitions comptent pour 0, puisque leur durée n'est pas connue : le contrôle porte sur la durée connue et ne garantit pas que l'ensemble tiendra dans la fenêtre.
-- **Effet** :
-  1. **Informer** : un message sous le tableau, par exemple « Les durées atteignent ou dépassent l’intervalle de 1 min : il ne reste pas de temps pour le reste du travail ni pour le repos. » ;
-  2. mettre **sur fond rouge** le cadre des valeurs concernées (les objectifs de durée en cause et l'intervalle) ;
-  3. **bloquer la validation** : « Enregistrer dans la séance » est désactivé tant que la condition est remplie.
-- La même règle s'applique dans la modale de l'Exercice et dans l'en-tête du Circuit quand on modifie l'objectif ou l'intervalle après l'enregistrement : la valeur passe en rouge et la validation de la modale est bloquée.
-- Le moteur n'a pas de cas particulier à traiter : une configuration dans cet état n'est jamais enregistrée.
 
-#### Saisie au clavier
+**Death by — cible du 5 novembre.** Répétitions ou Durée, Objectif de départ et Incrément ≥ +1 dans l’unité. Seul un premier rang dont le travail connu atteint ou dépasse l’intervalle déclenche un avertissement non bloquant ; sauvegarde autorisée si les autres champs sont valides. À l’exécution, ne pas lancer un rang dont ce travail atteint ou dépasse la fenêtre : arrêt après le précédent, résultat « limite de l’intervalle atteinte », aucun échec ni tentative fictifs. En Durée : deux côtés et pause applicable, somme des membres en fenêtre commune ou intervalle du membre en alternance. Rangs acquis et rang courant distincts ; durée partielle renseignée seulement pour une fenêtre réellement tentée et non tenue. Les autres règles de fin et d’achèvement Death by restent applicables ; aucune fenêtre prolongée. Exemple 10 s puis +10 s / 60 s : cinq rangs réussis, arrêt avant le rang 6. La progression future compatible au départ ne déclenche pas d’avertissement.
 
-**Règle.** Dans les tableaux AMRAP et EMOM, un appui sur la case **Objectif** d'un mouvement ouvre le **clavier numérique** décrit pour la Progression (§9.3), sans roulette ni modale :
-1. **ligne sans unité** : la barre affiche **Répétitions**, **Durée** et **Fermer** ;
-2. **unité choisie** : elle reste affichée en état sélectionné, suivie de **Précédent**, **Suivant** et **Fermer** ; l'utilisateur tape la valeur. Suivant suit l’ordre des champs applicable au Format (§7.7), en sautant les cases inactives ;
-3. **nouvel appui sur l'unité** : la barre repropose les deux unités ;
-4. **affichage** : la case porte la valeur avec son unité (« 12 rép. », « 45 s », « 1 min 30 »), et le Mode de l'Exercice est mis à jour. La case en cours de saisie est surlignée.
+Les paramètres requis absents ou invalides bloquent l’enregistrement ; l’avertissement temporel Death by du §12 constitue une exception non bloquante. Les défauts Profil réellement repris restent orange avant première validation, sans confondre défauts des modèles et du Profil.
 
-L'Incrément par tour suit l'unité de l'objectif (« + 2 », « + 5 s »).
+### 7.7 Charges des modèles et restauration temporaire
 
-**Changement d'unité.** Il n'y a aucune conversion : la valeur repasse « à renseigner ».
+**Règle.** En Progression et en For time, la charge se décide **mouvement par mouvement**, dans le tableau du récapitulatif. Une même Progression ou un même For time associe souvent un mouvement chargé et un mouvement au poids du corps : la décision se prend par mouvement, une fois l'interrupteur « Avec charge » activé.
 
-**Unités proposées selon le contexte.** AMRAP à un seul Exercice : Répétitions seulement. Exercice d'un Circuit AMRAP, EMOM, Progression : Répétitions ou Durée. For time : Répétitions ou Durée, pour les buy-in, buy-out et Exercices de la boucle, sauf si ce changement supprimerait le dernier Exercice en Répétitions de l’ensemble du Circuit, buy-in et buy-out compris (§3). La barre du clavier ne propose que les unités autorisées. **Max** (AMRAP) reste le bouton radio de la ligne : actif, il grise la case Objectif, qui ne s'ouvre pas.
+- **À la création**, chaque mouvement n’a que sa ligne d’objectif tant qu’aucune charge n’est activée pour lui. À la réouverture, son état effectif et ses valeurs sont repris (§16 du complément du 5 novembre).
+- **Un bouton sur chaque ligne**, dans la colonne Unité, en bleu KODJO, qui bascule selon l'état :
+  - **« + kg »** (mouvement sans charge, sous « rép. ») : ajoute la ligne de charge de ce mouvement (cases « — ») et ouvre le clavier sur la première série (ou le premier tour) ;
+  - **« − kg »** (mouvement avec charge, en face de la ligne de charge) : retire la ligne. Dans le même brouillon non sauvegardé, les valeurs saisies sont conservées sans s’appliquer et reviennent si l’on touche à nouveau « + kg » (§16 du complément du 5 novembre).
+- **Ligne de charge** : sous l'objectif, valeurs avec leur unité (« 10 kg »), modifiables au clavier (Précédent, Suivant, Fermer ; pavé décimal avec virgule).
+- **Vider toutes les cases** retire la ligne à la fermeture du clavier, et « + kg » revient ; il n’y a rien à restaurer.
+- **Présentation** : sur la ligne de charge, les valeurs s'affichent entre parenthèses avec leur unité (« (12 kg) », case vide « (—) »), et le bouton aussi (« (+ kg) », « (− kg) »), pour distinguer la charge de l'objectif. C'est un affichage seulement : la valeur reste un nombre décimal (12,5 kg possible). Même présentation en Progression, For time et Superset.
+- **Données** : « + kg » met la Charge de l'Exercice sur « Avec » ; une ligne vidée la remet sur « Sans ».
+- **Réouverture** (« Modifier le format ») : chaque mouvement affiche son état effectif ; l’interrupteur global suit la règle du §16.
 
-**Remplacements.** En EMOM, la colonne Mode et son popover sont supprimés. En AMRAP, le champ d'unité séparé est supprimé.
+**Interrupteur du questionnaire.** Progression et For time comportent « Avec charge », désactivé par défaut, selon le §16. Son activation rend disponibles les commandes locales ; la charge reste facultative pour chaque mouvement.
 
-**Écrans :** « AMRAP — Récapitulatif, saisie de l'objectif au clavier (répétitions) » et « AMRAP — Récapitulatif, saisie de l'objectif au clavier (durée) ».
+**Écrans Figma :** questionnaires Progression et For time avec interrupteur ; récapitulatifs et états clavier avec « (+ kg) » sur les mouvements sans charge et « (− kg) » sur les mouvements chargés ; « Progression — Récapitulatif, ajout d’une charge (+ kg) ».
 
-### 7.7 Charges des Formats
+**Documentation :** référence Formats (Progression §9.2–9.3, For time §11), ch13 (tableaux des récapitulatifs).
 
-**Règle.** Les questionnaires For time, AMRAP et EMOM comportent le même interrupteur **« Avec charge »** que la Progression, **désactivé par défaut** : la charge est souvent prescrite dans ces formats (par exemple Fran, thrusters à 43 kg ; kettlebell en AMRAP ou EMOM). Il n'existe que dans le questionnaire.
-- **Activé, For time** : présentation et fonctionnement identiques à la Progression : colonne Unité, une colonne par tour (Tour 1, Tour 2, Tour 3 ; 4 colonnes visibles au plus, défilement au-delà), **une charge par tour** sous l'objectif (40 / 45 / 50 kg), car elle varie souvent d'un tour à l'autre ; les tours sont préremplis avec la même valeur. Même clavier. [05/11/2026, recette iPhone (Hermann) : « L'espace vertical entre les deux lignes (durée / rep et charge) doit être minimum. Suggestion : Une seule zone tactile utile qui est la première, la charge s'atteint avec les boutons suivant / précédent du clavier » — objectif et charge serrés, la charge n'a pas de zone tactile propre (Précédent / Suivant, ordre de Suivant inchangé) ; « Une durée de 12 min 28 s ne tient pas dans le tableau, si besoin ne présenter que les deux premières colonnes » — dès qu'une ligne est en durée, colonnes élargies (deux tours visibles environ, défilement au-delà) ; unité calée au plus près des tours ; « Le tableau doit être entouré d'un cadre identique à celui des autres paramètres d'exécution, dédié » — cadre propre, zones de saisie blanches. Remplace « tableau sans cadre » (recette du 04/11) et, pour les lignes en durée, « 4 colonnes visibles au plus » ; registre ch07, « Recette iPhone du 05/11/2026 — décisions de Hermann ».]
-- **Activé, EMOM** : pas de tableau de séries. Le tableau compte trois colonnes de valeurs : **Objectif** (valeur avec son unité, « 10 rép. », « 30 s »), **Charge** de départ (« 12 kg », « — » tant qu'elle n'est pas renseignée) et **+ / série**, l'incrément de charge appliqué à chaque série (« + 2,5 kg », par exemple 3 soulevés de terre chaque minute en ajoutant 5 kg), à « + 0 » par défaut, soit une charge fixe. Même clavier pour l'unité de l'objectif.
-- **Activé, AMRAP** : **charge fixe** (on ne change pas de charge en cours d'AMRAP). Quatrième colonne **Charge** entre Par tour et Max ; colonnes resserrées : Objectif, Par tour, Charge, Max. Une seule valeur d'objectif par mouvement, avec l'unité à côté de la valeur ; même clavier. Max grise l'Objectif et Par tour, **pas la Charge** : un max de répétitions se fait avec une charge.
-- [04/11/2026 (recette iPhone), Hermann : « l'incrément de charge peut être négatif » ; saisie par un bouton « ± » de la barre du clavier (pavé numérique iOS sans signe) ; « Arrêter à 0 — Les séries concernées passent sans charge (0), une simple mention en gris sous la ligne, sans alerte ni blocage : "sans charge à partir de la série X" ». Registre ch07, « Recette iPhone du 04/11/2026 ».]
-- **Référence des charges EMOM** : ce sont les charges effectives de chaque série de l'Exercice. Départ et incrément servent à les calculer (12 kg, + 2,5 kg, 6 séries → 12 ; 14,5 ; 17 ; 19,5 ; 22 ; 24,5 kg). Si une série a été modifiée ensuite dans la modale, le récapitulatif affiche le départ et « variable » dans « + / série » ; il ne réécrit jamais la suite de lui-même. Modifier l’incrément recalcule toutes les séries ; une confirmation est demandée uniquement si ce recalcul écrase des charges personnalisées. Aucune confirmation n’est nécessaire lors de la première saisie. L'incrément est grisé tant qu'aucune charge de départ n'est renseignée.
-- **Commun** : la charge est facultative : laissée vide, le mouvement est fait **sans charge**, sans valeur 0 enregistrée (les tractions de Fran) ; elle ne bloque pas l'enregistrement. Saisie au clavier numérique avec la virgule.
-- **Ordre de Suivant** : Progression et For time, objectif S1 → Sn (ou Tour 1 → n), puis charges, puis ligne suivante ; AMRAP, Objectif → Par tour → Charge → ligne suivante ; EMOM, Objectif → Charge → + / série → ligne suivante. Les cases grisées sont sautées.
-- **Désactivation après saisie** : désactiver « Avec charge » (retour au questionnaire) applique la règle existante : les valeurs sont conservées mais ne s'appliquent pas tant que la charge est « Sans ».
-- **Désactivé** : aucune charge n'est affichée ni créée.
-- **Après l'enregistrement**, la charge se modifie dans la modale de l'Exercice.
+**Règle.** Chaque questionnaire d'un Format où une charge peut s'appliquer comporte l'interrupteur **« Avec charge »**, désactivé par défaut : Progression, For time, Superset, Tabata, 30/30, Renforcement, À l'échec, AMRAP, EMOM, Death by.
+- **Activé** : les options de charge apparaissent dans le tableau du récapitulatif : bouton « (+ kg) » / « (− kg) » par mouvement et ligne de charge (Progression, For time, Superset, EMOM), ou colonne Charge (AMRAP, Tabata, 30/30, Renforcement, À l'échec, Death by). La décision reste prise **mouvement par mouvement**.
+- **Renforcement et À l'échec** (structure de séries identiques, comme le 30/30) : un seul mouvement → ligne Charge sous Durée totale ; plusieurs → tableau **Mouvement | Objectif | Pause | Charge** dans son propre cadre (« 15 rép. » / « à l'échec », « 1 min » / « 2 min »), lignes communes « Répétitions par série » ou « Cible par série » et « Pause » retirées des paramètres. Une charge fixe par mouvement ; une charge qui évolue d'une série à l'autre relève de la Progression.
+- **Death by** : colonne **Charge** ajoutée au tableau Mouvement | Départ | Incrément, une charge fixe par mouvement (par exemple Death by thrusters à 20 kg).
+- **Désactivé** : aucune option de charge n'apparaît ; le tableau reste plus lisible pour une séance au poids du corps.
+- **Réouverture** : l'interrupteur reprend l'état effectif (activé si au moins un Exercice a sa Charge sur « Avec », §7.9 de la référence Formats). Dans le même brouillon non sauvegardé, désactiver puis réactiver l’interrupteur retrouve les mouvements précédemment chargés et leurs valeurs ; ceux qui étaient sans charge le restent. La même restauration temporaire s’applique aux boutons locaux. Une première activation globale rend les commandes disponibles sans charger automatiquement tous les mouvements.
 
-Tabata et 30/30 n'ont pas cet interrupteur : ils se font presque toujours au poids du corps, et la modale de l'Exercice suffit.
+**Portée de la restauration.** Elle suit le fonctionnement des Paramètres d’exécution dans la même session d’édition, avant sauvegarde. Elle ne crée aucune nouvelle obligation de mémorisation après sauvegarde : une ouverture ultérieure lit l’état effectif enregistré selon les règles de persistance existantes. Vider volontairement une valeur n’équivaut pas à la masquer : les valeurs effacées ne sont pas restaurées automatiquement.
 
-**Écrans :** interrupteur sur « For time — Questionnaire », « EMOM — Questionnaire » (entre Repos et Durée totale), « AMRAP — Questionnaire » et ses variantes (« … plusieurs blocs », « … saisie d'un mouvement », « AMRAP — Choix des mouvements », « AMRAP — Choix du buy-in ») ; charge activée représentée sur « For time — Récapitulatif », « AMRAP — Récapitulatif, incrément et max » et « EMOM — Récapitulatif, dans chaque intervalle » (For time : charge par tour 40 / 45 / 50 kg sur Fentes avant ; AMRAP : colonne Charge ; EMOM : colonnes Charge et + / série, « 12 kg » et « + 2,5 kg » sur Fentes avant, « — » sur Squats sautés).
+**Écrans Figma :** interrupteur ajouté, représenté activé pour correspondre aux récapitulatifs, sur « P-Tabata — Questionnaire », « 30/30 — Questionnaire », « Superset — Questionnaire », « For time — Questionnaire », « Progression — Questionnaire », « Renforcement — Questionnaire », « À l'échec — Questionnaire », « Death by — Questionnaire » ; « Renforcement — Récapitulatif » et « À l'échec — Récapitulatif » : tableau Mouvement | Objectif | Pause | Charge ; récapitulatifs Death by : colonne Charge ; « 30/30 — Récapitulatif » : tableau Mouvement | Objectif | Pause | Charge, lignes « Travail par série » et « Pause » retirées des paramètres.
+
+*(Annotations de recette PRE-9 conservées à la fusion de `main` aab49948 le 05/11/2026 : elles restent applicables tant que le complément du 5 novembre ne les remplace pas.)*
+
+[05/11/2026, recette iPhone (Hermann) : « L'espace vertical entre les deux lignes (durée / rep et charge) doit être minimum. Suggestion : Une seule zone tactile utile qui est la première, la charge s'atteint avec les boutons suivant / précédent du clavier » — objectif et charge serrés, la charge n'a pas de zone tactile propre (Précédent / Suivant, ordre de Suivant inchangé) ; « Une durée de 12 min 28 s ne tient pas dans le tableau, si besoin ne présenter que les deux premières colonnes » — dès qu'une ligne est en durée, colonnes élargies (deux tours visibles environ, défilement au-delà) ; unité calée au plus près des tours ; « Le tableau doit être entouré d'un cadre identique à celui des autres paramètres d'exécution, dédié » — cadre propre, zones de saisie blanches. Remplace « tableau sans cadre » (recette du 04/11) et, pour les lignes en durée, « 4 colonnes visibles au plus » ; registre ch07, « Recette iPhone du 05/11/2026 — décisions de Hermann ».]
+
+[04/11/2026 (recette iPhone), Hermann : « l'incrément de charge peut être négatif » ; saisie par un bouton « ± » de la barre du clavier (pavé numérique iOS sans signe) ; « Arrêter à 0 — Les séries concernées passent sans charge (0), une simple mention en gris sous la ligne, sans alerte ni blocage : "sans charge à partir de la série X" ». Registre ch07, « Recette iPhone du 04/11/2026 ».] [Remplacé le 05/11/2026 par le complément du 5 novembre (EMOM : « Aucun incrément d’objectif ou de charge », charges effectives par série) ; fusion de `main` aab49948.]
+
 
 <a id="formats-actions-circuit"></a>
 ### 7.8 Circuit replié : actions et nom
@@ -405,7 +411,7 @@ Le glissé à gauche sur un **Circuit replié issu d'un modèle** (Modèle d'ori
 ### 7.9.4. Enregistrement
 
 - Le Circuit est **mis à jour en place**, pas recréé : mêmes identifiants d'Exercices, même position dans la Séance, même nom du Circuit.
-- Seuls les champs **effectivement modifiés** dans le questionnaire et le récapitulatif sont mis à jour. Les autres sont **conservés** : phases, cadence, côtés, charges d'un modèle sans interrupteur de charge (Tabata, 30/30), réglages faits dans la modale de l'Exercice.
+- Seuls les champs **effectivement modifiés** dans le questionnaire et le récapitulatif sont mis à jour. Les autres sont **conservés** : phases, cadence, côtés, réglages faits dans la modale de l'Exercice.
 - **Changement de structure** (par exemple EMOM « dans chaque intervalle » vers « à la suite ») : la règle d'entrée dans un Circuit s'applique (§6). Les paramètres compatibles sont conservés, les autres passent « à renseigner », et « Enregistrer les modifications » reste inactif tant qu'ils manquent. Aucune confirmation de perte supplémentaire. Le Format d'origine suit la nouvelle structure (renseigné pour un Circuit porteur, vide pour un Circuit standard) ; le Modèle d'origine et le nom du Circuit sont conservés.
 - **Fermer sans enregistrer** (Retour vers le questionnaire, puis croix) : aucune modification n'est appliquée.
 
@@ -421,8 +427,8 @@ Le glissé à gauche sur un **Circuit replié issu d'un modèle** (Modèle d'ori
 
 ### 7.9.7. Représentation de l'état courant dans le formulaire
 
-- **Avec / Sans charge.** L'interrupteur reprend l'**état effectif actuel** : il est activé si au moins un Exercice du Circuit a sa Charge sur « Avec », désactivé sinon. Des charges conservées sur un Exercice dont la Charge est « Sans » ne réactivent pas l'interrupteur. Les réponses historiques du questionnaire ne sont pas stockées. Activer l'interrupteur à la réouverture affiche les colonnes de charge ; un Exercice dont des valeurs avaient été conservées les retrouve, les autres restent vides (« — », sans charge). Le désactiver repasse la Charge des Exercices à « Sans », en conservant les valeurs (§7.7).
-- **Réglages hétérogènes.** Quand un réglage commun du questionnaire ou du récapitulatif (nombre de séries, travail par série, pause, intervalle, incrément de charge EMOM…) ne correspond pas à une valeur unique parce que les Exercices ont des valeurs différentes :
+- **Charge des modèles — cible du 5 novembre.** Les dix questionnaires proposent Avec charge, Sans par défaut. L’activation globale rend les commandes locales disponibles sans charger tous les mouvements ; (+ kg)/(− kg) pilote chaque Exercice. Charges facultatives : Progression/For time/Superset/EMOM par série ou tour ; autres modèles fixes par mouvement. Affichage entre parenthèses et unité kg. Masquer puis réactiver retrouve états et valeurs dans le même brouillon avant sauvegarde ; vider efface réellement. Une réouverture lit l’état enregistré, sans nouvelle obligation de mémorisation de réponses historiques. Aucun incrément de charge EMOM ; seules les charges effectives par série font référence.
+- **Réglages hétérogènes.** Quand un réglage commun du questionnaire ou du récapitulatif (nombre de séries, travail par série, pause, intervalle, valeurs par série…) ne correspond pas à une valeur unique parce que les Exercices ont des valeurs différentes :
   - le champ commun affiche **« variable »**, dans le style d'une valeur modifiable ;
   - les valeurs propres à chaque Exercice sont **conservées** à la réouverture et visibles là où le récapitulatif les détaille (tableaux, déroulé) ; elles ne sont jamais uniformisées automatiquement ;
   - seule une **modification explicite** du champ commun (saisie d'une valeur) remplace les valeurs de tous les Exercices concernés ; une confirmation courte l'annonce, puisque des valeurs personnalisées sont écrasées ;
@@ -478,7 +484,14 @@ A1 remplace B06 : aucune exception liée à l’origine Tabata n’est conservé
 
 Ces cinq départs sont des **préconfigurations librement modifiables**. Ils créent des Exercices et, si nécessaire, des Circuits standards, sans nouveau paramètre de Format ni verrouillage propre au modèle. Les 30 s d’effort et 30 s de pause du 30/30 sont des valeurs initiales modifiables, au même titre que les 20/10 du Tabata. Son état initial est Mode Durée, 6 séries identiques, Objectif de durée 30 s, Pause 30 s, Durée de l’exercice 6 min, Récupération 0 s ; les 30 s de pause ne sont pas une récupération après Exercice. Aucun verrouillage propre au 30/30 n’est ajouté.
 
-Les réglages et structures initiales déjà définis pour ces départs sont repris depuis leurs sources documentaires actuelles, sauf le Superset corrigé par A4 : deux mouvements choisis dans le questionnaire, puis Circuit standard groupé à un passage ; aucun emplacement vide. « Aucun Mouvement présélectionné » signifie aucun choix arbitraire avant la sélection de l’utilisateur, pas une création sans Mouvement. Renforcement reste à 3 séries × 15 répétitions [précisé le 03/11/2026, recette iPhone n° 3 (f3-depart), Hermann : « Il manque le champ de la Pause » — ligne Pause toujours affichée au questionnaire, valeur initiale = pause des Exercices de base] ; Progression à 10 / 12 / 14 répétitions ; À l’échec à 3 séries à l’échec (D-24) [précisé le 03/11/2026 (f3-depart), Hermann : « A l'échec : ne pas mettre le champ de la durée totale, retirer la ligne »]. Les réglages du Superset restent libres ; aucune cible chiffrée nouvelle n’est inventée. Progression utilise les séries variables standards ; À l’échec utilise les cibles à l’échec standards. Les noms d’écran du §16 ne constituent pas, à eux seuls, la définition de leurs paramètres initiaux.
+Les réglages et structures initiales déjà définis pour ces départs sont repris depuis leurs sources documentaires actuelles, sauf le Superset corrigé par A4 : deux mouvements choisis dans le questionnaire, puis Circuit standard alterné à trois tours pour le Superset ; aucun emplacement vide. « Aucun Mouvement présélectionné » signifie aucun choix arbitraire avant la sélection de l’utilisateur, pas une création sans Mouvement. Renforcement reste à 3 séries × 15 répétitions ; Progression à 10 / 12 / 14 répétitions ; À l’échec à 3 séries à l’échec (D-24). Les réglages du Superset restent libres ; aucune cible chiffrée nouvelle n’est inventée. Progression utilise les séries variables standards ; À l’échec utilise les cibles à l’échec standards. Les noms d’écran du §16 ne constituent pas, à eux seuls, la définition de leurs paramètres initiaux.
+
+*(Annotations de recette PRE-9 conservées à la fusion de `main` aab49948 le 05/11/2026 : elles restent applicables tant que le complément du 5 novembre ne les remplace pas.)*
+
+[précisé le 03/11/2026, recette iPhone n° 3 (f3-depart), Hermann : « Il manque le champ de la Pause » — ligne Pause toujours affichée au questionnaire, valeur initiale = pause des Exercices de base]
+
+[précisé le 03/11/2026 (f3-depart), Hermann : « A l'échec : ne pas mettre le champ de la durée totale, retirer la ligne »]
+
 
 ### 9.3 Progression — tableau des séries et saisie au clavier
 
@@ -500,7 +513,44 @@ Les réglages et structures initiales déjà définis pour ces départs sont rep
 
 **Écrans :** « Progression — Récapitulatif » ; « Progression — Récapitulatif, clavier étape 1 (unité) », « … étape 2 (valeurs) », « … étape 3 (changement d'unité) », placés à la suite du récapitulatif.
 
+### 9.4 Superset
+
+**Deux mouvements à la création.** Un superset est une paire : le questionnaire n'accepte que deux mouvements. « + Ajouter » se désactive dès que deux mouvements sont choisis ; « Valider les paramètres » ne s'active qu'avec deux. Après l'enregistrement, le Circuit est un Circuit standard : un troisième Exercice peut y être ajouté depuis la Composition.
+
+**Réouverture** (« Modifier le format ») : le questionnaire et le récapitulatif affichent les Exercices actuels du Circuit, y compris un troisième ajouté depuis la Composition ; la présence de plus de deux Exercices ne bloque pas « Valider les paramètres » ni « Enregistrer les modifications », sous réserve que tous les paramètres requis soient renseignés et cohérents ; « + Ajouter » reste désactivé ; un mouvement peut être retiré tant qu'il en reste au moins deux.
+
+**Questionnaire.** La ligne « Répétitions par série » est retirée : l'objectif dépend du mouvement. Le questionnaire garde la structure : Circuit (nombre de tours, **3 tours par défaut**), Récupération après le tour, Durée totale.
+
+**Récapitulatif.** Le tableau reprend celui de la Progression et du For time (§9.3 de la référence Formats, §9 du complément du 5 novembre ci-dessus) : colonne **Unité** (mode Répétitions ou Durée, choisi au clavier), puis une colonne par tour (**Tour 1, Tour 2, Tour 3** ; 4 colonnes visibles au plus, défilement au-delà).
+- **Aucune progression par défaut** : chaque tour est prérempli avec la valeur du premier ; l'utilisateur modifie les tours qui évoluent (charge montante 40 / 45 / 50 kg, répétitions dégressives 12 / 10 / 8).
+- **Charge par tour**, par mouvement : bouton « + kg » / « − kg » sur chaque ligne (§9 du complément du 5 novembre). Présentation des charges : voir §9.
+- **Présentation** : trois cadres séparés (Circuit ; tableau ; Récupération après le tour et Durée totale), §12.
+- **À l'échec** n'est pas dans le tableau : c'est une condition d'arrêt, pas une unité ; elle se règle dans la modale de l'Exercice.
+
+**Organisation.** Le Superset créé est un Circuit standard à **séries alternées**, trois tours par défaut : A1, B1, récupération, A2, B2… Chaque membre porte autant de séries effectives que de tours. Un tour ne rejoue pas la collection entière des séries de chaque membre. « Récupération après le tour » est la Récupération du **dernier** Exercice du Circuit ; aucun repos supplémentaire n’est ajouté entre les membres par cette préconfiguration. Les règles existantes de Pause terminale et de substitution par la Récupération restent applicables, sans double comptage.
+
+**Troisième membre ajouté depuis la Composition.** Aucun transfert automatique : chaque Exercice garde sa Récupération. À la réouverture, « Récupération après le tour » affiche celle du nouveau dernier Exercice (« à renseigner » s’il n’en a pas) et l’enregistrement l’écrit sur lui ; les membres intermédiaires gardent la leur.
+
+**Écrans Figma :** « Superset — Questionnaire » (ligne retirée, 3 tours) ; « Superset — Récapitulatif » (tableau par tour : Squats sautés 12 / 12 / 12 sans charge, Fentes avant 10 / 10 / 10 à 12 kg ; « + Ajouter » désactivé avec deux mouvements ; déroulé à jour). Le libellé « Récupération après la paire » des écrans devient « Récupération après le tour ».
+
+### 9.5 Tableaux, Tabata, 30/30, Renforcement et À l’échec
+
+**Règle.** Dans les récapitulatifs Progression, For time, Superset, Death by et EMOM, le tableau des mouvements est **isolé dans son propre cadre**, entre le cadre des paramètres qui le précèdent (nombre de séries, de tours, intervalle…) et celui des paramètres qui le suivent (pause, récupération, durée totale, condition d'arrêt, exécution). **Position.** Pour Tabata, 30/30, Renforcement, À l'échec (sous « Nombre de séries ») et For time (sous « Nombre de tours »), le tableau des mouvements est placé **juste sous la ligne du nombre de séries ou de tours**, qui forme son propre cadre ; les autres paramètres (durée totale, exécution, récupération…) suivent dans un troisième cadre. En Death by, le tableau n'a pas de fond blanc propre : il prend la couleur de son cadre. Ses valeurs portent leur unité, à côté de la valeur (« 1 rép. », « + 1 rép. », « 10 s », « + 10 s »). Les cadres sont séparés de 8 px ; quand la place manque au-dessus du déroulé, l'écart descend à 4 px et le contenu de la modale défile si nécessaire.
+
+**Écrans Figma :** « Progression — Récapitulatif » et ses écrans clavier et d'ajout de charge, « For time — Récapitulatif », « Superset — Récapitulatif », « Death by — Récapitulatif, dans chaque intervalle », « … en alternance », « … à la suite ».
+
+**Progression : aucune.** Tabata et 30/30 sont des protocoles de temps fixe (20 / 10 s, 30 / 30 s) : on progresse par le nombre de répétitions ou la vitesse dans la fenêtre, pas par la durée d'une série à l'autre. Le récapitulatif n'a pas de tableau par série ; les séries variables restent accessibles dans la modale de l'Exercice pour un cas particulier.
+
+**Charge : par mouvement** (interrupteur au questionnaire, §16 du complément du 5 novembre). Ces formats se font souvent au poids du corps, mais aussi au kettlebell ou au wall ball. Une seule valeur de charge par mouvement (charge commune de l'Exercice, identique d'une série à l'autre), saisie au clavier (pavé décimal avec virgule) ; « (+ kg) » sur un mouvement sans charge, « (12 kg) » puis « (− kg) » pour la retirer (restauration temporaire dans le même brouillon selon §16 du complément du 5 novembre). Deux présentations :
+- **Un seul mouvement** : une ligne **Charge** dans le cadre des paramètres, sous Durée totale.
+- **Plusieurs mouvements** : un tableau par mouvement dans son propre cadre (§12 du complément du 5 novembre), sous les paramètres. L'Objectif est le travail par série de chaque mouvement (20 s en Tabata, 30 s en 30/30 ; modifiable au clavier, Répétitions ou Durée) ; la ligne commune « Travail par série » est retirée des paramètres. **30/30** : trois colonnes de valeurs, **Objectif | Pause | Charge** ; la ligne commune « Pause » est aussi retirée. **Tabata** : **Objectif | Pause | Charge** également (« 20 s », « 10 s ») ; la ligne commune « Pause » est retirée des paramètres. La colonne Charge n'apparaît que si « Avec charge » est activé (§16 du complément du 5 novembre).
+
+**Écrans Figma :** « 30/30 — Récapitulatif », « P-Tabata — Récapitulatif, à la suite » et « … en alternance » : tableau Mouvement | Objectif | Pause | Charge, cette dernière colonne étant conditionnelle. Les lignes communes Travail par série et Pause sont retirées au profit des valeurs par mouvement. Le cas à un mouvement suit la règle décrite ci-dessus, même sans frame dédiée.
+
+*(Annotations de recette PRE-9 conservées à la fusion de `main` aab49948 le 05/11/2026 : elles restent applicables tant que le complément du 5 novembre ne les remplace pas.)*
+
 [Contre-recette n° 3 bis du 03/11/2026 (f3-depart), Hermann, toujours applicable : « il manque la pause » — Pause toujours affichée au questionnaire, valeur initiale = pause des Exercices de base ; « ne pas calculer de durée total sur l'écran Questionnaire, l'utilisateur ne voit pas les valeur par défaut utilisées » — Durée totale au récapitulatif seulement (l'interrupteur « Avec charge » se place donc après Pause) ; « la ligne du mode d'exécution est la dernière, après la durée totale » ; colonne des noms fixe, colonnes des séries défilant horizontalement ; « clavier : supprimer le bouton "Next" ». « Aucun interrupteur global de charge » (02/11) remplacé le 04/11/2026 par l'interrupteur « Avec charge » du questionnaire (§9.3) ; « Suivant parcourt répétitions S1, charge S1, répétitions S2 » remplacé par l'ordre ci-dessus (objectifs puis charges). Fusion du 04/11/2026 de `main` 560f87bd dans `pre9-bmad/dev`.]
+
 
 ## 10. Application de la règle à l'EMOM
 
@@ -523,13 +573,24 @@ Exemple chiffré ci-dessous : 2 mouvements, 6 séries, intervalle 1 min, 10 rép
 
 Le Nombre de séries garde le même sens qu’au Tabata (séries de chaque mouvement).
 
-**EMOM : Répétitions par défaut, Durée possible par Exercice.** Tableau Mouvement | Objectif, valeur avec unité et choix Répétitions/Durée dans la barre du clavier numérique ; aucune colonne Mode ni popover Mode. Avec charge : Objectif | Charge | + / série. Death by multi-mouvements : Mouvement | Départ | Incrément, valeurs propres à chaque membre, incrément ≥ +1. La ligne Repos EMOM est absente ; le repos est le restant de fenêtre.
+**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
 
 [04/11/2026 (recette iPhone), Hermann : « EMOM : Aucun mode d'exécution par défaut, le champ de valeur a un fond rouge » — à la création, une ligne EMOM n'a pas d'unité : objectif « à renseigner » (fond rouge), l'unité se choisit au clavier (Répétitions | Durée). Remplace « EMOM en mode Répétitions » / « Répétitions par défaut » ; registre ch07, « Recette iPhone du 04/11/2026 ».]
 
 **Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage.
 
 **Contrôle EMOM des durées — seuil inclusif :** le travail prévu d’un Exercice en Durée est sa cible, multipliée par deux s’il est fait de chaque côté, plus la pause entre les côtés applicable. En simple, alternance et À la suite, travail prévu ≥ intervalle propre bloque la validation ; Dans chaque intervalle, somme du travail prévu des membres ≥ intervalle commun bloque la validation. Les membres en Répétitions contribuent pour 0 à ce contrôle de durée connue, sans garantie que le travail total tiendra dans la fenêtre. Message sous le tableau, cadres des valeurs concernées et de l’intervalle rouges ; validation bloquée dans le récapitulatif, la modale et lors de l’édition de l’intervalle du Circuit. À 60 s : 40 s d’un seul côté admis, 40 s de chaque côté refusés ; 30 s + 30 s refusés ; 10 répétitions + 30 s ne déclenche pas ce seul contrôle.
+
+**Règle.** Le récapitulatif EMOM reprend le tableau de la Progression (§9 du complément du 5 novembre, §12 du complément du 5 novembre) : colonne **Unité** (« rép. » ou « durée », choisie au clavier), puis une colonne par série (**S1, S2, S3** ; 4 colonnes visibles au plus, défilement horizontal au-delà, nom et unité fixes). Le tableau est isolé dans son propre cadre.
+- **Progression de l'EMOM** : chaque série est préremplie avec la valeur de S1 (objectif fixe par défaut) ; l'utilisateur modifie les séries qui évoluent (« 3, 4, 5… soulevés de terre », « planche 20 s, 25 s, 30 s… »). Il n'y a pas de champ d'incrément.
+- **Charge** : l'interrupteur « Avec charge » du questionnaire EMOM est conservé (il signale consciemment qu'une charge est à renseigner) ; activé, il fait apparaître le bouton « (+ kg) » / « (− kg) » sur chaque ligne ; la charge s'affiche en ligne sous l'objectif, une valeur par série (« (12 kg) »), comme en Progression.
+- **Contrôle d’intervalle — bloquant.** Vérifier chaque série/fenêtre : travail prévu en Durée, deux côtés et pause entre côtés applicable compris, comparé à son intervalle. Dans chaque intervalle commun, sommer les travaux connus de tous les membres pour le rang concerné. Si le total atteint ou dépasse l’intervalle, afficher le message, les cadres rouges et bloquer la validation. Les membres en Répétitions ne reçoivent aucune estimation inventée. Ce contrôle s’applique aussi après modification depuis la Composition.
+
+**Données.** Les objectifs et charges de chaque série sont les valeurs effectives de l’Exercice ; aucune formule d’incrément de charge EMOM n’est persistée ni réappliquée. Les diminutions de charge se saisissent directement dans les séries. Aucune mention de charge calculée nulle/négative ne s’applique.
+
+**EMOM et Death by.** Les deux Formats partagent le principe de fenêtres temporelles, mais conservent leurs contrats distincts : compte fini et objectifs prescrits par série pour l’EMOM ; progression par rang, compte ouvert et fin au premier échec pour le Death by. Leur proximité ne justifie pas leur fusion.
+
+**Écrans Figma :** « EMOM — Récapitulatif, dans chaque intervalle » (charge activée : Squats sautés 10 / 10 / 10 rép. « (+ kg) » ; Fentes avant 30 s × 3 à « (12 kg) » « (− kg) ») ; « … en alternance » et « … à la suite » (sans charge). L'écran « EMOM — Récapitulatif, saisie d'un incrément de charge négatif au clavier » est supprimé.
 
 ## 11. Application de la règle au For time
 
@@ -582,7 +643,7 @@ Principe : un volume fixé, le plus vite possible. Résultat : le temps réalis�
 
 Principe : à chaque intervalle (1 min), le nombre de répétitions augmente (1, 2, 3…) ; on continue tant que l'athlète termine dans l'intervalle. Résultat : la dernière minute réussie (et les répétitions faites dans la minute manquée).
 
-Paramètres du questionnaire : Intervalle (1 min), Nombre de répétitions de départ (1), Incrément par intervalle (+ 1) ; Condition d'arrêt : à l'échec (fixe). Avec plusieurs mouvements, Exécution : **À la suite | En alternance | Dans chaque intervalle**. À la suite correspond à des tests indépendants successifs ; les deux autres organisations coordonnent plusieurs mouvements dans un Circuit.
+Paramètres du questionnaire : Intervalle (1 min), Objectif de départ (1), Incrément par intervalle (+ 1) ; Condition d'arrêt : à l'échec (fixe), avec arrêt avant un rang temporel incompatible. Avec plusieurs mouvements, Exécution : **À la suite | En alternance | Dans chaque intervalle**. À la suite correspond à des tests indépendants successifs ; les deux autres organisations coordonnent plusieurs mouvements dans un Circuit.
 
 **Un seul mouvement** — l'exercice porte le format (Type d'exercice = Death by) :
 
@@ -605,14 +666,32 @@ Paramètres du questionnaire : Intervalle (1 min), Nombre de répétitions de d�
 **Plusieurs mouvements :**
 - **À la suite** : Circuit standard groupé à un tour dès deux Exercices Death by indépendants. Chacun porte son propre Format, son intervalle, son objectif initial et son incrément. L’échec termine cet Exercice ; sa récupération configurée s’exécute, puis le suivant démarre depuis ses propres valeurs initiales. Les résultats de ces tests sont distincts.
 - **En alternance** : Circuit porteur du Format d’origine Death by, nature fixée « alternées », tours « jusqu’à l’échec ». A occupe un intervalle, puis B le suivant, puis A, B… ; chacun conserve sa progression par passage sur son mouvement, son objectif de départ, son incrément et son **Intervalle propre**, 1 min par défaut, modifiable dans sa modale. Le premier échec arrête le Circuit entier, puis la Séance poursuit les éléments suivants ; il ne met pas fin à toute la Séance ni au Cycle englobant. L’en-tête affiche exactement « Death by · jusqu’à l’échec · alternées », **sans durée** : un tour complet dure la somme des intervalles des membres, pas un intervalle commun. Les cartes montrent « 1 → n rép. » dans l’exemple (`11411:20181`). Les intervalles locaux se succèdent ; ils ne sont pas fusionnés en horloge commune de tour.
-- [Contre-recette n° 3 ter du 03/11/2026, Hermann, toujours applicable (non repris dans le texte de `main` du 04/11, qui ne le remplace pas explicitement) : « Changer "jusqu'à l'échec" par "à l'échec" » — en-tête « Death by · à l’échec · alternées » (idem « groupées ») ; « l'information du chrono devrait être 1 / +1 rép. » — carte « 1 / +1 rép. » (départ / incrément) au lieu de « 1 → n rép. » ; registre ch07, « Contre-recette n° 3 ter — 03/11/2026 ».]
-- **Dans chaque intervalle** : circuit porteur du format (Format d'origine = Death by), nature fixée « groupées », Durée de chaque tour = intervalle (1 min), tours « jusqu'à l'échec » ; chaque exercice : Mode Répétitions, Condition d'arrêt À l'échec, Nombre de répétitions 1, Incrément par intervalle + 1, ni Séries, ni Intervalle, ni Durée de l'exercice ; Récupération 0 s. En-tête du circuit : « Death by · jusqu'à l'échec · groupées », intervalle en bleu, modifiable.
+- **Dans chaque intervalle** : circuit porteur du format (Format d'origine = Death by), nature fixée « groupées », Durée de chaque tour = intervalle (1 min), tours « jusqu'à l'échec » ; chaque exercice : Mode Répétitions ou Durée, Condition d'arrêt À l'échec, Objectif de départ 1 rép. ou valeur en Durée renseignée, Incrément par intervalle + 1, ni Séries, ni Intervalle, ni Durée de l'exercice ; Récupération 0 s. En-tête du circuit : « Death by · jusqu'à l'échec · groupées », intervalle en bleu, modifiable.
+
+*(Annotations de recette PRE-9 conservées à la fusion de `main` aab49948 le 05/11/2026 : elles restent applicables tant que le complément du 5 novembre ne les remplace pas.)*
+
+[Contre-recette n° 3 ter du 03/11/2026, Hermann, toujours applicable (non repris dans le texte de `main` du 04/11, qui ne le remplace pas explicitement) : « Changer "jusqu'à l'échec" par "à l'échec" » — en-tête « Death by · à l’échec · alternées » (idem « groupées ») ; « l'information du chrono devrait être 1 / +1 rép. » — carte « 1 / +1 rép. » (départ / incrément) au lieu de « 1 → n rép. » ; registre ch07, « Contre-recette n° 3 ter — 03/11/2026 ».]
+
 
 Écrans Figma : « Death by — Questionnaire », « Death by — Récapitulatif » (un mouvement), « Death by — Récapitulatif, dans chaque intervalle » et « Death by — Récapitulatif, en alternance » (deux mouvements, choix de l'Exécution ; le déroulé montre A et B dans la même minute, ou une minute sur deux), « Death by — Modale exercice, standard », « Death by — Séance, circuit dans chaque intervalle », « Death by — Modale exercice, dans chaque intervalle ».
 
-**Condition d’arrêt Death by.** À l’échec désigne la condition de fin du défi : ne pas accomplir l’objectif croissant dans l’intervalle. Le Nombre de répétitions de départ et l’Incrément restent visibles et actifs. Ne pas appliquer le masquage de cible de l’Exercice standard à l’échec. Cette combinaison était déjà définie dans la base ; elle n’ajoute pas de nouveau contrôle. La Cadence Death by reste Sans : l’assouplissement du §3 concerne AMRAP et For time seulement.
+**Condition d’arrêt Death by.** À l’échec désigne la condition de fin du défi : ne pas accomplir l’objectif croissant dans l’intervalle. Le Objectif de départ et l’Incrément restent visibles et actifs. Ne pas appliquer le masquage de cible de l’Exercice standard à l’échec. Cette combinaison était déjà définie dans la base ; elle n’ajoute pas de nouveau contrôle. La Cadence Death by reste Sans : l’assouplissement du §3 concerne AMRAP et For time seulement.
 
 Le récapitulatif « Death by — Récapitulatif, à la suite » (`11411:20474`) représente désormais les tests indépendants : Exécution À la suite, récupération entre mouvements réglable (1 min dans l’exemple), progression de A jusqu’à l’échec, bloc gris de récupération, puis progression de B depuis son départ initial. Le déroulé montre 1, 2, 3, 4, …, n pour chaque mouvement, avec hauteur croissante et légende Récupération. « Jusqu’à l’échec » est le repère de fin ; ce n’est pas une durée fixe calculée.
+
+**Règle.** Chaque Exercice Death by peut être en Répétitions ou en Durée, sans restriction des mouvements sélectionnables : le Mode appartient à l’Exercice. Départ et Incrément portent cette unité (« 10 s », « + 10 s ») ; l’incrément vaut au minimum +1 répétition ou +1 s. Le changement d’unité ne convertit pas les valeurs et laisse les champs incompatibles à renseigner.
+
+**Travail prévu d’un rang.** Pour un Exercice en Durée, il inclut les deux côtés et la pause entre côtés applicable. Dans un intervalle commun, c’est la somme des travaux connus des membres de la fenêtre ; à intervalles locaux, celui du membre. Les membres en Répétitions n’ont pas de durée déduite.
+
+**À l’enregistrement.** Une progression en Durée finit toujours par atteindre l’intervalle : c’est la fin normale du défi, sans avertissement. Seul le cas où le **premier rang** atteint ou dépasse déjà l’intervalle déclenche un **avertissement non bloquant** : « Le premier intervalle ne peut pas être tenu : le défi s’arrêtera avant de commencer. » L’enregistrement reste possible. Le contrôle EMOM du §14 du complément du 5 novembre reste bloquant.
+
+**À l’exécution.** Un rang dont le travail prévu connu atteint ou dépasse l’intervalle n’est pas lancé : le défi s’arrête à la fin du rang précédent. Même seuil que l’EMOM (atteint ou dépasse), appliqué à l’exécution plutôt qu’à la saisie. Sinon, la fin reste celle du Death by : la première fenêtre non tenue. Aucune fenêtre n’est prolongée.
+
+**Résultat.** Rangs acquis = derniers rangs entièrement tenus. Fin par limite : mention « limite de l’intervalle atteinte », aucun échec ni tentative fictifs. Fin par fenêtre non tenue : pour un membre en Durée, la durée tenue est renseignée à la clôture, jamais déduite de l’objectif prescrit. Unités et côtés du résultat suivent la prescription.
+
+**Documentation :** référence Formats §12 du complément du 5 novembre, règles métier, données/résultats, capacités et conception du moteur. Le libellé « Nombre de répétitions de départ » devient « Objectif de départ » ; la tagline et les textes doivent couvrir les deux modes et les intervalles configurables, sans imposer ici une nouvelle formulation graphique.
+
+**Écrans Figma :** récapitulatifs Death by avec un exemple mixte Répétitions/Durée. L’avertissement du premier rang n’a pas d’écran dédié : il suit la présentation des messages du formulaire.
 
 ## 13. Sortie d'un format
 
@@ -766,3 +845,32 @@ Aucun token ajouté. Couleurs saisies en dur, à transformer en tokens si le dé
 
 
 **Références visuelles du 4 novembre :** nouveaux états de clavier AMRAP `11488:20964`, `11488:21171` ; Progression `11546:21334`, `11546:21502`, `11546:21672` ; actions Circuit `11515:21221`, `11515:21387`, `11515:21558`, `11551:21479` ; réédition Tabata `11551:21673`. Galerie et métadonnées de capture au chapitre 06. Les tours dessinés dans la frise AMRAP sont illustratifs, jamais une estimation de performance. À l’échec : aucune durée totale affichée au questionnaire ni au récapitulatif.
+
+### Complément — incrément AMRAP signé
+
+**Règle.** L’Incrément par tour AMRAP peut être négatif, en Répétitions ou en Durée, pour représenter une échelle descendante. Il s’affiche avec son signe (« − 1 rép. », « − 5 s »). Le Death by conserve un incrément positif, au minimum +1 dans l’unité choisie (§13 du complément du 5 novembre). L’EMOM n’a aucun champ d’incrément de charge ni d’objectif : ses valeurs sont saisies par série (§14 du complément du 5 novembre).
+
+**Borne des objectifs calculés.** Lorsqu’une progression AMRAP descendante atteindrait zéro ou une valeur négative, l’objectif calculé est borné à 1 répétition ou 1 s. La boucle ne se termine pas à cette borne : 5, 3, 1, 1, 1… La borne s’applique aux objectifs de cette progression, sans modifier les règles générales des cibles nulles intentionnelles ni rendre actif un Exercice sauté. Aucun incrément n’est appliqué aux membres pour lesquels il est inactif (Buy-in ou À l’échec).
+
+**Saisie du signe.** Sur le champ Incrément par tour, la barre du clavier natif comporte **± | Précédent | Suivant | Fermer**. ± inverse le signe ; la saisie respecte l’unité et les bornes du champ. Aucun clavier personnalisé n’est introduit.
+
+**Écran Figma :** « AMRAP — Récapitulatif, saisie d’un incrément négatif au clavier ».
+
+**Documentation :** référence Formats (AMRAP), ch10 (bornes des incréments), ch13 (barre du clavier).
+
+### Complément — consultation de l’Exercice en Composition
+
+**Règle.** Dans la Composition, **l'appui sur la carte** d'un Exercice ouvre ses Paramètres d'exécution (inchangé) ; **l'appui sur la photo** ouvre la **fiche de l'exercice**, en modale et **en lecture seule** :
+- contenu de la fiche du mouvement : média, nom, catégorie, zones corporelles, niveau, description et phases du mouvement si elles existent ;
+- section **« Dans cette séance »** : la synthèse des paramètres de cet Exercice : réutiliser la phrase générée pour les paramètres qu’elle couvre, et présenter la Récupération propre à l’Exercice sans modifier silencieusement les règles de cette phrase ;
+- **aucun bouton Modifier** : la croix ramène à la Composition ; pour modifier, l'utilisateur touche la carte.
+
+**Pourquoi.** Un geste, un rôle : la photo pour voir, la carte pour modifier. Un seul chemin de modification, donc un seul chemin de retour. Les phases restent lisibles au moment où l'on relit la séance (important en rééducation), avec ce qui est prévu dans cette séance. Même geste et même fiche que dans le questionnaire et le récapitulatif des Formats (§7.1 de la référence Formats), complétés du contexte de la Séance.
+
+**Écran Figma :** « Composition séance — Fiche de l'exercice (modale) ».
+
+**Documentation :** ch06 (Composition : appui sur la photo), ch13 (contrat de la fiche en lecture seule).
+
+### Écart visuel restant — Death by, contrôle du 5 novembre
+
+**PARTIELLEMENT CONFORME visuel.** Le récapitulatif `11376:20189` représente bien des membres en Répétitions et en Durée ; l’accroche reste formulée en répétitions et minutes. Elle doit couvrir les deux modes et l’intervalle configurable, selon le complément §13. Aucun nouveau texte graphique n’est arbitré ici. Les captures montrent l’état courant ; aucune modification Figma ni recette de l’application n’est déclarée.

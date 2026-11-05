@@ -459,3 +459,8 @@ Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.
 
 - **Modèle d’origine :** modèle ayant créé le Circuit, conservé pour rouvrir son questionnaire ; distinct du Format qui gouverne l’exécution.
 - **Rôle dans le circuit :** fonction d’un membre AMRAP/For time : Buy-in, Tour ou Buy-out (For time). Le Rôle est explicite et détermine sa zone ; il ne désigne pas le Format de l’Exercice.
+
+<a id="creation-formats-20261105"></a>
+## Création et Formats — état final du 5 novembre 2026
+
+Exercice libre : entrée de création d’un Exercice sans préconfiguration de modèle ; distinct d’un Format nommé Libre. Rang Death by : fenêtre à tenter, distincte des rangs acquis. « Limite de l’intervalle atteinte » décrit l’arrêt avant un rang impossible, sans tentative fictive.

@@ -56,3 +56,7 @@
 6. **Contrôle post-modification** : diff, arborescence Unicode et liens relatifs Markdown vérifiés séparément avant publication ; ne pas assimiler cette revue aux tests iPhone ou à l'exécution du moteur.
 
 **Conclusion :** les travaux 1–3 sont publiés dans `main` ; les travaux 5–6 y sont documentés et les contradictions ciblées sont corrigées par la présente revue. Le travail 4 est **partiellement formalisé**, mais son composant Figma destinataire reste **À CLARIFIER**. La publication de ce correctif documentaire par PR doit être distincte de toute validation de développement PRE-9.
+
+## Portée actualisée le 5 novembre 2026
+
+Le constat daté D-22–D-25/ARB-22c ne gouverne plus la préconfiguration Superset : la référence Formats active prescrit deux mouvements choisis et un Circuit standard alterné à trois tours, sans emplacements vides. La modale de création comporte Exercice libre hors de la grille des Formats ; le menu Composition comporte trois options. Les autres constats restent datés et ne constituent pas une recette de la cible actuelle.

@@ -1500,6 +1500,42 @@ La carte unique est une projection de la Séance D-449, pas une nouvelle nature 
 
 ## Formats — données effectives du Circuit et des membres
 
-**Formats — état cible du 4 novembre 2026.** Rôle dans le circuit : Buy-in/Tour pour AMRAP, Buy-in/Tour/Buy-out pour For time ; zones ordonnées, plusieurs buy-in/out, duplication dans la même zone, une seule exécution. AMRAP : incrément par tour en répétitions ou durée ; buy-in à l’échec possible, résultat à la clôture du premier bloc, sans saisie intercalée pendant le chrono. For time : membres en Répétitions ou Durée, au moins un Exercice en Répétitions dans l’ensemble du Circuit, buy-in/out compris. Dès deux Exercices créés par un modèle : Circuit ; À la suite et départs rapides correspondants : Circuit standard groupé à un tour. Nom du Circuit modifiable, modèle comme titre initial. Modèle d’origine distinct du Format d’origine d’exécution ; un Circuit standard n’acquiert aucun Format partagé par sa provenance. Réédition depuis le récapitulatif, mise à jour en place des seuls champs modifiés, annulation sans effet, valeurs hétérogènes « variable » sans uniformisation automatique. Avec/Sans charge effectif conservé, y compris les valeurs inactives sous Sans. Charges facultatives, vide ≠ zéro ; progression EMOM matérialisée par série et jamais réappliquée automatiquement sur des charges personnalisées.
+**Création et Formats — décisions du 5 novembre 2026.** Modale de création commune au Catalogue et à la Composition, nouveau brouillon prérempli à l’arrivée, sauvegarde uniquement dans la Composition ; fermeture vers le point de départ sans mutation. Menu à trois options, œil et CE-CIR-03 retirés ; photo de l’Exercice ouvrant une fiche en lecture seule avec « Dans cette séance ». Superset alterné trois tours ; EMOM prescrit par série ; Death by en Durée avec avertissement au seul premier rang impossible et arrêt avant un rang incompatible. Règles complètes dans la référence Formats actualisée, §§7/7.6/7.7/9.4/10/12.
 
 Nom du circuit et Modèle d’origine sont des données du Circuit. Rôle est une donnée du membre, jamais déduite de sa position. Les réponses anciennes du questionnaire ne sont pas stockées : le formulaire projette l’état actuel. Format d’origine reste distinct et ne gouverne que le Circuit porteur ; il suit le portage en cas de changement de structure, Modèle d’origine et nom conservés. Les champs inactifs conservés sous Sans charge ne servent pas à reconstruire son activation. Les champs de tableaux restent les paramètres standards des Exercices. Toute duplication de Circuit conserve la provenance, copie indépendante ; aucun changement rétroactif des instantanés.
+
+<a id="creation-formats-20261105"></a>
+## Création et Formats — état final du 5 novembre 2026
+
+Les unités proposées restent limitées par le modèle et le contexte de l’Exercice ; le tableau ci-dessous ne généralise pas Durée à l’AMRAP autonome ni à un autre cas qui l’exclut. Le principe du §7.6 de la référence Formats est inchangé : chaque ligne d'un tableau correspond à un Exercice, et chaque case écrit dans un champ standard de cet Exercice, sans second stockage. Correspondances à jour :
+
+| Format et tableau | Case | Champ de l'Exercice alimenté |
+|---|---|---|
+| Tous les tableaux | Colonne Unité, ou unité choisie au clavier | **Mode d'exécution** = Répétitions / Durée |
+| Tous les tableaux | « (+ kg) » / « (− kg) » | **Charge** = Avec / Sans (restauration dans le brouillon seulement, §16 du complément du 5 novembre) |
+| Tous les questionnaires | Interrupteur « Avec charge » désactivé | **Charge** = Sans pour tous les Exercices (restauration dans le brouillon seulement, §16 du complément du 5 novembre) |
+| Progression — S1…Sn | Objectif et charge de la série k | **Séries variables** : cible et charge de la série k |
+| For time — Tour 1…n | Objectif et charge du tour k | **Séries variables** : cible et charge de la série k ; nombre de séries = nombre de tours |
+| Superset — Tour 1…n | Objectif et charge du tour k | **Séries variables** : cible et charge de la série k ; nombre de séries = nombre de tours (Circuit standard à séries alternées : A1, B1, récupération, A2, B2…) ; « Récupération après le tour » = **Récupération** du dernier Exercice |
+| EMOM — S1…Sn | Objectif et charge de la série k | **Séries variables** : cible et charge de la série k ; nombre de séries = Nombre de séries de l'EMOM |
+| Tabata, 30/30 — Objectif \| Pause \| Charge | Objectif | **Objectif de durée** (ou Nombre de répétitions) de chaque série, **séries identiques** |
+| | Pause | **Pause** après chaque série |
+| | Charge | **Charge** commune de l'Exercice |
+| Renforcement — Objectif \| Pause \| Charge | Objectif | **Nombre de répétitions** (ou Objectif de durée) de chaque série, séries identiques |
+| | Pause, Charge | **Pause** après chaque série ; **Charge** commune |
+| À l'échec — Objectif \| Pause \| Charge | Objectif | **Condition d'arrêt** = À l'échec, dans le Mode choisi ; séries identiques |
+| | Pause, Charge | **Pause** après chaque série ; **Charge** commune |
+| AMRAP — Objectif \| Par tour \| Charge \| Max | Objectif, Par tour, Max | Inchangé (§7.6 de la référence Formats) |
+| | Charge | **Charge** commune |
+| Death by — Départ \| Incrément \| Charge | Départ | **Objectif de départ** (répétitions ou durée, §13 du complément du 5 novembre) |
+| | Incrément | **Incrément par intervalle** (au minimum + 1 dans l'unité) |
+| | Charge | **Charge** commune |
+| Un seul mouvement (Tabata, 30/30, Renforcement, À l'échec) | Ligne Charge sous Durée totale | **Charge** commune |
+
+**Préremplissage et réouverture.** La copie de la valeur de S1 concerne l’EMOM et le Superset décrits ici. Elle ne remplace pas les valeurs initiales propres aux autres modèles : la Progression conserve notamment 10 / 12 / 14 ; une échelle For time explicitement choisie n’est pas uniformisée. Les cases initiales non définies restent à renseigner, sans prendre les chiffres illustratifs Figma comme défauts. L’ajout ultérieur de séries/tours conserve les règles existantes de nouvelles cases à compléter. À la réouverture (« Modifier le format »), les cases affichent les valeurs effectives de chaque série, sans réinitialisation ni changement silencieux Identiques/Variables. Un réglage commun dont les valeurs diffèrent entre Exercices affiche « variable » (§7.9 de la référence Formats).
+
+**Charge des modèles — cible du 5 novembre.** Les dix questionnaires proposent Avec charge, Sans par défaut. L’activation globale rend les commandes locales disponibles sans charger tous les mouvements ; (+ kg)/(− kg) pilote chaque Exercice. Charges facultatives : Progression/For time/Superset/EMOM par série ou tour ; autres modèles fixes par mouvement. Affichage entre parenthèses et unité kg. Masquer puis réactiver retrouve états et valeurs dans le même brouillon avant sauvegarde ; vider efface réellement. Une réouverture lit l’état enregistré, sans nouvelle obligation de mémorisation de réponses historiques. Aucun incrément de charge EMOM ; seules les charges effectives par série font référence.
+
+**Death by — cible du 5 novembre.** Répétitions ou Durée, Objectif de départ et Incrément ≥ +1 dans l’unité. Seul un premier rang dont le travail connu atteint ou dépasse l’intervalle déclenche un avertissement non bloquant ; sauvegarde autorisée si les autres champs sont valides. À l’exécution, ne pas lancer un rang dont ce travail atteint ou dépasse la fenêtre : arrêt après le précédent, résultat « limite de l’intervalle atteinte », aucun échec ni tentative fictifs. En Durée : deux côtés et pause applicable, somme des membres en fenêtre commune ou intervalle du membre en alternance. Rangs acquis et rang courant distincts ; durée partielle renseignée seulement pour une fenêtre réellement tentée et non tenue. Les autres règles de fin et d’achèvement Death by restent applicables ; aucune fenêtre prolongée. Exemple 10 s puis +10 s / 60 s : cinq rangs réussis, arrêt avant le rang 6. La progression future compatible au départ ne déclenche pas d’avertissement.
+
+Le tableau représente la prescription effective des séries. L’EMOM n’a aucun incrément de charge concurrent. L’incrément AMRAP est signé ; Death by conserve unité et incrément positif. Les résultats réellement acquis restent distincts du rang non lancé. Les instantanés déjà figés ne sont pas réécrits.

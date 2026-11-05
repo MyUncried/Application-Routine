@@ -52,7 +52,7 @@ Les **valeurs initiales réglables ne sont jamais des constantes imposées**. Le
 ### 2.3 D-22 à D-28 — Départs rapides et interactions
 
 - **D-22 / D-23 :** aucun Mouvement présélectionné ; les réglages de départ sont proposés sans créer un Exercice autonome. Les modèles réutilisent le parcours Catalogue de choix des Mouvements.
-- **D-24 :** Renforcement = **3 séries × 15 répétitions** ; Progression = **10, 12, 14 répétitions** ; À l'échec = **3 séries à l'échec** ; Superset = Circuit groupé **1 passage**, avec **deux emplacements d'Exercices vides** et réglages libres. **Libre** = Séance libre.
+- **D-24 :** Renforcement = **3 séries × 15 répétitions** ; Progression = **10, 12, 14 répétitions** ; À l'échec = **3 séries à l'échec** ; Superset = Circuit standard alterné, trois tours par défaut, deux mouvements choisis à la création et réglages libres. **Libre** = Séance libre.
 - **D-25 :** retirer **Gainage · Mobilité** des départs rapides actifs. Ses anciennes mentions dans FMT-02/FMT-28 et les contrats sont remplacées pour la cible, sans effacer les preuves historiques.
 - **D-26 :** superséder l'ancienne hypothèse ARB-24 de transmission des contraintes d'un « Circuit formaté » aux Exercices entrants. Un Circuit n'a aucun Format à transmettre.
 - **D-27 :** le rattachement au Circuit est un geste volontaire ; aucune remontée implicite du Format au Circuit.
@@ -79,13 +79,13 @@ Les **valeurs initiales réglables ne sont jamais des constantes imposées**. Le
 
 ### Menu Créer de la Composition
 
-Le menu Créer propose cinq options, dans cet ordre : **Créer un exercice**, **Utiliser des mouvements existants**, **Utiliser un format d’entraînement**, **Ajouter un circuit**, **Ajouter un cycle**. L’accès Formats ouvre une fenêtre sur fond voilé, grille à deux colonnes sans cartes Un exercice/Une séance ni départ Libre. MENU-FMT-01 et ARB-05 sont remplacés dans cette portée. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; les règles d’axe, de voile et de fermeture sont conservées. Utiliser une séance existante n’est plus une option de ce menu ; le comportement B.8 déjà livré n’est pas supprimé par cette nouvelle liste.
+Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
 
 À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
-**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à cinq options ci-dessus.
+**MENU-FMT-01 — remplacée :** le parcours actif est celui de la fenêtre Formats et du menu à trois options ci-dessus.
 
 ## 3. Modèle et présentation
 
