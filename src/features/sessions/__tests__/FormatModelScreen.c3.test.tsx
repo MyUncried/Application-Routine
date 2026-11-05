@@ -227,8 +227,10 @@ describe("FormatModelScreen", () => {
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.queryByTestId("format-save")).toBeNull();
+    // Réponse de Hermann du 06/11/2026 (Q1) : valeurs à saisir au récapitulatif — la coche du questionnaire reste grise.
+    expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
     await pick("Squ", "mv-squats");
+    expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
     expect(mockPush).not.toHaveBeenCalled();
     expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
     toSummary();
@@ -454,7 +456,8 @@ describe("FormatModelScreen", () => {
     expect(await screen.findByTestId("format-catalogue-filter")).toBeTruthy();
     expect(screen.getByTestId("format-catalogue-sort")).toBeTruthy();
     expect(screen.getByTestId("format-catalogue-piles")).toBeTruthy();
-    expect(screen.queryByTestId("format-movements-link")).toBeNull();
+    // p-ajout / p-coche (05/11 au soir) : « + Ajouter » devient « Revenir aux paramètres ».
+    expect(screen.getByTestId("format-movements-link").props.accessibilityLabel).toBe("Revenir aux paramètres");
     expect(screen.queryByText("Ouvrir le mode catalogue")).toBeNull();
     expect(screen.queryByText("Fermer le mode catalogue")).toBeNull();
   });
@@ -561,7 +564,7 @@ describe("FormatModelScreen", () => {
     expect(new Set(ids).size).toBe(2);
   });
 
-  it("MAJ 04/11 §3, §18–§19 : mode catalogue dans la modale — recherche, effacement, Filtrer / Trier / Replier, sélection, coche ; la croix revient sans ajout", async () => {
+  it("MAJ 04/11 §3 ; recette du 05/11 au soir (p-coche, p-ajout) : mode catalogue — recherche, effacement, Filtrer / Trier / Replier, sélection, « Ajouter X mouvements » en bas ; « Revenir aux paramètres » sans ajout ; la croix quitte le Format", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -578,8 +581,11 @@ describe("FormatModelScreen", () => {
     fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "");
     expect(await screen.findByTestId("format-catalogue-card-mv-fentes")).toBeTruthy();
     expect(screen.getByTestId("format-catalogue-add").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(within(screen.getByTestId("format-bottom-action")).getByTestId("format-catalogue-add")).toBeTruthy();
     fireEvent.press(screen.getByTestId("format-catalogue-card-mv-fentes"));
+    expect(screen.getByText("Ajouter 1 mouvement")).toBeTruthy();
     fireEvent.press(screen.getByTestId("format-catalogue-card-mv-squats"));
+    expect(screen.getByText("Ajouter 2 mouvements")).toBeTruthy();
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-catalogue-add"));
     });
@@ -587,14 +593,21 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
     expect(screen.getByTestId("format-movement-card-1")).toBeTruthy();
     expect(screen.getByTestId("format-parameters")).toBeTruthy();
-    // La croix de l'en-tête referme le mode catalogue : aucun ajout, retour au questionnaire.
+    // « Revenir aux paramètres » referme le mode catalogue : aucun ajout, retour au questionnaire.
     fireEvent.press(screen.getByTestId("format-movements-link"));
     fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-fentes"));
-    fireEvent.press(screen.getByTestId("screen-header-back"));
+    fireEvent.press(screen.getByTestId("format-movements-link"));
     expect(screen.queryByTestId("format-catalogue")).toBeNull();
     expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
     expect(screen.getByTestId("format-parameters")).toBeTruthy();
     expect(mockDismiss).not.toHaveBeenCalled();
+    // « La croix annule la création du format » (p-ajout), mode catalogue ouvert ou non.
+    fireEvent.press(screen.getByTestId("format-movements-link"));
+    expect(screen.getByTestId("screen-header-back").props.accessibilityLabel).toBe(t.closeAccessibilityLabel);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("screen-header-back"));
+    });
+    expect(mockDismiss.mock.calls.length + mockDismissTo.mock.calls.length + mockBack.mock.calls.length).toBeGreaterThan(0);
   });
 
   // ---------------------------------------------------------------------------
@@ -694,7 +707,7 @@ describe("FormatModelScreen", () => {
     // Demande de Hermann du 05/11/2026 (soir) : « La zone colorée ne doit pas changer de dimension » — recherche figée sous elle.
     expect(within(band).queryByTestId("format-catalogue-search")).toBeNull();
     expect(within(screen.getByTestId("format-search-zone")).getByTestId("format-catalogue-search")).toBeTruthy();
-    expect(screen.queryByTestId("format-movements-link")).toBeNull();
+    expect(within(screen.getByTestId("format-search-zone")).getByTestId("format-movements-link").props.accessibilityLabel).toBe("Revenir aux paramètres");
     expect(within(screen.getByTestId("format-questionnaire")).getByTestId("format-catalogue-results")).toBeTruthy();
     // Défilement conservé avec un texte saisi (e-cat-defiler).
     expect(screen.getByTestId("format-questionnaire").props.scrollEnabled).toBe(true);
@@ -742,34 +755,51 @@ describe("FormatModelScreen", () => {
     expect(draftRef.current.exercises.every((exercise) => exercise.executionParameters.series.kind === "UNIFORM" && exercise.executionParameters.series.pauseSeconds === 15)).toBe(true);
   });
 
-  // Complément du 5 novembre 2026 (Hermann), §18–§19 : la coche de l'en-tête, en face de la croix, remplace les boutons du bas.
-  describe("coche de l'en-tête (§18–§19)", () => {
+  // Complément du 5 novembre 2026 (Hermann), §18–§19, puis recette du 05/11 au soir (p-coche, p-coche-recap) et réponses du 06/11
+  // (Q1, Q4) : la coche de l'en-tête enregistre dans la séance, grise tant que paramètres et valeurs ne sont pas tous renseignés ;
+  // « Valider les paramètres » reste en bas du questionnaire quand les valeurs se saisissent au récapitulatif.
+  describe("coche de l'en-tête (§18–§19, recette du 05/11 au soir)", () => {
     const inHeader = (testID: string) => within(screen.getByTestId("screen-header")).getByTestId(testID);
     const isBlue = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style).backgroundColor === colors.wheelActionValidateBackground;
 
-    it("questionnaire : coche grise sans mouvement, bleue ensuite ; elle ouvre le récapitulatif ; plus de bouton en bas", async () => {
+    it("questionnaire à récapitulatif : « Valider les paramètres » en bas (gris sans mouvement, actif ensuite), coche toujours grise ; récapitulatif sans bouton en bas", async () => {
       mockModel = "PROGRESSION";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
       await screen.findByTestId("format-title");
-      expect(screen.queryByTestId("format-bottom-action")).toBeNull();
-      expect(screen.queryByText(t.validate)).toBeNull();
-      expect(inHeader("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
-      expect(isBlue("format-validate")).toBe(false);
+      expect(within(screen.getByTestId("format-bottom-action")).getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
+      expect(screen.getByText(t.validate)).toBeTruthy();
+      expect(isBlue("format-save")).toBe(false);
       await pick("Squ", "mv-squats");
-      expect(inHeader("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
-      expect(isBlue("format-validate")).toBe(true);
+      expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
+      expect(isBlue("format-save")).toBe(false);
+      expect(inHeader("format-save").props.accessibilityState).toMatchObject({ disabled: true });
       toSummary();
       expect(screen.getByTestId("format-summary")).toBeTruthy();
+      // Récapitulatif : chevron Retour, coche, pas de bouton en bas (p-coche-recap, Q4).
+      expect(screen.queryByTestId("format-bottom-action")).toBeNull();
+      expect(screen.getByTestId("screen-header-back").props.accessibilityLabel).toBe(t.backAccessibilityLabel);
     });
 
-    it("Superset à la création : coche grise avec un mouvement, bleue avec deux (règle du bouton retiré)", async () => {
+    it("questionnaire sans récapitulatif (Tabata à un mouvement) : pas de bouton en bas ; coche grise sans mouvement, bleue ensuite", async () => {
+      mockModel = "TABATA";
+      render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+      await screen.findByTestId("format-title");
+      expect(screen.queryByTestId("format-bottom-action")).toBeNull();
+      expect(isBlue("format-save")).toBe(false);
+      await pick("Squ", "mv-squats");
+      expect(screen.queryByTestId("format-bottom-action")).toBeNull();
+      expect(isBlue("format-save")).toBe(true);
+    });
+
+    it("Superset (toujours un récapitulatif) : « Valider les paramètres » actif avec deux mouvements, coche grise au questionnaire", async () => {
       mockModel = "SUPERSET";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
       await screen.findByTestId("format-title");
       await pick("Squ", "mv-squats");
-      expect(isBlue("format-validate")).toBe(false);
+      expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
       await pick("Fen", "mv-fentes");
-      expect(isBlue("format-validate")).toBe(true);
+      expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
+      expect(isBlue("format-save")).toBe(false);
     });
 
     it("récapitulatif : la coche remplace « Enregistrer dans la séance » ; grise si une cellule requise est vide", async () => {

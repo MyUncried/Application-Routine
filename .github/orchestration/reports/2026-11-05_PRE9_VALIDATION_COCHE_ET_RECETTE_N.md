@@ -65,6 +65,10 @@ Carte Résultat de la saisie du nom : ouvre le mouvement. Fiche « Modifier un m
 
 En-têtes de modale à ✕ (et feuille « Ajouter un mouvement ») : titre centré sur la page. Tests : suite complète 303 suites, 5 363 tests, 1 échec sous charge seulement (`CompositionScreen.recette1`, instabilité connue, verte isolée, aussi avant la modification) ; `tsc` et ESLint propres. Vérification iPhone à faire.
 
+## Complément — recette du 05/11 au soir, groupe A (Formats)
+
+Coche / boutons du bas / mode catalogue selon les réponses du 06/11 (Q1, Q4). Tests : Formats et Composition 1 118 verts ; `tsc` propre ; ESLint : erreur `react-hooks/refs` et avertissement préexistants dans `FormatModelScreen.c3.test.tsx` (identiques au commit précédent).
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

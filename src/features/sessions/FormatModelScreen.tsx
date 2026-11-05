@@ -87,6 +87,7 @@ import { strings } from "@/shared/i18n";
 import { CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { colors as tokenColors, dimensions, minTouchTarget } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
@@ -541,6 +542,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const keyboardFrame = useKeyboardFrame();
   const reduceMotion = useReduceMotion();
   const safeBottom = initialWindowMetrics?.insets.bottom ?? 0;
+  const actionZone = usePrimaryActionZone();
   const rootRef = useRef<View>(null);
   // Mode catalogue (mise à jour consolidée du 04/11/2026 §3 ; référence Formats §7.1 à §7.3) : « Ouvrir le mode
   // catalogue » reste dans la modale — recherche détachée avec croix d'effacement, Filtrer, Trier (inactif, comme au
@@ -721,17 +723,30 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Renforcement, À l'échec et Superset aussi ; les modèles à tableau (EMOM, AMRAP, For time, Death by, Progression) gardent
   // « Valider les paramètres ».
   const validating = stage === "questionnaire" && !savesFromQuestionnaire(model, movements.length);
+  // Recette du 05/11/2026 au soir (p-coche, p-coche-recap, p-ajout ; réponses de Hermann du 06/11/2026, Q1 et Q4) : « la coche est
+  // grisée tant que tous les paramètres et les valeurs ne sont pas renseignées, donc on ne peut pas enregistrer directement le format
+  // dans la séance ». Deux scénarios : valeurs saisies au questionnaire → pas de bouton, la coche enregistre dans la séance ; valeurs à
+  // saisir au récapitulatif → « Valider les paramètres » en bas du questionnaire (coche grise), coche du récapitulatif qui enregistre.
+  // Mode catalogue : croix (annule la création du Format), « Ajouter X mouvements » en bas, coche selon la même règle.
+  // [§18–§19 : coche « Ajouter » en mode catalogue et coche « Valider les paramètres » au questionnaire — remplacées.]
+  const canSaveHere = canSave && !validating;
+  const bottomAction: "ADD" | "VALIDATE" | null = catalogueMode ? "ADD" : validating ? "VALIDATE" : null;
+  const addPickedLabel =
+    picked.size === 0 ? t().addPicked : picked.size === 1 ? t().addPickedOne : fillTemplate(t().addPickedMany, { count: String(picked.size) });
 
+  // p-coche / p-ajout : « Revenir aux paramètres » ferme le mode catalogue sans ajout.
+  const backToParameters = () => {
+    Keyboard.dismiss();
+    closeCatalogue();
+    setSearchRole(null);
+    setQuery("");
+  };
   const close = () => {
-    // Complément du 5 novembre 2026 (Hermann), §18–§19 : en mode catalogue, la croix revient au questionnaire sans ajout.
-    if (catalogueMode) {
-      Keyboard.dismiss();
-      closeCatalogue();
-      setSearchRole(null);
-      setQuery("");
-      return;
-    }
-    if (stage === "summary") {
+    // Recette du 05/11/2026 au soir (p-ajout, Hermann : « La croix annule la création du format ») : en mode catalogue aussi, la
+    // croix quitte le Format. [§18–§19 : la croix du mode catalogue revenait au questionnaire sans ajout — remplacé par « Revenir
+    // aux paramètres ».]
+    if (catalogueMode) Keyboard.dismiss();
+    if (stage === "summary" && !catalogueMode) {
       Keyboard.dismiss();
       setSearchRole(null);
       setStage("questionnaire");
@@ -1343,7 +1358,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const testID = role === "BUY_IN" ? "format-buy-in" : role === "BUY_OUT" ? "format-buy-out" : buyIn || buyOut ? "format-loop" : "format-movements";
     return (
       <>
-        <SectionHeader label={label} testID={testID} />
+        <SectionHeader label={label} link={t().backToParameters} onLink={backToParameters} testID={testID} />
         <View style={[styles.search, styles.catalogueHead]} testID="format-catalogue">
           <View style={styles.catalogueCommands}>
             <Reanimated.View layout={LinearTransition.duration(220)} style={styles.catalogueField}>
@@ -1491,7 +1506,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         scrollEventThrottle={16}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: bandHeight + MOVEMENTS_TOP_OFFSET + (catalogueMode ? searchZoneHeight : 0), paddingBottom: safeBottom + CONTENT_BOTTOM_MARGIN },
+          {
+            paddingTop: bandHeight + MOVEMENTS_TOP_OFFSET + (catalogueMode ? searchZoneHeight : 0),
+            paddingBottom: bottomAction !== null ? actionZone.scrollReserve : safeBottom + CONTENT_BOTTOM_MARGIN,
+          },
         ]}
         testID={`format-${stage}`}
       >
@@ -1611,12 +1629,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
               <Pressable
                 onPress={close}
                 accessibilityRole="button"
-                accessibilityLabel={stage === "questionnaire" ? t().closeAccessibilityLabel : t().backAccessibilityLabel}
+                accessibilityLabel={stage === "questionnaire" || catalogueMode ? t().closeAccessibilityLabel : t().backAccessibilityLabel}
                 hitSlop={(minTouchTarget - dimensions.backAction.visualCircle) / 2}
                 style={styles.headerCircle}
                 testID="screen-header-back"
               >
-                <KodjoIcon name={stage === "questionnaire" ? "control-close" : "control-back"} size={dimensions.backAction.icon} testID="screen-header-back-icon" />
+                <KodjoIcon name={stage === "questionnaire" || catalogueMode ? "control-close" : "control-back"} size={dimensions.backAction.icon} testID="screen-header-back-icon" />
               </Pressable>
               <Text style={styles.modalTitle} accessibilityRole="header" numberOfLines={1} testID="format-title">
                 {modelName}
@@ -1625,19 +1643,13 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                   (choix des mouvements, buy-in compris), « Valider les paramètres » (questionnaire) et « Enregistrer dans la séance » /
                   « Enregistrer les modifications » (récapitulatif) ; mêmes règles d'activation que les boutons retirés. Bleue si la
                   validation est possible, grise sinon. */}
-              {catalogueMode ? (
-                <ModalValidateAction onPress={addPicked} enabled={picked.size > 0} accessibilityLabel={t().addPicked} style={styles.headerValidate} testID="format-catalogue-add" />
-              ) : validating ? (
-                <ModalValidateAction onPress={validate} enabled={canSave} accessibilityLabel={t().validate} style={styles.headerValidate} testID="format-validate" />
-              ) : (
-                <ModalValidateAction
-                  onPress={save}
-                  enabled={canSave}
-                  accessibilityLabel={reedit !== null ? t().saveChanges : t().save}
-                  style={styles.headerValidate}
-                  testID="format-save"
-                />
-              )}
+              <ModalValidateAction
+                onPress={save}
+                enabled={canSaveHere}
+                accessibilityLabel={reedit !== null ? t().saveChanges : t().save}
+                style={styles.headerValidate}
+                testID="format-save"
+              />
             </View>
             <Text style={styles.tagline}>{t().taglines[model]}</Text>
           </View>
@@ -1666,6 +1678,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           </View>
           {catalogueHead()}
         </View>
+      ) : null}
+      {bottomAction !== null ? (
+        <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
+          {bottomAction === "ADD" ? (
+            <PrimaryActionButton label={addPickedLabel} onPress={addPicked} disabled={picked.size === 0} testID="format-catalogue-add" />
+          ) : (
+            <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
+          )}
+        </PrimaryActionZone>
       ) : null}
       </View>
       {isFilterOpen ? (

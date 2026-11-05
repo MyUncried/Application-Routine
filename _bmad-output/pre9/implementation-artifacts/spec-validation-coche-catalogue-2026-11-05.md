@@ -55,6 +55,13 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - Déjà centrés, inchangés : `ModalHeader`, `FilterSheetPrimitives`, sélecteurs de référentiel, `FormatModelScreen`, dialogues.
 - Tests : `ScreenShell.test` (3).
 
+## 2 septies. Formats — coche et boutons du bas, recette du 05/11 au soir (classe B, remplace en partie le §1)
+
+- Coche de l’en-tête : toujours « Enregistrer dans la séance » (ou « Enregistrer les modifications »), active seulement quand paramètres et valeurs sont tous renseignés : au questionnaire des modèles sans récapitulatif (Tabata, 30/30, Renforcement, À l’échec à un mouvement) et au récapitulatif ; grise au questionnaire des modèles à récapitulatif.
+- Bas du questionnaire à récapitulatif : « Valider les paramètres » (`format-validate`), ouvre le récapitulatif. Récapitulatif : chevron Retour, coche, aucun bouton en bas.
+- Mode catalogue : croix (quitte le Format), « Ajouter X mouvements » en bas (`format-catalogue-add`, « Ajouter 1 mouvement », « Ajouter {count} mouvements »), coche selon la même règle ; le lien de la section devient « Revenir aux paramètres » (ferme le mode sans ajout).
+- Tests : `FormatModelScreen.c3` (coche, boutons du bas, mode catalogue).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

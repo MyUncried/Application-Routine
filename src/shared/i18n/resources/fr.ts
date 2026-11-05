@@ -552,6 +552,11 @@ export const fr = {
       // Complément du 5 novembre 2026 (§13) : avertissement non bloquant du Death by.
       deathByFirstRankWarning: "Le premier intervalle ne peut pas être tenu : le défi s’arrêtera avant de commencer.",
       addPicked: "Ajouter",
+      // Recette du 05/11/2026 au soir (p-coche, Hermann) : bouton du bas du mode catalogue « Ajouter X mouvements ».
+      addPickedOne: "Ajouter 1 mouvement",
+      addPickedMany: "Ajouter {count} mouvements",
+      // p-coche / p-ajout : « le bouton +Ajouter est remplacé par « revenir aux paramètres » après qu'il ait été sélectionné ».
+      backToParameters: "Revenir aux paramètres",
       // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
       lastRepetitionsLocked: "Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.",
       collapsePiles: "Replier les piles",
