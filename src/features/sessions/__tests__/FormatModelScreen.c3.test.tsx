@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
@@ -608,6 +608,19 @@ describe("FormatModelScreen", () => {
       fireEvent.press(screen.getByTestId("screen-header-back"));
     });
     expect(mockDismiss.mock.calls.length + mockDismissTo.mock.calls.length + mockBack.mock.calls.length).toBeGreaterThan(0);
+  });
+
+  it("recette du 05/11 au soir (s-fond) : chaque recherche ou filtre ramène la liste à son début, sous la zone de recherche", async () => {
+    const scrollTo = jest.fn();
+    jest.spyOn(ScrollView.prototype as unknown as { scrollTo: (options: { y: number; animated: boolean }) => void }, "scrollTo").mockImplementation(scrollTo);
+    mockModel = "TABATA";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    fireEvent.press(screen.getByTestId("format-movements-link"));
+    scrollTo.mockClear();
+    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "po");
+    expect(scrollTo).toHaveBeenCalledWith({ y: 0, animated: false });
+    jest.restoreAllMocks();
   });
 
   // ---------------------------------------------------------------------------

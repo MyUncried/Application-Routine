@@ -1082,6 +1082,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   }
 
   const scrollRef = useRef<ScrollView>(null);
+  // Recette du 05/11/2026 au soir (s-fond, Hermann : « Faire défiler la liste vers le haut, puis lancer une recherche [...] La recherche
+  // trouve les mouvements mais ils ne sont pas visibles car au dessus de la barre de recherche. Il faut que les résultats soient
+  // affichés à partir du bas de la barre de recherche, et qu’ils puissent défiler ensuite vers le haut ou le bas ») : à chaque
+  // recherche ou filtre, la liste repart de son début, juste sous la zone de recherche.
+  useEffect(() => {
+    if (!catalogueMode) return;
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [catalogueFilters, catalogueMode, query]);
   const scrollY = useRef(0);
   const [revealedId, setRevealedId] = useState<string | null>(null);
 

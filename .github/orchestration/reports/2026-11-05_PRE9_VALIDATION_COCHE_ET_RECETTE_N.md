@@ -69,6 +69,10 @@ En-têtes de modale à ✕ (et feuille « Ajouter un mouvement ») : titre centr
 
 Coche / boutons du bas / mode catalogue selon les réponses du 06/11 (Q1, Q4). Tests : Formats et Composition 1 118 verts ; `tsc` propre ; ESLint : erreur `react-hooks/refs` et avertissement préexistants dans `FormatModelScreen.c3.test.tsx` (identiques au commit précédent).
 
+## Complément — groupe B (zone de recherche)
+
+Résultats de recherche affichés à partir du bas de la barre. Test `FormatModelScreen.c3` 43 verts ; `tsc` propre.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

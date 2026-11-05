@@ -62,6 +62,11 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - Mode catalogue : croix (quitte le Format), « Ajouter X mouvements » en bas (`format-catalogue-add`, « Ajouter 1 mouvement », « Ajouter {count} mouvements »), coche selon la même règle ; le lien de la section devient « Revenir aux paramètres » (ferme le mode sans ajout).
 - Tests : `FormatModelScreen.c3` (coche, boutons du bas, mode catalogue).
 
+## 2 octies. Mode catalogue — résultats sous la recherche (s-fond, classe B)
+
+- Effet sur `query`, `catalogueFilters`, `catalogueMode` : `scrollTo({ y: 0 })` du défilement du questionnaire (en mode catalogue, la liste est le premier contenu, sous la zone de recherche).
+- Test : `FormatModelScreen.c3` (s-fond).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).
