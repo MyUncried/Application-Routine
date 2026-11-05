@@ -794,4 +794,26 @@ describe("FormatModelScreen", () => {
     });
   });
 
+
+  // Complément du 5 novembre 2026 (Hermann), §19 : espacements du gabarit commun aux dix Formats.
+  it("complément du 05/11 (§19) : « Mouvements » descendue de 8 ; cartes espacées de 6 ; « Paramètres d’exécution » à 16 de la dernière carte", async () => {
+    mockModel = "TABATA";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    const content = () => StyleSheet.flatten(screen.getByTestId("format-questionnaire").props.contentContainerStyle) as { paddingTop: number };
+    const withOffset = content().paddingTop;
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    const slots = [0, 1].map((index) => {
+      let node = screen.getByTestId(`format-movement-card-${index}`).parent;
+      while (node !== null && StyleSheet.flatten(node.props.style ?? {})?.marginBottom === undefined) node = node.parent;
+      return StyleSheet.flatten(node!.props.style) as { marginBottom: number };
+    });
+    expect(slots.map((style) => style.marginBottom)).toEqual([6, 6]);
+    expect(StyleSheet.flatten(screen.getByTestId("format-parameters-title").props.style)).toMatchObject({ marginTop: 16 });
+    // Mode catalogue : en-tête et recherche dans la zone figée, sans décalage.
+    fireEvent.press(screen.getByTestId("format-movements-link"));
+    expect(withOffset - content().paddingTop).toBe(8);
+  });
+
 });

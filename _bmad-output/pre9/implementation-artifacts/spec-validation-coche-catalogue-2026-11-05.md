@@ -25,6 +25,14 @@ Demande de Hermann du 05/11/2026 (conversation Claude Code), recopiée dans le r
 - Inchangée : la fiche de création d'un exercice (Exercice libre) et ses suggestions pendant la saisie du nom.
 - Tests `FormatModelScreen.c3` : aide `pick` par le mode catalogue ; tests de la saisie intermédiaire remplacés (règle remplacée citée en commentaire) ; nouveau test « + Ajouter ouvre le mode catalogue ».
 
+## 2 ter. Point 3 — espacements (classe B, rendu)
+
+Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partagés) :
+- ligne « Mouvements » (première section : Mouvements, ou Buy-in / En boucle) descendue de 8 (`MOVEMENTS_TOP_OFFSET`, haut du contenu = zone de contexte + 8, hors mode catalogue) ;
+- écart entre deux cartes 6 au lieu de 8 (`CARD_GAP`, pas de déplacement par défaut 66) ;
+- écart dernière carte → « Paramètres d'exécution » réduit de 8 : marge haute du titre 16 au lieu de 22, avec l'écart des cartes 6 au lieu de 8 (Figma : 24 → 16). Titre du Déroulé inchangé.
+- Test `FormatModelScreen.c3` (« §19 : … espacements »).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

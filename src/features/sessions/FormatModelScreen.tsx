@@ -128,9 +128,17 @@ const RECOVERY_BLOCK = "#D9DBE0";
 const BUY_IN_BLOCK = "#7984C7";
 const CHIP = "#5B5BF0";
 const CONTEXT_HEIGHT = 109;
-/** Écart entre deux cartes de mouvement ; pas de déplacement par défaut (carte 60 + écart) avant mesure. */
-const CARD_GAP = 8;
-const CARD_STEP_DEFAULT = 68;
+/**
+ * Écart entre deux cartes de mouvement ; pas de déplacement par défaut (carte 60 + écart) avant mesure. Complément du
+ * 5 novembre 2026 (Hermann), §19 : 6 (au lieu de 8).
+ */
+const CARD_GAP = 6;
+const CARD_STEP_DEFAULT = 60 + CARD_GAP;
+/**
+ * Complément du 5 novembre 2026 (Hermann), §19 : la ligne « Mouvements » (titre et « + Ajouter ») descend de 8 — elle empiétait
+ * sur le bas de la zone de contexte (illustration et accroche). Hors mode catalogue (en-tête et recherche dans la zone figée).
+ */
+const MOVEMENTS_TOP_OFFSET = 8;
 /** Complément du 5 novembre 2026 (Hermann), §18–§19 : plus de bouton en bas ; marge sous le Déroulé, au-dessus de la zone sûre. */
 const CONTENT_BOTTOM_MARGIN = 24;
 /** Pile repliée du mode catalogue : décalage vertical et retrait latéral de chaque feuille (Catalogue des mouvements). */
@@ -1445,7 +1453,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           scrollY.current = event.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={16}
-        contentContainerStyle={[styles.content, { paddingTop: bandHeight, paddingBottom: safeBottom + CONTENT_BOTTOM_MARGIN }]}
+        contentContainerStyle={[styles.content, { paddingTop: bandHeight + (catalogueMode ? 0 : MOVEMENTS_TOP_OFFSET), paddingBottom: safeBottom + CONTENT_BOTTOM_MARGIN }]}
         testID={`format-${stage}`}
       >
         {/* Mouvements (§7.1 à §7.4). */}
@@ -1473,7 +1481,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
 
         {catalogueMode ? null : (
         <>
-        <Text style={styles.section}>{t().parameters}</Text>
+        <Text style={[styles.section, styles.parametersTitle]} testID="format-parameters-title">
+          {t().parameters}
+        </Text>
         {/* Complément du 5 novembre 2026 (Hermann), §12 : tableau des mouvements isolé dans son propre cadre, entre le cadre du nombre de séries (ou de tours,
             d'intervalle, de durée) et celui des paramètres qui suivent ; cadres séparés de 8. */}
         <View style={styles.panel} testID="format-parameters">
@@ -1816,6 +1826,9 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 16, marginTop: 5, marginBottom: 8 },
   sectionLabel: { fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
   section: { fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION, marginHorizontal: 16, marginTop: 22, marginBottom: 8 },
+  // Complément du 5 novembre 2026 (Hermann), §19 : écart entre la dernière carte et « Paramètres d'exécution » réduit de 8
+  // (24 → 16 dans Figma) : écart des cartes 6 + 16, au lieu de 8 + 22.
+  parametersTitle: { marginTop: 16 },
   link: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, color: VALUE_COLOR },
   search: { marginHorizontal: 16, gap: 8, marginBottom: 8 },
   catalogueCommands: { flexDirection: "row", alignItems: "center", gap: 8 },
