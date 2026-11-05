@@ -169,7 +169,7 @@ describe("FormatModelScreen", () => {
     await waitFor(() => expect(mockDismiss.mock.calls.length + mockDismissTo.mock.calls.length).toBeGreaterThan(0));
   });
 
-  it("« + Ajouter » ouvre le champ et devient « Ouvrir le mode catalogue » ; la saisie propose les Mouvements ; Progression : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {
+  it("« + Ajouter » ouvre directement le mode catalogue (§19) ; Progression : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {
     // Recette du 04/11/2026 : les modèles sans tableau s'enregistrent depuis leur questionnaire ; la Progression garde le récapitulatif.
     mockModel = "PROGRESSION";
     const draftRef = { current: createEmptyDraft() };
@@ -177,12 +177,14 @@ describe("FormatModelScreen", () => {
     await screen.findByTestId("format-title");
     // Réglage modifié avant d'ajouter un mouvement : 1 série.
     typeValue("seriesCount", "1");
+    // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » ouvre directement le mode catalogue (champ actif, clavier ouvert) ; [saisie intermédiaire avec suggestions et lien « Ouvrir / Fermer le mode catalogue » — remplacés].
     fireEvent.press(screen.getByTestId("format-movements-link"));
-    expect(screen.getByText(t.openCatalogue)).toBeTruthy();
-    fireEvent.changeText(screen.getByTestId("format-search"), "Squ");
-    const suggestion = await screen.findByTestId("format-suggestion-mv-squats");
+    expect(screen.queryByTestId("format-search")).toBeNull();
+    expect(screen.getByTestId("format-catalogue-search").props.autoFocus).toBe(true);
+    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Squ");
+    fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-squats"));
     await act(async () => {
-      fireEvent.press(suggestion);
+      fireEvent.press(screen.getByTestId("format-catalogue-add"));
     });
     // MAJ 04/11 §2 bis : le récapitulatif s'ouvre sur place, sans navigation ; Retour revient au questionnaire.
     expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
@@ -238,15 +240,8 @@ describe("FormatModelScreen", () => {
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
     await screen.findByTestId("format-title");
-    for (const query of ["Squ", "Fen"]) {
-      fireEvent.press(screen.getByTestId("format-movements-link"));
-      fireEvent.changeText(screen.getByTestId("format-search"), query);
-      const id = query === "Squ" ? "mv-squats" : "mv-fentes";
-      const suggestion = await screen.findByTestId(`format-suggestion-${id}`);
-      await act(async () => {
-        fireEvent.press(suggestion);
-      });
-    }
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
     toSummary();
     const table = screen.getByTestId("format-amrap-table");
     expect(within(table).getByText(t.table.max)).toBeTruthy();
@@ -265,12 +260,13 @@ describe("FormatModelScreen", () => {
     expect(circuit!.exercises).toHaveLength(2);
   });
 
+  // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » ouvre directement le mode catalogue (champ actif, clavier ouvert) ; [saisie intermédiaire avec suggestions et lien « Ouvrir / Fermer le mode catalogue » — remplacés].
   async function pick(query: string, id: string, section = "format-movements") {
     fireEvent.press(screen.getByTestId(`${section}-link`));
-    fireEvent.changeText(screen.getByTestId("format-search"), query);
-    const suggestion = await screen.findByTestId(`format-suggestion-${id}`);
+    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), query);
+    fireEvent.press(await screen.findByTestId(`format-catalogue-card-${id}`));
     await act(async () => {
-      fireEvent.press(suggestion);
+      fireEvent.press(screen.getByTestId("format-catalogue-add"));
     });
   }
 
@@ -351,15 +347,16 @@ describe("FormatModelScreen", () => {
     expect(shown("timeCapSeconds")).toBe(t.noLimit);
   });
 
-  it("recette du 05/11 (constat c) : un texte sans résultat garde le cadre des résultats, vide", async () => {
+  // [Recette du 05/11 (constat c, g-recherche-vide) sur le cadre des suggestions — étape retirée (§19) ; « Aucun résultat » reste
+  // affiché en mode catalogue (k-aucun-resultat).]
+  it("recette du 05/11 (k-aucun-resultat) : un texte sans résultat affiche « Aucun résultat » en mode catalogue", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     fireEvent.press(screen.getByTestId("format-movements-link"));
-    fireEvent.changeText(screen.getByTestId("format-search"), "zzzz");
-    // Recette du 05/11 (g-recherche-vide) : « Afficher "aucun résultat" dans le cadre de la zone de recherche ».
-    expect(screen.getByTestId("format-suggestions-empty")).toHaveTextContent(t.noSearchResult);
-    expect(screen.queryByTestId("format-suggestion-mv-squats")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "zzzz");
+    expect(screen.getByTestId("format-catalogue-empty")).toHaveTextContent(t.noSearchResult);
+    expect(screen.queryByTestId("format-catalogue-card-mv-squats")).toBeNull();
   });
 
   it("recette n° 3 du 03/11 (autres constats) : AMRAP Buy-in — sections Buy-in et En boucle dès le questionnaire ; buy-in choisi requis ; jamais un mouvement de boucle", async () => {
@@ -380,20 +377,20 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-buy-in-link")).toHaveTextContent(t.change);
     expect(within(screen.getByTestId("format-buy-in-cards")).getByText("Squats sautés")).toBeTruthy();
     expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
-    // Récapitulatif : « Changer » ouvre le même champ, pas le Catalogue — contre-recette n° 3 ter : le buy-in est
-    // d'abord effacé ; on le choisit à nouveau.
+    // Récapitulatif : « Changer » efface d'abord le buy-in (contre-recette n° 3 ter), puis ouvre directement le mode catalogue
+    // dans la modale (§19) ; on le choisit à nouveau, la coche ramène au récapitulatif.
     toSummary();
     fireEvent.press(screen.getByTestId("format-buy-in-link"));
-    expect(screen.getByTestId("format-search")).toBeTruthy();
+    expect(screen.getByTestId("format-catalogue-search")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
-    expect(screen.queryByTestId("format-buy-in-cards")?.children ?? []).toHaveLength(0);
-    fireEvent.changeText(screen.getByTestId("format-search"), "Squ");
+    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Squ");
+    fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-squats"));
     await act(async () => {
-      fireEvent.press(screen.getByTestId("format-suggestion-mv-squats"));
+      fireEvent.press(screen.getByTestId("format-catalogue-add"));
     });
+    expect(screen.getByTestId("format-summary")).toBeTruthy();
     for (const index of [0, 1, 2]) fireEvent.changeText(screen.getByTestId(`format-amrap-reps-${index}`), "10");
-    fireEvent.press(screen.getByTestId("format-loop-link"));
-    expect(screen.getByTestId("format-loop-link")).toHaveTextContent(t.openCatalogue);
+    expect(screen.getByTestId("format-loop-link")).toHaveTextContent(t.add);
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });
@@ -443,15 +440,20 @@ describe("FormatModelScreen", () => {
     expect(shown("pauseSeconds")).toBe("5 s");
   });
 
-  it("recette n° 3 bis du 03/11 (f3s-recherche) : saisie d'un mouvement — un toucher hors du champ ne retire pas le clavier", async () => {
+  // [Recette n° 3 bis du 03/11 (f3s-recherche) : champ de saisie intermédiaire — retiré (§19).]
+  it("complément du 05/11 (§19) : « + Ajouter » ouvre le mode catalogue — recherche active, filtres, tri et piles à côté ; plus de lien Ouvrir / Fermer", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
-    expect(screen.getByTestId("format-questionnaire").props.keyboardShouldPersistTaps).toBe("handled");
     fireEvent.press(screen.getByTestId("format-movements-link"));
-    expect(screen.getByTestId("format-questionnaire").props.keyboardShouldPersistTaps).toBe("always");
-    expect(screen.getByTestId("format-questionnaire").props.keyboardDismissMode).toBe("none");
-    expect(screen.getByTestId("format-search").props.submitBehavior).toBe("submit");
+    expect(screen.queryByTestId("format-search")).toBeNull();
+    expect(screen.getByTestId("format-catalogue-search").props.autoFocus).toBe(true);
+    expect(await screen.findByTestId("format-catalogue-filter")).toBeTruthy();
+    expect(screen.getByTestId("format-catalogue-sort")).toBeTruthy();
+    expect(screen.getByTestId("format-catalogue-piles")).toBeTruthy();
+    expect(screen.queryByTestId("format-movements-link")).toBeNull();
+    expect(screen.queryByText("Ouvrir le mode catalogue")).toBeNull();
+    expect(screen.queryByText("Fermer le mode catalogue")).toBeNull();
   });
 
   it("recette n° 3 bis du 03/11 (f3s-clavier) : cellules des tableaux sans touche « Next » — navigation par la barre", async () => {
@@ -556,15 +558,13 @@ describe("FormatModelScreen", () => {
     expect(new Set(ids).size).toBe(2);
   });
 
-  it("MAJ 04/11 §3 : mode catalogue dans la modale — recherche conservée, effacement, Filtrer / Trier / Replier, sélection, Ajouter ; Fermer revient sans ajout", async () => {
+  it("MAJ 04/11 §3, §18–§19 : mode catalogue dans la modale — recherche, effacement, Filtrer / Trier / Replier, sélection, coche ; la croix revient sans ajout", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     fireEvent.press(screen.getByTestId("format-movements-link"));
-    fireEvent.changeText(screen.getByTestId("format-search"), "Squ");
-    fireEvent.press(screen.getByTestId("format-movements-link"));
+    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Squ");
     expect(mockPush).not.toHaveBeenCalled();
-    expect(screen.getByTestId("format-movements-link")).toHaveTextContent(t.closeCatalogue);
     expect(screen.getByTestId("format-catalogue-search").props.value).toBe("Squ");
     // Recette du 04/11/2026 (e-cat-recherche) : le champ se rétrécit, puis les trois commandes apparaissent.
     expect(await screen.findByTestId("format-catalogue-filter")).toBeTruthy();
@@ -584,12 +584,14 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
     expect(screen.getByTestId("format-movement-card-1")).toBeTruthy();
     expect(screen.getByTestId("format-parameters")).toBeTruthy();
-    // Fermer le mode catalogue : aucun ajout.
+    // La croix de l'en-tête referme le mode catalogue : aucun ajout, retour au questionnaire.
     fireEvent.press(screen.getByTestId("format-movements-link"));
-    fireEvent.press(screen.getByTestId("format-movements-link"));
-    fireEvent.press(screen.getByTestId("format-catalogue-card-mv-fentes"));
-    fireEvent.press(screen.getByTestId("format-movements-link"));
+    fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-fentes"));
+    fireEvent.press(screen.getByTestId("screen-header-back"));
+    expect(screen.queryByTestId("format-catalogue")).toBeNull();
     expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
+    expect(screen.getByTestId("format-parameters")).toBeTruthy();
+    expect(mockDismiss).not.toHaveBeenCalled();
   });
 
   // ---------------------------------------------------------------------------
@@ -685,10 +687,9 @@ describe("FormatModelScreen", () => {
     expect(within(band).getByTestId("format-context-fade", { includeHiddenElements: true })).toBeTruthy();
     expect(within(screen.getByTestId("format-questionnaire")).queryByTestId("format-title")).toBeNull();
     fireEvent.press(screen.getByTestId("format-movements-link"));
-    fireEvent.changeText(screen.getByTestId("format-search"), "Squ");
-    fireEvent.press(screen.getByTestId("format-movements-link"));
+    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Squ");
     expect(within(band).getByTestId("format-catalogue-search")).toBeTruthy();
-    expect(within(band).getByTestId("format-movements-link")).toHaveTextContent(t.closeCatalogue);
+    expect(within(band).queryByTestId("format-movements-link")).toBeNull();
     expect(within(screen.getByTestId("format-questionnaire")).getByTestId("format-catalogue-results")).toBeTruthy();
     // Défilement conservé avec un texte saisi (e-cat-defiler).
     expect(screen.getByTestId("format-questionnaire").props.scrollEnabled).toBe(true);

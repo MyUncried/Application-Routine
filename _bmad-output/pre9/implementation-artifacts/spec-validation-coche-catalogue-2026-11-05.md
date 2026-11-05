@@ -18,6 +18,13 @@ Demande de Hermann du 05/11/2026 (conversation Claude Code), recopiée dans le r
   - Libellés retirés de l'écran, conservés comme libellés d'accessibilité de la coche.
 - **Non réalisés — écrans absents de la branche** : Catalogue des séances ouvert depuis la planification, Planifier une séance, Planifier un parcours (écran et modale du Calendrier), Fréquence d'un contenu de parcours. Le Calendrier est un écran provisoire (`app/(tabs)/calendar.tsx`, `PlaceholderScreen`) ; `src/features/planning/` ne contient qu'un README ; l'action « Planifier » du Catalogue est grisée (CE-T03-01). La variante « Fermer et valider » est prête pour ces écrans.
 
+## 2 bis. Point 2 — « + Ajouter » ouvre le mode catalogue (classe B)
+
+- `FormatModelScreen` : « + Ajouter » et « Changer » (buy-in, buy-out ; le mouvement choisi est d'abord retiré, comme avant) ouvrent directement le mode catalogue, recherche en focus (`autoFocus`), filtres, tri et piles à côté du champ.
+- Retirés : champ `format-search` et cadre des suggestions (`format-suggestions`, mesures au-dessus du clavier, rebond), lien « Ouvrir / Fermer le mode catalogue » et ses libellés `openCatalogue` / `closeCatalogue`. En mode catalogue, l'en-tête de section n'a plus de lien : la croix de l'en-tête revient au questionnaire sans ajout, la coche ajoute la sélection (point 1).
+- Inchangée : la fiche de création d'un exercice (Exercice libre) et ses suggestions pendant la saisie du nom.
+- Tests `FormatModelScreen.c3` : aide `pick` par le mode catalogue ; tests de la saisie intermédiaire remplacés (règle remplacée citée en commentaire) ; nouveau test « + Ajouter ouvre le mode catalogue ».
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

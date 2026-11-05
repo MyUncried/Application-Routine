@@ -6,7 +6,6 @@ import { isValidElement, useCallback, useContext, useEffect, useMemo, useRef, us
 import {
   Alert,
   Keyboard,
-  LayoutAnimation,
   Platform,
   Pressable,
   ScrollView,
@@ -134,11 +133,6 @@ const CARD_GAP = 8;
 const CARD_STEP_DEFAULT = 68;
 /** Complément du 5 novembre 2026 (Hermann), §18–§19 : plus de bouton en bas ; marge sous le Déroulé, au-dessus de la zone sûre. */
 const CONTENT_BOTTOM_MARGIN = 24;
-/** Hauteur minimale du cadre des suggestions ; écart laissé au-dessus du clavier. */
-const SUGGESTIONS_MIN_HEIGHT = 160;
-const SUGGESTIONS_TO_KEYBOARD = 8;
-/** Dépassement du bout de la liste des suggestions (rebond) qui retire le clavier (recette du 05/11/2026, constat c). */
-const SUGGESTIONS_BOUNCE = 12;
 /** Pile repliée du mode catalogue : décalage vertical et retrait latéral de chaque feuille (Catalogue des mouvements). */
 const PILE_LEAF_STEP = 6;
 const PILE_LEAF_INSET = 8;
@@ -518,60 +512,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // appuyer sur "+ Ajouter" ouvre directement le catalogue alors que le comportement doit être exactement le
   // même que pour le premier écran. Idem pour le bouton "Changer" ») : même champ dans chaque section, aux deux étapes.
   const [searchRole, setSearchRole] = useState<"LOOP" | "BUY_IN" | "BUY_OUT" | null>(null);
-  const searchInput = useRef<TextInput>(null);
-  const submitting = useRef(false);
-  const searchOpen = searchRole !== null;
   const [query, setQuery] = useState("");
   const windowHeight = useWindowDimensions().height;
   const keyboardFrame = useKeyboardFrame();
   const reduceMotion = useReduceMotion();
-  // Cadre des suggestions : il défile seul — recette n° 3 du 03/11/2026 (autres constats, Hermann : « taper des
-  // lettres : la zone de recherche apparaît. Il faut qu'elle descende jusqu'au clavier au minimum par défaut ») :
-  // son bas rejoint le haut du clavier. [Hauteur maximale d'un tiers de l'écran — remplacée.]
-  const suggestionsRef = useRef<View>(null);
   const safeBottom = initialWindowMetrics?.insets.bottom ?? 0;
   const rootRef = useRef<View>(null);
-  const [suggestionsTop, setSuggestionsTop] = useState<number | null>(null);
-  // Recette du 05/11/2026 (constat c, Hermann : « je ne peux pas faire défiler tous les résultats, un ou des mouvements
-  // restent cachés inaccessibles derrière le clavier ») : dans la feuille native, `measureInWindow` compte depuis le haut de
-  // la feuille, le clavier depuis le haut de l'écran — le haut du cadre est ramené à l'écran (même conversion que le tableau).
-  const measureSuggestions = useCallback(() => {
-    const box = suggestionsRef.current;
-    if (box === null) return;
-    const read = (offset: number) => box.measureInWindow((_x, y) => setSuggestionsTop(y + offset));
-    const root = rootRef.current;
-    if (root === null) {
-      read(0);
-      return;
-    }
-    root.measureInWindow((_rootX, rootY, _rootWidth, rootHeight) => read(windowHeight - (rootY + rootHeight)));
-  }, [windowHeight]);
-  useEffect(() => {
-    if (keyboardFrame === null) return;
-    measureSuggestions();
-    // La feuille grandit à l'ouverture du clavier : nouvelle mesure une fois en place.
-    const settle = setTimeout(measureSuggestions, (keyboardFrame.duration > 0 ? keyboardFrame.duration : 250) + 120);
-    return () => clearTimeout(settle);
-  }, [keyboardFrame, measureSuggestions]);
-  // Recette du 05/11/2026 (g-recherche-rebond, Hermann : « Le clavier descend après le rebond, ok, mais la zone de recherche
-  // doit alors occuper toute la hauteur de l'écran jusqu'en bas et ne pas s'arrêter à hauteur du clavier qui a disparu. Elle doit
-  // donc s'étendre avec le clavier, et se raccourcir avec lorsqu'il réapparaît ») : sans clavier, le cadre descend jusqu'au bas
-  // de l'écran (zone sûre déduite) ; le changement suit l'animation du clavier.
-  const suggestionsHeight =
-    suggestionsTop === null
-      ? Math.max(SUGGESTIONS_MIN_HEIGHT, Math.round(windowHeight * 0.32))
-      : Math.max(
-          SUGGESTIONS_MIN_HEIGHT,
-          (keyboardFrame !== null && keyboardFrame.screenY > 0 && keyboardFrame.screenY < windowHeight ? keyboardFrame.screenY : windowHeight - safeBottom) -
-            suggestionsTop -
-            SUGGESTIONS_TO_KEYBOARD,
-        );
-  const keyboardShown = keyboardFrame !== null;
-  const [suggestionsKeyboard, setSuggestionsKeyboard] = useState(keyboardShown);
-  if (suggestionsKeyboard !== keyboardShown) {
-    setSuggestionsKeyboard(keyboardShown);
-    if (!reduceMotion) LayoutAnimation.configureNext({ duration: keyboardFrame?.duration || 250, update: { type: LayoutAnimation.Types.keyboard } });
-  }
   // Mode catalogue (mise à jour consolidée du 04/11/2026 §3 ; référence Formats §7.1 à §7.3) : « Ouvrir le mode
   // catalogue » reste dans la modale — recherche détachée avec croix d'effacement, Filtrer, Trier (inactif, comme au
   // Catalogue) et Replier / déplier les piles, petites cartes avec filet des niveaux, sans compteur ; « Ajouter »
@@ -591,11 +537,13 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [catalogueFocus, setCatalogueFocus] = useState(false);
   const [bandHeight, setBandHeight] = useState(CONTEXT_HEIGHT);
   const [picked, setPicked] = useState<ReadonlyMap<string, Movement>>(new Map());
-  const suggestionItems = useMemo(() => (query.trim().length === 0 ? [] : visibleMovementItems(entries, query, EMPTY_MOVEMENT_FILTERS)), [entries, query]);
   const catalogueItems = useMemo(() => (catalogueMode ? visibleMovementItems(entries, query, catalogueFilters) : []), [catalogueFilters, catalogueMode, entries, query]);
+  // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » (ou « Changer ») ouvre directement le mode catalogue — champ de
+  // recherche actif, clavier ouvert, filtres, tri et piles à côté du champ. [Étape intermédiaire de saisie avec suggestions et lien
+  // « Ouvrir / Fermer le mode catalogue » (recette n° 3 du 03/11/2026, f3r-recherche ; MAJ 04/11 §3) — remplacés.]
   const openCatalogue = () => {
     setPicked(new Map());
-    setCatalogueFocus(searchInput.current?.isFocused() === true);
+    setCatalogueFocus(true);
     setCommandsShown(false);
     setCatalogueMode(true);
     requestAnimationFrame(() => setCommandsShown(true));
@@ -1328,24 +1276,19 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       ),
     );
 
-  // Section de mouvements : en-tête, lien « + Ajouter » / « Changer » (champ de saisie), puis « Ouvrir le mode
-  // catalogue » / « Fermer le mode catalogue ».
+  // Section de mouvements : en-tête et lien « + Ajouter » / « Changer », qui ouvre directement le mode catalogue (§19).
   const sectionLink = (role: "LOOP" | "BUY_IN" | "BUY_OUT", link: string) => {
-    const open = searchRole === role;
-    const inCatalogue = open && catalogueMode;
     return {
-      text: inCatalogue ? t().closeCatalogue : open ? t().openCatalogue : link,
+      text: link,
       onPress: () => {
-        if (inCatalogue) closeCatalogue();
-        else if (open) openCatalogue();
-        else {
+        {
           // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « changer de Buy-in doit effacer le mouvement avant de
           // positionner le curseur sur le champ ») : « Changer » retire le buy-in (ou le buy-out) choisi, puis ouvre le champ.
           if (role === "BUY_IN") setMovements((current) => current.filter((item) => item.buyIn !== true));
           if (role === "BUY_OUT") setMovements((current) => current.filter((item) => item.buyOut !== true));
           setQuery("");
-          setSuggestionsTop(null);
           setSearchRole(role);
+          openCatalogue();
         }
       },
     };
@@ -1357,11 +1300,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     if (searchRole === null) return null;
     const role = searchRole;
     const label = role === "BUY_IN" ? t().buyInPickerTitle : role === "BUY_OUT" ? t().buyOutPickerTitle : buyIn || buyOut ? loopLabelOf() : t().movements;
-    const link = sectionLink(role, t().add);
     const testID = role === "BUY_IN" ? "format-buy-in" : role === "BUY_OUT" ? "format-buy-out" : buyIn || buyOut ? "format-loop" : "format-movements";
     return (
       <>
-        <SectionHeader label={label} link={link.text} onLink={link.onPress} testID={testID} />
+        <SectionHeader label={label} testID={testID} />
         <View style={[styles.search, styles.catalogueHead]} testID="format-catalogue">
           <View style={styles.catalogueCommands}>
             <Reanimated.View layout={LinearTransition.duration(220)} style={styles.catalogueField}>
@@ -1476,92 +1418,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
               )}
             </View>
           </View>
-        ) : open ? (
-          <View style={styles.search}>
-            <TextInput
-              ref={searchInput}
-              value={query}
-              onChangeText={setQuery}
-              autoFocus
-              placeholder={t().searchPlaceholder}
-              // Recette n° 3 du 03/11/2026 (f3r-recherche : « appuyer sur entrée fait disparaître le clavier […]
-              // Le clavier ne doit pas disparaître ») : Entrée ne retire pas le focus. Contre-recette n° 3 ter
-              // (f3t-recherche, Hermann : « Appuyer sur entrée fermé le clavier ») : cause non reproduite hors appareil ;
-              // après Entrée, le champ reprend le focus s'il l'a perdu, sans se refermer.
-              submitBehavior="submit"
-              returnKeyType="search"
-              onSubmitEditing={() => {
-                submitting.current = true;
-                requestAnimationFrame(() => {
-                  submitting.current = false;
-                  if (searchInput.current?.isFocused() === false) searchInput.current.focus();
-                });
-              }}
-              onBlur={() => {
-                if (submitting.current) return;
-                if (query.trim().length === 0) setSearchRole((current) => (current === role ? null : current));
-              }}
-              style={styles.searchInput}
-              accessibilityLabel={t().searchPlaceholder}
-              testID="format-search"
-            />
-            {/* Recette du 05/11/2026 (constat c, Hermann : « le résultat ne retourne rien, et le contenu de l'écran remonte. Ok.
-                Mais il faut laisser affichée la zone de recherche vide par-dessus ») : un texte tapé sans résultat garde le cadre
-                des résultats, vide. */}
-            {query.trim().length > 0 ? (
-              <View ref={suggestionsRef} onLayout={measureSuggestions} collapsable={false}>
-                {/* Recette du 05/11/2026 (g-recherche-vide, Hermann : « Afficher "aucun résultat" dans le cadre de la zone de
-                    recherche »). */}
-                <ScrollView
-                  style={[styles.suggestions, { height: suggestionsHeight }]}
-                  contentContainerStyle={styles.suggestionsContent}
-                  // f3r-recherche : « faire défiler la liste vers le haut puis vers le bas […] fait disparaître le
-                  // clavier […] Le clavier ne doit pas disparaître avec ces mouvements. »
-                  keyboardShouldPersistTaps="always"
-                  keyboardDismissMode="none"
-                  // Recette du 05/11/2026 (constat c, Hermann : « Faire défiler le résultat de la recherche vers le bas jusqu'au
-                  // rebond de la limite : le clavier reste en place. Il devrait se retirer vers le bas (c'est le comportement
-                  // dans le mode catalogue), et réapparaître si on met le focus sur la recherche ») : un rebond au bout de la
-                  // liste retire le clavier ; le texte et les résultats restent, toucher le champ rouvre le clavier.
-                  onScrollEndDrag={(event) => {
-                    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-                    const end = Math.max(0, contentSize.height - layoutMeasurement.height);
-                    if (contentOffset.y < -SUGGESTIONS_BOUNCE || contentOffset.y > end + SUGGESTIONS_BOUNCE) Keyboard.dismiss();
-                  }}
-                  nestedScrollEnabled
-                  testID="format-suggestions"
-                >
-                  {suggestionItems.length === 0 ? (
-                    <Text style={styles.noResult} testID="format-suggestions-empty">
-                      {t().noSearchResult}
-                    </Text>
-                  ) : null}
-                  {familyCards(
-                    suggestionItems,
-                    (choice) => (
-                      <SelectedMovementCard
-                        key={choice.movement.id}
-                        movement={choice.movement}
-                        levelRank={choice.level?.rank ?? null}
-                        onPress={() => {
-                          if (role === "LOOP" && supersetFull(1)) {
-                            warnSupersetFull();
-                            return;
-                          }
-                          setSearchRole(null);
-                          setQuery("");
-                          addMovements([choice.movement], role);
-                        }}
-                        onPhotoPress={() => openSheet(choice.movement)}
-                        testID={`format-suggestion-${choice.movement.id}`}
-                      />
-                    ),
-                    false,
-                  )}
-                </ScrollView>
-              </View>
-            ) : null}
-          </View>
         ) : null}
       </>
     );
@@ -1576,13 +1432,13 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // écran figé pendant la saisie d'un mouvement avec suggestions, et pendant le déplacement d'une carte. Recette du
         // 04/11/2026 (f4-catalogue : « lorsqu'un texte est tapé dans la zone de recherche on doit pouvoir continuer de faire
         // défiler la liste des mouvements ») : jamais figé en mode catalogue.
-        scrollEnabled={drag === null && (catalogueMode || !(searchOpen && query.trim().length > 0))}
+        scrollEnabled={drag === null}
         // Recette n° 3 bis du 03/11/2026 (f3s-recherche, Hermann : « appuyer sur entrer ou sur une autre partie de
         // l'écran ne change rien, le clavier reste ouvert » ; « faire défiler vers le bas et le haut ne ferme pas le
         // clavier ») : pendant la saisie d'un mouvement, un toucher hors du champ ne le quitte plus (avec
         // « handled », l'écran figé prenait le toucher et retirait le clavier, y compris en fin de défilement
         // des suggestions).
-        keyboardShouldPersistTaps={searchOpen ? "always" : "handled"}
+        keyboardShouldPersistTaps="handled"
         keyboardDismissMode="none"
         automaticallyAdjustKeyboardInsets
         onScroll={(event) => {
@@ -1891,13 +1747,15 @@ function ExecutionMenu({ options, execution, onSelect }: { options: readonly Mod
   );
 }
 
-function SectionHeader({ label, link, onLink, disabled = false, testID }: { label: string; link: string; onLink: () => void; disabled?: boolean; testID: string }) {
+function SectionHeader({ label, link, onLink, disabled = false, testID }: { label: string; link?: string; onLink?: () => void; disabled?: boolean; testID: string }) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionLabel}>{label}</Text>
-      <Pressable onPress={onLink} disabled={disabled} hitSlop={10} accessibilityRole="button" accessibilityLabel={link} accessibilityState={{ disabled }} testID={`${testID}-link`}>
-        <Text style={[styles.link, disabled ? styles.linkDisabled : null]}>{link}</Text>
-      </Pressable>
+      {link !== undefined ? (
+        <Pressable onPress={onLink} disabled={disabled} hitSlop={10} accessibilityRole="button" accessibilityLabel={link} accessibilityState={{ disabled }} testID={`${testID}-link`}>
+          <Text style={[styles.link, disabled ? styles.linkDisabled : null]}>{link}</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -1971,8 +1829,6 @@ const styles = StyleSheet.create({
   pilesGlyph: { width: 14, height: 3, borderRadius: 1.5, borderWidth: 1, borderColor: "#7A7F8C" },
   pilesGlyphOn: { borderColor: VALUE_COLOR },
   searchInput: { height: 44, borderRadius: 12, backgroundColor: PANEL, paddingHorizontal: 16, fontFamily: "Inter_400Regular", fontSize: 16, color: LABEL },
-  suggestions: { flexGrow: 0, borderRadius: 12, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E3E8F0" },
-  suggestionsContent: { gap: 8, padding: 8 },
   noResult: { paddingHorizontal: 4, paddingVertical: 4, fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   cardSlot: { marginHorizontal: 16, marginBottom: CARD_GAP },
   liftedCard: { zIndex: 2, shadowColor: "#000000", shadowOpacity: 0.16, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 },

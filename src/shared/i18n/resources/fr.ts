@@ -548,12 +548,9 @@ export const fr = {
       namePlaceholder: "Nom de la séance",
       movements: "Mouvements",
       add: "+ Ajouter",
-      // Mise à jour consolidée du 04/11/2026 §3 : mode catalogue intégré à la modale.
-      openCatalogue: "Ouvrir le mode catalogue",
       emomOverflow: "Les durées atteignent ou dépassent l’intervalle de {interval} : il ne reste pas de temps pour le reste du travail ni pour le repos.",
       // Complément du 5 novembre 2026 (§13) : avertissement non bloquant du Death by.
       deathByFirstRankWarning: "Le premier intervalle ne peut pas être tenu : le défi s’arrêtera avant de commencer.",
-      closeCatalogue: "Fermer le mode catalogue",
       addPicked: "Ajouter",
       collapsePiles: "Replier les piles",
       expandPiles: "Déplier les piles",
