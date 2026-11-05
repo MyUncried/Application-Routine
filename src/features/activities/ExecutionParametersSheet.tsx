@@ -151,6 +151,7 @@ import { RECOVERY_WHEEL_VALUES, snapToGrid, WHEEL_TOTAL_DURATION_SECONDS_MAX } f
 import { strings } from "@/shared/i18n";
 import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { ModalHeader } from "@/shared/ui/ModalHeaderActions";
 import {
   EXECUTION_ACCELERATED_HOLD_POLICY,
   EXECUTION_UNIT_HOLD_POLICY,
@@ -167,7 +168,7 @@ import {
   inlineSelectedLabelStyle,
 } from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
-import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
@@ -2259,36 +2260,19 @@ export function ExecutionParametersSheet({
               testID="execution-sheet-surface"
             >
               <View style={styles.handle} />
-              <View style={styles.header} testID="execution-sheet-header">
-                <Pressable
-                  onPress={handleCancel}
-                  accessibilityRole="button"
-                  accessibilityLabel={t.cancelAccessibilityLabel}
-                  hitSlop={(minTouchTarget - 38) / 2}
-                  style={styles.cancelCircle}
-                  testID="execution-sheet-cancel"
-                >
-                  <KodjoIcon name="wheel-action-cancel" />
-                </Pressable>
-                <Text style={styles.title} accessibilityRole="header">
-                  {t.title}
-                </Text>
-                <Pressable
-                  onPress={handleValidate}
-                  // Story 3.8 (AC5) : ✓ grisé (Brouillon invalide) mais surface ouverte — l'appui
-                  // reste reçu pour fermer la surface (`absorbSheetCommand`) ; l'état d'accessibilité
-                  // suit l'activabilité réelle, le libellé garde « indisponible… » et le rendu reste grisé.
-                  disabled={validateDisabled}
-                  accessibilityRole="button"
-                  accessibilityLabel={validateLabel}
-                  accessibilityState={{ disabled: validateDisabled }}
-                  hitSlop={(minTouchTarget - 38) / 2}
-                  style={[styles.validateCircle, validation.ok ? null : styles.validateCircleDisabled]}
-                  testID="execution-sheet-validate"
-                >
-                  <KodjoIcon name="wheel-action-validate" />
-                </Pressable>
-              </View>
+              {/* En-tête « Fermer et valider » partagé (Complément du 5 novembre 2026, §18–§19). Story 3.8 (AC5) : ✓ grisé
+                  (Brouillon invalide) mais surface ouverte — l'appui reste reçu pour fermer la surface (`absorbSheetCommand`) ;
+                  l'état d'accessibilité suit l'activabilité réelle, le libellé garde « indisponible… » et le rendu reste grisé. */}
+              <ModalHeader
+                title={t.title}
+                onCancel={handleCancel}
+                cancelLabel={t.cancelAccessibilityLabel}
+                onValidate={handleValidate}
+                validateEnabled={validation.ok}
+                validateDisabled={validateDisabled}
+                validateLabel={validateLabel}
+                testIDPrefix="execution-sheet"
+              />
               <View style={styles.headerDivider} />
 
               <SheetMotionScrollView
@@ -4046,39 +4030,6 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     marginTop: spacing[8],
-    backgroundColor: colors.disabled,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    // Recette 1 (T-61) : hauteur minimale, jamais fixe — le titre agrandi n’est pas rogné.
-    minHeight: 56,
-    paddingHorizontal: spacing[12] + 5,
-  },
-  title: {
-    ...type.modalTitle,
-    color: colors.textPrimary,
-    flexShrink: 1,
-    textAlign: "center",
-  },
-  cancelCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.wheelActionCancelBackground,
-  },
-  validateCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.wheelActionValidateBackground,
-  },
-  validateCircleDisabled: {
     backgroundColor: colors.disabled,
   },
   headerDivider: {

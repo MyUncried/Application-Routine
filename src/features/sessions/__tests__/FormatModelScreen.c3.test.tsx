@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useState } from "react";
-import { Alert, Pressable, Text } from "react-native";
+import { Alert, Pressable, StyleSheet, Text } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
@@ -12,6 +12,7 @@ import { FormatModelScreen } from "@/features/sessions/FormatModelScreen";
 import { SessionDraftContext, type SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors } from "@/shared/ui/tokens";
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -154,7 +155,8 @@ describe("FormatModelScreen", () => {
     expect(screen.queryByTestId("format-name")).toBeNull();
     // Recette du 04/11/2026 (Hermann : « Tabata : après sélection des mouvements, le bouton d'action doit directement être
     // "Enregistrer dans la séance" ») : pas de récapitulatif. [MAJ 04/11 §2 « Valider les paramètres » — remplacé pour le Tabata.]
-    expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer dans la séance");
+    // [Complément du 5 novembre 2026 (§18–§19) : bouton « Enregistrer dans la séance » remplacé par la coche de l’en-tête.]
+    expect(within(screen.getByTestId("screen-header")).getByTestId("format-save").props.accessibilityLabel).toBe("Enregistrer dans la séance");
     expect(screen.queryByTestId("format-validate")).toBeNull();
     expect(shown("seriesCount")).toBe("8");
     expect(shown("workSeconds")).toBe("20 s");
@@ -214,7 +216,7 @@ describe("FormatModelScreen", () => {
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     expect(screen.queryByTestId("format-validate")).toBeNull();
-    expect(screen.getByTestId("format-save")).toHaveTextContent(t.save);
+    expect(screen.getByTestId("format-save").props.accessibilityLabel).toBe(t.save); // Complément du 5 novembre 2026 (§18–§19) : coche de l’en-tête, libellé d’accessibilité.
   });
 
   it.each(["AMRAP", "FOR_TIME", "PROGRESSION", "EMOM", "DEATH_BY"] as const)("recette n° 3 du 03/11, MAJ 04/11 : %s — les choix restent sur le questionnaire ; « Valider les paramètres » ouvre le récapitulatif", async (model) => {
@@ -715,7 +717,7 @@ describe("FormatModelScreen", () => {
     const draftRef = { current: first.current };
     render(<Harness draftRef={draftRef} initialStage="summary" />);
     expect(await screen.findByTestId("format-summary")).toBeTruthy();
-    expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer les modifications");
+    expect(screen.getByTestId("format-save").props.accessibilityLabel).toBe("Enregistrer les modifications"); // Complément du 5 novembre 2026 (§18–§19) : coche de l’en-tête, libellé d’accessibilité.
     expect(screen.getByTestId("format-movement-card-1")).toBeTruthy();
     // Retour : questionnaire du modèle, réponses reconstruites. Décision du 05/11/2026 (« Récap si tableau ») : à deux mouvements,
     // le Tabata repasse par son récapitulatif (tableau par mouvement), qui reprend la Pause commune modifiée.
@@ -724,7 +726,7 @@ describe("FormatModelScreen", () => {
     typeValue("pauseSeconds", "15");
     toSummary();
     expect(screen.getByTestId("format-pause-0").props.value).toBe("15 s");
-    expect(screen.getByTestId("format-save")).toHaveTextContent("Enregistrer les modifications");
+    expect(screen.getByTestId("format-save").props.accessibilityLabel).toBe("Enregistrer les modifications"); // Complément du 5 novembre 2026 (§18–§19) : coche de l’en-tête, libellé d’accessibilité.
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });
@@ -733,4 +735,62 @@ describe("FormatModelScreen", () => {
     expect(updated!.exercises).toEqual(ids);
     expect(draftRef.current.exercises.every((exercise) => exercise.executionParameters.series.kind === "UNIFORM" && exercise.executionParameters.series.pauseSeconds === 15)).toBe(true);
   });
+
+  // Complément du 5 novembre 2026 (Hermann), §18–§19 : la coche de l'en-tête, en face de la croix, remplace les boutons du bas.
+  describe("coche de l'en-tête (§18–§19)", () => {
+    const inHeader = (testID: string) => within(screen.getByTestId("screen-header")).getByTestId(testID);
+    const isBlue = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style).backgroundColor === colors.wheelActionValidateBackground;
+
+    it("questionnaire : coche grise sans mouvement, bleue ensuite ; elle ouvre le récapitulatif ; plus de bouton en bas", async () => {
+      mockModel = "PROGRESSION";
+      render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+      await screen.findByTestId("format-title");
+      expect(screen.queryByTestId("format-bottom-action")).toBeNull();
+      expect(screen.queryByText(t.validate)).toBeNull();
+      expect(inHeader("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
+      expect(isBlue("format-validate")).toBe(false);
+      await pick("Squ", "mv-squats");
+      expect(inHeader("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
+      expect(isBlue("format-validate")).toBe(true);
+      toSummary();
+      expect(screen.getByTestId("format-summary")).toBeTruthy();
+    });
+
+    it("Superset à la création : coche grise avec un mouvement, bleue avec deux (règle du bouton retiré)", async () => {
+      mockModel = "SUPERSET";
+      render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats");
+      expect(isBlue("format-validate")).toBe(false);
+      await pick("Fen", "mv-fentes");
+      expect(isBlue("format-validate")).toBe(true);
+    });
+
+    it("récapitulatif : la coche remplace « Enregistrer dans la séance » ; grise si une cellule requise est vide", async () => {
+      mockModel = "AMRAP";
+      const draftRef = { current: createEmptyDraft() };
+      render(<Harness draftRef={draftRef} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats");
+      toSummary();
+      expect(screen.queryByText(t.save)).toBeNull();
+      expect(inHeader("format-save").props.accessibilityLabel).toBe(t.save);
+      fireEvent.changeText(screen.getByTestId("format-amrap-reps-0"), "");
+      expect(isBlue("format-save")).toBe(false);
+      expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
+      fireEvent.changeText(screen.getByTestId("format-amrap-reps-0"), "10");
+      expect(isBlue("format-save")).toBe(true);
+    });
+
+    it("EMOM : récapitulatif incomplet ou incohérent (contrôle des fenêtres, même condition) — coche grise", async () => {
+      mockModel = "EMOM";
+      render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats");
+      toSummary();
+      expect(isBlue("format-save")).toBe(false);
+      expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
+    });
+  });
+
 });

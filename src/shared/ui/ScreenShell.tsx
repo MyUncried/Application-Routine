@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { colors, dimensions, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -68,6 +69,13 @@ export type FixedHeaderProps = {
    * des Catalogues). Absent : titre inchangé.
    */
   content?: ReactNode;
+  /**
+   * Variante « Fermer et valider » (Complément du 5 novembre 2026, Hermann, §18–§19) : pour les écrans à en-tête fixe qui
+   * créent ou modifient (Planifier une séance, Planifier un parcours) — ✕ à gauche, coche à droite en face (testID
+   * `screen-header-validate`), bleue si la validation est possible, grise sinon. Le bouton de validation du bas est
+   * supprimé. Absente : rendu inchangé.
+   */
+  validate?: { readonly onPress: () => void; readonly enabled: boolean; readonly accessibilityLabel: string };
 };
 
 /**
@@ -104,6 +112,7 @@ export function FixedHeader({
   trailing,
   content,
   topInset,
+  validate,
 }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
   const top = topInset ?? insets.top;
@@ -131,7 +140,7 @@ export function FixedHeader({
           testID="screen-header-back"
         >
           <KodjoIcon
-            name={closeIcon ? "control-close" : "control-back"}
+            name={closeIcon || validate !== undefined ? "control-close" : "control-back"}
             size={dimensions.backAction.icon}
             tintColor={backIconTintColor}
             testID="screen-header-back-icon"
@@ -146,6 +155,14 @@ export function FixedHeader({
         </Text>
       )}
       {trailing ?? null}
+      {validate !== undefined ? (
+        <ModalValidateAction
+          onPress={validate.onPress}
+          enabled={validate.enabled}
+          accessibilityLabel={validate.accessibilityLabel}
+          testID="screen-header-validate"
+        />
+      ) : null}
     </View>
   );
 }

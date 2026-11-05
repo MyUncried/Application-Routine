@@ -85,9 +85,8 @@ import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovementExerciseIntake";
 import { strings } from "@/shared/i18n";
 import { CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
-import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
+import { ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { FINAL_ACTION_TOP_MARGIN } from "@/shared/ui/finalAction";
 import { colors as tokenColors, dimensions, minTouchTarget } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
@@ -133,8 +132,8 @@ const CONTEXT_HEIGHT = 109;
 /** Écart entre deux cartes de mouvement ; pas de déplacement par défaut (carte 60 + écart) avant mesure. */
 const CARD_GAP = 8;
 const CARD_STEP_DEFAULT = 68;
-/** Bas du cadre Déroulé à 25 px du haut du bouton (référence §15). */
-const TIMELINE_TO_BUTTON = 25;
+/** Complément du 5 novembre 2026 (Hermann), §18–§19 : plus de bouton en bas ; marge sous le Déroulé, au-dessus de la zone sûre. */
+const CONTENT_BOTTOM_MARGIN = 24;
 /** Hauteur minimale du cadre des suggestions ; écart laissé au-dessus du clavier. */
 const SUGGESTIONS_MIN_HEIGHT = 160;
 const SUGGESTIONS_TO_KEYBOARD = 8;
@@ -416,7 +415,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [variable, setVariable] = useState<ReadonlySet<ModelAnswerKey>>(() => reedit?.opened.variable ?? new Set());
   const service = useActivityDefinitionService();
   const profileService = useContext(ProfileServiceContext);
-  const actionZone = usePrimaryActionZone();
 
   // Questionnaire ouvert depuis la fenêtre Formats : brouillon de modèle neuf, à chaque ouverture —
   // recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « ajouter un deuxième format ouvre le
@@ -745,6 +743,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const validating = stage === "questionnaire" && !savesFromQuestionnaire(model, movements.length);
 
   const close = () => {
+    // Complément du 5 novembre 2026 (Hermann), §18–§19 : en mode catalogue, la croix revient au questionnaire sans ajout.
+    if (catalogueMode) {
+      Keyboard.dismiss();
+      closeCatalogue();
+      setSearchRole(null);
+      setQuery("");
+      return;
+    }
     if (stage === "summary") {
       Keyboard.dismiss();
       setSearchRole(null);
@@ -1583,7 +1589,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           scrollY.current = event.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={16}
-        contentContainerStyle={[styles.content, { paddingTop: bandHeight, paddingBottom: actionZone.scrollReserve - FINAL_ACTION_TOP_MARGIN + TIMELINE_TO_BUTTON }]}
+        contentContainerStyle={[styles.content, { paddingTop: bandHeight, paddingBottom: safeBottom + CONTENT_BOTTOM_MARGIN }]}
         testID={`format-${stage}`}
       >
         {/* Mouvements (§7.1 à §7.4). */}
@@ -1703,6 +1709,23 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
               <Text style={styles.modalTitle} accessibilityRole="header" numberOfLines={1} testID="format-title">
                 {modelName}
               </Text>
+              {/* Complément du 5 novembre 2026 (Hermann), §18–§19 : la coche de l'en-tête, en face de la croix, remplace « Ajouter »
+                  (choix des mouvements, buy-in compris), « Valider les paramètres » (questionnaire) et « Enregistrer dans la séance » /
+                  « Enregistrer les modifications » (récapitulatif) ; mêmes règles d'activation que les boutons retirés. Bleue si la
+                  validation est possible, grise sinon. */}
+              {catalogueMode ? (
+                <ModalValidateAction onPress={addPicked} enabled={picked.size > 0} accessibilityLabel={t().addPicked} style={styles.headerValidate} testID="format-catalogue-add" />
+              ) : validating ? (
+                <ModalValidateAction onPress={validate} enabled={canSave} accessibilityLabel={t().validate} style={styles.headerValidate} testID="format-validate" />
+              ) : (
+                <ModalValidateAction
+                  onPress={save}
+                  enabled={canSave}
+                  accessibilityLabel={reedit !== null ? t().saveChanges : t().save}
+                  style={styles.headerValidate}
+                  testID="format-save"
+                />
+              )}
             </View>
             <Text style={styles.tagline}>{t().taglines[model]}</Text>
           </View>
@@ -1714,15 +1737,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           ))}
         </View>
       </View>
-      <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
-        {catalogueMode ? (
-          <PrimaryActionButton label={t().addPicked} onPress={addPicked} disabled={picked.size === 0} testID="format-catalogue-add" />
-        ) : validating ? (
-          <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
-        ) : (
-          <PrimaryActionButton label={reedit !== null ? t().saveChanges : t().save} onPress={save} disabled={!canSave} testID="format-save" />
-        )}
-      </PrimaryActionZone>
       </View>
       {isFilterOpen ? (
         <MovementFilterSheet
@@ -1937,6 +1951,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  headerValidate: { position: "absolute", right: 0 },
   modalTitle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: LABEL, textAlign: "center", paddingHorizontal: 48 },
   // Mise à jour du 04/11/2026 §1 : accroche 14/20 centrée, sur deux lignes, en Mali Medium Italic (Figma).
   tagline: { fontFamily: "Mali_500Medium_Italic", fontSize: 14, lineHeight: 20, color: TAGLINE, marginTop: 4, textAlign: "center" },
