@@ -1,5 +1,5 @@
-import { describe, expect, it } from "@jest/globals";
-import { render, screen } from "@testing-library/react-native";
+import { describe, expect, it, jest } from "@jest/globals";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet, Text } from "react-native";
 
 import type { ModelMovement } from "@/domain/sessions/formatModels";
@@ -39,6 +39,23 @@ describe("For time : charge atteinte par Précédent / Suivant (e-fortime-charge
     expect(screen.getByTestId("load").props.pointerEvents).toBe("none");
     expect(screen.getByTestId("objective").props.pointerEvents).toBeUndefined();
     expect(StyleSheet.flatten(screen.getByTestId("objective").props.style).minHeight).toBe(26);
+  });
+});
+
+describe("contre-recette du 05/11 (k-fortime-pastille, k-clavier-vide)", () => {
+  it("charge : « kg » toujours affiché pendant la saisie, curseur devant l'unité", () => {
+    const onChange = jest.fn();
+    render(<TableCell kind="decimal" value={null} entrySuffix=" kg" onChange={onChange} format={String} label="charge" testID="load" />);
+    fireEvent(screen.getByTestId("load"), "focus");
+    fireEvent.changeText(screen.getByTestId("load"), "12,5");
+    expect(screen.getByTestId("load").props.value).toBe("12,5 kg");
+    expect(screen.getByTestId("load").props.selection).toEqual({ start: 4, end: 4 });
+    expect(onChange).toHaveBeenLastCalledWith(12.5);
+  });
+
+  it("pastille vide : le texte de remplacement (« Sans limite ») est affiché comme une valeur", () => {
+    render(<TableCell kind="duration" value={null} badge placeholder="Sans limite" onChange={() => undefined} format={String} label="Temps limite" testID="cap" />);
+    expect(screen.getByTestId("cap").props.value).toBe("Sans limite");
   });
 });
 

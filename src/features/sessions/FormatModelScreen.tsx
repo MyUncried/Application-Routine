@@ -1292,6 +1292,13 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         {inCatalogue ? (
           <View style={styles.search}>
             <View style={styles.catalogueList} testID="format-catalogue-results">
+              {/* Recette du 05/11/2026 (k-aucun-resultat, Hermann : « je ne vois pas de message ») : « Aucun résultat » aussi en
+                  mode catalogue. */}
+              {query.trim().length > 0 && catalogueItems.length === 0 ? (
+                <Text style={styles.noResult} testID="format-catalogue-empty">
+                  {t().noSearchResult}
+                </Text>
+              ) : null}
               {familyCards(
                 catalogueItems,
                 (entry) => (

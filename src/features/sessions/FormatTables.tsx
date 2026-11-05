@@ -211,8 +211,14 @@ export function TableCell({
   tight = false,
   badge = false,
   durationMin,
+  entrySuffix = "",
   testID,
 }: {
+  /**
+   * Unité toujours affichée pendant la saisie — recette du 05/11/2026 (k-fortime-pastille, Hermann : « j'entre "12,5", le tableau
+   * présente "12,5" au lieu de "12,5 kg". Toujours afficher "kg" ») ; le curseur reste devant l'unité.
+   */
+  readonly entrySuffix?: string;
   /**
    * Valeur d'une ligne de paramètres (questionnaire, récapitulatif) — Hermann, 05/11/2026 : « on utilise systématiquement le
    * clavier pour renseigner les valeurs, plus aucun stepper ». Pastille blanche à largeur libre ; le texte de la case vide
@@ -260,10 +266,21 @@ export function TableCell({
   const effectiveSign = sign ?? (value !== null && value < 0 ? -1 : 1);
   // Case signée (incrément de charge EMOM) — Hermann, 04/11/2026 : « le + doit apparaître dans la cellule lors de la saisie ».
   const signPrefix = effectiveSign < 0 ? "−" : signed ? "+" : "";
-  const shown = focused ? (kind === "duration" ? formatMmss(entry.text) : signPrefix + entry.text) : value === null ? "" : format(value);
+  const suffix = focused && kind !== "duration" && entry.text !== "" ? entrySuffix : "";
+  // Recette du 05/11/2026 (k-clavier-vide, Hermann : « quand la cellule affiche "sans limite", la largeur de son cadre doit
+  // s'adapter ») : pastille vide, le texte de remplacement est affiché comme une valeur, la pastille prend sa largeur.
+  const shown = focused
+    ? kind === "duration"
+      ? formatMmss(entry.text)
+      : signPrefix + entry.text + suffix
+    : value === null
+      ? badge
+        ? (placeholder ?? "")
+        : ""
+      : format(value);
   // « Appuyer manuellement sur un champ doit positionner le curseur à droite de la valeur » : la saisie se compose par la
   // droite, le curseur y reste.
-  const caret = focused ? { start: shown.length, end: shown.length } : undefined;
+  const caret = focused ? { start: shown.length - suffix.length, end: shown.length - suffix.length } : undefined;
   return (
     <TextInput
       ref={inputRef}
@@ -387,6 +404,7 @@ export function AmrapTable({
                 kind="decimal"
                 value={values.loadKg ?? null}
                 format={formatLoad}
+                entrySuffix=" kg"
                 width={NARROW_WIDTH}
                 onChange={(value) => onChange(index, { ...values, loadKg: value })}
                 {...cell(cellKey("load", index))}
@@ -470,6 +488,7 @@ export function EmomTable({
                 kind="decimal"
                 value={values.loadKg ?? null}
                 format={formatLoad}
+                entrySuffix=" kg"
                 onChange={(value) => onChange(index, { ...values, loadKg: value })}
                 {...cell(cellKey("load", index))}
                 label={`${name}, ${tt.load}`}
@@ -481,6 +500,7 @@ export function EmomTable({
                 kind="decimal"
                 value={values.loadIncrement ?? null}
                 format={(value) => (value < 0 ? `− ${formatLoad(-value)}` : `+ ${formatLoad(value)}`)}
+                entrySuffix=" kg"
                 placeholder={values.loadIncrement === null ? tt.variable : t().dash}
                 // L'incrément est grisé tant qu'aucune charge de départ n'est renseignée.
                 signed
@@ -701,8 +721,9 @@ export function SeriesTable({
                           kind="decimal"
                           value={loadAt(values, column)}
                           format={formatLoad}
+                entrySuffix=" kg"
                           width={columnWidth}
-                          boxed={bare}
+                          // Recette du 05/11/2026 (k-fortime-pastille, Hermann : « Ne pas mettre de cadre blanc pour les valeurs de charge »).
                           compact={bare}
                           barOnly={bare}
                           onChange={(value) => onChange(index, set(values, column, { load: value }))}

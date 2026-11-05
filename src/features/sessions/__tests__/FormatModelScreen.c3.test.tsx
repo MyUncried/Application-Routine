@@ -306,7 +306,8 @@ describe("FormatModelScreen", () => {
     fireEvent.changeText(screen.getByTestId("format-timeCapSeconds"), "");
     fireEvent(screen.getByTestId("format-timeCapSeconds"), "blur");
     expect(screen.getByTestId("format-timeCapSeconds").props.placeholder).toBe(t.noLimit);
-    expect(shown("timeCapSeconds")).toBe("");
+    // Recette du 05/11 (k-clavier-vide) : « Sans limite » affiché comme une valeur, la pastille prend sa largeur.
+    expect(shown("timeCapSeconds")).toBe(t.noLimit);
   });
 
   it("recette du 05/11 (constat c) : un texte sans résultat garde le cadre des résultats, vide", async () => {

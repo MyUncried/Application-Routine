@@ -164,3 +164,13 @@ Classe B. Réalisation : chaque valeur des lignes de paramètres se tape dans sa
 | g-fortime-deroule | B | Format ' et " conservé pour tous les Déroulés |
 
 Documents : ch07 (« Recette iPhone du 05/11/2026 »). Rien n'est vérifié sur iPhone.
+
+### 12.3 Contre-recette du 05/11/2026 (après-midi)
+
+| Ligne | Classe | Correction |
+|---|---|---|
+| k-clavier-vide — largeur de « Sans limite » | B | Pastille vide : le texte de remplacement est affiché comme valeur, la pastille prend sa largeur |
+| k-fortime-pastille — charge | B | Charges For time sans cadre blanc ; « kg » affiché pendant la saisie dans toutes les cases de charge (curseur devant l'unité) |
+| k-aucun-resultat — « je ne vois pas de message » | B | « Aucun résultat » aussi en mode catalogue (le message de la saisie « + Ajouter » existait) |
+
+Validé sur iPhone (cahier, 05/11) : saisie au clavier des lignes (k-clavier-lignes), Suivant entre lignes et tableau (k-clavier-suivant), cadre jusqu'en bas (k-cadre-bas), filet de pile (k-pile-filet), « J'ai compris » (k-superset-compris). Le comportement « case vidée = valeur précédente » n'a pas été contesté.
