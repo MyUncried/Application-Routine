@@ -25,3 +25,11 @@
   - 1 image ;
   - ce rapport.
 - **Commit final et état Git :** donnés dans le compte rendu de livraison.
+
+## Révision du rendu (demande de Hermann, 16:13)
+
+- **Libellé :** « New » en Inter Bold 12, seule la première lettre en majuscule.
+- **Couleur :** vert `color/status/positive-text`. Le bleu signale ce qui se touche et le rouge la suppression ; le badge n'est pas interactif.
+- **Position :** badge accolé au coin bas droit, rayon 12 sur les quatre coins, 24 px de haut.
+- **Pile :** nouvelle variante « Nouveau=Dans la pile » `11765:2101` avec « New ↓ ». La flèche a été préférée au bord coloré de la deuxième feuille : un repère porté par la seule couleur est peu visible et non accessible.
+- **Mises à jour :** spec, D-510, CE-MVT-03, INDEX et capture.

@@ -3526,6 +3526,6 @@ Nœud [11753:22133](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Mouvement — Catalogue — Fiche créée
 
-Nœud [11762:23747](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11762-23747) · Export du 06/11/2026 · Badge « NOUVEAU » (D-510).
+Nœud [11762:23747](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11762-23747) · Export du 06/11/2026 · Badge « New » (D-510).
 
 ![Mouvement — Catalogue — Fiche créée](images/catalogues-2026-11-06/11762-23747.png)
