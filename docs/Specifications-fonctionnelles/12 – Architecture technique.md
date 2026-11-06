@@ -1,5 +1,7 @@
 # Architecture technique
 
+> **Découplage du 06/11/2026.** La [provenance et propriété des fiches de Mouvements](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) forment une couche éditoriale indépendante du `Movement` local et des plans/instantanés du moteur. Le modèle pur de métadonnées est préparé dans `src/domain/catalogue/MovementEditorialProvenance.ts`. Pas de migration, d'interface Web opérationnelle ni de dépendance réseau dans ce premier raccordement ; une future persistance sera additive et recettée séparément.
+
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
 ## Récupération de l’Exercice et défauts du Profil
