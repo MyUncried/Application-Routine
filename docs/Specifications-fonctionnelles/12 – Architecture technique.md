@@ -1135,7 +1135,7 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.mediaPlaySurface` | `rgba(255, 255, 255, 0.22)` | Voile du bouton de lecture vidéo du gabarit photo de la fiche Mouvement (Figma `7872:14696`, Ø 72), posé sur le verre natif iOS 26 (`expo-glass-effect`, `GlassView` « clear », clair) ; sans Liquid Glass, voile seul (PRE-8, 27/10/2026, arbitrage B de Hermann) |
 | `color.mediaPlayBorder` | `rgba(255, 255, 255, 0.35)` | Contour 1 du même bouton |
 | `color.movementEditableSurface` | `rgba(255, 255, 255, 0.9)` | Surface de la couche éditable de la fiche Mouvement (Description, Phases) quand elle remonte devant le média, clavier ouvert (PRE-8, 27/10/2026, CE-MVT-01 §10). Mise en œuvre : `ActivityEditorForm`, couche éditable à marge haute animée (Reanimated ; durée donnée par l'évènement clavier, à défaut 250 ms ; iOS `keyboardWillShow`/`WillHide`, Android `DidShow`/`DidHide`), au-dessus du gabarit média fixe et sous la zone de contexte ; recadrage du champ actif une fois la remontée terminée. |
-| `color.exerciseEditorContextBand` | `#EAEAFF` | Zone de contexte de Créer/Modifier un exercice, opaque jusqu’à 80 % puis fondu vers le fond (« Zone bleue » figée `3542:4656`) ; distincte de `exerciseContextBandBackground` (Composition) ; extension X-3 du 12/10 |
+| `color.exerciseEditorContextBand` | `#EAEAFF` | Zone de contexte de Créer/Modifier un exercice, opaque jusqu’à 80 % puis fondu vers le fond (« Zone bleue » figée `3542:4656`) ; distincte de `exerciseContextBandBackground` (Composition) ; extension X-3 du 12/10  [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.] |
 | `color.variableSeriesGroupSurface` | `#F3F3F6` | Fond du groupe Séries variables déployé, contour `color.selection` 1,5 (figé `6665:24616`) ; extension X-3 du 12/10 |
 
 ##### Alias d’usage du code — alignement DSF du 07/10/2026
@@ -1380,7 +1380,7 @@ Le tableau suivant conserve le **relevé historique des instances**, antérieur 
 | Modal — Paramétrer la fin de séance | `2028:11457` | `3272:4136` |
 | Composition — Nombre de tours — stepper intégré permanent | `2028:11700` | `4913:7432` |
 | Composition d’une séance — sans Cycle | `2028:11700` | `3272:4146` |
-| Composition d’une séance — actions glissées | `2028:11808` | `3272:4151` |
+| Composition d’une séance — actions glissées | `2028:11808` | `3272:4151`  [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.] |
 | Composition d’une séance — sélecteur couleur ouvert | `2028:11921` | `3272:4156` |
 | Nouvelle séance — Nom renseigné | `2028:12003` | `3272:4161` |
 | Composition d'une séance — Appui long — carte soulevée | `3518:4576` | État transitoire du bloc `Composition / Activity Row with Recovery` (`3572:64`) |
@@ -1711,7 +1711,7 @@ Le filtrage et le tri sont des paramètres de requête indépendants du segment.
 
 ### Composants et tokens Figma
 
-Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la récupération post-activité est ajoutée explicitement ; D-238 retire les informations de pause/récupération du corps des cartes ; le trait reste hors placement, indépendamment du contenu (D-303). L’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
+Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la récupération post-activité est ajoutée explicitement ; D-238 retire les informations de pause/récupération du corps des cartes ; le trait reste hors placement, indépendamment du contenu (D-303). L’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée). [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
 
 Les alias Figma sont bijectifs et explicites :
 
@@ -1836,7 +1836,7 @@ Contenu identique à la section [« Migration T03 — Catalogue des Exercices �
 
 ## Transmission au développement — évolutions v15
 
-Contrôle du main 72d1bf47add0a80b4241f9706e3d2f8913a484ff : migrations 001..008 présentes ; 009 est le prochain numéro observé, à revalider avant création. Aucune reprise fonctionnelle des anciennes séances demandée dans le lot de conception ; contrôler les données réellement présentes avant livraison applicative. La collection SeriesParameters conserve Pi ; Pause de Composition est distincte. Voir [consolidation et dépendancesF-0 àF-8](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-durees).
+Contrôle du main 72d1bf47add0a80b4241f9706e3d2f8913a484ff : migrations 001..008 présentes ; 009 est le prochain numéro observé, à revalider avant création. Aucune reprise fonctionnelle des anciennes séances demandée dans le lot de conception ; contrôler les données réellement présentes avant livraison applicative. La collection SeriesParameters conserve Pi ; Pause de Composition est distincte. Voir [consolidation et dépendancesF-0 àF-8](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-durees). [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
 
 Le jeu de 276phrasesv15 teste le générateur avec un total injecté ; la feuille Calcul des durées ne teste pas le moteur. Rendu RN en Text imbriqués, aucune phrase persistée ; recette de césure et cas 224caractères. Qualification audio/appareils séparée.
 
@@ -1967,3 +1967,9 @@ Séparer la provenance du modèle et le Format d’exécution ; projeter l’ét
 État de navigation : distinguer le Catalogue du brouillon de Composition existant ; conserver les restaurations temporaires dans le même brouillon. Ne pas persister des réponses historiques concurrentes aux Exercices. Réutiliser les composants de tableau, modales et saisie native ; le bouton ± appartient à la barre existante. Aucune modification du code du moteur n’est déclarée ici.
 
 [Conception consolidée du moteur — version actualisée](../preparation/moteur-execution/KODJO-Conception-moteur-execution-consolidee-2026-11-02.md) : base documentaire du commit 8855c793, prescriptions du 5 novembre intégrées ; aucun développement du moteur déclaré.
+
+## DSF — Carte d’exercice de Composition (D-511 à D-513, 06/11/2026)
+
+Composant `11810:2159` « DSF / Cards / Exercice — Composition », page Fondations. Variantes Position : Hors circuit `11810:2102` (pictogramme noir), Dans un circuit `11810:2132` (pictogramme gris). Géométrie de référence 362 × 72, photo 64 à 4/rayon 8, carte rayon 12, liseré 0,5 à 50 %. [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
+
+Propriétés textuelles : nom, niveau, catégorie, prescription, zones, buy-in / buy-out, durée de récupération. Options de visibilité : niveau, changement de côté, buy-in / buy-out, récupération, photo. Ces noms décrivent les propriétés attendues sans inventer leurs identifiants internes Figma. Aucun cadre de pose Récupération ni chevron de déploiement de carte. Voir [règles complètes](../KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement). Aucun changement de stockage ou d’API induit.
