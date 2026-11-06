@@ -1,5 +1,7 @@
 # KODJO — Carte de séance et catalogue des séances
 
+> **Révision du 06/11/2026 :** nouveau format de carte (72 pt, chevron à gauche, durée en haut à droite, ligne « N circuits · N exercices », Démarrer en pilule) et carte dépliée (« N passages », « séries groupées | alternées », « N tours ») — [KODJO-Catalogues-cartes-modales-2026-11-06](KODJO-Catalogues-cartes-modales-2026-11-06.md) §5–§6 (D-504 à D-507).
+
 Lot à verser à la documentation. Il remplace et complète `KODJO-Spec-Carte-seance-deployee-2026-10-27.md`, qui ne couvrait que l'état déployé.
 
 Périmètre : la carte de séance dans le contexte Catalogue, l'écran du catalogue des séances et son panneau de filtres. Les contextes Calendrier, Suivi et Choix ne sont pas modifiés.

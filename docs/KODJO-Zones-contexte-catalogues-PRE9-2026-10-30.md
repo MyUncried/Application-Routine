@@ -1,5 +1,7 @@
 # KODJO — PRE-9 — Spécification de développement : zones de contexte des Catalogues
 
+> **Révision du 06/11/2026 :** couleurs par catalogue, onglets, ligne de comptage au point médian et champ Rechercher de 34 pt — [KODJO-Catalogues-cartes-modales-2026-11-06](KODJO-Catalogues-cartes-modales-2026-11-06.md) §3–§4 (D-501 à D-503). Les valeurs contraires ci-dessous sont remplacées.
+
 ## 1. Périmètre et référence d'interface
 
 La présente spécification définit le **résultat final à développer dès PRE-9**, dans les Catalogues **Mouvements** et **Séances**, pour leurs états par défaut, filtrés, archivés et les autres variantes des mêmes Catalogues.
