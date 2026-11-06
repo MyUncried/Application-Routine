@@ -1,0 +1,27 @@
+# Rapport de mission — BADGE_NOUVEAU_INTEGRATION (6 novembre 2026)
+
+- **Objectif :** intégrer la spec du badge « NOUVEAU » (D-510) dans Figma, le registre et le contrat d'écran du catalogue des mouvements (demande de Hermann, 15:52).
+- **Branche :** `docs/pre9-formats-questionnaires-figma-20261106`.
+- **Commit de départ :** `fef41be6e6b51af993c5cfb5ef42a2bc623e3fe3`.
+- **Figma :**
+  - **Composant « Carte — Mouvement » :** propriété de variante « Nouveau » (Non / Oui) et variante `11762:2205`. Le badge est un cadre auto-layout, ancré en bas à droite, fond `color/primary`, texte blanc Inter Medium 12. La description est raccourcie à 8 px du badge.
+  - **Écran :** « Mouvement — Catalogue — Fiche créée » `11762:23747`, avec la fiche « Fentes avant » et la pile « Squats sautés ».
+- **Constat :** une propriété booléenne ne permet pas de raccourcir la description. D'où le choix d'une variante : le passage de variante conserve le texte propre à chaque instance.
+- **Documentation :**
+  - statut de la spec : intégrée, avec les identifiants Figma ;
+  - registre (ch07) : D-510 ;
+  - contrat d'écran : complément CE-MVT-03 ;
+  - galerie du ch06 et INDEX.
+- **Synchronisation code / documentation :** classe B (décision explicite).
+- **Tests :** aucun applicable. Capture relue.
+- **À vérifier sur appareil :**
+  - lisibilité du badge et de la description raccourcie ;
+  - annonce VoiceOver ;
+  - défilement vers la fiche créée.
+- **Fichiers modifiés :**
+  - spec du badge ;
+  - ch06, ch07, ch13 ;
+  - INDEX ;
+  - 1 image ;
+  - ce rapport.
+- **Commit final et état Git :** donnés dans le compte rendu de livraison.

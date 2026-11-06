@@ -4,7 +4,9 @@
 
 **Décision :** D-510 (demande de Hermann du 6/11/2026).
 
-**Statut :** à intégrer. Elle sera reportée dans les contrats d'écran, le registre et Figma après validation.
+**Statut :** intégrée le 6/11/2026 : registre (D-510), contrat CE-MVT-03 et Figma.
+
+**Figma :** composant « Carte — Mouvement » (`10124:21979`), propriété de variante « Nouveau » (Non / Oui), variante « Sélection=Absente, Nouveau=Oui » `11762:2205` ; écran « Mouvement — Catalogue — Fiche créée » `11762:23747` (fiche seule « Fentes avant » et pile repliée « Squats sautés »).
 
 **Référence :**
 - [KODJO-Catalogues-cartes-modales-2026-11-06](KODJO-Catalogues-cartes-modales-2026-11-06.md), §7 : la carte Mouvement et les piles ;
@@ -66,9 +68,9 @@ Le reste est inchangé : carte, tri, filtres, piles, gestes et données.
 ## 5. Impacts
 
 - **Figma :**
-  - le composant « Carte — Mouvement » (`10124:21979`) reçoit une propriété booléenne « Nouveau » ;
-  - la feuille de tête de pile reçoit la même propriété ;
-  - un écran « Mouvement — Catalogue — Fiche créée » est ajouté. Il montre une fiche seule et une pile repliée.
+  - le composant « Carte — Mouvement » (`10124:21979`) reçoit une propriété de variante « Nouveau » : une variante dédiée porte la description raccourcie, ce qu'une propriété booléenne ne permet pas ; le badge est ancré en bas à droite ;
+  - la carte de tête d'une pile est la même carte : même propriété ;
+  - écran « Mouvement — Catalogue — Fiche créée » ajouté, avec une fiche seule et une pile repliée.
 - **Contrats d'écran (chapitre 13) :**
   - CE-MVT-03 (catalogue) : état « fiche nouvelle », règles 2, 3 et 5 à 8 ;
   - CE-MVT-01 et CE-MVT-02 : sortie de création vers le catalogue, avec défilement et badge.
