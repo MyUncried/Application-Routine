@@ -2,6 +2,8 @@
 
 ## Formats — base de reprise actualisée le 5 novembre 2026
 
+**À CLARIFIER — contre-revue du 06/11/2026 :** la suppression de « Valider les paramètres » au profit de la coche, écrite dans D-499, est contestée pour le questionnaire avec mouvements sélectionnés. Ne pas déduire cette suppression des questionnaires vides de Figma. Vérifier le rôle de la coche et les conditions d’apparition du bouton, ainsi que le passage direct à la Composition pour Death by à un mouvement. Les prescriptions et annotations D-499 concernant cette transition ne constituent pas un arbitrage résolu ; les autres validations par coche restent applicables.
+
 - [Catalogues, cartes et validation des modales — 5 et 6 novembre 2026](KODJO-Catalogues-cartes-modales-2026-11-06.md) : coche d’en-tête des modales, mode catalogue direct, couleurs par catalogue, onglets, cartes Séance et Mouvement, carte dépliée, écart du code (D-499 à D-509).
 - [Badge « NOUVEAU » dans le catalogue des mouvements — 6 novembre 2026](KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06.md) : spec différentielle, à intégrer après validation (D-510).
 - [Spécification active](KODJO-Formats-entrainement-2026-11-02.md) : création commune Catalogue/Composition, menu trois options, tableaux EMOM par série, Superset alterné, charges locales et règles Death by Répétitions/Durée. [Complément final du 5 novembre](sources/formats-2026-11-05/KODJO-Complement-Parcours-creation-2026-11-05.md), appliqué à la base finale du 4 novembre. Validation EMOM bloquante ; Death by averti au premier rang incompatible puis borné à l’exécution.

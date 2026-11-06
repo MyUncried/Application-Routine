@@ -479,7 +479,7 @@ Il souhaite programmer son exécution à une date précise ou de manière récur
 ##### Créer une routine
 
 1. Ouvrir le Calendrier puis **+ Planifier**, ou choisir **Planifier** sur une carte de Catalogue.
-2. Cocher une ou plusieurs Séances et/ou Exercices ; valider avec **Ajouter 1 élément** ou **Ajouter n éléments**.
+2. Cocher une ou plusieurs Séances et/ou Exercices ; valider avec **Ajouter 1 élément** ou **Ajouter n éléments**. [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 3. Choisir éventuellement un Programme, puis définir la date et l’heure de début.
 4. Activer ou non Répétition ; si elle est activée, choisir Jour/Semaine/Mois, le multiplicateur et la borne jusqu’au/pendant. Les règles encore ouvertes sont tracées dans la spécification du 08/10.
 5. Avec plusieurs contenus, réordonner les lignes sans titre et régler leur fréquence x fois sur n si nécessaire.
@@ -506,7 +506,7 @@ Les exécutions déjà réalisées sont conservées.
 
 ### Conception de planification
 
-Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
+Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md). [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
 ## Suivi et synthèse
 
@@ -627,7 +627,7 @@ Création Exercice : choisir exactement une Catégorie et au moins une Zone corp
 
 ##### Clôture de parcours Figma
 
-Le MVP ne comporte aucune recherche globale ni recherche locale dans les Catalogues (D-221). La planification utilise désormais des cases à cocher et Ajouter n éléments, y compris pour un seul contenu (D-222 révisée). Son titre dépend du nombre et du type des contenus (D-223 révisée). La Composition conserve son contrat propre.
+Le MVP ne comporte aucune recherche globale ni recherche locale dans les Catalogues (D-221). La planification utilise désormais des cases à cocher et Ajouter n éléments, y compris pour un seul contenu (D-222 révisée). Son titre dépend du nombre et du type des contenus (D-223 révisée). La Composition conserve son contrat propre. [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
 #### Paramètres d’exécution — complément
 
@@ -645,7 +645,7 @@ Pause / Ajouter un arrêt ouvre uniquement le placement des Points d’arrêt, a
 
 #### Conception de planification
 
-Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).
+Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md). [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
 #### Ajouter des médias à un Exercice — MVP PRE-3
 
@@ -653,6 +653,8 @@ D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, 
 
 <a id="formats-parcours"></a>
 #### Formats et départs rapides — parcours
+
+**À CLARIFIER — contre-revue du 06/11/2026 :** la suppression de « Valider les paramètres » au profit de la coche, écrite dans D-499, est contestée pour le questionnaire avec mouvements sélectionnés. Ne pas déduire cette suppression des questionnaires vides de Figma. Vérifier le rôle de la coche et les conditions d’apparition du bouton, ainsi que le passage direct à la Composition pour Death by à un mouvement. Les prescriptions et annotations D-499 concernant cette transition ne constituent pas un arbitrage résolu ; les autres validations par coche restent applicables.
 
 Composition → menu Créer → Utiliser un format d’entraînement → fenêtre Formats en deux colonnes → questionnaire → choix des Mouvements / récapitulatif → Enregistrer dans la séance (brouillon de Composition) → sauvegarde explicite de Séance. Questionnaire : croix de fermeture vers Composition. Récapitulatif : Retour vers questionnaire avec réponses conservées, titre inchangé. Progression : saisie directe de chaque série et charge au récapitulatif ; charge active par Exercice, jamais globale. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 

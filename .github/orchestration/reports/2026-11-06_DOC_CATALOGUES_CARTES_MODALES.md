@@ -118,3 +118,19 @@ Demande de Hermann : « mettre directement à jour le DSF figma (composant, vari
 ## Commit final et état Git
 
 Le commit final et l'état Git sont donnés dans le compte rendu de livraison, car le hash n'existe qu'après la création du commit qui contient ce rapport.
+
+## Contre-revue documentaire du 06/11/2026
+
+Base de correction : `8bcb1d642567e71ddad130d99d81be14899eaf52`, qui conserve le complément D-510. Corrections : interactions du catalogue Séances précisées par Hermann, invariants et recette CE-T03-01, règles du chapitre 10, marge de la colonne des symboles, validation des contrats de planification et exception de contexte D-501. Les formulations historiques de la spécification carte sont annotées localement.
+
+**Rectification du constat Formats :** supprimer tous les boutons inférieurs n’est pas une correction validée. La référence normative §1 remplace explicitement « Valider les paramètres » par la coche ; la contre-revue demande de conserver un bouton conditionnel. Ce conflit est signalé À CLARIFIER dans les documents actifs qui propagent D-499. Il ne remet pas en cause la validation par coche des autres modales.
+
+Points à soumettre :
+- rôle de la coche du questionnaire, conditions exactes d’apparition/activation de « Valider les paramètres » et Formats nécessitant une seconde étape ;
+- confirmation du parcours Death by à un mouvement sans seconde étape : Figma `8624:30602` est nommé Récapitulatif, avec un seul mouvement et les champs du questionnaire, sans tableau ;
+- état de questionnaire avec mouvements choisis et bouton visible à représenter dans Figma une fois la règle confirmée ; les 11 écrans de questionnaire initiaux sont vides ;
+- Figma restant à corriger/contrôler : maître `6214:3696` (ligne 3), chevron `8712:13565` (orientation), description `11626:23875` ; ne pas déclarer ces écarts clos par une correction documentaire.
+
+Figma a été consulté directement pour les questionnaires et Death by ; aucune modification Figma ni réexport de capture dans cette correction. Les points ouverts antérieurs restent ouverts. Aucun changement de données, API, architecture ou périmètre MVP ; aucun fichier historique, code ou image modifié.
+
+Seconde passe effectuée : relecture du diff, recherche des anciennes actions de planification et correction/annotation dans les parcours, PRODUCT, modèle fonctionnel, registre et matrice de traçabilité. Contrôle différentiel des liens Markdown locaux : aucun nouveau lien cassé. Quinze fichiers modifiés, aucun ajout, suppression ou renommage ; noms Unicode conservés ; `git diff --check` réussi. Cette passe ne certifie pas les points Formats en attente ni les écarts Figma résiduels.

@@ -1394,7 +1394,7 @@ Frame `7599:14197` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg
 
 
 
-Les deux captures « Liste longue » ci-dessous ont été exportées le 15/10/2026. Elles illustrent la présentation des listes, mais montrent encore une sélection unique sans CTA « Ajouter ». Elles ne remplacent pas le contrat CE-UI-04 : sélection à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments ».
+Les deux captures « Liste longue » ci-dessous ont été exportées le 15/10/2026. Elles illustrent la présentation des listes, mais montrent encore une sélection unique sans CTA « Ajouter ». Elles ne remplacent pas le contrat CE-UI-04 : sélection à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments ». [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
 #### Modal — Choisir une séance — Planification — Liste longue
 
@@ -1646,6 +1646,8 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 <a id="formats-galerie"></a>
 ### Formats de séances — inventaire et captures
+
+**À CLARIFIER — contre-revue du 06/11/2026 :** la suppression de « Valider les paramètres » au profit de la coche, écrite dans D-499, est contestée pour le questionnaire avec mouvements sélectionnés. Ne pas déduire cette suppression des questionnaires vides de Figma. Vérifier le rôle de la coche et les conditions d’apparition du bouton, ainsi que le passage direct à la Composition pour Death by à un mouvement. Les prescriptions et annotations D-499 concernant cette transition ne constituent pas un arbitrage résolu ; les autres validations par coche restent applicables.
 
 > [06/11/2026 : les captures des questionnaires, récapitulatifs et choix des Formats ont été réexportées le 06/11/2026 (coche d’en-tête à la place du bouton en bas, D-499) ; les mentions « Export du 05/11/2026 » ci-dessous désignent l’export d’origine.]
 
@@ -2672,7 +2674,7 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 
 ### Conventions communes d’interface
 - **Navigation** : cinq destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
-- **Sélection en modale** : la planification utilise des cases à cocher et Ajouter n éléments, même pour un seul choix (D-222 révisée). Les référentiels conservent leurs contrats de sélection simple ; la Composition conserve cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser`.
+- **Sélection en modale** : la planification utilise des cases à cocher et Ajouter n éléments, même pour un seul choix (D-222 révisée). Les référentiels conservent leurs contrats de sélection simple ; la Composition conserve cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser`. [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 - **Planifier** : titre `Planifier` avant connaissance du type, puis `Planifier une séance` ou `Planifier un exercice`. La modale suit le gabarit D-229.
 - **Fondations DSF** : fond `#FFFFFF` sauf Splash `#0006F1` et média plein écran `#0A0A0C`; zone de contexte `#EAEAFF`→transparent sur les familles couvertes ; navigation, halo, boutons circulaires, steppers et badges selon D-224 à D-227. [Remplacé le 06/11/2026 pour les Catalogues : fond et zone de contexte par catalogue (D-501), [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md) §3.]
 - **Listes/modales** : listes scrollables avec rognage ; feuilles longues alignées en haut sur la zone de contexte ; comportements et dégradés bas selon D-228.
@@ -2769,7 +2771,7 @@ Tous les dialogues de décision utilisent `Overlay / Decision Dialog` (`2590:296
 
 ### Champs et comportements des fonctionnalités — Conventions communes d’interface
 
-D-221 retire la recherche globale et toute recherche locale des Catalogues du MVP. D-222, révisée le 08/10, impose en planification la modale à cases à cocher validée par « Ajouter 1 élément » ou « Ajouter n éléments », même pour un seul contenu ; les contrats de Composition et de référentiels conservent leurs règles propres. D-223 rend le titre de Planifier contextuel. Les règles de rendu communes sont celles de D-224 à D-230 : fonds/zones de contexte, navigation, halo et actions circulaires, steppers/badges, listes/modales, roulettes et composants spécialisés. Elles ne modifient le métier que lorsqu’un comportement est explicitement décrit.
+D-221 retire la recherche globale et toute recherche locale des Catalogues du MVP. D-222, révisée le 08/10, impose en planification la modale à cases à cocher validée par « Ajouter 1 élément » ou « Ajouter n éléments », même pour un seul contenu ; les contrats de Composition et de référentiels conservent leurs règles propres. D-223 rend le titre de Planifier contextuel. Les règles de rendu communes sont celles de D-224 à D-230 : fonds/zones de contexte, navigation, halo et actions circulaires, steppers/badges, listes/modales, roulettes et composants spécialisés. Elles ne modifient le métier que lorsqu’un comportement est explicitement décrit. [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
 ### Migration T03 — Catalogue des Exercices — Impacts de données de la revue des cartes
 

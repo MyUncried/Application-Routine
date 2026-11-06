@@ -1,5 +1,7 @@
 # Mise à jour des spécifications — Formats d'entraînement et portage du format par le circuit
 
+**À CLARIFIER — contre-revue du 06/11/2026 :** la suppression de « Valider les paramètres » au profit de la coche, écrite dans D-499, est contestée pour le questionnaire avec mouvements sélectionnés. Ne pas déduire cette suppression des questionnaires vides de Figma. Vérifier le rôle de la coche et les conditions d’apparition du bouton, ainsi que le passage direct à la Composition pour Death by à un mouvement. Les prescriptions et annotations D-499 concernant cette transition ne constituent pas un arbitrage résolu ; les autres validations par coche restent applicables.
+
 > **Révision du 05/11/2026 :** validation des modales de Format par la coche de l’en-tête (D-499) et « + Ajouter » en mode catalogue direct (D-500) — [KODJO-Catalogues-cartes-modales-2026-11-06](KODJO-Catalogues-cartes-modales-2026-11-06.md) §1–§2.
 
 **Référence active — mise à jour du 5 novembre 2026.** [Complément final validé du 5 novembre](sources/formats-2026-11-05/KODJO-Complement-Parcours-creation-2026-11-05.md) ; [base du 4 novembre](sources/formats-2026-11-04/KODJO-Mise-a-jour-ecrans-formats-consolidee-2026-11-04_finale.md). Les règles ci-dessous constituent la cible ; elles ne prouvent pas leur réalisation. Les archives OpenSpec restent inchangées.

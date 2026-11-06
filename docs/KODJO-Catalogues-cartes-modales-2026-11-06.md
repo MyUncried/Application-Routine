@@ -6,11 +6,13 @@
 
 ## 1. Validation des modales par la coche de l'en-tête (D-499)
 
+**À CLARIFIER — contre-revue du 06/11/2026 :** la suppression de « Valider les paramètres » au profit de la coche, écrite dans D-499, est contestée pour le questionnaire avec mouvements sélectionnés. Ne pas déduire cette suppression des questionnaires vides de Figma. Vérifier le rôle de la coche et les conditions d’apparition du bouton, ainsi que le passage direct à la Composition pour Death by à un mouvement. Les prescriptions et annotations D-499 concernant cette transition ne constituent pas un arbitrage résolu ; les autres validations par coche restent applicables.
+
 Une modale qui crée ou modifie se valide par la **coche** de son en-tête, à droite, en face de la croix (ou de la flèche Retour) à gauche. Elle n'a pas de bouton de validation en bas ; la place libérée revient au contenu.
 
 | Modale | Action portée par la coche | Ancien bouton |
 |---|---|---|
-| Questionnaire d'un Format | Ouvre le récapitulatif | « Valider les paramètres » |
+| Questionnaire d'un Format | À CLARIFIER : coche / bouton selon l’état et nécessité d’un récapitulatif (contre-revue du 06/11/2026) | « Valider les paramètres » : suppression non confirmée |
 | Récapitulatif d'un Format | Enregistre dans la Séance ; à la réouverture depuis la Composition, enregistre les modifications | « Enregistrer dans la séance », « Enregistrer les modifications » |
 | Choix des mouvements d'un Format (y compris le choix du buy-in) | Revient au questionnaire avec la sélection | « Enregistrer dans la séance » |
 | Catalogue des séances ouvert depuis la planification (une ou plusieurs séances) | Valide la sélection | « Valider » |
@@ -20,7 +22,7 @@ Une modale qui crée ou modifie se valide par la **coche** de son en-tête, à d
 - **États :** coche bleue (`color/wheel-action/confirm-background`, bleu KODJO) quand la validation est possible ; coche grise quand un paramètre requis manque ou est incohérent. Les règles d'activation des boutons remplacés s'appliquent à la coche (par exemple Superset : deux mouvements requis à la création ; contrôle bloquant de l'EMOM).
 - **Composants :** en-tête de modale existant à croix et coche (variante « Roulette » de « En-tête modal — Paramètres d'exécution ») ; en-tête fixe « DSF / Navigation / En-tête fixe », variante **« Fermer et valider »** ajoutée pour les écrans de planification.
 - **Exceptions, bouton large conservé :** pendant et juste après l'effort, la cible doit rester grande et sous le pouce : « Résultat de série », « Répétitions partielles », « Avant la séance — Douleur » (Commencer), synthèses de séance et d'exécution. « Modifier le profil » est un écran avec Retour, pas une modale : inchangé.
-- Toute mention des libellés remplacés dans les documents désigne désormais l'action de la coche.
+- Toute mention des libellés remplacés dans les documents désigne désormais l'action de la coche, sauf la transition du questionnaire de Format signalée À CLARIFIER ci-dessus.
 
 ## 2. Ajout d'un mouvement dans un questionnaire de Format (D-500)
 
@@ -62,7 +64,7 @@ Composant « DSF / Cards / Séance », variantes Catalogue repliée, archivée e
 | Photo | 64 pt, à 4 pt du bord gauche, haut et bas ; rayon 8 (concentrique : 12 − 4) |
 | Colonne des symboles | à 8 pt de la photo ; symboles centrés dans 10 pt (chevron, catégorie, haltère 12 × 10) ; textes alignés sur une même verticale |
 | Texte | à 8 pt du haut et du bas ; nom tronqué (« … ») avant la durée |
-| Chevron | à gauche du nom, sur **toutes** les cartes ; → quand la carte est repliée, ↓ quand elle est dépliée ; zone de toucher : nom et chevron, 44 pt |
+| Chevron | à gauche du nom, sur **toutes** les cartes ; → quand la carte est repliée, ↓ quand elle est dépliée ; zone de toucher : chevron et toute la zone centrale, hors photo et Démarrer ; cible minimale 44 pt |
 | Durée | en haut à droite, à 12 pt du bord, sans sablier, alignée sur la ligne de base du nom |
 | Ligne 3 | « N circuits · N exercices » ; le nombre de circuits est omis si la Séance n'a aucun circuit, ou un seul circuit joué une seule fois ; une Séance d'un seul exercice affiche « 1 exercice » |
 | Démarrer | pilule de 24 pt en bas à droite (12 pt du bord droit, 8 pt du bas) ; fond = `background` du catalogue ; texte « Démarrer » 12 pt Medium, bleu KODJO ; sans liseré ; ombre 0 / 2 / 4, noir 14 % (ombre des actions contextuelles) ; cible 44 pt |
@@ -70,6 +72,7 @@ Composant « DSF / Cards / Séance », variantes Catalogue repliée, archivée e
 | Archivée | même format, sans Démarrer |
 
 - **Modales de planification** (« Choisir une séance », « Sélectionner une séance », « Sélectionner plusieurs séances ») : la carte n'affiche pas Démarrer.
+- **Interactions — précision de Hermann du 06/11/2026 (D-504) :** Dans le catalogue des séances : toucher la photo ouvre la composition de séance en modification ; Démarrer exécute la séance ; le chevron et toute la zone centrale de la carte déploient/replient la séance ; toucher toute la zone déployée ouvre la séance en modification. Ces cibles sont distinctes.
 - **Actions glissées** : hauteur 72 pt, alignées sur la carte.
 - **Remplace :** action lecture ronde à droite, sablier, chevron seulement pour plusieurs exercices, « jamais 1 exercice », format ou volume en ligne 3, carte de 80 pt, visuel à 8 pt du bord.
 
