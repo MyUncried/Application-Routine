@@ -85,6 +85,10 @@ Carte portée suivie hors rendu. Test `MovementCatalogueList.fam` 14 verts (le n
 
 Durées des cases au format court ; ligne des noms synchronisée avec le premier déploiement. Tests Formats, Circuit et Composition : 840 verts après adaptation de `CompositionScreen.b1b` ; `tsc` propre ; ESLint : aucun nouveau signalement (8 préexistants dans `CompositionScreen.tsx`).
 
+## Bilan des groupes A à E (recette du 05/11 au soir)
+
+Suite complète : 304 suites, 5 377 tests — 2 échecs au premier passage : `movementPhaseDurations.a2b` (test du groupe C non adapté, corrigé ensuite, 19/19) et `CompositionScreen.recette1` « deux Circuits » (instabilité connue sous charge, verte isolée). Commits : bdafb406 (A), 76b11aa8 (B), 5ab28a0b (C), 828e7225 (D), e74533f3 (E) et le correctif de test. À vérifier sur iPhone : tous les points ; hypothèses non démontrées : blocage après abandon (r-libre), retour au Catalogue des séances (r-creer), fluidité du glisser (D).
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).
