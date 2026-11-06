@@ -1,5 +1,7 @@
 # Catalogue des séances — relevé Figma et intégration documentaire — 27/10/2026
 
+> **Révision du 06/11/2026 :** composant « DSF / Cards / Séance » modifié (format, Démarrer, chevron, durée) et planche DSF `11734:2100` — [KODJO-Catalogues-cartes-modales-2026-11-06](KODJO-Catalogues-cartes-modales-2026-11-06.md) (D-501 à D-507).
+
 Référence fonctionnelle : [spécification fournie par Hermann](KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md), versée sans modification. Fichier Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page `510:101`. Douze écrans de la ligne Catalogue des séances et trois variantes Catalogue du set `DSF / Cards / Séance` lus et réexportés. Aucun changement Figma ou code effectué.
 
 Ce relevé remplace les anciennes captures de ces douze écrans, notamment celles du contrôle navigation effectué plus tôt le même jour. Il ne constitue pas une nouvelle revue de toute la page ni une validation des 593 éléments élargis et 186 recalés signalés dans la source.
