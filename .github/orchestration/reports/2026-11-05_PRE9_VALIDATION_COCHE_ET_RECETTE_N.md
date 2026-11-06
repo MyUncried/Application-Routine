@@ -109,6 +109,10 @@ Accord de Hermann : « Oui, tu peux développer ». Brouillons à la racine, mod
 
 Synthèse de 33 points validée par Hermann (« Oui »), réalisée avec quatre sous-agents sur des fichiers distincts, intégration et documentation dans la session principale (spec § 2 quindecies, ch07). Suite complète : 311 suites, 5 431 tests — 1 échec sous charge (`CompositionScreen.recette1`, vert isolé, instabilité connue de ce fichier) ; `tsc` propre ; ESLint : aucun nouveau signalement (erreurs `react-hooks/refs` de `CompositionScreen.tsx` et de `FormatModelScreen.c3.test.tsx` déjà présentes). Non réalisé : v-compo (non reproduit, parcours demandé) ; glisser du questionnaire (CHANGE_REQUEST_REQUIRED : react-native-gesture-handler). Rien n'est vérifié sur iPhone.
 
+## Complément — glisser du questionnaire (06/11)
+
+Cause plausible (forte certitude) : questionnaire et récapitulatif en feuille native iOS depuis `db1a048e` ; le geste de la feuille annule les touchers React Native une fois le défilement coupé. Correctif autorisé par Hermann (« Oui je l'autorise. ») : react-native-gesture-handler, Pan activé après appui long. Suite complète : 311 suites, 5 434 tests — 1 échec sous charge (`CompositionScreen.recette1`, vert isolé) ; `tsc` propre ; ESLint sans nouveau signalement. À vérifier sur iPhone ; si le module natif manquait, recompiler l'application.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

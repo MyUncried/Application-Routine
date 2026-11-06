@@ -130,7 +130,7 @@ Décisions recopiées au registre ch07, « Recette iPhone du 06/11/2026 — déc
 - 22 cases rouges : déjà générales (A) ; 23 Death by, Récupération avant Condition d'arrêt — B ; 24 fond opaque et fondu de 8 — B ;
 - 31 saisie au clavier de la feuille Paramètres d'exécution et de la durée du Circuit porteur — B ; À CLARIFIER : réglages de Format dans la feuille, grille de Récupération, durée de Circuit > 99:59 ;
 - 33 « Fermer sans sélectionner » — B.
-Non réalisé : 1 (v-compo, non reproduit), 29 (glisser du questionnaire : CHANGE_REQUEST_REQUIRED, react-native-gesture-handler).
+Non réalisé : 1 (v-compo, non reproduit ; Hermann : « Attendons que cela se reproduise, je noterais alors le parcours exacte. »). 29 (glisser du questionnaire) : CHANGE_REQUEST_REQUIRED levé par Hermann (« Oui je l'autorise. ») — réalisé avec react-native-gesture-handler (classe D), tests `FormatModelScreen.c3` (glisser, annulation, buy-in/buy-out).
 Documents : ch07, ch08 (paramètres d'un exercice), ch12, ch13 (CE-UI-10), référence Formats (S1, charges, durée du Circuit), DSF Paramètres (en-tête).
 Tests ajoutés : `formats.recette0611`, `FormatModelScreen.xdedans`, `CompositionScreen.tdepli`, `MovementCatalogueList.r0611`, `CatalogueScreen.r0611`, `ExecutionParametersSheet.keyboard0611`, `CarrierDurationSheet.keyboard0611`, parcours réels `CompositionMovementFlow` et `MovementScreen.b2`.
 

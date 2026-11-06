@@ -16,6 +16,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Reanimated, { FadeIn, LinearTransition } from "react-native-reanimated";
 import { initialWindowMetrics } from "react-native-safe-area-context";
 
@@ -143,6 +144,8 @@ const CONTEXT_HEIGHT = 101;
  */
 const CARD_GAP = 6;
 const CARD_STEP_DEFAULT = 60 + CARD_GAP;
+/** Constat du 06/11/2026 : délai de l'appui long qui soulève une carte (celui de `Pressable`, 500 ms). */
+const CARD_LONG_PRESS_MS = 500;
 /**
  * Complément du 5 novembre 2026 (Hermann), §19 : la ligne « Mouvements » (titre et « + Ajouter ») descend de 8 — elle empiétait
  * sur le bas de la zone de contexte (illustration et accroche). Hors mode catalogue (en-tête et recherche dans la zone figée).
@@ -1104,9 +1107,18 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // relâchement elle prend la place atteinte. Même procédé que le Catalogue des Mouvements (suivi du doigt
   // par la liste, défilement suspendu pendant le geste). Le buy-in reste en tête. Actions VoiceOver
   // Monter / Descendre conservées.
+  //
+  // Constat de Hermann du 06/11/2026 sur iPhone (« Questionnaire / Récapitulatif : on ne peut plus déplacer un
+  // mouvement avec l'appui long. La carte est sélectionnée mais ne se déplace pas, c'est l'écran qui se déplace ») :
+  // depuis le passage de ces écrans en feuille native iOS (formSheet, 04/11), le geste natif de la feuille prenait le
+  // toucher dès que le défilement était coupé et annulait les touchers de React Native (le gestionnaire de touchers
+  // de React Native cède à tout geste natif extérieur). Le glisser est désormais porté par un geste natif de
+  // react-native-gesture-handler (`Pan` activé après l'appui long) : actif avant tout mouvement du doigt, il garde
+  // le toucher pour la carte. Levée, pour ce seul écran, du choix « plan §8 » (pas de react-native-gesture-handler,
+  // cf. CompositionScreen) — décision de Hermann du 06/11/2026 (« Oui je l'autorise. »).
   const [drag, setDrag] = useState<{ readonly from: number; readonly dy: number } | null>(null);
-  const touchY = useRef(0);
-  const dragStartY = useRef<number | null>(null);
+  // Valeur courante du geste, lue par les rappels du geste natif (jamais pendant le rendu).
+  const dragRef = useRef<{ readonly from: number; readonly dy: number } | null>(null);
   const cardStep = useRef(CARD_STEP_DEFAULT);
   // Buy-in choisi : en tête, jamais déplacé ni dépassé.
   // Buy-in en tête, buy-out en fin (ordre tenu à l'ajout) : jamais déplacés ni dépassés.
@@ -1116,16 +1128,25 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const lastMovable = movements.length - 1 - buyOutCount;
   const dragTarget = (current: { from: number; dy: number }) =>
     Math.max(firstMovable, Math.min(lastMovable, current.from + Math.round(current.dy / cardStep.current)));
+  const updateDrag = (next: { readonly from: number; readonly dy: number } | null) => {
+    dragRef.current = next;
+    setDrag(next);
+  };
   const startDrag = (index: number) => {
     if (index < firstMovable || index > lastMovable) return;
     setRevealedId(null);
-    dragStartY.current = touchY.current;
-    setDrag({ from: index, dy: 0 });
+    updateDrag({ from: index, dy: 0 });
+  };
+  const moveDrag = (dy: number) => {
+    const current = dragRef.current;
+    if (current !== null) updateDrag({ ...current, dy });
+  };
+  const cancelDrag = () => {
+    if (dragRef.current !== null) updateDrag(null);
   };
   const endDrag = () => {
-    const current = drag;
-    setDrag(null);
-    dragStartY.current = null;
+    const current = dragRef.current;
+    updateDrag(null);
     if (current === null) return;
     const to = dragTarget(current);
     if (to === current.from) return;
@@ -1139,19 +1160,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   };
   const cardList = (items: readonly ModelMovement[], offset: number, isBuyIn: boolean, isBuyOut = false) => (
     <View
-      onTouchStart={(event) => {
-        touchY.current = event.nativeEvent.pageY;
-      }}
-      onTouchMove={
-        drag !== null
-          ? (event) => {
-              const start = dragStartY.current ?? event.nativeEvent.pageY;
-              setDrag({ ...drag, dy: event.nativeEvent.pageY - start });
-            }
-          : undefined
-      }
-      onTouchEnd={drag !== null ? endDrag : undefined}
-      onTouchCancel={drag !== null ? () => setDrag(null) : undefined}
       testID={isBuyIn ? "format-buy-in-cards" : isBuyOut ? "format-buy-out-cards" : "format-movement-cards"}
     >
       {items.map((item, at) => movementCard(item, at + offset, isBuyIn || isBuyOut))}
@@ -1511,6 +1519,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   };
 
   return (
+    // Racine des gestes natifs propre à la feuille (formSheet, présentée hors de la vue racine de l'application).
+    <GestureHandlerRootView style={styles.modalRoot}>
     <View ref={rootRef} collapsable={false} style={styles.modalRoot} testID="format-modal">
       <View style={styles.nativeSheet} testID="format-sheet">
       <ScrollView
@@ -1738,6 +1748,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         />
       ) : null}
     </View>
+    </GestureHandlerRootView>
   );
 
   function updateValues(index: number, values: MovementValues) {
@@ -1760,7 +1771,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         [next[index], next[target]] = [next[target]!, next[index]!];
         return next;
       });
-    return (
+    const slot = (
       <View
         key={item.exercise.id}
         style={[styles.cardSlot, lifted ? [styles.liftedCard, { transform: [{ translateY: drag?.dy ?? 0 }] }] : shift !== 0 ? { transform: [{ translateY: shift }] } : null]}
@@ -1787,7 +1798,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             { name: "moveUp", label: t().moveUp, onAction: () => move(-1) },
             { name: "moveDown", label: t().moveDown, onAction: () => move(1) },
           ]}
-          {...(isBuyInCard ? {} : { onLongPress: () => startDrag(index) })}
           testID={`format-movement-${index}`}
         >
           {movement !== null ? (
@@ -1799,6 +1809,24 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           )}
         </SwipeActionsRow>
       </View>
+    );
+    // Buy-in et buy-out : jamais déplacés, aucun geste de déplacement.
+    if (isBuyInCard) return slot;
+    // Constat du 06/11/2026 : geste natif activé après l'appui long (immobile 500 ms, comme l'appui long de `Pressable`) ;
+    // un mouvement du doigt de plus de 10 pt avant ce délai le fait échouer (glisser latéral de suppression et
+    // défilement intacts). Actif, il annule l'appui de la carte (pas de fiche ouverte au relâchement).
+    const dragGesture = Gesture.Pan()
+      .activateAfterLongPress(CARD_LONG_PRESS_MS)
+      .runOnJS(true)
+      .onStart(() => startDrag(index))
+      .onUpdate((event) => moveDrag(event.translationY))
+      .onEnd((_event, success) => (success ? endDrag() : cancelDrag()))
+      .onFinalize(() => cancelDrag())
+      .withTestId(`format-movement-drag-${index}`);
+    return (
+      <GestureDetector key={item.exercise.id} gesture={dragGesture}>
+        {slot}
+      </GestureDetector>
     );
   }
 

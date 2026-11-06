@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { State } from "react-native-gesture-handler";
+import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
@@ -536,6 +538,82 @@ describe("FormatModelScreen", () => {
     const groups = screen.getAllByTestId(/^format-timeline-group-/);
     expect(groups).toHaveLength(6);
     expect(groups[0]!.props.children).toHaveLength(2);
+  });
+
+  // Constat de Hermann du 06/11/2026 sur iPhone (« La carte est sélectionnée mais ne se déplace pas, c'est l'écran qui
+  // se déplace ») : le glisser est porté par un geste natif (Pan après appui long). Jest simule les états du geste ; il ne
+  // prouve pas que la feuille native iOS reste immobile (vérification sur iPhone).
+  it("constat du 06/11 : appui long puis glisser — la carte suit le doigt et prend la place atteinte", async () => {
+    mockModel = "TABATA";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    expect(screen.getByTestId("format-movement-card-0")).toHaveTextContent(/Squats sautés/);
+    // `fireGestureHandler` joue la séquence entière (il termine le geste) : l'état intermédiaire n'est pas observable ici.
+    act(() => {
+      fireGestureHandler(getByGestureTestId("format-movement-drag-0"), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationY: 0 },
+        { translationY: 40 },
+        { translationY: 70 },
+        { state: State.END, translationY: 70 },
+      ]);
+    });
+    expect(screen.getByTestId("format-movement-card-0")).toHaveTextContent(/Fentes avant/);
+    expect(screen.getByTestId("format-movement-card-1")).toHaveTextContent(/Squats sautés/);
+    expect(screen.getByTestId("format-questionnaire").props.scrollEnabled).toBe(true);
+    // Aucun appui court déclenché par le geste (pas de fiche ouverte).
+    expect(mockPush).not.toHaveBeenCalledWith(expect.objectContaining({ pathname: "/movement-sheet" }));
+  });
+
+  it("constat du 06/11 : geste interrompu (annulé) — l'ordre reste inchangé", async () => {
+    mockModel = "TABATA";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    act(() => {
+      fireGestureHandler(getByGestureTestId("format-movement-drag-0"), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationY: 0 },
+        { translationY: 70 },
+        { state: State.CANCELLED, translationY: 70 },
+      ]);
+    });
+    expect(screen.getByTestId("format-movement-card-0")).toHaveTextContent(/Squats sautés/);
+    expect(screen.getByTestId("format-questionnaire").props.scrollEnabled).toBe(true);
+  });
+
+  it("constat du 06/11 : buy-in et buy-out — aucun geste de déplacement ; une carte de boucle ne les dépasse pas ; Monter / Descendre conservés", async () => {
+    mockModel = "FOR_TIME";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    fireEvent(screen.getByTestId("format-buyIn"), "valueChange", true);
+    fireEvent(screen.getByTestId("format-buyOut"), "valueChange", true);
+    await pick("Squ", "mv-squats", "format-loop");
+    await pick("Fen", "mv-fentes", "format-buy-out");
+    await pick("Squ", "mv-squats", "format-buy-in");
+    await pick("Fen", "mv-fentes", "format-loop");
+    // Ordre : buy-in (0), boucle (1, 2), buy-out (3).
+    expect(() => getByGestureTestId("format-movement-drag-0")).toThrow();
+    expect(() => getByGestureTestId("format-movement-drag-3")).toThrow();
+    act(() => {
+      fireGestureHandler(getByGestureTestId("format-movement-drag-1"), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationY: 0 },
+        { translationY: 1000 },
+        { state: State.END, translationY: 1000 },
+      ]);
+    });
+    expect(screen.getByTestId("format-movement-card-1")).toHaveTextContent(/Fentes avant/);
+    expect(screen.getByTestId("format-movement-card-2")).toHaveTextContent(/Squats sautés/);
+    expect(within(screen.getByTestId("format-buy-in-cards")).getByText("Squats sautés")).toBeTruthy();
+    expect(within(screen.getByTestId("format-buy-out-cards")).getByText("Fentes avant")).toBeTruthy();
+    // VoiceOver : Descendre sur la première carte de boucle.
+    fireEvent(screen.getByTestId("format-movement-1-card"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+    expect(screen.getByTestId("format-movement-card-1")).toHaveTextContent(/Squats sautés/);
+    expect(screen.getByTestId("format-movement-card-2")).toHaveTextContent(/Fentes avant/);
   });
 
   it("recette n° 3 (f3-questionnaire) : le dernier mouvement se supprime, l'enregistrement devient indisponible", async () => {
