@@ -2253,7 +2253,7 @@ Nœud [8624:30521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 ##### Death by — Récapitulatif
 
-Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Contrat CE-FMT-02 · Export du 05/11/2026.
+Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Contrat CE-FMT-02 · Export du 05/11/2026. [06/11/2026 : l’écran « Death by — Récapitulatif » à un mouvement est renommé « Death by — Questionnaire, un mouvement » (`8624:30602`), conformément à la précision D-499.]
 
 ![Death by — Récapitulatif](images/figma-8624-30602.png)
 
@@ -3332,11 +3332,11 @@ Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 ![Death by — Questionnaire](images/catalogues-2026-11-06/8624-30198.png)
 
-##### Death by — Récapitulatif
+##### Death by — Questionnaire, un mouvement
 
 Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Export du 06/11/2026.
 
-![Death by — Récapitulatif](images/catalogues-2026-11-06/8624-30602.png)
+![Death by — Questionnaire, un mouvement](images/catalogues-2026-11-06/8624-30602.png)
 
 ##### Death by — Récapitulatif, dans chaque intervalle
 
@@ -3499,3 +3499,27 @@ Nœud [8656:35273](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 Nœud [8656:35331](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35331) · Export du 06/11/2026.
 
 ![À l’échec — Récapitulatif](images/catalogues-2026-11-06/8656-35331.png)
+
+##### EMOM — Questionnaire, un mouvement
+
+Nœud [11753:21642](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11753-21642) · Export du 06/11/2026.
+
+![EMOM — Questionnaire, un mouvement](images/catalogues-2026-11-06/11753-21642.png)
+
+##### P-Tabata — Questionnaire, un mouvement
+
+Nœud [11753:21837](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11753-21837) · Export du 06/11/2026.
+
+![P-Tabata — Questionnaire, un mouvement](images/catalogues-2026-11-06/11753-21837.png)
+
+##### P-Tabata — Questionnaire, deux mouvements
+
+Nœud [11753:21977](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11753-21977) · Export du 06/11/2026.
+
+![P-Tabata — Questionnaire, deux mouvements](images/catalogues-2026-11-06/11753-21977.png)
+
+##### Superset — Questionnaire, deux mouvements
+
+Nœud [11753:22133](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11753-22133) · Export du 06/11/2026.
+
+![Superset — Questionnaire, deux mouvements](images/catalogues-2026-11-06/11753-22133.png)
