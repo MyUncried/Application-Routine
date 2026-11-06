@@ -1,5 +1,7 @@
 # Vision et glossaire
 
+> **Provenance des fiches — cible préparatoire validée le 06/11/2026.** Le [contrat des fiches éditoriales](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) distingue le vocabulaire métier KODJO (présent glossaire), les fiches de contenu, leurs auteurs, propriétaires administratifs et sources. Ce contrat ne modifie aucun terme ni comportement du moteur d'exécution.
+
 ## Composition — actualisation du 28/10/2026
 
 Le Cycle est un conteneur visible de circuits et d’exercices directs ; le Circuit a pour natures Séries groupées et Séries alternées. Tour désigne un passage de circuit, répétition le compte du cycle. Les valeurs de séries identiques/variables sont un autre axe. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
