@@ -76,6 +76,13 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - r-libre : `DecisionDialog.confirmAfterDismiss` (opt-in, `ExerciseExitConfirmModal` de la fiche) — confirmation rendue à `onDismiss` du `Modal` iOS ou après 350 ms. Hypothèse (non démontrée) : la feuille native ne se retirait pas pendant la fermeture du dialogue.
 - Tests : `MovementScreen.b2.integration` (+4), `formatsWindowRoute`, `DecisionDialog.confirmAfterDismiss` (2), `CompositionMovementFlow` et `ExerciseRecovery` (parcours réels).
 
+## 2 decies. Catalogue des mouvements — carte portée fluide (m-carte, classe A)
+
+- Constat (recette du 05/11 au soir) : « Régression : déplacer un mouvement dans le catalogue, le mouvement suit le doigt mais n’est pas fluide. »
+- Règle déjà écrite : recette FAM passe 3 (f3-01, `ab808040`) « carte portée suivie sans redessiner la liste ». Cause trouvée : chaque mouvement du doigt (`moveDrag`) mettait à jour l’état du geste, donc redessinait toute la liste. Attribution de la régression : indéterminée (le mécanisme par état existe depuis la passe FAM ; aucun commit récent ne le modifie directement — la liste a pu s’alourdir depuis).
+- Correction : valeur animée `fingerFollow` (avec `scrollFollow`) pour la carte portée ; état mis à jour seulement quand la décision du geste ou la place de la carte portée change.
+- Test : `MovementCatalogueList.fam` (la liste n’est pas redessinée pendant trois déplacements dans la même place ; échoue sur l’ancienne version).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

@@ -77,6 +77,10 @@ Résultats de recherche affichés à partir du bas de la barre. Test `FormatMode
 
 Coche en création, titre, fiche choisie en fondu, retours Composition / Catalogue, niveau → Catalogue, abandon sans blocage (hypothèse à vérifier sur iPhone). Tests ciblés : 3 011 dont 5 adaptés ; tous verts après adaptation ; `tsc`, ESLint propres sur les fichiers touchés.
 
+## Complément — groupe D (glisser dans le Catalogue)
+
+Carte portée suivie hors rendu. Test `MovementCatalogueList.fam` 14 verts (le nouveau échoue sur l’ancienne version) ; Catalogue 192 verts ; `tsc`, ESLint propres. Fluidité à vérifier sur iPhone.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

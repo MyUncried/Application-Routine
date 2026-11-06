@@ -280,6 +280,13 @@ export function MovementCatalogueList({
     measure: (callback) => viewportRef.current?.measureInWindow((_x, top, _width, height) => callback(top, height)),
   });
   const [scrollFollow] = useState(() => new Animated.Value(0));
+  // Recette du 05/11/2026 au soir (m-carte, Hermann : « Régression : déplacer un mouvement dans le catalogue, le mouvement suit le
+  // doigt mais n’est pas fluide ») : la carte portée suit aussi le doigt par une valeur animée, hors rendu ; la liste n'est
+  // redessinée que si la décision du geste (place visée, famille survolée) ou la place de la carte portée change — comme pour le
+  // défilement (f3-01).
+  const [fingerFollow] = useState(() => new Animated.Value(0));
+  const liftedFollower = useMemo(() => Animated.add(scrollFollow, fingerFollow), [scrollFollow, fingerFollow]);
+  const gesture = useRef({ dy: 0 });
   const scrollDelta = useRef(0);
   const scrollLatest = useRef<((delta: number) => void) | null>(null);
   // Famille repliée survolée par la carte portée, et son dépliage différé.
@@ -462,6 +469,8 @@ export function MovementCatalogueList({
   const startDrag = (id: string, pileKey: string | null, ids: readonly string[], from: number) => {
     setRevealedId(null);
     setVariantFor(null);
+    // Le déplacement du doigt est relu au premier mouvement (`moveDrag`).
+    fingerFollow.setValue(0);
     setDrag({ id, pileKey, ids, from, origin: null, dy: 0, drift: 0, intent: { kind: "NONE" } });
   };
 
@@ -520,7 +529,9 @@ export function MovementCatalogueList({
     const drift = top === undefined ? drag.drift : top - origin.top;
     const intent = intentAt(drag, origin, slots, dy + scrollDelta.current);
     hoverFamily(intent.kind === "EXPAND" ? intent.familyKey : null, false);
-    setDrag({ ...drag, origin, dy, drift, intent });
+    gesture.current.dy = dy;
+    fingerFollow.setValue(dy - drift);
+    if (drag.origin === null || drift !== drag.drift || !sameIntent(intent, drag.intent)) setDrag({ ...drag, origin, dy, drift, intent });
   };
 
   /**
@@ -532,7 +543,7 @@ export function MovementCatalogueList({
     scrollDelta.current = delta;
     scrollFollow.setValue(delta);
     if (drag === null || drag.origin === null) return;
-    const intent = intentAt(drag, drag.origin, slotsNow(), drag.dy + delta);
+    const intent = intentAt(drag, drag.origin, slotsNow(), gesture.current.dy + delta);
     hoverFamily(intent.kind === "EXPAND" ? intent.familyKey : null, true);
     if (!sameIntent(intent, drag.intent)) setDrag({ ...drag, intent });
   };
@@ -541,6 +552,11 @@ export function MovementCatalogueList({
     scrollLatest.current = onAutoScrolled;
     dragRef.current = drag;
   });
+  // FAM-05 : la place de la carte portée a changé (pile dépliée au-dessus) — la valeur animée la garde sous le doigt.
+  const liftedDrift = drag === null || drag.origin === null ? null : drag.drift;
+  useLayoutEffect(() => {
+    if (liftedDrift !== null) fingerFollow.setValue(gesture.current.dy - liftedDrift);
+  }, [fingerFollow, liftedDrift]);
 
   const stopDrag = () => {
     setDrag(null);
@@ -893,8 +909,8 @@ export function MovementCatalogueList({
               {/* Recette du 27/10 (r10-glisser) : une seule enveloppe pour la carte portée et ses voisines —
                   changer d'enveloppe au début du glisser démontait la carte sous le doigt et figeait le geste. */}
               <DragShift
-                shift={isLifted ? pileDrag.dy - pileDrag.drift : shift}
-                follower={isLifted ? scrollFollow : null}
+                shift={isLifted ? 0 : shift}
+                follower={isLifted ? liftedFollower : null}
                 active={drag !== null}
                 follow={isLifted}
                 reduceMotion={reduceMotion}
@@ -925,8 +941,8 @@ export function MovementCatalogueList({
           />
         ) : null}
         <DragShift
-          shift={isLifted ? drag.dy - drag.drift : opening !== null && opening.itemKey === id ? opening.anchorShift : 0}
-          follower={isLifted ? scrollFollow : null}
+          shift={isLifted ? 0 : opening !== null && opening.itemKey === id ? opening.anchorShift : 0}
+          follower={isLifted ? liftedFollower : null}
           active={drag !== null}
           follow={isLifted}
           reduceMotion={reduceMotion}
@@ -1123,7 +1139,7 @@ function DragShift({
   /** Carte portée : suit le doigt, sans animation. */
   readonly follow: boolean;
   /** Carte portée : défilement automatique accumulé, ajouté hors rendu (`null` sinon). */
-  readonly follower: Animated.Value | null;
+  readonly follower: Parameters<typeof Animated.add>[1] | null;
   readonly reduceMotion: boolean;
   readonly style: StyleProp<ViewStyle>;
   readonly testID: string | undefined;

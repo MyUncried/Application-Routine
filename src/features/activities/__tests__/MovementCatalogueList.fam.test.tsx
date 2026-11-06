@@ -357,6 +357,24 @@ describe("PRE-8 familles — recette iPhone du 28/10", () => {
     expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "tirage", "squat"]);
   });
 
+  it("recette du 05/11 au soir (m-carte, « le mouvement suit le doigt mais n’est pas fluide ») : la carte portée suit le doigt sans redessiner la liste tant que la place visée ne change pas", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.create(movement("tirage", "Tirage"));
+    await renderList();
+    await layOut([{ key: "squat" }, { key: "tirage" }]);
+    await grab("tirage");
+    await moveBy(4);
+    // Liste non redessinée : la carte voisine garde les mêmes propriétés rendues (seule la carte portée, animée, bouge).
+    const neighbour = screen.getByTestId("movement-item-squat").props;
+    await moveBy(8);
+    await moveBy(12);
+    await moveBy(16);
+    expect(translateY("movement-card-tirage-lifted")).toBe(16);
+    expect(screen.getByTestId("movement-item-squat").props === neighbour).toBe(true);
+    await release();
+  });
+
   it("C5 : une famille repliée survolée sans s'arrêter ne se déplie pas ; un arrêt dessus la déplie", async () => {
     const repository = movements();
     await repository.create(movement("abdos", "Abdos"));
