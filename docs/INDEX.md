@@ -1,5 +1,7 @@
 # Documentation de KODJO
 
+> **Référentiel des Mouvements — décision du 06/11/2026.** [Fiches éditoriales, provenance, auteurs, propriétaire, version et séparation du moteur](KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md). Conception préparatoire, sans publication réseau ni migration SQLite.
+
 ## Formats — base de reprise actualisée le 5 novembre 2026
 
 **D-499 — précision validée par Hermann le 06/11/2026 :** « Valider les paramètres » apparaît uniquement lorsqu’une seconde étape est nécessaire et ouvre le récapitulatif sans enregistrer dans la séance. Dans ce cas, la coche du questionnaire reste grise et inactive. Sans seconde étape, la coche enregistre dans la séance lorsque les données sont complètes et cohérentes. Dans le récapitulatif, elle devient bleue et active lorsque les données sont complètes et cohérentes, puis enregistre dans la séance. Death by à un mouvement : questionnaire → coche → Composition, sans récapitulatif ; à deux mouvements : questionnaire → « Valider les paramètres » → récapitulatif → coche → Composition. L’enregistrement reste un ajout au brouillon de Composition, sans sauvegarde définitive de la Séance. Cette précision supersède la suppression générale du bouton dans les questionnaires ; les autres validations par coche restent applicables.
