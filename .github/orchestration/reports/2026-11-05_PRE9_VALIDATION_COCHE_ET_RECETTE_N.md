@@ -93,6 +93,10 @@ Suite complète : 304 suites, 5 377 tests — 2 échecs au premier passage : `mo
 
 Retour à la modale « Créer un exercice ». Tests ciblés 93 verts (dont un parcours réel qui reproduit le constat sur l’ancienne version) ; `tsc`, ESLint propres.
 
+## Complément — vitesse des modales (06/11)
+
+Règle permanente inscrite au registre (ch07) : vitesses iOS conservées. Aucune modification de code ; aucun test applicable.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

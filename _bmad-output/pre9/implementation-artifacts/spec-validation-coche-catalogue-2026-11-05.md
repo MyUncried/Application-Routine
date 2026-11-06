@@ -97,6 +97,10 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - Cause du constat : en allant à la Composition vide ouverte par « Créer », celle-ci appliquait sa règle d’abandon (brouillon vide au premier plan → Catalogue des séances).
 - Tests : `CompositionMovementFlow.integration` (parcours réel `/composition?create=1` → Exercice libre → croix → `/formats-window` ; échoue sur la version précédente), `MovementScreen.b2.integration` (+1, 1 adapté).
 
+## 2 terdecies. Vitesse des modales et des écrans (classe B, règle permanente)
+
+- Décision du 06/11/2026 : vitesses iOS pour les présentations natives (non réglables, react-native-screens 4.26.2) ; durées existantes de `compositionMotion` pour les transitions réglables et les animations propres. Registre ch07. Aucun code modifié.
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).
