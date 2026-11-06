@@ -49,9 +49,8 @@ Le reste est inchangé : carte, tri, filtres, piles, gestes et données.
 ## 4. Rendu
 
 **Badge :**
-- **Position :** accolé au coin bas droit de la carte, sans marge, bords droit et bas confondus avec ceux de la carte.
-- **Forme :** rayon 12 sur les quatre coins, celui de la carte ; 24 px de haut, marge interne de 10 px à l'horizontale.
-- **Texte :** « New », seule la première lettre en majuscule, Inter Bold 12, blanc ; « New ↓ » sur la tête d'une pile (règle 6).
+- **Position et forme :** en forme d'onglet, comme l'onglet sélectionné des catalogues, logé dans le coin bas droit de la carte. Les deux côtés qui touchent le cadre (bord droit et bas) n'ont pas d'angle : ils s'évasent en arrondis inversés (rayon 8) qui se fondent dans le bord. L'angle libre, en haut à gauche, est arrondi (rayon 12) ; le coin bas droit suit celui de la carte. Corps de 24 px de haut, marge interne de 10 px à l'horizontale.
+- **Texte :** « New », seule la première lettre en majuscule, Inter Medium 12 comme « Niveau X », blanc, sans gras ; « New ↓ » sur la tête d'une pile (règle 6).
 - **Couleur :** vert `color/status/positive-text` (#1F804F). Le badge n'est pas une action : le bleu KODJO, qui signale ce qui se touche (boutons, valeurs modifiables), induirait en erreur ; le rouge est réservé à la suppression. Le vert d'état « positif » se lit comme un ajout ; ce ton foncé garde le contraste du texte blanc en petit corps (environ 5:1).
 
 **Description de la carte :**

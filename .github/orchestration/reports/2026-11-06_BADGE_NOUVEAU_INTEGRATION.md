@@ -33,3 +33,10 @@
 - **Position :** badge accolé au coin bas droit, rayon 12 sur les quatre coins, 24 px de haut.
 - **Pile :** nouvelle variante « Nouveau=Dans la pile » `11765:2101` avec « New ↓ ». La flèche a été préférée au bord coloré de la deuxième feuille : un repère porté par la seule couleur est peu visible et non accessible.
 - **Mises à jour :** spec, D-510, CE-MVT-03, INDEX et capture.
+
+## Révision de la forme (demande de Hermann, 17:30-17:33)
+
+- **Forme :** badge en onglet (vecteur), avec arrondis inversés de rayon 8 sur les côtés qui touchent la carte et un angle libre de rayon 12. Retenue par Hermann après comparaison avec la pastille.
+- **Texte :** Inter Medium, sans gras.
+- **Variantes concernées :** `11762:2205` et `11765:2101`.
+- **Mises à jour :** spec, D-510 et capture.
