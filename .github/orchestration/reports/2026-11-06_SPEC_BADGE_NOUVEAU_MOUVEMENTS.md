@@ -1,0 +1,27 @@
+# Rapport de mission — SPEC_BADGE_NOUVEAU_MOUVEMENTS (6 novembre 2026)
+
+- **Objectif :** spec différentielle du badge « NOUVEAU » sur les fiches créées dans le catalogue des mouvements (demande de Hermann du 6/11/2026). Le catalogue des séances est exclu.
+- **Branche :** `docs/pre9-catalogues-cartes-modales-20261106`.
+- **Commit de départ :** `cccefcf0e3300ea534995345ab011de50e79d78a`.
+- **Périmètre demandé :** une spec différentielle.
+- **Périmètre traité :** création de `docs/KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06.md` (D-510) et ajout d'une entrée dans `docs/INDEX.md`.
+- **Constats :**
+  - la description de la carte Mouvement occupe toute la largeur sur deux lignes, sans place libre en bas à droite ;
+  - la spec réduit donc la largeur de la description tant que le badge est affiché ;
+  - le rouge est réservé à la suppression ; le badge est en bleu KODJO.
+- **Synchronisation code / documentation :** classe B, mais pas encore propagée. Le report dans les contrats d'écran (CE-MVT-01 à 03), dans le registre (chapitre 07) et dans Figma se fera après validation de la spec.
+- **Tests :** aucun applicable (documentation).
+- **Hypothèses non démontrées :** la lisibilité de la description tronquée à côté du badge.
+- **Non traité :**
+  - Figma (propriété « Nouveau », écran « Fiche créée ») ;
+  - chapitres 07 et 13 ;
+  - code.
+- **À vérifier sur appareil :**
+  - lisibilité du badge et de la description tronquée ;
+  - annonce VoiceOver « nouveau » ;
+  - défilement jusqu'à la fiche créée.
+- **Fichiers modifiés :**
+  - `docs/KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06.md` ;
+  - `docs/INDEX.md` ;
+  - ce rapport.
+- **Commit final et état Git :** donnés dans le compte rendu de livraison.
