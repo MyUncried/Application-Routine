@@ -53,7 +53,7 @@ La Composition, la fiche Mouvement et les autres écrans à zone de contexte ne 
 - **Onglet sélectionné :** forme posée sur la zone de contexte, de sa couleur (`context` du catalogue) ; coins hauts arrondis à 12, bas évasés en courbe inversée de rayon 10 jusqu'à la zone de contexte, sans raccord. Libellé **Bold**, `color/text-primary`. Onglets non sélectionnés : Regular, `color/text-secondary`. Plus de bleu sur le libellé.
 - **Hauteur de la zone de contexte inchangée** (115 pt, `y=92..207`) : elle reste commune avec la Composition et la fiche Mouvement.
 - **Première ligne** (« N familles · N mouvements », « Un exercice N · Plusieurs N », « N résultats » à droite) : séparateur **point médian** pour les deux catalogues, 8 pt de part et d'autre (remplace « | » des Séances). Écart entre cette ligne et la rangée de boutons égal à l'écart entre les boutons et la fin perçue de la zone (milieu du fondu), soit 16 pt.
-- **Deuxième ligne :** champ Rechercher de **34 pt** de haut, comme les boutons Filtre, Tri et Créer (34 pt), centré sur leur ligne ; rangée centrée entre la première ligne et le bas de la zone de contexte (22 pt de part et d'autre de la cible de 44 pt). Cible tactile du champ : 44 pt, sans changer son dessin.
+- **Deuxième ligne :** champ Rechercher de **34 pt** de haut, comme les boutons Filtre, Tri et Créer (34 pt), centré sur leur ligne ; rangée centrée entre la première ligne et le bas de la zone de contexte (22 pt de part et d'autre de la cible de 44 pt). Cible tactile du champ : 44 pt, sans changer son dessin. [Hermann, 06/11/2026, à « L'écart entre 16 pt (spec) et 22 pt (Figma) : j'ai suivi Figma. » : « Ok ». Les cotes de Figma prévalent pour cette rangée.]
 
 ## 5. Carte Séance (D-504, D-505, D-506)
 

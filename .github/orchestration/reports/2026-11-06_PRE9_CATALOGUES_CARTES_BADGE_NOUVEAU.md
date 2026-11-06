@@ -161,10 +161,10 @@
 
 ### À clarifier
 
-1. **Circuit d'un tour dans un Cycle de plusieurs passages :** l'agent l'a compté comme « 1 circuit », puisqu'il est joué plusieurs fois. Les chapitres 10 et 13 disent seulement « un seul circuit d'un tour », ce qui l'omettrait.
-2. **Spec §4 :** « 22 pt de part et d'autre de la cible de 44 » est incompatible avec « 16 pt entre la ligne 1 et les boutons ». Figma a été suivi : environ 11 au-dessus, 22 en dessous.
+1. **Circuit d'un tour dans un Cycle de plusieurs passages :** l'agent l'a compté comme « 1 circuit », puisqu'il est joué plusieurs fois. Les chapitres 10 et 13 disent seulement « un seul circuit d'un tour », ce qui l'omettrait. **Tranché par Hermann le 06/11/2026 : « Oui » (il compte) — consigné sous D-505.**
+2. **Spec §4 :** « 22 pt de part et d'autre de la cible de 44 » est incompatible avec « 16 pt entre la ligne 1 et les boutons ». Figma a été suivi : environ 11 au-dessus, 22 en dessous. **Tranché par Hermann le 06/11/2026 : « Ok » — consigné dans la spec §4.**
 3. **Séparateur « · » :** 8 pt selon la spécification, environ 6 pt mesurés dans Figma. La spécification a été appliquée.
-4. **Démarrer :** aucun écran d'Exécution n'existe, donc la pilule est présente mais désactivée (comportement antérieur de l'action lecture, CE-T03-01).
+4. **Démarrer :** aucun écran d'Exécution n'existe, donc la pilule est présente mais désactivée (comportement antérieur de l'action lecture, CE-T03-01). **Tranché par Hermann le 06/11/2026 : « Ok » — consigné sous D-506.**
 5. **Durée de For time et Death by :** pas implémentée avant ce lot, et toujours pas. La carte affiche probablement « ≥ 0 s ». Hors lot.
 6. **Bouton Retour de `FixedHeader` :** son cercle reste en `selectionSurface`. Ce n'est pas une bande ; à arbitrer.
 
