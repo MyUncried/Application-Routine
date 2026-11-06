@@ -1,5 +1,7 @@
 # Catalogue des mouvements — Composition et ordre des familles
 
+> **Révision du 06/11/2026 :** carte Mouvement et feuilles de pile au nouveau format, écran aux couleurs du catalogue Mouvements — [KODJO-Catalogues-cartes-modales-2026-11-06](KODJO-Catalogues-cartes-modales-2026-11-06.md) §3, §7 (D-501, D-508).
+
 Référence intégrée le 28/10/2026 à partir du [document de Hermann](KODJO-Regles-Familles-de-niveaux-2026-10-28.md), conservé à l'identique, et du relevé direct de Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP `510:101`. Cette spécification clôt C08 pour **constituer, rejoindre, quitter et dissoudre une famille depuis le catalogue**. Elle ne clôt pas le parcours de suppression définitive d'un mouvement ni les autres règles de son cycle de vie. Aucun code applicatif n'est livré par ce dossier.
 
 Les règles A à E ci-dessous sont reproduites intégralement. Elles remplacent les restrictions et messages des règles 2 à 4 du 27/10 sur leur seule portée. Les anciennes formulations restent dans l'annexe Historique des consolidations. D-437, D-439, D-445 et D-448 point 9 restent applicables à l'identité, à la filiation et au menu de réordonnancement.

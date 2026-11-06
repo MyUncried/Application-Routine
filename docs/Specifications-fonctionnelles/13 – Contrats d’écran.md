@@ -14,10 +14,12 @@ Toute valeur initialisée depuis un défaut du Profil est présentée dans son c
 
 **Contrat final PRE-9 :** [spécification de développement](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md). Cible visuelle Figma `10266:20575`, `10465:23141`, `10495:24099` (Mouvements), `1992:9910`, `4549:6742`, `1992:10848` (Séances), page `510:101`.
 
-- Bande lilas « Recherche et création » pleine largeur : `y=92..207`, référence écran **402 × 874 pt**, marge latérale **16 pt**. Ligne 1 à `x=24, y=118` ; ligne 2 : champ Rechercher `x=16, y=155`, `216 × 44 pt`, placeholder « Rechercher » 15 pt, `#7A7A80`. En état filtré ou archivé, champ `107 × 44 pt`.
+**Révision du 06/11/2026 (Hermann, D-501 à D-503) :** [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md) §3–§4. Couleurs par catalogue `color/catalogue/{mouvements|seances|programmes}/{context|background}` ; zone de contexte opaque jusqu’à 80 % puis fondu vers le fond du catalogue, placée au-dessus de l’en-tête ; hauteur 115 inchangée. Onglets à trois emplacements fixes, sans barres verticales ; onglet sélectionné en forme (coins hauts 12, évasement inversé 10, couleur `context`), libellé Bold `color/text-primary`, autres Regular `color/text-secondary`. Ligne 1 : séparateur point médian, 8 pt de part et d’autre, 16 pt au-dessus de la rangée de boutons. Ligne 2 : champ Rechercher de 34 pt comme Filtre/Tri/Créer, rangée centrée entre la ligne 1 et le bas de la zone (22 pt), cibles 44 pt. Les positions ci-dessous sont remplacées sur ces points.
+
+- Bande lilas « Recherche et création » pleine largeur : `y=92..207`, référence écran **402 × 874 pt**, marge latérale **16 pt**. Ligne 1 à `x=24, y=118` ; ligne 2 : champ Rechercher `x=16, y=155`, `216 × 44 pt`, placeholder « Rechercher » 15 pt, `#7A7A80`. En état filtré ou archivé, champ `107 × 44 pt`. [Remplacé le 06/11/2026 : couleur du catalogue, ligne 1 à 16 pt des boutons, champ 34 pt centré — voir révision ci-dessus.]
 - Contrôles **Filtre**, **Tri**, **Créer** de **34 pt** à `y=160`, respectivement `x=260`, `306`, `352` ; chaque cible tactile mesure **44 × 44 pt** à partir de `y=155`. Titre individuel de page masqué ; conserver la navigation des Catalogues.
 - **Mouvements** : première ligne « N familles · N mouvements », 14 pt Regular `#333333`, séparateur « · ». Les deux compteurs sont activables séparément, mutuellement exclusifs, désélectionnables au second toucher. Actif : bleu `#0508E5`, Semi Bold ou Bold ; inactif : `#333333`, Regular. Le choix se cumule avec filtres et recherche. Familles = celles ayant **au moins une carte visible** ; Mouvements = **cartes visibles** (sans inclure les membres cachés dans une pile repliée).
-- **Séances** : première ligne « Un exercice N | Plusieurs N ». Les libellés conservent **exactement leur bascule existante**, actif bleu `#0508E5` et gras, inactif `#595E66` Regular ; compteurs `N` purement informatifs, 14 pt `#333333` ; séparateur « | » `#9499A8` à `x=127`. Chaque `N` est le nombre réel de Séances de la vue ; les valeurs 2/3 de Figma sont des exemples.
+- **Séances** : première ligne « Un exercice N | Plusieurs N ». Les libellés conservent **exactement leur bascule existante**, actif bleu `#0508E5` et gras, inactif `#595E66` Regular ; compteurs `N` purement informatifs, 14 pt `#333333` ; séparateur « | » `#9499A8` à `x=127`. Chaque `N` est le nombre réel de Séances de la vue ; les valeurs 2/3 de Figma sont des exemples. [Remplacé le 06/11/2026 : séparateur « · » à 8 pt de part et d’autre — D-503.]
 - **États filtrés/archivés** : « N résultats » bord droit `x=378`, 14 pt Regular `#333333`, nombre d'éléments **après tous les filtres et la recherche**, actualisé en direct. « 1 résultat » ; « 0 résultat » et « 2 résultats ».
 - Recherche, vue et filtres s'appliquent conjointement à la même liste. Les chiffres ne sont jamais des données stockées ni des commandes, à l'exception des deux compteurs activables de Mouvements. Aucune nouvelle règle de tri, de cartes ou d'archivage.
 
@@ -36,6 +38,8 @@ Toute valeur initialisée depuis un défaut du Profil est présentée dans son c
 **Recette PRE-9 :** comparer les deux variantes de composants dans les écrans cités ; vérifier l'alignement, la troncature, l'absence de boutons dans la Composition, la ligne de difficulté et ses actions, le filet de familles, le clavier, le choix de niveau et l'absence de régression dans la recherche.
 
 ## CE-MVT-03 — Catalogue des mouvements : ordre et composition des familles
+
+**Révision du 06/11/2026 (D-508) :** carte Mouvement de 72 pt, photo à 4 pt et rayon 8, fond blanc, liseré à 50 %, niveau à 12 pt du bord aligné sur la ligne de base du nom ; feuilles de pile 72 pt, blanches, même liseré et même ombre que la carte ; écran au fond et à la zone de contexte du catalogue Mouvements (D-501). [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md) §7.
 
 ### 1. Identification
 
@@ -680,15 +684,15 @@ Mouvements, Séances, Programmes, Un exercice, Plusieurs, Planifier, Dupliquer, 
 
 #### 7. Structure de l’écran
 
-En-tête de navigation Catalogues à trois entrées conservé → zone de contexte commune **CE-CAT-CTX-01** (bande lilas, première ligne « Un exercice N | Plusieurs N », deuxième ligne Rechercher et Filtre/Tri/Créer) → liste de cartes/état vide → navigation. Le titre individuel de page est masqué. La bascule existante est inchangée ; **les compteurs ajoutés sont informatifs, non interactifs**. En état filtré ou archivé, « N résultats » est affiché à droite et le champ Rechercher est réduit à 107 pt. Panneau de filtres inchangé : Statut des séances, Catégories, Zones corporelles, Étiquettes, Format ; pied Réinitialiser fixe.
+En-tête de navigation Catalogues à trois entrées conservé → zone de contexte commune **CE-CAT-CTX-01** (bande lilas, première ligne « Un exercice N | Plusieurs N », deuxième ligne Rechercher et Filtre/Tri/Créer) → liste de cartes/état vide → navigation. Le titre individuel de page est masqué. La bascule existante est inchangée ; **les compteurs ajoutés sont informatifs, non interactifs**. En état filtré ou archivé, « N résultats » est affiché à droite et le champ Rechercher est réduit à 107 pt. Panneau de filtres inchangé : Statut des séances, Catégories, Zones corporelles, Étiquettes, Format ; pied Réinitialiser fixe. [Remplacé le 06/11/2026 : « Un exercice N · Plusieurs N », onglets et couleurs D-501 à D-503.]
 
 #### 8. Éléments obligatoires
 
-Un seul gabarit de carte. Visuel 64 : photo de l’exercice unique, sinon première photo disponible dans l’ordre de composition, sinon vignette du format de séance, sinon Libre. Nom et seul chevron adjacent si plusieurs exercices. Catégories avec pastille et +N pour les catégories non affichées, sans couper un mot. Synthèse : format si présent, sinon nombre pour plusieurs exercices, sinon volume de l’exercice unique ; jamais « 1 exercice ». Durée en second emplacement, y compris avec format ; vide pour For time et Death by. Lecture sur carte active, désactivée si non exécutable selon les règles existantes. Carte archivée sans action directe : restauration/suppression dans le glissé.
+Un seul gabarit de carte. Visuel 64 : photo de l’exercice unique, sinon première photo disponible dans l’ordre de composition, sinon vignette du format de séance, sinon Libre. Nom et seul chevron adjacent si plusieurs exercices. Catégories avec pastille et +N pour les catégories non affichées, sans couper un mot. Synthèse : format si présent, sinon nombre pour plusieurs exercices, sinon volume de l’exercice unique ; jamais « 1 exercice ». Durée en second emplacement, y compris avec format ; vide pour For time et Death by. Lecture sur carte active, désactivée si non exécutable selon les règles existantes. Carte archivée sans action directe : restauration/suppression dans le glissé. [Remplacé le 06/11/2026 (D-504 à D-506) : chevron à gauche du nom sur toutes les cartes ; ligne 3 « N circuits · N exercices », circuits omis sans circuit ou pour un seul circuit d’un tour, « 1 exercice » ; durée en haut à droite sans sablier ; Démarrer en pilule en bas à droite, masqué dans les modales de planification — [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md) §5.]
 
 #### 9. Layout déterministe
 
-Référence 402 : marges 16, carte 370, intervalle 12. Maître replié/archivé 80 de haut ; état déployé selon contenu, exemple 273. Visuel carré 64 à 8 du bord, action lecture arrêtée à 8 du bord opposé. Déployée : en-tête inchangé, séparation et composition sur toute la largeur, sous le visuel. Cycle · N répétitions et Circuit · N tours en gris, sans volume propre ; enfants décalés de 16 par niveau, deux décalages au plus, filet vertical. Noms à gauche, volumes à droite. Récupérations en gris clair à leur position. Conteneur visible seulement s’il se répète ou contient plusieurs exercices. Actions glissées hautes de 80, alignées en haut, bloc jointif à marge droite, carte à 8 du bloc.
+Référence 402 : marges 16, carte 370, intervalle 12. Maître replié/archivé 80 de haut ; état déployé selon contenu, exemple 273. Visuel carré 64 à 8 du bord, action lecture arrêtée à 8 du bord opposé. Déployée : en-tête inchangé, séparation et composition sur toute la largeur, sous le visuel. Cycle · N répétitions et Circuit · N tours en gris, sans volume propre ; enfants décalés de 16 par niveau, deux décalages au plus, filet vertical. Noms à gauche, volumes à droite. Récupérations en gris clair à leur position. Conteneur visible seulement s’il se répète ou contient plusieurs exercices. Actions glissées hautes de 80, alignées en haut, bloc jointif à marge droite, carte à 8 du bloc. [Remplacé le 06/11/2026 (D-504, D-507) : carte 72, visuel 64 à 4 du bord et rayon 8, colonne des symboles à 8 de la photo, textes alignés après les symboles et à 8 du haut et du bas, durée et Démarrer à 12 du bord droit ; dépliée : « Cycle » + « N passages », « Circuit · séries groupées | alternées » + « N tours » alignés à droite, « rép. » ; actions glissées hautes de 72.]
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -696,11 +700,11 @@ Largeur de carte dérivée de l’espace disponible, pas 370 imposé sur tous le
 
 #### 11. États de l’écran
 
-Collection complète par défaut, Un exercice seul, Plusieurs seul, liste vide réelle, aucun résultat filtré, active/archivée, carte repliée/déployée, glissé actif/archivé, confirmation/annulation, retour après archivage/restauration. Une seule occurrence n’a pas de chevron. Aucune donnée de démonstration dans un état vide.
+Collection complète par défaut, Un exercice seul, Plusieurs seul, liste vide réelle, aucun résultat filtré, active/archivée, carte repliée/déployée, glissé actif/archivé, confirmation/annulation, retour après archivage/restauration. Une seule occurrence n’a pas de chevron. Aucune donnée de démonstration dans un état vide. [Remplacé le 06/11/2026 : chevron sur toutes les cartes — D-504.]
 
 #### 12. Contrôles et interactions
 
-Toucher une vue la sélectionne ; retoucher la vue active la désélectionne. Chevron du nom seul pour déployer/replier. Actives : Planifier, Dupliquer, Archiver. Archivées : Restaurer puis Supprimer ; pas de bouton rond Restaurer. Filtres : titre et chevron adjacent ouvrent la section ; les options tenant sur une ligne sont à droite du titre, notamment Statut ; les autres pastilles sont sous le titre, hauteur 36. Sections à filtre actif ouvertes à l’entrée, autres fermées ; sans filtre, Statut seul ouvert. Réinitialiser reste en pied. Le tri garde son état de disponibilité existant tant que ses règles ne sont pas modifiées : le réordonnancement visuel des boutons ne l’active pas implicitement.
+Toucher une vue la sélectionne ; retoucher la vue active la désélectionne. Dans le catalogue des séances : toucher la photo ouvre la composition de séance en modification ; Démarrer exécute la séance ; le chevron et toute la zone centrale de la carte déploient/replient la séance ; toucher toute la zone déployée ouvre la séance en modification. Ces cibles sont distinctes. Actives : Planifier, Dupliquer, Archiver. Archivées : Restaurer puis Supprimer ; pas de bouton rond Restaurer. Filtres : titre et chevron adjacent ouvrent la section ; les options tenant sur une ligne sont à droite du titre, notamment Statut ; les autres pastilles sont sous le titre, hauteur 36. Sections à filtre actif ouvertes à l’entrée, autres fermées ; sans filtre, Statut seul ouvert. Réinitialiser reste en pied. Le tri garde son état de disponibilité existant tant que ses règles ne sont pas modifiées : le réordonnancement visuel des boutons ne l’active pas implicitement.
 
 #### 13. Gestes
 
@@ -728,11 +732,11 @@ Labels et états sélectionnés des segments et vues ; annoncer la désélection
 
 #### 19. Invariants
 
-Une Séance reste une Séance avec un ou plusieurs exercices ; aucun catalogue autonome d’exercices recréé. Déploiement absent pour une seule occurrence ; nom sans suffixe de niveau ; catégories seulement sur la ligne de classement, étiquette et zones seulement dans les données/filtres. Les changements de variantes Catalogue ne modifient pas Calendrier/Suivi/Choix. Le détail montre la structure sans multiplier ses lignes par les répétitions.
+Une Séance reste une Séance avec un ou plusieurs exercices ; aucun catalogue autonome d’exercices recréé. Déploiement disponible également pour une seule occurrence (D-504, précision du 06/11/2026) ; nom sans suffixe de niveau ; catégories seulement sur la ligne de classement, étiquette et zones seulement dans les données/filtres. Les changements de variantes Catalogue ne modifient pas Calendrier/Suivi/Choix. Le détail montre la structure sans multiplier ses lignes par les répétitions.
 
 #### 20. Recette déterministe
 
-Tester automatiquement : comptage structurel (cycles/circuits/récupérations), vues et désélection, cascade photo/format/Libre, déduplication et ordre des catégories, volume unique et priorité du format, omission des durées For time/Death by, masquage conditionnel des conteneurs, conservation des données lors des actions. Tests UI : chevron unique, aucune lecture par déploiement, actions actives/archivées dans le bon ordre, confirmations et annulation, état vide, filtres actifs à l’ouverture et pied fixe. Recette visuelle : douze états et variantes, marges/largeurs/espacement, actions 80 sur carte déployée, textes longs, accessibilité et non-régression des trois contextes hors lot. Les valeurs des maquettes ne servent pas d’oracle aux calculs. L’opérateur de combinaison des nouveaux filtres doit être fixé avant les assertions correspondantes.
+Tester automatiquement : comptage structurel (cycles/circuits/récupérations), vues et désélection, cascade photo/format/Libre, déduplication et ordre des catégories, ligne 3 « N circuits · N exercices », omission du nombre de circuits sans circuit ou avec un seul circuit d’un tour, affichage « 1 exercice » (D-505), omission des durées For time/Death by, masquage conditionnel des conteneurs, conservation des données lors des actions. Tests UI : chevron sur toutes les cartes, photo ouvrant la modification, Démarrer lançant l’exécution, zone centrale déployant/repliant, zone déployée ouvrant la modification, aucune lecture par déploiement, actions actives/archivées dans le bon ordre, confirmations et annulation, état vide, filtres actifs à l’ouverture et pied fixe. Recette visuelle : douze états et variantes, marges/largeurs/espacement, actions 72 sur carte déployée (D-504), textes longs, accessibilité et non-régression des trois contextes hors lot. Les valeurs des maquettes ne servent pas d’oracle aux calculs. L’opérateur de combinaison des nouveaux filtres doit être fixé avant les assertions correspondantes.
 
 
 **Zone de contexte PRE-9** : tests de la position des deux lignes, cibles 44 × 44, libellés N réels non cliquables, maintien de la bascule, largeur réduite en filtré/archivé et « N résultats » recalculé après recherche + filtres, selon CE-CAT-CTX-01.
@@ -852,6 +856,8 @@ La carte distingue trois zones d’action :
 La zone principale constitue une cible tactile large. Il n’est pas nécessaire d’afficher un bouton ou une icône `Ouvrir`.
 
 ### Catalogue des séances — Carte de Séance — vue déployée
+
+**Révision du 06/11/2026 (D-507) :** lignes de cycle « Cycle » + « N passages » à droite ; lignes de circuit « Circuit · séries groupées » ou « Circuit · séries alternées » + « N tours » à droite ; volumes « 3 × 12 rép. ». [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md) §6.
 
 Le déploiement est facultatif et permet de consulter les Exercices de la Séance sans changer d’écran.
 
@@ -2378,7 +2384,9 @@ Modèle choisi ou Retour depuis son récapitulatif.
 
 #### 4. Contexte de sortie / destinations
 
-Questionnaire croix → Composition ; Valider les paramètres → récapitulatif modal sans ajout ; récapitulatif Retour → questionnaire avec réponses conservées ; Enregistrer dans la séance → Composition enrichie. Mode catalogue intégré : Ajouter → sélection appliquée ; Fermer le mode catalogue → saisie sans ajout. Photo → Fiche du mouvement superposée, croix → même état du parcours.
+**D-499 — précision validée par Hermann le 06/11/2026 :** « Valider les paramètres » apparaît uniquement lorsqu’une seconde étape est nécessaire et ouvre le récapitulatif sans enregistrer dans la séance. Dans ce cas, la coche du questionnaire reste grise et inactive. Sans seconde étape, la coche enregistre dans la séance lorsque les données sont complètes et cohérentes. Dans le récapitulatif, elle devient bleue et active lorsque les données sont complètes et cohérentes, puis enregistre dans la séance. Death by à un mouvement : questionnaire → coche → Composition, sans récapitulatif ; à deux mouvements : questionnaire → « Valider les paramètres » → récapitulatif → coche → Composition. L’enregistrement reste un ajout au brouillon de Composition, sans sauvegarde définitive de la Séance. Cette précision supersède la suppression générale du bouton dans les questionnaires ; les autres validations par coche restent applicables.
+
+Questionnaire croix → Composition ; Valider les paramètres → récapitulatif modal sans ajout ; récapitulatif Retour → questionnaire avec réponses conservées ; Enregistrer dans la séance → Composition enrichie. Mode catalogue intégré : Ajouter → sélection appliquée ; Fermer le mode catalogue → saisie sans ajout. Photo → Fiche du mouvement superposée, croix → même état du parcours. [06/11/2026 : enregistrement porté par la coche ; bouton « Valider les paramètres » conservé uniquement si une seconde étape est nécessaire, coche du questionnaire alors grise — D-499 précisée le 06/11/2026.]
 
 #### 5. Données affichées et source de vérité
 
@@ -2400,13 +2408,13 @@ EMOM : tableau Unité | S1…Sn, cible et charge effectives de chaque série, au
 
 #### 9. Layout déterministe
 
-Référence 402 × 874 : modale à y=95, pleine largeur, coins hauts 24 px, coins bas carrés, sans poignée. En-tête « DSF / Overlays / En-tête de modale », variante Sélection sans validation ; titre Inter Semi Bold 18 centré, croix au questionnaire et icon/retour au récapitulatif. Fond transparent et trait masqué uniquement dans ces modales Formats ; la Fiche du mouvement conserve fond blanc et trait. Zone de contexte 109 px depuis le haut de la modale, couleur et motif du Format ; tagline centrée 14/20 sur deux lignes. Bouton à y=802 de l’écran de référence et déroulé 25 px au-dessus. Contenu défilant, bouton en bas, clavier au premier plan ; ces cotes décrivent le rendu de référence, pas une hauteur fixe imposée à tous les appareils. Valeurs non modifiables et colonnes numériques alignées sur le texte des valeurs modifiables, avec un retrait de 10 px par rapport au bord droit de leur pastille.
+Référence 402 × 874 : modale à y=95, pleine largeur, coins hauts 24 px, coins bas carrés, sans poignée. En-tête « DSF / Overlays / En-tête de modale », en-tête avec coche de validation (D-499 précisée le 06/11/2026) ; titre Inter Semi Bold 18 centré, croix au questionnaire et icon/retour au récapitulatif. Coche grise au questionnaire si une seconde étape est nécessaire, sinon active quand les données sont complètes et cohérentes ; au récapitulatif, coche bleue à complétude. Fond transparent et trait masqué uniquement dans ces modales Formats ; la Fiche du mouvement conserve fond blanc et trait. Zone de contexte 109 px depuis le haut de la modale, couleur et motif du Format ; tagline centrée 14/20 sur deux lignes. Lorsqu’une seconde étape est nécessaire, bouton « Valider les paramètres » à y=802 de l’écran de référence et déroulé 25 px au-dessus. Sans ce bouton et au récapitulatif, l’espace libéré revient au contenu. Contenu défilant, bouton de transition conditionnel en bas, clavier au premier plan ; ces cotes décrivent le rendu de référence, pas une hauteur fixe imposée à tous les appareils. Valeurs non modifiables et colonnes numériques alignées sur le texte des valeurs modifiables, avec un retrait de 10 px par rapport au bord droit de leur pastille.
 
-Déroulé à 25 px au-dessus du bouton ; tableau blanc rayon 8 dans cadre gris, en-tête gris, traits fins et séparateur sous Nombre de séries. Progression 874 px ; en-tête 28 px, ligne avec charge 44 px, 12 px avant Déroulé dans l’exemple.
+Si le bouton de transition est présent, déroulé à 25 px au-dessus ; tableau blanc rayon 8 dans cadre gris, en-tête gris, traits fins et séparateur sous Nombre de séries. Progression 874 px ; en-tête 28 px, ligne avec charge 44 px, 12 px avant Déroulé dans l’exemple.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Clavier numérique répétitions, décimal charge (D-405) ; case et tableau restent visibles au-dessus ; réutiliser focus et adaptation de scroll existants. Le clavier reste au-dessus des modales ; contenu défilant, bouton ancré en bas. Mode catalogue : résultats sur toute la hauteur disponible, sans compteur global.
+Clavier numérique répétitions, décimal charge (D-405) ; case et tableau restent visibles au-dessus ; réutiliser focus et adaptation de scroll existants. Le clavier reste au-dessus des modales ; contenu défilant, bouton « Valider les paramètres » ancré en bas uniquement lorsque la seconde étape est nécessaire ; enregistrement par la coche. Mode catalogue : résultats sur toute la hauteur disponible, sans compteur global.
 
 #### 11. États de l’écran
 
@@ -2416,7 +2424,7 @@ Questionnaire initial, mouvements ajoutés, récapitulatif, valeur à compléter
 
 Tap cellule ouvre la saisie directe ; Suivant passe répétitions S1, charge S1 si active, répétitions S2… ; modale du mouvement accessible pour autres paramètres. N augmenté : colonne nouvelle à compléter ; diminué : dernière colonne retirée, sans confirmation de perte.
 
-« Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique.
+« Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique. [06/11/2026 : lien retiré ; « + Ajouter » ouvre directement le mode catalogue — D-500.]
 
 Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite carte ouvre la **Fiche du mouvement** en consultation seule, en modale par-dessus celle du Format, sur un second voile. Apparition par le bas, pleine largeur, coins hauts arrondis 24 px ; en-tête croix et titre « Fiche du mouvement », fond blanc et trait conservés. Nom, catégorie, zones corporelles, niveau, média, description et phases habituels ; aucun bouton d’action. Fermer restitue exactement l’état du parcours sous-jacent. Toucher le reste de la carte conserve son comportement existant.
 
@@ -2426,7 +2434,7 @@ Tap, clavier et Suivant ; réordonnancement/suppression selon règles existantes
 
 #### 14. Validation
 
-**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage.
+**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 
 **Contrôle EMOM des durées — seuil inclusif :** le travail prévu d’un Exercice en Durée est sa cible, multipliée par deux s’il est fait de chaque côté, plus la pause entre les côtés applicable. En simple, alternance et À la suite, travail prévu ≥ intervalle propre bloque la validation ; Dans chaque intervalle, somme du travail prévu des membres ≥ intervalle commun bloque la validation. Les membres en Répétitions contribuent pour 0 à ce contrôle de durée connue, sans garantie que le travail total tiendra dans la fenêtre. Message sous le tableau, cadres des valeurs concernées et de l’intervalle rouges ; validation bloquée dans le récapitulatif, la modale et lors de l’édition de l’intervalle du Circuit. À 60 s : 40 s d’un seul côté admis, 40 s de chaque côté refusés ; 30 s + 30 s refusés ; 10 répétitions + 30 s ne déclenche pas ce seul contrôle.
 
@@ -2456,7 +2464,7 @@ EMOM Répétitions par défaut, Durée possible par Exercice ; tableau et modale
 
 #### 20. Recette déterministe
 
-Questionnaire→Valider les paramètres→récapitulatif→Retour conserve réponses sans ajout ; Enregistrer ajoute une seule fois au brouillon. Recherche Squ→Ouvrir le mode catalogue conserve Squ et filtre ; Fermer sans ajout ; Ajouter multiple, sélection unique par ajout de buy-in, plusieurs buy-in possibles ; croix efface. Photo→Fiche consultation→croix conserve état. EMOM A10 Rép. / B30 s Durée et Death by A1/+1, B2/+2 sont distincts après enregistrement/réouverture. Passer Rép.→Durée→Rép. laisse à chaque fois une cible à renseigner, bouton désactivé jusqu’à complétude. W60 : 59 s admis, 60/70 refusés ; commun 20+30 admis, 30+30 refusé ; Rép.10 + Durée30 admis par ce contrôle. Message sous tableau, objectifs et intervalle rouges ; contrôle aussi depuis modale et en-tête après ajout. Les états incomplets post-modification de Composition restent distincts du formulaire de création. Aucun nom de Séance dans les formulaires. Alignement texte et bouton fixe vérifiés sur référence ; Progression 3→4 ajoute une colonne vide, 3→2 retire la dernière ; saisie mixte avec/sans charge ; 40 min pour 3×12 + 2×2 ; Tabata À la suite 530 s.
+Questionnaire→Valider les paramètres→récapitulatif→Retour conserve réponses sans ajout ; Enregistrer ajoute une seule fois au brouillon. Recherche Squ→Ouvrir le mode catalogue conserve Squ et filtre ; Fermer sans ajout ; Ajouter multiple, sélection unique par ajout de buy-in, plusieurs buy-in possibles ; croix efface. Photo→Fiche consultation→croix conserve état. EMOM A10 Rép. / B30 s Durée et Death by A1/+1, B2/+2 sont distincts après enregistrement/réouverture. Passer Rép.→Durée→Rép. laisse à chaque fois une cible à renseigner, bouton désactivé jusqu’à complétude. W60 : 59 s admis, 60/70 refusés ; commun 20+30 admis, 30+30 refusé ; Rép.10 + Durée30 admis par ce contrôle. Message sous tableau, objectifs et intervalle rouges ; contrôle aussi depuis modale et en-tête après ajout. Les états incomplets post-modification de Composition restent distincts du formulaire de création. Aucun nom de Séance dans les formulaires. Vérifier l’alignement du texte, le bouton de transition visible uniquement si une seconde étape est nécessaire et la coche grise du questionnaire dans ce cas. Tester Death by à un mouvement sans récapitulatif et à deux mouvements avec récapitulatif ; coche grise si données incomplètes, bleue et active à complétude dans l’étape d’enregistrement ; aucun ajout avant la coche, aucun double ajout.  Progression 3→4 ajoute une colonne vide, 3→2 retire la dernière ; saisie mixte avec/sans charge ; 40 min pour 3×12 + 2×2 ; Tabata À la suite 530 s. [06/11/2026 : lien retiré ; « + Ajouter » ouvre directement le mode catalogue — D-500.]
 
 ### CE-FMT-03 — Composition d’une séance issue d’un modèle
 <a id="ce-fmt-03--composition-dune-séance-issue-dun-format"></a>
@@ -2475,7 +2483,7 @@ Organiser et sauvegarder les structures créées par questionnaire en respectant
 
 #### 3. Contexte d’entrée
 
-Enregistrer dans la séance depuis questionnaire/récapitulatif ou réouverture d’une Séance.
+Enregistrer dans la séance depuis questionnaire/récapitulatif ou réouverture d’une Séance. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 
 #### 4. Contexte de sortie / destinations
 
@@ -2602,7 +2610,7 @@ Interactions standards des paramètres ; la saisie directe au clavier de Progres
 
 #### 14. Validation
 
-**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage.
+**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 
 **Contrôle EMOM des durées — seuil inclusif :** le travail prévu d’un Exercice en Durée est sa cible, multipliée par deux s’il est fait de chaque côté, plus la pause entre les côtés applicable. En simple, alternance et À la suite, travail prévu ≥ intervalle propre bloque la validation ; Dans chaque intervalle, somme du travail prévu des membres ≥ intervalle commun bloque la validation. Les membres en Répétitions contribuent pour 0 à ce contrôle de durée connue, sans garantie que le travail total tiendra dans la fenêtre. Message sous le tableau, cadres des valeurs concernées et de l’intervalle rouges ; validation bloquée dans le récapitulatif, la modale et lors de l’édition de l’intervalle du Circuit. À 60 s : 40 s d’un seul côté admis, 40 s de chaque côté refusés ; 30 s + 30 s refusés ; 10 répétitions + 30 s ne déclenche pas ce seul contrôle.
 
@@ -4077,7 +4085,7 @@ Calendrier → Planifier ; formulaire CE-UI-05 → Changer ; sélection initiale
 
 #### 4. Contexte de sortie / destinations
 
-« Ajouter 1 élément » / « Ajouter n éléments » valide la sélection dans le brouillon et revient au formulaire. Fermer sans valider conserve la liste antérieure. Le toucher d’une carte ne ferme pas la modale.
+La coche de l’en-tête valide la sélection dans le brouillon et revient au formulaire. Fermer sans valider conserve la liste antérieure. Le toucher d’une carte ne ferme pas la modale.
 
 #### 5. Données affichées et source de vérité
 
@@ -4089,28 +4097,28 @@ Choisir des séances/Choisir des exercices dépendent du segment actif ; décomp
 
 #### 7. Structure de l’écran
 
-Titre et fermeture → segmenté Exercices/Séances → liste défilante avec cases → CTA de décompte en bas. Pas de segment Parcours.
+En-tête avec fermeture et coche de validation → segmenté Exercices/Séances → liste défilante avec cases ; aucun bouton de validation en bas (D-499, 06/11/2026). Pas de segment Parcours.
 
 #### 8. Éléments obligatoires
 
-Cases à cocher même pour un seul élément. Ajouter 1 élément au singulier ; Ajouter n éléments au pluriel. Le titre de la modale suit le segment actif.
+Cases à cocher même pour un seul élément. La coche valide les éléments sélectionnés (D-499, 06/11/2026). Le titre de la modale suit le segment actif.
 
 #### 9. Layout déterministe
 
 
-Marges 24 et largeur 354 sur 402 ; CTA de référence y 802,354×48, libellé centré. Cartes de choix issues du DSF courant, sans durée ni Lecture/Déployer. Cases à droite ; pas de radios. États de sélection du contrôle de planification : retenu #5F60EE/texte blanc Semi Bold ; non retenu #F9FAFC/texte #141414 Regular.
+Marges 24 et largeur 354 sur 402 ; validation par la coche dans l’en-tête, sans bouton inférieur (D-499, 06/11/2026). Cartes de choix issues du DSF courant, sans durée ni Lecture/Déployer. Cases à droite ; pas de radios. États de sélection du contrôle de planification : retenu #5F60EE/texte blanc Semi Bold ; non retenu #F9FAFC/texte #141414 Regular.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Référence 402×874, adaptations 360/440 et Safe Areas conservées. Texte agrandi sans réduction de police ; liste/formulaire défilant ; CTA ancré dans le pied sûr. Les coordonnées Figma ne sont pas des constantes absolues sur tous les appareils.
+Référence 402×874, adaptations 360/440 et Safe Areas conservées. Texte agrandi sans réduction de police ; liste/formulaire défilant ; coche de validation dans l’en-tête, sans CTA dans le pied (D-499, 06/11/2026). Les coordonnées Figma ne sont pas des constantes absolues sur tous les appareils.
 
 #### 11. États de l’écran
 
-Zéro, un, plusieurs éléments retenus ; liste vide/longue ; segment Séances/Exercices ; retour au brouillon ; source devenue indisponible. À zéro, ne pas créer une Routine vide ; libellé/présentation précise du CTA zéro non représentés.
+Zéro, un, plusieurs éléments retenus ; liste vide/longue ; segment Séances/Exercices ; retour au brouillon ; source devenue indisponible. À zéro, ne pas créer une Routine vide ; coche inactive tant que la sélection ne permet pas de valider (D-499).
 
 #### 12. Contrôles et interactions
 
-Toucher carte/case sélectionne ou désélectionne sans fermeture. Basculer le segment change les choix affichés sans valider ; la sélection doit pouvoir contenir les deux types. Ajouter valide l’ensemble. Aucune copie SessionActivity.
+Toucher carte/case sélectionne ou désélectionne sans fermeture. Basculer le segment change les choix affichés sans valider ; la sélection doit pouvoir contenir les deux types. La coche valide l’ensemble. Aucune copie SessionActivity.
 
 #### 13. Gestes
 
@@ -4134,7 +4142,7 @@ Source archivée/supprimée : signaler et revalider sans référence fantôme. L
 
 #### 18. Accessibilité
 
-Rôle checkbox, nom/type et état coché annoncés ; texte complet accessible ; cibles minimales communes conservées et dimensions spécifiques de 48 points maintenues. Focus modal et CTA décompté accessibles.
+Rôle checkbox, nom/type et état coché annoncés ; texte complet accessible ; cibles minimales communes conservées et dimensions spécifiques de 48 points maintenues. Focus modal et coche de validation accessibles.
 
 #### 19. Invariants
 
@@ -4174,7 +4182,7 @@ Libellés de structure statiques ; titre dépend du nombre/type ; noms, dates, m
 
 #### 7. Structure de l’écran
 
-Bloc sans titre : Programme puis Début le → Répétition → lignes de contenus si N ≥ 2, sans titre → Rappel → zone protégée du récapitulatif → Enregistrer. En-tête contextuel : Planifier, Planifier une séance, Planifier un exercice ou Planifier un parcours.
+Bloc sans titre : Programme puis Début le → Répétition → lignes de contenus si N ≥ 2, sans titre → Rappel → zone protégée du récapitulatif en bas. Enregistrer est porté par la coche de l’en-tête (D-499). En-tête contextuel : Planifier, Planifier une séance, Planifier un exercice ou Planifier un parcours.
 
 #### 8. Éléments obligatoires
 
@@ -4182,11 +4190,11 @@ Programme : Aucun par défaut, facultatif. Une date et une heure. Interrupteurs 
 
 #### 9. Layout déterministe
 
-Shell ModalFullscreen ; surface blanche de y 36 au bas y 874 sur référence 402×874, coins supérieurs carrés. Appliquer le DSF général pour les blocs gris, rayon 12, sans trait et espacements. Préfixe de récurrence au-dessus de la ligne porteuse ; titres Semi Bold 16, valeurs 16, libellés Medium 14, liaisons Medium 12. Récapitulatif 16 px au-dessus du CTA ; hauteur adaptée au texte ; dégradé de 40 px au-dessus, fond opaque jusqu’au bas. Le formulaire défile sous cette zone.
+Shell ModalFullscreen ; surface blanche de y 36 au bas y 874 sur référence 402×874, coins supérieurs carrés. Appliquer le DSF général pour les blocs gris, rayon 12, sans trait et espacements. Préfixe de récurrence au-dessus de la ligne porteuse ; titres Semi Bold 16, valeurs 16, libellés Medium 14, liaisons Medium 12. Récapitulatif en bas de l’écran, dans la zone protégée libérée par le bouton ; hauteur adaptée au texte, dégradé de 40 px au-dessus et fond opaque jusqu’au bas (D-499, 06/11/2026). Le formulaire défile sous cette zone.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Référence 402×874, adaptations 360/440 et Safe Areas conservées. Texte agrandi sans réduction de police ; liste/formulaire défilant ; CTA ancré dans le pied sûr. Les coordonnées Figma ne sont pas des constantes absolues sur tous les appareils. Le récapitulatif et le CTA restent visibles, aucun chevauchement. Le contenu peut dépasser la hauteur du formulaire ; ne pas imposer un plafond arbitraire.
+Référence 402×874, adaptations 360/440 et Safe Areas conservées. Texte agrandi sans réduction de police ; liste/formulaire défilant ; coche de validation dans l’en-tête, sans CTA dans le pied (D-499, 06/11/2026). Les coordonnées Figma ne sont pas des constantes absolues sur tous les appareils. Le récapitulatif en bas et la coche d’en-tête restent visibles, sans chevauchement. Le contenu peut dépasser la hauteur du formulaire ; ne pas imposer un plafond arbitraire.
 
 #### 11. États de l’écran
 
@@ -4254,11 +4262,11 @@ Contenu ciblé, entiers x/n, motif des positions 1..n ; aucune unité de temps d
 
 #### 6. Classification des valeurs Figma
 
-Fréquence, fois sur, Valider sont structurels ; nom, x/n et pastilles sont dynamiques. Le contenu de démonstration de la feuille ne détermine pas l’identité métier ciblée.
+Fréquence et fois sur sont structurels ; la coche porte la validation ; nom, x/n et pastilles sont dynamiques. Le contenu de démonstration de la feuille ne détermine pas l’identité métier ciblée.
 
 #### 7. Structure de l’écran
 
-Titre Fréquence et nom → stepper x, liaison « fois sur », stepper n → n pastilles numérotées → Valider.
+En-tête Fréquence avec croix et coche, puis nom → stepper x, liaison « fois sur », stepper n → n pastilles numérotées (D-499).
 
 #### 8. Éléments obligatoires
 
@@ -4270,7 +4278,7 @@ Feuille blanche, voile commun 34 %. Respecter les positions et styles de la fram
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Référence 402×874, adaptations 360/440 et Safe Areas conservées. Texte agrandi sans réduction de police ; liste/formulaire défilant ; CTA ancré dans le pied sûr. Les coordonnées Figma ne sont pas des constantes absolues sur tous les appareils. Grand n : comportement de retour à la ligne/scroll et borne maximale à spécifier ; ne pas tronquer des pastilles.
+Référence 402×874, adaptations 360/440 et Safe Areas conservées. Texte agrandi sans réduction de police ; liste/formulaire défilant ; coche de validation dans l’en-tête, sans CTA dans le pied (D-499, 06/11/2026). Les coordonnées Figma ne sont pas des constantes absolues sur tous les appareils. Grand n : comportement de retour à la ligne/scroll et borne maximale à spécifier ; ne pas tronquer des pastilles.
 
 #### 11. États de l’écran
 
@@ -4290,7 +4298,7 @@ Le motif final doit représenter x positions parmi n. Bornes des steppers et rè
 
 #### 15. Brouillon et persistance
 
-Brouillon local de fréquence ; Valider transmet au parent ; seule la sauvegarde finale de la Routine persiste.
+Brouillon local de fréquence ; la coche de l’en-tête transmet au parent (D-499) ; seule la sauvegarde finale de la Routine persiste.
 
 #### 16. Navigation et conservation d’état
 
@@ -4364,22 +4372,22 @@ La règle à retenir : **une valeur que l'utilisateur peut modifier est au corps
 
 ##### Le récapitulatif de planification
 
-> Le récapitulatif est **toujours visible** et **jamais chevauché**. Il est posé sur une zone protégée, immédiatement au-dessus du bouton d'action.
+> Le récapitulatif est **toujours visible** et **jamais chevauché**. Il est posé sur une zone protégée, en bas de l’écran ; la validation est portée par la coche de l’en-tête (D-499, 06/11/2026).
 
 | élément | géométrie |
 |---|---|
 | dégradé de transparence | 40 px, au-dessus du récapitulatif |
 | fond opaque | du haut du récapitulatif jusqu'au bas de l'écran |
-| récapitulatif | hauteur ajustée à son texte, **16 px** au-dessus du bouton |
+| récapitulatif | hauteur ajustée à son texte, en bas dans la zone protégée, sans bouton inférieur (D-499) |
 
-Le contenu du formulaire **défile sous** cette zone et s'efface dans le dégradé. C'est ce qui permet au formulaire de dépasser la hauteur de l'écran sans que le récapitulatif ni le bouton ne soient repoussés. C'est aussi ce qui a dissous le problème de débordement : il n'y a plus de hauteur maximale à respecter pour le formulaire.
+Le contenu du formulaire **défile sous** cette zone et s'efface dans le dégradé. C'est ce qui permet au formulaire de dépasser la hauteur de l'écran sans que le récapitulatif soit repoussé ; la coche demeure dans l’en-tête. C'est aussi ce qui a dissous le problème de débordement : il n'y a plus de hauteur maximale à respecter pour le formulaire.
 
 **Règle fonctionnelle associée :** le récapitulatif se recompose selon les sections actives. Quand la répétition est désactivée, il ne doit pas annoncer de récurrence.
 
 ##### Sélection
 
 - Cases à cocher, **jamais de pastilles radio**, y compris quand un seul élément est attendu.
-- CTA bas portant le décompte : **« Ajouter 1 élément »** au singulier, **« Ajouter n éléments »** au pluriel.
+- Validation de la sélection par la **coche de l’en-tête**, sans bouton inférieur (D-499, 06/11/2026).
 - Le titre de la modale de choix suit l'option active du contrôle segmenté : « Choisir des séances » / « Choisir des exercices ».
 - **Style de l'état retenu**, valable pour le contrôle segmenté comme pour les pastilles de fréquence : fond **#5F60EE**, texte **blanc Semi Bold**. État non retenu : fond **#F9FAFC**, texte **#141414 Regular**.
 
@@ -4412,7 +4420,7 @@ En vue Semaine, la liste est organisée chronologiquement en sections journaliè
 
 La barre de semaine occupe toute la largeur utile. Les sept jours forment sept colonnes flexibles de même largeur ; aucune largeur de cellule ni position horizontale issue du gabarit `402` n’est conservée en dur. Les espacements s’adaptent afin que les sept jours restent entièrement visibles dès `360` points et utilisent l’espace supplémentaire sur un grand téléphone. La grille de la vue Mois applique la même répartition en sept colonnes égales.
 
-`+ Planifier` ouvre la modale de sélection à cases à cocher, titrée « Choisir des séances » ou « Choisir des exercices » selon le segment. La liste y défile si nécessaire ; toucher un contenu bascule sa case sans fermer la modale ; la validation se fait par « Ajouter 1 élément » ou « Ajouter n éléments » (D-222 révisée).
+`+ Planifier` ouvre la modale de sélection à cases à cocher, titrée « Choisir des séances » ou « Choisir des exercices » selon le segment. La liste y défile si nécessaire ; toucher un contenu bascule sa case sans fermer la modale ; la validation se fait par la coche de l’en-tête (D-499, 06/11/2026 ; remplace le bouton de D-222).
 
 Lorsqu’une occurrence future est exécutée en avance, elle est considérée exécutée pour cette occurrence et n’est plus proposée à son horaire initial.
 
@@ -4428,7 +4436,7 @@ Pour une planification périodique, le dialogue à trois choix présente sur sa 
 
 ### Planifier une séance, un exercice ou plusieurs contenus
 
-Le parcours commence depuis Calendrier ou Planifier sur une carte. Les choix utilisent la même modale à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments » (CE-UI-04). Le formulaire CE-UI-05 organise Programme facultatif puis Début, Répétition, contenus si N ≥ 2 sans titre, Rappel ; récapitulatif protégé au-dessus d’Enregistrer. Le mot parcours ne crée pas un objet autonome. La fréquence d’un contenu relève de CE-UI-11.
+Le parcours commence depuis Calendrier ou Planifier sur une carte. Les choix utilisent la même modale à cases et coche de validation dans l’en-tête (CE-UI-04, D-499). Le formulaire CE-UI-05 organise Programme facultatif puis Début, Répétition, contenus si N ≥ 2 sans titre, Rappel ; récapitulatif protégé en bas, enregistrement par la coche de l’en-tête. Le mot parcours ne crée pas un objet autonome. La fréquence d’un contenu relève de CE-UI-11.
 
 Règles métier, validations et points ouverts : [spécification du 08/10](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#planification). Règles générales de mise en page : [DSF commun](../DSF-INTERFACE-GENERALE-2026-10-08.md). Les titres et compteurs dépendent des données ; les exemples Figma ne déterminent aucun calcul. Programme PROG2/3 restent en construction hors MVP.
 
@@ -5820,7 +5828,7 @@ La référence courante est le composant `6513:20151`, utilisé sur les 62 écra
 
 Le glissé à gauche sur un **Circuit replié issu d'un modèle** (Modèle d'origine renseigné) révèle une quatrième action, **« Modifier le format »**, entre Renommer et Dupliquer : **Renommer | Modifier le format | Dupliquer | Supprimer**. Un Circuit composé à la main garde les trois actions.
 
-« Modifier le format » ouvre la **modale du récapitulatif** du modèle, préremplie avec l'état actuel du Circuit. Le bouton Retour mène au questionnaire, pour changer la structure (par exemple l'Exécution) ; « Valider les paramètres » ramène au récapitulatif. Le bouton du récapitulatif s'intitule **« Enregistrer les modifications »** et suit la même règle d'activation que « Enregistrer dans la séance » (§7.6). L'enregistrement met à jour le Circuit existant ; fermer sans enregistrer ne change rien.
+« Modifier le format » ouvre la **modale du récapitulatif** du modèle, préremplie avec l'état actuel du Circuit. Le bouton Retour mène au questionnaire, pour changer la structure (par exemple l'Exécution) ; « Valider les paramètres » ramène au récapitulatif. Le bouton du récapitulatif s'intitule **« Enregistrer les modifications »** et suit la même règle d'activation que « Enregistrer dans la séance » (§7.6). L'enregistrement met à jour le Circuit existant ; fermer sans enregistrer ne change rien. [06/11/2026 : enregistrement porté par la coche ; bouton « Valider les paramètres » conservé uniquement si une seconde étape est nécessaire, coche du questionnaire alors grise — D-499 précisée le 06/11/2026.]
 
 ### 7.9.2. Origine du Circuit
 
@@ -5840,7 +5848,7 @@ Le glissé à gauche sur un **Circuit replié issu d'un modèle** (Modèle d'ori
 
 - Le Circuit est **mis à jour en place**, pas recréé : mêmes identifiants d'Exercices, même position dans la Séance, même nom du Circuit.
 - Seuls les champs **effectivement modifiés** dans le questionnaire et le récapitulatif sont mis à jour. Les autres sont **conservés** : phases, cadence, côtés, réglages faits dans la modale de l'Exercice.
-- **Changement de structure** (par exemple EMOM « dans chaque intervalle » vers « à la suite ») : la règle d'entrée dans un Circuit s'applique (§6). Les paramètres compatibles sont conservés, les autres passent « à renseigner », et « Enregistrer les modifications » reste inactif tant qu'ils manquent. Aucune confirmation de perte supplémentaire. Le Format d'origine suit la nouvelle structure (renseigné pour un Circuit porteur, vide pour un Circuit standard) ; le Modèle d'origine et le nom du Circuit sont conservés.
+- **Changement de structure** (par exemple EMOM « dans chaque intervalle » vers « à la suite ») : la règle d'entrée dans un Circuit s'applique (§6). Les paramètres compatibles sont conservés, les autres passent « à renseigner », et « Enregistrer les modifications » reste inactif tant qu'ils manquent. Aucune confirmation de perte supplémentaire. Le Format d'origine suit la nouvelle structure (renseigné pour un Circuit porteur, vide pour un Circuit standard) ; le Modèle d'origine et le nom du Circuit sont conservés. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 - **Fermer sans enregistrer** (Retour vers le questionnaire, puis croix) : aucune modification n'est appliquée.
 
 ### 7.9.5. Ce qui ne change pas
@@ -5851,7 +5859,7 @@ Le glissé à gauche sur un **Circuit replié issu d'un modèle** (Modèle d'ori
 ### 7.9.6. Écrans Figma
 
 - « Composition séance — Circuit issu d'un format, actions glissées » : quatre actions de 70 px ; « Modifier le format » en violet, coins carrés ; exemple sur un Circuit « Tabata ».
-- « Tabata — Récapitulatif rouvert depuis la Composition » : récapitulatif prérempli, bouton « Enregistrer les modifications ».
+- « Tabata — Récapitulatif rouvert depuis la Composition » : récapitulatif prérempli, bouton « Enregistrer les modifications ». [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 
 ### 7.9.7. Représentation de l'état courant dans le formulaire
 
@@ -5860,7 +5868,7 @@ Le glissé à gauche sur un **Circuit replié issu d'un modèle** (Modèle d'ori
   - le champ commun affiche **« variable »**, dans le style d'une valeur modifiable ;
   - les valeurs propres à chaque Exercice sont **conservées** à la réouverture et visibles là où le récapitulatif les détaille (tableaux, déroulé) ; elles ne sont jamais uniformisées automatiquement ;
   - seule une **modification explicite** du champ commun (saisie d'une valeur) remplace les valeurs de tous les Exercices concernés ; une confirmation courte l'annonce, puisque des valeurs personnalisées sont écrasées ;
-  - « variable » n'est pas une valeur « à renseigner » : il ne bloque pas « Enregistrer les modifications ».
+  - « variable » n'est pas une valeur « à renseigner » : il ne bloque pas « Enregistrer les modifications ». [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 - **Modèle d'origine et Format d'exécution.** Le modèle technique distingue l'information qui permet de rouvrir le parcours (Modèle d'origine) et les paramètres qui gouvernent l'exécution (Format d'origine d'un Circuit porteur, paramètres standards). Un Circuit standard issu d'un modèle conserve son exécution standard ; son origine ne lui attribue aucun Format partagé.
 
 ### 7.9.8. Vérifications attendues
@@ -5937,7 +5945,7 @@ Le For time n'a pas d'Incrément par tour.
 **Écrans :** ligne « Rôle » sur « AMRAP — Modale exercice, buy-in », « … dans un circuit », « … dans un circuit, durée à l'échec », « For time — Modale exercice, dans un circuit » et « … buy-in ou buy-out » ; Durée activable sur les modales de buy-in et buy-out et sur « For time — Modale exercice, dans un circuit », et À l'échec sur « AMRAP — Modale exercice, buy-in » ; ligne Incrément grisée sur « AMRAP — Modale exercice, buy-in », « … simple, à l'échec (Max) » et « … dans un circuit, durée à l'échec ».
 
 Progression : **Règle.** Le questionnaire Progression comporte un interrupteur **« Avec charge »**, entre Pause et Durée totale. Il n'existe que dans le questionnaire.
-- **Activé** : le tableau des séries du récapitulatif affiche, sous les répétitions de chaque série, une **charge par série** pour chaque mouvement. La charge est facultative par mouvement : laissée vide, ce mouvement est fait sans charge, par exemple un mouvement au poids du corps dans la même Progression. Une charge vide ne bloque donc pas « Enregistrer dans la séance ».
+- **Activé** : le tableau des séries du récapitulatif affiche, sous les répétitions de chaque série, une **charge par série** pour chaque mouvement. La charge est facultative par mouvement : laissée vide, ce mouvement est fait sans charge, par exemple un mouvement au poids du corps dans la même Progression. Une charge vide ne bloque donc pas « Enregistrer dans la séance ». [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 - **Désactivé** : le tableau n'affiche que les répétitions, et aucune charge n'est créée sur les Exercices.
 - **Après l'enregistrement**, la charge se modifie dans la modale de l'Exercice, comme pour tout Exercice standard. L'interrupteur n'est pas reporté dans le récapitulatif ni dans la Séance.
 
@@ -5968,7 +5976,7 @@ Elle propose :
 | Départ | Choix | Suite | Arrivée |
 |---|---|---|---|
 | Catalogue des séances, Créer | Exercice libre | Fiche de création : mouvement, puis paramètres | Composition d'une **nouvelle** Séance, contenant cet Exercice |
-| Catalogue des séances, Créer | Un Format | Questionnaire, récapitulatif, « Enregistrer dans la séance » | Composition d'une **nouvelle** Séance, contenant la structure du Format |
+| Catalogue des séances, Créer | Un Format | Questionnaire, récapitulatif, « Enregistrer dans la séance » | Composition d'une **nouvelle** Séance, contenant la structure du Format [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.] |
 | Composition, Créer un exercice | Exercice libre | Fiche de création | Retour à la Composition, Exercice ajouté |
 | Composition, Créer un exercice | Un Format | Questionnaire, récapitulatif | Retour à la Composition, structure ajoutée |
 
@@ -6027,9 +6035,9 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 
 **Documentation :** ch06 (Composition : appui sur la photo), ch13 (contrat de la fiche en lecture seule).
 
-**Deux mouvements à la création.** Un superset est une paire : le questionnaire n'accepte que deux mouvements. « + Ajouter » se désactive dès que deux mouvements sont choisis ; « Valider les paramètres » ne s'active qu'avec deux. Après l'enregistrement, le Circuit est un Circuit standard : un troisième Exercice peut y être ajouté depuis la Composition.
+**Deux mouvements à la création.** Un superset est une paire : le questionnaire n'accepte que deux mouvements. « + Ajouter » se désactive dès que deux mouvements sont choisis ; « Valider les paramètres » ne s'active qu'avec deux. Après l'enregistrement, le Circuit est un Circuit standard : un troisième Exercice peut y être ajouté depuis la Composition. [06/11/2026 : enregistrement porté par la coche ; bouton « Valider les paramètres » conservé uniquement si une seconde étape est nécessaire, coche du questionnaire alors grise — D-499 précisée le 06/11/2026.]
 
-**Réouverture** (« Modifier le format ») : le questionnaire et le récapitulatif affichent les Exercices actuels du Circuit, y compris un troisième ajouté depuis la Composition ; la présence de plus de deux Exercices ne bloque pas « Valider les paramètres » ni « Enregistrer les modifications », sous réserve que tous les paramètres requis soient renseignés et cohérents ; « + Ajouter » reste désactivé ; un mouvement peut être retiré tant qu'il en reste au moins deux.
+**Réouverture** (« Modifier le format ») : le questionnaire et le récapitulatif affichent les Exercices actuels du Circuit, y compris un troisième ajouté depuis la Composition ; la présence de plus de deux Exercices ne bloque pas « Valider les paramètres » ni « Enregistrer les modifications », sous réserve que tous les paramètres requis soient renseignés et cohérents ; « + Ajouter » reste désactivé ; un mouvement peut être retiré tant qu'il en reste au moins deux. [06/11/2026 : enregistrement porté par la coche ; bouton « Valider les paramètres » conservé uniquement si une seconde étape est nécessaire, coche du questionnaire alors grise — D-499 précisée le 06/11/2026.]
 
 **Questionnaire.** La ligne « Répétitions par série » est retirée : l'objectif dépend du mouvement. Le questionnaire garde la structure : Circuit (nombre de tours, **3 tours par défaut**), Récupération après le tour, Durée totale.
 

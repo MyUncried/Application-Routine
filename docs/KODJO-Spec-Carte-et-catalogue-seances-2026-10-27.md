@@ -1,5 +1,7 @@
 # KODJO — Carte de séance et catalogue des séances
 
+> **Révision du 06/11/2026 :** nouveau format de carte (72 pt, chevron à gauche, durée en haut à droite, ligne « N circuits · N exercices », Démarrer en pilule) et carte dépliée (« N passages », « séries groupées | alternées », « N tours ») — [KODJO-Catalogues-cartes-modales-2026-11-06](KODJO-Catalogues-cartes-modales-2026-11-06.md) §5–§6 (D-504 à D-507).
+
 Lot à verser à la documentation. Il remplace et complète `KODJO-Spec-Carte-seance-deployee-2026-10-27.md`, qui ne couvrait que l'état déployé.
 
 Périmètre : la carte de séance dans le contexte Catalogue, l'écran du catalogue des séances et son panneau de filtres. Les contextes Calendrier, Suivi et Choix ne sont pas modifiés.
@@ -14,17 +16,17 @@ Il n'existe plus qu'un gabarit de carte, qu'une séance contienne un exercice ou
 
 **Le visuel carré**, 64 points, à gauche. Sa cascade : la photo de l'exercice quand la séance n'en contient qu'un, sinon la photo du premier exercice qui en possède une, sinon la vignette du format de la séance, sinon la vignette du format Libre.
 
-**Le nom**, suivi d'un chevron **seulement lorsque la séance contient plusieurs exercices**. Une séance d'un seul exercice n'a rien à déployer, donc pas de chevron. Le chevron du nom est le seul contrôle de déploiement : le bouton chevron encadré qui existait à droite est supprimé.
+**Le nom** est précédé d’un chevron sur toutes les cartes, y compris pour un seul exercice (D-504, 06/11/2026). Dans le catalogue des séances : toucher la photo ouvre la composition de séance en modification ; Démarrer exécute la séance ; le chevron et toute la zone centrale de la carte déploient/replient la séance ; toucher toute la zone déployée ouvre la séance en modification. Ces cibles sont distinctes.
 
 **Les catégories**, sur la ligne suivante, précédées de leur pastille. Elles sont dédupliquées, ordonnées par première apparition dans la composition, et terminées par `+N` lorsqu'elles dépassent la largeur disponible, jamais tronquées en milieu de mot. Les zones corporelles ne figurent pas sur la carte : elles se multiplient avec le nombre d'exercices et deviennent illisibles.
 
 **L'étiquette n'est pas présentée.** C'est un critère de filtre, pas une information de carte. Cette disposition remplace l'affichage actuel de l'étiquette sur la carte de séance.
 
 **La ligne de synthèse**, deux emplacements :
-- le premier porte le **nom du format** quand la séance en a un, sinon le **nombre d'exercices**, sinon, pour une séance d'un seul exercice, son **volume** dans l'unité de l'exercice (`3 × 1 min 30 s`, `1 × 45 s`). « 1 exercice » n'apprend rien et n'est jamais affiché ;
+- le premier porte le **nom du format** quand la séance en a un, sinon le **nombre d'exercices**, sinon, pour une séance d'un seul exercice, son **volume** dans l'unité de l'exercice (`3 × 1 min 30 s`, `1 × 45 s`). « 1 exercice » n'apprend rien et n'est jamais affiché ; [Prescription remplacée le 06/11/2026 par D-504 à D-507 : voir les §5–§6 de la spécification Catalogues, cartes et modales ; 72 pt, ligne 3 « N circuits · N exercices », « 1 exercice », chevron déplié vers le bas, « N passages » et mode du circuit.]
 - le second porte la **durée**, y compris sur une séance à format : « EMOM » seul ne dit pas si la séance dure dix minutes ou une demi-heure. Pour For time et Death by, où la durée n'est pas déterminable, l'emplacement reste vide, selon la règle existante des durées non calculables.
 
-**Le bouton de lecture** est présent sur toutes les cartes, y compris les séances d'un seul exercice : on lance une séance entière et jamais un exercice isolé (D-449 §5). Sa zone tactile s'arrête à 8 points du bord, comme le visuel à gauche.
+**Le bouton de lecture** est présent sur toutes les cartes, y compris les séances d'un seul exercice : on lance une séance entière et jamais un exercice isolé (D-449 §5). Sa zone tactile s'arrête à 8 points du bord, comme le visuel à gauche. [Prescription remplacée le 06/11/2026 par D-504 à D-507 : voir les §5–§6 de la spécification Catalogues, cartes et modales ; 72 pt, ligne 3 « N circuits · N exercices », « 1 exercice », chevron déplié vers le bas, « N passages » et mode du circuit.]
 
 **Cette disposition remplace D-260 et D-261** sur un point précis : « les Séances ne portent jamais de visuel » ne s'applique plus au catalogue, où la carte unique porte une photo ou une vignette. Les listes mixtes, le Calendrier et le Suivi restent sans visuel.
 
@@ -32,9 +34,9 @@ Il n'existe plus qu'un gabarit de carte, qu'une séance contienne un exercice ou
 
 ## 2. L'état déployé
 
-L'en-tête ne change pas ; le chevron du nom pointe vers le haut. Sous un filet de séparation, la carte affiche **la composition de la séance sur toute la largeur utile**, de marge à marge : elle passe sous le visuel, qui n'occupe que l'en-tête.
+L'en-tête ne change pas ; le chevron du nom pointe vers le haut. Sous un filet de séparation, la carte affiche **la composition de la séance sur toute la largeur utile**, de marge à marge : elle passe sous le visuel, qui n'occupe que l'en-tête. [Prescription remplacée le 06/11/2026 par D-504 à D-507 : voir les §5–§6 de la spécification Catalogues, cartes et modales ; 72 pt, ligne 3 « N circuits · N exercices », « 1 exercice », chevron déplié vers le bas, « N passages » et mode du circuit.]
 
-**La structure est montrée, pas aplatie.** Les conteneurs apparaissent en lignes d'en-tête, « Cycle · N répétitions » et « Circuit · N tours », en gris et sans valeur. Leurs membres sont décalés de 16 points par niveau et reliés par un filet vertical placé dans la marge gauche dégagée, le même motif que les familles de niveaux du catalogue des mouvements. La profondeur étant fermée à trois par SU-04, il n'y a jamais plus de deux décalages.
+**La structure est montrée, pas aplatie.** Les conteneurs apparaissent en lignes d'en-tête, « Cycle · N répétitions » et « Circuit · N tours », en gris et sans valeur. Leurs membres sont décalés de 16 points par niveau et reliés par un filet vertical placé dans la marge gauche dégagée, le même motif que les familles de niveaux du catalogue des mouvements. La profondeur étant fermée à trois par SU-04, il n'y a jamais plus de deux décalages. [Prescription remplacée le 06/11/2026 par D-504 à D-507 : voir les §5–§6 de la spécification Catalogues, cartes et modales ; 72 pt, ligne 3 « N circuits · N exercices », « 1 exercice », chevron déplié vers le bas, « N passages » et mode du circuit.]
 
 **Les lignes** portent le nom à gauche et le volume à droite, aligné sur la marge. Les récupérations occupent une ligne à leur position, en gris clair, avec leur durée ; elles ne comptent pas dans le nombre d'exercices de l'en-tête, conformément à la règle de comptage de D-449 §6.
 
@@ -66,7 +68,7 @@ La carte archivée ne porte **aucune action** : l'icône ronde de restauration e
 
 ## 5. Les actions glissées
 
-Le glissé porte sur la séance et non sur son contenu : **les options conservent 80 points de haut quelle que soit la hauteur de la carte**, alignées sur son bord supérieur. Elles forment un bloc jointif qui se termine sur la marge droite, et la carte glissée s'arrête 8 points avant lui.
+Le glissé porte sur la séance et non sur son contenu : **les options conservent 80 points de haut quelle que soit la hauteur de la carte**, alignées sur son bord supérieur. Elles forment un bloc jointif qui se termine sur la marge droite, et la carte glissée s'arrête 8 points avant lui. [Prescription remplacée le 06/11/2026 par D-504 à D-507 : voir les §5–§6 de la spécification Catalogues, cartes et modales ; 72 pt, ligne 3 « N circuits · N exercices », « 1 exercice », chevron déplié vers le bas, « N passages » et mode du circuit.]
 
 Sur une séance active : Planifier, Dupliquer, Archiver. Sur une séance archivée : **Restaurer** puis **Supprimer**, dans cet ordre, le bleu-violet non destructif avant le rouge, comme pour les mouvements archivés.
 
@@ -118,7 +120,7 @@ Le nom affiché ne porte jamais le suffixe de niveau : D-445 pose que le rang et
 | --- | --- |
 | `P-Catalogue des séances — Liste par défaut` | Cinq cartes en instances, photos et vignette de repli, bascule de vue, contrôles rangés à droite, deux séances passées en EMOM et Tabata |
 | `P-Catalogue des séances — Séance déployée` | Composition structurée en circuit et cycle, filet de séparation remonté au bord de la carte repliée |
-| `Catalogue des séances — Séance déployée — actions glissées` | Options fixées à 80 malgré la carte déployée |
+| `Catalogue des séances — Séance déployée — actions glissées` | Options fixées à 80 malgré la carte déployée | [Prescription remplacée le 06/11/2026 par D-504 à D-507 : voir les §5–§6 de la spécification Catalogues, cartes et modales ; 72 pt, ligne 3 « N circuits · N exercices », « 1 exercice », chevron déplié vers le bas, « N passages » et mode du circuit.]
 | `Catalogue des séances — Liste condensée — actions glissées` | Bloc d'actions jointif terminé sur la marge, carte glissée recalée |
 | `Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité` | Idem |
 | `P-Modal — Confirmer l'archivage d'une séance planifiée` | Contrôle segmenté à trois entrées rétabli, options et espacement |

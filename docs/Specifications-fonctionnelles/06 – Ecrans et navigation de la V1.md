@@ -1394,7 +1394,7 @@ Frame `7599:14197` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg
 
 
 
-Les deux captures « Liste longue » ci-dessous ont été exportées le 15/10/2026. Elles illustrent la présentation des listes, mais montrent encore une sélection unique sans CTA « Ajouter ». Elles ne remplacent pas le contrat CE-UI-04 : sélection à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments ».
+Les deux captures « Liste longue » ci-dessous ont été exportées le 15/10/2026. Elles illustrent la présentation des listes, mais montrent encore une sélection unique sans CTA « Ajouter ». Elles ne remplacent pas le contrat CE-UI-04 : sélection à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments ». [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
 #### Modal — Choisir une séance — Planification — Liste longue
 
@@ -1647,6 +1647,10 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 <a id="formats-galerie"></a>
 ### Formats de séances — inventaire et captures
 
+**D-499 — précision validée par Hermann le 06/11/2026 :** « Valider les paramètres » apparaît uniquement lorsqu’une seconde étape est nécessaire et ouvre le récapitulatif sans enregistrer dans la séance. Dans ce cas, la coche du questionnaire reste grise et inactive. Sans seconde étape, la coche enregistre dans la séance lorsque les données sont complètes et cohérentes. Dans le récapitulatif, elle devient bleue et active lorsque les données sont complètes et cohérentes, puis enregistre dans la séance. Death by à un mouvement : questionnaire → coche → Composition, sans récapitulatif ; à deux mouvements : questionnaire → « Valider les paramètres » → récapitulatif → coche → Composition. L’enregistrement reste un ajout au brouillon de Composition, sans sauvegarde définitive de la Séance. Cette précision supersède la suppression générale du bouton dans les questionnaires ; les autres validations par coche restent applicables.
+
+> [06/11/2026 : les captures des questionnaires, récapitulatifs et choix des Formats ont été réexportées le 06/11/2026 (coche d’en-tête à la place du bouton en bas, D-499) ; les mentions « Export du 05/11/2026 » ci-dessous désignent l’export d’origine.]
+
 <a id="format-8598-29271"></a>
 <a id="format-8624-30749"></a>
 <a id="format-8624-30880"></a>
@@ -1671,15 +1675,15 @@ Les anciennes ancres de frames sont conservées uniquement pour les liens histor
 
 **Captures actualisées le 5 novembre :** 87 PNG exportés depuis le fichier courant ; dimensions et empreintes dans le manifeste. Les anciens écrans de volumes ne sont plus des références actives. Les images prouvent les dispositions représentées, pas les interactions ni le fonctionnement du code.
 
-Le questionnaire et le récapitulatif sont des **modales**, ouvertes depuis la modale de création commune au Catalogue et à la Composition. Depuis la Composition, ils sont ouverts par le bas, pleine largeur, sous son titre ; depuis le Catalogue, aucun brouillon de Séance n’est créé avant l’arrivée en Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers le point de départ conservé (Catalogue ou Composition) ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes.
+Le questionnaire et le récapitulatif sont des **modales**, ouvertes depuis la modale de création commune au Catalogue et à la Composition. Depuis la Composition, ils sont ouverts par le bas, pleine largeur, sous son titre ; depuis le Catalogue, aucun brouillon de Séance n’est créé avant l’arrivée en Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers le point de départ conservé (Catalogue ou Composition) ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes. [06/11/2026 : enregistrement porté par la coche ; bouton « Valider les paramètres » conservé uniquement si une seconde étape est nécessaire, coche du questionnaire alors grise — D-499 précisée le 06/11/2026.]
 
-« Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique.
+« Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique. [06/11/2026 : lien retiré ; « + Ajouter » ouvre directement le mode catalogue — D-500.]
 
 Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite carte ouvre la **Fiche du mouvement** en consultation seule, en modale par-dessus celle du Format, sur un second voile. Apparition par le bas, pleine largeur, coins hauts arrondis 24 px ; en-tête croix et titre « Fiche du mouvement », fond blanc et trait conservés. Nom, catégorie, zones corporelles, niveau, média, description et phases habituels ; aucun bouton d’action. Fermer restitue exactement l’état du parcours sous-jacent. Toucher le reste de la carte conserve son comportement existant.
 
 **EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
 
-**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage.
+**Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 
 **Contrôle EMOM des durées — seuil inclusif :** le travail prévu d’un Exercice en Durée est sa cible, multipliée par deux s’il est fait de chaque côté, plus la pause entre les côtés applicable. En simple, alternance et À la suite, travail prévu ≥ intervalle propre bloque la validation ; Dans chaque intervalle, somme du travail prévu des membres ≥ intervalle commun bloque la validation. Les membres en Répétitions contribuent pour 0 à ce contrôle de durée connue, sans garantie que le travail total tiendra dans la fenêtre. Message sous le tableau, cadres des valeurs concernées et de l’intervalle rouges ; validation bloquée dans le récapitulatif, la modale et lors de l’édition de l’intervalle du Circuit. À 60 s : 40 s d’un seul côté admis, 40 s de chaque côté refusés ; 30 s + 30 s refusés ; 10 répétitions + 30 s ne déclenche pas ce seul contrôle.
 
@@ -1881,7 +1885,7 @@ Nœud [11312:20093](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### AMRAP — Questionnaire, saisie d’un mouvement
 
-Nœud [11335:19986](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-19986) · Contrat CE-FMT-02 · Export du 05/11/2026.
+Nœud [11335:19986](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-19986) · Contrat CE-FMT-02 · Export du 05/11/2026. [06/11/2026 : écran supprimé du prototype ; « + Ajouter » ouvre directement le mode catalogue — D-500. Capture conservée pour l’historique.]
 
 ![AMRAP — Questionnaire, saisie d’un mouvement](images/figma-11335-19986.png)
 
@@ -1889,7 +1893,7 @@ Nœud [11335:19986](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### P-Tabata — Questionnaire, saisie d’un mouvement
 
-Nœud [11335:20151](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-20151) · Contrat CE-FMT-02 · Export du 05/11/2026.
+Nœud [11335:20151](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11335-20151) · Contrat CE-FMT-02 · Export du 05/11/2026. [06/11/2026 : écran supprimé du prototype ; « + Ajouter » ouvre directement le mode catalogue — D-500. Capture conservée pour l’historique.]
 
 ![P-Tabata — Questionnaire, saisie d’un mouvement](images/figma-11335-20151.png)
 
@@ -2670,16 +2674,16 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 
 ### Conventions communes d’interface
 - **Navigation** : cinq destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
-- **Sélection en modale** : la planification utilise des cases à cocher et Ajouter n éléments, même pour un seul choix (D-222 révisée). Les référentiels conservent leurs contrats de sélection simple ; la Composition conserve cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser`.
+- **Sélection en modale** : la planification utilise des cases à cocher et Ajouter n éléments, même pour un seul choix (D-222 révisée). Les référentiels conservent leurs contrats de sélection simple ; la Composition conserve cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser`. [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 - **Planifier** : titre `Planifier` avant connaissance du type, puis `Planifier une séance` ou `Planifier un exercice`. La modale suit le gabarit D-229.
-- **Fondations DSF** : fond `#FFFFFF` sauf Splash `#0006F1` et média plein écran `#0A0A0C`; zone de contexte `#EAEAFF`→transparent sur les familles couvertes ; navigation, halo, boutons circulaires, steppers et badges selon D-224 à D-227.
+- **Fondations DSF** : fond `#FFFFFF` sauf Splash `#0006F1` et média plein écran `#0A0A0C`; zone de contexte `#EAEAFF`→transparent sur les familles couvertes ; navigation, halo, boutons circulaires, steppers et badges selon D-224 à D-227. [Remplacé le 06/11/2026 pour les Catalogues : fond et zone de contexte par catalogue (D-501), [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md) §3.]
 - **Listes/modales** : listes scrollables avec rognage ; feuilles longues alignées en haut sur la zone de contexte ; comportements et dégradés bas selon D-228.
 - **Composants spécialisés** : Point d’arrêt, Profil et Exécution suivent D-230 ; les cartes et l’indicateur Ressenti suivent la révision D-260 à D-264 ; les cartes média déployées sont historiques hors MVP.
 
 #### Référence DSF V2 détaillée — clôture
 
 - **Navigation basse** : set `6513:20151`, cinq destinations. Au gabarit 402 pt, pilule `354 × 62`, marges latérales 24 ; icônes `24 × 24` dans boîtes `32 × 32`. Cadre actif `66 × 50` (`78 × 50` pour Communauté). Actif `#0508E5`, inactif `#595E66` ; fond `color/navigation/pill #F9FAFC`. Répartition responsive et inset bas natif. Les captures et mesures courantes sont dans DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md ; les anciennes coordonnées à quatre onglets ne sont plus applicables.
-- **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
+- **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation. [Remplacé le 06/11/2026 pour les Catalogues Mouvements et Séances : `color/catalogue/*/background` et `context` (#F7FAFF/#E5F0FF, #F8F8FF/#EAEAFF ; Programmes #FAF8FF/#EFE8FF) ; Composition, Calendrier, Suivi, Profil et Ajout d’exercice inchangés à ce stade — D-501.]
 - **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, la valeur observée référencée au chapitre 12, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
 - **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F5F7FA (surface ; ancienne valeur historique #F4F4F8)`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
 - **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
@@ -2767,7 +2771,7 @@ Tous les dialogues de décision utilisent `Overlay / Decision Dialog` (`2590:296
 
 ### Champs et comportements des fonctionnalités — Conventions communes d’interface
 
-D-221 retire la recherche globale et toute recherche locale des Catalogues du MVP. D-222, révisée le 08/10, impose en planification la modale à cases à cocher validée par « Ajouter 1 élément » ou « Ajouter n éléments », même pour un seul contenu ; les contrats de Composition et de référentiels conservent leurs règles propres. D-223 rend le titre de Planifier contextuel. Les règles de rendu communes sont celles de D-224 à D-230 : fonds/zones de contexte, navigation, halo et actions circulaires, steppers/badges, listes/modales, roulettes et composants spécialisés. Elles ne modifient le métier que lorsqu’un comportement est explicitement décrit.
+D-221 retire la recherche globale et toute recherche locale des Catalogues du MVP. D-222, révisée le 08/10, impose en planification la modale à cases à cocher validée par « Ajouter 1 élément » ou « Ajouter n éléments », même pour un seul contenu ; les contrats de Composition et de référentiels conservent leurs règles propres. D-223 rend le titre de Planifier contextuel. Les règles de rendu communes sont celles de D-224 à D-230 : fonds/zones de contexte, navigation, halo et actions circulaires, steppers/badges, listes/modales, roulettes et composants spécialisés. Elles ne modifient le métier que lorsqu’un comportement est explicitement décrit. [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
 ### Migration T03 — Catalogue des Exercices — Impacts de données de la revue des cartes
 
@@ -2988,4 +2992,510 @@ La référence courante est le composant `6513:20151`, utilisé sur les 62 écra
 
 ### Formats — accès à la réédition du modèle
 
-Circuit replié avec Modèle d’origine : Renommer | Modifier le format | Dupliquer | Supprimer ; sans provenance : trois actions, sans Modifier le format. La réédition ouvre le récapitulatif courant, Retour rejoint le questionnaire, Valider les paramètres revient au récapitulatif et Enregistrer les modifications met à jour le Circuit en place. Croix du questionnaire : retour Composition sans mutation. Réglages hétérogènes affichés variable, Avec/Sans charge repris de l’état effectif. Contrat CE-FMT-05 ; règles au chapitre 10, formats-reedition-roles-charges.
+Circuit replié avec Modèle d’origine : Renommer | Modifier le format | Dupliquer | Supprimer ; sans provenance : trois actions, sans Modifier le format. La réédition ouvre le récapitulatif courant, Retour rejoint le questionnaire, Valider les paramètres revient au récapitulatif et Enregistrer les modifications met à jour le Circuit en place. Croix du questionnaire : retour Composition sans mutation. Réglages hétérogènes affichés variable, Avec/Sans charge repris de l’état effectif. Contrat CE-FMT-05 ; règles au chapitre 10, formats-reedition-roles-charges. [06/11/2026 : enregistrement porté par la coche ; bouton « Valider les paramètres » conservé uniquement si une seconde étape est nécessaire, coche du questionnaire alors grise — D-499 précisée le 06/11/2026.]
+
+## Captures du 6 novembre 2026 — Catalogues, cartes et validation des modales
+
+Source : [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md) (D-499 à D-509). Exports Figma du 06/11/2026 dans `images/catalogues-2026-11-06/` ; les fichiers `images/figma-<nœud>.png` déjà référencés ailleurs ont été remplacés par le même export. L’écran « Essai cycles » est un écran d’essai, non un écran cible.
+
+### DSF et écran d’essai
+
+##### DSF V2 — Catalogues : couleurs, onglet, cartes et validation des modales
+
+Nœud [11734:2100](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11734-2100) · Export du 06/11/2026.
+
+![DSF V2 — Catalogues : couleurs, onglet, cartes et validation des modales](images/catalogues-2026-11-06/11734-2100.png)
+
+##### P-Catalogue des séances — Séance déployée — Essai cycles
+
+Nœud [11727:467](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11727-467) · Export du 06/11/2026.
+
+![P-Catalogue des séances — Séance déployée — Essai cycles](images/catalogues-2026-11-06/11727-467.png)
+
+### Catalogue des séances
+
+##### Catalogue des séances — Archivées — Séance restaurée
+
+Nœud [1992:10848](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10848) · Export du 06/11/2026.
+
+![Catalogue des séances — Archivées — Séance restaurée](images/catalogues-2026-11-06/1992-10848.png)
+
+##### Catalogue des séances — Archivées — actions glissées
+
+Nœud [2234:88](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-88) · Export du 06/11/2026.
+
+![Catalogue des séances — Archivées — actions glissées](images/catalogues-2026-11-06/2234-88.png)
+
+##### Catalogue des séances — Filtre actif Archivé
+
+Nœud [4549:6742](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4549-6742) · Export du 06/11/2026.
+
+![Catalogue des séances — Filtre actif Archivé](images/catalogues-2026-11-06/4549-6742.png)
+
+##### Catalogue des séances — Liste condensée — actions glissées
+
+Nœud [1992:10518](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10518) · Export du 06/11/2026.
+
+![Catalogue des séances — Liste condensée — actions glissées](images/catalogues-2026-11-06/1992-10518.png)
+
+##### Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité
+
+Nœud [4592:6217](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4592-6217) · Export du 06/11/2026.
+
+![Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité](images/catalogues-2026-11-06/4592-6217.png)
+
+##### Catalogue des séances — Liste sans Renforcement du genou
+
+Nœud [1992:10937](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10937) · Export du 06/11/2026.
+
+![Catalogue des séances — Liste sans Renforcement du genou](images/catalogues-2026-11-06/1992-10937.png)
+
+##### Catalogue des séances — Séance déployée — actions glissées
+
+Nœud [1992:10628](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10628) · Export du 06/11/2026.
+
+![Catalogue des séances — Séance déployée — actions glissées](images/catalogues-2026-11-06/1992-10628.png)
+
+##### Catalogue des séances — État vide
+
+Nœud [2117:86](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2117-86) · Export du 06/11/2026.
+
+![Catalogue des séances — État vide](images/catalogues-2026-11-06/2117-86.png)
+
+##### Modal — Confirmer la suppression d’une séance archivée
+
+Nœud [2234:189](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-189) · Export du 06/11/2026.
+
+![Modal — Confirmer la suppression d’une séance archivée](images/catalogues-2026-11-06/2234-189.png)
+
+##### P-Catalogue des séances — Filtrer — Panneau ouvert
+
+Nœud [4168:11149](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4168-11149) · Export du 06/11/2026.
+
+![P-Catalogue des séances — Filtrer — Panneau ouvert](images/catalogues-2026-11-06/4168-11149.png)
+
+##### P-Catalogue des séances — Liste par défaut
+
+Nœud [1992:9910](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-9910) · Export du 06/11/2026.
+
+![P-Catalogue des séances — Liste par défaut](images/catalogues-2026-11-06/1992-9910.png)
+
+##### P-Catalogue des séances — Séance déployée
+
+Nœud [1992:10014](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10014) · Export du 06/11/2026.
+
+![P-Catalogue des séances — Séance déployée](images/catalogues-2026-11-06/1992-10014.png)
+
+##### P-Modal — Confirmer l’archivage d’une séance planifiée
+
+Nœud [4593:6285](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4593-6285) · Export du 06/11/2026.
+
+![P-Modal — Confirmer l’archivage d’une séance planifiée](images/catalogues-2026-11-06/4593-6285.png)
+
+### Catalogue des mouvements
+
+##### Catalogue des exercices — État vide
+
+Nœud [4521:6220](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4521-6220) · Export du 06/11/2026.
+
+![Catalogue des exercices — État vide](images/catalogues-2026-11-06/4521-6220.png)
+
+##### Mouvement — Catalogue — Actions glissées
+
+Nœud [10475:47634](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10475-47634) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Actions glissées](images/catalogues-2026-11-06/10475-47634.png)
+
+##### Mouvement — Catalogue — Ajouter un niveau
+
+Nœud [10579:21580](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10579-21580) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Ajouter un niveau](images/catalogues-2026-11-06/10579-21580.png)
+
+##### Mouvement — Catalogue — Archivage refusé
+
+Nœud [10495:24054](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10495-24054) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Archivage refusé](images/catalogues-2026-11-06/10495-24054.png)
+
+##### Mouvement — Catalogue — Archivés
+
+Nœud [10495:24099](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10495-24099) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Archivés](images/catalogues-2026-11-06/10495-24099.png)
+
+##### Mouvement — Catalogue — Archivés — Actions glissées
+
+Nœud [10496:23705](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10496-23705) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Archivés — Actions glissées](images/catalogues-2026-11-06/10496-23705.png)
+
+##### Mouvement — Catalogue — Archivés — Confirmer la suppression
+
+Nœud [10500:23772](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10500-23772) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Archivés — Confirmer la suppression](images/catalogues-2026-11-06/10500-23772.png)
+
+##### Mouvement — Catalogue — Filtre actif
+
+Nœud [10465:23141](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10465-23141) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Filtre actif](images/catalogues-2026-11-06/10465-23141.png)
+
+##### Mouvement — Catalogue — Filtres
+
+Nœud [10462:23370](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10462-23370) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Filtres](images/catalogues-2026-11-06/10462-23370.png)
+
+##### Mouvement — Catalogue — Pile déployée
+
+Nœud [10471:23291](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10471-23291) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Pile déployée](images/catalogues-2026-11-06/10471-23291.png)
+
+##### Mouvement — Catalogue — Pile — Création d’une famille
+
+Nœud [10797:20492](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10797-20492) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Pile — Création d’une famille](images/catalogues-2026-11-06/10797-20492.png)
+
+##### Mouvement — Catalogue — Pile — Déplacement
+
+Nœud [10480:23374](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10480-23374) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Pile — Déplacement](images/catalogues-2026-11-06/10480-23374.png)
+
+##### Mouvement — Catalogue — Pile — Message de confirmation
+
+Nœud [10484:23428](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10484-23428) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Pile — Message de confirmation](images/catalogues-2026-11-06/10484-23428.png)
+
+##### Mouvement — Catalogue — Piles
+
+Nœud [10266:20575](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10266-20575) · Export du 06/11/2026.
+
+![Mouvement — Catalogue — Piles](images/catalogues-2026-11-06/10266-20575.png)
+
+### Planification
+
+##### Calendrier — Jour — Créneau à planifier — MVP
+
+Nœud [1992:5794](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5794) · Export du 06/11/2026.
+
+![Calendrier — Jour — Créneau à planifier — MVP](images/catalogues-2026-11-06/1992-5794.png)
+
+##### Modal — Planifier un parcours — Sélectionner plusieurs séances
+
+Nœud [7594:34809](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34809) · Export du 06/11/2026.
+
+![Modal — Planifier un parcours — Sélectionner plusieurs séances](images/catalogues-2026-11-06/7594-34809.png)
+
+##### Modal — Planifier une séance — Sélectionner une séance
+
+Nœud [7599:14197](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7599-14197) · Export du 06/11/2026.
+
+![Modal — Planifier une séance — Sélectionner une séance](images/catalogues-2026-11-06/7599-14197.png)
+
+##### P-Modal — Choisir une séance — Planification — Liste longue
+
+Nœud [1992:6249](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249) · Export du 06/11/2026.
+
+![P-Modal — Choisir une séance — Planification — Liste longue](images/catalogues-2026-11-06/1992-6249.png)
+
+##### P-Modal — Planifier un parcours — Fréquence
+
+Nœud [7594:34653](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34653) · Export du 06/11/2026.
+
+![P-Modal — Planifier un parcours — Fréquence](images/catalogues-2026-11-06/7594-34653.png)
+
+##### P-Planifier un parcours
+
+Nœud [7594:34531](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34531) · Export du 06/11/2026.
+
+![P-Planifier un parcours](images/catalogues-2026-11-06/7594-34531.png)
+
+##### P-Planifier une séance — Création
+
+Nœud [1992:6838](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6838) · Export du 06/11/2026.
+
+![P-Planifier une séance — Création](images/catalogues-2026-11-06/1992-6838.png)
+
+##### Planifier une séance — Rappel personnalisé ouvert
+
+Nœud [1992:7187](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7187) · Export du 06/11/2026.
+
+![Planifier une séance — Rappel personnalisé ouvert](images/catalogues-2026-11-06/1992-7187.png)
+
+##### Planifier une séance — Rappel personnalisé sélectionné
+
+Nœud [1992:7369](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7369) · Export du 06/11/2026.
+
+![Planifier une séance — Rappel personnalisé sélectionné](images/catalogues-2026-11-06/1992-7369.png)
+
+##### Planifier une séance — Sans répétition
+
+Nœud [1992:7716](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7716) · Export du 06/11/2026.
+
+![Planifier une séance — Sans répétition](images/catalogues-2026-11-06/1992-7716.png)
+
+##### Planifier une séance — Stepper du nombre de semaines
+
+Nœud [1992:7537](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7537) · Export du 06/11/2026.
+
+![Planifier une séance — Stepper du nombre de semaines](images/catalogues-2026-11-06/1992-7537.png)
+
+##### Planifier une séance — Sélecteur de date ouvert
+
+Nœud [1992:6622](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6622) · Export du 06/11/2026.
+
+![Planifier une séance — Sélecteur de date ouvert](images/catalogues-2026-11-06/1992-6622.png)
+
+### Formats — questionnaires, récapitulatifs et choix
+
+##### 30/30 — Questionnaire
+
+Nœud [8656:33799](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33799) · Export du 06/11/2026.
+
+![30/30 — Questionnaire](images/catalogues-2026-11-06/8656-33799.png)
+
+##### 30/30 — Récapitulatif
+
+Nœud [8656:33857](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33857) · Export du 06/11/2026.
+
+![30/30 — Récapitulatif](images/catalogues-2026-11-06/8656-33857.png)
+
+##### AMRAP — Choix des mouvements
+
+Nœud [11220:19121](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11220-19121) · Export du 06/11/2026.
+
+![AMRAP — Choix des mouvements](images/catalogues-2026-11-06/11220-19121.png)
+
+##### AMRAP — Choix du buy-in
+
+Nœud [11220:19397](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11220-19397) · Export du 06/11/2026.
+
+![AMRAP — Choix du buy-in](images/catalogues-2026-11-06/11220-19397.png)
+
+##### AMRAP — Questionnaire
+
+Nœud [8624:30143](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30143) · Export du 06/11/2026.
+
+![AMRAP — Questionnaire](images/catalogues-2026-11-06/8624-30143.png)
+
+##### AMRAP — Questionnaire, plusieurs blocs
+
+Nœud [11410:20361](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11410-20361) · Export du 06/11/2026.
+
+![AMRAP — Questionnaire, plusieurs blocs](images/catalogues-2026-11-06/11410-20361.png)
+
+##### AMRAP — Récapitulatif, buy-in et incrément
+
+Nœud [11195:19094](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11195-19094) · Export du 06/11/2026.
+
+![AMRAP — Récapitulatif, buy-in et incrément](images/catalogues-2026-11-06/11195-19094.png)
+
+##### AMRAP — Récapitulatif, incrément et max
+
+Nœud [8624:30521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30521) · Export du 06/11/2026.
+
+![AMRAP — Récapitulatif, incrément et max](images/catalogues-2026-11-06/8624-30521.png)
+
+##### AMRAP — Récapitulatif, saisie de l’objectif au clavier (durée)
+
+Nœud [11488:21171](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11488-21171) · Export du 06/11/2026.
+
+![AMRAP — Récapitulatif, saisie de l’objectif au clavier (durée)](images/catalogues-2026-11-06/11488-21171.png)
+
+##### AMRAP — Récapitulatif, saisie de l’objectif au clavier (répétitions)
+
+Nœud [11488:20964](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11488-20964) · Export du 06/11/2026.
+
+![AMRAP — Récapitulatif, saisie de l’objectif au clavier (répétitions)](images/catalogues-2026-11-06/11488-20964.png)
+
+##### AMRAP — Récapitulatif, saisie d’un incrément négatif au clavier
+
+Nœud [11564:21558](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11564-21558) · Export du 06/11/2026.
+
+![AMRAP — Récapitulatif, saisie d’un incrément négatif au clavier](images/catalogues-2026-11-06/11564-21558.png)
+
+##### AMRAP — Récapitulatif, suppression glissée
+
+Nœud [11388:22086](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11388-22086) · Export du 06/11/2026.
+
+![AMRAP — Récapitulatif, suppression glissée](images/catalogues-2026-11-06/11388-22086.png)
+
+##### Death by — Questionnaire
+
+Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30198) · Export du 06/11/2026.
+
+![Death by — Questionnaire](images/catalogues-2026-11-06/8624-30198.png)
+
+##### Death by — Récapitulatif
+
+Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Export du 06/11/2026.
+
+![Death by — Récapitulatif](images/catalogues-2026-11-06/8624-30602.png)
+
+##### Death by — Récapitulatif, dans chaque intervalle
+
+Nœud [11376:20189](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11376-20189) · Export du 06/11/2026.
+
+![Death by — Récapitulatif, dans chaque intervalle](images/catalogues-2026-11-06/11376-20189.png)
+
+##### Death by — Récapitulatif, en alternance
+
+Nœud [11376:20325](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11376-20325) · Export du 06/11/2026.
+
+![Death by — Récapitulatif, en alternance](images/catalogues-2026-11-06/11376-20325.png)
+
+##### Death by — Récapitulatif, à la suite
+
+Nœud [11411:20474](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11411-20474) · Export du 06/11/2026.
+
+![Death by — Récapitulatif, à la suite](images/catalogues-2026-11-06/11411-20474.png)
+
+##### EMOM — Questionnaire
+
+Nœud [8624:30040](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30040) · Export du 06/11/2026.
+
+![EMOM — Questionnaire](images/catalogues-2026-11-06/8624-30040.png)
+
+##### EMOM — Récapitulatif, dans chaque intervalle
+
+Nœud [8624:30392](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30392) · Export du 06/11/2026.
+
+![EMOM — Récapitulatif, dans chaque intervalle](images/catalogues-2026-11-06/8624-30392.png)
+
+##### EMOM — Récapitulatif, en alternance
+
+Nœud [11158:18922](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11158-18922) · Export du 06/11/2026.
+
+![EMOM — Récapitulatif, en alternance](images/catalogues-2026-11-06/11158-18922.png)
+
+##### EMOM — Récapitulatif, à la suite
+
+Nœud [11158:19033](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11158-19033) · Export du 06/11/2026.
+
+![EMOM — Récapitulatif, à la suite](images/catalogues-2026-11-06/11158-19033.png)
+
+##### For time — Questionnaire
+
+Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30255) · Export du 06/11/2026.
+
+![For time — Questionnaire](images/catalogues-2026-11-06/8624-30255.png)
+
+##### For time — Récapitulatif
+
+Nœud [8624:30672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30672) · Export du 06/11/2026.
+
+![For time — Récapitulatif](images/catalogues-2026-11-06/8624-30672.png)
+
+##### P-Tabata — Choix des mouvements
+
+Nœud [8598:29503](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29503) · Export du 06/11/2026.
+
+![P-Tabata — Choix des mouvements](images/catalogues-2026-11-06/8598-29503.png)
+
+##### P-Tabata — Questionnaire
+
+Nœud [8624:29980](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-29980) · Export du 06/11/2026.
+
+![P-Tabata — Questionnaire](images/catalogues-2026-11-06/8624-29980.png)
+
+##### P-Tabata — Récapitulatif, en alternance
+
+Nœud [11146:18902](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11146-18902) · Export du 06/11/2026.
+
+![P-Tabata — Récapitulatif, en alternance](images/catalogues-2026-11-06/11146-18902.png)
+
+##### P-Tabata — Récapitulatif, fiche du mouvement (modale)
+
+Nœud [11472:20899](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11472-20899) · Export du 06/11/2026.
+
+![P-Tabata — Récapitulatif, fiche du mouvement (modale)](images/catalogues-2026-11-06/11472-20899.png)
+
+##### P-Tabata — Récapitulatif, à la suite
+
+Nœud [8624:30306](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) · Export du 06/11/2026.
+
+![P-Tabata — Récapitulatif, à la suite](images/catalogues-2026-11-06/8624-30306.png)
+
+##### Progression — Questionnaire
+
+Nœud [8656:35005](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35005) · Export du 06/11/2026.
+
+![Progression — Questionnaire](images/catalogues-2026-11-06/8656-35005.png)
+
+##### Progression — Récapitulatif
+
+Nœud [8656:35062](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35062) · Export du 06/11/2026.
+
+![Progression — Récapitulatif](images/catalogues-2026-11-06/8656-35062.png)
+
+##### Progression — Récapitulatif, ajout d’une charge (+ kg)
+
+Nœud [11575:21457](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11575-21457) · Export du 06/11/2026.
+
+![Progression — Récapitulatif, ajout d’une charge (+ kg)](images/catalogues-2026-11-06/11575-21457.png)
+
+##### Progression — Récapitulatif, clavier étape 1 (unité)
+
+Nœud [11546:21334](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11546-21334) · Export du 06/11/2026.
+
+![Progression — Récapitulatif, clavier étape 1 (unité)](images/catalogues-2026-11-06/11546-21334.png)
+
+##### Progression — Récapitulatif, clavier étape 2 (valeurs)
+
+Nœud [11546:21502](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11546-21502) · Export du 06/11/2026.
+
+![Progression — Récapitulatif, clavier étape 2 (valeurs)](images/catalogues-2026-11-06/11546-21502.png)
+
+##### Progression — Récapitulatif, clavier étape 3 (changement d’unité)
+
+Nœud [11546:21672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11546-21672) · Export du 06/11/2026.
+
+![Progression — Récapitulatif, clavier étape 3 (changement d’unité)](images/catalogues-2026-11-06/11546-21672.png)
+
+##### Renforcement — Questionnaire
+
+Nœud [8656:34196](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34196) · Export du 06/11/2026.
+
+![Renforcement — Questionnaire](images/catalogues-2026-11-06/8656-34196.png)
+
+##### Renforcement — Récapitulatif
+
+Nœud [8656:34263](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34263) · Export du 06/11/2026.
+
+![Renforcement — Récapitulatif](images/catalogues-2026-11-06/8656-34263.png)
+
+##### Superset — Questionnaire
+
+Nœud [8656:34753](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34753) · Export du 06/11/2026.
+
+![Superset — Questionnaire](images/catalogues-2026-11-06/8656-34753.png)
+
+##### Superset — Récapitulatif
+
+Nœud [8656:34807](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-34807) · Export du 06/11/2026.
+
+![Superset — Récapitulatif](images/catalogues-2026-11-06/8656-34807.png)
+
+##### Tabata — Récapitulatif rouvert depuis la Composition
+
+Nœud [11551:21673](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11551-21673) · Export du 06/11/2026.
+
+![Tabata — Récapitulatif rouvert depuis la Composition](images/catalogues-2026-11-06/11551-21673.png)
+
+##### À l’échec — Questionnaire
+
+Nœud [8656:35273](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35273) · Export du 06/11/2026.
+
+![À l’échec — Questionnaire](images/catalogues-2026-11-06/8656-35273.png)
+
+##### À l’échec — Récapitulatif
+
+Nœud [8656:35331](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35331) · Export du 06/11/2026.
+
+![À l’échec — Récapitulatif](images/catalogues-2026-11-06/8656-35331.png)
