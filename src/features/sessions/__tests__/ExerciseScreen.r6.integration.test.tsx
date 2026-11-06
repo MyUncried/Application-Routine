@@ -14,7 +14,7 @@ import { ActivityDefinitionServiceContext } from "@/features/activities/Activity
 import {
   chooseExecutionSide,
   enterExecutionSheetCell,
-  pressInExecutionSheet,
+  enterExecutionSheetValue,
 } from "@/features/activities/testing/executionSheetActions";
 import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
@@ -388,10 +388,8 @@ describe("PRE-7 R-6 — occurrence de Séance : commande Niveau (C09, MFN-09)", 
 function fillParameters(durations: readonly string[]) {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   durations.forEach((duration, index) => enterExecutionSheetCell(`execution-sheet-phase-row-${index + 1}-duration`, duration));
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 0 } });
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 9 } });
-  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 9);
   chooseExecutionSide("Sans");
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   expect(screen.queryByTestId("execution-sheet")).toBeNull();

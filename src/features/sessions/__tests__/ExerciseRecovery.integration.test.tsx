@@ -6,7 +6,7 @@ import { StyleSheet } from "react-native";
 import type { Movement } from "@/domain/activities/Movement";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
-import { chooseExecutionMode } from "@/features/activities/testing/executionSheetActions";
+import { chooseExecutionMode, enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
 import { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { ReferentialService } from "@/features/reference-data/ReferentialService";
@@ -160,7 +160,8 @@ async function tapCard(name: string) {
   await settle(300);
 }
 
-const recoveryText = () => String(screen.getByTestId("execution-sheet-recovery-text", hidden).props.children);
+// [`execution-sheet-recovery-text` (pastille de la roulette) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier (`-value` du champ).]
+const recoveryText = () => String(screen.getByTestId("execution-sheet-recovery-value", hidden).props.children);
 const recoveryBackground = () => StyleSheet.flatten(screen.getByTestId("execution-sheet-recovery", hidden).props.style).backgroundColor;
 
 async function closeSheet(testID: "execution-sheet-validate" | "execution-sheet-cancel") {
@@ -173,18 +174,13 @@ async function closeSheet(testID: "execution-sheet-validate" | "execution-sheet-
 /** Mode Durée, 45 s (Cible à renseigner d'un nouvel Exercice). */
 function setDuration45() {
   chooseExecutionMode("Durée");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 45 } });
-  fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 45);
 }
 
-/** Roulette de la Récupération : minute 1, première valeur de la grille (60 s). */
+/** Récupération : 1 min (60 s). [Roulette (minute 1, première valeur de la grille) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.] */
 function setRecoveryOneMinute() {
-  fireEvent.press(screen.getByTestId("execution-sheet-recovery", hidden));
-  const wheel = within(screen.getByTestId("execution-sheet-recovery-wheel", hidden));
-  fireEvent(wheel.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
-  fireEvent(wheel.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 0 } });
-  fireEvent.press(wheel.getByTestId("duration-wheel-validate"));
+  enterExecutionSheetValue("execution-sheet-recovery", 60);
 }
 
 describe("PRE-9 (01/11/2026, point 2) — Récupération de l'Exercice et défauts du Profil", () => {

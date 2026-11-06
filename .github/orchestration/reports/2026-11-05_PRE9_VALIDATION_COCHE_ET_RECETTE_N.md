@@ -105,6 +105,10 @@ Règle permanente inscrite au registre. Réaménagement de la navigation de cré
 
 Accord de Hermann : « Oui, tu peux développer ». Brouillons à la racine, modales en feuilles racines, Composition ouverte après validation. Suite complète : 304 suites, 5 380 tests — 1 échec sous charge (`CompositionScreen.recette1` « deux Circuits », vert isolé, instabilité connue) ; `tsc` propre ; ESLint : aucun nouveau signalement. À vérifier sur iPhone : tout le parcours (Catalogue et Composition), y compris enregistrer et abandonner une Séance créée.
 
+## Complément — recette iPhone du 06/11/2026
+
+Synthèse de 33 points validée par Hermann (« Oui »), réalisée avec quatre sous-agents sur des fichiers distincts, intégration et documentation dans la session principale (spec § 2 quindecies, ch07). Suite complète : 311 suites, 5 431 tests — 1 échec sous charge (`CompositionScreen.recette1`, vert isolé, instabilité connue de ce fichier) ; `tsc` propre ; ESLint : aucun nouveau signalement (erreurs `react-hooks/refs` de `CompositionScreen.tsx` et de `FormatModelScreen.c3.test.tsx` déjà présentes). Non réalisé : v-compo (non reproduit, parcours demandé) ; glisser du questionnaire (CHANGE_REQUEST_REQUIRED : react-native-gesture-handler). Rien n'est vérifié sur iPhone.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

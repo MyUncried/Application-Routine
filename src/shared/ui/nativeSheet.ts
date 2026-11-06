@@ -36,3 +36,15 @@ export function useTitleCappedSheetDetent(needed: number | null): number {
   if (largest <= 0) return 1;
   return Math.min(1, Math.round((Math.min(needed ?? limit, limit) / largest) * 1000) / 1000);
 }
+
+/**
+ * Recette du 06/11/2026 (x-dedans, KO ; précision validée : « L'arrêter en fait sous le bouton Annuler de la fenêtre du
+ * questionnaire ») — détent d'une feuille dont le haut est posé à l'ordonnée `top` de la fenêtre (feuille ouverte par-dessus
+ * une autre feuille, arrêtée sous un repère de celle-ci) : même calibrage que `useFormatSheetDetent` (questionnaire à y = 95)
+ * et que la fiche du mouvement.
+ */
+export function sheetDetentForTop(windowHeight: number, top: number, safeTop = initialWindowMetrics?.insets.top ?? 0): number {
+  const largest = windowHeight - safeTop - LARGE_SHEET_TOP_GAP;
+  if (largest <= 0) return 1;
+  return Math.max(0.1, Math.min(1, Math.round(((windowHeight - top) / largest) * 1000) / 1000));
+}

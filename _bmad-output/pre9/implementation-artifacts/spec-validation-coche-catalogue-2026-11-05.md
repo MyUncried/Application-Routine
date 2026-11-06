@@ -117,6 +117,23 @@ Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera int
 - `src/shared/ui/__tests__/ModalHeaderActions.test.tsx` : coche bleue/grise, appui refusé, ordre croix–titre–coche, variante « Fermer et valider » de `FixedHeader`.
 - `FormatModelScreen.c3` : « coche de l'en-tête (§18–§19) » — questionnaire (grise sans mouvement, bleue ensuite, ouvre le récapitulatif, plus de bouton en bas), Superset (deux mouvements), récapitulatif (cellule vide → grise), EMOM (incomplet → grise). Assertions de libellé des boutons retirés converties en libellé d'accessibilité.
 
+## 2 quindecies. Recette iPhone du 06/11/2026 (synthèse validée, « Oui »)
+
+Décisions recopiées au registre ch07, « Recette iPhone du 06/11/2026 — décisions de Hermann ». Réalisé (points de la synthèse) :
+- 2–4 fiche du mouvement choisi complète, résultats masqués, Retour, Valider (`MovementScreen`, `ScreenShell.backIcon`) — B ; côté Exercice libre, lecture seule sans édition ni Niveau : À CLARIFIER (le texte de t-fiche-choix ne cite pas l'édition) ;
+- 5–6 circuits : premier déploiement après mesure, repli en « Ajouter un cycle » (`CircuitHeader`, `CompositionScreen`) — A/B ; circuits laissés repliés après le mode : À CLARIFIER ;
+- 7–8, 19 (récupération) pastilles à la largeur de leur texte (`TableCell`) — A ;
+- 9, 25–28 Catalogue des mouvements : arrêt de 0,4 s, fondu de la liste, symbole Trier, pile lente, pastille NEW (`MovementCatalogueList`, `CatalogueScreen`, `CatalogueCommands`) — A/B ; toutes les transitions de la liste à 450 ms ; pastille NEW sur la carte du dessus d'une pile repliée : À CLARIFIER ;
+- 10–11 filtres et sélecteurs en feuille native, Filtrer sous la croix du questionnaire — B ;
+- 12 aucune recopie de colonne — B ; 13–16, 20, 21, 30, 32 tableaux (retraits 16, dernière colonne à droite, Max, dernière ligne sans trait, deuxième ligne remontée de 4, colonne suivante révélée, textes non modifiables, Progression sans fond blanc) — B ;
+- 17–19 charges sans (+ kg), cadre orange, Suivant Objectif → Pause → Charge (Tabata, 30/30, Renforcement, À l'échec, Death by, AMRAP) — B ;
+- 22 cases rouges : déjà générales (A) ; 23 Death by, Récupération avant Condition d'arrêt — B ; 24 fond opaque et fondu de 8 — B ;
+- 31 saisie au clavier de la feuille Paramètres d'exécution et de la durée du Circuit porteur — B ; À CLARIFIER : réglages de Format dans la feuille, grille de Récupération, durée de Circuit > 99:59 ;
+- 33 « Fermer sans sélectionner » — B.
+Non réalisé : 1 (v-compo, non reproduit), 29 (glisser du questionnaire : CHANGE_REQUEST_REQUIRED, react-native-gesture-handler).
+Documents : ch07, ch08 (paramètres d'un exercice), ch12, ch13 (CE-UI-10), référence Formats (S1, charges, durée du Circuit), DSF Paramètres (en-tête).
+Tests ajoutés : `formats.recette0611`, `FormatModelScreen.xdedans`, `CompositionScreen.tdepli`, `MovementCatalogueList.r0611`, `CatalogueScreen.r0611`, `ExecutionParametersSheet.keyboard0611`, `CarrierDurationSheet.keyboard0611`, parcours réels `CompositionMovementFlow` et `MovementScreen.b2`.
+
 ## 5. Vérifications sur appareil
 
 Non faites par Claude : le poste est sous Windows, sans simulateur iOS. Voir le rapport de mission.

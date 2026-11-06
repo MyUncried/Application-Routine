@@ -29,7 +29,6 @@ const COMMAND = dimensions.catalogueCommand;
 const SLOP = (COMMAND.touchTarget - COMMAND.visual) / 2;
 const HIT_SLOP = { top: SLOP, bottom: SLOP, left: SLOP, right: SLOP } as const;
 
-const SORT_ICON = require("../../../assets/icons/icon-tri.svg");
 const CHEVRON_ICON = require("../../../assets/icons/filtre-chevron-modifier.svg");
 
 export function CommandCircle({
@@ -58,7 +57,7 @@ export function CommandCircle({
     >
       {icon === "create" ? <PlusGlyph color={disabled ? colors.disabled : colors.primary} testID={`${testID}-icon`} /> : null}
       {icon === "filter" ? <FilterGlyph color={disabled ? colors.disabled : colors.primary} testID={`${testID}-icon`} /> : null}
-      {icon === "sort" ? <Image source={SORT_ICON} style={styles.icon} accessible={false} testID={`${testID}-icon`} /> : null}
+      {icon === "sort" ? <SortGlyph testID={`${testID}-icon`} /> : null}
     </Pressable>
   );
 }
@@ -214,6 +213,32 @@ function FilterGlyph({ color, testID }: { readonly color: string; readonly testI
   );
 }
 
+/**
+ * Recette iPhone du 06/11/2026 (t-catalogue, Hermann : « l'affichage se fait en deux temps : le symbole de la zone de contexte
+ * et du tri (pas son cercle) apparaissent avec un décalage d'une seconde environs ») : le pictogramme Trier était l'export SVG
+ * `icon-tri.svg` affiché par `expo-image`, chargé et décodé de façon asynchrone (en développement, servi par Metro) — le
+ * cercle, simple vue, s'affichait aussitôt, le symbole ensuite. Il est désormais tracé en vues, comme Créer et Filtrer, dans
+ * la même image que le cercle, d'après le tracé du maître vectoriel `icon/tri` (Figma `6939:26387`, 20 × 20) : axe
+ * `M10 2V18`, chevrons `M15 7L10 2L5 7` et `M15 13L10 18L5 13`, trait 2, `#9499A8` à 85 %.
+ * [Avant : `<Image source={icon-tri.svg} />` — remplacé.]
+ */
+function SortGlyph({ testID }: { readonly testID: string }) {
+  return (
+    <View style={[styles.icon, styles.sortGlyph]} accessible={false} testID={testID}>
+      <View style={styles.sortAxis} />
+      <View style={[styles.sortArm, { top: 4.5 - SORT_STROKE / 2, left: 12.5 - SORT_ARM / 2, transform: [{ rotate: "45deg" }] }]} />
+      <View style={[styles.sortArm, { top: 4.5 - SORT_STROKE / 2, left: 7.5 - SORT_ARM / 2, transform: [{ rotate: "-45deg" }] }]} />
+      <View style={[styles.sortArm, { top: 15.5 - SORT_STROKE / 2, left: 12.5 - SORT_ARM / 2, transform: [{ rotate: "-45deg" }] }]} />
+      <View style={[styles.sortArm, { top: 15.5 - SORT_STROKE / 2, left: 7.5 - SORT_ARM / 2, transform: [{ rotate: "45deg" }] }]} />
+    </View>
+  );
+}
+
+/** Trait du maître `icon/tri` ; branche de chevron de 5√2, prolongée d'un demi-trait à chaque bout (jonction en pointe). */
+const SORT_STROKE = 2;
+const SORT_ARM = 5 * Math.SQRT2 + SORT_STROKE / 2;
+const SORT_COLOR = "#9499A8";
+
 const CLEAR_SIZE = 16;
 
 const styles = StyleSheet.create({
@@ -233,6 +258,23 @@ const styles = StyleSheet.create({
   icon: {
     width: COMMAND.icon,
     height: COMMAND.icon,
+  },
+  sortGlyph: {
+    opacity: 0.85,
+  },
+  sortAxis: {
+    position: "absolute",
+    left: 10 - SORT_STROKE / 2,
+    top: 2,
+    width: SORT_STROKE,
+    height: 16,
+    backgroundColor: SORT_COLOR,
+  },
+  sortArm: {
+    position: "absolute",
+    width: SORT_ARM,
+    height: SORT_STROKE,
+    backgroundColor: SORT_COLOR,
   },
   plusHorizontal: {
     position: "absolute",

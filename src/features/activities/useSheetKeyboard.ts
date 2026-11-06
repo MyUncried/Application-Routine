@@ -28,6 +28,7 @@ import {
   isPhaseKeyboardField,
   sameKeyboardField,
   type KeyboardFieldId,
+  type SheetScalarField,
   type SheetSurfaceEvent,
   type SheetSurfaceState,
 } from "@/features/activities/sheetSurface";
@@ -102,17 +103,28 @@ export type KeyboardFrame = { readonly screenY: number; readonly duration: numbe
  * déplié, chaque ligne de gauche à droite (Cible si un Mode est choisi, Pause, Charge si la
  * charge est Avec), puis la ligne suivante ; aucun champ hors du tableau. Sinon, les champs
  * de charge (`loadFieldOrder` : la charge commune en identiques effectives).
+ *
+ * Décision de Hermann du 06/11/2026 (constat c, saisie au clavier de tous les champs de la fiche
+ * Exercice) : champ actif HORS tableau (valeur `scalar`, charge commune) — Précédent / Suivant
+ * parcourent `outside`, les champs hors tableau affichés dans l'ordre de la Feuille (fourni par
+ * elle), comme la barre des questionnaires de Formats (« L'appui sur suivant permet de passer d'une
+ * valeur à l'autre », Hermann, 05/11/2026). Le tableau des séries et celui des phases gardent leur
+ * parcours propre, sans en sortir (QD-434-2).
  */
 export function keyboardFieldOrder(
   draft: ExecutionSheetDraft,
   tableVisible: boolean,
   phasesVisible = false,
   active: KeyboardFieldId | null = null,
+  outside: readonly KeyboardFieldId[] = [],
 ): readonly KeyboardFieldId[] {
   // PRE-5 story 2.8 (D-434) : durée de phase active — seules les durées des phases, dans
   // l'ordre du tableau déployé (jamais un libellé ni une charge).
   if (active !== null && active.kind === "phaseDuration") {
     return phasesVisible ? draft.workPhases.map((phase): KeyboardFieldId => ({ kind: "phaseDuration", phase: phase.id })) : [];
+  }
+  if (active !== null && outside.length > 0 && (active.kind === "scalar" || (active.kind === "load" && active.row === "uniform"))) {
+    return outside;
   }
   if (!draft.variable || isSingleSeries(draft)) {
     return loadFieldOrder(draft, tableVisible).map((row): KeyboardFieldId => ({ kind: "load", row }));
@@ -266,14 +278,46 @@ type Edit = { readonly field: KeyboardFieldId; text: string; initial: string };
 type Registered = { readonly input: TextInput; readonly rowHeight: number };
 
 const fieldKey = (field: KeyboardFieldId) =>
-  isPhaseKeyboardField(field)
-    ? `${field.kind === "phaseLabel" ? "phase" : "phaseDuration"}:${field.phase}`
-    : `${field.kind}:${field.row}`;
+  field.kind === "scalar"
+    ? `scalar:${field.field}`
+    : isPhaseKeyboardField(field)
+      ? `${field.kind === "phaseLabel" ? "phase" : "phaseDuration"}:${field.phase}`
+      : `${field.kind}:${field.row}`;
+
+/**
+ * Décision de Hermann du 06/11/2026 (constat c) — valeurs HORS tableau saisies au clavier, fournies
+ * par la Feuille, qui seule connaît leurs bornes et leurs transitions :
+ * - `editText` : texte d'édition au focus (« MMSS » d'une durée, chiffres d'un entier) ;
+ * - `apply` : sortie du champ appliquée au Brouillon (fonction pure ; Brouillon rendu tel quel si la
+ *   valeur ne change pas ou n'est pas dans le Brouillon) ;
+ * - `external` : sortie d'un champ dont la valeur n'est pas une simple transition du Brouillon
+ *   (Récupération, état de la Feuille ; Durée de l'exercice, Inversion et message d'ajustement),
+ *   appelée hors de toute mise à jour fonctionnelle, à la sortie du champ ou à Précédent / Suivant.
+ */
+export type ScalarKeyboardFields = {
+  readonly editText: (field: SheetScalarField) => string;
+  readonly apply: (draft: ExecutionSheetDraft, field: SheetScalarField, text: string) => ExecutionSheetDraft;
+  readonly isExternal: (field: SheetScalarField) => boolean;
+  readonly external: (field: SheetScalarField, text: string) => void;
+};
+
+const NO_SCALARS: ScalarKeyboardFields = {
+  editText: () => "",
+  apply: (draft) => draft,
+  isExternal: () => false,
+  external: () => undefined,
+};
 
 /** Application d'une édition prise (fonction pure du Brouillon). */
-function applyEdit(draft: ExecutionSheetDraft, edit: Pick<Edit, "field" | "text" | "initial">): ExecutionSheetDraft {
+function applyEdit(
+  draft: ExecutionSheetDraft,
+  edit: Pick<Edit, "field" | "text" | "initial">,
+  scalars: ScalarKeyboardFields = NO_SCALARS,
+): ExecutionSheetDraft {
   if (edit.text === edit.initial) return draft;
   switch (edit.field.kind) {
+    case "scalar":
+      return scalars.apply(draft, edit.field.field, edit.text);
     case "load":
       return applyLoadEdit(draft, edit.field.row, edit.text);
     case "rowTarget":
@@ -340,6 +384,7 @@ export function useSheetKeyboard({
   order,
   scrollRef,
   reduceMotion,
+  scalars = NO_SCALARS,
 }: {
   draft: ExecutionSheetDraft;
   surface: SheetSurfaceState;
@@ -349,7 +394,17 @@ export function useSheetKeyboard({
   order: readonly KeyboardFieldId[];
   scrollRef: RefObject<ScrollView | null>;
   reduceMotion: boolean;
+  /** Décision du 06/11/2026 : valeurs hors tableau saisies au clavier (fournies par la Feuille). */
+  scalars?: ScalarKeyboardFields;
 }): SheetKeyboard {
+  /**
+   * Décision du 06/11/2026 : sortie d'une valeur hors Brouillon (`external`) — appelée une fois, hors
+   * des mises à jour fonctionnelles, seulement si la saisie a changé.
+   */
+  const takeExternal = (edit: Pick<Edit, "field" | "text" | "initial"> | null) => {
+    if (edit === null || edit.text === edit.initial || edit.field.kind !== "scalar" || !scalars.isExternal(edit.field.field)) return;
+    scalars.external(edit.field.field, edit.text);
+  };
   const inputsRef = useRef(new Map<string, Registered>());
   // Champ qui a le focus natif (événements `focus` / `blur`).
   const focusedRef = useRef<KeyboardFieldId | null>(null);
@@ -441,10 +496,21 @@ export function useSheetKeyboard({
         return phaseLabelEditText(draft, field.phase);
       case "phaseDuration":
         return phaseDurationEditText(draft, field.phase);
+      case "scalar":
+        return scalars.editText(field.field);
     }
   }
 
   function onFocus(field: KeyboardFieldId) {
+    // Décision du 06/11/2026 (constat c) : focus d'un autre champ arrivé avant la perte de focus du
+    // précédent — la saisie en cours du précédent est appliquée d'abord, jamais perdue.
+    const previous = editRef.current;
+    if (previous !== null && !sameKeyboardField(previous.field, field)) {
+      editRef.current = null;
+      const taken = { field: previous.field, text: previous.text, initial: previous.initial };
+      commit((current) => applyEdit(current, taken, scalars));
+      takeExternal(taken);
+    }
     focusedRef.current = field;
     wantedRef.current = field;
     setFocusedKind(field.kind);
@@ -466,9 +532,10 @@ export function useSheetKeyboard({
     if (edit !== null || closing) {
       const taken = edit === null ? null : { field: edit.field, text: edit.text, initial: edit.initial };
       commit((current) => {
-        const applied = taken === null ? current : applyEdit(current, taken);
+        const applied = taken === null ? current : applyEdit(current, taken, scalars);
         return closing && field.kind === "load" ? normalizeDraftLoad(applied) : applied;
       });
+      takeExternal(taken);
     }
     if (closing) dispatchSurface({ type: "blur", field });
   }
@@ -494,7 +561,7 @@ export function useSheetKeyboard({
     const edit = editRef.current !== null && sameKeyboardField(editRef.current.field, field) ? editRef.current : null;
     const taken = edit === null ? null : { field: edit.field, text: edit.text, initial: edit.initial };
     const apply = (base: ExecutionSheetDraft) => {
-      const applied = taken === null ? base : applyEdit(base, taken);
+      const applied = taken === null ? base : applyEdit(base, taken, scalars);
       return toggleRowFailure(applied, applied.rowIds.indexOf(field.row));
     };
     const text = rowTargetEditText(apply(draft), field.row);
@@ -510,7 +577,10 @@ export function useSheetKeyboard({
   function flush(base: ExecutionSheetDraft): ExecutionSheetDraft {
     const edit = editRef.current;
     if (edit === null) return base;
-    const next = applyEdit(base, edit);
+    // Décision du 06/11/2026 : une valeur hors Brouillon (Récupération, Durée de l'exercice) n'est pas
+    // prise ici ; elle l'est à la sortie du champ, qui suit (focus retiré par la surface).
+    if (edit.field.kind === "scalar" && scalars.isExternal(edit.field.field)) return base;
+    const next = applyEdit(base, edit, scalars);
     edit.initial = edit.text;
     return next;
   }
@@ -549,7 +619,8 @@ export function useSheetKeyboard({
     if (edit !== null) {
       const taken = { field: edit.field, text: edit.text, initial: edit.initial };
       edit.initial = edit.text;
-      commit((base) => applyEdit(base, taken));
+      commit((base) => applyEdit(base, taken, scalars));
+      takeExternal(taken);
     }
     wantedRef.current = neighbour;
     setTyped(false);

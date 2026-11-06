@@ -19,7 +19,7 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
-import { chooseExecutionMode, pressInExecutionSheet } from "@/features/activities/testing/executionSheetActions";
+import { chooseExecutionMode, enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
 import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
@@ -119,9 +119,8 @@ async function fillNewExercise(name: string, mode: "Durée" | "Répétitions", z
   // PRE-4 story 3.1 : popover natif sur iOS, segmenté ailleurs.
   chooseExecutionMode(mode);
   if (mode === "Durée") {
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 30 } });
-    pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+    // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+    enterExecutionSheetValue("execution-sheet-target", 30);
   }
   // Répétitions : première sélection uniforme → cible initiale 1 (v13 §6).
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));

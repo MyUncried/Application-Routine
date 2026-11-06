@@ -225,11 +225,14 @@ export function EditorHeader({
   trailing,
   topInset,
   validate,
+  backIcon,
 }: {
   title: string;
   onClose: () => void;
   accessibilityLabel: string;
   trailing?: ReactNode;
+  /** Recette iPhone du 06/11/2026 (t-fiche-choix, t-cat-choix) : chevron Retour au lieu de la croix (`FixedHeader.backIcon`). */
+  backIcon?: boolean;
   /** Coche « Valider » à droite de l'en-tête (variante « Fermer et valider », §18–§19). */
   validate?: { readonly onPress: () => void; readonly enabled: boolean; readonly accessibilityLabel: string };
   /** Feuille : marge haute de l'en-tête (`FixedHeader.topInset`). */
@@ -252,6 +255,7 @@ export function EditorHeader({
       trailing={trailing}
       {...(topInset !== undefined ? { topInset } : {})}
       {...(validate !== undefined ? { validate } : {})}
+      {...(backIcon === true ? { backIcon } : {})}
     />
   );
 }

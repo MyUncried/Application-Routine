@@ -32,7 +32,8 @@ const get = (testID: string) => screen.getByTestId(testID, hidden);
 const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
 const duration = (n: number) => `execution-sheet-phase-row-${n}-duration`;
 const shownDuration = (n: number) => String(get(`${duration(n)}-value`).props.children);
-const totalText = () => String(get("execution-sheet-total-text").props.children);
+// Décision du 06/11/2026 (constat c) : Durée de l'exercice modifiable = champ clavier (`execution-sheet-total-value`) ; lecture seule : `execution-sheet-total-text`.
+const totalText = () => String((screen.queryByTestId("execution-sheet-total-value", hidden) ?? get("execution-sheet-total-text")).props.children);
 const validateDisabled = () => get("execution-sheet-validate").props.accessibilityState?.disabled === true;
 
 function params(workPhases: readonly WorkPhase[] = []): ExecutionParametersInput {

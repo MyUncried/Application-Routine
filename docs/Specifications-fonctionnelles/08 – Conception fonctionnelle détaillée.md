@@ -292,6 +292,9 @@ Dans le MVP, le Catalogue affiche le média associé dans la gouttière permanen
 <a id="parametres-exercice"></a>
 #### Paramètres et brouillon d’un exercice
 
+**Révision 06/11/2026 (décision de Hermann, constat c ; registre ch07, « Recette iPhone du 06/11/2026 ») :** « Paramètre d'exécution : n'utiliser que le clavier pour entrer les valeurs des champs, plus aucune roulette ou popover. » Toutes les valeurs de la feuille (séries, cible commune, durée de l'exercice, récupération, pauses, compte à rebours, fin, cadence « Autre », nombre de phases) se tapent dans leur champ, avec la barre au-dessus du clavier des Formats (Précédent, Suivant, Fermer) ; bornes appliquées à la saisie. Les mentions de roulette, de panneau de roue et de ± de cette feuille ci-dessous sont remplacées ; les contrôles segmentés et le menu Enchaînement restent.
+
+
 ##### Brouillon, bascules et normalisation
 
 La feuille travaille sur une copie des paramètres du parent. ✕/retour système annule toute l’ouverture. ✓ applique atomiquement l’état actif et valide au parent et régénère le résumé ; Terminer seul persiste l’Exercice. Les états alternatifs cachés servent au brouillon uniquement.

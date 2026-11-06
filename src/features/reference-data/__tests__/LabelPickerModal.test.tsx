@@ -248,11 +248,15 @@ describe("LabelPickerModal — recette 3 (N-03 : présentation alignée sur la C
     renderModal(fakeReferentialService());
     await screen.findByTestId("label-picker-tag-focus");
 
-    expect(StyleSheet.flatten(screen.getByTestId("label-picker-backdrop").props.style).justifyContent).toBe("flex-end");
+    // [« feuille ancrée en bas, hauteur au contenu (bornée à 90 %) » — remplacé le 06/11/2026 (x-dedans, Hermann : « Ouvrir
+    // toutes les modales de filtre comme une modale iOS, pareil pour les modales de catégorie, d'étiquette et de zone
+    // corporelle ») :] feuille native iOS, la carte la remplit.
+    expect(screen.UNSAFE_getByType(Modal).props).toMatchObject({ presentationStyle: "formSheet", animationType: "slide", allowSwipeDismissal: false });
+    expect(StyleSheet.flatten(screen.getByTestId("label-picker-backdrop").props.style)).toMatchObject({ flex: 1, backgroundColor: "#FFFFFF" });
     const sheet = StyleSheet.flatten(screen.getByTestId("label-picker-sheet").props.style);
     expect(sheet.width).toBe("100%");
     expect(sheet.height).toBeUndefined();
-    expect(sheet.maxHeight).toBe("90%");
+    expect(sheet.flex).toBe(1);
     const header = screen.getByTestId("label-picker-header");
     expect(StyleSheet.flatten(header.props.style)).toMatchObject({ borderBottomWidth: 1 });
     expect(within(header).getByTestId("label-picker-close")).toBeTruthy();

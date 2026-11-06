@@ -5,7 +5,13 @@ import { StyleSheet } from "react-native";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { numberTarget, type ExecutionParameters, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
-import { chooseExecutionSide, showExerciseDurationSignals } from "@/features/activities/testing/executionSheetActions";
+import {
+  chooseExecutionSide,
+  closeExecutionSheetField,
+  enterExecutionSheetValue,
+  openExecutionSheetField,
+  showExerciseDurationSignals,
+} from "@/features/activities/testing/executionSheetActions";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
@@ -75,17 +81,18 @@ function renderSheet({ parent = params(), recoverySeconds = 30, withRecovery = t
   return { onApply, onCancel, onRecovery, calls };
 }
 
-const recoveryText = () => String(get("execution-sheet-recovery-text").props.children);
+// Décision du 06/11/2026 (constat c) : Récupération saisie au clavier — valeur affichée `execution-sheet-recovery-value`.
+const recoveryText = () => String(get("execution-sheet-recovery-value").props.children);
 const background = (testID: string) => StyleSheet.flatten(get(testID).props.style).backgroundColor;
 const validate = () => fireEvent.press(get("execution-sheet-validate"));
 const cancel = () => fireEvent.press(get("execution-sheet-cancel"));
-/** Roulette de la Récupération (panneau sur iOS, en ligne ailleurs) : minute puis seconde de la grille 1 / 5 / 30 s. */
-function chooseOnWheel(minuteIndex: number, secondIndex: number) {
-  fireEvent.press(get("execution-sheet-recovery"));
-  const wheel = within(get("execution-sheet-recovery-wheel"));
-  fireEvent(wheel.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: minuteIndex } });
-  fireEvent(wheel.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: secondIndex } });
-  fireEvent.press(wheel.getByTestId("duration-wheel-validate"));
+/**
+ * [Roulette de la Récupération (grille 1 / 5 / 30 s, panneau ou en ligne) — remplacée le 06/11/2026,
+ * décision de Hermann (constat c) : saisie au clavier] : durée `seconds` tapée en « MMSS », appliquée
+ * à la sortie du champ.
+ */
+function enterRecovery(seconds: number) {
+  enterExecutionSheetValue("execution-sheet-recovery", seconds);
 }
 
 describe("PRE-9 (01/11/2026, point 2) — bloc Récupération de Paramètres d'exécution", () => {
@@ -125,10 +132,9 @@ describe("PRE-9 (01/11/2026, point 2) — bloc Récupération de Paramètres d'e
     expect(query("execution-sheet-frame-recovery")).toBeNull();
   });
 
-  it("roulette existante (grille 0..300 s) : la valeur choisie s'affiche ; ✓ l'applique au parent avant les paramètres", () => {
+  it("saisie au clavier (0..300 s) : la valeur tapée s'affiche ; ✓ l'applique au parent avant les paramètres [roulette — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
     const { onRecovery, onApply, calls } = renderSheet({ recoverySeconds: 30 });
-    // Minute 1, première seconde de la grille : 60 s.
-    chooseOnWheel(1, 0);
+    enterRecovery(60);
     expect(recoveryText()).toBe(formatPhraseDuration(60));
     expect(onRecovery).not.toHaveBeenCalled();
     validate();
@@ -137,22 +143,26 @@ describe("PRE-9 (01/11/2026, point 2) — bloc Récupération de Paramètres d'e
     expect(calls).toEqual(["recovery", "parameters"]);
   });
 
-  it("0 s se choisit (aucune récupération exécutée) ; ✕ n'applique rien", () => {
+  it("0 s se saisit (aucune récupération exécutée) ; ✕ n'applique rien", () => {
     const { onRecovery, onCancel } = renderSheet({ recoverySeconds: 30 });
-    chooseOnWheel(0, 0);
+    enterRecovery(0);
     expect(recoveryText()).toBe(formatPhraseDuration(0));
     cancel();
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onRecovery).not.toHaveBeenCalled();
   });
 
-  it("valeur historique hors grille (7 s) : ✓ de la roulette sans la tourner la conserve telle quelle", () => {
+  it("valeur historique (7 s) : entrer puis sortir du champ sans frappe la conserve ; saisie à la seconde, hors bornes ramenée à 300 s [roulette et sa grille — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
     const { onRecovery } = renderSheet({ recoverySeconds: 7 });
-    fireEvent.press(get("execution-sheet-recovery"));
-    fireEvent.press(within(get("execution-sheet-recovery-wheel")).getByTestId("duration-wheel-validate"));
+    openExecutionSheetField("execution-sheet-recovery");
+    closeExecutionSheetField("execution-sheet-recovery");
     expect(recoveryText()).toBe(formatPhraseDuration(7));
+    enterRecovery(13);
+    expect(recoveryText()).toBe(formatPhraseDuration(13));
+    enterRecovery(600);
+    expect(recoveryText()).toBe(formatPhraseDuration(300));
     validate();
-    expect(onRecovery).toHaveBeenCalledWith(7);
+    expect(onRecovery).toHaveBeenCalledWith(300);
   });
 });
 
@@ -160,18 +170,18 @@ describe("PRE-9 (01/11/2026, point 2) — défauts du Profil sur fond orange jus
   it("Exercice en attente : la Récupération reprise du Profil est sur fond orange, texte inchangé ; sinon rendu normal", () => {
     renderSheet({ pending: true });
     expect(background("execution-sheet-recovery")).toBe(ORANGE);
-    const pendingText = StyleSheet.flatten(get("execution-sheet-recovery-text").props.style);
+    const pendingText = StyleSheet.flatten(get("execution-sheet-recovery-value").props.style);
     expect(get("execution-sheet-recovery").props.accessibilityHint).toBe(t.profileDefaultHint);
     screen.unmount();
     renderSheet({ pending: false });
     expect(background("execution-sheet-recovery")).not.toBe(ORANGE);
     expect(get("execution-sheet-recovery").props.accessibilityHint).toBeUndefined();
-    expect(StyleSheet.flatten(get("execution-sheet-recovery-text").props.style)).toEqual(pendingText);
+    expect(StyleSheet.flatten(get("execution-sheet-recovery-value").props.style)).toEqual(pendingText);
   });
 
   it("changer la valeur avant ✓ garde l'orange (valeur initialisée depuis le Profil jusqu'au premier ✓) ; la valeur appliquée est celle choisie", () => {
     const { onRecovery } = renderSheet({ pending: true, recoverySeconds: 30 });
-    chooseOnWheel(1, 0);
+    enterRecovery(60);
     expect(background("execution-sheet-recovery")).toBe(ORANGE);
     validate();
     expect(onRecovery).toHaveBeenCalledWith(60);
@@ -181,31 +191,31 @@ describe("PRE-9 (01/11/2026, point 2) — défauts du Profil sur fond orange jus
     renderSheet({ pending: true });
     chooseExecutionSide("Avec");
     expect(String(get("execution-sheet-side-recovery-value").props.children)).toBe(formatPhraseDuration(12));
-    expect(background("execution-sheet-side-recovery-pill")).toBe(ORANGE);
+    expect(background("execution-sheet-side-recovery")).toBe(ORANGE);
     screen.unmount();
     renderSheet({ pending: true, parent: params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 }) });
-    expect(background("execution-sheet-side-recovery-pill")).not.toBe(ORANGE);
+    expect(background("execution-sheet-side-recovery")).not.toBe(ORANGE);
     screen.unmount();
     renderSheet({ pending: false });
     chooseExecutionSide("Avec");
-    expect(background("execution-sheet-side-recovery-pill")).not.toBe(ORANGE);
+    expect(background("execution-sheet-side-recovery")).not.toBe(ORANGE);
   });
 
   it("Compte à rebours et Fin affichés (Exercice du Catalogue) : orange avant le premier ✓, normal ensuite", () => {
     renderSheet({ pending: true, withRecovery: false, exerciseSignals: "present" });
     showExerciseDurationSignals();
-    expect(background("execution-sheet-countdown-pill")).toBe(ORANGE);
-    expect(background("execution-sheet-end-pill")).toBe(ORANGE);
+    expect(background("execution-sheet-countdown")).toBe(ORANGE);
+    expect(background("execution-sheet-end")).toBe(ORANGE);
     screen.unmount();
     renderSheet({ pending: false, withRecovery: false, exerciseSignals: "present" });
     showExerciseDurationSignals();
-    expect(background("execution-sheet-countdown-pill")).not.toBe(ORANGE);
-    expect(background("execution-sheet-end-pill")).not.toBe(ORANGE);
+    expect(background("execution-sheet-countdown")).not.toBe(ORANGE);
+    expect(background("execution-sheet-end")).not.toBe(ORANGE);
   });
 
   it("une valeur à renseigner garde son rouge : l'orange n'est jamais posé sur la Cible manquante", () => {
     renderSheet({ pending: true, parent: params({ series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0, loadKg: 0, workPhases: [] } }) });
     expect(background("execution-sheet-recovery")).toBe(ORANGE);
-    expect(query("execution-sheet-target-value") === null || background("execution-sheet-target-value") !== ORANGE).toBe(true);
+    expect(query("execution-sheet-target") === null || background("execution-sheet-target") !== ORANGE).toBe(true);
   });
 });

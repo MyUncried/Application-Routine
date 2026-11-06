@@ -555,6 +555,9 @@ export const fr = {
       // Recette du 05/11/2026 au soir (p-coche, Hermann) : bouton du bas du mode catalogue « Ajouter X mouvements ».
       addPickedOne: "Ajouter 1 mouvement",
       addPickedMany: "Ajouter {count} mouvements",
+      // Recette du 06/11/2026 (s-focus, Hermann : « Le bouton d'action du bas est "Fermer sans sélectionner" si aucun mouvement n'est
+      // sélectionné, puis devien "Ajouter X mouvements" lorsque des mouvements sont sélectionnés »).
+      closeWithoutSelecting: "Fermer sans sélectionner",
       // p-coche / p-ajout : « le bouton +Ajouter est remplacé par « revenir aux paramètres » après qu'il ait été sélectionné ».
       backToParameters: "Revenir aux paramètres",
       // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
@@ -1526,6 +1529,8 @@ export const fr = {
       validate: "Valider",
       edit: "Modifier le mouvement",
       close: "Fermer",
+      // Recette iPhone du 06/11/2026 (t-fiche-choix, t-cat-choix) : bouton Retour de la fiche d'un mouvement choisi.
+      back: "Retour",
       loadError: "Le mouvement n’a pas pu être chargé.",
       retry: "Réessayer",
       saveError: "Le mouvement n’a pas pu être enregistré. Vos saisies sont conservées.",
@@ -1583,6 +1588,10 @@ export const fr = {
         pileExpandHint: "Déplie la pile",
         pileCollapse: "Replier la pile",
         archivedAccessibility: "archivé",
+        // Recette iPhone du 06/11/2026 (t-niveau, Hermann : « un cadre en bas à droite "New" fond rouge, police blanche,
+        // majuscule ») : pastille d'un Mouvement nouvellement créé depuis le Catalogue.
+        newBadge: "NEW",
+        newAccessibility: "nouveau",
         // Recette A/B (D03) : croix d'effacement de la recherche.
         searchClear: "Effacer la recherche",
         // Recette A/B (B08, MFN-05) : réordonnancement des Niveaux d'une pile déployée.

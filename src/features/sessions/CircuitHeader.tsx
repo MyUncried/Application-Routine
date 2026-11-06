@@ -62,7 +62,9 @@ export const CIRCUIT_REVEAL_BEZIER = [0.4, 0, 0.2, 1] as const;
 const CIRCUIT_REVEAL_EASING = ReanimatedEasing.bezier(...CIRCUIT_REVEAL_BEZIER);
 /**
  * Contre-recette n° 5 du 01/11/2026 : délai maximal d'attente de la mesure du contenu avant un
- * déploiement (`useCircuitCardsReveal`, `onRevealStart`) ; au-delà, le déploiement part sans elle.
+ * déploiement (`useCircuitCardsReveal`, `onRevealStart`) ; [« au-delà, le déploiement part sans elle »
+ * — remplacé par la recette du 06/11/2026 (t-depli) :] au-delà, la progression part « à l'aveugle »
+ * (cartes et ligne des noms immobiles) ; la mesure tardive relance le déploiement depuis 0, avec elle.
  */
 export const CIRCUIT_REVEAL_START_FALLBACK_MS = 120;
 /** Hauteur maximale « libre » hors animation (aucune contrainte sur le contenu). */
@@ -783,6 +785,20 @@ function CollapsedNamesLine({ isCollapsed, text, testID }: { isCollapsed: boolea
  * mesure arrive en cours de route. `onRevealStart(hauteur naturelle)` est appelé dans la tâche même du
  * départ (fil JS) : l'écran y lance, sur le pilote natif, les translations qui accompagnent ce
  * déploiement avec la même courbe et la même durée.
+ *
+ * Recette du 06/11/2026 (t-depli, KO, Hermann : « Le comportement n’a pas changé, le premier déploiement
+ * se fait en se repliant d'abord. ») — cause : un Circuit monté replié (entrée et sortie du mode
+ * enveloppe, regroupement dans un Cycle) n'a jamais mesuré ses cartes. Sur iPhone, écran chargé, la
+ * mesure du contenu (`onLayout`, fil JS) arrive après le délai de secours
+ * (`CIRCUIT_REVEAL_START_FALLBACK_MS`, même constat que `CardMotionBlock`) : le déploiement partait sans
+ * hauteur — cartes bornées à 0 pendant que la ligne des noms se refermait (le cadre rétrécissait
+ * « jusqu'à cacher la ligne sous le nom »), puis la mesure tardive les ouvrait d'un coup. [Correctif du
+ * 05/11 au soir (r-tabata, `waiting`) : n'agissait que jusqu'au délai de secours — remplacé :]
+ * désormais un départ sans mesure est « à l'aveugle » (`blind`) : la liste reste affichée fermée
+ * (progression vue 0) et la ligne des noms ouverte (`waiting`) ; la mesure tardive relance le
+ * déploiement depuis 0 avec sa hauteur (ligne des noms refermée à ce départ réel, `onRevealStart`
+ * prévenu). Sans aucune mesure jusqu'à la fin de la progression (tests sans mise en page), l'état
+ * déployé est posé à la fin, comme avant.
  */
 export function useCircuitCardsReveal(
   collapsed: boolean,
@@ -808,11 +824,15 @@ export function useCircuitCardsReveal(
   }
   const progress = useSharedValue(collapsed ? 0 : 1);
   const naturalHeight = useSharedValue(0);
+  /** t-depli (06/11/2026) : 1 pendant un déploiement parti sans mesure — la liste est vue fermée (progression 0). */
+  const blind = useSharedValue(0);
   const previous = useRef(collapsed);
   /** Contre-recette n° 5 : hauteur naturelle du contenu connue du fil JS (dernière mesure). */
   const naturalRef = useRef(0);
   /** Contre-recette n° 5 : déploiement en attente de la mesure du contenu (`null` : aucun). */
   const pendingStartRef = useRef<(() => void) | null>(null);
+  /** t-depli : déploiement parti à l'aveugle, relancé par la mesure tardive (`null` : aucun). */
+  const lateStartRef = useRef<(() => void) | null>(null);
   const fallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onRevealStartRef = useRef(onRevealStart);
   useLayoutEffect(() => {
@@ -829,14 +849,28 @@ export function useCircuitCardsReveal(
     previous.current = collapsed;
     const finish = (isCollapsed: boolean) => {
       setAnimating(false);
+      // t-depli : fin d'un déploiement resté sans mesure — l'état déployé est posé, la ligne des noms se referme.
+      lateStartRef.current = null;
+      blind.set(0);
+      setWaiting(false);
       if (isCollapsed) setMounted(false);
     };
     const duration = reduceMotion ? 0 : collapsed ? CIRCUIT_HIDE_DURATION_MS : CIRCUIT_REVEAL_DURATION_MS;
     const start = () => {
       pendingStartRef.current = null;
-      setWaiting(false);
       if (fallbackRef.current !== null) clearTimeout(fallbackRef.current);
       fallbackRef.current = null;
+      // t-depli : déploiement sans hauteur connue (délai de secours écoulé) — à l'aveugle, relancé par la mesure.
+      const isBlind = !collapsed && measuresContent && naturalRef.current <= 0 && duration > 0;
+      blind.set(isBlind ? 1 : 0);
+      lateStartRef.current = isBlind
+        ? () => {
+            lateStartRef.current = null;
+            progress.set(0);
+            start();
+          }
+        : null;
+      if (!isBlind) setWaiting(false);
       progress.set(
         withTiming(collapsed ? 0 : 1, { duration, easing: CIRCUIT_REVEAL_EASING }, (finished) => {
           if (finished === true) scheduleOnRN(finish, collapsed);
@@ -853,13 +887,17 @@ export function useCircuitCardsReveal(
     }
     pendingStartRef.current = null;
     start();
-  }, [collapsed, measuresContent, progress, reduceMotion]);
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
-    marginTop: (progress.value - 1) * gap,
-    marginBottom: -progress.value * bottomOverlap,
-    maxHeight: circuitRevealMaxHeight(progress.value, naturalHeight.value, measuresContent),
-  }));
+  }, [blind, collapsed, measuresContent, progress, reduceMotion]);
+  const animatedStyle = useAnimatedStyle(() => {
+    // t-depli : à l'aveugle, la liste reste vue fermée (aucune marge ni hauteur ne bouge avant la mesure).
+    const shown = blind.value === 1 ? 0 : progress.value;
+    return {
+      opacity: shown,
+      marginTop: (shown - 1) * gap,
+      marginBottom: -shown * bottomOverlap,
+      maxHeight: circuitRevealMaxHeight(shown, naturalHeight.value, measuresContent),
+    };
+  });
   /** Mesure de la liste au repos (hauteur naturelle), base de l'animation suivante. */
   const onLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -875,8 +913,10 @@ export function useCircuitCardsReveal(
       naturalHeight.set(height);
       naturalRef.current = height;
       setHasMeasure(true);
-      // Contre-recette n° 5 : le déploiement en attente part avec cette mesure.
-      pendingStartRef.current?.();
+      // Contre-recette n° 5 : le déploiement en attente part avec cette mesure ; t-depli : un déploiement
+      // parti à l'aveugle (mesure arrivée après le délai de secours) repart depuis 0 avec elle.
+      if (pendingStartRef.current !== null) pendingStartRef.current();
+      else lateStartRef.current?.();
     },
     [naturalHeight],
   );

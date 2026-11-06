@@ -35,8 +35,8 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import {
   chooseExecutionMode,
   chooseExecutionSide,
-  pressInExecutionSheet,
   tapExecutionSheetStep,
+  enterExecutionSheetValue,
 } from "@/features/activities/testing/executionSheetActions";
 
 /**
@@ -183,19 +183,7 @@ function renderScreen(draftExercise: SessionDraftExercise | null = null) {
 const t = strings.screens.exercise;
 
 
-/**
- * `Platform.OS` par défaut dans cet environnement Jest (`jest-expo`) est
- * `"ios"` — `DurationWheelPicker` délègue donc à la roulette native SwiftUI
- * (voir `DurationWheelPicker.tsx`) ; les interactions ci-dessous utilisent
- * `fireNativeSelectionChange` (événement `selectionChange`), jamais
- * `fireEvent.scroll` (chemin Android/web uniquement).
- */
-function fireNativeSelectionChange(
-  element: ReturnType<typeof screen.getByTestId>,
-  selection: number,
-) {
-  fireEvent(element, "selectionChange", { nativeEvent: { selection } });
-}
+// [`fireNativeSelectionChange` (roulette de la Cible commune) — retiré le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
 
 
 beforeEach(() => {
@@ -324,10 +312,8 @@ function setDurationParameters() {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   // PRE-4 story 3.1 : popover natif sur iOS, segmenté ailleurs.
   chooseExecutionMode("Durée");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 0);
-  fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 45);
-  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 45);
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
 }
 
@@ -1343,7 +1329,8 @@ describe("ExerciseScreen — N hérité dans la Feuille (PRE-6, story 3.3)", () 
     canonicalOccurrence({ id: "in-1", structuralPosition: "IN_TOUR", ...overrides });
   const openSheet = () => fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   const seriesToggle = () => screen.getByTestId("execution-sheet-series-toggle");
-  const isLocked = () => seriesToggle().props.accessibilityState?.disabled === true;
+  // Décision du 06/11/2026 (constat c) : nombre libre = champ clavier (`execution-sheet-series`), sans `-toggle`.
+  const isLocked = () => screen.queryByTestId("execution-sheet-series-toggle")?.props.accessibilityState?.disabled === true;
   const reserve = { "in-1": [{ target: { kind: "NUMBER" as const, value: 60 }, pauseSeconds: 10, loadKg: 0 }] };
   const other = { "in-2": reserve["in-1"] };
   const seriesDraft = { circuitNature: "SERIES" as const, tourRepeatCount: 2, circuitSeriesReserve: { ...reserve, ...other } };
@@ -1380,7 +1367,8 @@ describe("ExerciseScreen — N hérité dans la Feuille (PRE-6, story 3.3)", () 
       renderRoute({ params: id === undefined ? {} : { exerciseId: id }, exercises: [exercise], draft });
       openSheet();
       expect(isLocked()).toBe(false);
-      expect(seriesToggle().props.accessibilityHint).toBeUndefined();
+      // Décision du 06/11/2026 (constat c) : nombre libre = champ clavier `execution-sheet-series`.
+      expect(screen.getByTestId("execution-sheet-series").props.accessibilityHint).toBeUndefined();
       screen.unmount();
     }
   });
@@ -1592,7 +1580,8 @@ describe("ExerciseScreen — disposition générale, Circuit alterné parmi d'au
   const hint = strings.executionParameters.circuit.inheritedSeriesCount;
   const modal = strings.screens.composition.circuitEntryConfirmModal;
   const openSheet = () => fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-  const isLocked = () => screen.getByTestId("execution-sheet-series-toggle").props.accessibilityState?.disabled === true;
+  // Décision du 06/11/2026 (constat c) : nombre libre = champ clavier (`execution-sheet-series`), sans `-toggle`.
+  const isLocked = () => screen.queryByTestId("execution-sheet-series-toggle")?.props.accessibilityState?.disabled === true;
   const member = (id: string, count = 2) =>
     canonicalOccurrence({ id, structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(30, count) });
   /** Circuit B groupé × 2 [g-1], puis Circuit A alterné × N [s-1] : le dernier Exercice affiché est dans A. */

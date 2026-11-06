@@ -13,6 +13,7 @@ import {
 } from "@/domain/sessions/formatModels";
 import { cellDurationSeconds, composeCellEntry, formatMmss, mmssDigitsOf, type CellEntryKind, type CellEntryState } from "@/features/activities/cellEntry";
 import { strings } from "@/shared/i18n";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors as tokenColors } from "@/shared/ui/tokens";
 
 /**
@@ -63,9 +64,25 @@ const COMPACT_LOAD_HEIGHT = 24;
 const SERIES_LINE_HEIGHT = 26;
 const SERIES_LOAD_LINE_HEIGHT = 16;
 const SERIES_ROW_PADDING = 4;
-const SERIES_SUBTITLE_HEIGHT = 14;
+const SERIES_SUBTITLE_HEIGHT = 16;
+/**
+ * Recette du 06/11/2026 (r-series, Hermann : « Rapprocher encore la ligne (rép., +kg) de la ligne du nom du mouvement. Aligner verticalement
+ * la ligne des valeurs de charge avec la ligne (rép., +kg) ») : la deuxième ligne (sous-titre du nom, charges) remonte de 4 sous la
+ * première, à la même hauteur des deux côtés. [Sous-titre de 14 et charges sous l'objectif sans recouvrement — remplacés.]
+ */
+const SERIES_SECOND_LINE_RISE = 4;
 const SERIES_NAMES_WIDTH = 128;
 const SERIES_VISIBLE_COLUMNS = 3;
+/**
+ * Recette du 06/11/2026 (n-cadres, r-colonnes, constat d, Hermann : « Aligner la colonne Mouvement et les noms de mouvement à droite avec les
+ * autres textes. Idem à gauche » ; « la colonne Max n'est pas alignée à droite », « La colonne mouvement n'est pas alignée à gauche » ;
+ * « un cadre gris, pas de deuxième cadre blanc, première colonne alignée avec les autres textes, idem pour la dernière colonne de série
+ * alignée à droite avec les autres textes ») : les tableaux occupent tout leur cadre gris, avec le retrait des lignes de paramètres (16) ;
+ * la dernière colonne est calée à droite, au retrait du texte des pastilles (16 + 10). [Retraits de 8 + 12, tableau AMRAP dans un second
+ * cadre, tableau Progression sur fond blanc — remplacés.]
+ */
+const TABLE_SIDE_INSET = 16;
+const SERIES_SIDE_INSET = TABLE_SIDE_INSET;
 /**
  * Recette du 05/11/2026 (n-charge-colonne, Hermann : « décaler la première colonne d'un tableau la plus à droite possible, en
  * respectant la marge […]. Réduire au minimum l'espace entre les colonnes pour laisser un maximum de place au nom du mouvement,
@@ -76,7 +93,7 @@ const FIT_REPETITIONS_WIDTH = 52;
 const FIT_INCREMENT_WIDTH = 58;
 const FIT_PAUSE_WIDTH = 60;
 const FIT_LOAD_WIDTH = 60;
-const FIT_MAX_WIDTH = 32;
+const FIT_MAX_WIDTH = 40;
 
 /** Largeur d'une colonne d'objectif : une durée possible (« 12 min 30 ») ou seulement des répétitions (« 10 rép. »). */
 function objectiveWidth(movements: readonly ModelMovement[], durationPossible: boolean): number {
@@ -130,10 +147,12 @@ export function hasSummaryTable(model: FormatModelKey, movements: readonly Model
   }
 }
 
-/** Modèles dont les valeurs de séries suivent S1 (« chaque série est préremplie avec la valeur de S1 », §14, §11). */
-function copiesFirstSeries(model: FormatModelKey): boolean {
-  return model === "EMOM" || model === "SUPERSET";
-}
+/**
+ * Recette du 06/11/2026 (n-emom, Hermann : « Il ne faut pas recopier la saisie d'une colonne vers une autre. Je ne sais pas d'où vient
+ * ce besoin. » ; t-coche-q : « une valeur doit être entrée manuellement pour chaque colonne sans recopie automatique » ; réponse A :
+ * « Oui retirée partout (c'est une erreur d'interprétation) ») : aucune colonne ne recopie S1.
+ * [Complément du 5 novembre 2026, §14, §11 : EMOM et Superset préremplis avec la valeur de S1 — remplacé.]
+ */
 
 /**
  * Ordre de Suivant (MAJ 04/11 §6 quater bis) : Progression et For time, objectif S1 → Sn (ou Tour 1 → n), puis
@@ -142,8 +161,15 @@ function copiesFirstSeries(model: FormatModelKey): boolean {
  */
 export function tableCellOrder(model: FormatModelKey, movements: readonly ModelMovement[], answers: ModelAnswers): string[] {
   const order: string[] = [];
-  // Complément du 5 novembre 2026 (Hermann), §16 : seules les charges appliquées au mouvement (« (+ kg) ») sont des cases à parcourir.
+  // Complément du 5 novembre 2026 (Hermann), §16 : seules les charges appliquées au mouvement (« (+ kg) ») sont des cases à parcourir —
+  // tableau des séries (For time, Progression, EMOM, Superset).
   const charged = (values: MovementValues) => answers.withLoad === true && values.loadOn === true;
+  // Recette du 06/11/2026 (r-suivant, Hermann : « Le tableau des écrans de type Tabata, 30/30, Renforcement, Death by... » ; réponse C :
+  // « ces 4 formats utilisent un tableau similaire. les "..." veut dire que s'il y a un autre format que j'ai oublié, il faut le corriger
+  // aussi » ; t-coche-direct : « il faut que le bouton Suivant mette aussi le focus sur charge (Objectif > Pause > Charge > Ligne
+  // suivante) ») : tableaux à une ligne par mouvement (Tabata, 30/30, Renforcement, À l'échec, Death by, AMRAP), la case de charge est
+  // toujours parcourue avec « Avec charge ».
+  const chargeColumn = answers.withLoad === true;
   movements.forEach((item, row) => {
     const values = item.values;
     switch (model) {
@@ -153,12 +179,12 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
           order.push(cellKey("obj", row));
           if (answers.increasingVolume === true && tour) order.push(cellKey("inc", row));
         }
-        if (charged(values)) order.push(cellKey("load", row));
+        if (chargeColumn) order.push(cellKey("load", row));
         return;
       }
       case "DEATH_BY":
         if (movements.length > 1) order.push(cellKey("start", row), cellKey("sinc", row));
-        if (movements.length > 1 && charged(values)) order.push(cellKey("load", row));
+        if (movements.length > 1 && chargeColumn) order.push(cellKey("load", row));
         return;
       case "TABATA":
       case "INTERVALS_30_30":
@@ -167,7 +193,7 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
         if (movements.length < 2) return;
         if (model !== "UNTIL_FAILURE") order.push(cellKey("obj", row));
         order.push(cellKey("pause", row));
-        if (charged(values)) order.push(cellKey("load", row));
+        if (chargeColumn) order.push(cellKey("load", row));
         return;
       case "EMOM":
       case "SUPERSET":
@@ -257,8 +283,20 @@ export function TableCell({
   entrySuffix = "",
   load = false,
   small = false,
+  pending = false,
+  alignEnd = false,
   testID,
 }: {
+  /**
+   * Recette du 06/11/2026 (t-coche-direct, Hermann : « après activation des charges, le cadre de valeur de la charge doit être orange » ;
+   * « mettre les cadres oranges avec un trait sur les champs charge qui ne sont pas renseignés ») : charge facultative à renseigner.
+   */
+  readonly pending?: boolean;
+  /**
+   * Dernière colonne d'un tableau — recette du 06/11/2026 (r-colonnes, n-cadres, constat d, Hermann : « la dernière colonne […]
+   * alignée à droite avec les autres textes ») : valeur calée à droite, au retrait du texte des pastilles des lignes de paramètres.
+   */
+  readonly alignEnd?: boolean;
   /** Charge sous l'objectif du tableau des séries (recette du 05/11/2026, n-charge-switch) : Regular 11, ligne de 16. */
   readonly small?: boolean;
   /** Complément du 5 novembre 2026 (Hermann) : case de charge — valeur entre parenthèses, Regular 12, case vide « (—) » grise. */
@@ -330,7 +368,28 @@ export function TableCell({
   // « Appuyer manuellement sur un champ doit positionner le curseur à droite de la valeur » : la saisie se compose par la
   // droite, le curseur y reste.
   const caret = focused ? { start: shown.length - suffix.length, end: shown.length - suffix.length } : undefined;
-  return (
+  const cellStyle = [
+    styles.cell,
+    badge ? styles.cellBadge : boxed ? null : { width },
+    boxed ? styles.cellBoxed : null,
+    compact ? styles.cellCompact : null,
+    tight ? styles.cellTight : null,
+    load ? styles.cellLoad : null,
+    small ? styles.cellSmall : null,
+    alignEnd ? styles.cellEnd : null,
+    disabled ? styles.cellDisabled : null,
+    !disabled && pending ? styles.cellPending : null,
+    !disabled && missing ? styles.cellMissing : null,
+    active || focused ? styles.cellActive : null,
+    focused && kind === "duration" && entry.text === "" ? styles.cellGuide : null,
+  ];
+  // Recette du 06/11/2026 (t-emom-duree, Hermann : « Je saisi 1230, en durée, Le tableau affiche 12 » ; « Champ Intervalle : le cadre est
+  // trop petit lorsqu'il a le focus, on ne voit pas tout le texte » ; t-coche-direct : « le cadre de la valeur récupération n'est pas assez
+  // large pour la durée lorsqu'il a le focus ») : sur iPhone, un champ de saisie sans largeur fixe garde la largeur de son premier texte.
+  // Les pastilles (lignes de paramètres) et les zones blanches (For time, EMOM, Superset) prennent donc la largeur d'un texte invisible
+  // identique à celui affiché ; le champ les recouvre exactement.
+  const autoWidth = badge || boxed;
+  const input = (
     <TextInput
       ref={inputRef}
       value={shown}
@@ -359,21 +418,18 @@ export function TableCell({
       placeholder={placeholder ?? t().dash}
       placeholderTextColor={load ? LOAD_EMPTY : missing || badge ? VALUE_COLOR : DISABLED_VALUE}
       accessibilityLabel={label}
-      style={[
-        styles.cell,
-        badge ? styles.cellBadge : boxed ? null : { width },
-        boxed ? styles.cellBoxed : null,
-        compact ? styles.cellCompact : null,
-        tight ? styles.cellTight : null,
-        load ? styles.cellLoad : null,
-        small ? styles.cellSmall : null,
-        disabled ? styles.cellDisabled : null,
-        !disabled && missing ? styles.cellMissing : null,
-        active || focused ? styles.cellActive : null,
-        focused && kind === "duration" && entry.text === "" ? styles.cellGuide : null,
-      ]}
+      style={autoWidth ? [...cellStyle, styles.cellOverlay] : cellStyle}
       testID={testID}
     />
+  );
+  if (!autoWidth) return input;
+  return (
+    <View style={boxed ? (alignEnd ? styles.cellSlotEnd : styles.cellSlotCentered) : null} pointerEvents="box-none">
+      <Text style={[...cellStyle, styles.cellSizer]} numberOfLines={1} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        {shown === "" ? (placeholder ?? t().dash) : shown}
+      </Text>
+      {input}
+    </View>
   );
 }
 
@@ -403,7 +459,7 @@ export function AmrapTable({
   const tt = t().table;
   const objectiveColumn = objectiveWidth(movements, movements.length > 1);
   return (
-    <View style={styles.table} testID="format-amrap-table">
+    <View style={[styles.table, styles.tableInFrame]} testID="format-amrap-table">
       <View style={styles.tableHeader}>
         <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
         <Text style={[styles.tableHead, { width: objectiveColumn }]}>{tt.objective}</Text>
@@ -418,7 +474,7 @@ export function AmrapTable({
         const name = rowName(item);
         const mode = values.mode;
         return (
-          <View key={item.exercise.id} style={[styles.tableRow, withLoad && values.loadOn === true ? styles.tableRowCharged : null]} testID={`format-amrap-row-${index}`}>
+          <View key={item.exercise.id} style={[styles.tableRow, index === movements.length - 1 ? styles.tableRowLast : null]} testID={`format-amrap-row-${index}`}>
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
@@ -455,7 +511,7 @@ export function AmrapTable({
               )
             ) : null}
             {withLoad ? (
-              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} onAddLoad={onAddLoad} cell={cell} testID={`format-amrap-load-${index}`} />
+              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} cell={cell} last={false} testID={`format-amrap-load-${index}`} />
             ) : null}
             {/* Recette du 05/11/2026 (n-charge-colonne, Hermann : « Max en Répétitions seulement ») : Max indisponible en Durée. */}
             <Pressable
@@ -481,8 +537,8 @@ export function AmrapTable({
 
 /**
  * Case de charge commune d'un mouvement (colonne Charge : AMRAP, Death by, Tabata, 30/30, Renforcement, À l'échec) — Complément du 5 novembre 2026 (Hermann),
- * §9, §16 : « (+ kg) » ajoute la charge de ce mouvement et ouvre le clavier ; chargé, la valeur « (12 kg) » au-dessus de
- * « (− kg) », qui la retire (valeurs gardées dans le brouillon).
+ * §9, §16 ; recette du 06/11/2026 (t-coche-direct) : case toujours présente, cadre orange tant qu'elle est vide.
+ * [« (+ kg) » ajoutait la charge et ouvrait le clavier ; chargé, « (12 kg) » au-dessus de « (− kg) » — remplacé.]
  */
 function ChargeCell({
   values,
@@ -490,8 +546,8 @@ function ChargeCell({
   name,
   width,
   onChange,
-  onAddLoad,
   cell,
+  last = true,
   testID,
 }: {
   readonly values: MovementValues;
@@ -499,36 +555,32 @@ function ChargeCell({
   readonly name: string;
   readonly width: number;
   readonly onChange: RowChange;
-  readonly onAddLoad: (index: number) => void;
   readonly cell: CellBinding;
+  /** Dernière colonne du tableau (toujours, sauf l'AMRAP où Max suit). */
+  readonly last?: boolean;
   readonly testID: string;
 }) {
   const tt = t().table;
-  if (values.loadOn !== true) {
-    return (
-      <View style={[styles.chargeSlot, { width }]}>
-        <ChargeToggle on={false} onPress={() => onAddLoad(index)} name={name} testID={`${testID}-add`} />
-      </View>
-    );
-  }
+  // Recette du 06/11/2026 (t-coche-direct, Hermann : « retirer (+kg), mettre les cadres oranges avec un trait sur les champs charge qui ne
+  // sont pas renseignés ») : la case de charge est toujours là (colonne Charge, « Avec charge ») ; vide, un trait dans un cadre orange.
+  // Une valeur saisie applique la charge au mouvement ; vidée, la charge est retirée. [« (+ kg) » / « (− kg) » — remplacés.]
+  const value = values.loadOn === true ? (values.loadKg ?? null) : null;
   return (
-    <View style={[styles.chargeSlot, { width }]}>
-      <TableCell
-        kind="decimal"
-        value={values.loadKg ?? null}
-        format={(value) => `(${formatLoad(value)})`}
-        placeholder={tt.loadEmpty}
-        entrySuffix=" kg"
-        width={width}
-        compact
-        load
-        onChange={(value) => onChange(index, { ...values, loadKg: value })}
-        {...cell(cellKey("load", index))}
-        label={`${name}, ${tt.load}`}
-        testID={testID}
-      />
-      <ChargeToggle on onPress={() => onChange(index, { ...values, loadOn: false })} name={name} testID={`${testID}-remove`} />
-    </View>
+    <TableCell
+      kind="decimal"
+      value={value}
+      format={(entered) => `(${formatLoad(entered)})`}
+      placeholder={t().dash}
+      entrySuffix=" kg"
+      width={width}
+      load
+      pending={value === null}
+      alignEnd={last}
+      onChange={(entered) => onChange(index, { ...values, loadKg: entered, loadOn: entered !== null })}
+      {...cell(cellKey("load", index))}
+      label={`${name}, ${tt.load}`}
+      testID={testID}
+    />
   );
 }
 
@@ -588,8 +640,8 @@ export function DeathByTable({
       <View style={styles.tableHeader}>
         <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
         <Text style={[styles.tableHead, { width: startColumn }]}>{tt.start}</Text>
-        <Text style={[styles.tableHead, { width: incrementColumn }]}>{tt.increment}</Text>
-        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }]}>{tt.load}</Text> : null}
+        <Text style={[styles.tableHead, { width: incrementColumn }, withLoad ? null : styles.headEnd]}>{tt.increment}</Text>
+        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }, styles.headEnd]}>{tt.load}</Text> : null}
       </View>
       {movements.map((item, index) => {
         const values = item.values;
@@ -597,7 +649,7 @@ export function DeathByTable({
         const mode = values.mode;
         const kind = mode === "DURATION" ? "duration" : "integer";
         return (
-          <View key={item.exercise.id} style={[styles.tableRow, withLoad && values.loadOn === true ? styles.tableRowCharged : null]} testID={`format-death-by-row-${index}`}>
+          <View key={item.exercise.id} style={[styles.tableRow, index === movements.length - 1 ? styles.tableRowLast : null]} testID={`format-death-by-row-${index}`}>
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
@@ -619,6 +671,7 @@ export function DeathByTable({
               format={(value) => `+ ${formatObjective(mode, value)}`}
               width={incrementColumn}
               placeholder="+"
+              alignEnd={!withLoad}
               missing={values.startIncrement == null || values.startIncrement < 1}
               onChange={(value) => onChange(index, { ...values, startIncrement: value })}
               {...cell(cellKey("sinc", index))}
@@ -626,7 +679,7 @@ export function DeathByTable({
               testID={`format-death-by-increment-${index}`}
             />
             {withLoad ? (
-              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} onAddLoad={onAddLoad} cell={cell} testID={`format-death-by-load-${index}`} />
+              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} cell={cell} testID={`format-death-by-load-${index}`} />
             ) : null}
           </View>
         );
@@ -669,8 +722,8 @@ export function ObjectivePauseTable({
       <View style={styles.tableHeader}>
         <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
         <Text style={[styles.tableHead, { width: objectiveColumn }]}>{tt.objective}</Text>
-        <Text style={[styles.tableHead, { width: FIT_PAUSE_WIDTH }]}>{tt.pause}</Text>
-        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }]}>{tt.load}</Text> : null}
+        <Text style={[styles.tableHead, { width: FIT_PAUSE_WIDTH }, withLoad ? null : styles.headEnd]}>{tt.pause}</Text>
+        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }, styles.headEnd]}>{tt.load}</Text> : null}
       </View>
       {movements.map((item, index) => {
         const values = item.values;
@@ -679,7 +732,7 @@ export function ObjectivePauseTable({
         const objective = values.repetitions !== undefined ? values.repetitions : mode === defaultMode ? (objectiveFallback ?? null) : null;
         const pause = values.pause ?? pauseFallback(index);
         return (
-          <View key={item.exercise.id} style={[styles.tableRow, withLoad && values.loadOn === true ? styles.tableRowCharged : null]} testID={`format-objective-row-${index}`}>
+          <View key={item.exercise.id} style={[styles.tableRow, index === movements.length - 1 ? styles.tableRowLast : null]} testID={`format-objective-row-${index}`}>
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
@@ -706,13 +759,14 @@ export function ObjectivePauseTable({
               value={pause}
               format={formatSeconds}
               width={FIT_PAUSE_WIDTH}
+              alignEnd={!withLoad}
               onChange={(value) => (value === null ? undefined : onChange(index, { ...values, pause: value }))}
               {...cell(cellKey("pause", index))}
               label={`${name}, ${tt.pause}`}
               testID={`format-pause-${index}`}
             />
             {withLoad ? (
-              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} onAddLoad={onAddLoad} cell={cell} testID={`format-objective-load-${index}`} />
+              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} cell={cell} testID={`format-objective-load-${index}`} />
             ) : null}
           </View>
         );
@@ -741,7 +795,8 @@ export function SeriesTable({
   /** For time (recette du 04/11/2026) : tableau sans fond, zones de saisie blanches, charges compactes. */
   readonly bare?: boolean;
   /**
-   * Complément du 5 novembre 2026 (Hermann), §11, §14 : EMOM (S1…Sn) et Superset (Tour 1…n) reprennent ce tableau ; chaque série est préremplie avec la valeur de S1.
+   * Complément du 5 novembre 2026 (Hermann), §11, §14 : EMOM (S1…Sn) et Superset (Tour 1…n) reprennent ce tableau. [Chaque série préremplie avec la
+   * valeur de S1 — remplacé le 06/11/2026 : chaque colonne se saisit à la main.]
    */
   readonly model: "FOR_TIME" | "PROGRESSION" | "EMOM" | "SUPERSET";
   readonly movements: readonly ModelMovement[];
@@ -761,7 +816,6 @@ export function SeriesTable({
   const [viewportWidth, setViewportWidth] = useState(0);
   const minimumWidth = movements.some((item) => item.values.mode === "DURATION") ? FIT_DURATION_WIDTH : SERIES_COLUMN_WIDTH;
   const columnWidth = viewportWidth > 0 ? Math.max(minimumWidth, Math.floor(viewportWidth / SERIES_VISIBLE_COLUMNS)) : minimumWidth;
-  const propagate = copiesFirstSeries(model);
   const charged = (values: MovementValues) => withLoad && values.loadOn === true;
   const scrollRef = useRef<ScrollView>(null);
   const scrollX = useRef(0);
@@ -771,9 +825,12 @@ export function SeriesTable({
     if (count > shownCount.current) scrollRef.current?.scrollToEnd({ animated: false });
     shownCount.current = count;
   }, [count]);
+  // Recette du 06/11/2026 (t-coche-q, Hermann : « mettre le focus sur une valeur de la dernière colonne du tableau décale les colonnes du
+  // tableau vers la gauche d'une colonne automatiquement, sauf si c'est la dernière. Cela permet de voir qu'il reste des colonnes à
+  // renseigner ») : la colonne suivante est rendue visible avec celle qui prend le focus.
   const revealColumn = (column: number) => {
     const left = column * columnWidth;
-    const right = left + columnWidth;
+    const right = left + columnWidth * (column < count - 1 ? 2 : 1);
     if (left < scrollX.current) scrollRef.current?.scrollTo({ x: left, animated: false });
     else if (right > scrollX.current + viewport.current) scrollRef.current?.scrollTo({ x: right - viewport.current, animated: false });
   };
@@ -790,7 +847,7 @@ export function SeriesTable({
   const heading = (column: number) => (model === "FOR_TIME" || model === "SUPERSET" ? tt.round : tt.series).replace("{n}", String(column + 1));
   // Ligne : objectif (aligné sur le nom), puis charge ou sous-titre « (rép, +kg) » du nom.
   const rowHeightOf = (values: MovementValues) =>
-    SERIES_ROW_PADDING * 2 + SERIES_LINE_HEIGHT + (charged(values) ? SERIES_LOAD_LINE_HEIGHT : SERIES_SUBTITLE_HEIGHT);
+    SERIES_ROW_PADDING * 2 + SERIES_LINE_HEIGHT - SERIES_SECOND_LINE_RISE + (charged(values) ? SERIES_LOAD_LINE_HEIGHT : SERIES_SUBTITLE_HEIGHT);
   const prefix = model === "FOR_TIME" ? "format-for-time" : model === "EMOM" ? "format-emom" : model === "SUPERSET" ? "format-superset" : "format-progression";
   const unitOf = (values: MovementValues) =>
     values.mode === undefined && model === "EMOM" ? t().dash : (values.mode ?? "REPETITIONS") === "DURATION" ? tt.durationUnitShort : tt.repetitionsUnitShort;
@@ -808,8 +865,8 @@ export function SeriesTable({
       return { ...values, volumes, loads };
     }
     let cells = values.cells ?? [];
-    if (patch.objective !== undefined) cells = withSeriesValue(cells, column, "repetitions", patch.objective, propagate);
-    if (patch.load !== undefined) cells = withSeriesValue(cells, column, "loadKg", patch.load, propagate);
+    if (patch.objective !== undefined) cells = withSeriesValue(cells, column, "repetitions", patch.objective, false);
+    if (patch.load !== undefined) cells = withSeriesValue(cells, column, "loadKg", patch.load, false);
     return { ...values, cells };
   };
   return (
@@ -819,7 +876,7 @@ export function SeriesTable({
           <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
         </View>
         {movements.map((item, index) => (
-          <View key={item.exercise.id} style={[styles.seriesNameRow, { height: rowHeightOf(item.values) }]}>
+          <View key={item.exercise.id} style={[styles.seriesNameRow, index === movements.length - 1 ? styles.tableRowLast : null, { height: rowHeightOf(item.values) }]}>
             <Text style={[styles.tableCellText, styles.seriesNameLine]} numberOfLines={1}>
               {rowName(item)}
             </Text>
@@ -848,7 +905,7 @@ export function SeriesTable({
         contentContainerStyle={styles.seriesScrollContent}
         onLayout={(event) => {
           viewport.current = event.nativeEvent.layout.width;
-          const width = event.nativeEvent.layout.width - 12;
+          const width = event.nativeEvent.layout.width - SERIES_SIDE_INSET;
           setViewportWidth((current) => (current === width ? current : width));
         }}
         onScroll={(event) => {
@@ -860,7 +917,7 @@ export function SeriesTable({
         <View style={styles.seriesBody}>
           <View style={[styles.seriesHeader, styles.seriesCells]}>
             {columns.map((column) => (
-              <Text key={column} style={[styles.tableHead, { width: columnWidth }]}>
+              <Text key={column} style={[styles.tableHead, { width: columnWidth }, column === count - 1 ? styles.headEnd : null]}>
                 {heading(column)}
               </Text>
             ))}
@@ -871,7 +928,7 @@ export function SeriesTable({
             // Buy-in / buy-out du For time : une seule exécution (première colonne).
             const shown = model === "FOR_TIME" && movementRole(item) !== "TOUR" ? 1 : count;
             return (
-              <View key={item.exercise.id} style={[styles.seriesRow, styles.seriesValueRow, styles.seriesCells, { height: rowHeightOf(values) }]}>
+              <View key={item.exercise.id} style={[styles.seriesRow, styles.seriesValueRow, styles.seriesCells, index === movements.length - 1 ? styles.tableRowLast : null, { height: rowHeightOf(values) }]}>
                 {columns.map((column) => {
                   if (column >= shown) return <View key={column} style={{ width: columnWidth }} />;
                   const objective = objectiveAt(values, column);
@@ -885,6 +942,7 @@ export function SeriesTable({
                         missing={objective === null || overflow.some((cellAt) => cellAt.index === index && cellAt.column === column)}
                         width={columnWidth}
                         boxed={bare}
+                        alignEnd={column === count - 1}
                         tight
                         onChange={(value) => onChange(index, set(values, column, { objective: value }))}
                         {...bind(cellKey("obj", index, column), column)}
@@ -905,6 +963,7 @@ export function SeriesTable({
                           // n-charge-switch : charges plus petites, serrées sous l'objectif, dans tous les tableaux des séries.
                           compact
                           small
+                          alignEnd={column === count - 1}
                           barOnly={bare}
                           onChange={(value) => onChange(index, set(values, column, { load: value }))}
                           {...bind(cellKey("load", index, column), column)}
@@ -926,10 +985,15 @@ export function SeriesTable({
 
 const styles = StyleSheet.create({
   table: { marginHorizontal: 16, marginTop: 12, borderRadius: 16, backgroundColor: PANEL, overflow: "hidden" },
-  tableHeader: { flexDirection: "row", alignItems: "center", height: 28, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
+  tableHeader: { flexDirection: "row", alignItems: "center", height: 28, paddingHorizontal: TABLE_SIDE_INSET, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
+  // Dernière colonne : titre calé à droite comme ses valeurs.
+  headEnd: { textAlign: "right", paddingRight: 10 },
   tableHead: { width: COLUMN_WIDTH, textAlign: "center", fontFamily: "Inter_400Regular", fontSize: 12, color: SECTION },
   tableName: { flex: 1, textAlign: "left", width: undefined },
-  tableRow: { flexDirection: "row", alignItems: "center", minHeight: ROW_HEIGHT, paddingHorizontal: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
+  tableRow: { flexDirection: "row", alignItems: "center", minHeight: ROW_HEIGHT, paddingHorizontal: TABLE_SIDE_INSET, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
+  // Recette du 06/11/2026 (t-coche-q, Hermann : « supprimer la dernière barre verticale d'un cadre si elle existe ») : pas de trait sous la
+  // dernière ligne d'un tableau.
+  tableRowLast: { borderBottomWidth: 0 },
   tableCellText: { fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   tableDash: { width: COLUMN_WIDTH, textAlign: "center", color: DISABLED_VALUE },
   unitText: { textAlign: "center", fontFamily: "Inter_400Regular", fontSize: 12, color: SECTION },
@@ -949,15 +1013,15 @@ const styles = StyleSheet.create({
   cellLoad: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, backgroundColor: "transparent" },
   chargeToggle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, color: VALUE_COLOR },
   chargeSlot: { alignItems: "center", justifyContent: "center", gap: 2 },
-  tableRowCharged: { minHeight: 44 },
   tableInFrame: { backgroundColor: "transparent", marginHorizontal: 0, marginTop: 0 },
   failureText: { textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", color: LABEL },
   cellBadge: { minHeight: 26, minWidth: 48, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: "#FFFFFF" },
-  maxHead: { width: FIT_MAX_WIDTH },
-  maxSlot: { width: FIT_MAX_WIDTH },
+  // r-colonnes (06/11/2026) : pastille Max calée à droite, titre centré au-dessus.
+  maxHead: { width: FIT_MAX_WIDTH, textAlign: "right", paddingRight: 8 },
+  maxSlot: { width: FIT_MAX_WIDTH, alignItems: "flex-end", paddingRight: 10 },
   seriesTableBare: { marginVertical: 0, backgroundColor: "transparent" },
-  seriesNamesBare: { paddingLeft: 0 },
-  seriesCellBare: { gap: 2 },
+  seriesNamesBare: { paddingLeft: SERIES_SIDE_INSET },
+  seriesCellBare: { gap: 0 },
   // Recette du 05/11/2026 (e-fortime-unite, Hermann : « Décaler encore au maximum à droite ») : unité calée contre les tours.
   unitTextBare: { textAlign: "right", paddingRight: 4 },
   unitColumn: { alignItems: "center", justifyContent: "center", gap: 2 },
@@ -965,6 +1029,15 @@ const styles = StyleSheet.create({
   // Contre-recette n° 3 ter du 03/11/2026 (« Les champs de valeur du tableau encore à renseigner doivent être avec un
   // fond rouge ») : fond rouge léger des valeurs à renseigner ou en cause.
   cellMissing: { backgroundColor: tokenColors.dangerSurface },
+  // Recette du 06/11/2026 (t-coche-direct) : charge à renseigner, cadre orange (couleurs « à vérifier » existantes).
+  cellPending: { backgroundColor: toVerifyColors.surface, borderWidth: 1, borderColor: toVerifyColors.border },
+  // Dernière colonne : texte calé à droite, au retrait du texte des pastilles (10).
+  cellEnd: { textAlign: "right", paddingRight: 10 },
+  // Largeur suivant le texte (voir `TableCell`) : texte invisible qui dimensionne, champ posé par-dessus.
+  cellSizer: { opacity: 0 },
+  cellOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, minWidth: 0 },
+  cellSlotCentered: { alignSelf: "center" },
+  cellSlotEnd: { alignSelf: "flex-end" },
   // MAJ 04/11 §4.5 : la case en cours de saisie est surlignée.
   cellActive: { backgroundColor: "#E8E9FF" },
   radioSlot: { width: COLUMN_WIDTH, alignItems: "center", justifyContent: "center", minHeight: ROW_HEIGHT },
@@ -972,9 +1045,9 @@ const styles = StyleSheet.create({
   radioOn: { borderColor: VALUE_COLOR, backgroundColor: VALUE_COLOR },
   radioDisabled: { borderColor: DISABLED_VALUE, opacity: 0.5 },
   radioDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FFFFFF" },
-  seriesTable: { marginVertical: 8, borderRadius: 8, backgroundColor: "#FFFFFF", overflow: "hidden" },
+  seriesTable: { overflow: "hidden" },
   seriesColumns: { flexDirection: "row" },
-  seriesNames: { width: SERIES_NAME_WIDTH + SERIES_UNIT_WIDTH, paddingLeft: 12 },
+  seriesNames: { width: SERIES_NAME_WIDTH + SERIES_UNIT_WIDTH, paddingLeft: SERIES_SIDE_INSET },
   seriesHeader: { flexDirection: "row", alignItems: "center", height: 28, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
   seriesRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
   seriesCells: { justifyContent: "flex-end" },
@@ -982,10 +1055,10 @@ const styles = StyleSheet.create({
   seriesBody: { flexGrow: 1 },
   seriesNameRow: { justifyContent: "flex-start", paddingTop: SERIES_ROW_PADDING, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
   seriesNameLine: { height: SERIES_LINE_HEIGHT, lineHeight: SERIES_LINE_HEIGHT },
-  seriesSubtitle: { flexDirection: "row", alignItems: "center", height: SERIES_SUBTITLE_HEIGHT },
+  seriesSubtitle: { flexDirection: "row", alignItems: "center", height: SERIES_SUBTITLE_HEIGHT, marginTop: -SERIES_SECOND_LINE_RISE },
   seriesSubtitleText: { fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
   seriesValueRow: { alignItems: "flex-start", paddingTop: SERIES_ROW_PADDING },
-  cellSmall: { minHeight: SERIES_LOAD_LINE_HEIGHT, paddingVertical: 0, fontSize: 11, lineHeight: SERIES_LOAD_LINE_HEIGHT },
+  cellSmall: { minHeight: SERIES_LOAD_LINE_HEIGHT, paddingVertical: 0, fontSize: 11, lineHeight: SERIES_LOAD_LINE_HEIGHT, marginTop: -SERIES_SECOND_LINE_RISE },
   seriesScroll: { flex: 1 },
-  seriesScrollContent: { flexGrow: 1, paddingRight: 12 },
+  seriesScrollContent: { flexGrow: 1, paddingRight: SERIES_SIDE_INSET },
 });

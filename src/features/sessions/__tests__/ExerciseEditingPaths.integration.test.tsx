@@ -43,6 +43,7 @@ import {
   openExecutionSheetField,
   showExerciseDurationSignals,
   tapExecutionSheetStep,
+  enterExecutionSheetValue,
 } from "@/features/activities/testing/executionSheetActions";
 import { openMediaMenu } from "@/features/activities/testing/mediaMenu";
 import { strings } from "@/shared/i18n";
@@ -341,9 +342,8 @@ async function fillNewExercise(name: string) {
   });
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   chooseExecutionMode("Durée");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 45 } });
-  fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 45);
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
 }
 
@@ -636,7 +636,7 @@ function toggleMixedSheetAndValidate() {
   moveRow(2, "moveDown");
   tap("execution-sheet-series-decrement");
   tap("execution-sheet-series-decrement");
-  expect(screen.getByTestId("execution-sheet-series-value").props.children).toBe("1 série");
+  expect(screen.getByTestId("execution-sheet-series-value").props.children).toBe("1 série identique"); // libellé de l'option (saisie au clavier, 06/11/2026)
   tap("execution-sheet-series-increment");
   tap("execution-sheet-series-increment");
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
@@ -776,7 +776,7 @@ function toggleOpenSheetAndValidate() {
   moveRow(2, "moveDown");
   tap("execution-sheet-series-decrement");
   tap("execution-sheet-series-decrement");
-  expect(screen.getByTestId("execution-sheet-series-value").props.children).toBe("1 série");
+  expect(screen.getByTestId("execution-sheet-series-value").props.children).toBe("1 série identique"); // libellé de l'option (saisie au clavier, 06/11/2026)
   tap("execution-sheet-series-increment");
   tap("execution-sheet-series-increment");
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
@@ -819,14 +819,12 @@ function shownSeconds(text: string): number {
  * Lève si la valeur n'est pas atteinte.
  */
 function stepTo(id: string, expected: string) {
-  const read = () => String(screen.getByTestId(`${id}-value`, hidden).props.children);
-  const target = shownSeconds(expected);
-  for (let guard = 0; guard < 60 && read() !== expected; guard += 1) {
-    const before = read();
-    tap(`${id}-${shownSeconds(before) < target ? "increment" : "decrement"}`);
-    if (read() === before) break;
+  // [Appuis ± dans le sens de la cible — remplacés le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : la valeur est tapée.]
+  enterExecutionSheetValue(id, shownSeconds(expected));
+  // La Cadence se range à la sortie de son champ (valeur relue dans l'option Autre).
+  if (screen.queryByTestId(`${id}-value`, hidden)) {
+    expect(String(screen.getByTestId(`${id}-value`, hidden).props.children)).toBe(expected);
   }
-  expect(read()).toBe(expected);
 }
 
 /**
@@ -845,10 +843,9 @@ function enterMixedTargetsOnNewExercise(context: "catalogue" | "session" = "cata
   expect((sheetSpy.mock.calls.at(-1)![0] as { exerciseSignals?: string }).exerciseSignals ?? "present").toBe(
     context === "session" ? "absent" : "present",
   );
-  for (let guard = 0; guard < 5 && screen.getByTestId("execution-sheet-series-value").props.children !== "3 séries"; guard += 1) {
-    tap("execution-sheet-series-increment");
-  }
-  expect(screen.getByTestId("execution-sheet-series-value").props.children).toBe("3 séries");
+  // [± du nombre de séries jusqu'à « 3 séries » — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  enterExecutionSheetValue("execution-sheet-series", 3, "integer");
+  expect(screen.getByTestId("execution-sheet-series-value").props.children).toBe("3 séries identiques");
   chooseExecutionRegime("variables");
   enterRowTarget(1, 30);
   enterRowTarget(2, 45);
@@ -1035,7 +1032,7 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     // point 2) : la Feuille d'un Exercice de Séance porte le bloc 6 « Récupération », seule ligne ;
     // un Exercice sans récupération antérieure y affiche 0 s.]
     expect(within(screen.getByTestId("execution-sheet-frame-recovery")).getByTestId("execution-sheet-row-recovery")).toBeTruthy();
-    expect(String(screen.getByTestId("execution-sheet-recovery-text").props.children)).toBe("0 s");
+    expect(String(screen.getByTestId("execution-sheet-recovery-value").props.children)).toBe("0 s");
   }, 30000);
 });
 

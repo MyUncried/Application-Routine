@@ -2158,6 +2158,27 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   useLayoutEffect(() => {
     layoutCollapsedRef.current = layoutCollapsed;
   });
+  /**
+   * Recette du 06/11/2026 (t-depli, Hermann : « lorsqu'on clique sur Créer > Ajouter un cycle, la séance doit avoir ses circuits
+   * replié ») : l'entrée en mode enveloppe d'un Cycle replie tous les Circuits de la Séance (disposition générale et Circuit
+   * unique de l'ancien modèle) — état de l'écran, brouillon inchangé ; ils restent repliés après le mode (Confirmer ou Annuler),
+   * chacun se déplie ensuite au toucher. Mêmes gardes que `enterEnvelope`.
+   */
+  const enterCycleEnvelope = () => {
+    if (draggedKeyRef.current !== null || placement !== null) return;
+    if (richLayout !== null) {
+      setLayoutCollapsed((current) => {
+        const next = new Map(current);
+        for (const circuit of structureCircuits(richLayout)) {
+          if (circuit.exercises.length > 0) next.set(circuit.id, layoutContentKeyOf(circuit));
+        }
+        return next;
+      });
+    } else if (hasLegacyCircuit) {
+      setCircuitCollapsedContent(circuitContentKey);
+    }
+    enterEnvelope("CYCLE");
+  };
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
   // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
   const occurrenceCircuitContext: OccurrenceCircuitContext = {
@@ -5605,7 +5626,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               key: "cycle",
               label: addToSession.addCycle,
               icon: "cycle",
-              onPress: cycleEnvelopeCandidates.length > 0 ? () => enterEnvelope("CYCLE") : undefined,
+              // t-depli (06/11/2026) : les Circuits de la Séance sont repliés à l'entrée du mode (`enterCycleEnvelope`).
+              onPress: cycleEnvelopeCandidates.length > 0 ? enterCycleEnvelope : undefined,
               testID: "composition-add-activity-tree-cycle",
             },
           ]}
@@ -5618,6 +5640,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       {carrierDurationEdit !== null ? (
         <CarrierDurationSheet
           seconds={carrierDurationEdit.seconds}
+          // Décision de Hermann du 06/11/2026 (constat c) : durée saisie au clavier, avec le libellé du réglage.
+          label={strings.screens.composition.carrier.durationLabels[carrierDurationEdit.setting]}
           allowsNone={carrierDurationEdit.setting === "timeCapSeconds"}
           onValidate={(seconds) => {
             const edit = carrierDurationEdit;

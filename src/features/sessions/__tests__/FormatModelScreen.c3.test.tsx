@@ -294,11 +294,12 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-movements-link").props.accessibilityState).toMatchObject({ disabled: true });
     toSummary();
     expect(screen.getByTestId("format-superset-table")).toBeTruthy();
-    // Chaque tour prérempli avec la valeur du premier.
+    // Recette du 06/11/2026 (n-emom, réponse A de Hermann : « Oui retirée partout ») : aucune recopie du premier tour.
+    // [Chaque tour prérempli avec la valeur du premier — remplacé.]
     const first = screen.getByTestId("format-superset-0-0-reps");
     fireEvent(first, "focus");
     fireEvent.changeText(first, "12");
-    expect(screen.getByTestId("format-superset-0-2-reps").props.value).toBe("12");
+    expect(screen.getByTestId("format-superset-0-2-reps").props.value).toBe("");
   });
 
   it("complément du 05/11 (§9, §16) : « Avec charge » dans tous les questionnaires ; (+ kg) par mouvement ; (− kg) puis (+ kg) retrouve la valeur ; interrupteur coupé puis rétabli aussi", async () => {
@@ -585,8 +586,9 @@ describe("FormatModelScreen", () => {
     // Effacement : tous les mouvements.
     fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "");
     expect(await screen.findByTestId("format-catalogue-card-mv-fentes")).toBeTruthy();
-    expect(screen.getByTestId("format-catalogue-add").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(within(screen.getByTestId("format-bottom-action")).getByTestId("format-catalogue-add")).toBeTruthy();
+    // Recette du 06/11/2026 (s-focus) : sans sélection, « Fermer sans sélectionner », actif. [« Ajouter » grisé — remplacé.]
+    expect(screen.getByTestId("format-catalogue-add").props.accessibilityState?.disabled ?? false).toBe(false);
+    expect(within(screen.getByTestId("format-bottom-action")).getByText("Fermer sans sélectionner")).toBeTruthy();
     fireEvent.press(screen.getByTestId("format-catalogue-card-mv-fentes"));
     expect(screen.getByText("Ajouter 1 mouvement")).toBeTruthy();
     fireEvent.press(screen.getByTestId("format-catalogue-card-mv-squats"));
@@ -606,6 +608,13 @@ describe("FormatModelScreen", () => {
     expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
     expect(screen.getByTestId("format-parameters")).toBeTruthy();
     expect(mockDismiss).not.toHaveBeenCalled();
+    // « Fermer sans sélectionner » (s-focus, 06/11/2026) : même effet, sans ajout.
+    fireEvent.press(screen.getByTestId("format-movements-link"));
+    await screen.findByTestId("format-catalogue-card-mv-fentes");
+    fireEvent.press(screen.getByTestId("format-catalogue-add"));
+    expect(screen.queryByTestId("format-catalogue")).toBeNull();
+    expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
+    expect(screen.getByTestId("format-parameters")).toBeTruthy();
     // « La croix annule la création du format » (p-ajout), mode catalogue ouvert ou non.
     fireEvent.press(screen.getByTestId("format-movements-link"));
     expect(screen.getByTestId("screen-header-back").props.accessibilityLabel).toBe(t.closeAccessibilityLabel);
@@ -680,6 +689,14 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
     fireEvent(cell, "focus");
     fireEvent.changeText(cell, "12");
+    // Recette du 06/11/2026 (n-emom) : S1 ne se recopie plus ; S2…S6 restent à renseigner, l'enregistrement reste indisponible.
+    expect(screen.getByTestId("format-emom-0-1-reps").props.value).toBe("");
+    expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
+    for (let column = 1; column < 6; column += 1) {
+      const next = screen.getByTestId(`format-emom-0-${column}-reps`);
+      fireEvent(next, "focus");
+      fireEvent.changeText(next, "12");
+    }
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
@@ -710,6 +727,19 @@ describe("FormatModelScreen", () => {
     // Retour à un mouvement : le tableau disparaît.
     fireEvent(screen.getByTestId("format-movement-1-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     expect(screen.queryByTestId("format-death-by-table")).toBeNull();
+  });
+
+  it("recette du 06/11 (n-deathby) : Death by à deux mouvements — « Récupération entre les mouvements » avant « Condition d'arrêt »", async () => {
+    mockModel = "DEATH_BY";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    const order = screen.UNSAFE_root.findAll((node) => typeof node.props.testID === "string" && /^format-row-/.test(node.props.testID) && typeof node.type !== "string")
+      .map((node) => node.props.testID as string)
+      .filter((id, at, all) => all.indexOf(id) === at);
+    expect(order.indexOf("format-row-recoveryBetweenSeconds")).toBeGreaterThanOrEqual(0);
+    expect(order.indexOf("format-row-recoveryBetweenSeconds")).toBeLessThan(order.indexOf("format-row-stop"));
   });
 
   it("recette du 04/11 (e-contexte-fixe, e-cat-fixe, e-cat-recherche) : zone de contexte figée ; en mode catalogue elle porte l'en-tête et la recherche (même champ, croix intérieure)", async () => {
@@ -869,6 +899,10 @@ describe("FormatModelScreen", () => {
     // Mode catalogue : la recherche figée se place à l'emplacement de la ligne « Mouvements ».
     fireEvent.press(screen.getByTestId("format-movements-link"));
     expect(StyleSheet.flatten(screen.getByTestId("format-search-zone").props.style)).toMatchObject({ top: 101 + 16 });
+    // Recette du 06/11/2026 (t-recherche) : blanc opaque depuis le bas de la zone de contexte (101) jusqu'au bas de la recherche.
+    const background = StyleSheet.flatten(screen.getByTestId("format-search-zone-background").props.style);
+    expect(background).toMatchObject({ top: -16, bottom: 0, backgroundColor: "#FFFFFF" });
+    expect(background.opacity).toBeUndefined();
   });
 
 

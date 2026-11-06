@@ -31,6 +31,7 @@ import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
 import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
+import { enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
 
 /**
  * PRE-6 story 4.3 — pauses de bout en bout, sur une vraie base SQLite migrée
@@ -135,8 +136,6 @@ async function seedAndRender(stopPoints: NonNullable<SessionDraft["stopPoints"]>
 const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children as string;
 const recoveryLabel = (name: string) => placement.addRecoveryAccessibilityLabel.replace("{exercise}", name);
 const stopLabel = (name: string) => placement.addStopPointAccessibilityLabel.replace("{exercise}", name);
-const nativeChange = (testID: string, selection: number) =>
-  fireEvent(screen.getByTestId(testID), "selectionChange", { nativeEvent: { selection } });
 
 /**
  * PRE-9 (01/11/2026, point 2) : Récupération de l'Exercice réglée par sa feuille de paramètres
@@ -146,10 +145,9 @@ async function setRecoveryInSheet(exerciseId: string, minuteIndex: number, secon
   await act(async () => {
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${exerciseId}`));
   });
-  fireEvent.press(await screen.findByTestId("execution-sheet-recovery"));
-  nativeChange("duration-wheel-minutes", minuteIndex);
-  nativeChange("duration-wheel-seconds", secondIndex);
-  fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+  await screen.findByTestId("execution-sheet-recovery");
+  // [Roulette (minute, seconde, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  enterExecutionSheetValue("execution-sheet-recovery", minuteIndex * 60 + secondIndex);
   await act(async () => {
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   });
@@ -280,7 +278,7 @@ describe("Pauses de bout en bout : Récupération par les paramètres, points pa
       await act(async () => {
         fireEvent.press(screen.getByTestId("composition-exercise-row-ex-b"));
       });
-      expect(String((await screen.findByTestId("execution-sheet-recovery-text")).props.children)).toBe("45 s");
+      expect(String((await screen.findByTestId("execution-sheet-recovery-value")).props.children)).toBe("45 s");
       await act(async () => {
         fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
       });

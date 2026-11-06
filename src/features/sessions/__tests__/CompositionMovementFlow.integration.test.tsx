@@ -2,11 +2,12 @@ import { router as expoRouter } from "expo-router";
 import { act, fireEvent, renderRouter, screen, waitFor, within } from "expo-router/testing-library";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
+import { StyleSheet } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
-import { chooseExecutionMode } from "@/features/activities/testing/executionSheetActions";
+import { chooseExecutionMode, enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
 import { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { ReferentialService } from "@/features/reference-data/ReferentialService";
@@ -22,6 +23,7 @@ import { SqliteProfileRepository } from "@/infrastructure/database/repositories/
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
@@ -185,9 +187,8 @@ async function tapCard(name: string) {
 /** Feuille de paramètres : mode Durée, 45 s, ✓. */
 async function setDuration45() {
   chooseExecutionMode("Durée");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 45 } });
-  fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 45);
   await act(async () => {
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   });
@@ -308,6 +309,70 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
     // Paramètres à compléter : l'Exercice est posé après le précédent.
     expect(cardNames()).toEqual(["Squats", "Pompes"]);
+  }, 40000);
+
+  // Recette iPhone du 06/11/2026 (t-fiche-choix, Hermann : « il faut aussi que le résultat de la recherche disparaisse, que la Croix
+  // se transforme en bouton retour, et que le nom du mouvement soit remplacé par celui du mouvement sélectionné et que le contenu soit
+  // celui de la fiche sélectionnée et en lecture seule (catégorie, zone corporelle, niveau, média, description et phase). Appuyer sur
+  // le bouton retour, ramène à la fiche de mouvement telle qu’elle était avant d’avoir sélectionné le mouvement du résultat de la
+  // recherche, appuyer sur valider la ferme et on arrive à la composition de séance. »). Ce test ne vaut pas recette sur iPhone : la
+  // superposition réelle des couches (zIndex) et le fondu restent à contrôler par Hermann.
+  it("Exercice libre : toucher un résultat — résultats retirés, bouton Retour, fiche complète du mouvement choisi ; Retour restaure la saisie ; Valider → Composition avec l'exercice (t-fiche-choix)", async () => {
+    await movements().create(movement("pompes", "Pompes", { description: "Mains au sol" }));
+    await movements().createVariant(movement("pompes-genoux", "Pompes sur les genoux"), "pompes", "BEFORE_ORIGIN");
+    const router = renderApp();
+    await settle();
+    await openMenuAction(addToSession.newActivity);
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Pomp");
+    await settle();
+    await act(async () => {
+      fireEvent.press(await screen.findByTestId("movement-suggestion-result-pompes"));
+    });
+    await settle(300);
+
+    const overlay = await screen.findByTestId("movement-chosen-overlay");
+    // Résultats de la recherche retirés.
+    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-result-pompes-genoux")).toBeNull();
+    // La croix devient Retour (chevron standard) ; la coche Valider reste à droite.
+    const back = within(overlay).getByTestId("screen-header-back");
+    expect(back.props.accessibilityLabel).toBe(strings.screens.movement.back);
+    const backIcon = within(overlay).UNSAFE_getAllByType(KodjoIcon).find((icon) => icon.props.testID === "screen-header-back-icon");
+    expect(backIcon?.props.name).toBe("control-back");
+    expect(within(overlay).getByTestId("screen-header-validate")).toBeTruthy();
+    // Fiche complète du mouvement choisi, en lecture seule : nom, Catégorie, Zones, Niveau, Description.
+    expect(within(overlay).getByTestId("exercise-name-input").props.value).toBe("Pompes");
+    expect(within(overlay).getByTestId("exercise-name-input").props.editable).toBe(false);
+    expect(within(overlay).getByTestId("activity-editor-category-button").props.accessibilityLabel).toMatch(/Cardio/i);
+    expect(within(overlay).getByTestId("exercise-body-zones-label").props.children).toMatch(/Cuisses/i);
+    expect(within(overlay).getByTestId("activity-editor-level").props.accessibilityLabel).toBe("Niveau 2");
+    expect(within(overlay).getByDisplayValue("Mains au sol")).toBeTruthy();
+    // La fiche choisie passe au-dessus des couches de l'éditeur de création (zone de contexte zIndex 1, résultats zIndex 2).
+    const overlayStyle = StyleSheet.flatten(overlay.props.style) as { zIndex?: number };
+    expect(overlayStyle.zIndex ?? 0).toBeGreaterThan(10);
+
+    // Retour : fiche de création telle qu'avant le choix (nom tapé, résultats).
+    await act(async () => {
+      fireEvent.press(back);
+    });
+    await settle(300);
+    expect(screen.queryByTestId("movement-chosen-overlay")).toBeNull();
+    expect(router.getPathname()).toBe("/movement");
+    expect(screen.getByTestId("exercise-name-input").props.value).toBe("Pomp");
+    expect(screen.getByTestId("movement-suggestion-result-pompes")).toBeTruthy();
+
+    // Nouveau choix, puis Valider : Composition avec l'exercice, sans doublon.
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-suggestion-result-pompes"));
+    });
+    await settle(300);
+    await act(async () => {
+      fireEvent.press(within(await screen.findByTestId("movement-chosen-overlay")).getByTestId("screen-header-validate"));
+    });
+    await settle(300);
+    expect(router.getPathname()).toBe("/composition");
+    expect(cardNames()).toEqual(["Pompes - N2"]);
+    expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(2);
   }, 40000);
 });
 

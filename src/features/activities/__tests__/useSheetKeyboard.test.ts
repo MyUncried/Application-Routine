@@ -293,3 +293,33 @@ describe("PRE5-2.8 — champs clavier des phases (D-434)", () => {
     expect(applyPhaseLabelEdit(draft, 7, "x".repeat(21))).toBe(draft);
   });
 });
+
+/**
+ * Décision de Hermann du 06/11/2026 (constat c) — champ actif hors tableau (valeur `scalar` ou charge
+ * commune) : Précédent / Suivant parcourent les champs hors tableau fournis par la Feuille ; le tableau
+ * des séries garde son parcours propre (QD-434-2).
+ */
+describe("Décision du 06/11/2026 — ordre de navigation des champs hors tableau", () => {
+  const outside = [
+    { kind: "scalar", field: "count" },
+    { kind: "scalar", field: "uniformTarget" },
+    { kind: "load", row: "uniform" },
+  ] as const;
+
+  it("valeur hors tableau ou charge commune active : l'ordre de la Feuille", () => {
+    const draft = openSheetDraft(params());
+    expect(keyboardFieldOrder(draft, true, false, { kind: "scalar", field: "count" }, outside)).toBe(outside);
+    expect(keyboardFieldOrder(draft, true, false, { kind: "load", row: "uniform" }, outside)).toBe(outside);
+  });
+
+  it("sans ordre fourni, la charge commune garde son ordre antérieur", () => {
+    const draft = openSheetDraft(params());
+    expect(keyboardFieldOrder(draft, true, false, { kind: "load", row: "uniform" })).toEqual([{ kind: "load", row: "uniform" }]);
+  });
+
+  it("cellule du tableau active : le parcours du tableau, sans les champs hors tableau", () => {
+    const draft = openSheetDraft(variable([20, 30]));
+    const order = keyboardFieldOrder(draft, true, false, { kind: "rowTarget", row: draft.rowIds[0]! }, outside);
+    expect(order.every((field) => field.kind !== "scalar")).toBe(true);
+  });
+});

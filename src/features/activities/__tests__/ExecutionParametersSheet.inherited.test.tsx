@@ -4,6 +4,7 @@ import { StyleSheet } from "react-native";
 
 import { numberTarget, type ExecutionParameters, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
+import { enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
@@ -154,15 +155,17 @@ describe("PRE-6 3.3 — N hérité dans la Feuille des paramètres", () => {
   it("hors contexte (indicateur absent ou faux) : nombre réglable, croix actives, sans indice", () => {
     for (const inherited of [undefined, false]) {
       renderSheet(params(variable(3)), inherited);
-      const toggle = get(TOGGLE);
-      expect(toggle.props.accessibilityState).toMatchObject({ expanded: false });
-      expect(toggle.props.accessibilityState.disabled).toBeFalsy();
-      expect(toggle.props.accessibilityHint).toBeUndefined();
+      // [Bouton `${STEPPER}-toggle` qui révélait le stepper — remplacé le 06/11/2026, décision de
+      // Hermann (constat c) : saisie au clavier] : le nombre est un champ clavier disponible.
+      expect(query(TOGGLE)).toBeNull();
+      const field = get(STEPPER);
+      expect(field.props.accessibilityState).toMatchObject({ selected: false });
+      expect(field.props.accessibilityHint).toBeUndefined();
       expect(get("execution-sheet-table-row-2-remove").props.accessibilityState).toMatchObject({ disabled: false });
       fireEvent.press(get("execution-sheet-table-row-2-remove"));
       expect(tableRows()).toBe(2);
-      fireEvent.press(get(TOGGLE));
-      expect(within(get(CONTROL)).getByTestId(`${STEPPER}-increment`)).toBeTruthy();
+      enterExecutionSheetValue(STEPPER, 4, "integer");
+      expect(within(get(CONTROL)).getByTestId(`${STEPPER}-value`)).toHaveTextContent("4 séries variables");
       screen.unmount();
     }
   });

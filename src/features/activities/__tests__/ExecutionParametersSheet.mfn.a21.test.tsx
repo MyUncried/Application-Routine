@@ -10,7 +10,7 @@ import {
   type WorkPhase,
 } from "@/domain/activities/ExecutionParameters";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
-import { CELL_BACKSPACE, typeInExecutionSheetCell } from "@/features/activities/testing/executionSheetActions";
+import { CELL_BACKSPACE, enterExecutionSheetValue, typeInExecutionSheetCell } from "@/features/activities/testing/executionSheetActions";
 import { strings } from "@/shared/i18n";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -50,7 +50,7 @@ const phaseRows = () => screen.queryAllByTestId(/^execution-sheet-phase-row-\d+$
 const shownDuration = (n: number) => String(get(`${duration(n)}-value`).props.children);
 const shownLabel = (n: number) => String(get(label(n)).props.value);
 /** PRE-7 (D-446) : « Durée d'une série » garde sa pastille modifiable avec des phases. */
-const seriesDurationText = () => String(get("execution-sheet-target-value-text").props.children);
+const seriesDurationText = () => String(get("execution-sheet-target-value").props.children);
 const validate = () => fireEvent.press(get("execution-sheet-validate"));
 const validateDisabled = () => stateOf("execution-sheet-validate").disabled === true;
 
@@ -118,9 +118,12 @@ function unfoldPhases() {
   expect(get(TABLE)).toBeTruthy();
 }
 
-function stepperTap(button: "increment" | "decrement") {
-  fireEvent(get(`${STEPPER}-${button}`), "pressIn");
-  fireEvent(get(`${STEPPER}-${button}`), "pressOut");
+/**
+ * [− / + du réglage du nombre de phases — remplacé le 06/11/2026, décision de Hermann (constat c) :
+ * saisie au clavier] : le nombre de phases `count` est tapé dans le champ « n phases ».
+ */
+function enterPhaseCount(count: number) {
+  enterExecutionSheetValue(STEPPER, count, "integer");
 }
 
 describe("ExecutionParametersSheet — PRE-7 story A2.1 : croix à deux phases (D-438, MFN/AC26)", () => {
@@ -133,7 +136,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : croix à deux phases (
     expect(stateOf(WITHOUT)).toMatchObject({ selected: true });
     expect(query(TABLE)).toBeNull();
     // D-446 §4 remplace « durée restante = durée de série » (D-438) : la Cible est inchangée.
-    expect(String(get("execution-sheet-target-value-text").props.children)).toBe("9 s");
+    expect(String(get("execution-sheet-target-value").props.children)).toBe("9 s");
     expect(within(get("execution-sheet-adjusted")).getByText(t.phaseRemoved, hidden)).toBeTruthy();
     fireEvent.press(get("execution-sheet-adjusted-undo"));
     expect(phaseRows()).toHaveLength(2);
@@ -148,10 +151,10 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : croix à deux phases (
   it("PRE-7 (D-446) — croix à deux phases, durée restante non renseignée : Sans, Cible conservée — « — » seulement si elle était déjà à renseigner (aucune durée inventée)", () => {
     // Fixture `withPhases` : frère incomplet antérieur à D-446, Cible lue `UNSET` — elle reste « — ».
     renderSheet(withPhases([[1, "A", 6], [2, "B", 0]]));
-    expect(String(get("execution-sheet-target-value-text").props.children)).toBe(t.unset);
+    expect(String(get("execution-sheet-target-value").props.children)).toBe(t.unset);
     fireEvent.press(get(remove(1)));
     expect(stateOf(WITHOUT)).toMatchObject({ selected: true });
-    expect(String(get("execution-sheet-target-value-text").props.children)).toBe(t.unset);
+    expect(String(get("execution-sheet-target-value").props.children)).toBe(t.unset);
     expect(validateDisabled()).toBe(true);
   });
 
@@ -171,10 +174,10 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : croix à deux phases (
         },
       }),
     );
-    expect(String(get("execution-sheet-target-value-text").props.children)).toBe("6 s");
+    expect(String(get("execution-sheet-target-value").props.children)).toBe("6 s");
     fireEvent.press(get(remove(1)));
     expect(stateOf(WITHOUT)).toMatchObject({ selected: true });
-    expect(String(get("execution-sheet-target-value-text").props.children)).toBe("6 s");
+    expect(String(get("execution-sheet-target-value").props.children)).toBe("6 s");
     expect(validateDisabled()).toBe(false);
     validate();
     expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: numberTarget(6), workPhases: [] });
@@ -193,7 +196,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : durée manquante (D-43
     expect(shownDuration(2)).toBe(t.unset);
     expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
     expect(seriesDurationText()).toBe(t.unset);
-    expect(styleOf("execution-sheet-target-value").backgroundColor).toBe(colors.dangerSurface);
+    expect(styleOf("execution-sheet-target").backgroundColor).toBe(colors.dangerSurface);
     expect(String(get("execution-sheet-total-text").props.children)).toBe(t.unset);
     expect(validateDisabled()).toBe(true);
     validate();
@@ -209,7 +212,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : durée manquante (D-43
     renderSheet(withPhases([[1, "A", 9], [2, "B", 0]]));
     fireEvent.press(get(WITHOUT));
     expect(stateOf(WITHOUT)).toMatchObject({ selected: true });
-    expect(String(get("execution-sheet-target-value-text").props.children)).toBe(t.unset);
+    expect(String(get("execution-sheet-target-value").props.children)).toBe(t.unset);
   });
 });
 
@@ -226,6 +229,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
     fireEvent.press(get(COUNT_TOGGLE));
     fireEvent.press(get(WITH));
     expect(query(`${STEPPER}-increment`)).toBeNull();
+    expect(query(`${STEPPER}-input`)).toBeNull();
     // Croix et poignées indisponibles, sans action Monter / Descendre.
     for (const n of [1, 2]) {
       expect(stateOf(remove(n)).disabled).toBe(true);
@@ -307,7 +311,9 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
     renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]));
     unfoldPhases();
     expect(stateOf(WITHOUT).disabled).toBe(false);
-    expect(stateOf(COUNT_TOGGLE).disabled).toBeFalsy();
+    // Décision du 06/11/2026 : nombre modifiable = champ clavier (aucun bouton indisponible).
+    expect(query(COUNT_TOGGLE)).toBeNull();
+    expect(get(`${STEPPER}-input`).props.keyboardType).toBe("number-pad");
     // Poignée : arbre antérieur (aucun état exposé), glisser et actions accessibles disponibles.
     expect(get(handle(1)).props.accessibilityState).toBeUndefined();
     expect(get(handle(1)).props.onStartShouldSetResponder()).toBe(true);
@@ -326,8 +332,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : compteur de phase du M
     const reopened = applied(first.onApply);
     screen.unmount();
     const second = renderSheet(reopened, { nextPhaseId: 5 });
-    fireEvent.press(get(COUNT_TOGGLE));
-    stepperTap("increment");
+    enterPhaseCount(3);
     validate();
     const series = applied(second.onApply).series;
     expect(series.kind === "UNIFORM" ? series.workPhases.map((phase) => phase.id) : []).toEqual([1, 2, 5]);
@@ -335,8 +340,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : compteur de phase du M
 
   it("sans compteur : max + 1 (comportement antérieur)", () => {
     const { onApply } = renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]));
-    fireEvent.press(get(COUNT_TOGGLE));
-    stepperTap("increment");
+    enterPhaseCount(3);
     validate();
     const series = applied(onApply).series;
     expect(series.kind === "UNIFORM" ? series.workPhases.map((phase) => phase.id) : []).toEqual([1, 2, 3]);

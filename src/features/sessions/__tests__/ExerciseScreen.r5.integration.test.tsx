@@ -20,7 +20,7 @@ import {
   chooseExecutionMode,
   chooseExecutionSide,
   enterExecutionSheetCell,
-  pressInExecutionSheet,
+  enterExecutionSheetValue,
 } from "@/features/activities/testing/executionSheetActions";
 import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
@@ -248,10 +248,8 @@ const resultIds = () =>
 function fillDurationParameters() {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   chooseExecutionMode("Durée");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 0 } });
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 45 } });
-  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 45);
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   expect(screen.queryByTestId("execution-sheet")).toBeNull();
 }
@@ -261,10 +259,8 @@ function fillPhaseDurations() {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   enterExecutionSheetCell("execution-sheet-phase-row-1-duration", "7");
   enterExecutionSheetCell("execution-sheet-phase-row-2-duration", "2");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 0 } });
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 9 } });
-  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 9);
   chooseExecutionSide("Sans");
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   expect(screen.queryByTestId("execution-sheet")).toBeNull();

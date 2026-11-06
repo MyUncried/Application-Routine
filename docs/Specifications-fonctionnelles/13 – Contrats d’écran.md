@@ -1366,6 +1366,9 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 ### CE-UI-10 — Paramètres d’exécution — feuille basse
 
+**Révision 06/11/2026 (décision de Hermann, constat c ; registre ch07, « Recette iPhone du 06/11/2026 ») :** « Paramètre d'exécution : n'utiliser que le clavier pour entrer les valeurs des champs, plus aucune roulette ou popover. » Toutes les valeurs de la feuille (séries, cible commune, durée de l'exercice, récupération, pauses, compte à rebours, fin, cadence « Autre », nombre de phases) se tapent dans leur champ, avec la barre au-dessus du clavier des Formats (Précédent, Suivant, Fermer) ; bornes appliquées à la saisie. Les mentions de roulette, de panneau de roue et de ± de cette feuille ci-dessous sont remplacées ; les contrôles segmentés et le menu Enchaînement restent.
+
+
 **Complément Formats actif :** Tabata et 30/30 standards modifiables ; contraintes effectives des Formats spécialisés selon CE-FMT-04 et la référence du 02/11.
 
 #### 1. Identification

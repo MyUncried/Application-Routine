@@ -485,6 +485,53 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(mockBack).not.toHaveBeenCalled();
   });
 
+  // Recette iPhone du 06/11/2026 (t-cat-choix, Hermann : « … le contenu soit celui de la fiche sélectionnée et en lecture seule
+  // (catégorie, zone corporelle, niveau, média, description et phase), avec le bouton d'édition. Appuyer sur le bouton retour, ramène à
+  // la fiche de création de mouvement telle qu’elle était avant d’avoir sélectionné le mouvement du résultat de la recherche, appuyer
+  // sur valider la ferme et on arrive au catalogue de mouvements. » ; m-carte : « en lecture seule avec l'option d'édition, puis de
+  // création de niveau si besoin »).
+  it("Catalogue : fiche choisie complète, Retour, crayon et menu Niveau ; Retour restaure la saisie ; Valider ferme vers le Catalogue (t-cat-choix)", async () => {
+    await movements().create(movement("squat", "Squats", { description: "Dos droit" }));
+    await movements().createVariant(movement("squat-assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderSheet();
+    await type("exercise-name-input", "Squa");
+    await press("movement-suggestion-result-squat-summary");
+    const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    // Résultats retirés ; la croix devient Retour ; coche Valider et crayon d'édition présents.
+    expect(screen.queryByTestId("movement-suggestion-panel", anyNode)).toBeNull();
+    const back = within(overlay).getByTestId("screen-header-back", anyNode);
+    expect(back.props.accessibilityLabel).toBe(t.back);
+    expect(within(overlay).getByTestId("activity-editor-edit-movement", anyNode)).toBeTruthy();
+    expect(within(overlay).getByTestId("screen-header-validate", anyNode).props.accessibilityState).toMatchObject({ disabled: false });
+    // Fiche complète du mouvement choisi, en lecture seule ; menu Niveau (création d'un niveau).
+    expect(within(overlay).getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+    expect(within(overlay).getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
+    expect(within(overlay).getByTestId("activity-editor-category-button", anyNode).props.accessibilityLabel).toMatch(/Cardio/);
+    expect(within(overlay).getByTestId("exercise-body-zones-label", anyNode).props.children).toMatch(/Cuisses/i);
+    expect(within(overlay).getByTestId("activity-editor-level-add-harder", anyNode)).toBeTruthy();
+    expect(within(overlay).getByDisplayValue("Dos droit", anyNode)).toBeTruthy();
+    expect((StyleSheet.flatten(overlay.props.style) as { zIndex?: number }).zIndex ?? 0).toBeGreaterThan(10);
+    // Retour : fiche de création telle qu'avant le choix.
+    await act(async () => {
+      fireEvent.press(back);
+    });
+    expect(screen.queryByTestId("movement-chosen-overlay", anyNode)).toBeNull();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squa");
+    expect(screen.getByTestId("movement-suggestion-result-squat", anyNode)).toBeTruthy();
+    expect(mockBack).not.toHaveBeenCalled();
+    // Nouveau choix, puis Valider : la fiche de création se ferme (retour au Catalogue), sans rien créer ni remettre à une Séance.
+    await press("movement-suggestion-result-squat-summary");
+    await act(async () => {
+      fireEvent.press(within(await screen.findByTestId("movement-chosen-overlay", anyNode)).getByTestId("screen-header-validate", anyNode));
+    });
+    await settle(20);
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(lastShouldBlock()).toBe(false);
+    expect(takeMovementsHandedToComposition()).toBeNull();
+    expect(takeFormatsWindowCloseRequest()).toBe(false);
+    expect(await count("movements")).toBe(2);
+  });
+
   it("CAT.2 : « Ajouter un niveau » déplie la carte (Plus facile | Plus difficile), puis le choix ouvre le nouveau Niveau sans rien créer", async () => {
     await movements().create(movement("squat", "Squats"));
     await renderSheet();
@@ -810,18 +857,27 @@ describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)"
     expect(await count("movements")).toBe(1);
   });
 
-  // Arbitrage de Hermann du 06/11/2026 : « A. Revenir à la modale avec tous les formats. » [r-creer : « Croix à gauche pour annuler >
-  // composition de séance vierge » — remplacé.]
-  it("Séance : fiche choisie, la croix revient à la modale « Créer un exercice », sans mouvement remis (arbitrage du 06/11, A)", async () => {
+  // Recette iPhone du 06/11/2026 (t-fiche-choix, Hermann : « que la Croix se transforme en bouton retour […] Appuyer sur le bouton
+  // retour, ramène à la fiche de mouvement telle qu’elle était avant d’avoir sélectionné le mouvement du résultat de la recherche »).
+  // [Arbitrage de Hermann du 06/11/2026 (« A. Revenir à la modale avec tous les formats. ») appliqué à la croix de la fiche choisie :
+  // « la croix revient à la modale « Créer un exercice », sans mouvement remis » — remplacé pour la fiche choisie ; la croix de la
+  // fiche de création garde l'arbitrage A (test suivant).] [r-creer : « Croix à gauche pour annuler > composition de séance vierge »
+  // — remplacé.]
+  it("Séance : fiche choisie, Retour (chevron) revient à la fiche de création telle qu'avant le choix, sans mouvement remis (t-fiche-choix)", async () => {
     await movements().create(movement("squats", "Squats"));
     await renderSheet({ context: "session" });
     await type("exercise-name-input", "Squats");
     await press("movement-suggestion-result-squats");
     const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    const back = within(overlay).getByTestId("screen-header-back", anyNode);
+    expect(back.props.accessibilityLabel).toBe(t.back);
     await act(async () => {
-      fireEvent.press(within(overlay).getByTestId("screen-header-back", anyNode));
+      fireEvent.press(back);
     });
-    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("movement-chosen-overlay", anyNode)).toBeNull();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+    expect(screen.getByTestId("movement-suggestion-result-squats", anyNode)).toBeTruthy();
+    expect(mockBack).not.toHaveBeenCalled();
     expect(takeMovementsHandedToComposition()).toBeNull();
     expect(takeFormatsWindowCloseRequest()).toBe(false);
   });

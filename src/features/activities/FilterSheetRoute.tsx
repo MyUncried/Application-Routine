@@ -1,10 +1,11 @@
 import { router, Stack } from "expo-router";
 import { useEffect, useRef, useState } from "react";
+import { useWindowDimensions } from "react-native";
 
 import { releaseFilterSheet, useFilterSheetRequest, type FilterSheetRequest } from "@/features/activities/filterSheetRelay";
 import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
 import { SessionFilterSheet } from "@/features/sessions/SessionFilterSheet";
-import { useTitleCappedSheetDetent } from "@/shared/ui/nativeSheet";
+import { sheetDetentForTop, useTitleCappedSheetDetent } from "@/shared/ui/nativeSheet";
 
 /**
  * Demande de Hermann du 04/11/2026 (texte exact) : « Afficher en mode modale iOS (mode d'apparition identique à la fiche
@@ -64,8 +65,12 @@ export function FilterSheetRoute() {
   // l'ouverture, au chargement des Catégories et des Zones, et la liste n'était plus visible ni défilable) : hauteur fixe,
   // plafonnée sous le titre de l'écran, comme les feuilles qui fonctionnent (questionnaire, Créer un mouvement).
   // [Hauteur ajustée au contenu — remplacée.]
-  const detent = useTitleCappedSheetDetent(null);
+  const cappedDetent = useTitleCappedSheetDetent(null);
+  const { height: windowHeight } = useWindowDimensions();
   const [opened] = useState(request);
+  // Recette du 06/11/2026 (x-dedans) : ouverte par-dessus la fenêtre d'un Format, la feuille s'arrête sous son bouton Annuler.
+  const sheetTop = opened?.sheetTop;
+  const detent = sheetTop === undefined ? cappedDetent : sheetDetentForTop(windowHeight, sheetTop);
   useEffect(() => {
     // Ouverture sans demande (rechargement, lien direct) : rien à filtrer, la feuille se referme.
     if (opened === null && router.canGoBack()) router.back();

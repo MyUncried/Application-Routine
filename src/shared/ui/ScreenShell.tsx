@@ -82,6 +82,11 @@ export type FixedHeaderProps = {
    * modale (✕ `closeIcon` ou coche `validate`) ; les écrans de navigation gardent leur titre à gauche.
    */
   centeredTitle?: boolean;
+  /**
+   * Recette iPhone du 06/11/2026 (t-fiche-choix, t-cat-choix, Hermann : « que la Croix se transforme en bouton retour ») :
+   * chevron Retour standard (`control-back`) à gauche, même avec la coche `validate` ou `closeIcon`. Absent : rendu inchangé.
+   */
+  backIcon?: boolean;
 };
 
 /**
@@ -120,6 +125,7 @@ export function FixedHeader({
   topInset,
   validate,
   centeredTitle,
+  backIcon = false,
 }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
   const top = topInset ?? insets.top;
@@ -159,7 +165,7 @@ export function FixedHeader({
             : {})}
         >
           <KodjoIcon
-            name={closeIcon || validate !== undefined ? "control-close" : "control-back"}
+            name={!backIcon && (closeIcon || validate !== undefined) ? "control-close" : "control-back"}
             size={dimensions.backAction.icon}
             tintColor={backIconTintColor}
             testID="screen-header-back-icon"

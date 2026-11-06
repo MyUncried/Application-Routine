@@ -9,7 +9,7 @@ import type { SessionCatalogueFilters } from "@/features/sessions/sessionCatalog
  * `selection-filters` dans le parcours de création). Les filtres courants et l'application des filtres choisis passent
  * par ce relais de module (même principe que `handMovementsToFormat`), l'écran appelant gardant ses filtres.
  */
-export type FilterSheetRequest =
+export type FilterSheetRequest = (
   | {
       readonly kind: "movements";
       readonly filters: MovementCatalogueFilters;
@@ -19,7 +19,15 @@ export type FilterSheetRequest =
       readonly kind: "sessions";
       readonly filters: SessionCatalogueFilters;
       readonly onApply: (filters: SessionCatalogueFilters, labels: readonly string[]) => void;
-    };
+    }
+) & {
+  /**
+   * Recette du 06/11/2026 (x-dedans, Hermann : « L'arrêter en fait sous le bouton Annuler de la fenêtre du questionnaire ») :
+   * ordonnée (fenêtre) du haut de la feuille, quand elle s'ouvre par-dessus une autre feuille ; absente : hauteur plafonnée
+   * sous le titre de l'écran ouvert dessous (`useTitleCappedSheetDetent`).
+   */
+  readonly sheetTop?: number;
+};
 
 let current: FilterSheetRequest | null = null;
 const listeners = new Set<() => void>();

@@ -325,10 +325,11 @@ export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers
     case "EMOM":
       // Recette du 04/11/2026 (Hermann, EMOM : « Aucun mode d'exécution par défaut, le champ de valeur a un fond rouge ») :
       // ligne sans unité, objectifs à renseigner ; l'unité se choisit au clavier. Complément du 5 novembre 2026 (Hermann), §14 : une valeur par série S1…Sn,
-      // préremplies depuis S1 (`withSeriesValue`), sans incrément.
+      // sans incrément. [Préremplies depuis S1 — remplacé le 06/11/2026 (n-emom) : chaque série se saisit à la main.]
       return { cells: emptyCells(answers.seriesCount ?? 6) };
     case "SUPERSET":
-      // Complément du 5 novembre 2026 (Hermann), §11 : tableau par tour, chaque tour prérempli avec la valeur du premier ; cases initiales à renseigner.
+      // Complément du 5 novembre 2026 (Hermann), §11 : tableau par tour ; cases initiales à renseigner. [Chaque tour prérempli avec la valeur du premier —
+      // remplacé le 06/11/2026 (n-emom, réponse A de Hermann : « Oui retirée partout ») : chaque tour se saisit à la main.]
       return { mode: "REPETITIONS", cells: emptyCells(answers.roundCount ?? 3) };
     case "DEATH_BY":
       return { mode: "REPETITIONS", start: answers.startRepetitions ?? 1, startIncrement: answers.increment ?? 1 };
@@ -346,9 +347,9 @@ function emptyCells(count: number): SeriesCell[] {
 }
 
 /**
- * Saisie d'une case de série (EMOM, Superset, Progression) — Complément du 5 novembre 2026 (Hermann), §11, §14, §17 (« chaque série est préremplie avec la
- * valeur de S1 ») : la valeur écrite dans S1 se reporte sur les autres séries encore vides ou restées égales à l'ancienne
- * valeur de S1 ; une série déjà modifiée garde sa valeur. Les autres colonnes ne touchent qu'elles-mêmes.
+ * Saisie d'une case de série (EMOM, Superset, Progression). Avec `propagate` (Complément du 5 novembre 2026, §11, §14, §17) : la valeur écrite dans
+ * S1 se reporte sur les autres séries encore vides ou restées égales à l'ancienne valeur de S1. Recette du 06/11/2026 (n-emom, réponse A de
+ * Hermann : « Oui retirée partout ») : les tableaux n'utilisent plus cette recopie (`propagate` toujours faux) ; chaque case ne touche qu'elle-même.
  */
 export function withSeriesValue(cells: readonly SeriesCell[], column: number, field: keyof SeriesCell, value: number | null, propagate: boolean): SeriesCell[] {
   const next = cells.map((cell) => ({ ...cell }));

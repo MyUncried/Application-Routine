@@ -462,3 +462,32 @@ describe("PRE5-2.8 — surfaces des phases (AD-27)", () => {
     expect(sheetSurfaceReducer(phaseField, { type: "rows", rowIds: [] })).toBe(phaseField);
   });
 });
+
+/**
+ * Décision de Hermann du 06/11/2026 (constat c : saisie au clavier de toutes les valeurs de la fiche
+ * Exercice) — valeurs hors tableau en champs clavier `scalar` : famille clavier, hors lignes et phases.
+ */
+describe("Décision du 06/11/2026 — champs clavier des valeurs hors tableau", () => {
+  const scalar = (field: "count" | "phaseCount" | "pause"): SheetSurface => ({ kind: "keyboard", field: { kind: "scalar", field } });
+
+  it("même champ seulement pour la même valeur ; ni ligne ni phase", () => {
+    expect(sameSurface(scalar("pause"), scalar("pause"))).toBe(true);
+    expect(sameSurface(scalar("pause"), scalar("count"))).toBe(false);
+    expect(sameSurface(scalar("pause"), { kind: "keyboard", field: { kind: "load", row: "uniform" } })).toBe(false);
+    expect(keyboardFieldRow({ kind: "scalar", field: "pause" })).toBeNull();
+    expect(keyboardFieldPhase({ kind: "scalar", field: "pause" })).toBeNull();
+  });
+
+  it("famille clavier : ✓ / ✕ absorbés, un autre champ s'ouvre dans le même geste, « Ligne disparue » sans effet", () => {
+    const open = run(touch(scalar("pause")));
+    expect(sheetCommandsAbsorbed(open)).toBe(true);
+    expect(run(touch(scalar("pause")), touch(scalar("count"))).open).toMatchObject({ kind: "keyboard", field: { kind: "scalar", field: "count" } });
+    expect(sheetSurfaceReducer(open, { type: "rows", rowIds: [] })).toBe(open);
+  });
+
+  it("le champ du nombre de phases se ferme quand il n'y a plus de phase", () => {
+    const open = run(touch(scalar("phaseCount")));
+    expect(sheetSurfaceReducer(open, { type: "phases", phaseIds: [1, 2] })).toBe(open);
+    expect(sheetSurfaceReducer(open, { type: "phases", phaseIds: [] }).open.kind).toBe("none");
+  });
+});

@@ -320,8 +320,13 @@ describe("CategoryPickerModal — PRE-3", () => {
   it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête ✕ / titre / ✓ (D-8), pastilles 30 rayon 16, action Créer 32", async () => {
     renderModal(fakeReferentialService(), { selectedId: "cardio" });
     const tag = await screen.findByTestId("category-picker-tag-cardio");
+    // [« feuille ancrée en bas, voile #1F2129 à 34 % » — remplacé le 06/11/2026 (x-dedans, Hermann : « Ouvrir toutes les modales
+    // de filtre comme une modale iOS, pareil pour les modales de catégorie, d'étiquette et de zone corporelle ») :] feuille
+    // native iOS (voile et montée du système), racine blanche sur toute sa hauteur.
+    expect(screen.UNSAFE_getByType(Modal).props).toMatchObject({ presentationStyle: "formSheet", animationType: "slide", allowSwipeDismissal: false });
+    expect(screen.UNSAFE_getByType(Modal).props.transparent).toBeUndefined();
     const backdrop = StyleSheet.flatten(screen.getByTestId("category-picker-backdrop").props.style);
-    expect(backdrop).toMatchObject({ backgroundColor: "rgba(31, 33, 41, 0.34)", justifyContent: "flex-end" });
+    expect(backdrop).toMatchObject({ flex: 1, backgroundColor: "#FFFFFF" });
     expect(screen.getByTestId("category-picker-header")).toBeTruthy();
     expect(screen.getByTestId("category-picker-close")).toBeTruthy();
     // D-8 (12/10) : la coche de validation de la maquette devient la règle — ✓ confirme le choix.
@@ -693,7 +698,8 @@ describe("CategoryPickerModal — PRE-4 story 4.3", () => {
     );
     renderModal(fakeReferentialService({ listCategories: jest.fn(async () => many) }), { selectedId: "c0" });
     await screen.findByTestId("category-picker-tag-c29");
-    expect(StyleSheet.flatten(screen.getByTestId("category-picker-sheet").props.style).maxHeight).toBe("90%");
+    // [Feuille bornée à 90 % — remplacé le 06/11/2026 (x-dedans) :] la carte remplit la feuille native ; la liste défile.
+    expect(StyleSheet.flatten(screen.getByTestId("category-picker-sheet").props.style)).toMatchObject({ flex: 1 });
     expect(screen.UNSAFE_getByType(ScrollView).props.testID).toBe("category-picker-card");
     // Clavier ouvert (formulaire de création) : ✕ et ✓ restent dans l'en-tête, hors de la zone défilante.
     fireEvent.press(screen.getByTestId("category-picker-create-action"));

@@ -1,5 +1,6 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useContext, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { NavigationContext } from "expo-router/react-navigation";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
@@ -132,6 +133,42 @@ export function CatalogueScreen() {
   const handleMovementSummary = useCallback((next: MovementCatalogueSummary | null) => {
     setMovementSummary((current) => (sameMovementSummary(current, next) ? current : next));
   }, []);
+  // Recette iPhone du 06/11/2026 (t-niveau, Hermann : « il faut que la nouvelle fiche soit identifiée dans le catalogue des
+  // mouvements […] Ce cadre disparait après avoir changé de vue à partir de la barre de navigation du haut (mouvement, séance,
+  // programme) ou de la barre de navigation du bas. ») : Mouvements créés depuis le Catalogue (Créer, Ajouter un niveau),
+  // marqués « NEW » ; état de l'écran, en mémoire, jamais persisté. Une création lancée (`awaitingCreation`) est reconnue à
+  // la lecture suivante du Catalogue : les identifiants absents de la lecture précédente sont les nouveaux.
+  const [newMovementIds, setNewMovementIds] = useState<ReadonlySet<string>>(NO_NEW_MOVEMENTS);
+  const awaitingCreation = useRef(false);
+  const knownMovementIds = useRef<ReadonlySet<string> | null>(null);
+  const handleMovementEntries = useCallback((ids: readonly string[]) => {
+    const known = knownMovementIds.current;
+    knownMovementIds.current = new Set(ids);
+    if (!awaitingCreation.current || known === null) return;
+    awaitingCreation.current = false;
+    const created = ids.filter((id) => !known.has(id));
+    if (created.length > 0) setNewMovementIds((current) => new Set([...current, ...created]));
+  }, []);
+  const clearNewMovements = useCallback(() => {
+    setNewMovementIds((current) => (current.size === 0 ? current : NO_NEW_MOVEMENTS));
+  }, []);
+  // t-niveau : changer d'onglet par la barre du bas retire les pastilles ; ouvrir une fiche (pile au-dessus des onglets) non.
+  // Contexte de navigation de l’onglet (absent hors navigateur, par exemple dans un test isolé).
+  const navigation = useContext(NavigationContext);
+  useEffect(
+    () =>
+      navigation?.addListener("blur", () => {
+        const tabs = navigation.getState();
+        const focusedTab = tabs?.routes[tabs.index]?.name;
+        if (focusedTab !== undefined && focusedTab !== CATALOGUE_TAB_ROUTE) clearNewMovements();
+      }),
+    [navigation, clearNewMovements],
+  );
+  const changeSegment = (segment: CatalogueContentType) => {
+    // t-niveau : changer de vue par la barre du haut retire les pastilles.
+    if (segment !== activeSegment) clearNewMovements();
+    setActiveSegment(segment);
+  };
   // PRE-9 CAT.1 : recherche des Séances dans la zone de contexte, conservée comme les filtres.
   const [sessionQuery, setSessionQuery] = useState("");
   const movementFilterSummary =
@@ -228,6 +265,8 @@ export function CatalogueScreen() {
       return;
     }
     isOpeningEditorRef.current = true;
+    // t-niveau (06/11/2026) : création d'un Mouvement — reconnue à la prochaine lecture du Catalogue.
+    if (movementId === null) awaitingCreation.current = true;
     // Recette A/B (F07) : depuis le Catalogue des Mouvements, la fiche s’ouvre directement en
     // édition (un Mouvement archivé reste consultable seulement, B.8).
     router.push(
@@ -280,7 +319,7 @@ export function CatalogueScreen() {
                 },
               ]}
               value={activeSegment}
-              onChange={setActiveSegment}
+              onChange={changeSegment}
               testID="catalogue-content-type-row"
             />
           </View>
@@ -420,9 +459,13 @@ export function CatalogueScreen() {
             counter={movementCounter}
             onSummaryChange={handleMovementSummary}
             onOpenMovement={openMovement}
+            newMovementIds={newMovementIds}
+            onEntriesLoaded={handleMovementEntries}
             onCreateVariant={(variantOf, placement) => {
               if (isOpeningEditorRef.current) return;
               isOpeningEditorRef.current = true;
+              // t-niveau (06/11/2026) : « Ajouter un niveau » crée un Mouvement — reconnu à la prochaine lecture.
+              awaitingCreation.current = true;
               router.push({ pathname: "/movement", params: { variantOf, placement } });
             }}
           />
@@ -533,6 +576,11 @@ function ReadyBody({
  * la bande, comme avant), puis la liste défile derrière le dégradé.
  */
 const LIST_TOP_INSET = spacing[8] + CONTEXT_BAND_FADE_HEIGHT;
+
+/** t-niveau : aucune pastille « NEW ». */
+const NO_NEW_MOVEMENTS: ReadonlySet<string> = new Set();
+/** t-niveau : route de l’onglet du Catalogue dans la barre du bas (`app/(tabs)/index.tsx`). */
+const CATALOGUE_TAB_ROUTE = "index";
 
 const styles = StyleSheet.create({
   // `container`/`header`/`title`/`headerSeparator`/`contextBand` sont

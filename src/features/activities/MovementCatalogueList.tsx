@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -13,6 +13,16 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import Reanimated, {
+  Easing as ReanimatedEasing,
+  LinearTransition,
+  ReduceMotion,
+  withDelay,
+  withTiming,
+  type EntryAnimationsValues,
+  type ExitAnimationsValues,
+  type LayoutAnimation,
+} from "react-native-reanimated";
 
 import { decodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import type { MovementFamilyOutcome, MovementPriorMemberships } from "@/domain/activities/MovementRepository";
@@ -28,7 +38,12 @@ import {
   type MovementCatalogueService,
   type MovementLifecycleResult,
 } from "@/features/activities/MovementCatalogueService";
-import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
+import {
+  MOTION_EASING,
+  MOTION_FADE_DURATION_MS,
+  MOTION_FADE_EASING,
+  MOTION_SHIFT_DURATION_MS,
+} from "@/features/sessions/compositionMotion";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import { strings } from "@/shared/i18n";
@@ -182,6 +197,16 @@ const FAMILY_NOTICE_MS = 3000;
 const COLLAPSE_HIT_EXTRA = 12;
 /** Recette du 28/10 : arrêt sur une famille repliée avant qu'elle se déplie (valeur technique, non spécifiée). */
 const EXPAND_DWELL_MS = 500;
+/**
+ * Recette iPhone du 06/11/2026 (t-glisser, Hermann : « Cela ne doit arriver que lorsqu'on arrête consciemment la carte au
+ * dessus d'une autre, pas seulement quand on passe dessus. » ; décision validée : « ok, on testera ce que ça donne ») : le
+ * filet de placement dans une famille (C1, C2) et le décalage de la carte visée n'apparaissent que si la carte portée reste
+ * immobile environ 0,4 s au-dessus d'une autre. Passer dessus sans s'arrêter ne déclenche rien ; le relâchement n'applique
+ * que la place annoncée. [Avant : filet et décalage dès le survol — remplacé.]
+ */
+export const PLACE_DWELL_MS = 400;
+/** t-glisser : tremblement du doigt toléré pendant l'arrêt (valeur technique, non spécifiée). */
+const PLACE_DWELL_TOLERANCE = 6;
 
 export function MovementCatalogueList({
   reloadToken,
@@ -193,8 +218,17 @@ export function MovementCatalogueList({
   topInset,
   counter,
   onSummaryChange,
+  newMovementIds,
+  onEntriesLoaded,
 }: {
   readonly reloadToken: number;
+  /**
+   * Recette iPhone du 06/11/2026 (t-niveau, Hermann : « il faut que la nouvelle fiche soit identifiée dans le catalogue des
+   * mouvements ») : Mouvements nouvellement créés depuis le Catalogue, marqués « NEW » (état de l'écran hôte, non persisté).
+   */
+  readonly newMovementIds?: ReadonlySet<string>;
+  /** t-niveau : identifiants de toutes les entrées lues, à chaque lecture (l'écran hôte en déduit les créations). */
+  readonly onEntriesLoaded?: (ids: readonly string[]) => void;
   /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
   readonly topInset?: number;
   /** PRE-9 CAT.1 (CE-CAT-CTX-01) : compteur actif de la zone de contexte ; absent : aucun. */
@@ -291,6 +325,19 @@ export function MovementCatalogueList({
   const scrollLatest = useRef<((delta: number) => void) | null>(null);
   // Famille repliée survolée par la carte portée, et son dépliage différé.
   const expandHover = useRef<{ key: string; timer: ReturnType<typeof setTimeout> } | null>(null);
+  // t-glisser (06/11/2026) : place visée (C1, C2) en attente d'un arrêt de `PLACE_DWELL_MS`, et position de la carte portée
+  // (déplacement total depuis le départ, doigt et défilement) au début de l'arrêt.
+  const placeDwell = useRef<{ key: string; total: number; timer: ReturnType<typeof setTimeout> } | null>(null);
+  const clearPlaceDwell = () => {
+    if (placeDwell.current !== null) clearTimeout(placeDwell.current.timer);
+    placeDwell.current = null;
+  };
+  useEffect(
+    () => () => {
+      if (placeDwell.current !== null) clearTimeout(placeDwell.current.timer);
+    },
+    [],
+  );
 
   const items = useMemo(() => {
     if (state.status !== "ready") return [];
@@ -341,6 +388,38 @@ export function MovementCatalogueList({
   useEffect(() => {
     onSummaryChange?.(ready ? summary : null);
   }, [onSummaryChange, ready, summary]);
+  // t-niveau (06/11/2026) : chaque lecture du Catalogue est signalée à l'écran hôte, qui compare avec la précédente.
+  const loadedEntries = state.status === "ready" ? state.entries : null;
+  useEffect(() => {
+    if (loadedEntries !== null) onEntriesLoaded?.(loadedEntries.map((entry) => entry.movement.id));
+  }, [loadedEntries, onEntriesLoaded]);
+
+  // Recette iPhone du 06/11/2026 (t-catalogue, Hermann : « Afficher la liste des mouvements de manière progressive (la c'est
+  // une apparition brute) ») : à son apparition, la liste entre en fondu avec une courte montée (durée et courbe de fondu
+  // du projet, `MOTION_FADE_DURATION_MS`) ; immédiate sous « Réduire les animations ». [Avant : apparition d'un coup — remplacé.]
+  const [listAppear] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (!ready) return;
+    if (reduceMotion) {
+      listAppear.setValue(1);
+      return;
+    }
+    const animation = Animated.timing(listAppear, {
+      toValue: 1,
+      duration: MOTION_FADE_DURATION_MS,
+      easing: MOTION_FADE_EASING,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [listAppear, ready, reduceMotion]);
+  const listAppearStyle = useMemo(
+    () => ({
+      opacity: listAppear,
+      transform: [{ translateY: listAppear.interpolate({ inputRange: [0, 1], outputRange: [LIST_APPEAR_RISE, 0] }) }],
+    }),
+    [listAppear],
+  );
 
   const entryById = useMemo(
     () => new Map(state.status === "ready" ? state.entries.map((entry) => [entry.movement.id, entry]) : []),
@@ -513,6 +592,34 @@ export function MovementCatalogueList({
           };
   };
 
+  /**
+   * t-glisser (06/11/2026) : décision du geste annoncée. Une pose sur une carte (`PLACE`) n'est annoncée — filet, décalage,
+   * niveaux provisoires — qu'après un arrêt de `PLACE_DWELL_MS` sur la même place ; tout déplacement au-delà de la
+   * tolérance relance l'attente. Une place déjà annoncée le reste tant que la carte ne la quitte pas. Les autres décisions
+   * (réordonnancement dans le filet, sortie, approche d'une famille repliée) restent immédiates.
+   */
+  const announcedIntent = (current: Drag, raw: DragIntent, total: number): DragIntent => {
+    if (raw.kind !== "PLACE" || sameIntent(raw, current.intent)) {
+      clearPlaceDwell();
+      return raw;
+    }
+    const key = JSON.stringify(raw);
+    const pending = placeDwell.current;
+    if (pending === null || pending.key !== key || Math.abs(total - pending.total) > PLACE_DWELL_TOLERANCE) {
+      clearPlaceDwell();
+      const draggedId = current.id;
+      placeDwell.current = {
+        key,
+        total,
+        timer: setTimeout(() => {
+          placeDwell.current = null;
+          setDrag((latest) => (latest === null || latest.id !== draggedId ? latest : { ...latest, intent: raw }));
+        }, PLACE_DWELL_MS),
+      };
+    }
+    return { kind: "NONE" };
+  };
+
   const moveDrag = (pageY: number) => {
     if (drag === null) return;
     const slots = slotsNow();
@@ -527,8 +634,10 @@ export function MovementCatalogueList({
     scrollDelta.current = autoScroll.track(pageY);
     const top = liftedTop(drag);
     const drift = top === undefined ? drag.drift : top - origin.top;
-    const intent = intentAt(drag, origin, slots, dy + scrollDelta.current);
-    hoverFamily(intent.kind === "EXPAND" ? intent.familyKey : null, false);
+    const total = dy + scrollDelta.current;
+    const raw = intentAt(drag, origin, slots, total);
+    hoverFamily(raw.kind === "EXPAND" ? raw.familyKey : null, false);
+    const intent = announcedIntent(drag, raw, total);
     gesture.current.dy = dy;
     fingerFollow.setValue(dy - drift);
     if (drag.origin === null || drift !== drag.drift || !sameIntent(intent, drag.intent)) setDrag({ ...drag, origin, dy, drift, intent });
@@ -543,8 +652,11 @@ export function MovementCatalogueList({
     scrollDelta.current = delta;
     scrollFollow.setValue(delta);
     if (drag === null || drag.origin === null) return;
-    const intent = intentAt(drag, drag.origin, slotsNow(), gesture.current.dy + delta);
-    hoverFamily(intent.kind === "EXPAND" ? intent.familyKey : null, true);
+    const total = gesture.current.dy + delta;
+    const raw = intentAt(drag, drag.origin, slotsNow(), total);
+    hoverFamily(raw.kind === "EXPAND" ? raw.familyKey : null, true);
+    // t-glisser : défiler n'est pas s'arrêter — la position change à chaque image, l'attente d'une pose repart.
+    const intent = announcedIntent(drag, raw, total);
     if (!sameIntent(intent, drag.intent)) setDrag({ ...drag, intent });
   };
 
@@ -564,6 +676,7 @@ export function MovementCatalogueList({
     scrollDelta.current = 0;
     if (expandHover.current !== null) clearTimeout(expandHover.current.timer);
     expandHover.current = null;
+    clearPlaceDwell();
   };
 
   /** E : application au relâchement ; message de 3 s avec Annuler quand l'appartenance change. */
@@ -699,6 +812,8 @@ export function MovementCatalogueList({
       readonly swipe: boolean;
       readonly onLongPress?: () => void;
       readonly reorderActions?: readonly SwipeAccessibilityAction[];
+      /** t-niveau : pile repliée dont un membre masqué est nouveau. */
+      readonly hidesNew?: boolean;
     },
   ) => {
     // PRE-9 A.2 (ARB-22a) : en sélection, une carte (hors pile repliée) se coche au toucher ; ni
@@ -712,6 +827,9 @@ export function MovementCatalogueList({
     const id = entry.movement.id;
     const level = levelPreview?.has(id) ? levelPreview.get(id)! : entry.level;
     const levelLabel = level !== null ? levelPastilleLabel(level) : null;
+    // t-niveau (06/11/2026) : pastille « NEW » d'un Mouvement créé depuis le Catalogue (jamais en sélection pour une Séance) ;
+    // une pile repliée la porte quand l'un de ses membres masqués est nouveau.
+    const isNew = selection === undefined && ((newMovementIds?.has(id) ?? false) || catalogueOptions.hidesNew === true);
     const label =
       options.pileCount !== undefined
         ? fillTemplate(t.pileAccessibilityLabel, { name: entry.movement.name, count: String(options.pileCount) })
@@ -719,6 +837,7 @@ export function MovementCatalogueList({
             entry.movement.name,
             levelLabel,
             entry.archived ? t.archivedAccessibility : null,
+            isNew ? t.newAccessibility : null,
             inSession ? strings.screens.activities.selection.inSessionAccessibility : null,
           ]
             .filter(Boolean)
@@ -755,6 +874,7 @@ export function MovementCatalogueList({
             level={level}
             selected={selected}
             inSession={inSession}
+            isNew={isNew}
           />
         </SwipeActionsRow>
         {choicesOpen ? (
@@ -810,8 +930,10 @@ export function MovementCatalogueList({
       >
         {!isExpanded
           ? Array.from({ length: leaves }, (_, index) => leaves - index).map((depth) => (
-              <View
+              // t-catalogue (06/11/2026) : au repli, l'épaisseur de la pile n'apparaît qu'une fois les cartes rentrées.
+              <Reanimated.View
                 key={`leaf-${depth}`}
+                entering={reduceMotion ? undefined : leafEntering}
                 style={[styles.leaf, { top: depth * LEAF_STEP, left: depth * LEAF_INSET, right: depth * LEAF_INSET }]}
                 accessible={false}
                 importantForAccessibility="no"
@@ -858,6 +980,7 @@ export function MovementCatalogueList({
                 {
                   pileCount: item.members.length,
                   swipe: false,
+                  hidesNew: item.members.some((other, rank) => rank > 0 && (newMovementIds?.has(other.movement.id) ?? false)),
                   // A3 : appui long sur une pile repliée — elle se déplie, la carte du dessus est portée.
                   onLongPress: member.archived
                     ? undefined
@@ -892,14 +1015,20 @@ export function MovementCatalogueList({
                 ],
               });
           return (
-            <SheetMotionView
+            // Recette iPhone du 06/11/2026 (t-catalogue, Hermann : « appuyer sur le bouton pile : replier et déplier les
+            // mouvements lentement avec un glissement des carte ») : au dépliage, chaque carte glisse depuis la carte du
+            // dessus jusqu'à sa place, sous les cartes qui la précèdent ; au repli, elle remonte sous la carte du dessus.
+            // [Avant : révélation par le bas, 350 ms (B05) — remplacé.]
+            <CatalogueMotionView
               key={member.movement.id}
-              appear={index > 0}
-              clip={!settling}
+              appear={index > 0 ? { slideFrom: -index * memberStep } : false}
               transition={!settling}
-              bleed={layout.screenGutter}
               raised={isLifted}
-              style={[index > 0 ? styles.memberSpacing : null, isLifted ? styles.liftedFrame : null]}
+              style={[
+                index > 0 ? styles.memberSpacing : null,
+                drag === null ? { zIndex: item.members.length - index } : null,
+                isLifted ? styles.liftedFrame : null,
+              ]}
               onLayout={(event: LayoutChangeEvent) => {
                 recordMemberBox(member.movement.id, event);
                 if (index === 0 && isExpanded) setMemberStep(event.nativeEvent.layout.height + MEMBER_GAP);
@@ -919,7 +1048,7 @@ export function MovementCatalogueList({
               >
                 {row}
               </DragShift>
-            </SheetMotionView>
+            </CatalogueMotionView>
           );
         })}
       </View>
@@ -987,71 +1116,78 @@ export function MovementCatalogueList({
         // B05 : monté avec la liste prête — les entrées présentes à l'ouverture ne s'animent pas ;
         // celles qui apparaissent ou disparaissent ensuite (pile dépliée, filtre, archivage) oui.
         <SheetMotionProvider reduceMotion={reduceMotion}>
-          {/* Place de la liste à l'écran : défilement automatique pendant le geste. */}
-          <View ref={viewportRef} style={styles.viewport} collapsable={false}>
-            <SheetMotionScrollView
-              ref={scrollRef}
-              contentContainerStyle={[
-                styles.list,
-                selection !== undefined ? { paddingBottom: selection.bottomInset } : null,
-                topInset !== undefined ? { paddingTop: spacing[4] + topInset } : null,
-              ]}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              scrollEnabled={drag === null}
-              onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
-              scrollEventThrottle={16}
-              onContentSizeChange={(_width, height) => autoScroll.handleContentSize(height)}
-              onLayout={(event: LayoutChangeEvent) => autoScroll.handleLayout(event.nativeEvent.layout.height)}
-              testID="movement-catalogue-list"
-            >
-              {items.length === 0 ? (
-                <Text style={styles.message} testID="movement-catalogue-empty">
-                  {state.entries.length === 0 ? t.empty : searching ? t.noResult : t.noMatch}
-                </Text>
-              ) : null}
-              {/* Familles : un seul suivi du doigt pour toute la liste — la carte portée peut quitter sa pile. */}
-              <View
-                onTouchStart={(event) => {
-                  lastTouchY.current = event.nativeEvent.pageY;
-                }}
-                onTouchMove={drag !== null ? (event) => moveDrag(event.nativeEvent.pageY) : undefined}
-                onTouchEnd={drag !== null ? endDrag : undefined}
-                // Geste interrompu par le système : abandon, rien n'est écrit.
-                onTouchCancel={drag !== null ? stopDrag : undefined}
-                testID="movement-catalogue-items"
-              >
-                {items.map((item, index) => {
-                  const lifted = drag !== null && drag.pileKey === null && item.kind === "SINGLE" && item.entry.movement.id === drag.id;
-                  return (
-                    <SheetMotionView
-                      key={item.key}
-                      bleed={layout.screenGutter}
-                      clip={drag === null}
-                      transition={drag === null}
-                      raised={lifted}
-                      style={[styles.item, lifted ? styles.liftedFrame : null]}
-                      onLayout={(event: LayoutChangeEvent) => recordItemBox(item.key, event)}
-                      testID={`movement-item-${item.key}`}
-                    >
-                      {/* C2 : entrées qui suivent la place ouverte, décalées d'un pas ; même enveloppe hors geste. */}
-                      <DragShift
-                        shift={openingIndex >= 0 && index > openingIndex && !lifted ? memberStep : 0}
-                        active={drag !== null}
-                        follow={false}
-                        follower={null}
-                        reduceMotion={reduceMotion}
-                        style={null}
-                        testID={`movement-item-${item.key}-shift`}
-                      >
-                        {renderItem(item)}
-                      </DragShift>
-                    </SheetMotionView>
-                  );
-                })}
+          <CatalogueMotionContext.Provider value={!reduceMotion}>
+            {/* Place de la liste à l'écran : défilement automatique pendant le geste. */}
+            <Animated.View style={[styles.viewport, listAppearStyle]} testID="movement-catalogue-appear">
+              <View ref={viewportRef} style={styles.viewport} collapsable={false}>
+                <SheetMotionScrollView
+                  ref={scrollRef}
+                  contentContainerStyle={[
+                    styles.list,
+                    selection !== undefined ? { paddingBottom: selection.bottomInset } : null,
+                    topInset !== undefined ? { paddingTop: spacing[4] + topInset } : null,
+                  ]}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  scrollEnabled={drag === null}
+                  onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+                  scrollEventThrottle={16}
+                  onContentSizeChange={(_width, height) => autoScroll.handleContentSize(height)}
+                  onLayout={(event: LayoutChangeEvent) => autoScroll.handleLayout(event.nativeEvent.layout.height)}
+                  testID="movement-catalogue-list"
+                >
+                  {items.length === 0 ? (
+                    <Text style={styles.message} testID="movement-catalogue-empty">
+                      {state.entries.length === 0 ? t.empty : searching ? t.noResult : t.noMatch}
+                    </Text>
+                  ) : null}
+                  {/* Familles : un seul suivi du doigt pour toute la liste — la carte portée peut quitter sa pile. */}
+                  <View
+                    onTouchStart={(event) => {
+                      lastTouchY.current = event.nativeEvent.pageY;
+                    }}
+                    onTouchMove={drag !== null ? (event) => moveDrag(event.nativeEvent.pageY) : undefined}
+                    onTouchEnd={drag !== null ? endDrag : undefined}
+                    // Geste interrompu par le système : abandon, rien n'est écrit.
+                    onTouchCancel={drag !== null ? stopDrag : undefined}
+                    testID="movement-catalogue-items"
+                  >
+                    {items.map((item, index) => {
+                      const lifted = drag !== null && drag.pileKey === null && item.kind === "SINGLE" && item.entry.movement.id === drag.id;
+                      return (
+                        // t-catalogue (06/11/2026) : mêmes durée et courbe que le glissement des cartes d'une pile, pour que les
+                        // entrées suivantes descendent et remontent avec elles.
+                        <CatalogueMotionView
+                          key={item.key}
+                          appear="reveal"
+                          bleed={layout.screenGutter}
+                          clip={drag === null}
+                          transition={drag === null}
+                          raised={lifted}
+                          style={[styles.item, lifted ? styles.liftedFrame : null]}
+                          onLayout={(event: LayoutChangeEvent) => recordItemBox(item.key, event)}
+                          testID={`movement-item-${item.key}`}
+                        >
+                          {/* C2 : entrées qui suivent la place ouverte, décalées d'un pas ; même enveloppe hors geste. */}
+                          <DragShift
+                            shift={openingIndex >= 0 && index > openingIndex && !lifted ? memberStep : 0}
+                            active={drag !== null}
+                            follow={false}
+                            follower={null}
+                            reduceMotion={reduceMotion}
+                            style={null}
+                            testID={`movement-item-${item.key}-shift`}
+                          >
+                            {renderItem(item)}
+                          </DragShift>
+                        </CatalogueMotionView>
+                      );
+                    })}
+                  </View>
+                </SheetMotionScrollView>
               </View>
-            </SheetMotionScrollView>
-          </View>
+            </Animated.View>
+          </CatalogueMotionContext.Provider>
         </SheetMotionProvider>
       ) : null}
       <View pointerEvents="box-none" style={styles.noticeAnchor}>
@@ -1169,6 +1305,154 @@ function DragShift({
   );
 }
 
+/**
+ * Recette iPhone du 06/11/2026 (t-catalogue, Hermann : « replier et déplier les mouvements lentement avec un glissement des
+ * carte ») : animations de mise en page du Catalogue des Mouvements, sur le fil UI (Reanimated), à la durée de fondu du projet
+ * (`MOTION_FADE_DURATION_MS`, 450 ms) et sur la courbe des glissements (`MOTION_EASING`, Bézier 0,33 ; 1 ; 0,68 ; 1). Même
+ * principe que `SheetMotionView` (B05 : révélation par le bas des entrées qui apparaissent, transition de place des
+ * voisines), plus lent ; les membres d'une pile glissent depuis la carte du dessus (`slideFrom`). Aucune animation sous
+ * « Réduire les animations » (`CatalogueMotionContext` faux).
+ */
+const CATALOGUE_MOTION_MS = MOTION_FADE_DURATION_MS;
+const CATALOGUE_TIMING = {
+  duration: CATALOGUE_MOTION_MS,
+  easing: ReanimatedEasing.bezier(0.33, 1, 0.68, 1),
+  reduceMotion: ReduceMotion.System,
+};
+const catalogueLayout = LinearTransition.duration(CATALOGUE_MOTION_MS)
+  .easing(ReanimatedEasing.bezier(0.33, 1, 0.68, 1))
+  .reduceMotion(ReduceMotion.System);
+/** Vrai : animations de mise en page actives (faux sous « Réduire les animations »). */
+const CatalogueMotionContext = createContext(false);
+/** t-catalogue : la liste monte de 12 pendant son fondu d'apparition. */
+const LIST_APPEAR_RISE = spacing[12];
+
+function revealFrameEntering(values: EntryAnimationsValues): LayoutAnimation {
+  "worklet";
+  return { initialValues: { height: 0 }, animations: { height: withTiming(values.targetHeight, CATALOGUE_TIMING) } };
+}
+function revealFrameExiting(values: ExitAnimationsValues): LayoutAnimation {
+  "worklet";
+  return { initialValues: { height: values.currentHeight }, animations: { height: withTiming(0, CATALOGUE_TIMING) } };
+}
+function revealContentEntering(values: EntryAnimationsValues): LayoutAnimation {
+  "worklet";
+  return {
+    initialValues: { transform: [{ translateY: values.targetHeight }] },
+    animations: { transform: [{ translateY: withTiming(0, CATALOGUE_TIMING) }] },
+  };
+}
+function revealContentExiting(values: ExitAnimationsValues): LayoutAnimation {
+  "worklet";
+  return {
+    initialValues: { transform: [{ translateY: 0 }] },
+    animations: { transform: [{ translateY: withTiming(values.currentHeight, CATALOGUE_TIMING) }] },
+  };
+}
+/** t-catalogue : un membre de pile part de la carte du dessus (`offset` négatif) et glisse jusqu'à sa place. */
+function slideEntering(offset: number) {
+  return (): LayoutAnimation => {
+    "worklet";
+    return {
+      initialValues: { transform: [{ translateY: offset }] },
+      animations: { transform: [{ translateY: withTiming(0, CATALOGUE_TIMING) }] },
+    };
+  };
+}
+/** t-catalogue : au repli, le membre remonte sous la carte du dessus. */
+function slideExiting(offset: number) {
+  return (): LayoutAnimation => {
+    "worklet";
+    return {
+      initialValues: { transform: [{ translateY: 0 }] },
+      animations: { transform: [{ translateY: withTiming(offset, CATALOGUE_TIMING) }] },
+    };
+  };
+}
+/** t-catalogue : l'épaisseur d'une pile repliée apparaît à la fin du repli (fondu court). */
+function leafEntering(): LayoutAnimation {
+  "worklet";
+  return {
+    initialValues: { opacity: 0 },
+    animations: {
+      opacity: withDelay(CATALOGUE_MOTION_MS - MOTION_FADE_DURATION_MS / 3, withTiming(1, { duration: MOTION_FADE_DURATION_MS / 3 })),
+    },
+  };
+}
+
+/**
+ * t-catalogue : cadre animé d'une entrée ou d'un membre de pile.
+ * - `appear="reveal"` : comme `SheetMotionView` — cadre de découpe (`testID`) et contenu (`${testID}-content`, porte `style`) ;
+ * - `appear={{ slideFrom }}` : une seule vue, qui glisse depuis `slideFrom` à l'apparition et y retourne à la disparition ;
+ * - `appear={false}` : une seule vue, transition de place seule.
+ */
+function CatalogueMotionView({
+  appear,
+  transition = true,
+  clip = true,
+  bleed = 0,
+  raised = false,
+  onLayout,
+  style,
+  testID,
+  children,
+}: {
+  readonly appear: "reveal" | { readonly slideFrom: number } | false;
+  readonly transition?: boolean;
+  readonly clip?: boolean;
+  readonly bleed?: number;
+  readonly raised?: boolean;
+  readonly onLayout?: (event: LayoutChangeEvent) => void;
+  readonly style?: StyleProp<ViewStyle>;
+  readonly testID?: string;
+  readonly children?: ReactNode;
+}) {
+  const animated = useContext(CatalogueMotionContext);
+  const layoutTransition = animated && transition ? catalogueLayout : undefined;
+  const slideFrom = appear !== false && appear !== "reveal" ? appear.slideFrom : null;
+  const slide = useMemo(
+    () => (slideFrom === null ? null : { entering: slideEntering(slideFrom), exiting: slideExiting(slideFrom) }),
+    [slideFrom],
+  );
+  if (appear !== "reveal") {
+    return (
+      <Reanimated.View
+        entering={animated && slide !== null ? slide.entering : undefined}
+        exiting={animated && slide !== null ? slide.exiting : undefined}
+        layout={layoutTransition}
+        onLayout={onLayout}
+        style={[style, raised ? styles.raisedFrame : null]}
+        testID={testID}
+      >
+        {children}
+      </Reanimated.View>
+    );
+  }
+  return (
+    <Reanimated.View
+      entering={animated ? revealFrameEntering : undefined}
+      exiting={animated ? revealFrameExiting : undefined}
+      layout={layoutTransition}
+      onLayout={onLayout}
+      style={[
+        clip ? styles.clipFrame : null,
+        bleed > 0 ? { marginHorizontal: -bleed, paddingHorizontal: bleed } : null,
+        raised ? styles.raisedFrame : null,
+      ]}
+      testID={testID}
+    >
+      <Reanimated.View
+        entering={animated ? revealContentEntering : undefined}
+        exiting={animated ? revealContentExiting : undefined}
+        style={style}
+        testID={testID === undefined ? undefined : `${testID}-content`}
+      >
+        {children}
+      </Reanimated.View>
+    </Reanimated.View>
+  );
+}
+
 function RefusalDialog({ refusal, onClose }: { readonly refusal: Refusal; readonly onClose: () => void }) {
   const texts = refusal.kind === "ARCHIVE" ? t.archiveRefused : t.deleteRefused;
   const message =
@@ -1237,6 +1521,7 @@ function MovementCatalogueCard({
   level,
   selected = false,
   inSession = false,
+  isNew = false,
 }: {
   readonly entry: MovementCatalogueEntry;
   readonly level: MovementLevelPosition | null;
@@ -1248,6 +1533,11 @@ function MovementCatalogueCard({
    * arrondi de l'angle épousé, dimensions inchangées) ; remplace la mention « Dans la séance ».
    */
   readonly inSession?: boolean;
+  /**
+   * Recette iPhone du 06/11/2026 (t-niveau, Hermann : « par exemple avec un cadre en bas à droite "New" fond rouge, police
+   * blanche, majuscule, même taille de texte que "Niveau X" ») : Mouvement nouvellement créé depuis le Catalogue.
+   */
+  readonly isNew?: boolean;
 }) {
   const resolveUri = useMediaUriResolver();
   const { movement } = entry;
@@ -1290,6 +1580,11 @@ function MovementCatalogueCard({
           </Text>
         ))}
       </View>
+      {isNew ? (
+        <View style={styles.newBadge} pointerEvents="none" testID={`movement-card-new-${movement.id}`}>
+          <Text style={styles.newBadgeLabel}>{t.newBadge}</Text>
+        </View>
+      ) : null}
       {inSession ? (
         <View style={styles.foldedCorner} pointerEvents="none" testID={`movement-card-in-session-${movement.id}`}>
           <View style={styles.foldedCornerTriangle} />
@@ -1308,6 +1603,10 @@ const CARD_PADDING = spacing[8] - CARD_BORDER;
 /** Figma : filet de 2, à 8 des cartes, du milieu de la première au milieu de la dernière carte. */
 const RAIL_WIDTH = 2;
 const RAIL_TO_CARD = spacing[8];
+/** t-catalogue : plan de la zone de repli, au-dessus de toute carte d'une pile. */
+const COLLAPSE_ZONE_Z = 1000;
+/** t-niveau (06/11/2026) : pastille « NEW » à 8 des bords de la carte (valeur technique, aucun rendu Figma). */
+const NEW_BADGE_INSET = spacing[8];
 
 const styles = StyleSheet.create({
   container: {
@@ -1382,6 +1681,14 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: -layout.screenGutter,
     width: layout.screenGutter,
+    // t-catalogue (06/11/2026) : au-dessus des cartes de la pile, ordonnées du dessus vers le dessous (`zIndex` décroissant) —
+    // la zone de touche élargie vers la carte reste prioritaire. [Avant : 1 — remplacé.]
+    zIndex: COLLAPSE_ZONE_Z,
+  },
+  clipFrame: {
+    overflow: "hidden",
+  },
+  raisedFrame: {
     zIndex: 1,
   },
   // C1, C4 : filet de formation, à la place du filet d'une famille, vers la carte portée.
@@ -1538,6 +1845,21 @@ const styles = StyleSheet.create({
   description: {
     ...type.movementCardDescription,
     color: colors.movementCardDescription,
+  },
+  // t-niveau (06/11/2026) : fond rouge (`colors.danger`), texte blanc en majuscules, taille et graisse de « Niveau X »
+  // (`type.movementCardLevel`), en bas à droite de la carte.
+  newBadge: {
+    position: "absolute",
+    right: NEW_BADGE_INSET,
+    bottom: NEW_BADGE_INSET,
+    paddingHorizontal: spacing[4],
+    borderRadius: spacing[4],
+    backgroundColor: colors.danger,
+  },
+  newBadgeLabel: {
+    ...type.movementCardLevel,
+    color: colors.background,
+    textTransform: "uppercase",
   },
   // Positionné dans la boîte intérieure à la bordure : le contour de la carte reste continu ; le
   // rayon intérieur (rayon extérieur moins la bordure) épouse l'arrondi de l'angle.

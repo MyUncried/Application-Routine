@@ -58,7 +58,7 @@ import type { MovementChoice } from "@/features/activities/ActivityDefinitionSer
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import type { MovementCatalogueEntry } from "@/features/activities/MovementCatalogueService";
-import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
+import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { EMPTY_MOVEMENT_FILTERS, visibleMovementItems, type MovementCatalogueFilters, type MovementCatalogueItem } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
@@ -149,13 +149,16 @@ const CARD_STEP_DEFAULT = 60 + CARD_GAP;
  */
 const MOVEMENTS_TOP_OFFSET = 8 + 8;
 /**
- * Fond de la zone de recherche du mode catalogue — demande de Hermann du 05/11/2026 : « sa couleur de fond doit être remise en
- * blanc avec opacité de 65% en haut jusqu'à 10% en bas de son cadre » (bandes successives, sans bibliothèque de dégradé).
+ * Fond de la zone de recherche du mode catalogue — recette du 06/11/2026 (t-recherche, Hermann : « qui part du bas de la zone de contexte
+ * jusqu'en bas de la zone de recherche a un fond transparent, on voit les cartes défiler derrière. IL faut un fond blanc totalement opaque,
+ * et dégressif vers le transparent entre le bas de la zone de recherche et une marge de 8 px par exemple ») : blanc opaque du bas de la
+ * zone de contexte au bas de la recherche, puis fondu vers le transparent sur 8 (bandes successives, sans bibliothèque de dégradé).
+ * [Demande du 05/11/2026 : « blanc avec opacité de 65% en haut jusqu'à 10% en bas de son cadre » — remplacée.]
  */
-const SEARCH_ZONE_STEPS = 12;
-const SEARCH_ZONE_LAYERS = Array.from({ length: SEARCH_ZONE_STEPS }, (_, index) => ({
-  top: `${(index * 100) / SEARCH_ZONE_STEPS}%` as const,
-  opacity: Number((0.65 - (0.55 * (index + 0.5)) / SEARCH_ZONE_STEPS).toFixed(4)),
+const SEARCH_ZONE_FADE = 8;
+const SEARCH_ZONE_FADE_LAYERS = Array.from({ length: SEARCH_ZONE_FADE }, (_, index) => ({
+  top: index,
+  opacity: Number((1 - (index + 0.5) / SEARCH_ZONE_FADE).toFixed(4)),
 }));
 /** Complément du 5 novembre 2026 (Hermann), §18–§19 : plus de bouton en bas ; marge sous le Déroulé, au-dessus de la zone sûre. */
 const CONTENT_BOTTOM_MARGIN = 24;
@@ -553,7 +556,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [catalogueMode, setCatalogueMode] = useState(false);
   const [catalogueFilters, setCatalogueFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [pilesCollapsed, setPilesCollapsed] = useState(false);
   // Recette du 04/11/2026 (f4-catalogue, Hermann : « le filet bleu à gauche doit être actif et permettre de replier les
   // piles ») : toucher le filet d'une pile la replie ; « Déplier » les rouvre toutes.
@@ -580,7 +582,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const closeCatalogue = () => {
     setCatalogueMode(false);
     setPicked(new Map());
-    setIsFilterOpen(false);
     setCommandsShown(false);
   };
   // Recette du 04/11/2026 (x-sans-recap, Hermann : « Superset : questionnaire : il manque la ligne de récupération après
@@ -728,8 +729,11 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // [§18–§19 : coche « Ajouter » en mode catalogue et coche « Valider les paramètres » au questionnaire — remplacées.]
   const canSaveHere = canSave && !validating;
   const bottomAction: "ADD" | "VALIDATE" | null = catalogueMode ? "ADD" : validating ? "VALIDATE" : null;
+  // Recette du 06/11/2026 (s-focus, Hermann : « Le bouton d'action du bas est "Fermer sans sélectionner" si aucun mouvement n'est sélectionné,
+  // puis devien "Ajouter X mouvements" lorsque des mouvements sont sélectionnés ») : sans sélection, le bouton est actif et ferme le mode
+  // catalogue (comme « Revenir aux paramètres »). [« Ajouter » grisé sans sélection — remplacé.]
   const addPickedLabel =
-    picked.size === 0 ? t().addPicked : picked.size === 1 ? t().addPickedOne : fillTemplate(t().addPickedMany, { count: String(picked.size) });
+    picked.size === 0 ? t().closeWithoutSelecting : picked.size === 1 ? t().addPickedOne : fillTemplate(t().addPickedMany, { count: String(picked.size) });
 
   // p-coche / p-ajout : « Revenir aux paramètres » ferme le mode catalogue sans ajout.
   const backToParameters = () => {
@@ -902,6 +906,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           entrySuffix=" kg"
           placeholder={t().dash}
           badge
+          // Recette du 06/11/2026 (t-coche-direct, Hermann : « un mouvement : après activation des charges, le cadre de valeur de la charge
+          // doit être orange ») : charge à renseigner, cadre orange.
+          pending={movement.values.loadOn !== true || movement.values.loadKg == null}
           onChange={(value) => updateValues(0, { ...movement.values, loadKg: value, loadOn: value !== null })}
           {...binding}
           label={t().rows.load}
@@ -1007,10 +1014,13 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                 stepRow("startRepetitions", r.startRepetitions, { seconds: deathByDuration, format: deathByDuration ? formatSeconds : (value) => `${value} ${t().repetitionsUnit}`, placeholder: t().dash }),
                 stepRow("increment", r.increment, { seconds: deathByDuration, format: (value) => `+ ${deathByDuration ? formatSeconds(value) : `${value} ${t().repetitionsUnit}`}`, placeholder: "+" }),
               ]),
+          // Recette du 06/11/2026 (n-deathby, Hermann : « Mettre la ligne "Récupération entre les mouvements avant la ligne condition
+          // d'arrêt ») : la récupération précède la condition d'arrêt. [Récupération en dernière ligne — remplacé.]
+          ...(several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds)] : []),
           readRow(r.stopCondition, t().atFailure, "stop", !showExecution && loadSwitch.length === 0 && single.length === 0),
           ...loadSwitch,
           ...single,
-        ]).concat(several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : []);
+        ]);
       case "AMRAP": {
         if (stage === "summary") return [stepRow("durationSeconds", (answers.blockCount ?? 1) > 1 || several || (answers.loopRestSeconds ?? 0) > 0 ? r.blockDuration : r.durationSeconds, { last: true })];
         return [
@@ -1405,7 +1415,21 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                   summary={filterSummary}
                   clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
                   editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
-                  onOpen={() => setIsFilterOpen(true)}
+                  onOpen={() => {
+                    // Recette du 06/11/2026 (x-dedans, Hermann : « Ouvrir toutes les modales de filtre comme une modale iOS » ;
+                    // « L'arrêter en fait sous le bouton Annuler de la fenêtre du questionnaire ») : feuille native (route
+                    // `catalogue-filters`) par-dessus cette fenêtre, haut sous la croix. [Feuille dessinée `docked` — remplacée.]
+                    requestFilterSheet({
+                      kind: "movements",
+                      filters: catalogueFilters,
+                      onApply: (next, labels) => {
+                        setCatalogueFilters(next);
+                        setFilterLabels(labels);
+                      },
+                      sheetTop: MODAL_TOP + styles.context.paddingTop + (styles.modalHeader.height + dimensions.backAction.visualCircle) / 2,
+                    });
+                    router.push("/catalogue-filters");
+                  }}
                   onClear={() => {
                     setCatalogueFilters(EMPTY_MOVEMENT_FILTERS);
                     setFilterLabels([]);
@@ -1675,8 +1699,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           onLayout={(event) => setSearchZoneHeight(event.nativeEvent.layout.height)}
           testID="format-search-zone"
         >
-          <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-            {SEARCH_ZONE_LAYERS.map((layer) => (
+          <View pointerEvents="none" style={styles.searchZoneSolid} testID="format-search-zone-background" />
+          <View pointerEvents="none" style={styles.searchZoneFade}>
+            {SEARCH_ZONE_FADE_LAYERS.map((layer) => (
               <View key={layer.top} style={[styles.searchZoneLayer, { top: layer.top, opacity: layer.opacity }]} />
             ))}
           </View>
@@ -1686,26 +1711,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       {bottomAction !== null ? (
         <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
           {bottomAction === "ADD" ? (
-            <PrimaryActionButton label={addPickedLabel} onPress={addPicked} disabled={picked.size === 0} testID="format-catalogue-add" />
+            <PrimaryActionButton label={addPickedLabel} onPress={picked.size === 0 ? backToParameters : addPicked} testID="format-catalogue-add" />
           ) : (
             <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
           )}
         </PrimaryActionZone>
       ) : null}
       </View>
-      {isFilterOpen ? (
-        <MovementFilterSheet
-          // Recette du 04/11/2026 (f4-catalogue) : feuille arrêtée à la limite de la zone de contexte, montée et descente lentes.
-          docked={{ top: MODAL_TOP + bandHeight + MOVEMENTS_TOP_OFFSET + searchZoneHeight }}
-          filters={catalogueFilters}
-          onApply={(next, labels) => {
-            setCatalogueFilters(next);
-            setFilterLabels(labels);
-            setIsFilterOpen(false);
-          }}
-          onClose={() => setIsFilterOpen(false)}
-        />
-      ) : null}
+      {/* [Recette du 04/11/2026 (f4-catalogue) : feuille de filtres dessinée (`MovementFilterSheet docked`), arrêtée à la limite
+          de la zone de contexte — remplacée le 06/11/2026 (x-dedans) par la feuille native ouverte depuis « Filtrer ».] */}
       {/* Barre du clavier des tableaux, identique à celle du tableau des séries variables (iOS). */}
       {Platform.OS === "ios" && focusedCell !== null && keyboardFrame !== null ? (
         <KeyboardAccessoryBar
@@ -1887,7 +1901,10 @@ const styles = StyleSheet.create({
   bandFadeLayer: { position: "absolute", top: 0, left: 0, right: 0 },
   catalogueHead: { marginBottom: 4 },
   searchZone: { position: "absolute", left: 0, right: 0, zIndex: 1 },
-  searchZoneLayer: { position: "absolute", left: 0, right: 0, height: `${100 / SEARCH_ZONE_STEPS + 0.5}%`, backgroundColor: "#FFFFFF" },
+  // Blanc opaque depuis le bas de la zone de contexte (la zone commence 16 plus bas), puis fondu de 8 sous la recherche.
+  searchZoneSolid: { position: "absolute", left: 0, right: 0, top: -MOVEMENTS_TOP_OFFSET, bottom: 0, backgroundColor: "#FFFFFF" },
+  searchZoneFade: { position: "absolute", left: 0, right: 0, top: "100%", height: SEARCH_ZONE_FADE },
+  searchZoneLayer: { position: "absolute", left: 0, right: 0, height: 1, backgroundColor: "#FFFFFF" },
   // Recherche du mode catalogue moins haute (demande de Hermann du 05/11/2026, soir) ; invite plus petite, en gris clair.
   catalogueSearchInput: { height: 36 },
   searchInputEmpty: { fontSize: 14 },
@@ -1899,7 +1916,9 @@ const styles = StyleSheet.create({
   familyRailLine: { width: 2, flex: 1, borderRadius: 1, backgroundColor: "#B9BDF5" },
   // Complément du 5 novembre 2026 (Hermann), §12 : cadre propre du tableau, séparé de 8 des cadres voisins.
   unitNote: { marginHorizontal: 24, marginTop: 6, fontFamily: "Inter_400Regular", fontSize: 12, lineHeight: 16, color: SECTION },
-  tableFrame: { marginTop: 8, marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 8, paddingVertical: 4 },
+  // Recette du 06/11/2026 (n-cadres, constat d) : le tableau occupe tout le cadre ; ses retraits sont ceux des lignes de paramètres (16).
+  // [Retrait intérieur de 8 — remplacé.]
+  tableFrame: { marginTop: 8, marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingVertical: 4, overflow: "hidden" },
   panelAfterTable: { marginTop: 8 },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" },
   context: { height: CONTEXT_HEIGHT, paddingHorizontal: 16, paddingTop: 10 },
@@ -1945,7 +1964,9 @@ const styles = StyleSheet.create({
   row: { minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 4, gap: 8 },
   rowSeparated: { borderBottomWidth: 1, borderBottomColor: SEPARATOR },
   rowLabel: { flexShrink: 1, fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
-  readValue: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: LABEL },
+  // Recette du 06/11/2026 (constat b, Hermann : « les textes quand ils ne sont pas modifiables (ex. condition d'arrêt ou durée total), doivent
+  // être alignés à droite des autres textes, pas de leur cadre ») : retrait du texte des pastilles (10).
+  readValue: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: LABEL, paddingRight: 10 },
   chip: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: CHIP, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
   chipText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, color: "#FFFFFF" },
   chipChevron: { fontSize: 12, color: "#FFFFFF" },

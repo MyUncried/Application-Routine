@@ -1,7 +1,7 @@
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Keyboard, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { createEmptyExecutionParameters } from "@/domain/activities/ExecutionParameters";
@@ -226,7 +226,8 @@ export function MovementSheet({
   readonly returnDepth?: 1 | 2;
   /**
    * Recette du 05/11/2026 au soir (r-creer, m-carte) : fiche d'un mouvement choisi, posée en fondu par-dessus la fiche de création
-   * (même feuille) — croix et coche fournies par la fiche de création ; une fin d'édition revient à elle.
+   * (même feuille) — Retour (chevron, recette du 06/11/2026, t-fiche-choix) et coche fournis par la fiche de création ; une fin
+   * d'édition revient à elle. [« croix » — remplacé par Retour.]
    */
   readonly overlay?: {
     readonly onClose: () => void;
@@ -402,24 +403,32 @@ export function MovementSheet({
     // Annulée (Exercice libre) : retour à la modale « Créer un exercice » (arbitrage du 06/11/2026, choix A).
     router.back();
   };
-  const chosenOverlay = (movement: Movement) =>
-    isSessionContext
-      ? {
-          // r-creer : coche → Composition avec l'exercice. Croix : Arbitrage de Hermann du 06/11/2026 (« A. Revenir à la modale avec tous les formats. ») : annulée, la fiche ouverte par
-    // Exercice libre revient à la modale « Créer un exercice » (n-cat-libre : « Annulée > Modale de Création d'un exercice »). [r-creer :
-    // « amène à la composition de séance vide » — remplacé : la Composition vide d'un « Créer » renvoyait aussitôt au Catalogue.]
-          onClose: () => setLeaving(true),
-          validate: {
-            onPress: () => {
-              onMovementChosen?.(movement);
-              requestFormatsWindowClose();
-              setLeaving(true);
-            },
-            accessibilityLabel: t.validate,
-          },
-        }
-      : // m-carte : « Appuyer sur annuler ramène à la fiche pour la création telle qu’elle était ».
-        { onClose: () => setChosen(null) };
+  // Recette iPhone du 06/11/2026 (t-fiche-choix, t-cat-choix ; reformulation validée par Hermann) : « Appuyer sur le bouton retour,
+  // ramène à la fiche de mouvement telle qu’elle était avant d’avoir sélectionné le mouvement du résultat de la recherche, appuyer
+  // sur valider la ferme et on arrive à la composition de séance » (Exercice libre) / « … au catalogue de mouvements » (Catalogue).
+  // Retour ne fait que retirer la fiche choisie : le brouillon de création (nom tapé, champs saisis) est l'état de cette fiche,
+  // conservé dessous. [Séance : « la croix revient à la modale « Créer un exercice » » (arbitrage du 06/11/2026, A, appliqué à la
+  // fiche choisie) — remplacé : la croix de la fiche choisie devient Retour ; la croix de la fiche de création garde l'arbitrage A.]
+  const chosenOverlay = (movement: Movement) => ({
+    onClose: () => setChosen(null),
+    validate: {
+      onPress: isSessionContext
+        ? () => {
+            // r-creer : coche → Composition avec l'exercice.
+            onMovementChosen?.(movement);
+            requestFormatsWindowClose();
+            setLeaving(true);
+          }
+        : // t-cat-choix : coche → Catalogue des mouvements (fermeture de la fiche de création, sans enregistrement).
+          () => setLeaving(true),
+      accessibilityLabel: t.validate,
+    },
+  });
+  // t-fiche-choix : la fiche choisie est en lecture seule — le clavier du nom (ouvert pendant la recherche) se ferme.
+  const choose = (movement: Movement) => {
+    Keyboard.dismiss();
+    setChosen(movement);
+  };
 
   const onlyNameEntered = draftKey({ ...draft, name: "", categoryId: null, bodyZoneIds: [] }) === draftKey(EMPTY_DRAFT);
   const searchContext = useMemo(() => ({ categoryId: draft.categoryId, bodyZoneIds: draft.bodyZoneIds }), [draft.categoryId, draft.bodyZoneIds]);
@@ -449,11 +458,11 @@ export function MovementSheet({
           onSameMovement: (choice: MovementChoice) => {
             // PRE-9 A.2 : le Mouvement existant devient l'Exercice de la Séance ; aucun doublon. r-creer : sa fiche s'affiche d'abord
             // en fondu ; la coche le remet à la Composition.
-            setChosen(choice.movement);
+            choose(choice.movement);
           },
         }
       : {}),
-    ...(onMovementChosen === undefined ? { onOpenMovement: (choice: MovementChoice) => setChosen(choice.movement) } : {}),
+    ...(onMovementChosen === undefined ? { onOpenMovement: (choice: MovementChoice) => choose(choice.movement) } : {}),
     onVariant: onMovementChosen !== undefined ? undefined : (choice, placement) => {
       setSaveError(false);
       setVariant({ originId: choice.movement.id, placement, position: variantLevelPosition(choice.level, placement) });
@@ -617,14 +626,17 @@ export function MovementSheet({
       <EditorHeader
         title={title}
         onClose={closeSheet}
-        accessibilityLabel={t.close}
+        // t-fiche-choix, t-cat-choix (06/11/2026) : « que la Croix se transforme en bouton retour » — fiche d'un mouvement choisi.
+        accessibilityLabel={overlay !== undefined ? t.back : t.close}
+        {...(overlay !== undefined ? { backIcon: true } : {})}
         trailing={loadState === "ready" && mode === "consult" && !isArchived && !readOnly ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
         {...(readOnly || inSheet ? { topInset: 0 } : {})}
         // Demande de Hermann du 05/11/2026 (soir) : « fiche modifier un mouvement : retirer le bouton d'action en bas, mettre un
         // bouton d'action standard Valider en haut à droite » — coche d'en-tête (§18–§19), même règle d'activation que « Terminer ».
         // Recette du 05/11/2026 au soir (m-valider, Hermann : « En création, retirer le bouton terminer, mettre la Coche valider en
         // haut ») : aussi en création.
-        {...(overlay?.validate !== undefined
+        // t-cat-choix : la coche de la fiche choisie vaut en consultation ; entrée en édition par le crayon, la coche enregistre.
+        {...(overlay?.validate !== undefined && mode === "consult"
           ? { validate: { onPress: overlay.validate.onPress, enabled: loadState === "ready", accessibilityLabel: overlay.validate.accessibilityLabel } }
           : loadState === "ready" && (mode === "edit" || mode === "create") && !readOnly
             ? {
@@ -674,7 +686,9 @@ export function MovementSheet({
           profileSideRecoverySecondsDefault={0}
           contentLocked={mode === "consult"}
           onNameEndEditing={originChoice.onNameEndEditing}
-          nameAssist={originChoice.nameAssist}
+          // t-fiche-choix (06/11/2026) : « il faut aussi que le résultat de la recherche disparaisse » — panneau retiré tant qu'un
+          // mouvement choisi est affiché ; Retour le rend tel qu'il était.
+          nameAssist={chosen === null ? originChoice.nameAssist : null}
           // Recette A/B B.10 (q6-2) : un Mouvement archivé est signalé après son nom, en gris.
           nameHint={
             isArchived ? t.archivedNameSuffix : nameHintVisible ? editorStrings.movementSuggestion.completeNameHint : null
@@ -795,6 +809,8 @@ export function MovementSheet({
 
 /** Fondu d'apparition de la fiche d'un mouvement choisi (m-carte, r-creer). */
 const CHOSEN_FADE_MS = 300;
+/** Au-dessus de toutes les couches de l'éditeur de création (la plus haute, le voile du menu Niveau, est à 10). */
+const CHOSEN_OVERLAY_Z_INDEX = 100;
 
 /** Zones corporelles du référentiel persistant (relu à la fermeture de leur feuille). */
 function useBodyZones(refreshToken: number): readonly BodyZone[] {
@@ -852,7 +868,11 @@ function useSilhouette(): Silhouette | null {
 }
 
 const styles = StyleSheet.create({
-  chosenOverlay: { backgroundColor: colors.background },
+  // t-fiche-choix, m-carte (06/11/2026) : l'éditeur de la fiche de création est rendu sans conteneur (fragment) ; ses couches
+  // superposées — zone de contexte (nom, Catégorie, Zones, Niveau, `zIndex` 1), panneau des résultats (`zIndex` 2), voile du
+  // menu Niveau (`zIndex` 10) — sont donc sœurs de cette fiche et passaient devant elle : résultats restés visibles, contexte vierge
+  // de la création affiché à la place de celui du mouvement choisi. La fiche choisie passe au-dessus de toutes.
+  chosenOverlay: { backgroundColor: colors.background, zIndex: CHOSEN_OVERLAY_Z_INDEX, elevation: CHOSEN_OVERLAY_Z_INDEX },
   loadErrorBody: {
     flex: 1,
     justifyContent: "center",

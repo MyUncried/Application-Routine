@@ -31,8 +31,8 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import {
   chooseExecutionMode,
-  pressInExecutionSheet,
   tapExecutionSheetStep,
+  enterExecutionSheetValue,
 } from "@/features/activities/testing/executionSheetActions";
 
 /**
@@ -213,10 +213,8 @@ function setNewDuration(action: "validate" | "cancel") {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   // PRE-4 story 3.1 : popover natif sur iOS, segmenté ailleurs.
   chooseExecutionMode("Durée");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 0 } });
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 45 } });
-  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 45);
   fireEvent.press(screen.getByTestId(`execution-sheet-${action}`));
   if (action === "cancel") {
     expect(cardLabel()).toBe(before);
