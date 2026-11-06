@@ -23,6 +23,7 @@ import { ActivityDefinitionServiceProvider } from "@/features/activities/Activit
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * **Correction compacte LOT_3_OF_3 — intégration Catalogue → Composition.**
@@ -261,6 +262,8 @@ function renderCatalogueRouter() {
     {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       index: require("../../../../app/(tabs)/index").default,
+      // Règle du 06/11/2026 : brouillons au niveau de l'application (`app/_layout.tsx`).
+      _layout: CreationRootStack,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports

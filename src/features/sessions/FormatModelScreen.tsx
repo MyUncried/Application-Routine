@@ -65,6 +65,7 @@ import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import type { KeyboardFrame } from "@/features/activities/useSheetKeyboard";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import { closeCreationModals } from "@/features/sessions/creationNavigation";
 import { useFormatModelDraft } from "@/features/sessions/FormatModelDraftContext";
 import {
   AmrapTable,
@@ -701,13 +702,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // séance vierge ») : `dismissTo("/composition")` remplaçait les paramètres de la Composition — une
   // Séance ouverte depuis le Catalogue perdait son `sessionId` et repartait d'un brouillon vierge. On
   // dépile jusqu'à la Composition, paramètres intacts.
-  const backToComposition = () => {
-    const state = navigation.getState();
-    const routes = state?.routes ?? [];
-    const at = routes.map((route) => route.name).lastIndexOf("composition");
-    if (state !== undefined && at >= 0 && state.index > at) router.dismiss(state.index - at);
-    else router.dismissTo("/composition");
-  };
+  // Règle de Hermann du 06/11/2026 (registre ch07) : enregistré, le Format retire les feuilles de création ; une Composition ouverte
+  // dessous reprend le premier plan, sinon (ouverture par « Créer » du Catalogue) elle s'ouvre alors avec le Format.
+  const backToComposition = () => closeCreationModals(router, navigation);
 
   // « Valider les paramètres » : récapitulatif sur place, sans ajout ; Retour : questionnaire, réponses conservées.
   const validate = () => {
@@ -755,10 +752,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     // Recette du 05/11/2026 (n-cat-format, Hermann : « Questionnaire : Croix > Retour à la modale "Créer un exercice" ») : ouvert
     // depuis la modale de création, le questionnaire y revient. [Essai feuille native : la croix ramenait à la Composition, même
     // si la fenêtre Formats était empilée dessous — remplacé.] Réédition (« Modifier le format ») : retour à la Composition.
-    const routes = navigation.getState()?.routes ?? [];
-    const at = routes.findIndex((route) => route.name === "format-questionnaire");
-    if (at > 0 && routes[at - 1]?.name === "formats-window") dismissWith(() => router.back());
-    else dismissWith(backToComposition);
+    // Règle du 06/11/2026 (ordre des écrans) : la croix revient à l'écran qui a ouvert le questionnaire (modale « Créer un
+    // exercice », ou Composition pour « Modifier le format »).
+    dismissWith(() => router.back());
   };
 
   // Cases au clavier (lignes de paramètres et tableaux) : focus, Suivant / Précédent, révélation au-dessus du clavier et de sa

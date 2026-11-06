@@ -30,6 +30,7 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * PRE-6 story 4.3 — pauses de bout en bout, sur une vraie base SQLite migrée
@@ -119,6 +120,8 @@ async function seedAndRender(stopPoints: NonNullable<SessionDraft["stopPoints"]>
   const router = renderRouter(
     {
       index: () => null,
+      // Règle du 06/11/2026 : brouillons au niveau de l'application (`app/_layout.tsx`).
+      _layout: CreationRootStack,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports

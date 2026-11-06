@@ -62,6 +62,10 @@ jest.mock("@/features/sessions/SessionServiceProvider", () => ({
   },
 }));
 
+jest.mock("@/features/sessions/CreationDraftProviders", () => ({
+  CreationDraftProviders: ({ children }: { children: ReactNode }) => children,
+}));
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const RootLayout = (require("../_layout") as { default: ComponentType }).default;
 
@@ -120,6 +124,21 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
     expect(options({ route: { params: { movementId: "m1" } } })).toMatchObject(sheet);
     expect(options({ route: { params: { movementId: "m1", mode: "edit" } } })).toMatchObject(sheet);
     expect(options({ route: { params: { variantOf: "m1", placement: "AFTER_ORIGIN" } } })).toMatchObject(sheet);
+  });
+
+  // Règle de Hermann du 06/11/2026 (registre ch07 : « Je veux qu’on suive l’ordre des écrans et des modèles lorsqu’on les ouvre et
+  // qu’on les ferme en fonction des décisions qu’ils ont prises ») : modale « Créer un exercice », questionnaire, récapitulatif et
+  // fiche d'un mouvement — feuilles natives de la pile racine, au-dessus de l'écran qui les ouvre, sans geste natif (comme avant).
+  it("presents the creation modal, the Format questionnaire and summary, and the movement sheet as native root form sheets", () => {
+    screenCalls.length = 0;
+    render(<RootLayout />);
+
+    const sheet = (name: string) => screenCalls.find((call) => call.name === name)?.options;
+    expect(sheet("formats-window")).toMatchObject({ presentation: "formSheet", sheetAllowedDetents: "fitToContents", gestureEnabled: false });
+    for (const name of ["format-questionnaire", "format-summary"]) {
+      expect(sheet(name)).toMatchObject({ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: { backgroundColor: "#FFFFFF" }, gestureEnabled: false });
+    }
+    expect(sheet("movement-sheet")).toMatchObject({ presentation: "formSheet", gestureEnabled: false });
   });
 
   it("presents the Catalogue filters as a native iOS form sheet, without grabber, on a white background", () => {

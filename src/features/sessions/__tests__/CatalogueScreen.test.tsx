@@ -423,9 +423,10 @@ describe("CatalogueScreen — cadre commun", () => {
 
     expect(screen.queryByTestId("catalogue-create-tree")).toBeNull();
     expect(mockPush).toHaveBeenCalledTimes(1);
-    // Complément du 5 novembre 2026 (§1–§2, CE-CREATION-01) : Créer ouvre la modale de création commune sur un nouveau
-    // brouillon (Composition d'arrivée, `create=1`). [Référence du 02/11 : Composition vide — remplacé.]
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/composition", params: { create: "1" } });
+    // Complément du 5 novembre 2026 (§1–§2, CE-CREATION-01) : Créer ouvre la modale de création commune sur un nouveau brouillon ;
+    // règle du 06/11/2026 (aucun écran ouvert par anticipation) : la modale, directement au-dessus du Catalogue.
+    // [Référence du 02/11 : Composition vide ; 05/11 : Composition `create=1` — remplacés.]
+    expect(mockPush).toHaveBeenCalledWith("/formats-window");
   });
 
   it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {

@@ -20,6 +20,7 @@ import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
 import { chooseExecutionMode, pressInExecutionSheet } from "@/features/activities/testing/executionSheetActions";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * `CompositionScreen`/`ExerciseScreen` s'auto-alimentent en Zones corporelles
@@ -162,6 +163,8 @@ async function renderCreationRouter() {
   const router = renderRouter(
     {
       index: () => null,
+      // Règle du 06/11/2026 : brouillons au niveau de l'application (`app/_layout.tsx`).
+      _layout: CreationRootStack,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports

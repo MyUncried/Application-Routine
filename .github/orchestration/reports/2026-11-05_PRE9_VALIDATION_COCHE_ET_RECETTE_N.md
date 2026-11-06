@@ -101,6 +101,10 @@ Règle permanente inscrite au registre (ch07) : vitesses iOS conservées. Aucune
 
 Règle permanente inscrite au registre. Réaménagement de la navigation de création : CHANGE_REQUEST_REQUIRED, aucun code modifié.
 
+## Complément — navigation de création selon les décisions (06/11)
+
+Accord de Hermann : « Oui, tu peux développer ». Brouillons à la racine, modales en feuilles racines, Composition ouverte après validation. Suite complète : 304 suites, 5 380 tests — 1 échec sous charge (`CompositionScreen.recette1` « deux Circuits », vert isolé, instabilité connue) ; `tsc` propre ; ESLint : aucun nouveau signalement. À vérifier sur iPhone : tout le parcours (Catalogue et Composition), y compris enregistrer et abandonner une Séance créée.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

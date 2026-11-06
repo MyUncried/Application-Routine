@@ -77,13 +77,8 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
       // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » (anciennes définitions du Catalogue) retirée.]
       // PRE-9 A.2 (ARB-22a) : sélection des Mouvements depuis la Composition, même `Stack`.
       "movement-selection",
-      // Essai du 04/11/2026 : fenêtre « Formats d'entraînement » en feuille native iOS.
-      "formats-window",
-      // PRE-9 C.3 (référence Formats du 02/11/2026) : questionnaire et récapitulatif d'un modèle.
-      "format-questionnaire",
-      "format-summary",
-      // Recette iPhone n° 3 du 03/11/2026 : fiche d'un mouvement en modale, lecture seule.
-      "movement-sheet",
+      // [formats-window, format-questionnaire, format-summary, movement-sheet : feuilles de la pile racine depuis la règle de Hermann
+      // du 06/11/2026 (ordre des écrans, aucun écran ouvert par anticipation) — voir `rootLayoutGesture.test.tsx`.]
       // Recette iPhone du 04/11/2026 (décision de Hermann) : fiche d'un Exercice ouverte par la photo, lecture seule.
       "exercise-sheet",
       // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Filtres ») :

@@ -1,7 +1,6 @@
 import { router as expoRouter } from "expo-router";
 import { act, fireEvent, renderRouter, screen, testRouter, waitFor, within } from "expo-router/testing-library";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Stack } from "expo-router/stack";
 import type { ReactNode } from "react";
 
 import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
@@ -47,6 +46,7 @@ import {
 } from "@/features/activities/testing/executionSheetActions";
 import { openMediaMenu } from "@/features/activities/testing/mediaMenu";
 import { strings } from "@/shared/i18n";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * PRE-4 story 4.1 — les quatre Parcours d'édition (CC, MC, CS, MS) avec le
@@ -243,9 +243,6 @@ async function dump(): Promise<Record<string, unknown[]>> {
 }
 
 /** Racine en pile, comme `app/_layout.tsx` (sans splash ni base native). */
-function RootStack() {
-  return <Stack screenOptions={{ headerShown: false }} />;
-}
 
 function renderApp(options: { readonly picker?: MediaPickerPort } = {}) {
   const importService = new ActivityMediaImportService(
@@ -282,7 +279,7 @@ function renderApp(options: { readonly picker?: MediaPickerPort } = {}) {
   return renderRouter(
     {
       // Racine en pile, comme `app/_layout.tsx` : le Catalogue reste monté sous l’Éditeur.
-      _layout: RootStack,
+      _layout: CreationRootStack,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       index: require("../../../../app/(tabs)/index").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports

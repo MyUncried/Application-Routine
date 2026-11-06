@@ -11,6 +11,7 @@ import { Animated, StyleSheet, View } from "react-native";
 
 import { movementRouteOptions } from "@/features/activities/movementRoutePresentation";
 import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
+import { CreationDraftProviders } from "@/features/sessions/CreationDraftProviders";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
 import { KodjoSplash } from "@/shared/ui/KodjoSplash";
 import { NATIVE_SHEET_OPTIONS } from "@/shared/ui/nativeSheet";
@@ -140,6 +141,8 @@ export default function RootLayout() {
       <SessionServiceProvider onReady={handleDatabaseReady}>
         <View style={styles.root}>
           {fontsSettled && databaseReady ? (
+            // Règle de Hermann du 06/11/2026 (registre ch07) : brouillons de séance et de Format au niveau de l'application.
+            <CreationDraftProviders>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(creation)" options={{ gestureEnabled: false }} />
@@ -151,7 +154,17 @@ export default function RootLayout() {
               <Stack.Screen name="movement" options={({ route }) => movementRouteOptions(route.params)} />
               {/* Même demande : Filtres des Catalogues (Mouvements, Séances) en feuille native iOS. */}
               <Stack.Screen name="catalogue-filters" options={NATIVE_SHEET_OPTIONS} />
+              {/* Règle de Hermann du 06/11/2026 (registre ch07 : « Je veux qu’on suive l’ordre des écrans et des modèles lorsqu’on les
+                  ouvre et qu’on les ferme en fonction des décisions qu’ils ont prises ») : modale « Créer un exercice » (feuille native
+                  ajustée à son contenu), questionnaire et récapitulatif d'un Format, fiche d'un mouvement en lecture seule — feuilles
+                  natives iOS posées au-dessus de l'écran qui les ouvre (Catalogue des séances ou Composition), vitesse d'iOS.
+                  [Feuilles du groupe `(creation)`, au-dessus d'une Composition ouverte d'avance — remplacées.] */}
+              <Stack.Screen name="formats-window" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, sheetAllowedDetents: "fitToContents", gestureEnabled: false }} />
+              <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
+              <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
+              <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet", gestureEnabled: false }} />
             </Stack>
+            </CreationDraftProviders>
           ) : null}
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}
           {showAppSplash ? (
@@ -162,6 +175,9 @@ export default function RootLayout() {
     </RootErrorBoundary>
   );
 }
+
+/** Feuilles natives de la création (04/11/2026, Hermann : « l'écran blanc s'arrête avant la fin de l'écran ») : fond blanc plein. */
+const CREATION_SHEET_CONTENT = { backgroundColor: "#FFFFFF" } as const;
 
 const styles = StyleSheet.create({
   root: {

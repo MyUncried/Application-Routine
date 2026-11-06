@@ -104,7 +104,9 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 ## 2 quaterdecies. Ordre des écrans selon les décisions — règle du 06/11/2026 (classe B) — CHANGE_REQUEST_REQUIRED
 
 - Règle recopiée au registre (ch07). Le montage actuel (Composition `create=1` ouverte pour porter le brouillon, puis la modale) l’enfreint.
-- Changement proposé, non commencé : voir le message de demande de changement du 06/11/2026 (brouillon de séance et brouillon de modèle remontés au niveau racine ; modale « Créer un exercice », questionnaires et récapitulatifs présentés au-dessus de l’écran appelant ; Composition ouverte après validation).
+- Accord de Hermann du 06/11/2026 : « Oui, tu peux développer » (après le tableau complet Catalogue / Composition).
+- Réalisé : `CreationDraftProviders` à la racine ; routes `formats-window`, `format-questionnaire`, `format-summary`, `movement-sheet` déplacées de `app/(creation)/` vers `app/` (feuilles natives de la pile racine, même présentation, geste natif désactivé) ; `closeCreationModals` (`creationNavigation.ts`) pour l’enregistrement d’un Format et la fiche validée ; croix du questionnaire et de la modale : simple retour ; Catalogue « Créer » : `resetDraft` puis `/formats-window` ; Composition : plus de `create=1` ni de retour automatique au Catalogue, remise à zéro du brouillon à l’ouverture sans `keepDraft`/`sessionId` et à la fermeture.
+- Tests : `rootLayoutGesture`, `creationLayout`, `compositionCreateEntry` (réécrit), `formatsWindowRoute` (réécrit), `FormatModelScreen.c3`, `CatalogueScreen`, `CatalogueLifecycle.e7`, parcours réels `CompositionMovementFlow` (Catalogue → modale → fiche → croix → modale → croix → Catalogue, sans Composition ; Catalogue → fiche → mouvement choisi → coche → Composition avec l’exercice) ; pile racine de test `CreationRootStack` pour les neuf parcours réels existants.
 
 ## 3. Documents dépendants (à propager dans `main`)
 

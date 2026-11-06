@@ -1,6 +1,5 @@
 import { act, fireEvent, renderRouter, screen, within } from "expo-router/testing-library";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Stack } from "expo-router/stack";
 import type { ReactNode } from "react";
 import { StyleSheet } from "react-native";
 
@@ -24,6 +23,7 @@ import { SqliteSessionRepository } from "@/infrastructure/database/repositories/
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * PRE-9 — ordre de Hermann du 01/11/2026, point 2 (ch07 « Récupération de l'Exercice et défauts du
@@ -78,9 +78,6 @@ const movement = (id: string, name: string): Movement => ({
   levelGroup: null,
 });
 
-function RootStack() {
-  return <Stack screenOptions={{ headerShown: false }} />;
-}
 
 function renderApp() {
   const service = new ActivityDefinitionService(
@@ -111,12 +108,12 @@ function renderApp() {
   /* eslint-disable @typescript-eslint/no-require-imports */
   return renderRouter(
     {
-      _layout: RootStack,
+      _layout: CreationRootStack,
       index: () => null,
       movement: require("../../../../app/movement").default,
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
-      "(creation)/formats-window": require("../../../../app/(creation)/formats-window").default,
+      "formats-window": require("../../../../app/formats-window").default,
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
     },
     { initialUrl: "/composition", wrapper: Wrapper },

@@ -1,5 +1,5 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useContext, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
@@ -28,6 +28,7 @@ import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
 import { CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
+import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
@@ -70,6 +71,8 @@ export type CatalogueContentType = "movements" | "sessions" | "programs";
  */
 export function CatalogueScreen() {
   const router = useRouter();
+  // Règle du 06/11/2026 : brouillon de séance au niveau de l'application, remis à zéro par « Créer » (absent : écran isolé).
+  const sessionDraft = useContext(SessionDraftContext);
   // V2-CAT-01 (UI-CAT-R-005/006) : signal PONCTUEL, jamais persistant,
   // envoyé exclusivement par `CompositionScreen.handleSave` (ex-`CategoriesScreen`, supprimé par Q54) (`dismissTo`)
   // après un enregistrement réussi — force le retour déterministe sur
@@ -247,8 +250,12 @@ export function CatalogueScreen() {
     isOpeningEditorRef.current = true;
     // Complément du 5 novembre 2026 (Hermann, §1–§2, CE-CREATION-01) : « Créer » ouvre la modale de création commune
     // (Exercice libre et Formats) sur un nouveau brouillon de Séance, en mémoire ; rien n'est enregistré avant la
-    // validation de la Composition. [Référence du 02/11 : « Créer » ouvrait directement la Composition — remplacé.]
-    router.push({ pathname: "/composition", params: { create: "1" } });
+    // validation de la Composition. Règle de Hermann du 06/11/2026 (registre ch07 : aucun écran ouvert par anticipation) :
+    // la modale s'ouvre directement au-dessus du Catalogue ; la Composition n'apparaît qu'après une validation.
+    // [Référence du 02/11 : « Créer » ouvrait directement la Composition ; 05/11 : Composition `create=1` ouverte d'avance
+    // sous la modale — remplacés.]
+    sessionDraft?.resetDraft();
+    router.push("/formats-window");
   };
 
   return (

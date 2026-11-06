@@ -22,6 +22,7 @@ import { ActivityDefinitionServiceProvider } from "@/features/activities/Activit
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * PRE-4 (story 1.2, P39, FR-18-20 sixième conséquence) — parcours réel
@@ -197,6 +198,8 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
         {
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           index: require("../../../../app/(tabs)/index").default,
+          // Règle du 06/11/2026 : brouillons au niveau de l'application (`app/_layout.tsx`).
+          _layout: CreationRootStack,
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
           // eslint-disable-next-line @typescript-eslint/no-require-imports

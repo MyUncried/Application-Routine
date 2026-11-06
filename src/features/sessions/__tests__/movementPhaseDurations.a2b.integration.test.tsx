@@ -1,6 +1,5 @@
 import { act, fireEvent, renderRouter, screen, waitFor, within } from "expo-router/testing-library";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Stack } from "expo-router/stack";
 import type { ReactNode } from "react";
 
 import type { Movement } from "@/domain/activities/Movement";
@@ -21,6 +20,7 @@ import { SqliteProfileRepository } from "@/infrastructure/database/repositories/
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * PRE-9 A.2b — durées des phases portées par le Mouvement, reprises par défaut dans un NOUVEL
@@ -73,9 +73,6 @@ const movement = (id: string, name: string, overrides: Partial<Movement> = {}): 
   ...overrides,
 });
 
-function RootStack() {
-  return <Stack screenOptions={{ headerShown: false }} />;
-}
 
 function renderApp() {
   const service = new ActivityDefinitionService(
@@ -106,7 +103,7 @@ function renderApp() {
   /* eslint-disable @typescript-eslint/no-require-imports */
   return renderRouter(
     {
-      _layout: RootStack,
+      _layout: CreationRootStack,
       index: () => null,
       movement: require("../../../../app/movement").default,
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
@@ -114,7 +111,7 @@ function renderApp() {
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
       // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » retirée avec les anciennes définitions du Catalogue.]
       "(creation)/movement-selection": require("../../../../app/(creation)/movement-selection").default,
-      "(creation)/formats-window": require("../../../../app/(creation)/formats-window").default,
+      "formats-window": require("../../../../app/formats-window").default,
     },
     { initialUrl: "/composition", wrapper: Wrapper },
   );

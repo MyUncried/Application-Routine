@@ -1,10 +1,13 @@
 import { Stack } from "expo-router/stack";
 
-import { FormatModelDraftProvider } from "@/features/sessions/FormatModelDraftContext";
-import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
-
 /**
  * Groupe de routes de la création/modification d'une Séance (T01-S07).
+ *
+ * Règle de Hermann du 06/11/2026 (registre ch07 : aucun écran ouvert par anticipation) : le brouillon de séance et celui du
+ * Format sont montés au niveau de l'application (`CreationDraftProviders`, `app/_layout.tsx`) ; la modale « Créer un
+ * exercice », les questionnaires et récapitulatifs de Format et la fiche d'un mouvement sont des feuilles de la pile racine
+ * (`app/formats-window.tsx`, `format-questionnaire`, `format-summary`, `movement-sheet`), posées au-dessus de l'écran qui
+ * les ouvre. [Brouillon monté ici et feuilles de ce groupe — remplacés ; le texte d'origine ci-dessous décrit l'ancien montage.]
  *
  * `SessionDraftProvider` enveloppe un `Stack` imbriqué explicite — même
  * patron déjà éprouvé que `(tabs)/_layout.tsx` — plutôt que le primitif de
@@ -59,16 +62,10 @@ const SHEET_CONTENT = { backgroundColor: "#FFFFFF" } as const;
 
 export default function CreationLayout() {
   return (
-    <SessionDraftProvider>
-      <FormatModelDraftProvider>
       <Stack screenOptions={{ headerShown: false, gestureEnabled: false }}>
-        {/* Recette du 05/11/2026 (n-cat-creer, n-cat-libre, Hermann : « Utiliser la modale iOS ; apparition en fondu plus lentement » ;
-            « faire apparaître l'écran de composition de séance derrière la modale "Créer un exercice" en même temps ») : ouverte par
-            « Créer » du Catalogue (`create=1`), la Composition apparaît en fondu lent pendant que la modale native monte. */}
-        <Stack.Screen
-          name="composition"
-          options={({ route }) => ((route.params as { create?: string } | undefined)?.create === "1" ? { animation: "fade", animationDuration: 450 } : {})}
-        />
+        {/* [Recette du 05/11/2026 (n-cat-creer, n-cat-libre) : Composition ouverte par « Créer » (`create=1`) en fondu lent derrière
+            la modale — remplacé par la règle du 06/11/2026 : la Composition ne s'ouvre qu'après une validation.] */}
+        <Stack.Screen name="composition" />
         <Stack.Screen name="exercise" />
         {/* [PRE-9 A.3 du 04/11/2026 : route « activity-selection » (sélection des anciennes définitions) retirée.] */}
         {/* PRE-9 A.2 (ARB-22a) : « Utiliser un mouvement existant » depuis la Composition. */}
@@ -93,14 +90,8 @@ export default function CreationLayout() {
             bénéficie-t-elle pas de cet effet "lumière" qui est appliqué à la modale de présentation de la fiche des
             mouvements ? » ; « Est-il possible de tester la première option, notamment sur la question du voile ? ») :
             feuille native iOS (Liquid Glass du système), haut à y = 95 par sa hauteur ; voile du système. */}
-        <Stack.Screen name="formats-window" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT, sheetAllowedDetents: "fitToContents" }} />
-        <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
-        <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
-        {/* Recette n° 3 du 03/11/2026 (autres constats) : fiche d'un mouvement du questionnaire ou du
-            récapitulatif, en modale par le bas, lecture seule ; fermeture par sa croix (geste natif désactivé, T02-S02).
-            Recette n° 3 bis (f3s-fiche) : feuille ajustée à son contenu, au plus jusqu'au titre de l'écran (hauteur
-            fixée par la route). */}
-        <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet" }} />
+        {/* [formats-window, format-questionnaire, format-summary, movement-sheet : déplacées dans la pile racine (`app/_layout.tsx`),
+            règle du 06/11/2026.] */}
         {/* Recette iPhone du 04/11/2026 (décision de Hermann) : appui court sur la photo d'une carte d'Exercice de
             la Composition — fiche de l'Exercice en lecture seule, « au format de la modale iOS, apparition et
             disparition par le bas » ; feuille native sans poignée, fond blanc, hauteur ajustée par la route. */}
@@ -111,7 +102,5 @@ export default function CreationLayout() {
             [Modale React Native dessinée — voile en fondu, montée par translation, poignée — remplacée.] */}
         <Stack.Screen name="selection-filters" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
       </Stack>
-      </FormatModelDraftProvider>
-    </SessionDraftProvider>
   );
 }

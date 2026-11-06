@@ -22,11 +22,13 @@ let mockModel = "TABATA";
 let mockCircuitId: string | null = null;
 let mockUuid = 0;
 jest.mock("expo-crypto", () => ({ randomUUID: () => `uuid-${++mockUuid}` }));
-// Pile de création : Composition d'une Séance du Catalogue (`sessionId`), questionnaire, récapitulatif.
+// Pile racine (règle du 06/11/2026 : feuilles de création au-dessus de l'écran appelant) : Catalogue, groupe de création
+// (Composition d'une Séance du Catalogue), questionnaire, récapitulatif.
 const mockStack = {
-  index: 2,
+  index: 3,
   routes: [
-    { name: "composition", params: { sessionId: "ses-1" } },
+    { name: "(tabs)" },
+    { name: "(creation)", params: { screen: "composition", params: { sessionId: "ses-1" } } },
     { name: "format-questionnaire", params: { model: "TABATA" } },
     { name: "format-summary", params: { model: "TABATA" } },
   ],
@@ -164,9 +166,10 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-total")).toHaveTextContent("4 min");
     expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("4 min");
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
-    // Essai feuille native : la croix ramène à la Composition (fenêtre Formats empilée dessous comprise).
+    // Règle du 06/11/2026 (ordre des écrans) : la croix revient à l'écran qui a ouvert le questionnaire.
     fireEvent.press(screen.getByTestId("screen-header-back"));
-    await waitFor(() => expect(mockDismiss.mock.calls.length + mockDismissTo.mock.calls.length).toBeGreaterThan(0));
+    await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
+    expect(mockDismiss).not.toHaveBeenCalled();
   });
 
   it("« + Ajouter » ouvre directement le mode catalogue (§19) ; Progression : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {
@@ -206,9 +209,11 @@ describe("FormatModelScreen", () => {
     expect(draftRef.current.exercises).toHaveLength(1);
     expect(draftRef.current.exercises[0]!).not.toHaveProperty("format");
     expect(draftRef.current.name).toBe(strings.screens.sessionModels.cards.PROGRESSION.title);
-    // Recette n° 3 du 03/11 : on dépile jusqu'à la Composition (paramètre `sessionId` conservé), sans `dismissTo`.
-    await waitFor(() => expect(mockDismiss).toHaveBeenCalled());
+    // Recette n° 3 du 03/11 : on dépile jusqu'à la Composition (paramètre `sessionId` conservé), sans `dismissTo` ; règle du
+    // 06/11/2026 : les deux feuilles au-dessus du groupe de création se retirent.
+    await waitFor(() => expect(mockDismiss).toHaveBeenCalledWith(2));
     expect(mockDismissTo).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   // Réponse de Hermann du 04/11/2026 : « Tous les modèles sans tableau » s'enregistrent depuis leur questionnaire. Décision du
@@ -871,10 +876,10 @@ describe("FormatModelScreen", () => {
   it("recette du 05/11 (n-cat-format) : ouvert depuis la modale de création, la croix du questionnaire y revient", async () => {
     const saved = mockStack.routes;
     mockStack.routes = [
-      { name: "composition", params: { sessionId: "ses-1" } },
-      { name: "formats-window", params: { model: "TABATA" } },
+      { name: "(tabs)" },
+      { name: "formats-window" },
       { name: "format-questionnaire", params: { model: "TABATA" } },
-    ];
+    ] as typeof mockStack.routes;
     try {
       mockModel = "TABATA";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);

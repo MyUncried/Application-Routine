@@ -1,6 +1,6 @@
+import { router as expoRouter } from "expo-router";
 import { act, fireEvent, renderRouter, screen, waitFor, within } from "expo-router/testing-library";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Stack } from "expo-router/stack";
 import type { ReactNode } from "react";
 
 import type { Movement } from "@/domain/activities/Movement";
@@ -22,6 +22,7 @@ import { SqliteProfileRepository } from "@/infrastructure/database/repositories/
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * PRE-9 A.2 — Créer un Exercice depuis un Mouvement (ARB-22a, ARB-07, D-449, Q6 ; CE-MVT-01).
@@ -79,9 +80,6 @@ const movement = (id: string, name: string, overrides: Partial<Movement> = {}): 
   ...overrides,
 });
 
-function RootStack() {
-  return <Stack screenOptions={{ headerShown: false }} />;
-}
 
 function renderApp(initialUrl = "/composition") {
   const service = new ActivityDefinitionService(
@@ -112,7 +110,7 @@ function renderApp(initialUrl = "/composition") {
   /* eslint-disable @typescript-eslint/no-require-imports */
   return renderRouter(
     {
-      _layout: RootStack,
+      _layout: CreationRootStack,
       index: () => null,
       movement: require("../../../../app/movement").default,
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
@@ -122,7 +120,7 @@ function renderApp(initialUrl = "/composition") {
       "(creation)/exercise-sheet": require("../../../../app/(creation)/exercise-sheet").default,
       // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » retirée avec les anciennes définitions du Catalogue.]
       "(creation)/movement-selection": require("../../../../app/(creation)/movement-selection").default,
-      "(creation)/formats-window": require("../../../../app/(creation)/formats-window").default,
+      "formats-window": require("../../../../app/formats-window").default,
     },
     { initialUrl, wrapper: Wrapper },
   );
@@ -323,8 +321,11 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
  * Annuler > Catalogue des séances ».
  */
 describe("Catalogue → Créer → Exercice libre → Annuler (arbitrage du 06/11/2026, A)", () => {
-  it("la croix de la fiche revient à la modale « Créer un exercice » (la Composition reste dessous) ; la croix de la modale revient au Catalogue", async () => {
-    const router = renderApp("/composition?create=1");
+  // Règle du 06/11/2026 (ordre des écrans, aucun écran ouvert par anticipation) : la modale s'ouvre au-dessus du Catalogue.
+  it("la croix de la fiche revient à la modale « Créer un exercice » ; la croix de la modale revient au Catalogue ; aucune Composition ouverte", async () => {
+    const router = renderApp("/");
+    await settle();
+    act(() => expoRouter.push("/formats-window"));
     await settle(300);
     expect(router.getPathname()).toBe("/formats-window");
     fireEvent.press(screen.getByTestId("formats-window-free-exercise"));
@@ -336,6 +337,32 @@ describe("Catalogue → Créer → Exercice libre → Annuler (arbitrage du 06/1
     await settle(300);
     expect(router.getPathname()).toBe("/formats-window");
     expect(screen.getByTestId("formats-window-free-exercise")).toBeTruthy();
+    expect(screen.queryByTestId("composition-header", { includeHiddenElements: true })).toBeNull();
+    act(() => fireEvent.press(screen.getByTestId("formats-window-close")));
+    await settle(300);
+    expect(router.getPathname()).toBe("/");
+  }, 40000);
+
+  it("depuis le Catalogue, mouvement choisi puis coche : les feuilles se retirent, la Composition s'ouvre avec l'exercice", async () => {
+    await movements().create(movement("squats", "Squats"));
+    const router = renderApp("/");
+    await settle();
+    act(() => expoRouter.push("/formats-window"));
+    await settle(300);
+    fireEvent.press(screen.getByTestId("formats-window-free-exercise"));
+    await settle(300);
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squats");
+    await settle();
+    await act(async () => {
+      fireEvent.press(await screen.findByTestId("movement-suggestion-result-squats"));
+    });
+    await settle(300);
+    await act(async () => {
+      fireEvent.press(within(await screen.findByTestId("movement-chosen-overlay")).getByTestId("screen-header-validate"));
+    });
+    await settle(300);
+    expect(router.getPathname()).toBe("/composition");
+    expect(cardNames()).toEqual(["Squats"]);
   }, 40000);
 });
 
