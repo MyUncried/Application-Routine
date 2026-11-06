@@ -295,4 +295,6 @@ Voir le commit de livraison : `git show --stat` sur la branche. Principaux :
 
 ## Commit final et état Git
 
-À compléter après le commit et la publication.
+- Commit de livraison (code, tests, documentation) : `d737e2b8` ; fusion de `main` : `81f427ec` ; ce rapport finalisé dans le commit documentaire qui suit `d737e2b8`.
+- Branche publiée : `origin/feat/pre9-catalogues-cartes-badge-20261106` ; PR #420 vers `main`, **non fusionnée** : https://github.com/MyUncried/Application-Routine/pull/420
+- Arbre de travail propre après publication ; `main` inchangée ; `pre9-bmad/dev` inchangée (locale).
