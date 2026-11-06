@@ -2,6 +2,8 @@
 
 **Date :** 6 novembre 2026. **Statut :** tranche expérimentale de référentiel et de tests, sans publication de contenu et sans modification du moteur d'exécution.
 
+**Classeur source (hors dépôt) :** `KODJO_Catalogue_reeducation_fitness_60_fiches.xlsx` ; SHA-256 `147658d655c7cb50296229488f50e1867a2e98470b4a78f56adfda48ec09c735`. La transcription JSON conserve l'identifiant de chaque ligne pour la comparaison à cette version exacte.
+
 ## Deux ensembles strictement séparés
 
 **Corpus éditorial — `catalogue/pilote/mouvements-60-candidats.json`.** Transcription des 60 fiches de `KODJO_Catalogue_reeducation_fitness_60_fiches.xlsx` (10 rééducation ; 10 CrossFit ; 10 HYROX ; 10 Pilates ; 10 Yoga ; 10 stretching ; 239 étapes). Il conserve les colonnes historiques dans `originalClassification` et `originalPrescriptionContext`. Ses `proposedSpecialties` sont **des suggestions non arbitrées** : une même fiche pourra ultérieurement porter plusieurs spécialités. Toutes les fiches sont `UNREVIEWED` et `publicationAllowed=false`. Les associations KODJO définitives restent absentes (`kodjoCategoryId=null`, `kodjoBodyZoneIds=[]`). Aucune appartenance ou propriété légale ne peut être déduite de la seule URL documentaire.
