@@ -41,6 +41,8 @@ Toute valeur initialisée depuis un défaut du Profil est présentée dans son c
 
 **Révision du 06/11/2026 (D-508) :** carte Mouvement de 72 pt, photo à 4 pt et rayon 8, fond blanc, liseré à 50 %, niveau à 12 pt du bord aligné sur la ligne de base du nom ; feuilles de pile 72 pt, blanches, même liseré et même ombre que la carte ; écran au fond et à la zone de contexte du catalogue Mouvements (D-501). [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md) §7.
 
+**Complément du 06/11/2026 (D-510) :** état « fiche nouvelle ». Toute fiche créée (bouton +, Ajouter un niveau, duplication, ajout depuis la Composition) porte le badge « New » au premier affichage du catalogue qui suit ; la carte de tête d’une pile repliée porte « New ↓ » si un niveau caché sous elle est nouveau. Le badge disparaît au changement de vue par les onglets du haut ou la barre du bas, et à la fermeture de l’app ; il n’est pas enregistré. Au retour après création, la liste défile jusqu’à la fiche (ou sa pile, sans la déployer). Écran « Mouvement — Catalogue — Fiche créée » `11762:23747`. Règles complètes : [KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06](../KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06.md).
+
 ### 1. Identification
 
 Contrat du 28/10/2026. Figma Prototype MVP `510:101` : Déplacement `10480:23374`, Création d’une famille `10797:20492`, Message de confirmation `10484:23428`. Trois captures au chapitre 06. Référence normative : [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), MFN-05, D-439, D-445 C08 et D-448 point 9.
