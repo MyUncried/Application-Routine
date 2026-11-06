@@ -928,6 +928,13 @@ export function useCircuitCardsReveal(
     onContentLayout,
     /** Déploiement demandé, en attente de la première mesure du contenu (la ligne des noms reste ouverte). */
     waiting,
+    /**
+     * Recette iPhone du 06/11/2026 au soir (t-depli, preuve par traces Metro) : dans la liste fermée (hauteur maximale 0), le
+     * contenu était mesuré à 0 à +7 ms, sa vraie hauteur (169) n'arrivant qu'à +864 ms, après la fin du déploiement (+825 ms)
+     * — d'où « déploie brutalement … puis se replie ». En attente de sa première mesure, le contenu est posé hors du flux
+     * (position absolue, même largeur) : sa hauteur naturelle est mesurée aussitôt, et le déploiement part avec elle.
+     */
+    contentStyle: waiting ? styles.revealMeasure : null,
   };
 }
 
@@ -1485,6 +1492,13 @@ const styles = StyleSheet.create({
   // Découpe de la liste des cartes pendant le dévoilement / repli seulement.
   reveal: {
     overflow: "hidden",
+  },
+  // t-depli : contenu en attente de sa première mesure, hors du flux de la liste fermée.
+  revealMeasure: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
   },
   // Ligne des noms du Circuit replié : une ligne tronquée, à 7 de la ligne d'en-tête.
   names: {

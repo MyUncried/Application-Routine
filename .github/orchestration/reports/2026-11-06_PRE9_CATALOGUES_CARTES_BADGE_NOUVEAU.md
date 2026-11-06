@@ -320,3 +320,11 @@ Cahier : https://claude.ai/artifact/XJCJLC7eHKcANDMrN1yNku (section « Livraison
 - `MovementCatalogueList.tsx` : pendant le geste et 900 ms après le relâchement (`DROP_SETTLE_MS`, écriture et relecture comprises), ni glissement de pile, ni révélation d'entrée, ni superposition, ni transition de place. Le glissement lent du repli / dépli à la main (t-catalogue) est conservé hors geste.
 - Test : `MovementCatalogueList.r0611.test.tsx`, « d-nonreg / t-glisser » — échoue sur le code précédent, passe sur le correctif.
 - `t-depli` : non corrigé ; traces `[t-depli]` (mode développement, non committées) pour relever sur iPhone l'instant de la mesure des cartes par rapport au départ et à la fin du déploiement.
+
+### t-depli — cause démontrée et correction (07/11/2026)
+
+- **Preuve (traces Metro, iPhone de Hermann, version `97a2848c` + traces) :** trois premiers déploiements identiques — demande ; contenu mesuré **0** à +7 / +13 / +9 ms ; départ « à l'aveugle » à +124 / +128 / +132 ms ; fin du déploiement à +825 / +828 / +832 ms sans mesure ; vraie hauteur (169, 258) reçue à +864 / +870 / +877 ms, après la fin. Les déploiements suivants (hauteur connue) partaient normalement.
+- **Attribution révisée — démontrée :** le contenu, dans la liste fermée (hauteur maximale 0), était mis en page à 0. Les correctifs `e74533f3` et `8a5befaf` supposaient une mesure tardive ; elle était en réalité nulle. Le défaut d'origine est antérieur à ces deux commits : la mesure du contenu d'une liste fermée (contre-recette n° 4 du 01/11).
+- **Correction (classe A) :** `useCircuitCardsReveal` renvoie `contentStyle` ; en attente de la première mesure, le contenu est posé hors du flux (position absolue, même largeur), donc mesuré à sa hauteur naturelle ; `CompositionScreen` l'applique au contenu des cartes d'un Circuit. Test ajouté (`CompositionScreen.tdepli.test.tsx`).
+- **Vérification sur iPhone (version corrigée, traces) :** quatre premiers déploiements — hauteur réelle (258, 169) reçue à +3 à +9 ms, départ immédiat avec elle, fin à +717 à +738 ms. **Hermann : « Test OK ».** Traces de diagnostic retirées avant le commit.
+- **Reste du constat t-depli :** le repli lent des Circuits à l'entrée de « Créer → Ajouter un cycle » (demande nouvelle, classe B) est reporté au lot de corrections suivant.

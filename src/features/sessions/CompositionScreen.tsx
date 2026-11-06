@@ -9416,7 +9416,7 @@ function LayoutCircuitBlock({
         >
           {/* Contre-recette n° 4 du 01/11/2026 (cr5-replie, constat c) : contenu non contraint, dont la
               hauteur naturelle est relevée à chaque mesure (`onContentLayout`), base du dépliage et du repli. */}
-          <View style={styles.layoutCircuitCards} onLayout={reveal.onContentLayout} testID={`${testID}-exercises-content`}>
+          <View style={[styles.layoutCircuitCards, reveal.contentStyle]} onLayout={reveal.onContentLayout} testID={`${testID}-exercises-content`}>
           {circuit.exercises.map((exercise, index) => [
             // PRE-9 B.6 (RM-220, ARB-02a) : Points d'arrêt du Circuit avant cette carte (rencontrés à chaque Tour).
             <LayoutStopRows

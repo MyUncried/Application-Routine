@@ -301,3 +301,25 @@ describe("t-depli (a) — useCircuitCardsReveal, mesure après le délai de seco
     expect(screen.getByTestId("cards")).toBeTruthy();
   });
 });
+
+describe("t-depli — preuve iPhone du 06/11 au soir : contenu mesuré à 0 dans la liste fermée", () => {
+  function Cards({ collapsed }: { collapsed: boolean }) {
+    const reveal = useCircuitCardsReveal(collapsed, 9, 6, true);
+    return reveal.mounted ? (
+      <View style={reveal.style as never} testID="cards">
+        <View style={reveal.contentStyle} onLayout={reveal.onContentLayout} testID="cards-content" />
+      </View>
+    ) : null;
+  }
+
+  it("en attente de sa première mesure, le contenu est hors du flux (position absolue) ; mesuré, il y revient", async () => {
+    mockTiming.hold = true;
+    const view = render(<Cards collapsed />);
+    view.rerender(<Cards collapsed={false} />);
+    expect(screen.getByTestId("cards-content").props.style).toMatchObject({ position: "absolute", left: 0, right: 0, top: 0 });
+    await act(async () => {
+      fireEvent(screen.getByTestId("cards-content"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 169 } } });
+    });
+    expect(screen.getByTestId("cards-content").props.style).toBeNull();
+  });
+});
