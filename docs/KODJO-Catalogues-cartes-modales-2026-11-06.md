@@ -118,3 +118,37 @@ Composants modifiés : « DSF / Cards / Séance » (`6214:3572`, `6214:3625`, `6
 Planche DSF : « DSF V2 / Catalogues — couleurs, onglet, cartes et validation des modales — 6 novembre 2026 » `11734:2100` (page « Design system — Fondations »). Écran d’essai : « P-Catalogue des séances — Séance déployée — Essai cycles » `11727:467`.
 
 Captures : chapitre 06, section « Captures du 6 novembre 2026 » ; fichiers dans `docs/Specifications-fonctionnelles/images/catalogues-2026-11-06/`.
+
+## 11. Composition — carte d'exercice, en-tête de circuit, placement
+
+Décisions de Hermann du 06/11/2026, classe B : D-511 à D-513. Elles remplacent les prescriptions antérieures contraires dans la Composition uniquement.
+
+### Carte d'exercice — D-511
+
+- Carte : hauteur 72 pt, fond blanc, liseré 0,5 pt à 50 % utilisant la variable des cartes de séance, rayon 12. Largeur de référence 362 pt ; adaptation au terminal selon le contrat existant.
+- Photo : 64 × 64 pt, à 4 pt du bord, rayon 8. Pictogramme noir hors circuit et gris dans un circuit.
+- Ligne 1 : nom Semi Bold 15, à 8 pt de la photo et du haut, tronqué avant la valeur de droite ; niveau Medium 12, text-primary, à 12 pt du bord droit, aligné sur la ligne de base du nom. Sans niveau, aucun contenu à droite.
+- Ligne 2 : catégorie ; à droite, prescription Semi Bold 12, text-primary (« 50 rép. », « 10 · 12 · … rép. », « 3 × 1 min 30 », « max », « 45 s »). L’icône de changement de côté précède immédiatement la prescription. Aucun chronomètre devant la valeur.
+- Ligne 3 : zones corporelles ; à droite, rôle « Buy-in » ou « Buy-out » lorsqu’il existe, et récupération lorsqu’elle existe : sablier suivi de sa durée en text-secondary, Regular 12. Sans récupération, ni sablier ni valeur.
+- Grille verticale : lignes à 8, 30 et 48 pt du haut ; icônes des lignes 2 et 3 centrées dans une colonne de 10 pt, textes alignés après cette colonne.
+- Aucun chevron sur la carte d’exercice : elle ne se déplie pas.
+- Rail au centre de la photo ; écarts entre cartes et fond des circuits resserrés conformément à l’écran de référence, sans inventer de nouvelle cote non spécifiée.
+- Les niveaux « Niveau 3 », « Niveau 2 » et les 30 s de récupération d’« Étirement du quadriceps » sont des exemples, jamais des valeurs imposées.
+
+### En-tête de circuit — D-512
+
+Le chevron de repli se place immédiatement après le rond du rail et devant le nom, avec le même écart que sur la carte Séance du catalogue. Le bloc « N bloc · nature » ne bouge pas. Seul le Circuit se replie ; le Cycle ne se replie pas.
+
+**Déploiement Figma partiel :** disposition appliquée sur `11789:21914` uniquement selon l’état communiqué par Hermann. Le contrôle direct confirme le chevron avant le nom sur cet écran et encore après le nom sur `8328:29270`. Ne pas déclarer les autres en-têtes migrés.
+
+### Placement — D-513
+
+Seul le Point d’arrêt se pose. La récupération ne se pose plus ; sa saisie reste dans les paramètres d’exécution de l’Exercice. Le cadre « Récupération » en pointillés est retiré de la carte et du composant. Le mode conserve les règles métier existantes des emplacements autorisés et de validation des Points d’arrêt.
+
+Écran `8328:29270` : « P-Composition séance — Placement d'un point d'arrêt ». Bandeau : « Confirmer N points d'arrêt ajoutés », N étant le nombre de points ajoutés. Remplace « Placement d’une pause », la pose/emplacement de récupération et « Confirmer N pauses ajoutées ».
+
+### Références et état des preuves
+
+- Écran de référence : « P-AMRAP — Séance, circuit avec buy-in — Cartes au format catalogue » `11789:21914`.
+- Composant : « DSF / Cards / Exercice — Composition » `11810:2159`, page « Design system — Fondations » ; variantes « Hors circuit » `11810:2102`, « Dans un circuit » `11810:2132`. Dimensions 362 × 72 confirmées par lecture directe des métadonnées.
+- Déploiement annoncé par Hermann : 120 instances sur 37 écrans, aucune carte manuelle restante. Ce décompte n’a pas été recompté dans cette passe ; les deux écrans de référence ont été contrôlés directement. Aucune conformité du code n’est déclarée.

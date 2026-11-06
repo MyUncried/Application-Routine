@@ -66,7 +66,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - **B-013** — Organiser les Exercices avant le Circuit, dans le Circuit ou après le Circuit.
 - **B-014** — Exécuter le Circuit de 1 à 99 Tours ; aucun changement de côté n’est exposé au niveau du Circuit dans la version actuelle.
 - **B-015** — Régler le `Changement de côté` propre à un Exercice sur `Avec` ou `Sans`, sans désignation du côté de départ, puis voir ce changement de côté sur sa carte et dans sa synthèse (D-406, D-407).
-- **B-016** — Réordonner manuellement les Exercices par glisser-déposer ; leur Récupération après exercice se déplace avec l’occurrence sans recalcul.
+- **B-016** — Réordonner manuellement les Exercices par glisser-déposer ; leur Récupération après exercice se déplace avec l’occurrence sans recalcul. [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
 - **B-017** — Régler le Compte à rebours initial et la Fin de séance.
 - **B-018** — Régler, lorsqu’ils sont utilisés, le Compte à rebours propre et la Fin propre d’un Exercice.
 - **B-019** — Insérer et déplacer un Point d’arrêt dans la Composition ; son attente ne doit pas augmenter la durée de la Séance.

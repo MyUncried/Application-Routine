@@ -55,9 +55,9 @@ La récupération contextuelle après exercice est distincte de la pause de sér
 
 ## 4. En-têtes et identification
 
-Une ligne : nom, chevron de circuit, compteur, durée à droite. Nom et nombre : 15 pt ; unité : 13 pt ; durée : 12 pt. Nom et chevron occupent une colonne fixe, compteur à abscisse fixe ; aucun centrage dans l’espace résiduel. Le bleu `color/primary` marque le nombre et la nature ; `color/text-primary` porte les autres textes. La généralisation du bleu à tous les choix de liste n’est pas décidée ici.
+Une ligne : nom, chevron de circuit, compteur, durée à droite. Nom et nombre : 15 pt ; unité : 13 pt ; durée : 12 pt. Nom et chevron occupent une colonne fixe, compteur à abscisse fixe ; aucun centrage dans l’espace résiduel. Le bleu `color/primary` marque le nombre et la nature ; `color/text-primary` porte les autres textes. La généralisation du bleu à tous les choix de liste n’est pas décidée ici. [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
 
-Circuit replié : deuxième ligne contenant les noms d’exercices séparés par un point médian, sur une ligne tronquée, écart de 7 pt ; hauteur de référence 68 pt. L’ancienne valeur 80 pt du texte de défilement est périmée. Le cycle ne se replie pas : aucun chevron ni zone de repli. Sa ligne n’a pas d’adjectif de nature ; unité « répétition(s) ».
+Circuit replié : deuxième ligne contenant les noms d’exercices séparés par un point médian, sur une ligne tronquée, écart de 7 pt ; hauteur de référence 68 pt. L’ancienne valeur 80 pt du texte de défilement est périmée. Le cycle ne se replie pas : aucun chevron ni zone de repli. Sa ligne n’a pas d’adjectif de nature ; unité « répétition(s) ». [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
 
 Lettres de désignation : Circuit A, Circuit B, Cycle A ; continuité des circuits à l’échelle de la séance, sans repartir à A dans chaque cycle. Omettre la lettre lorsqu’un seul conteneur de cette nature est présent. La lettre affichée sert à désigner ; elle ne doit pas être confondue avec un identifiant interne stable. La conduite à tenir au-delà de Z reste à préciser si ce cas est autorisé.
 
@@ -98,7 +98,7 @@ Ces identifiants documentaires reprennent D1–D8 validées dans la source ; ils
 | CS-D3 | Relève entre conteneurs frères par poussée, sans fondu. |
 | CS-D4 | Cycle et circuit peuvent coller simultanément, deux niveaux maximum ; les deux comptes restent visibles. |
 | CS-D5 | Les commandes existantes restent actives : nombre/nature/chevron pour un circuit ; nombre seul pour un cycle. |
-| CS-D6 | Replier le circuit collé ajuste le scroll pour maintenir son en-tête sous le doigt ; utiliser sa hauteur réelle, pas l’ancienne constante 80. |
+| CS-D6 | Replier le circuit collé ajuste le scroll pour maintenir son en-tête sous le doigt ; utiliser sa hauteur réelle, pas l’ancienne constante 80.  [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.] |
 | CS-D7 | Pendant un déplacement, décoller les en-têtes ; les rétablir au relâchement. |
 | CS-D8 | Tout scroll applicatif amène la cible sous la zone collante, jamais derrière. |
 
