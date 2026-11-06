@@ -2384,7 +2384,7 @@ Modèle choisi ou Retour depuis son récapitulatif.
 
 #### 4. Contexte de sortie / destinations
 
-Questionnaire croix → Composition ; Valider les paramètres → récapitulatif modal sans ajout ; récapitulatif Retour → questionnaire avec réponses conservées ; Enregistrer dans la séance → Composition enrichie. Mode catalogue intégré : Ajouter → sélection appliquée ; Fermer le mode catalogue → saisie sans ajout. Photo → Fiche du mouvement superposée, croix → même état du parcours. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
+Questionnaire croix → Composition ; Valider les paramètres → récapitulatif modal sans ajout ; récapitulatif Retour → questionnaire avec réponses conservées ; Enregistrer dans la séance → Composition enrichie. Mode catalogue intégré : Ajouter → sélection appliquée ; Fermer le mode catalogue → saisie sans ajout. Photo → Fiche du mouvement superposée, croix → même état du parcours. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.] [06/11/2026 : bouton « Valider les paramètres » conservé en bas du questionnaire quand une seconde étape suit, coche masquée ; sinon la coche enregistre directement — D-511.]
 
 #### 5. Données affichées et source de vérité
 
@@ -6033,7 +6033,7 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 
 **Documentation :** ch06 (Composition : appui sur la photo), ch13 (contrat de la fiche en lecture seule).
 
-**Deux mouvements à la création.** Un superset est une paire : le questionnaire n'accepte que deux mouvements. « + Ajouter » se désactive dès que deux mouvements sont choisis ; « Valider les paramètres » ne s'active qu'avec deux. Après l'enregistrement, le Circuit est un Circuit standard : un troisième Exercice peut y être ajouté depuis la Composition. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
+**Deux mouvements à la création.** Un superset est une paire : le questionnaire n'accepte que deux mouvements. « + Ajouter » se désactive dès que deux mouvements sont choisis ; « Valider les paramètres » ne s'active qu'avec deux. Après l'enregistrement, le Circuit est un Circuit standard : un troisième Exercice peut y être ajouté depuis la Composition. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.] [06/11/2026 : bouton « Valider les paramètres » conservé en bas du questionnaire quand une seconde étape suit, coche masquée ; sinon la coche enregistre directement — D-511.]
 
 **Réouverture** (« Modifier le format ») : le questionnaire et le récapitulatif affichent les Exercices actuels du Circuit, y compris un troisième ajouté depuis la Composition ; la présence de plus de deux Exercices ne bloque pas « Valider les paramètres » ni « Enregistrer les modifications », sous réserve que tous les paramètres requis soient renseignés et cohérents ; « + Ajouter » reste désactivé ; un mouvement peut être retiré tant qu'il en reste au moins deux. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 

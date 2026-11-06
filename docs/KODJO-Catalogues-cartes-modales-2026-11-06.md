@@ -1,7 +1,7 @@
 # KODJO — Catalogues, cartes et validation des modales — 5 et 6 novembre 2026
 
 **Nature :** spécification active. Elle complète la référence Formats (`KODJO-Formats-entrainement-2026-11-02.md`), la spécification des cartes et du catalogue des séances (`KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md`), les zones de contexte des catalogues (`KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md`) et les contrats CE-CAT-CTX-01, CE-T03-01, CE-MVT-03 et CE-FMT-01 à CE-FMT-05. Elle remplace leurs prescriptions contraires dans les seuls périmètres ci-dessous.
-**Décisions :** Hermann, 5 novembre 2026 (§1, §2) et 6 novembre 2026 (§3 à §9). Registre : D-499 à D-509.
+**Décisions :** Hermann, 5 novembre 2026 (§1, §2) et 6 novembre 2026 (§3 à §9). Registre : D-499 à D-509, D-511.
 **Figma :** fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » `510:101` ; planche DSF « DSF V2 / Catalogues — couleurs, onglet, cartes et validation des modales — 6 novembre 2026 » `11734:2100` (page « Design system — Fondations »).
 
 ## 1. Validation des modales par la coche de l'en-tête (D-499)
@@ -10,7 +10,7 @@ Une modale qui crée ou modifie se valide par la **coche** de son en-tête, à d
 
 | Modale | Action portée par la coche | Ancien bouton |
 |---|---|---|
-| Questionnaire d'un Format | Ouvre le récapitulatif | « Valider les paramètres » |
+| Questionnaire d'un Format | Enregistre directement dans la Séance quand aucune seconde étape ne suit ; sinon voir §1 bis (D-511) | « Valider les paramètres » |
 | Récapitulatif d'un Format | Enregistre dans la Séance ; à la réouverture depuis la Composition, enregistre les modifications | « Enregistrer dans la séance », « Enregistrer les modifications » |
 | Choix des mouvements d'un Format (y compris le choix du buy-in) | Revient au questionnaire avec la sélection | « Enregistrer dans la séance » |
 | Catalogue des séances ouvert depuis la planification (une ou plusieurs séances) | Valide la sélection | « Valider » |
@@ -21,6 +21,21 @@ Une modale qui crée ou modifie se valide par la **coche** de son en-tête, à d
 - **Composants :** en-tête de modale existant à croix et coche (variante « Roulette » de « En-tête modal — Paramètres d'exécution ») ; en-tête fixe « DSF / Navigation / En-tête fixe », variante **« Fermer et valider »** ajoutée pour les écrans de planification.
 - **Exceptions, bouton large conservé :** pendant et juste après l'effort, la cible doit rester grande et sous le pouce : « Résultat de série », « Répétitions partielles », « Avant la séance — Douleur » (Commencer), synthèses de séance et d'exécution. « Modifier le profil » est un écran avec Retour, pas une modale : inchangé.
 - Toute mention des libellés remplacés dans les documents désigne désormais l'action de la coche.
+
+## 1 bis. Questionnaire suivi d'une seconde étape : bouton « Valider les paramètres » (D-511)
+
+Quand les mouvements choisis exigent de renseigner des valeurs dans un tableau ou des champs présentés ensuite (récapitulatif), le questionnaire garde le bouton large **« Valider les paramètres »** en bas de la modale. Il ouvre le récapitulatif. La coche de l'en-tête est alors masquée : il ne reste que la croix, pour qu'un seul geste valide l'étape.
+
+| Format | Seconde étape |
+|---|---|
+| EMOM, AMRAP, For time, Progression | dès le premier mouvement |
+| Tabata, 30/30, Death by, Renforcement, À l'échec | à partir du deuxième mouvement |
+| Superset | à deux mouvements, nombre exigé |
+
+- **Sans seconde étape** (Tabata, 30/30, Death by, Renforcement ou À l'échec avec un seul mouvement) : pas de bouton ni de récapitulatif ; la coche enregistre directement dans la Séance.
+- **Avant le nombre de mouvements requis** (aucun mouvement ; Superset à un mouvement) : pas de bouton, coche grise.
+- **Réouverture** (« Modifier le format ») : un Format sans seconde étape rouvre le questionnaire prérempli, sa coche enregistre les modifications ; les autres rouvrent le récapitulatif.
+- **Écrans :** « EMOM — Questionnaire, un mouvement » `11753:21642`, « P-Tabata — Questionnaire, un mouvement » `11753:21837`, « P-Tabata — Questionnaire, deux mouvements » `11753:21977`, « Superset — Questionnaire, deux mouvements » `11753:22133`, « Death by — Questionnaire, un mouvement » `8624:30602` (ancien « Death by — Récapitulatif »).
 
 ## 2. Ajout d'un mouvement dans un questionnaire de Format (D-500)
 

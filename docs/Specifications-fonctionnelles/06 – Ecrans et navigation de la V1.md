@@ -1673,7 +1673,7 @@ Les anciennes ancres de frames sont conservées uniquement pour les liens histor
 
 **Captures actualisées le 5 novembre :** 87 PNG exportés depuis le fichier courant ; dimensions et empreintes dans le manifeste. Les anciens écrans de volumes ne sont plus des références actives. Les images prouvent les dispositions représentées, pas les interactions ni le fonctionnement du code.
 
-Le questionnaire et le récapitulatif sont des **modales**, ouvertes depuis la modale de création commune au Catalogue et à la Composition. Depuis la Composition, ils sont ouverts par le bas, pleine largeur, sous son titre ; depuis le Catalogue, aucun brouillon de Séance n’est créé avant l’arrivée en Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers le point de départ conservé (Catalogue ou Composition) ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
+Le questionnaire et le récapitulatif sont des **modales**, ouvertes depuis la modale de création commune au Catalogue et à la Composition. Depuis la Composition, ils sont ouverts par le bas, pleine largeur, sous son titre ; depuis le Catalogue, aucun brouillon de Séance n’est créé avant l’arrivée en Composition. Ils ne portent aucun champ ni bloc « Titre de séance » : le nom, l’Étiquette et les réglages de Séance restent dans la Composition derrière le voile. Le titre de la modale est le nom du Format. Le questionnaire se ferme par croix vers le point de départ conservé (Catalogue ou Composition) ; son bouton **« Valider les paramètres »** ouvre le récapitulatif sans ajouter de structure. Le récapitulatif revient au questionnaire par Retour avec réponses conservées ; **« Enregistrer dans la séance »** ajoute la structure au brouillon de Composition, sans sauvegarde définitive. Aucun changement de nom de Séance n’est déclenché par ces étapes. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.] [06/11/2026 : bouton « Valider les paramètres » conservé en bas du questionnaire quand une seconde étape suit, coche masquée ; sinon la coche enregistre directement — D-511.]
 
 « Ouvrir le mode catalogue » reste dans la même modale de questionnaire : aucune navigation sortante ni modale de catalogue supplémentaire. La recherche reste visible avec le texte saisi et les résultats déjà filtrés ; croix d’effacement dès que le champ contient du texte. Filtrer, Trier et Replier / déplier les piles sont à droite sur la même ligne. Les petites cartes occupent la hauteur disponible jusqu’au bas de la modale, avec le filet des niveaux d’une famille, sans compteur « n familles · n mouvements ». « Ajouter » applique la sélection et referme ce mode ; « Fermer le mode catalogue » revient à la saisie sans ajouter de mouvement. La boucle permet la sélection multiple ; le buy-in, sous « Mouvement du buy-in », une sélection unique. [06/11/2026 : lien retiré ; « + Ajouter » ouvre directement le mode catalogue — D-500.]
 
@@ -2249,9 +2249,9 @@ Nœud [8624:30521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 <a id="format-8624-30602"></a>
 
-##### Death by — Récapitulatif
+##### Death by — Questionnaire, un mouvement
 
-Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Contrat CE-FMT-02 · Export du 05/11/2026.
+Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Contrat CE-FMT-02 · Export du 05/11/2026. [06/11/2026 : « Death by — Récapitulatif » (un mouvement) renommé « Death by — Questionnaire, un mouvement » — D-511.]
 
 ![Death by — Récapitulatif](images/figma-8624-30602.png)
 
@@ -3330,11 +3330,11 @@ Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 ![Death by — Questionnaire](images/catalogues-2026-11-06/8624-30198.png)
 
-##### Death by — Récapitulatif
+##### Death by — Questionnaire, un mouvement
 
 Nœud [8624:30602](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30602) · Export du 06/11/2026.
 
-![Death by — Récapitulatif](images/catalogues-2026-11-06/8624-30602.png)
+![Death by — Questionnaire, un mouvement](images/catalogues-2026-11-06/8624-30602.png)
 
 ##### Death by — Récapitulatif, dans chaque intervalle
 
@@ -3497,3 +3497,27 @@ Nœud [8656:35273](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 Nœud [8656:35331](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-35331) · Export du 06/11/2026.
 
 ![À l’échec — Récapitulatif](images/catalogues-2026-11-06/8656-35331.png)
+
+##### EMOM — Questionnaire, un mouvement
+
+Nœud [11753:21642](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11753-21642) · Export du 06/11/2026 · D-511.
+
+![EMOM — Questionnaire, un mouvement](images/catalogues-2026-11-06/11753-21642.png)
+
+##### P-Tabata — Questionnaire, un mouvement
+
+Nœud [11753:21837](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11753-21837) · Export du 06/11/2026 · D-511.
+
+![P-Tabata — Questionnaire, un mouvement](images/catalogues-2026-11-06/11753-21837.png)
+
+##### P-Tabata — Questionnaire, deux mouvements
+
+Nœud [11753:21977](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11753-21977) · Export du 06/11/2026 · D-511.
+
+![P-Tabata — Questionnaire, deux mouvements](images/catalogues-2026-11-06/11753-21977.png)
+
+##### Superset — Questionnaire, deux mouvements
+
+Nœud [11753:22133](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11753-22133) · Export du 06/11/2026 · D-511.
+
+![Superset — Questionnaire, deux mouvements](images/catalogues-2026-11-06/11753-22133.png)
