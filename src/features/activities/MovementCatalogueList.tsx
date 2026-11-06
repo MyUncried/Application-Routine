@@ -183,7 +183,8 @@ type Box = { readonly y: number; readonly height: number };
 /** B08 : ordre affiché juste après une dépose, valable pour les entrées lues avant elle. */
 type OrderOverride = { readonly entries: readonly MovementCatalogueEntry[]; readonly pileKey: string; readonly ids: readonly string[] };
 
-const CARD_HEIGHT = 80;
+/** D-508 (Figma `10124:21979`) : carte et feuilles de pile de 72. [Avant : 80 — remplacé.] */
+const CARD_HEIGHT = 72;
 /** Écart entre les cartes d'une pile déployée (Figma `10579:21580` : 4). */
 const MEMBER_GAP = spacing[4];
 /** Écart entre deux entrées du Catalogue, sous l'épaisseur d'une pile (Figma : 12). */
@@ -219,16 +220,22 @@ export function MovementCatalogueList({
   counter,
   onSummaryChange,
   newMovementIds,
-  onEntriesLoaded,
+  scrollTarget = null,
+  onScrollTargetHandled,
 }: {
   readonly reloadToken: number;
   /**
-   * Recette iPhone du 06/11/2026 (t-niveau, Hermann : « il faut que la nouvelle fiche soit identifiée dans le catalogue des
-   * mouvements ») : Mouvements nouvellement créés depuis le Catalogue, marqués « NEW » (état de l'écran hôte, non persisté).
+   * D-510 (Hermann, 06/11/2026) : fiches créées depuis la dernière sortie du catalogue des mouvements, badge « New »
+   * (`newMovementMarks`, en mémoire, non persisté). Absent hors de l'onglet Mouvements du catalogue (règle 9).
    */
   readonly newMovementIds?: ReadonlySet<string>;
-  /** t-niveau : identifiants de toutes les entrées lues, à chaque lecture (l'écran hôte en déduit les créations). */
-  readonly onEntriesLoaded?: (ids: readonly string[]) => void;
+  /**
+   * D-510, règle 8 : dernière fiche créée vers laquelle la liste se positionne au retour (sa pile si elle est repliée, sans la
+   * déployer). Une fiche exclue par les filtres ou la recherche n'est pas rendue visible : la cible est alors abandonnée.
+   */
+  readonly scrollTarget?: string | null;
+  /** D-510 : la cible a été atteinte (ou n'est pas affichée). */
+  readonly onScrollTargetHandled?: (id: string) => void;
   /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
   readonly topInset?: number;
   /** PRE-9 CAT.1 (CE-CAT-CTX-01) : compteur actif de la zone de contexte ; absent : aucun. */
@@ -281,9 +288,12 @@ export function MovementCatalogueList({
   const memberBoxes = useRef(new Map<string, Box>());
   // Copie de la carte portée pour les gestionnaires de mise en page (mise à jour après chaque rendu).
   const dragRef = useRef<Drag | null>(null);
+  // D-510, règle 8 : défilement vers la fiche nouvelle, en attente de la mesure de son entrée.
+  const onItemMeasured = useRef<(() => void) | null>(null);
   const recordItemBox = useCallback((key: string, event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
     itemBoxes.current.set(key, { y, height });
+    onItemMeasured.current?.();
     // FAM-05 : la place de la carte portée a changé (pile dépliée au-dessus) — elle reste sous le doigt.
     const current = dragRef.current;
     if (current === null || current.origin === null) return;
@@ -388,11 +398,39 @@ export function MovementCatalogueList({
   useEffect(() => {
     onSummaryChange?.(ready ? summary : null);
   }, [onSummaryChange, ready, summary]);
-  // t-niveau (06/11/2026) : chaque lecture du Catalogue est signalée à l'écran hôte, qui compare avec la précédente.
-  const loadedEntries = state.status === "ready" ? state.entries : null;
+  // D-510, règle 8 : au retour après une création, la liste se positionne sur la fiche nouvelle, ou sur sa pile repliée
+  // (carte de tête), sans la déployer ; tri, filtres et piles inchangés. La position vient de la mise en page mesurée de
+  // l'entrée (`itemBoxes`) et, dans une pile dépliée, de la carte (`memberBoxes`, repère de la pile).
+  const scrollTargetItem =
+    scrollTarget === null || state.status !== "ready"
+      ? null
+      : (items.find((item) =>
+          item.kind === "SINGLE" ? item.entry.movement.id === scrollTarget : item.members.some((member) => member.movement.id === scrollTarget),
+        ) ?? null);
+  const pendingScroll = useRef<{ readonly id: string; readonly itemKey: string } | null>(null);
+  const scrollToPending = useCallback(() => {
+    const pending = pendingScroll.current;
+    if (pending === null) return;
+    const box = itemBoxes.current.get(pending.itemKey);
+    if (box === undefined) return;
+    const member = expanded.has(pending.itemKey) ? memberBoxes.current.get(pending.id) : undefined;
+    pendingScroll.current = null;
+    scrollRef.current?.scrollTo({ y: Math.max(0, box.y + (member?.y ?? 0) - spacing[12]), animated: !reduceMotion });
+    onScrollTargetHandled?.(pending.id);
+  }, [expanded, onScrollTargetHandled, reduceMotion]);
   useEffect(() => {
-    if (loadedEntries !== null) onEntriesLoaded?.(loadedEntries.map((entry) => entry.movement.id));
-  }, [loadedEntries, onEntriesLoaded]);
+    if (scrollTarget === null || state.status !== "ready") return;
+    if (scrollTargetItem === null) {
+      // Règle 7 : fiche exclue par un filtre actif ou par la recherche — elle ne s'affiche pas, aucun défilement.
+      if (state.entries.some((entry) => entry.movement.id === scrollTarget)) onScrollTargetHandled?.(scrollTarget);
+      return;
+    }
+    pendingScroll.current = { id: scrollTarget, itemKey: scrollTargetItem.key };
+    scrollToPending();
+  }, [scrollTarget, scrollTargetItem, state, onScrollTargetHandled, scrollToPending]);
+  useEffect(() => {
+    onItemMeasured.current = scrollToPending;
+  }, [scrollToPending]);
 
   // Recette iPhone du 06/11/2026 (t-catalogue, Hermann : « Afficher la liste des mouvements de manière progressive (la c'est
   // une apparition brute) ») : à son apparition, la liste entre en fondu avec une courte montée (durée et courbe de fondu
@@ -812,7 +850,7 @@ export function MovementCatalogueList({
       readonly swipe: boolean;
       readonly onLongPress?: () => void;
       readonly reorderActions?: readonly SwipeAccessibilityAction[];
-      /** t-niveau : pile repliée dont un membre masqué est nouveau. */
+      /** D-510 : pile repliée dont un niveau caché est nouveau (« New ↓ » sur la tête). */
       readonly hidesNew?: boolean;
     },
   ) => {
@@ -827,17 +865,22 @@ export function MovementCatalogueList({
     const id = entry.movement.id;
     const level = levelPreview?.has(id) ? levelPreview.get(id)! : entry.level;
     const levelLabel = level !== null ? levelPastilleLabel(level) : null;
-    // t-niveau (06/11/2026) : pastille « NEW » d'un Mouvement créé depuis le Catalogue (jamais en sélection pour une Séance) ;
-    // une pile repliée la porte quand l'un de ses membres masqués est nouveau.
-    const isNew = selection === undefined && ((newMovementIds?.has(id) ?? false) || catalogueOptions.hidesNew === true);
+    // D-510 (règles 6 et 9) : « New » sur une fiche nouvelle ; « New ↓ » sur la tête d'une pile repliée dès qu'un niveau caché
+    // est nouveau ; jamais en sélection pour une Séance (ni hors de l'onglet Mouvements, où `newMovementIds` est absent).
+    const newState: NewState =
+      selection !== undefined ? "NO" : catalogueOptions.hidesNew === true ? "IN_PILE" : (newMovementIds?.has(id) ?? false) ? "YES" : "NO";
+    // D-510 (accessibilité) : « nouveau » avec le nom ; « contient un niveau nouveau » pour une tête signalant un niveau caché.
+    const newAccessibility = newState === "YES" ? t.newAccessibility : newState === "IN_PILE" ? t.newInPileAccessibility : null;
     const label =
       options.pileCount !== undefined
-        ? fillTemplate(t.pileAccessibilityLabel, { name: entry.movement.name, count: String(options.pileCount) })
+        ? [fillTemplate(t.pileAccessibilityLabel, { name: entry.movement.name, count: String(options.pileCount) }), newAccessibility]
+            .filter(Boolean)
+            .join(", ")
         : [
             entry.movement.name,
             levelLabel,
             entry.archived ? t.archivedAccessibility : null,
-            isNew ? t.newAccessibility : null,
+            newAccessibility,
             inSession ? strings.screens.activities.selection.inSessionAccessibility : null,
           ]
             .filter(Boolean)
@@ -872,9 +915,9 @@ export function MovementCatalogueList({
           <MovementCatalogueCard
             entry={entry}
             level={level}
-            selected={selected}
+            selection={choosing ? (selected ? "CHECKED" : "EMPTY") : "NONE"}
             inSession={inSession}
-            isNew={isNew}
+            newState={newState}
           />
         </SwipeActionsRow>
         {choicesOpen ? (
@@ -1512,43 +1555,42 @@ function VariantChoice({
 }
 
 /**
- * Carte d'un Mouvement (Figma « Carte — Mouvement », 80 de haut) : photo 64 à 8 du bord, texte à 8
- * de la photo (B07), titre 15/18 (B02) et Niveau à droite, deux premières étapes de la
- * description, une par ligne, tronquées indépendamment (B03).
+ * Carte d'un Mouvement — D-508 (Hermann, 06/11/2026 ; Figma « Carte — Mouvement » `10124:21979`) : 72 de haut, photo 64 à 4
+ * du bord (rayon 8), nom et description à 8 de la photo, nom à 8 du haut, Niveau à 12 du bord droit sur la ligne de base du
+ * nom (en sélection : 12 avant la case, centrée verticalement), fond blanc, liseré à 50 %. Deux premières étapes de la
+ * description, une par ligne, tronquées indépendamment (B03). [Avant : 80 de haut, photo à 8 du bord, rayon 12, fond
+ * `#F9FAFC`, Niveau bleu, sélection par fond et contour bleus — remplacé.]
+ *
+ * D-510 : état « Nouveau » du composant (Non / Oui / Dans la pile) — badge « New » ou « New ↓ » en onglet au coin bas droit.
  */
 function MovementCatalogueCard({
   entry,
   level,
-  selected = false,
+  selection = "NONE",
   inSession = false,
-  isNew = false,
+  newState = "NO",
 }: {
   readonly entry: MovementCatalogueEntry;
   readonly level: MovementLevelPosition | null;
-  /** PRE-9 A.2 : carte cochée dans la sélection pour une Séance (contour et fond de sélection existants). */
-  readonly selected?: boolean;
+  /** D-508 : case de sélection pour une Séance (Figma « Sélection » : Absente / Vide / Cochée). */
+  readonly selection?: "NONE" | "EMPTY" | "CHECKED";
   /**
    * Contre-recette n° 2 du 30/10 (Hermann) : Mouvement déjà présent dans la Séance marqué par un
    * coin replié bleu Kodjo dans l'angle inférieur droit, à l'intérieur du contour (bordure continue,
    * arrondi de l'angle épousé, dimensions inchangées) ; remplace la mention « Dans la séance ».
    */
   readonly inSession?: boolean;
-  /**
-   * Recette iPhone du 06/11/2026 (t-niveau, Hermann : « par exemple avec un cadre en bas à droite "New" fond rouge, police
-   * blanche, majuscule, même taille de texte que "Niveau X" ») : Mouvement nouvellement créé depuis le Catalogue.
-   */
-  readonly isNew?: boolean;
+  /** D-510 : Non / Oui (« New ») / Dans la pile (« New ↓ », tête d'une pile repliée dont un niveau caché est nouveau). */
+  readonly newState?: NewState;
 }) {
   const resolveUri = useMediaUriResolver();
   const { movement } = entry;
   const preview = firstMediaPreviewSource(movement.media);
   const steps = decodeInstructionSteps(movement.description).slice(0, 2);
   const levelLabel = level !== null ? levelPastilleLabel(level) : null;
+  const badge = newState === "NO" ? null : NEW_BADGES[newState];
   return (
-    <View
-      style={[styles.card, entry.archived ? styles.cardArchived : null, selected ? styles.cardSelected : null]}
-      testID={`movement-card-surface-${movement.id}`}
-    >
+    <View style={[styles.card, entry.archived ? styles.cardArchived : null]} testID={`movement-card-surface-${movement.id}`}>
       <View style={[styles.thumbnail, entry.archived ? styles.faded : null]}>
         {preview ? (
           <MediaPreview
@@ -1564,7 +1606,7 @@ function MovementCatalogueCard({
         )}
       </View>
       <View style={[styles.texts, entry.archived ? styles.faded : null]}>
-        <View style={styles.titleRow}>
+        <View style={[styles.titleRow, selection === "NONE" ? styles.titleRowEnd : styles.titleRowBeforeChoice]} testID={`movement-card-title-${movement.id}`}>
           <Text style={styles.name} numberOfLines={1} testID={`movement-card-name-${movement.id}`}>
             {movement.name}
           </Text>
@@ -1575,14 +1617,33 @@ function MovementCatalogueCard({
           ) : null}
         </View>
         {steps.map((step, index) => (
-          <Text key={index} style={styles.description} numberOfLines={1} testID={`movement-card-step-${movement.id}-${index + 1}`}>
+          <Text
+            key={index}
+            style={[styles.description, badge !== null ? { marginRight: badge.descriptionInset } : null]}
+            numberOfLines={1}
+            testID={`movement-card-step-${movement.id}-${index + 1}`}
+          >
             {step}
           </Text>
         ))}
       </View>
-      {isNew ? (
-        <View style={styles.newBadge} pointerEvents="none" testID={`movement-card-new-${movement.id}`}>
-          <Text style={styles.newBadgeLabel}>{t.newBadge}</Text>
+      {selection !== "NONE" ? (
+        <Image
+          source={selection === "CHECKED" ? RADIO_CHECKED : RADIO_EMPTY}
+          style={styles.choice}
+          accessible={false}
+          testID={`movement-card-choice-${movement.id}-${selection === "CHECKED" ? "checked" : "empty"}`}
+        />
+      ) : null}
+      {badge !== null ? (
+        // D-510 : onglet logé dans le coin bas droit, découpé par l'arrondi de la carte ; pas une cible tactile.
+        <View style={styles.newBadgeClip} pointerEvents="none" testID={`movement-card-badge-clip-${movement.id}`}>
+          <View style={[styles.newBadge, { width: badge.width }]} testID={`movement-card-new-${movement.id}`}>
+            <Image source={badge.shape} style={[styles.newBadgeShape, { width: badge.width }]} accessible={false} />
+            <Text style={styles.newBadgeLabel} testID={`movement-card-badge-label-${movement.id}`}>
+              {badge.label}
+            </Text>
+          </View>
         </View>
       ) : null}
       {inSession ? (
@@ -1594,19 +1655,46 @@ function MovementCatalogueCard({
   );
 }
 
+/** D-510 : états « Nouveau » de la carte Mouvement. */
+type NewState = "NO" | "YES" | "IN_PILE";
+
+/**
+ * D-510 (Figma `11762:2205`, `11765:2101`) : onglet vert `color/status/positive-text` de 32 de haut (corps de 24, raccord
+ * inversé de rayon 8 au-dessus), 55 de large pour « New », 69 pour « New ↓ » ; libellé à 18,5 du bord gauche de l'onglet, 12
+ * du haut. Description arrêtée à 8 du corps de l'onglet (55 et 69 depuis le bord extérieur de la carte, moins les 4 de bord et
+ * de marge intérieure).
+ */
+const NEW_BADGES = {
+  YES: {
+    label: t.newBadge,
+    width: 55,
+    descriptionInset: 55 - 4,
+    shape: require("../../../assets/icons/catalogue-badge-nouveau.svg"),
+  },
+  IN_PILE: {
+    label: t.newInPileBadge,
+    width: 69,
+    descriptionInset: 69 - 4,
+    shape: require("../../../assets/icons/catalogue-badge-nouveau-pile.svg"),
+  },
+} as const;
+/** D-508 : case de sélection (Figma « DSF / Controls / Radio », `5544:4736`, `5544:4739`). */
+const RADIO_CHECKED = require("../../../assets/icons/radio-selectionne.svg");
+const RADIO_EMPTY = require("../../../assets/icons/radio-non-selectionne.svg");
+
 const THUMBNAIL_SIZE = 64;
 /** Coin replié (contre-recette n° 2) : côté de la zone triangulaire, découpe à 45°. */
 const FOLDED_CORNER_SIZE = 18;
-/** Figma : photo à 7,5 dans une bordure de 0,5 — 8 du bord extérieur. */
+/** D-508 : photo à 3,5 dans une bordure de 0,5 — 4 du bord extérieur. [Avant : 8 du bord — remplacé.] */
 const CARD_BORDER = 0.5;
-const CARD_PADDING = spacing[8] - CARD_BORDER;
+const CARD_PADDING = spacing[4] - CARD_BORDER;
+/** D-508 : liseré existant (`color/cards/border`, #CCD1E0) à 50 % d'opacité, carte et feuilles de pile. */
+const CARD_BORDER_COLOR = "rgba(204, 209, 224, 0.5)";
 /** Figma : filet de 2, à 8 des cartes, du milieu de la première au milieu de la dernière carte. */
 const RAIL_WIDTH = 2;
 const RAIL_TO_CARD = spacing[8];
 /** t-catalogue : plan de la zone de repli, au-dessus de toute carte d'une pile. */
 const COLLAPSE_ZONE_Z = 1000;
-/** t-niveau (06/11/2026) : pastille « NEW » à 8 des bords de la carte (valeur technique, aucun rendu Figma). */
-const NEW_BADGE_INSET = spacing[8];
 
 const styles = StyleSheet.create({
   container: {
@@ -1665,14 +1753,20 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.primary,
   },
-  // Figma `Pile — feuille 1/2` : blanc, bordure 1 `#E0E3ED`, rayon 12, en retrait de 8 puis 16.
+  // D-508 : feuilles de pile de 72, blanches, liseré 0,5 à 50 % et même ombre que la carte (chaque couche ombre la suivante),
+  // en retrait de 8 puis 16 (écarts conservés). [Figma `Pile — feuille 1/2` : bordure 1 `#E0E3ED`, sans ombre — remplacé.]
   leaf: {
     position: "absolute",
     height: CARD_HEIGHT,
     borderRadius: fixedRadii[12],
-    borderWidth: 1,
-    borderColor: colors.movementPileLeafBorder,
+    borderWidth: CARD_BORDER,
+    borderColor: CARD_BORDER_COLOR,
     backgroundColor: colors.background,
+    shadowColor: colors.movementCardShadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   // B06 : marge gauche entière de la pile déployée (du bord de l'écran au bord des cartes).
   collapseZone: {
@@ -1779,7 +1873,8 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.background,
   },
-  // B04 : `Carte — Mouvement` — fond `#F9FAFC`, bordure 0,5 `#CCD1E0`, rayon 12, ombre 8 % 0/2/10.
+  // D-508 : `Carte — Mouvement` — fond blanc, liseré 0,5 à 50 %, rayon 12, ombre 8 % 0/2/10.
+  // [B04 : fond `#F9FAFC`, liseré `#CCD1E0` plein — remplacé.]
   card: {
     height: CARD_HEIGHT,
     flexDirection: "row",
@@ -1788,19 +1883,21 @@ const styles = StyleSheet.create({
     padding: CARD_PADDING,
     borderRadius: fixedRadii[12],
     borderWidth: CARD_BORDER,
-    borderColor: colors.cardsBorder,
-    backgroundColor: colors.surfaceSubtle,
+    borderColor: CARD_BORDER_COLOR,
+    backgroundColor: colors.background,
     shadowColor: colors.movementCardShadow,
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  // PRE-9 A.2 : patron de sélection existant (`colors.selection` / `colors.selectionSurface`, ancienne
-  // sélection d'Exercices) ; aucun rendu Figma de la sélection dans le Catalogue des Mouvements.
-  cardSelected: {
-    borderColor: colors.selection,
-    backgroundColor: colors.selectionSurface,
+  // D-508 : sélection pour une Séance par la case (Figma « Sélection » Vide / Cochée), à 8 du bord droit, centrée.
+  // [PRE-9 A.2 : fond et contour de sélection (`colors.selectionSurface`, `colors.selection`) — remplacé.]
+  choice: {
+    width: 20,
+    height: 20,
+    alignSelf: "center",
+    marginRight: spacing[8] - CARD_PADDING - CARD_BORDER,
   },
   cardArchived: {
     backgroundColor: colors.surface,
@@ -1809,10 +1906,11 @@ const styles = StyleSheet.create({
   faded: {
     opacity: 0.6,
   },
+  // D-508 : rayon 8, concentrique à la carte (12 − 4).
   thumbnail: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-    borderRadius: fixedRadii[12],
+    borderRadius: fixedRadii[8],
     overflow: "hidden",
   },
   thumbnailImage: {
@@ -1822,44 +1920,69 @@ const styles = StyleSheet.create({
   thumbnailFallback: {
     backgroundColor: colors.surface,
   },
-  // Figma : titre à 3 du haut du bloc texte (10,5 − 7,5), description à 4 sous le titre.
+  // D-508 : nom à 8 du haut de la carte (4 de bord et de marge, 4 ici), description à 4 sous le nom.
   texts: {
     flex: 1,
-    paddingTop: 3,
+    paddingTop: spacing[8] - CARD_PADDING - CARD_BORDER,
   },
+  // D-508 : Niveau sur la ligne de base du nom, à 12 du bord droit (ou à 12 avant la case en sélection).
   titleRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "baseline",
     gap: spacing[8],
     marginBottom: spacing[4],
+  },
+  titleRowEnd: {
+    marginRight: spacing[12] - CARD_PADDING - CARD_BORDER,
+  },
+  titleRowBeforeChoice: {
+    marginRight: spacing[12] - spacing[8],
   },
   name: {
     ...type.compactCardTitle,
     flex: 1,
     color: colors.textPrimary,
   },
+  // D-508 (Figma `10124:21979`) : Niveau en `#141414`. [Avant : bleu KODJO — remplacé.]
   level: {
     ...type.movementCardLevel,
-    color: colors.primary,
+    color: colors.textPrimary,
   },
   description: {
     ...type.movementCardDescription,
     color: colors.movementCardDescription,
   },
-  // t-niveau (06/11/2026) : fond rouge (`colors.danger`), texte blanc en majuscules, taille et graisse de « Niveau X »
-  // (`type.movementCardLevel`), en bas à droite de la carte.
+  // D-510 : l'onglet couvre le liseré et suit l'arrondi du coin bas droit de la carte (découpe propre au badge : l'ombre de
+  // la carte reste intacte).
+  newBadgeClip: {
+    position: "absolute",
+    top: -CARD_BORDER,
+    left: -CARD_BORDER,
+    right: -CARD_BORDER,
+    bottom: -CARD_BORDER,
+    borderRadius: fixedRadii[12],
+    overflow: "hidden",
+  },
   newBadge: {
     position: "absolute",
-    right: NEW_BADGE_INSET,
-    bottom: NEW_BADGE_INSET,
-    paddingHorizontal: spacing[4],
-    borderRadius: spacing[4],
-    backgroundColor: colors.danger,
+    right: 0,
+    bottom: 0,
+    height: 32,
   },
+  newBadgeShape: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    height: 32,
+  },
+  // D-510 : « New », Inter Medium 12, blanc, sans gras ni majuscules forcées. [Recette du 06/11 : rouge, « NEW » — remplacé.]
   newBadgeLabel: {
     ...type.movementCardLevel,
+    position: "absolute",
+    left: 18.5,
+    top: 12,
+    lineHeight: 16,
     color: colors.background,
-    textTransform: "uppercase",
   },
   // Positionné dans la boîte intérieure à la bordure : le contour de la carte reste continu ; le
   // rayon intérieur (rayon extérieur moins la bordure) épouse l'arrondi de l'angle.

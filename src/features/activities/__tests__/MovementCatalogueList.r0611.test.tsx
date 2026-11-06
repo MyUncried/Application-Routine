@@ -11,13 +11,12 @@ import { MOTION_FADE_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import { colors } from "@/shared/ui/tokens";
 
 /**
  * Recette iPhone du 06/11/2026 (Hermann) — Catalogue des Mouvements :
  * - t-glisser : le filet de placement et le décalage de la carte visée n'apparaissent qu'après un arrêt d'environ 0,4 s ;
  * - t-catalogue : apparition progressive de la liste ; repli et dépli d'une pile par glissement des cartes ;
- * - t-niveau : pastille « NEW » d'un Mouvement nouvellement créé.
+ * - t-niveau : pastille « NEW » — remplacée par D-510, voir `MovementCatalogueList.d510.test.tsx`.
  * Les animations elles-mêmes (fil UI) se jugent sur iPhone ; ici, leur présence et leurs paramètres.
  */
 
@@ -78,10 +77,10 @@ async function renderList(props: Partial<Parameters<typeof MovementCatalogueList
 }
 
 const layoutEvent = (y: number, height: number) => ({ nativeEvent: { layout: { x: 0, y, width: 370, height } } });
-/** Entrées isolées de 80 + écart de 12, de haut en bas. */
+/** Entrées isolées de 72 (D-508) + écart de 12, de haut en bas. */
 async function layOut(keys: readonly string[]) {
   await act(async () => {
-    keys.forEach((key, index) => fireEvent(screen.getByTestId(`movement-item-${key}`), "layout", layoutEvent(index * 92, 92)));
+    keys.forEach((key, index) => fireEvent(screen.getByTestId(`movement-item-${key}`), "layout", layoutEvent(index * 84, 84)));
   });
 }
 
@@ -129,7 +128,7 @@ describe("t-glisser (06/11/2026) : la pose sur une carte attend un arrêt de 0,4
     await layOut(["fentes", "gainage", "mob"]);
     jest.useFakeTimers();
     await grab("mob");
-    // « Mobilisation » (centre 224) dans la moitié haute de « Gainage » (92 à 132).
+    // « Mobilisation » (centre 204) dans la moitié haute de « Gainage » (84 à 120).
     moveBy(-110);
     expect(rail("gainage")).toBeNull();
     expect(translateY("movement-card-gainage-slot")).toBe(0);
@@ -140,7 +139,7 @@ describe("t-glisser (06/11/2026) : la pose sur une carte attend un arrêt de 0,4
     expect(rail("gainage")).toBeNull();
     advance(1);
     expect(rail("gainage")).toBeTruthy();
-    expect(translateY("movement-card-gainage-slot")).toBe(84);
+    expect(translateY("movement-card-gainage-slot")).toBe(76);
     // Annoncée, la place reste tant que la carte ne la quitte pas.
     moveBy(-115);
     expect(rail("gainage")).toBeTruthy();
@@ -180,7 +179,7 @@ describe("t-glisser (06/11/2026) : la pose sur une carte attend un arrêt de 0,4
     await grab("mob");
     moveBy(-110);
     advance(PLACE_DWELL_MS);
-    expect(translateY("movement-card-gainage-slot")).toBe(84);
+    expect(translateY("movement-card-gainage-slot")).toBe(76);
     // Moitié basse de « Gainage » : autre place — fermée tant que la carte ne s'y arrête pas.
     moveBy(-70);
     expect(translateY("movement-card-gainage-slot")).toBe(0);
@@ -258,53 +257,5 @@ describe("t-catalogue (06/11/2026) : apparition de la liste et glissement des ca
     expect(frame.props.entering).toBeUndefined();
     expect(frame.props.exiting).toBeUndefined();
     expect(frame.props.layout).toBeUndefined();
-  });
-});
-
-describe("t-niveau (06/11/2026) : pastille « NEW »", () => {
-  it("carte nouvelle : « NEW » en bas à droite, fond rouge, texte blanc majuscule, taille de « Niveau X » ; annoncée", async () => {
-    const repository = movements();
-    await repository.create(movement("squat", "Squats"));
-    await repository.createVariant(movement("jump", "Squats sautés"), "squat", "AFTER_ORIGIN");
-    await repository.create(movement("gainage", "Gainage"));
-    await renderList({ newMovementIds: new Set(["gainage"]) });
-    const badge = screen.getByTestId("movement-card-new-gainage");
-    expect(StyleSheet.flatten(badge.props.style)).toMatchObject({ position: "absolute", right: 8, bottom: 8, backgroundColor: colors.danger });
-    const label = screen.getByText("NEW");
-    const labelStyle = StyleSheet.flatten(label.props.style);
-    expect(labelStyle).toMatchObject({ color: colors.background, textTransform: "uppercase" });
-    expect(labelStyle.fontSize).toBe(StyleSheet.flatten(screen.getByTestId("movement-card-level-jump").props.style).fontSize);
-    expect(screen.getByLabelText("Gainage, nouveau")).toBeTruthy();
-    expect(screen.queryByTestId("movement-card-new-jump")).toBeNull();
-  });
-
-  it("pile repliée dont un membre masqué est nouveau : la carte du dessus porte la pastille ; dépliée, seul le nouveau", async () => {
-    const repository = movements();
-    await repository.create(movement("squat", "Squats"));
-    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
-    await renderList({ newMovementIds: new Set(["assist"]) });
-    expect(screen.getByTestId("movement-card-new-squat")).toBeTruthy();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-card-squat-card"));
-    });
-    await settle();
-    expect(screen.queryByTestId("movement-card-new-squat")).toBeNull();
-    expect(screen.getByTestId("movement-card-new-assist")).toBeTruthy();
-  });
-
-  it("sans marque ou en sélection pour une Séance : aucune pastille", async () => {
-    await seedThree();
-    await renderList({
-      newMovementIds: new Set(["gainage"]),
-      selection: { selectedIds: new Set(), onToggle: jest.fn(), bottomInset: 0 },
-    });
-    expect(screen.queryByTestId("movement-card-new-gainage")).toBeNull();
-  });
-
-  it("chaque lecture du Catalogue signale les identifiants lus", async () => {
-    await seedThree();
-    const onEntriesLoaded = jest.fn();
-    await renderList({ onEntriesLoaded });
-    expect(onEntriesLoaded).toHaveBeenLastCalledWith(expect.arrayContaining(["fentes", "gainage", "mob"]));
   });
 });

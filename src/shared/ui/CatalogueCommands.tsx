@@ -140,8 +140,13 @@ export function CatalogueSearchField({
   /**
    * PRE-9 CAT.1 (zones de contexte, CE-CAT-CTX-01 ; Figma `10266:20575`, `10465:23141`) : champ de
    * la zone de contexte des Catalogues — largeur de référence (216 ou 107 pt, réductible sur un
-   * écran plus étroit), hauteur visible 44, fond `#F3F4F9` fondu vers la transparence. Absente :
-   * champ flexible de hauteur visible 34.
+   * écran plus étroit), fond `#F3F4F9` fondu vers la transparence. Absente : champ flexible de
+   * hauteur visible 34.
+   *
+   * D-503 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §4 ; Figma `10457:23120`,
+   * `10936:19819`) : hauteur visible **34**, comme Filtre, Tri et Créer, centrée sur leur ligne ; la
+   * cible tactile reste de 44 (la saisie occupe toute la hauteur de la cible, le dessin est inchangé).
+   * [Avant : hauteur visible 44 — remplacé.]
    *
    * `{ fillFrom }` [Recette iPhone CAT.1 du 30/10/2026, Hermann (cat-commandes) : « le champ de la
    * zone de recherche est trop raccourci, il faut qu'il conserve le même espace qu'entre deux boutons
@@ -163,6 +168,10 @@ export function CatalogueSearchField({
   return (
     <View style={targetStyle} testID={`${testID}-field`}>
       <View style={context ? styles.searchContext : styles.search}>
+        {context ? (
+          // D-503 : dessin du champ (34 pt), centré dans la cible de 44 portée par la saisie elle-même.
+          <View pointerEvents="none" style={styles.searchContextSurface} testID={`${testID}-surface`} />
+        ) : null}
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -362,8 +371,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: colors.searchFieldSurface,
   },
-  // PRE-9 CAT.1 (Figma `Champ — Rechercher`, `10457:23120`) : 44 de haut, rayon 12, dégradé vertical
-  // `#F3F4F9` → transparent ; réductible (jamais au-delà de la largeur de référence).
+  // PRE-9 CAT.1 (Figma `Champ — Rechercher`, `10457:23120`) : rayon 12, dégradé vertical `#F3F4F9` →
+  // transparent ; réductible (jamais au-delà de la largeur de référence). D-503 : dessin de 34 dans la
+  // cible de 44 (`searchContextSurface`). [Avant : 44 de haut — remplacé.]
   searchContextTarget: {
     flexShrink: 1,
     minWidth: 0,
@@ -377,6 +387,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
+  },
+  searchContextSurface: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: SLOP,
+    height: COMMAND.visual,
     borderRadius: 12,
     experimental_backgroundImage: `linear-gradient(to bottom, ${colors.searchFieldSurface} 0%, ${colors.searchFieldSurface}00 100%)`,
   },

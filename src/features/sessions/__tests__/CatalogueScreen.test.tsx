@@ -195,7 +195,12 @@ describe("CatalogueScreen — cadre commun", () => {
   // Complément d'alignement du 07/10 (ajout C, CAT-R01) : cadre blanc à 50 % du contrôle segmenté.
   // [Remplacé le 30/10/2026 — recette iPhone CAT.1, Hermann (cat-titre) : « Adopter le style texte de
   // Figma » : la navigation des Catalogues n'est plus un contrôle segmenté encadré.]
-  it("recette iPhone CAT.1 du 30/10/2026 (cat-titre) : navigation au style texte de Figma — sélectionné Inter Bold 17 bleu Kodjo, autres Regular 17 noir, séparateurs « | », aucun cadre", async () => {
+  // [Remplacé le 06/11/2026 — D-502 (Hermann ; KODJO-Catalogues-cartes-modales-2026-11-06 §4) : sélectionné Bold
+  // `textPrimary` sur la forme d'onglet `context`, autres Regular `textSecondary` ; trois emplacements égaux ; plus de
+  // barres « | » ni de bleu sur le libellé. Avant : sélectionné Bold bleu Kodjo, autres Regular noir, séparateurs « | ».]
+  /** Décors sans VoiceOver (`no-hide-descendants`) : forme d’onglet, remplissage de la bande, fondu de navigation. */
+  const HIDDEN = { includeHiddenElements: true } as const;
+  it("D-502 : trois onglets à emplacements égaux, sans barres — sélectionné Bold 17 textPrimary sur la forme context du Catalogue, autres Regular 17 textSecondary", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -210,22 +215,74 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(row.props.accessibilityRole).toBe("tablist");
     expect(StyleSheet.flatten(row.props.style).backgroundColor).toBeUndefined();
     expect(screen.queryByTestId("catalogue-content-type-row-indicator")).toBeNull();
-    const label = (value: string) => StyleSheet.flatten(screen.getByTestId(`catalogue-content-type-row-${value}-label`).props.style);
-    expect(label("sessions")).toMatchObject({ fontFamily: "Inter_700Bold", fontSize: 17, color: colors.primary });
-    expect(label("movements")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 17, color: "#000000" });
-    expect(label("programs")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 17, color: "#000000" });
-    for (const index of [1, 2]) {
-      const separator = StyleSheet.flatten(screen.getByTestId(`catalogue-content-type-row-separator-${index}`).props.style);
-      expect(separator).toMatchObject({ width: 1.5, height: 12.2, marginHorizontal: 14, backgroundColor: "#000000" });
+    expect(screen.queryByTestId(/^catalogue-content-type-row-separator-/)).toBeNull();
+    // Trois emplacements fixes de même largeur (un tiers de la largeur utile), libellé centré.
+    for (const value of ["movements", "sessions", "programs"]) {
+      expect(StyleSheet.flatten(screen.getByTestId(`catalogue-content-type-row-${value}-slot`).props.style)).toMatchObject({
+        flex: 1,
+        flexBasis: 0,
+        height: 43,
+      });
     }
+    const label = (value: string) => StyleSheet.flatten(screen.getByTestId(`catalogue-content-type-row-${value}-label`).props.style);
+    expect(label("sessions")).toMatchObject({ fontFamily: "Inter_700Bold", fontSize: 17, color: colors.textPrimary, textAlign: "center" });
+    expect(label("movements")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 17, color: colors.textSecondary, textAlign: "center" });
+    expect(label("programs")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 17, color: colors.textSecondary });
+    // Forme de l'onglet sélectionné : couleur `context` du Catalogue des Séances, coins hauts 12, bas évasés de 10.
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-content-type-row-sessions-shape-body", HIDDEN).props.style)).toMatchObject({
+      backgroundColor: colors.catalogueSessionsContext,
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-content-type-row-sessions-shape-flare-left", HIDDEN).props.style)).toMatchObject({
+      left: -10,
+      width: 10,
+      height: 10,
+      overflow: "hidden",
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-content-type-row-sessions-shape-flare-right", HIDDEN).props.style)).toMatchObject({ right: -10 });
+    expect(screen.queryByTestId("catalogue-content-type-row-movements-shape", HIDDEN)).toBeNull();
     // Cible tactile : au moins 44 de haut.
     const tab = screen.getByTestId("catalogue-content-type-row-movements");
-    expect(21 + tab.props.hitSlop.top + tab.props.hitSlop.bottom).toBeGreaterThanOrEqual(44);
+    expect(43 + tab.props.hitSlop.top + tab.props.hitSlop.bottom).toBeGreaterThanOrEqual(44);
 
     fireEvent.press(tab);
-    expect(label("movements")).toMatchObject({ fontFamily: "Inter_700Bold", color: colors.primary });
-    expect(label("sessions")).toMatchObject({ fontFamily: "Inter_400Regular", color: "#000000" });
+    expect(label("movements")).toMatchObject({ fontFamily: "Inter_700Bold", color: colors.textPrimary });
+    expect(label("sessions")).toMatchObject({ fontFamily: "Inter_400Regular", color: colors.textSecondary });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-content-type-row-movements-shape-body", HIDDEN).props.style).backgroundColor).toBe(
+      colors.catalogueMovementsContext,
+    );
     expect(screen.getByLabelText(strings.screens.movement.catalogue.segment).props.accessibilityState).toMatchObject({ selected: true });
+  });
+
+  it("D-501 : fond d'écran (barre d'état et en-tête compris), zone de contexte et fondu au-dessus de la navigation aux couleurs du Catalogue actif", async () => {
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const expectPalette = (context: string, background: string) => {
+      expect(StyleSheet.flatten(screen.getByTestId("screen-shell").props.style).backgroundColor).toBe(background);
+      // L'en-tête fixe ne peint pas de fond propre : il laisse voir celui de l'écran.
+      expect(StyleSheet.flatten(screen.getByTestId("screen-header").props.style).backgroundColor).toBeUndefined();
+      expect(StyleSheet.flatten(screen.getByTestId("screen-context-band-solid", HIDDEN).props.style).backgroundColor).toBe(context);
+      expect(StyleSheet.flatten(screen.getByTestId("catalogue-navigation-fade-solid", HIDDEN).props.style).backgroundColor).toBe(background);
+      expect(StyleSheet.flatten(screen.getByTestId("catalogue-navigation-fade-gradient", HIDDEN).props.style)).toMatchObject({
+        height: 40,
+        experimental_backgroundImage: `linear-gradient(to bottom, ${background}00 0%, ${background} 100%)`,
+      });
+      expect(screen.getByTestId("catalogue-navigation-fade", HIDDEN).props.pointerEvents).toBe("none");
+    };
+    expectPalette("#EAEAFF", "#F8F8FF");
+    expect(colors.catalogueSessionsContext).toBe("#EAEAFF");
+
+    fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
+    expectPalette("#E5F0FF", "#F7FAFF");
   });
 
   it("gives Créer its own white background instead of letting the Context band's pale tint show through (CAT-R02, contre-recette iPhone 2026-09-03)", async () => {
@@ -800,8 +857,13 @@ describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de co
         (layer) => StyleSheet.flatten(layer.props.style as never) as { height: number; opacity: number; backgroundColor: string },
       );
       expect(layers.length).toBeGreaterThanOrEqual(10);
-      // Aucune couche blanche : uniquement la couleur du Catalogue, qui s’efface.
-      for (const layer of layers) expect(layer.backgroundColor).toBe(colors.selectionSurface);
+      // Aucune couche blanche : uniquement la couleur du Catalogue, qui s’efface. D-501 (06/11/2026) : couleur `context`
+      // du Catalogue actif ; le fond d’écran sous la part fondue est son `background`. [Avant : `selectionSurface` — remplacé.]
+      const context = segment === "movements" ? colors.catalogueMovementsContext : colors.catalogueSessionsContext;
+      for (const layer of layers) expect(layer.backgroundColor).toBe(context);
+      expect(StyleSheet.flatten(screen.getByTestId("screen-shell").props.style).backgroundColor).toBe(
+        segment === "movements" ? colors.catalogueMovementsBackground : colors.catalogueSessionsBackground,
+      );
       // Haut de la part fondue (toutes les couches) : opaque ; bas (seule la couche la plus longue) : presque transparent.
       expect(1 - layers.reduce((rest, layer) => rest * (1 - layer.opacity), 1)).toBeCloseTo(1, 5);
       expect(layers[0]!.height).toBe(23);

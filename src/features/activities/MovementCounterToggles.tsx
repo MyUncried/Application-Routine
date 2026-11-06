@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { strings } from "@/shared/i18n";
-import { CONTEXT_LINE_SELECTED, CONTEXT_TEXT_COLOR, countLabel } from "@/shared/ui/catalogueContext";
+import { CONTEXT_LINE_SELECTED, CONTEXT_SEPARATOR, CONTEXT_SEPARATOR_GAP, CONTEXT_TEXT_COLOR, countLabel } from "@/shared/ui/catalogueContext";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 import type { MovementCatalogueSummary, MovementCounter } from "./movementCatalogueCounters";
@@ -39,8 +39,8 @@ export function MovementCounterToggles({
         return (
           <View key={option.value} style={styles.group}>
             {index > 0 ? (
-              <Text style={styles.separator} accessible={false} importantForAccessibility="no">
-                ·
+              <Text style={styles.separator} accessible={false} importantForAccessibility="no" testID="movement-catalogue-counters-separator">
+                {CONTEXT_SEPARATOR}
               </Text>
             ) : null}
             <Pressable
@@ -76,11 +76,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  // Figma `10266:20575` : « · » à 6 de « 2 familles », « 7 mouvements » à 6 du point.
+  // D-503 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §4) : « · » à 8 pt de part et d'autre,
+  // commun aux deux Catalogues. [Avant : Figma `10266:20575`, « · » à 6 de « 2 familles » et de « 7 mouvements » — remplacé.]
   separator: {
     ...type.contextLine,
     color: CONTEXT_TEXT_COLOR,
-    marginHorizontal: spacing[6],
+    marginHorizontal: CONTEXT_SEPARATOR_GAP,
   },
   label: {
     ...type.contextLine,

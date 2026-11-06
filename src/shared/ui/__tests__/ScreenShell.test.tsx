@@ -114,7 +114,11 @@ describe("ContextBand", () => {
 
     const band = screen.getByTestId("screen-context-band");
     const flattened = StyleSheet.flatten(band.props.style);
-    expect(flattened.backgroundColor).toBe(colors.selectionSurface);
+    // D-509 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §8) : bande hors Catalogue à #EAEAFF
+    // (chapitre 06), plus `selectionSurface` (#E5F0FF, couleur d'un élément sélectionné). [Avant : selectionSurface — remplacé.]
+    expect(flattened.backgroundColor).toBe(colors.contextBand);
+    expect(flattened.backgroundColor).toBe("#EAEAFF");
+    expect(flattened.backgroundColor).not.toBe(colors.selectionSurface);
     expect(flattened.height).toBe(115);
     expect(flattened.paddingTop).toBe(12);
     expect(flattened.paddingBottom).toBe(16);
@@ -132,6 +136,33 @@ describe("ContextBand", () => {
 
     const band = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(band.props.style).zIndex).toBe(1);
+  });
+
+  it("D-509 : couleur passée par l'écran (Catalogue) — portée par la bande opaque et par toute la part fondue", () => {
+    renderWithSafeArea(
+      <ContextBand color="#E5F0FF" fadeToTransparent>
+        <Text>filtre</Text>
+      </ContextBand>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("screen-context-band").props.style).backgroundColor).toBe("transparent");
+    expect(StyleSheet.flatten(screen.getByTestId("screen-context-band-solid", { includeHiddenElements: true }).props.style).backgroundColor).toBe(
+      "#E5F0FF",
+    );
+    const fade = screen.getByTestId("screen-context-band-fade", { includeHiddenElements: true });
+    for (const layer of fade.props.children as { props: { style: unknown } }[]) {
+      expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ backgroundColor: "#E5F0FF" });
+    }
+  });
+
+  it("D-509 : sans couleur, la part fondue reste à #EAEAFF (Composition et autres écrans hors Catalogue)", () => {
+    renderWithSafeArea(
+      <ContextBand fadeToTransparent>
+        <Text>filtre</Text>
+      </ContextBand>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("screen-context-band-solid", { includeHiddenElements: true }).props.style).backgroundColor).toBe(
+      "#EAEAFF",
+    );
   });
 });
 

@@ -231,6 +231,21 @@ export const colors = {
   movementFamilyRail: "rgba(5, 8, 229, 0.35)",
   movementPileLeafBorder: "#E0E3ED",
   searchFieldSurface: "#F3F4F9",
+  // D-501 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §3) : couleurs propres à chaque
+  // catalogue — `color/catalogue/{mouvements,seances,programmes}/{context,background}` (« KODJO / Sémantiques »).
+  // `…Context` : zone de contexte et onglet sélectionné ; `…Background` : fond d'écran, barre d'état, en-tête fixe.
+  // Programmes : jetons prêts, aucun écran.
+  catalogueMovementsContext: "#E5F0FF",
+  catalogueMovementsBackground: "#F7FAFF",
+  catalogueSessionsContext: "#EAEAFF",
+  catalogueSessionsBackground: "#F8F8FF",
+  catalogueProgramsContext: "#EFE8FF",
+  catalogueProgramsBackground: "#FAF8FF",
+  // D-509 : bandeau de contexte des écrans hors catalogue (Composition, fiche Mouvement…) — #EAEAFF prévu par le
+  // chapitre 06 ; `selectionSurface` reste réservé aux éléments sélectionnés.
+  contextBand: "#EAEAFF",
+  // D-510 : `color/status/positive-text` — fond du badge « New » du catalogue des mouvements.
+  statusPositiveText: "#1F804F",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;

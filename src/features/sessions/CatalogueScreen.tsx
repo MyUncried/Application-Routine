@@ -1,6 +1,12 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { NavigationContext } from "expo-router/react-navigation";
+import {
+  clearDisplayedNewMovements,
+  consumeNewMovementScrollTarget,
+  noteNewMovementsDisplayed,
+  useNewMovementMarks,
+} from "@/features/activities/newMovementMarks";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
@@ -28,7 +34,7 @@ import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/
 import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
+import { catalogueColors, CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
@@ -61,7 +67,7 @@ export type CatalogueContentType = "movements" | "sessions" | "programs";
  * désormais recomposé selon `Shell / Screen — Context=On, Bottom=Navigation`
  * (doc12 §12.26) — Header fixe (titre) → séparateur → bande Context (bleu
  * très pâle, `colors.selectionSurface`, seul token pâle déjà existant dans
- * ce code) contenant le sélecteur de filtres et `+ Créer` → corps. La
+ * ce code [remplacé le 06/11/2026 par la couleur `context` du Catalogue, D-501/D-509]) contenant le sélecteur de filtres et `+ Créer` → corps. La
  * hauteur du Header utilise `dimensions.header.contentHeight` (déjà défini,
  * jamais utilisé jusqu'ici) plutôt qu'une valeur locale improvisée ; les
  * insets système réels remplacent la réserve `0–92` du gabarit Figma, comme
@@ -133,25 +139,19 @@ export function CatalogueScreen() {
   const handleMovementSummary = useCallback((next: MovementCatalogueSummary | null) => {
     setMovementSummary((current) => (sameMovementSummary(current, next) ? current : next));
   }, []);
-  // Recette iPhone du 06/11/2026 (t-niveau, Hermann : « il faut que la nouvelle fiche soit identifiée dans le catalogue des
-  // mouvements […] Ce cadre disparait après avoir changé de vue à partir de la barre de navigation du haut (mouvement, séance,
-  // programme) ou de la barre de navigation du bas. ») : Mouvements créés depuis le Catalogue (Créer, Ajouter un niveau),
-  // marqués « NEW » ; état de l'écran, en mémoire, jamais persisté. Une création lancée (`awaitingCreation`) est reconnue à
-  // la lecture suivante du Catalogue : les identifiants absents de la lecture précédente sont les nouveaux.
-  const [newMovementIds, setNewMovementIds] = useState<ReadonlySet<string>>(NO_NEW_MOVEMENTS);
-  const awaitingCreation = useRef(false);
-  const knownMovementIds = useRef<ReadonlySet<string> | null>(null);
-  const handleMovementEntries = useCallback((ids: readonly string[]) => {
-    const known = knownMovementIds.current;
-    knownMovementIds.current = new Set(ids);
-    if (!awaitingCreation.current || known === null) return;
-    awaitingCreation.current = false;
-    const created = ids.filter((id) => !known.has(id));
-    if (created.length > 0) setNewMovementIds((current) => new Set([...current, ...created]));
-  }, []);
-  const clearNewMovements = useCallback(() => {
-    setNewMovementIds((current) => (current.size === 0 ? current : NO_NEW_MOVEMENTS));
-  }, []);
+  // D-510 (Hermann, 06/11/2026 ; KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06) : badge « New » des fiches créées
+  // (bouton +, Ajouter un niveau, duplication, Composition) — état d'affichage en mémoire, commun à l'application
+  // (`newMovementMarks`), jamais persisté. La vue Mouvements affichée déclare les marques qu'elle montre ; la quitter (onglets
+  // du haut, barre du bas) les retire. [Recette du 06/11 (t-niveau) : état propre à l'écran, reconnu par comparaison de deux
+  // lectures du Catalogue après Créer ou Ajouter un niveau depuis la liste — remplacé : ni Ajouter un niveau depuis la fiche, ni
+  // la duplication, ni la Composition n'étaient reconnus.]
+  const newMovementMarks = useNewMovementMarks();
+  // Écran au premier plan (posé par l'effet de focus ci-dessous) : une fiche ouverte au-dessus du Catalogue le masque.
+  const screenFocused = useRef(false);
+  const [focusCount, setFocusCount] = useState(0);
+  useEffect(() => {
+    if (screenFocused.current && activeSegment === "movements") noteNewMovementsDisplayed();
+  }, [activeSegment, newMovementMarks.ids, focusCount]);
   // t-niveau : changer d'onglet par la barre du bas retire les pastilles ; ouvrir une fiche (pile au-dessus des onglets) non.
   // Contexte de navigation de l’onglet (absent hors navigateur, par exemple dans un test isolé).
   const navigation = useContext(NavigationContext);
@@ -160,13 +160,13 @@ export function CatalogueScreen() {
       navigation?.addListener("blur", () => {
         const tabs = navigation.getState();
         const focusedTab = tabs?.routes[tabs.index]?.name;
-        if (focusedTab !== undefined && focusedTab !== CATALOGUE_TAB_ROUTE) clearNewMovements();
+        if (focusedTab !== undefined && focusedTab !== CATALOGUE_TAB_ROUTE) clearDisplayedNewMovements();
       }),
-    [navigation, clearNewMovements],
+    [navigation],
   );
   const changeSegment = (segment: CatalogueContentType) => {
     // t-niveau : changer de vue par la barre du haut retire les pastilles.
-    if (segment !== activeSegment) clearNewMovements();
+    if (segment !== activeSegment) clearDisplayedNewMovements();
     setActiveSegment(segment);
   };
   // PRE-9 CAT.1 : recherche des Séances dans la zone de contexte, conservée comme les filtres.
@@ -208,6 +208,8 @@ export function CatalogueScreen() {
   useFocusEffect(
     useCallback(() => {
       isOpeningEditorRef.current = false;
+      screenFocused.current = true;
+      setFocusCount((current) => current + 1);
       setMovementsReloadToken((current) => current + 1);
       reloadSessions();
       // Consommé une seule fois : `setParams` l'efface immédiatement, pour
@@ -218,6 +220,7 @@ export function CatalogueScreen() {
         router.setParams({ catalogueSegment: undefined });
       }
       return () => {
+        screenFocused.current = false;
         cancelPendingSessions();
       };
     }, [
@@ -259,14 +262,16 @@ export function CatalogueScreen() {
       : activeSegment === "programs"
         ? t.programsTitle
         : t.title;
+  // D-501 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §3) : couleurs du Catalogue actif —
+  // `background` pour le fond d'écran (barre d'état et en-tête fixe compris) et le fondu au-dessus de la navigation,
+  // `context` pour la zone de contexte et l'onglet sélectionné (D-502).
+  const palette = catalogueColors(activeSegment);
 
   const openMovement = (movementId: string | null) => {
     if (isOpeningEditorRef.current) {
       return;
     }
     isOpeningEditorRef.current = true;
-    // t-niveau (06/11/2026) : création d'un Mouvement — reconnue à la prochaine lecture du Catalogue.
-    if (movementId === null) awaitingCreation.current = true;
     // Recette A/B (F07) : depuis le Catalogue des Mouvements, la fiche s’ouvre directement en
     // édition (un Mouvement archivé reste consultable seulement, B.8).
     router.push(
@@ -298,11 +303,12 @@ export function CatalogueScreen() {
   };
 
   return (
-    <ScreenShell>
+    <ScreenShell backgroundColor={palette.background}>
       {/* PRE-9 CAT.1 (CE-CAT-CTX-01 : « Masquer le titre de page individuel dans les deux Catalogues ») :
           l'en-tête porte la navigation des Catalogues Mouvements / Séances / Programmes à la place du
-          titre. Recette iPhone CAT.1 du 30/10/2026 (Hermann, cat-titre : « Adopter le style texte de
-          Figma ») : libellés texte séparés par « | » (`CatalogueNavigation`), comportement inchangé. */}
+          titre. D-502 (Hermann, 06/11/2026) : trois onglets à emplacements fixes, l'onglet sélectionné
+          prend la couleur `context` du Catalogue et se raccorde à la zone de contexte (`CatalogueNavigation`).
+          [Avant (recette CAT.1 du 30/10/2026) : libellés texte séparés par « | » — remplacé.] */}
       <FixedHeader
         title={title}
         content={
@@ -320,6 +326,7 @@ export function CatalogueScreen() {
               ]}
               value={activeSegment}
               onChange={changeSegment}
+              selectedColor={palette.context}
               testID="catalogue-content-type-row"
             />
           </View>
@@ -333,11 +340,14 @@ export function CatalogueScreen() {
           (ch. 12 : « Zone de contexte → transparent sur les 20 % inférieurs pour Catalogues »),
           porté par `ContextBand` — plus de voile blanc posé sur la couleur du Catalogue.
           PRE-9 CAT.1 (spécification du 30/10/2026, CE-CAT-CTX-01) : bande « Recherche et création »
-          à deux lignes — compteurs (ligne 1, 26 sous le haut de la bande), Rechercher et
-          Filtre / Tri / Créer (ligne 2, 63 sous le haut). Ordre des Mouvements [30/10/2026, Hermann :
-          « rechercher, filtrer, trier puis créer »] conservé, identique pour les Séances. */}
+          à deux lignes — compteurs (ligne 1), Rechercher et Filtre / Tri / Créer (ligne 2) ; géométrie
+          D-503 dans `CONTEXT_ZONE_GEOMETRY`. Ordre des Mouvements [30/10/2026, Hermann :
+          « rechercher, filtrer, trier puis créer »] conservé, identique pour les Séances.
+          D-501 : couleur `context` du Catalogue, opaque sur 80 % de la hauteur puis fondue ; le fond
+          d'écran sous la part fondue est le `background` du Catalogue (fondu `context` → `background`). */}
       <ContextBand
         fadeToTransparent
+        color={palette.context}
         padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}
       >
         {activeSegment === "movements" ? (
@@ -459,21 +469,48 @@ export function CatalogueScreen() {
             counter={movementCounter}
             onSummaryChange={handleMovementSummary}
             onOpenMovement={openMovement}
-            newMovementIds={newMovementIds}
-            onEntriesLoaded={handleMovementEntries}
+            newMovementIds={newMovementMarks.ids}
+            scrollTarget={newMovementMarks.scrollTarget}
+            onScrollTargetHandled={consumeNewMovementScrollTarget}
             onCreateVariant={(variantOf, placement) => {
               if (isOpeningEditorRef.current) return;
               isOpeningEditorRef.current = true;
-              // t-niveau (06/11/2026) : « Ajouter un niveau » crée un Mouvement — reconnu à la prochaine lecture.
-              awaitingCreation.current = true;
               router.push({ pathname: "/movement", params: { variantOf, placement } });
             }}
           />
         ) : null}
       </View>
+      <NavigationFade background={palette.background} />
     </ScreenShell>
   );
 }
+
+/**
+ * D-501 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §3 ; Figma `10266:20578`/`10266:20579`,
+ * `5867:5070`/`5867:5069`) : fondu au-dessus de la navigation basse, à la couleur `background` du Catalogue —
+ * dégradé de 40 pt de la transparence vers `background`, puis fond protégé jusqu'au haut de la barre (16 pt dans
+ * Figma, plus les 8 pt entre ce fond et la barre, où la liste s'arrête). Décor, sans interaction ni VoiceOver.
+ */
+function NavigationFade({ background }: { readonly background: string }) {
+  return (
+    <View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={[styles.navigationFade, { bottom: navigationBarTotalHeight() }]}
+      testID="catalogue-navigation-fade"
+    >
+      <View
+        style={[styles.navigationFadeGradient, { experimental_backgroundImage: `linear-gradient(to bottom, ${background}00 0%, ${background} 100%)` }]}
+        testID="catalogue-navigation-fade-gradient"
+      />
+      <View style={[styles.navigationFadeSolid, { backgroundColor: background }]} testID="catalogue-navigation-fade-solid" />
+    </View>
+  );
+}
+
+/** Figma : dégradé de 40, fond protégé de 16 puis 8 jusqu'au haut de la barre (`y = 732..796` à 874). */
+const NAVIGATION_FADE = { gradient: 40, solid: spacing[16] + spacing[8] } as const;
 
 function LoadingBody() {
   return (
@@ -577,8 +614,6 @@ function ReadyBody({
  */
 const LIST_TOP_INSET = spacing[8] + CONTEXT_BAND_FADE_HEIGHT;
 
-/** t-niveau : aucune pastille « NEW ». */
-const NO_NEW_MOVEMENTS: ReadonlySet<string> = new Set();
 /** t-niveau : route de l’onglet du Catalogue dans la barre du bas (`app/(tabs)/index.tsx`). */
 const CATALOGUE_TAB_ROUTE = "index";
 
@@ -591,8 +626,23 @@ const styles = StyleSheet.create({
   //
   // PRE-9 CAT.1 (CE-CAT-CTX-01) : la navigation des Catalogues (`CatalogueNavigation`, style texte de
   // Figma depuis la recette du 30/10) occupe la place du titre masqué, sur toute la largeur de l'en-tête.
+  // D-502 : la navigation occupe toute la hauteur de l'en-tête ; les onglets reposent sur son bord bas, contre la
+  // zone de contexte.
   headerNavigation: {
     flex: 1,
+    alignSelf: "stretch",
+  },
+  navigationFade: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: NAVIGATION_FADE.gradient + NAVIGATION_FADE.solid,
+  },
+  navigationFadeGradient: {
+    height: NAVIGATION_FADE.gradient,
+  },
+  navigationFadeSolid: {
+    height: NAVIGATION_FADE.solid,
   },
   // A01 : marge standard `layout.screenGutter`. Segment Mouvements : la liste porte sa marge
   // elle-même (cartes glissées et filet de famille dans la marge, B06/B10).

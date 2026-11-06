@@ -20,7 +20,7 @@ import { SessionViewToggle } from "./SessionViewToggle";
  *
  * PRE-9 CAT.1 (spécification « Zones de contexte des Catalogues » du 30/10/2026, CE-CAT-CTX-01 ;
  * Figma `1992:9910`, `4549:6742`, `1992:10848`) : zone de contexte commune
- * (`CatalogueContextZone`). Ligne 1 : « Un exercice N | Plusieurs N » (bascule inchangée, nombres
+ * (`CatalogueContextZone`). Ligne 1 : « Un exercice N · Plusieurs N » (D-503) (bascule inchangée, nombres
  * informatifs) et, en état filtré ou archivé, « N résultats » ; ligne 2 : Rechercher, puis Filtre,
  * Tri, Créer (Créer le plus à droite). La place de la commande étendue se calcule avec le champ
  * Rechercher réduit (107) à la place de l'ancienne bascule.

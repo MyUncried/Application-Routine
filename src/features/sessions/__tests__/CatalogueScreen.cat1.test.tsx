@@ -189,11 +189,14 @@ afterEach(() => {
 });
 
 describe("PRE-9 CAT.1 — géométrie de la zone de contexte (référence 402 × 874)", () => {
-  it("bande de 115, ligne 1 à 26 sous son haut (y = 118) et retrait de 8 (x = 24) ; ligne 2 de 44 à 8 du bas (y = 155) ; titre masqué", async () => {
+  // D-503 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §4 ; Figma `10266:20575`, `1992:9910`) :
+  // hauteur inchangée ; ligne 1 à 21 sous le haut (y = 113) ; cibles de 44 à 22 du bas (y = 141..185), visuels 34 à y = 146.
+  // [Avant : ligne 1 à 26 (y = 118), cibles à 8 du bas (y = 155) — remplacé.]
+  it("bande de 115, ligne 1 à 21 sous son haut (y = 113) et retrait de 8 (x = 24) ; ligne 2 de 44 à 22 du bas (y = 141) ; titre masqué", async () => {
     renderScreen();
     await focus();
     const band = StyleSheet.flatten(screen.getByTestId("screen-context-band").props.style);
-    expect(band).toMatchObject({ height: 115, paddingTop: 26, paddingBottom: 8, paddingHorizontal: 16 });
+    expect(band).toMatchObject({ height: 115, paddingTop: 21, paddingBottom: 22, paddingHorizontal: 16 });
     expect(StyleSheet.flatten(screen.getByTestId("catalogue-context-zone").props.style)).toMatchObject({
       flex: 1,
       justifyContent: "space-between",
@@ -216,6 +219,13 @@ describe("PRE-9 CAT.1 — géométrie de la zone de contexte (référence 402 ×
     expect(field.props.placeholderTextColor).toBe("#7A7A80");
     expect(StyleSheet.flatten(field.props.style)).toMatchObject({ fontSize: 15, height: 44 });
     expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-field").props.style).height).toBe(44);
+    // D-503 : dessin du champ de 34, comme Filtre, Tri et Créer, centré dans la cible de 44 (5 de part et d'autre).
+    expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-surface").props.style)).toMatchObject({
+      position: "absolute",
+      top: 5,
+      height: 34,
+      borderRadius: 12,
+    });
     for (const testID of ["catalogue-filter-action", "catalogue-sort-action", "catalogue-create-action"]) {
       const action = screen.getByTestId(testID);
       const style = StyleSheet.flatten(action.props.style);
@@ -229,7 +239,7 @@ describe("PRE-9 CAT.1 — géométrie de la zone de contexte (référence 402 ×
 });
 
 describe("PRE-9 CAT.1 — Catalogue des Séances", () => {
-  it("« Un exercice N | Plusieurs N » : nombres réels, informatifs, hors de la cible ; bascule et désélection inchangées", async () => {
+  it("« Un exercice N · Plusieurs N » : nombres réels, informatifs, hors de la cible ; bascule et désélection inchangées", async () => {
     renderScreen();
     await focus();
     expect(text("catalogue-session-view-SINGLE-count")).toBe("2");
@@ -242,7 +252,10 @@ describe("PRE-9 CAT.1 — Catalogue des Séances", () => {
     expect(StyleSheet.flatten(count.props.style)).toMatchObject({ fontSize: 14, color: "#333333" });
     const label = () => screen.getByTestId("catalogue-session-view-SINGLE");
     expect(StyleSheet.flatten(within(label()).getByText("Un exercice").props.style)).toMatchObject({ fontSize: 14, color: "#595E66" });
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-session-view-separator").props.style).color).toBe("#9499A8");
+    // D-503 : séparateur « · » #333333 à 8 pt de part et d'autre. [Avant : « | » #9499A8 à 10 — remplacé.]
+    const separator = screen.getByTestId("catalogue-session-view-separator");
+    expect(separator.props.children).toBe("·");
+    expect(StyleSheet.flatten(separator.props.style)).toMatchObject({ color: "#333333", marginHorizontal: 8 });
 
     await press("catalogue-session-view-SINGLE");
     expect(sessionsShown()).toEqual(["emom", "tabata"]);
@@ -324,6 +337,15 @@ describe("PRE-9 CAT.1 — Catalogue des Mouvements", () => {
     expect(movementsShown()).toHaveLength(5);
     expect(text("movement-catalogue-counter-MOVEMENTS-label")).toBe("5 mouvements");
     expect(text("movement-catalogue-counter-FAMILIES-label")).toBe("1 famille");
+  });
+
+  it("D-503 : séparateur « · » #333333 à 8 pt de part et d'autre, comme le Catalogue des Séances ; champ dessiné à 34 dans sa cible de 44", async () => {
+    await openMovements();
+    const separator = screen.getByTestId("movement-catalogue-counters-separator");
+    expect(separator.props.children).toBe("·");
+    expect(StyleSheet.flatten(separator.props.style)).toMatchObject({ color: "#333333", marginHorizontal: 8, fontSize: 14 });
+    expect(StyleSheet.flatten(screen.getByTestId("movement-catalogue-search-field").props.style).height).toBe(44);
+    expect(StyleSheet.flatten(screen.getByTestId("movement-catalogue-search-surface").props.style)).toMatchObject({ top: 5, height: 34 });
   });
 
   it("compteurs activables, exclusifs, désélectionnables, annoncés ; actif bleu Semi Bold, inactif #333333 Regular", async () => {

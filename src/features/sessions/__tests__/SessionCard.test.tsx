@@ -7,10 +7,10 @@ import type { MediaAsset } from "@/domain/media/MediaAsset";
 import type { Activity } from "@/domain/sessions/Session";
 import type { CatalogueSessionRecord } from "@/domain/sessions/SessionRepository";
 import type { StructureElement } from "@/domain/sessions/structure";
-import { fitCategoryCount, SessionCard } from "@/features/sessions/SessionCard";
+import { fitCategoryCount, formatSessionStructureLine, SESSION_CARD_HEADER_HEIGHT, SessionCard } from "@/features/sessions/SessionCard";
 import { projectSessionForCatalogue, type CatalogueCategoryRef } from "@/features/sessions/sessionCatalogueProjection";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
-import { colors } from "@/shared/ui/tokens";
+import { colors, minTouchTarget } from "@/shared/ui/tokens";
 
 /**
  * PRE-8 (epic E, story E.2) — carte unique du Catalogue des séances (spécification du 27/10 §1 et §3 ;
@@ -18,6 +18,9 @@ import { colors } from "@/shared/ui/tokens";
  * zones et étiquette sur la carte, chevron encadré à droite), dispositions retirées par la
  * spécification.
  */
+
+// D-506 : plus de sablier sur la carte.
+const SANDGLASS_ICON = require("../../../../assets/icons/icon-catalogue-sablier.svg");
 
 const CATEGORIES = new Map<string, CatalogueCategoryRef>([
   ["renfo", { id: "renfo", name: "Renforcement", color: "#E5484D" }],
@@ -64,21 +67,22 @@ const many = () =>
     { kind: "EXERCISE", exercise: exercise({ categoryId: "mobilite", executionParameters: repetitionParameters(10, 2) }) },
   ]);
 
-describe("PRE-8 E.2 — carte unique", () => {
-  // [« aucun chevron » pour un exercice — remplacé le 03/11/2026] Recette iPhone n° 3 du 03/11/2026
-  // (autres constats, Hermann : « toutes les séances, même celles avec un seul exercice doivent avoir
-  // un chevron et une vue déployée. »).
-  it("un exercice : volume en synthèse, chevron, Lecture présente et indisponible", () => {
+describe("PRE-8 E.2 — carte unique (D-504 à D-506 du 06/11/2026)", () => {
+  // [« un exercice : volume en synthèse, Lecture présente et indisponible » — remplacé le 06/11/2026 par
+  // D-505 (« 1 exercice ») et D-504 (Démarrer remplace l'action lecture ronde).]
+  it("un exercice : « 1 exercice », chevron, Démarrer présent et indisponible", () => {
     render(<SessionCard projection={one()} />);
     expect(screen.getByTestId("session-card-s1-name")).toHaveTextContent("Renforcement du genou");
-    expect(screen.getByTestId("session-card-s1-summary")).toHaveTextContent("3 × 1 min 30 s");
+    expect(screen.getByTestId("session-card-s1-summary")).toHaveTextContent("1 exercice");
     expect(screen.getByTestId("session-card-s1-disclosure").props.accessibilityState).toEqual({ expanded: false });
-    const play = screen.getByTestId("session-card-s1-play");
-    expect(play.props.accessibilityLabel).toBe("Lancer la séance — indisponible");
-    expect(play.props.accessibilityState).toEqual({ disabled: true });
+    expect(screen.queryByTestId("session-card-s1-play")).toBeNull();
+    const start = screen.getByTestId("session-card-s1-start");
+    expect(start).toHaveTextContent("Démarrer");
+    expect(start.props.accessibilityLabel).toBe("Démarrer la séance — indisponible");
+    expect(start.props.accessibilityState).toEqual({ disabled: true });
   });
 
-  it("plusieurs exercices : « N exercices », chevron accolé au nom, annoncé fermé", () => {
+  it("plusieurs exercices : « N exercices », chevron à gauche du nom, annoncé fermé", () => {
     const onToggle = jest.fn();
     render(<SessionCard projection={many()} onToggleExpanded={onToggle} />);
     expect(screen.getByTestId("session-card-s1-summary")).toHaveTextContent("2 exercices");
@@ -89,13 +93,15 @@ describe("PRE-8 E.2 — carte unique", () => {
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
-  it("chevron pivoté et annoncé ouvert une fois déployé", () => {
-    render(<SessionCard projection={many()} expanded onToggleExpanded={() => undefined} />);
+  it("chevron → replié, ↓ déployé (D-504)", () => {
+    const { rerender } = render(<SessionCard projection={many()} onToggleExpanded={() => undefined} />);
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-chevron").props.style).transform).toEqual([{ rotate: "-90deg" }]);
+    rerender(<SessionCard projection={many()} expanded onToggleExpanded={() => undefined} />);
     expect(screen.getByTestId("session-card-s1-disclosure").props.accessibilityState).toEqual({ expanded: true });
-    expect(screen.getByTestId("session-card-s1-chevron-open")).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-chevron-open").props.style).transform).toEqual([{ rotate: "0deg" }]);
   });
 
-  it("jamais « 1 exercice » ; « 0 exercice » pour une Séance vide (Q-E6)", () => {
+  it("« 0 exercice » pour une Séance vide (Q-E6)", () => {
     render(<SessionCard projection={projection([])} />);
     expect(screen.getByTestId("session-card-s1-summary")).toHaveTextContent("0 exercice");
   });
@@ -108,9 +114,10 @@ describe("PRE-8 E.2 — carte unique", () => {
     expect(screen.queryByTestId("session-card-color-bar")).toBeNull();
   });
 
-  it("durée : minutes et secondes sans arrondi (D-391), ≥ pour une borne minimale", () => {
+  it("durée : minutes et secondes sans arrondi (D-391), ≥ pour une borne minimale ; sans sablier (D-506)", () => {
     render(<SessionCard projection={many()} />);
     expect(screen.getByTestId("session-card-s1-duration").props.children).toMatch(/^≥ /);
+    expect(screen.UNSAFE_queryAllByProps({ source: SANDGLASS_ICON })).toHaveLength(0);
   });
 
   it("visuel : vignette Libre sans photo, photo de l'exercice sinon", () => {
@@ -128,52 +135,143 @@ describe("PRE-8 E.2 — carte unique", () => {
     expect(screen.getByTestId("session-card-s1-photo")).toBeTruthy();
   });
 
-  it("carte archivée : aucune action directe, texte jusqu'à la marge", () => {
-    render(<SessionCard projection={projection([{ kind: "EXERCISE", exercise: exercise() }], { status: "ARCHIVED", archivedAt: "x" })} />);
-    expect(screen.queryByTestId("session-card-s1-play")).toBeNull();
+  it("carte archivée : même format, sans Démarrer ; liseré d'archive à 50 %", () => {
+    render(
+      <SessionCard
+        projection={projection([{ kind: "EXERCISE", exercise: exercise() }], { status: "ARCHIVED", archivedAt: "x" })}
+        onStart={() => undefined}
+      />,
+    );
+    expect(screen.queryByTestId("session-card-s1-start")).toBeNull();
     const card = StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style);
-    expect(card.borderColor).toBe("#D9D9D9");
+    expect(card.borderColor).toBe("rgba(217, 217, 217, 0.5)");
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-header").props.style).height).toBe(71);
   });
 
-  it("mesures du gabarit : visuel 64 à 8 du bord, Lecture cible 48 à 8 du bord, rayon 12, bordure 0,5", () => {
+  it("modales de planification : Démarrer masqué (context « planning »)", () => {
+    render(<SessionCard projection={one()} context="planning" onStart={() => undefined} />);
+    expect(screen.queryByTestId("session-card-s1-start")).toBeNull();
+    expect(screen.getByTestId("session-card-s1-disclosure")).toBeTruthy();
+  });
+
+  // [« visuel 64 à 8 du bord, Lecture cible 48 à 8 du bord » et fond #F9FAFC — remplacé le 06/11/2026 par D-504.]
+  it("mesures du gabarit : carte 72, photo 64 à 4 du bord ; fond blanc, liseré 0,5 à 50 % ; textes à 8 du haut", () => {
     render(<SessionCard projection={one()} />);
     const card = StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style);
-    expect(card).toMatchObject({ borderRadius: 12, borderWidth: 0.5, borderColor: "#CCD1E0", backgroundColor: "#F9FAFC" });
-    const play = StyleSheet.flatten(screen.getByTestId("session-card-s1-play").props.style);
-    expect(play).toMatchObject({ width: 48, height: 48, right: 7.5 });
+    expect(card).toMatchObject({ borderRadius: 12, borderWidth: 0.5, borderColor: "rgba(204, 209, 224, 0.5)", backgroundColor: "#FFFFFF" });
+    expect(card).toMatchObject({ shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 2 } });
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-header").props.style).height).toBe(71);
+    expect(SESSION_CARD_HEADER_HEIGHT).toBe(72);
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-visual-open").props.style)).toMatchObject({ marginLeft: 3.5, marginTop: 3.5 });
+    const texts = StyleSheet.flatten(screen.getByTestId("session-card-s1-texts").props.style);
+    expect(texts).toMatchObject({ marginLeft: 8, paddingTop: 7.5, paddingRight: 11.5 });
   });
 
-  it("le toucher de Lecture est intercepté et n'ouvre rien", () => {
-    const onOpen = jest.fn();
-    render(<SessionCard projection={one()} onOpen={onOpen} />);
-    expect(() => fireEvent.press(screen.getByTestId("session-card-s1-play"))).not.toThrow();
-    expect(onOpen).not.toHaveBeenCalled();
+  it("Démarrer : pilule 24 à 12 du bord droit et 8 du bas, fond du catalogue des séances, bleu 12 Medium, ombre 0/2/4 14 %, cible 44", () => {
+    render(<SessionCard projection={one()} onStart={() => undefined} />);
+    const start = screen.getByTestId("session-card-s1-start");
+    const style = StyleSheet.flatten(start.props.style);
+    expect(style).toMatchObject({
+      height: 24,
+      borderRadius: 12,
+      right: 11.5,
+      top: 72 - 8 - 24 - 0.5,
+      backgroundColor: colors.catalogueSessionsBackground,
+      shadowColor: "#000000",
+      shadowOpacity: 0.14,
+      shadowRadius: 2,
+      shadowOffset: { width: 0, height: 2 },
+    });
+    expect(style.borderWidth).toBeUndefined();
+    // Cible : jeton `minTouchTarget` (48), au moins les 44 exigés.
+    expect(start.props.hitSlop).toMatchObject({ top: (minTouchTarget - 24) / 2, bottom: (minTouchTarget - 24) / 2 });
+    const label = StyleSheet.flatten(screen.getByText("Démarrer").props.style);
+    expect(label).toMatchObject({ fontSize: 12, fontFamily: "Inter_500Medium", color: colors.primary });
+    expect(start.props.accessibilityLabel).toBe("Démarrer");
   });
 
-  // Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « l'appui sur la photo ou l'appui
-  // sur la zone déployée ouvre la séance en modification, l'appui sur le reste de la carte (dont le
-  // chevron) déploie la séance. »).
-  it("un exercice déployé : le visuel et la zone déployée ouvrent, le chevron déploie", () => {
+  it("cible du chevron portée au moins à 44 (jeton `minTouchTarget`) sans empiéter sur la photo", () => {
+    render(<SessionCard projection={one()} />);
+    expect(screen.getByTestId("session-card-s1-disclosure").props.hitSlop).toEqual({
+      top: (minTouchTarget - 20) / 2,
+      bottom: (minTouchTarget - 20) / 2,
+      left: 8,
+      right: minTouchTarget - 10 - 8,
+    });
+  });
+
+  // D-504 (Hermann, 06/11/2026) : « toucher la photo ouvre la composition de séance en modification ;
+  // Démarrer exécute la séance ; le chevron […] déploie/replie la séance ; toucher toute la zone
+  // déployée ouvre la séance en modification. Ces cibles sont distinctes. »
+  it("cibles distinctes : photo → ouvrir, Démarrer → exécuter, chevron → déployer, zone déployée → ouvrir", () => {
     const onOpen = jest.fn();
     const onToggle = jest.fn();
+    const onStart = jest.fn();
     render(
-      <SessionCard projection={one()} expanded onToggleExpanded={onToggle} onOpen={onOpen}>
+      <SessionCard projection={one()} expanded onToggleExpanded={onToggle} onOpen={onOpen} onStart={onStart}>
         <Text testID="composition">Composition</Text>
       </SessionCard>,
     );
-    expect(screen.getByTestId("session-card-s1-chevron-open")).toBeTruthy();
+    const calls = () => [onOpen.mock.calls.length, onToggle.mock.calls.length, onStart.mock.calls.length];
     fireEvent.press(screen.getByTestId("session-card-s1-visual-open"));
-    fireEvent.press(screen.getByTestId("composition"));
-    expect(onOpen).toHaveBeenCalledTimes(2);
+    expect(calls()).toEqual([1, 0, 0]);
+    fireEvent.press(screen.getByTestId("session-card-s1-start"));
+    expect(calls()).toEqual([1, 0, 1]);
     fireEvent.press(screen.getByTestId("session-card-s1-disclosure"));
-    expect(onToggle).toHaveBeenCalledTimes(1);
-    expect(onOpen).toHaveBeenCalledTimes(2);
+    expect(calls()).toEqual([1, 1, 1]);
+    fireEvent.press(screen.getByTestId("composition"));
+    expect(calls()).toEqual([2, 1, 1]);
+  });
+
+  it("Démarrer indisponible : le toucher est intercepté et n'ouvre ni ne déploie rien", () => {
+    const onOpen = jest.fn();
+    const onToggle = jest.fn();
+    render(<SessionCard projection={one()} onOpen={onOpen} onToggleExpanded={onToggle} />);
+    expect(() => fireEvent.press(screen.getByTestId("session-card-s1-start"))).not.toThrow();
+    expect(onOpen).not.toHaveBeenCalled();
+    expect(onToggle).not.toHaveBeenCalled();
   });
 
   it("Séance vide : chevron aussi ; repliée, aucune zone déployée", () => {
     render(<SessionCard projection={projection([])} onOpen={() => undefined} />);
     expect(screen.getByTestId("session-card-s1-disclosure")).toBeTruthy();
     expect(screen.queryByTestId("session-card-s1-expanded-open")).toBeNull();
+  });
+});
+
+/**
+ * D-505 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : ligne 3 « N circuits ·
+ * N exercices » ; circuits omis sans circuit ou pour un seul circuit joué une seule fois ; « 1 exercice ».
+ */
+describe("D-505 — ligne 3 « N circuits · N exercices »", () => {
+  const line = (elements: readonly StructureElement<Activity>[]) => {
+    render(<SessionCard projection={projection(elements)} />);
+    return screen.getByTestId("session-card-s1-summary");
+  };
+  const circuit = (id: string, count: number, repeatCount: number): StructureElement<Activity> => ({
+    kind: "CIRCUIT",
+    circuit: { id, repeatCount, nature: "TOURS", exercises: Array.from({ length: count }, () => exercise()) },
+  });
+  const single = (): StructureElement<Activity> => ({ kind: "EXERCISE", exercise: exercise() });
+
+  it("aucun circuit : « N exercices »", () => {
+    expect(line([single(), single(), single()])).toHaveTextContent(/^3 exercices$/);
+  });
+  it("un circuit d'un tour : circuit omis", () => {
+    expect(line([circuit("c1", 2, 1)])).toHaveTextContent(/^2 exercices$/);
+  });
+  it("un circuit de plusieurs tours : « 1 circuit · N exercices », sans multiplier par les tours", () => {
+    expect(line([circuit("c1", 2, 3)])).toHaveTextContent(/^1 circuit · 2 exercices$/);
+  });
+  it("plusieurs circuits : « N circuits · N exercices »", () => {
+    expect(line([circuit("c1", 2, 1), circuit("c2", 3, 2), single()])).toHaveTextContent(/^2 circuits · 6 exercices$/);
+  });
+  it("un seul exercice : « 1 exercice »", () => {
+    expect(line([single()])).toHaveTextContent(/^1 exercice$/);
+  });
+  it("formatSessionStructureLine : même règle pour l'accessibilité", () => {
+    expect(formatSessionStructureLine({ shownCircuitCount: 2, exerciseCount: 5 })).toBe("2 circuits · 5 exercices");
+    expect(formatSessionStructureLine({ shownCircuitCount: null, exerciseCount: 1 })).toBe("1 exercice");
   });
 });
 
@@ -231,8 +329,8 @@ describe("Contre-recette du 30/10 — Séance incomplète", () => {
       borderColor: colors.danger,
       borderWidth: 1,
     });
-    const play = StyleSheet.flatten(screen.getByTestId("session-card-s1-play").props.style);
-    expect(play.right).toBe(7);
+    // D-504 : Démarrer à 12 du bord, compensé du bord 1.
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-start").props.style).right).toBe(11);
   });
 
   it("Séance complète : carte inchangée", () => {
@@ -240,7 +338,7 @@ describe("Contre-recette du 30/10 — Séance incomplète", () => {
     expect(value.incomplete).toBe(false);
     render(<SessionCard projection={value} />);
     const style = StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style);
-    expect(style.backgroundColor).toBe(colors.surfaceSubtle);
+    expect(style.backgroundColor).toBe(colors.background);
     expect(style.borderWidth).toBe(0.5);
   });
 });
@@ -266,7 +364,7 @@ describe("Contre-recette n° 3 du 31/10 — Séance « Paramètre à vérifier �
       borderColor: toVerifyColors.border,
       borderWidth: 1,
     });
-    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-play").props.style).right).toBe(7);
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-start").props.style).right).toBe(11);
   });
 
   it("« à compléter » prime : un Exercice à compléter et un à vérifier → carte rouge", () => {
@@ -287,6 +385,6 @@ describe("Contre-recette n° 3 du 31/10 — Séance « Paramètre à vérifier �
     const value = projection([{ kind: "EXERCISE", exercise: exercise({ executionParameters: phased(5) }) }]);
     expect(value.toVerify).toBe(false);
     render(<SessionCard projection={value} />);
-    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style).backgroundColor).toBe(colors.surfaceSubtle);
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style).backgroundColor).toBe(colors.background);
   });
 });

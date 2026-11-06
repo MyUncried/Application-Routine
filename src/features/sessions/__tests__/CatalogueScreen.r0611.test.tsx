@@ -7,6 +7,7 @@ import { StyleSheet } from "react-native";
 import type { Movement } from "@/domain/activities/Movement";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
+import { markMovementCreated, resetNewMovementMarks } from "@/features/activities/newMovementMarks";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
@@ -19,7 +20,7 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
  * Recette iPhone du 06/11/2026 (Hermann) — écran du Catalogue :
- * - t-niveau : « il faut que la nouvelle fiche soit identifiée dans le catalogue des mouvements […] Ce cadre disparait après
+ * - D-510 (remplace t-niveau) : badge « New » ; t-niveau : « il faut que la nouvelle fiche soit identifiée dans le catalogue des mouvements […] Ce cadre disparait après
  *   avoir changé de vue à partir de la barre de navigation du haut (mouvement, séance, programme) ou de la barre de
  *   navigation du bas. » ;
  * - t-catalogue : le symbole Trier s'affiche avec son cercle, sans chargement différé.
@@ -86,15 +87,16 @@ function fakeTabNavigation() {
   };
 }
 
+let definitions: ActivityDefinitionService;
+
 function renderScreen(navigation?: ComponentProps<typeof NavigationContext.Provider>["value"]) {
+  definitions = new ActivityDefinitionService(undefined, undefined, undefined, undefined, movements());
   const service = { listCatalogueSessions: jest.fn(async () => []) } as unknown as SessionService;
   const screenTree = (
     <TestSafeAreaProvider>
       <SessionServiceContext.Provider value={service}>
         <ReferentialServiceContext.Provider value={referentials}>
-          <ActivityDefinitionServiceContext.Provider
-            value={new ActivityDefinitionService(undefined, undefined, undefined, undefined, movements())}
-          >
+          <ActivityDefinitionServiceContext.Provider value={definitions}>
             <CatalogueScreen />
           </ActivityDefinitionServiceContext.Provider>
         </ReferentialServiceContext.Provider>
@@ -124,6 +126,7 @@ const badges = () => screen.queryAllByTestId(/^movement-card-new-/).map((node) =
 
 beforeEach(async () => {
   mockPush.mockClear();
+  resetNewMovementMarks();
   database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   await movements().create(movement("gainage", "Gainage"));
@@ -133,75 +136,104 @@ afterEach(() => {
   database.close();
 });
 
-/** Créer depuis le Catalogue des Mouvements, puis enregistrer la fiche (simulé) et revenir. */
-async function createFromCatalogue(id: string, name: string) {
-  await press("catalogue-create-action");
-  expect(mockPush).toHaveBeenLastCalledWith("/movement");
-  await movements().create(movement(id, name));
+/** Fiche enregistrée par le service du Catalogue (bouton +, Ajouter un niveau, duplication) — puis retour au Catalogue. */
+async function createWithService(id: string, name: string) {
+  const outcome = await definitions.movementCatalogue!.createIndependent(movement(id, name));
+  expect(outcome.status).toBe("SAVED");
   await focus();
 }
 
-describe("t-niveau (06/11/2026) : pastille « NEW » d'un Mouvement créé depuis le Catalogue", () => {
-  it("Créer : le nouveau Mouvement porte « NEW » au retour ; un Mouvement créé hors du Catalogue, non", async () => {
+describe("D-510 (06/11/2026) : badge « New » d'une fiche créée", () => {
+  it("bouton + : la fiche créée porte « New » au retour ; ouvrir une fiche puis revenir le conserve ; plusieurs fiches à la fois", async () => {
     renderScreen();
     await focus();
     await press("catalogue-content-type-row-movements");
-    // Création hors du Catalogue (par exemple depuis une Séance) : aucune pastille.
+    // Fiche existante écrite sans création par l'utilisateur (données) : aucun badge.
     await movements().create(movement("autre", "Abdos"));
     await focus();
     expect(badges()).toEqual([]);
-    await createFromCatalogue("fentes", "Fentes avant");
+    await press("catalogue-create-action");
+    expect(mockPush).toHaveBeenLastCalledWith("/movement");
+    await createWithService("fentes", "Fentes avant");
     expect(badges()).toEqual(["fentes"]);
-    // Ouvrir une fiche puis revenir : la pastille reste.
     await press("movement-card-gainage-card");
     await focus();
     expect(badges()).toEqual(["fentes"]);
+    await createWithService("pompes", "Pompes");
+    expect(badges().sort()).toEqual(["fentes", "pompes"]);
+    expect(screen.getByLabelText("Fentes avant, nouveau")).toBeTruthy();
   });
 
-  it("Ajouter un niveau : le nouveau niveau porte « NEW »", async () => {
+  it("Ajouter un niveau : pile repliée — « New ↓ » sur la tête ; dépliée — « New » sur le niveau créé seulement", async () => {
     renderScreen();
     await focus();
     await press("catalogue-content-type-row-movements");
-    const row = screen.getByTestId("movement-card-gainage");
-    await act(async () => {
-      fireEvent(row, "touchStart", { nativeEvent: { pageX: 300, pageY: 10 } });
-      fireEvent(row, "touchMove", { nativeEvent: { pageX: 60, pageY: 12 } });
-      fireEvent(row, "touchEnd", { nativeEvent: { pageX: 60, pageY: 12 } });
-    });
-    await press("movement-card-gainage-action-variant");
-    await press("movement-card-gainage-easier");
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/movement", params: { variantOf: "gainage", placement: "BEFORE_ORIGIN" } });
-    // Fiche du nouveau niveau enregistrée (simulé), retour au Catalogue.
-    await movements().createVariant(movement("gainage-facile", "Gainage sur les genoux"), "gainage", "BEFORE_ORIGIN");
+    const outcome = await definitions.movementCatalogue!.createVariant(movement("gainage-facile", "Gainage sur les genoux"), "gainage", "EASIER");
+    expect(outcome.status).toBe("SAVED");
     await focus();
-    // Nouvelle pile repliée : sa carte du dessus annonce le niveau nouveau masqué ; dépliée, la pastille est sur lui.
     expect(badges()).toEqual(["gainage"]);
+    expect(screen.getByTestId("movement-card-badge-label-gainage").props.children).toBe("New ↓");
+    expect(screen.getByLabelText(/contient un niveau nouveau$/)).toBeTruthy();
+    // Aucun dépliage automatique : la pile reste repliée.
+    expect(screen.getByTestId("movement-pile-" + "grp-1")).toBeTruthy();
     await press("movement-card-gainage-card");
     expect(badges()).toEqual(["gainage-facile"]);
+    expect(screen.getByTestId("movement-card-badge-label-gainage-facile").props.children).toBe("New");
   });
 
-  it("changer de vue par la barre du haut retire les pastilles", async () => {
+  it("création depuis la Composition (catalogue des séances affiché) : badge à la visite suivante du catalogue des mouvements", async () => {
+    const tabs = fakeTabNavigation();
+    renderScreen(tabs.navigation);
+    await focus();
+    // Séance enregistrée avec une fiche créée depuis la Composition (`SessionService` marque les fiches `NEW`).
+    await movements().create(movement("burpees", "Burpees"));
+    markMovementCreated("burpees");
+    // Changer d'onglet avant d'avoir vu le catalogue des mouvements ne retire rien.
+    await tabs.blur(1);
+    await focus();
+    await press("catalogue-content-type-row-movements");
+    expect(badges()).toEqual(["burpees"]);
+    await press("catalogue-content-type-row-sessions");
+    await press("catalogue-content-type-row-movements");
+    expect(badges()).toEqual([]);
+  });
+
+  it("changer de vue par la barre du haut retire le badge", async () => {
     renderScreen();
     await focus();
     await press("catalogue-content-type-row-movements");
-    await createFromCatalogue("fentes", "Fentes avant");
+    await createWithService("fentes", "Fentes avant");
     expect(badges()).toEqual(["fentes"]);
     await press("catalogue-content-type-row-sessions");
     await press("catalogue-content-type-row-movements");
     expect(badges()).toEqual([]);
   });
 
-  it("changer d'onglet par la barre du bas retire les pastilles ; ouvrir une fiche au-dessus des onglets, non", async () => {
+  it("changer d'onglet par la barre du bas retire le badge ; une fiche ouverte au-dessus des onglets, non", async () => {
     const tabs = fakeTabNavigation();
     renderScreen(tabs.navigation);
     await focus();
     await press("catalogue-content-type-row-movements");
-    await createFromCatalogue("fentes", "Fentes avant");
-    // Fiche ouverte au-dessus des onglets : l'onglet du Catalogue reste l'onglet actif.
+    await createWithService("fentes", "Fentes avant");
     await tabs.blur(0);
     expect(badges()).toEqual(["fentes"]);
-    // Onglet Calendrier choisi dans la barre du bas.
     await tabs.blur(1);
+    expect(badges()).toEqual([]);
+  });
+
+  it("fermeture de l'application : rien n'est persisté — le badge disparaît au redémarrage", async () => {
+    renderScreen();
+    await focus();
+    await press("catalogue-content-type-row-movements");
+    await createWithService("fentes", "Fentes avant");
+    expect(badges()).toEqual(["fentes"]);
+    // Redémarrage : la mémoire est vidée (le marquage n'existe nulle part ailleurs) ; la base garde la fiche, sans marque.
+    resetNewMovementMarks();
+    screen.unmount();
+    renderScreen();
+    await focus();
+    await press("catalogue-content-type-row-movements");
+    expect(screen.getByTestId("movement-card-fentes")).toBeTruthy();
     expect(badges()).toEqual([]);
   });
 });

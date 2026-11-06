@@ -4587,7 +4587,10 @@ describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", 
       (layer) => StyleSheet.flatten(layer.props.style as never) as { height: number; opacity: number; backgroundColor: string },
     );
     expect(layers.length).toBeGreaterThanOrEqual(10);
-    for (const layer of layers) expect(layer.backgroundColor).toBe(colors.selectionSurface);
+    // D-509 (Hermann, 06/11/2026) : bande de la Composition à #EAEAFF (`colors.contextBand`, chapitre 06).
+    // [Avant : `colors.selectionSurface` (#E5F0FF) — remplacé.]
+    for (const layer of layers) expect(layer.backgroundColor).toBe(colors.contextBand);
+    expect(colors.contextBand).toBe("#EAEAFF");
     expect(1 - layers.reduce((rest, layer) => rest * (1 - layer.opacity), 1)).toBeCloseTo(1, 5);
     expect(layers[0]!.height).toBe(23);
     expect(layers[0]!.opacity).toBeLessThan(0.1);

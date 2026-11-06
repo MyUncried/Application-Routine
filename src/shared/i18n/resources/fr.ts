@@ -223,8 +223,17 @@ export const fr = {
         collapseAccessibilityLabel: "Masquer la composition de {name}",
         // CE-T03-01 : destination non livrée, explicitement indisponible.
         playUnavailableAccessibilityLabel: "Lancer la séance — indisponible",
+        // D-504 (Hermann, 06/11/2026) : pilule « Démarrer » [remplace l'action lecture ronde].
+        start: "Démarrer",
+        startUnavailableAccessibilityLabel: "Démarrer la séance — indisponible",
+        // D-505 (Hermann, 06/11/2026) : ligne 3 « N circuits · N exercices » [remplace format ou volume].
+        structureLine: "{circuits} · {exercises}",
+        circuitUnit: { singular: "circuit", plural: "circuits" },
         archivedAccessibility: "archivée",
-        cycleLine: "Cycle · {count} {unit}",
+        // D-507 (Hermann, 06/11/2026) : « Cycle » à gauche, « N passages » à droite.
+        // [« Cycle · {count} {unit} » — remplacé le 06/11/2026.]
+        cycleLine: "Cycle",
+        repeatValue: "{count} {unit}",
         // [31/10/2026, Hermann : « Le Catalogue des Séances affiche encore « Cycle · N répétitions » […]
         // Faut-il l'aligner aussi ? Oui » — unité « passage(s) », comme la Composition.]
         cycleUnit: { singular: "passage", plural: "passages" },
@@ -234,7 +243,10 @@ export const fr = {
         // [« Circuit · {count} {unit} · {nature} » — recette iPhone n° 3 du 03/11/2026 (autres constats,
         // Hermann : « remplacer le nom mot "Circuit" par le nom du format ») : {title} = « Circuit », ou nom
         // du Format / du modèle d'origine (« Tabata · 8 tours · alternées »).]
-        circuitLine: "{title} · {count} {unit} · {nature}",
+        // [circuitLine: "{title} · {count} {unit} · {nature}" — remplacé le 06/11/2026.]
+        // D-507 (Hermann, 06/11/2026) : « Circuit · séries groupées|alternées » à gauche, « N tours » à
+        // droite ; {title} conserve le nom du Format / du modèle d'origine (recette n° 3 du 03/11).
+        circuitLine: "{title} · séries {nature}",
         recovery: "Récupération",
         compositionAccessibilityLabel: "Composition de la séance",
         // E.5 (CE-T03-01 révisé ; ch06 « Supprimer cette séance ? ») : actions glissées et cycle de vie.
@@ -1588,10 +1600,12 @@ export const fr = {
         pileExpandHint: "Déplie la pile",
         pileCollapse: "Replier la pile",
         archivedAccessibility: "archivé",
-        // Recette iPhone du 06/11/2026 (t-niveau, Hermann : « un cadre en bas à droite "New" fond rouge, police blanche,
-        // majuscule ») : pastille d'un Mouvement nouvellement créé depuis le Catalogue.
-        newBadge: "NEW",
+        // D-510 (Hermann, 06/11/2026) : badge d'une fiche créée — « New », seule la première lettre en majuscule ; « New ↓ » sur la
+        // tête d'une pile repliée dont un niveau caché est nouveau. [Recette du 06/11 (t-niveau) : « NEW » — remplacé.]
+        newBadge: "New",
+        newInPileBadge: "New ↓",
         newAccessibility: "nouveau",
+        newInPileAccessibility: "contient un niveau nouveau",
         // Recette A/B (D03) : croix d'effacement de la recherche.
         searchClear: "Effacer la recherche",
         // Recette A/B (B08, MFN-05) : réordonnancement des Niveaux d'une pile déployée.

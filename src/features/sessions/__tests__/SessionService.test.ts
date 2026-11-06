@@ -36,6 +36,8 @@ import type {
 } from "@/domain/sessions/SessionRepository";
 
 import { SessionService } from "@/features/sessions/SessionService";
+import { resetNewMovementMarks, useNewMovementMarks } from "@/features/activities/newMovementMarks";
+import { renderHook } from "@testing-library/react-native";
 
 // Repository factice, sans aucune dépendance SQLite (ni node:sqlite, ni
 // expo-sqlite, ni NodeSqliteDatabase, ni SqliteSessionRepository).
@@ -549,5 +551,35 @@ describe("SessionService.createSession — plus d'écrasement de la récupérati
     expect(exercisesOf(sessionRepository.createStructured.mock.calls[0]![0])).toEqual([
       expect.objectContaining({ postActivityRecoverySeconds: null }),
     ]);
+  });
+});
+
+describe("D-510 (06/11/2026) : fiche Mouvement créée depuis la Composition", () => {
+  const marked = () => [...renderHook(() => useNewMovementMarks()).result.current.ids].sort();
+
+  it("marquée « New » une fois la Séance enregistrée (création ou modification) ; pas avant, ni en cas d'échec", async () => {
+    resetNewMovementMarks();
+    const repository = new FakeSessionRepository();
+    repository.createStructured.mockResolvedValue(withStructure(aSession()));
+    await serviceOf(repository).createSession(aValidDraft());
+    expect(marked()).toEqual(["ex-1"]);
+
+    resetNewMovementMarks();
+    repository.updateStructured.mockResolvedValue({ status: "NOT_FOUND" });
+    await serviceOf(repository).updateSession("session-1", aValidDraft());
+    expect(marked()).toEqual([]);
+  });
+
+  it("une fiche existante réutilisée ou corrigée (EDITED) n'est pas une création", async () => {
+    resetNewMovementMarks();
+    const repository = new FakeSessionRepository();
+    repository.createStructured.mockResolvedValue(withStructure(aSession()));
+    const draft = aValidDraft();
+    const edited: SessionDraft = {
+      ...draft,
+      movements: Object.fromEntries(Object.entries(draft.movements ?? {}).map(([id, item]) => [id, { ...item, change: "EDITED" as const }])),
+    };
+    await serviceOf(repository).createSession(edited);
+    expect(marked()).toEqual([]);
   });
 });

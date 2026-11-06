@@ -30,6 +30,7 @@ import {
   type StructuredSessionRepository,
 } from "@/domain/sessions/SessionRepository";
 import { toDuplicateSessionDraft } from "@/domain/sessions/sessionDuplication";
+import { markMovementCreated } from "@/features/activities/newMovementMarks";
 
 /**
  * Résultat de la création d'une Séance : succès avec la Séance persistée,
@@ -123,6 +124,7 @@ export class SessionService {
     }
 
     const session = await this.structuredRepository().createStructured(validated.value);
+    markDraftMovementsCreated(draft);
     return { ok: true, value: session };
   }
 
@@ -143,10 +145,12 @@ export class SessionService {
       return { status: "INVALID", violations: validated.violations };
     }
 
-    return this.structuredRepository().updateStructured(sessionId, {
+    const outcome = await this.structuredRepository().updateStructured(sessionId, {
       ...validated.value,
       ...(draft.persistedExerciseIds !== undefined ? { persistedActivityIds: [...draft.persistedExerciseIds] } : {}),
     });
+    if (outcome.status === "UPDATED") markDraftMovementsCreated(draft);
+    return outcome;
   }
 
   /**
@@ -263,5 +267,16 @@ export class SessionService {
       return { status: "NOT_FOUND" };
     }
     return { status: "OK", session };
+  }
+}
+
+/**
+ * D-510 (Hermann, 06/11/2026) : une fiche Mouvement créée depuis la Composition (`NEW` dans le brouillon) n'existe qu'à
+ * l'enregistrement de la Séance ; elle est alors marquée « New » pour la visite suivante du catalogue des mouvements.
+ * Une fiche existante réutilisée ou corrigée (`EDITED`) n'est pas une création.
+ */
+function markDraftMovementsCreated(draft: SessionDraft): void {
+  for (const movement of Object.values(draft.movements ?? {})) {
+    if (movement.change === "NEW") markMovementCreated(movement.id);
   }
 }

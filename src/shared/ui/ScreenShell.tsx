@@ -20,8 +20,23 @@ import { colors, dimensions, layout, minTouchTarget, spacing, type } from "@/sha
  * Foundation. Toute divergence future entre écrans passe par les props de
  * ces composants, jamais par une redéfinition locale équivalente.
  */
-export function ScreenShell({ children }: { children: ReactNode }) {
-  return <View style={styles.container}>{children}</View>;
+export function ScreenShell({
+  children,
+  backgroundColor,
+}: {
+  children: ReactNode;
+  /**
+   * D-501 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §3) : fond d'écran propre au
+   * Catalogue actif (`background`) — il couvre aussi la barre d'état et l'en-tête fixe, posés dessus.
+   * Absent : fond inchangé (`colors.background`).
+   */
+  backgroundColor?: string;
+}) {
+  return (
+    <View style={[styles.container, backgroundColor === undefined ? null : { backgroundColor }]} testID="screen-shell">
+      {children}
+    </View>
+  );
 }
 
 export type FixedHeaderProps = {
@@ -92,7 +107,9 @@ export type FixedHeaderProps = {
 /**
  * `Header / Fixed`. Le bouton Retour (`CMP-01`) est présenté dans un cercle
  * de fond pâle (`colors.selectionSurface`, même token que les bandes
- * Context) — auparavant un chevron nu sans conteneur.
+ * Context [jusqu'à D-509 du 06/11/2026 : les bandes prennent désormais `colors.contextBand` ou la
+ * couleur du Catalogue ; ce cercle, hors périmètre de D-509, est inchangé]) — auparavant un chevron
+ * nu sans conteneur.
  *
  * Correction **R4-02** (`Action / Back`, `2624:3105`, `[ChatGPT] REWORK04
  * IMPLEMENTATION AUTHORIZED — DESIGN COMPLEMENTS REVIEWED`, 2026-09-03) :
@@ -262,8 +279,16 @@ export function ContextBand({
   elevated = false,
   fadeToTransparent = false,
   padding,
+  color = colors.contextBand,
 }: {
   children: ReactNode;
+  /**
+   * D-509 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §8) : couleur de la zone de
+   * contexte. Défaut `colors.contextBand` (#EAEAFF, chapitre 06) pour la Composition, la sélection d'un
+   * mouvement existant et les autres écrans hors Catalogue ; les Catalogues passent leur `context` (D-501).
+   * [Avant : `colors.selectionSurface` (#E5F0FF), couleur d'un élément sélectionné — remplacé.]
+   */
+  color?: string;
   /** Élève la bande au-dessus de ses frères (mêmes besoins de superposition que `CompositionScreen`'s `AnchoredRow`). */
   elevated?: boolean;
   /**
@@ -295,6 +320,7 @@ export function ContextBand({
       pointerEvents={fadeToTransparent ? "box-none" : "auto"}
       style={[
         styles.contextBand,
+        { backgroundColor: color },
         fadeToTransparent ? styles.contextBandTransparent : null,
         elevated || fadeToTransparent ? styles.elevated : null,
         padding === undefined ? null : { paddingTop: padding.top, paddingBottom: padding.bottom },
@@ -308,10 +334,13 @@ export function ContextBand({
           style={styles.contextBandFill}
           testID="screen-context-band-fill"
         >
-          <View style={styles.contextBandSolid} />
+          <View style={[styles.contextBandSolid, { backgroundColor: color }]} testID="screen-context-band-solid" />
           <View style={styles.contextBandFade} testID="screen-context-band-fade">
             {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
-              <View key={layer.height} style={[styles.contextBandFadeLayer, { height: layer.height, opacity: layer.opacity }]} />
+              <View
+                key={layer.height}
+                style={[styles.contextBandFadeLayer, { height: layer.height, opacity: layer.opacity, backgroundColor: color }]}
+              />
             ))}
           </View>
         </View>
@@ -397,7 +426,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.divider,
   },
   contextBand: {
-    backgroundColor: colors.selectionSurface,
+    // D-509 : couleur portée par la prop `color` (défaut `colors.contextBand`).
+    backgroundColor: colors.contextBand,
     // A01 (recette PRE-8 A/B) : marge standard partagée.
     paddingHorizontal: layout.screenGutter,
     height: dimensions.contextBand.height,
@@ -425,7 +455,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: CONTEXT_BAND_SOLID_HEIGHT,
-    backgroundColor: colors.selectionSurface,
+    backgroundColor: colors.contextBand,
   },
   contextBandFade: {
     position: "absolute",
@@ -439,6 +469,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     top: 0,
-    backgroundColor: colors.selectionSurface,
+    backgroundColor: colors.contextBand,
   },
 });

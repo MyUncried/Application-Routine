@@ -80,7 +80,12 @@ describe("point 1 — nom du Circuit = nom du format", () => {
       stopPoints: [],
     };
     const lines = projectSessionTree({ structure }).filter((line) => line.kind === "CIRCUIT");
-    expect(lines.map((line) => treeLineLabel(line).name)).toEqual(["Tabata · 8 tours · alternées", "Circuit · 2 tours · groupées"]);
+    // [« Tabata · 8 tours · alternées », « Circuit · 2 tours · groupées » — remplacé le 06/11/2026 par D-507 :
+    // « N tours » passe à droite ; le nom du Format reste en tête.]
+    expect(lines.map((line) => treeLineLabel(line))).toEqual([
+      { name: "Tabata · séries alternées", value: "8 tours" },
+      { name: "Circuit · séries groupées", value: "2 tours" },
+    ]);
   });
 });
 

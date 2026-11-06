@@ -6,8 +6,7 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "@/features/activities/SheetMotion";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
-import { formatActivityCount } from "@/features/sessions/formatSessionSummary";
-import { SESSION_CARD_HEADER_HEIGHT, SessionCard } from "@/features/sessions/SessionCard";
+import { formatSessionStructureLine, SESSION_CARD_HEADER_HEIGHT, SessionCard } from "@/features/sessions/SessionCard";
 import { compositionAccessibilityText, SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionService } from "@/features/sessions/SessionServiceContext";
@@ -36,9 +35,15 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * l'ouverture est une action nommée (« Modifier la séance »). Carte ouverte par le glissé : tout
  * toucher reste neutre.
  *
+ * D-504 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : photo → modification ;
+ * Démarrer → exécution (aucune Exécution livrée : Démarrer reste présent et indisponible, aucun
+ * `onStart` transmis, CE-T03-01) ; chevron et toute la zone centrale → déployer/replier ; zone
+ * déployée → modification. Cibles distinctes ; carte ouverte par le glissé : tout toucher reste neutre.
+ *
  * E.5 (spécification §5, CE-T03-01 révisé) : glissé sur toute la carte, repliée ou déployée, par le
  * mécanisme des Mouvements (`SwipeActionsRow`) ; bloc d'actions de 80, aligné en haut, jointif sur la
- * marge droite, carte arrêtée à 8 du bloc ; une seule carte ouverte à la fois.
+ * marge droite, carte arrêtée à 8 du bloc ; une seule carte ouverte à la fois. [Hauteur 80 — remplacée
+ * le 06/11/2026 par D-504 : actions glissées hautes de 72 (`SESSION_CARD_HEADER_HEIGHT`).]
  * - Active : Planifier (présent, grisé : aucune planification), Dupliquer, Archiver.
  * - Archivée : Restaurer puis Supprimer.
  * - Archiver : immédiat (aucune Routine), snackbar « Séance archivée » avec Annuler ; Restaurer :
@@ -52,16 +57,11 @@ const t = strings.screens.sessions;
 const tCard = t.catalogueCard;
 
 export function sessionCardAccessibilityLabel(projection: SessionCatalogueProjection, expanded = false): string {
-  const summary =
-    projection.summary.kind === "FORMAT"
-      ? projection.summary.label
-      : projection.summary.kind === "VOLUME"
-        ? projection.summary.volume
-        : formatActivityCount(projection.summary.count);
   return [
     projection.name,
     projection.categories.map((category) => category.name).join(", "),
-    summary,
+    // D-505 (Hermann, 06/11/2026) : ligne 3 « N circuits · N exercices ». [Avant : format ou volume.]
+    formatSessionStructureLine(projection),
     formatCatalogueSessionDuration(projection.duration),
     projection.status === "ARCHIVED" ? tCard.archivedAccessibility : null,
     expanded && projection.tree.length > 0 ? compositionAccessibilityText(projection.tree) : null,

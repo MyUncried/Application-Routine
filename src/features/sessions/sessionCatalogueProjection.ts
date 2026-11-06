@@ -3,7 +3,7 @@ import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
 import type { Activity } from "@/domain/sessions/Session";
 import type { CatalogueSessionRecord, SessionStatus } from "@/domain/sessions/SessionRepository";
-import { computeStructureDuration, cycleExercises, structureExercises, type StructureCircuit } from "@/domain/sessions/structure";
+import { computeStructureDuration, cycleExercises, structureCircuits, structureExercises, type StructureCircuit } from "@/domain/sessions/structure";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { firstMediaPreviewSource, type MediaPreviewSource } from "@/features/activities/MediaPreview";
 import { isDisplayableRecovery } from "@/features/sessions/ActivityRecoveryLine";
@@ -11,7 +11,7 @@ import { circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
 import { formatOccurrenceSummary, isIncompleteSummary, isToVerifySummary } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
 
-import { FREE_SESSION_FORMAT, sessionFormatOf, type SessionFormatKey } from "./sessionFormats";
+import { FREE_SESSION_FORMAT, type SessionFormatKey } from "./sessionFormats";
 
 /**
  * PRE-8 (epic E, story E.1 ; spécification « Carte de séance et catalogue des séances » du 27/10,
@@ -25,9 +25,13 @@ import { FREE_SESSION_FORMAT, sessionFormatOf, type SessionFormatKey } from "./s
  * - Zones corporelles et Étiquette : pour les filtres seulement (Q-E3), jamais sur la carte.
  * - Visuel : média de l'Exercice unique, sinon premier média dans l'ordre de composition, sinon
  *   vignette du format, sinon Libre. Aucun format n'est persisté (Q-E5) : le repli est Libre.
- * - Synthèse : nom du format (jamais aujourd'hui), sinon nombre d'Exercices, sinon — un seul
+ * - [Synthèse : nom du format (jamais aujourd'hui), sinon nombre d'Exercices, sinon — un seul
  *   Exercice — son volume (« 3 × 1 min 30 s », « 1 × 45 s ») ; « 1 exercice » n'est jamais produit.
- *   Une Séance sans Exercice garde « 0 exercice » (D-392, Q-E6).
+ *   — remplacé le 06/11/2026.]
+ *   D-505 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : ligne 3
+ *   « N circuits · N exercices » (`shownCircuitCount`, `exerciseCount`) ; le nombre de circuits est
+ *   omis sans circuit, ou pour un seul circuit joué une seule fois ; « 1 exercice » pour une Séance
+ *   d'un seul Exercice. Une Séance sans Exercice garde « 0 exercice » (D-392, Q-E6).
  * - Durée : autorité unique du Domaine (`computeStructureDuration`), aucune nouvelle formule.
  * - Arbre de la composition : un conteneur (Cycle, Circuit) n'apparaît que s'il se répète ou
  *   contient plus d'un Exercice ; ses membres sont décalés d'un niveau ; deux décalages au plus.
@@ -38,11 +42,6 @@ export type CatalogueCategoryRef = { readonly id: string; readonly name: string;
 export type CatalogueVisual =
   | { readonly kind: "MEDIA"; readonly source: MediaPreviewSource }
   | { readonly kind: "FORMAT"; readonly format: SessionFormatKey };
-
-export type CatalogueSummarySlot =
-  | { readonly kind: "FORMAT"; readonly label: string }
-  | { readonly kind: "COUNT"; readonly count: number }
-  | { readonly kind: "VOLUME"; readonly volume: string };
 
 export type CatalogueTreeLine =
   | { readonly kind: "CYCLE"; readonly key: string; readonly depth: number; readonly repeatCount: number }
@@ -73,7 +72,13 @@ export type SessionCatalogueProjection = {
   readonly bodyZoneIds: readonly string[];
   readonly format: SessionFormatKey;
   readonly visual: CatalogueVisual;
-  readonly summary: CatalogueSummarySlot;
+  /**
+   * D-505 (Hermann, 06/11/2026) : nombre de Circuits affiché en ligne 3 (« N circuits · N exercices »),
+   * compte structurel (Circuits des Cycles compris, sans multiplier par tours ni passages) ; `null`
+   * quand il est omis : aucun Circuit, ou un seul Circuit joué une seule fois. [Avant : `summary`,
+   * format ou volume en ligne 3 — remplacé.]
+   */
+  readonly shownCircuitCount: number | null;
   readonly duration: SessionDurationResult;
   readonly tree: readonly CatalogueTreeLine[];
   /**
@@ -106,6 +111,8 @@ function legacyRecoverySeconds(activity: Activity): number | null {
  * « 1 × 45 s ») : la synthèse d'occurrence existante (`formatOccurrenceSummary`), dont une série
  * unique chiffrée prend la forme « 1 × cible » exigée par la spécification. Les autres formes
  * (échec, séries variables, paramètres à compléter) sont reprises telles quelles.
+ * [D-505 (Hermann, 06/11/2026) : la ligne 3 de la carte n'affiche plus de volume — fonction plus lue par la
+ * carte, conservée pour ses appelants de test.]
  */
 export function formatCatalogueVolume(activity: Activity): string {
   const summary = formatOccurrenceSummary({ executionParameters: activity.executionParameters });
@@ -215,6 +222,28 @@ export function projectSessionTree(record: Pick<CatalogueSessionRecord, "structu
   });
 }
 
+/**
+ * D-505 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : nombre de Circuits de la
+ * ligne 3 — compte structurel du Domaine (`structureCircuits`, Circuits des Cycles compris), chacun une
+ * fois, jamais multiplié par tours ni passages. Omis (`null`) sans Circuit, ou pour un seul Circuit joué
+ * une seule fois : un tour, hors d'un Cycle répété (un Circuit d'un tour dans un Cycle de plusieurs
+ * passages est joué plusieurs fois — interprétation retenue de « joué une seule fois »).
+ */
+export function shownCircuitCountOf(structure: Pick<CatalogueSessionRecord["structure"], "elements">): number | null {
+  // Un Circuit sans Exercice (ancien Circuit implicite vide, PRE-9 B.2 : « un conteneur n'est jamais
+  // vide ») ne compte pas.
+  const circuits = structureCircuits(structure).filter((circuit) => circuit.exercises.some(isExercise));
+  if (circuits.length === 0) return null;
+  if (circuits.length > 1) return circuits.length;
+  const only = circuits[0]!;
+  const enclosingCycle = structure.elements.find(
+    (element) =>
+      element.kind === "CYCLE" && element.cycle.members.some((member) => member.kind === "CIRCUIT" && member.circuit.id === only.id),
+  );
+  const cyclePasses = enclosingCycle?.kind === "CYCLE" ? enclosingCycle.cycle.repeatCount : 1;
+  return only.repeatCount === 1 && cyclePasses === 1 ? null : 1;
+}
+
 export function projectSessionForCatalogue(
   record: CatalogueSessionRecord,
   categoriesById: ReadonlyMap<string, CatalogueCategoryRef>,
@@ -236,13 +265,6 @@ export function projectSessionForCatalogue(
   const media = exercises.map((exercise) => firstMediaPreviewSource(exercise.media)).find((source) => source !== null);
   const visual: CatalogueVisual = media ? { kind: "MEDIA", source: media } : { kind: "FORMAT", format };
 
-  const formatHasName = format !== FREE_SESSION_FORMAT;
-  const summary: CatalogueSummarySlot = formatHasName
-    ? { kind: "FORMAT", label: sessionFormatOf(format).label }
-    : exerciseCount === 1
-      ? { kind: "VOLUME", volume: formatCatalogueVolume(exercises[0]!) }
-      : { kind: "COUNT", count: exerciseCount };
-
   const summaries = exercises.map((exercise) =>
     formatOccurrenceSummary({ executionParameters: exercise.executionParameters, phasesToVerify: exercise.phasesToVerify }),
   );
@@ -259,7 +281,7 @@ export function projectSessionForCatalogue(
     bodyZoneIds,
     format,
     visual,
-    summary,
+    shownCircuitCount: shownCircuitCountOf(record.structure),
     duration: computeStructureDuration(record.structure),
     tree: projectSessionTree(record),
     incomplete,

@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
 import { strings } from "@/shared/i18n";
-import { CONTEXT_LINE_SELECTED, CONTEXT_SEPARATOR_COLOR, CONTEXT_TEXT_COLOR } from "@/shared/ui/catalogueContext";
+import { CONTEXT_LINE_SELECTED, CONTEXT_SEPARATOR, CONTEXT_SEPARATOR_GAP, CONTEXT_TEXT_COLOR } from "@/shared/ui/catalogueContext";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 import type { SessionCatalogueView } from "./sessionCatalogueView";
@@ -13,10 +13,11 @@ import type { SessionCatalogueView } from "./sessionCatalogueView";
  * débord horizontal entre les deux options.
  *
  * PRE-9 CAT.1 (spécification « Zones de contexte des Catalogues » du 30/10/2026 §4 ; CE-CAT-CTX-01 ;
- * Figma `1992:9910`) : première ligne de la zone de contexte, « Un exercice N | Plusieurs N ». Seul
+ * Figma `1992:9910`) : première ligne de la zone de contexte, « Un exercice N · Plusieurs N ». Seul
  * le LIBELLÉ est une commande (bascule inchangée) ; le nombre `N`, accolé, est un texte informatif
  * (14 Regular `#333333`), hors de la cible. Libellés 14 pt, inactifs `#595E66` Regular, actif bleu
- * Kodjo Semi Bold ; séparateur « | » `#9499A8`. `counts` absent (liste non chargée) : libellés seuls.
+ * Kodjo Semi Bold ; séparateur « · » (D-503, 06/11/2026 ; avant « | » `#9499A8`). `counts` absent (liste non
+ * chargée) : libellés seuls.
  */
 
 const t = strings.screens.sessions.view;
@@ -51,7 +52,7 @@ export function SessionViewToggle({
           <View key={option.value} style={styles.optionGroup}>
             {index > 0 ? (
               <Text style={styles.separator} accessible={false} importantForAccessibility="no" testID={`${testID}-separator`}>
-                |
+                {CONTEXT_SEPARATOR}
               </Text>
             ) : null}
             <Pressable
@@ -94,11 +95,13 @@ const styles = StyleSheet.create({
     minHeight: LABEL_LINE,
     justifyContent: "center",
   },
-  // Figma `1992:9910` : « | » à 10 du nombre qui précède et du libellé qui suit (x = 127).
+  // D-503 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §4 ; Figma `1992:9910`, `10681:20037`) :
+  // « · » `#333333`, 8 pt de part et d'autre, comme le Catalogue des Mouvements.
+  // [Avant : « | » `#9499A8` à 10 du nombre qui précède et du libellé qui suit (x = 127) — remplacé.]
   separator: {
     ...type.contextLine,
-    color: CONTEXT_SEPARATOR_COLOR,
-    marginHorizontal: spacing[10],
+    color: CONTEXT_TEXT_COLOR,
+    marginHorizontal: CONTEXT_SEPARATOR_GAP,
   },
   label: {
     ...type.contextLine,

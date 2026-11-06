@@ -82,8 +82,10 @@ describe("PRE-8 E.3 — arbre rendu", () => {
   it("lignes de conteneurs sans valeur, noms et volumes, récupération grisée à sa position", () => {
     render(<SessionCompositionTree tree={knee().tree} testID="tree" />);
     expect(screen.getByTestId("tree-divider")).toBeTruthy();
-    expect(screen.getByTestId("tree-line-cy")).toHaveTextContent("Cycle · 2 passages");
-    expect(screen.getByTestId("tree-line-c1")).toHaveTextContent("Circuit · 3 tours · groupées");
+    // D-507 (Hermann, 06/11/2026) : « Cycle » + « N passages » à droite, « Circuit · séries groupées »
+    // + « N tours » à droite. [Avant : « Cycle · 2 passages », « Circuit · 3 tours · groupées » — remplacé.]
+    expect(screen.getByTestId("tree-line-cy")).toHaveTextContent("Cycle2 passages");
+    expect(screen.getByTestId("tree-line-c1")).toHaveTextContent("Circuit · séries groupées3 tours");
     expect(screen.getByTestId("tree-line-sq")).toHaveTextContent("Squat assisté3 × 12 rép.");
     expect(screen.getByTestId("tree-line-ext:recovery")).toHaveTextContent("Récupération1 min");
     const recoveryName = screen.getByText("Récupération");
@@ -113,14 +115,42 @@ describe("PRE-8 E.3 — arbre rendu", () => {
     expect(StyleSheet.flatten(screen.getByTestId("tree-line-g").props.style).paddingLeft).toBe(0);
   });
 
-  it("libellés au singulier ; Circuit : unité « tour(s) » et adjectif de nature (PRE-9 B.1b, référence §2)", () => {
-    expect(treeLineLabel({ kind: "CYCLE", key: "c", depth: 0, repeatCount: 1 }).name).toBe("Cycle · 1 passage");
-    expect(treeLineLabel({ kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 4, nature: "SERIES" }).name).toBe("Circuit · 4 tours · alternées");
-    expect(treeLineLabel({ kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 1, nature: "TOURS" }).name).toBe("Circuit · 1 tour · groupées");
+  // D-507 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §6) : la valeur passe à droite.
+  it("libellés au singulier ; Cycle « N passages » et Circuit « séries groupées|alternées » + « N tours » à droite (D-507)", () => {
+    expect(treeLineLabel({ kind: "CYCLE", key: "c", depth: 0, repeatCount: 1 })).toEqual({ name: "Cycle", value: "1 passage" });
+    expect(treeLineLabel({ kind: "CYCLE", key: "c", depth: 0, repeatCount: 3 })).toEqual({ name: "Cycle", value: "3 passages" });
+    expect(treeLineLabel({ kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 4, nature: "SERIES" })).toEqual({
+      name: "Circuit · séries alternées",
+      value: "4 tours",
+    });
+    expect(treeLineLabel({ kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 1, nature: "TOURS" })).toEqual({
+      name: "Circuit · séries groupées",
+      value: "1 tour",
+    });
+  });
+
+  it("volumes écrits comme dans la Composition : « rép. », jamais « reps » (D-507)", () => {
+    const tree = knee().tree;
+    expect(treeLineLabel(tree.find((line) => line.key === "sq")!).value).toBe("3 × 12 rép.");
+    expect(treeLineLabel(tree.find((line) => line.key === "ext")!).value).toBe("2 × 45 s");
+    expect(compositionAccessibilityText(tree)).not.toMatch(/reps/);
+  });
+
+  it("plusieurs cycles dans une même Séance (écran d'essai `11727:467`)", () => {
+    const tree = projection("cycles", [
+      { kind: "CYCLE", cycle: { id: "cy1", repeatCount: 2, members: [{ kind: "EXERCISE", exercise: exercise("A", { id: "a" }) }, { kind: "EXERCISE", exercise: exercise("B", { id: "b" }) }] } },
+      { kind: "CYCLE", cycle: { id: "cy2", repeatCount: 3, members: [{ kind: "EXERCISE", exercise: exercise("C", { id: "c" }) }] } },
+    ]).tree;
+    render(<SessionCompositionTree tree={tree} testID="tree" />);
+    expect(screen.getByTestId("tree-line-cy1")).toHaveTextContent("Cycle2 passages");
+    expect(screen.getByTestId("tree-line-cy2")).toHaveTextContent("Cycle3 passages");
+    expect(StyleSheet.flatten(screen.getByTestId("tree-line-c").props.style).paddingLeft).toBe(16);
   });
 
   it("texte d'accessibilité de la composition", () => {
-    expect(compositionAccessibilityText(knee().tree)).toMatch(/^Composition de la séance : Mobilisation du genou 45 s, Cycle · 2 passages, Circuit · 3 tours · groupées/);
+    expect(compositionAccessibilityText(knee().tree)).toMatch(
+      /^Composition de la séance : Mobilisation du genou 45 s, Cycle 2 passages, Circuit · séries groupées 3 tours/,
+    );
   });
 });
 
@@ -220,5 +250,41 @@ describe("PRE-8 E.3 — animations", () => {
 
   it("« Réduire les animations » : aucune animation", async () => {
     expect((await reveal(true)).props.entering).toBeUndefined();
+  });
+});
+
+/**
+ * D-504 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : « le chevron et toute la
+ * zone centrale de la carte déploient/replient la séance » ; Démarrer garde sa cible propre (aucune
+ * Exécution livrée : indisponible) ; cibles distinctes.
+ */
+describe("D-504 — zone centrale et Démarrer dans la liste", () => {
+  const renderOne = (onOpen = jest.fn()) => {
+    render(withService(<SessionCatalogueList sessions={[knee()]} emptyMessage={null} onOpenSession={onOpen} />));
+    return onOpen;
+  };
+
+  it("toucher le nom, les catégories ou la ligne 3 déploie puis replie, sans ouvrir la Séance", () => {
+    const onOpen = renderOne();
+    fireEvent.press(screen.getByTestId("session-card-genou-name"));
+    expect(screen.getByTestId("session-card-genou-composition")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("session-card-genou-summary"));
+    expect(screen.queryByTestId("session-card-genou-composition")).toBeNull();
+    fireEvent.press(screen.getByTestId("session-card-genou-duration"));
+    expect(screen.getByTestId("session-card-genou-composition")).toBeTruthy();
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("Démarrer ne déploie ni n'ouvre la Séance", () => {
+    const onOpen = renderOne();
+    fireEvent.press(screen.getByTestId("session-card-genou-start"));
+    expect(screen.queryByTestId("session-card-genou-composition")).toBeNull();
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("ligne 3 et accessibilité : « 1 circuit · 4 exercices » (un circuit de 3 tours dans un Cycle)", () => {
+    renderOne();
+    expect(screen.getByTestId("session-card-genou-summary")).toHaveTextContent("1 circuit · 4 exercices");
+    expect(screen.getByTestId("session-card-genou-swipe-card").props.accessibilityLabel).toContain("1 circuit · 4 exercices");
   });
 });

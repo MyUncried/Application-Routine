@@ -412,6 +412,9 @@ describe("PRE-8 — recette A/B : fiche et formulaire Mouvement", () => {
     expect(within(screen.getByTestId("exercise-body", anyNode)).queryByTestId("movement-photo-template", anyNode)).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("exercise-context-band", anyNode).props.style)).toMatchObject({ backgroundColor: "transparent", zIndex: 1 });
     expect(screen.getByTestId("movement-context-band-fill", anyNode)).toBeTruthy();
+    // D-509 (Hermann, 06/11/2026) : zone de contexte de la fiche Mouvement à #EAEAFF (chapitre 06), jamais `selectionSurface`.
+    const fillSolid = (screen.getByTestId("movement-context-band-fill", anyNode).props.children as { props: { style: unknown } }[])[0]!;
+    expect(StyleSheet.flatten(fillSolid.props.style as never)).toMatchObject({ backgroundColor: "#EAEAFF" });
     expect(screen.queryByTestId("exercise-context-band-fade", anyNode)).toBeNull();
   });
 

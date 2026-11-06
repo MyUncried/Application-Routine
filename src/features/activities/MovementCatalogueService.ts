@@ -1,4 +1,5 @@
 import { validateMovement, type Movement } from "@/domain/activities/Movement";
+import { markMovementCreated } from "@/features/activities/newMovementMarks";
 import {
   DuplicateMovementNameError,
   type MovementFamilyOutcome,
@@ -205,7 +206,10 @@ export class MovementCatalogueService {
 
   /** Création indépendante (sans groupe), après validation et contrôle d'unicité. */
   async createIndependent(movement: Movement): Promise<MovementWriteResult> {
-    return this.write(() => this.movements.create({ ...movement, levelGroup: null }), movement);
+    const result = await this.write(() => this.movements.create({ ...movement, levelGroup: null }), movement);
+    // D-510 : fiche effectivement créée (bouton +, Exercice libre, duplication « Créer un nouveau mouvement ») — badge « New ».
+    if (result.status === "SAVED") markMovementCreated(result.movement.id);
+    return result;
   }
 
   /** Variante explicitement choisie, insérée avant (plus facile) ou après (plus difficile) l'origine. */
@@ -219,7 +223,10 @@ export class MovementCatalogueService {
         originId,
         difficulty === "EASIER" ? "BEFORE_ORIGIN" : "AFTER_ORIGIN",
       );
-      return outcome.status === "CREATED" ? { status: "SAVED", movement: outcome.movement } : { status: "NOT_FOUND" };
+      if (outcome.status !== "CREATED") return { status: "NOT_FOUND" };
+      // D-510 : nouveau niveau (Ajouter un niveau) — badge « New ».
+      markMovementCreated(outcome.movement.id);
+      return { status: "SAVED", movement: outcome.movement };
     } catch (error) {
       if (error instanceof DuplicateMovementNameError) {
         return { status: "DUPLICATE_NAME" };

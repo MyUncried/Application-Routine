@@ -100,12 +100,13 @@ describe("PRE-8 E.5 — actions selon l'état", () => {
     ]);
   });
 
-  it("bloc de 80, aligné en haut, même sur une carte déployée", () => {
+  // [Bloc de 80 — remplacé le 06/11/2026 par D-504 : actions glissées hautes de 72, alignées sur la carte.]
+  it("bloc de 72, aligné en haut, même sur une carte déployée (D-504)", () => {
     renderList([session("a")]);
     fireEvent.press(screen.getByTestId("session-card-a-disclosure"));
     reveal("a");
     const style = StyleSheet.flatten(screen.getByTestId("session-card-a-swipe-actions").props.style);
-    expect(style).toMatchObject({ top: 0, right: 0, height: 80, width: 3 * 68 });
+    expect(style).toMatchObject({ top: 0, right: 0, height: 72, width: 3 * 68 });
     expect(style.bottom).toBeUndefined();
     expect(screen.getByTestId("session-card-a-composition")).toBeTruthy();
   });
