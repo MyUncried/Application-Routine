@@ -104,7 +104,16 @@ export type SheetScalarField =
   | "total"
   | "countdown"
   | "end"
-  | "recovery";
+  | "recovery"
+  /**
+   * Recette iPhone du 07/11/2026 (Hermann : « les lignes de texte et champs spécifiques aux formats d'entraînement … doivent
+   * être intégrés dans les cadres existants ») et réponse du 06/11 (« 1. Oui » : réglages de Format aussi au clavier) :
+   * Incrément par tour / par intervalle, Intervalle, Durée de l'exercice (AMRAP), Durée maximum du For time.
+   */
+  | "formatIncrement"
+  | "formatInterval"
+  | "formatDuration"
+  | "formatTimeCap";
 
 /** Décision du 06/11/2026 : champ clavier d'une valeur hors tableau. */
 export const scalarKeyboardField = (field: SheetScalarField): KeyboardFieldId => ({ kind: "scalar", field });

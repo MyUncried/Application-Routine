@@ -87,12 +87,13 @@ import {
 } from "@/features/activities/cadenceOption";
 import {
   emomOverflowOf,
-  FormatSettingsFrame,
   initialFormatSheetValue,
   type FormatSheetContext,
+  type FormatSheetRow,
   type FormatSheetValue,
 } from "@/features/activities/FormatSettingsFrame";
 import { cellDurationSeconds, cellIntegerValue, mmssDigitsOf, type CellBounds } from "@/features/activities/cellEntry";
+import type { CircuitRole } from "@/domain/sessions/formats";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
 import { loadOptionWidth } from "@/features/activities/loadOptionWidth";
@@ -398,6 +399,8 @@ export type ExecutionParametersSheetProps = {
 };
 
 const t = strings.executionParameters.sheet;
+/** Recette du 07/11/2026 (Figma `11312:19699`) : Rôle à trois options (For time), segments de 70. */
+const ROLE_OPTION_WIDTH_THREE = 70;
 /** PRE-6 story 3.3 : nombre de séries imposé par le Circuit de Séries (hors du lexique `sheet`, voir `index.ts`). */
 const circuitText = strings.executionParameters.circuit;
 
@@ -1449,8 +1452,56 @@ export function ExecutionParametersSheet({
    * (chiffres frappés par la droite, `cellEntry`, comme les tableaux des Formats et les cellules du
    * tableau des séries) ; nombres de séries et de phases et Cible en Répétitions en entier.
    */
+  /**
+   * Recette iPhone du 07/11/2026 (Hermann : « Paramètres d'exécution : les lignes de texte et champs spécifiques aux formats
+   * d'entraînement ne sont pas positionnés dans les cadres conformément à Figma […] Ils doivent être intégrés dans les cadres
+   * existants. Par ailleurs la mention du nom du format dans un cadre séparé doit disparaître. ») — Figma « AMRAP — Modale
+   * exercice, dans un circuit » `8598:30873`, « … simple, à la cible » `11255:19238`, « For time — Modale exercice, standard »
+   * `8598:31560`, « … dans un circuit » `11312:19699`, « EMOM — Modale exercice, standard » `8795:14588`, « Death by — Modale
+   * exercice, standard » `8598:31210`, « … dans chaque intervalle » `11373:20396` : Rôle dans le cadre Exécution, sous la
+   * Condition d'arrêt ; Incrément et Intervalle dans le cadre Séries, avant la Charge ; Durée de l'exercice (AMRAP), Durée
+   * maximum du For time et durée héritée du Circuit à la place de la valeur de « Durée de l'exercice » du cadre Cadence ;
+   * nom du Format dans le titre de la feuille. Valeurs saisies au clavier (réponse de Hermann du 06/11 : « 1. Oui »). Les
+   * réglages restent locaux jusqu'au ✓ (`format.onApply`). [Cadre séparé « {format} » à steppers ± (`FormatSettingsFrame`)
+   * — remplacé.]
+   */
+  const formatShown = (row: FormatSheetRow) => format !== undefined && formatValue !== null && format.rows.includes(row);
+  const formatSettings = formatValue?.settings ?? {};
+  const formatNumber = (id: string, fallback: number) => (typeof formatSettings[id] === "number" ? (formatSettings[id] as number) : fallback);
+  const formatDeathBy = format?.key === "DEATH_BY";
+  const formatIncrement = formatNumber("incrementPerRound", formatDeathBy ? 1 : 0);
+  const formatIncrementInDuration = (validation.ok ? validation.value.mode : draft.mode) === "DURATION";
+  // AMRAP : grisé pour un buy-in (ou buy-out) ou à l'échec ; valeur conservée sans effet (CE-FMT-04).
+  const formatIncrementLocked =
+    !formatDeathBy && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT" || (validation.ok && stopConditionOf(validation.value) === "FAILURE"));
+  const formatIntervalSeconds = formatNumber("intervalSeconds", 60);
+  const formatDurationSeconds = formatNumber("durationSeconds", 12 * 60);
+  const formatTimeCapSeconds = typeof formatSettings.timeCapSeconds === "number" ? formatSettings.timeCapSeconds : null;
+  const setFormatSetting = (id: string, next: number | null) =>
+    setFormatValue((current) => {
+      if (current === null) return current;
+      const { [id]: _previous, ...rest } = current.settings;
+      return { ...current, settings: next === null ? rest : { ...rest, [id]: next } };
+    });
+  const formatIncrementText = (() => {
+    const magnitude = Math.abs(formatIncrement);
+    const unit = formatIncrementInDuration ? formatPhraseDuration(magnitude) : `${magnitude} ${strings.executionParameters.format.repetitionsUnit}`;
+    return `${formatIncrement < 0 ? "−" : "+"} ${unit}`;
+  })();
+
   function scalarEntryOf(field: SheetScalarField, base: ExecutionSheetDraft): { readonly kind: "duration" | "integer"; readonly bounds: CellBounds } {
     switch (field) {
+      case "formatIncrement":
+        // Death by : ≥ + 1 ; AMRAP : magnitude, signe porté par « ± » de la barre du clavier.
+        return formatIncrementInDuration
+          ? { kind: "duration", bounds: { min: formatDeathBy ? 1 : 0, max: 3600 } }
+          : { kind: "integer", bounds: { min: formatDeathBy ? 1 : 0, max: 999 } };
+      case "formatInterval":
+        return { kind: "duration", bounds: { min: 5, max: 3600 } };
+      case "formatDuration":
+        return { kind: "duration", bounds: { min: 60, max: 180 * 60 } };
+      case "formatTimeCap":
+        return { kind: "duration", bounds: { min: 60, max: 180 * 60 } };
       case "phaseCount":
         return { kind: "integer", bounds: PHASE_COUNT_BOUNDS };
       case "count":
@@ -1480,6 +1531,14 @@ export function ExecutionParametersSheet({
   function scalarValueOf(field: SheetScalarField, base: ExecutionSheetDraft): number | null {
     const first = seriesRowsOf(effectiveParameters(base))[0];
     switch (field) {
+      case "formatIncrement":
+        return Math.abs(formatIncrement);
+      case "formatInterval":
+        return formatIntervalSeconds;
+      case "formatDuration":
+        return formatDurationSeconds;
+      case "formatTimeCap":
+        return formatTimeCapSeconds;
       case "phaseCount":
         return base.workPhases.length;
       case "count":
@@ -1548,6 +1607,20 @@ export function ExecutionParametersSheet({
    * `applyRequestedTotal` et message d'ajustement existants, story 3.7).
    */
   function applyExternalScalar(field: SheetScalarField, text: string) {
+    // Recette du 07/11/2026 : réglages de Format, état local de la feuille jusqu'au ✓.
+    if (field === "formatIncrement" || field === "formatInterval" || field === "formatDuration" || field === "formatTimeCap") {
+      const { kind, bounds } = scalarEntryOf(field, draft);
+      const value = kind === "duration" ? cellDurationSeconds(text, bounds) : cellIntegerValue(text, bounds);
+      if (field === "formatTimeCap") {
+        // Champ vidé : « Aucune » (sans limite).
+        setFormatSetting("timeCapSeconds", text.trim() === "" ? null : value);
+        return;
+      }
+      if (value === null) return;
+      if (field === "formatIncrement") setFormatSetting("incrementPerRound", formatIncrement < 0 ? -value : value);
+      else setFormatSetting(field === "formatInterval" ? "intervalSeconds" : "durationSeconds", value);
+      return;
+    }
     if (field === "recovery") {
       setRecoverySeconds(cellDurationSeconds(text, RECOVERY_BOUNDS) ?? 0);
       return;
@@ -1565,10 +1638,18 @@ export function ExecutionParametersSheet({
     ...(draft.inheritedSeriesCount ? [] : [scalarKeyboardField("count")]),
     ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
     ...(showVariableTable ? [] : [scalarKeyboardField("pause")]),
+    ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
+    ...(formatShown("interval") ? [scalarKeyboardField("formatInterval")] : []),
     ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
     ...(sideSettingsShown ? [scalarKeyboardField("sideRecovery")] : []),
     ...(beepOpen ? [scalarKeyboardField("beep")] : []),
-    ...(totalEntrySeconds !== undefined ? [scalarKeyboardField("total")] : []),
+    ...(formatShown("duration")
+      ? [scalarKeyboardField("formatDuration")]
+      : formatShown("timeCap")
+        ? [scalarKeyboardField("formatTimeCap")]
+        : !formatShown("inheritedCap") && totalEntrySeconds !== undefined
+          ? [scalarKeyboardField("total")]
+          : []),
     ...(signalsShown ? [scalarKeyboardField("countdown"), scalarKeyboardField("end")] : []),
     ...(recovery !== undefined ? [scalarKeyboardField("recovery")] : []),
   ];
@@ -1595,7 +1676,13 @@ export function ExecutionParametersSheet({
         return scalarEntryOf(field, draft).kind === "duration" ? mmssDigitsOf(value) : String(value);
       },
       apply: applyScalar,
-      isExternal: (field) => field === "total" || field === "recovery",
+      isExternal: (field) =>
+        field === "total" ||
+        field === "recovery" ||
+        field === "formatIncrement" ||
+        field === "formatInterval" ||
+        field === "formatDuration" ||
+        field === "formatTimeCap",
       external: applyExternalScalar,
     },
   });
@@ -1666,6 +1753,113 @@ export function ExecutionParametersSheet({
     );
   };
 
+  // Recette du 07/11/2026 — lignes de Format dans les cadres existants (voir `formatShown`).
+  const formatT = strings.executionParameters.format;
+  const roleContext = format?.role;
+  const formatRoleRow =
+    formatShown("role") && roleContext !== undefined && formatValue !== null && formatValue.role !== null ? (
+      <>
+        <Separator />
+        <Row
+          label={formatT.role}
+          below={
+            roleContext.available.length === 1 && roleContext.admitted.length > 1 ? (
+              <Text style={styles.formatHint} testID="execution-sheet-format-role-hint">
+                {formatT.lastTourHint}
+              </Text>
+            ) : null
+          }
+          testID="execution-sheet-format-role-row"
+        >
+          <SegmentedControl<CircuitRole>
+            variant="inline"
+            optionWidth={roleContext.admitted.length > 2 ? ROLE_OPTION_WIDTH_THREE : INLINE_OPTION_WIDTHS.wide}
+            options={roleContext.admitted.map((option) => ({
+              value: option,
+              label: formatT.roles[option],
+              disabled: !roleContext.available.includes(option),
+            }))}
+            value={formatValue.role}
+            onChange={(role) => setFormatValue((current) => (current === null ? current : { ...current, role }))}
+            accessibilityLabel={formatT.role}
+            testID="execution-sheet-format-role-control"
+          />
+        </Row>
+      </>
+    ) : null;
+  const formatSeriesRows = (
+    <>
+      {formatShown("increment") ? (
+        <>
+          <Separator />
+          <Row label={formatDeathBy ? formatT.incrementPerInterval : formatT.incrementPerRound} testID="execution-sheet-format-increment-row">
+            {formatIncrementLocked ? (
+              <View style={[styles.stepperFrame, { width: STEPPER_WIDTH }]}>
+                <Text style={[styles.valuePillText, styles.formatLockedValue]} testID="execution-sheet-format-increment">
+                  {formatIncrementText}
+                </Text>
+              </View>
+            ) : (
+              scalarField("formatIncrement", {
+                display: formatIncrementText,
+                accessibilityLabel: formatDeathBy ? formatT.incrementPerInterval : formatT.incrementPerRound,
+                testID: "execution-sheet-format-increment",
+              })
+            )}
+          </Row>
+        </>
+      ) : null}
+      {formatShown("interval") ? (
+        <>
+          <Separator />
+          <Row
+            label={formatT.interval}
+            below={
+              emomOverflow ? (
+                <Text style={styles.formatAlert} accessibilityRole="alert" testID="execution-sheet-format-emom-overflow">
+                  {formatT.emomOverflow}
+                </Text>
+              ) : null
+            }
+            testID="execution-sheet-format-interval-row"
+          >
+            {scalarField("formatInterval", {
+              display: formatPhraseDuration(formatIntervalSeconds),
+              accessibilityLabel: formatT.interval,
+              invalid: emomOverflow,
+              testID: "execution-sheet-format-interval",
+            })}
+          </Row>
+        </>
+      ) : null}
+    </>
+  );
+  const formatDurationRow = formatShown("duration") ? (
+    <Row label={t.exerciseDuration} testID="execution-sheet-format-duration-row">
+      {scalarField("formatDuration", {
+        display: formatPhraseDuration(formatDurationSeconds),
+        accessibilityLabel: t.exerciseDuration,
+        testID: "execution-sheet-format-duration",
+      })}
+    </Row>
+  ) : formatShown("timeCap") ? (
+    <Row label={formatT.timeCap} testID="execution-sheet-format-time-cap-row">
+      {scalarField("formatTimeCap", {
+        display: formatTimeCapSeconds === null ? formatT.noCap : formatPhraseDuration(formatTimeCapSeconds),
+        accessibilityLabel: formatT.timeCap,
+        testID: "execution-sheet-format-time-cap",
+      })}
+    </Row>
+  ) : formatShown("inheritedCap") ? (
+    <Row label={t.exerciseDuration} testID="execution-sheet-format-inherited-cap-row">
+      <View style={[styles.stepperFrame, { width: STEPPER_WIDTH }]}>
+        <Text style={[styles.valuePillText, styles.formatLockedValue]} testID="execution-sheet-format-inherited-cap">
+          {format?.inheritedCapText ?? formatT.noLimit}
+        </Text>
+      </View>
+    </Row>
+  ) : null;
+
   /**
    * Décision du 06/11/2026 (constat c) : propriétés clavier d'un nombre porté par une option de
    * segmenté (nombre de séries, nombre de phases), comme la charge commune (RC-14).
@@ -1716,7 +1910,12 @@ export function ExecutionParametersSheet({
     <SegmentedControl<StopConditionChoice>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.wide}
-      options={stopConditionOptions}
+      // Recette du 07/11/2026 (Figma « Death by — Modale exercice » `8598:31210`) : À l'échec imposé, À l'objectif grisé.
+      options={
+        format?.rows.includes("stopImposed")
+          ? stopConditionOptions.map((option) => (option.value === "TARGET" ? { ...option, disabled: true } : option))
+          : stopConditionOptions
+      }
       value={stopCondition === "FAILURE" ? "FAILURE" : "TARGET"}
       onChange={(condition) => chooseInline((base) => setStopCondition(base, condition))}
       accessibilityLabel={t.stopCondition}
@@ -2311,7 +2510,8 @@ export function ExecutionParametersSheet({
                   (Brouillon invalide) mais surface ouverte — l'appui reste reçu pour fermer la surface (`absorbSheetCommand`) ;
                   l'état d'accessibilité suit l'activabilité réelle, le libellé garde « indisponible… » et le rendu reste grisé. */}
               <ModalHeader
-                title={t.title}
+                // Recette du 07/11/2026 : nom du Format dans le titre (Figma « Paramètres d'exécution AMRAP »).
+                title={format !== undefined ? `${t.title} ${strings.executionParameters.format.names[format.key]}` : t.title}
                 onCancel={handleCancel}
                 cancelLabel={t.cancelAccessibilityLabel}
                 onValidate={handleValidate}
@@ -2369,17 +2569,8 @@ export function ExecutionParametersSheet({
                     enfants directs de l'hôte des panneaux (repère `anchorTop`). Chaque cadre
                     glisse quand son contenu change (Q39) ; séparateurs seulement entre les
                     lignes d'un même cadre. */}
-                {/* PRE-9 (CE-FMT-04) : réglages de Format de l'Exercice, selon son porteur. */}
-                {format !== undefined && formatValue !== null ? (
-                  <FormatSettingsFrame
-                    context={format}
-                    value={formatValue}
-                    onChange={setFormatValue}
-                    mode={validation.ok ? validation.value.mode : null}
-                    atFailure={validation.ok && stopConditionOf(validation.value) === "FAILURE"}
-                    emomOverflow={emomOverflow}
-                  />
-                ) : null}
+                {/* PRE-9 (CE-FMT-04) : réglages de Format de l'Exercice, dans les cadres existants (recette du 07/11/2026).
+                    [Cadre séparé « {format} » — remplacé.] */}
                 {/* Cadre Exécution : Mode, Condition d'arrêt. */}
                 <SheetMotionView
                   appear={false}
@@ -2394,6 +2585,7 @@ export function ExecutionParametersSheet({
                   <Row label={t.stopCondition} testID="execution-sheet-row-stop-condition">
                     {stopConditionControl}
                   </Row>
+                  {formatRoleRow}
                 </SheetMotionView>
 
                 {/* PRE-9 (ordre de Hermann du 01/11/2026, point 3 ; CE-UI-10, D-413) : bloc
@@ -2580,6 +2772,7 @@ export function ExecutionParametersSheet({
                       l'option garde « Avec » (`9290:17953`). Recette du 20/10 (RC-14) : même
                       saisie que les cellules (D-434, `cellDecimal`) ; Avec ouvre le clavier dans
                       l'option, élargie au strict nécessaire si la valeur ne tient pas dans 62. */}
+                  {formatSeriesRows}
                   <Separator />
                   <Row label={t.load} testID="execution-sheet-row-load">
                     <SegmentedControl<LoadChoice>
@@ -2716,6 +2909,7 @@ export function ExecutionParametersSheet({
                   {/* D-433 : ligne « Durée de l'exercice » toujours présente, même place. */}
                   <>
                     <Separator />
+                    {formatDurationRow ?? (
                     <Row
                       label={t.exerciseDuration}
                       // PRE-5 story 2.5 (AC4, AD-28) : chevron à 12 du libellé, cible distincte
@@ -2750,6 +2944,7 @@ export function ExecutionParametersSheet({
                         </Text>
                       )}
                     </Row>
+                    )}
                     {adjustment?.kind === "total" ? adjustmentMessage : null}
                   </>
 
@@ -2841,6 +3036,15 @@ export function ExecutionParametersSheet({
               onClose={keyboard.close}
               failure={
                 keyboard.failureAvailable ? { selected: keyboard.failureSelected, onPress: keyboard.toggleFailure } : null
+              }
+              // Recette du 07/11/2026 : Incrément par tour AMRAP signé (complément du 5 novembre, §8) — « ± » de la barre.
+              sign={
+                format?.key === "AMRAP" &&
+                activeKeyboardField !== null &&
+                activeKeyboardField.kind === "scalar" &&
+                activeKeyboardField.field === "formatIncrement"
+                  ? { negative: formatIncrement < 0, onPress: () => setFormatSetting("incrementPerRound", -formatIncrement) }
+                  : null
               }
               // Décision du 06/11/2026 (constat c) : champs hors tableau — barre des Formats (fondu lent).
               animated={barAnimated}
@@ -3933,6 +4137,21 @@ const styles = StyleSheet.create({
   staticValue: {
     ...type.body,
     color: colors.textPrimary,
+  },
+  // Recette du 07/11/2026 : valeur de Format non modifiable (Incrément grisé, durée héritée du Circuit), même pastille, gris.
+  formatLockedValue: {
+    color: colors.disabled,
+    textAlign: "center",
+  },
+  formatHint: {
+    ...type.caption,
+    color: colors.textSecondary,
+    paddingBottom: spacing[8],
+  },
+  formatAlert: {
+    ...type.caption,
+    color: colors.danger,
+    paddingBottom: spacing[8],
   },
   separator: {
     height: 1,

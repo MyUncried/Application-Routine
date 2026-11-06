@@ -328,3 +328,26 @@ Cahier : https://claude.ai/artifact/XJCJLC7eHKcANDMrN1yNku (section « Livraison
 - **Correction (classe A) :** `useCircuitCardsReveal` renvoie `contentStyle` ; en attente de la première mesure, le contenu est posé hors du flux (position absolue, même largeur), donc mesuré à sa hauteur naturelle ; `CompositionScreen` l'applique au contenu des cartes d'un Circuit. Test ajouté (`CompositionScreen.tdepli.test.tsx`).
 - **Vérification sur iPhone (version corrigée, traces) :** quatre premiers déploiements — hauteur réelle (258, 169) reçue à +3 à +9 ms, départ immédiat avec elle, fin à +717 à +738 ms. **Hermann : « Test OK ».** Traces de diagnostic retirées avant le commit.
 - **Reste du constat t-depli :** le repli lent des Circuits à l'entrée de « Créer → Ajouter un cycle » (demande nouvelle, classe B) est reporté au lot de corrections suivant.
+
+## 07/11/2026 — réglages de Format dans les cadres des Paramètres d'exécution ; marqueurs de conflit
+
+### Marqueurs de conflit (défaut de la fusion `81f427ec`)
+
+En préparant la documentation, des marqueurs `<<<<<<<` / `=======` / `>>>>>>>` ont été trouvés dans quatre documents, introduits par la fusion de `main` (`81f427ec`, absents de ses deux parents) : ch07, `KODJO-Formats-entrainement-2026-11-02.md`, `KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md`, `PRODUCT.md`. Seuls ch10 et ch13 avaient été résolus. Corrigé dans `0b760acf` : texte de `main` (normatif, plus récent) et annotations de recette PRE-9 conservées ; ch07 : les deux sections gardées ; spec carte : texte antérieur conservé, marqué remplacé par D-504. Vérification : `git grep` sans marqueur sur tout le dépôt.
+
+### Réglages de Format (demande de Hermann du 07/11, classe A)
+
+- **Demande :** citée mot pour mot au registre ch07, « Recette iPhone du 07/11/2026 ».
+- **Sources :** CE-FMT-04 §7 (« Feuille standard et ses six blocs ») ; Figma, lu sans modification : `8598:30873`, `11255:19238`, `8598:31560`, `11312:19699`, `8795:14588`, `8598:31210`, `11373:20396`.
+- **Réalisé (`ExecutionParametersSheet.tsx`) :**
+  - cadre séparé « {format} » à steppers ± retiré (`FormatSettingsFrame` réduit à ses types et contrôles EMOM) ;
+  - Rôle dans le cadre Exécution, sous la Condition d'arrêt (segmenté « Paramètres », trois segments de 70 pour le For time) ;
+  - Incrément par tour / par intervalle et Intervalle dans le cadre Séries, avant la Charge ; message EMOM sous l'Intervalle ;
+  - Durée de l'exercice (AMRAP seul), Durée maximum du For time (vidée : « Aucune ») et durée héritée du Circuit (For time membre, grisée) comme valeur de la ligne « Durée de l'exercice » du cadre Cadence, sans doublon ;
+  - Death by : À l'objectif grisé dans la Condition d'arrêt, ligne « Condition d'arrêt À l'échec » séparée retirée ;
+  - nom du Format dans le titre de la feuille ;
+  - saisie au clavier (`formatIncrement`, `formatInterval`, `formatDuration`, `formatTimeCap`), Précédent / Suivant dans l'ordre de la feuille, « ± » de la barre pour l'Incrément AMRAP.
+- **Tests :** `ExecutionParametersSheet.format0711.test.tsx` (7).
+- **À clarifier :** « séries par intervalle (?) » du Death by (Figma : « Séries · Variables | Jusqu'à l'échec ») — non réalisé.
+- **À vérifier sur iPhone :** place, couleurs et dimensions des lignes dans chaque Format ; saisie au clavier et « ± ».
+- **Suite complète :** 314 suites, 5 484 tests ; 5 483 verts, 1 échec : `CompositionScreen.recette1` « disposition générale (deux Circuits) » (second toucher de carte après fermeture de la feuille). Échec préexistant et indépendant de ce lot : il se reproduit à l'identique sans ces modifications (arbre remis à `3f084f35`) et avec la version de `CompositionScreen.tsx` de `97a2848c` ; déjà signalé instable au rapport de `8a5befaf`. Vert lors de la suite du 06/11 au soir. À analyser séparément.
