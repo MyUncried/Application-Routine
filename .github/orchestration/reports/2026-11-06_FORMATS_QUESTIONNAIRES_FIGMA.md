@@ -1,0 +1,34 @@
+# Rapport de mission — FORMATS_QUESTIONNAIRES_FIGMA (6 novembre 2026)
+
+- **Objectif :** aligner Figma sur la précision D-499 fusionnée dans `main` (commit `b1827056`). « Valider les paramètres » apparaît seulement si une seconde étape est nécessaire. La coche du questionnaire est alors grise ; sans seconde étape, elle enregistre. Death by à un mouvement passe sans récapitulatif.
+- **Branche :** `docs/pre9-formats-questionnaires-figma-20261106`.
+- **Commit de départ :** `5fe9fc70` (`origin/main`).
+- **Périmètre :** Figma (questionnaires de Format, composant de la coche, planche DSF), plus les références d'écrans et les captures de la documentation.
+- **Figma :**
+  - **Composant :** variante « Désactivé » `11756:2172` ajoutée à « DSF / Actions / Fermer et valider » (fond `color/disabled`).
+  - **Coche grise :** sur les 11 questionnaires sans mouvement.
+  - **Écrans avec bouton « Valider les paramètres » et coche grise :**
+    - `11753:21642` (EMOM, un mouvement) ;
+    - `11753:21977` (Tabata, deux mouvements) ;
+    - `11753:22133` (Superset, deux mouvements).
+  - **Écrans avec coche bleue, sans récapitulatif :**
+    - `11753:21837` (Tabata, un mouvement) ;
+    - `8624:30602`, renommé « Death by — Questionnaire, un mouvement » : croix à la place de Retour, paramètres du questionnaire.
+  - **Planche DSF** `11734:2100` mise à jour.
+- **Documentation :**
+  - liste des écrans et de la variante dans la spec du 6/11 §1 ;
+  - galerie du ch06 : quatre écrans ajoutés, Death by renommé ;
+  - mentions de l'écran Death by annotées dans le ch06 et la référence Formats ;
+  - 17 captures réexportées.
+- **Synchronisation code / documentation :** classe A. Figma et les références rejoignent la règle déjà écrite dans `main`.
+- **Commit remplacé :** `128649776dd919d57c3561c977e02fef97c57f44` (branche `docs/pre9-d511-questionnaires-20261106`). Il est supplanté par `b1827056`, qui porte la règle sous D-499 ; le numéro D-511 n'est pas utilisé. Ce commit n'est pas intégré.
+- **Tests :** aucun applicable. Captures relues.
+- **Complément (arbitrage de Hermann, 15:41) :** coche grise sur « P-Tabata — Choix des mouvements », « AMRAP — Choix des mouvements » et « AMRAP — Choix du buy-in » tant qu’aucun mouvement n’est sélectionné ; règle ajoutée dans la spec du 6/11 §1 ; 3 captures réexportées.
+- **À vérifier sur appareil :** le passage de la coche au bouton quand on ajoute ou retire un mouvement.
+- **Fichiers modifiés :**
+  - spec du 6/11 ;
+  - ch06 ;
+  - `KODJO-Formats-entrainement-2026-11-02.md` ;
+  - 17 images ;
+  - ce rapport.
+- **Commit final et état Git :** donnés dans le compte rendu de livraison.
