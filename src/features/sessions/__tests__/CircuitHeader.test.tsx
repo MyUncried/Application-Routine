@@ -692,11 +692,16 @@ describe("circuitRevealMaxHeight (contre-recette n° 4)", () => {
 describe("useCircuitCardsReveal — départ du déploiement (contre-recette n° 5)", () => {
   function Cards({ collapsed, onStart }: { collapsed: boolean; onStart: (height: number) => void }) {
     const reveal = useCircuitCardsReveal(collapsed, 9, 6, true, onStart);
-    return reveal.mounted ? (
-      <View style={reveal.style as never} testID="cards">
-        <View onLayout={reveal.onContentLayout} testID="cards-content" />
-      </View>
-    ) : null;
+    return (
+      <>
+        <View testID={reveal.waiting ? "names-wait" : "names-free"} />
+        {reveal.mounted ? (
+          <View style={reveal.style as never} testID="cards">
+            <View onLayout={reveal.onContentLayout} testID="cards-content" />
+          </View>
+        ) : null}
+      </>
+    );
   }
   const measure = (height: number) =>
     fireEvent(screen.getByTestId("cards-content"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 300, height } } });
@@ -712,6 +717,26 @@ describe("useCircuitCardsReveal — départ du déploiement (contre-recette n° 
     // Mesure suivante (pendant ou après le déploiement) : aucun second départ.
     measure(170);
     expect(onStart).toHaveBeenCalledTimes(1);
+    await act(async () => {});
+  });
+
+  it("recette du 05/11 au soir (r-tabata) : premier déploiement d'un Circuit monté replié — la ligne des noms attend le départ réel (pas de repli d'abord)", async () => {
+    const onStart = jest.fn();
+    const view = render(<Cards collapsed onStart={onStart} />);
+    expect(screen.getByTestId("names-free")).toBeTruthy();
+    view.rerender(<Cards collapsed={false} onStart={onStart} />);
+    // Déploiement demandé, contenu jamais mesuré : la ligne des noms reste ouverte (`waiting`).
+    expect(screen.getByTestId("names-wait")).toBeTruthy();
+    await act(async () => {
+      measure(169);
+    });
+    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("names-free")).toBeTruthy();
+    // Déploiements suivants : hauteur connue, aucune attente.
+    view.rerender(<Cards collapsed onStart={onStart} />);
+    await act(async () => {});
+    view.rerender(<Cards collapsed={false} onStart={onStart} />);
+    expect(screen.getByTestId("names-free")).toBeTruthy();
     await act(async () => {});
   });
 

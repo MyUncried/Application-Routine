@@ -187,8 +187,17 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
   return order;
 }
 
+/**
+ * Durée d'une case de tableau. Recette du 05/11/2026 au soir (r-tabata, Hermann : « Les durées sont arrondies (entrée 01:30 affiche
+ * 1 min ») : « 1 min 30 s » dépassait la case et n'en montrait que « 1 min » — format court « 1 min 30 », comme « 12 min 30 »
+ * (recette n-charge-colonne : « considérer l'espace max pris par une valeur en durée »). Minutes ou secondes seules : inchangé.
+ */
 export function formatSeconds(seconds: number): string {
-  return formatPhraseDuration(Math.max(0, Math.round(seconds)));
+  const total = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(total / 60);
+  const rest = total % 60;
+  if (minutes > 0 && rest > 0) return `${minutes} min ${String(rest).padStart(2, "0")}`;
+  return formatPhraseDuration(total);
 }
 
 export function formatLoad(kg: number): string {

@@ -81,6 +81,10 @@ Coche en création, titre, fiche choisie en fondu, retours Composition / Catalog
 
 Carte portée suivie hors rendu. Test `MovementCatalogueList.fam` 14 verts (le nouveau échoue sur l’ancienne version) ; Catalogue 192 verts ; `tsc`, ESLint propres. Fluidité à vérifier sur iPhone.
 
+## Complément — groupe E (EMOM, dépliage)
+
+Durées des cases au format court ; ligne des noms synchronisée avec le premier déploiement. Tests Formats, Circuit et Composition : 840 verts après adaptation de `CompositionScreen.b1b` ; `tsc` propre ; ESLint : aucun nouveau signalement (8 préexistants dans `CompositionScreen.tsx`).
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

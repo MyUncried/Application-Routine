@@ -325,8 +325,11 @@ describe("B.1b — rendu d'une disposition générale", () => {
 
     fireEvent.press(screen.getByTestId(`${CB}-collapse`));
     expect(screen.getByTestId("composition-exercise-row-b1", hidden)).toBeTruthy();
-    // Recette n° 2 du 31/10 (b4-cycle) : la ligne des noms se referme avec les cartes, puis est démontée.
-    await act(async () => {});
+    // Recette n° 2 du 31/10 (b4-cycle) : la ligne des noms se referme avec les cartes, puis est démontée. Recette du 05/11 au soir
+    // (r-tabata) : elle attend le départ réel du déploiement — ici, sans mesure de mise en page, le délai de secours (120 ms).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
     expect(screen.queryByTestId(`${CB}-names`, hidden)).toBeNull();
   });
 

@@ -9301,6 +9301,8 @@ function LayoutCircuitBlock({
         isChoicePending={context.isChoicePending}
         titleInset={SEQUENCE_LABEL_INSET}
         isCollapsed={isCollapsed}
+        // r-tabata (recette du 05/11/2026 au soir) : la ligne des noms se referme avec le départ réel du déploiement.
+        namesCollapsed={isCollapsed || reveal.waiting}
         // PRE-9 B.4c (CS-D6) : replié collé, l'en-tête reste sous le doigt.
         onToggleCollapsed={() => {
           alignStuckHeader(sticky, circuitStickyRange, isCollapsed);

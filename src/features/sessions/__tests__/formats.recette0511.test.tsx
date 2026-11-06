@@ -5,7 +5,7 @@ import { StyleSheet, Text } from "react-native";
 import type { ModelMovement } from "@/domain/sessions/formatModels";
 import { compactBlockDuration, modelTimeline } from "@/domain/sessions/formatTimeline";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
-import { TableCell } from "@/features/sessions/FormatTables";
+import { formatSeconds, TableCell } from "@/features/sessions/FormatTables";
 
 /**
  * Recette iPhone du 05/11/2026 (Hermann) — cahier « Recette Formats 04/11 » : Déroulé AMRAP en durée compacte (constat e),
@@ -83,5 +83,28 @@ describe("Circuit replié : options glissées avec le Circuit (e-replie-glisse)"
   it("sans l'option, le bloc d'actions reste découvert sur place", () => {
     render(row(false));
     expect(StyleSheet.flatten(screen.getByTestId("row-actions").props.style).transform).toBeUndefined();
+  });
+});
+
+describe("recette du 05/11 au soir (r-tabata : « entrée 01:30 affiche 1 min »)", () => {
+  it("durées des cases de tableau au format court : « 1 min 30 », « 12 min 30 », « 1 min 05 » ; minutes ou secondes seules inchangées", () => {
+    expect(formatSeconds(90)).toBe("1 min 30");
+    expect(formatSeconds(750)).toBe("12 min 30");
+    expect(formatSeconds(65)).toBe("1 min 05");
+    expect(formatSeconds(60)).toBe("1 min");
+    expect(formatSeconds(45)).toBe("45 s");
+  });
+
+  it("une durée saisie « 01:30 » s'affiche « 1 min 30 » au repos", () => {
+    const onChange = jest.fn();
+    const { rerender } = render(
+      <TableCell kind="duration" value={null} onChange={onChange} format={formatSeconds} label="Objectif" testID="cell" />,
+    );
+    fireEvent(screen.getByTestId("cell"), "focus");
+    for (const digit of "130") fireEvent.changeText(screen.getByTestId("cell"), `${screen.getByTestId("cell").props.value as string}${digit}`);
+    fireEvent(screen.getByTestId("cell"), "blur");
+    expect(onChange).toHaveBeenLastCalledWith(90);
+    rerender(<TableCell kind="duration" value={90} onChange={onChange} format={formatSeconds} label="Objectif" testID="cell" />);
+    expect(screen.getByTestId("cell").props.value).toBe("1 min 30");
   });
 });

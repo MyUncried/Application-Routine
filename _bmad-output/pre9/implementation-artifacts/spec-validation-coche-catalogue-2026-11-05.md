@@ -83,6 +83,14 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - Correction : valeur animée `fingerFollow` (avec `scrollFollow`) pour la carte portée ; état mis à jour seulement quand la décision du geste ou la place de la carte portée change.
 - Test : `MovementCatalogueList.fam` (la liste n’est pas redessinée pendant trois déplacements dans la même place ; échoue sur l’ancienne version).
 
+## 2 undecies. Tableaux EMOM et dépliage des Circuits — r-tabata (classe A : corrections)
+
+- Note recopiée : « EMOM Entrer une valeur la copie automatiquement sur les autres colonnes. Les durées sont arrondies (entrée 01:30 affiche 1 min. Une séance avec deux circuits Tabata et Enom, ajout d’un cycle unique pour les deux circuits : la première fois que je déploie chaque circuit déjà replié, il se replie d’abord jusqu’à cacher la ligne sous le nom, puis de déplie complètement. Les fois suivantes il se replie et se déplie normalement. [...] Tableau EMOM, » (note coupée).
+- Recopie de S1 : règle existante conservée (« chaque série est préremplie avec la valeur de S1 », §14, §11) — Q3 du 06/11 : « je ne sais plus ».
+- Durées : la valeur n’était pas arrondie (90 s enregistrées) mais « 1 min 30 s » dépassait la case, qui n’en montrait que « 1 min ». `FormatTables.formatSeconds` : format court « 1 min 30 » / « 12 min 30 » / « 1 min 05 » (déjà visé par « 12 min 30 », r-colonnes) ; minutes ou secondes seules inchangées ; Déroulé et totaux inchangés.
+- Dépliage : un Circuit monté replié n’a jamais mesuré ses cartes ; son premier déploiement attend la mesure (ou 120 ms) tandis que la ligne des noms se refermait aussitôt — le cadre rétrécissait d’abord. `useCircuitCardsReveal().waiting` ; `CircuitHeader.namesCollapsed` : la ligne des noms se referme au départ réel du déploiement.
+- Tests : `formats.recette0511` (+2), `CircuitHeader` (+1), `CompositionScreen.b1b` (attente du délai de secours sans mise en page).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

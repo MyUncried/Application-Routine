@@ -403,6 +403,12 @@ export type CircuitHeaderProps = {
    * brouillon. Replié : seconde ligne des noms, cartes masquées par l'écran.
    */
   readonly isCollapsed: boolean;
+  /**
+   * Recette du 05/11/2026 au soir (r-tabata, Hermann : « la première fois que je déploie chaque circuit déjà replié, il se replie
+   * d’abord jusqu’à cacher la ligne sous le nom, puis de déplie complètement ») : la ligne des noms reste ouverte tant que le
+   * déploiement des cartes attend leur première mesure (`useCircuitCardsReveal().waiting`). Absent : `isCollapsed`.
+   */
+  readonly namesCollapsed?: boolean;
   /** Toucher du nom ou du chevron : replie ou déplie le Circuit. */
   readonly onToggleCollapsed: () => void;
   /** Noms des exercices du Circuit, dans l'ordre, tels que sur leurs cartes (ligne repliée). */
@@ -547,6 +553,7 @@ export function CircuitHeader({
   onSelectNature,
   natureFocusRequest,
   isCollapsed,
+  namesCollapsed,
   onToggleCollapsed,
   memberNames,
   counterRef,
@@ -668,7 +675,7 @@ export function CircuitHeader({
        * (`entering`, montée et démontée d'un coup) — remplacé par la recette iPhone n° 2 du 31/10/2026 :]
        * la ligne des noms s'ouvre et se referme avec les cartes (`CollapsedNamesLine`).
        */}
-      <CollapsedNamesLine isCollapsed={isCollapsed} text={memberNames.join(` ${MIDDLE_DOT} `)} testID={testID} />
+      <CollapsedNamesLine isCollapsed={namesCollapsed ?? isCollapsed} text={memberNames.join(` ${MIDDLE_DOT} `)} testID={testID} />
       </Reanimated.View>
     </Animated.View>
   );
@@ -787,12 +794,17 @@ export function useCircuitCardsReveal(
   const reduceMotion = useReduceMotion();
   const [mounted, setMounted] = useState(!collapsed);
   const [animating, setAnimating] = useState(false);
+  // r-tabata (recette du 05/11/2026 au soir) : contenu déjà mesuré, et déploiement en attente de sa première mesure — la ligne des
+  // noms (`CollapsedNamesLine`) ne se referme qu'au départ réel du déploiement, avec la même progression.
+  const [hasMeasure, setHasMeasure] = useState(false);
+  const [waiting, setWaiting] = useState(false);
   // Dernier état reçu : un changement démarre l'animation (état ajusté au rendu, sans effet en cascade).
   const [seenCollapsed, setSeenCollapsed] = useState(collapsed);
   if (seenCollapsed !== collapsed) {
     setSeenCollapsed(collapsed);
     setAnimating(true);
     setMounted(true);
+    setWaiting(!collapsed && measuresContent && !hasMeasure && !reduceMotion);
   }
   const progress = useSharedValue(collapsed ? 0 : 1);
   const naturalHeight = useSharedValue(0);
@@ -822,6 +834,7 @@ export function useCircuitCardsReveal(
     const duration = reduceMotion ? 0 : collapsed ? CIRCUIT_HIDE_DURATION_MS : CIRCUIT_REVEAL_DURATION_MS;
     const start = () => {
       pendingStartRef.current = null;
+      setWaiting(false);
       if (fallbackRef.current !== null) clearTimeout(fallbackRef.current);
       fallbackRef.current = null;
       progress.set(
@@ -861,6 +874,7 @@ export function useCircuitCardsReveal(
       if (height <= 0) return;
       naturalHeight.set(height);
       naturalRef.current = height;
+      setHasMeasure(true);
       // Contre-recette n° 5 : le déploiement en attente part avec cette mesure.
       pendingStartRef.current?.();
     },
@@ -872,6 +886,8 @@ export function useCircuitCardsReveal(
     style: [animating ? styles.reveal : null, animatedStyle],
     onLayout,
     onContentLayout,
+    /** Déploiement demandé, en attente de la première mesure du contenu (la ligne des noms reste ouverte). */
+    waiting,
   };
 }
 
