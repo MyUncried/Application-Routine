@@ -83,7 +83,7 @@ function RootStack() {
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 
-function renderApp() {
+function renderApp(initialUrl = "/composition") {
   const service = new ActivityDefinitionService(
     new SqliteCategoryRepository(database),
     new SqliteBodyZoneRepository(database),
@@ -124,7 +124,7 @@ function renderApp() {
       "(creation)/movement-selection": require("../../../../app/(creation)/movement-selection").default,
       "(creation)/formats-window": require("../../../../app/(creation)/formats-window").default,
     },
-    { initialUrl: "/composition", wrapper: Wrapper },
+    { initialUrl, wrapper: Wrapper },
   );
   /* eslint-enable @typescript-eslint/no-require-imports */
 }
@@ -316,6 +316,29 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
 // Recette iPhone du 01/11/2026 (m11-menu, Hermann : « il faut intégrer de nouveau l'option du menu
 // « utiliser un mouvement existant » ») : entrée rétablie (2e, après « Créer un exercice ») ; tests
 // d'avant le 01/11 restaurés (ordre du Catalogue, sélection multiple, coin « dans la séance »).
+/**
+ * Arbitrage de Hermann du 06/11/2026 (« A. Revenir à la modale avec tous les formats. »), après le constat : « j'appuie sur le bouton
+ * créer, puis sur exercice libre, j'annule, et là, l'écran disparaît vers le bas, puis je tombe sur l'écran de composition de séance,
+ * qui disparaît par la droite, pour tomber sur le catalogue » — n-cat-libre : « Annulée > Modale de Création d'un exercice […]
+ * Annuler > Catalogue des séances ».
+ */
+describe("Catalogue → Créer → Exercice libre → Annuler (arbitrage du 06/11/2026, A)", () => {
+  it("la croix de la fiche revient à la modale « Créer un exercice » (la Composition reste dessous) ; la croix de la modale revient au Catalogue", async () => {
+    const router = renderApp("/composition?create=1");
+    await settle(300);
+    expect(router.getPathname()).toBe("/formats-window");
+    fireEvent.press(screen.getByTestId("formats-window-free-exercise"));
+    await settle(300);
+    expect(router.getPathname()).toBe("/movement");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("screen-header-back"));
+    });
+    await settle(300);
+    expect(router.getPathname()).toBe("/formats-window");
+    expect(screen.getByTestId("formats-window-free-exercise")).toBeTruthy();
+  }, 40000);
+});
+
 describe("PRE-9 A.2 — « Utiliser un mouvement existant » : sélection par le Catalogue des Mouvements", () => {
   // [Test retiré — Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu Créer ; la reprise d'un mouvement existant passe par la fiche de création (suggestions, `useExistingMovement`).]
   // [Test retiré — Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu Créer ; la reprise d'un mouvement existant passe par la fiche de création (suggestions, `useExistingMovement`).]

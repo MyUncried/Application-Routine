@@ -91,6 +91,12 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - Dépliage : un Circuit monté replié n’a jamais mesuré ses cartes ; son premier déploiement attend la mesure (ou 120 ms) tandis que la ligne des noms se refermait aussitôt — le cadre rétrécissait d’abord. `useCircuitCardsReveal().waiting` ; `CircuitHeader.namesCollapsed` : la ligne des noms se referme au départ réel du déploiement.
 - Tests : `formats.recette0511` (+2), `CircuitHeader` (+1), `CompositionScreen.b1b` (attente du délai de secours sans mise en page).
 
+## 2 duodecies. Annulation de la fiche Exercice libre — arbitrage du 06/11/2026 (classe B)
+
+- « A. Revenir à la modale avec tous les formats. » : la croix de la fiche (et celle d’un mouvement choisi) fait un simple retour — plus de `requestFormatsWindowClose()` (signal gardé pour la coche, qui remet le mouvement à la Composition).
+- Cause du constat : en allant à la Composition vide ouverte par « Créer », celle-ci appliquait sa règle d’abandon (brouillon vide au premier plan → Catalogue des séances).
+- Tests : `CompositionMovementFlow.integration` (parcours réel `/composition?create=1` → Exercice libre → croix → `/formats-window` ; échoue sur la version précédente), `MovementScreen.b2.integration` (+1, 1 adapté).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

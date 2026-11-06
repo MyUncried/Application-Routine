@@ -89,6 +89,10 @@ Durées des cases au format court ; ligne des noms synchronisée avec le premier
 
 Suite complète : 304 suites, 5 377 tests — 2 échecs au premier passage : `movementPhaseDurations.a2b` (test du groupe C non adapté, corrigé ensuite, 19/19) et `CompositionScreen.recette1` « deux Circuits » (instabilité connue sous charge, verte isolée). Commits : bdafb406 (A), 76b11aa8 (B), 5ab28a0b (C), 828e7225 (D), e74533f3 (E) et le correctif de test. À vérifier sur iPhone : tous les points ; hypothèses non démontrées : blocage après abandon (r-libre), retour au Catalogue des séances (r-creer), fluidité du glisser (D).
 
+## Complément — annulation de la fiche Exercice libre (arbitrage du 06/11, A)
+
+Retour à la modale « Créer un exercice ». Tests ciblés 93 verts (dont un parcours réel qui reproduit le constat sur l’ancienne version) ; `tsc`, ESLint propres.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

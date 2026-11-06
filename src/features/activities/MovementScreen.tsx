@@ -366,8 +366,9 @@ export function MovementSheet({
   const isDirty = draftKey(draft) !== draftKey(initial);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(isDirty && !isDone && !leaving, () => {
     service.abandonMediaDraft(mediaDraftId).catch(() => undefined);
-    // r-creer : « Croix à gauche (Annule la création et amène à la composition de séance vide) ».
-    if (isSessionContext) requestFormatsWindowClose();
+    // Arbitrage de Hermann du 06/11/2026 (« A. Revenir à la modale avec tous les formats. ») : annulée, la fiche ouverte par
+    // Exercice libre revient à la modale « Créer un exercice » (n-cat-libre : « Annulée > Modale de Création d'un exercice »). [r-creer :
+    // « amène à la composition de séance vide » — remplacé : la Composition vide d'un « Créer » renvoyait aussitôt au Catalogue.]
   });
 
   useEffect(() => {
@@ -398,18 +399,16 @@ export function MovementSheet({
       overlay.onClose();
       return;
     }
-    // r-creer : la croix de la fiche ouverte par Exercice libre ramène à la Composition (brouillon modifié : après confirmation).
-    if (isSessionContext && !(isDirty && !isDone)) requestFormatsWindowClose();
+    // Annulée (Exercice libre) : retour à la modale « Créer un exercice » (arbitrage du 06/11/2026, choix A).
     router.back();
   };
   const chosenOverlay = (movement: Movement) =>
     isSessionContext
       ? {
-          // r-creer : croix → Composition vierge ; coche → Composition avec l'exercice.
-          onClose: () => {
-            requestFormatsWindowClose();
-            setLeaving(true);
-          },
+          // r-creer : coche → Composition avec l'exercice. Croix : Arbitrage de Hermann du 06/11/2026 (« A. Revenir à la modale avec tous les formats. ») : annulée, la fiche ouverte par
+    // Exercice libre revient à la modale « Créer un exercice » (n-cat-libre : « Annulée > Modale de Création d'un exercice »). [r-creer :
+    // « amène à la composition de séance vide » — remplacé : la Composition vide d'un « Créer » renvoyait aussitôt au Catalogue.]
+          onClose: () => setLeaving(true),
           validate: {
             onPress: () => {
               onMovementChosen?.(movement);

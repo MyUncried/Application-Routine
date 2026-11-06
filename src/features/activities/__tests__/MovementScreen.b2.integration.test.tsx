@@ -810,7 +810,9 @@ describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)"
     expect(await count("movements")).toBe(1);
   });
 
-  it("Séance : fiche choisie, la croix revient à la Composition vierge, sans mouvement remis (r-creer)", async () => {
+  // Arbitrage de Hermann du 06/11/2026 : « A. Revenir à la modale avec tous les formats. » [r-creer : « Croix à gauche pour annuler >
+  // composition de séance vierge » — remplacé.]
+  it("Séance : fiche choisie, la croix revient à la modale « Créer un exercice », sans mouvement remis (arbitrage du 06/11, A)", async () => {
     await movements().create(movement("squats", "Squats"));
     await renderSheet({ context: "session" });
     await type("exercise-name-input", "Squats");
@@ -821,7 +823,14 @@ describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)"
     });
     expect(mockBack).toHaveBeenCalledTimes(1);
     expect(takeMovementsHandedToComposition()).toBeNull();
-    expect(takeFormatsWindowCloseRequest()).toBe(true);
+    expect(takeFormatsWindowCloseRequest()).toBe(false);
+  });
+
+  it("Séance : création annulée par la croix — retour à la modale « Créer un exercice » (arbitrage du 06/11, A)", async () => {
+    await renderSheet({ context: "session" });
+    await press("screen-header-back");
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(takeFormatsWindowCloseRequest()).toBe(false);
   });
 
   it("Séance : titre « Choisir ou créer un mouvement », coche en haut et plus de « Terminer » en bas (r-creer, m-valider)", async () => {
