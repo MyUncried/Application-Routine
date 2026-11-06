@@ -101,6 +101,11 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 
 - Décision du 06/11/2026 : vitesses iOS pour les présentations natives (non réglables, react-native-screens 4.26.2) ; durées existantes de `compositionMotion` pour les transitions réglables et les animations propres. Registre ch07. Aucun code modifié.
 
+## 2 quaterdecies. Ordre des écrans selon les décisions — règle du 06/11/2026 (classe B) — CHANGE_REQUEST_REQUIRED
+
+- Règle recopiée au registre (ch07). Le montage actuel (Composition `create=1` ouverte pour porter le brouillon, puis la modale) l’enfreint.
+- Changement proposé, non commencé : voir le message de demande de changement du 06/11/2026 (brouillon de séance et brouillon de modèle remontés au niveau racine ; modale « Créer un exercice », questionnaires et récapitulatifs présentés au-dessus de l’écran appelant ; Composition ouverte après validation).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

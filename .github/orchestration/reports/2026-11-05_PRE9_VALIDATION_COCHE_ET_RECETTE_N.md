@@ -97,6 +97,10 @@ Retour à la modale « Créer un exercice ». Tests ciblés 93 verts (dont un pa
 
 Règle permanente inscrite au registre (ch07) : vitesses iOS conservées. Aucune modification de code ; aucun test applicable.
 
+## Complément — ordre des écrans (06/11)
+
+Règle permanente inscrite au registre. Réaménagement de la navigation de création : CHANGE_REQUEST_REQUIRED, aucun code modifié.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).
