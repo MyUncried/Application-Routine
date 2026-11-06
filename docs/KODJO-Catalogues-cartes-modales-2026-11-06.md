@@ -6,23 +6,23 @@
 
 ## 1. Validation des modales par la coche de l'en-tête (D-499)
 
-**À CLARIFIER — contre-revue du 06/11/2026 :** la suppression de « Valider les paramètres » au profit de la coche, écrite dans D-499, est contestée pour le questionnaire avec mouvements sélectionnés. Ne pas déduire cette suppression des questionnaires vides de Figma. Vérifier le rôle de la coche et les conditions d’apparition du bouton, ainsi que le passage direct à la Composition pour Death by à un mouvement. Les prescriptions et annotations D-499 concernant cette transition ne constituent pas un arbitrage résolu ; les autres validations par coche restent applicables.
+**D-499 — précision validée par Hermann le 06/11/2026 :** « Valider les paramètres » apparaît uniquement lorsqu’une seconde étape est nécessaire et ouvre le récapitulatif sans enregistrer dans la séance. Dans ce cas, la coche du questionnaire reste grise et inactive. Sans seconde étape, la coche enregistre dans la séance lorsque les données sont complètes et cohérentes. Dans le récapitulatif, elle devient bleue et active lorsque les données sont complètes et cohérentes, puis enregistre dans la séance. Death by à un mouvement : questionnaire → coche → Composition, sans récapitulatif ; à deux mouvements : questionnaire → « Valider les paramètres » → récapitulatif → coche → Composition. L’enregistrement reste un ajout au brouillon de Composition, sans sauvegarde définitive de la Séance. Cette précision supersède la suppression générale du bouton dans les questionnaires ; les autres validations par coche restent applicables.
 
-Une modale qui crée ou modifie se valide par la **coche** de son en-tête, à droite, en face de la croix (ou de la flèche Retour) à gauche. Elle n'a pas de bouton de validation en bas ; la place libérée revient au contenu.
+Une modale qui crée ou modifie se valide par la **coche** de son en-tête, à droite, en face de la croix (ou de la flèche Retour) à gauche. Elle n'a pas de bouton d’enregistrement en bas ; la place libérée revient au contenu. Le bouton de transition « Valider les paramètres » est conservé dans les questionnaires nécessitant une seconde étape, selon la précision ci-dessus.
 
 | Modale | Action portée par la coche | Ancien bouton |
 |---|---|---|
-| Questionnaire d'un Format | À CLARIFIER : coche / bouton selon l’état et nécessité d’un récapitulatif (contre-revue du 06/11/2026) | « Valider les paramètres » : suppression non confirmée |
+| Questionnaire d'un Format | Sans seconde étape : enregistre dans la séance si les données sont complètes et cohérentes. Avec seconde étape : reste grise et inactive. | « Valider les paramètres » conservé uniquement si une seconde étape est nécessaire ; ouvre le récapitulatif |
 | Récapitulatif d'un Format | Enregistre dans la Séance ; à la réouverture depuis la Composition, enregistre les modifications | « Enregistrer dans la séance », « Enregistrer les modifications » |
 | Choix des mouvements d'un Format (y compris le choix du buy-in) | Revient au questionnaire avec la sélection | « Enregistrer dans la séance » |
 | Catalogue des séances ouvert depuis la planification (une ou plusieurs séances) | Valide la sélection | « Valider » |
 | Planifier une séance, Planifier un parcours (écran et modale du Calendrier) | Enregistre la planification ; la phrase de synthèse descend en bas de l'écran | « Enregistrer » |
 | Fréquence d'un contenu de parcours | Valide la fréquence ; croix et coche dans l'en-tête | « Valider » |
 
-- **États :** coche bleue (`color/wheel-action/confirm-background`, bleu KODJO) quand la validation est possible ; coche grise quand un paramètre requis manque ou est incohérent. Les règles d'activation des boutons remplacés s'appliquent à la coche (par exemple Superset : deux mouvements requis à la création ; contrôle bloquant de l'EMOM).
+- **États :** coche bleue (`color/wheel-action/confirm-background`, bleu KODJO) quand la validation est possible ; coche grise quand un paramètre requis manque ou est incohérent. Les règles de complétude et de cohérence restent applicables. Si un récapitulatif est nécessaire, la coche du questionnaire demeure grise, même si les réponses permettent d’accéder au récapitulatif. Les conditions existantes de passage par « Valider les paramètres » sont conservées (notamment deux mouvements requis à la création d’un Superset) ; le contrôle bloquant de l’EMOM reste applicable.
 - **Composants :** en-tête de modale existant à croix et coche (variante « Roulette » de « En-tête modal — Paramètres d'exécution ») ; en-tête fixe « DSF / Navigation / En-tête fixe », variante **« Fermer et valider »** ajoutée pour les écrans de planification.
 - **Exceptions, bouton large conservé :** pendant et juste après l'effort, la cible doit rester grande et sous le pouce : « Résultat de série », « Répétitions partielles », « Avant la séance — Douleur » (Commencer), synthèses de séance et d'exécution. « Modifier le profil » est un écran avec Retour, pas une modale : inchangé.
-- Toute mention des libellés remplacés dans les documents désigne désormais l'action de la coche, sauf la transition du questionnaire de Format signalée À CLARIFIER ci-dessus.
+- Toute mention des libellés remplacés dans les documents désigne désormais l'action de la coche, sauf « Valider les paramètres », bouton de transition conservé lorsqu’une seconde étape est nécessaire.
 
 ## 2. Ajout d'un mouvement dans un questionnaire de Format (D-500)
 
