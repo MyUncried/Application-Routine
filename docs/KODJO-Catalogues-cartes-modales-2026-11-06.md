@@ -14,7 +14,7 @@ Une modale qui crée ou modifie se valide par la **coche** de son en-tête, à d
 |---|---|---|
 | Questionnaire d'un Format | Sans seconde étape : enregistre dans la séance si les données sont complètes et cohérentes. Avec seconde étape : reste grise et inactive. | « Valider les paramètres » conservé uniquement si une seconde étape est nécessaire ; ouvre le récapitulatif |
 | Récapitulatif d'un Format | Enregistre dans la Séance ; à la réouverture depuis la Composition, enregistre les modifications | « Enregistrer dans la séance », « Enregistrer les modifications » |
-| Choix des mouvements d'un Format (y compris le choix du buy-in) | Revient au questionnaire avec la sélection | « Enregistrer dans la séance » |
+| Choix des mouvements d'un Format (y compris le choix du buy-in) | Revient au questionnaire avec la sélection ; grise tant qu’aucun mouvement n’est sélectionné | « Enregistrer dans la séance » |
 | Catalogue des séances ouvert depuis la planification (une ou plusieurs séances) | Valide la sélection | « Valider » |
 | Planifier une séance, Planifier un parcours (écran et modale du Calendrier) | Enregistre la planification ; la phrase de synthèse descend en bas de l'écran | « Enregistrer » |
 | Fréquence d'un contenu de parcours | Valide la fréquence ; croix et coche dans l'en-tête | « Valider » |

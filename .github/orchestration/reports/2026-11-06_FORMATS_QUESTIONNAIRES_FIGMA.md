@@ -23,7 +23,7 @@
 - **Synchronisation code / documentation :** classe A. Figma et les références rejoignent la règle déjà écrite dans `main`.
 - **Commit remplacé :** `128649776dd919d57c3561c977e02fef97c57f44` (branche `docs/pre9-d511-questionnaires-20261106`). Il est supplanté par `b1827056`, qui porte la règle sous D-499 ; le numéro D-511 n'est pas utilisé. Ce commit n'est pas intégré.
 - **Tests :** aucun applicable. Captures relues.
-- **Non traité :** les écrans « Choix des mouvements » (coche bleue sans sélection visible) ne sont pas modifiés.
+- **Complément (arbitrage de Hermann, 15:41) :** coche grise sur « P-Tabata — Choix des mouvements », « AMRAP — Choix des mouvements » et « AMRAP — Choix du buy-in » tant qu’aucun mouvement n’est sélectionné ; règle ajoutée dans la spec du 6/11 §1 ; 3 captures réexportées.
 - **À vérifier sur appareil :** le passage de la coche au bouton quand on ajoute ou retire un mouvement.
 - **Fichiers modifiés :**
   - spec du 6/11 ;
