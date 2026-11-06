@@ -198,6 +198,8 @@ const FAMILY_NOTICE_MS = 3000;
 const COLLAPSE_HIT_EXTRA = 12;
 /** Recette du 28/10 : arrêt sur une famille repliée avant qu'elle se déplie (valeur technique, non spécifiée). */
 const EXPAND_DWELL_MS = 500;
+/** d-nonreg (06/11/2026) : calme après le relâchement — écriture, relecture et retour des cartes (valeur technique). */
+const DROP_SETTLE_MS = 900;
 /**
  * Recette iPhone du 06/11/2026 (t-glisser, Hermann : « Cela ne doit arriver que lorsqu'on arrête consciemment la carte au
  * dessus d'une autre, pas seulement quand on passe dessus. » ; décision validée : « ok, on testera ce que ça donne ») : le
@@ -282,6 +284,23 @@ export function MovementCatalogueList({
   const [drag, setDrag] = useState<Drag | null>(null);
   const [override, setOverride] = useState<OrderOverride | null>(null);
   const [memberStep, setMemberStep] = useState(CARD_HEIGHT + MEMBER_GAP);
+  /**
+   * Recette iPhone du 06/11/2026 au soir (d-nonreg : « Ouvrir une pile, déplacer un mouvement : il disparaît, ou se
+   * repositionne mal » ; t-glisser : « Lorsqu'on arrête la carte sur une famille, celle-ci s'ouvre avec un gros soubresaut »).
+   * Les glissements de pile et révélations ajoutés le 06/11 (t-catalogue, 8a5befaf) jouaient aussi pendant le geste et à la
+   * dépose : la carte portée repartait sous la carte du dessus (sortie de pile) et les membres glissaient pendant que la
+   * carte suivait le doigt. Ces animations ne jouent plus pendant le geste ni pendant `DROP_SETTLE_MS` après le relâchement
+   * (relecture du Catalogue comprise) — comportement du 28/10 (FAM) ; elles restent pour le repli / dépli à la main.
+   */
+  const [dropSettling, setDropSettling] = useState(false);
+  const dropSettleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (dropSettleTimer.current !== null) clearTimeout(dropSettleTimer.current);
+    },
+    [],
+  );
+  const gestureQuiet = drag !== null || dropSettling;
   const [familyFailed, setFamilyFailed] = useState(false);
   // Familles : place mesurée des entrées (repère de la liste) et des membres (repère de leur pile).
   const itemBoxes = useRef(new Map<string, Box>());
@@ -710,6 +729,12 @@ export function MovementCatalogueList({
 
   const stopDrag = () => {
     setDrag(null);
+    if (dropSettleTimer.current !== null) clearTimeout(dropSettleTimer.current);
+    setDropSettling(true);
+    dropSettleTimer.current = setTimeout(() => {
+      dropSettleTimer.current = null;
+      setDropSettling(false);
+    }, DROP_SETTLE_MS);
     autoScroll.end();
     scrollDelta.current = 0;
     if (expandHover.current !== null) clearTimeout(expandHover.current.timer);
@@ -976,7 +1001,7 @@ export function MovementCatalogueList({
               // t-catalogue (06/11/2026) : au repli, l'épaisseur de la pile n'apparaît qu'une fois les cartes rentrées.
               <Reanimated.View
                 key={`leaf-${depth}`}
-                entering={reduceMotion ? undefined : leafEntering}
+                entering={reduceMotion || gestureQuiet ? undefined : leafEntering}
                 style={[styles.leaf, { top: depth * LEAF_STEP, left: depth * LEAF_INSET, right: depth * LEAF_INSET }]}
                 accessible={false}
                 importantForAccessibility="no"
@@ -1064,12 +1089,12 @@ export function MovementCatalogueList({
             // [Avant : révélation par le bas, 350 ms (B05) — remplacé.]
             <CatalogueMotionView
               key={member.movement.id}
-              appear={index > 0 ? { slideFrom: -index * memberStep } : false}
-              transition={!settling}
+              appear={index > 0 && !gestureQuiet ? { slideFrom: -index * memberStep } : false}
+              transition={!settling && !gestureQuiet}
               raised={isLifted}
               style={[
                 index > 0 ? styles.memberSpacing : null,
-                drag === null ? { zIndex: item.members.length - index } : null,
+                !gestureQuiet ? { zIndex: item.members.length - index } : null,
                 isLifted ? styles.liftedFrame : null,
               ]}
               onLayout={(event: LayoutChangeEvent) => {
@@ -1203,9 +1228,10 @@ export function MovementCatalogueList({
                         <CatalogueMotionView
                           key={item.key}
                           appear="reveal"
+                          still={gestureQuiet}
                           bleed={layout.screenGutter}
                           clip={drag === null}
-                          transition={drag === null}
+                          transition={!gestureQuiet}
                           raised={lifted}
                           style={[styles.item, lifted ? styles.liftedFrame : null]}
                           onLayout={(event: LayoutChangeEvent) => recordItemBox(item.key, event)}
@@ -1431,6 +1457,7 @@ function leafEntering(): LayoutAnimation {
  */
 function CatalogueMotionView({
   appear,
+  still = false,
   transition = true,
   clip = true,
   bleed = 0,
@@ -1441,6 +1468,8 @@ function CatalogueMotionView({
   children,
 }: {
   readonly appear: "reveal" | { readonly slideFrom: number } | false;
+  /** d-nonreg : ni révélation ni disparition animées (geste en cours ou tout juste relâché) ; même arbre de vues. */
+  readonly still?: boolean;
   readonly transition?: boolean;
   readonly clip?: boolean;
   readonly bleed?: number;
@@ -1451,6 +1480,7 @@ function CatalogueMotionView({
   readonly children?: ReactNode;
 }) {
   const animated = useContext(CatalogueMotionContext);
+  const appearing = animated && !still;
   const layoutTransition = animated && transition ? catalogueLayout : undefined;
   const slideFrom = appear !== false && appear !== "reveal" ? appear.slideFrom : null;
   const slide = useMemo(
@@ -1473,8 +1503,8 @@ function CatalogueMotionView({
   }
   return (
     <Reanimated.View
-      entering={animated ? revealFrameEntering : undefined}
-      exiting={animated ? revealFrameExiting : undefined}
+      entering={appearing ? revealFrameEntering : undefined}
+      exiting={appearing ? revealFrameExiting : undefined}
       layout={layoutTransition}
       onLayout={onLayout}
       style={[
@@ -1485,8 +1515,8 @@ function CatalogueMotionView({
       testID={testID}
     >
       <Reanimated.View
-        entering={animated ? revealContentEntering : undefined}
-        exiting={animated ? revealContentExiting : undefined}
+        entering={appearing ? revealContentEntering : undefined}
+        exiting={appearing ? revealContentExiting : undefined}
         style={style}
         testID={testID === undefined ? undefined : `${testID}-content`}
       >

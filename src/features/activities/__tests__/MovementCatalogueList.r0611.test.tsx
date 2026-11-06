@@ -259,3 +259,38 @@ describe("t-catalogue (06/11/2026) : apparition de la liste et glissement des ca
     expect(frame.props.layout).toBeUndefined();
   });
 });
+
+describe("d-nonreg / t-glisser (recette du 06/11 au soir) : aucun glissement de pile pendant le geste ni juste après", () => {
+  it("carte portée dans une pile dépliée : ni entrée, ni sortie, ni superposition ; retour des glissements après le calme", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await repository.createVariant(movement("jump", "Squats sautés"), "squat", "AFTER_ORIGIN");
+    await renderList();
+    const group = (await movements().findById("squat"))!.levelGroup!.groupId;
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-card-jump-card"));
+    });
+    await settle();
+    const frame = (id: string) => screen.getByTestId(`movement-pile-${group}-member-${id}`);
+    const quiet = (id: string) => {
+      expect(frame(id).props.entering).toBeUndefined();
+      expect(frame(id).props.exiting).toBeUndefined();
+      expect(StyleSheet.flatten(frame(id).props.style).zIndex).toBeUndefined();
+    };
+    jest.useFakeTimers();
+    await grab("squat");
+    ["jump", "assist"].forEach(quiet);
+    expect(StyleSheet.flatten(frame("squat").props.style).zIndex).toBeGreaterThan(0);
+    // Relâchement : toujours calme pendant l'écriture et la relecture.
+    await act(async () => {
+      fireEvent(items(), "touchEnd", { nativeEvent: { pageX: 100, pageY: START_Y } });
+    });
+    expect(frame("assist").props.entering).toBeUndefined();
+    expect(frame("assist").props.exiting).toBeUndefined();
+    expect(StyleSheet.flatten(frame("jump").props.style).zIndex).toBeUndefined();
+    await advance(900);
+    expect(typeof frame("assist").props.entering).toBe("function");
+    expect(StyleSheet.flatten(frame("jump").props.style).zIndex).toBeGreaterThan(StyleSheet.flatten(frame("squat").props.style).zIndex as number);
+  });
+});

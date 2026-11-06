@@ -298,3 +298,25 @@ Voir le commit de livraison : `git show --stat` sur la branche. Principaux :
 - Commit de livraison (code, tests, documentation) : `d737e2b8` ; fusion de `main` : `81f427ec` ; ce rapport finalisé dans le commit documentaire qui suit `d737e2b8`.
 - Branche publiée : `origin/feat/pre9-catalogues-cartes-badge-20261106` ; PR #420 vers `main`, **non fusionnée** : https://github.com/MyUncried/Application-Routine/pull/420
 - Arbre de travail propre après publication ; `main` inchangée ; `pre9-bmad/dev` inchangée (locale).
+
+## Recette iPhone du 06/11/2026 au soir — résultats et reprise des régressions
+
+Cahier : https://claude.ai/artifact/XJCJLC7eHKcANDMrN1yNku (section « Livraison D-501 à D-510 »). Version testée : branche à `9a9c075f` (code de `d737e2b8`), Metro redémarré après la livraison ; saisies à partir de 18:31 UTC.
+
+- **Livraison D-501 à D-510 :** 18 OK, 1 sans objet (VoiceOver non testé), 1 KO : `d-nonreg` — Hermann : « Ouvrir une pile, déplacer un mouvement : il disparaît, ou se repositionne mal. »
+- `d-new-dup` (OK, note : « on ne peux pas dupliquer un mouvement ») : aucune action « Dupliquer » n'existe ; la copie passe par « Créer un nouveau mouvement » lors de la modification d'un mouvement utilisé. Fonction non spécifiée, hors lot.
+- Les écarts de la recette du 06/11 après-midi (tableaux, champ de valeur, fondus, filtre, clavier, Buy-in / Buy-out, récapitulatif) n'étaient pas dans ce lot : lot de corrections distinct, à venir.
+
+### Analyse historique des régressions (règle du 06/10)
+
+| Constat | Dernier succès comparable | Premier échec conservé | Mécanisme introduit | Attribution |
+|---|---|---|---|---|
+| `d-nonreg` : carte déplacée dans une pile ouverte qui disparaît ou se replace mal | Recette FAM du 28/10 (`f7540637`) : glisser dans une pile validé | Recette du 06/11 au soir (version `d737e2b8`) | `8a5befaf` (06/11, 15:25, t-catalogue) : glissements de pile Reanimated (`entering`/`exiting` par translation vers la carte du dessus, superposition `zIndex`) actifs aussi pendant le geste et à la dépose ; `d737e2b8` n'a changé que la hauteur des cartes (80 → 72), dont tous les pas sont mesurés | **Plausible** : `8a5befaf`. Une carte sortie d'une pile à la dépose rejouait sa sortie (retour sous la carte du dessus) ; la superposition revenait pendant le retour de la carte déposée. Non reproduit hors iPhone. |
+| `t-glisser` : famille ouverte par l'arrêt avec un gros soubresaut | Recette FAM du 28/10 (FAM-05) | Recette du 06/11 au soir (note du 20:53 UTC) | `8a5befaf` : les cartes de la pile ouverte pendant le geste glissaient depuis la carte du dessus pendant que la carte portée était recalée sous le doigt (FAM-05) | **Plausible** : `8a5befaf`. |
+| `t-depli` / `w-depli` : premier déploiement brutal, ligne des noms gardée puis repliée | Aucun succès sur iPhone pour le premier déploiement d'un Circuit monté replié | Recette du 06/11 après-midi (`w-depli`, version `8a5befaf`) | `e74533f3` (attente de la mesure) puis `8a5befaf` (départ « à l'aveugle ») supposent que la mesure des cartes arrive pendant le déploiement | **Indéterminée** : le symptôme correspond à une mesure jamais reçue avant la fin de la progression, mais sa cause (mesure tardive ou nulle) n'est pas démontrée. Troisième tentative non faite à l'aveugle : traces de diagnostic à relever sur iPhone. |
+
+### Correction (classe A — retour au comportement validé du 28/10, sans changer la règle)
+
+- `MovementCatalogueList.tsx` : pendant le geste et 900 ms après le relâchement (`DROP_SETTLE_MS`, écriture et relecture comprises), ni glissement de pile, ni révélation d'entrée, ni superposition, ni transition de place. Le glissement lent du repli / dépli à la main (t-catalogue) est conservé hors geste.
+- Test : `MovementCatalogueList.r0611.test.tsx`, « d-nonreg / t-glisser » — échoue sur le code précédent, passe sur le correctif.
+- `t-depli` : non corrigé ; traces `[t-depli]` (mode développement, non committées) pour relever sur iPhone l'instant de la mesure des cartes par rapport au départ et à la fin du déploiement.
