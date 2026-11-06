@@ -168,6 +168,11 @@ async function useExistingMovement(name: string, id: string) {
     fireEvent.press(result);
   });
   await settle(300);
+  // Recette du 05/11/2026 au soir (r-creer) : la fiche du mouvement choisi s'affiche ; sa coche le remet à la Composition.
+  await act(async () => {
+    fireEvent.press(within(await screen.findByTestId("movement-chosen-overlay")).getByTestId("screen-header-validate"));
+  });
+  await settle(300);
 }
 
 /** Carte d'Exercice de la Composition, par son nom. */
@@ -198,12 +203,11 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
     await openMenuAction(addToSession.newActivity);
     expect(router.getPathname()).toBe("/movement");
     expect(router.getSearchParams()).toMatchObject({ context: "session" });
-    // 01/11/2026 (ch13 CE-T03-08) : l'écran porte le titre « Créer un exercice », sa confirmation aussi.
+    // [01/11/2026 (ch13 CE-T03-08) : titre « Créer un exercice », confirmation aussi — remplacé par la recette du 05/11 au soir
+    // (r-creer : « Choisir ou créer un mouvement » ; m-valider : coche en haut, plus de bouton en bas).]
     expect(screen.queryByText(strings.screens.movement.titles.create)).toBeNull();
-    // [« pas le titre de l'ancien éditeur » (`exercise.titleAdd`) — même libellé depuis le 01/11/2026 ; la route `/movement` le prouve.]
-    expect(within(screen.getByTestId("screen-header")).getAllByText("Créer un exercice").length).toBeGreaterThan(0);
-    expect(within(screen.getByTestId("movement-finish-slot")).getAllByText("Créer un exercice").length).toBeGreaterThan(0);
-    expect(within(screen.getByTestId("movement-finish-slot")).queryByText(strings.screens.movement.finish)).toBeNull();
+    expect(within(screen.getByTestId("screen-header")).getAllByText("Choisir ou créer un mouvement").length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("movement-finish-action")).toBeNull();
 
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Burpees");
     fireEvent.press(screen.getByTestId("activity-editor-category-button"));
@@ -218,7 +222,7 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
     });
     await settle(300);
     await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-finish-action"));
+      fireEvent.press(screen.getByTestId("screen-header-validate"));
     });
     await settle(300);
 
@@ -292,6 +296,12 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
     expect(result.props.accessibilityHint).toBe(strings.screens.activities.editor.movementSuggestion.useMovement);
     await act(async () => {
       fireEvent.press(result);
+    });
+    await settle(300);
+    // Recette du 05/11/2026 au soir (r-creer) : fiche du mouvement choisi, puis sa coche.
+    expect(router.getPathname()).toBe("/movement");
+    await act(async () => {
+      fireEvent.press(within(await screen.findByTestId("movement-chosen-overlay")).getByTestId("screen-header-validate"));
     });
     await settle(300);
 

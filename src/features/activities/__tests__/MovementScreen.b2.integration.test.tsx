@@ -20,6 +20,7 @@ import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { takeFormatsWindowCloseRequest, takeMovementsHandedToComposition } from "@/features/sessions/movementExercises";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
@@ -44,12 +45,13 @@ jest.mock("expo-crypto", () => ({ randomUUID: jest.fn(() => `uuid-${++mockUuid}`
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
+const mockDismiss = jest.fn();
 let mockSearchParams: Record<string, string> = {};
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
   return {
     ...actual,
-    useRouter: () => ({ back: mockBack, push: mockPush, replace: mockReplace }),
+    useRouter: () => ({ back: mockBack, push: mockPush, replace: mockReplace, dismiss: mockDismiss }),
     useLocalSearchParams: () => mockSearchParams,
   };
 });
@@ -173,7 +175,8 @@ async function count(table: string): Promise<number> {
 
 /**
  * Demande de Hermann du 05/11/2026 (soir) : « fiche modifier un mouvement : retirer le bouton d'action en bas, mettre un bouton
- * d'action standard Valider en haut à droite » — en modification, la coche de l'en-tête ; en création, « Terminer » en bas.
+ * d'action standard Valider en haut à droite » — en modification, la coche de l'en-tête ; recette du 05/11 au soir (m-valider :
+ * « En création, retirer le bouton terminer, mettre la Coche valider en haut ») — en création aussi.
  */
 function finishID(): string {
   return screen.queryByTestId("screen-header-validate", { includeHiddenElements: true }) !== null ? "screen-header-validate" : "movement-finish-action";
@@ -198,7 +201,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     await type("exercise-name-input", "Burpees");
     // Catégorie et Zones sont exigées par les règles existantes : posées directement sur le brouillon
     // par les feuilles réelles serait long ; on vérifie ici le contrat de Terminer.
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     await type("movement-phases-invite", "Descente");
     // Le focus passe sur la phase créée ; l'invite suivante n'apparaît qu'en saisie dans le bloc.
     await act(async () => {
@@ -215,7 +218,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect(screen.getByText(t.titles.consult)).toBeTruthy();
     expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
     expect(screen.getByTestId("movement-phases-label-1", anyNode).props.children).toBe("Descente");
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     await press("activity-editor-edit-movement");
     expect(screen.getByText(t.titles.edit)).toBeTruthy();
     expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(true);
@@ -303,6 +306,16 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     ]);
     const created = families[0]!.members[1]!.movement;
     expect(created).toMatchObject({ description: null, phases: [], categoryId: "cardio", bodyZoneIds: ["cuisses"] });
+  });
+
+  it("m-carte (05/11 au soir) : niveau ajouté depuis le menu Niveau d'une fiche — enregistré, retour au Catalogue (deux fiches retirées)", async () => {
+    await movements().create(movement("squat", "Squats"));
+    mockDismiss.mockReset();
+    await renderSheet({ variantOf: "squat", placement: "AFTER_ORIGIN", returnDepth: "2" });
+    await type("exercise-name-input", "Squats sautés");
+    await press(finishID());
+    expect(mockDismiss).toHaveBeenCalledWith(2);
+    expect(mockBack).not.toHaveBeenCalled();
   });
 
   it("MVT-10 : erreur d'enregistrement — saisie conservée, message affiché, nouvel essai possible", async () => {
@@ -432,7 +445,7 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.queryByTestId("movement-phases-invite", anyNode)).toBeNull();
     expect(screen.getByTestId("activity-editor-category-button", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     expect(StyleSheet.flatten(screen.getByTestId("exercise-name-assist-host", anyNode).props.style)).toMatchObject({ zIndex: 2 });
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     // Nom disponible : la fiche redevient modifiable, Entrée termine de nouveau la saisie.
     await type("exercise-name-input", "Squats lents");
     expect(screen.getByTestId("exercise-name-input", anyNode).props.submitBehavior).toBeUndefined();
@@ -445,7 +458,7 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
   // pertinente » [remplace « Ouvrir ce mouvement » de la remarque 6].
   // [CAT.2 : « le toucher de la carte n'ouvre rien » (décision du 30/10/2026) — remplacé par la demande de Hermann du 05/11/2026 (soir) :
   // « catalogue des mouvements : saisie du nom : appui sur une carte. Rien ne se passe, on devrait pourtant charger le mouvement ».]
-  it("CAT.2 : carte Résultat — « Ajouter un niveau » ; aucune action « Utiliser ce mouvement » ; le toucher de la carte charge le mouvement (05/11 soir)", async () => {
+  it("CAT.2 : carte Résultat — « Ajouter un niveau » ; aucune action « Utiliser ce mouvement » ; le toucher de la carte pose la fiche du mouvement par-dessus, la croix ramène à la création (m-carte)", async () => {
     await movements().create(movement("squat", "Squats"));
     await renderSheet();
     await type("exercise-name-input", "Squats");
@@ -457,10 +470,19 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.queryByTestId("movement-suggestion-result-squat-use", anyNode)).toBeNull();
     // Nom déjà utilisé : message affiché, Terminer indisponible.
     expect(screen.getByTestId("movement-suggestion-message", anyNode)).toBeTruthy();
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
-    expect(mockReplace).not.toHaveBeenCalled();
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     await press("movement-suggestion-result-squat-summary");
-    expect(mockReplace).toHaveBeenCalledWith({ pathname: "/movement", params: { movementId: "squat" } });
+    // m-carte (recette du 05/11 au soir) : « Le mouvement sélectionner doit apparaître en fondu par dessus la fiche ouverte. Appuyer
+    // sur annuler ramène à la fiche pour la création telle qu’elle était au changement de fiche. »
+    expect(mockReplace).not.toHaveBeenCalled();
+    const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    expect((await within(overlay).findAllByText("Mouvement", anyNode)).length).toBeGreaterThan(0);
+    await act(async () => {
+      fireEvent.press(within(overlay).getByTestId("screen-header-back", anyNode));
+    });
+    expect(screen.queryByTestId("movement-chosen-overlay", anyNode)).toBeNull();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+    expect(mockBack).not.toHaveBeenCalled();
   });
 
   it("CAT.2 : « Ajouter un niveau » déplie la carte (Plus facile | Plus difficile), puis le choix ouvre le nouveau Niveau sans rien créer", async () => {
@@ -488,7 +510,7 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.getByTestId("movement-suggestion-message", anyNode)).toBeTruthy();
     expect(screen.getByTestId("movement-suggestion-result-pompes", anyNode)).toBeTruthy();
     expect(screen.getByTestId("exercise-instruction-input", anyNode).props.editable).toBe(false);
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
   });
 
   it("KBD-01 à KBD-07 : clavier — média et contexte fixes, la couche éditable remonte devant le média puis redescend", async () => {
@@ -716,7 +738,7 @@ describe("Recette iPhone du 29/10/2026 — fiche « Créer un mouvement »", () 
     expect(StyleSheet.flatten(bold.props.style)).toMatchObject({ fontWeight: "700" });
     // Aucune carte : un Mouvement archivé n'est jamais proposé (B.8, Q6) ; Terminer indisponible.
     expect(screen.queryByTestId("movement-suggestion-result-squat", anyNode)).toBeNull();
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     cleanupRender();
 
     await movements().create(movement("fente", "Fentes"));
@@ -764,7 +786,7 @@ describe("Recette iPhone du 29/10/2026 — recherche automatique de la création
  * option n'est pas utile, seul la création d'un niveau est une action pertinente. »).
  */
 describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)", () => {
-  it("Séance (`context=session`) : cartes Composition sans bouton ; le toucher de la carte utilise le Mouvement existant, sans doublon", async () => {
+  it("Séance (`context=session`) : cartes Composition sans bouton ; le toucher de la carte affiche sa fiche (r-creer), la coche utilise le Mouvement existant, sans doublon", async () => {
     await movements().create(movement("squats", "Squats"));
     await renderSheet({ context: "session" });
     await type("exercise-name-input", "Squats");
@@ -775,8 +797,38 @@ describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)"
     expect(screen.queryByTestId("movement-suggestion-result-squats-use", anyNode)).toBeNull();
     expect(screen.queryByText("Utiliser ce mouvement", anyNode)).toBeNull();
     await press("movement-suggestion-result-squats");
-    expect(mockBack).toHaveBeenCalled();
+    // r-creer (recette du 05/11 au soir) : « Il faut que la fiche sélectionnée remplace le contenu vierge (apparition en fondu). Croix à
+    // gauche pour annuler > composition de séance vierge, coche à droite > composition de séance avec l’exercice. »
+    expect(mockBack).not.toHaveBeenCalled();
+    const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    await act(async () => {
+      fireEvent.press(within(overlay).getByTestId("screen-header-validate", anyNode));
+    });
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(takeMovementsHandedToComposition()?.map((item) => item.id)).toEqual(["squats"]);
+    expect(takeFormatsWindowCloseRequest()).toBe(true);
     expect(await count("movements")).toBe(1);
+  });
+
+  it("Séance : fiche choisie, la croix revient à la Composition vierge, sans mouvement remis (r-creer)", async () => {
+    await movements().create(movement("squats", "Squats"));
+    await renderSheet({ context: "session" });
+    await type("exercise-name-input", "Squats");
+    await press("movement-suggestion-result-squats");
+    const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    await act(async () => {
+      fireEvent.press(within(overlay).getByTestId("screen-header-back", anyNode));
+    });
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(takeMovementsHandedToComposition()).toBeNull();
+    expect(takeFormatsWindowCloseRequest()).toBe(true);
+  });
+
+  it("Séance : titre « Choisir ou créer un mouvement », coche en haut et plus de « Terminer » en bas (r-creer, m-valider)", async () => {
+    await renderSheet({ context: "session" });
+    expect((await screen.findAllByText("Choisir ou créer un mouvement", anyNode)).length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("movement-finish-action", anyNode)).toBeNull();
+    expect(screen.getByTestId("screen-header-validate", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
   });
 
   it("Catalogue : une pile par famille (ordre des Niveaux), au rang de son premier membre ; un seul filet", async () => {

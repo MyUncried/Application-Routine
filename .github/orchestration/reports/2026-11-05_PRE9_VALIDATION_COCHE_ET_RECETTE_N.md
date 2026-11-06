@@ -73,6 +73,10 @@ Coche / boutons du bas / mode catalogue selon les réponses du 06/11 (Q1, Q4). T
 
 Résultats de recherche affichés à partir du bas de la barre. Test `FormatModelScreen.c3` 43 verts ; `tsc` propre.
 
+## Complément — groupe C (fiche de mouvement)
+
+Coche en création, titre, fiche choisie en fondu, retours Composition / Catalogue, niveau → Catalogue, abandon sans blocage (hypothèse à vérifier sur iPhone). Tests ciblés : 3 011 dont 5 adaptés ; tous verts après adaptation ; `tsc`, ESLint propres sur les fichiers touchés.
+
 ## Éléments non corrigés ou hors périmètre
 
 - Écrans de planification et Fréquence (absents).

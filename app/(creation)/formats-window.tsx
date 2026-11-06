@@ -3,7 +3,7 @@ import { useCallback } from "react";
 
 import { MOVEMENT_SESSION_CONTEXT } from "@/features/activities/MovementScreen";
 import { FormatsWindow } from "@/features/sessions/FormatsWindow";
-import { hasMovementsHandedToComposition } from "@/features/sessions/movementExercises";
+import { takeFormatsWindowCloseRequest } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 
 /**
@@ -19,9 +19,11 @@ export default function FormatsWindowRoute() {
   // Recette du 05/11/2026 (n-cat-libre, Hermann : « Fiche de mouvement : Validée > Composition de séance ; Annulée > Modale de
   // Création d'un exercice ») : la fiche de création s'ouvre par-dessus la modale ; validée, elle remet le Mouvement à la
   // Composition et revient ici — la modale se retire aussitôt, la Composition le reprend.
+  // Recette du 05/11/2026 au soir (r-creer) : signal consommé une seule fois (la Composition n'est jamais retirée par un second
+  // passage au premier plan) ; aussi pour la croix de la fiche, qui ramène à la Composition vide.
   useFocusEffect(
     useCallback(() => {
-      if (hasMovementsHandedToComposition()) router.back();
+      if (takeFormatsWindowCloseRequest()) router.back();
     }, [router]),
   );
   // Recette du 05/11/2026 (n-cat-creer, Hermann : « Quand la croix ramène au catalogue, l'écran de composition de séance se

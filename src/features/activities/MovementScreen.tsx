@@ -2,6 +2,7 @@ import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import Reanimated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { createEmptyExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
@@ -32,11 +33,12 @@ import { useReferentialService } from "@/features/reference-data/ReferentialServ
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { EditMovementAction, EditorHeader } from "@/features/sessions/ExerciseScreen";
-import { handMovementsToComposition } from "@/features/sessions/movementExercises";
+import { handMovementsToComposition, requestFormatsWindowClose } from "@/features/sessions/movementExercises";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
  * PRE-8 (story B.2, CE-MVT-01, DSF Mouvements §3) — fiche d'un Mouvement depuis le Catalogue
@@ -161,7 +163,7 @@ export const MOVEMENT_SESSION_CONTEXT = "session";
  * mouvement ») : création présentée en feuille native iOS (route `/movement`), en-tête sans marge de zone sûre haute.
  */
 export function MovementScreen({ inSheet = false }: { readonly inSheet?: boolean } = {}) {
-  const params = useLocalSearchParams<{ movementId?: string; variantOf?: string; placement?: string; mode?: string; context?: string }>();
+  const params = useLocalSearchParams<{ movementId?: string; variantOf?: string; placement?: string; mode?: string; context?: string; returnDepth?: string }>();
   const placement: VariantPlacement = params.placement === "BEFORE_ORIGIN" ? "BEFORE_ORIGIN" : "AFTER_ORIGIN";
   const openInEdit = params.mode === MOVEMENT_EDIT_MODE_PARAM;
   // PRE-9 A.2 : création seulement (ni fiche existante ni variante dans ce contexte, CE-MVT-01 §3).
@@ -185,6 +187,7 @@ export function MovementScreen({ inSheet = false }: { readonly inSheet?: boolean
       variantPlacement={placement}
       openInEdit={openInEdit}
       inSheet={inSheet}
+      returnDepth={params.returnDepth === "2" ? 2 : 1}
     />
   );
 }
@@ -213,7 +216,22 @@ export function MovementSheet({
   inSheet = false,
   onBodyMeasure,
   onMovementChosen,
+  overlay,
+  returnDepth = 1,
 }: {
+  /**
+   * m-carte (recette du 05/11/2026 au soir) : nombre de fiches de mouvement retirées à l'enregistrement — 2 pour un niveau ajouté
+   * depuis le menu Niveau d'une fiche (retour au Catalogue des mouvements, pas à la fiche précédente).
+   */
+  readonly returnDepth?: 1 | 2;
+  /**
+   * Recette du 05/11/2026 au soir (r-creer, m-carte) : fiche d'un mouvement choisi, posée en fondu par-dessus la fiche de création
+   * (même feuille) — croix et coche fournies par la fiche de création ; une fin d'édition revient à elle.
+   */
+  readonly overlay?: {
+    readonly onClose: () => void;
+    readonly validate?: { readonly onPress: () => void; readonly accessibilityLabel: string };
+  };
   /** Demande de Hermann du 04/11/2026 : création en feuille native iOS — en-tête sans marge de zone sûre haute. */
   readonly inSheet?: boolean;
   readonly movementId: string | null;
@@ -244,6 +262,7 @@ export function MovementSheet({
   readonly onMovementChosen?: (movement: Movement) => void;
 }) {
   const router = useRouter();
+  const reduceMotion = useReduceMotion();
   const service = useActivityDefinitionService();
   // Une seule instance par service : le chargement ne doit pas se relancer à chaque rendu.
   const catalogue = useMemo(() => service.movementCatalogue, [service]);
@@ -264,9 +283,16 @@ export function MovementSheet({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const [isDone, setIsDone] = useState(false);
-  // Demande de Hermann du 05/11/2026 (soir) : depuis le Catalogue, toucher une carte de la saisie du nom charge ce mouvement
-  // (fiche en consultation, à la place de la fiche de création) ; le nom tapé pour chercher n'est pas un brouillon à garder.
-  const [openingMovementId, setOpeningMovementId] = useState<string | null>(null);
+  // Recette du 05/11/2026 au soir (m-carte, Hermann : « Créer un mouvement, choisir un mouvement. Le mouvement sélectionner doit
+  // apparaître en fondu par dessus la fiche ouverte. Appuyer sur annuler ramène à la fiche pour la création telle qu’elle était au
+  // changement de fiche » ; r-creer : « Il faut que la fiche sélectionnée remplace le contenu vierge (apparition en fondu). Croix à
+  // gauche pour annuler > composition de séance vierge, coche à droite > composition de séance avec l’exercice ») : le mouvement
+  // touché s'affiche par-dessus la fiche de création, conservée dessous. [Demande du 05/11 (soir) : remplacement de la route par
+  // la fiche du mouvement — remplacé.]
+  const [chosen, setChosen] = useState<Movement | null>(null);
+  // Sortie vers la Composition (contexte Séance) : la garde d'abandon est levée avant la navigation (le nom tapé servait à chercher).
+  const [leaving, setLeaving] = useState(false);
+  const isSessionContext = onMovementChosen !== undefined;
   const [pendingDecision, setPendingDecision] = useState<{ readonly decision: MovementSaveDecision; readonly movement: Movement } | null>(null);
   const [isLevelsScreenOpen, setIsLevelsScreenOpen] = useState(false);
   // PRE-8 (B.8) : un Mouvement archivé s'ouvre en consultation seule (ni crayon, ni ajout de niveau),
@@ -338,18 +364,63 @@ export function MovementSheet({
   }, [load]);
 
   const isDirty = draftKey(draft) !== draftKey(initial);
-  const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(isDirty && !isDone && openingMovementId === null, () => {
+  const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(isDirty && !isDone && !leaving, () => {
     service.abandonMediaDraft(mediaDraftId).catch(() => undefined);
+    // r-creer : « Croix à gauche (Annule la création et amène à la composition de séance vide) ».
+    if (isSessionContext) requestFormatsWindowClose();
   });
 
   useEffect(() => {
-    if (isDone) router.back();
-  }, [isDone, router]);
+    if (!isDone) return;
+    if (overlay !== undefined) {
+      overlay.onClose();
+      return;
+    }
+    // r-creer : enregistrée, la fiche ouverte par Exercice libre revient directement à la Composition, avec l'exercice.
+    if (isSessionContext) requestFormatsWindowClose();
+    // m-carte : « Après Appui sur ajouter un niveau et validation d’un nouveau niveau, ne pas revenir sur la fiche précédente mais
+    // sur le catalogue des mouvements » — toutes les fiches de mouvement empilées se retirent.
+    if (returnDepth > 1 && typeof router.dismiss === "function") {
+      router.dismiss(returnDepth);
+      return;
+    }
+    router.back();
+    // `overlay` est stable pendant la vie de la fiche ; seule la fin compte.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDone]);
   useEffect(() => {
-    if (openingMovementId === null) return;
+    if (!leaving) return;
     service.abandonMediaDraft(mediaDraftId).catch(() => undefined);
-    router.replace({ pathname: "/movement", params: { movementId: openingMovementId } });
-  }, [mediaDraftId, openingMovementId, router, service]);
+    router.back();
+  }, [leaving, mediaDraftId, router, service]);
+  const closeSheet = () => {
+    if (overlay !== undefined) {
+      overlay.onClose();
+      return;
+    }
+    // r-creer : la croix de la fiche ouverte par Exercice libre ramène à la Composition (brouillon modifié : après confirmation).
+    if (isSessionContext && !(isDirty && !isDone)) requestFormatsWindowClose();
+    router.back();
+  };
+  const chosenOverlay = (movement: Movement) =>
+    isSessionContext
+      ? {
+          // r-creer : croix → Composition vierge ; coche → Composition avec l'exercice.
+          onClose: () => {
+            requestFormatsWindowClose();
+            setLeaving(true);
+          },
+          validate: {
+            onPress: () => {
+              onMovementChosen?.(movement);
+              requestFormatsWindowClose();
+              setLeaving(true);
+            },
+            accessibilityLabel: t.validate,
+          },
+        }
+      : // m-carte : « Appuyer sur annuler ramène à la fiche pour la création telle qu’elle était ».
+        { onClose: () => setChosen(null) };
 
   const onlyNameEntered = draftKey({ ...draft, name: "", categoryId: null, bodyZoneIds: [] }) === draftKey(EMPTY_DRAFT);
   const searchContext = useMemo(() => ({ categoryId: draft.categoryId, bodyZoneIds: draft.bodyZoneIds }), [draft.categoryId, draft.bodyZoneIds]);
@@ -377,13 +448,13 @@ export function MovementSheet({
     ...(onMovementChosen !== undefined
       ? {
           onSameMovement: (choice: MovementChoice) => {
-            // PRE-9 A.2 : le Mouvement existant devient l'Exercice de la Séance ; aucun doublon.
-            onMovementChosen(choice.movement);
-            setIsDone(true);
+            // PRE-9 A.2 : le Mouvement existant devient l'Exercice de la Séance ; aucun doublon. r-creer : sa fiche s'affiche d'abord
+            // en fondu ; la coche le remet à la Composition.
+            setChosen(choice.movement);
           },
         }
       : {}),
-    ...(onMovementChosen === undefined ? { onOpenMovement: (choice: MovementChoice) => setOpeningMovementId(choice.movement.id) } : {}),
+    ...(onMovementChosen === undefined ? { onOpenMovement: (choice: MovementChoice) => setChosen(choice.movement) } : {}),
     onVariant: onMovementChosen !== undefined ? undefined : (choice, placement) => {
       setSaveError(false);
       setVariant({ originId: choice.movement.id, placement, position: variantLevelPosition(choice.level, placement) });
@@ -512,7 +583,7 @@ export function MovementSheet({
         compact: true,
         onChangeLevel: () => undefined,
         // « Ajouter un niveau » : variante explicite de ce mouvement, avant ou après lui.
-        onAddLevel: isArchived ? null : (placement) => router.push({ pathname: "/movement", params: { variantOf: origin.id, placement } }),
+        onAddLevel: isArchived ? null : (placement) => router.push({ pathname: "/movement", params: { variantOf: origin.id, placement, returnDepth: "2" } }),
         onReorderLevels: () => setIsLevelsScreenOpen(true),
         movementChoice: {
           currentMovementId: origin.id,
@@ -530,9 +601,10 @@ export function MovementSheet({
   // Ordre de Hermann du 01/11/2026 (ch13 CE-T03-08 « Menu Créer — état cible », l.5269) : ouverte par
   // « Créer un exercice » de la Composition (contexte Séance), la fiche porte ce titre et sa
   // confirmation ce libellé ; les autres contextes gardent les leurs.
-  const isSessionContext = onMovementChosen !== undefined;
+  // r-creer (Q2 du 06/11) : « Choisir ou créer un mouvement » pour la fiche ouverte par Exercice libre. [Ordre du 01/11/2026 :
+  // « Créer un exercice » — remplacé.]
   const title =
-    mode === "create" ? (isSessionContext ? t.titles.sessionCreate : t.titles.create) : mode === "edit" ? t.titles.edit : t.titles.consult;
+    mode === "create" ? (isSessionContext ? t.titles.sessionChooseOrCreate : t.titles.create) : mode === "edit" ? t.titles.edit : t.titles.consult;
   const formValue: ActivityEditorFormValue = {
     name: draft.name,
     instructionSteps: draft.instructionSteps,
@@ -545,23 +617,27 @@ export function MovementSheet({
     <ScreenShell>
       <EditorHeader
         title={title}
-        onClose={() => router.back()}
+        onClose={closeSheet}
         accessibilityLabel={t.close}
         trailing={loadState === "ready" && mode === "consult" && !isArchived && !readOnly ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
         {...(readOnly || inSheet ? { topInset: 0 } : {})}
         // Demande de Hermann du 05/11/2026 (soir) : « fiche modifier un mouvement : retirer le bouton d'action en bas, mettre un
         // bouton d'action standard Valider en haut à droite » — coche d'en-tête (§18–§19), même règle d'activation que « Terminer ».
-        {...(loadState === "ready" && mode === "edit" && !readOnly
-          ? {
-              validate: {
-                onPress: () => {
-                  void handleFinish();
+        // Recette du 05/11/2026 au soir (m-valider, Hermann : « En création, retirer le bouton terminer, mettre la Coche valider en
+        // haut ») : aussi en création.
+        {...(overlay?.validate !== undefined
+          ? { validate: { onPress: overlay.validate.onPress, enabled: loadState === "ready", accessibilityLabel: overlay.validate.accessibilityLabel } }
+          : loadState === "ready" && (mode === "edit" || mode === "create") && !readOnly
+            ? {
+                validate: {
+                  onPress: () => {
+                    void handleFinish();
+                  },
+                  enabled: !(isSaving || !isValid || originChoice.nameTaken),
+                  accessibilityLabel: t.validate,
                 },
-                enabled: !(isSaving || !isValid || originChoice.nameTaken),
-                accessibilityLabel: t.validate,
-              },
-            }
-          : {})}
+              }
+            : {})}
       />
       {loadState === "error" ? (
         <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="movement-load-error">
@@ -618,7 +694,7 @@ export function MovementSheet({
           }}
           isFinishDisabled={mode === "consult" || isSaving || !isValid || originChoice.nameTaken}
           errorMessage={saveError ? t.saveError : null}
-          hideFinish={readOnly || mode === "edit"}
+          hideFinish={readOnly || mode === "edit" || mode === "create"}
           {...(onBodyMeasure !== undefined ? { onBodyMeasure } : {})}
           finishSlotTestID="movement-finish-slot"
           finishActionTestID="movement-finish-action"
@@ -641,7 +717,7 @@ export function MovementSheet({
         />
       ) : null}
 
-      {isPendingExit ? <ExerciseExitConfirmModal isCreation={mode === "create"} onCancel={cancelExit} onConfirm={confirmExit} /> : null}
+      {isPendingExit ? <ExerciseExitConfirmModal isCreation={mode === "create"} onCancel={cancelExit} onConfirm={confirmExit} confirmAfterDismiss /> : null}
 
       {pendingDecision !== null && catalogue ? (
         pendingDecision.decision.kind === "CHOICE" ? (
@@ -695,9 +771,31 @@ export function MovementSheet({
           }}
         />
       ) : null}
+
+      {chosen !== null ? (
+        <Reanimated.View
+          entering={reduceMotion ? undefined : FadeIn.duration(CHOSEN_FADE_MS)}
+          exiting={reduceMotion ? undefined : FadeOut.duration(CHOSEN_FADE_MS)}
+          style={[StyleSheet.absoluteFill, styles.chosenOverlay]}
+          testID="movement-chosen-overlay"
+        >
+          <MovementSheet
+            key={chosen.id}
+            movementId={chosen.id}
+            variantOf={null}
+            variantPlacement="AFTER_ORIGIN"
+            inSheet={inSheet}
+            readOnly={isSessionContext}
+            overlay={chosenOverlay(chosen)}
+          />
+        </Reanimated.View>
+      ) : null}
     </ScreenShell>
   );
 }
+
+/** Fondu d'apparition de la fiche d'un mouvement choisi (m-carte, r-creer). */
+const CHOSEN_FADE_MS = 300;
 
 /** Zones corporelles du référentiel persistant (relu à la fermeture de leur feuille). */
 function useBodyZones(refreshToken: number): readonly BodyZone[] {
@@ -755,6 +853,7 @@ function useSilhouette(): Silhouette | null {
 }
 
 const styles = StyleSheet.create({
+  chosenOverlay: { backgroundColor: colors.background },
   loadErrorBody: {
     flex: 1,
     justifyContent: "center",

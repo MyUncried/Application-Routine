@@ -67,6 +67,15 @@ Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partag
 - Effet sur `query`, `catalogueFilters`, `catalogueMode` : `scrollTo({ y: 0 })` du défilement du questionnaire (en mode catalogue, la liste est le premier contenu, sous la zone de recherche).
 - Test : `FormatModelScreen.c3` (s-fond).
 
+## 2 nonies. Fiche de mouvement — recette du 05/11 au soir, groupe C (classe B ; r-libre : correction)
+
+- `MovementSheet` : `validate` d’en-tête en création et en modification, `hideFinish` hors consultation ; titre `titles.sessionChooseOrCreate` en contexte Séance.
+- Carte touchée → `chosen` : `MovementSheet` imbriquée (`overlay`) dans un calque `FadeIn` 300 ms (`movement-chosen-overlay`) ; Séance : `readOnly`, croix → `requestFormatsWindowClose()` + retour, coche → `handMovementsToComposition` + idem ; Catalogue : croix → `setChosen(null)`, fin d’édition → retour à la création.
+- `movementExercises.requestFormatsWindowClose` / `takeFormatsWindowCloseRequest` (consommé une fois) remplace `hasMovementsHandedToComposition` dans `formats-window` (évite un double retour qui retirait la Composition — cause plausible du retour au Catalogue des séances, non démontrée sur iPhone).
+- Menu Niveau → `/movement?variantOf…&returnDepth=2` ; enregistré : `router.dismiss(2)`.
+- r-libre : `DecisionDialog.confirmAfterDismiss` (opt-in, `ExerciseExitConfirmModal` de la fiche) — confirmation rendue à `onDismiss` du `Modal` iOS ou après 350 ms. Hypothèse (non démontrée) : la feuille native ne se retirait pas pendant la fermeture du dialogue.
+- Tests : `MovementScreen.b2.integration` (+4), `formatsWindowRoute`, `DecisionDialog.confirmAfterDismiss` (2), `CompositionMovementFlow` et `ExerciseRecovery` (parcours réels).
+
 ## 3. Documents dépendants (à propager dans `main`)
 
 Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).

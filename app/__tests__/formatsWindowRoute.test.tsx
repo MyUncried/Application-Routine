@@ -3,7 +3,7 @@ import { render } from "@testing-library/react-native";
 import type { ComponentType } from "react";
 
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
-import { handMovementsToComposition, takeMovementsHandedToComposition } from "@/features/sessions/movementExercises";
+import { requestFormatsWindowClose, takeFormatsWindowCloseRequest, takeMovementsHandedToComposition } from "@/features/sessions/movementExercises";
 import { SessionDraftContext, type SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 
 /**
@@ -54,6 +54,7 @@ describe("modale « Créer un exercice » (recette du 05/11)", () => {
     focusEffects.length = 0;
     windowProps = null;
     takeMovementsHandedToComposition();
+    takeFormatsWindowCloseRequest();
   });
 
   it("Exercice libre : la fiche s'ouvre par-dessus la modale, sans la refermer", () => {
@@ -64,12 +65,15 @@ describe("modale « Créer un exercice » (recette du 05/11)", () => {
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/movement", params: { context: "session" } });
   });
 
-  it("fiche validée : au retour, la modale se retire ; fiche annulée : la modale reste", () => {
+  // Recette du 05/11/2026 au soir (r-creer) : la fiche demande le retrait de la modale (coche, ou croix vers la Composition vide) ;
+  // signal consommé une seule fois — un second passage au premier plan ne retire pas la Composition.
+  it("fiche validée ou croix vers la Composition : au retour, la modale se retire une seule fois ; balayage de la fiche : la modale reste", () => {
     mockRoutes = [{ name: "composition" }, { name: "formats-window" }];
     renderRoute();
     focusEffects[focusEffects.length - 1]!();
     expect(mockBack).not.toHaveBeenCalled();
-    handMovementsToComposition([{ id: "mv-1" } as never]);
+    requestFormatsWindowClose();
+    focusEffects[focusEffects.length - 1]!();
     focusEffects[focusEffects.length - 1]!();
     expect(mockBack).toHaveBeenCalledTimes(1);
   });

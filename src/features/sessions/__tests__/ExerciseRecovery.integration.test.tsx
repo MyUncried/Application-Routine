@@ -148,6 +148,11 @@ async function useExistingMovement(name: string, id: string) {
     fireEvent.press(result);
   });
   await settle(300);
+  // Recette du 05/11/2026 au soir (r-creer) : la fiche du mouvement choisi s'affiche ; sa coche le remet à la Composition.
+  await act(async () => {
+    fireEvent.press(within(await screen.findByTestId("movement-chosen-overlay")).getByTestId("screen-header-validate"));
+  });
+  await settle(300);
 }
 
 const cardLabel = (name: string) =>

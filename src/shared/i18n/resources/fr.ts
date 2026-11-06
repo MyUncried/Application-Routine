@@ -1515,6 +1515,9 @@ export const fr = {
         // Ordre de Hermann du 01/11/2026, ch13 CE-T03-08 et l.5269 : écran ouvert par « Créer un
         // exercice » depuis le menu Créer de la Composition.
         sessionCreate: "Créer un exercice",
+        // Recette du 05/11/2026 au soir (r-creer, Hermann : « Le titre de la modale doit être « Choisir ou créer un mouvement » ») ;
+        // Q2 du 06/11 : « ok, je regarderai à l’usage ». Remplace « Créer un exercice » pour la fiche ouverte par Exercice libre.
+        sessionChooseOrCreate: "Choisir ou créer un mouvement",
       },
       finish: "Terminer",
       // Même source : confirmation du mouvement en contexte Séance (les autres contextes gardent « Terminer »).

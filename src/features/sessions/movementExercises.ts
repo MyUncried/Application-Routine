@@ -49,6 +49,23 @@ export function handMovementsToComposition(movements: readonly Movement[]): void
   handedMovements = movements.length > 0 ? [...movements] : null;
 }
 
+/**
+ * Recette du 05/11/2026 au soir (r-creer, Hermann) : la fiche ouverte par « Exercice libre » revient directement à la Composition
+ * (coche : avec l'exercice ; croix : Composition vide) — la modale « Créer un exercice » restée dessous se retire à son retour au
+ * premier plan. Signal consommé une seule fois : un second passage au premier plan ne referme rien de plus.
+ */
+let formatsWindowCloseRequested = false;
+
+export function requestFormatsWindowClose(): void {
+  formatsWindowCloseRequested = true;
+}
+
+export function takeFormatsWindowCloseRequest(): boolean {
+  const requested = formatsWindowCloseRequested;
+  formatsWindowCloseRequested = false;
+  return requested;
+}
+
 /** Lecture (sans consommation) : des Mouvements attendent la Composition. */
 export function hasMovementsHandedToComposition(): boolean {
   return handedMovements !== null;
