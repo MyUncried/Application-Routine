@@ -255,6 +255,8 @@ const executionParameters = {
     lastTourHint: "Dernier exercice de la boucle : passez d’abord un autre exercice en Tour.",
     incrementPerRound: "Incrément par tour",
     incrementPerInterval: "Incrément par intervalle",
+    // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : valeur du champ Séries d'un Death by autonome.
+    seriesUntilFailure: "Jusqu’à l’échec",
     repetitionsUnit: "rép.",
     interval: "Intervalle",
     duration: "Durée de l’exercice",

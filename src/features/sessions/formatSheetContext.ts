@@ -65,7 +65,8 @@ export function formatSheetContextOf(
       break;
     }
     case "DEATH_BY":
-      if (carrier === undefined) rows.push("interval", "increment", "stopImposed");
+      // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : Séries « Jusqu'à l'échec » pour l'Exercice autonome ; aucune ligne Séries dans un Circuit porteur.
+      if (carrier === undefined) rows.push("seriesUntilFailure", "interval", "increment", "stopImposed");
       else if (carrier.nature === "SERIES") rows.push("interval", "increment", "stopImposed");
       else rows.push("increment", "stopImposed");
       break;

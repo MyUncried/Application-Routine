@@ -110,12 +110,32 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
   });
 
   it("Death by : Incrément par intervalle et Intervalle dans le cadre Séries ; plus de ligne « Condition d'arrêt » séparée, À l'objectif grisé", () => {
-    renderSheet("DEATH_BY", ["interval", "increment", "stopImposed"], { intervalSeconds: 60, incrementPerRound: 1 });
+    renderSheet("DEATH_BY", ["seriesUntilFailure", "interval", "increment", "stopImposed"], { intervalSeconds: 60, incrementPerRound: 1 });
     const series = get("execution-sheet-frame-series");
     expect(within(series).getByText(f.incrementPerInterval, hidden)).toBeTruthy();
     expect(within(series).getByText(f.interval, hidden)).toBeTruthy();
     expect(query("execution-sheet-format-stop-row")).toBeNull();
     expect(screen.getByLabelText(strings.executionParameters.sheet.stopConditions.TARGET).props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("Death by autonome (Figma `8598:31210`) : À l'échec imposé dès l'ouverture, Séries « Jusqu'à l'échec », Nombre de répétitions, ni Pause ni Durée de l'exercice", () => {
+    renderSheet("DEATH_BY", ["seriesUntilFailure", "interval", "increment", "stopImposed"], { intervalSeconds: 60, incrementPerRound: 1 });
+    expect(screen.getByLabelText(strings.executionParameters.sheet.stopConditions.FAILURE).props.accessibilityState).toMatchObject({ selected: true });
+    const series = get("execution-sheet-frame-series");
+    expect(within(series).getByText(f.seriesUntilFailure, hidden)).toBeTruthy();
+    expect(query("execution-sheet-row-target")).not.toBeNull();
+    expect(query("execution-sheet-row-pause")).toBeNull();
+    expect(query("execution-sheet-row-total")).toBeNull();
+    expect(within(get("execution-sheet-frame-cadence")).queryByText(strings.executionParameters.sheet.exerciseDuration, hidden)).toBeNull();
+  });
+
+  it("Death by dans chaque intervalle (Figma `11373:20396`) : ni ligne Séries ni Intervalle ; Nombre de répétitions et Incrément par intervalle", () => {
+    renderSheet("DEATH_BY", ["increment", "stopImposed"], { incrementPerRound: 1 });
+    expect(query("execution-sheet-row-series-type")).toBeNull();
+    expect(query("execution-sheet-format-interval-row")).toBeNull();
+    expect(query("execution-sheet-row-target")).not.toBeNull();
+    expect(query("execution-sheet-format-increment-row")).not.toBeNull();
+    expect(query("execution-sheet-row-pause")).toBeNull();
   });
 
   it("For time dans un circuit : Rôle à trois options ; Durée de l'exercice héritée du Circuit, grisée, à sa place unique", () => {

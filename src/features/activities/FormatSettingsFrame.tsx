@@ -19,7 +19,8 @@ import type { CircuitRole, ElementFormatKey, FormatSettings } from "@/domain/ses
  * message, cadre rouge, ✓ indisponible (seuil inclusif).
  */
 
-export type FormatSheetRow = "role" | "increment" | "interval" | "duration" | "timeCap" | "inheritedCap" | "stopImposed";
+/** `seriesUntilFailure` : Death by autonome — Séries « Jusqu'à l'échec » (Variables grisé), Formats §12 et §14. */
+export type FormatSheetRow = "role" | "increment" | "interval" | "duration" | "timeCap" | "inheritedCap" | "stopImposed" | "seriesUntilFailure";
 
 export type FormatSheetContext = {
   readonly key: ElementFormatKey;

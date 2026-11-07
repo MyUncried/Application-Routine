@@ -623,9 +623,13 @@ export function ExecutionParametersSheet({
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
-  const [draft, setDraft] = useState<ExecutionSheetDraft>(() =>
-    openSheetDraft(parent, { inheritedSeriesCount, ...(nextPhaseId !== undefined ? { nextPhaseId } : {}) }),
-  );
+  const [draft, setDraft] = useState<ExecutionSheetDraft>(() => {
+    const opened = openSheetDraft(parent, { inheritedSeriesCount, ...(nextPhaseId !== undefined ? { nextPhaseId } : {}) });
+    // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : Condition d'arrêt À l'échec imposée au Death by — appliquée dès l'ouverture.
+    return format?.rows.includes("stopImposed") && stopConditionOf(effectiveParameters(opened)) !== "FAILURE"
+      ? setStopCondition(opened, "FAILURE")
+      : opened;
+  });
   // PRE-7 (A2.1) : verrou de structure lu à l'ouverture, comme N hérité.
   const [structureLocked] = useState(phaseStructureLocked);
   /**
@@ -843,7 +847,13 @@ export function ExecutionParametersSheet({
   // AD-23 : seule autorité de la Condition d'arrêt, sur l'état effectif.
   const stopCondition = stopConditionOf(effective);
   // FR-21 : en identiques à l'échec, la ligne de cible (Durée ou Répétitions) est masquée.
-  const uniformTargetShown = !showVariableTable && stopCondition !== "FAILURE";
+  // Death by (Formats §12, « Condition d'arrêt Death by ») : ne pas appliquer ce masquage — Nombre de répétitions
+  // (objectif de départ) visible à l'échec.
+  const deathBySheet = format?.key === "DEATH_BY";
+  const uniformTargetShown = !showVariableTable && (stopCondition !== "FAILURE" || deathBySheet);
+  // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : ni Pause après chaque série (remplacée par l'Intervalle), ni Durée de l'exercice (mesurée à
+  // l'exécution) ; ligne Séries « Jusqu'à l'échec » pour l'Exercice autonome, absente dans un Circuit porteur.
+  const deathBySeriesRow = deathBySheet ? (format?.rows.includes("seriesUntilFailure") ?? false) : true;
   // Q40 : jamais deux surlignages — le tableau n'est pas surligné tant qu'une surface hors
   // tableau est ouverte.
   // PRE-5 story 2.2, D-434 : le clavier d'une cellule (Cible, Pause, Charge) est une surface
@@ -1637,7 +1647,7 @@ export function ExecutionParametersSheet({
     ...(hasWorkPhases && !structureLocked ? [scalarKeyboardField("phaseCount")] : []),
     ...(draft.inheritedSeriesCount ? [] : [scalarKeyboardField("count")]),
     ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
-    ...(showVariableTable ? [] : [scalarKeyboardField("pause")]),
+    ...(showVariableTable || deathBySheet ? [] : [scalarKeyboardField("pause")]),
     ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
     ...(formatShown("interval") ? [scalarKeyboardField("formatInterval")] : []),
     ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
@@ -1647,7 +1657,7 @@ export function ExecutionParametersSheet({
       ? [scalarKeyboardField("formatDuration")]
       : formatShown("timeCap")
         ? [scalarKeyboardField("formatTimeCap")]
-        : !formatShown("inheritedCap") && totalEntrySeconds !== undefined
+        : !formatShown("inheritedCap") && !deathBySheet && totalEntrySeconds !== undefined
           ? [scalarKeyboardField("total")]
           : []),
     ...(signalsShown ? [scalarKeyboardField("countdown"), scalarKeyboardField("end")] : []),
@@ -2680,6 +2690,23 @@ export function ExecutionParametersSheet({
                     ]}
                     testID="execution-sheet-variable-group"
                   >
+                    {!deathBySeriesRow ? null : deathBySheet ? (
+                      <Row label={t.seriesType} testID="execution-sheet-row-series-type">
+                        <SegmentedControl<"VARIABLE" | "UNTIL_FAILURE">
+                          variant="inline"
+                          readOnly
+                          optionWidth={INLINE_OPTION_WIDTHS.wide}
+                          options={[
+                            { value: "VARIABLE", label: t.seriesTypes.VARIABLE, disabled: true },
+                            { value: "UNTIL_FAILURE", label: formatT.seriesUntilFailure },
+                          ]}
+                          value="UNTIL_FAILURE"
+                          onChange={ignorePress}
+                          accessibilityLabel={t.seriesType}
+                          testID="execution-sheet-series-until-failure"
+                        />
+                      </Row>
+                    ) : (
                     <Row label={t.seriesType} testID="execution-sheet-row-series-type">
                       {single ? (
                         // P16, T23 : l'information non modifiable (Variables indisponible) absorbe
@@ -2692,6 +2719,7 @@ export function ExecutionParametersSheet({
                         seriesTypeControl
                       )}
                     </Row>
+                    )}
                     {/* Story 3.6 (AC1) : le tableau suit la grille à cellules du DSF du 12/10,
                         sans retrait x52 : il commence au bord des lignes de premier niveau. */}
                     {/* Contre-recette iPhone du 30/10 (Hermann) : aucun séparateur entre la ligne
@@ -2731,7 +2759,7 @@ export function ExecutionParametersSheet({
                    */}
                   {uniformTargetShown && (effective.mode === "DURATION" || effective.mode === "REPETITIONS") ? (
                     <>
-                      <Separator />
+                      {deathBySeriesRow ? <Separator /> : null}
                       <Row
                         label={effective.mode === "DURATION" ? t.durationGoal : t.repetitionsTarget}
                         labelNode={
@@ -2751,7 +2779,7 @@ export function ExecutionParametersSheet({
                       </Row>
                     </>
                   ) : null}
-                  {!showVariableTable ? (
+                  {!showVariableTable && !deathBySheet ? (
                     <>
                       <Separator />
                       <Row label={t.pause} selected={isOpen(scalarSurface("pause"))} testID="execution-sheet-row-pause">
@@ -2906,7 +2934,9 @@ export function ExecutionParametersSheet({
                     {cadenceControl}
                   </Row>
 
-                  {/* D-433 : ligne « Durée de l'exercice » toujours présente, même place. */}
+                  {/* D-433 : ligne « Durée de l'exercice » toujours présente, même place. [Sauf Death by : absente,
+                      mesurée à l'exécution — Formats §12, recette iPhone du 07/11/2026.] */}
+                  {deathBySheet ? null : (
                   <>
                     <Separator />
                     {formatDurationRow ?? (
@@ -2947,6 +2977,7 @@ export function ExecutionParametersSheet({
                     )}
                     {adjustment?.kind === "total" ? adjustmentMessage : null}
                   </>
+                  )}
 
                   {/* PRE-5 story 2.5 (AC4) : repliés, Compte à rebours et Fin ne sont pas rendus ;
                       leurs valeurs restent dans le Brouillon. */}
