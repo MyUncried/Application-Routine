@@ -43,6 +43,8 @@ jobs:
         run: node scripts/catalogue/validate-taxonomy.mjs
       - name: Run Node catalogue tests
         run: node --test scripts/catalogue/__tests__/validate-pilot-corpus.test.mjs scripts/catalogue/__tests__/validate-taxonomy.test.mjs
+      - name: Check local admin JavaScript syntax
+        run: node --check tools/catalogue-admin/app.js && node --check tools/catalogue-admin/server.mjs && node --check tools/catalogue-admin/drafts.mjs
       - name: Run local admin API and security tests
         run: node --test tools/catalogue-admin/server.test.mjs
       - name: Run Jest catalogue tests
