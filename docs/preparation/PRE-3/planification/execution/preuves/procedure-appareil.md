@@ -55,7 +55,7 @@ Opération #340. Cette procédure ne porte **que** sur ce qui ne peut pas être 
 
 ## D. Non-régressions perceptibles
 
-Profil : stepper inchangé (maintien ~0,45 s, pas de 1). Catalogue et Composition : cartes inchangées hors « N séries variables » et symboles ≈ / ≥.
+Profil : stepper inchangé (maintien ~0,45 s, pas de 1). Catalogue et Composition : cartes inchangées hors « N séries variables » et symboles ≈ / ≥. **Remplacé le 07/11/2026 pour la carte d’exercice en Composition (D-515)** : seule la prescription figure à droite en ligne 2, sans durée estimée.
 
 ## Compte rendu attendu
 

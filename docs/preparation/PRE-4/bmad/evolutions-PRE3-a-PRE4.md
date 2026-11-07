@@ -26,7 +26,7 @@
 | Données et migration | Modifié | Une valeur ancienne hors bornes (5999 s, 150 rép.) est conservée et affichée telle quelle tant qu’on ne la modifie pas. | Fonctionnel | 1.1 ; Q21, H25 |
 | Données et migration | Modifié | Copies, duplications et Instantanés conservent à l’identique les Cibles, Pauses, Zones et Médias, sans partage d’objets entre Copie et source. | Technique | 1.3 |
 | Calculs, durées et phrases | Ajouté | Une Phrase est produite pour un mélange de Cibles, par exemple « 3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec) ». Elle se compacte au-delà de 3 Cibles. | Fonctionnel | 2.3 ; Q16 |
-| Calculs, durées et phrases | Ajouté | Un mélange affiche une durée partielle précédée de « ≥ », dans la Feuille, la Carte, le Catalogue et Composition. | Fonctionnel | 2.1, 2.4, 3.7 ; Q17 |
+| Calculs, durées et phrases | Ajouté | Un mélange affiche une durée partielle précédée de « ≥ », dans la Feuille, la Carte, le Catalogue et Composition. | Fonctionnel | 2.1, 2.4, 3.7 ; Q17 **Remplacé le 07/11/2026 pour la carte d’exercice en Composition (D-515)** : seule la prescription figure à droite en ligne 2, sans durée estimée. |
 | Calculs, durées et phrases | Modifié | La carte d’un Exercice dont toutes les Cibles sont à l’échec affiche « 3 séries à l’échec » au lieu de « 3 séries jusqu’à l’échec ». | Fonctionnel | 2.4 ; Q24 |
 | Calculs, durées et phrases | Modifié | Le total partiel de Composition s’affiche en minutes et secondes exactes (« ≥ 1 min 45 s »), et non plus arrondi à la minute (« ≥ 2 min »). | Fonctionnel | 2.4 ; Q20 |
 | Calculs, durées et phrases | Modifié | Un formateur de durée unique s’applique partout : 60 s s’affiche « 1 min », par exemple pour le Compte à rebours et la Fin sur la Carte. | Fonctionnel, Technique | 2.2 |

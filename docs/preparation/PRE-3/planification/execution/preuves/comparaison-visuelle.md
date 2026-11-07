@@ -82,4 +82,4 @@ Opération #340 · branche `feat/pre3-exercice-20261009` · développeur : Claud
 
 ## Hors comparaison
 
-Écrans d'exécution (hors PRE-3), cartes Catalogue/Composition (adaptation minimale uniquement : « N séries variables », symboles exact/≈/≥), Profil (inchangé).
+Écrans d'exécution (hors PRE-3), cartes Catalogue/Composition (adaptation minimale uniquement : « N séries variables », symboles exact/≈/≥), Profil (inchangé). **Remplacé le 07/11/2026 pour la carte d’exercice en Composition (D-515)** : seule la prescription figure à droite en ligne 2, sans durée estimée.

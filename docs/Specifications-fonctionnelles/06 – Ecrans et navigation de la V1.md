@@ -2810,7 +2810,7 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 
 ##### La règle
 
-**La carte affiche le volume de l'exercice.** Les valeurs séparées par un point médian quand les séries varient, la forme courte sinon. L'unité est en fin d'énoncé.
+**La carte affiche le volume de l'exercice.** En Composition, à droite de la catégorie, la ligne 2 affiche uniquement la prescription (nombre de séries et cible). Une durée prescrite s’affiche, par exemple « 3 × 45 s ». Une cible « à l’échec » s’écrit sans durée, par exemple « 3 séries à l’échec ». Les estimations (≥ ou ≈) figurent uniquement dans les en-têtes de Circuit, de Cycle et de Séance. Les valeurs séparées par un point médian quand les séries varient, la forme courte sinon. L'unité est en fin d'énoncé.
 
 | cas | affichage | statut |
 |---|---|---|
