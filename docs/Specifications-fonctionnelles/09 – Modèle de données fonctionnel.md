@@ -1,5 +1,7 @@
 # Modèle de données fonctionnel
 
+> **Classement des 60 candidats — proposition du 07/11/2026.** [Matrice de revue](../../catalogue/referentiels/REVUE-preclassement-60-2026-11-07.md) : Catégorie KODJO unique, Zones existantes et associations multivaluées de la taxonomie V0 ; aucune persistance SQLite et aucune propriété obligatoire nouvelle sur les Mouvements du MVP. Le catalogue original et les brouillons avec médias sont préservés.
+
 La [galerie média éditoriale statique](../../tools/catalogue-admin/static-ovh/README.md) stocke uniquement dans le **JSON exporté de brouillons** des métadonnées de photo/vidéo et, pour les photos locales optimisées, une donnée image intégrée. Les vidéos sont des URLs HTTPS. Cette donnée de brouillon n'est pas persistée dans la SQLite utilisateur et n'ajoute aucune propriété obligatoire au modèle `Movement`.
 
 > **Brouillons d'administration — raccordement du 07/11/2026.** [Contrat d'outil local](../../tools/catalogue-admin/README.md) : `catalogue/admin/brouillons.json` porte séparément les éditions de fiches candidates, ajouts/renommages de valeurs proposées et termes du glossaire de contenu. Les sources `catalogue/pilote` et `catalogue/referentiels` sont lues sans écriture. Les propriétés ne sont pas ajoutées à `Movement.ts` ou SQLite ; aucun attribut nouveau n'est requis pour les objets utilisateur. `publicationAllowed=false` reste obligatoire.
