@@ -1,5 +1,7 @@
 # PRODUCT — KODJO
 
+**Médias dans l'administration du catalogue — 07/11/2026.** [Version statique pour OVH](../tools/catalogue-admin/static-ovh/README.md) : galerie optionnelle de photos et liens vidéo, avec source, attribution et droits ; export de brouillons sur l'appareil, sans mise en ligne des médias, sans développement du moteur et hors produit mobile MVP.
+
 > **Administration du référentiel — outil interne local (07/11/2026).** [Démarrage et périmètre](../tools/catalogue-admin/README.md) : édition de brouillons de fiches, valeurs de classification proposées et glossaire, sans publication ni altération des Mouvements/Exercices utilisateurs. Outil distinct des écrans du MVP et du moteur d'exécution.
 
 > **Classification du catalogue administré — 07/11/2026.** La Catégorie KODJO tient lieu d'Objectif principal ; Spécialité multivaluée, Famille gestuelle, Problème traité et Cible anatomique sont des axes complémentaires en [taxonomie V0 proposée](../catalogue/referentiels/README.md). Les valeurs et mappings ne sont pas validés pour publication, et ni l'application mobile ni le moteur ne changent.
