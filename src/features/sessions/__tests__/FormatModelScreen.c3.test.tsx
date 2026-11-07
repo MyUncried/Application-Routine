@@ -746,9 +746,10 @@ describe("FormatModelScreen", () => {
     await pick("Fen", "mv-fentes", "format-loop");
     expect(within(screen.getByTestId("format-buy-out-cards")).getAllByText("Fentes avant")).toHaveLength(1);
     toSummary();
-    // Buy-in et buy-out : une case (une seule exécution).
+    // Buy-in et buy-out : une case (une seule exécution) — buy-in au premier tour, buy-out au dernier (y-format-cadres, 07/11/2026).
     fireEvent.changeText(screen.getByTestId("format-for-time-0-0"), "50");
-    fireEvent.changeText(screen.getByTestId("format-for-time-3-0"), "20");
+    expect(screen.queryByTestId("format-for-time-3-0")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("format-for-time-3-2"), "20");
     expect(screen.queryByTestId("format-for-time-0-1")).toBeNull();
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));

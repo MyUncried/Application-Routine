@@ -294,3 +294,75 @@ describe("d-nonreg / t-glisser (recette du 06/11 au soir) : aucun glissement de 
     expect(StyleSheet.flatten(frame("jump").props.style).zIndex).toBeGreaterThan(StyleSheet.flatten(frame("squat").props.style).zIndex as number);
   });
 });
+
+describe("y-pile (recette iPhone du 07/11) : dans une pile ouverte, les cartes s'écartent au passage, sans arrêt", () => {
+  beforeEach(() => {
+    // « Réduire les animations » : décalages appliqués aussitôt.
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+  });
+
+  it("entrée dans une pile dépliée (C2) : place ouverte dès le survol de chaque membre, relâchée aussitôt à la bonne place, carte présente", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.create(movement("tirage", "Tirage"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await repository.createVariant(movement("jump", "Squats sautés"), "squat", "AFTER_ORIGIN");
+    await renderList();
+    const group = (await movements().findById("squat"))!.levelGroup!.groupId;
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-card-jump-card"));
+    });
+    await settle();
+    // Pile dépliée (0 à 240 : « jump » 0-72, « squat » 76-148, « assist » 152-224, + 12), « Tirage » dessous (240 à 324, carte de 72, centre 276).
+    await act(async () => {
+      fireEvent(screen.getByTestId(`movement-item-${group}`), "layout", layoutEvent(0, 240));
+      ["jump", "squat", "assist"].forEach((id, index) =>
+        fireEvent(screen.getByTestId(`movement-pile-${group}-member-${id}`), "layout", layoutEvent(index === 0 ? 0 : index * 76 - 4, index === 0 ? 72 : 76)),
+      );
+      fireEvent(screen.getByTestId("movement-item-tirage"), "layout", layoutEvent(240, 84));
+    });
+    jest.useFakeTimers();
+    await grab("tirage");
+    // Moitié basse de « assist » (152 à 224 ; centre porté 192) : place ouverte sous elle, aucun membre décalé — sans attendre.
+    moveBy(-84);
+    expect(translateY("movement-card-assist-slot")).toBe(0);
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(36 - 76);
+    // Moitié haute de « assist » : « assist » descend d'un pas, aussitôt.
+    moveBy(-110);
+    expect(translateY("movement-card-assist-slot")).toBe(76);
+    expect(translateY("movement-card-squat-slot")).toBe(0);
+    // Moitié haute de « squat » (76 à 148 ; centre porté 96) : « squat » et « assist » décalés, aussitôt.
+    moveBy(-180);
+    expect(translateY("movement-card-squat-slot")).toBe(76);
+    expect(translateY("movement-card-assist-slot")).toBe(76);
+    expect(translateY("movement-card-jump-slot")).toBe(0);
+    // Niveaux provisoires annoncés sans arrêt.
+    expect(screen.getByTestId("movement-card-level-tirage").props.children).toBe("Niveau 3");
+    // Relâchée sans s'arrêter : entrée à la place annoncée.
+    act(() => {
+      fireEvent(items(), "touchEnd", { nativeEvent: { pageX: 100, pageY: 0 } });
+    });
+    jest.useRealTimers();
+    await settle();
+    expect(screen.getByTestId("movement-catalogue-notice-message").props.children).toBe("Mouvement ajouté à la famille");
+    expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "squat", "tirage", "jump"]);
+    // d-nonreg : la carte déposée est affichée dans la pile, à sa place.
+    expect(screen.getByTestId(`movement-pile-${group}-member-tirage`)).toBeTruthy();
+  });
+
+  it("former une famille sur une carte sans famille (C1) attend toujours l'arrêt de 0,4 s", async () => {
+    await seedThree();
+    await renderList();
+    await layOut(["fentes", "gainage", "mob"]);
+    jest.useFakeTimers();
+    await grab("mob");
+    moveBy(-110);
+    expect(rail("gainage")).toBeNull();
+    expect(translateY("movement-card-gainage-slot")).toBe(0);
+    advance(PLACE_DWELL_MS);
+    expect(rail("gainage")).toBeTruthy();
+    act(() => {
+      fireEvent(items(), "touchCancel", { nativeEvent: { pageX: 100, pageY: 0 } });
+    });
+  });
+});

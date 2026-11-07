@@ -448,7 +448,10 @@ function deathBySummary(summary: string, facts: Pick<ExerciseRowSummaryFacts, "e
   if (facts.format?.key !== "DEATH_BY" || isIncompleteSummary(summary)) return summary;
   const parameters = facts.executionParameters;
   const first = seriesRowsOf(parameters)[0]?.target;
-  if (first === undefined || first.kind !== "NUMBER") return summary;
+  // Recette iPhone du 07/11/2026 (y-format-cadres, Hermann : « Death by : j'accède au format, il manque la valeur initiale de l'objectif,
+  // mais ni le circuit, ni l'exercice n'étaient rouge ») : sans objectif de départ (non renseigné ou « à l'échec »), l'Exercice est à
+  // compléter — son Circuit aussi.
+  if (first === undefined || first.kind !== "NUMBER") return strings.executionParameters.card.incomplete;
   const setting = facts.format.settings.incrementPerRound;
   const increment = typeof setting === "number" ? setting : 1;
   return strings.screens.composition.occurrenceCard.deathBy

@@ -117,6 +117,8 @@ export function keyboardFieldOrder(
   phasesVisible = false,
   active: KeyboardFieldId | null = null,
   outside: readonly KeyboardFieldId[] = [],
+  /** EMOM (y-format-cadres, 07/11/2026) : tableau sans colonne Pause. */
+  withPause = true,
 ): readonly KeyboardFieldId[] {
   // PRE-5 story 2.8 (D-434) : durée de phase active — seules les durées des phases, dans
   // l'ordre du tableau déployé (jamais un libellé ni une charge).
@@ -133,7 +135,7 @@ export function keyboardFieldOrder(
   const withTarget = effectiveParameters(draft).mode !== null;
   return draft.rowIds.slice(0, draft.rows.length).flatMap((row): KeyboardFieldId[] => [
     ...(withTarget ? [{ kind: "rowTarget", row } as const] : []),
-    { kind: "rowPause", row },
+    ...(withPause ? [{ kind: "rowPause", row } as const] : []),
     ...(draft.loadEnabled ? [{ kind: "load", row } as const] : []),
   ]);
 }

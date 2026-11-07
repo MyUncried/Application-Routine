@@ -506,3 +506,48 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - `npx jest src/features/sessions src/features/activities` : 159 suites, 2 610 tests, verts.
 - Après correction des deux erreurs de lint (`FormatTables.tsx`) : suites Formats, `FormatModelScreen` et `CarrierDurationSheet` relancées, 102 / 102.
 - iPhone : rien vérifié (rendu, mesure des largeurs, animation du décalage, hauteur 24 au texte agrandi).
+
+## Recette iPhone du 07/11/2026 — premiers écarts (y-format-cadres, y-pile) et clavier de la Composition
+
+- **Objectif** : corriger les premiers écarts notés par Hermann au cahier de recette le 07/11/2026 (y-format-cadres, y-pile), remplacer les roulettes du Compte à rebours initial et de la Fin de séance de la Composition par le clavier (demande en conversation), agrandir les zones de texte du cahier de recette sur mobile.
+- **Branche** : `feat/pre9-catalogues-cartes-badge-20261106` (PR #420, non fusionnée). **Commit de départ** : `c8fe2857`.
+- **Sources** : notes y-format-cadres et y-pile et demande du clavier recopiées mot pour mot dans ch07, section « Recette iPhone du 07/11/2026 — premiers écarts (y-format-cadres, y-pile) et clavier de la Composition ».
+
+### Constats et corrections
+
+| Écart | Constat | Correction | Classe |
+|---|---|---|---|
+| For time Buy-in / Buy-out | Lignes Séries et Pause après chaque série affichées | Masquées pour ces rôles (suivent le Rôle choisi dans la feuille) ; valeurs conservées | B |
+| Récapitulatif For time | Case du buy-out au premier tour | Case au dernier tour, valeur toujours la seule du mouvement (même clé de clavier) | B |
+| Death by, feuille | À l'ouverture, `setStopCondition(FAILURE)` remplaçait l'objectif de départ par « à l'échec » (06224da1) | À l'échec affiché imposé sans toucher l'objectif ; un objectif déjà converti reprend sa dernière valeur, sinon à renseigner | A (Formats §12) |
+| Death by, Composition | Objectif « à l'échec » : synthèse « 1 série à l'échec », ni carte ni Circuit en rouge | Sans objectif de départ numérique : « Paramètres à compléter », Circuit en rouge | A |
+| EMOM, séries variables | Colonne Pause dans le tableau de la feuille | Colonne retirée, Cible et Charge réparties, Suivant/Précédent sans Pause | B |
+| Tableau AMRAP (récapitulatif) | Largeur commune à toutes les colonnes (Max compris) : le nom du mouvement n'avait plus de place | Largeur propre à chaque colonne (plus large champ, au moins 56) ; Max à 32, calé à droite ; même règle pour Death by, Tabata, 30/30, Renforcement, À l'échec | B |
+| AMRAP membre (Tour, Buy-in) | Séries, Pause, Durée de l'exercice affichées | Masquées ; Buy-in : Récupération grisée « 0 s », appliquée à 0 s | B |
+| Ordre des options (point 2) | Ordre fixe dans le code, conforme à la liste de Hermann ; aucune inversion trouvée | Rien modifié ; capture demandée | C |
+| Point 4 (Phases, Charge) | Règles PRE-7 A2.1 / D-438 (structure verrouillée) et PRE-5 story 2.7 (AD-28) | Réponses consignées dans ch07, sans correction | — |
+| y-pile | L'arrêt de 0,4 s s'appliquait aussi à l'entrée dans une pile ouverte (C2) | Entrée dans une pile ouverte immédiate ; arrêt conservé pour former une famille (C1) | B (interprétation à confirmer) |
+| Composition, bornes | Compte à rebours initial et Fin de séance en roulette (`NumberWheelPicker` dans `WheelPickerOverlay`) | Saisie au clavier (`CarrierDurationSheet`, bornes 0..60 s, case vidée = valeur gardée) | B (« la pause » comprise comme Fin de séance, à confirmer) |
+
+### Fichiers modifiés
+
+- `src/features/activities/ExecutionParametersSheet.tsx`, `useSheetKeyboard.ts`, `MovementCatalogueList.tsx` (agent délégué, relu).
+- `src/features/sessions/FormatTables.tsx`, `compositionPresentation.ts`, `CompositionScreen.tsx`, `CarrierDurationSheet.tsx`.
+- Tests : `ExecutionParametersSheet.format0711.test.tsx` (+5), `MovementCatalogueList.r0611.test.tsx` (+2), `formats.recette0611.test.tsx` et `FormatModelScreen.c3.test.tsx` (règles remplacées), `CompositionScreen.test.tsx` (tests des roulettes réécrits pour le clavier ou retirés : 4 tests T01-S09 point D retirés, 10 tests D-06 / R4-09 / REWORK08-B remplacés par 4 tests clavier).
+- Docs : ch07 (section du 07/11 au soir ; annotations de la section « Homogénéité des tableaux », de la règle t-glisser et de D-443).
+- Cahier de recette (artefact) : zones de texte agrandies sur mobile, points de cette livraison ajoutés.
+
+### Tests
+
+- `tsc --noEmit` : OK.
+- `npx jest src/features/sessions src/features/activities` (avant réécriture des tests des roulettes) : 159 suites, 2 598 tests verts, 19 échecs — 18 tests des roulettes remplacées (réécrits ensuite) et `CompositionScreen.recette1` « ancien modèle : carte à compléter → feuille de paramètres » ; ce dernier échoue aussi au commit de départ `c8fe2857` (vérifié par `git stash`), non lié à ce lot, non corrigé.
+- Après réécriture : `CompositionScreen.test` + `CarrierDurationSheet` 435/435 ; `ExecutionParametersSheet.format0711` 17/17 ; Formats et `FormatModelScreen.c3` 54/54 ; Catalogue des mouvements 61/61 (agent).
+- Lint : aucune erreur nouvelle dans les fichiers modifiés (erreurs `react-hooks/refs` de `CompositionScreen.tsx` et `FormatModelScreen.c3.test.tsx` antérieures).
+
+### Non traité / à vérifier sur iPhone
+
+- Tout : rien n'a été vérifié sur l'appareil.
+- Ordre des options (point 2) : non reproduit, capture demandée.
+- Interprétations à confirmer : y-pile (carte venue d'ailleurs) ; « la pause » = Fin de séance.
+- Si un brouillon AMRAP membre ou For time Buy-in/out a des séries variables, le tableau reste affiché (ligne Séries seule masquée).
+- `CompositionScreen.recette1` en échec depuis `c8fe2857` ou avant : à analyser.

@@ -206,6 +206,10 @@ const DROP_SETTLE_MS = 900;
  * filet de placement dans une famille (C1, C2) et le décalage de la carte visée n'apparaissent que si la carte portée reste
  * immobile environ 0,4 s au-dessus d'une autre. Passer dessus sans s'arrêter ne déclenche rien ; le relâchement n'applique
  * que la place annoncée. [Avant : filet et décalage dès le survol — remplacé.]
+ * [Recette iPhone du 07/11/2026 (y-pile, Hermann : « quand la pile est ouverte, les cartes ne se déplacent à l'intérieur de
+ * la pile que lorsqu'on s'arrête dessus. On ne retrouve plus le déplacement fluide des cartes […] à l'intérieur de la
+ * famille. ») : l'arrêt ne vaut plus que pour former une famille sur une carte sans famille (C1) ; dans une pile ouverte
+ * (C2), la place s'ouvre au passage, comme au réordonnancement (A) — remplacé pour C2.]
  */
 export const PLACE_DWELL_MS = 400;
 /** t-glisser : tremblement du doigt toléré pendant l'arrêt (valeur technique, non spécifiée). */
@@ -654,9 +658,11 @@ export function MovementCatalogueList({
    * niveaux provisoires — qu'après un arrêt de `PLACE_DWELL_MS` sur la même place ; tout déplacement au-delà de la
    * tolérance relance l'attente. Une place déjà annoncée le reste tant que la carte ne la quitte pas. Les autres décisions
    * (réordonnancement dans le filet, sortie, approche d'une famille repliée) restent immédiates.
+   * y-pile (07/11/2026) : l'entrée dans une pile ouverte (C2, `familyKey` non nul) est elle aussi immédiate — les membres
+   * s'écartent au passage, comme au réordonnancement ; l'arrêt reste exigé pour former une famille (C1).
    */
   const announcedIntent = (current: Drag, raw: DragIntent, total: number): DragIntent => {
-    if (raw.kind !== "PLACE" || sameIntent(raw, current.intent)) {
+    if (raw.kind !== "PLACE" || raw.familyKey !== null || sameIntent(raw, current.intent)) {
       clearPlaceDwell();
       return raw;
     }

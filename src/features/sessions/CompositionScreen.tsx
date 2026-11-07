@@ -288,7 +288,6 @@ import {
   type RailSkippedItem,
   type RailLink as RailLinkGeometry,
 } from "@/features/sessions/compositionRail";
-import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { STOP_POINT_CHIP_TOUCH_EXTENT } from "@/features/sessions/StopPointChip";
 import { formatPlacementConfirmLabel, PlacementBar } from "@/features/sessions/PlacementBar";
 import {
@@ -318,7 +317,6 @@ import {
   MOTION_FADE_TO_SLIDE_DELAY_MS,
   MOTION_SHIFT_DURATION_MS,
 } from "@/features/sessions/compositionMotion";
-import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
@@ -5448,45 +5446,28 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       </PrimaryActionZone>
 
       {/*
-       * T01-S09, correction VISUAL (point D) : chaque roulette numérique
-       * s'ouvre désormais dans `WheelPickerOverlay`, une superposition
-       * plein écran rendue ici — frère direct de `ScreenShell`, jamais un
-       * descendant du `ScrollView` défilant ni ancrée à sa ligne
-       * déclenchrice — voir ce composant pour la justification complète.
+       * Recette iPhone du 07/11/2026 (Hermann : « Je vois que le compte à rebours et la pause d'une composition de séance s'ouvrent
+       * encore en modale, il faut leur substituer le clavier. ») — décision du 06/11/2026 (constat c : « n'utiliser que le clavier
+       * pour entrer les valeurs des champs, plus aucune roulette ou popover ») : Compte à rebours initial et Fin de séance se
+       * saisissent au clavier numérique, comme la durée d'un Circuit formaté (`CarrierDurationSheet`), bornes 0..60 s (D-443) ;
+       * case vidée : valeur précédente gardée. [Roulettes `NumberWheelPicker` dans `WheelPickerOverlay` (PRE-6 story 7.8, T01-S09
+       * point D) — remplacées.]
        */}
-      <WheelPickerOverlay visible={openOverlay === "countdown"}>
-        {/* PRE-6 story 7.8 (D-443) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
-        <NumberWheelPicker
-          value={draft.initialCountdownSeconds}
-          targetBounds={SESSION_BOUNDARY_WHEEL_BOUNDS}
+      {openOverlay === "countdown" || openOverlay === "finalPhase" ? (
+        <CarrierDurationSheet
+          seconds={openOverlay === "countdown" ? draft.initialCountdownSeconds : draft.finalPhaseSeconds}
+          allowsNone={false}
+          label={openOverlay === "countdown" ? composition.countdown.label : composition.finalPhase.label}
+          durationMin={SESSION_BOUNDARY_WHEEL_BOUNDS.min}
+          durationMax={SESSION_BOUNDARY_WHEEL_BOUNDS.max}
           onValidate={(seconds) => {
-            updateDraft({ initialCountdownSeconds: seconds });
+            const value = seconds ?? 0;
+            updateDraft(openOverlay === "countdown" ? { initialCountdownSeconds: value } : { finalPhaseSeconds: value });
             closeOverlay();
           }}
           onCancel={closeOverlay}
-          // Revue 7.8 : la roulette (une seule colonne) porte le nom de sa borne.
-          accessibilityLabel={composition.countdown.label}
-          valueAccessibilityLabel={formatBoundarySecondsValue}
-          cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
-          validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
         />
-      </WheelPickerOverlay>
-      <WheelPickerOverlay visible={openOverlay === "finalPhase"}>
-        {/* PRE-6 story 7.8 (D-443) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
-        <NumberWheelPicker
-          value={draft.finalPhaseSeconds}
-          targetBounds={SESSION_BOUNDARY_WHEEL_BOUNDS}
-          onValidate={(seconds) => {
-            updateDraft({ finalPhaseSeconds: seconds });
-            closeOverlay();
-          }}
-          onCancel={closeOverlay}
-          accessibilityLabel={composition.finalPhase.label}
-          valueAccessibilityLabel={formatBoundarySecondsValue}
-          cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
-          validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
-        />
-      </WheelPickerOverlay>
+      ) : null}
 
       {/* PRE-6 story 7.2 (D-442) : choix « Début de tour / Fin de tour » (dialogue natif). */}
       {pendingTourChoice !== null ? (

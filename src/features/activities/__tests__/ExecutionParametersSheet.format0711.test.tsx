@@ -216,3 +216,85 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
     expect(onFormat).toHaveBeenCalledWith({}, null);
   });
 });
+
+/**
+ * Recette iPhone du 07/11/2026 (y-format-cadres), Hermann : « For time - exercice de type Buy in / Buy out : retirer la ligne Pause
+ * après chaque série et la ligne Séries. » ; « Death by : […] Paramètres Nombre de répétitions est mis à l'échec au lieu d'accueillir
+ * la valeur Départ du tableau. » ; « EMOM : retirer la colonne Pause du tableau » ; AMRAP : lignes Séries, Pause après chaque série et
+ * Durée de l'exercice retirées pour les rôles Tour et Buy-in ; Buy-in : « Récupération grisée, à 0 s, non modifiable ».
+ */
+describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles et aux Formats", () => {
+  function renderWithRecovery(key: FormatSheetContext["key"], rows: readonly FormatSheetRow[], extra: Partial<FormatSheetContext> = {}, parent = params()) {
+    const onRecovery = jest.fn<(seconds: number) => void>();
+    render(
+      <TestSafeAreaProvider>
+        <ExecutionParametersSheet
+          parent={parent}
+          profileSideRecoverySecondsDefault={0}
+          recovery={{ seconds: 30, onApply: onRecovery }}
+          format={{ key, rows, settings: {}, onApply: jest.fn(), ...extra }}
+          onApply={jest.fn()}
+          onCancel={jest.fn()}
+        />
+      </TestSafeAreaProvider>,
+    );
+    return { onRecovery };
+  }
+  const amrapRole = (current: CircuitRole) => ({ role: { current, admitted: ["BUY_IN", "TOUR"] as CircuitRole[], available: ["BUY_IN", "TOUR"] as CircuitRole[] } });
+
+  it("AMRAP, rôle Tour : ni Séries, ni Pause, ni Durée de l'exercice ; Nombre de répétitions et Récupération modifiable", () => {
+    renderWithRecovery("AMRAP", ["role", "increment"], amrapRole("TOUR"));
+    expect(query("execution-sheet-row-series-type")).toBeNull();
+    expect(query("execution-sheet-row-pause")).toBeNull();
+    expect(query("execution-sheet-row-total")).toBeNull();
+    expect(query("execution-sheet-row-target")).not.toBeNull();
+    expect(value("execution-sheet-recovery")).toBe(formatPhraseDuration(30));
+  });
+
+  it("AMRAP, rôle Buy-in : Récupération grisée à 0 s, non modifiable, appliquée à 0 s", () => {
+    const { onRecovery } = renderWithRecovery("AMRAP", ["role", "increment"], amrapRole("BUY_IN"));
+    expect(query("execution-sheet-row-series-type")).toBeNull();
+    expect(String(get("execution-sheet-recovery").props.children)).toBe(formatPhraseDuration(0));
+    expect(query("execution-sheet-recovery-value")).toBeNull();
+    validate();
+    expect(onRecovery).toHaveBeenCalledWith(0);
+  });
+
+  it("For time : Buy-in et Buy-out sans Séries ni Pause ; Tour les garde", () => {
+    const forTime = (current: CircuitRole) => ({
+      role: { current, admitted: ["BUY_IN", "TOUR", "BUY_OUT"] as CircuitRole[], available: ["BUY_IN", "TOUR", "BUY_OUT"] as CircuitRole[] },
+      inheritedCapText: f.noLimit,
+    });
+    renderWithRecovery("FOR_TIME", ["role", "inheritedCap"], forTime("BUY_OUT"));
+    expect(query("execution-sheet-row-series-type")).toBeNull();
+    expect(query("execution-sheet-row-pause")).toBeNull();
+    screen.unmount();
+    renderWithRecovery("FOR_TIME", ["role", "inheritedCap"], forTime("TOUR"));
+    expect(query("execution-sheet-row-series-type")).not.toBeNull();
+    expect(query("execution-sheet-row-pause")).not.toBeNull();
+  });
+
+  it("EMOM, séries variables : tableau sans colonne Pause", () => {
+    renderWithRecovery("EMOM", ["stopTarget", "interval", "durationReadOnly"], { settings: { intervalSeconds: 60 } }, params({
+      series: { kind: "VARIABLE", rows: [{ target: numberTarget(8), pauseSeconds: 0, loadKg: 0 }, { target: numberTarget(10), pauseSeconds: 0, loadKg: 0 }], workPhases: [] },
+    }));
+    expect(query("execution-sheet-table-row-1-target-cell")).not.toBeNull();
+    expect(query("execution-sheet-table-row-1-pause-cell")).toBeNull();
+    expect(query("execution-sheet-table-row-1-load-cell")).not.toBeNull();
+    expect(within(get("execution-sheet-table-header")).queryByText(strings.executionParameters.sheet.columns.pause, hidden)).toBeNull();
+  });
+
+  it("Death by : À l'échec imposé sans effacer le départ ; un objectif déjà « à l'échec » est à renseigner", () => {
+    const deathBy = ["seriesUntilFailure", "interval", "increment", "stopImposed"] as const;
+    renderSheet("DEATH_BY", deathBy, { intervalSeconds: 60, incrementPerRound: 1 }, {}, params({
+      series: { kind: "UNIFORM", count: 1, target: numberTarget(5), pauseSeconds: 0, loadKg: 0, workPhases: [] },
+    }));
+    expect(screen.getByLabelText(strings.executionParameters.sheet.stopConditions.FAILURE).props.accessibilityState).toMatchObject({ selected: true });
+    expect(value("execution-sheet-target")).toBe(`5 ${strings.executionParameters.sheet.repetitionsUnit}`);
+    screen.unmount();
+    renderSheet("DEATH_BY", deathBy, { intervalSeconds: 60, incrementPerRound: 1 }, {}, params({
+      series: { kind: "UNIFORM", count: 1, target: failureTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] },
+    }));
+    expect(value("execution-sheet-target")).toBe(strings.executionParameters.sheet.unset);
+  });
+});

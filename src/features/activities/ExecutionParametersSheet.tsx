@@ -625,8 +625,12 @@ export function ExecutionParametersSheet({
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const [draft, setDraft] = useState<ExecutionSheetDraft>(() => {
     const opened = openSheetDraft(parent, { inheritedSeriesCount, ...(nextPhaseId !== undefined ? { nextPhaseId } : {}) });
-    // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : Condition d'arrêt À l'échec imposée au Death by — appliquée dès l'ouverture.
-    if (format?.rows.includes("stopImposed") && stopConditionOf(effectiveParameters(opened)) !== "FAILURE") return setStopCondition(opened, "FAILURE");
+    // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : Condition d'arrêt À l'échec imposée au Death by.
+    // Recette iPhone du 07/11/2026 (y-format-cadres, Hermann : « Paramètres Nombre de répétitions est mis à l'échec au lieu d'accueillir la
+    // valeur Départ du tableau ») : l'objectif reste la valeur de départ ; À l'échec est seulement affiché, imposé. Un objectif déjà
+    // converti « à l'échec » retrouve sa dernière valeur, sinon il est à renseigner. [Conversion de l'objectif en « à l'échec » dès
+    // l'ouverture — remplacée.]
+    if (format?.rows.includes("stopImposed") && stopConditionOf(effectiveParameters(opened)) === "FAILURE") return setStopCondition(opened, "TARGET");
     // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`), A2 : EMOM « À l'objectif » seul — appliqué dès l'ouverture.
     if (format?.rows.includes("stopTarget") && stopConditionOf(effectiveParameters(opened)) === "FAILURE") return setStopCondition(opened, "TARGET");
     return opened;
@@ -854,13 +858,26 @@ export function ExecutionParametersSheet({
   const uniformTargetShown = !showVariableTable && (stopCondition !== "FAILURE" || deathBySheet);
   // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : ni Pause après chaque série (remplacée par l'Intervalle), ni Durée de l'exercice (mesurée à
   // l'exécution) ; ligne Séries « Jusqu'à l'échec » pour l'Exercice autonome, absente dans un Circuit porteur.
-  const deathBySeriesRow = deathBySheet ? (format?.rows.includes("seriesUntilFailure") ?? false) : true;
+  const amrapMemberSheet = format?.key === "AMRAP" && format.rows.includes("role");
+  const forTimeOnceSheet = format?.key === "FOR_TIME" && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT");
+  const noSeriesRow = amrapMemberSheet || forTimeOnceSheet;
+  const deathBySeriesRow = deathBySheet ? (format?.rows.includes("seriesUntilFailure") ?? false) : !noSeriesRow;
   // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : EMOM — jamais de Pause (A8 : le repos est le temps restant de l'intervalle) ; Durée de l'exercice hors du
   // cadre Cadence (lecture seule sous l'Intervalle, ou absente) ; Récupération absente en alternance et dans chaque intervalle.
   const emomSheet = format?.key === "EMOM";
-  const noPauseRow = deathBySheet || emomSheet;
-  const noCadenceDuration = deathBySheet || emomSheet;
+  /*
+   * Recette iPhone du 07/11/2026 (y-format-cadres, Hermann) : « For time - exercice de type Buy in / Buy out : retirer la ligne Pause
+   * après chaque série et la ligne Séries. » ; AMRAP, rôles Tour et Buy-in : « Lignes à retirer […] « Séries » […] « Pause après
+   * chaque série » […] « Durée de l'exercice » ». Valeurs conservées dans le Brouillon, sans ligne.
+   */
+  const noPauseRow = deathBySheet || emomSheet || noSeriesRow;
+  const noCadenceDuration = deathBySheet || emomSheet || amrapMemberSheet;
   const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false);
+  // y-format-cadres (07/11/2026, Hermann, maquette `11264:19453`) : AMRAP, rôle Buy-in — « Récupération grisée, à 0 s, non modifiable ».
+  const recoveryLocked = format?.key === "AMRAP" && formatValue?.role === "BUY_IN";
+  // y-format-cadres (07/11/2026, Hermann) : « EMOM : retirer la colonne Pause du tableau et redistribuer horizontalement les deux
+  // colonnes restantes. » (le repos est le temps restant de l'intervalle).
+  const tablePause = !emomSheet;
   // Q40 : jamais deux surlignages — le tableau n'est pas surligné tant qu'une surface hors
   // tableau est ouverte.
   // PRE-5 story 2.2, D-434 : le clavier d'une cellule (Cible, Pause, Charge) est une surface
@@ -1324,7 +1341,7 @@ export function ExecutionParametersSheet({
     if (validation.ok && !emomOverflow) {
       const value = validation.value;
       // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : Récupération absente (alternance, dans chaque intervalle) — 0 s appliqué.
-      const appliedRecovery = recoveryShown ? recoverySeconds : 0;
+      const appliedRecovery = recoveryShown && !recoveryLocked ? recoverySeconds : 0;
       const appliedFormat = formatValue;
       closeAnimated(() => {
         // PRE-9 (01/11/2026, point 2) : Récupération appliquée au brouillon parent avec les paramètres.
@@ -1669,7 +1686,7 @@ export function ExecutionParametersSheet({
           ? [scalarKeyboardField("total")]
           : []),
     ...(signalsShown ? [scalarKeyboardField("countdown"), scalarKeyboardField("end")] : []),
-    ...(recoveryShown ? [scalarKeyboardField("recovery")] : []),
+    ...(recoveryShown && !recoveryLocked ? [scalarKeyboardField("recovery")] : []),
   ];
   // PRE-5 story 2.2 (AD-26, AD-27) : hook unique focus / surface / application de la saisie.
   const keyboard = useSheetKeyboard({
@@ -1684,6 +1701,7 @@ export function ExecutionParametersSheet({
       draft.workPhases.length > 0 && !isPhasesFolded,
       openSurface.kind === "keyboard" ? openSurface.field : null,
       outsideFields,
+      tablePause,
     ),
     scrollRef,
     reduceMotion,
@@ -1962,8 +1980,9 @@ export function ExecutionParametersSheet({
             ? stopConditionOptions.map((option) => (option.value === "FAILURE" ? { ...option, disabled: true } : option))
             : stopConditionOptions
       }
-      value={stopCondition === "FAILURE" ? "FAILURE" : "TARGET"}
-      onChange={(condition) => chooseInline((base) => setStopCondition(base, condition))}
+      value={stopCondition === "FAILURE" || format?.rows.includes("stopImposed") ? "FAILURE" : "TARGET"}
+      // Death by : À l'échec imposé sans toucher à l'objectif de départ (y-format-cadres, 07/11/2026).
+      onChange={(condition) => (format?.rows.includes("stopImposed") ? undefined : chooseInline((base) => setStopCondition(base, condition)))}
       accessibilityLabel={t.stopCondition}
       testID="execution-sheet-stop-condition-control"
     />
@@ -2765,6 +2784,7 @@ export function ExecutionParametersSheet({
                       <VariableTable
                         draft={draft}
                         mode={effective.mode}
+                        withPause={tablePause}
                         onRemove={handleRemove}
                         removalActive={removalEnabled(surface)}
                         onMove={(from, to) => updateInTable(moveRow(keyboard.flush(draft), from, to))}
@@ -3073,12 +3093,20 @@ export function ExecutionParametersSheet({
                     >
                       {/* Décision du 06/11/2026 (constat c) : saisie au clavier « MM:SS », 0..300 s
                           (roulette et panneau — remplacés). */}
-                      {scalarField("recovery", {
-                        display: recoveryText,
-                        accessibilityLabel: t.recovery,
-                        profileDefault: openedPendingDefaults,
-                        testID: "execution-sheet-recovery",
-                      })}
+                      {recoveryLocked ? (
+                        <View style={[styles.stepperFrame, { width: STEPPER_WIDTH }]}>
+                          <Text style={[styles.valuePillText, styles.formatLockedValue]} testID="execution-sheet-recovery">
+                            {pauseLabel(0)}
+                          </Text>
+                        </View>
+                      ) : (
+                        scalarField("recovery", {
+                          display: recoveryText,
+                          accessibilityLabel: t.recovery,
+                          profileDefault: openedPendingDefaults,
+                          testID: "execution-sheet-recovery",
+                        })
+                      )}
                     </Row>
                   </SheetMotionView>
                 ) : null}
@@ -3139,6 +3167,7 @@ export function ExecutionParametersSheet({
 function VariableTable({
   draft,
   mode,
+  withPause = true,
   onRemove,
   removalActive,
   onMove,
@@ -3147,6 +3176,8 @@ function VariableTable({
 }: {
   draft: ExecutionSheetDraft;
   mode: ExecutionMode | null;
+  /** EMOM (y-format-cadres, 07/11/2026) : sans colonne Pause, Cible et Charge réparties sur la largeur. */
+  withPause?: boolean;
   onRemove: (row: number) => void;
   /** Story 3.6 (T18, T23) : la croix retire ; sinon son appui range d'abord l'outil ouvert. */
   removalActive: boolean;
@@ -3194,11 +3225,15 @@ function VariableTable({
         ) : (
           <View style={tableStyles.emptyCell} />
         )}
-        <View style={tableStyles.cellGap} />
-        <Text style={tableStyles.columnHeader}>{t.columns.pause}</Text>
+        {withPause ? (
+          <>
+            <View style={tableStyles.cellGap} />
+            <Text style={tableStyles.columnHeader}>{t.columns.pause}</Text>
+          </>
+        ) : null}
         {/* PRE-5 story 2.2 : colonne Charge (titre non interactif), après la Pause. PRE-7 story
             B.2 (B10) : toujours présente, sous Avec comme sous Sans (jamais recréée au passage). */}
-        <View style={tableStyles.cellGap} />
+        <View style={withPause ? tableStyles.cellGap : tableStyles.spacer} />
         <Text style={tableStyles.columnHeader} testID="execution-sheet-table-header-load">
           {t.columns.load}
         </Text>
@@ -3230,6 +3265,7 @@ function VariableTable({
               clip={!unclipped}
               cell={(kind) => (rowId === null ? <View style={tableStyles.emptyCell} /> : cell(kind, rowId, index + 1))}
               inheritedSeriesCount={draft.inheritedSeriesCount}
+              withPause={withPause}
             />
           </Fragment>
         );
@@ -3259,6 +3295,7 @@ function SeriesTableRow({
   clip,
   cell,
   inheritedSeriesCount,
+  withPause,
 }: {
   index: number;
   rowId: number | null;
@@ -3276,6 +3313,8 @@ function SeriesTableRow({
   cell: (kind: RowCellKind) => ReactNode;
   /** PRE-6 story 3.3 (AD-37) : N hérité d'un Circuit de Séries — croix indisponible. */
   inheritedSeriesCount: boolean;
+  /** EMOM (y-format-cadres, 07/11/2026) : sans cellule Pause. */
+  withPause: boolean;
 }) {
   const number = index + 1;
   const testID = `${SERIES_ROW_TEST_ID}-${number}`;
@@ -3305,13 +3344,17 @@ function SeriesTableRow({
         ) : (
           <View style={tableStyles.emptyCell} />
         )}
-        <View style={tableStyles.cellGap} />
-        <View style={styles.tableCellSlot} testID={`${testID}-pause-cell`}>
-          {cell("rowPause")}
-        </View>
+        {withPause ? (
+          <>
+            <View style={tableStyles.cellGap} />
+            <View style={styles.tableCellSlot} testID={`${testID}-pause-cell`}>
+              {cell("rowPause")}
+            </View>
+          </>
+        ) : null}
         {/* PRE-5 story 2.2 (FR-23) : cellule Charge au clavier décimal, après un écart de 7.
             PRE-7 story B.2 (B10) : emplacement toujours monté ; sous Sans, `cell` y rend le tiret. */}
-        <View style={tableStyles.cellGap} />
+        <View style={withPause ? tableStyles.cellGap : tableStyles.spacer} />
         <View style={styles.tableCellSlot} testID={`${testID}-load-cell`}>
           {cell("load")}
         </View>

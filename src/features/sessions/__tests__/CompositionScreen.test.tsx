@@ -320,13 +320,6 @@ afterAll(() => {
   Platform.OS = originalPlatformOS;
 });
 
-function fireNativeSelectionChange(
-  element: ReturnType<typeof screen.getByTestId>,
-  selection: number,
-) {
-  fireEvent(element, "selectionChange", { nativeEvent: { selection } });
-}
-
 beforeEach(() => {
   mockExitGuard.mockReset();
   mockExitGuard.mockReturnValue(defaultExitGuardResult());
@@ -431,34 +424,9 @@ describe("CompositionScreen — état initial", () => {
     expect(StyleSheet.flatten(screen.getByTestId("composition-boundary-countdown-value").props.style)).toEqual(pillStyleBefore);
   });
 
-  it("T01-S09 correction VISUAL (point D) — opens the countdown picker inside the shared full-screen WheelPickerOverlay, centered with a dimmed background — supersedes the former position:absolute popover anchor (CE-T01-06/07, AUD-05)", () => {
-    renderScreen();
+  // [Test de la roulette dans `WheelPickerOverlay` (T01-S09 point D) — retiré le 07/11/2026 : bornes saisies au clavier.]
 
-    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-
-    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-    const backdrop = screen.getByTestId("wheel-picker-overlay-backdrop");
-    expect(StyleSheet.flatten(backdrop.props.style).backgroundColor).toBe(colors.overlayScrim);
-    // Story 7.8 (D-443) : roulette d'une seule colonne de secondes (0..60).
-    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
-  });
-
-  it("T01-S09 correction VISUAL (point D) — supersedes the former popover zIndex elevation (UI-CTRL-002): Boundary Activity rows never carry an ad hoc zIndex, open or closed, now that wheel pickers render in a structurally separate overlay layer, never anchored to their triggering row", () => {
-    renderScreen();
-
-    const closedCountdown = screen.getByLabelText(composition.countdown.label);
-    expect(StyleSheet.flatten(closedCountdown.props.style).zIndex).toBeUndefined();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-
-    const openCountdown = screen.getByLabelText(composition.countdown.label);
-    expect(StyleSheet.flatten(openCountdown.props.style).zIndex).toBeUndefined();
-
-    const finalPhase = screen.getByLabelText(composition.finalPhase.label);
-    expect(StyleSheet.flatten(finalPhase.props.style).zIndex).toBeUndefined();
-  });
+  // [Test de la roulette dans `WheelPickerOverlay` (T01-S09 point D) — retiré le 07/11/2026 : bornes saisies au clavier.]
 
   it("enables '+ Ajouter une activité' while no Exercise exists yet, and opens the add-activity tree on press (V2-CAT-01)", () => {
     renderScreen();
@@ -582,51 +550,63 @@ describe("CompositionScreen — champ Nom", () => {
 });
 
 describe("CompositionScreen — sélecteurs et exclusivité", () => {
-  // Story 7.8 (D-443) : les bornes de séance utilisent la roulette d'une colonne `NumberWheelPicker`
-  // (0..60 s, pas 1 s, secondes seules) ; les comportements D-06 / R4-09 / REWORK08-B sont conservés.
+  // Recette iPhone du 07/11/2026 (Hermann : « Je vois que le compte à rebours et la pause d'une composition de séance s'ouvrent
+  // encore en modale, il faut leur substituer le clavier. ») : Compte à rebours initial et Fin de séance se saisissent au clavier
+  // (`CarrierDurationSheet`), bornes 0..60 s (D-443). [Roulette d'une colonne `NumberWheelPicker` (story 7.8) et ses tests
+  // D-06 / R4-09 / REWORK08-B — remplacés.]
   const countdownValue = () => within(screen.getByTestId("composition-boundary-countdown-value")).getByText(/ s$/).props.children;
   const finalPhaseValue = () => within(screen.getByTestId("composition-boundary-final-phase-value")).getByText(/ s$/).props.children;
+  const INPUT = "carrier-duration-input";
+  const type = (keys: string) => {
+    fireEvent(screen.getByTestId(INPUT), "focus");
+    for (const key of [...keys]) {
+      const input = screen.getByTestId(INPUT);
+      fireEvent.changeText(input, String(input.props.value ?? "") + key);
+    }
+  };
+  const close = () => fireEvent.press(screen.getByTestId("carrier-duration-backdrop"));
 
-  it("opens the countdown wheel picker on row press, and hides it again on a second press of the same row", () => {
+  it("07/11/2026 — la borne ouvre la case au clavier (aucune roulette), libellée du nom de la borne", () => {
     renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
-
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
     expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+    expect(screen.getByTestId(INPUT).props.keyboardType).toBe("number-pad");
+    expect(within(screen.getByTestId("carrier-duration-card")).getByText(composition.countdown.label)).toBeTruthy();
   });
 
-  it("opening the final phase picker closes an already-open countdown picker (single overlay at a time)", () => {
+  it("07/11/2026 — la saisie est appliquée à la fermeture ; la durée de séance ne compte pas les bornes", () => {
     renderScreen();
-
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(10);
-
-    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    // Still exactly one picker mounted, now driven by the final phase value (5 s).
-    expect(screen.getAllByTestId("number-wheel-column")).toHaveLength(1);
-    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(5);
+    type("45");
+    expect(countdownValue()).toBe("10 s");
+    close();
+    expect(screen.queryByTestId(INPUT)).toBeNull();
+    expect(countdownValue()).toBe("45 s");
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe("0 s");
   });
 
-  it("story 7.8 — the boundary wheel is one native column of seconds 0..60, step 1, read in seconds", () => {
+  it("07/11/2026 — au-delà de 60 s, ramené à 60 ; case vidée : valeur précédente gardée", () => {
     renderScreen();
-
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.queryByTestId("duration-wheel-minutes")).toBeNull();
-    const column = screen.getByTestId("number-wheel-column");
-    const modifiers = column
-      .findAll((node) => typeof node.type === "string" && Array.isArray(node.props.modifiers))
-      .map((node) => node.props.modifiers as { $type: string; tag?: number; label?: string }[]);
-    const values = modifiers.flatMap((list) => list.filter((modifier) => modifier.$type === "tag")).map((modifier) => modifier.tag);
-    expect(values).toEqual(Array.from({ length: 61 }, (_, index) => index));
-    // Chaque ligne est lue en secondes (« 45 s »).
-    expect(JSON.stringify(modifiers)).toContain('"45 s"');
-    // Au-delà de 60 (événement natif hors bornes) : ramené à 60.
-    fireNativeSelectionChange(column, 75);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    type("130");
+    close();
     expect(countdownValue()).toBe("60 s");
-    expect(screen.getByLabelText(composition.countdown.label).props.accessibilityValue).toMatchObject({ text: "60 s" });
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    fireEvent(screen.getByTestId(INPUT), "focus");
+    fireEvent.changeText(screen.getByTestId(INPUT), "");
+    close();
+    expect(countdownValue()).toBe("60 s");
+  });
+
+  it("07/11/2026 — Fin de séance au clavier, 0 admis ; le Compte à rebours n'est pas touché", () => {
+    renderScreen();
+    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
+    expect(within(screen.getByTestId("carrier-duration-card")).getByText(composition.finalPhase.label)).toBeTruthy();
+    type("0");
+    close();
+    expect(finalPhaseValue()).toBe("0 s");
+    expect(countdownValue()).toBe("10 s");
   });
 
   it("dismisses the keyboard when opening a duration picker (Name field may have had focus)", () => {
@@ -643,88 +623,6 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     } finally {
       dismissSpy.mockRestore();
     }
-  });
-
-  it("draft vs committed value (D-06): a native selection does NOT update the row's displayed value while the picker stays open", () => {
-    renderScreen();
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 40);
-
-    // La ligne reste sur la valeur validée précédente (défaut 10 s) tant
-    // que le sélecteur n'est pas refermé (addendum `WHEEL DRAFT VS COMMITTED VALUE`, D-06).
-    expect(countdownValue()).toBe("10 s");
-    expect(screen.queryByText("40 s")).toBeNull();
-    // La durée de séance ne compte jamais les bornes.
-    expect(screen.getByTestId("composition-session-duration").props.children).toBe("0 s");
-    // REWORK08-B : le sélecteur reste réellement monté.
-    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
-  });
-
-  it("REWORK08-B, superseded by the correction VISUAL point D overlay — no chain of native selection-change events, however many, ever closes the picker — only Annuler/Valider do (root cause of the historical defect: the previous popover anchor intercepted the very first touch on the wheel before it reached the native Host view; the current WheelPickerOverlay backdrop is not pressable at all, see WheelPickerOverlay.test.tsx)", () => {
-    renderScreen();
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-
-    // Simule un défilement réel : plusieurs crans successifs.
-    for (const seconds of [11, 12, 20, 33, 30]) {
-      fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), seconds);
-    }
-
-    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
-    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-
-    // Seul Valider ferme (et commit).
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
-    expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
-    expect(countdownValue()).toBe("30 s");
-  });
-
-  it("selects a real value in the countdown picker, committed to the row exactly once on Validate (R4-09) (no false conformity — a picker that opens but never truly selects, AUD-05)", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 45);
-    // Toujours la valeur validée précédente pendant que le sélecteur reste ouvert.
-    expect(countdownValue()).toBe("10 s");
-
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
-    expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
-    expect(countdownValue()).toBe("45 s");
-  });
-
-  it("Annuler (R4-09) closes without committing — the row keeps the previously validated value, never the draft", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 45);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
-
-    expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
-    expect(countdownValue()).toBe("10 s");
-    expect(screen.queryByText("45 s")).toBeNull();
-  });
-
-  it("draft/committed independence: re-opening the countdown picker after Valider restores exactly the last committed value, centered — never the previous draft nor a stale value", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 25);
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 35);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel)); // commit unique (35 s)
-    expect(countdownValue()).toBe("35 s");
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label)); // rouvre
-    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(35);
-  });
-
-  it("story 7.8 — Fin de séance: same wheel, 0 accepted, value in seconds only", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 0);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
-    expect(finalPhaseValue()).toBe("0 s");
-    expect(countdownValue()).toBe("10 s");
   });
 
   /**
@@ -1302,15 +1200,18 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
 
     // Compte à rebours initial : ouvre, change, confirme.
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 50);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    // 07/11/2026 : saisie au clavier (roulette remplacée).
+    fireEvent(screen.getByTestId("carrier-duration-input"), "focus");
+    for (const key of "50") fireEvent.changeText(screen.getByTestId("carrier-duration-input"), String(screen.getByTestId("carrier-duration-input").props.value ?? "") + key);
+    fireEvent.press(screen.getByTestId("carrier-duration-backdrop"));
     expect(within(screen.getByTestId("composition-boundary-countdown-value")).getByText("50 s")).toBeTruthy();
     expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
 
     // Fin de séance : idem.
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 30);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    fireEvent(screen.getByTestId("carrier-duration-input"), "focus");
+    for (const key of "30") fireEvent.changeText(screen.getByTestId("carrier-duration-input"), String(screen.getByTestId("carrier-duration-input").props.value ?? "") + key);
+    fireEvent.press(screen.getByTestId("carrier-duration-backdrop"));
     expect(within(screen.getByTestId("composition-boundary-final-phase-value")).getByText("30 s")).toBeTruthy();
     expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
   });
@@ -1596,26 +1497,7 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
     expect(bottomAfter).toEqual(bottomBefore);
   });
 
-  it("T01-S09 correction VISUAL (point D) — supersedes REWORK08-B's ScrollView elevation: composition-body never carries an ad hoc zIndex for a duration picker any more, open or closed, now that it renders in WheelPickerOverlay (a structurally separate layer, independent of the ScrollView and its own former zIndex scoping issue)", () => {
-    renderScreen();
-
-    const bodyClosed = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
-    expect(bodyClosed.zIndex).toBeUndefined();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    const bodyOpenCountdown = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
-    expect(bodyOpenCountdown.zIndex).toBeUndefined();
-    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
-    const bodyClosedAgain = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
-    expect(bodyClosedAgain.zIndex).toBeUndefined();
-
-    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    const bodyOpenFinalPhase = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
-    expect(bodyOpenFinalPhase.zIndex).toBeUndefined();
-    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-  });
+  // [Test de la roulette dans `WheelPickerOverlay` (T01-S09 point D) — retiré le 07/11/2026 : bornes saisies au clavier.]
 
   // PRE-6 story 7.10 (D-444, remplace S-08 et le pied de la story 7.9) : zone d'action principale
   // fixe — en absolu au bas de l'écran, zone protégée de 114 (encart 34), bouton centré (correctif J6f), dégradé blanc ;
@@ -1665,20 +1547,7 @@ describe("CompositionScreen — fermeture par toucher en dehors (CMP-01, backdro
     expect(screen.queryByTestId("composition-backdrop")).toBeNull();
   });
 
-  it("T01-S09 correction VISUAL (point D) — opening a duration picker never renders composition-backdrop any more (it now opens in WheelPickerOverlay, whose own backdrop is not dismissible by touch — see WheelPickerOverlay.test.tsx)", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
-    expect(screen.queryByTestId("composition-backdrop")).toBeNull();
-    expect(screen.getByTestId("wheel-picker-overlay-backdrop").props.onPress).toBeUndefined();
-
-    // Seul Annuler ferme désormais le sélecteur (jamais un toucher en
-    // dehors) — comportement déjà couvert par les tests d'exclusivité
-    // ci-dessus, revérifié ici dans le contexte de cette section.
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
-    expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
-  });
+  // [Test de la roulette dans `WheelPickerOverlay` (T01-S09 point D) — retiré le 07/11/2026 : bornes saisies au clavier.]
 
 });
 
@@ -4848,22 +4717,20 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  it("PRE6-2.1 — bornes toujours présentes, défauts 10 s et 5 s, 0 s admis via la roulette (secondes seules, story 7.8)", () => {
+  it("PRE6-2.1 — bornes toujours présentes, défauts 10 s et 5 s, 0 s admis (secondes seules, story 7.8 ; clavier depuis le 07/11/2026)", () => {
     renderScreenWithDraft([], { initialCountdownSeconds: 0 });
     expect(within(screen.getByLabelText(composition.countdown.label)).getByText("0 s")).toBeTruthy();
     expect(within(screen.getByLabelText(composition.finalPhase.label)).getByText("5 s")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    expect(screen.getByLabelText(composition.finalPhase.label).props.accessibilityState).toMatchObject({ expanded: true });
-    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(5);
+    expect(screen.getAllByLabelText(composition.finalPhase.label)[0].props.accessibilityState).toMatchObject({ expanded: true });
+    expect(screen.getByTestId("carrier-duration-input").props.value).toBe("5 s");
   });
 
-  it("story 7.8 — a boundary value above 60 s in the draft is shown at 60 s and the wheel opens on 60", () => {
+  it("story 7.8 — a boundary value above 60 s in the draft is shown at 60 s (keyboard entry since 07/11/2026)", () => {
     renderScreenWithDraft([], { initialCountdownSeconds: 600, finalPhaseSeconds: 75 });
     expect(within(screen.getByLabelText(composition.countdown.label)).getByText("60 s")).toBeTruthy();
     expect(within(screen.getByLabelText(composition.finalPhase.label)).getByText("60 s")).toBeTruthy();
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(60);
   });
 
   it("story 7.8 — the session duration's accessible name carries the rounded value and its sign (≈ / ≥)", () => {
@@ -4877,19 +4744,16 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     expect(duration().props.accessibilityLabel).toBe(`${composition.sessionDurationAccessibilityLabel} ${duration().props.children as string}`);
   });
 
-  it("story 7.8 — each boundary wheel is named after its boundary; Fin de séance reads its value in seconds", () => {
+  it("story 7.8 — each boundary entry is named after its boundary; Fin de séance reads its value in seconds (keyboard since 07/11/2026)", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    expect(screen.getByTestId("number-wheel-column").props.modifiers).toEqual(
-      expect.arrayContaining([expect.objectContaining({ label: composition.finalPhase.label })]),
-    );
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 60);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    expect(within(screen.getByTestId("carrier-duration-card")).getByText(composition.finalPhase.label)).toBeTruthy();
+    fireEvent(screen.getByTestId("carrier-duration-input"), "focus");
+    for (const key of "100") fireEvent.changeText(screen.getByTestId("carrier-duration-input"), String(screen.getByTestId("carrier-duration-input").props.value ?? "") + key);
+    fireEvent.press(screen.getByTestId("carrier-duration-backdrop"));
     expect(screen.getByLabelText(composition.finalPhase.label).props.accessibilityValue).toMatchObject({ text: "60 s" });
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.getByTestId("number-wheel-column").props.modifiers).toEqual(
-      expect.arrayContaining([expect.objectContaining({ label: composition.countdown.label })]),
-    );
+    expect(within(screen.getByTestId("carrier-duration-card")).getByText(composition.countdown.label)).toBeTruthy();
   });
 
   it("story 7.8 — Compte à rebours and Fin de séance frames align on the right edge of the Exercise cards", () => {
@@ -4992,11 +4856,11 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     expect(row.indexOf("composition-rail-dot-stop-p1")).toBeLessThan(row.indexOf("composition-stop-point-p1"));
   });
 
-  it("PRE6-2.1 — toute la rangée d'une borne ouvre la roulette, y compris un toucher sur le libellé", () => {
+  it("PRE6-2.1 — toute la rangée d'une borne ouvre la saisie (clavier depuis le 07/11/2026), y compris un toucher sur le libellé", () => {
     renderScreen();
     fireEvent.press(within(screen.getByTestId("composition-boundary-countdown")).getByText(composition.countdown.label));
-    expect(screen.getByLabelText(composition.countdown.label).props.accessibilityState).toMatchObject({ expanded: true });
-    expect(screen.getByTestId("number-wheel-column")).toBeTruthy();
+    expect(screen.getAllByLabelText(composition.countdown.label)[0].props.accessibilityState).toMatchObject({ expanded: true });
+    expect(screen.getByTestId("carrier-duration-input")).toBeTruthy();
   });
 
   it("PRE6-2.1, révisé 7.2 — la puce Étiquette ouvre LabelPickerModal ; avec une Étiquette, elle montre l’icône teintée et le nom", async () => {

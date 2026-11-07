@@ -49,16 +49,22 @@ const ROW_HEIGHT = 36;
  * « 4 colonnes affichées en même temps au maximum » ; « la première colonne (S1) le plus décalé possible à droite pour donner de
  * l'espace au nom du mouvement ».
  *
- * Mise en œuvre commune aux deux formes : toutes les colonnes de valeurs d'un tableau ont la même largeur, celle du plus large
- * champ de valeur du tableau (mesurée), séparées d'un même écart ; elles sont calées à droite, le dernier champ au retrait des
- * pastilles des lignes de paramètres (16 du bord du cadre) ; le nom du mouvement prend toute la place restante.
+ * Mise en œuvre commune aux deux formes : colonnes séparées d'un même écart, calées à droite, le dernier champ au retrait des
+ * pastilles des lignes de paramètres (16 du bord du cadre) ; le nom du mouvement prend toute la place restante. Tableau des séries :
+ * toutes les colonnes (S1…Sn) ont la largeur du plus large champ du tableau (mesurée). Tableaux à une ligne par mouvement : chaque
+ * colonne a la largeur de son plus large champ (mesurée), Max celle de son bouton — recette iPhone du 07/11/2026 (y-format-cadres,
+ * Hermann : « AMRAP - le tableau a 4 colonnes prends toute la place, on ne voit pas les noms de mouvement. Décaler la colonne Max à
+ * droite. Réduire l'espace entre les Colonnes Charge et Max. »).
  * [Largeurs fixes par nature de colonne (FIT_*), colonnes du tableau des séries au tiers de la fenêtre, dernière colonne calée à
- * droite au retrait du texte — remplacées.]
+ * droite au retrait du texte — remplacées le 07/11/2026. Même largeur pour toutes les colonnes d'un tableau à une ligne par
+ * mouvement (celle du plus large champ du tableau, Max compris) — remplacée le 07/11/2026 (y-format-cadres).]
  */
 const TABLE_SIDE_INSET = 16;
 const COLUMN_GAP = 8;
 /** Largeur minimale d'une colonne : au moins celle des titres (« Objectif », « Incrément », « Par tour »). */
 const MIN_COLUMN_WIDTH = 56;
+/** Colonne Max (AMRAP) : largeur de son titre et de son bouton radio (y-format-cadres, 07/11/2026). */
+const MAX_COLUMN_WIDTH = 32;
 /**
  * Tableau des séries : trois séries visibles (décision du 05/11/2026, n-charge-switch : « Afficher par défaut trois séries »),
  * dans la limite de quatre colonnes de la remarque e.
@@ -82,6 +88,32 @@ const COLUMN_SHIFT_MS = 450;
  * Largeur commune des colonnes d'un tableau : chaque champ y déclare la largeur naturelle de son texte (texte invisible mesuré) ;
  * la colonne prend la plus grande, au moins `MIN_COLUMN_WIDTH`.
  */
+/**
+ * Largeur propre à chaque colonne d'un tableau à une ligne par mouvement (y-format-cadres, 07/11/2026) : chaque champ déclare sa
+ * largeur naturelle dans sa colonne ; la colonne prend la plus grande, au moins `MIN_COLUMN_WIDTH`.
+ */
+function useColumnWidths(): {
+  readonly widthOf: (column: string) => number;
+  readonly report: (column: string, key: string) => (width: number) => void;
+} {
+  const widths = useRef(new Map<string, Map<string, number>>());
+  const [columns, setColumns] = useState<Readonly<Record<string, number>>>({});
+  const report = useCallback(
+    (column: string, key: string) => (measured: number) => {
+      const map = widths.current.get(column) ?? new Map<string, number>();
+      widths.current.set(column, map);
+      if (map.get(key) === measured) return;
+      if (measured <= 0) map.delete(key);
+      else map.set(key, measured);
+      const next = Math.max(MIN_COLUMN_WIDTH, Math.ceil(Math.max(0, ...map.values())));
+      setColumns((current) => (current[column] === next ? current : { ...current, [column]: next }));
+    },
+    [],
+  );
+  const widthOf = useCallback((column: string) => columns[column] ?? MIN_COLUMN_WIDTH, [columns]);
+  return { widthOf, report };
+}
+
 function useUniformColumnWidth(): { readonly width: number; readonly report: (key: string) => (width: number) => void } {
   const widths = useRef(new Map<string, number>());
   const [width, setWidth] = useState(MIN_COLUMN_WIDTH);
@@ -447,11 +479,11 @@ function rowName(item: ModelMovement): string {
 }
 
 /** Titres des colonnes de valeurs : même largeur et même écart que les colonnes, centrés au-dessus. */
-function ColumnHeads({ heads, width }: { readonly heads: readonly string[]; readonly width: number }) {
+function ColumnHeads({ heads, width }: { readonly heads: readonly string[]; readonly width: number | readonly number[] }) {
   return (
     <View style={styles.columns}>
       {heads.map((head, index) => (
-        <Text key={index} style={[styles.tableHead, { width }]} numberOfLines={1}>
+        <Text key={index} style={[styles.tableHead, { width: typeof width === "number" ? width : (width[index] ?? MIN_COLUMN_WIDTH) }]} numberOfLines={1}>
           {head}
         </Text>
       ))}
@@ -460,7 +492,7 @@ function ColumnHeads({ heads, width }: { readonly heads: readonly string[]; read
 }
 
 /** En-tête d'un tableau à une ligne par mouvement (unité en colonne). */
-function MovementTableHeader({ heads, width }: { readonly heads: readonly string[]; readonly width: number }) {
+function MovementTableHeader({ heads, width }: { readonly heads: readonly string[]; readonly width: readonly number[] }) {
   return (
     <View style={styles.tableHeader}>
       <Text style={[styles.tableHead, styles.tableName]} numberOfLines={1}>
@@ -487,12 +519,15 @@ export function AmrapTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
-  const column = useUniformColumnWidth();
-  const width = column.width;
+  const column = useColumnWidths();
+  const objectiveWidth = column.widthOf("obj");
+  const incrementWidth = column.widthOf("inc");
+  const loadWidth = column.widthOf("load");
   const heads = [tt.objective, ...(increasing ? [tt.perRound] : []), ...(withLoad ? [tt.load] : []), tt.max];
+  const widths = [objectiveWidth, ...(increasing ? [incrementWidth] : []), ...(withLoad ? [loadWidth] : []), MAX_COLUMN_WIDTH];
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-amrap-table">
-      <MovementTableHeader heads={heads} width={width} />
+      <MovementTableHeader heads={heads} width={widths} />
       {movements.map((item, index) => {
         const values = item.values;
         const tour = movementRole(item) === "TOUR";
@@ -509,8 +544,8 @@ export function AmrapTable({
                 kind={mode === "DURATION" ? "duration" : "integer"}
                 value={values.repetitions ?? null}
                 format={(value) => formatObjective(mode, value)}
-                width={width}
-                onMeasure={column.report(`obj-${index}`)}
+                width={objectiveWidth}
+                onMeasure={column.report("obj", `obj-${index}`)}
                 missing={!max && values.repetitions == null}
                 disabled={max}
                 onChange={(value) => onChange(index, { ...values, repetitions: value })}
@@ -526,8 +561,8 @@ export function AmrapTable({
                     // Complément du 5 novembre 2026 (Hermann), §8 : incrément signé (« − 1 rép. », « − 5 s »), signe saisi par « ± » de la barre du clavier.
                     format={(value) => `${value < 0 ? "−" : "+"} ${mode === "DURATION" ? formatSeconds(Math.abs(value)) : Math.abs(value)}`}
                     placeholder="+"
-                    width={width}
-                    onMeasure={column.report(`inc-${index}`)}
+                    width={incrementWidth}
+                    onMeasure={column.report("inc", `inc-${index}`)}
                     missing={!max && values.increment == null}
                     disabled={max}
                     onChange={(value) => onChange(index, { ...values, increment: value })}
@@ -536,10 +571,10 @@ export function AmrapTable({
                     testID={`format-amrap-increment-${index}`}
                   />
                 ) : (
-                  <Text style={[styles.slotText, { width }]}>{t().dash}</Text>
+                  <Text style={[styles.slotText, { width: incrementWidth }]}>{t().dash}</Text>
                 )
               ) : null}
-              {withLoad ? <ChargeCell values={values} index={index} name={name} width={width} onMeasure={column.report(`load-${index}`)} onChange={onChange} cell={cell} testID={`format-amrap-load-${index}`} /> : null}
+              {withLoad ? <ChargeCell values={values} index={index} name={name} width={loadWidth} onMeasure={column.report("load", `load-${index}`)} onChange={onChange} cell={cell} testID={`format-amrap-load-${index}`} /> : null}
               {/* Recette du 05/11/2026 (n-charge-colonne, Hermann : « Max en Répétitions seulement ») : Max indisponible en Durée. */}
               <Pressable
                 onPress={() => onChange(index, { ...values, max: !max })}
@@ -547,7 +582,7 @@ export function AmrapTable({
                 accessibilityRole="radio"
                 accessibilityState={{ checked: max, disabled: mode === "DURATION" }}
                 accessibilityLabel={`${name}, ${tt.max}`}
-                style={[styles.radioSlot, { width }]}
+                style={[styles.radioSlot, { width: MAX_COLUMN_WIDTH }]}
                 testID={`format-amrap-max-${index}`}
               >
                 <View style={[styles.radio, max ? styles.radioOn : null, mode === "DURATION" ? styles.radioDisabled : null]}>{max ? <View style={styles.radioDot} /> : null}</View>
@@ -659,12 +694,14 @@ export function DeathByTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
-  const column = useUniformColumnWidth();
-  const width = column.width;
+  const column = useColumnWidths();
+  const startWidth = column.widthOf("start");
+  const incrementWidth = column.widthOf("sinc");
+  const loadWidth = column.widthOf("load");
   const heads = [tt.start, tt.increment, ...(withLoad ? [tt.load] : [])];
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-death-by-table">
-      <MovementTableHeader heads={heads} width={width} />
+      <MovementTableHeader heads={heads} width={[startWidth, incrementWidth, loadWidth]} />
       {movements.map((item, index) => {
         const values = item.values;
         const name = rowName(item);
@@ -681,8 +718,8 @@ export function DeathByTable({
                 value={values.start ?? null}
                 // Hermann, 04/11/2026 : « death by, il manque les unités au tableau des objectifs ».
                 format={(value) => formatObjective(mode, value)}
-                width={width}
-                onMeasure={column.report(`start-${index}`)}
+                width={startWidth}
+                onMeasure={column.report("start", `start-${index}`)}
                 missing={values.start == null || values.start < 1}
                 onChange={(value) => onChange(index, { ...values, start: value })}
                 {...cell(cellKey("start", index))}
@@ -693,8 +730,8 @@ export function DeathByTable({
                 kind={kind}
                 value={values.startIncrement ?? null}
                 format={(value) => `+ ${formatObjective(mode, value)}`}
-                width={width}
-                onMeasure={column.report(`sinc-${index}`)}
+                width={incrementWidth}
+                onMeasure={column.report("sinc", `sinc-${index}`)}
                 placeholder="+"
                 missing={values.startIncrement == null || values.startIncrement < 1}
                 onChange={(value) => onChange(index, { ...values, startIncrement: value })}
@@ -702,7 +739,7 @@ export function DeathByTable({
                 label={`${name}, ${tt.increment}`}
                 testID={`format-death-by-increment-${index}`}
               />
-              {withLoad ? <ChargeCell values={values} index={index} name={name} width={width} onMeasure={column.report(`load-${index}`)} onChange={onChange} cell={cell} testID={`format-death-by-load-${index}`} /> : null}
+              {withLoad ? <ChargeCell values={values} index={index} name={name} width={loadWidth} onMeasure={column.report("load", `load-${index}`)} onChange={onChange} cell={cell} testID={`format-death-by-load-${index}`} /> : null}
             </View>
           </View>
         );
@@ -737,13 +774,15 @@ export function ObjectivePauseTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
-  const column = useUniformColumnWidth();
-  const width = column.width;
+  const column = useColumnWidths();
+  const objectiveWidth = column.widthOf("obj");
+  const pauseWidth = column.widthOf("pause");
+  const loadWidth = column.widthOf("load");
   const defaultMode = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
   const heads = [tt.objective, tt.pause, ...(withLoad ? [tt.load] : [])];
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-objective-pause-table">
-      <MovementTableHeader heads={heads} width={width} />
+      <MovementTableHeader heads={heads} width={[objectiveWidth, pauseWidth, loadWidth]} />
       {movements.map((item, index) => {
         const values = item.values;
         const name = rowName(item);
@@ -758,7 +797,7 @@ export function ObjectivePauseTable({
             <View style={styles.columns}>
               {model === "UNTIL_FAILURE" ? (
                 // Valeur non modifiable : texte noir, sans cadre (remarque e : « noir (non modifiable) »).
-                <Text style={[styles.slotText, styles.failureText, { width }]} numberOfLines={1} testID={`format-objective-${index}`}>
+                <Text style={[styles.slotText, styles.failureText, { width: objectiveWidth }]} numberOfLines={1} testID={`format-objective-${index}`}>
                   {t().atFailure}
                 </Text>
               ) : (
@@ -766,8 +805,8 @@ export function ObjectivePauseTable({
                   kind={mode === "DURATION" ? "duration" : "integer"}
                   value={objective}
                   format={(value) => formatObjective(mode, value)}
-                  width={width}
-                  onMeasure={column.report(`obj-${index}`)}
+                  width={objectiveWidth}
+                  onMeasure={column.report("obj", `obj-${index}`)}
                   missing={objective === null}
                   onChange={(value) => onChange(index, { ...values, mode, repetitions: value })}
                   {...cell(cellKey("obj", index))}
@@ -780,14 +819,14 @@ export function ObjectivePauseTable({
                 durationMin={0}
                 value={pause}
                 format={formatSeconds}
-                width={width}
-                onMeasure={column.report(`pause-${index}`)}
+                width={pauseWidth}
+                onMeasure={column.report("pause", `pause-${index}`)}
                 onChange={(value) => (value === null ? undefined : onChange(index, { ...values, pause: value }))}
                 {...cell(cellKey("pause", index))}
                 label={`${name}, ${tt.pause}`}
                 testID={`format-pause-${index}`}
               />
-              {withLoad ? <ChargeCell values={values} index={index} name={name} width={width} onMeasure={column.report(`load-${index}`)} onChange={onChange} cell={cell} testID={`format-objective-load-${index}`} /> : null}
+              {withLoad ? <ChargeCell values={values} index={index} name={name} width={loadWidth} onMeasure={column.report("load", `load-${index}`)} onChange={onChange} cell={cell} testID={`format-objective-load-${index}`} /> : null}
             </View>
           </View>
         );
@@ -973,13 +1012,19 @@ export function SeriesTable({
           {movements.map((item, index) => {
             const values = item.values;
             const mode = values.mode;
-            // Buy-in / buy-out du For time : une seule exécution (première colonne).
-            const shown = model === "FOR_TIME" && movementRole(item) !== "TOUR" ? 1 : count;
+            // Buy-in / buy-out du For time : une seule exécution — buy-in au premier tour, buy-out au dernier (recette iPhone du
+            // 07/11/2026, y-format-cadres, Hermann : « Récapitulatif : tableau des objectifs, la valeur du buy out doit être placée au
+            // dernier tour, pas au premier. ») ; sa valeur reste la première du mouvement. [Buy-out au premier tour — remplacé.]
+            const role = movementRole(item);
+            const once = model === "FOR_TIME" && role !== "TOUR";
+            const onceAt = role === "BUY_OUT" ? count - 1 : 0;
             return (
               <View key={item.exercise.id} style={[styles.seriesValueRow, styles.columns, index === movements.length - 1 ? styles.tableRowLast : null, { height: rowHeightOf(values) }]}>
                 {columns.map((at) => {
-                  if (at >= shown) return <View key={at} style={{ width }} />;
-                  const objective = objectiveAt(values, at);
+                  if (once && at !== onceAt) return <View key={at} style={{ width }} />;
+                  // Rang de la valeur dans les données (buy-in / buy-out : la seule valeur du mouvement).
+                  const slot = once ? 0 : at;
+                  const objective = objectiveAt(values, slot);
                   const label = tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", heading(at));
                   return (
                     <View key={at} style={[styles.seriesCell, { width, gap: charged(values) ? SERIES_LINE_GAP : 0 }]}>
@@ -990,15 +1035,15 @@ export function SeriesTable({
                         missing={objective === null || overflow.some((cellAt) => cellAt.index === index && cellAt.column === at)}
                         width={width}
                         onMeasure={column.report(`obj-${index}-${at}`)}
-                        onChange={(value) => onChange(index, set(values, at, { objective: value }))}
-                        {...bind(cellKey("obj", index, at), at)}
+                        onChange={(value) => onChange(index, set(values, slot, { objective: value }))}
+                        {...bind(cellKey("obj", index, slot), at)}
                         label={label.replace("{kind}", tt.objectiveKind)}
                         testID={model === "FOR_TIME" ? `${prefix}-${index}-${at}` : `${prefix}-${index}-${at}-reps`}
                       />
                       {charged(values) ? (
                         <TableCell
                           kind="decimal"
-                          value={loadAt(values, at)}
+                          value={loadAt(values, slot)}
                           // Complément du 5 novembre 2026 (Hermann), §9 : « (12 kg) », case vide « (—) » ; affichage seulement, la valeur reste décimale.
                           format={(value) => `(${formatLoad(value)})`}
                           placeholder={tt.loadEmpty}
@@ -1008,8 +1053,8 @@ export function SeriesTable({
                           load
                           // Recette du 05/11/2026 (e-fortime-charge) : la charge s'atteint par Précédent / Suivant.
                           barOnly
-                          onChange={(value) => onChange(index, set(values, at, { load: value }))}
-                          {...bind(cellKey("load", index, at), at)}
+                          onChange={(value) => onChange(index, set(values, slot, { load: value }))}
+                          {...bind(cellKey("load", index, slot), at)}
                           label={label.replace("{kind}", tt.loadKind)}
                           testID={`${prefix}-${index}-${at}-load`}
                         />

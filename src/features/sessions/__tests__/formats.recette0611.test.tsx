@@ -74,7 +74,9 @@ describe("présentation des tableaux (t-coche-q ; remarque e du 06/11)", () => {
     expect(StyleSheet.flatten(screen.getByTestId("format-amrap-row-1").props.style).borderBottomWidth).toBe(0);
     const objective = StyleSheet.flatten(screen.getByTestId("format-amrap-reps-1").props.style);
     const max = StyleSheet.flatten(screen.getByTestId("format-amrap-max-1").props.style);
-    expect(max).toMatchObject({ alignItems: "center", width: objective.width });
+    // y-format-cadres (07/11/2026) : Max à la largeur de son bouton, calé à droite.
+    expect(max).toMatchObject({ alignItems: "center", width: 32 });
+    expect(objective.width).toBe(56);
     expect(objective).toMatchObject({ textAlign: "center", minHeight: 24, borderRadius: 10, borderWidth: 0 });
     // Un seul cadre : le tableau prend la couleur de son cadre (plus de second cadre).
     expect(StyleSheet.flatten(screen.getByTestId("format-amrap-table").props.style)).toMatchObject({ backgroundColor: "transparent", marginHorizontal: 0 });
@@ -142,7 +144,7 @@ describe("tableau des séries : la colonne suivante apparaît au focus (t-coche-
     jest.useRealTimers();
   });
 
-  it("largeur commune : la colonne prend le plus large champ du tableau, toutes les colonnes la suivent", () => {
+  it("largeur par colonne (y-format-cadres, 07/11/2026) : chaque colonne prend son plus large champ ; Max garde la largeur de son bouton", () => {
     render(
       <AmrapTable
         movements={[movement("a", { mode: "DURATION", repetitions: 750, max: false }), movement("b", { mode: "REPETITIONS", repetitions: 8, max: false })]}
@@ -153,9 +155,10 @@ describe("tableau des séries : la colonne suivante apparaît au focus (t-coche-
       />,
     );
     fireEvent(screen.getByTestId("format-amrap-reps-0-measure", { includeHiddenElements: true }), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 78, height: 24 } } });
-    for (const id of ["format-amrap-reps-1", "format-amrap-increment-0", "format-amrap-load-1"]) {
-      expect(StyleSheet.flatten(screen.getByTestId(id).props.style).width).toBe(78);
+    expect(StyleSheet.flatten(screen.getByTestId("format-amrap-reps-1").props.style).width).toBe(78);
+    for (const id of ["format-amrap-increment-0", "format-amrap-load-1"]) {
+      expect(StyleSheet.flatten(screen.getByTestId(id).props.style).width).toBe(56);
     }
-    expect(StyleSheet.flatten(screen.getByTestId("format-amrap-max-0").props.style).width).toBe(78);
+    expect(StyleSheet.flatten(screen.getByTestId("format-amrap-max-0").props.style).width).toBe(32);
   });
 });

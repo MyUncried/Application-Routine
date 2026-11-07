@@ -32,6 +32,8 @@ export function CarrierDurationSheet({
   label,
   onValidate,
   onCancel,
+  durationMin = 1,
+  durationMax,
 }: {
   readonly seconds: number | null;
   /** For time : « Sans limite » (aucun temps limite). */
@@ -40,6 +42,9 @@ export function CarrierDurationSheet({
   readonly label?: string;
   readonly onValidate: (seconds: number | null) => void;
   readonly onCancel: () => void;
+  /** Bornes de la saisie (Compte à rebours initial et Fin de séance de la Composition : 0..60 s). Par défaut 1 s..99:59. */
+  readonly durationMin?: number;
+  readonly durationMax?: number;
 }) {
   const t = strings.screens.composition.carrier;
   const shownLabel = label ?? (allowsNone ? t.durationLabels.timeCapSeconds : "");
@@ -56,7 +61,8 @@ export function CarrierDurationSheet({
   const close = () => {
     Keyboard.dismiss();
     // Case vidée : la valeur précédente est gardée, sauf « Sans limite » (For time).
-    const next = value === null && !allowsNone ? seconds : value;
+    const entered = value === null && !allowsNone ? seconds : value;
+    const next = entered !== null && durationMax !== undefined ? Math.min(entered, durationMax) : entered;
     if (next === seconds) onCancel();
     else onValidate(next);
   };
@@ -74,7 +80,7 @@ export function CarrierDurationSheet({
             format={formatSeconds}
             placeholder={allowsNone ? t.noLimit : undefined}
             badge
-            durationMin={1}
+            durationMin={durationMin}
             onChange={setValue}
             inputRef={(input) => {
               inputRef.current = input;
