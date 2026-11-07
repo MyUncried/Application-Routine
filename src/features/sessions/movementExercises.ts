@@ -182,7 +182,10 @@ export function inheritsCircuitSeriesCount(
   const rich = resolveRichLayout(draft);
   if (rich !== null) {
     return structureCircuits(rich).some(
-      (circuit) => circuit.nature === "SERIES" && circuit.exercises.some((member) => member.id === exercise.id),
+      // Décision de Hermann du 07/11/2026 (EMOM, tableau B, cas 4) : dans un Circuit porteur EMOM « dans chaque intervalle »,
+      // N = tours du Circuit, non modifiable dans la modale.
+      (circuit) =>
+        (circuit.nature === "SERIES" || circuit.format?.key === "EMOM") && circuit.exercises.some((member) => member.id === exercise.id),
     );
   }
   return exercise.structuralPosition === "IN_TOUR" && (draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES";

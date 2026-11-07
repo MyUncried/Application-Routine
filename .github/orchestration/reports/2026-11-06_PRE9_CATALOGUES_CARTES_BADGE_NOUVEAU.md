@@ -366,3 +366,51 @@ En préparant la documentation, des marqueurs `<<<<<<<` / `=======` / `>>>>>>>` 
 - Vérification : Figma « EMOM — Modale exercice, standard » `8795:14588`, cadre Séries = Séries, Nombre de répétitions, Intervalle (à la place de la Pause), Charge ; Formats §14 : l’Intervalle « remplace la Pause ». Écart confirmé : la feuille affichait les deux lignes.
 - Correction (classe A) : Pause retirée de l’affichage et de l’ordre du clavier dès que l’Exercice porte son Intervalle (`formatShown("interval")`). Test EMOM complété ; `ExecutionParametersSheet.format0711` 9/9, tsc OK.
 - Non tranché : EMOM membre d’un Circuit « dans chaque intervalle » (Intervalle porté par le Circuit) — la Pause y reste affichée, aucune maquette ni règle explicite.
+
+## EMOM — décisions du 07/11/2026 : inventaire, corrections, tests
+
+Demande de Hermann du 07/11/2026 (texte complet recopié dans ch07, « EMOM — champs de la modale « Paramètres d’exécution » et règles de conversion (Hermann, 07/11/2026) » ; point 13 remplacé le même jour : aucune recopie de S1). Sources vérifiées : Formats §1, §6, §6.1, §7.6, §10, §13 ; Figma `8795:14588` (seul, à la suite), `11856:24719` (en alternance), `8598:30515` (dans chaque intervalle). Audit en lecture seule délégué à un sous-agent (C, D, 15 à 22), conclusions principales revérifiées dans le code avant correction.
+
+### Inventaire des écarts constatés (avant correction)
+
+| Point | Cas | Constat | Correction | Classe |
+|---|---|---|---|---|
+| A2 | 1 à 4 | « À l’échec » sélectionnable dans la modale ; cible commune « à l’échec » reprise à l’entrée dans un porteur ; « à l’échec » propagé à la sortie | Modale : À l’échec grisé, À l’objectif imposé à l’ouverture (`stopTarget`) ; `enterCarrier` / `exitCarrier` : « à l’échec » → à renseigner | B (A2/B9) |
+| A8 | 1 à 3 | Ligne Pause affichée (corrigé le matin pour 1 à 3, `f0f8ebab`) ; cas 4 encore affiché | Plus jamais de Pause pour l’EMOM | A (§14) |
+| B | 1, 2 | Durée de l’exercice modifiable au cadre Cadence | Lecture seule, N × intervalle, sous l’Intervalle, chevron « Durée et signaux » conservé (Figma `11856:24719`) | B |
+| B | 3 | Récupération affichée et conservée à l’entrée dans un Circuit standard alterné | Modale : absente, appliquée à 0 s ; `settleEntry` (SERIES) : 0 s | B |
+| B | 4 | Récupération et Durée affichées ; N modifiable (Circuit TOURS non hérité) | Absentes ; N imposé (`inheritsCircuitSeriesCount` : porteur EMOM) | B |
+| C11 | 4 | Composition : contrôle de l’intervalle du porteur sur le rang 0 seulement | Rang par rang | A (§14) |
+| C12 | 1 à 4 | Composition : aucun contrôle après ajout d’un membre, changement du nombre de tours ou des paramètres ; enregistrement non bloqué | `configurationValidity` (raison `EMOM_DURATION` seule) : cartes en rouge, message, Enregistrer indisponible | A (§14, complément du 5 novembre) |
+| D13 | — | Aucune recopie de S1 | Aucune (conforme au point 13 remplacé) ; §10 annoté | A |
+| D14 | 4 | Un EMOM simple entrant restait inchangé (Intervalle propre, séries, Récupération) | `isMemberShaped` : EMOM avec Intervalle ou séries ≠ tours → converti | A (§6) |
+| 4 | 4 | Changer le nombre de tours d’un porteur EMOM ne redimensionnait pas les séries des membres | Séries conservées, lignes ajoutées à renseigner, surplus retiré | A (§14) |
+| 15 | 4 | Sortie « Conserver » : Récupération héritée | Récupération 0 s ; cibles et charges par série conservées | B |
+| 16 | 2 | Conforme | — | — |
+| 17 | 3 | Récupération conservée | 0 s (voir cas 3) | B |
+| 18 | 2, 3 | Sortie d’un « À la suite » : Récupération entre mouvements conservée | Récupération 0 s à la sortie d’un Circuit standard | B |
+| 19 | — | Conforme par reconstruction (`applyModelReedit` → `buildModelElements`) | — (aucun test de réédition EMOM) | — |
+| 20 | 4 | Conforme | — | — |
+| 21 | — | Risque « ≈ » sur une carte EMOM avec cadence | `formatOccurrenceEstimatedDuration` : `null` pour l’EMOM | A |
+| 22 | 4 | Conforme | — | — |
+
+### Fichiers modifiés
+
+- `src/features/activities/ExecutionParametersSheet.tsx`, `FormatSettingsFrame.tsx` (lignes `stopTarget`, `durationReadOnly`, `noRecovery`) ; `src/features/sessions/formatSheetContext.ts` ; `movementExercises.ts` ; `compositionPresentation.ts` ; `CompositionScreen.tsx`.
+- `src/domain/sessions/carrierMembership.ts`, `layoutOperations.ts`.
+- Tests : `ExecutionParametersSheet.format0711.test.tsx` (cas 1 à 4), `carrierMembership.c4.test.ts` (14, 15, 17, 18, 20, nombre de tours), `compositionPresentation.test.ts` (21).
+- Docs : ch07 (texte complet, clarification du point 13), Formats §10 (cas 3, À l’échec, Durée, S1).
+
+### Tests
+
+- `tsc --noEmit` : OK.
+- `npx jest src/domain` + `compositionPresentation*` + `format0711` : 80 suites, 2 055 tests, tous verts ; `carrierMembership.c4` 19/19 ; `format0711` 12/12.
+- Suites `src/features` : lancement arrêté par manque de mémoire du poste ; avant l’arrêt, 21 suites PASS (dont `CompositionScreen.test`, `.b1b`, `.b2`, `.b4`, `.b5`, `.b6`, `.recette1`, `.recette2`, `.incident0111`, `ExecutionParametersSheet.test`, `ExerciseScreen.test`), aucun FAIL. Suite complète non terminée.
+
+### Non traité / à arbitrer / à vérifier
+
+- **17 — confirmation de perte** : un EMOM simple de plus de séries que de tours déposé dans un Circuit standard alterné déclenche la confirmation de perte des Circuits standards (`lostSeriesCount`). La règle 17 dit « admis ; son nombre de séries prend les tours du circuit » sans parler de confirmation : à faire trancher par Hermann.
+- **Exécution** : `planExpansion.ts` émet encore la Récupération d’un membre EMOM d’un Circuit alterné si elle n’est pas nulle (anciennes données) ; l’Exécution n’existe pas encore (Démarrer désactivé).
+- **C12** : l’en-tête du Circuit porteur n’est pas mis en rouge, seulement les cartes de ses membres ; aucun test d’écran de ce contrôle.
+- **19** : aucun test de réédition EMOM avec changement d’exécution.
+- Vérification iPhone de l’ensemble : non faite (Metro arrêté par manque de mémoire).

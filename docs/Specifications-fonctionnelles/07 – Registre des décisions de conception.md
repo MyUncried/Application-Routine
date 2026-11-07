@@ -1646,6 +1646,55 @@ Synthèse ordonnée validée par Hermann le 06/11/2026 (« Oui »), après ses r
 - **Lignes de Format dans les cadres existants (classe A — CE-FMT-04 §7 « Feuille standard et ses six blocs » et Figma).** Hermann, 07/11/2026 : « Paramètres d’exécution : les lignes de texte et champs spécifiques aux formats d’entraînement ne sont pas positionnés dans les cadres conformément à Figma, ni n’ont les couleurs, dimensions, etc adéquats. Ils doivent être intégrés dans les cadres existants. Par ailleurs la mention du nom du format dans un cadre séparé doit disparaître. Cela concerne : AMRAP : rôle, incrément par tour ; EMOM : Intervalle ; Death by : intervalle, incrément par intervalle, séries par intervalle (?) ; For Time : Rôle, durée de l’exercice (existe déjà pourtant) ». Réalisé selon Figma (`8598:30873`, `11255:19238`, `8598:31560`, `11312:19699`, `8795:14588`, `8598:31210`, `11373:20396`) : Rôle dans le cadre Exécution sous la Condition d’arrêt ; Incrément par tour / par intervalle et Intervalle dans le cadre Séries, avant la Charge ; Durée de l’exercice (AMRAP), Durée maximum du For time et durée héritée du Circuit (For time membre, grisée) comme valeur de la ligne « Durée de l’exercice » du cadre Cadence, sans doublon ; Death by : Condition d’arrêt À l’échec imposée par le contrôle du cadre Exécution (À l’objectif grisé), ligne séparée retirée ; nom du Format dans le titre de la feuille (« Paramètres d’exécution AMRAP »). Valeurs saisies au clavier (réponse « 1. Oui » du 06/11), Incrément AMRAP signé par « ± » de la barre. [Cadre séparé « {format} » à steppers ± — remplacé.]
 - **[Clarifié]** « séries par intervalle (?) » (Death by) : Figma montre une ligne « Séries » « Variables | Jusqu’à l’échec » (`8598:31210`) ; non réalisée tant que Hermann n’a pas confirmé son sens. [Réponse de Hermann le 07/11/2026 : deux captures Figma (« Voici une interface figma des paramètres d'exécution de death by dans le cas d'un exercice , et de plusieurs exercices avec option "dans chaque intervalle". »), « Death by — Modale exercice, standard » et « …, dans chaque intervalle » (`11373:20396`). Réalisé, classe A (référence Formats §12, tableau « Un seul mouvement », et §14) : Exercice autonome — Séries « Variables (grisé) | Jusqu’à l’échec », Condition d’arrêt À l’échec appliquée dès l’ouverture, Nombre de répétitions visible à l’échec, ni Pause après chaque série (l’Intervalle la remplace) ni Durée de l’exercice (mesurée à l’exécution) ; dans chaque intervalle — ni Séries ni Intervalle. Mode Durée laissé disponible : règle du complément du 5 novembre (§12, « Chaque Exercice Death by peut être en Répétitions ou en Durée »), plus récente que le grisé de la maquette.]
 
+### EMOM — champs de la modale « Paramètres d’exécution » et règles de conversion (Hermann, 07/11/2026)
+
+Texte de Hermann, recopié mot pour mot (message complet du 07/11/2026, sources corrigées par Hermann le même jour) :
+
+> EMOM — champs de la modale « Paramètres d'exécution » et règles de conversion à vérifier partout (code, tests, récapitulatifs).
+> Sources : docs/KODJO-Formats-entrainement-2026-11-02.md §1, §6, §6.1, §7.6, §10, §13 ; Figma « EMOM — Modale exercice, standard » (8795:14588 — un seul mouvement et à la suite), « EMOM — Modale exercice, en alternance » (11856:24719) et « EMOM — Modale exercice, dans chaque intervalle » (8598:30515). Décisions de Hermann du 07/11/2026 : « À l'échec » désactivé, Récupération retirée en alternance et dans chaque intervalle, Durée de l'exercice en lecture seule.
+>
+> A. Champs communs à tous les cas
+> 1. Mode : Répétitions (par défaut) | Durée, au choix pour chaque Exercice.
+> 2. Condition d'arrêt : « À l'objectif » seul. « À l'échec » est affiché mais désactivé (grisé, non sélectionnable) dans tous les cas EMOM.
+> 3. Phases du mouvement : Avec | Sans.
+> 4. Cible : Nombre de répétitions en mode Répétitions, objectif de durée en mode Durée.
+> 5. Charge : Avec | Sans ; une charge par série quand c'est « Avec ».
+> 6. De chaque côté : Avec | Sans.
+> 7. Cadence : Autre | 1 s | Sans.
+> 8. Jamais de ligne Pause : le repos est le temps restant de l'intervalle.
+>
+> B. Champs selon le cas
+> | Cas | Structure | Séries | Intervalle | Durée de l'exercice | Récupération |
+> |---|---|---|---|---|---|
+> | 1. EMOM seul (un mouvement) | Exercice EMOM | Variables / N séries identiques, N modifiable | modifiable (1 min par défaut) | lecture seule = N × intervalle, placée sous Intervalle | modifiable |
+> | 2. À la suite | Circuit standard groupé, 1 tour ; chaque membre est un EMOM simple | comme le cas 1 | comme le cas 1 | comme le cas 1 | modifiable ; c'est la « récupération entre les mouvements », 0 s sur le dernier |
+> | 3. En alternance | Circuit standard alterné, N tours ; chaque membre est un EMOM simple | régime Variables / identiques ; N = tours du circuit, non modifiable dans la modale | propre à l'Exercice, modifiable | lecture seule | absente : la minute suivante est celle du membre suivant |
+> | 4. Dans chaque intervalle | Circuit porteur du Format (Format d'origine EMOM, nature fixée groupées) | régime Variables / identiques ; N = tours du circuit, non modifiable dans la modale | absent (durée de tour du circuit) | absente | absente |
+>
+> Le cas 3 suit la logique du cas 4 : une récupération décalerait le top de la minute suivante. Il complète la mention « Comme pour un seul mouvement » du §10, et la documentation est à annoter dans ce sens.
+>
+> C. Contrôles de validation (bloquants : message et cadres rouges)
+> 9. Travail prévu d'un Exercice en Durée = cible × 2 s'il se fait de chaque côté, + pause entre les côtés si elle s'applique.
+> 10. Cas 1, 2 et 3 : travail prévu ≥ intervalle propre → validation bloquée.
+> 11. Cas 4 : somme des travaux prévus des membres, au même rang de série, ≥ intervalle du circuit → validation bloquée. Les membres en Répétitions comptent pour 0, sans estimation inventée.
+> 12. Ces contrôles s'appliquent dans le récapitulatif, dans la modale et après toute modification faite depuis la Composition.
+>
+> D. Conversions
+> 13. Création depuis le questionnaire : structure selon le tableau B ; les valeurs de S1 sont reprises dans chaque série.
+> 14. Entrée d'un Exercice dans un circuit EMOM « dans chaque intervalle » (§6) : ses Séries, son Intervalle, sa Durée et sa Récupération sont retirés de la saisie locale ; le nombre de séries devient celui des tours ; cible commune reprise ; cibles différentes ou cible « à l'échec » → à renseigner, sans somme, moyenne ni choix automatique ; pas de confirmation de perte.
+> 15. Sortie d'un circuit EMOM « dans chaque intervalle » (§13) : « Conserver le format EMOM » → EMOM simple : Séries = nombre de tours, Intervalle = durée de tour, cibles et charges par série conservées, Récupération 0 s, Durée recalculée ; « Adopter un format libre » → Exercice standard, paramètres compatibles repris, autres à compléter.
+> 16. EMOM simple déposé dans un circuit standard groupé (§6.1) : admis ; il garde son Format et rejoue son bloc complet à chaque passage.
+> 17. EMOM simple déposé dans un circuit standard alterné : admis ; son nombre de séries prend les tours du circuit ; sa Récupération est retirée.
+> 18. Sortie d'un circuit standard (À la suite, En alternance) : l'Exercice reste un EMOM simple, sans choix de sortie. Il retrouve un nombre de séries modifiable, son intervalle et une Récupération à 0 s.
+> 19. Réédition « Modifier le format » avec changement d'exécution : la règle d'entrée dans la structure d'arrivée s'applique (points 14 à 18) ; paramètres compatibles conservés, les autres à compléter.
+> 20. Déplacement direct d'un circuit EMOM porteur vers un autre circuit porteur : seule la règle d'entrée du circuit d'arrivée s'applique, sans étape intermédiaire.
+>
+> E. Affichage dans la Composition
+> 21. Carte d'exercice : prescription seule (« 6 × 10 rép. », « 10 · 12 · 14 rép. »), jamais de durée estimée.
+> 22. En-tête du circuit « dans chaque intervalle » : « N tours · groupées », durée de tour en bleu, modifiable.
+
+Portée (classement selon la règle de synchronisation code / documentation) : décision explicite de Hermann (classe B) pour les points nouveaux — « À l’échec » désactivé partout, Récupération retirée en alternance (cas 3, complète « Comme pour un seul mouvement » du §10) et dans chaque intervalle, Durée de l’exercice en lecture seule placée sous l’Intervalle, N imposé par les tours dans un Circuit porteur EMOM ; les autres points rejoignent des règles déjà écrites (classe A : §6, §10, §13, §14). Point 13 (« les valeurs de S1 sont reprises dans chaque série ») : **[Clarifié]** **À CLARIFIER** — contraire à la décision du 06/11/2026 (n-emom : « Il ne faut pas recopier la saisie d'une colonne vers une autre. » ; réponse A : « Oui retirée partout ») ; non appliqué tant que Hermann n’a pas tranché. [Réponse de Hermann le 07/11/2026, point 13 remplacé : « 13. Création depuis le questionnaire : structure selon le tableau B. Aucune recopie d'une colonne vers une autre (décision de Hermann du 06/11/2026, « retirée partout ») : la valeur saisie en S1 n'est pas reportée dans S2…Sn. Les séries non saisies restent à renseigner selon les règles existantes. Le §10 de la référence Formats (« valeurs de S1 reprises initialement », « chaque série est préremplie avec la valeur de S1 ») est remplacé. » — code déjà conforme (`initialMovementValues`, `withSeriesValue` sans recopie) ; §10 annoté.] Réalisation et écarts : rapport `.github/orchestration/reports/2026-11-06_PRE9_CATALOGUES_CARTES_BADGE_NOUVEAU.md`, section « EMOM — décisions du 07/11/2026 ».
+
 ## Catalogues, cartes et validation des modales — 5 et 6 novembre 2026
 
 Source : [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md). Remplacent les dispositions contraires sur les seuls points cités ; texte d’origine conservé ailleurs.

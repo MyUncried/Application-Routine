@@ -77,7 +77,7 @@ const ownSetting = (exercise: SessionDraftExercise, id: string): number | undefi
 export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCircuit): SessionDraftExercise {
   const carried = circuit.format ?? null;
   if (carried === null || exercise.type !== "EXERCISE") return exercise;
-  if (exercise.format?.key === carried.key && isMemberShaped(exercise, carried.key, circuit.nature)) return exercise;
+  if (exercise.format?.key === carried.key && isMemberShaped(exercise, carried.key, circuit.nature, circuit.repeatCount)) return exercise;
   const parameters = exercise.executionParameters;
   const target = commonTarget(parameters);
   const numeric: SeriesTarget = target.kind === "NUMBER" ? target : unsetTarget();
@@ -105,7 +105,9 @@ export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCir
     case "EMOM": {
       // Intervalle et Durée de l'exercice portés par le Circuit ; récupération 0 s. Complément du 5 novembre 2026 (Hermann), §14 : une série par tour (S1…Sn),
       // cible commune reprise sur chaque série. [Une série jouée à chaque tour — remplacé.]
-      return withFormat(exercise, { key: "EMOM", settings: {} }, uniform(parameters, parameters.mode, Math.max(1, circuit.repeatCount), target, 0), 0);
+      // Décisions de Hermann du 07/11/2026 (EMOM), A2 et D14 : « À l'objectif » seul — cible commune chiffrée reprise ; cibles différentes ou « à l'échec » → à
+      // renseigner, sans somme. [Cible commune « à l'échec » reprise — remplacé.]
+      return withFormat(exercise, { key: "EMOM", settings: {} }, uniform(parameters, parameters.mode, Math.max(1, circuit.repeatCount), numeric, 0), 0);
     }
     case "DEATH_BY": {
       // Départ repris s'il est chiffré ; incrément ≥ 1 ; intervalle propre en alternance. Complément du 5 novembre 2026 (Hermann), §13 : Répétitions ou Durée, le
@@ -122,13 +124,25 @@ export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCir
 }
 
 /** Membre déjà au format de son Circuit (aucune conversion à refaire lors d'un réordonnancement). */
-function isMemberShaped(exercise: SessionDraftExercise, key: ElementFormat["key"], nature: CircuitNature): boolean {
+function isMemberShaped(exercise: SessionDraftExercise, key: ElementFormat["key"], nature: CircuitNature, repeatCount: number): boolean {
   const settings = exercise.format?.settings ?? {};
   if ("durationSeconds" in settings || "timeCapSeconds" in settings) return false;
+  // Décisions de Hermann du 07/11/2026 (EMOM), D14 : un EMOM simple qui entre (Intervalle propre, ou séries ≠ tours) est converti — Séries, Intervalle, Durée et
+  // Récupération retirés de la saisie locale, séries = tours.
+  if (key === "EMOM" && ("intervalSeconds" in settings || seriesRowsOf(exercise.executionParameters).length !== Math.max(1, repeatCount))) return false;
   if (key === "DEATH_BY" && nature === "TOURS" && "intervalSeconds" in settings) return false;
   // Complément du 5 novembre 2026 (Hermann), §14 : un membre EMOM porte une série par tour (S1…Sn) ; seul le Death by garde une série unique.
   if (key === "DEATH_BY" && seriesRowsOf(exercise.executionParameters).length > 1) return false;
   return true;
+}
+
+/** Décisions de Hermann du 07/11/2026 (EMOM), A2 : séries « à l'échec » d'un EMOM → à renseigner (les autres cibles et charges conservées). */
+function withoutFailureTargets(parameters: ExecutionParametersInput): ExecutionParametersInput {
+  if (parameters.series.kind !== "VARIABLE") {
+    return parameters.series.target.kind === "FAILURE" ? { ...parameters, series: { ...parameters.series, target: unsetTarget() } } : parameters;
+  }
+  if (!parameters.series.rows.some((row) => row.target.kind === "FAILURE")) return parameters;
+  return { ...parameters, series: { ...parameters.series, rows: parameters.series.rows.map((row) => (row.target.kind === "FAILURE" ? { ...row, target: unsetTarget() } : row)) } };
 }
 
 export type CarrierExitChoice = "KEEP" | "FREE";
@@ -173,7 +187,12 @@ export function exitCarrier(exercise: SessionDraftExercise, circuit: CarrierCirc
       return withFormat(
         exercise,
         { key: "EMOM", settings: { intervalSeconds: setting("windowSeconds") ?? 60 } },
-        seriesRowsOf(parameters).length === tours && tours > 1 ? parameters : uniform(parameters, parameters.mode, tours, target, 0),
+        // Décisions de Hermann du 07/11/2026 (EMOM), A2 : « À l'objectif » seul — une cible « à l'échec » devient à renseigner. Point 15 : cibles et charges par
+        // série conservées, Récupération 0 s.
+        seriesRowsOf(parameters).length === tours && tours > 1
+          ? withoutFailureTargets(parameters)
+          : uniform(parameters, parameters.mode, tours, target.kind === "NUMBER" ? target : unsetTarget(), 0),
+        0,
       );
     }
     case "DEATH_BY": {

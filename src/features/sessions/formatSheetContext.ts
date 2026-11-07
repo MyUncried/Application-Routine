@@ -47,10 +47,16 @@ export function formatSheetContextOf(
       }
       break;
     case "EMOM": {
+      // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : « À l'échec » désactivé partout ; seul ou à la suite — Intervalle, Durée de l'exercice en lecture
+      // seule, Récupération ; en alternance (Circuit standard alterné) — Récupération absente ; dans chaque intervalle
+      // (Circuit porteur) — ni Intervalle, ni Durée de l'exercice, ni Récupération. Jamais de Pause (feuille).
+      rows.push("stopTarget");
       if (carrier === undefined) {
-        rows.push("interval");
+        rows.push("interval", "durationReadOnly");
+        if (circuit !== undefined && circuit.nature === "SERIES") rows.push("noRecovery");
         emom = { windowSeconds: null, othersWorkByRank: [] };
       } else {
+        rows.push("noRecovery");
         // Dans chaque intervalle : intervalle commun du Circuit, somme du travail prévu des membres.
         const window = carrier.format?.settings.windowSeconds;
         // Complément du 5 novembre 2026 (Hermann), §14 : somme des autres membres rang par rang.

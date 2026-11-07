@@ -20,7 +20,22 @@ import type { CircuitRole, ElementFormatKey, FormatSettings } from "@/domain/ses
  */
 
 /** `seriesUntilFailure` : Death by autonome — Séries « Jusqu'à l'échec » (Variables grisé), Formats §12 et §14. */
-export type FormatSheetRow = "role" | "increment" | "interval" | "duration" | "timeCap" | "inheritedCap" | "stopImposed" | "seriesUntilFailure";
+/**
+ * Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : `stopTarget` — « À l'objectif » seul, « À l'échec » grisé ; `durationReadOnly` — Durée de l'exercice en
+ * lecture seule (N × intervalle) sous l'Intervalle ; `noRecovery` — Récupération absente (alternance, dans chaque intervalle).
+ */
+export type FormatSheetRow =
+  | "role"
+  | "increment"
+  | "interval"
+  | "duration"
+  | "timeCap"
+  | "inheritedCap"
+  | "stopImposed"
+  | "seriesUntilFailure"
+  | "stopTarget"
+  | "durationReadOnly"
+  | "noRecovery";
 
 export type FormatSheetContext = {
   readonly key: ElementFormatKey;

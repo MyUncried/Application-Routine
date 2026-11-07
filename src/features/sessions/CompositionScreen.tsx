@@ -163,6 +163,7 @@ import {
 } from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
 import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
+import { configurationValidity } from "@/domain/sessions/configurationValidity";
 import { CardMotionBlock, useBlockDragGesture, VanishingBlock, type CardMotionMode } from "@/features/sessions/LayoutDragParts";
 import {
   circuitEndDrop,
@@ -2181,9 +2182,26 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   };
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
   // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
+  // Décisions de Hermann du 07/11/2026 (EMOM), C12 : contrôle EMOM (travail prévu ≥ intervalle, rang par rang) aussi après toute modification faite dans la
+  // Composition — cartes en rouge, message, enregistrement indisponible. Seule la raison EMOM_DURATION est retenue ici.
+  const emomOverflowIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (richLayout === null) return ids;
+    const validity = configurationValidity(richLayout);
+    if (validity.status === "valid") return ids;
+    const circuits = structureCircuits(richLayout);
+    for (const issue of validity.issues) {
+      if (issue.reason !== "EMOM_DURATION" || issue.elementId === null) continue;
+      const circuit = circuits.find((item) => item.id === issue.elementId);
+      if (circuit === undefined) ids.add(issue.elementId);
+      else for (const member of circuit.exercises) ids.add(member.id);
+    }
+    return ids;
+  }, [richLayout]);
   const occurrenceCircuitContext: OccurrenceCircuitContext = {
     circuitNature: draft.circuitNature,
     tourRepeatCount,
+    emomOverflowIds,
   };
   const circuitNature = draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
 
@@ -4635,7 +4653,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // exprimée ici plutôt qu'en durcissant une validation de persistance qui
   // n'est pas ouverte par cette tranche.
   const hasAtLeastOneExercise = draft.exercises.some((exercise) => exercise.type === "EXERCISE");
-  const isCompositionValid = hasAtLeastOneExercise && toCreateSessionInput(draft).ok;
+  const isCompositionValid = hasAtLeastOneExercise && toCreateSessionInput(draft).ok && emomOverflowIds.size === 0;
 
   // T01-S10 (CE-T01-S10-01/02/09) : en MODIFICATION, la réhydratation d'une
   // Séance existante passe par des états intermédiaires. Le formulaire n'est
@@ -5402,6 +5420,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             testID="composition-envelope-bar"
           />
         ) : null}
+        {placement === null && emomOverflowIds.size > 0 ? (
+          // Décisions de Hermann du 07/11/2026 (EMOM), C12 : message du contrôle EMOM (bloquant).
+          <Text style={styles.saveErrorText} accessibilityRole="alert" testID="composition-emom-overflow">
+            {strings.executionParameters.format.emomOverflow}
+          </Text>
+        ) : null}
         {placement === null && (saveState === "error" || saveState === "nameTaken") ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID="composition-save-error">
             {saveState === "nameTaken" ? composition.nameTakenError : composition.saveError}
@@ -5649,10 +5673,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             // prévu des membres (seuil inclusif) est refusé ; la roulette reste ouverte.
             if (edit.setting === "windowSeconds" && seconds !== null) {
               const circuit = structureCircuits(currentDraftLayout(draftRef.current, () => Crypto.randomUUID())).find((item) => item.id === edit.circuitId);
-              const work = (circuit?.exercises ?? []).reduce((sum, id) => {
-                const member = draftRef.current.exercises.find((item) => item.id === id);
-                return sum + (member === undefined ? 0 : plannedWorkOfParameters(member.executionParameters));
-              }, 0);
+              // Décisions de Hermann du 07/11/2026 (EMOM), C11 : contrôle rang par rang (chaque série), pas seulement le premier.
+              const workAt = (rank: number) =>
+                (circuit?.exercises ?? []).reduce((sum, id) => {
+                  const member = draftRef.current.exercises.find((item) => item.id === id);
+                  return sum + (member === undefined ? 0 : plannedWorkOfParameters(member.executionParameters, rank));
+                }, 0);
+              const work = Math.max(0, ...Array.from({ length: Math.max(1, circuit?.repeatCount ?? 1) }, (_, rank) => workAt(rank)));
               if (circuit?.format?.key === "EMOM" && work > 0 && work >= seconds) {
                 Alert.alert(strings.screens.formatModel.emomOverflow.replace("{interval}", formatPhraseDuration(seconds)));
                 return;
@@ -7377,7 +7404,8 @@ function CompositionActivityRow({
   const summary = formatOccurrenceSummary(activity);
   // PRE-7 (D-448, point 7, recette JA2 nv-5) : synthèse « Paramètres à compléter. » (par exemple une
   // phase sans durée après un changement de rang) → carte sur `colors.dangerSurface`.
-  const isIncomplete = isIncompleteSummary(summary);
+  // Décisions de Hermann du 07/11/2026 (EMOM), C12 : carte d'un Exercice EMOM dont le travail prévu atteint l'intervalle → rouge.
+  const isIncomplete = isIncompleteSummary(summary) || (circuitContext.emomOverflowIds?.has(activity.id) ?? false);
   // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat e) : « Paramètre à vérifier » → carte orange
   // (« Paramètres à compléter » prime : la synthèse ne vaut jamais les deux).
   const isToVerify = isToVerifySummary(summary);

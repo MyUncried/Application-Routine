@@ -67,6 +67,97 @@ describe("entrée dans un Circuit porteur (§6 point 1)", () => {
   });
 });
 
+describe("EMOM « dans chaque intervalle » — décisions de Hermann du 07/11/2026 (A2, D14, tableau B cas 4)", () => {
+  const EMOM_CIRCUIT = { nature: "TOURS" as const, repeatCount: 4, format: { key: "EMOM" as const, settings: { windowSeconds: 60 } } };
+
+  it("entrée : cible commune « à l'échec » → à renseigner (À l'objectif seul), séries = tours, récupération 0 s", () => {
+    const entered = enterCarrier(exercise("f", repetitionParameters("FAILURE", 2)), EMOM_CIRCUIT);
+    expect(seriesRowsOf(entered.executionParameters).map((row) => row.target)).toEqual(Array.from({ length: 4 }, () => ({ kind: "UNSET" })));
+    expect(entered.postActivityRecoverySeconds).toBe(0);
+  });
+
+  it("entrée d'un EMOM simple : Intervalle propre retiré, séries = tours, récupération 0 s, cible commune chiffrée reprise", () => {
+    const simple = exercise("e", repetitionParameters(10, 6, 0), { key: "EMOM", settings: { intervalSeconds: 90 } });
+    const entered = enterCarrier(simple, EMOM_CIRCUIT);
+    expect(entered.format).toEqual({ key: "EMOM", settings: {} });
+    expect(seriesRowsOf(entered.executionParameters).map((row) => row.target)).toEqual(Array.from({ length: 4 }, () => ({ kind: "NUMBER", value: 10 })));
+    expect(entered.postActivityRecoverySeconds).toBe(0);
+  });
+
+  it("nombre de tours du Circuit porteur : séries des membres redimensionnées (4 → 5 → 2)", () => {
+    const member = exercise("a", variableParameters({ mode: "REPETITIONS", rows: [[8, 0], [9, 0], [10, 0], [11, 0]] }), { key: "EMOM", settings: {} });
+    const draft = draftOf([{ kind: "CIRCUIT", circuit: { id: "m", nature: "TOURS", repeatCount: 4, format: EMOM_CIRCUIT.format, exercises: ["a"] } }], [member]);
+    const rows = (d: SessionDraft) => seriesRowsOf(d.exercises.find((item) => item.id === "a")!.executionParameters).map((row) => row.target);
+    const five = setLayoutCircuitCount(draft, "m", 5);
+    expect(rows(five)).toEqual([...[8, 9, 10, 11].map((value) => ({ kind: "NUMBER", value })), { kind: "UNSET" }]);
+    expect(rows(setLayoutCircuitCount(five, "m", 2))).toEqual([8, 9].map((value) => ({ kind: "NUMBER", value })));
+  });
+});
+
+describe("EMOM — sorties et Circuits standards, décisions de Hermann du 07/11/2026 (points 15, 17, 18)", () => {
+  const EMOM_CIRCUIT = { nature: "TOURS" as const, repeatCount: 3, format: { key: "EMOM" as const, settings: { windowSeconds: 75 } } };
+  let next = 0;
+  const newId = () => `e${++next}`;
+  const emomSimple = (id: string, count: number, recovery: number): SessionDraftExercise => ({
+    ...exercise(id, repetitionParameters(10, count, 0), { key: "EMOM", settings: { intervalSeconds: 60 } }),
+    postActivityRecoverySeconds: recovery,
+  });
+
+  it("15 — Conserver le format EMOM : Intervalle = durée de tour, cibles et charges par série conservées, « à l'échec » → à renseigner, Récupération 0 s", () => {
+    const member = { ...exercise("m", variableParameters({ mode: "REPETITIONS", rows: [[8, 0], ["FAILURE", 0], [12, 0]] }), { key: "EMOM", settings: {} }), postActivityRecoverySeconds: 30 };
+    const kept = exitCarrier(member, EMOM_CIRCUIT, "KEEP");
+    expect(kept.format).toEqual({ key: "EMOM", settings: { intervalSeconds: 75 } });
+    expect(seriesRowsOf(kept.executionParameters).map((row) => row.target)).toEqual([{ kind: "NUMBER", value: 8 }, { kind: "UNSET" }, { kind: "NUMBER", value: 12 }]);
+    expect(kept.postActivityRecoverySeconds).toBe(0);
+  });
+
+  it("17 — EMOM simple déposé dans un Circuit standard alterné : admis, séries = tours, Récupération retirée", () => {
+    const draft = draftOf(
+      // Deux Circuits : structure riche (un Circuit seul se lit comme un ancien brouillon).
+      [{ kind: "EXERCISE", exercise: "x" }, { kind: "CIRCUIT", circuit: { id: "s", nature: "SERIES", repeatCount: 4, exercises: ["y"] } }, { kind: "CIRCUIT", circuit: { id: "t", nature: "TOURS", repeatCount: 2, exercises: ["z"] } }],
+      [emomSimple("x", 4, 45), emomSimple("y", 4, 0), exercise("z")],
+    );
+    const outcome = moveLayoutItem(draft, { kind: "EXERCISE", id: "x" }, { container: { kind: "CIRCUIT", id: "s" }, index: 1 }, newId);
+    expect(outcome.status).toBe("APPLIED");
+    if (outcome.status !== "APPLIED") return;
+    const moved = outcome.draft.exercises.find((item) => item.id === "x")!;
+    expect(moved.format).toEqual({ key: "EMOM", settings: { intervalSeconds: 60 } });
+    expect(seriesRowsOf(moved.executionParameters)).toHaveLength(4);
+    expect(moved.postActivityRecoverySeconds).toBe(0);
+  });
+
+  it("20 — d'un Circuit porteur EMOM vers un autre Circuit porteur : seule la règle d'entrée du Circuit d'arrivée, sans étape intermédiaire", () => {
+    const member = { ...exercise("m", repetitionParameters(10, 3, 0), { key: "EMOM", settings: {} }), postActivityRecoverySeconds: 0 };
+    const draft = draftOf(
+      [
+        { kind: "CIRCUIT", circuit: { id: "e", nature: "TOURS", repeatCount: 3, format: EMOM_CIRCUIT.format, exercises: ["m", "k"] } },
+        { kind: "CIRCUIT", circuit: { id: "c", nature: "TOURS", repeatCount: 2, format: AMRAP_CIRCUIT.format, exercises: ["a"] } },
+      ],
+      [member, { ...member, id: "k" }, exercise("a", repetitionParameters(12), { key: "AMRAP", settings: { incrementPerRound: 0 } })],
+    );
+    const outcome = moveLayoutItem(draft, { kind: "EXERCISE", id: "m" }, { container: { kind: "CIRCUIT", id: "c" }, index: 1 }, newId);
+    expect(outcome.status).toBe("APPLIED");
+    if (outcome.status !== "APPLIED") return;
+    const moved = outcome.draft.exercises.find((item) => item.id === "m")!;
+    expect(moved.format).toEqual({ key: "AMRAP", settings: { incrementPerRound: 0 } });
+    expect(seriesRowsOf(moved.executionParameters)).toHaveLength(1);
+  });
+
+  it("18 — sortie d'un Circuit standard « À la suite » : reste EMOM simple (Intervalle conservé), sans choix, Récupération 0 s", () => {
+    const draft = draftOf(
+      [{ kind: "CIRCUIT", circuit: { id: "g", nature: "TOURS", repeatCount: 1, exercises: ["a", "b"] } }, { kind: "CIRCUIT", circuit: { id: "h", nature: "TOURS", repeatCount: 2, exercises: ["z"] } }],
+      [emomSimple("a", 6, 60), emomSimple("b", 6, 0), exercise("z")],
+    );
+    const outcome = moveLayoutItem(draft, { kind: "EXERCISE", id: "a" }, { container: { kind: "SESSION" }, index: 1 }, newId);
+    expect(outcome.status).toBe("APPLIED");
+    if (outcome.status !== "APPLIED") return;
+    const out = outcome.draft.exercises.find((item) => item.id === "a")!;
+    expect(out.format).toEqual({ key: "EMOM", settings: { intervalSeconds: 60 } });
+    expect(seriesRowsOf(out.executionParameters)).toHaveLength(6);
+    expect(out.postActivityRecoverySeconds).toBe(0);
+  });
+});
+
 describe("sortie d'un Circuit porteur (§13)", () => {
   const member = enterCarrier(exercise("a"), AMRAP_CIRCUIT);
 

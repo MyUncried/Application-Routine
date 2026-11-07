@@ -789,6 +789,12 @@ describe("formatOccurrenceEstimatedDuration / formatOccurrenceAccessibilityLabel
     expect(formatOccurrenceEstimatedDuration(occurrence({ executionParameters: durationParameters(45) }))).toBeNull();
   });
 
+  it("EMOM (décision de Hermann du 07/11/2026, point 21) : prescription seule, jamais de durée estimée", () => {
+    const beeping = repetitionParameters(10, 6, 0, { cadenceBeepIntervalSeconds: 6 });
+    expect(formatOccurrenceEstimatedDuration(occurrence({ executionParameters: beeping, format: { key: "EMOM", settings: {} } }))).toBeNull();
+    expect(formatOccurrenceEstimatedDuration(occurrence({ executionParameters: beeping, format: { key: "EMOM", settings: { intervalSeconds: 60 } } }))).toBeNull();
+  });
+
   it("accessibility label: type, name, « n sur m », occurrence duration (one pass in a Tours Circuit)", () => {
     expect(
       formatOccurrenceAccessibilityLabel(occurrence({ executionParameters: durationParameters(45) }), { index: 0, count: 3 }),

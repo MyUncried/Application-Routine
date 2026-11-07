@@ -2,7 +2,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render, screen, within } from "@testing-library/react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
-import { numberTarget, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import { failureTarget, numberTarget, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import type { CircuitRole, FormatSettings } from "@/domain/sessions/formats";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import type { FormatSheetContext, FormatSheetRow } from "@/features/activities/FormatSettingsFrame";
@@ -101,7 +101,7 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
   });
 
   it("EMOM : Intervalle dans le cadre Séries, saisi au clavier", () => {
-    const { onFormat } = renderSheet("EMOM", ["interval"], { intervalSeconds: 60 });
+    const { onFormat } = renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 });
     expect(within(get("execution-sheet-frame-series")).getByTestId("execution-sheet-format-interval-row", hidden)).toBeTruthy();
     // Figma `8795:14588`, Formats §14 : l'Intervalle remplace la Pause après chaque série.
     expect(query("execution-sheet-row-pause")).toBeNull();
@@ -109,6 +109,62 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
     enterExecutionSheetValue("execution-sheet-format-interval", 90);
     validate();
     expect(onFormat).toHaveBeenCalledWith({ intervalSeconds: 90 }, null);
+  });
+
+  describe("EMOM — décisions de Hermann du 07/11/2026 (A2, A3, A5, A8, B, B9 ; Figma `8795:14588`, `8598:30515`)", () => {
+    const failure = () => screen.getByLabelText(strings.executionParameters.sheet.stopConditions.FAILURE);
+    const target = () => screen.getByLabelText(strings.executionParameters.sheet.stopConditions.TARGET);
+    const withRecovery = { recovery: { seconds: 30, onApply: jest.fn() } };
+
+    function renderEmom(rows: readonly FormatSheetRow[], parent = params()) {
+      const onRecovery = jest.fn<(seconds: number) => void>();
+      render(
+        <TestSafeAreaProvider>
+          <ExecutionParametersSheet
+            parent={parent}
+            profileSideRecoverySecondsDefault={0}
+            recovery={{ ...withRecovery.recovery, onApply: onRecovery }}
+            format={{ key: "EMOM", rows, settings: { intervalSeconds: 60 }, onApply: jest.fn() }}
+            onApply={jest.fn()}
+            onCancel={jest.fn()}
+          />
+        </TestSafeAreaProvider>,
+      );
+      return { onRecovery };
+    }
+
+    it("seul ou à la suite : À l'objectif seul (À l'échec grisé, imposé dès l'ouverture), ni Pause ni Durée au cadre Cadence, Durée en lecture seule = N × intervalle sous l'Intervalle, Récupération", () => {
+      const parent = params({
+        series: { kind: "UNIFORM", count: 3, target: failureTarget(), pauseSeconds: 20, loadKg: 0, workPhases: [] },
+      });
+      renderEmom(["stopTarget", "interval", "durationReadOnly"], parent);
+      expect(failure().props.accessibilityState).toMatchObject({ disabled: true });
+      expect(target().props.accessibilityState).toMatchObject({ selected: true });
+      expect(query("execution-sheet-row-pause")).toBeNull();
+      expect(query("execution-sheet-row-total")).toBeNull();
+      const series = get("execution-sheet-frame-series");
+      expect(within(series).getByTestId("execution-sheet-format-duration-readonly-row", hidden)).toBeTruthy();
+      expect(String(get("execution-sheet-format-duration-readonly").props.children)).toBe(formatPhraseDuration(180));
+      expect(query("execution-sheet-frame-recovery")).not.toBeNull();
+    });
+
+    it("en alternance : Intervalle et Durée en lecture seule, Récupération absente et appliquée à 0 s", () => {
+      const { onRecovery } = renderEmom(["stopTarget", "interval", "durationReadOnly", "noRecovery"]);
+      expect(query("execution-sheet-format-interval-row")).not.toBeNull();
+      expect(query("execution-sheet-frame-recovery")).toBeNull();
+      validate();
+      expect(onRecovery).toHaveBeenCalledWith(0);
+    });
+
+    it("dans chaque intervalle : ni Intervalle, ni Durée de l'exercice, ni Pause, ni Récupération", () => {
+      renderEmom(["stopTarget", "noRecovery"]);
+      expect(query("execution-sheet-format-interval-row")).toBeNull();
+      expect(query("execution-sheet-format-duration-readonly-row")).toBeNull();
+      expect(query("execution-sheet-row-total")).toBeNull();
+      expect(query("execution-sheet-row-pause")).toBeNull();
+      expect(query("execution-sheet-frame-recovery")).toBeNull();
+      expect(failure().props.accessibilityState).toMatchObject({ disabled: true });
+    });
   });
 
   it("Death by : Incrément par intervalle et Intervalle dans le cadre Séries ; plus de ligne « Condition d'arrêt » séparée, À l'objectif grisé", () => {

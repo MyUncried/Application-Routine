@@ -626,9 +626,10 @@ export function ExecutionParametersSheet({
   const [draft, setDraft] = useState<ExecutionSheetDraft>(() => {
     const opened = openSheetDraft(parent, { inheritedSeriesCount, ...(nextPhaseId !== undefined ? { nextPhaseId } : {}) });
     // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : Condition d'arrêt À l'échec imposée au Death by — appliquée dès l'ouverture.
-    return format?.rows.includes("stopImposed") && stopConditionOf(effectiveParameters(opened)) !== "FAILURE"
-      ? setStopCondition(opened, "FAILURE")
-      : opened;
+    if (format?.rows.includes("stopImposed") && stopConditionOf(effectiveParameters(opened)) !== "FAILURE") return setStopCondition(opened, "FAILURE");
+    // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`), A2 : EMOM « À l'objectif » seul — appliqué dès l'ouverture.
+    if (format?.rows.includes("stopTarget") && stopConditionOf(effectiveParameters(opened)) === "FAILURE") return setStopCondition(opened, "TARGET");
+    return opened;
   });
   // PRE-7 (A2.1) : verrou de structure lu à l'ouverture, comme N hérité.
   const [structureLocked] = useState(phaseStructureLocked);
@@ -854,6 +855,12 @@ export function ExecutionParametersSheet({
   // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : ni Pause après chaque série (remplacée par l'Intervalle), ni Durée de l'exercice (mesurée à
   // l'exécution) ; ligne Séries « Jusqu'à l'échec » pour l'Exercice autonome, absente dans un Circuit porteur.
   const deathBySeriesRow = deathBySheet ? (format?.rows.includes("seriesUntilFailure") ?? false) : true;
+  // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : EMOM — jamais de Pause (A8 : le repos est le temps restant de l'intervalle) ; Durée de l'exercice hors du
+  // cadre Cadence (lecture seule sous l'Intervalle, ou absente) ; Récupération absente en alternance et dans chaque intervalle.
+  const emomSheet = format?.key === "EMOM";
+  const noPauseRow = deathBySheet || emomSheet;
+  const noCadenceDuration = deathBySheet || emomSheet;
+  const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false);
   // Q40 : jamais deux surlignages — le tableau n'est pas surligné tant qu'une surface hors
   // tableau est ouverte.
   // PRE-5 story 2.2, D-434 : le clavier d'une cellule (Cible, Pause, Charge) est une surface
@@ -1316,7 +1323,8 @@ export function ExecutionParametersSheet({
     if (absorbSheetCommand()) return;
     if (validation.ok && !emomOverflow) {
       const value = validation.value;
-      const appliedRecovery = recoverySeconds;
+      // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : Récupération absente (alternance, dans chaque intervalle) — 0 s appliqué.
+      const appliedRecovery = recoveryShown ? recoverySeconds : 0;
       const appliedFormat = formatValue;
       closeAnimated(() => {
         // PRE-9 (01/11/2026, point 2) : Récupération appliquée au brouillon parent avec les paramètres.
@@ -1647,7 +1655,7 @@ export function ExecutionParametersSheet({
     ...(hasWorkPhases && !structureLocked ? [scalarKeyboardField("phaseCount")] : []),
     ...(draft.inheritedSeriesCount ? [] : [scalarKeyboardField("count")]),
     ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
-    ...(showVariableTable || deathBySheet || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
+    ...(showVariableTable || noPauseRow || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
     ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
     ...(formatShown("interval") ? [scalarKeyboardField("formatInterval")] : []),
     ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
@@ -1657,11 +1665,11 @@ export function ExecutionParametersSheet({
       ? [scalarKeyboardField("formatDuration")]
       : formatShown("timeCap")
         ? [scalarKeyboardField("formatTimeCap")]
-        : !formatShown("inheritedCap") && !deathBySheet && totalEntrySeconds !== undefined
+        : !formatShown("inheritedCap") && !noCadenceDuration && totalEntrySeconds !== undefined
           ? [scalarKeyboardField("total")]
           : []),
     ...(signalsShown ? [scalarKeyboardField("countdown"), scalarKeyboardField("end")] : []),
-    ...(recovery !== undefined ? [scalarKeyboardField("recovery")] : []),
+    ...(recoveryShown ? [scalarKeyboardField("recovery")] : []),
   ];
   // PRE-5 story 2.2 (AD-26, AD-27) : hook unique focus / surface / application de la saisie.
   const keyboard = useSheetKeyboard({
@@ -1842,6 +1850,32 @@ export function ExecutionParametersSheet({
           </Row>
         </>
       ) : null}
+      {formatShown("durationReadOnly") ? (
+        <>
+          <Separator />
+          {/* Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : Durée de l'exercice en lecture seule, N × intervalle, placée sous l'Intervalle. */}
+          <Row
+            label={t.exerciseDuration}
+            // Figma « EMOM — Modale exercice, en alternance » `11856:24719` : « Déplier — Durée et signaux » conservé.
+            labelAccessory={
+              durationDisclosure ? (
+                <DisclosureControl
+                  expanded={isDurationExpanded}
+                  onPress={toggleDuration}
+                  framed={false}
+                  accessibilityLabel={isDurationExpanded ? t.hideExerciseSignals : t.showExerciseSignals}
+                  testID="execution-sheet-duration-disclosure"
+                />
+              ) : null
+            }
+            testID="execution-sheet-format-duration-readonly-row"
+          >
+            <Text style={styles.staticValue} testID="execution-sheet-format-duration-readonly">
+              {formatPhraseDuration(Math.max(draft.count, 1) * formatIntervalSeconds)}
+            </Text>
+          </Row>
+        </>
+      ) : null}
     </>
   );
   const formatDurationRow = formatShown("duration") ? (
@@ -1924,7 +1958,9 @@ export function ExecutionParametersSheet({
       options={
         format?.rows.includes("stopImposed")
           ? stopConditionOptions.map((option) => (option.value === "TARGET" ? { ...option, disabled: true } : option))
-          : stopConditionOptions
+          : format?.rows.includes("stopTarget")
+            ? stopConditionOptions.map((option) => (option.value === "FAILURE" ? { ...option, disabled: true } : option))
+            : stopConditionOptions
       }
       value={stopCondition === "FAILURE" ? "FAILURE" : "TARGET"}
       onChange={(condition) => chooseInline((base) => setStopCondition(base, condition))}
@@ -2782,7 +2818,7 @@ export function ExecutionParametersSheet({
                   {/* Recette iPhone du 07/11/2026 (Hermann : « il n'y a pas de ligne « Pause après chaque série » » ; Figma
                       « EMOM — Modale exercice, standard » `8795:14588` ; Formats §14 : l'Intervalle « remplace la Pause ») :
                       pas de Pause quand l'Exercice porte son Intervalle (EMOM, Death by). */}
-                  {!showVariableTable && !deathBySheet && !formatShown("interval") ? (
+                  {!showVariableTable && !noPauseRow && !formatShown("interval") ? (
                     <>
                       <Separator />
                       <Row label={t.pause} selected={isOpen(scalarSurface("pause"))} testID="execution-sheet-row-pause">
@@ -2939,7 +2975,7 @@ export function ExecutionParametersSheet({
 
                   {/* D-433 : ligne « Durée de l'exercice » toujours présente, même place. [Sauf Death by : absente,
                       mesurée à l'exécution — Formats §12, recette iPhone du 07/11/2026.] */}
-                  {deathBySheet ? null : (
+                  {noCadenceDuration ? null : (
                   <>
                     <Separator />
                     {formatDurationRow ?? (
@@ -3023,7 +3059,7 @@ export function ExecutionParametersSheet({
                     la ligne sur iOS, en ligne ailleurs, comme Durée de l'exercice). Exercice de
                     Séance seulement. `revealSignals` défile jusqu'au bas du contenu : ce cadre suit
                     Cadence et durée, dont Compte à rebours et Fin restent au-dessus de lui. */}
-                {recovery !== undefined ? (
+                {recoveryShown ? (
                   <SheetMotionView
                     appear={false}
                     onLayout={trackFrame("recovery")}

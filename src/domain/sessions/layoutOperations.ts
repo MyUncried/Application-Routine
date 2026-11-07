@@ -247,6 +247,21 @@ function circuitCountChanged(draft: SessionDraft, circuitId: string, requested: 
     return draft;
   }
   const structure = withLayoutCircuit(draft.structure, circuitId, (current) => ({ ...current, repeatCount: count }));
+  // Décisions de Hermann du 07/11/2026 (EMOM) (tableau B, cas 4) : Circuit porteur EMOM « dans chaque intervalle » — séries des membres = tours ; séries
+  // existantes conservées, lignes ajoutées à renseigner (pause 0), surplus retiré, comme le For time.
+  if (circuit.format?.key === "EMOM") {
+    const members = followsCount(draft, circuit);
+    const exercises = draft.exercises.map((exercise) => {
+      if (!members(exercise)) return exercise;
+      const parameters = exercise.executionParameters;
+      if (parameters.series.kind === "UNIFORM") return { ...exercise, executionParameters: { ...parameters, series: { ...parameters.series, count } } };
+      const rows = seriesRowsOf(parameters);
+      const last = rows.at(-1);
+      const resized = Array.from({ length: count }, (_, index) => rows[index] ?? { target: unsetTarget(), pauseSeconds: 0, loadKg: last?.loadKg ?? 0 });
+      return { ...exercise, executionParameters: { ...parameters, series: { kind: "VARIABLE" as const, rows: resized, workPhases: parameters.series.workPhases } } };
+    });
+    return { ...draft, structure, exercises };
+  }
   if (circuit.nature === "TOURS") {
     return { ...draft, structure };
   }
@@ -987,7 +1002,12 @@ export function settleLayoutCircuitMembership(
       }
       losses.push({ occurrenceId: exercise.id, lostSeriesCount: lost });
     }
-    const adapted = adaptExercise(exercise, circuit.repeatCount, []).exercise;
+    const adaptedExercise = adaptExercise(exercise, circuit.repeatCount, []).exercise;
+    // Décisions de Hermann du 07/11/2026 (EMOM) (tableau B, cas 3) : EMOM simple en alternance — Récupération absente (elle décalerait le top de la minute suivante).
+    const adapted =
+      adaptedExercise.format?.key === "EMOM" && (adaptedExercise.postActivityRecoverySeconds ?? 0) !== 0
+        ? { ...adaptedExercise, postActivityRecoverySeconds: 0 }
+        : adaptedExercise;
     changed ||= adapted !== exercise;
     return adapted;
   };
@@ -1001,6 +1021,12 @@ export function settleLayoutCircuitMembership(
       if (!exitNeedsChoice(exercise)) return settleEntry(exitCarrier(exercise, before, "FREE"));
       pendingExits.push({ exerciseId: exercise.id, formatKey: before.format!.key, free: settleEntry(exitCarrier(exercise, before, "FREE")) });
       return settleEntry(exitCarrier(exercise, before, "KEEP"));
+    }
+    // Décisions de Hermann du 07/11/2026 (EMOM), point 18 : sortie d'un Circuit standard (À la suite, En alternance) — l'EMOM simple reste EMOM, sans choix ;
+    // Récupération à 0 s (séries modifiables et Intervalle propre conservés).
+    if (before !== undefined && (before.format ?? null) === null && after?.id !== before.id && exercise.format?.key === "EMOM" && (exercise.postActivityRecoverySeconds ?? 0) !== 0) {
+      changed = true;
+      return settleEntry({ ...exercise, postActivityRecoverySeconds: 0 });
     }
     return settleEntry(exercise);
   });

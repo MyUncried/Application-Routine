@@ -512,6 +512,8 @@ function occurrenceSummaryOf(facts: Pick<ExerciseRowSummaryFacts, "executionPara
 export type OccurrenceCircuitContext = {
   readonly circuitNature?: CircuitNature;
   readonly tourRepeatCount?: number;
+  /** Décisions de Hermann du 07/11/2026 (EMOM), C12 : Exercices dont le travail prévu atteint ou dépasse l'intervalle EMOM (carte en rouge). */
+  readonly emomOverflowIds?: ReadonlySet<string>;
 };
 
 /**
@@ -547,6 +549,8 @@ export function formatOccurrenceEstimatedDuration(
   exercise: SessionDraftExercise,
   context: OccurrenceCircuitContext = {},
 ): string | null {
+  // Décisions de Hermann du 07/11/2026 (EMOM), point 21 : carte EMOM — prescription seule, jamais de durée estimée.
+  if (exercise.format?.key === "EMOM") return null;
   const duration = occurrenceDurationResult(exercise, context);
   return duration.kind === "estimated"
     ? `${strings.shared.durationNature.estimatedPrefix}${formatCompactDuration(duration.seconds)}`
