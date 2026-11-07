@@ -1,5 +1,10 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+## Mise en œuvre préparatoire du 07/11/2026 — Administration locale du référentiel
+
+Le [prototype d'administration Web locale](../../tools/catalogue-admin/README.md) réalise, pour le chantier de contenu, la consultation des 60 candidats et l'édition de brouillons séparés : nom, étapes, alias, attributs de classification proposés, propriétaire/auteurs, références additionnelles et glossaire sportif. **Il ne publie pas, ne diffuse pas et ne modifie aucune donnée applicative utilisateur.** Catégories et Zones KODJO historiques restent en lecture seule ; les contenus et taxonomies sources ne sont pas réécrits, et l'enregistrement porte uniquement sur `catalogue/admin/brouillons.json`. Pas de compte ni permission réseau ; serveur limité au poste de développement. L'outil et les tests d'API ne constituent ni approbation éditoriale/clinique ni qualification du rendu dans un navigateur. Les valeurs de taxonomie restent **À CLARIFIER** et le moteur d'exécution demeure indépendant.
+
+
 ## Décision du 07/11/2026 — classification du référentiel de Mouvements
 
 **Retenu pour la conception :** la Catégorie KODJO correspond à l'Objectif principal ; on ne crée pas un second référentiel Objectif. Catégorie (unique, colorée) et Zones corporelles (multiples) conservent leurs règles existantes. La Spécialité est un axe multivalué, distinct de la Catégorie ; Problème traité, Famille gestuelle et Cible anatomique (facultative) complètent la cible administrable. Une Famille gestuelle n'est pas une famille de Niveaux. Les classes de problèmes nécessitent un contrôle clinique avant publication. **À CLARIFIER :** listes de valeurs, granularités, cardinalités de publication, mapping clinique, collisions entre fiches de coachs, intégration de filtres et politique de distribution. La [taxonomie V0](../../catalogue/referentiels/README.md) et ses 12 exemples sont des propositions, pas des valeurs normatives. **Aucune migration SQLite, aucune interface mobile/Figma, aucun impact moteur à ce stade.** Numérotation D-xxx à confirmer suivant la gouvernance du registre.
