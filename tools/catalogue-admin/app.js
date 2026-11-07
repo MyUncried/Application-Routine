@@ -11,6 +11,7 @@ let draft = null;
 let revision = "";
 let selectedId = null;
 let glossaryId = null;
+let formDirty = false;
 
 function clone(value) { return structuredClone(value); }
 function notify(message, error = false) {
@@ -78,6 +79,8 @@ function renderMovementList() {
   }
 }
 function selectMovement(id) {
+  if (selectedId !== null && id !== selectedId && formDirty &&
+      !confirm("Cette fiche contient des modifications non conservées. Continuer ?")) return;
   const candidate = source.pilot.records.find((item) => item.candidateId === id);
   if (!candidate) return;
   selectedId = id;
@@ -111,6 +114,7 @@ function selectMovement(id) {
     verification: candidate.validation,
   }, null, 2);
   form.classList.remove("hidden");
+  formDirty = false;
   renderMovementList();
 }
 function parseLines(value) {
@@ -154,6 +158,7 @@ function captureMovement() {
   const initial = defaultMovement(source.pilot.records.find((item) => item.candidateId === selectedId));
   if (JSON.stringify(obj) === JSON.stringify(initial)) delete draft.movementEdits[selectedId];
   else draft.movementEdits[selectedId] = obj;
+  formDirty = false;
   notify("Fiche conservée dans le brouillon local. Cliquez Enregistrer pour écrire le fichier.");
   renderMovementList();
   return true;
@@ -255,7 +260,9 @@ function resetGlossary() {
   $("#glossary-form-title").textContent = "Créer une définition";
 }
 function switchTab(tab) {
-  $$(".tabs button").forEach((button) => {
+  if (tab !== "movements" && formDirty &&
+      !confirm("Des modifications de fiche ne sont pas conservées. Continuer ?")) return;
+  $(".tabs button").forEach((button) => {
     if (button.dataset.tab === tab) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
   });
@@ -295,6 +302,8 @@ async function start() {
 $$(".tabs button").forEach((button) => button.addEventListener("click", () => switchTab(button.dataset.tab)));
 $("#search").addEventListener("input", renderMovementList);
 $("#movement-form").addEventListener("submit", (event) => { event.preventDefault(); captureMovement(); });
+$("#movement-form").addEventListener("input", () => { formDirty = true; });
+$("#movement-form").addEventListener("change", () => { formDirty = true; });
 $("#reset-movement").addEventListener("click", () => {
   if (!selectedId || !confirm("Effacer les modifications de cette fiche dans le brouillon ?")) return;
   delete draft.movementEdits[selectedId]; selectMovement(selectedId);
@@ -348,7 +357,11 @@ $("#import").addEventListener("change", async (event) => {
   if (file.size > 1024 * 1024) return notify("Fichier trop volumineux.", true);
   try {
     const parsed = JSON.parse(await file.text());
-    if (parsed.kind !== "KODJO_ADMIN_DRAFTS" || parsed.publicationAllowed !== false) {
+    if (parsed.kind !== "KODJO_ADMIN_DRAFTS" || parsed.publicationAllowed !== false ||
+        !parsed.movementEdits || !Array.isArray(parsed.glossary) ||
+        !parsed.referenceAdditions || !parsed.referenceLabels ||
+        AXES.some((axis) => !Array.isArray(parsed.referenceAdditions[axis]) ||
+          typeof parsed.referenceLabels[axis] !== "object" || !parsed.referenceLabels[axis])) {
       throw Error("format ou statut de publication incompatible");
     }
     if (!confirm("Remplacer les brouillons en mémoire par ce fichier ? Vérification à l'enregistrement.")) return;
