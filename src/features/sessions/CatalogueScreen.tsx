@@ -1,8 +1,16 @@
+import * as DocumentPicker from "expo-document-picker";
+import { File } from "expo-file-system";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
+import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import {
+  installPilotMovements,
+  PILOT_ADMIN_JSON_MAX_BYTES,
+  preparePilotMovementImport,
+} from "@/features/activities/pilotMovementImport";
 import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
 import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
 import { EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
@@ -59,8 +67,13 @@ export type CatalogueContentType = "movements" | "sessions" | "programs";
  * modifiée — uniquement la structure visuelle et le regroupement des
  * éléments déjà existants.
  */
+/** Outil pilote de recette, non visible dans l'application sans activation explicite. */
+const PILOT_IMPORT_ENABLED = process.env.EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT === "1";
+
 export function CatalogueScreen() {
   const router = useRouter();
+  const activityDefinitionService = useActivityDefinitionService();
+  const [pilotImporting, setPilotImporting] = useState(false);
   // V2-CAT-01 (UI-CAT-R-005/006) : signal PONCTUEL, jamais persistant,
   // envoyé exclusivement par `CompositionScreen.handleSave` (ex-`CategoriesScreen`, supprimé par Q54) (`dismissTo`)
   // après un enregistrement réussi — force le retour déterministe sur
@@ -188,6 +201,60 @@ export function CatalogueScreen() {
     router.push("/composition");
   };
 
+  /** Import depuis l'export « brouillons » de l'administration Web, sur demande explicite. */
+  const handlePilotImport = async () => {
+    if (pilotImporting) return;
+    try {
+      const selection = await DocumentPicker.getDocumentAsync({
+        type: "application/json",
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (selection.canceled || !selection.assets[0]) return;
+      const asset = selection.assets[0];
+      if (asset.size !== undefined && asset.size > PILOT_ADMIN_JSON_MAX_BYTES) {
+        throw new Error("Fichier JSON supérieur à 24 Mo.");
+      }
+      const raw = JSON.parse(await new File(asset.uri).text()) as unknown;
+      const preview = preparePilotMovementImport(raw);
+      const catalogue = activityDefinitionService.movementCatalogue;
+      if (!catalogue) throw new Error("Catalogue KODJO indisponible.");
+      const warning = preview.excludedMediaCount
+        ? " " + preview.excludedMediaCount + " média(s) resteront uniquement dans le fichier de brouillons original."
+        : "";
+      Alert.alert(
+        "Importer 60 mouvements locaux ?",
+        "Les 60 fiches seront ajoutées au Catalogue des Mouvements, sans créer de séances ni d'exercices. " +
+          preview.overriddenCount + " fiche(s) reprennent tes modifications d'administration." +
+          warning + " Aucun mouvement existant ne sera écrasé.",
+        [
+          { text: "Annuler", style: "cancel" },
+          {
+            text: "Importer",
+            onPress: () => {
+              setPilotImporting(true);
+              void installPilotMovements(catalogue, preview).then(
+                (outcome) => {
+                  setMovementsReloadToken((current) => current + 1);
+                  Alert.alert(
+                    "Catalogue local mis à jour",
+                    outcome.inserted + " mouvement(s) ajouté(s), " + outcome.unchanged +
+                      " déjà identique(s). Les fiches ne sont pas publiées.",
+                  );
+                },
+                (error: unknown) => {
+                  Alert.alert("Import refusé ou interrompu", error instanceof Error ? error.message : String(error));
+                },
+              ).finally(() => setPilotImporting(false));
+            },
+          },
+        ],
+      );
+    } catch (error) {
+      Alert.alert("Fichier non importable", error instanceof Error ? error.message : String(error));
+    }
+  };
+
   return (
     <ScreenShell>
       <FixedHeader title={title} />
@@ -256,6 +323,20 @@ export function CatalogueScreen() {
             />
             <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
           </View>
+        ) : null}
+        {PILOT_IMPORT_ENABLED && activeSegment === "movements" ? (
+          <Pressable
+            onPress={() => { void handlePilotImport(); }}
+            disabled={pilotImporting}
+            accessibilityRole="button"
+            accessibilityLabel="Importer les mouvements pilotes depuis un fichier JSON"
+            style={styles.pilotImportButton}
+            testID="catalogue-import-pilot"
+          >
+            <Text style={styles.pilotImportButtonText}>
+              {pilotImporting ? "Import local en cours…" : "Importer 60 fiches (test local)"}
+            </Text>
+          </Pressable>
         ) : null}
         {activeSegment === "sessions" ? (
           <SessionCommandRow
@@ -469,6 +550,21 @@ const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_CO
 });
 
 const styles = StyleSheet.create({
+  pilotImportButton: {
+    alignSelf: "flex-start",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#B3C4E6",
+    borderRadius: 8,
+    marginTop: 8,
+    marginBottom: 3,
+  },
+  pilotImportButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#2853A0",
+  },
   contextBandFade: {
     position: "absolute",
     left: 0,
