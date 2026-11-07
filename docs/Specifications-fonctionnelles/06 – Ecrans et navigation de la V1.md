@@ -3529,3 +3529,5 @@ Nœud [11753:22133](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 Nœud [11762:23747](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11762-23747) · Export du 06/11/2026 · Badge « New » (D-510).
 
 ![Mouvement — Catalogue — Fiche créée](images/catalogues-2026-11-06/11762-23747.png)
+
+> **Pilote interne, non normatif, hors MVP (07/11/2026).** Une commande d'import local des 60 Mouvements peut être activée temporairement par variable de build dans le segment **Catalogue > Mouvements**. Elle utilise un sélecteur JSON natif et une confirmation explicite ; elle n'est pas représentée comme une règle UX Figma validée. [Procédure et restrictions](../KODJO-Import-catalogue-admin-vers-mobile-2026-11-07.md).
