@@ -138,6 +138,8 @@ La Récupération après exercice appartient directement à l’Exercice dans le
 
 Une **Étiquette** qualifie une Séance et porte sa couleur. Une **Catégorie** qualifie un Exercice et porte sa couleur sémantique. Les Zones corporelles restent distinctes de la Catégorie.
 
+**Classification future du référentiel administré :** la Catégorie KODJO constitue l'**Objectif principal** ; aucun second référentiel Objectif n'est créé. Les axes proposés sont Spécialité (multivaluée), Problème traité, Famille gestuelle et Cible anatomique facultative ; ils restent distincts des Zones et des familles de Niveaux. Les valeurs V0 sont [proposées, non validées](../../catalogue/referentiels/README.md) ; aucune modification du filtre mobile n'en découle.
+
 Le fonctionnement cible repose sur Mouvement, Exercice et Séance (D-449). L’exercice est subordonné à la composition ; la distinction historique ActivityDefinition/SessionActivity ci-dessous sert à lire l’état livré antérieur et ne constitue plus la cible.
 
 #### Utilisateur
