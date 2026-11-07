@@ -247,18 +247,22 @@ function circuitCountChanged(draft: SessionDraft, circuitId: string, requested: 
     return draft;
   }
   const structure = withLayoutCircuit(draft.structure, circuitId, (current) => ({ ...current, repeatCount: count }));
-  if (circuit.nature === "TOURS") {
+  if (circuit.nature === "TOURS" && circuit.format?.key !== "EMOM") {
     return { ...draft, structure };
   }
   const inCircuit = followsCount(draft, circuit);
   // PRE-9 C.4 (référence Formats §11, A6) : Circuit porteur For time — séries existantes conservées,
   // lignes ajoutées à compléter, surplus retiré, sans copie, extrapolation ni confirmation ; buy-in et
   // buy-out restent à une exécution. Death by alterné : compte ouvert, inchangé.
-  if (circuit.format?.key === "FOR_TIME") {
+  if (circuit.format?.key === "FOR_TIME" || circuit.format?.key === "EMOM") {
     const exercises = draft.exercises.map((exercise) => {
       if (!inCircuit(exercise) || isSinglePassage(exercise.format)) return exercise;
       const rows = seriesRowsOf(exercise.executionParameters);
-      const last = rows.at(-1);
+      const series = exercise.executionParameters.series;
+      if (circuit.format?.key === "EMOM" && series.kind === "UNIFORM" && count <= rows.length) {
+        return { ...exercise, executionParameters: { ...exercise.executionParameters, series: { ...series, count } } };
+      }
+      const last = circuit.format?.key === "EMOM" ? undefined : rows.at(-1);
       const resized = Array.from({ length: count }, (_, index) =>
         rows[index] ?? { target: unsetTarget(), pauseSeconds: last?.pauseSeconds ?? 0, loadKg: last?.loadKg ?? 0 },
       );

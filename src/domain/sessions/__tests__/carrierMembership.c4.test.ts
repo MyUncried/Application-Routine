@@ -214,6 +214,15 @@ describe("EMOM — conversions du 07/11", () => {
     expect(seriesRowsOf(updated.exercises[0]!.executionParameters).map(row => row.target.kind)).toEqual(["UNSET", "UNSET"]);
   });
 
+  it("le changement du nombre de tours EMOM redimensionne les séries sans recopier la colonne précédente", () => {
+    const draft = draftOf([{ kind: "CIRCUIT", circuit: { ...carrier, id: "c", exercises: ["a"] } }],
+      [exercise("a", varied, { key: "EMOM", settings: {} })]);
+    const edited = setLayoutCircuitCount(draft, "c", 3);
+    expect(seriesRowsOf(edited.exercises[0]!.executionParameters).map(row => row.target)).toEqual([
+      { kind: "NUMBER", value: 10 }, { kind: "NUMBER", value: 55 }, { kind: "UNSET" },
+    ]);
+  });
+
   it("20 : déplacement entre porteurs, seules les règles du destinataire sont appliquées", () => {
     const draft = draftOf([{ kind: "CIRCUIT", circuit: { ...carrier, id: "c", exercises: ["a","b"] } },
       { kind: "CIRCUIT", circuit: { ...carrier, id: "d", repeatCount: 3, exercises: ["z"] } }],
