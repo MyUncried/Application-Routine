@@ -1,5 +1,7 @@
 # API fonctionnelles
 
+La [page Web statique de gestion des médias](../../tools/catalogue-admin/static-ovh/README.md) fonctionne sans API serveur ; les photographies locales ne sont pas téléversées. Elle ne crée aucun contrat d'upload ou de streaming média et n'affecte aucune API de l'application mobile.
+
 > **Interface HTTP locale de préparation (07/11/2026).** L'[outil d'administration Web](../../tools/catalogue-admin/README.md) expose des routes localhost pour la lecture des candidats et l'enregistrement de brouillons, **hors API fonctionnelles de l'application mobile**. Il ne crée pas d'API de partage, de compte, de synchronisation ou d'Exécution.
 
 > **Futures interfaces de catalogue — hors services MVP d'exécution.** Le [contrat préparatoire](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) prévoit gestion des fiches, sources, auteurs, propriétaires et mises à jour ; aucune API de publication, de compte, de permissions réseau ou de synchronisation n'est créée ici. Les API de Mouvements, d'Exercices et d'Exécution existantes ne changent pas.
