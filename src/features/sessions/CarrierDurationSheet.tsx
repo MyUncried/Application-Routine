@@ -30,6 +30,7 @@ export function CarrierDurationSheet({
   seconds,
   allowsNone,
   label,
+  validateValue,
   onValidate,
   onCancel,
 }: {
@@ -38,12 +39,14 @@ export function CarrierDurationSheet({
   readonly allowsNone: boolean;
   /** Libellé de la durée (« Durée de chaque bloc »…) ; par défaut, celui du Temps limite si `allowsNone`. */
   readonly label?: string;
+  readonly validateValue?: (seconds: number | null) => string | null;
   readonly onValidate: (seconds: number | null) => void;
   readonly onCancel: () => void;
 }) {
   const t = strings.screens.composition.carrier;
   const shownLabel = label ?? (allowsNone ? t.durationLabels.timeCapSeconds : "");
   const [value, setValue] = useState<number | null>(seconds);
+  const error = validateValue?.(value);
   const inputRef = useRef<TextInput | null>(null);
   const keyboardFrame = useCarrierKeyboardFrame();
   const reduceMotion = useReduceMotion();
@@ -54,6 +57,7 @@ export function CarrierDurationSheet({
   }, []);
 
   const close = () => {
+    if (error && value !== seconds) return;
     Keyboard.dismiss();
     // Case vidée : la valeur précédente est gardée, sauf « Sans limite » (For time).
     const next = value === null && !allowsNone ? seconds : value;
@@ -73,6 +77,7 @@ export function CarrierDurationSheet({
             value={value}
             format={formatSeconds}
             placeholder={allowsNone ? t.noLimit : undefined}
+            missing={!!error}
             badge
             durationMin={1}
             onChange={setValue}
@@ -82,6 +87,7 @@ export function CarrierDurationSheet({
             label={shownLabel === "" ? t.durationLabels.blockSeconds : shownLabel}
             testID="carrier-duration-input"
           />
+          {error ? <Text accessibilityRole="alert" style={{ color: colors.danger }}>{error}</Text> : null}
         </View>
       </Pressable>
       {Platform.OS === "ios" && keyboardFrame !== null ? (

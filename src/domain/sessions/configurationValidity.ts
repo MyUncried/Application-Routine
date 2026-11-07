@@ -46,7 +46,7 @@ import {
   type ElementFormat,
   type FormatRole,
 } from "./formats";
-import { plannedWorkOfParameters } from "./formatModels";
+import { maximumEmomWindowWork, plannedWorkOfParameters } from "./formatModels";
 import type { ActivityType } from "./Session";
 import {
   structureCircuits,
@@ -97,7 +97,7 @@ function breaksImposedValues(exercise: ValidityExercise, format: ElementFormat, 
   }
   // For time : Condition d'arrêt À l'objectif, buy-in et buy-out compris (§3, §11 ; MAJ 04/11 §6 bis 2 : le buy-in
   // AMRAP peut être à l'échec).
-  const targetOnly = format.key === "FOR_TIME";
+  const targetOnly = format.key === "FOR_TIME" || format.key === "EMOM";
   return targetOnly && seriesRowsOf(parameters).some((row) => row.target.kind === "FAILURE");
 }
 
@@ -154,13 +154,7 @@ export function configurationValidity<E extends ValidityExercise>(
     // série/fenêtre est vérifiée, aussi après modification depuis la Composition).
     const window = carried.settings.windowSeconds;
     if (carried.key === "EMOM" && typeof window === "number") {
-      for (let rank = 0; rank < circuit.repeatCount; rank += 1) {
-        const sum = circuit.exercises.reduce((total, exercise) => total + plannedWorkOfParameters(exercise.executionParameters, rank), 0);
-        if (sum > 0 && sum >= window) {
-          add(circuit.id, "EMOM_DURATION");
-          break;
-        }
-      }
+      if (maximumEmomWindowWork(circuit.exercises, circuit.repeatCount) >= window) add(circuit.id, "EMOM_DURATION");
     }
   }
 

@@ -18,6 +18,7 @@
  * Fonctions pures.
  */
 
+import { enterCarrier, exitCarrier } from "./carrierMembership";
 import { seriesRowsOf, type SeriesRow } from "@/domain/activities/ExecutionParameters";
 
 import { circuitRoleOf } from "./formats";
@@ -259,7 +260,18 @@ export function applyModelReedit(draft: SessionDraft, circuitId: string, opened:
     const now = afterById.get(id)!;
     const current = currentById.get(id);
     const was = beforeById.get(id);
-    return current !== undefined && was !== undefined ? applyDelta(current, was, now) : now;
+    if (!current || !was) return now;
+    const patched = applyDelta(current, was, now);
+    if (edited.model !== "EMOM" || opened.answers.execution === edited.answers.execution) return patched;
+    const destination = after[0]?.kind === "CIRCUIT" ? after[0].circuit : undefined;
+    if (destination?.format?.key === "EMOM") {
+      return enterCarrier(patched, destination);
+    }
+    if (circuit.format?.key === "EMOM") {
+      const local = exitCarrier(current, circuit, "KEEP");
+      return { ...patched, format: now.format ?? local.format, postActivityRecoverySeconds: now.postActivityRecoverySeconds };
+    }
+    return { ...patched, postActivityRecoverySeconds: now.postActivityRecoverySeconds };
   });
   const removed = new Set(circuit.exercises.filter((id) => !afterById.has(id)));
   const builtCircuit = (elements: readonly StructureElement<SessionDraftExercise>[]) => (elements[0]?.kind === "CIRCUIT" ? elements[0].circuit : null);

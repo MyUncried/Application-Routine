@@ -49,7 +49,7 @@ export function formatSheetContextOf(
     case "EMOM": {
       if (carrier === undefined) {
         rows.push("interval");
-        emom = { windowSeconds: null, othersWorkByRank: [] };
+        emom = { inheritsCount: circuit?.nature === "SERIES", windowSeconds: null, othersWorkByRank: [] };
       } else {
         // Dans chaque intervalle : intervalle commun du Circuit, somme du travail prévu des membres.
         const window = carrier.format?.settings.windowSeconds;
@@ -60,7 +60,7 @@ export function formatSheetContextOf(
           .filter((member) => member !== undefined);
         const ranks = Math.max(carrier.repeatCount, 1);
         const othersWorkByRank = Array.from({ length: ranks }, (_, rank) => members.reduce((sum, member) => sum + plannedWorkOfParameters(member.executionParameters, rank), 0));
-        emom = { windowSeconds: typeof window === "number" ? window : 60, othersWorkByRank };
+        emom = { inheritsCount: true, windowSeconds: typeof window === "number" ? window : 60, othersWorkByRank };
       }
       break;
     }

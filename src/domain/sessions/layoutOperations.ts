@@ -987,7 +987,8 @@ export function settleLayoutCircuitMembership(
       }
       losses.push({ occurrenceId: exercise.id, lostSeriesCount: lost });
     }
-    const adapted = adaptExercise(exercise, circuit.repeatCount, []).exercise;
+    const member = exercise.format?.key === "EMOM" ? { ...exercise, postActivityRecoverySeconds: 0 } : exercise;
+    const adapted = adaptExercise(member, circuit.repeatCount, []).exercise;
     changed ||= adapted !== exercise;
     return adapted;
   };
@@ -1001,6 +1002,10 @@ export function settleLayoutCircuitMembership(
       if (!exitNeedsChoice(exercise)) return settleEntry(exitCarrier(exercise, before, "FREE"));
       pendingExits.push({ exerciseId: exercise.id, formatKey: before.format!.key, free: settleEntry(exitCarrier(exercise, before, "FREE")) });
       return settleEntry(exitCarrier(exercise, before, "KEEP"));
+    }
+    if (before && !before.format && before.id !== after?.id && exercise.format?.key === "EMOM") {
+      changed = true;
+      return settleEntry({ ...exercise, postActivityRecoverySeconds: 0 });
     }
     return settleEntry(exercise);
   });

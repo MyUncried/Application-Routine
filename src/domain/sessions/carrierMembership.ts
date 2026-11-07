@@ -19,6 +19,7 @@
 
 import {
   failureTarget,
+  resizeSeriesWithReserve,
   seriesRowsOf,
   unsetTarget,
   type ExecutionParametersInput,
@@ -77,7 +78,7 @@ const ownSetting = (exercise: SessionDraftExercise, id: string): number | undefi
 export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCircuit): SessionDraftExercise {
   const carried = circuit.format ?? null;
   if (carried === null || exercise.type !== "EXERCISE") return exercise;
-  if (exercise.format?.key === carried.key && isMemberShaped(exercise, carried.key, circuit.nature)) return exercise;
+  if (carried.key !== "EMOM" && exercise.format?.key === carried.key && isMemberShaped(exercise, carried.key, circuit.nature)) return exercise;
   const parameters = exercise.executionParameters;
   const target = commonTarget(parameters);
   const numeric: SeriesTarget = target.kind === "NUMBER" ? target : unsetTarget();
@@ -105,7 +106,7 @@ export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCir
     case "EMOM": {
       // Intervalle et Durée de l'exercice portés par le Circuit ; récupération 0 s. Complément du 5 novembre 2026 (Hermann), §14 : une série par tour (S1…Sn),
       // cible commune reprise sur chaque série. [Une série jouée à chaque tour — remplacé.]
-      return withFormat(exercise, { key: "EMOM", settings: {} }, uniform(parameters, parameters.mode, Math.max(1, circuit.repeatCount), target, 0), 0);
+      return withFormat(exercise, { key: "EMOM", settings: {} }, uniform(parameters, parameters.mode ?? "REPETITIONS", Math.max(1, circuit.repeatCount), numeric, 0), 0);
     }
     case "DEATH_BY": {
       // Départ repris s'il est chiffré ; incrément ≥ 1 ; intervalle propre en alternance. Complément du 5 novembre 2026 (Hermann), §13 : Répétitions ou Durée, le
@@ -173,7 +174,8 @@ export function exitCarrier(exercise: SessionDraftExercise, circuit: CarrierCirc
       return withFormat(
         exercise,
         { key: "EMOM", settings: { intervalSeconds: setting("windowSeconds") ?? 60 } },
-        seriesRowsOf(parameters).length === tours && tours > 1 ? parameters : uniform(parameters, parameters.mode, tours, target, 0),
+        seriesRowsOf(parameters).length === tours ? parameters : { ...parameters, series: resizeSeriesWithReserve(parameters.series, [], tours).series },
+        0,
       );
     }
     case "DEATH_BY": {

@@ -865,8 +865,8 @@ export function SeriesTable({
       return { ...values, volumes, loads };
     }
     let cells = values.cells ?? [];
-    if (patch.objective !== undefined) cells = withSeriesValue(cells, column, "repetitions", patch.objective, false);
-    if (patch.load !== undefined) cells = withSeriesValue(cells, column, "loadKg", patch.load, false);
+    if (patch.objective !== undefined) cells = withSeriesValue(cells, column, "repetitions", patch.objective);
+    if (patch.load !== undefined) cells = withSeriesValue(cells, column, "loadKg", patch.load);
     return { ...values, cells };
   };
   return (
