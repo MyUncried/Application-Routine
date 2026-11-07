@@ -37,6 +37,8 @@ export function carrierDurationSetting(format: ElementFormat, nature: CircuitNat
 export function carrierHeaderOf(
   circuit: { readonly nature: CircuitNature; readonly format?: ElementFormat | null },
   onPressDuration: (() => void) | undefined,
+  // Réponse 2 de Hermann du 07/11/2026 (EMOM, « dans chaque intervalle ») : durée de tour dépassée (C11) marquée en rouge.
+  overflow = false,
 ): CarrierHeader | undefined {
   const format = circuit.format ?? null;
   if (format === null) return undefined;
@@ -52,7 +54,7 @@ export function carrierHeaderOf(
         ? seconds === null
           ? { text: t.noLimit, tone: "MUTED" as const }
           : { text: `≤ ${formatMinutes(seconds)}`, tone: "EDITABLE" as const }
-        : { text: seconds === null ? "—" : formatMinutes(seconds), tone: "EDITABLE" as const };
+        : { text: seconds === null ? "—" : formatMinutes(seconds), tone: overflow ? ("OVERFLOW" as const) : ("EDITABLE" as const) };
   const durationLabel = setting === null ? undefined : `${t.durationLabels[setting]}, ${duration?.text ?? ""}`;
   return {
     title,

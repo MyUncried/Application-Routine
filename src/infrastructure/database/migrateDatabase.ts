@@ -24,6 +24,7 @@ import { applyMigration019 } from "./migrations/migration019";
 import { applyMigration020 } from "./migrations/migration020";
 import { applyMigration021 } from "./migrations/migration021";
 import { applyMigration022 } from "./migrations/migration022";
+import { applyMigration023 } from "./migrations/migration023";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -271,6 +272,13 @@ export async function migrateDatabase(
     if (pending(21)) {
       await applyMigration022(transaction);
       version = 22;
+    }
+
+    // PRE-9 (décisions EMOM du 07/11/2026, réponse 3 de Hermann) : Récupération à 0 s des EMOM d'un Circuit alterné
+    // ou d'un Circuit porteur EMOM, reprise de données sans changement de schéma. Un échec laisse `user_version` à 22.
+    if (pending(22)) {
+      await applyMigration023(transaction);
+      version = 23;
     }
 
     if (version !== targetVersion) {

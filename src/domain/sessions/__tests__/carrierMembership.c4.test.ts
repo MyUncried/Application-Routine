@@ -126,6 +126,59 @@ describe("EMOM — sorties et Circuits standards, décisions de Hermann du 07/11
     expect(moved.postActivityRecoverySeconds).toBe(0);
   });
 
+  // Réponses de Hermann du 07/11/2026 (points 1 et 3) : confirmation de perte seulement s'il y a plus de séries que de tours ; séries ajoutées à renseigner,
+  // sans confirmation ni recopie ; Récupération à 0 s dans les données (entrée, changement de nature).
+  const variableEmom = (id: string, targets: readonly number[], recovery: number): SessionDraftExercise => ({
+    ...exercise(id, variableParameters({ rows: targets.map((target) => [target, 15, 20] as const) }), { key: "EMOM", settings: { intervalSeconds: 60 } }),
+    postActivityRecoverySeconds: recovery,
+  });
+  const alternatedDraft = (incoming: SessionDraftExercise) =>
+    draftOf(
+      [{ kind: "EXERCISE", exercise: incoming.id }, { kind: "CIRCUIT", circuit: { id: "s", nature: "SERIES", repeatCount: 3, exercises: ["y"] } }, { kind: "CIRCUIT", circuit: { id: "t", nature: "TOURS", repeatCount: 2, exercises: ["z"] } }],
+      [incoming, emomSimple("y", 3, 0), exercise("z")],
+    );
+
+  it("17 — plus de séries que de tours : confirmation de perte (séries au-delà des tours), puis séries = tours et Récupération 0 s", () => {
+    const outcome = moveLayoutItem(alternatedDraft(variableEmom("x", [10, 12, 14, 16, 18], 45)), { kind: "EXERCISE", id: "x" }, { container: { kind: "CIRCUIT", id: "s" }, index: 1 }, newId);
+    expect(outcome.status).toBe("CONFIRMATION_REQUIRED");
+    if (outcome.status !== "CONFIRMATION_REQUIRED") return;
+    expect(outcome.losses).toEqual([{ occurrenceId: "x", lostSeriesCount: 2 }]);
+    const moved = outcome.draft.exercises.find((item) => item.id === "x")!;
+    expect(seriesRowsOf(moved.executionParameters).map((row) => row.target)).toEqual([10, 12, 14].map((value) => ({ kind: "NUMBER", value })));
+    expect(moved.postActivityRecoverySeconds).toBe(0);
+  });
+
+  it("17 — moins de séries que de tours : sans confirmation, séries existantes gardées, séries ajoutées à renseigner (aucune recopie)", () => {
+    const outcome = moveLayoutItem(alternatedDraft(variableEmom("x", [10], 45)), { kind: "EXERCISE", id: "x" }, { container: { kind: "CIRCUIT", id: "s" }, index: 1 }, newId);
+    expect(outcome.status).toBe("APPLIED");
+    if (outcome.status !== "APPLIED") return;
+    const moved = outcome.draft.exercises.find((item) => item.id === "x")!;
+    const rows = seriesRowsOf(moved.executionParameters);
+    expect(rows.map((row) => row.target)).toEqual([{ kind: "NUMBER", value: 10 }, { kind: "UNSET" }, { kind: "UNSET" }]);
+    expect(rows.map((row) => row.pauseSeconds)).toEqual([15, 0, 0]);
+    expect(moved.postActivityRecoverySeconds).toBe(0);
+  });
+
+  it("3 — Circuit standard groupé passé en alterné : Récupération des EMOM simples à 0 s, séries ajoutées à renseigner", () => {
+    const draft = draftOf(
+      [{ kind: "CIRCUIT", circuit: { id: "g", nature: "TOURS", repeatCount: 3, exercises: ["x", "w"] } }, { kind: "CIRCUIT", circuit: { id: "t", nature: "TOURS", repeatCount: 2, exercises: ["z"] } }],
+      [variableEmom("x", [10, 12], 45), exercise("w"), exercise("z")],
+    );
+    const next = applyLayoutNatureChange(draft, "g", "SERIES");
+    const moved = next.exercises.find((item) => item.id === "x")!;
+    expect(seriesRowsOf(moved.executionParameters).map((row) => row.target.kind)).toEqual(["NUMBER", "NUMBER", "UNSET"]);
+    expect(moved.postActivityRecoverySeconds).toBe(0);
+    // Exercice libre : règle existante inchangée (Récupération conservée).
+    expect(next.exercises.find((item) => item.id === "w")!.postActivityRecoverySeconds).toBe(45);
+  });
+
+  it("3 — membre EMOM déjà au format du Circuit porteur, Récupération ancienne non nulle : ramenée à 0 s à l'entrée", () => {
+    const member = { ...exercise("m", repetitionParameters(10, 3, 0), { key: "EMOM", settings: {} }), postActivityRecoverySeconds: 30 };
+    const entered = enterCarrier(member, EMOM_CIRCUIT);
+    expect(entered.postActivityRecoverySeconds).toBe(0);
+    expect(entered.executionParameters).toBe(member.executionParameters);
+  });
+
   it("20 — d'un Circuit porteur EMOM vers un autre Circuit porteur : seule la règle d'entrée du Circuit d'arrivée, sans étape intermédiaire", () => {
     const member = { ...exercise("m", repetitionParameters(10, 3, 0), { key: "EMOM", settings: {} }), postActivityRecoverySeconds: 0 };
     const draft = draftOf(

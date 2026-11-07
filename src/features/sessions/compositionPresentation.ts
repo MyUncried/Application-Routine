@@ -648,9 +648,12 @@ export type CollapsedCircuitTone = "INCOMPLETE" | "TO_VERIFY" | null;
  */
 export function collapsedCircuitTone(
   exercises: readonly Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify">[],
+  // Réponse 2 de Hermann du 07/11/2026 (EMOM) : une carte d'Exercice en rouge pour dépassement de l'intervalle (C12) teinte aussi son Circuit, comme
+  // une carte à compléter (règle générale, sans exception EMOM).
+  hasEmomOverflow = false,
 ): CollapsedCircuitTone {
   const summaries = exercises.map((exercise) => formatOccurrenceSummary(exercise));
-  if (summaries.some(isIncompleteSummary)) return "INCOMPLETE";
+  if (hasEmomOverflow || summaries.some(isIncompleteSummary)) return "INCOMPLETE";
   if (summaries.some(isToVerifySummary)) return "TO_VERIFY";
   return null;
 }

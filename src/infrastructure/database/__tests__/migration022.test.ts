@@ -40,7 +40,8 @@ describe("migration022 — nom du Circuit", () => {
       [user!.id, T, T],
     );
     await database.runAsync("INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature, origin_model) VALUES ('t', 's', NULL, 0, 8, 'UNILATERAL', 'SERIES', 'TABATA')");
-    await migrateDatabase(database, () => T);
+    // Décisions EMOM du 07/11/2026 : preuve arrêtée à la version 22, avant `migration023`.
+    await migrateDatabase(database, () => T, 22);
     expect((await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))?.user_version).toBe(22);
     expect(await database.getFirstAsync("SELECT repeat_count, nature, origin_model, name FROM tours WHERE id = 't'")).toEqual({
       repeat_count: 8,
@@ -52,10 +53,10 @@ describe("migration022 — nom du Circuit", () => {
     expect((await columns(database)).filter((column) => column === "name")).toHaveLength(1);
   });
 
-  it("installation neuve : version 22, colonne présente", async () => {
+  it("installation neuve : version courante, colonne présente", async () => {
     const database = memory();
     await migrateDatabase(database, () => T);
-    expect(DATABASE_VERSION).toBe(22);
+    expect(DATABASE_VERSION).toBe(23);
     expect(await columns(database)).toContain("name");
   });
 });

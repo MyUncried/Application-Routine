@@ -4886,6 +4886,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onToggleOverlay={toggleOverlay}
             onCircuitCount={handleLayoutCircuitCount}
             onEditCarrierDuration={handleEditCarrierDuration}
+            emomOverflowIds={emomOverflowIds}
             circuitActions={circuitActions}
             onCycleCount={handleLayoutCycleCount}
             onSelectNature={handleLayoutSelectNature}
@@ -8150,6 +8151,8 @@ type LayoutRenderContext = {
   readonly onCircuitCount: (circuitId: string, count: number) => void;
   /** PRE-9 C.4 : toucher de la durée d'un Circuit porteur. */
   readonly onEditCarrierDuration: (circuit: StructureCircuit<SessionDraftExercise>) => void;
+  /** Décisions de Hermann du 07/11/2026 (EMOM), C12 et réponse 2 : Exercices dont l'intervalle est dépassé (cartes, Circuit et durée de tour en rouge). */
+  readonly emomOverflowIds: ReadonlySet<string>;
   /** MAJ 04/11/2026 §6 quinquies et §6 sexies : actions glissées du Circuit replié et saisie de son nom. */
   readonly circuitActions: CircuitActionsContext;
   readonly onCycleCount: (cycleId: string, count: number) => void;
@@ -8898,7 +8901,9 @@ function LayoutExerciseRow({
     [circuit, exercise],
   );
   const circuitContext: OccurrenceCircuitContext =
-    circuit === null ? {} : { circuitNature: circuit.nature, tourRepeatCount: circuit.repeatCount };
+    circuit === null
+      ? { emomOverflowIds: context.emomOverflowIds }
+      : { circuitNature: circuit.nature, tourRepeatCount: circuit.repeatCount, emomOverflowIds: context.emomOverflowIds };
   const { onEdit, onOpenMovement, drag } = context;
   const edit = useCallback(() => onEdit(exercise.id), [exercise.id, onEdit]);
   // Recette iPhone n° 2 du 31/10/2026 (constat c) : la photo d'une carte d'Exercice ouvre sa fiche.
@@ -9154,7 +9159,9 @@ function LayoutCircuitBlock({
   // PRE-9 B.6 : jamais replié en placement (emplacements du Circuit visibles), comme le Circuit unique (B.1a).
   const isCollapsed = context.collapsed.get(circuit.id) === contentKey && context.stops.placement === null;
   // Recette iPhone n° 3 du 03/11/2026 (autres constats) : Circuit replié teinté comme ses cartes masquées.
-  const tone = isCollapsed ? collapsedCircuitTone(circuit.exercises) : null;
+  // Réponse 2 de Hermann du 07/11/2026 (EMOM) : un membre en dépassement d'intervalle teinte aussi le Circuit replié.
+  const hasEmomOverflow = circuit.exercises.some((member) => context.emomOverflowIds.has(member.id));
+  const tone = isCollapsed ? collapsedCircuitTone(circuit.exercises, hasEmomOverflow) : null;
   const circuitContainer = useMemo<StopPointContainer>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
   const inPlacement = context.stops.placement !== null;
   /**
@@ -9342,7 +9349,7 @@ function LayoutCircuitBlock({
         isCounterOpen={openOverlay === counterKind}
         onToggleCounter={() => onToggleOverlay(counterKind)}
         onChangeCount={(count) => context.onCircuitCount(circuit.id, count)}
-        carrier={carrierHeaderOf(circuit, () => context.onEditCarrierDuration(circuit))}
+        carrier={carrierHeaderOf(circuit, () => context.onEditCarrierDuration(circuit), (circuit.format?.key === "EMOM") && hasEmomOverflow)}
         // Recette iPhone n° 3 du 03/11/2026 (autres constats) : nom du modèle d'origine à la place de « Circuit ».
         originTitle={circuitDisplayTitle(circuit)}
         isNatureMenuOpen={openOverlay === natureKind}

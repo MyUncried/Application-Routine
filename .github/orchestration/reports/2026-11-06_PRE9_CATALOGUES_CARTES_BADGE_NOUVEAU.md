@@ -414,3 +414,53 @@ Demande de Hermann du 07/11/2026 (texte complet recopié dans ch07, « EMOM — 
 - **C12** : l’en-tête du Circuit porteur n’est pas mis en rouge, seulement les cartes de ses membres ; aucun test d’écran de ce contrôle.
 - **19** : aucun test de réédition EMOM avec changement d’exécution.
 - Vérification iPhone de l’ensemble : non faite (Metro arrêté par manque de mémoire).
+
+## EMOM — réponses de Hermann du 07/11/2026 (point 17, contrôle de la Composition, Récupération dans les données)
+
+- **Objectif** : appliquer les trois réponses de Hermann aux points laissés ouverts par la section précédente (texte recopié mot pour mot dans ch07, section EMOM du 07/11/2026).
+- **Branche** : `feat/pre9-catalogues-cartes-badge-20261106` (PR #420, non fusionnée). **Commit de départ** : `b04eb09e`.
+- **Périmètre demandé** : (1) point 17 — confirmation de perte conservée seulement s'il y a plus de séries que de tours, séries ajoutées à renseigner sinon ; (2) Composition — Circuit en rouge dès qu'une carte de membre l'est, durée de tour en rouge (« dans chaque intervalle ») ; (3) Récupération à 0 s dans les données à l'entrée dans un Circuit alterné ou « dans chaque intervalle », données existantes normalisées.
+
+### Constats avant correction
+
+| Réponse | Constat | Correction | Classe |
+|---|---|---|---|
+| 1 | Confirmation déjà affichée seulement au-delà des tours (`lostSeriesCount`) ; mais les séries ajoutées (moins de séries que de tours) recopiaient la dernière ligne (cible, pause, charge) | `adaptExercise` (seul point d'adaptation au compte d'un Circuit alterné : entrée, passage en alterné, nombre de tours, ancien modèle compris) : pour un EMOM simple, séries ajoutées à renseigner, Pause 0, charge de la dernière ligne ; réserve restaurée d'abord | B |
+| 2 | Disposition générale (plusieurs Circuits) : les cartes des membres ne passaient **pas** en rouge — le contexte des cartes de `LayoutSequence` ne recevait pas les Exercices en dépassement (seul le rendu par zones les recevait) | `emomOverflowIds` transmis au contexte de la disposition ; cartes des Exercices directs et des membres en rouge | A (C12) |
+| 2 | Circuit replié : teinté pour « à compléter » / « à vérifier », pas pour le dépassement d'intervalle | `collapsedCircuitTone(…, hasEmomOverflow)` : Circuit replié en rouge (règle de la recette n° 3 du 03/11/2026) | A |
+| 2 | Durée de tour de l'en-tête toujours en bleu | Ton `OVERFLOW` (`colors.danger`) pour un Circuit porteur EMOM en dépassement | B |
+| 3 | Récupération mise à 0 s seulement à l'entrée d'un EMOM simple dans un Circuit alterné ; conservée au passage d'un Circuit groupé en alterné, au changement du nombre de tours, et pour un membre déjà au format d'un Circuit porteur EMOM | `adaptExercise` (tous les chemins alternés) et `enterCarrier` (membre déjà au format) : Récupération à 0 s dans le brouillon, donc dans les données enregistrées | B |
+| 3 | Données déjà enregistrées : Récupération non nulle possible | Migration 023 (`migration023.ts`), reprise de données sans changement de schéma | B |
+
+Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupération des Exercices standards d'un Circuit alterné n'est pas modifiée (aucune règle ne la retire). À confirmer par Hermann si « un exercice » visait aussi les Exercices standards.
+
+### Migration 023
+
+- Numérotation vérifiée : dernière migration de la branche = 022 (nom du Circuit) ; `origin/main` n'en a pas de plus récente. A.5 (non autorisée) prendra la suivante disponible. Aucune migration existante réécrite.
+- `UPDATE activities SET post_activity_recovery_seconds = 0 WHERE type = 'EXERCISE' AND format_key = 'EMOM' AND post_activity_recovery_seconds <> 0 AND tour_id IN (SELECT id FROM tours WHERE nature = 'SERIES' OR format_key = 'EMOM')`.
+- `post_activity_recovery_present` et `updated_at` conservés ; EMOM « À la suite » (groupé standard), EMOM hors Circuit, autres Formats et Exercices libres inchangés ; séances jouées et instantanés non touchés.
+- Transaction exclusive unique : un échec laisse `user_version` à 22. Idempotente.
+- Effet sur l'iPhone : appliquée au prochain démarrage de l'application avec ce code. Non vérifiée sur l'appareil.
+
+### Fichiers modifiés
+
+- Domaine : `src/domain/sessions/circuit.ts` (`adaptExercise`, `resizeEmomSeries`), `layoutOperations.ts` (entrée en alterné simplifiée), `carrierMembership.ts` (`enterCarrier`).
+- Base : `src/infrastructure/database/migrations/migration023.ts` (nouveau), `migrateDatabase.ts`, `constants.ts` (version 23).
+- Composition : `src/features/sessions/CompositionScreen.tsx`, `compositionPresentation.ts`, `carrierPresentation.ts`, `CircuitHeader.tsx`.
+- Tests : `migration023.test.ts` (nouveau), `CompositionScreen.emom0711.test.tsx` (nouveau), `carrierMembership.c4.test.ts` (+4) ; tests de migration 012 à 022 et `executionParametersV3.roundTrip` alignés sur la version 23 (`migration022.test` arrêté explicitement à 22).
+- Docs : ch07 (réponses recopiées, portée et classes), ch12 (migration 023), Formats §10 (annotation).
+
+### Tests
+
+- `tsc --noEmit` : OK.
+- `npx jest src/domain` : 76 suites, 1 957 tests, verts (avant ajout des 4 tests) ; `carrierMembership.c4` : 23/23.
+- `npx jest src/infrastructure/database` : toutes les suites vertes, dont `migration023` 3/3.
+- `npx jest src/features` (hors Composition) : 147 suites, 2 053 tests, verts.
+- Composition, en-têtes, présentation, porteurs : 25 suites, 748/749 au lancement groupé ; l'échec (`CompositionScreen.recette1`, « disposition générale (deux Circuits) ») ne se reproduit pas seul (9/9) : instabilité sous charge, non liée au changement. `CompositionScreen.emom0711` : 2/2.
+
+### Non traité / à vérifier
+
+- **Circuit déplié** : la règle existante (03/11) ne teinte que le Circuit **replié** ; déplié, ses cartes sont visibles en rouge et l'aplat reste habituel. Appliqué tel quel ; à confirmer par Hermann s'il veut aussi le Circuit déplié en rouge.
+- **Ancien modèle (un seul Circuit standard)** : le contrôle C12 de la Composition ne porte que sur la disposition générale ; un EMOM « À la suite » ou alterné ne peut toutefois dépasser son intervalle propre que depuis la modale, qui bloque déjà.
+- **Point 19** : toujours aucun test de réédition EMOM.
+- **iPhone** : rien vérifié sur l'appareil (Metro arrêté).

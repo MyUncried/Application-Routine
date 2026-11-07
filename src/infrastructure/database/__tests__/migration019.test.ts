@@ -166,7 +166,7 @@ async function seededVersion18(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 recette n° 2, constat e — migration 019 (marque « Paramètre à vérifier »)", () => {
   it("version courante 19 ; tables de la 019 : occurrences de Séance et Exercices du Catalogue", () => {
-    expect(DATABASE_VERSION).toBe(22);
+    expect(DATABASE_VERSION).toBe(23);
     expect(MIGRATION_019_TABLES).toEqual(["activities", "activity_definitions"]);
   });
 
@@ -203,7 +203,7 @@ describe("PRE-9 recette n° 2, constat e — migration 019 (marque « Paramètre
   it("une erreur après l'ajout des colonnes annule tout et laisse la base au schéma 018 ; le démarrage suivant migre", async () => {
     let database = await seededVersion18();
     const before = await snapshot(database);
-    const failing = failOnExec(database, /^PRAGMA user_version = 22/);
+    const failing = failOnExec(database, /^PRAGMA user_version = 23/);
     await expect(migrateDatabase(failing.database, () => T)).rejects.toThrow("Injected failure");
     // Les deux ajouts avaient bien été exécutés dans la transaction.
     expect(failing.executed.some((source) => source.startsWith("ALTER TABLE activities ADD COLUMN phases_to_verify"))).toBe(true);

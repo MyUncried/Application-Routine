@@ -77,7 +77,10 @@ const ownSetting = (exercise: SessionDraftExercise, id: string): number | undefi
 export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCircuit): SessionDraftExercise {
   const carried = circuit.format ?? null;
   if (carried === null || exercise.type !== "EXERCISE") return exercise;
-  if (exercise.format?.key === carried.key && isMemberShaped(exercise, carried.key, circuit.nature, circuit.repeatCount)) return exercise;
+  if (exercise.format?.key === carried.key && isMemberShaped(exercise, carried.key, circuit.nature, circuit.repeatCount)) {
+    // Décision de Hermann du 07/11/2026 (EMOM), réponse 3 : membre EMOM « dans chaque intervalle » — Récupération à 0 s dans les données.
+    return carried.key === "EMOM" && (exercise.postActivityRecoverySeconds ?? 0) !== 0 ? { ...exercise, postActivityRecoverySeconds: 0 } : exercise;
+  }
   const parameters = exercise.executionParameters;
   const target = commonTarget(parameters);
   const numeric: SeriesTarget = target.kind === "NUMBER" ? target : unsetTarget();

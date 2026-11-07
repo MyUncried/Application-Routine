@@ -24,12 +24,14 @@
 import {
   clampSeriesCount,
   resizeSeriesWithReserve,
+  resizeWithReserve,
   seriesCountOf,
   seriesRowsOf,
   type ExecutionMode,
   type ExecutionSeries,
   type SeriesRow,
   type SeriesTarget,
+  unsetTarget,
 } from "@/domain/activities/ExecutionParameters";
 
 import { occurrenceDisplayName } from "./composition";
@@ -351,6 +353,11 @@ export function lostSeriesCount(exercise: SessionDraftExercise, count: number): 
  * ligne active). Régime et autres paramètres inchangés ; même référence si
  * rien ne change. PRE-9 (B.1b) : exporté pour les Circuits d'une disposition générale
  * (`layoutOperations.ts`).
+ *
+ * Décisions de Hermann du 07/11/2026 (EMOM), points 17 et 3 (réponse du 07/11) : un EMOM simple dans un Circuit
+ * alterné — séries au-delà de N retirées (perte confirmée par l'appelant), séries ajoutées à renseigner (Pause 0,
+ * aucune recopie de la dernière ligne, décision du 06/11 « retirée partout »), Récupération à 0 s dans les données.
+ * Seuls appelants : adaptation au compte d'un Circuit alterné (entrée, nature, nombre de tours).
  */
 export function adaptExercise(
   exercise: SessionDraftExercise,
@@ -358,14 +365,29 @@ export function adaptExercise(
   reserve: readonly SeriesRow[],
 ): { readonly exercise: SessionDraftExercise; readonly reserve: readonly SeriesRow[] } {
   const parameters = exercise.executionParameters;
-  const resized = resizeSeriesWithReserve(parameters.series, reserve, count);
-  if (resized.series === parameters.series) {
+  const emom = exercise.format?.key === "EMOM";
+  const resized = emom ? resizeEmomSeries(parameters.series, reserve, count) : resizeSeriesWithReserve(parameters.series, reserve, count);
+  const recoveryKept = !emom || (exercise.postActivityRecoverySeconds ?? 0) === 0;
+  if (resized.series === parameters.series && recoveryKept) {
     return { exercise, reserve: resized.reserve };
   }
   return {
-    exercise: { ...exercise, executionParameters: { ...parameters, series: resized.series } },
+    exercise: {
+      ...exercise,
+      ...(recoveryKept ? {} : { postActivityRecoverySeconds: 0 }),
+      executionParameters: resized.series === parameters.series ? parameters : { ...parameters, series: resized.series },
+    },
     reserve: resized.reserve,
   };
+}
+
+/** EMOM simple alterné (voir `adaptExercise`) : réserve restaurée d'abord, puis séries à renseigner, sans recopie. */
+function resizeEmomSeries(series: ExecutionSeries, reserve: readonly SeriesRow[], count: number): { readonly series: ExecutionSeries; readonly reserve: readonly SeriesRow[] } {
+  if (series.kind === "UNIFORM" || series.rows.length === count) {
+    return resizeSeriesWithReserve(series, reserve, count);
+  }
+  const resized = resizeWithReserve(series.rows, reserve, count, (last) => ({ target: unsetTarget(), pauseSeconds: 0, loadKg: last?.loadKg ?? 0 }));
+  return { series: { kind: "VARIABLE", rows: resized.active, workPhases: series.workPhases }, reserve: resized.reserve };
 }
 
 /**

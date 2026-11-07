@@ -1002,12 +1002,9 @@ export function settleLayoutCircuitMembership(
       }
       losses.push({ occurrenceId: exercise.id, lostSeriesCount: lost });
     }
-    const adaptedExercise = adaptExercise(exercise, circuit.repeatCount, []).exercise;
-    // Décisions de Hermann du 07/11/2026 (EMOM) (tableau B, cas 3) : EMOM simple en alternance — Récupération absente (elle décalerait le top de la minute suivante).
-    const adapted =
-      adaptedExercise.format?.key === "EMOM" && (adaptedExercise.postActivityRecoverySeconds ?? 0) !== 0
-        ? { ...adaptedExercise, postActivityRecoverySeconds: 0 }
-        : adaptedExercise;
+    // Décisions de Hermann du 07/11/2026 (EMOM) (tableau B, cas 3 ; point 17) : EMOM simple en alternance — Récupération à 0 s (elle décalerait le top
+    // de la minute suivante), séries ajoutées à renseigner ; confirmation de perte seulement s'il a plus de séries que de tours (`adaptExercise`).
+    const adapted = adaptExercise(exercise, circuit.repeatCount, []).exercise;
     changed ||= adapted !== exercise;
     return adapted;
   };

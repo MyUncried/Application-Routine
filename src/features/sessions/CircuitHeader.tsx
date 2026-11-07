@@ -493,7 +493,8 @@ export type CarrierHeader = {
   readonly title: string;
   readonly unit: { readonly singular: string; readonly plural: string } | null;
   readonly openLabel: string;
-  readonly duration: { readonly text: string; readonly tone: "EDITABLE" | "MUTED" } | null;
+  /** `OVERFLOW` : durée de tour dépassée par le travail prévu (EMOM, réponse 2 de Hermann du 07/11/2026), en rouge. */
+  readonly duration: { readonly text: string; readonly tone: "EDITABLE" | "MUTED" | "OVERFLOW" } | null;
   readonly onPressDuration?: () => void;
   readonly durationAccessibilityLabel?: string;
 };
@@ -653,7 +654,7 @@ export function CircuitHeader({
               style={[styles.carrierDurationTarget, columns.duration]}
               testID={`${testID}-duration`}
             >
-              <Text style={[styles.duration, carrier.duration.tone === "EDITABLE" ? styles.carrierDurationEditable : styles.carrierDurationMuted]} numberOfLines={1}>
+              <Text style={[styles.duration, carrier.duration.tone === "EDITABLE" ? styles.carrierDurationEditable : carrier.duration.tone === "OVERFLOW" ? styles.carrierDurationOverflow : styles.carrierDurationMuted]} numberOfLines={1}>
                 {carrier.duration.text}
               </Text>
             </Pressable>
@@ -1471,6 +1472,11 @@ const styles = StyleSheet.create({
   },
   carrierDurationEditable: {
     color: colors.primary,
+    flex: 0,
+    marginLeft: 0,
+  },
+  carrierDurationOverflow: {
+    color: colors.danger,
     flex: 0,
     marginLeft: 0,
   },

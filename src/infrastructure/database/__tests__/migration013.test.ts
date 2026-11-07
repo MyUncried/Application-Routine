@@ -212,7 +212,7 @@ async function seededVersion12(options: { readonly populated: boolean } = { popu
 
 describe("migration013 — réinitialisation ponctuelle et modèle C05 (R-3, Q1, Q2)", () => {
   it("version 13 suivie de la 14 (PRE-8, A.3), de la 15 (PRE-8, B.8), de la 16 (PRE-9, A.1) , de la 17 (PRE-9, C.1) puis de la 18 (PRE-9, A.2b)", () => {
-    expect(DATABASE_VERSION).toBe(22);
+    expect(DATABASE_VERSION).toBe(23);
   });
 
   it("réinitialise Mouvements, Niveaux, Exercices et Séances une seule fois et conserve Profil, Catégories, Zones et Étiquettes", async () => {

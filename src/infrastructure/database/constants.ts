@@ -134,7 +134,12 @@ export const DATABASE_NAME = "kodjo.db";
  * **PRE-9 (version 22, `migration022`, reprise Formats du 04/11/2026)** : nom du Circuit (`tours.name`, `NULL` =
  * nom par défaut) — colonne additive nullable. 001..021 inchangées.
  */
-export const DATABASE_VERSION = 22;
+/**
+ * **PRE-9 (version 23, `migration023`, décisions EMOM du 07/11/2026, réponse 3 de Hermann)** : Récupération des
+ * Exercices EMOM d'un Circuit alterné ou d'un Circuit porteur EMOM ramenée à 0 s — reprise de données, aucun
+ * changement de schéma. 001..022 inchangées. [A.5, non autorisée, prendra la prochaine version disponible.]
+ */
+export const DATABASE_VERSION = 23;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;
