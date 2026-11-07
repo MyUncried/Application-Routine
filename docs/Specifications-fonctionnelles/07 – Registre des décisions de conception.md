@@ -1705,6 +1705,14 @@ Réponses de Hermann du 07/11/2026 aux points ouverts de cette section, recopié
 
 Portée : (1) classe B — confirmation de perte conservée pour l’EMOM simple alterné (plus de séries que de tours) ; séries ajoutées à renseigner (Pause 0), sans recopie de la dernière ligne, à l’entrée, au passage en alterné et au changement du nombre de tours [la copie de la dernière ligne active reste la règle des Exercices standards] ; (2) classe A — règle existante de la recette iPhone n° 3 du 03/11/2026 (Circuit replié teinté comme ses cartes) étendue au dépassement d’intervalle, et classe B — durée de tour de l’en-tête en rouge (« dans chaque intervalle ») ; (3) classe B — Récupération à 0 s dans les données pour un EMOM d’un Circuit alterné ou d’un Circuit porteur EMOM (entrée, passage en alterné, changement du nombre de tours, membre déjà au format), et données existantes normalisées par la migration 023 (reprise de données sans changement de schéma). Portée retenue : l’Exercice EMOM, objet de cette section ; la Récupération des Exercices standards d’un Circuit alterné n’est pas modifiée.
 
+Confirmations de Hermann du 07/11/2026, recopiées mot pour mot :
+
+> Circuit déplié : pas en rouge. Mais cette règle est déjà définie et développée, pourquoi chercher à mettre une exception ?
+>
+> Un exercice : que pour l’emom
+
+Portée : classe A — le Circuit déplié garde son aplat habituel (règle existante du 03/11/2026, déjà développée, sans exception EMOM) ; la Récupération à 0 s ne vise que l’Exercice EMOM.
+
 ## Catalogues, cartes et validation des modales — 5 et 6 novembre 2026
 
 Source : [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes-modales-2026-11-06.md). Remplacent les dispositions contraires sur les seuls points cités ; texte d’origine conservé ailleurs.

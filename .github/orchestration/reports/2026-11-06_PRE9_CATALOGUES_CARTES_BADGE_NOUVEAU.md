@@ -432,7 +432,7 @@ Demande de Hermann du 07/11/2026 (texte complet recopié dans ch07, « EMOM — 
 | 3 | Récupération mise à 0 s seulement à l'entrée d'un EMOM simple dans un Circuit alterné ; conservée au passage d'un Circuit groupé en alterné, au changement du nombre de tours, et pour un membre déjà au format d'un Circuit porteur EMOM | `adaptExercise` (tous les chemins alternés) et `enterCarrier` (membre déjà au format) : Récupération à 0 s dans le brouillon, donc dans les données enregistrées | B |
 | 3 | Données déjà enregistrées : Récupération non nulle possible | Migration 023 (`migration023.ts`), reprise de données sans changement de schéma | B |
 
-Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupération des Exercices standards d'un Circuit alterné n'est pas modifiée (aucune règle ne la retire). À confirmer par Hermann si « un exercice » visait aussi les Exercices standards.
+Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupération des Exercices standards d'un Circuit alterné n'est pas modifiée (aucune règle ne la retire). Confirmé par Hermann le 07/11/2026 : « Un exercice : que pour l’emom ».
 
 ### Migration 023
 
@@ -460,7 +460,7 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 
 ### Non traité / à vérifier
 
-- **Circuit déplié** : la règle existante (03/11) ne teinte que le Circuit **replié** ; déplié, ses cartes sont visibles en rouge et l'aplat reste habituel. Appliqué tel quel ; à confirmer par Hermann s'il veut aussi le Circuit déplié en rouge.
+- **Circuit déplié** : la règle existante (03/11) ne teinte que le Circuit **replié** ; déplié, ses cartes sont visibles en rouge et l'aplat reste habituel. Confirmé par Hermann le 07/11/2026 : « Circuit déplié : pas en rouge. Mais cette règle est déjà définie et développée, pourquoi chercher à mettre une exception ? » — règle existante appliquée, aucune exception ; la question n'avait pas lieu d'être posée.
 - **Ancien modèle (un seul Circuit standard)** : le contrôle C12 de la Composition ne porte que sur la disposition générale ; un EMOM « À la suite » ou alterné ne peut toutefois dépasser son intervalle propre que depuis la modale, qui bloque déjà.
 - **Point 19** : toujours aucun test de réédition EMOM.
 - **iPhone** : rien vérifié sur l'appareil (Metro arrêté).
