@@ -730,11 +730,11 @@
       "contract": "CE-FMT-04",
       "width": 402,
       "height": 874,
-      "date": "2026-11-05",
+      "date": "2026-11-07",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8598-31210.png",
-      "sha256": "d4db9bad3c2d097147cd79b0d566cae33eb55e7040fbc199f1dbc134b4e21b8c",
-      "bytes": 98182
+      "sha256": "f90e36c8c564a7e55cc910720e17e682d2e942793ef3c75d17826a0e83573435",
+      "bytes": 94962
     },
     {
       "node_id": "8598:31560",

@@ -2592,6 +2592,8 @@ Feuille standard et ses six blocs : Exécution, Phases du mouvement, Séries, C�
 
 EMOM Répétitions par défaut ou Durée (standard et dans chaque intervalle), cible propre à chaque Exercice ; AMRAP autonome en Répétitions ; membres AMRAP selon mode compatible ; Passage/incrément lorsqu’applicables ; For time borne héritée grisée ; Death by départ/incrément visibles avec À l’échec ; intervalle local en Death by alterné.
 
+**Death by (D-514, écran 8598:31210).** Dans la modale « Paramètres d’exécution » de Death by, la condition d’arrêt standard « À l’échec » porte seule la fin de l’exercice. La ligne « Séries » est retirée. Le nombre de séries découle de l’échec. En mode Répétitions, la série de rang n (à partir de 1) demande le nombre de répétitions de départ augmenté de (n − 1) fois l’incrément par intervalle.
+
 #### 9. Layout déterministe
 
 Rendu DSF actuel, texte valeur calculée non modifiable noir sans pastille ; bleu éditable et gris verrouillé. Aucune copie d’un ancien layout à quatre cadres.

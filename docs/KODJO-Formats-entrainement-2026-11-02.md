@@ -608,11 +608,13 @@ Paramètres du questionnaire : Intervalle (1 min), Objectif de départ (1), Incr
 
 **Un seul mouvement** — l'exercice porte le format (Type d'exercice = Death by) :
 
+Dans la modale « Paramètres d’exécution » de Death by, la condition d’arrêt standard « À l’échec » porte seule la fin de l’exercice. La ligne « Séries » est retirée. Le nombre de séries découle de l’échec. En mode Répétitions, la série de rang n (à partir de 1) demande le nombre de répétitions de départ augmenté de (n − 1) fois l’incrément par intervalle.
+
 | Champ | Valeur |
 |---|---|
 | Mode | Répétitions (Durée grisé) |
 | Condition d'arrêt | À l’échec, imposée (À l’objectif grisé) |
-| Séries | **« Jusqu'à l'échec »** (Variables grisé) : seule nouveauté, une valeur du champ Séries à la place d'un nombre |
+| Séries | ~~« Jusqu'à l'échec » (Variables grisé) : seule nouveauté, une valeur du champ Séries à la place d'un nombre~~. **Remplacé le 07/11/2026 (D-514).** Ligne retirée. |
 | Nombre de répétitions | 1 (départ) |
 | Incrément par intervalle | + 1 rép. par défaut, **au minimum + 1** (0 n'est pas proposé : ce serait un EMOM jusqu'à l'échec) — champ Incrément par tour de l'AMRAP |
 | Intervalle | 1 min (champ de l'EMOM) |
@@ -655,7 +657,7 @@ Lorsqu'un exercice sort d'un circuit qui porte un format (AMRAP, For time, EMOM 
    - Sortie d’un Circuit AMRAP → AMRAP simple en Répétitions ; durée d’un bloc reprise du Circuit (ex. 12 min). Si le membre était en Durée, aucune durée n’est convertie en répétitions : l’objectif de répétitions reste à renseigner ; les phases et autres paramètres compatibles sont conservés. Les phases chronométrées ne transforment pas la cible de l’AMRAP simple en Durée.
    - Sortie d'un circuit For time → For time simple ; Séries = nombre de tours, mêmes volumes.
    - Sortie d'un circuit EMOM « dans chaque intervalle » → EMOM simple ; Intervalle = durée de chaque tour, Séries = nombre de tours.
-   - Sortie d’un Circuit Death by → Death by simple ; Séries « Jusqu’à l’échec », Nombre de répétitions et Incrément conservés. Dans chaque intervalle : Intervalle repris du Circuit. En alternance : Intervalle propre de l’Exercice conservé, sans reprise d’une durée de Circuit inexistante.
+   - Sortie d’un Circuit Death by → Death by simple ; ~~Séries « Jusqu’à l’échec »,~~ **Remplacé le 07/11/2026 (D-514)** (aucune ligne Séries à rétablir). Nombre de répétitions et Incrément conservés. Dans chaque intervalle : Intervalle repris du Circuit. En alternance : Intervalle propre de l’Exercice conservé, sans reprise d’une durée de Circuit inexistante.
 2. **« Adopter un format libre »** : l'exercice devient un exercice standard. Exception : un buy-in ou un buy-out sorti du circuit devient directement un exercice libre (section 6), sans cette confirmation. Le choix explicite du Format Libre reprend les paramètres compatibles et laisse les autres à compléter ; aucune conversion de durée en répétitions, aucun calcul arbitraire et aucune confirmation supplémentaire de perte. Ne pas promettre « aucune perte » pour tous les changements de prescription.
 
 **Dialogue représenté** : « AMRAP — Séance, sortie d’un exercice du circuit (confirmation) » (`11410:20123`), composant « DSF / Overlays / Confirmation », variante Trois actions, sur fond voilé. Titre « Sortir du circuit AMRAP ? » ; exemple de message « Fentes avant devient un AMRAP simple de 12 min, ou un exercice libre sans incrément par tour. » Actions : **Conserver le format AMRAP** (principale bleue, choix par défaut), **Adopter un format libre** (secondaire), **Annuler**. Annuler conserve l’emplacement et les paramètres antérieurs. Le message varie selon le mouvement, le Format et les paramètres effectivement repris ; ce texte illustratif ne supprime pas les règles de compatibilité ou de champs à compléter.
@@ -676,7 +678,7 @@ Un exercice qui porte lui-même son format (EMOM, For time, AMRAP simple…) ne 
 | Nom du circuit | Circuit | Nom modifiable ; modèle par défaut, sinon Circuit | Tous Circuits (§7.8) |
 | Modèle d’origine | Circuit | Modèle de création non modifiable, distinct du Format d’origine | Réouverture du parcours (§7.9) |
 | Intervalle | Exercice | Durée (1 min par défaut), modifiable dans sa modale, remplace la Pause | EMOM autonome ou alterné ; Death by autonome ou membre du Circuit Death by alterné |
-| Séries « Jusqu'à l'échec » | Exercice | Valeur du champ Séries à la place d'un nombre | Death by |
+| Séries « Jusqu'à l'échec » | Exercice | ~~Valeur du champ Séries à la place d'un nombre~~. **Remplacé le 07/11/2026 (D-514).** Aucun paramètre de nombre de séries. | Death by |
 | Durée maximum du For time | Exercice | Libellé de la Durée de l'exercice pour un For time simple ; « Aucune » par défaut | For time |
 
 Champs propres au format qui restent sur un exercice qui porte lui-même son format :
@@ -684,7 +686,7 @@ Champs propres au format qui restent sur un exercice qui porte lui-même son for
 - **AMRAP simple** : Incrément par tour ;
 - **EMOM** : Intervalle ;
 - **For time** : Durée maximum du For time ;
-- **Death by** : Intervalle, Incrément par intervalle, Séries « Jusqu'à l'échec ».
+- **Death by** : Intervalle, Incrément par intervalle, ~~Séries « Jusqu'à l'échec »~~ (**Remplacé le 07/11/2026 (D-514)**, ligne retirée).
 
 Les valeurs imposées par un Format restent visibles et grisées ; les valeurs initiales réglables ne sont pas des constantes imposées. Seuls les paramètres effectivement portés par le Circuit sont retirés de la saisie locale de l’Exercice ; l’Intervalle du Death by alterné reste local. Exception informative : le rappel de la borne For time (« Sans limite » ou « ≤ X min »), conservé grisé. Les préconfigurations Tabata et départs rapides restent modifiables (§9).
 

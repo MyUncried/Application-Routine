@@ -2173,7 +2173,7 @@ Nœud [8598:30873](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 ##### Death by — Modale exercice, standard
 
-Nœud [8598:31210](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31210) · Contrat CE-FMT-04 · Export du 05/11/2026.
+Nœud [8598:31210](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-31210) · Contrat CE-FMT-04 · Export du 07/11/2026. Condition d’arrêt « À l’échec », départ et incrément visibles, sans ligne « Séries » (D-514).
 
 ![Death by — Modale exercice, standard](images/figma-8598-31210.png)
 
