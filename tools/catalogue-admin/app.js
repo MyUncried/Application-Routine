@@ -151,7 +151,9 @@ function captureMovement() {
   if (obj.steps.some((s) => [...s].length > 65)) {
     notify("Chaque étape doit compter 65 caractères maximum.", true); return false;
   }
-  draft.movementEdits[selectedId] = obj;
+  const initial = defaultMovement(source.pilot.records.find((item) => item.candidateId === selectedId));
+  if (JSON.stringify(obj) === JSON.stringify(initial)) delete draft.movementEdits[selectedId];
+  else draft.movementEdits[selectedId] = obj;
   notify("Fiche conservée dans le brouillon local. Cliquez Enregistrer pour écrire le fichier.");
   renderMovementList();
   return true;
