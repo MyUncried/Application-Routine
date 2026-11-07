@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "KODJO_ADMIN_DRAFTS",
+  "publicationAllowed": false,
+  "movementEdits": {},
+  "referenceAdditions": {
+    "specialties": [],
+    "gesturalFamilies": [],
+    "clinicalProblems": [],
+    "anatomicalTargets": []
+  },
+  "referenceLabels": {
+    "specialties": {},
+    "gesturalFamilies": {},
+    "clinicalProblems": {},
+    "anatomicalTargets": {}
+  },
+  "glossary": []
+}
