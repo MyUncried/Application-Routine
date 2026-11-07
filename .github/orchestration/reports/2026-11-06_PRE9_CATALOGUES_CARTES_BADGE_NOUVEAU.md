@@ -548,6 +548,6 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 
 - Tout : rien n'a été vérifié sur l'appareil.
 - Ordre des options (point 2) : non reproduit, capture demandée.
-- Interprétations à confirmer : y-pile (carte venue d'ailleurs) ; « la pause » = Fin de séance.
+- Interprétations confirmées par Hermann le 07/11/2026 : y-pile (carte venue d'ailleurs, « Oui ») ; « la pause » = Fin de séance (« C’est bien la fin de séance »). Ordre des options : Hermann va essayer de reproduire.
 - Si un brouillon AMRAP membre ou For time Buy-in/out a des séries variables, le tableau reste affiché (ligne Séries seule masquée).
 - `CompositionScreen.recette1` en échec depuis `c8fe2857` ou avant : à analyser.
