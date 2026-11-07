@@ -146,6 +146,21 @@
           "id": "combined",
           "label": "Enchaînement combiné",
           "status": "PROPOSED"
+        },
+        {
+          "id": "leg-raise",
+          "label": "Élévation de jambe",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "step-up",
+          "label": "Montée sur plateforme",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "bridge",
+          "label": "Pont / extension des hanches",
+          "status": "PROPOSED"
         }
       ]
     },
@@ -272,7 +287,7 @@
         "reeducation"
       ],
       "gesturalFamilyIds": [
-        "core-stabilization"
+        "leg-raise"
       ],
       "anatomicalTargetIds": [
         "quadriceps"
@@ -378,7 +393,7 @@
         "hyrox"
       ],
       "gesturalFamilyIds": [
-        "locomotion"
+        "step-up"
       ],
       "anatomicalTargetIds": [],
       "proposedClinicalAssociations": [],
@@ -414,8 +429,8 @@
         "pilates"
       ],
       "gesturalFamilyIds": [
-        "core-stabilization",
-        "hip-hinge"
+        "bridge",
+        "core-stabilization"
       ],
       "anatomicalTargetIds": [
         "gluteus-maximus"
