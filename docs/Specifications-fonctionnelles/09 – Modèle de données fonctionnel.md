@@ -1234,6 +1234,8 @@ Une Étiquette possède son identité, son libellé et sa couleur persistante. U
 
 Une **Catégorie** classe une **Exercice** et porte sa couleur sémantique. Elle est distincte des Zones corporelles.
 
+Dans le chantier du catalogue administré, la Catégorie existante remplit le rôle d'**Objectif principal** et conserve sa cardinalité et sa couleur : pas d'entité « Objectif » supplémentaire. Les référentiels additionnels Spécialité, Problème traité, Famille gestuelle et Cible anatomique sont décrits en [V0 de conception](../../catalogue/referentiels/README.md), sans changement de schéma ni d'obligation sur `Movement` tant que les valeurs et cardinalités ne sont pas arbitrées.
+
 #### Périmètre
 
 Une Catégorie possède son identité, son libellé, sa couleur et son ordre d’affichage. Un nouvel Exercice valide référence exactement une Catégorie.
