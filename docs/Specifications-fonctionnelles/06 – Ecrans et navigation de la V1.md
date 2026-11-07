@@ -1681,7 +1681,7 @@ Le questionnaire et le récapitulatif sont des **modales**, ouvertes depuis la m
 
 Dans le questionnaire et le récapitulatif, toucher la **photo** d’une petite carte ouvre la **Fiche du mouvement** en consultation seule, en modale par-dessus celle du Format, sur un second voile. Apparition par le bas, pleine largeur, coins hauts arrondis 24 px ; en-tête croix et titre « Fiche du mouvement », fond blanc et trait conservés. Nom, catégorie, zones corporelles, niveau, média, description et phases habituels ; aucun bouton d’action. Fermer restitue exactement l’état du parcours sous-jacent. Toucher le reste de la carte conserve son comportement existant.
 
-**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
+**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : ~~valeurs de S1 reprises initialement~~ **(remplacé le 06/11/2026 : chaque colonne se saisit indépendamment ; les cases non saisies restent à renseigner)** ; nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
 
 **Validation du récapitulatif :** « Enregistrer dans la séance » n’est actif que si tous les paramètres requis sont renseignés et la configuration cohérente. Une cible à renseigner est signalée dans son cadre et bloque l’ajout ; un récapitulatif incomplet ne crée pas un Exercice « Paramètres à compléter » dans la Composition. Cet état reste possible après une modification ultérieure de Composition, notamment une entrée/sortie de Circuit ou de Format. Chaque case de tableau et la modale correspondante lisent et écrivent les mêmes champs standards de l’Exercice ; aucun second stockage. [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 
@@ -2157,7 +2157,7 @@ Nœud [8598:30059](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 ##### EMOM — Modale exercice, dans chaque intervalle
 
-Nœud [8598:30515](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30515) · Contrat CE-FMT-04 · Export du 05/11/2026.
+Nœud [8598:30515](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-30515) · Contrat CE-FMT-04 · Export du 07/11/2026.
 
 ![EMOM — Modale exercice, dans chaque intervalle](images/figma-8598-30515.png)
 
@@ -2365,9 +2365,17 @@ Nœud [8747:14451](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 ##### EMOM — Modale exercice, standard
 
-Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14588) · Contrat CE-FMT-04 · Export du 05/11/2026.
+Nœud [8795:14588](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8795-14588) · Contrat CE-FMT-04 · Export du 07/11/2026.
 
 ![EMOM — Modale exercice, standard](images/figma-8795-14588.png)
+
+<a id="format-11856-24719"></a>
+
+##### EMOM — Modale exercice, en alternance
+
+Nœud [11856:24719](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=11856-24719) · Contrat CE-FMT-04 · Export du 07/11/2026. N est hérité du Circuit, l’intervalle est local, la durée est calculée et la récupération est absente.
+
+![EMOM — Modale exercice, en alternance](images/figma-11856-24719.png)
 
 <a id="format-9779-19874"></a>
 

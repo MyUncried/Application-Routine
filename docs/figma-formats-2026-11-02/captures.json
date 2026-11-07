@@ -1,7 +1,7 @@
 {
   "file_key": "G6RY5Ebhgwb4AHIOYDwwvg",
   "page_id": "510:101",
-  "exported": 87,
+  "exported": 88,
   "pending": 0,
   "screens": [
     {
@@ -706,11 +706,11 @@
       "contract": "CE-FMT-04",
       "width": 402,
       "height": 874,
-      "date": "2026-11-05",
+      "date": "2026-11-07",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8598-30515.png",
-      "sha256": "94abe239c635f1624a8367775b2ea85b5edd4dfd0a6fa0033fdbe6e854f45375",
-      "bytes": 130040
+      "sha256": "e2a2adb5d7e9e25cb383a01ab00630693531a981d3ffb23ab09edd7b34695e95",
+      "bytes": 133696
     },
     {
       "node_id": "8598:30873",
@@ -1018,11 +1018,23 @@
       "contract": "CE-FMT-04",
       "width": 402,
       "height": 874,
-      "date": "2026-11-05",
+      "date": "2026-11-07",
       "status": "exported",
       "file": "docs/Specifications-fonctionnelles/images/figma-8795-14588.png",
-      "sha256": "6565b02ba0b353282dc6fc3f67fede1160c75193465e7b627064509db4d9b2c3",
-      "bytes": 97848
+      "sha256": "c5e000735833dcbfe1b214ca7059c52f5b95605f1194ef405973f86ba92a4f9d",
+      "bytes": 97440
+    },
+    {
+      "node_id": "11856:24719",
+      "name": "EMOM — Modale exercice, en alternance",
+      "contract": "CE-FMT-04",
+      "width": 402,
+      "height": 874,
+      "date": "2026-11-07",
+      "status": "exported",
+      "file": "docs/Specifications-fonctionnelles/images/figma-11856-24719.png",
+      "sha256": "4652c15919b0ea068c1affb582a2873a1649b57a86122b0f468c7b21c5421039",
+      "bytes": 95330
     },
     {
       "node_id": "9779:19874",

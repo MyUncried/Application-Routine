@@ -1376,6 +1376,8 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 **Complément Formats actif :** Tabata et 30/30 standards modifiables ; contraintes effectives des Formats spécialisés selon CE-FMT-04 et la référence du 02/11.
 
+**EMOM — décisions D-517 et D-518 du 07/11/2026.** Les règles génériques « Durée de l’exercice » modifiable et « À l’échec » sélectionnable sont remplacées pour EMOM le 07/11/2026. Appliquer les quatre variantes du §10. [Formats §10](../KODJO-Formats-entrainement-2026-11-02.md#10-application-de-la-règle-à-lemom)
+
 #### 1. Identification
 
 <a id="parametres-execution-etat-cible"></a>
@@ -2376,6 +2378,8 @@ Chaque entrée mène au bon questionnaire ; croix/voile restaurent Composition s
 <a id="ce-fmt-02--paramètres-globaux-et-récapitulatif"></a>
 <a id="ce-fmt-02"></a>
 
+**EMOM — décisions D-517 et D-518 du 07/11/2026.** Chaque case saisie ne modifie que sa colonne (décision du 06/11/2026). Au récapitulatif, chaque cible et charge reste éditable séparément. Bloquer au seuil inclusif, par rang, avec message et cadres rouges. [Formats §10](../KODJO-Formats-entrainement-2026-11-02.md#10-application-de-la-règle-à-lemom)
+
 #### 1. Identification
 
 Famille des questionnaires et récapitulatifs du chapitre 06 ; Progression `8656:35005`, `8656:35062` ; AMRAP plusieurs blocs `11410:20361` ; Death by À la suite `11411:20474`.
@@ -2479,6 +2483,8 @@ Questionnaire→Valider les paramètres→récapitulatif→Retour conserve répo
 <a id="ce-fmt-03--composition-d’une-séance-issue-d’un-format"></a>
 <a id="ce-fmt-03"></a>
 
+**EMOM — décisions D-517 et D-518 du 07/11/2026.** Appliquer les conversions d’entrée, de sortie et de réédition des §6, §6.1 et §13. Carte : prescription seule. Circuit porteur : « N tours · groupées » et durée de tour bleue modifiable. Recontrôler après modification. [Formats §10](../KODJO-Formats-entrainement-2026-11-02.md#10-application-de-la-règle-à-lemom)
+
 #### 1. Identification
 
 Composition multi-conteneurs ; AMRAP `11270:19541`, sortie `11410:20123`, Death by alterné `11411:20181` ; référence D-451.
@@ -2561,6 +2567,8 @@ Séance AMRAP puis For time relue/dupliquée à l’identique ; entrée/sortie i
 
 ### CE-FMT-04 — Paramètres d’exercice contextualisés par un format
 <a id="ce-fmt-04"></a>
+
+**EMOM — décisions D-517 et D-518 du 07/11/2026.** Mode Répétitions ou Durée, À l’objectif seul, phases, cible, charge, côtés et cadence. Aucun champ Pause. Seul ou à la suite : N et intervalle modifiables, durée calculée sous Intervalle, récupération modifiable. En alternance : N hérité, intervalle local, durée calculée, aucune récupération. Dans chaque intervalle : régime local, N hérité, ni intervalle, ni durée, ni récupération. Seuil bloquant ≥ par rang, individuel ou cumulé selon le porteur. [Formats §10](../KODJO-Formats-entrainement-2026-11-02.md#10-application-de-la-règle-à-lemom)
 
 #### 1. Identification
 
@@ -5896,7 +5904,7 @@ Références Figma : `11551:21479`, `11551:21673`, fichier `G6RY5Ebhgwb4AHIOYDww
 
 #### Complément CE-FMT-02 et CE-FMT-04 — tableaux et saisie
 
-**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
+**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : ~~valeurs de S1 reprises initialement~~ **(remplacé le 06/11/2026 : chaque colonne se saisit indépendamment ; les cases non saisies restent à renseigner)** ; nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
 
 **Règle.** Les questionnaires For time, AMRAP et EMOM comportent le même interrupteur **« Avec charge »** que la Progression, **désactivé par défaut** : la charge est souvent prescrite dans ces formats (par exemple Fran, thrusters à 43 kg ; kettlebell en AMRAP ou EMOM). Il n'existe que dans le questionnaire.
 - **Activé, For time** : présentation et fonctionnement identiques à la Progression : colonne Unité, une colonne par tour (Tour 1, Tour 2, Tour 3 ; 4 colonnes visibles au plus, défilement au-delà), **une charge par tour** sous l'objectif (40 / 45 / 50 kg), car elle varie souvent d'un tour à l'autre ; les tours sont préremplis avec la même valeur. Même clavier.
@@ -6050,7 +6058,7 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 **Questionnaire.** La ligne « Répétitions par série » est retirée : l'objectif dépend du mouvement. Le questionnaire garde la structure : Circuit (nombre de tours, **3 tours par défaut**), Récupération après le tour, Durée totale.
 
 **Récapitulatif.** Le tableau reprend celui de la Progression et du For time (§9.3 de la référence Formats, §9 du complément du 5 novembre ci-dessus) : colonne **Unité** (mode Répétitions ou Durée, choisi au clavier), puis une colonne par tour (**Tour 1, Tour 2, Tour 3** ; 4 colonnes visibles au plus, défilement au-delà).
-- **Aucune progression par défaut** : chaque tour est prérempli avec la valeur du premier ; l'utilisateur modifie les tours qui évoluent (charge montante 40 / 45 / 50 kg, répétitions dégressives 12 / 10 / 8).
+- **Aucune progression par défaut** : ~~chaque tour est prérempli avec la valeur du premier~~ **(remplacé le 06/11/2026 : chaque colonne se saisit indépendamment ; les cases non saisies restent à renseigner)** ; l'utilisateur modifie les tours qui évoluent (charge montante 40 / 45 / 50 kg, répétitions dégressives 12 / 10 / 8).
 - **Charge par tour**, par mouvement : bouton « + kg » / « − kg » sur chaque ligne (§9 du complément du 5 novembre). Présentation des charges : voir §9.
 - **Présentation** : trois cadres séparés (Circuit ; tableau ; Récupération après le tour et Durée totale), §12.
 - **À l'échec** n'est pas dans le tableau : c'est une condition d'arrêt, pas une unité ; elle se règle dans la modale de l'Exercice.
@@ -6080,7 +6088,7 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 **Écrans Figma :** récapitulatifs Death by avec un exemple mixte Répétitions/Durée. L’avertissement du premier rang n’a pas d’écran dédié : il suit la présentation des messages du formulaire.
 
 **Règle.** Le récapitulatif EMOM reprend le tableau de la Progression (§9 du complément du 5 novembre, §12 du complément du 5 novembre) : colonne **Unité** (« rép. » ou « durée », choisie au clavier), puis une colonne par série (**S1, S2, S3** ; 4 colonnes visibles au plus, défilement horizontal au-delà, nom et unité fixes). Le tableau est isolé dans son propre cadre.
-- **Progression de l'EMOM** : chaque série est préremplie avec la valeur de S1 (objectif fixe par défaut) ; l'utilisateur modifie les séries qui évoluent (« 3, 4, 5… soulevés de terre », « planche 20 s, 25 s, 30 s… »). Il n'y a pas de champ d'incrément.
+- **Progression de l'EMOM** : ~~chaque série est préremplie avec la valeur de S1 (objectif fixe par défaut)~~ **(remplacé le 06/11/2026 : chaque colonne se saisit indépendamment ; les cases non saisies restent à renseigner)** ; l'utilisateur modifie les séries qui évoluent (« 3, 4, 5… soulevés de terre », « planche 20 s, 25 s, 30 s… »). Il n'y a pas de champ d'incrément.
 - **Charge** : l'interrupteur « Avec charge » du questionnaire EMOM est conservé (il signale consciemment qu'une charge est à renseigner) ; activé, il fait apparaître le bouton « (+ kg) » / « (− kg) » sur chaque ligne ; la charge s'affiche en ligne sous l'objectif, une valeur par série (« (12 kg) »), comme en Progression.
 - **Contrôle d’intervalle — bloquant.** Vérifier chaque série/fenêtre : travail prévu en Durée, deux côtés et pause entre côtés applicable compris, comparé à son intervalle. Dans chaque intervalle commun, sommer les travaux connus de tous les membres pour le rang concerné. Si le total atteint ou dépasse l’intervalle, afficher le message, les cadres rouges et bloquer la validation. Les membres en Répétitions ne reçoivent aucune estimation inventée. Ce contrôle s’applique aussi après modification depuis la Composition.
 
