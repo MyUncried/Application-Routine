@@ -232,3 +232,5 @@ Révision D-303/D-304 : la Composition propose le placement unifié Récupérati
 ## Compléments segmentés et titres du07/10
 
 [DSF courant](DSF-SEGMENTES-TITRES-2026-10-07.md) : deux options de catalogue, style16/20, exceptions côtés, variantes et limites de propagation. Le [journal§6.3](JOURNAL-DSF-COMPLEMENTS-2026-10-07.md) complète le journal historique sans le réécrire.
+
+**Remplacement du 06/11/2026 — Composition uniquement, D-511/D-513 :** les anciennes prescriptions de chronomètre devant la valeur, valeur en ligne 1, pose unifiée Récupération/Point d’arrêt et cadre Récupération ne s’appliquent plus à la Composition. Prescription en ligne 2 sans chronomètre ; sablier et durée en ligne 3 uniquement avec récupération ; seul le Point d’arrêt se pose. Voir [spec §11](KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement).

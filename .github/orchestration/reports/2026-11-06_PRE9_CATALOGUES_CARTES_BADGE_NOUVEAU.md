@@ -351,3 +351,11 @@ En préparant la documentation, des marqueurs `<<<<<<<` / `=======` / `>>>>>>>` 
 - **À clarifier :** « séries par intervalle (?) » du Death by (Figma : « Séries · Variables | Jusqu'à l'échec ») — non réalisé.
 - **À vérifier sur iPhone :** place, couleurs et dimensions des lignes dans chaque Format ; saisie au clavier et « ± ».
 - **Suite complète :** 314 suites, 5 484 tests ; 5 483 verts, 1 échec : `CompositionScreen.recette1` « disposition générale (deux Circuits) » (second toucher de carte après fermeture de la feuille). Échec préexistant et indépendant de ce lot : il se reproduit à l'identique sans ces modifications (arbre remis à `3f084f35`) et avec la version de `CompositionScreen.tsx` de `97a2848c` ; déjà signalé instable au rapport de `8a5befaf`. Vert lors de la suite du 06/11 au soir. À analyser séparément.
+
+## Fusion de main du 07/11/2026 (PR #422, D-511 à D-513)
+
+- Cause : `main` a reçu `c67ca6e6` (PR #422, documentation Composition cartes, en-têtes et placement D-511 à D-513) ; la PR #420 était `CONFLICTING`.
+- Conflits : `KODJO-Composition-conteneurs-2026-10-28.md`, ch07, ch12, ch13 — tous des ajouts parallèles sur les mêmes paragraphes.
+- Résolution : union des deux côtés. Annotation « [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 … §11.] » de `main` ajoutée à la suite du texte de la branche, qui conserve ses annotations de recette PRE-9 ; ch12 : paragraphes PRE-9 puis section « DSF — Carte d’exercice de Composition » de `main`.
+- Contrôle : occurrences de « D-511 à D-513 » identiques à `main` (3, 6, 6, 8) ; occurrences des annotations de recette identiques à la branche (11, 93, 5, 80) ; aucun marqueur `<<<<<<<` / `>>>>>>>` dans le dépôt.
+- Code : aucun fichier hors `docs/` et rapports n’arrive de `main` ; aucun test à relancer pour cette fusion. Classe D (intégration documentaire, aucune décision).

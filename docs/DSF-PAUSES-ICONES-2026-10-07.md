@@ -64,3 +64,5 @@ Boutons locaux à componentiser ; contrôler layoutMode, centrage et liaisons au
 
 
 **Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v15 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases).
+
+**Remplacement du 06/11/2026 — Composition uniquement, D-511/D-513 :** les anciennes prescriptions de chronomètre devant la valeur, valeur en ligne 1, pose unifiée Récupération/Point d’arrêt et cadre Récupération ne s’appliquent plus à la Composition. Prescription en ligne 2 sans chronomètre ; sablier et durée en ligne 3 uniquement avec récupération ; seul le Point d’arrêt se pose. Voir [spec §11](KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement).
