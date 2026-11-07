@@ -1,5 +1,7 @@
 # Modèle fonctionnel
 
+> **Administration du référentiel — prototype local (07/11/2026).** Un [outil Web local de brouillons](../../tools/catalogue-admin/README.md) permet de préparer des fiches et classifications sans changer le modèle fonctionnel de Mouvement/Exercice ni les filtres du MVP. Les catégories et zones personnelles du produit restent inchangées ; aucun partage n'est activé.
+
 > **Fiches de Mouvements — chantier indépendant.** Le [modèle de provenance et propriété](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) ajoute une couche de fiche éditoriale distincte du `Movement` local (nom, catégorie, zones, phases). Deux fiches peuvent documenter un même geste ; les règles locales d'unicité et d'Exécution restent inchangées. Aucune publication communautaire n'est activée.
 
 > **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.

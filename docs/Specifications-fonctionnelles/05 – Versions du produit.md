@@ -1,5 +1,7 @@
 # Versions et périmètre
 
+> **Administration Web de catalogue — outil de préparation, hors MVP mobile (07/11/2026).** [Brouillons éditoriaux locaux](../../tools/catalogue-admin/README.md), sans distribution, publication, comptes, moteur d'exécution ou synchronisation ; ne constitue pas une fonctionnalité mise à disposition des utilisateurs mobiles.
+
 > **Périmètre — provenance éditoriale, décision du 06/11/2026.** La [préparation des fiches attribuées et versionnées](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) est un chantier de référentiel, **non une fonctionnalité de partage livrée au MVP**. Elle n'est ni un prérequis ni un lot du moteur d'exécution ; comptes distants, partage et synchronisation restent hors périmètre immédiat.
 
 **Catalogue administré — statut préparatoire du 07/11/2026.** La [taxonomie V0 proposée](../../catalogue/referentiels/README.md) préserve la Catégorie KODJO comme Objectif principal et introduit des pistes de classification complémentaires. Ce travail n'ajoute ni nouveaux filtres, ni téléchargement de spécialités, ni interface administrative Web au MVP ; il ne conditionne pas le moteur d'exécution.

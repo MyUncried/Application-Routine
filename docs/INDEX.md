@@ -1,5 +1,7 @@
 # Documentation de KODJO
 
+> **Catalogue administré — outil Web local V0 (07/11/2026).** [Mode d'emploi, sauvegarde des brouillons et limites de publication](../tools/catalogue-admin/README.md) ; l'interface lit les 60 candidats et la taxonomie V0, mais n'écrit que `catalogue/admin/brouillons.json`. Aucune dépendance du moteur, ni nouveau flux mobile/Figma.
+
 > **Référentiel des mouvements — classification V0 (07/11/2026).** [Taxonomie proposée, axes, 12 fiches de contrôle et points ouverts](../catalogue/referentiels/README.md). Catégorie KODJO = Objectif principal ; aucun nouveau référentiel Objectif ; ni validation clinique ni publication implicite.
 
 > **Référentiel des mouvements — corpus pilote et données de test (06/11/2026).** [Contrat de chargement, garde-fous éditoriaux et commande de validation](../catalogue/pilote/README.md). Les 60 fiches sont des candidats non publiables ; un chargeur et trois fixtures de test sont préparés pour SQLite isolée, mais leur exécution reste à qualifier. Le moteur d'exécution et les données utilisateur restent inchangés.
