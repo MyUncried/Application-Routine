@@ -50,7 +50,7 @@ const input = (): StructuredSessionInput => ({
   structure: {
     elements: [
       { kind: "EXERCISE", exercise: exercise("e0") },
-      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, circuits: [{ id: "c1", repeatCount: 3, nature: "TOURS", exercises: [exercise("e1"), exercise("e2")] }] } },
+      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, members: [{ id: "c1", repeatCount: 3, nature: "TOURS" as const, exercises: [exercise("e1"), exercise("e2")] }].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
     ],
     stopPoints: [],
   },
@@ -110,15 +110,18 @@ describe("PRE-8 E.5 — transitions", () => {
     const service = new SessionService(repository());
     const session = await service.getSessionForConsultation(created.id);
     expect(session).toMatchObject({ id: created.id, name: "Séance à un Circuit" });
-    expect(session?.cycle.tour.repeatCount).toBe(3);
+    expect(session?.structure.elements.find((element) => element.kind === "CIRCUIT")).toMatchObject({ circuit: { repeatCount: 3 } });
     expect(await service.getSessionForConsultation("inconnue")).toBeNull();
     expect(await database.getFirstAsync("SELECT status, archived_at, updated_at FROM sessions WHERE id = ?", [created.id])).toEqual(before);
   });
 
-  it("R-E6 : une Séance archivée plus riche que l'ancien modèle n'est pas tronquée (erreur explicite)", async () => {
+  // PRE-9 (A.1) : remplace « R-E6 : […] n'est pas tronquée (erreur explicite) » — la Séance plus
+  // riche est désormais lue dans sa structure générale, sans troncature ni erreur.
+  it("R-E6 / PRE-9 A.1 : une Séance archivée plus riche que l'ancien modèle se consulte entière (Cycles compris)", async () => {
     const created = await repository().createStructured(input());
     await repository().archive(created.id);
-    await expect(new SessionService(repository()).getSessionForConsultation(created.id)).rejects.toThrow("cannot represent");
+    const consulted = await new SessionService(repository()).getSessionForConsultation(created.id);
+    expect(consulted?.structure).toEqual(created.structure);
   });
 });
 

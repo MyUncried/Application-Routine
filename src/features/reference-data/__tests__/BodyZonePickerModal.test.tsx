@@ -232,10 +232,16 @@ describe("BodyZonePickerModal — PRE-3", () => {
   it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête au-dessus du contenu défilant", async () => {
     renderModal(fakeReferentialService());
     await screen.findByTestId("body-zone-selector-tag-cou");
+    // [« feuille ancrée en bas, voile #1F2129 à 34 % » — remplacé le 06/11/2026 (x-dedans, Hermann : « Ouvrir toutes les modales
+    // de filtre comme une modale iOS, pareil pour les modales de catégorie, d'étiquette et de zone corporelle ») :] feuille
+    // native iOS (voile et montée du système), racine blanche sur toute sa hauteur.
+    expect(screen.UNSAFE_getByType(Modal).props).toMatchObject({ presentationStyle: "formSheet", animationType: "slide", allowSwipeDismissal: false });
+    expect(screen.UNSAFE_getByType(Modal).props.transparent).toBeUndefined();
     const backdrop = StyleSheet.flatten(screen.getByTestId("body-zone-picker-backdrop").props.style);
-    expect(backdrop).toMatchObject({ backgroundColor: "rgba(31, 33, 41, 0.34)", justifyContent: "flex-end" });
+    expect(backdrop).toMatchObject({ flex: 1, backgroundColor: "#FFFFFF" });
     const sheet = screen.getByTestId("body-zone-picker-sheet");
-    expect(sheet.props.children[1].props.testID).toBe("body-zone-picker-header");
+    // [Poignée dessinée en premier enfant — remplacée (06/11/2026) :] l'en-tête est le premier enfant de la feuille.
+    expect(sheet.props.children[0].props.testID).toBe("body-zone-picker-header");
   });
 
   it("P3-22/scope-regression — Zones retirées absentes, dernière Zone non décochable, appui long conservé", async () => {

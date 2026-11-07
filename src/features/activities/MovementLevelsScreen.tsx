@@ -8,9 +8,8 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 import type { ActivityDefinitionService, MovementLevels } from "./ActivityDefinitionService";
 import { EDITOR_HEADER, editorSideMargin } from "./ActivityEditorForm";
-import { fillTemplate } from "./movementChoicePresentation";
 import { SheetMotionGroupMount, SheetMotionProvider, SheetMotionView } from "./SheetMotion";
-import { DraggableRow, InsertionGuide, TABLE_ROW_INSET, tableStyles, type DraggableRowLabels } from "./sheetTable";
+import { DraggableRow, InsertionGuide, tableStyles, type DraggableRowLabels } from "./sheetTable";
 
 /**
  * PRE-7 story A3.2 (D-439, MFN-05, MFN-07, MFN/AC07, MFN/AC33 ; ch03 l.154) — consultation et
@@ -198,12 +197,6 @@ const LEVEL_ROW_LABELS: DraggableRowLabels = {
   moveDown: strings.screens.activities.editor.levelOrder.moveDown,
 };
 
-function exerciseCountLabel(count: number): string | null {
-  const t = strings.screens.activities.editor.movementSearch;
-  if (count === 0) return null;
-  return fillTemplate(count === 1 ? t.exerciseCountSingular : t.exerciseCountPlural, { n: String(count) });
-}
-
 function LevelsTable({
   levels,
   onMove,
@@ -234,7 +227,6 @@ function LevelsTable({
           {levels.levels.map((entry, index) => {
             const number = index + 1;
             const lifted = liftedId === entry.movement.id;
-            const countLabel = exerciseCountLabel(entry.definitions.length);
             return (
               <Fragment key={entry.movement.id}>
                 {guideBefore === index ? insertionGuide(number) : null}
@@ -259,11 +251,8 @@ function LevelsTable({
                     <Text style={styles.name} numberOfLines={1} testID={`${LEVEL_ROW_TEST_ID}-${number}-name`}>
                       {entry.movement.name}
                     </Text>
-                    {countLabel === null ? null : (
-                      <Text style={styles.count} numberOfLines={1} testID={`${LEVEL_ROW_TEST_ID}-${number}-count`}>
-                        {countLabel}
-                      </Text>
-                    )}
+                    {/* [PRE-9 A.3 du 04/11/2026 : le nombre d'Exercices du Catalogue du niveau (anciennes
+                        définitions, supprimées) n'est plus affiché ; il n'apparaissait que s'il était non nul.] */}
                   </DraggableRow>
                 </SheetMotionView>
               </Fragment>
@@ -291,11 +280,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.textPrimary,
     paddingRight: spacing[8],
-  },
-  count: {
-    ...type.supporting,
-    color: colors.textSecondary,
-    paddingRight: TABLE_ROW_INSET,
   },
   saveError: {
     ...type.supporting,

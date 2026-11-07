@@ -2,7 +2,6 @@ import { describe, expect, it } from "@jest/globals";
 
 import { hasStablePositions, orderActivityMedia, type ActivityMediaWithAsset } from "../ActivityMedia";
 import type { MediaAsset } from "../MediaAsset";
-import type { MediaRepository } from "../MediaRepository";
 
 function asset(id: string): MediaAsset {
   return { id, uri: `file://${id}`, createdAt: "2026-01-01T00:00:00.000Z" };
@@ -48,19 +47,5 @@ describe("orderActivityMedia", () => {
   });
 });
 
-describe("MediaRepository contract", () => {
-  it("supports several independent assets for the same Exercise", async () => {
-    const items: readonly ActivityMediaWithAsset[] = [
-      { id: "m1", activityDefinitionId: "def-1", assetId: "a1", position: 0, asset: asset("a1") },
-      { id: "m2", activityDefinitionId: "def-1", assetId: "a2", position: 1, asset: asset("a2") },
-    ];
-    const repository: MediaRepository = {
-      listForActivityDefinition: async (activityDefinitionId) =>
-        orderActivityMedia(items, activityDefinitionId),
-    };
-
-    const result = await repository.listForActivityDefinition("def-1");
-    expect(result).toHaveLength(2);
-    expect(result.map((item) => item.assetId)).toEqual(["a1", "a2"]);
-  });
-});
+// [PRE-9 A.3 du 04/11/2026 : le contrat `listForActivityDefinition` (médias d'une ancienne définition du
+// Catalogue) est retiré avec elles.]

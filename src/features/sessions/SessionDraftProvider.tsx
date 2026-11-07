@@ -15,6 +15,7 @@ import {
   type SessionDraft,
   type SessionDraftDefaults,
 } from "@/domain/sessions/SessionDraft";
+import { suggestedSessionNameAfter } from "@/domain/sessions/sessionNaming";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import {
   SessionDraftContext,
@@ -85,15 +86,38 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
     setEditStatusState(next);
   }, []);
 
+  /**
+   * PRE-9 B.9 (ch08 « Nom de séance — trois états », ARB-14) : le nom d'une Séance en création reste
+   * suggéré tant que l'utilisateur ne l'a pas saisi ; une saisie le rend personnalisé, jamais remplacé
+   * automatiquement. Une Séance modifiée garde son nom (aucune suggestion).
+   */
+  const nameSuggestedRef = useRef(true);
+
   const updateDraft = useCallback((update: SessionDraftUpdate) => {
     // PRE-6 (story 3.1) : forme fonctionnelle — le correctif est calculé sur le brouillon courant.
-    setDraft((current) => ({ ...current, ...(typeof update === "function" ? update(current) : update) }));
+    setDraft((current) => {
+      const patch = typeof update === "function" ? update(current) : update;
+      const next = { ...current, ...patch };
+      if (patch.name !== undefined && patch.name !== current.name) {
+        nameSuggestedRef.current = false;
+        return next;
+      }
+      if (!nameSuggestedRef.current || statusRef.current !== "creating") return next;
+      const name = suggestedSessionNameAfter(current.exercises, next.exercises, next.name);
+      return name === next.name ? next : { ...next, name };
+    });
+  }, []);
+
+  const suggestDraftName = useCallback((name: string) => {
+    if (!nameSuggestedRef.current) return;
+    setDraft((current) => (current.name === name ? current : { ...current, name }));
   }, []);
 
   const resetDraft = useCallback(() => {
     requestSeq.current += 1;
     currentSessionId.current = null;
     const fresh = createEmptyDraft(sessionDefaultsRef.current);
+    nameSuggestedRef.current = true;
     setDraft(fresh);
     setCreationBaseline(fresh);
     setHydratedBaseline(null);
@@ -223,6 +247,7 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
       draft,
       updateDraft,
       resetDraft,
+      suggestDraftName,
       editStatus,
       hydrateFromSession,
       retryHydration,
@@ -233,6 +258,7 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
       draft,
       updateDraft,
       resetDraft,
+      suggestDraftName,
       editStatus,
       hydrateFromSession,
       retryHydration,

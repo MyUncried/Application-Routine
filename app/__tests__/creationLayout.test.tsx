@@ -66,7 +66,7 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
    * geste natif.
    */
   // PRE-4, décision Q54 : la route `categories` est supprimée.
-  it("covers composition, exercise AND activity-selection — no route of the flow is left with the native gesture", () => {
+  it("covers composition, exercise and the other creation routes — no route of the flow is left with the native gesture", () => {
     stackCalls.length = 0;
     screenCalls.length = 0;
     render(<CreationLayout />);
@@ -74,12 +74,51 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
     expect(screenCalls.map((call) => call.name)).toEqual([
       "composition",
       "exercise",
-      "activity-selection",
+      // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » (anciennes définitions du Catalogue) retirée.]
+      // PRE-9 A.2 (ARB-22a) : sélection des Mouvements depuis la Composition, même `Stack`.
+      "movement-selection",
+      // [formats-window, format-questionnaire, format-summary, movement-sheet : feuilles de la pile racine depuis la règle de Hermann
+      // du 06/11/2026 (ordre des écrans, aucun écran ouvert par anticipation) — voir `rootLayoutGesture.test.tsx`.]
+      // Recette iPhone du 04/11/2026 (décision de Hermann) : fiche d'un Exercice ouverte par la photo, lecture seule.
+      "exercise-sheet",
+      // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Filtres ») :
+      // Filtres du Catalogue des mouvements ouvert par Créer, en feuille native.
+      "selection-filters",
     ]);
     // Aucune route ne RÉACTIVE le geste par une option locale : la
     // désactivation héritée reste donc effective partout.
     for (const call of screenCalls) {
       expect(call.options?.gestureEnabled).not.toBe(true);
     }
+  });
+
+  // Recette iPhone du 04/11/2026 — décision de Hermann : « Affichage au format de la modale iOS, apparition et
+  // disparition par le bas. » : feuille native, sans poignée, fond blanc (comme les feuilles adoptées le 04/11).
+  it("presents the read-only Exercise sheet as a native iOS form sheet, without grabber, on a white background", () => {
+    stackCalls.length = 0;
+    screenCalls.length = 0;
+    render(<CreationLayout />);
+
+    const sheet = screenCalls.find((call) => call.name === "exercise-sheet");
+    expect(sheet?.options).toMatchObject({
+      presentation: "formSheet",
+      sheetGrabberVisible: false,
+      contentStyle: { backgroundColor: "#FFFFFF" },
+    });
+  });
+
+  // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche des
+  // mouvements du questionnaire par exemple) […] Catalogue des mouvements : Filtres ») : feuille native, fond blanc.
+  it("presents the movement selection filters as a native iOS form sheet, without grabber, on a white background", () => {
+    stackCalls.length = 0;
+    screenCalls.length = 0;
+    render(<CreationLayout />);
+
+    const sheet = screenCalls.find((call) => call.name === "selection-filters");
+    expect(sheet?.options).toMatchObject({
+      presentation: "formSheet",
+      sheetGrabberVisible: false,
+      contentStyle: { backgroundColor: "#FFFFFF" },
+    });
   });
 });

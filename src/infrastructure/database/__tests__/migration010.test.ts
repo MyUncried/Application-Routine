@@ -4,15 +4,16 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import {
-  ExecutionParametersValidationError,
   projectScalars,
   readExecutionParameters,
   readV2,
+  serializeExecutionParameters,
   serializeV2,
   validateForSave,
   type ExecutionParameters,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
+import { parseExerciseSnapshot } from "@/domain/activities/exerciseSnapshot";
 import { readV1, type LegacyExecutionScalars } from "@/domain/activities/readV1";
 import {
   allFailureParameters,
@@ -24,7 +25,6 @@ import {
 import { SessionValidationError } from "@/domain/sessions/errors";
 import type { Database } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repositories/SqliteMigrationNoticeRepository";
 import {
   SqliteSessionRepository,
@@ -1106,18 +1106,10 @@ describe("PRE4-1.1/AC19 — refus d'un troisième Mode ou d'une Cible UNSET à l
     const before = await snapshot();
     const legacy = { ...allFailureParameters(3, 10), mode: "TO_FAILURE" } as unknown as ExecutionParameters;
     const unset = durationParameters("UNSET", 3, 10);
-    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
+    // [A.3 du 04/11/2026 : le volet « Définition » (dépôt des anciennes définitions du Catalogue, retiré)
+    // est supprimé ; la Copie reste refusée.]
     const sessions = new SqliteSessionRepository(database, ids("ses"));
     for (const executionParameters of [legacy, unset]) {
-      await expect(
-        definitions.create({
-          name: "Tractions",
-          description: null,
-          category: { kind: "EXISTING", categoryId: "cardio" },
-          bodyZoneIds: ["dos"],
-          executionParameters,
-        }),
-      ).rejects.toThrow(ExecutionParametersValidationError);
       await expect(
         sessions.create({
           name: "Séance",
@@ -1284,5 +1276,165 @@ describe("PRE4-1.2/AC7 — Séance sans occurrence ouvrable", () => {
     expect(
       await database.getAllAsync("SELECT id, structural_position FROM activities WHERE session_id = 'session-c' ORDER BY position"),
     ).toEqual([{ id: "c-before", structural_position: "BEFORE_TOUR" }]);
+  });
+});
+
+/**
+ * PRE-4 story 1.3 (AC9, AC14) — preuves de `migration010` sur une base v9 réelle, déplacées depuis
+ * `copiesAndSnapshots.story13.test.ts` [A.3 du 04/11/2026 : ce fichier ne mentionne plus la table des
+ * anciennes définitions ; les preuves historiques de migration restent ici, inchangées]. Le magasin de
+ * fichiers simulé ne sert qu'à constater qu'aucun fichier n'est supprimé.
+ */
+describe("PRE-4 story 1.3 — migration010 sur base v9 : Instantanés v1 et Médias conservés", () => {
+  const store = { files: new Set<string>(), deleted: [] as string[] };
+
+  it("PRE4-1.3/AC9 — enveloppes v1 prises sur une base v9 réelle : après migration010, relues selon leur version (Bip absent → 0, durée réalisée NULL ou 95), égales aux paramètres migrés de leur source", async () => {
+    const v9 = NodeSqliteDatabase.openInMemory();
+    try {
+      await buildSharedVersion9(v9);
+      const v1Parameters = {
+        version: 1,
+        mode: "REPETITIONS",
+        series: { kind: "UNIFORM", count: 3, target: 12, pauseSeconds: 10 },
+        sideMode: "UNILATERAL",
+        sideOrder: "BY_SIDE",
+        sideRecoverySeconds: 0,
+        cadenceBeepIntervalSeconds: 2,
+        countdownSeconds: 3,
+        endSeconds: 0,
+      };
+      await v9.runAsync(
+        `INSERT INTO activity_definitions (
+           id, name, description, execution_mode, duration_seconds, repetition_count, series_count, pause_seconds,
+           side_mode, created_at, updated_at, category_id, side_recovery_seconds, execution_parameters
+         ) VALUES ('def-v9', 'Pompes', NULL, 'REPETITIONS', NULL, 12, 3, 10, 'UNILATERAL', '2026-01-02T00:00:00.000Z', '2026-01-03T00:00:00.000Z', 'cardio', 0, ?)`,
+        [JSON.stringify(v1Parameters)],
+      );
+      // Enveloppes v1 prises en PRE-3 sur cette source (en mémoire, H11).
+      const envelope = (parameters: Record<string, unknown>, actualDurationSeconds: number | null) =>
+        JSON.stringify({ snapshotVersion: 1, name: "Pompes", categoryId: "cardio", bodyZoneIds: [], executionParameters: parameters, recoverySeconds: 0, media: [], actualDurationSeconds });
+      const { cadenceBeepIntervalSeconds: _beep, ...withoutBeep } = v1Parameters;
+      const timed = envelope(v1Parameters, 95);
+      const untimed = envelope(withoutBeep, null);
+
+      // PRE-7 (A1.2) : chaîne arrêtée à la version 11 ; la Définition migrée est relue par le
+      // lecteur v2/v3 du domaine (celui des repositories jusqu'à 011).
+      await migrateDatabase(v9, undefined, 11);
+      expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 11 });
+      expect(await v9.getAllAsync("SELECT name FROM sqlite_master WHERE name LIKE '%snapshot%'")).toEqual([]);
+      const migratedJson = async () =>
+        (await v9.getFirstAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activity_definitions WHERE id = 'def-v9'"))!
+          .execution_parameters;
+      const migrated = { executionParameters: readExecutionParameters(await migratedJson()) };
+
+      const rereadTimed = parseExerciseSnapshot(timed);
+      expect(rereadTimed.snapshotVersion).toBe(1);
+      expect(rereadTimed.executionParameters).toEqual(migrated.executionParameters);
+      expect(rereadTimed.actualDurationSeconds).toBe(95);
+      const rereadUntimed = parseExerciseSnapshot(untimed);
+      expect(rereadUntimed.executionParameters).toEqual({ ...migrated.executionParameters, cadenceBeepIntervalSeconds: 0 });
+      expect(rereadUntimed.actualDurationSeconds).toBeNull();
+
+      // Modifier ensuite la source ne change pas la relecture (aucun recalcul depuis la source).
+      await v9.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = 'def-v9'", [
+        serializeExecutionParameters({ ...migrated.executionParameters, cadenceBeepIntervalSeconds: 7 }),
+      ]);
+      expect(readExecutionParameters(await migratedJson()).cadenceBeepIntervalSeconds).toBe(7);
+      expect(parseExerciseSnapshot(timed)).toEqual(rereadTimed);
+    } finally {
+      v9.close();
+    }
+  });
+
+  it("PRE4-1.3/AC14 — migration010 sur une base v9 réelle : Médias d'une Définition, d'une Copie, d'une Séance archivée et un asset sans lien (Instantané seul) conservés, liens et ordre compris ; aucun fichier supprimé", async () => {
+    const v9 = NodeSqliteDatabase.openInMemory();
+    try {
+      await buildSharedVersion9(v9);
+      const v1 = JSON.stringify({
+        version: 1,
+        mode: "DURATION",
+        series: { kind: "UNIFORM", count: 2, target: 30, pauseSeconds: 10 },
+        sideMode: "UNILATERAL",
+        sideOrder: "BY_SIDE",
+        sideRecoverySeconds: 0,
+        cadenceBeepIntervalSeconds: 0,
+        countdownSeconds: 0,
+        endSeconds: 0,
+      });
+      for (const id of ["a-def", "a-copy", "a-archived", "a-solo"]) {
+        await v9.runAsync("INSERT INTO media_assets (id, uri, created_at) VALUES (?, ?, '2026-01-01T00:00:00.000Z')", [id, `kodjo-media/${id}`]);
+        store.files.add(`kodjo-media/${id}`);
+      }
+      await v9.runAsync(
+        `INSERT INTO activity_definitions (
+           id, name, description, execution_mode, duration_seconds, repetition_count, series_count, pause_seconds,
+           side_mode, created_at, updated_at, category_id, side_recovery_seconds, execution_parameters
+         ) VALUES ('def-v9', 'Gainage', NULL, 'DURATION', 30, NULL, 2, 10, 'UNILATERAL', '2026-01-02T00:00:00.000Z', '2026-01-03T00:00:00.000Z', 'cardio', 0, ?)`,
+        [v1],
+      );
+      await v9.runAsync(
+        "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES ('m1', 'def-v9', 'a-def', 0), ('m2', 'def-v9', 'a-copy', 1)",
+      );
+      for (const [suffix, status, archivedAt, asset] of [
+        ["active", "ACTIVE", null, "a-copy"],
+        ["archived", "ARCHIVED", "2026-01-08T00:00:00.000Z", "a-archived"],
+      ] as const) {
+        await v9.runAsync(
+          `INSERT INTO sessions (id, owner_id, name, status, archived_at, initial_countdown_seconds, final_phase_seconds, created_at, updated_at)
+           SELECT ?, id, ?, ?, ?, 10, 5, '2026-01-04T00:00:00.000Z', '2026-01-05T00:00:00.000Z' FROM users WHERE singleton_key = 1`,
+          [`session-${suffix}`, `Séance ${suffix}`, status, archivedAt],
+        );
+        await v9.runAsync("INSERT INTO cycles (id, session_id, position, repeat_count) VALUES (?, ?, 1, 1)", [`cycle-${suffix}`, `session-${suffix}`]);
+        await v9.runAsync("INSERT INTO tours (id, cycle_id, session_id, position, repeat_count) VALUES (?, ?, ?, 1, 1)", [
+          `tour-${suffix}`,
+          `cycle-${suffix}`,
+          `session-${suffix}`,
+        ]);
+        await v9.runAsync(
+          `INSERT INTO activities (
+             id, session_id, cycle_id, tour_id, type, structural_position, position, name, execution_mode,
+             duration_seconds, repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
+             instruction, created_at, updated_at, side_mode, execution_parameters, category_id
+           ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, 'Copie', 'DURATION', 30, NULL, 2, 10, 0, NULL,
+             '2026-01-06T00:00:00.000Z', '2026-01-07T00:00:00.000Z', 'UNILATERAL', ?, 'cardio')`,
+          [`copy-${suffix}`, `session-${suffix}`, `cycle-${suffix}`, `tour-${suffix}`, v1],
+        );
+        await v9.runAsync("INSERT INTO session_activity_media (id, activity_id, asset_id, position) VALUES (?, ?, ?, 0), (?, ?, 'a-def', 1)", [
+          `sm-${suffix}-0`,
+          `copy-${suffix}`,
+          asset,
+          `sm-${suffix}-1`,
+          `copy-${suffix}`,
+        ]);
+      }
+      const media = async () => ({
+        assets: await v9.getAllAsync("SELECT * FROM media_assets ORDER BY id"),
+        definitionLinks: await v9.getAllAsync("SELECT * FROM activity_media ORDER BY id"),
+        copyLinks: await v9.getAllAsync("SELECT * FROM session_activity_media ORDER BY id"),
+      });
+      const before = await media();
+      const files = [...store.files];
+
+      // PRE-7 (A1.2) : chaîne arrêtée à la version 11 ; liens et références relus en lignes brutes
+      // (le repository de médias courant lit le schéma 012).
+      await migrateDatabase(v9, undefined, 11);
+      expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 11 });
+      expect(await media()).toEqual(before);
+      expect(
+        await v9.getAllAsync("SELECT asset_id FROM activity_media WHERE activity_definition_id = 'def-v9' ORDER BY position"),
+      ).toEqual([{ asset_id: "a-def" }, { asset_id: "a-copy" }]);
+      const references = async (assetId: string) =>
+        (await v9.getFirstAsync<{ count: number }>(
+          "SELECT (SELECT COUNT(*) FROM activity_media WHERE asset_id = ?) + (SELECT COUNT(*) FROM session_activity_media WHERE asset_id = ?) AS count",
+          [assetId, assetId],
+        ))!.count;
+      expect(await references("a-archived")).toBe(1);
+      expect(await references("a-solo")).toBe(0);
+      expect(await v9.getFirstAsync("SELECT uri FROM media_assets WHERE id = 'a-solo'")).toEqual({ uri: "kodjo-media/a-solo" });
+      expect(store.deleted).toEqual([]);
+      expect([...store.files]).toEqual(files);
+    } finally {
+      v9.close();
+    }
   });
 });

@@ -29,6 +29,7 @@
 import {
   hasMissingPhaseDuration,
   isBilateral,
+  isZeroTarget,
   normalizeEffective,
   seriesCountOf,
   seriesRowsOf,
@@ -149,6 +150,10 @@ export function isWorkEstimable(parameters: ExecutionParametersInput): boolean {
  * Registre des phases prévues, après normalisation effective (N=1 → par
  * côté). `recoverySeconds > 0` remplace la toute dernière Pause physique,
  * une seule fois.
+ *
+ * PRE-9 (B.3, COMP §3) : une série de Cible 0 « signifie une participation volontairement absente.
+ * L'étape correspondante et sa pause sont sautées » — ni travail, ni Pause, ni changement de côté
+ * pour elle ; la Récupération remplace la dernière Pause d'une série jouée.
  */
 export function buildExecutionLedger(
   input: ExecutionParametersInput,
@@ -156,6 +161,7 @@ export function buildExecutionLedger(
 ): readonly LedgerEvent[] {
   const parameters = normalizeEffective(requireMode(input));
   const rows = seriesRowsOf(parameters);
+  const played = rows.flatMap((row, index) => (isZeroTarget(row.target) ? [] : [index]));
   const events: LedgerEvent[] = [];
   const work = (index: number, side: LedgerSide) =>
     events.push({ kind: "WORK", series: index + 1, side, seconds: workSeconds(parameters, rows[index]!.target) });
@@ -163,7 +169,7 @@ export function buildExecutionLedger(
     events.push({ kind: "SERIES_PAUSE", series: index + 1, side, seconds: rows[index]!.pauseSeconds });
 
   if (!isBilateral(parameters.sideMode)) {
-    rows.forEach((_, index) => {
+    played.forEach((index) => {
       work(index, "NONE");
       pause(index, "NONE");
     });
@@ -174,13 +180,13 @@ export function buildExecutionLedger(
         if (sideIndex > 0) {
           events.push({ kind: "SIDE_PAUSE", series: null, seconds: parameters.sideRecoverySeconds });
         }
-        rows.forEach((_, index) => {
+        played.forEach((index) => {
           work(index, side);
           pause(index, side);
         });
       });
     } else {
-      rows.forEach((_, index) => {
+      played.forEach((index) => {
         work(index, sides[0]!);
         events.push({ kind: "SIDE_PAUSE", series: index + 1, seconds: parameters.sideRecoverySeconds });
         work(index, sides[1]!);
@@ -189,7 +195,7 @@ export function buildExecutionLedger(
     }
   }
 
-  if (recoverySeconds > 0) {
+  if (recoverySeconds > 0 && events.length > 0) {
     events[events.length - 1] = { kind: "RECOVERY", seconds: recoverySeconds };
   }
   return events;
@@ -301,6 +307,11 @@ function seriesCircuitLedger(
       : ["LEFT", "RIGHT"];
   const events: LedgerEvent[] = [];
   rows.forEach((row, index) => {
+    // PRE-9 (B.3, COMP §3, ARB-10b) : série nulle sautée avec sa pause ; son indice est conservé et
+    // la Récupération directement associée à ce passage n'est pas exécutée.
+    if (isZeroTarget(row.target)) {
+      return;
+    }
     const series = index + 1;
     const seconds = workSeconds(parameters, row.target);
     events.push({ kind: "WORK", series, side: sides[0]!, seconds });

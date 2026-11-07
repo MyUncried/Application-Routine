@@ -597,12 +597,13 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     expect(result.ok).toBe(false);
     if (!result.ok) {
       // PRE-4 (AD-13) : niveau structurel — une Cible NUMBER doit valoir au
-      // moins 1 ; aucune borne haute à ce niveau.
+      // moins 1 ; aucune borne haute à ce niveau. [PRE-9 B.3, COMP §3 : Cible 0 admise ; un
+      // Exercice dont toutes les Cibles valent 0 est refusé pour volume nul, ARB-10.]
       expect(result.violations).toEqual([
         { code: "REQUIRED", field: "exercise.name" },
         { code: "REQUIRED", field: "exercise.name" },
         expect.objectContaining({
-          code: "OUT_OF_RANGE",
+          code: "ZERO_VOLUME",
           field: "exercise.durationSeconds",
         }),
       ]);
@@ -621,7 +622,8 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       expect(result.violations).toEqual(
         expect.arrayContaining([
           { code: "REQUIRED", field: "session.name" },
-          expect.objectContaining({ code: "OUT_OF_RANGE", field: "exercise.durationSeconds" }),
+          // PRE-9 (B.3, ARB-10) : volume total nul.
+          expect.objectContaining({ code: "ZERO_VOLUME", field: "exercise.durationSeconds" }),
         ]),
       );
       expect(result.violations).toHaveLength(2);

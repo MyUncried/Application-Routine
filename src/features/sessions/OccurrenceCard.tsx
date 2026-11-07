@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { MediaPreview, type MediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
-import { isIncompleteSummary, type OccurrenceCategory } from "@/features/sessions/compositionPresentation";
+import { isIncompleteSummary, isToVerifySummary, type OccurrenceCategory } from "@/features/sessions/compositionPresentation";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -172,7 +173,25 @@ export const occurrenceCardInCircuitSurface = { borderWidth: 0 } as const;
  * compléter. » (par exemple une phase sans durée après un changement de rang), dans le Circuit
  * comme hors Circuit ; l'état soulevé garde le sien.
  */
-export const occurrenceCardIncompleteSurface = { backgroundColor: colors.dangerSurface } as const;
+export const occurrenceCardIncompleteSurface = {
+  backgroundColor: colors.dangerSurface,
+  // PRE-9, recette iPhone du 29/10 (Hermann : « Le contraste du fond de la carte rouge sur le gris ne
+  // se voit pas assez, alors ajouter un liseré fin rouge à la carte ») : bord de 1 `colors.danger`,
+  // dans le Circuit comme hors Circuit (l'écran passe alors `bordered` pour que le contenu ne bouge pas).
+  borderWidth: OCCURRENCE_CARD_BORDER_WIDTH,
+  borderColor: colors.danger,
+} as const;
+
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026 (constat e) : carte « Paramètre à vérifier » — même
+ * place que la carte à compléter, en orange (`toVerifyColors`, rendu choisi sans maquette) ;
+ * « Paramètres à compléter » prime.
+ */
+export const occurrenceCardToVerifySurface = {
+  backgroundColor: toVerifyColors.surface,
+  borderWidth: OCCURRENCE_CARD_BORDER_WIDTH,
+  borderColor: toVerifyColors.border,
+} as const;
 
 export type OccurrenceCardProps = {
   readonly name: string;
@@ -286,6 +305,17 @@ export function OccurrenceCard({
   const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
   const hidden = hideContentFromAccessibility ? HIDDEN_FROM_ACCESSIBILITY : null;
   const dimmed = attenuated ? styles.attenuated : null;
+  /**
+   * PRE-9, recette iPhone du 29/10 (Hermann : « écrire le texte "Paramètres à compléter" sur deux
+   * lignes et remettre le chronomètre à sa place pour qu'il ne soit pas décalé vers la gauche ») : la
+   * colonne des valeurs garde sa largeur minimale (le chronomètre reste à l'abscisse des autres
+   * cartes) et la synthèse s'écrit sur deux lignes, de la ligne 2 à la ligne 3. Hors placement, la
+   * ligne 3 de la colonne des valeurs lui est laissée (la récupération n'y est pas dessinée ; elle
+   * reste dans le nom accessible de la carte). En placement, la ligne 3 porte le cadre de la
+   * récupération : la synthèse reste sur une ligne.
+   */
+  // Recette iPhone n° 2 (constat e) : « Paramètre à vérifier » suit la même mise en page.
+  const twoLineIncomplete = (isIncompleteSummary(summary) || isToVerifySummary(summary)) && !attenuated;
   return (
     <View
       style={[
@@ -346,14 +376,29 @@ export function OccurrenceCard({
               ) : null}
             </View>
           </View>
-          <View style={styles.valuesColumn} testID="composition-exercise-values-column">
-            <View style={[styles.workLine, styles.valueRow, dimmed]} {...hidden} testID="composition-exercise-work-row">
-              <KodjoIcon name="card-work-duration" testID="composition-exercise-work-symbol" />
-              <View style={styles.work} testID="composition-exercise-work">
+          <View
+            style={[styles.valuesColumn, twoLineIncomplete ? styles.valuesColumnIncomplete : null]}
+            testID="composition-exercise-values-column"
+          >
+            <View
+              style={[styles.workLine, styles.valueRow, twoLineIncomplete ? styles.workLineTwoLines : null, dimmed]}
+              {...hidden}
+              testID="composition-exercise-work-row"
+            >
+              {/* Contre-recette du 30/10 : le symbole garde la boîte de la ligne 2 (même ordonnée). */}
+              <View style={styles.workSymbol} testID="composition-exercise-work-symbol-box">
+                <KodjoIcon name="card-work-duration" testID="composition-exercise-work-symbol" />
+              </View>
+              <View style={[styles.work, twoLineIncomplete ? styles.workTwoLines : null]} testID="composition-exercise-work">
                 <Text
                   // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
-                  style={[styles.value, styles.summary, isIncompleteSummary(summary) ? styles.incompleteSummary : null]}
-                  numberOfLines={1}
+                  // Recette iPhone n° 2 (constat e) : « Paramètre à vérifier » en orange.
+                  style={[
+                    styles.value,
+                    styles.summary,
+                    isIncompleteSummary(summary) ? styles.incompleteSummary : isToVerifySummary(summary) ? styles.toVerifySummary : null,
+                  ]}
+                  numberOfLines={twoLineIncomplete ? 2 : 1}
                   testID="composition-exercise-summary"
                 >
                   {summary}
@@ -374,9 +419,11 @@ export function OccurrenceCard({
                 ) : null}
               </View>
             </View>
-            <View style={styles.recoveryLine} testID="composition-exercise-recovery-slot">
-              {recovery}
-            </View>
+            {twoLineIncomplete ? null : (
+              <View style={styles.recoveryLine} testID="composition-exercise-recovery-slot">
+                {recovery}
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -454,6 +501,31 @@ const styles = StyleSheet.create({
     maxWidth: VALUE_COLUMN_MAX_WIDTH,
     gap: WORK_TO_ZONES_GAP,
   },
+  // Recette du 29/10 : « Paramètres à compléter. » n'élargit pas la colonne (chronomètre à sa place).
+  valuesColumnIncomplete: {
+    width: VALUE_COLUMN_MIN_WIDTH,
+  },
+  // Contre-recette iPhone du 30/10 (« "Paramètres à compléter" est tronqué ») : la ligne 2 gardait
+  // sa hauteur de 16 ; sous iOS, le texte est mesuré dans cette hauteur et s'abrégeait après une
+  // ligne. La ligne des valeurs couvre désormais les lignes 2 et 3 (16 + 2 + 17), calée en haut :
+  // deux lignes de 15 y tiennent sans coupure ; la récupération n'y est pas dessinée.
+  workLineTwoLines: {
+    height: WORK_LINE_HEIGHT + WORK_TO_ZONES_GAP + ZONES_LINE_HEIGHT,
+    alignItems: "flex-start",
+  },
+  // Symbole de durée dans une boîte de la hauteur de la ligne 2, centré : même position, carte
+  // complète ou à compléter.
+  workSymbol: {
+    height: WORK_LINE_HEIGHT,
+    justifyContent: "center",
+  },
+  // Texte sur deux lignes, première ligne à l'ordonnée de la synthèse d'une carte complète
+  // (interligne 15 centré dans la ligne 2 de 16).
+  workTwoLines: {
+    alignSelf: "flex-start",
+    alignItems: "flex-start",
+    paddingTop: (WORK_LINE_HEIGHT - REGULAR_12.lineHeight) / 2,
+  },
   workLine: {
     height: WORK_LINE_HEIGHT,
     flexDirection: "row",
@@ -498,6 +570,9 @@ const styles = StyleSheet.create({
   },
   incompleteSummary: {
     color: colors.danger,
+  },
+  toVerifySummary: {
+    color: toVerifyColors.text,
   },
   separator: {
     flexShrink: 0,

@@ -1,0 +1,133 @@
+import { describe, expect, it } from "@jest/globals";
+
+import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { createEmptyDraft, createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import type { SessionStructure, StructureStopPointLocation } from "@/domain/sessions/structure";
+import { insertIntoRichLayout } from "@/features/sessions/compositionLayout";
+
+/**
+ * PRE-9 B.2 (ARB-07 : « Nouvel Exercice inséré après le dernier Exercice entré, dans son conteneur,
+ * comme actuellement ») — ajout à une disposition générale ; l'ancien modèle garde son insertion.
+ */
+
+const exercise = (id: string): SessionDraftExercise => ({
+  ...createExerciseDraft(id, 0),
+  name: id,
+  executionParameters: durationParameters(30),
+});
+
+type Layout = SessionStructure<string, StructureStopPointLocation>;
+
+const draftOf = (structure: Layout | undefined, ids: readonly string[]): SessionDraft => ({
+  ...createEmptyDraft(),
+  exercises: ids.map(exercise),
+  ...(structure !== undefined ? { structure } : {}),
+});
+
+/** [e0, Circuit A (a1), Cycle [Circuit B (b1, b2)]] : dernier Exercice affiché b2, dans le Circuit B du Cycle. */
+const lastInCircuitOfCycle: Layout = {
+  elements: [
+    { kind: "EXERCISE", exercise: "e0" },
+    { kind: "CIRCUIT", circuit: { id: "ca", repeatCount: 1, nature: "TOURS", exercises: ["a1"] } },
+    { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, members: [{ kind: "CIRCUIT", circuit: { id: "cb", repeatCount: 1, nature: "TOURS", exercises: ["b1", "b2"] } }] } },
+  ],
+  stopPoints: [],
+};
+
+describe("insertIntoRichLayout", () => {
+  it("ancien modèle (sans structure, ou Circuit unique) : null — l'insertion existante s'applique", () => {
+    expect(insertIntoRichLayout(draftOf(undefined, ["a"]), [exercise("n")])).toBeNull();
+    expect(
+      insertIntoRichLayout(
+        draftOf({ elements: [{ kind: "CIRCUIT", circuit: { id: "c", repeatCount: 1, nature: "TOURS", exercises: ["a"] } }], stopPoints: [] }, ["a"]),
+        [exercise("n")],
+      ),
+    ).toBeNull();
+  });
+
+  it("après le dernier Exercice affiché, dans son conteneur (Circuit d'un Cycle)", () => {
+    const result = insertIntoRichLayout(draftOf(lastInCircuitOfCycle, ["e0", "a1", "b1", "b2"]), [exercise("n")]);
+    const cycle = result?.structure?.elements[2];
+    expect(cycle?.kind === "CYCLE" && cycle.cycle.members[0]?.kind === "CIRCUIT" ? cycle.cycle.members[0].circuit.exercises : null).toEqual([
+      "b1",
+      "b2",
+      "n",
+    ]);
+    expect(result?.exercises.map((item) => item.id)).toEqual(["e0", "a1", "b1", "b2", "n"]);
+  });
+
+  it("plusieurs ajouts : chacun à la suite du précédent ; dernier Exercice direct de la Séance → niveau de la Séance", () => {
+    const layout: Layout = {
+      elements: [
+        { kind: "CIRCUIT", circuit: { id: "ca", repeatCount: 1, nature: "TOURS", exercises: ["a1"] } },
+        { kind: "CIRCUIT", circuit: { id: "cb", repeatCount: 1, nature: "TOURS", exercises: ["b1"] } },
+        { kind: "EXERCISE", exercise: "e2" },
+      ],
+      stopPoints: [],
+    };
+    const result = insertIntoRichLayout(draftOf(layout, ["a1", "b1", "e2"]), [exercise("n1"), exercise("n2")]);
+    expect(result?.structure?.elements.map((element) => (element.kind === "EXERCISE" ? element.exercise : element.kind))).toEqual([
+      "CIRCUIT",
+      "CIRCUIT",
+      "e2",
+      "n1",
+      "n2",
+    ]);
+  });
+});
+
+describe("Recette iPhone du 04/11/2026 (constat général a) — dernier Exercice dans un Circuit issu d'un format", () => {
+  const shapeOf = (structure: Layout | undefined) =>
+    structure?.elements.map((element) =>
+      element.kind === "EXERCISE"
+        ? element.exercise
+        : element.kind === "CIRCUIT"
+          ? { circuit: element.circuit.id, exercises: element.circuit.exercises }
+          : { cycle: element.cycle.id, members: element.cycle.members.map((member) => (member.kind === "EXERCISE" ? member.exercise : { circuit: member.circuit.id, exercises: member.circuit.exercises })) },
+    );
+
+  it("Circuit créé par la fenêtre Formats (Modèle d'origine) : après le Circuit, au niveau de la Séance, hors de lui", () => {
+    const layout: Layout = {
+      elements: [
+        { kind: "EXERCISE", exercise: "e0" },
+        { kind: "CIRCUIT", circuit: { id: "tabata", repeatCount: 8, nature: "SERIES", exercises: ["t1", "t2"], originModel: "TABATA" } },
+      ],
+      stopPoints: [],
+    };
+    const result = insertIntoRichLayout(draftOf(layout, ["e0", "t1", "t2"]), [exercise("n1"), exercise("n2")]);
+    expect(shapeOf(result?.structure)).toEqual(["e0", { circuit: "tabata", exercises: ["t1", "t2"] }, "n1", "n2"]);
+    expect(result?.losses).toEqual([]);
+  });
+
+  it("Circuit porteur d'un Format (AMRAP) : après le Circuit, hors de lui", () => {
+    const layout: Layout = {
+      elements: [{ kind: "CIRCUIT", circuit: { id: "amrap", repeatCount: 1, nature: "TOURS", exercises: ["a1"], format: { key: "AMRAP" } as never } }],
+      stopPoints: [],
+    };
+    const result = insertIntoRichLayout(draftOf(layout, ["a1"]), [exercise("n")]);
+    expect(shapeOf(result?.structure)).toEqual([{ circuit: "amrap", exercises: ["a1"] }, "n"]);
+  });
+
+  it("Circuit issu d'un format dans un Cycle : après le Circuit, dans le Cycle (hors du Circuit)", () => {
+    const layout: Layout = {
+      elements: [
+        { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, members: [{ kind: "CIRCUIT", circuit: { id: "emom", repeatCount: 1, nature: "TOURS", exercises: ["m1"], originModel: "EMOM" } }] } },
+      ],
+      stopPoints: [],
+    };
+    const result = insertIntoRichLayout(draftOf(layout, ["m1"]), [exercise("n")]);
+    expect(shapeOf(result?.structure)).toEqual([{ cycle: "cy", members: [{ circuit: "emom", exercises: ["m1"] }, "n"] }]);
+  });
+
+  it("Circuit composé à la main : inchangé (ARB-07, dans le Circuit)", () => {
+    const layout: Layout = {
+      elements: [
+        { kind: "CIRCUIT", circuit: { id: "tabata", repeatCount: 8, nature: "SERIES", exercises: ["t1"], originModel: "TABATA" } },
+        { kind: "CIRCUIT", circuit: { id: "c", repeatCount: 1, nature: "TOURS", exercises: ["c1"] } },
+      ],
+      stopPoints: [],
+    };
+    const result = insertIntoRichLayout(draftOf(layout, ["t1", "c1"]), [exercise("n")]);
+    expect(shapeOf(result?.structure)).toEqual([{ circuit: "tabata", exercises: ["t1"] }, { circuit: "c", exercises: ["c1", "n"] }]);
+  });
+});

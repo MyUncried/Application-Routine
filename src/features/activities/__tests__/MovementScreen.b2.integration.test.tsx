@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react-native";
-import { Keyboard, StyleSheet } from "react-native";
+import { Keyboard, StyleSheet, TextInput } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -10,12 +10,18 @@ import { ActivityDefinitionService } from "@/features/activities/ActivityDefinit
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MOVEMENT_PHOTO_UNDER_CONTEXT } from "@/features/activities/ActivityEditorForm";
 import { MOVEMENT_EDIT_MODE_PARAM, MovementScreen } from "@/features/activities/MovementScreen";
+import {
+  CELL_BACKSPACE,
+  hideExecutionSheetKeyboard,
+  showExecutionSheetKeyboard,
+  typeInExecutionSheetCell,
+} from "@/features/activities/testing/executionSheetActions";
 import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { takeFormatsWindowCloseRequest, takeMovementsHandedToComposition } from "@/features/sessions/movementExercises";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
@@ -39,12 +45,13 @@ jest.mock("expo-crypto", () => ({ randomUUID: jest.fn(() => `uuid-${++mockUuid}`
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
+const mockDismiss = jest.fn();
 let mockSearchParams: Record<string, string> = {};
 jest.mock("expo-router", () => {
   const actual = jest.requireActual("expo-router") as object;
   return {
     ...actual,
-    useRouter: () => ({ back: mockBack, push: mockPush, replace: mockReplace }),
+    useRouter: () => ({ back: mockBack, push: mockPush, replace: mockReplace, dismiss: mockDismiss }),
     useLocalSearchParams: () => mockSearchParams,
   };
 });
@@ -74,7 +81,6 @@ const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
 const movements = () => new SqliteMovementRepository(database, ids("grp"), () => NOW);
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW),
     undefined,
     new SqliteBodyZoneRepository(database),
     undefined,
@@ -167,6 +173,15 @@ async function count(table: string): Promise<number> {
   return (await database.getFirstAsync<{ count: number }>(`SELECT COUNT(*) AS count FROM ${table}`))!.count;
 }
 
+/**
+ * Demande de Hermann du 05/11/2026 (soir) : « fiche modifier un mouvement : retirer le bouton d'action en bas, mettre un bouton
+ * d'action standard Valider en haut à droite » — en modification, la coche de l'en-tête ; recette du 05/11 au soir (m-valider :
+ * « En création, retirer le bouton terminer, mettre la Coche valider en haut ») — en création aussi.
+ */
+function finishID(): string {
+  return screen.queryByTestId("screen-header-validate", { includeHiddenElements: true }) !== null ? "screen-header-validate" : "movement-finish-action";
+}
+
 describe("PRE-8 B.2 — fiche Mouvement", () => {
   it("MVT-11 : gabarit photo, description et phases ; aucune carte Paramètres ni accordéon Médias ; pastille « Niveau »", async () => {
     await renderSheet();
@@ -181,12 +196,12 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect(screen.getByText(strings.screens.activities.editor.levelMenu.unsetLabel, anyNode)).toBeTruthy();
   });
 
-  it("MVT-01 et MVT-09 : saisie des phases (libellés seuls, identités successives) ; Terminer indisponible sans Catégorie", async () => {
+  it("MVT-01 et MVT-09 : saisie des phases (libellés, identités successives ; durée facultative depuis A.2b) ; Terminer indisponible sans Catégorie", async () => {
     await renderSheet();
     await type("exercise-name-input", "Burpees");
     // Catégorie et Zones sont exigées par les règles existantes : posées directement sur le brouillon
     // par les feuilles réelles serait long ; on vérifie ici le contrat de Terminer.
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     await type("movement-phases-invite", "Descente");
     // Le focus passe sur la phase créée ; l'invite suivante n'apparaît qu'en saisie dans le bloc.
     await act(async () => {
@@ -203,7 +218,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect(screen.getByText(t.titles.consult)).toBeTruthy();
     expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
     expect(screen.getByTestId("movement-phases-label-1", anyNode).props.children).toBe("Descente");
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     await press("activity-editor-edit-movement");
     expect(screen.getByText(t.titles.edit)).toBeTruthy();
     expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(true);
@@ -232,12 +247,12 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     await movements().create(movement("m1", "Pompes"));
     await renderSheet({ movementId: "m1" });
     await press("activity-editor-edit-movement");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(mockBack).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
 
     await type("movement-phases-invite", "Montée");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
     expect((await movements().findById("m1"))!.phases).toEqual([{ id: 1, label: "Montée" }]);
   });
@@ -254,7 +269,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     await renderSheet({ movementId: "m1" });
     await press("activity-editor-edit-movement");
     await type("movement-phases-invite", "Descente");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.getByTestId("movement-save-dialog", anyNode)).toBeTruthy();
     expect(screen.queryByTestId("movement-save-choice-UPDATE", anyNode)).toBeNull();
     // Annuler : brouillon intact, aucune écriture.
@@ -262,7 +277,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect((await movements().findById("m1"))!.phases).toEqual([]);
 
     await type("exercise-name-input", "Pompes larges");
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.getByTestId("movement-save-choice-NEW_MOVEMENT", anyNode)).toBeTruthy();
     expect(screen.queryByText(strings.screens.activities.editor.movementSave.newMovementDetail, anyNode)).toBeNull();
     expect(screen.getByTestId("movement-save-confirm", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
@@ -283,7 +298,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect(screen.queryByTestId("movement-phases-label-1", anyNode)).toBeNull();
     await type("exercise-name-input", "Squats sautés");
     expect(screen.queryByTestId("exercise-name-hint", anyNode)).toBeNull();
-    await press("movement-finish-action");
+    await press(finishID());
     const families = await service().movementCatalogue!.listFamilies();
     expect(families[0]!.members.map((entry) => [entry.movement.name, entry.level])).toEqual([
       ["Squats", { rank: 1, total: 2 }],
@@ -293,13 +308,23 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect(created).toMatchObject({ description: null, phases: [], categoryId: "cardio", bodyZoneIds: ["cuisses"] });
   });
 
+  it("m-carte (05/11 au soir) : niveau ajouté depuis le menu Niveau d'une fiche — enregistré, retour au Catalogue (deux fiches retirées)", async () => {
+    await movements().create(movement("squat", "Squats"));
+    mockDismiss.mockReset();
+    await renderSheet({ variantOf: "squat", placement: "AFTER_ORIGIN", returnDepth: "2" });
+    await type("exercise-name-input", "Squats sautés");
+    await press(finishID());
+    expect(mockDismiss).toHaveBeenCalledWith(2);
+    expect(mockBack).not.toHaveBeenCalled();
+  });
+
   it("MVT-10 : erreur d'enregistrement — saisie conservée, message affiché, nouvel essai possible", async () => {
     await movements().create(movement("m1", "Pompes"));
     await renderSheet({ movementId: "m1" });
     await press("activity-editor-edit-movement");
     await type("movement-phases-invite", "Descente");
     database.close();
-    await press("movement-finish-action");
+    await press(finishID());
     expect(screen.getByTestId("movement-save-error", anyNode)).toBeTruthy();
     expect(screen.getByTestId("movement-phases-label-1", anyNode).props.value).toBe("Descente");
     expect(mockBack).not.toHaveBeenCalled();
@@ -315,9 +340,12 @@ describe("PRE-8 — recette A/B : fiche et formulaire Mouvement", () => {
     expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(true);
     expect(screen.getByTestId("movement-phases-label-1", anyNode).props.value).toBe("Descente");
     expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
-    // Aucun changement : pas de garde d'abandon ; Terminer revient sans écrire.
+    // Demande de Hermann du 05/11/2026 (soir) : en modification, coche Valider à droite de l'en-tête, plus de bouton en bas.
+    expect(screen.queryByTestId("movement-finish-action", anyNode)).toBeNull();
+    expect(screen.getByTestId("screen-header-validate", anyNode).props.accessibilityLabel).toBe("Valider");
+    // Aucun changement : pas de garde d'abandon ; Valider revient sans écrire.
     expect(lastShouldBlock()).toBe(false);
-    await press("movement-finish-action");
+    await press("screen-header-validate");
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
@@ -349,7 +377,7 @@ describe("PRE-8 — recette A/B : fiche et formulaire Mouvement", () => {
     expect(await count("movements")).toBe(1);
   });
 
-  it("F03 à F06 : « Description du mouvement » ; phases en liste d'étapes (sans tableau ni durée) ; libellé limité à 20 points de code", async () => {
+  it("F03 à F06 : « Description du mouvement » ; phases en liste d'étapes (sans tableau ; durée facultative depuis A.2b, 31/10) ; libellé limité à 20 points de code", async () => {
     await renderSheet();
     expect(screen.getByTestId("activity-editor-description-title", anyNode).props.children).toBe(t.descriptionTitle);
     expect(screen.getByTestId("movement-phases-title", anyNode).props.children).toBe(t.phases.title);
@@ -384,6 +412,9 @@ describe("PRE-8 — recette A/B : fiche et formulaire Mouvement", () => {
     expect(within(screen.getByTestId("exercise-body", anyNode)).queryByTestId("movement-photo-template", anyNode)).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("exercise-context-band", anyNode).props.style)).toMatchObject({ backgroundColor: "transparent", zIndex: 1 });
     expect(screen.getByTestId("movement-context-band-fill", anyNode)).toBeTruthy();
+    // D-509 (Hermann, 06/11/2026) : zone de contexte de la fiche Mouvement à #EAEAFF (chapitre 06), jamais `selectionSurface`.
+    const fillSolid = (screen.getByTestId("movement-context-band-fill", anyNode).props.children as { props: { style: unknown } }[])[0]!;
+    expect(StyleSheet.flatten(fillSolid.props.style as never)).toMatchObject({ backgroundColor: "#EAEAFF" });
     expect(screen.queryByTestId("exercise-context-band-fade", anyNode)).toBeNull();
   });
 
@@ -417,7 +448,7 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.queryByTestId("movement-phases-invite", anyNode)).toBeNull();
     expect(screen.getByTestId("activity-editor-category-button", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     expect(StyleSheet.flatten(screen.getByTestId("exercise-name-assist-host", anyNode).props.style)).toMatchObject({ zIndex: 2 });
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
     // Nom disponible : la fiche redevient modifiable, Entrée termine de nouveau la saisie.
     await type("exercise-name-input", "Squats lents");
     expect(screen.getByTestId("exercise-name-input", anyNode).props.submitBehavior).toBeUndefined();
@@ -425,16 +456,98 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.getByTestId("movement-phases-invite", anyNode)).toBeTruthy();
   });
 
-  it("remarque 6 : cartes de résultat « Ajouter un niveau » et « Ouvrir ce mouvement »", async () => {
+  // PRE-9 CAT.2 (CE-MVT-RESULT-01) et décision de Hermann du 30/10/2026 : « À partir du catalogue des
+  // mouvements, cette option n'est pas utile, seul la création d'un niveau est une action
+  // pertinente » [remplace « Ouvrir ce mouvement » de la remarque 6].
+  // [CAT.2 : « le toucher de la carte n'ouvre rien » (décision du 30/10/2026) — remplacé par la demande de Hermann du 05/11/2026 (soir) :
+  // « catalogue des mouvements : saisie du nom : appui sur une carte. Rien ne se passe, on devrait pourtant charger le mouvement ».]
+  it("CAT.2 : carte Résultat — « Ajouter un niveau » ; aucune action « Utiliser ce mouvement » ; le toucher de la carte pose la fiche du mouvement par-dessus, la croix ramène à la création (m-carte)", async () => {
     await movements().create(movement("squat", "Squats"));
     await renderSheet();
     await type("exercise-name-input", "Squats");
     const card = screen.getByTestId("movement-suggestion-result-squat", anyNode);
-    expect(within(card).getByText(t.suggestion.createVariant, anyNode)).toBeTruthy();
-    expect(within(card).getByText(t.suggestion.useMovement, anyNode)).toBeTruthy();
-    expect(screen.getByTestId("movement-suggestion-result-squat-use", anyNode).props.accessibilityLabel).toBe("Ouvrir ce mouvement, Squats");
-    await press("movement-suggestion-result-squat-use");
-    expect(mockReplace).toHaveBeenCalledWith({ pathname: "/movement", params: { movementId: "squat" } });
+    expect(screen.getByTestId("movement-suggestion-result-squat-variant", anyNode).props.accessibilityLabel).toBe("Ajouter un niveau, Squats");
+    expect(within(card).getByText("Ajouter\nun niveau", anyNode)).toBeTruthy();
+    expect(within(card).queryByText(t.suggestion.useMovement, anyNode)).toBeNull();
+    expect(within(card).queryByText("Utiliser ce mouvement", anyNode)).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-result-squat-use", anyNode)).toBeNull();
+    // Nom déjà utilisé : message affiché, Terminer indisponible.
+    expect(screen.getByTestId("movement-suggestion-message", anyNode)).toBeTruthy();
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    await press("movement-suggestion-result-squat-summary");
+    // m-carte (recette du 05/11 au soir) : « Le mouvement sélectionner doit apparaître en fondu par dessus la fiche ouverte. Appuyer
+    // sur annuler ramène à la fiche pour la création telle qu’elle était au changement de fiche. »
+    expect(mockReplace).not.toHaveBeenCalled();
+    const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    expect((await within(overlay).findAllByText("Mouvement", anyNode)).length).toBeGreaterThan(0);
+    await act(async () => {
+      fireEvent.press(within(overlay).getByTestId("screen-header-back", anyNode));
+    });
+    expect(screen.queryByTestId("movement-chosen-overlay", anyNode)).toBeNull();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+    expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  // Recette iPhone du 06/11/2026 (t-cat-choix, Hermann : « … le contenu soit celui de la fiche sélectionnée et en lecture seule
+  // (catégorie, zone corporelle, niveau, média, description et phase), avec le bouton d'édition. Appuyer sur le bouton retour, ramène à
+  // la fiche de création de mouvement telle qu’elle était avant d’avoir sélectionné le mouvement du résultat de la recherche, appuyer
+  // sur valider la ferme et on arrive au catalogue de mouvements. » ; m-carte : « en lecture seule avec l'option d'édition, puis de
+  // création de niveau si besoin »).
+  it("Catalogue : fiche choisie complète, Retour, crayon et menu Niveau ; Retour restaure la saisie ; Valider ferme vers le Catalogue (t-cat-choix)", async () => {
+    await movements().create(movement("squat", "Squats", { description: "Dos droit" }));
+    await movements().createVariant(movement("squat-assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderSheet();
+    await type("exercise-name-input", "Squa");
+    await press("movement-suggestion-result-squat-summary");
+    const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    // Résultats retirés ; la croix devient Retour ; coche Valider et crayon d'édition présents.
+    expect(screen.queryByTestId("movement-suggestion-panel", anyNode)).toBeNull();
+    const back = within(overlay).getByTestId("screen-header-back", anyNode);
+    expect(back.props.accessibilityLabel).toBe(t.back);
+    expect(within(overlay).getByTestId("activity-editor-edit-movement", anyNode)).toBeTruthy();
+    expect(within(overlay).getByTestId("screen-header-validate", anyNode).props.accessibilityState).toMatchObject({ disabled: false });
+    // Fiche complète du mouvement choisi, en lecture seule ; menu Niveau (création d'un niveau).
+    expect(within(overlay).getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+    expect(within(overlay).getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
+    expect(within(overlay).getByTestId("activity-editor-category-button", anyNode).props.accessibilityLabel).toMatch(/Cardio/);
+    expect(within(overlay).getByTestId("exercise-body-zones-label", anyNode).props.children).toMatch(/Cuisses/i);
+    expect(within(overlay).getByTestId("activity-editor-level-add-harder", anyNode)).toBeTruthy();
+    expect(within(overlay).getByDisplayValue("Dos droit", anyNode)).toBeTruthy();
+    expect((StyleSheet.flatten(overlay.props.style) as { zIndex?: number }).zIndex ?? 0).toBeGreaterThan(10);
+    // Retour : fiche de création telle qu'avant le choix.
+    await act(async () => {
+      fireEvent.press(back);
+    });
+    expect(screen.queryByTestId("movement-chosen-overlay", anyNode)).toBeNull();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squa");
+    expect(screen.getByTestId("movement-suggestion-result-squat", anyNode)).toBeTruthy();
+    expect(mockBack).not.toHaveBeenCalled();
+    // Nouveau choix, puis Valider : la fiche de création se ferme (retour au Catalogue), sans rien créer ni remettre à une Séance.
+    await press("movement-suggestion-result-squat-summary");
+    await act(async () => {
+      fireEvent.press(within(await screen.findByTestId("movement-chosen-overlay", anyNode)).getByTestId("screen-header-validate", anyNode));
+    });
+    await settle(20);
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(lastShouldBlock()).toBe(false);
+    expect(takeMovementsHandedToComposition()).toBeNull();
+    expect(takeFormatsWindowCloseRequest()).toBe(false);
+    expect(await count("movements")).toBe(2);
+  });
+
+  it("CAT.2 : « Ajouter un niveau » déplie la carte (Plus facile | Plus difficile), puis le choix ouvre le nouveau Niveau sans rien créer", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await renderSheet();
+    await type("exercise-name-input", "Squats");
+    await press("movement-suggestion-result-squat-variant");
+    expect(screen.getByTestId("movement-suggestion-back", anyNode)).toBeTruthy();
+    expect(screen.getByTestId("movement-suggestion-result-squat-options", anyNode)).toBeTruthy();
+    expect(screen.getByTestId("movement-suggestion-result-squat-options-separator", anyNode)).toBeTruthy();
+    expect(screen.queryByText("Utiliser ce mouvement", anyNode)).toBeNull();
+    await press("movement-suggestion-result-squat-easier");
+    expect(screen.queryByTestId("movement-suggestion-panel", anyNode)).toBeNull();
+    expect(screen.getByText(strings.screens.activities.editor.movementSuggestion.completeNameHint, anyNode)).toBeTruthy();
+    expect(await count("movements")).toBe(1);
   });
 
   it("remarque 7 : nouveau niveau — recherche de mouvement similaire et blocage du nom déjà utilisé", async () => {
@@ -447,7 +560,7 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.getByTestId("movement-suggestion-message", anyNode)).toBeTruthy();
     expect(screen.getByTestId("movement-suggestion-result-pompes", anyNode)).toBeTruthy();
     expect(screen.getByTestId("exercise-instruction-input", anyNode).props.editable).toBe(false);
-    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
   });
 
   it("KBD-01 à KBD-07 : clavier — média et contexte fixes, la couche éditable remonte devant le média puis redescend", async () => {
@@ -518,44 +631,22 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     }
   });
 
-  it("recette du 27/10 (remarque 2) : Entrée sur une phase ouvre la suivante juste après elle, comme la Description", async () => {
-    await renderSheet();
-    await type("movement-phases-invite", "Descente");
-    // Bloc en saisie (la phase créée a le focus) : l'invite reste en fin de liste.
-    await act(async () => {
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
-    });
-    await type("movement-phases-invite", "Remontée");
-    expect(screen.getByTestId("movement-phases-label-1", anyNode).props.returnKeyType).toBe("default");
-    // Entrée sur la phase 1 : l'invite se place sous elle ; la saisie y insère la nouvelle phase.
-    await act(async () => {
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "submitEditing");
-    });
-    await type("movement-phases-invite", "Maintien");
-    expect([1, 2, 3].map((rank) => screen.getByTestId(`movement-phases-label-${rank}`, anyNode).props.value)).toEqual([
-      "Descente",
-      "Maintien",
-      "Remontée",
-    ]);
-  });
+  // [Recette du 27/10 (remarque 2) — « Entrée sur une phase ouvre la suivante juste après elle » :
+  // remplacée le 31/10/2026 par la recette iPhone n° 2 (Entrée → durée de la même ligne), voir
+  // « Recette iPhone n° 2 du 31/10/2026 » plus bas.]
 
-  it("r11-entree-phases : l'invite insérée garde son champ pendant la saisie ; retirer une phase vidée la retire", async () => {
+  it("r11-entree-phases : l'invite garde son champ pendant la saisie ; retirer une phase vidée la retire", async () => {
     await renderSheet();
     await type("movement-phases-invite", "Descente");
     await act(async () => {
       fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
     });
-    await type("movement-phases-invite", "Remontée");
-    await act(async () => {
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "submitEditing");
-    });
-    // Invite sous la phase 1 : la saisie y crée la phase 2 sans démonter le champ de l'invite, qui reste
-    // juste sous la phase créée.
+    // La saisie dans l'invite crée la phase 2 sans démonter le champ de l'invite (recette n° 2 du
+    // 31/10 : l'invite n'est plus insérée au milieu par Entrée).
     const invite = screen.getByTestId("movement-phases-invite", anyNode);
     await type("movement-phases-invite", "Maintien");
     expect(screen.getByTestId("movement-phases-invite", anyNode)).toBe(invite);
+    await type("movement-phases-invite", "Remontée");
     // Retour arrière sur une phase vidée : elle est retirée (le focus passe d'abord à la précédente ;
     // l'absence de fermeture du clavier se vérifie sur l'iPhone).
     await type("movement-phases-label-2", "");
@@ -671,5 +762,469 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.getByTestId("exercise-name-hint", anyNode)).toBeTruthy();
     expect(screen.getByText(` ${t.archivedNameSuffix}`, anyNode)).toBeTruthy();
     expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
+  });
+});
+
+describe("Recette iPhone du 29/10/2026 — fiche « Créer un mouvement »", () => {
+  it("texte par défaut du Nom « Nom du mouvement », en gris clair (le nom saisi reste noir) ; l'Éditeur d'Exercice garde « Nom de l’exercice »", async () => {
+    await renderSheet();
+    const input = screen.getByTestId("exercise-name-input", anyNode);
+    expect(input.props.placeholder).toBe("Nom du mouvement");
+    expect(input.props.placeholderTextColor).toBe("#AEB3BA");
+    expect(input.props.accessibilityLabel).toBe("Nom du mouvement");
+    expect(StyleSheet.flatten(input.props.style).color).not.toBe("#AEB3BA");
+    expect(strings.screens.activities.editor.name).toBe("Nom de l’exercice");
+  });
+
+  it("nom pris par un Mouvement archivé : « Un mouvement archivé porte déjà ce nom. », « archivé » en gras ; nom pris par un actif : message inchangé", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await movements().archive("squat");
+    await renderSheet();
+    await type("exercise-name-input", "Squats");
+    const message = screen.getByTestId("movement-suggestion-message", anyNode);
+    expect(message).toHaveTextContent("Un mouvement archivé porte déjà ce nom.");
+    const bold = screen.getByTestId("movement-suggestion-message-bold", anyNode);
+    expect(bold).toHaveTextContent("archivé");
+    expect(StyleSheet.flatten(bold.props.style)).toMatchObject({ fontWeight: "700" });
+    // Aucune carte : un Mouvement archivé n'est jamais proposé (B.8, Q6) ; Terminer indisponible.
+    expect(screen.queryByTestId("movement-suggestion-result-squat", anyNode)).toBeNull();
+    expect(screen.getByTestId(finishID(), anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    cleanupRender();
+
+    await movements().create(movement("fente", "Fentes"));
+    await renderSheet();
+    await type("exercise-name-input", "Fentes");
+    expect(screen.getByTestId("movement-suggestion-message", anyNode).props.children).toBe(
+      strings.screens.activities.editor.movementSuggestion.nameTaken,
+    );
+    expect(screen.queryByTestId("movement-suggestion-message-bold", anyNode)).toBeNull();
+  });
+});
+
+describe("Recette iPhone du 29/10/2026 — recherche automatique de la création depuis une Séance (`context=session`)", () => {
+  const squatCases: [string, Record<string, string>, string[]][] = [
+    ["Séance", { context: "session" }, ["Squat"]],
+    ["Séance", { context: "session" }, ["S", "Sq", "Squ", "Squa", "Squat"]],
+    ["Catalogue", {}, ["Squat"]],
+    ["Catalogue", {}, ["S", "Sq", "Squ", "Squa", "Squat"]],
+  ];
+  it.each(squatCases)("%s — « Squat » saisi par %j trouve les cartes de Squats", async (_origin, params, steps) => {
+    await movements().create(movement("squats", "Squats"));
+    await movements().create(movement("squats-sautes", "Squats sautés"));
+    await renderSheet({ ...params });
+    for (const step of steps) await type("exercise-name-input", step);
+    const shown = ["squats", "squats-sautes"].filter((id) => screen.queryByTestId(`movement-suggestion-result-${id}`, anyNode) !== null);
+    expect(shown).toEqual(["squats", "squats-sautes"]);
+  });
+
+  it("nom d'un Mouvement archivé, depuis une Séance : message « archivé » et cartes des Mouvements actifs voisins", async () => {
+    await movements().create(movement("squat-old", "Squat"));
+    await movements().archive("squat-old");
+    await movements().create(movement("squats", "Squats"));
+    await renderSheet({ context: "session" });
+    await type("exercise-name-input", "Squat");
+    expect(screen.getByTestId("movement-suggestion-message", anyNode)).toHaveTextContent("Un mouvement archivé porte déjà ce nom.");
+    expect(screen.getByTestId("movement-suggestion-result-squats", anyNode)).toBeTruthy();
+    expect(screen.queryByTestId("movement-suggestion-result-squat-old", anyNode)).toBeNull();
+  });
+});
+
+/**
+ * PRE-9 CAT.2 (CE-MVT-RESULT-01) et décision de Hermann du 30/10/2026 (« CAT.2 - Utiliser ce mouvement
+ * n'est plus utile sur la carte de résultat de recherche dans la composition de séance, l'utilisateur
+ * doit simplement appuyer sur la carte pour l'utiliser. Et À partir du catalogue des mouvements, cette
+ * option n'est pas utile, seul la création d'un niveau est une action pertinente. »).
+ */
+describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)", () => {
+  it("Séance (`context=session`) : cartes Composition sans bouton ; le toucher de la carte affiche sa fiche (r-creer), la coche utilise le Mouvement existant, sans doublon", async () => {
+    await movements().create(movement("squats", "Squats"));
+    await renderSheet({ context: "session" });
+    await type("exercise-name-input", "Squats");
+    const card = screen.getByTestId("movement-suggestion-result-squats", anyNode);
+    expect(card.props.accessibilityRole).toBe("button");
+    expect(card.props.accessibilityHint).toBe(strings.screens.activities.editor.movementSuggestion.useMovement);
+    expect(screen.queryByTestId("movement-suggestion-result-squats-variant", anyNode)).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-result-squats-use", anyNode)).toBeNull();
+    expect(screen.queryByText("Utiliser ce mouvement", anyNode)).toBeNull();
+    await press("movement-suggestion-result-squats");
+    // r-creer (recette du 05/11 au soir) : « Il faut que la fiche sélectionnée remplace le contenu vierge (apparition en fondu). Croix à
+    // gauche pour annuler > composition de séance vierge, coche à droite > composition de séance avec l’exercice. »
+    expect(mockBack).not.toHaveBeenCalled();
+    const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    await act(async () => {
+      fireEvent.press(within(overlay).getByTestId("screen-header-validate", anyNode));
+    });
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(takeMovementsHandedToComposition()?.map((item) => item.id)).toEqual(["squats"]);
+    expect(takeFormatsWindowCloseRequest()).toBe(true);
+    expect(await count("movements")).toBe(1);
+  });
+
+  // Recette iPhone du 06/11/2026 (t-fiche-choix, Hermann : « que la Croix se transforme en bouton retour […] Appuyer sur le bouton
+  // retour, ramène à la fiche de mouvement telle qu’elle était avant d’avoir sélectionné le mouvement du résultat de la recherche »).
+  // [Arbitrage de Hermann du 06/11/2026 (« A. Revenir à la modale avec tous les formats. ») appliqué à la croix de la fiche choisie :
+  // « la croix revient à la modale « Créer un exercice », sans mouvement remis » — remplacé pour la fiche choisie ; la croix de la
+  // fiche de création garde l'arbitrage A (test suivant).] [r-creer : « Croix à gauche pour annuler > composition de séance vierge »
+  // — remplacé.]
+  it("Séance : fiche choisie, Retour (chevron) revient à la fiche de création telle qu'avant le choix, sans mouvement remis (t-fiche-choix)", async () => {
+    await movements().create(movement("squats", "Squats"));
+    await renderSheet({ context: "session" });
+    await type("exercise-name-input", "Squats");
+    await press("movement-suggestion-result-squats");
+    const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    const back = within(overlay).getByTestId("screen-header-back", anyNode);
+    expect(back.props.accessibilityLabel).toBe(t.back);
+    await act(async () => {
+      fireEvent.press(back);
+    });
+    expect(screen.queryByTestId("movement-chosen-overlay", anyNode)).toBeNull();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+    expect(screen.getByTestId("movement-suggestion-result-squats", anyNode)).toBeTruthy();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(takeMovementsHandedToComposition()).toBeNull();
+    expect(takeFormatsWindowCloseRequest()).toBe(false);
+  });
+
+  it("Séance : création annulée par la croix — retour à la modale « Créer un exercice » (arbitrage du 06/11, A)", async () => {
+    await renderSheet({ context: "session" });
+    await press("screen-header-back");
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(takeFormatsWindowCloseRequest()).toBe(false);
+  });
+
+  it("Séance : titre « Choisir ou créer un mouvement », coche en haut et plus de « Terminer » en bas (r-creer, m-valider)", async () => {
+    await renderSheet({ context: "session" });
+    expect((await screen.findAllByText("Choisir ou créer un mouvement", anyNode)).length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("movement-finish-action", anyNode)).toBeNull();
+    expect(screen.getByTestId("screen-header-validate", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("Catalogue : une pile par famille (ordre des Niveaux), au rang de son premier membre ; un seul filet", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await movements().createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await movements().create(movement("bulgare", "Squats bulgares"));
+    await renderSheet();
+    await type("exercise-name-input", "Squats");
+    const order = screen
+      .getAllByTestId(/^movement-suggestion-result-.+-slot$/, anyNode)
+      .map((node) => String(node.props.testID).replace(/^movement-suggestion-result-(.+)-slot$/, "$1"));
+    // Clarification de Hermann du 30/10 : la famille forme une pile au rang de son premier membre
+    // classé (« Squats », nom identique), ses membres dans l'ordre des Niveaux ; un seul filet.
+    expect(order).toEqual(["assist", "squat", "bulgare"]);
+    expect(screen.getAllByTestId(/^movement-suggestion-family-rail-/, anyNode).map((node) => node.props.testID)).toEqual([
+      "movement-suggestion-family-rail-assist",
+    ]);
+    expect(screen.getByTestId("movement-suggestion-result-squat-level", anyNode).props.children).toBe("Niveau 2");
+    expect(screen.getByTestId("movement-suggestion-result-assist-level", anyNode).props.children).toBe("Niveau 1");
+  });
+
+  it("Catalogue, étape « Niveau » : la fin de saisie la conserve, « Retour » revient à la liste ; une vraie modification du nom revient à la liste ; rien n'est créé", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await renderSheet();
+    await type("exercise-name-input", "Squ");
+    await press("movement-suggestion-result-squat-variant");
+    fireEvent(screen.getByTestId("exercise-name-input", anyNode), "endEditing", { nativeEvent: { text: "Squ" } });
+    await settle(10);
+    expect(screen.getByTestId("movement-suggestion-result-squat-options", anyNode)).toBeTruthy();
+    await press("movement-suggestion-back");
+    expect(screen.queryByTestId("movement-suggestion-result-squat-options", anyNode)).toBeNull();
+    await type("exercise-name-input", "Squa");
+    await press("movement-suggestion-result-squat-variant");
+    expect(screen.getByTestId("movement-suggestion-back", anyNode)).toBeTruthy();
+    await type("exercise-name-input", "Squat");
+    expect(screen.queryByTestId("movement-suggestion-back", anyNode)).toBeNull();
+    expect(screen.getByTestId("movement-suggestion-result-squat", anyNode)).toBeTruthy();
+    await press("movement-suggestion-result-squat-variant");
+    await press("movement-suggestion-result-squat-harder");
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squat");
+    expect(screen.getByText(strings.screens.activities.editor.movementSuggestion.completeNameHint, anyNode)).toBeTruthy();
+    expect(await count("movements")).toBe(1);
+    expect(mockBack).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * PRE-9 A.2b — durée facultative d'une phase sur la fiche Mouvement. Décision de Hermann du 30/10/2026 :
+ * « les durées de la phase peuvent faire partie du mouvement, si elles sont renseignées elles sont
+ * reprises par défaut et peuvent être changées dans la séance » ; 31/10 : une modification ultérieure
+ * laisse les Exercices existants « Inchangés ». Rendu choisi (aucun Figma) : valeur à droite du libellé,
+ * roulette de durée partagée sous la ligne.
+ */
+/** Recette iPhone n° 2 du 31/10/2026 : saisie d'une durée de phase au clavier numérique (focus, frappes, sortie). */
+async function enterPhaseDuration(rank: number, keys: string) {
+  const cell = `movement-phases-duration-${rank}`;
+  await act(async () => {
+    fireEvent(screen.getByTestId(`${cell}-input`, anyNode), "focus");
+  });
+  typeInExecutionSheetCell(cell, keys);
+  await act(async () => {
+    fireEvent(screen.getByTestId(`${cell}-input`, anyNode), "blur");
+  });
+  await settle();
+}
+const shownPhaseDuration = (rank: number) => String(screen.getByTestId(`movement-phases-duration-${rank}-value`, anyNode).props.children);
+
+describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
+  it("création : phase sans durée par défaut (« Durée » en invite) ; saisie « 30 » au clavier numérique → 30 s, affichée à droite du libellé ; aucune roulette", async () => {
+    await renderSheet();
+    await type("exercise-name-input", "Squat");
+    await type("movement-phases-invite", "Descente");
+    expect(shownPhaseDuration(1)).toBe(t.phases.durationPrompt);
+    const cell = screen.getByTestId("movement-phases-duration-1", anyNode);
+    expect(cell.props.accessibilityLabel).toBe("Durée de la phase 1");
+    expect(cell.props.accessibilityValue).toEqual({ text: t.phases.durationNone });
+    expect(screen.getByTestId("movement-phases-duration-1-input", anyNode).props.keyboardType).toBe("number-pad");
+    await enterPhaseDuration(1, "30");
+    expect(screen.queryByTestId("duration-wheel-seconds", anyNode)).toBeNull();
+    expect(shownPhaseDuration(1)).toBe("30 s");
+  });
+
+  it("édition (Catalogue) : durées seules modifiées → enregistrées sans dialogue C03, même avec un Exercice lié ; l'Exercice existant ne reçoit la valeur que dans une durée vide, « à vérifier » (recette n° 2, constat e)", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    await new SqliteSessionRepository(database, ids("ses"), () => NOW).create({
+      name: "Séance",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [{ type: "EXERCISE", structuralPosition: "IN_TOUR", executionParameters: durationParameters(30), postActivityRecoverySeconds: 0, sourceMovementId: "m1" }],
+    });
+    const exerciseBefore = await database.getAllAsync("SELECT * FROM activities");
+    await renderSheet({ movementId: "m1" });
+    await press("activity-editor-edit-movement");
+    await enterPhaseDuration(2, "45");
+    await press(finishID());
+    expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
+    expect((await movements().findById("m1"))!.phases).toStrictEqual([
+      { id: 1, label: "Descente" },
+      { id: 2, label: "Montée", durationSeconds: 45 },
+    ]);
+    // Hermann, 31/10 : « Inchangés » — l'Exercice existant garde ses paramètres locaux. [Remplacé en
+    // partie le 31/10/2026, recette iPhone n° 2, constat e : ses durées VIDES reçoivent la valeur ajoutée,
+    // marquées « à vérifier » (phase 2 ici) ; le reste de la ligne est inchangé, phase 1 toujours vide.]
+    const [after] = await database.getAllAsync<Record<string, unknown>>("SELECT * FROM activities");
+    const [before] = exerciseBefore as Record<string, unknown>[];
+    expect({ ...after, execution_parameters: null, phases_to_verify: null }).toEqual({ ...before, execution_parameters: null, phases_to_verify: null });
+    expect(JSON.parse(String(after!.execution_parameters)).series.phaseDurations).toEqual([{ phaseId: 2, durationSeconds: 45 }]);
+    expect(after!.phases_to_verify).toBe("[2]");
+    expect(mockBack).toHaveBeenCalled();
+  });
+
+  it("durée vidée : aucune durée ; renommer et déplacer gardent la durée de la phase ; une phase retirée perd la sienne", async () => {
+    await movements().create(
+      movement("m1", "Squat", {
+        phases: [
+          { id: 1, label: "Descente", durationSeconds: 3 },
+          { id: 2, label: "Pause", durationSeconds: 1 },
+          { id: 3, label: "Montée", durationSeconds: 2 },
+          { id: 4, label: "Repos", durationSeconds: 5 },
+        ],
+        nextPhaseId: 5,
+      }),
+    );
+    await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+    expect(within(screen.getByTestId("movement-phases-duration-1", anyNode)).getByText("3 s")).toBeTruthy();
+    // Phase 2 : durée vidée au clavier (recette n° 2 du 31/10 : remplace « Sans durée » de la roulette).
+    await enterPhaseDuration(2, CELL_BACKSPACE.repeat(4));
+    expect(shownPhaseDuration(2)).toBe(t.phases.durationPrompt);
+    // Phase 4 retirée (avec sa durée) ; phase 1 renommée ; phase 3 montée au premier rang.
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-4", anyNode), "accessibilityAction", { nativeEvent: { actionName: "remove" } });
+    });
+    await type("movement-phases-label-1", "Flexion");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-3", anyNode), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    });
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-2", anyNode), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    });
+    await press(finishID());
+    expect((await movements().findById("m1"))!.phases).toStrictEqual([
+      { id: 3, label: "Montée", durationSeconds: 2 },
+      { id: 1, label: "Flexion", durationSeconds: 3 },
+      { id: 2, label: "Pause" },
+    ]);
+  });
+
+  it("consultation : durées renseignées affichées en lecture seule, rien pour une phase sans durée ; aucune roulette", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente", durationSeconds: 75 }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    await renderSheet({ movementId: "m1" });
+    expect(screen.getByTestId("movement-phases-duration-1", anyNode).props.children).toBe("1 min 15 s");
+    expect(screen.queryByTestId("movement-phases-duration-2", anyNode)).toBeNull();
+    expect(screen.getByTestId("movement-phases-duration-1", anyNode).props.accessibilityRole).toBeUndefined();
+  });
+});
+
+describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
+  /** Focus donnés par le code : identifiants des `TextInput` sur lesquels `focus` est appelé. */
+  function spyFocus() {
+    const focus = jest.spyOn(TextInput.prototype as unknown as { focus: () => void }, "focus");
+    return {
+      focused: () => focus.mock.contexts.map((context) => String((context as { props: { testID?: string } }).props.testID)),
+      clear: () => focus.mockClear(),
+      restore: () => focus.mockRestore(),
+    };
+  }
+
+  it("a2b-creer / cr2-phases : libellé (clavier texte, Entrée au libellé par défaut, jamais « Next ») → durée de la même ligne (pavé numérique, sans touche Entrée) ; aucun passage automatique à la ligne suivante ; le clavier n'est jamais fermé", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    const dismiss = jest.spyOn(Keyboard, "dismiss");
+    const focus = spyFocus();
+    try {
+      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+      const label1 = screen.getByTestId("movement-phases-label-1", anyNode);
+      expect(label1.props.keyboardType ?? "default").toBe("default");
+      expect(label1.props.returnKeyType).toBe("default");
+      expect(label1.props.submitBehavior).toBe("submit");
+      focus.clear();
+      // Entrée sur le libellé 1 → durée de la ligne 1.
+      await act(async () => {
+        fireEvent(label1, "focus");
+        fireEvent(label1, "submitEditing");
+      });
+      expect(focus.focused()).toEqual(["movement-phases-duration-1-input"]);
+      // Durée : pavé numérique, sans touche Entrée ni « Next » (cr2-phases).
+      const duration1 = screen.getByTestId("movement-phases-duration-1-input", anyNode);
+      expect(duration1.props.keyboardType).toBe("number-pad");
+      expect(duration1.props.returnKeyType).toBeUndefined();
+      expect(duration1.props.onSubmitEditing).toBeUndefined();
+      await act(async () => {
+        fireEvent(label1, "blur");
+        fireEvent(duration1, "focus");
+      });
+      typeInExecutionSheetCell("movement-phases-duration-1", "5");
+      expect(shownPhaseDuration(1)).toBe("00:05");
+      // L'utilisateur touche lui-même le libellé de la ligne 2.
+      focus.clear();
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
+        fireEvent(screen.getByTestId("movement-phases-label-2", anyNode), "focus");
+      });
+      expect(focus.focused()).toEqual([]);
+      expect(shownPhaseDuration(1)).toBe("5 s");
+      expect(dismiss).not.toHaveBeenCalled();
+    } finally {
+      focus.restore();
+      dismiss.mockRestore();
+    }
+  });
+
+  it("cr2-phases : aucune barre du clavier (« ← Précédent », « Suivant → », « Fermer ») pendant la saisie d'un libellé ou d'une durée", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
+    });
+    showExecutionSheetKeyboard();
+    await settle();
+    expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "blur");
+      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
+    });
+    await settle();
+    expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
+    expect(screen.queryByTestId("movement-keyboard-bar-host", anyNode)).toBeNull();
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
+    });
+    hideExecutionSheetKeyboard();
+  });
+
+  it("a2b-creer : règles des cellules de durée (D-434) — « MM:SS » en saisie, secondes > 59 reportées, au-delà de 58:55 ramenée à 3 535 s, 0 ramené à 1 s", async () => {
+    await renderSheet();
+    await type("movement-phases-invite", "Descente");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
+    });
+    typeInExecutionSheetCell("movement-phases-duration-1", "175");
+    expect(shownPhaseDuration(1)).toBe("01:75");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
+    });
+    await settle();
+    expect(shownPhaseDuration(1)).toBe("2 min 15 s");
+    await enterPhaseDuration(1, "9999");
+    expect(shownPhaseDuration(1)).toBe("58 min 55 s");
+    await enterPhaseDuration(1, "0");
+    expect(shownPhaseDuration(1)).toBe("1 s");
+  });
+
+  it("a2b-editer : Catalogue — aucune poignée de déplacement dans les phases ; dialogue à l'enregistrement seulement quand la structure change et qu'un Exercice est lié", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    await new SqliteSessionRepository(database, ids("ses"), () => NOW).create({
+      name: "Séance",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [{ type: "EXERCISE", structuralPosition: "IN_TOUR", executionParameters: durationParameters(30), postActivityRecoverySeconds: 0, sourceMovementId: "m1" }],
+    });
+    await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+    // Ni poignée ni geste de déplacement : l'ordre ne change que par les actions VoiceOver.
+    expect(screen.queryAllByTestId(/movement-phases-.*handle/u, anyNode)).toHaveLength(0);
+    // Durées seules : aucun dialogue (SILENT).
+    await enterPhaseDuration(1, "5");
+    await press(finishID());
+    expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("constat b : 2 phases sans durée, deux durées puis une 3e phase avec sa durée → avertissement, Confirmer enregistre tout (aucune erreur) ; un échec d'écriture garde le brouillon et l'écran", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    await new SqliteSessionRepository(database, ids("ses"), () => NOW).create({
+      name: "Séance",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [{ type: "EXERCISE", structuralPosition: "IN_TOUR", executionParameters: durationParameters(30), postActivityRecoverySeconds: 0, sourceMovementId: "m1" }],
+    });
+    const errors = jest.spyOn(console, "error");
+    try {
+      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+      await enterPhaseDuration(1, "10");
+      await enterPhaseDuration(2, "20");
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-label-2", anyNode), "focus");
+      });
+      await type("movement-phases-invite", "Pause");
+      await enterPhaseDuration(3, "5");
+      // Échec d'écriture simulé : message, brouillon conservé, l'écran reste ouvert.
+      const failing = jest
+        .spyOn(SqliteMovementRepository.prototype, "update")
+        .mockRejectedValueOnce(new Error("CHECK constraint failed"));
+      await press(finishID());
+      expect(screen.getByTestId("movement-save-dialog", anyNode)).toBeTruthy();
+      await press("movement-save-confirm");
+      await settle(20);
+      expect(screen.getByTestId("movement-save-error", anyNode)).toBeTruthy();
+      expect(mockBack).not.toHaveBeenCalled();
+      expect(shownPhaseDuration(3)).toBe("5 s");
+      failing.mockRestore();
+      errors.mockClear();
+      // Nouvel essai : enregistré, sans erreur.
+      await press(finishID());
+      await press("movement-save-confirm");
+      await settle(20);
+      expect(errors).not.toHaveBeenCalled();
+      expect((await movements().findById("m1"))!.phases).toStrictEqual([
+        { id: 1, label: "Descente", durationSeconds: 10 },
+        { id: 2, label: "Montée", durationSeconds: 20 },
+        { id: 3, label: "Pause", durationSeconds: 5 },
+      ]);
+      expect(mockBack).toHaveBeenCalled();
+    } finally {
+      errors.mockRestore();
+    }
   });
 });

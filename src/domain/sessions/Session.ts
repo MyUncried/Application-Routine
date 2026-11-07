@@ -10,6 +10,7 @@ import type { MediaLinkInput, SessionActivityMediaWithAsset } from "@/domain/med
 import type { SideMode } from "./sideMode";
 import type { StopPoint } from "./StopPoint";
 import type { CircuitNature } from "./circuit";
+import type { ElementFormat, SessionOrigin } from "./formats";
 import type { SessionStructure } from "./structure";
 
 export const SESSION_COLORS = [
@@ -167,6 +168,18 @@ export type Activity = {
    * Mouvement (`occurrenceDisplayName`), qu'il ne renomme jamais.
    */
   copyNumber?: number | null;
+  /**
+   * PRE-9 (C.1, ARB-03) : Format porté par cet Exercice (`activities.format_key`,
+   * `activities.format_settings`, `migration017`) ; absent/`null` = Exercice libre (FMT-40).
+   */
+  format?: ElementFormat | null;
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (`activities.phases_to_verify`,
+   * `migration019`) : identités des phases dont la durée a été reprise d'une valeur par défaut
+   * ajoutée au Mouvement (« Paramètre à vérifier », orange) ; absent ou vide : rien à vérifier.
+   * Marque retirée à l'ouverture de la feuille des paramètres ; « Paramètres à compléter » prime.
+   */
+  phasesToVerify?: readonly number[];
 };
 
 /** @deprecated Ancien alias T01-S01 à Activité unique figée — conservé uniquement pour ne pas casser un import externe déjà publié ; `Activity` est désormais le type de référence. */
@@ -194,6 +207,8 @@ export type Session = {
   status: "ACTIVE";
   initialCountdownSeconds: number;
   finalPhaseSeconds: number;
+  /** PRE-9 (C.1, FMT-02) : origine de création (`sessions.origin`) ; absente/`null` = Séance antérieure ou créée hors de la grille. */
+  origin?: SessionOrigin | null;
   /**
    * V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : Points d'arrêt persistés
    * de la Séance, portées confondues — `session_stop_points`, rattachée
@@ -298,6 +313,8 @@ export type CreateSessionActivityInput = {
   readonly sourceMovementId?: string;
   /** PRE-7 (R-3, Q3) : numéro de copie (voir `Activity.copyNumber`) ; absent/`null` = original. */
   readonly copyNumber?: number | null;
+  /** PRE-9 (C.1, ARB-03) : Format porté par l'Exercice (voir `Activity.format`), écrit par le chemin structuré ; absent/`null` = libre. */
+  readonly format?: ElementFormat | null;
 };
 
 /**

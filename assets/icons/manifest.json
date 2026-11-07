@@ -12,83 +12,1075 @@
     "figmaStatus": "EXACT_EXPORT = file content equals the current Figma SVG export (line endings aside); EQUIVALENT_GEOMETRY = same drawing, Figma encodes the path differently; SOURCE_EXISTS = node read in Figma on 2026-10-07, repository drawing kept unchanged (navigation icons: brief E.6); SOURCE_REMOVED = historical node absent from Figma and no current equivalent verified, figmaNodeId is null and historicalFigmaNodeId keeps the trace; MCP_VECTOR_EXPORT = vector layer served by the read-only Figma MCP download_assets tool (svgAssets); geometry and fill unchanged, root attributes preserveAspectRatio/overflow/style removed and a double-encoded group id repaired, line endings aside"
   },
   "assets": [
-    {"key":"action.add","file":"action-add","figmaNodeId":"6959:15706","figmaName":"icon/ajouter","figmaStatus":"EXACT_EXPORT","historicalFigmaNodeId":"2884:4442","width":24,"height":24,"usage":["Catalogue","Composition"]},
-    {"key":"action.start","file":"action-start","figmaNodeId":"6214:3525","figmaName":"Icône — Démarrer (DSF / Cards / Séance, Catalogue, Replié)","figmaStatus":"EQUIVALENT_GEOMETRY","historicalFigmaNodeId":"2884:4450","width":28,"height":28,"usage":["Catalogue"]},
-    {"key":"control.back","file":"icon-retour","figmaNodeId":"6959:15940","figmaName":"icon/retour","figmaStatus":"EXACT_EXPORT","historicalFigmaNodeId":"2884:4426","width":24,"height":24,"usage":["Création de séance","Création d’activité"]},
-    {"key":"control.chevronDown","file":"control-chevron-down","figmaNodeId":"5544:4638","figmaName":"Chevron bas (DSF / Controls / Disclosure, État=Replié)","figmaStatus":"EQUIVALENT_GEOMETRY","historicalFigmaNodeId":"2884:4419","width":24,"height":24,"usage":["Catalogue","Sélecteurs"]},
-    {"key":"control.chevronUp","file":"control-chevron-up","figmaNodeId":"5544:4641","figmaName":"Chevron haut — Déploiement (DSF / Controls / Disclosure, État=Déployé)","figmaStatus":"EQUIVALENT_GEOMETRY","historicalFigmaNodeId":"2884:4417","width":24,"height":24,"usage":["Sélecteurs"]},
-    {"key":"control.repetitionPullDown","file":"control-repetition-pull-down","figmaNodeId":null,"figmaStatus":"SOURCE_REMOVED","historicalFigmaNodeId":"2745:4","width":28,"height":28,"usage":[],"runtime":"Not wired in KodjoIcon.tsx"},
-    {"key":"navigation.sessions.active","file":"navigation-sessions","figmaNodeId":"6513:20161","figmaComponentId":"6296:10468","figmaName":"Icône navigation — Catalogue (icon/catalogue)","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"f7a33f0ab9a06b055dc5b9dc657e34f2d39489a94ecb7733db364bf8ece4d0d1"},
-    {"key":"navigation.sessions.inactive","file":"navigation-sessions-inactive","figmaNodeId":"6513:20177","figmaComponentId":"6296:10468","figmaName":"Icône navigation — Catalogue (icon/catalogue)","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"b358726f9ab47936e7b1535f28de362d0cd7b755ab612542ed9e6c4501828707"},
-    {"key":"navigation.calendar.inactive","file":"navigation-calendar","figmaNodeId":"6513:20163","figmaComponentId":"6296:10484","figmaName":"Icône navigation — Calendrier (icon/calendrier)","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"4b7f92d60653736173fc2f249ad04daeae0cbf205f658aa52511d4726f85cd4b"},
-    {"key":"navigation.calendar.active","file":"navigation-calendar-active","figmaNodeId":"6513:20179","figmaComponentId":"6296:10484","figmaName":"Icône navigation — Calendrier (icon/calendrier)","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"647e4e362778d3a7bcc70748717afa7a1b177a213333207879a8fd74cf7ffd22"},
-    {"key":"navigation.history.inactive","file":"navigation-history","figmaNodeId":"6513:20165","figmaComponentId":"6296:10498","figmaName":"Icône navigation — Suivi (icon/suivi)","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"91e59ae22d293ce425a72226bd60ab98381d227f5acd4ed693067fc0e7974356"},
-    {"key":"navigation.history.active","file":"navigation-history-active","figmaNodeId":"6513:20197","figmaComponentId":"6296:10498","figmaName":"Icône navigation — Suivi (icon/suivi)","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"fbc8558f70553a7a73482a01f1cceda62245676ee1c8869fce8b169b9aff80e4"},
-    {"key":"navigation.profile.inactive","file":"navigation-profile","figmaNodeId":"6514:20264","figmaComponentId":"6513:20232","figmaName":"Icône navigation — Profil (icon/profil-personne)","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"52ac1518568a4500873d7b34ff3a531d3e10a2491b4f201209606bccba9e3d19"},
-    {"key":"navigation.profile.active","file":"navigation-profile-active","figmaNodeId":"6514:20297","figmaComponentId":"6513:20232","figmaName":"Icône navigation — Profil (icon/profil-personne)","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"bb8c6e755f4a0ec02eb3444843e4d33007d832618bf3d106e8b034c87af2077b"},
-    {"key":"navigation.community.active","file":"navigation-community-active","figmaNodeId":"6514:23002","figmaComponentId":"6296:10514","figmaName":"Icône navigation — Communauté (icon/profil)","figmaStatus":"EXACT_EXPORT","width":26,"height":26,"figmaNodeSize":"24x24","exportNote":"Figma SVG export includes stroke overflow in 26x26 viewport","verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"35b3bf73e406794d6b38a70d6f5525cdee9e105e507269ebb33d6501ef1d38ba"},
-    {"key":"navigation.community.inactive","file":"navigation-community","figmaNodeId":"6514:20257","figmaComponentId":"6296:10514","figmaName":"Icône navigation — Communauté (icon/profil)","figmaStatus":"EXACT_EXPORT","width":26,"height":26,"figmaNodeSize":"24x24","exportNote":"Figma SVG export includes stroke overflow in 26x26 viewport","verifiedAt":"2026-10-27","usage":["Navigation — cinq destinations"],"sha256":"3fe60259a13de8fe3e09215696c2e484f52965bbcf4c813c85e5e78a0056f148"},
-    {"key":"navigation.search","file":"navigation-search","figmaNodeId":"2537:92","figmaStatus":"SOURCE_EXISTS","figmaNodeSize":"26x26","width":26,"height":26,"usage":["Navigation T01"]},
-    {"key":"navigation5.catalogue.active","file":"nav5-catalogue-active","figmaNodeId":"6296:10468","figmaName":"icon/catalogue (actif, #0508E5)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6513:20151","width":24,"height":24,"usage":["Navigation / Bottom — 5 onglets (PRE-8 E01)"]},
-    {"key":"navigation5.catalogue.inactive","file":"nav5-catalogue","figmaNodeId":"6296:10468","figmaName":"icon/catalogue (inactif, #595E66)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6513:20151","width":24,"height":24,"usage":["Navigation / Bottom — 5 onglets (PRE-8 E01)"]},
-    {"key":"navigation5.calendar.active","file":"nav5-calendar-active","figmaNodeId":"6296:10484","figmaName":"icon/calendrier (actif)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6513:20151","width":24,"height":24,"usage":["Navigation / Bottom — 5 onglets (PRE-8 E01)"]},
-    {"key":"navigation5.calendar.inactive","file":"nav5-calendar","figmaNodeId":"6296:10484","figmaName":"icon/calendrier (inactif)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6513:20151","width":24,"height":24,"usage":["Navigation / Bottom — 5 onglets (PRE-8 E01)"]},
-    {"key":"navigation5.history.active","file":"nav5-history-active","figmaNodeId":"6296:10498","figmaName":"icon/suivi (actif)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6513:20151","width":24,"height":24,"usage":["Navigation / Bottom — 5 onglets (PRE-8 E01)"]},
-    {"key":"navigation5.history.inactive","file":"nav5-history","figmaNodeId":"6296:10498","figmaName":"icon/suivi (inactif)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6513:20151","width":24,"height":24,"usage":["Navigation / Bottom — 5 onglets (PRE-8 E01)"]},
-    {"key":"navigation5.community.inactive","file":"nav5-community","figmaNodeId":"6296:10514","figmaName":"icon/profil (Communauté, inactif)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6513:20151","width":23.9932,"height":20.0716,"usage":["Navigation / Bottom — 5 onglets (PRE-8 E01)"]},
-    {"key":"navigation5.profile.active","file":"nav5-profile-active","figmaNodeId":"6513:20232","figmaName":"icon/profil-personne (actif)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6513:20151","width":24,"height":24,"usage":["Navigation / Bottom — 5 onglets (PRE-8 E01)"]},
-    {"key":"navigation5.profile.inactive","file":"nav5-profile","figmaNodeId":"6513:20232","figmaName":"icon/profil-personne (inactif, #5C636E)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6513:20151","width":24,"height":24,"usage":["Navigation / Bottom — 5 onglets (PRE-8 E01)"]},
-    {"key":"composition.initialCountdown","file":"composition-initial-countdown","figmaNodeId":"2537:1461","figmaName":"icon/compte-a-rebours-initial","figmaStatus":"SOURCE_EXISTS","width":24,"height":24,"usage":["Composition"]},
-    {"key":"composition.endSession","file":"composition-end-session","figmaNodeId":"2537:1471","figmaName":"icon/fin-de-séance","figmaStatus":"SOURCE_EXISTS","width":24,"height":24,"usage":["Composition"]},
-    {"key":"composition.reorder","file":"composition-reorder","figmaNodeId":"3066:4676","figmaName":"DSF / Primitives / Icône de structure — déplaçable","figmaStatus":"SOURCE_EXISTS","width":20,"height":20,"usage":["Composition"]},
-    {"key":"state.selected","file":"state-selected","figmaNodeId":null,"figmaStatus":"SOURCE_REMOVED","historicalFigmaNodeId":"2537:1509","width":24,"height":24,"usage":["Sélecteur de couleur","Sélection d’exercices"]},
-    {"key":"icon.tour","file":"icon-tour","figmaNodeId":"3066:4685","figmaName":"DSF / Primitives / Icône de tour","figmaStatus":"SOURCE_EXISTS","sourceFrameNodeId":"2028:12003","sourceGraphicNodeId":"2028:12040","width":18,"height":18,"usage":["Composition — Nombre de tours — tous les états"]},
-    {"key":"icon.categorie","file":"icon-categorie","figmaNodeId":"6296:10530","figmaName":"icon/categorie","figmaStatus":"EXACT_EXPORT","figmaComponentKey":"6056691a0edb431bd710122355d51a9b305e49bc","sourceGraphicNodeId":"6296:10531","width":24,"height":24,"usage":["Créer / Modifier un exercice — action Catégorie non renseignée (affichée à 20×20, figé 7287:13722)"],"verification":"docs/preparation/PRE-3/planification/execution/preuves/x2-icone-categorie/correspondance.json"},
-    {"key":"composition.fixed","file":"composition-fixed","figmaNodeId":null,"figmaStatus":"SOURCE_REMOVED","historicalFigmaNodeId":"3066:4680","width":20,"height":20,"usage":[],"runtime":"Not wired in KodjoIcon.tsx"},
-    {"key":"wheel.action.cancel","file":"wheel-action-cancel","figmaNodeId":"4155:6197","figmaName":"DSF / Primitives / Icône d’action de modale, Type=Cancel","figmaStatus":"EXACT_EXPORT","historicalFigmaNodeId":"3089:81","width":24,"height":24,"usage":["Roulettes durée, heure et rappel"]},
-    {"key":"wheel.action.validate","file":"wheel-action-validate","figmaNodeId":"4155:6200","figmaName":"DSF / Primitives / Icône d’action de modale, Type=Validate","figmaStatus":"SOURCE_EXISTS","figmaNote":"Figma refuses the SVG export of this variant; bytes not compared","historicalFigmaNodeId":"3089:83","width":24,"height":24,"usage":["Roulettes durée, heure et rappel"]},
-    {"key":"bodyZone.homme","file":"body-zone-homme","figmaNodeId":"6322:10874","figmaName":"icon/zone-corporelle, Genre=Homme","figmaStatus":"SOURCE_EXISTS","width":24,"height":24,"usage":["Profil","Zones corporelles"]},
-    {"key":"bodyZone.femme","file":"body-zone-femme","figmaNodeId":"6322:10877","figmaName":"icon/zone-corporelle, Genre=Femme","figmaStatus":"SOURCE_EXISTS","width":24,"height":24,"usage":["Profil","Zones corporelles"]},
-    {"key":"icon.categorie.filled","file":"icon-categorie-plein","figmaNodeId":"7286:13728","figmaName":"Icône catégorie (Catégorie — pleine, planche 7245:13718)","figmaStatus":"MCP_VECTOR_EXPORT","width":22,"height":22,"usage":["Éditeur d’Exercice — accès Catégorie pendant l’ouverture de sa feuille (PRE-4 story 4.3, FR-02-05)"],"runtime":"Read-only Figma MCP download_assets (svgAssets) on 2026-10-18; see MCP_VECTOR_EXPORT; same drawing as icon/categorie 6296:10530 at 22/24 (three rounded rectangles filled, stems outlined at the master stroke 1.125 × 22/24, every subpath checked)"},
-    {"key":"bodyZone.homme.filled","file":"body-zone-homme-plein","figmaNodeId":"7284:13730","figmaName":"Silhouette (Zone corporelle — pleine, planche 7245:13718)","figmaStatus":"MCP_VECTOR_EXPORT","width":26,"height":26,"usage":["Éditeur d’Exercice — accès Zones pendant l’ouverture de sa feuille (PRE-4 story 4.3, FR-02-05)"],"runtime":"Read-only Figma MCP download_assets (svgAssets) on 2026-10-18; see MCP_VECTOR_EXPORT; same drawing as 6322:10874 at 26/24 (all 80 vertices, same command sequence, gap ≤ 0.002)"},
-    {"key":"bodyZone.femme.filled","file":"body-zone-femme-plein","figmaNodeId":"7285:13731","figmaName":"Silhouette (Zone corporelle femme — pleine, planche 7245:13718)","figmaStatus":"MCP_VECTOR_EXPORT","width":26,"height":26,"usage":["Éditeur d’Exercice — accès Zones pendant l’ouverture de sa feuille (PRE-4 story 4.3, FR-02-05)"],"runtime":"Read-only Figma MCP download_assets (svgAssets) on 2026-10-18; see MCP_VECTOR_EXPORT; same drawing as 6322:10877 at 26/24 (all 72 vertices, same command sequence, gap ≤ 0.001)"},
-    {"key":"icon.close","file":"icon-fermer","figmaNodeId":"6959:15825","figmaName":"icon/fermer","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"usage":["Éditeur d’Exercice"],"runtime":"Deposited 2026-10-06 (figma-current-exports.json); wired 2026-10-18 as KodjoIcon control-close (PRE-4 story 4.2)"},
-    {"key":"icon.next","file":"icon-suivant","figmaNodeId":"6959:15460","figmaName":"icon/suivant","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"usage":[],"runtime":"Deposited 2026-10-06; not wired"},
-    {"key":"icon.previous","file":"icon-precedent","figmaNodeId":"6959:15579","figmaName":"icon/précédent","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"usage":[],"runtime":"Deposited 2026-10-06; not wired"},
-    {"key":"icon.sort","file":"icon-tri","figmaNodeId":"6939:26387","figmaName":"icon/tri","figmaStatus":"EXACT_EXPORT","width":20,"height":20,"usage":[],"runtime":"Deposited 2026-10-06; not wired"},
-    {"key":"icon.photoAdd","file":"icon-photo-ajouter","figmaNodeId":"7021:13149","figmaName":"icon/photo-ajouter","figmaStatus":"EXACT_EXPORT","width":24,"height":24,"usage":[],"runtime":"Deposited 2026-10-06; not wired (no SF Symbol used in code)"},
-    {"key":"control.selectFieldChevron","file":"select-field-chevron","figmaNodeId":"2537:1095","figmaName":"Forms / Select Field — Source exact","figmaStatus":"SOURCE_EXISTS","width":14,"height":14,"usage":["Création d’activité — paramètres"]},
-    {"key":"label.outline","file":"label-outline","figmaNodeId":"4916:6386","figmaName":"Icône — Étiquette — cil:tag","figmaStatus":"SOURCE_EXISTS","width":20,"height":20,"usage":["Composition — Étiquette"]},
-    {"key":"selection.check","file":"selection-check","figmaNodeId":"6214:4424","figmaName":"✓ — glyph outlined from selected exercise card","figmaStatus":"EXACT_EXPORT","width":10,"height":8,"usage":[],"runtime":"Deposited 2026-10-06; not wired"},
-    {"key":"stepper.minus","file":"stepper-minus","figmaNodeId":"5826:4101","figmaName":"− (DSF / Controls / Stepper / Profil)","figmaStatus":"EXACT_EXPORT","method":"exportAsync SVG_STRING, svgOutlineText=true","width":8,"height":2,"usage":["Profil — steppers"]},
-    {"key":"stepper.plus","file":"stepper-plus","figmaNodeId":"5826:4105","figmaName":"+ (DSF / Controls / Stepper / Profil)","figmaStatus":"EXACT_EXPORT","method":"exportAsync SVG_STRING, svgOutlineText=true","width":8,"height":8,"usage":["Profil — steppers"]},
-    {"key":"recovery.hourglass","file":"icon-sablier-recuperation","figmaNodeId":"8328:41087","figmaName":"Sablier — Récupération","figmaStatus":"MCP_VECTOR_EXPORT","width":13,"height":13,"usage":["Composition — ligne structurelle de récupération (PRE-6 story 2.1, D-303)"],"runtime":"Read-only Figma MCP download_assets (svgAssets) on 2026-10-20; see MCP_VECTOR_EXPORT"},
-    {"key":"side.change","file":"icon-changement-de-cote","figmaNodeId":"9522:20651","figmaName":"Icône — Changement de côté (DSF / Cards / Composition — exercice ; tracé identique à 6238:8587, DSF / Cards / Exercice)","figmaStatus":"MCP_VECTOR_EXPORT","width":16,"height":16,"usage":["Composition — carte d’occurrence (PRE-6 story 2.2, RM-243, D-407)","Sélection d’exercices — Choix composition (PRE-6 story 2.2)"],"runtime":"Read-only Figma MCP get_design_context asset on 2026-10-21 (same path for 9522:20651 and 6238:8587); see MCP_VECTOR_EXPORT"},
-    {"key":"duration.hourglass","file":"icon-duree-sablier","figmaNodeId":"6214:4410","figmaName":"Icône — Durée — sablier (DSF / Cards / Exercice)","figmaStatus":"MCP_VECTOR_EXPORT","width":16,"height":16,"usage":["Sélection d’exercices — Choix composition (PRE-6 story 2.2)"],"runtime":"Read-only Figma MCP get_design_context asset of 8328:28445 on 2026-10-21; see MCP_VECTOR_EXPORT"},
-    {"key":"action.view-volumes","file":"icon-oeil","figmaNodeId":"8165:13756","figmaName":"icon/oeil","figmaStatus":"MCP_VECTOR_EXPORT","width":24,"height":24,"usage":["Composition — œil de l’en-tête du Circuit, « Voir les volumes du circuit » (PRE-6 story 3.4, CE-CIR-03)"],"runtime":"Read-only Figma MCP download_assets SVG export of 8165:13756 on 2026-10-21; canvas background rect (#F5F5F5) added by the export removed, double-encoded path id repaired; geometry and stroke unchanged"},
-    {"key":"action.add-stop","file":"icon-ajouter-un-arret","figmaNodeId":"8328:28624","figmaName":"Icône — Pause (sablier et point d’arrêt)","figmaStatus":"MCP_VECTOR_EXPORT","width":25,"height":25,"usage":["Composition — action d’en-tête « Ajouter un arrêt », état standard (PRE-6 story 4.1, 8328:28622)"],"runtime":"Read-only Figma MCP download_assets (svgAssets) of 8328:28624 on 2026-10-21; 25 × 25 box of the export (white halo overflows the 24 × 24 frame by 1); see MCP_VECTOR_EXPORT"},
-    {"key":"action.add-stop.active","file":"icon-ajouter-un-arret-actif","figmaNodeId":"8328:29289","figmaName":"Icône — Pause pleine (état activé)","figmaStatus":"MCP_VECTOR_EXPORT","width":25,"height":25,"usage":["Composition — action d’en-tête « Ajouter un arrêt », état actif pendant le placement (PRE-6 story 4.1, 8328:29287)"],"runtime":"Read-only Figma MCP download_assets (svgAssets) of 8328:29289 on 2026-10-21; see MCP_VECTOR_EXPORT"},
-    {"key":"placement.recovery","file":"icon-recuperation-placement","figmaNodeId":"8328:40909","figmaName":"Icône — Récupération (sablier)","figmaStatus":"MCP_VECTOR_EXPORT","width":14,"height":14,"usage":["Composition — puce « Récupération » à ajouter, mode placement (PRE-6 story 4.1, 8328:29383)"],"runtime":"Read-only Figma MCP get_design_context asset of 8328:29382 on 2026-10-21; see MCP_VECTOR_EXPORT"},
-    {"key":"placement.recovery.added","file":"icon-recuperation-placement-ajoutee","figmaNodeId":"8328:40907","figmaName":"Icône — Récupération (sablier)","figmaStatus":"MCP_VECTOR_EXPORT","width":14,"height":14,"usage":["Composition — puce « Récupération {durée} » ajoutée, mode placement (PRE-6 story 4.1, 8328:29407)"],"runtime":"Read-only Figma MCP get_design_context asset of 8328:29394 on 2026-10-21; same drawing as 8328:40909, white fill; see MCP_VECTOR_EXPORT"},
-    {"key":"remove.recovery","file":"icon-retirer-recuperation","figmaNodeId":"8328:41025","figmaName":"Icône — Récupération","figmaStatus":"MCP_VECTOR_EXPORT","width":12,"height":12,"usage":["Composition — bulle « Retirer la récupération » (PRE-6 story 4.2, 8328:29267)"],"runtime":"Read-only Figma MCP get_design_context asset of 8328:29267 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; path unchanged (same drawing as 8328:40907 at 12/14, white fill, second subpath left open as in Figma)"},
-    {"key":"composition.media.exercise","file":"icon-nature-exercice","figmaNodeId":"9798:19907","figmaName":"Icône — Nature de l’exercice","figmaStatus":"MCP_VECTOR_EXPORT","width":24,"height":24,"usage":["Composition — gabarit média 64 × 64 de la carte v2 (PRE-6 story 5.1, D-435, 9798:44464) ; même tracé que la variante Circuit 9819:19963"],"runtime":"Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21 (identical bytes for 9819:19961); root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"},
-    {"key":"composition.category.badge","file":"icon-pastille-categorie","figmaNodeId":"9798:19913","figmaName":"Pastille — Catégorie","figmaStatus":"MCP_VECTOR_EXPORT","width":13,"height":13,"usage":["Composition — pastille de Catégorie, ligne 2 de la carte v2 (PRE-6 story 5.1, D-435)"],"runtime":"Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"},
-    {"key":"composition.body-zone.badge","file":"icon-pastille-zone-corporelle","figmaNodeId":"9798:19919","figmaName":"Pastille — Zone corporelle","figmaStatus":"MCP_VECTOR_EXPORT","width":13,"height":13,"usage":["Composition — pastille de Zone corporelle, ligne 3 de la carte v2 (PRE-6 story 5.1, D-435)"],"runtime":"Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"},
-    {"key":"composition.work-duration","file":"icon-symbole-duree","figmaNodeId":"9798:19927","figmaName":"Symbole — Durée d’exercice","figmaStatus":"MCP_VECTOR_EXPORT","width":13,"height":13,"usage":["Composition — symbole de la synthèse de travail, ligne 2 de la carte v2 (PRE-6 story 5.1, D-435)"],"runtime":"Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"},
-    {"key":"recovery.hourglass.card","file":"icon-sablier-recuperation-v2","figmaNodeId":"9798:19932","figmaName":"Sablier — Récupération","figmaStatus":"MCP_VECTOR_EXPORT","width":13,"height":13,"usage":["Composition — récupération en ligne 3 de la carte v2 (PRE-6 story 5.1, D-435) ; tracé plus grand que recovery.hourglass (8328:41087), non réutilisé"],"runtime":"Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"},
-    {"key":"side.change.card","file":"icon-changement-de-cote-v2","figmaNodeId":"9798:19925","figmaName":"Icône — Changement de côté","figmaStatus":"MCP_VECTOR_EXPORT","width":16,"height":16,"usage":["Composition — changement de côté, ligne 1 de la carte v2 (PRE-6 story 5.1, D-435, ARB-2) ; même tracé que side.change (9522:20651), remplissage #7A7A80 au lieu de #9499A8"],"runtime":"Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"},
-    {"key":"action.edit-movement","file":"icon-modifier","figmaNodeId":"9925:41240","figmaName":"icon/modifier","figmaStatus":"MCP_VECTOR_EXPORT","width":25.8002,"height":25.8023,"usage":["Éditeur d’Exercice — crayon « Modifier le geste » de l’en-tête en création sur geste repris (PRE-7 story A2.2, 9891:39982, action 9952:44374)"],"runtime":"Read-only Figma MCP get_design_context asset of 9952:44374 on 2026-10-24; root attributes preserveAspectRatio/overflow/style removed; stroke-only drawing (#0508E5) unchanged; box 25.8 of the export (the 20 × 20 icon frame bleeds 3.75 % on each side)"},
-    {"key":"catalogue.level.easier.arrow","file":"catalogue-niveau-plus-facile","figmaNodeId":"10585:21536","figmaName":"Flèche — Plus facile","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10579:21580","width":9,"height":12.6,"usage":["Catalogue des Mouvements — choix d'ajout d'un niveau (PRE-8 B11)"]},
-    {"key":"catalogue.level.harder.arrow","file":"catalogue-niveau-plus-difficile","figmaNodeId":"10585:21537","figmaName":"Flèche — Plus difficile","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10579:21580","width":9,"height":12.6,"usage":["Catalogue des Mouvements — choix d'ajout d'un niveau (PRE-8 B11)"]},
-    {"key":"catalogue.level.easier.join","file":"catalogue-raccord-plus-facile","figmaNodeId":"10585:21534","figmaName":"Raccord — Plus facile","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10579:21580","width":12,"height":12,"usage":["Catalogue des Mouvements — raccord des actions glissées (PRE-8 B11)"]},
-    {"key":"catalogue.level.harder.join","file":"catalogue-raccord-plus-difficile","figmaNodeId":"10585:21535","figmaName":"Raccord — Plus difficile","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10579:21580","width":12,"height":12,"usage":["Catalogue des Mouvements — raccord des actions glissées (PRE-8 B11)"]},
-    {"key":"filter.command.chevron","file":"filtre-chevron-modifier","figmaNodeId":"10465:23261","figmaName":"Chevron bas — Modifier filtres","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10465:23141","width":9.5,"height":5.5,"usage":["Commande Filtrer étendue (PRE-8 D05)"]},
-    {"key":"catalogue.session.category","file":"icon-catalogue-categorie","figmaNodeId":"6296:18631","figmaName":"Icône catégorie (icon/categorie)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6214:3572","width":14,"height":14,"usage":["Catalogue des séances — ligne Catégories de la carte (PRE-8 E.2)"],"runtime":"Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; group 9.07 × 12.28 centred in the 14 × 14 instance frame; root attributes preserveAspectRatio/overflow/style removed, double-encoded ids dropped"},
-    {"key":"catalogue.session.exercises","file":"icon-catalogue-haltere","figmaNodeId":"6214:3563","figmaName":"Icône — Exercices — haltère (Phosphor barbell-light)","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6214:3572","width":16,"height":16,"usage":["Catalogue des séances — ligne de synthèse de la carte (PRE-8 E.2)"],"runtime":"Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; root attributes removed"},
-    {"key":"catalogue.session.duration","file":"icon-catalogue-sablier","figmaNodeId":"6214:3556","figmaName":"Icône — Durée — sablier","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6214:3572","width":16,"height":16,"usage":["Catalogue des séances — durée de la carte (PRE-8 E.2) ; trait #9499A8, distinct de duration.hourglass (#8E8E93)"],"runtime":"Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; root attributes removed"},
-    {"key":"catalogue.session.disclosure","file":"icon-catalogue-chevron","figmaNodeId":"8712:13559","figmaName":"Chevron — Déployer","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"6214:3572","width":20,"height":20,"usage":["Catalogue des séances — chevron du nom, seul contrôle de déploiement (PRE-8 E.2, E.3) ; pivoté de 180° une fois ouvert"],"runtime":"Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; root attributes removed"},
-    {"key":"filter.reset","file":"filtre-reinitialiser","figmaNodeId":"10460:23177","figmaName":"Icône — Réinitialiser","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10460:23176","width":28,"height":28,"usage":["Action Réinitialiser des filtres (PRE-8 D06)"]},
-    {"key":"media.play","file":"media-lecture","figmaNodeId":"7872:14698","figmaName":"▶ (DSF / Actions / Bouton d’action circulaire, Action=Lecture)","figmaStatus":"EQUIVALENT_GEOMETRY","sourceComponentNodeId":"7872:14696","width":26,"height":30,"usage":["Bouton de lecture vidéo du gabarit photo de la fiche Mouvement (PRE-8, 27/10) ; le glyphe texte Figma est redessiné en tracé, hauteur 30"]}
+    {
+      "key": "action.add",
+      "file": "action-add",
+      "figmaNodeId": "6959:15706",
+      "figmaName": "icon/ajouter",
+      "figmaStatus": "EXACT_EXPORT",
+      "historicalFigmaNodeId": "2884:4442",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Catalogue",
+        "Composition"
+      ]
+    },
+    {
+      "key": "action.start",
+      "file": "action-start",
+      "figmaNodeId": "6214:3525",
+      "figmaName": "Icône — Démarrer (DSF / Cards / Séance, Catalogue, Replié)",
+      "figmaStatus": "EQUIVALENT_GEOMETRY",
+      "historicalFigmaNodeId": "2884:4450",
+      "width": 28,
+      "height": 28,
+      "usage": [
+        "Catalogue"
+      ]
+    },
+    {
+      "key": "control.back",
+      "file": "icon-retour",
+      "figmaNodeId": "6959:15940",
+      "figmaName": "icon/retour",
+      "figmaStatus": "EXACT_EXPORT",
+      "historicalFigmaNodeId": "2884:4426",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Création de séance",
+        "Création d’activité"
+      ]
+    },
+    {
+      "key": "control.chevronDown",
+      "file": "control-chevron-down",
+      "figmaNodeId": "5544:4638",
+      "figmaName": "Chevron bas (DSF / Controls / Disclosure, État=Replié)",
+      "figmaStatus": "EQUIVALENT_GEOMETRY",
+      "historicalFigmaNodeId": "2884:4419",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Catalogue",
+        "Sélecteurs"
+      ]
+    },
+    {
+      "key": "control.chevronUp",
+      "file": "control-chevron-up",
+      "figmaNodeId": "5544:4641",
+      "figmaName": "Chevron haut — Déploiement (DSF / Controls / Disclosure, État=Déployé)",
+      "figmaStatus": "EQUIVALENT_GEOMETRY",
+      "historicalFigmaNodeId": "2884:4417",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Sélecteurs"
+      ]
+    },
+    {
+      "key": "control.repetitionPullDown",
+      "file": "control-repetition-pull-down",
+      "figmaNodeId": null,
+      "figmaStatus": "SOURCE_REMOVED",
+      "historicalFigmaNodeId": "2745:4",
+      "width": 28,
+      "height": 28,
+      "usage": [],
+      "runtime": "Not wired in KodjoIcon.tsx"
+    },
+    {
+      "key": "navigation.sessions.active",
+      "file": "navigation-sessions",
+      "figmaNodeId": "6513:20161",
+      "figmaComponentId": "6296:10468",
+      "figmaName": "Icône navigation — Catalogue (icon/catalogue)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "f7a33f0ab9a06b055dc5b9dc657e34f2d39489a94ecb7733db364bf8ece4d0d1"
+    },
+    {
+      "key": "navigation.sessions.inactive",
+      "file": "navigation-sessions-inactive",
+      "figmaNodeId": "6513:20177",
+      "figmaComponentId": "6296:10468",
+      "figmaName": "Icône navigation — Catalogue (icon/catalogue)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "b358726f9ab47936e7b1535f28de362d0cd7b755ab612542ed9e6c4501828707"
+    },
+    {
+      "key": "navigation.calendar.inactive",
+      "file": "navigation-calendar",
+      "figmaNodeId": "6513:20163",
+      "figmaComponentId": "6296:10484",
+      "figmaName": "Icône navigation — Calendrier (icon/calendrier)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "4b7f92d60653736173fc2f249ad04daeae0cbf205f658aa52511d4726f85cd4b"
+    },
+    {
+      "key": "navigation.calendar.active",
+      "file": "navigation-calendar-active",
+      "figmaNodeId": "6513:20179",
+      "figmaComponentId": "6296:10484",
+      "figmaName": "Icône navigation — Calendrier (icon/calendrier)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "647e4e362778d3a7bcc70748717afa7a1b177a213333207879a8fd74cf7ffd22"
+    },
+    {
+      "key": "navigation.history.inactive",
+      "file": "navigation-history",
+      "figmaNodeId": "6513:20165",
+      "figmaComponentId": "6296:10498",
+      "figmaName": "Icône navigation — Suivi (icon/suivi)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "91e59ae22d293ce425a72226bd60ab98381d227f5acd4ed693067fc0e7974356"
+    },
+    {
+      "key": "navigation.history.active",
+      "file": "navigation-history-active",
+      "figmaNodeId": "6513:20197",
+      "figmaComponentId": "6296:10498",
+      "figmaName": "Icône navigation — Suivi (icon/suivi)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "fbc8558f70553a7a73482a01f1cceda62245676ee1c8869fce8b169b9aff80e4"
+    },
+    {
+      "key": "navigation.profile.inactive",
+      "file": "navigation-profile",
+      "figmaNodeId": "6514:20264",
+      "figmaComponentId": "6513:20232",
+      "figmaName": "Icône navigation — Profil (icon/profil-personne)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "52ac1518568a4500873d7b34ff3a531d3e10a2491b4f201209606bccba9e3d19"
+    },
+    {
+      "key": "navigation.profile.active",
+      "file": "navigation-profile-active",
+      "figmaNodeId": "6514:20297",
+      "figmaComponentId": "6513:20232",
+      "figmaName": "Icône navigation — Profil (icon/profil-personne)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "bb8c6e755f4a0ec02eb3444843e4d33007d832618bf3d106e8b034c87af2077b"
+    },
+    {
+      "key": "navigation.community.active",
+      "file": "navigation-community-active",
+      "figmaNodeId": "6514:23002",
+      "figmaComponentId": "6296:10514",
+      "figmaName": "Icône navigation — Communauté (icon/profil)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 26,
+      "height": 26,
+      "figmaNodeSize": "24x24",
+      "exportNote": "Figma SVG export includes stroke overflow in 26x26 viewport",
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "35b3bf73e406794d6b38a70d6f5525cdee9e105e507269ebb33d6501ef1d38ba"
+    },
+    {
+      "key": "navigation.community.inactive",
+      "file": "navigation-community",
+      "figmaNodeId": "6514:20257",
+      "figmaComponentId": "6296:10514",
+      "figmaName": "Icône navigation — Communauté (icon/profil)",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 26,
+      "height": 26,
+      "figmaNodeSize": "24x24",
+      "exportNote": "Figma SVG export includes stroke overflow in 26x26 viewport",
+      "verifiedAt": "2026-10-27",
+      "usage": [
+        "Navigation — cinq destinations"
+      ],
+      "sha256": "3fe60259a13de8fe3e09215696c2e484f52965bbcf4c813c85e5e78a0056f148"
+    },
+    {
+      "key": "navigation.search",
+      "file": "navigation-search",
+      "figmaNodeId": "2537:92",
+      "figmaStatus": "SOURCE_EXISTS",
+      "figmaNodeSize": "26x26",
+      "width": 26,
+      "height": 26,
+      "usage": [
+        "Navigation T01"
+      ]
+    },
+    {
+      "key": "navigation5.catalogue.active",
+      "file": "nav5-catalogue-active",
+      "figmaNodeId": "6296:10468",
+      "figmaName": "icon/catalogue (actif, #0508E5)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6513:20151",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Navigation / Bottom — 5 onglets (PRE-8 E01)"
+      ]
+    },
+    {
+      "key": "navigation5.catalogue.inactive",
+      "file": "nav5-catalogue",
+      "figmaNodeId": "6296:10468",
+      "figmaName": "icon/catalogue (inactif, #595E66)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6513:20151",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Navigation / Bottom — 5 onglets (PRE-8 E01)"
+      ]
+    },
+    {
+      "key": "navigation5.calendar.active",
+      "file": "nav5-calendar-active",
+      "figmaNodeId": "6296:10484",
+      "figmaName": "icon/calendrier (actif)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6513:20151",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Navigation / Bottom — 5 onglets (PRE-8 E01)"
+      ]
+    },
+    {
+      "key": "navigation5.calendar.inactive",
+      "file": "nav5-calendar",
+      "figmaNodeId": "6296:10484",
+      "figmaName": "icon/calendrier (inactif)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6513:20151",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Navigation / Bottom — 5 onglets (PRE-8 E01)"
+      ]
+    },
+    {
+      "key": "navigation5.history.active",
+      "file": "nav5-history-active",
+      "figmaNodeId": "6296:10498",
+      "figmaName": "icon/suivi (actif)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6513:20151",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Navigation / Bottom — 5 onglets (PRE-8 E01)"
+      ]
+    },
+    {
+      "key": "navigation5.history.inactive",
+      "file": "nav5-history",
+      "figmaNodeId": "6296:10498",
+      "figmaName": "icon/suivi (inactif)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6513:20151",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Navigation / Bottom — 5 onglets (PRE-8 E01)"
+      ]
+    },
+    {
+      "key": "navigation5.community.inactive",
+      "file": "nav5-community",
+      "figmaNodeId": "6296:10514",
+      "figmaName": "icon/profil (Communauté, inactif)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6513:20151",
+      "width": 23.9932,
+      "height": 20.0716,
+      "usage": [
+        "Navigation / Bottom — 5 onglets (PRE-8 E01)"
+      ]
+    },
+    {
+      "key": "navigation5.profile.active",
+      "file": "nav5-profile-active",
+      "figmaNodeId": "6513:20232",
+      "figmaName": "icon/profil-personne (actif)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6513:20151",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Navigation / Bottom — 5 onglets (PRE-8 E01)"
+      ]
+    },
+    {
+      "key": "navigation5.profile.inactive",
+      "file": "nav5-profile",
+      "figmaNodeId": "6513:20232",
+      "figmaName": "icon/profil-personne (inactif, #5C636E)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6513:20151",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Navigation / Bottom — 5 onglets (PRE-8 E01)"
+      ]
+    },
+    {
+      "key": "composition.initialCountdown",
+      "file": "composition-initial-countdown",
+      "figmaNodeId": "2537:1461",
+      "figmaName": "icon/compte-a-rebours-initial",
+      "figmaStatus": "SOURCE_EXISTS",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Composition"
+      ]
+    },
+    {
+      "key": "composition.endSession",
+      "file": "composition-end-session",
+      "figmaNodeId": "2537:1471",
+      "figmaName": "icon/fin-de-séance",
+      "figmaStatus": "SOURCE_EXISTS",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Composition"
+      ]
+    },
+    {
+      "key": "composition.reorder",
+      "file": "composition-reorder",
+      "figmaNodeId": "3066:4676",
+      "figmaName": "DSF / Primitives / Icône de structure — déplaçable",
+      "figmaStatus": "SOURCE_EXISTS",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Composition"
+      ]
+    },
+    {
+      "key": "state.selected",
+      "file": "state-selected",
+      "figmaNodeId": null,
+      "figmaStatus": "SOURCE_REMOVED",
+      "historicalFigmaNodeId": "2537:1509",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Sélecteur de couleur",
+        "Sélection d’exercices"
+      ]
+    },
+    {
+      "key": "icon.tour",
+      "file": "icon-tour",
+      "figmaNodeId": "3066:4685",
+      "figmaName": "DSF / Primitives / Icône de tour",
+      "figmaStatus": "SOURCE_EXISTS",
+      "sourceFrameNodeId": "2028:12003",
+      "sourceGraphicNodeId": "2028:12040",
+      "width": 18,
+      "height": 18,
+      "usage": [
+        "Composition — Nombre de tours — tous les états"
+      ]
+    },
+    {
+      "key": "icon.categorie",
+      "file": "icon-categorie",
+      "figmaNodeId": "6296:10530",
+      "figmaName": "icon/categorie",
+      "figmaStatus": "EXACT_EXPORT",
+      "figmaComponentKey": "6056691a0edb431bd710122355d51a9b305e49bc",
+      "sourceGraphicNodeId": "6296:10531",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Créer / Modifier un exercice — action Catégorie non renseignée (affichée à 20×20, figé 7287:13722)"
+      ],
+      "verification": "docs/preparation/PRE-3/planification/execution/preuves/x2-icone-categorie/correspondance.json"
+    },
+    {
+      "key": "composition.fixed",
+      "file": "composition-fixed",
+      "figmaNodeId": null,
+      "figmaStatus": "SOURCE_REMOVED",
+      "historicalFigmaNodeId": "3066:4680",
+      "width": 20,
+      "height": 20,
+      "usage": [],
+      "runtime": "Not wired in KodjoIcon.tsx"
+    },
+    {
+      "key": "wheel.action.cancel",
+      "file": "wheel-action-cancel",
+      "figmaNodeId": "4155:6197",
+      "figmaName": "DSF / Primitives / Icône d’action de modale, Type=Cancel",
+      "figmaStatus": "EXACT_EXPORT",
+      "historicalFigmaNodeId": "3089:81",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Roulettes durée, heure et rappel"
+      ]
+    },
+    {
+      "key": "wheel.action.validate",
+      "file": "wheel-action-validate",
+      "figmaNodeId": "4155:6200",
+      "figmaName": "DSF / Primitives / Icône d’action de modale, Type=Validate",
+      "figmaStatus": "SOURCE_EXISTS",
+      "figmaNote": "Figma refuses the SVG export of this variant; bytes not compared",
+      "historicalFigmaNodeId": "3089:83",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Roulettes durée, heure et rappel"
+      ]
+    },
+    {
+      "key": "bodyZone.homme",
+      "file": "body-zone-homme",
+      "figmaNodeId": "6322:10874",
+      "figmaName": "icon/zone-corporelle, Genre=Homme",
+      "figmaStatus": "SOURCE_EXISTS",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Profil",
+        "Zones corporelles"
+      ]
+    },
+    {
+      "key": "bodyZone.femme",
+      "file": "body-zone-femme",
+      "figmaNodeId": "6322:10877",
+      "figmaName": "icon/zone-corporelle, Genre=Femme",
+      "figmaStatus": "SOURCE_EXISTS",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Profil",
+        "Zones corporelles"
+      ]
+    },
+    {
+      "key": "icon.categorie.filled",
+      "file": "icon-categorie-plein",
+      "figmaNodeId": "7286:13728",
+      "figmaName": "Icône catégorie (Catégorie — pleine, planche 7245:13718)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 22,
+      "height": 22,
+      "usage": [
+        "Éditeur d’Exercice — accès Catégorie pendant l’ouverture de sa feuille (PRE-4 story 4.3, FR-02-05)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets (svgAssets) on 2026-10-18; see MCP_VECTOR_EXPORT; same drawing as icon/categorie 6296:10530 at 22/24 (three rounded rectangles filled, stems outlined at the master stroke 1.125 × 22/24, every subpath checked)"
+    },
+    {
+      "key": "bodyZone.homme.filled",
+      "file": "body-zone-homme-plein",
+      "figmaNodeId": "7284:13730",
+      "figmaName": "Silhouette (Zone corporelle — pleine, planche 7245:13718)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 26,
+      "height": 26,
+      "usage": [
+        "Éditeur d’Exercice — accès Zones pendant l’ouverture de sa feuille (PRE-4 story 4.3, FR-02-05)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets (svgAssets) on 2026-10-18; see MCP_VECTOR_EXPORT; same drawing as 6322:10874 at 26/24 (all 80 vertices, same command sequence, gap ≤ 0.002)"
+    },
+    {
+      "key": "bodyZone.femme.filled",
+      "file": "body-zone-femme-plein",
+      "figmaNodeId": "7285:13731",
+      "figmaName": "Silhouette (Zone corporelle femme — pleine, planche 7245:13718)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 26,
+      "height": 26,
+      "usage": [
+        "Éditeur d’Exercice — accès Zones pendant l’ouverture de sa feuille (PRE-4 story 4.3, FR-02-05)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets (svgAssets) on 2026-10-18; see MCP_VECTOR_EXPORT; same drawing as 6322:10877 at 26/24 (all 72 vertices, same command sequence, gap ≤ 0.001)"
+    },
+    {
+      "key": "icon.close",
+      "file": "icon-fermer",
+      "figmaNodeId": "6959:15825",
+      "figmaName": "icon/fermer",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Éditeur d’Exercice"
+      ],
+      "runtime": "Deposited 2026-10-06 (figma-current-exports.json); wired 2026-10-18 as KodjoIcon control-close (PRE-4 story 4.2)"
+    },
+    {
+      "key": "icon.next",
+      "file": "icon-suivant",
+      "figmaNodeId": "6959:15460",
+      "figmaName": "icon/suivant",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "usage": [],
+      "runtime": "Deposited 2026-10-06; not wired"
+    },
+    {
+      "key": "icon.previous",
+      "file": "icon-precedent",
+      "figmaNodeId": "6959:15579",
+      "figmaName": "icon/précédent",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "usage": [],
+      "runtime": "Deposited 2026-10-06; not wired"
+    },
+    {
+      "key": "icon.sort",
+      "file": "icon-tri",
+      "figmaNodeId": "6939:26387",
+      "figmaName": "icon/tri",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 20,
+      "height": 20,
+      "usage": [],
+      "runtime": "Deposited 2026-10-06; not wired"
+    },
+    {
+      "key": "icon.photoAdd",
+      "file": "icon-photo-ajouter",
+      "figmaNodeId": "7021:13149",
+      "figmaName": "icon/photo-ajouter",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "usage": [],
+      "runtime": "Deposited 2026-10-06; not wired (no SF Symbol used in code)"
+    },
+    {
+      "key": "control.selectFieldChevron",
+      "file": "select-field-chevron",
+      "figmaNodeId": "2537:1095",
+      "figmaName": "Forms / Select Field — Source exact",
+      "figmaStatus": "SOURCE_EXISTS",
+      "width": 14,
+      "height": 14,
+      "usage": [
+        "Création d’activité — paramètres"
+      ]
+    },
+    {
+      "key": "label.outline",
+      "file": "label-outline",
+      "figmaNodeId": "4916:6386",
+      "figmaName": "Icône — Étiquette — cil:tag",
+      "figmaStatus": "SOURCE_EXISTS",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Composition — Étiquette"
+      ]
+    },
+    {
+      "key": "selection.check",
+      "file": "selection-check",
+      "figmaNodeId": "6214:4424",
+      "figmaName": "✓ — glyph outlined from selected exercise card",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 10,
+      "height": 8,
+      "usage": [],
+      "runtime": "Deposited 2026-10-06; not wired"
+    },
+    {
+      "key": "stepper.minus",
+      "file": "stepper-minus",
+      "figmaNodeId": "5826:4101",
+      "figmaName": "− (DSF / Controls / Stepper / Profil)",
+      "figmaStatus": "EXACT_EXPORT",
+      "method": "exportAsync SVG_STRING, svgOutlineText=true",
+      "width": 8,
+      "height": 2,
+      "usage": [
+        "Profil — steppers"
+      ]
+    },
+    {
+      "key": "stepper.plus",
+      "file": "stepper-plus",
+      "figmaNodeId": "5826:4105",
+      "figmaName": "+ (DSF / Controls / Stepper / Profil)",
+      "figmaStatus": "EXACT_EXPORT",
+      "method": "exportAsync SVG_STRING, svgOutlineText=true",
+      "width": 8,
+      "height": 8,
+      "usage": [
+        "Profil — steppers"
+      ]
+    },
+    {
+      "key": "recovery.hourglass",
+      "file": "icon-sablier-recuperation",
+      "figmaNodeId": "8328:41087",
+      "figmaName": "Sablier — Récupération",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 13,
+      "height": 13,
+      "usage": [
+        "Composition — ligne structurelle de récupération (PRE-6 story 2.1, D-303)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets (svgAssets) on 2026-10-20; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "side.change",
+      "file": "icon-changement-de-cote",
+      "figmaNodeId": "9522:20651",
+      "figmaName": "Icône — Changement de côté (DSF / Cards / Composition — exercice ; tracé identique à 6238:8587, DSF / Cards / Exercice)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 16,
+      "height": 16,
+      "usage": [
+        "Composition — carte d’occurrence (PRE-6 story 2.2, RM-243, D-407)",
+        "Sélection d’exercices — Choix composition (PRE-6 story 2.2)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset on 2026-10-21 (same path for 9522:20651 and 6238:8587); see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "duration.hourglass",
+      "file": "icon-duree-sablier",
+      "figmaNodeId": "6214:4410",
+      "figmaName": "Icône — Durée — sablier (DSF / Cards / Exercice)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 16,
+      "height": 16,
+      "usage": [
+        "Sélection d’exercices — Choix composition (PRE-6 story 2.2)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 8328:28445 on 2026-10-21; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "action.view-volumes",
+      "file": "icon-oeil",
+      "figmaNodeId": "8165:13756",
+      "figmaName": "icon/oeil",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Composition — œil de l’en-tête du Circuit, « Voir les volumes du circuit » (PRE-6 story 3.4, CE-CIR-03)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets SVG export of 8165:13756 on 2026-10-21; canvas background rect (#F5F5F5) added by the export removed, double-encoded path id repaired; geometry and stroke unchanged"
+    },
+    {
+      "key": "action.add-stop",
+      "file": "icon-ajouter-un-arret",
+      "figmaNodeId": "8328:28624",
+      "figmaName": "Icône — Pause (sablier et point d’arrêt)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 25,
+      "height": 25,
+      "usage": [
+        "Composition — action d’en-tête « Ajouter un arrêt », état standard (PRE-6 story 4.1, 8328:28622)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets (svgAssets) of 8328:28624 on 2026-10-21; 25 × 25 box of the export (white halo overflows the 24 × 24 frame by 1); see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "action.add-stop.active",
+      "file": "icon-ajouter-un-arret-actif",
+      "figmaNodeId": "8328:29289",
+      "figmaName": "Icône — Pause pleine (état activé)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 25,
+      "height": 25,
+      "usage": [
+        "Composition — action d’en-tête « Ajouter un arrêt », état actif pendant le placement (PRE-6 story 4.1, 8328:29287)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets (svgAssets) of 8328:29289 on 2026-10-21; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "placement.recovery",
+      "file": "icon-recuperation-placement",
+      "figmaNodeId": "8328:40909",
+      "figmaName": "Icône — Récupération (sablier)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 14,
+      "height": 14,
+      "usage": [
+        "Composition — puce « Récupération » à ajouter, mode placement (PRE-6 story 4.1, 8328:29383)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 8328:29382 on 2026-10-21; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "placement.recovery.added",
+      "file": "icon-recuperation-placement-ajoutee",
+      "figmaNodeId": "8328:40907",
+      "figmaName": "Icône — Récupération (sablier)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 14,
+      "height": 14,
+      "usage": [
+        "Composition — puce « Récupération {durée} » ajoutée, mode placement (PRE-6 story 4.1, 8328:29407)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 8328:29394 on 2026-10-21; same drawing as 8328:40909, white fill; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "remove.recovery",
+      "file": "icon-retirer-recuperation",
+      "figmaNodeId": "8328:41025",
+      "figmaName": "Icône — Récupération",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 12,
+      "height": 12,
+      "usage": [
+        "Composition — bulle « Retirer la récupération » (PRE-6 story 4.2, 8328:29267)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 8328:29267 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; path unchanged (same drawing as 8328:40907 at 12/14, white fill, second subpath left open as in Figma)"
+    },
+    {
+      "key": "composition.media.exercise",
+      "file": "icon-nature-exercice",
+      "figmaNodeId": "9798:19907",
+      "figmaName": "Icône — Nature de l’exercice",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Composition — gabarit média 64 × 64 de la carte v2 (PRE-6 story 5.1, D-435, 9798:44464) ; même tracé que la variante Circuit 9819:19963"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21 (identical bytes for 9819:19961); root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "composition.category.badge",
+      "file": "icon-pastille-categorie",
+      "figmaNodeId": "9798:19913",
+      "figmaName": "Pastille — Catégorie",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 13,
+      "height": 13,
+      "usage": [
+        "Composition — pastille de Catégorie, ligne 2 de la carte v2 (PRE-6 story 5.1, D-435)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "composition.body-zone.badge",
+      "file": "icon-pastille-zone-corporelle",
+      "figmaNodeId": "9798:19919",
+      "figmaName": "Pastille — Zone corporelle",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 13,
+      "height": 13,
+      "usage": [
+        "Composition — pastille de Zone corporelle, ligne 3 de la carte v2 (PRE-6 story 5.1, D-435)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "composition.work-duration",
+      "file": "icon-symbole-duree",
+      "figmaNodeId": "9798:19927",
+      "figmaName": "Symbole — Durée d’exercice",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 13,
+      "height": 13,
+      "usage": [
+        "Composition — symbole de la synthèse de travail, ligne 2 de la carte v2 (PRE-6 story 5.1, D-435)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "recovery.hourglass.card",
+      "file": "icon-sablier-recuperation-v2",
+      "figmaNodeId": "9798:19932",
+      "figmaName": "Sablier — Récupération",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 13,
+      "height": 13,
+      "usage": [
+        "Composition — récupération en ligne 3 de la carte v2 (PRE-6 story 5.1, D-435) ; tracé plus grand que recovery.hourglass (8328:41087), non réutilisé"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "side.change.card",
+      "file": "icon-changement-de-cote-v2",
+      "figmaNodeId": "9798:19925",
+      "figmaName": "Icône — Changement de côté",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 16,
+      "height": 16,
+      "usage": [
+        "Composition — changement de côté, ligne 1 de la carte v2 (PRE-6 story 5.1, D-435, ARB-2) ; même tracé que side.change (9522:20651), remplissage #7A7A80 au lieu de #9499A8"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21; root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"
+    },
+    {
+      "key": "action.edit-movement",
+      "file": "icon-modifier",
+      "figmaNodeId": "9925:41240",
+      "figmaName": "icon/modifier",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 25.8002,
+      "height": 25.8023,
+      "usage": [
+        "Éditeur d’Exercice — crayon « Modifier le geste » de l’en-tête en création sur geste repris (PRE-7 story A2.2, 9891:39982, action 9952:44374)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context asset of 9952:44374 on 2026-10-24; root attributes preserveAspectRatio/overflow/style removed; stroke-only drawing (#0508E5) unchanged; box 25.8 of the export (the 20 × 20 icon frame bleeds 3.75 % on each side)"
+    },
+    {
+      "key": "catalogue.level.easier.arrow",
+      "file": "catalogue-niveau-plus-facile",
+      "figmaNodeId": "10585:21536",
+      "figmaName": "Flèche — Plus facile",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "10579:21580",
+      "width": 9,
+      "height": 12.6,
+      "usage": [
+        "Catalogue des Mouvements — choix d'ajout d'un niveau (PRE-8 B11)"
+      ]
+    },
+    {
+      "key": "catalogue.level.harder.arrow",
+      "file": "catalogue-niveau-plus-difficile",
+      "figmaNodeId": "10585:21537",
+      "figmaName": "Flèche — Plus difficile",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "10579:21580",
+      "width": 9,
+      "height": 12.6,
+      "usage": [
+        "Catalogue des Mouvements — choix d'ajout d'un niveau (PRE-8 B11)"
+      ]
+    },
+    {
+      "key": "catalogue.level.easier.join",
+      "file": "catalogue-raccord-plus-facile",
+      "figmaNodeId": "10585:21534",
+      "figmaName": "Raccord — Plus facile",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "10579:21580",
+      "width": 12,
+      "height": 12,
+      "usage": [
+        "Catalogue des Mouvements — raccord des actions glissées (PRE-8 B11)"
+      ]
+    },
+    {
+      "key": "catalogue.level.harder.join",
+      "file": "catalogue-raccord-plus-difficile",
+      "figmaNodeId": "10585:21535",
+      "figmaName": "Raccord — Plus difficile",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "10579:21580",
+      "width": 12,
+      "height": 12,
+      "usage": [
+        "Catalogue des Mouvements — raccord des actions glissées (PRE-8 B11)"
+      ]
+    },
+    {
+      "key": "filter.command.chevron",
+      "file": "filtre-chevron-modifier",
+      "figmaNodeId": "10465:23261",
+      "figmaName": "Chevron bas — Modifier filtres",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "10465:23141",
+      "width": 9.5,
+      "height": 5.5,
+      "usage": [
+        "Commande Filtrer étendue (PRE-8 D05)"
+      ]
+    },
+    {
+      "key": "catalogue.session.category",
+      "file": "icon-catalogue-categorie",
+      "figmaNodeId": "6296:18631",
+      "figmaName": "Icône catégorie (icon/categorie)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6214:3572",
+      "width": 14,
+      "height": 14,
+      "usage": [
+        "Catalogue des séances — ligne Catégories de la carte (PRE-8 E.2)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; group 9.07 × 12.28 centred in the 14 × 14 instance frame; root attributes preserveAspectRatio/overflow/style removed, double-encoded ids dropped"
+    },
+    {
+      "key": "catalogue.session.exercises",
+      "file": "icon-catalogue-haltere",
+      "figmaNodeId": "6214:3563",
+      "figmaName": "Icône — Exercices — haltère (Phosphor barbell-light)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6214:3572",
+      "width": 16,
+      "height": 16,
+      "usage": [
+        "Catalogue des séances — ligne de synthèse de la carte (PRE-8 E.2)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; root attributes removed"
+    },
+    {
+      "key": "catalogue.session.duration",
+      "file": "icon-catalogue-sablier",
+      "figmaNodeId": "6214:3556",
+      "figmaName": "Icône — Durée — sablier",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6214:3572",
+      "width": 16,
+      "height": 16,
+      "usage": [
+        "Catalogue des séances — durée de la carte (PRE-8 E.2) ; trait #9499A8, distinct de duration.hourglass (#8E8E93)"
+      ],
+      "runtime": "Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; root attributes removed"
+    },
+    {
+      "key": "catalogue.session.disclosure",
+      "file": "icon-catalogue-chevron",
+      "figmaNodeId": "8712:13559",
+      "figmaName": "Chevron — Déployer",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "6214:3572",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Catalogue des séances — chevron du nom, seul contrôle de déploiement (PRE-8 E.2, E.3) ; pivoté de 180° une fois ouvert"
+      ],
+      "runtime": "Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; root attributes removed"
+    },
+    {
+      "key": "filter.reset",
+      "file": "filtre-reinitialiser",
+      "figmaNodeId": "10460:23177",
+      "figmaName": "Icône — Réinitialiser",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "10460:23176",
+      "width": 28,
+      "height": 28,
+      "usage": [
+        "Action Réinitialiser des filtres (PRE-8 D06)"
+      ]
+    },
+    {
+      "key": "media.play",
+      "file": "media-lecture",
+      "figmaNodeId": "7872:14698",
+      "figmaName": "▶ (DSF / Actions / Bouton d’action circulaire, Action=Lecture)",
+      "figmaStatus": "EQUIVALENT_GEOMETRY",
+      "sourceComponentNodeId": "7872:14696",
+      "width": 26,
+      "height": 30,
+      "usage": [
+        "Bouton de lecture vidéo du gabarit photo de la fiche Mouvement (PRE-8, 27/10) ; le glyphe texte Figma est redessiné en tracé, hauteur 30"
+      ]
+    },
+    {
+      "key": "catalogue.movement.newBadge.shape",
+      "file": "catalogue-badge-nouveau",
+      "figmaNodeId": "11773:2103",
+      "figmaName": "Forme — onglet",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "11762:2205",
+      "width": 55,
+      "height": 32,
+      "usage": [
+        "Catalogue des mouvements — badge « New » d'une fiche créée (D-510)"
+      ]
+    },
+    {
+      "key": "catalogue.movement.newBadge.pileShape",
+      "file": "catalogue-badge-nouveau-pile",
+      "figmaNodeId": "11775:2103",
+      "figmaName": "Forme — onglet",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "11765:2101",
+      "width": 69,
+      "height": 32,
+      "usage": [
+        "Catalogue des mouvements — badge « New ↓ » d'une pile repliée (D-510)"
+      ]
+    },
+    {
+      "key": "controls.radio.selected",
+      "file": "radio-selectionne",
+      "figmaNodeId": "5544:4736",
+      "figmaName": "DSF / Controls / Radio — État=Sélectionné",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "10124:21972",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Carte Mouvement en sélection pour une Séance — case cochée (D-508)"
+      ]
+    },
+    {
+      "key": "controls.radio.unselected",
+      "file": "radio-non-selectionne",
+      "figmaNodeId": "5544:4739",
+      "figmaName": "DSF / Controls / Radio — État=Non sélectionné",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "10124:21967",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Carte Mouvement en sélection pour une Séance — case vide (D-508)"
+      ]
+    }
   ],
   "branding": {
     "splashLogo": {

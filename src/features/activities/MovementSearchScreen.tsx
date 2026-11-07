@@ -8,7 +8,8 @@ import { colors, fixedRadii, minTouchTarget } from "@/shared/ui/tokens";
 
 import type { MovementChoice } from "./ActivityDefinitionService";
 import { EDITOR_HEADER, editorSideMargin } from "./ActivityEditorForm";
-import { MovementResultCard, type VariantPlacement } from "./MovementResultCard";
+import { groupResultsByFamily } from "./movementFamilyGrouping";
+import { MovementCompositionCard, MovementResultCard, type VariantPlacement } from "./MovementResultCard";
 
 export type MovementSearchScreenProps = {
   /** Tous les mouvements disponibles, locaux compris, dans l'ordre de parcours du Catalogue. */
@@ -17,10 +18,15 @@ export type MovementSearchScreenProps = {
   readonly initialQuery: string;
   /** R02 : signaux Catégorie et Zones du brouillon. */
   readonly context?: MovementSearchContext;
-  /** « Utiliser ce mouvement » : reprise du mouvement RÉELLEMENT choisi. */
-  readonly onUse: (choice: MovementChoice) => void;
-  /** « Créer une variante » puis Plus facile / Plus difficile (C02). */
-  readonly onChooseVariant: (choice: MovementChoice, placement: VariantPlacement) => void;
+  /**
+   * PRE-9 CAT.2 : toucher d'une carte Composition — utilisation du mouvement RÉELLEMENT choisi
+   * (ancien « Utiliser ce mouvement »). Rendu en cartes Composition quand `onChooseVariant` est absent.
+   */
+  readonly onUse?: (choice: MovementChoice) => void;
+  /** Carte Résultat : toucher du corps — ouvre le mouvement (demande de Hermann du 05/11/2026, soir). */
+  readonly onOpen?: (choice: MovementChoice) => void;
+  /** « Ajouter un niveau » puis Plus facile / Plus difficile (C02) : cartes Résultat, sans réutilisation. */
+  readonly onChooseVariant?: (choice: MovementChoice, placement: VariantPlacement) => void;
   /** ✕ (et retour système) : retour au brouillon appelant, intact. */
   readonly onClose: () => void;
 };
@@ -50,12 +56,13 @@ const GAP = 10;
  *   qui vide la requête ;
  * - requête vide : tous les mouvements, dans l'ordre de parcours du Catalogue
  *   (`listMovementChoices`), mouvements sans exercice compris (v7 l.27).
- * Résultats : cartes `10199:22268` à deux actions (R04), la variante se déployant dans sa carte.
+ * Résultats (PRE-9 CAT.2) : cartes Résultat `10199:22268` (« Ajouter un niveau » seul, la variante se
+ * déployant dans sa carte) ou cartes Composition sans bouton, selon l'appelant.
  * La représentation de l'écran n'est pas relevée (DSF l.41, « représentation courante manquante ») :
  * en-tête, champ et note de `9959:19623`, désormais catalogue d'entretien, réutilisés (NON
  * VÉRIFIABLE). `Modal` native plein écran au-dessus de l'éditeur, dont le brouillon reste monté.
  */
-export function MovementSearchScreen({ choices, initialQuery, context, onUse, onChooseVariant, onClose }: MovementSearchScreenProps) {
+export function MovementSearchScreen({ choices, initialQuery, context, onUse, onOpen, onChooseVariant, onClose }: MovementSearchScreenProps) {
   const t = strings.screens.activities.editor.movementSearch;
   const sideMargin = editorSideMargin(useWindowDimensions().width);
   const [query, setQuery] = useState(initialQuery);
@@ -64,13 +71,17 @@ export function MovementSearchScreen({ choices, initialQuery, context, onUse, on
   const results = useMemo(() => {
     if (normalizeSearchText(query).length === 0) return choices;
     const byId = new Map(choices.map((choice) => [choice.movement.id, choice]));
-    return rankMovements(
-      query,
-      choices.map((choice) => choice.movement),
-      context,
-    )
-      .map((result) => byId.get(result.id))
-      .filter((choice): choice is MovementChoice => choice !== undefined);
+    // CAT.2, clarification de Hermann du 30/10 : familles contiguës, au rang de leur premier membre.
+    return groupResultsByFamily(
+      rankMovements(
+        query,
+        choices.map((choice) => choice.movement),
+        context,
+      )
+        .map((result) => byId.get(result.id))
+        .filter((choice): choice is MovementChoice => choice !== undefined),
+      choices,
+    );
   }, [query, choices, context]);
 
   return (
@@ -139,16 +150,25 @@ export function MovementSearchScreen({ choices, initialQuery, context, onUse, on
               </View>
             )
           }
-          renderItem={({ item }) => (
-            <MovementResultCard
-              choice={item}
-              variantExpanded={variantOf === item.movement.id}
-              onUse={() => onUse(item)}
-              onCreateVariant={() => setVariantOf((current) => (current === item.movement.id ? null : item.movement.id))}
-              onChooseVariant={(placement) => onChooseVariant(item, placement)}
-              testID={`movement-search-result-${item.movement.id}`}
-            />
-          )}
+          renderItem={({ item }) =>
+            onChooseVariant !== undefined ? (
+              <MovementResultCard
+                choice={item}
+                variantExpanded={variantOf === item.movement.id}
+                onCreateVariant={() => setVariantOf((current) => (current === item.movement.id ? null : item.movement.id))}
+                onChooseVariant={(placement) => onChooseVariant(item, placement)}
+                {...(onOpen !== undefined ? { onOpen: () => onOpen(item) } : {})}
+                testID={`movement-search-result-${item.movement.id}`}
+              />
+            ) : (
+              <MovementCompositionCard
+                choice={item}
+                {...(onUse !== undefined ? { onPress: () => onUse(item) } : {})}
+                actionHint={strings.screens.activities.editor.movementSuggestion.useMovement}
+                testID={`movement-search-result-${item.movement.id}`}
+              />
+            )
+          }
           testID="movement-search-list"
         />
       </ScreenShell>

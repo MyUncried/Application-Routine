@@ -18,7 +18,7 @@ describe("CircuitEntryConfirmModal — kind NATURE (PRE-6 story 3.2)", () => {
 
   it("title and plural message (« 2 séries », « 2e »)", () => {
     renderNature(2);
-    expect(screen.getByText("Passer en circuit de séries ?")).toBeTruthy();
+    expect(screen.getByText("Passer en séries alternées ?")).toBeTruthy();
     expect(
       screen.getByText(
         "Tous les exercices auront 2 séries. Les séries au-delà de la 2e seront supprimées, avec les valeurs qu’elles portent.",

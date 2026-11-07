@@ -94,7 +94,7 @@ Repositories (`src/infrastructure/database/repositories/`) : ActivityDefinition,
 | Glisser-déposer + défilement auto | Oui : appui long, `DragShiftSession` local, `useDragAutoScroll` | `:898`, `:5531-5619`, `compositionGesture.ts:167-513` |
 | Déplacement pas-à-pas (accessibilité) | Oui | `stepOccurrence` `:623`, `:2281` |
 | Duplication / suppression | Oui (occurrence) | `handleDuplicateActivity` `:2584-2624`, `startDeletion` `:2376` |
-| Pauses (récupérations) + Points d'arrêt | Oui, via le mode Placement | `enterPlacement` `:1227`, `placement.ts` |
+| Pauses (récupérations) + Points d'arrêt | Oui, via le mode Placement | `enterPlacement` `:1227`, `placement.ts` [Remplacé le 01/11/2026 pour la récupération (ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil », qui clôt REC-PARAM-01) : la Récupération appartient à l'Exercice, reprise du Profil à sa création, réglée uniquement dans Paramètres d'exécution ; le mode Placement ne porte que les Points d'arrêt. Voir `spec-menu-creer-parametres-01-11.md` § « Récupération de l'Exercice et défauts du Profil ».] |
 | Durée et phrases | `formatCompositionSessionDuration` `:2664` (`formatSessionSummary.ts:70`) ; résumés d'occurrence `formatSessionSummary.ts:210-499` | |
 | Enregistrement | `sessionService.updateSession` / `createSession` (ancien chemin) | `:1113-1114` |
 | Réouverture | `hydrateFromSession` → `SessionService.getSessionForEdit` → `findById` (ancien modèle) | `SessionDraftProvider.tsx:153`, `SessionService.ts:224` |

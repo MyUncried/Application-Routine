@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
-import type { Movement } from "@/domain/activities/Movement";
+import { normalizeMovementName } from "@/domain/activities/Movement";
 import { DATABASE_VERSION } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
@@ -57,29 +57,29 @@ async function version(database: Database): Promise<number> {
   return (await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))?.user_version ?? -1;
 }
 
-const movement = (id: string, name: string): Movement => ({
-  id,
-  name,
-  description: null,
-  media: [],
-  categoryId: "cardio",
-  bodyZoneIds: ["cuisses"],
-  phases: [],
-  nextPhaseId: 1,
-  aliases: [],
-  levelGroup: null,
-});
-
-/** Base au schéma 014, avec une famille de trois Niveaux et un Mouvement indépendant. */
+/**
+ * Base au schéma 014, avec une famille de trois Niveaux et un Mouvement indépendant.
+ * [PRE-9 A.2b, 31/10/2026 : écrite en SQL au schéma 014 — le dépôt courant lit
+ * `movement_phases.duration_seconds` (`migration018`), absente d'une base 014. Mêmes lignes que
+ * l'ancienne écriture par le dépôt (famille `grp-1` : assistés 0, Squats 1, sautés 2).]
+ */
 async function seedAt014(): Promise<NodeSqliteDatabase> {
   const database = open();
   await migrateDatabase(database, () => T, 14);
-  let sequence = 0;
-  const repository = new SqliteMovementRepository(database, () => `grp-${++sequence}`, () => T);
-  await repository.create(movement("squat", "Squats"));
-  await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
-  await repository.createVariant(movement("jump", "Squats sautés"), "squat", "AFTER_ORIGIN");
-  await repository.create(movement("fentes", "Fentes avant"));
+  const rows: readonly (readonly [string, string, string | null, number | null])[] = [
+    ["squat", "Squats", "grp-1", 1],
+    ["assist", "Squats assistés", "grp-1", 0],
+    ["jump", "Squats sautés", "grp-1", 2],
+    ["fentes", "Fentes avant", null, null],
+  ];
+  for (const [id, name, groupId, sortKey] of rows) {
+    await database.runAsync(
+      `INSERT INTO movements (id, name, normalized_name, description, category_id, next_phase_id, level_group_id, level_sort_key, created_at, updated_at)
+       VALUES (?, ?, ?, NULL, 'cardio', 1, ?, ?, ?, ?)`,
+      [id, name, normalizeMovementName(name), groupId, sortKey, T, T],
+    );
+    await database.runAsync("INSERT INTO movement_body_zones (movement_id, body_zone_id) VALUES (?, 'cuisses')", [id]);
+  }
   return database;
 }
 
@@ -115,8 +115,9 @@ describe("PRE-8 B.8 — migration 015 (archivage du Mouvement)", () => {
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(DATABASE_VERSION).toBe(15);
-    expect(await version(database)).toBe(15);
+    // PRE-9 (A.1) : le démarrage enchaîne 015 puis 016.
+    expect(DATABASE_VERSION).toBe(23);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await database.getAllAsync(MOVEMENT_SNAPSHOT)).toEqual(before);
     expect(await database.getAllAsync("SELECT id FROM movements WHERE archived_at IS NOT NULL")).toEqual([]);
     expect(await new SqliteMovementRepository(database).listArchivedIds()).toEqual(new Set());
@@ -136,10 +137,10 @@ describe("PRE-8 B.8 — migration 015 (archivage du Mouvement)", () => {
     expect(await database.getAllAsync(MOVEMENT_SNAPSHOT)).toEqual(before);
   });
 
-  it("installation neuve : schéma 015 directement, colonne présente", async () => {
+  it("installation neuve : schéma courant directement (015, puis 016 en PRE-9), colonne présente", async () => {
     const database = open();
     await initializeDatabase(database);
-    expect(await version(database)).toBe(15);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(movements)")).map((row) => row.name);
     expect(columns).toContain("archived_at");
   });

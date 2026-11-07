@@ -17,6 +17,14 @@ import { applyMigration012 } from "./migrations/migration012";
 import { applyMigration013 } from "./migrations/migration013";
 import { applyMigration014 } from "./migrations/migration014";
 import { applyMigration015 } from "./migrations/migration015";
+import { applyMigration016 } from "./migrations/migration016";
+import { applyMigration017 } from "./migrations/migration017";
+import { applyMigration018 } from "./migrations/migration018";
+import { applyMigration019 } from "./migrations/migration019";
+import { applyMigration020 } from "./migrations/migration020";
+import { applyMigration021 } from "./migrations/migration021";
+import { applyMigration022 } from "./migrations/migration022";
+import { applyMigration023 } from "./migrations/migration023";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -204,6 +212,73 @@ export async function migrateDatabase(
     if (pending(14)) {
       await applyMigration015(transaction);
       version = 15;
+    }
+
+    // PRE-9 (A.1, D-451, ARB-06) : Exercice direct de Cycle et Point d'arrêt dans un Cycle ;
+    // `activities` et `session_stop_points` reconstruites SANS PERTE (lignes recopiées, aucune
+    // Séance modifiée). Un échec annule tout et laisse `user_version` à 15.
+    if (pending(15)) {
+      await applyMigration016(transaction);
+      version = 16;
+    }
+
+    // PRE-9 (C.1, ARB-03, FMT-02) : Format porté par un Circuit ou un Exercice et origine de
+    // [Correction du 30/10 : Format porté par l'Exercice seul (D-02) ; `tours.format_*` vestiges inutilisés.]
+    // création de la Séance ; colonnes additives nullables, toute Séance existante reste libre
+    // (FMT-40). Un échec annule tout et laisse `user_version` à 16.
+    if (pending(16)) {
+      await applyMigration017(transaction);
+      version = 17;
+    }
+
+    // PRE-9 (A.2b, décisions de Hermann des 30 et 31/10/2026) : durée facultative d'une phase du
+    // Mouvement, colonne additive nullable `movement_phases.duration_seconds` ; toute phase existante
+    // reste sans durée. Un échec annule tout et laisse `user_version` à 17.
+    if (pending(17)) {
+      await applyMigration018(transaction);
+      version = 18;
+    }
+
+    // PRE-9 (recette iPhone n° 2 du 31/10/2026, constat e, décisions de Hermann du 31/10) : marque
+    // « Paramètre à vérifier » d'un Exercice, colonnes additives nullables
+    // `activities.phases_to_verify` et `activity_definitions.phases_to_verify` ; tout Exercice
+    // existant reste sans marque. Un échec annule tout et laisse `user_version` à 18.
+    if (pending(18)) {
+      await applyMigration019(transaction);
+      version = 19;
+    }
+
+    // PRE-9 (recette iPhone n° 3 du 03/11/2026, autres constats, décision de Hermann du 03/11) : modèle
+    // d'origine d'un Circuit créé par la fenêtre Formats, colonne additive nullable `tours.origin_model`
+    // (CHECK sur les dix clés de modèle) ; tout Circuit existant reste « Circuit ». Un échec annule tout
+    // et laisse `user_version` à 19.
+    if (pending(19)) {
+      await applyMigration020(transaction);
+      version = 20;
+    }
+
+    // PRE-9 (A.3, décision de Hermann du 04/11/2026 : « Hermann abandonne la conversion sans perte
+    // prévue par A.4 : les anciens exercices concernés par cette conversion peuvent être supprimés
+    // plutôt que migrés. ») : suppression des anciennes définitions du Catalogue, table conservée
+    // vide (sa suppression, A.5, reste non autorisée). Un échec annule tout et laisse
+    // `user_version` à 20.
+    if (pending(20)) {
+      await applyMigration021(transaction);
+      version = 21;
+    }
+
+    // PRE-9 (reprise Formats du 04/11/2026, §6 quinquies) : nom du Circuit, colonne additive nullable
+    // `tours.name` ; tout Circuit existant garde son nom par défaut. Un échec laisse `user_version` à 21.
+    if (pending(21)) {
+      await applyMigration022(transaction);
+      version = 22;
+    }
+
+    // PRE-9 (décisions EMOM du 07/11/2026, réponse 3 de Hermann) : Récupération à 0 s des EMOM d'un Circuit alterné
+    // ou d'un Circuit porteur EMOM, reprise de données sans changement de schéma. Un échec laisse `user_version` à 22.
+    if (pending(22)) {
+      await applyMigration023(transaction);
+      version = 23;
     }
 
     if (version !== targetVersion) {

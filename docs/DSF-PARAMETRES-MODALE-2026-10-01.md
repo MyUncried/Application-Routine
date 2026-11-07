@@ -1,5 +1,7 @@
 # DSF-PARAMETRES-MODALE-2026-10-01 — référence historique
 
+**Révision 06/11/2026 (décision de Hermann, constat c ; registre ch07, « Recette iPhone du 06/11/2026 ») :** « Paramètre d'exécution : n'utiliser que le clavier pour entrer les valeurs des champs, plus aucune roulette ou popover. » Toutes les valeurs de la feuille (séries, cible commune, durée de l'exercice, récupération, pauses, compte à rebours, fin, cadence « Autre », nombre de phases) se tapent dans leur champ, avec la barre au-dessus du clavier des Formats (Précédent, Suivant, Fermer) ; bornes appliquées à la saisie. Les mentions de roulette, de panneau de roue et de ± de cette feuille ci-dessous sont remplacées ; les contrôles segmentés et le menu Enchaînement restent.
+
 **Actualisation13/10 :** [DSF Deux modes et cible À l’échec](DSF-DEUX-MODES-ECHEC-2026-10-13.md) remplace les références à trois modes et complète les roulettes, cibles et totaux. Les dispositions non concernées restent applicables.
 
 **Actualisation du 12/10 :** [DSF Circuits et contrôles du 12/10](DSF-CIRCUITS-CONTROLES-2026-10-12.md) fait autorité sur les nouveaux contrôles de séries, la nature du circuit, les volumes et la lecture seule héritée. Les mesures datées ci-dessous ne décrivent pas les états remplacés. Les règles communes sans rapport avec ces éléments restent applicables.

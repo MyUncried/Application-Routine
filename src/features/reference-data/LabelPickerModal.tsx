@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  Easing,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -16,9 +14,9 @@ import {
 
 import { isLabelAssignable, LABEL_NAME_MAX_LENGTH, validateLabelName, type Label, type LabelColor } from "@/domain/labels/Label";
 import { SESSION_COLORS } from "@/domain/sessions/Session";
-import { useReduceMotion } from "@/features/activities/ExecutionParametersSheet";
 import { CategoryColorBand } from "@/features/reference-data/CategoryPickerModal";
 import { recordKeyboardJournal, startKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
+import { NATIVE_PICKER_MODAL, nativePickerKeyboardOffset } from "@/features/reference-data/nativePickerSheet";
 import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
@@ -58,9 +56,6 @@ export function LabelPickerModal({ selectedId, onSelect, onClose, onLabelRetired
   const referentialService = useReferentialService();
   const [labels, setLabels] = useState<readonly Label[] | null>(null);
   const [chosenId, setChosenId] = useState<string | null>(selectedId);
-  const reduceMotion = useReduceMotion();
-  const [closing] = useState(() => new Animated.Value(1));
-  const [isConfirming, setIsConfirming] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   // Une seule création en vol : des appuis répétés sur ↑ ne créent pas de doublon (D-350).
   const isCreateInFlightRef = useRef(false);
@@ -132,27 +127,13 @@ export function LabelPickerModal({ selectedId, onSelect, onClose, onLabelRetired
     setChosenId((current) => (current === label.id ? null : label.id));
   }
 
-  /** D-355 : ✓ applique le choix (ou le retrait) puis ferme progressivement (immédiatement si « Réduire les animations »). */
+  /**
+   * D-355 : ✓ applique le choix (ou le retrait) puis ferme. [« ferme progressivement (immédiatement si « Réduire les
+   * animations ») » — remplacé le 06/11/2026 (x-dedans) : la feuille native descend à la vitesse du système.]
+   */
   function handleConfirm() {
-    if (isConfirming) {
-      return;
-    }
-    const confirmedId = chosenId;
-    const finish = () => {
-      onSelect(confirmedId);
-      onClose();
-    };
-    if (reduceMotion) {
-      finish();
-      return;
-    }
-    setIsConfirming(true);
-    Animated.timing(closing, {
-      toValue: 0,
-      duration: CONFIRM_CLOSE_MS,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => finish());
+    onSelect(chosenId);
+    onClose();
   }
 
   async function handleCreate() {
@@ -257,25 +238,20 @@ export function LabelPickerModal({ selectedId, onSelect, onClose, onLabelRetired
   }
 
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={onClose}>
+    // Recette du 06/11/2026 (x-dedans) : feuille native iOS (`NATIVE_PICKER_MODAL`). [Modale transparente en fondu — remplacée.]
+    <Modal visible {...NATIVE_PICKER_MODAL} onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={styles.backdrop}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={nativePickerKeyboardOffset()}
         testID="label-picker-backdrop"
       >
-        <Animated.View
-          style={[
-            styles.card,
-            isKeyboardShown ? styles.cardWithKeyboard : null,
-            {
-              opacity: closing,
-              transform: [{ translateY: closing.interpolate({ inputRange: [0, 1], outputRange: [CONFIRM_CLOSE_OFFSET, 0] }) }],
-            },
-          ]}
+        {/* [Sortie animée à la validation et poignée dessinée — remplacées par la descente du système (06/11/2026).] */}
+        <View
+          style={[styles.card, isKeyboardShown ? styles.cardWithKeyboard : null]}
           accessibilityViewIsModal
           testID="label-picker-sheet"
         >
-          <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader} testID="label-picker-header">
             <Pressable
               onPress={onClose}
@@ -446,7 +422,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose, onLabelRetired
               </Pressable>
             )}
           </ScrollView>
-        </Animated.View>
+        </View>
       </KeyboardAvoidingView>
 
       {longPressTarget ? (
@@ -464,10 +440,6 @@ export function LabelPickerModal({ selectedId, onSelect, onClose, onLabelRetired
   );
 }
 
-/** D-355 : fermeture progressive après ✓ (même convention que la Catégorie, 220 ms). */
-const CONFIRM_CLOSE_MS = 220;
-const CONFIRM_CLOSE_OFFSET = 48;
-
 /** Action « Envoyer » (4640:6308) : cercle 32, marge interne droite 8. */
 const INLINE_SEND_SIZE = 32;
 
@@ -476,18 +448,11 @@ const TAG_SWATCH_SIZE = 12;
 const TAG_BORDER_WIDTH = 1;
 
 const styles = StyleSheet.create({
+  // [Feuille ancrée en bas, poignée, voile commun — remplacés le 06/11/2026 (x-dedans) par la feuille native du système :]
+  // racine blanche sur toute la hauteur de la feuille.
   backdrop: {
     flex: 1,
-    backgroundColor: colors.overlayScrim,
-    justifyContent: "flex-end",
-  },
-  sheetHandle: {
-    alignSelf: "center",
-    width: 50,
-    height: 4,
-    borderRadius: 2,
-    marginTop: spacing[8],
-    backgroundColor: colors.disabled,
+    backgroundColor: colors.background,
   },
   sheetHeader: {
     flexDirection: "row",
@@ -524,10 +489,9 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "100%",
-    // Hauteur ajustée au contenu, bornée : la liste et le formulaire défilent au-delà.
-    maxHeight: "90%",
-    borderTopLeftRadius: dimensions.standardCard.radius,
-    borderTopRightRadius: dimensions.standardCard.radius,
+    // La liste et le formulaire défilent. [« Hauteur ajustée au contenu, bornée (90 %) », coins arrondis — remplacés le
+    // 06/11/2026 (x-dedans) : la carte remplit la feuille native.]
+    flex: 1,
     backgroundColor: colors.background,
     paddingBottom: spacing[24],
   },

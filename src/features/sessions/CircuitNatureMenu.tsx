@@ -1,4 +1,11 @@
-import { Button as SwiftUIButton, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
+import {
+  Button as SwiftUIButton,
+  Host,
+  Image as SwiftUIImage,
+  Menu,
+  RNHostView,
+  Text as SwiftUIText,
+} from "@expo/ui/swift-ui";
 import {
   accessibilityLabel as swiftUIAccessibilityLabel,
   accessibilityValue as swiftUIAccessibilityValue,
@@ -28,6 +35,13 @@ export const CIRCUIT_NATURE_PANEL_GAP = spacing[4];
 export function circuitNatureOptionAccessibilityLabel(nature: CircuitNature): string {
   const option = strings.screens.composition.circuit.nature.options[nature];
   return `${option.title}, ${option.subtitle}`;
+}
+
+/** iOS : titre, sous-titre (description) et, pour la nature courante, la coche. */
+function natureOptionLabel(option: CircuitNature, selected: boolean) {
+  const { title, subtitle } = strings.screens.composition.circuit.nature.options[option];
+  const texts = [<SwiftUIText key="title">{title}</SwiftUIText>, <SwiftUIText key="subtitle">{subtitle}</SwiftUIText>];
+  return selected ? [...texts, <SwiftUIImage key="check" systemName="checkmark" />] : texts;
 }
 
 function natureAccessibilityValue(nature: CircuitNature): string {
@@ -70,15 +84,19 @@ export type CircuitNatureMenuProps = {
 /**
  * Déclencheur du choix de nature du Circuit (PRE-6 story 3.2, CE-CIR-01, CIR-10, Figma
  * `8328:34805`) : la pastille d'unité seule. Deux options « Circuit de tours » / « Circuit de
- * séries », la nature courante cochée ; aucune troisième option.
+ * séries », la nature courante cochée ; aucune troisième option. PRE-9 B.1a (D-451, complément du
+ * 28/10 ; RM-027) : le déclencheur est l'adjectif de nature de l'en-tête (« groupées » /
+ * « alternées ») ; options « Séries groupées » / « Séries alternées ».
  *
  * - iOS (primitives natives, AGENTS.md) : `Menu` SwiftUI d'`@expo/ui`, hébergé par `Host` et
  *   `RNHostView`, même mécanisme que l'Enchaînement de la Feuille (`SideOrderMenu` de
  *   `ExecutionParametersSheet.tsx`) : un `Button` SwiftUI par option, coche `checkmark` sur la
  *   courante. Le sous-texte est porté par le nom accessible de l'option (comme l'Enchaînement) :
- *   le `Button` d'`@expo/ui` n'expose pas de sous-titre avec une icône système. Un toucher
+ *   le `Button` d'`@expo/ui` n'expose pas de sous-titre avec une icône système [complété par la
+ *   recette du 29/10, ent-3 : le sous-texte est AUSSI affiché, en sous-titre natif — libellé du
+ *   `Button` composé de deux `Text` et de la coche en `Image`]. Un toucher
  *   extérieur ferme le menu sans rien choisir. PRE-6 story 7.3 : la pastille reste le déclencheur,
- *   entre le nombre et le + du stepper toujours affiché.
+ *   entre le nombre et le + du stepper toujours affiché [remplacé par PRE-9 B.1a : l'adjectif].
  * - Android et web : bouton « Nature du circuit » (cible 44) ; le panneau `CircuitNaturePanel`
  *   est hébergé par l'écran dans un parent qui le contient entièrement (sur Android, un toucher
  *   hors des limites du parent n'atteint pas ses enfants).
@@ -118,14 +136,18 @@ function NativeNatureMenu({ nature, trigger, triggerLayoutKey, onSelect, testID,
           modifiers={[swiftUIAccessibilityLabel(t.accessibilityLabel), swiftUIAccessibilityValue(natureAccessibilityValue(nature))]}
         >
           {CIRCUIT_NATURES.map((option) => (
+            // PRE-9, recette iPhone du 29/10 (ent-3, Hermann : « Il manque la description. S'assurer
+            // que la description est écrite plus petit par rapport au titre. ») : libellé composé de
+            // deux `Text` SwiftUI — dans un `Menu`, iOS rend le premier en titre et le second en
+            // sous-titre, plus petit et secondaire (rendu natif) ; la coche est une `Image` système.
             <SwiftUIButton
               key={option}
-              label={t.options[option].title}
-              systemImage={option === nature ? "checkmark" : undefined}
               modifiers={[swiftUIAccessibilityLabel(circuitNatureOptionAccessibilityLabel(option))]}
               onPress={() => onSelect(option)}
               testID={`${testID}-${option}`}
-            />
+            >
+              {natureOptionLabel(option, option === nature)}
+            </SwiftUIButton>
           ))}
         </Menu>
       </Host>

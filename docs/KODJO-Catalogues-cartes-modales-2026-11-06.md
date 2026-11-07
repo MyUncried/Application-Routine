@@ -45,7 +45,7 @@ Variables d'usage dans la collection « KODJO / Sémantiques », couleurs de bas
 
 Cartes sur ces fonds : fond **blanc**, liseré existant à **50 %** d'opacité, ombre existante (0 / 2 / 10, 8 %).
 
-La Composition, la fiche Mouvement et les autres écrans à zone de contexte ne sont pas modifiés par ce paragraphe (§9).
+La Composition, la fiche Mouvement et les autres écrans à zone de contexte ne sont pas modifiés par ce paragraphe (§9). [Précisé le 06/11/2026 par la consigne de Hermann (D-509) : hors catalogue, la bande de contexte commune prend #EAEAFF (`color.contextBand`), valeur du chapitre 06, et non plus `selectionSurface` (#E5F0FF).]
 
 ## 4. Onglets et zone de contexte des catalogues (D-502, D-503)
 
@@ -53,7 +53,7 @@ La Composition, la fiche Mouvement et les autres écrans à zone de contexte ne 
 - **Onglet sélectionné :** forme posée sur la zone de contexte, de sa couleur (`context` du catalogue) ; coins hauts arrondis à 12, bas évasés en courbe inversée de rayon 10 jusqu'à la zone de contexte, sans raccord. Libellé **Bold**, `color/text-primary`. Onglets non sélectionnés : Regular, `color/text-secondary`. Plus de bleu sur le libellé.
 - **Hauteur de la zone de contexte inchangée** (115 pt, `y=92..207`) : elle reste commune avec la Composition et la fiche Mouvement.
 - **Première ligne** (« N familles · N mouvements », « Un exercice N · Plusieurs N », « N résultats » à droite) : séparateur **point médian** pour les deux catalogues, 8 pt de part et d'autre (remplace « | » des Séances). Écart entre cette ligne et la rangée de boutons égal à l'écart entre les boutons et la fin perçue de la zone (milieu du fondu), soit 16 pt.
-- **Deuxième ligne :** champ Rechercher de **34 pt** de haut, comme les boutons Filtre, Tri et Créer (34 pt), centré sur leur ligne ; rangée centrée entre la première ligne et le bas de la zone de contexte (22 pt de part et d'autre de la cible de 44 pt). Cible tactile du champ : 44 pt, sans changer son dessin.
+- **Deuxième ligne :** champ Rechercher de **34 pt** de haut, comme les boutons Filtre, Tri et Créer (34 pt), centré sur leur ligne ; rangée centrée entre la première ligne et le bas de la zone de contexte (22 pt de part et d'autre de la cible de 44 pt). Cible tactile du champ : 44 pt, sans changer son dessin. [Hermann, 06/11/2026, à « L'écart entre 16 pt (spec) et 22 pt (Figma) : j'ai suivi Figma. » : « Ok ». Les cotes de Figma prévalent pour cette rangée.]
 
 ## 5. Carte Séance (D-504, D-505, D-506)
 
@@ -87,7 +87,7 @@ Composant « DSF / Cards / Séance », variantes Catalogue repliée, archivée e
 
 ## 7. Carte Mouvement et piles (D-508)
 
-Composant « Carte — Mouvement » (`10124:21979`), variantes sans sélection, vide et cochée.
+Composant « Carte — Mouvement » (`10124:21979`), variantes sans sélection, vide et cochée. Badge « New » : voir [KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06](KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06.md) (D-510).
 
 - 72 pt ; photo 64 à 4 pt du bord, rayon 8 ; fond blanc ; liseré à 50 %.
 - Nom et description à 8 pt de la photo ; nom à 8 pt du haut.
@@ -102,7 +102,7 @@ Le bandeau de contexte commun du code (`ScreenShell.ContextBand`) utilise `color
 ## 9. Hors périmètre et points ouverts
 
 - **Catalogue des programmes :** aucun écran dans le prototype ; ses variables sont prêtes.
-- **Zone de contexte de la Composition, de la fiche Mouvement et des écrans d'exercice :** couleur non modifiée ; rattachement à une teinte de catalogue à décider.
+- **Zone de contexte de la Composition, de la fiche Mouvement et des écrans d'exercice :** couleur non modifiée ; rattachement à une teinte de catalogue à décider. [Remplacé le 06/11/2026 (consigne de Hermann, D-509) : #EAEAFF (`color.contextBand`) pour toute bande de contexte hors catalogue ; le rattachement éventuel à une teinte de catalogue reste à décider.]
 - **Cartes de séance des contextes Calendrier, Suivi, Choix multiple :** non migrées au nouveau format.
 - **AMRAP :** proposition non arbitrée (au moins un exercice de la boucle en Répétitions ; Max seulement en Répétitions). Aucune règle n'est modifiée par ce document.
 - **Zones de toucher :** le champ Rechercher (34 pt), Démarrer (24 pt) et le chevron (10 pt) gardent une cible de 44 pt dans le code.

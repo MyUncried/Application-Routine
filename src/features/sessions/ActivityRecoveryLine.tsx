@@ -1,5 +1,5 @@
 import type { Ref } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 
 import { formatCompactDuration } from "@/features/sessions/compositionPresentation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
@@ -87,8 +87,11 @@ export type StopPointLineProps = {
   readonly onAccessibilityAction: (name: string) => void;
   /** Appui long : saisie du point (glisser, story 6.2). */
   readonly onLongPress: () => void;
-  /** Translation de la puce soulevée qui suit le doigt (la rangée, elle, reste en place). */
-  readonly translateY: number;
+  /**
+   * Translation de la puce soulevée qui suit le doigt (la rangée, elle, reste en place). Contre-recette
+   * n° 4 du 01/11/2026 : valeur animée (pilote natif) acceptée, posée dans la même tâche que la rangée.
+   */
+  readonly translateY: number | Animated.Value;
   /** Revue 6.2 : la puce, cible du focus d'accessibilité. */
   readonly chipRef?: Ref<View>;
   /** PRE-6 story 7.2 (D-442) : point saisi (glisser en cours), marqué soulevé (`StopPointChip.lifted`). */
@@ -118,7 +121,7 @@ export function StopPointLine({
   testID,
 }: StopPointLineProps) {
   return (
-    <View style={[styles.line, { transform: [{ translateY }] }]} testID={testID}>
+    <Animated.View style={[styles.line, { transform: [{ translateY }] }]} testID={testID}>
       <StopPointChip
         ref={chipRef}
         accessibilityLabel={accessibilityLabel}
@@ -129,7 +132,7 @@ export function StopPointLine({
         lifted={lifted}
         testID={testID === undefined ? undefined : `${testID}-chip`}
       />
-    </View>
+    </Animated.View>
   );
 }
 

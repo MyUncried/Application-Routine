@@ -27,6 +27,8 @@ export type SessionHeaderRow = {
   final_phase_seconds: number;
   session_created_at: string;
   session_updated_at: string;
+  /** PRE-9 (C.1, `migration017`) : origine de création, `NULL` si inconnue ; absente des fixtures antérieures. */
+  origin?: string | null;
 };
 
 /** PRE-8 (A.4) : Cycle utilisateur ; `position` = rang au niveau principal ; `repeat_count ≥ 1`. */
@@ -50,6 +52,14 @@ export type CircuitRow = {
   repeat_count: number;
   side_mode: SideMode;
   nature: CircuitNature;
+  // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine d'un Circuit porteur (migration 017).
+  // [30/10 : « vestiges inutilisés, ni lus ni écrits » — remplacé le 02/11/2026.]
+  format_key?: string | null;
+  format_settings?: string | null;
+  // Recette iPhone n° 3 du 03/11/2026 : modèle d'origine (nom affiché), `NULL` = « Circuit » (migration 020).
+  origin_model?: string | null;
+  /** Reprise Formats du 04/11/2026 (migration 022) : nom du Circuit, `NULL` = nom par défaut. */
+  name?: string | null;
 };
 
 /**
@@ -88,13 +98,29 @@ export type ActivityRow = {
   source_movement_id: string;
   /** PRE-7 (R-3, Q3) : numéro de copie, `NULL` pour l'original. */
   copy_number: number | null;
+  /** PRE-9 (A.1, `migration016`) : Cycle dont l'Exercice est membre direct, `null` sinon ; jamais avec `tour_id`. */
+  cycle_id: string | null;
+  /** PRE-9 (C.1, `migration017`) : Format porté par l'Exercice, `NULL` = libre ; absent des fixtures antérieures. */
+  format_key?: string | null;
+  /** PRE-9 (C.1) : réglages JSON versionnés, présents si et seulement si `format_key` l'est. */
+  format_settings?: string | null;
+  /**
+   * PRE-9 (recette iPhone n° 2 du 31/10/2026, constat e, `migration019`) : identités des phases « à
+   * vérifier » (liste JSON), `NULL` = aucune ; absente des fixtures et des lectures antérieures.
+   */
+  phases_to_verify?: string | null;
 };
 
-/** PRE-8 (A.4) : Point d'arrêt ; `tour_id` `null` au niveau principal, sinon son Circuit. */
+/**
+ * PRE-8 (A.4) : Point d'arrêt ; `tour_id` `null` au niveau principal, sinon son Circuit. PRE-9
+ * (A.1, `migration016`) : `cycle_id` désigne un Cycle lorsque le Point y est placé (jamais avec
+ * `tour_id`).
+ */
 export type StopPointRow = {
   id: string;
   session_id: string;
   tour_id: string | null;
+  cycle_id: string | null;
   position: number;
 };
 
@@ -121,19 +147,10 @@ export type CategoryRow = {
  * `initial_countdown_seconds`/`final_phase_seconds` disparaissent : le Compte
  * à rebours initial et la Fin de séance sont exclus de la durée affichée.
  */
-/**
- * Une ligne par `ActivityDefinition` persistée (PRE-7, A1.2, `migration012`) :
- * relation intègre vers son Mouvement et paramètres propres en forme
- * Catalogue v4 (`readCatalogExecutionParameters`). Le contenu partagé est
- * porté par `movements`.
+/*
+ * [PRE-9 A.3 du 04/11/2026 : le type de ligne des anciennes définitions du Catalogue
+ * (`ActivityDefinitionRow`) est retiré avec leur dépôt ; la table reste, vidée par `migration021`.]
  */
-export type ActivityDefinitionRow = {
-  id: string;
-  movement_id: string;
-  execution_parameters: string;
-  created_at: string;
-  updated_at: string;
-};
 
 /** PRE-7 (A1.2, `migration012`) : une ligne par Mouvement (contenu partagé du geste, D-437). */
 export type MovementRow = {
@@ -162,6 +179,8 @@ export type MovementPhaseRow = {
   phase_id: number;
   position: number;
   label: string;
+  /** PRE-9 (A.2b, `migration018`) : durée facultative de la phase, `null` = aucune. */
+  duration_seconds: number | null;
 };
 
 /** PRE-7 (A1.2) : Zone corporelle d'un Mouvement. */

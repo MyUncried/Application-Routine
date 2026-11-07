@@ -29,22 +29,43 @@ const BEEP_FIELD = "execution-sheet-beep";
 const CADENCE_CONTROL = "execution-sheet-cadence-control";
 
 /**
- * PRE-4 story 3.3 (AC8, FR-03-05) : ouvre le champ ± `testID` de la Feuille (N,
- * Pauses, Bip, Compte à rebours, Fin) s'il est fermé, en touchant sa valeur
- * (`${testID}-toggle`). Au repos, seule la valeur est visible ; ses − et +
- * n'apparaissent qu'à l'appui. Sans effet si le champ est déjà ouvert. PRE-5 story
- * 2.6 (AD-27) : les cellules du tableau n'ont plus de ± permanents (Q44 remplacé) ;
- * la cellule Pause d'une ligne s'ouvre de même par `…-pause-toggle`.
+ * PRE-4 story 3.3 (AC8, FR-03-05) : ouvre le champ `testID` de la Feuille (N, Pauses, Bip, Compte à
+ * rebours, Fin…). [Ouverture du ± par sa valeur (`${testID}-toggle`) — remplacée le 06/11/2026
+ * (décision de Hermann, constat c : saisie au clavier) :] donne le focus natif à l'entrée du champ
+ * clavier (`${testID}-input`, focus simulé) ; la Cadence est d'abord révélée par l'option Autre.
+ * Sans effet si le champ a déjà le focus (état « sélectionné »).
  */
 export function openExecutionSheetField(testID: string): void {
-  if (screen.queryByTestId(`${testID}-increment`)) return;
-  // PRE-5 story 2.5 (AC3) : le ± de la Cadence n'a plus de valeur à toucher ; il est révélé
-  // par l'option Autre du segmenté « Cadence ».
-  if (testID === BEEP_FIELD) {
+  if (screen.queryByTestId(testID, hiddenNodes)?.props.accessibilityState?.selected === true) return;
+  // PRE-5 story 2.5 (AC3) : le champ de la Cadence est révélé par l'option Autre du segmenté « Cadence ».
+  if (testID === BEEP_FIELD && !screen.queryByTestId(`${testID}-input`, hiddenNodes)) {
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-    return;
   }
-  fireEvent.press(screen.getByTestId(`${testID}-toggle`));
+  fireEvent(screen.getByTestId(`${testID}-input`, hiddenNodes), "focus");
+}
+
+/** Décision du 06/11/2026 : sortie (perte du focus natif) du champ clavier `testID`. */
+export function closeExecutionSheetField(testID: string): void {
+  fireEvent(screen.getByTestId(`${testID}-input`, hiddenNodes), "blur");
+}
+
+/**
+ * Décision du 06/11/2026 (constat c) : saisit au clavier la valeur hors tableau `testID` (focus,
+ * frappes — la première remplace —, sortie du champ). Durée : `seconds` frappées en « MMSS »
+ * (`durationKeys`) ; nombre : ses chiffres ; `""` vide le champ.
+ */
+export function enterExecutionSheetValue(testID: string, value: number | "", kind: "duration" | "integer" = "duration"): void {
+  openExecutionSheetField(testID);
+  const keys = value === "" ? "" : kind === "duration" ? durationKeys(value) : String(value);
+  if (keys === "") {
+    // Champ vidé : Retour arrière jusqu'au texte vide.
+    const input = screen.getByTestId(`${testID}-input`, hiddenNodes);
+    const current = String(input.props.value ?? "");
+    for (let index = 0; index < current.length; index += 1) typeInExecutionSheetCell(testID, CELL_BACKSPACE);
+  } else {
+    typeInExecutionSheetCell(testID, keys);
+  }
+  closeExecutionSheetField(testID);
 }
 
 /**
@@ -76,15 +97,33 @@ export function chooseExecutionSide(label: string): void {
  * PRE-4 story 3.3 : appui bref (`pressIn` puis `pressOut`) sur un − ou un + de la
  * Feuille (`…-increment`, `…-decrement`), après avoir ouvert son champ s'il est fermé.
  * Remplace l'appui direct sur des ± toujours visibles (PRE-3).
+ *
+ * [Décision de Hermann du 06/11/2026 (constat c) : les valeurs de la Feuille se saisissent au
+ * clavier, sans ±.] Un ± encore rendu (réglages de Format) est appuyé comme avant ; sinon, le pas
+ * d'un appui bref (1) est saisi au clavier dans le champ `…` : focus, valeur courante lue dans
+ * l'entrée (« MMSS » d'une durée, chiffres d'un nombre ; vide → 0), valeur ± 1 tapée, sortie du
+ * champ — les bornes sont appliquées par la Feuille à la sortie, comme le ± à sa borne.
  */
 export function tapExecutionSheetStep(buttonTestID: string): void {
   const match = /^(.*)-(increment|decrement)$/.exec(buttonTestID);
   if (!match) {
     throw new Error(`tapExecutionSheetStep : « ${buttonTestID} » n'est ni un − ni un +`);
   }
-  openExecutionSheetField(match[1]!);
-  fireEvent(screen.getByTestId(buttonTestID), "pressIn");
-  fireEvent(screen.getByTestId(buttonTestID), "pressOut");
+  if (screen.queryByTestId(buttonTestID)) {
+    fireEvent(screen.getByTestId(buttonTestID), "pressIn");
+    fireEvent(screen.getByTestId(buttonTestID), "pressOut");
+    return;
+  }
+  const testID = match[1]!;
+  const delta = match[2] === "increment" ? 1 : -1;
+  openExecutionSheetField(testID);
+  const text = String(screen.getByTestId(`${testID}-input`, hiddenNodes).props.value ?? "");
+  // En saisie, une durée s'affiche « MM:SS », un nombre en chiffres seuls.
+  const duration = String(screen.getByTestId(`${testID}-value`, hiddenNodes).props.children ?? "").includes(":");
+  const current = text === "" ? 0 : duration ? Number(text.slice(0, -2) || "0") * 60 + Number(text.slice(-2)) : Number(text);
+  const next = Math.max(0, current + delta);
+  typeInExecutionSheetCell(testID, duration ? durationKeys(next) : String(next));
+  closeExecutionSheetField(testID);
 }
 
 /**

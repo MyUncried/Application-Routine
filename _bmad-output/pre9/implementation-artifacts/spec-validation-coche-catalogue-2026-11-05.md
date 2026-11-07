@@ -1,0 +1,139 @@
+# PRE-9 — Complément du 5 novembre 2026, §18–§19 : validation par la coche, ajout en mode catalogue, espacements
+
+Statut : `review` (recette iPhone à faire). Branche `pre9-bmad/dev`, départ `d90ffc3c`. Un commit par point (1, 2, 3).
+
+## 1. Source
+
+Demande de Hermann du 05/11/2026 (conversation Claude Code), recopiée dans le registre (ch07, « Complément du 5 novembre 2026, §18–§19 »). Le document joint (« KODJO-Complement-Parcours-creation-2026-11-05.md », §18 et §19) n'est pas présent sur la branche : la copie de `docs/sources/formats-2026-11-05/` s'arrête au §18 « Développement et vérifications pour la revue ». Figma « Prototype MVP » : en-tête `11451:20561` « En-tête modal — Paramètres d'exécution » (croix/Retour 38, titre, coche 38 bleue) dans `8624:30392` (EMOM — Récapitulatif).
+
+## 2. Point 1 — coche de l'en-tête (classe B)
+
+- **Composant partagé** `src/shared/ui/ModalHeaderActions.tsx` : `ModalHeader` (croix, titre, coche), `ModalValidateAction` (cercle 38, `wheel-action-validate`, fond `wheelActionValidateBackground` si possible, `disabled` sinon), `ModalCancelAction`. Extrait à l'identique de l'en-tête de la feuille des Paramètres d'exécution, qui l'utilise désormais (aucun changement de rendu ni d'identifiant).
+- **Variante « Fermer et valider » de l'en-tête fixe** : `FixedHeader` reçoit `validate={{ onPress, enabled, accessibilityLabel }}` — ✕ à gauche, coche à droite (`screen-header-validate`).
+- **Formats** (`FormatModelScreen`) : coche dans l'en-tête de la modale, en face de la croix / du Retour ; `PrimaryActionZone` retiré, marge basse = zone sûre + 24.
+  - Questionnaire : `format-validate` → récapitulatif ; active si `canSave` (mouvements suffisants — deux pour le Superset —, rôles requis).
+  - Récapitulatif : `format-save` → enregistrement (création) ou « Enregistrer les modifications » (réédition) ; active si `canSave` (complétude, contrôle EMOM bloquant, réglages requis).
+  - Questionnaires enregistrés directement (Tabata, 30/30, Renforcement, À l'échec à un mouvement) : `format-save` dès le questionnaire, comme avant.
+  - Choix des mouvements (mode catalogue, buy-in compris) : `format-catalogue-add` → retour au questionnaire avec la sélection ; active si au moins un mouvement choisi. La croix du mode catalogue revient au questionnaire sans ajout.
+  - Libellés retirés de l'écran, conservés comme libellés d'accessibilité de la coche.
+- **Non réalisés — écrans absents de la branche** : Catalogue des séances ouvert depuis la planification, Planifier une séance, Planifier un parcours (écran et modale du Calendrier), Fréquence d'un contenu de parcours. Le Calendrier est un écran provisoire (`app/(tabs)/calendar.tsx`, `PlaceholderScreen`) ; `src/features/planning/` ne contient qu'un README ; l'action « Planifier » du Catalogue est grisée (CE-T03-01). La variante « Fermer et valider » est prête pour ces écrans.
+
+## 2 bis. Point 2 — « + Ajouter » ouvre le mode catalogue (classe B)
+
+- `FormatModelScreen` : « + Ajouter » et « Changer » (buy-in, buy-out ; le mouvement choisi est d'abord retiré, comme avant) ouvrent directement le mode catalogue, recherche en focus (`autoFocus`), filtres, tri et piles à côté du champ.
+- Retirés : champ `format-search` et cadre des suggestions (`format-suggestions`, mesures au-dessus du clavier, rebond), lien « Ouvrir / Fermer le mode catalogue » et ses libellés `openCatalogue` / `closeCatalogue`. En mode catalogue, l'en-tête de section n'a plus de lien : la croix de l'en-tête revient au questionnaire sans ajout, la coche ajoute la sélection (point 1).
+- Inchangée : la fiche de création d'un exercice (Exercice libre) et ses suggestions pendant la saisie du nom.
+- Tests `FormatModelScreen.c3` : aide `pick` par le mode catalogue ; tests de la saisie intermédiaire remplacés (règle remplacée citée en commentaire) ; nouveau test « + Ajouter ouvre le mode catalogue ».
+
+## 2 ter. Point 3 — espacements (classe B, rendu)
+
+Gabarit commun aux dix Formats (`FormatModelScreen`, constantes et styles partagés) :
+- ligne « Mouvements » (première section : Mouvements, ou Buy-in / En boucle) descendue de 8 (`MOVEMENTS_TOP_OFFSET`, haut du contenu = zone de contexte + 8, hors mode catalogue) ;
+- écart entre deux cartes 6 au lieu de 8 (`CARD_GAP`, pas de déplacement par défaut 66) ;
+- écart dernière carte → « Paramètres d'exécution » réduit de 8 : marge haute du titre 16 au lieu de 22, avec l'écart des cartes 6 au lieu de 8 (Figma : 24 → 16). Titre du Déroulé inchangé.
+- Test `FormatModelScreen.c3` (« §19 : … espacements »).
+
+## 2 quater. Ajout d'un mouvement — demande du 05/11/2026 au soir (classe B)
+
+- Recherche du mode catalogue sans focus à l'ouverture (`autoFocus` faux) ; invite Regular 14 gris clair (`#B4B8C2`), texte saisi 16 noir.
+- Zone de contexte (zone colorée) de taille fixe : 101 (au lieu de 109), plus prolongée en mode catalogue ; ligne « Mouvements » à sa place absolue (101 + 16 = 117, comme avant).
+- En mode catalogue, la ligne « Mouvements » et la recherche forment une zone figée sous la zone de contexte (`format-search-zone`), à l'emplacement de la ligne « Mouvements » ; fond blanc de 65 % en haut à 10 % en bas (12 bandes) ; champ de 36 de haut (au lieu de 44) ; marge basse 4.
+- Feuille des filtres arrêtée sous cette zone.
+- Tests `FormatModelScreen.c3` adaptés (règle remplacée citée).
+
+## 2 quinquies. Mouvements — demandes du 05/11/2026 au soir (classe B)
+
+- Saisie du nom (Catalogue des mouvements) : toucher du corps de la carte Résultat → fiche du mouvement en consultation (`router.replace`, sans garde d'abandon : le nom tapé ne servait qu'à chercher) ; aussi dans l'écran de recherche. `MovementResultCard.onOpen`, `MovementSuggestionPanel.onOpenResult`, `MovementSearchScreen.onOpen`, `useMovementOriginChoice.onOpenMovement`.
+- Fiche « Modifier un mouvement » : coche « Valider » à droite de l'en-tête (`EditorHeader.validate` → `FixedHeader.validate`), bouton du bas retiré en modification ; le message d'erreur d'enregistrement reste affiché en bas.
+- « Créer un circuit » dans une séance qui porte un circuit formaté : non reproduit, puis constaté fonctionnel par Hermann ; test `CompositionScreen.envelopeFormat`.
+- Tests : `MovementScreen.b2.integration` (carte qui charge le mouvement ; coche en modification ; aide `finishID`).
+
+## 2 sexies. Titres de modales centrés — demande du 05/11/2026 (classe B)
+
+- « Centrer horizontalement tous les titres de modales sur leur page. »
+- `FixedHeader.centeredTitle` (par défaut : `closeIcon` ou `validate`) : titre en calque absolu sur toute la largeur, réserve symétrique mesurée (`onLayout` de l'action gauche et du groupe de droite) ; copie invisible dans la ligne pour garder la hauteur minimale X-4 ; un seul titre exposé à l'accessibilité. `MovementSelectionScreen` en feuille : `centeredTitle`.
+- Déjà centrés, inchangés : `ModalHeader`, `FilterSheetPrimitives`, sélecteurs de référentiel, `FormatModelScreen`, dialogues.
+- Tests : `ScreenShell.test` (3).
+
+## 2 septies. Formats — coche et boutons du bas, recette du 05/11 au soir (classe B, remplace en partie le §1)
+
+- Coche de l’en-tête : toujours « Enregistrer dans la séance » (ou « Enregistrer les modifications »), active seulement quand paramètres et valeurs sont tous renseignés : au questionnaire des modèles sans récapitulatif (Tabata, 30/30, Renforcement, À l’échec à un mouvement) et au récapitulatif ; grise au questionnaire des modèles à récapitulatif.
+- Bas du questionnaire à récapitulatif : « Valider les paramètres » (`format-validate`), ouvre le récapitulatif. Récapitulatif : chevron Retour, coche, aucun bouton en bas.
+- Mode catalogue : croix (quitte le Format), « Ajouter X mouvements » en bas (`format-catalogue-add`, « Ajouter 1 mouvement », « Ajouter {count} mouvements »), coche selon la même règle ; le lien de la section devient « Revenir aux paramètres » (ferme le mode sans ajout).
+- Tests : `FormatModelScreen.c3` (coche, boutons du bas, mode catalogue).
+
+## 2 octies. Mode catalogue — résultats sous la recherche (s-fond, classe B)
+
+- Effet sur `query`, `catalogueFilters`, `catalogueMode` : `scrollTo({ y: 0 })` du défilement du questionnaire (en mode catalogue, la liste est le premier contenu, sous la zone de recherche).
+- Test : `FormatModelScreen.c3` (s-fond).
+
+## 2 nonies. Fiche de mouvement — recette du 05/11 au soir, groupe C (classe B ; r-libre : correction)
+
+- `MovementSheet` : `validate` d’en-tête en création et en modification, `hideFinish` hors consultation ; titre `titles.sessionChooseOrCreate` en contexte Séance.
+- Carte touchée → `chosen` : `MovementSheet` imbriquée (`overlay`) dans un calque `FadeIn` 300 ms (`movement-chosen-overlay`) ; Séance : `readOnly`, croix → `requestFormatsWindowClose()` + retour, coche → `handMovementsToComposition` + idem ; Catalogue : croix → `setChosen(null)`, fin d’édition → retour à la création.
+- `movementExercises.requestFormatsWindowClose` / `takeFormatsWindowCloseRequest` (consommé une fois) remplace `hasMovementsHandedToComposition` dans `formats-window` (évite un double retour qui retirait la Composition — cause plausible du retour au Catalogue des séances, non démontrée sur iPhone).
+- Menu Niveau → `/movement?variantOf…&returnDepth=2` ; enregistré : `router.dismiss(2)`.
+- r-libre : `DecisionDialog.confirmAfterDismiss` (opt-in, `ExerciseExitConfirmModal` de la fiche) — confirmation rendue à `onDismiss` du `Modal` iOS ou après 350 ms. Hypothèse (non démontrée) : la feuille native ne se retirait pas pendant la fermeture du dialogue.
+- Tests : `MovementScreen.b2.integration` (+4), `formatsWindowRoute`, `DecisionDialog.confirmAfterDismiss` (2), `CompositionMovementFlow` et `ExerciseRecovery` (parcours réels).
+
+## 2 decies. Catalogue des mouvements — carte portée fluide (m-carte, classe A)
+
+- Constat (recette du 05/11 au soir) : « Régression : déplacer un mouvement dans le catalogue, le mouvement suit le doigt mais n’est pas fluide. »
+- Règle déjà écrite : recette FAM passe 3 (f3-01, `ab808040`) « carte portée suivie sans redessiner la liste ». Cause trouvée : chaque mouvement du doigt (`moveDrag`) mettait à jour l’état du geste, donc redessinait toute la liste. Attribution de la régression : indéterminée (le mécanisme par état existe depuis la passe FAM ; aucun commit récent ne le modifie directement — la liste a pu s’alourdir depuis).
+- Correction : valeur animée `fingerFollow` (avec `scrollFollow`) pour la carte portée ; état mis à jour seulement quand la décision du geste ou la place de la carte portée change.
+- Test : `MovementCatalogueList.fam` (la liste n’est pas redessinée pendant trois déplacements dans la même place ; échoue sur l’ancienne version).
+
+## 2 undecies. Tableaux EMOM et dépliage des Circuits — r-tabata (classe A : corrections)
+
+- Note recopiée : « EMOM Entrer une valeur la copie automatiquement sur les autres colonnes. Les durées sont arrondies (entrée 01:30 affiche 1 min. Une séance avec deux circuits Tabata et Enom, ajout d’un cycle unique pour les deux circuits : la première fois que je déploie chaque circuit déjà replié, il se replie d’abord jusqu’à cacher la ligne sous le nom, puis de déplie complètement. Les fois suivantes il se replie et se déplie normalement. [...] Tableau EMOM, » (note coupée).
+- Recopie de S1 : règle existante conservée (« chaque série est préremplie avec la valeur de S1 », §14, §11) — Q3 du 06/11 : « je ne sais plus ».
+- Durées : la valeur n’était pas arrondie (90 s enregistrées) mais « 1 min 30 s » dépassait la case, qui n’en montrait que « 1 min ». `FormatTables.formatSeconds` : format court « 1 min 30 » / « 12 min 30 » / « 1 min 05 » (déjà visé par « 12 min 30 », r-colonnes) ; minutes ou secondes seules inchangées ; Déroulé et totaux inchangés.
+- Dépliage : un Circuit monté replié n’a jamais mesuré ses cartes ; son premier déploiement attend la mesure (ou 120 ms) tandis que la ligne des noms se refermait aussitôt — le cadre rétrécissait d’abord. `useCircuitCardsReveal().waiting` ; `CircuitHeader.namesCollapsed` : la ligne des noms se referme au départ réel du déploiement.
+- Tests : `formats.recette0511` (+2), `CircuitHeader` (+1), `CompositionScreen.b1b` (attente du délai de secours sans mise en page).
+
+## 2 duodecies. Annulation de la fiche Exercice libre — arbitrage du 06/11/2026 (classe B)
+
+- « A. Revenir à la modale avec tous les formats. » : la croix de la fiche (et celle d’un mouvement choisi) fait un simple retour — plus de `requestFormatsWindowClose()` (signal gardé pour la coche, qui remet le mouvement à la Composition).
+- Cause du constat : en allant à la Composition vide ouverte par « Créer », celle-ci appliquait sa règle d’abandon (brouillon vide au premier plan → Catalogue des séances).
+- Tests : `CompositionMovementFlow.integration` (parcours réel `/composition?create=1` → Exercice libre → croix → `/formats-window` ; échoue sur la version précédente), `MovementScreen.b2.integration` (+1, 1 adapté).
+
+## 2 terdecies. Vitesse des modales et des écrans (classe B, règle permanente)
+
+- Décision du 06/11/2026 : vitesses iOS pour les présentations natives (non réglables, react-native-screens 4.26.2) ; durées existantes de `compositionMotion` pour les transitions réglables et les animations propres. Registre ch07. Aucun code modifié.
+
+## 2 quaterdecies. Ordre des écrans selon les décisions — règle du 06/11/2026 (classe B) — CHANGE_REQUEST_REQUIRED
+
+- Règle recopiée au registre (ch07). Le montage actuel (Composition `create=1` ouverte pour porter le brouillon, puis la modale) l’enfreint.
+- Accord de Hermann du 06/11/2026 : « Oui, tu peux développer » (après le tableau complet Catalogue / Composition).
+- Réalisé : `CreationDraftProviders` à la racine ; routes `formats-window`, `format-questionnaire`, `format-summary`, `movement-sheet` déplacées de `app/(creation)/` vers `app/` (feuilles natives de la pile racine, même présentation, geste natif désactivé) ; `closeCreationModals` (`creationNavigation.ts`) pour l’enregistrement d’un Format et la fiche validée ; croix du questionnaire et de la modale : simple retour ; Catalogue « Créer » : `resetDraft` puis `/formats-window` ; Composition : plus de `create=1` ni de retour automatique au Catalogue, remise à zéro du brouillon à l’ouverture sans `keepDraft`/`sessionId` et à la fermeture.
+- Tests : `rootLayoutGesture`, `creationLayout`, `compositionCreateEntry` (réécrit), `formatsWindowRoute` (réécrit), `FormatModelScreen.c3`, `CatalogueScreen`, `CatalogueLifecycle.e7`, parcours réels `CompositionMovementFlow` (Catalogue → modale → fiche → croix → modale → croix → Catalogue, sans Composition ; Catalogue → fiche → mouvement choisi → coche → Composition avec l’exercice) ; pile racine de test `CreationRootStack` pour les neuf parcours réels existants.
+
+## 3. Documents dépendants (à propager dans `main`)
+
+Mentions des boutons retirés, à annoter « remplacé » quand le §19 sera intégré dans `main` : ch03 (1), ch06 (4), ch08 (4), ch10 (2), ch13 Contrats d'écran (12), `docs/PRODUCT.md`, `docs/KODJO-Formats-entrainement-2026-11-02.md`, `docs/DSF-SERIES-VARIABLES-2026-10-02.md` (recherche : « Valider les paramètres », « Enregistrer dans la séance », « Enregistrer les modifications », « Ouvrir le mode catalogue »). Non modifiés sur cette branche : la source normative (§19) n'y est pas, et les fusions précédentes ont retenu le texte de `main` (règle « source normative absente de la branche »).
+
+## 4. Tests
+
+- `src/shared/ui/__tests__/ModalHeaderActions.test.tsx` : coche bleue/grise, appui refusé, ordre croix–titre–coche, variante « Fermer et valider » de `FixedHeader`.
+- `FormatModelScreen.c3` : « coche de l'en-tête (§18–§19) » — questionnaire (grise sans mouvement, bleue ensuite, ouvre le récapitulatif, plus de bouton en bas), Superset (deux mouvements), récapitulatif (cellule vide → grise), EMOM (incomplet → grise). Assertions de libellé des boutons retirés converties en libellé d'accessibilité.
+
+## 2 quindecies. Recette iPhone du 06/11/2026 (synthèse validée, « Oui »)
+
+Décisions recopiées au registre ch07, « Recette iPhone du 06/11/2026 — décisions de Hermann ». Réalisé (points de la synthèse) :
+- 2–4 fiche du mouvement choisi complète, résultats masqués, Retour, Valider (`MovementScreen`, `ScreenShell.backIcon`) — B ; côté Exercice libre, lecture seule sans édition ni Niveau : À CLARIFIER (le texte de t-fiche-choix ne cite pas l'édition) ;
+- 5–6 circuits : premier déploiement après mesure, repli en « Ajouter un cycle » (`CircuitHeader`, `CompositionScreen`) — A/B ; circuits laissés repliés après le mode : À CLARIFIER ;
+- 7–8, 19 (récupération) pastilles à la largeur de leur texte (`TableCell`) — A ;
+- 9, 25–28 Catalogue des mouvements : arrêt de 0,4 s, fondu de la liste, symbole Trier, pile lente, pastille NEW (`MovementCatalogueList`, `CatalogueScreen`, `CatalogueCommands`) — A/B ; toutes les transitions de la liste à 450 ms ; pastille NEW sur la carte du dessus d'une pile repliée : À CLARIFIER ;
+- 10–11 filtres et sélecteurs en feuille native, Filtrer sous la croix du questionnaire — B ;
+- 12 aucune recopie de colonne — B ; 13–16, 20, 21, 30, 32 tableaux (retraits 16, dernière colonne à droite, Max, dernière ligne sans trait, deuxième ligne remontée de 4, colonne suivante révélée, textes non modifiables, Progression sans fond blanc) — B ;
+- 17–19 charges sans (+ kg), cadre orange, Suivant Objectif → Pause → Charge (Tabata, 30/30, Renforcement, À l'échec, Death by, AMRAP) — B ;
+- 22 cases rouges : déjà générales (A) ; 23 Death by, Récupération avant Condition d'arrêt — B ; 24 fond opaque et fondu de 8 — B ;
+- 31 saisie au clavier de la feuille Paramètres d'exécution et de la durée du Circuit porteur — B ; À CLARIFIER : réglages de Format dans la feuille, grille de Récupération, durée de Circuit > 99:59 ;
+- 33 « Fermer sans sélectionner » — B.
+Non réalisé : 1 (v-compo, non reproduit ; Hermann : « Attendons que cela se reproduise, je noterais alors le parcours exacte. »). 29 (glisser du questionnaire) : CHANGE_REQUEST_REQUIRED levé par Hermann (« Oui je l'autorise. ») — réalisé avec react-native-gesture-handler (classe D), tests `FormatModelScreen.c3` (glisser, annulation, buy-in/buy-out).
+Documents : ch07, ch08 (paramètres d'un exercice), ch12, ch13 (CE-UI-10), référence Formats (S1, charges, durée du Circuit), DSF Paramètres (en-tête).
+Tests ajoutés : `formats.recette0611`, `FormatModelScreen.xdedans`, `CompositionScreen.tdepli`, `MovementCatalogueList.r0611`, `CatalogueScreen.r0611`, `ExecutionParametersSheet.keyboard0611`, `CarrierDurationSheet.keyboard0611`, parcours réels `CompositionMovementFlow` et `MovementScreen.b2`.
+
+## 5. Vérifications sur appareil
+
+Non faites par Claude : le poste est sous Windows, sans simulateur iOS. Voir le rapport de mission.

@@ -14,6 +14,8 @@ export type ExerciseExitConfirmModalProps = {
    * changent : rendu, actions et comportement restent ceux du composant accepté.
    */
   isCreation?: boolean;
+  /** Recette du 05/11/2026 au soir (r-libre) : confirmation rendue après la fermeture du dialogue (voir `DecisionDialog`). */
+  confirmAfterDismiss?: boolean;
 };
 
 /**
@@ -65,7 +67,7 @@ export type ExerciseExitConfirmModalProps = {
  */
 export const DIALOG_8328_MESSAGE_COLOR = "#474D57";
 
-export function ExerciseExitConfirmModal({ onCancel, onConfirm, isCreation = false }: ExerciseExitConfirmModalProps) {
+export function ExerciseExitConfirmModal({ onCancel, onConfirm, isCreation = false, confirmAfterDismiss = false }: ExerciseExitConfirmModalProps) {
   const modalStrings = strings.screens.exercise.exitConfirmModal;
 
   return (
@@ -87,6 +89,7 @@ export function ExerciseExitConfirmModal({ onCancel, onConfirm, isCreation = fal
       confirmBordered
       onCancel={onCancel}
       onConfirm={onConfirm}
+      confirmAfterDismiss={confirmAfterDismiss}
       testIDPrefix="exercise-exit-confirm"
     />
   );

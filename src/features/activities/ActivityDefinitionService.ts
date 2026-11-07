@@ -1,29 +1,17 @@
 /**
- * Orchestration applicative du cycle de vie d'une `ActivityDefinition`
- * (V2-CAT-01) — même patron que `@/features/sessions/SessionService` : ne
- * dépend que du Domaine (`@/domain/activities`) et de l'interface
- * `ActivityDefinitionRepository`, jamais de React, Expo ou d'une
- * implémentation concrète (injectée par le constructeur).
+ * Orchestration applicative du Mouvement et des référentiels (Catégories, Zones, Étiquettes, médias)
+ * — même patron que `@/features/sessions/SessionService` : ne dépend que du Domaine et des
+ * interfaces de dépôt, jamais de React, Expo ou d'une implémentation concrète (injectées par le
+ * constructeur).
+ *
+ * [PRE-9 A.3 du 04/11/2026 : les opérations des anciennes définitions d'Exercice du Catalogue
+ * (création, modification, correction partagée, lecture, sélection) sont retirées avec elles —
+ * décision de Hermann du 04/11/2026 : « Hermann abandonne la conversion sans perte prévue par A.4 :
+ * les anciens exercices concernés par cette conversion peuvent être supprimés plutôt que migrés. »
+ * Le nom du service est conservé (aucun renommage, pour limiter le volume du changement).]
  */
 
-import {
-  assessSharedCorrection,
-  groupDefinitionsByMovement,
-  MovementNotFoundError,
-  SharedCorrectionRefusedError,
-  validateActivityDefinitionInput,
-  type ActivityDefinition,
-  type ActivityDefinitionGroup,
-  type ActivityDefinitionOrigin,
-  type ActivityDefinitionRepository,
-  type ActivityDefinitionValidationViolation,
-  type CorrectionAssessment,
-  type CreateActivityDefinitionInput,
-  type SharedCorrectionRefusal,
-  type SiblingCompletion,
-  type SiblingGap,
-} from "@/domain/activities";
-import { allocatePhaseIdentities, type Movement, type MovementPhase } from "@/domain/activities/Movement";
+import type { Movement } from "@/domain/activities/Movement";
 import { movementLevelPosition, type MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import type { MovementRepository } from "@/domain/activities/MovementRepository";
 import { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
@@ -51,62 +39,14 @@ export type ActivityMediaAdapters = {
   readonly repository: MediaRepository;
 };
 
-export type CreateActivityDefinitionResult =
-  | { readonly ok: true; readonly value: ActivityDefinition }
-  | { readonly ok: false; readonly violations: readonly ActivityDefinitionValidationViolation[] };
-
 /**
- * PRE-7 (A1.3, MFN-08) : refus d'une correction partagée, sans écriture —
- * complétion des frères attendue (étape distincte de saisie des durées
- * manquantes) ou durée fournie invalide. PRE-7 (R-4, report de R-2) : le refus
- * « frère inéligible », inatteignable depuis D-446, est retiré.
- */
-export type SharedCorrectionRefusedResult =
-  | { readonly status: "SIBLING_COMPLETION_REQUIRED"; readonly siblings: readonly SiblingGap[] }
-  | { readonly status: "INVALID_SIBLING_COMPLETION"; readonly definitionIds: readonly string[] };
-
-export type UpdateActivityDefinitionResult =
-  | { readonly status: "UPDATED"; readonly value: ActivityDefinition }
-  | { readonly status: "INVALID"; readonly violations: readonly ActivityDefinitionValidationViolation[] }
-  | { readonly status: "NOT_FOUND" }
-  | SharedCorrectionRefusedResult;
-
-/** PRE-7 (A1.3, MFN-06, MFN-07) : issue d'une création avec origine explicite. */
-export type CreateActivityDefinitionWithOriginResult =
-  | { readonly status: "CREATED"; readonly value: ActivityDefinition }
-  | { readonly status: "INVALID"; readonly violations: readonly ActivityDefinitionValidationViolation[] }
-  /** Mouvement du même geste ou d'origine de la variante introuvable. */
-  | { readonly status: "MOVEMENT_NOT_FOUND" }
-  | SharedCorrectionRefusedResult;
-
-/** Cible d'une évaluation : Exercice du Catalogue modifié, ou création sur un geste repris. */
-export type CorrectionTarget =
-  | { readonly kind: "UPDATE"; readonly definitionId: string }
-  | { readonly kind: "SAME_MOVEMENT"; readonly movementId: string };
-
-export type AssessCorrectionResult =
-  | {
-      readonly status: "ASSESSED";
-      readonly assessment: CorrectionAssessment;
-      /**
-       * PRE-7 (A2.2, MFN-08) : structure du geste après allocation des identités par le
-       * compteur du Mouvement — libellés des phases manquantes présentées à l'étape de
-       * complétion, par `phaseId`.
-       */
-      readonly phases: readonly MovementPhase[];
-    }
-  | { readonly status: "INVALID"; readonly violations: readonly ActivityDefinitionValidationViolation[] }
-  /** Définition (`UPDATE`) ou Mouvement (`SAME_MOVEMENT`) introuvable. */
-  | { readonly status: "NOT_FOUND" };
-
-/**
- * PRE-7 (A2.3, MFN-04, MFN-05, MFN-06) : geste proposé par la recherche ou la suggestion — le geste,
- * le nombre d'Exercices du Catalogue qui le référencent et sa position de niveau dérivée (`null` sans
- * groupe ou pour un singleton). Comptes et rangs calculés, jamais persistés.
+ * PRE-7 (A2.3, MFN-04, MFN-05, MFN-06) : geste proposé par la recherche ou la suggestion — le geste
+ * et sa position de niveau dérivée (`null` sans groupe ou pour un singleton). Rangs calculés, jamais
+ * persistés. [PRE-9 A.3 du 04/11/2026 : le nombre d'Exercices du Catalogue (`definitionCount`) est
+ * retiré avec les anciennes définitions.]
  */
 export type MovementChoice = {
   readonly movement: Movement;
-  readonly definitionCount: number;
   readonly level: MovementLevelPosition | null;
   /**
    * PRE-8 (B.8, Q6) : Mouvement archivé — jamais proposé pour créer un nouvel Exercice ; reste
@@ -116,14 +56,13 @@ export type MovementChoice = {
 };
 
 /**
- * PRE-7 (A3.1, D-439, MFN-05, MFN-07, MFN-10) : un niveau du groupe d'un geste — le geste membre,
- * son rang dérivé (1..total, ordre des clés de tri) et ses Exercices du Catalogue (ordre de la
- * liste, `updatedAt DESC`) ; un geste local du groupe n'en a aucun.
+ * PRE-7 (A3.1, D-439, MFN-05, MFN-07, MFN-10) : un niveau du groupe d'un geste — le geste membre et
+ * son rang dérivé (1..total, ordre des clés de tri). [PRE-9 A.3 du 04/11/2026 : ses Exercices du
+ * Catalogue (`definitions`) sont retirés avec les anciennes définitions.]
  */
 export type MovementLevelEntry = {
   readonly movement: Movement;
   readonly rank: number;
-  readonly definitions: readonly ActivityDefinition[];
   /** PRE-8 (B.8, Q5, Q6) : membre archivé — garde son rang, n'est pas sélectionnable pour un Exercice. */
   readonly archived?: boolean;
 };
@@ -148,27 +87,13 @@ export type ReorderMovementLevelsResult =
   | { readonly status: "NOT_FOUND" }
   | { readonly status: "INVALID_ORDER" };
 
-function refusedResult(refusal: SharedCorrectionRefusal): SharedCorrectionRefusedResult {
-  switch (refusal.kind) {
-    case "SIBLING_COMPLETION_REQUIRED":
-      return { status: refusal.kind, siblings: refusal.siblings };
-    case "INVALID_SIBLING_COMPLETION":
-      return { status: refusal.kind, definitionIds: refusal.definitionIds };
-  }
-}
-
 export class ActivityDefinitionService {
   /**
    * `categoryRepository` (V2-PRE-1, D-211) reste optionnel pour ne pas
    * casser un appelant construit avant cette tranche (même patron que
    * `SessionService.categoryRepository`) : `listCategories()` est appelée par le
    * sélecteur de Catégorie de l'éditeur d'Activité et, en lecture seule, par
-   * `useCategoriesReferential` (cartes de la Composition et de la sélection, PRE-6
-   * story 2.2), jamais par
-   * `createActivityDefinition`/`updateActivityDefinition` (la résolution
-   * réelle de la Catégorie du brouillon reste entièrement à la charge du
-   * Repository, à l'intérieur de la transaction d'enregistrement — voir
-   * `SqliteActivityDefinitionRepository.resolveCategoryId`).
+   * `useCategoriesReferential` (cartes de la Composition, PRE-6 story 2.2).
    */
   /**
    * `bodyZoneRepository` (V2-PRE-1, device check Hermann, commentaire
@@ -192,15 +117,13 @@ export class ActivityDefinitionService {
    * affichée de la Séance depuis son Étiquette associée.
    */
   constructor(
-    private readonly repository: ActivityDefinitionRepository,
     private readonly categoryRepository?: CategoryRepository,
     private readonly bodyZoneRepository?: BodyZoneRepository,
     private readonly labelRepository?: LabelRepository,
     private readonly media?: ActivityMediaAdapters,
     /**
-     * PRE-7 (A1.3) : lecture du Mouvement (usage durable, structure, compteur)
-     * pour `assessActivityDefinitionCorrection` — optionnel, même patron que
-     * les référentiels ci-dessus ; injecté par `SessionServiceProvider`.
+     * PRE-7 (A1.3) : lecture du Mouvement (usage, structure, niveaux) — optionnel,
+     * même patron que les référentiels ci-dessus ; injecté par `SessionServiceProvider`.
      */
     private readonly movementRepository?: MovementRepository,
   ) {}
@@ -215,176 +138,18 @@ export class ActivityDefinitionService {
   }
 
   /**
-   * Convertit l'entrée via `validateActivityDefinitionInput` (Domaine). En
-   * cas d'échec, aucune tentative d'écriture n'est faite : le résultat
-   * structuré est renvoyé tel quel — même contrat que
-   * `SessionService.createSession`.
-   */
-  async createActivityDefinition(
-    input: CreateActivityDefinitionInput,
-  ): Promise<CreateActivityDefinitionResult> {
-    const validated = validateActivityDefinitionInput(input);
-    if (!validated.ok) {
-      return validated;
-    }
-    const value = await this.repository.create(validated.value);
-    return { ok: true, value };
-  }
-
-  /**
-   * Modification d'une `ActivityDefinition` persistante. En cas d'échec de
-   * validation, aucune tentative d'appel au Repository. Une erreur de
-   * sauvegarde du Repository (ou un identifiant inconnu) conserve le
-   * brouillon appelant : aucune modification partielle n'est jamais laissée
-   * (le Repository applique sa propre transaction).
-   */
-  async updateActivityDefinition(
-    id: string,
-    input: CreateActivityDefinitionInput,
-    siblingCompletions?: readonly SiblingCompletion[],
-  ): Promise<UpdateActivityDefinitionResult> {
-    const validated = validateActivityDefinitionInput(input);
-    if (!validated.ok) {
-      return { status: "INVALID", violations: validated.violations };
-    }
-    // PRE-3 : un appelant qui n'envoie pas `media` conserve les liens
-    // existants — la valeur par défaut `[]` de la validation ne doit jamais
-    // les effacer implicitement en modification.
-    const { media: _media, ...withoutMedia } = validated.value;
-    // PRE-7 (A1.3, MFN-08) : « Corriger cet exercice » — le contenu partagé
-    // vaut pour tous les Exercices du geste ; les durées des frères suivent
-    // `siblingCompletions` (`null` = complétion explicitement passée). Un
-    // refus est rendu en union, sans écriture.
-    let value: ActivityDefinition | null;
-    try {
-      value = await this.repository.update(id, input.media === undefined ? withoutMedia : validated.value, siblingCompletions);
-    } catch (error) {
-      if (error instanceof SharedCorrectionRefusedError) {
-        return refusedResult(error.refusal);
-      }
-      throw error;
-    }
-    if (!value) {
-      return { status: "NOT_FOUND" };
-    }
-    return { status: "UPDATED", value };
-  }
-
-  /**
-   * PRE-7 (A1.3, MFN-06, MFN-07, MFN-08) — création avec origine EXPLICITE
-   * (`ActivityDefinitionOrigin`) : geste indépendant, même geste (contenu
-   * appliqué comme correction partagée), variante (rattachement au groupe
-   * d'origine selon le choix transmis, jamais automatique). Même contrat de
-   * validation que `createActivityDefinition` ; une erreur technique du
-   * repository se propage, aucune écriture partielle.
-   */
-  async createActivityDefinitionWithOrigin(
-    input: CreateActivityDefinitionInput,
-    origin: ActivityDefinitionOrigin,
-  ): Promise<CreateActivityDefinitionWithOriginResult> {
-    const validated = validateActivityDefinitionInput(input);
-    if (!validated.ok) {
-      return { status: "INVALID", violations: validated.violations };
-    }
-    // Même geste : sans `media`, les médias du geste repris sont conservés.
-    const { media: _media, ...withoutMedia } = validated.value;
-    const value = origin.kind === "SAME_MOVEMENT" && input.media === undefined ? withoutMedia : validated.value;
-    try {
-      return { status: "CREATED", value: await this.repository.create(value, origin) };
-    } catch (error) {
-      if (error instanceof SharedCorrectionRefusedError) {
-        return refusedResult(error.refusal);
-      }
-      if (error instanceof MovementNotFoundError) {
-        return { status: "MOVEMENT_NOT_FOUND" };
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * PRE-7 (A1.3, MFN-08 ; ch11 « Vérifier usage durable et champs sensibles ;
-   * transmettre le choix et le nombre de définitions touchées ») — évaluation
-   * SANS écriture d'une correction, avant l'enregistrement. PRE-7 (R-4, D-445
-   * C03) : l'évaluation porte la décision de sauvegarde (`decideMovementSave`) —
-   * avant = Mouvement enregistré (nom, alias, description, médias, Catégorie,
-   * Zones, phases) ; après = saisie validée, phases allouées par le compteur du
-   * Mouvement ; autres exercices = définitions hors Exercice édité et
-   * occurrences de Séance persistées ; exécutions = 0 (avant T04). Elle donne
-   * aussi le nombre de définitions qui le partagent et les durées manquantes
-   * des frères. « Mettre à jour ce mouvement » se transmet par
-   * `updateActivityDefinition` (ou l'origine `SAME_MOVEMENT`), « Créer un
-   * nouveau mouvement » par l'origine `VARIANT`. Lève sans `MovementRepository`.
-   */
-  async assessActivityDefinitionCorrection(
-    target: CorrectionTarget,
-    input: CreateActivityDefinitionInput,
-  ): Promise<AssessCorrectionResult> {
-    if (!this.movementRepository) {
-      throw new Error("ActivityDefinitionService was constructed without a MovementRepository.");
-    }
-    const validated = validateActivityDefinitionInput(input);
-    if (!validated.ok) {
-      return { status: "INVALID", violations: validated.violations };
-    }
-    let movementId: string;
-    if (target.kind === "UPDATE") {
-      const definition = await this.repository.findById(target.definitionId);
-      if (!definition) {
-        return { status: "NOT_FOUND" };
-      }
-      movementId = definition.movementId;
-    } else {
-      movementId = target.movementId;
-    }
-    const movement = await this.movementRepository.findById(movementId);
-    if (!movement) {
-      return { status: "NOT_FOUND" };
-    }
-    const sharing = (await this.repository.listAll()).filter((definition) => definition.movementId === movementId);
-    const editedId = target.kind === "UPDATE" ? target.definitionId : null;
-    // PRE-7 (R-3, D-445 C03) : autres exercices qui utilisent le Mouvement — définitions hors
-    // Exercice édité et occurrences de Séance persistées (aucune exécution enregistrée avant T04).
-    const otherUsageCount =
-      sharing.filter((definition) => definition.id !== editedId).length +
-      (await this.movementRepository.countOccurrences(movementId));
-    const allocation = allocatePhaseIdentities(movement, validated.value.executionParameters);
-    const assessment = assessSharedCorrection(
-      movement,
-      {
-        name: validated.value.name,
-        description: validated.value.description,
-        ...(input.media !== undefined ? { mediaAssetIds: input.media.map((item) => item.assetId) } : {}),
-        phases: allocation.movement.phases,
-        // R-4 (C03) : une Catégorie nouvelle (à créer) diffère toujours de celle du Mouvement.
-        categoryId: validated.value.category.kind === "EXISTING" ? validated.value.category.categoryId : null,
-        bodyZoneIds: validated.value.bodyZoneIds,
-      },
-      sharing
-        .filter((definition) => definition.id !== editedId)
-        .map((definition) => ({ definitionId: definition.id, parameters: definition.executionParameters })),
-      otherUsageCount,
-      // D-445 C03 : exécutions enregistrées du Mouvement — aucune avant le moteur T04.
-      0,
-    );
-    return { status: "ASSESSED", assessment, phases: allocation.movement.phases };
-  }
-
-  /**
    * PRE-7 (R-4, D-445 C03, C04) : nombre d'exercices enregistrés qui utilisent le Mouvement,
-   * vus depuis le brouillon d'une Séance — définitions du Catalogue qui le partagent, plus
-   * occurrences persistées des AUTRES Séances (`excludingSessionId` : Séance en cours de
-   * modification, dont les occurrences sont celles du brouillon, comptées par l'éditeur). Aucun
-   * changement de schéma. Lève sans `MovementRepository`.
+   * vus depuis le brouillon d'une Séance — occurrences persistées des AUTRES Séances
+   * (`excludingSessionId` : Séance en cours de modification, dont les occurrences sont celles du
+   * brouillon, comptées par l'éditeur). Aucun changement de schéma. Lève sans `MovementRepository`.
+   * [PRE-9 A.3 du 04/11/2026 : les anciennes définitions du Catalogue, supprimées, ne sont plus
+   * comptées.]
    */
   async countMovementUsage(movementId: string, excludingSessionId: string | null): Promise<number> {
     if (!this.movementRepository) {
       throw new Error("ActivityDefinitionService was constructed without a MovementRepository.");
     }
-    return (
-      (await this.movementRepository.countDefinitions(movementId)) +
-      (await this.movementRepository.countOccurrences(movementId, excludingSessionId ?? undefined))
-    );
+    return this.movementRepository.countOccurrences(movementId, excludingSessionId ?? undefined);
   }
 
   /**
@@ -412,11 +177,10 @@ export class ActivityDefinitionService {
    * (créés dans une Séance, sans Exercice au Catalogue, ou dont le dernier exercice a été retiré :
    * « un mouvement peut exister sans exercice et reste recherchable », v7 l.27), lus une fois puis
    * parcourus en mémoire : classement R02 (`rankMovements`) pendant la saisie et contrôle
-   * d'unicité C01 (`findMovementNameConflict`). Ordre rendu = « ordre de parcours du Catalogue »
-   * de la requête vide (R03) : mouvements du Catalogue dans l'ordre de ses groupes (première
-   * apparition dans `listAll`, `updatedAt DESC`), puis les mouvements sans Exercice au Catalogue
-   * dans l'ordre du repository (nom normalisé) — option conservatrice, à valider par Hermann.
-   * Comptes d'Exercices et rangs calculés, jamais persistés. `[]` sans `MovementRepository`
+   * d'unicité C01 (`findMovementNameConflict`). Ordre rendu : celui du repository (nom normalisé).
+   * [PRE-9 A.3 du 04/11/2026 : le rang des anciennes définitions du Catalogue, supprimées, n'ordonne
+   * plus les mouvements ; ce rang ne s'appliquait déjà plus qu'à ces définitions.] Rangs calculés,
+   * jamais persistés. `[]` sans `MovementRepository`
    * (doublures antérieures à MFN). Remplace `searchMovements` (sous-chaîne, A2.3).
    */
   async listMovementChoices(): Promise<readonly MovementChoice[]> {
@@ -426,20 +190,9 @@ export class ActivityDefinitionService {
     }
     const found = await movements.search("");
     const archivedIds = await movements.listArchivedIds();
-    const definitions = await this.repository.listAll();
-    const catalogueRank = new Map<string, number>();
-    const definitionCounts = new Map<string, number>();
-    for (const definition of definitions) {
-      if (!catalogueRank.has(definition.movementId)) catalogueRank.set(definition.movementId, catalogueRank.size);
-      definitionCounts.set(definition.movementId, (definitionCounts.get(definition.movementId) ?? 0) + 1);
-    }
-    const ordered = [...found].sort(
-      (left, right) =>
-        (catalogueRank.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (catalogueRank.get(right.id) ?? Number.MAX_SAFE_INTEGER),
-    );
     const groups = new Map<string, readonly Movement[]>();
     const choices: MovementChoice[] = [];
-    for (const movement of ordered) {
+    for (const movement of found) {
       let level: MovementLevelPosition | null = null;
       if (movement.levelGroup !== null) {
         const groupId = movement.levelGroup.groupId;
@@ -450,7 +203,7 @@ export class ActivityDefinitionService {
         }
         level = movementLevelPosition(movement, members);
       }
-      choices.push({ movement, definitionCount: definitionCounts.get(movement.id) ?? 0, level, archived: archivedIds.has(movement.id) });
+      choices.push({ movement, level, archived: archivedIds.has(movement.id) });
     }
     return choices;
   }
@@ -489,9 +242,7 @@ export class ActivityDefinitionService {
 
   /**
    * PRE-7 (A3.1, D-439, MFN-05, MFN-07) — niveaux du geste (pastille et popover de la fiche) :
-   * rang et total dérivés du groupe (`listGroup`, `movementLevelPosition`), et, pour chaque membre,
-   * ses Exercices du Catalogue (« la navigation vers un niveau affiche ses exercices disponibles »).
-   * Lecture seule. `null` : geste inconnu, ou service sans `MovementRepository`.
+   * rang et total dérivés du groupe (`listGroup`, `movementLevelPosition`). Lecture seule. `null` : geste inconnu, ou service sans `MovementRepository`.
    */
   async getMovementLevels(movementId: string): Promise<MovementLevels | null> {
     const movements = this.movementRepository;
@@ -510,14 +261,12 @@ export class ActivityDefinitionService {
     if (position === null) {
       return { position: null, levels: [] };
     }
-    const definitions = await this.repository.listAll();
     const archivedIds = await movements.listArchivedIds();
     return {
       position,
       levels: members.map((member, index) => ({
         movement: member,
         rank: index + 1,
-        definitions: definitions.filter((definition) => definition.movementId === member.id),
         archived: archivedIds.has(member.id),
       })),
     };
@@ -556,25 +305,6 @@ export class ActivityDefinitionService {
    */
   get supportsMovementSearch(): boolean {
     return this.movementRepository !== undefined;
-  }
-
-  /**
-   * PRE-7 (A1.3, MFN-10) — Catalogue regroupé par geste : groupes dans l'ordre
-   * de première apparition de la liste (`updatedAt DESC`), définitions dans
-   * cet ordre (`groupDefinitionsByMovement`).
-   */
-  async listActivityDefinitionsByMovement(): Promise<readonly ActivityDefinitionGroup[]> {
-    return groupDefinitionsByMovement(await this.repository.listAll());
-  }
-
-  /** Liste des `ActivityDefinition` persistantes, déjà triées par `updatedAt DESC` (Repository). */
-  async listActivityDefinitions(): Promise<readonly ActivityDefinition[]> {
-    return this.repository.listAll();
-  }
-
-  /** `ActivityDefinition` par identifiant — `null` si inconnu, jamais une exception pour ce cas attendu (préremplissage de l'éditeur en modification). */
-  async getActivityDefinition(id: string): Promise<ActivityDefinition | null> {
-    return this.repository.findById(id);
   }
 
   /**
@@ -660,7 +390,7 @@ export class ActivityDefinitionService {
 
   /**
    * Abandon CONFIRMÉ : seules les copies préparées par ce brouillon, sans
-   * référence en base (définitions et occurrences) et non prêtées à un autre
+   * référence en base (Mouvements et occurrences) et non prêtées à un autre
    * brouillon actif sont supprimées. Une lecture de référence en échec
    * conserve le fichier.
    */

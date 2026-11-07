@@ -7,6 +7,8 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { resetNewMovementMarks, useNewMovementMarks } from "@/features/activities/newMovementMarks";
+import { renderHook } from "@testing-library/react-native";
 
 /**
  * PRE-8 (story B.1, CE-MVT-01, DSF Mouvements, recette MVT-01, 02, 05 à 09) — services du
@@ -51,7 +53,6 @@ describe("PRE-8 B.1 — Mouvement autonome depuis le Catalogue", () => {
     const result = await service().createIndependent(movement("m1", "Squats", { phases: [{ id: 1, label: "Descente" }], nextPhaseId: 2 }));
     expect(result).toMatchObject({ status: "SAVED", movement: { id: "m1", levelGroup: null } });
     expect(await service().findMovement("m1")).toMatchObject({ name: "Squats", phases: [{ id: 1, label: "Descente" }] });
-    expect(await count("activity_definitions")).toBe(0);
     expect(await count("activities")).toBe(0);
     expect(await service().listEntries()).toEqual([expect.objectContaining({ level: null, exerciseCount: 0 })]);
   });
@@ -160,5 +161,19 @@ describe("PRE-8 B.1 — Mouvement autonome depuis le Catalogue", () => {
     const filtered = entries.filter((entry) => entry.movement.id === "a");
     expect(filtered[0]!.level).toEqual({ rank: 2, total: 2 });
     expect(entries.find((entry) => entry.movement.id === "c")).toMatchObject({ level: null, exerciseCount: 0 });
+  });
+});
+
+describe("D-510 (06/11/2026) : une création effective marque la fiche « New »", () => {
+  it("bouton + (création indépendante), Ajouter un niveau (variante) et duplication (« Créer un nouveau mouvement ») ; un refus ne marque rien", async () => {
+    resetNewMovementMarks();
+    await service().createIndependent(movement("m1", "Squats"));
+    await service().createVariant(movement("m2", "Squats sautés"), "m1", "HARDER");
+    await service().createAsNew(movement("m1", "Squats lestés"), "m3");
+    expect(await service().createIndependent(movement("m4", "Squats"))).toEqual({ status: "DUPLICATE_NAME" });
+    await service().update(movement("m1", "Squats profonds"));
+    const { result } = renderHook(() => useNewMovementMarks());
+    expect([...result.current.ids].sort()).toEqual(["m1", "m2", "m3"]);
+    expect(result.current.scrollTarget).toBe("m3");
   });
 });

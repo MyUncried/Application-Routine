@@ -2,6 +2,10 @@
  * PRE-8 (story B.2, CE-MVT-01 §12, DSF Mouvements §2, MVT-09) — structure des phases du
  * Mouvement dans sa fiche : libellés et ordre seulement, jamais de durée (les durées sont des
  * paramètres locaux des Exercices).
+ * [Remplacé le 31/10/2026, PRE-9 A.2b — décision de Hermann du 30/10/2026 (« les durées de la phase
+ * peuvent faire partie du mouvement ») : chaque phase porte en plus une durée par défaut FACULTATIVE
+ * (`setMovementPhaseDuration`), qui suit son identité ; les durées de chaque Exercice restent ses
+ * paramètres locaux.]
  *
  * Une phase garde son identité (`id`) quand elle est renommée ou déplacée ; une phase ajoutée
  * reçoit le compteur MONOTONE du Mouvement (`nextPhaseId`, MFN-02), qui ne recule jamais : une
@@ -26,6 +30,15 @@ export function addMovementPhase(list: MovementPhaseList, label: string): Moveme
 /** Renomme la phase `id` ; identité et place conservées. */
 export function renameMovementPhase(list: MovementPhaseList, id: number, label: string): MovementPhaseList {
   return { ...list, phases: list.phases.map((phase) => (phase.id === id ? { ...phase, label } : phase)) };
+}
+
+/**
+ * PRE-9 A.2b : durée par défaut de la phase `id` (1..3535 s), ou `null` pour la retirer ; identité,
+ * libellé et place conservés. La borne est contrôlée par l'appelant (roue bornée) et par
+ * `validateMovement`.
+ */
+export function setMovementPhaseDuration(list: MovementPhaseList, id: number, durationSeconds: number | null): MovementPhaseList {
+  return { ...list, phases: list.phases.map((phase) => (phase.id === id ? { ...phase, durationSeconds } : phase)) };
 }
 
 /** Retire la phase `id` ; le compteur ne recule pas. */

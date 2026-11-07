@@ -17,6 +17,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { isBodyZoneAssignable, BODY_ZONE_NAME_MAX_LENGTH, validateBodyZoneName } from "@/domain/body-zones/BodyZone";
 import type { Silhouette } from "@/domain/preferences/Profile";
 import { recordKeyboardJournal, startKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
+import { NATIVE_PICKER_MODAL, nativePickerKeyboardOffset } from "@/features/reference-data/nativePickerSheet";
 import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
 import {
   notifyBodyZonesReferentialChanged,
@@ -307,17 +308,19 @@ export function BodyZonePickerModal({
   }
 
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose} onDismiss={onDismissed}>
+    // Recette du 06/11/2026 (x-dedans) : feuille native iOS (`NATIVE_PICKER_MODAL`). [Modale transparente en fondu — remplacée.]
+    <Modal visible={visible} {...NATIVE_PICKER_MODAL} onRequestClose={onClose} onDismiss={onDismissed}>
       {/* Recette 1 (F-03) : le clavier ne recouvre jamais la feuille ; le champ actif
           et ses actions restent visibles (spéc. 06 : « le champ actif et l'action finale
           restent accessibles »). */}
       <KeyboardAvoidingView
         style={styles.backdrop}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={nativePickerKeyboardOffset()}
         testID="body-zone-picker-backdrop"
       >
+        {/* [Poignée dessinée — remplacée par la feuille native (06/11/2026).] */}
         <View style={[styles.card, isKeyboardShown ? styles.cardWithKeyboard : null]} accessibilityViewIsModal testID="body-zone-picker-sheet">
-          <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader} testID="body-zone-picker-header">
             <Pressable
               onPress={onClose}
@@ -506,20 +509,12 @@ const INLINE_SEND_SIZE = 32;
 const CREATE_ACTION_HIT_SLOP = { top: 0, bottom: 12, left: 0, right: 0 } as const;
 
 const styles = StyleSheet.create({
+  // [PRE-3 (Figma « Modale — … de l'exercice ») : feuille ancrée en bas, poignée, voile commun — remplacés le 06/11/2026
+  // (x-dedans) par la feuille native du système :] racine blanche sur toute la hauteur de la feuille ; en-tête ✕ / titre / ✓
+  // séparé par un trait.
   backdrop: {
     flex: 1,
-    backgroundColor: colors.overlayScrim,
-    justifyContent: "flex-end",
-  },
-  // PRE-3 (Figma « Modale — … de l'exercice ») : feuille ancrée en bas,
-  // poignée, en-tête ✕ / titre / ✓ séparé par un trait, voile commun.
-  sheetHandle: {
-    alignSelf: "center",
-    width: 50,
-    height: 4,
-    borderRadius: 2,
-    marginTop: spacing[8],
-    backgroundColor: colors.disabled,
+    backgroundColor: colors.background,
   },
   sheetHeader: {
     flexDirection: "row",
@@ -556,12 +551,10 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "100%",
-    // R4 (CE-UI-09 L2796, L2808) : hauteur bornée — la liste des Zones et
-    // la carte de création/renommage défilent toujours, quel que soit le
-    // nombre d'entrées ou l'ouverture du clavier.
-    maxHeight: "90%",
-    borderTopLeftRadius: dimensions.standardCard.radius,
-    borderTopRightRadius: dimensions.standardCard.radius,
+    // R4 (CE-UI-09 L2796, L2808) : la liste des Zones et la carte de création/renommage défilent toujours, quel que soit le
+    // nombre d'entrées ou l'ouverture du clavier. [Hauteur bornée à 90 %, coins arrondis — remplacés le 06/11/2026
+    // (x-dedans) : la carte remplit la feuille native.]
+    flex: 1,
     backgroundColor: colors.background,
     paddingBottom: spacing[24],
   },

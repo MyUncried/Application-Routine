@@ -146,12 +146,14 @@ describe("PRE7-A1.1 — compteur monotone, structure et « déjà utilisé » (M
     expect(advancePhaseCounter(movement({ nextPhaseId: 1 }), 0).nextPhaseId).toBe(3);
   });
 
-  it("withPhaseStructure : identité retirée consommée, compteur avancé ; aucune durée portée", () => {
+  // [PRE-9 A.2b, 31/10/2026 — « aucune durée portée » remplacé (décision de Hermann du 30/10) : la
+  // phase du Mouvement porte une durée par défaut facultative, qui suit son identité.]
+  it("withPhaseStructure : identité retirée consommée, compteur avancé ; durée par défaut portée par l'identité (A.2b)", () => {
     const next = withPhaseStructure(movement(), [{ id: 1, label: "Descente" }], 3);
     expect(next.phases).toEqual([{ id: 1, label: "Descente" }]);
     expect(next.nextPhaseId).toBe(3);
     const withDurations = withPhaseStructure(movement(), [{ id: 4, label: "x", durationSeconds: 9 } as MovementPhase], 5);
-    expect(withDurations.phases).toEqual([{ id: 4, label: "x" }]);
+    expect(withDurations.phases).toStrictEqual([{ id: 4, label: "x", durationSeconds: 9 }]);
     expect(withDurations.nextPhaseId).toBe(5);
   });
 

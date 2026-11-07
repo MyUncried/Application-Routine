@@ -14,14 +14,13 @@ import {
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
-import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import {
   chooseExecutionMode,
   chooseExecutionSide,
   enterExecutionSheetCell,
-  pressInExecutionSheet,
+  enterExecutionSheetValue,
 } from "@/features/activities/testing/executionSheetActions";
 import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
@@ -30,9 +29,9 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -80,19 +79,6 @@ const CARDIO: Category = {
 };
 const editor = strings.screens.activities.editor;
 const panelText = editor.movementSuggestion;
-const anyNode = { includeHiddenElements: true } as const;
-const PHOTO: MediaAsset = {
-  id: "p1",
-  uri: "kodjo-media/p1.jpg",
-  createdAt: NOW,
-  kind: "PHOTO",
-  mimeType: "image/jpeg",
-  fileName: null,
-  sizeBytes: 10,
-  durationMs: null,
-  width: 1,
-  height: 1,
-};
 
 let database: NodeSqliteDatabase;
 let sequence = 0;
@@ -101,7 +87,6 @@ const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
 const movements = () => new SqliteMovementRepository(database, ids("grp"), () => NOW);
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW),
     undefined,
     new SqliteBodyZoneRepository(database),
     undefined,
@@ -143,11 +128,14 @@ const input = (overrides: Partial<CreateActivityDefinitionInput> = {}): CreateAc
   ...overrides,
 });
 
-/** Exercice « Squats » du Catalogue, mouvement à deux phases. */
+/**
+ * Mouvement « Squats » enregistré, à deux phases. [PRE-9 A.3 du 04/11/2026 : créé directement, sans
+ * ancienne définition du Catalogue ; l'éditeur d'une définition du Catalogue (création, correction,
+ * « Ajouter un niveau », reprise par la route) est retiré avec elles : les cas de création sont rejoués
+ * sur la création en Séance, les cas de correction et de reprise par la route sont retirés.]
+ */
 async function catalogueSquats(overrides: Partial<CreateActivityDefinitionInput> = {}) {
-  const result = await service().createActivityDefinitionWithOrigin(input(overrides), { kind: "INDEPENDENT" });
-  if (result.status !== "CREATED") throw new Error(result.status);
-  return result.value;
+  return createTestMovement(database, input(overrides), { kind: "INDEPENDENT" }, ids("mov"), () => NOW);
 }
 
 /** Mouvement LOCAL : créé dans une Séance, sans aucun Exercice ni occurrence (v7 l.27). */
@@ -169,7 +157,6 @@ async function localMovement(id = "genou", name = "Mobilisation du genou"): Prom
   });
 }
 
-const definitionsRows = () => database.getAllAsync("SELECT * FROM activity_definitions ORDER BY id");
 const movementsRows = () => database.getAllAsync("SELECT * FROM movements ORDER BY id");
 
 function fakeReferential(): ReferentialService {
@@ -254,17 +241,15 @@ const finishDisabled = (testID = "activity-editor-finish-action") =>
 /** Mouvements des cartes du panneau, dans l'ordre affiché. */
 const resultIds = () =>
   screen
-    .queryAllByTestId(/^movement-suggestion-result-.+-summary$/)
-    .map((node) => String(node.props.testID).replace(/^movement-suggestion-result-(.+)-summary$/, "$1"));
+    .queryAllByTestId(/^movement-suggestion-result-.+-slot$/)
+    .map((node) => String(node.props.testID).replace(/^movement-suggestion-result-(.+)-slot$/, "$1"));
 
 /** Paramètres d'un mouvement neuf : Durée 45 s. */
 function fillDurationParameters() {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   chooseExecutionMode("Durée");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 0 } });
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 45 } });
-  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 45);
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   expect(screen.queryByTestId("execution-sheet")).toBeNull();
 }
@@ -274,22 +259,20 @@ function fillPhaseDurations() {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   enterExecutionSheetCell("execution-sheet-phase-row-1-duration", "7");
   enterExecutionSheetCell("execution-sheet-phase-row-2-duration", "2");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 0 } });
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 9 } });
-  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 9);
   chooseExecutionSide("Sans");
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   expect(screen.queryByTestId("execution-sheet")).toBeNull();
 }
 
 describe("PRE-7 R-5 — panneau sous le nom (R03, R04)", () => {
-  it("nom proche : le panneau s'ouvre pendant la frappe, cartes Résultat à deux actions ; rien n'est présélectionné ni écrit", async () => {
+  // PRE-9 CAT.2 (CE-MVT-RESULT-01) : création d'un Exercice — cartes Composition, sans bouton.
+  it("nom proche : le panneau s'ouvre pendant la frappe, cartes Composition sans bouton ; rien n'est présélectionné ni écrit", async () => {
     await catalogueSquats();
     await localMovement();
-    const definitionsBefore = await definitionsRows();
     const movementsBefore = await movementsRows();
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
     await typeName("Squat");
 
@@ -298,18 +281,20 @@ describe("PRE-7 R-5 — panneau sous le nom (R03, R04)", () => {
     const [squatsId] = resultIds();
     expect(screen.getByTestId(`movement-suggestion-result-${squatsId}-name`).props.children).toBe("Squats");
     expect(screen.getByTestId(`movement-suggestion-result-${squatsId}-description`).props.children).toBe("Buste droit");
-    expect(within(panel).getByText(panelText.useMovement)).toBeTruthy();
-    expect(within(panel).getByText(panelText.createVariant)).toBeTruthy();
+    expect(within(panel).queryByText(panelText.useMovement)).toBeNull();
+    expect(within(panel).queryByText(panelText.createVariant)).toBeNull();
+    expect(within(panel).queryByText(panelText.addLevelTwoLines)).toBeNull();
+    expect(screen.queryByTestId(`movement-suggestion-result-${squatsId}-variant`)).toBeNull();
+    expect(screen.getByTestId(`movement-suggestion-result-${squatsId}`).props.accessibilityRole).toBe("button");
     // Proximité seulement, pas de conflit de nom.
     expect(screen.queryByTestId("movement-suggestion-message")).toBeNull();
     expect(nameInput().props.value).toBe("Squat");
-    expect(await definitionsRows()).toEqual(definitionsBefore);
     expect(await movementsRows()).toEqual(movementsBefore);
   });
 
   it("aucun mouvement au-dessus du seuil haut : aucun panneau ; Entrée ferme le panneau sans sélection, la frappe le rouvre", async () => {
     await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     await typeName("Gainage");
     expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
     await typeName("Squat");
@@ -322,13 +307,14 @@ describe("PRE-7 R-5 — panneau sous le nom (R03, R04)", () => {
     expect(screen.getByTestId("movement-suggestion-panel")).toBeTruthy();
   });
 
-  it("cinq résultats au plus ; l'ordre est figé pendant un appui sur le panneau", async () => {
+  // Contre-recette iPhone du 30/10 (Hermann) : plus de limite à cinq résultats (R04 remplacé).
+  it("tous les résultats, sans limite à cinq ; l'ordre est figé pendant un appui sur le panneau", async () => {
     for (const name of ["Squats", "Squats A", "Squats B", "Squats C", "Squats D", "Squats E"]) {
       await catalogueSquats({ name });
     }
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     await typeName("Squats");
-    expect(resultIds()).toHaveLength(5);
+    expect(resultIds()).toHaveLength(6);
     const before = resultIds();
     fireEvent(screen.getByTestId("movement-suggestion-panel"), "touchStart");
     await typeName("Squats E");
@@ -341,7 +327,7 @@ describe("PRE-7 R-5 — panneau sous le nom (R03, R04)", () => {
   // PRE-7 (R-8, D-448 point 2) : lien de recherche retiré de l'éditeur ; seul le panneau est vérifié.
   it("saisie détaillée commencée (description) : aucun panneau", async () => {
     await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos plat");
     await settle();
     await typeName("Squat");
@@ -350,139 +336,49 @@ describe("PRE-7 R-5 — panneau sous le nom (R03, R04)", () => {
 });
 
 describe("PRE-7 R-5 — unicité pendant la saisie (C01)", () => {
-  it("création : « squats » existe → message rouge et cartes ; Terminer indisponible ; « Utiliser ce mouvement » reprend l'existant", async () => {
+  it("création : « squats » existe → message rouge et cartes ; Terminer indisponible ; le toucher de la carte reprend l'existant (CAT.2)", async () => {
     const squats = await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     await typeName("  SQUATS ");
     expect(screen.getByTestId("movement-suggestion-message").props.children).toBe(panelText.nameTaken);
     expect(resultIds()[0]).toBe(squats.movementId);
-    expect(finishDisabled()).toBe(true);
+    expect(finishDisabled("exercise-finish-action")).toBe(true);
     // Fin de saisie : le conflit reste signalé (deux sorties : reprendre ou corriger).
     await endNameEditing();
     expect(screen.getByTestId("movement-suggestion-message")).toBeTruthy();
 
-    await press(`movement-suggestion-result-${squats.movementId}-use`);
+    // PRE-9 CAT.2 (décision de Hermann du 30/10/2026) : toucher de la carte = ancien « Utiliser ce mouvement ».
+    await press(`movement-suggestion-result-${squats.movementId}`);
     await settle(50);
     expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
     expect(nameInput().props.value).toBe("Squats");
     expect(nameInput().props.editable).toBe(false);
     fillPhaseDurations();
-    await finish();
-    expect(mockBack).toHaveBeenCalled();
-    const all = await service().listActivityDefinitions();
-    expect(new Set(all.map((definition) => definition.movementId))).toEqual(new Set([squats.movementId]));
+    await finish("exercise-finish-action");
+    const patch = updateDraft.mock.calls[0]![0] as { exercises: readonly SessionDraftExercise[] };
+    expect(patch.exercises[0]).toMatchObject({ sourceMovementId: squats.movementId });
   });
 
-  it("correction d'un Exercice : son propre nom n'est pas un conflit ; le nom d'un autre mouvement l'est", async () => {
-    const squats = await catalogueSquats();
-    await catalogueSquats({ name: "Fentes" });
-    await renderEditor({ catalogueDefinitionId: squats.id });
-    await typeName("squats");
-    expect(screen.queryByTestId("movement-suggestion-message")).toBeNull();
-    await typeName("FENTES");
-    expect(screen.getByTestId("movement-suggestion-message").props.children).toBe(panelText.nameTakenEdit);
-    expect(resultIds()).toEqual([]);
-    expect(finishDisabled()).toBe(true);
-  });
+  // [PRE-9 A.3 du 04/11/2026 : « correction d'un Exercice », « casse seule puis Créer un nouveau mouvement » et « nom pris entre la lecture et l'écriture » (éditeur d'une définition du Catalogue) retirés avec les anciennes définitions du Catalogue.]
 
-  it("casse seule puis « Créer un nouveau mouvement » : refusé avec le message, rien n'est écrit (v7 l.67, report R-4)", async () => {
-    const squats = await catalogueSquats();
-    const movementsBefore = await movementsRows();
-    await renderEditor({ catalogueDefinitionId: squats.id });
-    await typeName("SQUATS");
-    await finish();
-    fireEvent.press(screen.getByTestId("movement-save-choice-NEW_MOVEMENT"));
-    await press("movement-save-confirm");
-    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
-    expect(screen.getByTestId("movement-suggestion-message").props.children).toBe(panelText.nameTakenEdit);
-    expect(screen.queryByTestId("activity-editor-save-error")).toBeNull();
-    expect(mockBack).not.toHaveBeenCalled();
-    expect(await movementsRows()).toEqual(movementsBefore);
-  });
 
-  it("nom pris entre la lecture et l'écriture : DuplicateMovementNameError → message propre, jamais l'erreur générique", async () => {
-    const squats = await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
-    await typeName("Squats");
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
-    await press(`movement-suggestion-result-${squats.movementId}-harder`);
-    await typeName("Squats lents");
-    fillDurationParameters();
-    // Écriture concurrente : le nom est pris après la lecture de la liste par l'éditeur.
-    await localMovement("lents", "squats LENTS");
-    const definitionsBefore = await definitionsRows();
-    await finish();
-    expect(screen.getByTestId("movement-suggestion-message").props.children).toBe(panelText.nameTakenEdit);
-    expect(screen.queryByTestId("activity-editor-save-error")).toBeNull();
-    expect(finishDisabled()).toBe(true);
-    expect(mockBack).not.toHaveBeenCalled();
-    expect(await definitionsRows()).toEqual(definitionsBefore);
-    await typeName("Squats très lents");
-    expect(screen.queryByTestId("movement-suggestion-message")).toBeNull();
-  });
 });
 
-describe("PRE-7 R-5 — variante (C02)", () => {
-  it("Créer une variante → cadre de retour et deux sens ; « Plus facile » : nom conservé + invite grise, description et médias vierges, Catégorie et Zones reprises, Niveau 1 ; Terminer → inséré AVANT l'origine", async () => {
-    const squats = await catalogueSquats({ media: [{ assetId: "p1", asset: PHOTO }] });
-    const originBefore = await database.getAllAsync("SELECT name, description FROM movements WHERE id = ?", [squats.movementId]);
-    await renderEditor({ catalogueDefinitionId: "new" });
-    await typeName("Squats");
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
-    expect(screen.getByTestId("movement-suggestion-back")).toBeTruthy();
-    expect(screen.getByTestId(`movement-suggestion-result-${squats.movementId}-easier`)).toBeTruthy();
-    // Retour aux résultats, puis de nouveau la variante.
-    await press("movement-suggestion-back");
-    expect(screen.queryByTestId("movement-suggestion-back")).toBeNull();
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
-    await press(`movement-suggestion-result-${squats.movementId}-easier`);
-
-    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
-    expect(nameInput().props.value).toBe("Squats");
-    expect(within(screen.getByTestId("exercise-name-hint", anyNode)).getByText(` ${panelText.completeNameHint}`, anyNode)).toBeTruthy();
-    expect(screen.getByTestId("exercise-instruction-input").props.value).toBe("");
-    expect(screen.queryByTestId("activity-editor-movement-search")).toBeNull();
-    expect(screen.getByTestId("activity-editor-category-button").props.accessibilityLabel).toContain("Cardio");
-    expect(screen.getByTestId("activity-editor-level-label", anyNode).props.children).toBe("Niveau 1");
-    fillDurationParameters();
-    // Nom conservé = nom de l'origine : l'invite « ne satisfait pas l'unicité ».
-    expect(finishDisabled()).toBe(true);
-
-    await typeName("Squats assistés");
-    expect(screen.queryByTestId("exercise-name-hint", anyNode)).toBeNull();
-    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
-    expect(finishDisabled()).toBe(false);
-    await finish();
-
-    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
-    expect(mockBack).toHaveBeenCalled();
-    const variant = (await service().listActivityDefinitions()).find((definition) => definition.id !== squats.id)!;
-    expect(variant).toMatchObject({ name: "Squats assistés", description: null, categoryId: "cardio", bodyZoneIds: ["cuisses"] });
-    expect(variant.media ?? []).toEqual([]);
-    const levels = await service().getMovementLevels(squats.movementId);
-    expect(levels?.levels.map((level) => level.movement.id)).toEqual([variant.movementId, squats.movementId]);
-    expect(await database.getAllAsync("SELECT name, description FROM movements WHERE id = ?", [squats.movementId])).toEqual(
-      originBefore,
-    );
-  });
-
-  // PRE-7 (R-8, D-448 point 2) : réécrit par le panneau, le lien vers l'écran de recherche étant
-  // retiré de l'éditeur.
-  it("depuis le panneau : « Plus difficile » → inséré APRÈS l'origine", async () => {
+// PRE-9 CAT.2 (CE-MVT-RESULT-01) : la carte Composition « n'en comporte jamais » (« Ajouter un
+// niveau ») [remplace « Créer une variante » du panneau de l'éditeur d'Exercice, R-5 C02]. Les
+// parcours de variante par ce panneau sont retirés ; la variante reste couverte depuis la fiche
+// Mouvement (`MovementScreen.b2.integration.test.tsx`) et le menu Niveau.
+describe("PRE-9 CAT.2 — création d'un Exercice : aucune action de variante dans les cartes", () => {
+  it("Catalogue : cartes Composition, ni « Ajouter un niveau » ni « Créer une variante », aucun choix de sens", async () => {
     const squats = await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     await typeName("Squats");
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
-    await press(`movement-suggestion-result-${squats.movementId}-harder`);
-    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
-    expect(screen.getByTestId("exercise-name-hint", anyNode)).toBeTruthy();
-    expect(screen.getByTestId("activity-editor-level-label", anyNode).props.children).toBe("Niveau 2");
-    await typeName("Squats sautés");
-    fillDurationParameters();
-    await finish();
-    const variant = (await service().listActivityDefinitions()).find((definition) => definition.id !== squats.id)!;
-    const levels = await service().getMovementLevels(squats.movementId);
-    expect(levels?.levels.map((level) => level.movement.id)).toEqual([squats.movementId, variant.movementId]);
+    expect(resultIds()).toEqual([squats.movementId]);
+    expect(screen.queryByTestId(`movement-suggestion-result-${squats.movementId}-variant`)).toBeNull();
+    expect(screen.queryByTestId(`movement-suggestion-result-${squats.movementId}-easier`)).toBeNull();
+    expect(screen.queryByText(panelText.createVariant)).toBeNull();
+    expect(screen.queryByText(panelText.addLevelTwoLines)).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-back")).toBeNull();
   });
 });
 
@@ -520,42 +416,25 @@ describe("PRE-7 R-5 — Séance", () => {
     expect(screen.queryByTestId("movement-suggestion-message")).toBeNull();
   });
 
-  it("variante « Plus facile » : Mouvement NEW du brouillon avec son origine de niveau, description et médias vierges ; aucune définition publiée", async () => {
-    const squats = await catalogueSquats({ media: [{ assetId: "p1", asset: PHOTO }] });
-    const definitionsBefore = await definitionsRows();
+  // PRE-9 CAT.2 : variante locale par le panneau retirée (carte Composition sans bouton ; CE-MVT-01
+  // §3, « La création de variante depuis une séance reste exclue »).
+  it("CAT.2 : Séance — cartes Composition sans « Ajouter un niveau »", async () => {
+    const squats = await catalogueSquats();
     await renderEditor({});
     await typeName("Squats");
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
-    await press(`movement-suggestion-result-${squats.movementId}-easier`);
-    expect(screen.getByTestId("exercise-name-hint", anyNode)).toBeTruthy();
-    await typeName("Squats sumo");
-    fillDurationParameters();
-    await finish("exercise-finish-action");
-
-    const patch = updateDraft.mock.calls[0]![0] as {
-      exercises: readonly SessionDraftExercise[];
-      movements?: Record<string, DraftMovement>;
-    };
-    const occurrence = patch.exercises[0]!;
-    expect(occurrence).toMatchObject({ name: "Squats sumo", instruction: null, categoryId: "cardio", bodyZoneIds: ["cuisses"] });
-    expect(occurrence.media ?? []).toEqual([]);
-    expect(patch.movements?.[occurrence.id]).toMatchObject({
-      change: "NEW",
-      name: "Squats sumo",
-      levelOrigin: { movementId: squats.movementId, placement: "BEFORE_ORIGIN" },
-    });
-    expect(await definitionsRows()).toEqual(definitionsBefore);
+    expect(resultIds()).toEqual([squats.movementId]);
+    expect(screen.queryByTestId(`movement-suggestion-result-${squats.movementId}-variant`)).toBeNull();
+    expect(screen.getByTestId(`movement-suggestion-result-${squats.movementId}`).props.accessibilityHint).toBe(panelText.useMovement);
   });
 });
 
 describe("PRE-7 R-5 — revue : disponibilité, reprise en Séance, réédition", () => {
-  it("Séance, « Utiliser ce mouvement » : l'occurrence porte le mouvement choisi, contenu verrouillé ; aucun Mouvement du brouillon ; rien n'est écrit", async () => {
+  it("Séance, toucher de la carte (ancien « Utiliser ce mouvement ») : l'occurrence porte le mouvement choisi, contenu verrouillé ; aucun Mouvement du brouillon ; rien n'est écrit", async () => {
     const squats = await catalogueSquats();
-    const definitionsBefore = await definitionsRows();
     const movementsBefore = await movementsRows();
     await renderEditor({});
     await typeName("Squat");
-    await press(`movement-suggestion-result-${squats.movementId}-use`);
+    await press(`movement-suggestion-result-${squats.movementId}`);
     expect(nameInput().props.value).toBe("Squats");
     expect(nameInput().props.editable).toBe(false);
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityState).toMatchObject({ disabled: true });
@@ -569,12 +448,11 @@ describe("PRE-7 R-5 — revue : disponibilité, reprise en Séance, réédition"
     expect(patch.exercises[0]).toMatchObject({ name: "Squats", sourceMovementId: squats.movementId, instruction: "Buste droit" });
     expect(patch.movements?.[squats.movementId]).toBeUndefined();
     expect(patch.movements?.[patch.exercises[0]!.id]).toBeUndefined();
-    expect(await definitionsRows()).toEqual(definitionsBefore);
     expect(await movementsRows()).toEqual(movementsBefore);
   });
 
   it("occurrence existante ou reprise par la route : ni panneau ni lien de recherche", async () => {
-    const squats = await catalogueSquats();
+    await catalogueSquats();
     const existing: SessionDraftExercise = {
       ...createExerciseDraft("occ-1", null),
       name: "Gainage",
@@ -586,12 +464,7 @@ describe("PRE-7 R-5 — revue : disponibilité, reprise en Séance, réédition"
     expect(screen.queryByTestId("activity-editor-movement-search")).toBeNull();
     await typeName("Squat");
     expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
-    screen.unmount();
-
-    await renderEditor({ catalogueDefinitionId: "new", movementId: squats.movementId });
-    expect(nameInput().props.value).toBe("Squats");
-    expect(screen.queryByTestId("activity-editor-movement-search")).toBeNull();
-    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
+    // [PRE-9 A.3 du 04/11/2026 : reprise par la route du Catalogue (`catalogueDefinitionId=new&movementId`) retirée avec les anciennes définitions du Catalogue.]
   });
 
   it("réédition d'une occurrence variante NEW (paramètre modifié) : l'origine de niveau est conservée", async () => {
@@ -615,7 +488,7 @@ describe("PRE-7 R-5 — revue : disponibilité, reprise en Séance, réédition"
   // PRE-7 (R-8, D-448 point 2) : lien de recherche retiré de l'éditeur ; seul le panneau est vérifié.
   it("Catégorie choisie avant la saisie du nom : panneau toujours présent", async () => {
     const squats = await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
+    await renderEditor({});
     fireEvent.press(screen.getByTestId("activity-editor-category-button"));
     fireEvent.press(await screen.findByTestId("category-picker-tag-cardio"));
     fireEvent.press(screen.getByTestId("category-picker-confirm"));

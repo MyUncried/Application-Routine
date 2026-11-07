@@ -18,6 +18,18 @@ import {
   type MovementPriorMemberships,
   type MovementRepository,
 } from "@/domain/activities/MovementRepository";
+import {
+  readCatalogExecutionParameters,
+  serializeCatalogExecutionParameters,
+  type CatalogExecutionParameters,
+} from "@/domain/activities/ExecutionParameters";
+import {
+  addedPhaseDefaults,
+  decodePhasesToVerify,
+  encodePhasesToVerify,
+  fillEmptyPhaseDurations,
+  mergePhasesToVerify,
+} from "@/domain/activities/parametersToVerify";
 import type { DraftMediaItem, MediaLinkInput } from "@/domain/media/ActivityMedia";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import type { Database } from "@/infrastructure/database/Database";
@@ -38,9 +50,9 @@ type UuidFactory = () => string;
  * Mouvement (`migration012` : `movements`, `movement_phases`,
  * `movement_body_zones`, `movement_media`). Les fonctions transactionnelles
  * exportées (`insertMovement`, `updateMovementContent`, `readMovementRecords`,
- * `countMovementDefinitions`, `countMovementOccurrences`) sont réutilisées par les
- * repositories de définitions et de Séances, dans LEUR transaction : création
- * Catalogue (Mouvement + définition), création et correction depuis une Séance.
+ * `countMovementOccurrences`) sont réutilisées par le repository des Séances, dans
+ * SA transaction : création et correction depuis une Séance. [PRE-9 A.3 du
+ * 04/11/2026 : le repository des anciennes définitions du Catalogue est retiré.]
  *
  * PRE-7 (R-3, `migration013`, D-445 C01, C03, C05) : nom principal unique sur la
  * clé canonique — contrôlé avant l'écriture et garanti par l'index UNIQUE en
@@ -48,8 +60,9 @@ type UuidFactory = () => string;
  * (`movement_aliases`) ; plus d'indicateur « déjà utilisé » ; les occurrences de
  * Séance référencent le Mouvement par clé étrangère RESTRICT et lisent son contenu.
  *
- * Aucun ramassage automatique (MFN-04) ; suppression refusée si une définition
- * référence le Mouvement (MFN-03) ; les filiations des copies ne sont jamais
+ * Aucun ramassage automatique (MFN-04) ; suppression refusée si une occurrence de
+ * Séance référence le Mouvement (MFN-03, R-3 ; [PRE-9 A.3 du 04/11/2026 : les
+ * anciennes définitions, supprimées par la migration 021, ne comptent plus]) ; les filiations des copies ne sont jamais
  * lues ni modifiées. Groupe de niveaux (MFN-05, D-439) : identifiant et clé de
  * tri toujours ensemble, au plus un groupe ; les clés sont renumérotées
  * 0..n-1 dans l'ordre du groupe à chaque opération (aucun rang persisté : le
@@ -130,11 +143,23 @@ function validatedContent(content: MovementContent): MovementContent {
   return { ...result.value, media: content.media };
 }
 
-async function insertPhases(transaction: Database, movementId: string, phases: readonly MovementPhase[]): Promise<void> {
+/**
+ * PRE-9 A.2b (`migration018`) : la durée par défaut d'une phase est écrite si elle est renseignée ;
+ * `null` ou absente → `NULL`. `kept` (mise à jour) : durées enregistrées par identité de phase,
+ * reprises pour une phase reçue SANS durée renseignée (`undefined`) — structure reconstruite depuis
+ * les paramètres d'un Exercice (Séance, Catalogue) : l'Exercice ne réécrit jamais le Mouvement.
+ */
+async function insertPhases(
+  transaction: Database,
+  movementId: string,
+  phases: readonly MovementPhase[],
+  kept: ReadonlyMap<number, number | null> = new Map(),
+): Promise<void> {
   for (const [position, phase] of phases.entries()) {
+    const durationSeconds = phase.durationSeconds !== undefined ? phase.durationSeconds : (kept.get(phase.id) ?? null);
     await transaction.runAsync(
-      "INSERT INTO movement_phases (movement_id, phase_id, position, label) VALUES (?, ?, ?, ?)",
-      [movementId, phase.id, position, phase.label],
+      "INSERT INTO movement_phases (movement_id, phase_id, position, label, duration_seconds) VALUES (?, ?, ?, ?, ?)",
+      [movementId, phase.id, position, phase.label, durationSeconds],
     );
   }
 }
@@ -245,12 +270,69 @@ export async function updateMovementContent(
     throw new Error("Expected exactly one movement row to be updated.");
   }
   await replaceAliases(transaction, movement.id, movement.aliases);
+  const storedDurations = await transaction.getAllAsync<{ phase_id: number; duration_seconds: number | null }>(
+    "SELECT phase_id, duration_seconds FROM movement_phases WHERE movement_id = ?",
+    [movement.id],
+  );
   await transaction.runAsync("DELETE FROM movement_phases WHERE movement_id = ?", [movement.id]);
-  await insertPhases(transaction, movement.id, movement.phases);
+  const stored = new Map(storedDurations.map((row) => [row.phase_id, row.duration_seconds] as const));
+  await insertPhases(transaction, movement.id, movement.phases, stored);
+  // Recette iPhone n° 2 du 31/10/2026 (constat e) : valeurs par défaut ajoutées → durées vides des
+  // Exercices liés, marquées « à vérifier », dans la même transaction.
+  await propagateAddedPhaseDefaults(
+    transaction,
+    movement.id,
+    addedPhaseDefaults(stored, movement.phases),
+    movement.phases.map((phase) => phase.id),
+  );
   await transaction.runAsync("DELETE FROM movement_body_zones WHERE movement_id = ?", [movement.id]);
   await insertBodyZones(transaction, movement.id, movement.bodyZoneIds);
   if (content.media !== undefined) {
     await replaceMovementMediaLinks(transaction, movement.id, content.media, mediaId);
+  }
+}
+
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (Hermann : « Ajouter une valeur par défaut
+ * doit mettre à jour les exercices qui utilisent cet exercice, mais que les champs […] soient
+ * identifiés en orange, avec le texte « Paramètre à vérifier » » ; « Champs vides seulement »,
+ * « Séances et Catalogue ») — dans la transaction de l'enregistrement du Mouvement : chaque
+ * Exercice lié (occurrences de Séance `activities.source_movement_id` ; [PRE-9 A.3 du 04/11/2026 :
+ * les anciennes définitions du Catalogue, supprimées, ne sont plus visées]) reçoit les valeurs par défaut ajoutées dans ses SEULES durées
+ * de phase vides (même identité de phase, `fillEmptyPhaseDurations`) ; ces phases s'ajoutent à sa
+ * marque `phases_to_verify` (`migration019`). Une durée déjà renseignée n'est jamais remplacée ; un
+ * Exercice dont les paramètres sont illisibles, ou dont le motif sortirait des bornes, reste tel
+ * quel. Les colonnes scalaires projetées ne dépendent pas des durées de phase (D-446) : inchangées.
+ */
+async function propagateAddedPhaseDefaults(
+  transaction: Database,
+  movementId: string,
+  defaults: ReadonlyMap<number, number>,
+  phaseIds: readonly number[],
+): Promise<void> {
+  if (defaults.size === 0) return;
+  const rows = await transaction.getAllAsync<{ id: string; execution_parameters: string | null; phases_to_verify: string | null }>(
+    `SELECT id, execution_parameters, phases_to_verify FROM activities
+     WHERE source_movement_id = ? AND type = 'EXERCISE' AND execution_parameters IS NOT NULL`,
+    [movementId],
+  );
+  for (const row of rows) {
+    let parameters: CatalogExecutionParameters;
+    let marked: number[];
+    try {
+      parameters = readCatalogExecutionParameters(row.execution_parameters);
+      marked = decodePhasesToVerify(row.phases_to_verify);
+    } catch {
+      continue;
+    }
+    const result = fillEmptyPhaseDurations(parameters, defaults, phaseIds);
+    if (result === null) continue;
+    // `updated_at` inchangé : la reprise n'est pas une modification de l'utilisateur.
+    await transaction.runAsync("UPDATE activities SET execution_parameters = ?, phases_to_verify = ? WHERE id = ?", [
+      serializeCatalogExecutionParameters(result.parameters),
+      encodePhasesToVerify(mergePhasesToVerify(marked, result.filled)),
+      row.id,
+    ]);
   }
 }
 
@@ -289,7 +371,7 @@ async function assembleRecords(
   }
   const ids = rows.map((row) => row.id);
   const phaseRows = await database.getAllAsync<MovementPhaseRow>(
-    `SELECT movement_id, phase_id, position, label FROM movement_phases
+    `SELECT movement_id, phase_id, position, label, duration_seconds FROM movement_phases
      WHERE movement_id IN (${placeholders(ids)}) ORDER BY movement_id ASC, position ASC`,
     ids,
   );
@@ -334,7 +416,12 @@ async function assembleRecords(
       media,
       categoryId: row.category_id,
       bodyZoneIds: (zonesById.get(row.id) ?? []).map((zone) => zone.body_zone_id),
-      phases: (phasesById.get(row.id) ?? []).map((phase) => ({ id: phase.phase_id, label: phase.label })),
+      // PRE-9 A.2b : durée par défaut portée seulement si elle est renseignée (absente sinon).
+      phases: (phasesById.get(row.id) ?? []).map((phase) =>
+        phase.duration_seconds === null
+          ? { id: phase.phase_id, label: phase.label }
+          : { id: phase.phase_id, label: phase.label, durationSeconds: phase.duration_seconds },
+      ),
       nextPhaseId: row.next_phase_id,
       aliases: (aliasesById.get(row.id) ?? []).map((alias) => alias.alias),
       levelGroup:
@@ -370,14 +457,20 @@ export async function countMovementOccurrences(database: Database, id: string): 
   return row?.count ?? 0;
 }
 
-/** Nombre de définitions du Catalogue qui référencent le Mouvement. */
-export async function countMovementDefinitions(database: Database, id: string): Promise<number> {
+/**
+ * PRE-9 (recette du 03/11/2026, décision de Hermann) : occurrences du Mouvement dans les seules
+ * Séances actives. Garde de l'archivage : une Séance archivée ne bloque plus l'archivage.
+ */
+export async function countMovementActiveOccurrences(database: Database, id: string): Promise<number> {
   const row = await database.getFirstAsync<{ count: number }>(
-    "SELECT COUNT(*) AS count FROM activity_definitions WHERE movement_id = ?",
+    `SELECT COUNT(*) AS count FROM activities
+     JOIN sessions ON sessions.id = activities.session_id
+     WHERE activities.source_movement_id = ? AND sessions.status = 'ACTIVE'`,
     [id],
   );
   return row?.count ?? 0;
 }
+
 
 const MOVEMENT_COLUMNS = `id, name, normalized_name, description, category_id, next_phase_id,
   level_group_id, level_sort_key, created_at, updated_at`;
@@ -431,10 +524,6 @@ export class SqliteMovementRepository implements MovementRepository {
     return row?.count ?? 0;
   }
 
-  async countDefinitions(id: string): Promise<number> {
-    return countMovementDefinitions(this.database, id);
-  }
-
   async delete(id: string): Promise<DeleteMovementOutcome> {
     let outcome: DeleteMovementOutcome = { status: "NOT_FOUND" };
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
@@ -445,11 +534,12 @@ export class SqliteMovementRepository implements MovementRepository {
       if (!existing) {
         return;
       }
-      const definitionCount = await countMovementDefinitions(transaction, id);
       // PRE-7 (R-3, D-445) : une occurrence de Séance est une référence active, intègre.
+      // [PRE-9 A.3 du 04/11/2026 : les anciennes définitions du Catalogue, supprimées par la
+      // migration 021, ne sont plus comptées.]
       const occurrenceCount = await countMovementOccurrences(transaction, id);
-      if (definitionCount > 0 || occurrenceCount > 0) {
-        outcome = { status: "REFERENCED", definitionCount, occurrenceCount };
+      if (occurrenceCount > 0) {
+        outcome = { status: "REFERENCED", occurrenceCount };
         return;
       }
       // Phases, Zones, alias et liens de médias partent en cascade ; les assets ne sont jamais touchés.
@@ -476,7 +566,11 @@ export class SqliteMovementRepository implements MovementRepository {
         outcome = { status: "ALREADY_ARCHIVED" };
         return;
       }
-      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementOccurrences(transaction, id));
+      // PRE-9 (décisions de Hermann du 03/11/2026) : seuls les Exercices des Séances actives bloquent ;
+      // ni les Séances archivées ni les définitions de l'ancien Catalogue des Exercices (non affiché,
+      // conversion A.4) — elles gardent leur lien vers le Mouvement archivé, rien n'est supprimé. [PRE-9 A.3 du
+      // 04/11/2026 : A.4 abandonnée, ces définitions sont supprimées par la migration 021.]
+      const exerciseCount = await countMovementActiveOccurrences(transaction, id);
       if (exerciseCount > 0) {
         outcome = { status: "REFERENCED", exerciseCount };
         return;
@@ -522,7 +616,9 @@ export class SqliteMovementRepository implements MovementRepository {
         outcome = { status: "NOT_ARCHIVED" };
         return;
       }
-      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementOccurrences(transaction, id));
+      // [PRE-9 A.3 du 04/11/2026 : seules les occurrences de Séance comptent ; les anciennes
+      // définitions du Catalogue sont supprimées par la migration 021.]
+      const exerciseCount = await countMovementOccurrences(transaction, id);
       if (exerciseCount > 0) {
         outcome = { status: "REFERENCED", exerciseCount };
         return;
@@ -610,7 +706,18 @@ export class SqliteMovementRepository implements MovementRepository {
       if (!moving || !anchor) return;
       const timestamp = this.now();
       // Un Mouvement seul dans son groupe (singleton) se présente sans famille : il est libre (C1, C2).
-      const movingAlone = moving.groupId === null || (await groupMemberIds(transaction, moving.groupId)).length === 1;
+      // Décision de Hermann du 03/11/2026 : seul ACTIF de son groupe (les autres membres archivés, D4), il
+      // est libre aussi — posé ailleurs, il quitte ce groupe (`leftBehind`), qui reste aux archivés.
+      const movingAlone = moving.groupId === null || (await activeGroupMemberIds(transaction, moving.groupId)).length === 1;
+      const leftBehind = async (destination: string | null): Promise<MovementPriorMemberships> => {
+        if (moving.groupId === null || moving.groupId === destination) return [];
+        const archived = (await groupMemberIds(transaction, moving.groupId)).filter((id) => id !== movementId);
+        if (archived.length !== 1) return [];
+        // Un seul archivé restant : plus de famille (pas de groupe d'un membre sans autre membre).
+        const lone = await readMembership(transaction, archived[0]!);
+        await writeMembership(transaction, archived[0]!, null, null, timestamp);
+        return lone === null ? [] : [lone];
+      };
       const anchorAlone = anchor.groupId === null || (anchor.groupId !== moving.groupId && (await groupMemberIds(transaction, anchor.groupId)).length === 1);
       if (anchorAlone) {
         // C1 : création d'une famille à deux membres — la seule écriture de deux lignes.
@@ -619,7 +726,7 @@ export class SqliteMovementRepository implements MovementRepository {
           return;
         }
         const groupId = this.uuidFactory();
-        const previous = [moving, anchor];
+        const previous = [moving, anchor, ...(await leftBehind(groupId))];
         const above = side === "ABOVE";
         await writeMembership(transaction, anchorId, groupId, above ? 0 : 1, timestamp);
         await writeMembership(transaction, movementId, groupId, above ? 1 : 0, timestamp);
@@ -641,6 +748,7 @@ export class SqliteMovementRepository implements MovementRepository {
       const upper = ordered[insertAt] ?? null;
       const key = keyBetween(lower?.sortKey ?? null, upper?.sortKey ?? null);
       const operation = sameFamily ? "REORDERED" : "JOINED";
+      const released = await leftBehind(groupId);
       if (key === null) {
         // Précision épuisée entre deux clés voisines : seule exception, la famille est renumérotée.
         const previous = [moving, ...(await Promise.all(ordered.map((member) => readMembership(transaction, member.movementId))))].filter(
@@ -648,11 +756,11 @@ export class SqliteMovementRepository implements MovementRepository {
         );
         const ids = ordered.map((member) => member.movementId);
         await writeGroupOrder(transaction, groupId, [...ids.slice(0, insertAt), movementId, ...ids.slice(insertAt)], timestamp);
-        outcome = { status: "OK", operation, groupId, previous };
+        outcome = { status: "OK", operation, groupId, previous: [...previous, ...released] };
         return;
       }
       await writeMembership(transaction, movementId, groupId, key, timestamp);
-      outcome = { status: "OK", operation, groupId, previous: [moving] };
+      outcome = { status: "OK", operation, groupId, previous: [moving, ...released] };
     });
     return outcome;
   }
@@ -824,6 +932,15 @@ export async function joinMovementGroup(
 async function groupMemberIds(transaction: Database, groupId: string): Promise<string[]> {
   const rows = await transaction.getAllAsync<{ id: string }>(
     "SELECT id FROM movements WHERE level_group_id = ? ORDER BY level_sort_key ASC, id ASC",
+    [groupId],
+  );
+  return rows.map((row) => row.id);
+}
+
+/** Membres non archivés d'un groupe (décision de Hermann du 03/11/2026 : seul actif = libre). */
+async function activeGroupMemberIds(transaction: Database, groupId: string): Promise<string[]> {
+  const rows = await transaction.getAllAsync<{ id: string }>(
+    "SELECT id FROM movements WHERE level_group_id = ? AND archived_at IS NULL ORDER BY level_sort_key ASC, id ASC",
     [groupId],
   );
   return rows.map((row) => row.id);

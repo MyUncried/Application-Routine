@@ -83,7 +83,7 @@ Conséquence d'interface : **le filet de formation ne s'affiche jamais pour une 
 
 Elles ne s'appliquent pas au détachement **explicite** du dernier couple, où l'intention de l'utilisateur est de ne plus avoir de famille. Laisser un groupe d'un seul membre y serait un état fantôme, invisible à l'écran mais actif dans les données.
 
-**D4.** Un mouvement resté seul après un archivage conserve son groupe et son rang masqué. Un mouvement resté seul après une sortie explicite n'a plus de groupe. Les deux se présentent de la même façon à l'écran ; ils diffèrent par ce qui se passe ensuite.
+**D4.** Un mouvement resté seul après un archivage conserve son groupe et son rang masqué. Un mouvement resté seul après une sortie explicite n'a plus de groupe. Les deux se présentent de la même façon à l'écran ; ils diffèrent par ce qui se passe ensuite. [Précisé par la décision de Hermann du 03/11/2026 (registre ch. 07, « Familles — seul membre actif après archivage ») : ce mouvement, seul actif de son groupe, est libre pour le geste ; posé sur une autre carte ou dans une autre famille, il quitte son groupe, qui reste aux membres archivés (un seul archivé restant n'a plus de groupe). Les cartes posées sur lui entrent toujours dans son groupe.]
 
 ---
 

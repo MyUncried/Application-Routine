@@ -6,7 +6,7 @@ import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteMovementRepository, updateMovementContent } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import { seedCatalogueDefinition } from "@/infrastructure/database/testing/seedCatalogueDefinition";
+import { seedMovement } from "@/infrastructure/database/testing/seedMovement";
 
 /**
  * PRE-7 (A1.2, D-437, D-439, MFN-02 à MFN-05, MFN-08) — `SqliteMovementRepository`
@@ -146,13 +146,12 @@ describe("SqliteMovementRepository (NodeSqliteDatabase REAL)", () => {
     expect(await repository().countOccurrences("mov-1")).toBe(0);
   });
 
-  it("suppression : REFERENCED avec le nombre de définitions, rien supprimé ; sans référence : supprimé (phases, Zones, liens), asset conservé ; inconnu : NOT_FOUND", async () => {
-    await seedCatalogueDefinition(database, { id: "def-1", movementId: "mov-ref" });
-    await seedCatalogueDefinition(database, { id: "def-2", movementId: "mov-ref-2", name: "Fentes" });
-    await database.runAsync("UPDATE activity_definitions SET movement_id = 'mov-ref' WHERE id = 'def-2'");
-    expect(await repository().countDefinitions("mov-ref")).toBe(2);
-    expect(await repository().delete("mov-ref")).toEqual({ status: "REFERENCED", definitionCount: 2, occurrenceCount: 0 });
-    expect(await repository().findById("mov-ref")).not.toBeNull();
+  // [A.3 du 04/11/2026 : les anciennes définitions du Catalogue (supprimées par la migration 021) ne
+  // bloquent plus la suppression ; seules les occurrences de Séance la refusent (REFERENCED).]
+  it("suppression : sans référence : supprimé (phases, Zones, liens), asset conservé ; inconnu : NOT_FOUND", async () => {
+    await seedMovement(database, { movementId: "mov-ref" });
+    expect(await repository().delete("mov-ref")).toEqual({ status: "DELETED" });
+    expect(await repository().findById("mov-ref")).toBeNull();
 
     await repository().create(movement({ media: [{ assetId: "p1", asset: photo("p1") }] }));
     expect(await repository().delete("mov-1")).toEqual({ status: "DELETED" });
@@ -160,9 +159,6 @@ describe("SqliteMovementRepository (NodeSqliteDatabase REAL)", () => {
     expect(await database.getAllAsync("SELECT movement_id FROM movement_phases WHERE movement_id = 'mov-1'")).toEqual([]);
     expect(await database.getAllAsync("SELECT id FROM media_assets")).toEqual([{ id: "p1" }]);
     expect(await repository().delete("mov-1")).toEqual({ status: "NOT_FOUND" });
-    // La suppression d'une définition ne supprime pas son Mouvement (aucun ramassage, MFN-04).
-    await database.runAsync("DELETE FROM activity_definitions");
-    expect(await repository().findById("mov-ref")).not.toBeNull();
   });
 
   it("groupe de niveaux : rattacher crée le groupe (origine en premier), insérer après l'origine, réordonner, retirer ; singleton conservé ; au plus un groupe", async () => {

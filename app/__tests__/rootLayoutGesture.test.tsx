@@ -62,6 +62,10 @@ jest.mock("@/features/sessions/SessionServiceProvider", () => ({
   },
 }));
 
+jest.mock("@/features/sessions/CreationDraftProviders", () => ({
+  CreationDraftProviders: ({ children }: { children: ReactNode }) => children,
+}));
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const RootLayout = (require("../_layout") as { default: ComponentType }).default;
 
@@ -98,5 +102,55 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
     const profileEdit = screenCalls.find((call) => call.name === "profile-edit");
     expect(profileEdit).toBeDefined();
     expect(profileEdit?.options?.gestureEnabled).toBeUndefined();
+  });
+
+  /**
+   * Demande de Hermann du 04/11/2026 (texte exact) : « Afficher en mode modale iOS (mode d'apparition identique à la
+   * fiche des mouvements du questionnaire par exemple) les 3 modales et écrans suivants : Catalogue des mouvements :
+   * Filtres ; Catalogue des mouvements : Créer un mouvement ; Catalogue des séances : Filtres ».
+   */
+  // Hermann, 04/11/2026 : « catalogue des mouvements, appuyer sur la photo ouvre la fiche des mouvements en modification,
+  // elle doit être ouverte sous forme de modale iOS » — toute la route `/movement` est une feuille native.
+  it("presents the Movement route as a native iOS form sheet: creation, edition, consultation and new level", () => {
+    screenCalls.length = 0;
+    render(<RootLayout />);
+
+    const movement = screenCalls.find((call) => call.name === "movement");
+    const options = movement?.options as unknown as (props: { route: { params?: object } }) => Record<string, unknown>;
+    const sheet = { presentation: "formSheet", sheetGrabberVisible: false, contentStyle: { backgroundColor: "#FFFFFF" }, gestureEnabled: false };
+    expect(options({ route: {} })).toMatchObject(sheet);
+    // Création depuis la Composition : même route, même écran (cohérence).
+    expect(options({ route: { params: { context: "session" } } })).toMatchObject(sheet);
+    expect(options({ route: { params: { movementId: "m1" } } })).toMatchObject(sheet);
+    expect(options({ route: { params: { movementId: "m1", mode: "edit" } } })).toMatchObject(sheet);
+    expect(options({ route: { params: { variantOf: "m1", placement: "AFTER_ORIGIN" } } })).toMatchObject(sheet);
+  });
+
+  // Règle de Hermann du 06/11/2026 (registre ch07 : « Je veux qu’on suive l’ordre des écrans et des modèles lorsqu’on les ouvre et
+  // qu’on les ferme en fonction des décisions qu’ils ont prises ») : modale « Créer un exercice », questionnaire, récapitulatif et
+  // fiche d'un mouvement — feuilles natives de la pile racine, au-dessus de l'écran qui les ouvre, sans geste natif (comme avant).
+  it("presents the creation modal, the Format questionnaire and summary, and the movement sheet as native root form sheets", () => {
+    screenCalls.length = 0;
+    render(<RootLayout />);
+
+    const sheet = (name: string) => screenCalls.find((call) => call.name === name)?.options;
+    expect(sheet("formats-window")).toMatchObject({ presentation: "formSheet", sheetAllowedDetents: "fitToContents", gestureEnabled: false });
+    for (const name of ["format-questionnaire", "format-summary"]) {
+      expect(sheet(name)).toMatchObject({ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: { backgroundColor: "#FFFFFF" }, gestureEnabled: false });
+    }
+    expect(sheet("movement-sheet")).toMatchObject({ presentation: "formSheet", gestureEnabled: false });
+  });
+
+  it("presents the Catalogue filters as a native iOS form sheet, without grabber, on a white background", () => {
+    screenCalls.length = 0;
+    render(<RootLayout />);
+
+    const filters = screenCalls.find((call) => call.name === "catalogue-filters");
+    expect(filters?.options).toMatchObject({
+      presentation: "formSheet",
+      sheetGrabberVisible: false,
+      contentStyle: { backgroundColor: "#FFFFFF" },
+      gestureEnabled: false,
+    });
   });
 });

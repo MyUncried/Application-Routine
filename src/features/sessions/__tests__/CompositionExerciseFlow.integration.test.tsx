@@ -1,8 +1,8 @@
+import { router as expoRouter } from "expo-router";
 import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testing-library";
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
-import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
@@ -21,7 +21,8 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
-import { chooseExecutionMode, pressInExecutionSheet } from "@/features/activities/testing/executionSheetActions";
+import { chooseExecutionMode, enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * Intégration bout-en-bout du parcours Activité (UI-ACT-001, cycle de
@@ -132,28 +133,7 @@ class NoopCategoryRepository implements CategoryRepository {
   }
 }
 
-/**
- * V2-PRE-1 (device check Hermann, commentaire 5948936550) : `CompositionScreen`
- * et `ExerciseScreen` consomment désormais `ActivityDefinitionService` (Zones
- * corporelles) — un contexte factice minimal (aucune dépendance SQLite
- * réelle) est donc nécessaire pour ce parcours Composition↔Activité, qui ne
- * porte sur aucune Zone ni Catégorie (couvert par `CatalogueCompositionEditFlow
- * .integration.test.tsx`).
- */
-class NoopActivityDefinitionRepository implements ActivityDefinitionRepository {
-  create(): Promise<ActivityDefinition> {
-    return Promise.reject(new Error("not used by this Composition/Activity navigation test"));
-  }
-  findById(): Promise<ActivityDefinition | null> {
-    return Promise.resolve(null);
-  }
-  listAll(): Promise<readonly ActivityDefinition[]> {
-    return Promise.resolve([]);
-  }
-  update(): Promise<ActivityDefinition | null> {
-    return Promise.reject(new Error("not used by this Composition/Activity navigation test"));
-  }
-}
+// [PRE-9 A.3 du 04/11/2026 : dépôt factice des définitions retiré avec les anciennes définitions du Catalogue.]
 
 /**
  * V2-PRE-2 (plan §6.1/§7) : `ExerciseScreen` lit désormais le Profil
@@ -209,7 +189,6 @@ function SessionServiceTestWrapper({ children }: { children: ReactNode }) {
       <ActivityDefinitionServiceProvider
         service={
           new ActivityDefinitionService(
-            new NoopActivityDefinitionRepository(),
             new NoopCategoryRepository(),
             new NoopBodyZoneRepository(),
           )
@@ -254,9 +233,8 @@ async function fillNewExercise(name: string) {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   // PRE-4 story 3.1 : popover natif sur iOS, segmenté ailleurs.
   chooseExecutionMode("Durée");
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 45 } });
-  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 45);
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
 }
 
@@ -264,26 +242,37 @@ function renderCreationRouter() {
   return renderRouter(
     {
       index: () => null,
+      // Règle du 06/11/2026 : brouillons au niveau de l'application (`app/_layout.tsx`).
+      _layout: CreationRootStack,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      "(creation)/activity-selection": require("../../../../app/(creation)/activity-selection")
-        .default,
+      // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » retirée avec les anciennes définitions du Catalogue.]
     },
     { initialUrl: "/composition", wrapper: SessionServiceTestWrapper },
   );
+}
+
+/**
+ * PRE-9 A.2 — ARB-22a, D-449 : « Créer un nouvel exercice » du menu Créer n'ouvre plus l'ancien
+ * éditeur (création d'un Mouvement, `CompositionMovementFlow.integration.test.tsx`). L'ancien
+ * éditeur de création reste dans le code jusqu'à A.3 : ses contrats sont conservés en l'ouvrant
+ * directement par sa route.
+ */
+function openLegacyExerciseCreation() {
+  act(() => {
+    expoRouter.push("/exercise");
+  });
 }
 
 describe("Parcours Composition → Activité (écran unifié), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001)", () => {
   it("1. l'écran Activité expose tout le formulaire d'un seul tenant : aucune étape intermédiaire, Terminer devient actif dès que les champs requis PRE-3 sont valides (T02-S02, D-137 ; PRE-3 §5)", async () => {
     renderCreationRouter();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     expect(screen.getByLabelText(exercise.backAccessibilityLabel)).toBeTruthy();
 
     expect(screen.getByLabelText(exercise.finishAction).props.accessibilityState).toMatchObject({
@@ -315,8 +304,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
   it("2-3-4-5. Terminer enregistre atomiquement l'Activité, revient sur Composition, l'insère entre Compte à rebours et Tour, sans changer le résumé du Tour (BEFORE_TOUR)", async () => {
     const router = renderCreationRouter();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
@@ -346,16 +334,17 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
       exerciseRowTestId,
     ]);
 
-    // 5. Story 7.8 (D-443) : l'en-tête du Circuit n'affiche plus de durée (l'ancien résumé du
-    // Tour, qui restait vide pour une Activité `BEFORE_TOUR`, a disparu avec elle).
-    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
+    // 5. PRE-9 B.1a — D-451, complément du 28/10 (remplace la clause de D-443 qui masquait la
+    // durée) : l’en-tête du Circuit affiche de nouveau sa durée ; l’Activité est `BEFORE_TOUR`,
+    // le Circuit est vide : « 0 s ».
+    // PRE-9 B.2 — D-451, COMP §1 : une Séance commence sans Circuit — aucun Circuit vide, ni sa durée.
+    expect(screen.queryByTestId("composition-circuit-header-duration", { includeHiddenElements: true })).toBeNull();
   });
 
   it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", async () => {
     const router = renderCreationRouter();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Pompes");
 
     act(() => {
@@ -372,10 +361,12 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
   it("7. Continuer reste désactivé tant que le Nom de la séance est vide, même avec une Activité valide (T01-S09 : résolution de l'ARBITRAGE — Nom manquant, pas un blocage permanent)", async () => {
     renderCreationRouter();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
+    // PRE-9 B.9 (ch08, état 2) : le premier Exercice propose son nom ; vidé, le nom manque de nouveau.
+    expect(screen.getByLabelText(composition.name).props.value).toBe("Pompes");
+    fireEvent.changeText(screen.getByLabelText(composition.name), "");
 
     expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject(
       { disabled: true },
@@ -387,8 +378,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     const router = renderCreationRouter();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 

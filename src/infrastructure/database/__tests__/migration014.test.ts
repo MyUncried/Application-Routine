@@ -83,15 +83,24 @@ async function untouched(database: Database): Promise<Record<string, unknown>> {
     "movements",
     "movement_phases",
     "movement_body_zones",
-    "activity_definitions",
+    // [A.3 du 04/11/2026 : les anciennes définitions sont vidées par la 021 (`migration021.test.ts`) ; retirées de la comparaison.]
     "migration_notices",
   ];
   const snapshot: Record<string, unknown> = {};
   for (const table of tables) {
     // PRE-8 (B.8) : la 015, jouée ensuite au démarrage, ajoute `movements.archived_at` (NULL) ; elle
     // est éprouvée par `migration015.test.ts`. La comparaison de la 014 porte sur les colonnes d'avant.
+    // PRE-9 (C.1) : de même pour `sessions.origin` (017, `migration017.test.ts`).
     const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1`);
-    snapshot[table] = table === "movements" ? rows.map(({ archived_at: _archivedAt, ...rest }) => rest) : rows;
+    snapshot[table] =
+      table === "movements"
+        ? rows.map(({ archived_at: _archivedAt, ...rest }) => rest)
+        : table === "sessions"
+          ? rows.map(({ origin: _origin, ...rest }) => rest)
+          : // Recette iPhone n° 2 du 31/10/2026 : `phases_to_verify` (019, `migration019.test.ts`).
+            table === "activity_definitions"
+            ? rows.map(({ phases_to_verify: _phasesToVerify, ...rest }) => rest)
+            : rows;
   }
   return snapshot;
 }
@@ -181,8 +190,8 @@ async function seededVersion13(): Promise<NodeSqliteDatabase> {
 }
 
 describe("migration014 — structure générale de Séance, conversion sans perte (A.3, D-449 §4)", () => {
-  it("version courante 15 (014 puis 015, PRE-8 B.8)", () => {
-    expect(DATABASE_VERSION).toBe(15);
+  it("version courante 19 (014 à 019, PRE-9 A.1, C.1, A.2b et recette n° 2 constat e)", () => {
+    expect(DATABASE_VERSION).toBe(23);
   });
 
   it("convertit chaque Séance en [avant…, Circuit, après…] sans supprimer aucune ligne", async () => {
@@ -198,7 +207,7 @@ describe("migration014 — structure générale de Séance, conversion sans pert
     await initializeDatabase(database);
     database = reopen(database);
 
-    // Chemin du démarrage : 014 puis 015 (colonne additive `movements.archived_at`).
+    // Chemin du démarrage : 014, 015 (colonne additive `movements.archived_at`) puis 016 (PRE-9 A.1).
     expect(await version(database)).toBe(DATABASE_VERSION);
     // Aucune autre table modifiée, aucun avis de réinitialisation.
     expect(await untouched(database)).toEqual(before);
@@ -232,9 +241,10 @@ describe("migration014 — structure générale de Séance, conversion sans pert
       { id: "stop-i", tour_id: "tour-1", position: 2 },
     ]);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
-    for (const removed of ["cycle_id", "structural_position"]) {
-      expect(await columns(database, "activities")).not.toContain(removed);
-    }
+    expect(await columns(database, "activities")).not.toContain("structural_position");
+    // PRE-9 (A.1) : `cycle_id` réapparaît par `migration016` avec un autre sens (membre direct d'un
+    // Cycle utilisateur) ; aucune Séance convertie n'en reçoit.
+    expect(await count(database, "activities WHERE cycle_id IS NOT NULL")).toBe(0);
 
     // Relue par le repository : projection identique à l'ancien modèle, identités conservées.
     const session = (await new SqliteSessionRepository(database).findById("session-1"))!;
@@ -289,9 +299,25 @@ describe("migration014 — structure générale de Séance, conversion sans pert
     database = reopen(database);
     expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await count(database, "migration_notices")).toBe(0);
-    expect(await columns(database, "tours")).toEqual(["id", "session_id", "cycle_id", "position", "repeat_count", "side_mode", "nature"]);
+    // PRE-9 (C.1, `migration017`) : Format porté par le Circuit.
+    expect(await columns(database, "tours")).toEqual([
+      "id",
+      "session_id",
+      "cycle_id",
+      "position",
+      "repeat_count",
+      "side_mode",
+      "nature",
+      "format_key",
+      "format_settings",
+      // Recette iPhone n° 3 du 03/11/2026 (`migration020`) : modèle d'origine du Circuit.
+      "origin_model",
+      // Reprise Formats du 04/11/2026 (`migration022`) : nom du Circuit.
+      "name",
+    ]);
     expect(await columns(database, "cycles")).toEqual(["id", "session_id", "position", "repeat_count"]);
-    expect(await columns(database, "session_stop_points")).toEqual(["id", "session_id", "tour_id", "position"]);
+    // PRE-9 (A.1, `migration016`) : Point d'arrêt dans un Cycle.
+    expect(await columns(database, "session_stop_points")).toEqual(["id", "session_id", "tour_id", "cycle_id", "position"]);
     expect(await database.getAllAsync("SELECT name FROM sqlite_master WHERE name LIKE 'm014_%'")).toEqual([]);
   });
 });

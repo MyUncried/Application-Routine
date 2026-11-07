@@ -31,7 +31,7 @@ import {
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
 import { applyStepBackspace, applyStepTextChange, displayedStepRows, renderedStepRows } from "@/features/activities/DescriptionSteps";
-import { chooseExecutionMode, tapExecutionSheetStep } from "@/features/activities/testing/executionSheetActions";
+import { chooseExecutionMode, enterExecutionSheetValue, tapExecutionSheetStep } from "@/features/activities/testing/executionSheetActions";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
@@ -119,7 +119,11 @@ function Harness({
   bodyZones = BODY_ZONE_FIXTURES,
   exerciseSignals,
   safeAreaBottom,
+  hideFinish,
+  onBodyMeasure,
 }: {
+  hideFinish?: boolean;
+  onBodyMeasure?: (measure: { readonly frame: number; readonly content: number }) => void;
   /** PRE-5 story 3.2 (AC2) : encart bas de sécurité ; absent = métriques de test (34). */
   safeAreaBottom?: number;
   bodyZones?: readonly BodyZone[];
@@ -164,6 +168,8 @@ function Harness({
           finishSlotTestID="test-finish-slot"
           finishActionTestID="test-finish-action"
           errorTestID="test-save-error"
+          {...(hideFinish !== undefined ? { hideFinish } : {})}
+          {...(onBodyMeasure !== undefined ? { onBodyMeasure } : {})}
         />
       </ReferentialServiceContext.Provider>
     </SafeArea>
@@ -199,6 +205,20 @@ function boldSegments(): string[] {
     .filter((child): child is { props: { children: string } } => typeof child === "object" && child !== null)
     .map((child) => child.props.children);
 }
+
+describe("ActivityEditorForm — recette n° 3 bis du 03/11/2026 (f3s-fiche)", () => {
+  it("fiche en consultation seule : aucune zone Terminer ; hauteurs visible et du contenu du corps rendues", () => {
+    const onBodyMeasure = jest.fn();
+    render(<Harness hideFinish onBodyMeasure={onBodyMeasure} />);
+    expect(screen.queryByTestId("test-finish-slot")).toBeNull();
+    expect(screen.queryByTestId("test-finish-action")).toBeNull();
+    const body = screen.getByTestId("exercise-body");
+    fireEvent(body, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 500 } } });
+    expect(onBodyMeasure).not.toHaveBeenCalled();
+    fireEvent(body, "contentSizeChange", 390, 320);
+    expect(onBodyMeasure).toHaveBeenLastCalledWith({ frame: 500, content: 320 });
+  });
+});
 
 describe("ActivityEditorForm — contrats conservés", () => {
   it("renders and reports the name field", () => {
@@ -687,7 +707,7 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
     const onChangeSpy = jest.fn<(patch: Partial<ActivityEditorFormValue>) => void>();
     const inherited = repetitionParameters("UNSET", 3, 10);
     render(<Harness onChangeSpy={onChangeSpy} initial={{ name: "Pompes", executionParameters: inherited }} />);
-    expect(phrase()).toBe("Paramètres à compléter.");
+    expect(phrase()).toBe("Paramètres à compléter");
     expect(isActivityEditorFormValid(baseValue({ name: "Pompes", executionParameters: inherited }), {
       requireReferences: false,
       hasCategory: true,
@@ -696,14 +716,14 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
 
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
-    // Story 3.5 : Sélecteur ouvert sur 1 (« — », Q25), ✓ sans tourner applique 1.
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    fireEvent.press(screen.getByTestId("number-wheel-validate"));
+    // [Story 3.5 : Sélecteur ouvert sur 1, ✓ sans tourner — remplacé le 06/11/2026, décision de Hermann
+    // (constat c) : saisie au clavier] : 1 tapé dans le champ de la Cible.
+    enterExecutionSheetValue("execution-sheet-target", 1, "integer");
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     const applied = onChangeSpy.mock.calls.at(-1)?.[0].executionParameters;
     expect(applied?.series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(1), pauseSeconds: 10, loadKg: 0, workPhases: [] });
     expect(JSON.stringify(applied)).not.toContain("FAILURE");
-    expect(phrase()).not.toBe("Paramètres à compléter.");
+    expect(phrase()).not.toBe("Paramètres à compléter");
   });
 
   it("PRE4-1.1/AC24 — isActivityEditorFormValid avec ligne de base (H25) : valeur historique 5999 s inchangée tolérée ; modifiée, elle doit respecter les bornes", () => {
@@ -901,7 +921,7 @@ describe("ActivityEditorForm — PRE-4 story 3.8", () => {
     }
   });
 
-  it("PRE4-3.8/AC5 — ✓ ou ✕ de la Feuille absorbé par une roue ouverte : la Feuille reste montée, le focus n'est pas déplacé, les paramètres sont intacts", () => {
+  it("PRE4-3.8/AC5 — ✓ ou ✕ de la Feuille absorbé par une saisie ouverte : la Feuille reste montée, le focus n'est pas déplacé, les paramètres sont intacts [roue — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
     const setAccessibilityFocus = jest.spyOn(AccessibilityInfo, "setAccessibilityFocus").mockImplementation(() => {});
     setAccessibilityFocus.mockClear();
     const onChangeSpy = jest.fn();
@@ -909,10 +929,11 @@ describe("ActivityEditorForm — PRE-4 story 3.8", () => {
       render(<Harness onChangeSpy={onChangeSpy} />);
       fireEvent.press(screen.getByTestId("exercise-parameters-card"));
       for (const header of ["execution-sheet-validate", "execution-sheet-cancel"]) {
-        fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-        expect(screen.getByTestId("execution-sheet-target-panel")).toBeTruthy();
+        fireEvent(screen.getByTestId("execution-sheet-target-input", { includeHiddenElements: true }), "focus");
+        expect(screen.getByTestId("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: true });
         fireEvent.press(screen.getByTestId(header, { includeHiddenElements: true }));
-        expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
+        expect(screen.getByTestId("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: false });
+        fireEvent(screen.getByTestId("execution-sheet-target-input", { includeHiddenElements: true }), "blur");
         expect(screen.getByTestId("execution-sheet")).toBeTruthy();
       }
       expect(setAccessibilityFocus).not.toHaveBeenCalled();
@@ -1087,11 +1108,10 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     render(<Harness initial={{ executionParameters: EMPTY }} />);
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
     chooseExecutionMode("Répétitions");
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    fireEvent.press(screen.getByTestId("number-wheel-validate"));
+    // [Q25 : roue ouverte sur 1, ✓ — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+    enterExecutionSheetValue("execution-sheet-target", 1, "integer");
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     expect(screen.queryByTestId("exercise-parameters-empty-prompt")).toBeNull();
-    // Q25 : la roue s'ouvre sur la valeur minimale (1) ; son ✓ la valide.
     expect(phrase()).toBe("1 série de 1 répétition.");
   });
 

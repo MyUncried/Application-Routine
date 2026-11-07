@@ -6,6 +6,7 @@ import {
   computeStructureDuration,
   countStructureExercises,
   legacyFromStructure,
+  NO_CIRCUIT_ID,
   structureCircuits,
   structureExercises,
   structureFromLegacy,
@@ -45,8 +46,8 @@ describe("structure — parcours et comptes D-449 §6", () => {
   const structure: SessionStructure<Facts> = {
     elements: [
       { kind: "EXERCISE", exercise: a },
-      { kind: "CYCLE", cycle: { id: "A", repeatCount: 3, circuits: [circuit("c1", [b]), circuit("c2", [c, d])] } },
-      { kind: "CYCLE", cycle: { id: "B", repeatCount: 2, circuits: [circuit("c3", [b])] } },
+      { kind: "CYCLE", cycle: { id: "A", repeatCount: 3, members: [circuit("c1", [b]), circuit("c2", [c, d])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
+      { kind: "CYCLE", cycle: { id: "B", repeatCount: 2, members: [circuit("c3", [b])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
       { kind: "EXERCISE", exercise: e },
     ],
     stopPoints: [],
@@ -70,8 +71,8 @@ describe("structure — durée des Cycles successifs", () => {
     const structure: SessionStructure<Facts> = {
       elements: [
         { kind: "EXERCISE", exercise: x },
-        { kind: "CYCLE", cycle: { id: "A", repeatCount: 3, circuits: [circuit("c1", [y], 2)] } },
-        { kind: "CYCLE", cycle: { id: "B", repeatCount: 2, circuits: [circuit("c2", [x])] } },
+        { kind: "CYCLE", cycle: { id: "A", repeatCount: 3, members: [circuit("c1", [y], 2)].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
+        { kind: "CYCLE", cycle: { id: "B", repeatCount: 2, members: [circuit("c2", [x])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
       ],
       stopPoints: [],
     };
@@ -128,9 +129,9 @@ describe("structure — projection ancienne sans perte", () => {
     expect(legacyFromStructure(structureFromLegacy(empty, emptyPoints))).toEqual({ composition: empty, stopPoints: emptyPoints });
   });
 
-  it("refuse la projection d'une structure plus riche (Cycle, plusieurs Circuits ou aucun)", () => {
+  it("refuse la projection d'une structure plus riche (Cycle, plusieurs Circuits) ; sans Circuit : Circuit vide absent (PRE-9 B.2)", () => {
     const withCycle: SessionStructure<Facts> = {
-      elements: [{ kind: "CYCLE", cycle: { id: "A", repeatCount: 2, circuits: [circuit("c1", [exercise("x")])] } }],
+      elements: [{ kind: "CYCLE", cycle: { id: "A", repeatCount: 2, members: [circuit("c1", [exercise("x")])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } }],
       stopPoints: [],
     };
     const twoCircuits: SessionStructure<Facts> = {
@@ -143,7 +144,12 @@ describe("structure — projection ancienne sans perte", () => {
     const noCircuit: SessionStructure<Facts> = { elements: [{ kind: "EXERCISE", exercise: exercise("x") }], stopPoints: [] };
     expect(legacyFromStructure(withCycle)).toBeNull();
     expect(legacyFromStructure(twoCircuits)).toBeNull();
-    expect(legacyFromStructure(noCircuit)).toBeNull();
+    // PRE-9 (B.2, D-451, COMP §1) : une Séance sans Circuit est l'ancien modèle à Circuit vide, jamais écrit.
+    expect(legacyFromStructure(noCircuit)?.composition).toEqual({
+      beforeTour: [exercise("x")],
+      tour: { id: NO_CIRCUIT_ID, repeatCount: 1, nature: "TOURS", exercises: [] },
+      afterTour: [],
+    });
   });
 });
 
@@ -151,12 +157,13 @@ describe("structure — validation de forme", () => {
   const codes = (structure: SessionStructure<Facts, StructureStopPointLocation>) =>
     validateStructureShape(structure, idOf).map((violation) => violation.code);
 
-  it("accepte plusieurs Cycles successifs sans plafond de répétitions", () => {
+  // PRE-9 (A.1) : D-451 borne le compte du Cycle à 1..99 (remplace « aucun plafond » de D-449 §4).
+  it("accepte plusieurs Cycles successifs, compte jusqu'à 99 (D-451)", () => {
     expect(
       codes({
         elements: [
-          { kind: "CYCLE", cycle: { id: "A", repeatCount: 250, circuits: [circuit("c1", [exercise("x")])] } },
-          { kind: "CYCLE", cycle: { id: "B", repeatCount: 1, circuits: [circuit("c2", [exercise("y")]), circuit("c3", [exercise("z")])] } },
+          { kind: "CYCLE", cycle: { id: "A", repeatCount: 99, members: [circuit("c1", [exercise("x")])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
+          { kind: "CYCLE", cycle: { id: "B", repeatCount: 1, members: [circuit("c2", [exercise("y")]), circuit("c3", [exercise("z")])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
         ],
         stopPoints: [],
       }),
@@ -167,7 +174,8 @@ describe("structure — validation de forme", () => {
     expect(
       codes({
         elements: [
-          { kind: "CYCLE", cycle: { id: "A", repeatCount: 0, circuits: [] } },
+          { kind: "CYCLE", cycle: { id: "A", repeatCount: 0, members: [] } },
+          { kind: "CYCLE", cycle: { id: "B", repeatCount: 100, members: [{ kind: "EXERCISE" as const, exercise: exercise("y") }] } },
           { kind: "CIRCUIT", circuit: { ...circuit("c1", [exercise("x")], 100), nature: "MAX" as never } },
           { kind: "EXERCISE", exercise: exercise("x") },
         ],
@@ -200,12 +208,13 @@ describe("structure — validation de forme", () => {
     ]);
   });
 
-  it("n'accepte encore aucun Point d'arrêt hors de l'ancien modèle (règles généralisées : Epic C)", () => {
+  // [« n'accepte encore aucun Point d'arrêt hors de l'ancien modèle » — remplacé le 31/10/2026 par B.6 (ARB-02a/b).]
+  it("accepte un Point d'arrêt hors de l'ancien modèle (B.6 : forme seulement ; RM-219 à l'écriture)", () => {
     expect(
       codes({
-        elements: [{ kind: "CYCLE", cycle: { id: "A", repeatCount: 2, circuits: [circuit("c1", [exercise("x")])] } }],
+        elements: [{ kind: "CYCLE", cycle: { id: "A", repeatCount: 2, members: [circuit("c1", [exercise("x")])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } }],
         stopPoints: [{ circuitId: "c1", position: 0 }],
       }),
-    ).toEqual(["STRUCTURE_STOP_POINTS_UNSUPPORTED"]);
+    ).toEqual([]);
   });
 });

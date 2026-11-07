@@ -5,10 +5,9 @@ import { AccessibilityInfo, StyleSheet } from "react-native";
 import type { Movement } from "@/domain/activities/Movement";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
-import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
+import { MovementCatalogueList, PLACE_DWELL_MS } from "@/features/activities/MovementCatalogueList";
 import { EMPTY_MOVEMENT_FILTERS } from "@/features/activities/movementCatalogueView";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
@@ -27,7 +26,6 @@ let sequence = 0;
 const movements = () => new SqliteMovementRepository(database, () => `grp-${++sequence}`, () => NOW);
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, () => `def-${++sequence}`, () => NOW),
     undefined,
     undefined,
     undefined,
@@ -73,19 +71,19 @@ async function renderList() {
 }
 
 const layoutEvent = (y: number, height: number) => ({ nativeEvent: { layout: { x: 0, y, width: 370, height } } });
-/** Entrées du Catalogue, de haut en bas : carte de 80 + écart de 12 ; une pile dépliée : n cartes et n − 1 écarts de 4. */
+/** Entrées du Catalogue, de haut en bas : carte de 72 (D-508) + écart de 12 ; une pile dépliée : n cartes et n − 1 écarts de 4. */
 async function layOut(entries: readonly { readonly key: string; readonly members?: readonly string[] }[]) {
   await act(async () => {
     let y = 0;
     for (const entry of entries) {
       const members = entry.members ?? [];
-      const height = members.length > 0 ? members.length * 80 + (members.length - 1) * 4 + 12 : 92;
+      const height = members.length > 0 ? members.length * 72 + (members.length - 1) * 4 + 12 : 84;
       fireEvent(screen.getByTestId(`movement-item-${entry.key}`), "layout", layoutEvent(y, height));
       members.forEach((id, index) => {
         fireEvent(
           screen.getByTestId(`movement-pile-${entry.key}-member-${id}`),
           "layout",
-          layoutEvent(index === 0 ? 0 : index * 84 - 4, index === 0 ? 80 : 84),
+          layoutEvent(index === 0 ? 0 : index * 76 - 4, index === 0 ? 72 : 76),
         );
       });
       y += height;
@@ -116,6 +114,14 @@ const dwell = () =>
   act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 600));
   });
+/**
+ * Recette iPhone du 06/11/2026 (t-glisser) : la pose sur une carte (filet, décalage, niveaux provisoires) n'est annoncée
+ * qu'après un arrêt de la carte portée (`PLACE_DWELL_MS`, 0,4 s).
+ */
+const rest = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, PLACE_DWELL_MS + 50));
+  });
 const level = (id: string) => screen.queryByTestId(`movement-card-level-${id}`)?.props.children ?? null;
 const membership = async (id: string) => (await movements().findById(id))?.levelGroup ?? null;
 const notice = () => (screen.queryByTestId("movement-catalogue-notice-message")?.props.children as string | undefined) ?? null;
@@ -131,15 +137,18 @@ describe("PRE-8 familles — geste dans le Catalogue des Mouvements", () => {
     // « Mobilisation » (centre 224) portée dans la moitié haute de « Gainage » (92 à 132).
     await grab("mob");
     await moveBy(-110);
+    await rest();
     expect(screen.getByTestId("movement-card-gainage-formation-rail")).toBeTruthy();
     expect(level("mob")).toBe("Niveau 2");
     expect(level("gainage")).toBe("Niveau 1");
     expect(screen.queryByTestId("movement-card-fentes-formation-rail")).toBeNull();
     // Passer de l'autre côté : les niveaux provisoires s'inversent (C4).
     await moveBy(-70);
+    await rest();
     expect(level("mob")).toBe("Niveau 1");
     expect(level("gainage")).toBe("Niveau 2");
     await moveBy(-110);
+    await rest();
     await release();
     expect(notice()).toBe("Nouvelle famille de niveaux créée");
     const created = await membership("mob");
@@ -153,6 +162,28 @@ describe("PRE-8 familles — geste dans le Catalogue des Mouvements", () => {
     await settle();
     expect(await membership("mob")).toBeNull();
     expect(await membership("gainage")).toBeNull();
+  });
+
+  it("décision du 03/11/2026 : le seul actif d'une famille dont l'autre membre est archivé se pose sur un isolé et crée une famille", async () => {
+    const repository = movements();
+    for (const [id, name] of [["gainage", "Gainage"], ["mob", "Mobilisation du genou"], ["planche", "Planche"]] as const) {
+      await repository.create(movement(id, name));
+    }
+    await repository.placeInFamily("planche", "gainage", "ABOVE");
+    await repository.archive("planche");
+    await renderList();
+    await layOut([{ key: "gainage" }, { key: "mob" }]);
+    // « Gainage » (centre 40) porté dans la moitié basse de « Mobilisation » (92 à 172).
+    await grab("gainage");
+    await moveBy(95);
+    await rest();
+    expect(screen.getByTestId("movement-card-mob-formation-rail")).toBeTruthy();
+    await release();
+    expect(notice()).toBe("Nouvelle famille de niveaux créée");
+    const created = await membership("gainage");
+    expect(created).not.toBeNull();
+    expect((await membership("mob"))?.groupId).toBe(created!.groupId);
+    expect(await membership("planche")).toBeNull();
   });
 
   it("A, E3 (FAM-01) : réordonner dans une pile — niveaux recalculés en direct, filet inchangé, aucun message", async () => {
@@ -171,7 +202,7 @@ describe("PRE-8 familles — geste dans le Catalogue des Mouvements", () => {
     await moveBy(84);
     expect(level("jump")).toBe("Niveau 2");
     expect(level("squat")).toBe("Niveau 3");
-    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40);
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(36);
     await release();
     expect(notice()).toBeNull();
     expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "jump", "squat"]);
@@ -196,11 +227,11 @@ describe("PRE-8 familles — geste dans le Catalogue des Mouvements", () => {
     expect(level("assist")).toBeNull();
     expect(level("jump")).toBe("Niveau 2");
     expect(level("squat")).toBe("Niveau 1");
-    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40 + 84);
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(36 + 76);
     // B4 : de retour dans le filet, la sortie est annulée.
     await moveBy(10);
     expect(level("assist")).toBe("Niveau 1");
-    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40);
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(36);
     // Sortie vers le haut, au-dessus de « Fentes avant » : acceptée comme partout (B1, B5) ; aucune pose sur une autre carte (C6).
     await moveBy(-290);
     expect(screen.queryByTestId("movement-card-fentes-formation-rail")).toBeNull();
@@ -252,6 +283,7 @@ describe("PRE-8 familles — geste dans le Catalogue des Mouvements", () => {
     await layOut([{ key: "gainage" }, { key: group, members: ["squat", "assist"] }]);
     // Moitié basse de « Squats » (92 à 172) : niveau juste en dessous.
     await moveBy(100 + 40);
+    await rest();
     expect(level("gainage")).toBe("Niveau 2");
     expect(level("squat")).toBe("Niveau 3");
     expect(level("assist")).toBe("Niveau 1");
@@ -329,13 +361,32 @@ describe("PRE-8 familles — recette iPhone du 28/10", () => {
     expect(translateY("movement-card-tirage-lifted")).toBe(-60);
     // La pile dépliée (176) repousse la place de « Tirage » de 84 : le décalage la compense aussitôt.
     await layOut([{ key: group, members: ["squat", "assist"] }, { key: "tirage" }]);
-    expect(translateY("movement-card-tirage-lifted")).toBe(-60 - 84);
+    expect(translateY("movement-card-tirage-lifted")).toBe(-60 - 76);
     await moveBy(-70);
-    expect(translateY("movement-card-tirage-lifted")).toBe(-70 - 84);
+    expect(translateY("movement-card-tirage-lifted")).toBe(-70 - 76);
     // Centre 62 : moitié basse de « Squats » (0 à 80) — entrée juste en dessous, là où est le doigt.
+    await rest();
     await release();
     expect(notice()).toBe("Mouvement ajouté à la famille");
     expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "tirage", "squat"]);
+  });
+
+  it("recette du 05/11 au soir (m-carte, « le mouvement suit le doigt mais n’est pas fluide ») : la carte portée suit le doigt sans redessiner la liste tant que la place visée ne change pas", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.create(movement("tirage", "Tirage"));
+    await renderList();
+    await layOut([{ key: "squat" }, { key: "tirage" }]);
+    await grab("tirage");
+    await moveBy(4);
+    // Liste non redessinée : la carte voisine garde les mêmes propriétés rendues (seule la carte portée, animée, bouge).
+    const neighbour = screen.getByTestId("movement-item-squat").props;
+    await moveBy(8);
+    await moveBy(12);
+    await moveBy(16);
+    expect(translateY("movement-card-tirage-lifted")).toBe(16);
+    expect(screen.getByTestId("movement-item-squat").props === neighbour).toBe(true);
+    await release();
   });
 
   it("C5 : une famille repliée survolée sans s'arrêter ne se déplie pas ; un arrêt dessus la déplie", async () => {
@@ -391,16 +442,17 @@ describe("PRE-8 familles — recette iPhone du 28/10", () => {
     // « Tirage » (centre 216) portée dans la moitié basse de « Squats » (centre 60).
     await grab("tirage");
     await moveBy(-156);
+    await rest();
     expect(translateY("movement-card-squat-slot")).toBe(0);
-    expect(translateY("movement-card-assist-slot")).toBe(84);
-    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40 - 84);
-    expect(translateY("movement-item-zumba-shift")).toBe(84);
+    expect(translateY("movement-card-assist-slot")).toBe(76);
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(36 - 76);
+    expect(translateY("movement-item-zumba-shift")).toBe(76);
     expect(translateY(`movement-item-${group}-shift`)).toBe(0);
     // Hors de la pile : la place se referme.
     await moveBy(0);
     expect(translateY("movement-card-assist-slot")).toBe(0);
     expect(translateY("movement-item-zumba-shift")).toBe(0);
-    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40);
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(36);
     await release();
   });
 
@@ -413,7 +465,8 @@ describe("PRE-8 familles — recette iPhone du 28/10", () => {
     await layOut([{ key: "fentes" }, { key: "gainage" }, { key: "mob" }]);
     await grab("mob");
     await moveBy(-110);
-    expect(translateY("movement-card-gainage-slot")).toBe(84);
+    await rest();
+    expect(translateY("movement-card-gainage-slot")).toBe(76);
     expect(translateY("movement-item-fentes-shift")).toBe(0);
     await moveBy(-70);
     // Moitié basse de « Gainage » : la carte visée reste, la place s'ouvre dessous.

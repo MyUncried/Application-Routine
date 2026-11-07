@@ -6,6 +6,8 @@ import { Text } from "react-native";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
 import type { Session } from "@/domain/sessions/Session";
+import type { StructuredSession } from "@/domain/sessions/SessionRepository";
+import { withStructure } from "@/domain/sessions/testing/structuredSession";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import { createEmptyDraft, createExerciseDraft } from "@/domain/sessions/SessionDraft";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
@@ -159,8 +161,8 @@ describe("SessionDraftProvider", () => {
 });
 
 describe("SessionDraftProvider — mode modification (T01-S10)", () => {
-  function aSession(overrides: Partial<Session> = {}): Session {
-    return {
+  function aSession(overrides: Partial<Session> = {}): Session & StructuredSession {
+    return withStructure({
       id: "session-42",
       ownerId: "usr_test",
       name: "Séance persistée",
@@ -195,7 +197,7 @@ describe("SessionDraftProvider — mode modification (T01-S10)", () => {
       },
       categories: [],
       ...overrides,
-    };
+    } as Session);
   }
 
   function newGetForEdit() {

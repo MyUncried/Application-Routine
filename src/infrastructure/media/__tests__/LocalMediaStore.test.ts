@@ -12,7 +12,7 @@ import {
 } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 import { replaceMovementMediaLinks } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import { seedCatalogueDefinition } from "@/infrastructure/database/testing/seedCatalogueDefinition";
+import { seedMovement } from "@/infrastructure/database/testing/seedMovement";
 import { LocalMediaStore, mediaExtension, type MediaFileSystem } from "@/infrastructure/media/LocalMediaStore";
 
 /**
@@ -76,7 +76,7 @@ const now = () => "2026-10-09T10:00:00.000Z";
 
 /** PRE-7 (A1.2) : définition et son Mouvement, qui porte les médias. */
 async function seed(database: NodeSqliteDatabase): Promise<void> {
-  await seedCatalogueDefinition(database, { id: "def-1" });
+  await seedMovement(database, { movementId: "mov-def-1" });
 }
 
 beforeEach(() => {
@@ -91,6 +91,21 @@ beforeEach(() => {
 afterEach(() => {
   fs.rmSync(tmp, { recursive: true, force: true });
 });
+
+
+/**
+ * Liens ordonnés du Mouvement et leur asset. [PRE-9 A.3 du 04/11/2026 : la lecture des médias d'une
+ * ancienne définition du Catalogue (`listForActivityDefinition`) est retirée avec elles.]
+ */
+async function listMovementMedia(database: NodeSqliteDatabase, movementId: string) {
+  const rows = await database.getAllAsync<{ asset_id: string; position: number; uri: string; kind: string }>(
+    `SELECT movement_media.asset_id, movement_media.position, media_assets.uri, media_assets.kind
+     FROM movement_media JOIN media_assets ON media_assets.id = movement_media.asset_id
+     WHERE movement_media.movement_id = ? ORDER BY movement_media.position`,
+    [movementId],
+  );
+  return rows.map((row) => ({ assetId: row.asset_id, position: row.position, asset: { uri: row.uri, kind: row.kind } }));
+}
 
 describe("LocalMediaStore — PRE-3 (fichiers temporaires réels)", () => {
   it("P3-23/import-multiple — trois copies internes stables, associations ordonnées durables relues après réouverture de la base", async () => {
@@ -123,7 +138,7 @@ describe("LocalMediaStore — PRE-3 (fichiers temporaires réels)", () => {
     database.close();
     const reopened = NodeSqliteDatabase.openFile(databasePath);
     try {
-      const listed = await new SqliteMediaRepository(reopened).listForActivityDefinition("def-1");
+      const listed = await listMovementMedia(reopened, "mov-def-1");
       expect(listed.map((item) => [item.position, item.asset.uri, item.asset.kind])).toEqual([
         [0, "kodjo-media/id-3.jpg", "PHOTO"],
         [1, "kodjo-media/id-1.jpg", "PHOTO"],
@@ -257,7 +272,7 @@ describe("LocalMediaStore — REV-03 (fichiers et SQLite réels)", () => {
     database.close();
     const reopened = NodeSqliteDatabase.openFile(databasePath);
     try {
-      const listed = await new SqliteMediaRepository(reopened).listForActivityDefinition("def-1");
+      const listed = await listMovementMedia(reopened, "mov-def-1");
       expect(listed.map((item) => item.assetId)).toEqual(keys);
       expect(listed.map((item) => fs.readFileSync(store.resolveUri(item.asset.uri), "utf8"))).toEqual(["A", "B", "C"]);
     } finally {

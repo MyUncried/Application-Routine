@@ -129,7 +129,7 @@ beforeEach(() => {
 });
 
 describe("CatalogueScreen — cadre commun", () => {
-  it("displays the title, the full segment selector, and the active Créer action in every state", async () => {
+  it("PRE-9 CAT.1 — hides the individual page title, keeps the full segment selector and the active Créer action in every state", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     const pending = deferred<readonly CatalogueSessionRecord[]>();
     listCatalogueSessions.mockReturnValue(pending.promise);
@@ -141,7 +141,7 @@ describe("CatalogueScreen — cadre commun", () => {
 
     // Still loading: the frame is already present.
     const types = strings.screens.sessions.contentTypes;
-    expect(screen.getByText(strings.screens.sessions.title)).toBeTruthy();
+    expect(screen.queryByText(strings.screens.sessions.title)).toBeNull();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
     // PRE-8 (E.4, E.8-a) : trois segments, Programmes indisponible, plus de segment Exercices.
     expect(screen.queryByLabelText(types.activities)).toBeNull();
@@ -155,12 +155,12 @@ describe("CatalogueScreen — cadre commun", () => {
     });
 
     // Empty now, frame still present.
-    expect(screen.getByText(strings.screens.sessions.title)).toBeTruthy();
+    expect(screen.queryByText(strings.screens.sessions.title)).toBeNull();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
     expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
   });
 
-  it("recomposes the Shell — fixed Header with the title, a separator immediately below, and a Context band (distinct background) holding the segments and the command row (LAY-01, Phase 1; Shell Foundation partagé, CMP-01)", async () => {
+  it("PRE-9 CAT.1 — recomposes the Shell: fixed Header carrying the Catalogue navigation in place of the hidden title, no separator, and a Context band (distinct background) holding the two context lines (CE-CAT-CTX-01)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -171,30 +171,36 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
+    // Titre individuel masqué ; la navigation Mouvements / Séances / Programmes occupe l'en-tête.
     const header = screen.getByTestId("screen-header");
-    expect(within(header).getByText(strings.screens.sessions.title)).toBeTruthy();
+    expect(within(header).queryByText(strings.screens.sessions.title)).toBeNull();
+    expect(within(header).getByTestId("catalogue-content-type-row")).toBeTruthy();
+    expect(within(header).getByLabelText(strings.screens.sessions.contentTypes.sessions)).toBeTruthy();
 
     // Recette 3 (T-49, D-356) : plus de séparateur gris sous l'en-tête du Catalogue
     // (auparavant : séparateur présent, de couleur distincte du fond).
     expect(screen.queryByTestId("screen-header-separator")).toBeNull();
 
-    // Bande Context : fond distinct du fond général, contient le sélecteur
-    // de segments ET l'action Créer (pas seulement l'un des deux).
+    // Bande Context : fond distinct du fond général ; première ligne (bascule) et deuxième ligne
+    // (Rechercher, Filtre, Tri, Créer).
     const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
-    expect(
-      within(contextBand).getByLabelText(strings.screens.sessions.contentTypes.sessions),
-    ).toBeTruthy();
+    expect(within(contextBand).getByTestId("catalogue-context-line1")).toBeTruthy();
+    expect(within(contextBand).getByTestId("session-catalogue-search")).toBeTruthy();
     expect(within(contextBand).getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
-
-    // Le titre du Header n'est jamais dupliqué dans la bande Context.
+    expect(within(contextBand).queryByTestId("catalogue-content-type-row")).toBeNull();
     expect(within(contextBand).queryByText(strings.screens.sessions.title)).toBeNull();
   });
 
-  // Complément d'alignement du 07/10 (ajout C) : le cadre standard devient
-  // blanc à 50 % (`color/background`, opacité de remplissage 0,5) — il reste
-  // un fond propre au contrôle, plus clair que la zone de contexte.
-  it("gives the segmented control its own white 50 % container over the pale Context band (CAT-R01, ajout C du 07/10)", async () => {
+  // Complément d'alignement du 07/10 (ajout C, CAT-R01) : cadre blanc à 50 % du contrôle segmenté.
+  // [Remplacé le 30/10/2026 — recette iPhone CAT.1, Hermann (cat-titre) : « Adopter le style texte de
+  // Figma » : la navigation des Catalogues n'est plus un contrôle segmenté encadré.]
+  // [Remplacé le 06/11/2026 — D-502 (Hermann ; KODJO-Catalogues-cartes-modales-2026-11-06 §4) : sélectionné Bold
+  // `textPrimary` sur la forme d'onglet `context`, autres Regular `textSecondary` ; trois emplacements égaux ; plus de
+  // barres « | » ni de bleu sur le libellé. Avant : sélectionné Bold bleu Kodjo, autres Regular noir, séparateurs « | ».]
+  /** Décors sans VoiceOver (`no-hide-descendants`) : forme d’onglet, remplissage de la bande, fondu de navigation. */
+  const HIDDEN = { includeHiddenElements: true } as const;
+  it("D-502 : trois onglets à emplacements égaux, sans barres — sélectionné Bold 17 textPrimary sur la forme context du Catalogue, autres Regular 17 textSecondary", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -205,21 +211,78 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const filterRow = screen.getByTestId("catalogue-content-type-row");
-    expect(StyleSheet.flatten(filterRow.props.style).backgroundColor).toBe(colors.segmentedSurface);
-    expect(colors.segmentedSurface).toBe("rgba(255, 255, 255, 0.5)");
+    const row = screen.getByTestId("catalogue-content-type-row");
+    expect(row.props.accessibilityRole).toBe("tablist");
+    expect(StyleSheet.flatten(row.props.style).backgroundColor).toBeUndefined();
+    expect(screen.queryByTestId("catalogue-content-type-row-indicator")).toBeNull();
+    expect(screen.queryByTestId(/^catalogue-content-type-row-separator-/)).toBeNull();
+    // Trois emplacements fixes de même largeur (un tiers de la largeur utile), libellé centré.
+    for (const value of ["movements", "sessions", "programs"]) {
+      expect(StyleSheet.flatten(screen.getByTestId(`catalogue-content-type-row-${value}-slot`).props.style)).toMatchObject({
+        flex: 1,
+        flexBasis: 0,
+        height: 43,
+      });
+    }
+    const label = (value: string) => StyleSheet.flatten(screen.getByTestId(`catalogue-content-type-row-${value}-label`).props.style);
+    expect(label("sessions")).toMatchObject({ fontFamily: "Inter_700Bold", fontSize: 17, color: colors.textPrimary, textAlign: "center" });
+    expect(label("movements")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 17, color: colors.textSecondary, textAlign: "center" });
+    expect(label("programs")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 17, color: colors.textSecondary });
+    // Forme de l'onglet sélectionné : couleur `context` du Catalogue des Séances, coins hauts 12, bas évasés de 10.
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-content-type-row-sessions-shape-body", HIDDEN).props.style)).toMatchObject({
+      backgroundColor: colors.catalogueSessionsContext,
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-content-type-row-sessions-shape-flare-left", HIDDEN).props.style)).toMatchObject({
+      left: -10,
+      width: 10,
+      height: 10,
+      overflow: "hidden",
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-content-type-row-sessions-shape-flare-right", HIDDEN).props.style)).toMatchObject({ right: -10 });
+    expect(screen.queryByTestId("catalogue-content-type-row-movements-shape", HIDDEN)).toBeNull();
+    // Cible tactile : au moins 44 de haut.
+    const tab = screen.getByTestId("catalogue-content-type-row-movements");
+    expect(43 + tab.props.hitSlop.top + tab.props.hitSlop.bottom).toBeGreaterThanOrEqual(44);
 
-    // Le segment sélectionné (`Séances`, au centre) reste annoncé comme tel,
-    // et son texte reste blanc — non touché par le passage au sélecteur de
-    // type. Le fond bleu/violet DS est désormais porté par le cadre animé
-    // unique (V2-CAT-01, revue 5732014381 obligation 3), jamais par le
-    // segment lui-même.
-    const selected = screen.getByLabelText(strings.screens.sessions.contentTypes.sessions);
-    expect(selected.props.accessibilityState).toMatchObject({ selected: true });
+    fireEvent.press(tab);
+    expect(label("movements")).toMatchObject({ fontFamily: "Inter_700Bold", color: colors.textPrimary });
+    expect(label("sessions")).toMatchObject({ fontFamily: "Inter_400Regular", color: colors.textSecondary });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-content-type-row-movements-shape-body", HIDDEN).props.style).backgroundColor).toBe(
+      colors.catalogueMovementsContext,
+    );
+    expect(screen.getByLabelText(strings.screens.movement.catalogue.segment).props.accessibilityState).toMatchObject({ selected: true });
+  });
 
-    fireEvent(filterRow, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 354, height: 42 } } });
-    const indicator = screen.getByTestId("catalogue-content-type-row-indicator");
-    expect(StyleSheet.flatten(indicator.props.style).backgroundColor).toBe(colors.selection);
+  it("D-501 : fond d'écran (barre d'état et en-tête compris), zone de contexte et fondu au-dessus de la navigation aux couleurs du Catalogue actif", async () => {
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const expectPalette = (context: string, background: string) => {
+      expect(StyleSheet.flatten(screen.getByTestId("screen-shell").props.style).backgroundColor).toBe(background);
+      // L'en-tête fixe ne peint pas de fond propre : il laisse voir celui de l'écran.
+      expect(StyleSheet.flatten(screen.getByTestId("screen-header").props.style).backgroundColor).toBeUndefined();
+      expect(StyleSheet.flatten(screen.getByTestId("screen-context-band-solid", HIDDEN).props.style).backgroundColor).toBe(context);
+      expect(StyleSheet.flatten(screen.getByTestId("catalogue-navigation-fade-solid", HIDDEN).props.style).backgroundColor).toBe(background);
+      expect(StyleSheet.flatten(screen.getByTestId("catalogue-navigation-fade-gradient", HIDDEN).props.style)).toMatchObject({
+        height: 40,
+        experimental_backgroundImage: `linear-gradient(to bottom, ${background}00 0%, ${background} 100%)`,
+      });
+      expect(screen.getByTestId("catalogue-navigation-fade", HIDDEN).props.pointerEvents).toBe("none");
+    };
+    expectPalette("#EAEAFF", "#F8F8FF");
+    expect(colors.catalogueSessionsContext).toBe("#EAEAFF");
+
+    fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
+    expectPalette("#E5F0FF", "#F7FAFF");
   });
 
   it("gives Créer its own white background instead of letting the Context band's pale tint show through (CAT-R02, contre-recette iPhone 2026-09-03)", async () => {
@@ -417,7 +480,10 @@ describe("CatalogueScreen — cadre commun", () => {
 
     expect(screen.queryByTestId("catalogue-create-tree")).toBeNull();
     expect(mockPush).toHaveBeenCalledTimes(1);
-    expect(mockPush).toHaveBeenCalledWith("/composition");
+    // Complément du 5 novembre 2026 (§1–§2, CE-CREATION-01) : Créer ouvre la modale de création commune sur un nouveau brouillon ;
+    // règle du 06/11/2026 (aucun écran ouvert par anticipation) : la modale, directement au-dessus du Catalogue.
+    // [Référence du 02/11 : Composition vide ; 05/11 : Composition `create=1` — remplacés.]
+    expect(mockPush).toHaveBeenCalledWith("/formats-window");
   });
 
   it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {
@@ -441,12 +507,14 @@ describe("CatalogueScreen — cadre commun", () => {
       expect(flattened.width + hitSlop.left + hitSlop.right).toBeGreaterThanOrEqual(44);
       expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(44);
     }
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).gap).toBe(12);
-    // Remarque 9 de la recette A/B du 27/10 : 8 sous les segments, comme sur `main`.
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).marginTop).toBe(8);
+    // PRE-9 CAT.1 (CE-CAT-CTX-01) : deuxième ligne de 44 (cibles 44 × 44 à y = 155), écart 12 entre
+    // les commandes (x = 260 / 306 / 352 à 402 pt).
+    const row = StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style);
+    expect(row).toMatchObject({ height: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between" });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-context-commands").props.style).gap).toBe(12);
   });
 
-  it("shows Rechercher in the command row on the Mouvements segment only, with a clear cross once text is typed (recette PRE-8 A/B D02, D03)", async () => {
+  it("shows the Mouvements Rechercher (distinct from the Séances one) in the context command row, with a clear cross once text is typed (recette PRE-8 A/B D02, D03)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -458,9 +526,22 @@ describe("CatalogueScreen — cadre commun", () => {
     });
 
     expect(screen.queryByTestId("movement-catalogue-search")).toBeNull();
+    // PRE-9 CAT.1 : le segment Séances porte sa propre recherche.
+    expect(screen.getByTestId("session-catalogue-search")).toBeTruthy();
     fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
     const row = screen.getByTestId("catalogue-command-row");
     expect(within(row).getByTestId("movement-catalogue-search")).toBeTruthy();
+    // Recette iPhone du 29/10/2026 (Hermann : « mettre le bouton Créer à gauche, et le bouton filtre à
+    // droite ») : Créer | Rechercher | Trier | Filtrer ; remplacé le 30/10/2026 (Hermann : « rechercher,
+    // filtrer, trier puis créer »). PRE-9 CAT.1 : même ordre dans la zone de contexte.
+    const testIDsOf = (node: { children: (unknown)[] }) =>
+      node.children.map((child) => (typeof child === "string" ? child : (child as { props: { testID?: string } }).props.testID));
+    expect(testIDsOf(row)).toEqual(["movement-catalogue-search", "catalogue-context-commands"]);
+    expect(testIDsOf(screen.getByTestId("catalogue-context-commands"))).toEqual([
+      "catalogue-filter-action",
+      "catalogue-sort-action",
+      "catalogue-create-action",
+    ]);
     expect(screen.queryByTestId("movement-catalogue-search-clear")).toBeNull();
     fireEvent.changeText(screen.getByTestId("movement-catalogue-search"), "squat");
     expect(screen.getByTestId("movement-catalogue-search").props.value).toBe("squat");
@@ -679,7 +760,7 @@ describe("CatalogueScreen — quatre états", () => {
     });
 
     expect(screen.getByTestId("session-card-card-a-swipe-card")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("session-card-card-b-swipe-card"));
+    fireEvent.press(screen.getByTestId("session-card-card-b-visual-open"));
 
     expect(mockPush).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith({
@@ -754,7 +835,7 @@ describe("CatalogueScreen — cycle focus/blur/focus/démontage", () => {
 });
 
 describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de contexte)", () => {
-  it("T-49 — vues Mouvements et Séances : aucun trait au-dessus de la zone, fondu inférieur en couches superposées vers le blanc (aucun bord net), couleur et commandes conservées", async () => {
+  it("T-49, recette iPhone du 29/10/2026 — vues Mouvements et Séances : aucun trait au-dessus de la zone, fondu inférieur vers la TRANSPARENCE (couleur du Catalogue en couches superposées, aucun voile blanc), commandes conservées", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
     renderScreen(service);
@@ -764,22 +845,32 @@ describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de co
       fireEvent.press(screen.getByTestId(`catalogue-content-type-row-${segment}`));
       expect(screen.queryByTestId("screen-header-separator")).toBeNull();
       const band = screen.getByTestId("screen-context-band");
-      // Couleur propre du Catalogue conservée (pas la lavande de l’éditeur).
-      expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe(colors.selectionSurface);
-      const fade = screen.getByTestId("catalogue-context-band-fade", { includeHiddenElements: true });
-      expect(fade.props.pointerEvents).toBe("none");
-      expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", bottom: 0, height: "20%" });
-      const layers = fade.props.children as { props: { style: unknown } }[];
+      // Recette du 29/10/2026 : la bande elle-même est transparente ; sa couleur propre (pas la
+      // lavande de l’éditeur) est peinte par le remplissage, puis s’efface vers le bas.
+      expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe("transparent");
+      const fill = screen.getByTestId("screen-context-band-fill", { includeHiddenElements: true });
+      expect(fill.props.pointerEvents).toBe("none");
+      const fade = screen.getByTestId("screen-context-band-fade", { includeHiddenElements: true });
+      // 20 % inférieurs de la bande de 115 : 23 points sous 92 points peints d’un bloc.
+      expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", top: 92, height: 23 });
+      const layers = (fade.props.children as { props: { style: unknown } }[]).map(
+        (layer) => StyleSheet.flatten(layer.props.style as never) as { height: number; opacity: number; backgroundColor: string },
+      );
       expect(layers.length).toBeGreaterThanOrEqual(10);
-      const opacities = layers.map((layer) => (StyleSheet.flatten(layer.props.style as never) as { opacity: number }).opacity);
-      expect([...opacities].sort((a, b) => a - b)).toEqual(opacities);
-      expect(opacities[opacities.length - 1]).toBeGreaterThan(0.9);
-      for (const layer of layers) {
-        expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ position: "absolute", bottom: 0, backgroundColor: colors.background });
-      }
-      // Fondu dessiné en premier, sous le sélecteur et les commandes, qui restent présents.
+      // Aucune couche blanche : uniquement la couleur du Catalogue, qui s’efface. D-501 (06/11/2026) : couleur `context`
+      // du Catalogue actif ; le fond d’écran sous la part fondue est son `background`. [Avant : `selectionSurface` — remplacé.]
+      const context = segment === "movements" ? colors.catalogueMovementsContext : colors.catalogueSessionsContext;
+      for (const layer of layers) expect(layer.backgroundColor).toBe(context);
+      expect(StyleSheet.flatten(screen.getByTestId("screen-shell").props.style).backgroundColor).toBe(
+        segment === "movements" ? colors.catalogueMovementsBackground : colors.catalogueSessionsBackground,
+      );
+      // Haut de la part fondue (toutes les couches) : opaque ; bas (seule la couche la plus longue) : presque transparent.
+      expect(1 - layers.reduce((rest, layer) => rest * (1 - layer.opacity), 1)).toBeCloseTo(1, 5);
+      expect(layers[0]!.height).toBe(23);
+      expect(layers[0]!.opacity).toBeLessThan(0.1);
+      // Remplissage dessiné en premier, sous le sélecteur et les commandes, qui restent présents.
       const order = (band.props.children as { props?: { testID?: string } }[]).flat().map((child) => child?.props?.testID).filter(Boolean);
-      expect(order[0]).toBe("catalogue-context-band-fade");
+      expect(order[0]).toBe("screen-context-band-fill");
       expect(screen.getByTestId("catalogue-content-type-row")).toBeTruthy();
       expect(screen.getByTestId("catalogue-create-action")).toBeTruthy();
     }

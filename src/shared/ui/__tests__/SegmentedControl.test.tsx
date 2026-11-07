@@ -415,8 +415,9 @@ describe("SegmentedControl — variante « inline » (PRE-5 story 2.3)", () => {
     expect(StyleSheet.flatten(screen.getByTestId("seg").props.style)).toMatchObject({ height: 32, width: 214 });
     expect(StyleSheet.flatten(screen.getByText("(D1 → D2) ➜ (G1 → G2)", { includeHiddenElements: true }).props.style).fontSize).toBe(10);
     expect(StyleSheet.flatten(screen.getByText("Sans", { includeHiddenElements: true }).props.style).fontSize).toBe(12);
-    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITH", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 3, width: 144 });
-    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITHOUT", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 149, width: 62 });
+    // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière. [Avec à 3, Sans à 149 — remplacé.]
+    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITH", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 67, width: 144 });
+    expect(StyleSheet.flatten(screen.getByTestId("seg-tile-WITHOUT", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 3, width: 62 });
     expect(StyleSheet.flatten(screen.getByTestId("seg-indicator", { includeHiddenElements: true }).props.style)).toMatchObject({ left: 3, width: 144 });
     unmount();
     // Sans sélectionné dès le rendu : cadre placé sans animation, à la position et à la largeur de Sans.

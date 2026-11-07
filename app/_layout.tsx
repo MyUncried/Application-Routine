@@ -3,14 +3,18 @@ import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
 import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
 import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
 import { useFonts } from "@expo-google-fonts/inter/useFonts";
+import { Mali_500Medium_Italic } from "@expo-google-fonts/mali/500Medium_Italic";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
+import { movementRouteOptions } from "@/features/activities/movementRoutePresentation";
 import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
+import { CreationDraftProviders } from "@/features/sessions/CreationDraftProviders";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
 import { KodjoSplash } from "@/shared/ui/KodjoSplash";
+import { NATIVE_SHEET_OPTIONS } from "@/shared/ui/nativeSheet";
 import { RootErrorBoundary } from "@/shared/ui/RootErrorBoundary";
 import { RootErrorFallback } from "@/shared/ui/RootErrorFallback";
 import { installDevPerformanceGuard } from "@/shared/utils/devPerformanceGuard";
@@ -79,6 +83,7 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    Mali_500Medium_Italic,
   });
   const [databaseReady, setDatabaseReady] = useState(false);
   const [rootError, setRootError] = useState<Error | null>(null);
@@ -136,12 +141,30 @@ export default function RootLayout() {
       <SessionServiceProvider onReady={handleDatabaseReady}>
         <View style={styles.root}>
           {fontsSettled && databaseReady ? (
+            // Règle de Hermann du 06/11/2026 (registre ch07) : brouillons de séance et de Format au niveau de l'application.
+            <CreationDraftProviders>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(creation)" options={{ gestureEnabled: false }} />
               <Stack.Screen name="profile-edit" />
-              <Stack.Screen name="movement" options={{ gestureEnabled: false }} />
+              {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche
+                  des mouvements du questionnaire par exemple) […] Catalogue des mouvements : Créer un mouvement ») :
+                  la création d'un Mouvement est une feuille native iOS ; consultation, modification et ajout d'un
+                  niveau restent des écrans poussés. [Création en écran poussé — remplacée.] */}
+              <Stack.Screen name="movement" options={({ route }) => movementRouteOptions(route.params)} />
+              {/* Même demande : Filtres des Catalogues (Mouvements, Séances) en feuille native iOS. */}
+              <Stack.Screen name="catalogue-filters" options={NATIVE_SHEET_OPTIONS} />
+              {/* Règle de Hermann du 06/11/2026 (registre ch07 : « Je veux qu’on suive l’ordre des écrans et des modèles lorsqu’on les
+                  ouvre et qu’on les ferme en fonction des décisions qu’ils ont prises ») : modale « Créer un exercice » (feuille native
+                  ajustée à son contenu), questionnaire et récapitulatif d'un Format, fiche d'un mouvement en lecture seule — feuilles
+                  natives iOS posées au-dessus de l'écran qui les ouvre (Catalogue des séances ou Composition), vitesse d'iOS.
+                  [Feuilles du groupe `(creation)`, au-dessus d'une Composition ouverte d'avance — remplacées.] */}
+              <Stack.Screen name="formats-window" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, sheetAllowedDetents: "fitToContents", gestureEnabled: false }} />
+              <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
+              <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
+              <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet", gestureEnabled: false }} />
             </Stack>
+            </CreationDraftProviders>
           ) : null}
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}
           {showAppSplash ? (
@@ -152,6 +175,9 @@ export default function RootLayout() {
     </RootErrorBoundary>
   );
 }
+
+/** Feuilles natives de la création (04/11/2026, Hermann : « l'écran blanc s'arrête avant la fin de l'écran ») : fond blanc plein. */
+const CREATION_SHEET_CONTENT = { backgroundColor: "#FFFFFF" } as const;
 
 const styles = StyleSheet.create({
   root: {

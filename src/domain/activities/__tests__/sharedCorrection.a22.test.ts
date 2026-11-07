@@ -95,6 +95,7 @@ describe("repriseExecutionParameters — création sur un geste repris (MFN-06)"
       ],
     });
     expect(reprise.countdownSeconds).toBe(10);
-    expect(reprise.sideMode).toBeNull();
+    // Recette du 29/10/2026 : côté Sans présélectionné à la création.
+    expect(reprise.sideMode).toBe("UNILATERAL");
   });
 });

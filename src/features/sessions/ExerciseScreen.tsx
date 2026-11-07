@@ -1,7 +1,7 @@
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 
 import {
   cloneExecutionParameters,
@@ -10,10 +10,9 @@ import {
   validateForSave,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
-import type { ActivityDefinition, CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
-import { repriseExecutionParameters, transferParametersByRank, type MovementPhase } from "@/domain/activities/Movement";
-import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
+import { repriseExecutionParameters } from "@/domain/activities/Movement";
+import type { MovementPhaseList } from "@/domain/activities/movementPhaseList";
 import { variantLevelPosition } from "@/domain/activities/movementSuggestion";
 import {
   decideMovementSave,
@@ -22,17 +21,16 @@ import {
   type MovementContentSnapshot,
   type MovementSaveDecision,
 } from "@/domain/activities/movementSave";
-import type { CorrectionAssessment, SiblingCompletion, SiblingGap } from "@/domain/activities/sharedCorrection";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
-import { draftMediaEqual, toDraftMediaItems } from "@/domain/media/ActivityMedia";
 import {
   DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   DEFAULT_EXERCISE_END_SECONDS,
+  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
   type Silhouette,
 } from "@/domain/preferences/Profile";
-import { DEFAULT_CIRCUIT_NATURE, exitCircuit, type CircuitNature } from "@/domain/sessions/circuit";
+import { exitCircuit } from "@/domain/sessions/circuit";
 import { settleCircuitMembership, type CircuitMembershipSettlement } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import {
@@ -43,7 +41,10 @@ import {
   replaceOccurrence,
   replaceOccurrenceWithNewMovement,
   withDraftMovement,
+  withExerciseRecovery,
   withOccurrenceMovement,
+  withoutPhasesToVerify,
+  withProfileDefaultsValidated,
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
@@ -56,25 +57,21 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
-import type {
-  ActivityDefinitionService,
-  CorrectionTarget,
-  MovementLevels,
-} from "@/features/activities/ActivityDefinitionService";
+import type { ActivityDefinitionService, MovementLevels } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { EditorLevel, MovementLevelMenuModel } from "@/features/activities/MovementLevelMenu";
 import { MovementLevelsScreen } from "@/features/activities/MovementLevelsScreen";
-import type { VariantPlacement } from "@/features/activities/MovementResultCard";
 import { MovementSaveDialog } from "@/features/activities/MovementSaveDialog";
-import { SiblingCompletionStep } from "@/features/activities/SiblingCompletionStep";
 import { useMovementOriginChoice } from "@/features/activities/useMovementOriginChoice";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
-import { formatExerciseRowSummary } from "@/features/sessions/compositionPresentation";
+import { insertIntoRichLayout } from "@/features/sessions/compositionLayout";
+import { inheritsCircuitSeriesCount } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
+import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
@@ -88,7 +85,7 @@ import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
  * jamais `BODY_ZONES`. `refreshToken` relit le référentiel à la fermeture du
  * sélecteur de Zones (R6).
  */
-function useBodyZonesReferential(
+export function useBodyZonesReferential(
   activityDefinitionService: ActivityDefinitionService,
   refreshToken: number = 0,
 ): readonly BodyZone[] {
@@ -118,7 +115,7 @@ function useBodyZonesReferential(
  * Catégories (affichage de la pilule) — rechargées à la fermeture du
  * sélecteur, pour refléter une création / un renommage / un retrait.
  */
-function useCategories() {
+export function useCategories() {
   const referentialService = useReferentialService();
   const [categories, setCategories] = useState<readonly Category[]>([]);
   const reload = useCallback(() => {
@@ -138,19 +135,22 @@ function useCategories() {
  * création d'un nouvel Exercice uniquement — jamais relus pour un objet
  * existant, P3-10), silhouette du sélecteur de Zones.
  */
-function useProfileDefaults() {
+export function useProfileDefaults() {
   const profileService = useProfileService();
   const [defaults, setDefaults] = useState<{
     readonly loaded: boolean;
     readonly sideRecovery: number;
     readonly countdown: number;
     readonly end: number;
+    /** PRE-9 (01/11/2026, point 2) : « Récupération après un exercice », reprise par un nouvel Exercice de Séance. */
+    readonly recovery: number;
     readonly silhouette: Silhouette | null;
   }>({
     loaded: false,
     sideRecovery: DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
     countdown: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
     end: DEFAULT_EXERCISE_END_SECONDS,
+    recovery: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
     silhouette: null,
   });
   useEffect(() => {
@@ -163,6 +163,7 @@ function useProfileDefaults() {
             sideRecovery: profile.sideChangeRecoverySecondsDefault,
             countdown: profile.exerciseCountdownSecondsDefault,
             end: profile.exerciseEndSecondsDefault,
+            recovery: profile.postActivityRecoverySecondsDefault,
             silhouette: profile.silhouette,
           });
         }
@@ -181,7 +182,7 @@ function useProfileDefaults() {
   return defaults;
 }
 
-function toEditorCategory(categoryId: string | null, categories: readonly Category[]): EditorCategory {
+export function toEditorCategory(categoryId: string | null, categories: readonly Category[]): EditorCategory {
   if (!categoryId) return null;
   const found = categories.find((candidate) => candidate.id === categoryId);
   // Q53 (8) : une Catégorie retirée encore affectée reste affichée (nom et pastille) ; Q53 (9) :
@@ -222,11 +223,20 @@ export function EditorHeader({
   onClose,
   accessibilityLabel,
   trailing,
+  topInset,
+  validate,
+  backIcon,
 }: {
   title: string;
   onClose: () => void;
   accessibilityLabel: string;
   trailing?: ReactNode;
+  /** Recette iPhone du 06/11/2026 (t-fiche-choix, t-cat-choix) : chevron Retour au lieu de la croix (`FixedHeader.backIcon`). */
+  backIcon?: boolean;
+  /** Coche « Valider » à droite de l'en-tête (variante « Fermer et valider », §18–§19). */
+  validate?: { readonly onPress: () => void; readonly enabled: boolean; readonly accessibilityLabel: string };
+  /** Feuille : marge haute de l'en-tête (`FixedHeader.topInset`). */
+  topInset?: number;
 }) {
   const { width } = useWindowDimensions();
   return (
@@ -243,48 +253,32 @@ export function EditorHeader({
       titleStyle={EDITOR_HEADER.title}
       backIconTintColor={EDITOR_HEADER.closeIconTint}
       trailing={trailing}
+      {...(topInset !== undefined ? { topInset } : {})}
+      {...(validate !== undefined ? { validate } : {})}
+      {...(backIcon === true ? { backIcon } : {})}
     />
   );
 }
 
 /**
- * PRE-5 story 3.1 (AC4, AC5, AD-22) : la Description se compare par ses
- * encodages — une étape vide créée par Entrée n'est pas une modification, ni
- * une ancienne Description à lignes vides ou à fins de ligne CRLF non modifiée.
- */
-function formValueEquals(left: ActivityEditorFormValue, right: ActivityEditorFormValue): boolean {
-  return (
-    left.name === right.name &&
-    encodeInstructionSteps(left.instructionSteps) === encodeInstructionSteps(right.instructionSteps) &&
-    executionParametersEqual(left.executionParameters, right.executionParameters) &&
-    left.bodyZoneIds.length === right.bodyZoneIds.length &&
-    left.bodyZoneIds.every((id, index) => right.bodyZoneIds[index] === id) &&
-    draftMediaEqual(left.media, right.media)
-  );
-}
-
-/**
  * Route « Créer / Modifier un exercice » — point d'entrée unique de
- * `app/(creation)/exercise.tsx`, quatre parcours :
+ * `app/(creation)/exercise.tsx` : Exercice d'une Séance (sans paramètre / `exerciseId`),
+ * appliqué au brouillon de Composition à « Terminer » ; « Continuer » (Composition) reste seul à
+ * persister la Séance.
  *
- * - `catalogueDefinitionId=new` / `<id>` : définition Catalogue, écrite par
- *   `ActivityDefinitionService` à « Terminer » (et seulement là) ;
- * - sans paramètre / `exerciseId` : copie de Séance, appliquée au brouillon
- *   de Composition à « Terminer » ; « Continuer » (Composition) reste seul à
- *   persister la Séance.
+ * [PRE-9 A.3 du 04/11/2026 : le parcours `catalogueDefinitionId=new` / `<id>` (définition du
+ * Catalogue, création sur un geste repris, « Ajouter un niveau » depuis la fiche d'un Exercice du
+ * Catalogue) est retiré avec les anciennes définitions — décision de Hermann du 04/11/2026 :
+ * « Hermann abandonne la conversion sans perte prévue par A.4 : les anciens exercices concernés par
+ * cette conversion peuvent être supprimés plutôt que migrés. » L'écran n'édite plus qu'un Exercice
+ * de Séance.]
  *
- * PRE-7 (A2.2, D-437, D-438, MFN-06, MFN-08, MFN-09 ; CE-T03-04 §3) : trois contextes
- * d'édition explicites —
- * - Exercice du Catalogue existant (`catalogueDefinitionId=<id>`) : ouvert directement en
- *   édition ;
- * - création sur un geste repris (`catalogueDefinitionId=new&movementId=<id>`, point d'entrée
- *   branché par la recherche et les suggestions d'A2.3) : contenu du geste en lecture seule,
- *   déverrouillé dans le brouillon par le crayon « Modifier le mouvement », paramètres modifiables ;
- * - occurrence de Séance d'un Mouvement enregistré : contenu verrouillé, déverrouillé par le même
- *   crayon (PRE-7 R-4, D-445 C04) ; une création locale reste modifiable.
+ * PRE-7 (A2.2, D-437, D-438, MFN-06, MFN-08, MFN-09 ; CE-T03-04 §3) : occurrence de Séance d'un
+ * Mouvement enregistré : contenu verrouillé, déverrouillé par le crayon « Modifier le mouvement »
+ * (PRE-7 R-4, D-445 C04) ; une création locale reste modifiable.
  *
- * PRE-7 (R-4, D-445 C03, v7 §3) : dans les trois contextes, la sauvegarde d'un Mouvement existant
- * modifié suit la décision unique `decideMovementSave` et le dialogue centré `MovementSaveDialog`.
+ * PRE-7 (R-4, D-445 C03, v7 §3) : la sauvegarde d'un Mouvement existant modifié suit la décision
+ * unique `decideMovementSave` et le dialogue centré `MovementSaveDialog`.
  *
  * Commun : ✓ de la feuille Paramètres n'applique qu'au brouillon parent
  * (aucune écriture) ; garde d'abandon (Annuler conserve tout, Confirmer
@@ -299,67 +293,11 @@ function formValueEquals(left: ActivityEditorFormValue, right: ActivityEditorFor
  * scalaire dans l'écran).
  */
 export function ExerciseScreen() {
-  const params = useLocalSearchParams<{
-    exerciseId?: string;
-    catalogueDefinitionId?: string;
-    movementId?: string;
-    levelOriginDefinitionId?: string;
-    levelPlacement?: string;
-  }>();
-  if (params.catalogueDefinitionId !== undefined) {
-    const isCreation = params.catalogueDefinitionId === "new";
-    const repriseMovementId =
-      isCreation && typeof params.movementId === "string" && params.movementId.trim().length > 0 ? params.movementId : null;
-    // PRE-7 (A3.1, MFN-07) : « Ajouter un niveau » depuis la fiche d'un Exercice du Catalogue.
-    const levelOriginDefinitionId =
-      isCreation &&
-      repriseMovementId === null &&
-      typeof params.levelOriginDefinitionId === "string" &&
-      params.levelOriginDefinitionId.trim().length > 0
-        ? params.levelOriginDefinitionId
-        : null;
-    // PRE-7 (R-6, MFN-07 l.371) : sens choisi dans « Ajouter un niveau » ; absent (ancienne route) :
-    // après l'origine, comme en A3.1.
-    const levelPlacement: VariantPlacement = params.levelPlacement === "BEFORE_ORIGIN" ? "BEFORE_ORIGIN" : "AFTER_ORIGIN";
-    return (
-      <CatalogueActivityEditorScreen
-        definitionId={isCreation ? null : params.catalogueDefinitionId}
-        repriseMovementId={repriseMovementId}
-        levelOriginDefinitionId={levelOriginDefinitionId}
-        levelPlacement={levelPlacement}
-      />
-    );
-  }
   return <CompositionExerciseEditor />;
 }
 
-/** Issue d'une tentative d'écriture : vrai si enregistrée. */
-type SaveOutcome = Promise<boolean>;
-
-/** Entrée d'une écriture Catalogue préparée à `Terminer`, conservée pendant la feuille et l'étape. */
-type DefinitionInput = CreateActivityDefinitionInput;
-
 /** Décision C03 qui ouvre le dialogue de sauvegarde (nom modifié, ou confirmation). */
 type DialogDecision = Extract<MovementSaveDecision, { readonly kind: "CHOICE" | "CONFIRM" }>;
-
-/**
- * PRE-7 (R-4, D-445 C03) : dialogue de sauvegarde en attente (`9952:44349`, `10253:20414`) ;
- * rien n'est écrit avant Confirmer.
- */
-type PendingMovementSave = {
-  readonly input: DefinitionInput;
-  readonly assessment: CorrectionAssessment;
-  readonly decision: DialogDecision;
-  readonly phases: readonly MovementPhase[];
-};
-
-/** PRE-7 (A2.2, MFN-08) : étape de complétion des durées manquantes des frères, en attente. */
-type PendingSiblingCompletion = {
-  readonly input: DefinitionInput;
-  readonly gaps: readonly SiblingGap[];
-  readonly phases: readonly MovementPhase[];
-  readonly labels: Readonly<Record<string, string>>;
-};
 
 /**
  * PRE-7 (A2.2, D-438, relevé Figma MFN du 23/10 `9952:44374`) : action « Modifier le mouvement » de
@@ -402,15 +340,6 @@ export function EditMovementAction({ onPress, active = false }: { onPress: () =>
 }
 
 /**
- * PRE-7 (R-5, D-445 C02, v7 l.37, MFN-07 l.373) : contenu d'une variante — description et médias
- * VIERGES (aucune reprise de l'origine), Zones reprises de l'origine si aucune n'est choisie ; le
- * nom commencé est conservé. Aucune sélection n'écrase silencieusement une information déjà saisie.
- */
-function withVariantContent(value: ActivityEditorFormValue, originBodyZoneIds: readonly string[]): ActivityEditorFormValue {
-  return { ...value, bodyZoneIds: value.bodyZoneIds.length === 0 ? [...originBodyZoneIds] : value.bodyZoneIds };
-}
-
-/**
  * PRE-7 (A3.1, D-439, MFN-05, MFN-07, MFN-10) : modèle de la pastille de Niveau de la fiche — rang
  * dérivé, et popover (niveaux du groupe, Exercices distingués par le résumé de leurs paramètres).
  * Lecture en échec : pastille vide, sans popover.
@@ -420,7 +349,7 @@ function withVariantContent(value: ActivityEditorFormValue, originBodyZoneIds: r
  * de Séance (choix par mouvement, `movementChoice`), même sans groupe (« Niveau »). `menu` `null` :
  * pastille affichée seule (contenu en cours d'édition par le crayon).
  */
-function editorLevelOf(
+export function editorLevelOf(
   levels: MovementLevels | "error" | null,
   menu: Omit<MovementLevelMenuModel, "levels"> | null,
 ): EditorLevel | null {
@@ -442,10 +371,9 @@ function editorLevelOf(
         movementId: entry.archived === true ? undefined : entry.movement.id,
         // Recette A/B B.10 (q6-2) : et il est signalé « (archivé) » dans le menu.
         archived: entry.archived === true,
-        exercises: (entry.archived === true ? [] : entry.definitions).map((definition) => ({
-          definitionId: definition.id,
-          summary: formatExerciseRowSummary(definition),
-        })),
+        // [PRE-9 A.3 du 04/11/2026 : plus d'Exercice du Catalogue par niveau (anciennes définitions
+        // supprimées) ; le choix se fait par mouvement (`movementChoice`).]
+        exercises: [],
       })),
     },
   };
@@ -464,779 +392,6 @@ function levelsAfterChange(levels: MovementLevels, movementId: string): Movement
 /** Aucun choix par Exercice hors fiche d'un Exercice du Catalogue (choix par mouvement). */
 function noExerciseChoice() {
   return undefined;
-}
-
-function CatalogueActivityEditorScreen({
-  definitionId,
-  repriseMovementId: routeRepriseMovementId,
-  levelOriginDefinitionId = null,
-  levelPlacement = "AFTER_ORIGIN",
-}: {
-  definitionId: string | null;
-  repriseMovementId: string | null;
-  levelOriginDefinitionId?: string | null;
-  levelPlacement?: VariantPlacement;
-}) {
-  // PRE-7 (A2.3, MFN-06) : geste repris par la route (A2.2) ou choisi dans l'écran (suggestion,
-  // recherche) — la reprise choisie en place garde l'écran monté (aucune navigation, aucun garde
-  // d'abandon déclenché) et recharge le contenu du geste.
-  const [repriseMovementId, setRepriseMovementId] = useState(routeRepriseMovementId);
-  // PRE-7 (A2.3, MFN-06 « Créer une variante / un niveau ») : geste d'origine d'une variante
-  // choisie ; `Terminer` crée un nouveau geste (`VARIANT`), sans question d'identité (MFN-08).
-  // PRE-7 (A3.1, MFN-07) : `joinOriginGroup` vrai pour « Ajouter un niveau » (rattachement explicite,
-  // inséré juste après l'origine). PRE-7 (R-5, C02) : la variante du panneau ou de la recherche est
-  // rattachée par le choix Plus facile / Plus difficile (`placement`, avant / après l'origine).
-  const [variantOrigin, setVariantOrigin] = useState<{
-    readonly movementId: string;
-    readonly joinOriginGroup: boolean;
-    readonly placement?: VariantPlacement;
-  } | null>(null);
-  // PRE-7 (R-5, C02) : invite grise « (compléter le nom) » après le choix d'une variante, retirée à
-  // la reprise de saisie du nom ; position de niveau prévue de la variante (affichage seulement).
-  const [nameHintVisible, setNameHintVisible] = useState(false);
-  // PRE-7 (R-8, cr-8) : dernier nom connu, comparé par `patch` (synchronisé après chaque rendu).
-  const nameRef = useRef<string | undefined>(undefined);
-  const [variantLevel, setVariantLevel] = useState<EditorLevel | null>(null);
-  const router = useRouter();
-  const activityDefinitionService = useActivityDefinitionService();
-  const [bodyZonesLoadToken, setBodyZonesLoadToken] = useState(0);
-  const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService, bodyZonesLoadToken);
-  const { categories, reload: reloadCategories } = useCategories();
-  const profile = useProfileDefaults();
-  const isEditingExisting = definitionId !== null;
-  const isReprise = !isEditingExisting && repriseMovementId !== null;
-  const isLevelCreation = !isEditingExisting && !isReprise && levelOriginDefinitionId !== null;
-  const needsLoad = isEditingExisting || isReprise || isLevelCreation;
-  // Story 4.2 (FR-02-04) : l'écran d'erreur de chargement suit la marge de l'Éditeur.
-  const sideMargin = editorSideMargin(useWindowDimensions().width);
-  const [mediaDraftId] = useState(() => `definition:${definitionId ?? Crypto.randomUUID()}`);
-
-  const [initial, setInitial] = useState<ActivityEditorFormValue | null>(() => (needsLoad ? null : createEmptyFormValue()));
-  // PRE-4 (AD-13) : ligne de base des paramètres relue à l'ouverture (aucune en création).
-  const [baselineParameters, setBaselineParameters] = useState<ExecutionParametersInput | null>(null);
-  // PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur de phase du Mouvement relu avec la définition (ou
-  // le geste repris), transmis à la Feuille ; absent en création indépendante (max + 1).
-  const [movementNextPhaseId, setMovementNextPhaseId] = useState<number | undefined>(undefined);
-  // PRE-7 (A2.2, D-438 ; R-4, C03) : geste d'origine — identité (nouveau mouvement « Créer un
-  // nouveau mouvement ») et nom AVANT modification.
-  const [origin, setOrigin] = useState<{ readonly movementId: string; readonly name: string } | null>(null);
-  // PRE-7 (A2.2, D-438, CE-T03-04 §3) : création sur geste repris — contenu en lecture seule
-  // jusqu'au crayon « Modifier le geste » ; le crayon ne persiste rien (brouillon seul).
-  const [contentUnlocked, setContentUnlocked] = useState(false);
-  const contentLocked = isReprise && !contentUnlocked;
-  const [value, setValue] = useState<ActivityEditorFormValue | null>(initial);
-  // A3.1 : « Ajouter un niveau » reprend les paramètres de l'Exercice d'origine, Compte à rebours et
-  // Fin compris ; les défauts du Profil ne les remplacent pas.
-  const [profileApplied, setProfileApplied] = useState(isEditingExisting || isLevelCreation);
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [initialCategoryId, setInitialCategoryId] = useState<string | null>(null);
-  // Story 4.6 (FR-22-10, AC9) : feuille de Catégorie, focus rendu à l'accès après sa fermeture.
-  const categoryAccessRef = useRef<View>(null);
-  const categorySheet = useReferenceSheet(categoryAccessRef);
-  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(needsLoad ? "loading" : "ready");
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDone, setIsDone] = useState(false);
-  const [saveError, setSaveError] = useState(false);
-  const isSavingRef = useRef(false);
-  const [pendingDecision, setPendingDecision] = useState<PendingMovementSave | null>(null);
-  const [pendingCompletion, setPendingCompletion] = useState<PendingSiblingCompletion | null>(null);
-  const t = strings.screens.activities.editor;
-  const loadErrorStrings = strings.screens.activities.error;
-
-  const fetchDefinition = useCallback(
-    (isCancelled: () => boolean) => {
-      if (definitionId !== null) {
-        activityDefinitionService
-          .getActivityDefinition(definitionId)
-          .then((definition) => {
-            if (isCancelled()) return;
-            if (!definition) {
-              setLoadState("error");
-              return;
-            }
-            const loaded: ActivityEditorFormValue = {
-              name: definition.name,
-              // PRE-5 story 3.1 (FR-35) : relue par le même décodage, sans migration ni conversion.
-              instructionSteps: decodeInstructionSteps(definition.description),
-              executionParameters: cloneExecutionParameters(definition.executionParameters),
-              bodyZoneIds: [...definition.bodyZoneIds],
-              media: toDraftMediaItems(definition.media ?? []),
-            };
-            setBaselineParameters(cloneExecutionParameters(definition.executionParameters));
-            setMovementNextPhaseId(definition.movementNextPhaseId);
-            setOrigin({ movementId: definition.movementId, name: definition.name });
-            setInitial(loaded);
-            setValue(loaded);
-            setCategoryId(definition.categoryId ?? null);
-            setInitialCategoryId(definition.categoryId ?? null);
-            setLoadState("ready");
-          })
-          .catch((error: unknown) => {
-            if (isCancelled()) return;
-            console.error("L'activité n'a pas pu être chargée.", error);
-            setLoadState("error");
-          });
-        return;
-      }
-      if (repriseMovementId === null && levelOriginDefinitionId !== null) {
-        // PRE-7 (A3.1, MFN-07) : « Ajouter un niveau » — nouveau geste et son Exercice, paramètres
-        // repris de l'original, tous modifiables ; nom à saisir.
-        // PRE-7 (R-6, MFN-07 l.371-373, C02 ; report R-5) : description et médias VIERGES, Catégorie
-        // et Zones reprises ; inséré avant (Plus facile) ou après (Plus difficile) l'origine ; la
-        // pastille montre le rang prévu (affichage seulement).
-        // PRE-7 (R-10, recette JA3 r8-5) : nom de l'origine repris, avec l'invite grise « (compléter
-        // le nom) », comme la variante du panneau (R-5, C02) ; l'unicité C01 s'applique de même.
-        let originDefinition: ActivityDefinition | null = null;
-        activityDefinitionService
-          .getActivityDefinition(levelOriginDefinitionId)
-          .then(async (definition) => {
-            originDefinition = definition;
-            if (!definition || activityDefinitionService.supportsMovementLevels !== true) return null;
-            return activityDefinitionService.getMovementLevels(definition.movementId).catch((error: unknown) => {
-              console.error("Les niveaux du geste n'ont pas pu être chargés.", error);
-              return undefined;
-            });
-          })
-          .then((originLevels) => {
-            if (isCancelled()) return;
-            const definition = originDefinition;
-            if (!definition) {
-              setLoadState("error");
-              return;
-            }
-            const loaded: ActivityEditorFormValue = {
-              name: definition.name,
-              instructionSteps: [],
-              executionParameters: cloneExecutionParameters(definition.executionParameters),
-              bodyZoneIds: [...definition.bodyZoneIds],
-              media: [],
-            };
-            // AD-13 (H25) : une valeur héritée de l'original, non modifiée, reste enregistrable.
-            setBaselineParameters(cloneExecutionParameters(definition.executionParameters));
-            setVariantOrigin({ movementId: definition.movementId, joinOriginGroup: true, placement: levelPlacement });
-            setVariantLevel(
-              originLevels === null || originLevels === undefined
-                ? null
-                : { position: variantLevelPosition(originLevels.position, levelPlacement), menu: null },
-            );
-            setNameHintVisible(true);
-            setInitial(loaded);
-            setValue(loaded);
-            setCategoryId(definition.categoryId ?? null);
-            setInitialCategoryId(definition.categoryId ?? null);
-            setLoadState("ready");
-          })
-          .catch((error: unknown) => {
-            if (isCancelled()) return;
-            console.error("L'exercice d'origine du niveau n'a pas pu être chargé.", error);
-            setLoadState("error");
-          });
-        return;
-      }
-      if (repriseMovementId === null) {
-        return;
-      }
-      // PRE-7 (A2.2, MFN-06) : contenu du geste RÉELLEMENT repris ; paramètres du nouvel Exercice
-      // à saisir, construits sur la structure du geste (`repriseExecutionParameters`).
-      activityDefinitionService
-        .getMovement(repriseMovementId)
-        .then((movement) => {
-          if (isCancelled()) return;
-          if (!movement) {
-            setLoadState("error");
-            return;
-          }
-          const empty = createEmptyFormValue();
-          const loaded: ActivityEditorFormValue = {
-            name: movement.name,
-            instructionSteps: decodeInstructionSteps(movement.description),
-            executionParameters: repriseExecutionParameters(movement, empty.executionParameters),
-            bodyZoneIds: [...movement.bodyZoneIds],
-            media: [...movement.media],
-          };
-          setMovementNextPhaseId(movement.nextPhaseId);
-          setOrigin({ movementId: movement.id, name: movement.name });
-          setInitial(loaded);
-          setValue(loaded);
-          setCategoryId(movement.categoryId);
-          setInitialCategoryId(movement.categoryId);
-          setLoadState("ready");
-        })
-        .catch((error: unknown) => {
-          if (isCancelled()) return;
-          console.error("Le geste repris n'a pas pu être chargé.", error);
-          setLoadState("error");
-        });
-    },
-    [activityDefinitionService, definitionId, repriseMovementId, levelOriginDefinitionId, levelPlacement],
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchDefinition(() => cancelled);
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchDefinition]);
-
-  // Nouveau : Compte à rebours et Fin copiés du Profil au moment réel de la
-  // création (P3-10) — ajustement d'état pendant le rendu, une seule fois.
-  if (!profileApplied && profile.loaded && initial !== null && value !== null) {
-    setProfileApplied(true);
-    if (formValueEquals(value, initial)) {
-      const created = {
-        ...initial,
-        executionParameters: withProfilePhases(initial.executionParameters, profile.countdown, profile.end),
-      };
-      setInitial(created);
-      setValue(created);
-    }
-  }
-
-  const isDirty =
-    value !== null && initial !== null && (!formValueEquals(value, initial) || categoryId !== initialCategoryId);
-  const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(isDirty && !isDone, () => {
-    activityDefinitionService.abandonMediaDraft(mediaDraftId).catch(() => undefined);
-  });
-
-  // PRE-7 (A2.3, MFN-06, ch03 l.152) : suggestion et recherche des gestes en création, avant tout
-  // choix d'origine et avant la saisie détaillée. PRE-7 (R-5, R02) : Catégorie et Zones peuvent être
-  // renseignées — ce sont les signaux de classement pendant la saisie.
-  const onlyNameEntered =
-    value !== null &&
-    initial !== null &&
-    formValueEquals({ ...value, name: initial.name, bodyZoneIds: initial.bodyZoneIds }, initial);
-  const searchContext = useMemo(
-    () => ({ categoryId, bodyZoneIds: value?.bodyZoneIds ?? [] }),
-    [categoryId, value?.bodyZoneIds],
-  );
-  const originChoice = useMovementOriginChoice({
-    service: activityDefinitionService,
-    name: value?.name ?? "",
-    available:
-      !isEditingExisting && repriseMovementId === null && variantOrigin === null && loadState === "ready" && onlyNameEntered,
-    // PRE-7 (R-5, C01) : le mouvement corrigé (Exercice existant, reprise) est exclu de sa propre
-    // collision ; une création indépendante ou une variante ne l'est pas. Contrôle suspendu sur un
-    // contenu verrouillé ; pendant l'invite grise (C02 : elle « ne satisfait pas l'unicité »), le
-    // message est masqué mais `Terminer` reste indisponible si le nom conservé est pris.
-    uniqueness: {
-      excludedMovementId: isEditingExisting || isReprise ? (origin?.movementId ?? null) : null,
-      suspended: contentLocked,
-      messageHidden: nameHintVisible,
-    },
-    context: searchContext,
-    onSameMovement: (choice) => {
-      // Reprise du geste RÉELLEMENT choisi : contenu en lecture seule + crayon (A2.2), Profil
-      // réappliqué au brouillon rechargé. Seul le nom saisi est remplacé, par choix explicite.
-      setSaveError(false);
-      setContentUnlocked(false);
-      // Revue : brouillon vidé AVANT de réarmer le Profil — sinon le rendu suivant appliquerait
-      // Compte à rebours et Fin à l'ancien brouillon, et non au brouillon rechargé du geste.
-      setInitial(null);
-      setValue(null);
-      setProfileApplied(false);
-      setLoadState("loading");
-      setRepriseMovementId(choice.movement.id);
-    },
-    onVariant: (choice, placement) => {
-      setSaveError(false);
-      setVariantOrigin({ movementId: choice.movement.id, joinOriginGroup: true, placement });
-      setValue((current) => (current ? withVariantContent(current, choice.movement.bodyZoneIds) : current));
-      // MFN-05 l.375, MFN/AC33 : Catégorie reprise de l'origine, puis librement modifiable.
-      setCategoryId((current) => current ?? choice.movement.categoryId);
-      setNameHintVisible(true);
-      // C06 : pastille « Niveau N » de la variante, rang prévu dérivé de celui de l'origine.
-      setVariantLevel({ position: variantLevelPosition(choice.level, placement), menu: null });
-    },
-  });
-
-  useEffect(() => {
-    if (isDone) {
-      router.back();
-    }
-  }, [isDone, router]);
-
-  useEffect(() => {
-    nameRef.current = value?.name;
-  }, [value?.name]);
-
-  function patch(next: Partial<ActivityEditorFormValue>) {
-    setSaveError(false);
-    // PRE-7 (R-5, C02) : l'invite grise disparaît à la reprise de saisie, sans effacer le nom.
-    // PRE-7 (R-8, cr-8) : seulement sur une modification réelle — le clavier iOS peut renvoyer le
-    // même texte à la perte du focus. Comparaison au dernier nom saisi (`nameRef`), à jour même
-    // entre deux évènements sans rendu intermédiaire.
-    if (next.name !== undefined) {
-      if (next.name !== nameRef.current) setNameHintVisible(false);
-      nameRef.current = next.name;
-    }
-    setValue((current) => (current ? { ...current, ...next } : current));
-  }
-
-  function beginSave() {
-    isSavingRef.current = true;
-    setIsSaving(true);
-    setSaveError(false);
-  }
-
-  /** Fin d'une tentative sans enregistrement : verrou réarmé, brouillon et médias conservés. */
-  function releaseSave(failed: boolean) {
-    isSavingRef.current = false;
-    setIsSaving(false);
-    if (failed) setSaveError(true);
-  }
-
-  function completeSave() {
-    activityDefinitionService.commitMediaDraft(mediaDraftId);
-    setIsDone(true);
-  }
-
-  /** Tentative d'écriture : une erreur technique conserve le brouillon (rollback complet côté Repository). */
-  async function attempt(write: () => SaveOutcome) {
-    try {
-      if (await write()) {
-        completeSave();
-      } else {
-        releaseSave(true);
-      }
-    } catch (error) {
-      if (error instanceof DuplicateMovementNameError) {
-        // PRE-7 (R-5, C01) : nom pris entre la lecture et l'écriture (écriture concurrente) —
-        // signalé pour ce qu'il est, brouillon conservé, jamais l'erreur générique.
-        if (value !== null) originChoice.markNameTaken(value.name);
-        releaseSave(false);
-        return;
-      }
-      console.error("L'activité n'a pas pu être enregistrée.", error);
-      releaseSave(true);
-    }
-  }
-
-  /**
-   * « Mettre à jour ce mouvement », confirmation, ou sauvegarde silencieuse (C03) : contenu
-   * partagé appliqué à tous les Exercices du Mouvement, durées des frères selon `completions`
-   * (MFN-08, services A1.3).
-   */
-  async function writeCorrection(input: DefinitionInput, completions?: readonly SiblingCompletion[]): Promise<boolean> {
-    if (definitionId !== null) {
-      return (await activityDefinitionService.updateActivityDefinition(definitionId, input, completions)).status === "UPDATED";
-    }
-    if (origin === null) {
-      return false;
-    }
-    const result = await activityDefinitionService.createActivityDefinitionWithOrigin(input, {
-      kind: "SAME_MOVEMENT",
-      movementId: origin.movementId,
-      ...(completions !== undefined ? { siblingCompletions: completions } : {}),
-    });
-    return result.status === "CREATED";
-  }
-
-  /**
-   * « Créer un nouveau mouvement » (C03) : nouveau Mouvement et nouvel Exercice portant le
-   * brouillon ; l'original et ses autres Exercices restent intacts. Rattachement au groupe de
-   * niveaux : aucun (Q10, aucun rattachement automatique, MFN-05).
-   */
-  async function writeNewIdentity(input: DefinitionInput): Promise<boolean> {
-    if (origin === null) {
-      return false;
-    }
-    const result = await activityDefinitionService.createActivityDefinitionWithOrigin(input, {
-      kind: "VARIANT",
-      originMovementId: origin.movementId,
-      joinOriginGroup: false,
-    });
-    return result.status === "CREATED";
-  }
-
-  /**
-   * Correction retenue (« Mettre à jour ce mouvement », Confirmer, ou sauvegarde silencieuse) :
-   * des durées manquantes chez les frères ouvrent l'étape de complétion ; sinon écriture directe.
-   * Appelée verrou pris.
-   */
-  async function proceedWithCorrection(input: DefinitionInput, assessment: CorrectionAssessment, phases: readonly MovementPhase[]) {
-    if (assessment.siblingGaps.length > 0) {
-      const labels: Record<string, string> = {};
-      for (const gap of assessment.siblingGaps) {
-        const sibling = await activityDefinitionService.getActivityDefinition(gap.definitionId);
-        labels[gap.definitionId] = sibling ? formatExerciseRowSummary(sibling) : "";
-      }
-      releaseSave(false);
-      setPendingCompletion({ input, gaps: assessment.siblingGaps, phases, labels });
-      return;
-    }
-    await attempt(() => writeCorrection(input));
-  }
-
-  async function handleFinish() {
-    if (isSavingRef.current || value === null) {
-      return;
-    }
-    const validated = validateForSave(value.executionParameters, baselineParameters);
-    if (!validated.ok) {
-      setSaveError(true);
-      return;
-    }
-    beginSave();
-    const definitionInput: DefinitionInput = {
-      name: value.name,
-      // PRE-5 story 3.1 (AC4) : encodage à `Terminer` seulement (étapes vides retirées).
-      description: encodeInstructionSteps(value.instructionSteps),
-      category: { kind: "EXISTING" as const, categoryId: categoryId ?? "" },
-      bodyZoneIds: value.bodyZoneIds,
-      executionParameters: validated.value,
-      media: value.media.map((item) => ({ assetId: item.assetId, asset: item.asset })),
-    };
-    // PRE-7 (A2.2, MFN-08 ; report A1.3) : toute correction d'un geste existant (Exercice du
-    // Catalogue, ou création sur geste repris) est ÉVALUÉE avant l'écriture. Une création
-    // indépendante crée un geste neuf : rien à évaluer. Un service sans `MovementRepository`
-    // (doublures antérieures à MFN) écrit directement, comme avant.
-    const correctionTarget: CorrectionTarget | null =
-      definitionId !== null
-        ? { kind: "UPDATE", definitionId }
-        : isReprise && origin !== null
-          ? { kind: "SAME_MOVEMENT", movementId: origin.movementId }
-          : null;
-    if (correctionTarget === null && variantOrigin !== null) {
-      // PRE-7 (A2.3, MFN-06, MFN-08) : variante explicitement choisie — nouveau geste et son
-      // Exercice, enregistrés directement (aucune question d'identité : l'original n'est pas
-      // touché). Rattachement au groupe d'origine, toujours explicite : PRE-7 (R-5, C02) le choix
-      // Plus facile / Plus difficile du panneau ou de la recherche (`placement`, avant / après
-      // l'origine) ; « Ajouter un niveau » (A3.1, MFN-07 : inséré juste après l'origine).
-      const { movementId: originMovementId, joinOriginGroup, placement } = variantOrigin;
-      await attempt(
-        async () =>
-          (
-            await activityDefinitionService.createActivityDefinitionWithOrigin(definitionInput, {
-              kind: "VARIANT",
-              originMovementId,
-              joinOriginGroup,
-              ...(placement !== undefined ? { placement } : {}),
-            })
-          ).status === "CREATED",
-      );
-      return;
-    }
-    if (correctionTarget === null || !activityDefinitionService.supportsSharedCorrection) {
-      await attempt(async () =>
-        definitionId !== null
-          ? (await activityDefinitionService.updateActivityDefinition(definitionId, definitionInput)).status === "UPDATED"
-          : (await activityDefinitionService.createActivityDefinition(definitionInput)).ok,
-      );
-      return;
-    }
-    try {
-      const assessed = await activityDefinitionService.assessActivityDefinitionCorrection(correctionTarget, definitionInput);
-      if (assessed.status !== "ASSESSED") {
-        releaseSave(true);
-        return;
-      }
-      // PRE-7 (R-4, D-445 C03) : nom modifié → choix ; contenu modifié avec d'autres exercices →
-      // confirmation ; rien n'est écrit avant Confirmer. Sauvegarde silencieuse ou paramètres
-      // seuls : correction directe, sans dialogue.
-      const { decision } = assessed.assessment;
-      if (decision.kind === "CHOICE" || decision.kind === "CONFIRM") {
-        releaseSave(false);
-        setPendingDecision({ input: definitionInput, assessment: assessed.assessment, decision, phases: assessed.phases });
-        return;
-      }
-      await proceedWithCorrection(definitionInput, assessed.assessment, assessed.phases);
-    } catch (error) {
-      console.error("L'activité n'a pas pu être enregistrée.", error);
-      releaseSave(true);
-    }
-  }
-
-  async function chooseCorrection(decision: PendingMovementSave) {
-    setPendingDecision(null);
-    if (isSavingRef.current) return;
-    beginSave();
-    try {
-      await proceedWithCorrection(decision.input, decision.assessment, decision.phases);
-    } catch (error) {
-      console.error("L'activité n'a pas pu être enregistrée.", error);
-      releaseSave(true);
-    }
-  }
-
-  async function chooseNewIdentity(decision: PendingMovementSave) {
-    setPendingDecision(null);
-    if (isSavingRef.current) return;
-    // PRE-7 (R-5, C01, v7 l.67 ; report R-4) : une création distincte doit avoir une clé différente
-    // de TOUS les mouvements, l'original compris (une variation de casse seule est refusée) ; le
-    // nom est signalé, rien n'est écrit.
-    if (!originChoice.checkDistinctName(decision.input.name)) return;
-    beginSave();
-    await attempt(() => writeNewIdentity(decision.input));
-  }
-
-  async function finishCompletion(completion: PendingSiblingCompletion, completions: readonly SiblingCompletion[]) {
-    setPendingCompletion(null);
-    if (isSavingRef.current) return;
-    beginSave();
-    await attempt(() => writeCorrection(completion.input, completions));
-  }
-
-  // PRE-7 (A3.1, D-439, MFN-05) : niveaux du geste de la fiche (Exercice existant) ou du geste
-  // repris, relus après le chargement ; rang et total dérivés, jamais persistés.
-  // Lecture rattachée au geste lu : une lecture d'un autre geste (reprise rechargée) n'est jamais
-  // affichée.
-  const [loadedLevels, setLoadedLevels] = useState<{
-    readonly movementId: string;
-    readonly levels: MovementLevels | "error";
-  } | null>(null);
-  // Service sans `MovementRepository` (doublures antérieures à MFN) : aucune pastille.
-  const levelMovementId =
-    loadState === "ready" && (isEditingExisting || isReprise) && activityDefinitionService.supportsMovementLevels === true
-      ? (origin?.movementId ?? null)
-      : null;
-  const levels = loadedLevels !== null && loadedLevels.movementId === levelMovementId ? loadedLevels.levels : null;
-  // PRE-7 (A3.2, MFN-05) : écran des niveaux ouvert depuis le popover ; à sa fermeture, les niveaux
-  // sont relus (jeton) — la lecture précédente reste affichée jusque-là : le formulaire reste monté.
-  const [isLevelsScreenOpen, setIsLevelsScreenOpen] = useState(false);
-  const [levelsReloadToken, setLevelsReloadToken] = useState(0);
-  useEffect(() => {
-    if (levelMovementId === null) return;
-    let cancelled = false;
-    Promise.resolve()
-      .then(() => activityDefinitionService.getMovementLevels(levelMovementId))
-      .then(
-        (result) => {
-          if (!cancelled) setLoadedLevels({ movementId: levelMovementId, levels: result ?? "error" });
-        },
-        (error: unknown) => {
-          if (cancelled) return;
-          console.error("Les niveaux du geste n'ont pas pu être chargés.", error);
-          setLoadedLevels({ movementId: levelMovementId, levels: "error" });
-        },
-      );
-    return () => {
-      cancelled = true;
-    };
-  }, [activityDefinitionService, levelMovementId, levelsReloadToken]);
-  /**
-   * PRE-7 (R-6, D-445 C09, v7 §4 l.59) : changement de niveau en reprise — le mouvement repris est
-   * remplacé, en place, par le mouvement choisi du même groupe : son contenu (lecture seule, crayon)
-   * et sa structure de phases, paramètres transférés PAR RANG. Aucune navigation, aucune écriture :
-   * l'Exercice n'existe pas encore (option conservatrice, à valider par Hermann). Le groupe n'est
-   * pas reclassé (C09).
-   */
-  function changeRepriseLevel(movementId: string) {
-    if (isSaving || levels === null || levels === "error") return;
-    const movement = levels.levels.find((entry) => entry.movement.id === movementId)?.movement;
-    if (movement === undefined) return;
-    setSaveError(false);
-    setLoadedLevels({ movementId: movement.id, levels: levelsAfterChange(levels, movement.id) });
-    setOrigin({ movementId: movement.id, name: movement.name });
-    setMovementNextPhaseId(movement.nextPhaseId);
-    if (movement.id === repriseMovementId && initial !== null) {
-      // Retour au mouvement repris : contenu et paramètres d'origine restitués, jamais un second
-      // transfert depuis l'état courant (qui viderait les durées de phase).
-      setValue(initial);
-      setCategoryId(initialCategoryId);
-      return;
-    }
-    setValue((current) =>
-      current
-        ? {
-            ...current,
-            name: movement.name,
-            instructionSteps: decodeInstructionSteps(movement.description),
-            executionParameters: transferParametersByRank(current.executionParameters, movement.phases),
-            bodyZoneIds: [...movement.bodyZoneIds],
-            media: [...movement.media],
-          }
-        : current,
-    );
-    setCategoryId(movement.categoryId);
-  }
-  // PRE-7 (A3.2) : consultation et réordonnancement des niveaux, au-dessus de la fiche.
-  const openLevelsScreen = () => {
-    if (isSaving) return;
-    setIsLevelsScreenOpen(true);
-  };
-  const editorLevel = editorLevelOf(
-    levels,
-    isEditingExisting && definitionId !== null
-      ? {
-          currentDefinitionId: definitionId,
-          // MFN-07 : ouvrir l'Exercice choisi (remplacement ; garde d'abandon existante si modifié).
-          // Aucune navigation pendant une écriture en vol (revue A3.1).
-          onChangeLevel: (id) => {
-            if (isSaving) return;
-            router.replace({ pathname: "/exercise", params: { catalogueDefinitionId: id } });
-          },
-          // MFN-07 : création d'un nouveau geste et de son Exercice, jamais d'un niveau seul ;
-          // PRE-7 (R-6, MFN-07 l.371) : avant (Plus facile) ou après (Plus difficile) l'origine.
-          onAddLevel: (placement) => {
-            if (isSaving) return;
-            router.replace({
-              pathname: "/exercise",
-              params: { catalogueDefinitionId: "new", levelOriginDefinitionId: definitionId, levelPlacement: placement },
-            });
-          },
-          onReorderLevels: openLevelsScreen,
-        }
-      : isReprise && origin !== null && !contentUnlocked
-        ? {
-            // PRE-7 (R-6) : reprise — choix par mouvement ; « Ajouter un niveau » indisponible
-            // (option conservatrice : seul le Catalogue est aligné sur MFN-07).
-            currentDefinitionId: null,
-            onChangeLevel: noExerciseChoice,
-            onAddLevel: null,
-            onReorderLevels: openLevelsScreen,
-            movementChoice: { currentMovementId: origin.movementId, onChangeMovement: changeRepriseLevel },
-          }
-        : null,
-  );
-  // Revue A3.1 : le formulaire attend la lecture des niveaux (base locale, quelques millisecondes)
-  // pour s'afficher d'emblée avec sa rangée définitive — aucune rangée à deux accès qui se
-  // réorganise ensuite en trois.
-  const levelsPending = levelMovementId !== null && levels === null;
-
-  const isValid =
-    value !== null &&
-    isActivityEditorFormValid(value, {
-      requireReferences: true,
-      hasCategory: categoryId !== null && categoryId !== "",
-      baseline: baselineParameters,
-    });
-
-  return (
-    <ScreenShell>
-      <EditorHeader
-        title={isEditingExisting ? t.titleEdit : t.titleAdd}
-        onClose={() => router.back()}
-        accessibilityLabel={t.backAccessibilityLabel}
-        trailing={
-          loadState === "ready" && contentLocked ? <EditMovementAction onPress={() => setContentUnlocked(true)} /> : null
-        }
-      />
-      {loadState === "error" ? (
-        <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="activity-editor-load-error">
-          <Text style={styles.loadErrorMessage}>{loadErrorStrings.message}</Text>
-          <Pressable
-            onPress={() => {
-              setLoadState("loading");
-              fetchDefinition(() => false);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={loadErrorStrings.retry}
-            style={styles.loadErrorRetry}
-            testID="activity-editor-load-retry"
-          >
-            <Text style={styles.loadErrorRetryLabel}>{loadErrorStrings.retry}</Text>
-          </Pressable>
-        </View>
-      ) : null}
-      {loadState === "ready" && value !== null && !levelsPending ? (
-        <ActivityEditorForm
-          value={value}
-          onChange={patch}
-          bodyZones={bodyZonesReferential}
-          onBodyZonesPickerClose={() => setBodyZonesLoadToken((current) => current + 1)}
-          silhouette={profile.silhouette}
-          category={toEditorCategory(categoryId, categories)}
-          onOpenCategory={() => {
-            setSaveError(false);
-            categorySheet.open();
-          }}
-          isCategoryPickerOpen={categorySheet.isOpen}
-          categoryAccessRef={categoryAccessRef}
-          profileSideRecoverySecondsDefault={profile.sideRecovery}
-          contentLocked={contentLocked}
-          nextPhaseId={movementNextPhaseId}
-          onNameEndEditing={originChoice.onNameEndEditing}
-          nameAssist={originChoice.nameAssist}
-          nameHint={nameHintVisible ? t.movementSuggestion.completeNameHint : null}
-          level={variantOrigin?.placement !== undefined ? variantLevel : editorLevel}
-          baselineParameters={baselineParameters}
-          mediaService={activityDefinitionService}
-          mediaDraftId={mediaDraftId}
-          finishLabel={t.finishAction}
-          onFinish={handleFinish}
-          isFinishDisabled={isSaving || !isValid || originChoice.nameTaken}
-          errorMessage={saveError ? t.saveError : null}
-          finishSlotTestID="activity-editor-finish-slot"
-          finishActionTestID="activity-editor-finish-action"
-          errorTestID="activity-editor-save-error"
-        />
-      ) : null}
-
-      {categorySheet.isMounted ? (
-        <CategoryPickerModal
-          key={categorySheet.generation}
-          visible={categorySheet.isOpen}
-          onDismissed={categorySheet.dismissed}
-          selectedId={categoryId}
-          onSelect={(id) => setCategoryId(id)}
-          // Q53 (8) : Catégorie supprimée depuis la feuille de cet Exercice : elle quitte le Brouillon.
-          onCategoryRetired={(id) => setCategoryId((current) => (current === id ? null : current))}
-          onClose={() => {
-            categorySheet.close();
-            reloadCategories();
-          }}
-        />
-      ) : null}
-
-      {/* Q18 (FR-02-12) : textes de création en CC, de modification en MC. */}
-      {isPendingExit ? (
-        <ExerciseExitConfirmModal isCreation={!isEditingExisting} onCancel={cancelExit} onConfirm={confirmExit} />
-      ) : null}
-
-      {/* PRE-7 (R-4, D-445 C03) : Annuler rend le brouillon intact, sans écriture. */}
-      {pendingDecision !== null ? (
-        pendingDecision.decision.kind === "CHOICE" ? (
-          <MovementSaveDialog
-            variant="CHOICE"
-            otherCount={pendingDecision.decision.otherCount}
-            onConfirm={(choice) => {
-              if (choice === "UPDATE") {
-                void chooseCorrection(pendingDecision);
-              } else {
-                void chooseNewIdentity(pendingDecision);
-              }
-            }}
-            onCancel={() => setPendingDecision(null)}
-          />
-        ) : (
-          <MovementSaveDialog
-            variant="CONFIRM"
-            otherCount={pendingDecision.decision.otherCount}
-            onConfirm={() => {
-              void chooseCorrection(pendingDecision);
-            }}
-            onCancel={() => setPendingDecision(null)}
-          />
-        )
-      ) : null}
-
-      {pendingCompletion !== null ? (
-        <SiblingCompletionStep
-          gaps={pendingCompletion.gaps}
-          phases={pendingCompletion.phases}
-          siblingLabels={pendingCompletion.labels}
-          onFinish={(completions) => {
-            void finishCompletion(pendingCompletion, completions);
-          }}
-          onCancel={() => setPendingCompletion(null)}
-        />
-      ) : null}
-
-      {originChoice.overlays}
-
-      {isLevelsScreenOpen && levelMovementId !== null ? (
-        <MovementLevelsScreen
-          service={activityDefinitionService}
-          movementId={levelMovementId}
-          onClose={() => {
-            setIsLevelsScreenOpen(false);
-            setLevelsReloadToken((current) => current + 1);
-          }}
-        />
-      ) : null}
-    </ScreenShell>
-  );
 }
 
 /**
@@ -1341,6 +496,8 @@ type InscriptionPlan = {
   readonly exercises: readonly SessionDraftExercise[];
   readonly movements: SessionDraft["movements"];
   readonly reserve?: SessionDraft["circuitSeriesReserve"];
+  /** PRE-9, recette n° 2 du 31/10 (constat d) : disposition générale suivant un remplacement d'occurrence. */
+  readonly structure?: SessionDraft["structure"];
   readonly occurrence: SessionDraftExercise;
 };
 
@@ -1355,8 +512,7 @@ function occurrenceIn(exercises: readonly SessionDraftExercise[], id: string): S
 
 function openedOccurrenceOf(
   exercise: SessionDraftExercise | null,
-  nature: CircuitNature | undefined,
-  movements: SessionDraft["movements"],
+  draft: Pick<SessionDraft, "structure" | "exercises" | "circuitNature" | "movements">,
 ): OpenedOccurrence | null {
   if (exercise === null) {
     return null;
@@ -1364,12 +520,13 @@ function openedOccurrenceOf(
   const opened = cloneExecutionParameters(exercise.executionParameters);
   const validated = validateForSave(opened, opened);
   return {
-    inheritedSeriesCount:
-      exercise.structuralPosition === "IN_TOUR" &&
-      exercise.type === "EXERCISE" &&
-      (nature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES",
+    // PRE-9 (B.3, ch10 « Nombre imposé et diminution », l.1142, l.1182) : même règle que la feuille
+    // ouverte depuis la carte (`inheritsCircuitSeriesCount`) — ancien modèle, Circuit unique de
+    // Séries ; disposition générale, Exercice de N'IMPORTE QUEL Circuit alterné (N en lecture seule,
+    // aucune suppression locale de série).
+    inheritedSeriesCount: inheritsCircuitSeriesCount(draft, exercise),
     openedParameters: validated.ok ? [opened, validated.value] : [opened],
-    phaseStructureLocked: isPersistedMovementOccurrence(exercise, movements),
+    phaseStructureLocked: isPersistedMovementOccurrence(exercise, draft.movements),
   };
 }
 
@@ -1377,9 +534,21 @@ function openedOccurrenceOf(
  * PRE-7 (R-3, C05) : l'occurrence référence un Mouvement déjà enregistré (et non un Mouvement
  * NOUVEAU de la table du brouillon) — son contenu n'est pas modifiable sans le crayon (R-4).
  */
-function isPersistedMovementOccurrence(exercise: SessionDraftExercise, movements: SessionDraft["movements"]): boolean {
+export function isPersistedMovementOccurrence(exercise: SessionDraftExercise, movements: SessionDraft["movements"]): boolean {
   const movementId = (exercise.sourceMovementId ?? "").trim();
   return movementId.length > 0 && movements?.[movementId]?.change !== "NEW";
+}
+
+/**
+ * PRE-9 (recette iPhone du 29/10 ; CE-MVT-01 §7, DSF Mouvements l.71) : structure des phases d'une
+ * occurrence (identités, libellés, ordre — jamais de durée), vue du gabarit Mouvement. Le compteur
+ * ne recule pas sous celui du Mouvement du brouillon (MFN-02).
+ */
+export function occurrencePhaseList(exercise: SessionDraftExercise, movements: SessionDraft["movements"]): MovementPhaseList {
+  const phases = exercise.executionParameters.series.workPhases.map((phase) => ({ id: phase.id, label: phase.label }));
+  const floor = phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1;
+  const movementId = (exercise.sourceMovementId ?? "").trim();
+  return { phases, nextPhaseId: Math.max(floor, movements?.[movementId]?.nextPhaseId ?? 0) };
 }
 
 /**
@@ -1391,6 +560,8 @@ function isPersistedMovementOccurrence(exercise: SessionDraftExercise, movements
 function CompositionExerciseEditor() {
   const router = useRouter();
   const { draft, updateDraft } = useSessionDraft();
+  // PRE-9, recette iPhone n° 2 (constat e) : retrait de la marque « à vérifier » persistée.
+  const sessionService = useContext(SessionServiceContext);
   const activityDefinitionService = useActivityDefinitionService();
   const [bodyZonesLoadToken, setBodyZonesLoadToken] = useState(0);
   const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService, bodyZonesLoadToken);
@@ -1425,10 +596,10 @@ function CompositionExerciseEditor() {
   //   occurrence n'est pas encore dans le Circuit : elle y est adaptée à `Terminer` (story 2.3) ;
   // - paramètres à l'ouverture, référence de la règle de réserve (`commitFinished`).
   const [openedOccurrence, setOpenedOccurrence] = useState(() =>
-    openedOccurrenceOf(existingExercise, draft.circuitNature, draft.movements),
+    openedOccurrenceOf(existingExercise, draft),
   );
   if (openedOccurrence === null && existingExercise !== null) {
-    setOpenedOccurrence(openedOccurrenceOf(existingExercise, draft.circuitNature, draft.movements));
+    setOpenedOccurrence(openedOccurrenceOf(existingExercise, draft));
   }
   const inheritedSeriesCount = openedOccurrence?.inheritedSeriesCount ?? false;
   const phaseStructureLocked = openedOccurrence?.phaseStructureLocked ?? false;
@@ -1437,7 +608,9 @@ function CompositionExerciseEditor() {
       ? existingExercise
       : {
           // Nouvelle occurrence : AUCUNE Récupération automatique — PRE-6
-          // (story 1.1, AD-35) : absente (`null`), distincte de « présente à 0 ».
+          // (story 1.1, AD-35) : absente (`null`), distincte de « présente à 0 ». [Remplacé le
+          // 01/11/2026 (ordre de Hermann, point 2) : la Récupération du Profil est reprise à la
+          // lecture du Profil, avec Compte à rebours et Fin, ci-dessous.]
           ...createExerciseDraft(Crypto.randomUUID(), null),
           executionParameters: createEmptyFormValue().executionParameters,
           categoryId: null,
@@ -1450,6 +623,11 @@ function CompositionExerciseEditor() {
   const [instructionSteps, setInstructionSteps] = useState<readonly string[]>(() =>
     decodeInstructionSteps(initialSnapshot.instruction),
   );
+  // PRE-9 (recette iPhone du 29/10, CE-MVT-01, DSF Mouvements l.67-69) : une occurrence existante
+  // s'ouvre au gabarit Mouvement — contenu du Mouvement en lecture seule (sans crayon), paramètres
+  // locaux par leur carte et leur Feuille (CE-UI-10). La création (sans `exerciseId`) garde
+  // l'ancien éditeur jusqu'à son retrait (A.3).
+  const opensAsMovement = isEditingExisting;
   // Q53 (8) : la Catégorie de cette Copie a été supprimée depuis sa feuille.
   const [categoryClearedByDeletion, setCategoryClearedByDeletion] = useState(false);
   const [profileApplied, setProfileApplied] = useState(isEditingExisting);
@@ -1482,9 +660,13 @@ function CompositionExerciseEditor() {
   if (!profileApplied && profile.loaded && local !== null) {
     setProfileApplied(true);
     if (occurrenceEquals(local, instructionSteps, initialSnapshot)) {
-      const created = {
+      const created: SessionDraftExercise = {
         ...initialSnapshot,
         executionParameters: withProfilePhases(initialSnapshot.executionParameters, profile.countdown, profile.end),
+        // PRE-9 (01/11/2026, point 2) : Récupération du nouvel Exercice reprise du Profil ; défauts du
+        // Profil en attente du premier ✓ (fond orange dans la Feuille).
+        postActivityRecoverySeconds: profile.recovery,
+        profileDefaultsPending: true,
       };
       setInitialSnapshot(created);
       setLocal(created);
@@ -1501,7 +683,9 @@ function CompositionExerciseEditor() {
   // choisi (contenu verrouillé, MFN-09) ; variante (R-5, C02) : création LOCALE (Mouvement `NEW`
   // créé à l'enregistrement de la Séance, rattaché avant / après l'origine), description et médias
   // vierges. Rien n'est publié au Catalogue ; « Continuer » seul persiste.
-  const [variantOrigin, setVariantOrigin] = useState<MovementLevelOrigin | null>(null);
+  // PRE-9 CAT.2 : la carte Composition ne propose plus « Créer une variante » (seul accès à cette
+  // variante LOCALE) ; l'état reste lu par l'enregistrement (`levelOrigin`), toujours `null` ici.
+  const [variantOrigin] = useState<MovementLevelOrigin | null>(null);
   const [nameHintVisible, setNameHintVisible] = useState(false);
   // PRE-7 (R-8, cr-8) : dernier nom connu, comparé par `patchLocal` (synchronisé après chaque rendu).
   const nameRef = useRef<string | undefined>(undefined);
@@ -1557,6 +741,12 @@ function CompositionExerciseEditor() {
       suspended: movementLocked || repriseLocked,
       messageHidden: nameHintVisible,
     },
+    // PRE-9 CAT.2 (CE-MVT-RESULT-01) : création d'un Exercice — cartes Composition, sans bouton ;
+    // décision de Hermann du 30/10/2026 : « l'utilisateur doit simplement appuyer sur la carte pour
+    // l'utiliser ». La carte Composition ne porte jamais « Ajouter un niveau » [remplace « Créer une
+    // variante » du panneau de l'éditeur d'Exercice, R-5] : les autres accès au nouveau Niveau
+    // (menu Niveau, paramètres de route) sont inchangés.
+    cardVariant: "composition",
     context: searchContext,
     onSameMovement: ({ movement }) => {
       setInstructionSteps(decodeInstructionSteps(movement.description));
@@ -1571,20 +761,6 @@ function CompositionExerciseEditor() {
               media: [...movement.media],
               executionParameters: repriseExecutionParameters(movement, current.executionParameters),
               sourceMovementId: movement.id,
-            }
-          : current,
-      );
-    },
-    onVariant: ({ movement }, placement) => {
-      // C02 : description et médias vierges ; Catégorie et Zones reprises si vides ; nom conservé.
-      setVariantOrigin({ movementId: movement.id, placement });
-      setNameHintVisible(true);
-      setLocal((current) =>
-        current
-          ? {
-              ...current,
-              bodyZoneIds: current.bodyZoneIds.length === 0 ? [...movement.bodyZoneIds] : current.bodyZoneIds,
-              categoryId: current.categoryId ?? movement.categoryId,
             }
           : current,
       );
@@ -1721,14 +897,16 @@ function CompositionExerciseEditor() {
       if (next.executionParameters === undefined) {
         return merged;
       }
+      // PRE-9 (01/11/2026, point 2) : premier ✓ — défauts du Profil validés.
+      const validatedDefaults = withProfileDefaultsValidated(merged);
       // ✓ de la feuille : paramètres validés avec la ligne de base (AD-13) ;
       // la direction de l'occurrence suit celle des paramètres.
       const validated = validateForSave(next.executionParameters, baselineParameters);
       if (!validated.ok) {
-        return { ...merged, executionParameters: next.executionParameters };
+        return { ...validatedDefaults, executionParameters: next.executionParameters };
       }
       return {
-        ...merged,
+        ...validatedDefaults,
         executionParameters: validated.value,
         sideMode: validated.value.sideMode,
       };
@@ -1743,6 +921,8 @@ function CompositionExerciseEditor() {
   function planFinish(current: SessionDraftExercise): Pick<CircuitMembershipSettlement, "exercises" | "losses" | "targetCount"> & {
     readonly movements: SessionDraft["movements"];
     readonly circuitSeriesReserve?: SessionDraft["circuitSeriesReserve"];
+    /** PRE-9 B.2 (ARB-07) : disposition générale avec la nouvelle occurrence insérée. */
+    readonly structure?: SessionDraft["structure"];
   } {
     // PRE-5 story 3.1 (AC4) : l'occurrence reçoit l'encodage des étapes à `Terminer` seulement.
     // PRE-7 (R-3, C05) : une création locale reçoit un Mouvement NOUVEAU à son identifiant.
@@ -1763,17 +943,32 @@ function CompositionExerciseEditor() {
         targetCount: 0,
         movements: draft.movements,
         ...(replaced.circuitSeriesReserve !== undefined ? { circuitSeriesReserve: replaced.circuitSeriesReserve } : {}),
+        // PRE-9, recette iPhone n° 2 du 31/10 (constat d) : la disposition générale suit le remplacement.
+        ...(replaced.structure !== undefined ? { structure: replaced.structure } : {}),
       };
     }
     const createsMovement = encoded.type === "EXERCISE" && (encoded.sourceMovementId ?? "").trim().length === 0;
     const finished: SessionDraftExercise = createsMovement ? { ...encoded, sourceMovementId: encoded.id } : encoded;
+    // PRE-9 B.2 (ARB-07) : disposition générale — insertion après le dernier Exercice affiché, dans
+    // son conteneur ; l'ancien modèle garde son insertion et son réglage de Circuit.
+    const richInsertion = draft.exercises.some((exercise) => exercise.id === finished.id)
+      ? null
+      : insertIntoRichLayout(draft, [finished]);
     const plan = draft.exercises.some((exercise) => exercise.id === finished.id)
       ? {
           exercises: draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise)),
           losses: [],
           targetCount: 0,
         }
-      : settleCircuitMembership(draft, appendActivityAfterLastDisplayed(draft.exercises, finished));
+      : richInsertion !== null
+        ? // PRE-9 (B.3) : occurrence entrée dans un Circuit alterné adaptée à SON N, pertes confirmées.
+          {
+            exercises: richInsertion.exercises,
+            losses: richInsertion.losses,
+            targetCount: richInsertion.targetCount,
+            structure: richInsertion.structure,
+          }
+        : settleCircuitMembership(draft, appendActivityAfterLastDisplayed(draft.exercises, finished));
     if (!createsMovement && isPersistedMovementOccurrence(finished, draft.movements)) {
       return { ...plan, movements: draft.movements };
     }
@@ -1785,6 +980,8 @@ function CompositionExerciseEditor() {
     const shared = withDraftMovement(
       { ...draft, exercises: plan.exercises },
       draftMovementOf(finished, "NEW", {
+        // PRE-9 : compteur des phases du Mouvement NOUVEAU, jamais en recul (`draftMovementOf` le
+        // relève au-dessus des identités de l'occurrence terminée).
         nextPhaseId: previous?.nextPhaseId,
         aliases: previous?.aliases,
         ...(levelOrigin !== undefined ? { levelOrigin } : {}),
@@ -1891,7 +1088,7 @@ function CompositionExerciseEditor() {
    * inactif. Rien n'est écrit en base avant l'enregistrement de la Séance.
    */
   function inscribeAndRelock(plan: InscriptionPlan) {
-    writeDraft(plan.exercises, plan.movements, plan.reserve);
+    writeDraft(plan.exercises, plan.movements, plan.reserve, plan.structure);
     const { occurrence } = plan;
     nameRef.current = occurrence.name;
     if (local !== null && occurrence.id !== local.id) {
@@ -1919,7 +1116,7 @@ function CompositionExerciseEditor() {
     }
     if (decision.kind === "NONE") {
       const plan = planFinish(current);
-      commitFinished(plan.exercises, plan.movements);
+      commitFinished(plan.exercises, plan.movements, undefined, plan.structure);
       return;
     }
     if (decision.kind === "SILENT") {
@@ -2009,13 +1206,15 @@ function CompositionExerciseEditor() {
       exercises: replaced.exercises,
       movements,
       reserve: replaced.circuitSeriesReserve,
+      // PRE-9, recette iPhone n° 2 du 31/10 (constat d) : la disposition générale suit le remplacement.
+      ...(replaced.structure !== undefined ? { structure: replaced.structure } : {}),
       occurrence: occurrenceIn(replaced.exercises, ids.occurrenceId),
     };
   }
 
   function commitNewMovement(current: SessionDraftExercise, unlocked: UnlockedMovement) {
     const plan = newMovementPlan(current, unlocked);
-    commitFinished(plan.exercises, plan.movements, plan.reserve);
+    commitFinished(plan.exercises, plan.movements, plan.reserve, plan.structure);
   }
 
   /**
@@ -2051,15 +1250,16 @@ function CompositionExerciseEditor() {
       return;
     }
     finishingRef.current = true;
-    commitFinished(plan.exercises, plan.movements, plan.circuitSeriesReserve);
+    commitFinished(plan.exercises, plan.movements, plan.circuitSeriesReserve, plan.structure);
   }
 
   function commitFinished(
     nextExercises: readonly SessionDraftExercise[],
     nextMovements: SessionDraft["movements"],
     nextReserve?: SessionDraft["circuitSeriesReserve"],
+    nextStructure?: SessionDraft["structure"],
   ) {
-    writeDraft(nextExercises, nextMovements, nextReserve);
+    writeDraft(nextExercises, nextMovements, nextReserve, nextStructure);
     setIsFinishing(true);
   }
 
@@ -2071,6 +1271,8 @@ function CompositionExerciseEditor() {
     nextExercises: readonly SessionDraftExercise[],
     nextMovements: SessionDraft["movements"],
     nextReserve?: SessionDraft["circuitSeriesReserve"],
+    // PRE-9 B.2 (ARB-07) : disposition générale où la nouvelle occurrence est insérée.
+    nextStructure?: SessionDraft["structure"],
   ) {
     // PRE-6 (story 3.3, report de la story 1.4) : une occurrence existante dont les séries
     // diffèrent de celles qu'elle avait à l'ouverture perd son entrée de réserve de Circuit (même
@@ -2097,6 +1299,7 @@ function CompositionExerciseEditor() {
         exercises: nextExercises,
         ...(nextMovements !== undefined ? { movements: nextMovements } : {}),
         ...(nextReserve !== undefined ? { circuitSeriesReserve: nextReserve } : {}),
+        ...(nextStructure !== undefined ? { structure: nextStructure } : {}),
       });
     }
     // Les copies préparées deviennent des références du brouillon de Séance ;
@@ -2134,13 +1337,25 @@ function CompositionExerciseEditor() {
   return (
     <ScreenShell>
       <EditorHeader
-        title={isEditingExisting ? t.titleEdit : t.titleAdd}
+        // PRE-9 (Figma `10419:22924` « Mouvement — Repris (lecture seule) ») : titre de la fiche
+        // consultée ; Mouvement encore NOUVEAU du brouillon (modifiable) : titre d'édition.
+        title={
+          opensAsMovement
+            ? movementLocked
+              ? strings.screens.movement.titles.consult
+              : strings.screens.movement.titles.edit
+            : isEditingExisting
+              ? t.titleEdit
+              : t.titleAdd
+        }
         onClose={() => router.back()}
         accessibilityLabel={t.backAccessibilityLabel}
         // PRE-7 (R-9, D-448 point 10) : crayon interrupteur — affiché et actif pendant l'édition du
         // mouvement, qu'un nouveau toucher quitte.
+        // PRE-9 (CE-MVT-01 §3, §13 ; DSF Mouvements l.67 ; ch13 l.268) : depuis une Séance, ni crayon
+        // ni geste pour modifier le Mouvement — le crayon n'est plus rendu sur une occurrence existante.
         trailing={
-          canUnlockMovement || unlockedMovement !== null ? (
+          !opensAsMovement && (canUnlockMovement || unlockedMovement !== null) ? (
             <EditMovementAction onPress={toggleMovementEdit} active={unlockedMovement !== null} />
           ) : null
         }
@@ -2150,6 +1365,15 @@ function CompositionExerciseEditor() {
         <ActivityEditorForm
           value={value}
           onChange={patchLocal}
+          // PRE-9 (recette iPhone du 29/10) : occurrence existante au gabarit Mouvement (CE-MVT-01) —
+          // média derrière la zone de contexte, Description, puis carte des paramètres locaux
+          // (CE-UI-10).
+          // Contre-recette iPhone du 30/10 (Hermann, r1-exo : « La section « phases du mouvement »
+          // (titre et contenu) ne doit pas apparaître, car elle est dans les paramètres
+          // d'exécution. ») : aucun bloc Phases ici — la structure se lit et, Mouvement NOUVEAU du
+          // brouillon seulement, se règle dans la Feuille des paramètres. La fiche Mouvement du
+          // Catalogue garde son bloc Phases.
+          {...(opensAsMovement && local !== null ? { variant: "movement" as const, executionParametersCard: true } : {})}
           bodyZones={bodyZonesReferential}
           onBodyZonesPickerClose={() => setBodyZonesLoadToken((current) => current + 1)}
           silhouette={profile.silhouette}
@@ -2162,6 +1386,8 @@ function CompositionExerciseEditor() {
           // Feuille ne présente ni Compte à rebours ni Fin d'exercice (valeurs conservées).
           exerciseSignals="absent"
           inheritedSeriesCount={inheritedSeriesCount}
+          // Contre-recette iPhone du 30/10 (r1-exo) : sans bloc Phases au gabarit, la structure des
+          // phases se règle dans la Feuille, verrouillée pour un Mouvement enregistré (MFN-09).
           phaseStructureLocked={movementLocked}
           // PRE-7 (A2.2, D-437, MFN-09, MFN/AC28, MFN/AC29) : même seuil que la structure — une
           // occurrence d'un Mouvement enregistré a son contenu (nom, description, médias, Catégorie,
@@ -2169,7 +1395,36 @@ function CompositionExerciseEditor() {
           // reste modifiable, ainsi que sa copie en attente (recette JA, décision du 26/10/2026).
           contentLocked={movementLocked || repriseLocked}
           // PRE-7 (R-4, MFN/AC30) : compteur du Mouvement déverrouillé, jamais max + 1.
-          nextPhaseId={unlockedMovement?.nextPhaseId}
+          nextPhaseId={
+            unlockedMovement?.nextPhaseId ??
+            (opensAsMovement && local !== null ? occurrencePhaseList(local, draft.movements).nextPhaseId : undefined)
+          }
+          // Recette iPhone n° 2 du 31/10/2026 (constat e) : orange dans la Feuille ; marque retirée à
+          // sa fermeture, du brouillon (copie locale comprise) et de la Séance enregistrée.
+          {...(local?.phasesToVerify !== undefined ? { phasesToVerify: local.phasesToVerify } : {})}
+          // PRE-9 (ordre de Hermann du 01/11/2026, point 2) : Récupération de l'Exercice (bloc 6), seul
+          // accès de réglage ; appliquée à la copie locale par le ✓, au brouillon par Terminer.
+          {...(local !== null && local.type === "EXERCISE"
+            ? {
+                recovery: {
+                  seconds: local.postActivityRecoverySeconds,
+                  onApply: (seconds: number) =>
+                    setLocal((current) => (current === null ? current : withExerciseRecovery(current, seconds))),
+                },
+              }
+            : {})}
+          profileDefaultsPending={local?.profileDefaultsPending === true}
+          onParametersToVerifyAcknowledged={() => {
+            if (local === null) return;
+            const exerciseId = local.id;
+            setLocal((current) => (current === null ? current : withoutPhasesToVerify(current)));
+            updateDraft((current) => ({
+              exercises: current.exercises.map((candidate) => (candidate.id === exerciseId ? withoutPhasesToVerify(candidate) : candidate)),
+            }));
+            sessionService?.acknowledgeParametersToVerify(exerciseId).catch((error: unknown) => {
+              console.error("Impossible de retirer la marque « Paramètre à vérifier ».", error);
+            });
+          }}
           onNameEndEditing={originChoice.onNameEndEditing}
           nameAssist={originChoice.nameAssist}
           nameHint={nameHintVisible ? strings.screens.activities.editor.movementSuggestion.completeNameHint : null}
@@ -2224,7 +1479,7 @@ function CompositionExerciseEditor() {
             // Ajout rejoué sur le brouillon courant (aucun instantané rejoué).
             finishingRef.current = true;
             const replayed = planFinish(local);
-            commitFinished(replayed.exercises, replayed.movements);
+            commitFinished(replayed.exercises, replayed.movements, undefined, replayed.structure);
           }}
         />
       ) : null}

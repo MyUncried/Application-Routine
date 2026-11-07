@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 
+import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
 import type { KeyboardFrame } from "@/features/activities/useSheetKeyboard";
 import { strings } from "@/shared/i18n";
 import { colors } from "@/shared/ui/tokens";
@@ -41,8 +42,15 @@ import { colors } from "@/shared/ui/tokens";
  * emplacement. Mécanisme RC-1 (position, montée, focus) inchangé.
  */
 
-const BAR_HEIGHT = 44;
-const BAR_BACKGROUND = "#E6E9ED";
+/**
+ * Recette iPhone du 29/10/2026 (Hermann : « agrandir un peu la marge en haut et en bas de la barre
+ * grise optionnelle, et lui donner la couleur de fond du clavier principal ») : marges verticales de
+ * 4 → 8 (boutons de 36 inchangés, barre de 44 → 52) ; fond `#E1E4E8`, fond du clavier iOS 26 clair
+ * relevé sur la référence Figma `9295:43707` (« Clavier numérique — Référence iOS 26 », dans
+ * `9292:18077`), à la place de `#E6E9ED`. À confirmer sur iPhone (le clavier natif est translucide).
+ */
+const BAR_HEIGHT = 52;
+const BAR_BACKGROUND = "#E1E4E8";
 const BAR_TEXT_COLOR = "#5C4DFF";
 const BAR_FONT_SIZE = 14;
 /**
@@ -55,8 +63,8 @@ const BAR_SIDE_INSET = 8;
 const BAR_SLOT_GAP = 6;
 /** PRE-7 B.3 (B9) : nombre d'emplacements de la barre (D-434 : À l'échec, Précédent, Suivant, Fermer). */
 const BAR_SLOT_COUNT = 4;
-/** PRE-7 B.3 (B9) : marge verticale de la barre ; boutons de 36 dans la ligne de 44. */
-const BAR_VERTICAL_INSET = 4;
+/** PRE-7 B.3 (B9) : marge verticale de la barre ; recette du 29/10/2026 : 8, boutons de 36 dans la ligne de 52. */
+const BAR_VERTICAL_INSET = 8;
 const BAR_BUTTON_HEIGHT = BAR_HEIGHT - 2 * BAR_VERTICAL_INSET;
 /**
  * PRE-7 B.3 (B9, arbitrage A4) : rayon local des boutons et marge horizontale du libellé dans son
@@ -70,6 +78,13 @@ const BAR_BUTTON_MIN_WIDTH = 44;
 const BAR_MEASURE_WIDTH = 2000;
 /** Bouton indisponible (extrémité) : atténué. */
 const BAR_DISABLED_OPACITY = 0.35;
+/**
+ * Barre d'unité des tableaux de Formats — Hermann, 04/11/2026 : « Toutes les apparitions, disparitions de boutons doivent se
+ * faire en fondu progressif lent, idem pour le déplacement des boutons » ; « Le bouton sélectionné en position à gauche
+ * pendant la frappe, y reste lorsqu'on appuie dessus pour afficher l'autre option, qui elle apparaît à sa droite. Si
+ * celle-ci est sélectionnée, elle se déplace lentement vers la gauche et éclipse l'option non sélectionnée. »
+ */
+const UNIT_ANIMATION_MS = 450;
 /** Durée de la première montée quand l'événement du clavier n'en donne aucune. */
 const BAR_FALLBACK_DURATION_MS = 250;
 /** Courbe proche de celle du clavier iOS. */
@@ -115,7 +130,14 @@ export function KeyboardAccessoryBar({
   onNext,
   onClose,
   failure = null,
+  units = null,
+  sign = null,
+  animated = false,
 }: {
+  /** Barre des tableaux de Formats : quatre emplacements fixes, apparitions, disparitions et déplacements en fondu lent. */
+  animated?: boolean;
+  /** Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » ; bouton ± dans la barre du clavier ; « Arrêter à 0 — Les séries concernées passent sans charge (0), une simple mention en gris sous la ligne, sans alerte ni blocage : "sans charge à partir de la série X" » : « ± » inverse le signe de la case (incrément de charge EMOM). */
+  sign?: { readonly negative: boolean; readonly onPress: () => void } | null;
   keyboardFrame: KeyboardFrame;
   /** Bas de la zone de la `Modal` qui contient la barre (coordonnées de la fenêtre). */
   containerBottom: number;
@@ -129,6 +151,18 @@ export function KeyboardAccessoryBar({
   onClose: () => void;
   /** D-434 : « À l'échec » (cellule Cible d'une série), ou `null` (Pause, Charge). */
   failure?: { readonly selected: boolean; readonly onPress: () => void } | null;
+  /**
+   * Mise à jour consolidée des écrans Formats du 04/11/2026 (§4.5, §6 quater) — unité de l'objectif d'une ligne de
+   * tableau. `picking` : la barre propose Répétitions | Durée | Fermer (unités non admises indisponibles) ; sinon
+   * l'unité choisie, sélectionnée, puis Précédent, Suivant et Fermer — la toucher repropose les deux unités.
+   */
+  units?: {
+    readonly current: ExecutionMode;
+    readonly picking: boolean;
+    readonly allowed: readonly ExecutionMode[];
+    readonly onPick: (mode: ExecutionMode) => void;
+    readonly onReopen: () => void;
+  } | null;
 }) {
   const lift = keyboardBarLift(keyboardFrame, containerBottom);
   // Première montée : la barre part de sous le bas de sa zone, comme une barre native.
@@ -152,6 +186,58 @@ export function KeyboardAccessoryBar({
   const [labelWidths, setLabelWidths] = useState<{ readonly previous: number; readonly next: number }>({ previous: 0, next: 0 });
   const widestLabel = labelWidths.previous > 0 && labelWidths.next > 0 ? Math.max(labelWidths.previous, labelWidths.next) : 0;
   const compact = keyboardBarCompact(barWidth, widestLabel);
+
+  // Barre des tableaux de Formats (`animated`) — Hermann, 04/11/2026 : « Appuyer sur Suivant / Précédent fait apparaître ou
+  // disparaître l'unité choisie, active / désactive le bouton Précédent / Suivant. Toutes ces apparitions / disparitions,
+  // tous ces changements de format doivent se faire avec fondu progressif lent (même vitesse). » Tous les boutons restent
+  // montés : seules leurs opacités et positions changent.
+  const [anim] = useState(() => ({
+    REPETITIONS: { x: new Animated.Value(0), opacity: new Animated.Value(1) },
+    DURATION: { x: new Animated.Value(1), opacity: new Animated.Value(1) },
+    units: new Animated.Value(units === null ? 0 : 1),
+    sign: new Animated.Value(sign === null ? 0 : 1),
+    previous: new Animated.Value(1),
+    next: new Animated.Value(1),
+  }));
+  const otherShown = useRef<boolean | null>(null);
+  const hasUnits = units !== null;
+  const hasSign = sign !== null;
+  const unitsPicking = units?.picking ?? false;
+  // Dernière unité affichée, gardée pendant l'effacement de la barre d'unité (case de charge).
+  const [shownCurrent, setShownCurrent] = useState<ExecutionMode>(units?.current ?? "REPETITIONS");
+  if (units !== null && units.current !== shownCurrent) setShownCurrent(units.current);
+  const [shownNegative, setShownNegative] = useState(sign?.negative ?? false);
+  if (sign !== null && sign.negative !== shownNegative) setShownNegative(sign.negative);
+  useEffect(() => {
+    const current = anim[shownCurrent];
+    const other = anim[shownCurrent === "DURATION" ? "REPETITIONS" : "DURATION"];
+    const first = otherShown.current === null;
+    const picking = hasUnits && unitsPicking;
+    // L'autre unité réapparaît toujours à droite de l'unité courante.
+    if (picking && otherShown.current !== true) other.x.setValue(1);
+    otherShown.current = picking;
+    const navOpacity = (enabled: boolean) => (picking ? 0 : enabled ? 1 : BAR_DISABLED_OPACITY);
+    const targets: [Animated.Value, number][] = [
+      [current.x, 0],
+      [current.opacity, 1],
+      [other.opacity, picking ? 1 : 0],
+      [anim.units, hasUnits ? 1 : 0],
+      [anim.sign, hasSign ? 1 : 0],
+      [anim.previous, navOpacity(canPrevious)],
+      [anim.next, navOpacity(canNext)],
+    ];
+    if (first || reduceMotion) {
+      for (const [value, to] of targets) value.setValue(to);
+      return;
+    }
+    const animation = Animated.parallel(
+      targets.map(([value, to]) => Animated.timing(value, { toValue: to, duration: UNIT_ANIMATION_MS, easing: Easing.inOut(Easing.cubic), useNativeDriver: true })),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [anim, canNext, canPrevious, hasSign, hasUnits, reduceMotion, shownCurrent, unitsPicking]);
+  const slotWidth = keyboardBarSlotWidth(barWidth);
+  const step = slotWidth + BAR_SLOT_GAP;
 
   const button = (
     label: string,
@@ -213,7 +299,92 @@ export function KeyboardAccessoryBar({
         }}
         testID="execution-sheet-keyboard-bar"
       >
-        {failure === null ? (
+        {animated ? (
+          // Quatre emplacements fixes ; unités, ± et flèches apparaissent, disparaissent et se déplacent en fondu lent.
+          <View style={styles.unitsRow} testID="keyboard-units">
+            <Animated.View pointerEvents={hasUnits ? "box-none" : "none"} style={[styles.layer, { opacity: anim.units }]} accessibilityElementsHidden={!hasUnits} importantForAccessibility={hasUnits ? "auto" : "no-hide-descendants"}>
+              {(["REPETITIONS", "DURATION"] as const).map((mode) => {
+                const isCurrent = shownCurrent === mode;
+                const picking = units?.picking ?? false;
+                const allowed = units?.allowed.includes(mode) ?? false;
+                const enabled = units !== null && allowed && (isCurrent || picking);
+                const label = mode === "DURATION" ? labels.duration : labels.repetitions;
+                return (
+                  <Animated.View
+                    key={mode}
+                    pointerEvents={units !== null && (isCurrent || picking) ? "auto" : "none"}
+                    style={[
+                      styles.unitSlot,
+                      { width: slotWidth, zIndex: isCurrent ? 2 : 1, opacity: anim[mode].opacity, transform: [{ translateX: Animated.multiply(anim[mode].x, step) }] },
+                    ]}
+                  >
+                    <Pressable
+                      onPress={() => {
+                        if (units === null) return;
+                        if (isCurrent && !units.picking) units.onReopen();
+                        else units.onPick(mode);
+                      }}
+                      disabled={!enabled}
+                      accessibilityRole="button"
+                      accessibilityLabel={isCurrent && !picking ? labels.unitSpoken.replace("{unit}", label) : label}
+                      accessibilityState={{ disabled: !enabled, selected: isCurrent }}
+                      hitSlop={BAR_BUTTON_HIT_SLOP}
+                      style={[styles.unitButton, styles.button, allowed || units === null ? null : styles.disabled]}
+                      testID={mode === "DURATION" ? "keyboard-unit-duration" : "keyboard-unit-repetitions"}
+                    >
+                      <Text style={[styles.label, isCurrent ? styles.labelSelected : null]}>{label}</Text>
+                    </Pressable>
+                  </Animated.View>
+                );
+              })}
+            </Animated.View>
+            <Animated.View pointerEvents={hasSign ? "auto" : "none"} style={[styles.unitSlot, { width: slotWidth, opacity: anim.sign }]} accessibilityElementsHidden={!hasSign} importantForAccessibility={hasSign ? "auto" : "no-hide-descendants"}>
+              <Pressable
+                onPress={() => sign?.onPress()}
+                disabled={!hasSign}
+                accessibilityRole="button"
+                accessibilityLabel={labels.signSpoken}
+                accessibilityState={{ disabled: !hasSign, selected: shownNegative }}
+                hitSlop={BAR_BUTTON_HIT_SLOP}
+                style={[styles.unitButton, styles.button]}
+                testID="keyboard-sign"
+              >
+                <Text style={[styles.label, styles.signLabel]}>{labels.sign}</Text>
+              </Pressable>
+            </Animated.View>
+            <Animated.View pointerEvents={canPrevious && !(hasUnits && unitsPicking) ? "auto" : "none"} style={[styles.unitSlot, { width: slotWidth, left: step, opacity: anim.previous }]}>
+              <Pressable
+                onPress={onPrevious}
+                disabled={!canPrevious}
+                accessibilityRole="button"
+                accessibilityLabel={labels.previousSpoken}
+                accessibilityState={{ disabled: !canPrevious }}
+                hitSlop={BAR_BUTTON_HIT_SLOP}
+                style={[styles.unitButton, styles.button]}
+                testID="execution-sheet-keyboard-previous"
+              >
+                <Text style={styles.label}>{compact ? labels.previousArrow : labels.previous}</Text>
+              </Pressable>
+            </Animated.View>
+            <Animated.View pointerEvents={canNext && !(hasUnits && unitsPicking) ? "auto" : "none"} style={[styles.unitSlot, { width: slotWidth, left: 2 * step, opacity: anim.next }]}>
+              <Pressable
+                onPress={onNext}
+                disabled={!canNext}
+                accessibilityRole="button"
+                accessibilityLabel={labels.nextSpoken}
+                accessibilityState={{ disabled: !canNext }}
+                hitSlop={BAR_BUTTON_HIT_SLOP}
+                style={[styles.unitButton, styles.button]}
+                testID="execution-sheet-keyboard-next"
+              >
+                <Text style={styles.label}>{compact ? labels.nextArrow : labels.next}</Text>
+              </Pressable>
+            </Animated.View>
+            <View style={[styles.unitSlot, { width: slotWidth, left: 3 * step }]}>
+              {button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
+            </View>
+          </View>
+        ) : failure === null ? (
           // B9 (arbitrage A4) : emplacement réservé, vide et non accessible.
           <View
             style={styles.slot}
@@ -228,15 +399,15 @@ export function KeyboardAccessoryBar({
             selected: failure.selected,
           })
         )}
-        {button(
+        {animated ? null : button(
           compact ? labels.previousArrow : labels.previous,
           labels.previousSpoken,
           canPrevious,
           onPrevious,
           "execution-sheet-keyboard-previous",
         )}
-        {button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
-        {button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
+        {animated ? null : button(compact ? labels.nextArrow : labels.next, labels.nextSpoken, canNext, onNext, "execution-sheet-keyboard-next")}
+        {animated ? null : button(labels.close, labels.close, true, onClose, "execution-sheet-keyboard-close", { primary: true })}
       </View>
     </Animated.View>
   );
@@ -282,6 +453,35 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: BAR_DISABLED_OPACITY,
+  },
+  // Barre d'unité : rangée de la hauteur d'un bouton, emplacements posés en absolu (marges de la barre conservées).
+  unitsRow: {
+    flex: 1,
+    minHeight: BAR_BUTTON_HEIGHT,
+  },
+  unitSlot: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    flexDirection: "row",
+  },
+  unitButton: {
+    flex: 1,
+  },
+  layer: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  // Hermann, 04/11/2026 : « Faire le signe +/− beaucoup plus gros dans son cadre ».
+  signLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    fontSize: 26,
+    lineHeight: 30,
   },
   label: {
     fontFamily: "Inter_400Regular",

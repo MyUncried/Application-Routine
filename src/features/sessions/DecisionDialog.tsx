@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import type { TextStyle } from "react-native";
 
@@ -18,6 +19,12 @@ export type DecisionDialogProps = {
   confirmBordered: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  /**
+   * Recette du 05/11/2026 au soir (r-libre, Hermann : « appuyer sur la croix, confirmer l’annulation > le message disparaît puis
+   * l’écran est bloqué ») : la confirmation n'est rendue qu'après la fermeture du dialogue (`onDismiss` iOS, ou au plus tard
+   * après le fondu) — une feuille native ne se retire pas pendant qu'un dialogue se ferme par-dessus elle. Absent : immédiat.
+   */
+  confirmAfterDismiss?: boolean;
   /** Préfixe des `testID` internes (`${testIDPrefix}-backdrop`/`-card`/`-actions`) — un contexte par appelant, jamais partagé entre deux instances simultanées. */
   testIDPrefix: string;
 };
@@ -60,10 +67,33 @@ export function DecisionDialog({
   confirmBordered,
   onCancel,
   onConfirm,
+  confirmAfterDismiss = false,
   testIDPrefix,
 }: DecisionDialogProps) {
+  const [closing, setClosing] = useState(false);
+  const confirmedRef = useRef(false);
+  const confirmOnce = useRef(onConfirm);
+  useEffect(() => {
+    confirmOnce.current = onConfirm;
+  }, [onConfirm]);
+  const fire = () => {
+    if (confirmedRef.current) return;
+    confirmedRef.current = true;
+    confirmOnce.current();
+  };
+  useEffect(() => {
+    if (!closing) return;
+    const timer = setTimeout(fire, CONFIRM_FALLBACK_MS);
+    return () => clearTimeout(timer);
+  });
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={onCancel}>
+    <Modal
+      transparent
+      visible={!closing}
+      animationType="fade"
+      onRequestClose={onCancel}
+      {...(confirmAfterDismiss ? { onDismiss: () => { if (closing) fire(); } } : {})}
+    >
       <View style={styles.backdrop} testID={`${testIDPrefix}-backdrop`}>
         <View style={styles.card} accessibilityRole="alert" testID={`${testIDPrefix}-card`}>
           <Text style={[styles.title, titleStyle]}>{title}</Text>
@@ -78,7 +108,7 @@ export function DecisionDialog({
               <Text style={[styles.neutralLabel, cancelLabelStyle]}>{cancelLabel}</Text>
             </Pressable>
             <Pressable
-              onPress={onConfirm}
+              onPress={confirmAfterDismiss ? () => setClosing(true) : onConfirm}
               accessibilityRole="button"
               accessibilityLabel={confirmLabel}
               style={[styles.destructiveAction, confirmBordered ? styles.destructiveActionBorder : null]}
@@ -91,6 +121,9 @@ export function DecisionDialog({
     </Modal>
   );
 }
+
+/** Délai de secours de la confirmation différée (fondu du dialogue, ~300 ms) si `onDismiss` n'arrive pas. */
+const CONFIRM_FALLBACK_MS = 350;
 
 const styles = StyleSheet.create({
   backdrop: {

@@ -4,7 +4,7 @@ import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import { seedCatalogueDefinition } from "@/infrastructure/database/testing/seedCatalogueDefinition";
+import { seedMovement } from "@/infrastructure/database/testing/seedMovement";
 
 function makeUuidFactory(prefix: string) {
   let counter = 0;
@@ -83,7 +83,7 @@ describe("SqliteBodyZoneRepository", () => {
     it("keeps a reactivated Zone's existing Activity associations (same id, never a new row)", async () => {
       const repository = new SqliteBodyZoneRepository(database, makeUuidFactory("zone"));
       // PRE-7 (A1.2) : Zones portées par le Mouvement de l'Exercice.
-      await seedCatalogueDefinition(database, { id: "def-1", bodyZoneIds: ["cuisses"] });
+      await seedMovement(database, { movementId: "mov-def-1", bodyZoneIds: ["cuisses"] });
       await repository.retire("cuisses");
 
       await repository.create({ name: "Cuisses" });
@@ -140,7 +140,7 @@ describe("SqliteBodyZoneRepository", () => {
     });
 
     it("is true once a Catalogue Exercise references the Zone (movement_body_zones, PRE-7 A1.2)", async () => {
-      await seedCatalogueDefinition(database, { id: "def-1", bodyZoneIds: ["cou"] });
+      await seedMovement(database, { movementId: "mov-def-1", bodyZoneIds: ["cou"] });
       const repository = new SqliteBodyZoneRepository(database, makeUuidFactory("zone"));
       expect(await repository.isUsed("cou")).toBe(true);
     });

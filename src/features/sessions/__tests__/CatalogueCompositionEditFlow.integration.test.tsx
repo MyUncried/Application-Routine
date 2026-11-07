@@ -11,9 +11,11 @@ import type {
   CatalogueSessionRecord,
   SessionRepository,
   SessionStatus,
+  StructuredSession,
   UpdateSessionOutcome,
+  UpdateStructuredSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
-import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
+import { withStructure } from "@/domain/sessions/testing/structuredSession";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -21,6 +23,7 @@ import { ActivityDefinitionServiceProvider } from "@/features/activities/Activit
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * **Correction compacte LOT_3_OF_3 — intégration Catalogue → Composition.**
@@ -195,6 +198,16 @@ class FakeSessionRepository implements SessionRepository {
       },
     ]);
   }
+  /** PRE-9 (A.1) : port structuré, seul lu et écrit par le service (aucune écriture à l'ouverture). */
+  findStructuredById(sessionId: string): Promise<StructuredSession | null> {
+    return Promise.resolve(sessionId === PERSISTED_SESSION_ID ? withStructure(PERSISTED_SESSION) : null);
+  }
+  createStructured(): Promise<StructuredSession> {
+    return Promise.reject(new Error("createStructured() must never be called by an edit flow"));
+  }
+  updateStructured(): Promise<UpdateStructuredSessionOutcome> {
+    return Promise.reject(new Error("updateStructured() must never be called by merely opening a Session"));
+  }
   update(): Promise<UpdateSessionOutcome> {
     return Promise.reject(new Error("update() must never be called by merely opening a Session"));
   }
@@ -221,25 +234,7 @@ class NoopCategoryRepository implements CategoryRepository {
   }
 }
 
-/**
- * V2-CAT-01 : le Catalogue charge désormais aussi le segment `Activités`
- * (`useActivityCatalogue`, qui exige un `ActivityDefinitionServiceContext`) —
- * ce parcours ne porte sur aucune Activité, un Repository vide suffit.
- */
-class NoopActivityDefinitionRepository implements ActivityDefinitionRepository {
-  create(): Promise<ActivityDefinition> {
-    return Promise.reject(new Error("not used by this Session-only navigation test"));
-  }
-  findById(): Promise<ActivityDefinition | null> {
-    return Promise.resolve(null);
-  }
-  listAll(): Promise<readonly ActivityDefinition[]> {
-    return Promise.resolve([]);
-  }
-  update(): Promise<ActivityDefinition | null> {
-    return Promise.reject(new Error("not used by this Session-only navigation test"));
-  }
-}
+// [PRE-9 A.3 du 04/11/2026 : dépôt factice des définitions retiré avec les anciennes définitions du Catalogue.]
 
 let repository: FakeSessionRepository;
 
@@ -251,7 +246,6 @@ function TestWrapper({ children }: { children: ReactNode }) {
       <ActivityDefinitionServiceProvider
         service={
           new ActivityDefinitionService(
-            new NoopActivityDefinitionRepository(),
             new NoopCategoryRepository(),
             new FakeBodyZoneRepository(),
           )
@@ -268,6 +262,8 @@ function renderCatalogueRouter() {
     {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       index: require("../../../../app/(tabs)/index").default,
+      // Règle du 06/11/2026 : brouillons au niveau de l'application (`app/_layout.tsx`).
+      _layout: CreationRootStack,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -296,7 +292,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
       const router = renderCatalogueRouter();
       await flush();
 
-      fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+      fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
 
       expect(router.getPathname()).toBe("/composition");
       // Seul l identifiant transite par la route — jamais la Séance sérialisée.
@@ -320,7 +316,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
     await flush(); // la lecture est en vol : `findSessionStatus` n'est pas résolu
 
     expect(screen.getByTestId("composition-edit-state")).toBeTruthy();
@@ -341,7 +337,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
     await flush();
 
     await act(async () => {
@@ -367,7 +363,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
     await flush();
     await act(async () => {
       repository.statusGate.resolve("ACTIVE");
@@ -388,7 +384,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-swipe-card`));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-visual-open`));
     await flush();
     await act(async () => {
       repository.statusGate.resolve("ACTIVE");

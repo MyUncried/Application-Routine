@@ -148,12 +148,17 @@ export class SqliteCategoryRepository implements CategoryRepository {
     return { status: "OK", value: mapCategoryRow({ ...current, is_active: 0 }) };
   }
 
-  /** Utilisée par un Exercice du Catalogue — PRE-7 (A1.2) : Catégorie portée par son Mouvement (`movements.category_id`). */
+  /**
+   * Utilisée — PRE-7 (A1.2) : Catégorie portée par le Mouvement (`movements.category_id`).
+   * [PRE-9 A.3 du 04/11/2026 : l'ancienne règle comptait les seules définitions du Catalogue, supprimées
+   * par la migration 021. Règle CONSERVATRICE retenue : la Catégorie est utilisée si au moins un
+   * Mouvement, archivé ou non, la référence (patron de `SqliteBodyZoneRepository.isUsed`).
+   * À CLARIFIER (classe C) : règle non arbitrée par Hermann — elle ne change que le message de
+   * suppression (§4.10 L135), jamais une donnée.]
+   */
   async isUsed(id: string): Promise<boolean> {
     const row = await this.database.getFirstAsync<{ count: number }>(
-      `SELECT COUNT(*) AS count FROM activity_definitions
-       JOIN movements ON movements.id = activity_definitions.movement_id
-       WHERE movements.category_id = ?`,
+      "SELECT COUNT(*) AS count FROM movements WHERE category_id = ?",
       [id],
     );
     return (row?.count ?? 0) > 0;

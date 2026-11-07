@@ -28,6 +28,13 @@
  * (`PlacementContext.tourRepeatCount`) lève RM-219 en début et fin de Tour à N ≥ 2, et un ajout qui
  * ferait coexister les deux rend un choix requis (`togglePlacementStopPointOutcome`).
  *
+ * **PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts
+ * du Profil », qui clôt REC-PARAM-01 et remplace D-442 sur ce périmètre)** : le placement ne porte
+ * plus que les Points d'arrêt. La Récupération appartient à l'Exercice et se règle uniquement dans
+ * Paramètres d'exécution : aucune zone, aucun ajout, réglage ni retrait de récupération ici
+ * [les mentions de récupération ci-dessus — emplacements, sous-brouillon, story 7.1 — sont
+ * remplacées le 01/11/2026 ; texte conservé pour l'historique].
+ *
  * Module de Domaine pur, sans dépendance React.
  */
 
@@ -47,11 +54,6 @@ import {
 
 /** Ordre affiché des zones (D-061) : avant → dans → après le Circuit. */
 const ZONE_ORDER: readonly StructuralPosition[] = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"];
-
-/** Récupération d'un emplacement : à ajouter, déjà présente (valeur conservée), ou non proposée. */
-export type PlacementRecoverySlot =
-  | { readonly kind: "AVAILABLE" }
-  | { readonly kind: "EXISTING"; readonly seconds: number };
 
 /**
  * Point d'arrêt d'un emplacement : son emplacement et s'il existe déjà dans le brouillon.
@@ -76,20 +78,17 @@ export type PlacementSlotKind = "OCCURRENCE" | "CIRCUIT_HEAD" | "AFTER_CIRCUIT" 
 /**
  * Emplacement proposé en placement : sous une occurrence (`occurrenceId`) ou sans occurrence
  * (`occurrenceId = null` : « après le Circuit », ou point existant non proposé, voir `kind`).
- * `recovery` / `stopPoint` valent `null` quand l'élément n'y est pas proposé ; un emplacement
- * sans aucun des deux n'est jamais produit.
+ * `stopPoint` vaut `null` quand l'élément n'y est pas proposé [PRE-9, 01/11/2026 : la zone
+ * `recovery` est retirée — aucune récupération en placement] ; un emplacement sans point n'est
+ * jamais produit.
  */
 export type PlacementSlot = {
   readonly kind: PlacementSlotKind;
   readonly occurrenceId: string | null;
-  readonly recovery: PlacementRecoverySlot | null;
   readonly stopPoint: PlacementStopPointSlot | null;
 };
 
-type PlacementOccurrence = Pick<
-  SessionDraftExercise,
-  "id" | "type" | "structuralPosition" | "postActivityRecoverySeconds"
->;
+type PlacementOccurrence = Pick<SessionDraftExercise, "id" | "type" | "structuralPosition">;
 
 /** Point existant vu par le placement : emplacement, et identifiant quand il est connu. */
 export type PlacementExistingStopPoint = StopPointLocation & { readonly id?: string };
@@ -126,10 +125,8 @@ function displayedOccurrences<T extends Pick<SessionDraftExercise, "structuralPo
  * - `rules` (N du Circuit, `StopPointRules`) : à N ≥ 2, début et fin de Tour échappent à RM-219.
  *   Le conflit de Tour (début et fin à N ≥ 2) n'empêche PAS la proposition : le choisir rend un
  *   choix requis (`togglePlacementStopPointOutcome`) ;
- * - récupérations : une récupération présente (0 comprise) est rendue `EXISTING` — sélectionnée
- *   par défaut ; sa désélection programme son retrait (`deselectPlacementRecovery`), sa
- *   resélection à une durée l'annule et en programme la modification
- *   (`selectPlacementRecovery`). L'état courant se lit avec `placementRecoverySeconds`.
+ * - [récupérations rendues `EXISTING` / `AVAILABLE`, désélection et resélection — retirées le
+ *   01/11/2026 (ordre de Hermann, point 2) : aucune récupération en placement.]
  */
 export function placementSlots(
   exercises: readonly PlacementOccurrence[],
@@ -168,16 +165,15 @@ export function placementSlots(
       circuitHeadPending = false;
       const head = stopPointSlot({ scope: "IN_TOUR", position: 0 });
       if (head !== null) {
-        slots.push({ kind: "CIRCUIT_HEAD", occurrenceId: null, recovery: null, stopPoint: head });
+        slots.push({ kind: "CIRCUIT_HEAD", occurrenceId: null, stopPoint: head });
       }
     }
     const scope = occurrence.structuralPosition;
     const rank = (rankByScope.get(scope) ?? 0) + 1;
     rankByScope.set(scope, rank);
-    const recovery = recoverySlotOf(occurrence);
     const stopPoint = stopPointSlot({ scope, position: rank });
-    if (recovery !== null || stopPoint !== null) {
-      slots.push({ kind: "OCCURRENCE", occurrenceId: occurrence.id, recovery, stopPoint });
+    if (stopPoint !== null) {
+      slots.push({ kind: "OCCURRENCE", occurrenceId: occurrence.id, stopPoint });
     }
   }
   if (afterCircuitPending) {
@@ -191,7 +187,6 @@ export function placementSlots(
     slots.push({
       kind: "UNOFFERED_STOP_POINT",
       occurrenceId: null,
-      recovery: null,
       stopPoint: existingSlot({ scope: point.scope, position: point.position }, point),
     });
   }
@@ -201,7 +196,7 @@ export function placementSlots(
     afterCircuitPending = false;
     const stopPoint = stopPointSlot({ scope: "AFTER_TOUR", position: 0 });
     if (stopPoint !== null) {
-      slots.push({ kind: "AFTER_CIRCUIT", occurrenceId: null, recovery: null, stopPoint });
+      slots.push({ kind: "AFTER_CIRCUIT", occurrenceId: null, stopPoint });
     }
   }
 }
@@ -210,41 +205,23 @@ function existingSlot(location: StopPointLocation, point: PlacementExistingStopP
   return point.id === undefined ? { location, existing: true } : { location, existing: true, stopPointId: point.id };
 }
 
-function recoverySlotOf(occurrence: PlacementOccurrence): PlacementRecoverySlot | null {
-  if (occurrence.type !== "EXERCISE") {
-    return null;
-  }
-  const seconds = occurrence.postActivityRecoverySeconds;
-  return seconds === null || seconds === undefined ? { kind: "AVAILABLE" } : { kind: "EXISTING", seconds };
-}
-
 /**
  * Sous-brouillon de placement (AD-43) : ajouts de la session, jamais l'état existant.
- * `recoveries` : durée choisie par identifiant d'occurrence (0 conservé comme présent, D-323) ;
  * `stopPoints` : emplacements ajoutés, sans doublon.
- * `recoveryChanges` (story 4.2) : nouvelle durée d'une récupération DÉJÀ présente, par
- * identifiant d'occurrence — « la modification de leur durée n'est pas un ajout » (ch08) : jamais
- * comptée dans N, appliquée avec le reste par « Confirmer », jetée par « Annuler ».
  * `stopPointRemovals` (story 6.1, D-441) : IDENTIFIANTS des points existants dont le retrait est
  * programmé (désélection) ; une resélection annule le retrait ; jamais comptés dans N.
- * `recoveryRemovals` (story 7.1, D-442) : IDENTIFIANTS des occurrences dont la récupération
- * PRÉSENTE (0 comprise) est programmée au retrait (désélection) ; exclusif d'une modification de
- * la même occurrence ; jamais compté dans N.
+ * [PRE-9, 01/11/2026 (ordre de Hermann, point 2) : `recoveries`, `recoveryChanges` (story 4.2) et
+ * `recoveryRemovals` (story 7.1) sont retirés — la récupération de l'Exercice ne se règle plus en
+ * placement.]
  */
 export type PlacementDraft = {
-  readonly recoveries: Readonly<Record<string, number>>;
   readonly stopPoints: readonly StopPointLocation[];
-  readonly recoveryChanges: Readonly<Record<string, number>>;
   readonly stopPointRemovals: readonly string[];
-  readonly recoveryRemovals: readonly string[];
 };
 
 export const EMPTY_PLACEMENT_DRAFT: PlacementDraft = {
-  recoveries: {},
   stopPoints: [],
-  recoveryChanges: {},
   stopPointRemovals: [],
-  recoveryRemovals: [],
 };
 
 /**
@@ -262,33 +239,6 @@ export function effectivePlacementStopPoints(
   return [...kept, ...placement.stopPoints.filter((point) => !keptKeys.has(stopPointKey(point)))];
 }
 
-/** Ajoute ou met à jour la récupération choisie pour une occurrence (✓ de la roulette). */
-export function setPlacementRecovery(placement: PlacementDraft, occurrenceId: string, seconds: number): PlacementDraft {
-  return { ...placement, recoveries: { ...placement.recoveries, [occurrenceId]: seconds } };
-}
-
-/**
- * Story 4.2 : nouvelle durée d'une récupération existante (✓ de la roulette), non comptée dans N.
- * Revenir à la valeur du brouillon (`originalSeconds`) efface la modification.
- */
-export function setPlacementRecoveryChange(
-  placement: PlacementDraft,
-  occurrenceId: string,
-  seconds: number,
-  originalSeconds: number | null,
-): PlacementDraft {
-  if (seconds === originalSeconds) {
-    if (!(occurrenceId in placement.recoveryChanges)) {
-      return placement;
-    }
-    const recoveryChanges = Object.fromEntries(
-      Object.entries(placement.recoveryChanges).filter(([id]) => id !== occurrenceId),
-    );
-    return { ...placement, recoveryChanges };
-  }
-  return { ...placement, recoveryChanges: { ...placement.recoveryChanges, [occurrenceId]: seconds } };
-}
-
 /**
  * Composition sur laquelle se jugent une bascule de point et l'applicabilité (story 6.1) ; un
  * `SessionDraft` convient. Story 7.1 (D-442) : `tourRepeatCount` (N du Circuit, absent : 1) —
@@ -298,103 +248,6 @@ export type PlacementContext = StopPointRules & {
   readonly exercises: readonly PlacementOccurrence[];
   readonly stopPoints?: readonly StopPoint[];
 };
-
-// --- Récupérations en placement (story 7.1, D-442) ----------------------------
-
-/** Durée présente de la récupération d'une occurrence `EXERCISE` du contexte, sinon `null`. */
-function currentRecoveryOf(context: PlacementContext, occurrenceId: string): number | null {
-  const occurrence = context.exercises.find((exercise) => exercise.id === occurrenceId);
-  if (occurrence === undefined || occurrence.type !== "EXERCISE") {
-    return null;
-  }
-  return occurrence.postActivityRecoverySeconds ?? null;
-}
-
-function withoutKey(record: Readonly<Record<string, number>>, key: string): Readonly<Record<string, number>> {
-  return Object.fromEntries(Object.entries(record).filter(([id]) => id !== key));
-}
-
-/** Story 7.1 (D-442) : le retrait de la récupération présente de `occurrenceId` est-il programmé ? */
-export function isPlacementRecoveryRemoved(placement: PlacementDraft, occurrenceId: string): boolean {
-  return placement.recoveryRemovals.includes(occurrenceId);
-}
-
-/**
- * Story 7.1 (D-442) : durée SÉLECTIONNÉE en placement pour la récupération d'une occurrence, ou
- * `null` (zone non sélectionnée) — ajout du sous-brouillon, sinon récupération présente (0
- * comprise) modifiée ou non, sauf si son retrait est programmé. Non `EXERCISE` : `null`.
- */
-export function placementRecoverySeconds(
-  placement: PlacementDraft,
-  occurrence: Pick<SessionDraftExercise, "id" | "type" | "postActivityRecoverySeconds">,
-): number | null {
-  if (occurrence.type !== "EXERCISE") {
-    return null;
-  }
-  const added = placement.recoveries[occurrence.id];
-  if (added !== undefined) {
-    return added;
-  }
-  const current = occurrence.postActivityRecoverySeconds ?? null;
-  if (current === null || isPlacementRecoveryRemoved(placement, occurrence.id)) {
-    return null;
-  }
-  return placement.recoveryChanges[occurrence.id] ?? current;
-}
-
-/**
- * Story 7.1 (D-442) : toucher une récupération SÉLECTIONNÉE la désélectionne — ajoutée : l'ajout
- * est retiré ; présente : son retrait est programmé (et une modification de durée en attente est
- * jetée). Zone non sélectionnée, occurrence inconnue ou non `EXERCISE` : sous-brouillon rendu tel
- * quel (même identité).
- */
-export function deselectPlacementRecovery(
-  placement: PlacementDraft,
-  occurrenceId: string,
-  context: PlacementContext,
-): PlacementDraft {
-  if (occurrenceId in placement.recoveries) {
-    return removePlacementRecovery(placement, occurrenceId);
-  }
-  if (currentRecoveryOf(context, occurrenceId) === null || isPlacementRecoveryRemoved(placement, occurrenceId)) {
-    return placement;
-  }
-  return {
-    ...placement,
-    recoveryChanges: withoutKey(placement.recoveryChanges, occurrenceId),
-    recoveryRemovals: [...placement.recoveryRemovals, occurrenceId],
-  };
-}
-
-/**
- * Story 7.1 (D-442) : sélectionner une récupération à `seconds` (✓ de la roulette) — occurrence
- * sans récupération présente : ajout (`setPlacementRecovery`) ; récupération présente : le retrait
- * éventuel est annulé et la durée, si elle diffère de la valeur du brouillon, est programmée en
- * modification (`setPlacementRecoveryChange`). Durée invalide (non entière, négative, NaN),
- * occurrence inconnue ou non `EXERCISE` : sous-brouillon rendu tel quel.
- */
-export function selectPlacementRecovery(
-  placement: PlacementDraft,
-  occurrenceId: string,
-  seconds: number,
-  context: PlacementContext,
-): PlacementDraft {
-  if (!Number.isInteger(seconds) || seconds < 0) {
-    return placement;
-  }
-  const occurrence = context.exercises.find((exercise) => exercise.id === occurrenceId);
-  if (occurrence === undefined || occurrence.type !== "EXERCISE") {
-    return placement;
-  }
-  const current = currentRecoveryOf(context, occurrenceId);
-  if (current === null) {
-    return setPlacementRecovery(placement, occurrenceId, seconds);
-  }
-  const restored = isPlacementRecoveryRemoved(placement, occurrenceId)
-    ? { ...placement, recoveryRemovals: placement.recoveryRemovals.filter((id) => id !== occurrenceId) }
-    : placement;
-  return setPlacementRecoveryChange(restored, occurrenceId, seconds, current);
-}
 
 /**
  * Story 6.1 (D-441, arbitrage du 22/10/2026) : nature du bouton Confirmer — rien à confirmer,
@@ -414,24 +267,12 @@ export type PlacementConfirmation =
  */
 export function placementConfirmation(placement: PlacementDraft, context: PlacementContext): PlacementConfirmation {
   const applicable = applicablePlacement(context, placement);
-  // Story 7.1 (D-442) : un retrait de récupération est un changement (« Confirmer les modifications »).
-  const changes = applicable.recoveryChanges.size + applicable.removedIds.size + applicable.recoveryRemovedIds.size;
-  if (changes > 0) {
+  // PRE-9 (01/11/2026, ordre de Hermann, point 2) : Points d'arrêt seuls — aucune récupération comptée.
+  if (applicable.removedIds.size > 0) {
     return { kind: "CHANGES" };
   }
-  const additions = applicable.recoveries.size + applicable.stopPointAdditions.length;
+  const additions = applicable.stopPointAdditions.length;
   return additions > 0 ? { kind: "ADDITIONS_ONLY", count: additions } : { kind: "NONE" };
-}
-
-/** Retire la récupération ajoutée d'une occurrence (désélection). Sans ajout : inchangé. */
-export function removePlacementRecovery(placement: PlacementDraft, occurrenceId: string): PlacementDraft {
-  if (!(occurrenceId in placement.recoveries)) {
-    return placement;
-  }
-  const recoveries = Object.fromEntries(
-    Object.entries(placement.recoveries).filter(([id]) => id !== occurrenceId),
-  );
-  return { ...placement, recoveries };
 }
 
 /**
@@ -639,9 +480,6 @@ export function isPlacementStopPointAdded(placement: PlacementDraft, location: S
 
 /** Changements du sous-brouillon réellement applicables à un contexte (story 6.1, revue). */
 type ApplicablePlacement = {
-  readonly recoveries: ReadonlyMap<string, number>;
-  readonly recoveryChanges: ReadonlyMap<string, number>;
-  readonly recoveryRemovedIds: ReadonlySet<string>;
   readonly removedIds: ReadonlySet<string>;
   readonly keptStopPoints: readonly StopPoint[];
   readonly stopPointAdditions: readonly StopPointLocation[];
@@ -650,10 +488,8 @@ type ApplicablePlacement = {
 /**
  * Seul juge de l'applicabilité, partagé par `applyPlacementDraft` et `placementConfirmation` :
  * - retraits : points existants dont l'identifiant est programmé ;
- * - récupérations ajoutées : occurrences encore proposées `AVAILABLE` ;
- * - story 7.1 (D-442) : retraits de récupération — occurrence `EXERCISE` dont la récupération est
- *   encore présente (0 comprise) ; un retrait l'emporte sur une modification de la même occurrence ;
- * - modifications : récupération `EXERCISE` encore présente et de valeur différente ;
+ * - [récupérations ajoutées, retirées ou modifiées — retirées le 01/11/2026 : aucune récupération
+ *   en placement] ;
  * - points ajoutés, dans l'ordre du sous-brouillon : emplacement encore proposé sur les points
  *   conservés (N compris), non consécutif aux points déjà retenus (RM-251) et — story 7.1 — ne
  *   créant pas de conflit de Tour avec eux.
@@ -665,35 +501,11 @@ function applicablePlacement(context: PlacementContext, placement: PlacementDraf
   );
   const keptStopPoints = removedIds.size > 0 ? initial.filter((point) => !removedIds.has(point.id)) : initial;
   const slots = placementSlots(context.exercises, keptStopPoints, EMPTY_PLACEMENT_DRAFT, context);
-  const availableRecoveryIds = new Set(
-    slots.filter((slot) => slot.recovery?.kind === "AVAILABLE").map((slot) => slot.occurrenceId),
-  );
   const availableStopKeys = new Set(
     slots.flatMap((slot) =>
       slot.stopPoint !== null && !slot.stopPoint.existing ? [stopPointKey(slot.stopPoint.location)] : [],
     ),
   );
-
-  const recoveries = new Map<string, number>();
-  const recoveryChanges = new Map<string, number>();
-  const recoveryRemovedIds = new Set<string>();
-  for (const exercise of context.exercises) {
-    const added = placement.recoveries[exercise.id];
-    if (added !== undefined && availableRecoveryIds.has(exercise.id)) {
-      recoveries.set(exercise.id, added);
-      continue;
-    }
-    const current = exercise.postActivityRecoverySeconds;
-    const present = exercise.type === "EXERCISE" && current !== null && current !== undefined;
-    if (present && placement.recoveryRemovals.includes(exercise.id)) {
-      recoveryRemovedIds.add(exercise.id);
-      continue;
-    }
-    const changed = placement.recoveryChanges[exercise.id];
-    if (changed !== undefined && present && current !== changed) {
-      recoveryChanges.set(exercise.id, changed);
-    }
-  }
 
   const ordered = displayedOccurrences(context.exercises);
   const stopPointAdditions: StopPointLocation[] = [];
@@ -708,12 +520,14 @@ function applicablePlacement(context: PlacementContext, placement: PlacementDraf
       stopPointAdditions.push({ scope: location.scope, position: location.position });
     }
   }
-  return { recoveries, recoveryChanges, recoveryRemovedIds, removedIds, keptStopPoints, stopPointAdditions };
+  return { removedIds, keptStopPoints, stopPointAdditions };
 }
 
 /**
  * « Confirmer » (AD-43) : applique le sous-brouillon au brouillon de séance, en une seule
- * mise à jour fonctionnelle de `exercises` (récupérations) et de `stopPoints`. Seuls les
+ * mise à jour fonctionnelle de `stopPoints` [PRE-9, 01/11/2026 : `exercises` (récupérations) n'est
+ * plus jamais modifié par le placement ; les mentions de récupération ci-dessous sont remplacées].
+ * Seuls les
  * changements APPLICABLES sont appliqués (`applicablePlacement` : une occurrence disparue, une
  * récupération ou un point déjà présents, un emplacement qui n'est plus proposé ou qui serait
  * consécutif sont ignorés). Une modification (`recoveryChanges`, story 4.2) ne s'applique qu'à
@@ -731,29 +545,16 @@ export function applyPlacementDraft(
   newStopPointId: () => string,
 ): SessionDraft {
   const applicable = applicablePlacement(draft, placement);
-  const recoveriesChanged =
-    applicable.recoveries.size > 0 || applicable.recoveryChanges.size > 0 || applicable.recoveryRemovedIds.size > 0;
   const pointsChanged = applicable.removedIds.size > 0 || applicable.stopPointAdditions.length > 0;
-  if (!recoveriesChanged && !pointsChanged) {
+  if (!pointsChanged) {
     return draft;
   }
-  const exercises = draft.exercises.map((exercise) => {
-    if (applicable.recoveryRemovedIds.has(exercise.id)) {
-      return { ...exercise, postActivityRecoverySeconds: null };
-    }
-    const seconds = applicable.recoveries.get(exercise.id) ?? applicable.recoveryChanges.get(exercise.id);
-    return seconds === undefined ? exercise : { ...exercise, postActivityRecoverySeconds: seconds };
-  });
   const added: StopPoint[] = applicable.stopPointAdditions.map((location) => ({
     id: newStopPointId(),
     scope: location.scope,
     position: location.position,
   }));
-  return {
-    ...draft,
-    ...(recoveriesChanged ? { exercises } : {}),
-    ...(pointsChanged ? { stopPoints: [...applicable.keptStopPoints, ...added] } : {}),
-  };
+  return { ...draft, stopPoints: [...applicable.keptStopPoints, ...added] };
 }
 
 /**

@@ -1,9 +1,10 @@
 # PRE-9 — Composition simplifiée, configuration des Formats et contrat de séance (BMAD)
 
-Statut : **plan consolidé (révision 2 du 29/10/2026), soumis à l'approbation finale de Hermann** après la revue ChatGPT. Aucune story ne démarre sans autorisation explicite. **Aucun développement, aucune migration, aucune modification Figma.** Mission de Hermann du 28/10/2026 « PRE-9 : revue de préparation et planification technique BMAD ».
+Statut : **plan validé par Hermann le 29/10/2026** (révision 2, `pre9-bmad/plan` @ `265f3d9d`) ; **développement en cours** sur `pre9-bmad/dev` (mission « KODJO — PRE-9 : lancement du développement BMAD » : enchaînement progressif des stories ; hors autorisation : A.5, opérations dépendant d'ARB-04, ARB-22c, ARB-26 à ARB-28, PRE-10/11 ; aucune modification Figma ; aucune fusion dans `main`). Suivi : `implementation-artifacts/sprint-status.yaml`. [28–29/10 : « plan consolidé […] soumis à l'approbation finale de Hermann […] Aucun développement, aucune migration, aucune modification Figma. » Mission de Hermann du 28/10/2026 « PRE-9 : revue de préparation et planification technique BMAD ».]
 
 - Baseline : `main @ 547bb7ef26d3d713c8d027e6a26a69f62602d6cd` (PR #409, PRE-8 intégrée).
 - Branche de planification : `pre9-bmad/plan` (clone `C:\Dev\KODJO-BMAD-PRE8`), non fusionnée.
+- Branche de développement : `pre9-bmad/dev`, créée le 29/10 depuis `pre9-bmad/plan` @ `265f3d9d`.
 - Cadrage : `docs/KODJO-Strategie-PRE9-PRE10-PRE11-Cadrage-Moteur-2026-10-28.md`, branche `docs/pre9-strategie-moteur-20261028` @ `10b4d6ee`, lu sans fusion ; document de cadrage, non décisionnel.
 - Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page `510:101`, consulté en lecture seule (nodes : `planning-artifacts/recherche/04-figma.md`).
 

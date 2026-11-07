@@ -5,7 +5,13 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { listAssignableBodyZones, type BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
-import { FilterChip, FilterSheetFrame, ResetFiltersButton, filterSheetStyles } from "@/features/activities/FilterSheetPrimitives";
+import {
+  FilterChip,
+  FilterSectionToggle,
+  FilterSheetFrame,
+  ResetFiltersButton,
+  filterSheetStyles,
+} from "@/features/activities/FilterSheetPrimitives";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
@@ -84,7 +90,10 @@ export function SessionFilterSheet({
   filters,
   onApply,
   onClose,
+  native,
 }: {
+  /** Demande de Hermann du 04/11/2026 : contenu d'une feuille native iOS (`FilterSheetFrame`, `native`). */
+  readonly native?: { readonly onNeededHeight?: (height: number) => void };
   readonly filters: SessionCatalogueFilters;
   readonly onApply: (filters: SessionCatalogueFilters, labels: readonly string[]) => void;
   readonly onClose: () => void;
@@ -125,6 +134,7 @@ export function SessionFilterSheet({
       onClose={onClose}
       onApply={() => onApply(draft, selectedSessionFilterLabels(draft, categories, bodyZones, labels))}
       testIDPrefix="session-filter"
+      {...(native === undefined ? {} : { native })}
       footer={<ResetFiltersButton label={t.reset} onPress={() => setDraft(draftOf(EMPTY_SESSION_FILTERS))} testID="session-filter-reset" />}
     >
       {/* Statut : format compact, pastilles à droite du titre, sur la même ligne (4549:6533, 4549:6534). */}
@@ -195,8 +205,6 @@ export function SessionFilterSheet({
   );
 }
 
-const CHEVRON_ICON = require("../../../assets/icons/filtre-chevron-modifier.svg");
-
 /** Section repliable : le titre est le bouton, chevron accolé au titre (spécification §6). */
 function Section({
   section,
@@ -215,18 +223,7 @@ function Section({
 }) {
   return (
     <View style={filterSheetStyles.group} testID={`session-filter-section-${section}`}>
-      <Pressable
-        onPress={() => onToggle(section)}
-        accessibilityRole="button"
-        accessibilityLabel={title}
-        accessibilityState={{ expanded: open }}
-        hitSlop={{ top: 12, bottom: 12 }}
-        style={styles.sectionHeader}
-        testID={`session-filter-section-${section}-toggle`}
-      >
-        <Text style={filterSheetStyles.groupTitle}>{title}</Text>
-        <Image source={CHEVRON_ICON} style={[styles.chevron, open ? styles.chevronOpen : null]} accessible={false} />
-      </Pressable>
+      <FilterSectionToggle title={title} open={open} onPress={() => onToggle(section)} testID={`session-filter-section-${section}-toggle`} />
       {open ? <View style={grid ? styles.formatGrid : filterSheetStyles.chips}>{children}</View> : null}
     </View>
   );
@@ -248,20 +245,6 @@ const styles = StyleSheet.create({
   compactChips: {
     flexDirection: "row",
     gap: spacing[8],
-  },
-  sectionHeader: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
-  },
-  // Chevron accolé, pointé vers le bas fermé, vers le haut ouvert (`10671:20036`).
-  chevron: {
-    width: 10,
-    height: 5.75,
-  },
-  chevronOpen: {
-    transform: [{ rotate: "180deg" }],
   },
   formatGrid: {
     flexDirection: "row",

@@ -1,7 +1,7 @@
 # Suivi de sprint PRE-8 (autorisation de Hermann du 27/10/2026 : epics A et B)
 generated: 10-27-2026 10:00
 last_updated: 10-28-2026 18:00
-validation: "Recette iPhone A/B validée par Hermann le 27/10/2026 (« j'ai terminé les tests de recette, avec succès » ; « Je valide les résultats de ces deux epics »). Code recetté : 88c2adde, branche pre8-bmad/dev, non fusionnée dans main."
+validation: "Recette iPhone A/B validée par Hermann le 27/10/2026 (« j'ai terminé les tests de recette, avec succès » ; « Je valide les résultats de ces deux epics »). Code recetté : 88c2adde, branche pre8-bmad/dev, non fusionnée dans main. [Fusionnée dans main le 28/10/2026 : PR #409, commit 547bb7ef ; annotation DOC.0 PRE-9 du 29/10/2026.]"
 project: kodjo-pre8
 project_key: NOKEY
 tracking_system: file-system
@@ -33,7 +33,7 @@ development_status:
   e-5-cycle-de-vie-actions-glissees: done  # archiver / restaurer / supprimer sans migration ; Planifier grisé
   e-6-filtres-seances: done  # Q-E3 option B (agrégé), Q-E5 option A (Libre seul) ; primitives de feuille mutualisées avec les Mouvements
   e-7-raccordements-recette: done  # code, tests et recette iPhone du 28/10 (recette-iphone-epic-e-resultats-2026-10-28.md)
-  e-8-transition-exercices-catalogue: done  # E.8-a livré (Modifier dans la sélection d’Exercices, sans migration) ; E.8-b reporté hors PRE-8 (avec ou après l’epic C, autorisation distincte)
+  e-8-transition-exercices-catalogue: done  # E.8-a livré (Modifier dans la sélection d’Exercices, sans migration) ; E.8-b reporté hors PRE-8 (avec ou après l’epic C, autorisation distincte) [29/10 : PRE-9 story A.4, ARB-01 validé]
   # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), formats
 deferred:
   - id: q-e0
@@ -96,7 +96,7 @@ deferred:
   - id: q-e1
     epic: e
     status: tranche
-    decision: "Arbitrage Hermann du 27/10 : la Séance prend le titre de son premier Exercice. À appliquer par la conversion E.8-b (avec ou après l'epic C, autorisation distincte) ; non appliqué dans E.8-a (aucune conversion)."
+    decision: "Arbitrage Hermann du 27/10 : la Séance prend le titre de son premier Exercice. À appliquer par la conversion E.8-b (avec ou après l'epic C, autorisation distincte) ; non appliqué dans E.8-a (aucune conversion). [29/10/2026 : rattaché à PRE-9, story A.4 (ARB-01 validé).]"
     question: "Titre d'une Séance issue de la conversion d'un Exercice du Catalogue existant (activity_definitions)."
   - id: stop-points-generalises
     epic: c
