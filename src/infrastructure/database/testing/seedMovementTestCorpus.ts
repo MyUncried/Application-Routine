@@ -1,6 +1,6 @@
 import type { Movement } from "@/domain/activities/Movement";
 import { normalizeMovementName, validateMovement } from "@/domain/activities/Movement";
-import type { Database } from "@/infrastructure/database/Database";
+import type { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import {
   insertMovement,
   readMovementRecords,
@@ -13,11 +13,14 @@ import {
  * associations d'un Mouvement dans la transaction fournie. Aucun mécanisme
  * alternatif de persistance, aucune API de production, aucun changement moteur.
  *
+ * N'accepte que NodeSqliteDatabase (adaptateur Node de tests), pas une connexion
+ * ExpoDatabase utilisée par l'application. Sa classe possède un membre privé,
+ * ce qui empêche l'affectation structurelle d'un autre adaptateur compatible.
  * Ne reçoit que des Mouvements déjà classés avec les IDs KODJO existants.
  * Le corpus éditorial pilote (catalogue/pilote) ne doit JAMAIS être injecté ici.
  */
 export async function seedMovementTestCorpus(
-  database: Database,
+  database: NodeSqliteDatabase,
   movements: readonly Movement[],
   timestamp: string,
 ): Promise<{ readonly inserted: number; readonly unchanged: number }> {
