@@ -6,6 +6,7 @@ on:
       - docs/catalogue-taxonomie-v0-20261107
       - feat/catalogue-admin-local-v0-20261107
       - feat/catalogue-admin-static-medias-20261107
+      - catalogue/preclassement-60-revue-20261107
   pull_request:
     paths:
       - "catalogue/**"
@@ -38,6 +39,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate 60 proposed classifications
+        run: node scripts/catalogue/validate-preclassification.mjs
+      - name: Test safe classification merge
+        run: node --test scripts/catalogue/__tests__/preclassification.test.mjs
       - name: Validate non-publishable pilot corpus
         run: node scripts/catalogue/validate-pilot-corpus.mjs
       - name: Validate provisional taxonomy

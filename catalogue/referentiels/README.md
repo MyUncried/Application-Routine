@@ -1,5 +1,7 @@
 # KODJO — Taxonomie de mouvements V0 (proposition non normative)
 
+> **Revue des 60 propositions (07/11/2026).** [Matrice de qualification et 9 arbitrages prioritaires](REVUE-preclassement-60-2026-11-07.md). Les 60 candidats restent tous à valider et aucun problème clinique n'est automatiquement attribué.
+
 **Date :** 7 novembre 2026. **Statut :** PROPOSÉ — pour arbitrage, pas d'incorporation automatique dans l'application.
 
 ## Principes retenus

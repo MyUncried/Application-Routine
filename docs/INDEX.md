@@ -1,5 +1,7 @@
 # Documentation de KODJO
 
+> **Catalogue — revue du préclassement des 60 mouvements (07/11/2026).** [Contrôle des référentiels, anomalies et procédure de fusion non destructive](../catalogue/referentiels/REVUE-preclassement-60-2026-11-07.md). Propositions non approuvées ; médias utilisateur et moteur inchangés.
+
 **Administration du référentiel — galerie photos/vidéos statique OVH (07/11/2026).** [Mode d'emploi et limites](../tools/catalogue-admin/static-ovh/README.md). Photos locales encapsulées dans les brouillons exportés, vidéos par lien HTTPS, statut des droits déclaratif, aucune publication des 60 fiches candidates.
 
 > **Catalogue administré — outil Web local V0 (07/11/2026).** [Mode d'emploi, sauvegarde des brouillons et limites de publication](../tools/catalogue-admin/README.md) ; l'interface lit les 60 candidats et la taxonomie V0, mais n'écrit que `catalogue/admin/brouillons.json`. Aucune dépendance du moteur, ni nouveau flux mobile/Figma.

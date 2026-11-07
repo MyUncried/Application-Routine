@@ -1,5 +1,7 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+> **Préclassement des 60 fiches — état de travail du 07/11/2026.** [Revue non normative et 9 cas prioritaires](../../catalogue/referentiels/REVUE-preclassement-60-2026-11-07.md). 60 correspondances proposées ; aucune ne devient décision validée. Les droits et associations cliniques sont toujours à qualifier. La fusion est conservatrice des médias et des valeurs renseignées par l'utilisateur ; elle ne modifie ni l'exécution ni le MVP.
+
 ## Gestion préparatoire des médias du référentiel — 07/11/2026
 
 Le propriétaire du produit demande d'ajouter la gestion des photos et vidéos à l'administration des fiches de Mouvement. La [variante statique OVH](../../tools/catalogue-admin/static-ovh/README.md) conserve les médias facultatifs, leur ordre, légende, texte alternatif, source, auteur/fournisseur, licence et statut déclaratif des droits. Les photos locales sont encapsulées dans le JSON de brouillons exporté sur l'appareil ; les vidéos sont représentées par des liens HTTPS et ne sont pas hébergées sur l'offre gratuite. La source éditoriale et les droits doivent être contrôlés avant toute réutilisation publique. **Aucune publication des 60 fiches non validées ; aucun impact sur le moteur d'exécution, les migrations SQLite ou la fiche mobile KODJO.**
