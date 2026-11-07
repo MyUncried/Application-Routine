@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>KODJO — Administration du catalogue</title>
+  <link rel="stylesheet" href="/styles.css"/>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <div><p class="eyebrow">KODJO / Administration locale</p><h1>Référentiel des mouvements</h1></div>
+    <span class="status-bubble">Brouillons non publiables</span>
+  </header>
+  <div class="toolbar" aria-label="Actions globales">
+    <nav class="tabs" aria-label="Sections">
+      <button type="button" data-tab="movements" aria-current="page">Mouvements</button>
+      <button type="button" data-tab="references">Référentiels</button>
+      <button type="button" data-tab="glossary">Glossaire</button>
+    </nav>
+    <div class="actions">
+      <button type="button" id="export" class="subtle">Exporter JSON</button>
+      <label for="import" class="import-action">Importer des brouillons</label>
+      <input type="file" accept=".json,application/json" id="import" hidden/>
+      <button type="button" id="save" class="primary">Enregistrer les brouillons</button>
+    </div>
+  </div>
+  <div id="alert" class="notice" role="status" aria-live="polite">Chargement…</div>
+  <main>
+    <section id="movements" class="workspace">
+      <aside class="sidebar">
+        <label for="search" class="small-label">Rechercher un mouvement</label>
+        <input id="search" placeholder="Nom ou identifiant" type="search" autocomplete="off"/>
+        <div class="list-head"><strong id="movement-total">—</strong> <span>Fiches candidates</span></div>
+        <div id="movement-list" class="movement-list" role="listbox" aria-label="Mouvements"></div>
+      </aside>
+      <div class="editor-panel">
+        <div class="panel-title"><div><p class="eyebrow">Fiche de travail</p><h2 id="movement-title">Choisissez un mouvement</h2></div><span id="movement-id" class="code"></span></div>
+        <p class="disclaimer">Ces modifications constituent des propositions éditoriales. Le classeur initial reste inchangé et rien n'est publié vers l'application.</p>
+        <form id="movement-form" class="fields" autocomplete="off">
+          <label>Nom de la fiche <input name="name" maxlength="80" required/></label>
+          <label>Consignes, une étape par ligne <textarea name="steps" rows="6" required></textarea><small>Une étape par ligne, 65 caractères maximum.</small></label>
+          <label>Alias, un par ligne <textarea name="aliases" rows="2"></textarea></label>
+          <div class="field-grid">
+            <label>Catégorie KODJO <select name="categoryId"><option value="">Non attribuée</option></select></label>
+            <fieldset id="zones"><legend>Zones corporelles</legend><div class="options"></div></fieldset>
+          </div>
+          <div class="field-grid" id="movement-axes">
+            <fieldset data-axis="specialties"><legend>Spécialités</legend><div class="options"></div></fieldset>
+            <fieldset data-axis="gesturalFamilies"><legend>Familles gestuelles</legend><div class="options"></div></fieldset>
+            <fieldset data-axis="clinicalProblems"><legend>Problèmes traités — à valider cliniquement</legend><div class="options"></div></fieldset>
+            <fieldset data-axis="anatomicalTargets"><legend>Cibles anatomiques</legend><div class="options"></div></fieldset>
+          </div>
+          <fieldset><legend>Propriétaire administratif (optionnel)</legend>
+            <div class="field-grid">
+              <label>Type <select name="ownerKind"><option value="">Non renseigné</option><option value="LOCAL_USER">Utilisateur local</option><option value="PERSON">Personne / coach</option><option value="ORGANIZATION">Organisation</option><option value="PLATFORM">Plateforme</option></select></label>
+              <label>Identifiant stable <input name="ownerId" maxlength="128" placeholder="ex. coach-martin"/></label>
+            </div>
+          </fieldset>
+          <label>Notes éditoriales <textarea name="notes" maxlength="2000" rows="3"></textarea></label>
+          <div class="footer-actions"><button type="submit" class="primary">Conserver la fiche en brouillon</button><button type="button" id="reset-movement" class="subtle">Annuler les modifications de cette fiche</button></div>
+        </form>
+        <details class="source-note"><summary>Source originale et informations non modifiables</summary><pre id="source-data"></pre></details>
+      </div>
+    </section>
+    <section id="references" class="workspace hidden">
+      <div class="full-panel">
+        <h2>Référentiels de classification</h2>
+        <p class="disclaimer">Catégories et Zones KODJO sont uniquement consultables ici. Les nouvelles valeurs et libellés restent proposés jusqu'à arbitrage.</p>
+        <label for="ref-axis">Axe à administrer</label>
+        <select id="ref-axis">
+          <option value="specialties">Spécialités</option>
+          <option value="gesturalFamilies">Familles gestuelles</option>
+          <option value="clinicalProblems">Problèmes traités</option>
+          <option value="anatomicalTargets">Cibles anatomiques</option>
+        </select>
+        <div id="reference-list" class="reference-list"></div>
+        <form id="new-reference" class="inline-form">
+          <h3>Ajouter une valeur proposée</h3>
+          <label>Identifiant stable <input name="id" placeholder="ex. gymnastique" pattern="[a-z][a-z0-9-]{1,63}" required/></label>
+          <label>Libellé <input name="label" maxlength="100" required/></label>
+          <label class="hidden" id="ref-kind-row">Nature
+            <select name="kind" id="ref-kind"></select>
+          </label>
+          <button type="submit" class="primary">Ajouter au brouillon</button>
+        </form>
+        <details><summary>Catégories et zones existantes (lecture seule)</summary><div id="kodjo-existing"></div></details>
+      </div>
+    </section>
+    <section id="glossary" class="workspace hidden">
+      <div class="full-panel">
+        <h2>Glossaire sportif et anatomique</h2>
+        <p class="disclaimer">Ce glossaire de contenu est distinct du glossaire normatif du produit KODJO et des alias des mouvements.</p>
+        <div id="glossary-list" class="glossary-list"></div>
+        <form id="glossary-form" class="fields">
+          <h3 id="glossary-form-title">Créer une définition</h3>
+          <label>Identifiant <input name="id" pattern="[a-z][a-z0-9-]{1,63}" required/></label>
+          <label>Terme <input name="term" maxlength="100" required/></label>
+          <label>Définition <textarea name="definition" maxlength="1000" rows="3" required></textarea></label>
+          <label>Synonymes, un par ligne <textarea name="synonyms" rows="2"></textarea></label>
+          <label>Identifiants de fiches associées, un par ligne <textarea name="relatedCandidateIds" rows="2" placeholder="pilot:FIT-CRO-001"></textarea></label>
+          <div class="footer-actions"><button class="primary" type="submit">Conserver la définition</button><button id="cancel-glossary" type="button" class="subtle">Nouveau terme</button></div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <footer>Administration locale expérimentale · données versionnées dans Git · aucun transfert vers une base utilisateur</footer>
+</body>
+</html>
