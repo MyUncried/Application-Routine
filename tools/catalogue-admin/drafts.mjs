@@ -62,7 +62,9 @@ export function validateAdminDrafts(drafts, { pilot, taxonomy, categories, zones
     }
     const baseIds = new Set(base.map((r) => r.id));
     const ids = new Set(baseIds);
-    const terms = new Set(base.map((r) => canonicalTerm(renamed[r.id] ?? r.label)));
+    const referenceTerms = base.map((r) => canonicalTerm(renamed[r.id] ?? r.label));
+    const terms = new Set(referenceTerms);
+    if (terms.size !== referenceTerms.length) err(axis, "duplicate base reference label after renaming");
     for (const [id, title] of Object.entries(renamed)) {
       if (!baseIds.has(id)) err(axis + "." + id, "renaming an unknown base value");
       if (!filled(title) || title.length > 100) err(axis + "." + id, "invalid label");
