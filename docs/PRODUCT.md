@@ -1,5 +1,7 @@
 # PRODUCT — KODJO
 
+> **Catalogue — revue du préclassement (07/11/2026).** [60 propositions, 9 cas prioritaires](../catalogue/referentiels/REVUE-preclassement-60-2026-11-07.md) : statut éditorial non validé, pas de données cliniques inférées ; conservation des brouillons et photos sans nouvelle dépendance du moteur.
+
 **Médias dans l'administration du catalogue — 07/11/2026.** [Version statique pour OVH](../tools/catalogue-admin/static-ovh/README.md) : galerie optionnelle de photos et liens vidéo, avec source, attribution et droits ; export de brouillons sur l'appareil, sans mise en ligne des médias, sans développement du moteur et hors produit mobile MVP.
 
 > **Administration du référentiel — outil interne local (07/11/2026).** [Démarrage et périmètre](../tools/catalogue-admin/README.md) : édition de brouillons de fiches, valeurs de classification proposées et glossaire, sans publication ni altération des Mouvements/Exercices utilisateurs. Outil distinct des écrans du MVP et du moteur d'exécution.
