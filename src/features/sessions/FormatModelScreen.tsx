@@ -11,6 +11,8 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
+  type StyleProp,
+  type ViewStyle,
   Text,
   TextInput,
   View,
@@ -247,6 +249,19 @@ function movementShade(band: string, index: number): string {
 // ---------------------------------------------------------------------------
 // Ligne de paramètre
 // ---------------------------------------------------------------------------
+
+/**
+ * Cadre de lignes de paramètres. Remarque B du 06/11/2026 (Hermann : « récapitulatif : supprimer la barre horizontale d'un cadre si
+ * elle existe (ex. après nombre de séries tout seul) ») : quelle que soit la dernière ligne d'un cadre, son trait est masqué (le
+ * contenu déborde d'un point sous le cadre, qui le rogne).
+ */
+function Panel({ children, style, testID }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; testID?: string }) {
+  return (
+    <View style={[styles.panel, style]} testID={testID}>
+      <View style={styles.panelContent}>{children}</View>
+    </View>
+  );
+}
 
 function Row({ label, children, last = false, testID }: { label: string; children: React.ReactNode; last?: boolean; testID?: string }) {
   return (
@@ -1581,10 +1596,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         </Text>
         {/* Complément du 5 novembre 2026 (Hermann), §12 : tableau des mouvements isolé dans son propre cadre, entre le cadre du nombre de séries (ou de tours,
             d'intervalle, de durée) et celui des paramètres qui suivent ; cadres séparés de 8. */}
-        <View style={styles.panel} testID="format-parameters">
+        <Panel testID="format-parameters">
           {tableHere ? rows.filter(isRowBeforeTable) : rows}
           {tableHere ? null : progressionTail()}
-        </View>
+        </Panel>
         {tableHere ? (
           <View ref={tableRef} collapsable={false} style={styles.tableFrame} testID="format-objectives">
             {model === "PROGRESSION" ? (
@@ -1619,6 +1634,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             ) : null}
           </View>
         ) : null}
+        {/* Remarque B du 06/11/2026 (Hermann : « le message rouge "les durées atteignent ou dépassent..." doit être juste sous le tableau des
+            objectifs ») : contrôle EMOM des durées (MAJ 04/11 §4.4 ; Complément du 5 novembre 2026 (Hermann), §14) — message, cadres rouges,
+            validation bloquée. [Message sous le cadre des paramètres qui suit le tableau — remplacé.] */}
+        {model === "EMOM" && tableHere && emomOverflow.length > 0 ? (
+          <Text style={styles.alert} accessibilityRole="alert" testID="format-emom-overflow">
+            {t().emomOverflow.replace("{interval}", formatSeconds(answers.intervalSeconds ?? 60))}
+          </Text>
+        ) : null}
         {/* Recette du 05/11/2026 (n-charge-colonne, Hermann) : « Pour le seul exercice restant en Répétitions, l'option Durée est
             désactivée, avec un message court » (AMRAP, For time). */}
         {unitRow !== null && lastRepetitionsLocked(model, movements, unitRow) ? (
@@ -1627,16 +1650,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           </Text>
         ) : null}
         {tableHere && (rows.some((row) => !isRowBeforeTable(row)) || model === "PROGRESSION") ? (
-          <View style={[styles.panel, styles.panelAfterTable]} testID="format-parameters-after">
+          <Panel style={styles.panelAfterTable} testID="format-parameters-after">
             {rows.filter((row) => !isRowBeforeTable(row))}
             {progressionTail()}
-          </View>
-        ) : null}
-        {/* Contrôle EMOM des durées (MAJ 04/11 §4.4 ; Complément du 5 novembre 2026 (Hermann), §14) : message, cadres rouges, validation bloquée. */}
-        {model === "EMOM" && tableHere && emomOverflow.length > 0 ? (
-          <Text style={styles.alert} accessibilityRole="alert" testID="format-emom-overflow">
-            {t().emomOverflow.replace("{interval}", formatSeconds(answers.intervalSeconds ?? 60))}
-          </Text>
+          </Panel>
         ) : null}
         {/* Complément du 5 novembre 2026 (Hermann), §13 : avertissement non bloquant du Death by, seulement si le premier rang ne tient pas dans l'intervalle. */}
         {model === "DEATH_BY" && deathByFirstRankWarning(answers, movements) ? (
@@ -1988,7 +2005,8 @@ const styles = StyleSheet.create({
   cardSlot: { marginHorizontal: 16, marginBottom: CARD_GAP },
   liftedCard: { zIndex: 2, shadowColor: "#000000", shadowOpacity: 0.16, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
   fallbackCard: { minHeight: 52, justifyContent: "center", paddingHorizontal: 12, borderRadius: 12, backgroundColor: PANEL },
-  panel: { marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16 },
+  panel: { marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16, overflow: "hidden" },
+  panelContent: { marginBottom: -1 },
   row: { minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 4, gap: 8 },
   rowSeparated: { borderBottomWidth: 1, borderBottomColor: SEPARATOR },
   rowLabel: { flexShrink: 1, fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },

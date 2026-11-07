@@ -118,7 +118,7 @@ const cardStyle = (id: string) => StyleSheet.flatten(screen.getByTestId(`composi
 const surface = () => StyleSheet.flatten(screen.getByTestId("composition-layout-circuit-ce-surface", hidden).props.style);
 function durationColor(): unknown {
   const target = screen.getByTestId("composition-layout-circuit-ce-header-duration", hidden);
-  const text = target.findAll((node) => typeof node.type === "string" && node.type === "Text")[0] ?? target;
+  const text = target.findAll((node) => (node.type as unknown) === "Text")[0] ?? target;
   return StyleSheet.flatten(text.props.style).color;
 }
 const saveDisabled = () => screen.getByTestId("composition-save-action", hidden).props.accessibilityState?.disabled;

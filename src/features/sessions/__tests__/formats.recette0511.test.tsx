@@ -29,16 +29,16 @@ describe("Déroulé : durée compacte des blocs (constat e)", () => {
 });
 
 describe("For time : charge atteinte par Précédent / Suivant (e-fortime-charge)", () => {
-  it("case de charge sans zone tactile propre ; objectif resserré", () => {
+  it("case de charge sans zone tactile propre ; objectif au cadre standard de 24 (remarque e du 06/11)", () => {
     render(
       <>
-        <TableCell kind="decimal" value={20} barOnly compact boxed onChange={() => undefined} format={String} label="charge" testID="load" />
-        <TableCell kind="integer" value={10} tight boxed onChange={() => undefined} format={String} label="objectif" testID="objective" />
+        <TableCell kind="decimal" value={20} barOnly width={60} onChange={() => undefined} format={String} label="charge" testID="load" />
+        <TableCell kind="integer" value={10} width={60} onChange={() => undefined} format={String} label="objectif" testID="objective" />
       </>,
     );
     expect(screen.getByTestId("load").props.pointerEvents).toBe("none");
     expect(screen.getByTestId("objective").props.pointerEvents).toBeUndefined();
-    expect(StyleSheet.flatten(screen.getByTestId("objective").props.style).minHeight).toBe(26);
+    expect(StyleSheet.flatten(screen.getByTestId("objective").props.style).minHeight).toBe(24);
   });
 });
 

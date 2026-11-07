@@ -470,3 +470,39 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Metro relancé (`--clear`, tunnel `fi5f9dc-uncried-8081.exp.direct`) ; bundle iOS servi vérifié : contient `applyMigration023`, `carrierDurationOverflow`, `resizeEmomSeries`.
 - Cahier de recette (https://claude.ai/artifact/XJCJLC7eHKcANDMrN1yNku), nouvelle section en tête « Livraisons du 7 novembre (d72ac047) — à tester », 16 points : piles du Catalogue (`97a2848c`, jamais confirmé), réglages de Format dans les cadres (`0f8de24e`), Death by (`06224da1`), EMOM (`f0f8ebab`, `b04eb09e`, `1dcfdf70`), migration 023, question 4 (cible commune vidée).
 - Aucun résultat iPhone reçu à ce stade.
+
+## Homogénéité des tableaux des Formats et convention des champs de valeur (07/11/2026)
+
+- **Objectif** : traiter la remarque générale e de la recette du 06/11 (« J'ai un problème d'homogénéité des tableaux plusieurs fois rapporté comme un écart, le résoudre une bonne fois pour toute ») et les KO de présentation associés (w-alignement, w-series, r-colonnes, n-cadres, w-charge-un), ainsi que les remarques B du récapitulatif. Texte complet recopié dans ch07, « Homogénéité des tableaux des Formats et convention des champs de valeur ».
+- **Branche** : `feat/pre9-catalogues-cartes-badge-20261106` (PR #420, non fusionnée). **Commit de départ** : `a0c9342d`.
+- **Consigne au lancement** (Hermann, 07/11) : « Prendre d’abord les principes édictés comme base, sur les alignements, les espaces, etc. » — Figma n'a servi qu'à mesurer la hauteur de référence désignée (« Nombre de séries » de l'EMOM, `11601:21711` : 24, marges 10 / 4, rayon 10, Inter Semi Bold 13). Figma en lecture seule.
+
+### Constats avant correction
+
+| Constat | Correction | Classe |
+|---|---|---|
+| Tableaux : colonnes de largeurs fixes différentes selon leur nature (objectif, pause, charge, Max…), dernière colonne calée au texte, valeurs sans cadre (sauf For time / EMOM / Superset, pastilles blanches) — deux rendus pour une même forme | Une seule mise en page par forme : colonnes de même largeur (le plus large champ mesuré du tableau, au moins 56), écart 8, calées à droite, dernier champ à 16 du bord ; nom du mouvement en place restante ; titres centrés | B |
+| Champs de valeur : pastilles de 26 (lignes), cases de 36 sans cadre (tableaux), cadre orange avec liseré, charges sans cadre | `valueField.ts` : cadre blanc / orange / rouge, 24 de haut, aucun liseré, texte centré, bleu / noir / gris | B |
+| Tableau des séries : sous-titre « (rép, +kg) » et charges sur des lignes de hauteurs différentes (w-series) | Seconde ligne de même hauteur des deux côtés, sous-titre centré sur les charges | A |
+| Trait sous la dernière ligne d'un cadre de paramètres (« ex. après nombre de séries tout seul ») | `Panel` : le cadre rogne le trait de sa dernière ligne, quelle qu'elle soit | A (règle t-coche-q) |
+| Décalage automatique des colonnes instantané | Animé, 450 ms (instantané si « Réduire les animations ») | B |
+| Message rouge EMOM sous le cadre des paramètres qui suit le tableau | Juste sous le tableau des objectifs | B |
+
+### Hors périmètre / à confirmer
+
+- **Champs de valeur hors des Formats** (classe C) : feuille Paramètres d'exécution (pastille 32, rayon 8, fond gris, PRE-7 B.1), tableau des séries variables de la feuille, valeurs de la Composition. La remarque dit « quel que soit le champ » ; non modifiés sans confirmation de Hermann (baselines validées).
+- **Autres KO du même lot non traités ici** : durée de Circuit au clavier (w-circuit-duree), arrêt du filtre (w-filtres), fondus lents (w-liste, w-fermer, constat d), dernière ligne Récupération sous la barre du clavier (constat A).
+- **Test d'écran** du message EMOM sous le tableau : non écrit (produire un dépassement au récapitulatif exige un parcours clavier complet) ; la position est vérifiée à la lecture du code.
+
+### Fichiers modifiés
+
+- `src/shared/ui/valueField.ts` (nouveau) ; `src/features/sessions/FormatTables.tsx` (rendu des tableaux et des champs ; logique de saisie, ordre de Suivant et contrôles inchangés) ; `src/features/sessions/FormatModelScreen.tsx` (`Panel`, message EMOM).
+- Tests : `formats.recette0611.test.tsx` (règles remplacées réécrites ; largeur commune ; décalage animé), `formats.recette0511.test.tsx` (props retirées, hauteur 24), `FormatModelScreen.c3.test.tsx` (trait de la dernière ligne masqué), `CompositionScreen.emom0711.test.tsx` (typage).
+- Docs : ch07 (texte recopié, portée, classes, annotations des règles remplacées du 05/11 et du 06/11) ; Formats §9.5 (annotation).
+
+### Tests
+
+- `tsc --noEmit` : OK. ESLint sur les fichiers modifiés : aucune erreur nouvelle (`FormatModelScreen.c3.test.tsx` garde 1 erreur et 1 avertissement antérieurs, présents à `a0c9342d`).
+- `npx jest src/features/sessions src/features/activities` : 159 suites, 2 610 tests, verts.
+- Après correction des deux erreurs de lint (`FormatTables.tsx`) : suites Formats, `FormatModelScreen` et `CarrierDurationSheet` relancées, 102 / 102.
+- iPhone : rien vérifié (rendu, mesure des largeurs, animation du décalage, hauteur 24 au texte agrandi).

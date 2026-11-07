@@ -504,6 +504,13 @@ describe("FormatModelScreen", () => {
     toSummary();
     // Complément du 5 novembre 2026 (§12) : nombre de séries, tableau dans son propre cadre, puis Pause, durée totale, Exécution.
     expect(rowsOf()).toEqual(["format-row-seriesCount"]);
+    // Remarque B du 06/11 : « supprimer la barre horizontale d'un cadre si elle existe (ex. après nombre de séries tout seul) » — le cadre
+    // rogne le trait de sa dernière ligne.
+    for (const id of ["format-parameters", "format-parameters-after"]) {
+      const panel = screen.getByTestId(id);
+      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ overflow: "hidden" });
+      expect(StyleSheet.flatten(panel.children[0] && typeof panel.children[0] !== "string" ? panel.children[0].props.style : {})).toMatchObject({ marginBottom: -1 });
+    }
     expect(within(screen.getByTestId("format-parameters-after")).getAllByTestId(/^format-row-/).map((row) => row.props.testID)).toEqual([
       "format-row-pauseSeconds",
       "format-row-total",

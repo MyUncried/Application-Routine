@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
@@ -13,8 +13,8 @@ import {
 } from "@/domain/sessions/formatModels";
 import { cellDurationSeconds, composeCellEntry, formatMmss, mmssDigitsOf, type CellEntryKind, type CellEntryState } from "@/features/activities/cellEntry";
 import { strings } from "@/shared/i18n";
-import { toVerifyColors } from "@/shared/ui/toVerifyColors";
-import { colors as tokenColors } from "@/shared/ui/tokens";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
+import { VALUE_FIELD_HEIGHT, valueFieldColors, valueFieldStyles } from "@/shared/ui/valueField";
 
 /**
  * PRE-9 — tableaux des récapitulatifs des modèles de la fenêtre Formats (mise à jour consolidée des écrans Formats
@@ -33,71 +33,70 @@ import { colors as tokenColors } from "@/shared/ui/tokens";
  *   unité fixes, colonnes suivantes défilantes ; ligne de charge sous l'objectif si « Avec charge ».
  */
 
-const VALUE_COLOR = "#0508E5";
 const SEPARATOR = "#E0E3E8";
 const LABEL = "#141414";
 const SECTION = "#595E66";
-const DISABLED_VALUE = "#B4B8C2";
-const PANEL = "#F9FAFC";
 /** Complément du 5 novembre 2026 (Hermann) (Figma) : case de charge vide « (—) ». */
 const LOAD_EMPTY = "#999EA8";
-const COLUMN_WIDTH = 64;
-const SERIES_NAME_WIDTH = 104;
-const SERIES_UNIT_WIDTH = 52;
-const SERIES_COLUMN_WIDTH = 56;
 const ROW_HEIGHT = 36;
 /**
- * Recette du 04/11/2026 (f4-modale) — EMOM : « "12 min 30" ne tient pas dans son cadre sur une ligne » ; AMRAP : « aligner
- * les pastilles Max à droite sur les textes, centrer le titre de la colonne en conséquence ; décaler les autres colonnes
- * d'autant, réduire l'espace entre les colonnes » ; For time : « décaler la colonne de l'unité plus à droite », charges
- * « police plus petite, pas en gras, espace vertical réduit avec la ligne d'objectifs au-dessus ».
- */
-const COMPACT_LOAD_HEIGHT = 24;
-// [Hauteurs For time serrées (e-fortime-charge), colonnes élargies en durée (e-fortime-unite) et ligne « (+ kg) » sous l'unité
-// (Complément du 5 novembre 2026, §9) — remplacées par la mise en page ci-dessous (recette du 05/11/2026, n-charge-switch).]
-/**
- * Recette du 05/11/2026 (n-charge-switch, Hermann) — tableau des séries : « Supprimer la colonne Unité. Sous le nom du mouvement,
- * en petit (taille actuelle de "+kg") mettre le texte suivant : "(durée, " ou "(rép, " puis "+kg)" ou "-kg)" » ; « Afficher par
- * défaut trois séries » (décision du 05/11/2026 : trois colonnes visibles) ; « Le nom du mouvement doit toujours être aligné
- * verticalement avec sa ligne de valeur des objectifs » ; charges « plus petites, et plus proches de la ligne du dessus ».
- */
-const SERIES_LINE_HEIGHT = 26;
-const SERIES_LOAD_LINE_HEIGHT = 16;
-const SERIES_ROW_PADDING = 4;
-const SERIES_SUBTITLE_HEIGHT = 16;
-/**
- * Recette du 06/11/2026 (r-series, Hermann : « Rapprocher encore la ligne (rép., +kg) de la ligne du nom du mouvement. Aligner verticalement
- * la ligne des valeurs de charge avec la ligne (rép., +kg) ») : la deuxième ligne (sous-titre du nom, charges) remonte de 4 sous la
- * première, à la même hauteur des deux côtés. [Sous-titre de 14 et charges sous l'objectif sans recouvrement — remplacés.]
- */
-const SERIES_SECOND_LINE_RISE = 4;
-const SERIES_NAMES_WIDTH = 128;
-const SERIES_VISIBLE_COLUMNS = 3;
-/**
- * Recette du 06/11/2026 (n-cadres, r-colonnes, constat d, Hermann : « Aligner la colonne Mouvement et les noms de mouvement à droite avec les
- * autres textes. Idem à gauche » ; « la colonne Max n'est pas alignée à droite », « La colonne mouvement n'est pas alignée à gauche » ;
- * « un cadre gris, pas de deuxième cadre blanc, première colonne alignée avec les autres textes, idem pour la dernière colonne de série
- * alignée à droite avec les autres textes ») : les tableaux occupent tout leur cadre gris, avec le retrait des lignes de paramètres (16) ;
- * la dernière colonne est calée à droite, au retrait du texte des pastilles (16 + 10). [Retraits de 8 + 12, tableau AMRAP dans un second
- * cadre, tableau Progression sur fond blanc — remplacés.]
+ * Recette iPhone du 06/11/2026, remarque générale e (Hermann, texte complet au registre ch07, « Homogénéité des tableaux des
+ * Formats et convention des champs de valeur ») : « IL y a deux formes de tableaux dans les formats. Avec séries en colonne, et
+ * avec unité en colonne. Chaque type de tableau doit être homogène entre les différents formats qui l'utilisent (même forme,
+ * positionnement des colonnes, espaces verticaux et horizontaux, couleur / forme des champs et des valeurs, dynamique de saisie
+ * (déplacement automatique des colonnes) » ; « La première colonne est alignée à droite au maximum en respectant la marge du cadre
+ * du champ de valeur avec le bord du tableau » ; « les colonnes sont équitablement réparties entre elle horizontalement » ;
+ * « 4 colonnes affichées en même temps au maximum » ; « la première colonne (S1) le plus décalé possible à droite pour donner de
+ * l'espace au nom du mouvement ».
+ *
+ * Mise en œuvre commune aux deux formes : toutes les colonnes de valeurs d'un tableau ont la même largeur, celle du plus large
+ * champ de valeur du tableau (mesurée), séparées d'un même écart ; elles sont calées à droite, le dernier champ au retrait des
+ * pastilles des lignes de paramètres (16 du bord du cadre) ; le nom du mouvement prend toute la place restante.
+ * [Largeurs fixes par nature de colonne (FIT_*), colonnes du tableau des séries au tiers de la fenêtre, dernière colonne calée à
+ * droite au retrait du texte — remplacées.]
  */
 const TABLE_SIDE_INSET = 16;
-const SERIES_SIDE_INSET = TABLE_SIDE_INSET;
+const COLUMN_GAP = 8;
+/** Largeur minimale d'une colonne : au moins celle des titres (« Objectif », « Incrément », « Par tour »). */
+const MIN_COLUMN_WIDTH = 56;
 /**
- * Recette du 05/11/2026 (n-charge-colonne, Hermann : « décaler la première colonne d'un tableau la plus à droite possible, en
- * respectant la marge […]. Réduire au minimum l'espace entre les colonnes pour laisser un maximum de place au nom du mouvement,
- * considérer l'espace max pris par une valeur en durée si c'est une option ») : colonnes à la largeur de leur plus longue valeur.
+ * Tableau des séries : trois séries visibles (décision du 05/11/2026, n-charge-switch : « Afficher par défaut trois séries »),
+ * dans la limite de quatre colonnes de la remarque e.
  */
-const FIT_DURATION_WIDTH = 66;
-const FIT_REPETITIONS_WIDTH = 52;
-const FIT_INCREMENT_WIDTH = 58;
-const FIT_PAUSE_WIDTH = 60;
-const FIT_LOAD_WIDTH = 60;
-const FIT_MAX_WIDTH = 40;
+const SERIES_VISIBLE_COLUMNS = 3;
+/**
+ * Tableau des séries — deux lignes par mouvement : nom et objectifs ; sous-titre « (rép, +kg) » et charges. Recette du 06/11/2026
+ * (w-series, Hermann : « Aligner verticalement la ligne des valeurs des charges avec la ligne qui se trouve sous le nom du
+ * mouvement ») : la seconde ligne a la même hauteur des deux côtés, le sous-titre est centré sur les charges.
+ */
+const SERIES_ROW_PADDING = 6;
+const SERIES_LINE_GAP = 4;
+const SERIES_SUBTITLE_HEIGHT = 16;
+/**
+ * Remarque B du 06/11/2026 (Hermann : « déplacement dynamique du tableau : déplacer le tableau lentement ») : décalage
+ * automatique des colonnes animé, 450 ms (instantané si « Réduire les animations »).
+ */
+const COLUMN_SHIFT_MS = 450;
 
-/** Largeur d'une colonne d'objectif : une durée possible (« 12 min 30 ») ou seulement des répétitions (« 10 rép. »). */
-function objectiveWidth(movements: readonly ModelMovement[], durationPossible: boolean): number {
-  return durationPossible || movements.some((item) => item.values.mode === "DURATION") ? FIT_DURATION_WIDTH : FIT_REPETITIONS_WIDTH;
+/**
+ * Largeur commune des colonnes d'un tableau : chaque champ y déclare la largeur naturelle de son texte (texte invisible mesuré) ;
+ * la colonne prend la plus grande, au moins `MIN_COLUMN_WIDTH`.
+ */
+function useUniformColumnWidth(): { readonly width: number; readonly report: (key: string) => (width: number) => void } {
+  const widths = useRef(new Map<string, number>());
+  const [width, setWidth] = useState(MIN_COLUMN_WIDTH);
+  const report = useCallback(
+    (key: string) => (measured: number) => {
+      const map = widths.current;
+      if (map.get(key) === measured) return;
+      if (measured <= 0) map.delete(key);
+      else map.set(key, measured);
+      const next = Math.max(MIN_COLUMN_WIDTH, Math.ceil(Math.max(0, ...map.values())));
+      setWidth((current) => (current === next ? current : next));
+    },
+    [],
+  );
+  return { width, report };
 }
 
 const t = () => strings.screens.formatModel;
@@ -254,9 +253,14 @@ function valueOf(kind: CellEntryKind, text: string, durationMin = DURATION_BOUND
 }
 
 /**
- * Cellule de tableau : au repos, la valeur formatée (ou « — ») ; en saisie, la composition au clavier (première
- * frappe qui remplace, durée « MM:SS » remplie par la droite) — mêmes règles que les cellules de la feuille des
- * paramètres d'exécution (D-434, `cellEntry`).
+ * Champ de valeur d'un tableau ou d'une ligne de paramètres : au repos, la valeur formatée (ou « — ») ; en saisie, la
+ * composition au clavier (première frappe qui remplace, durée « MM:SS » remplie par la droite) — mêmes règles que les
+ * cellules de la feuille des paramètres d'exécution (D-434, `cellEntry`). Rendu : convention unique des champs de valeur
+ * (`valueField`, remarque générale e du 06/11/2026) — cadre blanc, orange ou rouge, sans liseré, valeur centrée.
+ *
+ * - Dans un tableau (`width` fourni) : cadre à la largeur commune de sa colonne ; la largeur naturelle du texte est mesurée
+ *   (texte invisible) et déclarée au tableau par `onMeasure`.
+ * - Sur une ligne de paramètres (`width` absent) : cadre à la largeur de son texte.
  */
 export function TableCell({
   kind,
@@ -271,34 +275,24 @@ export function TableCell({
   onFocus,
   onBlur,
   label,
-  width = COLUMN_WIDTH,
-  boxed = false,
-  compact = false,
+  width,
+  onMeasure,
   sign,
   signed = false,
   barOnly = false,
-  tight = false,
   badge = false,
   durationMin,
   entrySuffix = "",
   load = false,
-  small = false,
   pending = false,
-  alignEnd = false,
   testID,
 }: {
   /**
-   * Recette du 06/11/2026 (t-coche-direct, Hermann : « après activation des charges, le cadre de valeur de la charge doit être orange » ;
-   * « mettre les cadres oranges avec un trait sur les champs charge qui ne sont pas renseignés ») : charge facultative à renseigner.
+   * Recette du 06/11/2026 (t-coche-direct, Hermann : « après activation des charges, le cadre de valeur de la charge doit être orange ») :
+   * charge facultative à renseigner, cadre orange. [Liseré orange — retiré (remarque e : « Pas de liseré, dans aucune situation » ;
+   * w-charge-un : « Supprimer le liseré du cadre orange »).]
    */
   readonly pending?: boolean;
-  /**
-   * Dernière colonne d'un tableau — recette du 06/11/2026 (r-colonnes, n-cadres, constat d, Hermann : « la dernière colonne […]
-   * alignée à droite avec les autres textes ») : valeur calée à droite, au retrait du texte des pastilles des lignes de paramètres.
-   */
-  readonly alignEnd?: boolean;
-  /** Charge sous l'objectif du tableau des séries (recette du 05/11/2026, n-charge-switch) : Regular 11, ligne de 16. */
-  readonly small?: boolean;
   /** Complément du 5 novembre 2026 (Hermann) : case de charge — valeur entre parenthèses, Regular 12, case vide « (—) » grise. */
   readonly load?: boolean;
   /**
@@ -307,9 +301,8 @@ export function TableCell({
    */
   readonly entrySuffix?: string;
   /**
-   * Valeur d'une ligne de paramètres (questionnaire, récapitulatif) — Hermann, 05/11/2026 : « on utilise systématiquement le
-   * clavier pour renseigner les valeurs, plus aucun stepper ». Pastille blanche à largeur libre ; le texte de la case vide
-   * (« Sans limite », « variable ») s'affiche comme une valeur.
+   * Ligne de paramètres : le texte de la case vide (« Sans limite », « variable ») s'affiche comme une valeur — Hermann, 05/11/2026 :
+   * « on utilise systématiquement le clavier pour renseigner les valeurs, plus aucun stepper ».
    */
   readonly badge?: boolean;
   /** Durée minimale admise (0 pour une pause) ; 1 s par défaut. */
@@ -319,23 +312,17 @@ export function TableCell({
    * « Une seule zone tactile utile qui est la première, la charge s'atteint avec les boutons suivant / précédent du clavier »).
    */
   readonly barOnly?: boolean;
-  /** Objectif au-dessus d'une charge (For time) : case plus basse (recette du 05/11/2026, e-fortime-charge). */
-  readonly tight?: boolean;
   /** Case signée : « + » ou « − » toujours affiché devant la valeur en saisie. */
   readonly signed?: boolean;
   /** Case signée (incrément de charge EMOM, recette du 04/11/2026) : signe imposé, « − » affiché devant la valeur. */
   readonly sign?: 1 | -1;
-  /** Tableau sans cadre (For time) : la zone de saisie porte un fond blanc. */
-  readonly boxed?: boolean;
-  /** Charge sous l'objectif (For time) : police réduite, non grasse, ligne plus basse. */
-  readonly compact?: boolean;
   readonly kind: CellEntryKind;
   readonly value: number | null;
   readonly onChange: (value: number | null) => void;
   readonly format: (value: number) => string;
   /** Texte de la cellule vide ; « — » par défaut. */
   readonly placeholder?: string;
-  /** Valeur à renseigner, ou en cause (contrôle EMOM) : fond rouge léger. */
+  /** Valeur à renseigner, ou en cause (contrôle EMOM) : cadre rouge. */
   readonly missing?: boolean;
   readonly disabled?: boolean;
   readonly active?: boolean;
@@ -343,11 +330,19 @@ export function TableCell({
   readonly onFocus?: () => void;
   readonly onBlur?: () => void;
   readonly label: string;
+  /** Largeur commune de la colonne (tableaux) ; absente : cadre à la largeur de son texte (lignes de paramètres). */
   readonly width?: number;
+  /** Largeur naturelle du texte, déclarée au tableau (0 au démontage). */
+  readonly onMeasure?: (width: number) => void;
   readonly testID: string;
 }) {
   const [focused, setFocused] = useState(false);
   const [entry, setEntry] = useState<CellEntryState>({ text: "", fresh: true });
+  const measureRef = useRef(onMeasure);
+  useEffect(() => {
+    measureRef.current = onMeasure;
+  }, [onMeasure]);
+  useEffect(() => () => measureRef.current?.(0), []);
   // Hermann, 04/11/2026 : « Appuyer sur durée doit mettre le champ dans le format cible 00:00 pour guider la première
   // saisie » — en saisie, une durée s'affiche toujours « MM:SS », « 00:00 » quand elle est vide.
   const effectiveSign = sign ?? (value !== null && value < 0 ? -1 : 1);
@@ -368,27 +363,17 @@ export function TableCell({
   // « Appuyer manuellement sur un champ doit positionner le curseur à droite de la valeur » : la saisie se compose par la
   // droite, le curseur y reste.
   const caret = focused ? { start: shown.length - suffix.length, end: shown.length - suffix.length } : undefined;
-  const cellStyle = [
-    styles.cell,
-    badge ? styles.cellBadge : boxed ? null : { width },
-    boxed ? styles.cellBoxed : null,
-    compact ? styles.cellCompact : null,
-    tight ? styles.cellTight : null,
-    load ? styles.cellLoad : null,
-    small ? styles.cellSmall : null,
-    alignEnd ? styles.cellEnd : null,
-    disabled ? styles.cellDisabled : null,
-    !disabled && pending ? styles.cellPending : null,
-    !disabled && missing ? styles.cellMissing : null,
-    active || focused ? styles.cellActive : null,
+  const fieldStyle = [
+    valueFieldStyles.field,
+    load ? styles.fieldLoad : null,
+    disabled ? valueFieldStyles.disabled : null,
+    !disabled && pending ? valueFieldStyles.toVerify : null,
+    !disabled && missing ? valueFieldStyles.toComplete : null,
+    active || focused ? valueFieldStyles.active : null,
     focused && kind === "duration" && entry.text === "" ? styles.cellGuide : null,
   ];
-  // Recette du 06/11/2026 (t-emom-duree, Hermann : « Je saisi 1230, en durée, Le tableau affiche 12 » ; « Champ Intervalle : le cadre est
-  // trop petit lorsqu'il a le focus, on ne voit pas tout le texte » ; t-coche-direct : « le cadre de la valeur récupération n'est pas assez
-  // large pour la durée lorsqu'il a le focus ») : sur iPhone, un champ de saisie sans largeur fixe garde la largeur de son premier texte.
-  // Les pastilles (lignes de paramètres) et les zones blanches (For time, EMOM, Superset) prennent donc la largeur d'un texte invisible
-  // identique à celui affiché ; le champ les recouvre exactement.
-  const autoWidth = badge || boxed;
+  const sizerText = shown === "" ? (placeholder ?? t().dash) : shown;
+  const fixed = width !== undefined;
   const input = (
     <TextInput
       ref={inputRef}
@@ -416,17 +401,38 @@ export function TableCell({
       keyboardType={kind === "decimal" ? "decimal-pad" : "number-pad"}
       contextMenuHidden
       placeholder={placeholder ?? t().dash}
-      placeholderTextColor={load ? LOAD_EMPTY : missing || badge ? VALUE_COLOR : DISABLED_VALUE}
+      placeholderTextColor={load ? LOAD_EMPTY : missing || badge ? valueFieldColors.editable : valueFieldColors.disabled}
       accessibilityLabel={label}
-      style={autoWidth ? [...cellStyle, styles.cellOverlay] : cellStyle}
+      style={fixed ? [...fieldStyle, { width }] : [...fieldStyle, styles.cellOverlay]}
       testID={testID}
     />
   );
-  if (!autoWidth) return input;
+  if (fixed) {
+    return (
+      <View style={[styles.fieldSlot, { width }]} pointerEvents="box-none">
+        <View style={styles.measureBox} pointerEvents="none">
+          <Text
+            style={[...fieldStyle, styles.measureText]}
+            numberOfLines={1}
+            onLayout={(event) => onMeasure?.(event.nativeEvent.layout.width)}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            testID={`${testID}-measure`}
+          >
+            {sizerText}
+          </Text>
+        </View>
+        {input}
+      </View>
+    );
+  }
+  // Recette du 06/11/2026 (t-emom-duree, t-coche-direct) : sur iPhone, un champ de saisie sans largeur fixe garde la largeur de son
+  // premier texte. La pastille d'une ligne de paramètres prend donc la largeur d'un texte invisible identique à celui affiché ; le
+  // champ la recouvre exactement.
   return (
-    <View style={boxed ? (alignEnd ? styles.cellSlotEnd : styles.cellSlotCentered) : null} pointerEvents="box-none">
-      <Text style={[...cellStyle, styles.cellSizer]} numberOfLines={1} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        {shown === "" ? (placeholder ?? t().dash) : shown}
+    <View pointerEvents="box-none">
+      <Text style={[...fieldStyle, styles.cellSizer]} numberOfLines={1} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        {sizerText}
       </Text>
       {input}
     </View>
@@ -440,13 +446,37 @@ function rowName(item: ModelMovement): string {
   return `${item.exercise.name}${role === "BUY_IN" ? t().table.buyInSuffix : role === "BUY_OUT" ? t().table.buyOutSuffix : ""}`;
 }
 
+/** Titres des colonnes de valeurs : même largeur et même écart que les colonnes, centrés au-dessus. */
+function ColumnHeads({ heads, width }: { readonly heads: readonly string[]; readonly width: number }) {
+  return (
+    <View style={styles.columns}>
+      {heads.map((head, index) => (
+        <Text key={index} style={[styles.tableHead, { width }]} numberOfLines={1}>
+          {head}
+        </Text>
+      ))}
+    </View>
+  );
+}
+
+/** En-tête d'un tableau à une ligne par mouvement (unité en colonne). */
+function MovementTableHeader({ heads, width }: { readonly heads: readonly string[]; readonly width: number }) {
+  return (
+    <View style={styles.tableHeader}>
+      <Text style={[styles.tableHead, styles.tableName]} numberOfLines={1}>
+        {t().table.movement}
+      </Text>
+      <ColumnHeads heads={heads} width={width} />
+    </View>
+  );
+}
+
 /** AMRAP (MAJ 04/11 §4.3 bis) : Mouvement | Objectif | Par tour | (Charge) | Max. */
 export function AmrapTable({
   movements,
   increasing,
   withLoad,
   onChange,
-  onAddLoad = () => undefined,
   cell,
 }: {
   readonly movements: readonly ModelMovement[];
@@ -457,16 +487,12 @@ export function AmrapTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
-  const objectiveColumn = objectiveWidth(movements, movements.length > 1);
+  const column = useUniformColumnWidth();
+  const width = column.width;
+  const heads = [tt.objective, ...(increasing ? [tt.perRound] : []), ...(withLoad ? [tt.load] : []), tt.max];
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-amrap-table">
-      <View style={styles.tableHeader}>
-        <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={[styles.tableHead, { width: objectiveColumn }]}>{tt.objective}</Text>
-        {increasing ? <Text style={[styles.tableHead, { width: FIT_INCREMENT_WIDTH }]}>{tt.perRound}</Text> : null}
-        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }]}>{tt.load}</Text> : null}
-        <Text style={[styles.tableHead, styles.maxHead]}>{tt.max}</Text>
-      </View>
+      <MovementTableHeader heads={heads} width={width} />
       {movements.map((item, index) => {
         const values = item.values;
         const tour = movementRole(item) === "TOUR";
@@ -478,53 +504,55 @@ export function AmrapTable({
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
-            <TableCell
-              kind={mode === "DURATION" ? "duration" : "integer"}
-              value={values.repetitions ?? null}
-              format={(value) => formatObjective(mode, value)}
-              width={objectiveColumn}
-              missing={!max && values.repetitions == null}
-              disabled={max}
-              onChange={(value) => onChange(index, { ...values, repetitions: value })}
-              {...cell(cellKey("obj", index))}
-              label={`${name}, ${tt.objective}`}
-              testID={`format-amrap-reps-${index}`}
-            />
-            {increasing ? (
-              tour ? (
-                <TableCell
-                  kind={mode === "DURATION" ? "duration" : "integer"}
-                  value={values.increment ?? null}
-                  // Complément du 5 novembre 2026 (Hermann), §8 : incrément signé (« − 1 rép. », « − 5 s »), signe saisi par « ± » de la barre du clavier.
-                  format={(value) => `${value < 0 ? "−" : "+"} ${mode === "DURATION" ? formatSeconds(Math.abs(value)) : Math.abs(value)}`}
-                  placeholder="+"
-                  width={FIT_INCREMENT_WIDTH}
-                  missing={!max && values.increment == null}
-                  disabled={max}
-                  onChange={(value) => onChange(index, { ...values, increment: value })}
-                  {...cell(cellKey("inc", index))}
-                  label={`${name}, ${tt.perRound}`}
-                  testID={`format-amrap-increment-${index}`}
-                />
-              ) : (
-                <Text style={[styles.tableDash, { width: FIT_INCREMENT_WIDTH }]}>{t().dash}</Text>
-              )
-            ) : null}
-            {withLoad ? (
-              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} cell={cell} last={false} testID={`format-amrap-load-${index}`} />
-            ) : null}
-            {/* Recette du 05/11/2026 (n-charge-colonne, Hermann : « Max en Répétitions seulement ») : Max indisponible en Durée. */}
-            <Pressable
-              onPress={() => onChange(index, { ...values, max: !max })}
-              disabled={mode === "DURATION"}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: max, disabled: mode === "DURATION" }}
-              accessibilityLabel={`${name}, ${tt.max}`}
-              style={[styles.radioSlot, styles.maxSlot]}
-              testID={`format-amrap-max-${index}`}
-            >
-              <View style={[styles.radio, max ? styles.radioOn : null, mode === "DURATION" ? styles.radioDisabled : null]}>{max ? <View style={styles.radioDot} /> : null}</View>
-            </Pressable>
+            <View style={styles.columns}>
+              <TableCell
+                kind={mode === "DURATION" ? "duration" : "integer"}
+                value={values.repetitions ?? null}
+                format={(value) => formatObjective(mode, value)}
+                width={width}
+                onMeasure={column.report(`obj-${index}`)}
+                missing={!max && values.repetitions == null}
+                disabled={max}
+                onChange={(value) => onChange(index, { ...values, repetitions: value })}
+                {...cell(cellKey("obj", index))}
+                label={`${name}, ${tt.objective}`}
+                testID={`format-amrap-reps-${index}`}
+              />
+              {increasing ? (
+                tour ? (
+                  <TableCell
+                    kind={mode === "DURATION" ? "duration" : "integer"}
+                    value={values.increment ?? null}
+                    // Complément du 5 novembre 2026 (Hermann), §8 : incrément signé (« − 1 rép. », « − 5 s »), signe saisi par « ± » de la barre du clavier.
+                    format={(value) => `${value < 0 ? "−" : "+"} ${mode === "DURATION" ? formatSeconds(Math.abs(value)) : Math.abs(value)}`}
+                    placeholder="+"
+                    width={width}
+                    onMeasure={column.report(`inc-${index}`)}
+                    missing={!max && values.increment == null}
+                    disabled={max}
+                    onChange={(value) => onChange(index, { ...values, increment: value })}
+                    {...cell(cellKey("inc", index))}
+                    label={`${name}, ${tt.perRound}`}
+                    testID={`format-amrap-increment-${index}`}
+                  />
+                ) : (
+                  <Text style={[styles.slotText, { width }]}>{t().dash}</Text>
+                )
+              ) : null}
+              {withLoad ? <ChargeCell values={values} index={index} name={name} width={width} onMeasure={column.report(`load-${index}`)} onChange={onChange} cell={cell} testID={`format-amrap-load-${index}`} /> : null}
+              {/* Recette du 05/11/2026 (n-charge-colonne, Hermann : « Max en Répétitions seulement ») : Max indisponible en Durée. */}
+              <Pressable
+                onPress={() => onChange(index, { ...values, max: !max })}
+                disabled={mode === "DURATION"}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: max, disabled: mode === "DURATION" }}
+                accessibilityLabel={`${name}, ${tt.max}`}
+                style={[styles.radioSlot, { width }]}
+                testID={`format-amrap-max-${index}`}
+              >
+                <View style={[styles.radio, max ? styles.radioOn : null, mode === "DURATION" ? styles.radioDisabled : null]}>{max ? <View style={styles.radioDot} /> : null}</View>
+              </Pressable>
+            </View>
           </View>
         );
       })}
@@ -545,19 +573,18 @@ function ChargeCell({
   index,
   name,
   width,
+  onMeasure,
   onChange,
   cell,
-  last = true,
   testID,
 }: {
   readonly values: MovementValues;
   readonly index: number;
   readonly name: string;
   readonly width: number;
+  readonly onMeasure: (width: number) => void;
   readonly onChange: RowChange;
   readonly cell: CellBinding;
-  /** Dernière colonne du tableau (toujours, sauf l'AMRAP où Max suit). */
-  readonly last?: boolean;
   readonly testID: string;
 }) {
   const tt = t().table;
@@ -573,9 +600,9 @@ function ChargeCell({
       placeholder={t().dash}
       entrySuffix=" kg"
       width={width}
+      onMeasure={onMeasure}
       load
       pending={value === null}
-      alignEnd={last}
       onChange={(entered) => onChange(index, { ...values, loadKg: entered, loadOn: entered !== null })}
       {...cell(cellKey("load", index))}
       label={`${name}, ${tt.load}`}
@@ -623,7 +650,6 @@ export function DeathByTable({
   movements,
   withLoad = false,
   onChange,
-  onAddLoad = () => undefined,
   cell,
 }: {
   readonly movements: readonly ModelMovement[];
@@ -633,16 +659,12 @@ export function DeathByTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
-  const startColumn = objectiveWidth(movements, false);
-  const incrementColumn = startColumn + 10;
+  const column = useUniformColumnWidth();
+  const width = column.width;
+  const heads = [tt.start, tt.increment, ...(withLoad ? [tt.load] : [])];
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-death-by-table">
-      <View style={styles.tableHeader}>
-        <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={[styles.tableHead, { width: startColumn }]}>{tt.start}</Text>
-        <Text style={[styles.tableHead, { width: incrementColumn }, withLoad ? null : styles.headEnd]}>{tt.increment}</Text>
-        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }, styles.headEnd]}>{tt.load}</Text> : null}
-      </View>
+      <MovementTableHeader heads={heads} width={width} />
       {movements.map((item, index) => {
         const values = item.values;
         const name = rowName(item);
@@ -653,34 +675,35 @@ export function DeathByTable({
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
-            <TableCell
-              kind={kind}
-              value={values.start ?? null}
-              // Hermann, 04/11/2026 : « death by, il manque les unités au tableau des objectifs ».
-              format={(value) => formatObjective(mode, value)}
-              width={startColumn}
-              missing={values.start == null || values.start < 1}
-              onChange={(value) => onChange(index, { ...values, start: value })}
-              {...cell(cellKey("start", index))}
-              label={`${name}, ${tt.start}`}
-              testID={`format-death-by-start-${index}`}
-            />
-            <TableCell
-              kind={kind}
-              value={values.startIncrement ?? null}
-              format={(value) => `+ ${formatObjective(mode, value)}`}
-              width={incrementColumn}
-              placeholder="+"
-              alignEnd={!withLoad}
-              missing={values.startIncrement == null || values.startIncrement < 1}
-              onChange={(value) => onChange(index, { ...values, startIncrement: value })}
-              {...cell(cellKey("sinc", index))}
-              label={`${name}, ${tt.increment}`}
-              testID={`format-death-by-increment-${index}`}
-            />
-            {withLoad ? (
-              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} cell={cell} testID={`format-death-by-load-${index}`} />
-            ) : null}
+            <View style={styles.columns}>
+              <TableCell
+                kind={kind}
+                value={values.start ?? null}
+                // Hermann, 04/11/2026 : « death by, il manque les unités au tableau des objectifs ».
+                format={(value) => formatObjective(mode, value)}
+                width={width}
+                onMeasure={column.report(`start-${index}`)}
+                missing={values.start == null || values.start < 1}
+                onChange={(value) => onChange(index, { ...values, start: value })}
+                {...cell(cellKey("start", index))}
+                label={`${name}, ${tt.start}`}
+                testID={`format-death-by-start-${index}`}
+              />
+              <TableCell
+                kind={kind}
+                value={values.startIncrement ?? null}
+                format={(value) => `+ ${formatObjective(mode, value)}`}
+                width={width}
+                onMeasure={column.report(`sinc-${index}`)}
+                placeholder="+"
+                missing={values.startIncrement == null || values.startIncrement < 1}
+                onChange={(value) => onChange(index, { ...values, startIncrement: value })}
+                {...cell(cellKey("sinc", index))}
+                label={`${name}, ${tt.increment}`}
+                testID={`format-death-by-increment-${index}`}
+              />
+              {withLoad ? <ChargeCell values={values} index={index} name={name} width={width} onMeasure={column.report(`load-${index}`)} onChange={onChange} cell={cell} testID={`format-death-by-load-${index}`} /> : null}
+            </View>
           </View>
         );
       })}
@@ -700,7 +723,6 @@ export function ObjectivePauseTable({
   pauseFallback,
   withLoad,
   onChange,
-  onAddLoad,
   cell,
 }: {
   readonly model: "TABATA" | "INTERVALS_30_30" | "STRENGTH" | "UNTIL_FAILURE";
@@ -715,16 +737,13 @@ export function ObjectivePauseTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
+  const column = useUniformColumnWidth();
+  const width = column.width;
   const defaultMode = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
-  const objectiveColumn = model === "UNTIL_FAILURE" ? FIT_DURATION_WIDTH : defaultMode === "DURATION" ? FIT_DURATION_WIDTH : objectiveWidth(movements, true);
+  const heads = [tt.objective, tt.pause, ...(withLoad ? [tt.load] : [])];
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-objective-pause-table">
-      <View style={styles.tableHeader}>
-        <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
-        <Text style={[styles.tableHead, { width: objectiveColumn }]}>{tt.objective}</Text>
-        <Text style={[styles.tableHead, { width: FIT_PAUSE_WIDTH }, withLoad ? null : styles.headEnd]}>{tt.pause}</Text>
-        {withLoad ? <Text style={[styles.tableHead, { width: FIT_LOAD_WIDTH }, styles.headEnd]}>{tt.load}</Text> : null}
-      </View>
+      <MovementTableHeader heads={heads} width={width} />
       {movements.map((item, index) => {
         const values = item.values;
         const name = rowName(item);
@@ -736,38 +755,40 @@ export function ObjectivePauseTable({
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
-            {model === "UNTIL_FAILURE" ? (
-              <Text style={[styles.tableCellText, styles.failureText, { width: objectiveColumn }]} testID={`format-objective-${index}`}>
-                {t().atFailure}
-              </Text>
-            ) : (
+            <View style={styles.columns}>
+              {model === "UNTIL_FAILURE" ? (
+                // Valeur non modifiable : texte noir, sans cadre (remarque e : « noir (non modifiable) »).
+                <Text style={[styles.slotText, styles.failureText, { width }]} numberOfLines={1} testID={`format-objective-${index}`}>
+                  {t().atFailure}
+                </Text>
+              ) : (
+                <TableCell
+                  kind={mode === "DURATION" ? "duration" : "integer"}
+                  value={objective}
+                  format={(value) => formatObjective(mode, value)}
+                  width={width}
+                  onMeasure={column.report(`obj-${index}`)}
+                  missing={objective === null}
+                  onChange={(value) => onChange(index, { ...values, mode, repetitions: value })}
+                  {...cell(cellKey("obj", index))}
+                  label={`${name}, ${tt.objective}`}
+                  testID={`format-objective-${index}`}
+                />
+              )}
               <TableCell
-                kind={mode === "DURATION" ? "duration" : "integer"}
-                value={objective}
-                format={(value) => formatObjective(mode, value)}
-                width={objectiveColumn}
-                missing={objective === null}
-                onChange={(value) => onChange(index, { ...values, mode, repetitions: value })}
-                {...cell(cellKey("obj", index))}
-                label={`${name}, ${tt.objective}`}
-                testID={`format-objective-${index}`}
+                kind="duration"
+                durationMin={0}
+                value={pause}
+                format={formatSeconds}
+                width={width}
+                onMeasure={column.report(`pause-${index}`)}
+                onChange={(value) => (value === null ? undefined : onChange(index, { ...values, pause: value }))}
+                {...cell(cellKey("pause", index))}
+                label={`${name}, ${tt.pause}`}
+                testID={`format-pause-${index}`}
               />
-            )}
-            <TableCell
-              kind="duration"
-              durationMin={0}
-              value={pause}
-              format={formatSeconds}
-              width={FIT_PAUSE_WIDTH}
-              alignEnd={!withLoad}
-              onChange={(value) => (value === null ? undefined : onChange(index, { ...values, pause: value }))}
-              {...cell(cellKey("pause", index))}
-              label={`${name}, ${tt.pause}`}
-              testID={`format-pause-${index}`}
-            />
-            {withLoad ? (
-              <ChargeCell values={values} index={index} name={name} width={FIT_LOAD_WIDTH} onChange={onChange} cell={cell} testID={`format-objective-load-${index}`} />
-            ) : null}
+              {withLoad ? <ChargeCell values={values} index={index} name={name} width={width} onMeasure={column.report(`load-${index}`)} onChange={onChange} cell={cell} testID={`format-objective-load-${index}`} /> : null}
+            </View>
           </View>
         );
       })}
@@ -776,10 +797,12 @@ export function ObjectivePauseTable({
 }
 
 /**
- * Tableau des séries (Progression, MAJ 04/11 §6 quater) ou des tours (For time, §6 quater bis) : colonne Unité,
- * une colonne par série ou tour, nom et unité fixes, colonnes défilantes au-delà de trois ; charge sous l'objectif
- * quand « Avec charge » est activé. Recette n° 3 du 03/11/2026 (f3-depart) : colonnes calées à droite, la série
- * ajoutée et la cellule saisie restent visibles. Les valeurs au-delà de N restent en réserve (f3-fortime).
+ * Tableau des séries (Progression, MAJ 04/11 §6 quater) ou des tours (For time, §6 quater bis) ; EMOM (S1…Sn) et Superset (Tour 1…n) :
+ * une colonne par série ou tour, nom fixe, trois colonnes visibles, colonnes suivantes défilantes ; charge sous l'objectif quand
+ * « Avec charge » est activé et que le mouvement est chargé. Recette n° 3 du 03/11/2026 (f3-depart) : la série ajoutée et la cellule
+ * saisie restent visibles. Les valeurs au-delà de N restent en réserve (f3-fortime). Une seule forme pour les quatre Formats
+ * (remarque e du 06/11/2026). [Variante For time / EMOM / Superset « sans fond, zones de saisie blanches » (`bare`) — fondue dans la
+ * forme commune.]
  */
 export function SeriesTable({
   model,
@@ -790,9 +813,8 @@ export function SeriesTable({
   onAddLoad = () => undefined,
   overflow = [],
   cell,
-  bare = false,
 }: {
-  /** For time (recette du 04/11/2026) : tableau sans fond, zones de saisie blanches, charges compactes. */
+  /** [Variante For time « sans fond » — remplacée par la forme commune ; prop conservée sans effet.] */
   readonly bare?: boolean;
   /**
    * Complément du 5 novembre 2026 (Hermann), §11, §14 : EMOM (S1…Sn) et Superset (Tour 1…n) reprennent ce tableau. [Chaque série préremplie avec la
@@ -811,69 +833,101 @@ export function SeriesTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
+  const reduceMotion = useReduceMotion();
   const columns = Array.from({ length: count }, (_, index) => index);
-  // Trois colonnes visibles (n-charge-switch, décision du 05/11/2026), au moins la largeur d'une valeur.
-  const [viewportWidth, setViewportWidth] = useState(0);
-  const minimumWidth = movements.some((item) => item.values.mode === "DURATION") ? FIT_DURATION_WIDTH : SERIES_COLUMN_WIDTH;
-  const columnWidth = viewportWidth > 0 ? Math.max(minimumWidth, Math.floor(viewportWidth / SERIES_VISIBLE_COLUMNS)) : minimumWidth;
+  const column = useUniformColumnWidth();
+  const width = column.width;
+  const step = width + COLUMN_GAP;
+  const visible = Math.max(1, Math.min(count, SERIES_VISIBLE_COLUMNS));
+  const visibleWidth = visible * width + (visible - 1) * COLUMN_GAP;
   const charged = (values: MovementValues) => withLoad && values.loadOn === true;
   const scrollRef = useRef<ScrollView>(null);
   const scrollX = useRef(0);
-  const viewport = useRef(0);
+  const animation = useRef<number | null>(null);
   const shownCount = useRef(count);
   useEffect(() => {
     if (count > shownCount.current) scrollRef.current?.scrollToEnd({ animated: false });
     shownCount.current = count;
   }, [count]);
+  useEffect(
+    () => () => {
+      if (animation.current !== null) cancelAnimationFrame(animation.current);
+    },
+    [],
+  );
+  // Remarque B du 06/11/2026 : « déplacer le tableau lentement ».
+  const shiftTo = (target: number) => {
+    if (animation.current !== null) cancelAnimationFrame(animation.current);
+    animation.current = null;
+    const from = scrollX.current;
+    if (reduceMotion || from === target) {
+      scrollRef.current?.scrollTo({ x: target, animated: false });
+      scrollX.current = target;
+      return;
+    }
+    let start: number | null = null;
+    const tick = (now: number) => {
+      start ??= now;
+      const progress = Math.min(1, (now - start) / COLUMN_SHIFT_MS);
+      const eased = 1 - (1 - progress) ** 3;
+      const x = from + (target - from) * eased;
+      scrollRef.current?.scrollTo({ x, animated: false });
+      scrollX.current = x;
+      animation.current = progress < 1 ? requestAnimationFrame(tick) : null;
+    };
+    animation.current = requestAnimationFrame(tick);
+  };
   // Recette du 06/11/2026 (t-coche-q, Hermann : « mettre le focus sur une valeur de la dernière colonne du tableau décale les colonnes du
   // tableau vers la gauche d'une colonne automatiquement, sauf si c'est la dernière. Cela permet de voir qu'il reste des colonnes à
   // renseigner ») : la colonne suivante est rendue visible avec celle qui prend le focus.
-  const revealColumn = (column: number) => {
-    const left = column * columnWidth;
-    const right = left + columnWidth * (column < count - 1 ? 2 : 1);
-    if (left < scrollX.current) scrollRef.current?.scrollTo({ x: left, animated: false });
-    else if (right > scrollX.current + viewport.current) scrollRef.current?.scrollTo({ x: right - viewport.current, animated: false });
+  const revealColumn = (at: number) => {
+    const left = at * step;
+    const right = left + width + (at < count - 1 ? step : 0);
+    if (left < scrollX.current) shiftTo(left);
+    else if (right > scrollX.current + visibleWidth) shiftTo(right - visibleWidth);
   };
-  const bind = (key: string, column: number) => {
+  const bind = (key: string, at: number) => {
     const binding = cell(key);
     return {
       ...binding,
       onFocus: () => {
-        revealColumn(column);
+        revealColumn(at);
         binding.onFocus();
       },
     };
   };
-  const heading = (column: number) => (model === "FOR_TIME" || model === "SUPERSET" ? tt.round : tt.series).replace("{n}", String(column + 1));
-  // Ligne : objectif (aligné sur le nom), puis charge ou sous-titre « (rép, +kg) » du nom.
-  const rowHeightOf = (values: MovementValues) =>
-    SERIES_ROW_PADDING * 2 + SERIES_LINE_HEIGHT - SERIES_SECOND_LINE_RISE + (charged(values) ? SERIES_LOAD_LINE_HEIGHT : SERIES_SUBTITLE_HEIGHT);
+  const heading = (at: number) => (model === "FOR_TIME" || model === "SUPERSET" ? tt.round : tt.series).replace("{n}", String(at + 1));
+  // Deux lignes : nom et objectifs ; sous-titre « (rép, +kg) » et charges (même hauteur des deux côtés).
+  const secondLineOf = (values: MovementValues) => (charged(values) ? VALUE_FIELD_HEIGHT : SERIES_SUBTITLE_HEIGHT);
+  const rowHeightOf = (values: MovementValues) => SERIES_ROW_PADDING * 2 + VALUE_FIELD_HEIGHT + (charged(values) ? SERIES_LINE_GAP : 0) + secondLineOf(values);
   const prefix = model === "FOR_TIME" ? "format-for-time" : model === "EMOM" ? "format-emom" : model === "SUPERSET" ? "format-superset" : "format-progression";
   const unitOf = (values: MovementValues) =>
     values.mode === undefined && model === "EMOM" ? t().dash : (values.mode ?? "REPETITIONS") === "DURATION" ? tt.durationUnitShort : tt.repetitionsUnitShort;
   // Valeurs d'une ligne : For time (volumes, loads) ; Progression (cells).
-  const objectiveAt = (values: MovementValues, column: number) => (model === "FOR_TIME" ? (values.volumes?.[column] ?? null) : (values.cells?.[column]?.repetitions ?? null));
-  const loadAt = (values: MovementValues, column: number) => (model === "FOR_TIME" ? (values.loads?.[column] ?? null) : (values.cells?.[column]?.loadKg ?? null));
-  const set = (values: MovementValues, column: number, patch: { readonly objective?: number | null; readonly load?: number | null }): MovementValues => {
+  const objectiveAt = (values: MovementValues, at: number) => (model === "FOR_TIME" ? (values.volumes?.[at] ?? null) : (values.cells?.[at]?.repetitions ?? null));
+  const loadAt = (values: MovementValues, at: number) => (model === "FOR_TIME" ? (values.loads?.[at] ?? null) : (values.cells?.[at]?.loadKg ?? null));
+  const set = (values: MovementValues, at: number, patch: { readonly objective?: number | null; readonly load?: number | null }): MovementValues => {
     if (model === "FOR_TIME") {
       const volumes = [...(values.volumes ?? [])];
       const loads = [...(values.loads ?? [])];
-      while (volumes.length <= column) volumes.push(null);
-      while (loads.length <= column) loads.push(null);
-      if (patch.objective !== undefined) volumes[column] = patch.objective;
-      if (patch.load !== undefined) loads[column] = patch.load;
+      while (volumes.length <= at) volumes.push(null);
+      while (loads.length <= at) loads.push(null);
+      if (patch.objective !== undefined) volumes[at] = patch.objective;
+      if (patch.load !== undefined) loads[at] = patch.load;
       return { ...values, volumes, loads };
     }
     let cells = values.cells ?? [];
-    if (patch.objective !== undefined) cells = withSeriesValue(cells, column, "repetitions", patch.objective, false);
-    if (patch.load !== undefined) cells = withSeriesValue(cells, column, "loadKg", patch.load, false);
+    if (patch.objective !== undefined) cells = withSeriesValue(cells, at, "repetitions", patch.objective, false);
+    if (patch.load !== undefined) cells = withSeriesValue(cells, at, "loadKg", patch.load, false);
     return { ...values, cells };
   };
   return (
-    <View style={[styles.seriesTable, bare ? styles.seriesTableBare : null, styles.seriesColumns]} testID={`${prefix}-table`}>
-      <View style={[styles.seriesNames, { width: SERIES_NAMES_WIDTH }, bare ? styles.seriesNamesBare : null]} testID={`${prefix}-names`}>
+    <View style={[styles.seriesTable, styles.seriesColumns]} testID={`${prefix}-table`}>
+      <View style={styles.seriesNames} testID={`${prefix}-names`}>
         <View style={styles.seriesHeader}>
-          <Text style={[styles.tableHead, styles.tableName]}>{tt.movement}</Text>
+          <Text style={[styles.tableHead, styles.tableName]} numberOfLines={1}>
+            {tt.movement}
+          </Text>
         </View>
         {movements.map((item, index) => (
           <View key={item.exercise.id} style={[styles.seriesNameRow, index === movements.length - 1 ? styles.tableRowLast : null, { height: rowHeightOf(item.values) }]}>
@@ -881,7 +935,10 @@ export function SeriesTable({
               {rowName(item)}
             </Text>
             {/* Unité et charge sous le nom : « (rép, +kg) », « (durée, −kg) » ; sans « Avec charge », « (rép) ». */}
-            <View style={styles.seriesSubtitle} testID={`${prefix}-${index}-unit`}>
+            <View
+              style={[styles.seriesSubtitle, { height: secondLineOf(item.values), marginTop: charged(item.values) ? SERIES_LINE_GAP : 0 }]}
+              testID={`${prefix}-${index}-unit`}
+            >
               <Text style={styles.seriesSubtitleText}>{`(${unitOf(item.values)}${withLoad ? ", " : ")"}`}</Text>
               {withLoad ? (
                 <ChargeToggle
@@ -901,26 +958,17 @@ export function SeriesTable({
         horizontal
         showsHorizontalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        style={styles.seriesScroll}
+        style={[styles.seriesScroll, { width: visibleWidth + TABLE_SIDE_INSET }]}
         contentContainerStyle={styles.seriesScrollContent}
-        onLayout={(event) => {
-          viewport.current = event.nativeEvent.layout.width;
-          const width = event.nativeEvent.layout.width - SERIES_SIDE_INSET;
-          setViewportWidth((current) => (current === width ? current : width));
-        }}
         onScroll={(event) => {
           scrollX.current = event.nativeEvent.contentOffset.x;
         }}
         scrollEventThrottle={16}
         testID={`${prefix}-series`}
       >
-        <View style={styles.seriesBody}>
-          <View style={[styles.seriesHeader, styles.seriesCells]}>
-            {columns.map((column) => (
-              <Text key={column} style={[styles.tableHead, { width: columnWidth }, column === count - 1 ? styles.headEnd : null]}>
-                {heading(column)}
-              </Text>
-            ))}
+        <View>
+          <View style={styles.seriesHeader}>
+            <ColumnHeads heads={columns.map(heading)} width={width} />
           </View>
           {movements.map((item, index) => {
             const values = item.values;
@@ -928,47 +976,42 @@ export function SeriesTable({
             // Buy-in / buy-out du For time : une seule exécution (première colonne).
             const shown = model === "FOR_TIME" && movementRole(item) !== "TOUR" ? 1 : count;
             return (
-              <View key={item.exercise.id} style={[styles.seriesRow, styles.seriesValueRow, styles.seriesCells, index === movements.length - 1 ? styles.tableRowLast : null, { height: rowHeightOf(values) }]}>
-                {columns.map((column) => {
-                  if (column >= shown) return <View key={column} style={{ width: columnWidth }} />;
-                  const objective = objectiveAt(values, column);
-                  const label = tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", heading(column));
+              <View key={item.exercise.id} style={[styles.seriesValueRow, styles.columns, index === movements.length - 1 ? styles.tableRowLast : null, { height: rowHeightOf(values) }]}>
+                {columns.map((at) => {
+                  if (at >= shown) return <View key={at} style={{ width }} />;
+                  const objective = objectiveAt(values, at);
+                  const label = tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", heading(at));
                   return (
-                    <View key={column} style={[styles.seriesCell, { width: columnWidth }, bare ? styles.seriesCellBare : null]}>
+                    <View key={at} style={[styles.seriesCell, { width, gap: charged(values) ? SERIES_LINE_GAP : 0 }]}>
                       <TableCell
                         kind={mode === "DURATION" ? "duration" : "integer"}
                         value={objective}
                         format={(value) => (mode === "DURATION" ? formatSeconds(value) : String(value))}
-                        missing={objective === null || overflow.some((cellAt) => cellAt.index === index && cellAt.column === column)}
-                        width={columnWidth}
-                        boxed={bare}
-                        alignEnd={column === count - 1}
-                        tight
-                        onChange={(value) => onChange(index, set(values, column, { objective: value }))}
-                        {...bind(cellKey("obj", index, column), column)}
+                        missing={objective === null || overflow.some((cellAt) => cellAt.index === index && cellAt.column === at)}
+                        width={width}
+                        onMeasure={column.report(`obj-${index}-${at}`)}
+                        onChange={(value) => onChange(index, set(values, at, { objective: value }))}
+                        {...bind(cellKey("obj", index, at), at)}
                         label={label.replace("{kind}", tt.objectiveKind)}
-                        testID={model === "FOR_TIME" ? `${prefix}-${index}-${column}` : `${prefix}-${index}-${column}-reps`}
+                        testID={model === "FOR_TIME" ? `${prefix}-${index}-${at}` : `${prefix}-${index}-${at}-reps`}
                       />
                       {charged(values) ? (
                         <TableCell
                           kind="decimal"
-                          value={loadAt(values, column)}
+                          value={loadAt(values, at)}
                           // Complément du 5 novembre 2026 (Hermann), §9 : « (12 kg) », case vide « (—) » ; affichage seulement, la valeur reste décimale.
                           format={(value) => `(${formatLoad(value)})`}
                           placeholder={tt.loadEmpty}
                           entrySuffix=" kg"
-                          width={columnWidth}
+                          width={width}
+                          onMeasure={column.report(`load-${index}-${at}`)}
                           load
-                          // Recette du 05/11/2026 (k-fortime-pastille, Hermann : « Ne pas mettre de cadre blanc pour les valeurs de charge ») ;
-                          // n-charge-switch : charges plus petites, serrées sous l'objectif, dans tous les tableaux des séries.
-                          compact
-                          small
-                          alignEnd={column === count - 1}
-                          barOnly={bare}
-                          onChange={(value) => onChange(index, set(values, column, { load: value }))}
-                          {...bind(cellKey("load", index, column), column)}
+                          // Recette du 05/11/2026 (e-fortime-charge) : la charge s'atteint par Précédent / Suivant.
+                          barOnly
+                          onChange={(value) => onChange(index, set(values, at, { load: value }))}
+                          {...bind(cellKey("load", index, at), at)}
                           label={label.replace("{kind}", tt.loadKind)}
-                          testID={`${prefix}-${index}-${column}-load`}
+                          testID={`${prefix}-${index}-${at}-load`}
                         />
                       ) : null}
                     </View>
@@ -984,81 +1027,57 @@ export function SeriesTable({
 }
 
 const styles = StyleSheet.create({
-  table: { marginHorizontal: 16, marginTop: 12, borderRadius: 16, backgroundColor: PANEL, overflow: "hidden" },
-  tableHeader: { flexDirection: "row", alignItems: "center", height: 28, paddingHorizontal: TABLE_SIDE_INSET, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
-  // Dernière colonne : titre calé à droite comme ses valeurs.
-  headEnd: { textAlign: "right", paddingRight: 10 },
-  tableHead: { width: COLUMN_WIDTH, textAlign: "center", fontFamily: "Inter_400Regular", fontSize: 12, color: SECTION },
-  tableName: { flex: 1, textAlign: "left", width: undefined },
-  tableRow: { flexDirection: "row", alignItems: "center", minHeight: ROW_HEIGHT, paddingHorizontal: TABLE_SIDE_INSET, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
+  table: { marginHorizontal: 16, marginTop: 12, borderRadius: 16, overflow: "hidden" },
+  tableInFrame: { backgroundColor: "transparent", marginHorizontal: 0, marginTop: 0 },
+  tableHeader: { flexDirection: "row", alignItems: "center", height: 28, paddingHorizontal: TABLE_SIDE_INSET, gap: COLUMN_GAP, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
+  tableHead: { textAlign: "center", fontFamily: "Inter_400Regular", fontSize: 12, color: SECTION },
+  tableName: { flex: 1, minWidth: 0, textAlign: "left" },
+  tableRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: ROW_HEIGHT,
+    paddingHorizontal: TABLE_SIDE_INSET,
+    gap: COLUMN_GAP,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: SEPARATOR,
+  },
   // Recette du 06/11/2026 (t-coche-q, Hermann : « supprimer la dernière barre verticale d'un cadre si elle existe ») : pas de trait sous la
   // dernière ligne d'un tableau.
   tableRowLast: { borderBottomWidth: 0 },
   tableCellText: { fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
-  tableDash: { width: COLUMN_WIDTH, textAlign: "center", color: DISABLED_VALUE },
-  unitText: { textAlign: "center", fontFamily: "Inter_400Regular", fontSize: 12, color: SECTION },
-  // Recette n° 3 du 03/11/2026 (« le champ Rép. n'est pas modifiable ») : zone tactile de la hauteur de la ligne.
-  cell: { minHeight: ROW_HEIGHT, textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: VALUE_COLOR, paddingVertical: 2, borderRadius: 6 },
-  cellDisabled: { color: DISABLED_VALUE },
-  rowNote: { paddingHorizontal: 12, paddingBottom: 6, marginTop: -4, textAlign: "right", fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
+  // Colonnes de valeurs : même largeur, même écart (remarque e).
+  columns: { flexDirection: "row", alignItems: "center", gap: COLUMN_GAP },
+  // Texte non modifiable ou absent dans une colonne (« — » du buy-in AMRAP, « à l'échec »).
+  slotText: { textAlign: "center", fontFamily: "Inter_400Regular", fontSize: 13, color: valueFieldColors.disabled },
+  failureText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", color: valueFieldColors.readOnly },
+  fieldSlot: { alignItems: "center" },
+  // Complément du 5 novembre 2026 (Hermann) (Figma) : charge entre parenthèses, Regular 12 ; même cadre que les autres valeurs.
+  fieldLoad: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12 },
+  // Mesure de la largeur naturelle du texte : hors flux, invisible, sans contrainte de largeur.
+  measureBox: { position: "absolute", top: 0, left: 0, width: 1000, flexDirection: "row", alignItems: "flex-start", opacity: 0 },
+  measureText: { alignSelf: "flex-start" },
   // « 00:00 » de guidage, atténué tant que rien n'est tapé.
-  cellGuide: { color: DISABLED_VALUE },
-  // Recette du 05/11/2026 (g-fortime-cadre, Hermann : « La largeur du cadre des zones de saisie n'est pas conforme. Elle doit
-  // être identique aux autres zones de texte modifiable ») : pastille blanche à la largeur de sa valeur, comme les valeurs des
-  // lignes de paramètres. [Zone de la largeur de la colonne — remplacée.]
-  cellBoxed: { backgroundColor: "#FFFFFF", minWidth: 48, paddingHorizontal: 10, borderRadius: 10, alignSelf: "center" },
-  cellCompact: { minHeight: COMPACT_LOAD_HEIGHT, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 11 },
-  cellTight: { minHeight: SERIES_LINE_HEIGHT, height: SERIES_LINE_HEIGHT, paddingVertical: 0 },
-  // Complément du 5 novembre 2026 (Hermann) (Figma) : charge sur la ligne de charge, entre parenthèses, Regular 12 bleu ; case vide « (—) » grise.
-  cellLoad: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, backgroundColor: "transparent" },
-  chargeToggle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, color: VALUE_COLOR },
-  chargeSlot: { alignItems: "center", justifyContent: "center", gap: 2 },
-  tableInFrame: { backgroundColor: "transparent", marginHorizontal: 0, marginTop: 0 },
-  failureText: { textAlign: "center", fontFamily: "Inter_600SemiBold", fontWeight: "600", color: LABEL },
-  cellBadge: { minHeight: 26, minWidth: 48, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: "#FFFFFF" },
-  // r-colonnes (06/11/2026) : pastille Max calée à droite, titre centré au-dessus.
-  maxHead: { width: FIT_MAX_WIDTH, textAlign: "right", paddingRight: 8 },
-  maxSlot: { width: FIT_MAX_WIDTH, alignItems: "flex-end", paddingRight: 10 },
-  seriesTableBare: { marginVertical: 0, backgroundColor: "transparent" },
-  seriesNamesBare: { paddingLeft: SERIES_SIDE_INSET },
-  seriesCellBare: { gap: 0 },
-  // Recette du 05/11/2026 (e-fortime-unite, Hermann : « Décaler encore au maximum à droite ») : unité calée contre les tours.
-  unitTextBare: { textAlign: "right", paddingRight: 4 },
-  unitColumn: { alignItems: "center", justifyContent: "center", gap: 2 },
-  unitColumnCharged: { justifyContent: "space-around" },
-  // Contre-recette n° 3 ter du 03/11/2026 (« Les champs de valeur du tableau encore à renseigner doivent être avec un
-  // fond rouge ») : fond rouge léger des valeurs à renseigner ou en cause.
-  cellMissing: { backgroundColor: tokenColors.dangerSurface },
-  // Recette du 06/11/2026 (t-coche-direct) : charge à renseigner, cadre orange (couleurs « à vérifier » existantes).
-  cellPending: { backgroundColor: toVerifyColors.surface, borderWidth: 1, borderColor: toVerifyColors.border },
-  // Dernière colonne : texte calé à droite, au retrait du texte des pastilles (10).
-  cellEnd: { textAlign: "right", paddingRight: 10 },
-  // Largeur suivant le texte (voir `TableCell`) : texte invisible qui dimensionne, champ posé par-dessus.
+  cellGuide: { color: valueFieldColors.disabled },
+  // Ligne de paramètres : texte invisible qui dimensionne, champ posé par-dessus.
   cellSizer: { opacity: 0 },
   cellOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, minWidth: 0 },
-  cellSlotCentered: { alignSelf: "center" },
-  cellSlotEnd: { alignSelf: "flex-end" },
-  // MAJ 04/11 §4.5 : la case en cours de saisie est surlignée.
-  cellActive: { backgroundColor: "#E8E9FF" },
-  radioSlot: { width: COLUMN_WIDTH, alignItems: "center", justifyContent: "center", minHeight: ROW_HEIGHT },
+  chargeToggle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, color: valueFieldColors.editable },
+  radioSlot: { alignItems: "center", justifyContent: "center", minHeight: ROW_HEIGHT },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: "#9499A8", alignItems: "center", justifyContent: "center" },
-  radioOn: { borderColor: VALUE_COLOR, backgroundColor: VALUE_COLOR },
-  radioDisabled: { borderColor: DISABLED_VALUE, opacity: 0.5 },
+  radioOn: { borderColor: valueFieldColors.editable, backgroundColor: valueFieldColors.editable },
+  radioDisabled: { borderColor: valueFieldColors.disabled, opacity: 0.5 },
   radioDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FFFFFF" },
   seriesTable: { overflow: "hidden" },
   seriesColumns: { flexDirection: "row" },
-  seriesNames: { width: SERIES_NAME_WIDTH + SERIES_UNIT_WIDTH, paddingLeft: SERIES_SIDE_INSET },
+  // Le nom prend toute la place laissée par les colonnes, calées à droite.
+  seriesNames: { flex: 1, minWidth: 0, paddingLeft: TABLE_SIDE_INSET },
   seriesHeader: { flexDirection: "row", alignItems: "center", height: 28, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
-  seriesRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
-  seriesCells: { justifyContent: "flex-end" },
-  seriesCell: { width: SERIES_COLUMN_WIDTH, alignItems: "center", gap: 0 },
-  seriesBody: { flexGrow: 1 },
+  seriesCell: { alignItems: "center" },
   seriesNameRow: { justifyContent: "flex-start", paddingTop: SERIES_ROW_PADDING, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
-  seriesNameLine: { height: SERIES_LINE_HEIGHT, lineHeight: SERIES_LINE_HEIGHT },
-  seriesSubtitle: { flexDirection: "row", alignItems: "center", height: SERIES_SUBTITLE_HEIGHT, marginTop: -SERIES_SECOND_LINE_RISE },
+  seriesNameLine: { height: VALUE_FIELD_HEIGHT, lineHeight: VALUE_FIELD_HEIGHT },
+  seriesSubtitle: { flexDirection: "row", alignItems: "center" },
   seriesSubtitleText: { fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
-  seriesValueRow: { alignItems: "flex-start", paddingTop: SERIES_ROW_PADDING },
-  cellSmall: { minHeight: SERIES_LOAD_LINE_HEIGHT, paddingVertical: 0, fontSize: 11, lineHeight: SERIES_LOAD_LINE_HEIGHT, marginTop: -SERIES_SECOND_LINE_RISE },
-  seriesScroll: { flex: 1 },
-  seriesScrollContent: { flexGrow: 1, paddingRight: SERIES_SIDE_INSET },
+  seriesValueRow: { alignItems: "flex-start", paddingTop: SERIES_ROW_PADDING, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: SEPARATOR },
+  seriesScroll: { flexGrow: 0, flexShrink: 0 },
+  seriesScrollContent: { paddingRight: TABLE_SIDE_INSET },
 });
