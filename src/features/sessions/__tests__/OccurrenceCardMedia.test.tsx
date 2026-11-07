@@ -45,7 +45,6 @@ function renderCard(
         category={null}
         bodyZones={null}
         summary="10 rép."
-        estimatedDuration={null}
         hasSideChange={false}
         bordered
         recovery={null}
@@ -132,7 +131,6 @@ describe("OccurrenceCard — photo ou affiche vidéo dans le gabarit (PRE-6 stor
           category={null}
           bodyZones={null}
           summary="10 rép."
-          estimatedDuration={null}
           hasSideChange={false}
           bordered
           recovery={null}
@@ -219,7 +217,6 @@ describe("OccurrenceCard — photo ou affiche vidéo dans le gabarit (PRE-6 stor
         category={null}
         bodyZones={null}
         summary="10 rép."
-        estimatedDuration={null}
         hasSideChange={false}
         bordered={false}
         recovery={null}

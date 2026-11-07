@@ -434,27 +434,31 @@ export const OCCURRENCE_SUMMARY_MAX_VALUES = 3;
  */
 export function formatOccurrenceSummary(
   facts: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify"> & { readonly format?: ElementFormat | null },
+  circuitWindowSeconds?: number,
 ): string {
-  return withParametersToVerify(deathBySummary(occurrenceSummaryOf(facts), facts), facts);
-}
+  const summary = occurrenceSummaryOf(facts);
+  const { format, executionParameters } = facts;
+  if (!format || (format.key !== "AMRAP" && format.key !== "DEATH_BY") || isIncompleteSummary(summary)) {
+    return withParametersToVerify(summary, facts);
+  }
+  const increment = format.settings.incrementPerRound ?? (format.key === "DEATH_BY" ? 1 : 0);
+  const series = executionParameters.series;
+  if (typeof increment !== "number" || increment === 0 || series.kind !== "UNIFORM" || series.target.kind !== "NUMBER") {
+    return withParametersToVerify(summary, facts);
+  }
 
-/**
- * Contre-recette n° 3 ter du 03/11/2026 (f3-deathby, Hermann : « Composition de la séance > carte d'exercice :
- * l'information du chrono devrait être 1 / +1 rép. ») : Exercice Death by — objectif de départ et incrément par
- * intervalle (« 1 / +1 rép. »), à la place de la synthèse des séries. [Référence Formats §12 : « Les cartes
- * montrent « 1 → n rép. » dans l'exemple » — remplacé.] Synthèse à compléter ou à vérifier inchangée.
- */
-function deathBySummary(summary: string, facts: Pick<ExerciseRowSummaryFacts, "executionParameters"> & { readonly format?: ElementFormat | null }): string {
-  if (facts.format?.key !== "DEATH_BY" || isIncompleteSummary(summary)) return summary;
-  const parameters = facts.executionParameters;
-  const first = seriesRowsOf(parameters)[0]?.target;
-  if (first === undefined || first.kind !== "NUMBER") return summary;
-  const setting = facts.format.settings.incrementPerRound;
-  const increment = typeof setting === "number" ? setting : 1;
-  return strings.screens.composition.occurrenceCard.deathBy
-    .replace("{start}", String(first.value))
-    .replace("{increment}", String(increment))
-    .replace("{unit}", strings.executionParameters.sheet.repetitionsUnit);
+  const card = strings.screens.composition.occurrenceCard;
+  const isDuration = executionParameters.mode === "DURATION";
+  const start = isDuration
+    ? formatCompactDuration(series.target.value)
+    : `${series.target.value} ${strings.executionParameters.sheet.repetitionsUnit}`;
+  const step = isDuration ? formatCompactDuration(Math.abs(increment)) : String(Math.abs(increment));
+  let period: string = card.perRound;
+  if (format.key === "DEATH_BY") {
+    const interval = format.settings.intervalSeconds ?? circuitWindowSeconds ?? 60;
+    period = typeof interval === "number" && interval !== 60 ? formatCompactDuration(interval) : card.perMinute;
+  }
+  return withParametersToVerify(`${start} ${increment < 0 ? "−" : "+"}${step}/${period}`, facts);
 }
 
 function occurrenceSummaryOf(facts: Pick<ExerciseRowSummaryFacts, "executionParameters">): string {
@@ -510,6 +514,7 @@ function occurrenceSummaryOf(facts: Pick<ExerciseRowSummaryFacts, "executionPara
 
 /** Contexte de Circuit nécessaire à la durée d'UNE occurrence (PRE-6 story 2.2). */
 export type OccurrenceCircuitContext = {
+  readonly windowSeconds?: number;
   readonly circuitNature?: CircuitNature;
   readonly tourRepeatCount?: number;
 };

@@ -200,8 +200,6 @@ export type OccurrenceCardProps = {
   readonly bodyZones: string | null;
   /** Synthèse D-238 (`formatOccurrenceSummary`). */
   readonly summary: string;
-  /** Durée estimée (Répétitions avec bip), affichée après la synthèse sur la ligne 2 ; `null` sinon. */
-  readonly estimatedDuration: string | null;
   /** `true` seulement si l'exercice a un changement de côté (bilatéral). */
   readonly hasSideChange: boolean;
   /**
@@ -277,8 +275,7 @@ const HIDDEN_FROM_ACCESSIBILITY = {
  * - ligne 1 : nom (Inter Semi Bold 15, `#141414`, ellipse) et, à droite, l'icône neutre de
  *   changement de côté, absente sans changement de côté (RM-243, D-407, ARB-2) ;
  * - ligne 2 : pastille et Catégorie (Regular 12, `#7A7A80`, ellipse), puis, dans la colonne des
- *   symboles, le symbole de durée et la synthèse de travail calée à droite (avec la durée estimée
- *   des Répétitions avec bip : « 10 rép. / ≈ 1 min ») ;
+ *   symboles, le symbole de durée et la prescription calée à droite ;
  * - ligne 3 : pastille et Zones corporelles (coupées avant la colonne), puis la récupération
  *   fournie par l'appelant (sablier dans la colonne des symboles, valeur calée à droite).
  *
@@ -293,7 +290,6 @@ export function OccurrenceCard({
   category,
   bodyZones,
   summary,
-  estimatedDuration,
   hasSideChange,
   bordered,
   recovery,
@@ -403,20 +399,6 @@ export function OccurrenceCard({
                 >
                   {summary}
                 </Text>
-                {estimatedDuration !== null ? (
-                  <>
-                    <Text style={[styles.value, styles.separator]} testID="composition-exercise-estimate-separator">
-                      {strings.screens.composition.occurrenceCard.workEstimateSeparator}
-                    </Text>
-                    <Text
-                      style={[styles.value, styles.estimate]}
-                      numberOfLines={1}
-                      testID="composition-exercise-estimated-duration"
-                    >
-                      {estimatedDuration}
-                    </Text>
-                  </>
-                ) : null}
               </View>
             </View>
             {twoLineIncomplete ? null : (
@@ -554,7 +536,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     color: TEXT_TERTIARY,
   },
-  // Synthèse (et durée estimée) calée à droite de la colonne ; seule la synthèse s'abrège.
   work: {
     flexGrow: 1,
     flexShrink: 1,
@@ -562,8 +543,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
   },
-  // Priorité de réduction de la ligne 2 (revue 5.1) : la durée estimée s'abrège d'abord, la
-  // synthèse de travail ensuite seulement ; le séparateur ne se réduit jamais.
   summary: {
     flexShrink: 1,
     textAlign: "right",
@@ -573,12 +552,6 @@ const styles = StyleSheet.create({
   },
   toVerifySummary: {
     color: toVerifyColors.text,
-  },
-  separator: {
-    flexShrink: 0,
-  },
-  estimate: {
-    flexShrink: 1000,
   },
   value: {
     ...REGULAR_12,
