@@ -246,7 +246,6 @@ import {
   formatCompositionSessionDuration,
   formatExerciseBodyZones,
   formatOccurrenceAccessibilityLabel,
-  formatOccurrenceEstimatedDuration,
   formatOccurrenceSummary,
   isIncompleteSummary,
   isToVerifySummary,
@@ -7373,8 +7372,7 @@ function CompositionActivityRow({
   const displayedName = occurrenceCardName(activity, levelPositions);
   // PRE-6 (story 2.2) : contenu de la carte d'occurrence (`5544:6797`).
   const category = resolveOccurrenceCategory(activity.categoryId, categoriesReferential);
-  const estimatedDuration = formatOccurrenceEstimatedDuration(activity, circuitContext);
-  const summary = formatOccurrenceSummary(activity);
+  const summary = formatOccurrenceSummary(activity, circuitContext.windowSeconds);
   // PRE-7 (D-448, point 7, recette JA2 nv-5) : synthèse « Paramètres à compléter. » (par exemple une
   // phase sans durée après un changement de rang) → carte sur `colors.dangerSurface`.
   const isIncomplete = isIncompleteSummary(summary);
@@ -7654,7 +7652,6 @@ function CompositionActivityRow({
           category={category}
           bodyZones={bodyZones}
           summary={summary}
-          estimatedDuration={estimatedDuration}
           hasSideChange={hasSideChange}
           bordered={isCardBordered}
           recovery={recoveryNode}
@@ -8869,8 +8866,12 @@ function LayoutExerciseRow({
     () => ({ ...exercise, structuralPosition: circuit === null ? "BEFORE_TOUR" : "IN_TOUR" }),
     [circuit, exercise],
   );
-  const circuitContext: OccurrenceCircuitContext =
-    circuit === null ? {} : { circuitNature: circuit.nature, tourRepeatCount: circuit.repeatCount };
+  const windowSeconds = circuit?.format?.settings.windowSeconds;
+  const circuitContext: OccurrenceCircuitContext = {
+    circuitNature: circuit?.nature,
+    tourRepeatCount: circuit?.repeatCount,
+    windowSeconds: typeof windowSeconds === "number" ? windowSeconds : undefined,
+  };
   const { onEdit, onOpenMovement, drag } = context;
   const edit = useCallback(() => onEdit(exercise.id), [exercise.id, onEdit]);
   // Recette iPhone n° 2 du 31/10/2026 (constat c) : la photo d'une carte d'Exercice ouvre sa fiche.

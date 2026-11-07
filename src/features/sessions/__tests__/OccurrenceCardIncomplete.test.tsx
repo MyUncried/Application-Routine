@@ -22,7 +22,6 @@ function renderCard(summary: string, attenuated = false) {
       category={null}
       bodyZones={null}
       summary={summary}
-      estimatedDuration={null}
       hasSideChange={false}
       bordered
       recovery={<Text testID="recovery">20 s</Text>}

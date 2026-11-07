@@ -1188,8 +1188,8 @@ export const fr = {
         accessibilityRecovery: "récupération {duration}",
         // PRE-6 (story 5.1, D-435, Figma `9808:19924`) : séparateur entre la synthèse et la durée
         // estimée des Répétitions avec bip, sur la ligne 2 de la carte v2 (« 10 rép. / ≈ 1 min »).
-        // Contre-recette n° 3 ter du 03/11/2026 (f3-deathby) : « 1 / +1 rép. ».
-        deathBy: "{start} / +{increment} {unit}",
+        perRound: "tour",
+        perMinute: "min",
         workEstimateSeparator: " / ",
       },
     },

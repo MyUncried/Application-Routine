@@ -3457,9 +3457,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(blockStyle().height).toBe(80);
   });
 
-  // PRE-6 (story 5.1, variante « Répétitions + cadence » `9808:19905`) : le couple reste sur la
-  // ligne 2 (« 10 rép. / ≈ 1 min »), la carte garde 80 ; la récupération reste en ligne 3.
-  it("PRE6-5.1 — Répétitions with a beep: the estimated duration follows the summary on line 2 (« / »), card 80", () => {
+  it("shows only the prescription on line 2 even with a cadence beep", () => {
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", {
         name: "Extension",
@@ -3468,13 +3466,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     ]);
 
     expect(screen.getByTestId("composition-exercise-summary").props.children).toBe("10 rép.");
-    const work = screen.getByTestId("composition-exercise-work");
-    const estimated = within(work).getByTestId("composition-exercise-estimated-duration");
-    expect(estimated.props.children).toBe("≈ 1 min");
-    expect(within(work).getByText(composition.occurrenceCard.workEstimateSeparator)).toBeTruthy();
-    expect(StyleSheet.flatten(estimated.props.style)).toMatchObject({ fontSize: 12, color: TEXT_TERTIARY });
-    expect(within(screen.getByTestId("composition-exercise-labels-column")).queryByTestId("composition-exercise-estimated-duration")).toBeNull();
-    expect(within(screen.getByTestId("composition-exercise-recovery-slot")).queryByTestId("composition-exercise-estimated-duration")).toBeNull();
+    expect(screen.queryByTestId("composition-exercise-estimated-duration")).toBeNull();
     expect(blockStyle().height).toBe(80);
   });
 
@@ -3577,8 +3569,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(card.props.accessibilityLabel).not.toMatch(/récupération/u);
   });
 
-  // Revue 5.1 : la synthèse reste lisible ; la durée estimée s'abrège la première.
-  it("PRE6-5.1 — line 2 shrink priority: « Séries variables » with an estimate shrinks the estimate first; « À l'échec » keeps its summary", () => {
+  it("keeps variable and failure prescriptions on line 2 without an estimate", () => {
     const view = renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", {
         name: "Extension",
@@ -3596,13 +3587,8 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     ]);
     const summary = screen.getByTestId("composition-exercise-summary");
     expect(summary.props.children).toBe("10 · 12 · 14 … rép.");
-    const estimate = screen.getByTestId("composition-exercise-estimated-duration");
-    const separator = screen.getByTestId("composition-exercise-estimate-separator");
-    const shrink = (node: ReturnType<typeof screen.getByTestId>) => StyleSheet.flatten(node.props.style).flexShrink as number;
-    expect(shrink(separator)).toBe(0);
-    expect(shrink(estimate)).toBeGreaterThan(shrink(summary));
+    expect(screen.queryByTestId("composition-exercise-estimated-duration")).toBeNull();
     expect(summary.props.numberOfLines).toBe(1);
-    expect(estimate.props.numberOfLines).toBe(1);
     view.unmount();
 
     renderScreenWithDraft([
