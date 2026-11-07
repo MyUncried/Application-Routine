@@ -1,5 +1,7 @@
 # Modèle fonctionnel
 
+Le média (photo ou vidéo) d'une fiche du référentiel peut être absent, associé à une origine et documenté pour les droits d'usage. La [variante Web statique OVH](../../tools/catalogue-admin/static-ovh/README.md) prépare cette édition sans modifier le modèle fonctionnel ni le moteur d'exécution.
+
 > **Administration du référentiel — prototype local (07/11/2026).** Un [outil Web local de brouillons](../../tools/catalogue-admin/README.md) permet de préparer des fiches et classifications sans changer le modèle fonctionnel de Mouvement/Exercice ni les filtres du MVP. Les catégories et zones personnelles du produit restent inchangées ; aucun partage n'est activé.
 
 > **Fiches de Mouvements — chantier indépendant.** Le [modèle de provenance et propriété](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) ajoute une couche de fiche éditoriale distincte du `Movement` local (nom, catégorie, zones, phases). Deux fiches peuvent documenter un même geste ; les règles locales d'unicité et d'Exécution restent inchangées. Aucune publication communautaire n'est activée.

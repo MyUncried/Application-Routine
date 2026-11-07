@@ -1,5 +1,7 @@
 # Architecture technique
 
+La [variante statique OVH à médias facultatifs](../../tools/catalogue-admin/static-ovh/README.md) se déploie par remplacement d'un unique `index.html` sous `www/kodjo-admin/` : photos locales redimensionnées et sérialisées dans les brouillons exportés ; vidéos référencées par HTTPS, sans serveur Node ni base de données. L'hébergement gratuit expose une page HTML publique ; `noindex` n'est **pas une authentification**. Aucune migration, partage distant ni changement moteur.
+
 > **Outil d'administration du catalogue — tranche locale du 07/11/2026.** Le [serveur Node.js local](../../tools/catalogue-admin/README.md) écoute exclusivement sur `127.0.0.1`, relit le pilote et la taxonomie proposés en lecture seule et écrit atomiquement un fichier de brouillons versionnable avec contrôle de révision et validation structurale. Il n'utilise aucune base SQLite de production, ne modifie aucune migration ni le moteur et ne constitue pas un backend cloud.
 
 > **Découplage du 06/11/2026.** La [provenance et propriété des fiches de Mouvements](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) forment une couche éditoriale indépendante du `Movement` local et des plans/instantanés du moteur. Le modèle pur de métadonnées est préparé dans `src/domain/catalogue/MovementEditorialProvenance.ts`. Pas de migration, d'interface Web opérationnelle ni de dépendance réseau dans ce premier raccordement ; une future persistance sera additive et recettée séparément.

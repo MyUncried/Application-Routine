@@ -1,5 +1,7 @@
 # Règles métier et calculs
 
+Le processus de [gestion éditoriale des médias](../../tools/catalogue-admin/static-ovh/README.md) est volontairement non publiant : droits, source, attribution et licence sont à contrôler avant exploitation ; le choix « autorisation déclarée » ne vaut pas validation juridique. Aucun média ne se répercute automatiquement vers les Exercices ou instantanés existants.
+
 > **Processus éditorial local — 07/11/2026.** L'[administration de brouillons](../../tools/catalogue-admin/README.md) valide identifiants, relations et structure avant écriture ; elle n'autorise ni publication ni import en base utilisateur. La validation structurelle ne remplace pas les contrôles cliniques et de droits ; modifier une fiche candidate ne met à jour aucun Mouvement employé dans une Séance ou un instantané.
 
 > **Règle transverse — fiches éditoriales et exécution.** La [traçabilité de provenance, propriété et versions](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) n'autorise aucune modification automatique du contenu d'un Mouvement utilisé, d'un Exercice, de ses paramètres ou d'un instantané. L'import et le partage restent à concevoir séparément ; l'exécution demeure indépendante de ces métadonnées.

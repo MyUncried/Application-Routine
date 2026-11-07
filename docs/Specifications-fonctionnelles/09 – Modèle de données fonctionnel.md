@@ -1,5 +1,7 @@
 # Modèle de données fonctionnel
 
+La [galerie média éditoriale statique](../../tools/catalogue-admin/static-ovh/README.md) stocke uniquement dans le **JSON exporté de brouillons** des métadonnées de photo/vidéo et, pour les photos locales optimisées, une donnée image intégrée. Les vidéos sont des URLs HTTPS. Cette donnée de brouillon n'est pas persistée dans la SQLite utilisateur et n'ajoute aucune propriété obligatoire au modèle `Movement`.
+
 > **Brouillons d'administration — raccordement du 07/11/2026.** [Contrat d'outil local](../../tools/catalogue-admin/README.md) : `catalogue/admin/brouillons.json` porte séparément les éditions de fiches candidates, ajouts/renommages de valeurs proposées et termes du glossaire de contenu. Les sources `catalogue/pilote` et `catalogue/referentiels` sont lues sans écriture. Les propriétés ne sont pas ajoutées à `Movement.ts` ou SQLite ; aucun attribut nouveau n'est requis pour les objets utilisateur. `publicationAllowed=false` reste obligatoire.
 
 > **Complément préparatoire du 06/11/2026 — provenance et propriété.** Une [fiche éditoriale versionnée](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) possède `sheetId`, propriétaire, auteur(s), origine et source éventuelle ; elle est distincte de `Movement.id` et du concept gestuel facultatif `gestureId`. Les liens à des Mouvements locaux seront modélisés séparément ; **aucune migration ni nouvelle obligation sur l'objet `Movement` actuel** à ce stade. `sourceMovementId` reste réservé à la filiation existante des Exercices/instantanés.

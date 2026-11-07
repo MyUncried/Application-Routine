@@ -1,5 +1,7 @@
 # Conception fonctionnelle par fonctionnalité
 
+Pour l'[outil Web statique OVH](../../tools/catalogue-admin/static-ovh/README.md), la fiche éditoriale peut posséder 0..n photos ou références de vidéos, avec prévisualisation, ajout, édition, retrait, réordonnancement et informations de provenance/droits. La galerie est hors écrans Figma du MVP ; l'absence de média ne bloque pas une fiche.
+
 > **Outil d'administration hors application (07/11/2026).** La [V0 Web locale](../../tools/catalogue-admin/README.md) sépare consultation du corpus original et édition de brouillons de fiches, valeurs de classification et glossaire ; import/export exclusivement des brouillons. Son interface n'est pas un écran mobile KODJO et ne détermine aucune nouvelle interaction dans Figma.
 
 > **Évolution future du contenu, sans impact sur les écrans actuels.** Les [fiches éditoriales de Mouvements](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) prévoient auteur, propriétaire, provenance et version pour la gestion du référentiel. Ni l'éditeur de Mouvement actuel ni l'Exercice en Composition n'acquièrent de nouvelle interaction à ce stade ; aucune interface Figma n'est modifiée.

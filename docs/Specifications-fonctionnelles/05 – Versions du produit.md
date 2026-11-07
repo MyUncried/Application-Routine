@@ -1,5 +1,7 @@
 # Versions et périmètre
 
+La [galerie éditoriale de l'administration Web statique](../../tools/catalogue-admin/static-ovh/README.md) est un outil préparatoire hors MVP mobile : médias facultatifs, sans intégration dans les mouvements utilisateur ni publication automatique.
+
 > **Administration Web de catalogue — outil de préparation, hors MVP mobile (07/11/2026).** [Brouillons éditoriaux locaux](../../tools/catalogue-admin/README.md), sans distribution, publication, comptes, moteur d'exécution ou synchronisation ; ne constitue pas une fonctionnalité mise à disposition des utilisateurs mobiles.
 
 > **Périmètre — provenance éditoriale, décision du 06/11/2026.** La [préparation des fiches attribuées et versionnées](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) est un chantier de référentiel, **non une fonctionnalité de partage livrée au MVP**. Elle n'est ni un prérequis ni un lot du moteur d'exécution ; comptes distants, partage et synchronisation restent hors périmètre immédiat.
