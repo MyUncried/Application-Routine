@@ -7,12 +7,17 @@ on:
       - feat/catalogue-admin-local-v0-20261107
       - feat/catalogue-admin-static-medias-20261107
       - catalogue/preclassement-60-revue-20261107
+      - feat/catalogue-import-local-60-20261107
   pull_request:
     paths:
       - "catalogue/**"
       - "scripts/catalogue/**"
       - "tools/catalogue-admin/**"
       - "src/domain/catalogue/**"
+      - "src/features/activities/pilotMovementImport.ts"
+      - "src/features/activities/__tests__/pilotMovementImport.test.ts"
+      - "src/features/sessions/CatalogueScreen.tsx"
+      - "package*.json"
       - "src/infrastructure/database/testing/seedMovementTestCorpus.ts"
       - "src/infrastructure/database/testing/smokeMovementFixtures.ts"
       - "src/infrastructure/database/__tests__/seedMovementTestCorpus.test.ts"
@@ -55,5 +60,9 @@ jobs:
         run: node --test scripts/catalogue/__tests__/static-ovh-medias.test.mjs
       - name: Run local admin API and security tests
         run: node --test tools/catalogue-admin/server.test.mjs
+      - name: Validate KODJO app typecheck
+        run: npx tsc --noEmit
+      - name: Test admin-to-mobile local pilot importer
+        run: npx jest --runInBand src/features/activities/__tests__/pilotMovementImport.test.ts
       - name: Run Jest catalogue tests
         run: npx jest --runInBand src/domain/catalogue/__tests__/MovementEditorialProvenance.test.ts src/infrastructure/database/__tests__/seedMovementTestCorpus.test.ts
