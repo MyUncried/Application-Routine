@@ -135,6 +135,14 @@ Décisions de Hermann du 06/11/2026, classe B : D-511 à D-513. Elles remplacent
 - Rail au centre de la photo ; écarts entre cartes et fond des circuits resserrés conformément à l’écran de référence, sans inventer de nouvelle cote non spécifiée.
 - Les niveaux « Niveau 3 », « Niveau 2 » et les 30 s de récupération d’« Étirement du quadriceps » sont des exemples, jamais des valeurs imposées.
 
+### Point en réflexion — récupération après un buy-in (Hermann, 07/11/2026)
+
+État actuel, conservé : en AMRAP, la Récupération d'un exercice au rôle Buy-in est grisée, à 0 s, non modifiable (maquette `11264:19453`). Aucune décision de changement.
+
+Proposition notée, non retenue à ce stade : la rendre modifiable, puisqu'une récupération après un buy-in long est courante et qu'elle consomme le temps du bloc (§2.2 de la référence Formats).
+
+Raison du report : la carte d'exercice n'a qu'un emplacement à droite de la ligne 3, partagé entre le rôle (« Buy-in », « Buy-out ») et la récupération (sablier et durée). Un buy-in avec récupération n'a pas de place pour les deux informations. Le choix d'affichage est à faire avant toute évolution de la règle.
+
 ### En-tête de circuit — D-512
 
 Le chevron de repli se place immédiatement après le rond du rail et devant le nom, avec le même écart que sur la carte Séance du catalogue. Le bloc « N bloc · nature » ne bouge pas. Seul le Circuit se replie ; le Cycle ne se replie pas.
