@@ -2,7 +2,7 @@
 
 > **Référentiel des mouvements — classification V0 (07/11/2026).** [Taxonomie proposée, axes, 12 fiches de contrôle et points ouverts](../catalogue/referentiels/README.md). Catégorie KODJO = Objectif principal ; aucun nouveau référentiel Objectif ; ni validation clinique ni publication implicite.
 
-> **Référentiel des mouvements — corpus pilote et données de test (06/11/2026).** [Contrat de chargement, garde-fous éditoriaux et commande de validation](../catalogue/pilote/README.md). Les 60 fiches sont des candidats non publiables ; seules trois fixtures classées sont chargées dans les bases SQLite isolées. Le moteur d'exécution et les données utilisateur restent inchangés.
+> **Référentiel des mouvements — corpus pilote et données de test (06/11/2026).** [Contrat de chargement, garde-fous éditoriaux et commande de validation](../catalogue/pilote/README.md). Les 60 fiches sont des candidats non publiables ; un chargeur et trois fixtures de test sont préparés pour SQLite isolée, mais leur exécution reste à qualifier. Le moteur d'exécution et les données utilisateur restent inchangés.
 
 > **Référentiel des Mouvements — décision du 06/11/2026.** [Fiches éditoriales, provenance, auteurs, propriétaire, version et séparation du moteur](KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md). Conception préparatoire, sans publication réseau ni migration SQLite.
 
