@@ -1,5 +1,7 @@
 # PRODUCT — KODJO
 
+> **Classification du catalogue administré — 07/11/2026.** La Catégorie KODJO tient lieu d'Objectif principal ; Spécialité multivaluée, Famille gestuelle, Problème traité et Cible anatomique sont des axes complémentaires en [taxonomie V0 proposée](../catalogue/referentiels/README.md). Les valeurs et mappings ne sont pas validés pour publication, et ni l'application mobile ni le moteur ne changent.
+
 > **Référentiel des Mouvements — conception validée le 06/11/2026.** [Provenance, propriété et fiches éditoriales](KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) : des fiches de coachs ou organismes pourront être identifiées et versionnées séparément du geste et du Mouvement local. Le modèle est préparatoire ; il n'étend pas le MVP au partage et ne conditionne pas le moteur d'exécution.
 
 > **Composition actualisée — 28/10/2026 :** [référence consolidée](KODJO-Composition-conteneurs-2026-10-28.md), [analyse critique et réserves](REVUE-COMPOSITION-2026-10-28.md). D-451 : cycles visibles avec exercices directs et multi-circuit dans le MVP ; création par enveloppe, séries groupées/alternées, zéro intentionnel, en-têtes et défilement. Les maquettes de composition ont été vérifiées ; réalisation non qualifiée.
