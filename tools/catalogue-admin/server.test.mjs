@@ -108,4 +108,29 @@ describe("Catalogue admin — localhost et brouillons", () => {
     assert(response.body.details.some((x) => x.includes("duplicate term")));
     assert.equal((await fetch(address + "/api/export")).status, 200);
   });
+
+  it("accepte une valeur de référentiel proposée et son association à une fiche", async () => {
+    const current = await (await fetch(address + "/api/state")).json();
+    const next = structuredClone(current.drafts);
+    next.referenceAdditions.specialties.push({
+      id: "gymnastique-test", label: "Gymnastique test", status: "PROPOSED",
+    });
+    next.referenceLabels.specialties.crossfit = "CrossFit (test)";
+    const id = Object.keys(next.movementEdits)[0];
+    next.movementEdits[id].specialtyIds.push("gymnastique-test");
+    assert.deepEqual(validateAdminDrafts(next, current), []);
+    const saved = await put(current.revision, next);
+    assert.equal(saved.status, 200);
+    const updated = await (await fetch(address + "/api/state")).json();
+    assert.equal(updated.drafts.referenceLabels.specialties.crossfit, "CrossFit (test)");
+    assert(updated.drafts.movementEdits[id].specialtyIds.includes("gymnastique-test"));
+  });
+
+  it("refuse deux libellés de référence identiques après renommage", async () => {
+    const current = await (await fetch(address + "/api/state")).json();
+    const bad = structuredClone(current.drafts);
+    bad.referenceLabels.specialties.hyrox = "CrossFit (test)";
+    assert(validateAdminDrafts(bad, current).some((x) => x.includes("duplicate base reference label")));
+  });
+
 });
