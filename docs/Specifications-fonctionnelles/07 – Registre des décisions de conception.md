@@ -1,5 +1,9 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+## Décision du 07/11/2026 — classification du référentiel de Mouvements
+
+**Retenu pour la conception :** la Catégorie KODJO correspond à l'Objectif principal ; on ne crée pas un second référentiel Objectif. Catégorie (unique, colorée) et Zones corporelles (multiples) conservent leurs règles existantes. La Spécialité est un axe multivalué, distinct de la Catégorie ; Problème traité, Famille gestuelle et Cible anatomique (facultative) complètent la cible administrable. Une Famille gestuelle n'est pas une famille de Niveaux. Les classes de problèmes nécessitent un contrôle clinique avant publication. **À CLARIFIER :** listes de valeurs, granularités, cardinalités de publication, mapping clinique, collisions entre fiches de coachs, intégration de filtres et politique de distribution. La [taxonomie V0](../../catalogue/referentiels/README.md) et ses 12 exemples sont des propositions, pas des valeurs normatives. **Aucune migration SQLite, aucune interface mobile/Figma, aucun impact moteur à ce stade.** Numérotation D-xxx à confirmer suivant la gouvernance du registre.
+
 ## Décision du 06/11/2026 — provenance et propriété des fiches de Mouvements
 
 **Validée :** préparer des fiches éditoriales identifiées indépendamment du Mouvement local, avec origine (création locale, installation, import, dérivation), référence source et révision, auteur(s), propriétaire administratif, éditeur, ayant droit éventuel et visibilité distincte de la publication effective. Plusieurs coachs peuvent publier à terme des fiches différentes décrivant le même geste. **Cette conception ne dépend pas du moteur d'exécution, et le moteur n'en dépend pas non plus.** Le `Movement` courant, la filiation d'exercice `sourceMovementId`, les paramètres et les instantanés restent inchangés ; les nouvelles métadonnées ne doivent pas servir à exécuter.
