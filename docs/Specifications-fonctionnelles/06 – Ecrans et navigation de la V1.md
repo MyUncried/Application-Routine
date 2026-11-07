@@ -2820,9 +2820,13 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 | trois séries, durée composée | `3 × 1 min 30` | inchangé |
 | bilatéral | `3 × 10 rép.` + pastille de changement de côté, sans direction (D-407) | inchangé |
 | à l'échec | `3 séries à l'échec` | inchangé |
+| exercice à incrément, AMRAP « Volume croissant » | `10 rép. +2/tour` | départ et incrément par tour (D-516) |
+| exercice à incrément, Death by avec intervalle d’une minute | `1 rép. +1/min` | départ et incrément par intervalle (D-516) |
 | douze séries variables | **`10 · 12 · … rép.`** | **nouveau** — remplaçait « 12 séries variables » |
 
-Les rendus variables remplacent l’ancien libellé limité au nombre de séries. Le tableau ci-dessus présente sept exemples, sans prétendre constituer un inventaire exhaustif des états Figma.
+Les rendus variables remplacent l’ancien libellé limité au nombre de séries. Le tableau ci-dessus présente neuf exemples, sans prétendre constituer un inventaire exhaustif des états Figma.
+
+**Décision de Hermann du 07/11/2026 (D-516).** « 1 → n rép. » pour Death by et « 10 · 12 · … rép. » pour un incrément AMRAP sont remplacés par le départ et le pas signé. Les points médians, avec ou sans ellipse, sont réservés aux séries variables saisies, même si les valeurs suivent une progression régulière.
 
 ##### Le repli, et sa règle
 

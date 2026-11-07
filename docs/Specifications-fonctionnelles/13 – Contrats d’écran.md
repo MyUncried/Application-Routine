@@ -1844,7 +1844,7 @@ Règles applicables : RM-001, RM-015, RM-017, RM-018, RM-021, RM-025, RM-026, RM
 
 **Révision Composition du 06/11/2026 — D-511 à D-513, classe B :** carte d’exercice 72 pt, trois lignes nom/niveau, catégorie/prescription, zones/rôle/récupération ; aucun chevron de carte ni chronomètre. Chevron du Circuit entre rond du rail et nom ; Cycle non repliable. Placement réservé aux Points d’arrêt, sans cadre de récupération. Règles détaillées et état partiel de Figma : [spécification §11](../KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement). Cette révision prévaut sur les anciennes géométries et prescriptions annotées ci-dessous.
 
-**Prescription de la carte (D-515, 07/11/2026).** En Composition, à droite de la catégorie, la ligne 2 affiche uniquement la prescription (nombre de séries et cible). Une durée prescrite s’affiche, par exemple « 3 × 45 s ». Une cible « à l’échec » s’écrit sans durée, par exemple « 3 séries à l’échec ». Les estimations (≥ ou ≈) figurent uniquement dans les en-têtes de Circuit, de Cycle et de Séance.
+**Prescription de la carte (D-515, 07/11/2026).** En Composition, à droite de la catégorie, la ligne 2 affiche uniquement la prescription (nombre de séries et cible). Une durée prescrite s’affiche, par exemple « 3 × 45 s ». Une cible « à l’échec » s’écrit sans durée, par exemple « 3 séries à l’échec ». Les estimations (≥ ou ≈) figurent uniquement dans les en-têtes de Circuit, de Cycle et de Séance. Pour un exercice à incrément, afficher le départ puis le pas signé (« 10 rép. +2/tour » en AMRAP, « 1 rép. +1/min » en Death by). Les points médians séparent uniquement des valeurs de séries variables saisies (D-516).
 
 #### 2. Finalité fonctionnelle
 
