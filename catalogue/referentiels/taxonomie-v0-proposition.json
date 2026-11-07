@@ -1,0 +1,517 @@
+{
+  "schemaVersion": "0.1.0",
+  "documentType": "KODJO_TAXONOMY_DRAFT",
+  "status": "PROPOSED_NOT_APPROVED",
+  "publicationAllowed": false,
+  "currentProductConstraints": {
+    "category": {
+      "field": "Movement.categoryId",
+      "cardinality": "exactly_one",
+      "meaning": "Objectif principal / catégorie colorée existante",
+      "source": "src/domain/categories/defaults.ts",
+      "createNewObjectivesReferential": false
+    },
+    "bodyZones": {
+      "field": "Movement.bodyZoneIds",
+      "cardinality": "one_or_more",
+      "source": "src/features/reference-data/bodyZones.ts",
+      "createNewBodyZoneHierarchy": false
+    },
+    "aliases": {
+      "source": "Movement.aliases / movement_aliases",
+      "notGlossary": true
+    },
+    "levelGroup": {
+      "source": "Movement.levelGroup",
+      "notGesturalFamily": true
+    }
+  },
+  "proposedAxes": {
+    "specialties": {
+      "cardinality": "zero_or_more",
+      "multi": true,
+      "values": [
+        {
+          "id": "reeducation",
+          "label": "Rééducation / kinésithérapie",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "crossfit",
+          "label": "CrossFit",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "hyrox",
+          "label": "HYROX",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "pilates",
+          "label": "Pilates",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "yoga",
+          "label": "Yoga",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "stretching",
+          "label": "Stretching",
+          "status": "PROPOSED"
+        }
+      ]
+    },
+    "gesturalFamilies": {
+      "cardinality": "zero_or_more",
+      "multi": true,
+      "values": [
+        {
+          "id": "squat",
+          "label": "Squat",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "hip-hinge",
+          "label": "Charnière de hanche",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "push",
+          "label": "Poussée",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "pull",
+          "label": "Tirage",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "jump",
+          "label": "Saut / réception",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "locomotion",
+          "label": "Locomotion",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "carry",
+          "label": "Portage",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "cardio-ergometer",
+          "label": "Ergomètre",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "lunge",
+          "label": "Fente",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "balance",
+          "label": "Équilibre",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "core-stabilization",
+          "label": "Stabilisation du tronc",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "mobility",
+          "label": "Mobilisation articulaire",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "stretch",
+          "label": "Étirement",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "posture",
+          "label": "Posture statique",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "breathing",
+          "label": "Respiration / contrôle respiratoire",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "combined",
+          "label": "Enchaînement combiné",
+          "status": "PROPOSED"
+        }
+      ]
+    },
+    "clinicalProblems": {
+      "cardinality": "zero_or_more",
+      "multi": true,
+      "requiresClinicalValidation": true,
+      "values": [
+        {
+          "id": "knee-strength-deficit",
+          "label": "Déficit de force du genou",
+          "kind": "FUNCTIONAL_DEFICIT",
+          "status": "PROPOSED",
+          "requiresClinicalValidation": true
+        },
+        {
+          "id": "shoulder-stiffness",
+          "label": "Raideur de l’épaule",
+          "kind": "SYMPTOM",
+          "status": "PROPOSED",
+          "requiresClinicalValidation": true
+        },
+        {
+          "id": "elbow-tendinopathy",
+          "label": "Tendinopathie du coude",
+          "kind": "DIAGNOSIS",
+          "status": "PROPOSED",
+          "requiresClinicalValidation": true
+        },
+        {
+          "id": "ankle-instability",
+          "label": "Instabilité de cheville",
+          "kind": "FUNCTIONAL_DEFICIT",
+          "status": "PROPOSED",
+          "requiresClinicalValidation": true
+        },
+        {
+          "id": "lumbar-pain",
+          "label": "Lombalgie",
+          "kind": "SYMPTOM",
+          "status": "PROPOSED",
+          "requiresClinicalValidation": true
+        },
+        {
+          "id": "balance-deficit",
+          "label": "Déficit d’équilibre",
+          "kind": "FUNCTIONAL_DEFICIT",
+          "status": "PROPOSED",
+          "requiresClinicalValidation": true
+        }
+      ]
+    },
+    "anatomicalTargets": {
+      "cardinality": "zero_or_more",
+      "multi": true,
+      "optional": true,
+      "values": [
+        {
+          "id": "quadriceps",
+          "label": "Quadriceps",
+          "kind": "MUSCLE_GROUP",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "gluteus-maximus",
+          "label": "Grand fessier",
+          "kind": "MUSCLE",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "hamstrings",
+          "label": "Ischio-jambiers",
+          "kind": "MUSCLE_GROUP",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "scapular-stabilizers",
+          "label": "Stabilisateurs scapulaires",
+          "kind": "MUSCLE_GROUP",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "abdominal-wall",
+          "label": "Sangle abdominale",
+          "kind": "MUSCLE_GROUP",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "gastrocnemius",
+          "label": "Gastrocnémien",
+          "kind": "MUSCLE",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "ankle-joint",
+          "label": "Articulation de la cheville",
+          "kind": "JOINT",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "lumbar-spine",
+          "label": "Rachis lombaire",
+          "kind": "ANATOMICAL_STRUCTURE",
+          "status": "PROPOSED"
+        },
+        {
+          "id": "triceps-surae",
+          "label": "Triceps sural",
+          "kind": "MUSCLE_GROUP",
+          "status": "PROPOSED"
+        }
+      ]
+    }
+  },
+  "pilotClassificationExamples": [
+    {
+      "sourceId": "REED-001",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "genoux"
+      ],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps"
+      ],
+      "proposedClinicalAssociations": [
+        {
+          "problemId": "knee-strength-deficit",
+          "status": "PENDING_CLINICAL_VALIDATION"
+        }
+      ],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "REED-002",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "genoux",
+        "hanches-bassin"
+      ],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "gesturalFamilyIds": [
+        "squat"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps",
+        "gluteus-maximus"
+      ],
+      "proposedClinicalAssociations": [
+        {
+          "problemId": "knee-strength-deficit",
+          "status": "PENDING_CLINICAL_VALIDATION"
+        }
+      ],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-CRO-001",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin"
+      ],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "gesturalFamilyIds": [
+        "squat"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps",
+        "gluteus-maximus"
+      ],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-CRO-007",
+      "categoryId": "cardio",
+      "bodyZoneIds": [
+        "cuisses",
+        "bras"
+      ],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "gesturalFamilyIds": [
+        "combined"
+      ],
+      "anatomicalTargetIds": [],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-HYR-008",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "bras"
+      ],
+      "specialtyIds": [
+        "hyrox",
+        "crossfit"
+      ],
+      "gesturalFamilyIds": [
+        "squat",
+        "push"
+      ],
+      "anatomicalTargetIds": [],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-HYR-010",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin"
+      ],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "gesturalFamilyIds": [
+        "locomotion"
+      ],
+      "anatomicalTargetIds": [],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-PIL-001",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "dos"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization",
+        "breathing"
+      ],
+      "anatomicalTargetIds": [
+        "abdominal-wall"
+      ],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-PIL-008",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "hanches-bassin",
+        "dos"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization",
+        "hip-hinge"
+      ],
+      "anatomicalTargetIds": [
+        "gluteus-maximus"
+      ],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-YOG-002",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "epaules",
+        "dos",
+        "jambes"
+      ],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "gesturalFamilyIds": [
+        "posture",
+        "stretch"
+      ],
+      "anatomicalTargetIds": [],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-YOG-008",
+      "categoryId": "equilibre",
+      "bodyZoneIds": [
+        "jambes",
+        "chevilles-pieds"
+      ],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "gesturalFamilyIds": [
+        "balance",
+        "posture"
+      ],
+      "anatomicalTargetIds": [],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-STR-001",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "jambes",
+        "chevilles-pieds"
+      ],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "gastrocnemius"
+      ],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    },
+    {
+      "sourceId": "FIT-STR-003",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "cuisses"
+      ],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "hamstrings"
+      ],
+      "proposedClinicalAssociations": [],
+      "editorialStatus": "PROPOSED_ONLY"
+    }
+  ],
+  "guardrails": [
+    "Les exemples de classement ne constituent ni une validation de publication ni une indication médicale.",
+    "La Catégorie KODJO est l'Objectif principal; aucun référentiel Objectif supplémentaire.",
+    "Un mouvement peut appartenir à plusieurs spécialités sans duplication de son identité locale.",
+    "Famille gestuelle distincte du groupe de niveaux.",
+    "Aucun mappage automatique des 60 fiches n'est accepté avant revue.",
+    "Les classifications proposées ne modifient ni la base utilisateur ni les paramètres du moteur."
+  ],
+  "openDecisions": [
+    "Un ou plusieurs propriétaires pour une fiche publiée (titulaire/éditeur vs copropriété).",
+    "Conditions de complétude des spécialités et familles gestuelles à la publication.",
+    "Granularité, libellés définitifs et validations des problèmes cliniques.",
+    "Correspondance de plusieurs fiches éditoriales homonymes à un mouvement local.",
+    "Règles d'affichage et de filtres des spécialités dans Figma avant tout développement mobile.",
+    "Stratégie de retrait et de mise à jour des paquets par spécialité."
+  ]
+}
