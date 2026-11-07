@@ -1647,7 +1647,7 @@ export function ExecutionParametersSheet({
     ...(hasWorkPhases && !structureLocked ? [scalarKeyboardField("phaseCount")] : []),
     ...(draft.inheritedSeriesCount ? [] : [scalarKeyboardField("count")]),
     ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
-    ...(showVariableTable || deathBySheet ? [] : [scalarKeyboardField("pause")]),
+    ...(showVariableTable || deathBySheet || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
     ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
     ...(formatShown("interval") ? [scalarKeyboardField("formatInterval")] : []),
     ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
@@ -2779,7 +2779,10 @@ export function ExecutionParametersSheet({
                       </Row>
                     </>
                   ) : null}
-                  {!showVariableTable && !deathBySheet ? (
+                  {/* Recette iPhone du 07/11/2026 (Hermann : « il n'y a pas de ligne « Pause après chaque série » » ; Figma
+                      « EMOM — Modale exercice, standard » `8795:14588` ; Formats §14 : l'Intervalle « remplace la Pause ») :
+                      pas de Pause quand l'Exercice porte son Intervalle (EMOM, Death by). */}
+                  {!showVariableTable && !deathBySheet && !formatShown("interval") ? (
                     <>
                       <Separator />
                       <Row label={t.pause} selected={isOpen(scalarSurface("pause"))} testID="execution-sheet-row-pause">

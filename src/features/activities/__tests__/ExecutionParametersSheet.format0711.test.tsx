@@ -103,6 +103,8 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
   it("EMOM : Intervalle dans le cadre Séries, saisi au clavier", () => {
     const { onFormat } = renderSheet("EMOM", ["interval"], { intervalSeconds: 60 });
     expect(within(get("execution-sheet-frame-series")).getByTestId("execution-sheet-format-interval-row", hidden)).toBeTruthy();
+    // Figma `8795:14588`, Formats §14 : l'Intervalle remplace la Pause après chaque série.
+    expect(query("execution-sheet-row-pause")).toBeNull();
     expect(value("execution-sheet-format-interval")).toBe(formatPhraseDuration(60));
     enterExecutionSheetValue("execution-sheet-format-interval", 90);
     validate();

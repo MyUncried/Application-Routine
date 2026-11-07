@@ -359,3 +359,10 @@ En préparant la documentation, des marqueurs `<<<<<<<` / `=======` / `>>>>>>>` 
 - Résolution : union des deux côtés. Annotation « [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 … §11.] » de `main` ajoutée à la suite du texte de la branche, qui conserve ses annotations de recette PRE-9 ; ch12 : paragraphes PRE-9 puis section « DSF — Carte d’exercice de Composition » de `main`.
 - Contrôle : occurrences de « D-511 à D-513 » identiques à `main` (3, 6, 6, 8) ; occurrences des annotations de recette identiques à la branche (11, 93, 5, 80) ; aucun marqueur `<<<<<<<` / `>>>>>>>` dans le dépôt.
 - Code : aucun fichier hors `docs/` et rapports n’arrive de `main` ; aucun test à relancer pour cette fusion. Classe D (intégration documentaire, aucune décision).
+
+## EMOM — pas de Pause après chaque série (07/11/2026)
+
+- Hermann : « Paramètres EMOM - il n’y a pas de ligne « Pause après chaque série il me semble ». Vérifie et dis moi »
+- Vérification : Figma « EMOM — Modale exercice, standard » `8795:14588`, cadre Séries = Séries, Nombre de répétitions, Intervalle (à la place de la Pause), Charge ; Formats §14 : l’Intervalle « remplace la Pause ». Écart confirmé : la feuille affichait les deux lignes.
+- Correction (classe A) : Pause retirée de l’affichage et de l’ordre du clavier dès que l’Exercice porte son Intervalle (`formatShown("interval")`). Test EMOM complété ; `ExecutionParametersSheet.format0711` 9/9, tsc OK.
+- Non tranché : EMOM membre d’un Circuit « dans chaque intervalle » (Intervalle porté par le Circuit) — la Pause y reste affichée, aucune maquette ni règle explicite.
