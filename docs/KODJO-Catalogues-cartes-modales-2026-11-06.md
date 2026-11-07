@@ -37,9 +37,11 @@ Chaque catalogue a une **zone de contexte** et un **fond d'écran** propres, de 
 
 | Catalogue | Zone de contexte et onglet sélectionné | Fond d'écran |
 |---|---|---|
-| Mouvements | `color/catalogue/mouvements/context` → `color/blue/sky-context-E5F0FF` (#E5F0FF) | `color/catalogue/mouvements/background` → `color/blue/sky-background-F7FAFF` (#F7FAFF) |
-| Séances | `color/catalogue/seances/context` → `color/blue/context-EAEAFF` (#EAEAFF) | `color/catalogue/seances/background` → `color/blue/background-tint-F8F8FF` (#F8F8FF) |
-| Programmes | `color/catalogue/programmes/context` → `color/blue/violet-context-EFE8FF` (#EFE8FF) | `color/catalogue/programmes/background` → `color/blue/violet-background-FAF8FF` (#FAF8FF) |
+| Mouvements | `color/catalogue/mouvements/context` → `color/blue/sky-context-DDEBFF` (#DDEBFF) | `color/catalogue/mouvements/background` → `color/blue/sky-background-F1F7FF` (#F1F7FF) |
+| Séances | `color/catalogue/seances/context` → `color/blue/context-EAEAFF` (#EAEAFF) | `color/catalogue/seances/background` → `color/blue/background-tint-F7F7FF` (#F7F7FF) |
+| Programmes | `color/catalogue/programmes/context` → `color/blue/violet-context-EFE8FF` (#EFE8FF) | `color/catalogue/programmes/background` → `color/blue/violet-background-F9F6FF` (#F9F6FF) |
+
+**Règle de dérivation (Hermann, 08/11/2026) :** le fond d'écran vaut 40 % de la couleur de contexte posée sur blanc. La zone de contexte des Mouvements est foncée de #E5F0FF à #DDEBFF : à faible intensité, le bleu ciel virait au gris. [Valeurs du 06/11/2026 remplacées : Mouvements #E5F0FF/#F7FAFF, Séances fond #F8F8FF, Programmes fond #FAF8FF.]
 
 Variables d'usage dans la collection « KODJO / Sémantiques », couleurs de base dans « KODJO / Primitives ». Le fond d'écran, la barre d'état, l'en-tête fixe et le fondu au-dessus de la navigation utilisent `background`. La zone de contexte est opaque (`context`) jusqu'à 80 % de sa hauteur, puis passe en fondu vers `background` ; elle est placée au-dessus de l'en-tête fixe pour former une seule surface avec l'onglet sélectionné. Une variable de couleur Figma étant opaque, le point transparent du fondu au-dessus de la navigation garde une valeur fixe.
 

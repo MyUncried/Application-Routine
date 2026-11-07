@@ -1087,12 +1087,12 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.selection` | `#5F60EE` | Fond d’un contrôle de sélection actif portant un texte blanc ; contraste texte/fond de `4,78:1` |
 | `color.selectionSurface` | `#E5F0FF` | Fond de destination ou d’élément sélectionné [06/11/2026 : ne plus l’utiliser pour la zone de contexte des catalogues (`ScreenShell.ContextBand`) ; écart du code à corriger — D-509.] |
 | `color.background` | `#FFFFFF` | Fond principal |
-| `color.catalogue.mouvements.context` | `#E5F0FF` | Zone de contexte et onglet sélectionné du catalogue Mouvements — D-501 (06/11/2026) ; Figma `color/catalogue/mouvements/context` |
-| `color.catalogue.mouvements.background` | `#F7FAFF` | Fond d’écran, barre d’état, en-tête et fondu du catalogue Mouvements — D-501 |
+| `color.catalogue.mouvements.context` | `#DDEBFF` [08/11/2026 ; avant `#E5F0FF`] | Zone de contexte et onglet sélectionné du catalogue Mouvements — D-501 (06/11/2026) ; Figma `color/catalogue/mouvements/context` |
+| `color.catalogue.mouvements.background` | `#F1F7FF` [08/11/2026 ; avant `#F7FAFF`] | Fond d’écran, barre d’état, en-tête et fondu du catalogue Mouvements — D-501 |
 | `color.catalogue.seances.context` | `#EAEAFF` | Zone de contexte et onglet sélectionné du catalogue Séances — D-501 ; Figma `color/catalogue/seances/context` |
-| `color.catalogue.seances.background` | `#F8F8FF` | Fond d’écran du catalogue Séances ; fond du bouton Démarrer des cartes de séance — D-501, D-506 |
+| `color.catalogue.seances.background` | `#F7F7FF` [08/11/2026 ; avant `#F8F8FF`] | Fond d’écran du catalogue Séances ; fond du bouton Démarrer des cartes de séance — D-501, D-506 |
 | `color.catalogue.programmes.context` | `#EFE8FF` | Zone de contexte et onglet du catalogue Programmes (écrans à concevoir) — D-501 |
-| `color.catalogue.programmes.background` | `#FAF8FF` | Fond d’écran du catalogue Programmes — D-501 |
+| `color.catalogue.programmes.background` | `#F9F6FF` [08/11/2026 ; avant `#FAF8FF`] | Fond d’écran du catalogue Programmes — D-501 |
 | `color.surface` | `#F5F7FA` | Cartes, navigation et surfaces secondaires |
 | `color.surfaceSubtle` | `#F9FAFC` | Contrôles neutres et fonds légers |
 | `color.textPrimary` | `#141414` | Texte principal canonique |
