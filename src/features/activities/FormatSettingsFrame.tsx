@@ -35,7 +35,7 @@ export type FormatSheetContext = {
    * travail prévu des autres membres ; absent : l'intervalle est celui de l'Exercice (`intervalSeconds`).
    */
   /** Complément du 5 novembre 2026 (Hermann), §14 : travail prévu des autres membres de l'intervalle commun, rang par rang (S1…Sn). */
-  readonly emom?: { readonly windowSeconds: number | null; readonly othersWorkByRank: readonly number[] };
+  readonly emom?: { readonly inheritsCount?: boolean; readonly windowSeconds: number | null; readonly othersWorkByRank: readonly number[] };
   readonly onApply: (settings: FormatSettings, role: CircuitRole | null) => void;
 };
 
@@ -50,7 +50,7 @@ export function emomIntervalOf(context: FormatSheetContext, value: FormatSheetVa
   if (context.key !== "EMOM" || context.emom === undefined) return null;
   if (context.emom.windowSeconds !== null) return context.emom.windowSeconds;
   const own = value.settings.intervalSeconds;
-  return typeof own === "number" ? own : null;
+  return typeof own === "number" ? own : 60;
 }
 
 /**
@@ -62,7 +62,7 @@ export function emomOverflowOf(context: FormatSheetContext, value: FormatSheetVa
   if (interval === null) return false;
   for (let rank = 0; rank < ranks; rank += 1) {
     const own = workOfRank(rank);
-    if (own > 0 && own + (context.emom?.othersWorkByRank[rank] ?? 0) >= interval) return true;
+    if (own + (context.emom?.othersWorkByRank[rank] ?? 0) >= interval) return true;
   }
   return false;
 }

@@ -623,8 +623,18 @@ export function ExecutionParametersSheet({
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+  const emomSheet = format?.key === "EMOM";
+  const inheritedEmom = format?.key === "EMOM" && (format.emom?.inheritsCount === true || inheritedSeriesCount);
+  const showRecovery = recovery !== undefined && !inheritedEmom;
   const [draft, setDraft] = useState<ExecutionSheetDraft>(() => {
-    const opened = openSheetDraft(parent, { inheritedSeriesCount, ...(nextPhaseId !== undefined ? { nextPhaseId } : {}) });
+    const series = parent.series;
+    const numericRow = <T extends { target: SeriesTarget; pauseSeconds: number }>(row: T) => ({
+      ...row, target: row.target.kind === "FAILURE" ? unsetTarget() : row.target, pauseSeconds: 0,
+    });
+    const initial = emomSheet ? { ...parent, mode: parent.mode ?? "REPETITIONS" as const,
+      series: series.kind === "UNIFORM" ? numericRow(series) : { ...series, rows: series.rows.map(numericRow) },
+    } : parent;
+    const opened = openSheetDraft(initial, { inheritedSeriesCount: inheritedSeriesCount || inheritedEmom, ...(nextPhaseId !== undefined ? { nextPhaseId } : {}) });
     // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : Condition d'arrêt À l'échec imposée au Death by — appliquée dès l'ouverture.
     return format?.rows.includes("stopImposed") && stopConditionOf(effectiveParameters(opened)) !== "FAILURE"
       ? setStopCondition(opened, "FAILURE")
@@ -1320,7 +1330,7 @@ export function ExecutionParametersSheet({
       const appliedFormat = formatValue;
       closeAnimated(() => {
         // PRE-9 (01/11/2026, point 2) : Récupération appliquée au brouillon parent avec les paramètres.
-        recovery?.onApply(appliedRecovery);
+        if (showRecovery) recovery.onApply(appliedRecovery);
         onApply(value);
         // CE-FMT-04 : réglages de Format appliqués après les paramètres (Rôle : replacement dans sa zone).
         if (format !== undefined && appliedFormat !== null) format.onApply(appliedFormat.settings, appliedFormat.role);
@@ -1647,7 +1657,7 @@ export function ExecutionParametersSheet({
     ...(hasWorkPhases && !structureLocked ? [scalarKeyboardField("phaseCount")] : []),
     ...(draft.inheritedSeriesCount ? [] : [scalarKeyboardField("count")]),
     ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
-    ...(showVariableTable || deathBySheet || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
+    ...(showVariableTable || emomSheet || deathBySheet || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
     ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
     ...(formatShown("interval") ? [scalarKeyboardField("formatInterval")] : []),
     ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
@@ -1657,11 +1667,11 @@ export function ExecutionParametersSheet({
       ? [scalarKeyboardField("formatDuration")]
       : formatShown("timeCap")
         ? [scalarKeyboardField("formatTimeCap")]
-        : !formatShown("inheritedCap") && !deathBySheet && totalEntrySeconds !== undefined
+        : !formatShown("inheritedCap") && !emomSheet && !deathBySheet && totalEntrySeconds !== undefined
           ? [scalarKeyboardField("total")]
           : []),
     ...(signalsShown ? [scalarKeyboardField("countdown"), scalarKeyboardField("end")] : []),
-    ...(recovery !== undefined ? [scalarKeyboardField("recovery")] : []),
+    ...(showRecovery ? [scalarKeyboardField("recovery")] : []),
   ];
   // PRE-5 story 2.2 (AD-26, AD-27) : hook unique focus / surface / application de la saisie.
   const keyboard = useSheetKeyboard({
@@ -1676,7 +1686,7 @@ export function ExecutionParametersSheet({
       draft.workPhases.length > 0 && !isPhasesFolded,
       openSurface.kind === "keyboard" ? openSurface.field : null,
       outsideFields,
-    ),
+    ).filter((field) => !emomSheet || field.kind !== "rowPause"),
     scrollRef,
     reduceMotion,
     scalars: {
@@ -1842,6 +1852,14 @@ export function ExecutionParametersSheet({
           </Row>
         </>
       ) : null}
+      {emomSheet && formatShown("interval") ? (
+        <><Separator /><Row label={t.exerciseDuration} testID="execution-sheet-emom-total">
+          <Text style={styles.staticValue}>{formatPhraseDuration(seriesRowsOf(effective).length * formatIntervalSeconds)}</Text>
+        </Row></>
+      ) : null}
+      {emomSheet && !formatShown("interval") && emomOverflow ? (
+        <Text style={styles.formatAlert} accessibilityRole="alert" testID="execution-sheet-format-emom-overflow">{formatT.emomOverflow}</Text>
+      ) : null}
     </>
   );
   const formatDurationRow = formatShown("duration") ? (
@@ -1913,10 +1931,10 @@ export function ExecutionParametersSheet({
   // « À l'objectif et à l'échec » si mixte ; aucune cellule renseignée → « — », annoncé
   // « Condition d'arrêt, aucune valeur ». Aucune validation ajoutée.
   const stopConditionOptions = [
-    { value: "FAILURE" as const, label: t.stopConditions.FAILURE },
+    { value: "FAILURE" as const, label: t.stopConditions.FAILURE, disabled: emomSheet },
     { value: "TARGET" as const, label: t.stopConditions.TARGET },
   ];
-  const stopConditionControl = !showVariableTable ? (
+  const stopConditionControl = !showVariableTable || emomSheet ? (
     <SegmentedControl<StopConditionChoice>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.wide}
@@ -2061,7 +2079,7 @@ export function ExecutionParametersSheet({
   const uniformTargetField = scalarField("uniformTarget", {
     display: uniformTargetText,
     accessibilityLabel: effective.mode === "REPETITIONS" ? t.repetitionsTarget : t.durationGoal,
-    invalid: uniformTargetInvalid,
+    invalid: uniformTargetInvalid || emomOverflow,
     invalidHint: uniformTargetHint,
     testID: "execution-sheet-target",
   });
@@ -2297,7 +2315,7 @@ export function ExecutionParametersSheet({
           displayValue={text}
           // Story 3.8 (AC2) : une Cible « — » est annoncée « aucune valeur », jamais « tiret ».
           spokenDisplayValue={spokenValue(text)}
-          invalid={hint !== undefined}
+          invalid={hint !== undefined || (emomOverflow && effective.mode === "DURATION")}
           accessibilityHint={hint}
           accessibilityLabel={t.rowTarget.replace("{n}", String(number)).replace("{field}", t.columns[mode])}
           testID={`${prefix}-target`}
@@ -2727,6 +2745,7 @@ export function ExecutionParametersSheet({
                         est celui de la ligne « Charge ». */}
                     {showVariableTable && !isTableFolded ? (
                       <VariableTable
+                        hidePause={emomSheet}
                         draft={draft}
                         mode={effective.mode}
                         onRemove={handleRemove}
@@ -2782,7 +2801,7 @@ export function ExecutionParametersSheet({
                   {/* Recette iPhone du 07/11/2026 (Hermann : « il n'y a pas de ligne « Pause après chaque série » » ; Figma
                       « EMOM — Modale exercice, standard » `8795:14588` ; Formats §14 : l'Intervalle « remplace la Pause ») :
                       pas de Pause quand l'Exercice porte son Intervalle (EMOM, Death by). */}
-                  {!showVariableTable && !deathBySheet && !formatShown("interval") ? (
+                  {!showVariableTable && !emomSheet && !deathBySheet && !formatShown("interval") ? (
                     <>
                       <Separator />
                       <Row label={t.pause} selected={isOpen(scalarSurface("pause"))} testID="execution-sheet-row-pause">
@@ -2939,7 +2958,7 @@ export function ExecutionParametersSheet({
 
                   {/* D-433 : ligne « Durée de l'exercice » toujours présente, même place. [Sauf Death by : absente,
                       mesurée à l'exécution — Formats §12, recette iPhone du 07/11/2026.] */}
-                  {deathBySheet ? null : (
+                  {deathBySheet || emomSheet ? null : (
                   <>
                     <Separator />
                     {formatDurationRow ?? (
@@ -3023,7 +3042,7 @@ export function ExecutionParametersSheet({
                     la ligne sur iOS, en ligne ailleurs, comme Durée de l'exercice). Exercice de
                     Séance seulement. `revealSignals` défile jusqu'au bas du contenu : ce cadre suit
                     Cadence et durée, dont Compte à rebours et Fin restent au-dessus de lui. */}
-                {recovery !== undefined ? (
+                {showRecovery ? (
                   <SheetMotionView
                     appear={false}
                     onLayout={trackFrame("recovery")}
@@ -3069,7 +3088,7 @@ export function ExecutionParametersSheet({
               onNext={keyboard.next}
               onClose={keyboard.close}
               failure={
-                keyboard.failureAvailable ? { selected: keyboard.failureSelected, onPress: keyboard.toggleFailure } : null
+                !emomSheet && keyboard.failureAvailable ? { selected: keyboard.failureSelected, onPress: keyboard.toggleFailure } : null
               }
               // Recette du 07/11/2026 : Incrément par tour AMRAP signé (complément du 5 novembre, §8) — « ± » de la barre.
               sign={
@@ -3103,6 +3122,7 @@ export function ExecutionParametersSheet({
 function VariableTable({
   draft,
   mode,
+  hidePause,
   onRemove,
   removalActive,
   onMove,
@@ -3111,6 +3131,7 @@ function VariableTable({
 }: {
   draft: ExecutionSheetDraft;
   mode: ExecutionMode | null;
+  hidePause: boolean;
   onRemove: (row: number) => void;
   /** Story 3.6 (T18, T23) : la croix retire ; sinon son appui range d'abord l'outil ouvert. */
   removalActive: boolean;
@@ -3158,8 +3179,7 @@ function VariableTable({
         ) : (
           <View style={tableStyles.emptyCell} />
         )}
-        <View style={tableStyles.cellGap} />
-        <Text style={tableStyles.columnHeader}>{t.columns.pause}</Text>
+        {!hidePause && <><View style={tableStyles.cellGap} /><Text style={tableStyles.columnHeader}>{t.columns.pause}</Text></>}
         {/* PRE-5 story 2.2 : colonne Charge (titre non interactif), après la Pause. PRE-7 story
             B.2 (B10) : toujours présente, sous Avec comme sous Sans (jamais recréée au passage). */}
         <View style={tableStyles.cellGap} />
@@ -3182,6 +3202,7 @@ function VariableTable({
               rowId={rowId}
               count={rows.length}
               mode={mode}
+              hidePause={hidePause}
               onRemove={onRemove}
               removalActive={removalActive}
               onMove={onMove}
@@ -3214,6 +3235,7 @@ function SeriesTableRow({
   rowId,
   count,
   mode,
+  hidePause,
   onRemove,
   removalActive,
   onMove,
@@ -3228,6 +3250,7 @@ function SeriesTableRow({
   rowId: number | null;
   count: number;
   mode: ExecutionMode | null;
+  hidePause: boolean;
   onRemove: (row: number) => void;
   removalActive: boolean;
   onMove: (from: number, to: number) => void;
@@ -3269,10 +3292,7 @@ function SeriesTableRow({
         ) : (
           <View style={tableStyles.emptyCell} />
         )}
-        <View style={tableStyles.cellGap} />
-        <View style={styles.tableCellSlot} testID={`${testID}-pause-cell`}>
-          {cell("rowPause")}
-        </View>
+        {!hidePause && <><View style={tableStyles.cellGap} /><View style={styles.tableCellSlot} testID={`${testID}-pause-cell`}>{cell("rowPause")}</View></>}
         {/* PRE-5 story 2.2 (FR-23) : cellule Charge au clavier décimal, après un écart de 7.
             PRE-7 story B.2 (B10) : emplacement toujours monté ; sous Sans, `cell` y rend le tiret. */}
         <View style={tableStyles.cellGap} />

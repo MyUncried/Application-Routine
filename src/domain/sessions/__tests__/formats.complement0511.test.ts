@@ -155,14 +155,14 @@ describe("AMRAP dégressif (§8)", () => {
 describe("EMOM prescrit par série (§14, §17)", () => {
   const answers: ModelAnswers = { ...initialAnswers("EMOM"), seriesCount: 3, intervalSeconds: 60 };
 
-  it("S1 recopiée sur les séries vides ou restées égales ; une série modifiée garde sa valeur ; aucun incrément", () => {
-    let values = cells([null, null, null]);
-    values = withSeriesValue(values, 0, "repetitions", 3, true);
-    values = withSeriesValue(values, 0, "repetitions", 30, true);
-    expect(values.map((cell) => cell.repetitions)).toEqual([30, 30, 30]);
-    values = withSeriesValue(values, 2, "repetitions", 40, true);
-    values = withSeriesValue(values, 0, "repetitions", 20, true);
-    expect(values.map((cell) => cell.repetitions)).toEqual([20, 20, 40]);
+  it("la saisie de S1 ne modifie aucune autre colonne, pour les cibles et les charges", () => {
+    let values = withSeriesValue(cells([null, null, null]), 0, "repetitions", 30);
+    expect(values.map(cell => cell.repetitions)).toEqual([30, null, null]);
+    values = withSeriesValue(values, 2, "repetitions", 40);
+    values = withSeriesValue(values, 0, "repetitions", 20);
+    expect(values.map(cell => cell.repetitions)).toEqual([20, null, 40]);
+    values = withSeriesValue(values, 0, "loadKg", 12);
+    expect(values.map(cell => cell.loadKg)).toEqual([12, null, null]);
   });
 
   it("objectifs et charges effectifs par série ; dans chaque intervalle, au tour k le membre joue sa série k (plan sans N × N)", () => {

@@ -2,6 +2,8 @@ import { describe, expect, it } from "@jest/globals";
 
 import { durationParameters, repetitionParameters, variableParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { seriesCountOf, seriesRowsOf } from "@/domain/activities/ExecutionParameters";
+import { modelStateOfCircuit, applyModelReedit } from "@/domain/sessions/formatReedit";
+import { maximumEmomWindowWork } from "@/domain/sessions/formatModels";
 import { enterCarrier, exitCarrier, exitNeedsChoice } from "@/domain/sessions/carrierMembership";
 import type { ElementFormat } from "@/domain/sessions/formats";
 import { duplicateLayoutExercise, moveLayoutItem } from "@/domain/sessions/layoutMoves";
@@ -167,5 +169,66 @@ describe("Composition : déplacement, duplication, compte et nature", () => {
     expect(rows(four, "a")).toEqual([...[21, 15, 9].map((value) => ({ kind: "NUMBER", value })), { kind: "UNSET" }]);
     expect(rows(four, "out")).toHaveLength(1);
     expect(rows(setLayoutCircuitCount(four, "f", 2), "a")).toEqual([21, 15].map((value) => ({ kind: "NUMBER", value })));
+  });
+});
+
+describe("EMOM — conversions du 07/11", () => {
+  const carrier = { nature: "TOURS" as const, repeatCount: 2, format: { key: "EMOM" as const, settings: { windowSeconds: 55 } } };
+  const simple = { key: "EMOM" as const, settings: { intervalSeconds: 45 } };
+  const varied = variableParameters({ mode: "DURATION", rows: [[10, 0], [55, 0]] });
+  it("14–15 : entrée, choix libre ou conservation des cibles et charges par rang", () => {
+    const member = enterCarrier(exercise("a", varied, simple), carrier);
+    expect(seriesRowsOf(member.executionParameters).map(row => row.target.kind)).toEqual(["UNSET", "UNSET"]);
+    expect(member.format?.settings).toEqual({});
+    const completed = { ...member, executionParameters: varied, postActivityRecoverySeconds: 30 };
+    const kept = exitCarrier(completed, carrier, "KEEP");
+    expect(kept.format?.settings.intervalSeconds).toBe(55);
+    expect(kept.executionParameters).toEqual(varied);
+    expect(kept.postActivityRecoverySeconds).toBe(0);
+    expect(exitCarrier(completed, carrier, "FREE").format).toBeUndefined();
+    expect(maximumEmomWindowWork([completed], 2)).toBe(55);
+  });
+
+  it.each(["TOURS", "SERIES"] as const)("16–18 : dépôt standard %s puis sortie sans choix", nature => {
+    const draft = draftOf([{ kind: "EXERCISE", exercise: "a" },
+      { kind: "CIRCUIT", circuit: { id: "c", originModel: "EMOM", nature, repeatCount: 4, exercises: ["b"] } }],
+      [exercise("a", repetitionParameters(10, 2), simple), exercise("b")]);
+    const into = moveLayoutItem(draft, { kind: "EXERCISE", id: "a" }, { container: { kind: "CIRCUIT", id: "c" }, index: 1 }, () => "n");
+    expect(into.status).toBe("APPLIED");
+    if (into.status !== "APPLIED") return;
+    const member = into.draft.exercises.find(x => x.id === "a")!;
+    expect(seriesCountOf(member.executionParameters)).toBe(nature === "SERIES" ? 4 : 2);
+    expect(member.postActivityRecoverySeconds).toBe(nature === "SERIES" ? 0 : 45);
+    const out = moveLayoutItem(into.draft, { kind: "EXERCISE", id: "a" }, { container: { kind: "SESSION" }, index: 0 }, () => "n");
+    expect(out.status).toBe("APPLIED");
+    if (out.status === "APPLIED") expect(out.draft.exercises.find(x => x.id === "a")).toMatchObject({ format: simple, postActivityRecoverySeconds: 0 });
+  });
+
+  it("19 : Modifier le format, entrée dans la fenêtre commune avec des cibles différentes", () => {
+    const members = [exercise("a", varied, simple), exercise("b", varied, simple)];
+    const circuit = { id: "c", originModel: "EMOM" as const, nature: "TOURS" as const, repeatCount: 1, exercises: members };
+    const opened = modelStateOfCircuit("EMOM", circuit);
+    const draft = draftOf([{ kind: "CIRCUIT", circuit: { ...circuit, exercises: ["a","b"] } }], members);
+    const updated = applyModelReedit(draft, "c", opened, { ...opened, answers: { ...opened.answers, execution: "EACH_INTERVAL" } }, () => "n");
+    expect(updated.exercises[0]?.format?.settings).toEqual({});
+    expect(seriesRowsOf(updated.exercises[0]!.executionParameters).map(row => row.target.kind)).toEqual(["UNSET", "UNSET"]);
+  });
+
+  it("le changement du nombre de tours EMOM redimensionne les séries sans recopier la colonne précédente", () => {
+    const draft = draftOf([{ kind: "CIRCUIT", circuit: { ...carrier, id: "c", exercises: ["a"] } }],
+      [exercise("a", varied, { key: "EMOM", settings: {} })]);
+    const edited = setLayoutCircuitCount(draft, "c", 3);
+    expect(seriesRowsOf(edited.exercises[0]!.executionParameters).map(row => row.target)).toEqual([
+      { kind: "NUMBER", value: 10 }, { kind: "NUMBER", value: 55 }, { kind: "UNSET" },
+    ]);
+  });
+
+  it("20 : déplacement entre porteurs, seules les règles du destinataire sont appliquées", () => {
+    const draft = draftOf([{ kind: "CIRCUIT", circuit: { ...carrier, id: "c", exercises: ["a","b"] } },
+      { kind: "CIRCUIT", circuit: { ...carrier, id: "d", repeatCount: 3, exercises: ["z"] } }],
+      ["a","b","z"].map(id => exercise(id, varied, carrier.format)));
+    const moved = moveLayoutItem(draft, { kind: "EXERCISE", id: "a" }, { container: { kind: "CIRCUIT", id: "d" }, index: 1 }, () => "n");
+    expect(moved.status).toBe("APPLIED");
+    if (moved.status === "APPLIED") expect(seriesRowsOf(moved.draft.exercises.find(x => x.id === "a")!.executionParameters).map(row => row.target.kind)).toEqual(["UNSET", "UNSET", "UNSET"]);
   });
 });

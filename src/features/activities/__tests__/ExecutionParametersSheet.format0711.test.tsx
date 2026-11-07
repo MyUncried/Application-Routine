@@ -55,6 +55,7 @@ function renderSheet(
       <ExecutionParametersSheet
         parent={parent}
         profileSideRecoverySecondsDefault={0}
+        recovery={{ seconds: 0, onApply: jest.fn() }}
         format={{ key, rows, settings, onApply: onFormat, ...extra }}
         onApply={jest.fn()}
         onCancel={jest.fn()}
@@ -158,5 +159,27 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
     expect(value("execution-sheet-format-time-cap")).toBe(f.noCap);
     validate();
     expect(onFormat).toHaveBeenCalledWith({}, null);
+  });
+});
+
+describe("EMOM du 07/11 — quatre organisations", () => {
+  it.each<[string, boolean, number | null]>([
+    ["seul", false, null], ["à la suite", false, null],
+    ["alterné", true, null], ["commun", true, 60],
+  ])("%s : champs effectifs et durée en lecture seule", (_cas, inheritsCount, windowSeconds) => {
+    renderSheet("EMOM", windowSeconds === null ? ["interval"] : [], { intervalSeconds: 60 }, {
+      emom: { windowSeconds, inheritsCount, othersWorkByRank: [] },
+    });
+    expect(!!query("execution-sheet-format-interval")).toBe(windowSeconds === null);
+    expect(!!query("execution-sheet-emom-total")).toBe(windowSeconds === null);
+    expect(!!query("execution-sheet-frame-recovery")).toBe(!inheritsCount);
+    expect(query("execution-sheet-row-pause")).toBeNull();
+    expect(get("execution-sheet-stop-condition-control-FAILURE").props.accessibilityState.disabled).toBe(true);
+  });
+
+  it("bloque le membre en répétitions quand les autres occupent tout l’intervalle", () => {
+    renderSheet("EMOM", [], {}, { emom: { windowSeconds: 60, inheritsCount: true, othersWorkByRank: [60] } });
+    expect(get("execution-sheet-format-emom-overflow")).toBeTruthy();
+    expect(get("execution-sheet-validate").props.accessibilityState.disabled).toBe(true);
   });
 });

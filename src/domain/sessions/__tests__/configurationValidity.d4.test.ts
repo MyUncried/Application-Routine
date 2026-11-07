@@ -84,11 +84,12 @@ describe("PRE-9 D.4 — validité de configuration", () => {
         { kind: "EXERCISE", exercise: exercise("d", durationParameters(30), deathBy) },
         { kind: "EXERCISE", exercise: exercise("ok", repetitionParameters(1), deathBy) },
         { kind: "EXERCISE", exercise: exercise("f", withFailure, forTime) },
+        { kind: "EXERCISE", exercise: exercise("e", withFailure, { key: "EMOM", settings: { intervalSeconds: 60 } }) },
       ]),
     );
     expect(result).toEqual({
       status: "invalid",
-      issues: [{ elementId: "f", reason: "LOCKED_CONSTANT_CHANGED" }],
+      issues: [{ elementId: "f", reason: "LOCKED_CONSTANT_CHANGED" }, { elementId: "e", reason: "LOCKED_CONSTANT_CHANGED" }],
     });
   });
 

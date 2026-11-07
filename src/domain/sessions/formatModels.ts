@@ -323,10 +323,7 @@ export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers
     case "AMRAP":
       return { mode: "REPETITIONS", repetitions: baseTarget(exercise, "REPETITIONS"), max: false, increment: null, loadKg: null };
     case "EMOM":
-      // Recette du 04/11/2026 (Hermann, EMOM : « Aucun mode d'exécution par défaut, le champ de valeur a un fond rouge ») :
-      // ligne sans unité, objectifs à renseigner ; l'unité se choisit au clavier. Complément du 5 novembre 2026 (Hermann), §14 : une valeur par série S1…Sn,
-      // sans incrément. [Préremplies depuis S1 — remplacé le 06/11/2026 (n-emom) : chaque série se saisit à la main.]
-      return { cells: emptyCells(answers.seriesCount ?? 6) };
+      return { mode: "REPETITIONS", cells: emptyCells(answers.seriesCount ?? 6) };
     case "SUPERSET":
       // Complément du 5 novembre 2026 (Hermann), §11 : tableau par tour ; cases initiales à renseigner. [Chaque tour prérempli avec la valeur du premier —
       // remplacé le 06/11/2026 (n-emom, réponse A de Hermann : « Oui retirée partout ») : chaque tour se saisit à la main.]
@@ -346,22 +343,11 @@ function emptyCells(count: number): SeriesCell[] {
   return Array.from({ length: count }, () => ({ repetitions: null, loadKg: null }));
 }
 
-/**
- * Saisie d'une case de série (EMOM, Superset, Progression). Avec `propagate` (Complément du 5 novembre 2026, §11, §14, §17) : la valeur écrite dans
- * S1 se reporte sur les autres séries encore vides ou restées égales à l'ancienne valeur de S1. Recette du 06/11/2026 (n-emom, réponse A de
- * Hermann : « Oui retirée partout ») : les tableaux n'utilisent plus cette recopie (`propagate` toujours faux) ; chaque case ne touche qu'elle-même.
- */
-export function withSeriesValue(cells: readonly SeriesCell[], column: number, field: keyof SeriesCell, value: number | null, propagate: boolean): SeriesCell[] {
-  const next = cells.map((cell) => ({ ...cell }));
+/** Éditer une case du récapitulatif conserve toutes les autres colonnes (06/11/2026). */
+export function withSeriesValue(cells: readonly SeriesCell[], column: number, field: keyof SeriesCell, value: number | null): SeriesCell[] {
+  const next = [...cells];
   while (next.length <= column) next.push({ repetitions: null, loadKg: null });
-  const previous = next[column]![field];
   next[column] = { ...next[column]!, [field]: value };
-  if (propagate && column === 0) {
-    for (let at = 1; at < next.length; at += 1) {
-      const current = next[at]![field];
-      if (current === null || current === previous) next[at] = { ...next[at]!, [field]: value };
-    }
-  }
   return next;
 }
 
@@ -466,6 +452,16 @@ export function plannedWorkOfTarget(exercise: SessionDraftExercise, mode: Execut
   const parameters = exercise.executionParameters;
   const bilateral = isBilateral(parameters.sideMode);
   return seconds * (bilateral ? 2 : 1) + (bilateral ? parameters.sideRecoverySeconds : 0);
+}
+
+/** Travail connu le plus long dans une fenêtre commune, tous les rangs compris. */
+export function maximumEmomWindowWork(members: readonly { readonly executionParameters: Parameters<typeof plannedWorkOfParameters>[0] }[], count: number): number {
+  let maximum = 0;
+  for (let rank = 0; rank < count; rank++) {
+    const work = members.reduce((sum, member) => sum + plannedWorkOfParameters(member.executionParameters, rank), 0);
+    maximum = Math.max(maximum, work);
+  }
+  return maximum;
 }
 
 /** Travail prévu connu de la série `column` d'un mouvement EMOM. */

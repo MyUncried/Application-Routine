@@ -89,13 +89,13 @@ describe("For time : interrupteurs Buy-in et Buy-out (recette du 04/11/2026)", (
   });
 });
 
-describe("EMOM : aucun mode d'exécution par défaut (recette du 04/11/2026)", () => {
+describe("EMOM : Répétitions par défaut (07/11/2026)", () => {
   // [Complément du 5 novembre 2026 (§14) : objectifs par série S1…Sn (`cells`) — tests adaptés ; la règle du 04/11 (aucune
   // unité par défaut, objectifs à renseigner, valeur saisie avant le choix lue en Répétitions) est conservée.]
-  it("ligne sans unité, objectifs S1…Sn à renseigner (récapitulatif incomplet)", () => {
+  it("ligne en répétitions, objectifs S1…Sn à renseigner (récapitulatif incomplet)", () => {
     const answers = initialAnswers("EMOM");
     const movement = row("EMOM", answers, "a");
-    expect(movement.values.mode).toBeUndefined();
+    expect(movement.values.mode).toBe("REPETITIONS");
     expect(movement.values.cells).toHaveLength(6);
     expect(movement.values.cells!.every((cell) => cell.repetitions === null)).toBe(true);
     expect(summaryIssues("EMOM", answers, [movement])).toEqual([{ kind: "MISSING", index: 0 }]);
