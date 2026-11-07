@@ -464,3 +464,9 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - **Ancien modèle (un seul Circuit standard)** : le contrôle C12 de la Composition ne porte que sur la disposition générale ; un EMOM « À la suite » ou alterné ne peut toutefois dépasser son intervalle propre que depuis la modale, qui bloque déjà.
 - **Point 19** : toujours aucun test de réédition EMOM.
 - **iPhone** : rien vérifié sur l'appareil (Metro arrêté).
+
+## Recette iPhone des livraisons du 07/11/2026 — préparation
+
+- Metro relancé (`--clear`, tunnel `fi5f9dc-uncried-8081.exp.direct`) ; bundle iOS servi vérifié : contient `applyMigration023`, `carrierDurationOverflow`, `resizeEmomSeries`.
+- Cahier de recette (https://claude.ai/artifact/XJCJLC7eHKcANDMrN1yNku), nouvelle section en tête « Livraisons du 7 novembre (d72ac047) — à tester », 16 points : piles du Catalogue (`97a2848c`, jamais confirmé), réglages de Format dans les cadres (`0f8de24e`), Death by (`06224da1`), EMOM (`f0f8ebab`, `b04eb09e`, `1dcfdf70`), migration 023, question 4 (cible commune vidée).
+- Aucun résultat iPhone reçu à ce stade.
