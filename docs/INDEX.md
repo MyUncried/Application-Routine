@@ -145,3 +145,5 @@ Les relations actives vers le mouvement doivent rester intègres, depuis les dé
 [Source finale validée](sources/formats-2026-11-05/KODJO-Complement-Parcours-creation-2026-11-05.md). Aucun code ni moteur développé dans cette mise à jour documentaire.
 
 [Conception consolidée du moteur — version actualisée](preparation/moteur-execution/KODJO-Conception-moteur-execution-consolidee-2026-11-02.md) : base documentaire du commit 8855c793, prescriptions du 5 novembre intégrées ; aucun développement du moteur déclaré.
+
+> **Import pilote de l'administration vers KODJO (07/11/2026, hors MVP).** [Parcours réel, procédure de recette, compatibilité SQLite, sécurité et limites](KODJO-Import-catalogue-admin-vers-mobile-2026-11-07.md). Le site OVH et Figma restent inchangés.
