@@ -1,5 +1,10 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+## Gestion préparatoire des médias du référentiel — 07/11/2026
+
+Le propriétaire du produit demande d'ajouter la gestion des photos et vidéos à l'administration des fiches de Mouvement. La [variante statique OVH](../../tools/catalogue-admin/static-ovh/README.md) conserve les médias facultatifs, leur ordre, légende, texte alternatif, source, auteur/fournisseur, licence et statut déclaratif des droits. Les photos locales sont encapsulées dans le JSON de brouillons exporté sur l'appareil ; les vidéos sont représentées par des liens HTTPS et ne sont pas hébergées sur l'offre gratuite. La source éditoriale et les droits doivent être contrôlés avant toute réutilisation publique. **Aucune publication des 60 fiches non validées ; aucun impact sur le moteur d'exécution, les migrations SQLite ou la fiche mobile KODJO.**
+
+
 ## Mise en œuvre préparatoire du 07/11/2026 — Administration locale du référentiel
 
 Le [prototype d'administration Web locale](../../tools/catalogue-admin/README.md) réalise, pour le chantier de contenu, la consultation des 60 candidats et l'édition de brouillons séparés : nom, étapes, alias, attributs de classification proposés, propriétaire/auteurs, références additionnelles et glossaire sportif. **Il ne publie pas, ne diffuse pas et ne modifie aucune donnée applicative utilisateur.** Catégories et Zones KODJO historiques restent en lecture seule ; les contenus et taxonomies sources ne sont pas réécrits, et l'enregistrement porte uniquement sur `catalogue/admin/brouillons.json`. Pas de compte ni permission réseau ; serveur limité au poste de développement. L'outil et les tests d'API ne constituent ni approbation éditoriale/clinique ni qualification du rendu dans un navigateur. Les valeurs de taxonomie restent **À CLARIFIER** et le moteur d'exécution demeure indépendant.
