@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - docs/catalogue-taxonomie-v0-20261107
+      - feat/catalogue-admin-local-v0-20261107
   pull_request:
     paths:
       - "catalogue/**"
       - "scripts/catalogue/**"
+      - "tools/catalogue-admin/**"
       - "src/domain/catalogue/**"
       - "src/infrastructure/database/testing/seedMovementTestCorpus.ts"
       - "src/infrastructure/database/testing/smokeMovementFixtures.ts"
@@ -41,5 +43,7 @@ jobs:
         run: node scripts/catalogue/validate-taxonomy.mjs
       - name: Run Node catalogue tests
         run: node --test scripts/catalogue/__tests__/validate-pilot-corpus.test.mjs scripts/catalogue/__tests__/validate-taxonomy.test.mjs
+      - name: Run local admin API and security tests
+        run: node --test tools/catalogue-admin/server.test.mjs
       - name: Run Jest catalogue tests
         run: npx jest --runInBand src/domain/catalogue/__tests__/MovementEditorialProvenance.test.ts src/infrastructure/database/__tests__/seedMovementTestCorpus.test.ts
