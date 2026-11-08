@@ -784,3 +784,12 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Hermann : « Couleur pleine pour la couleur du liseré de l’exercice hors circuit et cycle. Pour le reste ne change rien. » (B, recopié dans ch07).
 - `OccurrenceCard.tsx` : `OCCURRENCE_CARD_SESSION_LEVEL_BORDER_COLOR` = `colors.cardsBorder` (#CCD1E0) ; `CompositionActivityRow` : appliqué à la carte directement dans la Séance, hors état soulevé, à compléter ou à vérifier. Circuit et Cycle : 50 % inchangé. Docs : ch07, spec du 06/11 §11.
 - Tests : `CompositionScreen*`, `Occurrence*` : 24 suites, 648 passés ; `tsc --noEmit` OK. Rien vérifié sur iPhone.
+
+## Clôture de PRE-9 (09/11/2026)
+
+- Hermann : « Les tests sont réalisés. PRE-9 est terminé ».
+- Cahier de recette (https://claude.ai/artifact/XJCJLC7eHKcANDMrN1yNku, v42), résultats lus dans sa base : 273 points OK, 1 non applicable, aucun KO ; dont les sections h (cinquième livraison), i (carte d'exercice de la Composition) et j (marges, glisser, transparence) toutes OK. Le point « j-liseré » (identifiant accentué) n'a pas été enregistré par la page : son résultat repose sur la déclaration de Hermann ci-dessus.
+- Commit final de code : 03163de3 (liseré plein de la carte de la Séance) ; branche `feat/pre9-catalogues-cartes-badge-20261106`, PR #420.
+- Tests : dernière batterie `src/features/sessions` + `src/domain/sessions` 156 suites / 2 660 passés (ca2dc484), puis `CompositionScreen*` + `Occurrence*` 648/648 (03163de3) ; `tsc --noEmit` OK. Suite complète non relancée (mémoire).
+- Restent ouverts, sans blocage déclaré : points À CLARIFIER consignés au ch07 (Death by « +1/30″ », AMRAP « −1/tour », arrondi à la minute au-delà d'une heure, valeur du décalage du compteur).
+- Fusion de la PR #420 dans `main` : non faite ; elle exige une autorisation explicite de Hermann.
