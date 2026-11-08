@@ -706,3 +706,11 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - **Superset (B, remplace Formats §9.4 « un troisième Exercice peut y être ajouté depuis la Composition »)** : glisser, dépose, Monter/Descendre, Dupliquer refusés au-delà de deux membres (`circuitMemberLimit.ts`). Tests : 26 nouveaux (16 échouent sans la correction) ; `src/domain/sessions` 866, `CompositionScreen*` + `layoutDrop*` 630 : tous passés.
 - `npx tsc --noEmit` OK. Suite complète non relancée (mémoire).
 - **À CLARIFIER** : Superset existant à trois Exercices (laissé tel quel, jamais agrandi) ; minimum de deux dans la Composition ; libellé VoiceOver « Deux exercices au maximum dans un Superset ».
+
+### Recette iPhone du 08/11/2026 — quatrième livraison (commit 7001c313)
+
+- Résultats communiqués par Hermann dans le cahier de recette (version 33), base relue le 08/11/2026 : **OK** g-charge-rognee, g-emom-message, g-buyin-multiples, g-superset ; **OK** également e-emom-focus, e-tabata-kg, e-emom-message (KO à la recette précédente). Aucune note, aucun constat dans « Autres constats ».
+- Bilan du cahier : 252 points OK, 1 sans objet (d-new-vo), aucun KO.
+- Les trois questions À CLARIFIER du Superset (Superset existant à trois Exercices, minimum de deux, libellé VoiceOver) n'ont pas reçu de réponse : elles restent ouvertes, le comportement livré est conservé.
+- Aucune modification de code ; aucun test relancé (mise à jour documentaire seule).
+- PR #420 non fusionnée ; fusion dans `main` soumise à l'autorisation explicite de Hermann.
