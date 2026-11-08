@@ -5103,6 +5103,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           radius={CIRCUIT_RADIUS}
           // Recette du 08/11/2026 (constat C) : mesure portée par le cadre, enfant direct du contenu défilant.
           onLayout={isEnvelopeActive ? undefined : handleTourLayout}
+          // 09/11/2026 (transparence pendant le glisser) : le cadre porte le premier plan d'une carte saisie du Circuit.
+          raised={zoneItems.IN_TOUR.some((item) => zoneItemKey(item) === raisedKey)}
         >
         <View
           style={[
@@ -6058,8 +6060,14 @@ function EnvelopeFrame({
   radius = dimensions.standardCard.radius,
   gap = SEQUENCE_GAP,
   onLayout,
+  raised = false,
   children,
 }: {
+  /**
+   * Hermann, 09/11/2026 : « Le seul bug restant est le déplacement d’un mouvement : hors d’un circuit : problème de transparence avec le circuit et le cycle (pas avec les mouvements, avec les lignes circuits et cycles) ; hors d’un cycle : problème de transparence avec le cycle seulement ». Le cadre est le frère de mise en page de ses voisins : il porte le premier plan de l'élément saisi qu'il
+   * contient (sans lui, le premier plan du bloc, posé à l'intérieur, restait sous les voisins du cadre).
+   */
+  raised?: boolean;
   envelope: EnvelopeContext | null;
   /** Recette n° 2 du 31/10 : aussi un Point d'arrêt (jamais désignable seul ; cadre s'il est dans un périmètre). */
   target: EnvelopeUnit;
@@ -6106,7 +6114,7 @@ function EnvelopeFrame({
    */
   if (envelope === null) {
     return (
-      <View onLayout={handleFrameLayout} testID={`${testID}-off`}>
+      <View onLayout={handleFrameLayout} style={raised ? styles.dragElevated : null} testID={`${testID}-off`}>
         <View>
           <EnvelopeFrameYContext.Provider value={frameY}>{children}</EnvelopeFrameYContext.Provider>
         </View>
@@ -6211,7 +6219,7 @@ function EnvelopeFrame({
     <View
       ref={(view) => envelope.registerFrame(envelopeTargetKey(target), view)}
       // B.4b : le contenu qui porte le trait bas passe au-dessus de ses frères suivants (zone tactile).
-      style={placement?.last === true && placement.adjustable ? styles.envelopeFrameRaised : null}
+      style={[placement?.last === true && placement.adjustable ? styles.envelopeFrameRaised : null, raised ? styles.dragElevated : null]}
       onLayout={handleFrameLayout}
       testID={testID}
     >
@@ -8760,6 +8768,7 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
                 testID={`composition-envelope-circuit-${element.circuit.id}`}
                 outset={CIRCUIT_OUTSET}
                 radius={CIRCUIT_RADIUS}
+                raised={raised}
               >
               <LayoutCircuitBlock
                 key={key}
@@ -9586,7 +9595,8 @@ function LayoutCircuitBlock({
       {/* Recette du 29/10 (obs-3 b) : dévoilement et repli animés (`useCircuitCardsReveal`). */}
       {!reveal.mounted || circuit.exercises.length === 0 ? null : (
         <Reanimated.View
-          style={[styles.layoutCircuitCardsClip, reveal.style]}
+          // Hermann, 09/11/2026 : « Le seul bug restant est le déplaceme… » : une carte saisie de ce Circuit passe au-dessus de son en-tête.
+          style={[styles.layoutCircuitCardsClip, reveal.style, raised && context.lift?.source.kind === "EXERCISE" ? styles.dragElevated : null]}
           onLayout={(event) => setListY(event.nativeEvent.layout.y)}
           testID={`${testID}-exercises`}
         >
@@ -9869,6 +9879,7 @@ function LayoutCycleBlock({
               testID={`composition-envelope-circuit-${member.circuit.id}`}
               outset={LAYOUT_CIRCUIT_IN_CYCLE_OUTSET}
               radius={CIRCUIT_RADIUS}
+              raised={memberRaised}
             >
               <LayoutCircuitBlock
                 key={key}
@@ -10759,8 +10770,10 @@ const styles = StyleSheet.create({
   stickyHeaderLayer: {
     zIndex: 2,
   },
+  // Hermann, 09/11/2026 : « Le seul bug restant est le déplacement d’un mouvement : hors d’un circuit : problème de transparence avec le circuit et le cycle (pas avec les mouvements, avec les lignes circuits et cycles) ; hors d’un cycle : problème de transparence avec le cycle seulement » :
+  // l'élément saisi passe au-dessus des en-têtes de son Circuit et de son Cycle (`stickyHeaderLayer`, 2). [zIndex 1 — remplacé.]
   dragElevated: {
-    zIndex: 1,
+    zIndex: 3,
   },
   // PRE-9 B.4 : Circuit ou Cycle saisi — au premier plan, ombre de la carte soulevée.
   layoutBlockDragged: {

@@ -771,3 +771,9 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Erreur de méthode reconnue : j'ai d'abord affirmé un « défaut antérieur » sans avoir testé le scénario simple sur la version validée, puis livré 93c10971 sans preuve (annulé par 3b437b53).
 - Constats de Hermann recopiés dans ch07 (« Suite — régression du glisser hors d'un Circuit »).
 - Tests : `tsc --noEmit` OK ; `src/features/sessions` + `src/domain/sessions` : 156 suites, 2 660 tests passés. Suite complète non relancée (mémoire). Rien vérifié sur iPhone.
+
+### Transparence de la carte saisie au-dessus des en-têtes (09/11/2026)
+
+- Hermann : tous les déplacements fonctionnent ; reste la transparence avec les lignes d'en-tête de Circuit et de Cycle (ch07, « Suite — transparence de la carte saisie »). Départ : ca2dc484.
+- Correction (A) : `dragElevated` 3 (au-dessus de `stickyHeaderLayer` 2) ; `EnvelopeFrame` prop `raised` (Circuit niveau Séance, dans un Cycle, ancien modèle) ; liste des cartes d'un Circuit relevée quand une de ses cartes est saisie.
+- Tests : 2 nouveaux (échouent sans la correction) ; 4 attentes de zIndex 1 → 3 ; `CompositionScreen.test` 428/428 ; `tsc --noEmit` OK. Rien vérifié sur iPhone.

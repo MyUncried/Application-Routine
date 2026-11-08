@@ -2517,7 +2517,7 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
     // La rangée soulevée, restée à sa place, ne masque plus la voisine qui remonte dans la place libérée.
     expect(rowBackground("composition-activity-ex-1")).toBe("transparent");
-    expect(zIndexOf("composition-zone-before-tour")).toBe(1);
+    expect(zIndexOf("composition-zone-before-tour")).toBe(3); // 09/11/2026 : premier plan au-dessus des en-têtes (2). [1 — remplacé.]
     expect(zIndexOf("composition-tour-section")).toBeUndefined();
     expect(zIndexOf("composition-zone-after-tour")).toBeUndefined();
     fireEvent(screen.getByTestId("composition-activity-ex-1"), "responderTerminate", {});
@@ -2530,7 +2530,7 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
 
     fireEvent(screen.getByTestId("composition-exercise-row-core"), "longPress");
     expect(rowBackground("composition-activity-core")).toBe("transparent");
-    expect(zIndexOf("composition-tour-section")).toBe(1);
+    expect(zIndexOf("composition-tour-section")).toBe(3); // 09/11/2026 : premier plan au-dessus des en-têtes (2). [1 — remplacé.]
     expect(zIndexOf("composition-zone-before-tour")).toBeUndefined();
     expect(zIndexOf("composition-zone-after-tour")).toBeUndefined();
   });
@@ -8680,7 +8680,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         expect(translateY("composition-exercise-row-A")).toBe(0);
         expectOwnSurfaceRail("A");
         expect(zIndexOf("composition-activity-A")).toBe(1);
-        expect(zIndexOf("composition-zone-before-tour")).toBe(1);
+        expect(zIndexOf("composition-zone-before-tour")).toBe(3); // 09/11/2026 : premier plan au-dessus des en-têtes (2). [1 — remplacé.]
         expectRailJoined(elements, "A");
         settle();
         expect(rowShift("A")).toBe(dy);
@@ -8822,7 +8822,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         expect(rowShift("Y")).toBe(dy);
         for (let frame = 0; frame < 6; frame += 1) {
           expectOwnSurfaceRail("Y");
-          expect(zIndexOf("composition-tour-section")).toBe(1);
+          expect(zIndexOf("composition-tour-section")).toBe(3); // 09/11/2026 : premier plan au-dessus des en-têtes (2). [1 — remplacé.]
           expectRailJoined(elements, "Y");
           frames(2);
         }

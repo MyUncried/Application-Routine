@@ -2511,3 +2511,16 @@ Constats de Hermann, recopiés textuellement :
 - **Correction.** `CompositionScreen.tsx` (`LayoutCircuitBlock`) : boîte du Circuit à `offsetY + frameY`, comme son en-tête et ses cartes. Test `CompositionScreen.recette2composition.test.tsx` « boîte du Circuit dans son cadre (glisser) » : échoue sans la correction, passe avec.
 - **Annulé.** `93c10971` (écartement des repères, `3b437b53`) : il partait d'un mauvais diagnostic (« défaut antérieur »), établi sur les gestes dans un Cycle, eux-mêmes faussés par cette régression.
 - À vérifier sur iPhone : les six gestes des constats (Circuit seul, Circuit dans un Cycle), y compris la « transparence ».
+
+### Suite — transparence de la carte saisie (09/11/2026)
+
+Constat de Hermann, recopié textuellement :
+
+> L’ensemble des déplacements fonctionnent, dans et hors circuits et cycles, etc.
+> Le seul bug restant est le déplacement d’un mouvement :
+>  - hors d’un circuit : problème de transparence avec le circuit et le cycle (pas avec les mouvements, avec les lignes circuits et cycles)
+> - hors d’un cycle : problème de transparence avec le cycle seulement
+
+- **Cause (A).** L'élément saisi était au premier plan 1, sous les en-têtes de Circuit et de Cycle (2, posés pour l'en-tête collé pendant le défilement). Depuis t-depli (`5d5a5ec0`), chaque Circuit est aussi dans les vues de son cadre d'enveloppe : le premier plan posé sur le bloc restait sous les voisins du cadre.
+- **Correction.** `dragElevated` à 3 ; le cadre d'enveloppe d'un Circuit (niveau Séance, dans un Cycle, ancien modèle) porte le premier plan de l'élément saisi qu'il contient ; la liste des cartes d'un Circuit passe au-dessus de son en-tête quand l'une de ses cartes est saisie. Au repos, aucun changement (en-têtes collés au-dessus du contenu). Tests `recette2composition` « premier plan de la carte saisie au-dessus des en-têtes » (échouent sans, passent avec) ; 4 attentes de `CompositionScreen.test` portées de 1 à 3 (annotées).
+- À vérifier sur iPhone : sortir un mouvement d'un Circuit (au niveau Séance et dans un Cycle) et d'un Cycle : il passe au-dessus des lignes d'en-tête.

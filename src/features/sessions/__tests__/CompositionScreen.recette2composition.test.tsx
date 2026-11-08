@@ -1189,3 +1189,42 @@ describe("Recette du 08/11/2026 au soir — boîte du Circuit dans son cadre (gl
     expect(shape(probe.draft)).toBe("e0 a1 ca[a2] cb[b1] e9");
   });
 });
+
+/**
+ * Hermann, 09/11/2026 : « Le seul bug restant est le déplacement d’un mouvement : hors d’un circuit : problème de transparence avec le
+ * circuit et le cycle (pas avec les mouvements, avec les lignes circuits et cycles) ; hors d’un cycle : problème de transparence avec le
+ * cycle seulement » — l'élément saisi passe au-dessus des en-têtes (`stickyHeaderLayer`, 2) de son Circuit et de son Cycle, et le
+ * cadre d'enveloppe qui entoure le Circuit porte son premier plan.
+ */
+describe("09/11/2026 — premier plan de la carte saisie au-dessus des en-têtes", () => {
+  const z = (testID: string) => (StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style) as { zIndex?: number } | undefined)?.zIndex ?? 0;
+
+  it("carte d'un Circuit : liste des cartes et cadre du Circuit au-dessus de l'en-tête (2) ; au repos, rien de relevé", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureTwoCircuits();
+    expect(z("composition-envelope-circuit-ca-off")).toBe(0);
+    expect(z("composition-layout-circuit-ca-exercises")).toBe(0);
+    liftCard("a1", 181);
+    await settle();
+    expect(z("composition-layout-circuit-ca-exercises")).toBeGreaterThan(2);
+    expect(z("composition-envelope-circuit-ca-off")).toBeGreaterThan(2);
+    expect(z("composition-envelope-circuit-cb-off")).toBe(0);
+  });
+
+  it("carte d'un Circuit d'un Cycle : cadre du Circuit au-dessus de l'en-tête du Cycle (2)", async () => {
+    await renderComposition(draftOf(circuitInCycle, ["e0", "c1", "e9"]));
+    layout("composition-layout-exercise-e0", 0, 80);
+    layout("composition-layout-cycle-cy", 100, 200);
+    layout("composition-layout-cycle-cy-header-track", 14, 18);
+    layout("composition-envelope-circuit-cc-off", 41, 147);
+    layout("composition-layout-circuit-cc", 0, 147);
+    layout("composition-layout-circuit-cc-header-frame", 14, 18);
+    layout("composition-layout-circuit-cc-exercises", 41, 80);
+    layout("composition-activity-c1", 0, 80);
+    layout("composition-layout-exercise-e9", 320, 80);
+    liftCard("c1", 222);
+    await settle();
+    expect(z("composition-envelope-circuit-cc-off")).toBeGreaterThan(2);
+    expect(z("composition-layout-circuit-cc-exercises")).toBeGreaterThan(2);
+  });
+});
