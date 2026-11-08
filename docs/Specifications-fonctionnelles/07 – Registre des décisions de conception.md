@@ -2487,3 +2487,27 @@ Arbitrages du même soir (questions posées : avec la colonne à 16 du bord, les
 - **Liseré (B).** Carte directement dans la Séance : 0,75 ; dans un Circuit, un Circuit d'un Cycle ou directement dans un Cycle : 0,5 ; à compléter, à vérifier ou soulevée : 1, inchangé. Constantes de thème `borderWidths.exerciseCardSessionLevel` (0,75) et `borderWidths.exerciseCard` (0,5) (`src/shared/ui/tokens.ts`), relues par `OccurrenceCard` ; la carte d'exercice de la Composition est la seule carte d'Exercice hors Circuit de l'application (Catalogue, carte Séance et carte Mouvement : non concernées). Couleur et rayon inchangés : la couleur reste `#CCD1E0` à 50 % d'opacité (D-511), tracé intérieur.
 - **À CLARIFIER.** Couleur du liseré : la demande cite « #CCD1E0 … inchangé » ; le code applique `#CCD1E0` à 50 % (D-511) — conservé tel quel. Exercice directement dans un Cycle : liseré 0,5 (lecture de « pas dans un circuit ni un cycle ») et 12 sous lui comme sous un Circuit (la demande ne cite que « Dernier circuit »).
 - Rien vérifié sur iPhone.
+
+### Suite — régression du glisser hors d'un Circuit : cause démontrée (09/11/2026)
+
+Constats de Hermann, recopiés textuellement :
+
+> Crée un exercice libre, ok.
+> Créer un Tabata deux mouvements ok
+> Déplacer les mouvements dans le circuit ok
+> Déplacer le mouvement hors du circuit, pas ok : sont cadre est en transparence sur la première ligne du circuit;  sortie par le haut le circuit ne se déplace pas mais c’est le bas qui se déplace par le bas, je relâche le mouvement ressort par le bas. Je réintègre le mouvement dans le circuit, puis essaye de le sortir par le bas, le bord du circuit ne remonte pas, je relâche il revient à sa place.
+> Je déplace le mouvement hors circuit dans le circuit pas le haut, le premier mouvement se déplace vers le haut - en transparence - mais pas le cadre du circuit, je relâche il se dépose dedans.
+>
+> Bon c’est vraiment dégradé et ce n’était pas comme ça avant le changement des marges du circuit et du cycle…
+
+> Non désolé, j’ai fais ces déplacements 20 fois dans les anciennes versions et delà fonctionnait. Ce n’est pas parce qu’ils n’étaient pas dans ton cahier de recette que je n’ai pas testé.
+
+> Les mêmes problèmes demeurent. La régression a été apportée avant.
+
+> La tout fonctionne
+
+- **Historique (démontré par essais sur iPhone).** Marges horizontales d'avant : dégradé ; géométrie complète d'avant `7710ab00` : dégradé ; `0755517b` : dégradé ; `e369c1ae` : dégradé ; `1dcfdf70` (07/11, 12 h 36) : normal. Introduction : `5d5a5ec0` (08/11, t-depli : le bloc d'un Circuit est toujours dans les vues de son cadre d'enveloppe, mesuré à y = 0) ; correction partielle `81a7036f` (constat C : position du cadre rendue à l'en-tête et aux cartes, pas à la boîte du Circuit). Détection : recette du 08/11 au soir. Les marges du 08/11 au soir ne sont pas en cause.
+- **Cause (A).** La boîte du Circuit lue par le glisser restait au haut de la liste : bord haut immobile, bord bas qui descend, dépose au mauvais endroit.
+- **Correction.** `CompositionScreen.tsx` (`LayoutCircuitBlock`) : boîte du Circuit à `offsetY + frameY`, comme son en-tête et ses cartes. Test `CompositionScreen.recette2composition.test.tsx` « boîte du Circuit dans son cadre (glisser) » : échoue sans la correction, passe avec.
+- **Annulé.** `93c10971` (écartement des repères, `3b437b53`) : il partait d'un mauvais diagnostic (« défaut antérieur »), établi sur les gestes dans un Cycle, eux-mêmes faussés par cette régression.
+- À vérifier sur iPhone : les six gestes des constats (Circuit seul, Circuit dans un Cycle), y compris la « transparence ».

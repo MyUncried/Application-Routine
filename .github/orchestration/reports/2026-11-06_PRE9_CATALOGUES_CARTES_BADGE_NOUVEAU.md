@@ -762,3 +762,12 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 
 - Hermann, après 93c10971 : « Plus rien ne fonctionne correctement, je ne sais même pas par quoi commencer ».
 - 93c10971 (écartement des repères du glisser, non vérifié sur iPhone) annulé par commit d'annulation (`git revert`, historique conservé) : glisser revenu à l'état de 7710ab00. Le diagnostic (défaut antérieur, gestes 1 et 2 KO sur `e369c1ae`) reste valable ; correction à reprendre geste par geste, avec Hermann.
+
+### Régression du glisser hors d'un Circuit — cause démontrée et corrigée (09/11/2026)
+
+- Départ : 3b437b53. Bissection sur iPhone (copie du dépôt via `git worktree`, `.expo/settings.json` recopié pour garder l'adresse du tunnel, `node_modules` lié puis délié, copie supprimée ; versions antérieures à la migration 023 exclues pour protéger les données) : `1dcfdf70` normal, `e369c1ae` dégradé.
+- Introduction démontrée : `5d5a5ec0` (bloc mesuré dans son cadre) ; correction partielle : `81a7036f` (sans la boîte du Circuit). Les marges de `7710ab00` ne sont pas en cause.
+- Correction (A) : `reportBlock` de `LayoutCircuitBlock` à `offsetY + frameY`. Test de non-régression (mesures réelles : cadre à 100, bloc à 0) : 1 échec sans, 1 succès avec.
+- Erreur de méthode reconnue : j'ai d'abord affirmé un « défaut antérieur » sans avoir testé le scénario simple sur la version validée, puis livré 93c10971 sans preuve (annulé par 3b437b53).
+- Constats de Hermann recopiés dans ch07 (« Suite — régression du glisser hors d'un Circuit »).
+- Tests : `tsc --noEmit` OK ; `src/features/sessions` + `src/domain/sessions` : 156 suites, 2 660 tests passés. Suite complète non relancée (mémoire). Rien vérifié sur iPhone.

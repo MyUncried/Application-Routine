@@ -1149,3 +1149,43 @@ describe("Contre-recette n° 3 ter (03/11) — variante : arrêts sur les Circui
     expect({ before, after: states(), shape: shape(probe.draft) }).toEqual({ before, after: before.map((value) => !value), shape: "e9 e0 ca[a1,a2] cb[b1]" });
   });
 });
+
+/**
+ * Recette du 08/11/2026 au soir (Hermann : « Déplacer le mouvement hors du circuit, pas ok : sont cadre est en transparence sur la
+ * première ligne du circuit; sortie par le haut le circuit ne se déplace pas mais c'est le bas qui se déplace par le bas, je relâche
+ * le mouvement ressort par le bas. ») — régression démontrée par essais sur iPhone : `1dcfdf70` normal, `e369c1ae` dégradé. Cause :
+ * depuis t-depli (5d5a5ec0), le bloc d'un Circuit est mesuré dans son cadre d'enveloppe (y = 0) ; le constat C (81a7036f) a rendu
+ * la position du cadre à l'en-tête et aux cartes, pas à la boîte du Circuit lue par le glisser — le Circuit y était vu en haut de
+ * la liste. Mesures réelles : cadre à 100 dans la liste, bloc à 0 dans le cadre.
+ */
+describe("Recette du 08/11/2026 au soir — boîte du Circuit dans son cadre (glisser)", () => {
+  function measureInFrames() {
+    layout("composition-layout-exercise-e0", 0, 80);
+    layout("composition-envelope-circuit-ca-off", 100, 220);
+    layout("composition-layout-circuit-ca", 0, 220);
+    layout("composition-layout-circuit-ca-header-frame", 14, 18);
+    layout("composition-layout-circuit-ca-exercises", 41, 169);
+    layout("composition-activity-a1", 0, 80);
+    layout("composition-activity-a2", 89, 80);
+    layout("composition-envelope-circuit-cb-off", 340, 130);
+    layout("composition-layout-circuit-cb", 0, 130);
+    layout("composition-layout-circuit-cb-header-frame", 14, 18);
+    layout("composition-layout-circuit-cb-exercises", 41, 80);
+    layout("composition-activity-b1", 0, 80);
+    layout("composition-layout-exercise-e9", 490, 80);
+  }
+
+  it("carte sortie par le haut : le bord haut du Circuit descend (place ouverte au-dessus), son bord bas reste en place à 1 près ; posée avant lui", async () => {
+    await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
+    measureInFrames();
+    // a1 : 141–221 dans la liste ; centre 181. Doigt remonté de 100 : entre e0 et le Circuit A.
+    const card = liftCard("a1", 181);
+    fireEvent(card, "responderMove", { nativeEvent: { pageX: 200, pageY: 81 } });
+    await settle();
+    // Place ouverte dans la Séance (80 + 8) ; bord bas : carte retirée du Circuit (−(80 + 9)) puis place au-dessus (+88).
+    expect(translationOf("composition-layout-circuit-ca-surface-layers-top")).toBe(88);
+    expect(translationOf("composition-layout-circuit-ca-surface-layers-bottom")).toBe(-1);
+    fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 81, touches: [] } });
+    expect(shape(probe.draft)).toBe("e0 a1 ca[a2] cb[b1] e9");
+  });
+});

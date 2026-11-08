@@ -9266,7 +9266,11 @@ function LayoutCircuitBlock({
   const { openOverlay, onToggleOverlay, drag } = context;
   const report = ghost ? undefined : drag?.reportBox;
   const source = useMemo<LayoutItemRef>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
-  const reportBlock = useReportedBox(layoutItemKey(source), offsetY, report, urgent);
+  // Recette du 08/11/2026 au soir (Hermann : « sortie par le haut le circuit ne se déplace pas mais c'est le bas qui se déplace par le
+  // bas, je relâche le mouvement ressort par le bas ») — régression démontrée par essais sur iPhone (1dcfdf70 normal, e369c1ae dégradé) :
+  // le bloc est mesuré dans son cadre d'enveloppe (y = 0, depuis t-depli, 5d5a5ec0) ; sa boîte, lue par le glisser, prend aussi la
+  // position du cadre (`frameY`), comme l'en-tête et les cartes depuis le constat C (81a7036f). [`offsetY` seul — remplacé.]
+  const reportBlock = useReportedBox(layoutItemKey(source), offsetY === null ? null : offsetY + frameY, report, urgent);
   const reportHeader = useReportedBox(
     layoutHeaderKey("CIRCUIT", circuit.id),
     offsetY === null || blockY === null ? null : offsetY + blockY,
