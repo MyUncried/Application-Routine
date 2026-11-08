@@ -45,10 +45,10 @@ function renderCard(
         category={null}
         bodyZones={null}
         summary="10 rép."
-        estimatedDuration={null}
+        level={null}
         hasSideChange={false}
-        bordered
-        recovery={null}
+        variant="OUT_OF_CIRCUIT"
+        borderWidth={0.5}
         attenuated={options.attenuated}
         media={media}
       />
@@ -86,22 +86,22 @@ describe("OccurrenceCard — photo ou affiche vidéo dans le gabarit (PRE-6 stor
     expect(firstMediaPreviewSource([{ asset: { uri: "a", kind: "PHOTO", mimeType: "video/mp4" } }])).toEqual({ uri: "a", isVideo: false });
   });
 
-  it("photo: fills the 64 template (border, radius and fill kept), cover crop, resolved URI, no own accessibility label (the card's name is the alternative text), no generic icon", () => {
+  // Demande de Hermann du 08/11/2026 (D-511) : gabarit de rayon 8 ; la photo couvre tout le gabarit, bord compris (Figma `11810:2106`).
+  it("photo: fills the whole 64 template (radius 8, no frame border under the photo), cover crop, resolved URI, no own accessibility label (the card's name is the alternative text), no generic icon", () => {
     renderCard(photo);
     const media = screen.getByTestId("composition-exercise-media", hidden);
     expect(StyleSheet.flatten(media.props.style)).toMatchObject({
       width: 64,
       height: 64,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: "#7A7A80",
+      borderRadius: 8,
+      borderWidth: 0,
       backgroundColor: "#EEF0F6",
       overflow: "hidden",
     });
     const image = within(media).getByTestId("composition-exercise-media-image", hidden);
     expect(image.props.source).toEqual([expect.objectContaining({ uri: "file:///documents/kodjo-media/p1.jpg" })]);
     expect(image.props.contentFit).toBe("cover");
-    expect(StyleSheet.flatten(image.props.style)).toMatchObject({ width: "100%", height: "100%", borderRadius: 11 });
+    expect(StyleSheet.flatten(image.props.style)).toMatchObject({ width: "100%", height: "100%", borderRadius: 8 });
     // Pas d'arrêt d'accessibilité en double ni de libellé mort : la carte porte le nom.
     expect(image.props.accessible).toBe(false);
     expect(image.props.accessibilityLabel).toBeUndefined();
@@ -132,10 +132,10 @@ describe("OccurrenceCard — photo ou affiche vidéo dans le gabarit (PRE-6 stor
           category={null}
           bodyZones={null}
           summary="10 rép."
-          estimatedDuration={null}
+          level={null}
           hasSideChange={false}
-          bordered
-          recovery={null}
+          variant="OUT_OF_CIRCUIT"
+          borderWidth={0.5}
           media={source}
         />
       </ActivityDefinitionServiceContext.Provider>
@@ -219,10 +219,10 @@ describe("OccurrenceCard — photo ou affiche vidéo dans le gabarit (PRE-6 stor
         category={null}
         bodyZones={null}
         summary="10 rép."
-        estimatedDuration={null}
+        level={null}
         hasSideChange={false}
-        bordered={false}
-        recovery={null}
+        variant="OUT_OF_CIRCUIT"
+        borderWidth={0.5}
         media={photo}
       />,
     );
@@ -234,7 +234,8 @@ describe("OccurrenceCard — photo ou affiche vidéo dans le gabarit (PRE-6 stor
   it("placement (arbitrage D6): the media is greyed with the rest of the card", () => {
     renderCard(photo, { attenuated: true });
     const media = screen.getByTestId("composition-exercise-media", hidden);
-    expect(StyleSheet.flatten(media.props.style).opacity).toBe(0.45);
+    // 08/11/2026 : toute la carte est grisée (contenu commun), le gabarit avec elle.
+    expect(StyleSheet.flatten(screen.getByTestId("composition-exercise-card-content", hidden).props.style).opacity).toBe(0.45);
     expect(within(media).getByTestId("composition-exercise-media-image", hidden)).toBeTruthy();
   });
 

@@ -152,4 +152,8 @@ Seul le Point d’arrêt se pose. La récupération ne se pose plus ; sa saisie 
 
 - Écran de référence : « P-AMRAP — Séance, circuit avec buy-in — Cartes au format catalogue » `11789:21914`.
 - Composant : « DSF / Cards / Exercice — Composition » `11810:2159`, page « Design system — Fondations » ; variantes « Hors circuit » `11810:2102`, « Dans un circuit » `11810:2132`. Dimensions 362 × 72 confirmées par lecture directe des métadonnées.
-- Déploiement annoncé par Hermann : 120 instances sur 37 écrans, aucune carte manuelle restante. Ce décompte n’a pas été recompté dans cette passe ; les deux écrans de référence ont été contrôlés directement. Aucune conformité du code n’est déclarée.
+- Déploiement annoncé par Hermann : 120 instances sur 37 écrans, aucune carte manuelle restante. Ce décompte n’a pas été recompté dans cette passe ; les deux écrans de référence ont été contrôlés directement. Aucune conformité du code n’est déclarée. [Code : carte réalisée le 08/11/2026, voir ci-dessous ; conformité visuelle à vérifier sur iPhone.]
+
+### Réalisation dans l’application — 08/11/2026
+
+Demande de Hermann du 08/11/2026 : « Utiliser le composant « Carte d'exercice » dans la Composition de séance. » Composant partagé `OccurrenceCard` (`src/features/sessions/OccurrenceCard.tsx`) pour toutes les cartes d’Exercice de la Composition ; variante par appartenance effective à un Circuit. Compléments de prescription : départ et incrément (« 10 rép. +2/tour », « 1 rép. +1/min »), « à l’échec » sans durée pour une seule série, aucune estimation sur la carte. Durées au format `S″` / `M′SS″` / `Hh MM′` : les exemples « 3 × 1 min 30 » et « 45 s » ci-dessus s’écrivent « 3 × 1′30″ » et « 45″ » [format des durées du 08/11/2026 au soir]. Bandeau « Confirmer N points d’arrêt ajoutés » (D-513). Texte normatif recopié et points À CLARIFIER : chapitre 07, « Composition — carte d'exercice au composant DSF / Cards / Exercice — Composition (08/11/2026) ».

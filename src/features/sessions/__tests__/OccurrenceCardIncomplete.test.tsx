@@ -1,17 +1,21 @@
 import { describe, expect, it } from "@jest/globals";
 import { render, screen } from "@testing-library/react-native";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
 
-import { OccurrenceCard, occurrenceCardIncompleteSurface } from "@/features/sessions/OccurrenceCard";
+import { OccurrenceCard, occurrenceCardIncompleteSurface, occurrenceCardToVerifySurface } from "@/features/sessions/OccurrenceCard";
 import { strings } from "@/shared/i18n";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors } from "@/shared/ui/tokens";
 
 /**
- * PRE-9, recette iPhone du 29/10 — carte incomplète de la Composition : « Paramètres à compléter. »
- * sur deux lignes, chronomètre à sa place (colonne des valeurs à sa largeur minimale), liseré rouge.
- * Jest ne prouve pas le rendu sur iPhone.
+ * PRE-9, recette iPhone du 29/10 — carte incomplète de la Composition : « Paramètres à compléter. » en rouge, fond et
+ * liseré rouges. Demande de Hermann du 08/11/2026 (composant « DSF / Cards / Exercice — Composition », D-511) : la
+ * colonne des valeurs et le chronomètre n'existent plus ; la prescription n'est jamais abrégée, la catégorie lui cède
+ * la place, elle tient sur la ligne 2. [Deux lignes, chronomètre à sa place (recette du 29/10, contre-recette du
+ * 30/10) — remplacé le 08/11/2026.] Jest ne prouve pas le rendu sur iPhone.
  */
 const INCOMPLETE = strings.executionParameters.card.incomplete;
+const TO_VERIFY = strings.executionParameters.card.toVerify;
 const hidden = { includeHiddenElements: true } as const;
 const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style);
 
@@ -19,65 +23,47 @@ function renderCard(summary: string, attenuated = false) {
   render(
     <OccurrenceCard
       name="Squat assisté"
-      category={null}
+      level={null}
+      category={{ name: "Renforcement", color: "#000000" }}
       bodyZones={null}
       summary={summary}
-      estimatedDuration={null}
       hasSideChange={false}
-      bordered
-      recovery={<Text testID="recovery">20 s</Text>}
+      variant="OUT_OF_CIRCUIT"
+      borderWidth={1}
+      recoverySeconds={20}
       attenuated={attenuated}
     />,
   );
 }
 
-describe("OccurrenceCard — carte incomplète (recette du 29/10)", () => {
-  it("the summary is written on two lines; the values column keeps its minimum width (chronometer in place)", () => {
+describe("OccurrenceCard — carte incomplète ou à vérifier", () => {
+  it("« Paramètres à compléter. » : une ligne, rouge, jamais abrégée ; la récupération reste en ligne 3", () => {
     renderCard(INCOMPLETE);
-    expect(screen.getByTestId("composition-exercise-summary", hidden).props.numberOfLines).toBe(2);
-    expect(style("composition-exercise-values-column")).toMatchObject({ width: "35%", minWidth: "35%" });
-    expect(style("composition-exercise-work")).toMatchObject({ alignSelf: "flex-start" });
-    expect(style("composition-exercise-summary").color).toBe(colors.danger);
-    // La ligne 3 de la colonne des valeurs est laissée à la seconde ligne.
-    expect(screen.queryByTestId("recovery", hidden)).toBeNull();
-    expect(screen.queryByTestId("composition-exercise-recovery-slot", hidden)).toBeNull();
+    const summary = screen.getByTestId("composition-exercise-summary", hidden);
+    expect(summary.props.numberOfLines).toBe(1);
+    expect(style("composition-exercise-summary")).toMatchObject({ color: colors.danger, flexShrink: 0 });
+    expect(style("composition-exercise-category")).toMatchObject({ flex: 1, minWidth: 0 });
+    expect(screen.getByTestId("composition-recovery-line-label", hidden)).toBeTruthy();
+    // Aucun chronomètre ni colonne des valeurs.
+    expect(screen.queryByTestId("composition-exercise-work-symbol", hidden)).toBeNull();
+    expect(screen.queryByTestId("composition-exercise-values-column", hidden)).toBeNull();
   });
 
-  it("contre-recette du 30/10 — the work row spans lines 2 and 3 (two lines of 15 fit, no iOS truncation); the stopwatch keeps its box", () => {
-    renderCard(INCOMPLETE);
-    // 16 (ligne 2) + 2 (écart) + 17 (ligne 3) : la hauteur de mesure du texte en contient deux lignes.
-    const row = style("composition-exercise-work-row");
-    expect(row).toMatchObject({ height: 35, alignItems: "flex-start" });
-    expect(row.height).toBeGreaterThanOrEqual(2 * style("composition-exercise-summary").lineHeight);
-    const symbolBox = style("composition-exercise-work-symbol-box");
-    expect(symbolBox).toMatchObject({ height: 16, justifyContent: "center" });
+  it("« Paramètre à vérifier » : orange", () => {
+    renderCard(TO_VERIFY);
+    expect(style("composition-exercise-summary").color).toBe(toVerifyColors.text);
   });
 
-  it("the stopwatch box is identical on a complete card (same position)", () => {
-    renderCard("10 rép.");
-    expect(style("composition-exercise-work-row").height).toBe(16);
-    const symbolBox = style("composition-exercise-work-symbol-box");
-    expect(symbolBox).toMatchObject({ height: 16, justifyContent: "center" });
-  });
-
-  it("a complete card is unchanged: one line, column free to widen, recovery shown", () => {
-    renderCard("10 rép.");
-    expect(screen.getByTestId("composition-exercise-summary", hidden).props.numberOfLines).toBe(1);
-    expect(style("composition-exercise-values-column").width).toBeUndefined();
-    expect(screen.getByTestId("recovery", hidden)).toBeTruthy();
-  });
-
-  it("placement (attenuated): one line, the recovery frame keeps line 3", () => {
-    renderCard(INCOMPLETE, true);
-    expect(screen.getByTestId("composition-exercise-summary", hidden).props.numberOfLines).toBe(1);
-    expect(screen.getByTestId("recovery", hidden)).toBeTruthy();
-  });
-
-  it("incomplete surface: red tint plus a thin red border", () => {
+  it("incomplete surface: red tint plus a thin red border; to verify: orange tint, transparent border", () => {
     expect(occurrenceCardIncompleteSurface).toEqual({
       backgroundColor: colors.dangerSurface,
       borderWidth: 1,
       borderColor: colors.danger,
+    });
+    expect(occurrenceCardToVerifySurface).toEqual({
+      backgroundColor: toVerifyColors.surface,
+      borderWidth: 1,
+      borderColor: "transparent",
     });
   });
 });

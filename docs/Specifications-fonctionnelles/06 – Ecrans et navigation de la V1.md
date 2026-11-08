@@ -2817,12 +2817,17 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 | série unique, durée | `45 s` | inchangé |
 | trois séries identiques, durée | `3 × 45 s` | inchangé |
 | trois séries variables, répétitions | **`10 · 12 · 14 rép.`** | **nouveau** — remplaçait « 3 séries variables » |
-| trois séries, durée composée | `3 × 1 min 30` | inchangé |
+| trois séries, durée composée | `3 × 1 min 30` [`3 × 1′30″` depuis le format des durées du 08/11/2026 au soir] | inchangé |
 | bilatéral | `3 × 10 rép.` + pastille de changement de côté, sans direction (D-407) | inchangé |
 | à l'échec | `3 séries à l'échec` | inchangé |
+| une seule série, condition d'arrêt à l'échec | **`à l'échec`**, sans durée | **nouveau** (08/11/2026) — remplaçait « 1 série à l'échec » sur la carte |
+| AMRAP, Volume croissant | **`10 rép. +2/tour`** | **nouveau** (08/11/2026) — départ et incrément avec son unité |
+| Death by | **`1 rép. +1/min`** | **nouveau** (08/11/2026) — remplaçait « 1 / +1 rép. » (03/11/2026) |
 | douze séries variables | **`10 · 12 · … rép.`** | **nouveau** — remplaçait « 12 séries variables » |
 
-Les rendus variables remplacent l’ancien libellé limité au nombre de séries. Le tableau ci-dessus présente sept exemples, sans prétendre constituer un inventaire exhaustif des états Figma.
+Les rendus variables remplacent l’ancien libellé limité au nombre de séries. Le tableau ci-dessus présente sept exemples, sans prétendre constituer un inventaire exhaustif des états Figma. [Dix exemples depuis la demande de Hermann du 08/11/2026.]
+
+**Demande de Hermann du 08/11/2026 (carte « DSF / Cards / Exercice — Composition », D-511) :** la carte affiche la prescription — nombre de séries et cible uniquement ; pour un exercice à incrément, le départ et l'incrément avec son unité (les formes « 1 → n rép. » et « 10 · 12 · … rép. » ne conviennent pas à ce cas) ; jamais d'estimation « ≈ » ou « ≥ », qui appartiennent aux en-têtes de circuit, de cycle et de séance. Les durées suivent le format `S″` / `M′SS″` / `Hh MM′`. Texte complet : chapitre 07, « Composition — carte d'exercice au composant DSF / Cards / Exercice — Composition (08/11/2026) ».
 
 ##### Le repli, et sa règle
 

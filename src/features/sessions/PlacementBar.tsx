@@ -20,9 +20,10 @@ const CANCEL_TEXT = { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSi
 
 /**
  * Libellé du bouton Confirmer selon `placementConfirmation` (PRE-6 story 6.3, D-441, arbitrage du
- * 22/10/2026) : ajouts seuls → « Confirmer N pause(s) ajoutée(s) » (singulier à 0 et 1, comme en
- * français) ; retrait de point, mélange ou modification de durée seule → « Confirmer les
- * modifications » ; rien à confirmer → « Confirmer 0 pause ajoutée », bouton indisponible.
+ * 22/10/2026) : ajouts seuls → « Confirmer N point(s) d’arrêt ajouté(s) » (D-513, 08/11/2026 ; singulier à 0
+ * et 1, comme en français) ; retrait de point, mélange ou modification de durée seule → « Confirmer les
+ * modifications » ; rien à confirmer → « Confirmer 0 point d’arrêt ajouté », bouton indisponible.
+ * [« Confirmer N pause(s) ajoutée(s) » — remplacé le 08/11/2026.]
  */
 export function formatPlacementConfirmLabel(confirmation: PlacementConfirmation): string {
   const t = strings.screens.composition.placement;

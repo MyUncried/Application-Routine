@@ -892,8 +892,10 @@ export const fr = {
         addStopPointAfterCycleAccessibilityLabel: "Ajouter un point d’arrêt après le cycle",
         stopPointAtCycleStartAccessibilityLabel: "Point d’arrêt au début du cycle",
         existingStopPointAfterCycleAccessibilityLabel: "Point d’arrêt après le cycle",
-        confirmSingular: "Confirmer {n} pause ajoutée",
-        confirmPlural: "Confirmer {n} pauses ajoutées",
+        // D-513 (Hermann, 06/11/2026), réalisé le 08/11/2026 : « Confirmer N points d’arrêt ajoutés ».
+        // [« Confirmer {n} pause ajoutée » / « Confirmer {n} pauses ajoutées » — remplacés le 08/11/2026.]
+        confirmSingular: "Confirmer {n} point d’arrêt ajouté",
+        confirmPlural: "Confirmer {n} points d’arrêt ajoutés",
         // PRE-6 story 6.3 (D-441, arbitrage du 22/10/2026) : retrait de point, mélange ou modification
         // de durée seule.
         confirmChanges: "Confirmer les modifications",
@@ -1199,7 +1201,14 @@ export const fr = {
         // PRE-6 (story 5.1, D-435, Figma `9808:19924`) : séparateur entre la synthèse et la durée
         // estimée des Répétitions avec bip, sur la ligne 2 de la carte v2 (« 10 rép. / ≈ 1 min »).
         // Contre-recette n° 3 ter du 03/11/2026 (f3-deathby) : « 1 / +1 rép. ».
-        deathBy: "{start} / +{increment} {unit}",
+        // [« {start} / +{increment} {unit} » (Death by, 03/11/2026) — remplacé le 08/11/2026 par `increment`.]
+        // Demande de Hermann du 08/11/2026 (carte « DSF / Cards / Exercice — Composition ») : départ et incrément avec son
+        // unité — « 10 rép. +2/tour » (AMRAP, Volume croissant), « 1 rép. +1/min » (Death by, par intervalle).
+        increment: "{start} {sign}{increment}/{period}",
+        incrementPlus: "+",
+        incrementMinus: "−",
+        incrementPerRound: "tour",
+        incrementPerMinute: "min",
         workEstimateSeparator: " / ",
       },
     },

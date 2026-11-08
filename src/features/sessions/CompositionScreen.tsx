@@ -151,6 +151,7 @@ import { firstMediaPreviewSource } from "@/features/activities/MediaPreview";
 import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
 import { useMovementLevelPositions } from "@/features/activities/useMovementLevelPositions";
 import { withLevelSuffix } from "@/features/activities/movementChoicePresentation";
+import { levelPastilleLabel } from "@/features/activities/MovementLevelMenu";
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
@@ -243,7 +244,6 @@ import {
 } from "@/features/sessions/compositionGesture";
 import {
   isDisplayableRecovery,
-  OccurrenceRecovery,
   STOP_POINT_LINE_HEIGHT,
   StopPointLine,
 } from "@/features/sessions/ActivityRecoveryLine";
@@ -256,8 +256,7 @@ import {
   formatCompositionSessionDuration,
   formatExerciseBodyZones,
   formatOccurrenceAccessibilityLabel,
-  formatOccurrenceEstimatedDuration,
-  formatOccurrenceSummary,
+  formatOccurrencePrescription,
   isIncompleteSummary,
   isToVerifySummary,
   resolveOccurrenceCategory,
@@ -265,13 +264,14 @@ import {
   type OccurrenceCircuitContext,
 } from "@/features/sessions/compositionPresentation";
 import {
+  OCCURRENCE_CARD_BORDER_WIDTH,
+  OCCURRENCE_CARD_HAIRLINE_WIDTH,
   OCCURRENCE_CARD_HEIGHT,
   OCCURRENCE_CARD_MEDIA,
   OCCURRENCE_CARD_RADIUS,
   OccurrenceCard,
   occurrenceCardHeight,
   occurrenceCardIncompleteSurface,
-  occurrenceCardInCircuitSurface,
   occurrenceCardSurface,
   occurrenceCardToVerifySurface,
 } from "@/features/sessions/OccurrenceCard";
@@ -6862,7 +6862,10 @@ type CompositionActivityRowProps = {
    */
   readonly canDuplicate?: boolean;
   readonly onDelete: () => void;
-  /** PRE-9 C.4 (référence Formats §5) : « Buy-in » / « Buy-out » à la place de la récupération, ou rien. */
+  /**
+   * PRE-9 C.4 (référence Formats §5) : « Buy-in » / « Buy-out », ou rien. D-511 (08/11/2026) : en ligne 3, avant la
+   * récupération. [« à la place de la récupération » — remplacé le 08/11/2026.]
+   */
   readonly passageLabel?: string | null;
   /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
   readonly onMoveUp: (() => void) | null;
@@ -7496,10 +7499,16 @@ function CompositionActivityRow({
   // PRE-7 (R-6, D-445 C06, MFN-10 l.426) : la carte n'a pas de pastille — suffixe dérivé « - Nn » à
   // la suite du nom du mouvement, puis le suffixe de copie (Q3) ; jamais stocké.
   const displayedName = occurrenceCardName(activity, levelPositions);
+  // Demande de Hermann du 08/11/2026 (composant « DSF / Cards / Exercice — Composition », D-511) : le niveau
+  // s'affiche à droite de la ligne 1 ; le nom visible ne porte plus le suffixe « - Nn » (le nom accessible et les
+  // repères des points d'arrêt gardent `occurrenceCardName`).
+  const levelPosition = levelPositions.get(activity.sourceMovementId ?? "") ?? null;
+  const levelLabel = levelPosition === null ? null : levelPastilleLabel(levelPosition);
+  const visibleName = occurrenceDisplayName(activity.name, activity.copyNumber);
   // PRE-6 (story 2.2) : contenu de la carte d'occurrence (`5544:6797`).
   const category = resolveOccurrenceCategory(activity.categoryId, categoriesReferential);
-  const estimatedDuration = formatOccurrenceEstimatedDuration(activity, circuitContext);
-  const summary = formatOccurrenceSummary(activity);
+  // D-511 (08/11/2026) : prescription seule — jamais de durée estimée (« / ≈ … ») sur la carte.
+  const summary = formatOccurrencePrescription(activity, circuitContext);
   // PRE-7 (D-448, point 7, recette JA2 nv-5) : synthèse « Paramètres à compléter. » (par exemple une
   // phase sans durée après un changement de rang) → carte sur `colors.dangerSurface`.
   // Décisions de Hermann du 07/11/2026 (EMOM), C12 : carte d'un Exercice EMOM dont le travail prévu atteint l'intervalle → rouge.
@@ -7522,32 +7531,24 @@ function CompositionActivityRow({
    * Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé (`activityBlockDragged`) ou
    * incomplète (recette du 29/10 : liseré rouge, `occurrenceCardIncompleteSurface`).
    */
-  const isCardBordered = activity.structuralPosition !== "IN_TOUR" || isDragged || isIncomplete || isToVerify;
+  /**
+   * D-511 (08/11/2026) : liseré de 0,5 dans les deux variantes ; 1 à compléter, à vérifier ou soulevée. Le contenu
+   * est mesuré depuis le bord extérieur (`OccurrenceCard`, `borderWidth`). [Bord 1 hors Circuit, aucun dans le
+   * Circuit sauf soulevée, à compléter ou à vérifier (`isCardBordered`, D-435) — remplacé le 08/11/2026.]
+   */
+  const cardBorderWidth = isDragged || isIncomplete || isToVerify ? OCCURRENCE_CARD_BORDER_WIDTH : OCCURRENCE_CARD_HAIRLINE_WIDTH;
   /**
    * PRE-6 (story 5.3, D-435) : emplacement de l'occurrence en placement (Domaine, `placementSlots`)
    * — zone de récupération en ligne 3 ; point d'arrêt dans la rangée sous la carte.
    */
   const placementSlot = placement === null ? null : placement.slotFor(activity.id);
   const placementStopPoint = placementSlot?.stopPoint ?? null;
-  /**
-   * Ligne 3 de la carte. PRE-6 story 7.2 (D-442) : en placement, toute zone de récupération d'un
-   * Exercice est le cadre sélectionnable (`PlacementRecoveryFrame` : sélectionnée — ajout, ou
-   * récupération existante, 0 comprise, conservée — ou non) ; hors placement, la récupération est un
-   * simple affichage (`OccurrenceRecovery`) : le toucher et l'appui long reviennent à la carte.
+  /*
+   * Ligne 3 de la carte (D-511, demande de Hermann du 08/11/2026) : rôle « Buy-in » / « Buy-out » puis, si une
+   * récupération est prévue, sablier et durée — les deux ensemble lorsqu'ils existent. Simple affichage : le
+   * toucher et l'appui long reviennent à la carte. [Référence Formats §5 : « Buy-in » / « Buy-out » à la place de la
+   * récupération, Semi Bold 12 bleu (`passageLabel`) ; `OccurrenceRecovery` passé en nœud — remplacés le 08/11/2026.]
    */
-  const recoveryNode: React.ReactNode =
-    passageLabel != null ? (
-      // Référence Formats §5 : troisième ligne, à la place de la récupération, alignée à droite.
-      <Text style={styles.passageLabel} numberOfLines={1} testID={`composition-activity-passage-${activity.id}`}>
-        {passageLabel}
-      </Text>
-    ) : (
-      <OccurrenceRecovery
-        recoverySeconds={displayedRecoverySeconds}
-        hiddenFromAccessibility={placement !== null}
-        testID={`composition-activity-recovery-${activity.id}-recovery`}
-      />
-    );
   /**
    * Rangée sous la carte, en placement seulement (story 5.3). PRE-6 story 6.2 (D-441) : hors
    * placement, le Point d'arrêt n'est plus dans le bloc de la carte (rangée autonome `StopPointRow`).
@@ -7752,8 +7753,8 @@ function CompositionActivityRow({
         }
         style={[
           styles.activityBlock,
-          // PRE-6 (story 5.1, D-435) : dans le Circuit, carte sans bord ; l'état soulevé garde le sien.
-          activity.structuralPosition === "IN_TOUR" && !isDragged ? occurrenceCardInCircuitSurface : null,
+          // D-511 (08/11/2026) : même liseré dans le Circuit et hors Circuit. [PRE-6 (story 5.1, D-435) : dans le
+          // Circuit, carte sans bord (`occurrenceCardInCircuitSurface`) — remplacé le 08/11/2026.]
           isIncomplete && !isDragged ? occurrenceCardIncompleteSurface : null,
           isToVerify && !isDragged ? occurrenceCardToVerifySurface : null,
           isDragged ? styles.activityBlockDragged : null,
@@ -7769,27 +7770,28 @@ function CompositionActivityRow({
         testID={`composition-exercise-row-${activity.id}`}
       >
         {/*
-         * PRE-6 (story 5.1, D-435, carte v2 `9798:44464`) : contenu de la carte d’occurrence
-         * (média, nom et côté, Catégorie et travail, Zones et récupération). La surface reste
-         * portée par ce `Pressable` : à l’état soulevé (CE-T02-02), son fond remplace le blanc
-         * derrière le contenu, sans opacité appliquée aux textes.
-         *
-         * Récupération en ligne 3 : story 7.2 (D-442) — hors placement, simple affichage (le toucher
-         * ouvre l’Exercice, l’appui long saisit la carte) ; en placement (story 5.3), cadre
-         * sélectionnable ; le reste de la carte est inactif (story 4.1).
+         * Demande de Hermann du 08/11/2026 : contenu de la carte par le composant « DSF / Cards / Exercice —
+         * Composition » (`11810:2159`, D-511) — variante déduite de l'appartenance effective à un Circuit
+         * (un Exercice directement dans un Cycle est « Hors circuit »). La surface reste portée par ce
+         * `Pressable` : à l’état soulevé (CE-T02-02), son fond remplace le blanc derrière le contenu.
+         * [PRE-6 (story 5.1, D-435, carte v2 `9798:44464`) — remplacée le 08/11/2026.]
          */}
         <OccurrenceCard
-          name={displayedName}
+          name={visibleName}
+          level={levelLabel}
           category={category}
           bodyZones={bodyZones}
           summary={summary}
-          estimatedDuration={estimatedDuration}
           hasSideChange={hasSideChange}
-          bordered={isCardBordered}
-          recovery={recoveryNode}
-          // PRE-6 (story 5.3) : en placement, seul le contrôle de la ligne 3 reste accessible.
+          variant={activity.structuralPosition === "IN_TOUR" ? "IN_CIRCUIT" : "OUT_OF_CIRCUIT"}
+          borderWidth={cardBorderWidth}
+          role={passageLabel}
+          roleTestID={`composition-activity-passage-${activity.id}`}
+          recoverySeconds={displayedRecoverySeconds}
+          recoveryTestID={`composition-activity-recovery-${activity.id}-recovery`}
+          // PRE-6 (story 5.3) : en placement, le contenu de la carte est retiré de l'accessibilité.
           hideContentFromAccessibility={placement !== null}
-          // Arbitrage D6 (PR #391) : en placement, carte grisée, sa récupération de ligne 3 non.
+          // Arbitrage D6 (PR #391) : en placement, carte grisée.
           attenuated={placement !== null}
           // PRE-6 story 5.1b (D3 remplacé) : premier média de l'occurrence, transporté par le
           // brouillon (Catalogue, Séance relue, duplication), sinon l'icône générique.
@@ -9002,10 +9004,17 @@ function LayoutExerciseRow({
     () => ({ ...exercise, structuralPosition: circuit === null ? "BEFORE_TOUR" : "IN_TOUR" }),
     [circuit, exercise],
   );
+  // 08/11/2026 : intervalle du Circuit porteur (Death by groupé), période de l'incrément de la prescription (« +1/min »).
+  const carrierWindow = circuit?.format?.settings.windowSeconds;
   const circuitContext: OccurrenceCircuitContext =
     circuit === null
       ? { emomOverflowIds: context.emomOverflowIds }
-      : { circuitNature: circuit.nature, tourRepeatCount: circuit.repeatCount, emomOverflowIds: context.emomOverflowIds };
+      : {
+          circuitNature: circuit.nature,
+          tourRepeatCount: circuit.repeatCount,
+          emomOverflowIds: context.emomOverflowIds,
+          ...(typeof carrierWindow === "number" ? { carrierIntervalSeconds: carrierWindow } : {}),
+        };
   const { onEdit, onOpenMovement, drag } = context;
   const edit = useCallback(() => onEdit(exercise.id), [exercise.id, onEdit]);
   // Recette iPhone n° 2 du 31/10/2026 (constat c) : la photo d'une carte d'Exercice ouvre sa fiche.
@@ -10084,8 +10093,13 @@ const COMPOSITION_ROW_GAP = SEQUENCE_GAP;
  * chaque côté de la colonne), Circuit de 386 à x 8 (débord de 8 au-delà des cartes). Les marges
  * sont constantes : à 360 ou 440, cartes et Circuit suivent la largeur, sans largeur codée en dur.
  */
-const CARD_OUTSET = spacing[8];
-const CIRCUIT_OUTSET = CARD_OUTSET + spacing[8];
+/**
+ * Demande de Hermann du 08/11/2026 (D-511, écran de référence `11789:21914`) : cartes de 362 à x 20 — débord de 4
+ * de chaque côté de la colonne —, le rail restant au centre de la photo (x 56) ; le Circuit garde son aplat de 386
+ * à x 8 et le Circuit dans un Cycle sa position. [Cartes de 370 à x 16 (débord de 8) — remplacé le 08/11/2026.]
+ */
+const CARD_OUTSET = spacing[4];
+const CIRCUIT_OUTSET = spacing[16];
 /** Circuit (Figma `9819:19906`, `9819:19947`) : marge verticale 14, écart 9, rayon 18, aplat sans contour. */
 const CIRCUIT_PADDING_VERTICAL = spacing[14];
 /**
@@ -10208,7 +10222,8 @@ const CYCLE_RING_OUTSET = (CYCLE_OUTER_RING_DIAMETER - RAIL_RING_DIAMETER) / 2;
 const ENVELOPE_DESIGNATED_FILL = "rgba(234, 234, 255, 0.6)";
 /** Épaisseur du contour du cadre du mode enveloppe (B.2). */
 const ENVELOPE_FRAME_BORDER_WIDTH = 2;
-const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = CARD_OUTSET + spacing[4];
+// 08/11/2026 : valeur conservée (12) indépendamment du débord des cartes. [`CARD_OUTSET + spacing[4]` — remplacé.]
+const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = spacing[12];
 const LAYOUT_CYCLE_GAP = CIRCUIT_GAP;
 /** Recette n° 2 du 31/10 : écart entre les membres d'un conteneur (place ouverte ou refermée par l'aperçu). */
 /** Recette iPhone n° 3 du 03/11/2026 : buy-in / buy-out (« Passage = Une fois »), fixés en tête ou en fin de leur Circuit porteur. */
@@ -10515,7 +10530,6 @@ const DRAG_SHIFT_GAPS = {
 
 const styles = StyleSheet.create({
   // PRE-9 C.4 (référence Formats §5) : « Buy-in » / « Buy-out » sur la troisième ligne de la carte, à droite.
-  passageLabel: { alignSelf: "flex-end", fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, color: colors.primary },
   // T01-S10 : corps des états de réhydratation en modification.
   editStateBody: {
     flex: 1,
@@ -10766,6 +10780,8 @@ const styles = StyleSheet.create({
   // (`originLayout`), les décalages (`resolveDragShifts`), le rail (`resolveRailLinks`) et le fond
   // du Circuit comptent la hauteur de repos : trou de 4 dans le rail pendant le glisser.
   activityBlockDragged: {
+    // D-511 (08/11/2026) : la carte au repos a un liseré de 0,5 ; l'état soulevé garde son contour de 1.
+    borderWidth: OCCURRENCE_CARD_BORDER_WIDTH,
     marginHorizontal: -dimensions.compositionActivityRow.widthDelta / 2,
     marginVertical: -dimensions.compositionActivityRow.heightDelta / 2,
     backgroundColor: colors.exerciseContextBandBackground,

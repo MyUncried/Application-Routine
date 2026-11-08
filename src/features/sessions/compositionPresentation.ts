@@ -436,8 +436,52 @@ export const OCCURRENCE_SUMMARY_MAX_VALUES = 3;
  */
 export function formatOccurrenceSummary(
   facts: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify"> & { readonly format?: ElementFormat | null },
+  context: { readonly carrierIntervalSeconds?: number } = {},
 ): string {
-  return withParametersToVerify(deathBySummary(occurrenceSummaryOf(facts), facts), facts);
+  return withParametersToVerify(deathBySummary(occurrenceSummaryOf(facts), facts, context.carrierIntervalSeconds), facts);
+}
+
+/**
+ * Prescription de la carte d’exercice de la Composition (composant « DSF / Cards / Exercice — Composition »
+ * `11810:2159`, D-511 ; demande de Hermann du 08/11/2026) : nombre de séries et cible uniquement, par la synthèse
+ * existante (`formatOccurrenceSummary`), avec trois compléments propres à la carte :
+ * - une seule série à l’échec (condition d’arrêt à l’échec, AMRAP « Max » compris) : « à l’échec », sans
+ *   durée [« 1 série à l’échec » — remplacé sur la carte le 08/11/2026 ; « N séries à l’échec » inchangé] ;
+ * - AMRAP « Volume croissant » : départ et incrément par tour (« 10 rép. +2/tour ») ;
+ * - Death by : départ et incrément par intervalle (« 1 rép. +1/min »), voir `deathBySummary`.
+ * Jamais de durée estimée (« ≈ », « ≥ ») : les estimations appartiennent aux en-têtes de circuit, de cycle et de
+ * séance. Les durées suivent `formatPrimeDuration` (« 3 × 1′30″ »).
+ */
+export function formatOccurrencePrescription(
+  exercise: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify"> & { readonly format?: ElementFormat | null },
+  context: { readonly carrierIntervalSeconds?: number } = {},
+): string {
+  const summary = formatOccurrenceSummary(exercise, context);
+  if (isIncompleteSummary(summary) || isToVerifySummary(summary)) return summary;
+  const parameters = exercise.executionParameters;
+  if (seriesCountOf(parameters) === 1 && allTargetsFailure(parameters)) {
+    return strings.screens.composition.exerciseRow.toFailure;
+  }
+  if (exercise.format?.key === "AMRAP") {
+    const setting = exercise.format.settings.incrementPerRound;
+    const first = seriesRowsOf(parameters)[0]?.target;
+    if (typeof setting === "number" && setting !== 0 && first !== undefined && first.kind === "NUMBER") {
+      return incrementPrescription(parameters.mode, first.value, setting, strings.screens.composition.occurrenceCard.incrementPerRound);
+    }
+  }
+  return summary;
+}
+
+/** Départ suivi de l’incrément signé et de sa période : « 10 rép. +2/tour », « 30″ +5″/min », « 10 rép. −1/tour ». */
+function incrementPrescription(mode: ExecutionParametersInput["mode"], start: number, increment: number, period: string): string {
+  const card = strings.screens.composition.occurrenceCard;
+  const value = (amount: number) => (mode === "DURATION" ? formatCompactDuration(amount) : String(amount));
+  const startText = mode === "DURATION" ? value(start) : `${value(start)} ${strings.executionParameters.sheet.repetitionsUnit}`;
+  return card.increment
+    .replace("{start}", startText)
+    .replace("{sign}", increment < 0 ? card.incrementMinus : card.incrementPlus)
+    .replace("{increment}", value(Math.abs(increment)))
+    .replace("{period}", period);
 }
 
 /**
@@ -446,7 +490,11 @@ export function formatOccurrenceSummary(
  * intervalle (« 1 / +1 rép. »), à la place de la synthèse des séries. [Référence Formats §12 : « Les cartes
  * montrent « 1 → n rép. » dans l'exemple » — remplacé.] Synthèse à compléter ou à vérifier inchangée.
  */
-function deathBySummary(summary: string, facts: Pick<ExerciseRowSummaryFacts, "executionParameters"> & { readonly format?: ElementFormat | null }): string {
+function deathBySummary(
+  summary: string,
+  facts: Pick<ExerciseRowSummaryFacts, "executionParameters"> & { readonly format?: ElementFormat | null },
+  carrierIntervalSeconds?: number,
+): string {
   if (facts.format?.key !== "DEATH_BY" || isIncompleteSummary(summary)) return summary;
   const parameters = facts.executionParameters;
   const first = seriesRowsOf(parameters)[0]?.target;
@@ -456,10 +504,14 @@ function deathBySummary(summary: string, facts: Pick<ExerciseRowSummaryFacts, "e
   if (first === undefined || first.kind !== "NUMBER") return strings.executionParameters.card.incomplete;
   const setting = facts.format.settings.incrementPerRound;
   const increment = typeof setting === "number" ? setting : 1;
-  return strings.screens.composition.occurrenceCard.deathBy
-    .replace("{start}", String(first.value))
-    .replace("{increment}", String(increment))
-    .replace("{unit}", strings.executionParameters.sheet.repetitionsUnit);
+  // Demande de Hermann du 08/11/2026 (carte « DSF / Cards / Exercice — Composition ») : départ et incrément avec son
+  // unité, par intervalle — « 1 rép. +1/min ». [« 1 / +1 rép. » (f3-deathby, 03/11/2026) — remplacé le 08/11/2026.]
+  // Intervalle : celui de l’Exercice (autonome, ou membre en alternance), sinon celui du Circuit porteur.
+  const own = facts.format.settings.intervalSeconds;
+  const interval = typeof own === "number" ? own : (carrierIntervalSeconds ?? 60);
+  const card = strings.screens.composition.occurrenceCard;
+  const period = interval === 60 ? card.incrementPerMinute : formatCompactDuration(interval);
+  return incrementPrescription(facts.executionParameters.mode, first.value, increment, period);
 }
 
 function occurrenceSummaryOf(facts: Pick<ExerciseRowSummaryFacts, "executionParameters">): string {
@@ -519,6 +571,8 @@ export type OccurrenceCircuitContext = {
   readonly tourRepeatCount?: number;
   /** Décisions de Hermann du 07/11/2026 (EMOM), C12 : Exercices dont le travail prévu atteint ou dépasse l'intervalle EMOM (carte en rouge). */
   readonly emomOverflowIds?: ReadonlySet<string>;
+  /** 08/11/2026 : intervalle du Circuit porteur (Death by groupé), période de l'incrément de la prescription. */
+  readonly carrierIntervalSeconds?: number;
 };
 
 /**

@@ -467,20 +467,22 @@ describe("contre-recette du 30/10 — marges basses, apparition du Circuit, cart
     return cycle.cycle.id;
   };
 
-  it("obs-3 — Circuit: bottom margin 8 under its cards (14 − 6), top margin 14; Cycle: 14 on top, 8 under its last member", async () => {
+  // D-511 (08/11/2026) : marge basse = bas de la photo → bas de la carte, soit 4 (14 − 10) ; Cycle : 4 sous son dernier membre.
+  // [8 (14 − 6) — remplacé le 08/11/2026.]
+  it("obs-3 — Circuit: bottom margin 4 under its cards (14 − 10), top margin 14; Cycle: 14 on top, 4 under its last member", async () => {
     await renderComposition(flatDraft());
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
     // Circuit de l'ancien modèle : marge 14, la liste des cartes déployées en reprend 6.
     expect(StyleSheet.flatten(screen.getByTestId("composition-tour-section", hidden).props.style)).toMatchObject({ paddingVertical: 14 });
-    expect(StyleSheet.flatten(screen.getByTestId("composition-zone-in-tour", hidden).props.style)).toMatchObject({ marginBottom: -6 });
+    expect(StyleSheet.flatten(screen.getByTestId("composition-zone-in-tour", hidden).props.style)).toMatchObject({ marginBottom: -10 });
 
     await envelopeAround("CYCLE", "composition-envelope-circuit");
     const cycle = `composition-layout-cycle-${cycleId()}`;
-    expect(StyleSheet.flatten(screen.getByTestId(cycle, hidden).props.style)).toMatchObject({ paddingTop: 14, paddingBottom: 8 });
-    // Circuit dans le Cycle : 8 sous ses cartes, puis 8 jusqu'au bord du Cycle.
+    expect(StyleSheet.flatten(screen.getByTestId(cycle, hidden).props.style)).toMatchObject({ paddingTop: 14, paddingBottom: 4 });
+    // Circuit dans le Cycle : 4 sous ses cartes, puis 4 jusqu'au bord du Cycle.
     const circuit = `composition-layout-circuit-${circuitIdOf("b")}`;
     expect(StyleSheet.flatten(screen.getByTestId(circuit, hidden).props.style)).toMatchObject({ paddingVertical: 14 });
-    expect(StyleSheet.flatten(screen.getByTestId(`${circuit}-exercises`, hidden).props.style)).toMatchObject({ marginBottom: -6 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${circuit}-exercises`, hidden).props.style)).toMatchObject({ marginBottom: -10 });
   });
 
   it("constat b — the first Circuit posed by « Confirmer le circuit » fades in (surface, ring, header); not once saved and reopened", async () => {

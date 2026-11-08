@@ -14,7 +14,14 @@ import { OCCURRENCE_CARD_HEIGHT, OCCURRENCE_CARD_MEDIA } from "@/features/sessio
  */
 // Story 5.2b : la géométrie même de l'écran (`railGeometryFor`), pas une copie.
 const GEOMETRY = railGeometryFor(CIRCUIT_HEADER_HEIGHT);
-const CARD = 80;
+/**
+ * Demande de Hermann du 08/11/2026 (carte « DSF / Cards / Exercice — Composition », D-511) : carte de 72, photo à 4
+ * du bord — ancre du rail au haut de la photo (M = 4) ; marge basse du Circuit = bas de la photo → bas de la carte
+ * (PB = 4, règle de la contre-recette du 30/10). [Carte de 80, média à 8 (M = 8, PB = 8) — remplacé le 08/11/2026.]
+ */
+const CARD = OCCURRENCE_CARD_HEIGHT;
+const M = OCCURRENCE_CARD_MEDIA.top;
+const PB = OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom;
 
 function links(input: Partial<RailChainInput>) {
   return resolveRailLinks({
@@ -33,21 +40,22 @@ const summary = (result: ReturnType<typeof links>) =>
 describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
   it("contre-recette du 30/10 (obs-3) — marge basse du Circuit sous ses cartes = bas du média → bas de la carte (8) ; 14 sans carte", () => {
     expect(GEOMETRY.circuitPaddingBottom).toBe(OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom);
-    expect(GEOMETRY.circuitPaddingBottom).toBe(8);
+    expect(GEOMETRY.circuitPaddingBottom).toBe(4);
+    expect([CARD, M, PB]).toEqual([72, 4, 4]);
     expect(GEOMETRY.circuitPadding).toBe(14);
   });
 
   it("story 6.2 — un point (rangée autonome) est un nœud : écart de sa zone au-dessus, ancre au haut de sa rangée ; le suivant s'y relie", () => {
     expect(summary(links({ beforeTour: ["a", { stopPointId: "p" }, "b"], inTour: ["i", { stopPointId: "q" }, "j"] }))).toMatchObject({
       [railStopKey("p")]: [railRowKey("a"), 8],
-      [railRowKey("b")]: [railStopKey("p"), 8 + 8],
+      [railRowKey("b")]: [railStopKey("p"), 8 + M],
       [railStopKey("q")]: [railRowKey("i"), 9],
-      [railRowKey("j")]: [railStopKey("q"), 9 + 8],
+      [railRowKey("j")]: [railStopKey("q"), 9 + M],
     });
     // Point soulevé : le suivant se relie à travers sa place (écart + 22 + écart + ancre).
     expect(
       links({ beforeTour: ["a", { stopPointId: "p" }, "b"], skipped: { key: railStopKey("p"), height: 22 } }).get(railRowKey("b")),
-    ).toEqual({ prevKey: railRowKey("a"), length: 8 + 22 + 8 + 8 });
+    ).toEqual({ prevKey: railRowKey("a"), length: 8 + 22 + 8 + M });
   });
 
   it("séquence vide : Compte à rebours → anneau du Circuit vide → bas du Circuit → Fin", () => {
@@ -62,26 +70,26 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
 
   it("une carte avant, dans et après le Circuit : anneau → média → anneau → média → bas du Circuit → média → Fin", () => {
     expect(summary(links({ beforeTour: ["b"], inTour: ["i"], afterTour: ["a"] }))).toEqual({
-      [railRowKey("b")]: [RAIL_KEYS.start, 8 + 8],
+      [railRowKey("b")]: [RAIL_KEYS.start, 8 + M],
       [RAIL_KEYS.circuitHeader]: [railRowKey("b"), 8 + 14 + 4],
-      [railRowKey("i")]: [RAIL_KEYS.circuitHeader, 9 + 8],
-      // Contre-recette du 30/10 (obs-3) : sous la dernière carte, marge basse 8 (bas du média → bas de la carte).
-      [RAIL_KEYS.circuitEnd]: [railRowKey("i"), 8],
-      [railRowKey("a")]: [RAIL_KEYS.circuitEnd, 8 + 8],
+      [railRowKey("i")]: [RAIL_KEYS.circuitHeader, 9 + M],
+      // Contre-recette du 30/10 (obs-3) : sous la dernière carte, marge basse = bas du média → bas de la carte (PB).
+      [RAIL_KEYS.circuitEnd]: [railRowKey("i"), PB],
+      [railRowKey("a")]: [RAIL_KEYS.circuitEnd, 8 + M],
       [RAIL_KEYS.end]: [railRowKey("a"), 8 + 7],
     });
   });
 
   it("deux cartes dans le Circuit : écart 9 ; deux cartes au dehors : écart 8", () => {
     const result = links({ beforeTour: ["b1", "b2"], inTour: ["i1", "i2"] });
-    expect(result.get(railRowKey("b2"))).toMatchObject({ prevKey: railRowKey("b1"), length: 8 + 8 });
-    expect(result.get(railRowKey("i2"))).toMatchObject({ prevKey: railRowKey("i1"), length: 9 + 8 });
+    expect(result.get(railRowKey("b2"))).toMatchObject({ prevKey: railRowKey("b1"), length: 8 + M });
+    expect(result.get(railRowKey("i2"))).toMatchObject({ prevKey: railRowKey("i1"), length: 9 + M });
   });
 
   it("point après le Circuit : la rangée se relie au bas du Circuit, la suite à la rangée", () => {
     const result = links({ afterTour: ["a"], hasAfterCircuit: true });
     expect(result.get(RAIL_KEYS.afterCircuit)).toMatchObject({ prevKey: RAIL_KEYS.circuitEnd, length: 8 });
-    expect(result.get(railRowKey("a"))).toMatchObject({ prevKey: RAIL_KEYS.afterCircuit, length: 8 + 8 });
+    expect(result.get(railRowKey("a"))).toMatchObject({ prevKey: RAIL_KEYS.afterCircuit, length: 8 + M });
     // Sans occurrence après : la Fin se relie à la rangée.
     expect(links({ hasAfterCircuit: true }).get(RAIL_KEYS.end)).toMatchObject({ prevKey: RAIL_KEYS.afterCircuit, length: 15 });
   });
@@ -100,22 +108,22 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
     put(RAIL_KEYS.start, 27, 0);
     for (const id of input.beforeTour) {
       y += 8;
-      put(railRowKey(id), heights[id], 8);
+      put(railRowKey(id), heights[id], M);
     }
     y += 8 + 14;
     put(RAIL_KEYS.circuitHeader, CIRCUIT_HEADER_HEIGHT, 4);
     for (const id of input.inTour) {
       y += 9;
-      put(railRowKey(id), heights[id], 8);
+      put(railRowKey(id), heights[id], M);
     }
-    // Contre-recette du 30/10 (obs-3) : marge basse 8 sous les cartes du Circuit.
-    y += 8;
+    // Contre-recette du 30/10 (obs-3) : marge basse (PB) sous les cartes du Circuit.
+    y += PB;
     put(RAIL_KEYS.circuitEnd, 0, 0);
     y += 8;
     put(RAIL_KEYS.afterCircuit, 22, 0);
     for (const id of input.afterTour) {
       y += 8;
-      put(railRowKey(id), heights[id], 8);
+      put(railRowKey(id), heights[id], M);
     }
     y += 8;
     put(RAIL_KEYS.end, 24, 7);
@@ -134,8 +142,8 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
       skipped: { key: railRowKey("b1"), height: CARD },
     });
     expect(result.has(railRowKey("b1"))).toBe(false);
-    // Écart 8 + carte 80 (place d'origine) + écart 8 + haut du média 8.
-    expect(result.get(railRowKey("b2"))).toEqual({ prevKey: RAIL_KEYS.start, length: 8 + CARD + 8 + 8 });
+    // Écart 8 + carte (place d'origine) + écart 8 + haut du média.
+    expect(result.get(railRowKey("b2"))).toEqual({ prevKey: RAIL_KEYS.start, length: 8 + CARD + 8 + M });
     // La suite de la chaîne est inchangée.
     expect(result.get(RAIL_KEYS.circuitHeader)).toEqual({ prevKey: railRowKey("b2"), length: 8 + 14 + 4 });
   });
@@ -144,7 +152,7 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
     const result = links({ inTour: ["i1"], skipped: { key: railRowKey("i1"), height: CARD + 9 + 22 } });
     expect(result.get(RAIL_KEYS.circuitEnd)).toMatchObject({
       prevKey: RAIL_KEYS.circuitHeader,
-      length: 9 + CARD + 9 + 22 + 8,
+      length: 9 + CARD + 9 + 22 + PB,
     });
   });
 });

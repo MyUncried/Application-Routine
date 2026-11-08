@@ -730,3 +730,11 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - « Le bloc nombre de tours . Type a été décalé à droite je pense avec le changement de format de durée » (A, règle f3s-nom) : colonne de durée mesurée sur « ≈ 59′59″ » et « ≈ 9h 59′ » au lieu de « ≈ 88 min 45 s » (devenue « ≈ 1h 29′ »). À CLARIFIER : position du compteur.
 - « Circuit : mets le chevron entre le cercle et le nom du circuit » (B) : `CircuitHeader.tsx`, chevron avant le nom ; test d'ordre dans `CircuitHeader.test.tsx`.
 - Tests : `CircuitHeader*`, `recette3*`, `CompositionScreen*` : 662 passés ; `tsc --noEmit` OK. Rien vérifié sur iPhone.
+
+### Mission du 08/11/2026 au soir — carte d'exercice de la Composition au composant « DSF / Cards / Exercice — Composition »
+
+- Rapport dédié : `.github/orchestration/reports/2026-11-08_PRE9-CARTE-EXERCICE-COMPOSITION.md` (PRESERVE / CHANGE / FORBIDDEN, écarts à Figma, vérifications iPhone).
+- Composant : `src/features/sessions/OccurrenceCard.tsx` (réécrit sur place) ; seul appelant `CompositionActivityRow`.
+- Vérification session principale : `tsc --noEmit` OK ; `OccurrenceCard*`, `CompositionScreen*`, `compositionPresentation*`, `compositionRail`, `compositionDeletion`, `PlacementBar`, `CircuitHeader*`, `src/shared/i18n` : 33 suites, 865/866 ; l'échec (`CompositionScreen.recette1`, « carte complète → éditeur ») passe seul 9/9 deux fois — sensibilité à la charge, comme le 08/11 (attente de l'animation de la feuille).
+- Constat de Hermann sans cause démontrée : « Je note une petite régression d’affichage du type de circuit » (capture : « groupées » remonté au-dessus de « N tours · » sur les Circuits à menu de nature, AMRAP intact). Hypothèse non démontrée : hauteur de l'hôte natif du menu iOS (`Host matchContents`) — décalage de 17 = marge négative de l'emplacement. Aucune modification ; questions posées à Hermann.
+- Rien vérifié sur iPhone.

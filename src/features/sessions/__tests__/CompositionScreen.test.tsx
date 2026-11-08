@@ -277,6 +277,14 @@ function StatefulDraftWrapper({
   return <SessionDraftContext.Provider value={value}>{children}</SessionDraftContext.Provider>;
 }
 
+/** 08/11/2026 : source de l'icône rendue par `KodjoIcon` (variantes du pictogramme de la carte), rendue et démontée avant l'écran. */
+function probeIconSource(name: "card-media-exercise" | "card-media-exercise-out-of-circuit"): unknown {
+  const probe = render(<KodjoIcon name={name} testID="icon-probe" />);
+  const source: unknown = probe.getByTestId("icon-probe").props.source;
+  probe.unmount();
+  return source;
+}
+
 function renderScreenWithDraft(
   exercises: readonly SessionDraftExercise[],
   draftOverrides?: Partial<SessionDraftContextValue["draft"]>,
@@ -774,41 +782,46 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
   // marges 8 à gauche (jusqu'au média) et 8 du bord extérieur à droite (bord des valeurs).
   // PRE-6 story 5.2 (Standard `8328:28605`) : le média est à 8 du bord EXTÉRIEUR (1 de bord + 7),
   // sur l'axe du rail.
-  it("PRE6-5.1 — outside the Circuit, the v2 card is white with a 1 pt #E4E7EF border and radius 12; media then text 12 apart", () => {
+  // Demande de Hermann du 08/11/2026 (D-511) : carte « DSF / Cards / Exercice — Composition » — fond blanc, liseré 0,5
+  // à 50 % (couleur des cartes de séance), rayon 12, dans le Circuit comme hors Circuit ; contenu mesuré depuis le bord
+  // extérieur. [Carte v2 : bord 1 #E4E7EF hors Circuit, aucun dans le Circuit — remplacé le 08/11/2026.]
+  it("D-511 — outside the Circuit: white card, 0.5 hairline at 50 %, radius 12; « Hors circuit » variant", () => {
+    const black = probeIconSource("card-media-exercise-out-of-circuit");
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const exerciseCardStyle = StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style);
-    expect(exerciseCardStyle.borderColor).toBe("#E4E7EF");
-    expect(exerciseCardStyle.borderWidth).toBe(1);
+    expect(exerciseCardStyle.borderColor).toBe("rgba(204, 209, 224, 0.5)");
+    expect(exerciseCardStyle.borderWidth).toBe(0.5);
     expect(exerciseCardStyle.borderRadius).toBe(12);
     expect(exerciseCardStyle.backgroundColor).toBe(colors.background);
-    const contentStyle = StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style);
-    expect(contentStyle).toMatchObject({ flexDirection: "row", alignItems: "center", gap: 12, paddingLeft: 7 });
-    // Bord des valeurs à 8 du bord EXTÉRIEUR : 1 de bord + 7.
-    expect(contentStyle.paddingRight).toBe(7);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style)).toMatchObject({ top: -0.5, left: -0.5, right: -0.5 });
+    expect(within(screen.getByTestId("composition-exercise-media")).getByTestId("composition-exercise-media-icon").props.source).toEqual(black);
   });
 
-  it("PRE6-5.1 — inside the Circuit, the v2 card has no border; the values edge stays 8 from the outer edge", () => {
+  it("D-511 — inside the Circuit: same hairline; « Dans un circuit » variant (grey pictogram); the lifted card gets a 1 border", () => {
+    const grey = probeIconSource("card-media-exercise");
     renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { name: "Gainage" })]);
 
     const exerciseCardStyle = StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style);
-    expect(exerciseCardStyle.borderWidth).toBe(0);
+    expect(exerciseCardStyle.borderWidth).toBe(0.5);
     expect(exerciseCardStyle.borderRadius).toBe(12);
     expect(exerciseCardStyle.backgroundColor).toBe(colors.background);
-    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style).paddingRight).toBe(8);
-    // L'état soulevé garde son contour.
+    expect(within(screen.getByTestId("composition-exercise-media")).getByTestId("composition-exercise-media-icon").props.source).toEqual(grey);
+    // L'état soulevé garde son contour de 1.
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
     expect(StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).borderWidth).toBe(1);
   });
 
-  it("PRE6-5.1 — the integrated media is a 64 × 64 placeholder (radius 12, 1 pt #7A7A80 border, #EEF0F6 fill) with the generic 24 icon when the occurrence has no media (story 5.1b: photo or video poster otherwise)", () => {
+  it("D-511 — the integrated media is a 64 × 64 placeholder at 4 from the edge (radius 8, 1 pt #7A7A80 border, #EEF0F6 fill) with the 24 pictogram when the occurrence has no media (story 5.1b: photo or video poster otherwise)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const media = screen.getByTestId("composition-exercise-media");
     expect(StyleSheet.flatten(media.props.style)).toMatchObject({
+      top: 4,
+      left: 4,
       width: 64,
       height: 64,
-      borderRadius: 12,
+      borderRadius: 8,
       borderWidth: 1,
       borderColor: "#7A7A80",
       backgroundColor: "#EEF0F6",
@@ -1384,28 +1397,26 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(StyleSheet.flatten(tourLabel.props.style).fontSize).toBe(15);
   });
 
-  // PRE-6 (story 5.1, D-435, `9798:19924`, `9798:19927`) : synthèse Inter Regular 12 #7A7A80,
-  // calée à droite, précédée du symbole de durée 13 dans la colonne des symboles (écart 6).
-  it("PRE6-5.1 — the work summary is Inter Regular 12, #7A7A80, right-aligned after the 13 duration symbol", () => {
+  // D-511 (08/11/2026) : prescription Semi Bold 12 `text-primary`, à droite de la ligne 2, sans chronomètre.
+  // [PRE-6 (story 5.1) : synthèse Regular 12 #7A7A80 après le symbole de durée 13 — remplacé le 08/11/2026.]
+  it("D-511 — the prescription is Inter Semi Bold 12 text-primary, last on line 2, with no stopwatch", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const summary = within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("45″");
     expect(summary.props.numberOfLines).toBe(1);
     expect(StyleSheet.flatten(summary.props.style)).toMatchObject({
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Inter_600SemiBold",
       fontSize: 12,
-      textAlign: "right",
-      color: "#7A7A80",
+      color: colors.textPrimary,
     });
-    expect(StyleSheet.flatten(screen.getByTestId("composition-exercise-work").props.style)).toMatchObject({
-      flexDirection: "row",
-      justifyContent: "flex-end",
-    });
-    const symbol = screen.getByTestId("composition-exercise-work-symbol");
-    expect(StyleSheet.flatten(symbol.props.style)).toMatchObject({ width: 13, height: 13 });
-    expect(
-      testIdOrder(screen.toJSON(), ["composition-exercise-work-symbol", "composition-exercise-summary"]),
-    ).toEqual(["composition-exercise-work-symbol", "composition-exercise-summary"]);
+    expect(screen.queryByTestId("composition-exercise-work-symbol")).toBeNull();
+    const row = screen.getByTestId("composition-exercise-work-row");
+    expect(testIdOrder(screen.toJSON(), ["composition-exercise-work-row", "composition-exercise-summary", "composition-exercise-zones-line"])).toEqual([
+      "composition-exercise-work-row",
+      "composition-exercise-summary",
+      "composition-exercise-zones-line",
+    ]);
+    expect(within(row).getByTestId("composition-exercise-summary").props.children).toBe("45″");
   });
 
   // PRE-6 (story 3.1, Figma `8328:28667`) : l'en-tête du Circuit n'a plus d'icône Tour (R4-11 /
@@ -1914,12 +1925,13 @@ describe("CompositionScreen — espacement Activité/Activité (LOT_3_OF_3, rév
 
   // PRE-6 story 5.2 (D-435, Standard `8328:28605`) : écart 8 hors Circuit (6 auparavant), cartes de
   // 370 à x 16 — la liste déborde de 8 de chaque côté de la colonne.
-  it("PRE6-5.2 — the gap between two consecutive Activity cards is 8 outside the Circuit, carried by their own dedicated container (cards 370 at x 16)", () => {
+  // Demande de Hermann du 08/11/2026 (D-511, écran `11789:21914`) : cartes de 362 à x 20 — débord de 4. [370 à x 16 — remplacé.]
+  it("PRE6-5.2 — the gap between two consecutive Activity cards is 8 outside the Circuit, carried by their own dedicated container (D-511: cards 362 at x 20)", () => {
     renderScreenWithDraft(twoActivities);
 
     const list = screen.getByTestId("composition-zone-before-tour");
     expect(StyleSheet.flatten(list.props.style).gap).toBe(spacing[8]);
-    expect(StyleSheet.flatten(list.props.style).marginHorizontal).toBe(-8);
+    expect(StyleSheet.flatten(list.props.style).marginHorizontal).toBe(-4);
     expect(within(list).getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
     expect(within(list).getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
   });
@@ -2021,20 +2033,22 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
     expect(within(screen.getByTestId("composition-exercise-zones-line")).getByTestId("composition-exercise-body-zones")).toBe(zones);
   });
 
-  it("places that line BETWEEN the Activity name and its summary", async () => {
+  // D-511 (08/11/2026) : prescription en ligne 2, zones en ligne 3. [Zones avant la synthèse (colonne des valeurs) — remplacé.]
+  it("D-511 — name on line 1, prescription on line 2, zones on line 3", async () => {
     renderScreenWithDraft([activityWithZones]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
     await within(row).findByTestId("composition-exercise-body-zones");
 
-    const order = textOrder(screen.toJSON(), ["Gainage", "Épaules · Dos", summaryText]);
-    expect(order).toEqual(["Gainage", "Épaules · Dos", summaryText]);
+    const order = textOrder(screen.toJSON(), ["Gainage", summaryText, "Épaules · Dos"]);
+    expect(order).toEqual(["Gainage", summaryText, "Épaules · Dos"]);
   });
 
   // PRE-6 (story 5.1, D-435, `9798:19919`, `9798:19922`) : Zones en Inter Regular 12 #7A7A80 sur la
   // ligne 3, après leur pastille 13 (écart 6), coupées avant la colonne des symboles ; la synthèse
   // reste sur la ligne 2, dans la colonne de droite.
-  it("PRE6-5.1 — zones are Inter Regular 12 tertiary on line 3 after their 13 badge; the summary stays on line 2, in the values column", async () => {
+  // D-511 (08/11/2026) : zones à gauche de la ligne 3 (y 48), pastille 13 centrée dans la colonne de 10 ; prescription en ligne 2.
+  it("D-511 — zones are Inter Regular 12 tertiary on line 3 after their 13 badge (10 column); the prescription stays on line 2", async () => {
     renderScreenWithDraft([activityWithZones]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
@@ -2043,17 +2057,17 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
       fontFamily: "Inter_400Regular",
       fontSize: 12,
       color: TEXT_TERTIARY,
-      flexShrink: 1,
+      flex: 1,
     });
     const zonesLine = within(row).getByTestId("composition-exercise-zones-line");
-    expect(StyleSheet.flatten(zonesLine.props.style)).toMatchObject({ flexDirection: "row", gap: 6 });
+    expect(StyleSheet.flatten(zonesLine.props.style)).toMatchObject({ flexDirection: "row", top: 48, height: 16 });
     const badge = within(zonesLine).getByTestId("composition-exercise-body-zones-badge");
     expect(StyleSheet.flatten(badge.props.style)).toMatchObject({ width: 13, height: 13 });
+    expect(StyleSheet.flatten(within(zonesLine).getByTestId("composition-exercise-body-zones-column").props.style).width).toBe(10);
     const summary = within(row).getByTestId("composition-exercise-summary");
     expect(summary.props.children).toBe(summaryText);
     expect(within(zonesLine).queryByTestId("composition-exercise-summary")).toBeNull();
-    expect(within(row).getByTestId("composition-exercise-values-column")).toBeTruthy();
-    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-secondary-row").props.style)).toMatchObject({ flexDirection: "row" });
+    expect(within(within(row).getByTestId("composition-exercise-work-row")).getByTestId("composition-exercise-summary").props.children).toBe(summaryText);
   });
 
   it("without a body zone nor a Category, both lines stay (empty), without badge, and the card height does not change", () => {
@@ -2065,9 +2079,9 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
     expect(within(row).queryByTestId("composition-exercise-body-zones")).toBeNull();
     expect(within(row).queryByTestId("composition-exercise-body-zones-badge")).toBeNull();
     expect(within(row).queryByTestId("composition-exercise-category-badge")).toBeNull();
-    expect(within(row).getByTestId("composition-exercise-classification")).toBeTruthy();
+    expect(within(row).getByTestId("composition-exercise-work-row")).toBeTruthy();
     expect(within(row).getByTestId("composition-exercise-zones-line")).toBeTruthy();
-    expect(StyleSheet.flatten(row.props.style).height).toBe(80);
+    expect(StyleSheet.flatten(row.props.style).height).toBe(72);
   });
 
   // PRE-6 (story 5.1, D-435, `9798:19913`, `9798:19916`) : pastille de Catégorie 13 (dessin Figma,
@@ -2085,7 +2099,7 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
       fontSize: 12,
       color: TEXT_TERTIARY,
     });
-    const classification = within(row).getByTestId("composition-exercise-classification");
+    const classification = within(row).getByTestId("composition-exercise-work-row");
     const badge = within(classification).getByTestId("composition-exercise-category-badge");
     expect(StyleSheet.flatten(badge.props.style)).toMatchObject({ width: 13, height: 13 });
     expect(within(row).queryByTestId("composition-exercise-category-dot")).toBeNull();
@@ -2298,7 +2312,9 @@ function fireSwipeRight(activityId: string) {
 }
 
 describe("CompositionScreen — suffixe de niveau « - Nn » (PRE-7 R-6, D-445 C06, MFN-10)", () => {
-  it("carte sans pastille : « nom - Nn » pour un mouvement groupé, puis le suffixe de copie ; nom seul sans groupe ; nom accessible identique", async () => {
+  // Demande de Hermann du 08/11/2026 (D-511) : le niveau s'affiche à droite de la ligne 1 (« Niveau 2 ») ; le nom visible garde le
+  // suffixe de copie. Le nom accessible garde « nom - Nn (copie n) ». [Nom visible « nom - Nn » — remplacé le 08/11/2026.]
+  it("D-511 — level « Niveau N » on the right of line 1, visible name with the copy suffix only; accessible name unchanged; no level: nothing on the right", async () => {
     const listMovementLevelPositions = jest
       .fn<ActivityDefinitionService["listMovementLevelPositions"]>()
       .mockResolvedValue(new Map([["mov-squats", { rank: 2, total: 3 }]]));
@@ -2320,10 +2336,12 @@ describe("CompositionScreen — suffixe de niveau « - Nn » (PRE-7 R-6, D-445 C
     );
     await waitFor(() => expect(listMovementLevelPositions).toHaveBeenCalled());
     const squats = screen.getByTestId("composition-exercise-row-ex-1");
-    await waitFor(() => expect(within(squats).getByTestId("composition-exercise-name").props.children).toBe("Squats - N2 (copie 2)"));
+    await waitFor(() => expect(within(squats).getByTestId("composition-exercise-level").props.children).toBe("Niveau 2"));
+    expect(within(squats).getByTestId("composition-exercise-name").props.children).toBe("Squats (copie 2)");
     expect(squats.props.accessibilityLabel).toContain("Squats - N2 (copie 2)");
     const alone = screen.getByTestId("composition-exercise-row-ex-2");
     expect(within(alone).getByTestId("composition-exercise-name").props.children).toBe("Pompes");
+    expect(within(alone).queryByTestId("composition-exercise-level")).toBeNull();
   });
 });
 
@@ -3197,9 +3215,9 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
       expect(screen.queryByTestId("composition-activity-recovery-ex-1-recovery")).toBeNull();
       expect(screen.queryAllByTestId("composition-recovery-line-icon")).toHaveLength(0);
       expect(screen.queryByText(/Récupération/u)).toBeNull();
-      // La ligne 3 garde sa place dans la carte, vide côté récupération.
-      const slot = within(screen.getByTestId("composition-exercise-row-ex-1")).getByTestId("composition-exercise-recovery-slot");
-      expect(slot.findAll((node) => typeof node.type === "string" && node !== slot)).toHaveLength(0);
+      // D-511 : la ligne 3 garde sa place dans la carte, sans sablier ni valeur.
+      const zonesLine = within(screen.getByTestId("composition-exercise-row-ex-1")).getByTestId("composition-exercise-zones-line");
+      expect(within(zonesLine).queryByTestId("composition-recovery-line-label")).toBeNull();
       view.unmount();
     }
   });
@@ -3249,59 +3267,39 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("20″")).toBeTruthy();
   });
 
-  it("PRE6-5.1 — R = 20 : sablier 13 sous le symbole de durée, « 20″ » Regular 12 #7A7A80 calé à droite, sans préfixe", () => {
+  // D-511 (08/11/2026) : sablier dans la colonne de 10 puis « 20″ » Regular 12 `text-secondary`, à droite de la ligne 3.
+  // [Story 5.1 : sablier sous le symbole de durée, valeur #7A7A80 — remplacé le 08/11/2026.]
+  it("D-511 — R = 20: hourglass in its 10 column then « 20″ » Regular 12 text-secondary, last on line 3, no prefix", () => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })]);
 
-    const values = screen.getByTestId("composition-exercise-values-column");
-    const recovery = within(values).getByTestId("composition-activity-recovery-ex-1-recovery");
-    // Story 7.2 (D-442) : simple affichage, la disposition est celle de la récupération elle-même.
-    expect(StyleSheet.flatten(recovery.props.style)).toMatchObject({
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
-    });
+    const zonesLine = screen.getByTestId("composition-exercise-zones-line");
+    const recovery = within(zonesLine).getByTestId("composition-activity-recovery-ex-1-recovery");
+    expect(StyleSheet.flatten(recovery.props.style)).toMatchObject({ flexDirection: "row", alignItems: "center" });
     expect(StyleSheet.flatten(within(recovery).getByTestId("composition-recovery-line-icon").props.style)).toMatchObject({
       width: 13,
       height: 13,
     });
+    expect(StyleSheet.flatten(within(recovery).getByTestId("composition-recovery-line-column").props.style).width).toBe(10);
     const value = within(recovery).getByText("20″");
     expect(value.props.numberOfLines).toBe(1);
     expect(StyleSheet.flatten(value.props.style)).toMatchObject({
       fontFamily: "Inter_400Regular",
       fontSize: 12,
-      color: TEXT_TERTIARY,
-      textAlign: "right",
-      flexGrow: 1,
+      color: colors.textSecondary,
     });
-    expect(
-      testIdOrder(screen.toJSON(), [
-        "composition-exercise-work-symbol",
-        "composition-recovery-line-icon",
-        "composition-recovery-line-label",
-      ]),
-    ).toEqual(["composition-exercise-work-symbol", "composition-recovery-line-icon", "composition-recovery-line-label"]);
+    expect(within(zonesLine).getByTestId("composition-activity-recovery-ex-1-recovery").props.testID).toBe(recovery.props.testID);
     expect(screen.queryByText("Récupération 20″")).toBeNull();
   });
 
-  // Figma `9798:19910` : nom 18, écart 5, ligne 2 de 16, écart 2, ligne 3 de 17 (dont 2 en haut) =
-  // cadre de 58, centré dans la carte de 80.
-  it("PRE6-5.1 — the text frame stacks name 18, gap 5, line 2 of 16, gap 2, line 3 of 17 (58) in an 80 card", () => {
+  // D-511 (08/11/2026) : lignes à 8, 30 et 48 du haut de la carte de 72. [Cadre de 58 centré dans 80 — remplacé.]
+  it("D-511 — lines start at 8, 30 and 48 from the top of the 72 card", () => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
-    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-name-row").props.style)).toMatchObject({
-      height: type.listCardTitle.lineHeight,
-    });
-    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-secondary-row").props.style).marginTop).toBe(5);
-    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-classification").props.style).height).toBe(16);
-    const zonesLine = StyleSheet.flatten(within(row).getByTestId("composition-exercise-zones-line").props.style);
-    expect(zonesLine).toMatchObject({ height: 17, paddingTop: 2 });
-    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-recovery-slot").props.style)).toMatchObject({
-      height: 17,
-      paddingTop: 2,
-    });
-    expect(type.listCardTitle.lineHeight + 5 + 16 + 2 + 17).toBe(58);
-    expect(blockStyle().height).toBe(80);
+    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-name-row").props.style)).toMatchObject({ top: 8, height: 20 });
+    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-work-row").props.style)).toMatchObject({ top: 30, height: 16 });
+    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-zones-line").props.style)).toMatchObject({ top: 48, height: 16 });
+    expect(blockStyle().height).toBe(72);
   });
 
   // PRE-6 story 6.2 (D-441) : remplace « la rangée du point fait bloc avec l'occurrence » (ARB-3).
@@ -3319,26 +3317,26 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(StyleSheet.flatten(list.props.style).gap).toBe(8);
   });
 
-  it("PRE6-5.1 — the card is 80 with or without Zones, recovery or stop point", async () => {
+  it("D-511 — the card is 72 with or without Zones, recovery or stop point", async () => {
     renderScreenWithDraft(withZeroRecovery);
-    expect(blockStyle().height).toBe(80);
+    expect(blockStyle().height).toBe(72);
 
     renderScreenWithDraft(withRecovery);
-    expect(blockStyle().height).toBe(80);
+    expect(blockStyle().height).toBe(72);
 
     renderScreenWithDraft(withRecovery, { stopPoints: [pointAfter(1)] });
-    expect(blockStyle().height).toBe(80);
+    expect(blockStyle().height).toBe(72);
 
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
     ]);
     await screen.findByTestId("composition-exercise-body-zones");
-    expect(blockStyle().height).toBe(80);
+    expect(blockStyle().height).toBe(72);
   });
 
-  // PRE-6 (story 5.1, variante « Répétitions + cadence » `9808:19905`) : le couple reste sur la
-  // ligne 2 (« 10 rép. / ≈ 1 min »), la carte garde 80 ; la récupération reste en ligne 3.
-  it("PRE6-5.1 — Répétitions with a beep: the estimated duration follows the summary on line 2 (« / »), card 80", () => {
+  // D-511 (08/11/2026) : jamais de durée estimée sur la carte — les estimations appartiennent aux en-têtes.
+  // [Story 5.1 : « 10 rép. / ≈ 1 min » en ligne 2 pour les Répétitions avec bip — remplacé le 08/11/2026.]
+  it("D-511 — Répétitions with a beep: prescription only, no estimated duration (« ≈ ») on the card", () => {
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", {
         name: "Extension",
@@ -3347,24 +3345,18 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     ]);
 
     expect(screen.getByTestId("composition-exercise-summary").props.children).toBe("10 rép.");
-    const work = screen.getByTestId("composition-exercise-work");
-    const estimated = within(work).getByTestId("composition-exercise-estimated-duration");
-    expect(estimated.props.children).toBe("≈ 1′00″");
-    expect(within(work).getByText(composition.occurrenceCard.workEstimateSeparator)).toBeTruthy();
-    expect(StyleSheet.flatten(estimated.props.style)).toMatchObject({ fontSize: 12, color: TEXT_TERTIARY });
-    expect(within(screen.getByTestId("composition-exercise-labels-column")).queryByTestId("composition-exercise-estimated-duration")).toBeNull();
-    expect(within(screen.getByTestId("composition-exercise-recovery-slot")).queryByTestId("composition-exercise-estimated-duration")).toBeNull();
-    expect(blockStyle().height).toBe(80);
+    expect(screen.queryByTestId("composition-exercise-estimated-duration")).toBeNull();
+    expect(within(screen.getByTestId("composition-exercise-row-ex-1")).queryByText(/≈|≥/u)).toBeNull();
+    expect(blockStyle().height).toBe(72);
   });
 
-  it("PRE6-5.1 — Répétitions without a beep: no estimated duration, card 80", () => {
+  it("D-511 — Répétitions without a beep: no estimated duration, card 72", () => {
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Extension", executionParameters: repetitionParameters(10) }),
     ]);
 
     expect(screen.queryByTestId("composition-exercise-estimated-duration")).toBeNull();
-    expect(screen.queryByText(composition.occurrenceCard.workEstimateSeparator)).toBeNull();
-    expect(blockStyle().height).toBe(80);
+    expect(blockStyle().height).toBe(72);
   });
 
   // Matrice de la spec : textes longs à 360 — ellipses, aucune superposition (colonnes en flux).
@@ -3390,16 +3382,17 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
       expect(within(row).getByTestId(testID).props.numberOfLines).toBe(1);
     }
     expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-name").props.style)).toMatchObject({ flex: 1 });
-    const values = StyleSheet.flatten(within(row).getByTestId("composition-exercise-values-column").props.style);
-    expect(values).toMatchObject({ flexShrink: 0, minWidth: "35%", maxWidth: "60%" });
-    // La colonne des libellés prend le reste et se coupe avant la colonne des symboles.
-    const labels = StyleSheet.flatten(within(row).getByTestId("composition-exercise-labels-column").props.style);
-    expect(labels).toMatchObject({ flex: 1, minWidth: 0 });
-    // Aucun positionnement absolu dans le contenu de la carte.
-    const absolute = within(row)
-      .getByTestId("composition-activity-main-card")
-      .findAll((node) => typeof node.type === "string" && StyleSheet.flatten(node.props.style)?.position === "absolute");
-    expect(absolute).toHaveLength(0);
+    // D-511 (08/11/2026) : catégorie et zones prennent le reste et se coupent avant les valeurs de droite, qui ne
+    // s'abrègent pas ; lignes posées depuis les bords (gauche 76, droite 12), jamais une largeur codée.
+    for (const testID of ["composition-exercise-category", "composition-exercise-body-zones"]) {
+      expect(StyleSheet.flatten(within(row).getByTestId(testID).props.style)).toMatchObject({ flex: 1, minWidth: 0 });
+    }
+    expect(StyleSheet.flatten(within(row).getByTestId("composition-exercise-summary").props.style).flexShrink).toBe(0);
+    for (const testID of ["composition-exercise-name-row", "composition-exercise-work-row", "composition-exercise-zones-line"]) {
+      const line = StyleSheet.flatten(within(row).getByTestId(testID).props.style);
+      expect(line).toMatchObject({ left: 76, right: 12 });
+      expect(line.width).toBeUndefined();
+    }
   });
 
   it("PRE6-7.2 (D-442) — hors placement, la récupération n'est plus une cible : un toucher sur la ligne 3 ouvre l'Exercice, un appui long saisit la carte, jamais de roulette ni de bulle", async () => {
@@ -3456,8 +3449,8 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(card.props.accessibilityLabel).not.toMatch(/récupération/u);
   });
 
-  // Revue 5.1 : la synthèse reste lisible ; la durée estimée s'abrège la première.
-  it("PRE6-5.1 — line 2 shrink priority: « Séries variables » with an estimate shrinks the estimate first; « À l'échec » keeps its summary", () => {
+  // D-511 (08/11/2026) : plus de durée estimée ; la prescription ne s'abrège pas. [Revue 5.1 : la durée estimée s'abrégeait la première — remplacé.]
+  it("D-511 — « Séries variables »: values then « … » with no estimate; « À l'échec » keeps its summary; the prescription never shrinks", () => {
     const view = renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", {
         name: "Extension",
@@ -3475,13 +3468,8 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     ]);
     const summary = screen.getByTestId("composition-exercise-summary");
     expect(summary.props.children).toBe("10 · 12 · 14 … rép.");
-    const estimate = screen.getByTestId("composition-exercise-estimated-duration");
-    const separator = screen.getByTestId("composition-exercise-estimate-separator");
-    const shrink = (node: ReturnType<typeof screen.getByTestId>) => StyleSheet.flatten(node.props.style).flexShrink as number;
-    expect(shrink(separator)).toBe(0);
-    expect(shrink(estimate)).toBeGreaterThan(shrink(summary));
+    expect(screen.queryByTestId("composition-exercise-estimated-duration")).toBeNull();
     expect(summary.props.numberOfLines).toBe(1);
-    expect(estimate.props.numberOfLines).toBe(1);
     view.unmount();
 
     renderScreenWithDraft([
@@ -3489,20 +3477,20 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     ]);
     expect(screen.getByTestId("composition-exercise-summary").props.children).toBe("3 séries à l’échec");
     expect(screen.queryByTestId("composition-exercise-estimated-duration")).toBeNull();
-    expect(StyleSheet.flatten(screen.getByTestId("composition-exercise-summary").props.style).flexShrink).toBe(1);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-exercise-summary").props.style).flexShrink).toBe(0);
   });
 
-  it("PRE6-5.1 — the lifted card inside the Circuit gets its border back without moving the media nor the values", () => {
+  it("D-511 — the lifted card inside the Circuit gets a 1 border; the content stays measured from the outer edge (media and values do not move)", () => {
     renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { name: "Gainage" })]);
     const content = () => StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style);
     const card = () => StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style);
-    const atRest = { border: card().borderWidth as number, left: content().paddingLeft as number, right: content().paddingRight as number };
-    expect(atRest).toEqual({ border: 0, left: 8, right: 8 });
+    const atRest = { border: card().borderWidth as number, left: content().left as number, right: content().right as number };
+    expect(atRest).toEqual({ border: 0.5, left: -0.5, right: -0.5 });
 
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
-    const lifted = { border: card().borderWidth as number, left: content().paddingLeft as number, right: content().paddingRight as number };
+    const lifted = { border: card().borderWidth as number, left: content().left as number, right: content().right as number };
     expect(lifted.border).toBe(OCCURRENCE_CARD_BORDER_WIDTH);
-    // Bord + marge : média et bord des valeurs gardent leur distance au bord extérieur.
+    // Bord + décalage : le contenu reste repéré sur le bord extérieur.
     expect(lifted.border + lifted.left).toBe(atRest.border + atRest.left);
     expect(lifted.border + lifted.right).toBe(atRest.border + atRest.right);
   });
@@ -3571,7 +3559,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     );
   });
 
-  it("sizes each revealed action to the FULL height of the card (72 × 80)", async () => {
+  it("sizes each revealed action to the FULL height of the card (72 × 72, D-511)", async () => {
     renderScreenWithDraft(withZeroRecovery);
     fireSwipeLeft("ex-1");
     for (const testID of [
@@ -3580,19 +3568,19 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     ]) {
       const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
       expect(style.width).toBe(72);
-      expect(style.height).toBe(80);
+      expect(style.height).toBe(72);
     }
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
-    ).toBe(80);
+    ).toBe(72);
   });
 
-  it("CE-T02-02 — the lifted card keeps its constant delta: 80 + 4 = 84, width expressed as a ±4 margin", () => {
+  it("CE-T02-02 — the lifted card keeps its constant delta: 72 + 4 = 76 (D-511), width expressed as a ±4 margin", () => {
     renderScreenWithDraft(withZeroRecovery);
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     const lifted = blockStyle();
-    expect(lifted.height).toBe(80 + dimensions.compositionActivityRow.heightDelta);
+    expect(lifted.height).toBe(72 + dimensions.compositionActivityRow.heightDelta);
     expect(lifted.marginHorizontal).toBe(-4);
   });
 
@@ -3607,12 +3595,12 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     const lifted = blockStyle();
-    expect(lifted.height).toBe(84);
+    expect(lifted.height).toBe(76);
     expect(lifted.marginVertical).toBe(-dimensions.compositionActivityRow.heightDelta / 2);
     expect(lifted.marginVertical).toBe(-2);
     // Encombrement dans le flux (hauteur + marges) identique au repos : rien ne bouge dessous.
     expect((lifted.height as number) + 2 * (lifted.marginVertical as number)).toBe(restFootprint);
-    expect(restFootprint).toBe(80);
+    expect(restFootprint).toBe(72);
   });
 
   // PRE-6 (story 5.1, D-435) : un seul rayon (12) pour la carte, les actions glissées et l'état soulevé.
@@ -4348,9 +4336,9 @@ describe("CompositionScreen — absence du contrôle Côtés du Tour (V2-PRE-1)"
  * sans flèche, sans badge, sans direction ; la synthèse ne porte plus « par côté » (D-238).
  */
 describe("CompositionScreen — icône neutre de changement de côté et synthèse D-238 (PRE-6 story 2.2)", () => {
-  // PRE-6 (story 5.1, D-435, `9798:19925`) : icône 16 à droite de la ligne 1, après le nom ; son
-  // bord droit est celui des valeurs (marge droite du contenu de la carte).
-  it.each(["RIGHT_LEFT", "LEFT_RIGHT"] as const)("shows the neutral 16 side-change icon at the right of line 1 for a bilateral Exercise (%s), never a direction", (sideMode) => {
+  // D-511 (08/11/2026) : icône 16 sur la ligne 2, immédiatement avant la prescription. [PRE-6 (story 5.1, D-435) : à droite
+  // de la ligne 1, après le nom — remplacé le 08/11/2026.]
+  it.each(["RIGHT_LEFT", "LEFT_RIGHT"] as const)("D-511 — shows the neutral 16 side-change icon on line 2, immediately before the prescription, for a bilateral Exercise (%s), never a direction", (sideMode) => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { sideMode })]);
 
     const indicator = screen.getByTestId("composition-activity-side-mode-ex-1");
@@ -4358,14 +4346,13 @@ describe("CompositionScreen — icône neutre de changement de côté et synthè
     const icon = within(indicator).getByTestId("composition-exercise-side-change-icon");
     expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 16, height: 16 });
     expect(screen.queryByText(/D→G|G→D/)).toBeNull();
-    // Sur la ligne du nom, après lui ; le nom s'abrège avant l'icône.
-    const nameRow = screen.getByTestId("composition-exercise-name-row");
-    expect(within(nameRow).getByTestId("composition-activity-side-mode-ex-1")).toBe(indicator);
-    expect(testIdOrder(screen.toJSON(), ["composition-exercise-name", "composition-activity-side-mode-ex-1"])).toEqual([
-      "composition-exercise-name",
+    const workRow = screen.getByTestId("composition-exercise-work-row");
+    expect(within(workRow).getByTestId("composition-activity-side-mode-ex-1").props.testID).toBe(indicator.props.testID);
+    expect(within(screen.getByTestId("composition-exercise-name-row")).queryByTestId("composition-activity-side-mode-ex-1")).toBeNull();
+    expect(testIdOrder(screen.toJSON(), ["composition-exercise-category", "composition-activity-side-mode-ex-1", "composition-exercise-summary"]).slice(-2)).toEqual([
       "composition-activity-side-mode-ex-1",
+      "composition-exercise-summary",
     ]);
-    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style).paddingRight).toBe(7);
   });
 
   it("omits the icon entirely for a unilateral Exercise", () => {
@@ -4770,9 +4757,9 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     renderScreenWithDraft([
       { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) },
     ]);
-    // Les cartes débordent de la colonne de 8 à droite (`CARD_OUTSET`) ; les deux bornes aussi.
+    // Les cartes débordent de la colonne à droite (`CARD_OUTSET` : 4 depuis D-511, 8 auparavant) ; les deux bornes aussi.
     const cardOutset = -(StyleSheet.flatten(screen.getByTestId("composition-zone-before-tour").props.style).marginHorizontal as number);
-    expect(cardOutset).toBe(8);
+    expect(cardOutset).toBe(4);
     for (const testID of ["composition-boundary-countdown-step", "composition-boundary-final-phase-track"]) {
       expect(StyleSheet.flatten(screen.getByTestId(testID).props.style)).toMatchObject({ marginRight: -cardOutset });
     }
@@ -4897,8 +4884,9 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
   });
 
   // PRE-6 story 5.2 (D-435, `8328:28605`) : plus de repère par occurrence — le média sert d'ancrage.
-  // Hors Circuit comme dans le Circuit, le rail (1,5, `#7A7A80`) arrive au haut du média (8) et
-  // repart de son bas (72), centré sur lui (x 40 dans la carte : x 56 à 402).
+  // Hors Circuit comme dans le Circuit, le rail (1,5, `#7A7A80`) arrive au haut du média et repart de son bas, centré
+  // sur lui. D-511 (08/11/2026) : média à 4 (haut 4, bas 68, x 36 dans la carte de 362 à x 20 : x 56 à 402).
+  // [Média à 8 (8, 72, x 40 dans la carte de 370 à x 16) — remplacé le 08/11/2026.]
   it("PRE6-5.2 — rail ancré sur le média, hors Circuit et dans le Circuit ; plus aucun repère par occurrence", () => {
     renderScreenWithDraft([
       { ...createExerciseDraft("out"), name: "Échauffement", structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(60) },
@@ -4909,14 +4897,16 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
       expect(screen.queryByTestId(`composition-sequence-marker-${id}`, hidden)).toBeNull();
       const link = StyleSheet.flatten(screen.getByTestId(`composition-rail-link-${id}`, hidden).props.style);
       const tail = StyleSheet.flatten(screen.getByTestId(`composition-rail-tail-${id}`, hidden).props.style);
-      expect(link).toMatchObject({ position: "absolute", width: 1.5, left: 40 - 0.75, backgroundColor: TEXT_TERTIARY });
-      expect((link.top as number) + (link.height as number)).toBe(8);
-      expect(tail).toMatchObject({ width: 1.5, left: 40 - 0.75, top: 72, bottom: 0, backgroundColor: TEXT_TERTIARY });
+      expect(link).toMatchObject({ position: "absolute", width: 1.5, left: 36 - 0.75, backgroundColor: TEXT_TERTIARY });
+      expect((link.top as number) + (link.height as number)).toBe(4);
+      expect(tail).toMatchObject({ width: 1.5, left: 36 - 0.75, top: 68, bottom: 0, backgroundColor: TEXT_TERTIARY });
       expect(link.pointerEvents ?? screen.getByTestId(`composition-rail-link-${id}`, hidden).props.pointerEvents).toBe("none");
     }
-    // Média à 8 du bord extérieur, avec ou sans bord : le rail passe par son centre.
-    expect(StyleSheet.flatten(within(screen.getByTestId("composition-exercise-row-out")).getByTestId("composition-activity-main-card").props.style).paddingLeft).toBe(7);
-    expect(StyleSheet.flatten(within(screen.getByTestId("composition-exercise-row-in")).getByTestId("composition-activity-main-card").props.style).paddingLeft).toBe(8);
+    // Média à 4 du bord extérieur dans les deux variantes : contenu repéré sur le bord extérieur, le rail passe par son centre.
+    for (const id of ["out", "in"]) {
+      expect(StyleSheet.flatten(within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId("composition-activity-main-card").props.style).left).toBe(-0.5);
+      expect(StyleSheet.flatten(within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId("composition-exercise-media").props.style).left).toBe(4);
+    }
   });
 });
 
@@ -5619,7 +5609,7 @@ describe("CompositionScreen — œil et « Volumes du circuit » retirés (compl
 /**
  * PRE-6 story 4.1 (AD-43, E7, E13, `8328:28622`, `8328:29270`, `8328:28733`) : action
  * « Ajouter un arrêt », mode placement sur un sous-brouillon local, puces des emplacements,
- * roulette « Durée de récupération », barre « Confirmer N pauses ajoutées » / « Annuler ».
+ * roulette « Durée de récupération », barre « Confirmer N points d’arrêt ajoutés » / « Annuler ».
  */
 describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.1)", () => {
   type Draft = SessionDraftContextValue["draft"];
@@ -5827,13 +5817,13 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     fireEvent.press(screen.getByLabelText(stopLabel("A")));
     fireEvent.press(screen.getByLabelText(stopLabel("B")));
     expect(screen.getByLabelText(stopLabel("B")).props.accessibilityState).toMatchObject({ selected: true });
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 pauses ajoutées");
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 points d’arrêt ajoutés");
 
     fireEvent.press(screen.getByLabelText(stopLabel("B")));
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 point d’arrêt ajouté");
     fireEvent.press(screen.getByLabelText(stopLabel("A")));
     expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 point d’arrêt ajouté");
     expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
   });
 
@@ -5847,7 +5837,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         announce.mock.calls.filter(([message]) => String(message).startsWith("Confirmer"));
       expect(confirmAnnouncements()).toHaveLength(0);
       fireEvent.press(screen.getByLabelText(stopLabel("A")));
-      expect(announce).toHaveBeenLastCalledWith(`${p.stopPointAddedAnnouncement}. Confirmer 1 pause ajoutée`);
+      expect(announce).toHaveBeenLastCalledWith(`${p.stopPointAddedAnnouncement}. Confirmer 1 point d’arrêt ajouté`);
     } finally {
       announce.mockRestore();
     }
@@ -5860,7 +5850,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     enter();
     fireEvent.press(screen.getByLabelText(stopLabel("A")));
     fireEvent.press(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel));
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 pauses ajoutées");
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 points d’arrêt ajoutés");
     fireEvent.press(confirm());
 
     expect(probe.updates).toBe(1);
@@ -5896,7 +5886,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
 
     fireEvent.press(screen.getByLabelText(stopLabel("A")));
     // Seuls les Points d'arrêt sont comptés.
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 point d’arrêt ajouté");
     fireEvent.press(confirm());
     expect(probe.updates).toBe(1);
     expect(probe.draft!.exercises.map((exercise) => exercise.postActivityRecoverySeconds)).toEqual(recoveriesBefore);
@@ -5917,7 +5907,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(screen.queryByTestId(BAR)).toBeNull();
     // Nouvelle entrée : sous-brouillon vide.
     enter();
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 point d’arrêt ajouté");
   });
 
   it("the system back (Android) cancels the placement without mutation", () => {
@@ -6030,7 +6020,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(probe.draft).toBe(before);
     expect(probe.updates).toBe(0);
     enter();
-    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 point d’arrêt ajouté");
   });
 
   // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil » : test de la récupération en placement (story 4.1, « Profile default: a tap before it resolves… ») retiré — le placement ne lit plus le défaut du Profil ; la récupération se règle dans Paramètres d'exécution.]
@@ -6167,10 +6157,10 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         borderStyle: "solid",
         backgroundColor: colors.primary,
       });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 point d’arrêt ajouté");
       fireEvent.press(screen.getByLabelText(stopLabel("A")));
       expect(screen.getByLabelText(stopLabel("A")).props.accessibilityState).toMatchObject({ selected: false });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 point d’arrêt ajouté");
     });
 
     // [« frame in line 3 » — remplacé le 01/11/2026 (PRE-9, ordre de Hermann, point 2) : plus de cadre de
@@ -6208,22 +6198,20 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       });
     });
 
-    it("arbitrage D6 (PR #391) : card content is greyed except the line-3 recovery, cards stay inactive; boundaries and Circuit header are not greyed but inactive", () => {
+    // D-513 (08/11/2026) : la ligne 3 ne porte plus de contrôle en placement — tout le contenu de la carte est grisé.
+    // [« sauf la récupération de la ligne 3 » (cadre « Récupération », arbitrage D6) — remplacé le 08/11/2026.]
+    it("arbitrage D6 (PR #391), D-513 : the whole card content is greyed, cards stay inactive; boundaries and Circuit header are not greyed but inactive", () => {
       renderPlacement(matrix());
       const row = () => screen.getByTestId("composition-exercise-row-A");
-      const dimmedParts = () => [
-        within(row()).getByTestId("composition-exercise-media", anyNode),
-        within(row()).getByTestId("composition-exercise-name-row", anyNode),
-        within(row()).getByTestId("composition-exercise-labels-column", anyNode),
-        within(row()).getByTestId("composition-exercise-work-row", anyNode),
-      ];
-      for (const part of dimmedParts()) expect(box(part).opacity).toBeUndefined();
+      const content = () => within(row()).getByTestId("composition-exercise-card-content", anyNode);
+      expect(box(content()).opacity).toBeUndefined();
       enter();
       const card = row();
-      // Surface de la carte et ligne 3 (cadre « Récupération ») non grisées ; le reste l'est.
+      // Surface de la carte non grisée ; son contenu l'est.
       expect(box(card).opacity).toBeUndefined();
-      for (const part of dimmedParts()) expect(box(part).opacity).toBe(0.45);
-      expect(box(within(card).getByTestId("composition-exercise-recovery-slot", anyNode))?.opacity).toBeUndefined();
+      expect(box(content()).opacity).toBe(0.45);
+      // D-513 : aucun cadre « Récupération » en pointillés sur la carte.
+      for (const node of card.findAll((n) => typeof n.type === "string")) expect(box(node).borderStyle).not.toBe("dashed");
       expect(card.props.accessible).toBe(false);
       fireEvent.press(card);
       fireEvent(card, "longPress");
@@ -6300,8 +6288,10 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       for (const id of ["A", "R"]) {
         const shown = screen.getByTestId(`composition-activity-recovery-${id}-recovery`, anyNode);
         expect(shown.props.onStartShouldSetResponder).toBeUndefined();
-        expect(shown.props.accessibilityElementsHidden).toBe(true);
-        expect(shown.props.importantForAccessibility).toBe("no-hide-descendants");
+        // 08/11/2026 : masquée avec tout le contenu de la carte (`OccurrenceCard`, `hideContentFromAccessibility`).
+        const content = within(screen.getByTestId(`composition-exercise-row-${id}`, anyNode)).getByTestId("composition-activity-main-card", anyNode);
+        expect(content.props.accessibilityElementsHidden).toBe(true);
+        expect(content.props.importantForAccessibility).toBe("no-hide-descendants");
         expect(screen.queryByTestId(`composition-activity-recovery-${id}-recovery`)).toBeNull();
         expect(screen.queryByTestId(`composition-placement-slot-${id}-recovery`, anyNode)).toBeNull();
       }
@@ -6551,7 +6541,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(chip().props.accessibilityState).toMatchObject({ selected: true });
       expect(chip().props.accessibilityHint).toBe(p.existingStopPointSelectedHint);
       expect(face(target)).toMatchObject({ backgroundColor: "#0508E5", borderStyle: "solid" });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 point d’arrêt ajouté");
       expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
 
       fireEvent.press(chip());
@@ -6565,7 +6555,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
 
       fireEvent.press(chip());
       expect(chip().props.accessibilityState).toMatchObject({ selected: true });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 point d’arrêt ajouté");
       expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
       expect(probe.updates).toBe(0);
     });
@@ -6597,12 +6587,12 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.getByLabelText(stopLabel("B")).props.accessibilityState).toMatchObject({ selected: false });
     });
 
-    it("label: additions only → « Confirmer 2 pauses ajoutées »; an addition and a removal → « Confirmer les modifications »", () => {
+    it("label: additions only → « Confirmer 2 points d’arrêt ajoutés »; an addition and a removal → « Confirmer les modifications »", () => {
       renderPlacement(matrix(), { overrides: { stopPoints: [P_AFTER_A] } });
       enter();
       fireEvent.press(screen.getByLabelText(stopLabel("B")));
       fireEvent.press(screen.getByLabelText(stopLabel("C")));
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 pauses ajoutées");
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 points d’arrêt ajoutés");
       fireEvent.press(screen.getByLabelText(stopLabel("C")));
       fireEvent.press(screen.getByLabelText(existingLabel("A")));
       expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications");
@@ -6750,7 +6740,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         expect(existing().props.accessibilityState).toEqual({ selected: false });
         announce.mockClear();
         fireEvent.press(existing());
-        expect(announce.mock.calls).toEqual([[`${p.stopPointKeptAnnouncement}. Confirmer 0 pause ajoutée`]]);
+        expect(announce.mock.calls).toEqual([[`${p.stopPointKeptAnnouncement}. Confirmer 0 point d’arrêt ajouté`]]);
         expect(existing().props.accessibilityState).toEqual({ selected: true });
       } finally {
         announce.mockRestore();
@@ -6766,22 +6756,22 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         enter();
         announce.mockClear();
         fireEvent.press(screen.getByLabelText(stopLabel("A")));
-        expect(announce.mock.calls).toEqual([[`${p.stopPointAddedAnnouncement}. Confirmer 1 pause ajoutée`]]);
+        expect(announce.mock.calls).toEqual([[`${p.stopPointAddedAnnouncement}. Confirmer 1 point d’arrêt ajouté`]]);
         announce.mockClear();
         fireEvent.press(screen.getByLabelText(stopLabel("B")));
-        expect(announce.mock.calls).toEqual([[`${p.stopPointAddedAnnouncement}. Confirmer 2 pauses ajoutées`]]);
+        expect(announce.mock.calls).toEqual([[`${p.stopPointAddedAnnouncement}. Confirmer 2 points d’arrêt ajoutés`]]);
         announce.mockClear();
         fireEvent.press(screen.getByLabelText(stopLabel("B")));
-        expect(announce.mock.calls).toEqual([[`${p.additionCancelledAnnouncement}. Confirmer 1 pause ajoutée`]]);
+        expect(announce.mock.calls).toEqual([[`${p.additionCancelledAnnouncement}. Confirmer 1 point d’arrêt ajouté`]]);
         announce.mockClear();
         fireEvent.press(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel));
-        expect(announce.mock.calls).toEqual([[`${p.stopPointAddedAnnouncement}. Confirmer 2 pauses ajoutées`]]);
+        expect(announce.mock.calls).toEqual([[`${p.stopPointAddedAnnouncement}. Confirmer 2 points d’arrêt ajoutés`]]);
         announce.mockClear();
         fireEvent.press(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel));
-        expect(announce.mock.calls).toEqual([[`${p.additionCancelledAnnouncement}. Confirmer 1 pause ajoutée`]]);
+        expect(announce.mock.calls).toEqual([[`${p.additionCancelledAnnouncement}. Confirmer 1 point d’arrêt ajouté`]]);
         announce.mockClear();
         fireEvent.press(screen.getByLabelText(stopLabel("A")));
-        expect(announce.mock.calls).toEqual([[`${p.additionCancelledAnnouncement}. Confirmer 0 pause ajoutée`]]);
+        expect(announce.mock.calls).toEqual([[`${p.additionCancelledAnnouncement}. Confirmer 0 point d’arrêt ajouté`]]);
         // [« ✕ de la roulette : rien n'est annoncé » — retiré le 01/11/2026 (PRE-9) : plus de roulette en placement.]
       } finally {
         announce.mockRestore();
@@ -6844,7 +6834,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       fireEvent.press(screen.getByLabelText(stopLabel("B")));
       fireEvent.press(screen.getByLabelText(existingLabel("A")));
       expect(screen.getByLabelText(existingLabel("A")).props.accessibilityState).toEqual({ selected: true });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 point d’arrêt ajouté");
       fireEvent.press(confirm());
       expect(probe.draft?.stopPoints?.map(({ scope, position }) => ({ scope, position }))).toEqual([
         { scope: "BEFORE_TOUR", position: 1 },
@@ -8381,12 +8371,13 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
 
     it("vers le bas : le lien de B traverse la place libérée par A et se rétracte avec B ; retour à 1 au dépôt", () => {
       renderLaidOut();
-      expect(linkHeight("composition-rail-link-B")).toBe(8 + 8);
+      // D-511 (08/11/2026) : écart 8 + haut du média 4. [8 + 8 — remplacé.]
+      expect(linkHeight("composition-rail-link-B")).toBe(8 + OCCURRENCE_CARD_MEDIA.top);
       lift("A");
       // A sort de la chaîne : B se relie au Compte à rebours, à travers la place de A (8 + 70).
       expect(screen.queryByTestId("composition-rail-link-A", hidden)).toBeNull();
       expect(screen.queryByTestId("composition-rail-tail-A", hidden)).toBeNull();
-      const restLength = 8 + 70 + 8 + 8;
+      const restLength = 8 + 70 + 8 + OCCURRENCE_CARD_MEDIA.top;
       expect(linkHeight("composition-rail-link-B")).toBe(restLength);
       moveTo("A", 100);
       settle();
@@ -8401,7 +8392,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
       // Story 7.6 : A glisse jusqu'à sa place (hors de la chaîne le temps du mouvement), puis la rejoint.
       settle();
-      expect(linkHeight("composition-rail-link-B")).toBe(8 + 8);
+      expect(linkHeight("composition-rail-link-B")).toBe(8 + OCCURRENCE_CARD_MEDIA.top);
       expect(scaleY("composition-rail-link-B")).toBe(1);
       expect(translateY("composition-rail-link-B")).toBe(0);
       expect(screen.getByTestId("composition-rail-link-A", hidden)).toBeTruthy();
@@ -8414,8 +8405,10 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       moveTo("Z", -100);
       settle();
       // Bas du Circuit : de X (immobile) au bord bas, qui descend d'un pas du Circuit.
-      expect(linkHeight("composition-rail-link-circuit-end")).toBe(8);
-      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(8 + CIRCUIT_PITCH, 6);
+      // D-511 : marge basse = bas du média → bas de la carte (4). [8 — remplacé.]
+      const circuitBottom = OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom;
+      expect(linkHeight("composition-rail-link-circuit-end")).toBe(circuitBottom);
+      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(circuitBottom + CIRCUIT_PITCH, 6);
       // La rangée du point après le Circuit suit le bas du Circuit : son lien ne change pas.
       expect(scaleY("composition-rail-link-stop-pc")).toBe(1);
       // Fin : à travers la place de Z (8 + 70) ; elle descend du net, la rangée d'un pas du Circuit.
@@ -8550,7 +8543,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         if (ids("IN_TOUR").length > 0) {
           const height = rowsOf("IN_TOUR", CIRCUIT_GAP, tourTop + listTop, "circuit");
           fireLayout(screen.getByTestId("composition-zone-in-tour"), listTop, height);
-          tourHeight = listTop + height + 8; // Contre-recette du 30/10 (obs-3) : marge basse 8 sous les cartes.
+          // Contre-recette du 30/10 (obs-3) : marge basse sous les cartes = bas du média → bas de la carte (4 depuis D-511, 8 auparavant).
+          tourHeight = listTop + height + (CARD - MEDIA.bottom);
         }
         fireLayout(screen.getByTestId("composition-tour-section"), tourTop, tourHeight);
         const tourBottom = tourTop + tourHeight;
@@ -8560,7 +8554,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           top: tourBottom,
           bottom: tourBottom,
           entry: tourBottom,
-          minLength: ids("IN_TOUR").length > 0 ? 8 : 14,
+          minLength: ids("IN_TOUR").length > 0 ? CARD - MEDIA.bottom : 14,
           linkTestID: "composition-rail-link-circuit-end",
           shift: () => translateY("composition-rail-circuit-end-track"),
           media: null,
@@ -8943,7 +8937,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           // déplace pas en même temps, il apparaît lorsque le point est déposé ») : le point de raccord
           // suit la puce, sur l'axe du rail.
           expect(translateY("composition-rail-dot-stop-P-lifted")).toBe(dy);
-          expect(StyleSheet.flatten(screen.getByTestId("composition-rail-dot-stop-P", hidden).props.style)).toMatchObject({ left: 40 - 3 });
+          expect(StyleSheet.flatten(screen.getByTestId("composition-rail-dot-stop-P", hidden).props.style)).toMatchObject({ left: OCCURRENCE_CARD_MEDIA.centerX - 3 });
           // B remonte dans la place libérée par P.
           expect(rowShift("B")).toBeLessThan(0);
           expect(screen.queryByTestId("composition-rail-link-stop-P", hidden)).toBeNull();
@@ -9419,7 +9413,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 3 * 70 + 2 * CIRCUIT_GAP);
         ids.forEach((id, index) => fireLayout(container(id), index * CIRCUIT_PITCH, 70));
       };
-      const IN_CIRCUIT_REST = CIRCUIT_GAP + 8;
+      const IN_CIRCUIT_REST = CIRCUIT_GAP + OCCURRENCE_CARD_MEDIA.top;
       /** Au repos : chaque carte reliée à la précédente (écart 9 + ancre 8), échelle 1, aucun décalage. */
       const expectRest = (ids: readonly string[]) => {
         expect(order()).toEqual(ids.map((id) => `${id}:IN_TOUR`));
@@ -9429,14 +9423,14 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(scaleY(`composition-rail-link-${id}`)).toBe(1);
           expect(translateY(`composition-rail-link-${id}`)).toBe(0);
         }
-        expect(linkHeight("composition-rail-link-circuit-end")).toBe(8);
+        expect(linkHeight("composition-rail-link-circuit-end")).toBe(OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom);
         expect(scaleY("composition-rail-link-circuit-end")).toBe(1);
         expect(translateY("composition-tour-section-surface-top")).toBe(0);
         expect(translateY("composition-tour-section-surface-bottom")).toBe(0);
       };
       /** Haut visible du lien d'une carte = bas visible de la carte qui la précède (repère de la liste). */
       const expectJoined = (id: string, layoutTop: number, previous: { id: string; layoutTop: number }) => {
-        const top = layoutTop + 8 + rowShift(id) - visible(`composition-rail-link-${id}`);
+        const top = layoutTop + OCCURRENCE_CARD_MEDIA.top + rowShift(id) - visible(`composition-rail-link-${id}`);
         expect(top).toBeCloseTo(previous.layoutTop + 70 + rowShift(previous.id), 6);
       };
 
@@ -9453,7 +9447,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       expect(visible("composition-rail-link-Q")).toBeCloseTo(IN_CIRCUIT_REST, 6);
       expectJoined("R", CIRCUIT_PITCH * 2, { id: "Q", layoutTop: CIRCUIT_PITCH });
       // Le bas du Circuit traverse l'emplacement ouvert sous R.
-      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(8 + CIRCUIT_PITCH, 6);
+      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom + CIRCUIT_PITCH, 6);
       release("P", 200);
       // Story 7.6 : P part de l'endroit du lâcher et glisse jusqu'à sa place.
       expect(rowShift("P")).toBeGreaterThan(0);
@@ -9528,20 +9522,21 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
       anActivity("i", "IN_TOUR", { name: "Pompes" }),
       anActivity("a", "AFTER_TOUR", { name: "Fentes" }),
     ]);
-    // Écart 8 + haut du média 8 ; dans le Circuit : écart 9 + 8.
-    expect(span("composition-rail-link-b").height).toBe(16);
-    expect(span("composition-rail-link-i").height).toBe(17);
-    expect(span("composition-rail-link-a").height).toBe(16);
+    // D-511 (08/11/2026) : écart 8 + haut du média 4 ; dans le Circuit : écart 9 + 4. [8 + 8 et 9 + 8 — remplacés.]
+    expect(span("composition-rail-link-b").height).toBe(12);
+    expect(span("composition-rail-link-i").height).toBe(13);
+    expect(span("composition-rail-link-a").height).toBe(12);
     // Recette du 29/10 : 8 + 14 + 4 (anneau centré sur la ligne d'en-tête de 18, au lieu de 15 sur 40).
     expect(span("composition-rail-link-circuit-header").height).toBe(26);
-    expect(span("composition-rail-link-circuit-end").height).toBe(8); // Contre-recette du 30/10 (obs-3) : marge basse 8 sous la carte.
+    // Contre-recette du 30/10 (obs-3) : marge basse sous la carte = bas du média → bas de la carte (4 depuis D-511).
+    expect(span("composition-rail-link-circuit-end").height).toBe(4);
     expect(span("composition-rail-link-end").height).toBe(15);
-    // La queue de chaque carte part du bas du média et descend jusqu'au bas du bloc.
+    // La queue de chaque carte part du bas du média (68) et descend jusqu'au bas du bloc.
     for (const id of ["b", "i", "a"]) {
-      expect(styleOf(`composition-rail-tail-${id}`)).toMatchObject({ top: 72, bottom: 0 });
+      expect(styleOf(`composition-rail-tail-${id}`)).toMatchObject({ top: 68, bottom: 0 });
     }
     // Circuit : écart 9 entre l'en-tête et les cartes, cartes du Circuit sur l'aplat du Circuit.
-    expect(styleOf("composition-zone-in-tour")).toMatchObject({ gap: 9, marginHorizontal: -8 });
+    expect(styleOf("composition-zone-in-tour")).toMatchObject({ gap: 9, marginHorizontal: -4 });
     expect(styleOf("composition-tour-section")).toMatchObject({ paddingVertical: 14, gap: 9 });
   });
 
@@ -9551,21 +9546,21 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     });
     expect(styleOf("composition-zone-before-tour").gap).toBe(8);
     expect(styleOf("composition-stop-point-p1")).toMatchObject({ height: 22, justifyContent: "center" });
-    // Point de 6 au centre de la rangée (11), sur l'axe du média (40).
+    // Point de 6 au centre de la rangée (11), sur l'axe du média (36 dans la carte depuis D-511 ; toujours x 56 à 402).
     expect(styleOf("composition-rail-dot-stop-p1")).toMatchObject({
       width: 6,
       height: 6,
       borderRadius: 3,
       top: 11 - 3,
-      left: 40 - 3,
+      left: 36 - 3,
       backgroundColor: TEXT_TERTIARY,
     });
     // La queue de A s'arrête au bas de la carte ; le lien du point remonte l'écart (8) jusqu'à A ;
     // celui de B remonte l'écart jusqu'au bas de la rangée du point ; la queue du point la traverse.
-    expect(styleOf("composition-rail-tail-A")).toMatchObject({ top: 72, bottom: 0 });
+    expect(styleOf("composition-rail-tail-A")).toMatchObject({ top: 68, bottom: 0 });
     expect(span("composition-rail-link-stop-p1")).toMatchObject({ top: -8, height: 8 });
     expect(styleOf("composition-rail-tail-stop-p1")).toMatchObject({ top: 0, bottom: 0 });
-    expect(span("composition-rail-link-B").height).toBe(16);
+    expect(span("composition-rail-link-B").height).toBe(12);
     expect(screen.queryByTestId("composition-rail-dot-A", hidden)).toBeNull();
     // Cible tactile de la puce limitée à l'écart (4 ≤ 8) : elle ne chevauche aucune carte. Revue 5.3 :
     // boîte réelle de 30 (marges négatives de 4 : la rangée garde 22).
@@ -9582,14 +9577,15 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     expect(styleOf("composition-stop-point-pc")).toMatchObject({ height: 22, justifyContent: "center" });
     // Lien jusqu'au bas du Circuit : l'écart de la séquence (8), ancre au haut de la rangée.
     expect(span("composition-rail-link-stop-pc")).toMatchObject({ top: -8, height: 8 });
-    expect(styleOf("composition-rail-tail-stop-pc")).toMatchObject({ top: 0, bottom: 0, left: 40 - 0.75 });
-    expect(styleOf("composition-rail-dot-stop-pc")).toMatchObject({ top: 11 - 3, left: 40 - 3 });
-    expect(span("composition-rail-link-a").height).toBe(16);
+    expect(styleOf("composition-rail-tail-stop-pc")).toMatchObject({ top: 0, bottom: 0, left: 36 - 0.75 });
+    expect(styleOf("composition-rail-dot-stop-pc")).toMatchObject({ top: 11 - 3, left: 36 - 3 });
+    expect(span("composition-rail-link-a").height).toBe(12);
   });
 
-  it("largeurs : cartes à 8 et Circuit à 16 de part et d'autre de la colonne (marges constantes, aucune largeur codée)", () => {
+  // D-511 (08/11/2026, écran `11789:21914`) : cartes à 4 (362 à x 20), Circuit toujours à 16. [Cartes à 8 — remplacé.]
+  it("largeurs : cartes à 4 et Circuit à 16 de part et d'autre de la colonne (marges constantes, aucune largeur codée)", () => {
     renderScreenWithDraft([anActivity("b", "BEFORE_TOUR", { name: "Gainage" }), anActivity("i", "IN_TOUR", { name: "Pompes" })]);
-    expect(styleOf("composition-zone-before-tour").marginHorizontal).toBe(-8);
+    expect(styleOf("composition-zone-before-tour").marginHorizontal).toBe(-4);
     expect(styleOf("composition-zone-before-tour").width).toBeUndefined();
     expect(styleOf("composition-tour-section")).toMatchObject({ marginHorizontal: -16, paddingHorizontal: 16 });
     expect(styleOf("composition-tour-section").width).toBeUndefined();
@@ -9799,9 +9795,12 @@ describe("CompositionScreen — photo ou affiche vidéo dans le gabarit (PRE-6 s
       anActivity("b", "BEFORE_TOUR", { name: "Pompes" }),
     ]);
     const media = () => within(screen.getByTestId("composition-exercise-row-a", hidden)).getByTestId("composition-exercise-media", hidden);
-    expect(StyleSheet.flatten(media().props.style).opacity).toBeUndefined();
+    // 08/11/2026 : le grisé est porté par le contenu commun de la carte (`composition-exercise-card-content`).
+    const content = () => within(screen.getByTestId("composition-exercise-row-a", hidden)).getByTestId("composition-exercise-card-content", hidden);
+    expect(media()).toBeTruthy();
+    expect(StyleSheet.flatten(content().props.style).opacity).toBeUndefined();
     fireEvent.press(screen.getByTestId("composition-add-stop-action"));
-    expect(StyleSheet.flatten(media().props.style).opacity).toBe(0.45);
+    expect(StyleSheet.flatten(content().props.style).opacity).toBe(0.45);
     expect(imageOf("a")).not.toBeNull();
     mockPush.mockClear();
     fireEvent.press(screen.getByTestId("composition-exercise-media-image", hidden));

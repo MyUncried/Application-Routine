@@ -3,191 +3,131 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { MediaPreview, type MediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
 import { isIncompleteSummary, isToVerifySummary, type OccurrenceCategory } from "@/features/sessions/compositionPresentation";
-import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
-import { strings } from "@/shared/i18n";
+import { formatPrimeDuration } from "@/domain/activities/durationFormat";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
 /**
- * Bord de la carte hors Circuit (Figma `9798:44464`, `#E4E7EF`) : couleur absente du registre ch12,
- * constante locale (choix D5 de l'epic 5 ; DSF-CARTES « Exception locale — Cartes de Composition de
- * séance v2 », ch13 CE-T03-08 §9). Ajout au registre proposé au lot documentaire.
+ * Carte d'exercice de la Composition — composant « DSF / Cards / Exercice — Composition » (Figma
+ * `11810:2159`, page « Design system — Fondations » ; variantes « Hors circuit » `11810:2102` et
+ * « Dans un circuit » `11810:2132` ; écran de référence `11789:21914`). Décisions D-511 et D-513
+ * (Hermann, 06/11/2026) ; demande de Hermann du 08/11/2026 (« Utiliser le composant « Carte
+ * d'exercice » dans la Composition de séance »).
+ * [Carte v2 de 370 × 80 (PRE-6 story 5.1, D-435, Figma `9798:44464`) : média à 8 du bord, rayon 12,
+ * bord 1 `#E4E7EF` hors Circuit et aucun dans le Circuit, colonne des valeurs avec le symbole de durée
+ * (chronomètre) et la durée estimée « / ≈ … » — remplacée le 08/11/2026.]
  */
-export const OCCURRENCE_CARD_BORDER_COLOR = "#E4E7EF";
+
 /**
- * Fond du gabarit média (Figma `9798:19906`, variable `color/cards/media-placeholder`, `#EEF0F6`) :
- * hors registre ch12, constante locale (choix D5 ; DSF-CARTES, exception v2).
+ * Liseré de la carte : couleur des cartes de séance (`colors.cardsBorder`, `#CCD1E0`) à 50 %
+ * d'opacité — même valeur dérivée que `SessionCard` (D-504) et la carte Mouvement (D-508).
+ * [`#E4E7EF` plein (carte v2) — remplacé le 08/11/2026.]
+ */
+export const OCCURRENCE_CARD_BORDER_COLOR = "rgba(204, 209, 224, 0.5)";
+/** Épaisseur du liseré de la carte (D-511 : 0,5). [Carte v2 : 1 — remplacé le 08/11/2026.] */
+export const OCCURRENCE_CARD_HAIRLINE_WIDTH = 0.5;
+/**
+ * Fond du gabarit photo (Figma `color/cards/media-placeholder`, `#EEF0F6`) : hors registre ch12,
+ * constante locale (choix D5 ; DSF-CARTES, exception v2).
  */
 export const OCCURRENCE_CARD_MEDIA_BACKGROUND = "#EEF0F6";
 /**
- * Rayon UNIQUE de la carte d'occurrence (Figma `9798:44464` : 12 ; D-435), partagé par la surface,
- * le groupe d'actions glissées et l'état soulevé (même silhouette partout).
+ * Rayon UNIQUE de la carte (12), partagé par la surface, le groupe d'actions glissées et l'état
+ * soulevé (même silhouette partout).
  */
 export const OCCURRENCE_CARD_RADIUS = fixedRadii[12];
-/** Épaisseur du bord hors Circuit (Figma : 1). */
+/**
+ * Liseré d'une carte à compléter (rouge, recette du 29/10), à vérifier (transparent) et de l'état
+ * soulevé (`#D1D1D6`) : 1, inchangé.
+ */
 export const OCCURRENCE_CARD_BORDER_WIDTH = 1;
-/** Hauteur de la carte v2 (Figma `9798:44464` : 80 ; D-435), quelle que soit la variante. */
-export const OCCURRENCE_CARD_HEIGHT = 80;
+/** Hauteur de la carte (D-511 : 72), quelle que soit la variante. [Carte v2 : 80 — remplacé le 08/11/2026.] */
+export const OCCURRENCE_CARD_HEIGHT = 72;
 
-/** Gabarit média (Figma `9798:19906`) : 64 × 64, rayon 12, bord 1 `#7A7A80`, icône 24 centrée. */
+/** Photo (D-511) : 64 × 64 à 4 du bord extérieur, rayon 8 (concentrique : 12 − 4) ; bord 1 `#7A7A80` sans photo. */
 const MEDIA_SIZE = 64;
-const MEDIA_RADIUS = fixedRadii[12];
-/** Marge gauche de la carte jusqu'au média (Figma Standard `8328:28605` : 8 du bord extérieur). */
-const CARD_PADDING_LEFT = spacing[8];
+const MEDIA_INSET = spacing[4];
+const MEDIA_RADIUS = fixedRadii[8];
+const MEDIA_FRAME_BORDER = 1;
+/** Textes à 8 de la photo (Figma : ligne 1 à x 76 depuis le bord extérieur). */
+const MEDIA_TEXT_GAP = spacing[8];
+/** Valeurs de droite terminées à 12 du bord extérieur (Figma : x 350 dans une carte de 362). */
+const VALUE_RIGHT_INSET = spacing[12];
 
 /**
- * PRE-6 story 5.2 : position du média dans la carte (depuis ses bords extérieurs), ancre du rail
- * segmenté — centré horizontalement sur le média, il s'arrête à ses bords haut et bas. Le média
- * est centré verticalement dans la carte de 80.
+ * Grille verticale (D-511) : lignes à 8, 30 et 48 du haut de la carte ; ligne 1 de 20, lignes 2 et 3
+ * de 16 (Figma `11810:2107`, `11810:2110`, `11810:2120`). Exportée pour les tests.
+ */
+export const OCCURRENCE_CARD_LINES = {
+  nameTop: 8,
+  nameHeight: 20,
+  workTop: 30,
+  workHeight: 16,
+  zonesTop: 48,
+  zonesHeight: 16,
+} as const;
+/**
+ * Icônes des lignes 2 et 3 centrées dans une colonne de 10 (D-511) ; les pastilles et le sablier sont
+ * dessinés à 13 (Figma), débordant de 1,5 de chaque côté de la colonne. Textes à 7 de la colonne
+ * (Figma : pastille de 13 à x 75, texte à x 93), comme la carte Séance (`SessionCard`, D-504).
+ */
+export const OCCURRENCE_CARD_SYMBOL_COLUMN = 10;
+const SYMBOL_SIZE = 13;
+const SYMBOL_TEXT_GAP = 7;
+/** Écart entre les éléments de droite d'une ligne (Figma : 5). */
+const VALUE_GAP = 5;
+
+/**
+ * Position de la photo depuis les bords extérieurs de la carte : ancre du rail (centré sur la photo,
+ * il s'arrête à ses bords haut et bas) et du bouton « Ouvrir le mouvement ».
  */
 export const OCCURRENCE_CARD_MEDIA = {
-  top: (OCCURRENCE_CARD_HEIGHT - MEDIA_SIZE) / 2,
-  centerX: CARD_PADDING_LEFT + MEDIA_SIZE / 2,
-  bottom: (OCCURRENCE_CARD_HEIGHT + MEDIA_SIZE) / 2,
-} as const;
-/**
- * Bord droit des valeurs, du symbole de côté et de la récupération : 8 du bord extérieur de la carte
- * (Figma : x 362 dans une carte de 370, avec ou sans bord ; ch13 « valeurs alignées sur x378 » à 402).
- */
-const CARD_VALUE_INSET = spacing[8];
-/** Écart média → texte (Figma : 12). */
-const MEDIA_TEXT_GAP = spacing[12];
-
-/** Lignes du texte (Figma `9798:19910`, cadre de 58 centré dans la carte de 80). */
-const NAME_LINE_HEIGHT = type.listCardTitle.lineHeight; // 18
-/** Écart nom → ligne 2 (Figma : 18 → 23, soit 5). */
-const NAME_TO_WORK_GAP = 5;
-/** Ligne 2, Catégorie et travail (Figma : cadre de 16). */
-const WORK_LINE_HEIGHT = 16;
-/** Écart ligne 2 → ligne 3 (Figma : 39 → 41, soit 2). */
-const WORK_TO_ZONES_GAP = spacing[2];
-/** Ligne 3, Zones et récupération (Figma : cadre de 17 dont 2 en haut). */
-const ZONES_LINE_HEIGHT = 17;
-const ZONES_LINE_PADDING_TOP = spacing[2];
-
-/**
- * Géométrie verticale du cadre de texte, centré dans la carte (Figma `9798:19910` : 58). Exportée
- * pour la cible tactile de la récupération et pour les tests, qui la vérifient sans littéral.
- */
-export const OCCURRENCE_CARD_TEXT_FRAME = {
-  nameLineHeight: NAME_LINE_HEIGHT,
-  nameToWorkGap: NAME_TO_WORK_GAP,
-  workLineHeight: WORK_LINE_HEIGHT,
-  workToZonesGap: WORK_TO_ZONES_GAP,
-  zonesLineHeight: ZONES_LINE_HEIGHT,
-  zonesLinePaddingTop: ZONES_LINE_PADDING_TOP,
-  height: NAME_LINE_HEIGHT + NAME_TO_WORK_GAP + WORK_LINE_HEIGHT + WORK_TO_ZONES_GAP + ZONES_LINE_HEIGHT,
+  top: MEDIA_INSET,
+  centerX: MEDIA_INSET + MEDIA_SIZE / 2,
+  bottom: MEDIA_INSET + MEDIA_SIZE,
 } as const;
 
-/**
- * Cible tactile de la récupération en ligne 3 (revue de la story 5.1, écart assumé au choix D7,
- * soumis à Hermann au jalon J4), au-delà de la boîte de contenu de la ligne 3 (15) : la ligne 2
- * n'est jamais couverte — vers le haut, la cible s'arrête au bas de la ligne 2 (écart 2 entre les
- * lignes + 2 de marge haute de la ligne 3) ; vers le bas, elle descend jusqu'au bord intérieur de la
- * carte, sans le franchir. Aucune extension latérale. Hauteur obtenue : 15 + 4 + 10 = 29 avec bord,
- * 30 sans bord, au lieu de 44.
- *
- * Revue 5.3 : cette étendue est portée par la BOÎTE du `Pressable` (marges internes compensées par
- * des marges négatives : la mise en page ne change pas), jamais par `hitSlop`. Sous Fabric iOS,
- * `RCTViewComponentView` écarte un toucher hors des limites d'un parent qui ne mesure aucun
- * débordement (`overflowInset` nul) : un `hitSlop` qui dépasse le parent est sans effet. Une boîte
- * réelle qui dépasse crée ce débordement chez tous ses ancêtres, et le toucher l'atteint. Ici la
- * cible reste dans la carte (`overflow: hidden`), qui la contient.
- */
-export function occurrenceRecoveryTouchExtent(bordered: boolean): { readonly top: number; readonly bottom: number } {
-  const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
-  const innerHeight = OCCURRENCE_CARD_HEIGHT - 2 * border;
-  return {
-    top: WORK_TO_ZONES_GAP + ZONES_LINE_PADDING_TOP,
-    bottom: (innerHeight - OCCURRENCE_CARD_TEXT_FRAME.height) / 2,
-  };
-}
+/** Texte Regular 12 / 16 (Figma : catégorie, zones, rôle, durée de récupération). */
+const REGULAR_12 = { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, lineHeight: 16 } as const;
+/** Prescription (D-511) : Semi Bold 12 / 16, `text-primary`. */
+const SEMI_BOLD_12 = { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, lineHeight: 16 } as const;
 
-/** Écart entre la colonne de gauche (Catégorie, Zones) et la colonne des symboles. */
-const COLUMNS_GAP = spacing[4];
-
-/**
- * PRE-6 story 5.3 (D-435, Figma `9848:18968`, `9839:19099`) : cadre « Récupération » du placement,
- * dans la ligne 3 de la colonne des valeurs. Relevés à 402 (carte 370) : cadre y 51 à 75 (ligne 3 à
- * y 52, son contenu à y 54), bord droit x 366 (colonne des valeurs jusqu'à x 362).
- * - Vertical : le cadre commence 3 au-dessus du contenu de la ligne 3 (le sablier reste à sa place
- *   hors placement) et mesure 24 ; sa cible est celle de la récupération
- *   (`occurrenceRecoveryTouchExtent`), qui le contient (1 au-dessus, 4 ou 5 en dessous).
- * - Horizontal (revue 5.3) : dans le flux, débordant de la colonne de 4 de chaque côté — à gauche,
- *   jamais plus que l'écart entre les colonnes (aucun recouvrement des Zones, aucun toucher sur
- *   elles) ; Figma déborde de 6 à gauche. Sa largeur suit son contenu : il élargit la colonne des
- *   valeurs de la carte (au plus 60 %), les Zones cèdent la place ; « Récupération » ne s'abrège pas.
- */
-export const OCCURRENCE_RECOVERY_FRAME = {
-  aboveContent: 3,
-  height: 24,
-  /** Boîte de contenu de la ligne 3 (17 − marge haute 2), repère des étendues tactiles. */
-  lineContentHeight: ZONES_LINE_HEIGHT - ZONES_LINE_PADDING_TOP,
-  horizontalOutset: COLUMNS_GAP,
-} as const;
-
-/** Pastilles et symboles dessinés à 13 (Figma `9798:19913`, `9798:19919`, `9798:19927`). */
-const SYMBOL_GAP = spacing[6];
-/** Écart entre le nom et l'icône de changement de côté. */
-const NAME_SIDE_CHANGE_GAP = spacing[12];
-/**
- * Colonne des symboles et des valeurs, exprimée par rapport à la largeur utile du texte et au bord
- * droit (jamais un x d'exemple) : au moins 35 % de la largeur utile (Figma à 402 : 96 sur 277, du
- * symbole x 266 au bord des valeurs x 362), élargie au besoin par la valeur la plus longue
- * (« 10 rép. / ≈ 1 min ») ; au plus 60 %, la valeur s'abrégeant alors par une ellipse.
- */
-const VALUE_COLUMN_MIN_WIDTH = "35%";
-const VALUE_COLUMN_MAX_WIDTH = "60%";
-
-/** Texte secondaire (Figma : Inter Regular 12, `#7A7A80`, interligne « normal » 15). */
-const REGULAR_12 = { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, lineHeight: 15 } as const;
-
-/**
- * Hauteur de la carte. PRE-6 story 5.1 (D-435) : 80 dans toutes les variantes ; le couple
- * Répétitions + cadence reste sur la ligne 2 (DSF-CARTES, exception v2). Elle ne dépend plus de la
- * durée estimée (stories 2.2 et 2.3b : 64 / 70) ; `predictedInsertionHeight` garde son calcul.
- */
+/** Hauteur de la carte : 72 dans toutes les variantes ; `predictedInsertionHeight` garde son calcul. */
 export function occurrenceCardHeight(): number {
   return OCCURRENCE_CARD_HEIGHT;
 }
 
 /**
- * Surface de la carte hors Circuit (fond blanc, bord 1 `#E4E7EF`, rayon 12) — portée par le
- * `Pressable` de l'occurrence (`CompositionActivityRow`), qui garde gestes, balayage et état
- * soulevé : l'état soulevé remplace fond, bord et rayon comme avant.
+ * Surface de la carte (D-511) : fond blanc, liseré 0,5 à 50 %, rayon 12 — dans le Circuit comme hors
+ * Circuit — portée par le `Pressable` de l'occurrence (`CompositionActivityRow`), qui garde gestes,
+ * balayage et état soulevé. [Dans le Circuit, aucun bord (`occurrenceCardInCircuitSurface`, D-435) —
+ * remplacé le 08/11/2026 : les deux variantes ont le même liseré.]
  */
 export const occurrenceCardSurface = {
   backgroundColor: colors.background,
-  borderWidth: OCCURRENCE_CARD_BORDER_WIDTH,
+  borderWidth: OCCURRENCE_CARD_HAIRLINE_WIDTH,
   borderColor: OCCURRENCE_CARD_BORDER_COLOR,
   borderRadius: OCCURRENCE_CARD_RADIUS,
 } as const;
 
-/** Dans le Circuit, aucun bord (D-435, Figma `9819:19961`) ; l'état soulevé garde le sien. */
-export const occurrenceCardInCircuitSurface = { borderWidth: 0 } as const;
-
 /**
- * PRE-7 (D-448, point 7, recette JA2 nv-5) : fond d'une carte dont la synthèse est « Paramètres à
- * compléter. » (par exemple une phase sans durée après un changement de rang), dans le Circuit
- * comme hors Circuit ; l'état soulevé garde le sien.
+ * PRE-7 (D-448, point 7, recette JA2 nv-5) : fond d'une carte dont la prescription est « Paramètres à
+ * compléter. ». PRE-9, recette iPhone du 29/10 (Hermann : « ajouter un liseré fin rouge à la carte ») :
+ * bord de 1 `colors.danger`. L'état soulevé garde le sien.
  */
 export const occurrenceCardIncompleteSurface = {
   backgroundColor: colors.dangerSurface,
-  // PRE-9, recette iPhone du 29/10 (Hermann : « Le contraste du fond de la carte rouge sur le gris ne
-  // se voit pas assez, alors ajouter un liseré fin rouge à la carte ») : bord de 1 `colors.danger`,
-  // dans le Circuit comme hors Circuit (l'écran passe alors `bordered` pour que le contenu ne bouge pas).
   borderWidth: OCCURRENCE_CARD_BORDER_WIDTH,
   borderColor: colors.danger,
 } as const;
 
 /**
- * PRE-9 — recette iPhone n° 2 du 31/10/2026 (constat e) : carte « Paramètre à vérifier » — même
- * place que la carte à compléter, en orange (`toVerifyColors`, rendu choisi sans maquette) ;
- * « Paramètres à compléter » prime.
- * Hermann, 08/11/2026 (« le liseré orange de la carte d'exercice « à vérifier » : pas de liseré orange ») : bord transparent, de même
- * largeur (le contenu ne bouge pas). [Liseré `toVerifyColors.border` — retiré le 08/11/2026.]
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026 (constat e) : carte « Paramètre à vérifier », en orange
+ * (`toVerifyColors`) ; « Paramètres à compléter » prime. Hermann, 08/11/2026 (« pas de liseré
+ * orange ») : bord transparent. [Liseré `toVerifyColors.border` — retiré le 08/11/2026.]
  */
 export const occurrenceCardToVerifySurface = {
   backgroundColor: toVerifyColors.surface,
@@ -195,56 +135,49 @@ export const occurrenceCardToVerifySurface = {
   borderColor: "transparent",
 } as const;
 
+/** Variante du composant : déduite de l'appartenance effective à un Circuit (un Cycle n'en est pas un). */
+export type OccurrenceCardVariant = "OUT_OF_CIRCUIT" | "IN_CIRCUIT";
+
 export type OccurrenceCardProps = {
+  /** Nom affiché (suffixe de copie compris), sans le niveau, qui a sa place à droite. */
   readonly name: string;
+  /** « Niveau N » si le mouvement a un niveau ; `null` : l'espace revient au nom. */
+  readonly level: string | null;
   readonly category: OccurrenceCategory | null;
   /** Zones corporelles déjà formatées (`formatExerciseBodyZones`), `null` sans zone. */
   readonly bodyZones: string | null;
-  /** Synthèse D-238 (`formatOccurrenceSummary`). */
+  /** Prescription (`formatOccurrenceSummary`) : nombre de séries et cible, ou départ et incrément. */
   readonly summary: string;
-  /** Durée estimée (Répétitions avec bip), affichée après la synthèse sur la ligne 2 ; `null` sinon. */
-  readonly estimatedDuration: string | null;
   /** `true` seulement si l'exercice a un changement de côté (bilatéral). */
   readonly hasSideChange: boolean;
+  /** « Hors circuit » (pictogramme noir) ou « Dans un circuit » (pictogramme gris). */
+  readonly variant: OccurrenceCardVariant;
   /**
-   * Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé. Les marges compensent ce bord,
-   * pour que ni le média ni le contenu ne bougent quand il apparaît : média et bord des valeurs
-   * restent à 8 du bord extérieur (PRE-6 story 5.2 : la position du média ne dépend plus de la zone,
-   * l'ancienne propriété `inCircuit` est retirée).
+   * Épaisseur du bord porté par le `Pressable` de l'appelant (0,5, ou 1 à compléter, à vérifier ou
+   * soulevée) : le contenu est mesuré depuis le bord EXTÉRIEUR, il ne bouge pas quand le bord change.
    */
-  readonly bordered: boolean;
-  /** Récupération de la ligne 3 (`OccurrenceRecovery`), `null` si rien n'est affichable. */
-  readonly recovery: ReactNode;
-  /**
-   * PRE-6 story 5.3 : en placement, la carte n'est plus masquée en bloc (sa ligne 3 porte un
-   * contrôle : cadre « Récupération » ou récupération existante modifiable) ; seul son contenu
-   * hors récupération est retiré de l'accessibilité. Absent : aucun effet.
-   */
+  readonly borderWidth: number;
+  /** Rôle « Buy-in » / « Buy-out » du membre d'un Circuit porteur ; `null` sinon. */
+  readonly role?: string | null;
+  /** Récupération après l'exercice (secondes) ; absente, nulle ou 0 : ni sablier ni valeur. */
+  readonly recoverySeconds?: number | null;
+  /** En placement, le contenu est retiré de l'accessibilité (seuls les emplacements répondent). */
   readonly hideContentFromAccessibility?: boolean;
-  /**
-   * Arbitrage D6 (PR #391, ch08 / ch10 / ch13, 21/10/2026) : en placement, la carte reste grisée
-   * pour signifier son indisponibilité au toucher ; la récupération de la ligne 3 (cadre
-   * « Récupération » ou récupération existante modifiable) ne l'est pas. Absent : aucun effet.
-   */
+  /** Arbitrage D6 (PR #391) : en placement, la carte est grisée. */
   readonly attenuated?: boolean;
-  /**
-   * PRE-6 story 5.1b : premier média de l'occurrence (`firstMediaPreviewSource(activity.media)`),
-   * URI de stockage résolue ici ; `null` ou absent : icône générique.
-   */
+  /** Premier média de l'occurrence (`firstMediaPreviewSource`) ; `null` ou absent : pictogramme. */
   readonly media?: MediaPreviewSource | null;
   readonly sideChangeTestID?: string;
+  readonly roleTestID?: string;
+  readonly recoveryTestID?: string;
 };
 
 /**
- * PRE-6 story 5.1b (AC1, AC2) : photo, ou image d'affiche d'une vidéo, dans le gabarit 64 × 64, par
- * le mécanisme de la vignette du Catalogue (`MediaPreview` : `expo-image` en `cover`, affiche du
- * générateur existant, mise en cache mémoire) ; place réservée (fond du gabarit) pendant la
- * génération de l'affiche seulement ; revue 5.1b : média définitivement indisponible (photo en
- * erreur, vidéo sans affiche) → icône générique, comme sans média. Texte alternatif : le nom de
- * l'exercice, porté par la carte (élément accessible) ; l'image n'a ni libellé ni arrêt propre.
- * Aucune lecture vidéo, aucun son, rien de persisté.
+ * PRE-6 story 5.1b : photo, ou image d'affiche d'une vidéo, dans le gabarit 64 × 64, par le
+ * mécanisme de la vignette du Catalogue (`MediaPreview`) ; place réservée pendant la génération de
+ * l'affiche ; média définitivement indisponible → pictogramme, comme sans média.
  */
-function OccurrenceMediaPreview({ source }: { source: MediaPreviewSource }) {
+function OccurrenceMediaPreview({ source, variant }: { source: MediaPreviewSource; variant: OccurrenceCardVariant }) {
   const resolveUri = useMediaUriResolver();
   return (
     <MediaPreview
@@ -252,16 +185,29 @@ function OccurrenceMediaPreview({ source }: { source: MediaPreviewSource }) {
       isVideo={source.isVideo}
       imageStyle={styles.mediaImage}
       fallbackStyle={styles.mediaPlaceholder}
-      unavailable={<GenericMediaIcon />}
+      unavailable={<GenericMediaIcon variant={variant} />}
       imageTestID="composition-exercise-media-image"
       fallbackTestID="composition-exercise-media-placeholder"
     />
   );
 }
 
-/** Icône générique du gabarit (`9798:19907`) : sans média, ou média définitivement indisponible. */
-function GenericMediaIcon() {
-  return <KodjoIcon name="card-media-exercise" testID="composition-exercise-media-icon" />;
+/** Pictogramme du gabarit : noir hors Circuit (`11810:2104`), gris dans un Circuit (`11810:2134`). */
+function GenericMediaIcon({ variant }: { variant: OccurrenceCardVariant }) {
+  return variant === "OUT_OF_CIRCUIT" ? (
+    <KodjoIcon name="card-media-exercise-out-of-circuit" testID="composition-exercise-media-icon" />
+  ) : (
+    <KodjoIcon name="card-media-exercise" testID="composition-exercise-media-icon" />
+  );
+}
+
+/** Icône de 13 centrée dans la colonne de 10 des lignes 2 et 3. */
+function SymbolColumn({ children, testID }: { children: ReactNode; testID?: string }) {
+  return (
+    <View style={styles.symbolColumn} testID={testID}>
+      {children}
+    </View>
+  );
 }
 
 /** Props qui retirent un élément (et ses descendants) de l'accessibilité, iOS et Android. */
@@ -271,196 +217,163 @@ const HIDDEN_FROM_ACCESSIBILITY = {
 } as const;
 
 /**
- * Contenu de la carte d'occurrence de la Composition, v2 (PRE-6 story 5.1, D-435, Figma
- * `9798:44464`, instances `9798:19935` hors Circuit et `9819:19961` dans le Circuit ; ch08
- * « Présentation des occurrences — révision du 21/10/2026 » ; ch13 CE-T03-08 §7-§10) :
- * - média : gabarit 64 × 64 ; story 5.1b (D3 remplacé) : premier média de l'occurrence (photo ou
- *   affiche vidéo), sinon l'icône générique ;
- * - ligne 1 : nom (Inter Semi Bold 15, `#141414`, ellipse) et, à droite, l'icône neutre de
- *   changement de côté, absente sans changement de côté (RM-243, D-407, ARB-2) ;
- * - ligne 2 : pastille et Catégorie (Regular 12, `#7A7A80`, ellipse), puis, dans la colonne des
- *   symboles, le symbole de durée et la synthèse de travail calée à droite (avec la durée estimée
- *   des Répétitions avec bip : « 10 rép. / ≈ 1 min ») ;
- * - ligne 3 : pastille et Zones corporelles (coupées avant la colonne), puis la récupération
- *   fournie par l'appelant (sablier dans la colonne des symboles, valeur calée à droite).
+ * Contenu de la carte d'exercice de la Composition (D-511) :
+ * - photo 64 × 64 à 4 du bord, rayon 8 ; premier média de l'occurrence, sinon le pictogramme de la
+ *   variante ;
+ * - ligne 1 (y 8) : nom Semi Bold 15, tronqué avant le niveau ; niveau Medium 12 `text-primary` à
+ *   droite, sur la ligne de base du nom ; sans niveau, l'espace revient au nom ;
+ * - ligne 2 (y 30) : pastille et catégorie ; à droite, changement de côté puis prescription Semi
+ *   Bold 12 `text-primary` ; aucun chronomètre ;
+ * - ligne 3 (y 48) : pastille et zones ; à droite, rôle Buy-in / Buy-out puis sablier et durée de
+ *   récupération (Regular 12 `text-secondary`) lorsqu'une récupération est prévue.
  *
- * Catégorie et Zones viennent de leurs propriétés structurées (`resolveOccurrenceCategory`,
- * `formatExerciseBodyZones`), jamais d'un découpage. Sans Catégorie ou sans Zone : la pastille et
- * le libellé correspondants sont absents, la hauteur ne change pas. Aucune poignée (D-435) :
- * l'appui long reste porté par toute la carte. Non interactif hors la récupération : l'appelant
- * porte surface, gestes et nom accessible.
+ * Aucun chevron : la carte ne se déplie pas. Non interactive : l'appelant porte surface, gestes,
+ * actions et nom accessibles.
  */
 export function OccurrenceCard({
   name,
+  level,
   category,
   bodyZones,
   summary,
-  estimatedDuration,
   hasSideChange,
-  bordered,
-  recovery,
+  variant,
+  borderWidth,
+  role = null,
+  recoverySeconds = null,
   hideContentFromAccessibility = false,
   attenuated = false,
   media = null,
   sideChangeTestID,
+  roleTestID,
+  recoveryTestID,
 }: OccurrenceCardProps) {
-  const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
   const hidden = hideContentFromAccessibility ? HIDDEN_FROM_ACCESSIBILITY : null;
-  const dimmed = attenuated ? styles.attenuated : null;
-  /**
-   * PRE-9, recette iPhone du 29/10 (Hermann : « écrire le texte "Paramètres à compléter" sur deux
-   * lignes et remettre le chronomètre à sa place pour qu'il ne soit pas décalé vers la gauche ») : la
-   * colonne des valeurs garde sa largeur minimale (le chronomètre reste à l'abscisse des autres
-   * cartes) et la synthèse s'écrit sur deux lignes, de la ligne 2 à la ligne 3. Hors placement, la
-   * ligne 3 de la colonne des valeurs lui est laissée (la récupération n'y est pas dessinée ; elle
-   * reste dans le nom accessible de la carte). En placement, la ligne 3 porte le cadre de la
-   * récupération : la synthèse reste sur une ligne.
-   */
-  // Recette iPhone n° 2 (constat e) : « Paramètre à vérifier » suit la même mise en page.
-  const twoLineIncomplete = (isIncompleteSummary(summary) || isToVerifySummary(summary)) && !attenuated;
+  const hasRecovery = typeof recoverySeconds === "number" && Number.isFinite(recoverySeconds) && recoverySeconds > 0;
+  const summaryTone = isIncompleteSummary(summary) ? styles.incompleteSummary : isToVerifySummary(summary) ? styles.toVerifySummary : null;
   return (
     <View
-      style={[
-        styles.content,
-        {
-          // PRE-6 story 5.2 : le média est à 8 du bord EXTÉRIEUR, avec ou sans bord (Standard
-          // `8328:28605` : `pl 7` + bord 1 hors Circuit, `pl 8` dans le Circuit), pour que le rail
-          // passe par son centre (x 56 à 402). La story 5.1 le posait à 8 à l'intérieur du bord
-          // (composant `9798:44464`, x 9) : 1 point d'écart entre les deux sources, tranché ici
-          // pour l'écran (soumis à Hermann, J4).
-          paddingLeft: CARD_PADDING_LEFT - border,
-          // Le bord droit des valeurs est mesuré depuis le bord EXTÉRIEUR.
-          paddingRight: CARD_VALUE_INSET - border,
-        },
-      ]}
+      // Repère : le bord EXTÉRIEUR de la carte, quelle que soit l'épaisseur du bord de l'appelant ; la
+      // carte de 72 est centrée verticalement (l'état soulevé, plus haut de 4, ne déplace pas le contenu).
+      style={[styles.frame, { top: -borderWidth, left: -borderWidth, right: -borderWidth, bottom: -borderWidth }]}
+      pointerEvents="box-none"
       testID="composition-activity-main-card"
+      {...hidden}
     >
-      {/*
-       * PRE-6 story 5.1b (D3 remplacé par Hermann le 21/10/2026) : le premier média de l'occurrence
-       * remplit le gabarit (bord, rayon et fond conservés) ; sans média, l'icône générique. Le
-       * gabarit n'est pas une cible tactile (ni `Pressable`, ni répondeur ; l'image non plus) :
-       * toucher et appui long restent ceux de la carte.
-       */}
-      <View style={[styles.media, dimmed]} {...hidden} testID="composition-exercise-media">
-        {media ? <OccurrenceMediaPreview source={media} /> : <GenericMediaIcon />}
-      </View>
-      <View style={styles.textColumn}>
-        <View style={[styles.nameRow, dimmed]} {...hidden} testID="composition-exercise-name-row">
+      <View style={[styles.content, attenuated ? styles.attenuated : null]} pointerEvents="box-none" testID="composition-exercise-card-content">
+        <View style={[styles.media, media !== null ? styles.mediaWithPhoto : null]} testID="composition-exercise-media">
+          {media !== null ? <OccurrenceMediaPreview source={media} variant={variant} /> : <GenericMediaIcon variant={variant} />}
+        </View>
+        <View style={styles.nameRow} testID="composition-exercise-name-row">
           <Text style={styles.name} numberOfLines={1} testID="composition-exercise-name">
             {name}
           </Text>
+          {level !== null ? (
+            <Text style={styles.level} numberOfLines={1} testID="composition-exercise-level">
+              {level}
+            </Text>
+          ) : null}
+        </View>
+        <View style={[styles.line, styles.workLine]} testID="composition-exercise-work-row">
+          {category !== null ? (
+            <>
+              <SymbolColumn testID="composition-exercise-category-column">
+                <KodjoIcon name="card-category-badge" testID="composition-exercise-category-badge" />
+              </SymbolColumn>
+              <Text style={styles.label} numberOfLines={1} testID="composition-exercise-category">
+                {category.name}
+              </Text>
+            </>
+          ) : (
+            <View style={styles.spacer} />
+          )}
           {hasSideChange ? (
             <View style={styles.sideChange} testID={sideChangeTestID}>
               <KodjoIcon name="card-side-change" testID="composition-exercise-side-change-icon" />
             </View>
           ) : null}
+          <Text style={[styles.prescription, summaryTone]} numberOfLines={1} testID="composition-exercise-summary">
+            {summary}
+          </Text>
         </View>
-        <View style={styles.body} testID="composition-exercise-secondary-row">
-          <View style={[styles.labelsColumn, dimmed]} {...hidden} testID="composition-exercise-labels-column">
-            <View style={styles.workLine} testID="composition-exercise-classification">
-              {category !== null ? (
-                <>
-                  <KodjoIcon name="card-category-badge" testID="composition-exercise-category-badge" />
-                  <Text style={styles.label} numberOfLines={1} testID="composition-exercise-category">
-                    {category.name}
-                  </Text>
-                </>
-              ) : null}
-            </View>
-            <View style={styles.zonesLine} testID="composition-exercise-zones-line">
-              {bodyZones !== null ? (
-                <>
-                  <KodjoIcon name="card-body-zone-badge" testID="composition-exercise-body-zones-badge" />
-                  <Text style={styles.label} numberOfLines={1} testID="composition-exercise-body-zones">
-                    {bodyZones}
-                  </Text>
-                </>
-              ) : null}
-            </View>
-          </View>
-          <View
-            style={[styles.valuesColumn, twoLineIncomplete ? styles.valuesColumnIncomplete : null]}
-            testID="composition-exercise-values-column"
-          >
+        <View style={[styles.line, styles.zonesLine]} testID="composition-exercise-zones-line">
+          {bodyZones !== null ? (
+            <>
+              <SymbolColumn testID="composition-exercise-body-zones-column">
+                <KodjoIcon name="card-body-zone-badge" testID="composition-exercise-body-zones-badge" />
+              </SymbolColumn>
+              <Text style={styles.label} numberOfLines={1} testID="composition-exercise-body-zones">
+                {bodyZones}
+              </Text>
+            </>
+          ) : (
+            <View style={styles.spacer} />
+          )}
+          {role !== null ? (
+            <Text style={styles.role} numberOfLines={1} testID={roleTestID ?? "composition-exercise-role"}>
+              {role}
+            </Text>
+          ) : null}
+          {hasRecovery ? (
+            // Story 7.2 (D-442) : simple affichage — ni bouton ni élément accessible propre (la carte porte la valeur dans son
+            // nom), le toucher traverse jusqu'à la carte.
             <View
-              style={[styles.workLine, styles.valueRow, twoLineIncomplete ? styles.workLineTwoLines : null, dimmed]}
-              {...hidden}
-              testID="composition-exercise-work-row"
+              accessible={false}
+              importantForAccessibility="no"
+              style={[styles.recovery, styles.passThrough]}
+              testID={recoveryTestID ?? "composition-exercise-recovery"}
             >
-              {/* Contre-recette du 30/10 : le symbole garde la boîte de la ligne 2 (même ordonnée). */}
-              <View style={styles.workSymbol} testID="composition-exercise-work-symbol-box">
-                <KodjoIcon name="card-work-duration" testID="composition-exercise-work-symbol" />
-              </View>
-              <View style={[styles.work, twoLineIncomplete ? styles.workTwoLines : null]} testID="composition-exercise-work">
-                <Text
-                  // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
-                  // Recette iPhone n° 2 (constat e) : « Paramètre à vérifier » en orange.
-                  style={[
-                    styles.value,
-                    styles.summary,
-                    isIncompleteSummary(summary) ? styles.incompleteSummary : isToVerifySummary(summary) ? styles.toVerifySummary : null,
-                  ]}
-                  numberOfLines={twoLineIncomplete ? 2 : 1}
-                  testID="composition-exercise-summary"
-                >
-                  {summary}
-                </Text>
-                {estimatedDuration !== null ? (
-                  <>
-                    <Text style={[styles.value, styles.separator]} testID="composition-exercise-estimate-separator">
-                      {strings.screens.composition.occurrenceCard.workEstimateSeparator}
-                    </Text>
-                    <Text
-                      style={[styles.value, styles.estimate]}
-                      numberOfLines={1}
-                      testID="composition-exercise-estimated-duration"
-                    >
-                      {estimatedDuration}
-                    </Text>
-                  </>
-                ) : null}
-              </View>
+              <SymbolColumn testID="composition-recovery-line-column">
+                <KodjoIcon name="card-recovery-hourglass" testID="composition-recovery-line-icon" />
+              </SymbolColumn>
+              <Text style={styles.recoveryValue} numberOfLines={1} testID="composition-recovery-line-label">
+                {formatPrimeDuration(recoverySeconds)}
+              </Text>
             </View>
-            {twoLineIncomplete ? null : (
-              <View style={styles.recoveryLine} testID="composition-exercise-recovery-slot">
-                {recovery}
-              </View>
-            )}
-          </View>
+          ) : null}
         </View>
       </View>
     </View>
   );
 }
 
+const TEXT_LEFT = MEDIA_INSET + MEDIA_SIZE + MEDIA_TEXT_GAP;
+
 const styles = StyleSheet.create({
-  // Arbitrage D6 : grisé de la carte en placement, hors récupération de la ligne 3.
+  frame: {
+    position: "absolute",
+    justifyContent: "center",
+  },
+  // La carte de 72, depuis son bord extérieur.
+  content: {
+    height: OCCURRENCE_CARD_HEIGHT,
+  },
+  // Arbitrage D6 : grisé de la carte en placement.
   attenuated: {
     opacity: UNSELECTED_OPACITY,
   },
-  content: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: MEDIA_TEXT_GAP,
-  },
   media: {
+    position: "absolute",
+    top: MEDIA_INSET,
+    left: MEDIA_INSET,
     width: MEDIA_SIZE,
     height: MEDIA_SIZE,
     borderRadius: MEDIA_RADIUS,
-    borderWidth: OCCURRENCE_CARD_BORDER_WIDTH,
+    borderWidth: MEDIA_FRAME_BORDER,
     borderColor: TEXT_TERTIARY,
     backgroundColor: OCCURRENCE_CARD_MEDIA_BACKGROUND,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
   },
-  // Story 5.1b : le média remplit l'intérieur du bord (62 × 62), recadré au centre (`cover`) ; rayon
-  // intérieur = rayon du gabarit moins le bord, pour suivre l'arrondi.
+  // Figma (« Photo — image » `11810:2106`) : la photo couvre tout le gabarit, bord compris.
+  mediaWithPhoto: {
+    borderWidth: 0,
+  },
   mediaImage: {
     width: "100%",
     height: "100%",
-    borderRadius: MEDIA_RADIUS - OCCURRENCE_CARD_BORDER_WIDTH,
+    borderRadius: MEDIA_RADIUS,
   },
   // Place réservée : le fond du gabarit, sans icône (chargement, photo illisible, affiche absente).
   mediaPlaceholder: {
@@ -468,122 +381,100 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: OCCURRENCE_CARD_MEDIA_BACKGROUND,
   },
-  textColumn: {
-    flex: 1,
-    minWidth: 0,
-  },
+  // Ligne 1 : nom et niveau, alignés sur la ligne de base du nom.
   nameRow: {
-    height: NAME_LINE_HEIGHT,
+    position: "absolute",
+    top: OCCURRENCE_CARD_LINES.nameTop,
+    left: TEXT_LEFT,
+    right: VALUE_RIGHT_INSET,
+    height: OCCURRENCE_CARD_LINES.nameHeight,
+    // Nom (interligne 18) centré dans la ligne de 20 (Figma : y 9).
+    paddingTop: (OCCURRENCE_CARD_LINES.nameHeight - type.listCardTitle.lineHeight) / 2,
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: NAME_SIDE_CHANGE_GAP,
+    alignItems: "baseline",
+    gap: spacing[8],
   },
   name: {
     ...type.listCardTitle,
     flex: 1,
+    minWidth: 0,
     color: colors.textPrimary,
+  },
+  level: {
+    ...type.movementCardLevel,
+    flexShrink: 0,
+    color: colors.textPrimary,
+  },
+  line: {
+    position: "absolute",
+    left: TEXT_LEFT,
+    right: VALUE_RIGHT_INSET,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: VALUE_GAP,
+  },
+  workLine: {
+    top: OCCURRENCE_CARD_LINES.workTop,
+    height: OCCURRENCE_CARD_LINES.workHeight,
+  },
+  zonesLine: {
+    top: OCCURRENCE_CARD_LINES.zonesTop,
+    height: OCCURRENCE_CARD_LINES.zonesHeight,
+  },
+  symbolColumn: {
+    width: OCCURRENCE_CARD_SYMBOL_COLUMN,
+    height: SYMBOL_SIZE,
+    // Texte à 7 de la colonne : écart de la ligne (5) + 2.
+    marginRight: SYMBOL_TEXT_GAP - VALUE_GAP,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  spacer: {
+    flex: 1,
+  },
+  label: {
+    ...REGULAR_12,
+    flex: 1,
+    minWidth: 0,
+    color: TEXT_TERTIARY,
   },
   sideChange: {
     width: 16,
     height: 16,
-  },
-  body: {
-    marginTop: NAME_TO_WORK_GAP,
-    flexDirection: "row",
-    gap: COLUMNS_GAP,
-  },
-  labelsColumn: {
-    flex: 1,
-    minWidth: 0,
-    gap: WORK_TO_ZONES_GAP,
-  },
-  valuesColumn: {
     flexShrink: 0,
-    minWidth: VALUE_COLUMN_MIN_WIDTH,
-    maxWidth: VALUE_COLUMN_MAX_WIDTH,
-    gap: WORK_TO_ZONES_GAP,
   },
-  // Recette du 29/10 : « Paramètres à compléter. » n'élargit pas la colonne (chronomètre à sa place).
-  valuesColumnIncomplete: {
-    width: VALUE_COLUMN_MIN_WIDTH,
+  // Prescription : jamais abrégée — catégorie et zones cèdent la place.
+  prescription: {
+    ...SEMI_BOLD_12,
+    flexShrink: 0,
+    color: colors.textPrimary,
   },
-  // Contre-recette iPhone du 30/10 (« "Paramètres à compléter" est tronqué ») : la ligne 2 gardait
-  // sa hauteur de 16 ; sous iOS, le texte est mesuré dans cette hauteur et s'abrégeait après une
-  // ligne. La ligne des valeurs couvre désormais les lignes 2 et 3 (16 + 2 + 17), calée en haut :
-  // deux lignes de 15 y tiennent sans coupure ; la récupération n'y est pas dessinée.
-  workLineTwoLines: {
-    height: WORK_LINE_HEIGHT + WORK_TO_ZONES_GAP + ZONES_LINE_HEIGHT,
-    alignItems: "flex-start",
-  },
-  // Symbole de durée dans une boîte de la hauteur de la ligne 2, centré : même position, carte
-  // complète ou à compléter.
-  workSymbol: {
-    height: WORK_LINE_HEIGHT,
-    justifyContent: "center",
-  },
-  // Texte sur deux lignes, première ligne à l'ordonnée de la synthèse d'une carte complète
-  // (interligne 15 centré dans la ligne 2 de 16).
-  workTwoLines: {
-    alignSelf: "flex-start",
-    alignItems: "flex-start",
-    paddingTop: (WORK_LINE_HEIGHT - REGULAR_12.lineHeight) / 2,
-  },
-  workLine: {
-    height: WORK_LINE_HEIGHT,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SYMBOL_GAP,
-  },
-  zonesLine: {
-    height: ZONES_LINE_HEIGHT,
-    paddingTop: ZONES_LINE_PADDING_TOP,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SYMBOL_GAP,
-  },
-  // Ligne 3 de la colonne des valeurs : la récupération (`OccurrenceRecovery`, sablier puis valeur
-  // calée à droite) occupe toute la largeur de la colonne, sablier sous le symbole de durée.
-  recoveryLine: {
-    height: ZONES_LINE_HEIGHT,
-    paddingTop: ZONES_LINE_PADDING_TOP,
-    justifyContent: "center",
-  },
-  valueRow: {
-    alignSelf: "stretch",
-  },
-  label: {
-    ...REGULAR_12,
-    flexShrink: 1,
-    color: TEXT_TERTIARY,
-  },
-  // Synthèse (et durée estimée) calée à droite de la colonne ; seule la synthèse s'abrège.
-  work: {
-    flexGrow: 1,
-    flexShrink: 1,
-    minWidth: 0,
-    flexDirection: "row",
-    justifyContent: "flex-end",
-  },
-  // Priorité de réduction de la ligne 2 (revue 5.1) : la durée estimée s'abrège d'abord, la
-  // synthèse de travail ensuite seulement ; le séparateur ne se réduit jamais.
-  summary: {
-    flexShrink: 1,
-    textAlign: "right",
-  },
+  // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
   incompleteSummary: {
     color: colors.danger,
   },
+  // Recette iPhone n° 2 (constat e) : « Paramètre à vérifier » en orange.
   toVerifySummary: {
     color: toVerifyColors.text,
   },
-  separator: {
+  role: {
+    ...REGULAR_12,
+    flexShrink: 0,
+    color: TEXT_TERTIARY,
+  },
+  // Sablier dans la colonne de 10, durée à 7 (Figma : sablier de 13 puis 5).
+  recovery: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: VALUE_GAP,
     flexShrink: 0,
   },
-  estimate: {
-    flexShrink: 1000,
+  passThrough: {
+    pointerEvents: "none",
   },
-  value: {
+  recoveryValue: {
     ...REGULAR_12,
-    color: TEXT_TERTIARY,
+    color: colors.textSecondary,
   },
 });

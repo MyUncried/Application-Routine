@@ -2382,3 +2382,58 @@ Source : [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes
 | D-511 | Composition : carte d’exercice 72 pt, photo 64 à 4/rayon 8, liseré 0,5 à 50 %, trois lignes à 8/30/48 ; nom/niveau, catégorie/prescription sans chronomètre, zones/rôle/récupération conditionnelle ; aucun chevron ; rail centré sur photo, largeur de référence 362. | Hermann, 06/11/2026 — classe B | [Spec §11](../KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement), CE-T03-08, ch06, ch12 |
 | D-512 | Chevron du Circuit juste après le rond du rail et devant le nom ; compteur/nature inchangés ; Cycle non repliable. Déploiement Figma limité à 11789:21914. | Hermann, 06/11/2026 — classe B | CE-T03-08, spec §11 |
 | D-513 | Placement réservé aux Points d’arrêt ; retrait du cadre Récupération en pointillés. Écran 8328:29270 renommé Placement d’un point d’arrêt ; bandeau Confirmer N points d’arrêt ajoutés. | Hermann, 06/11/2026 — classe B | CE-T03-08, ch06, spec §11 |
+
+## Composition — carte d'exercice au composant DSF / Cards / Exercice — Composition (08/11/2026)
+
+Demande de Hermann du 08/11/2026, classe B pour la mise en œuvre de D-511 à D-513 (règles déjà écrites le 06/11, classe A pour leur réalisation) ; les compléments propres à cette demande (incrément, condition d'arrêt à l'échec, rôle et récupération ensemble) sont classe B. Demande : « Utiliser le composant « Carte d'exercice » dans la Composition de séance. Remplace le rendu actuel des cartes d'exercice de la Composition de séance par le composant correspondant à « DSF / Cards / Exercice — Composition ». La mission porte sur l'application et ses tests. » Figma (lecture seule) : composant `11810:2159`, variantes « Hors circuit » `11810:2102` (pictogramme noir) et « Dans un circuit » `11810:2132` (pictogramme gris), écran de référence `11789:21914`, placement `8328:29270`.
+
+### Parties normatives de la demande (texte de Hermann, recopié mot pour mot)
+
+**2. Reproduire la carte de référence**
+
+- **Carte** : blanche, 72 pt de haut, rayon 12, liseré de 0,5 pt à 50 % avec le token des cartes de séance. Sur l'écran de référence, elle fait 362 pt de large et le rail passe au centre de la photo. Conserve l'adaptation à la largeur disponible.
+- **Photo** : 64 × 64 pt, à 4 pt du bord, rayon 8. États avec et sans photo ; couleur du pictogramme propre à chaque variante.
+- **Lignes** : elles commencent à 8, 30 et 48 pt du haut. Le texte commence à 8 pt de la photo. Les valeurs de droite se terminent à 12 pt du bord. Les icônes des lignes 2 et 3 sont centrées dans une colonne de 10 pt.
+- **Ligne 1** : nom en Semi Bold 15, tronqué avant le niveau. Si le niveau existe, il s'affiche à droite en Medium 12, text-primary, sur la ligne de base du nom. Sinon, cet espace revient au nom.
+- **Ligne 2** : catégorie à gauche ; prescription à droite en Semi Bold 12, text-primary. L'icône de changement de côté, si applicable, précède immédiatement la prescription. Supprime l'ancien chronomètre.
+- **Ligne 3** : zones corporelles à gauche. À droite, le rôle « Buy-in » ou « Buy-out » s'il existe, puis le sablier et la durée si une récupération est prévue. Durée en Regular 12, text-secondary. À 0 s, le sablier et sa valeur sont masqués. Vérifie le cas où rôle et récupération sont présents ensemble.
+- **Comportement** : la carte ne se déplie pas et ne porte aucun chevron. Préserve ses interactions existantes dans la Composition (sélection, édition, déplacement / appui long, VoiceOver « Monter » / « Descendre »…).
+
+**3. Prescription issue des paramètres réels**
+
+Réutilise le formateur de prescription existant et complète-le si nécessaire. Cas à vérifier :
+- séries identiques : « 6 × 10 rép. » ;
+- séries variables explicitement saisies : « 10 · 12 · 14 rép. » ;
+- AMRAP « Volume croissant » : « 10 rép. +2/tour » ;
+- Death by : « 1 rép. +1/min » ;
+- cible de durée prescrite, par exemple « 3 × 1 min 30 » ;
+- condition d'arrêt à l'échec : « à l'échec », sans durée.
+
+Règles complémentaires :
+- Pour un incrément, affiche le départ et l'incrément avec son unité. Les anciennes formes « 1 → n rép. » et « 10 · 12 · … rép. » ne conviennent pas à ce cas.
+- La carte peut afficher une durée prescrite. Les estimations « ≥ » et « ≈ » appartiennent aux en-têtes de circuit, de cycle et de séance, pas à la carte.
+- Les niveaux 2 et 3 et la récupération de 30 s sur « Étirement du quadriceps » sont des exemples Figma : alimente chaque instance avec les données de l'exercice.
+
+**4. Mode placement**
+
+- En mode placement, conserve la ligne de temps et ses emplacements sélectionnables, y compris lorsqu'il n'y a ni récupération ni point d'arrêt.
+- Seul le point d'arrêt se pose.
+- L'ancien cadre « Récupération » en pointillés disparaît de la carte.
+- Vérifie que le bandeau « Confirmer N points d'arrêt ajoutés » et la confirmation fonctionnent toujours.
+
+**Format des durées** (décision antérieure de Hermann, 08/11/2026 au soir, rappelée par la demande) : toutes les durées s'affichent au format `S″`, `M′SS″`, `Hh MM′` (« Partout veut bien dire partout ») ; « 3 × 1 min 30 » s'écrit donc « 3 × 1′30″ » et la récupération « 30″ ». [Exemple « 3 × 1 min 30 » de la demande et de la maquette — remplacé par le format des durées du 08/11/2026 au soir.]
+
+### Réalisation et choix techniques (08/11/2026)
+
+- Composant partagé : `OccurrenceCard` (`src/features/sessions/OccurrenceCard.tsx`), seul rendu des cartes d'exercice de la Composition (Exercice isolé, dans un Cycle, dans un Circuit, buy-in, buy-out, placement ; ancien modèle et disposition générale). Variante déduite de l'appartenance effective à un Circuit ; un Exercice directement dans un Cycle est « Hors circuit ». [Carte v2 de 370 × 80 (D-435) — remplacée.]
+- Prescription : `formatOccurrencePrescription` (compositionPresentation), qui complète `formatOccurrenceSummary` : « à l'échec » pour une seule série à l'échec [« 1 série à l'échec » — remplacé sur la carte], départ et incrément « {départ} {±incrément}/tour » (AMRAP, Volume croissant) et « /min » (Death by, intervalle d'une minute). [Death by « 1 / +1 rép. » (03/11/2026) — remplacé.] Aucune durée estimée sur la carte. [« 10 rép. / ≈ 1 min » (story 5.1) — remplacé.]
+- Le nom visible ne porte plus le suffixe « - Nn » : le niveau « Niveau N » est à droite de la ligne 1 ; nom accessible et repères des Points d'arrêt inchangés.
+- Bandeau de placement : « Confirmer N point(s) d'arrêt ajouté(s) » (D-513). [« Confirmer N pause(s) ajoutée(s) » — remplacé.]
+- Cartes de 362 à x 20 à la largeur 402 (débord de 4 de la colonne) ; rail toujours à x 56 ; Circuit (386 à x 8) et Circuit dans un Cycle inchangés. Marge basse d'un Circuit ou d'un Cycle sous ses cartes = bas de la photo → bas de la carte (règle de la contre-recette du 30/10), soit 4 avec la nouvelle carte.
+
+### À CLARIFIER
+
+- Marge basse d'un Circuit sous sa dernière carte : la règle du 30/10 (égale à l'écart bas de la photo → bas de la carte) donne 4 ; l'écran de référence `11789:21914` montre 10 en haut et en bas. Code : règle du 30/10 (4) ; marge haute inchangée (14).
+- Death by à intervalle différent d'une minute : période affichée « /{intervalle} » (par exemple « +1/30″ ») ; aucune forme décidée.
+- AMRAP « Volume croissant » à incrément négatif : « 10 rép. −1/tour » (signe moins U+2212) ; aucune forme décidée.
+- « Paramètres à compléter. » : la colonne des valeurs et le chronomètre ayant disparu, la mention tient sur une ligne en ligne 2 (la catégorie lui cède la place). [Deux lignes, chronomètre à sa place (recette du 29/10) — sans objet avec le composant.] À confirmer sur iPhone.

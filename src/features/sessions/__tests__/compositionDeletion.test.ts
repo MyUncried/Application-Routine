@@ -70,14 +70,14 @@ describe("resolveRailLinks — plusieurs éléments sortis de la chaîne (story 
       afterTour: [],
       hasAfterCircuit: false,
       skipped: [
-        { key: railRowKey("a"), height: 80 },
+        { key: railRowKey("a"), height: 72 },
         { key: railStopKey("p"), height: 22 },
       ],
       geometry: railGeometryFor(CIRCUIT_HEADER_HEIGHT),
     });
     expect(links.has(railRowKey("a"))).toBe(false);
     expect(links.has(railStopKey("p"))).toBe(false);
-    // Écart 8 + carte 80, écart 8 + point 22, écart 8, puis haut du média 8.
-    expect(links.get(railRowKey("b"))).toEqual({ prevKey: RAIL_KEYS.start, length: 8 + 80 + 8 + 22 + 8 + 8 });
+    // Écart 8 + carte 72, écart 8 + point 22, écart 8, puis haut du média 4 (D-511, 08/11/2026). [Carte 80, média 8 — remplacé.]
+    expect(links.get(railRowKey("b"))).toEqual({ prevKey: RAIL_KEYS.start, length: 8 + 72 + 8 + 22 + 8 + 4 });
   });
 });

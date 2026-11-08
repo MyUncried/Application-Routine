@@ -908,7 +908,8 @@ describe("Contre-recette n° 5 (01/11) — déploiement par l'arrêt : place ouv
   /**
    * e9 sous le Circuit B replié (340–408, en-tête replié 40 : ligne 18 + noms 22), saisie (428), arrêtée
    * sur B (374) jusqu'à son déploiement. Croissance prévue de B : cartes 80 + écart 9 − marge basse
-   * réduite 6 − noms 22 = 61 ; e9 descend d'autant dans la mise en page.
+   * réduite 10 − noms 22 = 57 ; e9 descend d'autant dans la mise en page. [D-511 (08/11/2026) : marge basse
+   * sous les cartes 4 (bas de la photo → bas de la carte de 72), réduction 14 − 4 = 10 ; avant : 6, croissance 61.]
    */
   async function hoverUntilExpanded() {
     await renderComposition(draftOf(twoCircuits, ["e0", "a1", "a2", "b1", "e9"]));
@@ -959,7 +960,7 @@ describe("Contre-recette n° 5 (01/11) — déploiement par l'arrêt : place ouv
     expect(timings).toEqual(
       expect.arrayContaining([
         { toValue: 89, duration: CIRCUIT_REVEAL_DURATION_MS },
-        { toValue: -61, duration: CIRCUIT_REVEAL_DURATION_MS },
+        { toValue: -57, duration: CIRCUIT_REVEAL_DURATION_MS },
       ]),
     );
     await grow([80, 104, 129], () => {
@@ -980,21 +981,21 @@ describe("Contre-recette n° 5 (01/11) — déploiement par l'arrêt : place ouv
     const poses = jest.spyOn(AnimatedShiftRegistry.prototype, "pose");
     const applies = jest.spyOn(AnimatedShiftRegistry.prototype, "apply");
     await revealStarts();
-    // Compensation de toute la croissance prévue (61), lancée par le registre au départ.
-    expect(rowShift("e9")).toBe(-61);
+    // Compensation de toute la croissance prévue (57), lancée par le registre au départ.
+    expect(rowShift("e9")).toBe(-57);
     const appliesAtStart = applies.mock.calls.length;
-    await grow([70, 85, 101, 117, 126, 129], () => {
+    await grow([70, 85, 101, 117, 122, 125], () => {
       // Avant correction : la compensation suivait chaque mesure (−2, −17, −33…), posée après coup.
-      expect(rowShift("e9")).toBe(-61);
+      expect(rowShift("e9")).toBe(-57);
     });
     expect(poses).not.toHaveBeenCalled();
     // Aucun aperçu nouveau pendant les mesures : chaque cible reçue est celle du départ.
     const later = applies.mock.calls.slice(appliesAtStart);
-    expect(later.every(([targets]) => targets.get(liftedKey) === -61)).toBe(true);
+    expect(later.every(([targets]) => targets.get(liftedKey) === -57)).toBe(true);
     await elapseReveal();
     // Mesure réelle = prévision : rien à corriger à la fin.
     expect(poses).not.toHaveBeenCalled();
-    expect(rowShift("e9")).toBe(-61);
+    expect(rowShift("e9")).toBe(-57);
     fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 374, touches: [] } });
     expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[e9,b1]");
   });
@@ -1018,8 +1019,8 @@ describe("Contre-recette n° 5 (01/11) — déploiement par l'arrêt : place ouv
     const poses = jest.spyOn(AnimatedShiftRegistry.prototype, "pose");
     fireEvent(card, "touchEnd", { nativeEvent: { pageX: 200, pageY: 374, touches: [] } });
     expect(shape(probe.draft)).toBe("e0 ca[a1,a2] cb[b1,e9]");
-    // Translation du doigt (374 − 468 = −94) plus la compensation animée (−61).
-    expect(poses.mock.calls.filter(([key]) => key === liftedKey)[0]).toEqual([liftedKey, -155]);
+    // Translation du doigt (374 − 468 = −94) plus la compensation animée (−57).
+    expect(poses.mock.calls.filter(([key]) => key === liftedKey)[0]).toEqual([liftedKey, -151]);
     expect(revealTimers.size).toBe(0);
   });
 });

@@ -276,8 +276,8 @@ describe("strings", () => {
       addStopPointAfterCycleAccessibilityLabel: "Ajouter un point d’arrêt après le cycle",
       stopPointAtCycleStartAccessibilityLabel: "Point d’arrêt au début du cycle",
       existingStopPointAfterCycleAccessibilityLabel: "Point d’arrêt après le cycle",
-      confirmSingular: "Confirmer {n} pause ajoutée",
-      confirmPlural: "Confirmer {n} pauses ajoutées",
+      confirmSingular: "Confirmer {n} point d’arrêt ajouté",
+      confirmPlural: "Confirmer {n} points d’arrêt ajoutés",
       // PRE-6 story 6.3 (D-441) : libellé des changements autres que des ajouts seuls.
       confirmChanges: "Confirmer les modifications",
       cancel: "Annuler",

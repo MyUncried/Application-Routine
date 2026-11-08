@@ -116,6 +116,10 @@ const sources = {
   // - changement de côté 16 (`9798:19925`) : même tracé que `side-change`, mais rempli
   //   `#7A7A80` au lieu de `#9499A8` ; la carte de sélection garde `side-change`.
   "card-media-exercise": require("../../../assets/icons/icon-nature-exercice.svg"),
+  // Carte d’exercice de la Composition (DSF / Cards / Exercice — Composition `11810:2159`, 08/11/2026) : pictogramme NOIR
+  // (`#141414`) de la variante « Hors circuit » `11810:2102` — même tracé que `card-media-exercise` (export MCP Figma en lecture
+  // seule, `11810:2104`), qui reste le pictogramme gris de la variante « Dans un circuit » `11810:2132`.
+  "card-media-exercise-out-of-circuit": require("../../../assets/icons/icon-nature-exercice-hors-circuit.svg"),
   "card-category-badge": require("../../../assets/icons/icon-pastille-categorie.svg"),
   "card-body-zone-badge": require("../../../assets/icons/icon-pastille-zone-corporelle.svg"),
   "card-work-duration": require("../../../assets/icons/icon-symbole-duree.svg"),
@@ -266,6 +270,7 @@ const sizes = {
   // Cadre 12 × 12 du `viewBox` exact (bulle « Retirer la récupération »).
   "remove-recovery": [12, 12],
   "card-media-exercise": [24, 24],
+  "card-media-exercise-out-of-circuit": [24, 24],
   "card-category-badge": [13, 13],
   "card-body-zone-badge": [13, 13],
   "card-work-duration": [13, 13],
