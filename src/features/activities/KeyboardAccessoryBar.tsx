@@ -132,8 +132,15 @@ export function KeyboardAccessoryBar({
   failure = null,
   units = null,
   sign = null,
+  option = null,
   animated = false,
 }: {
+  /**
+   * Barre animée : option placée à gauche de « Précédent » (premier emplacement), par exemple « Sans limite » du temps limite d'un
+   * Circuit For time (recette iPhone du 06/11/2026, w-circuit-duree, Hermann : « Il faut ajouter l'option "Sans limite" sur la barre
+   * d'option du clavier à gauche de "Précédent" »). Ignorée si des unités ou le signe occupent cet emplacement.
+   */
+  option?: { readonly label: string; readonly selected: boolean; readonly onPress: () => void; readonly testID: string } | null;
   /** Barre des tableaux de Formats : quatre emplacements fixes, apparitions, disparitions et déplacements en fondu lent. */
   animated?: boolean;
   /** Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » ; bouton ± dans la barre du clavier ; « Arrêter à 0 — Les séries concernées passent sans charge (0), une simple mention en gris sous la ligne, sans alerte ni blocage : "sans charge à partir de la série X" » : « ± » inverse le signe de la case (incrément de charge EMOM). */
@@ -352,6 +359,11 @@ export function KeyboardAccessoryBar({
                 <Text style={[styles.label, styles.signLabel]}>{labels.sign}</Text>
               </Pressable>
             </Animated.View>
+            {option !== null && !hasUnits && !hasSign ? (
+              <View style={[styles.unitSlot, { width: slotWidth }]}>
+                {button(option.label, option.label, true, option.onPress, option.testID, { selected: option.selected })}
+              </View>
+            ) : null}
             <Animated.View pointerEvents={canPrevious && !(hasUnits && unitsPicking) ? "auto" : "none"} style={[styles.unitSlot, { width: slotWidth, left: step, opacity: anim.previous }]}>
               <Pressable
                 onPress={onPrevious}

@@ -160,6 +160,9 @@ import { colors, dimensions, fixedRadii, spacing, type } from "@/shared/ui/token
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
+/** Constat C du 07/11/2026 : hauteur de la barre du clavier (52) et marge de révélation (12), réservées sous le contenu. */
+const KEYBOARD_BAR_SCROLL_RESERVE = 64;
+
 /**
  * PRE-3 (CE-UI-10, SPECIFICATION-PARAMETRES-MODALE-v13, DSF Séries
  * variables / Bip de cadence) — feuille « Paramètres d'exécution » :
@@ -3110,6 +3113,11 @@ export function ExecutionParametersSheet({
                     </Row>
                   </SheetMotionView>
                 ) : null}
+                {/* Recette iPhone du 07/11/2026 (constat C, Hermann : « Paramètre d’exécution : la dernière ligne Récupération ne s’affiche
+                    pas entièrement au dessus de la barre d’option du clavier ») : la course ajoutée par iOS sous le clavier
+                    (`automaticallyAdjustKeyboardInsets`) ne compte pas la barre du clavier ; une réserve de sa hauteur (plus la marge de
+                    révélation) permet de remonter la dernière ligne au-dessus de la barre. */}
+                {keyboard.accessoryVisible ? <View style={{ height: KEYBOARD_BAR_SCROLL_RESERVE }} testID="execution-sheet-keyboard-bar-room" /> : null}
                 {contentRoom > 0 ?<View style={{ height: contentRoom }} testID="execution-sheet-panel-room" /> : null}
                 {sideOrderDropdown}
                 </Pressable>
@@ -3219,7 +3227,9 @@ function VariableTable({
       <View style={tableStyles.header} testID="execution-sheet-table-header">
         <View style={tableStyles.headerLead} />
         {/* PRE-5 story 2.7 : même écart d'amorce rétrécissable que les lignes. */}
-        <View style={tableStyles.leadGap} testID="execution-sheet-table-header-lead-gap" />
+        {/* Recette iPhone du 07/11/2026 (a-emom-table, Hermann : « Les colonnes cible et charge ne sont pas distribuées
+            horizontalement à équidistance ») : sans Pause, trois espaces égaux (avant Cible, entre Cible et Charge, après Charge). */}
+        <View style={withPause ? tableStyles.leadGap : tableStyles.spacer} testID="execution-sheet-table-header-lead-gap" />
         {mode !== null ? (
           <Text style={tableStyles.columnHeader}>{t.columns[mode]}</Text>
         ) : (
@@ -3336,7 +3346,9 @@ function SeriesTableRow({
         onLiftedChange={onLiftedChange}
         labels={SERIES_ROW_LABELS}
         testIDPrefix={SERIES_ROW_TEST_ID}
+        leadGap={withPause}
       >
+        {withPause ? null : <View style={tableStyles.spacer} testID={`${testID}-lead-space`} />}
         {mode !== null ? (
           <View style={styles.tableCellSlot} testID={`${testID}-target-cell`}>
             {cell("rowTarget")}

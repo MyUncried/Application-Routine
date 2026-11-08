@@ -1,4 +1,5 @@
 import { Image } from "expo-image";
+import { Image as RNImage } from "react-native";
 
 import { dimensions } from "./tokens";
 
@@ -359,4 +360,24 @@ export function KodjoIcon({ name, opacity, tintColor, size, testID }: KodjoIconP
       testID={testID}
     />
   );
+}
+
+/**
+ * Recette iPhone du 07/11/2026 (Hermann, remarque D : « l'affichage se fait en deux temps : le symbole de la zone corporelle
+ * (pas son cercle) apparait avec un décalage d'une seconde environs ») : les icônes sont des SVG affichés par `expo-image`,
+ * chargés et décodés de façon asynchrone (en développement, servis par Metro) ; une vue voisine s'affiche aussitôt, le
+ * symbole ensuite. Préchargement dans le cache mémoire d'`expo-image` (même adresse que l'affichage) avant l'écran qui les
+ * montre, pour qu'ils apparaissent avec leur carte. Sans effet sur le tracé ; tout échec est ignoré (affichage normal).
+ */
+export function prefetchKodjoIcons(names: readonly KodjoIconName[]): Promise<boolean> {
+  try {
+    const uris = names.flatMap((name) => {
+      const uri = RNImage.resolveAssetSource(sources[name])?.uri;
+      return typeof uri === "string" && uri.length > 0 ? [uri] : [];
+    });
+    if (uris.length === 0) return Promise.resolve(false);
+    return Promise.resolve(Image.prefetch(uris, "memory-disk")).catch(() => false);
+  } catch {
+    return Promise.resolve(false);
+  }
 }

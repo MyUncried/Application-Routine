@@ -20,6 +20,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type ViewProps,
+  useWindowDimensions,
 } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -159,6 +160,7 @@ import {
   CIRCUIT_REVEAL_DURATION_MS,
   CircuitHeader,
   useCircuitCardsReveal,
+  type CarrierHeader,
   type CircuitCardsReveal,
 } from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
@@ -208,8 +210,14 @@ import {
   type StickyScroll,
 } from "@/features/sessions/StickyHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
-import { isSinglePassage, singlePassageLabel } from "@/domain/sessions/formats";
-import { CarrierDurationSheet } from "@/features/sessions/CarrierDurationSheet";
+import { circuitRoleOf, isSinglePassage, singlePassageLabel, type CircuitRole } from "@/domain/sessions/formats";
+import {
+  durationEntryResult,
+  InlineDurationField,
+  InlineDurationKeyboardBar,
+  useDurationKeyboardFrame,
+  type DurationEntry,
+} from "@/features/sessions/CarrierDurationSheet";
 import { duplicateLayoutCircuit, removeLayoutCircuit, renameLayoutCircuit } from "@/domain/sessions/circuitActions";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { carrierDurationSetting, carrierHeaderOf, circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
@@ -959,6 +967,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // PRE-6 story 7.10 (D-444) : zone d'action principale fixe (Continuer / barre de placement) ; le
   // corps défilant réserve sa hauteur en fin de défilement.
   const actionZone = usePrimaryActionZone();
+  const { height: windowHeight } = useWindowDimensions();
   const actionZoneReserveRef = useRef(actionZone.scrollReserve);
   useEffect(() => {
     actionZoneReserveRef.current = actionZone.scrollReserve;
@@ -2508,19 +2517,114 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       ]);
     },
   };
-  const [carrierDurationEdit, setCarrierDurationEdit] = useState<{
-    readonly circuitId: string;
-    readonly setting: "blockSeconds" | "windowSeconds" | "timeCapSeconds";
-    readonly seconds: number | null;
-  } | null>(null);
+  /**
+   * Recette iPhone du 07/11/2026 (a-bornes-clavier) et du 06/11/2026 (w-circuit-duree) : saisie en place du Compte à rebours
+   * initial, de la Fin de séance et de la durée d'un Circuit porteur — la valeur touchée devient la case de saisie, la
+   * Composition remonte au-dessus de la barre du clavier si besoin (`CarrierDurationSheet`). [Carte flottante en `Modal` —
+   * remplacée le 08/11/2026.]
+   */
+  const [durationEntry, setDurationEntryState] = useState<ScreenDurationEntry | null>(null);
+  const durationEntryRef = useRef<ScreenDurationEntry | null>(null);
+  const setDurationEntry = useCallback((next: ScreenDurationEntry | null) => {
+    durationEntryRef.current = next;
+    setDurationEntryState(next);
+  }, []);
+  /** Valeur refusée par le contrôle EMOM : pas de seconde alerte pour la même valeur (Fermer puis perte du focus). */
+  const refusedDurationRef = useRef<number | null | undefined>(undefined);
+  const durationKeyboard = useDurationKeyboardFrame(durationEntry !== null);
+  const [durationBarHeight, setDurationBarHeight] = useState(0);
+  const commitDurationEntry = useCallback(
+    (override?: { readonly value: number | null }) => {
+      const current = durationEntryRef.current;
+      if (current === null) return;
+      const entry = override === undefined ? current : { ...current, value: override.value };
+      const { changed, next } = durationEntryResult(entry);
+      const target = entry.target;
+      // MAJ 04/11/2026 §4.4 : EMOM dans chaque intervalle — un intervalle commun atteint par la somme du travail prévu des
+      // membres (seuil inclusif) est refusé ; la case reste ouverte.
+      if (changed && target.kind === "carrier" && target.setting === "windowSeconds" && next !== null) {
+        const circuit = structureCircuits(currentDraftLayout(draftRef.current, () => Crypto.randomUUID())).find((item) => item.id === target.circuitId);
+        // Décisions de Hermann du 07/11/2026 (EMOM), C11 : contrôle rang par rang (chaque série), pas seulement le premier.
+        const workAt = (rank: number) =>
+          (circuit?.exercises ?? []).reduce((sum, id) => {
+            const member = draftRef.current.exercises.find((item) => item.id === id);
+            return sum + (member === undefined ? 0 : plannedWorkOfParameters(member.executionParameters, rank));
+          }, 0);
+        const work = Math.max(0, ...Array.from({ length: Math.max(1, circuit?.repeatCount ?? 1) }, (_, rank) => workAt(rank)));
+        if (circuit?.format?.key === "EMOM" && work > 0 && work >= next) {
+          if (refusedDurationRef.current !== next) {
+            refusedDurationRef.current = next;
+            Alert.alert(strings.screens.formatModel.emomOverflow.replace("{interval}", formatPhraseDuration(next)));
+          }
+          return;
+        }
+      }
+      refusedDurationRef.current = undefined;
+      setDurationEntry(null);
+      Keyboard.dismiss();
+      if (!changed) return;
+      if (target.kind === "carrier") updateDraft((draftNow) => setLayoutCircuitFormatSetting(draftNow, target.circuitId, target.setting, next));
+      else updateDraft(target.kind === "countdown" ? { initialCountdownSeconds: next ?? 0 } : { finalPhaseSeconds: next ?? 0 });
+    },
+    [setDurationEntry, updateDraft],
+  );
+  const openDurationEntry = (next: ScreenDurationEntry) => {
+    const current = durationEntryRef.current;
+    if (current !== null && sameDurationTarget(current.target, next.target)) {
+      commitDurationEntry();
+      return;
+    }
+    commitDurationEntry();
+    // Saisie précédente refusée (contrôle EMOM) : elle reste ouverte.
+    if (durationEntryRef.current !== null) return;
+    closeCircuitControls();
+    setDurationEntry(next);
+  };
+  const openBoundaryEntry = (kind: "countdown" | "finalPhase") => {
+    const seconds = kind === "countdown" ? draft.initialCountdownSeconds : draft.finalPhaseSeconds;
+    openDurationEntry({
+      target: { kind },
+      seconds,
+      value: seconds,
+      allowsNone: false,
+      label: kind === "countdown" ? strings.screens.composition.countdown.label : strings.screens.composition.finalPhase.label,
+      durationMin: SESSION_BOUNDARY_WHEEL_BOUNDS.min,
+      durationMax: SESSION_BOUNDARY_WHEEL_BOUNDS.max,
+    });
+  };
   const handleEditCarrierDuration = (circuit: StructureCircuit<SessionDraftExercise>) => {
     const format = circuit.format ?? null;
     if (format === null) return;
     const setting = carrierDurationSetting(format, circuit.nature);
     if (setting === null) return;
     const value = format.settings[setting];
-    setCarrierDurationEdit({ circuitId: circuit.id, setting, seconds: typeof value === "number" ? value : null });
+    const seconds = typeof value === "number" ? value : null;
+    openDurationEntry({
+      target: { kind: "carrier", circuitId: circuit.id, setting },
+      seconds,
+      value: seconds,
+      allowsNone: setting === "timeCapSeconds",
+      // Décision de Hermann du 06/11/2026 (constat c) : durée saisie au clavier, avec le libellé du réglage.
+      label: strings.screens.composition.carrier.durationLabels[setting],
+      durationMin: 1,
+    });
   };
+  const durationScrollBy = (delta: number) => bodyScrollRef.current?.scrollTo({ y: Math.max(0, bodyOffsetRef.current + delta), animated: true });
+  /** Case de saisie en place de la cible `target`, ou `undefined` si une autre valeur (ou aucune) est en saisie. */
+  const durationEditorFor = (target: DurationEntryTarget) =>
+    durationEntry !== null && sameDurationTarget(durationEntry.target, target) ? (
+      <InlineDurationField
+        entry={durationEntry}
+        onChange={(value) => {
+          const current = durationEntryRef.current;
+          if (current !== null) setDurationEntry({ ...current, value });
+        }}
+        onBlur={() => commitDurationEntry()}
+        keyboardTop={durationKeyboard?.screenY ?? null}
+        barHeight={durationBarHeight}
+        scrollBy={durationScrollBy}
+      />
+    ) : undefined;
   const handleLayoutCycleCount = useCallback((cycleId: string, count: number) => handleLayoutCount("CYCLE", cycleId, count), [handleLayoutCount]);
   /** PRE-9 B.1b (ARB-12) : repli d'un Circuit de la disposition — état de l'écran, brouillon inchangé. */
   const toggleLayoutCircuitCollapsed = useCallback(
@@ -2685,7 +2789,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // dans les boîtes courantes — la place ouverte suit son bas, ses cartes ne reçoivent aucune
         // translation ; l'aperçu ne change pas à chaque mesure. La destination sous le doigt est
         // recalculée à la fin du déploiement (`finishLayoutExpansionRef`).
-        const candidates = layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints, isFixedPassageExercise);
+        const candidates = layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints, isFixedPassageExercise, fixedPassageRoleOf);
         const end = circuitEndDrop(candidates, current.expandingCircuitId);
         if (end !== null) current.target = end;
         return;
@@ -2696,13 +2800,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       const slot =
         current.stopPointId === undefined && current.source.kind === "EXERCISE" && layoutCollapsedRef.current.size > 0
           ? resolveDropOverCollapsedCircuits(
-              layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints, isFixedPassageExercise),
+              layoutDropCandidates(layout, current.source, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints, isFixedPassageExercise, fixedPassageRoleOf),
               pointerY,
               layoutCollapsedRef.current.keys(),
               layoutBoxesRef.current,
               current.shifts?.shifts ?? null,
             )
-          : resolveLayoutDrop(layout, current.source, pointerY, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints, isFixedPassageExercise);
+          : resolveLayoutDrop(layout, current.source, pointerY, layoutBoxesRef.current, (exercise) => exercise.id, layoutContainerGap, stopPoints, isFixedPassageExercise, fixedPassageRoleOf);
       if (!(sameLayoutDrop(slot, current.target) && slot?.lineY === current.target?.lineY)) current.target = slot;
       // Lecture la plus prudente du constat (« l'arrêt d'une carte ») : une carte d'Exercice seulement,
       // pas un Point d'arrêt saisi (À CLARIFIER, spec-recette-2-corrections-composition.md).
@@ -4814,7 +4918,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         contentContainerStyle={[
           styles.bodyContent,
           // Recette du 04/11 : clavier de la saisie du nom d'un Circuit — place réservée pour le remonter au-dessus.
-          { paddingBottom: actionZone.scrollReserve + (renameKeyboard?.height ?? 0) },
+          { paddingBottom: actionZone.scrollReserve + (renameKeyboard?.height ?? 0) + (durationKeyboard !== null ? windowHeight - durationKeyboard.screenY + durationBarHeight : 0) },
           // Contre-recette n° 4 (constat a) : hauteur gardée pendant le glisser d'un Circuit (voir `layoutContentFloor`).
           layoutContentFloor !== null ? { minHeight: layoutContentFloor } : null,
         ]}
@@ -4863,8 +4967,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               neighborSlop={countdownFollowedByStopPoint ? STOP_POINT_CHIP_TOUCH_EXTENT : 0}
               label={composition.countdown.label}
               value={formatBoundarySecondsValue(draft.initialCountdownSeconds)}
-              isOpen={openOverlay === "countdown"}
-              onPress={() => toggleOverlay("countdown")}
+              isOpen={durationEntry?.target.kind === "countdown"}
+              onPress={() => openBoundaryEntry("countdown")}
+              editor={durationEditorFor({ kind: "countdown" })}
               testID="composition-boundary-countdown"
             />
           </PlacementAttenuation>
@@ -4884,6 +4989,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onToggleOverlay={toggleOverlay}
             onCircuitCount={handleLayoutCircuitCount}
             onEditCarrierDuration={handleEditCarrierDuration}
+            carrierDurationEditor={(circuitId) => durationEditorFor({ kind: "carrier", circuitId })}
             emomOverflowIds={emomOverflowIds}
             circuitActions={circuitActions}
             onCycleCount={handleLayoutCycleCount}
@@ -5304,8 +5410,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               neighborSlop={finPrecededByStopPoint ? STOP_POINT_CHIP_TOUCH_EXTENT : 0}
               label={composition.finalPhase.label}
               value={formatBoundarySecondsValue(draft.finalPhaseSeconds)}
-              isOpen={openOverlay === "finalPhase"}
-              onPress={() => toggleOverlay("finalPhase")}
+              isOpen={durationEntry?.target.kind === "finalPhase"}
+              onPress={() => openBoundaryEntry("finalPhase")}
+              editor={durationEditorFor({ kind: "finalPhase" })}
               ref={finalBoundaryRef}
               testID="composition-boundary-final-phase"
             />
@@ -5422,7 +5529,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         {placement === null && emomOverflowIds.size > 0 ? (
           // Décisions de Hermann du 07/11/2026 (EMOM), C12 : message du contrôle EMOM (bloquant).
           <Text style={styles.saveErrorText} accessibilityRole="alert" testID="composition-emom-overflow">
-            {strings.executionParameters.format.emomOverflow}
+            {/* [Texte générique de la feuille (« La durée atteint ou dépasse l’intervalle… ») — remplacé le 08/11/2026 (y-rouge).] */}
+            {composition.emomOverflow}
           </Text>
         ) : null}
         {placement === null && (saveState === "error" || saveState === "nameTaken") ? (
@@ -5453,19 +5561,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * case vidée : valeur précédente gardée. [Roulettes `NumberWheelPicker` dans `WheelPickerOverlay` (PRE-6 story 7.8, T01-S09
        * point D) — remplacées.]
        */}
-      {openOverlay === "countdown" || openOverlay === "finalPhase" ? (
-        <CarrierDurationSheet
-          seconds={openOverlay === "countdown" ? draft.initialCountdownSeconds : draft.finalPhaseSeconds}
-          allowsNone={false}
-          label={openOverlay === "countdown" ? composition.countdown.label : composition.finalPhase.label}
-          durationMin={SESSION_BOUNDARY_WHEEL_BOUNDS.min}
-          durationMax={SESSION_BOUNDARY_WHEEL_BOUNDS.max}
-          onValidate={(seconds) => {
-            const value = seconds ?? 0;
-            updateDraft(openOverlay === "countdown" ? { initialCountdownSeconds: value } : { finalPhaseSeconds: value });
-            closeOverlay();
-          }}
-          onCancel={closeOverlay}
+      {/* [08/11/2026 : carte flottante remplacée par la saisie en place (a-bornes-clavier) ; barre du clavier ci-dessous.] */}
+      {durationEntry !== null ? (
+        <InlineDurationKeyboardBar
+          keyboardFrame={durationKeyboard}
+          allowsNone={durationEntry.allowsNone}
+          noneSelected={durationEntry.allowsNone && durationEntry.value === null}
+          onNone={() => commitDurationEntry({ value: null })}
+          onClose={() => commitDurationEntry()}
+          onHeight={setDurationBarHeight}
         />
       ) : null}
 
@@ -5643,36 +5747,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
       ) : null}
 
-      {carrierDurationEdit !== null ? (
-        <CarrierDurationSheet
-          seconds={carrierDurationEdit.seconds}
-          // Décision de Hermann du 06/11/2026 (constat c) : durée saisie au clavier, avec le libellé du réglage.
-          label={strings.screens.composition.carrier.durationLabels[carrierDurationEdit.setting]}
-          allowsNone={carrierDurationEdit.setting === "timeCapSeconds"}
-          onValidate={(seconds) => {
-            const edit = carrierDurationEdit;
-            // MAJ 04/11/2026 §4.4 : EMOM dans chaque intervalle — un intervalle commun atteint par la somme du travail
-            // prévu des membres (seuil inclusif) est refusé ; la roulette reste ouverte.
-            if (edit.setting === "windowSeconds" && seconds !== null) {
-              const circuit = structureCircuits(currentDraftLayout(draftRef.current, () => Crypto.randomUUID())).find((item) => item.id === edit.circuitId);
-              // Décisions de Hermann du 07/11/2026 (EMOM), C11 : contrôle rang par rang (chaque série), pas seulement le premier.
-              const workAt = (rank: number) =>
-                (circuit?.exercises ?? []).reduce((sum, id) => {
-                  const member = draftRef.current.exercises.find((item) => item.id === id);
-                  return sum + (member === undefined ? 0 : plannedWorkOfParameters(member.executionParameters, rank));
-                }, 0);
-              const work = Math.max(0, ...Array.from({ length: Math.max(1, circuit?.repeatCount ?? 1) }, (_, rank) => workAt(rank)));
-              if (circuit?.format?.key === "EMOM" && work > 0 && work >= seconds) {
-                Alert.alert(strings.screens.formatModel.emomOverflow.replace("{interval}", formatPhraseDuration(seconds)));
-                return;
-              }
-            }
-            setCarrierDurationEdit(null);
-            updateDraft((current) => setLayoutCircuitFormatSetting(current, edit.circuitId, edit.setting, seconds));
-          }}
-          onCancel={() => setCarrierDurationEdit(null)}
-        />
-      ) : null}
+      {/* [Durée d'un Circuit porteur : carte flottante — remplacée le 08/11/2026 par la saisie en place (w-circuit-duree).] */}
 
       {/* PRE-9 A.2 (ARB-22a) : paramètres des Exercices créés depuis des Mouvements. */}
       {movementExerciseSheet}
@@ -6002,8 +6077,19 @@ function EnvelopeFrame({
   gap?: number;
   children: React.ReactNode;
 }) {
+  /*
+   * Recette iPhone du 07/11/2026 (t-depli, KO, Hermann : « lorsqu'on clique sur Créer > Ajouter un cycle, la séance [replie] ses
+   * circuits […] il faut que ce repli se fasse lentement par glissement des cartes. Pas en apparition brute comme maintenant. ») —
+   * cause : hors mode, le contenu était rendu sans enveloppe (fragment) et, en mode, dans deux vues : l'arbre changeait à l'entrée
+   * du mode, React remontait chaque Circuit, déjà replié, sans animation. Les mêmes deux vues sont désormais toujours rendues
+   * (sans rôle hors mode) : le Circuit reste monté et se replie en glissant (`useCircuitCardsReveal`).
+   */
   if (envelope === null) {
-    return <>{children}</>;
+    return (
+      <View>
+        <View>{children}</View>
+      </View>
+    );
   }
   const isStopPoint = target.kind === "STOP_POINT";
   const isCandidate = !isStopPoint && envelope.isCandidate(target);
@@ -8132,6 +8218,8 @@ type LayoutRenderContext = {
   readonly onCircuitCount: (circuitId: string, count: number) => void;
   /** PRE-9 C.4 : toucher de la durée d'un Circuit porteur. */
   readonly onEditCarrierDuration: (circuit: StructureCircuit<SessionDraftExercise>) => void;
+  /** 08/11/2026 : case de saisie en place de la durée du Circuit `circuitId`, s'il est en saisie. */
+  readonly carrierDurationEditor: (circuitId: string) => React.ReactNode | undefined;
   /** Décisions de Hermann du 07/11/2026 (EMOM), C12 et réponse 2 : Exercices dont l'intervalle est dépassé (cartes, Circuit et durée de tour en rouge). */
   readonly emomOverflowIds: ReadonlySet<string>;
   /** MAJ 04/11/2026 §6 quinquies et §6 sexies : actions glissées du Circuit replié et saisie de son nom. */
@@ -9330,7 +9418,7 @@ function LayoutCircuitBlock({
         isCounterOpen={openOverlay === counterKind}
         onToggleCounter={() => onToggleOverlay(counterKind)}
         onChangeCount={(count) => context.onCircuitCount(circuit.id, count)}
-        carrier={carrierHeaderOf(circuit, () => context.onEditCarrierDuration(circuit), (circuit.format?.key === "EMOM") && hasEmomOverflow)}
+        carrier={withCarrierEditor(carrierHeaderOf(circuit, () => context.onEditCarrierDuration(circuit), (circuit.format?.key === "EMOM") && hasEmomOverflow), context.carrierDurationEditor(circuit.id))}
         // Recette iPhone n° 3 du 03/11/2026 (autres constats) : nom du modèle d'origine à la place de « Circuit ».
         originTitle={circuitDisplayTitle(circuit)}
         isNatureMenuOpen={openOverlay === natureKind}
@@ -9977,6 +10065,22 @@ const CIRCUIT_CARDS_BOTTOM_OVERLAP = CIRCUIT_PADDING_VERTICAL - CONTAINER_PADDIN
 const CIRCUIT_GAP = 9;
 /** Recette du 04/11 : écart entre le bas du Circuit renommé et le haut du clavier. */
 const RENAME_KEYBOARD_MARGIN = spacing[16];
+
+/** Valeur en saisie en place (08/11/2026) : borne de la Séance ou durée d'un Circuit porteur. */
+type DurationEntryTarget =
+  | { readonly kind: "countdown" }
+  | { readonly kind: "finalPhase" }
+  | { readonly kind: "carrier"; readonly circuitId: string; readonly setting?: "blockSeconds" | "windowSeconds" | "timeCapSeconds" };
+type ScreenDurationEntry = DurationEntry & {
+  readonly target: DurationEntryTarget & ({ readonly kind: "countdown" | "finalPhase" } | { readonly kind: "carrier"; readonly setting: "blockSeconds" | "windowSeconds" | "timeCapSeconds" });
+};
+function sameDurationTarget(a: DurationEntryTarget, b: DurationEntryTarget): boolean {
+  if (a.kind !== b.kind) return false;
+  return a.kind !== "carrier" || (b.kind === "carrier" && a.circuitId === b.circuitId);
+}
+function withCarrierEditor(carrier: CarrierHeader | undefined, editor: React.ReactNode | undefined): CarrierHeader | undefined {
+  return carrier === undefined || editor === undefined ? carrier : { ...carrier, editor };
+}
 /** CE-FMT-05 (ch13 §7.9.6, Figma « Circuit issu d'un format, actions glissées ») : actions de 70. */
 const CIRCUIT_SWIPE_ACTION_WIDTH = 70;
 const CIRCUIT_RADIUS = 18;
@@ -9998,8 +10102,16 @@ const CIRCUIT_SURFACE_COLOR = "#EBEDF5";
  * (`occurrenceCardIncompleteSurface`) ou à vérifier (`occurrenceCardToVerifySurface`) ; `null` : aplat
  * habituel. Le rayon reste celui du Circuit.
  */
+/**
+ * Recette iPhone du 07/11/2026 (constat F, Hermann : « Supprimer le liseré du cadre orange du circuit, respecter les règles
+ * édictées dans "Autres remarques" » — remarque e du 06/11/2026 : « Pas de liseré, dans aucune situation ») : Circuit replié
+ * à vérifier sans liseré (bord transparent : le contenu ne bouge pas). [Liseré orange `toVerifyColors.border` — retiré le
+ * 08/11/2026.]
+ */
+const collapsedToVerifySurface = { ...occurrenceCardToVerifySurface, borderColor: "transparent" } as const;
+
 function collapsedToneSurface(tone: CollapsedCircuitTone) {
-  return tone === "INCOMPLETE" ? occurrenceCardIncompleteSurface : tone === "TO_VERIFY" ? occurrenceCardToVerifySurface : null;
+  return tone === "INCOMPLETE" ? occurrenceCardIncompleteSurface : tone === "TO_VERIFY" ? collapsedToVerifySurface : null;
 }
 
 /** Fond de la tonalité (couches animées, en-tête collé) ; `undefined` : celui du Circuit. */
@@ -10065,6 +10177,10 @@ const LAYOUT_CYCLE_GAP = CIRCUIT_GAP;
 /** Recette iPhone n° 3 du 03/11/2026 : buy-in / buy-out (« Passage = Une fois »), fixés en tête ou en fin de leur Circuit porteur. */
 function isFixedPassageExercise(exercise: SessionDraftExercise): boolean {
   return isSinglePassage(exercise.format);
+}
+/** Recette du 07/11/2026 (f4-role) : Rôle d'un membre (zones buy-in, tour, buy-out), comme le déplacement appliqué. */
+function fixedPassageRoleOf(exercise: SessionDraftExercise, index: number): CircuitRole {
+  return circuitRoleOf(exercise.format, index);
 }
 
 function layoutContainerGap(container: LayoutContainerRef): number {

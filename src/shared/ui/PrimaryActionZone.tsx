@@ -49,10 +49,15 @@ export type PrimaryActionZoneProps = {
   readonly style?: StyleProp<ViewStyle>;
   /** Style du conteneur du contenu (ex. : écart entre un message et le bouton). */
   readonly contentStyle?: StyleProp<ViewStyle>;
+  /**
+   * Couleur d'arrivée du dégradé (fond de l'écran), au format `#RRGGBB` ; absente : blanc (`FINAL_ACTION_GRADIENT`).
+   * D-501 révisée (Hermann, 08/11/2026) : le Catalogue des mouvements ouvert depuis la Composition fond vers son fond.
+   */
+  readonly background?: string;
   readonly testID: string;
 };
 
-export function PrimaryActionZone({ children, onContentHeightChange, hidden = false, style, contentStyle, testID }: PrimaryActionZoneProps) {
+export function PrimaryActionZone({ children, onContentHeightChange, hidden = false, style, contentStyle, background, testID }: PrimaryActionZoneProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const keyboardHidesZone = useAndroidKeyboardVisible();
@@ -80,7 +85,11 @@ export function PrimaryActionZone({ children, onContentHeightChange, hidden = fa
       ]}
       testID={testID}
     >
-      <View pointerEvents="none" style={styles.gradient} testID={`${testID}-gradient`} />
+      <View
+        pointerEvents="none"
+        style={[styles.gradient, background === undefined ? null : { experimental_backgroundImage: `linear-gradient(to bottom, ${background}00 0%, ${background} 100%)` }]}
+        testID={`${testID}-gradient`}
+      />
       <View pointerEvents="box-none" onLayout={onLayout} style={contentStyle} testID={`${testID}-content`}>
         {children}
       </View>

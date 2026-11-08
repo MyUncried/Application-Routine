@@ -22,7 +22,7 @@ import {
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { handMovementsToComposition, handMovementsToFormat, movementsInSession } from "@/features/sessions/movementExercises";
 import { strings } from "@/shared/i18n";
-import { CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
+import { catalogueColors, CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
 import { FINAL_ACTION_BUTTON_HEIGHT } from "@/shared/ui/finalAction";
@@ -157,15 +157,20 @@ export function MovementSelectionScreen({ inSheet = false }: { readonly inSheet?
       ? `${tSelection.addAction} ${count} ${count === 1 ? strings.screens.sessions.card.activitySingular : strings.screens.sessions.card.activityPlural}`
       : tSelection.addAction;
 
+  // D-501 révisée (Hermann, 08/11/2026 : « la modale "Catalogue des mouvements" ouverte depuis la Composition (fond blanc et
+  // bande lilas à remplacer par les couleurs du catalogue des mouvements) ») : fond, zone de contexte et fondu du bas aux
+  // couleurs du Catalogue des mouvements. [Avant : fond blanc et bande `colors.contextBand` (lilas) — remplacé.]
+  const palette = catalogueColors("movements");
+
   return (
-    <ScreenShell>
+    <ScreenShell backgroundColor={palette.background}>
       <FixedHeader
         title={purpose === "BUY_IN" ? strings.screens.formatModel.buyInPickerTitle : strings.screens.activities.addToSession.existingActivity}
         onBack={() => router.back()}
         backAccessibilityLabel={tSelection.backAccessibilityLabel}
         {...(inSheet ? { topInset: 0, centeredTitle: true } : {})}
       />
-      <ContextBand padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}>
+      <ContextBand color={palette.context} padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}>
         <CatalogueContextZone
           summary={
             summary !== null ? (
@@ -219,6 +224,7 @@ export function MovementSelectionScreen({ inSheet = false }: { readonly inSheet?
 
       <PrimaryActionZone
         onContentHeightChange={actionZone.onContentHeightChange}
+        background={palette.background}
         contentStyle={styles.bottomAction}
         testID="movement-selection-bottom-action"
       >

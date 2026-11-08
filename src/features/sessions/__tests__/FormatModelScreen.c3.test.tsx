@@ -688,7 +688,10 @@ describe("FormatModelScreen", () => {
     // « Revenir aux paramètres » referme le mode catalogue : aucun ajout, retour au questionnaire.
     fireEvent.press(screen.getByTestId("format-movements-link"));
     fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-fentes"));
-    fireEvent.press(screen.getByTestId("format-movements-link"));
+    // Remarque E du 07/11/2026 : fermeture en fondu (fin de fondu signalée au fil JS), puis retour aux paramètres.
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-movements-link"));
+    });
     expect(screen.queryByTestId("format-catalogue")).toBeNull();
     expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
     expect(screen.getByTestId("format-parameters")).toBeTruthy();
@@ -696,7 +699,9 @@ describe("FormatModelScreen", () => {
     // « Fermer sans sélectionner » (s-focus, 06/11/2026) : même effet, sans ajout.
     fireEvent.press(screen.getByTestId("format-movements-link"));
     await screen.findByTestId("format-catalogue-card-mv-fentes");
-    fireEvent.press(screen.getByTestId("format-catalogue-add"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-catalogue-add"));
+    });
     expect(screen.queryByTestId("format-catalogue")).toBeNull();
     expect(screen.queryByTestId("format-movement-card-2")).toBeNull();
     expect(screen.getByTestId("format-parameters")).toBeTruthy();

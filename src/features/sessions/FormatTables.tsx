@@ -61,10 +61,24 @@ const ROW_HEIGHT = 36;
  */
 const TABLE_SIDE_INSET = 16;
 const COLUMN_GAP = 8;
-/** Largeur minimale d'une colonne : au moins celle des titres (« Objectif », « Incrément », « Par tour »). */
+/**
+ * Tableaux à une ligne par mouvement : écart entre colonnes de valeurs réduit à 4 (recette iPhone du 07/11/2026, a-amrap-table,
+ * Hermann : « Réduire encore les espaces entre les colonnes / Réduire la largeur de la colonne charge et de la colonne Max »).
+ * [Écart de 8 entre ces colonnes — remplacé le 08/11/2026.]
+ */
+const UNIT_COLUMN_GAP = 4;
+/**
+ * Largeur minimale d'une colonne de tableau des séries (titres « S1 »… et valeurs) : 56. Dans un tableau à une ligne par mouvement,
+ * la colonne prend la largeur de son titre mesuré ou de son plus large champ (a-amrap-table, 08/11/2026), au moins
+ * `MIN_UNIT_COLUMN_WIDTH`. [Minimum de 56 pour toutes les colonnes — remplacé le 08/11/2026 pour ces tableaux.]
+ */
 const MIN_COLUMN_WIDTH = 56;
-/** Colonne Max (AMRAP) : largeur de son titre et de son bouton radio (y-format-cadres, 07/11/2026). */
-const MAX_COLUMN_WIDTH = 32;
+const MIN_UNIT_COLUMN_WIDTH = 32;
+/**
+ * Colonne Max (AMRAP) : largeur de son bouton radio (20) et de son titre ; bouton calé à droite (y-format-cadres, 07/11/2026 ;
+ * a-amrap-table, 08/11/2026). [32 — remplacé le 08/11/2026.]
+ */
+const MAX_COLUMN_WIDTH = 26;
 /**
  * Tableau des séries : trois séries visibles (décision du 05/11/2026, n-charge-switch : « Afficher par défaut trois séries »),
  * dans la limite de quatre colonnes de la remarque e.
@@ -105,7 +119,7 @@ function useColumnWidths(): {
       if (map.get(key) === measured) return;
       if (measured <= 0) map.delete(key);
       else map.set(key, measured);
-      const next = Math.max(MIN_COLUMN_WIDTH, Math.ceil(Math.max(0, ...map.values())));
+      const next = Math.max(MIN_UNIT_COLUMN_WIDTH, Math.ceil(Math.max(0, ...map.values())));
       setColumns((current) => (current[column] === next ? current : { ...current, [column]: next }));
     },
     [],
@@ -479,26 +493,63 @@ function rowName(item: ModelMovement): string {
 }
 
 /** Titres des colonnes de valeurs : même largeur et même écart que les colonnes, centrés au-dessus. */
-function ColumnHeads({ heads, width }: { readonly heads: readonly string[]; readonly width: number | readonly number[] }) {
+function ColumnHeads({
+  heads,
+  width,
+  onMeasure,
+  unit = false,
+}: {
+  readonly heads: readonly string[];
+  readonly width: number | readonly number[];
+  /** Tableau à une ligne par mouvement : chaque titre déclare sa largeur naturelle à sa colonne (a-amrap-table, 08/11/2026). */
+  readonly onMeasure?: (index: number) => ((width: number) => void) | undefined;
+  readonly unit?: boolean;
+}) {
   return (
-    <View style={styles.columns}>
-      {heads.map((head, index) => (
-        <Text key={index} style={[styles.tableHead, { width: typeof width === "number" ? width : (width[index] ?? MIN_COLUMN_WIDTH) }]} numberOfLines={1}>
-          {head}
-        </Text>
-      ))}
+    <View style={unit ? styles.unitColumns : styles.columns}>
+      {heads.map((head, index) => {
+        const measure = onMeasure?.(index);
+        return (
+          <View key={index} style={{ width: typeof width === "number" ? width : (width[index] ?? MIN_COLUMN_WIDTH) }}>
+            {measure ? (
+              <View style={styles.measureBox} pointerEvents="none">
+                <Text
+                  style={styles.tableHead}
+                  numberOfLines={1}
+                  onLayout={(event) => measure(event.nativeEvent.layout.width)}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                >
+                  {head}
+                </Text>
+              </View>
+            ) : null}
+            <Text style={styles.tableHead} numberOfLines={1}>
+              {head}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
 
 /** En-tête d'un tableau à une ligne par mouvement (unité en colonne). */
-function MovementTableHeader({ heads, width }: { readonly heads: readonly string[]; readonly width: readonly number[] }) {
+function MovementTableHeader({
+  heads,
+  width,
+  onMeasure,
+}: {
+  readonly heads: readonly string[];
+  readonly width: readonly number[];
+  readonly onMeasure?: (index: number) => ((width: number) => void) | undefined;
+}) {
   return (
     <View style={styles.tableHeader}>
       <Text style={[styles.tableHead, styles.tableName]} numberOfLines={1}>
         {t().table.movement}
       </Text>
-      <ColumnHeads heads={heads} width={width} />
+      <ColumnHeads heads={heads} width={width} onMeasure={onMeasure} unit />
     </View>
   );
 }
@@ -525,9 +576,10 @@ export function AmrapTable({
   const loadWidth = column.widthOf("load");
   const heads = [tt.objective, ...(increasing ? [tt.perRound] : []), ...(withLoad ? [tt.load] : []), tt.max];
   const widths = [objectiveWidth, ...(increasing ? [incrementWidth] : []), ...(withLoad ? [loadWidth] : []), MAX_COLUMN_WIDTH];
+  const headKeys = ["obj", ...(increasing ? ["inc"] : []), ...(withLoad ? ["load"] : [])];
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-amrap-table">
-      <MovementTableHeader heads={heads} width={widths} />
+      <MovementTableHeader heads={heads} width={widths} onMeasure={(at) => (headKeys[at] ? column.report(headKeys[at], "head") : undefined)} />
       {movements.map((item, index) => {
         const values = item.values;
         const tour = movementRole(item) === "TOUR";
@@ -539,7 +591,7 @@ export function AmrapTable({
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
-            <View style={styles.columns}>
+            <View style={styles.unitColumns}>
               <TableCell
                 kind={mode === "DURATION" ? "duration" : "integer"}
                 value={values.repetitions ?? null}
@@ -582,7 +634,7 @@ export function AmrapTable({
                 accessibilityRole="radio"
                 accessibilityState={{ checked: max, disabled: mode === "DURATION" }}
                 accessibilityLabel={`${name}, ${tt.max}`}
-                style={[styles.radioSlot, { width: MAX_COLUMN_WIDTH }]}
+                style={[styles.radioSlot, styles.radioSlotEnd, { width: MAX_COLUMN_WIDTH }]}
                 testID={`format-amrap-max-${index}`}
               >
                 <View style={[styles.radio, max ? styles.radioOn : null, mode === "DURATION" ? styles.radioDisabled : null]}>{max ? <View style={styles.radioDot} /> : null}</View>
@@ -701,7 +753,7 @@ export function DeathByTable({
   const heads = [tt.start, tt.increment, ...(withLoad ? [tt.load] : [])];
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-death-by-table">
-      <MovementTableHeader heads={heads} width={[startWidth, incrementWidth, loadWidth]} />
+      <MovementTableHeader heads={heads} width={[startWidth, incrementWidth, loadWidth]} onMeasure={(at) => column.report(["start", "sinc", "load"][at] ?? "load", "head")} />
       {movements.map((item, index) => {
         const values = item.values;
         const name = rowName(item);
@@ -712,7 +764,7 @@ export function DeathByTable({
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
-            <View style={styles.columns}>
+            <View style={styles.unitColumns}>
               <TableCell
                 kind={kind}
                 value={values.start ?? null}
@@ -782,7 +834,7 @@ export function ObjectivePauseTable({
   const heads = [tt.objective, tt.pause, ...(withLoad ? [tt.load] : [])];
   return (
     <View style={[styles.table, styles.tableInFrame]} testID="format-objective-pause-table">
-      <MovementTableHeader heads={heads} width={[objectiveWidth, pauseWidth, loadWidth]} />
+      <MovementTableHeader heads={heads} width={[objectiveWidth, pauseWidth, loadWidth]} onMeasure={(at) => column.report(["obj", "pause", "load"][at] ?? "load", "head")} />
       {movements.map((item, index) => {
         const values = item.values;
         const name = rowName(item);
@@ -794,7 +846,7 @@ export function ObjectivePauseTable({
             <Text style={[styles.tableCellText, styles.tableName]} numberOfLines={1}>
               {name}
             </Text>
-            <View style={styles.columns}>
+            <View style={styles.unitColumns}>
               {model === "UNTIL_FAILURE" ? (
                 // Valeur non modifiable : texte noir, sans cadre (remarque e : « noir (non modifiable) »).
                 <Text style={[styles.slotText, styles.failureText, { width: objectiveWidth }]} numberOfLines={1} testID={`format-objective-${index}`}>
@@ -1092,6 +1144,7 @@ const styles = StyleSheet.create({
   tableCellText: { fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   // Colonnes de valeurs : même largeur, même écart (remarque e).
   columns: { flexDirection: "row", alignItems: "center", gap: COLUMN_GAP },
+  unitColumns: { flexDirection: "row", alignItems: "center", gap: UNIT_COLUMN_GAP },
   // Texte non modifiable ou absent dans une colonne (« — » du buy-in AMRAP, « à l'échec »).
   slotText: { textAlign: "center", fontFamily: "Inter_400Regular", fontSize: 13, color: valueFieldColors.disabled },
   failureText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", color: valueFieldColors.readOnly },
@@ -1108,6 +1161,7 @@ const styles = StyleSheet.create({
   cellOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, minWidth: 0 },
   chargeToggle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, color: valueFieldColors.editable },
   radioSlot: { alignItems: "center", justifyContent: "center", minHeight: ROW_HEIGHT },
+  radioSlotEnd: { alignItems: "flex-end" },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: "#9499A8", alignItems: "center", justifyContent: "center" },
   radioOn: { borderColor: valueFieldColors.editable, backgroundColor: valueFieldColors.editable },
   radioDisabled: { borderColor: valueFieldColors.disabled, opacity: 0.5 },

@@ -230,14 +230,15 @@ describe("Recette iPhone n° 3 du 03/11/2026 — Circuits de la Composition", ()
     expect(surface().backgroundColor).not.toBe(colors.dangerSurface);
   });
 
-  it("point 3 : Circuit replié dont une carte est à vérifier — orange", async () => {
+  // [Liseré orange `toVerifyColors.border` — retiré le 08/11/2026 (constat F : « Supprimer le liseré du cadre orange du circuit ») : bord transparent.]
+  it("point 3 : Circuit replié dont une carte est à vérifier — orange, sans liseré", async () => {
     const toVerify: SessionDraftExercise = { ...exercise("b1", 2), executionParameters: withPhases([6, 4]), phasesToVerify: [2] };
     await renderComposition(twoCircuitsDraft({ b1: toVerify }));
     fireEvent.press(screen.getByTestId("composition-layout-circuit-cb-header-collapse", hidden));
     await act(async () => undefined);
     expect(StyleSheet.flatten(screen.getByTestId("composition-layout-circuit-cb-surface", hidden).props.style)).toMatchObject({
       backgroundColor: toVerifyColors.surface,
-      borderColor: toVerifyColors.border,
+      borderColor: "transparent",
     });
   });
 });

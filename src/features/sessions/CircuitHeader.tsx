@@ -1,4 +1,4 @@
-import { type ComponentProps, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type ComponentProps, type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Animated,
   Pressable,
@@ -497,6 +497,8 @@ export type CarrierHeader = {
   readonly duration: { readonly text: string; readonly tone: "EDITABLE" | "MUTED" | "OVERFLOW" } | null;
   readonly onPressDuration?: () => void;
   readonly durationAccessibilityLabel?: string;
+  /** 08/11/2026 (w-circuit-duree) : case de saisie en place de la durée, à la place de la valeur. */
+  readonly editor?: ReactNode;
 };
 
 /** PRE-9 B.4 : actions accessibles de déplacement pas à pas d'un conteneur, `null` si indisponible. */
@@ -642,7 +644,11 @@ export function CircuitHeader({
           />
         </View>
         {carrier !== undefined ? (
-          carrier.duration === null ? (
+          carrier.editor !== undefined ? (
+            <View style={[styles.carrierDurationTarget, columns.duration]} testID={`${testID}-duration`}>
+              {carrier.editor}
+            </View>
+          ) : carrier.duration === null ? (
             <View style={[styles.duration, columns.duration]} testID={`${testID}-duration`} />
           ) : (
             <Pressable

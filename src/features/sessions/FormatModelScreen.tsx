@@ -19,8 +19,19 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
-import Reanimated, { FadeIn, LinearTransition } from "react-native-reanimated";
+import Reanimated, {
+  Easing as ReanimatedEasing,
+  FadeIn,
+  LinearTransition,
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+  type LayoutAnimation,
+} from "react-native-reanimated";
 import { initialWindowMetrics } from "react-native-safe-area-context";
+import { scheduleOnRN } from "react-native-worklets";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
@@ -90,9 +101,10 @@ import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovem
 import { strings } from "@/shared/i18n";
 import { CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { KodjoIcon, prefetchKodjoIcons } from "@/shared/ui/KodjoIcon";
+import { MOTION_FADE_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
-import { colors as tokenColors, dimensions, minTouchTarget } from "@/shared/ui/tokens";
+import { colors as tokenColors, dimensions, minTouchTarget, switchOffColors } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
@@ -170,6 +182,49 @@ const CONTENT_BOTTOM_MARGIN = 24;
 /** Pile repliée du mode catalogue : décalage vertical et retrait latéral de chaque feuille (Catalogue des mouvements). */
 const PILE_LEAF_STEP = 6;
 const PILE_LEAF_INSET = 8;
+/**
+ * Recette iPhone du 07/11/2026 (Hermann, remarques D et E : « Afficher la liste des mouvements de manière progressive (la c'est une
+ * apparition brute) » ; « appuyer sur le filet de la pile : replier et déplier les mouvements lentement avec un glissement des
+ * cartes » ; « "Fermer sans sélectionner", "Ajouter X mouvement", "Revenir aux paramètres" : La fermeture doit se faire en fondu
+ * progressif lent. ») : fondus et glissements du mode catalogue à la durée de fondu du projet (`MOTION_FADE_DURATION_MS`,
+ * 450 ms), courbes du Catalogue des mouvements ; aucune animation sous « Réduire les animations ».
+ */
+const CATALOGUE_MOTION_MS = MOTION_FADE_DURATION_MS;
+const CATALOGUE_FADE_TIMING = { duration: CATALOGUE_MOTION_MS, easing: ReanimatedEasing.bezier(0.4, 0, 0.2, 1), reduceMotion: ReduceMotion.System };
+const CATALOGUE_SLIDE_TIMING = { duration: CATALOGUE_MOTION_MS, easing: ReanimatedEasing.bezier(0.33, 1, 0.68, 1), reduceMotion: ReduceMotion.System };
+const catalogueLayoutTransition = LinearTransition.duration(CATALOGUE_MOTION_MS)
+  .easing(ReanimatedEasing.bezier(0.33, 1, 0.68, 1))
+  .reduceMotion(ReduceMotion.System);
+/** Carte du mode catalogue ; `onPress` remplace la sélection (carte du dessus d'une pile repliée, qui la déplie). */
+type CatalogueCard = (entry: MovementCatalogueEntry, onPress?: () => void) => React.ReactNode;
+/** Pas d'une carte de pile (carte de 52 et écart de 8, `styles.family`) : un membre glisse depuis la carte du dessus. */
+const PILE_MEMBER_STEP = 52 + 8;
+function pileMemberEntering(offset: number) {
+  return (): LayoutAnimation => {
+    "worklet";
+    return {
+      initialValues: { transform: [{ translateY: offset }] },
+      animations: { transform: [{ translateY: withTiming(0, CATALOGUE_SLIDE_TIMING) }] },
+    };
+  };
+}
+function pileMemberExiting(offset: number) {
+  return (): LayoutAnimation => {
+    "worklet";
+    return {
+      initialValues: { transform: [{ translateY: 0 }] },
+      animations: { transform: [{ translateY: withTiming(offset, CATALOGUE_SLIDE_TIMING) }] },
+    };
+  };
+}
+/** Au repli, l'épaisseur de la pile (feuilles) n'apparaît qu'une fois les cartes rentrées (modèle du Catalogue des mouvements). */
+function pileLeafEntering(): LayoutAnimation {
+  "worklet";
+  return {
+    initialValues: { opacity: 0 },
+    animations: { opacity: withDelay((CATALOGUE_MOTION_MS * 2) / 3, withTiming(1, { duration: CATALOGUE_MOTION_MS / 3 })) },
+  };
+}
 /** Barre Précédent / Suivant / Fermer des tableaux : hauteur avant mesure ; marge de révélation d'une cellule. */
 const KEYBOARD_BAR_HEIGHT = 52;
 const CELL_REVEAL_MARGIN = 12;
@@ -589,12 +644,80 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » (ou « Changer ») ouvre directement le mode catalogue — champ de
   // recherche actif, clavier ouvert, filtres, tri et piles à côté du champ. [Étape intermédiaire de saisie avec suggestions et lien
   // « Ouvrir / Fermer le mode catalogue » (recette n° 3 du 03/11/2026, f3r-recherche ; MAJ 04/11 §3) — remplacés.]
+  // Recette iPhone du 07/11/2026 (remarques D et E) : opacité commune du contenu défilant, de la zone de recherche et de la zone
+  // d'action. Ouverture : la liste, la recherche et « Fermer sans sélectionner » apparaissent ensemble en fondu lent ; fermeture
+  // (« Fermer sans sélectionner », « Ajouter X mouvements », « Revenir aux paramètres ») : fondu lent jusqu'à disparition, puis
+  // retour aux paramètres, qui réapparaissent en fondu. [Avant : apparition et fermeture d'un coup — remplacé.]
+  const catalogueOpacity = useSharedValue(1);
+  const catalogueFadeStyle = useAnimatedStyle(() => ({ opacity: catalogueOpacity.value }));
+  const catalogueClosing = useRef(false);
+  // Remarque D (« le symbole de la zone corporelle (pas son cercle) apparait avec un décalage d'une seconde environs ») : la
+  // pastille des zones corporelles des cartes est préchargée dès l'ouverture du Format, avant « + Ajouter ».
+  useEffect(() => {
+    void prefetchKodjoIcons(["card-body-zone-badge"]);
+  }, []);
+  const fadeCatalogueIn = () => {
+    if (reduceMotion) {
+      catalogueOpacity.set(1);
+      return;
+    }
+    catalogueOpacity.set(0);
+    catalogueOpacity.set(withTiming(1, CATALOGUE_FADE_TIMING));
+  };
+  const finishCatalogueClose = (then: () => void) => {
+    catalogueClosing.current = false;
+    then();
+    // Les paramètres réapparaissent en fondu, une fois montés.
+    requestAnimationFrame(fadeCatalogueIn);
+  };
+  const releaseCatalogueClose = () => {
+    catalogueClosing.current = false;
+  };
+  /** Ferme le mode catalogue après un fondu lent (`then` : fermeture, ajout éventuel) ; immédiat sous « Réduire les animations ». */
+  const fadeCatalogueOut = (then: () => void) => {
+    if (catalogueClosing.current) return;
+    if (reduceMotion) {
+      then();
+      return;
+    }
+    catalogueClosing.current = true;
+    catalogueOpacity.set(
+      withTiming(0, CATALOGUE_FADE_TIMING, (finished) => {
+        if (finished === true) scheduleOnRN(finishCatalogueClose, then);
+        else scheduleOnRN(releaseCatalogueClose);
+      }),
+    );
+  };
+  // Piles du mode catalogue (remarque D : « replier et déplier les mouvements lentement avec un glissement des cartes ») : les
+  // transitions de place ne jouent que juste après un repli ou un dépli, jamais pendant la recherche ou le défilement.
+  const [pilesMoving, setPilesMoving] = useState(false);
+  // Chaque repli ou dépli relance la fenêtre d'animation (minuterie tenue par l'effet, sans ref lue au rendu).
+  const [pileMoves, setPileMoves] = useState(0);
+  useEffect(() => {
+    if (pileMoves === 0) return undefined;
+    const timer = setTimeout(() => setPilesMoving(false), CATALOGUE_MOTION_MS + 100);
+    return () => clearTimeout(timer);
+  }, [pileMoves]);
+  const markPilesMoving = () => {
+    if (reduceMotion) return;
+    setPilesMoving(true);
+    setPileMoves((count) => count + 1);
+  };
+  const expandPile = (key: string) => {
+    markPilesMoving();
+    setCollapsedPiles((current) => {
+      const next = new Set(current);
+      next.delete(key);
+      return next;
+    });
+  };
   const openCatalogue = () => {
     setPicked(new Map());
     // Demande de Hermann du 05/11/2026 (soir) : pas de focus par défaut dans la recherche.
     setCatalogueFocus(false);
     setCommandsShown(false);
     setCatalogueMode(true);
+    fadeCatalogueIn();
     requestAnimationFrame(() => setCommandsShown(true));
   };
   const closeCatalogue = () => {
@@ -640,11 +763,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       .filter((entry) => picked.has(entry.movement.id))
       .map((entry) => entry.movement);
     const role = searchRole;
-    closeCatalogue();
-    setSearchRole(null);
-    setQuery("");
     Keyboard.dismiss();
-    addMovements(ordered, role);
+    // Remarque E du 07/11/2026 : fermeture en fondu lent, puis ajout.
+    fadeCatalogueOut(() => {
+      closeCatalogue();
+      setSearchRole(null);
+      setQuery("");
+      addMovements(ordered, role);
+    });
   };
   const openSheet = (movement: Movement) => router.push({ pathname: "/movement-sheet", params: { movementId: movement.id } });
   const filterSummary =
@@ -754,11 +880,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     picked.size === 0 ? t().closeWithoutSelecting : picked.size === 1 ? t().addPickedOne : fillTemplate(t().addPickedMany, { count: String(picked.size) });
 
   // p-coche / p-ajout : « Revenir aux paramètres » ferme le mode catalogue sans ajout.
+  // Remarque E du 07/11/2026 : « Fermer sans sélectionner » et « Revenir aux paramètres » ferment en fondu lent.
   const backToParameters = () => {
     Keyboard.dismiss();
-    closeCatalogue();
-    setSearchRole(null);
-    setQuery("");
+    fadeCatalogueOut(() => {
+      closeCatalogue();
+      setSearchRole(null);
+      setQuery("");
+    });
   };
   const close = () => {
     // Recette du 05/11/2026 au soir (p-ajout, Hermann : « La croix annule la création du format ») : en mode catalogue aussi, la
@@ -867,6 +996,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const switchRow = (id: "buyIn" | "buyOut" | "increasingVolume" | "withLoad", label: string) => (
     <Row key={id} label={label} testID={`format-row-${id}`}>
       <Switch
+        {...switchOffColors}
         value={answers[id] === true}
         onValueChange={(value) => {
           setAnswers((current) => withAnswer(current, id, value));
@@ -1308,13 +1438,14 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // niveau apparaît sans affichage d'une pile. […] le filet reste présent sur la carte du dessus, appuyer sur le filet déplie
   // la pile ; la pile se matérialise avec les deux cartes qui dépassent par le bas (modèle du catalogue des mouvements) ») :
   // en mode catalogue, une pile repliée garde son filet et montre deux feuilles sous la carte du dessus.
-  const collapsedPile = (item: Extract<MovementCatalogueItem, { kind: "PILE" }>, card: (entry: MovementCatalogueEntry) => React.ReactNode) => {
+  const collapsedPile = (item: Extract<MovementCatalogueItem, { kind: "PILE" }>, card: CatalogueCard) => {
     const leaves = Math.min(item.members.length - 1, 2);
     return (
       <View key={item.key} style={[styles.family, { paddingBottom: leaves * PILE_LEAF_STEP }]} testID={`format-family-${item.key}-collapsed`}>
         {Array.from({ length: leaves }, (_, index) => leaves - index).map((depth) => (
-          <View
+          <Reanimated.View
             key={`leaf-${depth}`}
+            entering={reduceMotion ? undefined : pileLeafEntering}
             style={[styles.pileLeaf, { top: depth * PILE_LEAF_STEP, bottom: (leaves - depth) * PILE_LEAF_STEP, left: 8 + depth * PILE_LEAF_INSET, right: depth * PILE_LEAF_INSET }]}
             accessible={false}
             importantForAccessibility="no"
@@ -1322,13 +1453,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           />
         ))}
         <Pressable
-          onPress={() =>
-            setCollapsedPiles((current) => {
-              const next = new Set(current);
-              next.delete(item.key);
-              return next;
-            })
-          }
+          onPress={() => expandPile(item.key)}
           accessibilityRole="button"
           accessibilityLabel={t().expandPiles}
           // Recette du 05/11/2026 (g-cat-pile, Hermann : « Le filet ne reste pas sur la pile ») : le filet longe la carte du
@@ -1338,35 +1463,72 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         >
           <View style={styles.familyRailLine} />
         </Pressable>
-        {card(item.members[0]!)}
+        {/* Recette iPhone du 07/11/2026 (Hermann, remarque A : « format > catalogue : appuyer sur la carte d'une pile repliée ne la
+            sélectionne pas mais la déplie. Appuyer sur une carte dépliée la sélectionne. ») : la carte du dessus d'une pile
+            repliée déplie la pile, sans la cocher. [Avant : elle se cochait — remplacé.] Au-dessus des cartes qui rentrent. */}
+        <View style={{ zIndex: item.members.length }}>{card(item.members[0]!, () => expandPile(item.key))}</View>
       </View>
     );
   };
-  const familyCards = (items: readonly MovementCatalogueItem[], card: (entry: MovementCatalogueEntry) => React.ReactNode, collapsed: boolean, railActive = false) =>
-    items.map((item) =>
-      item.kind === "PILE" && railActive && collapsedPiles.has(item.key) ? (
-        collapsedPile(item, card)
-      ) : item.kind === "PILE" && !collapsed ? (
-        <View key={item.key} style={styles.family} testID={`format-family-${item.key}`}>
-          {railActive ? (
-            <Pressable
-              onPress={() => setCollapsedPiles((current) => new Set([...current, item.key]))}
-              accessibilityRole="button"
-              accessibilityLabel={t().collapsePiles}
-              style={styles.familyRailZone}
-              testID={`format-family-${item.key}-rail`}
-            >
-              <View style={styles.familyRailLine} />
-            </Pressable>
-          ) : (
-            <View style={styles.familyLine} />
-          )}
-          {item.members.map((entry) => card(entry))}
-        </View>
-      ) : (
-        card(item.kind === "PILE" ? item.members[0]! : item.entry)
-      ),
-    );
+  const familyCards = (items: readonly MovementCatalogueItem[], card: CatalogueCard, collapsed: boolean, railActive = false) =>
+    items.map((item) => {
+      const rendered =
+        item.kind === "PILE" && railActive && collapsedPiles.has(item.key) ? (
+          collapsedPile(item, card)
+        ) : item.kind === "PILE" && !collapsed ? (
+          <View key={item.key} style={styles.family} testID={`format-family-${item.key}`}>
+            {railActive ? (
+              <Pressable
+                onPress={() => {
+                  markPilesMoving();
+                  setCollapsedPiles((current) => new Set([...current, item.key]));
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t().collapsePiles}
+                style={styles.familyRailZone}
+                testID={`format-family-${item.key}-rail`}
+              >
+                <View style={styles.familyRailLine} />
+              </Pressable>
+            ) : (
+              <View style={styles.familyLine} />
+            )}
+            {railActive
+              ? // Remarque D du 07/11/2026 (« replier et déplier les mouvements lentement avec un glissement des cartes ») : au
+                // dépli, chaque carte glisse depuis la carte du dessus jusqu'à sa place ; au repli, elle y remonte, sous elle.
+                item.members.map((entry, index) => (
+                  <Reanimated.View
+                    key={entry.movement.id}
+                    entering={index > 0 && pilesMoving ? pileMemberEntering(-index * PILE_MEMBER_STEP) : undefined}
+                    exiting={index > 0 && pilesMoving ? pileMemberExiting(-index * PILE_MEMBER_STEP) : undefined}
+                    style={{ zIndex: item.members.length - index }}
+                    testID={`format-family-${item.key}-member-${entry.movement.id}`}
+                  >
+                    {card(entry)}
+                  </Reanimated.View>
+                ))
+              : item.members.map((entry) => card(entry))}
+          </View>
+        ) : (
+          card(item.kind === "PILE" ? item.members[0]! : item.entry)
+        );
+      if (!railActive) return rendered;
+      const key = item.key;
+      // Mode catalogue : les cartes suivantes glissent pendant un repli ou un dépli (`pilesMoving`). Recette iPhone du 07/11/2026
+      // (Hermann, remarque H : « aligner a droite les cartes de mouvement sans famille avec les cartes qui ont une famille ») :
+      // une carte sans famille prend le retrait de 8 des cartes d'une pile (place du filet). [Avant : bord gauche de la liste —
+      // remplacé.]
+      return (
+        <Reanimated.View
+          key={key}
+          layout={pilesMoving ? catalogueLayoutTransition : undefined}
+          style={item.kind === "SINGLE" ? styles.familySingle : null}
+          testID={`format-catalogue-item-${key}`}
+        >
+          {rendered}
+        </Reanimated.View>
+      );
+    });
 
   // Section de mouvements : en-tête et lien « + Ajouter » / « Changer », qui ouvre directement le mode catalogue (§19).
   const sectionLink = (role: "LOOP" | "BUY_IN" | "BUY_OUT", link: string) => {
@@ -1463,6 +1625,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                 <Pressable
                   onPress={() => {
                     // Replier : chaque pile repliée (feuilles et filet, e-cat-filet) ; Déplier : toutes rouvertes.
+                    markPilesMoving();
                     setCollapsedPiles(pilesCollapsed ? new Set() : new Set(catalogueItems.flatMap((item) => (item.kind === "PILE" ? [item.key] : []))));
                     setPilesCollapsed((value) => !value);
                   }}
@@ -1512,14 +1675,16 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
               ) : null}
               {familyCards(
                 catalogueItems,
-                (entry) => (
+                (entry, onPress) => (
                   <SelectedMovementCard
                     key={entry.movement.id}
                     movement={entry.movement}
                     levelRank={entry.level?.rank ?? null}
                     selected={picked.has(entry.movement.id)}
-                    onPress={() => togglePicked(entry.movement)}
+                    // Remarque A du 07/11/2026 : la carte du dessus d'une pile repliée déplie la pile, sans changer la sélection.
+                    onPress={onPress ?? (() => togglePicked(entry.movement))}
                     onPhotoPress={() => openSheet(entry.movement)}
+                    inCatalogue
                     testID={`format-catalogue-card-${entry.movement.id}`}
                   />
                 ),
@@ -1566,6 +1731,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         ]}
         testID={`format-${stage}`}
       >
+        {/* Remarques D et E du 07/11/2026 : fondus d'ouverture et de fermeture du mode catalogue. */}
+        <Reanimated.View style={[styles.fadeContent, catalogueFadeStyle]} testID="format-content-fade">
         {/* Mouvements (§7.1 à §7.4). */}
         {/* Recette n° 3 du 03/11/2026 (autres constats, Hermann : « Activer Buy-in : la section Buy-in apparaît, le
             nom de l'autre section change (en boucle...) ») : sections Buy-in et En boucle dès le questionnaire. */}
@@ -1673,6 +1840,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         />
         </>
         )}
+        </Reanimated.View>
       </ScrollView>
       {/* Zone de contexte figée (109 px, prolongée en mode catalogue jusqu'à la ligne de recherche) : couleur et motif du
           modèle ; croix au questionnaire, Retour au récapitulatif, nom du Format centré ; accroche ; part fondue dessous. */}
@@ -1720,8 +1888,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           questionnaire ; fond blanc de 65 % (haut) à 10 % (bas). [Zone de contexte prolongée jusqu'à la ligne de recherche
           (recette du 04/11/2026, f4-catalogue) — remplacée.] */}
       {catalogueMode ? (
-        <View
-          style={[styles.searchZone, { top: bandHeight + MOVEMENTS_TOP_OFFSET }]}
+        // Remarques D et E du 07/11/2026 : la recherche et ses commandes apparaissent et disparaissent avec la liste.
+        <Reanimated.View
+          style={[styles.searchZone, { top: bandHeight + MOVEMENTS_TOP_OFFSET }, catalogueFadeStyle]}
           pointerEvents="box-none"
           onLayout={(event) => setSearchZoneHeight(event.nativeEvent.layout.height)}
           testID="format-search-zone"
@@ -1733,16 +1902,19 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             ))}
           </View>
           {catalogueHead()}
-        </View>
+        </Reanimated.View>
       ) : null}
       {bottomAction !== null ? (
-        <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
-          {bottomAction === "ADD" ? (
-            <PrimaryActionButton label={addPickedLabel} onPress={picked.size === 0 ? backToParameters : addPicked} testID="format-catalogue-add" />
-          ) : (
-            <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
-          )}
-        </PrimaryActionZone>
+        // Remarques D et E du 07/11/2026 : « Fermer sans sélectionner » / « Ajouter X mouvements » suivent le fondu de la liste.
+        <Reanimated.View pointerEvents="box-none" style={[StyleSheet.absoluteFill, catalogueFadeStyle]} testID="format-bottom-action-fade">
+          <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
+            {bottomAction === "ADD" ? (
+              <PrimaryActionButton label={addPickedLabel} onPress={picked.size === 0 ? backToParameters : addPicked} testID="format-catalogue-add" />
+            ) : (
+              <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
+            )}
+          </PrimaryActionZone>
+        </Reanimated.View>
       ) : null}
       </View>
       {/* [Recette du 04/11/2026 (f4-catalogue) : feuille de filtres dessinée (`MovementFilterSheet docked`), arrêtée à la limite
@@ -1993,6 +2165,10 @@ const styles = StyleSheet.create({
   catalogueCommands: { flexDirection: "row", alignItems: "center", gap: 8 },
   catalogueList: { gap: 8, paddingTop: 4 },
   family: { gap: 8, paddingLeft: 8 },
+  // Remarque H du 07/11/2026 : carte sans famille du mode catalogue, au retrait des cartes d'une pile.
+  familySingle: { paddingLeft: 8 },
+  // Remarques D et E du 07/11/2026 : enveloppe du contenu défilant (fondus du mode catalogue), qui garde l'étirement du contenu.
+  fadeContent: { flexGrow: 1 },
   // Feuilles d'une pile repliée (modèle du Catalogue des mouvements : blanc, bordure #E0E3ED, rayon 12, retrait de 8 puis 16).
   pileLeaf: { position: "absolute", borderRadius: 12, borderWidth: 1, borderColor: "#E0E3ED", backgroundColor: "#FFFFFF" },
   familyLine: { position: "absolute", left: 2, top: 26, bottom: 26, width: 2, borderRadius: 1, backgroundColor: "#B9BDF5" },

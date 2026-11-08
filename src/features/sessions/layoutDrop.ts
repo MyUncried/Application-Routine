@@ -24,6 +24,7 @@
  * Fonctions pures.
  */
 
+import type { CircuitRole } from "@/domain/sessions/formats/carriers";
 import { breaksFixedPassage, type LayoutContainerRef, type LayoutDestination, type LayoutItemRef } from "@/domain/sessions/layoutMoves";
 import {
   mapStructure,
@@ -116,6 +117,13 @@ export function layoutDropCandidates<E>(
   gapOf: LayoutGapOf = NO_GAP,
   stopPoints: readonly LayoutDropStopPoint[] = [],
   singlePassage?: (exercise: E) => boolean,
+  /**
+   * Recette iPhone du 07/11/2026 (f4-role, KO, Hermann : « Deux Buy In ou Buy out : on doit pouvoir les déplacer pour inverser
+   * l'ordre des buy in ou l'ordre des buy out. ») — Rôle d'un membre de Circuit porteur : l'aperçu offre les mêmes places que
+   * le déplacement appliqué (`moveLayoutItem`, MAJ 04/11/2026 §6 bis 2 : réordonnancement à l'intérieur d'une zone). Sans
+   * `roleOf`, règle positionnelle d'origine.
+   */
+  roleOf?: (exercise: E, index: number) => CircuitRole,
 ): readonly LayoutDropTarget[] {
   const candidates: LayoutDropTarget[] = [];
   const bottom = (box: LayoutBox) => box.top + box.height;
@@ -249,12 +257,22 @@ export function layoutDropCandidates<E>(
   }
   if (singlePassage === undefined) return candidates;
   const fixed = new Set<string>();
+  const byId = new Map<string, E>();
   const ids = mapStructure({ elements: layout.elements, stopPoints: [] }, (exercise) => {
     const id = idOf(exercise);
+    byId.set(id, exercise);
     if (singlePassage(exercise)) fixed.add(id);
     return id;
   });
-  return fixed.size === 0 ? candidates : candidates.filter((candidate) => !breaksFixedPassage(ids, (id) => fixed.has(id), source, candidate));
+  if (fixed.size === 0) return candidates;
+  const rolesOf =
+    roleOf === undefined
+      ? undefined
+      : (id: string, index: number): CircuitRole => {
+          const exercise = byId.get(id);
+          return exercise === undefined ? "TOUR" : roleOf(exercise, index);
+        };
+  return candidates.filter((candidate) => !breaksFixedPassage(ids, (id) => fixed.has(id), source, candidate, rolesOf));
 }
 
 /** Emplacement admis le plus proche de `pointerY` (à égalité, le premier dans l'ordre de recherche). */
@@ -267,8 +285,9 @@ export function resolveLayoutDrop<E>(
   gapOf: LayoutGapOf = NO_GAP,
   stopPoints: readonly LayoutDropStopPoint[] = [],
   singlePassage?: (exercise: E) => boolean,
+  roleOf?: (exercise: E, index: number) => CircuitRole,
 ): LayoutDropTarget | null {
-  return nearestLayoutDrop(layoutDropCandidates(layout, source, boxes, idOf, gapOf, stopPoints, singlePassage), pointerY);
+  return nearestLayoutDrop(layoutDropCandidates(layout, source, boxes, idOf, gapOf, stopPoints, singlePassage, roleOf), pointerY);
 }
 
 /** Emplacement le plus proche de `pointerY` parmi `candidates` (à égalité, le premier). */

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -126,5 +127,15 @@ describe("Recette iPhone CAT.1 du 30/10/2026 — « Utiliser un mouvement exista
       fireEvent.press(screen.getByTestId("movement-catalogue-counter-MOVEMENTS"));
     });
     expect(movementsShown()).toHaveLength(3);
+  });
+
+  it("D-501 révisée (Hermann, 08/11/2026) : fond, zone de contexte et fondu du bas aux couleurs du Catalogue des mouvements", async () => {
+    await renderSelection([]);
+    const flat = (id: string) => StyleSheet.flatten(screen.getByTestId(id).props.style);
+    expect(flat("screen-shell").backgroundColor).toBe("#F1F7FF");
+    expect(flat("screen-context-band").backgroundColor).toBe("#DDEBFF");
+    expect(flat("movement-selection-bottom-action-gradient").experimental_backgroundImage).toBe(
+      "linear-gradient(to bottom, #F1F7FF00 0%, #F1F7FF 100%)",
+    );
   });
 });

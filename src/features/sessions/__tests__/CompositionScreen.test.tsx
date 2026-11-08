@@ -408,20 +408,22 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.queryByTestId("composition-row-chevron-up")).toBeNull();
   });
 
-  // PRE-6 story 2.1 : la pastille de valeur (déclencheur de la roulette) garde le même style
-  // et la borne le même nombre d'enfants, fermée comme ouverte (acquis REWORK06 transposé).
-  it("PRE6-2.1 — la borne et sa pastille de valeur gardent la même structure et le même style, fermées ou ouvertes", () => {
+  // PRE-6 story 2.1 : la borne garde le même nombre d'enfants, fermée comme ouverte (acquis REWORK06 transposé). [La pastille
+  // de valeur gardait aussi son style ouverte (déclencheur de la roulette) — remplacé le 08/11/2026 (a-bornes-clavier, Hermann :
+  // « Le focus est directement dans le champ sélectionné ») : ouverte, la case de saisie prend la place de la pastille.]
+  it("PRE6-2.1 — la borne garde la même structure, fermée ou ouverte ; ouverte, la case de saisie remplace la pastille", () => {
     renderScreen();
 
     const rowBefore = screen.getByTestId("composition-boundary-countdown");
     const childCountBefore = (rowBefore.children as unknown[]).length;
-    const pillStyleBefore = StyleSheet.flatten(screen.getByTestId("composition-boundary-countdown-value").props.style);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-boundary-countdown-value").props.style)).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
     const rowAfter = screen.getByTestId("composition-boundary-countdown");
     expect((rowAfter.children as unknown[]).length).toBe(childCountBefore);
-    expect(StyleSheet.flatten(screen.getByTestId("composition-boundary-countdown-value").props.style)).toEqual(pillStyleBefore);
+    expect(screen.queryByTestId("composition-boundary-countdown-value")).toBeNull();
+    expect(within(rowAfter).getByTestId("carrier-duration-field")).toBeTruthy();
   });
 
   // [Test de la roulette dans `WheelPickerOverlay` (T01-S09 point D) — retiré le 07/11/2026 : bornes saisies au clavier.]
@@ -564,7 +566,8 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
       fireEvent.changeText(input, String(input.props.value ?? "") + key);
     }
   };
-  const close = () => fireEvent.press(screen.getByTestId("carrier-duration-backdrop"));
+  // 08/11/2026 (a-bornes-clavier) : saisie en place, appliquée à la perte du focus ou par « Fermer » de la barre du clavier.
+  const close = () => fireEvent(screen.getByTestId(INPUT), "blur");
 
   it("07/11/2026 — la borne ouvre la case au clavier (aucune roulette), libellée du nom de la borne", () => {
     renderScreen();
@@ -572,14 +575,17 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
     expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
     expect(screen.getByTestId(INPUT).props.keyboardType).toBe("number-pad");
-    expect(within(screen.getByTestId("carrier-duration-card")).getByText(composition.countdown.label)).toBeTruthy();
+    // 08/11/2026 (a-bornes-clavier) : plus de fenêtre volante ; la case est la valeur de la borne elle-même.
+    expect(screen.queryByTestId("carrier-duration-card")).toBeNull();
+    expect(screen.queryByTestId("carrier-duration-sheet")).toBeNull();
+    expect(within(screen.getByTestId("composition-boundary-countdown")).getByTestId(INPUT).props.accessibilityLabel).toBe(composition.countdown.label);
   });
 
   it("07/11/2026 — la saisie est appliquée à la fermeture ; la durée de séance ne compte pas les bornes", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
     type("45");
-    expect(countdownValue()).toBe("10 s");
+    expect(screen.getByTestId(INPUT).props.value).toBe("00:45");
     close();
     expect(screen.queryByTestId(INPUT)).toBeNull();
     expect(countdownValue()).toBe("45 s");
@@ -602,24 +608,27 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
   it("07/11/2026 — Fin de séance au clavier, 0 admis ; le Compte à rebours n'est pas touché", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    expect(within(screen.getByTestId("carrier-duration-card")).getByText(composition.finalPhase.label)).toBeTruthy();
+    expect(within(screen.getByTestId("composition-boundary-final-phase")).getByTestId(INPUT).props.accessibilityLabel).toBe(composition.finalPhase.label);
     type("0");
     close();
     expect(finalPhaseValue()).toBe("0 s");
     expect(countdownValue()).toBe("10 s");
   });
 
-  it("dismisses the keyboard when opening a duration picker (Name field may have had focus)", () => {
+  // [« dismisses the keyboard when opening a duration picker » (le clavier se fermait à l'ouverture d'une roulette) — remplacé le
+  // 08/11/2026 : le focus passe directement dans la case de la borne ; ouvrir l'autre borne applique d'abord la première.]
+  it("08/11/2026 — ouvrir une borne garde le clavier (focus dans sa case) ; ouvrir l'autre applique d'abord la première", () => {
     const dismissSpy = jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
     try {
       renderScreen();
-      expect(dismissSpy).not.toHaveBeenCalled();
-
       fireEvent.press(screen.getByLabelText(composition.countdown.label));
-      expect(dismissSpy).toHaveBeenCalledTimes(1);
+      expect(dismissSpy).not.toHaveBeenCalled();
+      type("20");
 
       fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-      expect(dismissSpy).toHaveBeenCalledTimes(2);
+      expect(dismissSpy).toHaveBeenCalledTimes(1);
+      expect(countdownValue()).toBe("20 s");
+      expect(within(screen.getByTestId("composition-boundary-final-phase")).getByTestId(INPUT)).toBeTruthy();
     } finally {
       dismissSpy.mockRestore();
     }
@@ -1203,7 +1212,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     // 07/11/2026 : saisie au clavier (roulette remplacée).
     fireEvent(screen.getByTestId("carrier-duration-input"), "focus");
     for (const key of "50") fireEvent.changeText(screen.getByTestId("carrier-duration-input"), String(screen.getByTestId("carrier-duration-input").props.value ?? "") + key);
-    fireEvent.press(screen.getByTestId("carrier-duration-backdrop"));
+    fireEvent(screen.getByTestId("carrier-duration-input"), "blur");
     expect(within(screen.getByTestId("composition-boundary-countdown-value")).getByText("50 s")).toBeTruthy();
     expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
 
@@ -1211,7 +1220,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
     fireEvent(screen.getByTestId("carrier-duration-input"), "focus");
     for (const key of "30") fireEvent.changeText(screen.getByTestId("carrier-duration-input"), String(screen.getByTestId("carrier-duration-input").props.value ?? "") + key);
-    fireEvent.press(screen.getByTestId("carrier-duration-backdrop"));
+    fireEvent(screen.getByTestId("carrier-duration-input"), "blur");
     expect(within(screen.getByTestId("composition-boundary-final-phase-value")).getByText("30 s")).toBeTruthy();
     expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
   });
@@ -4747,13 +4756,13 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
   it("story 7.8 — each boundary entry is named after its boundary; Fin de séance reads its value in seconds (keyboard since 07/11/2026)", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    expect(within(screen.getByTestId("carrier-duration-card")).getByText(composition.finalPhase.label)).toBeTruthy();
+    expect(within(screen.getByTestId("composition-boundary-final-phase")).getByTestId("carrier-duration-input").props.accessibilityLabel).toBe(composition.finalPhase.label);
     fireEvent(screen.getByTestId("carrier-duration-input"), "focus");
     for (const key of "100") fireEvent.changeText(screen.getByTestId("carrier-duration-input"), String(screen.getByTestId("carrier-duration-input").props.value ?? "") + key);
-    fireEvent.press(screen.getByTestId("carrier-duration-backdrop"));
+    fireEvent(screen.getByTestId("carrier-duration-input"), "blur");
     expect(screen.getByLabelText(composition.finalPhase.label).props.accessibilityValue).toMatchObject({ text: "60 s" });
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(within(screen.getByTestId("carrier-duration-card")).getByText(composition.countdown.label)).toBeTruthy();
+    expect(within(screen.getByTestId("composition-boundary-countdown")).getByTestId("carrier-duration-input").props.accessibilityLabel).toBe(composition.countdown.label);
   });
 
   it("story 7.8 — Compte à rebours and Fin de séance frames align on the right edge of the Exercise cards", () => {

@@ -75,7 +75,8 @@ describe("présentation des tableaux (t-coche-q ; remarque e du 06/11)", () => {
     const objective = StyleSheet.flatten(screen.getByTestId("format-amrap-reps-1").props.style);
     const max = StyleSheet.flatten(screen.getByTestId("format-amrap-max-1").props.style);
     // y-format-cadres (07/11/2026) : Max à la largeur de son bouton, calé à droite.
-    expect(max).toMatchObject({ alignItems: "center", width: 32 });
+    // a-amrap-table (08/11/2026) : colonne Max réduite à 26, bouton calé à droite. [32, centré — remplacé.]
+    expect(max).toMatchObject({ alignItems: "flex-end", width: 26 });
     expect(objective.width).toBe(56);
     expect(objective).toMatchObject({ textAlign: "center", minHeight: 24, borderRadius: 10, borderWidth: 0 });
     // Un seul cadre : le tableau prend la couleur de son cadre (plus de second cadre).
@@ -159,6 +160,16 @@ describe("tableau des séries : la colonne suivante apparaît au focus (t-coche-
     for (const id of ["format-amrap-increment-0", "format-amrap-load-1"]) {
       expect(StyleSheet.flatten(screen.getByTestId(id).props.style).width).toBe(56);
     }
-    expect(StyleSheet.flatten(screen.getByTestId("format-amrap-max-0").props.style).width).toBe(32);
+    expect(StyleSheet.flatten(screen.getByTestId("format-amrap-max-0").props.style).width).toBe(26);
+  });
+
+  it("a-amrap-table (08/11/2026) : titre mesuré, colonne Charge à la largeur de son titre ou de sa valeur (plus de minimum de 56)", () => {
+    render(
+      <AmrapTable movements={[movement("a", { mode: "REPETITIONS", repetitions: 8, max: false })]} increasing={false} withLoad onChange={() => undefined} cell={cell} />,
+    );
+    fireEvent(screen.getByTestId("format-amrap-load-0-measure", { includeHiddenElements: true }), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 30, height: 24 } } });
+    const heads = screen.UNSAFE_root.findAll((node) => (node.type as unknown) === "Text" && node.props.children === "Charge" && node.props.onLayout !== undefined);
+    fireEvent(heads[0]!, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 42, height: 16 } } });
+    expect(StyleSheet.flatten(screen.getByTestId("format-amrap-load-0").props.style).width).toBe(42);
   });
 });

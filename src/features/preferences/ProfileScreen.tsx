@@ -22,7 +22,7 @@ import { strings } from "@/shared/i18n";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ProfileStepper } from "@/shared/ui/ProfileStepper";
-import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, layout, minTouchTarget, spacing, switchOffColors, type } from "@/shared/ui/tokens";
 
 const EXERCISE_SETTINGS: readonly ProfileDurationSetting[] = [
   "sideChangeRecoverySecondsDefault",
@@ -250,6 +250,7 @@ export function ProfileScreen() {
                       {label}
                     </Text>
                     <Switch
+                      {...switchOffColors}
                       value={displayedValue}
                       onValueChange={(next) => commitPreference(preference, next)}
                       importantForAccessibility="no-hide-descendants"

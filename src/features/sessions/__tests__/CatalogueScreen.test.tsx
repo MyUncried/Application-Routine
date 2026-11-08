@@ -278,11 +278,13 @@ describe("CatalogueScreen — cadre commun", () => {
       });
       expect(screen.getByTestId("catalogue-navigation-fade", HIDDEN).props.pointerEvents).toBe("none");
     };
-    expectPalette("#EAEAFF", "#F8F8FF");
+    // D-501 révisée (Hermann, 08/11/2026) : fond = 40 % du contexte sur blanc.
+    expectPalette("#EAEAFF", "#F7F7FF");
     expect(colors.catalogueSessionsContext).toBe("#EAEAFF");
 
     fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
-    expectPalette("#E5F0FF", "#F7FAFF");
+    expectPalette("#DDEBFF", "#F1F7FF");
+    expect(colors.catalogueProgramsBackground).toBe("#F9F6FF");
   });
 
   it("gives Créer its own white background instead of letting the Context band's pale tint show through (CAT-R02, contre-recette iPhone 2026-09-03)", async () => {

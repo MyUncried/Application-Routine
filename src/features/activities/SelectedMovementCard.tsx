@@ -37,6 +37,7 @@ export function SelectedMovementCard({
   onPress,
   onPhotoPress,
   selected = false,
+  inCatalogue = false,
   testID,
 }: {
   readonly movement: Movement;
@@ -48,6 +49,12 @@ export function SelectedMovementCard({
   readonly onPhotoPress?: () => void;
   /** Mode catalogue : carte choisie. */
   readonly selected?: boolean;
+  /**
+   * Recette iPhone du 07/11/2026 (Hermann, remarque B : « Carte de mouvement dans le catalogue des mouvements dans le format :
+   * mettre le texte du niveau en noir, pas en bleu. L'aligner verticalement en bas avec le nom du mouvement. ») : carte du
+   * mode catalogue — Niveau dans la couleur du nom, sur la ligne de base du nom. Ailleurs (récapitulatifs) : inchangé.
+   */
+  readonly inCatalogue?: boolean;
   readonly testID: string;
 }) {
   const resolveUri = useMediaUriResolver();
@@ -83,12 +90,16 @@ export function SelectedMovementCard({
         </View>
       )}
       <View style={styles.texts}>
-        <View style={styles.firstLine}>
+        <View style={[styles.firstLine, inCatalogue ? styles.firstLineBaseline : null]} testID={`${testID}-first-line`}>
           <Text style={styles.name} numberOfLines={1}>
             {movement.name}
             {suffix ?? ""}
           </Text>
-          {level !== null ? <Text style={styles.level}>{level}</Text> : null}
+          {level !== null ? (
+            <Text style={[styles.level, inCatalogue ? styles.levelInCatalogue : null]} testID={`${testID}-level`}>
+              {level}
+            </Text>
+          ) : null}
         </View>
         {zones.length > 0 ? (
           <View style={styles.zonesLine}>
@@ -145,6 +156,9 @@ const styles = StyleSheet.create({
   firstLine: { flexDirection: "row", alignItems: "center", gap: 8 },
   name: { flex: 1, fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 15, color: NAME_COLOR },
   level: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, color: LEVEL_COLOR },
+  // Remarque B du 07/11/2026 : mode catalogue — Niveau en noir (couleur du nom), aligné en bas sur la ligne de base du nom.
+  firstLineBaseline: { alignItems: "baseline" },
+  levelInCatalogue: { color: NAME_COLOR },
   zonesLine: { flexDirection: "row", alignItems: "center", gap: 4 },
   zones: { flex: 1, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, color: DESCRIPTION_COLOR },
 });

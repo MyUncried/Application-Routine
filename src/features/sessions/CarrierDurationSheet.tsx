@@ -1,117 +1,168 @@
 import { useEffect, useRef, useState } from "react";
-import { Keyboard, Modal, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions, type TextInput } from "react-native";
+import { Keyboard, Platform, StyleSheet, View, useWindowDimensions, type TextInput } from "react-native";
 
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import type { KeyboardFrame } from "@/features/activities/useSheetKeyboard";
 import { formatSeconds, TableCell } from "@/features/sessions/FormatTables";
 import { strings } from "@/shared/i18n";
-import { colors, spacing } from "@/shared/ui/tokens";
+import { spacing } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
- * PRE-9 C.4 (référence Formats du 02/11/2026 §7.5, §11) — durée portée par un Circuit porteur : durée de
- * chaque bloc (AMRAP), durée de chaque tour (EMOM, Death by groupé), temps limite (For time, avec « Sans
- * limite »). Borne basse 1 s ; rien n'est écrit avant la validation.
+ * Saisie en place d'une durée de la Composition : durée portée par un Circuit porteur (PRE-9 C.4, référence Formats du
+ * 02/11/2026 §7.5, §11 — durée de chaque bloc AMRAP, de chaque tour EMOM / Death by groupé, temps limite For time avec « Sans
+ * limite ») et bornes de la Séance (Compte à rebours initial, Fin de séance : 0..60 s, D-443).
  *
- * [Roulette native (`DurationWheelPicker`) dans la superposition des roulettes de la Composition
- * (`WheelPickerOverlay`), « Sans limite » au-dessus de la roue, ✓ / ✕ (contre-recette n° 3 ter du
- * 03/11/2026) — remplacée le 06/11/2026, décision de Hermann (constat c : « Paramètre d'exécution :
- * n'utiliser que le clavier pour entrer les valeurs des champs, plus aucune roulette ou popover. Idem
- * pour la durée d'un circuit formaté dans la composition de séances. ») :] la durée se saisit au
- * clavier numérique, avec la case et la barre du clavier des tableaux de Formats (`TableCell` en
- * pastille, `KeyboardAccessoryBar` en fondu lent) : « MM:SS » rempli par la droite, « 00:00 » de
- * guidage, curseur à droite. La case s'ouvre focalisée ; « Fermer » (barre du clavier) ou un toucher du
- * voile applique la saisie. Règle des lignes de paramètres des Formats (Hermann, 05/11/2026) : une case
- * vidée garde la valeur précédente, sauf le Temps limite qui repasse à « Sans limite ». Valeur
- * inchangée : rien n'est écrit (`onCancel`). Un refus de l'appelant (contrôle EMOM) laisse la case
- * ouverte. La saisie « MM:SS » plafonne à 99:59 (case des Formats).
+ * Recette iPhone du 07/11/2026 (a-bornes-clavier, Hermann : « Une fenêtre volante se présente en haut de l'écran. La supprimer.
+ * Le focus est directement dans le champ sélectionné, qui doit toujours être au dessus de la barre d'options du clavier donc :
+ * si le champ était déjà au dessus, rien ne bouge / si le champ était en dessous, toute la composition s'élève pour que ce champ
+ * soit au dessus. C'est le même problème à corriger pour le champ du durée au niveau du circuit. ») et du 06/11/2026
+ * (w-circuit-duree : « Il faut ajouter l'option "Sans limite" sur la barre d'option du clavier à gauche de "Précédent" ») : la
+ * valeur touchée devient elle-même la case de saisie (`TableCell` des Formats, clavier numérique « MM:SS » rempli par la droite),
+ * focalisée ; la Composition remonte si la case passe sous la barre du clavier ; la barre (`KeyboardAccessoryBar` des Formats)
+ * porte « Sans limite » pour le temps limite. « Fermer », « Sans limite » ou la perte du focus appliquent la saisie. Case vidée :
+ * valeur précédente gardée, sauf le Temps limite qui repasse à « Sans limite » ; valeur inchangée : rien n'est écrit.
+ * [Carte flottante dans une `Modal` en haut de l'écran, voile appliquant la saisie (décision du 06/11/2026, constat c) —
+ * remplacée le 08/11/2026.]
  */
-export function CarrierDurationSheet({
-  seconds,
-  allowsNone,
-  label,
-  onValidate,
-  onCancel,
-  durationMin = 1,
-  durationMax,
-}: {
+export type DurationEntry = {
+  /** Valeur enregistrée à l'ouverture. */
   readonly seconds: number | null;
+  /** Valeur en cours de saisie (`null` : case vide). */
+  readonly value: number | null;
   /** For time : « Sans limite » (aucun temps limite). */
   readonly allowsNone: boolean;
-  /** Libellé de la durée (« Durée de chaque bloc »…) ; par défaut, celui du Temps limite si `allowsNone`. */
-  readonly label?: string;
-  readonly onValidate: (seconds: number | null) => void;
-  readonly onCancel: () => void;
-  /** Bornes de la saisie (Compte à rebours initial et Fin de séance de la Composition : 0..60 s). Par défaut 1 s..99:59. */
-  readonly durationMin?: number;
+  readonly label: string;
+  readonly durationMin: number;
   readonly durationMax?: number;
+};
+
+/** Valeur appliquée à la fermeture : case vidée → valeur précédente (sauf « Sans limite ») ; plafond éventuel. */
+export function durationEntryResult(entry: DurationEntry): { readonly changed: boolean; readonly next: number | null } {
+  const entered = entry.value === null && !entry.allowsNone ? entry.seconds : entry.value;
+  const next = entered !== null && entry.durationMax !== undefined ? Math.min(entered, entry.durationMax) : entered;
+  return { changed: next !== entry.seconds, next };
+}
+
+/** Marge entre le bas de la case et le haut de la barre du clavier. */
+const ENTRY_KEYBOARD_MARGIN = spacing[16];
+/** Hauteur de la barre du clavier avant sa mesure. */
+const BAR_HEIGHT_FALLBACK = 52;
+
+/**
+ * Case de saisie posée à la place de la valeur. `keyboardTop` (haut du clavier, repère de la fenêtre) et `barHeight` : si la case
+ * passe sous la barre du clavier, `scrollBy` fait remonter la Composition de l'écart ; sinon rien ne bouge.
+ */
+export function InlineDurationField({
+  entry,
+  onChange,
+  onBlur,
+  keyboardTop,
+  barHeight,
+  scrollBy,
+}: {
+  readonly entry: DurationEntry;
+  readonly onChange: (value: number | null) => void;
+  readonly onBlur: () => void;
+  readonly keyboardTop: number | null;
+  readonly barHeight: number;
+  readonly scrollBy: (delta: number) => void;
 }) {
   const t = strings.screens.composition.carrier;
-  const shownLabel = label ?? (allowsNone ? t.durationLabels.timeCapSeconds : "");
-  const [value, setValue] = useState<number | null>(seconds);
   const inputRef = useRef<TextInput | null>(null);
-  const keyboardFrame = useCarrierKeyboardFrame();
-  const reduceMotion = useReduceMotion();
-  const { height: windowHeight } = useWindowDimensions();
-  // La case s'ouvre focalisée : clavier numérique ouvert.
+  const boxRef = useRef<View | null>(null);
+  // Le focus est directement dans la case : clavier numérique ouvert.
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
-
-  const close = () => {
-    Keyboard.dismiss();
-    // Case vidée : la valeur précédente est gardée, sauf « Sans limite » (For time).
-    const entered = value === null && !allowsNone ? seconds : value;
-    const next = entered !== null && durationMax !== undefined ? Math.min(entered, durationMax) : entered;
-    if (next === seconds) onCancel();
-    else onValidate(next);
-  };
-
+  useEffect(() => {
+    if (keyboardTop === null) return undefined;
+    const frame = requestAnimationFrame(() => {
+      boxRef.current?.measureInWindow((_x, y, _width, height) => {
+        const overlap = y + height + ENTRY_KEYBOARD_MARGIN + (barHeight > 0 ? barHeight : BAR_HEIGHT_FALLBACK) - keyboardTop;
+        if (overlap > 0) scrollBy(overlap);
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+    // Mesure à l'ouverture du clavier (ou à son changement de hauteur) seulement.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyboardTop]);
   return (
-    <Modal visible transparent animationType="fade" statusBarTranslucent onRequestClose={close} testID="carrier-duration-sheet">
-      <Pressable style={styles.backdrop} onPress={close} accessible={false} testID="carrier-duration-backdrop">
-        <View style={styles.card} onStartShouldSetResponder={() => true} testID="carrier-duration-card">
-          <Text style={styles.label} numberOfLines={2}>
-            {shownLabel}
-          </Text>
-          <TableCell
-            kind="duration"
-            value={value}
-            format={formatSeconds}
-            placeholder={allowsNone ? t.noLimit : undefined}
-            badge
-            durationMin={durationMin}
-            onChange={setValue}
-            inputRef={(input) => {
-              inputRef.current = input;
-            }}
-            label={shownLabel === "" ? t.durationLabels.blockSeconds : shownLabel}
-            testID="carrier-duration-input"
-          />
-        </View>
-      </Pressable>
-      {Platform.OS === "ios" && keyboardFrame !== null ? (
-        <KeyboardAccessoryBar
-          keyboardFrame={keyboardFrame}
-          containerBottom={windowHeight}
-          reduceMotion={reduceMotion}
-          onHeight={() => undefined}
-          canPrevious={false}
-          canNext={false}
-          onPrevious={() => undefined}
-          onNext={() => undefined}
-          onClose={close}
-          animated
-        />
-      ) : null}
-    </Modal>
+    <View ref={boxRef} collapsable={false} testID="carrier-duration-field">
+      <TableCell
+        kind="duration"
+        value={entry.value}
+        format={formatSeconds}
+        placeholder={entry.allowsNone ? t.noLimit : undefined}
+        badge
+        durationMin={entry.durationMin}
+        onChange={onChange}
+        onBlur={onBlur}
+        inputRef={(input) => {
+          inputRef.current = input;
+        }}
+        label={entry.label}
+        testID="carrier-duration-input"
+      />
+    </View>
+  );
+}
+
+/**
+ * Barre du clavier de la saisie en place, posée au niveau de l'écran (calque plein écran sans toucher propre) : Sans limite
+ * (temps limite), Précédent / Suivant indisponibles, Fermer.
+ */
+export function InlineDurationKeyboardBar({
+  keyboardFrame,
+  allowsNone,
+  noneSelected,
+  onNone,
+  onClose,
+  onHeight,
+}: {
+  readonly keyboardFrame: KeyboardFrame | null;
+  readonly allowsNone: boolean;
+  readonly noneSelected: boolean;
+  readonly onNone: () => void;
+  readonly onClose: () => void;
+  readonly onHeight: (height: number) => void;
+}) {
+  const t = strings.screens.composition.carrier;
+  const reduceMotion = useReduceMotion();
+  const { height: windowHeight } = useWindowDimensions();
+  const layerRef = useRef<View | null>(null);
+  const [layerBottom, setLayerBottom] = useState(windowHeight);
+  if (Platform.OS !== "ios" || keyboardFrame === null) return null;
+  return (
+    <View
+      ref={layerRef}
+      style={StyleSheet.absoluteFill}
+      pointerEvents="box-none"
+      onLayout={() => layerRef.current?.measureInWindow((_x, y, _width, height) => setLayerBottom(y + height))}
+      testID="carrier-duration-keyboard-layer"
+    >
+      <KeyboardAccessoryBar
+        keyboardFrame={keyboardFrame}
+        containerBottom={layerBottom}
+        reduceMotion={reduceMotion}
+        onHeight={onHeight}
+        canPrevious={false}
+        canNext={false}
+        onPrevious={() => undefined}
+        onNext={() => undefined}
+        onClose={onClose}
+        option={allowsNone ? { label: t.noLimit, selected: noneSelected, onPress: onNone, testID: "carrier-duration-no-limit" } : null}
+        animated
+      />
+    </View>
   );
 }
 
 /** Cadre du clavier (haut, coordonnées de la fenêtre), `null` clavier fermé — événements `Keyboard` standards. */
-function useCarrierKeyboardFrame(): KeyboardFrame | null {
+export function useDurationKeyboardFrame(active: boolean): KeyboardFrame | null {
   const [frame, setFrame] = useState<KeyboardFrame | null>(null);
   useEffect(() => {
+    if (!active) return undefined;
     const ios = Platform.OS === "ios";
     const show = Keyboard.addListener(ios ? "keyboardWillShow" : "keyboardDidShow", (event) =>
       setFrame({ screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 }),
@@ -121,34 +172,7 @@ function useCarrierKeyboardFrame(): KeyboardFrame | null {
       show.remove();
       hide.remove();
     };
-  }, []);
-  return frame;
+  }, [active]);
+  // Saisie terminée : aucun cadre (le prochain `keyboardWillShow` le renseigne).
+  return active ? frame : null;
 }
-
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: colors.overlayScrim,
-    justifyContent: "flex-start",
-    paddingTop: spacing[24] * 4,
-    paddingHorizontal: spacing[16],
-  },
-  // Carte de la case : ligne de paramètre des Formats (libellé à gauche, pastille à droite), au-dessus du clavier.
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing[12],
-    minHeight: 52,
-    paddingHorizontal: spacing[16],
-    paddingVertical: spacing[8],
-    borderRadius: 12,
-    backgroundColor: colors.surface,
-  },
-  label: {
-    flex: 1,
-    fontFamily: "Inter_400Regular",
-    fontSize: 14,
-    color: colors.textPrimary,
-  },
-});

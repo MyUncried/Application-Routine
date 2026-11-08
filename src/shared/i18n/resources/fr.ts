@@ -1016,6 +1016,8 @@ export const fr = {
       // la saisie et l’enregistrement (écriture concurrente) est signalé pour ce qu’il est, et non par
       // l’erreur générique. Aucun texte relevé (NON VÉRIFIABLE).
       nameTakenError: "Un mouvement de cette séance porte un nom déjà utilisé. Modifiez son nom.",
+      // Recette iPhone du 07/11/2026 (y-rouge, Hermann : « on ne peut sauvegarder mais il n’y a pas de message d’explication « la somme des durée des exercices d’une série excède l’intervalle de temps alloué par série » »).
+      emomOverflow: "La somme des durées des exercices d’une série excède l’intervalle de temps alloué par série.",
       // PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand, à N ≥ 2, un
       // Point de début et un Point de fin de Tour se suivraient entre deux Tours (dialogue natif).
       // Formulations à valider.

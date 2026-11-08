@@ -551,3 +551,80 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Interprétations confirmées par Hermann le 07/11/2026 : y-pile (carte venue d'ailleurs, « Oui ») ; « la pause » = Fin de séance (« C’est bien la fin de séance »). Ordre des options : Hermann va essayer de reproduire.
 - Si un brouillon AMRAP membre ou For time Buy-in/out a des séries variables, le tableau reste affiché (ligne Séries seule masquée).
 - `CompositionScreen.recette1` en échec depuis `c8fe2857` ou avant : à analyser.
+
+## Recette iPhone du 07/11/2026 au soir — remarques restantes et « Autres constats » (08/11/2026)
+
+- **Objectif** : demande de Hermann du 08/11/2026 : « Corriger ce qu'il te reste dans les remarques et dans la cellule autres remarques à la fin ».
+- **Branche** : `feat/pre9-catalogues-cartes-badge-20261106` (PR #420, non fusionnée). **Commit de départ** : `c9f5695b`.
+- **Sources** : base partagée du cahier de recette, lue le 08/11/2026 (collection `results`, 218 documents) : « Autres constats » (A à H), fiches KO (a-amrap-table, a-bornes-clavier, a-emom-table, f4-role, t-depli, w-circuit-duree, w-liste) et notes (y-rouge, d-couleurs, d-carte-choix, y-emom-cible). Toutes sont recopiées mot pour mot dans ch07, section « Recette iPhone du 07/11/2026 au soir — remarques restantes et « Autres constats » ».
+- **Périmètre traité** : tout ce qui précède. Les points A, B, D, E et H, la note w-liste et les couleurs ont été délégués à un agent puis relus. Son rapport détaillé est `.github/orchestration/reports/2026-11-08_PRE9-RECETTE-0711-CATALOGUE-FORMAT.md`.
+- **Notes anciennes déjà traitées et non reprises** : r-colonnes et z-unite (notes du 06/11 sur des fiches repassées OK) ; d-new-dup (06/11, OK).
+
+### Constats et corrections
+
+| Point | Constat (cause) | Correction | Classe |
+|---|---|---|---|
+| A | La carte du dessus d'une pile repliée sélectionnait le mouvement | Elle déplie la pile ; une carte d'une pile dépliée se sélectionne | B |
+| B | Niveau en bleu, centré | Niveau en noir, sur la ligne de base du nom (catalogue d'un Format) | B |
+| C | `automaticallyAdjustKeyboardInsets` ne compte pas la barre du clavier : la dernière ligne ne peut pas remonter au-dessus | Réserve de 64 sous le contenu pendant la saisie | A (FR-24) |
+| D, w-liste | Apparition brute ; pastilles des zones corporelles en SVG chargées de façon asynchrone par `expo-image` | Fondu commun de 450 ms, icônes préchargées à l'ouverture du Format, glissement des cartes au filet | B |
+| E | Fermeture immédiate | Fondu de 450 ms puis retour des paramètres en fondu | B |
+| F | Liseré orange du Circuit replié à vérifier | Bord transparent ; reste à décider pour la carte d'Exercice à vérifier | B, et C pour la carte |
+| G | `Switch` aux couleurs système, différentes selon le fond | `switchOffColors` (`#C2C7CF`) sur tous les `Switch` (Profil, Formats) | B |
+| H | Bords droits déjà alignés ; retrait gauche différent | Cartes sans famille au retrait de 8 des piles | B (interprétation à confirmer) |
+| a-bornes-clavier, w-circuit-duree | Carte flottante en `Modal` en haut de l'écran | Saisie en place (`InlineDurationField`), remontée de la Composition sous la barre du clavier, « Sans limite » dans la barre (`option` de `KeyboardAccessoryBar`), Sans limite bleu gras | B |
+| a-amrap-table | Écart de 8 et minimum de 56 par colonne | Écart de 4, titre mesuré, minimum de 32, Max à 26 calé à droite | B |
+| a-emom-table | Cible juste après l'amorce, Charge seule centrée | Trois espaces égaux sans Pause (`leadGap` facultatif de `DraggableRow`) | B |
+| t-depli | `EnvelopeFrame` : un fragment hors mode, deux vues en mode, donc remontage des Circuits sans animation | Mêmes deux vues toujours rendues | A |
+| f4-role | Aperçu du glisser à règle positionnelle, alors que le déplacement appliqué lit les Rôles | `layoutDropCandidates(…, roleOf)` | A (MAJ 04/11 §6 bis 2) |
+| y-rouge | Message générique de la feuille ; absence du message non reproduite en test | Message de la Composition reformulé selon Hermann | B |
+| d-couleurs | Jetons D-501 | Nouveaux jetons ; modale de la Composition aux couleurs du catalogue des mouvements | B |
+| d-carte-choix, y-emom-cible | Explications demandées | Données dans le cahier de recette (section « Livraison du 8 novembre ») | — |
+
+### Fichiers modifiés
+
+- **Code** :
+  - `src/shared/ui/tokens.ts`
+  - `src/features/preferences/ProfileScreen.tsx`
+  - `src/features/sessions/FormatModelScreen.tsx`, `FormatTables.tsx`, `CompositionScreen.tsx`, `CompositionSequence.tsx`, `CircuitHeader.tsx`, `CarrierDurationSheet.tsx` (réécrit : saisie en place), `layoutDrop.ts`
+  - `src/features/activities/ExecutionParametersSheet.tsx`, `sheetTable.tsx`, `KeyboardAccessoryBar.tsx`
+  - fichiers de l'agent : `SelectedMovementCard.tsx`, `MovementSelectionScreen.tsx`, `src/shared/ui/PrimaryActionZone.tsx`, `src/shared/ui/KodjoIcon.tsx`
+  - `src/shared/i18n/resources/fr.ts`
+- **Tests** :
+  - réécrit : `CarrierDurationSheet.keyboard0611.test.tsx`
+  - nouveaux : `layoutDrop.f4role.test.ts`, `FormatModelScreen.r0711.test.tsx` (agent)
+  - adaptés :
+    - `CompositionScreen.test.tsx` (bornes en place) ;
+    - `formats.recette0611.test.tsx` (Max à 26, plus un test de largeur de titre) ;
+    - `FormatModelScreen.c3.test.tsx`, `CatalogueScreen.test.tsx`, `MovementSelectionScreen.cat1.test.tsx` (agent).
+- **Docs** :
+  - ch07 : nouvelle section ; annotation de D-501 ; annotation de la section « Homogénéité des tableaux ».
+  - ch12 : jetons des catalogues.
+  - `docs/KODJO-Catalogues-cartes-modales-2026-11-06.md` : table des couleurs.
+  - `docs/KODJO-Formats-entrainement-2026-11-02.md` : tableaux.
+- **Cahier de recette** (artefact, version 29) : section « Livraison du 8 novembre » (17 points), avec les deux explications.
+
+### Tests
+
+- `npx tsc --noEmit` : OK.
+- `npx jest src/features/sessions src/features/activities src/features/preferences src/domain/sessions` : 203 suites, 3 513 tests, 2 échecs.
+  - `CompositionScreen.recette3circuits` point 3 : attendait le liseré orange retiré par F. Test adapté et vert.
+  - `CompositionScreen.recette1`, « disposition générale (deux Circuits) : même comportement » : la feuille ne se rouvre pas sur la seconde carte. L’échec persiste avec `CompositionScreen.tsx`, `CompositionSequence.tsx`, `CircuitHeader.tsx` et `CarrierDurationSheet.tsx` remis à HEAD (`git stash` ciblé). Il ne vient donc pas de ces fichiers ; l’échec de cette suite est connu depuis `c8fe2857`. Non corrigé.
+- Après corrections : Composition (`CompositionScreen.test`, `recette3circuits`), Formats (`FormatModelScreen*`) et saisie en place : 494/494. `formats.recette0611` 8/8. `layoutDrop*` 19/19.
+- Lint des fichiers modifiés : deux erreurs nouvelles corrigées.
+  - `react-hooks/refs` sur la minuterie des piles de `FormatModelScreen.tsx` : minuterie tenue par un effet.
+  - `set-state-in-effect` dans `useDurationKeyboardFrame`.
+  - Restent les erreurs `react-hooks/refs` de `CompositionScreen.tsx`, antérieures à ce lot.
+
+### Hypothèses non démontrées et points ouverts
+
+- Rien n'a été vérifié sur l'iPhone. Points à contrôler :
+  - remontée de la Composition au-dessus de la barre du clavier ;
+  - fondus et glissements du catalogue ;
+  - préchargement des pastilles (hypothèse de cause) ;
+  - repli lent à l'entrée du mode Cycle ;
+  - glisser d'un buy-in devant l'autre (poignée de glisser disponible sur la carte).
+- **y-rouge** : le message existait déjà sous Enregistrer d'après les tests. La cause de son absence sur l'iPhone n'est pas démontrée ; une capture est demandée.
+- **À CLARIFIER** : liseré orange de la carte d'Exercice à vérifier ; sens de « aligner à droite » (H).
+- `CompositionScreen.recette1` : échec antérieur à `c8fe2857`, toujours non analysé.
+- Variables Figma des catalogues non modifiées (consigne) : écart Figma connu.

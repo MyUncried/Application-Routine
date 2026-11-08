@@ -1089,12 +1089,12 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.selection` | `#5F60EE` | Fond d’un contrôle de sélection actif portant un texte blanc ; contraste texte/fond de `4,78:1` |
 | `color.selectionSurface` | `#E5F0FF` | Fond de destination ou d’élément sélectionné [06/11/2026 : ne plus l’utiliser pour la zone de contexte des catalogues (`ScreenShell.ContextBand`) ; écart du code à corriger — D-509.] |
 | `color.background` | `#FFFFFF` | Fond principal |
-| `color.catalogue.mouvements.context` | `#E5F0FF` | Zone de contexte et onglet sélectionné du catalogue Mouvements — D-501 (06/11/2026) ; Figma `color/catalogue/mouvements/context` |
-| `color.catalogue.mouvements.background` | `#F7FAFF` | Fond d’écran, barre d’état, en-tête et fondu du catalogue Mouvements — D-501 |
+| `color.catalogue.mouvements.context` | `#E5F0FF` | Zone de contexte et onglet sélectionné du catalogue Mouvements — D-501 (06/11/2026) ; Figma `color/catalogue/mouvements/context` [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #DDEBFF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
+| `color.catalogue.mouvements.background` | `#F7FAFF` | Fond d’écran, barre d’état, en-tête et fondu du catalogue Mouvements — D-501 [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F1F7FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.catalogue.seances.context` | `#EAEAFF` | Zone de contexte et onglet sélectionné du catalogue Séances — D-501 ; Figma `color/catalogue/seances/context` |
-| `color.catalogue.seances.background` | `#F8F8FF` | Fond d’écran du catalogue Séances ; fond du bouton Démarrer des cartes de séance — D-501, D-506 |
+| `color.catalogue.seances.background` | `#F8F8FF` | Fond d’écran du catalogue Séances ; fond du bouton Démarrer des cartes de séance — D-501, D-506 [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F7F7FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.catalogue.programmes.context` | `#EFE8FF` | Zone de contexte et onglet du catalogue Programmes (écrans à concevoir) — D-501 |
-| `color.catalogue.programmes.background` | `#FAF8FF` | Fond d’écran du catalogue Programmes — D-501 |
+| `color.catalogue.programmes.background` | `#FAF8FF` | Fond d’écran du catalogue Programmes — D-501 [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F9F6FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.surface` | `#F5F7FA` | Cartes, navigation et surfaces secondaires |
 | `color.surfaceSubtle` | `#F9FAFC` | Contrôles neutres et fonds légers |
 | `color.textPrimary` | `#141414` | Texte principal canonique |
@@ -1172,12 +1172,12 @@ Les tokens d’usage ci-dessous existent dans `src/shared/ui/tokens.ts` pour exp
 | `color.movementFamilyRail` | `rgba(5, 8, 229, 0.35)` | Filet de famille d’une pile déployée (`10579:21615`) |
 | `color.movementPileLeafBorder` | `#E0E3ED` | Bordure des feuilles d’épaisseur d’une pile condensée (`Pile — feuille 1/2`) |
 | `color.searchFieldSurface` | `#F3F4F9` | Fond du champ Rechercher de la zone de contexte (D04 ; Figma : dégradé `#F3F4F9` → transparent, rendu en aplat) |
-| `color.catalogueMovementsContext` | `#E5F0FF` | D-501 (06/11/2026) : zone de contexte et onglet sélectionné du catalogue des mouvements (`color/catalogue/mouvements/context`) |
-| `color.catalogueMovementsBackground` | `#F7FAFF` | D-501 : fond d'écran, barre d'état, en-tête fixe et fondu de navigation du catalogue des mouvements (`color/catalogue/mouvements/background`) |
+| `color.catalogueMovementsContext` | `#E5F0FF` | D-501 (06/11/2026) : zone de contexte et onglet sélectionné du catalogue des mouvements (`color/catalogue/mouvements/context`) [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #DDEBFF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
+| `color.catalogueMovementsBackground` | `#F7FAFF` | D-501 : fond d'écran, barre d'état, en-tête fixe et fondu de navigation du catalogue des mouvements (`color/catalogue/mouvements/background`) [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F1F7FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.catalogueSessionsContext` | `#EAEAFF` | D-501 : zone de contexte et onglet sélectionné du catalogue des séances (`color/catalogue/seances/context`) |
-| `color.catalogueSessionsBackground` | `#F8F8FF` | D-501 : fond du catalogue des séances ; fond de la pilule Démarrer de la carte Séance (D-506) (`color/catalogue/seances/background`) |
+| `color.catalogueSessionsBackground` | `#F8F8FF` | D-501 : fond du catalogue des séances ; fond de la pilule Démarrer de la carte Séance (D-506) (`color/catalogue/seances/background`) [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F7F7FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.catalogueProgramsContext` | `#EFE8FF` | D-501 : zone de contexte du catalogue des programmes — jeton prêt, aucun écran (`color/catalogue/programmes/context`) |
-| `color.catalogueProgramsBackground` | `#FAF8FF` | D-501 : fond du catalogue des programmes — jeton prêt, aucun écran (`color/catalogue/programmes/background`) |
+| `color.catalogueProgramsBackground` | `#FAF8FF` | D-501 : fond du catalogue des programmes — jeton prêt, aucun écran (`color/catalogue/programmes/background`) [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F9F6FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.contextBand` | `#EAEAFF` | D-509 : bandeau de contexte commun hors catalogue (`ScreenShell.ContextBand` par défaut : Composition, sélection d'un mouvement…) ; remplace `selectionSurface`, réservé aux éléments sélectionnés |
 | `color.statusPositiveText` | `#1F804F` | D-510 : `color/status/positive-text` — badge « New » du catalogue des mouvements (porté par la forme vectorielle `catalogue-badge-nouveau*.svg`) |
 
