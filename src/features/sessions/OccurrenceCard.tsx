@@ -27,6 +27,8 @@ import { borderWidths, colors, fixedRadii, spacing, type } from "@/shared/ui/tok
  * [`#E4E7EF` plein (carte v2) — remplacé le 08/11/2026.]
  */
 export const OCCURRENCE_CARD_BORDER_COLOR = "rgba(204, 209, 224, 0.5)";
+/** Hermann, 09/11/2026 : « Couleur pleine pour la couleur du liseré de l’exercice hors circuit et cycle. Pour le reste ne change rien. » Carte directement dans la Séance : `colors.cardsBorder` (#CCD1E0) plein. */
+export const OCCURRENCE_CARD_SESSION_LEVEL_BORDER_COLOR = colors.cardsBorder;
 /**
  * Épaisseur du liseré de la carte (D-511 : 0,5) — dans un Circuit ou un Cycle depuis le 08/11/2026 au soir ; directement dans
  * la Séance : `OCCURRENCE_CARD_SESSION_LEVEL_HAIRLINE_WIDTH` (0,75). Valeurs du thème (`borderWidths`). [Carte v2 : 1 — remplacé le 08/11/2026.]

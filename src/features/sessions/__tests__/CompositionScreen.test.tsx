@@ -790,7 +790,8 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const exerciseCardStyle = StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style);
-    expect(exerciseCardStyle.borderColor).toBe("rgba(204, 209, 224, 0.5)");
+    // Hermann, 09/11/2026 : « Couleur pleine pour la couleur du liseré de l’exercice hors circuit et cycle. Pour le reste ne change rien. » [rgba(204, 209, 224, 0.5) — remplacé pour la carte directement dans la Séance.]
+    expect(exerciseCardStyle.borderColor).toBe("#CCD1E0");
     // Hermann, 08/11/2026 au soir : « change uniquement le liseré de la carte d'exercice lorsqu'elle est hors circuit (directement dans la séance, pas dans un circuit ni un cycle). Épaisseur : 0,75 pt (au lieu de 0,5 pt). » ; « Le liseré de la carte d'exercice dans un circuit reste à 0,5 pt. » [0,5 — remplacé pour la carte directement dans la Séance.]
     expect(exerciseCardStyle.borderWidth).toBe(0.75);
     expect(exerciseCardStyle.borderRadius).toBe(12);

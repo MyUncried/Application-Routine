@@ -778,3 +778,9 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Correction (A) : `dragElevated` 3 (au-dessus de `stickyHeaderLayer` 2) ; `EnvelopeFrame` prop `raised` (Circuit niveau Séance, dans un Cycle, ancien modèle) ; liste des cartes d'un Circuit relevée quand une de ses cartes est saisie.
 - Tests : 2 nouveaux (échouent sans la correction) ; 4 attentes de zIndex 1 → 3 ; `CompositionScreen.test` 428/428 ; `tsc --noEmit` OK. Rien vérifié sur iPhone.
 - Résultat iPhone communiqué par Hermann (09/11/2026, sur fcc62427) : « Tout a l’air de fonctionner en terme de déplacement ». Marges des cadres et liseré (points j-marges-circuit, j-cartes-20, j-marges-cycle, j-liseré) : pas encore de retour.
+
+### Liseré plein de la carte de la Séance (09/11/2026)
+
+- Hermann : « Couleur pleine pour la couleur du liseré de l’exercice hors circuit et cycle. Pour le reste ne change rien. » (B, recopié dans ch07).
+- `OccurrenceCard.tsx` : `OCCURRENCE_CARD_SESSION_LEVEL_BORDER_COLOR` = `colors.cardsBorder` (#CCD1E0) ; `CompositionActivityRow` : appliqué à la carte directement dans la Séance, hors état soulevé, à compléter ou à vérifier. Circuit et Cycle : 50 % inchangé. Docs : ch07, spec du 06/11 §11.
+- Tests : `CompositionScreen*`, `Occurrence*` : 24 suites, 648 passés ; `tsc --noEmit` OK. Rien vérifié sur iPhone.

@@ -2485,7 +2485,12 @@ Arbitrages du même soir (questions posées : avec la colonne à 16 du bord, les
 
 - **Marges (B).** Colonne de la séquence inchangée (16, A01). Cartes à 20 du bord de l'écran partout (retrait de 4 dans la colonne ; 362 à la largeur 402) ; rail au centre des photos, à 56 du bord ; bornes et titres suivent (libellés à 69 du bord, comme Figma). Circuit à 10 du bord (débord de 6), cartes à 10 de son cadre, 10 sous la dernière carte (marge haute 14 inchangée). Cycle de bord à bord (débord de 16), son Circuit à 10 de son bord (et non 12, arbitrage ci-dessus), 12 sous son dernier membre, quel qu'il soit. [Cartes à 12 du bord (378), Circuit à 0, Circuit d'un Cycle à 4 du bord du Cycle, marges basses de 4 — remplacé.]
 - **Liseré (B).** Carte directement dans la Séance : 0,75 ; dans un Circuit, un Circuit d'un Cycle ou directement dans un Cycle : 0,5 ; à compléter, à vérifier ou soulevée : 1, inchangé. Constantes de thème `borderWidths.exerciseCardSessionLevel` (0,75) et `borderWidths.exerciseCard` (0,5) (`src/shared/ui/tokens.ts`), relues par `OccurrenceCard` ; la carte d'exercice de la Composition est la seule carte d'Exercice hors Circuit de l'application (Catalogue, carte Séance et carte Mouvement : non concernées). Couleur et rayon inchangés : la couleur reste `#CCD1E0` à 50 % d'opacité (D-511), tracé intérieur.
-- **À CLARIFIER.** Couleur du liseré : la demande cite « #CCD1E0 … inchangé » ; le code applique `#CCD1E0` à 50 % (D-511) — conservé tel quel. Exercice directement dans un Cycle : liseré 0,5 (lecture de « pas dans un circuit ni un cycle ») et 12 sous lui comme sous un Circuit (la demande ne cite que « Dernier circuit »).
+- **À CLARIFIER.** Couleur du liseré : la demande cite « #CCD1E0 … inchangé » ; le code applique `#CCD1E0` à 50 % (D-511) — conservé tel quel. Exercice directement dans un Cycle : liseré 0,5 (lecture de « pas dans un circuit ni un cycle ») et 12 sous lui comme sous un Circuit (la demande ne cite que « Dernier circuit »). [Tranché par Hermann le 09/11/2026 :
+>
+> Couleur pleine pour la couleur du liseré de l’exercice hors circuit et cycle.
+> Pour le reste ne change rien.
+>
+> — carte directement dans la Séance : `#CCD1E0` plein (`colors.cardsBorder`, `OCCURRENCE_CARD_SESSION_LEVEL_BORDER_COLOR`) ; Circuit et Cycle : 50 % inchangé ; Exercice directement dans un Cycle : 0,5 et 12 conservés (B).]
 - Rien vérifié sur iPhone.
 
 ### Suite — régression du glisser hors d'un Circuit : cause démontrée (09/11/2026)

@@ -267,6 +267,7 @@ import {
   OCCURRENCE_CARD_BORDER_WIDTH,
   OCCURRENCE_CARD_HAIRLINE_WIDTH,
   OCCURRENCE_CARD_SESSION_LEVEL_HAIRLINE_WIDTH,
+  OCCURRENCE_CARD_SESSION_LEVEL_BORDER_COLOR,
   OCCURRENCE_CARD_HEIGHT,
   OCCURRENCE_CARD_MEDIA,
   OCCURRENCE_CARD_RADIUS,
@@ -7781,6 +7782,9 @@ function CompositionActivityRow({
           isDragged ? styles.activityBlockDragged : null,
           // 08/11/2026 au soir : épaisseur du liseré selon l'emplacement (0,75 dans la Séance, 0,5 ailleurs ; 1 soulevée ou signalée).
           { borderWidth: cardBorderWidth },
+          // Hermann, 09/11/2026 : « Couleur pleine pour la couleur du liseré de l’exercice hors circuit et cycle. Pour le reste ne change rien. »
+          // Liseré habituel seulement (ni soulevée, ni à compléter, ni à vérifier : leurs couleurs restent).
+          isSessionLevel && !isDragged && !isIncomplete && !isToVerify ? { borderColor: OCCURRENCE_CARD_SESSION_LEVEL_BORDER_COLOR } : null,
           // Hauteur conditionnelle dérivée en un point unique — jamais un
           // littéral par état.
           { height: blockHeight },

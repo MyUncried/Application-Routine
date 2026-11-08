@@ -176,7 +176,9 @@ describe("Carte d'exercice de la Composition — variante selon l'appartenance �
     for (const id of ["e0", "a1", "y0", "b1", "e9"]) {
       const card = screen.getByTestId(`composition-exercise-row-${id}`, hidden);
       const hairline = id === "e0" || id === "e9" ? 0.75 : 0.5;
-      expect(StyleSheet.flatten(card.props.style)).toMatchObject({ height: 72, borderWidth: hairline, borderRadius: 12, borderColor: "rgba(204, 209, 224, 0.5)" });
+      // Hermann, 09/11/2026 : « Couleur pleine pour la couleur du liseré de l’exercice hors circuit et cycle. Pour le reste ne change rien. » Dans un Circuit ou un Cycle : 50 % (inchangé).
+      const borderColor = hairline === 0.75 ? "#CCD1E0" : "rgba(204, 209, 224, 0.5)";
+      expect(StyleSheet.flatten(card.props.style)).toMatchObject({ height: 72, borderWidth: hairline, borderRadius: 12, borderColor });
       expect(StyleSheet.flatten(within(card).getByTestId("composition-activity-main-card", hidden).props.style)).toMatchObject({ left: -hairline });
       expect(within(card).getByTestId("composition-exercise-card-content", hidden)).toBeTruthy();
       expect(within(card).queryByTestId(/chevron|disclosure/u, hidden)).toBeNull();

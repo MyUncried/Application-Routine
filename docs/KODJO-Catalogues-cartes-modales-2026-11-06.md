@@ -126,7 +126,7 @@ Décisions de Hermann du 06/11/2026, classe B : D-511 à D-513. Elles remplacent
 
 ### Carte d'exercice — D-511
 
-- Carte : hauteur 72 pt, fond blanc, liseré 0,5 pt à 50 % utilisant la variable des cartes de séance, rayon 12. [Précisé le 08/11/2026 au soir : 0,75 pt pour la carte directement dans la Séance ; 0,5 pt dans un Circuit ou un Cycle (`borderWidths.exerciseCardSessionLevel` / `exerciseCard`).] Largeur de référence 362 pt ; adaptation au terminal selon le contrat existant.
+- Carte : hauteur 72 pt, fond blanc, liseré 0,5 pt à 50 % utilisant la variable des cartes de séance, rayon 12. [Précisé le 08/11/2026 au soir : 0,75 pt pour la carte directement dans la Séance ; 0,5 pt dans un Circuit ou un Cycle (`borderWidths.exerciseCardSessionLevel` / `exerciseCard`). Hermann, 09/11/2026 : « Couleur pleine pour la couleur du liseré de l’exercice hors circuit et cycle. » — `#CCD1E0` plein dans la Séance, 50 % dans un Circuit ou un Cycle.] Largeur de référence 362 pt ; adaptation au terminal selon le contrat existant.
 - Photo : 64 × 64 pt, à 4 pt du bord, rayon 8. Pictogramme noir hors circuit et gris dans un circuit.
 - Ligne 1 : nom Semi Bold 15, à 8 pt de la photo et du haut, tronqué avant la valeur de droite ; niveau Medium 12, text-primary, à 12 pt du bord droit, aligné sur la ligne de base du nom. Sans niveau, aucun contenu à droite.
 - Ligne 2 : catégorie ; à droite, prescription Semi Bold 12, text-primary (« 50 rép. », « 10 · 12 · … rép. », « 3 × 1 min 30 », « max », « 45 s »). L’icône de changement de côté précède immédiatement la prescription. Aucun chronomètre devant la valeur.
