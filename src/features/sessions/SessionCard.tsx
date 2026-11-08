@@ -393,11 +393,12 @@ const styles = StyleSheet.create({
   // PRE-9, contre-recette n° 3 du 31/10/2026 (cr4-verifier, Hermann : « La carte de la séance dans le
   // catalogue de séances doit aussi être orange. ») : mêmes jetons que la carte d'Exercice « à
   // vérifier » de la Composition (`occurrenceCardToVerifySurface` : `toVerifyColors`, bord 1), même
-  // compensation des marges que la carte à compléter. Rendu choisi sans maquette.
+  // compensation des marges que la carte à compléter. Rendu choisi sans maquette. Sans liseré depuis le 08/11/2026, comme la carte
+  // d'Exercice (Hermann : « pas de liseré orange ») ; bord transparent. [Liseré `toVerifyColors.border` — retiré.]
   cardToVerify: {
     backgroundColor: toVerifyColors.surface,
     borderWidth: INCOMPLETE_BORDER,
-    borderColor: toVerifyColors.border,
+    borderColor: "transparent",
   },
   header: {
     height: SESSION_CARD_HEADER_HEIGHT - 2 * CARD_BORDER,

@@ -684,3 +684,9 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - **Fichiers** : `ExecutionParametersSheet.tsx`, `ExecutionParametersSheet.format0711.test.tsx` ; agent : `FormatTables.tsx`, `formats.recette0611/0811.test.tsx`, docs Formats, ch07 ; rapport des tableaux (section « après-midi »).
 - **Tests** : `ExecutionParametersSheet.format0711` 19/19 ; agent : `formats*` + `FormatModelScreen*` 8 suites, 122 tests, tsc et eslint sans erreur sur ses fichiers ; `npx tsc --noEmit` OK après la modification de la feuille. **Suite complète non exécutée** : la commande a été arrêtée par le système (mémoire insuffisante), comme Metro ; non relancées sans accord de Hermann.
 - **Points ouverts** : virgule de l'étiquette restée bleue (à confirmer) ; « (12,5 kg) » peut être légèrement rogné dans 44 ; alignement du titre à confirmer sur iPhone ; toujours ouverts : liseré orange de la carte d'Exercice à vérifier, sens de H.
+
+### Réponses de Hermann du 08/11/2026 (soir)
+
+- « le liseré orange de la carte d'exercice « à vérifier » : pas de liseré orange » → `occurrenceCardToVerifySurface` et `SessionCard.cardToVerify` à bord transparent (classe B ; carte de Séance : A, mêmes jetons). Tests : `CompositionScreen.recette3circuits` 6/6 (nouveau cas), `SessionCard`, `recette2composition`, `OccurrenceCard*` : 113/113. Rien vérifié sur iPhone.
+- « le sens de H : question ce que c'est ? » → rappel de la note H (07/11 au soir) et de son interprétation dans le cahier de recette (point f-h) ; reste à confirmer.
+- Metro relancé à la demande de Hermann. Suite complète non relancée (arrêt système pour mémoire).

@@ -242,6 +242,16 @@ describe("Recette iPhone n° 3 du 03/11/2026 — Circuits de la Composition", ()
       borderColor: "transparent",
     });
   });
+
+  // Hermann, 08/11/2026 : « le liseré orange de la carte d'exercice « à vérifier » : pas de liseré orange ».
+  it("carte d'Exercice à vérifier — fond orange, sans liseré (bord transparent : le contenu ne bouge pas)", async () => {
+    const toVerify: SessionDraftExercise = { ...exercise("b1", 2), executionParameters: withPhases([6, 4]), phasesToVerify: [2] };
+    await renderComposition(twoCircuitsDraft({ b1: toVerify }));
+    expect(StyleSheet.flatten(screen.getByTestId("composition-exercise-row-b1", hidden).props.style)).toMatchObject({
+      backgroundColor: toVerifyColors.surface,
+      borderColor: "transparent",
+    });
+  });
 });
 
 /**

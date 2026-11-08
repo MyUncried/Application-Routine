@@ -186,11 +186,13 @@ export const occurrenceCardIncompleteSurface = {
  * PRE-9 — recette iPhone n° 2 du 31/10/2026 (constat e) : carte « Paramètre à vérifier » — même
  * place que la carte à compléter, en orange (`toVerifyColors`, rendu choisi sans maquette) ;
  * « Paramètres à compléter » prime.
+ * Hermann, 08/11/2026 (« le liseré orange de la carte d'exercice « à vérifier » : pas de liseré orange ») : bord transparent, de même
+ * largeur (le contenu ne bouge pas). [Liseré `toVerifyColors.border` — retiré le 08/11/2026.]
  */
 export const occurrenceCardToVerifySurface = {
   backgroundColor: toVerifyColors.surface,
   borderWidth: OCCURRENCE_CARD_BORDER_WIDTH,
-  borderColor: toVerifyColors.border,
+  borderColor: "transparent",
 } as const;
 
 export type OccurrenceCardProps = {

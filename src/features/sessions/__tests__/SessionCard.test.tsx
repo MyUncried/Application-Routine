@@ -354,14 +354,15 @@ describe("Contre-recette n° 3 du 31/10 — Séance « Paramètre à vérifier �
     uniformParameters({ count: 3, target: 30, workPhases: [{ id: 1, label: "Tenir", durationSeconds }] });
   const toVerifyExercise = () => exercise({ executionParameters: phased(5), phasesToVerify: [1] });
 
-  it("un Exercice à vérifier : fond orange, liseré orange de 1 ; le contenu garde sa place", () => {
+  // [« liseré orange de 1 » — retiré le 08/11/2026 (Hermann : « pas de liseré orange ») : bord transparent de 1.]
+  it("un Exercice à vérifier : fond orange, sans liseré (bord transparent de 1) ; le contenu garde sa place", () => {
     const value = projection([{ kind: "EXERCISE", exercise: exercise() }, { kind: "EXERCISE", exercise: toVerifyExercise() }]);
     expect(value.incomplete).toBe(false);
     expect(value.toVerify).toBe(true);
     render(<SessionCard projection={value} />);
     expect(StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style)).toMatchObject({
       backgroundColor: toVerifyColors.surface,
-      borderColor: toVerifyColors.border,
+      borderColor: "transparent",
       borderWidth: 1,
     });
     expect(StyleSheet.flatten(screen.getByTestId("session-card-s1-start").props.style).right).toBe(11);
