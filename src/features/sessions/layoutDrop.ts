@@ -265,7 +265,7 @@ export function layoutDropCandidates<E>(
     }
   }
   const admitted = withoutFullCircuits(layout, source, idOf, candidates);
-  if (singlePassage === undefined) return spreadDropLines(admitted);
+  if (singlePassage === undefined) return admitted;
   const fixed = new Set<string>();
   const byId = new Map<string, E>();
   const ids = mapStructure({ elements: layout.elements, stopPoints: [] }, (exercise) => {
@@ -282,50 +282,7 @@ export function layoutDropCandidates<E>(
           const exercise = byId.get(id);
           return exercise === undefined ? "TOUR" : roleOf(exercise, index);
         };
-  return spreadDropLines(admitted.filter((candidate) => !breaksFixedPassage(ids, (id) => fixed.has(id), source, candidate, rolesOf)));
-}
-
-/**
- * Recette du 08/11/2026 au soir (Hermann : « je ne peux pas positionner un exercice dans un cycle devant circuit » ; « si je
- * positionne un exercice à la dernière place d'un cycle […] au relâchement l'exercice se positionne à la dernière place du
- * circuit » ; « l'exercice est sorti du circuit et est tombé dans un autre circuit en dessous ») — défaut antérieur, reproduit
- * sur la version de la recette validée `e369c1ae` : au bas d'un Circuit (ou d'un Cycle), les repères « fin du Circuit », « après
- * le Circuit » et « fin du Cycle » n'étaient séparés que par sa marge basse (4 à 12) ; l'emplacement le plus proche du centre de
- * la carte (`nearestLayoutDrop`) ne tombait presque jamais sur celui du milieu. Écart minimal entre deux repères voisins, en
- * points : choix technique (un tiers de la carte de 72), à confirmer sur iPhone.
- */
-export const LAYOUT_DROP_MIN_LINE_SPACING = 24;
-
-/**
- * Repères (`lineY`) écartés d'au moins `LAYOUT_DROP_MIN_LINE_SPACING` : chaque grappe de repères trop proches est étalée
- * régulièrement autour de son centre, dans le même ordre, jusqu'à stabilité. Seule la sélection change : seuils d'insertion
- * (`insertY`) et places (`insertTop`) restent ceux de la mise en page.
- */
-export function spreadDropLines(candidates: readonly LayoutDropTarget[], spacing: number = LAYOUT_DROP_MIN_LINE_SPACING): readonly LayoutDropTarget[] {
-  if (candidates.length < 2) return candidates;
-  const order = candidates.map((candidate, index) => ({ index, y: candidate.lineY })).sort((a, b) => a.y - b.y || a.index - b.index);
-  for (let pass = 0; pass < candidates.length; pass += 1) {
-    let changed = false;
-    let start = 0;
-    while (start < order.length) {
-      let end = start;
-      while (end + 1 < order.length && order[end + 1]!.y - order[end]!.y < spacing - 1e-6) end += 1;
-      if (end > start) {
-        const center = (order[start]!.y + order[end]!.y) / 2;
-        const first = center - ((end - start) * spacing) / 2;
-        for (let at = start; at <= end; at += 1) {
-          const y = first + (at - start) * spacing;
-          if (Math.abs(order[at]!.y - y) > 1e-6) changed = true;
-          order[at]!.y = y;
-        }
-      }
-      start = end + 1;
-    }
-    if (!changed) break;
-  }
-  const spread = candidates.slice();
-  for (const { index, y } of order) if (y !== candidates[index]!.lineY) spread[index] = { ...candidates[index]!, lineY: y };
-  return spread;
+  return admitted.filter((candidate) => !breaksFixedPassage(ids, (id) => fixed.has(id), source, candidate, rolesOf));
 }
 
 /**
