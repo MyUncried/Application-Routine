@@ -92,6 +92,7 @@ Composant « Carte — Mouvement » (`10124:21979`), variantes sans sélection, 
 - 72 pt ; photo 64 à 4 pt du bord, rayon 8 ; fond blanc ; liseré à 50 %.
 - Nom et description à 8 pt de la photo ; nom à 8 pt du haut.
 - Niveau à 12 pt du bord droit (en mode sélection : 12 pt avant la case, centrée verticalement), aligné sur la ligne de base du nom.
+- **Petite carte « Mouvement sélectionné » des Formats (ajout du 08/11/2026, Hermann, recette b-cat-niveau ; classe B) :** Niveau en noir (`text-primary`, #141414), sur la ligne de base du nom, partout — mode catalogue d'un Format, questionnaire et récapitulatif. [07/11/2026 : noir et aligné dans le seul mode catalogue, « Les cartes des récapitulatifs gardent leur Niveau en bleu » (chapitre 07) — remplacé le 08/11/2026.]
 - **Feuilles de pile :** 72 pt, blanches, liseré 0,5 pt à 50 %, **même ombre que la carte** : chaque couche ombre la suivante et les bandes visibles sont identiques.
 - Cartes réempilées en gardant leurs écarts ; actions glissées et commandes « Plus facile / Plus difficile » alignées sur les nouvelles hauteurs.
 

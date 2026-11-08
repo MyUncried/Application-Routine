@@ -4,6 +4,7 @@ import type { Movement } from "@/domain/activities/Movement";
 import { formatExerciseBodyZones } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { colors } from "@/shared/ui/tokens";
 
 import { MediaPreview, firstMediaPreviewSource, useMediaUriResolver } from "./MediaPreview";
 import { fillTemplate } from "./movementChoicePresentation";
@@ -27,6 +28,7 @@ const BORDER_COLOR = "#E3E5EB";
 const SURFACE = "#F9FAFC";
 const NAME_COLOR = "#14171C";
 const DESCRIPTION_COLOR = "#5C636E";
+/** Liseré de la carte choisie (mode catalogue). */
 const LEVEL_COLOR = "#0508E5";
 const PHOTO_FILL = "#DEE2EC";
 
@@ -37,7 +39,6 @@ export function SelectedMovementCard({
   onPress,
   onPhotoPress,
   selected = false,
-  inCatalogue = false,
   testID,
 }: {
   readonly movement: Movement;
@@ -49,12 +50,6 @@ export function SelectedMovementCard({
   readonly onPhotoPress?: () => void;
   /** Mode catalogue : carte choisie. */
   readonly selected?: boolean;
-  /**
-   * Recette iPhone du 07/11/2026 (Hermann, remarque B : « Carte de mouvement dans le catalogue des mouvements dans le format :
-   * mettre le texte du niveau en noir, pas en bleu. L'aligner verticalement en bas avec le nom du mouvement. ») : carte du
-   * mode catalogue — Niveau dans la couleur du nom, sur la ligne de base du nom. Ailleurs (récapitulatifs) : inchangé.
-   */
-  readonly inCatalogue?: boolean;
   readonly testID: string;
 }) {
   const resolveUri = useMediaUriResolver();
@@ -90,13 +85,13 @@ export function SelectedMovementCard({
         </View>
       )}
       <View style={styles.texts}>
-        <View style={[styles.firstLine, inCatalogue ? styles.firstLineBaseline : null]} testID={`${testID}-first-line`}>
+        <View style={styles.firstLine} testID={`${testID}-first-line`}>
           <Text style={styles.name} numberOfLines={1}>
             {movement.name}
             {suffix ?? ""}
           </Text>
           {level !== null ? (
-            <Text style={[styles.level, inCatalogue ? styles.levelInCatalogue : null]} testID={`${testID}-level`}>
+            <Text style={styles.level} testID={`${testID}-level`}>
               {level}
             </Text>
           ) : null}
@@ -153,12 +148,13 @@ const styles = StyleSheet.create({
   photo: { width: PHOTO, height: PHOTO, borderRadius: 8, overflow: "hidden", backgroundColor: PHOTO_FILL },
   photoFill: { width: PHOTO, height: PHOTO },
   texts: { flex: 1, paddingRight: 8, gap: 2 },
-  firstLine: { flexDirection: "row", alignItems: "center", gap: 8 },
+  // Recette iPhone du 07/11/2026 (Hermann, remarque B : « mettre le texte du niveau en noir, pas en bleu. L'aligner verticalement
+  // en bas avec le nom du mouvement ») et du 08/11/2026 (b-cat-niveau : « dans le questionnaire et le récapitulatif le niveau est
+  // de nouveau bleu et pas aligné. C'est à corriger ») : partout, Niveau en noir (`colors.textPrimary`), sur la ligne de base du nom.
+  // [Niveau bleu (#0508E5) centré ; puis (07/11) noir et aligné dans le seul catalogue d'un Format — remplacés le 08/11/2026.]
+  firstLine: { flexDirection: "row", alignItems: "baseline", gap: 8 },
   name: { flex: 1, fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 15, color: NAME_COLOR },
-  level: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, color: LEVEL_COLOR },
-  // Remarque B du 07/11/2026 : mode catalogue — Niveau en noir (couleur du nom), aligné en bas sur la ligne de base du nom.
-  firstLineBaseline: { alignItems: "baseline" },
-  levelInCatalogue: { color: NAME_COLOR },
+  level: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, color: colors.textPrimary },
   zonesLine: { flexDirection: "row", alignItems: "center", gap: 4 },
   zones: { flex: 1, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, color: DESCRIPTION_COLOR },
 });

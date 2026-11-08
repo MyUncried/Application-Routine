@@ -628,3 +628,43 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - **À CLARIFIER** : liseré orange de la carte d'Exercice à vérifier ; sens de « aligner à droite » (H).
 - `CompositionScreen.recette1` : échec antérieur à `c8fe2857`, toujours non analysé.
 - Variables Figma des catalogues non modifiées (consigne) : écart Figma connu.
+
+## Recette iPhone du 08/11/2026 — écarts, spécifications des tableaux, défilement de la Composition
+
+- **Objectif** : demande de Hermann du 08/11/2026 : « J'ai effectué des tests, corrige les écarts. J'ai spécifié de nouveau les tableaux, et ajouté des copies d'écran qui illustre la régression d'affichage lors du défilement de la composition de séance. » ; puis « Reprends tout ».
+- **Branche** : `feat/pre9-catalogues-cartes-badge-20261106` (PR #420, non fusionnée). **Commit de départ** : `5d5a5ec0`.
+- **Sources** : base partagée du cahier de recette, lue le 08/11/2026 (collection `results`, 231 documents) : fiches de la section « Livraison du 8 novembre » (KO : b-cat-fondu, b-cat-niveau, b-emom-table ; remarques : b-amrap-table, b-cat-fermer) et « Autres constats » (A : spécification du tableau « séries en colonnes » ; B : spécification du tableau « paramètres en colonnes » ; C : défilement). Toutes recopiées mot pour mot dans ch07 (sections « Recette du 08/11/2026 — spécifications des tableaux », « — catalogue », « — défilement de la Composition (constat C) »).
+- **Périmètre traité** : tout ce qui précède. Tableaux (A, B, b-emom-table, b-amrap-table) et catalogue (b-cat-*) délégués à deux agents, relus et intégrés ; rapports détaillés : `.github/orchestration/reports/2026-11-08_PRE9-RECETTE-0811-TABLEAUX.md` et `2026-11-08_PRE9-RECETTE-0811-CATALOGUE.md`.
+
+### Constats et corrections
+
+| Point | Constat (cause) | Correction | Classe |
+|---|---|---|---|
+| C (défilement) | Régression de `5d5a5ec0` (t-depli) : le bloc d'un Circuit, toujours rendu dans les vues de son cadre d'enveloppe, était mesuré à 0 au lieu de sa position dans la liste → en-têtes collants et ancres faux | Le cadre mesure sa position et la transmet au bloc (`EnvelopeFrameYContext`) ; Circuit unique mesuré par son cadre | A |
+| A, b-emom-table | Tableau des séries : régression de `c8fe2857` (charge dans un cadre blanc de 24, ligne de 52 → 64) ; nouvelle spécification | Spec A appliquée (colonnes 44 / 12, en-tête 28, lignes 44 fixes, positions figées par test, M′SS″, « — » rouge, plus de colonne Unité) | B |
+| B, b-amrap-table | Nouvelle spécification | Spec B appliquée (AMRAP : charge sous l'Objectif, « +kg ») ; Tabata, 30/30, Renforcement, À l'échec, Death by : même présentation, comportement t-coche-direct conservé | B (AMRAP « +kg » à confirmer) |
+| b-cat-fondu, b-cat-fermer | Même page à contenu remplacé : fondu de sortie puis d'entrée en séquence (blanc) ; recherche opaque sur le dégradé ; liste placée d'après une hauteur mesurée après coup (saut) ; boutons montés une image plus tard ; icônes préchargées dans un cache que l'affichage ne lit pas | Catalogue en couche posée sur les paramètres, fondu enchaîné ; dégradé conservé ; icônes chargées à l'avance (`Image.loadAsync`) et passées directement | B (dégradé : A) |
+| b-cat-niveau | Niveau noir seulement dans le catalogue | Noir et sur la ligne de base du nom partout (`SelectedMovementCard`) | B |
+| Test `CompositionScreen.recette1` | Échec depuis `c8fe2857` : la feuille redescend 450 ms avant de se fermer, le test n'attendait pas | Le test attend la descente ; aucune anomalie de l'application | D |
+| Tests de jetons | `tokensSpecification` / `pre4Story11Controls` : ch12 et l'empreinte de `tokens.ts` non mis à jour en `5d5a5ec0` | ch12 : valeurs D-501 révisées (anciennes conservées en annotation), `switchTrackOff` documenté ; empreinte mise à jour | D (doc B déjà décidée) |
+| Cahier de recette | Demandes de Hermann du 08/11 : bouton d'effacement de note, masquage des points OK sans note | Ajoutés (préférence de masquage gardée dans le navigateur) ; section « Deuxième livraison du 8 novembre » (8 points) | — |
+
+### Fichiers modifiés
+
+- Code : `CompositionScreen.tsx` ; agents : `FormatTables.tsx`, `FormatModelScreen.tsx`, `SelectedMovementCard.tsx`, `KodjoIcon.tsx`, `fr.ts`.
+- Tests : `CompositionScreen.recette3circuits` (constat C), `CompositionScreen.recette1`, `pre4Story11Controls` ; agents : `formats.recette0811` (nouveau), `formats.recette0611`, `FormatModelScreen.c3`, `FormatModelScreen.r0711`.
+- Docs : ch07 (trois sections), ch12 (jetons), `KODJO-Formats-entrainement-2026-11-02.md`, `KODJO-Catalogues-cartes-modales-2026-11-06.md`.
+
+### Tests
+
+- `npx tsc --noEmit` : OK.
+- `npx jest src/features src/domain src/shared` : 269 suites, 5 009 tests, tous passés.
+- Lint : aucune erreur nouvelle (`CompositionScreen.tsx` : 13 erreurs `react-hooks/refs`, autant qu'à `5d5a5ec0` ; `FormatModelScreen.c3.test.tsx` : une erreur antérieure).
+- Constat C : le nouveau test échoue sans la correction (36 au lieu de 136).
+
+### Hypothèses non démontrées et points ouverts
+
+- Rien n'a été vérifié sur l'iPhone. À contrôler : section « Deuxième livraison du 8 novembre » du cahier (défilement, fondus du catalogue, pastilles, Niveau, tableaux EMOM / AMRAP / Tabata).
+- Affichage immédiat des pastilles sur l'appareil : non démontré.
+- **À CLARIFIER** : AMRAP — « +kg » par mouvement (spec B) ou charge toujours présente « comme dans le tableau Tabata » (note b-amrap-table) ; hauteur du cadre orange d'une charge vide (13, non spécifiée) ; M′SS″ limité au récapitulatif ; écarts Figma/spec listés dans le rapport des tableaux (la spec a primé).
+- Toujours ouverts : liseré orange de la carte d'Exercice à vérifier ; sens de H ; capture y-rouge.

@@ -676,10 +676,12 @@ export const fr = {
         addLoad: "(+ kg)",
         removeLoad: "(− kg)",
         // Recette du 05/11/2026 (n-charge-switch, Hermann) : sous le nom du mouvement du tableau des séries — « (rép, +kg) », « (durée, −kg) ».
-        repetitionsUnitShort: "rép",
+        // Spécification de Hermann du 08/11/2026 (A §4.4, B §4.4) : « (rép., +kg) », « (durée, −kg) » ; la parenthèse fermante est
+        // rendue à part. [« rép », « +kg) », « −kg) » (recette du 05/11/2026, n-charge-switch) — remplacés le 08/11/2026.]
+        repetitionsUnitShort: "rép.",
         durationUnitShort: "durée",
-        addLoadShort: "+kg)",
-        removeLoadShort: "−kg)",
+        addLoadShort: "+kg",
+        removeLoadShort: "−kg",
         addLoadAccessibility: "ajouter une charge",
         removeLoadAccessibility: "retirer la charge",
         loadEmpty: "(—)",

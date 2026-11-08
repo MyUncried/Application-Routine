@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
-import { startTransition, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createContext, startTransition, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   ActivityIndicator,
@@ -5098,6 +5098,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           testID="composition-envelope-circuit"
           outset={CIRCUIT_OUTSET}
           radius={CIRCUIT_RADIUS}
+          // Recette du 08/11/2026 (constat C) : mesure portée par le cadre, enfant direct du contenu défilant.
+          onLayout={isEnvelopeActive ? undefined : handleTourLayout}
         >
         <View
           style={[
@@ -5105,9 +5107,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             // Correctif 2.3b : le Circuit qui porte la carte soulevée passe au-dessus de ses sœurs.
             zoneItems.IN_TOUR.some((item) => zoneItemKey(item) === raisedKey) ? styles.dragElevated : null,
           ]}
-          // PRE-9 B.2 : dans le cadre du mode enveloppe, la mesure serait relative au cadre — ignorée
-          // (aucun glisser dans ce mode ; le Circuit est remonté et remesuré à la sortie).
-          onLayout={isEnvelopeActive ? undefined : handleTourLayout}
+          // PRE-9 B.2 : mesure faite par `EnvelopeFrame` (onLayout), ignorée en mode enveloppe.
           testID="composition-tour-section"
         >
           {/*
@@ -6043,6 +6043,9 @@ function PlacementAttenuation({
  * lavande. Bouton accessible « Envelopper {nom} dans le circuit / le cycle », état sélectionné.
  * Hors mode (`envelope` nul), le contenu est rendu tel quel.
  */
+/** Ordonnée du cadre d'enveloppe englobant dans son parent (0 sans cadre ou avant sa mesure). */
+const EnvelopeFrameYContext = createContext(0);
+
 function EnvelopeFrame({
   envelope,
   target,
@@ -6051,6 +6054,7 @@ function EnvelopeFrame({
   outset = 0,
   radius = dimensions.standardCard.radius,
   gap = SEQUENCE_GAP,
+  onLayout,
   children,
 }: {
   envelope: EnvelopeContext | null;
@@ -6075,8 +6079,21 @@ function EnvelopeFrame({
    * côté) pour former un seul cadre continu.
    */
   gap?: number;
+  /** Mesure du cadre dans son parent (celle qu'aurait le contenu sans cadre). */
+  onLayout?: (event: LayoutChangeEvent) => void;
   children: React.ReactNode;
 }) {
+  /*
+   * Recette iPhone du 08/11/2026 (constat C, Hermann : « les lignes d'en-tête des circuit flottent au milieu de l'écran ») — cause :
+   * depuis le correctif t-depli, le contenu est toujours dans les vues du cadre ; mesuré dans son parent (`onLayout`), il recevait
+   * l'ordonnée 0 (relative au cadre) au lieu de sa position dans la liste : les plages des en-têtes collants étaient fausses. Le
+   * cadre mesure sa propre position et la transmet (`EnvelopeFrameYContext`) ; le contenu l'ajoute à la sienne.
+   */
+  const [frameY, setFrameY] = useState(0);
+  const handleFrameLayout = (event: LayoutChangeEvent) => {
+    setFrameY(event.nativeEvent.layout.y);
+    onLayout?.(event);
+  };
   /*
    * Recette iPhone du 07/11/2026 (t-depli, KO, Hermann : « lorsqu'on clique sur Créer > Ajouter un cycle, la séance [replie] ses
    * circuits […] il faut que ce repli se fasse lentement par glissement des cartes. Pas en apparition brute comme maintenant. ») —
@@ -6086,8 +6103,10 @@ function EnvelopeFrame({
    */
   if (envelope === null) {
     return (
-      <View>
-        <View>{children}</View>
+      <View onLayout={handleFrameLayout} testID={`${testID}-off`}>
+        <View>
+          <EnvelopeFrameYContext.Provider value={frameY}>{children}</EnvelopeFrameYContext.Provider>
+        </View>
       </View>
     );
   }
@@ -6190,11 +6209,14 @@ function EnvelopeFrame({
       ref={(view) => envelope.registerFrame(envelopeTargetKey(target), view)}
       // B.4b : le contenu qui porte le trait bas passe au-dessus de ses frères suivants (zone tactile).
       style={placement?.last === true && placement.adjustable ? styles.envelopeFrameRaised : null}
+      onLayout={handleFrameLayout}
       testID={testID}
     >
       <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        {/* PRE-9 B.2 : un Point d'arrêt hors périmètre reste inactif et atténué. */}
-        {isStopPoint && placement === null ? <PlacementAttenuation active>{children}</PlacementAttenuation> : children}
+        <EnvelopeFrameYContext.Provider value={frameY}>
+          {/* PRE-9 B.2 : un Point d'arrêt hors périmètre reste inactif et atténué. */}
+          {isStopPoint && placement === null ? <PlacementAttenuation active>{children}</PlacementAttenuation> : children}
+        </EnvelopeFrameYContext.Provider>
       </View>
       {isCandidate && !isStopPoint ? (
         <Pressable
@@ -9188,7 +9210,9 @@ function LayoutCircuitBlock({
   const urgent = context.lift !== null;
   const [rowHeight, setRowHeight] = useMeasuredValue(CIRCUIT_HEADER_HEIGHT, urgent);
   const [blockFrame, onBlockFrame] = useMeasuredFrame(urgent);
-  const blockY = blockFrame === null ? null : blockFrame.y;
+  // Constat C du 08/11 : position du bloc dans la liste = celle du cadre d'enveloppe + la sienne dans le cadre.
+  const frameY = useContext(EnvelopeFrameYContext);
+  const blockY = blockFrame === null ? null : frameY + blockFrame.y;
   const blockHeight = blockFrame === null ? null : blockFrame.height;
   const [headerBottom, setHeaderBottom] = useMeasuredValue<number | null>(null, urgent);
   const [listY, setListY] = useMeasuredValue<number | null>(null, urgent);

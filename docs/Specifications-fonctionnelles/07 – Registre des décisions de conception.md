@@ -1855,10 +1855,10 @@ Notes des points :
 Réalisation et classement (règle de synchronisation code / documentation) :
 
 - **A — pile repliée du catalogue d'un Format (classe B).** Toucher la carte du dessus d'une pile repliée la déplie sans sélectionner ; dans une pile dépliée, toute carte (celle du dessus comprise) se sélectionne. [Carte du dessus d'une pile repliée qui sélectionnait le mouvement, seul le filet dépliant — remplacé.]
-- **B — Niveau de la carte du catalogue d'un Format (classe B).** Niveau en noir (couleur du nom), sur la ligne de base du nom. Les cartes des récapitulatifs gardent leur Niveau en bleu. [Niveau bleu centré — remplacé dans ce catalogue.]
+- **B — Niveau de la carte du catalogue d'un Format (classe B).** Niveau en noir (couleur du nom), sur la ligne de base du nom. Les cartes des récapitulatifs gardent leur Niveau en bleu. [Niveau bleu centré — remplacé dans ce catalogue.] [Remplacé le 08/11/2026 (b-cat-niveau, Hermann : « dans le questionnaire et le récapitulatif le niveau est de nouveau bleu et pas aligné. C'est à corriger ») : Niveau noir (`text-primary`, #141414) et sur la ligne de base du nom sur toutes les cartes « Mouvement sélectionné » — catalogue, questionnaire, récapitulatif. Voir « Recette du 08/11/2026 — catalogue ».]
 - **C — dernière ligne de la feuille au-dessus de la barre du clavier (classe A, FR-24 : ligne active entièrement au-dessus du clavier et de sa barre).** La course de défilement ajoutée par iOS sous le clavier ne comptait pas la barre : une réserve de 64 (barre 52 + marge 12) est ajoutée sous le contenu pendant la saisie.
-- **D et w-liste — apparition du catalogue d'un Format (classe B).** La liste, la recherche et le bouton du bas apparaissent ensemble en fondu de 450 ms ; les icônes de zone corporelle sont préchargées à l'ouverture du Format (cause du décalage : SVG chargé de façon asynchrone par `expo-image`) ; au filet de la pile, les cartes glissent depuis la carte du dessus au dépli et y remontent au repli, les suivantes glissent à leur place (450 ms ; rien sous « Réduire les animations »).
-- **E — fermeture du catalogue d'un Format (classe B).** « Fermer sans sélectionner », « Ajouter X mouvement(s) » et « Revenir aux paramètres » ferment en fondu de 450 ms ; les paramètres réapparaissent en fondu.
+- **D et w-liste — apparition du catalogue d'un Format (classe B).** La liste, la recherche et le bouton du bas apparaissent ensemble en fondu de 450 ms ; les icônes de zone corporelle sont préchargées à l'ouverture du Format (cause du décalage : SVG chargé de façon asynchrone par `expo-image`) ; au filet de la pile, les cartes glissent depuis la carte du dessus au dépli et y remontent au repli, les suivantes glissent à leur place (450 ms ; rien sous « Réduire les animations »). [Précisé le 08/11/2026 (b-cat-fondu) : fondu enchaîné avec les paramètres ; Filtrer, Trier et Replier rendus avec la liste (plus de fondu propre de 220 ms) ; pastille préchargée en image native, le fondu l'attend au plus 300 ms ; le préchargement `Image.prefetch` du 07/11 n'était jamais lu par l'affichage. Voir « Recette du 08/11/2026 — catalogue ».]
+- **E — fermeture du catalogue d'un Format (classe B).** « Fermer sans sélectionner », « Ajouter X mouvement(s) » et « Revenir aux paramètres » ferment en fondu de 450 ms ; les paramètres réapparaissent en fondu. [Remplacé le 08/11/2026 (b-cat-fondu, b-cat-fermer) : fondu de sortie puis fondu d'entrée successifs, avec une page blanche entre les deux → fondu enchaîné de 450 ms, les paramètres apparaissant sous le catalogue qui s'efface. Voir « Recette du 08/11/2026 — catalogue ».]
 - **F — Circuit replié à vérifier sans liseré (classe B, remarque e du 06/11 : « Pas de liseré, dans aucune situation »).** Fond orange conservé, bord transparent (le contenu ne bouge pas). [Liseré orange du Circuit replié (recette n° 3 du 03/11 : « couleur de fond, liseré ») — remplacé pour l'orange ; le liseré rouge du Circuit à compléter et celui de la carte d'Exercice à compléter (demande du 29/10) restent.] **À CLARIFIER (classe C)** : la carte d'Exercice « à vérifier » garde son liseré orange (rendu choisi sans maquette, 31/10) ; le retirer aussi ?
 - **G — interrupteurs (classe B).** Fond désactivé unique `colors.switchTrackOff` (#C2C7CF) pour tous les interrupteurs natifs (Profil, Formats), via `switchOffColors` (`ios_backgroundColor` et `trackColor.false`). Fond activé inchangé (couleur système).
 - **H — cartes sans famille (classe B, interprétation à confirmer).** Les bords droits étaient déjà alignés ; les cartes sans famille prennent le retrait gauche de 8 des cartes en pile (place du filet).
@@ -1870,6 +1870,374 @@ Réalisation et classement (règle de synchronisation code / documentation) :
 - **y-rouge (classe B).** Message de la Composition : « La somme des durées des exercices d'une série excède l'intervalle de temps alloué par série. » [« La durée atteint ou dépasse l'intervalle : il ne reste pas de temps pour le reste du travail ni pour le repos. » — remplacé dans la Composition ; la feuille garde son message.] L'absence du message n'est pas reproduite en test : le message s'affiche sous Enregistrer dès que le contrôle EMOM refuse ; à revoir sur iPhone.
 - **d-couleurs (classe B).** D-501 révisée (voir l'annotation de D-501) ; modale « Catalogue des mouvements » de la Composition : fond, bande de contexte et dégradé du bas aux couleurs du catalogue des mouvements. Les variables Figma ne sont pas modifiées (« Ne modifie pas Figma ») : écart Figma connu.
 - **d-carte-choix, y-emom-cible :** explications données dans le cahier de recette (aucune correction).
+
+## Recette du 08/11/2026 — spécifications des tableaux
+
+Décision de Hermann du 08/11/2026 (sans nouveau numéro D) : la spécification complète de Hermann du 08/11/2026 des tableaux des récapitulatifs de Format est recopiée ci-dessous, mot pour mot (parties A et B). « Appliquer ces valeurs exactement. N'ajouter aucune règle de format ou d'espacement qui n'est pas écrite ici. » Elle remplace, pour ces tableaux, les largeurs mesurées, l'écart de 4 et la colonne Max de 26 de a-amrap-table (section précédente), les colonnes Unité et Charge, et le cadre blanc de la charge du tableau des séries (champ standard du 07/11/2026, section « Homogénéité des tableaux des Formats et convention des champs de valeur »). Les formulations remplacées restent dans leurs sections d'origine.
+
+> A) # Récapitulatif de format — tableau « séries en colonnes » et cadres de paramètres
+>
+> Référence Figma : écran « EMOM — Récapitulatif, dans chaque intervalle » (nœud 8624:30392), fichier G6RY5Ebhgwb4AHIOYDwwvg.
+> Périmètre : format et présentation uniquement. Aucun comportement fonctionnel existant ne change.
+> Appliquer ces valeurs exactement. N'ajouter aucune règle de format ou d'espacement qui n'est pas écrite ici.
+> Les valeurs 22′39″ et « — » de l'écran sont des exemples de démonstration (valeur longue, valeur manquante).
+> Le tableau « paramètres en colonnes » (spec 2, écran AMRAP) partage la même grammaire. Tout ce qui est commun doit rester identique.
+>
+> ## 1. Format des durées (toutes les durées affichées sur l'écran)
+>
+> - À partir d'une minute : `M′SS″`. Minutes sans zéro initial, secondes sur 2 chiffres, aucun espace.
+>   Exemples : 1′00″, 6′00″, 22′39″.
+> - Moins d'une minute : secondes seules, sans zéro initial.
+>   Exemples : 30″, 5″.
+> - Symboles : prime U+2032 (′) et double prime U+2033 (″). Pas d'apostrophe ni de guillemet droit.
+> - S'applique à :
+>   - les cellules de durée du tableau ;
+>   - « Intervalle » ;
+>   - « Durée totale » ;
+>   - le repère de fin de la frise « Déroulé ». Le repère de début reste « 0 ».
+> - Valeur de dimensionnement : 99′99″.
+>
+> ## 2. Mise en page générale
+>
+> - Écran 402 px. Chaque cadre fait 370 px de large, avec 16 px de marge à gauche et à droite.
+> - Cadres : fond #F9FAFC, rayon 16, sans bordure.
+> - Titres de section (« Mouvements », « Paramètres d'exécution », « Déroulé ») : Inter Regular 11, #595E66, à x = 16.
+> - Sous « Paramètres d'exécution », trois cadres séparés de 8 px :
+>   1. « Nombre de séries » ;
+>   2. Tableau ;
+>   3. « Intervalle / Durée totale / Exécution ».
+> - Marge intérieure horizontale de tous les cadres : 16 px.
+>   - Le texte de gauche commence à 16 px du bord gauche du cadre.
+>   - Les valeurs, cadres de valeur et popovers s'arrêtent à 16 px du bord droit.
+>   - Exception : la valeur non modifiable s'arrête à 26 px (§3).
+> - Les marges verticales se mesurent sur le cadre du texte, pas sur le cadre de la cellule.
+>
+> ## 3. Cadres de paramètres
+>
+> **Ligne**
+> - Hauteur 40 px.
+> - Libellé : Inter Regular 13, #141414, à x = 16 et y = 12 (hauteur 16).
+> - Valeur centrée verticalement dans la ligne.
+>
+> **Séparateurs**
+> - 1 px, #E0E3E8, de x = 16 à largeur − 16, entre deux lignes.
+> - Hauteur du cadre = 40 × n + (n − 1).
+>   - « Nombre de séries » : 40 px.
+>   - « Intervalle / Durée totale / Exécution » : 122 px. Séparateurs à y = 40 et y = 81. Libellés à y = 12, 53 et 94.
+>
+> **Valeur modifiable** (« 6 », « 1′00″ »)
+> - Composant DSF « Valeur modifiable », état Normal.
+> - Fond #FFFFFF, rayon 10, hauteur 24 (y = 8).
+> - Marge horizontale 10 px, largeur ajustée au texte.
+> - Texte Inter Semi Bold 13, #0508E5 (color/primary).
+> - Bord droit à 16 px du bord du cadre.
+>
+> **Valeur non modifiable** (« 6′00″ »)
+> - Inter Semi Bold 13, #141414, aligné à droite.
+> - Bord droit du texte à 26 px du bord du cadre, aligné sur le texte des valeurs modifiables.
+>
+> **Champ à popover** (« Dans chaque intervalle »)
+> - Hauteur 26, rayon 5, fond #5F60EE.
+> - Bord droit à 16 px, centré verticalement (y = 7).
+>
+> ## 4. Tableau « séries en colonnes »
+>
+> ### 4.1 Colonnes
+>
+> - Colonne Mouvement, puis S1…Sn. Il n'y a plus de colonne « Unité ».
+> - Colonnes de séries :
+>   - largeur fixe 44 px, celle de « 99′99″ » en Inter Semi Bold 13 ;
+>   - 12 px entre deux colonnes, soit un pas de 56 px ;
+>   - placées depuis la droite : la dernière colonne s'arrête à 16 px du bord droit (x = 354).
+>   - Avec 3 séries :
+>
+>     | Colonne | Début | Fin |
+>     |---|---|---|
+>     | S1 | 198 | 242 |
+>     | S2 | 254 | 298 |
+>     | S3 | 310 | 354 |
+>
+> - Colonne Mouvement :
+>   - de x = 16 jusqu'à 12 px avant la première colonne de série ;
+>   - nom sur une seule ligne, points de suspension s'il dépasse.
+>
+> ### 4.2 Verticale du cadre
+>
+> - Pas de marge haute.
+> - En-tête : 28 px de haut, avec le texte (hauteur 15) à y = 6,5.
+> - Lignes de mouvement : 44 px chacune, avec un séparateur de 1 px #DEE3E5 en haut de chaque ligne.
+> - Marge basse 3,5 px. Elle corrige l'œil : avec elle, l'espace visible sous les lettres de la dernière ligne égale l'espace visible au-dessus des lettres de l'en-tête.
+> - Hauteur = 28 + 44 × nombre de mouvements + 3,5. Avec 2 mouvements : 119,5 px.
+>
+> ### 4.3 En-tête
+>
+> - « Mouvement » à gauche (x = 16).
+> - « S1 », « S2 »… centrés sur leur colonne.
+> - Style commun : Inter Medium 12, #595E66.
+>
+> ### 4.4 Ligne de mouvement (44 px)
+>
+> **Contenu**
+> - Nom : Inter Regular 13, #141414, hauteur 16.
+> - Étiquette sous le nom : Inter Semi Bold 11, hauteur 13.
+>   - Libellés : « (rép., +kg) », « (durée, +kg) », « (rép., −kg) », « (durée, −kg) ».
+>   - Parenthèses, virgule et « +kg » / « −kg » : #0508E5. Le mot « rép. » ou « durée » est en gris #595E66.
+>   - Le signe moins est U+2212 (−). Pas d'espace entre le signe et « kg ».
+> - Cellule de valeur (§4.5) : texte de hauteur 16, centré dans un cadre de 44 × 24.
+> - Charge : « (12 kg) », Inter Regular 11, #0508E5, hauteur 13, centrée sous chaque cellule, sans cadre.
+>
+> **Positions verticales** (y relatif au haut de la ligne)
+>
+> | État | Nom | Étiquette | Cadre de la cellule | Texte de la cellule | Charge |
+> |---|---|---|---|---|---|
+> | Charge non affichée | 6,5 | 24,5 | 10 | 14 | absente |
+> | Charge affichée | 6,5 | 24,5 | 2,5 | 6,5 | 24,5 |
+>
+> - Marges mesurées sur les textes :
+>   - le bloc nom + étiquette et le bloc valeur + charge ont 6,5 px au-dessus et en dessous ;
+>   - sans charge, la valeur est centrée sur la hauteur de la ligne.
+> - Le nom est aligné sur la valeur, l'étiquette sur la charge.
+> - Passage d'un état à l'autre :
+>   - seules les cellules glissent, entre y = 10 et y = 2,5 ;
+>   - la ligne des charges apparaît ou disparaît ;
+>   - le nom et l'étiquette ne bougent pas.
+> - La hauteur de la ligne reste 44 px dans les deux états.
+>
+> ### 4.5 Cellules de valeur
+>
+> - Cadre de 44 × 24, rayon 10, marge horizontale 0, texte centré. La largeur ne varie jamais.
+> - Cellule remplie : aucun fond. Texte Inter Semi Bold 13, #0508E5 ; durées au format du §1.
+> - Cellule vide : « — » (U+2014), Inter Semi Bold 13, #D92D20 (color/status/danger), sur fond #FFF1F0 (color/status/danger-surface).
+>
+> ## 5. Déroulé
+>
+> - Cadre de 370 px, fond #F9FAFC, rayon 16.
+> - Marges intérieures : 8 en haut, 16 à droite, 8 en bas, 16 à gauche.
+> - Éléments empilés avec 4 px d'écart :
+>   1. frise, 22 px ;
+>   2. repères de temps, 13 px : « 0 » à gauche, durée totale à droite au format du §1, Inter Regular 11, #141414 ;
+>   3. légende, 18 px avec 2 px de marge haute : pastille + 6 px + nom en Inter Regular 13, #141414, 16 px entre deux éléments.
+> - Position verticale du bloc : inchangée.
+>
+> ## 6. Modifications de présentation par rapport à l'existant (diff à appliquer)
+>
+> 1. Colonne « Unité » supprimée ; « rép. » ou « durée » passe en gris dans l'étiquette sous le nom.
+> 2. Étiquette en taille 11, sur la même ligne que les charges.
+> 3. Charges en taille 11 Regular.
+> 4. Durées au format `M′SS″`, ou `S″` sous une minute, partout.
+> 5. Colonnes de séries à largeur fixe de 44 px, 12 px d'écart, calées à droite à 16 px du bord.
+> 6. Cellules : sans fond si remplies, rouge clair avec « — » si vides.
+> 7. En-tête de 28 px et lignes de 44 px, avec les positions du §4.4. Pas de marge haute, marge basse de 3,5 px.
+> 8. Nom du mouvement sur une ligne, avec points de suspension.
+> 9. Tableau aligné sur les autres cadres : marges de 16 px au lieu de 20.
+> 10. « Nombre de séries » : 52 → 40 px de haut.
+> 11. Lignes Intervalle / Durée totale / Exécution : 34 → 40 px, valeurs centrées verticalement.
+> 12. Écart de 8 px entre les trois cadres de paramètres.
+>
+> ## 7. Contrôle avant livraison
+>
+> - Comparer à l'écran Figma 8624:30392 pour :
+>   - les marges de 16 px ;
+>   - les bords droits alignés ;
+>   - les écarts de 8 px ;
+>   - les hauteurs (en-tête 28, lignes 44, paramètres 40) ;
+>   - les positions verticales des deux états du §4.4 ;
+>   - les tailles de police (13 / 12 / 11).
+> - Aucun comportement existant ne doit changer.
+>
+> B) # Récapitulatif de format — tableau « paramètres en colonnes » (référence AMRAP)
+>
+> Référence Figma : écran « AMRAP — Récapitulatif, incrément et max » (nœud 8624:30521), fichier G6RY5Ebhgwb4AHIOYDwwvg.
+> Périmètre : format et présentation uniquement. Aucun comportement fonctionnel existant ne change.
+> Appliquer ces valeurs exactement. N'ajouter aucune règle de format ou d'espacement qui n'est pas écrite ici.
+> Le tableau « séries en colonnes » (spec 1, écran EMOM 8624:30392) partage la même grammaire. Tout ce qui est commun doit rester identique.
+>
+> ## 1. Format des durées (toutes les durées affichées sur l'écran)
+>
+> - À partir d'une minute : `M′SS″`. Minutes sans zéro initial, secondes sur 2 chiffres, aucun espace.
+>   Exemples : 1′00″, 12′00″.
+> - Moins d'une minute : secondes seules, sans zéro initial.
+>   Exemples : 30″, 5″.
+> - Symboles : prime U+2032 (′) et double prime U+2033 (″).
+> - S'applique à :
+>   - « Durée » ;
+>   - le repère de fin de la frise « Déroulé ». Le repère de début reste « 0 » ;
+>   - toute cellule de durée du tableau, par exemple un objectif en durée.
+>
+> ## 2. Mise en page générale
+>
+> - Écran 402 px. Chaque cadre fait 370 px de large, avec 16 px de marge à gauche et à droite.
+> - Cadres : fond #F9FAFC, rayon 16, sans bordure.
+> - Titres de section (« Mouvements », « Paramètres d'exécution », « Déroulé ») : Inter Regular 11, #595E66, à x = 16.
+> - Sous « Paramètres d'exécution » : cadre « Durée », puis le tableau, séparés de 8 px.
+> - Marge intérieure horizontale de tous les cadres : 16 px. Le texte de gauche commence à 16 px du bord gauche du cadre ; valeurs et cellules s'arrêtent à 16 px du bord droit.
+> - Les marges verticales se mesurent sur le cadre du texte, pas sur le cadre de la cellule.
+>
+> ## 3. Cadre « Durée »
+>
+> - Hauteur 40 px.
+> - Libellé : Inter Regular 13, #141414, à x = 16 et y = 12.
+> - Valeur modifiable :
+>   - composant DSF « Valeur modifiable », état Normal ;
+>   - fond #FFFFFF, rayon 10, hauteur 24, à y = 8 ;
+>   - marge horizontale 10 px, largeur ajustée au texte ;
+>   - texte Inter Semi Bold 13, #0508E5 ;
+>   - bord droit à 16 px du bord du cadre.
+>
+> ## 4. Tableau « paramètres en colonnes »
+>
+> ### 4.1 Colonnes
+>
+> - Mouvement, puis Objectif, Par tour et Max.
+> - Il n'y a plus de colonne « Charge » : la charge est affichée sous l'Objectif (§4.4).
+> - Colonnes de paramètres :
+>   - largeur fixe 44 px ;
+>   - 12 px entre deux colonnes, soit un pas de 56 px ;
+>   - placées depuis la droite : Max s'arrête à 16 px du bord droit.
+>   - Positions des colonnes :
+>
+>     | Colonne | Début | Fin | Centre |
+>     |---|---|---|---|
+>     | Objectif | 198 | 242 | 220 |
+>     | Par tour | 254 | 298 | 276 |
+>     | Max | 310 | 354 | 332 |
+>
+> - Colonne Mouvement :
+>   - de x = 16 à x = 186 ;
+>   - nom sur une seule ligne, points de suspension s'il dépasse.
+>
+> ### 4.2 Verticale du cadre
+>
+> - Pas de marge haute.
+> - En-tête : 28 px de haut, avec le texte (hauteur 15) à y = 6,5.
+> - Lignes de mouvement : 44 px chacune, avec un séparateur de 1 px #DEE3E5 en haut de chaque ligne.
+> - Marge basse 3,5 px. Elle corrige l'œil : avec elle, l'espace visible sous les lettres de la dernière ligne égale l'espace visible au-dessus des lettres de l'en-tête.
+> - Hauteur = 28 + 44 × nombre de mouvements + 3,5. Avec 2 mouvements : 119,5 px.
+>
+> ### 4.3 En-tête
+>
+> - « Mouvement » à gauche (x = 16).
+> - « Objectif », « Par tour » et « Max » centrés sur leur colonne.
+> - Style commun : Inter Medium 12, #595E66.
+>
+> ### 4.4 Ligne de mouvement (44 px)
+>
+> **Contenu**
+> - Nom : Inter Regular 13, #141414, hauteur 16.
+> - Étiquette sous le nom : Inter Semi Bold 11, hauteur 13.
+>   - Libellés : « (rép., +kg) », « (durée, +kg) », « (rép., −kg) », « (durée, −kg) ».
+>   - Parenthèses, virgule et « +kg » / « −kg » : #0508E5. Le mot « rép. » ou « durée » est en gris #595E66.
+>   - Le signe moins est U+2212 (−). Pas d'espace entre le signe et « kg ».
+> - Objectif :
+>   - valeur sans unité (« 10 ») ou durée au format du §1 ;
+>   - Inter Semi Bold 13, #0508E5 ;
+>   - texte de hauteur 16, centré dans une cellule de 44 × 24.
+> - Par tour : « + 2 », écriture inchangée, Inter Semi Bold 13, #0508E5, centré dans une cellule de 44 × 24.
+> - Max : bouton radio de 20 px, centré dans la colonne de 44 px.
+> - Charge : une seule par mouvement.
+>   - « (12 kg) », Inter Regular 11, #0508E5, hauteur 13 ;
+>   - centrée sous la cellule Objectif, sans cadre.
+> - Ligne cochée en Max : Objectif et Par tour en #BFC2CC, comme dans l'existant. Le nom, l'étiquette et la charge ne changent pas de couleur.
+>
+> **Positions verticales** (y relatif au haut de la ligne)
+>
+> | État | Nom | Étiquette | Cadre des cellules | Texte des cellules | Radio Max | Charge |
+> |---|---|---|---|---|---|---|
+> | Charge non affichée | 6,5 | 24,5 | 10 | 14 | 12 | absente |
+> | Charge affichée | 6,5 | 24,5 | 2,5 | 6,5 | 12 | 24,5 |
+>
+> - Marges mesurées sur les textes :
+>   - le bloc nom + étiquette et le bloc valeur + charge ont 6,5 px au-dessus et en dessous ;
+>   - sans charge, les valeurs sont centrées sur la hauteur de la ligne.
+> - Le nom est aligné sur les valeurs, l'étiquette sur la charge.
+> - Le radio Max est toujours centré verticalement dans la ligne. Il ne bouge pas.
+> - Passage d'un état à l'autre :
+>   - seules les cellules Objectif et Par tour glissent, entre y = 10 et y = 2,5 ;
+>   - la charge apparaît ou disparaît ;
+>   - le nom, l'étiquette et le radio ne bougent pas.
+> - La hauteur de la ligne reste 44 px dans les deux états.
+>
+> ### 4.5 Cellules de valeur
+>
+> - Cadre de 44 × 24, rayon 10, marge horizontale 0, texte centré. La largeur ne varie jamais.
+> - Cellule remplie : aucun fond.
+> - Cellule vide : « — » (U+2014), Inter Semi Bold 13, #D92D20 (color/status/danger), sur fond #FFF1F0 (color/status/danger-surface).
+>
+> ## 5. Déroulé
+>
+> - Cadre de 370 px, fond #F9FAFC, rayon 16.
+> - Marges intérieures : 8 en haut, 16 à droite, 8 en bas, 16 à gauche.
+> - Éléments empilés avec 4 px d'écart :
+>   1. frise, 22 px ;
+>   2. repères de temps, 13 px : « 0 » à gauche, durée à droite au format du §1, Inter Regular 11, #141414 ;
+>   3. légende, 18 px.
+> - Position verticale du bloc : inchangée.
+>
+> ## 6. Modifications de présentation par rapport à l'existant (diff à appliquer)
+>
+> 1. Colonne « Charge » supprimée ; la charge est affichée sous l'Objectif, en Regular 11.
+> 2. Unité retirée des cellules (« 10 rép. » → « 10 ») ; « rép. » ou « durée » passe en gris dans l'étiquette sous le nom.
+> 3. Étiquette « (unité, ±kg) » ajoutée sous le nom, en Semi Bold 11.
+> 4. En-tête de 32 → 28 px, lignes de 36 → 44 px, avec les positions du §4.4. Pas de marge haute, marge basse de 3,5 px.
+> 5. Colonnes de 44 px, 12 px d'écart, calées à droite à 16 px du bord ; en-têtes, valeurs et radio centrés dans leur colonne.
+> 6. Nom et « Mouvement » à x = 16, au lieu de 12.
+> 7. Durées au format `M′SS″` : 12 min → 12′00″, dans « Durée » et sur la frise.
+> 8. Écart de 8 px entre « Durée » et le tableau.
+>
+> ## 7. Contrôle avant livraison
+>
+> - Comparer à l'écran Figma 8624:30521 pour :
+>   - les marges de 16 px ;
+>   - les colonnes de 44 px ;
+>   - les hauteurs (en-tête 28, lignes 44) ;
+>   - les positions verticales des deux états du §4.4 ;
+>   - les tailles de police (13 / 12 / 11).
+> - Comparer à l'écran EMOM 8624:30392 : tout ce qui est commun doit être identique.
+> - Aucun comportement existant ne doit changer.
+
+Notes de recette liées, recopiées mot pour mot :
+
+> b-amrap-table (Hermann) : « Gérer l'information de la charge comme dans le tableau Tabata »
+>
+> b-emom-table (Hermann, 08/11/2026) : « Quand on appui sur (+kg) la ligne des charges s'affiche mais s'éloigne de la ligne du nom du mouvement. C'est une régression. Elle ne doit pas s'éloigner et la ligne des valeur des charges doit rester très proche de la ligne des valeurs des objectifs répétition/durée. Mesurer une bonne fois pour toute cet écart et arrêter d'en changer à chaque fois. Il a ate correct a un moment donner. L'objectif est d'avoir deux lignes compacts pour ne pas prendre de place. Enlever le cadre blanc autour des valeurs de charge.
+> Il faut aussi rapprocher la ligne (+kg) de la ligne du nom, elle est trop éloignée. »
+
+Réalisation et classement (règle de synchronisation code / documentation) :
+
+- **Spécification A et B (classe B).** `src/features/sessions/FormatTables.tsx` (`TABLE_LAYOUT` : colonnes de 44, écart de 12, marges de 16, en-tête de 28, lignes de 44, marge basse de 3,5 ; positions verticales nom 6,5 / étiquette 24,5 / cellule 10 ou 2,5 / charge 24,5 / radio 12 ; `formatPrimeDuration` : M′SS″) ; `FormatModelScreen.tsx` (lignes de paramètres de 40 au récapitulatif, champ « Exécution » de 26 rayon 5 #5F60EE, cadre du tableau sans marge, légende du Déroulé en 13 avec 16 d'écart, durées M′SS″ au récapitulatif) ; spécification Formats §9.5 (`docs/KODJO-Formats-entrainement-2026-11-02.md`).
+- **b-emom-table (classe A, spécification A §4.4).** Hauteur de ligne fixe (44) avec ou sans charge ; nom et étiquette immobiles ; charge sans cadre, Regular 11, à 2 px sous le texte des valeurs. Écart figé par un test (`formats.recette0811.test.tsx`). Historique : l'écart était compact au 06/11/2026 (`8a5befaf`, r-series : ligne constante de 46, deuxième ligne remontée de 4, charge sans fond en 11) ; il a été cassé le 07/11/2026 par `c8fe2857` (remarque e, champ de valeur standard) — la charge a pris le champ standard (cadre blanc de 24) et 4 d'écart, la ligne passant de 52 à 64 et l'étiquette « (rép, +kg) » descendant d'environ 8 quand la charge apparaît (4 d'écart + centrage sur 24 au lieu de 16).
+- **b-amrap-table (classe A, spécification B §4.1 et §4.4).** Plus de colonne Charge : « +kg » / « −kg » dans l'étiquette sous le nom, charge sous l'Objectif.
+- **Death by, Tabata, 30/30, Renforcement, À l'échec (classe A pour le comportement, présentation selon B).** « Aucun comportement fonctionnel existant ne change » : la décision t-coche-direct du 06/11/2026 reste en vigueur — pas de « +kg » par mouvement ; avec « Avec charge », la charge est toujours présente (et parcourue par Suivant) ; non renseignée, un trait dans un cadre orange. Seule la présentation B s'applique : plus de colonne Charge, charge sous la première colonne (Regular 11, bleu, sans cadre une fois renseignée), lignes de 44 dans l'état « charge affichée » dès que « Avec charge » est actif, valeurs sans unité, étiquette sous le nom réduite à l'unité (« (rép.) », « (durée) »). Le bouton « +kg » par mouvement reste réservé aux tableaux qui l'avaient (AMRAP selon la spécification B, EMOM, Progression, For time, Superset).
+- **À confirmer par Hermann (interprétations de mise en œuvre, non promues en règle).** (1) Le format M′SS″ est appliqué au récapitulatif seulement ; le questionnaire garde « 1 min », « 30 s ». (2) Une charge vide sous « +kg » reste « (—) » gris, comme dans le tableau des séries existant. (3) Le passage de la cellule de y = 10 à y = 2,5 n'est pas animé (aucune animation n'existait). (4) AMRAP : avant le 08/11, sa charge suivait t-coche-direct (case toujours présente) ; la spécification B (« (rép., +kg) ») lui donne « +kg » par mouvement, appliqué sur instruction de la session principale.
+- **Hors périmètre.** Note C du même relevé (en-têtes de Circuit flottants au défilement de la Composition) : non traitée ici.
+
+## Recette du 08/11/2026 — catalogue
+
+Notes de Hermann (recette iPhone du 08/11/2026), recopiées textuellement :
+
+> b-cat-fondu (KO) : « Les boutons apparaissent toujours avec un décalage, puis arrivent les zones corporelles bien après. Quel est le diagnostic de ce problème plusieurs fois rapporté ?
+> Appuyer sur Revenir aux paramètres fait disparaître la liste et apparaître le questionnaire avec environs 0.5 secondes entre les deux où la page est blanche…
+> Appuyer sur +Ajouter crée un saut, et la zone de contexte de la page du catalogue n'a plus le transparent progressif… n'utilises tu pas la même page avec un remplacement d'une partie du contenu ??? »
+>
+> b-cat-fermer (OK avec remarque) : « Même commentaire que lorsqu'on appui sur Revenir aux paramètres »
+>
+> b-cat-niveau (KO) : « Oui. Mais dans le questionnaire et le récapitulatif le niveau est de nouveau bleu et pas aligné. C'est à corriger »
+
+Réalisation et classement (règle de synchronisation code / documentation) ; diagnostic détaillé : `.github/orchestration/reports/2026-11-08_PRE9-RECETTE-0811-CATALOGUE.md`.
+
+- **b-cat-fondu et b-cat-fermer — fondu enchaîné du mode catalogue d'un Format (classe B).** Oui, c'était la même page avec un remplacement du contenu : le défilement des paramètres recevait la liste à leur place, sous une seule opacité ; la fermeture faisait un fondu de sortie (450 ms) jusqu'à disparition, remplaçait le contenu puis faisait un fondu d'entrée (450 ms) : page blanche entre les deux. Désormais, le catalogue est une couche opaque posée sur les paramètres, qui restent montés et immobiles dessous ; seule l'opacité de la couche varie (0 → 1 à l'ouverture, 1 → 0 à la fermeture, 450 ms) : les deux contenus se croisent. À « Ajouter X mouvement(s) », les cartes ajoutées apparaissent dans les paramètres pendant le fondu. « Fermer sans sélectionner », « Revenir aux paramètres » et « Ajouter X mouvement(s) » suivent la même règle. Sous « Réduire les animations » : ouverture et fermeture immédiates. [Remplace E du 07/11/2026 (« les paramètres réapparaissent en fondu ») et le fondu de D du 07/11/2026.]
+- **Zone de contexte (classe A, recette du 04/11/2026, f4-modale : « la zone colorée doit devenir progressivement transparente » ; « La zone colorée doit rester figée sur l'écran »).** Cause : le fond blanc opaque de la recherche (demande t-recherche du 06/11/2026) était peint au-dessus de la zone de contexte, sur sa part fondue. La couche du catalogue passe désormais sous la zone de contexte, dont la part fondue reste visible dès l'apparition. Saut à « + Ajouter » : la liste était placée d'après la hauteur mesurée de la recherche (0 à la première ouverture) et partageait le défilement des paramètres ; la recherche est maintenant en tête de la couche, sans mesure, et la liste a son propre défilement.
+- **Boutons et pastilles (classe B, w-liste du 06/11/2026 : « Tout doit apparaître en même temps »).** Filtrer, Trier et Replier sont rendus avec la liste (ils étaient montés une image plus tard, avec un fondu propre de 220 ms) [rétrécissement visible du champ à l'arrivée des commandes (f4-catalogue, 04/11/2026) — remplacé, la couche étant encore transparente]. Pastille des zones corporelles : le préchargement du 07/11 (`Image.prefetch`) n'était jamais lu par l'affichage (cache différent) ; l'image est désormais préchargée en image native à l'ouverture du Format et donnée directement à la pastille ; le fondu d'apparition l'attend au plus 300 ms.
+- **b-cat-niveau — Niveau des cartes « Mouvement sélectionné » (classe B).** Partout (mode catalogue, questionnaire, récapitulatif) : Niveau en noir (`text-primary`, #141414), sur la ligne de base du nom. [« Les cartes des récapitulatifs gardent leur Niveau en bleu » (07/11/2026, B) — remplacé.]
+
+## Recette du 08/11/2026 — défilement de la Composition (constat C)
+
+Note de Hermann (« Autres constats », 08/11/2026), recopiée textuellement :
+
+> C) il y a un problème d’affichage des circuit lors des défilements, les lignes d’en-tête des circuit flottent au milieu de l’écran… je joins une copie d’écran dans PowerShell
+
+- **Classe A (régression ; règle : en-têtes collants CS-D4 à CS-D7, recette n° 3 r3-cycle).** Cause démontrée : le correctif t-depli du 08/11/2026 (commit `5d5a5ec0`) rend toujours le contenu d'un cadre d'enveloppe dans deux vues ; le bloc d'un Circuit, mesuré dans son parent, recevait l'ordonnée 0 (relative au cadre) au lieu de sa position dans la liste. Les plages des en-têtes collants, l'ancre du panneau de nature et les actions du Circuit étaient calculées comme si chaque Circuit était en haut de sa liste : en-têtes collés au mauvais endroit, au milieu de l'écran. Correction : le cadre mesure sa propre position et la transmet au bloc, qui l'ajoute à la sienne ; le Circuit unique historique est mesuré par son cadre. Aucune règle modifiée. Test : `CompositionScreen.recette3circuits` (« constat C »), qui échoue sans la correction (36 au lieu de 136).
+- **Test `CompositionScreen.recette1` (« disposition générale (deux Circuits) »), en échec depuis `c8fe2857`.** Diagnostic : aucune anomalie de l'application. La feuille ouverte depuis une carte de la disposition générale redescend (450 ms, recette n° 2, constat d) avant de se fermer ; le test touchait la carte suivante pendant la descente. Classe D : le test attend la fin de la descente.
 
 ## Catalogues, cartes et validation des modales — 5 et 6 novembre 2026
 

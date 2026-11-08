@@ -1,5 +1,4 @@
-import { Image } from "expo-image";
-import { Image as RNImage } from "react-native";
+import { Image, type ImageRef } from "expo-image";
 
 import { dimensions } from "./tokens";
 
@@ -353,7 +352,7 @@ export function KodjoIcon({ name, opacity, tintColor, size, testID }: KodjoIconP
 
   return (
     <Image
-      source={sources[name]}
+      source={preloaded.get(name) ?? sources[name]}
       style={{ width, height, opacity: resolvedOpacity, tintColor }}
       contentFit="contain"
       accessible={false}
@@ -364,20 +363,61 @@ export function KodjoIcon({ name, opacity, tintColor, size, testID }: KodjoIconP
 
 /**
  * Recette iPhone du 07/11/2026 (Hermann, remarque D : « l'affichage se fait en deux temps : le symbole de la zone corporelle
- * (pas son cercle) apparait avec un décalage d'une seconde environs ») : les icônes sont des SVG affichés par `expo-image`,
- * chargés et décodés de façon asynchrone (en développement, servis par Metro) ; une vue voisine s'affiche aussitôt, le
- * symbole ensuite. Préchargement dans le cache mémoire d'`expo-image` (même adresse que l'affichage) avant l'écran qui les
- * montre, pour qu'ils apparaissent avec leur carte. Sans effet sur le tracé ; tout échec est ignoré (affichage normal).
+ * (pas son cercle) apparait avec un décalage d'une seconde environs ») et du 08/11/2026 (b-cat-fondu : « puis arrivent les
+ * zones corporelles bien après ») : les icônes sont des SVG affichés par `expo-image`, chargés et décodés de façon asynchrone.
+ * [07/11 : préchargement `Image.prefetch(…, "memory-disk")` — remplacé le 08/11/2026 : `prefetch` range l'image dans le cache
+ * des originaux, alors qu'une icône (`cachePolicy` « disk » par défaut) n'interroge jamais la mémoire ; chaque pastille
+ * repassait par une lecture disque et un décodage SVG asynchrones (sources `expo-image` 57.0.3, `ImageModule.swift`
+ * « prefetch » et `ImageUtils.swift` `createSDWebImageContext`).]
+ * Préchargement en image native (`Image.loadAsync`, référence gardée ici) : une icône préchargée reçoit cette image pour
+ * source et s'affiche dès son montage, sans chargement ni décodage. Sans effet sur le tracé ; tout échec est ignoré
+ * (affichage normal, asynchrone).
  */
-export function prefetchKodjoIcons(names: readonly KodjoIconName[]): Promise<boolean> {
-  try {
-    const uris = names.flatMap((name) => {
-      const uri = RNImage.resolveAssetSource(sources[name])?.uri;
-      return typeof uri === "string" && uri.length > 0 ? [uri] : [];
-    });
-    if (uris.length === 0) return Promise.resolve(false);
-    return Promise.resolve(Image.prefetch(uris, "memory-disk")).catch(() => false);
-  } catch {
-    return Promise.resolve(false);
-  }
+const preloaded = new Map<KodjoIconName, ImageRef>();
+const preloading = new Map<KodjoIconName, Promise<boolean>>();
+
+function preloadOne(name: KodjoIconName): Promise<boolean> {
+  if (preloaded.has(name)) return Promise.resolve(true);
+  const pending = preloading.get(name);
+  if (pending !== undefined) return pending;
+  const task = (async () => {
+    try {
+      const ref: ImageRef | null | undefined = await Image.loadAsync(sources[name]);
+      if (ref === null || ref === undefined) return false;
+      preloaded.set(name, ref);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      preloading.delete(name);
+    }
+  })();
+  preloading.set(name, task);
+  return task;
+}
+
+/** Précharge des icônes en image native ; vrai si toutes sont prêtes. */
+export function preloadKodjoIcons(names: readonly KodjoIconName[]): Promise<boolean> {
+  return Promise.all(names.map(preloadOne)).then((ready) => ready.every(Boolean));
+}
+
+/** Icônes préchargées, ou abandon après `timeoutMs` (l'écran n'est jamais bloqué) : vrai si toutes sont prêtes. */
+export function whenKodjoIconsReady(names: readonly KodjoIconName[], timeoutMs: number): Promise<boolean> {
+  if (names.every((name) => preloaded.has(name))) return Promise.resolve(true);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<boolean>((resolve) => {
+    timer = setTimeout(() => resolve(false), timeoutMs);
+  });
+  return Promise.race([preloadKodjoIcons(names), timeout]).finally(() => clearTimeout(timer));
+}
+
+/** Image native d'une icône préchargée (tests et diagnostic). */
+export function preloadedKodjoIcon(name: KodjoIconName): ImageRef | undefined {
+  return preloaded.get(name);
+}
+
+/** Tests : oublie les images préchargées. */
+export function resetPreloadedKodjoIconsForTests(): void {
+  preloaded.clear();
+  preloading.clear();
 }

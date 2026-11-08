@@ -321,7 +321,7 @@ describe("FormatModelScreen", () => {
     // Activation globale : aucune ligne de charge tant que « (+ kg) » n'est pas touché.
     expect(screen.queryByTestId("format-progression-0-0-load")).toBeNull();
     expect(screen.getByTestId("format-progression-0-charge")).toHaveTextContent(t.table.addLoadShort); // Recette du 05/11 (n-charge-switch) : « (rép, +kg) » sous le nom.
-    expect(screen.getByTestId("format-progression-0-unit")).toHaveTextContent("(rép, +kg)");
+    expect(screen.getByTestId("format-progression-0-unit")).toHaveTextContent("(rép., +kg)"); // Spécification de Hermann du 08/11/2026 (A §4.4).
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-progression-0-charge"));
     });
@@ -547,6 +547,25 @@ describe("FormatModelScreen", () => {
     expect(groups[0]!.props.children).toHaveLength(2);
   });
 
+  // Spécification de Hermann du 08/11/2026 (A §1, §3, §4.2) — récapitulatif EMOM : durées M′SS″ (Intervalle, Durée totale, repère de fin du
+  // Déroulé, début « 0 ») ; lignes de paramètres de 40 + séparateur de 1 (rogné sous la dernière) ; cadre du tableau sans marge haute.
+  it("spécification du 08/11 (A) : récapitulatif EMOM — durées M′SS″, lignes de paramètres de 40, cadre du tableau sans marge", async () => {
+    mockModel = "EMOM";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    toSummary();
+    expect(screen.getByTestId("format-intervalSeconds").props.value).toBe("1′00″");
+    expect(screen.getByTestId("format-total")).toHaveTextContent(/^\d+′\d{2}″$/u);
+    expect(screen.getByTestId("format-timeline-end")).toHaveTextContent(/^\d+′\d{2}″$/u);
+    for (const id of ["format-row-seriesCount", "format-row-intervalSeconds", "format-row-total"]) {
+      expect(StyleSheet.flatten(screen.getByTestId(id).props.style)).toMatchObject({ minHeight: 41, paddingVertical: 0, borderBottomWidth: 1 });
+    }
+    expect(StyleSheet.flatten(screen.getByTestId("format-objectives").props.style).paddingVertical).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId("format-emom-table").props.style)).toMatchObject({ paddingBottom: 3.5 });
+  });
+
   // Constat de Hermann du 06/11/2026 sur iPhone (« La carte est sélectionnée mais ne se déplace pas, c'est l'écran qui
   // se déplace ») : le glisser est porté par un geste natif (Pan après appui long). Jest simule les états du geste ; il ne
   // prouve pas que la feuille native iOS reste immobile (vérification sur iPhone).
@@ -603,8 +622,19 @@ describe("FormatModelScreen", () => {
     await pick("Squ", "mv-squats", "format-buy-in");
     await pick("Fen", "mv-fentes", "format-loop");
     // Ordre : buy-in (0), boucle (1, 2), buy-out (3).
-    expect(() => getByGestureTestId("format-movement-drag-0")).toThrow();
-    expect(() => getByGestureTestId("format-movement-drag-3")).toThrow();
+    // 08/11/2026 (b-cat-fondu) : les cartes ne sont plus démontées pendant le mode catalogue ; le registre de test de
+    // react-native-gesture-handler garde alors l'ancien identifiant d'un geste renommé (drag-0 → drag-1) : on vérifie
+    // qu'aucun geste ne porte encore l'identifiant demandé. [Absence d'entrée dans le registre — remplacé.]
+    const hasDrag = (id: string) => {
+      try {
+        return (getByGestureTestId(id) as unknown as { config?: { testId?: string } }).config?.testId === id;
+      } catch {
+        return false;
+      }
+    };
+    expect(hasDrag("format-movement-drag-0")).toBe(false);
+    expect(hasDrag("format-movement-drag-3")).toBe(false);
+    expect(hasDrag("format-movement-drag-1")).toBe(true);
     act(() => {
       fireGestureHandler(getByGestureTestId("format-movement-drag-1"), [
         { state: State.BEGAN },
@@ -812,9 +842,11 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
     expect(screen.getByTestId("format-death-by-table")).toBeTruthy();
     expect(screen.queryByTestId("format-row-startRepetitions")).toBeNull();
-    // Hermann, 04/11/2026 : « death by, il manque les unités au tableau des objectifs ».
-    expect(screen.getByTestId("format-death-by-start-0").props.value).toBe(`1 ${t.repetitionsUnit}`);
-    expect(screen.getByTestId("format-death-by-increment-0").props.value).toBe(`+ 1 ${t.repetitionsUnit}`);
+    // Spécification de Hermann du 08/11/2026 (B §4.4, « Unité retirée des cellules ») : valeurs sans unité, « rép. » dans l'étiquette
+    // sous le nom. [« 1 rép. », « + 1 rép. » (Hermann, 04/11/2026) — remplacés le 08/11/2026.]
+    expect(screen.getByTestId("format-death-by-start-0").props.value).toBe("1");
+    expect(screen.getByTestId("format-death-by-increment-0").props.value).toBe("+ 1");
+    expect(screen.getByTestId("format-death-by-0-unit")).toHaveTextContent("(rép.)");
     // Retour à un mouvement : le tableau disparaît.
     fireEvent(screen.getByTestId("format-movement-1-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     expect(screen.queryByTestId("format-death-by-table")).toBeNull();
@@ -847,9 +879,10 @@ describe("FormatModelScreen", () => {
     expect(within(band).queryByTestId("format-catalogue-search")).toBeNull();
     expect(within(screen.getByTestId("format-search-zone")).getByTestId("format-catalogue-search")).toBeTruthy();
     expect(within(screen.getByTestId("format-search-zone")).getByTestId("format-movements-link").props.accessibilityLabel).toBe("Revenir aux paramètres");
-    expect(within(screen.getByTestId("format-questionnaire")).getByTestId("format-catalogue-results")).toBeTruthy();
+    // 08/11/2026 (b-cat-fondu) : résultats dans le défilement propre de la couche du catalogue. [Dans `format-questionnaire` — remplacé.]
+    expect(within(screen.getByTestId("format-catalogue-scroll")).getByTestId("format-catalogue-results")).toBeTruthy();
     // Défilement conservé avec un texte saisi (e-cat-defiler).
-    expect(screen.getByTestId("format-questionnaire").props.scrollEnabled).toBe(true);
+    expect(screen.getByTestId("format-catalogue-scroll").props.scrollEnabled ?? true).toBe(true);
     fireEvent.press(screen.getByTestId("format-catalogue-search-clear"));
     expect(screen.getByTestId("format-catalogue-search").props.value).toBe("");
     expect(screen.queryByTestId("format-catalogue-search-clear")).toBeNull();
@@ -883,7 +916,7 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-questionnaire")).toBeTruthy();
     typeValue("pauseSeconds", "15");
     toSummary();
-    expect(screen.getByTestId("format-pause-0").props.value).toBe("15 s");
+    expect(screen.getByTestId("format-pause-0").props.value).toBe("15″"); // Spécification de Hermann du 08/11/2026 (B §1) : M′SS″ / S″.
     expect(screen.getByTestId("format-save").props.accessibilityLabel).toBe("Enregistrer les modifications"); // Complément du 5 novembre 2026 (§18–§19) : coche de l’en-tête, libellé d’accessibilité.
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
@@ -989,7 +1022,8 @@ describe("FormatModelScreen", () => {
     expect(withOffset).toBe(101 + 16);
     // Mode catalogue : la recherche figée se place à l'emplacement de la ligne « Mouvements ».
     fireEvent.press(screen.getByTestId("format-movements-link"));
-    expect(StyleSheet.flatten(screen.getByTestId("format-search-zone").props.style)).toMatchObject({ top: 101 + 16 });
+    // 08/11/2026 (b-cat-fondu) : recherche en tête de la couche du catalogue, à la même place. [`top` absolu — remplacé.]
+    expect(StyleSheet.flatten(screen.getByTestId("format-search-zone").props.style)).toMatchObject({ marginTop: 101 + 16 });
     // Recette du 06/11/2026 (t-recherche) : blanc opaque depuis le bas de la zone de contexte (101) jusqu'au bas de la recherche.
     const background = StyleSheet.flatten(screen.getByTestId("format-search-zone-background").props.style);
     expect(background).toMatchObject({ top: -16, bottom: 0, backgroundColor: "#FFFFFF" });

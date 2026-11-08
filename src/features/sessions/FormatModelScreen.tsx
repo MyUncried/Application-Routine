@@ -2,7 +2,7 @@ import { Button as SwiftUIButton, Host, Image as SwiftUIImage, Menu, RNHostView,
 import { accessibilityLabel as swiftUIAccessibilityLabel, accessibilityValue as swiftUIAccessibilityValue } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { isValidElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, isValidElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Keyboard,
@@ -21,7 +21,6 @@ import {
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Reanimated, {
   Easing as ReanimatedEasing,
-  FadeIn,
   LinearTransition,
   ReduceMotion,
   useAnimatedStyle,
@@ -89,6 +88,7 @@ import {
   TableCell,
   cellKey,
   formatLoad,
+  formatPrimeDuration,
   hasSummaryTable,
   parseCellKey,
   tableCellOrder,
@@ -101,7 +101,7 @@ import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovem
 import { strings } from "@/shared/i18n";
 import { CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
-import { KodjoIcon, prefetchKodjoIcons } from "@/shared/ui/KodjoIcon";
+import { KodjoIcon, preloadKodjoIcons, whenKodjoIconsReady, type KodjoIconName } from "@/shared/ui/KodjoIcon";
 import { MOTION_FADE_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { colors as tokenColors, dimensions, minTouchTarget, switchOffColors } from "@/shared/ui/tokens";
@@ -146,7 +146,7 @@ const SEARCH_PLACEHOLDER = "#B4B8C2";
 const TAGLINE = "#5C636E";
 const RECOVERY_BLOCK = "#D9DBE0";
 const BUY_IN_BLOCK = "#7984C7";
-const CHIP = "#5B5BF0";
+const CHIP = "#5F60EE";
 /**
  * Zone de contexte (zone colorée) — demande de Hermann du 05/11/2026 (« il faut remonter un le bord bas de la zone colorée, et
  * laisser la ligne Mouvement à sa place (en dimension absolue) ») : 101 au lieu de 109 ; la ligne « Mouvements » reste à 109 + 8.
@@ -190,6 +190,13 @@ const PILE_LEAF_INSET = 8;
  * 450 ms), courbes du Catalogue des mouvements ; aucune animation sous « Réduire les animations ».
  */
 const CATALOGUE_MOTION_MS = MOTION_FADE_DURATION_MS;
+/**
+ * Recette iPhone du 08/11/2026 (b-cat-fondu : « puis arrivent les zones corporelles bien après ») : icônes des cartes du mode
+ * catalogue, préchargées en image native à l'ouverture du Format ; le fondu d'apparition les attend au plus 300 ms (préchargement
+ * normalement terminé bien avant « + Ajouter » ; l'attente maximale évite tout blocage si le chargement échoue).
+ */
+const CATALOGUE_ICONS: readonly KodjoIconName[] = ["card-body-zone-badge"];
+const CATALOGUE_ICON_WAIT_MS = 300;
 const CATALOGUE_FADE_TIMING = { duration: CATALOGUE_MOTION_MS, easing: ReanimatedEasing.bezier(0.4, 0, 0.2, 1), reduceMotion: ReduceMotion.System };
 const CATALOGUE_SLIDE_TIMING = { duration: CATALOGUE_MOTION_MS, easing: ReanimatedEasing.bezier(0.33, 1, 0.68, 1), reduceMotion: ReduceMotion.System };
 const catalogueLayoutTransition = LinearTransition.duration(CATALOGUE_MOTION_MS)
@@ -266,8 +273,8 @@ function formatSeconds(seconds: number): string {
  * arrondi au quart de minute de la Composition) : le questionnaire affiche la durée calculée sans arrondi
  * (référence Formats §9.1, FMT-12 : Tabata À la suite « 8 min 50 s »). « ≥ » pour une borne minimale.
  */
-function modelDurationText(duration: SessionDurationResult): string {
-  const text = formatSeconds(Number.isFinite(duration.seconds) ? duration.seconds : 0);
+function modelDurationText(duration: SessionDurationResult, format: (seconds: number) => string = formatSeconds): string {
+  const text = format(Number.isFinite(duration.seconds) ? duration.seconds : 0);
   return duration.kind === "lowerBound" ? `${strings.shared.durationNature.lowerBoundPrefix}${text}` : text;
 }
 
@@ -310,17 +317,29 @@ function movementShade(band: string, index: number): string {
  * elle existe (ex. après nombre de séries tout seul) ») : quelle que soit la dernière ligne d'un cadre, son trait est masqué (le
  * contenu déborde d'un point sous le cadre, qui le rogne).
  */
-function Panel({ children, style, testID }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; testID?: string }) {
+function Panel({ children, style, testID, summary = false }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; testID?: string; summary?: boolean }) {
   return (
     <View style={[styles.panel, style]} testID={testID}>
-      <View style={styles.panelContent}>{children}</View>
+      <SummaryRowsContext.Provider value={summary}>
+        <View style={styles.panelContent}>{children}</View>
+      </SummaryRowsContext.Provider>
     </View>
   );
 }
 
+/**
+ * Spécification de Hermann du 08/11/2026 (A §3, B §3) — cadres de paramètres du récapitulatif : lignes de 40, séparateur de 1 entre deux
+ * lignes (hauteur du cadre = 40 × n + (n − 1) : « Nombre de séries » 40, « Intervalle / Durée totale / Exécution » 122), libellé à
+ * y = 12, valeur centrée verticalement. Chaque ligne porte son séparateur, celui de la dernière est rogné par le cadre (`Panel`).
+ * [Lignes de 34 avec 4 de marge verticale au récapitulatif — remplacées le 08/11/2026 ; questionnaire inchangé.]
+ */
+const SummaryRowsContext = createContext(false);
+const SUMMARY_ROW_HEIGHT = 40;
+
 function Row({ label, children, last = false, testID }: { label: string; children: React.ReactNode; last?: boolean; testID?: string }) {
+  const summary = useContext(SummaryRowsContext);
   return (
-    <View style={[styles.row, last ? null : styles.rowSeparated]} testID={testID}>
+    <View style={summary ? [styles.row, styles.summaryRow] : [styles.row, last ? null : styles.rowSeparated]} testID={testID}>
       <Text style={styles.rowLabel}>{label}</Text>
       {children}
     </View>
@@ -638,7 +657,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [commandsShown, setCommandsShown] = useState(false);
   const [catalogueFocus, setCatalogueFocus] = useState(false);
   const [bandHeight, setBandHeight] = useState(CONTEXT_HEIGHT);
-  const [searchZoneHeight, setSearchZoneHeight] = useState(0);
   const [picked, setPicked] = useState<ReadonlyMap<string, Movement>>(new Map());
   const catalogueItems = useMemo(() => (catalogueMode ? visibleMovementItems(entries, query, catalogueFilters) : []), [catalogueFilters, catalogueMode, entries, query]);
   // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » (ou « Changer ») ouvre directement le mode catalogue — champ de
@@ -648,45 +666,83 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // d'action. Ouverture : la liste, la recherche et « Fermer sans sélectionner » apparaissent ensemble en fondu lent ; fermeture
   // (« Fermer sans sélectionner », « Ajouter X mouvements », « Revenir aux paramètres ») : fondu lent jusqu'à disparition, puis
   // retour aux paramètres, qui réapparaissent en fondu. [Avant : apparition et fermeture d'un coup — remplacé.]
-  const catalogueOpacity = useSharedValue(1);
+  // Recette iPhone du 08/11/2026 (b-cat-fondu, b-cat-fermer, Hermann : « Appuyer sur Revenir aux paramètres fait disparaître la
+  // liste et apparaître le questionnaire avec environs 0.5 secondes entre les deux où la page est blanche » ; « Appuyer sur
+  // +Ajouter crée un saut, et la zone de contexte de la page du catalogue n'a plus le transparent progressif ») : fondu enchaîné.
+  // Le catalogue est une couche opaque posée sur les paramètres, qui restent montés et immobiles dessous ; seule l'opacité de
+  // cette couche varie (0 → 1 à l'ouverture, 1 → 0 à la fermeture) : les deux contenus se croisent, sans page blanche. La zone
+  // de contexte, au-dessus de la couche, garde sa place et son fondu. L'ajout s'applique dès le début de la fermeture (les
+  // cartes ajoutées apparaissent pendant le fondu). Ouverture : le fondu attend la pastille des zones (image native
+  // préchargée), au plus `CATALOGUE_ICON_WAIT_MS`, pour que boutons, cartes et pastilles apparaissent ensemble.
+  // [07/11 : un seul fondu du contenu, de la recherche et du bouton du bas — sortie jusqu'à disparition, remplacement du
+  // contenu, puis entrée (≈ 2 × 450 ms dont une page blanche) — remplacé le 08/11/2026.]
+  const catalogueOpacity = useSharedValue(0);
   const catalogueFadeStyle = useAnimatedStyle(() => ({ opacity: catalogueOpacity.value }));
   const catalogueClosing = useRef(false);
+  const [catalogueLeaving, setCatalogueLeaving] = useState(false);
+  const [catalogueFade, setCatalogueFade] = useState<{ readonly to: 0 | 1; readonly id: number } | null>(null);
+  const catalogueFadeId = useRef(0);
+  const afterCatalogueFade = useRef<{ readonly id: number; readonly run: () => void } | null>(null);
+  const catalogueScrollRef = useRef<ScrollView>(null);
   // Remarque D (« le symbole de la zone corporelle (pas son cercle) apparait avec un décalage d'une seconde environs ») : la
   // pastille des zones corporelles des cartes est préchargée dès l'ouverture du Format, avant « + Ajouter ».
   useEffect(() => {
-    void prefetchKodjoIcons(["card-body-zone-badge"]);
+    void preloadKodjoIcons(CATALOGUE_ICONS);
   }, []);
-  const fadeCatalogueIn = () => {
-    if (reduceMotion) {
-      catalogueOpacity.set(1);
-      return;
-    }
-    catalogueOpacity.set(0);
-    catalogueOpacity.set(withTiming(1, CATALOGUE_FADE_TIMING));
+  const runAfterCatalogueFade = useCallback((id: number, finished: boolean) => {
+    const next = afterCatalogueFade.current;
+    if (next === null || next.id !== id) return;
+    afterCatalogueFade.current = null;
+    if (finished) next.run();
+    else catalogueClosing.current = false;
+  }, []);
+  useEffect(() => {
+    if (catalogueFade === null) return undefined;
+    const { to, id } = catalogueFade;
+    let cancelled = false;
+    const run = () => {
+      if (cancelled) return;
+      catalogueOpacity.set(
+        withTiming(to, CATALOGUE_FADE_TIMING, (finished) => {
+          scheduleOnRN(runAfterCatalogueFade, id, finished === true);
+        }),
+      );
+    };
+    if (to === 1) void whenKodjoIconsReady(CATALOGUE_ICONS, CATALOGUE_ICON_WAIT_MS).then(run);
+    else run();
+    return () => {
+      cancelled = true;
+    };
+    // Un fondu par demande (`catalogueFade`) : la valeur partagée et le rappel stable ne relancent pas le fondu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalogueFade]);
+  const requestCatalogueFade = (to: 0 | 1, then?: () => void) => {
+    catalogueFadeId.current += 1;
+    const id = catalogueFadeId.current;
+    afterCatalogueFade.current = then === undefined ? null : { id, run: then };
+    setCatalogueFade({ to, id });
   };
-  const finishCatalogueClose = (then: () => void) => {
-    catalogueClosing.current = false;
-    then();
-    // Les paramètres réapparaissent en fondu, une fois montés.
-    requestAnimationFrame(fadeCatalogueIn);
-  };
-  const releaseCatalogueClose = () => {
-    catalogueClosing.current = false;
-  };
-  /** Ferme le mode catalogue après un fondu lent (`then` : fermeture, ajout éventuel) ; immédiat sous « Réduire les animations ». */
-  const fadeCatalogueOut = (then: () => void) => {
+  /**
+   * Ferme le mode catalogue en fondu enchaîné : `apply` (ajout éventuel) dès le début, sous la couche qui s'efface ; fermeture à la
+   * fin du fondu. Immédiat sous « Réduire les animations ».
+   */
+  const fadeCatalogueOut = (apply?: () => void) => {
     if (catalogueClosing.current) return;
+    const finish = () => {
+      catalogueClosing.current = false;
+      closeCatalogue();
+      setSearchRole(null);
+      setQuery("");
+    };
+    apply?.();
     if (reduceMotion) {
-      then();
+      catalogueOpacity.set(0);
+      finish();
       return;
     }
     catalogueClosing.current = true;
-    catalogueOpacity.set(
-      withTiming(0, CATALOGUE_FADE_TIMING, (finished) => {
-        if (finished === true) scheduleOnRN(finishCatalogueClose, then);
-        else scheduleOnRN(releaseCatalogueClose);
-      }),
-    );
+    setCatalogueLeaving(true);
+    requestCatalogueFade(0, finish);
   };
   // Piles du mode catalogue (remarque D : « replier et déplier les mouvements lentement avec un glissement des cartes ») : les
   // transitions de place ne jouent que juste après un repli ou un dépli, jamais pendant la recherche ou le défilement.
@@ -715,13 +771,26 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     setPicked(new Map());
     // Demande de Hermann du 05/11/2026 (soir) : pas de focus par défaut dans la recherche.
     setCatalogueFocus(false);
-    setCommandsShown(false);
+    // b-cat-fondu (« Les boutons apparaissent toujours avec un décalage ») : Filtrer, Trier et Replier sont rendus avec la liste,
+    // sous la même opacité. [Commandes montées une image plus tard, en fondu propre de 220 ms (f4-catalogue) — remplacé le 08/11.]
+    setCommandsShown(true);
+    catalogueClosing.current = false;
+    setCatalogueLeaving(false);
     setCatalogueMode(true);
-    fadeCatalogueIn();
-    requestAnimationFrame(() => setCommandsShown(true));
+    if (reduceMotion) {
+      catalogueOpacity.set(1);
+      return;
+    }
+    requestCatalogueFade(1);
   };
   const closeCatalogue = () => {
+    // Fermeture directe aussi (message du Superset) : couche retirée, opacité remise à 0 pour le fondu de la prochaine ouverture.
+    catalogueClosing.current = false;
+    afterCatalogueFade.current = null;
+    setCatalogueFade(null);
+    catalogueOpacity.set(0);
     setCatalogueMode(false);
+    setCatalogueLeaving(false);
     setPicked(new Map());
     setCommandsShown(false);
   };
@@ -764,13 +833,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       .map((entry) => entry.movement);
     const role = searchRole;
     Keyboard.dismiss();
-    // Remarque E du 07/11/2026 : fermeture en fondu lent, puis ajout.
-    fadeCatalogueOut(() => {
-      closeCatalogue();
-      setSearchRole(null);
-      setQuery("");
-      addMovements(ordered, role);
-    });
+    // Remarque E du 07/11/2026 et b-cat-fermer du 08/11/2026 : ajout sous la couche du catalogue, qui s'efface en fondu enchaîné.
+    if (catalogueClosing.current) return;
+    fadeCatalogueOut(() => addMovements(ordered, role));
   };
   const openSheet = (movement: Movement) => router.push({ pathname: "/movement-sheet", params: { movementId: movement.id } });
   const filterSummary =
@@ -782,14 +847,18 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const duration = useMemo(() => modelDuration(elements), [elements]);
   const timeline = useMemo(() => modelTimeline(model, answers, movements), [answers, model, movements]);
   const movementName = (index: number) => movements[index]?.exercise.name ?? "";
+  // Spécification de Hermann du 08/11/2026 (A §1, B §1) : au récapitulatif, toutes les durées affichées au format M′SS″ (ou S″ sous une
+  // minute) — cellules de durée, Intervalle, Durée, Durée totale, repère de fin du Déroulé (le repère de début reste « 0 »).
+  // Questionnaire : format inchangé.
+  const formatDuration = stage === "summary" ? formatPrimeDuration : formatSeconds;
   const endLabel =
     timeline.end.kind === "UNTIL_FAILURE"
       ? t().untilFailure
       : timeline.end.kind === "MEASURED"
         ? t().measured
         : duration !== null
-          ? modelDurationText(duration)
-          : genericDuration(model, answers);
+          ? modelDurationText(duration, formatDuration)
+          : genericDuration(model, answers, formatDuration);
 
   const busyRef = useRef(false);
   // Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « Il n'est pas possible de supprimer le
@@ -872,7 +941,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Mode catalogue : croix (annule la création du Format), « Ajouter X mouvements » en bas, coche selon la même règle.
   // [§18–§19 : coche « Ajouter » en mode catalogue et coche « Valider les paramètres » au questionnaire — remplacées.]
   const canSaveHere = canSave && !validating;
-  const bottomAction: "ADD" | "VALIDATE" | null = catalogueMode ? "ADD" : validating ? "VALIDATE" : null;
+  // b-cat-fondu du 08/11/2026 : « Ajouter X mouvements » appartient à la couche du catalogue, « Valider les paramètres » aux
+  // paramètres (dessous) ; chacun garde sa zone d'action pendant le fondu enchaîné.
   // Recette du 06/11/2026 (s-focus, Hermann : « Le bouton d'action du bas est "Fermer sans sélectionner" si aucun mouvement n'est sélectionné,
   // puis devien "Ajouter X mouvements" lorsque des mouvements sont sélectionnés ») : sans sélection, le bouton est actif et ferme le mode
   // catalogue (comme « Revenir aux paramètres »). [« Ajouter » grisé sans sélection — remplacé.]
@@ -883,11 +953,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Remarque E du 07/11/2026 : « Fermer sans sélectionner » et « Revenir aux paramètres » ferment en fondu lent.
   const backToParameters = () => {
     Keyboard.dismiss();
-    fadeCatalogueOut(() => {
-      closeCatalogue();
-      setSearchRole(null);
-      setQuery("");
-    });
+    fadeCatalogueOut();
   };
   const close = () => {
     // Recette du 05/11/2026 au soir (p-ajout, Hermann : « La croix annule la création du format ») : en mode catalogue aussi, la
@@ -970,7 +1036,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         <TableCell
           kind={isSeconds ? "duration" : "integer"}
           value={isVariable ? null : numeric}
-          format={(entered) => (options.format !== undefined ? options.format(entered) : isSeconds ? formatSeconds(entered) : String(entered))}
+          format={(entered) => (options.format !== undefined ? options.format(entered) : isSeconds ? formatDuration(entered) : String(entered))}
           placeholder={isVariable ? t().variable : missingNow ? "" : (options.placeholder ?? t().noLimit)}
           badge
           durationMin={bounds.min}
@@ -1022,7 +1088,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       </Text>
     </Row>
   );
-  const totalRow = (last: boolean) => readRow(t().totalDuration, movements.length === 0 && duration === null ? genericDuration(model, answers) : duration === null ? t().dash : modelDurationText(duration), "total", last);
+  const totalRow = (last: boolean) => readRow(t().totalDuration, movements.length === 0 && duration === null ? genericDuration(model, answers, formatDuration) : duration === null ? t().dash : modelDurationText(duration, formatDuration), "total", last);
 
   const options = executionOptions(model);
   const showExecution = options.length > 0 && movements.length > 1;
@@ -1159,8 +1225,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           ...(several
             ? []
             : [
-                stepRow("startRepetitions", r.startRepetitions, { seconds: deathByDuration, format: deathByDuration ? formatSeconds : (value) => `${value} ${t().repetitionsUnit}`, placeholder: t().dash }),
-                stepRow("increment", r.increment, { seconds: deathByDuration, format: (value) => `+ ${deathByDuration ? formatSeconds(value) : `${value} ${t().repetitionsUnit}`}`, placeholder: "+" }),
+                stepRow("startRepetitions", r.startRepetitions, { seconds: deathByDuration, format: deathByDuration ? formatDuration : (value) => `${value} ${t().repetitionsUnit}`, placeholder: t().dash }),
+                stepRow("increment", r.increment, { seconds: deathByDuration, format: (value) => `+ ${deathByDuration ? formatDuration(value) : `${value} ${t().repetitionsUnit}`}`, placeholder: "+" }),
               ]),
           // Recette du 06/11/2026 (n-deathby, Hermann : « Mettre la ligne "Récupération entre les mouvements avant la ligne condition
           // d'arrêt ») : la récupération précède la condition d'arrêt. [Récupération en dernière ligne — remplacé.]
@@ -1240,9 +1306,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // trouve les mouvements mais ils ne sont pas visibles car au dessus de la barre de recherche. Il faut que les résultats soient
   // affichés à partir du bas de la barre de recherche, et qu’ils puissent défiler ensuite vers le haut ou le bas ») : à chaque
   // recherche ou filtre, la liste repart de son début, juste sous la zone de recherche.
+  // 08/11/2026 : défilement propre à la couche du catalogue ; les paramètres, dessous, gardent leur position.
   useEffect(() => {
     if (!catalogueMode) return;
-    scrollRef.current?.scrollTo({ y: 0, animated: false });
+    catalogueScrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [catalogueFilters, catalogueMode, query]);
   const scrollY = useRef(0);
   const [revealedId, setRevealedId] = useState<string | null>(null);
@@ -1593,7 +1660,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
               ) : null}
             </Reanimated.View>
             {commandsShown ? (
-              <Reanimated.View entering={FadeIn.duration(220)} style={styles.catalogueButtons}>
+              <Reanimated.View style={styles.catalogueButtons}>
                 <FilterCommand
                   label={strings.screens.sessions.filterAction}
                   title={strings.screens.movement.catalogue.filters.command}
@@ -1647,9 +1714,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       </>
     );
   };
-  const movementSection = (role: "LOOP" | "BUY_IN" | "BUY_OUT", label: string, link: string, testID: string) => {
+  // 08/11/2026 : `inCatalogue` — résultats du mode catalogue, rendus dans sa couche ; les paramètres, dessous, gardent l'en-tête.
+  const movementSection = (role: "LOOP" | "BUY_IN" | "BUY_OUT", label: string, link: string, testID: string, inCatalogue = false) => {
     const open = searchRole === role;
-    const inCatalogue = open && catalogueMode;
     const sectionAction = sectionLink(role, link);
     return (
       <>
@@ -1684,7 +1751,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                     // Remarque A du 07/11/2026 : la carte du dessus d'une pile repliée déplie la pile, sans changer la sélection.
                     onPress={onPress ?? (() => togglePicked(entry.movement))}
                     onPhotoPress={() => openSheet(entry.movement)}
-                    inCatalogue
                     testID={`format-catalogue-card-${entry.movement.id}`}
                   />
                 ),
@@ -1722,25 +1788,25 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           scrollY.current = event.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={16}
+        // b-cat-fondu du 08/11/2026 : sous la couche du catalogue, les paramètres restent montés, immobiles, hors de VoiceOver.
+        accessibilityElementsHidden={catalogueMode && !catalogueLeaving}
+        importantForAccessibility={catalogueMode && !catalogueLeaving ? "no-hide-descendants" : "auto"}
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: bandHeight + MOVEMENTS_TOP_OFFSET + (catalogueMode ? searchZoneHeight : 0),
-            paddingBottom: bottomAction !== null ? actionZone.scrollReserve : safeBottom + CONTENT_BOTTOM_MARGIN,
+            paddingTop: bandHeight + MOVEMENTS_TOP_OFFSET,
+            paddingBottom: validating ? actionZone.scrollReserve : safeBottom + CONTENT_BOTTOM_MARGIN,
           },
         ]}
         testID={`format-${stage}`}
       >
-        {/* Remarques D et E du 07/11/2026 : fondus d'ouverture et de fermeture du mode catalogue. */}
-        <Reanimated.View style={[styles.fadeContent, catalogueFadeStyle]} testID="format-content-fade">
+        {/* [Remarques D et E du 07/11/2026 : fondus d'ouverture et de fermeture appliqués à ce contenu — remplacés le 08/11/2026 par
+            la couche du catalogue en fondu enchaîné.] */}
+        <View style={styles.fadeContent} testID="format-content-fade">
         {/* Mouvements (§7.1 à §7.4). */}
         {/* Recette n° 3 du 03/11/2026 (autres constats, Hermann : « Activer Buy-in : la section Buy-in apparaît, le
             nom de l'autre section change (en boucle...) ») : sections Buy-in et En boucle dès le questionnaire. */}
-        {catalogueMode && searchRole !== null ? (
-          // Mode catalogue : seule la section concernée, ses résultats jusqu'au bas de la modale (en-tête et recherche
-          // dans la zone fixe).
-          movementSection(searchRole, "", t().add, "format-catalogue-section")
-        ) : buyIn || buyOut ? (
+        {buyIn || buyOut ? (
           <>
             {buyIn ? movementSection("BUY_IN", t().buyInSection, buyInCount > 0 ? t().change : t().add, "format-buy-in") : null}
             {buyIn ? cardList(movements.slice(0, buyInCount), 0, true) : null}
@@ -1756,14 +1822,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           </>
         )}
 
-        {catalogueMode ? null : (
+        {/* 08/11/2026 : paramètres toujours montés (dessous de la couche du catalogue). [Paramètres démontés en mode catalogue — remplacé.] */}
+        {(
         <>
         <Text style={[styles.section, styles.parametersTitle]} testID="format-parameters-title">
           {t().parameters}
         </Text>
         {/* Complément du 5 novembre 2026 (Hermann), §12 : tableau des mouvements isolé dans son propre cadre, entre le cadre du nombre de séries (ou de tours,
             d'intervalle, de durée) et celui des paramètres qui suivent ; cadres séparés de 8. */}
-        <Panel testID="format-parameters">
+        <Panel testID="format-parameters" summary={stage === "summary"}>
           {tableHere ? rows.filter(isRowBeforeTable) : rows}
           {tableHere ? null : progressionTail()}
         </Panel>
@@ -1806,7 +1873,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             validation bloquée. [Message sous le cadre des paramètres qui suit le tableau — remplacé.] */}
         {model === "EMOM" && tableHere && emomOverflow.length > 0 ? (
           <Text style={styles.alert} accessibilityRole="alert" testID="format-emom-overflow">
-            {t().emomOverflow.replace("{interval}", formatSeconds(answers.intervalSeconds ?? 60))}
+            {t().emomOverflow.replace("{interval}", formatDuration(answers.intervalSeconds ?? 60))}
           </Text>
         ) : null}
         {/* Recette du 05/11/2026 (n-charge-colonne, Hermann) : « Pour le seul exercice restant en Répétitions, l'option Durée est
@@ -1817,7 +1884,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           </Text>
         ) : null}
         {tableHere && (rows.some((row) => !isRowBeforeTable(row)) || model === "PROGRESSION") ? (
-          <Panel style={styles.panelAfterTable} testID="format-parameters-after">
+          <Panel style={styles.panelAfterTable} testID="format-parameters-after" summary={stage === "summary"}>
             {rows.filter((row) => !isRowBeforeTable(row))}
             {progressionTail()}
           </Panel>
@@ -1840,7 +1907,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         />
         </>
         )}
-        </Reanimated.View>
+        </View>
       </ScrollView>
       {/* Zone de contexte figée (109 px, prolongée en mode catalogue jusqu'à la ligne de recherche) : couleur et motif du
           modèle ; croix au questionnaire, Retour au récapitulatif, nom du Format centré ; accroche ; part fondue dessous. */}
@@ -1887,32 +1954,50 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           « Mouvements » et la recherche restent figées sous la zone de contexte, à la place de la ligne « Mouvements » du
           questionnaire ; fond blanc de 65 % (haut) à 10 % (bas). [Zone de contexte prolongée jusqu'à la ligne de recherche
           (recette du 04/11/2026, f4-catalogue) — remplacée.] */}
-      {catalogueMode ? (
-        // Remarques D et E du 07/11/2026 : la recherche et ses commandes apparaissent et disparaissent avec la liste.
-        <Reanimated.View
-          style={[styles.searchZone, { top: bandHeight + MOVEMENTS_TOP_OFFSET }, catalogueFadeStyle]}
-          pointerEvents="box-none"
-          onLayout={(event) => setSearchZoneHeight(event.nativeEvent.layout.height)}
-          testID="format-search-zone"
-        >
-          <View pointerEvents="none" style={styles.searchZoneSolid} testID="format-search-zone-background" />
-          <View pointerEvents="none" style={styles.searchZoneFade}>
-            {SEARCH_ZONE_FADE_LAYERS.map((layer) => (
-              <View key={layer.top} style={[styles.searchZoneLayer, { top: layer.top, opacity: layer.opacity }]} />
-            ))}
-          </View>
-          {catalogueHead()}
-        </Reanimated.View>
+      {validating ? (
+        // « Valider les paramètres » : zone d'action des paramètres, sous la couche du catalogue (masquée à VoiceOver et aux touchers).
+        <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} hidden={catalogueMode && !catalogueLeaving} testID="format-bottom-action">
+          <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
+        </PrimaryActionZone>
       ) : null}
-      {bottomAction !== null ? (
-        // Remarques D et E du 07/11/2026 : « Fermer sans sélectionner » / « Ajouter X mouvements » suivent le fondu de la liste.
-        <Reanimated.View pointerEvents="box-none" style={[StyleSheet.absoluteFill, catalogueFadeStyle]} testID="format-bottom-action-fade">
+      {/* Recette iPhone du 08/11/2026 (b-cat-fondu, b-cat-fermer) : couche du mode catalogue — fond blanc opaque, recherche figée,
+          résultats dans leur propre défilement, « Fermer sans sélectionner » / « Ajouter X mouvements » ; une seule opacité, posée
+          sur les paramètres (fondu enchaîné). Elle passe sous la zone de contexte (zIndex de `styles.band`), dont la part fondue
+          reste visible dès l'apparition. [07/11 : recherche et bouton en couches séparées, liste dans le défilement des paramètres ;
+          le fond blanc de la recherche, peint au-dessus de la zone de contexte, en masquait la part fondue — remplacé.] */}
+      {catalogueMode && searchRole !== null ? (
+        <Reanimated.View
+          style={[StyleSheet.absoluteFill, styles.catalogueLayer, catalogueFadeStyle]}
+          pointerEvents={catalogueLeaving ? "none" : "auto"}
+          testID="format-catalogue-layer"
+        >
+          {/* Demande de Hermann du 05/11/2026 (soir) : « La zone colorée ne doit pas changer de dimension » — la ligne « Mouvements »
+              et la recherche restent figées sous la zone de contexte, à la place de la ligne « Mouvements » du questionnaire.
+              [Zone de contexte prolongée jusqu'à la ligne de recherche (recette du 04/11/2026, f4-catalogue) — remplacée.] */}
+          <View style={[styles.searchZone, { marginTop: bandHeight + MOVEMENTS_TOP_OFFSET }]} pointerEvents="box-none" testID="format-search-zone">
+            <View pointerEvents="none" style={styles.searchZoneSolid} testID="format-search-zone-background" />
+            <View pointerEvents="none" style={styles.searchZoneFade}>
+              {SEARCH_ZONE_FADE_LAYERS.map((layer) => (
+                <View key={layer.top} style={[styles.searchZoneLayer, { top: layer.top, opacity: layer.opacity }]} />
+              ))}
+            </View>
+            {catalogueHead()}
+          </View>
+          {/* Recette du 04/11/2026 (f4-catalogue : « lorsqu'un texte est tapé dans la zone de recherche on doit pouvoir continuer de
+              faire défiler la liste des mouvements ») : défilement jamais figé ; clavier gardé (f3s-recherche). */}
+          <ScrollView
+            ref={catalogueScrollRef}
+            style={styles.catalogueScroll}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="none"
+            automaticallyAdjustKeyboardInsets
+            contentContainerStyle={[styles.content, { paddingBottom: actionZone.scrollReserve }]}
+            testID="format-catalogue-scroll"
+          >
+            {movementSection(searchRole, "", t().add, "format-catalogue-section", true)}
+          </ScrollView>
           <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="format-bottom-action">
-            {bottomAction === "ADD" ? (
-              <PrimaryActionButton label={addPickedLabel} onPress={picked.size === 0 ? backToParameters : addPicked} testID="format-catalogue-add" />
-            ) : (
-              <PrimaryActionButton label={t().validate} onPress={validate} disabled={!canSave} testID="format-validate" />
-            )}
+            <PrimaryActionButton label={addPickedLabel} onPress={picked.size === 0 ? backToParameters : addPicked} testID="format-catalogue-add" />
           </PrimaryActionZone>
         </Reanimated.View>
       ) : null}
@@ -2091,16 +2176,16 @@ function SectionHeader({ label, link, onLink, disabled = false, testID }: { labe
 }
 
 /** Durée du Déroulé générique d'un questionnaire sans mouvement (modèles à durée calculable). */
-function genericDuration(model: FormatModelKey, answers: ModelAnswers): string {
+function genericDuration(model: FormatModelKey, answers: ModelAnswers, format: (seconds: number) => string = formatSeconds): string {
   switch (model) {
     case "TABATA":
     case "INTERVALS_30_30":
-      return formatSeconds((answers.seriesCount ?? 0) * ((answers.workSeconds ?? 0) + (answers.pauseSeconds ?? 0)));
+      return format((answers.seriesCount ?? 0) * ((answers.workSeconds ?? 0) + (answers.pauseSeconds ?? 0)));
     case "EMOM":
-      return formatSeconds((answers.seriesCount ?? 0) * (answers.intervalSeconds ?? 0));
+      return format((answers.seriesCount ?? 0) * (answers.intervalSeconds ?? 0));
     case "AMRAP": {
       const blocks = answers.blockCount ?? 1;
-      return formatSeconds(blocks * (answers.durationSeconds ?? 0) + (blocks - 1) * (answers.restBetweenBlocksSeconds ?? 0));
+      return format(blocks * (answers.durationSeconds ?? 0) + (blocks - 1) * (answers.restBetweenBlocksSeconds ?? 0));
     }
     default:
       return t().dash;
@@ -2117,7 +2202,10 @@ const styles = StyleSheet.create({
   bandFade: { height: CONTEXT_FADE_HEIGHT },
   bandFadeLayer: { position: "absolute", top: 0, left: 0, right: 0 },
   catalogueHead: { marginBottom: 4 },
-  searchZone: { position: "absolute", left: 0, right: 0, zIndex: 1 },
+  // 08/11/2026 : recherche en tête de la couche du catalogue (au-dessus de son défilement, qui passe sous son fondu de 8).
+  searchZone: { zIndex: 1 },
+  catalogueLayer: { backgroundColor: "#FFFFFF" },
+  catalogueScroll: { flex: 1 },
   // Blanc opaque depuis le bas de la zone de contexte (la zone commence 16 plus bas), puis fondu de 8 sous la recherche.
   searchZoneSolid: { position: "absolute", left: 0, right: 0, top: -MOVEMENTS_TOP_OFFSET, bottom: 0, backgroundColor: "#FFFFFF" },
   searchZoneFade: { position: "absolute", left: 0, right: 0, top: "100%", height: SEARCH_ZONE_FADE },
@@ -2135,7 +2223,9 @@ const styles = StyleSheet.create({
   unitNote: { marginHorizontal: 24, marginTop: 6, fontFamily: "Inter_400Regular", fontSize: 12, lineHeight: 16, color: SECTION },
   // Recette du 06/11/2026 (n-cadres, constat d) : le tableau occupe tout le cadre ; ses retraits sont ceux des lignes de paramètres (16).
   // [Retrait intérieur de 8 — remplacé.]
-  tableFrame: { marginTop: 8, marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingVertical: 4, overflow: "hidden" },
+  // Spécification de Hermann du 08/11/2026 (A §4.2, B §4.2) : pas de marge haute, marge basse de 3,5 portée par le tableau.
+  // [Marge verticale de 4 — remplacée le 08/11/2026.]
+  tableFrame: { marginTop: 8, marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, overflow: "hidden" },
   panelAfterTable: { marginTop: 8 },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "#FFFFFF", borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" },
   context: { height: CONTEXT_HEIGHT, paddingHorizontal: 16, paddingTop: 10 },
@@ -2185,12 +2275,16 @@ const styles = StyleSheet.create({
   panelContent: { marginBottom: -1 },
   row: { minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 4, gap: 8 },
   rowSeparated: { borderBottomWidth: 1, borderBottomColor: SEPARATOR },
+  // Récapitulatif (spécification de Hermann du 08/11/2026, A §3, B §3) : ligne de 40 et son séparateur de 1, rogné sous la dernière.
+  summaryRow: { minHeight: SUMMARY_ROW_HEIGHT + 1, paddingVertical: 0, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
   rowLabel: { flexShrink: 1, fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   // Recette du 06/11/2026 (constat b, Hermann : « les textes quand ils ne sont pas modifiables (ex. condition d'arrêt ou durée total), doivent
   // être alignés à droite des autres textes, pas de leur cadre ») : retrait du texte des pastilles (10).
   readValue: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: LABEL, paddingRight: 10 },
-  chip: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: CHIP, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 },
-  chipText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, color: "#FFFFFF" },
+  // Champ à popover « Exécution » (spécification de Hermann du 08/11/2026, A §3) : hauteur 26, rayon 5, fond #5F60EE.
+  // [Rayon 6, marge verticale 4, fond #5B5BF0 — remplacés le 08/11/2026.]
+  chip: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: CHIP, borderRadius: 5, paddingHorizontal: 8, height: 26 },
+  chipText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, lineHeight: 16, color: "#FFFFFF" },
   chipChevron: { fontSize: 12, color: "#FFFFFF" },
   spacer: { flexGrow: 1, minHeight: 12 },
   tablePanel: { marginTop: 12, paddingHorizontal: 0 },
@@ -2207,8 +2301,10 @@ const styles = StyleSheet.create({
   timelineEllipsis: { fontSize: 10, color: LABEL, paddingHorizontal: 2, alignSelf: "center" },
   timelineMarks: { flexDirection: "row", justifyContent: "space-between" },
   timelineMark: { fontFamily: "Inter_400Regular", fontSize: 11, color: LABEL, opacity: 0.6 },
-  legend: { flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 4, marginTop: 2 },
+  // Déroulé (spécification de Hermann du 08/11/2026, A §5) : légende de 18 avec 2 de marge haute, pastille + 6 + nom en Inter Regular
+  // 13, 16 entre deux éléments. [Écart de 14 et nom en 12 — remplacés le 08/11/2026.]
+  legend: { flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 4, marginTop: 2 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   legendSwatch: { width: 10, height: 10, borderRadius: 2 },
-  legendText: { fontFamily: "Inter_400Regular", fontSize: 12, color: LABEL },
+  legendText: { fontFamily: "Inter_400Regular", fontSize: 13, lineHeight: 16, color: LABEL },
 });

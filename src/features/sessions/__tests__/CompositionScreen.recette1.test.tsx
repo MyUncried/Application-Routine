@@ -9,6 +9,7 @@ import type { SessionStructure, StructureStopPointLocation } from "@/domain/sess
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
+import { CARD_SHEET_MOTION_MS } from "@/features/activities/ExecutionParametersSheet";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { resolveRichLayout } from "@/features/sessions/compositionLayout";
@@ -267,13 +268,20 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
     expect(screen.getByTestId("execution-sheet")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    await act(async () => undefined);
+    // Feuille ouverte depuis une carte de la disposition générale : elle redescend (CARD_SHEET_MOTION_MS) avant de se fermer
+    // (recette iPhone n° 2, constat d) — le test attend la fin de la descente (diagnostic du 08/11/2026 : échec de test, pas d'anomalie).
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, CARD_SHEET_MOTION_MS + 150));
+    });
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
     // Recette iPhone n° 2 du 31/10/2026 (constat c) : carte complète → feuille ; photo → éditeur.
     fireEvent.press(cardOf("a"));
     await act(async () => undefined);
     expect(screen.getByTestId("execution-sheet")).toBeTruthy();
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    await act(async () => undefined);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, CARD_SHEET_MOTION_MS + 150));
+    });
     expect(mockPush).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-a"));
     await act(async () => undefined);

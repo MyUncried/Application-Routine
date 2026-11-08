@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useLayoutEffect, useMemo, useState, type ReactNode } from "react";
-import { Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
 
 import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -14,6 +14,7 @@ import type { ReferentialService } from "@/features/reference-data/ReferentialSe
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
 import { SessionDraftContext, type SessionDraftContextValue, type SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
+import { CIRCUIT_NATURE_PANEL_GAP } from "@/features/sessions/CircuitNatureMenu";
 import { LONG_PRESS_DELAY_MS } from "@/features/sessions/compositionGesture";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors } from "@/shared/ui/tokens";
@@ -240,5 +241,32 @@ describe("Recette iPhone n° 3 du 03/11/2026 — Circuits de la Composition", ()
       backgroundColor: toVerifyColors.surface,
       borderColor: "transparent",
     });
+  });
+});
+
+/**
+ * Recette iPhone du 08/11/2026 (constat C, Hermann : « il y a un problème d'affichage des circuit lors des défilements, les lignes
+ * d'en-tête des circuit flottent au milieu de l'écran ») — cause : depuis le correctif t-depli (5d5a5ec0), le bloc d'un Circuit est
+ * toujours dans les vues de son cadre d'enveloppe ; sa mesure (y relatif au cadre, 0) remplaçait sa position dans la liste. La
+ * position du cadre est désormais ajoutée : les plages collantes et l'ancre du panneau de nature sont à nouveau justes.
+ */
+describe("Recette iPhone du 08/11/2026 — constat C : position des Circuits dans leur cadre", () => {
+  it("le Circuit mesuré dans son cadre (y = 0) prend la position du cadre dans la liste (panneau de nature ancré dessous)", async () => {
+    // Panneau de nature (hors iOS, où le menu est natif) : ancré sous l'en-tête du Circuit, dans le repère de la liste.
+    Platform.OS = "android";
+    await renderComposition(twoCircuitsDraft());
+    layout("composition-layout-exercise-e0", 0, 80);
+    // Mesures réelles : le cadre (hors mode) est dans la liste à 100, le bloc à 0 dans le cadre.
+    layout("composition-envelope-circuit-ca-off", 100, 220);
+    layout("composition-layout-circuit-ca", 0, 220);
+    layout("composition-layout-circuit-ca-header", 14, 18);
+    layout("composition-layout-circuit-ca-exercises", 41, 169);
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-counter-nature", hidden));
+    await act(async () => undefined);
+    const panel = screen.getByTestId("composition-layout-circuit-ca-header-counter-nature-panel", hidden);
+    const top = StyleSheet.flatten(panel.props.style as StyleProp<ViewStyle>)?.top;
+    // 100 (cadre) + 0 (bloc) + 32 (bas de l'en-tête) + 4 : et non 36 (bloc lu à 0).
+    expect(top).toBe(100 + 14 + 18 + CIRCUIT_NATURE_PANEL_GAP);
+    Platform.OS = "ios";
   });
 });

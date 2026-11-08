@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { Image } from "expo-image";
 import { useState } from "react";
-import { AccessibilityInfo, Image as RNImage, StyleSheet } from "react-native";
+import { AccessibilityInfo, StyleSheet } from "react-native";
 import * as Reanimated from "react-native-reanimated";
 
 import type { Movement } from "@/domain/activities/Movement";
@@ -11,6 +11,7 @@ import { ActivityDefinitionServiceContext } from "@/features/activities/Activity
 import { FormatModelDraftProvider } from "@/features/sessions/FormatModelDraftContext";
 import { FormatModelScreen } from "@/features/sessions/FormatModelScreen";
 import { SessionDraftContext, type SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
+import { KodjoIcon, preloadedKodjoIcon, resetPreloadedKodjoIconsForTests } from "@/shared/ui/KodjoIcon";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
@@ -99,6 +100,7 @@ const bottomLabel = () => within(screen.getByTestId("format-bottom-action"));
 describe("Recette iPhone du 07/11/2026 — mode catalogue d'un Format", () => {
   beforeEach(() => {
     jest.restoreAllMocks();
+    resetPreloadedKodjoIconsForTests();
   });
 
   it("A : la carte du dessus d'une pile repliée la déplie sans la sélectionner ; une carte de la pile dépliée se sélectionne", async () => {
@@ -125,10 +127,19 @@ describe("Recette iPhone du 07/11/2026 — mode catalogue d'un Format", () => {
     expect(bottomLabel().getByText("Ajouter 2 mouvements")).toBeTruthy();
   });
 
-  it("B : Niveau en noir (couleur du nom), aligné sur la ligne de base du nom — dans le mode catalogue seulement", async () => {
+  // [07/11 : « dans le mode catalogue seulement », Niveau couleur du nom (#14171C) — remplacé le 08/11/2026 (b-cat-niveau) :
+  // Niveau noir (`colors.textPrimary`, #141414) et sur la ligne de base du nom partout (catalogue, questionnaire, récapitulatif).]
+  it("B et b-cat-niveau (08/11) : Niveau en noir, aligné sur la ligne de base du nom — catalogue, puis carte du questionnaire", async () => {
     await openCatalogue();
-    expect(flat("format-catalogue-card-sq-3-level").color).toBe("#14171C");
+    expect(flat("format-catalogue-card-sq-3-level").color).toBe("#141414");
     expect(flat("format-catalogue-card-sq-3-first-line").alignItems).toBe("baseline");
+    fireEvent.press(screen.getByTestId("format-catalogue-card-sq-3"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-catalogue-add"));
+    });
+    // Carte du questionnaire (même composant au récapitulatif) : même Niveau.
+    expect(flat("format-movement-card-0-level").color).toBe("#141414");
+    expect(flat("format-movement-card-0-first-line").alignItems).toBe("baseline");
   });
 
   it("H : une carte sans famille prend le retrait de 8 des cartes d'une pile", async () => {
@@ -139,13 +150,13 @@ describe("Recette iPhone du 07/11/2026 — mode catalogue d'un Format", () => {
   });
 
   it("D : pastille des zones préchargée ; repli / dépli au filet — les cartes glissent depuis la carte du dessus, les suivantes changent de place", async () => {
-    const prefetch = jest.spyOn(Image, "prefetch").mockResolvedValue(true as never);
-    // Sous Jest, les assets n'ont pas d'adresse (`testUri`) : adresse simulée, comme celle servie par Metro ou le paquet.
-    jest
-      .spyOn(RNImage, "resolveAssetSource")
-      .mockImplementation((source) => ({ uri: `asset:/${(source as unknown as { testUri: string }).testUri}`, width: 13, height: 13, scale: 1 }));
+    // [07/11 : `Image.prefetch(…, "memory-disk")` — remplacé le 08/11/2026 (b-cat-fondu) : image native préchargée
+    // (`Image.loadAsync`), donnée pour source à la pastille, qui s'affiche dès son montage.]
+    const nativeImage = { width: 13, height: 13 } as never;
+    const loadAsync = jest.spyOn(Image, "loadAsync").mockResolvedValue(nativeImage);
     await openCatalogue();
-    expect(prefetch).toHaveBeenCalledWith([expect.stringContaining("icon-pastille-zone-corporelle")], "memory-disk");
+    expect(loadAsync).toHaveBeenCalledWith(expect.objectContaining({ testUri: expect.stringContaining("icon-pastille-zone-corporelle") }));
+    expect(preloadedKodjoIcon("card-body-zone-badge")).toBe(nativeImage);
     // Au repos : ni glissement ni transition de place.
     expect(screen.getByTestId("format-family-grp-squats-member-sq-2").props.entering).toBeUndefined();
     expect(screen.getByTestId("format-catalogue-item-fentes").props.layout).toBeUndefined();
@@ -159,6 +170,9 @@ describe("Recette iPhone du 07/11/2026 — mode catalogue d'un Format", () => {
     expect(screen.getByTestId("format-family-grp-squats-member-sq-3").props.entering).toBeUndefined();
     expect(screen.getByTestId("format-family-grp-squats-member-sq-2").props.entering).toBeDefined();
     expect(screen.getByTestId("format-family-grp-squats-member-sq-2").props.exiting).toBeDefined();
+    // Une pastille montée après le préchargement reçoit l'image native pour source (aucun chargement à l'affichage).
+    const badge = render(<KodjoIcon name="card-body-zone-badge" testID="preloaded-badge" />);
+    expect(badge.UNSAFE_getByType(Image).props.source).toBe(nativeImage);
   });
 
   it("E : « Fermer sans sélectionner », « Ajouter X mouvement » et « Revenir aux paramètres » ferment en fondu de 450 ms, puis les paramètres reviennent", async () => {
@@ -202,5 +216,125 @@ describe("Recette iPhone du 07/11/2026 — mode catalogue d'un Format", () => {
     fireEvent.press(screen.getByTestId("format-catalogue-add"));
     expect(screen.queryByTestId("format-catalogue")).toBeNull();
     expect(timing.mock.calls.some(([toValue]) => toValue === 0)).toBe(false);
+  });
+});
+
+/**
+ * Recette iPhone du 08/11/2026 (Hermann) — b-cat-fondu, b-cat-fermer : fondu enchaîné entre les paramètres et le catalogue, sans page
+ * blanche ; zone de contexte en place avec sa part fondue ; boutons, cartes et pastilles ensemble. Mécanismes vérifiés (aucun rendu).
+ */
+describe("Recette iPhone du 08/11/2026 — fondu enchaîné du mode catalogue d'un Format", () => {
+  type Done = (finished?: boolean) => void;
+  let fades: { to: number; done: Done | undefined }[];
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    resetPreloadedKodjoIconsForTests();
+    // Le simulacre de `isReduceMotionEnabled` garde la valeur d'un test précédent : animations actives ici.
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(false);
+    fades = [];
+    // Fondus retenus : leur fin est déclenchée par le test (états intermédiaires observables).
+    jest.spyOn(Reanimated, "withTiming").mockImplementation(((to: number, _config: unknown, done?: Done) => {
+      fades.push({ to, done });
+      return to;
+    }) as never);
+  });
+  const finishFade = async (to: number) => {
+    const fade = [...fades].reverse().find((item) => item.to === to);
+    await act(async () => {
+      fade?.done?.(true);
+    });
+  };
+
+  it("ouverture : la couche du catalogue apparaît par-dessus les paramètres, restés montés et immobiles ; un seul fondu (0 → 1)", async () => {
+    await openCatalogue();
+    await act(async () => {});
+    expect(fades.map((fade) => fade.to)).toEqual([1]);
+    // Les paramètres restent montés dessous (masqués à VoiceOver), sans fondu propre : aucun blanc entre les deux contenus.
+    expect(screen.getByTestId("format-parameters", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByTestId("format-questionnaire", { includeHiddenElements: true }).props.accessibilityElementsHidden).toBe(true);
+    expect(StyleSheet.flatten(screen.getByTestId("format-content-fade", { includeHiddenElements: true }).props.style).opacity).toBeUndefined();
+    // Résultats, recherche et bouton du bas dans la même couche (même opacité), commandes rendues avec la liste.
+    const layer = within(screen.getByTestId("format-catalogue-layer"));
+    expect(layer.getByTestId("format-catalogue-scroll")).toBeTruthy();
+    expect(layer.getByTestId("format-search-zone")).toBeTruthy();
+    expect(layer.getByTestId("format-catalogue-filter")).toBeTruthy();
+    expect(layer.getByTestId("format-catalogue-add")).toBeTruthy();
+    expect(screen.getByTestId("format-catalogue-filter").props.entering).toBeUndefined();
+  });
+
+  it("zone de contexte : au-dessus de la couche du catalogue (zIndex), part fondue toujours rendue ; la recherche n'y est pas", async () => {
+    await openCatalogue();
+    const band = screen.getByTestId("format-context-band");
+    expect(StyleSheet.flatten(band.props.style).zIndex).toBe(1);
+    expect(StyleSheet.flatten(screen.getByTestId("format-catalogue-layer").props.style).zIndex).toBeUndefined();
+    expect(within(band).getByTestId("format-context-fade", { includeHiddenElements: true })).toBeTruthy();
+    expect(within(band).queryByTestId("format-search-zone")).toBeNull();
+    // Recherche figée à l'emplacement de la ligne « Mouvements » (101 + 16), sans mesure préalable (pas de saut de la liste).
+    expect(StyleSheet.flatten(screen.getByTestId("format-search-zone").props.style)).toMatchObject({ marginTop: 101 + 16 });
+  });
+
+  it("« Ajouter 1 mouvement » : l'ajout est visible dans les paramètres pendant le fondu de sortie ; fermeture à la fin du fondu", async () => {
+    await openCatalogue();
+    fireEvent.press(screen.getByTestId("format-catalogue-card-fentes"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-catalogue-add"));
+    });
+    expect(fades.filter((fade) => fade.to === 0)).toHaveLength(1);
+    // Pendant le fondu : couche encore là, sans toucher ; paramètres de nouveau lisibles, avec la carte ajoutée.
+    expect(screen.getByTestId("format-catalogue-layer").props.pointerEvents).toBe("none");
+    expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
+    expect(screen.getByTestId("format-questionnaire").props.accessibilityElementsHidden).toBe(false);
+    await finishFade(0);
+    expect(screen.queryByTestId("format-catalogue-layer")).toBeNull();
+    expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
+  });
+
+  it("« Revenir aux paramètres » et « Fermer sans sélectionner » : même fondu enchaîné ; un second appui pendant le fondu est ignoré", async () => {
+    await openCatalogue();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-movements-link"));
+    });
+    await act(async () => {
+      fireEvent.press(within(screen.getByTestId("format-search-zone")).getByTestId("format-movements-link"));
+    });
+    expect(fades.filter((fade) => fade.to === 0)).toHaveLength(1);
+    expect(screen.getByTestId("format-catalogue-layer")).toBeTruthy();
+    await finishFade(0);
+    expect(screen.queryByTestId("format-catalogue-layer")).toBeNull();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-movements-link"));
+    });
+    await screen.findByTestId("format-catalogue-card-fentes");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-catalogue-add"));
+    });
+    expect(fades.filter((fade) => fade.to === 0)).toHaveLength(2);
+    await finishFade(0);
+    expect(screen.queryByTestId("format-catalogue-layer")).toBeNull();
+    expect(screen.getByTestId("format-parameters")).toBeTruthy();
+  });
+
+  it("pastille des zones : le fondu d'apparition attend l'image native préchargée (cartes, boutons et pastilles ensemble)", async () => {
+    let resolveIcon: (value: never) => void = () => undefined;
+    const nativeImage = { width: 13, height: 13 } as never;
+    jest.spyOn(Image, "loadAsync").mockImplementation(() => new Promise<never>((resolve) => (resolveIcon = resolve)));
+    await openCatalogue();
+    await act(async () => {});
+    // Préchargement en cours : couche montée à l'opacité 0, aucun fondu lancé.
+    expect(fades).toHaveLength(0);
+    await act(async () => {
+      resolveIcon(nativeImage);
+    });
+    expect(fades.map((fade) => fade.to)).toEqual([1]);
+  });
+
+  it("sous « Réduire les animations » : ouverture et fermeture immédiates, sans fondu", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    await openCatalogue();
+    expect(screen.getByTestId("format-catalogue-layer")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("format-catalogue-add"));
+    expect(screen.queryByTestId("format-catalogue-layer")).toBeNull();
+    expect(fades).toHaveLength(0);
   });
 });
