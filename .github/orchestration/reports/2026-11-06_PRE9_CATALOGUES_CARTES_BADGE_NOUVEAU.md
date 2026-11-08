@@ -757,3 +757,12 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Vérifications iPhone à faire : Circuit à 10 du bord, cartes à 10 du cadre et à 10 du bas ; Cycle bord à bord, Circuit à 10 du Cycle, 12 en bas ; rail droit ; liseré 0,75 des cartes de la Séance, 0,5 dans les Circuits et Cycles. Rien vérifié sur iPhone.
 - Garde des jetons (`pre4Story11Controls.test.ts`) : empreinte de `tokens.ts` mise à jour (modification autorisée par « Centralise la valeur dans une constante de thème »). Manifeste des icônes (`assets/icons/manifest.json`) : entrée ajoutée pour `icon-nature-exercice-hors-circuit` (A — échec existant depuis 73018586, icône ajoutée sans entrée). `compositionRail.test.ts` : marge basse 10.
 - Tests : `tsc --noEmit` OK ; `src/features/sessions` + `src/shared/ui` : 133 suites, 1 939 passés avant les trois corrections ci-dessus, puis les 3 suites corrigées 26/26. Suite complète non relancée (mémoire).
+
+### Glisser dans un Cycle — emplacements inatteignables (08/11/2026 au soir)
+
+- Constats de Hermann recopiés dans ch07 (« Glisser dans un Cycle — emplacements inatteignables »). Départ : 7710ab00.
+- Diagnostic historique : géométrie de eb4c7093 remise temporairement (non committée) → le geste échoue encore ; version validée `e369c1ae` servie à l'iPhone depuis une copie du dépôt (`git worktree`, `node_modules` lié, supprimée ensuite) → gestes 1 et 2 KO. Défaut antérieur, démontré sur appareil par Hermann.
+- Correction (A) : `spreadDropLines` / `LAYOUT_DROP_MIN_LINE_SPACING` (24) dans `layoutDrop.ts` ; test `layoutDrop.reach0811.test.ts` (balayage du centre de la carte : chaque emplacement d'un Cycle à deux Circuits atteint sur au moins 24) — 2 échecs sur 3 sans la correction, 3/3 avec.
+- Hypothèses non démontrées : « en transparence » (ordre d'affichage pendant le glisser) et cadre du Circuit qui s'étend — non reproduits, non corrigés.
+- Tests : `tsc --noEmit` OK ; `src/features/sessions` + `src/domain/sessions` : 157 suites, 2 662 tests passés. Suite complète non relancée (mémoire).
+- À vérifier sur iPhone : les 6 gestes du constat.
