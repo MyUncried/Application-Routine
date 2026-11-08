@@ -792,4 +792,11 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Commit final de code : 03163de3 (liseré plein de la carte de la Séance) ; branche `feat/pre9-catalogues-cartes-badge-20261106`, PR #420.
 - Tests : dernière batterie `src/features/sessions` + `src/domain/sessions` 156 suites / 2 660 passés (ca2dc484), puis `CompositionScreen*` + `Occurrence*` 648/648 (03163de3) ; `tsc --noEmit` OK. Suite complète non relancée (mémoire).
 - Restent ouverts, sans blocage déclaré : points À CLARIFIER consignés au ch07 (Death by « +1/30″ », AMRAP « −1/tour », arrondi à la minute au-delà d'une heure, valeur du décalage du compteur).
-- Fusion de la PR #420 dans `main` : non faite ; elle exige une autorisation explicite de Hermann.
+- Fusion de la PR #420 dans `main` : non faite ; elle exige une autorisation explicite de Hermann. [Réalisée le 09/11/2026 — voir ci-dessous.]
+
+### Fusion dans `main` (09/11/2026)
+
+- Autorisation de Hermann : « Tu peux fusionner ».
+- PR #420 fusionnée par commit de fusion (méthode habituelle du dépôt), tête vérifiée (`--match-head-commit 8b1cc3f2`) : commit de fusion `901d7b4c` sur `main` ; GitHub : état MERGED. Aucun contrôle automatique n'était configuré sur la branche. Branche `feat/pre9-catalogues-cartes-badge-20261106` conservée.
+- Cette note est portée par la branche `docs/pre9-cloture-fusion-20261109` (PR documentaire) : un commit sur la branche déjà fusionnée ne serait pas dans `main`.
+- Aucun test applicable (documentation seule).
