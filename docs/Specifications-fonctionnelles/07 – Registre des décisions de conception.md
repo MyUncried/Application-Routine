@@ -2270,6 +2270,15 @@ Réponses de Hermann (08/11/2026 au soir) aux questions À CLARIFIER sur les heu
 
 - **Classe B — tranché.** Minutes sur 2 chiffres après « h » (1h 05′) ; pas de secondes au-delà d’une heure (réponse « Non ») : la durée est arrondie à la minute la plus proche (1h 00′29″ → 1h 00′, 1h 00′30″ → 1h 01′ ; arrondi : interprétation de la session principale, D-391 interdit seulement l’arrondi à la minute supérieure des cartes) [« secondes non nulles à la suite, sans espace (1h 00′01″), sans arrondi » — remplacé le 08/11/2026 au soir] ; prime U+2032 pour l’accent aigu tapé : confirmé. VoiceOver suit (« 1 heure 5 minutes »). Espace insécable après « h » : conservé (choix technique, évite la coupure de ligne).
 
+Constats de Hermann (08/11/2026 au soir), recopiés textuellement :
+
+> Le bloc nombre de tours . Type a été décalé à droite je pense avec le changement de format de durée
+
+> Circuit : mets le chevron entre le cercle et le nom du circuit
+
+- **Compteur décalé (A, règle f3s-nom du 03/11/2026 : « décaler le compteur au maximum vers la droite, en considérant la place minimum nécessaire pour l’affichage de la durée »).** La colonne de durée des en-têtes de Circuit et de Cycle était mesurée sur « ≈ 88 min 45 s » ; au nouveau format, cette valeur s’écrit « ≈ 1h 29′ », plus courte : la colonne s’est réduite et le compteur s’est décalé à droite. La colonne est maintenant mesurée sur les plus longues durées de chaque forme (« ≈ 59′59″ », « ≈ 9h 59′ ») ; le compteur reste plus à droite qu’avant le changement de format, conformément à la règle (les durées sont plus courtes qu’auparavant). À CLARIFIER : garder cette position ou revenir à l’ancienne abscisse.
+- **Chevron du Circuit (B).** Chevron placé avant le nom, entre l’anneau et le nom, dans la même cible de repli ; ch13 et Composition-conteneurs annotés.
+
 ## Recette du 08/11/2026 — catalogue
 
 Notes de Hermann (recette iPhone du 08/11/2026), recopiées textuellement :
