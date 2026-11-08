@@ -116,6 +116,35 @@ Notes de Hermann (recopiées mot pour mot au registre ch07, « Recette du 08/11/
 - **Résultats** : `npx jest src/features/sessions/__tests__/formats src/features/sessions/__tests__/FormatModelScreen --testPathIgnorePatterns "\.claude" -w 2` → 8 suites, 123 tests, tous passés ; `tsc` et `eslint` (FormatTables, tests 0611 / 0811) : aucune erreur.
 - **À vérifier sur iPhone** : « (12,25 kg) » entier au repos et en saisie (EMOM, Tabata, AMRAP…) ; cadre de saisie ajusté, pas plus large que nécessaire ; curseur et suffixe « kg » en saisie ; pas de chevauchement avec la charge voisine.
 
+## Format des durées dans toute l'application (08/11/2026 au soir, sur `e369c1ae`)
+
+Demandes de Hermann, mot pour mot : « Et tu dois encore modifier le format des durées. » ; « Partout veut bien dire partout » ; « Il y a les heures aussi » ; « 75 minutes doit s’afficher 1h 15´ ». Classe B. Recopiées au registre ch07, « Recette du 08/11/2026 soir — format des durées ».
+
+**Règle appliquée**
+- `formatPrimeDuration` (déplacé dans `src/domain/activities/durationFormat.ts`, réexporté par `FormatTables`) : `S″` sous une minute, `M′SS″` jusqu'à 59′59″, `Hh MM′` à partir d'une heure (espace insécable U+00A0, minutes sur 2 chiffres), secondes non nulles à la suite (`1h 00′01″`). **À CLARIFIER** : notation des heures (minutes sur 2 chiffres, secondes, espace insécable, prime pour l'accent aigu « ´ »).
+- `formatPhraseDuration` (formateur unique, AD-5) délègue désormais à `formatPrimeDuration` : tout ce qui l'utilisait passe au nouveau format (Phrase de synthèse, feuille Paramètres d'exécution, cadre Format, Intervalle, cibles, pauses, récupération, Composition — zone de contexte, cartes, récupération —, en-têtes de Circuit, Catalogue des séances, `formatSheetContext`, messages).
+- Autres formateurs ramenés au même format : `FormatTables.formatSeconds` (« 1 min 30 »), `carrierPresentation.formatMinutes` (en-tête de Circuit porteur), `compositionPresentation.formatBoundarySecondsValue` (Compte à rebours / Fin de séance « 45 s » → « 45″ »), cadence `beepLabel` (« 30 s ») et option « 1 s » de la cadence (`src/shared/i18n/index.ts`, modification ciblée), `compactBlockDuration` du Déroulé (`30"`, `1'30"`, `2'` → `30″`, `1′30″`, `2′00″`).
+- `FormatModelScreen` : le questionnaire suit le récapitulatif (`formatDuration = formatPrimeDuration`).
+- Seul le format change : arrondis et bornes inchangés (D-391, D-443).
+
+**Accessibilité** — nouveaux `spokenDuration` / `spokenDurations` (« 1 heure 15 minutes », « 1 minute 30 secondes », « 45 secondes ») appliqués aux libellés VoiceOver qui portaient une durée : carte des paramètres et section « Dans cette séance » (`ActivityEditorForm`), ligne Durée de l'exercice (`totalSpokenLabel`) et options de cadence (`ExecutionParametersSheet`), en-têtes de Circuit (titre + durée, durée du porteur) et de Cycle, zone de contexte (durée de la séance), carte du Catalogue des séances (`sessionCardAccessibilityLabel`), récupération d'une occurrence (`CompositionScreen`, ligne ciblée).
+
+**Cas signalés**
+- **Heures** : aucun format en heures n'existait (H8 : minutes sans heures, ex. « 75 min »). Le nouveau format `Hh MM′` s'applique partout où une durée ≥ 1 h peut apparaître : durées totales d'Exercice et de Séance, zone de contexte, cartes, Déroulé, cellules de durée des tableaux (bornes de saisie jusqu'à 99′59″ = 5999 s → « 1h 39′59″ »).
+- **Risques de texte rogné** (non élargis) : cellules de 44 des tableaux des Formats (dimensionnées sur 99′99″) — une durée ≥ 1 h (« 1h 05′30″ », jusqu'à « 1h 39′59″ ») et les incréments signés (« + 1′30″ ») peuvent dépasser 44 ; libellés des blocs du Déroulé (`numberOfLines={1}`, blocs étroits) — « 2′00″ » est plus long que l'ancien « 2' » ; cellules du tableau des séries variables de la feuille (71) avec une durée ≥ 1 h ; à vérifier sur iPhone.
+- **Libellés d'accessibilité conservés** : le nom accessible d'une occurrence (« Exercice, Gainage, 1 sur 1, 4 min », `formatEstimatedDuration`, minute supérieure, `durationUnit: "min"`) garde sa forme existante ; seule la récupération qui y est ajoutée est lue en toutes lettres.
+- **Non converti, sans consommateur** : `compositionPresentation.formatDurationRowValue` (« 00 min 10 s », historique story 7.8, aucun appelant).
+- **Roulettes natives** : `DurationWheelPicker` affiche deux colonnes de chiffres (minutes, secondes) sans libellé « min » / « s » visible ; primitive inchangée. Les champs « MM:SS » au clavier sont inchangés.
+- **TextInput des tableaux** : VoiceOver lit la valeur affichée d'une case de saisie (« 1′30″ ») ; aucun `accessibilityValue` n'existe sur `TableCell` → signalé, non modifié.
+- **Documentation** : la règle « 0 s / x s / x min / m min s s » n'est pas aux lignes 609-618 du ch08 de cette branche (sujet : mise en pause) ; elle est au ch10 (§ « Phrase de synthèse des paramètres — Format d'affichage des durées ») et y est annotée remplacée. Annotés aussi : ch07 (D-391, D-443 « Durée de la Séance », point (1) des « À confirmer » tranché, nouvelle sous-section), ch13 (exemple de saisie « 1 min 30 »), spécification Formats §9.3 et §9.5. Non annotés : bornes exprimées en « 0 s..58 min 55 s » (PRODUCT, ch07 D-089…), qui énoncent des valeurs et non le format d'affichage ; ch04, ch12 et INDEX ne contiennent pas de formulation du format.
+- **Tests** : les attentes des fichiers de référence (`attendus-phrases-276.json`, `phrases-276.json`, fixtures `phrases-276-cotes-neutres.json`, `phrase-variants.json`, `phrases-pre5.json`) restent inchangées sur disque ; `executionPhrase.test.ts` convertit leurs durées au format affiché (`toDisplayedDurations`) avant comparaison. Les autres attentes ont été converties (littéraux, expressions régulières) ; les libellés d'accessibilité attendent la forme lue.
+
+**Résultats**
+- `npx jest --findRelatedTests <13 fichiers source modifiés> --testPathIgnorePatterns "\.claude" -w 2` → **152 suites, 3 249 tests, tous passés**.
+- `npx jest src/domain/sessions/__tests__/formats src/features/sessions/__tests__/formats src/features/sessions/__tests__/FormatModelScreen --testPathIgnorePatterns "\.claude" -w 2` → **10 suites, 159 tests, tous passés**.
+- `npx tsc --noEmit` → aucune erreur. `eslint` sur les fichiers modifiés → 0 erreur ; 2 avertissements préexistants (`openGeneric` dans `formatTimeline.ts`, `testRouter` dans `ExerciseEditingPaths.integration.test.tsx`).
+- Pas de suite Jest complète (consigne mémoire).
+
 ## Hypothèses non démontrées / points à confirmer par Hermann
 
 1. ~~AMRAP : « +kg » par mouvement à confirmer~~ — tranché le 08/11/2026 après-midi : gardé.

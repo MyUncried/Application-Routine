@@ -21,6 +21,7 @@
 
 import { unsetTarget } from "@/domain/activities/ExecutionParameters";
 
+import { exitBreaksMemberMinimum } from "./circuitMemberLimit";
 import { admittedCircuitRoles, circuitRoleOf, withCircuitRole, type CircuitRole } from "./formats";
 import { structureCircuits, type SessionStructure, type StructureCircuit, type StructureStopPointLocation } from "./structure";
 import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
@@ -76,12 +77,17 @@ export function isLastRepetitionsMember(draft: Pick<SessionDraft, "exercises">, 
   return inRepetitions.length === 1 && inRepetitions[0] === exerciseId;
 }
 
-/** Garde de suppression ou de sortie d'un membre (voir `isLastTourMember`, `isLastRepetitionsMember`). */
-export type MemberRemovalBlock = "LAST_TOUR" | "LAST_REPETITIONS";
+/**
+ * Garde de suppression ou de sortie d'un membre (voir `isLastTourMember`, `isLastRepetitionsMember`). Réponse de
+ * Hermann du 08/11/2026 (« Superset : dans la composition on limite à deux exercices aussi. ») : `MEMBER_MINIMUM` —
+ * membre d'un Superset à deux (`exitBreaksMemberMinimum`).
+ */
+export type MemberRemovalBlock = "LAST_TOUR" | "LAST_REPETITIONS" | "MEMBER_MINIMUM";
 
 export function memberRemovalBlock(draft: Pick<SessionDraft, "exercises">, layout: LayoutLike | undefined, exerciseId: string): MemberRemovalBlock | null {
   if (isLastTourMember(draft, layout, exerciseId)) return "LAST_TOUR";
   if (isLastRepetitionsMember(draft, layout, exerciseId)) return "LAST_REPETITIONS";
+  if (exitBreaksMemberMinimum(layout, exerciseId)) return "MEMBER_MINIMUM";
   return null;
 }
 

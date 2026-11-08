@@ -2,6 +2,7 @@ import type { ElementFormat } from "@/domain/sessions/formats";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import type { FormatModelKey } from "@/domain/sessions/formatModels";
 import type { CarrierHeader } from "@/features/sessions/CircuitHeader";
+import { formatPrimeDuration } from "@/domain/activities/durationFormat";
 import { strings } from "@/shared/i18n";
 
 /**
@@ -9,11 +10,9 @@ import { strings } from "@/shared/i18n";
  * porteur : nom du Format, unité du compte, durée portée par le Circuit et réglage qu'elle édite.
  */
 
+/** Hermann, 08/11/2026 au soir : « Et tu dois encore modifier le format des durées. » ; « Partout veut bien dire partout » : M′SS″ / S″. [« 30 s », « 12 min », « 12 min 30 » — remplacés le 08/11/2026 au soir.] */
 function formatMinutes(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const rest = seconds % 60;
-  if (minutes === 0) return `${rest} s`;
-  return rest === 0 ? `${minutes} min` : `${minutes} min ${rest}`;
+  return formatPrimeDuration(seconds);
 }
 
 /** Réglage de durée édité par le toucher de l'en-tête ; `null` : aucun (Death by alterné). */

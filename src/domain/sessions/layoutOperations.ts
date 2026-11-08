@@ -43,7 +43,7 @@ import { clampSeriesCount, seriesCountOf, seriesRowsOf, unsetTarget, type Series
 
 import { adaptExercise, DEFAULT_CIRCUIT_NATURE, lostSeriesCount, type CircuitLoss, type CircuitLossReport, type CircuitNature } from "./circuit";
 import { enterCarrier, exitCarrier, exitNeedsChoice } from "./carrierMembership";
-import { entryExceedsMemberLimit } from "./circuitMemberLimit";
+import { entryExceedsMemberLimit, exitBreaksMemberMinimum } from "./circuitMemberLimit";
 import { circuitCompatibility, isSinglePassage, type ElementFormat, type ElementFormatKey } from "./formats";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import {
@@ -1060,7 +1060,7 @@ export type LayoutMoveOutcome =
     }
   /** [B.3 : refus `STOP_POINTS` — retiré le 31/10/2026 par B.6.] */
   /** Recette du 08/11/2026 au soir : `MEMBER_LIMIT` — le Circuit (Superset) a déjà ses deux membres. */
-  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "FORMAT_INCOMPATIBLE" | "MEMBER_LIMIT" };
+  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "FORMAT_INCOMPATIBLE" | "MEMBER_LIMIT" | "MEMBER_MINIMUM" };
 
 /**
  * PRE-9 (B.3, COMP §6 : « Le déplacement d'un exercice vers un circuit alterné respecte le N commun
@@ -1096,6 +1096,11 @@ export function moveExerciseToCircuit(
   // Recette du 08/11/2026 au soir (Superset limité) : pas de troisième membre dans un Superset.
   if (entryExceedsMemberLimit(layout, exerciseId, circuitId)) {
     return { status: "REFUSED", reason: "MEMBER_LIMIT" };
+  }
+  // Réponse de Hermann du 08/11/2026 (« dans la composition on limite à deux exercices aussi ») : un membre d'un
+  // Superset à deux ne le quitte pas pour un autre Circuit.
+  if (circuitOfExercise(layout, exerciseId)?.id !== circuitId && exitBreaksMemberMinimum(layout, exerciseId)) {
+    return { status: "REFUSED", reason: "MEMBER_MINIMUM" };
   }
   const attached = attach(detached.layout, detached.node, { container: { kind: "CIRCUIT", id: circuitId }, index });
   if (attached === null || attached === "NESTING") {

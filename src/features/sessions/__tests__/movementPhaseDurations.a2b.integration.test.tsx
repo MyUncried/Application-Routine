@@ -237,7 +237,7 @@ describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel
     // Montée reste à renseigner (et la durée de série, règle existante) : carte « à compléter ».
     expect(screen.getByText(strings.executionParameters.card.incomplete)).toBeTruthy();
     await tapCard("Squat");
-    expect(sheetPhaseDurations()).toEqual(["30 s", "—"]);
+    expect(sheetPhaseDurations()).toEqual(["30″", "—"]);
   }, 40000);
 
   // [Test retiré — Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu Créer ; la reprise d'un mouvement existant passe par la fiche de création (suggestions, `useExistingMovement`).]

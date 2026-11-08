@@ -43,7 +43,7 @@ import {
   type CircuitNature,
 } from "@/domain/sessions/circuit";
 import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
-import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { formatPhraseDuration, spokenDuration } from "@/domain/activities/durationFormat";
 import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import {
   adjustEnvelopeSpan,
@@ -2996,7 +2996,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const announceLayoutRefusal = useCallback((reason: LayoutItemMoveRefusal) => {
     const text = strings.screens.composition.layoutMove.refused[reason];
     // MAJ 04/11/2026 §6 bis 2 : message court visible pour les gardes des Rôles (alerte native, P-4).
-    if (reason === "LAST_TOUR" || reason === "LAST_REPETITIONS") Alert.alert(text);
+    // Réponse de Hermann du 08/11/2026 (Superset limité à deux, minimum) : même message court que les gardes des Rôles.
+    if (reason === "LAST_TOUR" || reason === "LAST_REPETITIONS" || reason === "MEMBER_MINIMUM") Alert.alert(text);
     else if (text !== "") AccessibilityInfo.announceForAccessibility(text);
   }, []);
   /**
@@ -3338,7 +3339,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         });
         return;
       }
-      if (outcome.status === "REFUSED" && (outcome.reason === "LAST_TOUR" || outcome.reason === "LAST_REPETITIONS")) {
+      if (outcome.status === "REFUSED" && (outcome.reason === "LAST_TOUR" || outcome.reason === "LAST_REPETITIONS" || outcome.reason === "MEMBER_MINIMUM")) {
         announceLayoutRefusal(outcome.reason);
         return;
       }
@@ -7579,7 +7580,8 @@ function CompositionActivityRow({
   const accessibilityLabel = isDisplayableRecovery(displayedRecoverySeconds)
     ? `${formatOccurrenceAccessibilityLabel(activity, position, circuitContext, displayedName)}, ${composition.occurrenceCard.accessibilityRecovery.replace(
         "{duration}",
-        () => formatCompactDuration(displayedRecoverySeconds),
+        // Accessibilité (08/11/2026 au soir) : durée lue en toutes lettres, pas les primes.
+        () => spokenDuration(displayedRecoverySeconds),
       )}`
     : formatOccurrenceAccessibilityLabel(activity, position, circuitContext, displayedName);
   // PRE-9 B.4 : « Monter » / « Descendre » sur les positions de l'arbre (`stepLayoutItem`). [B.1b : « dans

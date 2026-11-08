@@ -103,7 +103,18 @@ export const neutralDropControl: LayoutDropControl = () => ({ status: "ACCEPTED"
  * Recette du 08/11/2026 au soir (Superset limité) : `MEMBER_LIMIT` — l'Exercice entrerait dans un Circuit qui a atteint
  * son nombre maximal de membres (Superset : deux, `circuitMemberLimit.ts`).
  */
-export type LayoutItemMoveRefusal = "NOT_FOUND" | "NESTING" | "FORMAT_INCOMPATIBLE" | "CONTROL" | "AT_BOUNDARY" | "PASSAGE_FIXED" | "LAST_TOUR" | "LAST_REPETITIONS" | "MEMBER_LIMIT";
+export type LayoutItemMoveRefusal =
+  | "NOT_FOUND"
+  | "NESTING"
+  | "FORMAT_INCOMPATIBLE"
+  | "CONTROL"
+  | "AT_BOUNDARY"
+  | "PASSAGE_FIXED"
+  | "LAST_TOUR"
+  | "LAST_REPETITIONS"
+  | "MEMBER_LIMIT"
+  /** Réponse de Hermann du 08/11/2026 : un membre d'un Superset à deux ne sort pas (`memberRemovalBlock`). */
+  | "MEMBER_MINIMUM";
 
 /**
  * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « La carte d'exercice Buy-In ne doit pas
@@ -460,7 +471,7 @@ export type LayoutExerciseEditOutcome =
    * source, avant le Point qui la suivait).
    */
   /** Recette du 08/11/2026 au soir : `MEMBER_LIMIT` (duplication seule) — la copie serait un troisième membre d'un Superset. */
-  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "STOP_POINT_CONFLICT" | "LAST_TOUR" | "LAST_REPETITIONS" | "MEMBER_LIMIT" };
+  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "STOP_POINT_CONFLICT" | "LAST_TOUR" | "LAST_REPETITIONS" | "MEMBER_LIMIT" | "MEMBER_MINIMUM" };
 
 /**
  * PRE-9 B.5 (epics B.5 ; COMP §1 : « Il disparaît lorsque son dernier membre en sort ») — suppression

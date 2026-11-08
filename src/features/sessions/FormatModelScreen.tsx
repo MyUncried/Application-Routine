@@ -852,7 +852,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Spécification de Hermann du 08/11/2026 (A §1, B §1) : au récapitulatif, toutes les durées affichées au format M′SS″ (ou S″ sous une
   // minute) — cellules de durée, Intervalle, Durée, Durée totale, repère de fin du Déroulé (le repère de début reste « 0 »).
   // Questionnaire : format inchangé.
-  const formatDuration = stage === "summary" ? formatPrimeDuration : formatSeconds;
+  // Demande de Hermann du 08/11/2026 au soir (« Et tu dois encore modifier le format des durées. ») : questionnaire aussi. [Questionnaire
+  // en « 1 min », « 30 s » — remplacé le 08/11/2026 au soir.]
+  const formatDuration = formatPrimeDuration;
   const endLabel =
     timeline.end.kind === "UNTIL_FAILURE"
       ? t().untilFailure

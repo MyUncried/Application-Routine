@@ -64,3 +64,22 @@ describe("Superset limité — emplacements du glisser (layoutDrop)", () => {
     );
   });
 });
+
+/**
+ * Réponse de Hermann du 08/11/2026 (« Superset : dans la composition on limite à deux exercices aussi. ») : un membre
+ * d'un Superset à deux n'a d'emplacements que dans ce Superset — lâchée ailleurs, la carte y revient.
+ */
+describe("Superset limité — minimum de deux pendant le glisser", () => {
+  it("membre d'un Superset à deux : emplacements du Superset seulement", () => {
+    expect(keys(layoutDropCandidates(layout(["a1", "a2"]), { kind: "EXERCISE", id: "a1" }, boxes, id))).toEqual(["CIRCUIT:ss@0", "CIRCUIT:ss@1"]);
+    // Lâchée tout en haut ou tout en bas : la destination reste dans le Superset.
+    expect(resolveLayoutDrop(layout(["a1", "a2"]), { kind: "EXERCISE", id: "a2" }, 0, boxes, id)?.container).toEqual({ kind: "CIRCUIT", id: "ss" });
+    expect(resolveLayoutDrop(layout(["a1", "a2"]), { kind: "EXERCISE", id: "a1" }, 400, boxes, id)?.container).toEqual({ kind: "CIRCUIT", id: "ss" });
+  });
+
+  it("Superset existant à trois membres : un membre peut encore en sortir (réduction jusqu'à deux)", () => {
+    const three = new Map(boxes);
+    three.set(layoutItemKey({ kind: "EXERCISE", id: "a3" }), box(312, 20));
+    expect(keys(layoutDropCandidates(layout(["a1", "a2", "a3"]), { kind: "EXERCISE", id: "a3" }, three, id))).toEqual(expect.arrayContaining(["SESSION@0", "SESSION@2"]));
+  });
+});

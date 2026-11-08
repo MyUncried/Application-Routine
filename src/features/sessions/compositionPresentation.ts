@@ -146,7 +146,9 @@ export function formatSessionDurationEstimate(duration: SessionDurationResult): 
 /** Story 7.8 : valeur d'une borne de séance, en secondes seulement, bornée à 0..60 (« 45 s »). */
 export function formatBoundarySecondsValue(totalSeconds: number): string {
   const seconds = Number.isFinite(totalSeconds) ? Math.min(SESSION_BOUNDARY_SECONDS_MAX, Math.max(0, Math.round(totalSeconds))) : 0;
-  return `${seconds} ${strings.screens.composition.boundarySecondsUnit}`;
+  // Hermann, 08/11/2026 au soir : « Partout veut bien dire partout » — « 45″ ». [« 45 s » (`boundarySecondsUnit`) — remplacé le
+  // 08/11/2026 au soir.]
+  return formatPhraseDuration(seconds);
 }
 
 /**

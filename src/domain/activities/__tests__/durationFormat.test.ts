@@ -10,15 +10,15 @@ import { formatPhraseDuration } from "@/domain/activities/durationFormat";
  * d'Exercice. Attendus écrits dans le test (AD-10), jamais recalculés.
  */
 const AC1_CASES: readonly (readonly [number, string])[] = [
-  [0, "0 s"],
-  [15, "15 s"],
-  [60, "1 min"],
-  [90, "1 min 30 s"],
-  [1265, "21 min 5 s"],
+  [0, "0″"],
+  [15, "15″"],
+  [60, "1′00″"],
+  [90, "1′30″"],
+  [1265, "21′05″"],
   // Au-delà de 59 min : les minutes continuent, sans heures (H8).
-  [3665, "61 min 5 s"],
-  [3960, "66 min"],
-  [4500, "75 min"],
+  [3665, "1h 01′05″"],
+  [3960, "1h 06′"],
+  [4500, "1h 15′"],
 ];
 
 const SRC = path.resolve(__dirname, "../../..");
@@ -34,12 +34,14 @@ function sourceFiles(directory: string): string[] {
 }
 
 describe("PRE-4 story 2.2 — AC1 un seul formateur de durée (FR-17-01, H8)", () => {
-  it("PRE4-2.2/AC1 — 0 s, 15 s, 1 min (jamais 60 s), 1 min 30 s, 21 min 5 s ; minutes sans heures au-delà de 59 min", () => {
+  it("PRE4-2.2/AC1 — 0″, 15″, 1′00″ (jamais 1′00″), 1′30″, 21′05″ ; minutes sans heures au-delà de 59′00″", () => {
     for (const [seconds, expected] of AC1_CASES) {
       expect(formatPhraseDuration(seconds)).toBe(expected);
     }
-    expect(formatPhraseDuration(60)).not.toBe("60 s");
-    expect(formatPhraseDuration(3665)).not.toMatch(/h/);
+    // [« jamais « 1 min 0 s » » et « sans heures (H8) » — remplacés le 08/11/2026 au soir (Hermann : « Partout veut bien dire partout » ;
+    // « Il y a les heures aussi ») : 1′00″, et « Hh MM′ » à partir d'une heure.]
+    expect(formatPhraseDuration(60)).toBe("1′00″");
+    expect(formatPhraseDuration(3665)).toMatch(/^1h/u);
   });
 
   it("PRE4-2.2/AC1 — défini une seule fois, dans `src/domain/activities/durationFormat.ts`, et ré-exporté nulle part", () => {

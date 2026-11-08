@@ -8,6 +8,7 @@ import { AccessibilityInfo, Dimensions, KeyboardAvoidingView, Platform, StyleShe
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { numberTarget, unsetTarget, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import { spokenDurations } from "@/domain/activities/durationFormat";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import {
   allFailureParameters,
@@ -296,22 +297,22 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(within(screen.getByTestId("exercise-body")).queryByTestId("test-finish-action")).toBeNull();
   });
 
-  it("P3-12/normative-totals — totaux affichés tels que calculés : A 195 s, C 405 s, D 375 s exacts ; Répétitions cadencées ≈ 5 min ; Durée cadencée 5 min exact", () => {
+  it("P3-12/normative-totals — totaux affichés tels que calculés : A 3′15″, C 6′45″, D 6′15″ exacts ; Répétitions cadencées ≈ 5′00″ ; Durée cadencée 5′00″ exact", () => {
     const rows = variable([[30, 10], [45, 20], [60, 30]]);
     const cases: [ExecutionParametersInput, string][] = [
-      [parameters({ series: rows }), "Durée totale : 3 min 15 s."],
-      [parameters({ series: rows, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }), "Durée totale : 6 min 45 s."],
+      [parameters({ series: rows }), "Durée totale : 3′15″."],
+      [parameters({ series: rows, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }), "Durée totale : 6′45″."],
       [
         parameters({ series: rows, sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 15 }),
-        "Durée totale : 6 min 15 s.",
+        "Durée totale : 6′15″.",
       ],
       [
         parameters({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds: 4 }),
-        "Durée totale : ≈ 5 min.",
+        "Durée totale : ≈ 5′00″.",
       ],
       [
         parameters({ series: { kind: "UNIFORM", count: 4, target: numberTarget(60), pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds: 4 }),
-        "Durée totale : 5 min.",
+        "Durée totale : 5′00″.",
       ],
     ];
     for (const [executionParameters, expected] of cases) {
@@ -327,12 +328,12 @@ describe("ActivityEditorForm — PRE-3", () => {
       { ...allFailureParameters(3, 15, { cadenceBeepIntervalSeconds: 4 }), countdownSeconds: 10, endSeconds: 5 },
     ]) {
       const { unmount } = render(<Harness initial={{ executionParameters }} />);
-      expect(phrase()).not.toMatch(/Durée totale|≥|—| 0 s/);
+      expect(phrase()).not.toMatch(/Durée totale|≥|—| 0″/);
       unmount();
     }
   });
 
-  it("P3-15/grammar-edges — N=1 sans pause : total redondant omis ; pause 15 s : total présent ; ≤ 3 variables énumérées, > 3 min/max", () => {
+  it("P3-15/grammar-edges — N=1 sans pause : total redondant omis ; pause 15″ : total présent ; ≤ 3 variables énumérées, > 3′00″/max", () => {
     const render1 = (executionParameters: ExecutionParametersInput) => {
       const view = render(<Harness initial={{ executionParameters }} />);
       const result = phrase();
@@ -340,9 +341,9 @@ describe("ActivityEditorForm — PRE-3", () => {
       return result;
     };
     expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }))).not.toContain("Durée totale");
-    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] } }))).toContain("Durée totale : 45 s.");
-    expect(render1(parameters({ series: variable([[30, 10], [45, 20], [60, 30]]) }))).toContain("(30 s, 45 s puis 1 min)");
-    expect(render1(parameters({ series: variable([[20, 0], [25, 0], [30, 0], [45, 0]]) }))).toContain("de 20 s à 45 s");
+    expect(render1(parameters({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] } }))).toContain("Durée totale : 45″.");
+    expect(render1(parameters({ series: variable([[30, 10], [45, 20], [60, 30]]) }))).toContain("(30″, 45″ puis 1′00″)");
+    expect(render1(parameters({ series: variable([[20, 0], [25, 0], [30, 0], [45, 0]]) }))).toContain("de 20″ à 45″");
   });
 
   it("P3-15/long-phrase — phrase longue intégrale en Text imbriqués, sans numberOfLines ni ellipse ; segments gras émis par le générateur", () => {
@@ -361,10 +362,10 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(node.props.numberOfLines).toBeUndefined();
     expect(node.props.ellipsizeMode).toBeUndefined();
     expect(phrase()).toBe(
-      "1 série de 1 min 30 s, avec 15 s de pause après chaque série, en faisant le côté 1 puis le côté 2, avec 10 s de pause au changement de côté. Durée totale : 3 min 40 s.",
+      "1 série de 1′30″, avec 15″ de pause après chaque série, en faisant le côté 1 puis le côté 2, avec 10″ de pause au changement de côté. Durée totale : 3′40″.",
     );
     // PRE-5 (story 1.2, AC4) : clause des côtés neutre ; « côté 2 » remplace l'ancien mot gras.
-    expect(boldSegments()).toEqual(expect.arrayContaining(["1 série", "1 min 30 s", "côté 2", "3 min 40 s"]));
+    expect(boldSegments()).toEqual(expect.arrayContaining(["1 série", "1′30″", "côté 2", "3′40″"]));
     expect(boldSegments()).not.toContain("côté 1");
   });
 
@@ -422,7 +423,7 @@ describe("ActivityEditorForm — PRE-3", () => {
     const card = screen.getByTestId("exercise-parameters-card");
     expect(card.props.accessibilityRole).toBe("button");
     // PRE-5 story 3.2 (R-14, FR-36) : la Phrase seule, sans Compte à rebours ni Fin.
-    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${phrase()}`);
+    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${spokenDurations(phrase())}`);
     const nested = screen.getByTestId("exercise-parameters-phrase").props.children as { props?: { accessible?: boolean; accessibilityRole?: string } }[];
     expect(nested.filter((child) => typeof child === "object" && child?.props?.accessibilityRole).length).toBe(0);
   });
@@ -525,10 +526,10 @@ describe("ActivityEditorForm — correction revue 1", () => {
   it("phrase v1 §5 — retour de ligne de présentation avant « Durée totale », texte canonique inchangé pour l'accessibilité", () => {
     render(<Harness />);
     expect(renderedPhrase()).toBe(
-      "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s.",
+      "3 séries de 1′30″, avec 15″ de pause après chaque série.\nDurée totale : 5′15″.",
     );
     expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toContain(
-      "après chaque série. Durée totale : 5 min 15 s.",
+      "après chaque série. Durée totale : 5 minutes 15 secondes.",
     );
   });
 });
@@ -688,9 +689,9 @@ describe("ActivityEditorForm — recette 3 (N-05 : ↑ dans la Description)", ()
  * de la validation unique avec ligne de base (AC7, H25).
  */
 describe("ActivityEditorForm — PRE-4 story 1.1", () => {
-  it("PRE4-1.1/AC21 — ancien Exercice « à l’échec » migré (3 séries, Pause 10 s, Bip 2) : Phrase tout échec sans clause de Bip, aucune Durée totale ; Mode affiché Répétitions", () => {
+  it("PRE4-1.1/AC21 — ancien Exercice « à l’échec » migré (3 séries, Pause 10″, Bip 2) : Phrase tout échec sans clause de Bip, aucune Durée totale ; Mode affiché Répétitions", () => {
     render(<Harness initial={{ name: "Tractions", executionParameters: allFailureParameters(3, 10, { cadenceBeepIntervalSeconds: 2 }) }} />);
-    expect(phrase()).toBe("3 séries menées jusqu’à l’échec, avec 10 s de pause après chaque série.");
+    expect(phrase()).toBe("3 séries menées jusqu’à l’échec, avec 10″ de pause après chaque série.");
     expect(phrase()).not.toMatch(/Durée totale|cadenc/u);
     expect(boldSegments()).toContain("3 séries");
     // Story 4.2 (Q23, AC14) : plus de bouton de Mode à côté du titre ; le Mode se lit dans la Feuille.
@@ -726,7 +727,7 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
     expect(phrase()).not.toBe("Paramètres à compléter");
   });
 
-  it("PRE4-1.1/AC24 — isActivityEditorFormValid avec ligne de base (H25) : valeur historique 5999 s inchangée tolérée ; modifiée, elle doit respecter les bornes", () => {
+  it("PRE4-1.1/AC24 — isActivityEditorFormValid avec ligne de base (H25) : valeur historique 1h 39′59″ inchangée tolérée ; modifiée, elle doit respecter les bornes", () => {
     const historic = durationParameters(5999, 3, 10);
     const value = baseValue({ name: "Gainage", executionParameters: historic });
     expect(isActivityEditorFormValid(value, { requireReferences: false, hasCategory: true, baseline: historic })).toBe(true);
@@ -753,15 +754,15 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
 describe("ActivityEditorForm — PRE-4 story 2.2", () => {
   // PRE-5 story 3.2 (R-14, FR-36) : la Carte ne montre plus Compte à rebours ni Fin ; leur
   // formatage reste prouvé dans la Feuille (`ExecutionParametersSheet.test.tsx`).
-  it("PRE4-2.2/AC1 + PRE5-3.2/AC1 — Compte à rebours 60 s et Fin 0 s : aucune valeur ni ligne sur la Carte ; la Feuille les montre", () => {
+  it("PRE4-2.2/AC1 + PRE5-3.2/AC1 — Compte à rebours 1′00″ et Fin 0″ : aucune valeur ni ligne sur la Carte ; la Feuille les montre", () => {
     render(<Harness initial={{ executionParameters: parameters({ countdownSeconds: 60, endSeconds: 0 }) }} />);
     expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
     expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
-    expect(screen.queryByText("1 min")).toBeNull();
+    expect(screen.queryByText("1′00″")).toBeNull();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
     fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
-    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("1 min");
-    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("0 s");
+    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("1′00″");
+    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("0″");
   });
 });
 
@@ -802,7 +803,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
     // 2 × 6 × (12 × 4 + 15) + 5 = 761 s.
     expect(2 * 6 * (12 * 4 + 15) + 5).toBe(761);
     expect(phrase()).toBe(
-      "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté. Durée totale : ≈ 12 min 41 s.",
+      "6 séries de 12 répétitions cadencées toutes les 4″, avec 15″ de pause après chaque série, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5″ de pause au changement de côté. Durée totale : ≈ 12′41″.",
     );
     // Aucune espace avant la ponctuation ; le seul retour de ligne est celui de présentation avant « Durée totale ».
     expect(renderedPhrase()).not.toMatch(/ [.,)]/u);
@@ -829,7 +830,7 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
         fontWeight: "600",
       });
     }
-    expect(boldSegments()).toEqual(["6 séries", "12 répétitions", "4 s", "15 s", "côté 1", "côté 2", "5 s", "≈ 12 min 41 s"]);
+    expect(boldSegments()).toEqual(["6 séries", "12 répétitions", "4″", "15″", "côté 1", "côté 2", "5″", "≈ 12′41″"]);
     expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
     expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
   });
@@ -852,13 +853,13 @@ describe("ActivityEditorForm — PRE-4 story 2.3", () => {
         }}
       />,
     );
-    expect(phrase()).toBe("3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec). Durée totale : ≥ 1 min 45 s.");
-    expect(boldSegments()).toEqual(["3 séries", "30 s", "45 s", "≥ 1 min 45 s"]);
+    expect(phrase()).toBe("3 séries de durée variable (30″, 45″ puis jusqu’à l’échec). Durée totale : ≥ 1′45″.");
+    expect(boldSegments()).toEqual(["3 séries", "30″", "45″", "≥ 1′45″"]);
     // Story 4.2 (Q23, AC14) : bouton de Mode retiré. PRE-5 story 3.2 : libellé de la Carte
     // réduit à la Phrase (ni Compte à rebours ni Fin).
     expect(screen.queryByTestId("exercise-parameters-mode")).toBeNull();
     expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toBe(
-      `Modifier les paramètres d’exécution. ${phrase()}`,
+      `Modifier les paramètres d’exécution. ${spokenDurations(phrase())}`,
     );
   });
 
@@ -1149,7 +1150,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         (node.props.accessible === true || node.props.onPress !== undefined || node.props.accessibilityRole !== undefined),
     );
     expect(interactive).toEqual([]);
-    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${generated}`);
+    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${spokenDurations(generated)}`);
     // Aucune hauteur fixée sur la Carte ni sur la Phrase (la phrase longue est couverte par PRE4-2.3/AC15).
     for (const testID of ["exercise-parameters-card", "exercise-parameters-phrase"]) {
       expect(style(testID)).not.toHaveProperty("height");
@@ -1220,11 +1221,11 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         name: "nom, description et Média",
         initial: { name: "Squat", instructionSteps: ["Dos droit."], media: [PHOTO_ITEM], executionParameters: EMPTY },
       },
-      { name: "résumé identiques", initial: { executionParameters: durationParameters(90, 3, 15) }, expectText: /^3 séries de 1 min 30 s/u },
+      { name: "résumé identiques", initial: { executionParameters: durationParameters(90, 3, 15) }, expectText: /^3 séries de 1′30″/u },
       {
         name: "variables en Durée",
         initial: { executionParameters: variableParameters({ mode: "DURATION", rows: [[30, 10], [45, 20], [60, 30]] }) },
-        expectText: /\(30 s, 45 s puis 1 min\)/u,
+        expectText: /\(30″, 45″ puis 1′00″\)/u,
       },
       {
         name: "variables en Répétitions",
@@ -2095,7 +2096,7 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
   const EMPTY = parameters({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } });
   const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style);
 
-  it("AC1 — Compte à rebours 10 s et Fin 5 s : ni ligne, ni valeur, ni filet sur la Carte ; libellé sans ces valeurs (Phrase remplie puis vide) ; la Feuille les montre toujours", () => {
+  it("AC1 — Compte à rebours 10″ et Fin 5″ : ni ligne, ni valeur, ni filet sur la Carte ; libellé sans ces valeurs (Phrase remplie puis vide) ; la Feuille les montre toujours", () => {
     const view = render(<Harness initial={{ executionParameters: parameters({ countdownSeconds: 10, endSeconds: 5 }) }} />);
     const card = screen.getByTestId("exercise-parameters-card");
     // La Carte ne contient que la Phrase : aucun filet ni rangée de phases.
@@ -2107,16 +2108,16 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
     expect(within(card).queryByText(/Compte à rebours|Fin d’exercice/u)).toBeNull();
     expect(screen.queryByTestId("exercise-parameters-countdown")).toBeNull();
     expect(screen.queryByTestId("exercise-parameters-end")).toBeNull();
-    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${phrase()}`);
-    expect(card.props.accessibilityLabel).not.toMatch(/Compte à rebours|Fin d’exercice|10 s,/u);
+    expect(card.props.accessibilityLabel).toBe(`Modifier les paramètres d’exécution. ${spokenDurations(phrase())}`);
+    expect(card.props.accessibilityLabel).not.toMatch(/Compte à rebours|Fin d’exercice|10″,/u);
     // Clés orphelines retirées (AD-32) ; la Feuille garde les siennes.
     expect(strings.executionParameters.card).not.toHaveProperty("countdown");
     expect(strings.executionParameters.card).not.toHaveProperty("end");
     expect(strings.executionParameters.sheet.countdown).toBe("Compte à rebours");
     fireEvent.press(card);
     fireEvent.press(screen.getByLabelText("Afficher le compte à rebours et la fin d’exercice"));
-    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("10 s");
-    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("5 s");
+    expect(screen.getByTestId("execution-sheet-countdown-value").props.children).toBe("10″");
+    expect(screen.getByTestId("execution-sheet-end-value").props.children).toBe("5″");
     view.unmount();
 
     render(<Harness initial={{ executionParameters: EMPTY }} />);

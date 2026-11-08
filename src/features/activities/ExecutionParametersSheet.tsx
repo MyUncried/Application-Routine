@@ -75,7 +75,7 @@ import {
   isWorkEstimable,
   totalDurationRange,
 } from "@/domain/activities/executionCalculations";
-import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { formatPhraseDuration, spokenDurations } from "@/domain/activities/durationFormat";
 import { formatLoadKg } from "@/domain/activities/exerciseLoad";
 import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import { AnchoredPanel } from "@/features/activities/AnchoredPanel";
@@ -605,7 +605,8 @@ const spokenValue = (display: string) => (display === t.unset ? t.unsetSpoken : 
 /** Pause (« 0 s » compris) : formateur unique du domaine (AD-5). */
 const pauseLabel = (value: number | null) => (value === null ? t.unset : formatPhraseDuration(value));
 /** PRE-5 story 2.5 : valeur du ± de la Cadence (0 → « Sans », comme l'option du segmenté). */
-const beepLabel = (value: number | null) => (value === null ? t.unset : value === 0 ? t.cadenceOptions.NONE : `${value} s`);
+// Hermann, 08/11/2026 au soir : « Partout veut bien dire partout » — M′SS″ / S″. [« 30 s » — remplacé le 08/11/2026 au soir.]
+const beepLabel = (value: number | null) => (value === null ? t.unset : value === 0 ? t.cadenceOptions.NONE : formatPhraseDuration(value));
 const repetitionsLabel = (value: number | null) => (value === null ? t.unset : `${value} ${t.repetitionsUnit}`);
 
 export function ExecutionParametersSheet({
@@ -1452,7 +1453,7 @@ export function ExecutionParametersSheet({
       ? `${t.exerciseDuration}, ${t.totalMissingSpoken}`
       : totalEntrySeconds !== undefined
         ? undefined
-        : [t.exerciseDuration, totalNatureSpoken, totalAmount ?? t.totalInvalidSpoken, totalAmount === null ? null : t.totalReadOnlySpoken]
+        : [t.exerciseDuration, totalNatureSpoken, totalAmount === null ? t.totalInvalidSpoken : spokenDurations(totalAmount), totalAmount === null ? null : t.totalReadOnlySpoken]
             .filter((part) => part !== null)
             .join(", ");
   // PRE-5 story 2.5 (AC4, D-409, RM-218, AD-28) : Compte à rebours et Fin — absents pour un
@@ -2200,8 +2201,9 @@ export function ExecutionParametersSheet({
       optionWidth={INLINE_OPTION_WIDTHS.narrow}
       options={CADENCE_OPTIONS.map((option) =>
         option === "OTHER" && cadenceCustomLabel !== null
-          ? { value: option, label: cadenceCustomLabel, accessibilityLabel: `${t.cadenceOptions.OTHER}, ${cadenceCustomLabel}` }
-          : { value: option, label: t.cadenceOptions[option] },
+          ? { value: option, label: cadenceCustomLabel, accessibilityLabel: spokenDurations(`${t.cadenceOptions.OTHER}, ${cadenceCustomLabel}`) }
+          : // Accessibilité (08/11/2026 au soir) : « 1″ » lu « 1 seconde ».
+            { value: option, label: t.cadenceOptions[option], accessibilityLabel: spokenDurations(t.cadenceOptions[option]) },
       )}
       value={cadenceOption}
       onChange={chooseCadence}

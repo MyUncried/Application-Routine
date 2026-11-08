@@ -90,6 +90,8 @@ Fichiers :
 
 ## À CLARIFIER (non décidé, non inventé)
 
+[Points 1 à 3 tranchés le 08/11/2026 par Hermann — voir « Complément du 08/11/2026 — minimum de deux » en fin de rapport.]
+
 1. **Superset existant à trois Exercices** (créé avant cette règle, la règle du 05/11 l'autorisait) : laissé tel quel — réordonnable, réductible, jamais agrandi ; réouverture du format inchangée. Faut-il le signaler, bloquer son enregistrement ou le corriger ?
 2. **Nombre minimal dans la Composition** : un membre peut toujours sortir ou être supprimé et laisser un Superset d'un seul Exercice (le minimum de deux n'est écrit que pour le questionnaire). Faut-il l'interdire ?
 3. **Message** « Deux exercices au maximum dans un Superset » : annonce VoiceOver seulement, formulation à valider ; aucun message visible n'est affiché pendant le glisser (comme pour les emplacements interdits par le buy-in).
@@ -97,7 +99,7 @@ Fichiers :
 ## Vérifications restant à faire sur iPhone
 
 - Glisser une carte de la Séance (ou d'un autre Circuit / Cycle) vers un Superset à deux, déployé puis replié : aucune place ne s'ouvre dans le Superset, le Superset replié ne se déploie pas, la carte se pose hors de lui.
-- Réordonner les deux membres du Superset par glisser : toujours possible ; sortir un membre : possible, puis une autre carte peut y entrer.
+- Réordonner les deux membres du Superset par glisser : toujours possible. [« sortir un membre : possible, puis une autre carte peut y entrer » — remplacé par le complément du 08/11/2026 : la sortie est refusée.]
 - Balayer un membre du Superset : « Dupliquer » grisé, sans effet ; « Supprimer » actif. Membre d'un Circuit standard : « Dupliquer » actif.
 - VoiceOver : « Monter » / « Descendre » d'une carte voisine franchit le Superset ; l'action « Dupliquer » n'est pas proposée sur ses membres.
 - Ajouter un Exercice (menu Créer) quand le dernier Exercice affiché est dans un Superset : il se place après le Superset.
@@ -125,3 +127,69 @@ Classe **B** — sources mises à jour : référence Formats §9.4, ch13, ch07 (
 
 - **Aucun commit** : consigne explicite de la mission (« NE COMMITTE PAS, NE POUSSE PAS »). Le rapport et les modifications restent dans l'arbre de travail, non indexés ; le commit (avec ce rapport) reste à faire par l'appelant, de préférence séparément des modifications de l'autre agent (buy-in multiples).
 - HEAD inchangé : `7cc8d6b9`. État Git : modifications non indexées listées ci-dessus, mêlées dans l'arbre à celles de l'autre agent (`formatTimeline.ts`, `FormatModelScreen.tsx`, `FormatModelScreen.c3.test.tsx`, `06 – Ecrans…`, parties « buy-in » de ch07 / référence Formats / ch08, rapport `2026-11-08_PRE9-BUYIN-MULTIPLES.md`, `formatModels.buyinMultiples0811.test.ts`).
+
+---
+
+## Complément du 08/11/2026 — minimum de deux
+
+### Objectif et départ
+
+- Réponses de Hermann (08/11/2026), verbatim : « Superset : dans la composition on limite à deux exercices aussi. » et « Le libellé VoiceOver me convient. »
+- Interprétation retenue par le coordinateur (classe B) : dans la Composition, un Superset a **exactement deux** membres ; le minimum s'ajoute au maximum déjà livré. Réordonnancement des deux membres permis ; un Superset existant à trois membres reste tel quel et se réduit jusqu'à deux, jamais en dessous.
+- Départ : commit `e369c1ae` (première partie de cette mission livrée dans `7001c313`). Branche inchangée.
+
+### Chemins de sortie trouvés et traitement
+
+| Chemin | Traitement |
+|---|---|
+| Glisser un membre hors du Superset (Séance, Cycle, autre Circuit, autre Superset), Superset déployé | `layoutDrop.ts` : un membre d'un Superset à deux n'a d'emplacements que dans ce Superset ; lâchée ailleurs, la carte revient dans le Superset (à sa place ou au rang le plus proche) |
+| Dépose effective hors du Superset (`moveLayoutItem`) | refusée sans altération : `REFUSED` / `MEMBER_MINIMUM`, par la garde existante `memberRemovalBlock` (même mécanisme que `LAST_TOUR` / `LAST_REPETITIONS`) |
+| « Monter » du premier membre, « Descendre » du dernier (`stepLayoutItem`) | refusés (`MEMBER_MINIMUM`), message court ; l'autre sens réordonne |
+| Déplacement vers un autre Circuit (`moveExerciseToCircuit`) | refusé (`MEMBER_MINIMUM`) |
+| « Supprimer » d'un membre (`removeLayoutExercise`) | **précédent trouvé** : `memberRemovalBlock` refuse déjà la suppression du dernier membre de la boucle (`LAST_TOUR`) et du dernier en Répétitions (`LAST_REPETITIONS`) avec un message court visible (`Alert`). Refus identique pour `MEMBER_MINIMUM` |
+| Superset replié | ses membres ne sont pas rendus, donc pas saisissables ; non concerné |
+| Déplacer, dupliquer ou supprimer le Superset **entier** ; mode enveloppe (ne porte que sur des contenus hors Circuit) | non concernés, inchangés |
+
+Message (`fr.ts`, à côté de `MEMBER_LIMIT`) : `MEMBER_MINIMUM` = « Deux exercices au minimum dans un Superset » (formulation à faire confirmer par Hermann). Il est affiché comme les gardes des Rôles (alerte native, lue par VoiceOver).
+
+### Modifications (complément)
+
+- `src/domain/sessions/circuitMemberLimit.ts` : `SUPERSET_MEMBER_MINIMUM`, `circuitMemberMinimum`, `circuitAtMemberMinimum`, `exitBreaksMemberMinimum` ; en-tête mis à jour (formulation remplacée annotée).
+- `src/domain/sessions/circuitRoles.ts` : `MemberRemovalBlock` reçoit `MEMBER_MINIMUM` (garde commune de sortie et de suppression).
+- `src/domain/sessions/layoutMoves.ts` : `MEMBER_MINIMUM` dans les types de refus (dépose, pas à pas, suppression).
+- `src/domain/sessions/layoutOperations.ts` : refus `MEMBER_MINIMUM` dans `moveExerciseToCircuit`.
+- `src/features/sessions/layoutDrop.ts` : membre d'un Superset à son minimum, emplacements de ce Superset seulement.
+- `src/features/sessions/CompositionScreen.tsx` : `MEMBER_MINIMUM` traité comme `LAST_TOUR` (message court, suppression refusée).
+- `src/shared/i18n/resources/fr.ts` : `MEMBER_MINIMUM`.
+- Tests : `supersetLimit.recette0811.test.ts` (7 tests ajoutés ; le test « sortie d'un membre : inchangée » remplacé, ancienne attente annotée), `layoutDrop.supersetLimit.test.ts` (2 ajoutés), `CompositionScreen.supersetLimit.test.tsx` (3 ajoutés).
+- Documentation : ch07, nouvelle sous-section « Réponses de Hermann du 08/11/2026 — Superset limité à deux (minimum) » (réponses verbatim, classe B, questions marquées tranchées, phrase remplacée annotée) et annotation l. 1616 ; référence Formats §9.4 (trois paragraphes) ; ch13 (trois paragraphes) ; résumés INDEX, PRODUCT, Composition-conteneurs, ch04, ch08, ch10, ch11 (annotation datée, texte d'origine conservé).
+- Non touchés : `FormatModelScreen.tsx`, `FormatTables.tsx`, `src/domain/sessions/formats/**` (autre agent), Figma, migrations.
+
+### Tests (complément)
+
+- Tests ciblés (3 fichiers) : **38 tests PASS**.
+- Sans le minimum (`circuitMemberMinimum` neutralisé temporairement, fichier restauré ensuite) : **9 échecs** (tous les nouveaux tests du minimum), 29 réussites (maximum et témoins).
+- `npx tsc --noEmit` : **aucune erreur**. ESLint sur les fichiers touchés : 12 erreurs `react-hooks/refs` antérieures, plus 1 avertissement (`formatCompactDuration` non utilisé, l. 253 de `CompositionScreen.tsx`) qui vient du travail en cours de l'autre agent sur les durées et pas de ce complément.
+- `npx jest src/domain/sessions --testPathIgnorePatterns "\.claude" -w 2` : **40 suites, 873 tests PASS**.
+- `npx jest src/features/sessions/__tests__/CompositionScreen src/features/sessions/__tests__/layoutDrop --testPathIgnorePatterns "\.claude" -w 2` : **23 suites PASS, 1 suite en échec** : `CompositionScreen.test.tsx`, 43 échecs sur 635 tests au total. Ces échecs portent tous sur le format des durées (attendu « 0 s » / « ≈ 3 min » / « 1 min 30 s », reçu « 0″ » / « ≈ 3′00″ » / « 1′30″ »). Ils viennent de la modification en cours de `src/domain/activities/durationFormat.ts` par l'autre agent (format des durées) et non du Superset. Aucun échec dans les suites Superset, layoutDrop, b4, b5 ni dans les autres suites de la Composition.
+
+### À CLARIFIER (complément)
+
+1. **Message du minimum** « Deux exercices au minimum dans un Superset » : à faire confirmer par Hermann. Il est affiché en alerte native visible, comme le précédent `LAST_TOUR` (« refuser de la même manière »), et pas seulement annoncé à VoiceOver.
+2. **« Monter » / « Descendre » proposés mais refusés** sur le premier et le dernier membre, comme pour le dernier membre de la boucle (précédent). Les retirer des actions VoiceOver serait une autre présentation, non décidée.
+
+### Vérifications iPhone (complément)
+
+- Glisser un membre d'un Superset à deux hors du Superset (au-dessus, en dessous, vers un autre Circuit ou un Cycle) : aucune place ne s'ouvre ailleurs, la carte revient dans le Superset ; réordonner les deux membres reste possible.
+- « Supprimer » (balayage) d'un membre : message « Deux exercices au minimum dans un Superset », rien n'est retiré.
+- VoiceOver : « Monter » du premier membre et « Descendre » du dernier affichent le message ; l'autre sens échange les deux membres.
+- Superset ancien à trois membres : un membre sort ou se supprime, puis plus aucun.
+
+### Commit et état Git (complément)
+
+- Aucun commit ni push (consigne : le coordinateur committe). HEAD : `e369c1ae`. Modifications non indexées listées ci-dessus, avec celles de l'autre agent dans le même arbre.
+
+### Réponses de Hermann du 08/11/2026 (suite)
+
+- « 1. Deux exercices exactement dans un superset » → `MEMBER_MINIMUM` = « Deux exercices exactement dans un Superset » (`fr.ts`, test `CompositionScreen.supersetLimit` mis à jour, ancien libellé annoté).
+- « 2. Non C’est ok comme ça » → « Monter » / « Descendre » restent proposés puis refusés : inchangé.

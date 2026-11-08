@@ -1,7 +1,16 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
-import { circuitAtMemberLimit, circuitMemberLimit, entryExceedsMemberLimit, SUPERSET_MEMBER_LIMIT } from "@/domain/sessions/circuitMemberLimit";
+import {
+  circuitAtMemberLimit,
+  circuitAtMemberMinimum,
+  circuitMemberLimit,
+  circuitMemberMinimum,
+  entryExceedsMemberLimit,
+  exitBreaksMemberMinimum,
+  SUPERSET_MEMBER_LIMIT,
+  SUPERSET_MEMBER_MINIMUM,
+} from "@/domain/sessions/circuitMemberLimit";
 import { moveExerciseToCircuit } from "@/domain/sessions/layoutOperations";
 import { duplicateLayoutExercise, moveLayoutItem, removeLayoutExercise, stepLayoutItem } from "@/domain/sessions/layoutMoves";
 import { createEmptyDraft, createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -102,14 +111,13 @@ describe("Superset limité — dépose (moveLayoutItem)", () => {
     );
   });
 
-  it("réordonnancement dans le Superset et sortie d'un membre : inchangés", () => {
+  it("réordonnancement dans le Superset : inchangé", () => {
     expect(shape(applied(moveLayoutItem(sample(), { kind: "EXERCISE", id: "a2" }, { container: { kind: "CIRCUIT", id: "ss" }, index: 0 }, ids)).draft)).toBe(
       "e0 ss[a2,a1] cs[c1] cy{y0 sy[b1,b2]} e9",
     );
-    expect(shape(applied(moveLayoutItem(sample(), { kind: "EXERCISE", id: "a2" }, { container: { kind: "SESSION" }, index: 0 }, ids)).draft)).toBe(
-      "a2 e0 ss[a1] cs[c1] cy{y0 sy[b1,b2]} e9",
-    );
   });
+  // [« sortie d'un membre : inchangée » (a2 sorti au niveau Séance, Superset laissé à un membre) — remplacé par la réponse
+  // de Hermann du 08/11/2026 (« dans la composition on limite à deux exercices aussi ») : voir « minimum de deux » ci-dessous.]
 
   it("Superset à un seul membre : un second Exercice y entre (au plus deux)", () => {
     expect(shape(applied(moveLayoutItem(sample(["a1"]), { kind: "EXERCISE", id: "e0" }, { container: { kind: "CIRCUIT", id: "ss" }, index: 1 }, ids)).draft)).toBe(
@@ -173,5 +181,64 @@ describe("Superset limité — duplication et déplacement vers un Circuit", () 
     };
     const inserted = insertIntoRichLayout(withoutTail, [exercise("n1")]);
     expect(shape({ ...withoutTail, structure: inserted!.structure })).toBe("e0 ss[a1,a2] cs[c1] cy{y0 sy[b1,b2] n1}");
+  });
+});
+
+/**
+ * Réponse de Hermann du 08/11/2026 (« Superset : dans la composition on limite à deux exercices aussi. ») : minimum de
+ * deux — aucune opération ne laisse un Superset avec moins de deux membres ; le réordonnancement reste permis.
+ */
+describe("Superset limité — minimum de deux (réponse de Hermann du 08/11/2026)", () => {
+  const out = (draft: SessionDraft, id: string, destination: Parameters<typeof moveLayoutItem>[2]) => moveLayoutItem(draft, { kind: "EXERCISE", id }, destination, ids);
+
+  it("règle : minimum de deux pour un Superset, aucun ailleurs", () => {
+    expect(SUPERSET_MEMBER_MINIMUM).toBe(2);
+    expect(circuitMemberMinimum({ originModel: "SUPERSET" })).toBe(2);
+    expect(circuitMemberMinimum({ originModel: null })).toBeNull();
+    expect(circuitAtMemberMinimum({ originModel: "SUPERSET", exercises: ["a", "b"] })).toBe(true);
+    expect(circuitAtMemberMinimum({ originModel: "SUPERSET", exercises: ["a", "b", "c"] })).toBe(false);
+    expect(exitBreaksMemberMinimum(sample().structure, "a1")).toBe(true);
+    expect(exitBreaksMemberMinimum(sample().structure, "c1")).toBe(false);
+    expect(exitBreaksMemberMinimum(sample().structure, "e0")).toBe(false);
+  });
+
+  it("sortie d'un membre par dépose (Séance, Cycle, autre Circuit, autre Superset) : refusée sans altération", () => {
+    expect(out(sample(), "a2", { container: { kind: "SESSION" }, index: 0 })).toEqual({ status: "REFUSED", reason: "MEMBER_MINIMUM" });
+    expect(out(sample(), "a1", { container: { kind: "CYCLE", id: "cy" }, index: 0 })).toEqual({ status: "REFUSED", reason: "MEMBER_MINIMUM" });
+    expect(out(sample(), "a1", { container: { kind: "CIRCUIT", id: "cs" }, index: 0 })).toEqual({ status: "REFUSED", reason: "MEMBER_MINIMUM" });
+    expect(out(sample(), "b1", { container: { kind: "SESSION" }, index: 0 })).toEqual({ status: "REFUSED", reason: "MEMBER_MINIMUM" });
+  });
+
+  it("« Monter » du premier membre, « Descendre » du dernier : refusés (ils sortiraient) ; l'autre sens réordonne", () => {
+    expect(stepLayoutItem(sample(), { kind: "EXERCISE", id: "a1" }, "UP", ids)).toEqual({ status: "REFUSED", reason: "MEMBER_MINIMUM" });
+    expect(stepLayoutItem(sample(), { kind: "EXERCISE", id: "a2" }, "DOWN", ids)).toEqual({ status: "REFUSED", reason: "MEMBER_MINIMUM" });
+    expect(shape(applied(stepLayoutItem(sample(), { kind: "EXERCISE", id: "a1" }, "DOWN", ids)).draft)).toBe("e0 ss[a2,a1] cs[c1] cy{y0 sy[b1,b2]} e9");
+  });
+
+  it("moveExerciseToCircuit d'un membre vers un autre Circuit : refusé ; dans son Superset : appliqué", () => {
+    expect(moveExerciseToCircuit(sample(), "a1", "cs", 0, ids)).toEqual({ status: "REFUSED", reason: "MEMBER_MINIMUM" });
+    expect(moveExerciseToCircuit(sample(), "a1", "ss", 1, ids).status).toBe("APPLIED");
+  });
+
+  it("suppression d'un membre d'un Superset à deux : refusée, comme le dernier membre de la boucle (LAST_TOUR)", () => {
+    expect(removeLayoutExercise(sample(), "a1", ids)).toEqual({ status: "REFUSED", reason: "MEMBER_MINIMUM" });
+    expect(removeLayoutExercise(sample(), "b2", ids)).toEqual({ status: "REFUSED", reason: "MEMBER_MINIMUM" });
+  });
+
+  it("Superset existant à trois membres : réduit jusqu'à deux (sortie ou suppression), jamais en dessous", () => {
+    const three = sample(["a1", "a2", "a3"]);
+    const reduced = applied(out(three, "a3", { container: { kind: "SESSION" }, index: 0 })).draft;
+    expect(shape(reduced)).toBe("a3 e0 ss[a1,a2] cs[c1] cy{y0 sy[b1,b2]} e9");
+    expect(out(reduced, "a2", { container: { kind: "SESSION" }, index: 0 })).toMatchObject({ reason: "MEMBER_MINIMUM" });
+    const removed = applied(removeLayoutExercise(three, "a1", ids)).draft;
+    expect(removeLayoutExercise(removed, "a2", ids)).toMatchObject({ reason: "MEMBER_MINIMUM" });
+  });
+
+  it("témoins : un membre d'un Circuit standard sort et se supprime comme avant ; le Superset entier se déplace", () => {
+    expect(shape(applied(out(sample(), "c1", { container: { kind: "SESSION" }, index: 0 })).draft)).toBe("c1 e0 ss[a1,a2] cy{y0 sy[b1,b2]} e9");
+    expect(applied(removeLayoutExercise(sample(), "c1", ids)).status).toBe("APPLIED");
+    expect(shape(applied(moveLayoutItem(sample(), { kind: "CIRCUIT", id: "ss" }, { container: { kind: "SESSION" }, index: 0 }, ids)).draft)).toBe(
+      "ss[a1,a2] e0 cs[c1] cy{y0 sy[b1,b2]} e9",
+    );
   });
 });

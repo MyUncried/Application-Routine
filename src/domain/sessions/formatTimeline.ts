@@ -14,6 +14,7 @@
  * Sans mouvement (questionnaire), une suite générique 1, 2, 3… de hauteurs égales. Fonctions pures.
  */
 
+import { formatPrimeDuration } from "../activities/durationFormat";
 import { amrapRoundTarget, hasChosenBuyIn, movementRole, type FormatModelKey, type ModelAnswers, type ModelExecution, type ModelMovement } from "./formatModels";
 
 export type TimelineBlock =
@@ -52,13 +53,12 @@ const work = (movement: number | null, label: string | null, height = 1, weight 
 
 /**
  * Durée compacte d'un bloc — recette du 05/11/2026 (constat e, Hermann : « AMRAP Déroulé : si l'objectif est en durée, les
- * blocs affichent des secondes, mettre le format compact de durée avec ' et " ») : 30", 1'30", 2'.
+ * blocs affichent des secondes, mettre le format compact de durée avec ' et " »). Spécification de Hermann du 08/11/2026 (« Durées
+ * au format `M′SS″`, ou `S″` sous une minute, partout » ; « Pas d'apostrophe ni de guillemet droit ») et demande du 08/11/2026 au soir
+ * (« Et tu dois encore modifier le format des durées. ») : 30″, 1′30″, 2′00″. [30", 1'30", 2' — remplacés le 08/11/2026.]
  */
 export function compactBlockDuration(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  if (minutes === 0) return `${seconds}"`;
-  return seconds === 0 ? `${minutes}'` : `${minutes}'${String(seconds).padStart(2, "0")}"`;
+  return formatPrimeDuration(totalSeconds);
 }
 
 /** Objectif d'un bloc : nombre de répétitions, ou durée compacte si le mouvement est en durée. */

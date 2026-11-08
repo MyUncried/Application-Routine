@@ -1,6 +1,7 @@
 import { router as expoRouter } from "expo-router";
 import { act, fireEvent, renderRouter, screen, testRouter, waitFor, within } from "expo-router/testing-library";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { ReactNode } from "react";
 
 import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
@@ -765,7 +766,7 @@ function enterRowTarget(row: number, target: number | "FAILURE") {
 /** D-434 : saisit la Pause d'une ligne au clavier de sa cellule (« MMSS »). */
 function enterRowPause(row: number, seconds: number) {
   enterExecutionSheetCell(`execution-sheet-table-row-${row}-pause`, durationKeys(seconds));
-  expect(String(screen.getByTestId(`execution-sheet-table-row-${row}-pause-value`, hidden).props.children)).toBe(`${seconds} s`);
+  expect(String(screen.getByTestId(`execution-sheet-table-row-${row}-pause-value`, hidden).props.children)).toBe(formatPhraseDuration(seconds)); // Format du 08/11/2026 au soir. [`${seconds} s` — remplacé.]
 }
 
 /** Bascules de AC10 dans la Feuille déjà ouverte, puis ✓. */
@@ -808,8 +809,9 @@ function enterFailureOnSavedExercise() {
 
 /** Secondes d'un texte affiché (« 1 min 30 s », « 45 s ») ; tout autre texte (« Aucun ») vaut 0. */
 function shownSeconds(text: string): number {
-  const minutes = /(\d+) min/u.exec(text);
-  const seconds = /(\d+) s/u.exec(text);
+  // Format du 08/11/2026 au soir : « M′SS″ » ou « S″ ». [« X min Y s » — remplacé.]
+  const minutes = /(\d+)′/u.exec(text);
+  const seconds = /(\d+)″/u.exec(text);
   return (minutes ? Number(minutes[1]) * 60 : 0) + (seconds ? Number(seconds[1]) : 0);
 }
 
@@ -854,14 +856,14 @@ function enterMixedTargetsOnNewExercise(context: "catalogue" | "session" = "cata
   enterRowPause(2, 20);
   enterRowPause(3, 30);
   chooseExecutionSide("Avec");
-  stepTo("execution-sheet-side-recovery", "5 s");
+  stepTo("execution-sheet-side-recovery", "5″");
   // PRE-5 story 2.5 (AC3) : le ± de la Cadence est révélé par l'option Autre.
   openExecutionSheetField("execution-sheet-beep");
-  stepTo("execution-sheet-beep", "2 s");
+  stepTo("execution-sheet-beep", "2″");
   showExerciseDurationSignals();
   if (context === "catalogue") {
-    stepTo("execution-sheet-countdown", "10 s");
-    stepTo("execution-sheet-end", "5 s");
+    stepTo("execution-sheet-countdown", "10″");
+    stepTo("execution-sheet-end", "5″");
   } else {
     expect(screen.queryByTestId("execution-sheet-row-countdown", hidden)).toBeNull();
     expect(screen.queryByTestId("execution-sheet-row-end", hidden)).toBeNull();
@@ -1032,7 +1034,7 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     // point 2) : la Feuille d'un Exercice de Séance porte le bloc 6 « Récupération », seule ligne ;
     // un Exercice sans récupération antérieure y affiche 0 s.]
     expect(within(screen.getByTestId("execution-sheet-frame-recovery")).getByTestId("execution-sheet-row-recovery")).toBeTruthy();
-    expect(String(screen.getByTestId("execution-sheet-recovery-value").props.children)).toBe("0 s");
+    expect(String(screen.getByTestId("execution-sheet-recovery-value").props.children)).toBe("0″");
   }, 30000);
 });
 

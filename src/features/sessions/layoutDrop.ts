@@ -25,7 +25,7 @@
  */
 
 import type { CircuitRole } from "@/domain/sessions/formats/carriers";
-import { circuitAtMemberLimit } from "@/domain/sessions/circuitMemberLimit";
+import { circuitAtMemberLimit, circuitAtMemberMinimum } from "@/domain/sessions/circuitMemberLimit";
 import { breaksFixedPassage, type LayoutContainerRef, type LayoutDestination, type LayoutItemRef } from "@/domain/sessions/layoutMoves";
 import {
   mapStructure,
@@ -115,7 +115,8 @@ export type LayoutDropStopPoint = { readonly container: LayoutContainerRef; read
  * d'ajouter un troisième exercice, ça ne doit pas être autorisé. ») : un Circuit qui a atteint son nombre maximal de
  * membres (`circuitAtMemberLimit` : Superset à deux) n'offre aucun emplacement à un Exercice venu d'ailleurs — ses
  * propres membres s'y réordonnent toujours. Un Point d'arrêt saisi (repère fictif, absent de la disposition) n'est pas
- * concerné.
+ * concerné. Réponse de Hermann du 08/11/2026 (« Superset : dans la composition on limite à deux exercices aussi. ») :
+ * un membre d'un Superset à son minimum (deux) n'a d'emplacements que dans ce Superset.
  */
 export function layoutDropCandidates<E>(
   layout: Shape<E>,
@@ -293,16 +294,26 @@ function withoutFullCircuits<E>(layout: Shape<E>, source: LayoutItemRef, idOf: (
   const circuits = structureCircuits(layout);
   let isPresent = layout.elements.some((element) => element.kind === "EXERCISE" && idOf(element.exercise) === source.id);
   const full = new Set<string>();
-  const visit = (circuit: StructureCircuit<E>) => {
+  /** Réponse de Hermann du 08/11/2026 : Superset à deux dont `source` est membre — elle n'en sort pas. */
+  let held: string | null = null;
+  for (const circuit of circuits) {
     const ids = circuit.exercises.map(idOf);
     isPresent ||= ids.includes(source.id);
     if (!ids.includes(source.id) && circuitAtMemberLimit(circuit)) full.add(circuit.id);
-  };
-  circuits.forEach(visit);
+    if (ids.includes(source.id) && circuitAtMemberMinimum(circuit)) held = circuit.id;
+  }
   for (const element of layout.elements) {
     if (element.kind === "CYCLE") isPresent ||= element.cycle.members.some((member) => member.kind === "EXERCISE" && idOf(member.exercise) === source.id);
   }
-  if (!isPresent || full.size === 0) return candidates;
+  if (!isPresent) return candidates;
+  // Réponse de Hermann du 08/11/2026 (« Superset : dans la composition on limite à deux exercices aussi. ») : un membre
+  // d'un Superset à deux ne se voit offrir que les emplacements de ce Superset (réordonnancement) ; lâchée ailleurs, la
+  // carte revient dans le Superset, à sa place ou à l'emplacement le plus proche.
+  if (held !== null) {
+    const heldId = held;
+    return candidates.filter((candidate) => candidate.container.kind === "CIRCUIT" && candidate.container.id === heldId);
+  }
+  if (full.size === 0) return candidates;
   return candidates.filter((candidate) => candidate.container.kind !== "CIRCUIT" || !full.has(candidate.container.id));
 }
 

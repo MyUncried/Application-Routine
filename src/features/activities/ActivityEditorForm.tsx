@@ -21,6 +21,7 @@ import {
   type ExecutionParameters,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
+import { spokenDurations } from "@/domain/activities/durationFormat";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { MovementPhaseList } from "@/domain/activities/movementPhaseList";
@@ -1227,7 +1228,7 @@ export function ActivityEditorForm({
                 Recette du 04/11/2026 (`parametersReadOnly`) : même carte et même Phrase, sans bouton
                 ni Feuille (lecture seule). */}
             {parametersReadOnly ? (
-              <View style={styles.parametersCard} accessible accessibilityLabel={phrase} testID="exercise-parameters-card-readonly">
+              <View style={styles.parametersCard} accessible accessibilityLabel={phrase === undefined || phrase === null ? phrase : spokenDurations(phrase)} testID="exercise-parameters-card-readonly">
                 {renderPhrase()}
               </View>
             ) : (
@@ -1235,7 +1236,7 @@ export function ActivityEditorForm({
               ref={parametersCardRef}
               onPress={openSheet}
               accessibilityRole="button"
-              accessibilityLabel={phrase ? `${card.openAccessibilityLabel}. ${phrase}` : `${card.openAccessibilityLabel}.`}
+              accessibilityLabel={phrase ? `${card.openAccessibilityLabel}. ${spokenDurations(phrase)}` : `${card.openAccessibilityLabel}.`}
               style={styles.parametersCard}
               testID="exercise-parameters-card"
             >
@@ -1263,7 +1264,7 @@ export function ActivityEditorForm({
             <View
               style={[styles.section, showDescription || (isMovement && movementPhases !== null && showPhases) ? styles.followingSection : null]}
               accessible
-              accessibilityLabel={[strings.executionParameters.card.inThisSession, phrase, inThisSession.recovery].filter(Boolean).join(". ")}
+              accessibilityLabel={spokenDurations([strings.executionParameters.card.inThisSession, phrase, inThisSession.recovery].filter(Boolean).join(". "))}
               testID="exercise-section-in-this-session"
             >
               <Text style={styles.sectionTitle} accessibilityRole="header">

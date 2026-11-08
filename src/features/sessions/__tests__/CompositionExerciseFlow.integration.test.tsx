@@ -298,7 +298,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     // Les paramètres dérivés restent visibles immédiatement (phrase de la carte
     // Paramètres, générée à l'affichage ; total redondant omis pour une Série
     // unilatérale sans pause, phrase v1 §4) ; aucune Récupération ici.
-    expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toContain("1 série de 45 s.");
+    expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toContain("1 série de 45 secondes.");
   });
 
   it("2-3-4-5. Terminer enregistre atomiquement l'Activité, revient sur Composition, l'insère entre Compte à rebours et Tour, sans changer le résumé du Tour (BEFORE_TOUR)", async () => {

@@ -198,13 +198,13 @@ afterAll(() => {
 // point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : la Récupération appartient à
 // l'Exercice et se règle dans Paramètres d'exécution ; le placement ne pose que les Points d'arrêt.]
 describe("Pauses de bout en bout : Récupération par les paramètres, points par le placement → Continuer → réouverture (PRE-6 story 4.3, PRE-9 01/11/2026)", () => {
-  it("récupérations (absente / 0 s / positive) et points, dans, hors et après le Circuit, survivent à l'enregistrement et à la réouverture ; la durée relue est la durée affichée", async () => {
+  it("récupérations (absente / 0″ / positive) et points, dans, hors et après le Circuit, survivent à l'enregistrement et à la réouverture ; la durée relue est la durée affichée", async () => {
     const { router, database, sessionRepository, sessionId } = await seedAndRender();
     try {
       await screen.findByLabelText(composition.name);
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       // 4 × 60 s, B et C répétés deux fois : 360 s, aucune pause entre les exercices.
-      expect(sessionDuration()).toBe("≈ 6 min");
+      expect(sessionDuration()).toBe("≈ 6′00″");
       // Story 7.2 (D-442) : D-301 retirée, aucun message d'enchaînement sans pause.
       expect(screen.queryByText("Attention, les exercices vont s’enchaîner sans pause.")).toBeNull();
 
@@ -227,7 +227,7 @@ describe("Pauses de bout en bout : Récupération par les paramètres, points pa
       // Durée affichée avant enregistrement : R de B répétée à chaque Tour, points à 0 s,
       // A sans récupération → 60 + 2 × (60 + 45) + 2 × 60 + 60 = 450 s.
       const displayedBeforeSave = sessionDuration();
-      expect(displayedBeforeSave).toBe("≈ 7 min 30 s");
+      expect(displayedBeforeSave).toBe("≈ 7′30″");
       const pausesBeforeSave = displayedPauses();
       expect(pausesBeforeSave).toEqual({
         // A : 0 s n'affiche rien ; B : R dans la carte ; C, D : rien.
@@ -278,7 +278,7 @@ describe("Pauses de bout en bout : Récupération par les paramètres, points pa
       await act(async () => {
         fireEvent.press(screen.getByTestId("composition-exercise-row-ex-b"));
       });
-      expect(String((await screen.findByTestId("execution-sheet-recovery-value")).props.children)).toBe("45 s");
+      expect(String((await screen.findByTestId("execution-sheet-recovery-value")).props.children)).toBe("45″");
       await act(async () => {
         fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
       });
@@ -349,8 +349,8 @@ describe("Retrait d'un point en placement → Continuer → réouverture (PRE-6 
  * de Hermann, point 2) : la Récupération se règle dans Paramètres d'exécution ; 0 s = aucune
  * récupération exécutée, Pause terminale rétablie (RM-038).]
  */
-describe("Récupération ramenée à 0 s dans les paramètres → Continuer → réouverture (PRE-9, 01/11/2026)", () => {
-  it("rien n'est écrit avant « Continuer » ; relue à 0 s, la carte n'affiche rien et le placement ne propose aucune récupération", async () => {
+describe("Récupération ramenée à 0″ dans les paramètres → Continuer → réouverture (PRE-9, 01/11/2026)", () => {
+  it("rien n'est écrit avant « Continuer » ; relue à 0″, la carte n'affiche rien et le placement ne propose aucune récupération", async () => {
     const { router, database, sessionRepository, sessionId } = await seedAndRender();
     try {
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
@@ -371,7 +371,7 @@ describe("Récupération ramenée à 0 s dans les paramètres → Continuer → 
       // ✓ n'écrit rien : la base porte encore la récupération.
       expect(persistedPauses((await sessionRepository.findById(sessionId))!).recoveries).toContainEqual(["B", 45]);
       expect(screen.queryByTestId("composition-activity-recovery-ex-b-recovery")).toBeNull();
-      expect(sessionDuration()).toBe("≈ 6 min");
+      expect(sessionDuration()).toBe("≈ 6′00″");
 
       await act(async () => {
         fireEvent.press(screen.getByLabelText(composition.saveAction));

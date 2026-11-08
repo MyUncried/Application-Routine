@@ -965,7 +965,7 @@ async function enterPhaseDuration(rank: number, keys: string) {
 const shownPhaseDuration = (rank: number) => String(screen.getByTestId(`movement-phases-duration-${rank}-value`, anyNode).props.children);
 
 describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
-  it("création : phase sans durée par défaut (« Durée » en invite) ; saisie « 30 » au clavier numérique → 30 s, affichée à droite du libellé ; aucune roulette", async () => {
+  it("création : phase sans durée par défaut (« Durée » en invite) ; saisie « 30 » au clavier numérique → 30″, affichée à droite du libellé ; aucune roulette", async () => {
     await renderSheet();
     await type("exercise-name-input", "Squat");
     await type("movement-phases-invite", "Descente");
@@ -976,7 +976,7 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
     expect(screen.getByTestId("movement-phases-duration-1-input", anyNode).props.keyboardType).toBe("number-pad");
     await enterPhaseDuration(1, "30");
     expect(screen.queryByTestId("duration-wheel-seconds", anyNode)).toBeNull();
-    expect(shownPhaseDuration(1)).toBe("30 s");
+    expect(shownPhaseDuration(1)).toBe("30″");
   });
 
   it("édition (Catalogue) : durées seules modifiées → enregistrées sans dialogue C03, même avec un Exercice lié ; l'Exercice existant ne reçoit la valeur que dans une durée vide, « à vérifier » (recette n° 2, constat e)", async () => {
@@ -1024,7 +1024,7 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
       }),
     );
     await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
-    expect(within(screen.getByTestId("movement-phases-duration-1", anyNode)).getByText("3 s")).toBeTruthy();
+    expect(within(screen.getByTestId("movement-phases-duration-1", anyNode)).getByText("3″")).toBeTruthy();
     // Phase 2 : durée vidée au clavier (recette n° 2 du 31/10 : remplace « Sans durée » de la roulette).
     await enterPhaseDuration(2, CELL_BACKSPACE.repeat(4));
     expect(shownPhaseDuration(2)).toBe(t.phases.durationPrompt);
@@ -1052,7 +1052,7 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
       movement("m1", "Squat", { phases: [{ id: 1, label: "Descente", durationSeconds: 75 }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
     );
     await renderSheet({ movementId: "m1" });
-    expect(screen.getByTestId("movement-phases-duration-1", anyNode).props.children).toBe("1 min 15 s");
+    expect(screen.getByTestId("movement-phases-duration-1", anyNode).props.children).toBe("1′15″");
     expect(screen.queryByTestId("movement-phases-duration-2", anyNode)).toBeNull();
     expect(screen.getByTestId("movement-phases-duration-1", anyNode).props.accessibilityRole).toBeUndefined();
   });
@@ -1106,7 +1106,7 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
         fireEvent(screen.getByTestId("movement-phases-label-2", anyNode), "focus");
       });
       expect(focus.focused()).toEqual([]);
-      expect(shownPhaseDuration(1)).toBe("5 s");
+      expect(shownPhaseDuration(1)).toBe("5″");
       expect(dismiss).not.toHaveBeenCalled();
     } finally {
       focus.restore();
@@ -1138,7 +1138,7 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
     hideExecutionSheetKeyboard();
   });
 
-  it("a2b-creer : règles des cellules de durée (D-434) — « MM:SS » en saisie, secondes > 59 reportées, au-delà de 58:55 ramenée à 3 535 s, 0 ramené à 1 s", async () => {
+  it("a2b-creer : règles des cellules de durée (D-434) — « MM:SS » en saisie, secondes > 59 reportées, au-delà de 58:55 ramenée à 3 8′55″, 0 ramené à 1″", async () => {
     await renderSheet();
     await type("movement-phases-invite", "Descente");
     await act(async () => {
@@ -1150,11 +1150,11 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
       fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
     });
     await settle();
-    expect(shownPhaseDuration(1)).toBe("2 min 15 s");
+    expect(shownPhaseDuration(1)).toBe("2′15″");
     await enterPhaseDuration(1, "9999");
-    expect(shownPhaseDuration(1)).toBe("58 min 55 s");
+    expect(shownPhaseDuration(1)).toBe("58′55″");
     await enterPhaseDuration(1, "0");
-    expect(shownPhaseDuration(1)).toBe("1 s");
+    expect(shownPhaseDuration(1)).toBe("1″");
   });
 
   it("a2b-editer : Catalogue — aucune poignée de déplacement dans les phases ; dialogue à l'enregistrement seulement quand la structure change et qu'un Exercice est lié", async () => {
@@ -1209,7 +1209,7 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
       await settle(20);
       expect(screen.getByTestId("movement-save-error", anyNode)).toBeTruthy();
       expect(mockBack).not.toHaveBeenCalled();
-      expect(shownPhaseDuration(3)).toBe("5 s");
+      expect(shownPhaseDuration(3)).toBe("5″");
       failing.mockRestore();
       errors.mockClear();
       // Nouvel essai : enregistré, sans erreur.

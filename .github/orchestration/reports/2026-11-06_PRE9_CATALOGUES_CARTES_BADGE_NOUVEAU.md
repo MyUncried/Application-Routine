@@ -714,3 +714,12 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Les trois questions À CLARIFIER du Superset (Superset existant à trois Exercices, minimum de deux, libellé VoiceOver) n'ont pas reçu de réponse : elles restent ouvertes, le comportement livré est conservé.
 - Aucune modification de code ; aucun test relancé (mise à jour documentaire seule).
 - PR #420 non fusionnée ; fusion dans `main` soumise à l'autorisation explicite de Hermann.
+
+### Demandes de Hermann du 08/11/2026 au soir — Superset à deux exercices exactement, format des durées partout
+
+- Verbatim : « Superset : dans la composition on limite à deux exercices aussi. » ; « Le libellé VoiceOver me convient. » ; « 1. Deux exercices exactement dans un superset » ; « 2. Non C’est ok comme ça » ; « Et tu dois encore modifier le format des durées. » ; « Partout veut bien dire partout » ; « Il y a les heures aussi » ; « 75 minutes doit s’afficher 1h 15´ ».
+- **Superset (B)** : minimum de deux dans la Composition (sortie par glisser, Monter/Descendre, déplacement vers un autre Circuit, suppression refusés : `MEMBER_MINIMUM`, « Deux exercices exactement dans un Superset »). Détail : `2026-11-08_PRE9-SUPERSET-LIMITE.md` (complément).
+- **Durées (B)** : `formatPrimeDuration` unique — `S″`, `M′SS″`, `Hh MM′` à partir d'une heure (secondes non nulles ajoutées : 1h 00′01″) — dans toute l'application ; VoiceOver en toutes lettres (`spokenDuration`). Valeurs (D-391, D-443) inchangées. Détail : `2026-11-08_PRE9-RECETTE-0811-TABLEAUX.md` (section « Format des durées dans toute l'application »).
+- Tests : `tsc --noEmit` OK ; `CompositionScreen*`, `layoutDrop*`, `src/domain/sessions` : 64 suites, 1 508 tests passés ; agent des durées : `--findRelatedTests` sur les 13 sources modifiées, 152 suites, 3 249 tests passés. Suite complète non relancée (mémoire).
+- **À CLARIFIER** : minutes sur deux chiffres après « h » (1h 05′) ; secondes au-delà d'une heure ; espace insécable ; prime U+2032 au lieu de l'accent aigu tapé. Risques de texte rogné : cases de 44 des tableaux (jusqu'à « 1h 39′59″ »), libellés des blocs du Déroulé, cases de 71 de la feuille en séries variables. Nom accessible d'une occurrence inchangé (« 4 min ») ; cases de saisie des tableaux lues « 1′30″ » par VoiceOver.
+- Rien vérifié sur iPhone.

@@ -82,7 +82,7 @@ function unfoldPhases() {
 }
 
 describe("R-7 — Feuille des paramètres", () => {
-  it("PH-5 — Durée, phase vide (3 × 30 s, pause 60 s, phases 3 s / —) : total affiché, cellule rouge, ✓ indisponible", () => {
+  it("PH-5 — Durée, phase vide (3 × 30″, pause 1′00″, phases 3″ / —) : total affiché, cellule rouge, ✓ indisponible", () => {
     const { onApply } = renderSheet(params(phases(3, 0)));
     const expected = computeIntrinsicDuration(params()).seconds!;
     expect(totalText()).toBe(formatPhraseDuration(expected));
@@ -102,7 +102,7 @@ describe("R-7 — Feuille des paramètres", () => {
     expect(totalText()).toBe(t.unset);
   });
 
-  it("point 6 — « 0000 » dans une durée de phase : 0 s affichée, cellule rouge, ✓ indisponible ; le total reste affiché", () => {
+  it("point 6 — « 0000 » dans une durée de phase : 0″ affichée, cellule rouge, ✓ indisponible ; le total reste affiché", () => {
     const { onApply } = renderSheet(params(phases(3, 2)));
     unfoldPhases();
     expect(validateDisabled()).toBe(false);
@@ -150,7 +150,7 @@ describe("R-7 — Feuille des paramètres", () => {
       { id: 12, label: "Descente" },
     ]);
     renderSheet(transferred);
-    expect([shownDuration(1), shownDuration(2), shownDuration(3)]).toEqual(["5 s", "2 s", t.unset]);
+    expect([shownDuration(1), shownDuration(2), shownDuration(3)]).toEqual(["5″", "2″", t.unset]);
     expect(styleOf(duration(3)).backgroundColor).toBe(colors.dangerSurface);
   });
 });

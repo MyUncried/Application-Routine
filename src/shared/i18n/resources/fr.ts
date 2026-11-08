@@ -1002,6 +1002,9 @@ export const fr = {
           // Recette du 08/11/2026 au soir (Superset limité) : libellé repris du questionnaire (« Deux exercices au maximum »,
           // registre ch07). Annoncé seulement : l'emplacement n'est pas proposé et « Monter » / « Descendre » franchit le Circuit.
           MEMBER_LIMIT: "Deux exercices au maximum dans un Superset",
+          // Réponse de Hermann du 08/11/2026 (« dans la composition on limite à deux exercices aussi ») : sortie ou
+          // suppression d'un membre d'un Superset à deux. Formulation à faire confirmer par Hermann.
+          MEMBER_MINIMUM: "Deux exercices exactement dans un Superset", // [« Deux exercices au minimum dans un Superset » — remplacé le 08/11/2026, Hermann : « Deux exercices exactement dans un superset »]
           NOT_FOUND: "",
           AT_BOUNDARY: "",
         },

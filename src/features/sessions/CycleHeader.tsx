@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View, type ViewProps } from "react-native";
 
+import { spokenDurations } from "@/domain/activities/durationFormat";
 import { CYCLE_REPEAT_COUNT_MAX, CYCLE_REPEAT_COUNT_MIN } from "@/domain/sessions/structure";
 import {
   CIRCUIT_HEADER_HEIGHT,
@@ -106,7 +107,7 @@ export function CycleHeader({
             style={[styles.title, columns.title === null ? null : styles.titleShrinkable]}
             numberOfLines={1}
             accessibilityRole="header"
-            accessibilityLabel={`${title}, ${duration}`}
+            accessibilityLabel={spokenDurations(`${title}, ${duration}`)}
             {...containerMoveAccessibility(moveActions)}
             testID={`${testID}-title`}
           >

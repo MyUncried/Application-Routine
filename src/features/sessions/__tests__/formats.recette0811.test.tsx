@@ -2,6 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 
+import { spokenDuration, spokenDurations } from "@/domain/activities/durationFormat";
 import type { ModelMovement, MovementValues } from "@/domain/sessions/formatModels";
 import { AmrapTable, DeathByTable, ObjectivePauseTable, SeriesTable, TABLE_LAYOUT, formatPrimeDuration, type CellBinding } from "@/features/sessions/FormatTables";
 
@@ -28,7 +29,21 @@ describe("format des durées (A §1, B §1)", () => {
     expect(formatPrimeDuration(720)).toBe("12′00″");
     expect(formatPrimeDuration(30)).toBe("30″");
     expect(formatPrimeDuration(5)).toBe("5″");
-    expect(formatPrimeDuration(99 * 60 + 59)).toBe("99′59″");
+    // À partir d'une heure (Hermann, 08/11/2026 au soir : « Il y a les heures aussi » ; « 75 minutes doit s’afficher 1h 15´ ») :
+    // « Hh MM′ », espace insécable, secondes non nulles à la suite (À CLARIFIER). [99′59″ pour 5999 s — remplacé.]
+    expect(formatPrimeDuration(3599)).toBe("59′59″");
+    expect(formatPrimeDuration(3600)).toBe("1h 00′");
+    expect(formatPrimeDuration(3601)).toBe("1h 00′01″");
+    expect(formatPrimeDuration(75 * 60)).toBe("1h 15′");
+    expect(formatPrimeDuration(99 * 60 + 59)).toBe("1h 39′59″");
+  });
+
+  it("VoiceOver : durées lues en toutes lettres (« 1 heure 15 minutes », « 1 minute 30 secondes »)", () => {
+    expect(spokenDuration(75 * 60)).toBe("1 heure 15 minutes");
+    expect(spokenDuration(3600 + 5 * 60 + 30)).toBe("1 heure 5 minutes 30 secondes");
+    expect(spokenDuration(90)).toBe("1 minute 30 secondes");
+    expect(spokenDuration(1)).toBe("1 seconde");
+    expect(spokenDurations("Durée de la séance ≈ 12′15″, 1h 15′ et 45″")).toBe("Durée de la séance ≈ 12 minutes 15 secondes, 1 heure 15 minutes et 45 secondes");
   });
 });
 

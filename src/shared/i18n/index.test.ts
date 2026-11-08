@@ -684,8 +684,8 @@ describe("strings — PRE-4 story 2.2", () => {
   it("PRE4-2.2/AC6 — les préfixes du domaine (`totalClauseAmount`, exempté du lexique, AD-11) sont identiques aux clés du lexique", () => {
     const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
     const result = (kind: "estimated" | "lowerBound") => ({ kind, seconds: 90, knownSeconds: 90, events: [] });
-    expect(totalClauseAmount(result("estimated"))).toBe(`${estimatedPrefix}1 min 30 s`);
-    expect(totalClauseAmount(result("lowerBound"))).toBe(`${lowerBoundPrefix}1 min 30 s`);
+    expect(totalClauseAmount(result("estimated"))).toBe(`${estimatedPrefix}1′30″`);
+    expect(totalClauseAmount(result("lowerBound"))).toBe(`${lowerBoundPrefix}1′30″`);
   });
 });
 
@@ -735,7 +735,7 @@ describe("strings — PRE-5 story 2.5", () => {
     expect(sheet.durationGoal).toBe("Objectif de durée");
     expect(sheet.columns.DURATION).toBe("Durée");
     expect(sheet.cadence).toBe("Cadence");
-    expect(sheet.cadenceOptions).toEqual({ OTHER: "Autre", "1": "1 s", NONE: "Sans" }); // RC-10
+    expect(sheet.cadenceOptions).toEqual({ OTHER: "Autre", "1": "1″", NONE: "Sans" }); // RC-10
     expect(sheet.exerciseDuration).toBe("Durée de l’exercice");
     // D-433 : le symbole ≈ quitte le titre (collé à la valeur) ; la clé `exerciseDurationEstimated`
     // est supprimée. Ligne toujours affichée : « Non calculable » et annonce de « — ».

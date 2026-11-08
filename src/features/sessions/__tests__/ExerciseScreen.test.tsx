@@ -498,7 +498,7 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
       chooseExecutionSide("Avec");
       const sideRecovery = screen.getByTestId("execution-sheet-side-recovery-value").props.children as string;
       fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-      expect(sideRecovery).toBe("9 s");
+      expect(sideRecovery).toBe("9″");
     });
     await fillNewExercise();
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
@@ -516,7 +516,7 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     });
   });
 
-  it("P3-13/no-auto-R — nouvelle occurrence : R = 0 s quel que soit le Profil ; occurrence existante : R = 30 s inchangée", async () => {
+  it("P3-13/no-auto-R — nouvelle occurrence : R = 0″ quel que soit le Profil ; occurrence existante : R = 30″ inchangée", async () => {
     const { updateDraft } = renderRoute({ profile: { postActivityRecoverySecondsDefault: 45 } });
     await fillNewExercise();
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
@@ -621,7 +621,7 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
  */
 describe("ExerciseScreen — PRE-4 story 1.1, chemin Séance (occurrence héritée hors bornes)", () => {
   const inherited: readonly [string, ExecutionParameters, (params: ExecutionParameters) => unknown][] = [
-    ["Cible Durée 5999 s", durationParameters(5999, 1, 0), (params) => params.series],
+    ["Cible Durée 1h 39′59″", durationParameters(5999, 1, 0), (params) => params.series],
     ["Cible 150 répétitions", repetitionParameters(150, 3, 10), (params) => params.series],
     ["Bip 11", repetitionParameters(10, 3, 10, { cadenceBeepIntervalSeconds: 11 }), (params) => params.cadenceBeepIntervalSeconds],
   ];
@@ -641,7 +641,7 @@ describe("ExerciseScreen — PRE-4 story 1.1, chemin Séance (occurrence hérit�
     },
   );
 
-  it("PRE4-1.1/AC24 — Cible Durée 5999 s : ✓ de la Feuille disponible sans toucher la Cible ; Terminer la garde à 5999 s", () => {
+  it("PRE4-1.1/AC24 — Cible Durée 1h 39′59″ : ✓ de la Feuille disponible sans toucher la Cible ; Terminer la garde à 1h 39′59″", () => {
     const existing = canonicalOccurrence({ executionParameters: durationParameters(5999, 1, 0), sideMode: "UNILATERAL" });
     const { updateDraft } = renderRoute({ params: { exerciseId: existing.id }, exercises: [existing] });
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
@@ -1108,7 +1108,7 @@ describe("ExerciseScreen — PRE-4 story 4.3", () => {
     await screen.findByText("Cardio");
     // La Carte est un seul élément VoiceOver : son libellé porte la Phrase entière (4.2 AC6).
     const phraseBefore = screen.getByTestId("exercise-parameters-card").props.accessibilityLabel as string;
-    expect(phraseBefore).toContain("séries de durée variable (30 s puis 45 s)");
+    expect(phraseBefore).toContain("séries de durée variable (30 secondes puis 45 secondes)");
     const snapshot = () => ({
       name: screen.getByTestId("exercise-name-input").props.value as string,
       instruction: screen.getByTestId("exercise-instruction-input").props.value as string,

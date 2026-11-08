@@ -184,7 +184,7 @@ function setRecoveryOneMinute() {
 }
 
 describe("PRE-9 (01/11/2026, point 2) — Récupération de l'Exercice et défauts du Profil", () => {
-  it("nouvel Exercice : Récupération du Profil (45 s) sur la carte et dans la feuille, orange jusqu'au premier ✓ ; ✕ garde l'attente ; ✓ valide ; modification conservée ; Profil changé ensuite sans effet", async () => {
+  it("nouvel Exercice : Récupération du Profil (45″) sur la carte et dans la feuille, orange jusqu'au premier ✓ ; ✕ garde l'attente ; ✓ valide ; modification conservée ; Profil changé ensuite sans effet", async () => {
     await profiles().setDefault("postActivityRecoverySecondsDefault", 45);
     await movements().create(movement("abdos", "Abdos"));
     renderApp();
@@ -192,11 +192,11 @@ describe("PRE-9 (01/11/2026, point 2) — Récupération de l'Exercice et défau
     await useExistingMovement("Abdos", "abdos");
 
     // La Composition affiche la Récupération de l'Exercice (même valeur que la feuille).
-    expect(cardLabel("Abdos")).toContain(composition.occurrenceCard.accessibilityRecovery.replace("{duration}", "45 s"));
+    expect(cardLabel("Abdos")).toContain(composition.occurrenceCard.accessibilityRecovery.replace("{duration}", "45 secondes"));
 
     // Ouverture : bloc Récupération, défaut du Profil sur fond orange. ✕ : rien ne change, l'attente reste.
     await tapCard("Abdos");
-    expect(recoveryText()).toBe("45 s");
+    expect(recoveryText()).toBe("45″");
     expect(recoveryBackground()).toBe(ORANGE);
     await closeSheet("execution-sheet-cancel");
     await tapCard("Abdos");
@@ -205,23 +205,23 @@ describe("PRE-9 (01/11/2026, point 2) — Récupération de l'Exercice et défau
     // Premier ✓ (Cible renseignée) : valeurs appliquées, état validé.
     setDuration45();
     await closeSheet("execution-sheet-validate");
-    expect(cardLabel("Abdos")).toContain("récupération 45 s");
+    expect(cardLabel("Abdos")).toContain("récupération 45 secondes");
     await tapCard("Abdos");
-    expect(recoveryText()).toBe("45 s");
+    expect(recoveryText()).toBe("45″");
     expect(recoveryBackground()).not.toBe(ORANGE);
 
     // Modification par la feuille (seul accès) : la carte suit exactement la valeur.
     setRecoveryOneMinute();
     await closeSheet("execution-sheet-validate");
-    expect(cardLabel("Abdos")).toContain("récupération 1 min");
+    expect(cardLabel("Abdos")).toContain("récupération 1 minute"); // Accessibilité : durée lue (08/11/2026 au soir).
 
     // Le Profil change ensuite : l'Exercice existant garde sa valeur.
     await profiles().setDefault("postActivityRecoverySecondsDefault", 20);
     await tapCard("Abdos");
-    expect(recoveryText()).toBe("1 min");
+    expect(recoveryText()).toBe("1′00″");
     expect(recoveryBackground()).not.toBe(ORANGE);
     await closeSheet("execution-sheet-cancel");
-    expect(cardLabel("Abdos")).toContain("récupération 1 min");
+    expect(cardLabel("Abdos")).toContain("récupération 1 minute"); // Accessibilité : durée lue (08/11/2026 au soir).
   }, 60000);
 
   it("le mode Placement (« Ajouter un arrêt ») ne propose aucune zone de récupération et ne modifie pas celle de l'Exercice", async () => {
@@ -248,7 +248,7 @@ describe("PRE-9 (01/11/2026, point 2) — Récupération de l'Exercice et défau
     fireEvent.press(screen.getByTestId("composition-placement-bar-confirm"));
     await settle(300);
     expect(screen.queryByTestId("composition-placement-bar")).toBeNull();
-    expect(cardLabel("Abdos")).toContain("récupération 30 s");
-    expect(cardLabel("Gainage")).toContain("récupération 30 s");
+    expect(cardLabel("Abdos")).toContain("récupération 30 secondes");
+    expect(cardLabel("Gainage")).toContain("récupération 30 secondes");
   }, 60000);
 });

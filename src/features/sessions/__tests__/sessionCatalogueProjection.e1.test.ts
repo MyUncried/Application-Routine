@@ -197,13 +197,13 @@ describe("PRE-8 E.1 — arbre de la composition", () => {
       { kind: "EXERCISE", exercise: exercise({ id: "cool", name: "Étirement ischio-jambiers", executionParameters: durationParameters(30) }) },
     ]);
     expect(projection.tree).toEqual([
-      { kind: "EXERCISE", key: "warm", depth: 0, name: "Mobilisation du genou", volume: "45 s" },
+      { kind: "EXERCISE", key: "warm", depth: 0, name: "Mobilisation du genou", volume: "45″" },
       { kind: "CYCLE", key: "cy", depth: 0, repeatCount: 2 },
       { kind: "CIRCUIT", key: "c1", depth: 1, repeatCount: 3, nature: "TOURS" },
       { kind: "EXERCISE", key: "sq", depth: 2, name: "Squat assisté", volume: "3 × 12 rép." },
-      { kind: "EXERCISE", key: "ext", depth: 2, name: "Extension de jambe", volume: "2 × 45 s" },
+      { kind: "EXERCISE", key: "ext", depth: 2, name: "Extension de jambe", volume: "2 × 45″" },
       { kind: "RECOVERY", key: "ext:recovery", depth: 2, seconds: 60 },
-      { kind: "EXERCISE", key: "cool", depth: 0, name: "Étirement ischio-jambiers", volume: "30 s" },
+      { kind: "EXERCISE", key: "cool", depth: 0, name: "Étirement ischio-jambiers", volume: "30″" },
     ]);
     expect(Math.max(...projection.tree.map((line) => line.depth))).toBe(2);
   });
@@ -260,12 +260,12 @@ describe("PRE-8 E.1 — lecture seule et identité", () => {
 });
 
 describe("PRE-8 E.2 — durée de la carte (D-391)", () => {
-  it("minutes et secondes exactes, sans arrondi ; « ≈ » estimée, « ≥ » borne minimale ; 0 s pour une Séance vide", () => {
-    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 315 })).toBe("5 min 15 s");
-    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 45 })).toBe("45 s");
-    expect(formatCatalogueSessionDuration({ kind: "estimated", seconds: 663 })).toBe("≈ 11 min 3 s");
-    expect(formatCatalogueSessionDuration({ kind: "lowerBound", seconds: 663 })).toBe("≥ 11 min 3 s");
-    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 0 })).toBe("0 s");
+  it("minutes et secondes exactes, sans arrondi ; « ≈ » estimée, « ≥ » borne minimale ; 0″ pour une Séance vide", () => {
+    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 315 })).toBe("5′15″");
+    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 45 })).toBe("45″");
+    expect(formatCatalogueSessionDuration({ kind: "estimated", seconds: 663 })).toBe("≈ 11′03″");
+    expect(formatCatalogueSessionDuration({ kind: "lowerBound", seconds: 663 })).toBe("≥ 11′03″");
+    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 0 })).toBe("0″");
   });
 });
 

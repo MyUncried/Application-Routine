@@ -328,8 +328,8 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     expect(screen.queryByLabelText(composition.name)).toBeNull();
     expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
     expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
-    expect(screen.queryByText("10 s")).toBeNull();
-    expect(screen.queryByText("5 s")).toBeNull();
+    expect(screen.queryByText("10″")).toBeNull();
+    expect(screen.queryByText("5″")).toBeNull();
     expect(screen.queryByTestId("composition-session-duration")).toBeNull();
   });
 
@@ -350,13 +350,13 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     expect(screen.getByLabelText(composition.name).props.value).toBe("Séance persistée");
     // Valeurs persistées (30 s / 20 s), jamais les défauts de création (10 s / 5 s).
     // Story 7.8 (D-443) : secondes seules.
-    expect(screen.getByText("30 s")).toBeTruthy();
-    expect(screen.getByText("20 s")).toBeTruthy();
-    expect(screen.queryByText("10 s")).toBeNull();
-    expect(screen.queryByText("5 s")).toBeNull();
+    expect(screen.getByText("30″")).toBeTruthy();
+    expect(screen.getByText("20″")).toBeTruthy();
+    expect(screen.queryByText("10″")).toBeNull();
+    expect(screen.queryByText("5″")).toBeNull();
     // L'Activité persistée est bien restituée.
     expect(screen.getByText("Gainage persisté")).toBeTruthy();
-    expect(screen.getByTestId("composition-session-duration").props.children).toBe("≈ 5 min 15 s");
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe("≈ 5′15″");
   });
 
   it("4. restitue les Zones corporelles de l'Activité réhydratée, dans l'ordre du référentiel, sur sa propre ligne", async () => {

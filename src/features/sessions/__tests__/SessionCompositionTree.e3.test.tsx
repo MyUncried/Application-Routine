@@ -87,7 +87,7 @@ describe("PRE-8 E.3 — arbre rendu", () => {
     expect(screen.getByTestId("tree-line-cy")).toHaveTextContent("Cycle2 passages");
     expect(screen.getByTestId("tree-line-c1")).toHaveTextContent("Circuit · séries groupées3 tours");
     expect(screen.getByTestId("tree-line-sq")).toHaveTextContent("Squat assisté3 × 12 rép.");
-    expect(screen.getByTestId("tree-line-ext:recovery")).toHaveTextContent("Récupération1 min");
+    expect(screen.getByTestId("tree-line-ext:recovery")).toHaveTextContent("Récupération1′00″");
     const recoveryName = screen.getByText("Récupération");
     expect(StyleSheet.flatten(recoveryName.props.style).color).toBe("#80858C");
   });
@@ -132,7 +132,7 @@ describe("PRE-8 E.3 — arbre rendu", () => {
   it("volumes écrits comme dans la Composition : « rép. », jamais « reps » (D-507)", () => {
     const tree = knee().tree;
     expect(treeLineLabel(tree.find((line) => line.key === "sq")!).value).toBe("3 × 12 rép.");
-    expect(treeLineLabel(tree.find((line) => line.key === "ext")!).value).toBe("2 × 45 s");
+    expect(treeLineLabel(tree.find((line) => line.key === "ext")!).value).toBe("2 × 45″");
     expect(compositionAccessibilityText(tree)).not.toMatch(/reps/);
   });
 
@@ -149,7 +149,7 @@ describe("PRE-8 E.3 — arbre rendu", () => {
 
   it("texte d'accessibilité de la composition", () => {
     expect(compositionAccessibilityText(knee().tree)).toMatch(
-      /^Composition de la séance : Mobilisation du genou 45 s, Cycle 2 passages, Circuit · séries groupées 3 tours/,
+      /^Composition de la séance : Mobilisation du genou 45″, Cycle 2 passages, Circuit · séries groupées 3 tours/,
     );
   });
 });
@@ -192,7 +192,7 @@ describe("PRE-8 E.3 — déploiement dans la liste", () => {
     fireEvent(card, "accessibilityAction", { nativeEvent: { actionName: "toggleComposition" } });
     const expandedCard = screen.getByTestId("session-card-genou-swipe-card");
     expect(expandedCard.props.accessibilityState).toEqual({ expanded: true });
-    expect(expandedCard.props.accessibilityLabel).toContain("Composition de la séance : Mobilisation du genou 45 s");
+    expect(expandedCard.props.accessibilityLabel).toContain("Composition de la séance : Mobilisation du genou 45 secondes");
   });
 
   // [« toucher la carte ouvre la Séance ; le chevron n'ouvre rien » — remplacé le 03/11/2026] Recette

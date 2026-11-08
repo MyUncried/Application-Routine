@@ -103,7 +103,7 @@ describe("Feuille Paramètres d'exécution — saisie au clavier de toutes les v
     typeInExecutionSheetCell("execution-sheet-pause", "30");
     expect(text("execution-sheet-pause")).toBe("01:30");
     closeExecutionSheetField("execution-sheet-pause");
-    expect(text("execution-sheet-pause")).toBe("1 min 30 s");
+    expect(text("execution-sheet-pause")).toBe("1′30″");
     validate();
     expect(onApply.mock.calls[0]![0].series).toMatchObject({ pauseSeconds: 90 });
   });
@@ -111,10 +111,10 @@ describe("Feuille Paramètres d'exécution — saisie au clavier de toutes les v
   it("valeur hors bornes ramenée à la borne (Pause 0..300 s, Fin 0..60 s)", () => {
     const { onApply } = renderSheet();
     enterExecutionSheetValue("execution-sheet-pause", 600);
-    expect(text("execution-sheet-pause")).toBe("5 min");
+    expect(text("execution-sheet-pause")).toBe("5′00″");
     showExerciseDurationSignals();
     enterExecutionSheetValue("execution-sheet-end", 90);
-    expect(text("execution-sheet-end")).toBe("1 min");
+    expect(text("execution-sheet-end")).toBe("1′00″");
     validate();
     expect(onApply.mock.calls[0]![0]).toMatchObject({ endSeconds: 60, series: { pauseSeconds: 300 } });
   });
@@ -122,7 +122,7 @@ describe("Feuille Paramètres d'exécution — saisie au clavier de toutes les v
   it("champ vidé : 0 si permis (Pause entre les côtés) ; nombre de séries inchangé", () => {
     const { onApply } = renderSheet();
     enterExecutionSheetValue("execution-sheet-side-recovery", "");
-    expect(text("execution-sheet-side-recovery")).toBe("0 s");
+    expect(text("execution-sheet-side-recovery")).toBe("0″");
     enterExecutionSheetValue("execution-sheet-series", "", "integer");
     validate();
     expect(onApply.mock.calls[0]![0]).toMatchObject({ sideRecoverySeconds: 0, series: { count: 3 } });
@@ -142,7 +142,7 @@ describe("Feuille Paramètres d'exécution — saisie au clavier de toutes les v
   it("Cible commune : Durée en « MM:SS », vidée → à renseigner (✓ indisponible) ; Répétitions en entier", () => {
     renderSheet();
     enterExecutionSheetValue("execution-sheet-target", 75);
-    expect(text("execution-sheet-target")).toBe("1 min 15 s");
+    expect(text("execution-sheet-target")).toBe("1′15″");
     enterExecutionSheetValue("execution-sheet-target", "");
     expect(text("execution-sheet-target")).toBe("—");
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
@@ -183,9 +183,9 @@ describe("Feuille Paramètres d'exécution — saisie au clavier de toutes les v
   it("Récupération au clavier (0..300 s, à la seconde), transmise par le ✓", () => {
     const { onRecovery } = renderSheet();
     enterExecutionSheetValue("execution-sheet-recovery", 47);
-    expect(text("execution-sheet-recovery")).toBe("47 s");
+    expect(text("execution-sheet-recovery")).toBe("47″");
     enterExecutionSheetValue("execution-sheet-recovery", 900);
-    expect(text("execution-sheet-recovery")).toBe("5 min");
+    expect(text("execution-sheet-recovery")).toBe("5′00″");
     validate();
     expect(onRecovery).toHaveBeenCalledWith(300);
   });

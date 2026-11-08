@@ -192,7 +192,7 @@ async function flush() {
 
 describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste, ouvrable sans erreur", () => {
   it(
-    "la carte affiche « 0 exercice » et « 0 s » (PRE-8 E.2 : carte unique, durée D-443) ; la toucher ouvre la Composition existante, vide, sans état d'erreur",
+    "la carte affiche « 0 exercice » et « 0″ » (PRE-8 E.2 : carte unique, durée D-443) ; la toucher ouvre la Composition existante, vide, sans état d'erreur",
     async () => {
       const router = renderRouter(
         {
@@ -213,7 +213,7 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       // durée de séance au format D-443.
       expect(await screen.findByText("Séance b")).toBeTruthy();
       expect(screen.getByTestId("session-card-session-b-summary")).toHaveTextContent("0 exercice");
-      expect(screen.getByTestId("session-card-session-b-duration")).toHaveTextContent("0 s");
+      expect(screen.getByTestId("session-card-session-b-duration")).toHaveTextContent("0″");
 
       // AC7 : l'écran existant s'ouvre sur la Séance, sans Exercice et sans erreur.
       fireEvent.press(screen.getByTestId("session-card-session-b-visual-open"));
@@ -224,7 +224,7 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       expect(screen.queryByTestId("composition-edit-state")).toBeNull();
       expect(screen.getByLabelText(composition.name).props.value).toBe("Séance b");
       // Story 7.8 (D-443) : séance vide → « 0 s » dans la zone de contexte ; plus de durée de Circuit.
-      expect(screen.getByTestId("composition-session-duration")).toHaveTextContent("0 s");
+      expect(screen.getByTestId("composition-session-duration")).toHaveTextContent("0″");
       expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
 
       // Action finale « Continuer » (Q54 ; libellé PRE-6 story 2.1) : règle existante — sans Exercice, le

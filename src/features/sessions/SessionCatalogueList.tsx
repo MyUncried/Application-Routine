@@ -2,6 +2,7 @@ import * as Crypto from "expo-crypto";
 import { useCallback, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { spokenDurations } from "@/domain/activities/durationFormat";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "@/features/activities/SheetMotion";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
@@ -57,7 +58,8 @@ const t = strings.screens.sessions;
 const tCard = t.catalogueCard;
 
 export function sessionCardAccessibilityLabel(projection: SessionCatalogueProjection, expanded = false): string {
-  return [
+  // Accessibilité (08/11/2026 au soir) : durées lues en toutes lettres, pas les primes.
+  return spokenDurations([
     projection.name,
     projection.categories.map((category) => category.name).join(", "),
     // D-505 (Hermann, 06/11/2026) : ligne 3 « N circuits · N exercices ». [Avant : format ou volume.]
@@ -67,7 +69,7 @@ export function sessionCardAccessibilityLabel(projection: SessionCatalogueProjec
     expanded && projection.tree.length > 0 ? compositionAccessibilityText(projection.tree) : null,
   ]
     .filter((part) => part !== null && part.length > 0)
-    .join(", ");
+    .join(", "));
 }
 
 type Notice = { readonly message: string; readonly undo: () => void };

@@ -109,16 +109,29 @@ function isBilateralCase(c: CorpusCase): boolean {
   return c.parameters.side !== "UNILATERAL";
 }
 
-/** Attendu courant d'un cas du corpus : la fixture neutre pour un cas bilatéral, l'oracle sinon. */
+/**
+ * Format des durées du 08/11/2026 au soir (Hermann : « Et tu dois encore modifier le format des durées. » ; « Partout veut bien dire
+ * partout ») : les fichiers du corpus et de l'oracle restent inchangés sur disque ; leurs durées « X min Y s » / « X min » / « Y s » sont
+ * converties ici au format affiché (M′SS″, S″, Hh MM′) avant comparaison.
+ */
+function toDisplayedDurations(text: string): string {
+  const notLetter = "(?![\\p{L}\\d])";
+  return text
+    .replace(new RegExp(`(?<![\\d,.])(\\d+) min (\\d+) s${notLetter}`, "gu"), (_, minutes: string, seconds: string) => formatPhraseDuration(Number(minutes) * 60 + Number(seconds)))
+    .replace(new RegExp(`(?<![\\d,.])(\\d+) min${notLetter}`, "gu"), (_, minutes: string) => formatPhraseDuration(Number(minutes) * 60))
+    .replace(new RegExp(`(?<![\\d,.])(\\d+) s${notLetter}`, "gu"), (_, seconds: string) => formatPhraseDuration(Number(seconds)));
+}
+
+/** Attendu courant d'un cas du corpus : la fixture neutre pour un cas bilatéral, l'oracle sinon (durées au format affiché). */
 function expectedOf(c: CorpusCase): { readonly expectedText: string; readonly expectedSegments: readonly PhraseSegment[] } {
-  if (!isBilateralCase(c)) {
-    return c;
-  }
-  const neutral = neutralById.get(c.corpusId);
-  if (neutral === undefined) {
+  const source = isBilateralCase(c) ? neutralById.get(c.corpusId) : c;
+  if (source === undefined) {
     throw new Error(`Cas bilatéral ${c.corpusId} absent de la fixture neutre.`);
   }
-  return neutral;
+  return {
+    expectedText: toDisplayedDurations(source.expectedText),
+    expectedSegments: source.expectedSegments.map((segment) => ({ ...segment, texte: toDisplayedDurations(segment.texte) })),
+  };
 }
 
 /**
@@ -280,12 +293,12 @@ describe("P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n)", () => {
     // AC12 : le gabarit de l'oracle, dont le montant est remplacé par le total calculé par formule
     // (clause des côtés neutralisée pour un cas bilatéral, PRE-5 story 1.2).
     const gabarit = oracle.find((item) => item.id === c.corpusId)!.phraseGabarit;
-    const formulaText = gabarit.includes("{total}")
-      ? gabarit.replace("{total}", formatPhraseDuration(corpusFormulaSeconds(c)))
-      : gabarit;
+    const formulaText = toDisplayedDurations(
+      gabarit.includes("{total}") ? gabarit.replace("{total}", formatPhraseDuration(corpusFormulaSeconds(c))) : gabarit,
+    );
     expect(phraseText(segments!)).toBe(isBilateralCase(c) ? neutralizeSideClause(formulaText) : formulaText);
     // AC11 : jamais « 0 s ».
-    expect(phraseText(segments!)).not.toMatch(/(^|[^0-9])0 s/u);
+    expect(phraseText(segments!)).not.toMatch(/(^|[^0-9])0″/u);
   });
 
   it("PRE4-2.3/AC12 — aucune clause ajoutée aux 120 cas en Régime variables (ni Pause, ni Pauses énumérées, ni ≥)", () => {
@@ -302,7 +315,7 @@ describe("P3-15/corpus-276 — 276 phrases v15 (P3-15/corpus/n)", () => {
 describe("PRE4-2.3/AC13 — les 92 anciennes entrées « À l’échec », adaptation nommée et rejeu en Durée", () => {
   const legacy = corpus.filter(isLegacyFailureCase);
 
-  it("PRE4-2.3/AC13 — 92 entrées, dont 46 avec Bip 4 s", () => {
+  it("PRE4-2.3/AC13 — 92 entrées, dont 46 avec Bip 4″", () => {
     expect(legacy).toHaveLength(92);
     expect(legacy.filter((c) => c.parameters.cadence === 4)).toHaveLength(46);
     expect(legacy.filter((c) => c.parameters.cadence === 0)).toHaveLength(46);
@@ -345,15 +358,15 @@ describe("PRE4-2.3/AC13 — les 92 anciennes entrées « À l’échec », adapt
     },
   );
 
-  it("PRE4-2.3/AC13 — attendus littéraux : id 251 (Bip 4 s) et id 276", () => {
+  it("PRE4-2.3/AC13 — attendus littéraux : id 251 (Bip 4″) et id 276", () => {
     const byId = (id: number) => legacy.find((c) => c.corpusId === id)!;
     expect(byId(251).parameters.cadence).toBe(4);
     for (const mode of ["REPETITIONS", "DURATION"] as const) {
       expect(phraseText(generateExecutionPhrase(adaptLegacyFailureCase(byId(251), mode))!)).toBe(
-        "3 séries menées jusqu’à l’échec, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté.",
+        "3 séries menées jusqu’à l’échec, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5″ de pause au changement de côté.",
       );
       expect(phraseText(generateExecutionPhrase(adaptLegacyFailureCase(byId(276), mode))!)).toBe(
-        "6 séries menées jusqu’à l’échec, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté.",
+        "6 séries menées jusqu’à l’échec, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5″ de pause au changement de côté.",
       );
     }
   });
@@ -378,10 +391,10 @@ function duration(overrides: Partial<ExecutionParametersInput>): ExecutionParame
 const text = (input: ExecutionParametersInput) => phraseText(generateExecutionPhrase(input)!);
 
 describe("P3-15/grammar-edges", () => {
-  it("N1 unilatéral D30 : P0 omet seulement le total redondant, P15 affiche 45 s", () => {
-    expect(text(duration({}))).toBe("1 série de 30 s.");
+  it("N1 unilatéral D30 : P0 omet seulement le total redondant, P15 affiche 45″", () => {
+    expect(text(duration({}))).toBe("1 série de 30″.");
     expect(text(duration({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] } }))).toBe(
-      "1 série de 30 s, avec 15 s de pause après chaque série. Durée totale : 45 s.",
+      "1 série de 30″, avec 15″ de pause après chaque série. Durée totale : 45″.",
     );
   });
 
@@ -392,18 +405,18 @@ describe("P3-15/grammar-edges", () => {
       workPhases: [],
     });
     expect(text(duration({ series: rows([45, 30]) }))).toBe(
-      "2 séries de durée variable (45 s puis 30 s). Durée totale : 1 min 55 s.",
+      "2 séries de durée variable (45″ puis 30″). Durée totale : 1′55″.",
     );
     expect(text(duration({ series: rows([60, 30, 45]) }))).toBe(
-      "3 séries de durée variable (1 min, 30 s puis 45 s). Durée totale : 3 min 15 s.",
+      "3 séries de durée variable (1′00″, 30″ puis 45″). Durée totale : 3′15″.",
     );
     // Lignes réordonnées : le min/max ne dépend jamais de la première/dernière ligne.
     expect(text(duration({ series: rows([90, 30, 120, 60]) }))).toBe(
-      "4 séries variables, de 30 s à 2 min. Durée totale : 6 min 20 s.",
+      "4 séries variables, de 30″ à 2′00″. Durée totale : 6′20″.",
     );
     // Lignes égales : l'état variable explicite est conservé dans la grammaire.
     expect(text(duration({ series: rows([30, 30, 30]) }))).toBe(
-      "3 séries de durée variable (30 s, 30 s puis 30 s). Durée totale : 2 min 30 s.",
+      "3 séries de durée variable (30″, 30″ puis 30″). Durée totale : 2′30″.",
     );
   });
 
@@ -442,7 +455,7 @@ describe("P3-15/grammar-edges", () => {
     const reps = duration({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 2, target: numberTarget(1), pauseSeconds: 0, loadKg: 0, workPhases: [] } });
     expect(text(reps)).toBe("2 séries de 1 répétition, enchaînées sans pause.");
     expect(text({ ...reps, cadenceBeepIntervalSeconds: 3 })).toBe(
-      "2 séries de 1 répétition cadencées toutes les 3 s, enchaînées sans pause. Durée totale : ≈ 6 s.",
+      "2 séries de 1 répétition cadencées toutes les 3″, enchaînées sans pause. Durée totale : ≈ 6″.",
     );
     expect(text(duration({ cadenceBeepIntervalSeconds: 4 }))).not.toMatch(/cadenc/);
   });
@@ -451,7 +464,7 @@ describe("P3-15/grammar-edges", () => {
     const segments = generateExecutionPhrase(
       duration({ series: { kind: "UNIFORM", count: 2, target: numberTarget(15), pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
     )!;
-    expect(segments.filter((segment) => segment.gras && segment.texte === "15 s")).toHaveLength(2);
+    expect(segments.filter((segment) => segment.gras && segment.texte === "15″")).toHaveLength(2);
   });
 
   it("brouillon incomplet : aucune phrase inventée", () => {
@@ -465,10 +478,11 @@ describe("P3-15/long-phrase — cas 144, 224 caractères (226 avec la clause des
     const c = corpus.find((item) => item.corpusId === 144)!;
     expect(c.expectedText).toHaveLength(224);
     const generated = text(toInput(c));
-    // « à droite, puis à gauche » (24) → « du côté 1, puis du côté 2 » (26).
-    expect(generated).toHaveLength(226);
+    // « à droite, puis à gauche » (24) → « du côté 1, puis du côté 2 » (26). Durées au format du 08/11/2026 au soir : « 4 s », « 15 s »,
+    // « 5 s », « 12 min 41 s » → « 4″ », « 15″ », « 5″ », « 12′41″ » (− 8 caractères). [226 — remplacé le 08/11/2026 au soir.]
+    expect(generated).toHaveLength(218);
     expect(generated).toBe(expectedOf(c).expectedText);
-    expect(generated.endsWith("Durée totale : ≈ 12 min 41 s.")).toBe(true);
+    expect(generated.endsWith("Durée totale : ≈ 12′41″.")).toBe(true);
   });
 });
 
@@ -490,19 +504,19 @@ describe("executionPhrase — PRE-4 story 2.1", () => {
     const partial = computeIntrinsicDuration(rows([numberTarget(30), numberTarget(45), failureTarget()]));
     expect(partial.kind).toBe("lowerBound");
     // (30 + 45) + 3 × 10 = 105 s.
-    expect(totalClauseAmount(partial)).toBe("≥ 1 min 45 s");
+    expect(totalClauseAmount(partial)).toBe("≥ 1′45″");
     expect(totalClauseAmount(computeIntrinsicDuration(rows([failureTarget(), failureTarget()])))).toBeNull();
     expect(totalClauseAmount(computeIntrinsicDuration(rows([numberTarget(30), unsetTarget()])))).toBeNull();
-    expect(totalClauseAmount(computeIntrinsicDuration(rows([numberTarget(30), numberTarget(45)])))).toBe("1 min 35 s");
+    expect(totalClauseAmount(computeIntrinsicDuration(rows([numberTarget(30), numberTarget(45)])))).toBe("1′35″");
   });
 
-  it("PRE4-2.3/AC10 — phrases : mélange avec « ≥ », tout échec sans total ni « 0 s », à renseigner `null`", () => {
+  it("PRE4-2.3/AC10 — phrases : mélange avec « ≥ », tout échec sans total ni « 0″ », à renseigner `null`", () => {
     expect(phraseText(generateExecutionPhrase(rows([numberTarget(30), numberTarget(45), failureTarget()]))!)).toBe(
-      "3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec). Durée totale : ≥ 1 min 45 s.",
+      "3 séries de durée variable (30″, 45″ puis jusqu’à l’échec). Durée totale : ≥ 1′45″.",
     );
     expect(generateExecutionPhrase(rows([numberTarget(30), unsetTarget()]))).toBeNull();
     const failure = phraseText(generateExecutionPhrase(rows([failureTarget(), failureTarget()]))!);
-    expect(failure).not.toMatch(/Durée totale|(^|[^0-9])0 s|—/u);
+    expect(failure).not.toMatch(/Durée totale|(^|[^0-9])0″|—/u);
   });
 
   it("PRE4-2.1/AC9 — Cible à renseigner en Régime identiques : phrase `null`, aucune clause (`incomplete`)", () => {
@@ -633,7 +647,7 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
     const second = generateExecutionPhrase(input)!;
     expect(second).toEqual(first);
     expect(phraseText(first)).toBe(
-      "3 séries de répétitions variables (10, jusqu’à l’échec puis 10), cadencées toutes les 2 s. Durée totale : ≥ 1 min 10 s.",
+      "3 séries de répétitions variables (10, jusqu’à l’échec puis 10), cadencées toutes les 2″. Durée totale : ≥ 1′10″.",
     );
     // (10 × 2 + 10 × 2) + 3 × 10 = 70 s.
     expect(first.map((segment) => segment.texte).join("")).toBe(phraseText(first));
@@ -647,7 +661,7 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
     // Compte à rebours (37 s) et Fin (23 s) hors de la phrase ; le Mode n'ouvre pas la phrase.
     const withPhases = phraseText(generateExecutionPhrase({ ...input, countdownSeconds: 37, endSeconds: 23 })!);
     expect(withPhases).toBe(phraseText(first));
-    expect(withPhases).not.toMatch(/37 s|23 s|^Répétitions|^Durée/u);
+    expect(withPhases).not.toMatch(/37″|23″|^Répétitions|^Durée/u);
   });
 
   it("PRE4-2.3/AC2 — gras des valeurs et des unités (H9) : « jusqu’à l’échec » et « à l’échec » normaux, « 10 rép. » gras, ≥ dans le segment du montant", () => {
@@ -657,7 +671,7 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
     expect(generateExecutionPhrase(fromCompact({ mode: "DURATION", series: "UNIFORM", targets: [30], pauses: [0, 0, 0] }))!.slice(0, 3)).toEqual([
       { texte: "3 séries", gras: true },
       { texte: " de ", gras: false },
-      { texte: "30 s", gras: true },
+      { texte: "30″", gras: true },
     ]);
     expect(
       generateExecutionPhrase(fromCompact({ mode: "REPETITIONS", series: "VARIABLE", targets: [10, 12, 15, "FAILURE"], pauses: [10, 10, 10, 10] })),
@@ -670,11 +684,11 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
     expect(generateExecutionPhrase(fromCompact({ mode: "DURATION", series: "VARIABLE", targets: [30, 45, "FAILURE"], pauses: [10, 10, 10] }))).toEqual([
       { texte: "3 séries", gras: true },
       { texte: " de durée variable (", gras: false },
-      { texte: "30 s", gras: true },
+      { texte: "30″", gras: true },
       { texte: ", ", gras: false },
-      { texte: "45 s", gras: true },
+      { texte: "45″", gras: true },
       { texte: " puis jusqu’à l’échec). Durée totale : ", gras: false },
-      { texte: "≥ 1 min 45 s", gras: true },
+      { texte: "≥ 1′45″", gras: true },
       { texte: ".", gras: false },
     ]);
     // Mélange en Répétitions : valeurs nues en gras, « de répétitions variables ( » normal (FR-16-02).
@@ -696,13 +710,13 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
   });
 
   it("PRE4-2.3/AC3 — Cibles toutes numériques : gabarits inchangés, min et max sur les Cibles", () => {
-    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0] })).toBe("1 série de 1 min 30 s.");
+    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0] })).toBe("1 série de 1′30″.");
     expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [30, 45, 60], pauses: [0, 0, 0] })).toBe(
-      "3 séries de durée variable (30 s, 45 s puis 1 min). Durée totale : 2 min 15 s.",
+      "3 séries de durée variable (30″, 45″ puis 1′00″). Durée totale : 2′15″.",
     );
     // 30 + 45 + 60 = 135 s.
     expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [60, 30, 45, 105, 90, 75], pauses: [0, 0, 0, 0, 0, 0] })).toMatch(
-      /^6 séries variables, de 30 s à 1 min 45 s\./u,
+      /^6 séries variables, de 30″ à 1′45″\./u,
     );
     expect(phraseOf({ mode: "REPETITIONS", series: "UNIFORM", targets: [12], pauses: [0, 0, 0] })).toBe(
       "3 séries de 12 répétitions, enchaînées sans pause.",
@@ -714,77 +728,77 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
       "6 séries variables, de 6 à 15 répétitions.",
     );
     // N = 1 issu d'un Régime variables : normalisé en Régime identiques.
-    expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [90], pauses: [0] })).toBe("1 série de 1 min 30 s.");
+    expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [90], pauses: [0] })).toBe("1 série de 1′30″.");
   });
 
   it("PRE4-2.3/AC4 — cadence du Bip : Répétitions numériques et mélanges seulement ; jamais en Durée ni en tout échec", () => {
     expect(phraseOf({ mode: "REPETITIONS", series: "VARIABLE", targets: [12, 10, 8], pauses: [0, 0, 0], bip: 4 })).toMatch(
-      /^3 séries de 12, 10 puis 8 répétitions cadencées toutes les 4 s\./u,
+      /^3 séries de 12, 10 puis 8 répétitions cadencées toutes les 4″\./u,
     );
     expect(phraseOf({ mode: "REPETITIONS", series: "VARIABLE", targets: [10, 6, 15, 8, 12, 9], pauses: [0, 0, 0, 0, 0, 0], bip: 4 })).toMatch(
-      /^6 séries variables, de 6 à 15 répétitions cadencées toutes les 4 s\./u,
+      /^6 séries variables, de 6 à 15 répétitions cadencées toutes les 4″\./u,
     );
-    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0], bip: 4 })).toBe("1 série de 1 min 30 s.");
+    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0], bip: 4 })).toBe("1 série de 1′30″.");
     expect(phraseOf({ mode: "REPETITIONS", series: "UNIFORM", targets: ["FAILURE"], pauses: [0, 0, 0], bip: 4 })).not.toMatch(/cadenc/u);
     expect(phraseOf({ mode: "REPETITIONS", series: "VARIABLE", targets: [10, 12, 15, "FAILURE"], pauses: [10, 10, 10, 10], bip: 2 })).toMatch(
-      /^4 séries variables, de 10 rép\. à l’échec, cadencées toutes les 2 s\./u,
+      /^4 séries variables, de 10 rép\. à l’échec, cadencées toutes les 2″\./u,
     );
     expect(phraseOf({ mode: "REPETITIONS", series: "VARIABLE", targets: [10, "FAILURE", 12], pauses: [10, 10, 10], bip: 2 })).toMatch(
-      /^3 séries de répétitions variables \(10, jusqu’à l’échec puis 12\), cadencées toutes les 2 s\./u,
+      /^3 séries de répétitions variables \(10, jusqu’à l’échec puis 12\), cadencées toutes les 2″\./u,
     );
     expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [30, 45, "FAILURE"], pauses: [10, 10, 10], bip: 4 })).not.toMatch(/cadenc/u);
   });
 
   it("PRE4-2.3/AC5 — clause de Pause : Régime identiques seulement ; aucune en Régime variables, même mélangé ou tout échec ; le calcul garde les Pauses", () => {
     expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [15] })).toBe(
-      "1 série de 1 min 30 s, avec 15 s de pause après chaque série. Durée totale : 1 min 45 s.",
+      "1 série de 1′30″, avec 15″ de pause après chaque série. Durée totale : 1′45″.",
     );
     expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0, 0] })).toMatch(/, enchaînées sans pause\./u);
     expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0] })).not.toMatch(/pause/u);
     for (const targets of [[30, 45, "FAILURE"], ["FAILURE", "FAILURE", "FAILURE"], [30, 45, 60]] as const) {
       for (const mode of ["DURATION", "REPETITIONS"] as const) {
         const input: CompactInput = { mode, series: "VARIABLE", targets, pauses: [10, 20, 30], bip: 2 };
-        expect(phraseOf(input)).not.toMatch(/pause|10 s, 20 s/u);
+        expect(phraseOf(input)).not.toMatch(/pause|10″, 20″/u);
       }
     }
     // Mixte Figma : Pauses 10 / 20 / 30 s omises de la phrase, comptées dans le calcul : 75 + 60 = 135 s.
     const figma = fromCompact({ mode: "DURATION", series: "VARIABLE", targets: [30, 45, "FAILURE"], pauses: [10, 20, 30] });
     expect(computeIntrinsicDuration(figma).seconds).toBe(30 + 45 + 10 + 20 + 30);
     expect(phraseText(generateExecutionPhrase(figma)!)).toBe(
-      "3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec). Durée totale : ≥ 2 min 15 s.",
+      "3 séries de durée variable (30″, 45″ puis jusqu’à l’échec). Durée totale : ≥ 2′15″.",
     );
   });
 
   it("PRE4-2.3/AC6, PRE5-1.2/AC4 — clause des côtés neutre (ch. 10 l. 515), identique pour les deux valeurs bilatérales, PC", () => {
     expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0], side: "RIGHT_LEFT" })).toBe(
-      "1 série de 1 min 30 s, en faisant le côté 1 puis le côté 2. Durée totale : 3 min.",
+      "1 série de 1′30″, en faisant le côté 1 puis le côté 2. Durée totale : 3′00″.",
     );
     const three: CompactInput = { mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [15, 15, 15], side: "RIGHT_LEFT", order: "BY_SERIES", pc: 5 };
     // 3 × (2 × 90 + 15 + 5) = 600 s.
     expect(phraseOf(three)).toBe(
-      "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté 1 puis le côté 2 à chaque série, avec 5 s de pause au changement de côté. Durée totale : 10 min.",
+      "3 séries de 1′30″, avec 15″ de pause après chaque série, en alternant le côté 1 puis le côté 2 à chaque série, avec 5″ de pause au changement de côté. Durée totale : 10′00″.",
     );
     expect(phraseOf({ ...three, order: "BY_SIDE", pc: 0 })).toMatch(/, en faisant d’abord toutes les séries du côté 1, puis du côté 2\. /u);
-    expect(phraseOf({ ...three, side: "LEFT_RIGHT" })).toMatch(/, en alternant le côté 1 puis le côté 2 à chaque série, avec 5 s/u);
-    expect(phraseOf({ ...three, side: "LEFT_RIGHT", order: "BY_SIDE" })).toMatch(/, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s/u);
+    expect(phraseOf({ ...three, side: "LEFT_RIGHT" })).toMatch(/, en alternant le côté 1 puis le côté 2 à chaque série, avec 5″/u);
+    expect(phraseOf({ ...three, side: "LEFT_RIGHT", order: "BY_SIDE" })).toMatch(/, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5″/u);
     expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0], side: "LEFT_RIGHT" })).toMatch(
       /, en faisant le côté 1 puis le côté 2\. /u,
     );
     // Gras : la désignation qui remplace un ancien mot gras est en gras (« côté 2 » ; « côté 1 » et « côté 2 » par côté).
     const bold = (input: CompactInput) =>
       generateExecutionPhrase(fromCompact(input))!.filter((segment) => segment.gras).map((segment) => segment.texte);
-    expect(bold(three)).toEqual(["3 séries", "1 min 30 s", "15 s", "côté 2", "5 s", "10 min"]);
-    expect(bold({ ...three, side: "LEFT_RIGHT", order: "BY_SIDE" })).toEqual(["3 séries", "1 min 30 s", "15 s", "côté 1", "côté 2", "5 s", "10 min 35 s"]);
+    expect(bold(three)).toEqual(["3 séries", "1′30″", "15″", "côté 2", "5″", "10′00″"]);
+    expect(bold({ ...three, side: "LEFT_RIGHT", order: "BY_SIDE" })).toEqual(["3 séries", "1′30″", "15″", "côté 1", "côté 2", "5″", "10′35″"]);
     expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0, 0], side: "UNILATERAL", pc: 5 })).not.toMatch(/côté/u);
   });
 
-  it("PRE4-2.3/AC7 — tout à l'échec : quatre Phrases identiques (Durée/Répétitions × Bip 0/4 s), « menées », sans total ni Bip", () => {
+  it("PRE4-2.3/AC7 — tout à l'échec : quatre Phrases identiques (Durée/Répétitions × Bip 0/4″), « menées », sans total ni Bip", () => {
     const cases: readonly [CompactInput, string][] = [
       [
         { mode: "DURATION", series: "UNIFORM", targets: ["FAILURE"], pauses: [0, 0, 0], side: "RIGHT_LEFT", order: "BY_SIDE", pc: 5 },
-        "3 séries menées jusqu’à l’échec, enchaînées sans pause, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5 s de pause au changement de côté.",
+        "3 séries menées jusqu’à l’échec, enchaînées sans pause, en faisant d’abord toutes les séries du côté 1, puis du côté 2, avec 5″ de pause au changement de côté.",
       ],
-      [{ mode: "DURATION", series: "UNIFORM", targets: ["FAILURE"], pauses: [10, 10, 10] }, "3 séries menées jusqu’à l’échec, avec 10 s de pause après chaque série."],
+      [{ mode: "DURATION", series: "UNIFORM", targets: ["FAILURE"], pauses: [10, 10, 10] }, "3 séries menées jusqu’à l’échec, avec 10″ de pause après chaque série."],
       [{ mode: "DURATION", series: "VARIABLE", targets: ["FAILURE", "FAILURE", "FAILURE"], pauses: [10, 20, 30] }, "3 séries menées jusqu’à l’échec."],
       [{ mode: "DURATION", series: "UNIFORM", targets: ["FAILURE"], pauses: [0] }, "1 série menée jusqu’à l’échec."],
     ];
@@ -802,22 +816,22 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
   it("PRE4-2.3/AC8 — mélange de 3 Cibles ou moins : énumération dans l'ordre, en Durée et en Répétitions", () => {
     const duration = (targets: readonly CompactTarget[]) =>
       phraseOf({ mode: "DURATION", series: "VARIABLE", targets, pauses: targets.map(() => 10) });
-    expect(duration([30, 45, "FAILURE"])).toMatch(/^3 séries de durée variable \(30 s, 45 s puis jusqu’à l’échec\)/u);
-    expect(duration(["FAILURE", 30, 45])).toMatch(/^3 séries de durée variable \(jusqu’à l’échec, 30 s puis 45 s\)/u);
-    expect(duration([30, "FAILURE", 45])).toMatch(/^3 séries de durée variable \(30 s, jusqu’à l’échec puis 45 s\)/u);
-    expect(duration([30, "FAILURE"])).toMatch(/^2 séries de durée variable \(30 s puis jusqu’à l’échec\)/u);
+    expect(duration([30, 45, "FAILURE"])).toMatch(/^3 séries de durée variable \(30″, 45″ puis jusqu’à l’échec\)/u);
+    expect(duration(["FAILURE", 30, 45])).toMatch(/^3 séries de durée variable \(jusqu’à l’échec, 30″ puis 45″\)/u);
+    expect(duration([30, "FAILURE", 45])).toMatch(/^3 séries de durée variable \(30″, jusqu’à l’échec puis 45″\)/u);
+    expect(duration([30, "FAILURE"])).toMatch(/^2 séries de durée variable \(30″ puis jusqu’à l’échec\)/u);
     const repetitions = (targets: readonly CompactTarget[], bip = 0) =>
       phraseOf({ mode: "REPETITIONS", series: "VARIABLE", targets, pauses: targets.map(() => 10), bip });
     expect(repetitions([10, 12, "FAILURE"])).toBe("3 séries de répétitions variables (10, 12 puis jusqu’à l’échec).");
     expect(repetitions(["FAILURE", 10, 12])).toBe("3 séries de répétitions variables (jusqu’à l’échec, 10 puis 12).");
     expect(repetitions([10, "FAILURE", 12])).toBe("3 séries de répétitions variables (10, jusqu’à l’échec puis 12).");
     expect(repetitions([10, "FAILURE"])).toBe("2 séries de répétitions variables (10 puis jusqu’à l’échec).");
-    expect(repetitions([10, 12, "FAILURE"], 2)).toMatch(/^3 séries de répétitions variables \(10, 12 puis jusqu’à l’échec\), cadencées toutes les 2 s/u);
-    expect(repetitions([10, "FAILURE", 12], 2)).toMatch(/^3 séries de répétitions variables \(10, jusqu’à l’échec puis 12\), cadencées toutes les 2 s/u);
+    expect(repetitions([10, 12, "FAILURE"], 2)).toMatch(/^3 séries de répétitions variables \(10, 12 puis jusqu’à l’échec\), cadencées toutes les 2″/u);
+    expect(repetitions([10, "FAILURE", 12], 2)).toMatch(/^3 séries de répétitions variables \(10, jusqu’à l’échec puis 12\), cadencées toutes les 2″/u);
     // Phrases complètes : (30 + 45) + 3 × 10 = 105 s ; (10 × 2 + 12 × 2) + 3 × 10 = 74 s.
-    expect(duration([30, 45, "FAILURE"])).toBe("3 séries de durée variable (30 s, 45 s puis jusqu’à l’échec). Durée totale : ≥ 1 min 45 s.");
+    expect(duration([30, 45, "FAILURE"])).toBe("3 séries de durée variable (30″, 45″ puis jusqu’à l’échec). Durée totale : ≥ 1′45″.");
     expect(repetitions([10, 12, "FAILURE"], 2)).toBe(
-      "3 séries de répétitions variables (10, 12 puis jusqu’à l’échec), cadencées toutes les 2 s. Durée totale : ≥ 1 min 14 s.",
+      "3 séries de répétitions variables (10, 12 puis jusqu’à l’échec), cadencées toutes les 2″. Durée totale : ≥ 1′14″.",
     );
     // Formes réservées au mélange : un Régime variables tout numérique en Répétitions garde son gabarit.
     expect(repetitions([12, 10, 8])).toBe("3 séries de 12, 10 puis 8 répétitions.");
@@ -828,43 +842,43 @@ describe("PRE-4 story 2.3 — gabarits de la Phrase", () => {
     expect(phraseOf({ mode: "REPETITIONS", series: "VARIABLE", targets: [10, 12, "FAILURE", 20], pauses })).toBe("4 séries variables, de 10 rép. à l’échec.");
     expect(phraseOf({ mode: "REPETITIONS", series: "VARIABLE", targets: [20, "FAILURE", 12, 10], pauses })).toBe("4 séries variables, de 10 rép. à l’échec.");
     expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [90, 120, "FAILURE", 150], pauses })).toMatch(
-      /^4 séries variables, de 1 min 30 s à l’échec\./u,
+      /^4 séries variables, de 1′30″ à l’échec\./u,
     );
     // (30 + 45 + 60) + 4 × 10 = 175 s.
     expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [30, 45, 60, "FAILURE"], pauses })).toBe(
-      "4 séries variables, de 30 s à l’échec. Durée totale : ≥ 2 min 55 s.",
+      "4 séries variables, de 30″ à l’échec. Durée totale : ≥ 2′55″.",
     );
     expect(phraseOf({ mode: "REPETITIONS", series: "VARIABLE", targets: [10, 12, 15, "FAILURE"], pauses })).toBe("4 séries variables, de 10 rép. à l’échec.");
     // (10 + 12 + 15) × 2 + 4 × 10 = 114 s.
     expect(phraseOf({ mode: "REPETITIONS", series: "VARIABLE", targets: [10, 12, 15, "FAILURE"], pauses, bip: 2 })).toMatch(
-      / Durée totale : ≥ 1 min 54 s\.$/u,
+      / Durée totale : ≥ 1′54″\.$/u,
     );
     expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [30, 30, 30, 30, 30, 30], pauses: [0, 0, 0, 0, 0, 0] })).toMatch(
-      /^6 séries variables, de 30 s à 30 s\./u,
+      /^6 séries variables, de 30″ à 30″\./u,
     );
   });
 
   it("PRE4-2.3/AC10 — Durée totale : exacte, ≈, ≥ ; omise sans zéro ni tiret ; redondance N = 1 unilatéral sans Pause seulement", () => {
     const case101 = corpus.find((c) => c.corpusId === 101)!;
-    expect(phraseText(generateExecutionPhrase(toInput(case101))!)).toMatch(/ Durée totale : ≈ 1 min 41 s\.$/u);
+    expect(phraseText(generateExecutionPhrase(toInput(case101))!)).toMatch(/ Durée totale : ≈ 1′41″\.$/u);
     // 2 × (12 × 4 + 0) + 5 = 101 s.
     expect(corpusFormulaSeconds(case101)).toBe(101);
-    expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [30, 45, "FAILURE"], pauses: [10, 20, 30] })).toMatch(/ Durée totale : ≥ 2 min 15 s\.$/u);
+    expect(phraseOf({ mode: "DURATION", series: "VARIABLE", targets: [30, 45, "FAILURE"], pauses: [10, 20, 30] })).toMatch(/ Durée totale : ≥ 2′15″\.$/u);
     for (const input of [
       { mode: "REPETITIONS", series: "VARIABLE", targets: [10, 12, "FAILURE"], pauses: [10, 10, 10] },
       { mode: "REPETITIONS", series: "UNIFORM", targets: [12], pauses: [10, 10] },
       { mode: "DURATION", series: "UNIFORM", targets: ["FAILURE"], pauses: [10, 10] },
     ] as const) {
-      expect(phraseOf(input)).not.toMatch(/Durée totale|—|(^|[^0-9])0 s/u);
+      expect(phraseOf(input)).not.toMatch(/Durée totale|—|(^|[^0-9])0″/u);
     }
-    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0] })).toBe("1 série de 1 min 30 s.");
-    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [15] })).toMatch(/ Durée totale : 1 min 45 s\.$/u);
-    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0], side: "RIGHT_LEFT" })).toMatch(/ Durée totale : 3 min\.$/u);
+    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0] })).toBe("1 série de 1′30″.");
+    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [15] })).toMatch(/ Durée totale : 1′45″\.$/u);
+    expect(phraseOf({ mode: "DURATION", series: "UNIFORM", targets: [90], pauses: [0], side: "RIGHT_LEFT" })).toMatch(/ Durée totale : 3′00″\.$/u);
     // La Récupération de Séance n'est pas une entrée du générateur : la phrase ne dépend que des Paramètres.
     expect(generateExecutionPhrase.length).toBe(1);
   });
 
-  it("PRE4-2.3/AC11 — jamais « 0 s » : Pause nulle → « enchaînées sans pause » ou omise ; PC nulle → suffixe omis", () => {
+  it("PRE4-2.3/AC11 — jamais « 0″ » : Pause nulle → « enchaînées sans pause » ou omise ; PC nulle → suffixe omis", () => {
     for (const mode of ["DURATION", "REPETITIONS"] as const) {
       for (const targets of [[30, "FAILURE", 45], [30], ["FAILURE"], [30, 45, 60, "FAILURE"]] as const) {
         for (const side of ["UNILATERAL", "RIGHT_LEFT", "LEFT_RIGHT"] as const) {
@@ -1006,12 +1020,13 @@ describe("PRE4-2.3/AC14 — variantes des cas nouveaux (fixtures/phrase-variants
     const input = variant.snapshotV1 ? rereadV1(variant.snapshotV1) : fromCompact(compact);
     const segments = generateExecutionPhrase(input)!;
     // Texte littéral, segments gras décidés par le gabarit, concaténation exacte.
-    expect(phraseText(segments)).toBe(variant.expectedText);
-    expect(segments.filter((segment) => segment.gras).map((segment) => segment.texte)).toEqual(variant.expectedBold);
+    // Durées des fixtures converties au format affiché du 08/11/2026 au soir (fixtures inchangées sur disque).
+    expect(phraseText(segments)).toBe(toDisplayedDurations(variant.expectedText));
+    expect(segments.filter((segment) => segment.gras).map((segment) => segment.texte)).toEqual(variant.expectedBold.map(toDisplayedDurations));
     // « jusqu’à l’échec » et « à l’échec » ne sont jamais en gras.
     expect(segments.filter((segment) => segment.gras && /échec/u.test(segment.texte))).toEqual([]);
     // Total : formule du test, jamais le générateur ni executionCalculations.
-    const clause = TOTAL_CLAUSE.exec(variant.expectedText);
+    const clause = TOTAL_CLAUSE.exec(toDisplayedDurations(variant.expectedText));
     if (variant.expectedTotalSeconds === null) {
       expect(clause).toBeNull();
     } else {
@@ -1023,7 +1038,7 @@ describe("PRE4-2.3/AC14 — variantes des cas nouveaux (fixtures/phrase-variants
     expect(variant.expectedText).not.toMatch(NO_ZERO_SECONDS);
     // Tout à l'échec : texte identique au corpus (attendu neutre pour un cas bilatéral, PRE-5 story 1.2).
     if (compact.targets.every((target) => target === "FAILURE")) {
-      expect(corpus.some((c) => expectedOf(c).expectedText === variant.expectedText)).toBe(true);
+      expect(corpus.some((c) => expectedOf(c).expectedText === toDisplayedDurations(variant.expectedText))).toBe(true);
     }
   });
 
@@ -1106,13 +1121,13 @@ describe("PRE5-1.2 — Phrase avec phases et charge (fixtures/phrases-pre5.json)
   it.each(pre5Cases.map((item) => [item.id, item] as const))("PRE5-1.2/AC5 — %s", (_id, item) => {
     const input = fromPre5(item.input);
     const segments = generateExecutionPhrase(input)!;
-    expect(phraseText(segments)).toBe(item.expectedText);
-    expect(segments.filter((segment) => segment.gras).map((segment) => segment.texte)).toEqual(item.expectedBold);
+    expect(phraseText(segments)).toBe(toDisplayedDurations(item.expectedText));
+    expect(segments.filter((segment) => segment.gras).map((segment) => segment.texte)).toEqual(item.expectedBold.map(toDisplayedDurations));
     // Charge en texte normal (D-414) ; jamais « 0 s ».
     expect(segments.filter((segment) => segment.gras && /kg|charge/u.test(segment.texte))).toEqual([]);
     expect(item.expectedText).not.toMatch(NO_ZERO_SECONDS);
     // Total : formule du test (phases et charge sans effet sur la durée, Δ48, Q-V3-13).
-    const clause = TOTAL_CLAUSE.exec(item.expectedText);
+    const clause = TOTAL_CLAUSE.exec(toDisplayedDurations(item.expectedText));
     const formula = variantFormulaTotal(item.input);
     const redundant =
       item.input.mode === "DURATION" && item.input.pauses.length === 1 && (item.input.side ?? "UNILATERAL") === "UNILATERAL" && item.input.pauses[0] === 0;
@@ -1123,7 +1138,7 @@ describe("PRE5-1.2 — Phrase avec phases et charge (fixtures/phrases-pre5.json)
     }
     // Sans phases ni charge, la phrase est celle d'avant, mentions retirées : rien d'autre ne change.
     const bare = fromPre5({ ...item.input, loadEnabled: false, workPhases: [] });
-    expect(phraseText(generateExecutionPhrase(bare)!)).toBe(item.expectedText.replace(VALUE_SUFFIX_PATTERN, ""));
+    expect(phraseText(generateExecutionPhrase(bare)!)).toBe(toDisplayedDurations(item.expectedText.replace(VALUE_SUFFIX_PATTERN, "")));
     expect(computeIntrinsicDuration(input)).toEqual(computeIntrinsicDuration(bare));
   });
 
@@ -1135,19 +1150,19 @@ describe("PRE5-1.2 — Phrase avec phases et charge (fixtures/phrases-pre5.json)
     const input = fromPre5(pre5Cases.find((item) => item.id === "phases-plusieurs")!.input);
     expect(workPhasesClause(input)).toEqual([
       { texte: " (Descente : ", gras: false },
-      { texte: "6 s", gras: true },
+      { texte: "6″", gras: true },
       { texte: " - Maintien : ", gras: false },
-      { texte: "3 s", gras: true },
+      { texte: "3″", gras: true },
       { texte: ")", gras: false },
     ]);
     expect(workPhasesClause(duration({}))).toEqual([]);
     // Régénération : un libellé renommé, un ordre ou une durée modifiés se lisent aussitôt.
     const uniform = input.series.kind === "UNIFORM" ? input.series : null;
     const renamed = { ...input, series: { ...uniform!, workPhases: [...uniform!.workPhases].reverse().map((phase) => (phase.label === "Maintien" ? { ...phase, label: "Tenue" } : phase)) } };
-    expect(phraseText(workPhasesClause(renamed))).toBe(" (Tenue : 3 s - Descente : 6 s)");
+    expect(phraseText(workPhasesClause(renamed))).toBe(" (Tenue : 3″ - Descente : 6″)");
     // Espaces extérieurs d'un libellé enregistré : retirés à l'affichage seulement, donnée intacte.
     const spaced = { ...input, series: { ...uniform!, workPhases: uniform!.workPhases.map((phase) => ({ ...phase, label: ` ${phase.label}  ` })) } };
-    expect(phraseText(workPhasesClause(spaced))).toBe(" (Descente : 6 s - Maintien : 3 s)");
+    expect(phraseText(workPhasesClause(spaced))).toBe(" (Descente : 6″ - Maintien : 3″)");
     expect(spaced.series.workPhases[0]!.label).toBe(" Descente  ");
     // PRE-7 (D-446, complément du 26/10/2026) : même clause pour le motif commun des séries variables.
     const variable = duration({
@@ -1162,12 +1177,12 @@ describe("PRE5-1.2 — Phrase avec phases et charge (fixtures/phrases-pre5.json)
     });
     expect(workPhasesClause(variable)).toEqual([
       { texte: " (Descente : ", gras: false },
-      { texte: "5 s", gras: true },
+      { texte: "5″", gras: true },
       { texte: " - Montée : ", gras: false },
-      { texte: "2 s", gras: true },
+      { texte: "2″", gras: true },
       { texte: ")", gras: false },
     ]);
-    expect(phraseText(generateExecutionPhrase(variable)!)).toContain(" (Descente : 5 s - Montée : 2 s)");
+    expect(phraseText(generateExecutionPhrase(variable)!)).toContain(" (Descente : 5″ - Montée : 2″)");
   });
 
   it("PRE5-1.2/AC1 — `loadClause` : formes D-414, en texte normal ; Sans et toutes nulles → aucun segment", () => {

@@ -12,11 +12,12 @@ import { formatSeconds, TableCell } from "@/features/sessions/FormatTables";
  * charge For time atteinte par la barre (e-fortime-charge), options du Circuit replié qui glissent (e-replie-glisse).
  */
 describe("Déroulé : durée compacte des blocs (constat e)", () => {
-  it("30\", 1'30\", 2'", () => {
-    expect(compactBlockDuration(30)).toBe('30"');
-    expect(compactBlockDuration(90)).toBe("1'30\"");
-    expect(compactBlockDuration(65)).toBe("1'05\"");
-    expect(compactBlockDuration(120)).toBe("2'");
+  // [30", 1'30", 2' — remplacés le 08/11/2026 au soir (Hermann : « Partout veut bien dire partout ») : M′SS″ / S″.]
+  it("30″, 1′30″, 2′00″ (format du 08/11/2026 au soir)", () => {
+    expect(compactBlockDuration(30)).toBe("30″");
+    expect(compactBlockDuration(90)).toBe("1′30″");
+    expect(compactBlockDuration(65)).toBe("1′05″");
+    expect(compactBlockDuration(120)).toBe("2′00″");
   });
 
   it("AMRAP : un objectif en durée s'affiche au format compact, les répétitions restent des nombres", () => {
@@ -24,7 +25,7 @@ describe("Déroulé : durée compacte des blocs (constat e)", () => {
       ({ exercise: { id, name: id }, values: { mode, repetitions } }) as unknown as ModelMovement;
     const timeline = modelTimeline("AMRAP", { durationSeconds: 600 }, [movement("a", "DURATION", 45), movement("b", "REPETITIONS", 10)]);
     const labels = timeline.blocks.flatMap((block) => (block.kind === "WORK" ? [block.label] : []));
-    expect(labels.slice(0, 2)).toEqual(['45"', "10"]);
+    expect(labels.slice(0, 2)).toEqual(["45″", "10"]); // ['45"' — remplacé le 08/11/2026 au soir.]
   });
 });
 
@@ -86,16 +87,16 @@ describe("Circuit replié : options glissées avec le Circuit (e-replie-glisse)"
   });
 });
 
-describe("recette du 05/11 au soir (r-tabata : « entrée 01:30 affiche 1 min »)", () => {
-  it("durées des cases de tableau au format court : « 1 min 30 », « 12 min 30 », « 1 min 05 » ; minutes ou secondes seules inchangées", () => {
-    expect(formatSeconds(90)).toBe("1 min 30");
-    expect(formatSeconds(750)).toBe("12 min 30");
-    expect(formatSeconds(65)).toBe("1 min 05");
-    expect(formatSeconds(60)).toBe("1 min");
-    expect(formatSeconds(45)).toBe("45 s");
+describe("recette du 05/11 au soir (r-tabata : « entrée 01:30 affiche 1′00″ »)", () => {
+  it("durées des cases de tableau au format court : « 1′30″ », « 12′30″ », « 1′05″ » ; minutes ou secondes seules inchangées", () => {
+    expect(formatSeconds(90)).toBe("1′30″");
+    expect(formatSeconds(750)).toBe("12′30″");
+    expect(formatSeconds(65)).toBe("1′05″");
+    expect(formatSeconds(60)).toBe("1′00″");
+    expect(formatSeconds(45)).toBe("45″");
   });
 
-  it("une durée saisie « 01:30 » s'affiche « 1 min 30 » au repos", () => {
+  it("une durée saisie « 01:30 » s'affiche « 1′30″ » au repos", () => {
     const onChange = jest.fn();
     const { rerender } = render(
       <TableCell kind="duration" value={null} onChange={onChange} format={formatSeconds} label="Objectif" testID="cell" />,
@@ -105,6 +106,6 @@ describe("recette du 05/11 au soir (r-tabata : « entrée 01:30 affiche 1 min »
     fireEvent(screen.getByTestId("cell"), "blur");
     expect(onChange).toHaveBeenLastCalledWith(90);
     rerender(<TableCell kind="duration" value={90} onChange={onChange} format={formatSeconds} label="Objectif" testID="cell" />);
-    expect(screen.getByTestId("cell").props.value).toBe("1 min 30");
+    expect(screen.getByTestId("cell").props.value).toBe("1′30″");
   });
 });

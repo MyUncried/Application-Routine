@@ -149,7 +149,7 @@ describe("P3-12/numeric — 13 cas indépendants (attendus-numeriques.json)", ()
 describe("P3-12/normative-totals et P3-12/omission", () => {
   const base = { countdownSeconds: 10, endSeconds: 5, version: EXECUTION_PARAMETERS_VERSION, loadEnabled: false } as const;
 
-  it("aucune convention historique de 2 s par répétition", () => {
+  it("aucune convention historique de 2″ par répétition", () => {
     const repetitions: ExecutionParametersInput = {
       ...base,
       mode: "REPETITIONS",
@@ -347,12 +347,12 @@ describe("P3-14/inverse-enumeration et P3-14/inverse-explicit — inversion Dur�
     ...overrides,
   });
 
-  it("T=30, P=10 : demandé 100 → N=3/120 s avec message ; 80 → N=2 sans message", () => {
+  it("T=30, P=10 : demandé 100 → N=3/2′00″ avec message ; 80 → N=2 sans message", () => {
     expect(invertTotalDuration(uniform30(), 100)).toEqual({ seriesCount: 3, totalSeconds: 120, adjusted: true });
     expect(invertTotalDuration(uniform30(), 80)).toEqual({ seriesCount: 2, totalSeconds: 80, adjusted: false });
   });
 
-  it("cas 6423:9953 : 3 × 90 s, Pause 15 s → 5 min 15 s sans ajustement", () => {
+  it("cas 6423:9953 : 3 × 1′30″, Pause 15″ → 5′15″ sans ajustement", () => {
     const parameters = uniform30({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } });
     expect(invertTotalDuration(parameters, 315)).toEqual({ seriesCount: 3, totalSeconds: 315, adjusted: false });
   });
@@ -415,7 +415,7 @@ describe("P3-14/inverse-boundaries", () => {
 });
 
 describe("P3-08/immediate-N1 — calcul du brouillon à N=1", () => {
-  it("variable N3 par paire réduite à N1 : 220 s, ordre demandé non utilisé", () => {
+  it("variable N3 par paire réduite à N1 : 3′40″, ordre demandé non utilisé", () => {
     const draft = openSheetDraft({
       version: EXECUTION_PARAMETERS_VERSION,
       mode: "DURATION",
@@ -515,7 +515,7 @@ describe("PRE-4 story 2.1 — AC1 travail de chaque Série (FR-13-01)", () => {
     expect(noBeep.knownSeconds).toBe(10 + 10);
   });
 
-  it("PRE4-2.1/AC1 — en Durée, le Bip ne change pas le total : 4 × (60 + 15) = 300 s exact", () => {
+  it("PRE4-2.1/AC1 — en Durée, le Bip ne change pas le total : 4 × (60 + 15) = 5′00″ exact", () => {
     const parameters = uniformParameters({ mode: "DURATION", count: 4, target: 60, pauseSeconds: 15, cadenceBeepIntervalSeconds: 4 });
     expectResult(computeIntrinsicDuration(parameters), "exact", 4 * (60 + 15));
     expectResult(computeIntrinsicDuration({ ...parameters, cadenceBeepIntervalSeconds: 0 }), "exact", 300);
@@ -564,21 +564,21 @@ describe("PRE-4 story 2.1 — AC2 nature de la Durée totale (FR-13-02, P25)", (
 });
 
 describe("PRE-4 story 2.1 — AC3 total partiel d'un mélange (FR-13-03)", () => {
-  it("PRE4-2.1/AC3 — R01 : Durée 30 / 45 / échec, Pauses 10 × 3 → 105 s ≥", () => {
+  it("PRE4-2.1/AC3 — R01 : Durée 30 / 45 / échec, Pauses 10 × 3 → 1′45″ ≥", () => {
     expectResult(computeIntrinsicDuration(mixed([[30, 10], [45, 10], ["FAILURE", 10]])), "lowerBound", 30 + 45 + 30);
   });
 
-  it("PRE4-2.1/AC3 — R02 : Répétitions 10 / 12 / échec, Bip 2 s → 74 s ≥ (et non ≈)", () => {
+  it("PRE4-2.1/AC3 — R02 : Répétitions 10 / 12 / échec, Bip 2″ → 1′14″ ≥ (et non ≈)", () => {
     const rows: readonly Row[] = [[10, 10], [12, 10], ["FAILURE", 10]];
     expectResult(computeIntrinsicDuration(mixed(rows, { mode: "REPETITIONS", beep: 2 })), "lowerBound", 10 * 2 + 12 * 2 + 30);
   });
 
-  it("PRE4-2.1/AC3 — R03 : même Exercice, Bip 0 → omis, contributions connues 30 s", () => {
+  it("PRE4-2.1/AC3 — R03 : même Exercice, Bip 0 → omis, contributions connues 30″", () => {
     const rows: readonly Row[] = [[10, 10], [12, 10], ["FAILURE", 10]];
     expectResult(computeIntrinsicDuration(mixed(rows, { mode: "REPETITIONS", beep: 0 })), "omitted", undefined, 30);
   });
 
-  it("PRE4-2.1/AC3 — R04 : trois Cibles à l'échec, quatre combinaisons Mode × Bip → omis, 30 s connues", () => {
+  it("PRE4-2.1/AC3 — R04 : trois Cibles à l'échec, quatre combinaisons Mode × Bip → omis, 30″ connues", () => {
     const rows: readonly Row[] = [["FAILURE", 10], ["FAILURE", 10], ["FAILURE", 10]];
     for (const mode of ["DURATION", "REPETITIONS"] as const) {
       for (const beep of [0, 2]) {
@@ -587,11 +587,11 @@ describe("PRE-4 story 2.1 — AC3 total partiel d'un mélange (FR-13-03)", () =>
     }
   });
 
-  it("PRE4-2.1/AC3 — mixte Figma : 30 / 45 / échec, Pauses 10 / 20 / 30 → 135 s ≥", () => {
+  it("PRE4-2.1/AC3 — mixte Figma : 30 / 45 / échec, Pauses 10 / 20 / 30 → 2′15″ ≥", () => {
     expectResult(computeIntrinsicDuration(mixed([[30, 10], [45, 20], ["FAILURE", 30]])), "lowerBound", 75 + 60);
   });
 
-  it("PRE4-2.1/AC3 — contrôles tout numériques : 165 s exact, 104 s ≈", () => {
+  it("PRE4-2.1/AC3 — contrôles tout numériques : 2′45″ exact, 1′44″ ≈", () => {
     expectResult(computeIntrinsicDuration(mixed([[30, 10], [45, 10], [60, 10]])), "exact", 135 + 30);
     expectResult(
       computeIntrinsicDuration(mixed([[10, 10], [12, 10], [15, 10]], { mode: "REPETITIONS", beep: 2 })),
@@ -600,7 +600,7 @@ describe("PRE-4 story 2.1 — AC3 total partiel d'un mélange (FR-13-03)", () =>
     );
   });
 
-  it("PRE4-2.1/AC3 — plus de 3 Cibles : 175 s ≥ en Durée, 114 s ≥ en Répétitions", () => {
+  it("PRE4-2.1/AC3 — plus de 3 Cibles : 2′55″ ≥ en Durée, 1′54″ ≥ en Répétitions", () => {
     expectResult(computeIntrinsicDuration(mixed([[30, 10], [45, 10], [60, 10], ["FAILURE", 10]])), "lowerBound", 135 + 40);
     expectResult(
       computeIntrinsicDuration(mixed([[10, 10], [12, 10], [15, 10], ["FAILURE", 10]], { mode: "REPETITIONS", beep: 2 })),
@@ -679,7 +679,7 @@ describe("PRE-4 story 2.1 — AC4 formules du total intrinsèque, Cibles typées
 });
 
 describe("PRE-4 story 2.1 — AC5 Cible à renseigner (FR-13-05, H10, Q30)", () => {
-  it("PRE4-2.1/AC5 — 30 / à renseigner / 45, Pauses 10 × 3 → `incomplete`, 105 s connues, aucun montant", () => {
+  it("PRE4-2.1/AC5 — 30 / à renseigner / 45, Pauses 10 × 3 → `incomplete`, 1′45″ connues, aucun montant", () => {
     const parameters = mixed([[30, 10], ["UNSET", 10], [45, 10]]);
     expectResult(computeIntrinsicDuration(parameters), "incomplete", undefined, 30 + 45 + 3 * 10);
     // Jamais lue comme 0 ni convertie en FAILURE : le travail reste inconnu, la Cible intacte.
@@ -688,7 +688,7 @@ describe("PRE-4 story 2.1 — AC5 Cible à renseigner (FR-13-05, H10, Q30)", () 
     expect(parameters.series.kind === "VARIABLE" && parameters.series.rows[1]!.target).toEqual(unsetTarget());
   });
 
-  it("PRE4-2.1/AC5 — Répétitions Bip 0, 10 / à renseigner / 12 → `incomplete`, 30 s (Pauses seules)", () => {
+  it("PRE4-2.1/AC5 — Répétitions Bip 0, 10 / à renseigner / 12 → `incomplete`, 30″ (Pauses seules)", () => {
     const rows: readonly Row[] = [[10, 10], ["UNSET", 10], [12, 10]];
     expectResult(computeIntrinsicDuration(mixed(rows, { mode: "REPETITIONS", beep: 0 })), "incomplete", undefined, 30);
     expectResult(computeIntrinsicDuration(mixed(rows, { mode: "REPETITIONS", beep: 2 })), "incomplete", undefined, 10 * 2 + 12 * 2 + 30);
@@ -818,13 +818,13 @@ describe("PRE-4 story 2.1 — AC7 calcul de N à partir d'une Durée totale (FR-
     return best;
   }
 
-  it("PRE4-2.1/AC7 — bornes : T(1) = 40 s, T(99) = 3 960 s, sans plafond à 58 min 55 s", () => {
+  it("PRE4-2.1/AC7 — bornes : T(1) = 40″, T(99) = 3 16′00″, sans plafond à 58′55″", () => {
     const range = totalDurationRange(uniformParameters({ mode: "DURATION", count: 3, target: d, pauseSeconds: p }));
     expect(range).toEqual({ min: 40, max: 3960 });
     expect(range.max).toBeGreaterThan(58 * 60 + 55);
   });
 
-  it("PRE4-2.1/AC7 — Tv = 160 → N 4 sans ajustement ; Tv = 180 → égalité, N 5 (200 s), ajustement", () => {
+  it("PRE4-2.1/AC7 — Tv = 160 → N 4 sans ajustement ; Tv = 180 → égalité, N 5 (3′20″), ajustement", () => {
     const parameters = uniformParameters({ mode: "DURATION", count: 3, target: d, pauseSeconds: p });
     expect(invertTotalDuration(parameters, 160)).toEqual({ seriesCount: 4, totalSeconds: 160, adjusted: false });
     expect(invertTotalDuration(parameters, 180)).toEqual({ seriesCount: 5, totalSeconds: 200, adjusted: true });
@@ -962,11 +962,11 @@ describe("PRE-4 story 2.2 — AC2 Récupération positive en remplacement de la 
   const r01 = () => mixed([[30, 10], [45, 10], ["FAILURE", 10]]);
   const recoveries = (result: ExerciseDurationResult) => result.events.filter((event) => event.kind === "RECOVERY");
 
-  it("PRE4-2.2/AC2 — attendu : 30 / 45 / échec, Pauses 10 × 3, R 40 → intrinsèque 105 s, occurrence 105 − 10 + 40 = 135 s ≥, formaté « ≥ 2 min 15 s »", () => {
+  it("PRE4-2.2/AC2 — attendu : 30 / 45 / échec, Pauses 10 × 3, R 40 → intrinsèque 1′45″, occurrence 105 − 10 + 40 = 2′15″ ≥, formaté « ≥ 2′15″ »", () => {
     expectResult(computeIntrinsicDuration(r01()), "lowerBound", 105, 105);
     const occurrence = computeOccurrenceDuration(r01(), 40);
     expectResult(occurrence, "lowerBound", 105 - 10 + 40, 135);
-    expect(totalClauseAmount(occurrence)).toBe("≥ 2 min 15 s");
+    expect(totalClauseAmount(occurrence)).toBe("≥ 2′15″");
     // R n'est jamais ajoutée deux fois : une seule phase de Récupération.
     expect(recoveries(occurrence)).toEqual([{ kind: "RECOVERY", seconds: 40 }]);
   });
@@ -1025,28 +1025,28 @@ describe("PRE-4 story 2.2 — AC2 Récupération positive en remplacement de la 
 });
 
 describe("PRE-4 story 2.2 — AC3 Pauses d'un Exercice omis ou partiel dans le total (FR-15-03)", () => {
-  it("PRE4-2.2/AC3 — Répétitions 10 / 12 / échec, Bip 0, Pauses 10 × 3 → contribution 30 s ; avec R 40 → 10 + 10 + 40 = 60 s", () => {
+  it("PRE4-2.2/AC3 — Répétitions 10 / 12 / échec, Bip 0, Pauses 10 × 3 → contribution 30″ ; avec R 40 → 10 + 10 + 40 = 1′00″", () => {
     const parameters = mixed([[10, 10], [12, 10], ["FAILURE", 10]], { mode: "REPETITIONS", beep: 0 });
     expectResult(computeIntrinsicDuration(parameters), "omitted", undefined, 30);
     expectResult(computeOccurrenceDuration(parameters, 40), "omitted", undefined, 10 + 10 + 40);
   });
 
-  it("PRE4-2.2/AC3 — trois Cibles à l'échec, Pauses 10 × 3 → contribution 30 s, Séance `lowerBound`", () => {
+  it("PRE4-2.2/AC3 — trois Cibles à l'échec, Pauses 10 × 3 → contribution 30″, Séance `lowerBound`", () => {
     const result = computeIntrinsicDuration(mixed([["FAILURE", 10], ["FAILURE", 10], ["FAILURE", 10]]));
     expectResult(result, "omitted", undefined, 30);
     expect(aggregateSessionDuration([{ result, multiplicity: 1 }])).toEqual({ kind: "lowerBound", seconds: 30 });
   });
 
-  it("PRE4-2.2/AC3 — bilatéral, les deux côtés à chaque série : 30 / échec, Pauses 10 / 10, PC 5 → 90 s ≥ ; avec R 40 → 120 s ≥", () => {
+  it("PRE4-2.2/AC3 — bilatéral, les deux côtés à chaque série : 30 / échec, Pauses 10 / 10, PC 5 → 1′30″ ≥ ; avec R 40 → 2′00″ ≥", () => {
     const parameters = mixed([[30, 10], ["FAILURE", 10]], { side: "RIGHT_LEFT", order: "BY_SERIES", pc: 5 });
     const knownWork = 2 * 30;
     expect(knownWork).toBe(60);
     const intrinsic = computeIntrinsicDuration(parameters);
     expectResult(intrinsic, "lowerBound", knownWork + 20 + 2 * 5, 90);
-    expect(totalClauseAmount(intrinsic)).toBe("≥ 1 min 30 s");
+    expect(totalClauseAmount(intrinsic)).toBe("≥ 1′30″");
     const occurrence = computeOccurrenceDuration(parameters, 40);
     expectResult(occurrence, "lowerBound", 90 - 10 + 40, 120);
-    expect(totalClauseAmount(occurrence)).toBe("≥ 2 min");
+    expect(totalClauseAmount(occurrence)).toBe("≥ 2′00″");
     // Succession D1 → PC → G1 → P1 → D2 → PC → G2 → P2, chaque phase une fois.
     const sequence = intrinsic.events.map((event) => {
       switch (event.kind) {
@@ -1066,7 +1066,7 @@ describe("PRE-4 story 2.2 — AC3 Pauses d'un Exercice omis ou partiel dans le t
     expect(works).toEqual([30, 30, null, null]);
   });
 
-  it("PRE4-2.2/AC3 — contrôle un côté après l'autre : 2 × (30 + 10 + 10) + 5 = 105 s ; occurrence avec R 40 → 135 s ≥", () => {
+  it("PRE4-2.2/AC3 — contrôle un côté après l'autre : 2 × (30 + 10 + 10) + 5 = 1′45″ ; occurrence avec R 40 → 2′15″ ≥", () => {
     const parameters = mixed([[30, 10], ["FAILURE", 10]], { side: "RIGHT_LEFT", order: "BY_SIDE", pc: 5 });
     expectResult(computeIntrinsicDuration(parameters), "lowerBound", 2 * (30 + 10 + 10) + 5);
     expectResult(computeOccurrenceDuration(parameters, 40), "lowerBound", 105 - 10 + 40, 135);
@@ -1120,7 +1120,7 @@ describe("PRE5-1.1/AC14 — phases lues par les calculs existants (NR Δ47)", ()
     ],
   });
 
-  it("6 s + 3 s, 3 séries, Pause 15 s : D = 9 s par série, Durée de l'exercice 72 s, identique à une Cible de 9 s sans phases", () => {
+  it("6″ + 3″, 3 séries, Pause 15″ : D = 9″ par série, Durée de l'exercice 1′12″, identique à une Cible de 9″ sans phases", () => {
     const work = buildExecutionLedger(phased).filter((event) => event.kind === "WORK");
     expect(work.map((event) => event.seconds)).toEqual([9, 9, 9]);
     expect(computeIntrinsicDuration(phased)).toEqual(expect.objectContaining({ kind: "exact", seconds: 72 }));
@@ -1168,15 +1168,15 @@ describe("PRE6-1.3 — computeSeriesCircuitOccurrenceDuration (Circuit de Série
       sideOrder,
     });
 
-  it("passage bilatéral, N = 1 : 2Ti + PC + Pi = 75 s", () => {
+  it("passage bilatéral, N = 1 : 2Ti + PC + Pi = 1′15″", () => {
     expect(computeSeriesCircuitOccurrenceDuration(bilateral(1), 0, 1)).toMatchObject({ kind: "exact", seconds: 75 });
   });
 
-  it("avec R 20 : 2Ti + PC + R = 85 s (R remplace Pi)", () => {
+  it("avec R 20 : 2Ti + PC + R = 1′25″ (R remplace Pi)", () => {
     expect(computeSeriesCircuitOccurrenceDuration(bilateral(1), 20, 1)).toMatchObject({ kind: "exact", seconds: 85 });
   });
 
-  it("trois passages : 225 s ; 255 s avec R 20 (R à chaque passage)", () => {
+  it("trois passages : 3′45″ ; 4′15″ avec R 20 (R à chaque passage)", () => {
     expect(computeSeriesCircuitOccurrenceDuration(bilateral(3), 0, 3).seconds).toBe(225);
     expect(computeSeriesCircuitOccurrenceDuration(bilateral(3), 20, 3).seconds).toBe(255);
   });
@@ -1202,7 +1202,7 @@ describe("PRE6-1.3 — computeSeriesCircuitOccurrenceDuration (Circuit de Série
     ]);
   });
 
-  it("PC = 0 : Pi conservée (2Ti + Pi = 70 s)", () => {
+  it("PC = 0 : Pi conservée (2Ti + Pi = 1′10″)", () => {
     expect(computeSeriesCircuitOccurrenceDuration(bilateral(1, 0), 0, 1).seconds).toBe(70);
   });
 

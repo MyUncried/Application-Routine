@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useLayoutEffect, useMemo, useState, type ReactNode } from "react";
-import { Platform } from "react-native";
+import { Alert, Platform } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -211,5 +211,44 @@ describe("Recette du 08/11/2026 au soir — Superset limité dans la Composition
     await settle();
     expect(first).toBe("e0 ss[a1,a2] c1 e9");
     expect(shape(probe.draft)).toBe("e0 c1 ss[a1,a2] e9");
+  });
+});
+
+/**
+ * Réponse de Hermann du 08/11/2026 (« Superset : dans la composition on limite à deux exercices aussi. ») : un membre
+ * d'un Superset à deux ne sort pas et ne se supprime pas ; refus annoncé par le même message court que les gardes des
+ * Rôles (LAST_TOUR), « Deux exercices au minimum dans un Superset ».
+ */
+describe("Superset limité — minimum de deux dans la Composition", () => {
+  const minimumText = "Deux exercices exactement dans un Superset"; // [ancien libellé « Deux exercices au minimum dans un Superset », remplacé le 08/11/2026]
+
+  it("« Supprimer » d'un membre : refusé avec le message, rien n'est retiré", async () => {
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    await renderComposition(sampleDraft());
+    fireEvent(screen.getByTestId("composition-exercise-row-a1", hidden), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    await settle();
+    expect(alert).toHaveBeenCalledWith(minimumText);
+    expect(shape(probe.draft)).toBe("e0 ss[a1,a2] cs[c1] e9");
+  });
+
+  it("« Monter » du premier membre : refusé avec le message ; « Descendre » réordonne les deux membres", async () => {
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    await renderComposition(sampleDraft());
+    fireEvent(screen.getByTestId("composition-exercise-row-a1", hidden), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    await settle();
+    expect(alert).toHaveBeenCalledWith(minimumText);
+    expect(shape(probe.draft)).toBe("e0 ss[a1,a2] cs[c1] e9");
+    fireEvent(screen.getByTestId("composition-exercise-row-a1", hidden), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+    await settle();
+    expect(shape(probe.draft)).toBe("e0 ss[a2,a1] cs[c1] e9");
+  });
+
+  it("témoin : « Supprimer » d'un membre du Circuit standard reste possible", async () => {
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    await renderComposition(sampleDraft());
+    fireEvent(screen.getByTestId("composition-exercise-row-c1", hidden), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    await settle();
+    expect(alert).not.toHaveBeenCalledWith(minimumText);
+    expect(shape(probe.draft)).toBe("e0 ss[a1,a2] e9");
   });
 });

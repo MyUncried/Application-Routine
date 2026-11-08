@@ -21,7 +21,7 @@ import Reanimated, {
 import { scheduleOnRN } from "react-native-worklets";
 
 import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
-import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { formatPhraseDuration, spokenDurations } from "@/domain/activities/durationFormat";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
 import { LONG_PRESS_DELAY_MS } from "@/features/sessions/compositionGesture";
@@ -609,7 +609,7 @@ export function CircuitHeader({
           {...containerMoveAccessibility(moveActions)}
           accessibilityRole="button"
           // Revue 5.2 : VoiceOver lit la durée juste après le nom (elle est affichée à droite).
-          accessibilityLabel={`${title}, ${duration}`}
+          accessibilityLabel={spokenDurations(`${title}, ${duration}`)}
           accessibilityState={{ expanded: !isCollapsed }}
           style={[styles.titleTarget, columns.title]}
           testID={`${testID}-collapse`}
@@ -655,7 +655,7 @@ export function CircuitHeader({
               onPress={carrier.onPressDuration}
               disabled={carrier.onPressDuration === undefined}
               accessibilityRole="button"
-              accessibilityLabel={carrier.durationAccessibilityLabel ?? carrier.duration.text}
+              accessibilityLabel={spokenDurations(carrier.durationAccessibilityLabel ?? carrier.duration.text)}
               hitSlop={8}
               style={[styles.carrierDurationTarget, columns.duration]}
               testID={`${testID}-duration`}

@@ -2,6 +2,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 
+import { spokenDurations } from "@/domain/activities/durationFormat";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { encodeInstructionSteps } from "@/domain/activities/instructionSteps";
@@ -127,7 +128,7 @@ describe("ExerciseSheet — fiche d'un Exercice de la Composition en lecture seu
     expect(phrase).not.toBeNull();
     // Complément du 5 novembre 2026 (§10) : section « Dans cette séance » — Phrase, puis Récupération propre à l'Exercice.
     const section = screen.getByTestId("exercise-section-in-this-session");
-    expect(section.props.accessibilityLabel).toContain(phraseText(phrase!));
+    expect(section.props.accessibilityLabel).toContain(spokenDurations(phraseText(phrase!))); // Accessibilité : durées lues (08/11/2026 au soir).
     expect(screen.getByText(strings.executionParameters.card.inThisSession)).toBeTruthy();
     expect(screen.queryByTestId("exercise-section-parameters")).toBeNull();
     // Pas de bouton d'action en bas.
@@ -178,7 +179,7 @@ describe("ExerciseSheet — fiche d'un Exercice de la Composition en lecture seu
 
   it("complément du 05/11 : « Dans cette séance » présente la Récupération propre à l'Exercice", async () => {
     await renderSheet(exercise({ postActivityRecoverySeconds: 30 }));
-    expect(screen.getByTestId("exercise-section-in-this-session").props.accessibilityLabel).toContain("Récupération de 30 s avant l’exercice suivant.");
+    expect(screen.getByTestId("exercise-section-in-this-session").props.accessibilityLabel).toContain("Récupération de 30 secondes avant l’exercice suivant.");
   });
 
   it("complément du 05/11 : récupération à 0 annoncée, récupération non renseignée omise", async () => {

@@ -17,7 +17,7 @@ function renderCarrier(format: ElementFormat, nature: CircuitNature, count: numb
     <CircuitHeader
       nature={nature}
       count={count}
-      duration="≈ 40 min"
+      duration="≈ 40′00″"
       isCounterOpen={false}
       onToggleCounter={jest.fn()}
       onChangeCount={jest.fn()}
@@ -37,18 +37,18 @@ function renderCarrier(format: ElementFormat, nature: CircuitNature, count: numb
 }
 
 describe("CircuitHeader — Circuit porteur", () => {
-  it("AMRAP · 3 blocs · groupées, durée de chaque bloc 12 min touchable ; nature sans menu", () => {
+  it("AMRAP · 3 blocs · groupées, durée de chaque bloc 12′00″ touchable ; nature sans menu", () => {
     const onPress = renderCarrier({ key: "AMRAP", settings: { blockSeconds: 720, restBetweenBlocksSeconds: 120 } }, "TOURS", 3);
     expect(screen.getByTestId("header-title")).toHaveTextContent("AMRAP");
     expect(screen.getByTestId("header-counter-unit")).toHaveTextContent("blocs");
     expect(screen.getByTestId("header-counter-adjective")).toHaveTextContent("groupées");
     expect(screen.queryByTestId("header-counter-nature")).toBeNull();
-    expect(screen.getByTestId("header-duration")).toHaveTextContent("12 min");
+    expect(screen.getByTestId("header-duration")).toHaveTextContent("12′00″");
     fireEvent.press(screen.getByTestId("header-duration"));
     expect(onPress).toHaveBeenCalled();
   });
 
-  it("For time sans temps limite : « Sans limite » ; avec : « ≤ 15 min »", () => {
+  it("For time sans temps limite : « Sans limite » ; avec : « ≤ 15′00″ »", () => {
     renderCarrier({ key: "FOR_TIME", settings: { restBetweenRoundsSeconds: 0 } }, "SERIES", 3);
     expect(screen.getByTestId("header-duration")).toHaveTextContent("Sans limite");
   });

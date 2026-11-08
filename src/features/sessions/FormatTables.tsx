@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 
-import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { formatPrimeDuration } from "@/domain/activities/durationFormat";
 import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
 import {
   movementRole,
@@ -218,28 +218,16 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
  * (recette n-charge-colonne : « considérer l'espace max pris par une valeur en durée »). Minutes ou secondes seules : inchangé.
  */
 export function formatSeconds(seconds: number): string {
-  const total = Math.max(0, Math.round(seconds));
-  const minutes = Math.floor(total / 60);
-  const rest = total % 60;
-  if (minutes > 0 && rest > 0) return `${minutes} min ${String(rest).padStart(2, "0")}`;
-  return formatPhraseDuration(total);
+  // Hermann, 08/11/2026 au soir : « Et tu dois encore modifier le format des durées. » ; « Partout veut bien dire partout » : M′SS″ / S″. [« 1 min 30 », « 12 min » — remplacés le 08/11/2026 au soir.]
+  return formatPrimeDuration(seconds);
 }
 
 export function formatLoad(kg: number): string {
   return `${String(kg).replace(".", ",")} kg`;
 }
 
-/**
- * Durées des récapitulatifs de Format (spécification de Hermann du 08/11/2026, A §1 et B §1) : à partir d'une minute « M′SS″ »
- * (minutes sans zéro initial, secondes sur 2 chiffres, aucun espace : 1′00″, 6′00″, 22′39″) ; moins d'une minute, secondes seules
- * (30″, 5″). Prime U+2032 et double prime U+2033.
- */
-export function formatPrimeDuration(seconds: number): string {
-  const total = Math.max(0, Math.round(seconds));
-  const minutes = Math.floor(total / 60);
-  const rest = total % 60;
-  return minutes === 0 ? `${rest}″` : `${minutes}′${String(rest).padStart(2, "0")}″`;
-}
+/** Durées des Formats au format M′SS″ / S″ (spécification de Hermann du 08/11/2026) — formateur du domaine, réexporté. */
+export { formatPrimeDuration };
 
 /** Objectif avec son unité (« 10 rép. », « 45 s », « 1 min 30 »). */
 export function formatObjective(mode: ExecutionMode | undefined, value: number): string {

@@ -151,7 +151,7 @@ describe("FormatModelScreen", () => {
     mockDismiss.mockReset();
   });
 
-  it("questionnaire Tabata en modale : croix, nom du Format, aucun nom de Séance ; paramètres 8 / 20 s / 10 s, durée 4 min ; « Enregistrer dans la séance » (recette du 04/11) indisponible sans mouvement", async () => {
+  it("questionnaire Tabata en modale : croix, nom du Format, aucun nom de Séance ; paramètres 8 / 20″ / 10″, durée 4′00″ ; « Enregistrer dans la séance » (recette du 04/11) indisponible sans mouvement", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     expect(await screen.findByTestId("format-title")).toHaveTextContent("Tabata");
@@ -163,10 +163,10 @@ describe("FormatModelScreen", () => {
     expect(within(screen.getByTestId("screen-header")).getByTestId("format-save").props.accessibilityLabel).toBe("Enregistrer dans la séance");
     expect(screen.queryByTestId("format-validate")).toBeNull();
     expect(shown("seriesCount")).toBe("8");
-    expect(shown("workSeconds")).toBe("20 s");
-    expect(shown("pauseSeconds")).toBe("10 s");
-    expect(screen.getByTestId("format-total")).toHaveTextContent("4 min");
-    expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("4 min");
+    expect(shown("workSeconds")).toBe("20″");
+    expect(shown("pauseSeconds")).toBe("10″");
+    expect(screen.getByTestId("format-total")).toHaveTextContent("4′00″");
+    expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("4′00″");
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
     // Règle du 06/11/2026 (ordre des écrans) : la croix revient à l'écran qui a ouvert le questionnaire.
     fireEvent.press(screen.getByTestId("screen-header-back"));
@@ -349,7 +349,7 @@ describe("FormatModelScreen", () => {
     expect(shown("roundCount")).toBe("5");
     // Durée « MM:SS » remplie par la droite : 1, 2, 0, 0 → 12:00.
     typeValue("timeCapSeconds", "1200");
-    expect(shown("timeCapSeconds")).toBe("12 min");
+    expect(shown("timeCapSeconds")).toBe("12′00″");
     const cap = screen.getByTestId("format-timeCapSeconds");
     fireEvent(cap, "focus");
     fireEvent.changeText(screen.getByTestId("format-timeCapSeconds"), "");
@@ -452,9 +452,9 @@ describe("FormatModelScreen", () => {
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     expect(screen.getByTestId("format-row-pauseSeconds")).toBeTruthy();
-    expect(shown("pauseSeconds")).toBe("0 s");
+    expect(shown("pauseSeconds")).toBe("0″");
     typeValue("pauseSeconds", "5");
-    expect(shown("pauseSeconds")).toBe("5 s");
+    expect(shown("pauseSeconds")).toBe("5″");
   });
 
   // [Recette n° 3 bis du 03/11 (f3s-recherche) : champ de saisie intermédiaire — retiré (§19).]
@@ -529,15 +529,15 @@ describe("FormatModelScreen", () => {
     expect(within(series).getByTestId("format-progression-0-0-reps")).toBeTruthy();
   });
 
-  it("recette n° 3 (f3-tabata) : Tabata À la suite à deux mouvements — durée exacte « 8 min 50 s », sans arrondi", async () => {
+  it("recette n° 3 (f3-tabata) : Tabata À la suite à deux mouvements — durée exacte « 8′50″ », sans arrondi", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
-    expect(screen.getByTestId("format-total")).toHaveTextContent("8 min 50 s");
-    expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("8 min 50 s");
-    expect(shown("recoveryBetweenSeconds")).toBe("1 min");
+    expect(screen.getByTestId("format-total")).toHaveTextContent("8′50″");
+    expect(screen.getByTestId("format-timeline-end")).toHaveTextContent("8′50″");
+    expect(shown("recoveryBetweenSeconds")).toBe("1′00″");
   });
 
   it("recette n° 3 (f3-emom) : EMOM dans chaque intervalle — un cadre par intervalle avec les deux mouvements", async () => {

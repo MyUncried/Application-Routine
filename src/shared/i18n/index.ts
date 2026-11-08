@@ -187,7 +187,8 @@ const executionParameters = {
     // Autre / 5 s / 2 s / 1 s / Sans ; Autre révèle le ± existant.
     cadence: "Cadence",
     // Recette du 19/10 (RC-10) : Autre / 1 s / Sans.
-    cadenceOptions: { OTHER: "Autre", "1": "1 s", NONE: "Sans" },
+    // Hermann, 08/11/2026 au soir : « Partout veut bien dire partout » — « 1″ ». [« 1 s » — remplacé le 08/11/2026 au soir.]
+    cadenceOptions: { OTHER: "Autre", "1": "1″", NONE: "Sans" },
     // PRE-5 story 2.5 (FR-31, AD-28) : ligne « Durée de l’exercice » (remplace « Durée totale »
     // dans la Feuille ; celle de la Phrase reste), chevron qui replie Compte à rebours et Fin.
     exerciseDuration: "Durée de l’exercice",

@@ -1,6 +1,7 @@
 import { type RefObject, useEffect, useRef } from "react";
 import { AccessibilityInfo, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { spokenDurations } from "@/domain/activities/durationFormat";
 import type { Label } from "@/domain/labels/Label";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
@@ -233,7 +234,7 @@ export function CompositionContextHeader({
           <Text
             style={styles.sessionDuration}
             numberOfLines={1}
-            accessibilityLabel={`${composition.sessionDurationAccessibilityLabel} ${sessionDuration}`}
+            accessibilityLabel={spokenDurations(`${composition.sessionDurationAccessibilityLabel} ${sessionDuration}`)}
             testID="composition-session-duration"
           >
             {sessionDuration}

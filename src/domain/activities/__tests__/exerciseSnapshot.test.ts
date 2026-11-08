@@ -133,7 +133,7 @@ describe("P3-18/historical-immutability et P3-15/no-storage", () => {
     expect(reread.actualDurationSeconds).toBe(412);
     expect(reread).not.toHaveProperty("phrase");
     expect(phraseText(generateExecutionPhrase(reread.executionParameters)!)).toContain(
-      "3 séries de durée variable (30 s, 45 s puis 1 min)",
+      "3 séries de durée variable (30″, 45″ puis 1′00″)",
     );
   });
 
