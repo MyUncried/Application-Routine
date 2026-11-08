@@ -207,8 +207,12 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
         // MAJ 04/11 §6 bis 1 : un seul bloc continu, tours illustratifs « Tour 1 », « T2 »… ; le dernier, coupé, sans numéro.
         return { blocks: illustrativeRounds(answers.durationSeconds ?? 720), continuous: true, end: { kind: "DURATION" }, legendRecovery: false };
       }
+      // Recette du 08/11/2026 au soir (Hermann : « Il faut retirer la limite d'un exercice ») : un bloc par buy-in, dans l'ordre,
+      // puis les tours. [Un seul buy-in, premier mouvement — remplacé le 08/11/2026.]
       const buyIn = hasChosenBuyIn(answers, movements);
-      const loop = movements.slice(buyIn ? 1 : 0);
+      const indexed = movements.map((movement, index) => ({ movement, index }));
+      const ins = buyIn ? indexed.filter(({ movement }) => movement.buyIn === true) : [];
+      const loop = indexed.filter(({ movement }) => !buyIn || movement.buyIn !== true);
       const increasing = answers.increasingVolume === true;
       const labelAt = (movement: ModelMovement, round: number | null) => {
         if (movement.values.max === true) return "max";
@@ -217,9 +221,18 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
         // Complément du 5 novembre 2026 (Hermann), §8 : progression descendante bornée à 1 (5, 3, 1, 1…).
         return round === null ? "n" : objectiveLabel(movement, increasing ? amrapRoundTarget(base, movement.values.increment ?? 0, round) : base);
       };
-      const roundBlocks = (round: number | null) => loop.map((movement, index) => work(index + (buyIn ? 1 : 0), labelAt(movement, round)));
+      const roundBlocks = (round: number | null) => loop.map(({ movement, index }) => work(index, labelAt(movement, round)));
       const blocks: TimelineBlock[] = [
-        ...(buyIn ? [{ kind: "WORK" as const, movement: 0, label: `${movements[0]!.values.repetitions == null ? "—" : objectiveLabel(movements[0]!, movements[0]!.values.repetitions)} · buy-in`, weight: 2.5, height: 1, buyIn: true as const }] : []),
+        ...ins.map(
+          ({ movement, index }): TimelineBlock => ({
+            kind: "WORK",
+            movement: index,
+            label: `${movement.values.repetitions == null ? "—" : objectiveLabel(movement, movement.values.repetitions)} · buy-in`,
+            weight: 2.5,
+            height: 1,
+            buyIn: true,
+          }),
+        ),
         ...[0, 1, 2].flatMap((round) => roundBlocks(round)),
         { kind: "ELLIPSIS" },
         ...roundBlocks(null),

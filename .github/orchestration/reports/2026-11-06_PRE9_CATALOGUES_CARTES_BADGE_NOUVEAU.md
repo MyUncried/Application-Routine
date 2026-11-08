@@ -697,3 +697,12 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - **Charge rognée (A)** : champ de charge fixé à 44 depuis la correction précédente ; au repos, largeur naturelle centrée sous la cellule ; au focus, cadre ajusté au texte (44 minimum). Détail : rapport des tableaux, section « soir ».
 - **e-emom-message (B)** : message sous le cadre Séries (hors cadre) ; cibles en dépassement en fond rouge (Cible commune ou cibles des seules séries concernées) ; « La durée de la série dépasse la durée de l’intervalle. » si la série de l'Exercice atteint seule l'intervalle, sinon le message de la somme.
 - Tests : `npx tsc --noEmit` OK ; `ExecutionParametersSheet*`, `formats*`, `FormatModelScreen*`, `CompositionScreen.emom*` : 18 suites, 539 tests, tous passés ; eslint sans erreur sur les fichiers modifiés. Suite complète non relancée (mémoire).
+
+### Demandes de Hermann du 08/11/2026 au soir — buy-in / buy-out multiples, Superset limité
+
+- Demandes, verbatim : « Deux autres à ajouter : buy in / buy out. Il faut retirer la limite d'un exercice dans le questionnaire et le récapitulatif, c'est contradictoire avec la composition de séance. » ; « Superset : il est possible dans le circuit de la composition de séance d'ajouter un troisième exercice, ça ne doit pas être autorisé. »
+- Délégué à deux agents ; rapports : `2026-11-08_PRE9-BUYIN-MULTIPLES.md` et `2026-11-08_PRE9-SUPERSET-LIMITE.md`.
+- **Buy-in / buy-out (B)** : plusieurs buy-in (AMRAP, For time) et buy-out (For time) au questionnaire et au récapitulatif ; sélection multiple, « + Ajouter », déplacement borné à la section ; Déroulé AMRAP à plusieurs buy-in. Tests : `src/domain/sessions` + `FormatModelScreen*` + `formats*` : 48 suites, 989 tests passés.
+- **Superset (B, remplace Formats §9.4 « un troisième Exercice peut y être ajouté depuis la Composition »)** : glisser, dépose, Monter/Descendre, Dupliquer refusés au-delà de deux membres (`circuitMemberLimit.ts`). Tests : 26 nouveaux (16 échouent sans la correction) ; `src/domain/sessions` 866, `CompositionScreen*` + `layoutDrop*` 630 : tous passés.
+- `npx tsc --noEmit` OK. Suite complète non relancée (mémoire).
+- **À CLARIFIER** : Superset existant à trois Exercices (laissé tel quel, jamais agrandi) ; minimum de deux dans la Composition ; libellé VoiceOver « Deux exercices au maximum dans un Superset ».

@@ -70,6 +70,7 @@ import {
   envelopeTargetKey,
   useEnvelopePerimeterDrag,
 } from "@/features/sessions/EnvelopePerimeter";
+import { circuitAtMemberLimit } from "@/domain/sessions/circuitMemberLimit";
 import {
   duplicateLayoutExercise,
   moveLayoutItem,
@@ -6854,6 +6855,11 @@ type CompositionActivityRowProps = {
   /** Story 7.7 : le fondu est une disparition (sans toucher ni accessibilité). */
   readonly fadeLeaving?: boolean;
   readonly onDuplicate: () => void;
+  /**
+   * Recette du 08/11/2026 au soir (Superset limité) : `false` — « Dupliquer » grisé et sans effet, absent des actions
+   * accessibles (la copie serait un troisième membre d'un Superset). Vrai par défaut.
+   */
+  readonly canDuplicate?: boolean;
   readonly onDelete: () => void;
   /** PRE-9 C.4 (référence Formats §5) : « Buy-in » / « Buy-out » à la place de la récupération, ou rien. */
   readonly passageLabel?: string | null;
@@ -7041,6 +7047,7 @@ function CompositionActivityRow({
   fadeOpacity = null,
   fadeLeaving = false,
   onDuplicate,
+  canDuplicate = true,
   onDelete,
   onMoveUp,
   onMoveDown,
@@ -7582,7 +7589,7 @@ function CompositionActivityRow({
     ? {
         ...(layoutDraggable && onMoveUp !== null ? { moveUp: onMoveUp } : {}),
         ...(layoutDraggable && onMoveDown !== null ? { moveDown: onMoveDown } : {}),
-        ...(layoutSwipeable ? { duplicate: onDuplicate, delete: onDelete } : {}),
+        ...(layoutSwipeable ? { ...(canDuplicate ? { duplicate: onDuplicate } : {}), delete: onDelete } : {}),
       }
     : {
         ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
@@ -7683,8 +7690,10 @@ function CompositionActivityRow({
         >
           <Pressable
             onPress={onDuplicate}
+            disabled={!canDuplicate}
             accessibilityRole="button"
             accessibilityLabel={composition.activityActions.duplicate}
+            accessibilityState={{ disabled: !canDuplicate }}
             style={[
               styles.activityRowAction,
               styles.activityRowDuplicateAction,
@@ -7692,7 +7701,7 @@ function CompositionActivityRow({
             ]}
             testID={`composition-activity-duplicate-${activity.id}`}
           >
-            <Text style={styles.activityRowDuplicateLabel}>
+            <Text style={[styles.activityRowDuplicateLabel, !canDuplicate && styles.activityRowDuplicateLabelDisabled]}>
               {composition.activityActions.duplicate}
             </Text>
           </Pressable>
@@ -9048,6 +9057,8 @@ function LayoutExerciseRow({
       rail={rail}
       autoScroll={context.autoScroll}
       onDuplicate={onDuplicate}
+      // Recette du 08/11/2026 au soir (Superset limité) : pas de copie d'un membre d'un Superset déjà à deux.
+      canDuplicate={circuit === null || !circuitAtMemberLimit(circuit)}
       onDelete={onDelete}
       onMoveUp={drag?.stepAction(source, "UP") ?? null}
       onMoveDown={drag?.stepAction(source, "DOWN") ?? null}
@@ -10809,6 +10820,10 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.textPrimary,
     textAlign: "center",
+  },
+  // Recette du 08/11/2026 au soir (Superset limité) : « Dupliquer » indisponible — couleur des actions indisponibles.
+  activityRowDuplicateLabelDisabled: {
+    color: colors.disabled,
   },
   activityRowDeleteAction: {
     backgroundColor: colors.danger,

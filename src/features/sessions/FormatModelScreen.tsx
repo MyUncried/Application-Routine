@@ -597,17 +597,17 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       });
       setMovements((current) => {
         const mapped = entries.map(({ exercise, values }) => ({ exercise, values }));
-        // Buy-in : choix explicite de la section Buy-in, toujours en tête, remplacé par « Changer » (§7.3, §7.4 ;
-        // recette n° 3 du 03/11/2026 : jamais un mouvement de boucle pris pour le buy-in).
+        // Buy-in : choix explicite de la section Buy-in, toujours en tête (§7.3, §7.4 ; recette n° 3 du 03/11/2026 : jamais un
+        // mouvement de boucle pris pour le buy-in). Recette du 08/11/2026 au soir (Hermann : « Il faut retirer la limite d'un
+        // exercice dans le questionnaire et le récapitulatif, c'est contradictoire avec la composition de séance ») : plusieurs
+        // buy-in, ajoutés après ceux déjà choisis. [Un seul buy-in, remplacé par « Changer » — remplacé le 08/11/2026.]
         if (role === "BUY_IN") {
-          const [chosen] = mapped;
-          return chosen === undefined ? current : [{ ...chosen, buyIn: true as const }, ...current.filter((item) => item.buyIn !== true)];
+          const ins = current.filter((item) => item.buyIn === true);
+          return [...ins, ...mapped.map((item) => ({ ...item, buyIn: true as const })), ...current.filter((item) => item.buyIn !== true)];
         }
-        // For time (recette du 04/11/2026) : buy-out choisi dans sa section, toujours en fin, remplacé par « Changer ».
-        if (role === "BUY_OUT") {
-          const [chosen] = mapped;
-          return chosen === undefined ? current : [...current.filter((item) => item.buyOut !== true), { ...chosen, buyOut: true as const }];
-        }
+        // For time (recette du 04/11/2026) : buy-out choisi dans sa section, toujours en fin ; plusieurs buy-out (08/11/2026),
+        // ajoutés après ceux déjà choisis. [Un seul buy-out, remplacé par « Changer » — remplacé le 08/11/2026.]
+        if (role === "BUY_OUT") return [...current, ...mapped.map((item) => ({ ...item, buyOut: true as const }))];
         // Mouvements de la boucle : avant le buy-out.
         const outs = current.filter((item) => item.buyOut === true);
         return [...current.filter((item) => item.buyOut !== true), ...mapped, ...outs];
@@ -643,7 +643,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Mode catalogue (mise à jour consolidée du 04/11/2026 §3 ; référence Formats §7.1 à §7.3) : « Ouvrir le mode
   // catalogue » reste dans la modale — recherche détachée avec croix d'effacement, Filtrer, Trier (inactif, comme au
   // Catalogue) et Replier / déplier les piles, petites cartes avec filet des niveaux, sans compteur ; « Ajouter »
-  // applique la sélection (unique pour le buy-in), « Fermer le mode catalogue » revient à la saisie sans ajout.
+  // applique la sélection (multiple dans chaque section, buy-in et buy-out compris depuis le 08/11/2026 — [unique pour le buy-in :
+  // remplacé]), « Fermer le mode catalogue » revient à la saisie sans ajout.
   // [Modale du Catalogue séparée (`/movement-selection`), ouverte en fondu — remplacée.]
   const [catalogueMode, setCatalogueMode] = useState(false);
   const [catalogueFilters, setCatalogueFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
@@ -818,7 +819,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       return;
     }
     setPicked((current) => {
-      const next = new Map(searchRole === "BUY_IN" ? [...current].filter(([id]) => id === movement.id) : current);
+      // Sélection multiple, buy-in compris (08/11/2026). [Sélection unique pour le buy-in — remplacée.]
+      const next = new Map(current);
       if (next.has(movement.id)) next.delete(movement.id);
       else next.set(movement.id, movement);
       return next;
@@ -1332,20 +1334,27 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Valeur courante du geste, lue par les rappels du geste natif (jamais pendant le rendu).
   const dragRef = useRef<{ readonly from: number; readonly dy: number } | null>(null);
   const cardStep = useRef(CARD_STEP_DEFAULT);
-  // Buy-in choisi : en tête, jamais déplacé ni dépassé.
-  // Buy-in en tête, buy-out en fin (ordre tenu à l'ajout) : jamais déplacés ni dépassés.
+  // Buy-in en tête, buy-out en fin (ordre tenu à l'ajout). Recette du 08/11/2026 au soir (plusieurs buy-in / buy-out, comme dans
+  // la Composition) : chaque carte se déplace dans sa section (buy-in, boucle, buy-out), sans en sortir.
+  // [Buy-in et buy-out jamais déplacés (constat du 06/11/2026) — remplacé le 08/11/2026.]
   const buyInCount = buyIn ? movements.filter((item) => item.buyIn === true).length : 0;
   const buyOutCount = buyOut ? movements.filter((item) => item.buyOut === true).length : 0;
-  const firstMovable = buyInCount;
-  const lastMovable = movements.length - 1 - buyOutCount;
-  const dragTarget = (current: { from: number; dy: number }) =>
-    Math.max(firstMovable, Math.min(lastMovable, current.from + Math.round(current.dy / cardStep.current)));
+  const sectionBounds = (index: number): readonly [number, number] =>
+    index < buyInCount
+      ? [0, buyInCount - 1]
+      : index >= movements.length - buyOutCount
+        ? [movements.length - buyOutCount, movements.length - 1]
+        : [buyInCount, movements.length - 1 - buyOutCount];
+  const dragTarget = (current: { from: number; dy: number }) => {
+    const [first, last] = sectionBounds(current.from);
+    return Math.max(first, Math.min(last, current.from + Math.round(current.dy / cardStep.current)));
+  };
   const updateDrag = (next: { readonly from: number; readonly dy: number } | null) => {
     dragRef.current = next;
     setDrag(next);
   };
   const startDrag = (index: number) => {
-    if (index < firstMovable || index > lastMovable) return;
+    if (index < 0 || index >= movements.length) return;
     setRevealedId(null);
     updateDrag({ from: index, dy: 0 });
   };
@@ -1374,7 +1383,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     <View
       testID={isBuyIn ? "format-buy-in-cards" : isBuyOut ? "format-buy-out-cards" : "format-movement-cards"}
     >
-      {items.map((item, at) => movementCard(item, at + offset, isBuyIn || isBuyOut))}
+      {items.map((item, at) => movementCard(item, at + offset))}
     </View>
   );
 
@@ -1597,16 +1606,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       );
     });
 
-  // Section de mouvements : en-tête et lien « + Ajouter » / « Changer », qui ouvre directement le mode catalogue (§19).
+  // Section de mouvements : en-tête et lien « + Ajouter », qui ouvre directement le mode catalogue (§19).
   const sectionLink = (role: "LOOP" | "BUY_IN" | "BUY_OUT", link: string) => {
     return {
       text: link,
       onPress: () => {
         {
-          // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « changer de Buy-in doit effacer le mouvement avant de
-          // positionner le curseur sur le champ ») : « Changer » retire le buy-in (ou le buy-out) choisi, puis ouvre le champ.
-          if (role === "BUY_IN") setMovements((current) => current.filter((item) => item.buyIn !== true));
-          if (role === "BUY_OUT") setMovements((current) => current.filter((item) => item.buyOut !== true));
+          // [Contre-recette n° 3 ter du 03/11/2026 (Hermann : « changer de Buy-in doit effacer le mouvement avant de positionner
+          // le curseur sur le champ ») : « Changer » retirait le buy-in (ou le buy-out) choisi — remplacé le 08/11/2026 au soir
+          // (plusieurs buy-in / buy-out) : « + Ajouter » ajoute sans retirer ; un mouvement se retire par son glisser.]
           setQuery("");
           setSearchRole(role);
           openCatalogue();
@@ -1808,11 +1816,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             nom de l'autre section change (en boucle...) ») : sections Buy-in et En boucle dès le questionnaire. */}
         {buyIn || buyOut ? (
           <>
-            {buyIn ? movementSection("BUY_IN", t().buyInSection, buyInCount > 0 ? t().change : t().add, "format-buy-in") : null}
+            {/* 08/11/2026 au soir : « + Ajouter » aussi quand un buy-in ou un buy-out existe. [« Changer » — remplacé.] */}
+            {buyIn ? movementSection("BUY_IN", t().buyInSection, t().add, "format-buy-in") : null}
             {buyIn ? cardList(movements.slice(0, buyInCount), 0, true) : null}
             {movementSection("LOOP", loopLabelOf(), t().add, "format-loop")}
             {cardList(movements.slice(buyInCount, movements.length - buyOutCount), buyInCount, false)}
-            {buyOut ? movementSection("BUY_OUT", t().buyOutSection, buyOutCount > 0 ? t().change : t().add, "format-buy-out") : null}
+            {buyOut ? movementSection("BUY_OUT", t().buyOutSection, t().add, "format-buy-out") : null}
             {buyOut ? cardList(movements.slice(movements.length - buyOutCount), movements.length - buyOutCount, false, true) : null}
           </>
         ) : (
@@ -2029,7 +2038,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     setMovements((current) => current.map((item, at) => (at === index ? { ...item, values } : item)));
   }
 
-  function movementCard(item: ModelMovement, index: number, isBuyInCard: boolean) {
+  function movementCard(item: ModelMovement, index: number) {
     const movement = movementOf(item);
     // Pendant le geste : carte portée soulevée, cartes franchies décalées d'un pas.
     const lifted = drag !== null && drag.from === index;
@@ -2040,7 +2049,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const move = (direction: -1 | 1) =>
       setMovements((current) => {
         const target = index + direction;
-        if (target < firstMovable || target > lastMovable || isBuyInCard) return current;
+        const [first, last] = sectionBounds(index);
+        if (target < first || target > last) return current;
         const next = [...current];
         [next[index], next[target]] = [next[target]!, next[index]!];
         return next;
@@ -2050,7 +2060,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         key={item.exercise.id}
         style={[styles.cardSlot, lifted ? [styles.liftedCard, { transform: [{ translateY: drag?.dy ?? 0 }] }] : shift !== 0 ? { transform: [{ translateY: shift }] } : null]}
         onLayout={(event) => {
-          if (index === firstMovable) cardStep.current = event.nativeEvent.layout.height + CARD_GAP;
+          if (index === 0) cardStep.current = event.nativeEvent.layout.height + CARD_GAP;
         }}
       >
         <SwipeActionsRow
@@ -2084,8 +2094,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         </SwipeActionsRow>
       </View>
     );
-    // Buy-in et buy-out : jamais déplacés, aucun geste de déplacement.
-    if (isBuyInCard) return slot;
+    // [Buy-in et buy-out : jamais déplacés, aucun geste de déplacement — remplacé le 08/11/2026 : geste borné à la section.]
     // Constat du 06/11/2026 : geste natif activé après l'appui long (immobile 500 ms, comme l'appui long de `Pressable`) ;
     // un mouvement du doigt de plus de 10 pt avant ce délai le fait échouer (glisser latéral de suppression et
     // défilement intacts). Actif, il annule l'appui de la carte (pas de fiche ouverte au relâchement).

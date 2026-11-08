@@ -40,6 +40,7 @@
  */
 
 import type { CircuitLoss } from "./circuit";
+import { circuitAtMemberLimit, entryExceedsMemberLimit } from "./circuitMemberLimit";
 import { copyCircuitReserveEntry } from "./circuitMembership";
 import { duplicateActivity } from "./composition";
 import { circuitOfExercise, currentLayout, settleLayoutCircuitMembership, withLayout, type LayoutCircuitMembershipSettlement } from "./layoutOperations";
@@ -98,7 +99,11 @@ export type LayoutDropControl = (context: {
 export const neutralDropControl: LayoutDropControl = () => ({ status: "ACCEPTED" });
 
 /** [B.4 : refus `STOP_POINTS` tant que la Séance portait des Points d'arrêt — retiré le 31/10/2026 par B.6.] */
-export type LayoutItemMoveRefusal = "NOT_FOUND" | "NESTING" | "FORMAT_INCOMPATIBLE" | "CONTROL" | "AT_BOUNDARY" | "PASSAGE_FIXED" | "LAST_TOUR" | "LAST_REPETITIONS";
+/**
+ * Recette du 08/11/2026 au soir (Superset limité) : `MEMBER_LIMIT` — l'Exercice entrerait dans un Circuit qui a atteint
+ * son nombre maximal de membres (Superset : deux, `circuitMemberLimit.ts`).
+ */
+export type LayoutItemMoveRefusal = "NOT_FOUND" | "NESTING" | "FORMAT_INCOMPATIBLE" | "CONTROL" | "AT_BOUNDARY" | "PASSAGE_FIXED" | "LAST_TOUR" | "LAST_REPETITIONS" | "MEMBER_LIMIT";
 
 /**
  * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « La carte d'exercice Buy-In ne doit pas
@@ -230,6 +235,11 @@ export function moveLayoutItem(
   const formatOf = (id: string) => draft.exercises.find((exercise) => exercise.id === id)?.format;
   if (breaksFixedPassage(layout, (id) => isSinglePassage(formatOf(id)), source, destination, (id, index) => circuitRoleOf(formatOf(id), index))) {
     return { status: "REFUSED", reason: "PASSAGE_FIXED" };
+  }
+  // Recette du 08/11/2026 au soir (Hermann : « Superset : […] ajouter un troisième exercice, ça ne doit pas être
+  // autorisé ») : aucun membre de plus dans un Circuit Superset déjà à deux ; réordonnancement interne inchangé.
+  if (source.kind === "EXERCISE" && destination.container.kind === "CIRCUIT" && entryExceedsMemberLimit(layout, source.id, destination.container.id)) {
+    return { status: "REFUSED", reason: "MEMBER_LIMIT" };
   }
   // Dernier membre de la boucle (buy-in ou buy-out présents), ou dernier en Répétitions d'un For time : pas de sortie.
   if (source.kind === "EXERCISE") {
@@ -401,7 +411,8 @@ export function stepLayoutItem(
     // Recette iPhone n° 3 du 03/11/2026 : un emplacement interdit par le buy-in / buy-out est franchi, comme
     // une position inchangée — « Monter » / « Descendre » mène au premier emplacement admis (le buy-in
     // sort du Circuit, une autre carte passe hors du Circuit plutôt qu'avant lui).
-    if (outcome.status !== "UNCHANGED" && !(outcome.status === "REFUSED" && outcome.reason === "PASSAGE_FIXED")) return outcome;
+    // Recette du 08/11/2026 au soir (Superset limité) : un Circuit plein est franchi de même — la carte passe hors de lui.
+    if (outcome.status !== "UNCHANGED" && !(outcome.status === "REFUSED" && (outcome.reason === "PASSAGE_FIXED" || outcome.reason === "MEMBER_LIMIT"))) return outcome;
   }
   return { status: "REFUSED", reason: "AT_BOUNDARY" };
 }
@@ -448,7 +459,8 @@ export type LayoutExerciseEditOutcome =
    * consécutif — refus doux de D-441, en pratique impossible (la copie est insérée juste après sa
    * source, avant le Point qui la suivait).
    */
-  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "STOP_POINT_CONFLICT" | "LAST_TOUR" | "LAST_REPETITIONS" };
+  /** Recette du 08/11/2026 au soir : `MEMBER_LIMIT` (duplication seule) — la copie serait un troisième membre d'un Superset. */
+  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "STOP_POINT_CONFLICT" | "LAST_TOUR" | "LAST_REPETITIONS" | "MEMBER_LIMIT" };
 
 /**
  * PRE-9 B.5 (epics B.5 ; COMP §1 : « Il disparaît lorsque son dernier membre en sort ») — suppression
@@ -521,6 +533,11 @@ export function duplicateLayoutExercise(
   // 04/11/2026 (MAJ §6 bis 2) : la copie d'un buy-in est un second buy-in, juste après l'original dans sa zone (de
   // même pour un buy-out) ; la copie garde le Rôle de sa source.]
   const layout = currentLayout(draft, newContainerId);
+  // Recette du 08/11/2026 au soir (Superset limité) : la copie d'un membre d'un Superset déjà à deux serait un troisième membre.
+  const holder = circuitOfExercise(layout, exerciseId);
+  if (holder !== undefined && circuitAtMemberLimit(holder)) {
+    return { status: "REFUSED", reason: "MEMBER_LIMIT" };
+  }
   const inserted = insertCopyAfter(layout, exerciseId, newId);
   const exercises = duplicateActivity(draft.exercises, exerciseId, newId);
   if (inserted === null || exercises === draft.exercises) {

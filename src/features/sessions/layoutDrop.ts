@@ -25,9 +25,11 @@
  */
 
 import type { CircuitRole } from "@/domain/sessions/formats/carriers";
+import { circuitAtMemberLimit } from "@/domain/sessions/circuitMemberLimit";
 import { breaksFixedPassage, type LayoutContainerRef, type LayoutDestination, type LayoutItemRef } from "@/domain/sessions/layoutMoves";
 import {
   mapStructure,
+  structureCircuits,
   type SessionStructure,
   type StructureCircuit,
   type StructureCycleMember,
@@ -108,6 +110,12 @@ export type LayoutDropStopPoint = { readonly container: LayoutContainerRef; read
  * déplacée dans le circuit ») : `singlePassage` (Exercice « Passage = Une fois ») — les emplacements
  * que `breaksFixedPassage` interdit (buy-in hors tête, buy-out hors fin de leur Circuit porteur, toute
  * carte avant le buy-in ou après le buy-out) ne sont pas offerts : l'aperçu n'y ouvre aucune place.
+ *
+ * Recette du 08/11/2026 au soir (Hermann : « Superset : il est possible dans le circuit de la composition de séance
+ * d'ajouter un troisième exercice, ça ne doit pas être autorisé. ») : un Circuit qui a atteint son nombre maximal de
+ * membres (`circuitAtMemberLimit` : Superset à deux) n'offre aucun emplacement à un Exercice venu d'ailleurs — ses
+ * propres membres s'y réordonnent toujours. Un Point d'arrêt saisi (repère fictif, absent de la disposition) n'est pas
+ * concerné.
  */
 export function layoutDropCandidates<E>(
   layout: Shape<E>,
@@ -255,7 +263,8 @@ export function layoutDropCandidates<E>(
       }
     }
   }
-  if (singlePassage === undefined) return candidates;
+  const admitted = withoutFullCircuits(layout, source, idOf, candidates);
+  if (singlePassage === undefined) return admitted;
   const fixed = new Set<string>();
   const byId = new Map<string, E>();
   const ids = mapStructure({ elements: layout.elements, stopPoints: [] }, (exercise) => {
@@ -264,7 +273,7 @@ export function layoutDropCandidates<E>(
     if (singlePassage(exercise)) fixed.add(id);
     return id;
   });
-  if (fixed.size === 0) return candidates;
+  if (fixed.size === 0) return admitted;
   const rolesOf =
     roleOf === undefined
       ? undefined
@@ -272,7 +281,29 @@ export function layoutDropCandidates<E>(
           const exercise = byId.get(id);
           return exercise === undefined ? "TOUR" : roleOf(exercise, index);
         };
-  return candidates.filter((candidate) => !breaksFixedPassage(ids, (id) => fixed.has(id), source, candidate, rolesOf));
+  return admitted.filter((candidate) => !breaksFixedPassage(ids, (id) => fixed.has(id), source, candidate, rolesOf));
+}
+
+/**
+ * Recette du 08/11/2026 au soir (Superset limité) : emplacements `candidates` sans ceux des Circuits pleins dont
+ * `source` n'est pas membre. Seul un Exercice de la disposition est concerné (un Point d'arrêt saisi n'en est pas un).
+ */
+function withoutFullCircuits<E>(layout: Shape<E>, source: LayoutItemRef, idOf: (exercise: E) => string, candidates: readonly LayoutDropTarget[]): readonly LayoutDropTarget[] {
+  if (source.kind !== "EXERCISE") return candidates;
+  const circuits = structureCircuits(layout);
+  let isPresent = layout.elements.some((element) => element.kind === "EXERCISE" && idOf(element.exercise) === source.id);
+  const full = new Set<string>();
+  const visit = (circuit: StructureCircuit<E>) => {
+    const ids = circuit.exercises.map(idOf);
+    isPresent ||= ids.includes(source.id);
+    if (!ids.includes(source.id) && circuitAtMemberLimit(circuit)) full.add(circuit.id);
+  };
+  circuits.forEach(visit);
+  for (const element of layout.elements) {
+    if (element.kind === "CYCLE") isPresent ||= element.cycle.members.some((member) => member.kind === "EXERCISE" && idOf(member.exercise) === source.id);
+  }
+  if (!isPresent || full.size === 0) return candidates;
+  return candidates.filter((candidate) => candidate.container.kind !== "CIRCUIT" || !full.has(candidate.container.id));
 }
 
 /** Emplacement admis le plus proche de `pointerY` (à égalité, le premier dans l'ordre de recherche). */

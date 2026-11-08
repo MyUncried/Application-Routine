@@ -386,31 +386,36 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
     // Buy-in choisi dans sa section (même champ de saisie) : en tête, bouton disponible.
     await pick("Squ", "mv-squats", "format-buy-in");
-    expect(screen.getByTestId("format-buy-in-link")).toHaveTextContent(t.change);
+    // Recette du 08/11/2026 au soir : « + Ajouter » reste affiché (plusieurs buy-in). [« Changer » — remplacé.]
+    expect(screen.getByTestId("format-buy-in-link")).toHaveTextContent(t.add);
     expect(within(screen.getByTestId("format-buy-in-cards")).getByText("Squats sautés")).toBeTruthy();
     expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
-    // Récapitulatif : « Changer » efface d'abord le buy-in (contre-recette n° 3 ter), puis ouvre directement le mode catalogue
-    // dans la modale (§19) ; on le choisit à nouveau, la coche ramène au récapitulatif.
+    // Récapitulatif : « + Ajouter » ouvre directement le mode catalogue dans la modale (§19) et ajoute un second buy-in, sans
+    // retirer le premier. [« Changer » effaçait d'abord le buy-in (contre-recette n° 3 ter) — remplacé le 08/11/2026.]
     toSummary();
     fireEvent.press(screen.getByTestId("format-buy-in-link"));
     expect(screen.getByTestId("format-catalogue-search")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
-    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Squ");
-    fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-squats"));
+    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Fen");
+    fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-fentes"));
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-catalogue-add"));
     });
     expect(screen.getByTestId("format-summary")).toBeTruthy();
-    for (const index of [0, 1, 2]) fireEvent.changeText(screen.getByTestId(`format-amrap-reps-${index}`), "10");
+    const buyIns = within(screen.getByTestId("format-buy-in-cards"));
+    expect(buyIns.getByText("Squats sautés")).toBeTruthy();
+    expect(buyIns.getByText("Fentes avant")).toBeTruthy();
+    for (const index of [0, 1, 2, 3]) fireEvent.changeText(screen.getByTestId(`format-amrap-reps-${index}`), "10");
     expect(screen.getByTestId("format-loop-link")).toHaveTextContent(t.add);
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });
     const [circuit] = structureCircuits(draftRef.current.structure!);
-    expect(circuit!.exercises).toHaveLength(3);
-    // MAJ 04/11 §6 bis 2 : Rôle dans le circuit (1 = Buy-in).
+    expect(circuit!.exercises).toHaveLength(4);
+    // MAJ 04/11 §6 bis 2 : Rôle dans le circuit (1 = Buy-in) ; deux buy-in, dans l'ordre d'ajout, puis la boucle.
     expect(draftRef.current.exercises.map((exercise) => [exercise.name, exercise.format?.settings.circuitRole ?? 0])).toEqual([
       ["Squats sautés", 1],
+      ["Fentes avant", 1],
       ["Squats sautés", 0],
       ["Fentes avant", 0],
     ]);
@@ -611,46 +616,66 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-questionnaire").props.scrollEnabled).toBe(true);
   });
 
-  it("constat du 06/11 : buy-in et buy-out — aucun geste de déplacement ; une carte de boucle ne les dépasse pas ; Monter / Descendre conservés", async () => {
+  // [Constat du 06/11 : buy-in et buy-out sans geste de déplacement — remplacé le 08/11/2026 au soir (plusieurs buy-in / buy-out) :
+  // chaque carte se déplace dans sa section, sans en sortir ; une carte de boucle ne dépasse toujours ni les buy-in ni les buy-out.]
+  it("recette du 08/11 au soir : For time — plusieurs buy-in et buy-out (sélection multiple), déplacés dans leur section seulement", async () => {
     mockModel = "FOR_TIME";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
     fireEvent(screen.getByTestId("format-buyIn"), "valueChange", true);
     fireEvent(screen.getByTestId("format-buyOut"), "valueChange", true);
     await pick("Squ", "mv-squats", "format-loop");
-    await pick("Fen", "mv-fentes", "format-buy-out");
-    await pick("Squ", "mv-squats", "format-buy-in");
     await pick("Fen", "mv-fentes", "format-loop");
-    // Ordre : buy-in (0), boucle (1, 2), buy-out (3).
-    // 08/11/2026 (b-cat-fondu) : les cartes ne sont plus démontées pendant le mode catalogue ; le registre de test de
-    // react-native-gesture-handler garde alors l'ancien identifiant d'un geste renommé (drag-0 → drag-1) : on vérifie
-    // qu'aucun geste ne porte encore l'identifiant demandé. [Absence d'entrée dans le registre — remplacé.]
-    const hasDrag = (id: string) => {
-      try {
-        return (getByGestureTestId(id) as unknown as { config?: { testId?: string } }).config?.testId === id;
-      } catch {
-        return false;
-      }
-    };
-    expect(hasDrag("format-movement-drag-0")).toBe(false);
-    expect(hasDrag("format-movement-drag-3")).toBe(false);
-    expect(hasDrag("format-movement-drag-1")).toBe(true);
+    // Sélection multiple dans la section Buy-in, puis dans la section Buy-out ; « + Ajouter » reste affiché.
+    for (const section of ["format-buy-in", "format-buy-out"]) {
+      fireEvent.press(screen.getByTestId(`${section}-link`));
+      fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-squats"));
+      fireEvent.press(screen.getByTestId("format-catalogue-card-mv-fentes"));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-catalogue-add"));
+      });
+      expect(screen.getByTestId(`${section}-link`)).toHaveTextContent(t.add);
+    }
+    const named = /Squats sautés|Fentes avant/;
+    expect(within(screen.getByTestId("format-buy-in-cards")).getAllByText(named)).toHaveLength(2);
+    expect(within(screen.getByTestId("format-buy-out-cards")).getAllByText(named)).toHaveLength(2);
+    expect(within(screen.getByTestId("format-movement-cards")).getAllByText(named)).toHaveLength(2);
+    // Ordre : buy-in (0, 1), boucle (2, 3), buy-out (4, 5).
+    const text = (index: number) =>
+      within(screen.getByTestId(`format-movement-card-${index}`)).queryByText("Squats sautés") !== null ? "Squats sautés" : "Fentes avant";
+    const [in0, in1, out0, out1] = [text(0), text(1), text(4), text(5)];
+    expect(in0).not.toBe(in1);
+    expect(out0).not.toBe(out1);
+    expect([text(2), text(3)]).toEqual(["Squats sautés", "Fentes avant"]);
+    // Geste d'un buy-in : borné à la section Buy-in (le premier passe second, jamais dans la boucle).
     act(() => {
-      fireGestureHandler(getByGestureTestId("format-movement-drag-1"), [
+      fireGestureHandler(getByGestureTestId("format-movement-drag-0"), [
         { state: State.BEGAN },
         { state: State.ACTIVE, translationY: 0 },
         { translationY: 1000 },
         { state: State.END, translationY: 1000 },
       ]);
     });
-    expect(screen.getByTestId("format-movement-card-1")).toHaveTextContent(/Fentes avant/);
-    expect(screen.getByTestId("format-movement-card-2")).toHaveTextContent(/Squats sautés/);
-    expect(within(screen.getByTestId("format-buy-in-cards")).getByText("Squats sautés")).toBeTruthy();
-    expect(within(screen.getByTestId("format-buy-out-cards")).getByText("Fentes avant")).toBeTruthy();
-    // VoiceOver : Descendre sur la première carte de boucle.
-    fireEvent(screen.getByTestId("format-movement-1-card"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
-    expect(screen.getByTestId("format-movement-card-1")).toHaveTextContent(/Squats sautés/);
-    expect(screen.getByTestId("format-movement-card-2")).toHaveTextContent(/Fentes avant/);
+    expect([text(0), text(1), text(2)]).toEqual([in1, in0, "Squats sautés"]);
+    // Geste d'une carte de boucle : ne dépasse pas les buy-out.
+    act(() => {
+      fireGestureHandler(getByGestureTestId("format-movement-drag-2"), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationY: 0 },
+        { translationY: 1000 },
+        { state: State.END, translationY: 1000 },
+      ]);
+    });
+    expect([text(2), text(3), text(4), text(5)]).toEqual(["Fentes avant", "Squats sautés", out0, out1]);
+    // VoiceOver : Monter sur le premier buy-out ne le fait pas entrer dans la boucle ; Descendre l'échange avec le second.
+    fireEvent(screen.getByTestId("format-movement-4-card"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    expect([text(3), text(4)]).toEqual(["Squats sautés", out0]);
+    fireEvent(screen.getByTestId("format-movement-4-card"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+    expect([text(4), text(5)]).toEqual([out1, out0]);
+    // Retrait d'un buy-in (action Supprimer du glissement) : l'autre reste.
+    fireEvent(screen.getByTestId("format-movement-0-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(within(screen.getByTestId("format-buy-in-cards")).getAllByText(named)).toHaveLength(1);
+    expect(within(screen.getByTestId("format-buy-in-cards")).getByText(in0)).toBeTruthy();
   });
 
   it("recette n° 3 (f3-questionnaire) : le dernier mouvement se supprime, l'enregistrement devient indisponible", async () => {

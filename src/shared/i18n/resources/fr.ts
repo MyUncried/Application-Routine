@@ -999,6 +999,9 @@ export const fr = {
           // MAJ 04/11/2026 §6 bis 2 : message court invitant à passer d’abord un autre Exercice en Tour.
           LAST_TOUR: "Passez d’abord un autre exercice en Tour : il en faut au moins un dans la boucle",
           LAST_REPETITIONS: "Il faut au moins un exercice en Répétitions dans ce For time",
+          // Recette du 08/11/2026 au soir (Superset limité) : libellé repris du questionnaire (« Deux exercices au maximum »,
+          // registre ch07). Annoncé seulement : l'emplacement n'est pas proposé et « Monter » / « Descendre » franchit le Circuit.
+          MEMBER_LIMIT: "Deux exercices au maximum dans un Superset",
           NOT_FOUND: "",
           AT_BOUNDARY: "",
         },
