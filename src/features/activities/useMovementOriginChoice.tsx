@@ -2,15 +2,24 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { findMovementNameConflict, normalizeMovementName } from "@/domain/activities/Movement";
 import { rankMovements, type MovementSearchContext } from "@/domain/activities/movementSuggestion";
+import { groupResultsByFamily } from "@/features/activities/movementFamilyGrouping";
 import { strings } from "@/shared/i18n";
 
 import type { ActivityDefinitionService, MovementChoice } from "./ActivityDefinitionService";
 import type { MovementResultActionLabels, VariantPlacement } from "./MovementResultCard";
 import { MovementSearchScreen } from "./MovementSearchScreen";
-import { MovementSuggestionPanel } from "./MovementSuggestionPanel";
+import {
+  MovementSuggestionPanel,
+  type MovementNameMessage,
+  type MovementResultCardVariant,
+} from "./MovementSuggestionPanel";
 
-/** R04 : cinq résultats au maximum dans le panneau sous le nom. */
-const PANEL_RESULT_LIMIT = 5;
+/** Recette du 29/10/2026 : « Un mouvement **archivé** porte déjà ce nom. » */
+function archivedNameMessage(): MovementNameMessage {
+  const t = strings.screens.activities.editor.movementSuggestion;
+  const [before = "", after = ""] = t.nameTakenArchived.split("{archived}");
+  return { before, bold: t.archivedWord, after };
+}
 
 /** Nom d'un mouvement pour le contrôle d'unicité (identifiant et nom tel que saisi). */
 export type MovementNameEntry = { readonly id: string; readonly name: string };
@@ -46,10 +55,25 @@ export type MovementOriginChoiceOptions = {
   };
   /** R02 : Catégorie et Zones renseignées dans le brouillon (bonus de classement). */
   readonly context?: MovementSearchContext;
-  /** « Utiliser ce mouvement » (panneau ou écran de recherche). */
-  readonly onSameMovement: (choice: MovementChoice) => void;
-  /** « Créer une variante » puis Plus facile / Plus difficile. */
-  readonly onVariant: (choice: MovementChoice, placement: VariantPlacement) => void;
+  /**
+   * PRE-9 CAT.2 (CE-MVT-RESULT-01) : variante des cartes du panneau. `"result"` — création d'un
+   * Mouvement depuis le Catalogue : « Ajouter un niveau » seul, aucune réutilisation (décision de
+   * Hermann du 30/10/2026) ; `"composition"` — création d'un Exercice / depuis la Composition :
+   * aucun bouton, le toucher de la carte utilise le Mouvement (`onSameMovement`).
+   */
+  readonly cardVariant: MovementResultCardVariant;
+  /**
+   * Utilisation du Mouvement existant (ancien « Utiliser ce mouvement ») : toucher d'une carte
+   * Composition (panneau ou écran de recherche). Sans effet pour la carte Résultat.
+   */
+  readonly onSameMovement?: (choice: MovementChoice) => void;
+  /**
+   * « Ajouter un niveau » puis Plus facile / Plus difficile — carte Résultat seulement (CAT.2 : la
+   * carte Composition n'a aucun bouton). PRE-9 A.2 (CE-MVT-01 §3) : exclu depuis une Séance.
+   */
+  readonly onVariant?: (choice: MovementChoice, placement: VariantPlacement) => void;
+  /** Carte Résultat (Catalogue) : toucher du corps — charge le mouvement (demande de Hermann du 05/11/2026, soir). */
+  readonly onOpenMovement?: (choice: MovementChoice) => void;
   /**
    * Recette A/B B.10 (remarque 6) : libellés des actions des cartes du panneau (fiche Mouvement) ;
    * absent : libellés de l'éditeur d'Exercice, inchangés.
@@ -106,8 +130,10 @@ export function useMovementOriginChoice({
   available,
   uniqueness,
   context,
+  cardVariant,
   onSameMovement,
   onVariant,
+  onOpenMovement,
   actionLabels,
 }: MovementOriginChoiceOptions): MovementOriginChoiceState {
   const t = strings.screens.activities.editor.movementSuggestion;
@@ -125,6 +151,13 @@ export function useMovementOriginChoice({
   const variantOf = variantStep !== null && variantStep.name === name ? variantStep.movementId : null;
   const setVariantOf = (movementId: string | null) =>
     setVariantStep(movementId === null ? null : { movementId, name });
+  // Recette iPhone n° 2 du 31/10/2026 (Hermann : « entrer Squat […] appuyer sur entrée : la liste de
+  // recherche disparaît > effacer des lettres et réécrire Squat : la liste de recherche n'affiche
+  // rien ») : la fermeture (et l'étape de variante) restait liée au texte « Squat » ; revenu au même
+  // texte après des effacements, le panneau restait fermé. Toute modification du nom les oublie
+  // (ajustement d'état pendant le rendu, motif React « état dérivé d'une prop »).
+  if (dismissedFor !== null && dismissedFor !== name) setDismissedFor(null);
+  if (variantStep !== null && variantStep.name !== name) setVariantStep(null);
   // R04 : résultats figés pendant un appui sur le panneau (`null` : aucun appui en cours).
   const [frozen, setFrozen] = useState<readonly MovementChoice[] | null>(null);
 
@@ -164,10 +197,16 @@ export function useMovementOriginChoice({
   const conflict = conflicting !== null;
   const refused = takenFor !== null && takenFor.key === normalizeMovementName(name);
   const nameTaken = conflict || (refused && takenFor.blocking);
-  const listed = ranked
-    .slice(0, PANEL_RESULT_LIMIT)
-    .map((result) => byId.get(result.id))
-    .filter((choice): choice is MovementChoice => choice !== undefined);
+  // Contre-recette iPhone du 30/10 (Hermann : « Ne pas limiter à 5 le nombre de résultats de
+  // recherche de mouvements lors de la saisie du nom pendant la création d'un mouvement ») :
+  // [remplace R04 « cinq résultats au maximum »] tous les résultats classés ; le panneau défile.
+  // CAT.2, clarification de Hermann du 30/10 : chaque famille forme une pile unique et continue,
+  // au rang de son premier membre (`groupResultsByFamily`).
+  // Réponse du 30/10 : la pile montre aussi les membres actifs que la recherche ne trouve pas.
+  const listed = groupResultsByFamily(
+    ranked.map((result) => byId.get(result.id)).filter((choice): choice is MovementChoice => choice !== undefined),
+    selectable,
+  );
   // Nom déjà utilisé : le panneau garde ses cartes même après la fin de saisie (reprendre ou corriger).
   // PRE-7 (R-8, D-448 point 1) : une correspondance par début de mot ouvre le panneau comme une
   // suggestion. Étape de variante en cours (cr-8) : le panneau reste ouvert jusqu'au choix Plus
@@ -184,7 +223,20 @@ export function useMovementOriginChoice({
   const showPanel = results.length > 0 || showMessage;
   // « Reprenez ce mouvement » seulement si le mouvement en conflit est parmi les cartes affichées.
   const conflictShown = conflicting !== null && results.some((choice) => choice.movement.id === conflicting.id);
-  const message = showMessage ? (conflictShown ? t.nameTaken : t.nameTakenEdit) : null;
+  // Recette iPhone du 29/10/2026 (Hermann) : nom pris par un Mouvement archivé (jamais en carte, B.8
+  // Q6) — le message le dit, « archivé » en gras. Un brouillon de Séance qui reprend ce Mouvement
+  // (`draftMovements`) le rend actif pour ce contrôle.
+  const conflictArchived =
+    conflicting !== null &&
+    !(uniqueness.draftMovements ?? []).some((entry) => entry.id === conflicting.id) &&
+    choices.some((choice) => choice.movement.id === conflicting.id && choice.archived === true);
+  const message: MovementNameMessage | null = !showMessage
+    ? null
+    : conflictArchived
+      ? archivedNameMessage()
+      : conflictShown
+        ? t.nameTaken
+        : t.nameTakenEdit;
 
   function checkDistinctName(candidate: string): boolean {
     const taken = findMovementNameConflict(candidate, entries, null);
@@ -193,21 +245,35 @@ export function useMovementOriginChoice({
     return false;
   }
 
+  // CAT.2 : « Ajouter un niveau » n'existe que sur la carte Résultat ; la réutilisation, que sur la
+  // carte Composition.
+  const offersLevel = cardVariant === "result" && onVariant !== undefined;
   const nameAssist = showPanel ? (
     <MovementSuggestionPanel
       message={message}
       results={results}
+      cardVariant={offersLevel ? "result" : "composition"}
       variantOf={variantOf}
       onUse={(choice) => {
+        if (cardVariant !== "composition") return;
         setVariantOf(null);
         setFrozen(null);
-        onSameMovement(choice);
+        onSameMovement?.(choice);
       }}
-      onCreateVariant={(choice) => setVariantOf(choice.movement.id)}
+      {...(offersLevel ? { onCreateVariant: (choice: MovementChoice) => setVariantOf(choice.movement.id) } : {})}
+      {...(offersLevel && onOpenMovement !== undefined
+        ? {
+            onOpenResult: (choice: MovementChoice) => {
+              setVariantOf(null);
+              setFrozen(null);
+              onOpenMovement(choice);
+            },
+          }
+        : {})}
       onChooseVariant={(choice, placement) => {
         setVariantOf(null);
         setFrozen(null);
-        onVariant(choice, placement);
+        onVariant?.(choice, placement);
       }}
       onBack={() => setVariantOf(null)}
       onTouchingChange={(touching) => setFrozen(touching ? live : null)}
@@ -221,14 +287,27 @@ export function useMovementOriginChoice({
         choices={selectable}
         initialQuery={name}
         context={context}
-        onUse={(choice) => {
-          setIsSearchOpen(false);
-          onSameMovement(choice);
-        }}
-        onChooseVariant={(choice, placement) => {
-          setIsSearchOpen(false);
-          onVariant(choice, placement);
-        }}
+        {...(offersLevel
+          ? {
+              onChooseVariant: (choice: MovementChoice, placement: VariantPlacement) => {
+                setIsSearchOpen(false);
+                onVariant?.(choice, placement);
+              },
+              ...(onOpenMovement !== undefined
+                ? {
+                    onOpen: (choice: MovementChoice) => {
+                      setIsSearchOpen(false);
+                      onOpenMovement(choice);
+                    },
+                  }
+                : {}),
+            }
+          : {
+              onUse: (choice: MovementChoice) => {
+                setIsSearchOpen(false);
+                onSameMovement?.(choice);
+              },
+            })}
         onClose={() => setIsSearchOpen(false)}
       />
     ) : null;

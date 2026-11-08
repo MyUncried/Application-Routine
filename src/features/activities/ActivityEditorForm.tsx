@@ -21,6 +21,7 @@ import {
   type ExecutionParameters,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
+import { spokenDurations } from "@/domain/activities/durationFormat";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { MovementPhaseList } from "@/domain/activities/movementPhaseList";
@@ -153,6 +154,20 @@ export type ActivityEditorFormProps = {
    */
   nextPhaseId?: number;
   /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à vérifier » de l'Exercice
+   * édité, en orange dans la Feuille ; à sa fermeture (✓ ou ✕), `onParametersToVerifyAcknowledged`
+   * (Hermann : « Ouverture de la feuille (Recommandé) »). Absent ou vide : aucun orange.
+   */
+  phasesToVerify?: readonly number[];
+  onParametersToVerifyAcknowledged?: () => void;
+  /**
+   * PRE-9 (ordre de Hermann du 01/11/2026, point 2) : Récupération de l'Exercice de Séance, bloc 6 de
+   * la Feuille (`ExecutionParametersSheet.recovery`). Absent (Catalogue, fiche Mouvement) : bloc absent.
+   */
+  recovery?: { readonly seconds: number | null; readonly onApply: (seconds: number) => void };
+  /** PRE-9 (même ordre) : défauts du Profil avant le premier ✓, sur fond orange dans la Feuille. */
+  profileDefaultsPending?: boolean;
+  /**
    * PRE-7 (A2.3, MFN-06) : fin de la saisie du nom (clavier fermé, champ quitté ou validé).
    * PRE-7 (R-5, R04) : l'adaptateur y ferme le panneau sous le nom — Entrée ne sélectionne jamais
    * un résultat. Absent : rien.
@@ -193,9 +208,17 @@ export type ActivityEditorFormProps = {
   finishActionTestID: string;
   errorTestID?: string;
   /**
+   * Recette n° 3 bis du 03/11/2026 (f3s-fiche, Hermann : « retirer le bouton d'action en bas de la modale ») :
+   * fiche en consultation seule présentée en feuille — aucune zone `Terminer`.
+   */
+  hideFinish?: boolean;
+  /** Hauteurs visible et du contenu du corps défilant (feuille ajustée à son contenu). */
+  onBodyMeasure?: (measure: { readonly frame: number; readonly content: number }) => void;
+  /**
    * PRE-8 (B.2, CE-MVT-01) : `"movement"` rend la fiche Mouvement — contenu partagé seul :
    * médias dans le gabarit photo pleine largeur en tête du corps, Description, puis bloc « Phases
-   * du mouvement » (`movementPhases`, libellés sans durée) ; aucune carte ni Feuille des
+   * du mouvement » (`movementPhases`, libellés sans durée [PRE-9 A.2b, 31/10/2026 : et durée par
+   * défaut facultative]) ; aucune carte ni Feuille des
    * paramètres d'exécution, aucun accordéon de médias en bas. Mêmes nom, assistance, Catégorie,
    * Zones, Niveau, médias (mêmes commandes) et `Terminer`. Défaut `"exercise"` : éditeur
    * d'Exercice inchangé.
@@ -203,6 +226,20 @@ export type ActivityEditorFormProps = {
   variant?: "exercise" | "movement";
   /** PRE-8 (B.2) : structure des phases du Mouvement (variante `"movement"` seulement). */
   movementPhases?: { readonly value: MovementPhaseList; readonly onChange: (next: MovementPhaseList) => void } | null;
+  /**
+   * PRE-9 (recette iPhone du 29/10 ; CE-MVT-01, DSF Mouvements l.67 : la lecture seule depuis une
+   * Séance « ne verrouille pas les paramètres locaux de l'exercice » ; CE-UI-10) : variante
+   * `"movement"` d'un Exercice ouvert depuis la Composition — carte des paramètres d'exécution
+   * (même carte et même Feuille que l'Éditeur d'Exercice) après les phases. Défaut `false` : fiche
+   * Mouvement du Catalogue, sans paramètres.
+   */
+  executionParametersCard?: boolean;
+  /**
+   * Recette iPhone du 29/10/2026 (Hermann, fiche « Créer un mouvement ») : texte par défaut du Nom
+   * (« Nom du mouvement ») et sa couleur (gris clair ; le nom saisi reste noir). Absent : « Nom de
+   * l’exercice » en `textPrimary` (arbitrage G-3, Éditeur d'Exercice inchangé).
+   */
+  namePrompt?: { readonly text: string; readonly color: string };
   /** Recette A/B B.10 (remarque 5) : le Nom prend le focus à l'ouverture (création). Défaut `false`. */
   autoFocusName?: boolean;
   /**
@@ -212,6 +249,28 @@ export type ActivityEditorFormProps = {
   bodyLocked?: boolean;
   /** Recette A/B B.10 (b2-5) : Entrée garde le clavier et le focus sur le Nom (aucune fin de saisie). */
   keepNameFocusOnSubmit?: boolean;
+  /**
+   * Recette iPhone du 04/11/2026 (décision de Hermann, fiche d'un Exercice ouverte par la photo de sa carte
+   * de Composition : « pas d'affichage du titre de section ni de son champ si aucune valeur n'y est
+   * renseignée ») : une section sans valeur (Description sans étape, aucun média, aucune phase, aucun
+   * paramètre) n'est pas rendue — ni titre ni champ. Défaut `false` : rendu inchangé. Précision de Hermann du
+   * même jour (« on garde les informations de la zone de contexte telles qu'elles sont, renseignées ou pas ») :
+   * la zone de contexte (Nom, Catégorie, Zones, Niveau) n'est jamais concernée.
+   */
+  hideEmptySections?: boolean;
+  /**
+   * Même décision (« en lecture seule (donc pas d'accès aux paramètres d'exécution en modification) ») : la
+   * synthèse des paramètres d'exécution est un texte, pas un bouton — aucune Feuille ne s'ouvre. Défaut
+   * `false` : carte touchable, inchangée.
+   */
+  parametersReadOnly?: boolean;
+  /**
+   * Fiche de l'Exercice ouverte par sa photo dans la Composition — complément du 5 novembre 2026 (Hermann, §10, Figma
+   * `11580:21528`) : section « Dans cette séance » sous le média, avant la Description : la Phrase des paramètres de
+   * l'Exercice, suivie de sa Récupération propre (`recovery`, phrase complète, ou `null` si elle n'est pas renseignée).
+   * Remplace alors la carte des paramètres (lecture seule).
+   */
+  inThisSession?: { readonly recovery: string | null };
 };
 
 /** PRE-8 (B.2, CE-MVT-01 §9) : gabarit photo de référence, 402 × 329, mis à la largeur du terminal. */
@@ -371,6 +430,10 @@ export function ActivityEditorForm({
   phaseStructureLocked = false,
   contentLocked = false,
   nextPhaseId,
+  phasesToVerify,
+  onParametersToVerifyAcknowledged,
+  recovery,
+  profileDefaultsPending = false,
   onNameEndEditing,
   nameAssist = null,
   nameHint = null,
@@ -385,11 +448,18 @@ export function ActivityEditorForm({
   finishSlotTestID,
   finishActionTestID,
   errorTestID,
+  hideFinish = false,
+  onBodyMeasure,
   variant = "exercise",
   movementPhases = null,
+  executionParametersCard = false,
+  namePrompt,
   autoFocusName = false,
   bodyLocked = false,
   keepNameFocusOnSubmit = false,
+  hideEmptySections = false,
+  parametersReadOnly = false,
+  inThisSession,
 }: ActivityEditorFormProps) {
   const isMovement = variant === "movement";
   const windowSize = useWindowDimensions();
@@ -492,6 +562,13 @@ export function ActivityEditorForm({
   const reduceMotion = useReduceMotion();
   const editableLift = useSharedValue(0);
   const editableLayerRef = useRef<View>(null);
+  // Sonde plein cadre (repère des mesures, feuille native ou écran) et hauteur de la fenêtre, relues par l'écoute du clavier.
+  const frameProbeRef = useRef<View>(null);
+  const windowHeightRef = useRef(windowSize.height);
+  const frameOffsetRef = useRef(0);
+  useEffect(() => {
+    windowHeightRef.current = windowSize.height;
+  }, [windowSize.height]);
   // État rendu de la remontée (recalcule le style animé ; lisible par les tests).
   const [editableLiftPx, setEditableLiftPx] = useState(0);
   const [keyboardInset, setKeyboardInset] = useState(0);
@@ -514,6 +591,9 @@ export function ActivityEditorForm({
     setEditableLiftPx(next);
     editableLift.set(reduceMotion ? next : withTiming(next, movementEditorLiftTiming(k.duration)));
   }
+  // [Retiré le 31/10/2026, PRE-9 — contrôle de la recette iPhone n° 2 (cr2-phases KO, Hermann :
+  // « Retirer aussi la barre optionnelle avec les boutons précédent, suivant et fermer ») : barre du
+  // clavier (`KeyboardAccessoryBar`) pendant la saisie d'une durée de phase.]
   function movementKeyboardInset(): number {
     const k = movementKeyboardRef.current;
     return k.shown ? Math.max(0, k.bottom - k.top) : 0;
@@ -555,11 +635,28 @@ export function ActivityEditorForm({
     const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (event) => {
       const k = movementKeyboardRef.current;
       k.shown = true;
-      k.top = event.endCoordinates.screenY;
       if (event.duration > 0) k.duration = event.duration;
-      setKeyboardInset(Math.max(0, k.bottom - k.top));
-      setIsMovementKeyboardShown(true);
-      adjustMovementLayerRef.current();
+      const apply = (offset: number) => {
+        // Haut du clavier dans le repère des mesures de la fiche (écran, ou feuille native).
+        k.top = event.endCoordinates.screenY - offset;
+        setKeyboardInset(Math.max(0, k.bottom - k.top));
+        setIsMovementKeyboardShown(true);
+        adjustMovementLayerRef.current();
+      };
+      // Recette du 04/11/2026 (Hermann : « une régression sur l'écran de création de mouvement : quand j'écris les phases,
+      // clavier ouvert, l'écran ne se positionne pas avec la dernière ligne des phases juste au-dessus du clavier. Ce devrait
+      // être le cas aussi quand on ouvre et rédige la description ») : en feuille native iOS, `measureInWindow` compte depuis
+      // le haut de la feuille, le clavier depuis le haut de l'écran. Le cadre de l'écran (sonde plein cadre, bas de la
+      // feuille au bas de l'écran) donne le décalage ; nul en plein écran.
+      // Application immédiate avec le dernier décalage connu, puis correction à la mesure (la feuille grandit avec le clavier).
+      apply(frameOffsetRef.current);
+      frameProbeRef.current?.measureInWindow((_x, y, _width, height) => {
+        if (height <= 0) return;
+        const offset = Math.max(0, windowHeightRef.current - (y + height));
+        if (Math.abs(offset - frameOffsetRef.current) < 1) return;
+        frameOffsetRef.current = offset;
+        if (movementKeyboardRef.current.shown) apply(offset);
+      });
     });
     const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", (event) => {
       const k = movementKeyboardRef.current;
@@ -602,6 +699,11 @@ export function ActivityEditorForm({
   // Recette iPhone du 2026-10-18 (E-21, décision de Hermann) : l'invite H22 de la Carte
   // vide est retirée ; sans Mode validé, la Carte reste vide comme en PRE-3 (Phrase vide).
   const phrase = segments ? phraseText(segments) : parameters.mode === null ? "" : card.incomplete;
+  // Recette iPhone du 04/11/2026 (`hideEmptySections`) : sections sans valeur non rendues.
+  const showDescription = !hideEmptySections || value.instructionSteps.some((step) => step.trim().length > 0);
+  const showMedia = !hideEmptySections || value.media.length > 0;
+  const showPhases = !hideEmptySections || (movementPhases?.value.phases.length ?? 0) > 0;
+  const showParameters = !hideEmptySections || phrase.length > 0;
   const zoneNames = bodyZones.filter((zone) => value.bodyZoneIds.includes(zone.id)).map((zone) => zone.name);
   // Q53 (9), décision de Hermann du 2026-10-18 : aucun avis textuel ni annonce VoiceOver pour
   // une Zone ou une Catégorie retirée encore affectée (« ce n'est pas un besoin ») ; restent le
@@ -658,7 +760,12 @@ export function ActivityEditorForm({
   // Recette du 27/10 (r13-limite, demande de Hermann) : fiche Mouvement, clavier ouvert — le défilement
   // s'arrête quand la dernière ligne des Phases est juste au-dessus du clavier : la réserve de la zone
   // d'action (masquée par le clavier) est remplacée par l'écart au clavier.
-  const bodyBottomReserve = isMovement && isMovementKeyboardShown ? DESCRIPTION_KEYBOARD_GAP : actionZone.scrollReserve;
+  const bodyBottomReserve = isMovement && isMovementKeyboardShown ? DESCRIPTION_KEYBOARD_GAP : hideFinish ? READ_ONLY_BOTTOM_RESERVE : actionZone.scrollReserve;
+  const bodyMeasure = useRef({ frame: 0, content: 0 });
+  const reportBody = (patch: Partial<{ frame: number; content: number }>) => {
+    bodyMeasure.current = { ...bodyMeasure.current, ...patch };
+    if (onBodyMeasure !== undefined && bodyMeasure.current.frame > 0 && bodyMeasure.current.content > 0) onBodyMeasure(bodyMeasure.current);
+  };
 
   function openSheet() {
     Keyboard.dismiss();
@@ -667,6 +774,8 @@ export function ActivityEditorForm({
 
   function closeSheet() {
     setIsSheetOpen(false);
+    // Recette iPhone n° 2 (constat e) : feuille ouverte puis fermée — l'Exercice n'est plus « à vérifier ».
+    if (phasesToVerify !== undefined && phasesToVerify.length > 0) onParametersToVerifyAcknowledged?.();
     // Le focus revient au déclencheur (P3-21).
     const node = findNodeHandle(parametersCardRef.current);
     if (node !== null) {
@@ -692,6 +801,28 @@ export function ActivityEditorForm({
     );
   }
 
+  function renderPhrase() {
+    return (
+      <Text
+        // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
+        style={[styles.phrase, isIncompleteSummary(phrase) ? styles.phraseIncomplete : null]}
+        testID="exercise-parameters-phrase"
+      >
+        {segments
+          ? segments.map((segment, index) =>
+              segment.gras ? (
+                <Text key={index} style={styles.phraseBold}>
+                  {segment.texte}
+                </Text>
+              ) : (
+                presentationText(segment.texte)
+              ),
+            )
+          : phrase}
+      </Text>
+    );
+  }
+
   function applyParameters(next: ExecutionParameters) {
     onChange({ executionParameters: next });
     closeSheet();
@@ -699,6 +830,18 @@ export function ActivityEditorForm({
 
   return (
     <>
+      <View
+        ref={frameProbeRef}
+        collapsable={false}
+        pointerEvents="none"
+        style={StyleSheet.absoluteFill}
+        onLayout={() =>
+          frameProbeRef.current?.measureInWindow((_x, y, _width, height) => {
+            if (height > 0) frameOffsetRef.current = Math.max(0, windowHeightRef.current - (y + height));
+          })
+        }
+        testID="exercise-frame-probe"
+      />
       <View
         style={[styles.contextBand, isMovement ? styles.movementContextBand : null, { paddingHorizontal: sideMargin }]}
         onLayout={(event) => {
@@ -741,10 +884,11 @@ export function ActivityEditorForm({
         <TextInput
           value={value.name}
           onChangeText={(text) => onChange({ name: text })}
-          placeholder={editor.name}
+          placeholder={namePrompt?.text ?? editor.name}
           // PRE-5 story 3.2, arbitrage G-3 de Hermann du 19/10 : placeholder `textPrimary` (Figma `8328:35698`).
-          placeholderTextColor={colors.textPrimary}
-          accessibilityLabel={editor.name}
+          // Recette du 29/10/2026 : fiche Mouvement, texte par défaut en gris clair (`namePrompt`).
+          placeholderTextColor={namePrompt?.color ?? colors.textPrimary}
+          accessibilityLabel={namePrompt?.text ?? editor.name}
           maxLength={NAME_MAX_LENGTH}
           // PRE-7 (A2.2, MFN/AC28) : nom du geste verrouillé — primitive native non modifiable.
           editable={!contentLocked}
@@ -915,7 +1059,7 @@ export function ActivityEditorForm({
         ) : null}
       </View>
 
-      {isMovement ? (
+      {isMovement && showMedia ? (
         // PRE-8 (B.2, CE-MVT-01 §7, §9) ; recette A/B (F01, F02) : média pleine largeur, fixe, sous la
         // zone de contexte (qui le recouvre de `MOVEMENT_PHOTO_UNDER_CONTEXT`) et hors du défilement du
         // contenu inférieur. Le gabarit garde sa hauteur sans média (ajout depuis le gabarit vide).
@@ -959,11 +1103,14 @@ export function ActivityEditorForm({
           scrollEventThrottle={16}
           onLayout={(event) => {
             bodyHeightRef.current = event.nativeEvent.layout.height;
+            reportBody({ frame: event.nativeEvent.layout.height });
             if (isDescriptionFocused) revealDescription();
           }}
+          onContentSizeChange={onBodyMeasure !== undefined ? (_width, height) => reportBody({ content: height }) : undefined}
           testID="exercise-body"
         >
           {/* P7 (FR-02-02, AC3) : la Description précède la Carte Paramètres d'exécution. */}
+          {showDescription ? (
           <View
             style={styles.section}
             onLayout={(event) => {
@@ -1015,12 +1162,14 @@ export function ActivityEditorForm({
               </Pressable>
             ) : null}
           </View>
+          ) : null}
 
           {isMovement ? (
             // PRE-8 (B.2, CE-MVT-01 §7) : phases du Mouvement (libellés, ordre), jamais de durée.
-            movementPhases ? (
+            // [PRE-9 A.2b, 31/10/2026 (Hermann, 30/10) : plus une durée par défaut facultative par phase.]
+            movementPhases && showPhases ? (
               <View
-                style={[styles.section, styles.followingSection]}
+                style={[styles.section, showDescription ? styles.followingSection : null]}
                 onLayout={(event) => {
                   phasesLayoutRef.current = { y: event.nativeEvent.layout.y, height: event.nativeEvent.layout.height };
                   if (isPhasesFocused) revealPhases();
@@ -1055,51 +1204,53 @@ export function ActivityEditorForm({
                 ) : null}
               </View>
             ) : null
-          ) : (
+          ) : null}
+          {/* PRE-9 (recette iPhone du 29/10) : Exercice d'une Séance ouvert au gabarit Mouvement — la
+              carte des paramètres locaux suit les phases (`executionParametersCard`). */}
+          {(!isMovement || executionParametersCard) && showParameters && inThisSession === undefined ? (
             <>
           {/* Q23 (AC14) : aucun bouton ni nom du Mode à droite du titre ; la Carte est la
               seule zone touchable et le seul focus (AC6) ; le Mode se choisit dans la Feuille. */}
-          <View style={[styles.section, styles.followingSection]} testID="exercise-section-parameters">
+          <View
+            style={[
+              styles.section,
+              // Recette du 04/11/2026 (`hideEmptySections`) : première section rendue, sans écart au-dessus.
+              showDescription || (isMovement && movementPhases !== null && showPhases) ? styles.followingSection : null,
+            ]}
+            testID="exercise-section-parameters"
+          >
             <Text style={styles.sectionTitle} accessibilityRole="header">
               {card.title}
             </Text>
             {/* PRE-5 story 3.2 (R-14, FR-36) : la Carte ne porte plus que la Phrase — ni Compte à
                 rebours, ni Fin, ni filet, à l'écran comme dans le nom accessible (la Feuille et
-                les données les gardent). */}
+                les données les gardent).
+                Recette du 04/11/2026 (`parametersReadOnly`) : même carte et même Phrase, sans bouton
+                ni Feuille (lecture seule). */}
+            {parametersReadOnly ? (
+              <View style={styles.parametersCard} accessible accessibilityLabel={phrase === undefined || phrase === null ? phrase : spokenDurations(phrase)} testID="exercise-parameters-card-readonly">
+                {renderPhrase()}
+              </View>
+            ) : (
             <Pressable
               ref={parametersCardRef}
               onPress={openSheet}
               accessibilityRole="button"
-              accessibilityLabel={phrase ? `${card.openAccessibilityLabel}. ${phrase}` : `${card.openAccessibilityLabel}.`}
+              accessibilityLabel={phrase ? `${card.openAccessibilityLabel}. ${spokenDurations(phrase)}` : `${card.openAccessibilityLabel}.`}
               style={styles.parametersCard}
               testID="exercise-parameters-card"
             >
-              <Text
-                // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
-                style={[styles.phrase, isIncompleteSummary(phrase) ? styles.phraseIncomplete : null]}
-                testID="exercise-parameters-phrase"
-              >
-                {segments
-                  ? segments.map((segment, index) =>
-                      segment.gras ? (
-                        <Text key={index} style={styles.phraseBold}>
-                          {segment.texte}
-                        </Text>
-                      ) : (
-                        presentationText(segment.texte)
-                      ),
-                    )
-                  : phrase}
-              </Text>
+              {renderPhrase()}
             </Pressable>
+            )}
           </View>
             </>
-          )}
+          ) : null}
 
           {/* PRE-5 story 3.2, arbitrage G-7 de Hermann du 19/10 : aucun titre « Médias » visible
               (Figma `8328:35698`) ; le titre reste un en-tête VoiceOver, sans place à l'écran.
               PRE-8 (B.2) : section absente de la fiche Mouvement (médias dans le gabarit photo). */}
-          {isMovement ? null : (
+          {isMovement || !showMedia ? null : (
           <View style={[styles.section, styles.followingSection]} testID="activity-editor-section-media">
             <Text style={styles.accessibilityOnlyTitle} accessibilityRole="header" testID="activity-editor-media-title">
               {strings.executionParameters.media.section}
@@ -1107,6 +1258,24 @@ export function ActivityEditorForm({
             {renderMediaList()}
           </View>
           )}
+          {/* Recette du 05/11/2026 (n-fiche, Hermann : « Mettre la section "Dans cette séance" en dernier »). [Sous la photo, avant la
+              description — remplacé.] */}
+          {inThisSession !== undefined ? (
+            <View
+              style={[styles.section, showDescription || (isMovement && movementPhases !== null && showPhases) ? styles.followingSection : null]}
+              accessible
+              accessibilityLabel={spokenDurations([strings.executionParameters.card.inThisSession, phrase, inThisSession.recovery].filter(Boolean).join(". "))}
+              testID="exercise-section-in-this-session"
+            >
+              <Text style={styles.sectionTitle} accessibilityRole="header">
+                {strings.executionParameters.card.inThisSession}
+              </Text>
+              <Text style={styles.phrase}>
+                {renderPhrase()}
+                {inThisSession.recovery !== null ? ` ${inThisSession.recovery}` : null}
+              </Text>
+            </View>
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
       </View>
@@ -1117,6 +1286,7 @@ export function ActivityEditorForm({
           accessible dès sa fermeture (D-349).
           PRE-6 story 7.10 (D-444, remplace FR-37 « 24 du bord de l'écran ») : zone d'action
           principale fixe (zone protégée, bouton centré, correctif J6f), dégradé blanc. */}
+      {hideFinish ? null : (
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID={finishSlotTestID}>
         {errorMessage ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID={errorTestID}>
@@ -1125,6 +1295,16 @@ export function ActivityEditorForm({
         ) : null}
         <PrimaryActionButton label={finishLabel} onPress={onFinish} disabled={finishDisabled} testID={finishActionTestID} />
       </PrimaryActionZone>
+      )}
+      {/* Demande de Hermann du 05/11/2026 (soir) : fiche « Modifier un mouvement » validée par la coche de l’en-tête, sans bouton en
+          bas — le message d’erreur d’enregistrement reste affiché en bas. */}
+      {hideFinish && errorMessage ? (
+        <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID={finishSlotTestID}>
+          <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID={errorTestID}>
+            {errorMessage}
+          </Text>
+        </PrimaryActionZone>
+      ) : null}
 
       {isNativeLevelMenuOpen ? (
         <Pressable
@@ -1146,6 +1326,9 @@ export function ActivityEditorForm({
           // PRE-7 (A2.2) : la structure des phases fait partie du contenu verrouillé.
           phaseStructureLocked={phaseStructureLocked || contentLocked}
           nextPhaseId={nextPhaseId}
+          {...(phasesToVerify !== undefined && phasesToVerify.length > 0 ? { phasesToVerify } : {})}
+          {...(recovery !== undefined ? { recovery } : {})}
+          profileDefaultsPending={profileDefaultsPending}
           onApply={applyParameters}
           onCancel={closeSheet}
         />
@@ -1335,6 +1518,8 @@ function useMediaImport(
 
 /** N-05 : marge entre le bas de la Description et le clavier pendant la saisie. */
 const DESCRIPTION_KEYBOARD_GAP = 12;
+/** Fiche en consultation seule (`hideFinish`) : marge sous le dernier contenu, sans zone d'action. */
+const READ_ONLY_BOTTOM_RESERVE = 32;
 /** Recette 3 (N-05) : bouton d’envoi standard des champs (32, comme « Saisie inline »). */
 const DESCRIPTION_SEND_SIZE = 32;
 

@@ -48,7 +48,7 @@ const input = (name: string, exercises: readonly StructureExerciseInput[]): Stru
   structure: {
     elements: [
       { kind: "EXERCISE", exercise: exercises[0]! },
-      { kind: "CYCLE", cycle: { id: `${name}-cycle`, repeatCount: 2, circuits: [{ id: `${name}-c`, repeatCount: 3, nature: "TOURS", exercises: exercises.slice(1) }] } },
+      { kind: "CYCLE", cycle: { id: `${name}-cycle`, repeatCount: 2, members: [{ id: `${name}-c`, repeatCount: 3, nature: "TOURS" as const, exercises: exercises.slice(1) }].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
     ],
     stopPoints: [],
   },

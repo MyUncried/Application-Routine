@@ -127,15 +127,34 @@ export const EXECUTION_BOUNDS = {
    * 2026-10-17 (recette iPhone) : une durée n'est pas obligatoirement un
    * multiple de 5 s. PRE-5 (D-430, AD-31, FR-45) : le minimum passe de 5 s à
    * 1 s ; c'est le seul changement de valeur, le maximum est inchangé.
+   *
+   * PRE-9 (B.3, COMP §3 du 28/10, ARB-10) : « Les bornes numériques de cible deviennent 0..100
+   * répétitions et 0..3535 s par série » ; une cible 0 est une participation volontairement
+   * absente, l'Exercice gardant un volume total non nul (`ZERO_VOLUME`). [D-232, D-430, RM-234 :
+   * minimum de cible de série de 1 remplacé par 0.] Les phases du Mouvement gardent leur minimum
+   * propre (`WORK_PATTERN_DURATION_BOUNDS`).
    */
-  durationTarget: { min: 1, max: 3535 },
-  repetitionTarget: { min: 1, max: 100 },
+  durationTarget: { min: 0, max: 3535 },
+  repetitionTarget: { min: 0, max: 100 },
   pauseSeconds: { min: 0, max: 300 },
   sideRecoverySeconds: { min: 0, max: 300 },
   cadenceBeepIntervalSeconds: { min: 0, max: 10 },
   countdownSeconds: { min: 0, max: 60 },
   endSeconds: { min: 0, max: 60 },
 } as const;
+
+/**
+ * PRE-9 (B.3, COMP §3 : « Cette ouverture ne rend pas nulles les durées de phases du mouvement, qui
+ * conservent leur minimum propre ») — durée du motif des phases (Σ) et saisie d'une durée de phase :
+ * 1..3535 s, bornes de la Cible Durée antérieures au 28/10 (D-430, D-446), inchangées.
+ */
+export const WORK_PATTERN_DURATION_BOUNDS = { min: 1, max: 3535 } as const;
+
+/**
+ * PRE-9 (B.3) : plus petite Cible positive, position d'ouverture d'un Sélecteur ou d'un ± depuis
+ * « — » (Q25, Q26 : inchangées par l'ouverture à 0, qui n'est jamais proposée d'office).
+ */
+export const FIRST_POSITIVE_TARGET = 1;
 
 /**
  * Nombre de Séries borné à `EXECUTION_BOUNDS.seriesCount` (1..99), tronqué à
@@ -265,7 +284,12 @@ export type ExecutionParametersField =
 export type ExecutionValidationLevel = "STRUCTURE" | "INPUT";
 
 export type ExecutionParametersViolation = {
-  readonly code: "REQUIRED" | "OUT_OF_RANGE" | "NOT_INTEGER" | "UNRECOGNIZED";
+  /**
+   * PRE-9 (B.3, COMP §3, ARB-10) : `ZERO_VOLUME` — toutes les Cibles de l'Exercice sont des
+   * nombres nuls (« Un exercice dont toutes les cibles numériques sont nulles est refusé ») ; une
+   * violation par Série (`seriesNumber`) en variables, une seule en identiques.
+   */
+  readonly code: "REQUIRED" | "OUT_OF_RANGE" | "NOT_INTEGER" | "UNRECOGNIZED" | "ZERO_VOLUME";
   readonly field: ExecutionParametersField;
   readonly level: ExecutionValidationLevel;
   /** Rang 1-indexé de la Série concernée (Régime variables), pour signaler la cellule. */
@@ -464,7 +488,7 @@ export type SelectorOpeningPosition = Exclude<SeriesTarget, { readonly kind: "UN
  * numérique, pour la position d'ouverture d'un Sélecteur. Nom gardé d'AD-16, mais il
  * n'y a plus de grille : depuis Q36 (Hermann, 2026-10-17), c'est un simple BORNAGE,
  * 1..3535 s en Durée (minimum de 1 s, D-430), 1..100 en Répétitions, sans multiple
- * de 5 (Q21 adaptée : 5999 → 3535, 0 → 1, 7 → 7, 150 → 100). Une valeur non entière est arrondie à
+ * de 5 (Q21 adaptée : 5999 → 3535, 0 → 1 [PRE-9 B.3, COMP §3 : 0 → 0], 7 → 7, 150 → 100). Une valeur non entière est arrondie à
  * l'entier le plus proche (7,4 → 7 ; 7,5 → 8) ; +∞ → borne haute ; −∞ et NaN → borne basse.
  */
 export function nearestGridValue(mode: ExecutionMode, value: number): number {
@@ -480,14 +504,15 @@ export function nearestGridValue(mode: ExecutionMode, value: number): number {
  * Story 3.4 (AD-16, FR-07-04, Q25) — position d'ouverture d'un Sélecteur de cible :
  * `NUMBER` → `nearestGridValue` ; `FAILURE` → l'option échec ; `UNSET` (« — ») → la
  * plus petite valeur valide, 1 s en Durée (00:01, D-430), 1 en Répétitions. Rien n'est appliqué
- * au Brouillon par cette position : seul le ✓ du Sélecteur applique (Q12).
+ * au Brouillon par cette position : seul le ✓ du Sélecteur applique (Q12). PRE-9 (B.3) : « — »
+ * reste ouvert sur la plus petite Cible POSITIVE (`FIRST_POSITIVE_TARGET`), jamais sur 0.
  */
 export function selectorOpeningPosition(mode: ExecutionMode, target: SeriesTarget): SelectorOpeningPosition {
   if (target.kind === "FAILURE") {
     return { kind: "FAILURE" };
   }
   if (target.kind === "UNSET") {
-    return { kind: "NUMBER", value: targetBounds(mode).min };
+    return { kind: "NUMBER", value: Math.max(targetBounds(mode).min, FIRST_POSITIVE_TARGET) };
   }
   return { kind: "NUMBER", value: nearestGridValue(mode, target.value) };
 }
@@ -528,7 +553,8 @@ export type StepTargetResult = Extract<SeriesTarget, { readonly kind: "NUMBER" }
  * - `NUMBER` → valeur voisine dans le sens du geste, dans les bornes de saisie
  *   (1..3535 s, à la seconde, D-430, ou 1..100), ou `unavailable` si aucune n'existe
  *   (7 s → 8 / 6 ; 5999 s → + `unavailable`, − 3535 ; 150 → + `unavailable`, − 100) ;
- * - `UNSET` → + donne la valeur minimale (1 s, 1), − `unavailable` (Q26) ;
+ * - `UNSET` → + donne la valeur minimale (1 s, 1), − `unavailable` (Q26) ; PRE-9 (B.3) : la
+ *   plus petite Cible positive, 0 n'étant atteint que par − depuis 1 ;
  * - `FAILURE` → `unavailable` dans les deux sens (Q13).
  * `stepSize` (défaut 1) porte les paliers du maintien (`EXECUTION_ACCELERATED_HOLD_POLICY`,
  * Q36, H19) ; il ne change jamais la valeur d'une Cible `UNSET`.
@@ -539,7 +565,7 @@ export function stepTarget(mode: ExecutionMode, target: SeriesTarget, direction:
     return "unavailable";
   }
   if (target.kind === "UNSET") {
-    return direction === 1 ? { kind: "NUMBER", value: bounds.min } : "unavailable";
+    return direction === 1 ? { kind: "NUMBER", value: Math.max(bounds.min, FIRST_POSITIVE_TARGET) } : "unavailable";
   }
   const next = stepWithinBounds(target.value, direction, stepSize, bounds.min, bounds.max);
   return next === target.value ? "unavailable" : { kind: "NUMBER", value: next };
@@ -843,7 +869,7 @@ function workPhasesProblem(workPhases: unknown): WorkPhasesProblem | null {
     return { kind: "MISSING", phaseIds: missing };
   }
   // D-446 : seule la durée du motif est bornée ; la Cible n'est plus comparée à Σ.
-  const bounds = EXECUTION_BOUNDS.durationTarget;
+  const bounds = WORK_PATTERN_DURATION_BOUNDS;
   if (sum < bounds.min || sum > bounds.max) {
     return { kind: "INVALID", reason: "work phases sum out of range", sumOutOfRange: true };
   }
@@ -859,7 +885,10 @@ function targetBounds(mode: ExecutionMode): Bounds {
   return mode === "DURATION" ? EXECUTION_BOUNDS.durationTarget : EXECUTION_BOUNDS.repetitionTarget;
 }
 
-/** Contrôle structurel d'une Cible : `kind` connu, `NUMBER` entier ≥ 1, `UNSET` interdit (H25). */
+/**
+ * Contrôle structurel d'une Cible : `kind` connu, `NUMBER` entier ≥ 0 (PRE-9 B.3, COMP §3 ; ≥ 1
+ * auparavant), `UNSET` interdit (H25).
+ */
 function checkStructuralTarget(
   value: unknown,
   violations: ExecutionParametersViolation[],
@@ -882,7 +911,7 @@ function checkStructuralTarget(
   }
   if (kind === "NUMBER") {
     return checkStructuralNumber((value as { value?: unknown }).value, "target", violations, {
-      min: 1,
+      min: EXECUTION_BOUNDS.durationTarget.min,
       ...(seriesNumber !== undefined ? { seriesNumber } : {}),
     });
   }
@@ -1039,7 +1068,7 @@ export function validateForSave(
       } else if (problem !== null) {
         // PRE-5 (story 2.1, FR-3) : une somme hors de 1..3535 rend ✓ indisponible ; la
         // violation porte alors les bornes de la somme, comme une durée de série invalide.
-        const { min, max } = EXECUTION_BOUNDS.durationTarget;
+        const { min, max } = WORK_PATTERN_DURATION_BOUNDS;
         violations.push({
           code: "OUT_OF_RANGE",
           field: "workPhases",
@@ -1076,12 +1105,38 @@ export function validateForSave(
   if (count !== null && checkInput && count !== baseCount) {
     checkInputBounds(count, "seriesCount", EXECUTION_BOUNDS.seriesCount, violations);
   }
+  // PRE-9 (B.3, COMP §3, ARB-10) : volume total non nul, aux deux niveaux. Une Cible à l'échec
+  // n'est pas un volume nul (« ne pas assimiler l'absence de durée calculable à un volume nul »).
+  if (count !== null && isWellFormedSeries(series)) {
+    violations.push(...zeroVolumeViolations(series as ExecutionSeries));
+  }
 
   if (violations.length > 0) {
     return { ok: false, violations };
   }
   const normalized = normalizeEffective({ ...input, sideMode: sideMode as SideMode });
   return { ok: true, value: { ...normalized, mode: mode as ExecutionMode, sideMode: sideMode as SideMode } };
+}
+
+/**
+ * PRE-9 (B.3, COMP §3 l.40, ARB-10) : violations `ZERO_VOLUME` d'un Exercice dont toutes les Cibles
+ * sont des nombres nuls ; aucune si une Cible est positive, à l'échec ou à renseigner (le tiret a
+ * déjà sa propre violation `REQUIRED`).
+ */
+export function zeroVolumeViolations(series: ExecutionSeries): readonly ExecutionParametersViolation[] {
+  if (series.kind === "UNIFORM") {
+    return isZeroTarget(series.target) ? [{ code: "ZERO_VOLUME", field: "target", level: "STRUCTURE" }] : [];
+  }
+  const rows = series.rows as readonly { readonly target?: unknown }[];
+  if (rows.length === 0 || !rows.every((row) => isZeroTarget(row?.target))) {
+    return [];
+  }
+  return rows.map((_, index) => ({ code: "ZERO_VOLUME", field: "target", level: "STRUCTURE", seriesNumber: index + 1 }));
+}
+
+/** Cible numérique nulle (COMP §3 : « participation volontairement absente »). */
+export function isZeroTarget(candidate: unknown): boolean {
+  return isRecord(candidate) && candidate.kind === "NUMBER" && candidate.value === 0;
 }
 
 function isWellFormedSeries(series: unknown): series is ExecutionSeries {
@@ -1215,7 +1270,8 @@ function readTarget(value: unknown): SeriesTarget {
   if (target.kind === "FAILURE" || target.kind === "UNSET") {
     return { kind: target.kind };
   }
-  if (target.kind === "NUMBER" && isNonNegativeInteger(target.value) && target.value >= 1) {
+  // PRE-9 (B.3, COMP §3) : une Cible 0 est une donnée valide.
+  if (target.kind === "NUMBER" && isNonNegativeInteger(target.value)) {
     return { kind: "NUMBER", value: target.value };
   }
   throw new ExecutionParametersDataError("Malformed series target.");
@@ -1503,7 +1559,7 @@ export function phaseDurationsProblem(phaseDurations: unknown): string | null {
     // D-446 : la Cible d'un frère incomplet est conservée telle quelle (aucun total inventé).
     return null;
   }
-  const bounds = EXECUTION_BOUNDS.durationTarget;
+  const bounds = WORK_PATTERN_DURATION_BOUNDS;
   if (sum < bounds.min || sum > bounds.max) {
     return "phase durations sum out of range";
   }
@@ -1616,7 +1672,7 @@ export function readCatalogExecutionParameters(json: string | null | undefined):
  * copies ») — version de la forme RÉSOLUE persistée par les copies de Séance
  * (`activities.execution_parameters`) après la migration 012 : grammaire
  * canonique (libellés de phases compris). La colonne détermine la forme :
- * `activity_definitions` porte la forme Catalogue, `activities` la forme
+ * la table des définitions du Catalogue porte la forme Catalogue, `activities` la forme
  * résolue. PRE-7 (R-2, D-446) : version 5, égale à la version canonique en
  * mémoire ; les deux formes ne se distinguent plus par leur numéro, seulement
  * par la colonne (phases avec libellés ou durées par `phaseId`).
@@ -1686,7 +1742,10 @@ export type ScalarProjection = {
 export function projectScalars(parameters: ExecutionParameters): ScalarProjection {
   const effective = normalizeEffective(parameters);
   const first = seriesRowsOf(effective)[0]!;
-  const value = first.target.kind === "NUMBER" ? first.target.value : null;
+  // PRE-9 (B.3, COMP §3) : une première Cible 0 se projette NULL, comme une Cible non numérique —
+  // les colonnes historiques (CHECK de `migration014` : durée 1..5999, répétitions ≥ 1) ne sont
+  // jamais relues comme source ; la Cible 0 vit dans `execution_parameters`. Aucune migration.
+  const value = first.target.kind === "NUMBER" && first.target.value > 0 ? first.target.value : null;
   return {
     executionMode: effective.mode,
     durationSeconds: effective.mode === "DURATION" ? value : null,
@@ -1707,17 +1766,21 @@ export type ExecutionProfileDefaults = {
 };
 
 /**
- * Brouillon de création (v13 §6) : Mode et côté non renseignés, Série 1 à
- * Cible à renseigner, Pause 0 s, Bip 0 ; Compte à rebours et Fin copiés du
- * Profil. Aucune Cible inventée. PRE-5 (AD-19, AD-20) : charge Sans, 0 kg,
+ * Brouillon de création (v13 §6) : Série 1 à Cible à renseigner, Pause 0 s, Bip 0 ; Compte à
+ * rebours et Fin copiés du Profil. Aucune Cible inventée. PRE-5 (AD-19, AD-20) : charge Sans, 0 kg,
  * aucune phase.
+ *
+ * Recette iPhone du 29/10/2026 (Hermann : « Sélectionner par défaut Durée, Sans (changement de
+ * côté) ») : Mode Durée et changement de côté Sans (`UNILATERAL`) présélectionnés. [Remplace « Mode
+ * et côté non renseignés » de v13 §6 pour les seuls NOUVEAUX Exercices ; les paramètres déjà
+ * enregistrés ne sont ni relus ni réécrits.] La Cible reste à renseigner.
  */
 export function createEmptyExecutionParameters(defaults: ExecutionProfileDefaults): ExecutionParametersInput {
   return {
     version: EXECUTION_PARAMETERS_VERSION,
-    mode: null,
+    mode: "DURATION",
     series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] },
-    sideMode: null,
+    sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,

@@ -174,12 +174,15 @@ describe("D-434 — champs clavier des cellules du tableau des séries", () => {
     const row = draft.rowIds[0]!;
     expect(applyRowTargetEdit(draft, row, "175").rows[0]!.target).toEqual(numberTarget(135));
     expect(applyRowTargetEdit(draft, row, "9999").rows[0]!.target).toEqual(numberTarget(3535));
-    expect(applyRowTargetEdit(draft, row, "0").rows[0]!.target).toEqual(numberTarget(1));
+    // PRE-9 (B.3, COMP §3) : 0 saisi est une Cible 0 (« 0 n'est pas permis » remplacé) ; vidée reste « — ».
+    expect(applyRowTargetEdit(draft, row, "0").rows[0]!.target).toEqual(numberTarget(0));
     expect(applyRowTargetEdit(draft, row, "").rows[0]!.target).toEqual(unsetTarget());
     expect(applyRowTargetEdit(draft, row, "105")).toBe(draft);
     expect(applyRowTargetEdit(draft, 999, "30")).toBe(draft);
     const repetitions = rows([numberTarget(12), numberTarget(10)], "REPETITIONS");
     expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "150").rows[0]!.target).toEqual(numberTarget(100));
+    expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "0").rows[0]!.target).toEqual(numberTarget(0));
+    expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "").rows[0]!.target).toEqual(unsetTarget());
     expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "").rows[0]!.target).toEqual(unsetTarget());
   });
 
@@ -288,5 +291,35 @@ describe("PRE5-2.8 — champs clavier des phases (D-434)", () => {
     expect(applyPhaseLabelEdit(draft, 7, "Maintien")).toBe(draft);
     expect(applyPhaseLabelEdit(draft, 99, "Tenue")).toBe(draft);
     expect(applyPhaseLabelEdit(draft, 7, "x".repeat(21))).toBe(draft);
+  });
+});
+
+/**
+ * Décision de Hermann du 06/11/2026 (constat c) — champ actif hors tableau (valeur `scalar` ou charge
+ * commune) : Précédent / Suivant parcourent les champs hors tableau fournis par la Feuille ; le tableau
+ * des séries garde son parcours propre (QD-434-2).
+ */
+describe("Décision du 06/11/2026 — ordre de navigation des champs hors tableau", () => {
+  const outside = [
+    { kind: "scalar", field: "count" },
+    { kind: "scalar", field: "uniformTarget" },
+    { kind: "load", row: "uniform" },
+  ] as const;
+
+  it("valeur hors tableau ou charge commune active : l'ordre de la Feuille", () => {
+    const draft = openSheetDraft(params());
+    expect(keyboardFieldOrder(draft, true, false, { kind: "scalar", field: "count" }, outside)).toBe(outside);
+    expect(keyboardFieldOrder(draft, true, false, { kind: "load", row: "uniform" }, outside)).toBe(outside);
+  });
+
+  it("sans ordre fourni, la charge commune garde son ordre antérieur", () => {
+    const draft = openSheetDraft(params());
+    expect(keyboardFieldOrder(draft, true, false, { kind: "load", row: "uniform" })).toEqual([{ kind: "load", row: "uniform" }]);
+  });
+
+  it("cellule du tableau active : le parcours du tableau, sans les champs hors tableau", () => {
+    const draft = openSheetDraft(variable([20, 30]));
+    const order = keyboardFieldOrder(draft, true, false, { kind: "rowTarget", row: draft.rowIds[0]! }, outside);
+    expect(order.every((field) => field.kind !== "scalar")).toBe(true);
   });
 });

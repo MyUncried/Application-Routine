@@ -78,20 +78,22 @@ describe("PRE-8 E.1 — compte et synthèse", () => {
   it("Séance sans exercice : « 0 exercice » (D-392, Q-E6), visuel Libre, aucune catégorie", () => {
     const projection = project([]);
     expect(projection.exerciseCount).toBe(0);
-    expect(projection.summary).toEqual({ kind: "COUNT", count: 0 });
+    expect(projection.shownCircuitCount).toBeNull();
     expect(projection.visual).toEqual({ kind: "FORMAT", format: "FREE" });
     expect(projection.expandable).toBe(false);
     expect(projection.categories).toEqual([]);
     expect(projection.tree).toEqual([]);
   });
 
-  it("un seul exercice : volume, jamais « 1 exercice », aucun chevron", () => {
+  // [« volume, jamais 1 exercice » — remplacé le 06/11/2026 par D-505 : la ligne 3 compte « 1 exercice »
+  // (SessionCard.test.tsx) ; la projection ne porte plus de volume de synthèse.]
+  it("un seul exercice : compte 1, aucun circuit affiché", () => {
     const one = project([{ kind: "EXERCISE", exercise: exercise({ name: "Squat assisté", executionParameters: durationParameters(90, 3, 30) }) }]);
     expect(one.exerciseCount).toBe(1);
-    expect(one.summary).toEqual({ kind: "VOLUME", volume: "3 × 1 min 30 s" });
+    expect(one.shownCircuitCount).toBeNull();
     expect(one.expandable).toBe(false);
     const single = project([{ kind: "EXERCISE", exercise: exercise({ name: "Mobilisation du genou" }) }]);
-    expect(single.summary).toEqual({ kind: "VOLUME", volume: "1 × 45 s" });
+    expect(single.exerciseCount).toBe(1);
   });
 
   it("volume : formes existantes reprises (échec, répétitions, séries variables)", () => {
@@ -99,7 +101,7 @@ describe("PRE-8 E.1 — compte et synthèse", () => {
     expect(formatCatalogueVolume(exercise({ name: "b", executionParameters: allFailureParameters(2) }))).toBe("2 séries à l’échec");
     expect(
       formatCatalogueVolume(exercise({ name: "c", executionParameters: uniformParameters({ count: 1, target: "UNSET" }) })),
-    ).toBe("Paramètres à compléter.");
+    ).toBe("Paramètres à compléter");
   });
 
   it("plusieurs exercices : compte sans multiplier par séries, tours ni répétitions de Cycle ; même Mouvement compté deux fois", () => {
@@ -108,11 +110,12 @@ describe("PRE-8 E.1 — compte et synthèse", () => {
       { kind: "EXERCISE", exercise: squat("a") },
       {
         kind: "CYCLE",
-        cycle: { id: "cy", repeatCount: 3, circuits: [circuit("c1", [squat("b"), squat("c")], 5), circuit("c2", [squat("d")], 2)] },
+        cycle: { id: "cy", repeatCount: 3, members: [circuit("c1", [squat("b"), squat("c")], 5), circuit("c2", [squat("d")], 2)].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) },
       },
     ]);
     expect(projection.exerciseCount).toBe(4);
-    expect(projection.summary).toEqual({ kind: "COUNT", count: 4 });
+    // D-505 : deux Circuits comptés une fois chacun, sans multiplier par tours ni passages.
+    expect(projection.shownCircuitCount).toBe(2);
     expect(projection.expandable).toBe(true);
   });
 
@@ -163,7 +166,7 @@ describe("PRE-8 E.1 — durée", () => {
   it("durée par l'autorité du Domaine (Cycles et Circuits compris)", () => {
     const projection = project([
       { kind: "EXERCISE", exercise: exercise({ name: "A", executionParameters: durationParameters(30) }) },
-      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, circuits: [circuit("c", [exercise({ name: "B", executionParameters: durationParameters(30) })], 3)] } },
+      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, members: [circuit("c", [exercise({ name: "B", executionParameters: durationParameters(30) })], 3)].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
     ]);
     expect(projection.duration).toEqual({ kind: "exact", seconds: 30 + 2 * 3 * 30 });
   });
@@ -183,24 +186,24 @@ describe("PRE-8 E.1 — arbre de la composition", () => {
         cycle: {
           id: "cy",
           repeatCount: 2,
-          circuits: [
+          members: [
             circuit("c1", [
               exercise({ id: "sq", name: "Squat assisté", executionParameters: repetitionParameters(12, 3) }),
               exercise({ id: "ext", name: "Extension de jambe", executionParameters: durationParameters(45, 2), postActivityRecoverySeconds: 60 }),
             ], 3),
-          ],
+          ].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })),
         },
       },
       { kind: "EXERCISE", exercise: exercise({ id: "cool", name: "Étirement ischio-jambiers", executionParameters: durationParameters(30) }) },
     ]);
     expect(projection.tree).toEqual([
-      { kind: "EXERCISE", key: "warm", depth: 0, name: "Mobilisation du genou", volume: "45 s" },
+      { kind: "EXERCISE", key: "warm", depth: 0, name: "Mobilisation du genou", volume: "45″" },
       { kind: "CYCLE", key: "cy", depth: 0, repeatCount: 2 },
       { kind: "CIRCUIT", key: "c1", depth: 1, repeatCount: 3, nature: "TOURS" },
       { kind: "EXERCISE", key: "sq", depth: 2, name: "Squat assisté", volume: "3 × 12 rép." },
-      { kind: "EXERCISE", key: "ext", depth: 2, name: "Extension de jambe", volume: "2 × 45 s" },
+      { kind: "EXERCISE", key: "ext", depth: 2, name: "Extension de jambe", volume: "2 × 45″" },
       { kind: "RECOVERY", key: "ext:recovery", depth: 2, seconds: 60 },
-      { kind: "EXERCISE", key: "cool", depth: 0, name: "Étirement ischio-jambiers", volume: "30 s" },
+      { kind: "EXERCISE", key: "cool", depth: 0, name: "Étirement ischio-jambiers", volume: "30″" },
     ]);
     expect(Math.max(...projection.tree.map((line) => line.depth))).toBe(2);
   });
@@ -209,7 +212,7 @@ describe("PRE-8 E.1 — arbre de la composition", () => {
     const projection = project([
       { kind: "CIRCUIT", circuit: circuit("trivial", [exercise({ id: "a", name: "A" })], 1) },
       { kind: "CIRCUIT", circuit: circuit("repeated", [exercise({ id: "b", name: "B" })], 2, "SERIES") },
-      { kind: "CYCLE", cycle: { id: "cy1", repeatCount: 1, circuits: [circuit("inner", [exercise({ id: "c", name: "C" })], 1)] } },
+      { kind: "CYCLE", cycle: { id: "cy1", repeatCount: 1, members: [circuit("inner", [exercise({ id: "c", name: "C" })], 1)].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
       { kind: "CIRCUIT", circuit: circuit("pair", [exercise({ id: "d", name: "D" }), exercise({ id: "e", name: "E" })], 1) },
     ]);
     expect(projection.tree.map((line) => [line.kind, line.key, line.depth])).toEqual([
@@ -225,7 +228,7 @@ describe("PRE-8 E.1 — arbre de la composition", () => {
 
   it("Cycle non répété de plusieurs Circuits : le Cycle est montré (il contient plusieurs exercices)", () => {
     const projection = project([
-      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 1, circuits: [circuit("x", [exercise({ id: "a", name: "A" })]), circuit("y", [exercise({ id: "b", name: "B" })])] } },
+      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 1, members: [circuit("x", [exercise({ id: "a", name: "A" })]), circuit("y", [exercise({ id: "b", name: "B" })])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
     ]);
     expect(projection.tree.map((line) => [line.kind, line.depth])).toEqual([
       ["CYCLE", 0],
@@ -257,11 +260,49 @@ describe("PRE-8 E.1 — lecture seule et identité", () => {
 });
 
 describe("PRE-8 E.2 — durée de la carte (D-391)", () => {
-  it("minutes et secondes exactes, sans arrondi ; « ≈ » estimée, « ≥ » borne minimale ; 0 s pour une Séance vide", () => {
-    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 315 })).toBe("5 min 15 s");
-    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 45 })).toBe("45 s");
-    expect(formatCatalogueSessionDuration({ kind: "estimated", seconds: 663 })).toBe("≈ 11 min 3 s");
-    expect(formatCatalogueSessionDuration({ kind: "lowerBound", seconds: 663 })).toBe("≥ 11 min 3 s");
-    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 0 })).toBe("0 s");
+  it("minutes et secondes exactes, sans arrondi ; « ≈ » estimée, « ≥ » borne minimale ; 0″ pour une Séance vide", () => {
+    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 315 })).toBe("5′15″");
+    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 45 })).toBe("45″");
+    expect(formatCatalogueSessionDuration({ kind: "estimated", seconds: 663 })).toBe("≈ 11′03″");
+    expect(formatCatalogueSessionDuration({ kind: "lowerBound", seconds: 663 })).toBe("≥ 11′03″");
+    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 0 })).toBe("0″");
+  });
+});
+
+/**
+ * D-505 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : nombre de circuits de la
+ * ligne 3 — omis sans circuit ou pour un seul circuit joué une seule fois ; compte structurel, jamais
+ * multiplié par tours ni passages.
+ */
+describe("D-505 — nombre de circuits de la ligne 3", () => {
+  const ex = (name: string) => exercise({ name });
+  it("aucun circuit : omis", () => {
+    expect(project([{ kind: "EXERCISE", exercise: ex("A") }, { kind: "EXERCISE", exercise: ex("B") }]).shownCircuitCount).toBeNull();
+  });
+  it("un circuit d'un tour : omis", () => {
+    expect(project([{ kind: "CIRCUIT", circuit: circuit("c1", [ex("A"), ex("B")], 1) }]).shownCircuitCount).toBeNull();
+  });
+  it("un circuit de plusieurs tours : « 1 circuit »", () => {
+    expect(project([{ kind: "CIRCUIT", circuit: circuit("c1", [ex("A"), ex("B")], 3, "SERIES") }]).shownCircuitCount).toBe(1);
+  });
+  it("un circuit d'un tour dans un Cycle de plusieurs passages : joué plusieurs fois, « 1 circuit »", () => {
+    const projection = project([
+      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, members: [{ kind: "CIRCUIT", circuit: circuit("c1", [ex("A"), ex("B")], 1) }] } },
+    ]);
+    expect(projection.shownCircuitCount).toBe(1);
+  });
+  it("plusieurs circuits : chacun compté une fois, quels que soient tours et passages", () => {
+    const projection = project([
+      { kind: "CIRCUIT", circuit: circuit("c1", [ex("A")], 1) },
+      { kind: "CIRCUIT", circuit: circuit("c2", [ex("B")], 4) },
+      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 3, members: [{ kind: "CIRCUIT", circuit: circuit("c3", [ex("C")], 2) }] } },
+    ]);
+    expect(projection.shownCircuitCount).toBe(3);
+  });
+});
+
+describe("D-505 — circuit sans exercice", () => {
+  it("un ancien Circuit implicite vide de plusieurs tours ne compte pas", () => {
+    expect(project([{ kind: "CIRCUIT", circuit: circuit("legacy", [], 2) }]).shownCircuitCount).toBeNull();
   });
 });

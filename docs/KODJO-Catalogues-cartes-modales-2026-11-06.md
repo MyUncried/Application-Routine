@@ -37,15 +37,15 @@ Chaque catalogue a une **zone de contexte** et un **fond d'écran** propres, de 
 
 | Catalogue | Zone de contexte et onglet sélectionné | Fond d'écran |
 |---|---|---|
-| Mouvements | `color/catalogue/mouvements/context` → `color/blue/sky-context-E5F0FF` (#E5F0FF) | `color/catalogue/mouvements/background` → `color/blue/sky-background-F7FAFF` (#F7FAFF) |
-| Séances | `color/catalogue/seances/context` → `color/blue/context-EAEAFF` (#EAEAFF) | `color/catalogue/seances/background` → `color/blue/background-tint-F8F8FF` (#F8F8FF) |
-| Programmes | `color/catalogue/programmes/context` → `color/blue/violet-context-EFE8FF` (#EFE8FF) | `color/catalogue/programmes/background` → `color/blue/violet-background-FAF8FF` (#FAF8FF) |
+| Mouvements | `color/catalogue/mouvements/context` → `color/blue/sky-context-E5F0FF` (#E5F0FF) | `color/catalogue/mouvements/background` → `color/blue/sky-background-F7FAFF` (#F7FAFF) [08/11/2026, D-501 révisée : #DDEBFF / #F1F7FF.] |
+| Séances | `color/catalogue/seances/context` → `color/blue/context-EAEAFF` (#EAEAFF) | `color/catalogue/seances/background` → `color/blue/background-tint-F8F8FF` (#F8F8FF) [08/11/2026 : fond #F7F7FF.] |
+| Programmes | `color/catalogue/programmes/context` → `color/blue/violet-context-EFE8FF` (#EFE8FF) | `color/catalogue/programmes/background` → `color/blue/violet-background-FAF8FF` (#FAF8FF) [08/11/2026 : fond #F9F6FF.] |
 
 Variables d'usage dans la collection « KODJO / Sémantiques », couleurs de base dans « KODJO / Primitives ». Le fond d'écran, la barre d'état, l'en-tête fixe et le fondu au-dessus de la navigation utilisent `background`. La zone de contexte est opaque (`context`) jusqu'à 80 % de sa hauteur, puis passe en fondu vers `background` ; elle est placée au-dessus de l'en-tête fixe pour former une seule surface avec l'onglet sélectionné. Une variable de couleur Figma étant opaque, le point transparent du fondu au-dessus de la navigation garde une valeur fixe.
 
 Cartes sur ces fonds : fond **blanc**, liseré existant à **50 %** d'opacité, ombre existante (0 / 2 / 10, 8 %).
 
-La Composition, la fiche Mouvement et les autres écrans à zone de contexte ne sont pas modifiés par ce paragraphe (§9).
+La Composition, la fiche Mouvement et les autres écrans à zone de contexte ne sont pas modifiés par ce paragraphe (§9). [Précisé le 06/11/2026 par la consigne de Hermann (D-509) : hors catalogue, la bande de contexte commune prend #EAEAFF (`color.contextBand`), valeur du chapitre 06, et non plus `selectionSurface` (#E5F0FF).]
 
 ## 4. Onglets et zone de contexte des catalogues (D-502, D-503)
 
@@ -53,7 +53,7 @@ La Composition, la fiche Mouvement et les autres écrans à zone de contexte ne 
 - **Onglet sélectionné :** forme posée sur la zone de contexte, de sa couleur (`context` du catalogue) ; coins hauts arrondis à 12, bas évasés en courbe inversée de rayon 10 jusqu'à la zone de contexte, sans raccord. Libellé **Bold**, `color/text-primary`. Onglets non sélectionnés : Regular, `color/text-secondary`. Plus de bleu sur le libellé.
 - **Hauteur de la zone de contexte inchangée** (115 pt, `y=92..207`) : elle reste commune avec la Composition et la fiche Mouvement.
 - **Première ligne** (« N familles · N mouvements », « Un exercice N · Plusieurs N », « N résultats » à droite) : séparateur **point médian** pour les deux catalogues, 8 pt de part et d'autre (remplace « | » des Séances). Écart entre cette ligne et la rangée de boutons égal à l'écart entre les boutons et la fin perçue de la zone (milieu du fondu), soit 16 pt.
-- **Deuxième ligne :** champ Rechercher de **34 pt** de haut, comme les boutons Filtre, Tri et Créer (34 pt), centré sur leur ligne ; rangée centrée entre la première ligne et le bas de la zone de contexte (22 pt de part et d'autre de la cible de 44 pt). Cible tactile du champ : 44 pt, sans changer son dessin.
+- **Deuxième ligne :** champ Rechercher de **34 pt** de haut, comme les boutons Filtre, Tri et Créer (34 pt), centré sur leur ligne ; rangée centrée entre la première ligne et le bas de la zone de contexte (22 pt de part et d'autre de la cible de 44 pt). Cible tactile du champ : 44 pt, sans changer son dessin. [Hermann, 06/11/2026, à « L'écart entre 16 pt (spec) et 22 pt (Figma) : j'ai suivi Figma. » : « Ok ». Les cotes de Figma prévalent pour cette rangée.]
 
 ## 5. Carte Séance (D-504, D-505, D-506)
 
@@ -87,11 +87,12 @@ Composant « DSF / Cards / Séance », variantes Catalogue repliée, archivée e
 
 ## 7. Carte Mouvement et piles (D-508)
 
-Composant « Carte — Mouvement » (`10124:21979`), variantes sans sélection, vide et cochée.
+Composant « Carte — Mouvement » (`10124:21979`), variantes sans sélection, vide et cochée. Badge « New » : voir [KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06](KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06.md) (D-510).
 
 - 72 pt ; photo 64 à 4 pt du bord, rayon 8 ; fond blanc ; liseré à 50 %.
 - Nom et description à 8 pt de la photo ; nom à 8 pt du haut.
 - Niveau à 12 pt du bord droit (en mode sélection : 12 pt avant la case, centrée verticalement), aligné sur la ligne de base du nom.
+- **Petite carte « Mouvement sélectionné » des Formats (ajout du 08/11/2026, Hermann, recette b-cat-niveau ; classe B) :** Niveau en noir (`text-primary`, #141414), sur la ligne de base du nom, partout — mode catalogue d'un Format, questionnaire et récapitulatif. [07/11/2026 : noir et aligné dans le seul mode catalogue, « Les cartes des récapitulatifs gardent leur Niveau en bleu » (chapitre 07) — remplacé le 08/11/2026.]
 - **Feuilles de pile :** 72 pt, blanches, liseré 0,5 pt à 50 %, **même ombre que la carte** : chaque couche ombre la suivante et les bandes visibles sont identiques.
 - Cartes réempilées en gardant leurs écarts ; actions glissées et commandes « Plus facile / Plus difficile » alignées sur les nouvelles hauteurs.
 
@@ -102,7 +103,7 @@ Le bandeau de contexte commun du code (`ScreenShell.ContextBand`) utilise `color
 ## 9. Hors périmètre et points ouverts
 
 - **Catalogue des programmes :** aucun écran dans le prototype ; ses variables sont prêtes.
-- **Zone de contexte de la Composition, de la fiche Mouvement et des écrans d'exercice :** couleur non modifiée ; rattachement à une teinte de catalogue à décider.
+- **Zone de contexte de la Composition, de la fiche Mouvement et des écrans d'exercice :** couleur non modifiée ; rattachement à une teinte de catalogue à décider. [Remplacé le 06/11/2026 (consigne de Hermann, D-509) : #EAEAFF (`color.contextBand`) pour toute bande de contexte hors catalogue ; le rattachement éventuel à une teinte de catalogue reste à décider.]
 - **Cartes de séance des contextes Calendrier, Suivi, Choix multiple :** non migrées au nouveau format.
 - **AMRAP :** proposition non arbitrée (au moins un exercice de la boucle en Répétitions ; Max seulement en Répétitions). Aucune règle n'est modifiée par ce document.
 - **Zones de toucher :** le champ Rechercher (34 pt), Démarrer (24 pt) et le chevron (10 pt) gardent une cible de 44 pt dans le code.
@@ -125,7 +126,7 @@ Décisions de Hermann du 06/11/2026, classe B : D-511 à D-513. Elles remplacent
 
 ### Carte d'exercice — D-511
 
-- Carte : hauteur 72 pt, fond blanc, liseré 0,5 pt à 50 % utilisant la variable des cartes de séance, rayon 12. Largeur de référence 362 pt ; adaptation au terminal selon le contrat existant.
+- Carte : hauteur 72 pt, fond blanc, liseré 0,5 pt à 50 % utilisant la variable des cartes de séance, rayon 12. [Précisé le 08/11/2026 au soir : 0,75 pt pour la carte directement dans la Séance ; 0,5 pt dans un Circuit ou un Cycle (`borderWidths.exerciseCardSessionLevel` / `exerciseCard`). Hermann, 09/11/2026 : « Couleur pleine pour la couleur du liseré de l’exercice hors circuit et cycle. » — `#CCD1E0` plein dans la Séance, 50 % dans un Circuit ou un Cycle.] Largeur de référence 362 pt ; adaptation au terminal selon le contrat existant.
 - Photo : 64 × 64 pt, à 4 pt du bord, rayon 8. Pictogramme noir hors circuit et gris dans un circuit.
 - Ligne 1 : nom Semi Bold 15, à 8 pt de la photo et du haut, tronqué avant la valeur de droite ; niveau Medium 12, text-primary, à 12 pt du bord droit, aligné sur la ligne de base du nom. Sans niveau, aucun contenu à droite.
 - Ligne 2 : catégorie ; à droite, prescription Semi Bold 12, text-primary (« 50 rép. », « 10 · 12 · … rép. », « 3 × 1 min 30 », « max », « 45 s »). L’icône de changement de côté précède immédiatement la prescription. Aucun chronomètre devant la valeur.
@@ -151,4 +152,8 @@ Seul le Point d’arrêt se pose. La récupération ne se pose plus ; sa saisie 
 
 - Écran de référence : « P-AMRAP — Séance, circuit avec buy-in — Cartes au format catalogue » `11789:21914`.
 - Composant : « DSF / Cards / Exercice — Composition » `11810:2159`, page « Design system — Fondations » ; variantes « Hors circuit » `11810:2102`, « Dans un circuit » `11810:2132`. Dimensions 362 × 72 confirmées par lecture directe des métadonnées.
-- Déploiement annoncé par Hermann : 120 instances sur 37 écrans, aucune carte manuelle restante. Ce décompte n’a pas été recompté dans cette passe ; les deux écrans de référence ont été contrôlés directement. Aucune conformité du code n’est déclarée.
+- Déploiement annoncé par Hermann : 120 instances sur 37 écrans, aucune carte manuelle restante. Ce décompte n’a pas été recompté dans cette passe ; les deux écrans de référence ont été contrôlés directement. Aucune conformité du code n’est déclarée. [Code : carte réalisée le 08/11/2026, voir ci-dessous ; conformité visuelle à vérifier sur iPhone.]
+
+### Réalisation dans l’application — 08/11/2026
+
+Demande de Hermann du 08/11/2026 : « Utiliser le composant « Carte d'exercice » dans la Composition de séance. » Composant partagé `OccurrenceCard` (`src/features/sessions/OccurrenceCard.tsx`) pour toutes les cartes d’Exercice de la Composition ; variante par appartenance effective à un Circuit. Compléments de prescription : départ et incrément (« 10 rép. +2/tour », « 1 rép. +1/min »), « à l’échec » sans durée pour une seule série, aucune estimation sur la carte. Durées au format `S″` / `M′SS″` / `Hh MM′` : les exemples « 3 × 1 min 30 » et « 45 s » ci-dessus s’écrivent « 3 × 1′30″ » et « 45″ » [format des durées du 08/11/2026 au soir]. Bandeau « Confirmer N points d’arrêt ajoutés » (D-513). Texte normatif recopié et points À CLARIFIER : chapitre 07, « Composition — carte d'exercice au composant DSF / Cards / Exercice — Composition (08/11/2026) ».

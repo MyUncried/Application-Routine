@@ -8,7 +8,7 @@ import { formatActivityCount } from "@/features/sessions/formatSessionSummary";
 import { formatCatalogueSessionDuration, type CatalogueCategoryRef, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { sessionFormatOf } from "@/features/sessions/sessionFormats";
 import { strings } from "@/shared/i18n";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -18,25 +18,47 @@ import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/t
  * un Exercice ou plusieurs (D-449 §6). Présentation pure : elle ne lit ni n'écrit rien ; elle affiche
  * la projection de lecture (`projectSessionForCatalogue`, E.1).
  *
- * - Visuel carré 64 à 8 du bord (média de l'Exercice, sinon vignette Libre) ; texte à 84.
- * - Nom, suivi du chevron SEULEMENT pour plusieurs Exercices ; ce chevron est le seul contrôle de
- *   déploiement (E.3) ; il pointe vers le haut une fois ouvert.
- * - Catégories précédées de leur pastille, dédupliquées, « +N » quand elles dépassent la largeur,
- *   jamais coupées au milieu d'un mot (`fitCategoryCount`). Ni étiquette ni zone sur la carte.
- * - Synthèse : format, sinon N exercices, sinon volume ; puis la durée en minutes et secondes, sans
- *   arrondi, préfixée « ≈ » / « ≥ » (D-391, `formatCatalogueSessionDuration`).
- * - Lecture : présente sur toute carte active, cible 48 à 8 du bord, DÉSACTIVÉE et annoncée
- *   indisponible (aucune Exécution ; CE-T03-01). Un toucher sur elle n'ouvre rien.
- * - Archivée : aucune action directe ; la colonne de texte va jusqu'à la marge.
+ * D-504 à D-506 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5 ; Figma
+ * « DSF / Cards / Séance » `6214:7276`) :
+ * - Carte de 72 (repliée et archivée), en-tête de 72 dans la dépliée. Photo 64 à 4 du bord gauche,
+ *   haut et bas, rayon 8. Colonne des symboles à 8 de la photo, symboles centrés dans 10 (chevron,
+ *   catégorie, haltère) ; textes alignés après cette colonne, à 8 du haut et du bas.
+ * - Chevron à gauche du nom sur TOUTES les cartes : → repliée, ↓ dépliée ; cible ≥ 44 (`minTouchTarget`, 48).
+ * - Durée en haut à droite, à 12 du bord, sans sablier, sur la ligne de base du nom ; le nom est
+ *   tronqué (« … ») avant la durée.
+ * - Ligne 3 « N circuits · N exercices » (`formatSessionStructureLine`, D-505).
+ * - Démarrer : pilule de 24 en bas à droite (12 du bord droit, 8 du bas), fond `background` du
+ *   catalogue des séances, texte bleu KODJO 12 Medium, sans liseré, ombre 0/2/4 noir 14 %, cible ≥ 44
+ *   (`minTouchTarget`, 48).
+ *   Masqué sur une carte archivée et dans les modales de planification (`context="planning"`).
+ * - Fond blanc, liseré existant à 50 %, ombre existante (0/2/10, 8 %).
+ * [Avant : carte de 80, visuel à 8 du bord, chevron après le nom, sablier, synthèse « format ou
+ * volume » (« jamais 1 exercice »), action lecture ronde de 48 à droite — remplacé le 06/11/2026.]
  *
- * Le toucher de la carte (ouvrir la Composition) et le glissé sont portés par l'appelant
- * (`SwipeActionsRow`, E.5) ; le chevron et Lecture interceptent leur propre toucher.
+ * Zones de toucher (D-504, précision de Hermann du 06/11/2026 : « toucher la photo ouvre la
+ * composition de séance en modification ; Démarrer exécute la séance ; le chevron et toute la zone
+ * centrale de la carte déploient/replient la séance ; toucher toute la zone déployée ouvre la séance
+ * en modification. Ces cibles sont distinctes. ») : la photo et la zone déployée interceptent leur
+ * toucher (`onOpen`) ; Démarrer intercepte le sien (`onStart`) ; le chevron déploie
+ * (`onToggleExpanded`) ; le reste de la zone centrale et le glissé sont portés par l'appelant
+ * (`SwipeActionsRow`, E.5), qui déploie ou replie.
+ * - Démarrer sans `onStart` : présent, désactivé et annoncé indisponible (CE-T03-01 : aucune
+ *   Exécution livrée) ; son toucher est intercepté et n'ouvre rien.
  */
+
+/** D-504 : contexte d'affichage — `planning` (modales de planification) masque Démarrer. */
+export type SessionCardContext = "catalogue" | "planning";
 
 export type SessionCardProps = {
   readonly projection: SessionCatalogueProjection;
   readonly expanded?: boolean;
   readonly onToggleExpanded?: () => void;
+  /** D-504 : toucher de la photo ou de la composition déployée — ouvre la Séance en modification. */
+  readonly onOpen?: () => void;
+  /** D-504 : Démarrer exécute la Séance ; absent, Démarrer reste présent et indisponible. */
+  readonly onStart?: () => void;
+  /** D-504 : `planning` (« Choisir une séance », « Sélectionner une/plusieurs séances ») masque Démarrer. */
+  readonly context?: SessionCardContext;
   /** E.3 : composition déployée, rendue sous l'en-tête. */
   readonly children?: ReactNode;
 };
@@ -44,10 +66,26 @@ export type SessionCardProps = {
 const CHEVRON_ICON = require("../../../assets/icons/icon-catalogue-chevron.svg");
 const CATEGORY_ICON = require("../../../assets/icons/icon-catalogue-categorie.svg");
 const EXERCISES_ICON = require("../../../assets/icons/icon-catalogue-haltere.svg");
-const DURATION_ICON = require("../../../assets/icons/icon-catalogue-sablier.svg");
 
 const t = strings.screens.sessions.catalogueCard;
 const CATEGORY_SEPARATOR = " · ";
+
+/**
+ * D-505 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : ligne 3
+ * « N circuits · N exercices » ; le nombre de circuits est omis sans circuit ou pour un seul circuit
+ * joué une seule fois (`shownCircuitCount`) ; « 1 exercice » pour une Séance d'un seul Exercice ;
+ * « 0 exercice » pour une Séance vide (Q-E6). [Avant : format, sinon N exercices, sinon volume de
+ * l'Exercice unique, « jamais 1 exercice » — remplacé.]
+ */
+export function formatSessionStructureLine(projection: Pick<SessionCatalogueProjection, "shownCircuitCount" | "exerciseCount">): string {
+  const exercises = formatActivityCount(projection.exerciseCount);
+  const circuits = projection.shownCircuitCount;
+  if (circuits === null) return exercises;
+  return fillTemplate(t.structureLine, {
+    circuits: `${circuits} ${circuits === 1 ? t.circuitUnit.singular : t.circuitUnit.plural}`,
+    exercises,
+  });
+}
 
 /**
  * Nombre de catégories affichées entières sur la largeur `available` (spécification §1 : « +N »
@@ -70,78 +108,113 @@ export function fitCategoryCount(
   return Math.min(total, 1);
 }
 
-export function SessionCard({ projection, expanded = false, onToggleExpanded, children }: SessionCardProps) {
+export function SessionCard({
+  projection,
+  expanded = false,
+  onToggleExpanded,
+  onOpen,
+  onStart,
+  context = "catalogue",
+  children,
+}: SessionCardProps) {
   const archived = projection.status === "ARCHIVED";
+  const incomplete = projection.incomplete;
+  // PRE-9, contre-recette n° 3 (cr4-verifier) : carte orange « Paramètre à vérifier » ; le rouge prime.
+  const toVerify = !incomplete && projection.toVerify;
+  const flagged = incomplete || toVerify;
   const id = projection.id;
   const duration = formatCatalogueSessionDuration(projection.duration);
-  const summary =
-    projection.summary.kind === "FORMAT"
-      ? projection.summary.label
-      : projection.summary.kind === "VOLUME"
-        ? projection.summary.volume
-        : formatActivityCount(projection.summary.count);
+  // D-504 : Démarrer masqué sur une carte archivée et dans les modales de planification.
+  const showStart = !archived && context !== "planning";
+  const startAvailable = onStart !== undefined;
 
   return (
-    <View style={[styles.card, archived ? styles.cardArchived : null]} testID={`session-card-${id}`}>
-      <View style={styles.header}>
-        <CardVisual projection={projection} />
-        <View style={[styles.texts, archived ? styles.textsArchived : null]}>
+    <View
+      style={[
+        styles.card,
+        archived ? styles.cardArchived : null,
+        incomplete ? styles.cardIncomplete : toVerify ? styles.cardToVerify : null,
+      ]}
+      testID={`session-card-${id}`}
+    >
+      <View style={[styles.header, flagged ? styles.headerFlagged : null]} testID={`session-card-${id}-header`}>
+        {/* D-504 : la photo ouvre la Séance en modification. Pour VoiceOver, la carte reste un seul
+            élément (ouverture : action nommée de l'appelant). */}
+        <Pressable
+          onPress={onOpen}
+          accessible={false}
+          style={[styles.visualTarget, flagged ? styles.visualTargetFlagged : null]}
+          testID={`session-card-${id}-visual-open`}
+        >
+          <CardVisual projection={projection} />
+        </Pressable>
+        <View style={[styles.texts, flagged ? styles.textsFlagged : null]} testID={`session-card-${id}-texts`}>
           <View style={styles.titleRow}>
-            <Text style={styles.name} numberOfLines={1} testID={`session-card-${id}-name`}>
-              {projection.name}
-            </Text>
-            {projection.expandable ? (
-              <Pressable
-                onPress={onToggleExpanded}
-                accessibilityRole="button"
-                accessibilityLabel={fillTemplate(expanded ? t.collapseAccessibilityLabel : t.expandAccessibilityLabel, {
-                  name: projection.name,
-                })}
-                accessibilityState={{ expanded }}
-                hitSlop={CHEVRON_HIT_SLOP}
-                style={styles.chevron}
-                testID={`session-card-${id}-disclosure`}
-              >
-                <Image
-                  source={CHEVRON_ICON}
-                  style={[styles.chevronIcon, expanded ? styles.chevronOpen : null]}
-                  accessible={false}
-                  testID={`session-card-${id}-chevron${expanded ? "-open" : ""}`}
-                />
-              </Pressable>
-            ) : null}
-          </View>
-          <CategoryLine categories={projection.categories} testID={`session-card-${id}-categories`} />
-          <View style={styles.synthesisRow}>
-            <View style={styles.synthesisStart}>
-              <Image source={EXERCISES_ICON} style={styles.icon16} accessible={false} />
-              <Text style={styles.meta} numberOfLines={1} testID={`session-card-${id}-summary`}>
-                {summary}
+            {/* D-504 : chevron à gauche du nom sur toute carte ; → repliée, ↓ dépliée. */}
+            <Pressable
+              onPress={onToggleExpanded}
+              accessibilityRole="button"
+              accessibilityLabel={fillTemplate(expanded ? t.collapseAccessibilityLabel : t.expandAccessibilityLabel, {
+                name: projection.name,
+              })}
+              accessibilityState={{ expanded }}
+              hitSlop={CHEVRON_HIT_SLOP}
+              style={styles.symbolColumn}
+              testID={`session-card-${id}-disclosure`}
+            >
+              <Image
+                source={CHEVRON_ICON}
+                style={[styles.chevronIcon, expanded ? styles.chevronDown : styles.chevronRight]}
+                accessible={false}
+                testID={`session-card-${id}-chevron${expanded ? "-open" : ""}`}
+              />
+            </Pressable>
+            {/* D-506 : durée sur la ligne de base du nom ; le nom est tronqué avant elle. */}
+            <View style={styles.nameAndDuration}>
+              <Text style={styles.name} numberOfLines={1} testID={`session-card-${id}-name`}>
+                {projection.name}
               </Text>
-            </View>
-            <View style={styles.durationBlock}>
-              <Image source={DURATION_ICON} style={styles.icon16} accessible={false} />
               <Text style={styles.duration} numberOfLines={1} testID={`session-card-${id}-duration`}>
                 {duration}
               </Text>
             </View>
           </View>
+          <View style={[styles.metaRows, showStart ? styles.besideStart : null]}>
+            <CategoryLine categories={projection.categories} testID={`session-card-${id}-categories`} />
+            <View style={styles.metaRow}>
+              <View style={styles.symbolColumn}>
+                <Image source={EXERCISES_ICON} style={styles.exercisesIcon} accessible={false} />
+              </View>
+              <Text style={styles.meta} numberOfLines={1} testID={`session-card-${id}-summary`}>
+                {formatSessionStructureLine(projection)}
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
-      {!archived ? (
-        // Présente et désactivée (CE-T03-01) : le toucher est intercepté, jamais transmis à la carte.
+      {showStart ? (
+        // D-504 : Démarrer intercepte son toucher, jamais transmis à la carte. Sans `onStart`, présent
+        // et désactivé (CE-T03-01, aucune Exécution livrée).
         <Pressable
-          onPress={() => undefined}
+          onPress={startAvailable ? onStart : () => undefined}
           accessibilityRole="button"
-          accessibilityLabel={t.playUnavailableAccessibilityLabel}
-          accessibilityState={{ disabled: true }}
-          style={styles.play}
-          testID={`session-card-${id}-play`}
+          accessibilityLabel={startAvailable ? t.start : t.startUnavailableAccessibilityLabel}
+          accessibilityState={startAvailable ? undefined : { disabled: true }}
+          hitSlop={START_HIT_SLOP}
+          style={[styles.start, flagged ? styles.startFlagged : null]}
+          testID={`session-card-${id}-start`}
         >
-          <KodjoIcon name="action-start" opacity={0.55} />
+          <Text style={[styles.startLabel, startAvailable ? null : styles.startLabelUnavailable]} numberOfLines={1}>
+            {t.start}
+          </Text>
         </Pressable>
       ) : null}
-      {expanded ? children : null}
+      {expanded ? (
+        // D-504 : toute la zone déployée ouvre la Séance en modification.
+        <Pressable onPress={onOpen} accessible={false} testID={`session-card-${id}-expanded-open`}>
+          {children}
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -180,7 +253,7 @@ function CategoryLine({ categories, testID }: { readonly categories: readonly Ca
   const [available, setAvailable] = useState<number | null>(null);
   const [widths, setWidths] = useState<Readonly<Record<string, number>>>({});
   if (categories.length === 0) {
-    return <View style={styles.categoryRow} testID={`${testID}-empty`} />;
+    return <View style={styles.metaRow} testID={`${testID}-empty`} />;
   }
   const measure = (key: string) => (event: LayoutChangeEvent) => {
     const width = event.nativeEvent.layout.width;
@@ -201,8 +274,8 @@ function CategoryLine({ categories, testID }: { readonly categories: readonly Ca
   const hidden = names.length - shown;
   const label = names.slice(0, shown).join(CATEGORY_SEPARATOR);
   return (
-    <View style={styles.categoryRow} testID={testID}>
-      <View style={styles.categoryBadge}>
+    <View style={styles.metaRow} testID={testID}>
+      <View style={styles.symbolColumn}>
         <Image source={CATEGORY_ICON} style={styles.categoryIcon} accessible={false} />
       </View>
       <View
@@ -243,39 +316,106 @@ function CategoryLine({ categories, testID }: { readonly categories: readonly Ca
 }
 
 const CARD_BORDER = 0.5;
+/**
+ * Contre-recette du 30/10/2026 : liseré d'une Séance incomplète, celui de la carte d'Exercice à
+ * compléter de la Composition (`OCCURRENCE_CARD_BORDER_WIDTH`, `occurrenceCardIncompleteSurface`).
+ */
+const INCOMPLETE_BORDER = 1;
+/**
+ * D-501 / D-504 (Hermann, 06/11/2026 ; §3 et §5) : liseré existant (`colors.cardsBorder` #CCD1E0,
+ * `colors.cardsArchiveBorder` #D9D9D9) à 50 % d'opacité — valeurs dérivées, sans jeton dédié.
+ */
+const CARD_BORDER_COLOR = "rgba(204, 209, 224, 0.5)";
+const CARD_ARCHIVED_BORDER_COLOR = "rgba(217, 217, 217, 0.5)";
 const VISUAL_SIZE = 64;
-/** Spécification §1 : visuel et zone de Lecture à 8 du bord. */
-const EDGE = spacing[8];
-/** Texte à 84 du bord (64 + 8 + 12). */
-const TEXT_GAP = spacing[12];
-const PLAY_TARGET = 48;
-const CHEVRON_SIZE = 20;
-const CHEVRON_SLOP = (minTouchTarget - CHEVRON_SIZE) / 2;
-const CHEVRON_HIT_SLOP = { top: CHEVRON_SLOP, bottom: CHEVRON_SLOP, left: CHEVRON_SLOP, right: CHEVRON_SLOP } as const;
-/** Hauteur de l'en-tête replié (Figma : carte 80). */
-export const SESSION_CARD_HEADER_HEIGHT = 80;
+/** D-504 : photo à 4 du bord gauche, haut et bas (rayon 8, concentrique : 12 − 4). */
+const PHOTO_EDGE = spacing[4];
+/** D-504 : colonne des symboles à 8 de la photo ; symboles centrés dans 10. */
+const SYMBOL_GAP = spacing[8];
+const SYMBOL_COLUMN = 10;
+/** Figma `6214:3572` : textes à 7 de la colonne des symboles (6,92 à 7,08 selon la ligne). */
+const SYMBOL_TEXT_GAP = 7;
+/** D-504 : textes à 8 du haut et du bas ; durée et Démarrer à 12 du bord droit. */
+const TEXT_EDGE = spacing[8];
+const RIGHT_EDGE = spacing[12];
+const TITLE_ROW_HEIGHT = 20;
+const META_ROW_HEIGHT = 16;
+const ROW_GAP = spacing[2];
+/** D-504 : pilule Démarrer de 24 (Figma 76 de large, 10 de marge interne), à 8 du bas de l'en-tête. */
+const START_HEIGHT = 24;
+const START_WIDTH = 76;
+const START_BOTTOM = spacing[8];
+const START_SLOP = (minTouchTarget - START_HEIGHT) / 2;
+const START_HIT_SLOP = { top: START_SLOP, bottom: START_SLOP, left: 0, right: 0 } as const;
+/** Glyphe du chevron (20 × 20, `icon-catalogue-chevron.svg`) centré dans la colonne de 10. */
+const CHEVRON_GLYPH = 20;
+/**
+ * D-504 / §9 : cible du chevron portée à `minTouchTarget` (48, au moins les 44 exigés) ; à gauche, elle s'arrête au bord de la photo (8) pour
+ * garder les cibles distinctes, le complément passe à droite.
+ */
+const CHEVRON_HIT_SLOP = {
+  top: (minTouchTarget - TITLE_ROW_HEIGHT) / 2,
+  bottom: (minTouchTarget - TITLE_ROW_HEIGHT) / 2,
+  left: SYMBOL_GAP,
+  right: minTouchTarget - SYMBOL_COLUMN - SYMBOL_GAP,
+} as const;
+/** Hauteur de l'en-tête replié (D-504 : carte de 72 ; Figma `6214:3572`). [Avant : 80 — remplacé.] */
+export const SESSION_CARD_HEADER_HEIGHT = 72;
 
 const styles = StyleSheet.create({
-  // Tokens de carte de B.9 : fond `#F9FAFC`, bordure 0,5 `#CCD1E0`, rayon 12, ombre 8 % 0/2/10.
+  // D-501 / D-504 : fond blanc, liseré 0,5 à 50 %, rayon 12, ombre existante 8 % 0/2/10.
+  // [Avant : fond `surfaceSubtle` #F9FAFC, liseré plein — remplacé le 06/11/2026.]
   card: {
     borderRadius: fixedRadii[12],
     borderWidth: CARD_BORDER,
-    borderColor: colors.cardsBorder,
-    backgroundColor: colors.surfaceSubtle,
+    borderColor: CARD_BORDER_COLOR,
+    backgroundColor: colors.background,
     shadowColor: colors.movementCardShadow,
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
+  // Figma `6214:3625` (archivée) : fond `color/surface`, liseré d'archive.
   cardArchived: {
-    borderColor: colors.cardsArchiveBorder,
+    backgroundColor: colors.surface,
+    borderColor: CARD_ARCHIVED_BORDER_COLOR,
+  },
+  // Contre-recette iPhone du 30/10/2026 (Hermann : « Une séance incomplète doit avoir le même format
+  // qu'un exercice incomplet (fond rouge liseré rouge) ») : mêmes jetons que la carte d'Exercice à
+  // compléter (`colors.dangerSurface`, bord 1 `colors.danger`) ; le contenu ne bouge pas (marges
+  // compensées du demi-point de bord en plus).
+  cardIncomplete: {
+    backgroundColor: colors.dangerSurface,
+    borderWidth: INCOMPLETE_BORDER,
+    borderColor: colors.danger,
+  },
+  // PRE-9, contre-recette n° 3 du 31/10/2026 (cr4-verifier, Hermann : « La carte de la séance dans le
+  // catalogue de séances doit aussi être orange. ») : mêmes jetons que la carte d'Exercice « à
+  // vérifier » de la Composition (`occurrenceCardToVerifySurface` : `toVerifyColors`, bord 1), même
+  // compensation des marges que la carte à compléter. Rendu choisi sans maquette. Sans liseré depuis le 08/11/2026, comme la carte
+  // d'Exercice (Hermann : « pas de liseré orange ») ; bord transparent. [Liseré `toVerifyColors.border` — retiré.]
+  cardToVerify: {
+    backgroundColor: toVerifyColors.surface,
+    borderWidth: INCOMPLETE_BORDER,
+    borderColor: "transparent",
   },
   header: {
-    minHeight: SESSION_CARD_HEADER_HEIGHT - 2 * CARD_BORDER,
+    height: SESSION_CARD_HEADER_HEIGHT - 2 * CARD_BORDER,
     flexDirection: "row",
     alignItems: "flex-start",
-    padding: EDGE - CARD_BORDER,
+  },
+  // Carte à compléter ou à vérifier : cotes compensées du bord 1.
+  headerFlagged: {
+    height: SESSION_CARD_HEADER_HEIGHT - 2 * INCOMPLETE_BORDER,
+  },
+  visualTarget: {
+    marginLeft: PHOTO_EDGE - CARD_BORDER,
+    marginTop: PHOTO_EDGE - CARD_BORDER,
+  },
+  visualTargetFlagged: {
+    marginLeft: PHOTO_EDGE - INCOMPLETE_BORDER,
+    marginTop: PHOTO_EDGE - INCOMPLETE_BORDER,
   },
   visual: {
     width: VISUAL_SIZE,
@@ -290,59 +430,87 @@ const styles = StyleSheet.create({
   visualFallback: {
     backgroundColor: colors.surface,
   },
-  // Colonne de texte : de 84 jusqu'à 8 avant la zone de Lecture (306 au gabarit 402), ou jusqu'à la
-  // marge pour une carte archivée (aucune action).
+  // Colonne de texte : de la colonne des symboles (8 après la photo) jusqu'à 12 du bord droit.
   texts: {
     flex: 1,
     minWidth: 0,
-    marginLeft: TEXT_GAP,
-    marginRight: PLAY_TARGET + EDGE,
+    marginLeft: SYMBOL_GAP,
+    paddingTop: TEXT_EDGE - CARD_BORDER,
+    paddingRight: RIGHT_EDGE - CARD_BORDER,
+    gap: ROW_GAP,
   },
-  textsArchived: {
-    marginRight: 0,
+  textsFlagged: {
+    paddingTop: TEXT_EDGE - INCOMPLETE_BORDER,
+    paddingRight: RIGHT_EDGE - INCOMPLETE_BORDER,
+  },
+  // Lignes 2 et 3 : arrêtées à 8 avant Démarrer quand il est affiché.
+  metaRows: {
+    gap: ROW_GAP,
+  },
+  besideStart: {
+    marginRight: START_WIDTH + spacing[8],
   },
   titleRow: {
-    minHeight: CHEVRON_SIZE,
+    height: TITLE_ROW_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
+    gap: SYMBOL_TEXT_GAP,
+  },
+  symbolColumn: {
+    width: SYMBOL_COLUMN,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  // Glyphe 20 × 20 centré dans 10 ; pivoté : → repliée, ↓ dépliée (D-504).
+  chevronIcon: {
+    width: CHEVRON_GLYPH,
+    height: CHEVRON_GLYPH,
+    marginHorizontal: (SYMBOL_COLUMN - CHEVRON_GLYPH) / 2,
+  },
+  chevronRight: {
+    transform: [{ rotate: "-90deg" }],
+  },
+  chevronDown: {
+    transform: [{ rotate: "0deg" }],
+  },
+  nameAndDuration: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "baseline",
     gap: spacing[6],
-    marginBottom: spacing[6],
   },
   // Recette du 28/10/2026 (e2-10, texte agrandi) : sans interligne fixe, la ligne suit la taille de
-  // la police et le bas des lettres n'est plus rogné ; la rangée garde sa hauteur de 20 au repos.
+  // la police et le bas des lettres n'est plus rogné.
   name: {
     ...type.listCardTitle,
     lineHeight: undefined,
     flexShrink: 1,
     color: colors.catalogueSessionTitle,
   },
-  chevron: {
-    width: CHEVRON_SIZE,
-    height: CHEVRON_SIZE,
+  duration: {
+    ...type.cardDuration,
+    lineHeight: undefined,
+    marginLeft: "auto",
+    color: colors.textPrimary,
   },
-  chevronIcon: {
-    width: CHEVRON_SIZE,
-    height: CHEVRON_SIZE,
-  },
-  chevronOpen: {
-    transform: [{ rotate: "180deg" }],
-  },
-  categoryRow: {
-    minHeight: 20,
+  metaRow: {
+    height: META_ROW_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: spacing[2],
-  },
-  categoryBadge: {
-    width: 20,
-    height: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: spacing[8],
+    gap: SYMBOL_TEXT_GAP,
   },
   categoryIcon: {
     width: 14,
     height: 14,
+    marginHorizontal: (SYMBOL_COLUMN - 14) / 2,
+  },
+  // D-504 : haltère 12 de large, centré dans la colonne de 10.
+  exercisesIcon: {
+    width: 12,
+    height: 12,
+    marginHorizontal: (SYMBOL_COLUMN - 12) / 2,
   },
   categoryTexts: {
     flex: 1,
@@ -356,46 +524,44 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
   },
+  // Figma `6214:3572` : métadonnées Inter Regular 12, `#595E66` (`colors.textSecondary`).
+  // [Avant : `colors.movementCardDescription` — remplacé le 06/11/2026.]
   meta: {
     ...type.supporting,
-    color: colors.movementCardDescription,
-  },
-  synthesisRow: {
-    minHeight: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing[8],
-  },
-  synthesisStart: {
     flexShrink: 1,
-    minWidth: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[10],
-    paddingLeft: 1,
+    color: colors.textSecondary,
   },
-  durationBlock: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-  icon16: {
-    width: 16,
-    height: 16,
-  },
-  duration: {
-    ...type.cardDuration,
-    color: colors.textPrimary,
-  },
-  // Zone de Lecture : cible 48, à 8 du bord droit, centrée sur l'en-tête replié (Figma y 16).
-  play: {
+  // D-504 : pilule Démarrer — fond `color/catalogue/seances/background`, sans liseré, ombre des
+  // actions contextuelles (0 / 2 / 4, noir 14 %), à 12 du bord droit et 8 du bas de l'en-tête.
+  start: {
     position: "absolute",
-    top: (SESSION_CARD_HEADER_HEIGHT - PLAY_TARGET) / 2 - CARD_BORDER,
-    right: EDGE - CARD_BORDER,
-    width: PLAY_TARGET,
-    height: PLAY_TARGET,
+    top: SESSION_CARD_HEADER_HEIGHT - START_BOTTOM - START_HEIGHT - CARD_BORDER,
+    right: RIGHT_EDGE - CARD_BORDER,
+    width: START_WIDTH,
+    height: START_HEIGHT,
+    borderRadius: START_HEIGHT / 2,
+    paddingHorizontal: spacing[10],
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.catalogueSessionsBackground,
+    shadowColor: "#000000",
+    shadowOpacity: 0.14,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  startFlagged: {
+    top: SESSION_CARD_HEADER_HEIGHT - START_BOTTOM - START_HEIGHT - INCOMPLETE_BORDER,
+    right: RIGHT_EDGE - INCOMPLETE_BORDER,
+  },
+  // Inter Medium 12 (même style que `movementCardLevel`), bleu KODJO.
+  startLabel: {
+    ...type.movementCardLevel,
+    lineHeight: undefined,
+    color: colors.primary,
+  },
+  // CE-T03-01 : aucune Exécution livrée — même atténuation que l'ancienne action lecture (0,55).
+  startLabelUnavailable: {
+    opacity: 0.55,
   },
 });

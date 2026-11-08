@@ -5,7 +5,6 @@ import { durationParameters } from "@/domain/activities/testing/executionParamet
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
@@ -25,7 +24,6 @@ const repository = () => new SqliteMovementRepository(database, () => `gen-${++s
 const catalogue = () => new MovementCatalogueService(repository());
 const definitions = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, () => `def-${++sequence}`, () => NOW),
     undefined,
     undefined,
     undefined,
@@ -83,28 +81,31 @@ const ranks = async () =>
   Object.fromEntries((await catalogue().listEntries()).map((entry) => [entry.movement.id, [entry.level?.rank, entry.level?.total, entry.archived]]));
 
 describe("PRE-8 B.8 — archivage, restauration et suppression du Mouvement", () => {
-  it("refuse l'archivage d'un Mouvement utilisé par un Exercice de Séance active ou archivée, sans rien écrire", async () => {
+  it("refuse l'archivage d'un Mouvement utilisé par un Exercice de Séance active, sans rien écrire ; les Séances archivées ne comptent pas", async () => {
     await repository().create(movement("m1", "Pompes"));
-    const sessionId = await sessionUsing("m1");
-    expect(await catalogue().archive("m1")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
-    await database.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [NOW, sessionId]);
-    expect(await catalogue().archive("m1")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
+    const first = await sessionUsing("m1");
     await sessionUsing("m1");
     expect(await catalogue().archive("m1")).toEqual({ status: "REFERENCED", exerciseCount: 2 });
+    await database.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [NOW, first]);
+    expect(await catalogue().archive("m1")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
     expect(await repository().listArchivedIds()).toEqual(new Set());
     expect(await count("sessions")).toBe(2);
     expect(await count("activities")).toBe(2);
   });
 
-  it("refuse aussi l'archivage d'un Mouvement référencé par un Exercice du Catalogue (définition persistée)", async () => {
-    await repository().create(movement("gainage", "Gainage"));
-    await database.runAsync(
-      "INSERT INTO activity_definitions (id, movement_id, execution_parameters, created_at, updated_at) VALUES ('def', 'gainage', '{}', ?, ?)",
-      [NOW, NOW],
-    );
-    expect(await catalogue().archive("gainage")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
-    expect(await count("activity_definitions")).toBe(1);
+  it("archive un Mouvement utilisé seulement dans des Séances archivées (décision du 03/11/2026) : Séances et Exercices intacts ; suppression définitive toujours refusée", async () => {
+    await repository().create(movement("m1", "Pompes"));
+    const sessionId = await sessionUsing("m1");
+    await database.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [NOW, sessionId]);
+    expect(await catalogue().archive("m1")).toEqual({ status: "DONE" });
+    expect(await repository().listArchivedIds()).toEqual(new Set(["m1"]));
+    expect(await count("sessions")).toBe(1);
+    expect(await count("activities")).toBe(1);
+    expect(await catalogue().deleteArchived("m1")).toEqual({ status: "REFERENCED", exerciseCount: 1 });
   });
+
+  // [PRE-9 A.3 du 04/11/2026 : cas « Mouvement référencé par un ancien Exercice du Catalogue » retiré avec les
+  // anciennes définitions du Catalogue (supprimées par la migration 021) ; elles ne bloquent plus la suppression.]
 
   it("archive un Mouvement inutilisé : rangs affichés des actifs recalculés (b8-3), famille et ordre intacts", async () => {
     await family();

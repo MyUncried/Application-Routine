@@ -27,7 +27,9 @@ export type ValidationErrorCode =
   /** T01-S10 : identifiant d'Activité en doublon dans un même agrégat de modification ; PRE-6 (story 1.2) : aussi deux Points d'arrêt sur le même emplacement `(scope, position)` (`session.stopPoints`). */
   | "DUPLICATE"
   /** PRE-6 (story 1.2, RM-219) : Point d'arrêt sur un emplacement interdit (juste après le compte à rebours initial ou juste avant la Fin). */
-  | "FORBIDDEN_PLACEMENT";
+  | "FORBIDDEN_PLACEMENT"
+  /** PRE-9 (B.3, COMP §3, ARB-10) : Exercice dont toutes les Cibles valent 0 — volume total nul, refusé. */
+  | "ZERO_VOLUME";
 
 export type ValidationField =
   | "session.name"
@@ -43,6 +45,12 @@ export type ValidationField =
   | "session.stopPoints"
   /** PRE-8 (A.2, D-449 §4) : forme de la structure générale (Cycle vide, comptes, nature, identités). */
   | "session.structure"
+  /** PRE-9 (C.1, FMT-02) : origine de création de la Séance. */
+  | "session.origin"
+  /** PRE-9 (C.1, ARB-03 ; correction du 30/10, D-02) : Format porté par un Exercice (Format inconnu) ; Format sur un Circuit refusé. */
+  | "element.format"
+  /** PRE-9 (C.1) : réglages d'un Format porté (réglage inconnu, non réglable, hors borne structurelle). */
+  | "element.formatSettings"
   | "exercise.name"
   | "exercise.durationSeconds"
   | "exercise.instruction"

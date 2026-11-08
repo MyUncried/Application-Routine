@@ -7,10 +7,12 @@ import {
   isBilateral,
   seriesCountOf,
   seriesRowsOf,
+  zeroVolumeViolations,
   type ExecutionParametersInput,
   type SeriesTarget,
 } from "@/domain/activities/ExecutionParameters";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { phasesToVerifyIn } from "@/domain/activities/parametersToVerify";
 import {
   computeSeriesCircuitOccurrenceDuration,
   hasDurationAmount,
@@ -21,6 +23,7 @@ import { computeActivityDurationResult, computeStructuredSessionDuration } from 
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "@/domain/sessions/circuit";
 import { groupActivitiesByZone, occurrenceDisplayName } from "@/domain/sessions/composition";
 import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
+import type { ElementFormat } from "@/domain/sessions/formats/elementFormat";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
 import { formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
@@ -82,6 +85,30 @@ export function formatCompositionSessionDuration(facts: CompositionSummaryFacts)
 }
 
 /**
+ * PRE-9 B.1a (D-451, complément du 28/10, qui remplace la clause de D-443 masquant la durée ;
+ * ch. 10 « Le contrôle » : « La durée figure à droite ») : durée de l'en-tête du Circuit.
+ *
+ * - Périmètre et calcul (inchangés, ancien résumé du Circuit, D-382, D-390, D-399) : les seules
+ *   occurrences `IN_TOUR`, développées selon la nature et N par l'autorité unique du Domaine
+ *   (`computeStructuredSessionDuration` restreinte à la zone `IN_TOUR`) ; aucune formule locale.
+ * - Format : celui de la durée de la Séance (`formatSessionDurationEstimate`, « ≈ » / « ≥ », tranches
+ *   de 15 s), le seul format d'estimation en vigueur — la référence (§4) laisse « l'arrondi précis »
+ *   à qualifier ; aucun arrondi propre au Circuit n'est inventé. Circuit vide : « 0 s ».
+ */
+export function formatCircuitDuration(facts: CompositionSummaryFacts): string {
+  const zones = groupActivitiesByZone(facts.exercises);
+  return formatSessionDurationEstimate(
+    computeStructuredSessionDuration({
+      beforeTour: [],
+      inTour: zones.inTour,
+      afterTour: [],
+      tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+      circuitNature: facts.circuitNature ?? DEFAULT_CIRCUIT_NATURE,
+    }),
+  );
+}
+
+/**
  * Format partagé d'une durée typée du Domaine. PRE-3 : « ≥ » si un travail est inconnu, « ≈ » si une
  * contribution est estimée (Répétitions avec bip), aucun symbole sinon. PRE-4 (story 2.4, AC5) : la
  * borne minimale garde ses secondes (105 s → « ≥ 1 min 45 s ») ; `exact` et `estimated` gardent
@@ -119,7 +146,9 @@ export function formatSessionDurationEstimate(duration: SessionDurationResult): 
 /** Story 7.8 : valeur d'une borne de séance, en secondes seulement, bornée à 0..60 (« 45 s »). */
 export function formatBoundarySecondsValue(totalSeconds: number): string {
   const seconds = Number.isFinite(totalSeconds) ? Math.min(SESSION_BOUNDARY_SECONDS_MAX, Math.max(0, Math.round(totalSeconds))) : 0;
-  return `${seconds} ${strings.screens.composition.boundarySecondsUnit}`;
+  // Hermann, 08/11/2026 au soir : « Partout veut bien dire partout » — « 45″ ». [« 45 s » (`boundarySecondsUnit`) — remplacé le
+  // 08/11/2026 au soir.]
+  return formatPhraseDuration(seconds);
 }
 
 /**
@@ -159,7 +188,34 @@ export type ExerciseRowSummaryFacts = {
    * une direction héritée.
    */
   readonly isSideModeInherited?: boolean;
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à vérifier » de l'Exercice
+   * (`Activity`, `ActivityDefinition`, `SessionDraftExercise`). Absent : synthèse d'avant.
+   */
+  readonly phasesToVerify?: readonly number[];
 };
+
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (Hermann : « avec le texte « Paramètre à
+ * vérifier » à la place de « Paramètre à compléter ». S'il y a à la fois des paramètre à vérifier et
+ * à compléter, la codification des paramètres à compléter est prioritaire. ») : une synthèse qui
+ * n'est pas « Paramètres à compléter » devient « Paramètre à vérifier » dès qu'une phase encore
+ * présente et renseignée est marquée (`phasesToVerifyIn`).
+ */
+function withParametersToVerify(summary: string, facts: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify">): string {
+  if (isIncompleteSummary(summary)) return summary;
+  return phasesToVerifyIn(facts.executionParameters, facts.phasesToVerify).length > 0
+    ? strings.executionParameters.card.toVerify
+    : summary;
+}
+
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : vrai si la synthèse est « Paramètre à
+ * vérifier », que les présentations rendent en orange (carte de Composition sur fond orange pâle).
+ */
+export function isToVerifySummary(summary: string): boolean {
+  return summary === strings.executionParameters.card.toVerify;
+}
 
 /**
  * Durée compacte et lisible, sans segment inutile (contrairement à
@@ -208,6 +264,10 @@ function formatCountWithUnit(count: number, singular: string, plural: string): s
  *   existant « Paramètres à compléter. », sans aucune valeur inventée.
  */
 export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string {
+  return withParametersToVerify(exerciseRowSummaryOf(facts), facts);
+}
+
+function exerciseRowSummaryOf(facts: ExerciseRowSummaryFacts): string {
   const exerciseRow = strings.screens.composition.exerciseRow;
   const recap = strings.screens.exercise.recap;
   const parameters = facts.executionParameters;
@@ -367,13 +427,94 @@ export const OCCURRENCE_SUMMARY_MAX_VALUES = 3;
  *   « 3 séries à l’échec ») ; une cible à l'échec parmi des cibles chiffrées en
  *   variables est écrite « à l’échec » à sa place (rendu des lignes mixtes
  *   encore à aligner, ch13) ;
- * - Mode non renseigné ou cible à renseigner : « Paramètres à compléter. ».
+ * - Mode non renseigné ou cible à renseigner : « Paramètres à compléter. » ; PRE-9 (B.3) : de même
+ *   pour un Exercice dont toutes les cibles valent 0 (volume total nul, ARB-10).
  *
  * Durées au format `formatCompactDuration`. Le nom et le Mode ne sont pas
  * répétés ; aucun texte de pause ni de récupération. En Circuit de Séries, N
  * est celui des paramètres déjà adaptés par la story 1.4 : aucune règle propre.
  */
-export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "executionParameters">): string {
+export function formatOccurrenceSummary(
+  facts: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify"> & { readonly format?: ElementFormat | null },
+  context: { readonly carrierIntervalSeconds?: number } = {},
+): string {
+  return withParametersToVerify(deathBySummary(occurrenceSummaryOf(facts), facts, context.carrierIntervalSeconds), facts);
+}
+
+/**
+ * Prescription de la carte d’exercice de la Composition (composant « DSF / Cards / Exercice — Composition »
+ * `11810:2159`, D-511 ; demande de Hermann du 08/11/2026) : nombre de séries et cible uniquement, par la synthèse
+ * existante (`formatOccurrenceSummary`), avec trois compléments propres à la carte :
+ * - une seule série à l’échec (condition d’arrêt à l’échec, AMRAP « Max » compris) : « à l’échec », sans
+ *   durée [« 1 série à l’échec » — remplacé sur la carte le 08/11/2026 ; « N séries à l’échec » inchangé] ;
+ * - AMRAP « Volume croissant » : départ et incrément par tour (« 10 rép. +2/tour ») ;
+ * - Death by : départ et incrément par intervalle (« 1 rép. +1/min »), voir `deathBySummary`.
+ * Jamais de durée estimée (« ≈ », « ≥ ») : les estimations appartiennent aux en-têtes de circuit, de cycle et de
+ * séance. Les durées suivent `formatPrimeDuration` (« 3 × 1′30″ »).
+ */
+export function formatOccurrencePrescription(
+  exercise: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify"> & { readonly format?: ElementFormat | null },
+  context: { readonly carrierIntervalSeconds?: number } = {},
+): string {
+  const summary = formatOccurrenceSummary(exercise, context);
+  if (isIncompleteSummary(summary) || isToVerifySummary(summary)) return summary;
+  const parameters = exercise.executionParameters;
+  if (seriesCountOf(parameters) === 1 && allTargetsFailure(parameters)) {
+    return strings.screens.composition.exerciseRow.toFailure;
+  }
+  if (exercise.format?.key === "AMRAP") {
+    const setting = exercise.format.settings.incrementPerRound;
+    const first = seriesRowsOf(parameters)[0]?.target;
+    if (typeof setting === "number" && setting !== 0 && first !== undefined && first.kind === "NUMBER") {
+      return incrementPrescription(parameters.mode, first.value, setting, strings.screens.composition.occurrenceCard.incrementPerRound);
+    }
+  }
+  return summary;
+}
+
+/** Départ suivi de l’incrément signé et de sa période : « 10 rép. +2/tour », « 30″ +5″/min », « 10 rép. −1/tour ». */
+function incrementPrescription(mode: ExecutionParametersInput["mode"], start: number, increment: number, period: string): string {
+  const card = strings.screens.composition.occurrenceCard;
+  const value = (amount: number) => (mode === "DURATION" ? formatCompactDuration(amount) : String(amount));
+  const startText = mode === "DURATION" ? value(start) : `${value(start)} ${strings.executionParameters.sheet.repetitionsUnit}`;
+  return card.increment
+    .replace("{start}", startText)
+    .replace("{sign}", increment < 0 ? card.incrementMinus : card.incrementPlus)
+    .replace("{increment}", value(Math.abs(increment)))
+    .replace("{period}", period);
+}
+
+/**
+ * Contre-recette n° 3 ter du 03/11/2026 (f3-deathby, Hermann : « Composition de la séance > carte d'exercice :
+ * l'information du chrono devrait être 1 / +1 rép. ») : Exercice Death by — objectif de départ et incrément par
+ * intervalle (« 1 / +1 rép. »), à la place de la synthèse des séries. [Référence Formats §12 : « Les cartes
+ * montrent « 1 → n rép. » dans l'exemple » — remplacé.] Synthèse à compléter ou à vérifier inchangée.
+ */
+function deathBySummary(
+  summary: string,
+  facts: Pick<ExerciseRowSummaryFacts, "executionParameters"> & { readonly format?: ElementFormat | null },
+  carrierIntervalSeconds?: number,
+): string {
+  if (facts.format?.key !== "DEATH_BY" || isIncompleteSummary(summary)) return summary;
+  const parameters = facts.executionParameters;
+  const first = seriesRowsOf(parameters)[0]?.target;
+  // Recette iPhone du 07/11/2026 (y-format-cadres, Hermann : « Death by : j'accède au format, il manque la valeur initiale de l'objectif,
+  // mais ni le circuit, ni l'exercice n'étaient rouge ») : sans objectif de départ (non renseigné ou « à l'échec »), l'Exercice est à
+  // compléter — son Circuit aussi.
+  if (first === undefined || first.kind !== "NUMBER") return strings.executionParameters.card.incomplete;
+  const setting = facts.format.settings.incrementPerRound;
+  const increment = typeof setting === "number" ? setting : 1;
+  // Demande de Hermann du 08/11/2026 (carte « DSF / Cards / Exercice — Composition ») : départ et incrément avec son
+  // unité, par intervalle — « 1 rép. +1/min ». [« 1 / +1 rép. » (f3-deathby, 03/11/2026) — remplacé le 08/11/2026.]
+  // Intervalle : celui de l’Exercice (autonome, ou membre en alternance), sinon celui du Circuit porteur.
+  const own = facts.format.settings.intervalSeconds;
+  const interval = typeof own === "number" ? own : (carrierIntervalSeconds ?? 60);
+  const card = strings.screens.composition.occurrenceCard;
+  const period = interval === 60 ? card.incrementPerMinute : formatCompactDuration(interval);
+  return incrementPrescription(facts.executionParameters.mode, first.value, increment, period);
+}
+
+function occurrenceSummaryOf(facts: Pick<ExerciseRowSummaryFacts, "executionParameters">): string {
   const parameters = facts.executionParameters;
   const card = strings.screens.composition.occurrenceCard;
   const failure = strings.screens.composition.exerciseRow.toFailure;
@@ -395,6 +536,12 @@ export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "ex
     return `${formatCountWithUnit(count, exerciseRow.seriesSingular, exerciseRow.seriesPlural)} ${failure}`;
   }
   if (parameters.mode === null || hasUnsetTarget(parameters)) {
+    return strings.executionParameters.card.incomplete;
+  }
+  // PRE-9 (B.3, COMP §3, ARB-10 ; ch10 « Si cette valeur est zéro et que l'adaptation ne laisse aucun
+  // volume, la validation de l'exercice tout nul s'applique ») : toutes les Cibles à 0 — volume total
+  // nul, enregistrement refusé : même signalement que des paramètres à compléter (D-448 point 7).
+  if (zeroVolumeViolations(parameters.series).length > 0) {
     return strings.executionParameters.card.incomplete;
   }
 
@@ -422,6 +569,10 @@ export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "ex
 export type OccurrenceCircuitContext = {
   readonly circuitNature?: CircuitNature;
   readonly tourRepeatCount?: number;
+  /** Décisions de Hermann du 07/11/2026 (EMOM), C12 : Exercices dont le travail prévu atteint ou dépasse l'intervalle EMOM (carte en rouge). */
+  readonly emomOverflowIds?: ReadonlySet<string>;
+  /** 08/11/2026 : intervalle du Circuit porteur (Death by groupé), période de l'incrément de la prescription. */
+  readonly carrierIntervalSeconds?: number;
 };
 
 /**
@@ -457,6 +608,8 @@ export function formatOccurrenceEstimatedDuration(
   exercise: SessionDraftExercise,
   context: OccurrenceCircuitContext = {},
 ): string | null {
+  // Décisions de Hermann du 07/11/2026 (EMOM), point 21 : carte EMOM — prescription seule, jamais de durée estimée.
+  if (exercise.format?.key === "EMOM") return null;
   const duration = occurrenceDurationResult(exercise, context);
   return duration.kind === "estimated"
     ? `${strings.shared.durationNature.estimatedPrefix}${formatCompactDuration(duration.seconds)}`
@@ -538,4 +691,28 @@ export function resolveOccurrenceCategory(
   }
   const category = categories.find((candidate) => candidate.id === categoryId);
   return category ? { name: category.name, color: category.color } : null;
+}
+
+/** Tonalité d'un Circuit replié (voir `collapsedCircuitTone`) ; `null` : aplat habituel. */
+export type CollapsedCircuitTone = "INCOMPLETE" | "TO_VERIFY" | null;
+
+/**
+ * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « Circuit replié : si des exercices ont
+ * des paramètres à compléter ou à vérifier, son format (couleur de fond, liseré) doit le refléter (il
+ * reprend sa couleur normale lorsqu'on le déplie et qu'on voit les cartes d'exercices elles mêmes
+ * colorées, ou lorsque tous les paramètres ont été complétés / validés). ») — tonalité d'un Circuit
+ * replié, d'après la synthèse même de la carte de ses Exercices (`formatOccurrenceSummary`) :
+ * « à compléter » (rouge) dès qu'une carte l'est — il prime, comme sur la carte —, sinon « à vérifier »
+ * (orange) dès qu'une carte l'est, sinon aucune. L'écran ne l'applique qu'au Circuit replié.
+ */
+export function collapsedCircuitTone(
+  exercises: readonly Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify">[],
+  // Réponse 2 de Hermann du 07/11/2026 (EMOM) : une carte d'Exercice en rouge pour dépassement de l'intervalle (C12) teinte aussi son Circuit, comme
+  // une carte à compléter (règle générale, sans exception EMOM).
+  hasEmomOverflow = false,
+): CollapsedCircuitTone {
+  const summaries = exercises.map((exercise) => formatOccurrenceSummary(exercise));
+  if (hasEmomOverflow || summaries.some(isIncompleteSummary)) return "INCOMPLETE";
+  if (summaries.some(isToVerifySummary)) return "TO_VERIFY";
+  return null;
 }

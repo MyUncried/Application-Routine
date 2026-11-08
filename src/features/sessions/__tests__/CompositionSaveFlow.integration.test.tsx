@@ -1,9 +1,9 @@
+import { router as expoRouter } from "expo-router";
 import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testing-library";
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
@@ -19,7 +19,8 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
-import { chooseExecutionMode, pressInExecutionSheet } from "@/features/activities/testing/executionSheetActions";
+import { chooseExecutionMode, enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * `CompositionScreen`/`ExerciseScreen` s'auto-alimentent en Zones corporelles
@@ -118,9 +119,8 @@ async function fillNewExercise(name: string, mode: "Durée" | "Répétitions", z
   // PRE-4 story 3.1 : popover natif sur iOS, segmenté ailleurs.
   chooseExecutionMode(mode);
   if (mode === "Durée") {
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 30 } });
-    pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+    // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+    enterExecutionSheetValue("execution-sheet-target", 30);
   }
   // Répétitions : première sélection uniforme → cible initiale 1 (v13 §6).
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
@@ -134,7 +134,6 @@ async function renderCreationRouter() {
     new SqliteCategoryRepository(database),
   );
   const activityDefinitionService = new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database),
     new SqliteCategoryRepository(database),
     new SqliteBodyZoneRepository(database),
     new SqliteLabelRepository(database),
@@ -163,20 +162,42 @@ async function renderCreationRouter() {
   const router = renderRouter(
     {
       index: () => null,
+      // Règle du 06/11/2026 : brouillons au niveau de l'application (`app/_layout.tsx`).
+      _layout: CreationRootStack,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/composition": require("../../../../app/(creation)/composition").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      "(creation)/activity-selection": require("../../../../app/(creation)/activity-selection")
-        .default,
+      // [PRE-9 A.3 du 04/11/2026 : route « activity-selection » retirée avec les anciennes définitions du Catalogue.]
     },
     { initialUrl: "/composition", wrapper: Wrapper },
   );
 
   return { router, database };
+}
+
+/**
+ * PRE-9 A.2 — ARB-22a, D-449 : « Créer un nouvel exercice » du menu Créer n'ouvre plus l'ancien
+ * éditeur (création d'un Mouvement, `CompositionMovementFlow.integration.test.tsx`). L'ancien
+ * éditeur de création reste dans le code jusqu'à A.3 : ses contrats sont conservés en l'ouvrant
+ * directement par sa route.
+ */
+function openLegacyExerciseCreation() {
+  act(() => {
+    expoRouter.push("/exercise");
+  });
+}
+
+/**
+ * [Remplacé le 04/11/2026 — décision de Hermann (recette iPhone du 04/11) : la photo d'une carte d'Exercice
+ * ouvre la fiche en lecture seule (`/exercise-sheet`), plus l'éditeur.] L'éditeur est ouvert par sa route.
+ */
+function openOccurrenceEditor(exerciseId: string) {
+  act(() => {
+    expoRouter.push({ pathname: "/exercise", params: { exerciseId } });
+  });
 }
 
 describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 ; PRE-6 story 2.1)", () => {
@@ -185,16 +206,14 @@ describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 
 
     // Composition : Nom + Activité 1 (Durée, Zones corporelles).
     fireEvent.changeText(screen.getByLabelText(composition.name), "Circuit complet");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     // T02-S02 (D-137) : aucune étape `Valider` ; PRE-3 : saisie complète
     // (Catégorie, Zone via `BodyZonePickerModal`, feuille Paramètres).
     await fillNewExercise("Gainage", "Durée", "dos");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     // Activité 2 (Répétitions) — nouvel ajout, jamais un remplacement.
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Squats", "Répétitions", "cuisses");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
@@ -250,8 +269,7 @@ describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 
     const { router, database } = await renderCreationRouter();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance qui échoue");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     // PRE-3 : les référentiels (Catégories, Zones) sont lus pendant la saisie ;
     // l'échec technique est donc provoqué juste AVANT l'enregistrement de la
     // Séance — même contrat : échec atomique, brouillon intact, action réarmée.
@@ -293,8 +311,7 @@ describe("R-3 — création locale, copie et description corrigée depuis la cop
     const { router, database } = await renderCreationRouter();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Gainage partagé");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Gainage", "Durée", "dos");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
@@ -309,7 +326,7 @@ describe("R-3 — création locale, copie et description corrigée depuis la cop
     expect(screen.getByText("Gainage (copie)")).toBeTruthy();
 
     // Ouvrir la copie : contenu modifiable (Mouvement NEW du brouillon) ; description corrigée.
-    fireEvent.press(screen.getByTestId(`composition-exercise-row-${copyId}`));
+    openOccurrenceEditor(copyId); // [04/11/2026 : la photo ouvre la fiche en lecture seule (décision de Hermann) ; l'éditeur, par sa route.]
     const step = await screen.findByLabelText(exercise.instruction.stepAccessibilityLabel.replace("{n}", "1"));
     fireEvent.changeText(step, "Dos droit");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));

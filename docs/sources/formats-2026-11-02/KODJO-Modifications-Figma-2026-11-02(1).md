@@ -22,7 +22,7 @@ L'ajout de ces écrans a décalé vers la droite les écrans suivants de chaque 
 |---|---|---|
 | Tabata — Modale exercice, standard | `8747:14451` | Les options Répétitions (Mode), À l'échec (Condition d'arrêt) et Variables (Séries) ne sont plus grisées. |
 | 30/30 — Modale exercice | `8656:34070` | Le bloc des paramètres d'exécution est remplacé par celui de la modale standard Tabata, sans aucun verrouillage. Valeurs : Mode Durée, 6 séries identiques, Objectif de durée 30 s (au lieu de 20 s), Pause 30 s (au lieu d'une Récupération de 30 s), Durée de l'exercice 6 min, Récupération 0 s. Titre « Paramètres d'exécution 30/30 ». Modalités : « 6 séries de 30 secondes, avec une pause de 30 secondes après chaque série. » |
-| Tabata — Séance, circuit en alternance | `11294:19682` | L'en-tête du circuit devient « Circuit · 8 tours · alternées » (au lieu de « Tabata »). C'est un circuit standard, sans Format d'origine. |
+| Tabata — Séance, circuit en alternance | `11294:19682` | L'en-tête du circuit devient « Circuit · 8 tours · alternées » (au lieu de « Tabata »). C'est un circuit standard, sans Format d'origine. [Nom remplacé le 03/11/2026, décision de Hermann : l'en-tête affiche « Tabata · 8 tours · alternées » (modèle d'origine, migration 020) ; le circuit reste standard.] |
 
 ### 2.2 Cadence en AMRAP et For time (§3)
 

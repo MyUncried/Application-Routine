@@ -132,6 +132,18 @@ export const fr = {
         backHome: "Retourner à l’accueil",
       },
     },
+    // PRE-9 CAT.1 (spécification « Zones de contexte des Catalogues » du 30/10/2026, CE-CAT-CTX-01) :
+    // textes de la première ligne communs aux Catalogues Mouvements et Séances.
+    catalogueContext: {
+      resultsOne: "{count} résultat",
+      resultsMany: "{count} résultats",
+      familiesOne: "{count} famille",
+      familiesMany: "{count} familles",
+      movementsOne: "{count} mouvement",
+      movementsMany: "{count} mouvements",
+      counterSelectHint: "Restreint la liste à ces cartes",
+      counterDeselectHint: "Touchez de nouveau pour retirer ce filtre",
+    },
     sessions: {
       title: "Catalogue des séances",
       circuitsTitle: "Catalogue des circuits",
@@ -179,6 +191,13 @@ export const fr = {
       },
       // PRE-8 (epic E, Q-E6) : liste sans résultat après filtrage, distincte du Catalogue vide.
       noMatch: "Aucune séance ne correspond aux filtres.",
+      // PRE-9 CAT.1 (zones de contexte, 30/10/2026) : recherche du Catalogue des Séances.
+      noResult: "Aucune séance ne correspond à la recherche.",
+      search: {
+        placeholder: "Rechercher",
+        accessibilityLabel: "Rechercher une séance",
+        clear: "Effacer la recherche",
+      },
       error: {
         message: "Impossible de charger vos séances.",
         retry: "Réessayer",
@@ -204,10 +223,30 @@ export const fr = {
         collapseAccessibilityLabel: "Masquer la composition de {name}",
         // CE-T03-01 : destination non livrée, explicitement indisponible.
         playUnavailableAccessibilityLabel: "Lancer la séance — indisponible",
+        // D-504 (Hermann, 06/11/2026) : pilule « Démarrer » [remplace l'action lecture ronde].
+        start: "Démarrer",
+        startUnavailableAccessibilityLabel: "Démarrer la séance — indisponible",
+        // D-505 (Hermann, 06/11/2026) : ligne 3 « N circuits · N exercices » [remplace format ou volume].
+        structureLine: "{circuits} · {exercises}",
+        circuitUnit: { singular: "circuit", plural: "circuits" },
         archivedAccessibility: "archivée",
-        cycleLine: "Cycle · {count} {unit}",
-        cycleUnit: { singular: "répétition", plural: "répétitions" },
-        circuitLine: "Circuit · {count} {unit}",
+        // D-507 (Hermann, 06/11/2026) : « Cycle » à gauche, « N passages » à droite.
+        // [« Cycle · {count} {unit} » — remplacé le 06/11/2026.]
+        cycleLine: "Cycle",
+        repeatValue: "{count} {unit}",
+        // [31/10/2026, Hermann : « Le Catalogue des Séances affiche encore « Cycle · N répétitions » […]
+        // Faut-il l'aligner aussi ? Oui » — unité « passage(s) », comme la Composition.]
+        cycleUnit: { singular: "passage", plural: "passages" },
+        // PRE-9 B.1b (référence « Composition : circuits, cycles et création » §2 : « L’unité reste
+        // tour(s) ») : « Circuit · N tours · groupées|alternées » [remplace « Circuit · N tours|séries »
+        // (unité accordée à la nature), 29/10/2026].
+        // [« Circuit · {count} {unit} · {nature} » — recette iPhone n° 3 du 03/11/2026 (autres constats,
+        // Hermann : « remplacer le nom mot "Circuit" par le nom du format ») : {title} = « Circuit », ou nom
+        // du Format / du modèle d'origine (« Tabata · 8 tours · alternées »).]
+        // [circuitLine: "{title} · {count} {unit} · {nature}" — remplacé le 06/11/2026.]
+        // D-507 (Hermann, 06/11/2026) : « Circuit · séries groupées|alternées » à gauche, « N tours » à
+        // droite ; {title} conserve le nom du Format / du modèle d'origine (recette n° 3 du 03/11).
+        circuitLine: "{title} · séries {nature}",
         recovery: "Récupération",
         compositionAccessibilityLabel: "Composition de la séance",
         // E.5 (CE-T03-01 révisé ; ch06 « Supprimer cette séance ? ») : actions glissées et cycle de vie.
@@ -324,8 +363,15 @@ export const fr = {
         movementSuggestion: {
           nameTaken: "Ce nom est déjà utilisé. Reprenez ce mouvement ou choisissez un autre nom.",
           nameTakenEdit: "Ce nom est déjà utilisé. Choisissez un autre nom.",
+          // Recette iPhone du 29/10/2026 (Hermann) : le nom est pris par un Mouvement ARCHIVÉ (jamais
+          // proposé en carte, B.8 Q6) — « archivé » en gras (`{archived}` ← `archivedWord`).
+          nameTakenArchived: "Un mouvement {archived} porte déjà ce nom.",
+          archivedWord: "archivé",
           useMovement: "Utiliser ce mouvement",
           createVariant: "Créer une variante",
+          // PRE-9 CAT.2 (CE-MVT-RESULT-01, `10199:22268`) : « Ajouter un niveau » affiché sur deux
+          // lignes dans la carte Résultat ; le nom accessible reste `movement.suggestion.createVariant`.
+          addLevelTwoLines: "Ajouter\nun niveau",
           easier: "Plus facile",
           harder: "Plus difficile",
           backToResults: "Retour aux résultats",
@@ -458,13 +504,227 @@ export const fr = {
         },
         addAction: "Ajouter",
         cancelAccessibilityLabel: "Annuler",
+        // Contre-recette PRE-9 n° 1 (Hermann, 30/10/2026) : Mouvement déjà présent dans la Séance,
+        // marqué par un coin replié (contre-recette n° 2) ; annoncé seulement à VoiceOver.
+        inSessionAccessibility: "dans la séance",
         // PRE-8 (epic E, E.8-a, option 1) : accès transitoire à l'éditeur des anciennes définitions.
         editAccessibilityLabel: "Modifier l’exercice {name}",
       },
+      // PRE-9 B.2 (COMP §5, Figma `10705:20223`) : menu Créer de la Composition — cinq actions puis
+      // Annuler, dans l'ordre observé. [Anciens libellés « Un nouvel exercice » / « Un exercice
+      // existant » : remplacés le 29/10/2026 par ceux de COMP §5.]
+      // [Remplacé le 01/11/2026 (ordre de Hermann, ch13 CE-T03-08 « Menu Créer — état cible ») :
+      // quatre options, plus de rangée Annuler — `cancel` nomme désormais le « + » transformé ;
+      // « Créer un nouveau mouvement » devient « Créer un exercice » ; `existingActivity` ne sert plus
+      // qu'au titre de l'écran de sélection des Mouvements, qui n'est plus atteint depuis ce menu.]
+      // [Recette iPhone du 01/11/2026 (m11-menu, Hermann) : « Utiliser un mouvement existant » est de
+      // nouveau une option du menu (2e, après « Créer un exercice ») : cinq options.]
+      // [Référence Formats du 02/11/2026 (§7, CE-T03-08, Figma `10705:20223`) : cinq options — « Créer un
+      // exercice », « Utiliser des mouvements existants », « Utiliser un format d'entraînement », « Ajouter
+      // un circuit », « Ajouter un cycle » ; « Utiliser une séance existante » n'est plus proposée ici.]
       addToSession: {
-        newActivity: "Un nouvel exercice",
-        existingActivity: "Un exercice existant",
+        newActivity: "Créer un exercice",
+        existingActivity: "Utiliser des mouvements existants",
+        existingSession: "Utiliser une séance existante",
+        useFormat: "Utiliser un format d’entraînement",
+        // Complément du 5 novembre 2026 (§3) : « Créer un circuit », « Créer un cycle ». [« Ajouter un … » — remplacé.]
+        addCircuit: "Créer un circuit",
+        addCycle: "Créer un cycle",
         cancel: "Annuler",
+        // Action indisponible : même traitement que « Un circuit » du menu du Catalogue (atténuée,
+        // nom suivi de « indisponible »). Formulation à valider.
+        unavailableAccessibilityLabel: "{action} — indisponible",
+      },
+    },
+    // PRE-9 C.3 (CE-FMT-02) : paramètres du modèle et récapitulatif.
+    // PRE-9 C.3 (référence Formats du 02/11/2026 §7, §9 à §12, §15 ; CE-FMT-02) : questionnaires et
+    // récapitulatifs. Libellés et accroches repris des maquettes du 02/11 (`8624:29980` et suivantes) ;
+    // aucune valeur de maquette n'en est un défaut.
+    formatModel: {
+      // Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « Le titre de la modale doit être
+      // "Configurer un X" et non plus "Composer une séance X" »). [C.3 : préfixe « Composer une séance » — remplacé.]
+      titles: {
+        TABATA: "Configurer un Tabata",
+        INTERVALS_30_30: "Configurer un 30/30",
+        EMOM: "Configurer un EMOM",
+        AMRAP: "Configurer un AMRAP",
+        FOR_TIME: "Configurer un For time",
+        DEATH_BY: "Configurer un Death by",
+        STRENGTH: "Configurer un Renforcement",
+        SUPERSET: "Configurer un Superset",
+        PROGRESSION: "Configurer une Progression",
+        UNTIL_FAILURE: "Configurer un À l’échec",
+      },
+      closeAccessibilityLabel: "Fermer",
+      backAccessibilityLabel: "Retour au questionnaire",
+      namePlaceholder: "Nom de la séance",
+      movements: "Mouvements",
+      add: "+ Ajouter",
+      emomOverflow: "Les durées atteignent ou dépassent l’intervalle de {interval} : il ne reste pas de temps pour le reste du travail ni pour le repos.",
+      // Complément du 5 novembre 2026 (§13) : avertissement non bloquant du Death by.
+      deathByFirstRankWarning: "Le premier intervalle ne peut pas être tenu : le défi s’arrêtera avant de commencer.",
+      addPicked: "Ajouter",
+      // Recette du 05/11/2026 au soir (p-coche, Hermann) : bouton du bas du mode catalogue « Ajouter X mouvements ».
+      addPickedOne: "Ajouter 1 mouvement",
+      addPickedMany: "Ajouter {count} mouvements",
+      // Recette du 06/11/2026 (s-focus, Hermann : « Le bouton d'action du bas est "Fermer sans sélectionner" si aucun mouvement n'est
+      // sélectionné, puis devien "Ajouter X mouvements" lorsque des mouvements sont sélectionnés »).
+      closeWithoutSelecting: "Fermer sans sélectionner",
+      // p-coche / p-ajout : « le bouton +Ajouter est remplacé par « revenir aux paramètres » après qu'il ait été sélectionné ».
+      backToParameters: "Revenir aux paramètres",
+      // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
+      lastRepetitionsLocked: "Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.",
+      collapsePiles: "Replier les piles",
+      expandPiles: "Déplier les piles",
+      openMovementSheet: "Fiche du mouvement {name}",
+      change: "Changer",
+      searchPlaceholder: "Nom du mouvement",
+      buyInSection: "Buy-in · une fois, au départ",
+      loopSection: "En boucle · dans le temps restant",
+      buyInPickerTitle: "Mouvement du buy-in",
+      // Recette du 04/11/2026 (For time : interrupteurs Buy-in et Buy-out au questionnaire).
+      buyOutSection: "Buy-out · une fois, à la fin",
+      buyOutPickerTitle: "Mouvement du buy-out",
+      forTimeLoopSection: "En boucle · à chaque tour",
+      parameters: "Paramètres d’exécution",
+      totalDuration: "Durée totale",
+      execution: "Exécution",
+      executions: { SEQUENCE: "À la suite", ALTERNATED: "En alternance", EACH_INTERVAL: "Dans chaque intervalle" },
+      timeline: "Déroulé",
+      recovery: "Récupération",
+      untilFailure: "à l’échec",
+      measured: "temps mesuré",
+      noLimit: "Sans limite",
+      untilCadence: "jusqu’à la cadence",
+      atFailure: "à l’échec",
+      dash: "—",
+      save: "Enregistrer dans la séance",
+      // Mise à jour consolidée du 04/11/2026 (§6 sexies) : réédition depuis la Composition.
+      saveChanges: "Enregistrer les modifications",
+      variable: "variable",
+      variableConfirmTitle: "Remplacer les valeurs personnalisées ?",
+      variableConfirmMessage: "Les exercices ont des valeurs différentes. La nouvelle valeur s’appliquera à tous.",
+      supersetLimitTitle: "Deux exercices au maximum",
+      supersetLimitMessage: "Le Superset enchaîne deux exercices. Retirez-en un pour en choisir un autre.",
+      supersetLimitAcknowledge: "J’ai compris",
+      noSearchResult: "Aucun résultat",
+      variableConfirmCancel: "Annuler",
+      variableConfirmReplace: "Remplacer",
+      // Recette n° 3 du 03/11/2026 : bouton du questionnaire AMRAP (passage au récapitulatif).
+      validate: "Valider les paramètres",
+      increase: "Augmenter",
+      decrease: "Diminuer",
+      delete: "Supprimer",
+      moveUp: "Monter",
+      moveDown: "Descendre",
+      toComplete: "à compléter",
+      rows: {
+        seriesCount: "Nombre de séries",
+        workSeconds: "Travail par série",
+        pauseSeconds: "Pause",
+        repetitions: "Répétitions par série",
+        intervalSeconds: "Intervalle",
+        // Complément du 5 novembre 2026 (§13) : « Objectif de départ » (Répétitions ou Durée). [« Nombre de répétitions » — remplacé.]
+        startRepetitions: "Objectif de départ",
+        increment: "Incrément par intervalle",
+        durationSeconds: "Durée",
+        blockDuration: "Durée de chaque bloc",
+        blockCount: "Nombre d’AMRAP",
+        restBetweenBlocksSeconds: "Repos entre deux AMRAP",
+        loopRestSeconds: "Repos après chaque tour de boucle",
+        buyIn: "Buy-in",
+        buyOut: "Buy-out",
+        increasingVolume: "Volume croissant à chaque tour",
+        // Mise à jour consolidée du 04/11/2026 §6 quater et §6 quater bis.
+        withLoad: "Avec charge",
+        roundCount: "Nombre de tours",
+        supersetRounds: "Circuit",
+        timeCapSeconds: "Temps limite",
+        restBetweenRoundsSeconds: "Repos entre les tours",
+        recoveryBetweenSeconds: "Récupération entre les mouvements",
+        // Complément du 5 novembre 2026 (§11) : « Récupération après le tour ». [« … après la paire » — remplacé.]
+        recoveryAfterPair: "Récupération après le tour",
+        // Complément du 5 novembre 2026 (§16) : ligne Charge d’un mouvement seul, sous Durée totale.
+        load: "Charge",
+        rest: "Repos",
+        stopCondition: "Condition d’arrêt",
+        targetPerSeries: "Cible par série",
+      },
+      table: {
+        movement: "Mouvement",
+        repetitions: "Rép.",
+        perRound: "Par tour",
+        max: "Max",
+        round: "Tour {n}",
+        series: "S{n}",
+        buyInSuffix: " (buy-in)",
+        // Mise à jour consolidée du 04/11/2026 (§4.2 à §4.5, §6 quater, §6 quater bis).
+        buyOutSuffix: " (buy-out)",
+        objective: "Objectif",
+        objectiveKind: "objectif",
+        load: "Charge",
+        // Hermann, 04/11/2026 : « le titre de la colonne doit remplacer le signe + par le signe double + et − ».
+        perSeries: "± / série",
+        start: "Départ",
+        increment: "Incrément",
+        unit: "Unité",
+        durationUnit: "durée",
+        toFill: "à renseigner",
+        variable: "variable",
+        // Complément du 5 novembre 2026 (§9, §15–§16) : charge décidée par mouvement, entre parenthèses ; Pause par mouvement.
+        // [« sans charge à partir de la série {n} » (EMOM, 04/11) — retiré le 05/11/2026.]
+        addLoad: "(+ kg)",
+        removeLoad: "(− kg)",
+        // Recette du 05/11/2026 (n-charge-switch, Hermann) : sous le nom du mouvement du tableau des séries — « (rép, +kg) », « (durée, −kg) ».
+        // Spécification de Hermann du 08/11/2026 (A §4.4, B §4.4) : « (rép., +kg) », « (durée, −kg) » ; la parenthèse fermante est
+        // rendue à part. [« rép », « +kg) », « −kg) » (recette du 05/11/2026, n-charge-switch) — remplacés le 08/11/2026.]
+        repetitionsUnitShort: "rép.",
+        durationUnitShort: "durée",
+        addLoadShort: "+kg",
+        removeLoadShort: "−kg",
+        addLoadAccessibility: "ajouter une charge",
+        removeLoadAccessibility: "retirer la charge",
+        loadEmpty: "(—)",
+        pause: "Pause",
+        cellLabel: "{movement}, {column}, {kind}",
+        repetitionsKind: "répétitions",
+        loadKind: "charge",
+      },
+      roundUnit: { one: "tour", many: "tours" },
+      repetitionsUnit: "rép.",
+      taglines: {
+        TABATA: "Quatre minutes, huit sprints de vingt secondes.\nLe souffle et l’explosivité, à fond jusqu’au bout.",
+        INTERVALS_30_30: "30 secondes d’effort, 30 secondes de récupération.\nUn pour un, plus long que le Tabata.",
+        EMOM: "Une minute, un effort, le repos est ce qu’il en reste.\nChaque minute relance un tour, quoi qu’il arrive.",
+        AMRAP: "Douze minutes, autant de tours que vous pouvez.\nAucun repos prescrit, on compte les tours.",
+        FOR_TIME: "Le travail est fixé, c’est le temps qui compte.\nOn enchaîne sans repos prescrit.",
+        DEATH_BY: "Une répétition de plus à chaque minute.\nOn continue tant qu’on termine dans la minute.",
+        STRENGTH: "Trois séries de quinze répétitions.\nLe point de départ le plus courant.",
+        SUPERSET: "Deux exercices enchaînés sans repos,\npuis une récupération après la paire.",
+        PROGRESSION: "Une valeur par série, à faire évoluer.\nL’application affiche la consigne.",
+        UNTIL_FAILURE: "Chaque série est menée jusqu’à l’échec.\nLa baisse d’une série à l’autre est la mesure.",
+      },
+    },
+    // PRE-9 C.2 (CE-FMT-01, Figma `8598:29271`) : « Créer » — choix du modèle et du format.
+    // PRE-9 C.2, référence Formats du 02/11/2026 (CE-FMT-01, Figma `9977:19613`) : fenêtre « Formats
+    // d'entraînement » — dix cartes, sans carte Exercice, Séance, Libre ni Gainage · Mobilité.
+    sessionModels: {
+      // Complément du 5 novembre 2026 (§4) : modale de création « Créer un exercice », section « Formats d'entraînement ».
+      creationTitle: "Créer un exercice",
+      freeExercise: { title: "Exercice libre", subtitle: "un mouvement, puis ses paramètres" },
+      title: "Formats d’entraînement",
+      closeAccessibilityLabel: "Fermer",
+      cards: {
+        TABATA: { title: "Tabata", subtitle: "capacité anaérobie" },
+        INTERVALS_30_30: { title: "30/30", subtitle: "VO2 max et VMA" },
+        EMOM: { title: "EMOM", subtitle: "tenir un rythme" },
+        AMRAP: { title: "AMRAP", subtitle: "volume maximal" },
+        FOR_TIME: { title: "For time", subtitle: "vitesse d’exécution" },
+        DEATH_BY: { title: "Death by", subtitle: "à l’échec" },
+        STRENGTH: { title: "Renforcement", subtitle: "force musculaire" },
+        SUPERSET: { title: "Superset", subtitle: "intensité sans repos" },
+        PROGRESSION: { title: "Progression", subtitle: "montée en charge" },
+        UNTIL_FAILURE: { title: "À l’échec", subtitle: "recrutement maximal" },
       },
     },
     composition: {
@@ -474,6 +734,8 @@ export const fr = {
       // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) de l’en-tête de la Composition.
       closeAccessibilityLabel: "Fermer",
       name: "Nom de la séance",
+      // PRE-9 B.9 (ch08 « Nom de séance — trois états », état 3) : invite dès le deuxième Exercice.
+      namePrompt: "Entrer un nom de séance",
       colorPicker: {
         label: "Couleur",
         paletteAccessibilityLabel: "Palette de couleurs",
@@ -520,26 +782,32 @@ export const fr = {
           TOURS: { singular: "tour", plural: "tours" },
           SERIES: { singular: "série", plural: "séries" },
         },
-        countAccessibilityLabel: {
-          TOURS: "Nombre de tours",
-          SERIES: "Nombre de séries",
+        // PRE-9 B.1a (D-451, complément du 28/10, remplace D-442 sur ce point ; référence
+        // « Composition : circuits, cycles et création » §2) : l’unité du compteur de l’en-tête
+        // reste « tour(s) » pour les deux natures, accordée à N ; la nature est portée par
+        // l’adjectif « groupées » / « alternées » (identifiants persistés `TOURS` / `SERIES`
+        // inchangés). `unit` ci-dessus n’est plus lu [PRE-9 B.1b : la carte du Catalogue emploie aussi
+        // `countUnit` et `natureAdjective`] ; conservé, sans effet.
+        countUnit: { singular: "tour", plural: "tours" },
+        natureAdjective: {
+          TOURS: "groupées",
+          SERIES: "alternées",
         },
-        // PRE-6 (story 7.3, D-442) : boutons − et + du stepper toujours affiché, éléments
-        // accessibles distincts du réglage « Nombre de tours ».
-        decrementAccessibilityLabel: {
-          TOURS: "Retirer un tour",
-          SERIES: "Retirer une série",
-        },
-        incrementAccessibilityLabel: {
-          TOURS: "Ajouter un tour",
-          SERIES: "Ajouter une série",
-        },
-        // PRE-6 (story 3.2, CE-CIR-01, Figma `8328:34805`) : choix de nature par la pastille d’unité.
+        countAccessibilityLabel: "Nombre de tours",
+        // PRE-6 (story 7.3, D-442) : boutons − et + du stepper, éléments accessibles distincts du
+        // réglage « Nombre de tours ». PRE-9 B.1a : stepper révélé au toucher du nombre (RM-027).
+        decrementAccessibilityLabel: "Retirer un tour",
+        incrementAccessibilityLabel: "Ajouter un tour",
+        // PRE-6 (story 3.2, CE-CIR-01, Figma `8328:34805`) : choix de nature. PRE-9 B.1a (RM-027,
+        // référence §2) : ouvert par l’adjectif ; options renommées « Séries groupées » / « Séries
+        // alternées », descriptions de la référence [remplacent « Circuit de tours » — « les séries
+        // d’un exercice s’enchaînent » et « Circuit de séries » — « une série de chaque exercice
+        // par passage », 29/10/2026].
         nature: {
           accessibilityLabel: "Nature du circuit",
           options: {
-            TOURS: { title: "Circuit de tours", subtitle: "les séries d’un exercice s’enchaînent" },
-            SERIES: { title: "Circuit de séries", subtitle: "une série de chaque exercice par passage" },
+            TOURS: { title: "Séries groupées", subtitle: "toutes les séries d’un exercice exécutées à chaque tour" },
+            SERIES: { title: "Séries alternées", subtitle: "une série de chaque exercice exécutée à chaque tour" },
           },
         },
         // PRE-6 (story 3.4, CE-CIR-03, Figma `8328:34965` / `8328:35135`) : œil de l’en-tête et
@@ -571,6 +839,18 @@ export const fr = {
             unset: "à renseigner",
           },
         },
+      },
+      // PRE-9 B.1b (D-451 ; référence §4 : « Le cycle ne se replie pas […] Sa ligne n’a pas
+      // d’adjectif de nature ; unité « répétition(s) » ») : en-tête du Cycle. Compte 1..99, nombre
+      // révélant le stepper (RM-027, comme le Circuit) ; l’unité n’est pas interactive.
+      // [31/10/2026, Hermann : « Remplacer le terme « répétition » par « passage » dans la composition
+      // de séance pour le nombre de cycles, et dans le message » — remplace l'unité « répétition(s) ».]
+      cycle: {
+        title: "Cycle",
+        countUnit: { singular: "passage", plural: "passages" },
+        countAccessibilityLabel: "Nombre de passages",
+        decrementAccessibilityLabel: "Retirer un passage",
+        incrementAccessibilityLabel: "Ajouter un passage",
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
@@ -606,8 +886,16 @@ export const fr = {
         // PRE-6 story 6.2 : point en tête de portée (données héritées), formulation à valider.
         stopPointAtCircuitStartAccessibilityLabel: "Point d’arrêt au début du circuit",
         stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
-        confirmSingular: "Confirmer {n} pause ajoutée",
-        confirmPlural: "Confirmer {n} pauses ajoutées",
+        // PRE-9 B.6 (ARB-02a/b) : emplacements d’un Cycle (début et fin de répétition) et après un
+        // Circuit ou un Cycle désigné par sa lettre (ARB-13). Formulations à valider.
+        addStopPointAtCycleStartAccessibilityLabel: "Ajouter un point d’arrêt au début du cycle",
+        addStopPointAfterCycleAccessibilityLabel: "Ajouter un point d’arrêt après le cycle",
+        stopPointAtCycleStartAccessibilityLabel: "Point d’arrêt au début du cycle",
+        existingStopPointAfterCycleAccessibilityLabel: "Point d’arrêt après le cycle",
+        // D-513 (Hermann, 06/11/2026), réalisé le 08/11/2026 : « Confirmer N points d’arrêt ajoutés ».
+        // [« Confirmer {n} pause ajoutée » / « Confirmer {n} pauses ajoutées » — remplacés le 08/11/2026.]
+        confirmSingular: "Confirmer {n} point d’arrêt ajouté",
+        confirmPlural: "Confirmer {n} points d’arrêt ajoutés",
         // PRE-6 story 6.3 (D-441, arbitrage du 22/10/2026) : retrait de point, mélange ou modification
         // de durée seule.
         confirmChanges: "Confirmer les modifications",
@@ -642,6 +930,90 @@ export const fr = {
         recoveryRemovedAnnouncement: "Récupération retirée",
         recoverySelectedAnnouncement: "Récupération sélectionnée",
       },
+      // PRE-9 B.2 (ARB-06, COMP §5 ; Figma `10819:20344`, `10836:20478`) : mode enveloppe — désigner
+      // le premier contenu du Circuit ou du Cycle, barre « Confirmer le circuit / le cycle » et
+      // « Annuler ». Noms accessibles et annonces : formulations à valider.
+      envelope: {
+        confirmCircuit: "Confirmer le circuit",
+        confirmCycle: "Confirmer le cycle",
+        cancel: "Annuler",
+        exerciseInCircuitAccessibilityLabel: "Envelopper {name} dans le circuit",
+        exerciseInCycleAccessibilityLabel: "Envelopper {name} dans le cycle",
+        circuitInCycleAccessibilityLabel: "Envelopper {name} dans le cycle",
+        circuitName: "le circuit",
+        circuitNameWithLetter: "le circuit {letter}",
+        designatedAnnouncement: "{name} désigné",
+        circuitCreatedAnnouncement: "Circuit créé autour de {name}",
+        cycleCreatedAnnouncement: "Cycle créé autour de {name}",
+        // PRE-9 B.4b (sélection multiple, périmètre ajustable) : formulations choisies, à valider en recette.
+        undesignatedAnnouncement: "{name} retiré de la sélection",
+        confirmCircuits: "Confirmer les circuits",
+        confirmCycles: "Confirmer les cycles",
+        circuitsCreatedAnnouncement: "{count} circuits créés",
+        cyclesCreatedAnnouncement: "{count} cycles créés",
+        circuitTopEdge: "Bord haut du circuit",
+        circuitBottomEdge: "Bord bas du circuit",
+        cycleTopEdge: "Bord haut du cycle",
+        cycleBottomEdge: "Bord bas du cycle",
+        extendUp: "Étendre vers le haut",
+        extendDown: "Étendre vers le bas",
+        reduceFromTop: "Réduire par le haut",
+        reduceFromBottom: "Réduire par le bas",
+        perimeterOne: "1 élément",
+        perimeterMany: "{count} éléments",
+      },
+      // PRE-9 B.4 (ch13 « annonce de la raison d'un refus de dépose ») : annonces VoiceOver d'une dépose
+      // refusée sans modification dans une disposition générale. Formulations à valider.
+      // PRE-9 C.4 (référence Formats du 02/11/2026 §13, `11410:20123`) : sortie d'un Exercice d'un Circuit
+      // porteur d'un Format. Message illustratif, variable selon le mouvement et le Format.
+      // PRE-9 C.4 (référence Formats du 02/11/2026 §5, §11, §12) : en-tête d'un Circuit porteur.
+      carrier: {
+        blockUnit: { singular: "bloc", plural: "blocs" },
+        roundUnit: { singular: "tour", plural: "tours" },
+        untilFailure: "à l’échec",
+        noLimit: "Sans limite",
+        buyIn: "Buy-in",
+        buyOut: "Buy-out",
+        durationLabels: {
+          blockSeconds: "Durée de chaque bloc",
+          windowSeconds: "Durée de chaque tour",
+          timeCapSeconds: "Temps limite",
+        },
+      },
+      formatExit: {
+        title: "Sortir du circuit {format} ?",
+        message: "{name} devient un {format} simple, ou un exercice libre.",
+        keep: "Conserver le format {format}",
+        free: "Adopter un format libre",
+        cancel: "Annuler",
+      },
+      layoutMove: {
+        refused: {
+          NESTING: "Dépose impossible : un circuit ne va pas dans un circuit, ni un cycle dans un cycle",
+          FORMAT_INCOMPATIBLE: "Dépose impossible : le format de cet exercice n’est pas compatible avec ce circuit",
+          // [B.4 : « STOP_POINTS: Dépose impossible tant que la séance contient des points d’arrêt » —
+          // refus retiré le 31/10/2026 par B.6.]
+          CONTROL: "Dépose impossible",
+          // Recette iPhone n° 3 du 03/11/2026 (référence Formats §6 point 4). Formulation à valider.
+          // [Recette n° 3 du 03/11 : « le buy-in reste en tête du circuit, le buy-out à la fin » — remplacé le 04/11/2026
+          // (zones des Rôles, MAJ §6 bis 2).]
+          PASSAGE_FIXED: "Dépose impossible : pour changer de zone, modifiez le rôle de l’exercice",
+          // MAJ 04/11/2026 §6 bis 2 : message court invitant à passer d’abord un autre Exercice en Tour.
+          LAST_TOUR: "Passez d’abord un autre exercice en Tour : il en faut au moins un dans la boucle",
+          LAST_REPETITIONS: "Il faut au moins un exercice en Répétitions dans ce For time",
+          // Recette du 08/11/2026 au soir (Superset limité) : libellé repris du questionnaire (« Deux exercices au maximum »,
+          // registre ch07). Annoncé seulement : l'emplacement n'est pas proposé et « Monter » / « Descendre » franchit le Circuit.
+          MEMBER_LIMIT: "Deux exercices au maximum dans un Superset",
+          // Réponse de Hermann du 08/11/2026 (« dans la composition on limite à deux exercices aussi ») : sortie ou
+          // suppression d'un membre d'un Superset à deux. Formulation à faire confirmer par Hermann.
+          MEMBER_MINIMUM: "Deux exercices exactement dans un Superset", // [« Deux exercices au minimum dans un Superset » — remplacé le 08/11/2026, Hermann : « Deux exercices exactement dans un superset »]
+          NOT_FOUND: "",
+          AT_BOUNDARY: "",
+        },
+        // PRE-9 B.6 (D-441, RM-251, ARB-06) : dépose d'un Point d'arrêt refusée sans mutation (position
+        // interdite, occupée, ou consécutive à un autre Point). Formulation à valider.
+        stopPointRefused: "Dépose impossible : un point d’arrêt ne peut pas être placé ici",
+      },
       // PRE-6 story 7.2 (D-442) : la récupération ne se règle plus hors placement — la bulle « Retirer
       // la récupération » et les actions « Modifier » / « Retirer la récupération » de la carte
       // (stories 4.2, 5.1) sont retirées.
@@ -654,6 +1026,8 @@ export const fr = {
       // la saisie et l’enregistrement (écriture concurrente) est signalé pour ce qu’il est, et non par
       // l’erreur générique. Aucun texte relevé (NON VÉRIFIABLE).
       nameTakenError: "Un mouvement de cette séance porte un nom déjà utilisé. Modifiez son nom.",
+      // Recette iPhone du 07/11/2026 (y-rouge, Hermann : « on ne peut sauvegarder mais il n’y a pas de message d’explication « la somme des durée des exercices d’une série excède l’intervalle de temps alloué par série » »).
+      emomOverflow: "La somme des durées des exercices d’une série excède l’intervalle de temps alloué par série.",
       // PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand, à N ≥ 2, un
       // Point de début et un Point de fin de Tour se suivraient entre deux Tours (dialogue natif).
       // Formulations à valider.
@@ -662,6 +1036,17 @@ export const fr = {
         message: "Les deux se suivraient entre deux tours. Lequel conserver ?",
         head: "Début de tour",
         tail: "Fin de tour",
+        cancel: "Annuler",
+      },
+      // PRE-9 B.6 (ARB-02b : « demande de choix entre point de début et point de fin de répétition […]
+      // même formulation et mêmes opérations que D-442 ») : même dialogue pour un Cycle répété, ses
+      // répétitions au lieu des tours. Formulation à valider (À CLARIFIER de la spec B.6).
+      repetitionBoundaryChoice: {
+        // [31/10/2026, Hermann : « répétition » → « passage » dans ce message.]
+        title: "Point d’arrêt en début et en fin de passage",
+        message: "Les deux se suivraient entre deux passages du cycle. Lequel conserver ?",
+        head: "Début de passage",
+        tail: "Fin de passage",
         cancel: "Annuler",
       },
       // PRE-6 story 7.2 (D-442) : points retirés sans message par un déplacement d’Exercice, un
@@ -736,10 +1121,13 @@ export const fr = {
       // Circuit de Séries (dialogue `8328:34964`). Formulation calquée sur la conversion
       // (ch13), à valider par Hermann. `{series}` = « N série(s) », `{ordinal}` = N-ième.
       circuitEntryConfirmModal: {
-        addTitle: "Ajouter au circuit de séries ?",
-        moveTitle: "Déplacer dans le circuit de séries ?",
+        // PRE-9 (B.1a, D-451, COMP §2) : « circuit de séries » devient un terme historique ; nature
+        // active « séries alternées ». [Avant : « Ajouter au circuit de séries ? », « Déplacer dans
+        // le circuit de séries ? », « Passer en circuit de séries ? ».]
+        addTitle: "Ajouter au circuit à séries alternées ?",
+        moveTitle: "Déplacer dans le circuit à séries alternées ?",
         // PRE-6 (story 3.2, CE-CIR-02, Figma `8328:34964`) : conversion Tours → Séries avec perte.
-        natureTitle: "Passer en circuit de séries ?",
+        natureTitle: "Passer en séries alternées ?",
         natureMessage:
           "Tous les exercices auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
         addMessagePlural:
@@ -757,6 +1145,10 @@ export const fr = {
       },
       exerciseRow: {
         editAccessibilityLabel: "Modifier l’exercice",
+        // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat c, Hermann) : l'appui sur la carte ouvre la
+        // feuille des paramètres d'exécution ; l'appui sur la photo ouvre la fiche du mouvement.
+        editParametersAccessibilityLabel: "Modifier les paramètres",
+        openMovementAccessibilityLabel: "Ouvrir le mouvement",
         seriesSingular: "série",
         seriesPlural: "séries",
         repetitionSingular: "répétition",
@@ -783,6 +1175,19 @@ export const fr = {
       // PRE-6 story 2.2 (D-238, Figma `5544:6797`) : carte d'occurrence de la Composition.
       // Synthèse « N × cible » des séries identiques, « … » après trois cibles variables ;
       // nom accessible « Exercice, {nom}, {n} sur {m}, {durée} » (CE-T03-08 §18).
+      // Mise à jour consolidée des écrans Formats du 04/11/2026 (§6 quinquies, §6 sexies) : Circuit replié.
+      circuitActions: {
+        rename: "Renommer",
+        editFormat: "Modifier le format",
+        duplicate: "Dupliquer",
+        delete: "Supprimer",
+        renameLabel: "Nom du circuit",
+        deleteTitle: "Supprimer ce circuit ?",
+        deleteMessage: "Le circuit et ses {count} exercices seront supprimés de la séance.",
+        deleteMessageOne: "Le circuit et son exercice seront supprimés de la séance.",
+        cancel: "Annuler",
+        confirmDelete: "Supprimer",
+      },
       occurrenceCard: {
         seriesTimes: "{n} × {target}",
         valuesOverflow: "…",
@@ -795,6 +1200,15 @@ export const fr = {
         accessibilityRecovery: "récupération {duration}",
         // PRE-6 (story 5.1, D-435, Figma `9808:19924`) : séparateur entre la synthèse et la durée
         // estimée des Répétitions avec bip, sur la ligne 2 de la carte v2 (« 10 rép. / ≈ 1 min »).
+        // Contre-recette n° 3 ter du 03/11/2026 (f3-deathby) : « 1 / +1 rép. ».
+        // [« {start} / +{increment} {unit} » (Death by, 03/11/2026) — remplacé le 08/11/2026 par `increment`.]
+        // Demande de Hermann du 08/11/2026 (carte « DSF / Cards / Exercice — Composition ») : départ et incrément avec son
+        // unité — « 10 rép. +2/tour » (AMRAP, Volume croissant), « 1 rép. +1/min » (Death by, par intervalle).
+        increment: "{start} {sign}{increment}/{period}",
+        incrementPlus: "+",
+        incrementMinus: "−",
+        incrementPerRound: "tour",
+        incrementPerMinute: "min",
         workEstimateSeparator: " / ",
       },
     },
@@ -1132,15 +1546,31 @@ export const fr = {
         create: "Créer un mouvement",
         consult: "Mouvement",
         edit: "Modifier le mouvement",
+        // Ordre de Hermann du 01/11/2026, ch13 CE-T03-08 et l.5269 : écran ouvert par « Créer un
+        // exercice » depuis le menu Créer de la Composition.
+        sessionCreate: "Créer un exercice",
+        // Recette du 05/11/2026 au soir (r-creer, Hermann : « Le titre de la modale doit être « Choisir ou créer un mouvement » ») ;
+        // Q2 du 06/11 : « ok, je regarderai à l’usage ». Remplace « Créer un exercice » pour la fiche ouverte par Exercice libre.
+        sessionChooseOrCreate: "Choisir ou créer un mouvement",
       },
       finish: "Terminer",
+      // Même source : confirmation du mouvement en contexte Séance (les autres contextes gardent « Terminer »).
+      sessionFinish: "Créer un exercice",
+      // Demande de Hermann du 05/11/2026 (soir) : fiche « Modifier un mouvement », coche Valider de l'en-tête.
+      validate: "Valider",
       edit: "Modifier le mouvement",
       close: "Fermer",
+      // Recette iPhone du 06/11/2026 (t-fiche-choix, t-cat-choix) : bouton Retour de la fiche d'un mouvement choisi.
+      back: "Retour",
       loadError: "Le mouvement n’a pas pu être chargé.",
       retry: "Réessayer",
       saveError: "Le mouvement n’a pas pu être enregistré. Vos saisies sont conservées.",
       // Recette A/B (F03) : titre de la Description sur la fiche Mouvement (Figma `10453:23036`).
       descriptionTitle: "Description du mouvement",
+      // Recette iPhone du 29/10/2026 (Hermann ; Figma `10415:21706`) : texte par défaut du Nom de la
+      // fiche Mouvement, en gris clair. [Remplace, sur cette fiche seulement, « Nom de l’exercice »
+      // (`activities.editor.name`), qui reste celui de l’Éditeur d’Exercice.]
+      namePrompt: "Nom du mouvement",
       // Recette A/B B.10 (q6-2) : invite grise après le nom d'un Mouvement archivé.
       archivedNameSuffix: "(archivé)",
       // Recette A/B B.10 (remarque 4) : compteur du gabarit photo, à la place du badge « Vidéo ».
@@ -1155,7 +1585,8 @@ export const fr = {
       // Recette A/B B.10 (b2-4) : ↑ des Phases, qui ferme le clavier comme celui de la Description.
       phasesSubmitAccessibilityLabel: "Valider les phases",
       phases: {
-        title: "Phases du mouvement (pour minuter l’exécution)",
+        // Recette du 05/11/2026 (n-fiche, Hermann) : « (si il faut les minuter pendant l'exécution) ». [« (pour minuter l'exécution) » — remplacé.]
+        title: "Phases du mouvement (s’il faut les minuter pendant l’exécution)",
         firstPlaceholder: "Nommez la première phase",
         nextPlaceholder: "Phase suivante",
         labelAccessibility: "Phase {rank}",
@@ -1163,6 +1594,13 @@ export const fr = {
         row: "Phase {n}",
         moveUp: "Monter",
         moveDown: "Descendre",
+        // PRE-9 A.2b (Hermann, 30/10/2026) : durée facultative de la phase, reprise par défaut dans
+        // un nouvel Exercice. Rendu choisi (aucun Figma dédié) : valeur à droite du libellé.
+        durationPrompt: "Durée",
+        durationAccessibility: "Durée de la phase {rank}",
+        durationNone: "aucune durée",
+        // [Recette iPhone n° 2 du 31/10/2026 : roulette et « Sans durée » retirés (saisie au clavier
+        // numérique) — libellés « Durée par défaut » et « Sans durée » supprimés.]
       },
       catalogue: {
         segment: "Mouvements",
@@ -1181,6 +1619,12 @@ export const fr = {
         pileExpandHint: "Déplie la pile",
         pileCollapse: "Replier la pile",
         archivedAccessibility: "archivé",
+        // D-510 (Hermann, 06/11/2026) : badge d'une fiche créée — « New », seule la première lettre en majuscule ; « New ↓ » sur la
+        // tête d'une pile repliée dont un niveau caché est nouveau. [Recette du 06/11 (t-niveau) : « NEW » — remplacé.]
+        newBadge: "New",
+        newInPileBadge: "New ↓",
+        newAccessibility: "nouveau",
+        newInPileAccessibility: "contient un niveau nouveau",
         // Recette A/B (D03) : croix d'effacement de la recherche.
         searchClear: "Effacer la recherche",
         // Recette A/B (B08, MFN-05) : réordonnancement des Niveaux d'une pile déployée.

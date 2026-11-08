@@ -1,17 +1,22 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { StyleSheet, Text, TextInput, View, type AccessibilityActionEvent } from "react-native";
 
-import { WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { WORK_PATTERN_DURATION_BOUNDS, WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
+import { movementPhaseDefaultDuration } from "@/domain/activities/Movement";
 import {
   addMovementPhase,
   moveMovementPhase,
   removeMovementPhase,
   renameMovementPhase,
+  setMovementPhaseDuration,
   type MovementPhaseList,
 } from "@/domain/activities/movementPhaseList";
+import { cellDurationSeconds, mmssDigitsOf } from "@/features/activities/cellEntry";
+import { KeyboardField } from "@/features/activities/KeyboardField";
 import { codePointLength } from "@/domain/sessions/validation";
 import { strings } from "@/shared/i18n";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * PRE-8 (story B.2, CE-MVT-01 §7 et §12, Figma « DSF / Formulaires / Phases du mouvement »
@@ -29,6 +34,40 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * `WORK_PHASE_LIMITS.labelMaxLength` points de code (20), la limite du modèle d'exécution, en
  * création comme en modification : une saisie qui la dépasse est refusée. En lecture seule :
  * libellés seuls, sans invite. Aucune exigence de phase : un Mouvement peut n'en avoir aucune.
+ *
+ * [Remplacé le 31/10/2026, PRE-9 A.2b — décision de Hermann du 30/10/2026 : « les durées de la phase
+ * peuvent faire partie du mouvement, si elles sont renseignées elles sont reprises par défaut et
+ * peuvent être changées dans la séance ». « JAMAIS de durée » ci-dessus est remplacé : chaque phase
+ * porte une durée FACULTATIVE, affichée à droite de son libellé (« Durée » en invite si elle est
+ * vide). La toucher ouvre, sous la ligne, la roulette de durée partagée (`DurationWheelPicker`,
+ * bornes 1..3535 s, `WORK_PATTERN_DURATION_BOUNDS`, ouverture sur `00:00` quand elle est vide) ;
+ * « Sans durée » la retire. En lecture seule : durée renseignée affichée, rien sinon. Aucun rendu
+ * Figma de cette durée (`10450:24387` n'en montre pas) : rendu CHOISI, à valider en recette.]
+ *
+ * [Remplacé le 31/10/2026, PRE-9 — recette iPhone n° 2 (a2b-creer KO, Hermann : « Toucher la durée >
+ * Le clavier disparait et la roulette apparait, sous la photo, pas ergonomique. Comportement
+ * souhaité : - Première entrée de la description de la phase, clavier alphanumérique ouvert. -
+ * Appuyer sur "Entrée" déplace le curseur sur la durée de la même ligne, le clavier doit rester
+ * ouvert mais se transformer en clavier numérique. - Entrer la durée, appuyer sur entrée fait passer
+ * le curseur sur la ligne suivante, le clavier doit rester ouvert et se transformer en clavier
+ * alphanumérique. ») : la roulette et « Sans durée » sont retirés. Entrée sur un libellé place le
+ * curseur sur la durée de la même ligne (au lieu d'ouvrir l'invite juste après la phase, recette du
+ * 27/10, remarque 2). La durée se saisit au clavier numérique dans sa cellule, avec les règles des
+ * cellules de durée du tableau des phases de la Feuille (`KeyboardField` `cellDuration`,
+ * `cellEntry.ts`, D-434 : « MM:SS », première frappe qui remplace, secondes > 59 reportées, hors
+ * bornes ramenée à 1..3535 s) ; vidée : aucune durée. Elle s'applique à chaque frappe. Entrée de la
+ * durée (Android) ou « Suivant → » de la barre du clavier (pavé numérique iOS sans touche Entrée,
+ * `onKeyboardBarChange`) : ligne suivante — libellé de la phase suivante, sinon l'invite. Le
+ * clavier reste ouvert d'un champ à l'autre.]
+ *
+ * [Remplacé le 31/10/2026, PRE-9 — recette iPhone n° 2, contrôle (cr2-phases KO, Hermann : « Un
+ * bouton « Next » est apparu, le retirer. Retirer aussi la barre optionnelle avec les boutons
+ * précédent, suivant et fermer. L'utilisateur appuiera manuellement sur le champ étape suivante ») :
+ * la touche Entrée du libellé reprend son libellé par défaut (« retour », plus « Next ») ; la barre
+ * du clavier (« ← Précédent », « Suivant → », « Fermer ») et le passage automatique de la durée à la
+ * ligne suivante sont retirés. Lecture appliquée : Entrée sur le libellé place toujours le curseur
+ * sur la durée de la MÊME ligne (demande du 31/10 non retirée ; ce n'est pas l'« étape suivante ») ;
+ * depuis la durée, l'utilisateur touche lui-même le libellé de la phase suivante ou l'invite.]
  */
 
 const t = strings.screens.movement.phases;
@@ -41,6 +80,15 @@ const NUMBER_WIDTH = 16;
 const TITLE_TO_LIST = spacing[10];
 /** Numéro et texte de l'invite, comme la Description (`#AEB3BA`, sans jeton). */
 const PROMPT_COLOR = "#AEB3BA";
+
+/** PRE-9 A.2b : largeur de la valeur de durée, celle d'une cellule Durée du tableau des phases (76). */
+const DURATION_WIDTH = 76;
+/** Hauteur de la valeur de durée (ligne de texte) ; cible portée à 44 par `hitSlop`. */
+const DURATION_TOUCH_HEIGHT = 20;
+const DURATION_HIT_SLOP = {
+  top: (minTouchTarget - DURATION_TOUCH_HEIGHT) / 2,
+  bottom: (minTouchTarget - DURATION_TOUCH_HEIGHT) / 2,
+};
 
 /** Libellé admis (F06) : au plus `WORK_PHASE_LIMITS.labelMaxLength` points de code. */
 export function isPhaseLabelWithinLimit(label: string): boolean {
@@ -125,6 +173,9 @@ export function MovementPhasesEditor({
   // Recette du 27/10 (remarque 2, accord de Hermann) : comme la Description, Entrée sur une phase
   // ouvre la phase suivante JUSTE APRÈS elle — l'invite se place sous la phase (`null` : en fin).
   const [inviteAfter, setInviteAfter] = useState<number | null>(null);
+  // PRE-9, recette iPhone n° 2 : champs de durée (focus programmé) et durée en saisie.
+  const durationInputs = useRef(new Map<number, TextInput>());
+  const [activeDuration, setActiveDuration] = useState<number | null>(null);
   useEffect(() => {
     if (pendingFocus.current === null) return;
     inputs.current.get(pendingFocus.current)?.focus();
@@ -190,13 +241,13 @@ export function MovementPhasesEditor({
                   onKeyPress={(event) => {
                     if (event.nativeEvent.key === "Backspace" && phase.label === "") removeAt(index);
                   }}
-                  // Entrée : l'invite s'ouvre juste après cette phase et prend le focus (comme la
-                  // Description, touche « retour » du clavier).
-                  onSubmitEditing={() => {
-                    pendingFocus.current = "invite";
-                    setInviteAfter(index);
-                  }}
+                  // Recette iPhone n° 2 du 31/10/2026 : Entrée place le curseur sur la durée de la même
+                  // ligne, clavier ouvert (il devient numérique) [remplace l'invite ouverte juste après
+                  // la phase, recette du 27/10, remarque 2].
+                  onSubmitEditing={() => durationInputs.current.get(phase.id)?.focus()}
                   submitBehavior="submit"
+                  // Contrôle de la recette n° 2 (cr2-phases KO) : touche Entrée au libellé par défaut,
+                  // jamais « Next ».
                   returnKeyType="default"
                   onFocus={() => {
                     focusedKey.current = phase.id;
@@ -215,6 +266,7 @@ export function MovementPhasesEditor({
                   {phase.label}
                 </Text>
               )}
+              {renderDuration(phase.id, movementPhaseDefaultDuration(phase), rank)}
             </View>
           );
           return showInvite && inviteIndex === index ? [row, renderInvite()] : [row];
@@ -236,6 +288,53 @@ export function MovementPhasesEditor({
       </View>
     </View>
   );
+
+  /**
+   * PRE-9 A.2b : durée par défaut de la phase, à droite du libellé. Recette iPhone n° 2 du 31/10 :
+   * cellule saisie au clavier numérique (`KeyboardField` `cellDuration`), appliquée à chaque frappe.
+   */
+  function renderDuration(phaseId: number, seconds: number | null, rank: string) {
+    const shown = seconds === null ? null : formatPhraseDuration(seconds);
+    if (!editable) {
+      return shown === null ? null : (
+        <Text style={styles.duration} testID={`${testID}-duration-${rank}`}>
+          {shown}
+        </Text>
+      );
+    }
+    const focused = activeDuration === phaseId;
+    return (
+      <KeyboardField
+        mode="cellDuration"
+        displayValue={shown ?? t.durationPrompt}
+        spokenDisplayValue={shown ?? t.durationNone}
+        editText={seconds === null ? "" : mmssDigitsOf(seconds)}
+        active={focused}
+        onFocus={() => {
+          focusedKey.current = phaseId;
+          setActive(true);
+          setActiveDuration(phaseId);
+          reportActive(phaseId);
+        }}
+        onBlur={() => {
+          setActiveDuration((current) => (current === phaseId ? null : current));
+          setActive(false);
+        }}
+        onChangeText={(text) =>
+          onChange(setMovementPhaseDuration(value, phaseId, cellDurationSeconds(text, WORK_PATTERN_DURATION_BOUNDS)))
+        }
+        inputRef={(node) => {
+          if (node) durationInputs.current.set(phaseId, node);
+          else durationInputs.current.delete(phaseId);
+        }}
+        accessibilityLabel={t.durationAccessibility.replace("{rank}", rank)}
+        hitSlop={DURATION_HIT_SLOP}
+        style={styles.durationButton}
+        valueStyle={[styles.duration, shown === null && !focused ? styles.durationPrompt : null]}
+        testID={`${testID}-duration-${rank}`}
+      />
+    );
+  }
 
   function renderInvite() {
     const position = inviteIndex === null ? phases.length : inviteIndex + 1;
@@ -314,6 +413,20 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   promptNumber: {
+    color: PROMPT_COLOR,
+  },
+  // PRE-9 A.2b (rendu choisi) : valeur de durée alignée à droite, sur la largeur d'une cellule Durée.
+  durationButton: {
+    width: DURATION_WIDTH,
+    minHeight: DURATION_TOUCH_HEIGHT,
+    alignItems: "flex-end",
+  },
+  duration: {
+    ...type.body,
+    color: colors.textPrimary,
+    textAlign: "right",
+  },
+  durationPrompt: {
     color: PROMPT_COLOR,
   },
   text: {

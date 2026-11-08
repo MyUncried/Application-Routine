@@ -87,7 +87,59 @@ export const DATABASE_NAME = "kodjo.db";
  * colonne additive `movements.archived_at`, aucun Mouvement archivé par la
  * migration. 001..014 inchangées.
  */
-export const DATABASE_VERSION = 15;
+/**
+ * **PRE-9 (version 16, `migration016`, story A.1)** : structure D-451 complète —
+ * Exercice direct de Cycle (`activities.cycle_id`) et Point d'arrêt dans un
+ * Cycle (`session_stop_points.cycle_id`), au plus un parent. Tables reconstruites,
+ * lignes recopiées à l'identique, aucune donnée supprimée. 001..015 inchangées.
+ */
+/**
+ * **PRE-9 (version 17, `migration017`, story C.1)** : Format porté par l'élément
+ * (`tours.format_key`/`format_settings`, `activities.format_key`/`format_settings`)
+ * et origine de création (`sessions.origin`) — colonnes additives nullables, toute
+ * Séance existante reste libre. 001..016 inchangées.
+ * [Correction C.1 du 30/10 (décision de Hermann, D-02) : le Format est porté par
+ * l'Exercice seul. `tours.format_key` / `tours.format_settings` restent dans le
+ * schéma comme vestiges inutilisés : ni lus ni écrits par le code actif ; aucune
+ * migration de suppression. Leur vacuité sur l'iPhone n'est pas vérifiée.]
+ */
+/**
+ * **PRE-9 (version 18, `migration018`, story A.2b)** : durée facultative d'une phase du
+ * Mouvement (`movement_phases.duration_seconds`, 1..3535 s, `NULL` = aucune durée) — colonne
+ * additive nullable, toute phase existante reste sans durée. 001..017 inchangées.
+ */
+/**
+ * **PRE-9 (version 19, `migration019`, recette iPhone n° 2 du 31/10/2026, constat e)** : marque
+ * « Paramètre à vérifier » d'un Exercice (`activities.phases_to_verify`,
+ * `activity_definitions.phases_to_verify`, liste JSON d'identités de phase, `NULL` = rien à
+ * vérifier) — colonnes additives nullables, tout Exercice existant reste sans marque. 001..018
+ * inchangées. [Plan : A.4 → 020, A.5 → 021.]
+ */
+/**
+ * **PRE-9 (version 20, `migration020`, recette iPhone n° 3 du 03/11/2026, autres constats, décision de
+ * Hermann du 03/11)** : modèle d'origine d'un Circuit créé par la fenêtre Formats (`tours.origin_model`,
+ * `CHECK` sur les dix clés de modèle figées, `NULL` = « Circuit ») — colonne additive nullable, tout
+ * Circuit existant reste « Circuit ». 001..019 inchangées. [Le plan « A.4 → 020, A.5 → 021 » est
+ * décalé d'un rang : A.4 et A.5 prendront les prochaines versions disponibles.]
+ */
+/**
+ * **PRE-9 (version 21, `migration021`, story A.3, décision de Hermann du 04/11/2026 : « Hermann
+ * abandonne la conversion sans perte prévue par A.4 : les anciens exercices concernés par cette
+ * conversion peuvent être supprimés plutôt que migrés. »)** : suppression de toutes les anciennes
+ * définitions d'Exercice du Catalogue ; la table reste, vide (sa suppression, A.5, reste non
+ * autorisée et prendra la version 23, la 22 étant réservée au nom du Circuit). Mouvements, Séances,
+ * historique et instantanés conservés. 001..020 inchangées.
+ */
+/**
+ * **PRE-9 (version 22, `migration022`, reprise Formats du 04/11/2026)** : nom du Circuit (`tours.name`, `NULL` =
+ * nom par défaut) — colonne additive nullable. 001..021 inchangées.
+ */
+/**
+ * **PRE-9 (version 23, `migration023`, décisions EMOM du 07/11/2026, réponse 3 de Hermann)** : Récupération des
+ * Exercices EMOM d'un Circuit alterné ou d'un Circuit porteur EMOM ramenée à 0 s — reprise de données, aucun
+ * changement de schéma. 001..022 inchangées. [A.5, non autorisée, prendra la prochaine version disponible.]
+ */
+export const DATABASE_VERSION = 23;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

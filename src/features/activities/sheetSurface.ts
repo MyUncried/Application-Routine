@@ -67,7 +67,8 @@
  * toucher ailleurs le ferme sans appliquer et n'ouvre pas le champ touché (T10), ✓ et ✕ sont
  * absorbés tant qu'il est ouvert, sa fermeture passe par sa clé.
  */
-export type SheetSelector = "commonTarget" | "total" | "sideOrder";
+/** PRE-9 (01/11/2026, point 2) : `recovery`, roulette de la Récupération de l'Exercice (bloc 6). */
+export type SheetSelector = "commonTarget" | "total" | "sideOrder" | "recovery";
 /** Valeurs numériques hors tableau réglées par ± (FR-10-05) ; PRE-5 story 2.8 : nombre de phases. */
 export type SheetStepperField = "count" | "pause" | "sideRecovery" | "beep" | "countdown" | "end" | "phaseCount";
 
@@ -81,7 +82,41 @@ export type KeyboardFieldId =
   | { readonly kind: "rowTarget"; readonly row: number }
   | { readonly kind: "rowPause"; readonly row: number }
   | { readonly kind: "phaseLabel"; readonly phase: number }
-  | { readonly kind: "phaseDuration"; readonly phase: number };
+  | { readonly kind: "phaseDuration"; readonly phase: number }
+  | { readonly kind: "scalar"; readonly field: SheetScalarField };
+
+/**
+ * Décision de Hermann du 06/11/2026 (constat c : « Paramètre d'exécution : n'utiliser que le clavier
+ * pour entrer les valeurs des champs, plus aucune roulette ou popover » ; « Oui » : tous les champs
+ * de la fiche Exercice) — valeur numérique HORS tableau saisie au clavier numérique, dans sa pastille
+ * ou dans l'option qui la porte : nombre de phases, nombre de séries, Cible commune, Pause, Pause
+ * entre les côtés, Cadence (Autre), Durée de l'exercice, Compte à rebours, Fin, Récupération.
+ * [Roues `selector(commonTarget | total | recovery)` et champs ± `stepper(count | pause |
+ * sideRecovery | beep | countdown | end | phaseCount)` de ces valeurs — remplacés.]
+ */
+export type SheetScalarField =
+  | "phaseCount"
+  | "count"
+  | "uniformTarget"
+  | "pause"
+  | "sideRecovery"
+  | "beep"
+  | "total"
+  | "countdown"
+  | "end"
+  | "recovery"
+  /**
+   * Recette iPhone du 07/11/2026 (Hermann : « les lignes de texte et champs spécifiques aux formats d'entraînement … doivent
+   * être intégrés dans les cadres existants ») et réponse du 06/11 (« 1. Oui » : réglages de Format aussi au clavier) :
+   * Incrément par tour / par intervalle, Intervalle, Durée de l'exercice (AMRAP), Durée maximum du For time.
+   */
+  | "formatIncrement"
+  | "formatInterval"
+  | "formatDuration"
+  | "formatTimeCap";
+
+/** Décision du 06/11/2026 : champ clavier d'une valeur hors tableau. */
+export const scalarKeyboardField = (field: SheetScalarField): KeyboardFieldId => ({ kind: "scalar", field });
 
 /** PRE-5 story 2.8 : champ clavier d'une phase (libellé ou durée). */
 export type PhaseKeyboardFieldId = Extract<KeyboardFieldId, { readonly phase: number }>;
@@ -93,13 +128,15 @@ export function isPhaseKeyboardField(field: KeyboardFieldId): field is PhaseKeyb
 
 /** Même champ clavier. */
 export function sameKeyboardField(a: KeyboardFieldId, b: KeyboardFieldId): boolean {
+  if (a.kind === "scalar") return b.kind === "scalar" && a.field === b.field;
+  if (b.kind === "scalar") return false;
   if (isPhaseKeyboardField(a)) return isPhaseKeyboardField(b) && b.kind === a.kind && a.phase === b.phase;
   return !isPhaseKeyboardField(b) && b.kind === a.kind && b.row === a.row;
 }
 
-/** D-434 : ligne d'identité d'un champ clavier du tableau des séries, ou `null` (charge commune, phase). */
+/** D-434 : ligne d'identité d'un champ clavier du tableau des séries, ou `null` (charge commune, phase, valeur hors tableau). */
 export function keyboardFieldRow(field: KeyboardFieldId): number | null {
-  if (isPhaseKeyboardField(field) || field.row === "uniform") return null;
+  if (field.kind === "scalar" || isPhaseKeyboardField(field) || field.row === "uniform") return null;
   return field.row;
 }
 
@@ -203,6 +240,10 @@ export function sheetSurfaceReducer(state: SheetSurfaceState, event: SheetSurfac
       // plus se ferme ; le stepper du nombre de phases aussi quand il n'y a plus de phase (Sans).
       if (open.kind === "stepper") {
         return open.field === "phaseCount" && event.phaseIds.length === 0 ? closeAll(state) : state;
+      }
+      // Décision du 06/11/2026 : de même pour le champ clavier du nombre de phases.
+      if (open.kind === "keyboard" && open.field.kind === "scalar") {
+        return open.field.field === "phaseCount" && event.phaseIds.length === 0 ? closeAll(state) : state;
       }
       const phase = open.kind === "keyboard" ? keyboardFieldPhase(open.field) : null;
       return phase !== null && !event.phaseIds.includes(phase) ? closeAll(state) : state;

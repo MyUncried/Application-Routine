@@ -13,7 +13,11 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  *
  * - Sous un filet, sur toute la largeur utile de la carte (elle passe sous le visuel).
  * - Conteneurs en lignes d'en-tête grises sans valeur : « Cycle · N répétitions », « Circuit · N
- *   tours » (unité accordée à la nature du Circuit, lexique de la Composition).
+ *   tours · groupées » / « Circuit · N tours · alternées » (PRE-9 B.1b, référence « Composition :
+ *   circuits, cycles et création » §2 : l'unité reste « tour(s) », la nature est l'adjectif de
+ *   l'en-tête de la Composition ; remplace « Circuit · N séries » pour un Circuit alterné).
+ *   [Remplacé le 06/11/2026 par D-507 : « Cycle » + « N passages » à droite, « Circuit · séries
+ *   groupées|alternées » + « N tours » à droite ; volumes « 3 × 12 rép. ».]
  * - Membres décalés de 16 par niveau, reliés par un filet vertical dans la marge dégagée (motif des
  *   familles de niveaux du Catalogue des Mouvements, B.5) ; deux décalages au plus.
  * - Nom à gauche, volume à droite ; récupérations en gris clair, à leur position, avec leur durée.
@@ -22,23 +26,34 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  */
 
 const t = strings.screens.sessions.catalogueCard;
-const circuitUnits = strings.screens.composition.circuit.unit;
+const circuitStrings = strings.screens.composition.circuit;
 
 export function treeLineLabel(line: CatalogueTreeLine): { readonly name: string; readonly value: string | null } {
   switch (line.kind) {
+    // D-507 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §6) : « Cycle » à gauche,
+    // « N passages » à droite dans la colonne des volumes ; « Circuit · séries groupées|alternées » à
+    // gauche, « N tours » à droite. [Avant : « Cycle · N passages », « Circuit · N tours · groupées »,
+    // sans valeur à droite — remplacé.]
     case "CYCLE":
       return {
-        name: fillTemplate(t.cycleLine, {
+        name: t.cycleLine,
+        value: fillTemplate(t.repeatValue, {
           count: String(line.repeatCount),
           unit: line.repeatCount === 1 ? t.cycleUnit.singular : t.cycleUnit.plural,
         }),
-        value: null,
       };
     case "CIRCUIT": {
-      const unit = circuitUnits[line.nature];
+      const unit = circuitStrings.countUnit;
       return {
-        name: fillTemplate(t.circuitLine, { count: String(line.repeatCount), unit: line.repeatCount === 1 ? unit.singular : unit.plural }),
-        value: null,
+        name: fillTemplate(t.circuitLine, {
+          // Recette iPhone n° 3 du 03/11/2026 : nom du Format ou du modèle d'origine, sinon « Circuit ».
+          title: line.title ?? circuitStrings.title,
+          nature: circuitStrings.natureAdjective[line.nature],
+        }),
+        value: fillTemplate(t.repeatValue, {
+          count: String(line.repeatCount),
+          unit: line.repeatCount === 1 ? unit.singular : unit.plural,
+        }),
       };
     }
     case "EXERCISE":
@@ -87,7 +102,10 @@ export function SessionCompositionTree({ tree, testID }: { readonly tree: readon
                 {name}
               </Text>
               {value !== null ? (
-                <Text style={[styles.value, isRecovery ? styles.muted : null]} numberOfLines={1}>
+                <Text
+                  style={[styles.value, isContainer ? styles.containerValue : null, isRecovery ? styles.muted : null]}
+                  numberOfLines={1}
+                >
                   {value}
                 </Text>
               ) : null}
@@ -143,6 +161,11 @@ const styles = StyleSheet.create({
   value: {
     ...type.segmentedCompactLabel,
     color: colors.textPrimary,
+  },
+  // D-507 : « N passages » / « N tours » dans la colonne des volumes, en gris comme leur conteneur
+  // (Figma `6214:3696` : `#595E66`).
+  containerValue: {
+    color: colors.textSecondary,
   },
   muted: {
     color: colors.catalogueSessionMuted,

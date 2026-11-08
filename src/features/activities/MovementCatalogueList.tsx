@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -13,6 +13,16 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import Reanimated, {
+  Easing as ReanimatedEasing,
+  LinearTransition,
+  ReduceMotion,
+  withDelay,
+  withTiming,
+  type EntryAnimationsValues,
+  type ExitAnimationsValues,
+  type LayoutAnimation,
+} from "react-native-reanimated";
 
 import { decodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import type { MovementFamilyOutcome, MovementPriorMemberships } from "@/domain/activities/MovementRepository";
@@ -28,7 +38,12 @@ import {
   type MovementCatalogueService,
   type MovementLifecycleResult,
 } from "@/features/activities/MovementCatalogueService";
-import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
+import {
+  MOTION_EASING,
+  MOTION_FADE_DURATION_MS,
+  MOTION_FADE_EASING,
+  MOTION_SHIFT_DURATION_MS,
+} from "@/features/sessions/compositionMotion";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import { strings } from "@/shared/i18n";
@@ -41,8 +56,17 @@ import {
   reorderedFamilyIds,
   visibleMovementItems,
   type MovementCatalogueFilters,
+  type MovementStatusFilter,
   type MovementCatalogueItem,
 } from "./movementCatalogueView";
+import {
+  applyMovementCounter,
+  movementCatalogueSummary,
+  pileKeysOf,
+  pilesHidingIds,
+  type MovementCatalogueSummary,
+  type MovementCounter,
+} from "./movementCatalogueCounters";
 import { dragIntent, placedOrder, previewLevels, reorderAnchor, type DragIntent, type DragSlot } from "./movementFamilyDrag";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "./SheetMotion";
 import { SWIPE_ACTION_WIDTH, SwipeActionsRow, type SwipeAccessibilityAction, type SwipeAction } from "./SwipeActionsRow";
@@ -159,7 +183,8 @@ type Box = { readonly y: number; readonly height: number };
 /** B08 : ordre affiché juste après une dépose, valable pour les entrées lues avant elle. */
 type OrderOverride = { readonly entries: readonly MovementCatalogueEntry[]; readonly pileKey: string; readonly ids: readonly string[] };
 
-const CARD_HEIGHT = 80;
+/** D-508 (Figma `10124:21979`) : carte et feuilles de pile de 72. [Avant : 80 — remplacé.] */
+const CARD_HEIGHT = 72;
 /** Écart entre les cartes d'une pile déployée (Figma `10579:21580` : 4). */
 const MEMBER_GAP = spacing[4];
 /** Écart entre deux entrées du Catalogue, sous l'épaisseur d'une pile (Figma : 12). */
@@ -173,6 +198,22 @@ const FAMILY_NOTICE_MS = 3000;
 const COLLAPSE_HIT_EXTRA = 12;
 /** Recette du 28/10 : arrêt sur une famille repliée avant qu'elle se déplie (valeur technique, non spécifiée). */
 const EXPAND_DWELL_MS = 500;
+/** d-nonreg (06/11/2026) : calme après le relâchement — écriture, relecture et retour des cartes (valeur technique). */
+const DROP_SETTLE_MS = 900;
+/**
+ * Recette iPhone du 06/11/2026 (t-glisser, Hermann : « Cela ne doit arriver que lorsqu'on arrête consciemment la carte au
+ * dessus d'une autre, pas seulement quand on passe dessus. » ; décision validée : « ok, on testera ce que ça donne ») : le
+ * filet de placement dans une famille (C1, C2) et le décalage de la carte visée n'apparaissent que si la carte portée reste
+ * immobile environ 0,4 s au-dessus d'une autre. Passer dessus sans s'arrêter ne déclenche rien ; le relâchement n'applique
+ * que la place annoncée. [Avant : filet et décalage dès le survol — remplacé.]
+ * [Recette iPhone du 07/11/2026 (y-pile, Hermann : « quand la pile est ouverte, les cartes ne se déplacent à l'intérieur de
+ * la pile que lorsqu'on s'arrête dessus. On ne retrouve plus le déplacement fluide des cartes […] à l'intérieur de la
+ * famille. ») : l'arrêt ne vaut plus que pour former une famille sur une carte sans famille (C1) ; dans une pile ouverte
+ * (C2), la place s'ouvre au passage, comme au réordonnancement (A) — remplacé pour C2.]
+ */
+export const PLACE_DWELL_MS = 400;
+/** t-glisser : tremblement du doigt toléré pendant l'arrêt (valeur technique, non spécifiée). */
+const PLACE_DWELL_TOLERANCE = 6;
 
 export function MovementCatalogueList({
   reloadToken,
@@ -180,15 +221,61 @@ export function MovementCatalogueList({
   filters,
   onOpenMovement,
   onCreateVariant,
+  selection,
+  topInset,
+  counter,
+  onSummaryChange,
+  newMovementIds,
+  scrollTarget = null,
+  onScrollTargetHandled,
 }: {
   readonly reloadToken: number;
+  /**
+   * D-510 (Hermann, 06/11/2026) : fiches créées depuis la dernière sortie du catalogue des mouvements, badge « New »
+   * (`newMovementMarks`, en mémoire, non persisté). Absent hors de l'onglet Mouvements du catalogue (règle 9).
+   */
+  readonly newMovementIds?: ReadonlySet<string>;
+  /**
+   * D-510, règle 8 : dernière fiche créée vers laquelle la liste se positionne au retour (sa pile si elle est repliée, sans la
+   * déployer). Une fiche exclue par les filtres ou la recherche n'est pas rendue visible : la cible est alors abandonnée.
+   */
+  readonly scrollTarget?: string | null;
+  /** D-510 : la cible a été atteinte (ou n'est pas affichée). */
+  readonly onScrollTargetHandled?: (id: string) => void;
+  /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
+  readonly topInset?: number;
+  /** PRE-9 CAT.1 (CE-CAT-CTX-01) : compteur actif de la zone de contexte ; absent : aucun. */
+  readonly counter?: MovementCounter | null;
+  /** PRE-9 CAT.1 : compteurs de la liste affichée (`null` tant qu’elle n’est pas prête). */
+  readonly onSummaryChange?: (summary: MovementCatalogueSummary | null) => void;
   /** Recherche saisie dans la zone de contexte du Catalogue (D02). */
   readonly query: string;
   readonly filters: MovementCatalogueFilters;
   readonly onOpenMovement: (movementId: string) => void;
   readonly onCreateVariant: (originId: string, placement: VariantPlacement) => void;
+  /**
+   * PRE-9 A.2 (ARB-22a : « La sélection des Mouvements réutilise le parcours existant du
+   * Catalogue ») — même liste, mêmes piles, même recherche et mêmes filtres, en mode sélection pour
+   * une Séance : Mouvements actifs seulement, quel que soit le filtre d'état (Q6 : un Mouvement
+   * archivé n'est jamais proposé pour créer un Exercice) ; le toucher d'une carte la coche ou la
+   * décoche (une pile repliée se déplie d'abord) ; ni actions glissées, ni réordonnancement, ni
+   * fiche ouverte. `bottomInset` : réserve sous la liste (zone d'action de l'écran hôte).
+   */
+  readonly selection?: {
+    readonly selectedIds: ReadonlySet<string>;
+    /** Contre-recette du 30/10 (Hermann) : Mouvements déjà présents dans la Séance, marqués « Dans la séance ». */
+    readonly inSessionIds?: ReadonlySet<string>;
+    readonly onToggle: (movement: MovementCatalogueEntry["movement"]) => void;
+    readonly bottomInset: number;
+  };
 }) {
   const { state, reload, catalogue } = useMovementCatalogue(reloadToken);
+  // PRE-9 A.2 (Q6) : en sélection, le filtre d'état est ramené à « Actifs » (défaut, Q2).
+  const selecting = selection !== undefined;
+  const shownFilters = useMemo(
+    () => (!selecting ? filters : { ...filters, statuses: new Set<MovementStatusFilter>() }),
+    [filters, selecting],
+  );
   const reduceMotion = useReduceMotion();
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [revealedId, setRevealedId] = useState<string | null>(null);
@@ -201,15 +288,35 @@ export function MovementCatalogueList({
   const [drag, setDrag] = useState<Drag | null>(null);
   const [override, setOverride] = useState<OrderOverride | null>(null);
   const [memberStep, setMemberStep] = useState(CARD_HEIGHT + MEMBER_GAP);
+  /**
+   * Recette iPhone du 06/11/2026 au soir (d-nonreg : « Ouvrir une pile, déplacer un mouvement : il disparaît, ou se
+   * repositionne mal » ; t-glisser : « Lorsqu'on arrête la carte sur une famille, celle-ci s'ouvre avec un gros soubresaut »).
+   * Les glissements de pile et révélations ajoutés le 06/11 (t-catalogue, 8a5befaf) jouaient aussi pendant le geste et à la
+   * dépose : la carte portée repartait sous la carte du dessus (sortie de pile) et les membres glissaient pendant que la
+   * carte suivait le doigt. Ces animations ne jouent plus pendant le geste ni pendant `DROP_SETTLE_MS` après le relâchement
+   * (relecture du Catalogue comprise) — comportement du 28/10 (FAM) ; elles restent pour le repli / dépli à la main.
+   */
+  const [dropSettling, setDropSettling] = useState(false);
+  const dropSettleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (dropSettleTimer.current !== null) clearTimeout(dropSettleTimer.current);
+    },
+    [],
+  );
+  const gestureQuiet = drag !== null || dropSettling;
   const [familyFailed, setFamilyFailed] = useState(false);
   // Familles : place mesurée des entrées (repère de la liste) et des membres (repère de leur pile).
   const itemBoxes = useRef(new Map<string, Box>());
   const memberBoxes = useRef(new Map<string, Box>());
   // Copie de la carte portée pour les gestionnaires de mise en page (mise à jour après chaque rendu).
   const dragRef = useRef<Drag | null>(null);
+  // D-510, règle 8 : défilement vers la fiche nouvelle, en attente de la mesure de son entrée.
+  const onItemMeasured = useRef<(() => void) | null>(null);
   const recordItemBox = useCallback((key: string, event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
     itemBoxes.current.set(key, { y, height });
+    onItemMeasured.current?.();
     // FAM-05 : la place de la carte portée a changé (pile dépliée au-dessus) — elle reste sous le doigt.
     const current = dragRef.current;
     if (current === null || current.origin === null) return;
@@ -240,14 +347,35 @@ export function MovementCatalogueList({
     measure: (callback) => viewportRef.current?.measureInWindow((_x, top, _width, height) => callback(top, height)),
   });
   const [scrollFollow] = useState(() => new Animated.Value(0));
+  // Recette du 05/11/2026 au soir (m-carte, Hermann : « Régression : déplacer un mouvement dans le catalogue, le mouvement suit le
+  // doigt mais n’est pas fluide ») : la carte portée suit aussi le doigt par une valeur animée, hors rendu ; la liste n'est
+  // redessinée que si la décision du geste (place visée, famille survolée) ou la place de la carte portée change — comme pour le
+  // défilement (f3-01).
+  const [fingerFollow] = useState(() => new Animated.Value(0));
+  const liftedFollower = useMemo(() => Animated.add(scrollFollow, fingerFollow), [scrollFollow, fingerFollow]);
+  const gesture = useRef({ dy: 0 });
   const scrollDelta = useRef(0);
   const scrollLatest = useRef<((delta: number) => void) | null>(null);
   // Famille repliée survolée par la carte portée, et son dépliage différé.
   const expandHover = useRef<{ key: string; timer: ReturnType<typeof setTimeout> } | null>(null);
+  // t-glisser (06/11/2026) : place visée (C1, C2) en attente d'un arrêt de `PLACE_DWELL_MS`, et position de la carte portée
+  // (déplacement total depuis le départ, doigt et défilement) au début de l'arrêt.
+  const placeDwell = useRef<{ key: string; total: number; timer: ReturnType<typeof setTimeout> } | null>(null);
+  const clearPlaceDwell = () => {
+    if (placeDwell.current !== null) clearTimeout(placeDwell.current.timer);
+    placeDwell.current = null;
+  };
+  useEffect(
+    () => () => {
+      if (placeDwell.current !== null) clearTimeout(placeDwell.current.timer);
+    },
+    [],
+  );
 
   const items = useMemo(() => {
     if (state.status !== "ready") return [];
-    const visible = visibleMovementItems(state.entries, query, filters);
+    // PRE-9 CAT.1 : le compteur actif (« familles » / « mouvements ») se cumule à la recherche et aux filtres.
+    const visible = applyMovementCounter(visibleMovementItems(state.entries, query, shownFilters), counter ?? null);
     if (override === null || override.entries !== state.entries) return visible;
     return visible.map((item): MovementCatalogueItem => {
       if (item.kind !== "PILE" || item.key !== override.pileKey) return item;
@@ -255,7 +383,104 @@ export function MovementCatalogueList({
       const members = override.ids.map((id) => byId.get(id)).filter((member) => member !== undefined);
       return members.length === item.members.length ? { ...item, members } : item;
     });
-  }, [state, query, filters, override]);
+  }, [state, query, shownFilters, override, counter]);
+
+  // Recette iPhone CAT.1 du 30/10/2026 (Hermann, cat-bascule : « appuyer sur mouvements déplie toutes
+  // les listes affichées ») : à l'activation du compteur « mouvements », toutes les piles affichées se
+  // déplient ; à sa désactivation (ou au passage à « familles »), l'état de dépliage d'avant revient
+  // (choix minimal, non spécifié). Ajusté pendant le rendu : aucune image intermédiaire repliée.
+  const activeCounter = counter ?? null;
+  const [seenCounter, setSeenCounter] = useState<MovementCounter | null>(activeCounter);
+  const [expandedBeforeMovements, setExpandedBeforeMovements] = useState<ReadonlySet<string> | null>(null);
+  if (seenCounter !== activeCounter) {
+    setSeenCounter(activeCounter);
+    if (activeCounter === "MOVEMENTS") {
+      setExpandedBeforeMovements(expanded);
+      setExpanded(new Set([...expanded, ...pileKeysOf(items)]));
+    } else if (seenCounter === "MOVEMENTS" && expandedBeforeMovements !== null) {
+      setExpanded(expandedBeforeMovements);
+      setExpandedBeforeMovements(null);
+    }
+  }
+  // Recette iPhone CAT.1 du 30/10/2026, constat a) (Hermann : « les piles où se trouvent un ou des
+  // mouvements déjà utilisés doivent être dépliées si le ou les mouvements ne sont pas visibles ») :
+  // en sélection, à la première lecture du Catalogue, une pile dont un membre masqué est déjà dans la
+  // Séance s'ouvre dépliée. Les gestes de l'utilisateur ne sont plus surchargés ensuite.
+  const inSessionIds = selection?.inSessionIds;
+  const [inSessionUnfolded, setInSessionUnfolded] = useState(false);
+  if (!inSessionUnfolded && state.status === "ready" && inSessionIds !== undefined) {
+    setInSessionUnfolded(true);
+    const hiding = pilesHidingIds(items, inSessionIds);
+    if (hiding.length > 0) setExpanded((current) => new Set([...current, ...hiding]));
+  }
+
+  // PRE-9 CAT.1 (CE-CAT-CTX-01) : compteurs dérivés de la liste courante elle-même (familles affichées,
+  // Mouvements des piles repliées compris, cartes affichées). Remontés à l’écran hôte (zone de contexte).
+  const summary = useMemo(() => movementCatalogueSummary(items, expanded), [items, expanded]);
+  const ready = state.status === "ready";
+  useEffect(() => {
+    onSummaryChange?.(ready ? summary : null);
+  }, [onSummaryChange, ready, summary]);
+  // D-510, règle 8 : au retour après une création, la liste se positionne sur la fiche nouvelle, ou sur sa pile repliée
+  // (carte de tête), sans la déployer ; tri, filtres et piles inchangés. La position vient de la mise en page mesurée de
+  // l'entrée (`itemBoxes`) et, dans une pile dépliée, de la carte (`memberBoxes`, repère de la pile).
+  const scrollTargetItem =
+    scrollTarget === null || state.status !== "ready"
+      ? null
+      : (items.find((item) =>
+          item.kind === "SINGLE" ? item.entry.movement.id === scrollTarget : item.members.some((member) => member.movement.id === scrollTarget),
+        ) ?? null);
+  const pendingScroll = useRef<{ readonly id: string; readonly itemKey: string } | null>(null);
+  const scrollToPending = useCallback(() => {
+    const pending = pendingScroll.current;
+    if (pending === null) return;
+    const box = itemBoxes.current.get(pending.itemKey);
+    if (box === undefined) return;
+    const member = expanded.has(pending.itemKey) ? memberBoxes.current.get(pending.id) : undefined;
+    pendingScroll.current = null;
+    scrollRef.current?.scrollTo({ y: Math.max(0, box.y + (member?.y ?? 0) - spacing[12]), animated: !reduceMotion });
+    onScrollTargetHandled?.(pending.id);
+  }, [expanded, onScrollTargetHandled, reduceMotion]);
+  useEffect(() => {
+    if (scrollTarget === null || state.status !== "ready") return;
+    if (scrollTargetItem === null) {
+      // Règle 7 : fiche exclue par un filtre actif ou par la recherche — elle ne s'affiche pas, aucun défilement.
+      if (state.entries.some((entry) => entry.movement.id === scrollTarget)) onScrollTargetHandled?.(scrollTarget);
+      return;
+    }
+    pendingScroll.current = { id: scrollTarget, itemKey: scrollTargetItem.key };
+    scrollToPending();
+  }, [scrollTarget, scrollTargetItem, state, onScrollTargetHandled, scrollToPending]);
+  useEffect(() => {
+    onItemMeasured.current = scrollToPending;
+  }, [scrollToPending]);
+
+  // Recette iPhone du 06/11/2026 (t-catalogue, Hermann : « Afficher la liste des mouvements de manière progressive (la c'est
+  // une apparition brute) ») : à son apparition, la liste entre en fondu avec une courte montée (durée et courbe de fondu
+  // du projet, `MOTION_FADE_DURATION_MS`) ; immédiate sous « Réduire les animations ». [Avant : apparition d'un coup — remplacé.]
+  const [listAppear] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (!ready) return;
+    if (reduceMotion) {
+      listAppear.setValue(1);
+      return;
+    }
+    const animation = Animated.timing(listAppear, {
+      toValue: 1,
+      duration: MOTION_FADE_DURATION_MS,
+      easing: MOTION_FADE_EASING,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [listAppear, ready, reduceMotion]);
+  const listAppearStyle = useMemo(
+    () => ({
+      opacity: listAppear,
+      transform: [{ translateY: listAppear.interpolate({ inputRange: [0, 1], outputRange: [LIST_APPEAR_RISE, 0] }) }],
+    }),
+    [listAppear],
+  );
 
   const entryById = useMemo(
     () => new Map(state.status === "ready" ? state.entries.map((entry) => [entry.movement.id, entry]) : []),
@@ -264,9 +489,11 @@ export function MovementCatalogueList({
   const groupSizes = useMemo(() => {
     const sizes = new Map<string, number>();
     if (state.status === "ready") {
+      // Décision de Hermann du 03/11/2026 : seuls les membres actifs comptent — le seul actif d'une
+      // famille dont les autres sont archivés (D4) est libre.
       for (const entry of state.entries) {
         const groupId = entry.movement.levelGroup?.groupId;
-        if (groupId) sizes.set(groupId, (sizes.get(groupId) ?? 0) + 1);
+        if (groupId && !entry.archived) sizes.set(groupId, (sizes.get(groupId) ?? 0) + 1);
       }
     }
     return sizes;
@@ -382,6 +609,8 @@ export function MovementCatalogueList({
   const startDrag = (id: string, pileKey: string | null, ids: readonly string[], from: number) => {
     setRevealedId(null);
     setVariantFor(null);
+    // Le déplacement du doigt est relu au premier mouvement (`moveDrag`).
+    fingerFollow.setValue(0);
     setDrag({ id, pileKey, ids, from, origin: null, dy: 0, drift: 0, intent: { kind: "NONE" } });
   };
 
@@ -424,6 +653,36 @@ export function MovementCatalogueList({
           };
   };
 
+  /**
+   * t-glisser (06/11/2026) : décision du geste annoncée. Une pose sur une carte (`PLACE`) n'est annoncée — filet, décalage,
+   * niveaux provisoires — qu'après un arrêt de `PLACE_DWELL_MS` sur la même place ; tout déplacement au-delà de la
+   * tolérance relance l'attente. Une place déjà annoncée le reste tant que la carte ne la quitte pas. Les autres décisions
+   * (réordonnancement dans le filet, sortie, approche d'une famille repliée) restent immédiates.
+   * y-pile (07/11/2026) : l'entrée dans une pile ouverte (C2, `familyKey` non nul) est elle aussi immédiate — les membres
+   * s'écartent au passage, comme au réordonnancement ; l'arrêt reste exigé pour former une famille (C1).
+   */
+  const announcedIntent = (current: Drag, raw: DragIntent, total: number): DragIntent => {
+    if (raw.kind !== "PLACE" || raw.familyKey !== null || sameIntent(raw, current.intent)) {
+      clearPlaceDwell();
+      return raw;
+    }
+    const key = JSON.stringify(raw);
+    const pending = placeDwell.current;
+    if (pending === null || pending.key !== key || Math.abs(total - pending.total) > PLACE_DWELL_TOLERANCE) {
+      clearPlaceDwell();
+      const draggedId = current.id;
+      placeDwell.current = {
+        key,
+        total,
+        timer: setTimeout(() => {
+          placeDwell.current = null;
+          setDrag((latest) => (latest === null || latest.id !== draggedId ? latest : { ...latest, intent: raw }));
+        }, PLACE_DWELL_MS),
+      };
+    }
+    return { kind: "NONE" };
+  };
+
   const moveDrag = (pageY: number) => {
     if (drag === null) return;
     const slots = slotsNow();
@@ -438,9 +697,13 @@ export function MovementCatalogueList({
     scrollDelta.current = autoScroll.track(pageY);
     const top = liftedTop(drag);
     const drift = top === undefined ? drag.drift : top - origin.top;
-    const intent = intentAt(drag, origin, slots, dy + scrollDelta.current);
-    hoverFamily(intent.kind === "EXPAND" ? intent.familyKey : null, false);
-    setDrag({ ...drag, origin, dy, drift, intent });
+    const total = dy + scrollDelta.current;
+    const raw = intentAt(drag, origin, slots, total);
+    hoverFamily(raw.kind === "EXPAND" ? raw.familyKey : null, false);
+    const intent = announcedIntent(drag, raw, total);
+    gesture.current.dy = dy;
+    fingerFollow.setValue(dy - drift);
+    if (drag.origin === null || drift !== drag.drift || !sameIntent(intent, drag.intent)) setDrag({ ...drag, origin, dy, drift, intent });
   };
 
   /**
@@ -452,8 +715,11 @@ export function MovementCatalogueList({
     scrollDelta.current = delta;
     scrollFollow.setValue(delta);
     if (drag === null || drag.origin === null) return;
-    const intent = intentAt(drag, drag.origin, slotsNow(), drag.dy + delta);
-    hoverFamily(intent.kind === "EXPAND" ? intent.familyKey : null, true);
+    const total = gesture.current.dy + delta;
+    const raw = intentAt(drag, drag.origin, slotsNow(), total);
+    hoverFamily(raw.kind === "EXPAND" ? raw.familyKey : null, true);
+    // t-glisser : défiler n'est pas s'arrêter — la position change à chaque image, l'attente d'une pose repart.
+    const intent = announcedIntent(drag, raw, total);
     if (!sameIntent(intent, drag.intent)) setDrag({ ...drag, intent });
   };
 
@@ -461,13 +727,25 @@ export function MovementCatalogueList({
     scrollLatest.current = onAutoScrolled;
     dragRef.current = drag;
   });
+  // FAM-05 : la place de la carte portée a changé (pile dépliée au-dessus) — la valeur animée la garde sous le doigt.
+  const liftedDrift = drag === null || drag.origin === null ? null : drag.drift;
+  useLayoutEffect(() => {
+    if (liftedDrift !== null) fingerFollow.setValue(gesture.current.dy - liftedDrift);
+  }, [fingerFollow, liftedDrift]);
 
   const stopDrag = () => {
     setDrag(null);
+    if (dropSettleTimer.current !== null) clearTimeout(dropSettleTimer.current);
+    setDropSettling(true);
+    dropSettleTimer.current = setTimeout(() => {
+      dropSettleTimer.current = null;
+      setDropSettling(false);
+    }, DROP_SETTLE_MS);
     autoScroll.end();
     scrollDelta.current = 0;
     if (expandHover.current !== null) clearTimeout(expandHover.current.timer);
     expandHover.current = null;
+    clearPlaceDwell();
   };
 
   /** E : application au relâchement ; message de 3 s avec Annuler quand l'appartenance change. */
@@ -597,21 +875,47 @@ export function MovementCatalogueList({
 
   const renderRow = (
     entry: MovementCatalogueEntry,
-    onPress: () => void,
-    options: {
+    openOrExpand: () => void,
+    catalogueOptions: {
       readonly pileCount?: number;
       readonly swipe: boolean;
       readonly onLongPress?: () => void;
       readonly reorderActions?: readonly SwipeAccessibilityAction[];
+      /** D-510 : pile repliée dont un niveau caché est nouveau (« New ↓ » sur la tête). */
+      readonly hidesNew?: boolean;
     },
   ) => {
+    // PRE-9 A.2 (ARB-22a) : en sélection, une carte (hors pile repliée) se coche au toucher ; ni
+    // actions glissées, ni appui long, ni réordonnancement.
+    const choosing = selection !== undefined && catalogueOptions.pileCount === undefined;
+    const onPress = choosing ? () => selection.onToggle(entry.movement) : openOrExpand;
+    const options: typeof catalogueOptions =
+      selection === undefined ? catalogueOptions : { pileCount: catalogueOptions.pileCount, swipe: false };
+    const selected = choosing && selection.selectedIds.has(entry.movement.id);
+    const inSession = choosing && (selection.inSessionIds?.has(entry.movement.id) ?? false);
     const id = entry.movement.id;
     const level = levelPreview?.has(id) ? levelPreview.get(id)! : entry.level;
     const levelLabel = level !== null ? levelPastilleLabel(level) : null;
+    // D-510 (règles 6 et 9) : « New » sur une fiche nouvelle ; « New ↓ » sur la tête d'une pile repliée dès qu'un niveau caché
+    // est nouveau ; jamais en sélection pour une Séance (ni hors de l'onglet Mouvements, où `newMovementIds` est absent).
+    const newState: NewState =
+      selection !== undefined ? "NO" : catalogueOptions.hidesNew === true ? "IN_PILE" : (newMovementIds?.has(id) ?? false) ? "YES" : "NO";
+    // D-510 (accessibilité) : « nouveau » avec le nom ; « contient un niveau nouveau » pour une tête signalant un niveau caché.
+    const newAccessibility = newState === "YES" ? t.newAccessibility : newState === "IN_PILE" ? t.newInPileAccessibility : null;
     const label =
       options.pileCount !== undefined
-        ? fillTemplate(t.pileAccessibilityLabel, { name: entry.movement.name, count: String(options.pileCount) })
-        : [entry.movement.name, levelLabel, entry.archived ? t.archivedAccessibility : null].filter(Boolean).join(", ");
+        ? [fillTemplate(t.pileAccessibilityLabel, { name: entry.movement.name, count: String(options.pileCount) }), newAccessibility]
+            .filter(Boolean)
+            .join(", ")
+        : [
+            entry.movement.name,
+            levelLabel,
+            entry.archived ? t.archivedAccessibility : null,
+            newAccessibility,
+            inSession ? strings.screens.activities.selection.inSessionAccessibility : null,
+          ]
+            .filter(Boolean)
+            .join(", ");
     const actions = actionsFor(entry);
     const choicesOpen = options.swipe && variantFor === id && revealedId === id;
     return (
@@ -633,10 +937,19 @@ export function MovementCatalogueList({
           onLongPress={options.onLongPress}
           extraAccessibilityActions={options.reorderActions}
           accessibilityLabel={label}
-          accessibilityHint={options.pileCount !== undefined ? t.pileExpandHint : options.reorderActions ? t.reorderHint : t.openAccessibilityHint}
+          accessibilityHint={
+            options.pileCount !== undefined ? t.pileExpandHint : choosing ? undefined : options.reorderActions ? t.reorderHint : t.openAccessibilityHint
+          }
+          {...(choosing ? { accessibilityState: { selected } } : {})}
           testID={`movement-card-${id}`}
         >
-          <MovementCatalogueCard entry={entry} level={level} />
+          <MovementCatalogueCard
+            entry={entry}
+            level={level}
+            selection={choosing ? (selected ? "CHECKED" : "EMPTY") : "NONE"}
+            inSession={inSession}
+            newState={newState}
+          />
         </SwipeActionsRow>
         {choicesOpen ? (
           <SheetMotionView style={[styles.variantChoices, { width: actions.length * SWIPE_ACTION_WIDTH }]} testID={`movement-card-${id}-variant-choices`}>
@@ -691,8 +1004,10 @@ export function MovementCatalogueList({
       >
         {!isExpanded
           ? Array.from({ length: leaves }, (_, index) => leaves - index).map((depth) => (
-              <View
+              // t-catalogue (06/11/2026) : au repli, l'épaisseur de la pile n'apparaît qu'une fois les cartes rentrées.
+              <Reanimated.View
                 key={`leaf-${depth}`}
+                entering={reduceMotion || gestureQuiet ? undefined : leafEntering}
                 style={[styles.leaf, { top: depth * LEAF_STEP, left: depth * LEAF_INSET, right: depth * LEAF_INSET }]}
                 accessible={false}
                 importantForAccessibility="no"
@@ -739,6 +1054,7 @@ export function MovementCatalogueList({
                 {
                   pileCount: item.members.length,
                   swipe: false,
+                  hidesNew: item.members.some((other, rank) => rank > 0 && (newMovementIds?.has(other.movement.id) ?? false)),
                   // A3 : appui long sur une pile repliée — elle se déplie, la carte du dessus est portée.
                   onLongPress: member.archived
                     ? undefined
@@ -773,14 +1089,20 @@ export function MovementCatalogueList({
                 ],
               });
           return (
-            <SheetMotionView
+            // Recette iPhone du 06/11/2026 (t-catalogue, Hermann : « appuyer sur le bouton pile : replier et déplier les
+            // mouvements lentement avec un glissement des carte ») : au dépliage, chaque carte glisse depuis la carte du
+            // dessus jusqu'à sa place, sous les cartes qui la précèdent ; au repli, elle remonte sous la carte du dessus.
+            // [Avant : révélation par le bas, 350 ms (B05) — remplacé.]
+            <CatalogueMotionView
               key={member.movement.id}
-              appear={index > 0}
-              clip={!settling}
-              transition={!settling}
-              bleed={layout.screenGutter}
+              appear={index > 0 && !gestureQuiet ? { slideFrom: -index * memberStep } : false}
+              transition={!settling && !gestureQuiet}
               raised={isLifted}
-              style={[index > 0 ? styles.memberSpacing : null, isLifted ? styles.liftedFrame : null]}
+              style={[
+                index > 0 ? styles.memberSpacing : null,
+                !gestureQuiet ? { zIndex: item.members.length - index } : null,
+                isLifted ? styles.liftedFrame : null,
+              ]}
               onLayout={(event: LayoutChangeEvent) => {
                 recordMemberBox(member.movement.id, event);
                 if (index === 0 && isExpanded) setMemberStep(event.nativeEvent.layout.height + MEMBER_GAP);
@@ -790,8 +1112,8 @@ export function MovementCatalogueList({
               {/* Recette du 27/10 (r10-glisser) : une seule enveloppe pour la carte portée et ses voisines —
                   changer d'enveloppe au début du glisser démontait la carte sous le doigt et figeait le geste. */}
               <DragShift
-                shift={isLifted ? pileDrag.dy - pileDrag.drift : shift}
-                follower={isLifted ? scrollFollow : null}
+                shift={isLifted ? 0 : shift}
+                follower={isLifted ? liftedFollower : null}
                 active={drag !== null}
                 follow={isLifted}
                 reduceMotion={reduceMotion}
@@ -800,7 +1122,7 @@ export function MovementCatalogueList({
               >
                 {row}
               </DragShift>
-            </SheetMotionView>
+            </CatalogueMotionView>
           );
         })}
       </View>
@@ -822,8 +1144,8 @@ export function MovementCatalogueList({
           />
         ) : null}
         <DragShift
-          shift={isLifted ? drag.dy - drag.drift : opening !== null && opening.itemKey === id ? opening.anchorShift : 0}
-          follower={isLifted ? scrollFollow : null}
+          shift={isLifted ? 0 : opening !== null && opening.itemKey === id ? opening.anchorShift : 0}
+          follower={isLifted ? liftedFollower : null}
           active={drag !== null}
           follow={isLifted}
           reduceMotion={reduceMotion}
@@ -868,67 +1190,79 @@ export function MovementCatalogueList({
         // B05 : monté avec la liste prête — les entrées présentes à l'ouverture ne s'animent pas ;
         // celles qui apparaissent ou disparaissent ensuite (pile dépliée, filtre, archivage) oui.
         <SheetMotionProvider reduceMotion={reduceMotion}>
-          {/* Place de la liste à l'écran : défilement automatique pendant le geste. */}
-          <View ref={viewportRef} style={styles.viewport} collapsable={false}>
-            <SheetMotionScrollView
-              ref={scrollRef}
-              contentContainerStyle={styles.list}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              scrollEnabled={drag === null}
-              onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
-              scrollEventThrottle={16}
-              onContentSizeChange={(_width, height) => autoScroll.handleContentSize(height)}
-              onLayout={(event: LayoutChangeEvent) => autoScroll.handleLayout(event.nativeEvent.layout.height)}
-              testID="movement-catalogue-list"
-            >
-              {items.length === 0 ? (
-                <Text style={styles.message} testID="movement-catalogue-empty">
-                  {state.entries.length === 0 ? t.empty : searching ? t.noResult : t.noMatch}
-                </Text>
-              ) : null}
-              {/* Familles : un seul suivi du doigt pour toute la liste — la carte portée peut quitter sa pile. */}
-              <View
-                onTouchStart={(event) => {
-                  lastTouchY.current = event.nativeEvent.pageY;
-                }}
-                onTouchMove={drag !== null ? (event) => moveDrag(event.nativeEvent.pageY) : undefined}
-                onTouchEnd={drag !== null ? endDrag : undefined}
-                // Geste interrompu par le système : abandon, rien n'est écrit.
-                onTouchCancel={drag !== null ? stopDrag : undefined}
-                testID="movement-catalogue-items"
-              >
-                {items.map((item, index) => {
-                  const lifted = drag !== null && drag.pileKey === null && item.kind === "SINGLE" && item.entry.movement.id === drag.id;
-                  return (
-                    <SheetMotionView
-                      key={item.key}
-                      bleed={layout.screenGutter}
-                      clip={drag === null}
-                      transition={drag === null}
-                      raised={lifted}
-                      style={[styles.item, lifted ? styles.liftedFrame : null]}
-                      onLayout={(event: LayoutChangeEvent) => recordItemBox(item.key, event)}
-                      testID={`movement-item-${item.key}`}
-                    >
-                      {/* C2 : entrées qui suivent la place ouverte, décalées d'un pas ; même enveloppe hors geste. */}
-                      <DragShift
-                        shift={openingIndex >= 0 && index > openingIndex && !lifted ? memberStep : 0}
-                        active={drag !== null}
-                        follow={false}
-                        follower={null}
-                        reduceMotion={reduceMotion}
-                        style={null}
-                        testID={`movement-item-${item.key}-shift`}
-                      >
-                        {renderItem(item)}
-                      </DragShift>
-                    </SheetMotionView>
-                  );
-                })}
+          <CatalogueMotionContext.Provider value={!reduceMotion}>
+            {/* Place de la liste à l'écran : défilement automatique pendant le geste. */}
+            <Animated.View style={[styles.viewport, listAppearStyle]} testID="movement-catalogue-appear">
+              <View ref={viewportRef} style={styles.viewport} collapsable={false}>
+                <SheetMotionScrollView
+                  ref={scrollRef}
+                  contentContainerStyle={[
+                    styles.list,
+                    selection !== undefined ? { paddingBottom: selection.bottomInset } : null,
+                    topInset !== undefined ? { paddingTop: spacing[4] + topInset } : null,
+                  ]}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  scrollEnabled={drag === null}
+                  onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+                  scrollEventThrottle={16}
+                  onContentSizeChange={(_width, height) => autoScroll.handleContentSize(height)}
+                  onLayout={(event: LayoutChangeEvent) => autoScroll.handleLayout(event.nativeEvent.layout.height)}
+                  testID="movement-catalogue-list"
+                >
+                  {items.length === 0 ? (
+                    <Text style={styles.message} testID="movement-catalogue-empty">
+                      {state.entries.length === 0 ? t.empty : searching ? t.noResult : t.noMatch}
+                    </Text>
+                  ) : null}
+                  {/* Familles : un seul suivi du doigt pour toute la liste — la carte portée peut quitter sa pile. */}
+                  <View
+                    onTouchStart={(event) => {
+                      lastTouchY.current = event.nativeEvent.pageY;
+                    }}
+                    onTouchMove={drag !== null ? (event) => moveDrag(event.nativeEvent.pageY) : undefined}
+                    onTouchEnd={drag !== null ? endDrag : undefined}
+                    // Geste interrompu par le système : abandon, rien n'est écrit.
+                    onTouchCancel={drag !== null ? stopDrag : undefined}
+                    testID="movement-catalogue-items"
+                  >
+                    {items.map((item, index) => {
+                      const lifted = drag !== null && drag.pileKey === null && item.kind === "SINGLE" && item.entry.movement.id === drag.id;
+                      return (
+                        // t-catalogue (06/11/2026) : mêmes durée et courbe que le glissement des cartes d'une pile, pour que les
+                        // entrées suivantes descendent et remontent avec elles.
+                        <CatalogueMotionView
+                          key={item.key}
+                          appear="reveal"
+                          still={gestureQuiet}
+                          bleed={layout.screenGutter}
+                          clip={drag === null}
+                          transition={!gestureQuiet}
+                          raised={lifted}
+                          style={[styles.item, lifted ? styles.liftedFrame : null]}
+                          onLayout={(event: LayoutChangeEvent) => recordItemBox(item.key, event)}
+                          testID={`movement-item-${item.key}`}
+                        >
+                          {/* C2 : entrées qui suivent la place ouverte, décalées d'un pas ; même enveloppe hors geste. */}
+                          <DragShift
+                            shift={openingIndex >= 0 && index > openingIndex && !lifted ? memberStep : 0}
+                            active={drag !== null}
+                            follow={false}
+                            follower={null}
+                            reduceMotion={reduceMotion}
+                            style={null}
+                            testID={`movement-item-${item.key}-shift`}
+                          >
+                            {renderItem(item)}
+                          </DragShift>
+                        </CatalogueMotionView>
+                      );
+                    })}
+                  </View>
+                </SheetMotionScrollView>
               </View>
-            </SheetMotionScrollView>
-          </View>
+            </Animated.View>
+          </CatalogueMotionContext.Provider>
         </SheetMotionProvider>
       ) : null}
       <View pointerEvents="box-none" style={styles.noticeAnchor}>
@@ -1016,7 +1350,7 @@ function DragShift({
   /** Carte portée : suit le doigt, sans animation. */
   readonly follow: boolean;
   /** Carte portée : défilement automatique accumulé, ajouté hors rendu (`null` sinon). */
-  readonly follower: Animated.Value | null;
+  readonly follower: Parameters<typeof Animated.add>[1] | null;
   readonly reduceMotion: boolean;
   readonly style: StyleProp<ViewStyle>;
   readonly testID: string | undefined;
@@ -1043,6 +1377,158 @@ function DragShift({
     <Animated.View style={[style, { transform: [{ translateY: translation }] }]} testID={testID}>
       {children}
     </Animated.View>
+  );
+}
+
+/**
+ * Recette iPhone du 06/11/2026 (t-catalogue, Hermann : « replier et déplier les mouvements lentement avec un glissement des
+ * carte ») : animations de mise en page du Catalogue des Mouvements, sur le fil UI (Reanimated), à la durée de fondu du projet
+ * (`MOTION_FADE_DURATION_MS`, 450 ms) et sur la courbe des glissements (`MOTION_EASING`, Bézier 0,33 ; 1 ; 0,68 ; 1). Même
+ * principe que `SheetMotionView` (B05 : révélation par le bas des entrées qui apparaissent, transition de place des
+ * voisines), plus lent ; les membres d'une pile glissent depuis la carte du dessus (`slideFrom`). Aucune animation sous
+ * « Réduire les animations » (`CatalogueMotionContext` faux).
+ */
+const CATALOGUE_MOTION_MS = MOTION_FADE_DURATION_MS;
+const CATALOGUE_TIMING = {
+  duration: CATALOGUE_MOTION_MS,
+  easing: ReanimatedEasing.bezier(0.33, 1, 0.68, 1),
+  reduceMotion: ReduceMotion.System,
+};
+const catalogueLayout = LinearTransition.duration(CATALOGUE_MOTION_MS)
+  .easing(ReanimatedEasing.bezier(0.33, 1, 0.68, 1))
+  .reduceMotion(ReduceMotion.System);
+/** Vrai : animations de mise en page actives (faux sous « Réduire les animations »). */
+const CatalogueMotionContext = createContext(false);
+/** t-catalogue : la liste monte de 12 pendant son fondu d'apparition. */
+const LIST_APPEAR_RISE = spacing[12];
+
+function revealFrameEntering(values: EntryAnimationsValues): LayoutAnimation {
+  "worklet";
+  return { initialValues: { height: 0 }, animations: { height: withTiming(values.targetHeight, CATALOGUE_TIMING) } };
+}
+function revealFrameExiting(values: ExitAnimationsValues): LayoutAnimation {
+  "worklet";
+  return { initialValues: { height: values.currentHeight }, animations: { height: withTiming(0, CATALOGUE_TIMING) } };
+}
+function revealContentEntering(values: EntryAnimationsValues): LayoutAnimation {
+  "worklet";
+  return {
+    initialValues: { transform: [{ translateY: values.targetHeight }] },
+    animations: { transform: [{ translateY: withTiming(0, CATALOGUE_TIMING) }] },
+  };
+}
+function revealContentExiting(values: ExitAnimationsValues): LayoutAnimation {
+  "worklet";
+  return {
+    initialValues: { transform: [{ translateY: 0 }] },
+    animations: { transform: [{ translateY: withTiming(values.currentHeight, CATALOGUE_TIMING) }] },
+  };
+}
+/** t-catalogue : un membre de pile part de la carte du dessus (`offset` négatif) et glisse jusqu'à sa place. */
+function slideEntering(offset: number) {
+  return (): LayoutAnimation => {
+    "worklet";
+    return {
+      initialValues: { transform: [{ translateY: offset }] },
+      animations: { transform: [{ translateY: withTiming(0, CATALOGUE_TIMING) }] },
+    };
+  };
+}
+/** t-catalogue : au repli, le membre remonte sous la carte du dessus. */
+function slideExiting(offset: number) {
+  return (): LayoutAnimation => {
+    "worklet";
+    return {
+      initialValues: { transform: [{ translateY: 0 }] },
+      animations: { transform: [{ translateY: withTiming(offset, CATALOGUE_TIMING) }] },
+    };
+  };
+}
+/** t-catalogue : l'épaisseur d'une pile repliée apparaît à la fin du repli (fondu court). */
+function leafEntering(): LayoutAnimation {
+  "worklet";
+  return {
+    initialValues: { opacity: 0 },
+    animations: {
+      opacity: withDelay(CATALOGUE_MOTION_MS - MOTION_FADE_DURATION_MS / 3, withTiming(1, { duration: MOTION_FADE_DURATION_MS / 3 })),
+    },
+  };
+}
+
+/**
+ * t-catalogue : cadre animé d'une entrée ou d'un membre de pile.
+ * - `appear="reveal"` : comme `SheetMotionView` — cadre de découpe (`testID`) et contenu (`${testID}-content`, porte `style`) ;
+ * - `appear={{ slideFrom }}` : une seule vue, qui glisse depuis `slideFrom` à l'apparition et y retourne à la disparition ;
+ * - `appear={false}` : une seule vue, transition de place seule.
+ */
+function CatalogueMotionView({
+  appear,
+  still = false,
+  transition = true,
+  clip = true,
+  bleed = 0,
+  raised = false,
+  onLayout,
+  style,
+  testID,
+  children,
+}: {
+  readonly appear: "reveal" | { readonly slideFrom: number } | false;
+  /** d-nonreg : ni révélation ni disparition animées (geste en cours ou tout juste relâché) ; même arbre de vues. */
+  readonly still?: boolean;
+  readonly transition?: boolean;
+  readonly clip?: boolean;
+  readonly bleed?: number;
+  readonly raised?: boolean;
+  readonly onLayout?: (event: LayoutChangeEvent) => void;
+  readonly style?: StyleProp<ViewStyle>;
+  readonly testID?: string;
+  readonly children?: ReactNode;
+}) {
+  const animated = useContext(CatalogueMotionContext);
+  const appearing = animated && !still;
+  const layoutTransition = animated && transition ? catalogueLayout : undefined;
+  const slideFrom = appear !== false && appear !== "reveal" ? appear.slideFrom : null;
+  const slide = useMemo(
+    () => (slideFrom === null ? null : { entering: slideEntering(slideFrom), exiting: slideExiting(slideFrom) }),
+    [slideFrom],
+  );
+  if (appear !== "reveal") {
+    return (
+      <Reanimated.View
+        entering={animated && slide !== null ? slide.entering : undefined}
+        exiting={animated && slide !== null ? slide.exiting : undefined}
+        layout={layoutTransition}
+        onLayout={onLayout}
+        style={[style, raised ? styles.raisedFrame : null]}
+        testID={testID}
+      >
+        {children}
+      </Reanimated.View>
+    );
+  }
+  return (
+    <Reanimated.View
+      entering={appearing ? revealFrameEntering : undefined}
+      exiting={appearing ? revealFrameExiting : undefined}
+      layout={layoutTransition}
+      onLayout={onLayout}
+      style={[
+        clip ? styles.clipFrame : null,
+        bleed > 0 ? { marginHorizontal: -bleed, paddingHorizontal: bleed } : null,
+        raised ? styles.raisedFrame : null,
+      ]}
+      testID={testID}
+    >
+      <Reanimated.View
+        entering={appearing ? revealContentEntering : undefined}
+        exiting={appearing ? revealContentExiting : undefined}
+        style={style}
+        testID={testID === undefined ? undefined : `${testID}-content`}
+      >
+        {children}
+      </Reanimated.View>
+    </Reanimated.View>
   );
 }
 
@@ -1105,16 +1591,40 @@ function VariantChoice({
 }
 
 /**
- * Carte d'un Mouvement (Figma « Carte — Mouvement », 80 de haut) : photo 64 à 8 du bord, texte à 8
- * de la photo (B07), titre 15/18 (B02) et Niveau à droite, deux premières étapes de la
- * description, une par ligne, tronquées indépendamment (B03).
+ * Carte d'un Mouvement — D-508 (Hermann, 06/11/2026 ; Figma « Carte — Mouvement » `10124:21979`) : 72 de haut, photo 64 à 4
+ * du bord (rayon 8), nom et description à 8 de la photo, nom à 8 du haut, Niveau à 12 du bord droit sur la ligne de base du
+ * nom (en sélection : 12 avant la case, centrée verticalement), fond blanc, liseré à 50 %. Deux premières étapes de la
+ * description, une par ligne, tronquées indépendamment (B03). [Avant : 80 de haut, photo à 8 du bord, rayon 12, fond
+ * `#F9FAFC`, Niveau bleu, sélection par fond et contour bleus — remplacé.]
+ *
+ * D-510 : état « Nouveau » du composant (Non / Oui / Dans la pile) — badge « New » ou « New ↓ » en onglet au coin bas droit.
  */
-function MovementCatalogueCard({ entry, level }: { readonly entry: MovementCatalogueEntry; readonly level: MovementLevelPosition | null }) {
+function MovementCatalogueCard({
+  entry,
+  level,
+  selection = "NONE",
+  inSession = false,
+  newState = "NO",
+}: {
+  readonly entry: MovementCatalogueEntry;
+  readonly level: MovementLevelPosition | null;
+  /** D-508 : case de sélection pour une Séance (Figma « Sélection » : Absente / Vide / Cochée). */
+  readonly selection?: "NONE" | "EMPTY" | "CHECKED";
+  /**
+   * Contre-recette n° 2 du 30/10 (Hermann) : Mouvement déjà présent dans la Séance marqué par un
+   * coin replié bleu Kodjo dans l'angle inférieur droit, à l'intérieur du contour (bordure continue,
+   * arrondi de l'angle épousé, dimensions inchangées) ; remplace la mention « Dans la séance ».
+   */
+  readonly inSession?: boolean;
+  /** D-510 : Non / Oui (« New ») / Dans la pile (« New ↓ », tête d'une pile repliée dont un niveau caché est nouveau). */
+  readonly newState?: NewState;
+}) {
   const resolveUri = useMediaUriResolver();
   const { movement } = entry;
   const preview = firstMediaPreviewSource(movement.media);
   const steps = decodeInstructionSteps(movement.description).slice(0, 2);
   const levelLabel = level !== null ? levelPastilleLabel(level) : null;
+  const badge = newState === "NO" ? null : NEW_BADGES[newState];
   return (
     <View style={[styles.card, entry.archived ? styles.cardArchived : null]} testID={`movement-card-surface-${movement.id}`}>
       <View style={[styles.thumbnail, entry.archived ? styles.faded : null]}>
@@ -1132,7 +1642,7 @@ function MovementCatalogueCard({ entry, level }: { readonly entry: MovementCatal
         )}
       </View>
       <View style={[styles.texts, entry.archived ? styles.faded : null]}>
-        <View style={styles.titleRow}>
+        <View style={[styles.titleRow, selection === "NONE" ? styles.titleRowEnd : styles.titleRowBeforeChoice]} testID={`movement-card-title-${movement.id}`}>
           <Text style={styles.name} numberOfLines={1} testID={`movement-card-name-${movement.id}`}>
             {movement.name}
           </Text>
@@ -1143,22 +1653,84 @@ function MovementCatalogueCard({ entry, level }: { readonly entry: MovementCatal
           ) : null}
         </View>
         {steps.map((step, index) => (
-          <Text key={index} style={styles.description} numberOfLines={1} testID={`movement-card-step-${movement.id}-${index + 1}`}>
+          <Text
+            key={index}
+            style={[styles.description, badge !== null ? { marginRight: badge.descriptionInset } : null]}
+            numberOfLines={1}
+            testID={`movement-card-step-${movement.id}-${index + 1}`}
+          >
             {step}
           </Text>
         ))}
       </View>
+      {selection !== "NONE" ? (
+        <Image
+          source={selection === "CHECKED" ? RADIO_CHECKED : RADIO_EMPTY}
+          style={styles.choice}
+          accessible={false}
+          testID={`movement-card-choice-${movement.id}-${selection === "CHECKED" ? "checked" : "empty"}`}
+        />
+      ) : null}
+      {badge !== null ? (
+        // D-510 : onglet logé dans le coin bas droit, découpé par l'arrondi de la carte ; pas une cible tactile.
+        <View style={styles.newBadgeClip} pointerEvents="none" testID={`movement-card-badge-clip-${movement.id}`}>
+          <View style={[styles.newBadge, { width: badge.width }]} testID={`movement-card-new-${movement.id}`}>
+            <Image source={badge.shape} style={[styles.newBadgeShape, { width: badge.width }]} accessible={false} />
+            <Text style={styles.newBadgeLabel} testID={`movement-card-badge-label-${movement.id}`}>
+              {badge.label}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+      {inSession ? (
+        <View style={styles.foldedCorner} pointerEvents="none" testID={`movement-card-in-session-${movement.id}`}>
+          <View style={styles.foldedCornerTriangle} />
+        </View>
+      ) : null}
     </View>
   );
 }
 
+/** D-510 : états « Nouveau » de la carte Mouvement. */
+type NewState = "NO" | "YES" | "IN_PILE";
+
+/**
+ * D-510 (Figma `11762:2205`, `11765:2101`) : onglet vert `color/status/positive-text` de 32 de haut (corps de 24, raccord
+ * inversé de rayon 8 au-dessus), 55 de large pour « New », 69 pour « New ↓ » ; libellé à 18,5 du bord gauche de l'onglet, 12
+ * du haut. Description arrêtée à 8 du corps de l'onglet (55 et 69 depuis le bord extérieur de la carte, moins les 4 de bord et
+ * de marge intérieure).
+ */
+const NEW_BADGES = {
+  YES: {
+    label: t.newBadge,
+    width: 55,
+    descriptionInset: 55 - 4,
+    shape: require("../../../assets/icons/catalogue-badge-nouveau.svg"),
+  },
+  IN_PILE: {
+    label: t.newInPileBadge,
+    width: 69,
+    descriptionInset: 69 - 4,
+    shape: require("../../../assets/icons/catalogue-badge-nouveau-pile.svg"),
+  },
+} as const;
+/** D-508 : case de sélection (Figma « DSF / Controls / Radio », `5544:4736`, `5544:4739`). */
+const RADIO_CHECKED = require("../../../assets/icons/radio-selectionne.svg");
+const RADIO_EMPTY = require("../../../assets/icons/radio-non-selectionne.svg");
+
 const THUMBNAIL_SIZE = 64;
-/** Figma : photo à 7,5 dans une bordure de 0,5 — 8 du bord extérieur. */
+/** Coin replié (contre-recette n° 2) : côté de la zone triangulaire, découpe à 45°. */
+const FOLDED_CORNER_SIZE = 18;
+/** D-508 : photo à 3,5 dans une bordure de 0,5 — 4 du bord extérieur. [Avant : 8 du bord — remplacé.] */
 const CARD_BORDER = 0.5;
-const CARD_PADDING = spacing[8] - CARD_BORDER;
+const CARD_PADDING = spacing[4] - CARD_BORDER;
+/** D-508 : liseré existant (`color/cards/border`, #CCD1E0) à 50 % d'opacité, carte et feuilles de pile. */
+const CARD_BORDER_COLOR = "rgba(204, 209, 224, 0.5)";
 /** Figma : filet de 2, à 8 des cartes, du milieu de la première au milieu de la dernière carte. */
 const RAIL_WIDTH = 2;
 const RAIL_TO_CARD = spacing[8];
+/** t-catalogue : plan de la zone de repli, au-dessus de toute carte d'une pile. */
+const COLLAPSE_ZONE_Z = 1000;
 
 const styles = StyleSheet.create({
   container: {
@@ -1217,14 +1789,20 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.primary,
   },
-  // Figma `Pile — feuille 1/2` : blanc, bordure 1 `#E0E3ED`, rayon 12, en retrait de 8 puis 16.
+  // D-508 : feuilles de pile de 72, blanches, liseré 0,5 à 50 % et même ombre que la carte (chaque couche ombre la suivante),
+  // en retrait de 8 puis 16 (écarts conservés). [Figma `Pile — feuille 1/2` : bordure 1 `#E0E3ED`, sans ombre — remplacé.]
   leaf: {
     position: "absolute",
     height: CARD_HEIGHT,
     borderRadius: fixedRadii[12],
-    borderWidth: 1,
-    borderColor: colors.movementPileLeafBorder,
+    borderWidth: CARD_BORDER,
+    borderColor: CARD_BORDER_COLOR,
     backgroundColor: colors.background,
+    shadowColor: colors.movementCardShadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   // B06 : marge gauche entière de la pile déployée (du bord de l'écran au bord des cartes).
   collapseZone: {
@@ -1233,6 +1811,14 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: -layout.screenGutter,
     width: layout.screenGutter,
+    // t-catalogue (06/11/2026) : au-dessus des cartes de la pile, ordonnées du dessus vers le dessous (`zIndex` décroissant) —
+    // la zone de touche élargie vers la carte reste prioritaire. [Avant : 1 — remplacé.]
+    zIndex: COLLAPSE_ZONE_Z,
+  },
+  clipFrame: {
+    overflow: "hidden",
+  },
+  raisedFrame: {
     zIndex: 1,
   },
   // C1, C4 : filet de formation, à la place du filet d'une famille, vers la carte portée.
@@ -1323,7 +1909,8 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.background,
   },
-  // B04 : `Carte — Mouvement` — fond `#F9FAFC`, bordure 0,5 `#CCD1E0`, rayon 12, ombre 8 % 0/2/10.
+  // D-508 : `Carte — Mouvement` — fond blanc, liseré 0,5 à 50 %, rayon 12, ombre 8 % 0/2/10.
+  // [B04 : fond `#F9FAFC`, liseré `#CCD1E0` plein — remplacé.]
   card: {
     height: CARD_HEIGHT,
     flexDirection: "row",
@@ -1332,13 +1919,21 @@ const styles = StyleSheet.create({
     padding: CARD_PADDING,
     borderRadius: fixedRadii[12],
     borderWidth: CARD_BORDER,
-    borderColor: colors.cardsBorder,
-    backgroundColor: colors.surfaceSubtle,
+    borderColor: CARD_BORDER_COLOR,
+    backgroundColor: colors.background,
     shadowColor: colors.movementCardShadow,
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+  },
+  // D-508 : sélection pour une Séance par la case (Figma « Sélection » Vide / Cochée), à 8 du bord droit, centrée.
+  // [PRE-9 A.2 : fond et contour de sélection (`colors.selectionSurface`, `colors.selection`) — remplacé.]
+  choice: {
+    width: 20,
+    height: 20,
+    alignSelf: "center",
+    marginRight: spacing[8] - CARD_PADDING - CARD_BORDER,
   },
   cardArchived: {
     backgroundColor: colors.surface,
@@ -1347,10 +1942,11 @@ const styles = StyleSheet.create({
   faded: {
     opacity: 0.6,
   },
+  // D-508 : rayon 8, concentrique à la carte (12 − 4).
   thumbnail: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-    borderRadius: fixedRadii[12],
+    borderRadius: fixedRadii[8],
     overflow: "hidden",
   },
   thumbnailImage: {
@@ -1360,28 +1956,87 @@ const styles = StyleSheet.create({
   thumbnailFallback: {
     backgroundColor: colors.surface,
   },
-  // Figma : titre à 3 du haut du bloc texte (10,5 − 7,5), description à 4 sous le titre.
+  // D-508 : nom à 8 du haut de la carte (4 de bord et de marge, 4 ici), description à 4 sous le nom.
   texts: {
     flex: 1,
-    paddingTop: 3,
+    paddingTop: spacing[8] - CARD_PADDING - CARD_BORDER,
   },
+  // D-508 : Niveau sur la ligne de base du nom, à 12 du bord droit (ou à 12 avant la case en sélection).
   titleRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "baseline",
     gap: spacing[8],
     marginBottom: spacing[4],
+  },
+  titleRowEnd: {
+    marginRight: spacing[12] - CARD_PADDING - CARD_BORDER,
+  },
+  titleRowBeforeChoice: {
+    marginRight: spacing[12] - spacing[8],
   },
   name: {
     ...type.compactCardTitle,
     flex: 1,
     color: colors.textPrimary,
   },
+  // D-508 (Figma `10124:21979`) : Niveau en `#141414`. [Avant : bleu KODJO — remplacé.]
   level: {
     ...type.movementCardLevel,
-    color: colors.primary,
+    color: colors.textPrimary,
   },
   description: {
     ...type.movementCardDescription,
     color: colors.movementCardDescription,
+  },
+  // D-510 : l'onglet couvre le liseré et suit l'arrondi du coin bas droit de la carte (découpe propre au badge : l'ombre de
+  // la carte reste intacte).
+  newBadgeClip: {
+    position: "absolute",
+    top: -CARD_BORDER,
+    left: -CARD_BORDER,
+    right: -CARD_BORDER,
+    bottom: -CARD_BORDER,
+    borderRadius: fixedRadii[12],
+    overflow: "hidden",
+  },
+  newBadge: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    height: 32,
+  },
+  newBadgeShape: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    height: 32,
+  },
+  // D-510 : « New », Inter Medium 12, blanc, sans gras ni majuscules forcées. [Recette du 06/11 : rouge, « NEW » — remplacé.]
+  newBadgeLabel: {
+    ...type.movementCardLevel,
+    position: "absolute",
+    left: 18.5,
+    top: 12,
+    lineHeight: 16,
+    color: colors.background,
+  },
+  // Positionné dans la boîte intérieure à la bordure : le contour de la carte reste continu ; le
+  // rayon intérieur (rayon extérieur moins la bordure) épouse l'arrondi de l'angle.
+  foldedCorner: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    width: FOLDED_CORNER_SIZE,
+    height: FOLDED_CORNER_SIZE,
+    borderBottomRightRadius: fixedRadii[12] - CARD_BORDER,
+    overflow: "hidden",
+  },
+  foldedCornerTriangle: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: FOLDED_CORNER_SIZE,
+    borderLeftColor: "transparent",
+    borderBottomWidth: FOLDED_CORNER_SIZE,
+    borderBottomColor: colors.primary,
   },
 });

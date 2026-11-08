@@ -311,7 +311,9 @@ export function duplicateActivity(
     return activities;
   }
 
-  const source = activities[index]!;
+  // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat e) : la marque « à vérifier » reste à la source ;
+  // la copie, nouvelle occurrence jamais enregistrée, n'en porte pas.
+  const { phasesToVerify: _phasesToVerify, ...source } = activities[index]!;
   const copy: SessionDraftExercise = {
     ...source,
     id: newId,

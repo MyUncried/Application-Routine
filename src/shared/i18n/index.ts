@@ -18,7 +18,17 @@ const executionParameters = {
     // Recette 3 (N-05) : action ↑ du champ Description.
     descriptionSubmitAccessibilityLabel: "Valider la description",
     openAccessibilityLabel: "Modifier les paramètres d’exécution",
-    incomplete: "Paramètres à compléter.",
+    // Recette iPhone du 30/10/2026 (Hermann : « Il faut enlever le point après "compléter" »).
+    incomplete: "Paramètres à compléter",
+    // Complément du 5 novembre 2026 (§10) : fiche de l’Exercice ouverte par sa photo dans la Composition (Figma `11580:21528`).
+    inThisSession: "Dans cette séance",
+    exerciseSheetTitle: "Fiche de l’exercice",
+    recoveryBeforeNext: "Récupération de {duration} avant l’exercice suivant.",
+    noRecoveryBeforeNext: "Aucune récupération avant l’exercice suivant.",
+    // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat e, Hermann : « avec le texte « Paramètre à
+    // vérifier » à la place de « Paramètre à compléter » ») : texte exact de Hermann (singulier) ;
+    // « Paramètres à compléter » prime.
+    toVerify: "Paramètre à vérifier",
     // PRE-5 story 3.2 (R-14, FR-36) : `countdown` et `end` retirés avec les lignes
     // Compte à rebours / Fin de la Carte (la Feuille garde les siennes : `sheet`).
   },
@@ -62,6 +72,12 @@ const executionParameters = {
     // PRE-4 story 3.3 (AC8) : action accessible qui range un champ ± ouvert.
     closeField: "Fermer",
     durationTarget: "Durée d’une série",
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 4 ; CE-UI-10, D-413) : en séries identiques,
+    // mode Durée, la ligne de la cible commune de la Feuille s’intitule « Objectif de durée »
+    // (remplace « Durée d’une série » dans la Feuille ; `durationTarget` reste celui de l’étape
+    // de complétion, hors périmètre). « Durée de l’exercice » et les en-têtes du tableau des
+    // séries variables (`columns`) sont inchangés.
+    durationGoal: "Objectif de durée",
     // PRE-4 story 3.5 (H14, décision de Claude du 2026-10-17, révisable par Hermann) :
     // ligne de la Cible commune, symétrique de « Durée d’une série ». Seule la Feuille
     // l’emploie ; l’en-tête de colonne du tableau reste `columns.REPETITIONS`.
@@ -92,6 +108,13 @@ const executionParameters = {
       nextArrow: "→",
       nextSpoken: "Suivant",
       close: "Fermer",
+      // Mise à jour consolidée des écrans Formats du 04/11/2026 (§4.5, §6 quater) : unité de l'objectif.
+      repetitions: "Répétitions",
+      duration: "Durée",
+      unitSpoken: "Unité de l’objectif : {unit}, toucher pour changer",
+      // Recette du 04/11/2026 : signe de l'incrément de charge EMOM.
+      sign: "±",
+      signSpoken: "Changer le signe",
     },
     moveUp: "Monter la série {n}",
     moveDown: "Descendre la série {n}",
@@ -134,20 +157,38 @@ const executionParameters = {
     // retirés ; recette du 19/10 (RC-6) : le chevron de repli d’Avec aussi (`showSideSettings`,
     // `hideSideSettings`).
     sideMode: "Changement de côté",
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 5 ; CE-UI-10 §7) : la ligne visible du
+    // Changement de côté s’intitule « De chaque côté », sur une ligne (même texte pour le nom
+    // accessible du segmenté, comme « Séries », RC-17). Le concept reste Changement de côté.
+    sideModeRow: "De chaque côté",
     sideModeChoices: { WITH: "Avec", WITHOUT: "Sans" },
     // PRE-5 story 2.5 (FR-17, D-431) ; recette du 19/10 (RC-6) : plus de ligne « Enchainement » ;
     // l’option Avec porte la notation et ouvre le menu des deux notations, nommé « Enchainement » ;
     // nom accessible des notations = `sideOrders`. Recette du 19/10 (RC-12) : notation D-431
     // complète rétablie (option Avec de 146), après le raccourcissement de RC-11.
     sideSequence: "Enchainement",
-    sideOrders: { BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" },
-    sideOrderSubtitles: { BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" },
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 5 ; CE-UI-10 §8, D-431) : notations
+    // « DD… → GG… » (un côté après l’autre, par défaut) et « DG → DG → … » (les deux côtés à
+    // chaque série), à la taille standard des options ; D et G désignent les côtés 1 et 2, jamais
+    // la droite et la gauche. Libellés accessibles : « Chaque série d’un côté, puis chaque série
+    // de l’autre » et « Les deux côtés à chaque série ». [Remplacé le 01/11/2026 : notations
+    // « (D1 → D2) ➜ (G1 → G2) » / « (D1 → G1) ➜ (D2 → G2) » en police réduite et libellé
+    // accessible « Un côté après l’autre ».]
+    sideOrders: { BY_SIDE: "Chaque série d’un côté, puis chaque série de l’autre", BY_SERIES: "Les deux côtés à chaque série" },
+    sideOrderSubtitles: { BY_SIDE: "DD… → GG…", BY_SERIES: "DG → DG → …" },
     sideRecovery: "Pause entre les côtés",
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; CE-UI-10 ligne 14) : bloc 6, seule ligne
+    // « Récupération » (Récupération après exercice de l’Exercice de Séance).
+    recovery: "Récupération",
+    // PRE-9 (même ordre) : indice VoiceOver d’une valeur reprise d’un défaut du Profil, rendue sur fond
+    // orange jusqu’au premier ✓ de l’Exercice (rendu choisi sans maquette).
+    profileDefaultHint: "Valeur par défaut du Profil, à confirmer par ✓.",
     // PRE-5 story 2.5 (FR-30, AD-24) : ligne « Cadence » (remplace « Bip de cadence »), segmenté
     // Autre / 5 s / 2 s / 1 s / Sans ; Autre révèle le ± existant.
     cadence: "Cadence",
     // Recette du 19/10 (RC-10) : Autre / 1 s / Sans.
-    cadenceOptions: { OTHER: "Autre", "1": "1 s", NONE: "Sans" },
+    // Hermann, 08/11/2026 au soir : « Partout veut bien dire partout » — « 1″ ». [« 1 s » — remplacé le 08/11/2026 au soir.]
+    cadenceOptions: { OTHER: "Autre", "1": "1″", NONE: "Sans" },
     // PRE-5 story 2.5 (FR-31, AD-28) : ligne « Durée de l’exercice » (remplace « Durée totale »
     // dans la Feuille ; celle de la Phrase reste), chevron qui replie Compte à rebours et Fin.
     exerciseDuration: "Durée de l’exercice",
@@ -204,6 +245,30 @@ const executionParameters = {
   circuit: {
     inheritedSeriesCountSuffix: "imposé par le circuit",
     inheritedSeriesCount: "Nombre de séries imposé par le circuit",
+  },
+  // PRE-9 — réglages de Format dans la modale de l’Exercice (CE-FMT-04 ; mise à jour consolidée des écrans Formats
+  // du 04/11/2026 §6 bis 2, §4.4).
+  format: {
+    title: "{format}",
+    names: { AMRAP: "AMRAP", FOR_TIME: "For time", EMOM: "EMOM", DEATH_BY: "Death by" },
+    role: "Rôle",
+    roles: { BUY_IN: "Buy-in", TOUR: "Tour", BUY_OUT: "Buy-out" },
+    lastTourHint: "Dernier exercice de la boucle : passez d’abord un autre exercice en Tour.",
+    incrementPerRound: "Incrément par tour",
+    incrementPerInterval: "Incrément par intervalle",
+    // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : valeur du champ Séries d'un Death by autonome.
+    seriesUntilFailure: "Jusqu’à l’échec",
+    repetitionsUnit: "rép.",
+    interval: "Intervalle",
+    duration: "Durée de l’exercice",
+    timeCap: "Durée maximum du For time",
+    noCap: "Aucune",
+    noLimit: "Sans limite",
+    stopCondition: "Condition d’arrêt",
+    atFailure: "À l’échec",
+    emomOverflow: "La durée atteint ou dépasse l’intervalle : il ne reste pas de temps pour le reste du travail ni pour le repos.",
+    // Recette iPhone du 08/11/2026 au soir (Hermann) : durée de la série d'un Exercice qui atteint seule l'intervalle.
+    emomSeriesOverflow: "La durée de la série dépasse la durée de l’intervalle.",
   },
   media: {
     section: "Médias",

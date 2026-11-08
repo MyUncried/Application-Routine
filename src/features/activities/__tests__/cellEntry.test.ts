@@ -33,7 +33,7 @@ function press(kind: CellEntryKind, initial: string, keys: string): CellEntrySta
 
 describe("D-434 — formats d'une durée de cellule", () => {
   it("au repos : unités explicites sans zéros inutiles (formateur unique)", () => {
-    expect([5, 65, 90, 720, 0].map(formatPhraseDuration)).toEqual(["5 s", "1 min 5 s", "1 min 30 s", "12 min", "0 s"]);
+    expect([5, 65, 90, 720, 0].map(formatPhraseDuration)).toEqual(["5″", "1′05″", "1′30″", "12′00″", "0″"]);
   });
 
   it("en saisie : « MM:SS » sur quatre chiffres (00:05, 01:05, 01:30, 12:00) ; saisie vide « 00:00 »", () => {
@@ -114,32 +114,36 @@ describe("D-434 — sortie de la cellule (QD-434-3, QD-434-4)", () => {
   const target = EXECUTION_BOUNDS.durationTarget;
   const pause = EXECUTION_BOUNDS.pauseSeconds;
 
-  it("secondes > 59 reportées en minutes : 01:75 → 2 min 15 s", () => {
+  it("secondes > 59 reportées en minutes : 01:75 → 2′15″", () => {
     expect(cellDurationSeconds("175", target)).toBe(135);
-    expect(formatPhraseDuration(cellDurationSeconds("175", target)!)).toBe("2 min 15 s");
+    expect(formatPhraseDuration(cellDurationSeconds("175", target)!)).toBe("2′15″");
     expect(cellDurationSeconds("0105", target)).toBe(65);
     expect(cellDurationSeconds("5", target)).toBe(5);
   });
 
   it("hors bornes : ramenée à la borne existante (Cible 1..3535, Pause 0..300)", () => {
     expect(cellDurationSeconds("9999", target)).toBe(3535);
-    expect(cellDurationSeconds("0", target)).toBe(1);
-    expect(cellDurationSeconds("0000", target)).toBe(1);
+    // PRE-9 (B.3, COMP §3) : borne basse de la Cible 0 (1 auparavant) — 0 saisi reste 0.
+    expect(cellDurationSeconds("0", target)).toBe(0);
+    expect(cellDurationSeconds("0000", target)).toBe(0);
     expect(cellDurationSeconds("999", pause)).toBe(300);
     expect(cellDurationSeconds("0", pause)).toBe(0);
   });
 
-  it("cellule vidée : 0 s si 0 est permis (Pause), sinon à renseigner (`null`, Cible)", () => {
+  it("cellule vidée : 0″ si 0 est permis (Pause), sinon à renseigner (`null`, Cible)", () => {
     expect(cellDurationSeconds("", pause)).toBe(0);
-    expect(cellDurationSeconds("", target)).toBeNull();
+    // PRE-9 (B.3) : la Cible admettant 0, la sortie d'une cellule Cible vidée est traitée par
+    // `applyRowTargetEdit` (« — », à renseigner) ; borne basse positive : `null` comme avant.
+    expect(cellDurationSeconds("", { min: 1, max: 3535 })).toBeNull();
   });
 
   it("entier (Répétitions 1..100) : bornes existantes ; vidé → à renseigner", () => {
     const repetitions = EXECUTION_BOUNDS.repetitionTarget;
     expect(cellIntegerValue("12", repetitions)).toBe(12);
     expect(cellIntegerValue("150", repetitions)).toBe(100);
-    expect(cellIntegerValue("0", repetitions)).toBe(1);
-    expect(cellIntegerValue("", repetitions)).toBeNull();
+    expect(cellIntegerValue("0", repetitions)).toBe(0); // PRE-9 (B.3, COMP §3) : 0..100.
+    expect(cellIntegerValue("0", { min: 1, max: 100 })).toBe(1);
+    expect(cellIntegerValue("", { min: 1, max: 100 })).toBeNull();
     expect(cellIntegerValue("", { min: 0, max: 10 })).toBe(0);
   });
 });

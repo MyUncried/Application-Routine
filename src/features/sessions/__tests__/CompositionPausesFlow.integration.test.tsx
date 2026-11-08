@@ -15,7 +15,6 @@ import {
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { toSessionDurationResult } from "@/domain/sessions/calculations";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
@@ -31,6 +30,8 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
+import { enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
 
 /**
  * PRE-6 story 4.3 — pauses de bout en bout, sur une vraie base SQLite migrée
@@ -94,7 +95,6 @@ async function seedAndRender(stopPoints: NonNullable<SessionDraft["stopPoints"]>
   }
   const sessionId = created.value.id;
   const activityDefinitionService = new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database),
     new SqliteCategoryRepository(database),
     new SqliteBodyZoneRepository(database),
     new SqliteLabelRepository(database),
@@ -121,6 +121,8 @@ async function seedAndRender(stopPoints: NonNullable<SessionDraft["stopPoints"]>
   const router = renderRouter(
     {
       index: () => null,
+      // Règle du 06/11/2026 : brouillons au niveau de l'application (`app/_layout.tsx`).
+      _layout: CreationRootStack,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -134,8 +136,23 @@ async function seedAndRender(stopPoints: NonNullable<SessionDraft["stopPoints"]>
 const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children as string;
 const recoveryLabel = (name: string) => placement.addRecoveryAccessibilityLabel.replace("{exercise}", name);
 const stopLabel = (name: string) => placement.addStopPointAccessibilityLabel.replace("{exercise}", name);
-const nativeChange = (testID: string, selection: number) =>
-  fireEvent(screen.getByTestId(testID), "selectionChange", { nativeEvent: { selection } });
+
+/**
+ * PRE-9 (01/11/2026, point 2) : Récupération de l'Exercice réglée par sa feuille de paramètres
+ * (toucher de la carte) — roulette 0..300 s (minute, seconde ramenée à la grille), puis ✓.
+ */
+async function setRecoveryInSheet(exerciseId: string, minuteIndex: number, secondIndex: number) {
+  await act(async () => {
+    fireEvent.press(screen.getByTestId(`composition-exercise-row-${exerciseId}`));
+  });
+  await screen.findByTestId("execution-sheet-recovery");
+  // [Roulette (minute, seconde, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  enterExecutionSheetValue("execution-sheet-recovery", minuteIndex * 60 + secondIndex);
+  await act(async () => {
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+  });
+  await waitFor(() => expect(screen.queryByTestId("execution-sheet")).toBeNull());
+}
 
 /**
  * Récupérations et points tels qu'affichés hors placement (story 4.2). PRE-6 story 5.1 (D-435) : la
@@ -177,44 +194,43 @@ afterAll(() => {
   Platform.OS = originalPlatformOS;
 });
 
-describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE-6 story 4.3)", () => {
-  it("récupérations (absente / 0 / positive) et points, dans, hors et après le Circuit, survivent à l'enregistrement et à la réouverture ; la durée relue est la durée affichée", async () => {
+// [PRE-6 story 4.3 : récupérations posées en placement — remplacé le 01/11/2026 (ordre de Hermann,
+// point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : la Récupération appartient à
+// l'Exercice et se règle dans Paramètres d'exécution ; le placement ne pose que les Points d'arrêt.]
+describe("Pauses de bout en bout : Récupération par les paramètres, points par le placement → Continuer → réouverture (PRE-6 story 4.3, PRE-9 01/11/2026)", () => {
+  it("récupérations (absente / 0″ / positive) et points, dans, hors et après le Circuit, survivent à l'enregistrement et à la réouverture ; la durée relue est la durée affichée", async () => {
     const { router, database, sessionRepository, sessionId } = await seedAndRender();
     try {
       await screen.findByLabelText(composition.name);
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       // 4 × 60 s, B et C répétés deux fois : 360 s, aucune pause entre les exercices.
-      expect(sessionDuration()).toBe("≈ 6 min");
+      expect(sessionDuration()).toBe("≈ 6′00″");
       // Story 7.2 (D-442) : D-301 retirée, aucun message d'enchaînement sans pause.
       expect(screen.queryByText("Attention, les exercices vont s’enchaîner sans pause.")).toBeNull();
 
-      // Placement : après A (hors Circuit) R = 0 et un point ; après B (dans le Circuit) R = 45 s et
-      // un point ; un point « après le Circuit ».
-      // L'entrée en placement lit le défaut du Profil (asynchrone) avant d'ouvrir une roulette.
+      // Paramètres d'exécution : A validée à 0 s (ancien Exercice sans récupération : reste absente),
+      // B à 45 s (dans le Circuit).
+      await setRecoveryInSheet("ex-a", 0, 0);
+      await setRecoveryInSheet("ex-b", 0, 45);
+      // Placement : points seulement — après A, après B, « après le Circuit » ; aucune zone de récupération.
       await act(async () => {
         fireEvent.press(screen.getByTestId("composition-add-stop-action"));
       });
-      fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
-      await screen.findByTestId("duration-wheel-seconds");
-      nativeChange("duration-wheel-minutes", 0);
-      nativeChange("duration-wheel-seconds", 0);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      expect(screen.queryAllByTestId(/^composition-placement-slot-.*-recovery$/u)).toHaveLength(0);
+      expect(screen.queryByLabelText(recoveryLabel("A"))).toBeNull();
       fireEvent.press(screen.getByLabelText(stopLabel("A")));
-      fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
-      nativeChange("duration-wheel-minutes", 0);
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
       fireEvent.press(screen.getByLabelText(stopLabel("B")));
       fireEvent.press(screen.getByLabelText(placement.addStopPointAfterCircuitAccessibilityLabel));
+      expect(screen.getByTestId("composition-placement-bar-confirm").props.accessibilityLabel).toContain("3");
       fireEvent.press(screen.getByTestId("composition-placement-bar-confirm"));
 
       // Durée affichée avant enregistrement : R de B répétée à chaque Tour, points à 0 s,
-      // R = 0 de A ne compte rien → 60 + 2 × (60 + 45) + 2 × 60 + 60 = 450 s.
+      // A sans récupération → 60 + 2 × (60 + 45) + 2 × 60 + 60 = 450 s.
       const displayedBeforeSave = sessionDuration();
-      expect(displayedBeforeSave).toBe("≈ 7 min 30 s");
+      expect(displayedBeforeSave).toBe("≈ 7′30″");
       const pausesBeforeSave = displayedPauses();
       expect(pausesBeforeSave).toEqual({
-        // A : R = 0 n'affiche rien ; B : R dans la carte ; C, D : rien.
+        // A : 0 s n'affiche rien ; B : R dans la carte ; C, D : rien.
         recoveries: [
           ["ex-a", false],
           ["ex-b", true],
@@ -234,12 +250,12 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       });
       await waitFor(() => expect(router.getPathname()).toBe("/"));
 
-      // Relecture de la base : récupérations absente / 0 / positive et points à l'identique.
+      // Relecture de la base : une seule valeur par Exercice ; points à l'identique.
       const saved = await sessionRepository.findById(sessionId);
       expect(saved).not.toBeNull();
       const persisted = persistedPauses(saved!);
       expect(persisted.recoveries).toEqual([
-        ["A", 0],
+        ["A", null],
         ["B", 45],
         ["C", null],
         ["D", null],
@@ -252,25 +268,20 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       // Durée de la séance relue = durée affichée avant enregistrement (R et point répétés à chaque Tour).
       expect(toSessionDurationResult(saved!)).toEqual({ kind: "exact", seconds: 450 });
 
-      // Réouverture : mêmes pauses, même point après le Circuit, même durée.
+      // Réouverture : mêmes pauses, même point après le Circuit, même durée ; la feuille de B relit 45 s.
       await act(async () => {
         expoRouter.push(`/composition?sessionId=${sessionId}`);
       });
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       expect(displayedPauses()).toEqual(pausesBeforeSave);
       expect(sessionDuration()).toBe(displayedBeforeSave);
-
-      // R = 0 de A est restée présente : une nouvelle entrée en placement la montre comme existante,
-      // sélectionnée à 0 (story 7.2, D-442).
       await act(async () => {
-        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+        fireEvent.press(screen.getByTestId("composition-exercise-row-ex-b"));
       });
-      expect(screen.queryByLabelText(recoveryLabel("A"))).toBeNull();
-      const zero = screen.getByLabelText(placement.existingRecoveryAccessibilityLabel.replace("{exercise}", "A"));
-      expect(zero.props.accessibilityState).toMatchObject({ selected: true });
-      expect(zero.props.accessibilityValue).toEqual({ text: "0 s" });
-      expect(screen.queryByLabelText(recoveryLabel("C"))).not.toBeNull();
-      fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
+      expect(String((await screen.findByTestId("execution-sheet-recovery-value")).props.children)).toBe("45″");
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+      });
     } finally {
       database.close();
     }
@@ -334,26 +345,16 @@ describe("Retrait d'un point en placement → Continuer → réouverture (PRE-6 
 });
 
 /**
- * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 complément D-442 point 4) — retrait d'une récupération en
- * placement : désélection de la zone, « Confirmer les modifications », rien d'écrit avant
- * « Continuer » ; relecture de la base : récupération absente, Pause terminale rétablie (RM-038).
+ * [PRE-6 story 7.2 (D-442) : retrait d'une récupération en placement — remplacé le 01/11/2026 (ordre
+ * de Hermann, point 2) : la Récupération se règle dans Paramètres d'exécution ; 0 s = aucune
+ * récupération exécutée, Pause terminale rétablie (RM-038).]
  */
-describe("Retrait d'une récupération en placement → Continuer → réouverture (PRE-6 story 7.2)", () => {
-  it("la récupération désélectionnée n'est retirée qu'à « Continuer » ; à la réouverture sa zone est libre", async () => {
+describe("Récupération ramenée à 0″ dans les paramètres → Continuer → réouverture (PRE-9, 01/11/2026)", () => {
+  it("rien n'est écrit avant « Continuer » ; relue à 0″, la carte n'affiche rien et le placement ne propose aucune récupération", async () => {
     const { router, database, sessionRepository, sessionId } = await seedAndRender();
     try {
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
-      const confirm = () => screen.getByTestId("composition-placement-bar-confirm");
-      // Récupération de 45 s après B (ajout puis Confirmer, Continuer).
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
-      });
-      fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
-      await screen.findByTestId("duration-wheel-seconds");
-      nativeChange("duration-wheel-minutes", 0);
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      fireEvent.press(confirm());
+      await setRecoveryInSheet("ex-b", 0, 45);
       await act(async () => {
         fireEvent.press(screen.getByLabelText(composition.saveAction));
       });
@@ -366,20 +367,11 @@ describe("Retrait d'une récupération en placement → Continuer → réouvertu
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       // Hors placement : simple affichage, aucune cible (le toucher traverse jusqu’à la carte).
       expect(StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-ex-b-recovery").props.style).pointerEvents).toBe("none");
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
-      });
-      const existingB = () => screen.getByLabelText(placement.existingRecoveryAccessibilityLabel.replace("{exercise}", "B"));
-      expect(existingB().props.accessibilityState).toMatchObject({ selected: true });
-      fireEvent.press(existingB());
-      expect(existingB().props.accessibilityState).toMatchObject({ selected: false });
-      expect(confirm().props.accessibilityLabel).toBe(placement.confirmChanges);
-      fireEvent.press(confirm());
-      // Confirmer n'écrit rien : la base porte encore la récupération.
+      await setRecoveryInSheet("ex-b", 0, 0);
+      // ✓ n'écrit rien : la base porte encore la récupération.
       expect(persistedPauses((await sessionRepository.findById(sessionId))!).recoveries).toContainEqual(["B", 45]);
       expect(screen.queryByTestId("composition-activity-recovery-ex-b-recovery")).toBeNull();
-      // Durée sans la récupération (exercices sans Pause : RM-038 est prouvée par le test d’écran « timed »).
-      expect(sessionDuration()).toBe("≈ 6 min");
+      expect(sessionDuration()).toBe("≈ 6′00″");
 
       await act(async () => {
         fireEvent.press(screen.getByLabelText(composition.saveAction));
@@ -388,7 +380,7 @@ describe("Retrait d'une récupération en placement → Continuer → réouvertu
       const saved = await sessionRepository.findById(sessionId);
       expect(persistedPauses(saved!).recoveries).toEqual([
         ["A", null],
-        ["B", null],
+        ["B", 0],
         ["C", null],
         ["D", null],
       ]);
@@ -401,7 +393,8 @@ describe("Retrait d'une récupération en placement → Continuer → réouvertu
       await act(async () => {
         fireEvent.press(screen.getByTestId("composition-add-stop-action"));
       });
-      expect(screen.getByLabelText(recoveryLabel("B")).props.accessibilityState).toMatchObject({ selected: false });
+      expect(screen.queryByLabelText(recoveryLabel("B"))).toBeNull();
+      expect(screen.queryAllByTestId(/^composition-placement-slot-.*-recovery$/u)).toHaveLength(0);
       fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
     } finally {
       database.close();

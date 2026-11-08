@@ -188,16 +188,20 @@ describe("strings", () => {
         TOURS: { singular: "tour", plural: "tours" },
         SERIES: { singular: "série", plural: "séries" },
       },
-      countAccessibilityLabel: { TOURS: "Nombre de tours", SERIES: "Nombre de séries" },
-      // PRE-6 story 7.3 (D-442) : boutons − et + du stepper toujours affiché.
-      decrementAccessibilityLabel: { TOURS: "Retirer un tour", SERIES: "Retirer une série" },
-      incrementAccessibilityLabel: { TOURS: "Ajouter un tour", SERIES: "Ajouter une série" },
-      // PRE-6 story 3.2 (CE-CIR-01, `8328:34805`) : choix de nature du Circuit.
+      // PRE-9 B.1a — D-451, complément du 28/10 (remplace D-442 / D-443) : unité « tour(s) » pour
+      // les deux natures, adjectif de nature, stepper révélé au toucher du nombre (RM-027).
+      countUnit: { singular: "tour", plural: "tours" },
+      natureAdjective: { TOURS: "groupées", SERIES: "alternées" },
+      countAccessibilityLabel: "Nombre de tours",
+      decrementAccessibilityLabel: "Retirer un tour",
+      incrementAccessibilityLabel: "Ajouter un tour",
+      // PRE-6 story 3.2 (CE-CIR-01, `8328:34805`) : choix de nature du Circuit ; PRE-9 B.1a
+      // (référence §2) : « Séries groupées » / « Séries alternées ».
       nature: {
         accessibilityLabel: "Nature du circuit",
         options: {
-          TOURS: { title: "Circuit de tours", subtitle: "les séries d’un exercice s’enchaînent" },
-          SERIES: { title: "Circuit de séries", subtitle: "une série de chaque exercice par passage" },
+          TOURS: { title: "Séries groupées", subtitle: "toutes les séries d’un exercice exécutées à chaque tour" },
+          SERIES: { title: "Séries alternées", subtitle: "une série de chaque exercice exécutée à chaque tour" },
         },
       },
       // PRE-6 story 3.4 (CE-CIR-03, `8328:34965`) : œil et feuille « Volumes du circuit ».
@@ -224,7 +228,7 @@ describe("strings", () => {
 
   it("exposes the Circuit conversion loss dialog texts (PRE-6 story 3.2, CE-CIR-02, `8328:34964`)", () => {
     const t = strings.screens.composition.circuitEntryConfirmModal;
-    expect(t.natureTitle).toBe("Passer en circuit de séries ?");
+    expect(t.natureTitle).toBe("Passer en séries alternées ?");
     expect(t.natureMessage).toBe(
       "Tous les exercices auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
     );
@@ -267,8 +271,13 @@ describe("strings", () => {
       // PRE-6 story 6.2 : point en tête de portée (données héritées).
       stopPointAtCircuitStartAccessibilityLabel: "Point d’arrêt au début du circuit",
       stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
-      confirmSingular: "Confirmer {n} pause ajoutée",
-      confirmPlural: "Confirmer {n} pauses ajoutées",
+      // PRE-9 B.6 : emplacements d’un Cycle.
+      addStopPointAtCycleStartAccessibilityLabel: "Ajouter un point d’arrêt au début du cycle",
+      addStopPointAfterCycleAccessibilityLabel: "Ajouter un point d’arrêt après le cycle",
+      stopPointAtCycleStartAccessibilityLabel: "Point d’arrêt au début du cycle",
+      existingStopPointAfterCycleAccessibilityLabel: "Point d’arrêt après le cycle",
+      confirmSingular: "Confirmer {n} point d’arrêt ajouté",
+      confirmPlural: "Confirmer {n} points d’arrêt ajoutés",
       // PRE-6 story 6.3 (D-441) : libellé des changements autres que des ajouts seuls.
       confirmChanges: "Confirmer les modifications",
       cancel: "Annuler",
@@ -349,6 +358,9 @@ describe("strings", () => {
   it("exposes the exact exercise-row summary lexical fragments (T01-S08, CHANGES_REQUESTED, D-095; V2-BILAT-01 direction clause added)", () => {
     expect(strings.screens.composition.exerciseRow).toEqual({
       editAccessibilityLabel: "Modifier l’exercice",
+      // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat c) : carte → paramètres, photo → mouvement.
+      editParametersAccessibilityLabel: "Modifier les paramètres",
+      openMovementAccessibilityLabel: "Ouvrir le mouvement",
       seriesSingular: "série",
       seriesPlural: "séries",
       repetitionSingular: "répétition",
@@ -622,8 +634,9 @@ describe("strings — PRE-3", () => {
     expect(pre3.sheet.modes).toEqual({ DURATION: "Durée", REPETITIONS: "Répétitions" });
     expect(pre3.sheet.failureTarget).toBe("à l’échec");
     // PRE-5 story 2.5 (AC5) : libellés anatomiques `sideModes` retirés (voir « strings — PRE-5 story 2.5 »).
+    // PRE-9 (ordre de Hermann du 01/11/2026, point 5) : libellé accessible de BY_SIDE remplacé.
     expect(pre3.sheet.sideOrders).toEqual({
-      BY_SIDE: "Un côté après l’autre",
+      BY_SIDE: "Chaque série d’un côté, puis chaque série de l’autre",
       BY_SERIES: "Les deux côtés à chaque série",
     });
     for (const label of [pre3.sheet.pause, pre3.sheet.cadence, pre3.sheet.sideRecovery, pre3.sheet.countdown, pre3.sheet.end]) {
@@ -671,8 +684,8 @@ describe("strings — PRE-4 story 2.2", () => {
   it("PRE4-2.2/AC6 — les préfixes du domaine (`totalClauseAmount`, exempté du lexique, AD-11) sont identiques aux clés du lexique", () => {
     const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
     const result = (kind: "estimated" | "lowerBound") => ({ kind, seconds: 90, knownSeconds: 90, events: [] });
-    expect(totalClauseAmount(result("estimated"))).toBe(`${estimatedPrefix}1 min 30 s`);
-    expect(totalClauseAmount(result("lowerBound"))).toBe(`${lowerBoundPrefix}1 min 30 s`);
+    expect(totalClauseAmount(result("estimated"))).toBe(`${estimatedPrefix}1′30″`);
+    expect(totalClauseAmount(result("lowerBound"))).toBe(`${lowerBoundPrefix}1′30″`);
   });
 });
 
@@ -708,11 +721,21 @@ describe("strings — PRE-5 story 2.5", () => {
     expect(sheet.sideSequence).toBe("Enchainement");
     // Notations graphiques exactes de la frame `8328:38193` (D-431), flèche centrale ➜ ; rétablies
     // par la recette du 19/10 (RC-12) après le raccourcissement de RC-11.
-    expect(sheet.sideOrderSubtitles).toEqual({ BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" });
+    // [Remplacé le 01/11/2026 — ordre de Hermann, point 5 (CE-UI-10 §8) : notations « DD… → GG… »
+    // et « DG → DG → … », libellé accessible de BY_SIDE « Chaque série d’un côté, puis chaque série
+    // de l’autre » ; ligne visible « De chaque côté ».]
+    expect(sheet.sideOrderSubtitles).toEqual({ BY_SIDE: "DD… → GG…", BY_SERIES: "DG → DG → …" });
     // Nom accessible neutre des options (D-407).
-    expect(sheet.sideOrders).toEqual({ BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" });
+    expect(sheet.sideOrders).toEqual({
+      BY_SIDE: "Chaque série d’un côté, puis chaque série de l’autre",
+      BY_SERIES: "Les deux côtés à chaque série",
+    });
+    expect(sheet.sideModeRow).toBe("De chaque côté");
+    // Ordre de Hermann, point 4 : titre de la cible commune en Durée ; « Durée de l’exercice » inchangée.
+    expect(sheet.durationGoal).toBe("Objectif de durée");
+    expect(sheet.columns.DURATION).toBe("Durée");
     expect(sheet.cadence).toBe("Cadence");
-    expect(sheet.cadenceOptions).toEqual({ OTHER: "Autre", "1": "1 s", NONE: "Sans" }); // RC-10
+    expect(sheet.cadenceOptions).toEqual({ OTHER: "Autre", "1": "1″", NONE: "Sans" }); // RC-10
     expect(sheet.exerciseDuration).toBe("Durée de l’exercice");
     // D-433 : le symbole ≈ quitte le titre (collé à la valeur) ; la clé `exerciseDurationEstimated`
     // est supprimée. Ligne toujours affichée : « Non calculable » et annonce de « — ».

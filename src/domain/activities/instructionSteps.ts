@@ -1,7 +1,7 @@
 /**
  * PRE-5 (story 1.1, AD-22, FR-33 à FR-35, Δ01 à Δ03, NFR-9) — codec UNIQUE des
  * étapes de la Description. Stockage inchangé : la chaîne encodée vit dans
- * `activity_definitions.description` et `activities.instruction`, sans
+ * la description des définitions du Catalogue et `activities.instruction`, sans
  * migration ni conversion (FR-35). Une étape par ligne, jointes par `\n`, sans
  * numéro ; une étape ne contient jamais de saut de ligne.
  *

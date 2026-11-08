@@ -32,7 +32,7 @@ import type { Database } from "@/infrastructure/database/Database";
 import { DATABASE_VERSION, STANDARD_PRAGMAS } from "@/infrastructure/database/constants";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repositories/SqliteMigrationNoticeRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { buildVersion9 } from "@/infrastructure/database/testing/buildVersion9";
@@ -1124,12 +1124,33 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
       width: null,
       height: null,
     });
+    // [A.3 du 04/11/2026 : le dépôt des anciennes définitions du Catalogue est retiré ; le Mouvement est
+    // créé seul (`createTestMovement`) et la copie part d'une vue de définition construite en mémoire.]
     const definitionOf = async (input: CreateActivityDefinitionInput): Promise<ActivityDefinition> => {
       const validated = validateActivityDefinitionInput(input);
       if (!validated.ok) {
         throw new Error(JSON.stringify(validated.violations));
       }
-      return new SqliteActivityDefinitionRepository(database, ids("def")).create(validated.value);
+      const { movementId } = await createTestMovement(database, validated.value, { kind: "INDEPENDENT" }, ids("def"));
+      return {
+        id: `def-${movementId}`,
+        movementId,
+        name: validated.value.name,
+        description: validated.value.description,
+        executionParameters: validated.value.executionParameters,
+        categoryId: validated.value.category.kind === "EXISTING" ? validated.value.category.categoryId : undefined,
+        bodyZoneIds: validated.value.bodyZoneIds,
+        sideMode: validated.value.executionParameters.sideMode,
+        media: (validated.value.media ?? []).map((item, position) => ({
+          id: `link-${position}`,
+          activityDefinitionId: `def-${movementId}`,
+          assetId: item.assetId,
+          position,
+          asset: item.asset ?? asset(item.assetId, "PHOTO"),
+        })),
+        createdAt: "now",
+        updatedAt: "now",
+      };
     };
     const created = await definitionOf({
       name: "Fentes alternées",
@@ -1163,15 +1184,20 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
     const session = await new SqliteSessionRepository(database, ids("ses")).create(sessionInput.value);
 
     database = reopen(database);
-    const rereadDefinition: ActivityDefinition | null = await new SqliteActivityDefinitionRepository(database, ids("def")).findById(created.id);
-    expect(rereadDefinition).toEqual(created);
-    expect(rereadDefinition?.executionParameters).toEqual(mixed);
-    expect(rereadDefinition?.categoryId).toBe("cat-custom");
-    expect([...(rereadDefinition?.bodyZoneIds ?? [])].sort()).toEqual(["cuisses", "zone-custom"]);
-    expect(rereadDefinition?.media?.map((item) => [item.position, item.assetId])).toEqual([
-      [0, "asset-a"],
-      [1, "asset-new"],
-      [2, "asset-b"],
+    // [A.3 du 04/11/2026 : relecture du Mouvement (Catégorie, Zones, médias ordonnés) au lieu de la définition.]
+    const rereadMovement = await database.getFirstAsync<{ category_id: string }>("SELECT category_id FROM movements WHERE id = ?", [created.movementId]);
+    expect(rereadMovement?.category_id).toBe("cat-custom");
+    expect(
+      (await database.getAllAsync<{ body_zone_id: string }>("SELECT body_zone_id FROM movement_body_zones WHERE movement_id = ? ORDER BY body_zone_id", [created.movementId])).map(
+        (row) => row.body_zone_id,
+      ),
+    ).toEqual(["cuisses", "zone-custom"]);
+    expect(
+      await database.getAllAsync("SELECT position, asset_id FROM movement_media WHERE movement_id = ? ORDER BY position", [created.movementId]),
+    ).toEqual([
+      { position: 0, asset_id: "asset-a" },
+      { position: 1, asset_id: "asset-new" },
+      { position: 2, asset_id: "asset-b" },
     ]);
 
     const rereadSession: Session | null = await new SqliteSessionRepository(database, ids("ses")).findById(session.id);

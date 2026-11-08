@@ -100,12 +100,13 @@ describe("PRE-8 E.5 — actions selon l'état", () => {
     ]);
   });
 
-  it("bloc de 80, aligné en haut, même sur une carte déployée", () => {
+  // [Bloc de 80 — remplacé le 06/11/2026 par D-504 : actions glissées hautes de 72, alignées sur la carte.]
+  it("bloc de 72, aligné en haut, même sur une carte déployée (D-504)", () => {
     renderList([session("a")]);
     fireEvent.press(screen.getByTestId("session-card-a-disclosure"));
     reveal("a");
     const style = StyleSheet.flatten(screen.getByTestId("session-card-a-swipe-actions").props.style);
-    expect(style).toMatchObject({ top: 0, right: 0, height: 80, width: 3 * 68 });
+    expect(style).toMatchObject({ top: 0, right: 0, height: 72, width: 3 * 68 });
     expect(style.bottom).toBeUndefined();
     expect(screen.getByTestId("session-card-a-composition")).toBeTruthy();
   });
@@ -113,7 +114,34 @@ describe("PRE-8 E.5 — actions selon l'état", () => {
   it("actions accessibles : Planifier absent (indisponible), Dupliquer et Archiver présents", () => {
     renderList([session("a")]);
     const names = (screen.getByTestId("session-card-a-swipe-card").props.accessibilityActions as { name: string }[]).map((action) => action.name);
-    expect(names).toEqual(["duplicate", "archive", "toggleComposition"]);
+    // Recette iPhone n° 3 du 03/11/2026 : ouverture en action nommée (l'activation déploie).
+    expect(names).toEqual(["duplicate", "archive", "openSession", "toggleComposition"]);
+  });
+
+  it("carte ouverte par le glissé : toucher le visuel n'ouvre pas la Séance", () => {
+    const onOpen = jest.fn();
+    render(
+      <SessionServiceContext.Provider value={makeService() as unknown as SessionService}>
+        <SessionCatalogueList sessions={[session("a", "ACTIVE", 1)]} emptyMessage={null} onOpenSession={onOpen} />
+      </SessionServiceContext.Provider>,
+    );
+    reveal("a");
+    fireEvent.press(screen.getByTestId("session-card-a-visual-open"));
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("carte archivée : chevron, déploiement, et le visuel ouvre la Séance (même chemin)", () => {
+    const onOpen = jest.fn();
+    render(
+      <SessionServiceContext.Provider value={makeService() as unknown as SessionService}>
+        <SessionCatalogueList sessions={[session("z", "ARCHIVED", 1)]} emptyMessage={null} onOpenSession={onOpen} />
+      </SessionServiceContext.Provider>,
+    );
+    fireEvent.press(screen.getByTestId("session-card-z-swipe-card"));
+    expect(screen.getByTestId("session-card-z-composition")).toBeTruthy();
+    expect(onOpen).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("session-card-z-visual-open"));
+    expect(onOpen).toHaveBeenCalledWith("z");
   });
 });
 

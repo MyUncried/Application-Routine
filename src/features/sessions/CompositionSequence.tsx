@@ -1,4 +1,4 @@
-import { useMemo, type Ref } from "react";
+import { useMemo, type ReactNode, type Ref } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
@@ -227,9 +227,12 @@ export function BoundaryStep({
   onPress,
   railCenterX,
   neighborSlop = 0,
+  editor,
   ref,
   testID,
 }: {
+  /** 08/11/2026 (a-bornes-clavier) : case de saisie en place, posée à la place de la pastille de valeur. */
+  editor?: ReactNode;
   kind: BoundaryKind;
   label: string;
   value: string;
@@ -270,9 +273,11 @@ export function BoundaryStep({
       <Text style={styles.boundaryLabel} numberOfLines={1}>
         {label}
       </Text>
-      <View style={styles.valuePill} testID={testID === undefined ? undefined : `${testID}-value`}>
-        <Text style={styles.valueText}>{value}</Text>
-      </View>
+      {editor ?? (
+        <View style={styles.valuePill} testID={testID === undefined ? undefined : `${testID}-value`}>
+          <Text style={styles.valueText}>{value}</Text>
+        </View>
+      )}
     </Pressable>
   );
 }

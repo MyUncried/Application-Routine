@@ -10,9 +10,11 @@ import type {
   CatalogueSessionRecord,
   SessionRepository,
   SessionStatus,
+  StructuredSession,
   UpdateSessionOutcome,
+  UpdateStructuredSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
-import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
+import { withStructure } from "@/domain/sessions/testing/structuredSession";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -20,6 +22,7 @@ import { ActivityDefinitionServiceProvider } from "@/features/activities/Activit
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
+import { CreationRootStack } from "@/features/sessions/testing/CreationRootStack";
 
 /**
  * PRE-4 (story 1.2, P39, FR-18-20 sixième conséquence) — parcours réel
@@ -123,6 +126,16 @@ class EmptySessionRepository implements SessionRepository {
       },
     ]);
   }
+  /** PRE-9 (A.1) : port structuré, seul lu et écrit par le service (aucune écriture à l'ouverture). */
+  findStructuredById(sessionId: string): Promise<StructuredSession | null> {
+    return Promise.resolve(sessionId === EMPTY_SESSION_ID ? withStructure(EMPTY_SESSION) : null);
+  }
+  createStructured(): Promise<StructuredSession> {
+    return Promise.reject(new Error("createStructured() must never be called by an edit flow"));
+  }
+  updateStructured(): Promise<UpdateStructuredSessionOutcome> {
+    return Promise.reject(new Error("updateStructured() must never be called by merely opening a Session"));
+  }
   update(): Promise<UpdateSessionOutcome> {
     return Promise.reject(new Error("update() must never be called by merely opening a Session"));
   }
@@ -149,20 +162,7 @@ class NoopCategoryRepository implements CategoryRepository {
   }
 }
 
-class NoopActivityDefinitionRepository implements ActivityDefinitionRepository {
-  create(): Promise<ActivityDefinition> {
-    return Promise.reject(new Error("not used"));
-  }
-  findById(): Promise<ActivityDefinition | null> {
-    return Promise.resolve(null);
-  }
-  listAll(): Promise<readonly ActivityDefinition[]> {
-    return Promise.resolve([]);
-  }
-  update(): Promise<ActivityDefinition | null> {
-    return Promise.reject(new Error("not used"));
-  }
-}
+// [PRE-9 A.3 du 04/11/2026 : dépôt factice des définitions retiré avec les anciennes définitions du Catalogue.]
 
 function TestWrapper({ children }: { children: ReactNode }) {
   return (
@@ -172,7 +172,6 @@ function TestWrapper({ children }: { children: ReactNode }) {
       <ActivityDefinitionServiceProvider
         service={
           new ActivityDefinitionService(
-            new NoopActivityDefinitionRepository(),
             new NoopCategoryRepository(),
             new EmptyBodyZoneRepository(),
           )
@@ -193,12 +192,14 @@ async function flush() {
 
 describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste, ouvrable sans erreur", () => {
   it(
-    "la carte affiche « 0 exercice » et « 0 s » (PRE-8 E.2 : carte unique, durée D-443) ; la toucher ouvre la Composition existante, vide, sans état d'erreur",
+    "la carte affiche « 0 exercice » et « 0″ » (PRE-8 E.2 : carte unique, durée D-443) ; la toucher ouvre la Composition existante, vide, sans état d'erreur",
     async () => {
       const router = renderRouter(
         {
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           index: require("../../../../app/(tabs)/index").default,
+          // Règle du 06/11/2026 : brouillons au niveau de l'application (`app/_layout.tsx`).
+          _layout: CreationRootStack,
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           "(creation)/_layout": require("../../../../app/(creation)/_layout").default,
           // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -212,10 +213,10 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       // durée de séance au format D-443.
       expect(await screen.findByText("Séance b")).toBeTruthy();
       expect(screen.getByTestId("session-card-session-b-summary")).toHaveTextContent("0 exercice");
-      expect(screen.getByTestId("session-card-session-b-duration")).toHaveTextContent("0 s");
+      expect(screen.getByTestId("session-card-session-b-duration")).toHaveTextContent("0″");
 
       // AC7 : l'écran existant s'ouvre sur la Séance, sans Exercice et sans erreur.
-      fireEvent.press(screen.getByTestId("session-card-session-b-swipe-card"));
+      fireEvent.press(screen.getByTestId("session-card-session-b-visual-open"));
       await flush();
       await flush();
 
@@ -223,7 +224,7 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       expect(screen.queryByTestId("composition-edit-state")).toBeNull();
       expect(screen.getByLabelText(composition.name).props.value).toBe("Séance b");
       // Story 7.8 (D-443) : séance vide → « 0 s » dans la zone de contexte ; plus de durée de Circuit.
-      expect(screen.getByTestId("composition-session-duration")).toHaveTextContent("0 s");
+      expect(screen.getByTestId("composition-session-duration")).toHaveTextContent("0″");
       expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
 
       // Action finale « Continuer » (Q54 ; libellé PRE-6 story 2.1) : règle existante — sans Exercice, le

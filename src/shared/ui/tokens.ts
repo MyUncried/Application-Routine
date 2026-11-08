@@ -231,6 +231,35 @@ export const colors = {
   movementFamilyRail: "rgba(5, 8, 229, 0.35)",
   movementPileLeafBorder: "#E0E3ED",
   searchFieldSurface: "#F3F4F9",
+  // D-501 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §3) : couleurs propres à chaque
+  // catalogue — `color/catalogue/{mouvements,seances,programmes}/{context,background}` (« KODJO / Sémantiques »).
+  // `…Context` : zone de contexte et onglet sélectionné ; `…Background` : fond d'écran, barre d'état, en-tête fixe.
+  // Programmes : jetons prêts, aucun écran.
+  // D-501 révisée (Hermann, 08/11/2026) : fond = 40 % de la couleur de contexte sur blanc ; contexte des Mouvements
+  // #DDEBFF. [Avant : Mouvements #E5F0FF / #F7FAFF, fond des Séances #F8F8FF, des Programmes #FAF8FF — remplacé.]
+  catalogueMovementsContext: "#DDEBFF",
+  catalogueMovementsBackground: "#F1F7FF",
+  catalogueSessionsContext: "#EAEAFF",
+  catalogueSessionsBackground: "#F7F7FF",
+  catalogueProgramsContext: "#EFE8FF",
+  catalogueProgramsBackground: "#F9F6FF",
+  // D-509 : bandeau de contexte des écrans hors catalogue (Composition, fiche Mouvement…) — #EAEAFF prévu par le
+  // chapitre 06 ; `selectionSurface` reste réservé aux éléments sélectionnés.
+  contextBand: "#EAEAFF",
+  // D-510 : `color/status/positive-text` — fond du badge « New » du catalogue des mouvements.
+  statusPositiveText: "#1F804F",
+  // Recette iPhone du 07/11/2026 (Hermann, constat G) : fond désactivé unique de tous les interrupteurs,
+  // gris distinct du fond d'écran blanc et des cadres `surface` (le gris système iOS se confondait avec eux).
+  switchTrackOff: "#C2C7CF",
+} as const;
+
+/**
+ * Couleurs communes de tous les interrupteurs (`Switch` natif) de l'application (constat G du 07/11/2026) :
+ * `ios_backgroundColor` colore la piste désactivée sur iOS, `trackColor.false` sur Android.
+ */
+export const switchOffColors = {
+  trackColor: { false: colors.switchTrackOff },
+  ios_backgroundColor: colors.switchTrackOff,
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -376,6 +405,13 @@ export const fixedRadii = {
 export const borderWidths = {
   1: 1,
   2: 2,
+  /** Liseré de la carte d'Exercice de la Composition dans un Circuit ou un Cycle (D-511). */
+  exerciseCard: 0.5,
+  /**
+   * Hermann, 08/11/2026 au soir : « Sur l'écran de composition de séance, change uniquement le liseré de la carte d'exercice lorsqu'elle est hors circuit (directement dans la séance, pas dans un circuit ni un cycle). Épaisseur : 0,75 pt (au lieu de 0,5 pt). Couleur #CCD1E0, tracé à l'intérieur de la carte, rayon 12 pt : inchangés. Le liseré de la carte d'exercice dans un circuit reste à 0,5 pt. Centralise la valeur dans une constante de thème ».
+   * Carte d'Exercice directement dans la Séance (ni Circuit ni Cycle).
+   */
+  exerciseCardSessionLevel: 0.75,
 } as const;
 
 export const icon = {

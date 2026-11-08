@@ -237,6 +237,11 @@ describe("toSessionDraft", () => {
       ],
       // PRE-4 story 4.1 (AC13) : occurrences chargées, champ de transport non comparé.
       persistedExerciseIds: ["activity-1"],
+      // PRE-9 (A.1) : disposition générale relue, identités comprises (Circuit "tour-1").
+      structure: {
+        elements: [{ kind: "CIRCUIT", circuit: { id: "tour-1", repeatCount: 1, nature: "TOURS", exercises: ["activity-1"] } }],
+        stopPoints: [],
+      },
     });
   });
 

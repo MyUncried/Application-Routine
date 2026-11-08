@@ -17,3 +17,7 @@ jest.mock("react-native-reanimated/mock", () => {
   };
 });
 jest.mock("react-native-reanimated", () => require("react-native-reanimated/mock"));
+
+// Constat de Hermann du 06/11/2026 (glisser des cartes du questionnaire / récapitulatif des Formats, geste natif de
+// react-native-gesture-handler autorisé pour cet écran) : simulacres livrés par le paquet.
+require("react-native-gesture-handler/jestSetup");

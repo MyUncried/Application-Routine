@@ -47,11 +47,11 @@
 
 ## Clôture des epics A et B (27/10/2026)
 
-Recette iPhone validée par Hermann le 27/10/2026 ; résultats des deux epics validés. Les stories A.1 à A.4 et B.1 à B.11 sont `done`. Code recetté : `88c2adde` sur `pre8-bmad/dev` (base `main` @ `082390c0`), non fusionné dans `main`. Limites connues : `implementation-artifacts/sprint-status.yaml`, rubrique `deferred`. **Correctif ultérieur du lot B (28/10, `77990e7d`)** : b8-3 confirmé par Hermann (option A) ; la fiche Mouvement est alignée sur les rangs des actifs du Catalogue ; corrections à porter sur `main` répertoriées dans `integration-documentaire-main.md`.
+Recette iPhone validée par Hermann le 27/10/2026 ; résultats des deux epics validés. Les stories A.1 à A.4 et B.1 à B.11 sont `done`. Code recetté : `88c2adde` sur `pre8-bmad/dev` (base `main` @ `082390c0`), non fusionné dans `main`. [PRE-8 fusionnée dans `main` le 28/10/2026 par la PR #409 (commit de fusion `547bb7ef`), sur autorisation de Hermann (« Fusion PR #409 ») ; baseline de PRE-9. Annotation DOC.0 du 29/10/2026.] Limites connues : `implementation-artifacts/sprint-status.yaml`, rubrique `deferred`. **Correctif ultérieur du lot B (28/10, `77990e7d`)** : b8-3 confirmé par Hermann (option A) ; la fiche Mouvement est alignée sur les rangs des actifs du Catalogue ; corrections à porter sur `main` répertoriées dans `integration-documentaire-main.md`.
 
 ## Epic E — Catalogue unifié des Séances (préparation du 27/10/2026)
 
-Plan, stories E.1 à E.8, dépendances, réserves Figma F-01 à F-05 et arbitrages Q-E0 à Q-E6 : `epic-e-catalogue-seances.md`. **Entièrement approuvé par Hermann le 28/10 (arbitrages finaux, point d'entrée de E.8-a : option 1) ; développement dans une nouvelle session Claude Code.** Le découpage initial de E (conversion des Exercices du Catalogue, Q-E1) devient la story conditionnelle E.8.
+Plan, stories E.1 à E.8, dépendances, réserves Figma F-01 à F-05 et arbitrages Q-E0 à Q-E6 : `epic-e-catalogue-seances.md`. **Entièrement approuvé par Hermann le 28/10 (arbitrages finaux, point d'entrée de E.8-a : option 1) ; développement dans une nouvelle session Claude Code.** Le découpage initial de E (conversion des Exercices du Catalogue, Q-E1) devient la story conditionnelle E.8. [29/10/2026 : rattachés à PRE-9, chantier A — conversion E.8-b validée par Hermann (ARB-01 : automatique, sans perte, transactionnelle, sans suppression de données historiques), story A.4 ; suppression physique des anciennes tables conditionnelle (story A.5). Source : `_bmad-output/pre9/planning-artifacts/arbitrages-pre9.md` §0 bis.]
 
 ## Points À CLARIFIER (sans blocage de A et B)
 

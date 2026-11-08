@@ -114,7 +114,11 @@ describe("ContextBand", () => {
 
     const band = screen.getByTestId("screen-context-band");
     const flattened = StyleSheet.flatten(band.props.style);
-    expect(flattened.backgroundColor).toBe(colors.selectionSurface);
+    // D-509 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §8) : bande hors Catalogue à #EAEAFF
+    // (chapitre 06), plus `selectionSurface` (#E5F0FF, couleur d'un élément sélectionné). [Avant : selectionSurface — remplacé.]
+    expect(flattened.backgroundColor).toBe(colors.contextBand);
+    expect(flattened.backgroundColor).toBe("#EAEAFF");
+    expect(flattened.backgroundColor).not.toBe(colors.selectionSurface);
     expect(flattened.height).toBe(115);
     expect(flattened.paddingTop).toBe(12);
     expect(flattened.paddingBottom).toBe(16);
@@ -133,6 +137,33 @@ describe("ContextBand", () => {
     const band = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(band.props.style).zIndex).toBe(1);
   });
+
+  it("D-509 : couleur passée par l'écran (Catalogue) — portée par la bande opaque et par toute la part fondue", () => {
+    renderWithSafeArea(
+      <ContextBand color="#E5F0FF" fadeToTransparent>
+        <Text>filtre</Text>
+      </ContextBand>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("screen-context-band").props.style).backgroundColor).toBe("transparent");
+    expect(StyleSheet.flatten(screen.getByTestId("screen-context-band-solid", { includeHiddenElements: true }).props.style).backgroundColor).toBe(
+      "#E5F0FF",
+    );
+    const fade = screen.getByTestId("screen-context-band-fade", { includeHiddenElements: true });
+    for (const layer of fade.props.children as { props: { style: unknown } }[]) {
+      expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ backgroundColor: "#E5F0FF" });
+    }
+  });
+
+  it("D-509 : sans couleur, la part fondue reste à #EAEAFF (Composition et autres écrans hors Catalogue)", () => {
+    renderWithSafeArea(
+      <ContextBand fadeToTransparent>
+        <Text>filtre</Text>
+      </ContextBand>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId("screen-context-band-solid", { includeHiddenElements: true }).props.style).backgroundColor).toBe(
+      "#EAEAFF",
+    );
+  });
 });
 
 describe("ScreenShell — X-4 (recette PRE-3, 12/10)", () => {
@@ -146,5 +177,44 @@ describe("ScreenShell — X-4 (recette PRE-3, 12/10)", () => {
     expect(header.height).toBeUndefined();
     expect(header.minHeight).toBe((header.paddingTop as number) + 48);
     expect(screen.getByRole("header").props.numberOfLines).toBeUndefined();
+  });
+});
+
+describe("FixedHeader — titres de modales centrés (demande de Hermann du 05/11/2026)", () => {
+  // « Centrer horizontalement tous les titres de modales sur leur page. »
+  function layout(testID: string, x: number, width: number) {
+    fireEvent(screen.getByTestId(testID), "layout", { nativeEvent: { layout: { x, y: 0, width, height: 48 } } });
+  }
+
+  it("en-tête de modale (✕) : titre posé sur toute la largeur, centré, réserve symétrique égale au plus large côté", () => {
+    renderWithSafeArea(
+      <FixedHeader
+        title="Modifier un mouvement"
+        onBack={jest.fn()}
+        backAccessibilityLabel="Fermer"
+        closeIcon
+        validate={{ onPress: jest.fn(), enabled: true, accessibilityLabel: "Valider" }}
+      />,
+    );
+    const layer = screen.getByTestId("screen-header-title-layer");
+    expect(StyleSheet.flatten(layer.props.style)).toMatchObject({ position: "absolute", left: 0, right: 0, alignItems: "center" });
+    expect(StyleSheet.flatten(screen.getByRole("header").props.style).textAlign).toBe("center");
+    layout("screen-header", 0, 390);
+    layout("screen-header-back", 16, 38);
+    layout("screen-header-trailing", 336, 38);
+    // Gauche : 16 + 38 + 5 (cible) = 59 ; droite : 390 − 336 = 54 → réserve 59 + 4 des deux côtés.
+    expect(StyleSheet.flatten(screen.getByTestId("screen-header-title-layer").props.style).paddingHorizontal).toBe(63);
+    // Un seul titre exposé à l'accessibilité.
+    expect(screen.getAllByRole("header")).toHaveLength(1);
+  });
+
+  it("écran de navigation (chevron Retour) : titre inchangé, aligné à gauche", () => {
+    renderWithSafeArea(<FixedHeader title="Profil" onBack={jest.fn()} backAccessibilityLabel="Retour" />);
+    expect(screen.queryByTestId("screen-header-title-layer")).toBeNull();
+  });
+
+  it("centrage forcé (feuille sans ✕) par centeredTitle", () => {
+    renderWithSafeArea(<FixedHeader title="Ajouter un mouvement" onBack={jest.fn()} backAccessibilityLabel="Retour" centeredTitle />);
+    expect(screen.getByTestId("screen-header-title-layer")).toBeTruthy();
   });
 });

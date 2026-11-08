@@ -7,6 +7,8 @@ import type { ActivityDefinitionService } from "@/features/activities/ActivityDe
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { PendingFilterSheet } from "@/features/activities/FilterSheetRoute";
+import { releaseFilterSheet } from "@/features/activities/filterSheetRelay";
 import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
@@ -99,12 +101,16 @@ async function renderCatalogue() {
     listBodyZones: jest.fn(async () => []),
     listLabels: jest.fn(async () => []),
   } as unknown as ReferentialService;
+  releaseFilterSheet();
   render(
     <TestSafeAreaProvider>
       <SessionServiceContext.Provider value={service}>
         <ReferentialServiceContext.Provider value={referentials}>
           <ActivityDefinitionServiceContext.Provider value={{ listActivityDefinitions: jest.fn(async () => []) } as unknown as ActivityDefinitionService}>
             <CatalogueScreen />
+            {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Filtres ») : la feuille de filtres est
+                la route `catalogue-filters` ; son contenu est rendu ici, comme la route le rendrait au-dessus. */}
+            <PendingFilterSheet onLeave={() => releaseFilterSheet()} />
           </ActivityDefinitionServiceContext.Provider>
         </ReferentialServiceContext.Provider>
       </SessionServiceContext.Provider>
@@ -133,10 +139,14 @@ describe("PRE-8 E.7 — raccordements sur SQLite réelle", () => {
     const repository = new SqliteSessionRepository(database);
     const created = await repository.createStructured(input("Gainage", 2));
     await renderCatalogue();
-    fireEvent.press(cardFor("Gainage").swipe);
+    // Recette iPhone n° 3 du 03/11/2026 : le visuel ouvre la Séance (le reste de la carte déploie).
+    fireEvent.press(screen.getByTestId(`session-card-${cardFor("Gainage").id}-visual-open`));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/composition", params: { sessionId: created.id } });
     fireEvent.press(screen.getByTestId("catalogue-create-action"));
-    expect(mockPush).toHaveBeenLastCalledWith("/composition");
+    // Référence Formats du 02/11/2026 (§7) : Créer ouvre la Composition.
+    // Complément du 5 novembre 2026 (§1–§2) : Créer ouvre la modale de création sur un nouveau brouillon ; règle du 06/11/2026 :
+    // directement au-dessus du Catalogue. [Composition `create=1` ouverte d'avance — remplacée.]
+    expect(mockPush).toHaveBeenLastCalledWith("/formats-window");
   });
 
   it("Dupliquer, Archiver puis Annuler, Archiver, filtre Archivées, Restaurer, Archiver, Supprimer confirmé", async () => {

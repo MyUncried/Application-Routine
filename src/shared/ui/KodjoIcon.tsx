@@ -1,4 +1,4 @@
-import { Image } from "expo-image";
+import { Image, type ImageRef } from "expo-image";
 
 import { dimensions } from "./tokens";
 
@@ -116,6 +116,10 @@ const sources = {
   // - changement de côté 16 (`9798:19925`) : même tracé que `side-change`, mais rempli
   //   `#7A7A80` au lieu de `#9499A8` ; la carte de sélection garde `side-change`.
   "card-media-exercise": require("../../../assets/icons/icon-nature-exercice.svg"),
+  // Carte d’exercice de la Composition (DSF / Cards / Exercice — Composition `11810:2159`, 08/11/2026) : pictogramme NOIR
+  // (`#141414`) de la variante « Hors circuit » `11810:2102` — même tracé que `card-media-exercise` (export MCP Figma en lecture
+  // seule, `11810:2104`), qui reste le pictogramme gris de la variante « Dans un circuit » `11810:2132`.
+  "card-media-exercise-out-of-circuit": require("../../../assets/icons/icon-nature-exercice-hors-circuit.svg"),
   "card-category-badge": require("../../../assets/icons/icon-pastille-categorie.svg"),
   "card-body-zone-badge": require("../../../assets/icons/icon-pastille-zone-corporelle.svg"),
   "card-work-duration": require("../../../assets/icons/icon-symbole-duree.svg"),
@@ -266,6 +270,7 @@ const sizes = {
   // Cadre 12 × 12 du `viewBox` exact (bulle « Retirer la récupération »).
   "remove-recovery": [12, 12],
   "card-media-exercise": [24, 24],
+  "card-media-exercise-out-of-circuit": [24, 24],
   "card-category-badge": [13, 13],
   "card-body-zone-badge": [13, 13],
   "card-work-duration": [13, 13],
@@ -352,11 +357,72 @@ export function KodjoIcon({ name, opacity, tintColor, size, testID }: KodjoIconP
 
   return (
     <Image
-      source={sources[name]}
+      source={preloaded.get(name) ?? sources[name]}
       style={{ width, height, opacity: resolvedOpacity, tintColor }}
       contentFit="contain"
       accessible={false}
       testID={testID}
     />
   );
+}
+
+/**
+ * Recette iPhone du 07/11/2026 (Hermann, remarque D : « l'affichage se fait en deux temps : le symbole de la zone corporelle
+ * (pas son cercle) apparait avec un décalage d'une seconde environs ») et du 08/11/2026 (b-cat-fondu : « puis arrivent les
+ * zones corporelles bien après ») : les icônes sont des SVG affichés par `expo-image`, chargés et décodés de façon asynchrone.
+ * [07/11 : préchargement `Image.prefetch(…, "memory-disk")` — remplacé le 08/11/2026 : `prefetch` range l'image dans le cache
+ * des originaux, alors qu'une icône (`cachePolicy` « disk » par défaut) n'interroge jamais la mémoire ; chaque pastille
+ * repassait par une lecture disque et un décodage SVG asynchrones (sources `expo-image` 57.0.3, `ImageModule.swift`
+ * « prefetch » et `ImageUtils.swift` `createSDWebImageContext`).]
+ * Préchargement en image native (`Image.loadAsync`, référence gardée ici) : une icône préchargée reçoit cette image pour
+ * source et s'affiche dès son montage, sans chargement ni décodage. Sans effet sur le tracé ; tout échec est ignoré
+ * (affichage normal, asynchrone).
+ */
+const preloaded = new Map<KodjoIconName, ImageRef>();
+const preloading = new Map<KodjoIconName, Promise<boolean>>();
+
+function preloadOne(name: KodjoIconName): Promise<boolean> {
+  if (preloaded.has(name)) return Promise.resolve(true);
+  const pending = preloading.get(name);
+  if (pending !== undefined) return pending;
+  const task = (async () => {
+    try {
+      const ref: ImageRef | null | undefined = await Image.loadAsync(sources[name]);
+      if (ref === null || ref === undefined) return false;
+      preloaded.set(name, ref);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      preloading.delete(name);
+    }
+  })();
+  preloading.set(name, task);
+  return task;
+}
+
+/** Précharge des icônes en image native ; vrai si toutes sont prêtes. */
+export function preloadKodjoIcons(names: readonly KodjoIconName[]): Promise<boolean> {
+  return Promise.all(names.map(preloadOne)).then((ready) => ready.every(Boolean));
+}
+
+/** Icônes préchargées, ou abandon après `timeoutMs` (l'écran n'est jamais bloqué) : vrai si toutes sont prêtes. */
+export function whenKodjoIconsReady(names: readonly KodjoIconName[], timeoutMs: number): Promise<boolean> {
+  if (names.every((name) => preloaded.has(name))) return Promise.resolve(true);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<boolean>((resolve) => {
+    timer = setTimeout(() => resolve(false), timeoutMs);
+  });
+  return Promise.race([preloadKodjoIcons(names), timeout]).finally(() => clearTimeout(timer));
+}
+
+/** Image native d'une icône préchargée (tests et diagnostic). */
+export function preloadedKodjoIcon(name: KodjoIconName): ImageRef | undefined {
+  return preloaded.get(name);
+}
+
+/** Tests : oublie les images préchargées. */
+export function resetPreloadedKodjoIconsForTests(): void {
+  preloaded.clear();
+  preloading.clear();
 }

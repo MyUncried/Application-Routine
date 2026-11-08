@@ -169,6 +169,7 @@ export function DraggableRow({
   labels,
   testIDPrefix,
   movable = true,
+  leadGap = true,
   children,
 }: {
   index: number;
@@ -185,6 +186,11 @@ export function DraggableRow({
    * Descendre, état `disabled` exposé. Défaut vrai : rendu et comportement antérieurs inchangés.
    */
   movable?: boolean;
+  /**
+   * Faux : pas d'écart fixe d'amorce, les colonnes de la ligne se répartissent elles-mêmes la largeur (tableau EMOM sans Pause,
+   * recette iPhone du 07/11/2026, a-emom-table). Défaut vrai : rendu antérieur inchangé.
+   */
+  leadGap?: boolean;
   children: ReactNode;
 }) {
   const number = index + 1;
@@ -312,7 +318,7 @@ export function DraggableRow({
         </Text>
       </View>
       {/* PRE-5 story 2.7 : écart d'amorce rétrécissable, identique à celui de l'en-tête. */}
-      <View style={tableStyles.leadGap} testID={`${testIDPrefix}-${number}-lead-gap`} />
+      {leadGap ? <View style={tableStyles.leadGap} testID={`${testIDPrefix}-${number}-lead-gap`} /> : null}
       {children}
     </View>
   );

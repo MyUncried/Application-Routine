@@ -1,0 +1,257 @@
+import * as Crypto from "expo-crypto";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+
+import {
+  cloneExecutionParameters,
+  executionParametersEqual,
+  validateForSave,
+  type ExecutionParametersInput,
+} from "@/domain/activities/ExecutionParameters";
+import {
+  DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
+  DEFAULT_EXERCISE_END_SECONDS,
+  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
+  DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
+} from "@/domain/preferences/Profile";
+import { exitCircuit } from "@/domain/sessions/circuit";
+import { withExerciseRecovery, withoutPhasesToVerify, withProfileDefaultsValidated } from "@/domain/sessions/SessionDraft";
+import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import {
+  exerciseOfMovement,
+  inheritsCircuitSeriesCount,
+  isExerciseParametersIncomplete,
+  isPersistedMovementOccurrence,
+  takeMovementsHandedToComposition,
+  withMovementExercises,
+} from "@/features/sessions/movementExercises";
+import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
+import { formatSheetContextOf } from "@/features/sessions/formatSheetContext";
+import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
+
+type ProfileDefaults = {
+  readonly countdownSeconds: number;
+  readonly endSeconds: number;
+  readonly sideRecoverySeconds: number;
+  /** PRE-9 (01/11/2026, point 2) : « Récupération après un exercice », reprise par un nouvel Exercice. */
+  readonly recoverySeconds: number;
+};
+
+export const DOMAIN_DEFAULTS: ProfileDefaults = {
+  countdownSeconds: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
+  endSeconds: DEFAULT_EXERCISE_END_SECONDS,
+  sideRecoverySeconds: DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
+  recoverySeconds: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
+};
+
+export function profileDefaultsOf(profile: {
+  readonly exerciseCountdownSecondsDefault: number;
+  readonly exerciseEndSecondsDefault: number;
+  readonly sideChangeRecoverySecondsDefault: number;
+  readonly postActivityRecoverySecondsDefault: number;
+}): ProfileDefaults {
+  return {
+    countdownSeconds: profile.exerciseCountdownSecondsDefault,
+    endSeconds: profile.exerciseEndSecondsDefault,
+    sideRecoverySeconds: profile.sideChangeRecoverySecondsDefault,
+    recoverySeconds: profile.postActivityRecoverySecondsDefault,
+  };
+}
+
+export type MovementExerciseIntake = {
+  /** Feuille de paramètres ouverte (`null` : aucune), à rendre par-dessus la Composition. */
+  readonly sheet: ReactNode;
+  /**
+   * Ouvre directement la feuille de paramètres de l'Exercice (carte « Paramètres à compléter » ; recette
+   * iPhone n° 2 du 31/10/2026, constat c : toute carte d'Exercice).
+   */
+  readonly openParameters: (exerciseId: string) => void;
+};
+
+/**
+ * PRE-9 A.2 (ARB-22a, ARB-07) — au retour au premier plan de la Composition, les Mouvements remis
+ * par la création de Mouvement ou par la sélection du Catalogue deviennent des Exercices du
+ * brouillon, insérés après le dernier Exercice entré, dans son conteneur.
+ *
+ * Demande de Hermann du 29/10/2026 (recette iPhone n° 1, remplace l'ouverture automatique des
+ * feuilles l'une après l'autre) : « Les cartes se posent dans la composition de séance, elles sont
+ * rouges avec écrit Paramètres à compléter, aucune modale ne s'ouvre - Appuyer sur chaque carte
+ * ouvre directement la modale du paramètre sans ouvrir la carte. » Aucune feuille ne s'ouvre donc à
+ * l'insertion ; `openParameters` ouvre la feuille existante (`ExecutionParametersSheet`, celle de
+ * l'éditeur d'Exercice en Séance) sur l'Exercice touché, par-dessus la Composition.
+ *
+ * ✓ applique les paramètres à l'Exercice ; ✕ le laisse tel quel (paramètres à compléter, signalés
+ * sur sa carte, `Continuer` indisponible — D-389). Réglages de la feuille repris de l'éditeur en
+ * Séance : Compte à rebours et Fin absents (Séance), N hérité d'un Circuit de Séries, structure des
+ * phases verrouillée pour l'occurrence d'un Mouvement enregistré (MFN-09), Pause entre les côtés du
+ * Profil.
+ *
+ * PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+ * Profil ») : un nouvel Exercice reprend « Récupération après un exercice » du Profil ; la feuille
+ * porte le bloc Récupération (valeur de l'Exercice, 0 s sans récupération antérieure) et rend les
+ * défauts du Profil sur fond orange jusqu'au premier ✓ (`profileDefaultsPending`). ✓ applique la
+ * Récupération et l'état validé au brouillon ; ✕ ne change rien.
+ */
+export function useMovementExerciseIntake(): MovementExerciseIntake {
+  const { draft, updateDraft } = useSessionDraft();
+  const profileService = useContext(ProfileServiceContext);
+  const sessionService = useContext(SessionServiceContext);
+  const [defaults, setDefaults] = useState<ProfileDefaults>(DOMAIN_DEFAULTS);
+  /**
+   * Feuille ouverte : Exercice, compteur de phases et — recette iPhone n° 2 du 31/10/2026 (constat c :
+   * toute carte d'Exercice ouvre la feuille) — paramètres à l'ouverture (`opening`, lus au premier rendu) :
+   * ligne de base d'AD-13 pour un Exercice complet (comme l'éditeur, `CompositionExerciseEditor`) et
+   * référence de la règle de réserve de Circuit (story 3.3).
+   */
+  const [opened, setOpened] = useState<{
+    readonly exerciseId: string;
+    readonly nextPhaseId: number | undefined;
+    readonly opening?: { readonly parameters: ExecutionParametersInput; readonly baseline: ExecutionParametersInput | null };
+  } | null>(null);
+  /** Prochain identifiant de phase des Mouvements remis, par Exercice inséré (MFN-09). */
+  const nextPhaseIdsRef = useRef(new Map<string, number>());
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const readProfile = useCallback(
+    (): Promise<ProfileDefaults> =>
+      profileService
+        ? profileService.getProfile().then(profileDefaultsOf, (error: unknown) => {
+            console.error("Impossible de charger le Profil.", error);
+            return DOMAIN_DEFAULTS;
+          })
+        : Promise.resolve(DOMAIN_DEFAULTS),
+    [profileService],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const movements = takeMovementsHandedToComposition();
+      if (movements === null) return;
+      void readProfile().then((profile) => {
+        if (!mountedRef.current) return;
+        const exercises = movements.map((movement) => exerciseOfMovement(movement, Crypto.randomUUID(), profile));
+        exercises.forEach((exercise, index) => nextPhaseIdsRef.current.set(exercise.id, movements[index]!.nextPhaseId));
+        setDefaults(profile);
+        updateDraft((current) => withMovementExercises(current, exercises));
+      });
+    }, [readProfile, updateDraft]),
+  );
+
+  const openParameters = useCallback(
+    (exerciseId: string) => {
+      const nextPhaseId = nextPhaseIdsRef.current.get(exerciseId);
+      // Pause entre les côtés : valeur courante du Profil, lue avant l'ouverture de la feuille.
+      void readProfile().then((profile) => {
+        if (!mountedRef.current) return;
+        setDefaults(profile);
+        setOpened({ exerciseId, nextPhaseId });
+      });
+    },
+    [readProfile],
+  );
+
+  const exercise = opened === null ? null : (draft.exercises.find((candidate) => candidate.id === opened.exerciseId) ?? null);
+  // Exercice retiré entre-temps : rien à régler.
+  if (opened !== null && exercise === null) {
+    setOpened(null);
+  }
+  if (opened === null || exercise === null) {
+    return { sheet: null, openParameters };
+  }
+  if (opened.opening === undefined) {
+    // Paramètres à l'ouverture, relus une fois (état ajusté au rendu). Carte « Paramètres à compléter » :
+    // aucune ligne de base (comportement du 29/10) ; Exercice complet : ligne de base d'AD-13.
+    const parameters = cloneExecutionParameters(exercise.executionParameters);
+    setOpened({ ...opened, opening: { parameters, baseline: isExerciseParametersIncomplete(exercise) ? null : parameters } });
+  }
+  const opening = opened.opening ?? { parameters: exercise.executionParameters, baseline: null };
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (constat e, Hermann : « Ouverture de la feuille
+   * (Recommandé) ») : la feuille ouverte puis fermée (✓ ou ✕), l'Exercice n'est plus « à vérifier » —
+   * marque retirée du brouillon (sans le rendre modifié, `exerciseEquals`) et de la Séance enregistrée.
+   */
+  const marked = (exercise.phasesToVerify ?? []).length > 0;
+  const acknowledge = () => {
+    if (!marked) return;
+    updateDraft((current) => ({
+      exercises: current.exercises.map((candidate) => (candidate.id === exercise.id ? withoutPhasesToVerify(candidate) : candidate)),
+    }));
+    sessionService?.acknowledgeParametersToVerify(exercise.id).catch((error: unknown) => {
+      console.error("Impossible de retirer la marque « Paramètre à vérifier ».", error);
+    });
+  };
+  const close = () => setOpened(null);
+  const movementId = (exercise.sourceMovementId ?? "").trim();
+  const nextPhaseId = opened.nextPhaseId ?? draft.movements?.[movementId]?.nextPhaseId;
+  return {
+    openParameters,
+    sheet: (
+      <ExecutionParametersSheet
+        key={exercise.id}
+        parent={exercise.executionParameters}
+        baseline={opening.baseline}
+        profileSideRecoverySecondsDefault={defaults.sideRecoverySeconds}
+        exerciseSignals="absent"
+        inheritedSeriesCount={inheritsCircuitSeriesCount(draft, exercise)}
+        phaseStructureLocked={isPersistedMovementOccurrence(exercise, draft.movements)}
+        {...(nextPhaseId !== undefined ? { nextPhaseId } : {})}
+        // Recette iPhone n° 2 du 31/10/2026 (constat d) : ouverture plus lente et fermeture animée.
+        presentation="compositionCard"
+        // Constat e : phases « à vérifier » en orange dans la feuille.
+        {...(marked ? { phasesToVerify: exercise.phasesToVerify } : {})}
+        recovery={{
+          seconds: exercise.postActivityRecoverySeconds,
+          onApply: (seconds) =>
+            updateDraft((current) => ({
+              exercises: current.exercises.map((candidate) => (candidate.id === exercise.id ? withExerciseRecovery(candidate, seconds) : candidate)),
+            })),
+        }}
+        profileDefaultsPending={exercise.profileDefaultsPending === true}
+        // PRE-9 (CE-FMT-04, MAJ 04/11/2026 §6 bis 2) : réglages de Format selon le porteur, appliqués par le ✓.
+        {...withFormat(formatSheetContextOf(draft, exercise.id, (change) => updateDraft((current) => change(current))))}
+        onApply={(parameters) => {
+          const validated = validateForSave(parameters, opening.baseline);
+          const applied = validated.ok ? validated.value : parameters;
+          // Recette n° 2 du 31/10 (constat c) : même règle que l'éditeur (PRE-6 story 3.3) — des séries
+          // changées depuis l'ouverture retirent l'entrée de réserve de Circuit de l'Exercice.
+          const reopened = validateForSave(opening.parameters, opening.parameters);
+          const openedSeries = reopened.ok ? [opening.parameters, reopened.value] : [opening.parameters];
+          const seriesChanged = !openedSeries.some((before) => executionParametersEqual(applied, { ...applied, series: before.series }));
+          updateDraft((current) => {
+            const exercises = current.exercises.map((candidate) =>
+              candidate.id === exercise.id
+                ? { ...withProfileDefaultsValidated(withoutPhasesToVerify(candidate)), executionParameters: applied, sideMode: applied.sideMode }
+                : candidate,
+            );
+            const hasReserveEntry = current.circuitSeriesReserve !== undefined && Object.prototype.hasOwnProperty.call(current.circuitSeriesReserve, exercise.id);
+            if (!seriesChanged || !hasReserveEntry) return { exercises };
+            const occurrence = exercises.find((candidate) => candidate.id === exercise.id)!;
+            return { exercises, circuitSeriesReserve: exitCircuit(current, occurrence).circuitSeriesReserve };
+          });
+          if (marked) {
+            sessionService?.acknowledgeParametersToVerify(exercise.id).catch((error: unknown) => {
+              console.error("Impossible de retirer la marque « Paramètre à vérifier ».", error);
+            });
+          }
+          close();
+        }}
+        onCancel={() => {
+          acknowledge();
+          close();
+        }}
+      />
+    ),
+  };
+}
+
+
+function withFormat<T>(context: T | undefined): { readonly format?: T } {
+  return context === undefined ? {} : { format: context };
+}

@@ -5,25 +5,18 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import {
   activityDefinitionToDraftExercise,
-  activityDefinitionToInput,
   validateActivityDefinitionInput,
   type ActivityDefinition,
   type CreateActivityDefinitionInput,
 } from "@/domain/activities/ActivityDefinition";
-import {
-  readExecutionParameters,
-  serializeCatalogExecutionParameters,
-  serializeExecutionParameters,
-  type ExecutionParameters,
-} from "@/domain/activities/ExecutionParameters";
-import { splitResolvedParameters } from "@/domain/activities/Movement";
+import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { commitSheetDraft, openSheetDraft, setSeriesCount } from "@/domain/activities/ExecutionParametersDraft";
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import { computeIntrinsicDuration } from "@/domain/activities/executionCalculations";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import { createExerciseSnapshot, parseExerciseSnapshot, serializeExerciseSnapshot } from "@/domain/activities/exerciseSnapshot";
 import { variableParameters } from "@/domain/activities/testing/executionParametersFixtures";
-import { moveDraftMedia, toDraftMediaItems, type DraftMediaItem } from "@/domain/media/ActivityMedia";
+import { moveDraftMedia, toDraftMediaItems, type DraftMediaItem, type MediaLinkInput } from "@/domain/media/ActivityMedia";
 import {
   ActivityMediaImportService,
   readyMedia,
@@ -46,14 +39,13 @@ import {
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
-import type { Database } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
-import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
+import { JOINED_ASSET_COLUMNS, mapJoinedAsset, SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
+import { replaceMovementMediaLinks } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
-import { buildVersion9 } from "@/infrastructure/database/testing/buildVersion9";
-import { failOnWrite } from "@/infrastructure/database/testing/failOnWrite";
+import { createTestMovement } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import type { MovementMediaRow } from "@/infrastructure/database/types/DatabaseRows";
 
 /** Fichiers `.ts`/`.tsx` d'un répertoire (hors `node_modules`). */
 function sourceFiles(directory: string): string[] {
@@ -82,6 +74,15 @@ function sourceFiles(directory: string): string[] {
  * d'Exercice au Catalogue dans le code de départ, P36) et AC8 (aucune
  * suppression ni archivage de Définition exposé ; seul cas de disparition
  * d'une source : l'écart par `migration010`, couvert en 1.1 AC12).
+ *
+ * [A.3 du 04/11/2026 : les anciennes définitions du Catalogue sont supprimées (migration 021, décision de
+ * Hermann du 04/11/2026 : « Hermann abandonne la conversion sans perte prévue par A.4 : les anciens
+ * exercices concernés par cette conversion peuvent être supprimés plutôt que migrés. ») et leur dépôt
+ * retiré. La « Définition » de ces cas est désormais un Mouvement créé seul (`createTestMovement`) vu
+ * avec des paramètres tenus en mémoire ; ses médias sont ceux du Mouvement. Les cas propres à
+ * l'écriture d'une définition (modification de ses paramètres, de son nom, échec injecté à son
+ * enregistrement, AC2 partie Catalogue, AC7 persistance, AC12) sont retirés ; les deux preuves sur base
+ * v9 de `migration010` (AC9, AC14) sont déplacées dans `migration010.test.ts`.]
  */
 
 /** Magasin de fichiers simulé : présence des fichiers et suppressions comptées. */
@@ -129,17 +130,6 @@ function picked(name: string): PickedMedia {
   };
 }
 
-/**
- * Exercice dont la Cible est restée à renseigner (héritée d'une ancienne donnée, H7). PRE-7 (A1.2) :
- * écrite directement sous la forme Catalogue v4, seule lue après la migration 012.
- */
-async function forceParameters(database: Database, definitionId: string, parameters: ExecutionParameters) {
-  await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [
-    serializeCatalogExecutionParameters(splitResolvedParameters(parameters).parameters),
-    definitionId,
-  ]);
-}
-
 describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (NodeSqliteDatabase REAL)", () => {
   let database: NodeSqliteDatabase;
   let store: CountingStore;
@@ -150,7 +140,11 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database);
     store = new CountingStore();
+    views.clear();
   });
+
+  /** Vue « Définition » : Mouvement et paramètres tenus en mémoire (A.3, plus de ligne de définition). */
+  const views = new Map<string, { readonly movementId: string; parameters: ExecutionParameters }>();
 
   afterEach(() => {
     database.close();
@@ -202,25 +196,21 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     };
   }
 
-  /** Même chemin que l'application : validation du Domaine puis Repository. */
+  /** Validation du Domaine puis Mouvement créé seul (contenu, Zones, médias, phases). */
   async function saveDefinition(input: CreateActivityDefinitionInput): Promise<ActivityDefinition> {
     const validated = validateActivityDefinitionInput(input);
     if (!validated.ok) {
       throw new Error(JSON.stringify(validated.violations));
     }
-    return new SqliteActivityDefinitionRepository(database, ids("def")).create(validated.value);
+    const { movementId } = await createTestMovement(database, validated.value, { kind: "INDEPENDENT" }, ids("def"));
+    const id = `def-${movementId}`;
+    views.set(id, { movementId, parameters: validated.value.executionParameters });
+    return readDefinition(id);
   }
 
-  async function updateDefinition(id: string, input: CreateActivityDefinitionInput): Promise<ActivityDefinition> {
-    const validated = validateActivityDefinitionInput(input);
-    if (!validated.ok) {
-      throw new Error(JSON.stringify(validated.violations));
-    }
-    const updated = await new SqliteActivityDefinitionRepository(database, ids("def")).update(id, validated.value);
-    if (!updated) {
-      throw new Error("definition not found");
-    }
-    return updated;
+  /** Médias du Mouvement de la vue remplacés (ordre compris), dans une transaction. */
+  async function replaceDefinitionMedia(id: string, media: readonly MediaLinkInput[]): Promise<void> {
+    await database.withExclusiveTransactionAsync((transaction) => replaceMovementMediaLinks(transaction, views.get(id)!.movementId, media, ids("link")));
   }
 
   /** Continuer : brouillon de Composition → Séance persistée. */
@@ -248,13 +238,39 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
   }
 
   async function readDefinition(id: string): Promise<ActivityDefinition> {
-    return (await new SqliteActivityDefinitionRepository(database, ids("def")).findById(id))!;
+    const view = views.get(id)!;
+    const movement = (await database.getFirstAsync<{ name: string; description: string | null; category_id: string }>(
+      "SELECT name, description, category_id FROM movements WHERE id = ?",
+      [view.movementId],
+    ))!;
+    const zones = await database.getAllAsync<{ body_zone_id: string }>(
+      "SELECT body_zone_id FROM movement_body_zones WHERE movement_id = ? ORDER BY rowid",
+      [view.movementId],
+    );
+    const links = await database.getAllAsync<MovementMediaRow>(
+      `SELECT movement_media.id, movement_media.movement_id, movement_media.asset_id, movement_media.position, ${JOINED_ASSET_COLUMNS}
+       FROM movement_media JOIN media_assets ON media_assets.id = movement_media.asset_id
+       WHERE movement_media.movement_id = ? ORDER BY movement_media.position`,
+      [view.movementId],
+    );
+    return {
+      id,
+      movementId: view.movementId,
+      name: movement.name,
+      description: movement.description,
+      executionParameters: view.parameters,
+      categoryId: movement.category_id,
+      bodyZoneIds: zones.map((row) => row.body_zone_id),
+      sideMode: view.parameters.sideMode,
+      media: links.map((row) => ({ id: row.id, activityDefinitionId: id, assetId: row.asset_id, position: row.position, asset: mapJoinedAsset(row.asset_id, row) })),
+      createdAt: "now",
+      updatedAt: "now",
+    };
   }
 
   async function dump(): Promise<Record<string, unknown[]>> {
     const result: Record<string, unknown[]> = {};
     for (const table of [
-      "activity_definitions",
       // PRE-7 (A1.2) : contenu partagé porté par le Mouvement.
       "movements",
       "movement_phases",
@@ -302,41 +318,23 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(copy.executionParameters).toEqual(definition.executionParameters);
     expect(copy.postActivityRecoverySeconds).toBe(0);
 
-    const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activity_definitions)")).map((column) => column.name);
-    expect(columns).not.toContain("position");
-    expect(columns.some((name) => /recovery/.test(name) && name !== "side_recovery_seconds")).toBe(false);
+    // [A.3 du 04/11/2026 : contrôle des colonnes de la table des anciennes définitions retiré (table vidée, hors usage).]
     expect(definition).not.toHaveProperty("structuralPosition");
     expect(definition).not.toHaveProperty("postActivityRecoverySeconds");
   });
 
-  it("PRE4-1.3/AC2 — isolation dans les deux sens : modifier la Définition ne touche pas les copies ; modifier une copie ne touche ni la Définition ni l'autre copie", async () => {
+  // [A.3 du 04/11/2026 : volet « modifier la Définition » (écriture d'une ancienne définition) retiré.]
+  it("PRE4-1.3/AC2 — isolation : modifier une copie ne touche ni le Mouvement ni l'autre copie", async () => {
     const definition = await readDefinition((await ac1Definition()).id);
     const session = await continueNew([
       activityDefinitionToDraftExercise(definition, "occ-1", 0),
       activityDefinitionToDraftExercise(definition, "occ-2", 0),
     ]);
 
-    // Définition modifiée : Cible, Pause, ordre des côtés.
-    const editedDefinition = variableParameters({
-      mode: "DURATION",
-      rows: [
-        [35, 15],
-        [45, 10],
-        ["FAILURE", 10],
-      ],
-      sideMode: "RIGHT_LEFT",
-      sideOrder: "BY_SIDE",
-      sideRecoverySeconds: 5,
-      countdownSeconds: 3,
-      endSeconds: 4,
-    });
-    await updateDefinition(definition.id, { ...activityDefinitionToInput(definition), executionParameters: editedDefinition });
-    const reread = (await new SqliteSessionRepository(database, ids("ses")).findById(session.id))!;
-    expect(exercisesOf(reread).map((copy) => copy.executionParameters)).toEqual([ac1Parameters(), ac1Parameters()]);
-
     // Copie modifiée : Cible de la ligne 1, ordre des lignes ; Terminer puis Continuer. PRE-7 (R-3,
     // D-445 C05) : les Médias appartiennent au Mouvement — une vue modifiée sur l'occurrence n'est
     // jamais écrite (la correction du Mouvement depuis la Séance passe par le brouillon, R-4).
+    const reread = (await new SqliteSessionRepository(database, ids("ses")).findById(session.id))!;
     const definitionBefore = await dump();
     const edited = await continueEdit(reread, (draft) => ({
       ...draft,
@@ -369,26 +367,16 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(second!.executionParameters).toEqual(ac1Parameters());
     expect(second!.media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p2"]);
     const after = await dump();
-    for (const table of ["activity_definitions", "movement_phases", "movement_body_zones", "movement_media", "media_assets"]) {
+    for (const table of ["movements", "movement_phases", "movement_body_zones", "movement_media", "media_assets"]) {
       expect(after[table]).toEqual(definitionBefore[table]);
     }
-    expect((await readDefinition(definition.id)).executionParameters).toEqual(editedDefinition);
-
-    // PRE-7 (R-3, D-445 C05) : le contenu partagé corrigé depuis le Catalogue est relu sur les deux
-    // occurrences ; leurs paramètres restent les leurs.
-    await updateDefinition(definition.id, {
-      ...activityDefinitionToInput(await readDefinition(definition.id)),
-      description: "Genou aligné",
-    });
-    const corrected = exercisesOf((await new SqliteSessionRepository(database, ids("ses")).findById(session.id))!);
-    expect(corrected.map((copy) => copy.instruction)).toEqual(["Genou aligné", "Genou aligné"]);
-    expect(corrected.map((copy) => copy.executionParameters)).toEqual([first!.executionParameters, ac1Parameters()]);
   });
 
   it("PRE4-1.3/AC4 — Définition à Cible héritée UNSET : la Copie entre au brouillon UNSET ; Continuer refuse, base inchangée", async () => {
     const created = await saveDefinition(definitionInput(variableParameters({ mode: "REPETITIONS", rows: [[12, 10], [12, 10]] }), []));
     const inherited = variableParameters({ mode: "REPETITIONS", rows: [["UNSET", 10], [12, 10]] });
-    await forceParameters(database, created.id, inherited);
+    // [A.3 du 04/11/2026 : Cible héritée posée sur la vue en mémoire.]
+    views.get(created.id)!.parameters = inherited;
     const definition = await readDefinition(created.id);
     expect(definition.executionParameters).toEqual(inherited);
 
@@ -439,7 +427,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       activityDefinitionToDraftExercise(definition, "occ-1", 40),
       activityDefinitionToDraftExercise(definition, "occ-2", 0),
     ]);
-    const definitionsBefore = await database.getAllAsync("SELECT id FROM activity_definitions");
+    const definitionsBefore = await database.getAllAsync("SELECT id FROM movements ORDER BY id");
     const assetsBefore = await database.getAllAsync("SELECT * FROM media_assets ORDER BY id");
 
     const duplicated = await continueEdit(session, (draft) => ({ ...draft, exercises: duplicateActivity(draft.exercises, "occ-1", "occ-3") }));
@@ -450,7 +438,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(copy!.categoryId).toBe("cardio");
     expect([...copy!.bodyZoneIds].sort()).toEqual([...source!.bodyZoneIds].sort());
     expect(copy!.media?.map((item) => item.assetId)).toEqual(["v1", "p1"]);
-    expect(await database.getAllAsync("SELECT id FROM activity_definitions")).toEqual(definitionsBefore);
+    expect(await database.getAllAsync("SELECT id FROM movements ORDER BY id")).toEqual(definitionsBefore);
     // Aucun fichier copié : mêmes assets, nouveaux liens seulement.
     expect(await database.getAllAsync("SELECT * FROM media_assets ORDER BY id")).toEqual(assetsBefore);
     expect(store.copies).toBe(0);
@@ -468,13 +456,13 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(exercisesOf(edited)[0]!.media?.map((item) => item.assetId)).toEqual(["v1", "p1"]);
   });
 
-  it("PRE4-1.3/AC7 — N 2 → 3 depuis une ligne à l'échec : après Terminer et réouverture, la ligne ajoutée est FAILURE, Pause 20 s", async () => {
-    const created = await saveDefinition(definitionInput(variableParameters({ mode: "REPETITIONS", rows: [[10, 10], ["FAILURE", 20]] }), []));
-    const opened = await readDefinition(created.id);
+  // [A.3 du 04/11/2026 : l'enregistrement et la réouverture de la Définition (anciennes définitions) sont
+  // retirés ; la valeur validée par la feuille est contrôlée directement.]
+  it("PRE4-1.3/AC7 — N 2 → 3 depuis une ligne à l'échec : la ligne ajoutée est FAILURE, Pause 20 s", async () => {
+    const opened = { executionParameters: variableParameters({ mode: "REPETITIONS", rows: [[10, 10], ["FAILURE", 20]] }) };
     const committed = commitSheetDraft(setSeriesCount(openSheetDraft(opened.executionParameters), 3), opened.executionParameters);
     expect(committed.ok).toBe(true);
-    await updateDefinition(created.id, { ...activityDefinitionToInput(opened), executionParameters: committed.ok ? committed.value : opened.executionParameters });
-    expect((await readDefinition(created.id)).executionParameters.series).toEqual({
+    expect((committed.ok ? committed.value : opened.executionParameters).series).toEqual({
       kind: "VARIABLE",
       rows: [
         { target: { kind: "NUMBER", value: 10 }, pauseSeconds: 10, loadKg: 0 },
@@ -490,72 +478,16 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const production = [...sourceFiles(join(root, "src")), ...sourceFiles(join(root, "app"))]
       .map((path) => ({ path: relative(root, path).replace(/\\/g, "/"), code: readFileSync(path, "utf8") }))
       .filter((file) => !file.path.includes("/__tests__/") && !file.path.includes("/testing/"));
-    // Seul le module de l'Instantané crée, sérialise ou relit une enveloppe.
-    expect(
-      production
-        .filter((file) => /\b(createExerciseSnapshot|serializeExerciseSnapshot|parseExerciseSnapshot)\b/.test(file.code))
-        .map((file) => file.path),
-    ).toEqual(["src/domain/activities/exerciseSnapshot.ts"]);
+    // Seul le module de l'Instantané crée, sérialise ou relit une enveloppe. PRE-9 (D.2) :
+    // l'instantané de Séance, pur, crée en mémoire l'instantané de chaque Exercice, sans le
+    // sérialiser ni le stocker (persistance reportée à PRE-10).
+    const users = production.filter((file) => /\b(createExerciseSnapshot|serializeExerciseSnapshot|parseExerciseSnapshot)\b/.test(file.code));
+    expect(users.map((file) => file.path)).toEqual(["src/domain/activities/exerciseSnapshot.ts", "src/domain/sessions/sessionSnapshot.ts"]);
+    expect(users.filter((file) => /\b(serializeExerciseSnapshot|parseExerciseSnapshot)\b/.test(file.code)).map((file) => file.path)).toEqual([
+      "src/domain/activities/exerciseSnapshot.ts",
+    ]);
     // Aucun repository, aucune migration, aucun SQL ne mentionne un Instantané.
     expect(production.filter((file) => file.path.startsWith("src/infrastructure/") && /snapshot/i.test(file.code)).map((file) => file.path)).toEqual([]);
-  });
-
-  it("PRE4-1.3/AC9 — enveloppes v1 prises sur une base v9 réelle : après migration010, relues selon leur version (Bip absent → 0, durée réalisée NULL ou 95), égales aux paramètres migrés de leur source", async () => {
-    const v9 = NodeSqliteDatabase.openInMemory();
-    try {
-      await buildVersion9(v9);
-      const v1Parameters = {
-        version: 1,
-        mode: "REPETITIONS",
-        series: { kind: "UNIFORM", count: 3, target: 12, pauseSeconds: 10 },
-        sideMode: "UNILATERAL",
-        sideOrder: "BY_SIDE",
-        sideRecoverySeconds: 0,
-        cadenceBeepIntervalSeconds: 2,
-        countdownSeconds: 3,
-        endSeconds: 0,
-      };
-      await v9.runAsync(
-        `INSERT INTO activity_definitions (
-           id, name, description, execution_mode, duration_seconds, repetition_count, series_count, pause_seconds,
-           side_mode, created_at, updated_at, category_id, side_recovery_seconds, execution_parameters
-         ) VALUES ('def-v9', 'Pompes', NULL, 'REPETITIONS', NULL, 12, 3, 10, 'UNILATERAL', '2026-01-02T00:00:00.000Z', '2026-01-03T00:00:00.000Z', 'cardio', 0, ?)`,
-        [JSON.stringify(v1Parameters)],
-      );
-      // Enveloppes v1 prises en PRE-3 sur cette source (en mémoire, H11).
-      const envelope = (parameters: Record<string, unknown>, actualDurationSeconds: number | null) =>
-        JSON.stringify({ snapshotVersion: 1, name: "Pompes", categoryId: "cardio", bodyZoneIds: [], executionParameters: parameters, recoverySeconds: 0, media: [], actualDurationSeconds });
-      const { cadenceBeepIntervalSeconds: _beep, ...withoutBeep } = v1Parameters;
-      const timed = envelope(v1Parameters, 95);
-      const untimed = envelope(withoutBeep, null);
-
-      // PRE-7 (A1.2) : chaîne arrêtée à la version 11 ; la Définition migrée est relue par le
-      // lecteur v2/v3 du domaine (celui des repositories jusqu'à 011).
-      await migrateDatabase(v9, undefined, 11);
-      expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 11 });
-      expect(await v9.getAllAsync("SELECT name FROM sqlite_master WHERE name LIKE '%snapshot%'")).toEqual([]);
-      const migratedJson = async () =>
-        (await v9.getFirstAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activity_definitions WHERE id = 'def-v9'"))!
-          .execution_parameters;
-      const migrated = { executionParameters: readExecutionParameters(await migratedJson()) };
-
-      const rereadTimed = parseExerciseSnapshot(timed);
-      expect(rereadTimed.snapshotVersion).toBe(1);
-      expect(rereadTimed.executionParameters).toEqual(migrated.executionParameters);
-      expect(rereadTimed.actualDurationSeconds).toBe(95);
-      const rereadUntimed = parseExerciseSnapshot(untimed);
-      expect(rereadUntimed.executionParameters).toEqual({ ...migrated.executionParameters, cadenceBeepIntervalSeconds: 0 });
-      expect(rereadUntimed.actualDurationSeconds).toBeNull();
-
-      // Modifier ensuite la source ne change pas la relecture (aucun recalcul depuis la source).
-      await v9.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = 'def-v9'", [
-        serializeExecutionParameters({ ...migrated.executionParameters, cadenceBeepIntervalSeconds: 7 }),
-      ]);
-      expect(readExecutionParameters(await migratedJson()).cadenceBeepIntervalSeconds).toBe(7);
-      expect(parseExerciseSnapshot(timed)).toEqual(rereadTimed);
-    } finally {
-      v9.close();
-    }
   });
 
   it("PRE4-1.3/AC10 — Instantané d'une Copie relue : version courante (v3 depuis PRE-5), Cibles typées et Médias ordonnés par référence ; une modification ultérieure de la Copie ne l'atteint pas", async () => {
@@ -620,27 +552,6 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(exercisesOf(session).map((exercise) => [exercise.name, exercise.executionParameters])).toEqual([["Fentes sautées", editedParameters]]);
   });
 
-  it("PRE4-1.3/AC12 — erreur d'écriture injectée à Terminer : base inchangée, nouvelle tentative réussie ; Définition supprimée : NOT_FOUND, jamais recréée", async () => {
-    const definition = await readDefinition((await ac1Definition()).id);
-    const before = await dump();
-    // Échec au premier lien de Média, APRÈS la mise à jour de la Définition et de ses Zones dans la même transaction.
-    const failing = failOnWrite(database, /INSERT INTO movement_media/);
-    const service = new ActivityDefinitionService(new SqliteActivityDefinitionRepository(failing.database, ids("def")));
-    const editInput = { ...activityDefinitionToInput(definition), name: "Fentes lentes" };
-    await expect(service.updateActivityDefinition(definition.id, editInput)).rejects.toThrow("Injected failure");
-    expect(failing.state.armed).toBe(false);
-    expect(failing.state.writesBeforeFailure).toBeGreaterThanOrEqual(2);
-    expect(await dump()).toEqual(before);
-    const retried = await service.updateActivityDefinition(definition.id, editInput);
-    expect(retried.status).toBe("UPDATED");
-    expect((await readDefinition(definition.id)).name).toBe("Fentes lentes");
-
-    await database.runAsync("DELETE FROM activity_definitions WHERE id = ?", [definition.id]);
-    const missing = await service.updateActivityDefinition(definition.id, editInput);
-    expect(missing.status).toBe("NOT_FOUND");
-    expect(await database.getAllAsync("SELECT id FROM activity_definitions")).toEqual([]);
-  });
-
   it("PRE4-1.3/AC13 — import, réordonnancement et Terminer : ordre et identité relus, aucun lien avant Terminer, références sans contenu, copies sans fichier supplémentaire", async () => {
     const definition = await readDefinition(
       (await saveDefinition(definitionInput(ac1Parameters(), [importedAsset("v1", "VIDEO"), importedAsset("p1"), importedAsset("p2")]))).id,
@@ -667,10 +578,11 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(await database.getAllAsync("SELECT id FROM movement_media WHERE asset_id = 'p3'")).toEqual([]);
     expect(await database.getAllAsync("SELECT id FROM media_assets WHERE id = 'p3'")).toEqual([]);
 
-    await updateDefinition(definition.id, {
-      ...activityDefinitionToInput(definition),
-      media: draftMedia.map((item) => ({ assetId: item.assetId, asset: item.asset })),
-    });
+    // [A.3 du 04/11/2026 : Terminer écrit les médias du Mouvement.]
+    await replaceDefinitionMedia(
+      definition.id,
+      draftMedia.map((item) => ({ assetId: item.assetId, asset: item.asset })),
+    );
     importService.commitDraft(mediaDraftId);
     const reread = await readDefinition(definition.id);
     expect(reread.media?.map((item) => item.assetId)).toEqual(displayed);
@@ -678,8 +590,8 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     // Première vignette = premier Média relu (la vignette de carte n'est pas implémentée, D-264).
     expect(reread.media?.[0]?.assetId).toBe("p3");
     const positions = await database.getAllAsync<{ position: number }>(
-      "SELECT position FROM movement_media WHERE movement_id = (SELECT movement_id FROM activity_definitions WHERE id = ?) ORDER BY position",
-      [definition.id],
+      "SELECT position FROM movement_media WHERE movement_id = ? ORDER BY position",
+      [definition.movementId],
     );
     expect(positions.map((row) => row.position)).toEqual([0, 1, 2, 3]);
 
@@ -709,7 +621,6 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const mediaRepository = new SqliteMediaRepository(database);
     const importService = new ActivityMediaImportService(new ScriptedPicker({ status: "CANCELED" }), store, ids("asset"));
     const service = new ActivityDefinitionService(
-      new SqliteActivityDefinitionRepository(database, ids("def")),
       undefined,
       undefined,
       undefined,
@@ -735,11 +646,11 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       recoverySeconds: 0,
       media: other.media ?? [],
     });
-    await updateDefinition(other.id, { ...activityDefinitionToInput(other), media: [] });
+    await replaceDefinitionMedia(other.id, []);
     expect(await mediaRepository.countReferences("solo")).toBe(0);
 
     // Opérations : enregistrement, retrait d'un Média d'un autre Exercice, abandon (la migration : cas v9 ci-dessous).
-    await updateDefinition(definition.id, { ...activityDefinitionToInput(definition), name: "Renommé" });
+    // [A.3 du 04/11/2026 : renommage par l'ancienne définition retiré.]
     service.leaseDraftMedia(`definition:${definition.id}`, ["v1", "p1", "p2"]);
     expect(await service.abandonMediaDraft(`definition:${definition.id}`)).toEqual([]);
     service.leaseDraftMedia("occurrence:occ-1", ["v1", "p1", "p2"]);
@@ -768,98 +679,6 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(await mediaRepository.findAsset("solo")).toEqual(expect.objectContaining({ uri: "kodjo-media/solo" }));
   });
 
-  it("PRE4-1.3/AC14 — migration010 sur une base v9 réelle : Médias d'une Définition, d'une Copie, d'une Séance archivée et un asset sans lien (Instantané seul) conservés, liens et ordre compris ; aucun fichier supprimé", async () => {
-    const v9 = NodeSqliteDatabase.openInMemory();
-    try {
-      await buildVersion9(v9);
-      const v1 = JSON.stringify({
-        version: 1,
-        mode: "DURATION",
-        series: { kind: "UNIFORM", count: 2, target: 30, pauseSeconds: 10 },
-        sideMode: "UNILATERAL",
-        sideOrder: "BY_SIDE",
-        sideRecoverySeconds: 0,
-        cadenceBeepIntervalSeconds: 0,
-        countdownSeconds: 0,
-        endSeconds: 0,
-      });
-      for (const id of ["a-def", "a-copy", "a-archived", "a-solo"]) {
-        await v9.runAsync("INSERT INTO media_assets (id, uri, created_at) VALUES (?, ?, '2026-01-01T00:00:00.000Z')", [id, `kodjo-media/${id}`]);
-        store.files.add(`kodjo-media/${id}`);
-      }
-      await v9.runAsync(
-        `INSERT INTO activity_definitions (
-           id, name, description, execution_mode, duration_seconds, repetition_count, series_count, pause_seconds,
-           side_mode, created_at, updated_at, category_id, side_recovery_seconds, execution_parameters
-         ) VALUES ('def-v9', 'Gainage', NULL, 'DURATION', 30, NULL, 2, 10, 'UNILATERAL', '2026-01-02T00:00:00.000Z', '2026-01-03T00:00:00.000Z', 'cardio', 0, ?)`,
-        [v1],
-      );
-      await v9.runAsync(
-        "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES ('m1', 'def-v9', 'a-def', 0), ('m2', 'def-v9', 'a-copy', 1)",
-      );
-      for (const [suffix, status, archivedAt, asset] of [
-        ["active", "ACTIVE", null, "a-copy"],
-        ["archived", "ARCHIVED", "2026-01-08T00:00:00.000Z", "a-archived"],
-      ] as const) {
-        await v9.runAsync(
-          `INSERT INTO sessions (id, owner_id, name, status, archived_at, initial_countdown_seconds, final_phase_seconds, created_at, updated_at)
-           SELECT ?, id, ?, ?, ?, 10, 5, '2026-01-04T00:00:00.000Z', '2026-01-05T00:00:00.000Z' FROM users WHERE singleton_key = 1`,
-          [`session-${suffix}`, `Séance ${suffix}`, status, archivedAt],
-        );
-        await v9.runAsync("INSERT INTO cycles (id, session_id, position, repeat_count) VALUES (?, ?, 1, 1)", [`cycle-${suffix}`, `session-${suffix}`]);
-        await v9.runAsync("INSERT INTO tours (id, cycle_id, session_id, position, repeat_count) VALUES (?, ?, ?, 1, 1)", [
-          `tour-${suffix}`,
-          `cycle-${suffix}`,
-          `session-${suffix}`,
-        ]);
-        await v9.runAsync(
-          `INSERT INTO activities (
-             id, session_id, cycle_id, tour_id, type, structural_position, position, name, execution_mode,
-             duration_seconds, repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
-             instruction, created_at, updated_at, side_mode, execution_parameters, category_id
-           ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, 'Copie', 'DURATION', 30, NULL, 2, 10, 0, NULL,
-             '2026-01-06T00:00:00.000Z', '2026-01-07T00:00:00.000Z', 'UNILATERAL', ?, 'cardio')`,
-          [`copy-${suffix}`, `session-${suffix}`, `cycle-${suffix}`, `tour-${suffix}`, v1],
-        );
-        await v9.runAsync("INSERT INTO session_activity_media (id, activity_id, asset_id, position) VALUES (?, ?, ?, 0), (?, ?, 'a-def', 1)", [
-          `sm-${suffix}-0`,
-          `copy-${suffix}`,
-          asset,
-          `sm-${suffix}-1`,
-          `copy-${suffix}`,
-        ]);
-      }
-      const media = async () => ({
-        assets: await v9.getAllAsync("SELECT * FROM media_assets ORDER BY id"),
-        definitionLinks: await v9.getAllAsync("SELECT * FROM activity_media ORDER BY id"),
-        copyLinks: await v9.getAllAsync("SELECT * FROM session_activity_media ORDER BY id"),
-      });
-      const before = await media();
-      const files = [...store.files];
-
-      // PRE-7 (A1.2) : chaîne arrêtée à la version 11 ; liens et références relus en lignes brutes
-      // (le repository de médias courant lit le schéma 012).
-      await migrateDatabase(v9, undefined, 11);
-      expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 11 });
-      expect(await media()).toEqual(before);
-      expect(
-        await v9.getAllAsync("SELECT asset_id FROM activity_media WHERE activity_definition_id = 'def-v9' ORDER BY position"),
-      ).toEqual([{ asset_id: "a-def" }, { asset_id: "a-copy" }]);
-      const references = async (assetId: string) =>
-        (await v9.getFirstAsync<{ count: number }>(
-          "SELECT (SELECT COUNT(*) FROM activity_media WHERE asset_id = ?) + (SELECT COUNT(*) FROM session_activity_media WHERE asset_id = ?) AS count",
-          [assetId, assetId],
-        ))!.count;
-      expect(await references("a-archived")).toBe(1);
-      expect(await references("a-solo")).toBe(0);
-      expect(await v9.getFirstAsync("SELECT uri FROM media_assets WHERE id = 'a-solo'")).toEqual({ uri: "kodjo-media/a-solo" });
-      expect(store.deleted).toEqual([]);
-      expect([...store.files]).toEqual(files);
-    } finally {
-      v9.close();
-    }
-  });
-
   it("PRE4-1.3/AC15 — import annulé puis Terminer : mêmes 2 Médias ; import en échec, réessai réussi, Terminer : 3 Médias, le nouveau en dernier, sans orphelin", async () => {
     const definition = await readDefinition(
       (await saveDefinition(definitionInput(ac1Parameters(), [importedAsset("v1", "VIDEO"), importedAsset("p1")]))).id,
@@ -870,7 +689,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
 
     const canceled = await importService.importFromLibrary(mediaDraftId);
     expect(canceled.status).toBe("CANCELED");
-    await updateDefinition(definition.id, activityDefinitionToInput(definition));
+    await replaceDefinitionMedia(definition.id, toDraftMediaItems(definition.media ?? []));
     expect((await readDefinition(definition.id)).media?.map((item) => item.assetId)).toEqual(["v1", "p1"]);
 
     store.failures.add("file:///cache/new.jpg");
@@ -883,10 +702,10 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const retried = await importService.retry(mediaDraftId, failedItem!);
     expect(retried.state).toBe("READY");
     const draftMedia = [...toDraftMediaItems(definition.media ?? []), ...readyMedia([retried])];
-    await updateDefinition(definition.id, {
-      ...activityDefinitionToInput(definition),
-      media: draftMedia.map((item) => ({ assetId: item.assetId, asset: item.asset })),
-    });
+    await replaceDefinitionMedia(
+      definition.id,
+      draftMedia.map((item) => ({ assetId: item.assetId, asset: item.asset })),
+    );
     importService.commitDraft(mediaDraftId);
 
     expect((await readDefinition(definition.id)).media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p-new"]);

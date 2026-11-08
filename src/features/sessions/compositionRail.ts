@@ -42,6 +42,11 @@ export type RailGeometry = {
   readonly circuitGap: number;
   /** Marge verticale intérieure du Circuit (Figma : 14). */
   readonly circuitPadding: number;
+  /**
+   * Contre-recette du 30/10 (obs-3) : marge basse du Circuit sous sa dernière rangée — l'écart entre
+   * le bas du média et le bas d'une carte (8) ; sans rangée (Circuit replié), `circuitPadding`.
+   */
+  readonly circuitPaddingBottom: number;
   /** Ancre (haut du média) depuis le haut d'une carte (Figma : 8). */
   readonly rowEntry: number;
   /** Ancre (haut de l'anneau) depuis le haut de l'en-tête du Circuit : centré sur sa hauteur mesurée (Figma : 15 pour 40). */
@@ -69,6 +74,12 @@ export type RailChainInput = {
   readonly beforeTour: readonly RailChainItem[];
   readonly inTour: readonly RailChainItem[];
   readonly afterTour: readonly RailChainItem[];
+  /**
+   * PRE-9 B.2 (D-451, COMP §1 : une Séance commence sans Circuit, un conteneur n'est jamais vide) :
+   * Circuit rendu ? Absent (aucun Exercice dans le Circuit), ni en-tête ni bas de Circuit dans la
+   * chaîne : les zones avant et après se suivent. Par défaut, présent.
+   */
+  readonly hasCircuit?: boolean;
   /** Rangée « après le Circuit » rendue (story 6.2 : emplacement du placement seulement). */
   readonly hasAfterCircuit: boolean;
   /**
@@ -130,9 +141,13 @@ export function resolveRailLinks(input: RailChainInput): ReadonlyMap<string, Rai
   const chain: ChainNode[] = [
     { key: RAIL_KEYS.start, kind: "start", zone: null, id: null },
     ...input.beforeTour.map(rowNode("BEFORE_TOUR")),
-    { key: RAIL_KEYS.circuitHeader, kind: "circuitHeader", zone: null, id: null },
-    ...input.inTour.map(rowNode("IN_TOUR")),
-    { key: RAIL_KEYS.circuitEnd, kind: "circuitEnd", zone: null, id: null },
+    ...(input.hasCircuit === false
+      ? []
+      : [
+          { key: RAIL_KEYS.circuitHeader, kind: "circuitHeader" as const, zone: null, id: null },
+          ...input.inTour.map(rowNode("IN_TOUR")),
+          { key: RAIL_KEYS.circuitEnd, kind: "circuitEnd" as const, zone: null, id: null },
+        ]),
     ...(input.hasAfterCircuit ? [{ key: RAIL_KEYS.afterCircuit, kind: "afterCircuit" as const, zone: null, id: null }] : []),
     ...input.afterTour.map(rowNode("AFTER_TOUR")),
     { key: RAIL_KEYS.end, kind: "end", zone: null, id: null },
@@ -149,7 +164,7 @@ export function resolveRailLinks(input: RailChainInput): ReadonlyMap<string, Rai
       case "circuitHeader":
         return g.sequenceGap + g.circuitPadding;
       case "circuitEnd":
-        return g.circuitPadding;
+        return input.inTour.length > 0 ? g.circuitPaddingBottom : g.circuitPadding;
       case "afterCircuit":
       case "end":
         return g.sequenceGap;

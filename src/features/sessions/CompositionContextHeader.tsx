@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 import { AccessibilityInfo, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { spokenDurations } from "@/domain/activities/durationFormat";
 import type { Label } from "@/domain/labels/Label";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
@@ -85,6 +86,11 @@ export type CompositionContextHeaderProps = {
   readonly name: string;
   readonly onChangeName: (name: string) => void;
   readonly onNameFocus: () => void;
+  /**
+   * PRE-9 B.9 (ch08 « Nom de séance — trois états », état 3) : dès le deuxième Exercice, le champ
+   * vide montre l'invite grise « Entrer un nom de séance » ; l'obligation de nommer apparaît.
+   */
+  readonly namePrompt?: boolean;
   /** Étiquette affectée (référentiel chargé), `null` sinon. */
   readonly sessionLabel: Label | null;
   /** Couleur DÉRIVÉE de l'Étiquette (V2-PRE-1), teinte de son icône (story 7.2, D-442). */
@@ -94,10 +100,25 @@ export type CompositionContextHeaderProps = {
   readonly sessionDuration: string;
   /** Ouvre l'arbre d'ajout existant (V2-CAT-01). */
   readonly onAdd: () => void;
-  /** PRE-6 story 4.1 : entre en mode placement (« Ajouter un arrêt »). */
+  /**
+   * PRE-6 story 4.1 : entre en mode placement (« Ajouter un arrêt »). Contre-recette iPhone du 30/10
+   * (Hermann : « Appuyer de nouveau sur le bouton d'action point d'arrêt referme l'écran de
+   * sélection (même comportement sur confirmer) ») : en placement, le bouton reste actif et l'écran
+   * referme la sélection comme « Confirmer ».
+   */
   readonly onAddStop: () => void;
+  /**
+   * Contre-recette du 30/10 (menu Créer) : boîte réelle du « + », mesurée par le menu pour reposer
+   * l'unique « + » du premier plan exactement à sa place.
+   */
+  readonly addActionRef?: RefObject<View | null>;
   /** PRE-6 story 4.1 : mode placement en cours — bouton « Ajouter un arrêt » actif, « + » atténué et inactif. */
   readonly isPlacementActive?: boolean;
+  /**
+   * Recette iPhone du 01/11/2026 (m11-annuler) : menu Créer ouvert — le « + » est devenu Annuler, posé
+   * par le menu à sa place exacte, au-dessus du voile ; l'original s'efface (une seule commande visible).
+   */
+  readonly isCreateMenuOpen?: boolean;
   /** PRE-6 story 4.1 : aucun emplacement où ajouter une pause (Composition vide, tout est déjà présent). */
   readonly isAddStopDisabled?: boolean;
   /** PRE-6 story 4.1 : demande de focus d'accessibilité sur « Ajouter un arrêt » (sortie du placement), jamais au montage. */
@@ -107,16 +128,7 @@ export type CompositionContextHeaderProps = {
    * n'offre qu'un retrait (aucun ajout possible, des points existants).
    */
   readonly addStopAccessibilityHint?: string;
-  /**
-   * PRE-6 story 5.1b (story 3.4, CE-CIR-03) : toucher de l'œil — l'écran ouvre « Volumes du
-   * circuit » et referme le compteur et le choix de nature (un seul contrôle actif). Indisponible
-   * en placement, comme le « + » (atténué et inactif).
-   */
-  readonly onOpenVolumes: () => void;
-  /** Story 3.4 : demande de focus sur l'œil (fermeture de la feuille des volumes), jamais au montage. */
-  readonly volumesFocusRequest?: number;
-  /** Revue 5.1b : œil inactif pendant le glisser d'une carte (sans atténuation, état passager). */
-  readonly isVolumesDisabled?: boolean;
+  // Complément du 5 novembre 2026 (Hermann, §3 et §6, CE-T03-08, CE-CIR-03 retiré) : bouton œil « Voir les volumes » et feuille « Volumes du circuit » retirés. [PRE-6 story 5.1b / 3.4 — remplacé.]
   readonly testID?: string;
 };
 
@@ -139,6 +151,7 @@ export function CompositionContextHeader({
   name,
   onChangeName,
   onNameFocus,
+  namePrompt = false,
   sessionLabel,
   sessionColor,
   onOpenLabelPicker,
@@ -146,12 +159,11 @@ export function CompositionContextHeader({
   onAdd,
   onAddStop,
   isPlacementActive = false,
+  isCreateMenuOpen = false,
   isAddStopDisabled = false,
   addStopFocusRequest = 0,
   addStopAccessibilityHint,
-  onOpenVolumes,
-  volumesFocusRequest = 0,
-  isVolumesDisabled = false,
+  addActionRef,
   testID = "composition-context-header",
 }: CompositionContextHeaderProps) {
   const composition = strings.screens.composition;
@@ -162,14 +174,6 @@ export function CompositionContextHeader({
     lastAddStopFocusRequestRef.current = addStopFocusRequest;
     if (addStopRef.current) AccessibilityInfo.sendAccessibilityEvent(addStopRef.current, "focus");
   }, [addStopFocusRequest]);
-  // Story 3.4, repris par la story 5.1b : focus rendu à l'œil à la fermeture des volumes.
-  const volumesRef = useRef<View>(null);
-  const lastVolumesFocusRequestRef = useRef(volumesFocusRequest);
-  useEffect(() => {
-    if (volumesFocusRequest === lastVolumesFocusRequestRef.current) return;
-    lastVolumesFocusRequestRef.current = volumesFocusRequest;
-    if (volumesRef.current) AccessibilityInfo.sendAccessibilityEvent(volumesRef.current, "focus");
-  }, [volumesFocusRequest]);
   const addStopUnavailable = !isPlacementActive && isAddStopDisabled;
   return (
     <View style={styles.container} testID={testID}>
@@ -178,8 +182,8 @@ export function CompositionContextHeader({
           value={name}
           onChangeText={onChangeName}
           onFocus={onNameFocus}
-          placeholder={composition.name}
-          placeholderTextColor={colors.textPrimary}
+          placeholder={namePrompt ? composition.namePrompt : composition.name}
+          placeholderTextColor={namePrompt ? colors.textSecondary : colors.textPrimary}
           accessibilityLabel={composition.name}
           maxLength={NAME_MAX_LENGTH}
           style={styles.nameInput}
@@ -230,7 +234,7 @@ export function CompositionContextHeader({
           <Text
             style={styles.sessionDuration}
             numberOfLines={1}
-            accessibilityLabel={`${composition.sessionDurationAccessibilityLabel} ${sessionDuration}`}
+            accessibilityLabel={spokenDurations(`${composition.sessionDurationAccessibilityLabel} ${sessionDuration}`)}
             testID="composition-session-duration"
           >
             {sessionDuration}
@@ -239,27 +243,14 @@ export function CompositionContextHeader({
         {/* Revue 5.1b : trois boîtes tactiles réelles de 44, sans écart, cercles de 34 centrés. */}
         <View style={styles.actions} testID="composition-context-actions">
           <Pressable
-            ref={volumesRef}
-            onPress={onOpenVolumes}
-            disabled={isPlacementActive || isVolumesDisabled}
-            accessibilityRole="button"
-            accessibilityLabel={composition.circuit.volumes.openAccessibilityLabel}
-            accessibilityState={{ disabled: isPlacementActive || isVolumesDisabled }}
-            style={[styles.commandTarget, isPlacementActive ? styles.attenuated : null]}
-            testID="composition-volumes-action"
-          >
-            <View style={[styles.commandCircle, styles.plainCircle]} testID="composition-volumes-action-circle">
-              <KodjoIcon name="view-volumes" size={VOLUMES_ICON_SIZE} testID="composition-volumes-action-icon" />
-            </View>
-          </Pressable>
-          <Pressable
             ref={addStopRef}
             onPress={onAddStop}
-            disabled={isPlacementActive || addStopUnavailable}
+            // Contre-recette du 30/10 : actif en placement (second appui = « Confirmer »).
+            disabled={addStopUnavailable}
             accessibilityRole="button"
             accessibilityLabel={composition.placement.addStopAccessibilityLabel}
             accessibilityHint={isPlacementActive ? undefined : addStopAccessibilityHint}
-            accessibilityState={{ selected: isPlacementActive, disabled: isPlacementActive || addStopUnavailable }}
+            accessibilityState={{ selected: isPlacementActive, disabled: addStopUnavailable }}
             style={[styles.commandTarget, addStopUnavailable ? styles.attenuated : null]}
             testID="composition-add-stop-action"
           >
@@ -280,20 +271,18 @@ export function CompositionContextHeader({
             </View>
           </Pressable>
           <Pressable
+            ref={addActionRef}
             onPress={onAdd}
             disabled={isPlacementActive}
             accessibilityRole="button"
             accessibilityLabel={composition.addActivity}
             accessibilityState={{ disabled: isPlacementActive }}
-            style={[styles.commandTarget, isPlacementActive ? styles.attenuated : null]}
+            style={[styles.commandTarget, isPlacementActive ? styles.attenuated : null, isCreateMenuOpen ? styles.replaced : null]}
+            accessibilityElementsHidden={isCreateMenuOpen}
+            importantForAccessibility={isCreateMenuOpen ? "no-hide-descendants" : "auto"}
             testID="composition-add-activity-action"
           >
-            <View style={[styles.commandCircle, styles.plainCircle]} testID="composition-add-activity-action-circle">
-              <View style={styles.addGlyph} testID="composition-add-activity-icon">
-                <View style={[styles.addGlyphBar, styles.addGlyphHorizontal]} testID="composition-add-activity-icon-bar" />
-                <View style={[styles.addGlyphBar, styles.addGlyphVertical]} testID="composition-add-activity-icon-bar" />
-              </View>
-            </View>
+            <AddActivityCircle testID="composition-add-activity-action-circle" iconTestID="composition-add-activity-icon" />
           </Pressable>
         </View>
       </View>
@@ -301,7 +290,24 @@ export function CompositionContextHeader({
   );
 }
 
+/**
+ * Cercle « + » de l'action « Ajouter une activité » (cercle 34, contour `primary`, croix de 20).
+ * PRE-9 (B.2) : exporté pour être reposé au premier plan du menu Créer (Figma `10705:20340`).
+ */
+export function AddActivityCircle({ testID, iconTestID }: { readonly testID?: string; readonly iconTestID?: string }) {
+  return (
+    <View style={[styles.commandCircle, styles.plainCircle]} testID={testID}>
+      <View style={styles.addGlyph} testID={iconTestID}>
+        <View style={[styles.addGlyphBar, styles.addGlyphHorizontal]} testID={iconTestID === undefined ? undefined : `${iconTestID}-bar`} />
+        <View style={[styles.addGlyphBar, styles.addGlyphVertical]} testID={iconTestID === undefined ? undefined : `${iconTestID}-bar`} />
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  // Recette du 01/11/2026 (m11-annuler) : « + » remplacé par Annuler pendant le menu Créer.
+  replaced: { opacity: 0 },
   // Figma `8328:28608` : colonne, écart 10, posée à 20 du haut de la zone de
   // contexte (padding haut de `ContextBand` 12 + 8). Revue 5.1b : l'en-tête s'étend de 5 à droite et
   // de 6 en bas (marges négatives compensées) pour CONTENIR les cibles de 44 des commandes ; le nom

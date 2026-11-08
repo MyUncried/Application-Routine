@@ -2,12 +2,12 @@ import * as Crypto from "expo-crypto";
 import { useCallback, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { spokenDurations } from "@/domain/activities/durationFormat";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "@/features/activities/SheetMotion";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
-import { formatActivityCount } from "@/features/sessions/formatSessionSummary";
-import { SESSION_CARD_HEADER_HEIGHT, SessionCard } from "@/features/sessions/SessionCard";
+import { formatSessionStructureLine, SESSION_CARD_HEADER_HEIGHT, SessionCard } from "@/features/sessions/SessionCard";
 import { compositionAccessibilityText, SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionService } from "@/features/sessions/SessionServiceContext";
@@ -20,15 +20,31 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 /**
  * PRE-8 (epic E) — liste du segment Séances du Catalogue unifié : cartes uniques (E.2), 12 entre deux
  * cartes quelle que soit leur hauteur, marge 16 (spécification §4). Toucher une carte ouvre la
- * Composition existante (E.7) ; le chevron et Lecture interceptent leur propre toucher.
+ * Composition existante (E.7) ; le chevron et Lecture interceptent leur propre toucher. [— remplacé
+ * le 03/11/2026, voir ci-dessous]
  *
  * E.3 : le chevron du nom déploie la composition (état de l'écran, jamais persisté, conservé pendant
  * la session). Pour VoiceOver, la carte est un seul élément : le déploiement y est une action
  * d'accessibilité nommée et la composition déployée s'ajoute à son nom accessible.
  *
+ * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « toutes les séances, même celles
+ * avec un seul exercice doivent avoir un chevron et une vue déployée. » ; « l'appui sur la photo ou
+ * l'appui sur la zone déployée ouvre la séance en modification, l'appui sur le reste de la carte
+ * (dont le chevron) déploie la séance. ») : toute Séance se déploie ; toucher le visuel ou la
+ * composition déployée ouvre la Composition (même chemin qu'avant, `onOpenSession`) ; toucher le
+ * reste de la carte déploie ou replie. Pour VoiceOver, l'activation de la carte déploie ou replie,
+ * l'ouverture est une action nommée (« Modifier la séance »). Carte ouverte par le glissé : tout
+ * toucher reste neutre.
+ *
+ * D-504 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : photo → modification ;
+ * Démarrer → exécution (aucune Exécution livrée : Démarrer reste présent et indisponible, aucun
+ * `onStart` transmis, CE-T03-01) ; chevron et toute la zone centrale → déployer/replier ; zone
+ * déployée → modification. Cibles distinctes ; carte ouverte par le glissé : tout toucher reste neutre.
+ *
  * E.5 (spécification §5, CE-T03-01 révisé) : glissé sur toute la carte, repliée ou déployée, par le
  * mécanisme des Mouvements (`SwipeActionsRow`) ; bloc d'actions de 80, aligné en haut, jointif sur la
- * marge droite, carte arrêtée à 8 du bloc ; une seule carte ouverte à la fois.
+ * marge droite, carte arrêtée à 8 du bloc ; une seule carte ouverte à la fois. [Hauteur 80 — remplacée
+ * le 06/11/2026 par D-504 : actions glissées hautes de 72 (`SESSION_CARD_HEADER_HEIGHT`).]
  * - Active : Planifier (présent, grisé : aucune planification), Dupliquer, Archiver.
  * - Archivée : Restaurer puis Supprimer.
  * - Archiver : immédiat (aucune Routine), snackbar « Séance archivée » avec Annuler ; Restaurer :
@@ -42,22 +58,18 @@ const t = strings.screens.sessions;
 const tCard = t.catalogueCard;
 
 export function sessionCardAccessibilityLabel(projection: SessionCatalogueProjection, expanded = false): string {
-  const summary =
-    projection.summary.kind === "FORMAT"
-      ? projection.summary.label
-      : projection.summary.kind === "VOLUME"
-        ? projection.summary.volume
-        : formatActivityCount(projection.summary.count);
-  return [
+  // Accessibilité (08/11/2026 au soir) : durées lues en toutes lettres, pas les primes.
+  return spokenDurations([
     projection.name,
     projection.categories.map((category) => category.name).join(", "),
-    summary,
+    // D-505 (Hermann, 06/11/2026) : ligne 3 « N circuits · N exercices ». [Avant : format ou volume.]
+    formatSessionStructureLine(projection),
     formatCatalogueSessionDuration(projection.duration),
     projection.status === "ARCHIVED" ? tCard.archivedAccessibility : null,
     expanded && projection.tree.length > 0 ? compositionAccessibilityText(projection.tree) : null,
   ]
     .filter((part) => part !== null && part.length > 0)
-    .join(", ");
+    .join(", "));
 }
 
 type Notice = { readonly message: string; readonly undo: () => void };
@@ -66,6 +78,7 @@ export function SessionCatalogueList({
   sessions,
   emptyMessage,
   resetToken = 0,
+  topInset,
   onOpenSession,
   onChanged,
 }: {
@@ -74,6 +87,8 @@ export function SessionCatalogueList({
   readonly emptyMessage: string | null;
   /** Retour au premier plan : aucune carte ne reste ouverte (comme le Catalogue des Mouvements). */
   readonly resetToken?: number;
+  /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
+  readonly topInset?: number;
   readonly onOpenSession: (sessionId: string) => void;
   /** Relecture du Catalogue après une action. */
   readonly onChanged?: () => void;
@@ -185,13 +200,13 @@ export function SessionCatalogueList({
   return (
     <View style={styles.container} testID="catalogue-session-list-frame">
       {actionFailed ? (
-        <Text style={styles.actionError} accessibilityLiveRegion="polite" testID="catalogue-session-action-error">
+        <Text style={[styles.actionError, topInset !== undefined ? { marginTop: topInset } : null]} accessibilityLiveRegion="polite" testID="catalogue-session-action-error">
           {tCard.actionError}
         </Text>
       ) : null}
       <SheetMotionProvider reduceMotion={reduceMotion}>
         <SheetMotionScrollView
-          contentContainerStyle={styles.list}
+          contentContainerStyle={topInset !== undefined ? [styles.list, { paddingTop: spacing[4] + topInset }] : styles.list}
           showsVerticalScrollIndicator={false}
           testID="catalogue-session-list"
         >
@@ -201,28 +216,35 @@ export function SessionCatalogueList({
             </Text>
           ) : null}
           {sessions.map((projection) => {
-            const isExpanded = projection.expandable && expanded.has(projection.id);
+            // Recette iPhone n° 3 du 03/11/2026 : toute Séance se déploie (`projection.expandable` ignoré).
+            const isExpanded = expanded.has(projection.id);
             const toggleLabel = fillTemplate(isExpanded ? tCard.collapseAccessibilityLabel : tCard.expandAccessibilityLabel, {
               name: projection.name,
             });
+            const revealed = revealedId === projection.id;
+            // Carte ouverte par le glissé : appui neutre, comme le reste de la carte (`SwipeActionsRow`).
+            const open = () => {
+              if (!revealed) onOpenSession(projection.id);
+            };
             return (
               <SheetMotionView key={projection.id} bleed={layout.screenGutter} style={styles.item} testID={`catalogue-session-item-${projection.id}`}>
                 <SwipeActionsRow
                   actions={actionsFor(projection)}
-                  revealed={revealedId === projection.id}
+                  revealed={revealed}
                   onReveal={() => setRevealedId(projection.id)}
                   onHide={() => setRevealedId((current) => (current === projection.id ? null : current))}
-                  onPress={() => onOpenSession(projection.id)}
+                  onPress={() => toggle(projection.id)}
                   accessibilityLabel={sessionCardAccessibilityLabel(projection, isExpanded)}
-                  accessibilityHint={t.card.openAccessibilityLabel}
-                  accessibilityState={projection.expandable ? { expanded: isExpanded } : undefined}
-                  extraAccessibilityActions={
-                    projection.expandable ? [{ name: "toggleComposition", label: toggleLabel, onAction: () => toggle(projection.id) }] : []
-                  }
+                  accessibilityHint={toggleLabel}
+                  accessibilityState={{ expanded: isExpanded }}
+                  extraAccessibilityActions={[
+                    { name: "openSession", label: t.card.openAccessibilityLabel, onAction: () => onOpenSession(projection.id) },
+                    { name: "toggleComposition", label: toggleLabel, onAction: () => toggle(projection.id) },
+                  ]}
                   actionsHeight={SESSION_CARD_HEADER_HEIGHT}
                   testID={`session-card-${projection.id}-swipe`}
                 >
-                  <SessionCard projection={projection} expanded={isExpanded} onToggleExpanded={() => toggle(projection.id)}>
+                  <SessionCard projection={projection} expanded={isExpanded} onToggleExpanded={() => toggle(projection.id)} onOpen={open}>
                     <SessionCompositionTree tree={projection.tree} testID={`session-card-${projection.id}-composition`} />
                   </SessionCard>
                 </SwipeActionsRow>

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { AccessibilityInfo, Alert, Keyboard, Modal, Platform, StyleSheet, Switch, TextInput } from "react-native";
 
-import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { formatPhraseDuration, spokenDuration } from "@/domain/activities/durationFormat";
 import {
   failureTarget,
   numberTarget,
@@ -20,6 +20,7 @@ import {
 import {
   dragDestination,
   ExecutionParametersSheet,
+  ROW_LABEL_CROSSFADE_MS,
   SELECTOR_SETTLE_MS,
   SHEET_ROW_MIN_HEIGHT,
   TABLE_ROW_HEIGHT,
@@ -39,11 +40,12 @@ import {
   chooseExecutionRegime,
   chooseExecutionSide,
   CELL_BACKSPACE,
+  closeExecutionSheetField,
   durationKeys,
   enterExecutionSheetCell,
+  enterExecutionSheetValue,
   hideExecutionSheetKeyboard,
   openExecutionSheetField,
-  pressInExecutionSheet,
   showExerciseDurationSignals,
   showExecutionSheetKeyboard,
   tapExecutionSheetStep,
@@ -158,7 +160,19 @@ const tap = tapExecutionSheetStep;
 const chooseRegime = chooseExecutionRegime;
 
 const valueOf = (testID: string) => screen.getByTestId(`${testID}-value`).props.children as string;
-const text = (testID: string) => String(screen.getByTestId(`${testID}-text`).props.children);
+/**
+ * Texte affiché d'une pastille : `-text` (texte en lecture seule) ou, depuis le 06/11/2026 (décision de
+ * Hermann, constat c : saisie au clavier), `-value` du champ clavier qui remplace la pastille.
+ */
+const text = (testID: string) =>
+  String(
+    (
+      screen.queryByTestId(`${testID}-text`, { includeHiddenElements: true }) ??
+      screen.queryByTestId(`${testID}-value`, { includeHiddenElements: true }) ??
+      // « execution-sheet-target-value » : texte du champ clavier de la Cible commune (`execution-sheet-target`).
+      screen.getByTestId(testID, { includeHiddenElements: true })
+    ).props.children,
+  );
 const validate = () => fireEvent.press(screen.getByTestId("execution-sheet-validate"));
 /**
  * PRE-5 story 2.4 (AD-24, AD-27) — Mode, Condition d'arrêt et Type de série sont des
@@ -179,7 +193,8 @@ const selectedValue = (control: string, values: readonly string[]) =>
  * annonce de la ligne (portée par le groupe de valeur quand le chevron est présent, sinon par
  * la ligne entière).
  */
-const totalShown = () => String(screen.getByTestId("execution-sheet-total-text", anyNode).props.children);
+const totalShown = () =>
+  String((screen.queryByTestId("execution-sheet-total-text", anyNode) ?? screen.getByTestId("execution-sheet-total-value", anyNode)).props.children);
 const totalSpoken = () =>
   (screen.queryByTestId("execution-sheet-row-total-value-group", anyNode) ?? screen.getByTestId("execution-sheet-row-total-line", anyNode)).props
     .accessibilityLabel as string | undefined;
@@ -247,12 +262,8 @@ function seriesTypeText(): string {
   const value = selectedValue(SERIES_TYPE, ["VARIABLE", "UNIFORM"]) as "VARIABLE" | "UNIFORM" | null;
   return value === null ? "—" : strings.executionParameters.sheet.seriesTypes[value];
 }
-/**
- * Gestes sur la roulette de la Durée totale, portés par son conteneur
- * (`execution-sheet-total-wheel`) : en ligne sur Android et web, dans le panneau sans
- * flèche sur iOS (Q41).
- */
-const totalWheel = () => within(screen.getByTestId("execution-sheet-total-wheel"));
+// [`totalWheel` (gestes sur la roulette de la Durée totale) — retiré le 06/11/2026, décision de Hermann
+// (constat c) : saisie au clavier.]
 const applied = (onApply: jest.Mock<(value: ExecutionParameters) => void>) => onApply.mock.calls[0]![0];
 /** Action accessible de la poignée d'une ligne (même déplacement métier que le glisser). */
 const moveAction = (row: number, actionName: "moveUp" | "moveDown") =>
@@ -289,8 +300,9 @@ function chooseCellTarget(row: number, value: number | "FAILURE") {
 }
 /** Secondes d'une durée affichée (« 1 min 5 s », « 45 s », « 12 min »). */
 function displayedSeconds(text: string): number {
-  const minutes = /(\d+) min/u.exec(text);
-  const seconds = /(\d+) s/u.exec(text);
+  // Format du 08/11/2026 au soir : « M′SS″ » ou « S″ ». [« X min Y s » — remplacé.]
+  const minutes = /(\d+)′/u.exec(text);
+  const seconds = /(\d+)″/u.exec(text);
   return (minutes ? Number(minutes[1]) * 60 : 0) + (seconds ? Number(seconds[1]) : 0);
 }
 /** D-434 : la Pause d'une ligne, une seconde de plus ou de moins, saisie au clavier dans sa cellule (bornes 0..300). */
@@ -311,7 +323,7 @@ afterEach(() => {
 const layoutOf = (testID: string, y: number, height: number) =>
   fireEvent(screen.getByTestId(testID), "layout", { nativeEvent: { layout: { x: 0, y, width: 330, height } } });
 /** PRE-5 story 2.4 (AD-28) : mise en page simulée des cadres ([y, hauteur] dans le contenu défilant). */
-const layoutFrames = (frames: Partial<Record<"execution" | "series" | "sides" | "cadence", readonly [number, number]>>) => {
+const layoutFrames = (frames: Partial<Record<"execution" | "phases" | "series" | "sides" | "cadence", readonly [number, number]>>) => {
   for (const [frame, box] of Object.entries(frames)) layoutOf(`execution-sheet-frame-${frame}`, box[0], box[1]);
 };
 
@@ -341,19 +353,19 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(actionNames(3)).toEqual(["moveUp"]);
     moveAction(3, "moveUp");
     moveAction(2, "moveUp");
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("1 min");
-    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("30 s");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("1′00″");
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("30″");
     validate();
     expect(applied(onApply).series).toEqual(variableRows([[60, 30], [30, 10], [45, 20]]));
   });
 
-  it("P3-08/immediate-N1 — N=1 : uniforme et un côté après l'autre immédiatement ; contrôles sans effet grisés ; total 220 s", () => {
+  it("P3-08/immediate-N1 — N=1 : uniforme et un côté après l'autre immédiatement ; contrôles sans effet grisés ; total 3′40″", () => {
     const { onApply } = renderSheet(
       params({ series: variableRows([[90, 15], [45, 20], [60, 30]]), sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 10 }),
     );
     tap("execution-sheet-series-decrement");
     tap("execution-sheet-series-decrement");
-    expect(valueOf("execution-sheet-series")).toBe("1 série");
+    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     // PRE-5 story 2.4 (P16) : à N = 1, le Type de série est non modifiable. Recette du 20/10
     // (RC-15) : Variables indisponible ; Identiques, sélectionné, porte le nombre (réglable).
     expect(screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityState).toMatchObject({ disabled: true });
@@ -364,7 +376,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
     expect(screen.queryByTestId("execution-sheet-order-value")).toBeNull();
     expect(screen.getByTestId("execution-sheet-row-side-recovery")).toBeTruthy();
-    expect(text("execution-sheet-total")).toBe("3 min 40 s");
+    expect(text("execution-sheet-total")).toBe("3′40″");
     validate();
     expect(applied(onApply)).toMatchObject({
       series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
@@ -388,8 +400,8 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     it("PRE4-Q38 (b), RC-6 — N = 2 : menu de l'Enchainement présent dans Avec, choix appliqué", () => {
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(within(screen.getByTestId(`${SIDE_CONTROL}`)).getByTestId(ORDER_MENU)).toBeTruthy();
-      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
-      expect(orderText()).toBe("Un côté après l’autre");
+      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
+      expect(orderText()).toBe("Chaque série d’un côté, puis chaque série de l’autre");
       chooseOrder("Les deux côtés à chaque série");
       expect(orderText()).toBe("Les deux côtés à chaque série");
     });
@@ -399,11 +411,11 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       chooseOrder("Les deux côtés à chaque série");
       tap("execution-sheet-series-decrement");
       tap("execution-sheet-series-decrement");
-      expect(valueOf("execution-sheet-series")).toBe("1 série");
+      expect(valueOf("execution-sheet-series")).toBe("1 série identique");
       expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
       // Effectif normalisé « Un côté après l’autre » à N = 1 : prouvé par ✓ en (c bis).
       tap("execution-sheet-series-increment");
-      expect(valueOf("execution-sheet-series")).toBe("2 séries");
+      expect(valueOf("execution-sheet-series")).toBe("2 séries identiques");
       expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
       expect(orderText()).toBe("Les deux côtés à chaque série");
       validate();
@@ -422,24 +434,17 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     // PRE-5 story 2.5 (AC2, AC6, NR Δ38) : l'Enchainement est un segmenté en ligne, sans
     // surface ; le stepper « Nombre de séries » de PRE-4, ouvert, réglé de 2 à 1 puis fermé,
     // masque la ligne sans être lui-même modifié (champ resté ouvert, T22), et la réaffiche à 2.
-    it("PRE4-Q38 (c ter), PRE5-2.5/AC2 — Enchainement en ligne : le stepper de N, ouvert, de 2 à 1 masque la ligne sans se fermer (T22) ; N → 2 la réaffiche ; fermeture du stepper inchangée", () => {
+    // [Stepper de N ouvert, réglé de 2 à 1 sans se fermer (T22) — remplacé le 06/11/2026, décision de
+    // Hermann (constat c) : saisie au clavier ; N saisi 1 puis 2 masque puis réaffiche l'Enchainement.]
+    it("PRE4-Q38 (c ter), PRE5-2.5/AC2 — Enchainement en ligne : N saisi au clavier de 2 à 1 masque la ligne ; N → 2 la réaffiche", () => {
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
-      openExecutionSheetField("execution-sheet-series");
-      fireEvent(screen.getByTestId("execution-sheet-series-decrement"), "pressIn");
-      fireEvent(screen.getByTestId("execution-sheet-series-decrement"), "pressOut");
-      expect(valueOf("execution-sheet-series")).toBe("1 série");
+      enterExecutionSheetValue("execution-sheet-series", 1, "integer");
+      expect(valueOf("execution-sheet-series")).toBe("1 série identique");
       expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
-      expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
-      // Le champ de N reste ouvert, sa ligne désignée.
-      expect(screen.getByTestId("execution-sheet-series-increment")).toBeTruthy();
-      fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressIn");
-      fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressOut");
+      enterExecutionSheetValue("execution-sheet-series", 2, "integer");
       expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
-      expect(orderText()).toBe("Un côté après l’autre");
-      // Fermeture du stepper par un appui extérieur (T23), comme en PRE-4.
-      fireEvent.press(screen.getByTestId("execution-sheet-body-outside"));
-      expect(screen.queryByTestId("execution-sheet-series-increment")).toBeNull();
+      expect(orderText()).toBe("Chaque série d’un côté, puis chaque série de l’autre");
       expect(valueOf("execution-sheet-series")).toBe("2 séries identiques");
     });
 
@@ -465,17 +470,17 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     const view = renderSheetView(params({ series: uniform, sideMode: "LEFT_RIGHT", sideRecoverySeconds: 15 }));
     expect(sideText()).toBe("Avec");
     // Un côté après l'autre : 2 × 3 × (30 + 10) + 15 = 255 s.
-    expect(text("execution-sheet-total")).toBe("4 min 15 s");
+    expect(text("execution-sheet-total")).toBe("4′15″");
     view.unmount();
     renderSheet(params({ series: uniform, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 15 }));
     expect(sideText()).toBe("Avec");
-    expect(text("execution-sheet-total")).toBe("4 min 15 s");
+    expect(text("execution-sheet-total")).toBe("4′15″");
     chooseOrder("Les deux côtés à chaque série");
     // Les deux côtés à chaque série : 2 × 90 + 30 + 3 × 15 = 255 s — PC compté N fois.
-    expect(text("execution-sheet-total")).toBe("4 min 15 s");
+    expect(text("execution-sheet-total")).toBe("4′15″");
     tap("execution-sheet-side-recovery-increment");
     // PC 16 : par série + 3 s ; par côté il n'ajouterait qu'une seconde.
-    expect(text("execution-sheet-total")).toBe("4 min 18 s");
+    expect(text("execution-sheet-total")).toBe("4′18″");
   });
 
   it("P3-09/unilateral-controls — sans changement de côté : ordre et PC masqués, aucune contribution de PC", () => {
@@ -484,7 +489,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
     expect(screen.queryByTestId("execution-sheet-side-recovery")).toBeNull();
     // 3 × (90 + 15) = 315 s, sans PC.
-    expect(text("execution-sheet-total")).toBe("5 min 15 s");
+    expect(text("execution-sheet-total")).toBe("5′15″");
     validate();
     expect(applied(onApply).sideMode).toBe("UNILATERAL");
   });
@@ -493,7 +498,9 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     const { onApply } = renderSheet(params());
     tap("execution-sheet-beep-increment");
     tap("execution-sheet-beep-increment");
-    expect(valueOf("execution-sheet-beep")).toBe("2 s");
+    // [Valeur du ± ouvert — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier ;
+    // le champ révélé se range à sa sortie, l'option Autre porte la valeur (B8).]
+    expect(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`).props.accessibilityLabel).toBe("Autre, 2 secondes");
     for (const mode of ["Répétitions", "Durée"]) {
       // PRE-5 story 2.5 (AC3) : le choix du Mode range le ± ; la Cadence affiche alors Autre
       // (recette du 19/10, RC-10 : 2 s n'est plus une option).
@@ -504,19 +511,15 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(2);
   });
 
-  it("P3-14/inverse-enumeration — total demandé 100 s : N=3 retenu (égalité vers le plus grand), message d'ajustement 2 min ; 80 s exact sans message", () => {
+  it("P3-14/inverse-enumeration — total demandé 1′40″ : N=3 retenu (égalité vers le plus grand), message d'ajustement 2′00″ ; 1′20″ exact sans message", () => {
     renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
-    fireEvent(totalWheel().getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
-    fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 40 } });
-    fireEvent.press(totalWheel().getByTestId("duration-wheel-validate"));
+    // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+    enterExecutionSheetValue("execution-sheet-total", 100);
     expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
-    expect(screen.getByText("Durée ajustée à 2 min pour respecter un nombre entier de séries.")).toBeTruthy();
+    expect(screen.getByText("Durée ajustée à 2′00″ pour respecter un nombre entier de séries.")).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
-    fireEvent(totalWheel().getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
-    fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 20 } });
-    fireEvent.press(totalWheel().getByTestId("duration-wheel-validate"));
+    // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+    enterExecutionSheetValue("execution-sheet-total", 80);
     expect(valueOf("execution-sheet-series")).toBe("2 séries identiques");
     expect(screen.queryByText(/Durée ajustée/)).toBeNull();
   });
@@ -524,7 +527,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
   it("P3-14/inverse-boundaries — inversion réservée à la Durée uniforme : total non modifiable en variable, Répétitions ou tout échec", () => {
     const view = renderSheetView(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
-    expect(text("execution-sheet-total")).toBe("3 min 15 s");
+    expect(text("execution-sheet-total")).toBe("3′15″");
     chooseMode("Répétitions");
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
     view.unmount();
@@ -553,7 +556,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
     expect(totalShown()).toBe("—");
     expect(totalSpoken()).toBe(TOTAL_MISSING_SPOKEN);
-    expect(screen.queryAllByText("0 s")).toHaveLength(0);
+    expect(screen.queryAllByText("0″")).toHaveLength(0);
     // Replier ne modifie ni les données ni la validation.
     fireEvent.press(screen.getByLabelText("Masquer le tableau des séries"));
     expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
@@ -562,79 +565,31 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(onApply).not.toHaveBeenCalled();
     fireEvent.press(screen.getByLabelText("Afficher le tableau des séries"));
     expect(valueOf("execution-sheet-table-row-2-target")).toBe("—");
-    expect(valueOf("execution-sheet-table-row-3-target")).toBe("1 min");
+    expect(valueOf("execution-sheet-table-row-3-target")).toBe("1′00″");
     // Correction de la cellule (PRE-5 story 2.6 : par sa roue) : ✓ redevient actif et le message disparaît.
     chooseCellTarget(2, 45);
     expect(screen.queryByTestId("execution-sheet-message")).toBeNull();
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  it("P3-19/hold — Séries : tap 1, rien avant 500 ms, répétition 150 ms, pas 5 après 2 s, arrêt immédiat au relâchement", () => {
-    jest.useFakeTimers();
-    renderSheet(params({ series: { kind: "UNIFORM", count: 37, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
-    // Story 3.3 : ± à l'appui — le champ est d'abord ouvert par sa valeur.
-    openExecutionSheetField("execution-sheet-series");
-    act(() => {
-      fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressIn");
-    });
-    expect(valueOf("execution-sheet-series")).toBe("38 séries");
-    act(() => jest.advanceTimersByTime(490));
-    expect(valueOf("execution-sheet-series")).toBe("38 séries");
-    act(() => jest.advanceTimersByTime(10));
-    expect(valueOf("execution-sheet-series")).toBe("39 séries");
-    act(() => jest.advanceTimersByTime(150));
-    expect(valueOf("execution-sheet-series")).toBe("40 séries");
-    act(() => {
-      fireEvent(screen.getByTestId("execution-sheet-series-increment"), "pressOut");
-    });
-    act(() => jest.advanceTimersByTime(3000));
-    expect(valueOf("execution-sheet-series")).toBe("40 séries");
-  });
+  // [P3-19/hold et P3-19/non-accelerated (maintien des ±, accélération) — supprimés le 06/11/2026,
+  // décision de Hermann (constat c) : saisie au clavier, plus aucun ±.]
 
-  it("P3-19/non-accelerated — Bip, Compte à rebours et Fin restent au pas 1 au-delà de 4 s de maintien", () => {
-    jest.useFakeTimers();
-    renderSheet(params({ countdownSeconds: 0 }));
-    // PRE-5 story 2.5 (AC4) : Compte à rebours replié sous « Durée de l'exercice ».
-    showSignals();
-    openExecutionSheetField("execution-sheet-countdown");
-    act(() => {
-      fireEvent(screen.getByTestId("execution-sheet-countdown-increment"), "pressIn");
-    });
-    act(() => jest.advanceTimersByTime(500 + 150 * 30));
-    act(() => {
-      fireEvent(screen.getByTestId("execution-sheet-countdown-increment"), "pressOut");
-    });
-    // 1 (tap) + 1 (500 ms) + 30 répétitions au pas 1 = 32 s, jamais un multiple accéléré.
-    expect(valueOf("execution-sheet-countdown")).toBe("32 s");
-  });
-
-  // Q41 (2026-10-17) : sur iOS, un panneau ouvert est modal (un toucher hors du panneau
-  // le ferme) ; l'ouverture d'un second contrôle panneau ouvert se vérifie en ligne, sur
-  // Android. L'exclusivité des panneaux iOS est couverte par « PRE4-Q41 ».
-  it("P3-19/exclusive-scroll — un seul contrôle en place ouvert ; l'ouverture d'un autre démonte le premier ; en-tête hors du corps défilant", () =>
-    withPlatform("android", () => {
+  // [Q41 : un seul Sélecteur (roue) ouvert à la fois — remplacé le 06/11/2026, décision de Hermann
+  // (constat c) : saisie au clavier ; un seul champ clavier actif à la fois.]
+  it("P3-19/exclusive-scroll — un seul champ actif ; le focus d'un autre champ désactive le premier ; en-tête hors du corps défilant", () => {
     renderSheet(params());
-    // La roulette de la Cible n'est montée qu'ouverte ; « ouvert » se lit sur sa présence.
-    const targetSelectorOpen = () => screen.queryByTestId("execution-sheet-target-wheel") !== null;
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    expect(targetSelectorOpen()).toBe(true);
-    // Story 3.3 (AD-15, T10) : un Sélecteur ouvert, le toucher d'un autre champ le ferme
-    // sans appliquer et n'ouvre pas le champ touché ; un second toucher l'ouvre. PRE-5 story
-    // 2.5 : le Changement de côté n'a plus de surface ; le second Sélecteur est la Durée de
-    // l'exercice.
-    const totalSelectorOpen = () => screen.queryByTestId("execution-sheet-total-wheel") !== null;
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
-    expect(targetSelectorOpen()).toBe(false);
-    expect(totalSelectorOpen()).toBe(false);
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
-    expect(totalSelectorOpen()).toBe(true);
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
-    expect(totalSelectorOpen()).toBe(false);
+    openExecutionSheetField("execution-sheet-target");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: true });
+    openExecutionSheetField("execution-sheet-total");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: false });
+    expect(screen.getByTestId("execution-sheet-total").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.queryByTestId("execution-sheet-total-wheel")).toBeNull();
     const body = screen.getByTestId("execution-sheet-body");
     expect(within(body).queryByTestId("execution-sheet-validate")).toBeNull();
     showSignals();
-    expect(within(body).getByTestId("execution-sheet-end-toggle")).toBeTruthy();
-  }));
+    expect(within(body).getByTestId("execution-sheet-end")).toBeTruthy();
+  });
 
   it("P3-20/all-surfaces — titre, ✕ / ✓, lignes et libellés des écrans de référence ; valeurs « — » / Cadence « Sans » à l'état vide", () => {
     renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideMode: null }));
@@ -649,7 +604,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
       "Condition d’arrêt",
       "Séries",
       "Pause après chaque série",
-      "Changement de côté",
+      "De chaque côté", // ordre de Hermann du 01/11/2026, point 5 (remplace « Changement de côté »)
       "Cadence",
     ]) {
       expect(screen.getByText(label)).toBeTruthy();
@@ -712,77 +667,76 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityLabel).toBe("Valider les paramètres");
     expect(screen.getByTestId("execution-sheet-cancel").props.accessibilityLabel).toBe("Annuler les paramètres");
-    openExecutionSheetField("execution-sheet-series");
-    expect(screen.getByTestId("execution-sheet-series-decrement").props.accessibilityState).toMatchObject({ disabled: true });
+    // [− du ± de N indisponible à 1 — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au
+    // clavier ; 0 saisi est ramené à la borne 1.]
+    enterExecutionSheetValue("execution-sheet-series", 0, "integer");
+    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     // RC-15 : à N = 1, Variables est indisponible et annoncé comme tel (P16).
     expect(screen.getByTestId(SERIES_TYPE).props.accessibilityLabel).toBe("Séries");
     expect(screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityLabel).toBe("Variables, sans effet pour une seule série");
     expect(screen.getByTestId("execution-sheet").props.accessibilityViewIsModal).toBe(true);
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Durée d’une série, 1 min 30 s");
+    // Champ clavier : nom du réglage, valeur courante annoncée.
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityLabel).toBe("Objectif de durée");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityValue).toEqual({ text: "1′30″" });
   });
 
-  it("INTERACTION/wheel — roulette en place : valeur validée appliquée au brouillon ; ✕ de la roulette sans effet ; ✓ de la feuille applique", () => {
+  // [Roue de la Cible commune (✕ sans effet, ✓ appliqué) — remplacée le 06/11/2026, décision de Hermann
+  // (constat c) : saisie au clavier « MM:SS », appliquée à la sortie du champ.]
+  it("INTERACTION/keyboard — Cible commune saisie au clavier : « MM:SS » en saisie, valeur appliquée au brouillon à la sortie ; ✓ de la feuille applique", () => {
     const { onApply } = renderSheet(params());
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 2 } });
-    pressInExecutionSheet(screen.getByTestId("duration-wheel-cancel"));
-    expect(text("execution-sheet-target-value")).toBe("1 min 30 s");
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 2 } });
-    fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 0 } });
-    pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
-    expect(text("execution-sheet-target-value")).toBe("2 min");
+    openExecutionSheetField("execution-sheet-target");
+    expect(text("execution-sheet-target-value")).toBe("01:30");
+    typeInExecutionSheetCell("execution-sheet-target", "200");
+    expect(text("execution-sheet-target-value")).toBe("02:00");
+    closeExecutionSheetField("execution-sheet-target");
+    expect(text("execution-sheet-target-value")).toBe("2′00″");
     validate();
     expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(120), pauseSeconds: 15, loadKg: 0, workPhases: [] });
   });
 
-  it("ACCESSIBILITY/wheel — réglage nommé avec sa valeur ; Valider/Annuler de la roulette nommés ; pastille annoncée déployée", () => {
+  it("ACCESSIBILITY/keyboard — champ nommé avec sa valeur, clavier numérique, état sélectionné pendant la saisie", () => {
     renderSheet(params());
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    // Q41 : sur iOS, le panneau de la roue est modal pour VoiceOver (`accessibilityViewIsModal`) :
-    // la pastille, hors du panneau, est masquée à l'accessibilité tant qu'il est ouvert ; son
-    // état déployé se lit donc parmi les éléments masqués.
-    expect(
-      screen.getByTestId("execution-sheet-target-value", { includeHiddenElements: true }).props.accessibilityState,
-    ).toMatchObject({ expanded: true });
-    expect(screen.getByTestId("duration-wheel-validate").props.accessibilityLabel.length).toBeGreaterThan(0);
-    expect(screen.getByTestId("duration-wheel-cancel").props.accessibilityLabel.length).toBeGreaterThan(0);
-    pressInExecutionSheet(screen.getByTestId("duration-wheel-cancel"));
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityState).toMatchObject({ expanded: false });
+    expect(screen.getByTestId("execution-sheet-target-input", anyNode).props.keyboardType).toBe("number-pad");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: false });
+    openExecutionSheetField("execution-sheet-target");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: true });
+    closeExecutionSheetField("execution-sheet-target");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: false });
   });
 
-  it("INTERACTION/stepper — tap unique ; borne respectée ; aucun pas au relâchement", () => {
+  it("INTERACTION/keyboard — Pause : borne 5′00″ respectée ; pas de 1″ au clavier", () => {
     renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 300, loadKg: 0, workPhases: [] } }));
-    openExecutionSheetField("execution-sheet-pause");
-    expect(screen.getByTestId("execution-sheet-pause-increment").props.accessibilityState).toMatchObject({ disabled: true });
-    tap("execution-sheet-pause-decrement");
-    expect(valueOf("execution-sheet-pause")).toBe("4 min 59 s");
     tap("execution-sheet-pause-increment");
-    expect(valueOf("execution-sheet-pause")).toBe("5 min");
+    expect(valueOf("execution-sheet-pause")).toBe("5′00″");
+    tap("execution-sheet-pause-decrement");
+    expect(valueOf("execution-sheet-pause")).toBe("4′59″");
+    tap("execution-sheet-pause-increment");
+    expect(valueOf("execution-sheet-pause")).toBe("5′00″");
   });
 
-  it("ACCESSIBILITY/stepper — réglage ajustable nommé avec unité ; incrémenter/décrémenter accessibles au pas 1", () => {
-    renderSheet(params({ cadenceBeepIntervalSeconds: 4 }));
+  // [Cadence : ± ajustable (« adjustable », actions incrémenter / décrémenter) — remplacé le 06/11/2026,
+  // décision de Hermann (constat c) : saisie au clavier, bornes 0..10 s.]
+  it("ACCESSIBILITY/keyboard — Cadence (Autre) : champ nommé « Cadence » ; valeur saisie, bornée à 10″", () => {
+    const { onApply } = renderSheet(params({ cadenceBeepIntervalSeconds: 4 }));
     openExecutionSheetField("execution-sheet-beep");
     const beep = screen.getByTestId("execution-sheet-beep");
-    expect(beep.props.accessibilityRole).toBe("adjustable");
-    expect(beep.props.accessibilityLabel).toBe("Cadence, secondes");
-    expect(beep.props.accessibilityValue).toMatchObject({ min: 0, max: 10, now: 4 });
-    fireEvent(beep, "accessibilityAction", { nativeEvent: { actionName: "increment" } });
-    expect(valueOf("execution-sheet-beep")).toBe("5 s");
-    fireEvent(screen.getByTestId("execution-sheet-beep"), "accessibilityAction", { nativeEvent: { actionName: "decrement" } });
-    expect(valueOf("execution-sheet-beep")).toBe("4 s");
+    expect(beep.props.accessibilityLabel).toBe("Cadence");
+    expect(text("execution-sheet-beep-value")).toBe("00:04");
+    typeInExecutionSheetCell("execution-sheet-beep", "30");
+    closeExecutionSheetField("execution-sheet-beep");
+    validate();
+    expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(10);
   });
 
   it("INTERACTION/regime (ex-interrupteur) — identiques → variables : lignes copiées ; retour uniforme = première ligne ; réactivation restaure ; égalité garde VARIABLE", () => {
     const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     chooseRegime("variables");
-    expect(valueOf("execution-sheet-table-row-2-target")).toBe("30 s");
+    expect(valueOf("execution-sheet-table-row-2-target")).toBe("30″");
     chooseCellTarget(2, 31);
     chooseRegime("identiques");
-    expect(text("execution-sheet-target-value")).toBe("30 s");
+    expect(text("execution-sheet-target-value")).toBe("30″");
     chooseRegime("variables");
-    expect(valueOf("execution-sheet-table-row-2-target")).toBe("31 s");
+    expect(valueOf("execution-sheet-table-row-2-target")).toBe("31″");
     chooseCellTarget(2, 30);
     validate();
     expect(applied(onApply).series).toEqual(variableRows([[30, 10], [30, 10]]));
@@ -797,14 +751,14 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(seriesTypeText()).toBe("Identiques");
     // PRE-5 story 2.4 (P16) ; RC-15 : Variables indisponible, Identiques sélectionné porte le nombre.
     expect(screen.getByTestId(`${SERIES_TYPE}-VARIABLE`).props.accessibilityState).toMatchObject({ disabled: true });
-    expect(within(screen.getByTestId(SERIES_TYPE)).getByTestId("execution-sheet-series-field")).toBeTruthy();
+    expect(within(screen.getByTestId(SERIES_TYPE)).getByTestId("execution-sheet-series")).toBeTruthy();
   });
 
   it("INTERACTION/sortable-rows — déplacement puis ✕ : rien n'est appliqué au parent", () => {
     const { onApply, onCancel } = renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
     dragHandle(1, 42);
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("45 s");
-    expect(valueOf("execution-sheet-table-row-2-target")).toBe("30 s");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("45″");
+    expect(valueOf("execution-sheet-table-row-2-target")).toBe("30″");
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onApply).not.toHaveBeenCalled();
@@ -820,7 +774,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     ]);
     expect(screen.getByTestId("execution-sheet-table-row-2-target").props.accessibilityLabel).toBe("Série 2, Durée");
     moveAction(2, "moveUp");
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("45 s");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("45″");
     expect(screen.getByTestId("execution-sheet-table-row-1-pause").props.accessibilityLabel).toBe("Série 1, pause");
   });
 
@@ -849,7 +803,7 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     chooseMode("Durée");
     expect(screen.queryByTestId("execution-sheet-message")).toBeNull();
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityHint).toBe("Valeur à renseigner");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityHint).toBe("Valeur à renseigner");
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
@@ -866,14 +820,14 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     chooseRegime("variables");
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("—");
     expect(valueOf("execution-sheet-table-row-2-target")).toBe("—");
-    expect(valueOf("execution-sheet-table-row-2-pause")).toBe("20 s");
+    expect(valueOf("execution-sheet-table-row-2-pause")).toBe("20″");
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     validate();
     expect(onApply).not.toHaveBeenCalled();
     // D-4 : le sélecteur s’est refermé après « Répétitions » ; il est rouvert.
     chooseMode("Durée");
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
-    expect(valueOf("execution-sheet-table-row-2-target")).toBe("1 min");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30″");
+    expect(valueOf("execution-sheet-table-row-2-target")).toBe("1′00″");
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
@@ -881,14 +835,12 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
   it("REV-02 — tableau variable ramené à N=1 : total éditable ET appliqué (inversion), message d'ajustement sous la ligne, Annuler restitue ; ✓ uniforme", () => {
     const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [60, 20]]) }));
     tap("execution-sheet-series-decrement");
-    expect(text("execution-sheet-total")).toBe("40 s");
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
-    fireEvent(totalWheel().getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
-    fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 40 } });
-    fireEvent.press(totalWheel().getByTestId("duration-wheel-validate"));
+    expect(text("execution-sheet-total")).toBe("40″");
+    // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+    enterExecutionSheetValue("execution-sheet-total", 100);
     // 100 s demandés sur 30 s + 10 s : N=2 → 80 s, N=3 → 120 s, égalité → N le plus grand.
     expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
-    expect(text("execution-sheet-total")).toBe("2 min");
+    expect(text("execution-sheet-total")).toBe("2′00″");
     // PRE-5 story 2.5 (AC4) : déplier la Durée de l'exercice ne retire pas le message.
     showSignals();
     const json = JSON.stringify(screen.toJSON());
@@ -896,10 +848,8 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     expect(json.indexOf('"execution-sheet-adjusted"')).toBeLessThan(json.indexOf('"execution-sheet-row-countdown"'));
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect(valueOf("execution-sheet-series")).toBe("1 série identique");
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
-    fireEvent(totalWheel().getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
-    fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 20 } });
-    fireEvent.press(totalWheel().getByTestId("duration-wheel-validate"));
+    // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+    enterExecutionSheetValue("execution-sheet-total", 80);
     expect(valueOf("execution-sheet-series")).toBe("2 séries identiques");
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     validate();
@@ -910,13 +860,13 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [60, 20]]) }));
     moveAction(2, "moveUp");
     tap("execution-sheet-series-decrement");
-    expect(text("execution-sheet-target-value")).toBe("1 min");
-    expect(valueOf("execution-sheet-pause")).toBe("20 s");
+    expect(text("execution-sheet-target-value")).toBe("1′00″");
+    expect(valueOf("execution-sheet-pause")).toBe("20″");
     tap("execution-sheet-pause-increment");
-    expect(text("execution-sheet-total")).toBe("1 min 21 s");
+    expect(text("execution-sheet-total")).toBe("1′21″");
     tap("execution-sheet-series-increment");
-    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("21 s");
-    expect(valueOf("execution-sheet-table-row-2-target")).toBe("30 s");
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("21″");
+    expect(valueOf("execution-sheet-table-row-2-target")).toBe("30″");
     validate();
     expect(applied(onApply).series).toEqual(variableRows([[60, 21], [30, 10]]));
   });
@@ -928,10 +878,10 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     expect(dragDestination(0, 500, 42, 3)).toBe(2);
     renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
     dragHandle(3, -84);
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("1 min");
-    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("30 s");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("1′00″");
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("30″");
     dragHandle(1, 10);
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("1 min");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("1′00″");
   });
 
   it("DSF / Q40 — groupe du tableau des séries variables (ligne Séries comprise), sans contour ; repli DSF ; steppers 137/128 ; Répétitions avec bip : total ≈ en lecture seule", () => {
@@ -960,7 +910,7 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     expect(screen.getByText("Durée de l’exercice", anyNode)).toBeTruthy();
     expect(screen.queryByText("Durée de l’exercice ≈", anyNode)).toBeNull();
     // (12 + 10) × 2 s + 30 s + 45 s = 119 s.
-    expect(text("execution-sheet-total")).toBe("≈ 1 min 59 s");
+    expect(text("execution-sheet-total")).toBe("≈ 1′59″");
     expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
   });
 });
@@ -993,9 +943,9 @@ describe("ExecutionParametersSheet — recette 1", () => {
     dispatch("onResponderMove", 184);
     dispatch("onResponderRelease", 184);
 
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("45 s");
-    expect(valueOf("execution-sheet-table-row-3-target")).toBe("30 s");
-    expect(valueOf("execution-sheet-table-row-3-pause")).toBe("5 s");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("45″");
+    expect(valueOf("execution-sheet-table-row-3-target")).toBe("30″");
+    expect(valueOf("execution-sheet-table-row-3-pause")).toBe("5″");
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1").props.style).transform).toBeUndefined();
     validate();
     expect(applied(onApply).series).toEqual(variableRows([[45, 10], [60, 15], [30, 5]]));
@@ -1016,7 +966,7 @@ describe("ExecutionParametersSheet — recette 1", () => {
       jest.useRealTimers();
     }
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-row-1").props.style).transform).toBeUndefined();
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30″");
   });
 
   it("F-02 — séries variables modifiées puis Durée → Répétitions → Durée (et inverse) avant ✓ : dernières valeurs restaurées, ✓ conserve l'effectif", () => {
@@ -1029,7 +979,7 @@ describe("ExecutionParametersSheet — recette 1", () => {
     chooseCellTarget(1, 35);
     chooseCellTarget(3, 55);
     const durations = rows();
-    expect(durations).toEqual(["35 s", "45 s", "55 s"]);
+    expect(durations).toEqual(["35″", "45″", "55″"]);
     choose("Répétitions");
     expect(rows()).toEqual(["—", "—", "—"]);
     chooseCellTarget(2, 1);
@@ -1083,7 +1033,7 @@ describe("ExecutionParametersSheet — recette 1 (A-01, A-04)", () => {
     chooseRegime("identiques");
     chooseRegime("variables");
     expect(screen.getByTestId("execution-sheet-table")).toBeTruthy();
-    expect(valueOf("execution-sheet-table-row-3-target")).toBe("1 min");
+    expect(valueOf("execution-sheet-table-row-3-target")).toBe("1′00″");
   });
 
   it("A-04 — voile en fondu sur place (Modal fade, sans translation) ; seule la feuille monte depuis le bas", () => {
@@ -1163,10 +1113,8 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
     const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
     // Total demandé 1 min 40 s : N=3 retenu, message d’ajustement (même geste que P3-14/inverse-enumeration).
     const adjust = () => {
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      fireEvent(totalWheel().getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
-      fireEvent(totalWheel().getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 40 } });
-      fireEvent.press(totalWheel().getByTestId("duration-wheel-validate"));
+      // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+      enterExecutionSheetValue("execution-sheet-total", 100);
     };
     // Annuler encadré : restaure les valeurs précédant l’ajustement (1 série).
     adjust();
@@ -1194,7 +1142,7 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
 });
 
 describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
-  it("D-341, PRE5-2.5/AC1, AC2, RC-6 — Mode sans choix affiché tant que le mode est vide ; Changement de côté en segmenté `inline` (32 de haut ; RC-12 : Avec de 146 portant la notation de l'Enchainement, Sans de 62) ; notation en police réduite (10) ; libellés de ligne Regular 12", () =>
+  it("D-341, PRE5-2.5/AC1, AC2, RC-6 — Mode sans choix affiché tant que le mode est vide ; Changement de côté en segmenté `inline` (32 de haut ; depuis le 01/11/2026 : Avec de 104 portant « DD… → GG… », Sans de 62) ; notation à la taille standard (12) ; libellés de ligne Regular 12", () =>
     withPlatform("android", () => {
       renderSheet(params({ mode: null, sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" }));
       // PRE-5 story 2.4 (AC3, UX-DR1) : le Mode est un segmenté en ligne (32 de haut, deux
@@ -1205,10 +1153,10 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(StyleSheet.flatten(within(mode).getByText("Durée", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
 
       // PRE-5 story 2.5 (AC1) ; RC-6 (Figma `9462:18986`), RC-11 puis RC-12 : Changement de côté
-      // Avec / Sans, Avec de 146 et Sans de 62 (146 + 2 + 62 + 2 × 3).
-      expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITH`, anyNode).props.style)).toMatchObject({ width: 146 });
+      // Avec / Sans, Avec de 146 et Sans de 62 [remplacé le 01/11/2026 : Avec de 104, Figma `9462:18978` ; 104 + 2 + 62 + 2 × 3 = 174].
+      expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITH`, anyNode).props.style)).toMatchObject({ width: 104 });
       const side = screen.getByTestId(SIDE_CONTROL);
-      expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 216 });
+      expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 174 });
       expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITHOUT`, anyNode).props.style)).toMatchObject({ width: 62 });
       expect(StyleSheet.flatten(within(side).getByText("Sans", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
       expect(within(side).queryByText(/Droite|Gauche|changement/u, anyNode)).toBeNull();
@@ -1218,14 +1166,14 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(screen.queryByText("Enchainement")).toBeNull();
       expect(within(side).queryByText("Avec", anyNode)).toBeNull();
       const order = within(side).getByTestId(ORDER_MENU);
-      expect(StyleSheet.flatten(within(order).getByText("(D1 → D2) ➜ (G1 → G2)", anyNode).props.style)).toMatchObject({
-        fontSize: 10,
+      expect(StyleSheet.flatten(within(order).getByText("DD… → GG…", anyNode).props.style)).toMatchObject({
+        fontSize: 12, // ordre de Hermann du 01/11/2026, point 5 : taille standard, sans réduction (10 auparavant)
         fontWeight: "600",
         color: "#FFFFFF",
       });
       expect(order.props.accessibilityLabel).toBe("Enchainement");
-      expect(order.props.accessibilityValue).toEqual({ text: "Un côté après l’autre" });
-      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
+      expect(order.props.accessibilityValue).toEqual({ text: "Chaque série d’un côté, puis chaque série de l’autre" });
+      expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
       // PRE-7 B.3 (B5, arbitrage A3) : ailleurs qu'iOS aussi, le déroulant de l'Enchainement
       // (plus d'`Alert`) : deux notations exactes, nommé « Enchainement », rôle menu.
       const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
@@ -1235,16 +1183,16 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
         const menu = within(screen.getByTestId(ORDER_PANEL)).getByTestId(`${ORDER_MENU}-menu`);
         expect(menu.props.accessibilityRole).toBe("menu");
         expect(menu.props.accessibilityLabel).toBe("Enchainement");
-        expect(within(menu).getAllByRole("menuitem").map((row) => within(row).getByText(/➜/u, anyNode).props.children)).toEqual([
-          "(D1 → D2) ➜ (G1 → G2)",
-          "(D1 → G1) ➜ (D2 → G2)",
+        expect(within(menu).getAllByRole("menuitem").map((row) => within(row).getByText(/→/u, anyNode).props.children)).toEqual([
+          "DD… → GG…",
+          "DG → DG → …",
         ]);
         fireEvent.press(screen.getByTestId(`${ORDER_PANEL}-outside`, anyNode));
       } finally {
         alert.mockRestore();
       }
       // PRE-5 story 2.4 (PR-03) : les titres des lignes passent en Inter Regular 12.
-      expect(StyleSheet.flatten(screen.getByText("Changement de côté").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
+      expect(StyleSheet.flatten(screen.getByText("De chaque côté").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
     }));
 });
 
@@ -1260,7 +1208,7 @@ describe("ExecutionParametersSheet — recette 2 (T-10 / F-02)", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 5], [60, 5]]) }));
     const choose = chooseMode;
     chooseCellTarget(1, 31);
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("31 s");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("31″");
     choose("Répétitions");
     // D-434 (QD-434-1) : la cellule Répétitions se saisit au clavier ; la cellule vide (jamais
     // 30) affiche « 0 » en saisie, la frappe « 1 » donne 1 rép.
@@ -1273,7 +1221,7 @@ describe("ExecutionParametersSheet — recette 2 (T-10 / F-02)", () => {
     chooseCellTarget(1, 2);
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("2 rép.");
     choose("Durée");
-    expect([1, 2, 3].map((n) => valueOf(`execution-sheet-table-row-${n}-target`))).toEqual(["31 s", "45 s", "1 min"]);
+    expect([1, 2, 3].map((n) => valueOf(`execution-sheet-table-row-${n}-target`))).toEqual(["31″", "45″", "1′00″"]);
     choose("Répétitions");
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("2 rép.");
   });
@@ -1295,8 +1243,8 @@ describe("ExecutionParametersSheet — recette 2 (T-15)", () => {
     act(() => handle().props.onResponderRelease({ nativeEvent: { pageY: 184 } }));
     expect(body().props.scrollEnabled).toBe(true);
     expect(screen.queryAllByTestId(/insertion-guide/, { includeHiddenElements: true })).toHaveLength(0);
-    expect([1, 2, 3, 4].map((n) => valueOf(`execution-sheet-table-row-${n}-target`))).toEqual(["45 s", "1 min", "30 s", "1 min 15 s"]);
-    expect(valueOf("execution-sheet-table-row-3-pause")).toBe("5 s");
+    expect([1, 2, 3, 4].map((n) => valueOf(`execution-sheet-table-row-${n}-target`))).toEqual(["45″", "1′00″", "30″", "1′15″"]);
+    expect(valueOf("execution-sheet-table-row-3-pause")).toBe("5″");
   });
 
   it("T-15 — geste interrompu par le système : défilement rétabli, aucun repère, aucun déplacement", () => {
@@ -1307,7 +1255,7 @@ describe("ExecutionParametersSheet — recette 2 (T-15)", () => {
     act(() => handle.props.onResponderTerminate({ nativeEvent: null }));
     expect(screen.getByTestId("execution-sheet-body").props.scrollEnabled).toBe(true);
     expect(screen.queryAllByTestId(/insertion-guide/, { includeHiddenElements: true })).toHaveLength(0);
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30″");
   });
 });
 
@@ -1389,7 +1337,7 @@ describe("ExecutionParametersSheet — PRE-4 story 1.1", () => {
     }
     tap("execution-sheet-series-increment");
     expect(valueOf("execution-sheet-table-row-3-target")).toBe("à l’échec");
-    expect(valueOf("execution-sheet-table-row-3-pause")).toBe("20 s");
+    expect(valueOf("execution-sheet-table-row-3-pause")).toBe("20″");
 
     chooseMode("Durée");
     expect(within(screen.getByTestId("execution-sheet-table")).getByText("Durée")).toBeTruthy();
@@ -1414,14 +1362,14 @@ describe("ExecutionParametersSheet — PRE-4 story 1.1", () => {
     const inherited = withPhases(durationParameters("UNSET", 3, 10));
     const { onApply } = renderSheet(inherited, 10, inherited);
     expect(text("execution-sheet-target-value")).toBe("—");
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityHint).toBe("Valeur à renseigner");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityHint).toBe("Valeur à renseigner");
     expect(screen.queryByTestId("execution-sheet-target-failure")).toBeNull();
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     validate();
     expect(onApply).not.toHaveBeenCalled();
   });
 
-  it("PRE4-1.1/AC24 — ligne de base Durée 5999 s : ✓ disponible sans toucher la Cible, Cible appliquée 5999 s ; en création la même valeur est refusée", () => {
+  it("PRE4-1.1/AC24 — ligne de base Durée 1h 39′59″ : ✓ disponible sans toucher la Cible, Cible appliquée 1h 39′59″ ; en création la même valeur est refusée", () => {
     const historic = withPhases(durationParameters(5999, 3, 10));
     const view = renderSheetView(historic, 10, historic);
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
@@ -1434,9 +1382,9 @@ describe("ExecutionParametersSheet — PRE-4 story 1.1", () => {
   });
 
   // Q36 (Hermann, 2026-10-17) et D-430 : 4 s est désormais admise (minimum 1 s) ; 3536 s reste au-dessus de la borne.
-  it("PRE4-1.1/AC24 — valeur hors bornes (3536 s) signalée « Valeur non admise » (jamais « à renseigner »), ✓ indisponible au suffixe neutre", () => {
+  it("PRE4-1.1/AC24 — valeur hors bornes (58′56″) signalée « Valeur non admise » (jamais « à renseigner »), ✓ indisponible au suffixe neutre", () => {
     renderSheet(withPhases(durationParameters(3536, 3, 10)));
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityHint).toBe("Valeur non admise");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityHint).toBe("Valeur non admise");
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityLabel).toBe(
       "Valider les paramètres, indisponible tant qu’une valeur est invalide",
     );
@@ -1477,7 +1425,7 @@ describe("ExecutionParametersSheet — PRE-4 story 2.1", () => {
   // `≥` (voir `PRE4-3.7/AC1`) ; ce test garde le tout échec et la Cible à renseigner.
   // D-433 : la ligne n'est plus masquée ; tableau variable entièrement à l'échec (en attente
   // d'arbitrage) et Cible à renseigner affichent « — » (données manquantes), jamais « 0 s ».
-  it("PRE4-2.1/AC9, D-433 — ligne Durée de l’exercice « — » (données manquantes) pour un tableau variable tout échec et une Cible à renseigner : ni « 0 s » ni ≥ (mélange : story 3.7)", () => {
+  it("PRE4-2.1/AC9, D-433 — ligne Durée de l’exercice « — » (données manquantes) pour un tableau variable tout échec et une Cible à renseigner : ni « 0″ » ni ≥ (mélange : story 3.7)", () => {
     for (const parent of [
       variableParameters({ rows: [["FAILURE", 10], ["FAILURE", 10]] }),
       durationParameters("UNSET", 3, 10),
@@ -1488,7 +1436,7 @@ describe("ExecutionParametersSheet — PRE-4 story 2.1", () => {
       expect(totalShown()).toBe("—");
       expect(totalSpoken()).toBe(TOTAL_MISSING_SPOKEN);
       expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
-      expect(screen.queryAllByText("0 s")).toHaveLength(0);
+      expect(screen.queryAllByText("0″")).toHaveLength(0);
       expect(screen.queryAllByText(/≥/u)).toHaveLength(0);
       view.unmount();
     }
@@ -1498,7 +1446,7 @@ describe("ExecutionParametersSheet — PRE-4 story 2.1", () => {
   });
 
   // Q36 (Hermann, 2026-10-17) et D-430 : la saisie invalide est 3536 s, au-dessus de la borne (4 s est admise).
-  it("PRE4-2.1/AC9 — autre saisie invalide (Cible Durée hors bornes, 3536 s) : comportement existant conservé, ligne présente avec « — »", () => {
+  it("PRE4-2.1/AC9 — autre saisie invalide (Cible Durée hors bornes, 58′56″) : comportement existant conservé, ligne présente avec « — »", () => {
     renderSheet(durationParameters(3536, 3, 10));
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
@@ -1581,36 +1529,31 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
     }));
 
   /**
-   * PRE-5 story 2.4 — remplace les deux tests d'appui extérieur et de second toucher sur la
-   * bulle du Mode (plus de bulle) : choisir le Mode range un champ ± ouvert (AD-15, la
-   * surface ouverte se ferme) et la Feuille reste tactile ; re-choisir le Mode affiché ne
-   * change rien (aucune double bascule possible).
+   * PRE-5 story 2.4 — choisir le Mode range la surface ouverte et la Feuille reste tactile ;
+   * re-choisir le Mode affiché ne change rien. [Champ ± de la Cadence et roue de la Cible — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier :
+   * champ clavier de la Cadence (révélé par Autre) et champ clavier de la Cible.]
    */
-  it("PRE4-3.1/AC3, PRE5-2.4 — iOS : choix du Mode avec un champ ± ouvert : appliqué, champ rangé ; Feuille de nouveau tactile ; re-choisir le Mode affiché est sans effet", () =>
+  it("PRE4-3.1/AC3, PRE5-2.4 — iOS : choix du Mode avec un champ clavier ouvert : appliqué, champ rangé ; Feuille de nouveau tactile", () =>
     withPlatform("ios", () => {
       renderSheet(params());
       openExecutionSheetField("execution-sheet-beep");
-      expect(screen.getByTestId("execution-sheet-beep-increment")).toBeTruthy();
+      expect(screen.getByTestId("execution-sheet-beep", anyNode).props.accessibilityState).toMatchObject({ selected: true });
       fireEvent.press(screen.getByTestId(`${MODE_CONTROL}-DURATION`));
       expect(modeText()).toBe("Durée");
-      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
-      // Feuille tactile : une autre ligne s'ouvre (roue de la Cible dans son panneau sans flèche).
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      expect(screen.getByTestId("execution-sheet-target-panel")).toBeTruthy();
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-      expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
-      expect(text("execution-sheet-target-value")).toBe("1 min 30 s");
+      expect(screen.queryByTestId("execution-sheet-beep-input", anyNode)).toBeNull();
+      // Feuille tactile : un autre champ prend la saisie.
+      openExecutionSheetField("execution-sheet-target");
+      expect(screen.getByTestId("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: true });
+      closeExecutionSheetField("execution-sheet-target");
+      expect(text("execution-sheet-target-value")).toBe("1′30″");
     }));
 
   /**
-   * Q41 (Hermann, 2026-10-17, recette iPhone, E-15) — remplace le test PRE4-Q37 (roue dans
-   * `WheelPickerOverlay`, couche centrée, voile non pressable), qui remplaçait lui-même le
-   * test « voie (i) » de la story 3.1. La roue de « Durée d’une série » s'ouvre dans un
-   * panneau sans flèche (`AnchoredPanel`), sous le champ, aligné à droite, au-dessus du
-   * contenu ; un toucher hors du panneau le ferme sans rien appliquer. Jest ne prouve que
-   * l'arbre JS : la position, l'absence de flèche et le toucher réels se constatent sur iPhone.
+   * [Q41 : roue de « Durée d'une série » dans un panneau sans flèche (`AnchoredPanel`) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+   * La Cible commune se saisit dans sa pastille, dans la ligne, sans panneau, Popover ni Modal
+   * supplémentaire ; la saisie est appliquée au Brouillon de la Feuille à la sortie du champ.
    */
-  it("PRE4-Q41 — iOS : la pastille ouvre la roue dans un panneau sans flèche, dans la Feuille, sans Popover ni Modal supplémentaire ; roue native dedans ; ✓ applique au Brouillon, ✕ et toucher extérieur ferment sans appliquer ; Feuille intacte", () =>
+  it("PRE4-Q41 — iOS : la Cible commune se saisit au clavier dans sa pastille, sans panneau, Popover ni Modal supplémentaire ; appliquée au Brouillon de la Feuille seulement", () =>
     withPlatform("ios", () => {
       const onApply = jest.fn<(value: ExecutionParameters) => void>();
       const view = render(
@@ -1618,77 +1561,16 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
           <ExecutionParametersSheet parent={params()} profileSideRecoverySecondsDefault={10} onApply={onApply} onCancel={jest.fn()} />
         </TestSafeAreaProvider>,
       );
-      // Fermée : aucun panneau, aucune roue montée, aucun Popover (PRE-5 story 2.4 : plus
-      // même celui du Mode).
-      expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
-      expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
-      expect(screen.queryByTestId("execution-sheet-target-host-popover")).toBeNull();
+      expect(within(screen.getByTestId("execution-sheet-row-target")).getByTestId("execution-sheet-target")).toBeTruthy();
+      openExecutionSheetField("execution-sheet-target");
+      expect(screen.queryByTestId("execution-sheet-target-panel", anyNode)).toBeNull();
+      expect(screen.queryByTestId("duration-wheel-picker", anyNode)).toBeNull();
       expect(view.UNSAFE_root.findAllByType(Popover)).toHaveLength(0);
       expect(view.UNSAFE_root.findAllByType(Modal)).toHaveLength(1);
-
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      const panel = screen.getByTestId("execution-sheet-target-panel");
-      expect(
-        screen.getByTestId("execution-sheet-target-value", { includeHiddenElements: true }).props.accessibilityState,
-      ).toMatchObject({ expanded: true });
-      // Dans la Feuille, dans son corps défilant, hors de la ligne (aucune ligne ne se décale).
-      expect(within(screen.getByTestId("execution-sheet-panel-host", { includeHiddenElements: true })).getByTestId("execution-sheet-target-panel")).toBe(panel);
-      expect(
-        within(screen.getByTestId("execution-sheet-row-target", { includeHiddenElements: true })).queryByTestId("execution-sheet-target-wheel", {
-          includeHiddenElements: true,
-        }),
-      ).toBeNull();
-      // Ni Modal supplémentaire, ni couche WheelPickerOverlay, ni Popover (donc ni flèche).
-      expect(view.UNSAFE_root.findAllByType(Modal)).toHaveLength(1);
-      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      expect(panel.findAllByType(Popover)).toHaveLength(0);
-      expect(view.UNSAFE_root.findAllByType(Popover)).toHaveLength(0);
-      expect(panel.findAllByType(RNHostView)).toHaveLength(0);
-      // Roue native inchangée (Picker SwiftUI, aucun ScrollView) avec sa barre ✕ / ✓, seuls éléments tactiles du panneau.
-      const hosted = within(panel).getByTestId("execution-sheet-target-wheel");
-      expect(within(hosted).getByTestId("duration-wheel-minutes").props.onSelectionChange).toBeInstanceOf(Function);
-      expect(scrollViewsUnder(panel)).toHaveLength(0);
-      // PRE-5 story 2.4 (AC6, FR-22) : la roue de la Cible commune n'offre plus l'option
-      // « Aucune durée, à l’échec » (story 3.4) ; seule la barre ✕ / ✓ est tactile.
-      expect(touchablesUnder(panel)).toEqual(["duration-wheel-cancel", "duration-wheel-validate"]);
-      expect(screen.queryByTestId("duration-wheel-failure-option")).toBeNull();
-      // Panneau modal pour VoiceOver ; le geste d'échappement le ferme.
-      expect(panel.props.accessibilityViewIsModal).toBe(true);
-      expect(panel.props.onAccessibilityEscape).toBeInstanceOf(Function);
-      // Zone de toucher extérieur : tactile, non accessible.
-      const outside = () => screen.getByTestId("execution-sheet-target-panel-outside", { includeHiddenElements: true });
-      expect(outside().props.accessible).toBe(false);
-
-      // ✓ : appliqué au Brouillon de la Feuille seulement.
-      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 2 } });
-      fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 15 } });
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
-      expect(text("execution-sheet-target-value")).toBe("2 min 15 s");
+      typeInExecutionSheetCell("execution-sheet-target", "215");
+      closeExecutionSheetField("execution-sheet-target");
+      expect(text("execution-sheet-target-value")).toBe("2′15″");
       expect(onApply).not.toHaveBeenCalled();
-      // Feuille intacte : une seule Modal, toujours tactile.
-      expect(view.UNSAFE_root.findAllByType(Modal)).toHaveLength(1);
-      expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityState).toMatchObject({ expanded: false });
-
-      // Réouverture : la roue repart de la valeur courante ; ✕ ne change rien.
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(2);
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(15);
-      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 4 } });
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-      expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
-      expect(text("execution-sheet-target-value")).toBe("2 min 15 s");
-      // Toucher hors du panneau : fermeture sans application.
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 5 } });
-      fireEvent.press(outside());
-      expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
-      expect(text("execution-sheet-target-value")).toBe("2 min 15 s");
-      // Rouverte : aucune position abandonnée n'est reprise.
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(2);
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-
       validate();
       expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: { kind: "NUMBER", value: 135 } });
     }));
@@ -1709,10 +1591,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
   it("PRE4-3.1/AC4 — iOS : la pastille, hors de tout Popover (Q37), garde l’indicateur d’invalidité", () =>
     withPlatform("ios", () => {
       renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
-      const pill = screen.getByTestId("execution-sheet-target-value");
-      // Q37 : plus de Popover de Cible ; la pastille est dans la ligne de la Feuille.
+      // Décision du 06/11/2026 (constat c) : la pastille est le champ clavier `execution-sheet-target`.
+      const pill = screen.getByTestId("execution-sheet-target");
       expect(screen.queryByTestId("execution-sheet-target-host-popover")).toBeNull();
-      expect(within(screen.getByTestId("execution-sheet-row-target")).getByTestId("execution-sheet-target-value")).toBe(pill);
+      expect(within(screen.getByTestId("execution-sheet-row-target")).getByTestId("execution-sheet-target")).toBe(pill);
       expect(pill.props.accessibilityHint).toBe("Valeur à renseigner");
       // Q35 : fond rouge léger, sans liseré.
       const pillStyle = StyleSheet.flatten(pill.props.style);
@@ -1725,62 +1607,20 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
   // de la story 3.1 est retiré avec le popover du Mode ; l'absence de tout Popover et de tout
   // Host SwiftUI est prouvée par « PRE4-3.1/AC6, PRE5-2.4/AC3 ».
 
-  /**
-   * Q41 (Hermann, 2026-10-17, E-15) — remplace le test PRE4-Q37 « roue centrée sur la page »
-   * (lui-même remplaçant le correctif E-05). Le panneau s'ouvre juste sous le champ Durée,
-   * cadre aligné à droite sur le champ ; la roue garde sa propre largeur (`330`), sans bulle
-   * ni dimensionnement. Positions relevées à la mise en page (événements `layout`).
-   */
-  it("PRE4-Q41 — iOS : panneau de la roue juste sous le champ Durée, cadre aligné à droite, largeur propre de la roue (330), sans flèche ; aucune réserve quand il tient sous le dernier cadre", () =>
-    withPlatform("ios", () => {
-      renderSheet(params());
-      // PRE-5 story 2.4 (AD-28) : repère unique — y du cadre Séries + y de la ligne dans le cadre.
-      layoutFrames({ execution: [0, 90], series: [98, 230], sides: [336, 50], cadence: [394, 190] });
-      layoutOf("execution-sheet-row-target", 96, 42);
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      const panel = screen.getByTestId("execution-sheet-target-panel");
-      const placement = StyleSheet.flatten(panel.props.style);
-      // Sous la ligne du champ (98 + 96 + 42), à 4 points ; bord droit du champ (contour 1 et
-      // marge interne 12 du cadre).
-      expect(placement).toMatchObject({ position: "absolute", top: 98 + 96 + 42 + 4, right: 13 });
-      expect(placement.left).toBeUndefined();
-      // Aucun habillage ni transformation de bulle : pas de flèche, la roue garde sa surface.
-      expect(placement.transform).toBeUndefined();
-      expect(placement.backgroundColor).toBeUndefined();
-      const hosted = within(panel).getByTestId("execution-sheet-target-wheel");
-      expect(StyleSheet.flatten(hosted.props.style)).toBeUndefined();
-      expect(StyleSheet.flatten(within(hosted).getByTestId("duration-wheel-picker").props.style).width).toBe(330);
-      fireEvent(panel, "layout", { nativeEvent: { layout: { x: 0, y: 142, width: 330, height: 213 } } });
-      expect(screen.queryByTestId("execution-sheet-panel-room", { includeHiddenElements: true })).toBeNull();
-    }));
+  // [PRE4-Q41 — géométrie du panneau de la roue de la Cible commune : supprimé, remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
 
-  /**
-   * Limite : `withPlatform("android")` ne change que `Platform.OS` à l'exécution. Les
-   * simulacres jest-expo restent ceux du préréglage, et aucun rendu Android réel n'est
-   * produit. Le test vérifie la branche JS choisie et un élément propre au chemin
-   * Android/web : le `ScrollView` de la roulette `LegacyDurationWheelPicker`.
-   */
-  it("PRE4-3.1/AC6 — parité Android : aucun Popover ; segmenté du Mode en ligne et roulette Legacy en ligne inchangés", () =>
+  // [Roulette Legacy en ligne (Android) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : même champ clavier sur toutes les plates-formes.]
+  it("PRE4-3.1/AC6 — parité Android : aucun Popover ; segmenté du Mode en ligne ; Cible commune au clavier dans sa ligne", () =>
     withPlatform("android", () => {
       renderSheet(params());
       expect(screen.queryByTestId("execution-sheet-mode-host")).toBeNull();
       expect(screen.queryByTestId("execution-sheet-target-host")).toBeNull();
-      // PRE-5 story 2.4 : même segmenté du Mode en ligne que sur iOS, toujours affiché.
       expect(within(screen.getByTestId("execution-sheet-row-mode")).getByTestId(MODE_CONTROL)).toBeTruthy();
       expect(screen.queryAllByTestId(/^execution-sheet-mode-option-/)).toHaveLength(0);
-      // Rien n'est ouvert : le toucher ouvre la roulette en ligne.
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      // Q37 puis Q41 ne visent que iOS : ni couche WheelPickerOverlay, ni panneau sans
-      // flèche sur Android ; la roulette reste en ligne, dans le cadre de sélection (Q41).
+      openExecutionSheetField("execution-sheet-target");
       expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
-      expect(within(screen.getByTestId("execution-sheet-row-target")).getByTestId("execution-sheet-target-wheel")).toBeTruthy();
-      const inline = screen.getByTestId("execution-sheet-target-wheel");
-      expect(within(inline).getByTestId("duration-wheel-picker")).toBeTruthy();
-      expect(scrollViewsUnder(inline).length).toBeGreaterThan(0);
-      expect(within(inline).getByTestId("duration-wheel-minutes").props.onSelectionChange).toBeUndefined();
-      pressInExecutionSheet(screen.getByTestId("duration-wheel-cancel"));
       expect(screen.queryByTestId("execution-sheet-target-wheel")).toBeNull();
+      expect(within(screen.getByTestId("execution-sheet-row-target")).getByTestId("execution-sheet-target")).toBeTruthy();
     }));
 });
 
@@ -1814,6 +1654,8 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     withPlatform("android", () => {
     renderSheet(bilateralVariable());
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    // Décision du 06/11/2026 : Autre révèle le champ clavier de la Cadence et lui donne le focus (simulé).
+    fireEvent(screen.getByTestId("execution-sheet-beep-input", anyNode), "focus");
     animated("execution-sheet-beep-motion");
     animated("execution-sheet-row-side-recovery");
     animated("execution-sheet-row-side");
@@ -1830,7 +1672,7 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     expect(row.exiting).toBeDefined();
     expect(row.layout).toBe(rowShiftLayout);
     // N 2 → 3 : la nouvelle ligne du tableau entre (Q41 : révélée par le bas, sans fondu).
-    // Le ± de la Cadence se range quand celui de N s'ouvre (T20).
+    // Le champ de la Cadence se range quand celui de N prend la saisie (T20 ; [± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]).
     tap("execution-sheet-series-increment");
     expect(screen.queryByTestId("execution-sheet-beep-motion")).toBeNull();
     expect(motionOf("execution-sheet-table-row-3-motion").entering).toBeDefined();
@@ -1850,21 +1692,18 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     }
   }));
 
-  it("PRE4-Q39 — Cible commune, Durée totale et sa roulette en ligne : entrée, sortie et transition de place", () =>
+  it("PRE4-Q39 — Cible commune et Durée totale (champ clavier) : entrée, sortie et transition de place", () =>
     withPlatform("android", () => {
       renderSheet(params());
       animated("execution-sheet-row-target");
       animated("execution-sheet-row-total");
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      animated("execution-sheet-total-wheel");
+      // [Roulette de la Durée totale en ligne (T10 : premier appui qui la ferme sans appliquer) —
+      // remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : le champ clavier ouvert n'absorbe pas le choix, appliqué d'un seul geste.]
+      openExecutionSheetField("execution-sheet-total");
+      expect(screen.queryByTestId("execution-sheet-total-wheel")).toBeNull();
       // PRE-5 story 2.4 (AC3) : le Mode n'a plus de sélecteur en ligne ; son segmenté reste
       // affiché. La ligne de cible masquée à l'échec (FR-21) sort et rentre avec ses animations.
       expect(screen.queryByTestId("execution-sheet-mode-selector")).toBeNull();
-      // T10 : la roulette de la Durée totale est ouverte ; le premier appui la ferme sans
-      // appliquer, le second choisit À l’échec.
-      fireEvent.press(screen.getByTestId(`${STOP_CONTROL}-FAILURE`));
-      expect(screen.queryByTestId("execution-sheet-total-wheel")).toBeNull();
-      expect(screen.getByTestId("execution-sheet-row-target")).toBeTruthy();
       fireEvent.press(screen.getByTestId(`${STOP_CONTROL}-FAILURE`));
       expect(screen.queryByTestId("execution-sheet-row-target")).toBeNull();
       fireEvent.press(screen.getByTestId(`${STOP_CONTROL}-TARGET`));
@@ -1911,7 +1750,9 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     expect(motionOf("execution-sheet-beep-motion")).toMatchObject({ entering: revealClipEntering, exiting: revealClipExiting });
     expect(motionOf("execution-sheet-beep-motion-content")).toMatchObject({ entering: revealContentEntering, exiting: revealContentExiting });
-    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    // [Second appui sur Autre qui range le ± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : le champ se range à sa sortie.]
+    fireEvent(screen.getByTestId("execution-sheet-beep-input", anyNode), "focus");
+    closeExecutionSheetField("execution-sheet-beep");
     expect(screen.queryByTestId("execution-sheet-beep-motion")).toBeNull();
     for (const testID of ["execution-sheet-row-side-recovery"]) {
       expect(motionOf(testID)).toMatchObject({ entering: revealClipEntering, exiting: revealClipExiting });
@@ -1991,17 +1832,17 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     // l'Enchainement n'ouvrent aucune surface de la Feuille ; la ligne n'est jamais surlignée.
     chooseOrder("Les deux côtés à chaque série");
     expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
-    // AC3 : Autre révèle le ± sous la ligne Cadence, désignée par le fond de sélection.
+    // AC3 : Autre révèle le champ (± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier) sous la ligne Cadence, désignée par le fond de sélection.
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    fireEvent(screen.getByTestId("execution-sheet-beep-input", anyNode), "focus");
     checkSelected("execution-sheet-row-beep");
-    // Famille ± : toucher la Durée de l'exercice range le ± et ouvre la roue d'un seul geste.
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
+    // Toucher la Durée de l'exercice range le champ de la Cadence et ouvre sa saisie d'un seul geste.
+    openExecutionSheetField("execution-sheet-total");
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
     checkSelected("execution-sheet-row-total");
-    // PRE-5 story 2.4 (AC3) : le Mode n'ouvre aucune surface ; le choisir ferme la roue
+    // PRE-5 story 2.4 (AC3) : le Mode n'ouvre aucune surface ; le choisir ferme la saisie
     // ouverte et sa ligne n'est jamais surlignée (re-choisir le Mode affiché : Brouillon inchangé).
     chooseMode("Durée");
-    expect(screen.queryByTestId("execution-sheet-total-wheel")).toBeNull();
     expect(styleOf("execution-sheet-row-total-selection").backgroundColor).toBeUndefined();
     expect(styleOf("execution-sheet-row-mode-selection").backgroundColor).toBeUndefined();
   }));
@@ -2085,14 +1926,15 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
     const group = () => styleOf("execution-sheet-variable-group");
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-    expect(screen.getByTestId("execution-sheet-beep-increment")).toBeTruthy();
+    // [± de la Cadence — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : champ révélé, focus simulé.]
+    fireEvent(screen.getByTestId("execution-sheet-beep-input", anyNode), "focus");
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
     expect(group().backgroundColor).toBeUndefined();
     // D-434 : la cellule Pause prend le focus (clavier) ; famille ± : le ± de la Cadence se
     // range dans le même geste (T20).
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-pause-input"), "focus");
     expect(styleOf("execution-sheet-table-row-1-pause").backgroundColor).toBe("#EAEAFF");
-    expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-beep-input", anyNode)).toBeNull();
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
     expect(cadenceText()).toBe("Sans");
     expect(group().backgroundColor).toBe(SELECTED_SURFACE);
@@ -2103,7 +1945,7 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
     expect(group().backgroundColor).toBeUndefined();
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-handle"), "responderGrant", { nativeEvent: { pageY: 100 } });
-    expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-beep-input", anyNode)).toBeNull();
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
     expect(group().backgroundColor).toBe(SELECTED_SURFACE);
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-handle"), "responderRelease", { nativeEvent: { pageY: 100 } });
@@ -2134,10 +1976,6 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
   const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
   const propsOf = (testID: string) => get(testID).props as { entering?: unknown; exiting?: unknown; layout?: unknown };
   const popovers = (root: Instance) => root.findAllByType(Popover).map((node) => node.props.testID as string);
-  const PANEL_OF: Readonly<Record<string, string>> = {
-    "execution-sheet-target-value": "execution-sheet-target-panel",
-    "execution-sheet-total": "execution-sheet-total-panel",
-  };
 
   const bilateral = (count = 3) =>
     params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10, series: { kind: "UNIFORM", count, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } });
@@ -2227,16 +2065,16 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       expect(within(get(SIDE_CONTROL)).getByTestId(ORDER_MENU)).toBeTruthy();
       expect(screen.queryByTestId("execution-sheet-row-order", hidden)).toBeNull();
       expect(screen.queryByTestId("execution-sheet-side-selector")).toBeNull();
-      // AC3 : le ± de la Cadence, révélé par Autre, est dans le cadre de sa ligne.
+      // AC3 : le champ de la Cadence, révélé par Autre, est dans le cadre de sa ligne.
       fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+      fireEvent(get("execution-sheet-beep-input"), "focus");
       checkEnclosed("execution-sheet-row-beep", "execution-sheet-beep-motion");
-      // Famille ± : toucher la Cible commune range le ± et ouvre la roue d'un seul geste.
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      checkEnclosed("execution-sheet-row-target", "execution-sheet-target-wheel");
-      // Story 3.3 (AD-15, T10) : Sélecteur ouvert, le premier toucher le ferme, le second ouvre le suivant.
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      checkEnclosed("execution-sheet-row-total", "execution-sheet-total-wheel");
+      // [Roues de la Cible commune et de la Durée de l'exercice en ligne — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : le champ clavier est
+      // dans le cadre de sa ligne.]
+      openExecutionSheetField("execution-sheet-target");
+      checkEnclosed("execution-sheet-row-target", "execution-sheet-target");
+      openExecutionSheetField("execution-sheet-total");
+      checkEnclosed("execution-sheet-row-total", "execution-sheet-total");
       expect(screen.queryByTestId(/-panel$/)).toBeNull();
     }));
 
@@ -2247,25 +2085,39 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
     // PRE-5 story 2.5 : la Cadence, au ± révélé par Autre, ne bouge pas non plus.
     const cadenceBefore = snapshot("execution-sheet-row-beep");
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    fireEvent(get("execution-sheet-beep-input"), "focus");
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
     expect(snapshot("execution-sheet-row-beep")).toBe(cadenceBefore);
-    fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    closeExecutionSheetField("execution-sheet-beep");
     expect(snapshot("execution-sheet-row-beep")).toBe(cadenceBefore);
-    for (const [rowID, pillID] of [
-      ["execution-sheet-row-target", "execution-sheet-target-value"],
+    // [Pastilles qui ouvraient une roue, fermée par un toucher extérieur — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+    for (const [rowID, fieldID] of [
+      ["execution-sheet-row-target", "execution-sheet-target"],
       ["execution-sheet-row-total", "execution-sheet-total"],
     ] as const) {
       const before = snapshot(rowID);
       expect(styleOf(`${rowID}-selection`).backgroundColor).toBeUndefined();
-      fireEvent.press(get(pillID));
+      openExecutionSheetField(fieldID);
       expect(styleOf(`${rowID}-selection`).backgroundColor).toBe(SELECTED_SURFACE);
       expect(snapshot(rowID)).toBe(before);
-      fireEvent.press(get(`${PANEL_OF[pillID]}-outside`));
+      closeExecutionSheetField(fieldID);
       expect(snapshot(rowID)).toBe(before);
     }
   });
 
-  it("PRE4-Q41 — groupe du tableau (Q40) : sélectionné ou non, mêmes marges et paddings ; le séparateur ne change que de couleur", () => {
+  // Contre-recette iPhone du 30/10/2026 (Hermann) : aucun trait entre la ligne « Type de série » et
+  // son tableau déployé ; le trait sous le tableau est celui de la ligne « Charge », hors du groupe.
+  it("contre-recette du 30/10 — tableau des séries déployé : aucun séparateur entre sa ligne et lui", () => {
+    renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
+    const separators = screen.getByTestId("execution-sheet-variable-group", { includeHiddenElements: true }).findAll((node) => {
+      if (typeof node.type !== "string") return false;
+      const style = StyleSheet.flatten(node.props.style) ?? {};
+      return style.height === 1 && (style.backgroundColor === colors.divider || style.backgroundColor === "transparent");
+    });
+    expect(separators).toHaveLength(0);
+  });
+
+  it("PRE4-Q41 — groupe du tableau (Q40) : sélectionné ou non, mêmes marges et paddings", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
     const geometry = (testID: string) => {
       const style = { ...styleOf(testID) };
@@ -2301,50 +2153,22 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       expect(screen.UNSAFE_root.findAllByType(Modal)).toHaveLength(1);
     }));
 
-  it("PRE4-Q41 — iOS : roue de la Durée totale dans un panneau sans flèche sous le champ, aligné à droite ; réserve sous le dernier cadre si elle dépasse ; ✓ applique (inversion), ✕ et toucher extérieur ferment sans appliquer ; aucune Modal ni animation de hauteur", () =>
+  // [Roue de la Durée totale dans un panneau sans flèche (position, réserve, ✕, toucher extérieur) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  it("PRE4-Q41 — iOS : Durée de l'exercice saisie au clavier dans sa pastille, sans panneau ni Modal ; sortie du champ : Inversion et message d'ajustement ; valeur inchangée : rien", () =>
     withPlatform("ios", () => {
       renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-      // PRE-5 story 2.4 (AD-28) : ligne à y = 50 dans le cadre Cadence et durée, à y = 306.
-      layoutFrames({ execution: [0, 90], series: [98, 140], sides: [246, 52], cadence: [306, 194] });
-      layoutOf("execution-sheet-row-total", 50, 42);
-      expect(text("execution-sheet-total")).toBe("40 s");
-
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      const panel = screen.getByTestId("execution-sheet-total-panel");
-      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 306 + 50 + 42 + 4, right: 13 });
-      expect(StyleSheet.flatten(panel.props.style).left).toBeUndefined();
-      // Roue native dans le panneau, hors de la ligne ; aucune vue animée autour (pas de révélation de hauteur).
-      const wheel = within(panel).getByTestId("execution-sheet-total-wheel");
-      expect(within(wheel).getByTestId("duration-wheel-minutes").props.onSelectionChange).toBeInstanceOf(Function);
-      expect(panel.props.entering).toBeUndefined();
-      expect(wheel.props.entering).toBeUndefined();
-      expect(within(get("execution-sheet-row-total")).queryByTestId("execution-sheet-total-wheel", hidden)).toBeNull();
+      expect(text("execution-sheet-total")).toBe("40″");
+      openExecutionSheetField("execution-sheet-total");
+      expect(screen.queryByTestId("execution-sheet-total-panel", hidden)).toBeNull();
+      expect(within(get("execution-sheet-row-total")).getByTestId("execution-sheet-total")).toBeTruthy();
       expect(screen.UNSAFE_root.findAllByType(Modal)).toHaveLength(1);
-      expect(panel.findAllByType(Popover)).toHaveLength(0);
-      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      // Le panneau (213) dépasse le bas du dernier cadre (306 + 194 = 500) : réserve de
-      // 402 + 213 − 500 = 115 sous les cadres.
-      fireEvent(panel, "layout", { nativeEvent: { layout: { x: 0, y: 402, width: 330, height: 213 } } });
-      expect(StyleSheet.flatten(get("execution-sheet-panel-room").props.style)).toMatchObject({ height: 115 });
-
-      // ✕ : fermeture sans changement, réserve retirée.
-      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 3 } });
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-      expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
-      expect(screen.queryByTestId("execution-sheet-panel-room")).toBeNull();
-      expect(text("execution-sheet-total")).toBe("40 s");
-      // Toucher extérieur : fermeture sans changement.
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 3 } });
-      fireEvent.press(get("execution-sheet-total-panel-outside"));
-      expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
-      expect(text("execution-sheet-total")).toBe("40 s");
-      // ✓ : total demandé 1 min 40 s → inversion (N = 3) et message d'ajustement.
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
-      fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 40 } });
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
+      expect(screen.queryByTestId("execution-sheet-panel-room", hidden)).toBeNull();
+      // Saisie revenue à la valeur de départ : aucune Inversion.
+      closeExecutionSheetField("execution-sheet-total");
+      expect(text("execution-sheet-total")).toBe("40″");
+      expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
+      // Total demandé 1 min 40 s → inversion (N = 3) et message d'ajustement.
+      enterExecutionSheetValue("execution-sheet-total", 100);
       expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
       expect(screen.getByTestId("execution-sheet-adjusted")).toBeTruthy();
     }));
@@ -2365,17 +2189,14 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       expect(screen.UNSAFE_root.findAllByType(Popover)).toHaveLength(0);
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
       view.unmount();
-      // Un seul panneau : roue de la Cible commune ouverte, toucher la Durée de l'exercice la
-      // ferme sans ouvrir la sienne (T10) ; un second toucher l'ouvre, seule.
+      // [Un seul panneau de roue à la fois (T10) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : un seul champ sélectionné, aucun panneau.]
       renderSheet(params());
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+      openExecutionSheetField("execution-sheet-target");
       expect(styleOf("execution-sheet-row-target-selection").backgroundColor).toBe(SELECTED_SURFACE);
-      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/).map((node) => node.props.testID)).toEqual(["execution-sheet-target-panel"]);
-      fireEvent.press(get("execution-sheet-target-panel-outside"));
+      openExecutionSheetField("execution-sheet-total");
       expect(styleOf("execution-sheet-row-target-selection").backgroundColor).toBeUndefined();
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/).map((node) => node.props.testID)).toEqual(["execution-sheet-total-panel"]);
       expect(styleOf("execution-sheet-row-total-selection").backgroundColor).toBe(SELECTED_SURFACE);
+      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
     }));
 });
 
@@ -2411,10 +2232,6 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideMode: null });
   const popovers = () => screen.UNSAFE_root.findAllByType(Popover).map((node) => node.props.testID as string);
   const modals = () => screen.UNSAFE_root.findAllByType(Modal);
-  const press = (testID: string) => {
-    fireEvent(get(testID), "pressIn");
-    fireEvent(get(testID), "pressOut");
-  };
 
   it("PRE4-3.3/AC1 — en-tête fixe ✕ / « Paramètres d’exécution » / ✓ hors du corps défilant ; Feuille modale pour l'accessibilité ; Modal en fondu conservée", () => {
     renderSheet(params());
@@ -2436,7 +2253,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       "execution-sheet-row-mode",
       "execution-sheet-row-stop-condition",
       "execution-sheet-row-series-type",
-      "execution-sheet-series-toggle",
+      "execution-sheet-series",
       "execution-sheet-row-target",
       "execution-sheet-row-pause",
       "execution-sheet-row-side",
@@ -2454,7 +2271,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     // Recette du 20/10 (RC-15) : plus de ligne « Nombre de séries » ; le nombre est dans l'option
     // sélectionnée du Type de série.
     expect(screen.queryByTestId("execution-sheet-row-series")).toBeNull();
-    expect(within(screen.getByTestId(SERIES_TYPE)).getByTestId("execution-sheet-series-toggle")).toBeTruthy();
+    expect(within(screen.getByTestId(SERIES_TYPE)).getByTestId("execution-sheet-series")).toBeTruthy();
     expect(within(screen.getByTestId("execution-sheet-row-series-type")).getByTestId(SERIES_TYPE)).toBeTruthy();
     // FR-04-01, FR-05-04 : ni interrupteur, ni ligne « Séries variables » ; « échec » n'apparaît
     // que dans l'option « À l’échec » de la Condition d'arrêt (PRE-5 story 2.4), jamais un Mode.
@@ -2508,7 +2325,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(sideText()).toBe("—");
       const control = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
       expect(control.props.accessibilityRole).toBe("tablist");
-      expect(control.props.accessibilityLabel).toBe("Changement de côté");
+      expect(control.props.accessibilityLabel).toBe("De chaque côté");
       // RC-13 (recette du 20/10) : Avec non sélectionné affiche et annonce « Avec » ; la notation
       // de l'Enchainement n'apparaît qu'une fois Avec sélectionné (N > 1).
       expect(["WITH", "WITHOUT"].map((side) => get(`${SIDE_CONTROL}-${side}`).props.accessibilityLabel)).toEqual(["Avec", "Sans"]);
@@ -2523,12 +2340,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(modals()).toHaveLength(1);
       // La ligne n'est jamais surlignée (aucune surface).
       expect(styleOf("execution-sheet-row-side-selection").backgroundColor).toBeUndefined();
-      expect(shownValue("execution-sheet-side-recovery")).toBe("10 s");
+      expect(shownValue("execution-sheet-side-recovery")).toBe("10″");
       validate();
       expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 });
     }));
 
-  it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6, PRE7-B.3 (B5) — iOS : Enchainement par le déroulant de l'option Avec (Figma `9462:18987`) : déclencheur fixe 146 × 26, notation et chevron ; déroulant 146 × 88 ancré sur l'option, rôle menu, deux rangées de 44 dans l'ordre D-431, la choisie en violet ; choix, même choix, extérieur, échappement ; ✓ / ✕ absorbés ; aucun hôte SwiftUI ; absent en Sans", () =>
+  it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6, PRE7-B.3 (B5) — iOS : Enchainement par le déroulant de l'option Avec (Figma `9462:18987`) : déclencheur 104 × 26 (116 avec « DG → DG → … », largeur adaptée au contenu depuis le 01/11/2026), notation 12 et chevron ; déroulant 104 × 88 ancré sur l'option, rôle menu, deux rangées de 44 dans l'ordre D-431, la choisie en violet ; choix, même choix, extérieur, échappement ; ✓ / ✕ absorbés ; aucun hôte SwiftUI ; absent en Sans", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(bilateral());
       const onApply = view.onApply;
@@ -2538,12 +2355,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(screen.UNSAFE_root.findAllByType(Host)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(RNHostView)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(Menu)).toHaveLength(0);
-      expect(StyleSheet.flatten(trigger.props.style)).toMatchObject({ width: 146, height: 26 });
+      expect(StyleSheet.flatten(trigger.props.style)).toMatchObject({ width: 104, height: 26 });
       expect(trigger.props.accessibilityRole).toBe("button");
       expect(trigger.props.accessibilityLabel).toBe("Enchainement");
-      expect(trigger.props.accessibilityValue).toEqual({ text: "Un côté après l’autre" });
+      expect(trigger.props.accessibilityValue).toEqual({ text: "Chaque série d’un côté, puis chaque série de l’autre" });
       expect(trigger.props.accessibilityState).toMatchObject({ expanded: false });
-      expect(within(trigger).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+      expect(within(trigger).getByText("DD… → GG…", hidden)).toBeTruthy();
       expect(query(ORDER_PANEL)).toBeNull();
 
       // Ouverture : déroulant ancré sur l'option Avec (cadre Côtés à y 400, ligne à y 5 de 44 :
@@ -2553,14 +2370,15 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       layoutOf("execution-sheet-row-side", 5, 44);
       fireEvent.press(trigger);
       const panel = get(ORDER_PANEL);
-      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 414, right: 80 });
+      // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière. Le déroulant part du bord droit (16). [right: 80 — remplacé.]
+      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 414, right: 16 });
       expect(get(ORDER_MENU).props.accessibilityState).toMatchObject({ expanded: true });
       const menu = within(panel).getByTestId(`${ORDER_MENU}-menu`, hidden);
       expect(menu.props.accessibilityRole).toBe("menu");
       expect(menu.props.accessibilityLabel).toBe("Enchainement");
-      expect(StyleSheet.flatten(menu.props.style)).toMatchObject({ width: 146, height: 88 });
+      expect(StyleSheet.flatten(menu.props.style)).toMatchObject({ width: 104, height: 88 });
       const rows = within(menu).getAllByRole("menuitem");
-      expect(rows.map((row) => row.props.accessibilityLabel)).toEqual(["Un côté après l’autre", "Les deux côtés à chaque série"]);
+      expect(rows.map((row) => row.props.accessibilityLabel)).toEqual(["Chaque série d’un côté, puis chaque série de l’autre", "Les deux côtés à chaque série"]);
       expect(rows.map((row) => row.props.accessibilityState)).toEqual([{ selected: true }, { selected: false }]);
       expect(rows.map((row) => StyleSheet.flatten(row.props.style))).toEqual([
         expect.objectContaining({ height: 44, backgroundColor: "#5F60EE", paddingHorizontal: 8, alignItems: "flex-start" }),
@@ -2569,13 +2387,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       // Réserve sous les cadres : seul le cadre Côtés est mesuré (bas à 500) ; le déroulant
       // descend à 414 + 88 = 502 → réserve de 2, absente une fois fermé.
       expect(StyleSheet.flatten(get("execution-sheet-panel-room").props.style)).toMatchObject({ height: 2 });
-      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SIDE-notation`).props.style)).toMatchObject({ fontSize: 10, fontWeight: "600", color: "#FFFFFF" });
-      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SERIES-notation`).props.style)).toMatchObject({ fontSize: 10, fontWeight: "400", color: "#4A4A52" });
+      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SIDE-notation`).props.style)).toMatchObject({ fontSize: 12, fontWeight: "600", color: "#FFFFFF" });
+      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SERIES-notation`).props.style)).toMatchObject({ fontSize: 12, fontWeight: "400", color: "#4A4A52" });
       // Chevron vers le haut dans la première rangée seulement.
       expect(within(rows[0]!).queryByTestId(`${ORDER_MENU}-chevron`, hidden)).not.toBeNull();
       expect(within(rows[1]!).queryByTestId(`${ORDER_MENU}-chevron`, hidden)).toBeNull();
       // Libellés longs : nom accessible seulement, jamais affichés ; aucune notation C1S1.
-      expect(screen.queryByText("Un côté après l’autre", hidden)).toBeNull();
+      expect(screen.queryByText("Chaque série d’un côté, puis chaque série de l’autre", hidden)).toBeNull();
       expect(screen.queryByText(/C1S1|C1 S1/u, hidden)).toBeNull();
       expect(popovers()).toEqual([]);
 
@@ -2599,7 +2417,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       fireEvent.press(get(ORDER_MENU));
       fireEvent.press(get(`${ORDER_MENU}-BY_SIDE`));
       expect(query(ORDER_PANEL)).toBeNull();
-      expect(orderText()).toBe("Un côté après l’autre");
+      expect(orderText()).toBe("Chaque série d’un côté, puis chaque série de l’autre");
       // Choix : `setSideOrder`, fermeture, notation affichée dans l'option.
       chooseOrder("Les deux côtés à chaque série");
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
@@ -2616,8 +2434,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
 
       // Réouverture de la Feuille avec BY_SERIES : notation dans le déclencheur fixe, aucun hôte SwiftUI.
       const reopened = renderSheetView(bilateral({ sideOrder: "BY_SERIES" }));
-      expect(StyleSheet.flatten(get(ORDER_MENU).props.style)).toMatchObject({ width: 146, height: 26 });
-      expect(within(get(ORDER_MENU)).getByText("(D1 → G1) ➜ (D2 → G2)", hidden)).toBeTruthy();
+      expect(StyleSheet.flatten(get(ORDER_MENU).props.style)).toMatchObject({ width: 116, height: 26 });
+      expect(within(get(ORDER_MENU)).getByText("DG → DG → …", hidden)).toBeTruthy();
       expect(screen.UNSAFE_root.findAllByType(Host)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(RNHostView)).toHaveLength(0);
       reopened.unmount();
@@ -2643,7 +2461,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
       expect(seriesTypeText()).toBe("Variables");
       expect(get(TABLE_TOGGLE).props.accessibilityState).toMatchObject({ expanded: true });
-      expect(shownValue("execution-sheet-table-row-3-target")).toBe("30 s");
+      expect(shownValue("execution-sheet-table-row-3-target")).toBe("30″");
       validate();
       expect(applied(onApply).series).toEqual(variableRows([[30, 10], [30, 10], [30, 10]]));
     }));
@@ -2671,21 +2489,22 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       tap("execution-sheet-series-decrement");
       expect(seriesTypeText()).toBe("Identiques");
       const control = get(SERIES_TYPE);
-      // Recette du 20/10 (RC-15) : le contrôle n'est plus une information atténuée en entier — il
-      // porte le nombre de séries, réglable ; seul Variables est indisponible (P16).
+      // Recette du 20/10 (RC-15) : le contrôle porte le nombre de séries, réglable ; seul Variables
+      // est indisponible (P16).
       expect(control.props.accessibilityRole).toBe("tablist");
       expect(get(`${SERIES_TYPE}-VARIABLE`).props.accessibilityState).toMatchObject({ selected: false, disabled: true });
       expect(get(`${SERIES_TYPE}-VARIABLE`).props.accessibilityLabel).toBe("Variables, sans effet pour une seule série");
       expect(get(`${SERIES_TYPE}-UNIFORM`).props.accessibilityState).toMatchObject({ selected: true, disabled: false });
       expect(styleOf(SERIES_TYPE).opacity).toBeUndefined();
       expect(query(TABLE_TOGGLE)).toBeNull();
-      // L'information non modifiable absorbe l'appui (P16, T23) : le champ de N, ouvert,
-      // n'est pas rangé ; sur l'appareil, le conteneur reste responder.
-      expect(screen.getByTestId("execution-sheet-series-increment")).toBeTruthy();
+      // L'information non modifiable absorbe l'appui (P16, T23) : le champ de N en saisie le reste
+      // ([champ ± ouvert — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]).
+      openExecutionSheetField("execution-sheet-series");
       fireEvent.press(control);
-      expect(screen.getByTestId("execution-sheet-series-increment")).toBeTruthy();
+      expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: true });
       expect(seriesTypeText()).toBe("Identiques");
       expect(get("execution-sheet-series-type-absorb").props.onStartShouldSetResponder()).toBe(true);
+      closeExecutionSheetField("execution-sheet-series");
       // N remonte : variables et ses lignes reviennent (Brouillon, story 3.2).
       tap("execution-sheet-series-increment");
       expect(seriesTypeText()).toBe("Variables");
@@ -2707,92 +2526,67 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(onApply).not.toHaveBeenCalled();
       expect(JSON.stringify(parent)).toBe(snapshot);
     }));
-  // PRE-5 story 2.5 : le Changement de côté n'a plus de panneau ; le panneau est celui de la
-  // Cible commune, le champ ± celui de la Cadence (révélé par Autre).
-  it("PRE4-3.3/AC7 — une seule surface : un champ ± ouvert puis un panneau — le champ se range, le panneau s'ouvre (T15) ; panneau ouvert, un toucher extérieur ferme sans ouvrir de champ (T10)", () =>
+  // [Champ ± de la Cadence puis panneau de la roue de la Cible (T15, T10) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : une seule saisie à la fois.]
+  it("PRE4-3.3/AC7 — une seule surface : la Cadence en saisie, puis la Cible commune — le champ de la Cadence se range, la Cible prend la saisie", () =>
     withPlatform("ios", () => {
       renderSheet(bilateral());
       fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-      expect(screen.getByTestId("execution-sheet-beep-increment")).toBeTruthy();
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      expect(get("execution-sheet-target-panel")).toBeTruthy();
-      expect(query("execution-sheet-beep-increment")).toBeNull();
+      fireEvent(get("execution-sheet-beep-input"), "focus");
+      expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
+      openExecutionSheetField("execution-sheet-target");
+      expect(query("execution-sheet-beep-input")).toBeNull();
       expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
-      // Sur iOS, le panneau couvre le corps : un toucher hors du panneau atteint sa zone
-      // extérieure (fermeture sans application) et n'ouvre pas le champ touché.
-      fireEvent.press(get("execution-sheet-target-panel-outside"));
+      expect(get("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: true });
       expect(query("execution-sheet-target-panel")).toBeNull();
-      expect(query("execution-sheet-beep-increment")).toBeNull();
     }));
 
-  it("PRE4-3.3/AC8 — ± à l'appui : au repos seule la valeur ; l'appui fait apparaître − et + ; largeur fixe 137 ; ligne désignée ; mécanisme accepté inchangé", () => {
+  // [± à l'appui (− et + révélés par la valeur) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : chaque valeur est un champ clavier dans sa pastille.]
+  it("PRE4-3.3/AC8 — champs clavier : au repos la valeur seule, aucun ± ; cadre 137 × 44 aligné à droite ; pastille de 32 ; Autre révèle le champ de la Cadence dans le même cadre", () => {
     renderSheet(bilateral({ cadenceBeepIntervalSeconds: 2 }));
     showSignals();
     for (const field of ["series", "pause", "side-recovery", "countdown", "end"]) {
       expect(screen.queryByTestId(`execution-sheet-${field}-increment`)).toBeNull();
       expect(screen.queryByTestId(`execution-sheet-${field}-decrement`)).toBeNull();
-      expect(screen.getByTestId(`execution-sheet-${field}-toggle`).props.accessibilityState).toMatchObject({ expanded: false });
+      expect(get(`execution-sheet-${field}-input`).props.keyboardType).toBe("number-pad");
     }
-    // PRE-5 story 2.5 (AC3) : au repos, la Cadence n'est que son segmenté (2 s → Autre, RC-10) ; aucun ±.
-    expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
-    expect(screen.queryByTestId("execution-sheet-beep-toggle")).toBeNull();
+    expect(query("execution-sheet-beep-input")).toBeNull();
     expect(cadenceText()).toBe("Autre");
-    expect(shownValue("execution-sheet-countdown")).toBe("10 s");
-    // PRE-7 B.1 (D-447, B3) : pastille de 32, rayon 8, marges 12 (auparavant ≈ 24, rayon 10, marges 10).
-    expect(styleOf("execution-sheet-countdown-pill")).toMatchObject({
-      backgroundColor: "#F5F7FA",
-      borderRadius: 8,
-      minHeight: 32,
-      paddingHorizontal: 12,
-    });
-    expect(screen.getByTestId("execution-sheet-countdown-toggle").props.accessibilityLabel).toBe("Compte à rebours, 10 s");
-    // NFR-09, Q42 : zone de toucher fermée d'au moins 44 × 44 (toute la largeur du champ).
-    expect(styleOf("execution-sheet-countdown-toggle")).toMatchObject({ width: 137, minHeight: 44 });
-    // Q41 : même cadre fermé et ouvert (largeur, alignement, hauteur). PRE-7 B.1 (D-447, B6) :
-    // contenu aligné à droite (et non plus centré), fermé comme ouvert.
-    const closedFrame = styleOf("execution-sheet-countdown-toggle");
-    fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
-    expect(styleOf("execution-sheet-countdown-field")).toEqual(closedFrame);
-    // PRE-5 story 2.5 (AC3) : Autre révèle sous la ligne le même champ ± (137 × 44), Autre affiché.
+    expect(shownValue("execution-sheet-countdown")).toBe("10″");
+    // PRE-7 B.1 (D-447, B3) : pastille de 32, rayon 8, marges 12.
+    expect(styleOf("execution-sheet-countdown")).toMatchObject({ backgroundColor: "#F5F7FA", borderRadius: 8, minHeight: 32, paddingHorizontal: 12 });
+    expect(get("execution-sheet-countdown").props.accessibilityLabel).toBe("Compte à rebours");
+    expect(get("execution-sheet-countdown").props.accessibilityValue).toEqual({ text: "10″" });
+    // NFR-09, Q42 : cadre d'au moins 44 de haut, sur la largeur des anciens steppers, aligné à droite.
+    const frame = styleOf("execution-sheet-countdown-frame");
+    expect(frame).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end", justifyContent: "center" });
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    fireEvent(get("execution-sheet-beep-input"), "focus");
     expect(cadenceText()).toBe("Autre");
-    const openFrame = styleOf("execution-sheet-beep-field");
-    expect(openFrame).toEqual(closedFrame);
-    expect(openFrame).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end", justifyContent: "center" });
+    expect(styleOf("execution-sheet-beep-frame")).toEqual(frame);
     expect(styleOf("execution-sheet-beep-motion-content")).toMatchObject({ flexDirection: "row", justifyContent: "flex-end" });
     expect(styleOf("execution-sheet-row-beep-line").minHeight).toBe(44);
-    expect(screen.getByTestId("execution-sheet-beep-decrement")).toBeTruthy();
-    expect(screen.getByTestId("execution-sheet-beep-increment")).toBeTruthy();
-    expect(shownValue("execution-sheet-beep")).toBe("2 s");
-    expect(styleOf("execution-sheet-beep").width).toBe(137);
+    expect(shownValue("execution-sheet-beep")).toBe("00:02");
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
-    expect(screen.getByTestId("execution-sheet-beep").props.accessibilityRole).toBe("adjustable");
-    expect(screen.getByTestId("execution-sheet-beep").props.accessibilityValue).toMatchObject({ min: 0, max: 10, now: 2 });
   });
 
   /**
-   * PRE-7 story B.1 (D-447, B3, B6, B7 ; CE-UI-10 §9, révision 24/10, lignes 5, 9, 11, 12, 13) :
-   * hauteur commune de 32 (pastilles, steppers ouverts sur `color/surface`), alignement à droite
-   * fermé et ouvert de Pause, Pause entre les côtés, Compte à rebours et Fin, chevron de Durée de
-   * l'exercice sans cadre. Jest ne prouve que l'arbre JS : le rendu relève de la recette JB.
+   * PRE-7 story B.1 (D-447, B3, B6, B7) : hauteur commune de 32 (pastilles sur `color/surface`),
+   * alignement à droite, chevron de Durée de l'exercice sans cadre. [Steppers ouverts — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : les
+   * pastilles sont des champs clavier, fond `#EAEAFF` en saisie.]
    */
-  it("PRE7-B.1 — pastilles et steppers ouverts de 32, champs sur color/surface, steppers alignés à droite fermés et ouverts, chevron de Durée de l'exercice sans cadre", () => {
+  it("PRE7-B.1 — pastilles de 32 sur color/surface (champs clavier), alignées à droite, fond de saisie #EAEAFF ; chevron de Durée de l'exercice sans cadre", () => {
     renderSheet(bilateral({ cadenceBeepIntervalSeconds: 2 }));
     showSignals();
     const pill = { backgroundColor: colors.surface, borderRadius: 8, minHeight: 32, paddingHorizontal: 12 };
-    expect(styleOf("execution-sheet-target-value")).toMatchObject(pill);
-    expect(screen.getByTestId("execution-sheet-target-value").props.hitSlop).toEqual({ top: 6, bottom: 6 });
+    expect(styleOf("execution-sheet-target")).toMatchObject(pill);
+    expect(get("execution-sheet-target").props.hitSlop).toEqual({ top: 6, bottom: 6 });
     expect(styleOf("execution-sheet-total")).toMatchObject(pill);
-    const openPill = { minHeight: 32, padding: 2, borderRadius: 16, backgroundColor: colors.surface };
     for (const field of ["pause", "side-recovery", "countdown", "end"]) {
-      expect(styleOf(`execution-sheet-${field}-toggle`)).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end" });
-      expect(styleOf(`execution-sheet-${field}-pill`)).toMatchObject(pill);
-      fireEvent.press(screen.getByTestId(`execution-sheet-${field}-toggle`));
-      expect(styleOf(`execution-sheet-${field}-field`)).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end" });
-      expect(styleOf(`execution-sheet-${field}`)).toMatchObject({ ...openPill, width: 137 });
+      expect(styleOf(`execution-sheet-${field}-frame`)).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end" });
+      expect(styleOf(`execution-sheet-${field}`)).toMatchObject(pill);
+      openExecutionSheetField(`execution-sheet-${field}`);
+      expect(styleOf(`execution-sheet-${field}`)).toMatchObject({ ...pill, backgroundColor: "#EAEAFF" });
     }
-    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-    expect(styleOf("execution-sheet-beep")).toMatchObject({ ...openPill, width: 137 });
     // B7 : Disclosure Cadre Non — cadre interne 28 sans fond ni contour ; cible, nom et état inchangés.
     const frame = styleOf(`${DURATION_DISCLOSURE}-frame`);
     expect(frame).toMatchObject({ width: 28, height: 28 });
@@ -2804,91 +2598,92 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(28 + 2 * (disclosure.props.hitSlop as number)).toBeGreaterThanOrEqual(48);
   });
 
-  it("PRE4-3.3/AC8 — T20 : un seul champ actif — toucher une autre valeur ferme le premier et ouvre le second d'un seul geste ; T22 : ± du champ ouvert sans fermeture, Bip au pas de 1", () => {
+  // [T20, T22 des champs ± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  it("PRE4-3.3/AC8 — T20 : un seul champ actif — la saisie d'un autre champ range le premier, valeur appliquée ; Cadence saisie à la seconde", () => {
     const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-    fireEvent.press(screen.getByTestId("execution-sheet-pause-toggle"));
-    press("execution-sheet-pause-increment");
-    expect(shownValue("execution-sheet-pause")).toBe("11 s");
+    tap("execution-sheet-pause-increment");
+    expect(shownValue("execution-sheet-pause")).toBe("11″");
+    openExecutionSheetField("execution-sheet-pause");
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-    expect(screen.queryByTestId("execution-sheet-pause-increment")).toBeNull();
-    expect(shownValue("execution-sheet-pause")).toBe("11 s");
-    press("execution-sheet-beep-increment");
-    press("execution-sheet-beep-increment");
-    expect(screen.getByTestId("execution-sheet-beep-increment")).toBeTruthy();
-    expect(shownValue("execution-sheet-beep")).toBe("2 s");
+    fireEvent(get("execution-sheet-beep-input"), "focus");
+    expect(get("execution-sheet-pause").props.accessibilityState).toMatchObject({ selected: false });
+    // Perte du focus natif de la Pause (simulée : le `blur()` natif n'émet rien sous Jest).
+    closeExecutionSheetField("execution-sheet-pause");
+    expect(shownValue("execution-sheet-pause")).toBe("11″");
+    typeInExecutionSheetCell("execution-sheet-beep", "2");
+    closeExecutionSheetField("execution-sheet-beep");
     validate();
     expect(applied(onApply)).toMatchObject({ cadenceBeepIntervalSeconds: 2, series: { kind: "UNIFORM", pauseSeconds: 11, loadKg: 0, workPhases: [] } });
   });
 
-  it("PRE4-3.3/AC8 — T22 : le − de N retire des lignes du tableau sans fermer le champ de N ; T23 : un appui extérieur le range, valeurs conservées, sans Annuler", () => {
+  // [T22 : − de N sans fermeture du champ ; − indisponible à la borne — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  it("PRE4-3.3/AC8 — N saisi au clavier : 2 retire la ligne 3, 1 rend les séries identiques ; 0 ramené à 1 ; T23 : un appui extérieur range la saisie, sans Annuler", () => {
     const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
-    fireEvent.press(screen.getByTestId("execution-sheet-series-toggle"));
-    press("execution-sheet-series-decrement");
-    expect(shownValue("execution-sheet-series")).toBe("2 séries");
+    enterExecutionSheetValue("execution-sheet-series", 2, "integer");
+    expect(shownValue("execution-sheet-series")).toBe("2 séries variables");
     expect(screen.queryByTestId("execution-sheet-table-row-3")).toBeNull();
-    expect(screen.getByTestId("execution-sheet-series-decrement")).toBeTruthy();
-    press("execution-sheet-series-decrement");
-    expect(shownValue("execution-sheet-series")).toBe("1 série");
-    // − à la borne : indisponible ; le conteneur du champ retient le toucher (pas d'appui extérieur).
-    expect(screen.getByTestId("execution-sheet-series-decrement").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByTestId("execution-sheet-series-field").props.onStartShouldSetResponder()).toBe(true);
-    // Appui extérieur (libellé, fond du corps) : rangement, aucun bouton Annuler.
-    fireEvent.press(screen.getByText("Cadence"));
-    expect(screen.queryByTestId("execution-sheet-series-decrement")).toBeNull();
+    enterExecutionSheetValue("execution-sheet-series", 0, "integer");
     expect(shownValue("execution-sheet-series")).toBe("1 série identique");
+    openExecutionSheetField("execution-sheet-series");
+    fireEvent.press(screen.getByText("Cadence"));
+    expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: false });
     expect(screen.queryByText("Annuler")).toBeNull();
     validate();
     expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 1 });
   });
 
-  it("PRE4-3.3/AC8 — T24 et T14 : champ ± ouvert, toucher la Cible commune ou le chevron le range et agit dans le même geste", () => {
+  it("PRE4-3.3/AC8 — T24 et T14 : champ en saisie, toucher la Cible commune ou le chevron le range et agit dans le même geste", () => {
     const view = renderSheetView(params());
     showSignals();
-    fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
-    fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-    expect(query("execution-sheet-countdown-increment")).toBeNull();
-    expect(get("execution-sheet-target-wheel")).toBeTruthy();
+    // [Champ ± et roue — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+    openExecutionSheetField("execution-sheet-countdown");
+    openExecutionSheetField("execution-sheet-target");
+    expect(get("execution-sheet-countdown").props.accessibilityState).toMatchObject({ selected: false });
+    expect(get("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: true });
     view.unmount();
     renderSheet(params({ series: variableRows([[30, 10], [45, 20]]) }));
     showSignals();
-    fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
+    openExecutionSheetField("execution-sheet-end");
     fireEvent.press(screen.getByTestId(TABLE_TOGGLE));
-    expect(screen.queryByTestId("execution-sheet-end-increment")).toBeNull();
+    expect(get("execution-sheet-end").props.accessibilityState).toMatchObject({ selected: false });
     expect(screen.queryByTestId("execution-sheet-table")).toBeNull();
   });
 
-  it("PRE4-3.3/AC8 — T19 : champ ± ouvert, ✓ de la Feuille applique dans le même geste ; bornes de saisie inchangées", () => {
+  // [T19 : ± ouvert, ✓ appliqué dans le même geste — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : une saisie absorbe ✓ (Q47), bornes inchangées.]
+  it("PRE4-3.3/AC8 — saisie en cours : ✓ absorbé (premier appui = sortie du champ) ; bornes inchangées (Compte à rebours ≤ 1′00″)", () => {
     const { onApply } = renderSheet(params({ countdownSeconds: 60, endSeconds: 0 }));
     showSignals();
-    fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
-    expect(screen.getByTestId("execution-sheet-countdown-increment").props.accessibilityState).toMatchObject({ disabled: true });
-    fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
-    expect(screen.getByTestId("execution-sheet-end-decrement").props.accessibilityState).toMatchObject({ disabled: true });
-    press("execution-sheet-end-increment");
+    enterExecutionSheetValue("execution-sheet-countdown", 75);
+    expect(shownValue("execution-sheet-countdown")).toBe("1′00″");
+    openExecutionSheetField("execution-sheet-end");
+    typeInExecutionSheetCell("execution-sheet-end", "1");
+    validate();
+    expect(onApply).not.toHaveBeenCalled();
+    closeExecutionSheetField("execution-sheet-end");
     validate();
     expect(applied(onApply)).toMatchObject({ countdownSeconds: 60, endSeconds: 1 });
   });
 
-  it("PRE4-3.3/AC9, PRE5-2.5/AC1 — création : Mode et Changement de côté sans option sélectionnée, N = 1, Pause 0 s, Cadence « Sans » ; ✓ produit Sans changement", () => {
+  it("PRE4-3.3/AC9, PRE5-2.5/AC1 — création : Mode et Changement de côté sans option sélectionnée, N = 1, Pause 0″, Cadence « Sans » ; ✓ produit Sans changement", () => {
     const { onApply } = renderSheet(creation());
     expect(modeText()).toBe("—");
     expect(sideText()).toBe("—");
-    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("Changement de côté");
+    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("De chaque côté");
     expect(screen.queryByTestId(`${SIDE_CONTROL}-indicator`)).toBeNull();
     expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     expect(seriesTypeText()).toBe("Identiques");
-    expect(valueOf("execution-sheet-pause")).toBe("0 s");
+    expect(valueOf("execution-sheet-pause")).toBe("0″");
     expect(cadenceText()).toBe("Sans");
     chooseMode("Répétitions");
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "UNILATERAL", series: { pauseSeconds: 0 } });
   });
 
-  it("PRE4-3.3/AC10 — Mode à renseigner ou Cible commune « — » : ✓ indisponible, fond #FFF1F0 sans contour, aucun message ; Pause 0 s valide", () => {
+  it("PRE4-3.3/AC10 — Mode à renseigner ou Cible commune « — » : ✓ indisponible, fond #FFF1F0 sans contour, aucun message ; Pause 0″ valide", () => {
     const view = renderSheetView(creation());
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     chooseMode("Durée");
-    const pill = styleOf("execution-sheet-target-value");
+    const pill = styleOf("execution-sheet-target");
     expect(pill.backgroundColor).toBe("#FFF1F0");
     expect(pill.borderWidth).toBeUndefined();
     expect(screen.queryByTestId("execution-sheet-message")).toBeNull();
@@ -2976,15 +2771,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(modals()).toHaveLength(1);
     }));
 
-  it("PRE4-3.3/AC8 — chaque champ ± ouvert désigne sa ligne (fond de sélection) : Séries, Pause, Pause entre les côtés, Cadence (Autre), Compte à rebours, Fin", () => {
+  // [Champs ± ouverts — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : la saisie d'un champ désigne sa ligne.]
+  it("PRE4-3.3/AC8 — chaque champ en saisie désigne sa ligne (fond de sélection) : Pause, Pause entre les côtés, Cadence (Autre), Compte à rebours, Fin ; le nombre de séries, dans son option, ne surligne pas sa ligne", () => {
     renderSheet(bilateral());
     showSignals();
-    // Recette du 20/10 (RC-15, Figma `9436:18305`) : le stepper du nombre de séries, ouvert dans le
-    // segmenté du Type de série, porte son propre fond #F2F2FF ; la ligne n'est pas surlignée.
-    fireEvent.press(screen.getByTestId("execution-sheet-series-toggle"));
-    expect(screen.getByTestId("execution-sheet-series-field")).toBeTruthy();
+    openExecutionSheetField("execution-sheet-series");
+    expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: true });
     expect(styleOf("execution-sheet-row-series-type-selection").backgroundColor).toBeUndefined();
-    fireEvent.press(screen.getByTestId("execution-sheet-series-value-press"));
     const rows: [string, string][] = [
       ["pause", "execution-sheet-row-pause"],
       ["side-recovery", "execution-sheet-row-side-recovery"],
@@ -2994,8 +2787,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     ];
     for (const [field, rowID] of rows) {
       expect(styleOf(`${rowID}-selection`).backgroundColor).toBeUndefined();
-      // PRE-5 story 2.5 (AC3) : le ± de la Cadence est révélé par Autre.
-      fireEvent.press(screen.getByTestId(field === "beep" ? `${CADENCE_CONTROL}-OTHER` : `execution-sheet-${field}-toggle`));
+      openExecutionSheetField(`execution-sheet-${field}`);
       expect(styleOf(`${rowID}-selection`).backgroundColor).toBe(SELECTED_SURFACE);
       expect(styleOf(`${rowID}-selection`).borderRadius).toBe(12);
       for (const [, other] of rows) {
@@ -3004,50 +2796,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     }
   });
 
-  it("PRE4-3.3/AC8 — VoiceOver : à l'ouverture, le focus passe au champ ouvert ; l'échappement, Magic Tap ou l'action « Fermer » le rangent et rendent le focus à la valeur ; PRE-5 story 2.5 : ± de la Cadence focalisé à l'ouverture, rangé par les mêmes actions", () => {
-    const spy = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-    /** Demandes de focus seules (d'autres composants envoient d'autres événements). */
-    const focus = { get calls() { return spy.mock.calls.filter((call) => call[1] === "focus"); } };
-    try {
-      renderSheet(params());
-      showSignals();
-      spy.mockClear();
-      fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
-      const field = screen.getByTestId("execution-sheet-end-field");
-      expect(focus.calls).toHaveLength(1);
-      expect(field.props.accessibilityActions).toEqual([{ name: "escape" }, { name: "magicTap" }, { name: "close", label: "Fermer" }]);
-      fireEvent(field, "accessibilityAction", { nativeEvent: { actionName: "close" } });
-      expect(screen.queryByTestId("execution-sheet-end-increment")).toBeNull();
-      expect(focus.calls).toHaveLength(2);
-      fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
-      fireEvent(screen.getByTestId("execution-sheet-end-field"), "accessibilityEscape");
-      expect(screen.queryByTestId("execution-sheet-end-increment")).toBeNull();
-      fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
-      fireEvent(screen.getByTestId("execution-sheet-end-field"), "magicTap");
-      expect(screen.queryByTestId("execution-sheet-end-increment")).toBeNull();
-      // Un champ rangé par un autre champ (T20) ne reprend pas le focus : seul le nouveau le reçoit.
-      spy.mockClear();
-      fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
-      fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
-      expect(focus.calls).toHaveLength(2);
-      // Cadence : le ± révélé par Autre reçoit le focus et se range par les mêmes actions.
-      spy.mockClear();
-      fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-      expect(focus.calls).toHaveLength(1);
-      const beep = screen.getByTestId("execution-sheet-beep-field");
-      expect(beep.props.accessibilityActions).toEqual([{ name: "escape" }, { name: "magicTap" }, { name: "close", label: "Fermer" }]);
-      fireEvent(beep, "accessibilityAction", { nativeEvent: { actionName: "close" } });
-      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
-      fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-      fireEvent(screen.getByTestId("execution-sheet-beep-field"), "accessibilityEscape");
-      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
-      fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-      fireEvent(screen.getByTestId("execution-sheet-beep-field"), "magicTap");
-      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
-    } finally {
-      spy.mockRestore();
-    }
-  });
+  // [PRE4-3.3/AC8 — VoiceOver des champs ± (focus au champ ouvert, échappement, Magic Tap, « Fermer ») :
+  // supprimé, remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier ; le clavier se ferme par « Fermer » de sa barre.]
 
   it("PRE4-3.3/AC8 — T23 : la zone d'appui extérieur couvre aussi les marges du corps (dessus, côtés, sous la dernière ligne)", () => {
     renderSheet(params());
@@ -3055,49 +2805,44 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     const outside = screen.getByTestId("execution-sheet-body-outside");
     expect(outside.props.accessible).toBe(false);
     expect(StyleSheet.flatten(outside.props.style)).toMatchObject({ position: "absolute", top: -12, right: -24, bottom: -24, left: -24 });
-    fireEvent.press(screen.getByTestId("execution-sheet-end-toggle"));
+    // [Champ ± rangé — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : la saisie en cours est rangée.]
+    openExecutionSheetField("execution-sheet-end");
     fireEvent.press(outside);
-    expect(screen.queryByTestId("execution-sheet-end-increment")).toBeNull();
+    expect(get("execution-sheet-end").props.accessibilityState).toMatchObject({ selected: false });
+    closeExecutionSheetField("execution-sheet-end");
     // Sans champ ouvert, l'appui extérieur est sans effet.
     fireEvent.press(outside);
-    expect(valueOf("execution-sheet-end")).toBe("5 s");
+    expect(valueOf("execution-sheet-end")).toBe("5″");
   });
 
-  it("PRE4-3.3/AC8 — tableau : un toucher sur une zone neutre ne change rien ; un glisser (T-15) garde son issue, champ ± ouvert ou non", () => {
+  it("PRE4-3.3/AC8 — tableau : un toucher sur une zone neutre ne change rien ; un glisser (T-15) garde son issue, saisie de N ouverte ou non", () => {
     renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
     nudgeCellPause(1, 1);
     const group = () => StyleSheet.flatten(screen.getByTestId("execution-sheet-variable-group").props.style);
     expect(group().backgroundColor).toBe(SELECTED_SURFACE);
     fireEvent.press(within(screen.getByTestId("execution-sheet-table")).getByText("Pause"));
     expect(group().backgroundColor).toBe(SELECTED_SURFACE);
-    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("11 s");
-    // Glisser avec le champ de N ouvert : le champ est rangé, la ligne est déposée à sa place.
-    fireEvent.press(screen.getByTestId("execution-sheet-series-toggle"));
+    expect(valueOf("execution-sheet-table-row-1-pause")).toBe("11″");
+    // Glisser avec la saisie de N ouverte ([± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]) : la saisie est rangée, la ligne déposée à sa place.
+    openExecutionSheetField("execution-sheet-series");
     dragHandle(1, TABLE_ROW_HEIGHT);
-    expect(screen.queryByTestId("execution-sheet-series-increment")).toBeNull();
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("45 s");
-    expect(valueOf("execution-sheet-table-row-2-target")).toBe("30 s");
+    expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: false });
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("45″");
+    expect(valueOf("execution-sheet-table-row-2-target")).toBe("30″");
     expect(screen.getByTestId("execution-sheet-body").props.scrollEnabled).toBe(true);
   });
 
-  // Story 3.5 : le stepper permanent est retiré ; la pastille de la Cible commune
-  // Répétitions ouvre son Sélecteur, qui reste la seule surface ouverte (AD-15).
-  it("PRE4-3.3/AC7 — Cible commune Répétitions (pastille depuis 3.5) : l'ouvrir ferme la surface ouverte (champ ±, panneau)", () =>
+  // [Pastille qui ouvrait le Sélecteur de la Cible commune (panneau, ✕, T10) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  it("PRE4-3.3/AC7 — Cible commune Répétitions : sa saisie range le champ de la Cadence ; une seule surface", () =>
     withPlatform("ios", () => {
       renderSheet(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      expect(screen.queryByTestId("execution-sheet-beep-increment")).toBeNull();
-      expect(screen.getByTestId("execution-sheet-target-panel")).toBeTruthy();
-      fireEvent.press(screen.getByTestId("number-wheel-cancel"));
-      expect(text("execution-sheet-target-value")).toBe("10 rép.");
-      // PRE-5 story 2.5 : plus de panneau du Changement de côté ; même règle (T10) dans l'autre
-      // sens — roue de la Cible ouverte, toucher Autre de la Cadence la ferme sans ouvrir le ±.
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      expect(get("execution-sheet-target-panel")).toBeTruthy();
-      fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+      fireEvent(get("execution-sheet-beep-input"), "focus");
+      openExecutionSheetField("execution-sheet-target");
+      expect(query("execution-sheet-beep-input")).toBeNull();
       expect(query("execution-sheet-target-panel")).toBeNull();
-      expect(query("execution-sheet-beep-increment")).toBeNull();
+      closeExecutionSheetField("execution-sheet-target");
+      expect(text("execution-sheet-target-value")).toBe("10 rép.");
       expect(cadenceText()).toBe("Sans");
     }));
 
@@ -3128,20 +2873,16 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
 });
 
 /**
- * PRE-4 story 3.4 (AD-7, AD-15, AD-16, Q12, Q21, Q25, Q36, Q41) — Sélecteur de cible en
- * Durée dans la Feuille : roue de la Cible commune avec l'option « Aucune durée, à
- * l’échec », ouverture normalisée par le domaine, `00:00` refusé, ✓ au Brouillon
- * seulement. Le rendu (niveaux de la roue, ✓ indisponible) se juge sur iPhone.
+ * PRE-4 story 3.4 (AD-7, AD-15, AD-16, Q12, Q21, Q25, Q36, Q41) — Cible commune en Durée dans la
+ * Feuille. [Roue de la Cible commune (ouverture normalisée, ✕ / ✓, toucher extérieur, ✓ du Sélecteur
+ * indisponible sur 00:00) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier
+ * « MM:SS » dans la pastille, bornes 1..3535 s, hors bornes ramenée à la borne (QD-434-3), vidée → à
+ * renseigner (QD-434-4), appliquée au Brouillon de la Feuille à la sortie du champ.]
  */
 describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
   const durationTarget = (target: SeriesTarget, count = 3) =>
     params({ series: { kind: "UNIFORM", count, target, pauseSeconds: 15, loadKg: 0, workPhases: [] } });
-  /**
-   * PRE-5 story 2.4 (AC6, FR-22) : l'option « Aucune durée, à l’échec » ne reste qu'à la roue
-   * d'une cellule variable (Q8). Les preuves de la story 3.4 sur cette option sont donc faites
-   * sur la cellule de la Série 1 (Série 2 témoin à 45 s) ; celles sur la roue seule restent
-   * sur la Cible commune, qui n'a plus l'option.
-   */
+  /** PRE-5 story 2.4 (AC6, FR-22) : « À l'échec » d'une cellule variable (Série 2 témoin à 45 s). */
   const cellTarget = (target: SeriesTarget) =>
     params({
       series: {
@@ -3154,134 +2895,100 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
       },
     });
   const hiddenNode = { includeHiddenElements: true } as const;
-  const openTarget = () => fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+  const TARGET = "execution-sheet-target";
   /** D-434 : focus de la cellule Cible de la Série 1 (clavier numérique). */
   const openCell = () => fireEvent(screen.getByTestId("execution-sheet-table-row-1-target-input", hiddenNode), "focus");
   const cellText = (row = 1) => String(screen.getByTestId(`execution-sheet-table-row-${row}-target-value`, hiddenNode).props.children);
-  const wheelChange = (column: "minutes" | "seconds", selection: number) =>
-    fireEvent(screen.getByTestId(`duration-wheel-${column}`), "selectionChange", { nativeEvent: { selection } });
-  const selection = (column: "minutes" | "seconds") => screen.getByTestId(`duration-wheel-${column}`).props.selection as number;
-  const wheelValidate = () => fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-  /** Texte de la ligne pendant l'ouverture (le panneau est modal pour VoiceOver). */
-  const rowText = () =>
-    String(screen.getByTestId("execution-sheet-target-value-text", { includeHiddenElements: true }).props.children);
+  const shown = () => text("execution-sheet-target-value");
   const sheetValidateDisabled = () => screen.getByTestId("execution-sheet-validate").props.accessibilityState?.disabled === true;
 
-  it("PRE4-3.4/AC1, PRE5-2.4/AC6 — iOS : la valeur de « Durée d’une série » ouvre le Sélecteur dans le panneau sans flèche sous le champ, avec ses ✕ / ✓ et sans option échec ; toute autre surface se ferme sans appliquer", () =>
+  it("PRE4-3.4/AC1, PRE5-2.4/AC6 — iOS : « Durée d’une série » se saisit au clavier dans sa pastille, sans panneau ni option échec ; la saisie d'une autre valeur se range", () =>
     withPlatform("ios", () => {
       const { onApply } = renderSheet(durationTarget(numberTarget(30)));
-      fireEvent.press(screen.getByTestId("execution-sheet-pause-toggle"));
-      expect(screen.getByTestId("execution-sheet-pause-field")).toBeTruthy();
-      openTarget();
-      expect(screen.queryByTestId("execution-sheet-pause-field")).toBeNull();
-      // L'autre surface se ferme sans rien appliquer : Brouillon inchangé.
-      expect(String(screen.getByTestId("execution-sheet-pause-value", { includeHiddenElements: true }).props.children)).toBe("15 s");
-      expect(rowText()).toBe("30 s");
-      const panel = screen.getByTestId("execution-sheet-target-panel");
-      expect(within(panel).queryByTestId("duration-wheel-failure-option")).toBeNull();
-      expect(within(panel).queryByText("Aucune durée, à l’échec")).toBeNull();
-      expect(within(panel).getByTestId("duration-wheel-cancel")).toBeTruthy();
-      expect(within(panel).getByTestId("duration-wheel-validate")).toBeTruthy();
-      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
+      openExecutionSheetField("execution-sheet-pause");
+      openExecutionSheetField(TARGET);
+      expect(screen.getByTestId("execution-sheet-pause", hiddenNode).props.accessibilityState).toMatchObject({ selected: false });
+      expect(screen.getByTestId(TARGET).props.accessibilityState).toMatchObject({ selected: true });
+      expect(screen.queryByTestId("execution-sheet-target-panel", hiddenNode)).toBeNull();
+      expect(screen.queryByText("Aucune durée, à l’échec")).toBeNull();
+      closeExecutionSheetField(TARGET);
+      closeExecutionSheetField("execution-sheet-pause");
+      expect(String(screen.getByTestId("execution-sheet-pause-value", hiddenNode).props.children)).toBe("15″");
       validate();
       expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 30 }, pauseSeconds: 15, loadKg: 0, workPhases: [] });
     }));
 
-  // D-434 : la cellule d'une série variable n'ouvre plus de roue (clavier numérique, voir le
-  // bloc « D-434 ») ; la roue de la Cible commune reste numérique seule.
-  it("PRE4-3.4/AC3 — Cible commune 30 s : roue sur 00:30, sans option ; D-434 : cellule à l’échec au clavier, « 00:00 » atténué et « À l'échec » sélectionné", () =>
+  it("PRE4-3.4/AC3 — Cible commune 30″ : « 00:30 » en saisie, sans option ; D-434 : cellule à l’échec au clavier, « 00:00 » atténué et « À l'échec » sélectionné", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(durationTarget(numberTarget(30)));
-      openTarget();
-      expect([selection("minutes"), selection("seconds")]).toEqual([0, 30]);
-      expect(screen.queryByTestId("duration-wheel-failure-option")).toBeNull();
-      expect(screen.queryByTestId("duration-wheel-block")).toBeNull();
+      openExecutionSheetField(TARGET);
+      expect(shown()).toBe("00:30");
+      expect(screen.queryByTestId("execution-sheet-keyboard-failure", hiddenNode)).toBeNull();
       view.unmount();
       renderSheet(cellTarget(failureTarget()));
       expect(cellText()).toBe("à l’échec");
       openCell();
-      expect(screen.queryByTestId("duration-wheel-minutes")).toBeNull();
       expect(cellText()).toBe("00:00");
       showExecutionSheetKeyboard();
       expect(screen.getByTestId("execution-sheet-keyboard-failure").props.accessibilityState).toMatchObject({ selected: true });
     }));
 
-  it("PRE4-3.4/AC3 — Cible à renseigner : ouverture sur 00:01 (Q25, D-430), active, sans option, ✓ du Sélecteur disponible ; la ligne garde « — » ; ✕ la laisse à renseigner ; ✓ sans tourner applique 1 s", () =>
+  // Recette iPhone du 29/10/2026 (« ne pas sélectionner 1 s par défaut ») : la saisie part de « 00:00 ».
+  it("PRE4-3.4/AC3, recette du 29/10/2026 — Cible à renseigner : saisie sur « 00:00 », aucune valeur présélectionnée ; sortie sans frappe : « — » ; 1′00″ saisie rend ✓ disponible", () =>
     withPlatform("ios", () => {
       renderSheet(durationTarget(unsetTarget()));
-      openTarget();
-      expect([selection("minutes"), selection("seconds")]).toEqual([0, 1]);
-      expect(screen.queryByTestId("duration-wheel-failure-option")).toBeNull();
-      expect(screen.getByTestId("duration-wheel-validate").props.accessibilityState?.disabled).not.toBe(true);
-      expect(rowText()).toBe("—");
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-      expect(text("execution-sheet-target-value")).toBe("—");
-      expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-target-value").props.style).backgroundColor).toBe("#FFF1F0");
+      openExecutionSheetField(TARGET);
+      expect(shown()).toBe("00:00");
+      closeExecutionSheetField(TARGET);
+      expect(shown()).toBe("—");
+      expect(StyleSheet.flatten(screen.getByTestId(TARGET).props.style).backgroundColor).toBe("#FFF1F0");
       expect(sheetValidateDisabled()).toBe(true);
-      openTarget();
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("1 s");
+      enterExecutionSheetValue(TARGET, 60);
+      expect(shown()).toBe("1′00″");
       expect(sheetValidateDisabled()).toBe(false);
     }));
 
-  it("PRE4-3.4/AC4 — Cible ancienne 5999 s : roue sur 58:55 (nearestGridValue), ligne inchangée pendant l'ouverture ; ✕ garde 5999 s ; ✓ sans tourner applique 3535 s ; 7 s ouvre sur 00:07 et reste 7 s", () =>
+  it("PRE4-3.4/AC4 — Cible ancienne 1h 39′59″ : inchangée sans frappe ; une saisie au-delà de 58:55 est ramenée à 58′55″ ; 7″ reste 7″", () =>
     withPlatform("ios", () => {
       const legacy = durationTarget(numberTarget(5999));
       const view = renderSheetView(legacy, 10, legacy);
-      const before = text("execution-sheet-target-value");
+      const before = shown();
       expect(before).toBe(formatPhraseDuration(5999));
-      openTarget();
-      expect([selection("minutes"), selection("seconds")]).toEqual([58, 55]);
-      expect(rowText()).toBe(before);
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-      expect(text("execution-sheet-target-value")).toBe(before);
-      openTarget();
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe(formatPhraseDuration(3535));
+      openExecutionSheetField(TARGET);
+      closeExecutionSheetField(TARGET);
+      expect(shown()).toBe(before);
+      // (99:58 : une saisie différente du texte d’édition « 99:59 » de 5999 s.)
+      enterExecutionSheetValue(TARGET, 99 * 60 + 58);
+      expect(shown()).toBe(formatPhraseDuration(3535));
       view.unmount();
 
       const { onApply } = renderSheet(durationTarget(numberTarget(7)));
       expect(sheetValidateDisabled()).toBe(false);
-      openTarget();
-      expect([selection("minutes"), selection("seconds")]).toEqual([0, 7]);
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("7 s");
+      openExecutionSheetField(TARGET);
+      expect(shown()).toBe("00:07");
+      closeExecutionSheetField(TARGET);
+      expect(shown()).toBe("7″");
       validate();
       expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: { kind: "NUMBER", value: 7 } });
     }));
 
-  it("PRE4-3.4/AC8 — 30 s : tourner vers 45 s puis ✕ garde 30 s ; tourner puis toucher hors du panneau garde 30 s ; tourner vers 45 s puis ✓ donne 45 s", () =>
+  it("PRE4-3.4/AC8 — 30″ : saisir 45″ donne 45″ ; secondes > 59 reportées (01:75 → 2′15″)", () =>
     withPlatform("ios", () => {
       renderSheet(durationTarget(numberTarget(30)));
-      openTarget();
-      wheelChange("seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-      expect(text("execution-sheet-target-value")).toBe("30 s");
-      openTarget();
-      wheelChange("seconds", 45);
-      fireEvent.press(screen.getByTestId("execution-sheet-target-panel-outside", { includeHiddenElements: true }));
-      expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
-      expect(text("execution-sheet-target-value")).toBe("30 s");
-      openTarget();
-      wheelChange("seconds", 45);
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("45 s");
+      enterExecutionSheetValue(TARGET, 45);
+      expect(shown()).toBe("45″");
+      openExecutionSheetField(TARGET);
+      typeInExecutionSheetCell(TARGET, "175");
+      closeExecutionSheetField(TARGET);
+      expect(shown()).toBe("2′15″");
     }));
 
-  it("PRE4-3.4/AC7 — sélection numérique amenée sur 00:00 : ✓ du Sélecteur indisponible, pas d'échec ; la Cible reste inchangée ; Pause 0 s reste valide", () =>
+  it("PRE4-3.4/AC7 — « 00:00 » saisi : ramené à la plus petite Cible positive (1″), jamais l'échec ; Pause 0″ reste valide", () =>
     withPlatform("ios", () => {
       renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
-      openTarget();
-      wheelChange("seconds", 0);
-      const check = screen.getByTestId("duration-wheel-validate");
-      expect(check.props.accessibilityState).toMatchObject({ disabled: true });
-      fireEvent.press(check);
-      expect(screen.getByTestId("execution-sheet-target-panel")).toBeTruthy();
-      // PRE-5 story 2.4 (FR-22) : « À l'échec » n'est pas une durée nulle ; la roue commune n'a pas d'option échec.
-      expect(screen.queryByTestId("duration-wheel-failure-option")).toBeNull();
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-      expect(text("execution-sheet-target-value")).toBe("30 s");
+      enterExecutionSheetValue(TARGET, 0);
+      expect(shown()).toBe("1″");
+      expect(selectedValue(STOP_CONTROL, ["FAILURE", "TARGET"])).toBe("TARGET");
       expect(sheetValidateDisabled()).toBe(false);
     }));
 
@@ -3294,34 +3001,27 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
       expect(sheetValidateDisabled()).toBe(false);
       failure.unmount();
       const unset = renderSheetView(durationTarget(unsetTarget()));
-      expect(text("execution-sheet-target-value")).toBe("—");
-      const pill = StyleSheet.flatten(screen.getByTestId("execution-sheet-target-value").props.style);
+      expect(shown()).toBe("—");
+      const pill = StyleSheet.flatten(screen.getByTestId(TARGET).props.style);
       expect(pill.backgroundColor).toBe("#FFF1F0");
       expect(pill.borderWidth).toBeUndefined();
       expect(sheetValidateDisabled()).toBe(true);
       unset.unmount();
       renderSheet(durationTarget(numberTarget(60)));
-      expect(text("execution-sheet-target-value")).toBe("1 min");
+      expect(shown()).toBe("1′00″");
       expect(screen.queryByText("Série à l’échec")).toBeNull();
     }));
-
 });
 
 /**
- * PRE-4 story 3.5 (AD-7, AD-15, AD-16, Q8, Q12, Q14, Q21, Q25, Q41) — Sélecteur de cible
- * en Répétitions dans la Feuille : pastille de la ligne commune, roue native à une
- * colonne (ligne de tête « Aucune répétition, à l’échec », puis 1..100) dans le
- * panneau sans flèche, ouverture normalisée par le domaine, ✓ au Brouillon seulement.
- * Le rendu de la ligne de tête (`NON VÉRIFIABLE`) se juge sur iPhone (R-3.5-01 à 04).
+ * PRE-4 story 3.5 (AD-7, AD-15, AD-16, Q8, Q12, Q14, Q21, Q25, Q41) — Cible commune en Répétitions.
+ * [Roue native à une colonne 1..100 dans le panneau sans flèche — remplacée le 06/11/2026, décision de
+ * Hermann (constat c) : saisie au clavier numérique dans la pastille, bornes 1..100, hors bornes
+ * ramenée à la borne, vidée → à renseigner.]
  */
 describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
   const repetitionsTarget = (target: SeriesTarget, count = 3) =>
     params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count, target, pauseSeconds: 15, loadKg: 0, workPhases: [] } });
-  /**
-   * PRE-5 story 2.4 (AC6, FR-22) : la ligne de tête « Aucune répétition, à l’échec » ne reste
-   * qu'à la roue d'une cellule variable (Q8) ; ses preuves sont faites sur la cellule de la
-   * Série 1 (Série 2 témoin à 8 rép.). La roue de la Cible commune n'a plus que 1..100.
-   */
   const cellRepetitions = (target: SeriesTarget) =>
     params({
       mode: "REPETITIONS",
@@ -3335,189 +3035,108 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
       },
     });
   const hiddenNode = { includeHiddenElements: true } as const;
-  const openTarget = () => fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  /** D-434 : focus de la cellule Cible de la Série 1 (clavier numérique). */
+  const TARGET = "execution-sheet-target";
   const openCell = () => fireEvent(screen.getByTestId("execution-sheet-table-row-1-target-input", hiddenNode), "focus");
-  const wheelChange = (selection: number | string) =>
-    fireEvent(screen.getByTestId("number-wheel-column"), "selectionChange", { nativeEvent: { selection } });
-  const selection = () => screen.getByTestId("number-wheel-column").props.selection as number | string;
-  const wheelValidate = () => fireEvent.press(screen.getByTestId("number-wheel-validate"));
-  const wheelCancel = () => fireEvent.press(screen.getByTestId("number-wheel-cancel"));
-  /** Texte de la ligne pendant l'ouverture (le panneau est modal pour VoiceOver). */
-  const rowText = () =>
-    String(screen.getByTestId("execution-sheet-target-value-text", { includeHiddenElements: true }).props.children);
+  const shown = () => text("execution-sheet-target-value");
   const sheetValidateDisabled = () => screen.getByTestId("execution-sheet-validate").props.accessibilityState?.disabled === true;
-  /** Éléments SwiftUI (`Text` + `tag`) de la colonne native, dans l'ordre de la roue. */
-  const columnNodes = () =>
-    screen
-      .getByTestId("number-wheel-column")
-      .findAll((node) => typeof node.type === "string" && typeof node.props.text === "string");
-  const columnItems = () => columnNodes().map((node) => node.props.text as string);
-  const oneToHundred = Array.from({ length: 100 }, (_, index) => String(index + 1));
 
-  it("PRE4-3.5/AC1 — iOS : panneau juste sous le champ Répétitions, aligné à droite (Q41)", () =>
-    withPlatform("ios", () => {
-      renderSheet(repetitionsTarget(numberTarget(10)));
-      // PRE-5 story 2.4 (AD-28) : y du cadre Séries + y de la ligne dans le cadre.
-      layoutFrames({ execution: [0, 98], series: [106, 230], sides: [344, 54], cadence: [406, 190] });
-      layoutOf("execution-sheet-row-target", 96, 44);
-      openTarget();
-      const panel = screen.getByTestId("execution-sheet-target-panel");
-      const placement = StyleSheet.flatten(panel.props.style);
-      // Sous la ligne du champ (106 + 96 + 44), à 4 points ; bord droit du champ (13 : contour et marge du cadre).
-      expect(placement).toMatchObject({ position: "absolute", top: 106 + 96 + 44 + 4, right: 13 });
-      expect(placement.left).toBeUndefined();
-      expect(placement.transform).toBeUndefined();
-      expect(placement.backgroundColor).toBeUndefined();
-      const hosted = within(panel).getByTestId("execution-sheet-target-wheel");
-      expect(StyleSheet.flatten(hosted.props.style)).toBeUndefined();
-      // PRE-5 story 2.4 (AC6) : sans ligne de tête, la roue garde sa largeur propre à une colonne (144).
-      expect(StyleSheet.flatten(within(hosted).getByTestId("execution-sheet-repetitions-wheel").props.style).width).toBe(144);
-    }));
-
-  it("PRE4-3.5/AC1 — iOS : la valeur de « Nombre de répétitions » ouvre le Sélecteur dans le panneau sans flèche sous le champ, avec ses ✕ / ✓ ; toute autre surface se ferme ; toucher extérieur ferme sans appliquer", () =>
+  it("PRE4-3.5/AC1 — iOS : « Nombre de répétitions » se saisit au clavier numérique dans sa pastille, dans sa ligne, sans panneau ; la saisie d'une autre valeur se range", () =>
     withPlatform("ios", () => {
       const { onApply } = renderSheet(repetitionsTarget(numberTarget(10)));
-      fireEvent.press(screen.getByTestId("execution-sheet-pause-toggle"));
-      expect(screen.getByTestId("execution-sheet-pause-field")).toBeTruthy();
-      openTarget();
-      expect(screen.queryByTestId("execution-sheet-pause-field")).toBeNull();
-      const panel = screen.getByTestId("execution-sheet-target-panel");
-      expect(within(screen.getByTestId("execution-sheet-panel-host", { includeHiddenElements: true })).getByTestId("execution-sheet-target-panel")).toBe(panel);
-      // Q41 : le panneau n'est pas dans la ligne (au-dessus du contenu, aucune ligne décalée).
-      expect(
-        within(screen.getByTestId("execution-sheet-row-target", { includeHiddenElements: true })).queryByTestId("execution-sheet-target-wheel", {
-          includeHiddenElements: true,
-        }),
-      ).toBeNull();
-      expect(within(panel).getByTestId("execution-sheet-repetitions-wheel")).toBeTruthy();
-      expect(within(panel).getByTestId("number-wheel-cancel")).toBeTruthy();
-      expect(within(panel).getByTestId("number-wheel-validate")).toBeTruthy();
-      expect(screen.getByTestId("execution-sheet-target-value", { includeHiddenElements: true }).props.accessibilityState).toMatchObject({ expanded: true });
-      wheelChange(12);
-      fireEvent.press(screen.getByTestId("execution-sheet-target-panel-outside", { includeHiddenElements: true }));
-      expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
-      expect(text("execution-sheet-target-value")).toBe("10 rép.");
+      openExecutionSheetField("execution-sheet-pause");
+      openExecutionSheetField(TARGET);
+      expect(screen.getByTestId("execution-sheet-pause", hiddenNode).props.accessibilityState).toMatchObject({ selected: false });
+      expect(within(screen.getByTestId("execution-sheet-row-target", hiddenNode)).getByTestId(TARGET)).toBeTruthy();
+      expect(screen.getByTestId("execution-sheet-target-input", hiddenNode).props.keyboardType).toBe("number-pad");
+      expect(screen.queryByTestId("execution-sheet-target-panel", hiddenNode)).toBeNull();
+      typeInExecutionSheetCell(TARGET, "12");
+      closeExecutionSheetField(TARGET);
+      expect(shown()).toBe("12 rép.");
       validate();
-      expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 10 }, pauseSeconds: 15, loadKg: 0, workPhases: [] });
+      expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 12 }, pauseSeconds: 15, loadKg: 0, workPhases: [] });
     }));
 
-  it("PRE4-3.5/AC2, PRE5-2.4/AC6, D-434 — une colonne : Cible commune 1..100 sans ligne de tête ; cellule variable au clavier ; plus de stepper en ligne", () =>
+  it("PRE4-3.5/AC2, PRE5-2.4/AC6, D-434 — Cible commune au clavier, sans ligne de tête ni stepper ; cellule variable au clavier", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(repetitionsTarget(numberTarget(10)));
       expect(screen.queryByTestId("execution-sheet-target-stepper")).toBeNull();
       expect(screen.queryByTestId("execution-sheet-target-failure")).toBeNull();
-      openTarget();
-      expect(columnItems()).toEqual(oneToHundred);
-      expect(screen.queryByTestId("duration-wheel-failure-option")).toBeNull();
+      openExecutionSheetField(TARGET);
+      expect(shown()).toBe("10");
+      expect(screen.queryByTestId("number-wheel-column")).toBeNull();
       view.unmount();
-      // D-434 (QD-434-1) : la cellule Répétitions d'une série variable se saisit au clavier
-      // numérique ; plus de roue à ligne de tête.
       renderSheet(cellRepetitions(numberTarget(10)));
       openCell();
       expect(screen.queryByTestId("number-wheel-column")).toBeNull();
       expect(screen.getByTestId("execution-sheet-table-row-1-target-input").props.keyboardType).toBe("number-pad");
     }));
 
-  it("PRE4-3.5/AC4 — ouverture : NUMBER 12 → 12 ; ancienne 150 → 100, ligne inchangée pendant l'ouverture, ✕ garde 150, ✓ sans tourner applique 100", () =>
+  it("PRE4-3.5/AC4 — saisie : 12 → « 12 » ; ancienne 150 inchangée sans frappe, ramenée à 100 par une saisie au-delà", () =>
     withPlatform("ios", () => {
       const twelve = renderSheetView(repetitionsTarget(numberTarget(12)));
-      openTarget();
-      expect(selection()).toBe(12);
+      openExecutionSheetField(TARGET);
+      expect(shown()).toBe("12");
       twelve.unmount();
 
       const legacy = repetitionsTarget(numberTarget(150));
       renderSheet(legacy, 10, legacy);
-      expect(text("execution-sheet-target-value")).toBe("150 rép.");
-      openTarget();
-      expect(selection()).toBe(100);
-      expect(rowText()).toBe("150 rép.");
-      wheelCancel();
-      expect(text("execution-sheet-target-value")).toBe("150 rép.");
-      openTarget();
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("100 rép.");
+      expect(shown()).toBe("150 rép.");
+      openExecutionSheetField(TARGET);
+      closeExecutionSheetField(TARGET);
+      expect(shown()).toBe("150 rép.");
+      enterExecutionSheetValue(TARGET, 200, "integer");
+      expect(shown()).toBe("100 rép.");
     }));
 
-  it("PRE4-3.5/AC4 — Cible à renseigner (P37) : roue sur 1, pas sur la ligne de tête ; la ligne garde « — » ; ✕ la laisse à renseigner ; ✓ sans tourner applique 1", () =>
+  it("PRE4-3.5/AC4 — Cible à renseigner (P37) : saisie sur « 0 » atténué ; sortie sans frappe : « — » ; 1 saisi rend ✓ disponible", () =>
     withPlatform("ios", () => {
       renderSheet(repetitionsTarget(unsetTarget()));
-      expect(text("execution-sheet-target-value")).toBe("—");
-      expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-target-value").props.style).backgroundColor).toBe("#FFF1F0");
-      expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityHint).toBe("Valeur à renseigner");
+      expect(shown()).toBe("—");
+      expect(StyleSheet.flatten(screen.getByTestId(TARGET).props.style).backgroundColor).toBe("#FFF1F0");
+      expect(screen.getByTestId(TARGET).props.accessibilityHint).toBe("Valeur à renseigner");
       expect(sheetValidateDisabled()).toBe(true);
-      openTarget();
-      expect(selection()).toBe(1);
-      expect(rowText()).toBe("—");
-      wheelCancel();
-      expect(text("execution-sheet-target-value")).toBe("—");
+      openExecutionSheetField(TARGET);
+      expect(shown()).toBe("0");
+      closeExecutionSheetField(TARGET);
+      expect(shown()).toBe("—");
       expect(sheetValidateDisabled()).toBe(true);
-      openTarget();
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("1 rép.");
+      enterExecutionSheetValue(TARGET, 1, "integer");
+      expect(shown()).toBe("1 rép.");
       expect(sheetValidateDisabled()).toBe(false);
     }));
 
-  it("PRE4-3.5/AC4 — Durée à « — » passée en Répétitions : le Sélecteur ouvre sur 1 (selectorOpeningPosition, Q25)", () =>
+  it("PRE4-3.5/AC4 — Durée à « — » passée en Répétitions : Cible initiale 1 (recette PRE-9 n° 1), saisie sur « 1 »", () =>
     withPlatform("ios", () => {
       renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       chooseExecutionMode("Répétitions");
-      expect(text("execution-sheet-target-value")).toBe("—");
-      openTarget();
-      expect(selection()).toBe(1);
+      expect(shown()).toBe("1 rép.");
+      openExecutionSheetField(TARGET);
+      expect(shown()).toBe("1");
     }));
 
-  it("PRE4-3.5/AC5 — bornes : 1 et 100 atteignables ; aucune valeur 0, 101 ou fractionnaire ne sort du Sélecteur", () =>
+  it("PRE4-3.5/AC5 — bornes : 1 et 100 atteignables ; 0 ramené à 1, 101 ramené à 100 (trois chiffres au plus)", () =>
     withPlatform("ios", () => {
       renderSheet(repetitionsTarget(numberTarget(10)));
-      openTarget();
-      const items = columnItems();
-      // Contrôle positif d'abord (la liste est bien lue), puis les absences.
-      expect(items).toContain("1");
-      expect(items).toContain("100");
-      expect(items).not.toContain("0");
-      expect(items).not.toContain("101");
-      expect(items.every((item) => Number.isInteger(Number(item)))).toBe(true);
-      wheelChange(100);
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("100 rép.");
-      openTarget();
-      wheelChange(1);
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("1 rép.");
-      // Valeurs natives hors liste (défense) : ramenées dans les bornes, à l'entier.
-      openTarget();
-      wheelChange(101);
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("100 rép.");
-      openTarget();
-      wheelChange(0);
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("1 rép.");
-      openTarget();
-      wheelChange(12.4);
-      wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("12 rép.");
+      enterExecutionSheetValue(TARGET, 100, "integer");
+      expect(shown()).toBe("100 rép.");
+      enterExecutionSheetValue(TARGET, 1, "integer");
+      expect(shown()).toBe("1 rép.");
+      enterExecutionSheetValue(TARGET, 101, "integer");
+      expect(shown()).toBe("100 rép.");
+      enterExecutionSheetValue(TARGET, 0, "integer");
+      expect(shown()).toBe("1 rép.");
+      openExecutionSheetField(TARGET);
+      typeInExecutionSheetCell(TARGET, "1234");
+      expect(shown()).toBe("123");
     }));
 
-  it("PRE4-3.5/AC7 — accessibilité : nombres libellés (« 12 répétitions ») ; pastille annoncée avec la Cible", () =>
+  it("PRE4-3.5/AC7 — accessibilité : champ nommé « Nombre de répétitions », valeur annoncée", () =>
     withPlatform("ios", () => {
-      const view = renderSheetView(repetitionsTarget(numberTarget(12)));
-      // H14 : libellé de la ligne commune « Nombre de répétitions ».
+      renderSheetView(repetitionsTarget(numberTarget(12)));
       expect(screen.getByText("Nombre de répétitions")).toBeTruthy();
-      expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Nombre de répétitions, 12 rép.");
-      openTarget();
-      // Recherche limitée à la colonne de la roue (`number-wheel-column`).
-      const labelOf = (textValue: string) => {
-        const node = columnNodes().find((candidate) => candidate.props.text === textValue)!;
-        const modifiers = node.props.modifiers as { $type: string; label?: string }[];
-        return modifiers.find((modifier) => modifier.$type === "accessibilityLabel")?.label;
-      };
-      expect(labelOf("1")).toBe("1 répétition");
-      expect(labelOf("12")).toBe("12 répétitions");
-      view.unmount();
+      expect(screen.getByTestId(TARGET).props.accessibilityLabel).toBe("Nombre de répétitions");
+      expect(screen.getByTestId(TARGET).props.accessibilityValue).toEqual({ text: "12 rép." });
     }));
-
 });
 
 
@@ -3552,7 +3171,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   const sheetValidateDisabled = () => screen.getByTestId("execution-sheet-validate").props.accessibilityState?.disabled === true;
   const cellBackground = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style).backgroundColor;
 
-  it("PRE4-3.6/AC1 — structure : chaque ligne porte poignée, numéro, Cible, Pause et croix ; en-têtes ; `30 s`, `1 min`, `12 rép.`, `à l’échec` ; sans retrait x52 ; aucun défilement propre", () => {
+  it("PRE4-3.6/AC1 — structure : chaque ligne porte poignée, numéro, Cible, Pause et croix ; en-têtes ; `30″`, `1′00″`, `12 rép.`, `à l’échec` ; sans retrait x52 ; aucun défilement propre", () => {
     const view = renderSheetView(variableSheet([[30, 10], [60, 20], ["FAILURE", 30]]));
     const table = within(screen.getByTestId("execution-sheet-variable-group")).getByTestId("execution-sheet-table");
     expect(within(table).getByText("Durée")).toBeTruthy();
@@ -3565,7 +3184,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
       expect(within(line).getByTestId(`execution-sheet-table-row-${row}-pause`)).toBeTruthy();
       expect(within(line).getByTestId(`execution-sheet-table-row-${row}-remove`)).toBeTruthy();
     }
-    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "1 min", "à l’échec"]);
+    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30″", "1′00″", "à l’échec"]);
     expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-table-content").props.style)?.marginLeft).toBeUndefined();
     expect(table.findAll((node) => node.props.scrollEnabled !== undefined)).toHaveLength(0);
     view.unmount();
@@ -3594,21 +3213,23 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
 
   it("PRE4-3.6/AC2 (partie maintenue par Q44), D-434 — une seule surface ouverte : un champ ± ouvert se ferme quand une cellule de Cible prend le focus, et sa saisie s'ouvre dans le même geste (T21), sans panneau", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
+    // [Champ ± de la Cadence — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : champ clavier révélé par Autre, focus simulé.]
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-    expect(screen.getByTestId("execution-sheet-beep-field")).toBeTruthy();
+    fireEvent(screen.getByTestId("execution-sheet-beep-input", hidden), "focus");
     openCell(2);
-    expect(screen.queryByTestId("execution-sheet-beep-field")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-beep-input", hidden)).toBeNull();
     expect(cellBackground(targetID(2))).toBe("#EAEAFF");
     expect(screen.queryAllByTestId(/-panel$/)).toHaveLength(0);
   });
 
   it("PRE4-3.6/AC2 (partie maintenue par Q44), D-434 — S4 (R-3.6-09) : − de N avec son champ ouvert retire la ligne 3 et garde le champ ; la cellule Cible de la ligne 2 ferme N et affiche « 00:45 », d'un seul geste", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
+    // [− de N avec son champ ± ouvert — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : N saisi à 2, la saisie de N rouverte.]
     tap("execution-sheet-series-decrement");
     expect(rowCount()).toBe(2);
-    expect(screen.getByTestId("execution-sheet-series-field")).toBeTruthy();
+    openExecutionSheetField("execution-sheet-series");
     openCell(2);
-    expect(screen.queryByTestId("execution-sheet-series-field")).toBeNull();
+    expect(screen.getByTestId("execution-sheet-series", hidden).props.accessibilityState).toMatchObject({ selected: false });
     expect(cellValue(2)).toBe("00:45");
   });
 
@@ -3625,7 +3246,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(cellValue(2)).toBe("00:00");
     typeInExecutionSheetCell(targetID(2), "1");
     closeCell(2);
-    expect(cellValue(2)).toBe("1 s");
+    expect(cellValue(2)).toBe("1″");
     expect(cellBackground(targetID(2))).not.toBe("#FFF1F0");
     view.unmount();
 
@@ -3657,7 +3278,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(cellValue(1)).toBe("—");
   });
 
-  it("PRE4-3.6/AC8 — glisser la ligne 3 en tête : repère, corps immobile, ordre (à l'échec, 30 s), (30 s, 10 s), (45 s, 20 s) ; actions accessibles conservées", () => {
+  it("PRE4-3.6/AC8 — glisser la ligne 3 en tête : repère, corps immobile, ordre (à l'échec, 30″), (30″, 10″), (45″, 20″) ; actions accessibles conservées", () => {
     const { onApply } = renderSheet(variableSheet([[30, 10], [45, 20], ["FAILURE", 30]]));
     const handle = screen.getByTestId("execution-sheet-table-row-3-handle");
     fireEvent(handle, "responderGrant", { nativeEvent: { pageY: 300 } });
@@ -3667,16 +3288,16 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     fireEvent(screen.getByTestId("execution-sheet-table-row-3-handle"), "responderRelease", { nativeEvent: { pageY: 300 - 2 * TABLE_ROW_HEIGHT } });
     expect(screen.getByTestId("execution-sheet-body").props.scrollEnabled).toBe(true);
     expect([1, 2, 3].map((row) => `${cellValue(row)} / ${cellValue(row, "pause")}`)).toEqual([
-      "à l’échec / 30 s",
-      "30 s / 10 s",
-      "45 s / 20 s",
+      "à l’échec / 30″",
+      "30″ / 10″",
+      "45″ / 20″",
     ]);
     expect(screen.getByTestId("execution-sheet-table-row-2-handle").props.accessibilityActions).toEqual([
       { name: "moveUp", label: "Monter la série 2" },
       { name: "moveDown", label: "Descendre la série 2" },
     ]);
     moveAction(3, "moveUp");
-    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["à l’échec", "45 s", "30 s"]);
+    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["à l’échec", "45″", "30″"]);
     validate();
     expect(applied(onApply).series).toEqual({
       kind: "VARIABLE",
@@ -3693,7 +3314,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     const { onApply } = renderSheet(variableSheet([[30, 10], [45, 20], [60, 30], [75, 40]]));
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     expect(rowCount()).toBe(3);
-    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "1 min", "1 min 15 s"]);
+    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30″", "1′00″", "1′15″"]);
     expect(valueOf("execution-sheet-series")).toBe("3 séries variables");
     const message = screen.getByTestId("execution-sheet-adjusted");
     expect(within(message).getByText("Série supprimée")).toBeTruthy();
@@ -3702,10 +3323,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     expect([1, 2, 3, 4].map((row) => `${cellValue(row)} / ${cellValue(row, "pause")}`)).toEqual([
-      "30 s / 10 s",
-      "45 s / 20 s",
-      "1 min / 30 s",
-      "1 min 15 s / 40 s",
+      "30″ / 10″",
+      "45″ / 20″",
+      "1′00″ / 30″",
+      "1′15″ / 40″",
     ]);
     validate();
     expect(applied(onApply).series).toMatchObject({ kind: "VARIABLE", rows: [{}, {}, {}, {}] });
@@ -3718,7 +3339,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     openCell(2);
     closeCell(2);
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
-    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "45 s", "1 min"]);
+    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30″", "45″", "1′00″"]);
 
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     expect(screen.getByTestId("execution-sheet-adjusted")).toBeTruthy();
@@ -3756,7 +3377,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     showSignals();
     expect(undoAvailable()).toBe(true);
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
-    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "45 s", "1 min"]);
+    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30″", "45″", "1′00″"]);
   });
 
   it("PRE4-3.6/AC9 — Q29 (report de 3.2 clos en 4.2), PRE5-2.5, RC-6 : bilatéral, N ≥ 2 — Enchainement (menu d'Avec) et Avec re-choisis sans changement : `Annuler` reste valable", () => {
@@ -3764,7 +3385,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     const undoAvailable = () => screen.queryByTestId("execution-sheet-adjusted-undo", hidden) !== null;
     expect(undoAvailable()).toBe(true);
-    chooseOrder("Un côté après l’autre");
+    chooseOrder("Chaque série d’un côté, puis chaque série de l’autre");
     expect(undoAvailable()).toBe(true);
     chooseSide("Avec");
     expect(undoAvailable()).toBe(true);
@@ -3773,15 +3394,16 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
     expect(undoAvailable()).toBe(true);
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
-    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "45 s", "1 min"]);
+    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30″", "45″", "1′00″"]);
   });
 
   it("PRE4-3.6/AC9, D-434 — croix inactive tant qu'un champ ± ou une saisie de cellule est ouvert : l'appui range le champ sans retirer (T23)", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    fireEvent(screen.getByTestId("execution-sheet-beep-input", hidden), "focus");
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     expect(rowCount()).toBe(3);
-    expect(screen.queryByTestId("execution-sheet-beep-field")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-beep-input", hidden)).toBeNull();
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     openCell(3);
     expect(cellBackground(targetID(3))).toBe("#EAEAFF");
@@ -3795,6 +3417,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
     expect(screen.getByTestId("execution-sheet-table-row-2-remove").props.accessibilityHint).toBeUndefined();
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    fireEvent(screen.getByTestId("execution-sheet-beep-input", hidden), "focus");
     expect(screen.getByTestId("execution-sheet-table-row-2-remove").props.accessibilityHint).toBe(
       "Ferme d’abord le champ ouvert, sans supprimer la série",
     );
@@ -3804,11 +3427,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]]));
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-    expect(screen.getByTestId("execution-sheet-beep-field")).toBeTruthy();
+    fireEvent(screen.getByTestId("execution-sheet-beep-input", hidden), "focus");
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect(rowCount()).toBe(3);
-    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30 s", "45 s", "1 min"]);
-    expect(screen.getByTestId("execution-sheet-beep-field")).toBeTruthy();
+    expect([1, 2, 3].map((row) => cellValue(row))).toEqual(["30″", "45″", "1′00″"]);
+    // [Champ ± (Bip) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : la saisie de la Cadence reste ouverte.]
+    expect(screen.getByTestId("execution-sheet-beep", hidden).props.accessibilityState).toMatchObject({ selected: true });
   });
 
   it("PRE4-3.6/AC9 — croix indisponible à N = 1 : un retrait qui ramène N à 1 masque le tableau ; `Annuler` le restaure", () => {
@@ -3819,7 +3443,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect(rowCount()).toBe(2);
-    expect([cellValue(1), cellValue(2)]).toEqual(["30 s", "45 s"]);
+    expect([cellValue(1), cellValue(2)]).toEqual(["30″", "45″"]);
   });
 
   it("PRE4-3.6/AC10 — la ligne `Séries` affiche `1 série` puis `3 séries` (lexique)", () => {
@@ -3827,7 +3451,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(valueOf("execution-sheet-series")).toBe("1 série identique");
     tap("execution-sheet-series-increment");
     tap("execution-sheet-series-increment");
-    expect(screen.getByTestId("execution-sheet-series-value").props.children).toBe("3 séries");
+    expect(screen.getByTestId("execution-sheet-series-value").props.children).toBe("3 séries identiques");
   });
 
   it("PRE4-3.6/AC11 — `variables` : aucune ligne ne porte de Bip ; le Bip de cadence reste au premier niveau", () => {
@@ -3891,11 +3515,11 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     }
     const cell = screen.getByTestId(targetID(2));
     expect(cell.props.accessibilityLabel).toBe("Série 2, Durée");
-    expect(cell.props.accessibilityValue).toEqual({ text: "45 s" });
+    expect(cell.props.accessibilityValue).toEqual({ text: "45″" });
     expect(cell.props.accessibilityRole).toBe("button");
     const pause = screen.getByTestId("execution-sheet-table-row-2-pause");
     expect(pause.props.accessibilityLabel).toBe("Série 2, pause");
-    expect(pause.props.accessibilityValue).toEqual({ text: "20 s" });
+    expect(pause.props.accessibilityValue).toEqual({ text: "20″" });
     expect(pause.props.accessibilityRole).toBe("button");
     // D-434 : le focus de la cellule (clavier) la rend active, annoncée sélectionnée, valeur « 00:45 ».
     openCell(2);
@@ -3948,16 +3572,6 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
   const totalLabelText = () => within(totalRow()).getAllByText(/^Durée de l’exercice/u, anyNode)[0]!.props.children as string;
   const readOnlyText = () => String(screen.getByTestId("execution-sheet-total-text").props.children);
   const sheetValidateDisabled = () => screen.getByTestId("execution-sheet-validate").props.accessibilityState?.disabled === true;
-  const nativeChange = (column: "minutes" | "seconds", selection: number) =>
-    fireEvent(screen.getByTestId(`duration-wheel-${column}`), "selectionChange", { nativeEvent: { selection } });
-  /** Valeurs proposées par une colonne de la roue native (modificateur `tag` de chaque `SwiftUIText`). */
-  const nativeValues = (column: "minutes" | "seconds") =>
-    screen
-      .getByTestId(`duration-wheel-${column}`)
-      .findAll((node) => typeof node.type === "string" && Array.isArray(node.props.modifiers))
-      .flatMap((node) => (node.props.modifiers as { $type: string; tag?: number }[]).filter((modifier) => modifier.$type === "tag"))
-      .map((modifier) => modifier.tag);
-  const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, index) => from + index);
   /** Ordre des lignes Cadence, Durée de l'exercice et Compte à rebours dans le corps (absentes omises). */
   const bodyRowOrder = () => {
     const json = JSON.stringify(screen.toJSON());
@@ -4007,7 +3621,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     // Mélange calculable : lecture seule, montant précédé de ≥ (FR-13-03 : travail connu + toutes les Pauses).
     view = renderSheetView(mixedDuration());
     expect(readOnlyText()).toBe(lowerBound(30 + 45 + 10 + 20 + 30));
-    expect(readOnlyText()).toBe("≥ 2 min 15 s");
+    expect(readOnlyText()).toBe("≥ 2′15″");
     expect(totalLabelText()).toBe("Durée de l’exercice");
     // Aucune nouvelle composante : la ligne ne porte que son libellé et sa valeur ; PRE-5 story
     // 2.5 (AC4) : seul élément touchable, le chevron qui déplie Compte à rebours et Fin.
@@ -4053,7 +3667,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     tap("execution-sheet-series-increment");
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(4 * (30 + 11)));
     chooseSide("Avec");
-    expect(valueOf("execution-sheet-side-recovery")).toBe("10 s");
+    expect(valueOf("execution-sheet-side-recovery")).toBe("10″");
     // Un côté après l'autre : 2 N (d + p) + PC.
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(2 * 4 * (30 + 11) + 10));
     // Mode Répétitions : la Cible numérique de Durée devient `—` (UNSET) — aucun montant.
@@ -4061,7 +3675,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     chooseMode("Répétitions");
     expect(screen.getByTestId("execution-sheet-row-total")).toBeTruthy();
     expect(readOnlyText()).toBe(TOTAL_NOT_CALCULABLE);
-    expect(screen.queryAllByText("0 s")).toHaveLength(0);
+    expect(screen.queryAllByText("0″")).toHaveLength(0);
     expect(sheetValidateDisabled()).toBe(true);
     expect(bodyRowOrder()).toEqual(["beep", "total"]);
     // Retour en Durée : Cible restaurée, total recalculé, ligne à la même place après la Cadence ;
@@ -4121,116 +3735,56 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(totalLine().props.accessibilityLabel).toBe(TOTAL_NOT_CALCULABLE_SPOKEN);
   });
 
-  // Présentation du panneau (Q41) prouvée ici et, plus largement (réserve sous le groupe,
-  // aucune animation de hauteur), par « PRE4-Q41 — iOS : roue de la Durée totale dans un
-  // panneau sans flèche sous le champ… ».
-  it("PRE4-3.7/AC4 — iOS : roulette distincte dans le panneau sans flèche sous le champ, aligné à droite, ouverte sur le total courant ; bornes T(1) = 40 s à T(99) = 66 min à la seconde ; aucune option échec ; ✕ et toucher extérieur ferment sans appliquer", () =>
+  // [Roulette distincte dans un panneau sans flèche (position, colonnes bornées, ✕, toucher extérieur) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  it("PRE4-3.7/AC4 — iOS : Durée de l'exercice saisie au clavier dans sa pastille, « MM:SS » du total courant, sans panneau ni option échec ; bornes T(1) = 40″ à T(99) = 1h 06′, hors bornes ramenée à la borne", () =>
     withPlatform("ios", () => {
       renderSheet(ac4Exercise());
-      // PRE-5 story 2.4 (AD-28) : ligne à y = 50 dans le cadre Cadence et durée, à y = 306.
-      layoutFrames({ execution: [0, 98], series: [106, 132], sides: [246, 52], cadence: [306, 194] });
-      layoutOf("execution-sheet-row-total", 50, 42);
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      const panel = screen.getByTestId("execution-sheet-total-panel");
-      // Juste sous la ligne (306 + 50 + 42 + 4), aligné à droite (contour et marge du cadre, 13), sans bord gauche imposé.
-      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 306 + 50 + 42 + 4, right: 13 });
-      expect(StyleSheet.flatten(panel.props.style).left).toBeUndefined();
-      expect(within(panel).getByTestId("execution-sheet-total-wheel")).toBeTruthy();
-      // Distincte du Sélecteur de cible : ni option échec, ni panneau de la Cible ; aucun Popover ni Modal ajouté.
+      openExecutionSheetField("execution-sheet-total");
+      expect(text("execution-sheet-total")).toBe("02:00");
+      expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
       expect(screen.queryByTestId("duration-wheel-failure-option")).toBeNull();
-      expect(screen.queryByTestId("execution-sheet-target-panel")).toBeNull();
-      expect(panel.findAllByType(Popover)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(Modal)).toHaveLength(1);
-      // Ouverture sur T(3) = 3 × 40 = 120 s (02:00).
-      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(2);
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(0);
-      // Bornes : T(1) = 1 × (30 + 10) = 40 s ; T(99) = 99 × 40 = 3 960 s = 66 min.
-      const t1 = 1 * (30 + 10);
-      const t99 = 99 * (30 + 10);
-      expect(nativeValues("minutes")).toEqual(range(0, t99 / 60));
-      expect(nativeValues("seconds")).toEqual(range(0, 59));
-      nativeChange("minutes", 0);
-      expect(nativeValues("seconds")).toEqual([0, ...range(t1, 59)]);
-      nativeChange("minutes", t99 / 60);
-      expect(nativeValues("seconds")).toEqual([0]);
-      expect(formatPhraseDuration(t99)).toBe("66 min");
-      // Sous T(1) (`00:00`) : ✓ indisponible, sans effet.
-      nativeChange("minutes", 0);
-      nativeChange("seconds", 0);
-      expect(screen.getByTestId("duration-wheel-validate").props.accessibilityState).toMatchObject({ disabled: true });
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(screen.getByTestId("execution-sheet-total-panel")).toBeTruthy();
-      // ✕ : fermeture sans appliquer, valeur d'avant ouverture.
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-      expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
-      expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
-      expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
-      // Toucher hors du panneau : fermé sans appliquer la valeur tournée.
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      nativeChange("minutes", 5);
-      fireEvent.press(screen.getByTestId("execution-sheet-total-panel-outside", { includeHiddenElements: true }));
-      expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
-      expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
-      expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
+      // Sous T(1) (00:10 saisi) : ramené à T(1) = 40 s, N = 1.
+      typeInExecutionSheetCell("execution-sheet-total", "10");
+      closeExecutionSheetField("execution-sheet-total");
+      expect(valueOf("execution-sheet-series")).toBe("1 série identique");
+      expect(text("execution-sheet-total")).toBe(formatPhraseDuration(40));
+      // Au-delà de T(99) = 66 min (99:59 saisi) : ramené à T(99), N = 99.
+      enterExecutionSheetValue("execution-sheet-total", 99 * 60 + 59);
+      expect(valueOf("execution-sheet-series")).toBe("99 séries identiques");
+      expect(text("execution-sheet-total")).toBe("1h 06′");
     }));
 
-  for (const os of ["android", "web"] as const) {
-    it(`PRE4-3.7/AC4 — ${os} : roulette en ligne dans le cadre de sélection de la ligne, sans option échec ; ✕ ferme sans appliquer`, () =>
-      withPlatform(os, () => {
-        renderSheet(ac4Exercise());
-        fireEvent.press(screen.getByTestId("execution-sheet-total"));
-        expect(within(screen.getByTestId("execution-sheet-row-total")).getByTestId("execution-sheet-total-wheel")).toBeTruthy();
-        expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
-        expect(screen.queryByTestId("duration-wheel-failure-option")).toBeNull();
-        fireEvent.press(totalWheel().getByTestId("duration-wheel-cancel"));
-        expect(screen.queryByTestId("execution-sheet-total-wheel")).toBeNull();
-        expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
-      }));
-  }
+  // [PRE4-3.7/AC4 — Android et web : roulette en ligne — supprimé, remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : même champ sur toutes les plates-formes.]
 
-  it("PRE4-3.7/AC4 — iOS : T(1) = 70 s (d = 60 s, p = 10 s) : minutes 01..99 sans 00, secondes 10..59 à 1 min ; T(99) = 6 930 s > 5 999 : borne 99:59 ; ouverture exacte sur 03:30", () =>
+  it("PRE4-3.7/AC4 — iOS : T(1) = 1′10″ (d = 1′00″, p = 10″), T(99) = 6 15′30″ > 5 999 : borne 99:59 ; saisie sur « 03:30 » ; 01:10 = T(1) : N = 1, aucun message", () =>
     withPlatform("ios", () => {
       renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(60), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
       expect(99 * (60 + 10)).toBeGreaterThan(5999);
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(Math.floor((3 * 70) / 60));
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe((3 * 70) % 60);
-      expect(nativeValues("minutes")).toEqual(range(1, 99));
-      nativeChange("minutes", 1);
-      expect(nativeValues("seconds")).toEqual(range(70 - 60, 59));
-      nativeChange("minutes", 99);
-      expect(nativeValues("seconds")).toEqual(range(0, 59));
-      // ✓ sur 1:10 = T(1) : N = 1, aucun message.
-      nativeChange("minutes", 1);
-      nativeChange("seconds", 10);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      openExecutionSheetField("execution-sheet-total");
+      expect(text("execution-sheet-total")).toBe("03:30");
+      typeInExecutionSheetCell("execution-sheet-total", "110");
+      closeExecutionSheetField("execution-sheet-total");
       expect(valueOf("execution-sheet-series")).toBe("1 série identique");
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(70));
       expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     }));
 
-  it("PRE4-3.7/AC4 — iOS : T(99) > 5 999 s (d = 95 s, p = 10 s) : minutes jusqu'à 99, secondes 00..59 à 99 min, ouverture exacte sur 05:15 ; total courant > 5 999 s ou T(1) > 5 999 s : aucune roue, lecture seule « non modifiable »", () =>
+  it("PRE4-3.7/AC4 — iOS : T(99) > 5 16′39″ (d = 1′35″, p = 10″) : saisie sur « 05:15 » ; total courant > 5 16′39″ ou T(1) > 5 16′39″ : aucun champ, lecture seule « non modifiable »", () =>
     withPlatform("ios", () => {
       let view = renderSheetView(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(95), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      // Ouverture sur 3 × (95 + 10) = 315 s = 05:15.
-      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(5);
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(15);
-      expect(nativeValues("minutes")).toEqual(range(1, 99));
-      nativeChange("minutes", 99);
-      expect(nativeValues("seconds")).toEqual(range(0, 59));
+      openExecutionSheetField("execution-sheet-total");
+      expect(text("execution-sheet-total")).toBe("05:15");
       view.unmount();
 
-      // Total courant 90 × (60 + 10) = 6 300 s > 5 999 : pas de roue ; T(1) = 70 s n'y change rien.
+      // Total courant 90 × (60 + 10) = 6 300 s > 5 999 : pas de champ ; T(1) = 70 s n'y change rien.
       view = renderSheetView(params({ series: { kind: "UNIFORM", count: 90, target: numberTarget(60), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
       expect(screen.queryByTestId("execution-sheet-total")).toBeNull();
       expect(readOnlyText()).toBe(formatPhraseDuration(90 * 70));
-      expect(totalLine().props.accessibilityLabel).toBe(`Durée de l’exercice, ${formatPhraseDuration(90 * 70)}, non modifiable`);
-      fireEvent.press(screen.getByTestId("execution-sheet-total-text"));
-      expect(screen.queryByTestId("execution-sheet-total-panel")).toBeNull();
+      expect(totalLine().props.accessibilityLabel).toBe(`Durée de l’exercice, ${spokenDuration(90 * 70)}, non modifiable`);
       view.unmount();
 
-      // T(1) = 2 × (3 535 + 300) + 300 = 7 970 s > 5 999 (bilatéral, un côté après l'autre, N = 1) : pas de roue.
+      // T(1) = 2 × (3 535 + 300) + 300 = 7 970 s > 5 999 (bilatéral, un côté après l'autre, N = 1) : pas de champ.
       renderSheet(
         params({
           series: { kind: "UNIFORM", count: 1, target: numberTarget(3535), pauseSeconds: 300, loadKg: 0, workPhases: [] },
@@ -4243,41 +3797,34 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       expect(totalLine().props.accessibilityLabel).toMatch(/non modifiable$/u);
     }));
 
-  it("PRE4-3.7/AC5 — Tv = 160 s puis ✓ : N = 4, T(4) = 160 s, aucun message, Cible 30 s ; ✓ de la Feuille applique à l'Éditeur", () =>
+  it("PRE4-3.7/AC5 — Tv = 2′40″ saisi : N = 4, T(4) = 2′40″, aucun message, Cible 30″ ; ✓ de la Feuille applique à l'Éditeur", () =>
     withPlatform("ios", () => {
       const { onApply } = renderSheet(ac4Exercise());
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      nativeChange("minutes", 2);
-      nativeChange("seconds", 40);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      enterExecutionSheetValue("execution-sheet-total", 160);
       // arrondi(160 / (30 + 10)) = 4 ; T(4) = 4 × 40 = 160 s.
       expect(valueOf("execution-sheet-series")).toBe("4 séries identiques");
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(4 * 40));
       expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
       expect(screen.queryByText(/Durée ajustée/u)).toBeNull();
-      expect(text("execution-sheet-target-value")).toBe("30 s");
+      expect(text("execution-sheet-target-value")).toBe("30″");
       // Double validation (Q12) : rien n'est appliqué à l'Éditeur avant le ✓ de la Feuille.
       expect(onApply).not.toHaveBeenCalled();
       validate();
       expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 4, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] });
     }));
 
-  it("PRE4-3.7/AC6 — Tv = 180 s puis ✓ : N = 5 (égalité 160 / 200 vers le plus grand N), « 3 min 20 s », message littéral et `Annuler` (restaure N et total) ; toucher le message le ferme sans annuler", () =>
+  it("PRE4-3.7/AC6 — Tv = 3′00″ puis ✓ : N = 5 (égalité 160 / 200 vers le plus grand N), « 3′20″ », message littéral et `Annuler` (restaure N et total) ; toucher le message le ferme sans annuler", () =>
     withPlatform("ios", () => {
       const { onApply } = renderSheet(ac4Exercise());
-      const adjustTo180 = () => {
-        fireEvent.press(screen.getByTestId("execution-sheet-total"));
-        nativeChange("minutes", 3);
-        nativeChange("seconds", 0);
-        fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      };
+      // [Roue de la Durée de l'exercice — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+      const adjustTo180 = () => enterExecutionSheetValue("execution-sheet-total", 180);
       adjustTo180();
       // Candidats N = 4 (160 s) et N = 5 (200 s), à 20 s chacun de 180 s : N = 5 retenu.
       expect(Math.abs(4 * 40 - 180)).toBe(Math.abs(5 * 40 - 180));
       expect(valueOf("execution-sheet-series")).toBe("5 séries identiques");
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(5 * 40));
-      expect(text("execution-sheet-total")).toBe("3 min 20 s");
-      expect(screen.getByText("Durée ajustée à 3 min 20 s pour respecter un nombre entier de séries.")).toBeTruthy();
+      expect(text("execution-sheet-total")).toBe("3′20″");
+      expect(screen.getByText("Durée ajustée à 3′20″ pour respecter un nombre entier de séries.")).toBeTruthy();
       expect(screen.getByTestId("execution-sheet-adjusted-undo").props.accessibilityLabel).toBe("Annuler");
       // Capsule déjà livrée (recette 2, T-58) : sans contour, blanc à 10 % d'opacité, demi-cercles.
       const capsule = StyleSheet.flatten(screen.getByTestId("execution-sheet-adjusted-undo").props.style);
@@ -4307,7 +3854,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     let view = renderSheetView(repetitionsWithBeep());
     expect(totalLine().props.accessible).toBe(true);
     expect(totalLine().props.accessibilityRole).toBe("text");
-    expect(spoken()).toBe(`Durée de l’exercice, estimation, ${formatPhraseDuration(3 * (10 * 2 + 15))}, non modifiable`);
+    expect(spoken()).toBe(`Durée de l’exercice, estimation, ${spokenDuration(3 * (10 * 2 + 15))}, non modifiable`);
     expect(spoken()).not.toMatch(/[≈≥—]/u);
     // La valeur n'est pas atténuée : même couleur que le libellé, aucune opacité.
     const value = StyleSheet.flatten(screen.getByTestId("execution-sheet-total-text").props.style);
@@ -4320,13 +3867,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
 
     // ≥ : mélange calculable.
     view = renderSheetView(mixedDuration());
-    expect(spoken()).toBe(`Durée de l’exercice, total prévisionnel partiel, ${formatPhraseDuration(30 + 45 + 10 + 20 + 30)}, non modifiable`);
+    expect(spoken()).toBe(`Durée de l’exercice, total prévisionnel partiel, ${spokenDuration(30 + 45 + 10 + 20 + 30)}, non modifiable`);
     expect(spoken()).not.toMatch(/[≈≥—]/u);
     view.unmount();
 
     // Lecture seule exacte (`variables` chiffrées) : sans nature, « non modifiable ».
     view = renderSheetView(params({ series: variableRows([[30, 10], [45, 20]]) }));
-    expect(spoken()).toBe(`Durée de l’exercice, ${formatPhraseDuration(30 + 10 + 45 + 20)}, non modifiable`);
+    expect(spoken()).toBe(`Durée de l’exercice, ${spokenDuration(30 + 10 + 45 + 20)}, non modifiable`);
     view.unmount();
 
     // Saisie invalide (Cible 3536 s, D-430) : « — » affiché (PRE4-2.1/AC9), annoncé par la clé dédiée, jamais par le tiret.
@@ -4347,15 +3894,14 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(spoken()).toBe(`Durée de l’exercice, total prévisionnel partiel, ${sheetText.totalInvalidSpoken}`);
     view.unmount();
 
-    // Ligne modifiable : annonce de la pastille, inchangée ; la ligne n'est pas regroupée.
+    // Ligne modifiable : annonce du champ clavier (nom, valeur) ; la ligne n'est pas regroupée.
     renderSheet(ac4Exercise());
     expect(totalLine().props.accessible).toBeUndefined();
-    expect(screen.getByTestId("execution-sheet-total").props.accessibilityLabel).toBe(
-      `${sheetText.exerciseDurationEditAccessibilityLabel}, ${formatPhraseDuration(3 * 40)}`,
-    );
+    expect(screen.getByTestId("execution-sheet-total").props.accessibilityLabel).toBe(sheetText.exerciseDurationEditAccessibilityLabel);
+    expect(screen.getByTestId("execution-sheet-total").props.accessibilityValue).toEqual({ text: formatPhraseDuration(3 * 40) });
   });
 
-  it("PRE4-3.7/AC8 — tout montant affiché par la ligne est exactement celui du formateur unique (`2 min 15 s`, `66 min`, minutes au-delà de 59, H8), préfixe `≥ ` du lexique compris", () => {
+  it("PRE4-3.7/AC8 — tout montant affiché par la ligne est exactement celui du formateur unique (`2′15″`, `1h 06′`, minutes au-delà de 59, H8), préfixe `≥ ` du lexique compris", () => {
     // Chaque cas : paramètres, montant attendu par formule, rendu attendu (pastille ou lecture seule).
     const cases: { parent: ExecutionParametersInput; seconds: number; prefix: string; editable: boolean }[] = [
       // 99 × (30 + 10) = 3 960 s → « 66 min ».
@@ -4378,10 +3924,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
       expect(shown).toBe(`${prefix}${formatPhraseDuration(seconds)}`);
       view.unmount();
     }
-    expect(formatPhraseDuration(99 * 40)).toBe("66 min");
-    expect(`${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(135)}`).toBe("≥ 2 min 15 s");
-    expect(`${strings.shared.durationNature.estimatedPrefix}${formatPhraseDuration(105)}`).toBe("≈ 1 min 45 s");
-    expect(formatPhraseDuration(3655)).toBe("60 min 55 s");
+    expect(formatPhraseDuration(99 * 40)).toBe("1h 06′");
+    expect(`${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(135)}`).toBe("≥ 2′15″");
+    expect(`${strings.shared.durationNature.estimatedPrefix}${formatPhraseDuration(105)}`).toBe("≈ 1′45″");
+    expect(formatPhraseDuration(3655)).toBe("1h 01′"); // [« 1h 00′55″ » — remplacé le 08/11/2026 au soir : pas de secondes au-delà d’une heure]
   });
 });
 
@@ -4455,16 +4001,19 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     expect(["REPETITIONS", "DURATION"].map((mode) => screen.getByTestId(`${MODE_CONTROL}-${mode}`).props.accessibilityState.selected)).toEqual([false, false]);
     // PRE-5 story 2.5 (AC1) : Changement de côté non renseigné — aucune option sélectionnée,
     // chaque option annoncée par son nom, jamais un tiret.
-    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("Changement de côté");
+    expect(screen.getByTestId(SIDE_CONTROL).props.accessibilityLabel).toBe("De chaque côté");
     expect(["WITH", "WITHOUT"].map((side) => screen.getByTestId(`${SIDE_CONTROL}-${side}`).props.accessibilityState.selected)).toEqual([false, false]);
     chooseMode("Durée");
     expect(text("execution-sheet-target-value")).toBe("—");
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Durée d’une série, aucune valeur");
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityHint).toBe("Valeur à renseigner");
+    // Décision du 06/11/2026 (constat c) : champ clavier nommé, valeur annoncée à part.
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityLabel).toBe("Objectif de durée");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityValue).toEqual({ text: "aucune valeur" });
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityHint).toBe("Valeur à renseigner");
     view.unmount();
     const repetitions = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
     expect(text("execution-sheet-target-value")).toBe("—");
-    expect(screen.getByTestId("execution-sheet-target-value").props.accessibilityLabel).toBe("Nombre de répétitions, aucune valeur");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityLabel).toBe("Nombre de répétitions");
+    expect(screen.getByTestId("execution-sheet-target").props.accessibilityValue).toEqual({ text: "aucune valeur" });
     repetitions.unmount();
     renderSheet(params({ series: variableRows([[30, 10], [null, 20]]) }));
     const cell = screen.getByTestId("execution-sheet-table-row-2-target");
@@ -4475,31 +4024,23 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     expect(spokenTexts().filter(dashAsValue)).toEqual([]);
   });
 
-  it("PRE4-3.8/AC2, PRE5-2.5/AC3 — Cadence : segmenté nommé, option « Sans » annoncée sélectionnée ; ± (Autre) nommé, valeur « Sans » ou intervalle en secondes, actions augmenter et diminuer, limites annoncées", () => {
-    renderSheet(params({ cadenceBeepIntervalSeconds: 0 }));
+  // [± de la Cadence (réglage ajustable, actions augmenter / diminuer, limites annoncées) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  it("PRE4-3.8/AC2, PRE5-2.5/AC3 — Cadence : segmenté nommé, option « Sans » annoncée sélectionnée ; champ clavier (Autre) nommé « Cadence », valeur annoncée ; bornes 0..10 s", () => {
+    const { onApply } = renderSheet(params({ cadenceBeepIntervalSeconds: 0 }));
     expect(screen.getByTestId(CADENCE_CONTROL).props.accessibilityLabel).toBe("Cadence");
     expect(screen.getByTestId(`${CADENCE_CONTROL}-NONE`).props.accessibilityLabel).toBe("Sans");
     expect(screen.getByTestId(`${CADENCE_CONTROL}-NONE`).props.accessibilityState).toMatchObject({ selected: true });
     openExecutionSheetField("execution-sheet-beep");
     const beep = () => screen.getByTestId("execution-sheet-beep");
-    const act11y = (actionName: "increment" | "decrement") => fireEvent(beep(), "accessibilityAction", { nativeEvent: { actionName } });
-    expect(beep().props.accessibilityRole).toBe("adjustable");
-    expect(beep().props.accessibilityLabel).toBe("Cadence, secondes");
-    // Recette du 19/10 (RC-4) : « activer » (équivalent VoiceOver du toucher de la valeur) referme le champ.
-    expect(beep().props.accessibilityActions).toEqual([{ name: "increment" }, { name: "decrement" }, { name: "activate" }]);
-    expect(beep().props.accessibilityValue).toEqual({ min: 0, max: 10, now: 0, text: "Sans, minimum atteint" });
-    act11y("increment");
-    expect(beep().props.accessibilityValue).toEqual({ min: 0, max: 10, now: 1, text: "1 s" });
-    for (let step = 0; step < 9; step += 1) act11y("increment");
-    expect(beep().props.accessibilityValue).toEqual({ min: 0, max: 10, now: 10, text: "10 s, maximum atteint" });
-    // Augmenter à la borne : sans effet, la limite reste annoncée.
-    act11y("increment");
-    expect(beep().props.accessibilityValue).toMatchObject({ now: 10, text: "10 s, maximum atteint" });
-    act11y("decrement");
-    expect(beep().props.accessibilityValue).toMatchObject({ now: 9, text: "9 s" });
+    expect(beep().props.accessibilityLabel).toBe("Cadence");
+    expect(beep().props.accessibilityValue).toEqual({ text: "00:00" });
+    typeInExecutionSheetCell("execution-sheet-beep", "15");
+    closeExecutionSheetField("execution-sheet-beep");
+    validate();
+    expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(10);
   });
 
-  it("PRE4-3.8/AC2, PRE5-2.6/AC3, D-434 — cellules sans ± : valeur seule annoncée (1 s, 3535 s, anciennes 4000 s et 5999 s, à l’échec ; Pauses 0 s, 5 min) ; en saisie, la valeur « MM:SS » affichée", () => {
+  it("PRE4-3.8/AC2, PRE5-2.6/AC3, D-434 — cellules sans ± : valeur seule annoncée (1″, 58′55″, anciennes 1h 06′40″ et 1h 39′59″, à l’échec ; Pauses 0″, 5′00″) ; en saisie, la valeur « MM:SS » affichée", () => {
     renderSheet(
       params({
         series: {
@@ -4518,14 +4059,14 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     const spoken = (testID: string) => screen.getByTestId(testID).props.accessibilityValue.text as string;
     const target = (row: number) => spoken(`execution-sheet-table-row-${row}-target`);
     // PRE-5 story 2.6 : la roue borne la Cible ; la cellule n'annonce que sa valeur.
-    expect(target(1)).toBe("1 s");
+    expect(target(1)).toBe("1″");
     expect(target(4)).toBe(formatPhraseDuration(3535));
     // Valeurs anciennes hors bornes (Q21, P38) : la valeur seule.
     expect(target(2)).toBe(formatPhraseDuration(5999));
     expect(target(5)).toBe(formatPhraseDuration(4000));
     expect(target(3)).toBe("à l’échec");
     expect(spoken("execution-sheet-table-row-2-pause")).toBe(formatPhraseDuration(300));
-    expect(spoken("execution-sheet-table-row-3-pause")).toBe("0 s");
+    expect(spoken("execution-sheet-table-row-3-pause")).toBe("0″");
     fireEvent(screen.getByTestId("execution-sheet-table-row-2-pause-input"), "focus");
     expect(spoken("execution-sheet-table-row-2-pause")).toBe("05:00");
   });
@@ -4544,17 +4085,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       expect(get("execution-sheet-table-row-1-target").props.accessibilityValue).toEqual({ text: "à l’échec" });
     }));
 
-  it("PRE4-3.8/AC3 — valeur et unité dans le Sélecteur Durée : colonnes nommées « Minutes » et « Secondes »", () =>
-    withPlatform("ios", () => {
-      renderSheet(params());
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      const labelOf = (testID: string) =>
-        (screen.getByTestId(testID).props.modifiers as { $type: string; label?: string }[]).find(
-          (modifier) => modifier.$type === "accessibilityLabel",
-        )?.label;
-      expect(labelOf("duration-wheel-minutes")).toBe("Minutes");
-      expect(labelOf("duration-wheel-seconds")).toBe("Secondes");
-    }));
+  // [PRE4-3.8/AC3 — colonnes « Minutes » / « Secondes » de la roue : supprimé, remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
 
   it("PRE4-3.8/AC4 — textes annoncés : lexique, apostrophe ’, aucun tiret, aucun terme interdit, dans chaque état de la Feuille", () =>
     withPlatform("ios", () => {
@@ -4580,12 +4111,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       for (const state of states) {
         const view = renderSheetView(state);
         collected.push(...spokenTexts());
-        // Chaque surface ouverte une fois : panneau de la Cible commune, Durée de l'exercice
-        // dépliée (PRE-5 story 2.5), champ ± de la Cadence.
-        if (query("execution-sheet-target-value")) {
-          fireEvent.press(get("execution-sheet-target-value"));
+        // Chaque surface ouverte une fois : saisie de la Cible commune (décision du 06/11/2026 : clavier,
+        // [panneau de roue — remplacé]), Durée de l'exercice dépliée (PRE-5 story 2.5), champ de la Cadence.
+        if (query("execution-sheet-target-input")) {
+          openExecutionSheetField("execution-sheet-target");
           collected.push(...spokenTexts());
-          fireEvent.press(get("execution-sheet-target-panel-outside"));
+          closeExecutionSheetField("execution-sheet-target");
         }
         showSignals();
         collected.push(...spokenTexts());
@@ -4593,7 +4124,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         collected.push(...spokenTexts());
         view.unmount();
       }
-      expect(collected).toContain("Nombre de répétitions, aucune valeur");
+      // Décision du 06/11/2026 : nom du champ et valeur annoncés séparément.
+      expect(collected).toContain("Nombre de répétitions");
+      expect(collected).toContain("aucune valeur");
       expect(collected.length).toBeGreaterThan(100);
       const offending = collected.filter(
         (spoken) => spoken.trim() === "" || spoken.includes("'") || dashAsValue(spoken) || FORBIDDEN.test(spoken),
@@ -4662,57 +4195,57 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     expect(lexicon.filter((value) => value.includes("'") || FORBIDDEN.test(value))).toEqual([]);
   });
 
-  it("PRE4-3.8/AC5 — iOS : roue de la Cible commune ouverte, ✓ puis ✕ de la Feuille et retour système : panneau fermé sans appliquer, Feuille ni validée ni abandonnée", () =>
+  // [Roue de la Cible commune ouverte — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : saisie de la Cible en cours (Q47 : premier appui = sortie du champ).]
+  it("PRE4-3.8/AC5 — iOS : saisie de la Cible commune en cours, ✓ puis ✕ de la Feuille et retour système : saisie rangée, Feuille ni validée ni abandonnée ; la valeur saisie est appliquée à la sortie du champ", () =>
     withPlatform("ios", () => {
       const { onApply, onCancel } = renderSheet(params());
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 2 } });
+      openExecutionSheetField("execution-sheet-target");
+      typeInExecutionSheetCell("execution-sheet-target", "200");
       pressHeader("execution-sheet-validate");
       expect(onApply).not.toHaveBeenCalled();
-      expect(query("execution-sheet-target-panel")).toBeNull();
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+      expect(get("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: false });
+      closeExecutionSheetField("execution-sheet-target");
+      expect(text("execution-sheet-target-value")).toBe("2′00″");
+      openExecutionSheetField("execution-sheet-target");
       pressHeader("execution-sheet-cancel");
       expect(onCancel).not.toHaveBeenCalled();
-      expect(query("execution-sheet-target-panel")).toBeNull();
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+      closeExecutionSheetField("execution-sheet-target");
+      openExecutionSheetField("execution-sheet-target");
       fireEvent(screen.getByTestId("execution-sheet-modal"), "requestClose");
       expect(onCancel).not.toHaveBeenCalled();
-      expect(query("execution-sheet-target-panel")).toBeNull();
-      // Surface fermée : ✓ applique le Brouillon, sans la valeur tournée et non validée.
+      closeExecutionSheetField("execution-sheet-target");
       validate();
-      expect(applied(onApply).series).toMatchObject({ target: numberTarget(90) });
+      expect(applied(onApply).series).toMatchObject({ target: numberTarget(120) });
     }));
 
-  it("PRE4-3.8/AC5 — ✓ grisé (Brouillon invalide) avec une surface ouverte : l'appui ferme la surface ; état d'accessibilité cohérent ; surface fermée, ✓ de nouveau indisponible", () =>
+  it("PRE4-3.8/AC5 — ✓ grisé (Brouillon invalide) avec une saisie ouverte : l'appui range la saisie ; état d'accessibilité cohérent ; saisie rangée, ✓ de nouveau indisponible", () =>
     withPlatform("ios", () => {
       const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       const validateButton = () => get("execution-sheet-validate");
       expect(validateButton().props.accessibilityState).toMatchObject({ disabled: true });
-      // PRE-5 story 2.5 : le panneau du Côté est retiré ; celui de la Cible commune le remplace.
-      fireEvent.press(get("execution-sheet-target-value"));
-      expect(query("execution-sheet-target-panel")).not.toBeNull();
-      // Activable pour fermer la surface ; le libellé garde l'indisponibilité de la validation.
+      // [Panneau de la roue de la Cible commune — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+      openExecutionSheetField("execution-sheet-target");
+      // Activable pour ranger la saisie ; le libellé garde l'indisponibilité de la validation.
       expect(validateButton().props.accessibilityState).toMatchObject({ disabled: false });
       expect(validateButton().props.accessibilityLabel).toBe("Valider les paramètres, indisponible tant qu’une valeur est invalide");
       pressHeader("execution-sheet-validate");
-      expect(query("execution-sheet-target-panel")).toBeNull();
+      expect(get("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: false });
       expect(onApply).not.toHaveBeenCalled();
       expect(validateButton().props.accessibilityState).toMatchObject({ disabled: true });
       pressHeader("execution-sheet-validate");
       expect(onApply).not.toHaveBeenCalled();
     }));
 
-  it("PRE4-3.8/AC5 — iOS : roue de la Cible commune ou de la Durée de l'exercice ouverte, ou saisie d'une cellule (D-434) : ✓ de la Feuille absorbé ; champ ± ouvert : ✓ applique dans le même geste (T19) ; Mode, Changement de côté et Enchainement n'ouvrent plus de surface (PRE-5 stories 2.4, 2.5)", () =>
+  // [Roues ouvertes ; champ ± ouvert qui laissait ✓ appliquer (T19) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : toute saisie absorbe ✓ (Q47).]
+  it("PRE4-3.8/AC5 — iOS : saisie de la Cible commune, de la Durée de l'exercice, de la Pause ou d'une cellule (D-434) : ✓ de la Feuille absorbé ; saisie rangée, ✓ applique", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-      for (const field of ["execution-sheet-target-value", "execution-sheet-total"]) {
-        fireEvent.press(get(field));
+      for (const field of ["execution-sheet-target", "execution-sheet-total", "execution-sheet-pause"]) {
+        openExecutionSheetField(field);
         pressHeader("execution-sheet-validate");
         expect({ field, applied: view.onApply.mock.calls.length }).toEqual({ field, applied: 0 });
+        closeExecutionSheetField(field);
       }
-      expect(query("execution-sheet-target-panel")).toBeNull();
-      expect(query("execution-sheet-total-panel")).toBeNull();
-      openExecutionSheetField("execution-sheet-pause");
       pressHeader("execution-sheet-validate");
       expect(view.onApply).toHaveBeenCalledTimes(1);
       view.unmount();
@@ -4725,27 +4258,22 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       expect(StyleSheet.flatten(get("execution-sheet-table-row-1-target").props.style).backgroundColor).not.toBe("#EAEAFF");
     }));
 
-  it("PRE4-3.8/AC5 — Android : roue en ligne ouverte, ✓ et ✕ de la Feuille ne font que la fermer ; PRE-5 story 2.5 : choix du Changement de côté appliqué tout de suite, ✓ applique", () =>
+  // [Roue en ligne ouverte (Android) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  it("PRE4-3.8/AC5 — Android : saisie ouverte, ✓ et ✕ de la Feuille ne font que la ranger ; PRE-5 story 2.5 : choix du Changement de côté appliqué tout de suite, ✓ applique", () =>
     withPlatform("android", () => {
-      jest.useFakeTimers();
-      try {
-        const { onApply, onCancel } = renderSheet(params());
-        fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-        expect(screen.getByTestId("execution-sheet-target-wheel")).toBeTruthy();
-        pressHeader("execution-sheet-validate");
-        expect(onApply).not.toHaveBeenCalled();
-        expect(screen.queryByTestId("execution-sheet-target-wheel")).toBeNull();
-        fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-        pressHeader("execution-sheet-cancel");
-        expect(onCancel).not.toHaveBeenCalled();
-        expect(screen.queryByTestId("execution-sheet-target-wheel")).toBeNull();
-        // Segmenté en ligne : aucune surface à fermer, le choix est déjà dans le Brouillon.
-        chooseSide("Avec");
-        pressHeader("execution-sheet-validate");
-        expect(applied(onApply).sideMode).toBe("RIGHT_LEFT");
-      } finally {
-        jest.useRealTimers();
-      }
+      const { onApply, onCancel } = renderSheet(params());
+      openExecutionSheetField("execution-sheet-target");
+      pressHeader("execution-sheet-validate");
+      expect(onApply).not.toHaveBeenCalled();
+      closeExecutionSheetField("execution-sheet-target");
+      openExecutionSheetField("execution-sheet-target");
+      pressHeader("execution-sheet-cancel");
+      expect(onCancel).not.toHaveBeenCalled();
+      closeExecutionSheetField("execution-sheet-target");
+      // Segmenté en ligne : aucune surface à fermer, le choix est déjà dans le Brouillon.
+      chooseSide("Avec");
+      pressHeader("execution-sheet-validate");
+      expect(applied(onApply).sideMode).toBe("RIGHT_LEFT");
     }));
 
   it("PRE4-3.8/AC6 — règles PRE-3 supersédées absentes (iOS), chaque contrôle d'absence ayant son contrôle positif : ni interrupteur, ni stepper permanent hors tableau, ni segmenté intégré, ni message nommant la Série, ni retrait x52 ; PRE-5 story 2.6 : ni ± permanents des cellules (Q44 remplacé) ; D-434 : Pause de cellule au clavier", async () => {
@@ -4789,15 +4317,16 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       expect(within(get("execution-sheet-row-mode-line")).getByTestId(MODE_CONTROL, hidden)).toBeTruthy();
       expect(within(get("execution-sheet-row-series-type-line")).getByTestId(SERIES_TYPE, hidden)).toBeTruthy();
       expect(query("execution-sheet-regime-panel")).toBeNull();
-      // Hors tableau : au repos, valeur seule ; les ± n'apparaissent qu'à l'appui. D-433 : la
-      // ligne Durée de l'exercice est présente (Cible à renseigner) ; Compte à rebours et Fin
-      // sont d'abord dépliés par son chevron.
+      // Hors tableau : au repos, valeur seule ; [± à l'appui — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : aucun ±, même en saisie
+      // (contrôle positif : l'entrée au clavier numérique)]. D-433 : Compte à rebours et Fin sont
+      // d'abord dépliés par le chevron de la Durée de l'exercice.
       showSignals();
       for (const field of ["series", "beep", "countdown", "end", "side-recovery"]) {
         expect(query(`execution-sheet-${field}-increment`)).toBeNull();
         openExecutionSheetField(`execution-sheet-${field}`);
-        expect(get(`execution-sheet-${field}-increment`)).toBeTruthy();
-        fireEvent.press(get("execution-sheet-body-outside"));
+        expect(get(`execution-sheet-${field}-input`).props.keyboardType).toBe("number-pad");
+        expect(query(`execution-sheet-${field}-increment`)).toBeNull();
+        closeExecutionSheetField(`execution-sheet-${field}`);
       }
       // PRE-5 story 2.6 (AD-27, FR-29) : plus de ± permanents dans les cellules ; D-434 : la
       // cellule Pause se saisit au clavier, sans ± même au focus (contrôle positif : l'entrée).
@@ -4820,28 +4349,29 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         props.adjustsFontSizeToFit === true;
       const seen: Record<string, unknown>[] = [];
       const opened: string[] = [];
-      const withOpen = (trigger: string, panel: string) => {
-        fireEvent.press(get(trigger));
-        expect(query(panel)).not.toBeNull();
-        opened.push(panel);
+      // [Panneaux des roues — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : chaque champ en saisie.]
+      const withOpen = (field: string) => {
+        openExecutionSheetField(field);
+        expect(get(field).props.accessibilityState).toMatchObject({ selected: true });
+        opened.push(field);
         seen.push(...texts());
-        fireEvent.press(get(`${panel}-outside`));
+        closeExecutionSheetField(field);
       };
       // Durée, identiques, bilatéral, N = 3 : Durée, Durée de l'exercice, champ ± (PRE-5
       // stories 2.4, 2.5 : plus de panneau du Régime, du Côté ni de l'Ordre ; segmentés toujours
       // affichés, notations de l'Enchainement comprises).
       let view = renderSheetView(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, cadenceBeepIntervalSeconds: 2 }));
       seen.push(...texts());
-      withOpen("execution-sheet-target-value", "execution-sheet-target-panel");
-      withOpen("execution-sheet-total", "execution-sheet-total-panel");
+      withOpen("execution-sheet-target");
+      withOpen("execution-sheet-total");
       showSignals();
       seen.push(...texts());
       openExecutionSheetField("execution-sheet-beep");
       seen.push(...texts());
       view.unmount();
-      // Répétitions : roue de la Cible commune.
+      // Répétitions : saisie de la Cible commune.
       view = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
-      withOpen("execution-sheet-target-value", "execution-sheet-target-panel");
+      withOpen("execution-sheet-target");
       view.unmount();
       // Tableau : saisie d'une cellule et barre du clavier (D-434) ; résultat dérivé en lecture seule.
       renderSheet(params({ series: variableRows([[30, 10], [null, 20], [60, 30]]) }));
@@ -4917,7 +4447,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
   const get = (testID: string) => screen.getByTestId(testID, hidden);
   const query = (testID: string) => screen.queryByTestId(testID, hidden);
   const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
-  const FRAMES = ["execution", "series", "sides", "cadence"] as const;
+  // PRE-9 (ordre de Hermann du 01/11/2026, point 3 ; CE-UI-10, D-413) : six blocs — Exécution, Phases du
+  // mouvement, Séries, Côtés, Cadence et durée, Récupération. Le bloc 6 (point 2) n'est pas encore rendu :
+  // les cinq blocs présents sont contrôlés ici, dans l'ordre. [Remplacé le 01/11/2026 : quatre cadres.]
+  const FRAMES = ["execution", "phases", "series", "sides", "cadence"] as const;
   type Cell = number | "FAILURE" | null;
   const toTarget = (value: Cell): SeriesTarget =>
     value === "FAILURE" ? failureTarget() : value === null ? unsetTarget() : numberTarget(value);
@@ -4942,7 +4475,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
       },
     });
 
-  it("PRE5-2.4/AC1 — quatre cadres dans l'ordre Exécution ; Séries ; Côtés ; Cadence et durée, enfants directs de l'hôte des panneaux ; fond #EFF0F2, contour blanc de 1, rayon 12, espacés de 8 ; chaque ligne dans son cadre", () => {
+  it("PRE5-2.4/AC1, PRE-9 (01/11, point 3) — blocs dans l'ordre Exécution ; Phases du mouvement ; Séries ; Côtés ; Cadence et durée (Récupération : Exercice de Séance seulement, `ExecutionParametersSheet.recovery.test.tsx`), enfants directs de l'hôte des panneaux ; fond #EFF0F2, contour blanc de 1, rayon 12, espacés de 8 ; chaque ligne dans son cadre", () => {
     renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, cadenceBeepIntervalSeconds: 2 }));
     // PRE-5 story 2.5 (AC4) : Compte à rebours et Fin, repliés, sont d'abord dépliés.
     showSignals();
@@ -4967,6 +4500,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     });
     const rowsOf: Record<(typeof FRAMES)[number], readonly string[]> = {
       execution: ["row-mode", "row-stop-condition"],
+      phases: ["row-phases", "phases-group"],
       series: ["row-series-type", "variable-group", "row-target", "row-pause"],
       sides: ["row-side", "side-order-menu", "row-side-recovery"],
       cadence: ["row-beep", "row-total", "row-countdown", "row-end"],
@@ -4980,38 +4514,30 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
         });
       }
     }
+    // PRE-9 (01/11, point 3) : le bloc Séries commence par la ligne Séries et ne contient pas les
+    // phases ; le bloc Phases ne porte que sa ligne (et son tableau, déployé).
+    const rowIdsOf = (frame: string) =>
+      within(get(`execution-sheet-frame-${frame}`))
+        .queryAllByTestId(/^execution-sheet-row-[a-z-]+$/, hidden)
+        .map((node) => String(node.props.testID))
+        .filter((id) => !/-(selection|line|content|value-group)$/.test(id));
+    expect(rowIdsOf("phases")).toEqual(["execution-sheet-row-phases"]);
+    expect(rowIdsOf("series")[0]).toBe("execution-sheet-row-series-type");
+    expect(rowIdsOf("series")).not.toContain("execution-sheet-row-phases");
+    expect(within(get("execution-sheet-frame-phases")).getByText("Phases du mouvement", hidden)).toBeTruthy();
+    expect(screen.queryByText("Phases de l’exercice", hidden)).toBeNull();
+    // [Point 2 (à venir) — livré le 01/11/2026 :] sans `recovery` (Exercice du Catalogue, fiche
+    // Mouvement), aucun bloc Récupération ; le bloc 6 est couvert par `ExecutionParametersSheet.recovery.test.tsx`.
+    expect(query("execution-sheet-frame-recovery")).toBeNull();
     // Libellés de ligne Inter Regular 12 (PR-03), plus petits que les valeurs.
     expect(StyleSheet.flatten(screen.getByText("Condition d’arrêt").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
     expect(StyleSheet.flatten(screen.getByText("Séries").props.style)).toMatchObject({ fontSize: 12, fontWeight: "400" });
   });
 
-  it("PRE5-2.4/AC2 — repère unique : le haut du panneau vaut y du cadre + y de la ligne + hauteur + 4, dans chaque cadre ; il suit un cadre qui se déplace ; panneau rendu dans l'hôte, hors des cadres", () =>
-    withPlatform("ios", () => {
-      renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] }, sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 }));
-      layoutFrames({ execution: [0, 98], series: [106, 230], sides: [344, 190], cadence: [542, 236] });
-      layoutOf("execution-sheet-row-target", 100, 44);
-      layoutOf("execution-sheet-row-total", 52, 44);
-      const topOf = (panelID: string) => StyleSheet.flatten(get(panelID).props.style).top as number;
-      const notInFrame = (panelID: string) =>
-        FRAMES.every((frame) => within(get(`execution-sheet-frame-${frame}`)).queryByTestId(panelID, hidden) === null);
-      // Cadre Séries.
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      expect(topOf("execution-sheet-target-panel")).toBe(106 + 100 + 44 + 4);
-      expect(notInFrame("execution-sheet-target-panel")).toBe(true);
-      // Le cadre se déplace (ligne apparue au-dessus) : le panneau suit, sans autre mesure.
-      fireEvent(get("execution-sheet-frame-series"), "layout", { nativeEvent: { layout: { x: 0, y: 150, width: 330, height: 230 } } });
-      expect(topOf("execution-sheet-target-panel")).toBe(150 + 100 + 44 + 4);
-      fireEvent.press(get("execution-sheet-target-panel-outside"));
-      // Cadre Côtés : PRE-5 story 2.5, plus aucun panneau (segmentés en ligne).
-      chooseOrder("Les deux côtés à chaque série");
-      expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
-      // Cadre Cadence et durée.
-      fireEvent.press(screen.getByTestId("execution-sheet-total"));
-      expect(topOf("execution-sheet-total-panel")).toBe(542 + 52 + 44 + 4);
-      expect(within(get("execution-sheet-panel-host")).getByTestId("execution-sheet-total-panel", hidden)).toBeTruthy();
-    }));
+  // [PRE5-2.4/AC2 — repère unique des panneaux des roues de la Cible commune et de la Durée de l'exercice :
+  // supprimé, remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier ; le seul panneau restant, le déroulant de l'Enchainement, est couvert par PRE7-B.3 (B5).]
 
-  it("PRE5-2.4/AC4, AC6 — identiques à la cible (Durée, 90 s) : Condition « À l’objectif » ; ligne « Durée d’une série » visible ; roue sans « À l’échec »", () =>
+  it("PRE5-2.4/AC4, AC6 — identiques à la cible (Durée, 1′30″) : Condition « À l’objectif » ; ligne « Durée d’une série » visible ; roue sans « À l’échec »", () =>
     withPlatform("ios", () => {
       renderSheet(params());
       expect(stopSelected()).toBe("TARGET");
@@ -5023,14 +4549,14 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
       expect(screen.queryByText("Aucune durée, à l’échec")).toBeNull();
     }));
 
-  it("PRE5-2.4/AC4 — passage à l'échec puis retour à la cible : Cible FAILURE pour toutes les séries, ligne de durée masquée, Pause visible ; 90 s restaurée ; même règle en Répétitions", () => {
+  it("PRE5-2.4/AC4 — passage à l'échec puis retour à la cible : Cible FAILURE pour toutes les séries, ligne de durée masquée, Pause visible ; 1′30″ restaurée ; même règle en Répétitions", () => {
     const { onApply } = renderSheet(params());
     fireEvent.press(screen.getByTestId(`${STOP_CONTROL}-FAILURE`));
     expect(stopSelected()).toBe("FAILURE");
     expect(query("execution-sheet-row-target")).toBeNull();
     expect(get("execution-sheet-row-pause")).toBeTruthy();
     fireEvent.press(screen.getByTestId(`${STOP_CONTROL}-TARGET`));
-    expect(text("execution-sheet-target-value")).toBe("1 min 30 s");
+    expect(text("execution-sheet-target-value")).toBe("1′30″");
     fireEvent.press(screen.getByTestId(`${STOP_CONTROL}-FAILURE`));
     validate();
     expect(applied(onApply).series).toEqual({ kind: "UNIFORM", count: 3, target: failureTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] });
@@ -5052,11 +4578,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent.press(screen.getByTestId(`${STOP_CONTROL}-TARGET`));
     expect(text("execution-sheet-target-value")).toBe("—");
-    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-target-value").props.style).backgroundColor).toBe("#FFF1F0");
+    expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-target").props.style).backgroundColor).toBe("#FFF1F0");
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("PRE5-2.4/AC5 — variables homogènes : lecture seule, deux options, À la cible (30 s, 45 s) ou À l’échec (échec, échec) sélectionnée ; violet atténué à 45 %, texte blanc ; information non modifiable", () => {
+  it("PRE5-2.4/AC5 — variables homogènes : lecture seule, deux options, À la cible (30″, 45″) ou À l’échec (échec, échec) sélectionnée ; violet atténué à 45 %, texte blanc ; information non modifiable", () => {
     const view = renderSheetView(variableSheet([30, 45]));
     const control = get(STOP_CONTROL);
     expect(control.props.accessibilityRole).toBe("text");
@@ -5070,10 +4596,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     view.unmount();
     renderSheet(variableSheet(["FAILURE", "FAILURE"]));
     expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’échec");
-    expect(derivedOptions()).toEqual(["FAILURE", "TARGET"]);
+    // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière.
+    expect(derivedOptions()).toEqual(["TARGET", "FAILURE"]);
   });
 
-  it("PRE5-2.4/AC5 — variables mixtes (30 s, échec) : une seule option « À l’objectif et à l’échec », même largeur totale ; recalculé à chaque cellule, les deux options reviennent quand le détail redevient homogène", () => {
+  it("PRE5-2.4/AC5 — variables mixtes (30″, échec) : une seule option « À l’objectif et à l’échec », même largeur totale ; recalculé à chaque cellule, les deux options reviennent quand le détail redevient homogène", () => {
     renderSheet(variableSheet([30, 45, null]));
     // Cellule vide non comptée : les deux séries renseignées sont à la cible.
     expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif");
@@ -5087,7 +4614,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     // La cellule 1 revient à 30 s : détail homogène, toujours en Variables (N = 3) — deux
     // options en lecture seule, À la cible sélectionnée.
     chooseCellTarget(1, 30);
-    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
+    expect(valueOf("execution-sheet-table-row-1-target")).toBe("30″");
     expect(seriesTypeText()).toBe("Variables");
     expect(get(STOP_CONTROL).props.accessibilityRole).toBe("text");
     expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif");
@@ -5156,7 +4683,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(get(TABLE_TOGGLE).props.accessibilityLabel).toBe("Afficher le tableau des séries");
     expect(seriesTypeText()).toBe("Variables");
     fireEvent.press(get(TABLE_TOGGLE));
-    expect(valueOf("execution-sheet-table-row-2-target")).toBe("45 s");
+    expect(valueOf("execution-sheet-table-row-2-target")).toBe("45″");
     chooseRegime("Identiques");
     expect(query(TABLE_TOGGLE)).toBeNull();
     chooseRegime("Variables");
@@ -5164,18 +4691,19 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(applied(onApply).series).toEqual(variableRows([[30, 10], [45, 10]]));
   });
 
-  it("PRE5-2.4/AC9 (NR Δ38, présentation remplacée par RC-15) — stepper du nombre de séries : valeur au repos dans le Type de série, ± à l'appui, nom accessible « Séries », bornes et pas conservés ; le tableau variable suit N", () => {
+  // [Stepper du nombre de séries (± à l'appui, réglage ajustable) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  it("PRE5-2.4/AC9 (NR Δ38, présentation remplacée par RC-15) — nombre de séries : valeur au repos dans le Type de série, saisie au clavier numérique, nom accessible « Séries », bornes 1..99 ; le tableau variable suit N", () => {
     renderSheet(variableSheet([30, 45]));
     expect(query("execution-sheet-row-series")).toBeNull();
     expect(query("execution-sheet-series-increment")).toBeNull();
-    expect(get("execution-sheet-series-toggle").props.accessibilityLabel).toBe("Séries, 2 séries variables");
-    openExecutionSheetField("execution-sheet-series");
     expect(get("execution-sheet-series").props.accessibilityLabel).toBe("Séries");
-    expect(get("execution-sheet-series").props.accessibilityRole).toBe("adjustable");
-    expect(get("execution-sheet-series").props.accessibilityValue).toMatchObject({ min: 1, max: 99, now: 2 });
+    expect(get("execution-sheet-series").props.accessibilityValue).toEqual({ text: "2 séries variables" });
+    expect(get("execution-sheet-series-input").props.keyboardType).toBe("number-pad");
     tap("execution-sheet-series-increment");
-    expect(valueOf("execution-sheet-series")).toBe("3 séries");
+    expect(valueOf("execution-sheet-series")).toBe("3 séries variables");
     expect(get("execution-sheet-table-row-3")).toBeTruthy();
+    enterExecutionSheetValue("execution-sheet-series", 100, "integer");
+    expect(valueOf("execution-sheet-series")).toBe("99 séries variables");
   });
 });
 
@@ -5262,13 +4790,13 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
     focusCell(2, "target");
     expect(active(1, "pause")).toBe(false);
     expect(active(2, "target")).toBe(true);
-    expect(valueOf(cell(1, "pause"))).toBe("11 s");
+    expect(valueOf(cell(1, "pause"))).toBe("11″");
     expect(styleOf("execution-sheet-variable-group").backgroundColor).toBe("#F2F2FF");
-    // Un champ hors tableau (N) ferme la saisie dans le même geste et désélectionne le tableau.
-    fireEvent.press(get("execution-sheet-series-toggle"));
+    // Un champ hors tableau (N, [± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]) prend la saisie dans le même geste et désélectionne le tableau.
+    openExecutionSheetField("execution-sheet-series");
     blurCell(2, "target");
     expect(active(2, "target")).toBe(false);
-    expect(get("execution-sheet-series-field")).toBeTruthy();
+    expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: true });
     expect(styleOf("execution-sheet-variable-group").backgroundColor).toBeUndefined();
   });
 
@@ -5305,22 +4833,25 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
     expect(active(3, "pause")).toBe(true);
     expect(active(2, "pause")).toBe(false);
     blurCell(3, "pause");
-    expect(valueOf(cell(3, "pause"))).toBe("30 s");
+    expect(valueOf(cell(3, "pause"))).toBe("30″");
   });
 
-  it("PRE5-2.6/AC5 (NR Δ38) — le tableau suit N par le stepper PRE-4 inchangé : ligne ajoutée puis retirée, réserves restaurées (Q29) ; D-434 : seules les cellules Cible et Pause ont un clavier, numérique", () => {
+  it("PRE5-2.6/AC5 (NR Δ38) — le tableau suit N (saisi au clavier depuis le 06/11/2026) : ligne ajoutée puis retirée, réserves restaurées (Q29) ; D-434 : seules les cellules Cible et Pause ont un clavier, numérique", () => {
     const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
     tap("execution-sheet-series-decrement");
     expect(rows()).toBe(2);
     expect(query("execution-sheet-table-row-3")).toBeNull();
     tap("execution-sheet-series-increment");
     expect(rows()).toBe(3);
-    expect([valueOf("execution-sheet-table-row-3-target"), valueOf("execution-sheet-table-row-3-pause")]).toEqual(["1 min", "30 s"]);
+    expect([valueOf("execution-sheet-table-row-3-target"), valueOf("execution-sheet-table-row-3-pause")]).toEqual(["1′00″", "30″"]);
     tap("execution-sheet-series-increment");
     expect(rows()).toBe(4);
     tap("execution-sheet-series-decrement");
     expect(rows()).toBe(3);
-    const keyboards = screen.UNSAFE_root.findAll((node) => node.props.keyboardType !== undefined && typeof node.type === "string");
+    // Décision du 06/11/2026 : les valeurs hors tableau ont aussi leur entrée clavier ; seules celles du tableau sont comptées ici.
+    const keyboards = screen.UNSAFE_root.findAll(
+      (node) => node.props.keyboardType !== undefined && typeof node.type === "string" && String(node.props.testID).startsWith("execution-sheet-table-row-"),
+    );
     expect(keyboards.map((node) => String(node.props.testID)).sort()).toEqual(
       [1, 2, 3].flatMap((row) => [`${cell(row, "pause")}-input`, `${cell(row, "target")}-input`]).sort(),
     );
@@ -5335,7 +4866,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
     expect(tableRowIdentity).toBe(sharedTableRowIdentity);
     renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
     dragHandle(1, TABLE_ROW_HEIGHT);
-    expect([1, 2].map((row) => valueOf(`execution-sheet-table-row-${row}-target`))).toEqual(["45 s", "30 s"]);
+    expect([1, 2].map((row) => valueOf(`execution-sheet-table-row-${row}-target`))).toEqual(["45″", "30″"]);
   });
 });
 
@@ -5387,7 +4918,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(loadChoice()).toBe("WITHOUT");
     expect(within(get("execution-sheet-row-load")).getByText("Charge", hidden)).toBeTruthy();
     expect(within(get("execution-sheet-load-control")).getAllByText(/^(Avec|Sans)$/, hidden).map((node) => node.props.children)).toEqual(["Avec", "Sans"]);
-    expect(inputs()).toHaveLength(0);
+    // Aucun champ de charge (décision du 06/11/2026 : les autres valeurs ont leur propre entrée clavier).
+    expect(inputs().filter((node) => String(node.props.testID).includes("load"))).toHaveLength(0);
     // La ligne Charge suit la Pause (dernière ligne du cadre).
     const rowIds = within(frame)
       .queryAllByTestId(/^execution-sheet-row-[a-z-]+$/, hidden)
@@ -5473,16 +5005,17 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(applied(onApply)).toMatchObject({ series: { kind: "UNIFORM", target: failureTarget(), loadKg: 1.5 } });
   });
 
-  it("PRE5-2.2/AC1 — une seule surface : toucher le champ de N pendant la saisie ouvre son ± dans le même geste (clavier rangé) ; la sortie applique la valeur", () => {
+  // [Champ ± de N ouvert dans le même geste — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : N prend la saisie.]
+  it("PRE5-2.2/AC1 — une seule surface : toucher le champ de N pendant la saisie de la charge lui donne la saisie dans le même geste ; la sortie de la charge applique sa valeur", () => {
     renderSheet(uniformLoad(20));
     focus(UNIFORM);
     type(UNIFORM, "4");
-    fireEvent.press(get("execution-sheet-series-toggle"));
-    expect(get("execution-sheet-series-field")).toBeTruthy();
+    openExecutionSheetField("execution-sheet-series");
+    expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: true });
     expect(styleOf(UNIFORM).backgroundColor).not.toBe("#EAEAFF");
     blur(UNIFORM);
     expect(shown(UNIFORM)).toBe("4 kg");
-    expect(get("execution-sheet-series-field")).toBeTruthy();
+    expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: true });
   });
 
   it("PRE5-2.2/AC1 — sortie sans changement (« 20 » sur 20 kg) : aucune transition, « Série supprimée — Annuler » reste valable (Q29)", () => {
@@ -5602,7 +5135,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
 
   it("PRE5-2.2/AC1 (NR Δ30), D-434 — claviers du tableau : Charge au clavier décimal ; Cible et Pause au clavier numérique (D-434 remplace, pour ces cellules, la saisie au clavier propre à la charge)", () => {
     renderSheet(variableLoads([10, 20]));
-    const ids = inputs().map((node) => String(node.props.testID));
+    // Décision du 06/11/2026 : les valeurs hors tableau ont aussi leur entrée ; seules celles du tableau sont comptées ici.
+    const ids = inputs()
+      .map((node) => String(node.props.testID))
+      .filter((id) => id.startsWith("execution-sheet-table-row-"));
     expect(ids.filter((id) => id.endsWith("-load-input")).sort()).toEqual([`${cell(1)}-input`, `${cell(2)}-input`]);
     expect(inputs().filter((node) => String(node.props.testID).endsWith("-load-input")).every((node) => node.props.keyboardType === "decimal-pad")).toBe(true);
     expect(inputs().filter((node) => !String(node.props.testID).endsWith("-load-input")).every((node) => node.props.keyboardType === "number-pad")).toBe(true);
@@ -5618,7 +5154,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     keyboard.show();
     expect(within(get("execution-sheet")).getByTestId("execution-sheet-keyboard-bar", hidden)).toBeTruthy();
     expect(styleOf("execution-sheet-keyboard-bar-host")).toMatchObject({ position: "absolute", left: 0, right: 0, bottom: 0 });
-    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ minHeight: 44, backgroundColor: "#E6E9ED" });
+    // Recette iPhone du 29/10/2026 : marges 8 (barre de 52) et fond du clavier iOS 26 (Figma `9295:43707`).
+    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ minHeight: 52, paddingVertical: 8, backgroundColor: "#E1E4E8" });
     // Toucher direct d'une autre cellule (sortie puis prise de focus) : la barre reste.
     blur(cell(1));
     expect(query("execution-sheet-keyboard-bar")).not.toBeNull();
@@ -5692,7 +5229,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     blur(UNIFORM);
     focus(UNIFORM);
     blurSpy.mockClear();
-    fireEvent.press(get("execution-sheet-series-toggle"));
+    // [Champ ± de N — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : autre surface touchée, le chevron de la Durée de l'exercice (un autre champ
+    // clavier prend lui-même le focus natif).]
+    showSignals();
     expect(targets(blurSpy)).toEqual([input(UNIFORM)]);
     blur(UNIFORM);
     focus(UNIFORM);
@@ -5751,6 +5290,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     focus(UNIFORM);
     type(UNIFORM, "3");
     fireEvent.press(get(`${SERIES_TYPE}-UNIFORM`));
+    // Décision du 06/11/2026 : re-choisir Identiques ouvre la saisie du nombre de séries ; la charge perd
+    // le focus natif (simulé).
+    blur(UNIFORM);
     validate();
     expect(applied(onApply)).toMatchObject({ series: { kind: "UNIFORM", loadKg: 3 } });
     onApply.mockClear();
@@ -5801,21 +5343,27 @@ describe("ExecutionParametersSheet — recette iPhone du 19/10 (RC-4, RC-5)", ()
   const styleOf = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
   const motionLayout = (testID: string) => (get(testID).props as { layout?: unknown }).layout;
 
-  it("RC-4 — Nombre de séries : toucher la valeur du champ ouvert le referme ; la valeur fermée est de nouveau affichée", () => {
-    renderSheet(params());
-    fireEvent.press(get("execution-sheet-series-toggle"));
-    expect(query("execution-sheet-series-field")).not.toBeNull();
-    fireEvent.press(get("execution-sheet-series-value-press"));
-    expect(query("execution-sheet-series-field")).toBeNull();
-    expect(get("execution-sheet-series-toggle")).toBeTruthy();
+  // [Toucher la valeur du stepper ouvert — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : re-choisir l'option affichée ferme le clavier.]
+  it("RC-4 — Nombre de séries : en saisie, re-choisir l'option affichée ferme la saisie ; la valeur au repos est de nouveau affichée", () => {
+    const blurSpy = jest.spyOn(TextInput.prototype as unknown as Record<"blur", () => void>, "blur");
+    try {
+      renderSheet(params());
+      openExecutionSheetField("execution-sheet-series");
+      expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: true });
+      blurSpy.mockClear();
+      fireEvent.press(get(`${SERIES_TYPE}-UNIFORM`));
+      expect(blurSpy).toHaveBeenCalled();
+      closeExecutionSheetField("execution-sheet-series");
+      expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: false });
+      expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
+    } finally {
+      blurSpy.mockRestore();
+    }
   });
 
-  it("RC-4, D-434 — Bip de cadence (champ hors tableau) : « activer » de VoiceOver referme aussi ; la Pause d'une cellule n'a plus de champ ±", () => {
+  // [« activer » de VoiceOver qui refermait le ± de la Cadence — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier.]
+  it("RC-4, D-434 — la Pause d'une cellule n'a plus de champ ±", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
-    openExecutionSheetField("execution-sheet-beep");
-    expect(query("execution-sheet-beep-field")).not.toBeNull();
-    fireEvent(get("execution-sheet-beep"), "accessibilityAction", { nativeEvent: { actionName: "activate" } });
-    expect(query("execution-sheet-beep-field")).toBeNull();
     // D-434 : la Pause d'une cellule n'a plus de champ ± (clavier numérique).
     expect(query("execution-sheet-table-row-1-pause-toggle")).toBeNull();
     expect(get("execution-sheet-table-row-1-pause-input").props.keyboardType).toBe("number-pad");
@@ -5848,7 +5396,7 @@ describe("ExecutionParametersSheet — recette iPhone du 19/10 (RC-4, RC-5)", ()
       act(() => handle().props.onResponderMove({ nativeEvent: { pageY: 184 } }));
       act(() => handle().props.onResponderRelease({ nativeEvent: { pageY: 184 } }));
       // 84 points vers le bas : destination 3 (2 lignes de 36), écart restant 84 − 72 = 12.
-      expect(valueOf("execution-sheet-table-row-3-target")).toBe("30 s");
+      expect(valueOf("execution-sheet-table-row-3-target")).toBe("30″");
       expect(styleOf("execution-sheet-table-row-3")).toMatchObject({ transform: [{ translateY: 12 }], backgroundColor: "#EAEAFF" });
       expect(styleOf("execution-sheet-table-row-3-motion").zIndex).toBe(1);
       act(() => {
@@ -5925,18 +5473,18 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     return { onApply, unmount: view.unmount };
   }
 
-  it("PRE5-2.5/AC1, RC-6 — Activation : Sans (UNILATERAL), Profil 20 s → Avec : RIGHT_LEFT, Pause entre les côtés 20 s, menu d'Enchainement et Pause visibles, sans chevron de repli", () => {
+  it("PRE5-2.5/AC1, RC-6 — Activation : Sans (UNILATERAL), Profil 20″ → Avec : RIGHT_LEFT, Pause entre les côtés 20″, menu d'Enchainement et Pause visibles, sans chevron de repli", () => {
     const { onApply } = renderSheet(params({ sideMode: "UNILATERAL", sideRecoverySeconds: 0 }), 20);
     expect(sideText()).toBe("Sans");
     expect(sideRows()).toEqual({ order: false, recovery: false });
     // Sans sélectionné : Avec affiche « Avec », sans notation ni menu (RC-13, recette du 20/10).
-    expect(within(get(SIDE_CONTROL)).queryByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeNull();
+    expect(within(get(SIDE_CONTROL)).queryByText("DD… → GG…", hidden)).toBeNull();
     expect(within(get(SIDE_CONTROL)).getByText("Avec", hidden)).toBeTruthy();
     chooseSide("Avec");
-    expect(within(get(SIDE_CONTROL)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+    expect(within(get(SIDE_CONTROL)).getByText("DD… → GG…", hidden)).toBeTruthy();
     expect(sideText()).toBe("Avec");
     expect(sideRows()).toEqual({ order: true, recovery: true });
-    expect(valueOf("execution-sheet-side-recovery")).toBe("20 s");
+    expect(valueOf("execution-sheet-side-recovery")).toBe("20″");
     expect(query(sideChevron)).toBeNull();
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 });
@@ -5949,21 +5497,21 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     chooseSide("Avec");
     chooseOrder("Les deux côtés à chaque série");
     // Avec re-choisi : ni réécriture de LEFT_RIGHT, ni copie du Profil.
-    expect(valueOf("execution-sheet-side-recovery")).toBe("12 s");
+    expect(valueOf("execution-sheet-side-recovery")).toBe("12″");
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "LEFT_RIGHT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 });
   });
 
   it("PRE5-2.5/AC1 — Sans puis Avec : lignes masquées puis réaffichées ; Pause entre les côtés recopiée du Profil (P3-10) ; Enchainement conservé", () => {
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 }), 20);
-    expect(valueOf("execution-sheet-side-recovery")).toBe("12 s");
+    expect(valueOf("execution-sheet-side-recovery")).toBe("12″");
     chooseSide("Sans");
     expect(sideRows()).toEqual({ order: false, recovery: false });
     // Sans re-choisi sur UNILATERAL : Brouillon inchangé.
     chooseSide("Sans");
     chooseSide("Avec");
     expect(sideRows()).toEqual({ order: true, recovery: true });
-    expect(valueOf("execution-sheet-side-recovery")).toBe("20 s");
+    expect(valueOf("execution-sheet-side-recovery")).toBe("20″");
     expect(orderText()).toBe("Les deux côtés à chaque série");
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 20 });
@@ -5978,18 +5526,18 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(query(sideChevron)).toBeNull();
     expect(sideRows()).toEqual({ order: true, recovery: true });
     const side = get(SIDE_CONTROL);
-    expect(StyleSheet.flatten(side.props.style)).toMatchObject({ width: 216 });
+    expect(StyleSheet.flatten(side.props.style)).toMatchObject({ width: 174 }); // 216 avant le 01/11/2026 (Avec de 104)
     expect(within(side).getByTestId(ORDER_MENU)).toBeTruthy();
-    expect(within(get(ORDER_MENU)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
-    expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
+    expect(within(get(ORDER_MENU)).getByText("DD… → GG…", hidden)).toBeTruthy();
+    expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
     // Re-choisir l'Enchainement affiché ne change rien ; l'autre s'applique et reste affiché.
-    chooseOrder("Un côté après l’autre");
-    expect(orderText()).toBe("Un côté après l’autre");
+    chooseOrder("Chaque série d’un côté, puis chaque série de l’autre");
+    expect(orderText()).toBe("Chaque série d’un côté, puis chaque série de l’autre");
     chooseOrder("Les deux côtés à chaque série");
     expect(orderText()).toBe("Les deux côtés à chaque série");
     expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Les deux côtés à chaque série");
     expect(sideText()).toBe("Avec");
-    expect(valueOf("execution-sheet-side-recovery")).toBe("12 s");
+    expect(valueOf("execution-sheet-side-recovery")).toBe("12″");
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES", sideRecoverySeconds: 12 });
   });
@@ -6011,10 +5559,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(query(sideChevron)).toBeNull();
     expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec");
     // La ligne réserve la place du segmenté le plus large, segmenté aligné à droite.
-    expect(flat("execution-sheet-side-control-slot")).toMatchObject({ minWidth: 216, flexDirection: "row", justifyContent: "flex-end", alignItems: "center" });
+    expect(flat("execution-sheet-side-control-slot")).toMatchObject({ minWidth: 186, flexDirection: "row", justifyContent: "flex-end", alignItems: "center" });
     chooseSide("Avec");
-    expect(widths()).toEqual({ control: 216, with: 146, without: 62 });
-    expect(within(get(ORDER_MENU)).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+    // Depuis le 01/11/2026 (ordre de Hermann, point 5) : Avec adapté au contenu, 104 pour « DD… → GG… ».
+    expect(widths()).toEqual({ control: 174, with: 104, without: 62 });
+    expect(within(get(ORDER_MENU)).getByText("DD… → GG…", hidden)).toBeTruthy();
     expect(within(get(SIDE_CONTROL)).queryByText("Avec", hidden)).toBeNull();
     chooseSide("Sans");
     expect(widths()).toEqual(narrow);
@@ -6070,15 +5619,14 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     check();
   });
 
-  it("PRE5-2.5/AC1 — choix dans les segmentés des côtés avec une roue ouverte (T10) : la roue se ferme sans appliquer, le choix n'est pas appliqué", () =>
+  // [Roue ouverte (T10 : premier appui qui la ferme sans appliquer le choix) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : une saisie au
+  // clavier n'est pas un Sélecteur ; le choix est appliqué dans le même geste, la saisie rangée.]
+  it("PRE5-2.5/AC1 — choix dans les segmentés des côtés pendant la saisie de la Cible : saisie rangée, choix appliqué dans le même geste", () =>
     withPlatform("ios", () => {
       renderSheet(params({ sideMode: "UNILATERAL" }));
-      fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-      expect(query("execution-sheet-target-panel")).not.toBeNull();
+      openExecutionSheetField("execution-sheet-target");
       fireEvent.press(get(`${SIDE_CONTROL}-WITH`));
-      expect(query("execution-sheet-target-panel")).toBeNull();
-      expect(sideText()).toBe("Sans");
-      fireEvent.press(get(`${SIDE_CONTROL}-WITH`));
+      expect(get("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: false });
       expect(sideText()).toBe("Avec");
     }));
 
@@ -6089,13 +5637,14 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     const labels = within(get(ORDER_PANEL))
       .getAllByRole("menuitem")
       .map((row) => String(row.props.accessibilityLabel));
-    expect(labels).toEqual(["Un côté après l’autre", "Les deux côtés à chaque série"]);
+    expect(labels).toEqual(["Chaque série d’un côté, puis chaque série de l’autre", "Les deux côtés à chaque série"]);
     expect(SIDE_ORDER_VALUES.map((order) => get(`${ORDER_MENU}-${order}-notation`).props.children)).toEqual([
-      "(D1 → D2) ➜ (G1 → G2)",
-      "(D1 → G1) ➜ (D2 → G2)",
+      "DD… → GG…",
+      "DG → DG → …",
     ]);
     fireEvent.press(get(`${ORDER_PANEL}-outside`));
-    expect(StyleSheet.flatten(get(`${ORDER_MENU}-notation`).props.style)).toMatchObject({ fontSize: 10 });
+    // Ordre de Hermann du 01/11/2026, point 5 : taille standard des options (12), sans réduction.
+    expect(StyleSheet.flatten(get(`${ORDER_MENU}-notation`).props.style)).toMatchObject({ fontSize: 12, fontWeight: "600" });
     chooseOrder("Les deux côtés à chaque série");
     expect(orderText()).toBe("Les deux côtés à chaque série");
     tap("execution-sheet-series-decrement");
@@ -6111,10 +5660,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(applied(onApply)).toMatchObject({ series: { count: 1 }, sideOrder: "BY_SIDE" });
   });
 
-  it("PRE5-2.5/AC3, RC-10 — Cadence : 0, 1, 2, 5, 7 → Sans, 1 s, Autre, Autre, Autre ; options Autre / 1 s / Sans de 62", () => {
+  it("PRE5-2.5/AC3, RC-10 — Cadence : 0, 1, 2, 5, 7 → Sans, 1″, Autre, Autre, Autre ; options Autre / 1″ / Sans de 62", () => {
     const expected: readonly [number, string][] = [
       [0, "Sans"],
-      [1, "1 s"],
+      [1, "1″"],
       [2, "Autre"],
       [5, "Autre"],
       [7, "Autre"],
@@ -6128,7 +5677,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     const control = get(CADENCE_CONTROL);
     expect(["OTHER", "1", "NONE"].map((option) => get(`${CADENCE_CONTROL}-${option}`).props.accessibilityLabel)).toEqual([
       "Autre",
-      "1 s",
+      "1 seconde",
       "Sans",
     ]);
     expect(query(`${CADENCE_CONTROL}-5`)).toBeNull();
@@ -6137,30 +5686,33 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(StyleSheet.flatten(control.props.style)).toMatchObject({ height: 32, width: 3 * 62 + 2 * 2 + 2 * 3 });
   });
 
-  it("PRE5-2.5/AC3 — Autre : valeur inchangée, ± ouvert sous la ligne, Autre affiché ; fermeture → option de la valeur ; 1 s / Sans écrivent leur valeur et ferment le ± (RC-10) ; aucune valeur personnalisée mémorisée", () => {
+  it("PRE5-2.5/AC3 — Autre : valeur inchangée, ± ouvert sous la ligne, Autre affiché ; fermeture → option de la valeur ; 1″ / Sans écrivent leur valeur et ferment le ± (RC-10) ; aucune valeur personnalisée mémorisée", () => {
     const { onApply } = renderSheet(params({ cadenceBeepIntervalSeconds: 0 }));
+    // [± révélé sous la ligne — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : champ clavier révélé et focalisé (focus simulé).]
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    fireEvent(get("execution-sheet-beep-input"), "focus");
     expect(cadenceText()).toBe("Autre");
-    expect(valueOf("execution-sheet-beep")).toBe("Sans");
-    expect(within(get("execution-sheet-row-beep")).getByTestId("execution-sheet-beep-field", hidden)).toBeTruthy();
-    // Fermeture (second toucher sur Autre) : Sans, valeur 0.
-    fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
-    expect(query("execution-sheet-beep-field")).toBeNull();
+    expect(valueOf("execution-sheet-beep")).toBe("00:00");
+    expect(within(get("execution-sheet-row-beep")).getByTestId("execution-sheet-beep", hidden)).toBeTruthy();
+    // Sortie sans frappe : Sans, valeur 0.
+    closeExecutionSheetField("execution-sheet-beep");
+    expect(query("execution-sheet-beep-input")).toBeNull();
     expect(cadenceText()).toBe("Sans");
-    // ± : 7 s (Autre), puis 1 s par le segmenté, qui ferme le ±.
+    // 7 s saisies (Autre, « Autre, 7 s »), puis 1 s par le segmenté, qui range la saisie.
+    enterExecutionSheetValue("execution-sheet-beep", 7);
+    expect(get(`${CADENCE_CONTROL}-OTHER`).props.accessibilityLabel).toBe("Autre, 7 secondes");
     openExecutionSheetField("execution-sheet-beep");
-    for (let step = 0; step < 7; step += 1) tap("execution-sheet-beep-increment");
-    expect(valueOf("execution-sheet-beep")).toBe("7 s");
     fireEvent.press(get(`${CADENCE_CONTROL}-1`));
-    expect(query("execution-sheet-beep-field")).toBeNull();
-    expect(cadenceText()).toBe("1 s");
+    expect(query("execution-sheet-beep-input")).toBeNull();
+    expect(cadenceText()).toBe("1″");
     // Sans puis Autre : rien n'est restauré (7 s oublié).
     fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
-    expect(valueOf("execution-sheet-beep")).toBe("Sans");
-    // 1 s avec le ± ouvert : écrit, ± fermé.
+    fireEvent(get("execution-sheet-beep-input"), "focus");
+    expect(valueOf("execution-sheet-beep")).toBe("00:00");
+    // 1 s pendant la saisie : écrit, saisie rangée.
     fireEvent.press(get(`${CADENCE_CONTROL}-1`));
-    expect(query("execution-sheet-beep-field")).toBeNull();
+    expect(query("execution-sheet-beep-input")).toBeNull();
     validate();
     expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(1);
   });
@@ -6174,13 +5726,12 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
       expect(query("execution-sheet-adjusted-undo")).not.toBeNull();
       fireEvent.press(get("execution-sheet-adjusted-undo"));
       view.unmount();
-      // T10 : roue de la Cible commune ouverte (D-434 : plus de roue de cellule), Sans n'est pas appliqué.
+      // [T10 : roue de la Cible commune ouverte, Sans non appliqué — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : la saisie de la Cible n'est
+      // pas un Sélecteur ; Sans est appliqué dans le même geste.]
       renderSheet(params({ cadenceBeepIntervalSeconds: 1 }));
-      fireEvent.press(get("execution-sheet-target-value"));
-      expect(query("execution-sheet-target-panel")).not.toBeNull();
+      openExecutionSheetField("execution-sheet-target");
       fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
-      expect(query("execution-sheet-target-panel")).toBeNull();
-      expect(cadenceText()).toBe("1 s");
+      expect(cadenceText()).toBe("Sans");
     }));
 
   it("PRE5-2.5/AC4 — Durée de l'exercice : repliée à l'ouverture, Compte à rebours et Fin absents ; chevron à 12 du libellé → visibles ; valeur, nature et roue inchangées ; chevron et pastille distincts", () => {
@@ -6199,23 +5750,23 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(signals()).toEqual({ countdown: true, end: true, disclosure: true });
     expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
     expect(screen.getByLabelText(strings.executionParameters.sheet.hideExerciseSignals).props.accessibilityState).toMatchObject({ expanded: true });
-    // Pastille : ouvre la roue, sans replier.
-    fireEvent.press(screen.getByTestId("execution-sheet-total"));
-    expect(query("execution-sheet-total-wheel")).not.toBeNull();
+    // Pastille : ouvre la saisie ([roue — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]), sans replier.
+    openExecutionSheetField("execution-sheet-total");
+    expect(get("execution-sheet-total").props.accessibilityState).toMatchObject({ selected: true });
     expect(signals()).toEqual({ countdown: true, end: true, disclosure: true });
-    fireEvent.press(get("duration-wheel-cancel"));
-    // Compte à rebours réglé, puis replié avec son ± ouvert : rangé, valeur conservée.
+    closeExecutionSheetField("execution-sheet-total");
+    // Compte à rebours réglé, puis replié pendant sa saisie : rangé, valeur conservée.
     tap("execution-sheet-countdown-increment");
+    openExecutionSheetField("execution-sheet-countdown");
     fireEvent.press(screen.getByLabelText(strings.executionParameters.sheet.hideExerciseSignals));
     expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
-    expect(query("execution-sheet-countdown-increment")).toBeNull();
     validate();
     expect(applied(onApply)).toMatchObject({ countdownSeconds: 11, endSeconds: 5 });
   });
 
   // D-433 : la ligne n'est plus jamais absente ; Compte à rebours et Fin sont toujours repliés
   // par défaut derrière son chevron, y compris en « Non calculable ».
-  it("PRE5-2.5/AC4, D-433 — Sans total (Durée à l'échec, Répétitions sans Cadence) : ligne « Non calculable », Compte à rebours et Fin repliés derrière le chevron ; Cadence 1 s : valeur ≈, toujours repliée", () => {
+  it("PRE5-2.5/AC4, D-433 — Sans total (Durée à l'échec, Répétitions sans Cadence) : ligne « Non calculable », Compte à rebours et Fin repliés derrière le chevron ; Cadence 1″ : valeur ≈, toujours repliée", () => {
     const view = renderSheetView(durationParameters("FAILURE", 3, 10));
     expect(query("execution-sheet-row-total")).not.toBeNull();
     expect(totalShown()).toBe(TOTAL_NOT_CALCULABLE);
@@ -6255,7 +5806,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     renderSheet(params({ series: variableRows([[30, 10], [45, 20]]) }));
     const valueGroup = get("execution-sheet-row-total-value-group");
     expect(valueGroup.props).toMatchObject({ accessible: true, accessibilityRole: "text" });
-    expect(valueGroup.props.accessibilityLabel).toBe(`Durée de l’exercice, ${formatPhraseDuration(30 + 10 + 45 + 20)}, non modifiable`);
+    expect(valueGroup.props.accessibilityLabel).toBe(`Durée de l’exercice, ${spokenDuration(30 + 10 + 45 + 20)}, non modifiable`);
     expect(get("execution-sheet-row-total-line").props.accessible).toBeUndefined();
     expect(screen.getByText("Durée de l’exercice", hidden).props.accessibilityElementsHidden).toBe(true);
     expect(screen.getByLabelText(strings.executionParameters.sheet.showExerciseSignals).props.accessibilityRole).toBe("button");
@@ -6293,7 +5844,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
   const loadChoice = () => selectedValue(LOAD_CONTROL, ["WITH", "WITHOUT"]);
   /** Libellés texte rendus dans le segmenté de la Charge. */
   const controlLabels = () => within(get(LOAD_CONTROL)).queryAllByText(/^(Avec|Sans)$/, hidden).map((node) => node.props.children);
-  const inputs = () => screen.UNSAFE_root.findAll((node) => node.props.keyboardType !== undefined && typeof node.type === "string");
+  // Décision du 06/11/2026 (constat c) : les valeurs hors tableau ont aussi leur entrée clavier ; seules celles
+  // de la charge sont comptées ici.
+  const inputs = () =>
+    screen.UNSAFE_root.findAll((node) => node.props.keyboardType !== undefined && typeof node.type === "string" && String(node.props.testID).includes("load"));
   const uniformLoad = (loadKg: number, enabled = true, overrides: Partial<ExecutionParametersInput> = {}) =>
     params({
       series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] },
@@ -6318,6 +5872,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
 
   it("PRE5-2.7/AC1, RC-14 — identiques, Sans → Avec : le segment Avec affiche « 0,25 kg » (champ commun dans l'option, aucune pastille séparée) et le focus natif lui est donné (clavier ouvert, RC-14)", () => {
     const focusSpy = jest.spyOn(TextInput.prototype as unknown as Record<"focus", () => void>, "focus");
+    // `focus` du simulacre de `TextInput` est partagé : appels des tests précédents effacés (depuis le 06/11/2026,
+    // des champs hors tableau reçoivent aussi le focus natif).
+    focusSpy.mockClear();
     spies.push(focusSpy);
     renderSheet(params());
     expect(controlLabels()).toEqual(["Avec", "Sans"]);
@@ -6361,6 +5918,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     expect(query("execution-sheet-keyboard-bar")).not.toBeNull();
     type(UNIFORM, "1,3");
     fireEvent.press(get("execution-sheet-keyboard-close"));
+    keyboard.hide();
     blur(UNIFORM);
     expect(shown(UNIFORM)).toBe("1,5 kg");
     expect(styleOf(UNIFORM).backgroundColor).toBeUndefined();
@@ -6389,7 +5947,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
   it("PRE5-2.7/AC2 — variables : l'option garde « Avec » (aucun champ dans le segment), colonne Charge au titre non interactif, une cellule clavier par série", () => {
     renderSheet(variableLoads([20, 0, 5]));
     expect(loadChoice()).toBe("WITH");
-    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière.
+    expect(controlLabels()).toEqual(["Sans", "Avec"]);
     expect(within(get(LOAD_CONTROL)).queryByTestId(UNIFORM, hidden)).toBeNull();
     expect(get(`${LOAD_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec");
     const header = within(get("execution-sheet-table-header")).getByText("Charge", hidden);
@@ -6423,7 +5982,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
   it("PRE5-2.7/AC5 (Δ48) — Répétitions × Variables : colonne Charge, saisie par cellule, cibles et pauses inchangées", () => {
     const { onApply } = renderSheet(variableLoads([10, 20], true, { mode: "REPETITIONS" }));
     expect(selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"])).toBe("REPETITIONS");
-    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière.
+    expect(controlLabels()).toEqual(["Sans", "Avec"]);
     focus(cell(2));
     type(cell(2), "1,3");
     blur(cell(2));
@@ -6523,8 +6083,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
   });
 
   // Recette du 20/10 (RC-14) : charge commune saisie comme les cellules (D-434, `cellDecimal`).
-  it("RC-14 — identiques : Avec sélectionne l'option et ouvre la saisie dans l'option (valeur restaurée) ; première frappe qui remplace, Retour arrière ; barre : Précédent et Suivant indisponibles, Fermer, pas d'« À l'échec » ; validation : « 34,1 » → « 34,25 kg » sans chevron ; toucher l'option sélectionnée rouvre la saisie ; Sans : « Avec », non sélectionné", () => {
+  it("RC-14 — identiques : Avec sélectionne l'option et ouvre la saisie dans l'option (valeur restaurée) ; première frappe qui remplace, Retour arrière ; barre : Précédent et Suivant vers les champs voisins, Fermer, pas d'« À l'échec » ; validation : « 34,1 » → « 34,25 kg » sans chevron ; toucher l'option sélectionnée rouvre la saisie ; Sans : « Avec », non sélectionné", () => {
     const focusSpy = jest.spyOn(TextInput.prototype as unknown as Record<"focus", () => void>, "focus");
+    // `focus` du simulacre de `TextInput` est partagé : appels des tests précédents effacés (depuis le 06/11/2026,
+    // des champs hors tableau reçoivent aussi le focus natif).
+    focusSpy.mockClear();
     spies.push(focusSpy);
     // Entrées ayant reçu le focus (sans doublon : le `focus` simulé de React Native peut se rappeler lui-même).
     const focused = () => [...new Set(focusSpy.mock.contexts.map((instance) => String((instance as { props: { testID?: string } }).props.testID)))];
@@ -6538,8 +6101,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     expect(shown(UNIFORM)).toBe("20");
     expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: true });
     expect(styleOf(UNIFORM)).toMatchObject({ backgroundColor: "#EAEAFF" });
-    expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(get("execution-sheet-keyboard-next").props.accessibilityState).toMatchObject({ disabled: true });
+    // [Précédent et Suivant indisponibles (charge commune seule) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : la charge est un des champs hors
+    // tableau, entre la Pause et la Durée de l'exercice.]
+    expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: false });
+    expect(get("execution-sheet-keyboard-next").props.accessibilityState).toMatchObject({ disabled: false });
     expect(query("execution-sheet-keyboard-close")).not.toBeNull();
     expect(query("execution-sheet-keyboard-failure")).toBeNull();
     type(UNIFORM, "3");
@@ -6549,6 +6114,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     expect(shown(UNIFORM)).toBe("3");
     type(UNIFORM, "4,1");
     fireEvent.press(get("execution-sheet-keyboard-close"));
+    keyboard.hide();
     blur(UNIFORM);
     // Arrondi au 0,25 supérieur ; la valeur remplace « Avec » dans l'option, sans chevron.
     expect(shown(UNIFORM)).toBe("34,25 kg");
@@ -6574,6 +6140,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
 
   it("RC-14 — première activation : 0,25 kg et saisie ouverte ; zéro à la validation → Sans ; variables : Avec n'ouvre pas le clavier (RC-2)", () => {
     const focusSpy = jest.spyOn(TextInput.prototype as unknown as Record<"focus", () => void>, "focus");
+    // `focus` du simulacre de `TextInput` est partagé : appels des tests précédents effacés (depuis le 06/11/2026,
+    // des champs hors tableau reçoivent aussi le focus natif).
+    focusSpy.mockClear();
     spies.push(focusSpy);
     // Entrées ayant reçu le focus (sans doublon : le `focus` simulé de React Native peut se rappeler lui-même).
     const focused = () => [...new Set(focusSpy.mock.contexts.map((instance) => String((instance as { props: { testID?: string } }).props.testID)))];
@@ -6591,7 +6160,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     renderSheet(variableLoads([0, 0], false));
     fireEvent.press(get(`${LOAD_CONTROL}-WITH`));
     expect(focused()).toEqual([]);
-    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    // Contrôle segmenté du 04/11/2026 (Hermann : option sélectionnée à droite) : l'option choisie est la dernière.
+    expect(controlLabels()).toEqual(["Sans", "Avec"]);
   });
 
   it("RC-14 — largeur de l'option Avec : 62 si la valeur tient (« 99,75 kg ») ; sinon le strict nécessaire (« 487,75 kg » → 67), pendant la saisie comprise ; en variables, 62", () => {
@@ -6670,20 +6240,22 @@ describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujo
     expect(titleText()).toBe("Durée de l’exercice");
     expect(titleText()).not.toMatch(/[≈≥]/u);
     expect(totalShown()).toBe(shown);
-    expect(totalShown()).not.toBe("0 s");
-    expect(screen.queryAllByText("0 s", hidden)).toHaveLength(0);
+    expect(totalShown()).not.toBe("0″");
+    expect(screen.queryAllByText("0″", hidden)).toHaveLength(0);
     expect(signals()).toEqual({ countdown: false, end: false, disclosure: true });
   }
 
-  it("D-433 — transitions dans une même Feuille : valeur sans symbole → À l'échec « Non calculable » → retour → Répétitions sans Cadence, Cible manquante « Non calculable » (préséance) → Cadence 1 s « — » → Cible 10 « ≈ » → Cadence Sans « Non calculable » ; même place, chevron, signaux repliés, annonces", () => {
+  it("D-433 — transitions dans une même Feuille : valeur sans symbole → À l'échec « Non calculable » → retour → Répétitions sans Cadence, Cible manquante « Non calculable » (préséance) → Cadence 1″ « — » → Cible 10 « ≈ » → Cadence Sans « Non calculable » ; même place, chevron, signaux repliés, annonces", () => {
     // Durée, identiques, 3 × (90 s + 15 s) = 315 s : pastille modifiable, sans symbole.
     renderSheet(params());
     const index = totalIndex();
     expect(index).toBeGreaterThan(0);
     expect(cadenceFrameRows()[index - 1]).toBe("execution-sheet-row-beep");
     expectLine(formatPhraseDuration(3 * (90 + 15)), index);
-    expect(totalShown()).toBe("5 min 15 s");
-    expect(get("execution-sheet-total").props.accessibilityLabel).toBe(`${sheetText.exerciseDurationEditAccessibilityLabel}, 5 min 15 s`);
+    expect(totalShown()).toBe("5′15″");
+    // Décision du 06/11/2026 : champ clavier nommé, valeur annoncée à part.
+    expect(get("execution-sheet-total").props.accessibilityLabel).toBe(sheetText.exerciseDurationEditAccessibilityLabel);
+    expect(get("execution-sheet-total").props.accessibilityValue).toEqual({ text: "5′15″" });
 
     // Condition d'arrêt À l'échec en identiques : la configuration exclut le calcul.
     fireEvent.press(get(`${STOP_CONTROL}-FAILURE`));
@@ -6693,7 +6265,7 @@ describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujo
 
     // Retour à une Cible : la valeur revient, à la même place.
     fireEvent.press(get(`${STOP_CONTROL}-TARGET`));
-    expectLine("5 min 15 s", index);
+    expectLine("5′15″", index);
 
     // Répétitions, Cadence 0 (Sans), Cible devenue à renseigner : « Non calculable » prime sur « — ».
     chooseMode("Répétitions");
@@ -6709,12 +6281,11 @@ describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujo
     expect(totalSpoken()).not.toMatch(/—/u);
 
     // Cible 10 répétitions : estimation 3 × (10 × 1 s + 15 s) = 75 s, ≈ devant la valeur.
-    fireEvent.press(get("execution-sheet-target-value"));
-    fireEvent(get("number-wheel-column"), "selectionChange", { nativeEvent: { selection: 10 } });
-    fireEvent.press(get("number-wheel-validate"));
+    // [Roue de la Cible commune — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+    enterExecutionSheetValue("execution-sheet-target", 10, "integer");
     expectLine(`≈ ${formatPhraseDuration(3 * (10 * 1 + 15))}`, index);
-    expect(totalShown()).toBe("≈ 1 min 15 s");
-    expect(totalSpoken()).toBe(`Durée de l’exercice, ${sheetText.totalEstimatedSpoken}, 1 min 15 s, ${sheetText.totalReadOnlySpoken}`);
+    expect(totalShown()).toBe("≈ 1′15″");
+    expect(totalSpoken()).toBe(`Durée de l’exercice, ${sheetText.totalEstimatedSpoken}, 1 minute 15 secondes, ${sheetText.totalReadOnlySpoken}`);
 
     // Cadence Sans : de nouveau « Non calculable », jamais zéro.
     fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
@@ -6745,21 +6316,21 @@ describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujo
       { name: "Cible à renseigner (identiques)", parent: durationParameters("UNSET", 3, 10), shown: "—", spoken: TOTAL_MISSING_SPOKEN },
       { name: "Cible à renseigner (variables)", parent: params({ series: variableRows([[30, 10], [null, 20]]) }), shown: "—", spoken: TOTAL_MISSING_SPOKEN },
       {
-        name: "saisie invalide (3536 s, D-430)",
+        name: "saisie invalide (58′56″, D-430)",
         parent: durationParameters(3536, 3, 10),
         shown: "—",
         spoken: `Durée de l’exercice, ${sheetText.totalInvalidSpoken}`,
       },
       { name: "tableau variable tout à l'échec (Durée)", parent: variableParameters({ rows: [["FAILURE", 10], ["FAILURE", 20]] }), shown: "—", spoken: TOTAL_MISSING_SPOKEN },
       {
-        name: "tableau variable tout à l'échec (Répétitions, Cadence 2 s)",
+        name: "tableau variable tout à l'échec (Répétitions, Cadence 2″)",
         parent: variableParameters({ mode: "REPETITIONS", rows: [["FAILURE", 10], ["FAILURE", 20]], cadenceBeepIntervalSeconds: 2 }),
         shown: "—",
         spoken: TOTAL_MISSING_SPOKEN,
       },
       { name: "À l'échec en identiques (Durée)", parent: durationParameters("FAILURE", 3, 10), shown: TOTAL_NOT_CALCULABLE, spoken: TOTAL_NOT_CALCULABLE_SPOKEN },
       {
-        name: "À l'échec en identiques (Répétitions, Cadence 2 s)",
+        name: "À l'échec en identiques (Répétitions, Cadence 2″)",
         parent: allFailureParameters(3, 15, { cadenceBeepIntervalSeconds: 2 }),
         shown: TOTAL_NOT_CALCULABLE,
         spoken: TOTAL_NOT_CALCULABLE_SPOKEN,
@@ -6767,25 +6338,25 @@ describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujo
       { name: "Répétitions sans Cadence", parent: repetitions(0), shown: TOTAL_NOT_CALCULABLE, spoken: TOTAL_NOT_CALCULABLE_SPOKEN },
       { name: "Répétitions sans Cadence, Cible à renseigner", parent: repetitions(0, unsetTarget()), shown: TOTAL_NOT_CALCULABLE, spoken: TOTAL_NOT_CALCULABLE_SPOKEN },
       {
-        name: "Répétitions avec Cadence 2 s",
+        name: "Répétitions avec Cadence 2″",
         parent: repetitions(2),
         shown: `≈ ${formatPhraseDuration(3 * (10 * 2 + 15))}`,
-        spoken: `Durée de l’exercice, ${sheetText.totalEstimatedSpoken}, ${formatPhraseDuration(3 * (10 * 2 + 15))}, ${sheetText.totalReadOnlySpoken}`,
+        spoken: `Durée de l’exercice, ${sheetText.totalEstimatedSpoken}, ${spokenDuration(3 * (10 * 2 + 15))}, ${sheetText.totalReadOnlySpoken}`,
       },
       {
         name: "variables mixtes",
         parent: variableParameters({ rows: [[30, 10], [45, 20], ["FAILURE", 30]] }),
-        shown: "≥ 2 min 15 s",
-        spoken: `Durée de l’exercice, ${sheetText.totalLowerBoundSpoken}, 2 min 15 s, ${sheetText.totalReadOnlySpoken}`,
+        shown: "≥ 2′15″",
+        spoken: `Durée de l’exercice, ${sheetText.totalLowerBoundSpoken}, 2 minutes 15 secondes, ${sheetText.totalReadOnlySpoken}`,
       },
       {
         name: "variables chiffrées",
         parent: params({ series: variableRows([[30, 10], [45, 20]]) }),
         shown: formatPhraseDuration(30 + 10 + 45 + 20),
-        spoken: `Durée de l’exercice, ${formatPhraseDuration(30 + 10 + 45 + 20)}, ${sheetText.totalReadOnlySpoken}`,
+        spoken: `Durée de l’exercice, ${spokenDuration(30 + 10 + 45 + 20)}, ${sheetText.totalReadOnlySpoken}`,
       },
       // Ligne modifiable : l'annonce reste celle de la pastille (ligne non regroupée).
-      { name: "Durée identiques chiffrée", parent: params(), shown: "5 min 15 s", spoken: undefined },
+      { name: "Durée identiques chiffrée", parent: params(), shown: "5′15″", spoken: undefined },
     ];
     const indexes = new Set<number>();
     for (const { name, parent, shown, spoken } of cases) {
@@ -6797,7 +6368,7 @@ describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujo
       expect({ name, shown: totalShown() }).toEqual({ name, shown });
       expect({ name, spoken: totalSpoken() }).toEqual({ name, spoken });
       if (spoken !== undefined) expect({ name, symbol: /[≈≥—]/u.test(spoken) }).toEqual({ name, symbol: false });
-      expect({ name, zero: screen.queryAllByText("0 s", hidden).length }).toEqual({ name, zero: 0 });
+      expect({ name, zero: screen.queryAllByText("0″", hidden).length }).toEqual({ name, zero: 0 });
       expect({ name, signals: signals() }).toEqual({ name, signals: { countdown: false, end: false, disclosure: true } });
       view.unmount();
     }
@@ -6808,7 +6379,7 @@ describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujo
     let view = renderSheetView(variableParameters({ rows: [[30, 10], [45, 20], ["FAILURE", 30]] }));
     const lowerBoundText = get("execution-sheet-total-text");
     expect(lowerBoundText.props.children).toBe(`${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(135)}`);
-    expect(lowerBoundText.props.children).toBe("≥ 2 min 15 s");
+    expect(lowerBoundText.props.children).toBe("≥ 2′15″");
     const row = get("execution-sheet-row-total-line");
     expect(within(row).getAllByText(/≥/u, hidden)).toEqual([lowerBoundText]);
     expect(within(row).queryAllByText(/^Durée de l’exercice.*[≈≥]/u, hidden)).toHaveLength(0);
@@ -6828,7 +6399,7 @@ describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujo
     expect(totalShown()).not.toBe(TOTAL_NOT_CALCULABLE);
     expect(screen.queryAllByText(TOTAL_NOT_CALCULABLE, hidden)).toHaveLength(0);
     expect(totalSpoken()).toBe(TOTAL_MISSING_SPOKEN);
-    expect(screen.queryAllByText("0 s", hidden)).toHaveLength(0);
+    expect(screen.queryAllByText("0″", hidden)).toHaveLength(0);
     view.unmount();
     // Contrôle : le même tableau en Répétitions sans Cadence est exclu par la configuration.
     view = renderSheetView(variableParameters({ mode: "REPETITIONS", rows: [["FAILURE", 10], ["FAILURE", 20]] }));
@@ -6843,7 +6414,7 @@ describe("ExecutionParametersSheet — D-433 (ligne Durée de l’exercice toujo
       [durationParameters("FAILURE", 3, 10), TOTAL_NOT_CALCULABLE],
       [durationParameters("UNSET", 3, 10), "—"],
       [params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] }, cadenceBeepIntervalSeconds: 2 }), `≈ ${formatPhraseDuration(3 * (10 * 2 + 15))}`],
-      [variableParameters({ rows: [[30, 10], [45, 20], ["FAILURE", 30]] }), "≥ 2 min 15 s"],
+      [variableParameters({ rows: [[30, 10], [45, 20], ["FAILURE", 30]] }), "≥ 2′15″"],
     ] as const) {
       const view = renderWithSignals({ ...parent, countdownSeconds: 12, endSeconds: 7 }, "absent");
       expect(query("execution-sheet-row-total")).not.toBeNull();
@@ -6879,10 +6450,10 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
   const variable = (rows: [SeriesTarget, number][], mode: "DURATION" | "REPETITIONS" = "DURATION", loadEnabled = false) =>
     params({ mode, loadEnabled, series: { kind: "VARIABLE", rows: rows.map(([rowTarget, pauseSeconds]) => ({ target: rowTarget, pauseSeconds, loadKg: 20 })), workPhases: [] } });
 
-  it("Durée : au repos en unités explicites (5 s, 1 min 5 s, 1 min 30 s, 12 min, 0 s), en saisie « MM:SS » dans la même cellule, sur fond #EAEAFF ; aucun champ supplémentaire", () => {
+  it("Durée : au repos en unités explicites (5″, 1′05″, 1′30″, 12′00″, 0″), en saisie « MM:SS » dans la même cellule, sur fond #EAEAFF ; aucun champ supplémentaire", () => {
     renderSheet(variable([[numberTarget(5), 0], [numberTarget(65), 90], [numberTarget(720), 30]]));
-    expect([1, 2, 3].map((row) => shown(target(row)))).toEqual(["5 s", "1 min 5 s", "12 min"]);
-    expect([1, 2, 3].map((row) => shown(pause(row)))).toEqual(["0 s", "1 min 30 s", "30 s"]);
+    expect([1, 2, 3].map((row) => shown(target(row)))).toEqual(["5″", "1′05″", "12′00″"]);
+    expect([1, 2, 3].map((row) => shown(pause(row)))).toEqual(["0″", "1′30″", "30″"]);
     const before = screen.UNSAFE_root.findAll((node) => typeof node.type === "string").length;
     focus(target(2));
     expect(shown(target(2))).toBe("01:05");
@@ -6896,17 +6467,18 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     expect(shown(target(1))).toBe("00:05");
   });
 
-  it("frappe : la première remplace, les suivantes composent, quatre chiffres au plus ; à la sortie, 01:75 → 2 min 15 s ; hors bornes ramenée à la borne (3535, 1 s ; Pause 300)", () => {
+  it("frappe : la première remplace, les suivantes composent, quatre chiffres au plus ; à la sortie, 01:75 → 2′15″ ; hors bornes ramenée à la borne (3535, 1″ [PRE-9 B.3 : 0″ admis] ; Pause 300)", () => {
     const { onApply } = renderSheet(variable([[numberTarget(65), 10], [numberTarget(45), 20], [numberTarget(30), 30]]));
     focus(target(1));
     typeInExecutionSheetCell(target(1), "175");
     expect(shown(target(1))).toBe("01:75");
     blur(target(1));
-    expect(shown(target(1))).toBe("2 min 15 s");
+    expect(shown(target(1))).toBe("2′15″");
     enterExecutionSheetCell(target(2), "99999");
     expect(shown(target(2))).toBe(formatPhraseDuration(3535));
+    // PRE-9 (B.3, COMP §3) : 0 saisi est une Cible 0 (participation volontairement absente).
     enterExecutionSheetCell(target(3), "0");
-    expect(shown(target(3))).toBe("1 s");
+    expect(shown(target(3))).toBe("0″");
     enterExecutionSheetCell(pause(1), "1000");
     expect(shown(pause(1))).toBe(formatPhraseDuration(300));
     validate();
@@ -6915,16 +6487,16 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
       rows: [
         { target: numberTarget(135), pauseSeconds: 300, loadKg: 20 },
         { target: numberTarget(3535), pauseSeconds: 20, loadKg: 20 },
-        { target: numberTarget(1), pauseSeconds: 30, loadKg: 20 },
+        { target: numberTarget(0), pauseSeconds: 30, loadKg: 20 },
       ],
       workPhases: [],
     });
   });
 
-  it("QD-434-4 : cellule vidée par Retour arrière → Pause 0 s ; Cible « — » à renseigner (#FFF1F0), ✓ indisponible", () => {
+  it("QD-434-4 : cellule vidée par Retour arrière → Pause 0″ ; Cible « — » à renseigner (#FFF1F0), ✓ indisponible", () => {
     renderSheet(variable([[numberTarget(45), 20], [numberTarget(30), 10]]));
     enterExecutionSheetCell(pause(1), CELL_BACKSPACE.repeat(4));
-    expect(shown(pause(1))).toBe("0 s");
+    expect(shown(pause(1))).toBe("0″");
     enterExecutionSheetCell(target(1), CELL_BACKSPACE.repeat(4));
     expect(shown(target(1))).toBe("—");
     expect(styleOf(target(1)).backgroundColor).toBe("#FFF1F0");
@@ -6936,7 +6508,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     focus(target(1));
     showExecutionSheetKeyboard();
     const bar = get("execution-sheet-keyboard-bar");
-    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ flexDirection: "row", minHeight: 44 });
+    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ flexDirection: "row", minHeight: 52 });
     const order = bar.findAll((node) => typeof node.props.testID === "string" && /^execution-sheet-keyboard-(failure|previous|next|close)$/.test(node.props.testID) && typeof node.type === "string");
     expect([...new Set(order.map((node) => node.props.testID))]).toEqual([
       "execution-sheet-keyboard-failure",
@@ -6957,7 +6529,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     for (const id of slotIDs) {
       expect(styleOf(id)).toMatchObject({ flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 44, minHeight: 36, borderRadius: 8, paddingHorizontal: 2 });
     }
-    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ backgroundColor: "#E6E9ED", gap: 6, paddingHorizontal: 8 });
+    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ backgroundColor: "#E1E4E8", gap: 6, paddingHorizontal: 8 });
     expect(styleOf("execution-sheet-keyboard-previous").backgroundColor).toBe("#FFFFFF");
     expect(styleOf("execution-sheet-keyboard-close").backgroundColor).toBe("#0508E5");
     expect(StyleSheet.flatten(within(get("execution-sheet-keyboard-close")).getByText("Fermer", hidden).props.style).color).toBe("#FFFFFF");
@@ -7009,14 +6581,14 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     fireEvent.press(get("execution-sheet-keyboard-failure"));
     blur(target(1));
     expect(shown(target(1))).toBe("à l’échec");
-    expect(shown(target(2))).toBe("30 s");
+    expect(shown(target(2))).toBe("30″");
     // Cellule à l'échec : focus « 00:00 », une frappe la rend numérique à la sortie.
     focus(target(1));
     expect(shown(target(1))).toBe("00:00");
     typeInExecutionSheetCell(target(1), "50");
     expect(get("execution-sheet-keyboard-failure").props.accessibilityState).toMatchObject({ selected: false });
     blur(target(1));
-    expect(shown(target(1))).toBe("50 s");
+    expect(shown(target(1))).toBe("50″");
     // Frappe en cours puis « À l'échec » : la cellule passe à l'échec, la valeur frappée est mémorisée.
     focus(target(1));
     typeInExecutionSheetCell(target(1), "40");
@@ -7106,9 +6678,9 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     expect(get("execution-sheet-keyboard-previous").props.accessibilityLabel).toBe("Précédent");
     expect(get("execution-sheet-keyboard-next").props.accessibilityLabel).toBe("Suivant");
     expect(within(get("execution-sheet-keyboard-failure")).getByText("À l’échec", hidden)).toBeTruthy();
-    // Zone tactile de 44 de haut : bouton de 36 au moins, débord de 4 en haut et en bas.
+    // Zone tactile de 52 de haut (recette du 29/10/2026) : bouton de 36 au moins, débord de 8 en haut et en bas.
     expect(styleOf("execution-sheet-keyboard-previous")).toMatchObject({ minHeight: 36 });
-    expect(get("execution-sheet-keyboard-previous").props.hitSlop).toMatchObject({ top: 4, bottom: 4 });
+    expect(get("execution-sheet-keyboard-previous").props.hitSlop).toMatchObject({ top: 8, bottom: 8 });
     blur(target(1));
     hideExecutionSheetKeyboard();
   });
@@ -7152,15 +6724,20 @@ describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
   const query = (testID: string) => screen.queryByTestId(testID, hidden);
   const OTHER = `${CADENCE_CONTROL}-OTHER`;
   const otherLabel = () => ({
-    // Libellé de la première option (Autre), rendu à côté de sa zone de sélection.
-    text: within(get(CADENCE_CONTROL)).queryAllByText(/./u, hidden).slice(0, 1).map((node) => String(node.props.children)),
+    // Libellé de l'option Autre, rendu à côté de sa zone de sélection : première option, ou dernière quand elle est
+    // sélectionnée (contrôle segmenté du 04/11/2026, option choisie à droite).
+    text: (() => {
+      const texts = within(get(CADENCE_CONTROL)).queryAllByText(/./u, hidden);
+      const at = get(OTHER).props.accessibilityState?.selected === true ? texts.length - 1 : 0;
+      return texts.slice(at, at + 1).map((node) => String(node.props.children));
+    })(),
     spoken: get(OTHER).props.accessibilityLabel as string,
   });
 
-  it("PRE7-B.2 (B8) — Cadence 3 s : l'option Autre affiche « 3 s », annoncée « Autre, 3 s » ; 1 et 0 : « Autre »", () => {
+  it("PRE7-B.2 (B8) — Cadence 3″ : l'option Autre affiche « 3″ », annoncée « Autre, 3″ » ; 1 et 0 : « Autre »", () => {
     const expected: readonly [number, string, string][] = [
-      [3, "3 s", "Autre, 3 s"],
-      [10, "10 s", "Autre, 10 s"],
+      [3, "3″", "Autre, 3 secondes"],
+      [10, "10″", "Autre, 10 secondes"],
       [1, "Autre", "Autre"],
       [0, "Autre", "Autre"],
     ];
@@ -7171,32 +6748,34 @@ describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
     }
   });
 
-  it("PRE7-B.2 (B8) — appui sur « 3 s » : le ± s'ouvre à 3 s ; valeur suivie en direct ; 1 s ou Sans : l'option redevient « Autre »", () => {
+  // [± ouvert à 3 s, suivi en direct — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : la valeur saisie s'affiche dans l'option à la sortie du champ.]
+  it("PRE7-B.2 (B8) — appui sur « 3″ » : la saisie s'ouvre sur « 00:03 » ; valeur saisie affichée dans l'option ; 1″ pendant la saisie : l'option redevient « Autre »", () => {
     const { onApply } = renderSheet(params({ cadenceBeepIntervalSeconds: 3 }));
     fireEvent.press(get(OTHER));
-    expect(valueOf("execution-sheet-beep")).toBe("3 s");
+    fireEvent(get("execution-sheet-beep-input"), "focus");
+    expect(valueOf("execution-sheet-beep")).toBe("00:03");
     expect(cadenceText()).toBe("Autre");
+    closeExecutionSheetField("execution-sheet-beep");
     tap("execution-sheet-beep-increment");
-    expect(otherLabel()).toEqual({ text: ["4 s"], spoken: "Autre, 4 s" });
-    // Fermeture puis réouverture : la valeur du Brouillon est conservée.
-    fireEvent.press(get(OTHER));
-    expect(query("execution-sheet-beep-field")).toBeNull();
-    expect(otherLabel().text).toEqual(["4 s"]);
-    fireEvent.press(get(OTHER));
-    expect(valueOf("execution-sheet-beep")).toBe("4 s");
-    // ± ouvert, ramené à 1 s : « Autre » (borne basse du classement Autre).
-    for (let step = 0; step < 3; step += 1) tap("execution-sheet-beep-decrement");
-    expect(valueOf("execution-sheet-beep")).toBe("1 s");
+    expect(otherLabel()).toEqual({ text: ["4″"], spoken: "Autre, 4 secondes" });
+    // Saisie rouverte : la valeur du Brouillon est conservée.
+    openExecutionSheetField("execution-sheet-beep");
+    expect(valueOf("execution-sheet-beep")).toBe("00:04");
+    // 1 s saisi : « Autre » (borne basse du classement Autre).
+    typeInExecutionSheetCell("execution-sheet-beep", "1");
+    closeExecutionSheetField("execution-sheet-beep");
     expect(otherLabel().text).toEqual(["Autre"]);
     fireEvent.press(get(`${CADENCE_CONTROL}-1`));
-    expect(cadenceText()).toBe("1 s");
+    expect(cadenceText()).toBe("1″");
     expect(otherLabel().text).toEqual(["Autre"]);
     fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
     expect(otherLabel().text).toEqual(["Autre"]);
-    // Sans puis Autre (ch13 l.1209, D-420) : le ± s'ouvre à Sans, l'option reste « Autre » (4 s oublié).
+    // Sans puis Autre (ch13 l.1209, D-420) : la saisie s'ouvre à « 00:00 », l'option reste « Autre » (4 s oublié).
     fireEvent.press(get(OTHER));
-    expect(valueOf("execution-sheet-beep")).toBe("Sans");
+    fireEvent(get("execution-sheet-beep-input"), "focus");
+    expect(valueOf("execution-sheet-beep")).toBe("00:00");
     expect(otherLabel()).toEqual({ text: ["Autre"], spoken: "Autre" });
+    closeExecutionSheetField("execution-sheet-beep");
     validate();
     expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(0);
   });
@@ -7257,5 +6836,161 @@ describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
       expect([1, 2, 3].map((row) => query(`${cell(row)}-unset`))).toEqual([null, null, null]);
       expect([1, 2, 3].map((row) => String(get(`${cell(row)}-value`).props.children))).toEqual(["10 kg", "0 kg", "15 kg"]);
     });
+  });
+});
+
+/**
+ * PRE-9 — ordre de Hermann du 01/11/2026, points 3 à 5 (CE-UI-10 §2b, §5, §7, §8 ; D-413, D-431) :
+ * bloc « Phases du mouvement » entre Exécution et Séries ; « Objectif de durée » en séries
+ * identiques, mode Durée ; notations « DD… → GG… » / « DG → DG → … » dans Avec et le déroulant,
+ * taille standard, largeur adaptée au contenu ; ligne « De chaque côté » ; règles N = 1 inchangées.
+ */
+describe("ExecutionParametersSheet — PRE-9, ordre de Hermann du 01/11/2026 (points 3 à 5)", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const flat = (testID: string) => StyleSheet.flatten(get(testID).props.style) ?? {};
+  const SIDE = "execution-sheet-side-control";
+  const MENU = "execution-sheet-side-order-menu";
+  const bilateral = (overrides: Partial<ExecutionParametersInput> = {}) =>
+    params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10, ...overrides });
+
+  it("point 3 — blocs Exécution → Phases du mouvement → Séries → Côtés → Cadence et durée (Récupération à venir) ; Séries commence par la ligne Séries", () => {
+    renderSheet(params());
+    const frames = get("execution-sheet-panel-host")
+      .children.filter((child): child is ReturnType<typeof screen.getByTestId> => typeof child !== "string")
+      .map((child) => String(child.props.testID))
+      .filter((id) => id.startsWith("execution-sheet-frame-"));
+    expect(frames).toEqual([
+      "execution-sheet-frame-execution",
+      "execution-sheet-frame-phases",
+      "execution-sheet-frame-series",
+      "execution-sheet-frame-sides",
+      "execution-sheet-frame-cadence",
+    ]);
+    expect(within(get("execution-sheet-frame-phases")).getByText("Phases du mouvement", hidden)).toBeTruthy();
+    expect(screen.queryByText("Phases de l’exercice", hidden)).toBeNull();
+    expect(within(get("execution-sheet-frame-series")).queryByTestId("execution-sheet-row-phases", hidden)).toBeNull();
+    expect(flat("execution-sheet-frame-phases").marginTop).toBe(8);
+    expect(flat("execution-sheet-frame-series").marginTop).toBe(8);
+  });
+
+  it("point 4 — identiques + Durée : « Objectif de durée » (titre et nom accessible) ; Répétitions : « Nombre de répétitions » ; « Durée de l’exercice » et en-têtes du tableau variable inchangés", () => {
+    const view = renderSheetView(params());
+    expect(within(get("execution-sheet-row-target")).getByText("Objectif de durée", hidden)).toBeTruthy();
+    // Décision du 06/11/2026 : champ clavier nommé, valeur annoncée à part.
+    expect(get("execution-sheet-target").props.accessibilityLabel).toBe("Objectif de durée");
+    expect(get("execution-sheet-target").props.accessibilityValue).toEqual({ text: "1′30″" });
+    expect(screen.queryByText("Durée d’une série", hidden)).toBeNull();
+    expect(screen.getByText("Durée de l’exercice", hidden)).toBeTruthy();
+    view.unmount();
+
+    const repetitions = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(12), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
+    expect(within(get("execution-sheet-row-target")).getByText("Nombre de répétitions", hidden)).toBeTruthy();
+    expect(screen.queryByText("Objectif de durée", hidden)).toBeNull();
+    repetitions.unmount();
+
+    renderSheet(params({ series: variableRows([[30, 10], [45, 20]]) }));
+    expect(query("execution-sheet-row-target")).toBeNull();
+    expect(screen.queryByText("Objectif de durée", hidden)).toBeNull();
+    const header = get("execution-sheet-table-header");
+    expect(within(header).getByText("Durée", hidden)).toBeTruthy();
+    expect(within(header).getByText("Pause", hidden)).toBeTruthy();
+    expect(within(header).getByText("Charge", hidden)).toBeTruthy();
+  });
+
+  it("point 5 — « De chaque côté » sur une ligne ; Avec et déroulant : « DD… → GG… » par défaut (104), « DG → DG → … », taille 12 sans réduction ; libellés accessibles ; aucune Droite / Gauche", () => {
+    const { onApply } = renderSheet(bilateral());
+    const row = get("execution-sheet-row-side-line");
+    expect(within(row).getByText("De chaque côté", hidden)).toBeTruthy();
+    expect(StyleSheet.flatten(within(row).getByText("De chaque côté", hidden).props.style).maxWidth).toBeUndefined();
+    expect(get(SIDE).props.accessibilityLabel).toBe("De chaque côté");
+    // Défaut BY_SIDE : notation dans l'option Avec, largeur adaptée au contenu (104, Figma `9462:18978`).
+    expect(get(`${MENU}-notation`).props.children).toBe("DD… → GG…");
+    expect(flat(`${MENU}-notation`)).toMatchObject({ fontSize: 12, fontWeight: "600" });
+    expect(flat(`${SIDE}-tile-WITH`).width).toBe(104);
+    expect(flat(MENU)).toMatchObject({ width: 104, height: 26 });
+    expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
+    expect(get(MENU).props.accessibilityValue).toEqual({ text: "Chaque série d’un côté, puis chaque série de l’autre" });
+    // Déroulant : mêmes notations, même taille, libellés accessibles.
+    fireEvent.press(get(MENU));
+    const items = within(get("execution-sheet-side-order-panel")).getAllByRole("menuitem");
+    expect(items.map((item) => item.props.accessibilityLabel)).toEqual([
+      "Chaque série d’un côté, puis chaque série de l’autre",
+      "Les deux côtés à chaque série",
+    ]);
+    expect(["BY_SIDE", "BY_SERIES"].map((order) => get(`${MENU}-${order}-notation`).props.children)).toEqual(["DD… → GG…", "DG → DG → …"]);
+    expect(["BY_SIDE", "BY_SERIES"].map((order) => flat(`${MENU}-${order}-notation`).fontSize)).toEqual([12, 12]);
+    expect(flat(`${MENU}-menu`).width).toBe(104);
+    fireEvent.press(get(`${MENU}-BY_SERIES`));
+    expect(get(`${MENU}-notation`).props.children).toBe("DG → DG → …");
+    expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec, Les deux côtés à chaque série");
+    // Le contenu plus long élargit l'option ; la place réservée de la ligne ne change pas.
+    expect(flat(`${SIDE}-tile-WITH`).width).toBe(116);
+    expect(flat("execution-sheet-side-control-slot").minWidth).toBe(186);
+    expect(screen.queryByText(/Droite|Gauche/u, hidden)).toBeNull();
+    validate();
+    expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SERIES" });
+  });
+
+  it("point 5 — N = 1 : règles inchangées (D-415) — pas de notation ni de déroulant, Avec / Sans disponible, BY_SIDE écrit", () => {
+    const { onApply } = renderSheet(
+      bilateral({ sideOrder: "BY_SERIES", series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }),
+    );
+    expect(query(MENU)).toBeNull();
+    expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec");
+    expect(flat(`${SIDE}-tile-WITH`).width).toBe(62);
+    expect(screen.queryByText(/DD…|DG →/u, hidden)).toBeNull();
+    chooseExecutionSide("Sans");
+    chooseExecutionSide("Avec");
+    expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec");
+    validate();
+    expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" });
+  });
+});
+
+/**
+ * Recette iPhone du 01/11/2026 (m11-objectif, classe B, Hermann : « Ok. La transition entre les deux
+ * textes doit se faire en apparition/disparition en fondu ») — Jest ne joue aucune animation : la ligne
+ * reste montée, son titre change de texte avec une entrée et une sortie en fondu de 350 ms ; aucune
+ * sous « Réduire les animations ».
+ */
+describe("ExecutionParametersSheet — recette du 01/11 (m11-objectif) : titre de la cible en fondu croisé", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const label = () => screen.getByTestId("execution-sheet-row-target-label", hidden);
+
+  it("Durée ↔ Répétitions : une seule ligne de cible ; « Objectif de durée » ↔ « Nombre de répétitions » en fondu (entrée et sortie, 350 ms) ; premier titre sans fondu", () => {
+    renderSheet(params());
+    expect(screen.getAllByTestId("execution-sheet-row-target", hidden)).toHaveLength(1);
+    expect(label().props.children).toBe("Objectif de durée");
+    // Titre présent à l'ouverture : aucune apparition.
+    expect(label().props.entering).toBeUndefined();
+    expect(label().props.exiting).toBeTruthy();
+    expect(ROW_LABEL_CROSSFADE_MS).toBe(350);
+
+    chooseMode("Répétitions");
+    expect(screen.getAllByTestId("execution-sheet-row-target", hidden)).toHaveLength(1);
+    expect(label().props.children).toBe("Nombre de répétitions");
+    expect(label().props.entering).toBeTruthy();
+    expect(label().props.exiting).toBeTruthy();
+    // La pastille suit le mode (cible commune en répétitions).
+    expect(String(screen.getByTestId("execution-sheet-target", hidden).props.accessibilityLabel)).toBe("Nombre de répétitions");
+
+    chooseMode("Durée");
+    expect(label().props.children).toBe("Objectif de durée");
+    expect(label().props.entering).toBeTruthy();
+    expect(String(screen.getByTestId("execution-sheet-target", hidden).props.accessibilityLabel)).toBe("Objectif de durée");
+  });
+
+  it("« Réduire les animations » : changement immédiat, sans fondu", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValueOnce(true);
+    renderSheet(params());
+    await act(async () => {
+      await Promise.resolve();
+    });
+    chooseMode("Répétitions");
+    expect(label().props.children).toBe("Nombre de répétitions");
+    expect(label().props.entering).toBeUndefined();
+    expect(label().props.exiting).toBeUndefined();
   });
 });

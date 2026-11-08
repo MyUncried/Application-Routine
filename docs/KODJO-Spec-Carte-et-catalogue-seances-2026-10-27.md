@@ -18,6 +18,8 @@ Il n'existe plus qu'un gabarit de carte, qu'une séance contienne un exercice ou
 
 **Le nom** est précédé d’un chevron sur toutes les cartes, y compris pour un seul exercice (D-504, 06/11/2026). Dans le catalogue des séances : toucher la photo ouvre la composition de séance en modification ; Démarrer exécute la séance ; le chevron et toute la zone centrale de la carte déploient/replient la séance ; toucher toute la zone déployée ouvre la séance en modification. Ces cibles sont distinctes.
 
+[Texte antérieur, remplacé le 06/11/2026 par D-504 :] **Le nom**, suivi d'un chevron **seulement lorsque la séance contient plusieurs exercices**. Une séance d'un seul exercice n'a rien à déployer, donc pas de chevron. Le chevron du nom est le seul contrôle de déploiement : le bouton chevron encadré qui existait à droite est supprimé. [Remplacé le 03/11/2026, recette iPhone n° 3, décision de Hermann : « toutes les séances, même celles avec un seul exercice doivent avoir un chevron et une vue déployée. L'appui sur la photo ou l'appui sur la zone déployée ouvre la séance en modification, l'appui sur le reste de la carte (dont le chevron) déploie la séance. » Le déploiement n'est plus réservé aux séances de plusieurs exercices, et l'appui sur la carte ne l'ouvre plus en entier. VoiceOver : activer la carte déploie ; « Modifier la séance » est une action nommée (interprétation technique, à confirmer sur iPhone).]
+
 **Les catégories**, sur la ligne suivante, précédées de leur pastille. Elles sont dédupliquées, ordonnées par première apparition dans la composition, et terminées par `+N` lorsqu'elles dépassent la largeur disponible, jamais tronquées en milieu de mot. Les zones corporelles ne figurent pas sur la carte : elles se multiplient avec le nombre d'exercices et deviennent illisibles.
 
 **L'étiquette n'est pas présentée.** C'est un critère de filtre, pas une information de carte. Cette disposition remplace l'affichage actuel de l'étiquette sur la carte de séance.
@@ -102,7 +104,7 @@ Sections, dans l'ordre : Statut des séances, **Catégories**, **Zones corporell
 
 Le nom suit trois états, décidés le 27/10. Il s'agit d'une décision nouvelle : D-449 §2 précise que les règles de saisie du titre ne sont pas modifiées par la clôture.
 
-1. **À l'ouverture**, la séance porte le **nom de son format**, en gris, non modifiable.
+1. **À l'ouverture**, la séance porte le **nom de son format**, en gris, non modifiable. [Remplacé le 01/11/2026 — précision de Hermann (ch07 « Précisions B.7, B.8 et B.9 », main fce276fd) : le nom du Format peut être suggéré ; le champ est modifiable dès l’ouverture ; un nom personnalisé n’est jamais remplacé automatiquement ; le Format reste affiché séparément sur la carte.]
 2. **À l'ajout du premier exercice**, elle prend le **nom de cet exercice**, désormais éditable.
 3. **À l'ajout du second exercice**, le nom devient l'invite **« Entrer un nom de séance »**, en gris, éditable : l'obligation de nommer apparaît au moment où le nom d'un exercice ne suffit plus.
 

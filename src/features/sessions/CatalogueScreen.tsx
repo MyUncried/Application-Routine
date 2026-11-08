@@ -1,28 +1,45 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { NavigationContext } from "expo-router/react-navigation";
+import {
+  clearDisplayedNewMovements,
+  consumeNewMovementScrollTarget,
+  noteNewMovementsDisplayed,
+  useNewMovementMarks,
+} from "@/features/activities/newMovementMarks";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
-import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
+import { MovementCounterToggles } from "@/features/activities/MovementCounterToggles";
+import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
-import { EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
-import { fillTemplate } from "@/features/activities/movementChoicePresentation";
-import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
-import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
-import { matchesView, toggledView, type SessionCatalogueView } from "@/features/sessions/sessionCatalogueView";
 import {
-  EMPTY_SESSION_FILTERS,
-  matchesSessionFilters,
-  type SessionCatalogueFilters,
-} from "@/features/sessions/sessionCatalogueFilters";
-import { SessionFilterSheet } from "@/features/sessions/SessionFilterSheet";
+  sameMovementSummary,
+  toggledMovementCounter,
+  type MovementCatalogueSummary,
+  type MovementCounter,
+} from "@/features/activities/movementCatalogueCounters";
+import {
+  countActiveFilters,
+  EMPTY_MOVEMENT_FILTERS,
+  type MovementCatalogueFilters,
+} from "@/features/activities/movementCatalogueView";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
+import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
+import { isSessionCatalogueFiltered, sessionCatalogueContext } from "@/features/sessions/sessionCatalogueContext";
+import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { toggledView, type SessionCatalogueView } from "@/features/sessions/sessionCatalogueView";
+import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
 import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
-import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { catalogueColors, CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
+import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
+import { FilterCommand } from "@/shared/ui/CatalogueCommands";
+import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
+import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
-import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -50,7 +67,7 @@ export type CatalogueContentType = "movements" | "sessions" | "programs";
  * désormais recomposé selon `Shell / Screen — Context=On, Bottom=Navigation`
  * (doc12 §12.26) — Header fixe (titre) → séparateur → bande Context (bleu
  * très pâle, `colors.selectionSurface`, seul token pâle déjà existant dans
- * ce code) contenant le sélecteur de filtres et `+ Créer` → corps. La
+ * ce code [remplacé le 06/11/2026 par la couleur `context` du Catalogue, D-501/D-509]) contenant le sélecteur de filtres et `+ Créer` → corps. La
  * hauteur du Header utilise `dimensions.header.contentHeight` (déjà défini,
  * jamais utilisé jusqu'ici) plutôt qu'une valeur locale improvisée ; les
  * insets système réels remplacent la réserve `0–92` du gabarit Figma, comme
@@ -61,6 +78,8 @@ export type CatalogueContentType = "movements" | "sessions" | "programs";
  */
 export function CatalogueScreen() {
   const router = useRouter();
+  // Règle du 06/11/2026 : brouillon de séance au niveau de l'application, remis à zéro par « Créer » (absent : écran isolé).
+  const sessionDraft = useContext(SessionDraftContext);
   // V2-CAT-01 (UI-CAT-R-005/006) : signal PONCTUEL, jamais persistant,
   // envoyé exclusivement par `CompositionScreen.handleSave` (ex-`CategoriesScreen`, supprimé par Q54) (`dismissTo`)
   // après un enregistrement réussi — force le retour déterministe sur
@@ -80,7 +99,6 @@ export function CatalogueScreen() {
   // filtre : Actives. Réinitialiser ne touche pas la vue (Q-E3, Q-E4).
   const [sessionFilters, setSessionFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
   const [sessionFilterLabels, setSessionFilterLabels] = useState<readonly string[]>([]);
-  const [isSessionFilterOpen, setIsSessionFilterOpen] = useState(false);
   const sessionFilterSummary =
     sessionFilterLabels.length === 0
       ? null
@@ -109,24 +127,89 @@ export function CatalogueScreen() {
   // PRE-8 (B.7, arbitrage Q2 du 27/10) : filtres des Mouvements conservés pendant la session (état de
   // l'écran, jamais persisté), réinitialisés au relancement ; aucun filtre : Actifs seul.
   const [movementFilters, setMovementFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
-  const [isMovementFilterOpen, setIsMovementFilterOpen] = useState(false);
   // Recette A/B (D05) : libellés des critères choisis, pour le résumé de la commande étendue.
   const [movementFilterLabels, setMovementFilterLabels] = useState<readonly string[]>([]);
   // Recette A/B (D02) : recherche des Mouvements dans la zone de contexte, conservée pendant la
   // session comme les filtres.
   const [movementQuery, setMovementQuery] = useState("");
+  // PRE-9 CAT.1 (CE-CAT-CTX-01) : compteur « familles » / « mouvements » actif (état de l'écran,
+  // jamais persisté, cumulé à la recherche et aux filtres) et compteurs de la liste affichée.
+  const [movementCounter, setMovementCounter] = useState<MovementCounter | null>(null);
+  const [movementSummary, setMovementSummary] = useState<MovementCatalogueSummary | null>(null);
+  const handleMovementSummary = useCallback((next: MovementCatalogueSummary | null) => {
+    setMovementSummary((current) => (sameMovementSummary(current, next) ? current : next));
+  }, []);
+  // D-510 (Hermann, 06/11/2026 ; KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06) : badge « New » des fiches créées
+  // (bouton +, Ajouter un niveau, duplication, Composition) — état d'affichage en mémoire, commun à l'application
+  // (`newMovementMarks`), jamais persisté. La vue Mouvements affichée déclare les marques qu'elle montre ; la quitter (onglets
+  // du haut, barre du bas) les retire. [Recette du 06/11 (t-niveau) : état propre à l'écran, reconnu par comparaison de deux
+  // lectures du Catalogue après Créer ou Ajouter un niveau depuis la liste — remplacé : ni Ajouter un niveau depuis la fiche, ni
+  // la duplication, ni la Composition n'étaient reconnus.]
+  const newMovementMarks = useNewMovementMarks();
+  // Écran au premier plan (posé par l'effet de focus ci-dessous) : une fiche ouverte au-dessus du Catalogue le masque.
+  const screenFocused = useRef(false);
+  const [focusCount, setFocusCount] = useState(0);
+  useEffect(() => {
+    if (screenFocused.current && activeSegment === "movements") noteNewMovementsDisplayed();
+  }, [activeSegment, newMovementMarks.ids, focusCount]);
+  // t-niveau : changer d'onglet par la barre du bas retire les pastilles ; ouvrir une fiche (pile au-dessus des onglets) non.
+  // Contexte de navigation de l’onglet (absent hors navigateur, par exemple dans un test isolé).
+  const navigation = useContext(NavigationContext);
+  useEffect(
+    () =>
+      navigation?.addListener("blur", () => {
+        const tabs = navigation.getState();
+        const focusedTab = tabs?.routes[tabs.index]?.name;
+        if (focusedTab !== undefined && focusedTab !== CATALOGUE_TAB_ROUTE) clearDisplayedNewMovements();
+      }),
+    [navigation],
+  );
+  const changeSegment = (segment: CatalogueContentType) => {
+    // t-niveau : changer de vue par la barre du haut retire les pastilles.
+    if (segment !== activeSegment) clearDisplayedNewMovements();
+    setActiveSegment(segment);
+  };
+  // PRE-9 CAT.1 : recherche des Séances dans la zone de contexte, conservée comme les filtres.
+  const [sessionQuery, setSessionQuery] = useState("");
   const movementFilterSummary =
     movementFilterLabels.length === 0
       ? null
       : movementFilterLabels.length === 1
         ? movementFilterLabels[0]!
         : fillTemplate(strings.screens.movement.catalogue.filters.activeSummary, { count: String(movementFilterLabels.length) });
+  // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche des
+  // mouvements du questionnaire par exemple) […] Catalogue des mouvements : Filtres […] Catalogue des séances :
+  // Filtres ») : feuille native iOS (route `catalogue-filters`) ; ✓ applique ici, ✕ ferme sans appliquer.
+  const openMovementFilters = () => {
+    requestFilterSheet({
+      kind: "movements",
+      filters: movementFilters,
+      onApply: (filters, labels) => {
+        setMovementFilters(filters);
+        setMovementFilterLabels(labels);
+      },
+    });
+    router.push("/catalogue-filters");
+  };
+  const openSessionFilters = () => {
+    requestFilterSheet({
+      kind: "sessions",
+      filters: sessionFilters,
+      onApply: (filters, labels) => {
+        setSessionFilters(filters);
+        setSessionFilterLabels(labels);
+      },
+    });
+    router.push("/catalogue-filters");
+  };
 
   const { reload: reloadSessions, cancelPending: cancelPendingSessions } = sessionCatalogue;
   const catalogueSegmentParam = params.catalogueSegment;
   useFocusEffect(
     useCallback(() => {
       isOpeningEditorRef.current = false;
+      screenFocused.current = true;
+      setFocusCount((current) => current + 1);
       setMovementsReloadToken((current) => current + 1);
       reloadSessions();
       // Consommé une seule fois : `setParams` l'efface immédiatement, pour
@@ -137,6 +220,7 @@ export function CatalogueScreen() {
         router.setParams({ catalogueSegment: undefined });
       }
       return () => {
+        screenFocused.current = false;
         cancelPendingSessions();
       };
     }, [
@@ -148,6 +232,25 @@ export function CatalogueScreen() {
   );
 
   const t = strings.screens.sessions;
+  const tContext = strings.screens.catalogueContext;
+  const resultsLabel = (count: number) => countLabel(count, { one: tContext.resultsOne, many: tContext.resultsMany });
+  // PRE-9 CAT.1 (§4, §5) : liste des Séances, nombres de vue et « N résultats » d'une même dérivation.
+  const sessionContext =
+    sessionCatalogueContext(sessionCatalogue.state.status === "ready" ? sessionCatalogue.state.sessions : [], {
+      query: sessionQuery,
+      filters: sessionFilters,
+      view: sessionView,
+    });
+  const sessionCountsKnown = sessionCatalogue.state.status === "ready" || sessionCatalogue.state.status === "empty";
+  // État filtré ou archivé : critère du panneau Filtre (Statut Archivés compris). Liste pas encore
+  // chargée : place réservée (champ réduit), aucun nombre.
+  const sessionResults = !isSessionCatalogueFiltered(sessionFilters)
+    ? null
+    : sessionCountsKnown
+      ? resultsLabel(sessionContext.visible.length)
+      : "";
+  const movementResults =
+    countActiveFilters(movementFilters) === 0 ? null : movementSummary !== null ? resultsLabel(movementSummary.displayed) : "";
   // T01-S10/V2-CAT-01 (D-108, plan §4.1) : le titre suit le segment actif —
   // `Catalogue des séances` / `Catalogue des activités` / `Catalogue des
   // circuits`, un mapping RÉEL des trois segments même si `Circuits` reste
@@ -159,6 +262,10 @@ export function CatalogueScreen() {
       : activeSegment === "programs"
         ? t.programsTitle
         : t.title;
+  // D-501 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §3) : couleurs du Catalogue actif —
+  // `background` pour le fond d'écran (barre d'état et en-tête fixe compris) et le fondu au-dessus de la navigation,
+  // `context` pour la zone de contexte et l'onglet sélectionné (D-502).
+  const palette = catalogueColors(activeSegment);
 
   const openMovement = (movementId: string | null) => {
     if (isOpeningEditorRef.current) {
@@ -185,85 +292,117 @@ export function CatalogueScreen() {
       return;
     }
     isOpeningEditorRef.current = true;
-    router.push("/composition");
+    // Complément du 5 novembre 2026 (Hermann, §1–§2, CE-CREATION-01) : « Créer » ouvre la modale de création commune
+    // (Exercice libre et Formats) sur un nouveau brouillon de Séance, en mémoire ; rien n'est enregistré avant la
+    // validation de la Composition. Règle de Hermann du 06/11/2026 (registre ch07 : aucun écran ouvert par anticipation) :
+    // la modale s'ouvre directement au-dessus du Catalogue ; la Composition n'apparaît qu'après une validation.
+    // [Référence du 02/11 : « Créer » ouvrait directement la Composition ; 05/11 : Composition `create=1` ouverte d'avance
+    // sous la modale — remplacés.]
+    sessionDraft?.resetDraft();
+    router.push("/formats-window");
   };
 
   return (
-    <ScreenShell>
-      <FixedHeader title={title} />
+    <ScreenShell backgroundColor={palette.background}>
+      {/* PRE-9 CAT.1 (CE-CAT-CTX-01 : « Masquer le titre de page individuel dans les deux Catalogues ») :
+          l'en-tête porte la navigation des Catalogues Mouvements / Séances / Programmes à la place du
+          titre. D-502 (Hermann, 06/11/2026) : trois onglets à emplacements fixes, l'onglet sélectionné
+          prend la couleur `context` du Catalogue et se raccorde à la zone de contexte (`CatalogueNavigation`).
+          [Avant (recette CAT.1 du 30/10/2026) : libellés texte séparés par « | » — remplacé.] */}
+      <FixedHeader
+        title={title}
+        content={
+          <View style={styles.headerNavigation}>
+            <CatalogueNavigation
+              options={[
+                { value: "movements", label: strings.screens.movement.catalogue.segment },
+                { value: "sessions", label: t.contentTypes.sessions },
+                {
+                  value: "programs",
+                  label: t.programsSegment,
+                  disabled: true,
+                  accessibilityLabel: t.programsUnavailableAccessibilityLabel,
+                },
+              ]}
+              value={activeSegment}
+              onChange={changeSegment}
+              selectedColor={palette.context}
+              testID="catalogue-content-type-row"
+            />
+          </View>
+        }
+      />
       {/* Recette 3 (T-49, EXT-R3-1, D-356) : plus de trait gris entre l’en-tête et la zone
           de contexte. */}
 
-      <ContextBand>
-        {/* Recette 3 (T-49, D-356) : le bord bas de la zone n’est dessiné par aucun élément —
-            c’est l’arête nette entre la bande et le fond blanc. Fondu vers le blanc sur les
-            20 % inférieurs (ch. 12 : « Zone de contexte → transparent sur les 20 % inférieurs
-            pour Catalogues »), en couches superposées (aucun interstice), sur la couleur
-            propre du Catalogue ; sous le contenu, sans interaction ni VoiceOver. */}
-        <View
-          pointerEvents="none"
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          style={styles.contextBandFade}
-          testID="catalogue-context-band-fade"
-        >
-          {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
-            <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
-          ))}
-        </View>
-        <SegmentedControl
-          options={[
-            { value: "movements", label: strings.screens.movement.catalogue.segment },
-            { value: "sessions", label: t.contentTypes.sessions },
-            {
-              value: "programs",
-              label: t.programsSegment,
-              disabled: true,
-              accessibilityLabel: t.programsUnavailableAccessibilityLabel,
-            },
-          ]}
-          value={activeSegment}
-          onChange={setActiveSegment}
-          testID="catalogue-content-type-row"
-        />
-        {/* Recette A/B (D01, D02, D04, D05 ; ch13 §4.5) : commandes rondes 34, Rechercher sur la même
-            rangée (segment Mouvements), Filtrer étendu avec résumé quand un critère est actif. */}
-        {/* Segment Mouvements : rangée de B.9 inchangée (plan E.4, « conséquence documentée » :
-            l'ordre Filtre / Tri / Créer ne s'applique qu'au segment Séances). */}
+      {/* Recette 3 (T-49, D-356) : le bord bas de la zone n’est dessiné par aucun élément.
+          Recette iPhone du 29/10/2026 : le fondu des 20 % inférieurs va vers la TRANSPARENCE
+          (ch. 12 : « Zone de contexte → transparent sur les 20 % inférieurs pour Catalogues »),
+          porté par `ContextBand` — plus de voile blanc posé sur la couleur du Catalogue.
+          PRE-9 CAT.1 (spécification du 30/10/2026, CE-CAT-CTX-01) : bande « Recherche et création »
+          à deux lignes — compteurs (ligne 1), Rechercher et Filtre / Tri / Créer (ligne 2) ; géométrie
+          D-503 dans `CONTEXT_ZONE_GEOMETRY`. Ordre des Mouvements [30/10/2026, Hermann :
+          « rechercher, filtrer, trier puis créer »] conservé, identique pour les Séances.
+          D-501 : couleur `context` du Catalogue, opaque sur 80 % de la hauteur puis fondue ; le fond
+          d'écran sous la part fondue est le `background` du Catalogue (fondu `context` → `background`). */}
+      <ContextBand
+        fadeToTransparent
+        color={palette.context}
+        padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}
+      >
         {activeSegment === "movements" ? (
-          <View style={styles.commandRow} testID="catalogue-command-row">
-            <CatalogueSearchField
-              value={movementQuery}
-              onChangeText={setMovementQuery}
-              placeholder={strings.screens.movement.catalogue.searchPlaceholder}
-              accessibilityLabel={strings.screens.movement.catalogue.searchAccessibilityLabel}
-              clearLabel={strings.screens.movement.catalogue.searchClear}
-              testID="movement-catalogue-search"
-            />
-            <CommandCircle label={t.createAction} icon="create" onPress={handleCreatePress} testID="catalogue-create-action" />
-            <FilterCommand
-              label={t.filterAction}
-              title={strings.screens.movement.catalogue.filters.command}
-              summary={movementFilterSummary}
-              clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
-              editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
-              onOpen={() => setIsMovementFilterOpen(true)}
-              onClear={() => {
-                setMovementFilters(EMPTY_MOVEMENT_FILTERS);
-                setMovementFilterLabels([]);
-              }}
-              testID="catalogue-filter-action"
-            />
-            <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
-          </View>
+          <CatalogueContextZone
+            summary={
+              movementSummary !== null ? (
+                <MovementCounterToggles
+                  summary={movementSummary}
+                  active={movementCounter}
+                  onToggle={(touched) => setMovementCounter((current) => toggledMovementCounter(current, touched))}
+                />
+              ) : null
+            }
+            results={movementResults}
+            search={{
+              value: movementQuery,
+              onChangeText: setMovementQuery,
+              placeholder: strings.screens.movement.catalogue.searchPlaceholder,
+              accessibilityLabel: strings.screens.movement.catalogue.searchAccessibilityLabel,
+              clearLabel: strings.screens.movement.catalogue.searchClear,
+              testID: "movement-catalogue-search",
+            }}
+            filter={
+              <FilterCommand
+                label={t.filterAction}
+                title={strings.screens.movement.catalogue.filters.command}
+                summary={movementFilterSummary}
+                clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
+                editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
+                onOpen={openMovementFilters}
+                onClear={() => {
+                  setMovementFilters(EMPTY_MOVEMENT_FILTERS);
+                  setMovementFilterLabels([]);
+                }}
+                testID="catalogue-filter-action"
+              />
+            }
+            sortLabel={t.sortAction}
+            createLabel={t.createAction}
+            onCreate={handleCreatePress}
+          />
         ) : null}
         {activeSegment === "sessions" ? (
           <SessionCommandRow
             view={sessionView}
             onToggleView={(touched) => setSessionView((current) => toggledView(current, touched))}
+            counts={
+              sessionCountsKnown ? { SINGLE: sessionContext.singleCount, MULTIPLE: sessionContext.multipleCount } : null
+            }
+            results={sessionResults}
+            query={sessionQuery}
+            onChangeQuery={setSessionQuery}
             filterSummary={sessionFilterSummary}
             filterCount={sessionFilterCount}
-            onOpenFilters={() => setIsSessionFilterOpen(true)}
+            onOpenFilters={openSessionFilters}
             onResetFilters={() => {
               setSessionFilters(EMPTY_SESSION_FILTERS);
               setSessionFilterLabels([]);
@@ -273,29 +412,9 @@ export function CatalogueScreen() {
         ) : null}
       </ContextBand>
 
-      {isSessionFilterOpen ? (
-        <SessionFilterSheet
-          filters={sessionFilters}
-          onApply={(filters, labels) => {
-            setSessionFilters(filters);
-            setSessionFilterLabels(labels);
-            setIsSessionFilterOpen(false);
-          }}
-          onClose={() => setIsSessionFilterOpen(false)}
-        />
-      ) : null}
-
-      {isMovementFilterOpen ? (
-        <MovementFilterSheet
-          filters={movementFilters}
-          onApply={(filters, labels) => {
-            setMovementFilters(filters);
-            setMovementFilterLabels(labels);
-            setIsMovementFilterOpen(false);
-          }}
-          onClose={() => setIsMovementFilterOpen(false)}
-        />
-      ) : null}
+      {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Filtres […]
+          Catalogue des séances : Filtres ») : feuilles de filtres présentées par la route `catalogue-filters`
+          (`openSessionFilters`, `openMovementFilters`). [Modales React Native rendues ici — remplacées.] */}
 
       {/*
        * Correction CAT-R04 (contre-recette iPhone, `[ChatGPT]
@@ -329,10 +448,10 @@ export function CatalogueScreen() {
             ) : null}
             {sessionCatalogue.state.status === "ready" ? (
               <ReadyBody
-                sessions={sessionCatalogue.state.sessions}
-                view={sessionView}
-                filters={sessionFilters}
+                sessions={sessionContext.visible}
+                searching={sessionQuery.trim().length > 0}
                 resetToken={movementsReloadToken}
+                topInset={LIST_TOP_INSET}
                 onOpenSession={(sessionId) =>
                   router.push({ pathname: "/composition", params: { sessionId } })
                 }
@@ -344,9 +463,15 @@ export function CatalogueScreen() {
         {activeSegment === "movements" ? (
           <MovementCatalogueList
             reloadToken={movementsReloadToken}
+            topInset={LIST_TOP_INSET}
             query={movementQuery}
             filters={movementFilters}
+            counter={movementCounter}
+            onSummaryChange={handleMovementSummary}
             onOpenMovement={openMovement}
+            newMovementIds={newMovementMarks.ids}
+            scrollTarget={newMovementMarks.scrollTarget}
+            onScrollTargetHandled={consumeNewMovementScrollTarget}
             onCreateVariant={(variantOf, placement) => {
               if (isOpeningEditorRef.current) return;
               isOpeningEditorRef.current = true;
@@ -355,9 +480,37 @@ export function CatalogueScreen() {
           />
         ) : null}
       </View>
+      <NavigationFade background={palette.background} />
     </ScreenShell>
   );
 }
+
+/**
+ * D-501 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §3 ; Figma `10266:20578`/`10266:20579`,
+ * `5867:5070`/`5867:5069`) : fondu au-dessus de la navigation basse, à la couleur `background` du Catalogue —
+ * dégradé de 40 pt de la transparence vers `background`, puis fond protégé jusqu'au haut de la barre (16 pt dans
+ * Figma, plus les 8 pt entre ce fond et la barre, où la liste s'arrête). Décor, sans interaction ni VoiceOver.
+ */
+function NavigationFade({ background }: { readonly background: string }) {
+  return (
+    <View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={[styles.navigationFade, { bottom: navigationBarTotalHeight() }]}
+      testID="catalogue-navigation-fade"
+    >
+      <View
+        style={[styles.navigationFadeGradient, { experimental_backgroundImage: `linear-gradient(to bottom, ${background}00 0%, ${background} 100%)` }]}
+        testID="catalogue-navigation-fade-gradient"
+      />
+      <View style={[styles.navigationFadeSolid, { backgroundColor: background }]} testID="catalogue-navigation-fade-solid" />
+    </View>
+  );
+}
+
+/** Figma : dégradé de 40, fond protégé de 16 puis 8 jusqu'au haut de la barre (`y = 732..796` à 874). */
+const NAVIGATION_FADE = { gradient: 40, solid: spacing[16] + spacing[8] } as const;
 
 function LoadingBody() {
   return (
@@ -425,27 +578,29 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
  */
 function ReadyBody({
   sessions,
-  view,
-  filters,
+  searching,
   resetToken,
+  topInset,
   onOpenSession,
   onChanged,
 }: {
+  /** PRE-9 CAT.1 : liste déjà dérivée (`sessionCatalogueContext` : filtres, recherche et vue). */
   sessions: readonly SessionCatalogueProjection[];
-  view: SessionCatalogueView | null;
-  filters: SessionCatalogueFilters;
+  searching: boolean;
   resetToken: number;
+  topInset: number;
   onOpenSession: (sessionId: string) => void;
   onChanged: () => void;
 }) {
   // PRE-8 (E.2) : carte unique ; Statut Actives par défaut (CE-T03-01 révisé), filtres en E.6.
   // E.4, E.6 : Statut d'abord (Actives par défaut), puis filtres (Q-E3), combinés à la vue.
-  const visible = sessions.filter((session) => matchesSessionFilters(session, filters) && matchesView(session, view));
+  // PRE-9 CAT.1 : la même liste fournit les nombres de la zone de contexte (aucune autre collection).
   return (
     <SessionCatalogueList
-      sessions={visible}
-      emptyMessage={strings.screens.sessions.noMatch}
+      sessions={sessions}
+      emptyMessage={searching ? strings.screens.sessions.noResult : strings.screens.sessions.noMatch}
       resetToken={resetToken}
+      topInset={topInset}
       onOpenSession={onOpenSession}
       onChanged={onChanged}
     />
@@ -453,66 +608,54 @@ function ReadyBody({
 }
 
 /**
- * Recette 3 (T-49, D-356) : fondu figé de la zone de contexte (20 % inférieurs), mêmes
- * valeurs que l’éditeur et la Composition — couches superposées dont l’opacité cumulée
- * suit la rampe 0 → 1.
+ * Contre-recette n° 2 du 30/10/2026 (Hermann : « Liste qui défile derrière ») : le corps remonte
+ * sous la part fondue de la zone de contexte ; au repos, la première carte garde sa place (8 sous
+ * la bande, comme avant), puis la liste défile derrière le dégradé.
  */
-const CONTEXT_BAND_FADE_SHARE = "20%";
-const CONTEXT_BAND_FADE_LAYER_COUNT = 12;
-const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_COUNT }, (_, index) => {
-  const before = index / CONTEXT_BAND_FADE_LAYER_COUNT;
-  const after = (index + 1) / CONTEXT_BAND_FADE_LAYER_COUNT;
-  return {
-    top: `${((index / CONTEXT_BAND_FADE_LAYER_COUNT) * 100).toFixed(4)}%` as `${number}%`,
-    opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
-  };
-});
+const LIST_TOP_INSET = spacing[8] + CONTEXT_BAND_FADE_HEIGHT;
+
+/** t-niveau : route de l’onglet du Catalogue dans la barre du bas (`app/(tabs)/index.tsx`). */
+const CATALOGUE_TAB_ROUTE = "index";
 
 const styles = StyleSheet.create({
-  contextBandFade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: CONTEXT_BAND_FADE_SHARE,
-  },
-  contextBandFadeLayer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.background,
-  },
   // `container`/`header`/`title`/`headerSeparator`/`contextBand` sont
   // désormais portés par le Shell Foundation partagé (`CMP-01`,
   // `@/shared/ui/ScreenShell`) — aucune redéclaration locale équivalente
   // n'est plus autorisée ici (correction Foundation, `[ChatGPT] PHASE02
   // FOUNDATION CORRECTION`).
   //
-  // V2-CAT-01 : le sélecteur de segment lui-même est désormais porté par
-  // `@/shared/ui/SegmentedControl` (composant canonique partagé) — cette
-  // rangée ne porte plus que `Créer / Filtrer / Trier` (plan §4.1).
-  // Recette A/B (D01, ch13 §4.5) : commandes rondes de `CatalogueCommands`, écart visuel 12,
-  // alignées à droite ; le champ Rechercher (segment Mouvements) occupe la largeur restante.
-  commandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: dimensions.catalogueCommand.gap,
-    // Recette A/B du 27/10 (remarque 9) : écart de 8 sous les segments, rétabli (retiré par erreur
-    // en B.9 ; valeur de `main`).
-    marginTop: spacing[8],
+  // PRE-9 CAT.1 (CE-CAT-CTX-01) : la navigation des Catalogues (`CatalogueNavigation`, style texte de
+  // Figma depuis la recette du 30/10) occupe la place du titre masqué, sur toute la largeur de l'en-tête.
+  // D-502 : la navigation occupe toute la hauteur de l'en-tête ; les onglets reposent sur son bord bas, contre la
+  // zone de contexte.
+  headerNavigation: {
+    flex: 1,
+    alignSelf: "stretch",
+  },
+  navigationFade: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: NAVIGATION_FADE.gradient + NAVIGATION_FADE.solid,
+  },
+  navigationFadeGradient: {
+    height: NAVIGATION_FADE.gradient,
+  },
+  navigationFadeSolid: {
+    height: NAVIGATION_FADE.solid,
   },
   // A01 : marge standard `layout.screenGutter`. Segment Mouvements : la liste porte sa marge
   // elle-même (cartes glissées et filet de famille dans la marge, B06/B10).
   body: {
     flex: 1,
     paddingHorizontal: layout.screenGutter,
-    paddingTop: spacing[16],
+    // Contre-recette n° 2 : corps remonté sous la part fondue de la bande (voir `LIST_TOP_INSET`).
+    marginTop: -CONTEXT_BAND_FADE_HEIGHT,
+    paddingTop: spacing[16] + CONTEXT_BAND_FADE_HEIGHT,
   },
   bodyFlush: {
     paddingHorizontal: 0,
-    paddingTop: spacing[8],
+    paddingTop: 0,
   },
   centeredBody: {
     flex: 1,

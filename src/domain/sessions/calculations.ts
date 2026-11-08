@@ -28,7 +28,7 @@
  * (exact / ≈ / ≥) ; la projection SQL de liste ne recalcule plus rien.
  */
 
-import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import { seriesCountOf, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import {
   aggregateSessionDuration,
   computeIntrinsicDuration,
@@ -41,6 +41,7 @@ import {
 } from "@/domain/activities/executionCalculations";
 
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
+import type { ElementFormat } from "./formats";
 import type { Activity, ActivityType, Session } from "./Session";
 import type { SideMode } from "./sideMode";
 
@@ -57,7 +58,108 @@ export type ActivityDurationFacts = {
   /** Récupération explicite de l'occurrence — remplace la seule Pause terminale si elle est positive ; `null` (absente, PRE-6 AD-35) et `0` ne remplacent rien. */
   readonly postActivityRecoverySeconds?: number | null;
   readonly sideMode?: SideMode;
+  /** PRE-9 (C.1, ARB-03) : Format porté par l'Exercice ; absent/`null` = libre. */
+  readonly format?: ElementFormat | null;
 };
+
+/**
+ * PRE-9 B.7 (epics § B.7, D.1) : durée initiale d'un AMRAP (ch07, « Défauts validés » : « AMRAP
+ * durée 12:00 réglable »), retenue tant que son réglage n'est pas renseigné.
+ */
+export const AMRAP_INITIAL_DURATION_SECONDS = 12 * 60;
+
+/**
+ * Réalignement du 02/11/2026 (référence Formats §2, §10, §11, §12, §3 ; FMT-21, FMT-42) — Exercice
+ * autonome qui porte un Format spécialisé :
+ * - AMRAP : sa Durée de l'exercice (12 min initialement), exacte, puis sa récupération ;
+ * - EMOM : N séries × Intervalle, puis sa récupération (« À la suite » : 6 + 1 + 6 = 13 min) ;
+ * - Death by : jusqu'à l'échec, borne minimale « ≥ » (sa récupération seule est connue) ;
+ * - For time : temps mesuré à l'exécution, borne minimale « ≥ » ; la cadence facultative n'entre
+ *   dans aucun calcul de durée, même estimée (§3).
+ * Les membres d'un Circuit porteur ne comptent pas individuellement : la durée est celle du Circuit
+ * (`carrierCircuitDuration`).
+ *
+ * [B.7 du 01/11 :] un Exercice AMRAP ou Death by est développé en **segment progressif**,
+ * sans séries ni récupération propres (D.1, `planExpansion.ts`) ; sa durée ne se lit donc pas sur ses
+ * paramètres d'exécution. AMRAP : sa durée configurée (initialement 12:00), exacte. Death by : aucune
+ * durée calculable — traité comme un Exercice sans durée conventionnelle, borne minimale « ≥ »
+ * (D-070, epics § B.7). `null` : Exercice libre ou Format fini (développé par ses séries ordinaires).
+ */
+export function progressiveFormatDuration(activity: ActivityDurationFacts): ExerciseDurationResult | null {
+  const format = activity.format ?? null;
+  if (format === null) return null;
+  const recovery = Math.max(0, activity.postActivityRecoverySeconds ?? 0);
+  switch (format.key) {
+    case "AMRAP": {
+      // Membre d'un Circuit porteur (sans Durée propre) : un passage de la boucle, compté par le Circuit.
+      const configured = format.settings.durationSeconds;
+      if (typeof configured !== "number") return null;
+      const seconds = (configured > 0 ? configured : AMRAP_INITIAL_DURATION_SECONDS) + recovery;
+      return { kind: "exact", knownSeconds: seconds, seconds, events: [] };
+    }
+    case "DEATH_BY":
+    case "FOR_TIME":
+      return { kind: "lowerBound", knownSeconds: recovery, seconds: recovery, events: [] };
+    case "EMOM": {
+      // FMT-21 : chaque Exercice EMOM occupe ses N fenêtres de W (N : ses séries, §10).
+      const window = intervalSeconds(format);
+      const rounds = seriesCountOf(activity.executionParameters);
+      if (window === null || rounds < 1) return null;
+      const seconds = rounds * window + recovery;
+      return { kind: "exact", knownSeconds: seconds, seconds, events: [] };
+    }
+    default:
+      return null;
+  }
+}
+
+/** EMOM et Death by : Intervalle de l'Exercice ; `null` si absent. */
+function intervalSeconds(format: ElementFormat): number | null {
+  const window = format.settings.intervalSeconds;
+  return typeof window === "number" && window > 0 ? window : null;
+}
+
+/** Réglage numérique positif ou nul d'un Circuit porteur ; `null` si absent. */
+function circuitSetting(format: ElementFormat, id: string): number | null {
+  const value = format.settings[id];
+  return typeof value === "number" && value >= 0 ? value : null;
+}
+
+/**
+ * Réalignement du 02/11/2026 (référence Formats §1, §2.1, §10, §11, §12) — durée d'un Circuit porteur
+ * d'un Format, pour une exécution du Circuit (`null` : Circuit standard) :
+ * - AMRAP : blocs × durée de bloc + (blocs − 1) × repos entre les blocs, exacte (3 × 12 + 2 × 2 = 40 min) ;
+ *   le buy-in consomme le temps du premier bloc, la récupération de boucle celui du bloc ;
+ * - EMOM dans chaque intervalle : tours × durée de chaque tour, exacte ;
+ * - Death by (jusqu'à l'échec) et For time (temps mesuré) : borne minimale « ≥ ».
+ */
+export function carrierCircuitDuration(circuit: {
+  readonly repeatCount: number;
+  readonly format?: ElementFormat | null;
+}): ExerciseDurationResult | null {
+  const format = circuit.format ?? null;
+  if (format === null) return null;
+  switch (format.key) {
+    case "AMRAP": {
+      const block = circuitSetting(format, "blockSeconds") ?? AMRAP_INITIAL_DURATION_SECONDS;
+      const rest = circuitSetting(format, "restBetweenBlocksSeconds") ?? 0;
+      const blocks = Math.max(1, circuit.repeatCount);
+      const seconds = blocks * block + (blocks - 1) * rest;
+      return { kind: "exact", knownSeconds: seconds, seconds, events: [] };
+    }
+    case "EMOM": {
+      const window = circuitSetting(format, "windowSeconds");
+      if (window === null || window === 0) return null;
+      const seconds = Math.max(1, circuit.repeatCount) * window;
+      return { kind: "exact", knownSeconds: seconds, seconds, events: [] };
+    }
+    case "DEATH_BY":
+    case "FOR_TIME":
+      return { kind: "lowerBound", knownSeconds: 0, seconds: 0, events: [] };
+    default:
+      return null;
+  }
+}
 
 /**
  * Résultat typé de la durée d'UNE occurrence (`exact | estimated |
@@ -68,6 +170,10 @@ export type ActivityDurationFacts = {
  */
 export function computeActivityDurationResult(activity: ActivityDurationFacts): ExerciseDurationResult {
   const parameters = activity.executionParameters;
+  const progressive = progressiveFormatDuration(activity);
+  if (progressive !== null) {
+    return progressive;
+  }
   if (parameters.mode === null) {
     return { kind: "omitted", knownSeconds: 0, events: [] };
   }
@@ -196,7 +302,14 @@ export function seriesCircuitContribution(
   passages: number,
 ): SessionDurationContribution {
   const parameters = activity.executionParameters;
-  if (parameters.mode === null || activity.type === "RECOVERY") {
+  // PRE-9 B.7 : EMOM alterné (D-16, son N adapté à celui du Circuit) : une fenêtre W par tour.
+  const format = activity.format ?? null;
+  if (format !== null && format.key === "EMOM") {
+    const window = intervalSeconds(format);
+    if (window !== null) return { result: { kind: "exact", knownSeconds: window, seconds: window, events: [] }, multiplicity: passages };
+  }
+  // PRE-9 B.7 : un membre progressif (Death by alterné, D-16) joue un segment à chaque tour (D.1).
+  if (parameters.mode === null || activity.type === "RECOVERY" || progressiveFormatDuration(activity) !== null) {
     return { result: computeActivityDurationResult(activity), multiplicity: passages };
   }
   return {

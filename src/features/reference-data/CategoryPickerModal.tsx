@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
-  Animated,
-  Easing,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -24,7 +22,7 @@ import { CATEGORY_NAME_MAX_LENGTH, validateCategoryName } from "@/domain/categor
 import { SESSION_COLORS } from "@/domain/sessions/Session";
 import { recordKeyboardJournal, startKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
 import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
-import { useReduceMotion } from "@/features/activities/ExecutionParametersSheet";
+import { NATIVE_PICKER_MODAL, nativePickerKeyboardOffset } from "@/features/reference-data/nativePickerSheet";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
 import { ENTRY_MENU_ACTION } from "@/shared/ui/entryMenuAction";
@@ -78,9 +76,6 @@ export function CategoryPickerModal({
   // D-8 : le toucher (ou ↑ en création) MARQUE le choix, sans fermer ; ✓ confirme
   // l’affectation, ✕ abandonne et conserve la Catégorie précédente de l’Exercice.
   const [chosenId, setChosenId] = useState<string | null>(selectedId);
-  const reduceMotion = useReduceMotion();
-  const [closing] = useState(() => new Animated.Value(1));
-  const [isConfirming, setIsConfirming] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   // Recette 3 (N-01/N-02) : une seule création en vol ; des appuis répétés sur ↑
   // pendant l’écriture ne créent jamais de doublon.
@@ -164,27 +159,16 @@ export function CategoryPickerModal({
     setChosenId(category.id);
   }
 
-  /** D-8 : ✓ confirme l’affectation puis ferme progressivement (immédiatement si « Réduire les animations »). */
+  /**
+   * D-8 : ✓ confirme l’affectation puis ferme. [« ferme progressivement (immédiatement si « Réduire les animations ») » —
+   * remplacé le 06/11/2026 (x-dedans) : la feuille native descend à la vitesse du système.]
+   */
   function handleConfirm() {
-    if (chosenId === null || isConfirming) {
+    if (chosenId === null) {
       return;
     }
-    const confirmedId = chosenId;
-    const finish = () => {
-      onSelect(confirmedId);
-      onClose();
-    };
-    if (reduceMotion) {
-      finish();
-      return;
-    }
-    setIsConfirming(true);
-    Animated.timing(closing, {
-      toValue: 0,
-      duration: CONFIRM_CLOSE_MS,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => finish());
+    onSelect(chosenId);
+    onClose();
   }
 
   async function handleCreate() {
@@ -328,28 +312,23 @@ export function CategoryPickerModal({
   }
 
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose} onDismiss={onDismissed}>
+    // Recette du 06/11/2026 (x-dedans) : feuille native iOS (`NATIVE_PICKER_MODAL`). [Modale transparente en fondu — remplacée.]
+    <Modal visible={visible} {...NATIVE_PICKER_MODAL} onRequestClose={onClose} onDismiss={onDismissed}>
       {/* Recette 1 (F-03) : le clavier ne recouvre jamais la feuille ; le champ actif
           et ses actions restent visibles (spéc. 06 : « le champ actif et l'action finale
           restent accessibles »). */}
       <KeyboardAvoidingView
         style={styles.backdrop}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={nativePickerKeyboardOffset()}
         testID="category-picker-backdrop"
       >
-        <Animated.View
-          style={[
-            styles.card,
-            isKeyboardShown ? styles.cardWithKeyboard : null,
-            {
-              opacity: closing,
-              transform: [{ translateY: closing.interpolate({ inputRange: [0, 1], outputRange: [CONFIRM_CLOSE_OFFSET, 0] }) }],
-            },
-          ]}
+        {/* [Sortie animée à la validation et poignée dessinée — remplacées par la descente du système (06/11/2026).] */}
+        <View
+          style={[styles.card, isKeyboardShown ? styles.cardWithKeyboard : null]}
           accessibilityViewIsModal
           testID="category-picker-sheet"
         >
-          <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader} testID="category-picker-header">
             <Pressable
               onPress={onClose}
@@ -543,7 +522,7 @@ export function CategoryPickerModal({
           )}
 
         </ScrollView>
-        </Animated.View>
+        </View>
       </KeyboardAvoidingView>
 
       {longPressTarget ? (
@@ -564,10 +543,6 @@ export function CategoryPickerModal({
     </Modal>
   );
 }
-
-/** D-8 : fermeture progressive après ✓ (convention 220 ms des contrôles animés). */
-const CONFIRM_CLOSE_MS = 220;
-const CONFIRM_CLOSE_OFFSET = 48;
 
 /** Action « Envoyer » figée (4474:7157) : cercle 32, marge interne droite 8. */
 const INLINE_SEND_SIZE = 32;
@@ -618,20 +593,12 @@ export function CategoryColorBand({
 }
 
 const styles = StyleSheet.create({
+  // [PRE-3 (Figma « Modale — … de l'exercice ») : feuille ancrée en bas, poignée, voile commun — remplacés le 06/11/2026
+  // (x-dedans) par la feuille native du système :] racine blanche sur toute la hauteur de la feuille ; en-tête ✕ / titre / ✓
+  // séparé par un trait.
   backdrop: {
     flex: 1,
-    backgroundColor: colors.overlayScrim,
-    justifyContent: "flex-end",
-  },
-  // PRE-3 (Figma « Modale — … de l'exercice ») : feuille ancrée en bas,
-  // poignée, en-tête ✕ / titre / ✓ séparé par un trait, voile commun.
-  sheetHandle: {
-    alignSelf: "center",
-    width: 50,
-    height: 4,
-    borderRadius: 2,
-    marginTop: spacing[8],
-    backgroundColor: colors.disabled,
+    backgroundColor: colors.background,
   },
   sheetHeader: {
     flexDirection: "row",
@@ -672,12 +639,10 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "100%",
-    // R4 (§4.10 L133 ; CE-UI-09 L2808) : hauteur bornée — la liste des
-    // Catégories et la carte de création/modification défilent toujours,
-    // quel que soit le nombre d'entrées ou l'ouverture du clavier.
-    maxHeight: "90%",
-    borderTopLeftRadius: dimensions.standardCard.radius,
-    borderTopRightRadius: dimensions.standardCard.radius,
+    // R4 (§4.10 L133 ; CE-UI-09 L2808) : la liste des Catégories et la carte de création/modification défilent toujours,
+    // quel que soit le nombre d'entrées ou l'ouverture du clavier. [Hauteur bornée à 90 %, coins arrondis — remplacés le
+    // 06/11/2026 (x-dedans) : la carte remplit la feuille native.]
+    flex: 1,
     backgroundColor: colors.background,
     paddingBottom: spacing[24],
   },

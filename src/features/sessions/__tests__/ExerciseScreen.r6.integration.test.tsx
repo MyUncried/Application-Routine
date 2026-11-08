@@ -3,18 +3,18 @@ import { Menu } from "@expo/ui/swift-ui";
 import { disabled as swiftUIDisabled } from "@expo/ui/swift-ui/modifiers";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 
-import { activityDefinitionToDraftExercise, type CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
+import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import type { ExecutionParameters, WorkPhase } from "@/domain/activities/ExecutionParameters";
 import { durationParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { Category } from "@/domain/categories/Category";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
-import { createEmptyDraft, createExerciseDraft, toSessionDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import { createEmptyDraft, createExerciseDraft, toSessionDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import {
   chooseExecutionSide,
   enterExecutionSheetCell,
-  pressInExecutionSheet,
+  enterExecutionSheetValue,
 } from "@/features/activities/testing/executionSheetActions";
 import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
@@ -24,10 +24,10 @@ import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import { SessionDraftContext, type SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { createTestMovement, type TestMovementOrigin } from "@/infrastructure/database/testing/createTestMovement";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -84,7 +84,6 @@ const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
 const movements = () => new SqliteMovementRepository(database, ids("grp"), () => NOW);
 const service = () =>
   new ActivityDefinitionService(
-    new SqliteActivityDefinitionRepository(database, ids("def"), () => NOW),
     undefined,
     new SqliteBodyZoneRepository(database),
     undefined,
@@ -118,14 +117,31 @@ const input = (name: string, executionParameters: ExecutionParameters, descripti
   executionParameters,
 });
 
-async function create(
-  value: CreateActivityDefinitionInput,
-  origin: Parameters<ActivityDefinitionService["createActivityDefinitionWithOrigin"]>[1] = { kind: "INDEPENDENT" },
-) {
-  const result = await service().createActivityDefinitionWithOrigin(value, origin);
-  if (result.status !== "CREATED") throw new Error(result.status);
-  return result.value;
+/**
+ * [PRE-9 A.3 du 04/11/2026 : Mouvement créé directement, sans ancienne définition du Catalogue ; les
+ * cas de l'éditeur d'une définition du Catalogue (reprise par la route, « Ajouter un niveau ») sont
+ * retirés avec elles.]
+ */
+async function create(value: CreateActivityDefinitionInput, origin: TestMovementOrigin = { kind: "INDEPENDENT" }) {
+  const { movementId } = await createTestMovement(database, value, origin, ids("mov"), () => NOW);
+  return { ...value, movementId };
 }
+
+/** Occurrence de Séance du Mouvement créé, contenu copié. */
+const occurrenceOf = (
+  movement: CreateActivityDefinitionInput & { readonly movementId: string },
+  id: string,
+  postActivityRecoverySeconds: number | null,
+): SessionDraftExercise => ({
+  ...createExerciseDraft(id, postActivityRecoverySeconds),
+  name: movement.name,
+  instruction: movement.description,
+  categoryId: movement.category.kind === "EXISTING" ? movement.category.categoryId : null,
+  bodyZoneIds: [...movement.bodyZoneIds],
+  executionParameters: movement.executionParameters,
+  sideMode: movement.executionParameters.sideMode,
+  sourceMovementId: movement.movementId,
+});
 
 /**
  * Groupe de trois niveaux : « Squats assistés » (phases Montée 5 s / Descente 2 s) → « Squats »
@@ -153,8 +169,8 @@ async function sessionWithAssisted() {
     ...createEmptyDraft(),
     name: "Jambes",
     exercises: [
-      activityDefinitionToDraftExercise(levels.squats, "occ-0", null),
-      { ...activityDefinitionToDraftExercise(levels.assisted, "occ-1", 20), copyNumber: 2 },
+      occurrenceOf(levels.squats, "occ-0", null),
+      { ...occurrenceOf(levels.assisted, "occ-1", 20), copyNumber: 2 },
     ],
   });
   if (!created.ok) throw new Error(JSON.stringify(created.violations));
@@ -277,8 +293,8 @@ describe("PRE-7 R-6 — occurrence de Séance : commande Niveau (C09, MFN-09)", 
       : [...(reread.cycle.beforeTour ?? []), ...reread.cycle.tour.exercises, ...(reread.cycle.afterTour ?? [])];
     expect(activities.map((activity) => activity.sourceMovementId)).toEqual([squats.movementId, squats.movementId]);
     expect(activities.map((activity) => activity.name)).toEqual(["Squats", "Squats"]);
-    // Aucun Exercice du Catalogue créé par le remplacement.
-    expect((await service().listActivityDefinitions()).length).toBe(3);
+    // Aucun Mouvement créé par le remplacement. [PRE-9 A.3 du 04/11/2026 : comptait les anciennes définitions du Catalogue.]
+    expect(await database.getFirstAsync("SELECT COUNT(*) AS count FROM movements")).toEqual({ count: 3 });
   });
 
   it("phases → phases (surplus cible) : rangs communs repris, troisième durée vide, « Paramètres à compléter. », Terminer indisponible ; la durée complétée, Terminer remplace", async () => {
@@ -318,23 +334,12 @@ describe("PRE-7 R-6 — occurrence de Séance : commande Niveau (C09, MFN-09)", 
     expect(currentDraft).toBe(draft);
   });
 
-  it("crayon : pendant l'édition du contenu, pastille sans menu ; après un changement de niveau, crayon retiré", async () => {
+  it("sans crayon depuis une Séance (PRE-9, CE-MVT-01 §3) : la commande Niveau reste active (DSF Niveaux l.49)", async () => {
     const { draft } = await sessionWithAssisted();
     await renderEditor({ exerciseId: "occ-1" }, draft);
-    await press("activity-editor-edit-movement");
-    expect(screen.queryByTestId("activity-editor-level-level-2", anyNode)).toBeNull();
-    expect(pastilleLabel()).toBe("Niveau 1");
-    expect(screen.getByTestId("activity-editor-level").props.accessibilityLabel).toBe("Niveau 1");
-    // PRE-7 (R-9, D-448 point 10) : crayon actif ; le retoucher sans changement rend le menu.
-    expect(screen.getByTestId("activity-editor-edit-movement").props.accessibilityState).toMatchObject({ selected: true });
-    await press("activity-editor-edit-movement");
-    expect(screen.getByTestId("activity-editor-level-level-2", anyNode)).toBeTruthy();
-    screen.unmount();
-
-    await renderEditor({ exerciseId: "occ-1" }, draft);
-    expect(screen.getByTestId("activity-editor-edit-movement")).toBeTruthy();
-    await pressNative("activity-editor-level-level-2");
     expect(screen.queryByTestId("activity-editor-edit-movement")).toBeNull();
+    expect(pastilleLabel()).toBe("Niveau 1");
+    expect(screen.getByTestId("activity-editor-level-level-2", anyNode)).toBeTruthy();
   });
 
   it("variante créée dans la Séance (Mouvement NOUVEAU rattaché à l'enregistrement) : pastille du rang prévu, sans menu (report R-5)", async () => {
@@ -374,23 +379,7 @@ describe("PRE-7 R-6 — occurrence de Séance : commande Niveau (C09, MFN-09)", 
   });
 });
 
-describe("PRE-7 R-6 — reprise au Catalogue : commande Niveau (C09)", () => {
-  it("changer de niveau remplace en place le mouvement repris (contenu, structure, paramètres par rang) ; rien n'est écrit, groupe non reclassé, crayon conservé", async () => {
-    const { assisted, squats } = await threeLevels();
-    const groupBefore = await groupNames(assisted.movementId);
-    const before = await database.getAllAsync("SELECT * FROM activity_definitions ORDER BY id");
-    await renderEditor({ catalogueDefinitionId: "new", movementId: squats.movementId });
-    expect(pastilleLabel()).toBe("Niveau 2");
-    await pressNative("activity-editor-level-level-1");
-    expect(nameInput().props.value).toBe("Squats assistés");
-    expect(screen.getByDisplayValue("Avec appui")).toBeTruthy();
-    expect(pastilleLabel()).toBe("Niveau 1");
-    expect(screen.getByTestId("activity-editor-level-level-1", anyNode).props.systemImage).toBe("checkmark");
-    expect(screen.getByTestId("activity-editor-edit-movement")).toBeTruthy();
-    expect(await database.getAllAsync("SELECT * FROM activity_definitions ORDER BY id")).toEqual(before);
-    expect(await groupNames(assisted.movementId)).toEqual(groupBefore);
-  });
-});
+// [PRE-9 A.3 du 04/11/2026 : « reprise au Catalogue : commande Niveau » retiré avec les anciennes définitions du Catalogue.]
 
 /**
  * Feuille : durées des `durations.length` premières phases, durée de série 9 s, changement de côté
@@ -399,10 +388,8 @@ describe("PRE-7 R-6 — reprise au Catalogue : commande Niveau (C09)", () => {
 function fillParameters(durations: readonly string[]) {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   durations.forEach((duration, index) => enterExecutionSheetCell(`execution-sheet-phase-row-${index + 1}-duration`, duration));
-  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
-  fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 0 } });
-  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 9 } });
-  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
+  // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
+  enterExecutionSheetValue("execution-sheet-target", 9);
   chooseExecutionSide("Sans");
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   expect(screen.queryByTestId("execution-sheet")).toBeNull();
@@ -424,50 +411,8 @@ describe("PRE-7 R-6 — revue : compléments de vérification", () => {
     expect(currentDraft.exercises[1]!.executionParameters).toEqual(original.executionParameters);
   });
 
-  it("reprise au Catalogue : retour au mouvement repris → valeur initiale de la reprise restituée (jamais un second transfert)", async () => {
-    const { assisted } = await threeLevels();
-    await renderEditor({ catalogueDefinitionId: "new", movementId: assisted.movementId });
-    expect(screen.getByText(incomplete)).toBeTruthy();
-    await pressNative("activity-editor-level-level-2");
-    expect(nameInput().props.value).toBe("Squats");
-    await pressNative("activity-editor-level-level-1");
-    expect(nameInput().props.value).toBe("Squats assistés");
-    expect(screen.getByDisplayValue("Avec appui")).toBeTruthy();
-    expect(screen.getByText(incomplete)).toBeTruthy();
-    // Structure du mouvement repris rétablie : deux phases.
-    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    expect(screen.getByTestId("execution-sheet-phase-row-2-duration-input", anyNode)).toBeTruthy();
-    expect(screen.queryByTestId("execution-sheet-phase-row-3-duration-input", anyNode)).toBeNull();
-    expect(await groupNames(assisted.movementId)).toEqual(["Squats assistés", "Squats", "Squats sautés"]);
-  });
+  // [PRE-9 A.3 du 04/11/2026 : cas de reprise au Catalogue et « Plus facile » depuis la fiche retirés avec les anciennes définitions du Catalogue.]
 
-  it("reprise au Catalogue : changement vers un niveau à phases, durées complétées, Terminer → Exercice du mouvement choisi, structure transférée, aucun dialogue C03 ; mouvements inchangés", async () => {
-    const { assisted, jumps } = await threeLevels();
-    const jumpsBefore = await service().getMovement(jumps.movementId);
-    const assistedBefore = await service().getMovement(assisted.movementId);
-    await renderEditor({ catalogueDefinitionId: "new", movementId: assisted.movementId });
-    await pressNative("activity-editor-level-level-3");
-    expect(nameInput().props.value).toBe("Squats sautés");
-    fillParameters(["5", "1", "3"]);
-    await press("activity-editor-finish-action");
-    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
-    expect(mockBack).toHaveBeenCalled();
-    const rows = await database.getAllAsync<{ id: string; movement_id: string }>(
-      "SELECT id, movement_id FROM activity_definitions WHERE movement_id = ? ORDER BY id",
-      [jumps.movementId],
-    );
-    expect(rows).toHaveLength(2);
-    const created = (await service().listActivityDefinitions()).find(
-      (definition) => definition.movementId === jumps.movementId && definition.id !== jumps.id,
-    );
-    expect(created?.executionParameters.series.workPhases.map((phase) => [phase.label, phase.durationSeconds])).toEqual([
-      ["Élan", 5],
-      ["Saut", 1],
-      ["Réception", 3],
-    ]);
-    expect(await service().getMovement(jumps.movementId)).toEqual(jumpsBefore);
-    expect(await service().getMovement(assisted.movementId)).toEqual(assistedBefore);
-  });
 
   it("réserve de Circuit : séries inchangées (sans → sans), l'entrée suit la nouvelle occurrence ; séries modifiées (phases retirées), l'entrée est retirée (PRE-6)", async () => {
     const lunges = await create(input("Fentes", durationParameters(30, 3, 10), "Pas long"));
@@ -479,7 +424,7 @@ describe("PRE-7 R-6 — revue : compléments de vérification", () => {
     const created = await sessionService().createSession({
       ...createEmptyDraft(),
       name: "Fentes",
-      exercises: [activityDefinitionToDraftExercise(lunges, "occ-f", null)],
+      exercises: [occurrenceOf(lunges, "occ-f", null)],
     });
     if (!created.ok) throw new Error(JSON.stringify(created.violations));
     await renderEditor({ exerciseId: "occ-f" }, { ...toSessionDraft(created.value), circuitSeriesReserve: { "occ-f": RESERVE_ROWS } });
@@ -502,7 +447,8 @@ describe("PRE-7 R-6 — revue : compléments de vérification", () => {
     await renderEditor({});
     fireEvent.changeText(nameInput(), "Squats sauté");
     await settle(10);
-    await press(`movement-suggestion-result-${jumps.movementId}-use`);
+    // PRE-9 CAT.2 : toucher de la carte Composition (ancien « Utiliser ce mouvement »).
+    await press(`movement-suggestion-result-${jumps.movementId}`);
     await settle(20);
     fillParameters(["7", "2", "4"]);
     expect(pastilleLabel()).toBe("Niveau 3");
@@ -518,15 +464,4 @@ describe("PRE-7 R-6 — revue : compléments de vérification", () => {
     ]);
   });
 
-  it("Plus facile depuis un mouvement sans groupe : le nouveau niveau devient le niveau 1 d'un nouveau groupe", async () => {
-    const alone = await create(input("Pompes", durationParameters(30, 3, 10), "Corps gainé"));
-    await renderEditor({ catalogueDefinitionId: "new", levelOriginDefinitionId: alone.id, levelPlacement: "BEFORE_ORIGIN" });
-    expect(pastilleLabel()).toBe("Niveau 1");
-    fireEvent.changeText(nameInput(), "Pompes sur les genoux");
-    await settle();
-    await press("activity-editor-finish-action");
-    const levels = await service().getMovementLevels(alone.movementId);
-    expect(levels?.position).toEqual({ rank: 2, total: 2 });
-    expect(levels?.levels.map((level) => level.movement.name)).toEqual(["Pompes sur les genoux", "Pompes"]);
-  });
 });

@@ -12,6 +12,7 @@ import {
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors, dimensions, fixedRadii, type } from "@/shared/ui/tokens";
 
 export type SegmentedControlOption<T extends string> = {
@@ -61,6 +62,25 @@ export type SegmentedControlOption<T extends string> = {
    * couleur primaire, lisible sur le fond du cadre.
    */
   readonly ownSurface?: boolean;
+  /**
+   * Variante `inline` seulement (PRE-9, contrôle de la recette iPhone n° 2 du 31/10/2026,
+   * cr2-phases-rouge, Hermann : « Seul le cadre du champ du nombre de phases doit être rouge. Pas
+   * toute la ligne. ») : sélectionnée, l'option porte un cadre rouge (bord 1 `colors.danger`, rayon
+   * de l'option) par-dessus son contenu. Rendu choisi sans maquette.
+   * [Complété le 31/10/2026, contre-recette n° 3 (cr4-rouge, Hermann : « le cadre du Champ « X
+   * phases » à une couleur de fond toujours bleue. Ce n'est pas le cadre de la ligne qui doit être
+   * rouge mais le cadre du champ. ») : l'option n'a plus le fond violet de la sélection — fond
+   * `colors.dangerSurface` (comme les cellules à renseigner) sous un bord 1 `colors.danger` qui
+   * épouse l'option ; avec `ownSurface`, la surface propre de l'option est conservée.]
+   */
+  readonly invalid?: boolean;
+  /**
+   * Variante `inline` seulement (PRE-9, contre-recette n° 3 du 31/10/2026, cr4-verifier, Hermann :
+   * « uniquement le cadre du contrôle « X phases » ») : sélectionnée, l'option est « Paramètre à
+   * vérifier » — fond `toVerifyColors.surface` et bord 1 `toVerifyColors.border` à la place du fond
+   * violet, comme `invalid`, qui prime. Rendu choisi sans maquette.
+   */
+  readonly toVerify?: boolean;
 };
 
 /**
@@ -192,7 +212,7 @@ export type SegmentedControlProps<T extends string> = {
  * lui-même, sans mesure ; le même cadre unique animé y glisse.
  */
 export function SegmentedControl<T extends string>({
-  options,
+  options: givenOptions,
   value,
   onChange,
   accessibilityLabel,
@@ -208,6 +228,13 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   const parameters = variant === "parameters";
   const inline = variant === "inline";
+  // ESSAI du 04/11/2026 (constat b de la recette, Hermann : « lorsqu'on sélectionne l'option d'un contrôle segmenté dont le
+  // cadre n'est pas aligné à droite, il se déplace pour être aligné à droite et que l'option non sélectionnée soit à sa
+  // gauche » ; « Peut-on tester la deuxième option ? ») : variante `inline` (feuille des Paramètres d'exécution), l'option
+  // sélectionnée est toujours la dernière, à droite ; les autres gardent leur ordre, à sa gauche.
+  const options = inline && value !== null && givenOptions.some((option) => option.value === value)
+    ? [...givenOptions.filter((option) => option.value !== value), ...givenOptions.filter((option) => option.value === value)]
+    : givenOptions;
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   // `inline` : largeur connue d'avance (options de largeur fixe, propre à
   // l'option si elle en donne une, RC-6), sans mesure.
@@ -227,7 +254,11 @@ export function SegmentedControl<T extends string>({
   // inconnue : aucun cadre en `parameters` et `inline`.
   // RC-15 : une option sélectionnée à surface propre (`ownSurface`) n'a pas de cadre violet.
   const selectedOwnSurface = inline && foundIndex >= 0 && Boolean(options[foundIndex]?.ownSurface);
-  const showIndicator = value !== null && (parameters || inline ? foundIndex >= 0 : true) && !selectedOwnSurface;
+  // Contre-recette n° 3 (cr4-rouge, cr4-verifier) : une option sélectionnée signalée (à compléter ou à
+  // vérifier) dessine son propre fond clair et son cadre ; pas de cadre violet non plus.
+  const selectedFlagged =
+    inline && foundIndex >= 0 && Boolean(options[foundIndex]?.invalid || options[foundIndex]?.toVerify);
+  const showIndicator = value !== null && (parameters || inline ? foundIndex >= 0 : true) && !selectedOwnSurface && !selectedFlagged;
   const inlineHeight = height ?? INLINE_HEIGHT;
   const selectedIndex = Math.max(0, foundIndex);
   // `useState` (jamais `useRef(...).current`) : l'instance `Animated.Value`
@@ -385,6 +416,8 @@ export function SegmentedControl<T extends string>({
           const selected = value !== null && option.value === value;
           const optionTestID = testID ? `${testID}-${option.value}` : undefined;
           const showSelectedContent = selected && option.selectedContent !== undefined;
+          // Contre-recette n° 3 : rouge (à compléter) prioritaire sur orange (à vérifier).
+          const flag = selected ? (option.invalid ? "invalid" : option.toVerify ? "toVerify" : null) : null;
           const chevronIcon = option.chevron ? (
             <KodjoIcon
               name={option.chevron === "up" ? "control-chevron-up" : "control-chevron-down"}
@@ -393,7 +426,7 @@ export function SegmentedControl<T extends string>({
                 option.disabled || option.chevronDisabled
                   ? colors.disabled
                   : selected
-                    ? option.ownSurface
+                    ? option.ownSurface || flag !== null
                       ? colors.primary
                       : colors.background
                     : INLINE_UNSELECTED_LABEL_COLOR
@@ -404,6 +437,13 @@ export function SegmentedControl<T extends string>({
           const chevronInteractive = Boolean(option.chevron && onChevronPress && !readOnly && !option.disabled);
           return (
             <View key={option.value} style={[styles.inlineOption, { width: option.width ?? optionWidth }]}>
+              {flag !== null && !option.ownSurface ? (
+                <View
+                  pointerEvents="none"
+                  style={[styles.inlineFlagSurface, flag === "invalid" ? styles.inlineInvalidSurface : styles.inlineToVerifySurface]}
+                  testID={testID ? `${testID}-${option.value}-${flag === "invalid" ? "invalid" : "to-verify"}-surface` : undefined}
+                />
+              ) : null}
               {readOnly ? null : (
                 <Pressable
                   disabled={option.disabled}
@@ -428,6 +468,7 @@ export function SegmentedControl<T extends string>({
                         styles.inlineLabel,
                         compact || option.compact ? styles.inlineLabelCompact : null,
                         selected ? styles.inlineLabelSelected : null,
+                        flag !== null ? styles.inlineLabelFlagged : null,
                         option.disabled ? styles.labelDisabled : null,
                       ]}
                     >
@@ -459,6 +500,19 @@ export function SegmentedControl<T extends string>({
                   </View>
                 )}
               </View>
+              {flag === "invalid" ? (
+                <View
+                  pointerEvents="none"
+                  style={styles.inlineInvalidFrame}
+                  testID={testID ? `${testID}-${option.value}-invalid-frame` : undefined}
+                />
+              ) : flag === "toVerify" ? (
+                <View
+                  pointerEvents="none"
+                  style={[styles.inlineInvalidFrame, styles.inlineToVerifyFrame]}
+                  testID={testID ? `${testID}-${option.value}-to-verify-frame` : undefined}
+                />
+              ) : null}
             </View>
           );
         })}
@@ -641,6 +695,36 @@ const styles = StyleSheet.create({
     left: 0,
     borderRadius: INLINE_OPTION_RADIUS,
   },
+  // PRE-9, recette iPhone n° 2 (cr2-phases-rouge) : cadre rouge de l'option sélectionnée à compléter.
+  inlineInvalidFrame: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: INLINE_OPTION_RADIUS,
+    borderWidth: 1,
+    borderColor: colors.danger,
+  },
+  // Contre-recette n° 3 (cr4-verifier) : même cadre, en orange « à vérifier ».
+  inlineToVerifyFrame: {
+    borderColor: toVerifyColors.border,
+  },
+  // Contre-recette n° 3 (cr4-rouge, cr4-verifier) : fond clair de l'option signalée, à la place du violet.
+  inlineFlagSurface: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: INLINE_OPTION_RADIUS,
+  },
+  inlineInvalidSurface: {
+    backgroundColor: colors.dangerSurface,
+  },
+  inlineToVerifySurface: {
+    backgroundColor: toVerifyColors.surface,
+  },
   inlineContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -662,6 +746,10 @@ const styles = StyleSheet.create({
     fontFamily: type.segmentedLabel.fontFamily,
     fontWeight: type.segmentedLabel.fontWeight,
     color: colors.background,
+  },
+  // Contre-recette n° 3 : sur le fond clair d'une option signalée, texte primaire (comme `ownSurface`).
+  inlineLabelFlagged: {
+    color: colors.primary,
   },
   inlineChevron: {
     width: INLINE_CHEVRON_FRAME,

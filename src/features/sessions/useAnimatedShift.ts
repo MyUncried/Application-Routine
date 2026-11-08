@@ -9,6 +9,14 @@ import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/com
  */
 export const DRAG_SHIFT_DURATION_MS = MOTION_SHIFT_DURATION_MS;
 
+/**
+ * Contre-recette n° 5 du 01/11/2026 : durée et courbe d'une animation du registre ; par défaut, celles
+ * du jeu de mouvements partagé (`DRAG_SHIFT_DURATION_MS`, `MOTION_EASING`).
+ */
+export type ShiftTiming = { readonly duration: number; readonly easing: (value: number) => number };
+
+const DEFAULT_SHIFT_TIMING: ShiftTiming = { duration: DRAG_SHIFT_DURATION_MS, easing: MOTION_EASING };
+
 /** Revue 7.6 : retard estimé du départ natif d'une animation (une image). */
 const NATIVE_START_LAG_MS = 16;
 
@@ -73,7 +81,7 @@ export class AnimatedShiftRegistry {
    * — la valeur JS n'avance pas sur le pilote natif — et position de départ reportée d'une clé dont
    * l'animation, relancée, n'a pas encore démarré.
    */
-  private readonly motions = new Map<string, { readonly from: number; readonly to: number; readonly start: number }>();
+  private readonly motions = new Map<string, { readonly from: number; readonly to: number; readonly start: number; readonly timing: ShiftTiming }>();
   private readonly carried = new Map<string, number>();
   /** Revue 7.6 : clés dont l'animation arrêtée doit encore renvoyer sa valeur atteinte. */
   private readonly echoExpected = new Set<string>();
@@ -88,6 +96,7 @@ export class AnimatedShiftRegistry {
     let shift = this.values.get(key);
     if (shift === undefined) {
       shift = new Animated.Value(initial);
+      if (key.startsWith(NATIVE_SHIFT_KEY_PREFIX)) makeNativeAtCreation(shift);
       this.guardNativeEcho(key, shift);
       this.values.set(key, shift);
       this.applied.set(key, initial);
@@ -236,6 +245,65 @@ export class AnimatedShiftRegistry {
   }
 
   /**
+   * PRE-9 (recette iPhone n° 2 du 31/10/2026) : pose immédiate, synchrone et native, de la translation
+   * d'une clé — un Circuit ou un Cycle lâché, dont la translation du doigt (valeur propre au geste)
+   * est remise à 0 dans la même tâche : la translation du registre la relaie sans saut. La cible
+   * suivante (`apply`) repart de cette position.
+   */
+  pose(key: string, value: number): void {
+    const shift = this.value(key, value);
+    this.cancel(key);
+    shift.stopAnimation();
+    shift.setValue(value);
+    this.applied.set(key, value);
+    this.carried.delete(key);
+    this.motions.delete(key);
+    this.nativeStale.delete(key);
+    this.clearNativeSyncIfIdle();
+  }
+
+  /**
+   * Contre-recette n° 5 du 01/11/2026 (Hermann : « Oui, ouvrir la place pendant le déploiement. […] la
+   * carte elle fait encore plusieurs soubresauts qu'il faut éliminer. ») : anime les seules clés de
+   * `targets` (les autres sont laissées telles quelles) avec la durée et la courbe `timing` — celles du
+   * déploiement d'un Circuit, lancé dans la même tâche — depuis leur position courante ; `timing` nul
+   * ou de durée nulle (« Réduire les animations ») : pose immédiate. Un `apply` suivant portant les
+   * mêmes cibles ne relance rien.
+   */
+  retarget(targets: ReadonlyMap<string, number>, timing: ShiftTiming | null): void {
+    for (const [key, target] of targets) {
+      const shift = this.value(key, target);
+      const busy = this.running.has(key) || this.pending.has(key);
+      if (this.applied.get(key) === target && !busy) continue;
+      const at = this.position(key);
+      this.applied.set(key, target);
+      this.cancel(key);
+      this.nativeStale.delete(key);
+      if (timing === null || timing.duration <= 0) {
+        shift.stopAnimation();
+        shift.setValue(target);
+        this.carried.delete(key);
+        this.motions.delete(key);
+        continue;
+      }
+      this.carried.set(key, at);
+      const token = ++this.nextToken;
+      this.pending.set(key, token);
+      queueMicrotask(() => this.start(key, token, shift, target, timing));
+    }
+    this.clearNativeSyncIfIdle();
+    this.notifyIfSettled();
+  }
+
+  /**
+   * Contre-recette n° 5 du 01/11/2026 : translation estimée d'une clé (en mouvement : d'après sa
+   * courbe et le temps écoulé ; au repos : sa cible), `null` si la clé n'existe pas.
+   */
+  estimate(key: string): number | null {
+    return this.values.has(key) ? this.position(key) : null;
+  }
+
+  /**
    * PRE-6 story 5.2b : nouveau geste pendant un retour — arrête toutes les animations et pose
    * toutes les valeurs à 0, de façon synchrone : l'écran rejoint la mise en page mesurée avant le
    * relevé du geste (`originLayout`).
@@ -284,7 +352,7 @@ export class AnimatedShiftRegistry {
     };
   }
 
-  private start(key: string, token: number, shift: Animated.Value, target: number): void {
+  private start(key: string, token: number, shift: Animated.Value, target: number, timing: ShiftTiming = DEFAULT_SHIFT_TIMING): void {
     if (this.pending.get(key) !== token || this.values.get(key) !== shift || this.applied.get(key) !== target) {
       return;
     }
@@ -292,12 +360,13 @@ export class AnimatedShiftRegistry {
     const from = this.carried.get(key) ?? jsValueOf(shift) ?? target;
     this.carried.delete(key);
     // Revue 7.6 : l'animation native ne part qu'à l'image suivante — l'estimation en tient compte.
-    this.motions.set(key, { from, to: target, start: Date.now() + NATIVE_START_LAG_MS });
+    this.motions.set(key, { from, to: target, start: Date.now() + NATIVE_START_LAG_MS, timing });
     const animation = Animated.timing(shift, {
       toValue: target,
-      duration: DRAG_SHIFT_DURATION_MS,
-      // Story 7.6 : arrêt progressif, sans rebond (`compositionMotion.ts`).
-      easing: MOTION_EASING,
+      duration: timing.duration,
+      // Story 7.6 : arrêt progressif, sans rebond (`compositionMotion.ts`). Contre-recette n° 5 : ou
+      // courbe du déploiement d'un Circuit (`retarget`).
+      easing: timing.easing,
       useNativeDriver: true,
     });
     this.running.set(key, animation);
@@ -318,8 +387,8 @@ export class AnimatedShiftRegistry {
   private position(key: string): number {
     const motion = this.motions.get(key);
     if (this.running.has(key) && motion !== undefined) {
-      const progress = Math.min(1, Math.max(0, (Date.now() - motion.start) / DRAG_SHIFT_DURATION_MS));
-      return motion.from + (motion.to - motion.from) * MOTION_EASING(progress);
+      const progress = Math.min(1, Math.max(0, (Date.now() - motion.start) / motion.timing.duration));
+      return motion.from + (motion.to - motion.from) * motion.timing.easing(progress);
     }
     return this.carried.get(key) ?? this.applied.get(key) ?? 0;
   }
@@ -394,6 +463,37 @@ function setJsValue(value: Animated.Value, next: number): void {
 
 function isPoseMap(pose: ShiftRelease | ReadonlyMap<string, number>): pose is ReadonlyMap<string, number> {
   return pose instanceof Map;
+}
+
+/**
+ * PRE-9 (recette iPhone n° 2 du 31/10/2026) : préfixe des clés dont la valeur est rendue native dès sa
+ * création, avant toute vue attachée (disposition générale). Un lien de rail combine les valeurs de
+ * deux éléments (`Animated.subtract`) ; attacher cette combinaison à une valeur déjà native rend
+ * l'autre valeur native en parcourant ses vues — dont celles d'un composant démonté dans le même
+ * rendu, pas encore détachées (« Unable to find node on an unmounted component », voir l'en-tête du
+ * registre). Une valeur native dès sa création n'est jamais parcourue ainsi : chaque vue s'y attache
+ * seule. Ces valeurs ne reçoivent que des animations sur le pilote natif.
+ */
+export const NATIVE_SHIFT_KEY_PREFIX = "native|";
+
+/** Clé de `key` dans l'espace des valeurs natives dès leur création (idempotent). */
+export function nativeShiftKey(key: string): string {
+  return key.startsWith(NATIVE_SHIFT_KEY_PREFIX) ? key : NATIVE_SHIFT_KEY_PREFIX + key;
+}
+
+function makeNativeAtCreation(value: Animated.Value): void {
+  const internal = value as unknown as { __makeNative?: () => void };
+  internal.__makeNative?.();
+}
+
+/**
+ * Contre-recette n° 4 du 01/11/2026 (cr5-reposer) : rend native une valeur animée existante
+ * (idempotent) — son `setValue` suivant est une opération du pilote natif, envoyée dans le même lot que
+ * les poses du registre faites dans la même tâche (translation du doigt d'une carte ou d'un Point
+ * d'arrêt remise à 0 au lâcher, relayée par la translation de sa rangée, sans image intermédiaire).
+ */
+export function makeAnimatedValueNative(value: Animated.Value): void {
+  makeNativeAtCreation(value);
 }
 
 /** PRE-6 story 5.2b : translation de départ d'une clé, posée sans animation avant ses cibles. */

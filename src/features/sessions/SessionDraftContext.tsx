@@ -49,6 +49,11 @@ export type SessionDraftContextValue = {
   /** Ramène le brouillon à `createEmptyDraft()`. */
   readonly resetDraft: () => void;
   /**
+   * PRE-9 B.9 / C.3 (ARB-15) : propose un nom (celui du Format) qui reste suggéré — modifiable, et
+   * recalculé selon les règles des Exercices tant que l'utilisateur ne l'a pas saisi. Facultatif.
+   */
+  readonly suggestDraftName?: (name: string) => void;
+  /**
    * T01-S10 : statut de réhydratation courant. Champs optionnels de
    * transition (livraison séquencée) — `SessionDraftProvider` les fournit
    * toujours ; un consommateur lit `editStatus ?? "creating"` et appelle

@@ -512,6 +512,7 @@ describe("PRE-4 story 1.3 — augmentation de N depuis une ligne à l'échec", (
  * par Mode, retrait et annulation (AC1 à AC14, `epics-parts/epic-3.md`).
  * Un bloc par critère, attendus littéraux.
  */
+// PRE-9 (B.3, COMP §3) : bornes de saisie des Cibles 0..3535 s et 0..100 (borne basse 1 auparavant).
 describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
   function committedWith(draft: ExecutionSheetDraft, baseline: ExecutionParametersInput | null) {
     const result = commitSheetDraft(draft, baseline);
@@ -564,8 +565,12 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
     }
   });
 
-  it("PRE4-3.2/AC2 — valeurs initiales en création ; Répétitions d'abord → NUMBER 1 ; Durée puis Répétitions → UNSET ; côté → Sans changement au ✓ ; jamais retour à « — »", () => {
-    const created = openSheetDraft(createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 }));
+  it("PRE4-3.2/AC2 — valeurs initiales en création ; Répétitions d'abord → NUMBER 1 ; Durée à renseigner puis Répétitions → NUMBER 1 ; côté → Sans changement au ✓ ; jamais retour à « — »", () => {
+    // Recette du 29/10/2026 : création en Durée, côté Sans, présélectionnés ; les règles de Mode non
+    // renseigné restent vérifiées sur un brouillon sans Mode ni côté (données antérieures).
+    const fresh = openSheetDraft(createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 }));
+    expect(effectiveParameters(fresh)).toMatchObject({ mode: "DURATION", sideMode: "UNILATERAL", series: { target: { kind: "UNSET" } } });
+    const created = openSheetDraft({ ...createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 }), mode: null, sideMode: null });
     expect(created.variable).toBe(false);
     expect(effectiveParameters(created)).toEqual({
       version: 5,
@@ -580,7 +585,12 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       loadEnabled: false,
     });
     expect(setMode(created, "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
-    expect(setMode(setMode(created, "DURATION"), "REPETITIONS").uniform.target).toEqual({ kind: "UNSET" });
+    // Recette PRE-9 n° 1 : une Durée encore à renseigner vaut création (Durée présélectionnée) —
+    // Répétitions reçoit alors la cible initiale 1. [Avant : « Durée puis Répétitions → UNSET ».]
+    expect(setMode(setMode(created, "DURATION"), "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
+    expect(setMode(fresh, "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
+    // Une Durée renseignée puis Répétitions : aucune cible inventée.
+    expect(setMode(setUniformTarget(fresh, numberTarget(30)), "REPETITIONS").uniform.target).toEqual({ kind: "UNSET" });
 
     const value = committed(setUniformTarget(setMode(created, "DURATION"), numberTarget(30)));
     expect(value.sideMode).toBe("UNILATERAL");
@@ -995,7 +1005,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       expect(commitSheetDraft(setRowTargetTyped(reopened, 0, numberTarget(5995)), legacy)).toEqual({
         ok: false,
         violations: [
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 1 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 }, seriesNumber: 1 },
         ],
       });
     });
@@ -1006,7 +1016,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       expect(commitSheetDraft(grown, legacy)).toEqual({
         ok: false,
         violations: [
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 4 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 }, seriesNumber: 4 },
         ],
       });
     });
@@ -1027,7 +1037,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       const otherMode = setUniformTarget(setMode(openSheetDraft(uniformLegacy), "REPETITIONS"), numberTarget(5999));
       expect(commitSheetDraft(otherMode, uniformLegacy)).toEqual({
         ok: false,
-        violations: [{ code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 100 } }],
+        violations: [{ code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 100 } }],
       });
       expect(committedWith(setMode(otherMode, "DURATION"), uniformLegacy).series).toEqual(uniform(2, 5999, 10));
 
@@ -1041,8 +1051,8 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
         ok: false,
         violations: [
           { code: "OUT_OF_RANGE", field: "cadenceBeepIntervalSeconds", level: "INPUT", details: { min: 0, max: 10 } },
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 2 },
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 3 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 }, seriesNumber: 2 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 }, seriesNumber: 3 },
         ],
       });
     });

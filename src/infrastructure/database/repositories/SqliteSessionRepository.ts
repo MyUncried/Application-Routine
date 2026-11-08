@@ -12,8 +12,19 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import { resolveCatalogParameters, splitResolvedParameters } from "@/domain/activities/Movement";
 import { MovementNotFoundError } from "@/domain/activities/MovementRepository";
+import { phasesToVerifyField } from "@/domain/activities/parametersToVerify";
 import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "@/domain/sessions/circuit";
 import { SessionValidationError } from "@/domain/sessions/errors";
+import { isFormatModelKey, type FormatModelKey } from "@/domain/sessions/formatModels";
+import {
+  decodeFormatSettings,
+  encodeFormatSettings,
+  isElementFormatKey,
+  isLegacyPreconfigurationFormatKey,
+  isSessionOrigin,
+  type ElementFormat,
+  type SessionOrigin,
+} from "@/domain/sessions/formats";
 import {
   DEFAULT_SESSION_COLOR,
   type Activity,
@@ -48,11 +59,13 @@ import {
   computeStructureDuration,
   countStructureExercises,
   legacyFromStructure,
+  NO_CIRCUIT_ID,
   structureCircuits,
   structureExercises,
   structureFromLegacy,
   type SessionStructure,
   type StructureCircuit,
+  type StructureCycleMember,
   type StructureElement,
   type StructureStopPoint,
 } from "@/domain/sessions/structure";
@@ -288,6 +301,17 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
   ) {}
 
   /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (Hermann : « Ouverture de la feuille
+   * (Recommandé) ») : la feuille des paramètres de l'occurrence a été ouverte — sa marque « à
+   * vérifier » est retirée, sans autre écriture. Sans effet pour une occurrence non enregistrée.
+   */
+  async acknowledgeParametersToVerify(activityId: string): Promise<void> {
+    await this.database.runAsync("UPDATE activities SET phases_to_verify = NULL WHERE id = ? AND phases_to_verify IS NOT NULL", [
+      activityId,
+    ]);
+  }
+
+  /**
    * Persiste, dans une UNIQUE transaction SQLite (D-107) : la Séance, son Circuit et TOUS les
    * Exercices ordonnés du brouillon. Toute erreur au sein de cette transaction annule
    * l'intégralité de l'écriture — aucune donnée partielle n'est jamais laissée.
@@ -332,8 +356,8 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
         `INSERT INTO sessions (
           id, owner_id, name, label_id, status,
           initial_countdown_seconds, final_phase_seconds,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?)`,
+          created_at, updated_at, origin
+        ) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?)`,
         [
           sessionId,
           user.id,
@@ -343,6 +367,8 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
           input.finalPhaseSeconds,
           timestamp,
           timestamp,
+          // PRE-9 (C.1, FMT-02) : origine écrite à la création seulement, jamais modifiée.
+          input.origin ?? null,
         ],
       );
       await writeSessionMovements(transaction, input.movements ?? [], timestamp, this.uuidFactory);
@@ -371,14 +397,17 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
     const normalized = validated.value;
     const outcome = await this.replaceSession(sessionId, normalized.persistedActivityIds, (existing) => {
       const legacy = legacyFromStructure(existing.structure);
-      if (legacy === null) {
+      // PRE-9 (C.1) : l'ancien modèle ne porte aucun Format ; il ne réécrit jamais une Séance qui
+      // en contient (aucun Format effacé silencieusement).
+      if (legacy === null || structureCarriesFormat(existing.structure)) {
         throw new SessionStructureNotRepresentableError(sessionId);
       }
       const tour = legacy.composition.tour;
       return {
         ...normalized,
         structure: structureInputFromLegacy(normalized.activities, normalized.stopPoints ?? [], {
-          id: tour.id,
+          // PRE-9 (B.2) : Séance sans Circuit — le Circuit écrit par l'ancien port reçoit une identité.
+          id: tour.id !== NO_CIRCUIT_ID ? tour.id : this.uuidFactory(),
           repeatCount: normalized.tourRepeatCount,
           nature: normalized.circuitNature ?? tour.nature,
         }, this.uuidFactory),
@@ -541,11 +570,11 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
   }
 
   /**
-   * Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : une Séance, active ou archivée, dans l'ancien
-   * modèle lu par la Composition — ouverte en lecture seule quand elle est archivée. Une Séance plus
-   * riche lève `SessionStructureNotRepresentableError`, comme `findById`.
+   * Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : une Séance, active ou archivée, ouverte en
+   * lecture seule quand elle est archivée. PRE-9 (A.1) : lue dans sa structure générale, Cycles et
+   * plusieurs Circuits compris (plus aucune projection dans l'ancien modèle).
    */
-  async findForConsultation(sessionId: string): Promise<Session | null> {
+  async findForConsultation(sessionId: string): Promise<StructuredSession | null> {
     const user = await getLocalUser(this.database);
     const header = await this.database.getFirstAsync<SessionHeaderRow>(
       `${HEADER_SELECT} WHERE sessions.id = ? AND sessions.owner_id = ?`,
@@ -553,7 +582,7 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
     );
     if (!header) return null;
     const [assembled] = await readAssembledSessions(this.database, [header], { allowArchived: true });
-    return assembled ? toLegacySession(assembled) : null;
+    return assembled ? toStructuredSession(assembled) : null;
   }
 
   /**
@@ -777,8 +806,8 @@ const STAGING_POSITION = 1_000_000;
  *    référence au Mouvement inchangés), un nouvel élément est inséré ;
  * 4. les Points d'arrêt reçus sont insérés.
  *
- * Rang au niveau principal : index de l'élément ; dans un Cycle : index du Circuit ; dans un
- * Circuit : index de l'Exercice. PRE-7 (R-3, C05) : aucune donnée de contenu n'est écrite dans
+ * Rang au niveau principal : index de l'élément ; dans un Cycle : index du membre (Exercice direct
+ * ou Circuit, PRE-9 A.1) ; dans un Circuit : index de l'Exercice. PRE-7 (R-3, C05) : aucune donnée de contenu n'est écrite dans
  * l'Exercice.
  */
 async function writeStructure(
@@ -805,7 +834,7 @@ async function writeStructure(
     let staging = STAGING_POSITION;
     for (const id of existing.activities) {
       if (incomingActivities.has(id)) {
-        await transaction.runAsync("UPDATE activities SET tour_id = NULL, position = ? WHERE id = ? AND session_id = ?", [
+        await transaction.runAsync("UPDATE activities SET tour_id = NULL, cycle_id = NULL, position = ? WHERE id = ? AND session_id = ?", [
           staging++,
           id,
           sessionId,
@@ -838,26 +867,29 @@ async function writeStructure(
   const writeCircuit = async (circuit: StructureCircuitInput, cycleId: string | null, position: number) => {
     if (existing?.circuits.has(circuit.id)) {
       await transaction.runAsync(
-        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ? WHERE id = ? AND session_id = ?",
-        [cycleId, position, circuit.repeatCount, circuit.nature, circuit.id, sessionId],
+        // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine d'un Circuit porteur (`tours.format_*`, migration 017).
+        // Recette iPhone n° 3 du 03/11/2026 : modèle d'origine du Circuit (`tours.origin_model`, migration 020).
+        // Reprise Formats du 04/11/2026 : nom du Circuit (`tours.name`, migration 022).
+        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ?, format_key = ?, format_settings = ?, origin_model = ?, name = ? WHERE id = ? AND session_id = ?",
+        [cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.originModel ?? null, circuit.name ?? null, circuit.id, sessionId],
       );
     } else {
       // V2-PRE-1 : le Circuit n'a plus de direction propre — toujours `'UNILATERAL'` en base.
       await transaction.runAsync(
-        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature)
-         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?)`,
-        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature],
+        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings, origin_model, name)
+         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?, ?, ?, ?, ?)`,
+        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.originModel ?? null, circuit.name ?? null],
       );
     }
     for (const [index, exercise] of circuit.exercises.entries()) {
-      await writeActivity(transaction, sessionId, exercise, circuit.id, index, existing, timestamp);
+      await writeActivity(transaction, sessionId, exercise, { tourId: circuit.id, cycleId: null }, index, existing, timestamp);
     }
   };
 
   for (const [position, element] of structure.elements.entries()) {
     switch (element.kind) {
       case "EXERCISE":
-        await writeActivity(transaction, sessionId, element.exercise, null, position, existing, timestamp);
+        await writeActivity(transaction, sessionId, element.exercise, { tourId: null, cycleId: null }, position, existing, timestamp);
         break;
       case "CIRCUIT":
         await writeCircuit(element.circuit, null, position);
@@ -878,8 +910,21 @@ async function writeStructure(
             element.cycle.repeatCount,
           ]);
         }
-        for (const [index, circuit] of element.cycle.circuits.entries()) {
-          await writeCircuit(circuit, element.cycle.id, index);
+        // PRE-9 (A.1, D-451) : Exercices directs et Circuits du Cycle, rang partagé.
+        for (const [index, member] of element.cycle.members.entries()) {
+          if (member.kind === "CIRCUIT") {
+            await writeCircuit(member.circuit, element.cycle.id, index);
+          } else {
+            await writeActivity(
+              transaction,
+              sessionId,
+              member.exercise,
+              { tourId: null, cycleId: element.cycle.id },
+              index,
+              existing,
+              timestamp,
+            );
+          }
         }
         break;
       default: {
@@ -891,23 +936,74 @@ async function writeStructure(
 
   // PRE-6 (story 1.2, AD-36) : emplacement reçu, déjà validé, enregistré tel quel.
   for (const point of structure.stopPoints) {
-    await transaction.runAsync("INSERT INTO session_stop_points (id, session_id, tour_id, position) VALUES (?, ?, ?, ?)", [
-      uuidFactory(),
-      sessionId,
-      point.circuitId,
-      point.position,
-    ]);
+    await transaction.runAsync(
+      "INSERT INTO session_stop_points (id, session_id, tour_id, cycle_id, position) VALUES (?, ?, ?, ?, ?)",
+      [uuidFactory(), sessionId, point.circuitId, point.circuitId === null ? (point.cycleId ?? null) : null, point.position],
+    );
   }
 }
 
 type StructureCircuitInput = StructureCircuit<StructureExerciseInput>;
+
+/** PRE-9 (C.1, `migration017`) : colonnes `activities.format_key`, `format_settings` d'un Exercice (libre : deux `NULL`). */
+function formatSqlValues(format: ElementFormat | null | undefined): [string | null, string | null] {
+  return format === undefined || format === null ? [null, null] : [format.key, encodeFormatSettings(format.settings)];
+}
+
+/**
+ * PRE-9 (C.1) : Format relu d'une ligne d'Exercice ou de Circuit ; clé inconnue, réglages sans clé ou JSON
+ * illisible → contrat rompu. Réalignement du 02/11/2026 : les clés Tabata et 30/30 écrites avant cette date
+ * se relisent comme des Exercices standards (préconfigurations, FMT-10, FMT-19) ; leurs valeurs sont déjà
+ * dans les paramètres d'exécution.
+ */
+function rowFormat(row: { readonly format_key?: string | null; readonly format_settings?: string | null }): ElementFormat | null {
+  const key = row.format_key ?? null;
+  const json = row.format_settings ?? null;
+  if (key === null && json === null) {
+    return null;
+  }
+  if (isLegacyPreconfigurationFormatKey(key)) {
+    return null;
+  }
+  const settings = json === null ? null : decodeFormatSettings(json);
+  if (key === null || !isElementFormatKey(key) || settings === null) {
+    throw contractError();
+  }
+  return { key, settings };
+}
+
+function formatField(row: { readonly format_key?: string | null; readonly format_settings?: string | null }): { readonly format?: ElementFormat } {
+  const format = rowFormat(row);
+  return format === null ? {} : { format };
+}
+
+/**
+ * Recette iPhone n° 3 du 03/11/2026 (`migration020`) : modèle d'origine relu d'une ligne de Circuit ;
+ * `NULL` → absent (« Circuit ») ; clé inconnue → contrat rompu (reflet du CHECK).
+ */
+function originModelField(row: { readonly origin_model?: string | null }): { readonly originModel?: FormatModelKey } {
+  const value = row.origin_model ?? null;
+  if (value === null) return {};
+  if (!isFormatModelKey(value)) throw contractError();
+  return { originModel: value };
+}
+
+function structureCarriesFormat(structure: SessionStructure<Activity>): boolean {
+  return (
+    structureExercises(structure).some((activity) => (activity.format ?? null) !== null) ||
+    structureCircuits(structure).some((circuit) => (circuit.format ?? null) !== null)
+  );
+}
+
+/** Parent d'un Exercice : Circuit, Cycle (membre direct, PRE-9 A.1) ou niveau principal (les deux `null`). */
+type ActivityParent = { readonly tourId: string | null; readonly cycleId: string | null };
 
 /** Un Exercice à son rang final : mise à jour en place s'il existe, insertion sinon. */
 async function writeActivity(
   transaction: Database,
   sessionId: string,
   exercise: StructureExerciseInput,
-  tourId: string | null,
+  { tourId, cycleId }: ActivityParent,
   position: number,
   existing: ExistingStructureIds | null,
   timestamp: string,
@@ -918,15 +1014,16 @@ async function writeActivity(
     // projection scalaire unique (AD-3) ; sa référence au Mouvement est conservée.
     await transaction.runAsync(
       `UPDATE activities SET
-         type = ?, tour_id = ?, position = ?,
+         type = ?, tour_id = ?, cycle_id = ?, position = ?,
          execution_mode = ?, duration_seconds = ?, repetition_count = ?,
          series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?,
          post_activity_recovery_present = ?, updated_at = ?, side_mode = ?,
-         execution_parameters = ?, copy_number = ?
+         execution_parameters = ?, copy_number = ?, format_key = ?, format_settings = ?
        WHERE id = ? AND session_id = ?`,
       [
         exercise.type,
         tourId,
+        cycleId,
         position,
         values.executionMode,
         values.durationSeconds,
@@ -939,6 +1036,7 @@ async function writeActivity(
         values.sideMode,
         values.executionParameters,
         exercise.copyNumber ?? null,
+        ...formatSqlValues(exercise.format),
         exercise.id,
         sessionId,
       ],
@@ -968,6 +1066,8 @@ async function writeActivity(
       values.executionParameters,
       movementId,
       exercise.copyNumber ?? null,
+      cycleId,
+      ...formatSqlValues(exercise.format),
     ],
   );
 }
@@ -978,7 +1078,8 @@ const ACTIVITY_ROW_COLUMNS = `
   repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
   post_activity_recovery_present,
   created_at, updated_at, side_mode, execution_parameters,
-  source_movement_id, copy_number
+  source_movement_id, copy_number, cycle_id,
+  format_key, format_settings
 `;
 
 /**
@@ -1116,7 +1217,8 @@ SELECT
   sessions.initial_countdown_seconds,
   sessions.final_phase_seconds,
   sessions.created_at AS session_created_at,
-  sessions.updated_at AS session_updated_at
+  sessions.updated_at AS session_updated_at,
+  sessions.origin
 FROM sessions
 LEFT JOIN labels ON labels.id = sessions.label_id`;
 
@@ -1183,15 +1285,17 @@ async function readAssembledSessions(
     ids,
   );
   const circuits = await database.getAllAsync<CircuitRow>(
-    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature FROM tours WHERE session_id IN (${placeholders})`,
+    // PRE-9 (réalignement C.1 du 02/11/2026) : Format d'origine des Circuits porteurs.
+    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings, origin_model, name FROM tours WHERE session_id IN (${placeholders})`,
     ids,
   );
+  // PRE-9 (recette iPhone n° 2, constat e, `migration019`) : marque « à vérifier », lue seulement.
   const activities = await database.getAllAsync<ActivityRow>(
-    `SELECT ${ACTIVITY_ROW_COLUMNS} FROM activities WHERE session_id IN (${placeholders})`,
+    `SELECT ${ACTIVITY_ROW_COLUMNS}, phases_to_verify FROM activities WHERE session_id IN (${placeholders})`,
     ids,
   );
   const stopPoints = await database.getAllAsync<StopPointRow>(
-    `SELECT id, session_id, tour_id, position FROM session_stop_points WHERE session_id IN (${placeholders})`,
+    `SELECT id, session_id, tour_id, cycle_id, position FROM session_stop_points WHERE session_id IN (${placeholders})`,
     ids,
   );
   const movements = await readMovementRecords(
@@ -1238,16 +1342,17 @@ function inRankOrder<T extends { readonly position: number }>(rows: readonly T[]
 
 /**
  * PRE-8 (A.4) : assemble la structure persistée d'une Séance et contrôle son contrat (défense
- * en profondeur, reflet des CHECK de `migration014`) : Séance active ; Circuit de compte
- * 1..99, direction et nature connues ; Cycle d'au moins un Circuit ; rangs contigus dans chaque
- * conteneur, y compris le niveau principal partagé par Exercices, Circuits et Cycles ;
- * colonnes de chaque Exercice conformes au CHECK composite ; Points d'arrêt dans un conteneur
- * connu.
+ * en profondeur, reflet des CHECK de `migration014` et `migration016`) : Séance active ; Circuit
+ * de compte 1..99, direction et nature connues ; Cycle d'au moins un membre (Exercice direct ou
+ * Circuit, PRE-9 A.1) ; rangs uniques dans chaque conteneur, y compris le niveau principal
+ * partagé par Exercices, Circuits et Cycles et le Cycle partagé par ses Exercices directs et ses
+ * Circuits ; au plus un parent par Exercice et par Point ; colonnes de chaque Exercice conformes
+ * au CHECK composite ; Points d'arrêt dans un conteneur connu.
  *
  * Champs hérités de l'Exercice : `structuralPosition` et `position` sont ceux de l'ancien
  * modèle lorsque la structure y est représentable (avant, dans, après le Circuit ; rang dans la
- * zone) ; sinon `BEFORE_TOUR` au niveau principal et `IN_TOUR` dans un Circuit, avec le rang
- * dans le conteneur.
+ * zone) ; sinon `BEFORE_TOUR` au niveau principal et dans un Cycle, `IN_TOUR` dans un Circuit,
+ * avec le rang dans le conteneur.
  */
 export function assembleStructure(
   stored: StoredSession,
@@ -1277,9 +1382,18 @@ export function assembleStructure(
   }
 
   const activitiesByContainer = new Map<string | null, ActivityRow[]>();
+  const activitiesByCycle = new Map<string, ActivityRow[]>();
   for (const row of stored.activities) {
     assertActivityRow(row);
-    activitiesByContainer.set(row.tour_id, [...(activitiesByContainer.get(row.tour_id) ?? []), row]);
+    const cycleId = row.cycle_id ?? null;
+    if (row.tour_id !== null && cycleId !== null) {
+      throw contractError();
+    }
+    if (cycleId !== null) {
+      activitiesByCycle.set(cycleId, [...(activitiesByCycle.get(cycleId) ?? []), row]);
+    } else {
+      activitiesByContainer.set(row.tour_id, [...(activitiesByContainer.get(row.tour_id) ?? []), row]);
+    }
   }
   const circuitsByCycle = new Map<string | null, CircuitRow[]>();
   for (const row of stored.circuits) {
@@ -1289,6 +1403,7 @@ export function assembleStructure(
   const knownCycles = new Set(stored.cycles.map((row) => row.id));
   if (
     stored.activities.some((row) => row.tour_id !== null && !knownCircuits.has(row.tour_id)) ||
+    [...activitiesByCycle.keys()].some((cycleId) => !knownCycles.has(cycleId)) ||
     stored.circuits.some((row) => row.cycle_id !== null && !knownCycles.has(row.cycle_id))
   ) {
     throw contractError();
@@ -1298,6 +1413,9 @@ export function assembleStructure(
     id: row.id,
     repeatCount: row.repeat_count,
     nature: row.nature,
+    ...formatField(row),
+    ...originModelField(row),
+    ...(row.name !== undefined && row.name !== null ? { name: row.name } : {}),
     exercises: inRankOrder(activitiesByContainer.get(row.id) ?? []).map((activity, rank) =>
       toActivity(activity, movements, "IN_TOUR", rank),
     ),
@@ -1314,11 +1432,24 @@ export function assembleStructure(
       element: { kind: "CIRCUIT" as const, circuit: circuitOf(row) },
     })),
     ...stored.cycles.map((row) => {
-      const circuits = inRankOrder(circuitsByCycle.get(row.id) ?? []).map(circuitOf);
-      if (circuits.length === 0) {
+      // PRE-9 (A.1, D-451) : Exercices directs et Circuits du Cycle, rang partagé.
+      type RankedMember = { readonly position: number; readonly member: StructureCycleMember<Activity> };
+      const members = inRankOrder<RankedMember>([
+        ...(circuitsByCycle.get(row.id) ?? []).map((circuit) => ({
+          position: circuit.position,
+          member: { kind: "CIRCUIT" as const, circuit: circuitOf(circuit) },
+        })),
+        ...(activitiesByCycle.get(row.id) ?? []).map((activity) => ({
+          position: activity.position,
+          member: { kind: "EXERCISE" as const, exercise: toActivity(activity, movements, "BEFORE_TOUR", activity.position) },
+        })),
+      ]).map(({ member }, index): StructureCycleMember<Activity> =>
+        member.kind === "EXERCISE" ? { kind: "EXERCISE", exercise: { ...member.exercise, position: index } } : member,
+      );
+      if (members.length === 0) {
         throw contractError();
       }
-      return { position: row.position, element: { kind: "CYCLE" as const, cycle: { id: row.id, repeatCount: row.repeat_count, circuits } } };
+      return { position: row.position, element: { kind: "CYCLE" as const, cycle: { id: row.id, repeatCount: row.repeat_count, members } } };
     }),
   ];
   // Rang relu d'un Exercice du niveau principal : son index (voir `inRankOrder`).
@@ -1327,18 +1458,36 @@ export function assembleStructure(
   );
 
   for (const point of stored.stopPoints) {
-    if (point.tour_id !== null && !knownCircuits.has(point.tour_id)) {
+    const cycleId = point.cycle_id ?? null;
+    if (
+      (point.tour_id !== null && !knownCircuits.has(point.tour_id)) ||
+      (cycleId !== null && (point.tour_id !== null || !knownCycles.has(cycleId)))
+    ) {
       throw contractError();
     }
   }
-  const circuitOrder = new Map(structureCircuits({ elements }).map((circuit, index) => [circuit.id, index]));
+  // Ordre des conteneurs : niveau principal, puis chaque Cycle et Circuit dans l'ordre d'affichage.
+  const containerOrder = new Map<string, number>();
+  for (const element of elements) {
+    if (element.kind === "CYCLE") {
+      containerOrder.set(element.cycle.id, containerOrder.size);
+    }
+    for (const circuit of structureCircuits({ elements: [element] })) {
+      containerOrder.set(circuit.id, containerOrder.size);
+    }
+  }
+  const containerRank = (point: StopPointRow) => {
+    const container = point.tour_id ?? point.cycle_id ?? null;
+    return container === null ? -1 : containerOrder.get(container)!;
+  };
   const stopPoints: StructureStopPoint[] = [...stored.stopPoints]
-    .sort(
-      (a, b) =>
-        (a.tour_id === null ? -1 : circuitOrder.get(a.tour_id)!) - (b.tour_id === null ? -1 : circuitOrder.get(b.tour_id)!) ||
-        a.position - b.position,
-    )
-    .map((point) => ({ id: point.id, circuitId: point.tour_id, position: point.position }));
+    .sort((a, b) => containerRank(a) - containerRank(b) || a.position - b.position)
+    .map((point) => ({
+      id: point.id,
+      circuitId: point.tour_id,
+      ...((point.cycle_id ?? null) !== null ? { cycleId: point.cycle_id } : {}),
+      position: point.position,
+    }));
 
   return withLegacyZones({ elements, stopPoints });
 }
@@ -1349,7 +1498,8 @@ export function assembleStructure(
  */
 function withLegacyZones(structure: SessionStructure<Activity>): SessionStructure<Activity> {
   const circuitIndex = structure.elements.findIndex((element) => element.kind === "CIRCUIT");
-  if (legacyFromStructure({ elements: structure.elements, stopPoints: [] }) === null) {
+  // PRE-9 (B.2) : sans Circuit, tous les Exercices restent avant le Circuit (`BEFORE_TOUR`).
+  if (circuitIndex < 0 || legacyFromStructure({ elements: structure.elements, stopPoints: [] }) === null) {
     return structure;
   }
   return {
@@ -1378,7 +1528,19 @@ function sessionBase(header: SessionHeaderRow) {
     finalPhaseSeconds: header.final_phase_seconds,
     createdAt: header.session_created_at,
     updatedAt: header.session_updated_at,
+    // PRE-9 (C.1, FMT-02) : origine de création, absente si inconnue ; valeur hors liste → contrat rompu.
+    ...originField(header.origin ?? null),
   };
+}
+
+function originField(origin: string | null): { readonly origin?: SessionOrigin } {
+  if (origin === null) {
+    return {};
+  }
+  if (!isSessionOrigin(origin)) {
+    throw contractError();
+  }
+  return { origin };
 }
 
 function toStructuredSession(assembled: AssembledSession): StructuredSession {
@@ -1542,6 +1704,13 @@ function toActivity(
         })),
     sourceMovementId: row.source_movement_id,
     copyNumber: row.copy_number,
+    // PRE-9 (C.1) : Format porté par l'Exercice ; absent pour un Exercice libre.
+    ...formatField(row),
+    // PRE-9 (recette iPhone n° 2, constat e, `migration019`) : phases « à vérifier » ; absent sans
+    // marque. Jamais écrite par l'enregistrement de la Séance (UPDATE et INSERT l'ignorent : conservée
+    // en place, absente d'une nouvelle ligne) ; posée par l'enregistrement d'un Mouvement, retirée à
+    // l'ouverture de la feuille (`acknowledgeParametersToVerify`).
+    ...phasesToVerifyField(row.phases_to_verify),
     id: row.id,
     type: row.type,
     structuralPosition,

@@ -409,7 +409,7 @@ describe("Éditeur — PRE-4 story 4.6", () => {
       "src/features/activities/ActivityEditorForm.tsx",
       "src/features/activities/ActivityMediaList.tsx",
       "src/features/activities/MediaConsultation.tsx",
-      "src/features/activities/ActivityCard.tsx",
+      // [PRE-9 A.3 du 04/11/2026 : `ActivityCard.tsx` supprimé avec les anciennes définitions du Catalogue.]
       "src/features/sessions/ExerciseScreen.tsx",
       "src/features/sessions/ExerciseExitConfirmModal.tsx",
       "src/features/sessions/BodyZoneSelector.tsx",

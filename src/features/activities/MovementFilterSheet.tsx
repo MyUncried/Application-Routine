@@ -1,12 +1,12 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import { listAssignableBodyZones, type BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
 
-import { FilterChip, FilterSheetFrame, ResetFiltersButton, filterSheetStyles } from "./FilterSheetPrimitives";
+import { FilterChip, FilterSectionToggle, FilterSheetFrame, ResetFiltersButton, filterSheetStyles } from "./FilterSheetPrimitives";
 
 import {
   EMPTY_MOVEMENT_FILTERS,
@@ -33,7 +33,17 @@ import {
  *
  * PRE-8 (epic E, E.6) : cadre, pastilles et « Réinitialiser » mutualisés avec le panneau des Séances
  * (`FilterSheetPrimitives`), à l'identique ; les critères et leurs règles restent propres aux Mouvements.
+ *
+ * Recette iPhone CAT.1 du 30/10/2026 (Hermann, cat-resultats : « il manque les chevrons aux titres de
+ * section ») : sections repliables au patron des Séances (titre = bouton, chevron accolé,
+ * `FilterSectionToggle`). À l'ouverture, toutes les sections sont dépliées, comme dans Figma
+ * (`10462:23370`, aucune règle d'ouverture partielle décidée pour les Mouvements). « Réinitialiser »
+ * est fixé en pied, hors défilement, comme dans Figma (`10460:23176` sous la « Zone défilable ») et
+ * dans la feuille des Séances : il reste atteignable quelle que soit la longueur des sections.
  */
+
+type MovementFilterSection = "STATUS" | "LEVELS" | "USAGE" | "CATEGORIES" | "BODY_ZONES";
+const ALL_SECTIONS: readonly MovementFilterSection[] = ["STATUS", "LEVELS", "USAGE", "CATEGORIES", "BODY_ZONES"];
 
 const t = strings.screens.movement.catalogue.filters;
 
@@ -66,7 +76,13 @@ export function MovementFilterSheet({
   filters,
   onApply,
   onClose,
+  docked,
+  native,
 }: {
+  /** Mode catalogue d'un Format (recette du 04/11/2026) : feuille arrêtée sous la zone de contexte, montée et descente lentes. */
+  readonly docked?: { readonly top: number };
+  /** Demande de Hermann du 04/11/2026 : contenu d'une feuille native iOS (`FilterSheetFrame`, `native`). */
+  readonly native?: { readonly onNeededHeight?: (height: number) => void };
   readonly filters: MovementCatalogueFilters;
   readonly onApply: (filters: MovementCatalogueFilters, labels: readonly string[]) => void;
   readonly onClose: () => void;
@@ -75,6 +91,14 @@ export function MovementFilterSheet({
   const [draft, setDraft] = useState<Draft>(() => draftOf(filters));
   const [categories, setCategories] = useState<readonly Category[]>([]);
   const [bodyZones, setBodyZones] = useState<readonly BodyZone[]>([]);
+  const [open, setOpen] = useState<ReadonlySet<MovementFilterSection>>(() => new Set(ALL_SECTIONS));
+  const toggleSection = (section: MovementFilterSection) => setOpen((current) => toggled(current, section));
+  const group = (section: MovementFilterSection, title: string) => ({
+    section,
+    title,
+    open: open.has(section),
+    onToggle: () => toggleSection(section),
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -106,20 +130,23 @@ export function MovementFilterSheet({
       onClose={onClose}
       onApply={() => onApply(draft, selectedLabels(draft, categories, bodyZones))}
       testIDPrefix="movement-filter"
+      {...(docked === undefined ? {} : { docked })}
+      {...(native === undefined ? {} : { native })}
+      footer={<ResetFiltersButton label={t.reset} onPress={() => setDraft(draftOf(EMPTY_MOVEMENT_FILTERS))} testID="movement-filter-reset" />}
     >
-      <FilterGroup title={t.status}>
+      <FilterGroup {...group("STATUS", t.status)}>
         <Chip label={t.active} selected={draft.statuses.has("ACTIVE")} onPress={() => toggle("statuses", "ACTIVE")} testID="movement-filter-status-active" />
         <Chip label={t.archivedValue} selected={draft.statuses.has("ARCHIVED")} onPress={() => toggle("statuses", "ARCHIVED")} testID="movement-filter-status-archived" />
       </FilterGroup>
-      <FilterGroup title={t.levels}>
+      <FilterGroup {...group("LEVELS", t.levels)}>
         <Chip label={t.withLevels} selected={draft.levels.has("WITH")} onPress={() => toggle("levels", "WITH")} testID="movement-filter-levels-with" />
         <Chip label={t.withoutLevel} selected={draft.levels.has("WITHOUT")} onPress={() => toggle("levels", "WITHOUT")} testID="movement-filter-levels-without" />
       </FilterGroup>
-      <FilterGroup title={t.usage}>
+      <FilterGroup {...group("USAGE", t.usage)}>
         <Chip label={t.withExercise} selected={draft.usage.has("WITH")} onPress={() => toggle("usage", "WITH")} testID="movement-filter-usage-with" />
         <Chip label={t.withoutExercise} selected={draft.usage.has("WITHOUT")} onPress={() => toggle("usage", "WITHOUT")} testID="movement-filter-usage-without" />
       </FilterGroup>
-      <FilterGroup title={t.categories}>
+      <FilterGroup {...group("CATEGORIES", t.categories)}>
         {categories.map((category) => (
           <Chip
             key={category.id}
@@ -131,7 +158,7 @@ export function MovementFilterSheet({
           />
         ))}
       </FilterGroup>
-      <FilterGroup title={t.bodyZones}>
+      <FilterGroup {...group("BODY_ZONES", t.bodyZones)}>
         {bodyZones.map((zone) => (
           <Chip
             key={zone.id}
@@ -142,7 +169,6 @@ export function MovementFilterSheet({
           />
         ))}
       </FilterGroup>
-      <ResetFiltersButton label={t.reset} onPress={() => setDraft(draftOf(EMPTY_MOVEMENT_FILTERS))} testID="movement-filter-reset" />
     </FilterSheetFrame>
   );
 }
@@ -165,13 +191,23 @@ export function selectedLabels(
   return labels;
 }
 
-function FilterGroup({ title, children }: { readonly title: string; readonly children: ReactNode }) {
+function FilterGroup({
+  section,
+  title,
+  open,
+  onToggle,
+  children,
+}: {
+  readonly section: MovementFilterSection;
+  readonly title: string;
+  readonly open: boolean;
+  readonly onToggle: () => void;
+  readonly children: ReactNode;
+}) {
   return (
-    <View style={filterSheetStyles.group}>
-      <Text style={filterSheetStyles.groupTitle} accessibilityRole="header">
-        {title}
-      </Text>
-      <View style={filterSheetStyles.chips}>{children}</View>
+    <View style={filterSheetStyles.group} testID={`movement-filter-section-${section}`}>
+      <FilterSectionToggle title={title} open={open} onPress={onToggle} testID={`movement-filter-section-${section}-toggle`} />
+      {open ? <View style={filterSheetStyles.chips}>{children}</View> : null}
     </View>
   );
 }

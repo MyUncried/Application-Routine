@@ -9,6 +9,7 @@ import {
   seriesSelectedOptionWidth,
   seriesUnselectedOptionWidth,
 } from "@/features/activities/seriesTypeOptionWidths";
+import { enterExecutionSheetValue, typeInExecutionSheetCell } from "@/features/activities/testing/executionSheetActions";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors } from "@/shared/ui/tokens";
@@ -23,6 +24,12 @@ import { colors } from "@/shared/ui/tokens";
  * Recette du 20/10 (RC-17, décisions de Hermann) : la ligne s'intitule « Séries » (au lieu de « Type
  * de série ») ; stepper ouvert, le chevron du tableau est grisé et indisponible ; l'activation d'une
  * cellule du tableau ferme le stepper (une seule surface) et rend le chevron actif.
+ *
+ * [Stepper « − | n séries | + » révélé par le toucher du nombre — remplacé le 06/11/2026, décision de
+ * Hermann (constat c) : saisie au clavier] : le nombre est un champ clavier numérique dans l'option
+ * (`execution-sheet-series`, entrée `-input`) ; en saisie, ses chiffres ; bornes 1..99 appliquées à la
+ * sortie du champ ; l'option garde sa largeur de repos ; pendant la saisie, le chevron du tableau reste
+ * grisé et indisponible (RC-17) et son appui ferme le clavier.
  */
 
 jest.mock("expo-haptics", () => ({ selectionAsync: jest.fn(async () => undefined) }));
@@ -37,9 +44,8 @@ const CONTROL = "execution-sheet-series-type-control";
 const VARIABLE = `${CONTROL}-VARIABLE`;
 const UNIFORM = `${CONTROL}-UNIFORM`;
 const CHEVRON = `${VARIABLE}-chevron`;
-const TOGGLE = "execution-sheet-series-toggle";
 const STEPPER = "execution-sheet-series";
-const FIELD = "execution-sheet-series-field";
+const INPUT = `${STEPPER}-input`;
 const UP = [require("../../../../assets/icons/control-chevron-up.svg")];
 const DOWN = [require("../../../../assets/icons/control-chevron-down.svg")];
 
@@ -78,10 +84,10 @@ function renderSheet(parent: ExecutionParametersInput) {
 }
 
 const closedText = () => String(get(`${STEPPER}-value`).props.children);
-const stepperTap = (button: "increment" | "decrement") => {
-  fireEvent(get(`${STEPPER}-${button}`), "pressIn");
-  fireEvent(get(`${STEPPER}-${button}`), "pressOut");
-};
+/** Décision du 06/11/2026 : le nombre de séries en saisie (focus natif simulé) ou non. */
+const focusCount = () => fireEvent(get(INPUT), "focus");
+const blurCount = () => fireEvent(get(INPUT), "blur");
+const countActive = () => get(STEPPER).props.accessibilityState?.selected === true;
 const tableRows = () => screen.queryAllByTestId(/^execution-sheet-table-row-\d+$/, hidden).length;
 /** Largeur de l'option : premier ancêtre de sa zone de sélection qui porte une largeur. */
 function optionWidth(option: string): number | undefined {
@@ -118,66 +124,61 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     expect(within(get("execution-sheet-row-series-type")).queryByText("Type de série", hidden)).toBeNull();
     expect(get(CONTROL).props.accessibilityLabel).toBe("Séries");
     expect(closedText()).toBe("3 séries identiques");
-    expect(within(get(CONTROL)).getByTestId(TOGGLE)).toBeTruthy();
+    expect(within(get(CONTROL)).getByTestId(STEPPER)).toBeTruthy();
     expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: true });
     expect(within(get(CONTROL)).getByText("Variables", hidden)).toBeTruthy();
     expect(query(CHEVRON)).toBeNull();
     expect(query(`${STEPPER}-increment`)).toBeNull();
+    expect(get(INPUT).props.keyboardType).toBe("number-pad");
     expect(styleOf(CONTROL).height).toBe(32);
     // Fond de l'option sélectionnée : cadre violet existant (`colors.selection`) ; fond clair des autres.
     expect(styleOf(`${CONTROL}-indicator`).backgroundColor).toBe(colors.selection);
     expect(styleOf(`${CONTROL}-tile-VARIABLE`).backgroundColor).toBe(colors.surface);
-    expect(get(TOGGLE).props.accessibilityLabel).toBe("Séries, 3 séries identiques");
+    expect(get(STEPPER).props.accessibilityLabel).toBe("Séries");
+    expect(get(STEPPER).props.accessibilityValue).toMatchObject({ text: "3 séries identiques" });
   });
 
-  it("toucher la valeur révèle « − | 3 séries | + » sur fond #F2F2FF dans un segmenté de 32 (PRE-7 B.1, B3 ; 34 auparavant), sans cadre violet ; ± selon les règles existantes ; toucher la valeur referme (RC-4) et le libellé complet revient", () => {
+  it("toucher le nombre ouvre le clavier numérique dans l'option (chiffres en saisie, fond #EAEAFF, sans cadre violet, segmenté de 32) ; la valeur est appliquée à la sortie du champ et le libellé complet revient [stepper — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
     const { onApply } = renderSheet(params());
-    fireEvent.press(get(TOGGLE));
-    expect(within(get(CONTROL)).getByTestId(FIELD)).toBeTruthy();
-    expect(styleOf(FIELD)).toMatchObject({ backgroundColor: colors.stepperSurface, borderRadius: 14 });
+    focusCount();
+    expect(countActive()).toBe(true);
+    expect(String(get(`${STEPPER}-value`).props.children)).toBe("3");
+    expect(styleOf(STEPPER).backgroundColor).toBe("#EAEAFF");
     expect(styleOf(CONTROL).height).toBe(32);
     expect(query(`${CONTROL}-indicator`)).toBeNull();
-    expect(query(`${CONTROL}-tile-UNIFORM`)).toBeNull();
-    expect(String(get(`${STEPPER}-value`).props.children)).toBe("3 séries");
-    // Accessibilité conservée (NR Δ38) : réglage ajustable « Séries », bornes 1..99.
-    expect(get(STEPPER).props).toMatchObject({ accessibilityRole: "adjustable", accessibilityLabel: t.series });
-    expect(get(STEPPER).props.accessibilityValue).toMatchObject({ min: 1, max: 99, now: 3 });
-    stepperTap("increment");
-    expect(String(get(`${STEPPER}-value`).props.children)).toBe("4 séries");
-    fireEvent.press(get(`${STEPPER}-value-press`));
-    expect(query(`${STEPPER}-increment`)).toBeNull();
+    typeInExecutionSheetCell(STEPPER, "4");
+    expect(String(get(`${STEPPER}-value`).props.children)).toBe("4");
+    blurCount();
+    expect(countActive()).toBe(false);
     expect(closedText()).toBe("4 séries identiques");
-    expect(styleOf(CONTROL).height).toBe(32);
     fireEvent.press(get("execution-sheet-validate"));
     expect(onApply.mock.calls.at(-1)![0].series).toMatchObject({ kind: "UNIFORM", count: 4 });
   });
 
-  it("un toucher ailleurs ou l'ouverture d'une autre surface ferme le réglage sans changer le nombre ; re-choisir Identiques ouvre et ferme le réglage", () => {
+  it("un toucher ailleurs ou l'ouverture d'un autre champ ferme la saisie sans changer le nombre", () => {
     renderSheet(params());
-    fireEvent.press(get(TOGGLE));
+    focusCount();
     fireEvent.press(get("execution-sheet-body-outside"));
-    expect(query(FIELD)).toBeNull();
+    expect(countActive()).toBe(false);
+    blurCount();
     expect(closedText()).toBe("3 séries identiques");
-    fireEvent.press(get(UNIFORM));
-    expect(get(FIELD)).toBeTruthy();
-    fireEvent.press(get("execution-sheet-pause-toggle"));
-    expect(query(FIELD)).toBeNull();
-    expect(get("execution-sheet-pause-field")).toBeTruthy();
+    focusCount();
+    fireEvent(get("execution-sheet-pause-input"), "focus");
+    expect(countActive()).toBe(false);
+    expect(get("execution-sheet-pause").props.accessibilityState).toMatchObject({ selected: true });
+    // Perte du focus natif du nombre (simulée), qui suit le focus d'un autre champ.
+    blurCount();
     expect(closedText()).toBe("3 séries identiques");
   });
 
-  it("bornes : − indisponible à 1 (« 1 série identique », accord au singulier), + indisponible à 99", () => {
-    renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
+  it("bornes 1..99 appliquées à la sortie (« 1 série identique », accord au singulier) [± indisponibles aux bornes — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
+    renderSheet(params({ series: { kind: "UNIFORM", count: 2, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
+    enterExecutionSheetValue(STEPPER, 0, "integer");
     expect(closedText()).toBe("1 série identique");
     // P16 : à N = 1, Variables est indisponible ; le nombre reste réglable.
     expect(get(VARIABLE).props.accessibilityState).toMatchObject({ disabled: true, selected: false });
-    fireEvent.press(get(TOGGLE));
-    expect(String(get(`${STEPPER}-value`).props.children)).toBe("1 série");
-    expect(get(`${STEPPER}-decrement`).props.accessibilityState).toMatchObject({ disabled: true });
-    screen.unmount();
-    renderSheet(params({ series: { kind: "UNIFORM", count: 99, target: numberTarget(30), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
-    fireEvent.press(get(TOGGLE));
-    expect(get(`${STEPPER}-increment`).props.accessibilityState).toMatchObject({ disabled: true });
+    enterExecutionSheetValue(STEPPER, 150, "integer");
+    expect(closedText()).toBe("99 séries identiques");
   });
 
   it("variables : « 3 séries variables » et chevron graphique (haut = déployé) ; le chevron replie et déploie sans changer le nombre ni ouvrir le réglage ; le tableau suit N ; réglage ouvert, chevron indisponible (RC-17)", () => {
@@ -189,24 +190,22 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     fireEvent.press(get(CHEVRON));
     expect(query("execution-sheet-table")).toBeNull();
     expect(get(`${CHEVRON}-icon`).props.source).toEqual(DOWN);
-    expect(query(FIELD)).toBeNull();
+    expect(countActive()).toBe(false);
     expect(closedText()).toBe("3 séries variables");
     fireEvent.press(get(CHEVRON));
     expect(tableRows()).toBe(3);
-    // Réglage ouvert : le chevron reste visible dans le segment, grisé et indisponible (RC-17) ;
+    // Saisie ouverte : le chevron reste visible dans le segment, grisé et indisponible (RC-17) ;
     // le tableau suit N.
     expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: false, expanded: true });
-    fireEvent.press(get(TOGGLE));
+    focusCount();
     expect(get(CHEVRON)).toBeTruthy();
     expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.disabled);
     expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: true, expanded: true });
-    stepperTap("increment");
+    typeInExecutionSheetCell(STEPPER, "4");
+    blurCount();
     expect(tableRows()).toBe(4);
-    stepperTap("decrement");
-    stepperTap("decrement");
+    enterExecutionSheetValue(STEPPER, 2, "integer");
     expect(tableRows()).toBe(2);
-    expect(String(get(`${STEPPER}-value`).props.children)).toBe("2 séries");
-    fireEvent.press(get(`${STEPPER}-value-press`));
     expect(closedText()).toBe("2 séries variables");
   });
 
@@ -221,35 +220,25 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
   });
 
   // PRE-7 story B.1 (D-447, B4) : marge du bouton actif fermé portée de 8 à 12 de chaque côté —
-  // options fermées « 3 séries identiques » 126 → 134 et « 3 séries variables » 134 → 142 ; stepper
-  // ouvert inchangé (138, 154).
-  it("largeurs : option sélectionnée adaptée au contenu (stepper ouvert : Figma 138 à un point près ; fermées 134 / 142 depuis B.1, marges 12 au lieu des 8 de Figma 127 / 134) ; non sélectionnée de 106 (RC-17 : libellé « Séries » plus court), réduite seulement si le libellé n'a plus sa place", () => {
+  // options fermées « 3 séries identiques » 126 → 134 et « 3 séries variables » 134 → 142.
+  // [Stepper ouvert (138, 154 ; non sélectionnée réduite à 95) — remplacé le 06/11/2026, décision de
+  // Hermann (constat c) : saisie au clavier] : la saisie garde la largeur de repos.
+  it("largeurs : option sélectionnée adaptée au contenu (fermées 134 / 142 depuis B.1), inchangée pendant la saisie ; non sélectionnée de 106 (RC-17)", () => {
     setWidth(402);
     renderSheet(params());
     expect(optionWidth(UNIFORM)).toBe(134);
     expect(optionWidth(VARIABLE)).toBe(106);
-    fireEvent.press(get(TOGGLE));
-    expect(optionWidth(UNIFORM)).toBe(138);
+    focusCount();
+    expect(optionWidth(UNIFORM)).toBe(134);
     expect(optionWidth(VARIABLE)).toBe(106);
-    screen.unmount();
-    renderSheet(params(variable(3)));
-    fireEvent.press(get(TOGGLE));
-    expect(optionWidth(VARIABLE)).toBe(154);
-    expect(optionWidth(UNIFORM)).toBe(106);
     screen.unmount();
     setWidth(375);
-    renderSheet(params());
-    expect(optionWidth(VARIABLE)).toBe(106);
-    fireEvent.press(get(TOGGLE));
-    expect(optionWidth(VARIABLE)).toBe(106);
-    screen.unmount();
     renderSheet(params(variable(3)));
     expect(optionWidth(VARIABLE)).toBe(142);
     expect(optionWidth(UNIFORM)).toBe(106);
-    fireEvent.press(get(TOGGLE));
-    expect(optionWidth(VARIABLE)).toBe(154);
-    // Seul cas réduit à un chiffre : variables, stepper ouvert (« Séries » garde ses 36).
-    expect(optionWidth(UNIFORM)).toBe(95);
+    focusCount();
+    expect(optionWidth(VARIABLE)).toBe(142);
+    expect(optionWidth(UNIFORM)).toBe(106);
   });
 
   // PRE-7 story B.1 (B4) : largeurs 360 et 440 ajoutées (marges fermées de 12).
@@ -295,34 +284,36 @@ describe("RC-17 — Séries : jamais stepper et chevron actifs en même temps (r
   });
   const chevronState = () => get(CHEVRON).props.accessibilityState as { disabled?: boolean; expanded?: boolean };
 
-  it("stepper ouvert : chevron grisé et indisponible ; son appui ferme le stepper sans changer le nombre ni le repli ; le chevron redevient actif", () => {
+  it("saisie du nombre ouverte : chevron grisé et indisponible ; son appui ferme le clavier sans changer le repli ; le chevron redevient actif [stepper — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
     renderSheet(params(variable(3)));
     expect(chevronState()).toMatchObject({ disabled: false, expanded: true });
     expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.background);
-    fireEvent.press(get(TOGGLE));
-    stepperTap("increment");
+    focusCount();
+    typeInExecutionSheetCell(STEPPER, "4");
     expect(chevronState()).toMatchObject({ disabled: true, expanded: true });
     fireEvent.press(get(CHEVRON));
-    expect(query(`${STEPPER}-increment`)).toBeNull();
+    // « Fermer » du clavier : la perte du focus natif (simulée) applique la saisie.
+    blurCount();
+    expect(countActive()).toBe(false);
     expect(closedText()).toBe("4 séries variables");
     expect(tableRows()).toBe(4);
     expect(get(`${CHEVRON}-icon`).props.source).toEqual(UP);
     expect(chevronState()).toMatchObject({ disabled: false, expanded: true });
     expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.background);
-    // Actif à nouveau : il replie le tableau sans ouvrir le stepper.
+    // Actif à nouveau : il replie le tableau sans ouvrir la saisie.
     fireEvent.press(get(CHEVRON));
     expect(query("execution-sheet-table")).toBeNull();
-    expect(query(FIELD)).toBeNull();
+    expect(countActive()).toBe(false);
   });
 
   for (const column of ["target", "pause", "load"] as const) {
-    it(`activer une cellule du tableau (${column}) ferme le stepper (surface clavier, une seule surface) ; nombre et repli inchangés ; chevron actif`, () => {
+    it(`activer une cellule du tableau (${column}) ferme la saisie du nombre (surface clavier, une seule surface) ; nombre et repli inchangés ; chevron actif`, () => {
       renderSheet(params(loaded(3)));
-      fireEvent.press(get(TOGGLE));
+      focusCount();
       expect(chevronState()).toMatchObject({ disabled: true });
       fireEvent(get(`execution-sheet-table-row-2-${column}-input`), "focus");
-      expect(query(`${STEPPER}-increment`)).toBeNull();
-      expect(query(FIELD)).toBeNull();
+      expect(countActive()).toBe(false);
+      blurCount();
       expect(closedText()).toBe("3 séries variables");
       expect(tableRows()).toBe(3);
       expect(get(`${CHEVRON}-icon`).props.source).toEqual(UP);

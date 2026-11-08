@@ -11,15 +11,17 @@ import {
 import {
   createEmptyDraft,
   createExerciseDraft,
+  toStructuredSessionInput,
   type SessionDraft,
 } from "@/domain/sessions/SessionDraft";
+import { structureExercises } from "@/domain/sessions/structure";
+import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
+import { withStructure } from "@/domain/sessions/testing/structuredSession";
 import {
   DEFAULT_ACTIVITY_TYPE,
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
-  DEFAULT_STRUCTURAL_POSITION,
-  DEFAULT_TOUR_REPEAT_COUNT,
 } from "@/domain/sessions/defaults";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { SessionValidationError } from "@/domain/sessions/errors";
@@ -27,21 +29,42 @@ import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import type {
   SessionRepository,
   SessionStatus,
+  StructuredSession,
+  StructuredSessionRepository,
   UpdateSessionOutcome,
+  UpdateStructuredSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
 
 import { SessionService } from "@/features/sessions/SessionService";
+import { resetNewMovementMarks, useNewMovementMarks } from "@/features/activities/newMovementMarks";
+import { renderHook } from "@testing-library/react-native";
 
 // Repository factice, sans aucune dépendance SQLite (ni node:sqlite, ni
 // expo-sqlite, ni NodeSqliteDatabase, ni SqliteSessionRepository).
-class FakeSessionRepository implements SessionRepository {
+// PRE-9 (A.1) : le service écrit et lit par le port structuré ; l'ancien port reste implémenté
+// (lecture de compatibilité `getSession`) et ses écritures ne sont plus jamais appelées.
+class FakeSessionRepository implements SessionRepository, StructuredSessionRepository {
   create = jest.fn<(input: CreateSessionInput) => Promise<Session>>();
   findById = jest.fn<(sessionId: string) => Promise<Session | null>>();
   findSessionStatus = jest.fn<(sessionId: string) => Promise<SessionStatus | null>>();
   listActive = jest.fn<() => Promise<readonly SessionSummary[]>>();
   update =
     jest.fn<(sessionId: string, input: UpdateSessionInput) => Promise<UpdateSessionOutcome>>();
+  createStructured = jest.fn<(input: StructuredSessionInput) => Promise<StructuredSession>>();
+  findStructuredById = jest.fn<(sessionId: string) => Promise<StructuredSession | null>>();
+  updateStructured =
+    jest.fn<
+      (sessionId: string, input: StructuredSessionInput & { readonly persistedActivityIds?: readonly string[] }) => Promise<UpdateStructuredSessionOutcome>
+    >();
 }
+
+/** Identité du Circuit créé avec la Séance (`toStructuredSessionInput`), déterministe. */
+const NEW_CIRCUIT_ID = "circuit-new";
+const newContainerId = () => NEW_CIRCUIT_ID;
+const serviceOf = (repository: FakeSessionRepository) => new SessionService(repository, undefined, newContainerId);
+
+/** Exercices de l'entrée structurée transmise au repository, dans l'ordre. */
+const exercisesOf = (input: StructuredSessionInput) => structureExercises(input.structure);
 
 function anActivity(overrides: Partial<Activity> = {}): Activity {
   return {
@@ -110,14 +133,13 @@ function newMovement(id: string, name: string) {
   };
 }
 
-// T02-S01 : le chemin de création transporte désormais l'identifiant, le
-// type et la position structurelle réels de chaque Activité (ici ceux d'un
-// brouillon neuf, donc `BEFORE_TOUR` — `DEFAULT_STRUCTURAL_POSITION`).
+// T02-S01 : le chemin de création transporte l'identifiant et le type réels de chaque Activité.
+// PRE-9 (A.1) : l'Exercice d'un brouillon neuf (`DEFAULT_STRUCTURAL_POSITION`, avant le Circuit)
+// est au niveau principal de la structure, avant le Circuit créé avec la Séance.
 function normalizedExercise() {
   return {
     id: "ex-1",
     type: DEFAULT_ACTIVITY_TYPE,
-    structuralPosition: DEFAULT_STRUCTURAL_POSITION,
     executionParameters: durationParameters(30, 1, 0),
     postActivityRecoverySeconds: null, // PRE-6 (story 1.1, AD-35) : née sans récupération
     // PRE-7 (R-3, C05) : référence au Mouvement, aucun contenu.
@@ -126,37 +148,32 @@ function normalizedExercise() {
   };
 }
 
-describe("SessionService.createSession", () => {
+describe("SessionService.createSession (PRE-9 A.1 : chemin structuré)", () => {
   it("does not call the repository for an invalid draft", async () => {
     const repository = new FakeSessionRepository();
-    const service = new SessionService(repository);
+    const service = serviceOf(repository);
 
     await service.createSession(createEmptyDraft());
 
+    expect(repository.createStructured).not.toHaveBeenCalled();
     expect(repository.create).not.toHaveBeenCalled();
   });
 
   it("returns the structured violations for an invalid draft, unaltered", async () => {
     const repository = new FakeSessionRepository();
-    const service = new SessionService(repository);
+    const service = serviceOf(repository);
 
     const result = await service.createSession(createEmptyDraft());
 
-    expect(result).toEqual({
-      ok: false,
-      violations: [
-        { code: "REQUIRED", field: "session.name" },
-        { code: "REQUIRED", field: "exercise.name" },
-        { code: "REQUIRED", field: "exercise.durationSeconds" },
-      ],
-    });
+    expect(result).toEqual(toStructuredSessionInput(createEmptyDraft(), newContainerId));
+    expect(result.ok).toBe(false);
   });
 
-  it("calls the repository exactly once with the normalized input for a valid draft", async () => {
+  it("calls the repository exactly once with the normalized structured input for a valid draft", async () => {
     const repository = new FakeSessionRepository();
-    const created = aSession();
-    repository.create.mockResolvedValue(created);
-    const service = new SessionService(repository);
+    const created = withStructure(aSession());
+    repository.createStructured.mockResolvedValue(created);
+    const service = serviceOf(repository);
 
     const draft: SessionDraft = withLocalMovements({
       ...createEmptyDraft(),
@@ -166,22 +183,24 @@ describe("SessionService.createSession", () => {
 
     const result = await service.createSession(draft);
 
-    expect(repository.create).toHaveBeenCalledTimes(1);
-    expect(repository.create).toHaveBeenCalledWith({
+    expect(repository.createStructured).toHaveBeenCalledTimes(1);
+    expect(repository.create).not.toHaveBeenCalled();
+    expect(repository.createStructured).toHaveBeenCalledWith({
       name: "Séance simple",
       labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
-      exercises: [normalizedExercise()],
       // PRE-7 (R-3, C05) : le contenu va au Mouvement NEW, nom normalisé.
       movements: [newMovement("ex-1", "Gainage")],
-      // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : `[]` par défaut —
-      // aucun Point d'arrêt porté par le brouillon.
-      stopPoints: [],
+      // PRE-9 B.2 — D-451, COMP §1 (« une Séance commence sans Circuit », « un conteneur n'est jamais
+      // vide ») : l'Exercice est au niveau de la Séance, sans Circuit vide [auparavant : Circuit vide
+      // créé avec la Séance] ; aucun Point d'arrêt porté par le brouillon.
+      structure: {
+        elements: [{ kind: "EXERCISE", exercise: expect.objectContaining(normalizedExercise()) }],
+        stopPoints: [],
+      },
     });
     expect(result).toEqual({ ok: true, value: created });
-    expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value).toBe(created);
     }
@@ -189,8 +208,8 @@ describe("SessionService.createSession", () => {
 
   it("threads multiple Activities and the selected Label through unaltered", async () => {
     const repository = new FakeSessionRepository();
-    repository.create.mockResolvedValue(aSession());
-    const service = new SessionService(repository);
+    repository.createStructured.mockResolvedValue(withStructure(aSession()));
+    const service = serviceOf(repository);
 
     const draft: SessionDraft = withLocalMovements({
       ...createEmptyDraft(),
@@ -204,20 +223,21 @@ describe("SessionService.createSession", () => {
 
     await service.createSession(draft);
 
-    expect(repository.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        exercises: [normalizedExercise(), expect.objectContaining({ sourceMovementId: "ex-2", executionParameters: durationParameters(45) })],
-        movements: [newMovement("ex-1", "Gainage"), newMovement("ex-2", "Squats")],
-        labelId: "label-1",
-      }),
+    const input = repository.createStructured.mock.calls[0]![0];
+    expect(input).toEqual(
+      expect.objectContaining({ movements: [newMovement("ex-1", "Gainage"), newMovement("ex-2", "Squats")], labelId: "label-1" }),
     );
+    expect(exercisesOf(input)).toEqual([
+      expect.objectContaining(normalizedExercise()),
+      expect.objectContaining({ sourceMovementId: "ex-2", executionParameters: durationParameters(45) }),
+    ]);
   });
 
   it("propagates a technical error from the repository unchanged, without turning it into a structured result", async () => {
     const repository = new FakeSessionRepository();
     const technicalError = new Error("The stable local user is missing.");
-    repository.create.mockRejectedValue(technicalError);
-    const service = new SessionService(repository);
+    repository.createStructured.mockRejectedValue(technicalError);
+    const service = serviceOf(repository);
 
     await expect(service.createSession(aValidDraft())).rejects.toBe(technicalError);
   });
@@ -227,16 +247,16 @@ describe("SessionService.createSession", () => {
     const repositoryValidationError = new SessionValidationError([
       { code: "REQUIRED", field: "session.name" },
     ]);
-    repository.create.mockRejectedValue(repositoryValidationError);
-    const service = new SessionService(repository);
+    repository.createStructured.mockRejectedValue(repositoryValidationError);
+    const service = serviceOf(repository);
 
     await expect(service.createSession(aValidDraft())).rejects.toBe(repositoryValidationError);
   });
 
   it("threads the canonical default values through the service without redefining them", async () => {
     const repository = new FakeSessionRepository();
-    repository.create.mockResolvedValue(aSession());
-    const service = new SessionService(repository);
+    repository.createStructured.mockResolvedValue(withStructure(aSession()));
+    const service = serviceOf(repository);
 
     const draft: SessionDraft = withLocalMovements({
       ...createEmptyDraft(),
@@ -246,14 +266,15 @@ describe("SessionService.createSession", () => {
 
     await service.createSession(draft);
 
-    expect(repository.create).toHaveBeenCalledWith(
+    const input = repository.createStructured.mock.calls[0]![0];
+    expect(input).toEqual(
       expect.objectContaining({
         initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
         finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
-        // PRE-4 (story 1.1) : la durée canonique voyage dans les paramètres typés.
-        exercises: [expect.objectContaining({ executionParameters: durationParameters(DEFAULT_EXERCISE_DURATION_SECONDS) })],
       }),
     );
+    // PRE-4 (story 1.1) : la durée canonique voyage dans les paramètres typés.
+    expect(exercisesOf(input)).toEqual([expect.objectContaining({ executionParameters: durationParameters(DEFAULT_EXERCISE_DURATION_SECONDS) })]);
   });
 });
 
@@ -265,77 +286,90 @@ function anEditDraft(): SessionDraft {
   };
 }
 
-describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)", () => {
+describe("SessionService.updateSession (T01-S10, Q3-A ; PRE-9 A.1 : chemin structuré)", () => {
   it("does not call the repository for an invalid draft", async () => {
     const repository = new FakeSessionRepository();
-    const service = new SessionService(repository);
+    const service = serviceOf(repository);
 
     await service.updateSession("session-1", createEmptyDraft());
 
+    expect(repository.updateStructured).not.toHaveBeenCalled();
     expect(repository.update).not.toHaveBeenCalled();
   });
 
   it("returns INVALID for an invalid draft (no Activity, missing name), without capturing violations from anywhere else", async () => {
     const repository = new FakeSessionRepository();
-    const service = new SessionService(repository);
+    const service = serviceOf(repository);
 
     const result = await service.updateSession("session-1", createEmptyDraft());
 
-    expect(result).toEqual({
-      status: "INVALID",
-      violations: [
-        { code: "REQUIRED", field: "session.name" },
-        { code: "REQUIRED", field: "activity.id" },
-      ],
-    });
+    const expected = toStructuredSessionInput(createEmptyDraft(), newContainerId);
+    expect(expected.ok).toBe(false);
+    expect(result).toEqual({ status: "INVALID", violations: expected.ok ? [] : expected.violations });
   });
 
-  it("forces the passed sessionId as sourceSessionId and calls the repository once with the normalized UpdateSessionInput, then returns UPDATED unchanged", async () => {
+  it("keeps the persisted Circuit identity and nature, forwards the loaded Exercise ids, then returns UPDATED unchanged", async () => {
     const repository = new FakeSessionRepository();
-    const updated = aSession({ name: "Nom modifié" });
-    const outcome: UpdateSessionOutcome = { status: "UPDATED", session: updated };
-    repository.update.mockResolvedValue(outcome);
-    const service = new SessionService(repository);
+    const updated = withStructure(aSession({ name: "Nom modifié" }));
+    const outcome: UpdateStructuredSessionOutcome = { status: "UPDATED", session: updated };
+    repository.updateStructured.mockResolvedValue(outcome);
+    const service = serviceOf(repository);
 
     const draft: SessionDraft = withLocalMovements({
       ...createEmptyDraft(),
       sourceSessionId: "stale-id",
       name: "  Nom modifié  ",
-      exercises: [{ ...createExerciseDraft("act-1"), name: "  Gainage  " }],
+      exercises: [{ ...createExerciseDraft("act-1"), name: "  Gainage  ", structuralPosition: "IN_TOUR" }],
+      persistedExerciseIds: ["act-1"],
+      // Disposition relue : Circuit « tour-1 » de nature Séries ; le brouillon ne porte pas de nature.
+      structure: {
+        elements: [{ kind: "CIRCUIT", circuit: { id: "tour-1", repeatCount: 1, nature: "SERIES", exercises: ["act-1"] } }],
+        stopPoints: [],
+      },
     });
 
     const result = await service.updateSession("session-1", draft);
 
-    expect(repository.update).toHaveBeenCalledTimes(1);
-    expect(repository.update).toHaveBeenCalledWith("session-1", {
-      sourceSessionId: "session-1",
+    expect(repository.updateStructured).toHaveBeenCalledTimes(1);
+    expect(repository.update).not.toHaveBeenCalled();
+    expect(repository.updateStructured).toHaveBeenCalledWith("session-1", {
       name: "Nom modifié",
       labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
-      tourRepeatCount: 1,
-      activities: [
-        {
-          id: "act-1",
-          type: "EXERCISE",
-          structuralPosition: "BEFORE_TOUR",
-          position: 0,
-          executionParameters: durationParameters(30, 1, 0),
-          postActivityRecoverySeconds: null, // PRE-6 (story 1.1, AD-35) : née sans récupération
-          sourceMovementId: "act-1",
-          copyNumber: null,
-        },
-      ],
       movements: [newMovement("act-1", "Gainage")],
-      stopPoints: [],
+      structure: {
+        elements: [
+          {
+            kind: "CIRCUIT",
+            circuit: {
+              id: "tour-1",
+              repeatCount: 1,
+              nature: "SERIES",
+              exercises: [
+                expect.objectContaining({
+                  id: "act-1",
+                  type: "EXERCISE",
+                  executionParameters: durationParameters(30, 1, 0),
+                  postActivityRecoverySeconds: null, // PRE-6 (story 1.1, AD-35) : née sans récupération
+                  sourceMovementId: "act-1",
+                  copyNumber: null,
+                }),
+              ],
+            },
+          },
+        ],
+        stopPoints: [],
+      },
+      persistedActivityIds: ["act-1"],
     });
     expect(result).toEqual(outcome);
   });
 
   it("returns NOT_FOUND unchanged when the repository reports it", async () => {
     const repository = new FakeSessionRepository();
-    repository.update.mockResolvedValue({ status: "NOT_FOUND" });
-    const service = new SessionService(repository);
+    repository.updateStructured.mockResolvedValue({ status: "NOT_FOUND" });
+    const service = serviceOf(repository);
 
     const result = await service.updateSession("session-1", anEditDraft());
 
@@ -344,8 +378,8 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
 
   it("returns ARCHIVED unchanged when the repository reports it", async () => {
     const repository = new FakeSessionRepository();
-    repository.update.mockResolvedValue({ status: "ARCHIVED" });
-    const service = new SessionService(repository);
+    repository.updateStructured.mockResolvedValue({ status: "ARCHIVED" });
+    const service = serviceOf(repository);
 
     const result = await service.updateSession("session-1", anEditDraft());
 
@@ -357,8 +391,8 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
     const repositoryValidationError = new SessionValidationError([
       { code: "REQUIRED", field: "session.name" },
     ]);
-    repository.update.mockRejectedValue(repositoryValidationError);
-    const service = new SessionService(repository);
+    repository.updateStructured.mockRejectedValue(repositoryValidationError);
+    const service = serviceOf(repository);
 
     await expect(service.updateSession("session-1", anEditDraft())).rejects.toBe(
       repositoryValidationError,
@@ -368,8 +402,8 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
   it("propagates a technical error from the repository unchanged, without turning it into a structured result", async () => {
     const repository = new FakeSessionRepository();
     const technicalError = new Error("The stable local user is missing.");
-    repository.update.mockRejectedValue(technicalError);
-    const service = new SessionService(repository);
+    repository.updateStructured.mockRejectedValue(technicalError);
+    const service = serviceOf(repository);
 
     await expect(service.updateSession("session-1", anEditDraft())).rejects.toBe(technicalError);
   });
@@ -378,15 +412,17 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
 describe("SessionService.getSessionForEdit (T01-S10, CE-T01-S10-01/02)", () => {
   it("returns OK with the session for an active id, reading it only after checking the status", async () => {
     const repository = new FakeSessionRepository();
-    const session = aSession();
+    const session = withStructure(aSession());
     repository.findSessionStatus.mockResolvedValue("ACTIVE");
-    repository.findById.mockResolvedValue(session);
+    // PRE-9 (A.1) : lecture par le port structuré.
+    repository.findStructuredById.mockResolvedValue(session);
     const service = new SessionService(repository);
 
     const result = await service.getSessionForEdit("session-1");
 
     expect(result).toEqual({ status: "OK", session });
     expect(repository.findSessionStatus).toHaveBeenCalledWith("session-1");
+    expect(repository.findById).not.toHaveBeenCalled();
   });
 
   it("returns NOT_FOUND for an unknown id, without ever calling findById", async () => {
@@ -397,7 +433,7 @@ describe("SessionService.getSessionForEdit (T01-S10, CE-T01-S10-01/02)", () => {
     const result = await service.getSessionForEdit("nope");
 
     expect(result).toEqual({ status: "NOT_FOUND" });
-    expect(repository.findById).not.toHaveBeenCalled();
+    expect(repository.findStructuredById).not.toHaveBeenCalled();
   });
 
   it("returns ARCHIVED for an archived session, without ever calling findById", async () => {
@@ -408,7 +444,7 @@ describe("SessionService.getSessionForEdit (T01-S10, CE-T01-S10-01/02)", () => {
     const result = await service.getSessionForEdit("archived-1");
 
     expect(result).toEqual({ status: "ARCHIVED" });
-    expect(repository.findById).not.toHaveBeenCalled();
+    expect(repository.findStructuredById).not.toHaveBeenCalled();
   });
 
   it("propagates a technical error from the repository unchanged", async () => {
@@ -484,8 +520,8 @@ describe("SessionService.getSession", () => {
 describe("SessionService.createSession — plus d'écrasement de la récupération post-exercice (V2-PRE-2)", () => {
   it("persists each exercise's own postActivityRecoverySeconds unchanged, never re-deriving it from the Profile", async () => {
     const sessionRepository = new FakeSessionRepository();
-    sessionRepository.create.mockResolvedValue(aSession());
-    const service = new SessionService(sessionRepository);
+    sessionRepository.createStructured.mockResolvedValue(withStructure(aSession()));
+    const service = serviceOf(sessionRepository);
 
     await service.createSession(
       withLocalMovements({
@@ -498,28 +534,52 @@ describe("SessionService.createSession — plus d'écrasement de la récupérati
       }),
     );
 
-    expect(sessionRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        exercises: [
-          expect.objectContaining({ postActivityRecoverySeconds: 30 }),
-          expect.objectContaining({ postActivityRecoverySeconds: 45 }),
-        ],
-      }),
-    );
+    expect(exercisesOf(sessionRepository.createStructured.mock.calls[0]![0])).toEqual([
+      expect.objectContaining({ postActivityRecoverySeconds: 30 }),
+      expect.objectContaining({ postActivityRecoverySeconds: 45 }),
+    ]);
   });
 
   // PRE-6 (story 1.1, AD-35) : l'occurrence naît sans récupération (`null`), transmise telle quelle.
   it("passes the draft's absent Récupération (null) through unchanged when the occurrence never received one", async () => {
     const sessionRepository = new FakeSessionRepository();
-    sessionRepository.create.mockResolvedValue(aSession());
-    const service = new SessionService(sessionRepository);
+    sessionRepository.createStructured.mockResolvedValue(withStructure(aSession()));
+    const service = serviceOf(sessionRepository);
 
     await service.createSession(aValidDraft());
 
-    expect(sessionRepository.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        exercises: [expect.objectContaining({ postActivityRecoverySeconds: null })],
-      }),
-    );
+    expect(exercisesOf(sessionRepository.createStructured.mock.calls[0]![0])).toEqual([
+      expect.objectContaining({ postActivityRecoverySeconds: null }),
+    ]);
+  });
+});
+
+describe("D-510 (06/11/2026) : fiche Mouvement créée depuis la Composition", () => {
+  const marked = () => [...renderHook(() => useNewMovementMarks()).result.current.ids].sort();
+
+  it("marquée « New » une fois la Séance enregistrée (création ou modification) ; pas avant, ni en cas d'échec", async () => {
+    resetNewMovementMarks();
+    const repository = new FakeSessionRepository();
+    repository.createStructured.mockResolvedValue(withStructure(aSession()));
+    await serviceOf(repository).createSession(aValidDraft());
+    expect(marked()).toEqual(["ex-1"]);
+
+    resetNewMovementMarks();
+    repository.updateStructured.mockResolvedValue({ status: "NOT_FOUND" });
+    await serviceOf(repository).updateSession("session-1", aValidDraft());
+    expect(marked()).toEqual([]);
+  });
+
+  it("une fiche existante réutilisée ou corrigée (EDITED) n'est pas une création", async () => {
+    resetNewMovementMarks();
+    const repository = new FakeSessionRepository();
+    repository.createStructured.mockResolvedValue(withStructure(aSession()));
+    const draft = aValidDraft();
+    const edited: SessionDraft = {
+      ...draft,
+      movements: Object.fromEntries(Object.entries(draft.movements ?? {}).map(([id, item]) => [id, { ...item, change: "EDITED" as const }])),
+    };
+    await serviceOf(repository).createSession(edited);
+    expect(marked()).toEqual([]);
   });
 });

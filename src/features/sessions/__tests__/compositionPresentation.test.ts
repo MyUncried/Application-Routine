@@ -53,11 +53,11 @@ describe("formatDurationRowValue", () => {
     expect(formatDurationRowValue(0)).toBe("00 min 00 s");
   });
 
-  it("formats 10 seconds as '00 min 10 s'", () => {
+  it("formats 10 seconds as '00 min 10″'", () => {
     expect(formatDurationRowValue(10)).toBe("00 min 10 s");
   });
 
-  it("formats 3599 seconds (upper bound) as '59 min 59 s' — R4-05, pas de 1, aucun arrondi", () => {
+  it("formats 3599 seconds (upper bound) as '59′59″' — R4-05, pas de 1, aucun arrondi", () => {
     expect(formatDurationRowValue(3599)).toBe("59 min 59 s");
   });
 
@@ -66,11 +66,11 @@ describe("formatDurationRowValue", () => {
   });
 
   describe("maxTotalSeconds parameter (T01-S08, Exercise Durée/Pause — 5999s bound)", () => {
-    it("still clamps to 59 min 59 s by default when maxTotalSeconds is omitted (R4-05, pas de 1)", () => {
+    it("still clamps to 59′59″ by default when maxTotalSeconds is omitted (R4-05, pas de 1)", () => {
       expect(formatDurationRowValue(5999)).toBe("59 min 59 s");
     });
 
-    it("formats 5999 seconds as '99 min 59 s' when given the Exercise bound (R4-05, pas de 1)", () => {
+    it("formats 5999 seconds as '1h 39′59″' when given the Exercise bound (R4-05, pas de 1)", () => {
       expect(formatDurationRowValue(5999, 5999)).toBe("99 min 59 s");
     });
   });
@@ -82,7 +82,7 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
       formatExerciseRowSummary({
         executionParameters: durationParameters(90, 3, 15),
       }),
-    ).toBe("3 séries de 1 min 30 s avec 15 s de pause par série");
+    ).toBe("3 séries de 1′30″ avec 15″ de pause par série");
   });
 
   it("mode Répétitions, plusieurs Séries, pause non nulle — exemple exact 'Squats'", () => {
@@ -90,7 +90,7 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
       formatExerciseRowSummary({
         executionParameters: repetitionParameters(12, 3, 20),
       }),
-    ).toBe("3 séries de 12 répétitions avec 20 s de pause par série");
+    ).toBe("3 séries de 12 répétitions avec 20″ de pause par série");
   });
 
   it("une seule Série, durée inférieure à une minute, pause nulle — exemple exact 'Étirement'", () => {
@@ -98,23 +98,25 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
       formatExerciseRowSummary({
         executionParameters: durationParameters(45, 1, 0),
       }),
-    ).toBe("1 série de 45 s");
+    ).toBe("1 série de 45″");
   });
 
-  it("durée inférieure à une minute (0 minute) : n'affiche jamais '0 min'", () => {
+  it("durée inférieure à une minute (0 minute) : n'affiche jamais '0″'", () => {
     const result = formatExerciseRowSummary({
       executionParameters: durationParameters(45, 2, 0),
     });
-    expect(result).not.toContain("0 min");
-    expect(result).toBe("2 séries de 45 s");
+    expect(result).not.toContain("0″");
+    expect(result).toBe("2 séries de 45″");
   });
 
-  it("durée exactement sur une minute (secondes nulles) : n'affiche jamais '0 s'", () => {
+  // [« n'affiche jamais « 0 s » » — format du 08/11/2026 au soir : « 2′00″ » porte des secondes nulles par construction ; jamais de « 0″ »
+  // isolé.]
+  it("durée exactement sur une minute (secondes nulles) : n'affiche jamais un « 0″ » isolé", () => {
     const result = formatExerciseRowSummary({
       executionParameters: durationParameters(120, 1, 0),
     });
-    expect(result).not.toContain("0 s");
-    expect(result).toBe("1 série de 2 min");
+    expect(result).not.toMatch(/(^|[^0-9′])0″/u);
+    expect(result).toBe("1 série de 2′00″");
   });
 
   it("singulier de Série (1) distinct du pluriel (2+)", () => {
@@ -141,7 +143,7 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
     expect(plural).toBe("1 série de 5 répétitions");
   });
 
-  it("pause nulle : la clause de pause est entièrement absente, jamais 'avec 0 s de pause'", () => {
+  it("pause nulle : la clause de pause est entièrement absente, jamais 'avec 0″ de pause'", () => {
     const result = formatExerciseRowSummary({
       executionParameters: durationParameters(30, 1, 0),
     });
@@ -153,14 +155,14 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
     const result = formatExerciseRowSummary({
       executionParameters: durationParameters(30, 1, 10),
     });
-    expect(result).toBe("1 série de 30 s avec 10 s de pause par série");
+    expect(result).toBe("1 série de 30″ avec 10″ de pause par série");
   });
 
   it("pause non nulle avec minutes et secondes : affichée complètement", () => {
     const result = formatExerciseRowSummary({
       executionParameters: durationParameters(30, 1, 75),
     });
-    expect(result).toBe("1 série de 30 s avec 1 min 15 s de pause par série");
+    expect(result).toBe("1 série de 30″ avec 1′15″ de pause par série");
   });
 
   it("ne mentionne jamais la Consigne ni les Zones corporelles", () => {
@@ -177,10 +179,10 @@ describe("formatExerciseRowSummary (T01-S08, CHANGES_REQUESTED — commentaire G
         formatExerciseRowSummary({
           executionParameters: allFailureParameters(3, 15),
         }),
-      ).toBe("3 séries à l’échec, avec 15 s de pause entre les séries");
+      ).toBe("3 séries à l’échec, avec 15″ de pause entre les séries");
     });
 
-    it("omet entièrement la clause de pause à 0 s", () => {
+    it("omet entièrement la clause de pause à 0″", () => {
       expect(
         formatExerciseRowSummary({
           executionParameters: allFailureParameters(4, 0),
@@ -274,15 +276,15 @@ describe("formatExerciseBodyZones", () => {
  * (remplace la règle V2-PRE-1 « Récupération 0 s » toujours rendue).
  */
 describe("formatActivityRecoveryLabel (PRE-6 story 2.1)", () => {
-  it("PRE6-2.1 — R absente ou R = 0 : aucune information (null), jamais « Récupération 0 s »", () => {
+  it("PRE6-2.1 — R absente ou R = 0 : aucune information (null), jamais « Récupération 0″ »", () => {
     expect(formatActivityRecoveryLabel(null)).toBeNull();
     expect(formatActivityRecoveryLabel(undefined)).toBeNull();
     expect(formatActivityRecoveryLabel(0)).toBeNull();
   });
 
-  it("PRE6-2.1 — R = 20 : « Récupération 20 s » ; R = 90 : « Récupération 1 min 30 s »", () => {
-    expect(formatActivityRecoveryLabel(20)).toBe("Récupération 20 s");
-    expect(formatActivityRecoveryLabel(90)).toBe("Récupération 1 min 30 s");
+  it("PRE6-2.1 — R = 20 : « Récupération 20″ » ; R = 90 : « Récupération 1′30″ »", () => {
+    expect(formatActivityRecoveryLabel(20)).toBe("Récupération 20″");
+    expect(formatActivityRecoveryLabel(90)).toBe("Récupération 1′30″");
   });
 });
 
@@ -292,8 +294,8 @@ describe("formatActivityRecoveryLabel (PRE-6 story 2.1)", () => {
  * format et mêmes préfixes que le résumé du Circuit.
  */
 describe("formatCompositionSessionDuration (PRE-6 story 2.1)", () => {
-  it("PRE6-2.1, story 7.8 — séance vide : « 0 s »", () => {
-    expect(formatCompositionSessionDuration({ exercises: [] })).toBe("0 s");
+  it("PRE6-2.1, story 7.8 — séance vide : « 0″ »", () => {
+    expect(formatCompositionSessionDuration({ exercises: [] })).toBe("0″");
   });
 
   it("PRE6-2.1 — additionne les trois zones, Circuit développé (× Tours)", () => {
@@ -303,7 +305,7 @@ describe("formatCompositionSessionDuration (PRE-6 story 2.1)", () => {
       { ...createExerciseDraft("after"), structuralPosition: "AFTER_TOUR", executionParameters: durationParameters(60) },
     ];
     // 60 + 60 × 3 + 60 = 300 s → « ≈ 5 min » (story 7.8 : estimation arrondie aux 15 s).
-    expect(formatCompositionSessionDuration({ exercises, tourRepeatCount: 3 })).toBe("≈ 5 min");
+    expect(formatCompositionSessionDuration({ exercises, tourRepeatCount: 3 })).toBe("≈ 5′00″");
   });
 
   it("PRE6-2.1 — une cible À l'échec donne une borne minimale « ≥ … »", () => {
@@ -321,8 +323,8 @@ describe("formatCompositionSessionDuration (PRE-6 story 2.1)", () => {
     );
     expect(formatCompositionSessionDuration({ exercises, tourRepeatCount: 2, circuitNature: "SERIES" })).toMatch(/^≈ /u);
     // Revue 7.8 : valeurs exactes (Séries ≠ Tours).
-    expect(formatCompositionSessionDuration({ exercises, tourRepeatCount: 2, circuitNature: "TOURS" })).toBe("≈ 6 min");
-    expect(formatCompositionSessionDuration({ exercises, tourRepeatCount: 2, circuitNature: "SERIES" })).toBe("≈ 2 min");
+    expect(formatCompositionSessionDuration({ exercises, tourRepeatCount: 2, circuitNature: "TOURS" })).toBe("≈ 6′00″");
+    expect(formatCompositionSessionDuration({ exercises, tourRepeatCount: 2, circuitNature: "SERIES" })).toBe("≈ 2′00″");
   });
 });
 
@@ -334,7 +336,7 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
           executionParameters: durationParameters(90, 3, 15),
           sideMode: "RIGHT_LEFT",
         }),
-      ).toBe("3 séries par côté de 1 min 30 s avec 15 s de pause par série");
+      ).toBe("3 séries par côté de 1′30″ avec 15″ de pause par série");
     });
 
     it("mode Répétitions, direction PROPRE LEFT_RIGHT : « par côté » présent, aucun suffixe développé", () => {
@@ -352,7 +354,7 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
           executionParameters: allFailureParameters(3, 15),
           sideMode: "RIGHT_LEFT",
         }),
-      ).toBe("3 séries par côté à l’échec, avec 15 s de pause entre les séries");
+      ).toBe("3 séries par côté à l’échec, avec 15″ de pause entre les séries");
     });
 
     it("la carte ne contient JAMAIS les suffixes développés « à droite, puis à gauche » / « à gauche, puis à droite » (plan `## 4.4`)", () => {
@@ -415,7 +417,7 @@ describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () 
       executionParameters: durationParameters(30, 3, 10),
     };
     // Régime identiques : synthèse historique rigoureusement inchangée.
-    expect(formatExerciseRowSummary(base)).toBe("3 séries de 30 s avec 10 s de pause par série");
+    expect(formatExerciseRowSummary(base)).toBe("3 séries de 30″ avec 10″ de pause par série");
     expect(formatExerciseRowSummary({ ...base, executionParameters: canonical() })).toBe("3 séries variables");
     expect(
       formatExerciseRowSummary({
@@ -454,28 +456,28 @@ describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () 
     ).toMatch(/^≥ /u);
   });
 
-  it("PRE4-1.1/AC21 — tout échec : « N séries à l’échec », jamais « 0 s » ni « 0 rép. » ; Cible à renseigner : « Paramètres à compléter. »", () => {
+  it("PRE4-1.1/AC21 — tout échec : « N séries à l’échec », jamais « 0″ » ni « 0 rép. » ; Cible à renseigner : « Paramètres à compléter. »", () => {
     const failure = formatExerciseRowSummary({ executionParameters: allFailureParameters(3, 10, { cadenceBeepIntervalSeconds: 2 }) });
-    expect(failure).toBe("3 séries à l’échec, avec 10 s de pause entre les séries");
-    expect(failure).not.toMatch(/(^|[^0-9])0 s|0 rép/);
+    expect(failure).toBe("3 séries à l’échec, avec 10″ de pause entre les séries");
+    expect(failure).not.toMatch(/(^|[^0-9])0″|0 rép/);
     expect(formatExerciseRowSummary({ executionParameters: repetitionParameters("UNSET", 3, 10) })).toBe(
-      "Paramètres à compléter.",
+      "Paramètres à compléter",
     );
   });
 });
 
 describe("PRE-4 story 2.2 — AC1 `formatCompactDuration` converge sur le formateur du domaine", () => {
-  it("PRE4-2.2/AC1 — mêmes sorties « 45 s », « 1 min », « 1 min 30 s », et valeurs de l'AC1", () => {
+  it("PRE4-2.2/AC1 — mêmes sorties « 45″ », « 1′00″ », « 1′30″ », et valeurs de l'AC1", () => {
     const cases: readonly (readonly [number, string])[] = [
-      [0, "0 s"],
-      [15, "15 s"],
-      [45, "45 s"],
-      [60, "1 min"],
-      [90, "1 min 30 s"],
-      [1265, "21 min 5 s"],
-      [3665, "61 min 5 s"],
-      [3960, "66 min"],
-      [4500, "75 min"],
+      [0, "0″"],
+      [15, "15″"],
+      [45, "45″"],
+      [60, "1′00″"],
+      [90, "1′30″"],
+      [1265, "21′05″"],
+      [3665, "1h 01′"], // [« 1h 01′05″ » — remplacé le 08/11/2026 au soir]
+      [3960, "1h 06′"],
+      [4500, "1h 15′"],
     ];
     for (const [seconds, expected] of cases) {
       expect(formatCompactDuration(seconds)).toBe(expected);
@@ -506,10 +508,10 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
     executionParameters: r01(),
   });
 
-  it("PRE4-2.4/AC5, story 7.8 — Composition `lowerBound` : « ≥ » en min s, arrondi aux 15 s ; Circuit ×1 → ≥ 1 min 45 s, ×2 → ≥ 3 min 30 s", () => {
+  it("PRE4-2.4/AC5, story 7.8 — Composition `lowerBound` : « ≥ » en min s, arrondi aux 15″ ; Circuit ×1 → ≥ 1′45″, ×2 → ≥ 3′30″", () => {
     // (30 + 45) + 3 × 10 = 105 s ; × 2 = 210 s (multiples de 15 : inchangés).
-    expect(formatCompositionSessionDuration({ exercises: [r01InTour()], tourRepeatCount: 1 })).toBe("≥ 1 min 45 s");
-    expect(formatCompositionSessionDuration({ exercises: [r01InTour()], tourRepeatCount: 2 })).toBe("≥ 3 min 30 s");
+    expect(formatCompositionSessionDuration({ exercises: [r01InTour()], tourRepeatCount: 1 })).toBe("≥ 1′45″");
+    expect(formatCompositionSessionDuration({ exercises: [r01InTour()], tourRepeatCount: 2 })).toBe("≥ 3′30″");
   });
 
   it("PRE4-2.4/AC5 — Composition : Cible à renseigner (Q30) et Exercice omis contribuent leurs secondes connues, en « ≥ » sans arrondi", () => {
@@ -523,28 +525,28 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
           },
         ],
       }),
-    ).toBe("≥ 1 min 45 s");
+    ).toBe("≥ 1′45″");
     // Omis : Répétitions Bip 0, Pauses 10 s × 3 = 30 s.
     expect(
       formatCompositionSessionDuration({
         exercises: [{ ...r01InTour(), executionParameters: repetitionParameters(12, 3, 10) }],
       }),
-    ).toBe("≥ 30 s");
+    ).toBe("≥ 30″");
   });
 
-  it("PRE4-2.4/AC5, story 7.8 — Composition `exact` et `estimated` : estimation « ≈ » arrondie aux 15 s (D-443)", () => {
+  it("PRE4-2.4/AC5, story 7.8 — Composition `exact` et `estimated` : estimation « ≈ » arrondie aux 15″ (D-443)", () => {
     // exact : 3 × 55 s = 165 s → « ≈ 2 min 45 s ».
     expect(
       formatCompositionSessionDuration({
         exercises: [{ ...inTourExercise("e"), postActivityRecoverySeconds: 0, executionParameters: durationParameters(55, 3, 0) }],
       }),
-    ).toBe("≈ 2 min 45 s");
+    ).toBe("≈ 2′45″");
     // exact : 2 × 60 s = 120 s → « ≈ 2 min ».
     expect(
       formatCompositionSessionDuration({
         exercises: [{ ...inTourExercise("e"), postActivityRecoverySeconds: 0, executionParameters: durationParameters(60, 2, 0) }],
       }),
-    ).toBe("≈ 2 min");
+    ).toBe("≈ 2′00″");
     // estimé : 2 × 13 rép. × 4 s = 104 s → 105 s, « ≈ 1 min 45 s ».
     expect(
       formatCompositionSessionDuration({
@@ -556,7 +558,7 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
           },
         ],
       }),
-    ).toBe("≈ 1 min 45 s");
+    ).toBe("≈ 1′45″");
   });
 
   it("PRE4-2.4/AC5 — la ligne Exercice de Composition n’acquiert aucune durée propre (Q4)", () => {
@@ -567,18 +569,18 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
   it("PRE4-2.4/AC6 — symbole « ≥ » issu du lexique, montant issu du formateur du domaine, aucune Phrase", () => {
     expect(strings.shared.durationNature.lowerBoundPrefix).toBe("≥ ");
     const summary = formatCompositionSessionDuration({ exercises: [r01InTour()] });
-    expect(summary).toBe("≥ 1 min 45 s");
+    expect(summary).toBe("≥ 1′45″");
   });
 
   it("PRE4-2.4/AC3 — Cible à renseigner : « Paramètres à compléter. », aucune valeur ni durée", () => {
-    expect(strings.executionParameters.card.incomplete).toBe("Paramètres à compléter.");
+    expect(strings.executionParameters.card.incomplete).toBe("Paramètres à compléter");
     for (const executionParameters of [
       durationParameters("UNSET", 3, 10),
       repetitionParameters("UNSET", 3, 10),
       variableParameters({ rows: [[30, 10], ["UNSET", 10], [45, 10]] }),
       variableParameters({ mode: "REPETITIONS", rows: [[12, 10], ["UNSET", 10], ["FAILURE", 10]] }),
     ]) {
-      expect(formatExerciseRowSummary({ executionParameters })).toBe("Paramètres à compléter.");
+      expect(formatExerciseRowSummary({ executionParameters })).toBe("Paramètres à compléter");
     }
   });
 
@@ -587,9 +589,9 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
    * ou héritée), avec ou sans Pause et Bip, y compris des Cibles `UNSET`.
    * Jamais « 0 s », « 0 min » ni « 0 rép. ».
    */
-  it("PRE4-2.4/AC4 — matrice Mode × Régime × position de l’échec × bilatéral : jamais « 0 s » ni « 0 rép. »", () => {
+  it("PRE4-2.4/AC4 — matrice Mode × Régime × position de l’échec × bilatéral : jamais « 0″ » ni « 0 rép. »", () => {
     const ZERO = /(^|[^0-9])0 (s|min|rép\.)/u;
-    const INCOMPLETE = "Paramètres à compléter.";
+    const INCOMPLETE = "Paramètres à compléter";
     const modes = ["DURATION", "REPETITIONS"] as const;
     const failurePositions = ["none", "first", "middle", "last", "all", "unset", "unsetAndFailure"] as const;
     // Bilatéralité héritée : les paramètres propres de l’Exercice restent UNILATERAL.
@@ -662,8 +664,8 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
                 });
                 expect(uniform).not.toMatch(ZERO);
                 const pauseClause =
-                  pause === 0 ? "" : position === "all" ? ", avec 10 s de pause entre les séries" : " avec 10 s de pause par série";
-                const work = mode === "DURATION" ? "30 s" : "12 répétitions";
+                  pause === 0 ? "" : position === "all" ? ", avec 10″ de pause entre les séries" : " avec 10″ de pause par série";
+                const work = mode === "DURATION" ? "30″" : "12 répétitions";
                 expect(uniform).toBe(
                   position === "all"
                     ? `3 séries${side.perSide} à l’échec${pauseClause}`
@@ -695,7 +697,7 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
     }
     // Cibles numériques : formateur du domaine, mêmes sorties que le code de départ.
     expect(formatExerciseRowSummary({ executionParameters: durationParameters(90, 3, 75) })).toBe(
-      "3 séries de 1 min 30 s avec 1 min 15 s de pause par série",
+      "3 séries de 1′30″ avec 1′15″ de pause par série",
     );
   });
 });
@@ -704,14 +706,14 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
 describe("formatOccurrenceSummary (PRE-6 story 2.2, D-238)", () => {
   const summaryOf = (executionParameters: ExecutionParameters) => formatOccurrenceSummary({ executionParameters });
 
-  it("one series: the target alone (« 45 s », « 10 rép. »)", () => {
-    expect(summaryOf(durationParameters(45, 1, 0, { sideMode: "RIGHT_LEFT" }))).toBe("45 s");
+  it("one series: the target alone (« 45″ », « 10 rép. »)", () => {
+    expect(summaryOf(durationParameters(45, 1, 0, { sideMode: "RIGHT_LEFT" }))).toBe("45″");
     expect(summaryOf(repetitionParameters(10))).toBe("10 rép.");
   });
 
   it("identical series: « N × cible » with unit, compact duration format", () => {
     expect(summaryOf(durationParameters(90, 3, 15))).toBe(`3 × ${formatCompactDuration(90)}`);
-    expect(summaryOf(durationParameters(90, 3, 15))).toBe("3 × 1 min 30 s");
+    expect(summaryOf(durationParameters(90, 3, 15))).toBe("3 × 1′30″");
     expect(summaryOf(repetitionParameters(10, 3, 30))).toBe("3 × 10 rép.");
     // Circuit de Séries N = 4 : N des paramètres adaptés (story 1.4), aucune règle propre.
     expect(summaryOf(repetitionParameters(10, 4))).toBe("4 × 10 rép.");
@@ -724,7 +726,7 @@ describe("formatOccurrenceSummary (PRE-6 story 2.2, D-238)", () => {
     expect(summaryOf(variableParameters({ mode: "REPETITIONS", rows: [[10, 0], [12, 0], [14, 0]] }))).toBe(
       "10 · 12 · 14 rép.",
     );
-    expect(summaryOf(variableParameters({ rows: [[30, 0], [45, 0]] }))).toBe("30 s · 45 s");
+    expect(summaryOf(variableParameters({ rows: [[30, 0], [45, 0]] }))).toBe("30″ · 45″");
     expect(summaryOf(variableParameters({ mode: "REPETITIONS", rows: [[10, 0], ["FAILURE", 0]] }))).toBe(
       "10 · à l’échec rép.",
     );
@@ -784,9 +786,15 @@ describe("formatOccurrenceEstimatedDuration / formatOccurrenceAccessibilityLabel
       formatOccurrenceEstimatedDuration(
         occurrence({ executionParameters: repetitionParameters(10, 1, 0, { cadenceBeepIntervalSeconds: 6 }) }),
       ),
-    ).toBe("≈ 1 min");
+    ).toBe("≈ 1′00″");
     expect(formatOccurrenceEstimatedDuration(occurrence({ executionParameters: repetitionParameters(10) }))).toBeNull();
     expect(formatOccurrenceEstimatedDuration(occurrence({ executionParameters: durationParameters(45) }))).toBeNull();
+  });
+
+  it("EMOM (décision de Hermann du 07/11/2026, point 21) : prescription seule, jamais de durée estimée", () => {
+    const beeping = repetitionParameters(10, 6, 0, { cadenceBeepIntervalSeconds: 6 });
+    expect(formatOccurrenceEstimatedDuration(occurrence({ executionParameters: beeping, format: { key: "EMOM", settings: {} } }))).toBeNull();
+    expect(formatOccurrenceEstimatedDuration(occurrence({ executionParameters: beeping, format: { key: "EMOM", settings: { intervalSeconds: 60 } } }))).toBeNull();
   });
 
   it("accessibility label: type, name, « n sur m », occurrence duration (one pass in a Tours Circuit)", () => {
@@ -811,7 +819,7 @@ describe("formatOccurrenceEstimatedDuration / formatOccurrenceAccessibilityLabel
     ).toBe("Exercice, Gainage (copie 2), 1 sur 1, 1 min");
   });
 
-  it("accessibility label: omits a duration without amount (never « ≥ 0 min »), appends « changement de côté » when bilateral", () => {
+  it("accessibility label: omits a duration without amount (never « ≥ 0″ »), appends « changement de côté » when bilateral", () => {
     expect(
       formatOccurrenceAccessibilityLabel(occurrence({ executionParameters: repetitionParameters(10, 3, 30) }), { index: 0, count: 1 }),
     ).toBe("Exercice, Gainage, 1 sur 1");
@@ -890,33 +898,33 @@ describe("resolveOccurrenceCategory (PRE-6 story 2.2)", () => {
  */
 describe("formatSessionDurationEstimate / formatBoundarySecondsValue (PRE-6 story 7.8)", () => {
   it.each([
-    [{ kind: "exact", seconds: 0 }, "0 s"],
-    [{ kind: "exact", seconds: 45 }, "≈ 45 s"],
-    [{ kind: "exact", seconds: 52 }, "≈ 45 s"],
-    [{ kind: "exact", seconds: 53 }, "≈ 1 min"],
-    [{ kind: "exact", seconds: 7.5 }, "≈ 15 s"],
-    [{ kind: "exact", seconds: 734 }, "≈ 12 min 15 s"],
-    [{ kind: "exact", seconds: 180 }, "≈ 3 min"],
-    [{ kind: "estimated", seconds: 104 }, "≈ 1 min 45 s"],
-    [{ kind: "lowerBound", seconds: 0 }, "≥ 0 s"],
+    [{ kind: "exact", seconds: 0 }, "0″"],
+    [{ kind: "exact", seconds: 45 }, "≈ 45″"],
+    [{ kind: "exact", seconds: 52 }, "≈ 45″"],
+    [{ kind: "exact", seconds: 53 }, "≈ 1′00″"],
+    [{ kind: "exact", seconds: 7.5 }, "≈ 15″"],
+    [{ kind: "exact", seconds: 734 }, "≈ 12′15″"],
+    [{ kind: "exact", seconds: 180 }, "≈ 3′00″"],
+    [{ kind: "estimated", seconds: 104 }, "≈ 1′45″"],
+    [{ kind: "lowerBound", seconds: 0 }, "≥ 0″"],
     // Revue 7.8 : « ≥ » prend la tranche inférieure (le minimum affiché reste vrai).
-    [{ kind: "lowerBound", seconds: 97 }, "≥ 1 min 30 s"],
-    [{ kind: "lowerBound", seconds: 104 }, "≥ 1 min 30 s"],
-    [{ kind: "lowerBound", seconds: 105 }, "≥ 1 min 45 s"],
+    [{ kind: "lowerBound", seconds: 97 }, "≥ 1′30″"],
+    [{ kind: "lowerBound", seconds: 104 }, "≥ 1′30″"],
+    [{ kind: "lowerBound", seconds: 105 }, "≥ 1′45″"],
     // Revue 7.8 : une durée positive n'affiche jamais « ≈ 0 s ».
-    [{ kind: "exact", seconds: 5 }, "≈ 15 s"],
-    [{ kind: "estimated", seconds: 7 }, "≈ 15 s"],
-    [{ kind: "exact", seconds: Number.NaN }, "0 s"],
-    [{ kind: "lowerBound", seconds: 210 }, "≥ 3 min 30 s"],
+    [{ kind: "exact", seconds: 5 }, "≈ 15″"],
+    [{ kind: "estimated", seconds: 7 }, "≈ 15″"],
+    [{ kind: "exact", seconds: Number.NaN }, "0″"],
+    [{ kind: "lowerBound", seconds: 210 }, "≥ 3′30″"],
   ] as [SessionDurationResult, string][])("%o → « %s »", (duration, expected) => {
     expect(formatSessionDurationEstimate(duration)).toBe(expected);
   });
 
   it("bornes de séance : secondes seules, bornées à 0..60", () => {
-    expect(formatBoundarySecondsValue(0)).toBe("0 s");
-    expect(formatBoundarySecondsValue(45)).toBe("45 s");
-    expect(formatBoundarySecondsValue(60)).toBe("60 s");
-    expect(formatBoundarySecondsValue(90)).toBe("60 s");
-    expect(formatBoundarySecondsValue(3599)).toBe("60 s");
+    expect(formatBoundarySecondsValue(0)).toBe("0″");
+    expect(formatBoundarySecondsValue(45)).toBe("45″");
+    expect(formatBoundarySecondsValue(60)).toBe("1′00″");
+    expect(formatBoundarySecondsValue(90)).toBe("1′00″");
+    expect(formatBoundarySecondsValue(3599)).toBe("1′00″");
   });
 });

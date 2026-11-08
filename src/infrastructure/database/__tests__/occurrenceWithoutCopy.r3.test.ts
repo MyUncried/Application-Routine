@@ -217,7 +217,7 @@ describe("PRE7-R3 — occurrence sans copie de contenu (SqliteSessionRepository,
       session([{ id: "occ-1", type: "EXERCISE", structuralPosition: "IN_TOUR", executionParameters: durationParameters(30), postActivityRecoverySeconds: 0, sourceMovementId: "mov-squat" }]),
     );
     expect(await movements().countOccurrences("mov-squat")).toBe(1);
-    expect(await movements().delete("mov-squat")).toEqual({ status: "REFERENCED", definitionCount: 0, occurrenceCount: 1 });
+    expect(await movements().delete("mov-squat")).toEqual({ status: "REFERENCED", occurrenceCount: 1 });
     expect(await movements().findById("mov-squat")).not.toBeNull();
     // Le RESTRICT de la clé étrangère protège aussi une suppression directe.
     await expect(database.runAsync("DELETE FROM movements WHERE id = 'mov-squat'")).rejects.toThrow(/FOREIGN KEY/i);

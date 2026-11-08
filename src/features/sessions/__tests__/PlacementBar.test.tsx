@@ -9,12 +9,12 @@ const NONE: PlacementConfirmation = { kind: "NONE" };
 const additions = (count: number): PlacementConfirmation => ({ kind: "ADDITIONS_ONLY", count });
 const CHANGES: PlacementConfirmation = { kind: "CHANGES" };
 
-/** PRE-6 story 4.1 (`8328:29423`) : barre « Confirmer N pauses ajoutées » / « Annuler ». */
+/** PRE-6 story 4.1 (`8328:29423`) : barre « Confirmer N points d’arrêt ajoutés » / « Annuler ». */
 describe("PlacementBar (PRE-6 story 4.1, story 6.3)", () => {
   it("agrees the additions label in number: singular at 0 and 1, plural from 2", () => {
-    expect(formatPlacementConfirmLabel(NONE)).toBe("Confirmer 0 pause ajoutée");
-    expect(formatPlacementConfirmLabel(additions(1))).toBe("Confirmer 1 pause ajoutée");
-    expect(formatPlacementConfirmLabel(additions(2))).toBe("Confirmer 2 pauses ajoutées");
+    expect(formatPlacementConfirmLabel(NONE)).toBe("Confirmer 0 point d’arrêt ajouté");
+    expect(formatPlacementConfirmLabel(additions(1))).toBe("Confirmer 1 point d’arrêt ajouté");
+    expect(formatPlacementConfirmLabel(additions(2))).toBe("Confirmer 2 points d’arrêt ajoutés");
   });
 
   it("story 6.3 (D-441, 22/10 arbitration): any other change reads « Confirmer les modifications »", () => {
@@ -34,7 +34,7 @@ describe("PlacementBar (PRE-6 story 4.1, story 6.3)", () => {
       expect(onConfirm).not.toHaveBeenCalled();
 
       view.rerender(<PlacementBar confirmation={additions(2)} onConfirm={onConfirm} onCancel={onCancel} />);
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 pauses ajoutées");
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 points d’arrêt ajoutés");
       fireEvent.press(confirm());
       expect(onConfirm).toHaveBeenCalledTimes(1);
 

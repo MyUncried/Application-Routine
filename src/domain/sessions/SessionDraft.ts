@@ -61,8 +61,24 @@ import {
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
 import type { ValidationResult } from "./errors";
 import { fail } from "./errors";
+import type { StructuredSession } from "./SessionRepository";
 import type { SideMode } from "./sideMode";
 import { stopPointKey, type StopPoint } from "./StopPoint";
+import {
+  legacyFromStructure,
+  mapStructure,
+  NO_CIRCUIT_ID,
+  structureExercises,
+  structureFromLegacy,
+  withoutEmptyLegacyCircuit,
+  type SessionStructure,
+  type StructureCircuit,
+  type StructureCycleMember,
+  type StructureElement,
+  type StructureStopPointLocation,
+} from "./structure";
+import { validateStructuredSessionInput, type StructureExerciseInput, type StructuredSessionInput } from "./structuredInput";
+import { cloneElementFormat, elementFormatsEqual, encodeFormatSettings, type ElementFormat, type SessionOrigin } from "./formats";
 import { normalizeInstruction, normalizeName, validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
 /**
@@ -163,7 +179,60 @@ export type SessionDraftExercise = {
   readonly sourceMovementId?: string;
   /** PRE-7 (R-3, Q3) : numéro de copie (`Activity.copyNumber`) ; absent/`null` = original. */
   readonly copyNumber?: number | null;
+  /** PRE-9 (C.1, ARB-03) : Format porté par l'Exercice (`Activity.format`), conservé à la duplication (ARB-17) ; absent/`null` = libre. */
+  readonly format?: ElementFormat | null;
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à vérifier » relues de la Séance
+   * (`Activity.phasesToVerify`) — affichage seulement (carte orange « Paramètre à vérifier »,
+   * champs orange dans la feuille) ; retirée à l'ouverture de la feuille. Jamais écrite par
+   * l'enregistrement de la Séance, ni comparée (`exerciseEquals`) : la retirer ne rend pas le
+   * brouillon modifié.
+   */
+  readonly phasesToVerify?: readonly number[];
+  /**
+   * PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du
+   * Profil », D-307) : nouvel Exercice dont les valeurs initialisées depuis les défauts du Profil
+   * (Récupération, Compte à rebours, Fin, Pause entre les côtés à l'activation) n'ont pas encore été
+   * validées par un premier ✓ de Paramètres d'exécution — rendues sur fond orange dans la feuille.
+   * Retiré par ce ✓ (`withProfileDefaultsValidated`) ; ✕ le laisse. État du brouillon seulement :
+   * jamais persisté ni comparé (`exerciseEquals`). Un nouvel Exercice ne peut être enregistré avant
+   * ce ✓ — sa Cible reste à renseigner et bloque Continuer (D-389) —, et abandonner le brouillon
+   * restaure l'état enregistré. Conservé à la duplication (même valeur reprise du Profil).
+   */
+  readonly profileDefaultsPending?: true;
 };
+
+/**
+ * PRE-9 (01/11/2026, point 2) : Exercice du brouillon après le premier ✓ validant ses paramètres —
+ * plus de défauts du Profil en attente (même objet s'il n'en porte pas).
+ */
+export function withProfileDefaultsValidated(exercise: SessionDraftExercise): SessionDraftExercise {
+  if (exercise.profileDefaultsPending === undefined) return exercise;
+  const { profileDefaultsPending: _profileDefaultsPending, ...rest } = exercise;
+  return rest;
+}
+
+/**
+ * PRE-9 (01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : Récupération
+ * de l'Exercice réglée par le ✓ de Paramètres d'exécution. Un ancien Exercice sans récupération
+ * (`null`, affiché 0 s) le reste si la valeur validée est 0 : le ✓ sans réglage ne modifie pas le
+ * brouillon. Même objet si rien ne change.
+ */
+export function withExerciseRecovery(exercise: SessionDraftExercise, seconds: number): SessionDraftExercise {
+  if (!Number.isInteger(seconds) || seconds < 0) return exercise;
+  if ((exercise.postActivityRecoverySeconds ?? 0) === seconds) return exercise;
+  return { ...exercise, postActivityRecoverySeconds: seconds };
+}
+
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (« Ouverture de la feuille ») : Exercice du
+ * brouillon sans marque « à vérifier » (même objet s'il n'en porte pas).
+ */
+export function withoutPhasesToVerify(exercise: SessionDraftExercise): SessionDraftExercise {
+  if (exercise.phasesToVerify === undefined) return exercise;
+  const { phasesToVerify: _phasesToVerify, ...rest } = exercise;
+  return rest;
+}
 
 /**
  * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : Mouvement créé (`NEW`) ou
@@ -263,6 +332,22 @@ export type SessionDraft = {
    * enregistré. Champ optionnel de transition, comme `stopPoints`.
    */
   readonly movements?: Readonly<Record<string, DraftMovement>>;
+  /**
+   * PRE-9 (A.1, D-449 / D-451) : disposition générale de la Séance relue (`toSessionDraft`) —
+   * Exercices par identifiant, Circuits et Cycles dans leur ordre avec leurs identités, comptes et
+   * natures, Points d'arrêt. Source de l'enregistrement par le chemin structuré
+   * (`toStructuredSessionInput`). Tant que la Composition n'édite que l'ancien modèle (jusqu'à la
+   * story B.1), une disposition représentable dans l'ancien modèle est recalculée depuis les zones,
+   * le compte, la nature et les Points du brouillon (seule l'identité du Circuit en est reprise) ;
+   * une disposition plus riche fait foi, le contenu des Exercices venant de `exercises`. Absente :
+   * brouillon de création. Jamais comparée (`sessionDraftsEqual`).
+   */
+  readonly structure?: SessionStructure<string, StructureStopPointLocation>;
+  /**
+   * PRE-9 (C.1, FMT-02) : origine de création de la Séance, relue (`toSessionDraft`) ou fixée par
+   * l'entrée de la grille (C.2) ; écrite à la création seulement. Non éditable, jamais comparée.
+   */
+  readonly origin?: SessionOrigin | null;
 };
 
 /**
@@ -353,14 +438,12 @@ export function createExerciseDraft(
  * lui-même (réouverture/modification d'une Séance existante, T01-S10) —
  * elle n'est appelée par aucun écran câblé avant cette tranche future.
  */
-export function toSessionDraft(session: Session): SessionDraft {
-  const structuralActivities: readonly Activity[] = [
-    ...(session.cycle.beforeTour ?? []),
-    ...session.cycle.tour.exercises,
-    ...(session.cycle.afterTour ?? []),
-  ];
-
-  return {
+export function toSessionDraft(session: Session | StructuredSession): SessionDraft {
+  // PRE-9 (A.1) : la structure générale fait foi ; une Séance de l'ancien modèle sans structure
+  // (fixtures antérieures) en reçoit une, exactement équivalente.
+  const structure = session.structure ?? structureOfLegacySession(session as Session);
+  const layout = mapStructure(structure, (activity) => activity.id);
+  const header = {
     sourceSessionId: session.id,
     name: session.name,
     labelId: session.labelId ?? null,
@@ -369,16 +452,61 @@ export function toSessionDraft(session: Session): SessionDraft {
     // est réenregistrée à 60 s au prochain enregistrement.
     initialCountdownSeconds: clampSessionBoundarySeconds(session.initialCountdownSeconds),
     finalPhaseSeconds: clampSessionBoundarySeconds(session.finalPhaseSeconds),
-    tourRepeatCount: session.cycle.tour.repeatCount,
-    // PRE-6 (story 1.1) : nature relue ; absente (fixture antérieure) = Tours.
-    ...(session.cycle.tour.nature !== undefined ? { circuitNature: session.cycle.tour.nature } : {}),
+    ...(session.origin !== undefined && session.origin !== null ? { origin: session.origin } : {}),
+  };
+  const legacy = legacyFromStructure(structure);
+  if (legacy === null) {
+    // Structure plus riche que l'ancien modèle (Cycles, plusieurs Circuits) : la disposition fait
+    // foi ; la Composition actuelle n'en reçoit que la liste des Exercices (B.1 la rendra).
+    const activities = structureExercises(structure);
+    return {
+      ...header,
+      tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
+      exercises: activities.map((activity) => activityToDraftExercise(activity)),
+      persistedExerciseIds: activities.map((activity) => activity.id),
+      structure: layout,
+    };
+  }
+
+  const { beforeTour, tour, afterTour } = legacy.composition;
+  const structuralActivities: readonly Activity[] = [...beforeTour, ...tour.exercises, ...afterTour];
+  // PRE-6 (story 1.1) : nature relue ; absente (fixture antérieure) = Tours.
+  const nature = "cycle" in session && session.cycle !== undefined ? session.cycle.tour.nature : tour.nature;
+  // PRE-6 (story 1.2) : points relus tels qu'enregistrés (copies), dans l'ordre des portées.
+  const stopPoints: StopPoint[] =
+    "stopPoints" in session && session.stopPoints !== undefined
+      ? session.stopPoints.map((point) => ({ ...point }))
+      : legacy.stopPoints
+          .map((point) => ({ id: point.id, scope: point.scope, position: point.position }))
+          .sort((a, b) => STRUCTURAL_ORDER.indexOf(a.scope) - STRUCTURAL_ORDER.indexOf(b.scope) || a.position - b.position);
+  return {
+    ...header,
+    tourRepeatCount: tour.repeatCount,
+    ...(nature !== undefined ? { circuitNature: nature } : {}),
     exercises: structuralActivities.map((activity) => activityToDraftExercise(activity)),
     persistedExerciseIds: structuralActivities.map((activity) => activity.id),
-    // PRE-6 (story 1.2) : points relus tels qu'enregistrés (copies).
-    ...(session.stopPoints !== undefined
-      ? { stopPoints: session.stopPoints.map((point) => ({ ...point })) }
-      : {}),
+    ...(stopPoints.length > 0 || ("stopPoints" in session && session.stopPoints !== undefined) ? { stopPoints } : {}),
+    structure: layout,
   };
+}
+
+const STRUCTURAL_ORDER: readonly StructuralPosition[] = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"];
+
+/** Séance de l'ancien modèle sans structure jointe : `[avant…, Circuit, après…]` (`structureFromLegacy`). */
+function structureOfLegacySession(session: Session): SessionStructure<Activity, StructureStopPointLocation & { readonly id: string }> {
+  return structureFromLegacy(
+    {
+      beforeTour: session.cycle.beforeTour ?? [],
+      tour: {
+        id: session.cycle.tour.id,
+        repeatCount: session.cycle.tour.repeatCount,
+        nature: session.cycle.tour.nature ?? DEFAULT_CIRCUIT_NATURE,
+        exercises: session.cycle.tour.exercises,
+      },
+      afterTour: session.cycle.afterTour ?? [],
+    },
+    session.stopPoints ?? [],
+  );
 }
 
 /**
@@ -410,6 +538,10 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     // PRE-7 (A1.2, MFN-03 ; R-3, C05) : Mouvement relu, contenu courant déjà résolu par le repository.
     ...(activity.sourceMovementId !== undefined ? { sourceMovementId: activity.sourceMovementId } : {}),
     ...(activity.copyNumber !== undefined && activity.copyNumber !== null ? { copyNumber: activity.copyNumber } : {}),
+    // PRE-9 (C.1) : Format porté, copie indépendante.
+    ...(activity.format !== undefined && activity.format !== null ? { format: cloneElementFormat(activity.format) } : {}),
+    // PRE-9 (recette iPhone n° 2, constat e) : phases « à vérifier », affichage seulement.
+    ...(activity.phasesToVerify !== undefined && activity.phasesToVerify.length > 0 ? { phasesToVerify: [...activity.phasesToVerify] } : {}),
   };
 }
 
@@ -524,7 +656,7 @@ export function replaceOccurrenceWithNewMovement(
   edited: SessionDraftExercise,
   ids: { readonly occurrenceId: string; readonly movementId: string },
   options: { readonly nextPhaseId?: number } = {},
-): Pick<SessionDraft, "exercises" | "movements" | "circuitSeriesReserve"> {
+): Pick<SessionDraft, "exercises" | "movements" | "circuitSeriesReserve" | "structure"> {
   if (!draft.exercises.some((exercise) => exercise.id === edited.id)) {
     throw new Error("replaceOccurrenceWithNewMovement: the edited occurrence is not in the draft.");
   }
@@ -540,6 +672,7 @@ export function replaceOccurrenceWithNewMovement(
     exercises: replaced.exercises,
     movements: { ...(draft.movements ?? {}), [movement.id]: movement },
     ...(replaced.circuitSeriesReserve !== undefined ? { circuitSeriesReserve: replaced.circuitSeriesReserve } : {}),
+    ...(replaced.structure !== undefined ? { structure: replaced.structure } : {}),
   };
 }
 
@@ -582,12 +715,18 @@ export function withOccurrenceMovement(
  * à la MÊME place, l'occurrence `previousId` par `replacement` (identité nouvelle). L'entrée de
  * réserve de Circuit éventuelle suit l'occurrence ; la table des Mouvements n'est pas touchée.
  * Fonction pure ; une occurrence absente du brouillon lève (entrée invalide).
+ *
+ * PRE-9, recette iPhone n° 2 du 31/10/2026 (constat d, Hermann : « une séance avec un circuit sans
+ * exercice ») : la disposition générale (`structure`) suit aussi le remplacement — l'identité nouvelle
+ * prend la place de l'ancienne dans son conteneur. Sans cela, l'ancienne identité, absente des
+ * Exercices, n'était plus rendue (son Circuit pouvait rester VIDE) et la nouvelle était ajoutée à la
+ * fin de la Séance (`resolveRichLayout`, `toStructuredSessionInput`).
  */
 export function replaceOccurrence(
   draft: SessionDraft,
   previousId: string,
   replacement: SessionDraftExercise,
-): Pick<SessionDraft, "exercises" | "circuitSeriesReserve"> {
+): Pick<SessionDraft, "exercises" | "circuitSeriesReserve" | "structure"> {
   if (!draft.exercises.some((exercise) => exercise.id === previousId)) {
     throw new Error("replaceOccurrence: the replaced occurrence is not in the draft.");
   }
@@ -598,7 +737,12 @@ export function replaceOccurrence(
     const { [previousId]: rows, ...rest } = reserve;
     circuitSeriesReserve = { ...rest, [replacement.id]: rows! };
   }
-  return { exercises, ...(circuitSeriesReserve !== undefined ? { circuitSeriesReserve } : {}) };
+  const structure = draft.structure === undefined ? undefined : mapStructure(draft.structure, (id) => (id === previousId ? replacement.id : id));
+  return {
+    exercises,
+    ...(circuitSeriesReserve !== undefined ? { circuitSeriesReserve } : {}),
+    ...(structure !== undefined ? { structure } : {}),
+  };
 }
 
 /**
@@ -674,7 +818,9 @@ export function exerciseEquals(
     draftMediaEqual(a.media, b.media) &&
     // PRE-7 (R-3) : Mouvement référencé et numéro de copie.
     (a.sourceMovementId ?? null) === (b.sourceMovementId ?? null) &&
-    (a.copyNumber ?? null) === (b.copyNumber ?? null)
+    (a.copyNumber ?? null) === (b.copyNumber ?? null) &&
+    // PRE-9 (C.1) : Format porté et réglages.
+    elementFormatsEqual(a.format, b.format)
   );
 }
 
@@ -732,8 +878,48 @@ export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
     (a.circuitNature ?? DEFAULT_CIRCUIT_NATURE) === (b.circuitNature ?? DEFAULT_CIRCUIT_NATURE) &&
     exercisesEqual(a.exercises, b.exercises) &&
     // PRE-6 (story 1.2) : un point ajouté, retiré ou déplacé seul rend le brouillon modifié.
-    stopPointsEqual(a.stopPoints ?? [], b.stopPoints ?? [])
+    stopPointsEqual(a.stopPoints ?? [], b.stopPoints ?? []) &&
+    // PRE-9 B.6 (même règle que la story 1.2) : dans une disposition générale, un Point ajouté, retiré
+    // ou déplacé — ou la disposition elle-même modifiée — rend le brouillon modifié.
+    richLayoutSignature(a.structure) === richLayoutSignature(b.structure)
   );
+}
+
+/**
+ * PRE-9 B.6 : signature d'une disposition générale (Circuits, Cycles, comptes, natures, ordre, Points
+ * par emplacement, identifiants de Point ignorés) ; `""` si absente ou représentable dans l'ancien
+ * modèle (les champs de l'ancien modèle sont alors comparés).
+ */
+function richLayoutSignature(layout: SessionDraft["structure"]): string {
+  if (layout === undefined || legacyFromStructure(layout) !== null) {
+    return "";
+  }
+  // Réalignement du 02/11/2026 : le Format d'origine et les réglages d'un Circuit porteur comptent.
+  const carried = (item: StructureCircuit<string>) =>
+    item.format === undefined || item.format === null ? "" : `,${item.format.key}:${encodeFormatSettings(item.format.settings)}`;
+  // Recette iPhone n° 3 du 03/11/2026 : le modèle d'origine (nom affiché du Circuit) compte aussi.
+  const origin = (item: StructureCircuit<string>) =>
+    ((item.originModel ?? null) === null ? "" : `,o:${item.originModel}`) + ((item.name ?? null) === null ? "" : `,n:${JSON.stringify(item.name)}`);
+  const circuit = (item: StructureCircuit<string>) =>
+    `C(${item.id},${item.repeatCount},${item.nature}${carried(item)}${origin(item)})[${item.exercises.join(",")}]`;
+  const elements = layout.elements.map((element) => {
+    switch (element.kind) {
+      case "EXERCISE":
+        return `E(${element.exercise})`;
+      case "CIRCUIT":
+        return circuit(element.circuit);
+      case "CYCLE":
+        return `Y(${element.cycle.id},${element.cycle.repeatCount}){${element.cycle.members
+          .map((member) => (member.kind === "CIRCUIT" ? circuit(member.circuit) : `E(${member.exercise})`))
+          .join(" ")}}`;
+      default: {
+        const unreachable: never = element;
+        return unreachable;
+      }
+    }
+  });
+  const points = layout.stopPoints.map((point) => `${point.circuitId ?? ""}|${point.cycleId ?? ""}|${point.position}`).sort();
+  return `${elements.join(" ")}#${points.join(" ")}`;
 }
 
 /** Compare deux collections de Points d'arrêt par emplacement `(scope, position)`, identifiants et ordre du tableau ignorés. */
@@ -782,6 +968,7 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
     sideMode: exercise.sideMode,
     ...(exercise.sourceMovementId !== undefined ? { sourceMovementId: exercise.sourceMovementId } : {}),
     ...(exercise.copyNumber !== undefined && exercise.copyNumber !== null ? { copyNumber: exercise.copyNumber } : {}),
+    ...(exercise.format !== undefined && exercise.format !== null ? { format: cloneElementFormat(exercise.format) } : {}),
   };
 }
 
@@ -819,6 +1006,104 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
     movements: toSessionMovementInputs(draft),
     stopPoints: toStopPointInputs(draft),
   });
+}
+
+/**
+ * PRE-9 (A.1, D-449 / D-451) : valide et convertit un brouillon vers une entrée d'écriture à
+ * structure générale, pour la création comme pour la modification (le service y joint les
+ * Exercices persistés à l'ouverture). Aucune règle n'est réécrite : `validateStructuredSessionInput`
+ * applique les règles de la Séance, de chaque Exercice et, pour une structure de l'ancien modèle,
+ * celles du Circuit et des Points d'arrêt (RM-219, D-442).
+ *
+ * Disposition (voir `SessionDraft.structure`) : absente ou représentable dans l'ancien modèle, la
+ * structure est `[avant…, Circuit, après…]` recalculée depuis les zones, le compte, la nature et
+ * les Points du brouillon ; le Circuit garde son identité relue, ou en reçoit une
+ * (`newContainerId`) à la création. Plus riche, la disposition fait foi : chaque Exercice y prend
+ * son contenu dans `exercises` ; un Exercice retiré du brouillon en est retiré, un Exercice
+ * nouveau est ajouté à la fin du niveau principal. Ne lève jamais d'exception.
+ */
+export function toStructuredSessionInput(
+  draft: SessionDraft,
+  newContainerId: () => string,
+): ValidationResult<StructuredSessionInput> {
+  const inputs = new Map<string, StructureExerciseInput>(
+    draft.exercises.map((exercise) => [exercise.id, { id: exercise.id, ...toDraftActivityParameters(exercise) }]),
+  );
+  const layout = draft.structure;
+  const legacyLayout = layout === undefined ? null : legacyFromStructure(layout);
+  let structure: SessionStructure<StructureExerciseInput, StructureStopPointLocation>;
+  if (layout === undefined || legacyLayout !== null) {
+    const zone = (position: StructuralPosition) =>
+      draft.exercises.filter((exercise) => exercise.structuralPosition === position).map((exercise) => inputs.get(exercise.id)!);
+    const tour = legacyLayout?.composition.tour;
+    structure = structureFromLegacy(
+      {
+        beforeTour: zone("BEFORE_TOUR"),
+        tour: {
+          // PRE-9 (B.2) : un Circuit absent (`NO_CIRCUIT_ID`) n'a pas d'identité à reprendre.
+          id: tour !== undefined && tour.id !== NO_CIRCUIT_ID ? tour.id : newContainerId(),
+          repeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+          nature: draft.circuitNature ?? tour?.nature ?? DEFAULT_CIRCUIT_NATURE,
+          exercises: zone("IN_TOUR"),
+        },
+        afterTour: zone("AFTER_TOUR"),
+      },
+      toStopPointInputs(draft),
+    );
+    // PRE-9 (B.2, D-451, COMP §1) : une Séance sans Exercice dans le Circuit n'a pas de Circuit.
+    structure = withoutEmptyLegacyCircuit(structure);
+  } else {
+    structure = withDraftExercises(layout, inputs, draft.exercises);
+  }
+  return validateStructuredSessionInput({
+    name: draft.name,
+    labelId: draft.labelId,
+    ...(draft.origin !== undefined && draft.origin !== null ? { origin: draft.origin } : {}),
+    initialCountdownSeconds: draft.initialCountdownSeconds,
+    finalPhaseSeconds: draft.finalPhaseSeconds,
+    structure,
+    movements: toSessionMovementInputs(draft),
+  });
+}
+
+/** Disposition plus riche que l'ancien modèle, Exercices pris dans le brouillon (voir `toStructuredSessionInput`). */
+function withDraftExercises(
+  layout: SessionStructure<string, StructureStopPointLocation>,
+  inputs: ReadonlyMap<string, StructureExerciseInput>,
+  exercises: readonly SessionDraftExercise[],
+): SessionStructure<StructureExerciseInput, StructureStopPointLocation> {
+  const placed = new Set(structureExercises(layout));
+  const kept = (ids: readonly string[]) => ids.flatMap((id) => (inputs.has(id) ? [inputs.get(id)!] : []));
+  const elements = layout.elements.flatMap((element): StructureElement<StructureExerciseInput>[] => {
+    switch (element.kind) {
+      case "EXERCISE":
+        return kept([element.exercise]).map((exercise) => ({ kind: "EXERCISE", exercise }));
+      case "CIRCUIT":
+        return [{ kind: "CIRCUIT", circuit: { ...element.circuit, exercises: kept(element.circuit.exercises) } }];
+      case "CYCLE":
+        return [
+          {
+            kind: "CYCLE",
+            cycle: {
+              ...element.cycle,
+              members: element.cycle.members.flatMap((member): StructureCycleMember<StructureExerciseInput>[] =>
+                member.kind === "CIRCUIT"
+                  ? [{ kind: "CIRCUIT" as const, circuit: { ...member.circuit, exercises: kept(member.circuit.exercises) } }]
+                  : kept([member.exercise]).map((exercise) => ({ kind: "EXERCISE" as const, exercise })),
+              ),
+            },
+          },
+        ];
+      default: {
+        const unreachable: never = element;
+        return unreachable;
+      }
+    }
+  });
+  const added = exercises
+    .filter((exercise) => !placed.has(exercise.id))
+    .map((exercise): StructureElement<StructureExerciseInput> => ({ kind: "EXERCISE", exercise: inputs.get(exercise.id)! }));
+  return { elements: [...elements, ...added], stopPoints: layout.stopPoints };
 }
 
 /**
