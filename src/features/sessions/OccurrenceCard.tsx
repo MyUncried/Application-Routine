@@ -8,7 +8,7 @@ import { formatPrimeDuration } from "@/domain/activities/durationFormat";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
-import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
+import { borderWidths, colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Carte d'exercice de la Composition — composant « DSF / Cards / Exercice — Composition » (Figma
@@ -27,8 +27,13 @@ import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
  * [`#E4E7EF` plein (carte v2) — remplacé le 08/11/2026.]
  */
 export const OCCURRENCE_CARD_BORDER_COLOR = "rgba(204, 209, 224, 0.5)";
-/** Épaisseur du liseré de la carte (D-511 : 0,5). [Carte v2 : 1 — remplacé le 08/11/2026.] */
-export const OCCURRENCE_CARD_HAIRLINE_WIDTH = 0.5;
+/**
+ * Épaisseur du liseré de la carte (D-511 : 0,5) — dans un Circuit ou un Cycle depuis le 08/11/2026 au soir ; directement dans
+ * la Séance : `OCCURRENCE_CARD_SESSION_LEVEL_HAIRLINE_WIDTH` (0,75). Valeurs du thème (`borderWidths`). [Carte v2 : 1 — remplacé le 08/11/2026.]
+ */
+export const OCCURRENCE_CARD_HAIRLINE_WIDTH = borderWidths.exerciseCard;
+/** Hermann, 08/11/2026 au soir : « Sur l'écran de composition de séance, change uniquement le liseré de la carte d'exercice lorsqu'elle est hors circuit (directement dans la séance, pas dans un circuit ni un cycle). Épaisseur : 0,75 pt (au lieu de 0,5 pt). Couleur #CCD1E0, tracé à l'intérieur de la carte, rayon 12 pt : inchangés. Le liseré de la carte d'exercice dans un circuit reste à 0,5 pt. Centralise la valeur dans une constante de thème ». */
+export const OCCURRENCE_CARD_SESSION_LEVEL_HAIRLINE_WIDTH = borderWidths.exerciseCardSessionLevel;
 /**
  * Fond du gabarit photo (Figma `color/cards/media-placeholder`, `#EEF0F6`) : hors registre ch12,
  * constante locale (choix D5 ; DSF-CARTES, exception v2).

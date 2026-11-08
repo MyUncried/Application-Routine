@@ -805,6 +805,19 @@
       "runtime": "Read-only Figma MCP get_design_context asset of 9798:19935 on 2026-10-21 (identical bytes for 9819:19961); root attributes preserveAspectRatio/overflow/style removed, double-encoded group id decoded; see MCP_VECTOR_EXPORT"
     },
     {
+      "key": "composition.media.exerciseOutOfCircuit",
+      "file": "icon-nature-exercice-hors-circuit",
+      "figmaNodeId": "11810:2104",
+      "figmaName": "Icône — Nature de l’exercice",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Composition — pictogramme noir (#141414) de la carte « DSF / Cards / Exercice — Composition », variante « Hors circuit » 11810:2102 (D-511, 08/11/2026)"
+      ],
+      "runtime": "Same path as icon-nature-exercice (read-only Figma MCP export of 11810:2104), fill #141414; entry added on 08/11/2026 au soir (asset introduced by commit 73018586 without manifest entry)"
+    },
+    {
       "key": "composition.category.badge",
       "file": "icon-pastille-categorie",
       "figmaNodeId": "9798:19913",

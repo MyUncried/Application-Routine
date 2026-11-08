@@ -266,6 +266,7 @@ import {
 import {
   OCCURRENCE_CARD_BORDER_WIDTH,
   OCCURRENCE_CARD_HAIRLINE_WIDTH,
+  OCCURRENCE_CARD_SESSION_LEVEL_HAIRLINE_WIDTH,
   OCCURRENCE_CARD_HEIGHT,
   OCCURRENCE_CARD_MEDIA,
   OCCURRENCE_CARD_RADIUS,
@@ -6890,6 +6891,11 @@ type CompositionActivityRowProps = {
   readonly onOpenMovement?: (() => void) | null;
   readonly layoutRailGap?: number;
   /**
+   * 08/11/2026 au soir (liseré de 0,75) : carte directement dans la Séance (ni Circuit ni Cycle). Par défaut : hors Circuit
+   * (`structuralPosition`), le modèle à un Circuit n'ayant pas de Cycle.
+   */
+  readonly isSessionLevel?: boolean;
+  /**
    * PRE-9 B.4 (COMP §6, G1–G5) : dans une disposition générale, appui long puis glisser actifs
    * (`onDragStart` / `onDragMove` / `onDragEnd`), ainsi que « Monter » / « Descendre »
    * (`onMoveUp` / `onMoveDown`). [B.4 : « le balayage (Dupliquer / Supprimer) reste réservé à B.5 »
@@ -7061,6 +7067,7 @@ function CompositionActivityRow({
   onFocusConsumed,
   onOpenMovement = null,
   layoutRailGap,
+  isSessionLevel = activity.structuralPosition !== "IN_TOUR",
   layoutDraggable = false,
   layoutSwipeable = false,
 }: CompositionActivityRowProps) {
@@ -7536,7 +7543,13 @@ function CompositionActivityRow({
    * est mesuré depuis le bord extérieur (`OccurrenceCard`, `borderWidth`). [Bord 1 hors Circuit, aucun dans le
    * Circuit sauf soulevée, à compléter ou à vérifier (`isCardBordered`, D-435) — remplacé le 08/11/2026.]
    */
-  const cardBorderWidth = isDragged || isIncomplete || isToVerify ? OCCURRENCE_CARD_BORDER_WIDTH : OCCURRENCE_CARD_HAIRLINE_WIDTH;
+  // Hermann, 08/11/2026 au soir : « Sur l'écran de composition de séance, change uniquement le liseré de la carte d'exercice lorsqu'elle est hors circuit (directement dans la séance, pas dans un circuit ni un cycle). Épaisseur : 0,75 pt (au lieu de 0,5 pt). Couleur #CCD1E0, tracé à l'intérieur de la carte, rayon 12 pt : inchangés. Le liseré de la carte d'exercice dans un circuit reste à 0,5 pt. Centralise la valeur dans une constante de thème » : 0,75 directement dans la Séance, 0,5 dans un Circuit ou un Cycle.
+  const cardBorderWidth =
+    isDragged || isIncomplete || isToVerify
+      ? OCCURRENCE_CARD_BORDER_WIDTH
+      : isSessionLevel
+        ? OCCURRENCE_CARD_SESSION_LEVEL_HAIRLINE_WIDTH
+        : OCCURRENCE_CARD_HAIRLINE_WIDTH;
   /**
    * PRE-6 (story 5.3, D-435) : emplacement de l'occurrence en placement (Domaine, `placementSlots`)
    * — zone de récupération en ligne 3 ; point d'arrêt dans la rangée sous la carte.
@@ -7758,6 +7771,8 @@ function CompositionActivityRow({
           isIncomplete && !isDragged ? occurrenceCardIncompleteSurface : null,
           isToVerify && !isDragged ? occurrenceCardToVerifySurface : null,
           isDragged ? styles.activityBlockDragged : null,
+          // 08/11/2026 au soir : épaisseur du liseré selon l'emplacement (0,75 dans la Séance, 0,5 ailleurs ; 1 soulevée ou signalée).
+          { borderWidth: cardBorderWidth },
           // Hauteur conditionnelle dérivée en un point unique — jamais un
           // littéral par état.
           { height: blockHeight },
@@ -8879,6 +8894,7 @@ function useLayoutCardMotion(exerciseId: string, context: LayoutRenderContext): 
  */
 function LayoutDirectExercise({
   exercise,
+  inCycle = false,
   position,
   frameY,
   railGap,
@@ -8888,6 +8904,8 @@ function LayoutDirectExercise({
   context,
 }: {
   exercise: SessionDraftExercise;
+  /** Exercice direct d'un Cycle (liseré de 0,5) ; sinon de la Séance (0,75). */
+  inCycle?: boolean;
   position: { readonly index: number; readonly count: number };
   /** Ordonnée du parent (Cycle) dans le contenu défilant ; 0 au niveau de la Séance ; `null` inconnue. */
   frameY: number | null;
@@ -8916,7 +8934,7 @@ function LayoutDirectExercise({
         testID={`composition-envelope-exercise-${exercise.id}`}
         gap={railGap}
       >
-        <LayoutExerciseRow exercise={exercise} circuit={null} position={position} railGap={railGap} rail={rail} context={context} />
+        <LayoutExerciseRow exercise={exercise} circuit={null} inCycle={inCycle} position={position} railGap={railGap} rail={rail} context={context} />
       </EnvelopeFrame>
     </CardMotionBlock>
   );
@@ -8982,6 +9000,7 @@ function layoutCircuitName(circuitId: string, letters: ReadonlyMap<string, strin
 function LayoutExerciseRow({
   exercise,
   circuit,
+  inCycle = false,
   position,
   railGap,
   rail,
@@ -8991,6 +9010,8 @@ function LayoutExerciseRow({
   exercise: SessionDraftExercise;
   /** Circuit qui la contient, ou `null` (Exercice direct de la Séance ou d'un Cycle). */
   circuit: StructureCircuit<SessionDraftExercise> | null;
+  /** Exercice direct d'un Cycle. */
+  inCycle?: boolean;
   position: { readonly index: number; readonly count: number };
   railGap: number;
   rail: SequenceRailContext;
@@ -9076,6 +9097,7 @@ function LayoutExerciseRow({
       // PRE-9 B.6 : en placement, zone de récupération et emplacement de Point sous la carte.
       placement={context.stops.placement}
       layoutRailGap={railGap}
+      isSessionLevel={circuit === null && !inCycle}
       layoutDraggable={drag !== null}
       layoutSwipeable={actions !== null}
       passageLabel={
@@ -9637,7 +9659,7 @@ function LayoutCycleBlock({
         containerY: cycleY,
         containerHeight: cycleHeight,
         headerBottom,
-        bottomInset: CONTAINER_PADDING_BOTTOM,
+        bottomInset: CYCLE_PADDING_BOTTOM,
         insetBottom: LAYOUT_CYCLE_GAP,
         stickTop: sticky?.top ?? 0,
       }),
@@ -9653,7 +9675,7 @@ function LayoutCycleBlock({
   const motion = useLayoutContainerMotion("CYCLE", cycle.id, context, gesture.translation, ghost);
   const isDragged = drag?.source?.kind === "CYCLE" && drag.source.id === cycle.id;
   const counterKind = layoutCycleCounterKind(cycle.id);
-  const railX = RAIL_CENTER_X_IN_CIRCUIT;
+  const railX = RAIL_CENTER_X_IN_COLUMN + CYCLE_OUTSET;
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
   const directExercises = cycle.members.flatMap((member) => (member.kind === "EXERCISE" ? [member.exercise] : []));
   const testID = ghost ? `composition-layout-vanishing-cycle-${cycle.id}-block` : `composition-layout-cycle-${cycle.id}`;
@@ -9791,8 +9813,8 @@ function LayoutCycleBlock({
           range={cycleStickyRange}
           enabled={!ghost}
           color={CYCLE_SURFACE_COLOR}
-          outsetLeft={CIRCUIT_OUTSET}
-          outsetRight={CIRCUIT_OUTSET}
+          outsetLeft={CYCLE_OUTSET}
+          outsetRight={CYCLE_OUTSET}
           insetTop={CIRCUIT_PADDING_VERTICAL}
           insetBottom={LAYOUT_CYCLE_GAP}
           extension={sticky?.top ?? 0}
@@ -9824,6 +9846,7 @@ function LayoutCycleBlock({
             <LayoutDirectExercise
               key={key}
               exercise={member.exercise}
+              inCycle
               position={{ index: directExercises.indexOf(member.exercise), count: directExercises.length }}
               frameY={cycleY}
               railGap={LAYOUT_CYCLE_GAP}
@@ -10098,8 +10121,15 @@ const COMPOSITION_ROW_GAP = SEQUENCE_GAP;
  * de chaque côté de la colonne —, le rail restant au centre de la photo (x 56) ; le Circuit garde son aplat de 386
  * à x 8 et le Circuit dans un Cycle sa position. [Cartes de 370 à x 16 (débord de 8) — remplacé le 08/11/2026.]
  */
-const CARD_OUTSET = spacing[4];
-const CIRCUIT_OUTSET = spacing[16];
+// Hermann, 08/11/2026 au soir : « Respecte les espaces suivants : Cadre de circuit, hors cycle — Bord de l'écran → cadre : 10, à gauche et à droite. Cadre → carte d'exercice : 10, à gauche et à droite. Dernière carte → bas du cadre : 10. Cadre de cycle — Bord du cycle → cadre de circuit : 12, à gauche et à droite. Dernier circuit → bas du cycle : 12. »
+// Arbitrage du même soir (« Toutes à 20 ») : toutes les cartes à 20 du bord de l'écran (colonne à 16 + retrait de 4), rail droit ;
+// Circuit à 10 du bord (débord de 6 au-delà de la colonne), cartes à 10 de son cadre. [Cartes à 12 (débord de 4) et Circuit à 0
+// (débord de 16, colonne à 16 depuis A01) — remplacé.]
+const CARD_OUTSET = -spacing[4];
+const CIRCUIT_OUTSET = spacing[6];
+// Arbitrage du même soir (« 10 dans le cycle ») : Cycle de bord à bord (débord de 16), son Circuit à 10 de son bord (et non 12 :
+// impossible sans rompre le rail), cartes à 20 du bord de l'écran.
+const CYCLE_OUTSET = spacing[16];
 /** Circuit (Figma `9819:19906`, `9819:19947`) : marge verticale 14, écart 9, rayon 18, aplat sans contour. */
 const CIRCUIT_PADDING_VERTICAL = spacing[14];
 /**
@@ -10110,7 +10140,10 @@ const CIRCUIT_PADDING_VERTICAL = spacing[14];
  * écart entre le bas du média et le bas de la carte (80 − 72 = 8), par construction. La marge haute
  * (14) et le Circuit replié (14 sous l'en-tête, 68 au total) sont inchangés.
  */
-const CONTAINER_PADDING_BOTTOM = OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom;
+// [`OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom` (4 avec la carte de 72) — remplacé le 08/11/2026 au soir :]
+// « Dernière carte → bas du cadre : 10 » (Circuit) ; « Dernier circuit → bas du cycle : 12 » (Cycle, quel que soit son dernier membre).
+const CONTAINER_PADDING_BOTTOM = spacing[10];
+const CYCLE_PADDING_BOTTOM = spacing[12];
 /** Circuit déployé : réduction de sa marge basse (14 → 8), portée par la liste de ses cartes. */
 const CIRCUIT_CARDS_BOTTOM_OVERLAP = CIRCUIT_PADDING_VERTICAL - CONTAINER_PADDING_BOTTOM;
 const CIRCUIT_GAP = 9;
@@ -10223,7 +10256,8 @@ const ENVELOPE_DESIGNATED_FILL = "rgba(234, 234, 255, 0.6)";
 /** Épaisseur du contour du cadre du mode enveloppe (B.2). */
 const ENVELOPE_FRAME_BORDER_WIDTH = 2;
 // 08/11/2026 : valeur conservée (12) indépendamment du débord des cartes. [`CARD_OUTSET + spacing[4]` — remplacé.]
-const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = spacing[12];
+// 08/11/2026 au soir (« 10 dans le cycle ») : Circuit d'un Cycle à 10 du bord du Cycle, comme hors Cycle. [spacing[12] — remplacé.]
+const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = CIRCUIT_OUTSET;
 const LAYOUT_CYCLE_GAP = CIRCUIT_GAP;
 /** Recette n° 2 du 31/10 : écart entre les membres d'un conteneur (place ouverte ou refermée par l'aperçu). */
 /** Recette iPhone n° 3 du 03/11/2026 : buy-in / buy-out (« Passage = Une fois »), fixés en tête ou en fin de leur Circuit porteur. */
@@ -10897,11 +10931,11 @@ const styles = StyleSheet.create({
   },
   // PRE-9 B.1b : Cycle pleine largeur (débord du Circuit), aplat plus soutenu, sans rayon.
   layoutCycleContainer: {
-    marginHorizontal: -CIRCUIT_OUTSET,
-    paddingHorizontal: CIRCUIT_OUTSET,
+    marginHorizontal: -CYCLE_OUTSET,
+    paddingHorizontal: CYCLE_OUTSET,
     paddingTop: CIRCUIT_PADDING_VERTICAL,
     // Contre-recette du 30/10 (obs-3) : 8 sous le dernier membre (carte ou Circuit), comme sous le média.
-    paddingBottom: CONTAINER_PADDING_BOTTOM,
+    paddingBottom: CYCLE_PADDING_BOTTOM,
     gap: LAYOUT_CYCLE_GAP,
     // Recette du 29/10 (obs-3 c) : quatre coins arrondis (Figma `10744:20282` : 18).
     borderRadius: CIRCUIT_RADIUS,

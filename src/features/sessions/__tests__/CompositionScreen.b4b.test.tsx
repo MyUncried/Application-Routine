@@ -261,9 +261,10 @@ describe("B.4b — périmètre ajustable (traits haut et bas)", () => {
     press("a");
     expect(handle("a", "top").props.accessibilityLabel).toBe(t.cycleTopEdge);
     action(handle("a", "bottom"), "increment");
+    // Largeur du Circuit (débord 6 depuis le 08/11/2026 au soir ; 16 auparavant).
     expect(StyleSheet.flatten(screen.getByTestId("composition-envelope-exercise-a-target").props.style)).toMatchObject({
-      left: -16,
-      right: -16,
+      left: -6,
+      right: -6,
       borderRadius: 18,
       borderBottomLeftRadius: 0,
     });

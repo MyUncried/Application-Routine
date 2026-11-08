@@ -744,3 +744,16 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Constats de Hermann recopiés dans ch07. Anomalie (A) : hôte natif du menu de nature mesuré avant la mise en page de son emplacement → remonté une fois après la première mise en page (`CircuitHeader.tsx`). Test `CircuitHeader.test.tsx` « remounted once after its slot is first laid out » : échoue sans le correctif, passe avec.
 - Demande (B) « décaler légèrement le bloc du nombre de tours vers la gauche » : réserve de 12 ajoutée à la colonne de durée (`COUNTER_LEFT_SHIFT`).
 - Tests : `CircuitHeader*`, `recette3*`, `CycleHeader*` 54/54 ; `CompositionScreen*`, `recette3*`, `CycleHeader*` 622/622 (avant le décalage) ; `tsc --noEmit` OK. Rien vérifié sur iPhone.
+
+### Marges des cadres et liseré des cartes (08/11/2026 au soir)
+
+- Demandes de Hermann recopiées dans ch07 (« Marges des cadres et liseré des cartes (08/11/2026 au soir) »), avec les deux arbitrages obtenus par question : « Toutes à 20 » et « 10 dans le cycle ».
+- Départ : eb4c7093 (branche `feat/pre9-catalogues-cartes-badge-20261106`).
+- **Marges (B)** — `CompositionScreen.tsx` : `CARD_OUTSET` −4 (cartes à 20 du bord, 362 à 402), `CIRCUIT_OUTSET` 6 (Circuit à 10 du bord), `CYCLE_OUTSET` 16 (Cycle de bord à bord), `LAYOUT_CIRCUIT_IN_CYCLE_OUTSET` = `CIRCUIT_OUTSET` (Circuit à 10 du bord du Cycle), `CONTAINER_PADDING_BOTTOM` 10 (Circuit), `CYCLE_PADDING_BOTTOM` 12. Rail, bornes et titres suivent (rail à 56 du bord, libellés à 69, conformes à `11789:21914`, lu sans modification de Figma).
+- **Liseré (B)** — `tokens.ts` : `borderWidths.exerciseCard` 0,5 et `borderWidths.exerciseCardSessionLevel` 0,75 ; `OccurrenceCard.tsx` les relit ; `CompositionActivityRow` : `isSessionLevel` (disposition générale : ni Circuit ni Cycle ; ancien modèle : hors Circuit). Couleur (`#CCD1E0` à 50 %), tracé intérieur, rayon 12 inchangés ; 1 à compléter, à vérifier, soulevée.
+- Tests mis à jour (valeurs de géométrie, aucune suppression) : `CompositionScreen.test`, `recette2composition`, `b2`, `b4b`, `circuitActions0411`, `recette2`, `carteExercice0811` (liseré par emplacement : e0/e9 0,75 ; a1, b1, y0 0,5).
+- Documents : ch07, ch12, ch13, spec du 06/11 §11 (annotations datées).
+- À CLARIFIER : couleur citée « #CCD1E0 » alors que le code applique 50 % d'opacité (conservé) ; Exercice directement dans un Cycle (0,5 ; 12 sous lui).
+- Vérifications iPhone à faire : Circuit à 10 du bord, cartes à 10 du cadre et à 10 du bas ; Cycle bord à bord, Circuit à 10 du Cycle, 12 en bas ; rail droit ; liseré 0,75 des cartes de la Séance, 0,5 dans les Circuits et Cycles. Rien vérifié sur iPhone.
+- Garde des jetons (`pre4Story11Controls.test.ts`) : empreinte de `tokens.ts` mise à jour (modification autorisée par « Centralise la valeur dans une constante de thème »). Manifeste des icônes (`assets/icons/manifest.json`) : entrée ajoutée pour `icon-nature-exercice-hors-circuit` (A — échec existant depuis 73018586, icône ajoutée sans entrée). `compositionRail.test.ts` : marge basse 10.
+- Tests : `tsc --noEmit` OK ; `src/features/sessions` + `src/shared/ui` : 133 suites, 1 939 passés avant les trois corrections ci-dessus, puis les 3 suites corrigées 26/26. Suite complète non relancée (mémoire).

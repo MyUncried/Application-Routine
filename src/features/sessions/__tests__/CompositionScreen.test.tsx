@@ -791,10 +791,11 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
 
     const exerciseCardStyle = StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style);
     expect(exerciseCardStyle.borderColor).toBe("rgba(204, 209, 224, 0.5)");
-    expect(exerciseCardStyle.borderWidth).toBe(0.5);
+    // Hermann, 08/11/2026 au soir : « change uniquement le liseré de la carte d'exercice lorsqu'elle est hors circuit (directement dans la séance, pas dans un circuit ni un cycle). Épaisseur : 0,75 pt (au lieu de 0,5 pt). » ; « Le liseré de la carte d'exercice dans un circuit reste à 0,5 pt. » [0,5 — remplacé pour la carte directement dans la Séance.]
+    expect(exerciseCardStyle.borderWidth).toBe(0.75);
     expect(exerciseCardStyle.borderRadius).toBe(12);
     expect(exerciseCardStyle.backgroundColor).toBe(colors.background);
-    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style)).toMatchObject({ top: -0.5, left: -0.5, right: -0.5 });
+    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style)).toMatchObject({ top: -0.75, left: -0.75, right: -0.75 });
     expect(within(screen.getByTestId("composition-exercise-media")).getByTestId("composition-exercise-media-icon").props.source).toEqual(black);
   });
 
@@ -1157,7 +1158,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     // Story 5.2 (D-435, `9819:19948`) : en-tête sur une ligne, titre à x 69 (après l'anneau). Recette du
     // 29/10 (obs-3 b) : ligne de 18 (Figma `10744:20185`, au lieu de 40), hauteur MINIMALE (Dynamic
     // Type) ; titre d'au moins 95 (compteur à x 103 du titre, aligné sur celui du Cycle).
-    expect(headerStyle).toMatchObject({ minHeight: 18, paddingLeft: 45 });
+    // 08/11/2026 au soir : colonne à 16, cartes à 20 du bord — titre à 53 de la colonne (69 du bord, Figma). [45 — remplacé.]
+    expect(headerStyle).toMatchObject({ minHeight: 18, paddingLeft: 53 });
     expect(rowStyle).toMatchObject({ minHeight: 18, alignItems: "center" });
     // Le nom (et son chevron) cède (ellipse) après la durée ; le compteur jamais.
     expect(StyleSheet.flatten(within(header).getByTestId("composition-circuit-header-collapse").props.style)).toMatchObject({
@@ -1430,8 +1432,9 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     const flattened = StyleSheet.flatten(container.props.style);
     // PRE-6 story 5.2 (D-435, `9819:19906`) : Circuit de 386 à x 8 — 16 de chaque côté de la
     // colonne, 8 au-delà des cartes (370 à x 16), dont le contenu revient à la colonne.
-    expect(flattened.marginHorizontal).toBe(-16);
-    expect(flattened.paddingHorizontal).toBe(16);
+    // 08/11/2026 au soir : Circuit à 10 du bord de l'écran (débord 6 au-delà de la colonne à 16). [16 — remplacé.]
+    expect(flattened.marginHorizontal).toBe(-6);
+    expect(flattened.paddingHorizontal).toBe(6);
     // Recette PRE-8 A/B (A01) : marge standard de 16 (auparavant 24).
     expect(StyleSheet.flatten(screen.getByTestId("composition-body").props.contentContainerStyle)).toMatchObject({
       paddingLeft: 16,
@@ -1931,7 +1934,8 @@ describe("CompositionScreen — espacement Activité/Activité (LOT_3_OF_3, rév
 
     const list = screen.getByTestId("composition-zone-before-tour");
     expect(StyleSheet.flatten(list.props.style).gap).toBe(spacing[8]);
-    expect(StyleSheet.flatten(list.props.style).marginHorizontal).toBe(-4);
+    // 08/11/2026 au soir : cartes à 20 du bord (colonne à 16 + retrait 4). [−4 — remplacé.]
+    expect(StyleSheet.flatten(list.props.style).marginHorizontal).toBe(4);
     expect(within(list).getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
     expect(within(list).getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
   });
@@ -4759,7 +4763,7 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     ]);
     // Les cartes débordent de la colonne à droite (`CARD_OUTSET` : 4 depuis D-511, 8 auparavant) ; les deux bornes aussi.
     const cardOutset = -(StyleSheet.flatten(screen.getByTestId("composition-zone-before-tour").props.style).marginHorizontal as number);
-    expect(cardOutset).toBe(4);
+    expect(cardOutset).toBe(-4); // 08/11/2026 au soir : cartes en retrait de 4 dans la colonne. [4 — remplacé.]
     for (const testID of ["composition-boundary-countdown-step", "composition-boundary-final-phase-track"]) {
       expect(StyleSheet.flatten(screen.getByTestId(testID).props.style)).toMatchObject({ marginRight: -cardOutset });
     }
@@ -4904,7 +4908,7 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     }
     // Média à 4 du bord extérieur dans les deux variantes : contenu repéré sur le bord extérieur, le rail passe par son centre.
     for (const id of ["out", "in"]) {
-      expect(StyleSheet.flatten(within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId("composition-activity-main-card").props.style).left).toBe(-0.5);
+      expect(StyleSheet.flatten(within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId("composition-activity-main-card").props.style).left).toBe(id === "out" ? -0.75 : -0.5); // Liseré 0,75 dans la Séance, 0,5 dans le Circuit (08/11/2026 au soir).
       expect(StyleSheet.flatten(within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId("composition-exercise-media").props.style).left).toBe(4);
     }
   });
@@ -8406,7 +8410,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       settle();
       // Bas du Circuit : de X (immobile) au bord bas, qui descend d'un pas du Circuit.
       // D-511 : marge basse = bas du média → bas de la carte (4). [8 — remplacé.]
-      const circuitBottom = OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom;
+      // 08/11/2026 au soir : « Dernière carte → bas du cadre : 10 ». [OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom — remplacé.]
+      const circuitBottom = spacing[10];
       expect(linkHeight("composition-rail-link-circuit-end")).toBe(circuitBottom);
       expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(circuitBottom + CIRCUIT_PITCH, 6);
       // La rangée du point après le Circuit suit le bas du Circuit : son lien ne change pas.
@@ -8544,7 +8549,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           const height = rowsOf("IN_TOUR", CIRCUIT_GAP, tourTop + listTop, "circuit");
           fireLayout(screen.getByTestId("composition-zone-in-tour"), listTop, height);
           // Contre-recette du 30/10 (obs-3) : marge basse sous les cartes = bas du média → bas de la carte (4 depuis D-511, 8 auparavant).
-          tourHeight = listTop + height + (CARD - MEDIA.bottom);
+          tourHeight = listTop + height + spacing[10]; // 08/11/2026 au soir : 10. [CARD - MEDIA.bottom — remplacé.]
         }
         fireLayout(screen.getByTestId("composition-tour-section"), tourTop, tourHeight);
         const tourBottom = tourTop + tourHeight;
@@ -8554,7 +8559,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           top: tourBottom,
           bottom: tourBottom,
           entry: tourBottom,
-          minLength: ids("IN_TOUR").length > 0 ? CARD - MEDIA.bottom : 14,
+          minLength: ids("IN_TOUR").length > 0 ? spacing[10] : 14,
           linkTestID: "composition-rail-link-circuit-end",
           shift: () => translateY("composition-rail-circuit-end-track"),
           media: null,
@@ -9423,7 +9428,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(scaleY(`composition-rail-link-${id}`)).toBe(1);
           expect(translateY(`composition-rail-link-${id}`)).toBe(0);
         }
-        expect(linkHeight("composition-rail-link-circuit-end")).toBe(OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom);
+        expect(linkHeight("composition-rail-link-circuit-end")).toBe(spacing[10]); // 08/11/2026 au soir : marge basse 10.
         expect(scaleY("composition-rail-link-circuit-end")).toBe(1);
         expect(translateY("composition-tour-section-surface-top")).toBe(0);
         expect(translateY("composition-tour-section-surface-bottom")).toBe(0);
@@ -9447,7 +9452,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       expect(visible("composition-rail-link-Q")).toBeCloseTo(IN_CIRCUIT_REST, 6);
       expectJoined("R", CIRCUIT_PITCH * 2, { id: "Q", layoutTop: CIRCUIT_PITCH });
       // Le bas du Circuit traverse l'emplacement ouvert sous R.
-      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom + CIRCUIT_PITCH, 6);
+      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(spacing[10] + CIRCUIT_PITCH, 6); // 08/11/2026 au soir : marge basse 10.
       release("P", 200);
       // Story 7.6 : P part de l'endroit du lâcher et glisse jusqu'à sa place.
       expect(rowShift("P")).toBeGreaterThan(0);
@@ -9506,7 +9511,7 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
   it("séquence vide : Compte à rebours → Fin, sans Circuit ni aucun repère d'occurrence", () => {
     renderScreen();
     // Compte à rebours : queue du bas de l'anneau (12 + 5) au bas de la rangée de 27.
-    expect(styleOf("composition-boundary-countdown-rail-tail")).toMatchObject({ top: 17, height: 10, width: 1.5, left: 32 - 0.75 });
+    expect(styleOf("composition-boundary-countdown-rail-tail")).toMatchObject({ top: 17, height: 10, width: 1.5, left: 40 - 0.75 }); // [08/11/2026 au soir : colonne à 16 et cartes à 20 du bord — rail à 40 de la colonne (56 du bord, Figma) ; 32 — remplacé.]
     // Aucun Circuit : ni anneau, ni lien d'en-tête, ni bas de Circuit.
     expect(screen.queryByTestId("composition-sequence-marker-circuit", hidden)).toBeNull();
     expect(screen.queryByTestId("composition-rail-link-circuit-header", hidden)).toBeNull();
@@ -9529,14 +9534,14 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     // Recette du 29/10 : 8 + 14 + 4 (anneau centré sur la ligne d'en-tête de 18, au lieu de 15 sur 40).
     expect(span("composition-rail-link-circuit-header").height).toBe(26);
     // Contre-recette du 30/10 (obs-3) : marge basse sous la carte = bas du média → bas de la carte (4 depuis D-511).
-    expect(span("composition-rail-link-circuit-end").height).toBe(4);
+    expect(span("composition-rail-link-circuit-end").height).toBe(10); // 08/11/2026 au soir : « Dernière carte → bas du cadre : 10 ».
     expect(span("composition-rail-link-end").height).toBe(15);
     // La queue de chaque carte part du bas du média (68) et descend jusqu'au bas du bloc.
     for (const id of ["b", "i", "a"]) {
       expect(styleOf(`composition-rail-tail-${id}`)).toMatchObject({ top: 68, bottom: 0 });
     }
     // Circuit : écart 9 entre l'en-tête et les cartes, cartes du Circuit sur l'aplat du Circuit.
-    expect(styleOf("composition-zone-in-tour")).toMatchObject({ gap: 9, marginHorizontal: -4 });
+    expect(styleOf("composition-zone-in-tour")).toMatchObject({ gap: 9, marginHorizontal: 4 }); // 08/11/2026 au soir : cartes à 10 du cadre. [−4 — remplacé.]
     expect(styleOf("composition-tour-section")).toMatchObject({ paddingVertical: 14, gap: 9 });
   });
 
@@ -9585,9 +9590,10 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
   // D-511 (08/11/2026, écran `11789:21914`) : cartes à 4 (362 à x 20), Circuit toujours à 16. [Cartes à 8 — remplacé.]
   it("largeurs : cartes à 4 et Circuit à 16 de part et d'autre de la colonne (marges constantes, aucune largeur codée)", () => {
     renderScreenWithDraft([anActivity("b", "BEFORE_TOUR", { name: "Gainage" }), anActivity("i", "IN_TOUR", { name: "Pompes" })]);
-    expect(styleOf("composition-zone-before-tour").marginHorizontal).toBe(-4);
+    // 08/11/2026 au soir : cartes à 20 du bord (retrait 4 dans la colonne à 16), Circuit à 10 du bord (débord 6).
+    expect(styleOf("composition-zone-before-tour").marginHorizontal).toBe(4);
     expect(styleOf("composition-zone-before-tour").width).toBeUndefined();
-    expect(styleOf("composition-tour-section")).toMatchObject({ marginHorizontal: -16, paddingHorizontal: 16 });
+    expect(styleOf("composition-tour-section")).toMatchObject({ marginHorizontal: -6, paddingHorizontal: 6 });
     expect(styleOf("composition-tour-section").width).toBeUndefined();
     for (const id of ["b", "i"]) {
       expect(styleOf(`composition-exercise-row-${id}`).width).toBeUndefined();
@@ -9605,11 +9611,12 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
         borderWidth: 1.5,
         borderColor: TEXT_TERTIARY,
         backgroundColor: colors.background,
-        left: 32 - 6.5,
+        left: 40 - 6.5,
         top: 12 - 6.5,
       });
-      // Colonne de l'anneau (32 + 5) puis écart 8 : libellé à 45 de la colonne (x 69 à 402).
-      expect(styleOf(`${boundary}-ring-column`).width).toBe(37);
+      // [08/11/2026 au soir : colonne à 16 et cartes à 20 du bord — rail à 40 de la colonne (56 du bord, Figma) ; 32 — remplacé.]
+      // Colonne de l'anneau (40 + 5) puis écart 8 : libellé à 53 de la colonne (x 69 à 402).
+      expect(styleOf(`${boundary}-ring-column`).width).toBe(45);
       expect(styleOf(boundary).gap).toBe(8);
     }
     const label = within(screen.getByTestId("composition-boundary-countdown")).getByText(composition.countdown.label);

@@ -320,7 +320,7 @@ describe("Recette iPhone n° 2 — glisser d'une disposition générale : les é
     };
     await renderComposition(draftOf(withPoint, ["e0", "a1", "a2", "b1", "e9"]));
     // Débord des cartes (recette n° 2 : un seul rail) : la rangée du Point, hors Circuit, s'aligne sur les cartes.
-    expect(StyleSheet.flatten(screen.getByTestId("composition-layout-stop-point-p", hidden).props.style)).toMatchObject({ marginHorizontal: -4 }); // D-511 : débord des cartes 4 (8 avant le 08/11/2026).
+    expect(StyleSheet.flatten(screen.getByTestId("composition-layout-stop-point-p", hidden).props.style)).toMatchObject({ marginHorizontal: 4 }); // Cartes à 20 du bord : retrait de 4 dans la colonne. [D-511 : débord des cartes 4 (8 avant le 08/11/2026) — remplacé le 08/11/2026 au soir.]
     // Mesures : e0 0–80, Point 88–110, Circuit A 118–338 (a1 159–239, a2 248–328), Circuit B 346–476 (b1 387–467), e9 484–564.
     layout("composition-layout-exercise-e0", 0, 80);
     layout("composition-layout-stop-point-p", 88, 22);

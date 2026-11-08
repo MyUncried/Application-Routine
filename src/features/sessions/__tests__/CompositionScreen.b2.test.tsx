@@ -421,9 +421,9 @@ describe("contre-recette du 30/10 — cadre du Circuit et apparition du Cycle", 
     openMenu();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-cycle"));
     const frame = StyleSheet.flatten(screen.getByTestId("composition-envelope-circuit-target").props.style);
-    expect(frame).toMatchObject({ position: "absolute", top: 0, bottom: 0, left: -16, right: -16, borderRadius: 18 });
-    // Le Circuit déborde de 16 de sa boîte : même valeur que le cadre.
-    expect(StyleSheet.flatten(screen.getByTestId("composition-tour-section", hidden).props.style)).toMatchObject({ marginHorizontal: -16 });
+    expect(frame).toMatchObject({ position: "absolute", top: 0, bottom: 0, left: -6, right: -6, borderRadius: 18 });
+    // Le Circuit déborde de 6 de sa boîte (16 avant le 08/11/2026 au soir) : même valeur que le cadre. [08/11/2026 au soir — marges des cadres : Circuit à 10 du bord, cartes à 10 du cadre, bas 10 ; Cycle bas 12.]
+    expect(StyleSheet.flatten(screen.getByTestId("composition-tour-section", hidden).props.style)).toMatchObject({ marginHorizontal: -6 });
     // Une carte garde le cadre à ses bords (aucun débord).
     expect(StyleSheet.flatten(screen.getByTestId("composition-envelope-exercise-a-target").props.style)).toMatchObject({ left: 0, right: 0 });
   });
@@ -474,15 +474,16 @@ describe("contre-recette du 30/10 — marges basses, apparition du Circuit, cart
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
     // Circuit de l'ancien modèle : marge 14, la liste des cartes déployées en reprend 6.
     expect(StyleSheet.flatten(screen.getByTestId("composition-tour-section", hidden).props.style)).toMatchObject({ paddingVertical: 14 });
-    expect(StyleSheet.flatten(screen.getByTestId("composition-zone-in-tour", hidden).props.style)).toMatchObject({ marginBottom: -10 });
+    // Marge basse 10 (« Dernière carte → bas du cadre : 10 ») : la liste en reprend 4. [08/11/2026 au soir — marges des cadres : Circuit à 10 du bord, cartes à 10 du cadre, bas 10 ; Cycle bas 12.]
+    expect(StyleSheet.flatten(screen.getByTestId("composition-zone-in-tour", hidden).props.style)).toMatchObject({ marginBottom: -4 });
 
     await envelopeAround("CYCLE", "composition-envelope-circuit");
     const cycle = `composition-layout-cycle-${cycleId()}`;
-    expect(StyleSheet.flatten(screen.getByTestId(cycle, hidden).props.style)).toMatchObject({ paddingTop: 14, paddingBottom: 4 });
+    expect(StyleSheet.flatten(screen.getByTestId(cycle, hidden).props.style)).toMatchObject({ paddingTop: 14, paddingBottom: 12 }); // « Dernier circuit → bas du cycle : 12 ». [08/11/2026 au soir — marges des cadres : Circuit à 10 du bord, cartes à 10 du cadre, bas 10 ; Cycle bas 12.]
     // Circuit dans le Cycle : 4 sous ses cartes, puis 4 jusqu'au bord du Cycle.
     const circuit = `composition-layout-circuit-${circuitIdOf("b")}`;
     expect(StyleSheet.flatten(screen.getByTestId(circuit, hidden).props.style)).toMatchObject({ paddingVertical: 14 });
-    expect(StyleSheet.flatten(screen.getByTestId(`${circuit}-exercises`, hidden).props.style)).toMatchObject({ marginBottom: -10 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${circuit}-exercises`, hidden).props.style)).toMatchObject({ marginBottom: -4 });
   });
 
   it("constat b — the first Circuit posed by « Confirmer le circuit » fades in (surface, ring, header); not once saved and reopened", async () => {

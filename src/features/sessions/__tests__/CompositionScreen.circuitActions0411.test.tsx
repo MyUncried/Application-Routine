@@ -205,7 +205,7 @@ describe("Recette iPhone du 04/11/2026 — Circuit replié glissé", () => {
     await swipeOpen();
     const actions = StyleSheet.flatten(screen.getByTestId(`${swipe}-actions`).props.style) as { top: number; right: number; bottom: number };
     expect(actions.top).toBe(-14);
-    expect(actions.right).toBe(-16);
+    expect(actions.right).toBe(-6); // Circuit à 10 du bord (débord 6). [08/11/2026 au soir — marges des cadres : Circuit à 10 du bord, cartes à 10 du cadre, bas 10 ; Cycle bas 12.]
     // CE-FMT-05 : actions de 70, bloc arrondi au rayon du cadre du Circuit (18) à ses extrémités.
     expect(StyleSheet.flatten(screen.getByTestId(`${swipe}-action-rename`).props.style)).toMatchObject({ width: 70, borderTopLeftRadius: 18 });
     expect(StyleSheet.flatten(screen.getByTestId(`${swipe}-action-delete`).props.style)).toMatchObject({ width: 70, borderBottomRightRadius: 18 });

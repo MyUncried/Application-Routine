@@ -2393,7 +2393,7 @@ Source : [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes
 | D-509 | Le code ne doit plus utiliser `selectionSurface` (#E5F0FF) pour la zone de contexte ; jetons par catalogue (D-501). Écart historique : classe A ; nouvelles couleurs : classe B. Consigne explicite de Hermann du 06/11/2026 (mission de développement D-501 à D-510) : « dans chaque catalogue, utiliser son token de contexte ; pour les autres écrans utilisant cette bande, notamment Composition et fiche Mouvement, utiliser #EAEAFF, valeur prévue par la spécification ; conserver la signification de selectionSurface pour ses véritables usages de sélection ». [Remplace, pour les bandes hors catalogue, la formulation « non modifiées » de la spec du 06/11 §3 et §9.] Réalisé : `color.contextBand` (#EAEAFF) par défaut de `ScreenShell.ContextBand`. | Constat 06/11/2026, décision D-501 ; consigne de Hermann du 06/11/2026 | ch12, code |
 | D-510 | Badge « New » (Inter Medium 12, blanc sur vert `color/status/positive-text`, en forme d’onglet au coin bas droit, arrondis inversés le long des bords de la carte) sur les fiches créées depuis la dernière sortie du catalogue des mouvements ; « New ↓ » sur la carte de tête d’une pile repliée dont un niveau caché est nouveau. Disparaît au changement de vue (onglets du haut, barre du bas) ou à la fermeture de l’app ; non enregistré ; défilement vers la fiche créée ; description raccourcie tant que le badge est affiché. Catalogue des séances exclu. | Hermann, 06/11/2026 | [KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06](../KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06.md), CE-MVT-03 |
 
-| D-511 | Composition : carte d’exercice 72 pt, photo 64 à 4/rayon 8, liseré 0,5 à 50 %, trois lignes à 8/30/48 ; nom/niveau, catégorie/prescription sans chronomètre, zones/rôle/récupération conditionnelle ; aucun chevron ; rail centré sur photo, largeur de référence 362. | Hermann, 06/11/2026 — classe B | [Spec §11](../KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement), CE-T03-08, ch06, ch12 |
+| D-511 | Composition : carte d’exercice 72 pt, photo 64 à 4/rayon 8, liseré 0,5 à 50 % [Précisé le 08/11/2026 au soir : 0,75 pt pour la carte directement dans la Séance ; 0,5 pt dans un Circuit ou un Cycle (`borderWidths.exerciseCardSessionLevel` / `exerciseCard`).], trois lignes à 8/30/48 ; nom/niveau, catégorie/prescription sans chronomètre, zones/rôle/récupération conditionnelle ; aucun chevron ; rail centré sur photo, largeur de référence 362. | Hermann, 06/11/2026 — classe B | [Spec §11](../KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement), CE-T03-08, ch06, ch12 |
 | D-512 | Chevron du Circuit juste après le rond du rail et devant le nom ; compteur/nature inchangés ; Cycle non repliable. Déploiement Figma limité à 11789:21914. | Hermann, 06/11/2026 — classe B | CE-T03-08, spec §11 |
 | D-513 | Placement réservé aux Points d’arrêt ; retrait du cadre Récupération en pointillés. Écran 8328:29270 renommé Placement d’un point d’arrêt ; bandeau Confirmer N points d’arrêt ajoutés. | Hermann, 06/11/2026 — classe B | CE-T03-08, ch06, spec §11 |
 
@@ -2405,7 +2405,7 @@ Demande de Hermann du 08/11/2026, classe B pour la mise en œuvre de D-511 à D-
 
 **2. Reproduire la carte de référence**
 
-- **Carte** : blanche, 72 pt de haut, rayon 12, liseré de 0,5 pt à 50 % avec le token des cartes de séance. Sur l'écran de référence, elle fait 362 pt de large et le rail passe au centre de la photo. Conserve l'adaptation à la largeur disponible.
+- **Carte** : blanche, 72 pt de haut, rayon 12, liseré de 0,5 pt à 50 % avec le token des cartes de séance. [Précisé le 08/11/2026 au soir : 0,75 pt pour la carte directement dans la Séance ; 0,5 pt dans un Circuit ou un Cycle (`borderWidths.exerciseCardSessionLevel` / `exerciseCard`).] Sur l'écran de référence, elle fait 362 pt de large et le rail passe au centre de la photo. Conserve l'adaptation à la largeur disponible.
 - **Photo** : 64 × 64 pt, à 4 pt du bord, rayon 8. États avec et sans photo ; couleur du pictogramme propre à chaque variante.
 - **Lignes** : elles commencent à 8, 30 et 48 pt du haut. Le texte commence à 8 pt de la photo. Les valeurs de droite se terminent à 12 pt du bord. Les icônes des lignes 2 et 3 sont centrées dans une colonne de 10 pt.
 - **Ligne 1** : nom en Semi Bold 15, tronqué avant le niveau. Si le niveau existe, il s'affiche à droite en Medium 12, text-primary, sur la ligne de base du nom. Sinon, cet espace revient au nom.
@@ -2443,11 +2443,47 @@ Règles complémentaires :
 - Prescription : `formatOccurrencePrescription` (compositionPresentation), qui complète `formatOccurrenceSummary` : « à l'échec » pour une seule série à l'échec [« 1 série à l'échec » — remplacé sur la carte], départ et incrément « {départ} {±incrément}/tour » (AMRAP, Volume croissant) et « /min » (Death by, intervalle d'une minute). [Death by « 1 / +1 rép. » (03/11/2026) — remplacé.] Aucune durée estimée sur la carte. [« 10 rép. / ≈ 1 min » (story 5.1) — remplacé.]
 - Le nom visible ne porte plus le suffixe « - Nn » : le niveau « Niveau N » est à droite de la ligne 1 ; nom accessible et repères des Points d'arrêt inchangés.
 - Bandeau de placement : « Confirmer N point(s) d'arrêt ajouté(s) » (D-513). [« Confirmer N pause(s) ajoutée(s) » — remplacé.]
-- Cartes de 362 à x 20 à la largeur 402 (débord de 4 de la colonne) ; rail toujours à x 56 ; Circuit (386 à x 8) et Circuit dans un Cycle inchangés. Marge basse d'un Circuit ou d'un Cycle sous ses cartes = bas de la photo → bas de la carte (règle de la contre-recette du 30/10), soit 4 avec la nouvelle carte.
+- Cartes de 362 à x 20 à la largeur 402 (débord de 4 de la colonne) ; rail toujours à x 56 ; Circuit (386 à x 8) et Circuit dans un Cycle inchangés. Marge basse d'un Circuit ou d'un Cycle sous ses cartes = bas de la photo → bas de la carte (règle de la contre-recette du 30/10), soit 4 avec la nouvelle carte. [Remplacé le 08/11/2026 au soir (Hermann : « Respecte les espaces suivants … ») : cartes à 20 du bord de l'écran (362 à 402), Circuit à 10 du bord, cartes à 10 de son cadre, 10 sous la dernière carte ; Cycle de bord à bord, son Circuit à 10 de son bord, 12 sous son dernier membre. Voir ch07, « Marges des cadres et liseré des cartes (08/11/2026 au soir) ».]
 
 ### À CLARIFIER
 
-- Marge basse d'un Circuit sous sa dernière carte : la règle du 30/10 (égale à l'écart bas de la photo → bas de la carte) donne 4 ; l'écran de référence `11789:21914` montre 10 en haut et en bas. Code : règle du 30/10 (4) ; marge haute inchangée (14).
+- Marge basse d'un Circuit sous sa dernière carte : la règle du 30/10 (égale à l'écart bas de la photo → bas de la carte) donne 4 ; l'écran de référence `11789:21914` montre 10 en haut et en bas. Code : règle du 30/10 (4) ; marge haute inchangée (14). [Tranché le 08/11/2026 au soir par Hermann : « Dernière carte → bas du cadre : 10 ». Marge haute toujours 14.]
 - Death by à intervalle différent d'une minute : période affichée « /{intervalle} » (par exemple « +1/30″ ») ; aucune forme décidée.
 - AMRAP « Volume croissant » à incrément négatif : « 10 rép. −1/tour » (signe moins U+2212) ; aucune forme décidée.
 - « Paramètres à compléter. » : la colonne des valeurs et le chronomètre ayant disparu, la mention tient sur une ligne en ligne 2 (la catégorie lui cède la place). [Deux lignes, chronomètre à sa place (recette du 29/10) — sans objet avec le composant.] À confirmer sur iPhone.
+
+## Marges des cadres et liseré des cartes (08/11/2026 au soir)
+
+Demandes de Hermann, recopiées textuellement :
+
+> Respecte les espaces suivants :
+>
+> Cadre de circuit, hors cycle
+>
+> 	•	Bord de l'écran → cadre : 10, à gauche et à droite.
+> 	•	Cadre → carte d'exercice : 10, à gauche et à droite.
+> 	•	Dernière carte → bas du cadre : 10.
+>
+> Cadre de cycle
+>
+> 	•	Bord du cycle → cadre de circuit : 12, à gauche et à droite.
+> 	•	Dernier circuit → bas du cycle : 12.
+
+Arbitrages du même soir (questions posées : avec la colonne à 16 du bord, les cartes hors Circuit étaient à 12 du bord et le Circuit presque de bord à bord ; les valeurs demandées décalaient le rail de 8 à l'entrée de chaque Circuit, et 12 dans un Cycle imposait un Cycle à −2 pour garder le rail droit) :
+
+> Toutes à 20 (Recommandé) — Toutes les cartes, dans un circuit ou non, à 20 du bord (362 de large), comme l'écran Figma de référence 11789:21914. Le rail reste droit. Les cartes hors circuit perdent 16 de largeur.
+
+> 10 dans le cycle (Recommandé) — Le cycle va de bord à bord, avec le circuit à 10 du bord du cycle au lieu de 12. Cartes et rail restent alignés avec le reste de l'écran. Bas du cycle : 12.
+
+> Sur l'écran de composition de séance, change uniquement le liseré de la carte d'exercice lorsqu'elle est hors circuit (directement dans la séance, pas dans un circuit ni un cycle).
+>
+> - Épaisseur : 0,75 pt (au lieu de 0,5 pt).
+> - Couleur #CCD1E0, tracé à l'intérieur de la carte, rayon 12 pt : inchangés.
+> - Le liseré de la carte d'exercice dans un circuit reste à 0,5 pt.
+>
+> Centralise la valeur dans une constante de thème, applique-la à tous les écrans qui affichent une carte d'exercice hors circuit, puis lance les tests existants.
+
+- **Marges (B).** Colonne de la séquence inchangée (16, A01). Cartes à 20 du bord de l'écran partout (retrait de 4 dans la colonne ; 362 à la largeur 402) ; rail au centre des photos, à 56 du bord ; bornes et titres suivent (libellés à 69 du bord, comme Figma). Circuit à 10 du bord (débord de 6), cartes à 10 de son cadre, 10 sous la dernière carte (marge haute 14 inchangée). Cycle de bord à bord (débord de 16), son Circuit à 10 de son bord (et non 12, arbitrage ci-dessus), 12 sous son dernier membre, quel qu'il soit. [Cartes à 12 du bord (378), Circuit à 0, Circuit d'un Cycle à 4 du bord du Cycle, marges basses de 4 — remplacé.]
+- **Liseré (B).** Carte directement dans la Séance : 0,75 ; dans un Circuit, un Circuit d'un Cycle ou directement dans un Cycle : 0,5 ; à compléter, à vérifier ou soulevée : 1, inchangé. Constantes de thème `borderWidths.exerciseCardSessionLevel` (0,75) et `borderWidths.exerciseCard` (0,5) (`src/shared/ui/tokens.ts`), relues par `OccurrenceCard` ; la carte d'exercice de la Composition est la seule carte d'Exercice hors Circuit de l'application (Catalogue, carte Séance et carte Mouvement : non concernées). Couleur et rayon inchangés : la couleur reste `#CCD1E0` à 50 % d'opacité (D-511), tracé intérieur.
+- **À CLARIFIER.** Couleur du liseré : la demande cite « #CCD1E0 … inchangé » ; le code applique `#CCD1E0` à 50 % (D-511) — conservé tel quel. Exercice directement dans un Cycle : liseré 0,5 (lecture de « pas dans un circuit ni un cycle ») et 12 sous lui comme sous un Circuit (la demande ne cite que « Dernier circuit »).
+- Rien vérifié sur iPhone.

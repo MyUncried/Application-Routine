@@ -405,6 +405,13 @@ export const fixedRadii = {
 export const borderWidths = {
   1: 1,
   2: 2,
+  /** Liseré de la carte d'Exercice de la Composition dans un Circuit ou un Cycle (D-511). */
+  exerciseCard: 0.5,
+  /**
+   * Hermann, 08/11/2026 au soir : « Sur l'écran de composition de séance, change uniquement le liseré de la carte d'exercice lorsqu'elle est hors circuit (directement dans la séance, pas dans un circuit ni un cycle). Épaisseur : 0,75 pt (au lieu de 0,5 pt). Couleur #CCD1E0, tracé à l'intérieur de la carte, rayon 12 pt : inchangés. Le liseré de la carte d'exercice dans un circuit reste à 0,5 pt. Centralise la valeur dans une constante de thème ».
+   * Carte d'Exercice directement dans la Séance (ni Circuit ni Cycle).
+   */
+  exerciseCardSessionLevel: 0.75,
 } as const;
 
 export const icon = {

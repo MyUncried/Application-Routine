@@ -26,9 +26,11 @@ const read = (path: string) => readFileSync(join(ROOT, path), "utf8").replace(/\
  * `6358eb15…d86c` ; puis par le bouton de lecture vidéo (`mediaPlaySurface`, `mediaPlayBorder`) :
  * `8e16c394…7c2c` ; puis par la surface éditable à 90 % (recette du 27/10) : `1af9bf37…bdd1` ; puis par les jetons des
  * catalogues, du bandeau commun et du badge « New » (D-501, D-509, D-510, 06/11/2026, chapitre 12) : `8f0da6c8…75d2` ; puis par
- * D-501 révisée et `switchTrackOff` (recette du 07/11 au soir, décisions de Hermann du 08/11/2026, chapitre 12).
+ * D-501 révisée et `switchTrackOff` (recette du 07/11 au soir, décisions de Hermann du 08/11/2026, chapitre 12) : `53bf02bf…ff16` ;
+ * puis par `borderWidths.exerciseCard` (0,5) et `borderWidths.exerciseCardSessionLevel` (0,75) — Hermann, 08/11/2026 au soir :
+ * « Centralise la valeur dans une constante de thème » (liseré de la carte d'exercice directement dans la Séance ; ch07, ch12).
  */
-const TOKENS_BASELINE_SHA256 = "53bf02bf19e7e55d1c65e871c0b9dc9d1728ad04f114784b795a0dac8ecfff16";
+const TOKENS_BASELINE_SHA256 = "46443cf347200487c05a0df161a80da01a56c2c22692dccd7f9283dd094c4b0f";
 
 function sources(directory: string): string[] {
   return readdirSync(directory).flatMap((entry) => {

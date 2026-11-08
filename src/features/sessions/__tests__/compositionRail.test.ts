@@ -6,6 +6,7 @@ import { type DropTarget, resolveDragShifts } from "@/features/sessions/composit
 import { RAIL_KEYS, railRowKey, railStopKey, resolveRailLinks, type RailChainInput } from "@/features/sessions/compositionRail";
 import { railGeometryFor } from "@/features/sessions/CompositionScreen";
 import { OCCURRENCE_CARD_HEIGHT, OCCURRENCE_CARD_MEDIA } from "@/features/sessions/OccurrenceCard";
+import { spacing } from "@/shared/ui/tokens";
 
 /**
  * PRE-6 (story 5.2, D-435, Figma `8328:28605`) : liens du rail segmenté. Géométrie de conception à
@@ -21,7 +22,8 @@ const GEOMETRY = railGeometryFor(CIRCUIT_HEADER_HEIGHT);
  */
 const CARD = OCCURRENCE_CARD_HEIGHT;
 const M = OCCURRENCE_CARD_MEDIA.top;
-const PB = OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom;
+// 08/11/2026 au soir (Hermann : « Dernière carte → bas du cadre : 10 ») : PB = 10. [OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom (4) — remplacé.]
+const PB = spacing[10];
 
 function links(input: Partial<RailChainInput>) {
   return resolveRailLinks({
@@ -39,9 +41,9 @@ const summary = (result: ReturnType<typeof links>) =>
 
 describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
   it("contre-recette du 30/10 (obs-3) — marge basse du Circuit sous ses cartes = bas du média → bas de la carte (8) ; 14 sans carte", () => {
-    expect(GEOMETRY.circuitPaddingBottom).toBe(OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom);
-    expect(GEOMETRY.circuitPaddingBottom).toBe(4);
-    expect([CARD, M, PB]).toEqual([72, 4, 4]);
+    expect(GEOMETRY.circuitPaddingBottom).toBe(PB);
+    expect(GEOMETRY.circuitPaddingBottom).toBe(10);
+    expect([CARD, M, PB]).toEqual([72, 4, 10]);
     expect(GEOMETRY.circuitPadding).toBe(14);
   });
 

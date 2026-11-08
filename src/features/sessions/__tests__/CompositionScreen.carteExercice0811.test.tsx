@@ -171,10 +171,13 @@ describe("Carte d'exercice de la Composition — variante selon l'appartenance �
     await renderComposition(sampleDraft());
     for (const id of ["e0", "y0", "e9"]) expect(pictogramOf(id)).toEqual(black);
     for (const id of ["a1", "a2", "b1"]) expect(pictogramOf(id)).toEqual(grey);
-    // Toutes les cartes passent par le composant : 72 de haut, liseré 0,5, aucun chevron de carte.
+    // Toutes les cartes passent par le composant : 72 de haut, aucun chevron de carte. Hermann, 08/11/2026 au soir : « change uniquement le liseré de la carte d'exercice lorsqu'elle est hors circuit (directement dans la séance, pas dans un circuit ni un cycle). Épaisseur : 0,75 pt (au lieu de 0,5 pt). » ; « Le liseré de la carte d'exercice dans un circuit reste à 0,5 pt. »
+    // Liseré 0,75 directement dans la Séance (e0, e9) ; 0,5 dans un Circuit (a1, b1) ou directement dans un Cycle (y0).
     for (const id of ["e0", "a1", "y0", "b1", "e9"]) {
       const card = screen.getByTestId(`composition-exercise-row-${id}`, hidden);
-      expect(StyleSheet.flatten(card.props.style)).toMatchObject({ height: 72, borderWidth: 0.5, borderRadius: 12 });
+      const hairline = id === "e0" || id === "e9" ? 0.75 : 0.5;
+      expect(StyleSheet.flatten(card.props.style)).toMatchObject({ height: 72, borderWidth: hairline, borderRadius: 12, borderColor: "rgba(204, 209, 224, 0.5)" });
+      expect(StyleSheet.flatten(within(card).getByTestId("composition-activity-main-card", hidden).props.style)).toMatchObject({ left: -hairline });
       expect(within(card).getByTestId("composition-exercise-card-content", hidden)).toBeTruthy();
       expect(within(card).queryByTestId(/chevron|disclosure/u, hidden)).toBeNull();
     }
