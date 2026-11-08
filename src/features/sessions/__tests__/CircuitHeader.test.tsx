@@ -569,6 +569,10 @@ describe("CircuitHeader — repli du Circuit (ARB-12)", () => {
     expect(collapse.props.accessibilityState).toMatchObject({ expanded: true });
     expect(screen.getByTestId("header-chevron", anyNode).props.source).toBeTruthy();
     expect(screen.queryByTestId("header-names", anyNode)).toBeNull();
+    // Hermann, 08/11/2026 au soir : « Circuit : mets le chevron entre le cercle et le nom du circuit » → chevron avant le nom.
+    const order = (screen.getByTestId("header-collapse").children as unknown as { props: { testID?: string } }[]).map((child) => child.props.testID);
+    expect(order.indexOf("header-chevron")).toBeGreaterThanOrEqual(0);
+    expect(order.indexOf("header-chevron")).toBeLessThan(order.indexOf("header-title"));
     expect(style("header")).toMatchObject({ minHeight: CIRCUIT_HEADER_HEIGHT });
     expect(style("header").height).toBeUndefined();
     expect(style("header-row")).toMatchObject({ flexDirection: "row", minHeight: CIRCUIT_HEADER_HEIGHT, alignItems: "center" });

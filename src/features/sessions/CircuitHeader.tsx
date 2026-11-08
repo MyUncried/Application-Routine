@@ -196,7 +196,7 @@ const TARGET_OVERFLOW_BELOW_STEPPER = TARGET_OVERFLOW_BELOW_ROW - STEPPER_OVERFL
 const STEP_CIRCLE_INSET = (STEP_TOUCH_TARGET - STEP_CIRCLE) / 2;
 /** Écart entre la cible du titre (nom et chevron) et le compteur, à abscisse fixe. */
 const TITLE_TO_COUNTER_GAP = spacing[8];
-/** Écart titre → chevron et compteur → durée. */
+/** Écart chevron → nom (08/11/2026 au soir ; auparavant nom → chevron) et compteur → durée. */
 const TITLE_TO_CHEVRON_GAP = spacing[4];
 const COUNTER_TO_DURATION_GAP = spacing[8];
 
@@ -259,7 +259,13 @@ function counterReferences(): readonly { readonly unit: string; readonly adjecti
   ];
 }
 
-const DURATION_REFERENCE = `${strings.shared.durationNature.estimatedPrefix}${formatPhraseDuration(88 * 60 + 45)}`;
+// [Référence unique « ≈ 88 min 45 s » — remplacée le 08/11/2026 au soir : au format M′SS″ / Hh MM′ (Hermann : « Partout veut bien dire
+// partout »), 88 min 45 s s'écrit « ≈ 1h 29′ », plus court que d'autres durées ; la colonne avait rétréci et le compteur s'était
+// décalé à droite (Hermann, 08/11/2026 au soir : « Le bloc nombre de tours . Type a été décalé à droite »).] Plus longues durées
+// affichées de chaque forme ; la colonne prend la plus large.
+export const DURATION_REFERENCES: readonly string[] = [59 * 60 + 59, 9 * 3600 + 59 * 60].map(
+  (seconds) => `${strings.shared.durationNature.estimatedPrefix}${formatPhraseDuration(seconds)}`,
+);
 
 /**
  * Colonnes de la ligne d'en-tête (`title`, `counter`, `duration` : styles à ajouter) et sonde de mesure à
@@ -296,12 +302,12 @@ export function useContainerColumns() {
 function ContainerColumnsProbe({ fontScale, onMeasured }: { fontScale: number; onMeasured: (widths: ContainerColumnWidths) => void }) {
   const references = counterReferences();
   const counters = useRef<(number | null)[]>(references.map(() => null));
-  const duration = useRef<number | null>(null);
+  const durations = useRef<(number | null)[]>(DURATION_REFERENCES.map(() => null));
   const done = useRef(false);
   const report = () => {
-    if (done.current || duration.current === null || counters.current.some((width) => width === null)) return;
+    if (done.current || durations.current.some((width) => width === null) || counters.current.some((width) => width === null)) return;
     done.current = true;
-    onMeasured({ fontScale, counter: Math.ceil(Math.max(...counters.current.map((width) => width ?? 0))), duration: Math.ceil(duration.current) });
+    onMeasured({ fontScale, counter: Math.ceil(Math.max(...counters.current.map((width) => width ?? 0))), duration: Math.ceil(Math.max(...durations.current.map((width) => width ?? 0))) });
   };
   return (
     <View style={columnStyles.probe} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="container-columns-probe">
@@ -328,16 +334,19 @@ function ContainerColumnsProbe({ fontScale, onMeasured }: { fontScale: number; o
           )}
         </View>
       ))}
-      <Text
-        style={[styles.duration, columnStyles.probeText]}
-        testID="container-columns-probe-duration"
-        onLayout={(event) => {
-          duration.current = event.nativeEvent.layout.width;
-          report();
-        }}
-      >
-        {DURATION_REFERENCE}
-      </Text>
+      {DURATION_REFERENCES.map((reference, index) => (
+        <Text
+          key={reference}
+          style={[styles.duration, columnStyles.probeText]}
+          testID={index === 0 ? "container-columns-probe-duration" : `container-columns-probe-duration-${index}`}
+          onLayout={(event) => {
+            durations.current[index] = event.nativeEvent.layout.width;
+            report();
+          }}
+        >
+          {reference}
+        </Text>
+      ))}
     </View>
   );
 }
@@ -525,7 +534,8 @@ export function containerMoveAccessibility(actions: ContainerMoveActions | undef
  *
  * PRE-9 B.1a (D-451, complément du 28/10 qui remplace D-442 sur le stepper permanent et la clause
  * de D-443 masquant la durée ; RM-027 ; ch. 10 « Le contrôle » ; référence §2 et §4) — une ligne :
- * - le nom « Circuit » (Semi Bold 15) et le chevron (bas replié, haut déplié), une seule cible qui
+ * - le chevron (bas replié, haut déplié) puis le nom « Circuit » (Semi Bold 15) [08/11/2026 au soir, Hermann : chevron entre
+ *   le cercle et le nom ; auparavant après le nom], une seule cible qui
  *   replie ou déplie le Circuit (ARB-12) ; aucune lettre pour un Circuit unique ;
  * - le compteur, à abscisse fixe après le nom : « N tours · groupées » / « N tours · alternées ».
  *   Toucher le nombre (bleu, 15) révèle le stepper − N + (et le referme) ; l'unité « tour(s) » (13)
@@ -614,15 +624,17 @@ export function CircuitHeader({
           style={[styles.titleTarget, columns.title]}
           testID={`${testID}-collapse`}
         >
-          <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>
-            {title}
-          </Text>
+          {/* Hermann, 08/11/2026 au soir : « Circuit : mets le chevron entre le cercle et le nom du circuit ». [Chevron après le
+              nom — remplacé.] */}
           <KodjoIcon
             name={isCollapsed ? "control-chevron-down" : "control-chevron-up"}
             size={dimensions.catalogueDisclosure.chevronDisplaySize}
             tintColor={colors.textPrimary}
             testID={`${testID}-chevron`}
           />
+          <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>
+            {title}
+          </Text>
         </Pressable>
         )}
         <View style={[styles.counterSlot, columns.counter]} testID={`${testID}-counter-slot`}>

@@ -170,6 +170,9 @@ describe("recette n° 3 bis (f3s-nom) — colonnes de la ligne d'en-tête", () =
     const rows = screen.getAllByTestId(/^container-columns-probe-counter-/, { includeHiddenElements: true });
     rows.forEach((row, index) => fireEvent(row, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 100 + index, height: 18 } } }));
     fireEvent(screen.getByTestId("container-columns-probe-duration", { includeHiddenElements: true }), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 70.4, height: 15 } } });
+    // 08/11/2026 au soir : plusieurs durées de référence (« ≈ 59′59″ », « ≈ 9h 59′ ») ; la colonne prend la plus large.
+    expect(screen.queryByTestId("container-columns-probe", { includeHiddenElements: true })).not.toBeNull();
+    fireEvent(screen.getByTestId("container-columns-probe-duration-1", { includeHiddenElements: true }), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 66, height: 15 } } });
     expect(screen.queryByTestId("container-columns-probe", { includeHiddenElements: true })).toBeNull();
     const target = StyleSheet.flatten(screen.getByTestId("header-collapse").props.style);
     expect(target).toEqual(expect.objectContaining({ flexGrow: 1, flexShrink: 1, minWidth: 0 }));

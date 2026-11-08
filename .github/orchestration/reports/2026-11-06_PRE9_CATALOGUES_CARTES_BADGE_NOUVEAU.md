@@ -723,3 +723,10 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Tests : `tsc --noEmit` OK ; `CompositionScreen*`, `layoutDrop*`, `src/domain/sessions` : 64 suites, 1 508 tests passés ; agent des durées : `--findRelatedTests` sur les 13 sources modifiées, 152 suites, 3 249 tests passés. Suite complète non relancée (mémoire).
 - **À CLARIFIER** : minutes sur deux chiffres après « h » (1h 05′) ; secondes au-delà d'une heure ; espace insécable ; prime U+2032 au lieu de l'accent aigu tapé. Risques de texte rogné : cases de 44 des tableaux (jusqu'à « 1h 39′59″ »), libellés des blocs du Déroulé, cases de 71 de la feuille en séries variables. Nom accessible d'une occurrence inchangé (« 4 min ») ; cases de saisie des tableaux lues « 1′30″ » par VoiceOver.
 - Rien vérifié sur iPhone.
+
+### Suite du 08/11/2026 au soir — heures, compteur des en-têtes, chevron du Circuit
+
+- Réponses de Hermann sur les heures (« Minutes sur 2 chiffres après les heures » ; « Non » ; « Oui, je n’ai pas ce symbole sur mon clavier c’est tout. ») : `Hh MM′` sans secondes, minute la plus proche (commit 2830f427).
+- « Le bloc nombre de tours . Type a été décalé à droite je pense avec le changement de format de durée » (A, règle f3s-nom) : colonne de durée mesurée sur « ≈ 59′59″ » et « ≈ 9h 59′ » au lieu de « ≈ 88 min 45 s » (devenue « ≈ 1h 29′ »). À CLARIFIER : position du compteur.
+- « Circuit : mets le chevron entre le cercle et le nom du circuit » (B) : `CircuitHeader.tsx`, chevron avant le nom ; test d'ordre dans `CircuitHeader.test.tsx`.
+- Tests : `CircuitHeader*`, `recette3*`, `CompositionScreen*` : 662 passés ; `tsc --noEmit` OK. Rien vérifié sur iPhone.
