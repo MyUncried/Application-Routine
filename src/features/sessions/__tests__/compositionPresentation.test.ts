@@ -475,7 +475,7 @@ describe("PRE-4 story 2.2 — AC1 `formatCompactDuration` converge sur le format
       [60, "1′00″"],
       [90, "1′30″"],
       [1265, "21′05″"],
-      [3665, "1h 01′05″"],
+      [3665, "1h 01′"], // [« 1h 01′05″ » — remplacé le 08/11/2026 au soir]
       [3960, "1h 06′"],
       [4500, "1h 15′"],
     ];

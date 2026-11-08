@@ -33,14 +33,20 @@ describe("format des durées (A §1, B §1)", () => {
     // « Hh MM′ », espace insécable, secondes non nulles à la suite (À CLARIFIER). [99′59″ pour 5999 s — remplacé.]
     expect(formatPrimeDuration(3599)).toBe("59′59″");
     expect(formatPrimeDuration(3600)).toBe("1h 00′");
-    expect(formatPrimeDuration(3601)).toBe("1h 00′01″");
+    // Hermann, 08/11/2026 au soir : « Minutes sur 2 chiffres après les heures » ; secondes au-delà d'une heure : « Non » →
+    // minute la plus proche, sans secondes. [« 1h 00′01″ », « 1h 39′59″ » — remplacés.]
+    expect(formatPrimeDuration(3601)).toBe("1h 00′");
+    expect(formatPrimeDuration(3600 + 29)).toBe("1h 00′");
+    expect(formatPrimeDuration(3600 + 30)).toBe("1h 01′");
+    expect(formatPrimeDuration(3600 + 5 * 60)).toBe("1h 05′");
     expect(formatPrimeDuration(75 * 60)).toBe("1h 15′");
-    expect(formatPrimeDuration(99 * 60 + 59)).toBe("1h 39′59″");
+    expect(formatPrimeDuration(99 * 60 + 59)).toBe("1h 40′");
   });
 
   it("VoiceOver : durées lues en toutes lettres (« 1 heure 15 minutes », « 1 minute 30 secondes »)", () => {
     expect(spokenDuration(75 * 60)).toBe("1 heure 15 minutes");
-    expect(spokenDuration(3600 + 5 * 60 + 30)).toBe("1 heure 5 minutes 30 secondes");
+    // [« 1 heure 5 minutes 30 secondes » — remplacé le 08/11/2026 au soir : pas de secondes au-delà d'une heure.]
+    expect(spokenDuration(3600 + 5 * 60 + 20)).toBe("1 heure 5 minutes");
     expect(spokenDuration(90)).toBe("1 minute 30 secondes");
     expect(spokenDuration(1)).toBe("1 seconde");
     expect(spokenDurations("Durée de la séance ≈ 12′15″, 1h 15′ et 45″")).toBe("Durée de la séance ≈ 12 minutes 15 secondes, 1 heure 15 minutes et 45 secondes");

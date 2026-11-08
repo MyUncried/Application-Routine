@@ -2262,6 +2262,14 @@ Décision (classe B) : toute durée affichée dans l'application s'écrit au for
 - **Champs de saisie et roulettes** : mécanique inchangée (clavier « MM:SS », roulettes à deux colonnes de chiffres).
 - **Point (1) des « À confirmer » de la section « Recette du 08/11/2026 — spécifications des tableaux »** : tranché (« partout »).
 
+Réponses de Hermann (08/11/2026 au soir) aux questions À CLARIFIER sur les heures, recopiées textuellement :
+
+> Minutes sur 2 chiffres après les heures
+> Non
+> Oui, je n’ai pas ce symbole sur mon clavier c’est tout.
+
+- **Classe B — tranché.** Minutes sur 2 chiffres après « h » (1h 05′) ; pas de secondes au-delà d’une heure (réponse « Non ») : la durée est arrondie à la minute la plus proche (1h 00′29″ → 1h 00′, 1h 00′30″ → 1h 01′ ; arrondi : interprétation de la session principale, D-391 interdit seulement l’arrondi à la minute supérieure des cartes) [« secondes non nulles à la suite, sans espace (1h 00′01″), sans arrondi » — remplacé le 08/11/2026 au soir] ; prime U+2032 pour l’accent aigu tapé : confirmé. VoiceOver suit (« 1 heure 5 minutes »). Espace insécable après « h » : conservé (choix technique, évite la coupure de ligne).
+
 ## Recette du 08/11/2026 — catalogue
 
 Notes de Hermann (recette iPhone du 08/11/2026), recopiées textuellement :

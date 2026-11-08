@@ -16,7 +16,7 @@ const AC1_CASES: readonly (readonly [number, string])[] = [
   [90, "1′30″"],
   [1265, "21′05″"],
   // Au-delà de 59 min : les minutes continuent, sans heures (H8).
-  [3665, "1h 01′05″"],
+  [3665, "1h 01′"], // [« 1h 01′05″ » — remplacé le 08/11/2026 au soir (Hermann : pas de secondes au-delà d'une heure)]
   [3960, "1h 06′"],
   [4500, "1h 15′"],
 ];

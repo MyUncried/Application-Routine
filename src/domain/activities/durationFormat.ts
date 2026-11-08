@@ -29,7 +29,9 @@ export function formatPhraseDuration(totalSeconds: number): string {
  * droit. À partir d'une heure (Hermann, 08/11/2026 au soir : « Il y a les heures aussi » ; « 75 minutes doit s’afficher 1h 15´ ») :
  * « Hh MM′ » — heures sans zéro initial, « h », espace insécable U+00A0, minutes sur 2 chiffres et prime U+2032 (1h 15′, 1h 05′,
  * 2h 00′) ; secondes non nulles à la suite, sans espace (1h 15′30″), sans arrondi (D-391). À CLARIFIER avec Hermann : minutes sur
- * 2 chiffres, secondes au-delà d'une heure, espace insécable, prime U+2032 pour l'accent aigu tapé « ´ ». [« HhMM′SS″ » (proposition
+ * 2 chiffres, secondes au-delà d'une heure, espace insécable, prime U+2032 pour l'accent aigu tapé « ´ ». [Tranché le 08/11/2026 au soir, Hermann :
+ * « Minutes sur 2 chiffres après les heures » ; secondes au-delà d'une heure : « Non » ; prime : « Oui, je n’ai pas ce symbole sur
+ * mon clavier c’est tout. » — au-delà d'une heure, « Hh MM′ » sans secondes, arrondi à la minute la plus proche.] [« HhMM′SS″ » (proposition
  * du 08/11/2026 au soir) — remplacé le même soir.]
  */
 export function formatPrimeDuration(totalSeconds: number): string {
@@ -38,7 +40,12 @@ export function formatPrimeDuration(totalSeconds: number): string {
   const minutes = Math.floor((total % 3600) / 60);
   const rest = total % 60;
   const pad = (value: number) => String(value).padStart(2, "0");
-  if (hours > 0) return `${hours}h\u00A0${pad(minutes)}′${rest > 0 ? `${pad(rest)}″` : ""}`;
+  // Hermann, 08/11/2026 au soir : minutes sur 2 chiffres après les heures ; pas de secondes au-delà d'une heure (« Non »).
+  // [Secondes non nulles à la suite (1h 15′30″) — remplacé le 08/11/2026 au soir.] Arrondi à la minute la plus proche.
+  if (hours > 0) {
+    const roundedMinutes = Math.round(total / 60);
+    return `${Math.floor(roundedMinutes / 60)}h\u00A0${pad(roundedMinutes % 60)}′`;
+  }
   return minutes === 0 ? `${rest}″` : `${minutes}′${pad(rest)}″`;
 }
 
@@ -47,7 +54,9 @@ export function formatPrimeDuration(totalSeconds: number): string {
  * secondes », « 2 minutes », « 45 secondes ». Les unités nulles sont omises (sauf « 0 seconde »).
  */
 export function spokenDuration(totalSeconds: number): string {
-  const total = Math.max(0, Math.round(totalSeconds));
+  const exact = Math.max(0, Math.round(totalSeconds));
+  // Au-delà d'une heure, comme l'affichage (08/11/2026 au soir) : minute la plus proche, sans secondes.
+  const total = exact >= 3600 ? Math.round(exact / 60) * 60 : exact;
   const hours = Math.floor(total / 3600);
   const minutes = Math.floor((total % 3600) / 60);
   const rest = total % 60;

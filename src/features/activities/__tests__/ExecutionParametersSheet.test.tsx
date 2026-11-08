@@ -3927,7 +3927,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     expect(formatPhraseDuration(99 * 40)).toBe("1h 06′");
     expect(`${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(135)}`).toBe("≥ 2′15″");
     expect(`${strings.shared.durationNature.estimatedPrefix}${formatPhraseDuration(105)}`).toBe("≈ 1′45″");
-    expect(formatPhraseDuration(3655)).toBe("1h 00′55″");
+    expect(formatPhraseDuration(3655)).toBe("1h 01′"); // [« 1h 00′55″ » — remplacé le 08/11/2026 au soir : pas de secondes au-delà d’une heure]
   });
 });
 

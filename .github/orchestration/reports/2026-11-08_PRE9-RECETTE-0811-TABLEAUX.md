@@ -187,3 +187,9 @@ Demandes de Hermann, mot pour mot : « Et tu dois encore modifier le format des 
 
 - Aucun commit par cette mission (consigne : la session principale intègre et committe). Livraison initiale committée par la session principale en `81a7036f` ; les corrections du 08/11 après-midi sont non committées sur ce HEAD.
 - Arbre de travail : fichiers ci-dessus modifiés, plus les modifications concurrentes d'autres sessions (`CompositionScreen.tsx`, `SelectedMovementCard.tsx`, `KodjoIcon.tsx`, `CompositionScreen.recette*.test.tsx`, `FormatModelScreen.r0711.test.tsx`), non touchées par cette mission.
+
+### Réponses de Hermann du 08/11/2026 au soir — heures (session principale)
+
+- Verbatim : « Minutes sur 2 chiffres après les heures » ; « Non » (secondes au-delà d'une heure) ; « Oui, je n’ai pas ce symbole sur mon clavier c’est tout. » (prime).
+- `formatPrimeDuration` et `spokenDuration` : à partir d'une heure, `Hh MM′` sans secondes, arrondi à la minute la plus proche (interprétation). Tests mis à jour : `durationFormat`, `formats.recette0811`, `compositionPresentation`, `ExecutionParametersSheet` (anciennes valeurs annotées).
+- Tests : `--findRelatedTests durationFormat.ts` 106 suites (2 corrigées ensuite : 366/366) ; `tsc --noEmit` OK.
