@@ -104,6 +104,18 @@ Notes de Hermann recopiées mot pour mot au registre ch07 (« Recette du 08/11/2
 - Résultats : `npx jest src/features/sessions/__tests__/formats src/features/sessions/__tests__/FormatModelScreen --testPathIgnorePatterns "\.claude" -w 2` → **8 suites, 122 tests, tous passés** ; `npx tsc --noEmit` → aucune erreur ; `npx eslint` (FormatTables, tests 0611 / 0811) → aucune erreur.
 - Documentation : ch07 (sous-section, annotations « [Remplacé le 08/11/2026 …] » sur t-coche-direct et sur la puce « Death by, Tabata… », point (4) tranché) ; Formats §7.7 et §9.5 (annotations, parenthèses grises).
 
+## Recette iPhone du 08/11/2026 soir (sur `54026f53`) — charge rognée
+
+Notes de Hermann (recopiées mot pour mot au registre ch07, « Recette du 08/11/2026 soir — charge rognée ») : e-emom-focus (KO) « 12,25 kg est rogné » ; e-tabata-kg (KO) « 12,25 kg est rogné ». OK : e-emom-titre, e-parentheses (virgule bleue acceptée — point à confirmer n° 8 tranché), c-emom-recap, c-tabata-recap.
+
+- **Cause** : depuis c-emom-recap, le champ de la charge avait une largeur fixe de 44 (`width={TABLE_LAYOUT.columnWidth}`) ; « (12,25 kg) » (environ 50 en Regular 11) y était rogné au repos comme en saisie.
+- **Correction (classe A)** — `TableCell` reçoit `fit` (charge de tableau) : style de tableau, largeur du texte par le mécanisme existant des pastilles de paramètres (texte invisible qui dimensionne, champ posé par-dessus). Au repos : largeur naturelle, une ligne, sans cadre ni marge ; en saisie : `minWidth: 44`, marge de 4, rayon 4 (style `tableChargeFocus`). La zone de centrage sous la cellule passe à 120 (`CHARGE_BOX_WIDTH`, centrage seulement, sans fond). `ChargeValue` (tous les tableaux à ligne de charge) utilise `fit` au lieu de la largeur 44. Colonnes inchangées (44, pas de 56).
+- **Cible tactile et Suivant** : inchangés — la charge reste `barOnly` (pas de zone tactile propre, atteinte par Précédent / Suivant), même `inputRef`, même ordre (`tableCellOrder` non modifié).
+- **Dépassement** : charge centrée sur la colonne ; « (12,25 kg) » ≈ 50 dépasse de ≈ 3 de chaque côté dans l'écart de 12, deux charges voisines (tableau des séries) restent à ≈ 6 l'une de l'autre ; dans les tableaux à une ligne par mouvement seule la première colonne porte une charge. Au-delà de ≈ 56 (« (999,75 kg) »), deux charges voisines du tableau des séries se toucheraient : signalé, non traité (aucune règle ajoutée). En saisie, le cadre (texte + 8, au moins 44) peut recouvrir l'écart. Estimations de largeur non mesurées (Jest ne mesure pas le texte).
+- **Tests** : `formats.recette0811` — nouveau test « recette du 08/11 soir » (valeur « (12,25 kg) », aucune largeur imposée au repos, texte de dimensionnement sur une ligne, zone centrée, colonne de 44, en saisie `minWidth` 44 et marge 4) ; attentes « width: 44 » de la charge retirées (0611, 0811), annotées.
+- **Résultats** : `npx jest src/features/sessions/__tests__/formats src/features/sessions/__tests__/FormatModelScreen --testPathIgnorePatterns "\.claude" -w 2` → 8 suites, 123 tests, tous passés ; `tsc` et `eslint` (FormatTables, tests 0611 / 0811) : aucune erreur.
+- **À vérifier sur iPhone** : « (12,25 kg) » entier au repos et en saisie (EMOM, Tabata, AMRAP…) ; cadre de saisie ajusté, pas plus large que nécessaire ; curseur et suffixe « kg » en saisie ; pas de chevauchement avec la charge voisine.
+
 ## Hypothèses non démontrées / points à confirmer par Hermann
 
 1. ~~AMRAP : « +kg » par mouvement à confirmer~~ — tranché le 08/11/2026 après-midi : gardé.
@@ -113,7 +125,7 @@ Notes de Hermann recopiées mot pour mot au registre ch07 (« Recette du 08/11/2
 5. ~~Hauteur du cadre orange d'une charge vide~~ — sans objet depuis c-tabata-recap.
 6. Champ « Exécution » et légende du Déroulé : composants partagés avec le questionnaire, nouvelles valeurs donc appliquées aux deux étapes.
 7. Titres plus larges que 44 (« Incrément », « Par tour ») et « à l'échec » débordent symétriquement de leur colonne.
-8. Virgule de l'étiquette laissée en bleu (parenthèses en gris).
+8. ~~Virgule de l'étiquette en bleu~~ — acceptée le 08/11/2026 soir (e-parentheses).
 
 ## Éléments non corrigés ou hors périmètre
 

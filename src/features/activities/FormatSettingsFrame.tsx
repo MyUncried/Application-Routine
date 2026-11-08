@@ -73,13 +73,32 @@ export function emomIntervalOf(context: FormatSheetContext, value: FormatSheetVa
  * au même rang) ≥ intervalle — Complément du 5 novembre 2026 (Hermann), §14 : chaque série est vérifiée. Les membres en Répétitions ne comptent pas.
  */
 export function emomOverflowOf(context: FormatSheetContext, value: FormatSheetValue, workOfRank: (rank: number) => number, ranks: number): boolean {
+  return emomOverflowRanks(context, value, workOfRank, ranks).ranks.length > 0;
+}
+
+/**
+ * Recette iPhone du 08/11/2026 (Hermann : « mettre les valeurs à modifier en fond rouge » ; « un message différent si la durée de la
+ * série d'un exercice dépasse déjà l'intervalle ») : séries en dépassement (rang 0..n−1) et `alone` si, pour l'une d'elles, la durée de
+ * la série de l'Exercice atteint seule l'intervalle.
+ */
+export function emomOverflowRanks(
+  context: FormatSheetContext,
+  value: FormatSheetValue,
+  workOfRank: (rank: number) => number,
+  ranks: number,
+): { readonly ranks: readonly number[]; readonly alone: boolean } {
   const interval = emomIntervalOf(context, value);
-  if (interval === null) return false;
+  if (interval === null) return { ranks: [], alone: false };
+  const overflowing: number[] = [];
+  let alone = false;
   for (let rank = 0; rank < ranks; rank += 1) {
     const own = workOfRank(rank);
-    if (own > 0 && own + (context.emom?.othersWorkByRank[rank] ?? 0) >= interval) return true;
+    if (own > 0 && own + (context.emom?.othersWorkByRank[rank] ?? 0) >= interval) {
+      overflowing.push(rank);
+      if (own >= interval) alone = true;
+    }
   }
-  return false;
+  return { ranks: overflowing, alone };
 }
 
 /*

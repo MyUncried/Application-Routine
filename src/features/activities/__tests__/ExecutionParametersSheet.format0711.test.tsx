@@ -1,5 +1,6 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render, screen, within } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { failureTarget, numberTarget, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
@@ -9,6 +10,7 @@ import type { FormatSheetContext, FormatSheetRow } from "@/features/activities/F
 import { enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors } from "@/shared/ui/tokens";
 
 /**
  * Recette iPhone du 07/11/2026. Hermann, mot pour mot : « Paramètres d'exécution : les lignes de texte et champs spécifiques
@@ -305,25 +307,45 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
  * d'explication […] Même chose chose pour tout type d'EMOM mais quand on met une durée sur un exercice supérieur à la durée de
  * l'intervalle ») : le message est sous l'en-tête, toujours visible, même sans ligne Intervalle.
  */
-describe("Recette du 08/11/2026 — message du dépassement EMOM sous l'en-tête de la feuille", () => {
+describe("Recette du 08/11/2026 — message du dépassement EMOM sous le cadre Séries, valeurs en rouge", () => {
   const duration = (seconds: number) =>
     params({ mode: "DURATION", series: { kind: "UNIFORM", count: 1, target: numberTarget(seconds), pauseSeconds: 0, loadKg: 0, workPhases: [] } });
+  const variable = (seconds: readonly number[]) =>
+    params({
+      mode: "DURATION",
+      series: { kind: "VARIABLE", rows: seconds.map((value) => ({ target: numberTarget(value), pauseSeconds: 0, loadKg: 0 })), workPhases: [] },
+    } as Partial<ExecutionParametersInput>);
+  const red = (testID: string) => StyleSheet.flatten(get(testID).props.style).backgroundColor === colors.dangerSurface;
+  /** Le message est hors du cadre Séries (rendu juste après lui). */
+  function expectBelowSeriesFrame() {
+    expect(within(get("execution-sheet-frame-series")).queryByTestId("execution-sheet-format-emom-overflow", hidden)).toBeNull();
+  }
 
-  it("membre d'un Circuit EMOM « dans chaque intervalle » (pas de ligne Intervalle) : 30 s + 40 s des autres membres ≥ 60 s → message, ✓ indisponible", () => {
+  it("membre d'un Circuit EMOM « dans chaque intervalle » : 30 s + 40 s des autres membres ≥ 60 s → message de la somme sous le cadre Séries, cible en rouge, ✓ indisponible", () => {
     renderSheet("EMOM", ["stopTarget", "noRecovery"], {}, { emom: { windowSeconds: 60, othersWorkByRank: [40] } }, duration(30));
     expect(query("execution-sheet-format-interval-row")).toBeNull();
-    const alert = get("execution-sheet-format-emom-overflow");
-    expect(alert.props.children).toBe(strings.screens.composition.emomOverflow);
-    // Sous l'en-tête, hors du cadre Séries ; ✓ indisponible.
-    expect(within(get("execution-sheet-frame-series")).queryByTestId("execution-sheet-format-emom-overflow", hidden)).toBeNull();
+    expect(get("execution-sheet-format-emom-overflow").props.children).toBe(strings.screens.composition.emomOverflow);
+    expectBelowSeriesFrame();
+    expect(red("execution-sheet-target")).toBe(true);
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("EMOM seul : durée de l'exercice ≥ intervalle → message de la feuille sous l'en-tête ; sans dépassement, aucun message", () => {
+  it("la série de l'Exercice atteint seule l'intervalle → « La durée de la série dépasse la durée de l'intervalle. » (membre comme EMOM seul)", () => {
+    renderSheet("EMOM", ["stopTarget", "noRecovery"], {}, { emom: { windowSeconds: 60, othersWorkByRank: [10] } }, duration(70));
+    expect(get("execution-sheet-format-emom-overflow").props.children).toBe(f.emomSeriesOverflow);
+    screen.unmount();
     renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 }, { emom: { windowSeconds: null, othersWorkByRank: [] } }, duration(70));
-    expect(get("execution-sheet-format-emom-overflow").props.children).toBe(f.emomOverflow);
+    expect(get("execution-sheet-format-emom-overflow").props.children).toBe(f.emomSeriesOverflow);
+    expectBelowSeriesFrame();
     screen.unmount();
     renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 }, { emom: { windowSeconds: null, othersWorkByRank: [] } }, duration(30));
     expect(query("execution-sheet-format-emom-overflow")).toBeNull();
+    expect(red("execution-sheet-target")).toBe(false);
+  });
+
+  it("séries variables : seules les cibles des séries en dépassement sont en rouge", () => {
+    renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 }, { emom: { windowSeconds: null, othersWorkByRank: [] } }, variable([30, 70, 40]));
+    expect(get("execution-sheet-format-emom-overflow").props.children).toBe(f.emomSeriesOverflow);
+    expect([1, 2, 3].map((n) => red(`execution-sheet-table-row-${n}-target`))).toEqual([false, true, false]);
   });
 });

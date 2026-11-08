@@ -45,7 +45,7 @@ describe("charges des tableaux à une ligne par mouvement (c-tabata-recap, 08/11
     expect(onAddLoad).toHaveBeenCalledWith(0);
     const load = screen.getByTestId("format-objective-load-1");
     expect(load.props.value).toBe("(12 kg)");
-    expect(StyleSheet.flatten(load.props.style)).toMatchObject({ backgroundColor: "transparent", fontSize: 11, fontFamily: "Inter_400Regular", width: 44 });
+    expect(StyleSheet.flatten(load.props.style)).toMatchObject({ backgroundColor: "transparent", fontSize: 11, fontFamily: "Inter_400Regular" });
     expect(screen.getByTestId("format-objective-1-unit")).toHaveTextContent("(durée, −kg)");
     fireEvent.press(screen.getByTestId("format-objective-1-charge"));
     expect(onChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ loadOn: false, loadKg: 12 }));

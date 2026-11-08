@@ -92,8 +92,9 @@ describe("tableau « séries en colonnes » (A) — EMOM", () => {
 
   // c-emom-recap (08/11/2026 après-midi) : « Le titre mouvement n'est pas correctement aligné » — le titre, en position absolue
   // directement dans un conteneur à marge gauche de 16, était à x = 0 ; il est dans une zone au retrait de 16, comme les noms.
-  // « Au focus le cadre de la valeur charge est trop large » : le champ garde 44.
-  it("c-emom-recap : « Mouvement » dans la même zone de retrait que les noms ; champ de charge de 44, au focus compris", () => {
+  // [« Au focus le cadre de la valeur charge est trop large » : champ de 44 fixe — remplacé le 08/11/2026 soir (e-emom-focus,
+  // e-tabata-kg : « 12,25 kg est rogné ») : voir le test « recette du 08/11 soir » ci-dessous.]
+  it("c-emom-recap : « Mouvement » dans la même zone de retrait que les noms", () => {
     render2(true);
     const head = screen.getByTestId("format-emom-head-name");
     expect(StyleSheet.flatten(screen.getByTestId("format-emom-head-zone").props.style)).toMatchObject({ flex: 1 });
@@ -101,10 +102,46 @@ describe("tableau « séries en colonnes » (A) — EMOM", () => {
     expect(StyleSheet.flatten(screen.getByTestId("format-emom-1-name").props.style)).toMatchObject({ paddingLeft: 16 });
     expect(StyleSheet.flatten(head.props.style)).toMatchObject({ position: "absolute", left: 0 });
     expect(StyleSheet.flatten(screen.getByTestId("format-emom-1-name-title").props.style)).toMatchObject({ position: "absolute", left: 0 });
-    const load = screen.getByTestId("format-emom-1-0-load");
-    expect(StyleSheet.flatten(load.props.style)).toMatchObject({ width: 44 });
+  });
+
+  // Recette du 08/11/2026 soir (e-emom-focus, e-tabata-kg, Hermann : « 12,25 kg est rogné ») : au repos, la charge garde sa largeur
+  // naturelle (aucune largeur imposée, une seule ligne, sans cadre), centrée sous la cellule ; en saisie, cadre ajusté au texte, au
+  // moins 44, marge de 4 ; jamais 80. Les colonnes gardent 44. Jest ne mesure pas le texte : la largeur réelle est à voir sur iPhone.
+  it("recette du 08/11 soir : « (12,25 kg) » jamais rognée — largeur du texte au repos, cadre ajusté au focus (44 au moins)", () => {
+    render(
+      <SeriesTable
+        model="EMOM"
+        movements={[movement("Fentes avant", { mode: "REPETITIONS", loadOn: true, cells: [{ repetitions: 10, loadKg: 12.25 }, { repetitions: 10, loadKg: 12 }] })]}
+        count={2}
+        withLoad
+        onChange={() => undefined}
+        cell={cell}
+      />,
+    );
+    const load = screen.getByTestId("format-emom-0-0-load");
+    expect(load.props.value).toBe("(12,25 kg)");
+    const rest = StyleSheet.flatten(load.props.style);
+    expect(rest.width).toBeUndefined();
+    expect(rest.minWidth).toBe(0);
+    expect(rest).toMatchObject({ backgroundColor: "transparent", paddingHorizontal: 0, fontSize: 11 });
+    // Le texte invisible qui dimensionne le champ porte la valeur entière, sur une ligne.
+    const sizer = screen.UNSAFE_root.findAll(
+      (node) => typeof node.type === "string" && node.props.children === "(12,25 kg)" && node.props.numberOfLines === 1 && StyleSheet.flatten(node.props.style)?.opacity === 0,
+    );
+    expect(sizer.length).toBe(1);
+    // Zone de centrage sous la cellule, plus large que la colonne ; colonnes inchangées.
+    expect(style("format-emom-0-0-slot-charge")).toMatchObject({ alignItems: "center", top: 24.5 });
+    expect(style("format-emom-0-0-slot")).toMatchObject({ width: 44 });
     fireEvent(load, "focus");
-    expect(StyleSheet.flatten(screen.getByTestId("format-emom-1-0-load").props.style)).toMatchObject({ width: 44 });
+    // En saisie : le texte qui dimensionne (« 12,25 kg ») porte la largeur minimale de 44 et la marge de 4 ; le champ le recouvre.
+    const sizing = screen.UNSAFE_root.findAll(
+      (node) => typeof node.type === "string" && node.props.children === "12,25 kg" && StyleSheet.flatten(node.props.style)?.opacity === 0,
+    );
+    expect(sizing.length).toBe(1);
+    expect(StyleSheet.flatten(sizing[0]!.props.style)).toMatchObject({ minWidth: 44, paddingHorizontal: 4 });
+    const focus = StyleSheet.flatten(screen.getByTestId("format-emom-0-0-load").props.style);
+    expect(focus).toMatchObject({ position: "absolute", left: 0, right: 0, paddingHorizontal: 4 });
+    expect(focus.width).toBeUndefined();
   });
 
   it("plus de colonne Unité : étiquette « (rép., +kg) » / « (durée, −kg) » sous le nom, mot en gris, reste en bleu, Semi Bold 11", () => {
@@ -268,7 +305,7 @@ describe("grammaire commune aux autres formats « paramètres en colonnes » (De
       expect(style(`format-death-by-row-${index}-tag`)).toMatchObject({ top: 24.5 });
     }
     expect(screen.getByTestId("format-death-by-load-1").props.value).toBe("(20 kg)");
-    expect(style("format-death-by-load-1")).toMatchObject({ backgroundColor: "transparent", fontSize: 11, width: 44 });
+    expect(style("format-death-by-load-1")).toMatchObject({ backgroundColor: "transparent", fontSize: 11 });
   });
 
   // c-tabata-recap (08/11/2026 après-midi) : « Mettre les Parenthèse en gris » — dans toutes les étiquettes ; virgule et ±kg en bleu.

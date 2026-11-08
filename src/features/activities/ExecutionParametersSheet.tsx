@@ -86,7 +86,7 @@ import {
   type CadenceOption,
 } from "@/features/activities/cadenceOption";
 import {
-  emomOverflowOf,
+  emomOverflowRanks,
   initialFormatSheetValue,
   type FormatSheetContext,
   type FormatSheetRow,
@@ -1384,10 +1384,13 @@ export function ExecutionParametersSheet({
 
   const targetLabel = effective.mode === "REPETITIONS" ? repetitionsLabel : secondsLabel;
   // MAJ 04/11 §4.4 : contrôle EMOM des durées au seuil inclusif, dans la modale comme au récapitulatif.
-  const emomOverflow =
+  const emomOverflowDetail =
     format !== undefined && formatValue !== null && validation.ok
-      ? emomOverflowOf(format, formatValue, (rank) => plannedWorkOfParameters(validation.value, rank), seriesRowsOf(validation.value).length)
-      : false;
+      ? emomOverflowRanks(format, formatValue, (rank) => plannedWorkOfParameters(validation.value, rank), seriesRowsOf(validation.value).length)
+      : { ranks: [] as readonly number[], alone: false };
+  const emomOverflow = emomOverflowDetail.ranks.length > 0;
+  // Recette du 08/11/2026 : valeurs à modifier en fond rouge (cibles des séries en dépassement).
+  const emomOverflowRankSet = new Set(emomOverflowDetail.ranks);
   const validateDisabled = (!validation.ok || emomOverflow) && !sheetCommandsAbsorbed(surface);
   const validateLabel = validation.ok
     ? t.validateAccessibilityLabel
@@ -2113,7 +2116,8 @@ export function ExecutionParametersSheet({
   const uniformTargetField = scalarField("uniformTarget", {
     display: uniformTargetText,
     accessibilityLabel: effective.mode === "REPETITIONS" ? t.repetitionsTarget : t.durationGoal,
-    invalid: uniformTargetInvalid,
+    // Recette du 08/11/2026 au soir : Cible commune en fond rouge si une série dépasse l'intervalle EMOM.
+    invalid: uniformTargetInvalid || emomOverflow,
     invalidHint: uniformTargetHint,
     testID: "execution-sheet-target",
   });
@@ -2349,7 +2353,8 @@ export function ExecutionParametersSheet({
           displayValue={text}
           // Story 3.8 (AC2) : une Cible « — » est annoncée « aucune valeur », jamais « tiret ».
           spokenDisplayValue={spokenValue(text)}
-          invalid={hint !== undefined}
+          // Recette du 08/11/2026 au soir : cible d'une série en dépassement EMOM en fond rouge.
+          invalid={hint !== undefined || emomOverflowRankSet.has(index)}
           accessibilityHint={hint}
           accessibilityLabel={t.rowTarget.replace("{n}", String(number)).replace("{field}", t.columns[mode])}
           testID={`${prefix}-target`}
@@ -2588,11 +2593,8 @@ export function ExecutionParametersSheet({
                   tout type d'EMOM mais quand on met une durée sur un exercice supérieur à la durée de l'intervalle ») — cause : le message
                   était rendu sous la ligne Intervalle, absente pour un membre d'un Circuit EMOM « dans chaque intervalle » et souvent hors
                   de vue pendant la saisie des séries. Il est posé sous l'en-tête, à côté de ✓ indisponible, toujours visible. */}
-              {emomOverflow ? (
-                <Text style={styles.emomOverflowAlert} accessibilityRole="alert" testID="execution-sheet-format-emom-overflow">
-                  {format?.emom?.windowSeconds != null ? strings.screens.composition.emomOverflow : formatT.emomOverflow}
-                </Text>
-              ) : null}
+              {/* [Message sous l'en-tête (08/11/2026 après-midi) — déplacé sous le cadre Séries le 08/11/2026 au soir (Hermann : « Mettre
+                  le texte sous le tableau, sans le cadre gris »).] */}
 
               <SheetMotionScrollView
                 ref={scrollRef}
@@ -2918,6 +2920,14 @@ export function ExecutionParametersSheet({
                     />
                   </Row>
                 </SheetMotionView>
+                {/* Recette iPhone du 08/11/2026 au soir (e-emom-message, Hermann : « Mettre le texte sous le tableau, sans le cadre gris
+                    - mettre les valeurs à modifier en fond rouge - un message différent si la durée de la série d'un exercice dépasse déjà
+                    l'intervalle « la durée de la série dépasse la durée de l'intervalle » ») : message sous le cadre Séries, hors cadre. */}
+                {emomOverflow ? (
+                  <Text style={styles.emomOverflowAlert} accessibilityRole="alert" testID="execution-sheet-format-emom-overflow">
+                    {emomOverflowDetail.alone ? formatT.emomSeriesOverflow : strings.screens.composition.emomOverflow}
+                  </Text>
+                ) : null}
 
                 {/* Cadre Côtés : Changement de côté (portant l'Enchainement, RC-6), Pause entre
                     les côtés. PRE-5 story 2.5 (AC1, AC2 ; Figma `9230:19534`) : lignes non
@@ -4282,13 +4292,12 @@ const styles = StyleSheet.create({
     color: colors.danger,
     paddingBottom: spacing[8],
   },
-  // Recette du 08/11/2026 : message du dépassement EMOM sous l'en-tête de la feuille.
+  // Recette du 08/11/2026 au soir : message du dépassement EMOM sous le cadre Séries, sans cadre.
   emomOverflowAlert: {
     ...type.caption,
     color: colors.danger,
-    textAlign: "center",
-    paddingHorizontal: spacing[16],
-    paddingVertical: spacing[8],
+    paddingHorizontal: spacing[12],
+    marginTop: spacing[4],
   },
   separator: {
     height: 1,

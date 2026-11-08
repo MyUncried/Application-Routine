@@ -266,6 +266,8 @@ const executionParameters = {
     stopCondition: "Condition d’arrêt",
     atFailure: "À l’échec",
     emomOverflow: "La durée atteint ou dépasse l’intervalle : il ne reste pas de temps pour le reste du travail ni pour le repos.",
+    // Recette iPhone du 08/11/2026 au soir (Hermann) : durée de la série d'un Exercice qui atteint seule l'intervalle.
+    emomSeriesOverflow: "La durée de la série dépasse la durée de l’intervalle.",
   },
   media: {
     section: "Médias",

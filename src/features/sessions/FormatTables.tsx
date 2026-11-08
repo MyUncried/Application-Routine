@@ -83,10 +83,10 @@ const ROW_SEPARATOR = "#DEE3E5";
 /** Ligne cochée en Max : Objectif et Par tour en #BFC2CC (B §4.4). */
 const TABLE_DISABLED = "#BFC2CC";
 /**
- * Zone qui centre la charge « (12 kg) » sous sa cellule ; le champ lui-même a la largeur de la cellule (44, c-emom-recap du 08/11/2026).
- * [Champ de 80 pour « (12,5 kg) » — remplacé le 08/11/2026.]
+ * Zone (sans fond) qui centre la charge « (12 kg) » sous sa cellule ; le champ prend la largeur de son texte (recette du 08/11/2026
+ * soir), la zone ne fait que le centrer sans le contraindre. [Zone et champ de 80, puis champ de 44 — remplacés le 08/11/2026.]
  */
-const CHARGE_BOX_WIDTH = 80;
+const CHARGE_BOX_WIDTH = 120;
 /**
  * Tableau des séries : trois séries visibles (décision du 05/11/2026, n-charge-switch : « Afficher par défaut trois séries »),
  * dans la limite de quatre colonnes de la remarque e.
@@ -299,8 +299,16 @@ export function TableCell({
   entrySuffix = "",
   load = false,
   pending = false,
+  fit = false,
   testID,
 }: {
+  /**
+   * Charge d'un tableau (recette du 08/11/2026 soir, e-emom-focus et e-tabata-kg, Hermann : « 12,25 kg est rogné ») : style de
+   * tableau, largeur du texte. Au repos, texte à sa largeur naturelle, sans cadre (peut dépasser la colonne de part et d'autre) ; en
+   * saisie, cadre ajusté au texte saisi, au moins 44 (`TABLE_LAYOUT.columnWidth`), petite marge de 4. [Champ de 44 fixe
+   * (c-emom-recap, 08/11 après-midi), puis de 80 — remplacés le 08/11/2026 soir.]
+   */
+  readonly fit?: boolean;
   /**
    * Recette du 06/11/2026 (t-coche-direct, Hermann : « après activation des charges, le cadre de valeur de la charge doit être orange ») :
    * charge facultative à renseigner, cadre orange. [Liseré orange — retiré (remarque e : « Pas de liseré, dans aucune situation » ;
@@ -378,13 +386,15 @@ export function TableCell({
   // droite, le curseur y reste.
   const caret = focused ? { start: shown.length - suffix.length, end: shown.length - suffix.length } : undefined;
   const fixed = width !== undefined;
+  const inTable = fixed || fit;
   const fieldStyle = [
     valueFieldStyles.field,
-    fixed ? (load ? styles.tableCharge : styles.tableField) : load ? styles.fieldLoad : null,
-    disabled ? (fixed ? styles.tableDisabled : valueFieldStyles.disabled) : null,
+    inTable ? (load ? styles.tableCharge : styles.tableField) : load ? styles.fieldLoad : null,
+    disabled ? (inTable ? styles.tableDisabled : valueFieldStyles.disabled) : null,
     !disabled && pending ? valueFieldStyles.toVerify : null,
     !disabled && missing ? valueFieldStyles.toComplete : null,
     active || focused ? valueFieldStyles.active : null,
+    fit && (active || focused) ? styles.tableChargeFocus : null,
     focused && kind === "duration" && entry.text === "" ? styles.cellGuide : null,
   ];
   const sizerText = shown === "" ? (placeholder ?? t().dash) : shown;
@@ -588,9 +598,11 @@ function ChargeValue({
       format={(entered) => `(${formatLoad(entered)})`}
       placeholder={t().table.loadEmpty}
       entrySuffix=" kg"
-      // Recette du 08/11/2026 après-midi (c-emom-recap, Hermann : « Au focus le cadre de la valeur charge est trop large ») : le champ
-      // garde la largeur de la cellule (44), au repos comme en saisie. [Champ de 80 — remplacé le 08/11/2026.]
-      width={TABLE_LAYOUT.columnWidth}
+      // Recette du 08/11/2026 soir (e-emom-focus, e-tabata-kg, Hermann : « 12,25 kg est rogné ») : au repos, texte à sa largeur naturelle,
+      // centré sous la cellule, sans cadre ni retour à la ligne ; en saisie, cadre ajusté au texte, au moins 44 (c-emom-recap : « Au
+      // focus le cadre de la valeur charge est trop large »). [Champ de 80, puis de 44 fixe (rognait « (12,25 kg) ») — remplacés le
+      // 08/11/2026.]
+      fit
       load
       // Recette du 05/11/2026 (e-fortime-charge) : la charge s'atteint par Précédent / Suivant.
       barOnly
@@ -1314,6 +1326,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 13,
   },
+  // Charge en saisie : cadre ajusté au texte, au moins la largeur de la cellule, petite marge (recette du 08/11/2026 soir).
+  tableChargeFocus: { minWidth: TABLE_LAYOUT.columnWidth, paddingHorizontal: 4, borderRadius: 4 },
   tableDisabled: { color: TABLE_DISABLED },
   // Complément du 5 novembre 2026 (Hermann) (Figma) : charge entre parenthèses, Regular 12 (hors tableau).
   fieldLoad: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12 },

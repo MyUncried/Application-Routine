@@ -690,3 +690,10 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - « le liseré orange de la carte d'exercice « à vérifier » : pas de liseré orange » → `occurrenceCardToVerifySurface` et `SessionCard.cardToVerify` à bord transparent (classe B ; carte de Séance : A, mêmes jetons). Tests : `CompositionScreen.recette3circuits` 6/6 (nouveau cas), `SessionCard`, `recette2composition`, `OccurrenceCard*` : 113/113. Rien vérifié sur iPhone.
 - « le sens de H : question ce que c'est ? » → rappel de la note H (07/11 au soir) et de son interprétation dans le cahier de recette (point f-h) ; reste à confirmer.
 - Metro relancé à la demande de Hermann. Suite complète non relancée (arrêt système pour mémoire).
+
+### Recette du 08/11/2026 au soir
+
+- Résultats : OK e-emom-titre, e-parentheses, f-h (interprétation de H confirmée), f-lisere, c-emom-recap, c-tabata-recap ; KO e-emom-focus et e-tabata-kg (« 12,25 kg est rogné »), e-emom-message.
+- **Charge rognée (A)** : champ de charge fixé à 44 depuis la correction précédente ; au repos, largeur naturelle centrée sous la cellule ; au focus, cadre ajusté au texte (44 minimum). Détail : rapport des tableaux, section « soir ».
+- **e-emom-message (B)** : message sous le cadre Séries (hors cadre) ; cibles en dépassement en fond rouge (Cible commune ou cibles des seules séries concernées) ; « La durée de la série dépasse la durée de l’intervalle. » si la série de l'Exercice atteint seule l'intervalle, sinon le message de la somme.
+- Tests : `npx tsc --noEmit` OK ; `ExecutionParametersSheet*`, `formats*`, `FormatModelScreen*`, `CompositionScreen.emom*` : 18 suites, 539 tests, tous passés ; eslint sans erreur sur les fichiers modifiés. Suite complète non relancée (mémoire).
