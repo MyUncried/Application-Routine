@@ -1,10 +1,9 @@
 import { describe, expect, it } from "@jest/globals";
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 
 import type { ModelMovement, MovementValues } from "@/domain/sessions/formatModels";
 import { AmrapTable, DeathByTable, ObjectivePauseTable, SeriesTable, TABLE_LAYOUT, formatPrimeDuration, type CellBinding } from "@/features/sessions/FormatTables";
-import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 
 /**
  * Spécification de Hermann du 08/11/2026 (recette du 08/11/2026 — spécifications des tableaux, texte complet au registre ch07) :
@@ -89,6 +88,23 @@ describe("tableau « séries en colonnes » (A) — EMOM", () => {
     // Un séparateur par ligne, de chaque côté (noms, colonnes défilantes) : en haut, 1 px.
     expect(separators.length).toBe(4);
     for (const separator of separators) expect(StyleSheet.flatten(separator.props.style)).toMatchObject({ position: "absolute", top: 0, height: 1, left: 0, right: 0 });
+  });
+
+  // c-emom-recap (08/11/2026 après-midi) : « Le titre mouvement n'est pas correctement aligné » — le titre, en position absolue
+  // directement dans un conteneur à marge gauche de 16, était à x = 0 ; il est dans une zone au retrait de 16, comme les noms.
+  // « Au focus le cadre de la valeur charge est trop large » : le champ garde 44.
+  it("c-emom-recap : « Mouvement » dans la même zone de retrait que les noms ; champ de charge de 44, au focus compris", () => {
+    render2(true);
+    const head = screen.getByTestId("format-emom-head-name");
+    expect(StyleSheet.flatten(screen.getByTestId("format-emom-head-zone").props.style)).toMatchObject({ flex: 1 });
+    expect(StyleSheet.flatten(screen.getByTestId("format-emom-head-zone-outer").props.style)).toMatchObject({ paddingLeft: 16 });
+    expect(StyleSheet.flatten(screen.getByTestId("format-emom-1-name").props.style)).toMatchObject({ paddingLeft: 16 });
+    expect(StyleSheet.flatten(head.props.style)).toMatchObject({ position: "absolute", left: 0 });
+    expect(StyleSheet.flatten(screen.getByTestId("format-emom-1-name-title").props.style)).toMatchObject({ position: "absolute", left: 0 });
+    const load = screen.getByTestId("format-emom-1-0-load");
+    expect(StyleSheet.flatten(load.props.style)).toMatchObject({ width: 44 });
+    fireEvent(load, "focus");
+    expect(StyleSheet.flatten(screen.getByTestId("format-emom-1-0-load").props.style)).toMatchObject({ width: 44 });
   });
 
   it("plus de colonne Unité : étiquette « (rép., +kg) » / « (durée, −kg) » sous le nom, mot en gris, reste en bleu, Semi Bold 11", () => {
@@ -228,8 +244,9 @@ describe("grammaire commune aux autres formats « paramètres en colonnes » (De
     expect(style("format-death-by-row-1")).toMatchObject({ height: 44 });
   });
 
-  // t-coche-direct (06/11/2026) inchangé : pas de « +kg » ; avec « Avec charge », toutes les lignes sont dans l'état « charge affichée ».
-  it("Death by « Avec charge » : charge toujours présente sous Départ (y = 24,5), cellules à 2,5, ligne de 44, étiquette sans « +kg »", () => {
+  // c-tabata-recap (08/11/2026 après-midi) : « +kg » / « −kg » par mouvement, comme l'AMRAP. [t-coche-direct (06/11/2026) : charge
+  // toujours présente, cadre orange avec un trait — remplacé le 08/11/2026.]
+  it("Death by « Avec charge » : « +kg » sous le nom ; après « +kg », charge sous Départ (y = 24,5), cellules à 2,5 ; ligne de 44, nom et étiquette immobiles", () => {
     render(
       <DeathByTable
         movements={[movement("a", { mode: "REPETITIONS", start: 1, startIncrement: 1 }), movement("b", { mode: "REPETITIONS", start: 1, startIncrement: 1, loadOn: true, loadKg: 20 })]}
@@ -238,21 +255,34 @@ describe("grammaire commune aux autres formats « paramètres en colonnes » (De
         cell={cell}
       />,
     );
-    expect(screen.getByTestId("format-death-by-0-unit")).toHaveTextContent("(rép.)");
-    expect(screen.queryByTestId("format-death-by-0-charge")).toBeNull();
+    expect(screen.getByTestId("format-death-by-0-unit")).toHaveTextContent("(rép., +kg)");
+    expect(screen.getByTestId("format-death-by-1-unit")).toHaveTextContent("(rép., −kg)");
+    expect(screen.queryByTestId("format-death-by-load-0")).toBeNull();
+    expect(style("format-death-by-0-start-cell")).toMatchObject({ top: 10 });
+    expect(style("format-death-by-1-start-cell")).toMatchObject({ top: 2.5 });
+    expect(style("format-death-by-1-sinc-cell")).toMatchObject({ top: 2.5 });
+    expect(style("format-death-by-1-start-charge")).toMatchObject({ top: 24.5 });
     for (const index of [0, 1]) {
-      expect(style(`format-death-by-${index}-start-cell`)).toMatchObject({ top: 2.5 });
-      expect(style(`format-death-by-${index}-sinc-cell`)).toMatchObject({ top: 2.5 });
-      expect(style(`format-death-by-${index}-start-charge`)).toMatchObject({ top: 24.5 });
       expect(style(`format-death-by-row-${index}`)).toMatchObject({ height: 44 });
       expect(style(`format-death-by-row-${index}-title`)).toMatchObject({ top: 6.5 });
       expect(style(`format-death-by-row-${index}-tag`)).toMatchObject({ top: 24.5 });
     }
-    // Charge vide : trait dans un cadre orange (à vérifier), à la largeur de la colonne.
-    expect(style("format-death-by-load-0")).toMatchObject({ backgroundColor: toVerifyColors.surface, width: 44 });
-    expect(screen.getByTestId("format-death-by-load-0").props.placeholder).toBe("—");
     expect(screen.getByTestId("format-death-by-load-1").props.value).toBe("(20 kg)");
-    expect(style("format-death-by-load-1")).toMatchObject({ backgroundColor: "transparent", fontSize: 11 });
+    expect(style("format-death-by-load-1")).toMatchObject({ backgroundColor: "transparent", fontSize: 11, width: 44 });
+  });
+
+  // c-tabata-recap (08/11/2026 après-midi) : « Mettre les Parenthèse en gris » — dans toutes les étiquettes ; virgule et ±kg en bleu.
+  it("étiquette : parenthèses et mot en gris #595E66, virgule et « +kg » en bleu (tous les tableaux)", () => {
+    render(
+      <AmrapTable movements={[movement("a", { mode: "REPETITIONS", repetitions: 10, max: false })]} increasing={false} withLoad onChange={() => undefined} cell={cell} />,
+    );
+    const tag = screen.getByTestId("format-amrap-0-unit");
+    const texts = tag.findAll((node) => typeof node.type === "string" && typeof node.props.children === "string");
+    const colorOf = (text: string) => texts.filter((node) => node.props.children === text).map((node) => StyleSheet.flatten(node.props.style).color);
+    expect(colorOf("(")).toEqual(["#595E66"]);
+    expect(colorOf("rép.")).toEqual(["#595E66"]);
+    expect(colorOf(")")).toEqual(["#595E66"]);
+    expect(colorOf("+kg")).toEqual(["#0508E5"]);
   });
 
   it("Tabata : Objectif | Pause de 44, pause M′SS″ / S″, objectif vide « — » rouge", () => {

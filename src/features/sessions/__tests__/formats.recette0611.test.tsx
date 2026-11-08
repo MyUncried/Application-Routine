@@ -5,7 +5,6 @@ import { ScrollView, StyleSheet, Text } from "react-native";
 
 import type { ModelMovement, MovementValues } from "@/domain/sessions/formatModels";
 import { AmrapTable, ObjectivePauseTable, SeriesTable, TableCell, tableCellOrder, type CellBinding } from "@/features/sessions/FormatTables";
-import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 
 /**
  * Recette iPhone du 06/11/2026 (Hermann) — tableaux des Formats :
@@ -21,12 +20,13 @@ import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 const cell: CellBinding = () => ({ inputRef: () => undefined, onFocus: () => undefined, onBlur: () => undefined, active: false });
 const movement = (id: string, values: MovementValues): ModelMovement => ({ exercise: { id, name: id }, values }) as unknown as ModelMovement;
 
-describe("charges des tableaux à une ligne par mouvement (t-coche-direct)", () => {
-  // t-coche-direct (06/11/2026) toujours en vigueur pour Tabata, 30/30, Renforcement, À l'échec et Death by (« Aucun comportement
-  // fonctionnel existant ne change ») ; seule la présentation suit la spécification de Hermann du 08/11/2026 (B) : plus de colonne
-  // Charge, charge sous l'Objectif, Regular 11 sans cadre quand elle est renseignée, cadre orange avec un trait quand elle est vide.
-  it("Tabata à deux mouvements, « Avec charge » : pas de « +kg », charge toujours présente sous l'Objectif ; vide : trait dans un cadre orange ; une saisie applique la charge", () => {
+describe("charges des tableaux à une ligne par mouvement (c-tabata-recap, 08/11/2026)", () => {
+  // [t-coche-direct (06/11/2026) : « retirer (+kg), mettre les cadres oranges avec un trait sur les champs charge qui ne sont pas
+  // renseignés » ; charge toujours parcourue — remplacé le 08/11/2026 (recette de l'après-midi, c-tabata-recap, Hermann : « Il manque
+  // +kg ou -kg pour choisir ou pas de mettre une charge au mouvement par ligne. ») : « +kg » / « −kg » par mouvement, comme l'AMRAP.]
+  it("Tabata à deux mouvements, « Avec charge » : « +kg » sous le nom, charge sous l'Objectif sans cadre après « +kg » ; « −kg » la retire", () => {
     const onChange = jest.fn();
+    const onAddLoad = jest.fn();
     render(
       <ObjectivePauseTable
         model="TABATA"
@@ -35,32 +35,30 @@ describe("charges des tableaux à une ligne par mouvement (t-coche-direct)", () 
         pauseFallback={() => 10}
         withLoad
         onChange={onChange}
-        onAddLoad={() => undefined}
+        onAddLoad={onAddLoad}
         cell={cell}
       />,
     );
-    expect(screen.queryByTestId("format-objective-0-charge")).toBeNull();
-    expect(screen.getByTestId("format-objective-0-unit")).toHaveTextContent("(durée)");
-    const empty = screen.getByTestId("format-objective-load-0");
-    expect(empty.props.placeholder).toBe("—");
-    expect(StyleSheet.flatten(empty.props.style)).toMatchObject({ borderWidth: 0, backgroundColor: toVerifyColors.surface, width: 44 });
+    expect(screen.queryByTestId("format-objective-load-0")).toBeNull();
+    expect(screen.getByTestId("format-objective-0-unit")).toHaveTextContent("(durée, +kg)");
+    fireEvent.press(screen.getByTestId("format-objective-0-charge"));
+    expect(onAddLoad).toHaveBeenCalledWith(0);
     const load = screen.getByTestId("format-objective-load-1");
     expect(load.props.value).toBe("(12 kg)");
-    expect(StyleSheet.flatten(load.props.style)).toMatchObject({ backgroundColor: "transparent", fontSize: 11, fontFamily: "Inter_400Regular" });
-    fireEvent(empty, "focus");
-    fireEvent.changeText(empty, "8");
-    expect(onChange).toHaveBeenLastCalledWith(0, expect.objectContaining({ loadKg: 8, loadOn: true }));
+    expect(StyleSheet.flatten(load.props.style)).toMatchObject({ backgroundColor: "transparent", fontSize: 11, fontFamily: "Inter_400Regular", width: 44 });
+    expect(screen.getByTestId("format-objective-1-unit")).toHaveTextContent("(durée, −kg)");
+    fireEvent.press(screen.getByTestId("format-objective-1-charge"));
+    expect(onChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ loadOn: false, loadKg: 12 }));
   });
 
-  it("Suivant : Objectif → Pause → Charge → ligne suivante, charge toujours parcourue (Tabata, Death by) ; AMRAP : charge affichée seulement", () => {
-    const two = [movement("a", { mode: "DURATION", repetitions: 20 }), movement("b", { mode: "DURATION", repetitions: 20 })];
+  it("Suivant : Objectif → Pause → Charge → ligne suivante ; seule une charge affichée (« +kg ») est parcourue (Tabata, Death by, AMRAP)", () => {
+    const two = [movement("a", { mode: "DURATION", repetitions: 20, loadOn: true }), movement("b", { mode: "DURATION", repetitions: 20, loadOn: true })];
     expect(tableCellOrder("TABATA", two, { withLoad: true })).toEqual(["obj-0", "pause-0", "load-0", "obj-1", "pause-1", "load-1"].map((key) => `${key}-0`));
     expect(tableCellOrder("DEATH_BY", two, { withLoad: true })).toEqual(["start-0", "sinc-0", "load-0", "start-1", "sinc-1", "load-1"].map((key) => `${key}-0`));
-    // AMRAP (spécification B, « (rép., +kg) ») : seule une charge affichée par « +kg » est parcourue. [Charge toujours parcourue —
-    // remplacé le 08/11/2026 pour l'AMRAP.]
-    expect(tableCellOrder("AMRAP", two, { withLoad: true })).toEqual(["obj-0", "obj-1"].map((key) => `${key}-0`));
-    const loaded = [movement("a", { mode: "REPETITIONS", repetitions: 10, loadOn: true }), movement("b", { mode: "REPETITIONS", repetitions: 10 })];
-    expect(tableCellOrder("AMRAP", loaded, { withLoad: true })).toEqual(["obj-0", "load-0", "obj-1"].map((key) => `${key}-0`));
+    expect(tableCellOrder("AMRAP", two, { withLoad: true })).toEqual(["obj-0", "load-0", "obj-1", "load-1"].map((key) => `${key}-0`));
+    const unloaded = [movement("a", { mode: "DURATION", repetitions: 20 }), movement("b", { mode: "DURATION", repetitions: 20, loadOn: true })];
+    expect(tableCellOrder("TABATA", unloaded, { withLoad: true })).toEqual(["obj-0", "pause-0", "obj-1", "pause-1", "load-1"].map((key) => `${key}-0`));
+    expect(tableCellOrder("DEATH_BY", unloaded, { withLoad: true })).toEqual(["start-0", "sinc-0", "start-1", "sinc-1", "load-1"].map((key) => `${key}-0`));
     // Sans « Avec charge » : pas de case de charge.
     expect(tableCellOrder("TABATA", two, { withLoad: false })).toEqual(["obj-0", "pause-0", "obj-1", "pause-1"].map((key) => `${key}-0`));
   });

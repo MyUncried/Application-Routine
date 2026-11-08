@@ -82,7 +82,10 @@ export const TABLE_LAYOUT = {
 const ROW_SEPARATOR = "#DEE3E5";
 /** Ligne cochée en Max : Objectif et Par tour en #BFC2CC (B §4.4). */
 const TABLE_DISABLED = "#BFC2CC";
-/** Charge « (12 kg) » centrée sous sa cellule, sans cadre : zone de texte plus large que la colonne pour « (12,5 kg) ». */
+/**
+ * Zone qui centre la charge « (12 kg) » sous sa cellule ; le champ lui-même a la largeur de la cellule (44, c-emom-recap du 08/11/2026).
+ * [Champ de 80 pour « (12,5 kg) » — remplacé le 08/11/2026.]
+ */
 const CHARGE_BOX_WIDTH = 80;
 /**
  * Tableau des séries : trois séries visibles (décision du 05/11/2026, n-charge-switch : « Afficher par défaut trois séries »),
@@ -163,10 +166,9 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
   // « ces 4 formats utilisent un tableau similaire. les "..." veut dire que s'il y a un autre format que j'ai oublié, il faut le corriger
   // aussi » ; t-coche-direct : « il faut que le bouton Suivant mette aussi le focus sur charge (Objectif > Pause > Charge > Ligne
   // suivante) ») : tableaux à une ligne par mouvement (Tabata, 30/30, Renforcement, À l'échec, Death by, AMRAP), la case de charge est
-  // toujours parcourue avec « Avec charge » (inchangé pour Tabata, 30/30, Renforcement, À l'échec, Death by). AMRAP : spécification de
-  // Hermann du 08/11/2026 (B §4.1, §4.4) — charge sous l'Objectif après « +kg », seule une charge affichée est parcourue.
-  // [AMRAP : case de charge toujours parcourue avec « Avec charge » — remplacé le 08/11/2026.]
-  const chargeColumn = answers.withLoad === true;
+  // parcourue avec « Avec charge ». Spécification de Hermann du 08/11/2026 (B §4.1, §4.4) et c-tabata-recap (08/11/2026 après-midi) :
+  // charge sous la première colonne après « +kg », dans tous ces tableaux — seule une charge affichée est parcourue (ordre Objectif >
+  // Pause > Charge conservé). [Case de charge toujours parcourue avec « Avec charge » — remplacé le 08/11/2026.]
   movements.forEach((item, row) => {
     const values = item.values;
     switch (model) {
@@ -181,7 +183,7 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
       }
       case "DEATH_BY":
         if (movements.length > 1) order.push(cellKey("start", row), cellKey("sinc", row));
-        if (movements.length > 1 && chargeColumn) order.push(cellKey("load", row));
+        if (movements.length > 1 && charged(values)) order.push(cellKey("load", row));
         return;
       case "TABATA":
       case "INTERVALS_30_30":
@@ -190,7 +192,7 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
         if (movements.length < 2) return;
         if (model !== "UNTIL_FAILURE") order.push(cellKey("obj", row));
         order.push(cellKey("pause", row));
-        if (chargeColumn) order.push(cellKey("load", row));
+        if (charged(values)) order.push(cellKey("load", row));
         return;
       case "EMOM":
       case "SUPERSET":
@@ -381,7 +383,6 @@ export function TableCell({
     fixed ? (load ? styles.tableCharge : styles.tableField) : load ? styles.fieldLoad : null,
     disabled ? (fixed ? styles.tableDisabled : valueFieldStyles.disabled) : null,
     !disabled && pending ? valueFieldStyles.toVerify : null,
-    fixed && load && pending ? styles.tableChargePending : null,
     !disabled && missing ? valueFieldStyles.toComplete : null,
     active || focused ? valueFieldStyles.active : null,
     focused && kind === "duration" && entry.text === "" ? styles.cellGuide : null,
@@ -520,14 +521,17 @@ function UnitTag({
 }) {
   return (
     <View style={styles.tagRow} testID={testID}>
+      {/* Recette du 08/11/2026 après-midi (c-tabata-recap, Hermann : « Mettre les Parenthèse en gris ») : parenthèses en #595E66 ;
+          virgule et « +kg » / « −kg » en bleu. [Parenthèses en bleu (spécification du 08/11/2026, A §4.4, B §4.4) — remplacé.] */}
       <Text style={styles.tagText}>
-        (<Text style={styles.tagUnit}>{unit}</Text>
-        {withLoad ? ", " : ")"}
+        <Text style={styles.tagUnit}>(</Text>
+        <Text style={styles.tagUnit}>{unit}</Text>
+        {withLoad ? ", " : <Text style={styles.tagUnit}>)</Text>}
       </Text>
       {withLoad ? (
         <>
           <ChargeToggle short on={on} onPress={onToggle} name={name} testID={toggleTestID} />
-          <Text style={styles.tagText}>)</Text>
+          <Text style={[styles.tagText, styles.tagUnit]}>)</Text>
         </>
       ) : null}
     </View>
@@ -569,34 +573,27 @@ function ChargeValue({
   binding,
   label,
   testID,
-  always = false,
 }: {
   readonly value: number | null;
   readonly onChange: (value: number | null) => void;
   readonly binding: ReturnType<CellBinding>;
   readonly label: string;
   readonly testID: string;
-  /**
-   * Charge toujours présente avec « Avec charge » (Tabata, 30/30, Renforcement, À l'échec, Death by — recette du 06/11/2026,
-   * t-coche-direct, Hermann : « retirer (+kg), mettre les cadres oranges avec un trait sur les champs charge qui ne sont pas
-   * renseignés ») : vide, un trait dans un cadre orange à la largeur de la colonne ; case touchable, comme avant. Sinon (tableaux à
-   * « +kg ») : case vide « (—) » grise, atteinte par Précédent / Suivant (recette du 05/11/2026, e-fortime-charge).
-   */
-  readonly always?: boolean;
 }) {
-  const pending = always && value === null;
   return (
     <TableCell
       kind="decimal"
       value={value}
       // Complément du 5 novembre 2026 (Hermann), §9 : « (12 kg) » ; affichage seulement, la valeur reste décimale.
       format={(entered) => `(${formatLoad(entered)})`}
-      placeholder={always ? t().dash : t().table.loadEmpty}
+      placeholder={t().table.loadEmpty}
       entrySuffix=" kg"
-      width={pending ? TABLE_LAYOUT.columnWidth : CHARGE_BOX_WIDTH}
+      // Recette du 08/11/2026 après-midi (c-emom-recap, Hermann : « Au focus le cadre de la valeur charge est trop large ») : le champ
+      // garde la largeur de la cellule (44), au repos comme en saisie. [Champ de 80 — remplacé le 08/11/2026.]
+      width={TABLE_LAYOUT.columnWidth}
       load
-      pending={pending}
-      barOnly={!always}
+      // Recette du 05/11/2026 (e-fortime-charge) : la charge s'atteint par Précédent / Suivant.
+      barOnly
       onChange={onChange}
       {...binding}
       label={label}
@@ -811,8 +808,9 @@ export function ChargeToggle({
  * Death by à plusieurs mouvements (MAJ 04/11 §4.3) : Mouvement | Départ | Incrément — grammaire commune du tableau « paramètres en
  * colonnes » (spécification de Hermann du 08/11/2026, B : « Tout ce qui est commun doit rester identique ») : valeurs sans unité
  * (« 1 », « + 1 », « 10″ »), unité dans l'étiquette sous le nom, charge sous la première colonne. [Unité dans les cases (« 1 rép. »,
- * « + 1 rép. », Complément du 5 novembre 2026, §13) et colonne Charge — remplacées le 08/11/2026.] Comportement de la charge inchangé
- * (t-coche-direct, 06/11/2026) : pas de « +kg » ; avec « Avec charge », charge toujours présente, cadre orange avec un trait si vide.
+ * « + 1 rép. », Complément du 5 novembre 2026, §13) et colonne Charge — remplacées le 08/11/2026.] Charge : « +kg » / « −kg » par mouvement,
+ * comme l'AMRAP (c-tabata-recap, 08/11/2026). [t-coche-direct (06/11/2026) : pas de « +kg », charge toujours présente, cadre orange avec
+ * un trait si vide — remplacé le 08/11/2026.]
  */
 export function DeathByTable({
   movements,
@@ -836,20 +834,21 @@ export function DeathByTable({
         const name = rowName(item);
         const mode = values.mode;
         const kind = mode === "DURATION" ? "duration" : "integer";
-        // t-coche-direct (06/11/2026) : avec « Avec charge », la charge est toujours présente — ligne dans l'état « charge affichée ».
-        const charged = withLoad;
+        // Charge affichée après « +kg » (c-tabata-recap, 08/11/2026). [t-coche-direct : charge toujours présente — remplacé le 08/11/2026.]
+        const charged = withLoad && values.loadOn === true;
         return (
           <MovementLine
             key={item.exercise.id}
             name={name}
             tag={
-              // Recette du 06/11/2026 (t-coche-direct, Hermann : « retirer (+kg) ») : pas de « +kg » dans ces tableaux, l'étiquette ne
-              // porte que l'unité (« (rép.) », « (durée) »).
+              // Recette du 08/11/2026 après-midi (c-tabata-recap, Hermann : « Il manque +kg ou -kg pour choisir ou pas de mettre une charge
+              // au mouvement par ligne. ») : « +kg » / « −kg » par mouvement, comme l'AMRAP. [t-coche-direct (06/11/2026) : « retirer (+kg) »,
+              // étiquette réduite à l'unité — remplacé le 08/11/2026.]
               <UnitTag
                 unit={unitWordOf(mode)}
-                withLoad={false}
-                on={false}
-                onToggle={() => undefined}
+                withLoad={withLoad}
+                on={values.loadOn === true}
+                onToggle={() => (values.loadOn === true ? onChange(index, { ...values, loadOn: false }) : onAddLoad(index))}
                 name={name}
                 testID={`format-death-by-${index}-unit`}
                 toggleTestID={`format-death-by-${index}-charge`}
@@ -876,10 +875,8 @@ export function DeathByTable({
               charge={
                 charged ? (
                   <ChargeValue
-                    always
-                    value={values.loadOn === true ? (values.loadKg ?? null) : null}
-                    // Une valeur saisie applique la charge au mouvement ; vidée, la charge est retirée (t-coche-direct, inchangé).
-                    onChange={(entered) => onChange(index, { ...values, loadKg: entered, loadOn: entered !== null })}
+                    value={values.loadKg ?? null}
+                    onChange={(entered) => onChange(index, { ...values, loadKg: entered })}
                     binding={cell(cellKey("load", index))}
                     label={`${name}, ${tt.load}`}
                     testID={`format-death-by-load-${index}`}
@@ -916,8 +913,9 @@ export function DeathByTable({
  * Objectif | Pause, dans son propre cadre ; Objectif (Durée ou Répétitions, au clavier ; « à l'échec » pour À l'échec) et Pause propres
  * au mouvement, réglages du questionnaire par défaut. Grammaire commune du tableau « paramètres en colonnes » (spécification de
  * Hermann du 08/11/2026, B) : valeurs sans unité, durées M′SS″, charge sous l'Objectif. [Colonne Charge avec « Avec charge » —
- * remplacée le 08/11/2026.] Comportement de la charge inchangé (t-coche-direct, 06/11/2026) : pas de « +kg » ; avec « Avec charge »,
- * charge toujours présente, cadre orange avec un trait si vide.
+ * remplacée le 08/11/2026.] Charge : « +kg » / « −kg » par mouvement, comme l'AMRAP (c-tabata-recap,
+ * 08/11/2026). [t-coche-direct (06/11/2026) : pas de « +kg », charge toujours présente, cadre orange avec un trait si vide — remplacé
+ * le 08/11/2026.]
  */
 export function ObjectivePauseTable({
   model,
@@ -951,20 +949,21 @@ export function ObjectivePauseTable({
         const mode = values.mode ?? defaultMode;
         const objective = values.repetitions !== undefined ? values.repetitions : mode === defaultMode ? (objectiveFallback ?? null) : null;
         const pause = values.pause ?? pauseFallback(index);
-        // t-coche-direct (06/11/2026) : avec « Avec charge », la charge est toujours présente — ligne dans l'état « charge affichée ».
-        const charged = withLoad;
+        // Charge affichée après « +kg » (c-tabata-recap, 08/11/2026). [t-coche-direct : charge toujours présente — remplacé le 08/11/2026.]
+        const charged = withLoad && values.loadOn === true;
         return (
           <MovementLine
             key={item.exercise.id}
             name={name}
             tag={
-              // Recette du 06/11/2026 (t-coche-direct, Hermann : « retirer (+kg) ») : pas de « +kg » dans ces tableaux, l'étiquette ne
-              // porte que l'unité (« (rép.) », « (durée) »).
+              // Recette du 08/11/2026 après-midi (c-tabata-recap, Hermann : « Il manque +kg ou -kg pour choisir ou pas de mettre une charge
+              // au mouvement par ligne. ») : « +kg » / « −kg » par mouvement, comme l'AMRAP. [t-coche-direct (06/11/2026) : « retirer (+kg) »,
+              // étiquette réduite à l'unité — remplacé le 08/11/2026.]
               <UnitTag
                 unit={unitWordOf(mode)}
-                withLoad={false}
-                on={false}
-                onToggle={() => undefined}
+                withLoad={withLoad}
+                on={values.loadOn === true}
+                onToggle={() => (values.loadOn === true ? onChange(index, { ...values, loadOn: false }) : onAddLoad(index))}
                 name={name}
                 testID={`format-objective-${index}-unit`}
                 toggleTestID={`format-objective-${index}-charge`}
@@ -996,10 +995,8 @@ export function ObjectivePauseTable({
               charge={
                 charged ? (
                   <ChargeValue
-                    always
-                    value={values.loadOn === true ? (values.loadKg ?? null) : null}
-                    // Une valeur saisie applique la charge au mouvement ; vidée, la charge est retirée (t-coche-direct, inchangé).
-                    onChange={(entered) => onChange(index, { ...values, loadKg: entered, loadOn: entered !== null })}
+                    value={values.loadKg ?? null}
+                    onChange={(entered) => onChange(index, { ...values, loadKg: entered })}
                     binding={cell(cellKey("load", index))}
                     label={`${name}, ${tt.load}`}
                     testID={`format-objective-load-${index}`}
@@ -1154,10 +1151,15 @@ export function SeriesTable({
   return (
     <View style={[styles.table, styles.seriesTable]} testID={`${prefix}-table`}>
       <View style={styles.seriesNames} testID={`${prefix}-names`}>
-        <View style={styles.seriesNamesHeader}>
-          <Text style={[styles.headText, styles.headName]} numberOfLines={1}>
-            {tt.movement}
-          </Text>
+        {/* Recette du 08/11/2026 après-midi (c-emom-recap, Hermann : « Le titre mouvement n'est pas correctement aligné ») : le titre,
+            positionné en absolu, ignorait la marge gauche de 16 de son conteneur (x = 0 au lieu de 16) ; il est désormais dans une zone
+            au retrait de 16, comme les noms. */}
+        <View style={styles.seriesNamesHeader} testID={`${prefix}-head-zone-outer`}>
+          <View style={styles.seriesHeadName} testID={`${prefix}-head-zone`}>
+            <Text style={[styles.headText, styles.headName]} numberOfLines={1} testID={`${prefix}-head-name`}>
+              {tt.movement}
+            </Text>
+          </View>
         </View>
         {movements.map((item, index) => (
           <View key={item.exercise.id} style={styles.seriesNameLine} testID={`${prefix}-${index}-name`}>
@@ -1313,8 +1315,6 @@ const styles = StyleSheet.create({
     lineHeight: 13,
   },
   tableDisabled: { color: TABLE_DISABLED },
-  // Charge vide toujours présente (t-coche-direct) : trait dans un cadre orange à la largeur de la colonne.
-  tableChargePending: { borderRadius: 6 },
   // Complément du 5 novembre 2026 (Hermann) (Figma) : charge entre parenthèses, Regular 12 (hors tableau).
   fieldLoad: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12 },
   // Mesure de la largeur naturelle du texte : hors flux, invisible, sans contrainte de largeur.
@@ -1346,6 +1346,7 @@ const styles = StyleSheet.create({
   // Le nom prend toute la place laissée par les colonnes, calées à droite ; l'écart de 12 appartient à la zone défilante.
   seriesNames: { flex: 1, minWidth: 0 },
   seriesNamesHeader: { height: TABLE_LAYOUT.headerHeight, paddingLeft: TABLE_LAYOUT.sideInset },
+  seriesHeadName: { flex: 1 },
   seriesNameLine: { height: TABLE_LAYOUT.rowHeight, paddingLeft: TABLE_LAYOUT.sideInset, flexDirection: "row" },
   seriesNameBlock: { marginRight: 0 },
   seriesHeadLine: { flexDirection: "row", height: TABLE_LAYOUT.headerHeight, gap: TABLE_LAYOUT.columnGap, paddingLeft: TABLE_LAYOUT.nameGap, paddingRight: TABLE_LAYOUT.sideInset },

@@ -668,3 +668,19 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Affichage immédiat des pastilles sur l'appareil : non démontré.
 - **À CLARIFIER** : AMRAP — « +kg » par mouvement (spec B) ou charge toujours présente « comme dans le tableau Tabata » (note b-amrap-table) ; hauteur du cadre orange d'une charge vide (13, non spécifiée) ; M′SS″ limité au récapitulatif ; écarts Figma/spec listés dans le rapport des tableaux (la spec a primé).
 - Toujours ouverts : liseré orange de la carte d'Exercice à vérifier ; sens de H ; capture y-rouge.
+
+## Recette iPhone du 08/11/2026 après-midi — tableaux et message EMOM
+
+- **Objectif** : « Les tests sont réalisés » (Hermann, 08/11/2026) — corriger les écarts de la section « Deuxième livraison du 8 novembre ». **Commit de départ** : `81a7036f`.
+- **Résultats lus** (base partagée, 243 documents) : OK c-defile, c-cat-ouvrir, c-cat-sortir, c-niveau, c-emom-charge, c-amrap-recap, et les fiches antérieures repassées (y-rouge, t-depli, f4-role, w-liste, d-carte-choix, y-emom-cible, b-orange, b-buyin-ordre, b-cycle-repli, b-emom-message, g-voile, n-superset, y-recup-migration) ; KO c-emom-recap, c-tabata-recap ; « Autres constats » : message EMOM absent. Notes recopiées mot pour mot dans ch07.
+
+| Point | Constat (cause) | Correction | Classe |
+|---|---|---|---|
+| c-emom-recap (titre) | Titre « Mouvement » en position absolue `left: 0` dans un conteneur à marge 16 : à x = 0 au lieu de 16 | Titre dans une zone en retrait de 16, comme les noms | A (spec A §4.3) |
+| c-emom-recap (focus) | Champ de charge de 80 de large, surlignage de saisie sur 80 | 44 au repos et en saisie | A (spec A §4.5) |
+| c-tabata-recap | Décision de Hermann : « +kg » / « −kg » par ligne aussi pour Tabata, 30/30, Renforcement, À l'échec, Death by ; parenthèses en gris ; AMRAP gardé | Grammaire de l'AMRAP étendue ; t-coche-direct annoté remplacé ; parenthèses #595E66 dans tous les tableaux | B |
+| Message EMOM (Autres constats) | Message de la feuille rendu sous la ligne Intervalle : absente pour un membre d'un Circuit « dans chaque intervalle », hors de vue pendant la saisie | Message sous l'en-tête de la feuille, toujours visible ; texte de Hermann pour les membres | B |
+
+- **Fichiers** : `ExecutionParametersSheet.tsx`, `ExecutionParametersSheet.format0711.test.tsx` ; agent : `FormatTables.tsx`, `formats.recette0611/0811.test.tsx`, docs Formats, ch07 ; rapport des tableaux (section « après-midi »).
+- **Tests** : `ExecutionParametersSheet.format0711` 19/19 ; agent : `formats*` + `FormatModelScreen*` 8 suites, 122 tests, tsc et eslint sans erreur sur ses fichiers ; `npx tsc --noEmit` OK après la modification de la feuille. **Suite complète non exécutée** : la commande a été arrêtée par le système (mémoire insuffisante), comme Metro ; non relancées sans accord de Hermann.
+- **Points ouverts** : virgule de l'étiquette restée bleue (à confirmer) ; « (12,5 kg) » peut être légèrement rogné dans 44 ; alignement du titre à confirmer sur iPhone ; toujours ouverts : liseré orange de la carte d'Exercice à vérifier, sens de H.

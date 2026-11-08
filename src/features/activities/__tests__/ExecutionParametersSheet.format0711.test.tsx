@@ -298,3 +298,32 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
     expect(value("execution-sheet-target")).toBe(strings.executionParameters.sheet.unset);
   });
 });
+
+/**
+ * Recette iPhone du 08/11/2026 (Autres constats, Hermann : « EMOM à intervalle dans la composition de séance : si on met 40 + 30 dans
+ * deux exercices différents de la même série de la composition de séance, on ne peut sauvegarder (ok) mais il n'y a pas de message
+ * d'explication […] Même chose chose pour tout type d'EMOM mais quand on met une durée sur un exercice supérieur à la durée de
+ * l'intervalle ») : le message est sous l'en-tête, toujours visible, même sans ligne Intervalle.
+ */
+describe("Recette du 08/11/2026 — message du dépassement EMOM sous l'en-tête de la feuille", () => {
+  const duration = (seconds: number) =>
+    params({ mode: "DURATION", series: { kind: "UNIFORM", count: 1, target: numberTarget(seconds), pauseSeconds: 0, loadKg: 0, workPhases: [] } });
+
+  it("membre d'un Circuit EMOM « dans chaque intervalle » (pas de ligne Intervalle) : 30 s + 40 s des autres membres ≥ 60 s → message, ✓ indisponible", () => {
+    renderSheet("EMOM", ["stopTarget", "noRecovery"], {}, { emom: { windowSeconds: 60, othersWorkByRank: [40] } }, duration(30));
+    expect(query("execution-sheet-format-interval-row")).toBeNull();
+    const alert = get("execution-sheet-format-emom-overflow");
+    expect(alert.props.children).toBe(strings.screens.composition.emomOverflow);
+    // Sous l'en-tête, hors du cadre Séries ; ✓ indisponible.
+    expect(within(get("execution-sheet-frame-series")).queryByTestId("execution-sheet-format-emom-overflow", hidden)).toBeNull();
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("EMOM seul : durée de l'exercice ≥ intervalle → message de la feuille sous l'en-tête ; sans dépassement, aucun message", () => {
+    renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 }, { emom: { windowSeconds: null, othersWorkByRank: [] } }, duration(70));
+    expect(get("execution-sheet-format-emom-overflow").props.children).toBe(f.emomOverflow);
+    screen.unmount();
+    renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 }, { emom: { windowSeconds: null, othersWorkByRank: [] } }, duration(30));
+    expect(query("execution-sheet-format-emom-overflow")).toBeNull();
+  });
+});

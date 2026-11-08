@@ -91,15 +91,29 @@ L'interprétation initiale n° 1 (« +kg » par mouvement étendu à Death by, T
 - `tableCellOrder` : ordre d'origine pour ces tableaux ; seule l'AMRAP ne parcourt qu'une charge affichée par « +kg ».
 - « +kg » par mouvement : AMRAP, EMOM, Progression, For time, Superset.
 
+## Recette iPhone du 08/11/2026 après-midi (sur `81a7036f`) — c-emom-recap, c-tabata-recap
+
+Notes de Hermann recopiées mot pour mot au registre ch07 (« Recette du 08/11/2026 après-midi — tableaux », sous-section de la section de cette mission).
+
+- **c-tabata-recap — « +kg » / « −kg » par mouvement** (décision B qui remplace t-coche-direct du 06/11 pour Tabata, 30/30, Renforcement, À l'échec, Death by) : `DeathByTable` et `ObjectivePauseTable` reprennent la grammaire de l'AMRAP — étiquette « (rép., +kg) », charge sous la première colonne seulement après « +kg » (`loadOn`), Regular 11 bleu sans cadre, « (—) » gris si vide, atteinte par Précédent / Suivant ; `tableCellOrder` ne parcourt qu'une charge affichée dans tous les tableaux à une ligne par mouvement. La variante « charge toujours présente, cadre orange » (`ChargeValue always`, style `tableChargePending`) est supprimée. Le cas à un mouvement (ligne Charge du cadre des paramètres, cadre orange) n'est pas touché.
+- **AMRAP** : inchangé (« AMRAP : c'est comme c'est développé actuellement. ») — répond au point à confirmer n° 1 (« +kg » gardé).
+- **Parenthèses en gris** (#595E66) dans les étiquettes de tous les tableaux (`UnitTag`) ; mot gris et ±kg bleu inchangés ; **virgule laissée en bleu — à confirmer**.
+- **c-emom-recap — titre « Mouvement »** : écart **démontré** dans le code du tableau des séries. Le titre (`position: "absolute", left: 0`) était enfant direct de `seriesNamesHeader` (`paddingLeft: 16`) ; une position absolue part du bord du conteneur et ignore sa marge intérieure → titre à x = 0 du cadre, alors que les noms sont à x = 16 (le bloc du nom est dans le flux, après la marge, et le texte en absolu s'y place à 0). Le titre était donc décalé de 16 **vers la gauche** ; « pas correctement aligné à droite » s'explique par cet écart (il fallait le décaler vers la droite). Correction : titre placé dans une zone `flex: 1` au retrait de 16 (`seriesHeadName`). Les tableaux à une ligne par mouvement n'avaient pas l'écart (titre et noms dans `nameArea`, déjà au retrait de 16). Police : Inter Medium 12, inchangée. Jest ne mesure pas la mise en page : le test vérifie la structure (zone au retrait de 16, texte à `left: 0`) ; position réelle à confirmer sur iPhone.
+- **c-emom-recap — charge au focus** : le champ de la charge avait 80 de large (zone de centrage) et le surlignage de saisie couvrait 80 ; il a maintenant 44 (largeur de la cellule) au repos comme au focus, centré dans la zone de 80. Risque : « (12,5 kg) » (environ 45 en Regular 11) peut être rogné — à vérifier sur iPhone.
+- Tests : `formats.recette0611` (Tabata « +kg », ordre de Suivant), `formats.recette0811` (Death by « +kg » et positions, parenthèses grises, titre et charge de 44 au focus).
+- Résultats : `npx jest src/features/sessions/__tests__/formats src/features/sessions/__tests__/FormatModelScreen --testPathIgnorePatterns "\.claude" -w 2` → **8 suites, 122 tests, tous passés** ; `npx tsc --noEmit` → aucune erreur ; `npx eslint` (FormatTables, tests 0611 / 0811) → aucune erreur.
+- Documentation : ch07 (sous-section, annotations « [Remplacé le 08/11/2026 …] » sur t-coche-direct et sur la puce « Death by, Tabata… », point (4) tranché) ; Formats §7.7 et §9.5 (annotations, parenthèses grises).
+
 ## Hypothèses non démontrées / points à confirmer par Hermann
 
-1. AMRAP : avant le 08/11, sa charge suivait t-coche-direct (case toujours présente, listée dans le commentaire de `tableCellOrder` du 06/11) ; la spécification B (« (rép., +kg) ») et l'instruction de la session principale lui donnent « +kg » par mouvement. C'est un changement de comportement pour l'AMRAP, à faire confirmer.
+1. ~~AMRAP : « +kg » par mouvement à confirmer~~ — tranché le 08/11/2026 après-midi : gardé.
 2. Format M′SS″ appliqué au récapitulatif seulement (questionnaire inchangé : « 1 min », « 30 s »).
 3. Charge vide sous « +kg » : « (—) » gris, comme dans le tableau des séries existant (conservé).
 4. Glissement de la cellule (y = 10 ↔ 2,5) : aucune animation n'existait pour l'apparition de la charge ; laissé sans animation.
-5. Hauteur du cadre orange d'une charge vide : 13 (ligne de la charge), rayon 6 — non spécifié, à vérifier sur iPhone.
-5. Champ « Exécution » et légende du Déroulé : composants partagés avec le questionnaire, nouvelles valeurs donc appliquées aux deux étapes.
-6. Titres plus larges que 44 (« Incrément », « Par tour ») et « à l'échec » débordent symétriquement de leur colonne ; « (12,5 kg) » centré dans une zone de 80.
+5. ~~Hauteur du cadre orange d'une charge vide~~ — sans objet depuis c-tabata-recap.
+6. Champ « Exécution » et légende du Déroulé : composants partagés avec le questionnaire, nouvelles valeurs donc appliquées aux deux étapes.
+7. Titres plus larges que 44 (« Incrément », « Par tour ») et « à l'échec » débordent symétriquement de leur colonne.
+8. Virgule de l'étiquette laissée en bleu (parenthèses en gris).
 
 ## Éléments non corrigés ou hors périmètre
 
@@ -111,7 +125,8 @@ L'interprétation initiale n° 1 (« +kg » par mouvement étendu à Death by, T
 
 - EMOM, Progression, For time, Superset : colonnes 44 / écart 12 calées à 16 du bord ; ligne de 44 identique avant / après « +kg » ; nom et étiquette immobiles ; charge « (12 kg) » sans cadre juste sous la valeur (écart compact) ; « 22′39″ » tenant dans 44 ; « — » rouge.
 - AMRAP : plus de colonne Charge, charge sous l'Objectif, radio centré, grisé Max.
-- Death by, Tabata, 30/30, Renforcement, À l'échec avec « Avec charge » : charge toujours sous la première colonne, cadre orange (hauteur 13) avec trait si vide, saisie directe au toucher ; lignes de 44 ; étiquette « (rép.) » / « (durée) ».
+- [Remplacé le 08/11 après-midi :] Death by, Tabata, 30/30, Renforcement, À l'échec avec « Avec charge » : « +kg » / « −kg » par ligne, charge sous la première colonne après « +kg », lignes de 44, parenthèses grises.
+- Tableau des séries : « Mouvement » aligné sur les noms (x = 16) ; charge au focus limitée à 44 ; « (12,5 kg) » lisible.
 - Lignes de paramètres de 40, cadre « Intervalle / Durée totale / Exécution » de 122, écarts de 8 ; durées M′SS″ ; Déroulé.
 - Saisie au clavier : focus, Précédent / Suivant vers la charge après « +kg », défilement des colonnes (pas de 56), TextInput en 11 / hauteur 13 pour la charge (rendu iOS du curseur à vérifier).
 
@@ -129,5 +144,5 @@ L'interprétation initiale n° 1 (« +kg » par mouvement étendu à Death by, T
 
 ## Commit final et état Git
 
-- Aucun commit (consigne : la session principale intègre et committe). HEAD inchangé : `5d5a5ec0`.
+- Aucun commit par cette mission (consigne : la session principale intègre et committe). Livraison initiale committée par la session principale en `81a7036f` ; les corrections du 08/11 après-midi sont non committées sur ce HEAD.
 - Arbre de travail : fichiers ci-dessus modifiés, plus les modifications concurrentes d'autres sessions (`CompositionScreen.tsx`, `SelectedMovementCard.tsx`, `KodjoIcon.tsx`, `CompositionScreen.recette*.test.tsx`, `FormatModelScreen.r0711.test.tsx`), non touchées par cette mission.

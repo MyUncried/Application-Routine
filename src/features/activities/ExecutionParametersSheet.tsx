@@ -1853,13 +1853,7 @@ export function ExecutionParametersSheet({
           <Separator />
           <Row
             label={formatT.interval}
-            below={
-              emomOverflow ? (
-                <Text style={styles.formatAlert} accessibilityRole="alert" testID="execution-sheet-format-emom-overflow">
-                  {formatT.emomOverflow}
-                </Text>
-              ) : null
-            }
+            // [Message du dépassement sous la ligne Intervalle — déplacé sous l'en-tête le 08/11/2026 (recette, Autres constats).]
             testID="execution-sheet-format-interval-row"
           >
             {scalarField("formatInterval", {
@@ -2589,6 +2583,16 @@ export function ExecutionParametersSheet({
                 testIDPrefix="execution-sheet"
               />
               <View style={styles.headerDivider} />
+              {/* Recette iPhone du 08/11/2026 (Autres constats, Hermann : « si on met 40 + 30 dans deux exercices différents de la même série
+                  de la composition de séance, on ne peut sauvegarder (ok) mais il n'y a pas de message d'explication […] Même chose pour
+                  tout type d'EMOM mais quand on met une durée sur un exercice supérieur à la durée de l'intervalle ») — cause : le message
+                  était rendu sous la ligne Intervalle, absente pour un membre d'un Circuit EMOM « dans chaque intervalle » et souvent hors
+                  de vue pendant la saisie des séries. Il est posé sous l'en-tête, à côté de ✓ indisponible, toujours visible. */}
+              {emomOverflow ? (
+                <Text style={styles.emomOverflowAlert} accessibilityRole="alert" testID="execution-sheet-format-emom-overflow">
+                  {format?.emom?.windowSeconds != null ? strings.screens.composition.emomOverflow : formatT.emomOverflow}
+                </Text>
+              ) : null}
 
               <SheetMotionScrollView
                 ref={scrollRef}
@@ -4277,6 +4281,14 @@ const styles = StyleSheet.create({
     ...type.caption,
     color: colors.danger,
     paddingBottom: spacing[8],
+  },
+  // Recette du 08/11/2026 : message du dépassement EMOM sous l'en-tête de la feuille.
+  emomOverflowAlert: {
+    ...type.caption,
+    color: colors.danger,
+    textAlign: "center",
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
   },
   separator: {
     height: 1,
