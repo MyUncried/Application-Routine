@@ -240,6 +240,23 @@ describe("CircuitHeader (PRE-6 story 3.1 ; PRE-9 B.1a)", () => {
         expect(host()).not.toBe(grouped);
         expect(screen.getByTestId("header-counter-adjective", anyNode).props.children).toBe("alternées");
       }));
+
+    // Constat de Hermann du 08/11/2026 au soir (« Le désalignement disparaît lorsque je sélectionne un circuit ou un exercice. ») :
+    // l'hôte natif mesuré avant la mise en page de son emplacement laissait l'adjectif 17 plus haut ; il est remonté une seule fois,
+    // après la première mise en page de l'emplacement.
+    it("iOS: the native menu host is remounted once after its slot is first laid out, then kept", () =>
+      withPlatform("ios", () => {
+        const host = () => screen.getByTestId("header-counter-nature", anyNode);
+        const slot = () => screen.getByTestId("header-counter-adjective-slot", anyNode);
+        renderHeader({ nature: "TOURS", count: 3 });
+        const beforeLayout = host();
+        const layout = { nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 44 } } };
+        act(() => fireEvent(slot(), "layout", layout));
+        const afterLayout = host();
+        expect(afterLayout).not.toBe(beforeLayout);
+        expect(slot().props.onLayout).toBeUndefined();
+        expect(screen.getByTestId("header-counter-adjective", anyNode).props.children).toBe("groupées");
+      }));
   });
 
   describe("CircuitNaturePanel (Android / web)", () => {

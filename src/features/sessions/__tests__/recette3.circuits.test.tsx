@@ -180,7 +180,8 @@ describe("recette n° 3 bis (f3s-nom) — colonnes de la ligne d'en-tête", () =
     const slot = StyleSheet.flatten(screen.getByTestId("header-counter-slot").props.style);
     expect(slot).toEqual(expect.objectContaining({ minWidth: 100 + rows.length - 1, flexShrink: 0 }));
     const duration = StyleSheet.flatten(screen.getByTestId("header-duration").props.style);
-    expect(duration).toEqual(expect.objectContaining({ minWidth: 71, flexGrow: 0, flexShrink: 0, textAlign: "right" }));
+    // 08/11/2026 au soir : + 12 (COUNTER_LEFT_SHIFT, « décaler légèrement le bloc du nombre de tours vers la gauche »). [71 — remplacé.]
+    expect(duration).toEqual(expect.objectContaining({ minWidth: 71 + 12, flexGrow: 0, flexShrink: 0, textAlign: "right" }));
     // Un autre en-tête (Cycle compris) reprend les mêmes largeurs, sans nouvelle mesure.
     screen.unmount();
     renderHeader({ originModel: "TABATA" });

@@ -2279,6 +2279,20 @@ Constats de Hermann (08/11/2026 au soir), recopiés textuellement :
 - **Compteur décalé (A, règle f3s-nom du 03/11/2026 : « décaler le compteur au maximum vers la droite, en considérant la place minimum nécessaire pour l’affichage de la durée »).** La colonne de durée des en-têtes de Circuit et de Cycle était mesurée sur « ≈ 88 min 45 s » ; au nouveau format, cette valeur s’écrit « ≈ 1h 29′ », plus courte : la colonne s’est réduite et le compteur s’est décalé à droite. La colonne est maintenant mesurée sur les plus longues durées de chaque forme (« ≈ 59′59″ », « ≈ 9h 59′ ») ; le compteur reste plus à droite qu’avant le changement de format, conformément à la règle (les durées sont plus courtes qu’auparavant). À CLARIFIER : garder cette position ou revenir à l’ancienne abscisse.
 - **Chevron du Circuit (B).** Chevron placé avant le nom, entre l’anneau et le nom, dans la même cible de repli ; ch13 et Composition-conteneurs annotés.
 
+Constats et demande de Hermann (08/11/2026 au soir), recopiés textuellement :
+
+> Je note une petite régression d’affichage du type de circuit
+
+> Le désalignement  disparaît lorsque je sélectionne un circuit ou un exercice.
+
+> Le problème d’alignement sur la ligne du circuit apparaît particulièrement lorsque je fait défiler l’écran
+
+> Non par forcément, il a l’air de persister pendant le défilement plutôt.
+> Peux tu déjà décaler légèrement le bloc du nombre de tours vers la gauche
+
+- **Adjectif « groupées » / « alternées » remonté (A — anomalie).** L’hôte natif iOS du menu de nature (`Host matchContents`) était mesuré avant la mise en page de son emplacement : l’adjectif restait 17 plus haut (marge négative de l’emplacement) jusqu’à un nouveau rendu (sélection). Correctif : l’hôte est remonté une fois après la première mise en page de l’emplacement (`CircuitHeader.tsx`, `triggerLayoutKey`). Cause démontrée seulement en partie (symptôme et mécanisme) ; efficacité à confirmer sur iPhone, défilement compris.
+- **Compteur décalé vers la gauche (B).** Réserve de 12 ajoutée à la colonne de durée des en-têtes de Circuit et de Cycle (`COUNTER_LEFT_SHIFT`) ; valeur choisie par la session principale, à confirmer. Compteur toujours aligné entre Circuits et Cycles.
+
 ## Recette du 08/11/2026 — catalogue
 
 Notes de Hermann (recette iPhone du 08/11/2026), recopiées textuellement :

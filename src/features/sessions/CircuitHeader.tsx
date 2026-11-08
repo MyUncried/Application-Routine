@@ -263,6 +263,10 @@ function counterReferences(): readonly { readonly unit: string; readonly adjecti
 // partout »), 88 min 45 s s'écrit « ≈ 1h 29′ », plus court que d'autres durées ; la colonne avait rétréci et le compteur s'était
 // décalé à droite (Hermann, 08/11/2026 au soir : « Le bloc nombre de tours . Type a été décalé à droite »).] Plus longues durées
 // affichées de chaque forme ; la colonne prend la plus large.
+// Hermann, 08/11/2026 au soir : « Peux tu déjà décaler légèrement le bloc du nombre de tours vers la gauche » — réserve ajoutée à la
+// colonne de durée (valeur choisie par la session principale, à confirmer sur iPhone) ; le compteur reste aligné entre Circuits et Cycles.
+export const COUNTER_LEFT_SHIFT = spacing[12];
+
 export const DURATION_REFERENCES: readonly string[] = [59 * 60 + 59, 9 * 3600 + 59 * 60].map(
   (seconds) => `${strings.shared.durationNature.estimatedPrefix}${formatPhraseDuration(seconds)}`,
 );
@@ -307,7 +311,7 @@ function ContainerColumnsProbe({ fontScale, onMeasured }: { fontScale: number; o
   const report = () => {
     if (done.current || durations.current.some((width) => width === null) || counters.current.some((width) => width === null)) return;
     done.current = true;
-    onMeasured({ fontScale, counter: Math.ceil(Math.max(...counters.current.map((width) => width ?? 0))), duration: Math.ceil(Math.max(...durations.current.map((width) => width ?? 0))) });
+    onMeasured({ fontScale, counter: Math.ceil(Math.max(...counters.current.map((width) => width ?? 0))), duration: Math.ceil(Math.max(...durations.current.map((width) => width ?? 0))) + COUNTER_LEFT_SHIFT });
   };
   return (
     <View style={columnStyles.probe} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="container-columns-probe">
@@ -1095,6 +1099,11 @@ function CircuitCounter({
   const t = strings.screens.composition.circuit;
   // Story 7.9 (revue) : la taille du texte (Dynamic Type) change aussi la largeur du déclencheur.
   const { fontScale } = useWindowDimensions();
+  // Constat de Hermann du 08/11/2026 au soir (« Je note une petite régression d’affichage du type de circuit » ; « Le désalignement
+  // disparaît lorsque je sélectionne un circuit ou un exercice. ») : au premier affichage, l'hôte natif du menu (`Host matchContents`)
+  // se mesurait avant la mise en page de son emplacement — l'adjectif remontait de la marge négative de l'emplacement (17). L'hôte est
+  // remonté une fois, après la première mise en page de l'emplacement, et remesuré dans une ligne en place (story 7.9, même mécanisme).
+  const [isAdjectiveSlotLaidOut, setAdjectiveSlotLaidOut] = useState(false);
 
   return (
     <View style={styles.counter} testID={`${testID}-row`}>
@@ -1130,7 +1139,11 @@ function CircuitCounter({
       >
         {` ${MIDDLE_DOT} `}
       </Text>
-      <View style={styles.adjectiveSlot} testID={`${testID}-adjective-slot`}>
+      <View
+        style={styles.adjectiveSlot}
+        onLayout={isAdjectiveSlotLaidOut ? undefined : () => setAdjectiveSlotLaidOut(true)}
+        testID={`${testID}-adjective-slot`}
+      >
         {carrier !== undefined ? (
           // Nature fixée par le Format d'origine (§1) : texte, sans menu. Recette iPhone n° 3 du 03/11/2026
           // (autres constats, Hermann : « le texte "groupé" n'est plus aligné verticalement avec les autres
@@ -1148,7 +1161,7 @@ function CircuitCounter({
           trigger={<NatureAdjective nature={nature} testID={`${testID}-adjective`} />}
           // Story 7.9 (j6d-5) : le déclencheur suit son texte — l'hôte natif est remesuré à chaque
           // changement d'adjectif (« groupées » / « alternées ») ou de taille de texte.
-          triggerLayoutKey={`${circuitNatureAdjective(nature)}@${fontScale}`}
+          triggerLayoutKey={`${circuitNatureAdjective(nature)}@${fontScale}${isAdjectiveSlotLaidOut ? "#placed" : ""}`}
           isOpen={isNatureMenuOpen}
           onOpen={onOpenNatureMenu}
           onClose={onCloseNatureMenu}

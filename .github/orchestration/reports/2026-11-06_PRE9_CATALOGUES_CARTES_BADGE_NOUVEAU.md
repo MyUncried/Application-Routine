@@ -738,3 +738,9 @@ Portée retenue pour (3) : l'Exercice EMOM, objet de la demande ; la Récupérat
 - Vérification session principale : `tsc --noEmit` OK ; `OccurrenceCard*`, `CompositionScreen*`, `compositionPresentation*`, `compositionRail`, `compositionDeletion`, `PlacementBar`, `CircuitHeader*`, `src/shared/i18n` : 33 suites, 865/866 ; l'échec (`CompositionScreen.recette1`, « carte complète → éditeur ») passe seul 9/9 deux fois — sensibilité à la charge, comme le 08/11 (attente de l'animation de la feuille).
 - Constat de Hermann sans cause démontrée : « Je note une petite régression d’affichage du type de circuit » (capture : « groupées » remonté au-dessus de « N tours · » sur les Circuits à menu de nature, AMRAP intact). Hypothèse non démontrée : hauteur de l'hôte natif du menu iOS (`Host matchContents`) — décalage de 17 = marge négative de l'emplacement. Aucune modification ; questions posées à Hermann.
 - Rien vérifié sur iPhone.
+
+### Adjectif de nature remonté et compteur décalé à gauche (08/11/2026 au soir)
+
+- Constats de Hermann recopiés dans ch07. Anomalie (A) : hôte natif du menu de nature mesuré avant la mise en page de son emplacement → remonté une fois après la première mise en page (`CircuitHeader.tsx`). Test `CircuitHeader.test.tsx` « remounted once after its slot is first laid out » : échoue sans le correctif, passe avec.
+- Demande (B) « décaler légèrement le bloc du nombre de tours vers la gauche » : réserve de 12 ajoutée à la colonne de durée (`COUNTER_LEFT_SHIFT`).
+- Tests : `CircuitHeader*`, `recette3*`, `CycleHeader*` 54/54 ; `CompositionScreen*`, `recette3*`, `CycleHeader*` 622/622 (avant le décalage) ; `tsc --noEmit` OK. Rien vérifié sur iPhone.
