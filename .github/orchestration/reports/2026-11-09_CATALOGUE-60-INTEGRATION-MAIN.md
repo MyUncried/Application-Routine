@@ -146,3 +146,19 @@ Reste à faire : recette sur iPhone (§ 8) par Hermann ; taille exacte du JSON r
 ### 10.3 Export OVH réel (9/11, 13:11)
 
 `kodjo-admin-brouillons.json` exporté par Hermann depuis Safari (iPhone) : **408 octets** (taille lue sur l'iPhone, contenu non transmis). Hermann confirme n'avoir fait aucune modification de fiche ni ajout de photo dans l'administration : export sans `movementEdits` ni média, très en deçà de la limite de 24 Mo. L'import attendu crée les 60 Mouvements du corpus du 27/10 avec le préclassement de recette non approuvé. Acceptation réelle sur l'iPhone : à constater pendant la recette.
+
+### 10.4 Recette iPhone de la build `f882e911` et correction de la relecture (9/11, 13:17–13:40)
+
+Constats (captures de Hermann) :
+
+- 1er import : « Import interrompu après 31 insertion(s) : pilot:FIT-PIL-002 (The created movement could not be read back.) » ; écran : 32 mouvements (la fiche fautive est enregistrée, non relue).
+- 2e import (même fichier, 408 octets) : 32 fiches reconnues, 7 ajoutées, interruption sur `pilot:FIT-PIL-010` (même message) ; écran : 40 mouvements.
+- Relances suivantes : import achevé, 60 Mouvements (« tout est téléchargé », Hermann). La reprise sans doublon prévue par le test d'interruption est ainsi constatée sur appareil réel ; le message final et le réimport « 0 ajouté, 60 identiques » ne m'ont pas été transmis en capture.
+
+Analyse historique : le message provient de `SqliteMovementRepository.create` (`main`), non de l'importeur. Le défaut existait avant la passerelle (toute création de Mouvement) ; il est **détecté** par l'import, qui enchaîne 60 créations. Les tests ne l'avaient pas vu : `node:sqlite` n'utilise qu'une connexion. Attribution : **plausible** — expo-sqlite exécute `withExclusiveTransactionAsync` sur une connexion distincte ; `create` relisait ensuite sur la connexion principale (WAL), qui peut lire un instantané antérieur. Les deux échecs, sur des fiches sans particularité et à des rangs différents, correspondent à un aléa de concurrence, pas à une donnée.
+
+Correction (classe D, technique, sans effet sur règle ou contrat) : relecture dans la transaction d'écriture, sur la même connexion, comme `SqliteSessionRepository.create` ; une relecture impossible annule désormais l'insertion au lieu de la laisser validée. Test ajouté dans `pilotMovementImport.sqlite.test.ts` : connexion principale en retard d'un instantané après chaque transaction ; **échoue sans la correction** avec exactement le message de l'iPhone, passe avec.
+
+Tests : `tsc` et eslint propres ; 22 suites / 277 tests (import, commande, Catalogue, repository Mouvement, familles, durées de phase, migrations, schéma) verts. PRE-10 (`origin/pre10-bmad/dev` `9aa90d5f`, `composition-phases-duree` `eb06ac60`) ne modifie pas `SqliteMovementRepository.ts`.
+
+Non démontré : la correction n'est vérifiée sur iPhone qu'après une nouvelle build (OTA désactivées), soumise à l'accord de Hermann. La base de « Routine Catalogue » contient déjà les 60 fiches : une vérification exigerait une réinstallation propre ou une création manuelle de Mouvements.

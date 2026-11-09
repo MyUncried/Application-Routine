@@ -75,6 +75,35 @@ function failOnNthMovementInsert(inner: Database, nth: number): Database {
   return wrap(inner);
 }
 
+/**
+ * Reproduit la recette iPhone du 9/11 : avec expo-sqlite, la transaction exclusive écrit sur une
+ * connexion distincte ; juste après la validation, la connexion principale (WAL) peut relire un
+ * instantané antérieur. Ici, la première lecture de `movements` sur la connexion principale qui
+ * suit chaque transaction ne voit pas les lignes qu'elle vient de valider.
+ */
+function staleMainConnectionAfterCommit(inner: Database): Database {
+  let stale = false;
+  const hide = <T>(source: string, rows: T[]): T[] => {
+    if (stale && /FROM movements\b/i.test(source)) {
+      stale = false;
+      return [];
+    }
+    return rows;
+  };
+  return {
+    execAsync: (source) => inner.execAsync(source),
+    runAsync: (source, parameters) => inner.runAsync(source, parameters),
+    getFirstAsync: async <T>(source: string, parameters?: Parameters<Database["getFirstAsync"]>[1]) =>
+      hide(source, [await inner.getFirstAsync<T>(source, parameters)].filter((row): row is Awaited<T> & {} => row !== null))[0] ?? null,
+    getAllAsync: async <T>(source: string, parameters?: Parameters<Database["getAllAsync"]>[1]) =>
+      hide(source, await inner.getAllAsync<T>(source, parameters)),
+    withExclusiveTransactionAsync: async (task) => {
+      await inner.withExclusiveTransactionAsync(task);
+      stale = true;
+    },
+  };
+}
+
 beforeEach(async () => {
   database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
@@ -176,6 +205,16 @@ describe("Passerelle pilote → SQLite réelle (base isolée)", () => {
     expect(await count("movement_body_zones", `WHERE movement_id = '${failed}'`)).toBe(0);
 
     expect(await installPilotMovements(serviceOn(database), preview)).toEqual({ inserted: 30, unchanged: 30 });
+    expect(await count("movements", "WHERE id LIKE 'pilot:%'")).toBe(PILOT_IMPORT_COUNT);
+  });
+
+  it("relecture après création indépendante de la connexion principale (recette iPhone du 9/11)", async () => {
+    const preview = preparePilotMovementImport(emptyDraft());
+
+    expect(await installPilotMovements(serviceOn(staleMainConnectionAfterCommit(database)), preview)).toEqual({
+      inserted: PILOT_IMPORT_COUNT,
+      unchanged: 0,
+    });
     expect(await count("movements", "WHERE id LIKE 'pilot:%'")).toBe(PILOT_IMPORT_COUNT);
   });
 });
