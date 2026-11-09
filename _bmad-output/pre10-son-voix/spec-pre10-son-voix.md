@@ -29,3 +29,7 @@ Recette iPhone PRE-10 n° 2 du 09/11/2026, choix provisoire 6 (`q-son`) : « OK 
 1. **Son de transition** : ch08 ne prévoit qu'une annonce vocale au début d'une étape. Proposé : avec la voix coupée et le son actif, un bip grave au début de chaque étape ; aucune annonce pour Compte à rebours initial, Pause entre séries et Fin de séance.
 2. **« Bip grave pendant les exercices chronométrés »** (ch08, liste du guidage) : sens non précisé (bip de cadence ? battement régulier ?). Proposé : bip grave réservé à la cadence et au signal minute ; rien de plus pendant une Durée.
 3. **Arrière-plan / écran verrouillé** : non traité dans ce lot (spike RT-001 / P6) ; sons et annonces au premier plan seulement.
+
+## Feu vert et réalisation (09/11/2026)
+
+Hermann : « Feu vert pour toutes les étapes ». Les trois choix provisoires À CLARIFIER sont appliqués tels que proposés (non confirmés explicitement ; à confirmer en recette, points S5–S7 du cahier). Réalisé : `npm ci` dans `PRE10-SON` ; `expo-audio` ~57.0.5, `expo-speech` ~57.0.3 ; plugin `expo-audio` non ajouté (documentation v57 : inutile pour la lecture au premier plan ; il ajouterait mode audio d’arrière-plan et permission micro) ; `ExecutionSounds`, `ExecutionVoice`, `ExecutionSignalAdapter` ; tests `ExecutionSignalAdapter.test.ts` ; ch12 §12.11 (note d’implémentation, classe D). Classe des comportements : A (ch08 « Guidage sonore », RM-243) et C pour les trois choix provisoires.

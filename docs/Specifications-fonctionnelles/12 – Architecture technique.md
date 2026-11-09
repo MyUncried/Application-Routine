@@ -566,6 +566,8 @@ Les comportements doivent être testés notamment :
 - téléphone en mode silencieux ;
 - avec d’autres sources audio actives.
 
+**Note d’implémentation (lot PRE-10 son et voix, 09/11/2026 — choix technique, classe D ; décision de Hermann, recette PRE-10 n° 2 `q-son`).** Bips : `expo-audio` (`src/infrastructure/audio/ExecutionSounds.ts`), deux sons WAV courts empaquetés (`assets/sounds/`), un lecteur par son rejoué depuis le début. Annonces : `expo-speech` en `fr-FR` (`src/infrastructure/speech/ExecutionVoice.ts`), une annonce remplaçant la précédente. Session audio commune : lecture en mode silencieux, autres sources atténuées (`duckOthers`), pas de lecture en arrière-plan ; le plugin de configuration `expo-audio` n’est pas ajouté (il activerait le mode audio d’arrière-plan et la permission micro), l’arrière-plan restant au spike RT-001 / P6. `ExecutionSignalAdapter` choisit le canal par signal ; un échec natif est ignoré. Nouvelle version native requise (build EAS `development-bmad`).
+
 ## 12.12 Fonctionnement en arrière-plan
 
 Le MVP vise à maintenir une Exécution cohérente lorsque l’application passe temporairement en arrière-plan ou que l’écran est verrouillé, dans les limites autorisées par iOS et Android.
