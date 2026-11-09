@@ -261,6 +261,35 @@ describe("PRE-10 noyau — Point d'arrêt, arrêt et sécurité (T21)", () => {
     expect(sim.state.leaf?.spec.exerciseId).toBe("b");
   });
 
+  it("l'attente au Point d'arrêt ne compte pas dans le temps de Séance, y compris après une Pause (arbitrage du 09/11/2026)", () => {
+    const sim = Simulation.libre(
+      planOf(
+        structuredSession({
+          elements: [
+            { kind: "EXERCISE", exercise: exerciseActivity("a", durationParameters(10)) },
+            { kind: "EXERCISE", exercise: exerciseActivity("b", durationParameters(10)) },
+          ],
+          stopPoints: [{ id: "p", circuitId: null, position: 1 }],
+        }),
+      ),
+    );
+    sim.send({ type: "START" }, 0);
+    sim.at(10);
+    expect(sim.state.leaf?.spec.kind).toBe("STOP_POINT");
+    sim.at(100);
+    expect(runningMs(sessionStopwatch(sim.state)!, sim.now)).toBe(10 * S);
+    sim.send({ type: "PAUSE" }, 100 * S);
+    sim.send({ type: "RESUME" }, 200 * S);
+    sim.at(300);
+    expect(runningMs(sessionStopwatch(sim.state)!, sim.now)).toBe(10 * S);
+    sim.send({ type: "NEXT", target: sim.target }, 300 * S);
+    sim.at(305);
+    expect(runningMs(sessionStopwatch(sim.state)!, sim.now)).toBe(15 * S);
+    sim.at(310);
+    expect(sim.state.status).toBe("FINISHED");
+    expect(runningMs(sessionStopwatch(sim.state)!, sim.now)).toBe(20 * S);
+  });
+
   it("Arrêter la séance : seulement depuis la Pause ; étape en cours conservée comme interrompue", () => {
     const sim = Simulation.libre(planOf(structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("d", durationParameters(60)) }], stopPoints: [] })));
     sim.send({ type: "START" }, 0);

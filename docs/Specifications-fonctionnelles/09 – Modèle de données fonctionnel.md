@@ -727,7 +727,7 @@ Une Exécution possède directement :
 | Date de début | Début réel | Obligatoire | Générée automatiquement |
 | Date de fin | Fin réelle | Facultatif | À la clôture |
 | Statut | En cours, Suspendue, Terminée, Partielle ou Interrompue | Obligatoire | |
-| Durée réelle | Temps actif réellement exécuté | Calculé | Exclut uniquement les périodes de Pause manuelle déclenchées par l’utilisateur ; inclut le Compte à rebours initial, le temps réellement passé dans les Exercices, les Pauses entre Séries, les phases `SIDE_RECOVERY` / `POST_ACTIVITY_RECOVERY` réellement exécutées et la Fin de séance |
+| Durée réelle | Temps actif réellement exécuté | Calculé | Exclut les périodes de Pause manuelle déclenchées par l’utilisateur et l’attente d’un Point d’arrêt [Remplacé le 09/11/2026 — arbitrage de Hermann, recette PRE-10 q-attente : « Non l’attente au point d’arrêt ne compte pas dans le temps écoulé ». Texte d’origine : « Exclut uniquement les périodes de Pause manuelle déclenchées par l’utilisateur »] ; inclut le Compte à rebours initial, le temps réellement passé dans les Exercices, les Pauses entre Séries, les phases `SIDE_RECOVERY` / `POST_ACTIVITY_RECOVERY` réellement exécutées et la Fin de séance |
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
 | Ressenti | Ressenti général renseigné dans la Synthèse | Conditionnel | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après interruption technique sans Synthèse |
 | Commentaire | Commentaire libre de Synthèse | Facultatif | **200 caractères maximum** |

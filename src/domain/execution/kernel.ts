@@ -363,8 +363,23 @@ function openLeaf(draft: Draft, spec: LeafSpec, atMs: Ms, attempt = 1, priorAtte
   if (safety !== null) {
     addRef(draft, { id: `${owner}::safety`, owner, depth, name: "safety", role: "SAFETY", budgetMs: safety, anchorMs: atMs, accumulatedMs: 0 });
   }
+  if (spec.kind === "STOP_POINT") setSessionRunning(draft, false, atMs);
   newGeneration(draft);
   draft.effects.push({ type: "STEP_STARTED", key: spec.key, kind: spec.kind, atMs, attempt });
+}
+
+/**
+ * Temps de Séance (durée réelle, ch09) : l'attente d'un Point d'arrêt n'y compte pas, comme la Pause
+ * (arbitrage de Hermann du 09/11/2026, recette PRE-10 q-attente).
+ */
+function setSessionRunning(draft: Draft, running: boolean, atMs: Ms) {
+  set(draft, {
+    refs: draft.state.refs.map((ref) => {
+      if (ref.owner !== ROOT_SCOPE_KEY || ref.name !== "session") return ref;
+      if (running) return ref.anchorMs !== null ? ref : { ...ref, anchorMs: atMs };
+      return ref.anchorMs === null ? ref : { ...ref, anchorMs: null, accumulatedMs: runningMs(ref, atMs) };
+    }),
+  });
 }
 
 function openChild(draft: Draft, child: ChildSpec, atMs: Ms) {
@@ -458,6 +473,7 @@ function closeLeaf(draft: Draft, completion: StepCompletion, atMs: Ms, notifyPar
   }
   removeRefsOwnedBy(draft, new Set([leafTarget(leaf)]));
   set(draft, { leaf: null, rewound, history });
+  if (leaf.spec.kind === "STOP_POINT" && draft.state.status === "RUNNING") setSessionRunning(draft, true, atMs);
   newGeneration(draft);
   draft.effects.push({ type: "STEP_ENDED", key: leaf.spec.key, completion, atMs });
   if (!notifyParent) return;
@@ -531,6 +547,8 @@ function suspendAll(draft: Draft, atMs: Ms) {
 function resumeAll(draft: Draft, atMs: Ms) {
   set(draft, { refs: draft.state.refs.map((ref) => (ref.anchorMs !== null ? ref : { ...ref, anchorMs: atMs })) });
   const leaf = draft.state.leaf;
+  // L'attente d'un Point d'arrêt reste hors du temps de Séance après une Pause.
+  if (leaf !== null && leaf.spec.kind === "STOP_POINT") setSessionRunning(draft, false, atMs);
   if (leaf !== null && leaf.spec.cadenceMs !== undefined) {
     // Reprendre le bip : premier nouveau bip après un intervalle complet (§13).
     set(draft, { leaf: { ...leaf, cadenceAnchorMs: atMs } });
@@ -632,7 +650,7 @@ function applyCommand(draft: Draft, event: EngineEvent, atMs: Ms): RejectionReas
       set(draft, { status: "RUNNING", startedAtMs: atMs });
       const root: ScopeSpec = { pilot: SEQUENCE_PILOT, key: ROOT_SCOPE_KEY, config: { source: "PLAN" } };
       set(draft, { frames: [{ spec: root, local: null, depth: 0 }] });
-      // Temps de Séance (§8.1) : chronomètre actif, suspendu par la seule Pause.
+      // Temps de Séance (§8.1) : chronomètre actif, suspendu par la Pause et l'attente d'un Point d'arrêt.
       addRef(draft, { id: `${ROOT_SCOPE_KEY}::session`, owner: ROOT_SCOPE_KEY, depth: 0, name: "session", role: "STOPWATCH", budgetMs: null, anchorMs: atMs, accumulatedMs: 0 });
       applyDecision(draft, 0, pilotOf(draft.env, root).open(root, ctxFor(draft, 0, atMs)), atMs);
       return null;
