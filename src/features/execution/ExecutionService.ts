@@ -60,6 +60,10 @@ export type ExecutionSignal = {
   readonly phase: LeafKind | null;
   readonly exerciseName: string | null;
   readonly sideRank: 1 | 2 | null;
+  /** Étape chronométrée (compte à rebours) ; faux pour un chronomètre ou une attente. */
+  readonly timed?: boolean;
+  /** Étape suivante au même niveau du plan (annonce « Prochain exercice », guidage sonore du 10/11/2026). */
+  readonly next?: { readonly phase: LeafKind; readonly exerciseName: string | null } | null;
 };
 
 export type ExecutionServiceDeps = {
@@ -357,7 +361,15 @@ export class ExecutionService {
 
   private emitSignal(signal: PlannedSignal) {
     const projection = this.project(signal.atMs);
-    this.deps.onSignal?.({ kind: signal.kind, atMs: signal.atMs, phase: projection?.phase ?? null, exerciseName: projection?.exerciseName ?? null, sideRank: projection?.sideRank ?? null });
+    this.deps.onSignal?.({
+      kind: signal.kind,
+      atMs: signal.atMs,
+      phase: projection?.phase ?? null,
+      exerciseName: projection?.exerciseName ?? null,
+      sideRank: projection?.sideRank ?? null,
+      timed: projection?.timer.kind === "COUNTDOWN",
+      next: projection?.next == null ? null : { phase: projection.next.kind, exerciseName: projection.next.name },
+    });
   }
 
   private clearWakeup() {

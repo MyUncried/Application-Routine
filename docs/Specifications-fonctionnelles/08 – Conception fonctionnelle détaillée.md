@@ -770,6 +770,25 @@ Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les An
 
 [Complété le 09/11/2026 — décisions de Hermann, recette « Son et voix » PRE-10 : au début d’un Exercice, un sifflet aigu est joué à t0, puis le nom est annoncé ; une Pause entre séries est annoncée « Pause », une récupération entre blocs « Récupération » ; le Point d’arrêt a un son spécifique ; le bip de cadence est un tic-tac. Restent à définir dans une tranche ultérieure : la configuration des sons dans le Profil (compte à rebours, fin de séance, départ d’exercice en compte à rebours ou chronomètre, pause, point d’arrêt, récupération, dernier bip, guidage en arrière-plan), éventuellement dans la séance ; l’annonce optionnelle du nombre de répétitions ou de la durée avec le nom de l’exercice (emplacement de l’option non défini) ; le guidage sonore et vocal en arrière-plan selon cette configuration.]
 
+[Remplacé et complété le 10/11/2026 — définition complète de Hermann (formulaire « Guidage sonore KODJO »). Le complément du 09/11/2026 ci-dessus reste pour l’historique ; en cas d’écart, la table suivante prévaut.]
+
+| Moment | Son | Volume | Annonce vocale | Vibration |
+| --- | --- | --- | --- | --- |
+| Début du Compte à rebours initial | aucun | — | « Préparez-vous », suivi de « Prochain exercice : {exercice} » | forte |
+| Dernières secondes d’une étape chronométrée (3 s) | bip grave | 100 % | — | moyenne |
+| Fin d’une étape chronométrée (zéro) | aucun | — | — | aucune |
+| Départ d’un exercice en Durée | sifflet roulé | 100 % | {exercice} (voir moment de l’annonce) | forte |
+| Départ d’un exercice en Répétitions ou À l’échec | sifflet pur | 55 % | {exercice} (voir moment de l’annonce) | forte |
+| Changement de côté | double bip | 55 % | « {exercice}, côté {côté} » | forte |
+| Cadence | clic doux | 35 % | — | légère |
+| Signal minute | ding | 15 % | — | légère |
+| Pause entre séries | aucun | — | « Pause » | forte |
+| Récupération entre côtés, après l’exercice, entre blocs | aucun | — | « Récupération » | forte |
+| Point d’arrêt | double bip | 100 % | — | forte |
+| Fin de séance | bip long | 100 % | — | moyenne |
+
+Réglages généraux choisis : nom de l’exercice annoncé avant son départ, pendant le Compte à rebours ou la récupération qui précède (« Prochain exercice : … ») ; sons et annonces audibles en mode silencieux ; sons et annonces maintenus en arrière-plan ; annonce des répétitions ou de la durée selon une option ; musique d’une autre application atténuée pendant les annonces et les sons. Réglage : « Les trois » (interprétation à confirmer : Profil, modification pour une séance, interrupteurs pendant l’Exécution).
+
 Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
 Répétitions sans bip/À l’échec sans bip : aucun signal de fin de compte à rebours, bip minute. À l’échec avec bip : périodique sans bip minute superposé. Répétitions cadencées : signal périodique maintenu après nominal sans signal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.

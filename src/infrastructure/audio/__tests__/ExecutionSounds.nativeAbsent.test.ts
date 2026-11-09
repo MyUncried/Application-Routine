@@ -22,7 +22,7 @@ jest.mock("expo-speech", () => {
 
 describe("Son et voix — module natif absent", () => {
   it("aucun chargement d'expo-audio ni d'expo-speech, aucune erreur", async () => {
-    new ExecutionSounds().play("HIGH");
+    new ExecutionSounds().play("BIP_GRAVE");
     new ExecutionVoice().say("Gainage");
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(mockLoaded).toEqual([]);

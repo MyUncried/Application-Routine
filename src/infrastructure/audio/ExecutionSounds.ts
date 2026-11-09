@@ -15,9 +15,13 @@ import type { AudioPlayer } from "expo-audio";
  * parte sans délai. Pour une annonce vocale seulement, elle passe en atténuation des autres sons (iOS ne
  * l'applique qu'à l'activation), puis revient en mélange : la musique reprend son volume.
  */
-export type BeepTone = "HIGH" | "LOW" | "WHISTLE" | "STOP_POINT" | "TAC";
+/**
+ * Sons retenus par Hermann (formulaire « Guidage sonore KODJO », 10/11/2026) ; fichiers produits avec les
+ * recettes du formulaire (`assets/sounds`).
+ */
+export type BeepTone = "BIP_GRAVE" | "BIP_DOUBLE" | "BIP_LONG" | "SIFFLET_ROULE" | "SIFFLET_PUR" | "DING" | "CLIC_DOUX";
 
-export type BeepPort = { readonly play: (tone: BeepTone) => void; readonly prepare?: () => void };
+export type BeepPort = { readonly play: (tone: BeepTone, volume?: number) => void; readonly prepare?: () => void };
 
 /** Vrai si le module natif est présent dans l'application installée. */
 export function hasNativeModule(name: string): boolean {
@@ -73,15 +77,14 @@ export function releaseOthersAfterVoice(): Promise<void> {
 
 // Ressources audio empaquetées par Metro.
 const SOURCES: Record<BeepTone, number> = {
-  HIGH: require("../../../assets/sounds/beep-high.wav"),
-  LOW: require("../../../assets/sounds/beep-low.wav"),
-  WHISTLE: require("../../../assets/sounds/whistle.wav"),
-  STOP_POINT: require("../../../assets/sounds/stop-point.wav"),
-  TAC: require("../../../assets/sounds/tac.wav"),
+  BIP_GRAVE: require("../../../assets/sounds/bip-grave.wav"),
+  BIP_DOUBLE: require("../../../assets/sounds/bip-double.wav"),
+  BIP_LONG: require("../../../assets/sounds/bip-long.wav"),
+  SIFFLET_ROULE: require("../../../assets/sounds/sifflet-roule.wav"),
+  SIFFLET_PUR: require("../../../assets/sounds/sifflet-pur.wav"),
+  DING: require("../../../assets/sounds/ding.wav"),
+  CLIC_DOUX: require("../../../assets/sounds/clic-doux.wav"),
 };
-
-/** Volume relatif ; cadence plus discrète (recette du 09/11/2026 : « réduire le son »). */
-const VOLUME: Record<BeepTone, number> = { HIGH: 1, LOW: 1, WHISTLE: 1, STOP_POINT: 1, TAC: 0.35 };
 
 export class ExecutionSounds implements BeepPort {
   private readonly players: Partial<Record<BeepTone, AudioPlayer>> = {};
@@ -95,8 +98,8 @@ export class ExecutionSounds implements BeepPort {
     })().catch(() => undefined);
   }
 
-  play(tone: BeepTone): void {
-    void this.playAsync(tone).catch(() => undefined);
+  play(tone: BeepTone, volume = 1): void {
+    void this.playAsync(tone, volume).catch(() => undefined);
   }
 
   private async player(tone: BeepTone): Promise<AudioPlayer> {
@@ -104,16 +107,16 @@ export class ExecutionSounds implements BeepPort {
     if (player === undefined) {
       const { createAudioPlayer } = await import("expo-audio");
       player = createAudioPlayer(SOURCES[tone], { keepAudioSessionActive: true });
-      player.volume = VOLUME[tone];
       this.players[tone] = player;
     }
     return player;
   }
 
-  private async playAsync(tone: BeepTone): Promise<void> {
+  private async playAsync(tone: BeepTone, volume: number): Promise<void> {
     if (!hasNativeModule("ExpoAudio")) return;
     if (!sessionStarted) void startExecutionAudio();
     const player = await this.player(tone);
+    player.volume = volume;
     await player.seekTo(0);
     player.play();
   }

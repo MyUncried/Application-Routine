@@ -6,28 +6,42 @@ import { ExecutionVoice, type VoicePort } from "@/infrastructure/speech/Executio
 
 /**
  * PRE-10.2 — signaux d'exécution (ch12 §12.11 ; conception §16.1). Le moteur demande un signal ; cet adaptateur
- * le restitue sur trois canaux indépendants :
+ * le restitue sur trois canaux indépendants : vibration (préférence `Vibrations` du Profil), Sons et Annonces
+ * vocales (interrupteurs de l'Exécution ; ch08 « Guidage sonore »).
  *
- * - vibration fonctionnelle (préférence `Vibrations` du Profil) : transition d'étape (impact fort), trois
- *   dernières secondes (impact moyen), bip de cadence et signal minute (impact léger) ;
- * - Sons (lot son et voix, décision de Hermann du 09/11/2026, `q-son` ; ch08 « Guidage sonore ») ;
- * - Annonces vocales (même décision ; ch08, RM-243).
- *
- * Règles (recette « Son et voix » du 09/11/2026, décisions de Hermann sur S2, S3, S5, S6) :
- * - début d'un Exercice : sifflet, puis annonce du nom (« côté 1 » / « côté 2 » pour un bilatéral) ;
- * - début d'une récupération (entre côtés, après l'exercice, entre blocs) : « Récupération » ; début d'une
- *   Pause entre séries : « Pause » ;
- * - Point d'arrêt : son spécifique (deux notes descendantes), sans annonce ;
- * - début du Compte à rebours initial : « Préparez-vous », sans sifflet (recette du 09/11/2026, 2e passage) ;
- * - autre début d'étape, ou annonce coupée : bip grave (S5 confirmé) ;
- * - trois dernières secondes : bip aigu ; cadence : un seul son, grave et discret (« tac ») ; signal minute :
- *   bip grave.
- *
- * Les sons partent immédiatement (2e passage : le report à l'image suivante, ajouté pour S1, a mis les bips
- * « très en retard » ; il est retiré). Premier plan seulement (S7). Un échec natif n'interrompt jamais
- * l'Exécution.
+ * Table de guidage : définition de Hermann du 10/11/2026 (formulaire « Guidage sonore KODJO », recopiée dans
+ * ch08 et la spec `pre10-son-voix`). Le nom de l'exercice est annoncé avant son départ, au début du Compte à
+ * rebours initial ou de la récupération qui le précède (« Prochain exercice : … ») ; au départ, seulement le
+ * son, sauf si le nom n'a pas été annoncé avant. Une étape sans son défini et dont l'annonce est coupée
+ * reçoit un bip grave (S5). Premier plan seulement (arrière-plan : tranche suivante). Un échec natif
+ * n'interrompt jamais l'Exécution.
  */
-export const ANNOUNCEMENT_AFTER_WHISTLE_MS = 500;
+export type Vibration = "NONE" | "LIGHT" | "MEDIUM" | "HEAVY";
+export type Cue = { readonly sound: BeepTone | null; readonly volume: number; readonly vibration: Vibration };
+
+export const GUIDANCE = {
+  countdownStart: { sound: null, volume: 1, vibration: "HEAVY" },
+  lastSeconds: { sound: "BIP_GRAVE", volume: 1, vibration: "MEDIUM" },
+  startTimed: { sound: "SIFFLET_ROULE", volume: 1, vibration: "HEAVY" },
+  startStopwatch: { sound: "SIFFLET_PUR", volume: 0.55, vibration: "HEAVY" },
+  sideChange: { sound: "BIP_DOUBLE", volume: 0.55, vibration: "HEAVY" },
+  cadence: { sound: "CLIC_DOUX", volume: 0.35, vibration: "LIGHT" },
+  minute: { sound: "DING", volume: 0.15, vibration: "LIGHT" },
+  seriesPause: { sound: null, volume: 1, vibration: "HEAVY" },
+  recovery: { sound: null, volume: 1, vibration: "HEAVY" },
+  stopPoint: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
+  sessionEnd: { sound: "BIP_LONG", volume: 1, vibration: "MEDIUM" },
+  other: { sound: "BIP_GRAVE", volume: 1, vibration: "HEAVY" },
+} as const satisfies Record<string, Cue>;
+
+/** Délai entre le son de départ et l'annonce, pour ne pas les superposer. */
+export const ANNOUNCEMENT_AFTER_SOUND_MS = 500;
+
+const IMPACT: Record<Exclude<Vibration, "NONE">, Haptics.ImpactFeedbackStyle> = {
+  LIGHT: Haptics.ImpactFeedbackStyle.Light,
+  MEDIUM: Haptics.ImpactFeedbackStyle.Medium,
+  HEAVY: Haptics.ImpactFeedbackStyle.Heavy,
+};
 
 type Defer = (run: () => void, delayMs?: number) => void;
 
@@ -36,10 +50,14 @@ const later: Defer = (run, delayMs = 0) => {
   else run();
 };
 
+export type Guidance = { readonly cue: Cue; readonly announcement: string | null };
+
 export class ExecutionSignalAdapter {
   private vibrationEnabled = true;
   private soundEnabled = true;
   private voiceEnabled = true;
+  /** Nom déjà annoncé comme « Prochain exercice », pour ne pas le répéter au départ. */
+  private announcedNext: string | null = null;
 
   constructor(
     private readonly haptics: Pick<typeof Haptics, "impactAsync"> = Haptics,
@@ -66,40 +84,64 @@ export class ExecutionSignalAdapter {
   }
 
   play(signal: ExecutionSignal): void {
-    if (this.vibrationEnabled) {
-      const style =
-        signal.kind === "TRANSITION" ? Haptics.ImpactFeedbackStyle.Heavy : signal.kind === "COUNTDOWN" ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light;
-      this.haptics.impactAsync(style).catch(() => undefined);
-    }
-    if (signal.kind !== "TRANSITION") {
-      if (this.soundEnabled) this.beeps.play(toneOf(signal));
-      return;
-    }
-    const announcement = this.voiceEnabled ? announcementOf(signal) : null;
-    if (signal.phase === "ACTIVITY") {
-      if (this.soundEnabled) this.beeps.play("WHISTLE");
-      if (announcement !== null) this.defer(() => this.voice.say(announcement), this.soundEnabled ? ANNOUNCEMENT_AFTER_WHISTLE_MS : 0);
-      return;
-    }
-    if (signal.phase === "STOP_POINT") {
-      if (this.soundEnabled) this.beeps.play("STOP_POINT");
-      return;
-    }
-    if (announcement !== null) this.voice.say(announcement);
-    else if (this.soundEnabled) this.beeps.play("LOW");
+    const { cue, announcement } = this.guidance(signal);
+    if (this.vibrationEnabled && cue.vibration !== "NONE") this.haptics.impactAsync(IMPACT[cue.vibration]).catch(() => undefined);
+    const spoken = this.voiceEnabled ? announcement : null;
+    const sound = cue.sound ?? (signal.kind === "TRANSITION" && spoken === null ? GUIDANCE.other.sound : null);
+    const played = this.soundEnabled && sound !== null;
+    if (played) this.beeps.play(sound, cue.sound === null ? GUIDANCE.other.volume : cue.volume);
+    if (spoken !== null) this.defer(() => this.voice.say(spoken), played ? ANNOUNCEMENT_AFTER_SOUND_MS : 0);
   }
 
+  /** Son, vibration et annonce d'un signal ; tient compte du « Prochain exercice » déjà annoncé. */
+  guidance(signal: ExecutionSignal): Guidance {
+    if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null };
+    if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null };
+    if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null };
+    const name = cleanName(signal.exerciseName);
+    switch (signal.phase) {
+      case "INITIAL_COUNTDOWN":
+        return { cue: GUIDANCE.countdownStart, announcement: this.withNext("Préparez-vous", signal) };
+      case "SERIES_PAUSE":
+        return { cue: GUIDANCE.seriesPause, announcement: this.withNext("Pause", signal) };
+      case "SIDE_RECOVERY":
+      case "POST_ACTIVITY_RECOVERY":
+      case "BLOCK_REST":
+        return { cue: GUIDANCE.recovery, announcement: this.withNext("Récupération", signal) };
+      case "STOP_POINT":
+        return { cue: GUIDANCE.stopPoint, announcement: null };
+      case "SESSION_END":
+        return { cue: GUIDANCE.sessionEnd, announcement: null };
+      case "ACTIVITY": {
+        const alreadyAnnounced = name !== null && this.announcedNext === name;
+        this.announcedNext = null;
+        if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: name === null ? "Côté 2" : `${name}, côté 2` };
+        const cue = signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed;
+        const side = signal.sideRank === 1 ? "côté 1" : null;
+        if (alreadyAnnounced) return { cue, announcement: side === null ? null : "Côté 1" };
+        return { cue, announcement: name === null ? null : side === null ? name : `${name}, ${side}` };
+      }
+      default:
+        return { cue: GUIDANCE.other, announcement: null };
+    }
+  }
+
+  /** « Récupération. Prochain exercice : Fente » lorsque l'étape suivante est un autre exercice. */
+  private withNext(text: string, signal: ExecutionSignal): string {
+    const next = signal.next;
+    const nextName = next?.phase === "ACTIVITY" ? cleanName(next.exerciseName) : null;
+    if (nextName === null || nextName === cleanName(signal.exerciseName)) return text;
+    if (this.voiceEnabled) this.announcedNext = nextName;
+    return `${text}. Prochain exercice : ${nextName}`;
+  }
 }
 
-function toneOf(signal: ExecutionSignal): BeepTone {
-  return signal.kind === "COUNTDOWN" ? "HIGH" : signal.kind === "CADENCE" ? "TAC" : "LOW";
+function cleanName(name: string | null | undefined): string | null {
+  return name === null || name === undefined || name.trim() === "" ? null : name.trim();
 }
 
-/** Texte annoncé au début d'une étape ; `null` pour une étape sans annonce (ch08 « Guidage sonore »). */
+/** Texte annoncé au début d'une étape, sans contexte d'enchaînement (ch08 « Guidage sonore »). */
 export function announcementOf(signal: Pick<ExecutionSignal, "phase" | "exerciseName" | "sideRank">): string | null {
-  if (signal.phase === "SIDE_RECOVERY" || signal.phase === "POST_ACTIVITY_RECOVERY" || signal.phase === "BLOCK_REST") return "Récupération";
-  if (signal.phase === "SERIES_PAUSE") return "Pause";
-  if (signal.phase === "INITIAL_COUNTDOWN") return "Préparez-vous";
-  if (signal.phase !== "ACTIVITY" || signal.exerciseName === null || signal.exerciseName.trim() === "") return null;
-  return signal.sideRank === null ? signal.exerciseName : `${signal.exerciseName}, côté ${signal.sideRank}`;
+  const silent = new ExecutionSignalAdapter({ impactAsync: async () => undefined }, { play: () => undefined }, { say: () => undefined });
+  return silent.guidance({ kind: "TRANSITION", atMs: 0, ...signal }).announcement;
 }

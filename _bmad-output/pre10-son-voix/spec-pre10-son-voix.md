@@ -62,3 +62,47 @@ Réalisé sans nouveau build (JavaScript et sons seulement), classe B pour les r
 3. Guidage en arrière-plan (S7) : nécessite le mode audio d’arrière-plan (plugin `expo-audio`, `UIBackgroundModes`), donc un nouveau build. Il dépend aussi de la configuration du point 1.
 
 Documents : ch08 « Guidage sonore » (complément daté).
+
+
+## Définition complète du 10/11/2026 (formulaire « Guidage sonore KODJO »)
+
+Source : base du formulaire https://claude.ai/artifact/68bqRRkmsuP9qKABnhr5BR, collection `definition`, lue le 10/11/2026. Hermann a laissé certains moments sans modification, ce qui vaut acceptation de la valeur proposée. La table est recopiée dans ch08 « Guidage sonore ».
+
+- Moments modifiés :
+  - dernières secondes : bip grave, 3 s, vibration moyenne ;
+  - zéro : rien ;
+  - départ en Répétitions : sifflet pur à 55 % ;
+  - changement de côté : double bip à 55 % ;
+  - cadence : clic doux à 35 % ;
+  - signal minute : ding à 15 % ;
+  - Point d'arrêt : double bip à 100 % ;
+  - fin de séance : bip long, vibration moyenne.
+- Moments acceptés tels que proposés :
+  - Compte à rebours : « Préparez-vous » ;
+  - départ en Durée : sifflet roulé ;
+  - Pause entre séries : « Pause » ;
+  - récupérations : « Récupération ».
+- Réglages généraux :
+  - musique : « tout » (atténuée pendant les annonces et les sons) ;
+  - mode silencieux : audible ;
+  - arrière-plan : oui ;
+  - moment de l'annonce du nom : avant ;
+  - détail des répétitions ou de la durée : selon une option ;
+  - réglage : non coché, remarque « Les trois ».
+
+Réalisé (JavaScript et sons, sans nouveau build) :
+
+- Table appliquée : sons, volumes, vibrations par moment.
+- « Prochain exercice : … » ajouté à l'annonce du Compte à rebours, de la Pause ou de la récupération qui précède un autre exercice. Au départ, le son seul, ou « Côté 1 » ; le nom n'est annoncé au départ que s'il ne l'a pas été avant.
+
+À CLARIFIER (n'empêchent que le point concerné) :
+
+1. **Musique « tout »** : atténuer la musique pendant chaque son oblige iOS à réactiver la session audio à chaque bip. C'est la cause probable des bips « très en retard » du 2e passage. Choix possibles :
+   - (A) atténuer pendant les annonces seulement (appliqué en attendant) ;
+   - (B) atténuer pendant toute l'Exécution ;
+   - (C) atténuer à chaque son, en acceptant un retard.
+2. **« Les trois »** : interprétation retenue, à confirmer : réglage dans le Profil, modification possible pour une séance, et interrupteurs Sons et Voix pendant l'Exécution.
+3. **Tranche suivante**, qui demande un nouveau build et des écrans à concevoir :
+   - réglages du Profil et de la séance ;
+   - option d'annonce des répétitions ou de la durée ;
+   - guidage en arrière-plan.
