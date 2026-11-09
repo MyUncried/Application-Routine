@@ -11,6 +11,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
 import { MovementCounterToggles } from "@/features/activities/MovementCounterToggles";
+import { PILOT_IMPORT_ENABLED, PilotMovementImportCommand } from "@/features/activities/PilotMovementImportCommand";
 import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
 import {
@@ -389,6 +390,10 @@ export function CatalogueScreen() {
             createLabel={t.createAction}
             onCreate={handleCreatePress}
           />
+        ) : null}
+        {/* Outil de recette interne (PR #434), absent sans EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT=1. */}
+        {PILOT_IMPORT_ENABLED && activeSegment === "movements" ? (
+          <PilotMovementImportCommand onImported={() => setMovementsReloadToken((current) => current + 1)} />
         ) : null}
         {activeSegment === "sessions" ? (
           <SessionCommandRow
