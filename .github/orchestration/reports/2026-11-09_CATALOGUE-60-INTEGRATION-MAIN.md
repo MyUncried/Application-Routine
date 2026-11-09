@@ -103,7 +103,7 @@ Fichiers : `.github/workflows/kodjo-catalogue-import-recette.yml` (nouveau), `ap
 - `catalogue/chargement-60-recette-20261109` poussée (`b0c0adb4`).
 - Worktrees : `C:/Dev/KODJO-CAT60` (`catalogue/chargement-60-recette-20261109`, propre) et `C:/Dev/KODJO-CAT60-MAIN` (cette branche, propre après commit) ; `C:/Dev/PRE10` non modifié.
 
-## 10. Build `catalogue-recette` — état au 9/11 (bloqué avant lancement)
+## 10. Build `catalogue-recette` — 9/11 (blocage initial, puis build réussie)
 
 Autorisation de Hermann (9/11) : lancer uniquement la build iOS interne `catalogue-recette` depuis cette branche, après vérification du HEAD et de la CI ; identifiant `com.ankusha.kodjo.catalogue`, isolation SQLite et OTA désactivées impératifs ; ni installation, ni App Store, ni fusion ; préciser toute action Apple nouvelle avant de poursuivre.
 
@@ -114,3 +114,31 @@ Vérifications faites :
 - Identifiants iOS du projet `@ankushas-team/routine` (API EAS, lecture seule) : équipe Apple `RC8F846A68` (ANKUSHA) ; profils ad hoc actifs jusqu'au 29/08/2027 pour `com.ankusha.kodjo`, `.dev`, `.bmad` (certificat de distribution `2638F145…`, commun) ; **aucun identifiant pour `com.ankusha.kodjo.catalogue`** ; **aucune clé API App Store Connect** enregistrée sur le compte.
 
 Conséquence : la création de l'App ID et du profil ad hoc exige une connexion Apple interactive (identifiant Apple + 2FA), impossible depuis la session Claude (sans entrée interactive). **Build non lancée** ; action requise de Hermann (voir compte rendu de session). Aucune écriture effectuée chez Apple ni chez EAS.
+
+### 10.1 Identifiants Apple créés par Hermann (9/11, ~12:55–13:02)
+
+- `eas credentials` (PowerShell de Hermann, `APP_VARIANT=catalogue`) : premier essai en échec « Failed to find Bundle ID item with identifier com.ankusha.kodjo.catalogue » — la commande ne crée pas l'App ID.
+- App ID explicite `com.ankusha.kodjo.catalogue` (« Routine Catalogue », aucune capability) enregistré par Hermann sur le portail Apple Developer.
+- Second essai réussi : certificat de distribution existant `2638F1453FFD797DB21CBF65EEB0ABB5` réutilisé (aucun nouveau certificat, aucune révocation) ; profil ad hoc `4K675SAAR3` actif jusqu'au 29/08/2027, un seul appareil : iPhone `00008150-000259D10CA3C01C`.
+
+### 10.2 Build lancée et terminée
+
+Vérifications immédiatement avant lancement : HEAD local = distant = `e8d17f16ba2b0080bb407fe835be59fd0d43716f`, arbre propre ; CI « KODJO catalogue import recette » **success** sur ce HEAD (run `42601525731`) ; `expo config` avec `APP_VARIANT=catalogue` → `Routine Catalogue`, `com.ankusha.kodjo.catalogue`, schéma `routine-catalogue`, `updates.enabled=false`.
+
+Commande : `eas build --platform ios --profile catalogue-recette --non-interactive --no-wait` (depuis `C:/Dev/KODJO-CAT60-MAIN`).
+
+| Élément | Valeur |
+|---|---|
+| Identifiant EAS | `f882e911-43fc-4e59-bed1-d048812dcc33` |
+| Statut | **FINISHED** (créée 12:04:06 UTC, terminée 12:09:48 UTC) |
+| Commit source | `e8d17f16ba2b0080bb407fe835be59fd0d43716f` |
+| Profil / distribution | `catalogue-recette` / INTERNAL (ad hoc), appareil réel |
+| Identifiant d'app | `com.ankusha.kodjo.catalogue`, version 1.0.0 (build 1), runtime `1.1.0`, SDK 57 |
+| Fingerprint | `c3783f2df468eeaa0785ca875ab6e26cda72e497` |
+| Page d'installation | https://expo.dev/accounts/ankushas-team/projects/routine/builds/f882e911-43fc-4e59-bed1-d048812dcc33 |
+| Archive `.ipa` | https://expo.dev/artifacts/eas/So_6QPj_f7EU6ybhxPWBAj-3tMOFeBk16EeobWjwF0A.ipa |
+| Expiration de l'artefact | 23/11/2026 |
+
+Non fait (conformément à l'autorisation) : aucune installation, aucune soumission App Store, aucune OTA, aucune fusion dans `main`, aucune écriture dans PRE-10 (`C:/Dev/PRE10`, branche `composition-phases-duree`).
+
+Reste à faire : recette sur iPhone (§ 8) par Hermann ; taille exacte du JSON réel d'export OVH à transmettre (limite 24 Mo = 25 165 824 octets) ; la recette réelle n'est **pas** démontrée par cette build.
