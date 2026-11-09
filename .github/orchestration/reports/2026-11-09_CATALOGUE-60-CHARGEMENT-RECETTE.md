@@ -140,4 +140,8 @@ Sélection du JSON dans Fichiers, lecture d'un export réel (taille, médias com
 
 ## 11. Commit final et état Git
 
-Voir § 11 bis (complété après commit).
+- Commit de code, tests et rapport : `f43c261f3b100db4ca9c3fab58698a7895e3a4e2` sur `catalogue/chargement-60-recette-20261109` (parent `11cd3523`).
+- Ce paragraphe est ajouté par un commit documentaire qui suit directement `f43c261f`.
+- Branche **locale, non poussée** (pousser vers GitHub est une publication : en attente de ton accord). Aucune PR créée, aucune fusion.
+- Worktree jetable `C:/Dev/KODJO-CAT60-port` (HEAD détaché sur `origin/pre10-bmad/dev` + fichiers d'essai non commités) : à supprimer par `git worktree remove --force C:/Dev/KODJO-CAT60-port` ; laissé en place pour permettre de rejouer la portabilité.
+- `C:/Dev/PRE10` : non modifié par cette mission.
