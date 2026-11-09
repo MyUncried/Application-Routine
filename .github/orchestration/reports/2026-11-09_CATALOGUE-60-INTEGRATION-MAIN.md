@@ -142,3 +142,7 @@ Commande : `eas build --platform ios --profile catalogue-recette --non-interacti
 Non fait (conformément à l'autorisation) : aucune installation, aucune soumission App Store, aucune OTA, aucune fusion dans `main`, aucune écriture dans PRE-10 (`C:/Dev/PRE10`, branche `composition-phases-duree`).
 
 Reste à faire : recette sur iPhone (§ 8) par Hermann ; taille exacte du JSON réel d'export OVH à transmettre (limite 24 Mo = 25 165 824 octets) ; la recette réelle n'est **pas** démontrée par cette build.
+
+### 10.3 Export OVH réel (9/11, 13:11)
+
+`kodjo-admin-brouillons.json` exporté par Hermann depuis Safari (iPhone) : **408 octets** (taille lue sur l'iPhone, contenu non transmis). Hermann confirme n'avoir fait aucune modification de fiche ni ajout de photo dans l'administration : export sans `movementEdits` ni média, très en deçà de la limite de 24 Mo. L'import attendu crée les 60 Mouvements du corpus du 27/10 avec le préclassement de recette non approuvé. Acceptation réelle sur l'iPhone : à constater pendant la recette.
