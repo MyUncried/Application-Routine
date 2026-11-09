@@ -3601,6 +3601,8 @@ Après confirmation :
 
 `Annuler` ferme la modale et reprend l’Exercice en cours.
 
+[Précisé le 09/11/2026 — recette iPhone PRE-10 (Hermann) : « le chrono doit être arrêté pendant qu'on confirme le message ». Comme pour la Réinitialisation, l’Exécution est suspendue pendant l’affichage de la modale ; `Annuler` reprend l’Exercice à la valeur affichée à l’ouverture. La modale ne s’ouvre pas pendant une pause ou une récupération (RM-065a, remplacée le même jour).]
+
 Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Les libellés sont centrés horizontalement et verticalement. La dernière ligne du message et les actions sont séparées par `spacing/16`. Le terme visuel `partiellement exécutée` décrit le résultat à l’utilisateur ; le statut métier enregistré reste `Partielle`.
 
 ### Exécution — séance ou exercice — Confirmation — Pause / arrêt de l’Exécution

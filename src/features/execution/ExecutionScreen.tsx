@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ComponentProps } from "react";
 import { AppState, BackHandler, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -30,6 +30,7 @@ import { executionStrings as t, formatClock } from "./executionStrings";
  */
 
 type Dialog = { readonly kind: "RESET"; readonly target: string } | { readonly kind: "NEXT"; readonly target: string } | null;
+type DialogView = Omit<ComponentProps<typeof ExecutionDialog>, "visible">;
 
 export function ExecutionScreen({ sessionId }: { readonly sessionId: string | null }) {
   const { service, signals } = useExecution();
@@ -40,6 +41,9 @@ export function ExecutionScreen({ sessionId }: { readonly sessionId: string | nu
   const [prepared, setPrepared] = useState<PreparedExecution | null>(null);
   const [blocked, setBlocked] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
+  // Action de dialogue en cours : le dialogue reste affiché jusqu'à la fin de ses commandes, pour qu'aucun
+  // autre dialogue (Pause) n'apparaisse entre-temps (recette PRE-10 du 09/11/2026).
+  const [dialogBusy, setDialogBusy] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const starting = useRef(false);
@@ -77,15 +81,21 @@ export function ExecutionScreen({ sessionId }: { readonly sessionId: string | nu
   const running = active !== null && active.state.status !== "FINISHED";
   useEffect(() => {
     if (!running) return;
-    const timer = setInterval(() => {
+    // Rafraîchissement calé sur le changement de seconde affichée (recette PRE-10 du 09/11/2026 : avec un pas
+    // fixe de 250 ms non aligné, certaines secondes duraient 750 ms et d'autres 1250 ms) ; au plus 250 ms
+    // entre deux demandes de signaux.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const tick = () => {
       service.pulse();
       refresh();
-    }, 250);
+      timer = setTimeout(tick, refreshDelayMs(service.project()));
+    };
+    timer = setTimeout(tick, refreshDelayMs(service.project()));
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "active") void service.onForeground();
     });
     return () => {
-      clearInterval(timer);
+      if (timer !== null) clearTimeout(timer);
       subscription.remove();
     };
   }, [running, service]);
@@ -116,19 +126,40 @@ export function ExecutionScreen({ sessionId }: { readonly sessionId: string | nu
     else router.replace("/");
   }, [router, service]);
 
-  const onReset = useCallback(async () => {
+  /** Ouvre une confirmation : l'Exécution est suspendue pendant l'affichage de la modale (ch13, Réinitialiser et Suivant). */
+  const openDialog = useCallback(
+    async (kind: "RESET" | "NEXT", step: string) => {
+      setDialog({ kind, target: step });
+      await service.dispatch({ type: "PAUSE", reason: "DIALOG" }, step);
+    },
+    [service],
+  );
+
+  /** Ferme le dialogue après ses commandes (sérialisées par le service), jamais avant. */
+  const runDialogAction = useCallback(
+    (commands: () => Promise<unknown>) => {
+      if (dialogBusy) return;
+      setDialogBusy(true);
+      void commands()
+        .catch(() => undefined)
+        .finally(() => {
+          setDialogBusy(false);
+          setDialog(null);
+        });
+    },
+    [dialogBusy],
+  );
+
+  const onReset = useCallback(() => {
     const step = projection?.target;
-    if (typeof step !== "string") return;
-    // L'Exécution est suspendue pendant l'affichage de la modale (CE Réinitialisation).
-    setDialog({ kind: "RESET", target: step });
-    await service.dispatch({ type: "PAUSE", reason: "DIALOG" }, step);
-  }, [projection?.target, service]);
+    if (typeof step === "string") void openDialog("RESET", step);
+  }, [openDialog, projection?.target]);
 
   const onNext = useCallback(() => {
     if (projection === null || typeof projection.target !== "string") return;
-    if (projection.commands.nextNeedsConfirmation) setDialog({ kind: "NEXT", target: projection.target });
+    if (projection.commands.nextNeedsConfirmation) void openDialog("NEXT", projection.target);
     else void service.dispatch({ type: "NEXT" }, projection.target);
-  }, [projection, service]);
+  }, [openDialog, projection, service]);
 
   const toggleSound = () => {
     signals.setAudible(!soundEnabled, voiceEnabled);
@@ -215,7 +246,53 @@ export function ExecutionScreen({ sessionId }: { readonly sessionId: string | nu
   const title = projection.phase === "ACTIVITY" ? (projection.exerciseName ?? "") : phaseLabel;
   // Toute suspension sans dialogue ouvert présente la modale de Pause (une suspension de confirmation relue après une
   // interruption du processus ne laisse jamais l'écran bloqué).
-  const showPauseModal = projection.status === "PAUSED" && dialog === null;
+  const pauseView: DialogView = {
+    title: t.pauseDialog.title,
+    message:
+      projection.pauseReason === "SAFETY" ? `${t.safetyPause}\n${t.pauseDialog.message(projection.exerciseName)}` : projection.pauseReason === "RESTORE" ? `${t.restorePause}\n${t.pauseDialog.message(projection.exerciseName)}` : t.pauseDialog.message(projection.exerciseName),
+    testID: "execution-pause-dialog",
+    actions: [
+      { label: t.pauseDialog.resume, tone: "primary", testID: "execution-pause-resume", onPress: () => void service.dispatch({ type: "RESUME" }) },
+      { label: t.pauseDialog.stop, tone: "danger", testID: "execution-pause-stop", onPress: () => void service.dispatch({ type: "STOP" }) },
+    ],
+  };
+  const dialogView: DialogView | null =
+    dialog?.kind === "RESET"
+      ? {
+          title: t.resetDialog.title,
+          message: t.resetDialog.message,
+          testID: "execution-reset-dialog",
+          actions: [
+            { label: t.resetDialog.cancel, tone: "neutral", testID: "execution-reset-cancel", onPress: () => runDialogAction(() => service.dispatch({ type: "RESUME" })) },
+            {
+              label: t.resetDialog.confirm,
+              tone: "primary",
+              testID: "execution-reset-confirm",
+              onPress: () => runDialogAction(() => service.dispatch({ type: "RESET" }, dialog.target).then(() => service.dispatch({ type: "RESUME" }))),
+            },
+          ],
+        }
+      : dialog?.kind === "NEXT"
+        ? {
+            title: t.nextDialog.title,
+            message: t.nextDialog.message,
+            testID: "execution-next-dialog",
+            actions: [
+              { label: t.nextDialog.cancel, tone: "neutral", testID: "execution-next-cancel", onPress: () => runDialogAction(() => service.dispatch({ type: "RESUME" })) },
+              {
+                label: t.nextDialog.confirm,
+                tone: "primary",
+                testID: "execution-next-confirm",
+                // Reprise puis passage confirmé, rattaché à l'étape affichée (sans effet si elle s'est terminée).
+                onPress: () => runDialogAction(() => service.dispatch({ type: "RESUME" }).then(() => service.dispatch({ type: "NEXT", confirmed: true }, dialog.target))),
+              },
+            ],
+          }
+        : // Toute suspension sans dialogue ouvert présente la Pause (une suspension de confirmation relue après une
+          // interruption du processus ne laisse jamais l'écran bloqué).
+          projection.status === "PAUSED"
+          ? pauseView
+          : null;
 
   return (
     <View style={[styles.screen, paddings]} testID="execution-running">
@@ -296,68 +373,8 @@ export function ExecutionScreen({ sessionId }: { readonly sessionId: string | nu
         </View>
       </View>
 
-      {dialog?.kind === "RESET" ? (
-        <ExecutionDialog
-          title={t.resetDialog.title}
-          message={t.resetDialog.message}
-          testID="execution-reset-dialog"
-          actions={[
-            {
-              label: t.resetDialog.cancel,
-              tone: "neutral",
-              testID: "execution-reset-cancel",
-              onPress: () => {
-                setDialog(null);
-                void service.dispatch({ type: "RESUME" });
-              },
-            },
-            {
-              label: t.resetDialog.confirm,
-              tone: "primary",
-              testID: "execution-reset-confirm",
-              onPress: () => {
-                const target = dialog.target;
-                setDialog(null);
-                void service.dispatch({ type: "RESET" }, target).then(() => service.dispatch({ type: "RESUME" }));
-              },
-            },
-          ]}
-        />
-      ) : null}
-      {dialog?.kind === "NEXT" ? (
-        <ExecutionDialog
-          title={t.nextDialog.title}
-          message={t.nextDialog.message}
-          testID="execution-next-dialog"
-          actions={[
-            { label: t.nextDialog.cancel, tone: "neutral", testID: "execution-next-cancel", onPress: () => setDialog(null) },
-            {
-              label: t.nextDialog.confirm,
-              tone: "primary",
-              testID: "execution-next-confirm",
-              onPress: () => {
-                const target = dialog.target;
-                setDialog(null);
-                // Confirmation rattachée à l'étape affichée : sans effet si elle s'est terminée entre-temps.
-                void service.dispatch({ type: "NEXT", confirmed: true }, target);
-              },
-            },
-          ]}
-        />
-      ) : null}
-      {showPauseModal ? (
-        <ExecutionDialog
-          title={t.pauseDialog.title}
-          message={
-            projection.pauseReason === "SAFETY" ? `${t.safetyPause}\n${t.pauseDialog.message(projection.exerciseName)}` : projection.pauseReason === "RESTORE" ? `${t.restorePause}\n${t.pauseDialog.message(projection.exerciseName)}` : t.pauseDialog.message(projection.exerciseName)
-          }
-          testID="execution-pause-dialog"
-          actions={[
-            { label: t.pauseDialog.resume, tone: "primary", testID: "execution-pause-resume", onPress: () => void service.dispatch({ type: "RESUME" }) },
-            { label: t.pauseDialog.stop, tone: "danger", testID: "execution-pause-stop", onPress: () => void service.dispatch({ type: "STOP" }) },
-          ]}
-        />
-      ) : null}
+      {/* Un seul Modal, toujours monté pendant l'Exécution (voir ExecutionDialog, recette du 09/11/2026). */}
+      <ExecutionDialog visible={dialogView !== null} {...(dialogView ?? pauseView)} />
     </View>
   );
 }
@@ -406,11 +423,25 @@ function targetText(projection: ExecutionProjection): string | null {
   return [`${t.target} ${value}`, projection.loadKg !== null ? t.load(projection.loadKg) : null].filter((part) => part !== null).join(" · ");
 }
 
+/** « À suivre » : nom, puis Série (recette PRE-10 du 09/11/2026), puis cible ou durée. */
 function nextText(next: NextView): string {
-  const name = next.kind === "ACTIVITY" ? (next.name ?? "") : t.phases[next.kind];
+  if (next.kind === "STOP_POINT") return t.nextStopPoint;
+  const name = next.kind === "ACTIVITY" ? [next.name ?? "", next.series !== null ? t.seriesShort(next.series.current, next.series.total) : null].filter((part) => part !== null).join(" · ") : t.phases[next.kind];
   if (next.kind === "ACTIVITY" && next.mode === "REPETITIONS" && next.target?.kind === "NUMBER") return `${name} · ${t.repetitions(next.target.value)}`;
   if (next.kind === "ACTIVITY" && next.target?.kind === "FAILURE") return `${name} · ${t.failure}`;
-  return next.plannedMs !== null && next.kind !== "STOP_POINT" ? `${name} · ${formatClock(next.plannedMs)}` : name;
+  return next.plannedMs !== null ? `${name} · ${formatClock(next.plannedMs)}` : name;
+}
+
+/**
+ * Délai jusqu'au prochain changement de seconde affichée (compte à rebours arrondi au supérieur, chronomètre
+ * arrondi à l'inférieur), plus une marge de 20 ms ; borné à [16, 250] ms pour la demande des signaux.
+ */
+export function refreshDelayMs(projection: ExecutionProjection | null): number {
+  const timer = projection?.timer;
+  let untilBoundary = 250;
+  if (timer?.kind === "COUNTDOWN" && timer.remainingMs > 0) untilBoundary = ((timer.remainingMs - 1) % 1000) + 1;
+  else if (timer?.kind === "STOPWATCH") untilBoundary = 1000 - (timer.elapsedMs % 1000);
+  return Math.min(250, Math.max(16, untilBoundary + 20));
 }
 
 function estimateLabel(projection: ExecutionProjection): string {

@@ -1663,7 +1663,7 @@ Modale « P-Modale — Résultat de série » (Figma 8937:35362). Valeur initial
 | RM-063 | Aucun retour à un Exercice précédent et aucune sélection libre d’un autre Exercice ne font partie du MVP. |
 | RM-064 | Après une interruption technique d’une Exécution en cours, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance` avant d’en démarrer une nouvelle. |
 | RM-065 | Le bouton Retour de l’Exécution revient au contexte réel de lancement. Dans le prototype de démonstration, il revient au Catalogue des séances non vide. |
-| RM-065a | Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, un passage anticipé avant zéro demande confirmation. Si elle est confirmée, la durée partielle de la phase courante est enregistrée et le Plan poursuit vers son étape suivante ; les Séries déjà acquises ne sont pas rejouées. Un arrêt de la Séance pendant une phase de récupération produit le statut `Interrompue`. |
+| RM-065a | Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, un passage anticipé avant zéro demande confirmation. [Remplacé le 09/11/2026 — recette iPhone PRE-10 (Hermann) : « Il ne doit pas y avoir de message de confirmation pour les pauses ni la récupération. » `Exercice suivant` pendant une Pause entre séries, une Pause entre les côtés ou une Récupération passe directement à l’étape suivante, sans confirmation.] Si elle est confirmée, la durée partielle de la phase courante est enregistrée et le Plan poursuit vers son étape suivante ; les Séries déjà acquises ne sont pas rejouées. Un arrêt de la Séance pendant une phase de récupération produit le statut `Interrompue`. |
 
 ### Arrière-plan, verrouillage et sécurité temporelle
 

@@ -132,7 +132,7 @@ describe("PRE-10 noyau — fins typées (T02)", () => {
 });
 
 describe("PRE-10 noyau — phases structurelles", () => {
-  it("Suivant pendant le compte à rebours initial : passage sans confirmation, aucun Exercice partiel ; une récupération demande confirmation", () => {
+  it("Suivant pendant le compte à rebours initial et pendant une récupération : passage sans confirmation (recette 09/11), aucun Exercice partiel", () => {
     const sim = Simulation.libre(
       planOf(structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("a", durationParameters(10), { postActivityRecoverySeconds: 30 }) }], stopPoints: [] }, { initialCountdownSeconds: 10 })),
     );
@@ -141,10 +141,10 @@ describe("PRE-10 noyau — phases structurelles", () => {
     expect(sim.state.leaf?.spec).toMatchObject({ kind: "ACTIVITY", exerciseId: "a" });
     sim.at(12);
     expect(sim.state.leaf?.spec.kind).toBe("POST_ACTIVITY_RECOVERY");
-    expect(sim.send({ type: "NEXT", target: sim.target }, 15 * S)).toMatchObject({ reason: "CONFIRMATION_REQUIRED" });
     const key = sim.leafKey!;
-    sim.send({ type: "NEXT", target: sim.target, confirmed: true }, 15 * S);
+    expect(sim.send({ type: "NEXT", target: sim.target }, 15 * S).outcome).toBe("APPLIED");
     expect(sim.step(key)).toMatchObject({ completion: "SKIPPED", lastAttemptMs: 3 * S, plannedMs: 30 * S });
+    expect(sim.state.leaf?.spec.kind).not.toBe("POST_ACTIVITY_RECOVERY");
   });
 });
 

@@ -17,7 +17,7 @@ import { ProfileServiceContext } from "@/features/preferences/ProfileServiceCont
 import { SessionService } from "@/features/sessions/SessionService";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
-import { ExecutionScreen } from "../ExecutionScreen";
+import { ExecutionScreen, refreshDelayMs } from "../ExecutionScreen";
 import { ExecutionService } from "../ExecutionService";
 import { ExecutionServiceContext } from "../ExecutionServiceContext";
 
@@ -206,5 +206,87 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance interrompue");
     expect(await database.getFirstAsync("SELECT business_status FROM executions")).toEqual({ business_status: "INTERRUPTED" });
     view.unmount();
+  });
+});
+
+describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
+  afterEach(() => {
+    mockBack.mockReset();
+  });
+
+  it("Réinitialiser puis Annuler : aucun dialogue de Pause intercalé, commandes de nouveau actives", async () => {
+    const { service, at, view } = await setup();
+    await screen.findByTestId("execution-start");
+    await press("execution-start");
+    await at(8); // Squat S1, 15 s restantes
+    await press("execution-reset");
+    expect(service.current()?.state.pause?.reason).toBe("DIALOG");
+    expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
+    await press("execution-reset-cancel");
+    // Le dialogue se ferme une fois la reprise enregistrée : jamais de Pause visible entre les deux.
+    expect(screen.queryByTestId("execution-reset-dialog")).toBeNull();
+    expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
+    expect(service.current()?.state.status).toBe("RUNNING");
+    await at(9);
+    expect(service.project()?.timer).toMatchObject({ kind: "COUNTDOWN", remainingMs: 14 * S });
+    await press("execution-pause");
+    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
+    await press("execution-pause-resume");
+    expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
+    view.unmount();
+  });
+
+  it("Suivant pendant une Durée : chrono suspendu pendant la confirmation ; Annuler reprend à la même valeur", async () => {
+    const { service, at, view } = await setup();
+    await screen.findByTestId("execution-start");
+    await press("execution-start");
+    await at(8); // 15 s restantes
+    await press("execution-next-command");
+    expect(screen.getByTestId("execution-next-dialog")).toBeTruthy();
+    expect(service.current()?.state.status).toBe("PAUSED");
+    await at(30);
+    await press("execution-next-cancel");
+    expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
+    expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
+    expect(screen.getByTestId("execution-timer").props.children).toBe("00:15");
+    // Confirmer : reprise puis passage, l'Exercice est Partiel.
+    await press("execution-next-command");
+    await press("execution-next-confirm");
+    expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
+    expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
+    view.unmount();
+  });
+
+  it("Suivant pendant une Pause entre séries : passage direct, sans confirmation", async () => {
+    const { at, view } = await setup();
+    await screen.findByTestId("execution-start");
+    await press("execution-start");
+    await at(24); // Pause 23 → 28
+    expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
+    await press("execution-next-command");
+    expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
+    expect(screen.getByTestId("execution-title").props.children).toBe("Squat");
+    expect(screen.getByTestId("execution-series").props.children).toBe("Série 2/2");
+    view.unmount();
+  });
+
+  it("À suivre : numéro de Série après le nom ; Point d'arrêt annoncé « Arrêt de la séance, redémarrage manuel »", async () => {
+    const { at, view } = await setup();
+    await screen.findByTestId("execution-start");
+    await press("execution-start");
+    await at(24); // Pause après S1 : à suivre Squat S2
+    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Squat · Série 2/2 · 00:20");
+    await at(50); // Pause finale : à suivre le Point d'arrêt
+    expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
+    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Arrêt de la séance, redémarrage manuel");
+    view.unmount();
+  });
+
+  it("rafraîchissement calé sur le changement de seconde affichée", () => {
+    const countdown = (remainingMs: number) => ({ timer: { kind: "COUNTDOWN", remainingMs, totalMs: 30000, elapsedMs: 0 } }) as unknown as Parameters<typeof refreshDelayMs>[0];
+    expect(refreshDelayMs(countdown(2010))).toBe(30); // « 00:03 » jusqu'à 2000 ms, puis « 00:02 »
+    expect(refreshDelayMs(countdown(2600))).toBe(250);
+    expect(refreshDelayMs(countdown(2200))).toBe(220);
+    expect(refreshDelayMs({ timer: { kind: "STOPWATCH", elapsedMs: 4900, nominalMs: null } } as unknown as Parameters<typeof refreshDelayMs>[0])).toBe(120);
   });
 });

@@ -14,14 +14,21 @@ export function ExecutionDialog({
   message,
   actions,
   testID,
+  visible = true,
 }: {
   readonly title: string;
   readonly message: string;
   readonly actions: readonly [ExecutionDialogAction, ExecutionDialogAction];
   readonly testID: string;
+  /**
+   * Recette PRE-10 du 09/11/2026 : l'écran d'Exécution garde un seul `Modal` monté et bascule `visible`.
+   * Démonter un dialogue et en monter un autre dans la même image laissait sur iOS une présentation vide
+   * qui bloquait tous les touchers, jusqu'à la fermeture de l'application.
+   */
+  readonly visible?: boolean;
 }) {
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={() => undefined}>
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={() => undefined}>
       <View style={styles.backdrop} testID={`${testID}-backdrop`}>
         <View style={styles.card} accessibilityRole="alert" accessibilityViewIsModal testID={testID}>
           <Text style={styles.title}>{title}</Text>

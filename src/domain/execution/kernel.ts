@@ -689,8 +689,10 @@ function next(draft: Draft, event: Extract<EngineEvent, { type: "NEXT" }>, atMs:
         closeLeaf(draft, "COMPLETED", atMs, true);
         return null;
       }
-      // Compte à rebours initial et Fin de séance : phases structurelles, sans Exercice ni confirmation (À CLARIFIER 1, spec PRE-10).
-      if (event.confirmed !== true && !structuralPhase(leaf.spec)) return "CONFIRMATION_REQUIRED";
+      // Seul un Exercice chronométré demande confirmation (RM-060). Pauses et récupérations : passage direct
+      // (recette PRE-10 du 09/11/2026, Hermann ; remplace RM-065a). Compte à rebours initial et Fin de séance :
+      // phases structurelles, sans confirmation (À CLARIFIER 1, spec PRE-10).
+      if (event.confirmed !== true && needsNextConfirmation(leaf.spec)) return "CONFIRMATION_REQUIRED";
       // Avant le terme : Exercice `Partielle` ; phase de récupération : durée partielle conservée (ch08).
       closeLeaf(draft, leaf.spec.kind === "ACTIVITY" ? "PARTIAL" : "SKIPPED", atMs, true);
       return null;
@@ -749,6 +751,11 @@ function reset(draft: Draft, atMs: Ms): RejectionReason | null {
 /** Phases structurelles de la Séance (ch12 §12.9) : ni Exercice, ni récupération. */
 export function structuralPhase(spec: LeafSpec): boolean {
   return spec.kind === "INITIAL_COUNTDOWN" || spec.kind === "SESSION_END";
+}
+
+/** Suivant avant le terme : confirmation pour un Exercice chronométré seulement (RM-060 ; recette PRE-10 du 09/11/2026). */
+export function needsNextConfirmation(spec: LeafSpec): boolean {
+  return spec.kind === "ACTIVITY" && spec.end === "TIMED";
 }
 
 /** Réinitialiser : Série/côté, pauses et récupérations ; pas le compte à rebours, la Fin, un Point d'arrêt ni une Clôture. */

@@ -753,7 +753,7 @@ Le comportement dépend de la phase courante :
 
 - **Exercice en Répétitions ou À l’échec** : termine normalement la Série courante et passe à la pause, à la Série suivante ou à l’Exercice suivant selon le plan ;
 - **Exercice chronométré avant zéro** : ouvre la modale de confirmation ; après confirmation, l’Exercice est enregistré avec le statut `Partielle`, puis l’Exécution continue ;
-- **Phase de récupération avant zéro** : ouvre la même confirmation ; après confirmation, la durée partielle de la phase courante (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`) est conservée et le Plan poursuit vers son étape suivante ;
+- **Phase de récupération avant zéro** : ouvre la même confirmation ; après confirmation, la durée partielle de la phase courante (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`) est conservée et le Plan poursuit vers son étape suivante ; [Remplacé le 09/11/2026 — recette iPhone PRE-10 (Hermann) : « Il ne doit pas y avoir de message de confirmation pour les pauses ni la récupération. » Pendant une Pause entre séries, une Pause entre les côtés ou une Récupération, `Exercice suivant` passe directement à l’étape suivante, sans confirmation ; la durée partielle de la phase reste conservée. Voir RM-065a.]
 - **Exercice chronométré arrivé à zéro** : la transition est automatique.
 
 ### Exécution — séance ou exercice — Navigation pendant l’Exécution

@@ -13,7 +13,7 @@
 import { phaseGuidanceAt, workPhasesCycleSeconds } from "@/domain/activities/phaseGuidance";
 import type { SeriesTarget } from "@/domain/activities/ExecutionParameters";
 
-import { leafElapsedMs, leafTarget, resettable, runningMs, sessionStopwatch, structuralPhase, type EngineState, type FinishReason, type Ms, type PauseReason } from "./kernel";
+import { leafElapsedMs, leafTarget, needsNextConfirmation, resettable, runningMs, sessionStopwatch, type EngineState, type FinishReason, type Ms, type PauseReason } from "./kernel";
 import type { ChildSpec, ExecutablePlan, LeafKind, LeafSpec } from "./plan";
 
 export type TimerView =
@@ -21,7 +21,15 @@ export type TimerView =
   | { readonly kind: "STOPWATCH"; readonly elapsedMs: Ms; readonly nominalMs: Ms | null }
   | { readonly kind: "NONE" };
 
-export type NextView = { readonly kind: LeafKind; readonly name: string | null; readonly plannedMs: Ms | null; readonly target: SeriesTarget | null; readonly mode: LeafSpec["mode"] | null };
+export type NextView = {
+  readonly kind: LeafKind;
+  readonly name: string | null;
+  readonly plannedMs: Ms | null;
+  readonly target: SeriesTarget | null;
+  readonly mode: LeafSpec["mode"] | null;
+  /** Série de l'étape suivante, affichée après le nom (recette PRE-10 du 09/11/2026). */
+  readonly series: { readonly current: number; readonly total: number } | null;
+};
 
 export type EstimatedDuration = { readonly kind: "exact" | "estimated" | "lowerBound"; readonly ms: Ms };
 
@@ -169,6 +177,7 @@ function nextOf(plan: ExecutablePlan, state: EngineState): NextView | null {
     plannedMs: spec.plannedMs,
     target: spec.target === undefined ? null : spec.target,
     mode: spec.mode ?? null,
+    series: spec.kind === "ACTIVITY" && spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
   };
 }
 
@@ -197,7 +206,6 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
   const leaf = state.leaf;
   const spec = leaf?.spec ?? null;
   const running = state.status === "RUNNING";
-  const timed = spec?.end === "TIMED";
   const elapsed = leafElapsedMs(state, atMs);
   const stopwatch = sessionStopwatch(state);
   const recoveryLike = spec !== null && spec.kind !== "ACTIVITY";
@@ -226,7 +234,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
       resetScope: recoveryLike ? "RECOVERY" : "EXERCISE",
       pause: running,
       next: running && spec !== null && (spec.end === "MANUAL" || spec.end === "WAIT" || spec.end === "TIMED"),
-      nextNeedsConfirmation: running && timed && spec !== null && !structuralPhase(spec) && elapsed < (spec.plannedMs ?? 0),
+      nextNeedsConfirmation: running && spec !== null && needsNextConfirmation(spec) && elapsed < (spec.plannedMs ?? 0),
       isContinue: spec?.kind === "STOP_POINT",
     },
   };

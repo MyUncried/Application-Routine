@@ -6,6 +6,17 @@ Au premier lancement, la base passe en version 24 (migration 024, tables d'exéc
 
 Notez pour chaque cas : **OK**, ou **KO** avec ce que vous voyez (une capture aide). Avant de conclure à un KO, vérifiez que l'iPhone a bien rechargé le bundle (fermer l'application, la rouvrir).
 
+## Corrections du 09/11/2026 (recette n° 1) — à tester
+
+Version en ligne, avec les résultats : https://claude.ai/artifact/Mp9Tu1rPiRdfebmKfpf8Tq. Fermer complètement l'application puis la rouvrir.
+
+- C1. Réinitialiser l'exercice puis Annuler (et Réinitialiser puis Confirmer) : le dialogue se ferme, aucune Pause n'apparaît, les trois boutons répondent ensuite ; recommencer plusieurs fois, aussi dans Recette B.
+- C2. Fin de Recette B (après une réinitialisation) : Fermer ramène au Catalogue.
+- C3. Exercice suivant pendant une Pause entre séries, une Pause entre les côtés et une Récupération : passage direct, sans confirmation.
+- C4. Exercice suivant pendant une Durée : la confirmation s'ouvre et le chrono s'arrête ; Annuler reprend à la même valeur ; Confirmer passe à l'étape suivante, Exercice « Partielle ».
+- C5. Comptes à rebours : chaque seconde affichée dure une seconde, y compris les 3 dernières.
+- C6. « À suivre » : « Gainage · Série 2/2 · 00:30 » ; avant un Point d'arrêt : « Arrêt de la séance, redémarrage manuel ».
+
 ## 0. Séances de recette à préparer
 
 Dans la Composition, créez et enregistrez :
