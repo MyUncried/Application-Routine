@@ -16,6 +16,7 @@ on:
       - "src/domain/catalogue/**"
       - "src/features/activities/pilotMovementImport.ts"
       - "src/features/activities/__tests__/pilotMovementImport.test.ts"
+      - "src/features/activities/__tests__/pilotMovementImport.sqlite.test.ts"
       - "src/features/sessions/CatalogueScreen.tsx"
       - "package*.json"
       - "src/infrastructure/database/testing/seedMovementTestCorpus.ts"
@@ -63,6 +64,6 @@ jobs:
       - name: Validate KODJO app typecheck
         run: npx tsc --noEmit
       - name: Test admin-to-mobile local pilot importer
-        run: npx jest --runInBand src/features/activities/__tests__/pilotMovementImport.test.ts
+        run: npx jest --runInBand src/features/activities/__tests__/pilotMovementImport.test.ts src/features/activities/__tests__/pilotMovementImport.sqlite.test.ts
       - name: Run Jest catalogue tests
         run: npx jest --runInBand src/domain/catalogue/__tests__/MovementEditorialProvenance.test.ts src/infrastructure/database/__tests__/seedMovementTestCorpus.test.ts

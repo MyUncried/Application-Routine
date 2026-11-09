@@ -132,13 +132,18 @@ export function preparePilotMovementImport(raw: unknown): PilotImportPreview {
   return { movements: results, excludedMediaCount, overriddenCount, editorialMetadataImported: false };
 }
 
+/** Les Zones d'un Mouvement sont un ensemble : SQLite les relit sans ordre garanti (pas de position stockée). */
+function sameZones(a: readonly string[], b: readonly string[]): boolean {
+  return JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
+}
+
 function equivalent(a: Movement, b: Movement): boolean {
   return a.id === b.id &&
     a.name === b.name &&
     a.description === b.description &&
     a.categoryId === b.categoryId &&
     JSON.stringify(a.aliases) === JSON.stringify(b.aliases) &&
-    JSON.stringify(a.bodyZoneIds) === JSON.stringify(b.bodyZoneIds) &&
+    sameZones(a.bodyZoneIds, b.bodyZoneIds) &&
     a.media.length === 0 &&
     a.levelGroup === null &&
     a.phases.length === 0 &&
@@ -178,10 +183,15 @@ export async function installPilotMovements(
 
   let inserted = 0;
   for (const movement of toCreate) {
-    const result = await catalogue.createIndependent(movement);
-    if (result.status !== "SAVED") {
+    let status: string;
+    try {
+      status = (await catalogue.createIndependent(movement)).status;
+    } catch (error) {
+      status = error instanceof Error ? error.message : String(error);
+    }
+    if (status !== "SAVED") {
       throw new Error(
-        "Import interrompu après " + inserted + " insertion(s) : " + movement.id + " (" + result.status +
+        "Import interrompu après " + inserted + " insertion(s) : " + movement.id + " (" + status +
         "). Les mouvements déjà insérés ne sont pas effacés ; relancer avec le même fichier est sûr.",
       );
     }

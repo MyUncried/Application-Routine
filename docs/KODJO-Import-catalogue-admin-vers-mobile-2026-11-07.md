@@ -37,6 +37,7 @@ Aucun changement du site OVH n'est nécessaire pour cet import. La PR de raccord
 ## Contrôles
 
 - Tests Jest `src/features/activities/__tests__/pilotMovementImport.test.ts` : couverture 60/60, modifications administrateur, signalement médias exclus, refus d'un brouillon hors corpus, validation, idempotence, refus des collisions.
+- Tests Jest `src/features/activities/__tests__/pilotMovementImport.sqlite.test.ts` (ajout du 9 novembre 2026) : même passerelle sur le repository SQLite réel (`node:sqlite`, base isolée en mémoire) — 60 Mouvements et 239 étapes relus, aucune écriture hors des tables de Mouvement, réimport idempotent, collisions refusées sans écriture, interruption au 31e Mouvement puis reprise avec le même fichier. Il a révélé que les Zones, relues sans ordre garanti, faisaient refuser tout réimport ; elles sont désormais comparées comme un ensemble.
 - `npx tsc --noEmit` et `npm ci` exécutés dans GitHub Actions.
 - Aucune recette iPhone physique accomplie à ce stade, aucun transfert réellement vérifié sur une base utilisateur.
 
