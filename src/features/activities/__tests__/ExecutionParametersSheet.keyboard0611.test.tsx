@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import { fireEvent, render, screen } from "@testing-library/react-native";
-import { Platform } from "react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { Alert, Platform, type AlertButton } from "react-native";
 
 import { numberTarget, unsetTarget, type ExecutionParameters, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
@@ -191,10 +191,21 @@ describe("Feuille Paramètres d'exécution — saisie au clavier de toutes les v
   });
 
   it("Durée de l'exercice au clavier : Inversion appliquée à la sortie du champ", () => {
-    renderSheet(params({ sideMode: "UNILATERAL" }), false);
-    const before = text("execution-sheet-total");
-    enterExecutionSheetValue("execution-sheet-total", 5 * 60);
-    expect(text("execution-sheet-total")).not.toBe(before);
+    // [Amendé le 09/11/2026 (recette PRE-10, d5) : une durée non réalisable demande l'arrondi par une
+    // alerte native ; le choix « Arrondir à » appliqué ici est le dernier proposé (supérieur).]
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    try {
+      renderSheet(params({ sideMode: "UNILATERAL" }), false);
+      const before = text("execution-sheet-total");
+      enterExecutionSheetValue("execution-sheet-total", 5 * 60);
+      if (alert.mock.calls.length > 0) {
+        const buttons = alert.mock.calls[0]![2] as AlertButton[];
+        act(() => buttons[buttons.length - 1]!.onPress!());
+      }
+      expect(text("execution-sheet-total")).not.toBe(before);
+    } finally {
+      alert.mockRestore();
+    }
   });
 
   it("Retour arrière supprime le dernier chiffre", () => {

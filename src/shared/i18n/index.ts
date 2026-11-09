@@ -157,6 +157,8 @@ const executionParameters = {
     phaseCycleRoundMessage: "{target} n’est pas un multiple de la durée des phases du mouvement ({cycle}).",
     phaseCycleRoundMessageRow: "Série {n} : {target} n’est pas un multiple de la durée des phases du mouvement ({cycle}).",
     phaseCycleRoundTo: "Arrondir à {duration}",
+    totalRoundTitle: "Arrondir la durée de l’exercice ?",
+    totalRoundMessage: "{total} ne correspond pas à un nombre entier de séries.",
     removePhaseClosesFieldHint: "Ferme d’abord le champ ouvert, sans supprimer la phase",
     // PRE-5 story 2.5 (FR-15, FR-16, FR-44) : ligne « Changement de côté », segmenté « Avec | Sans »,
     // sans désignation anatomique. Les libellés anatomiques (`sideModes`, `sideModeOptions`) sont

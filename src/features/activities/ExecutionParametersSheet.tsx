@@ -76,6 +76,7 @@ import {
   isCalculable,
   isWorkEstimable,
   totalDurationRange,
+  totalDurationRoundings,
 } from "@/domain/activities/executionCalculations";
 import { formatPhraseDuration, spokenDurations } from "@/domain/activities/durationFormat";
 import { phaseCycleIssues, type PhaseCycleIssues } from "@/domain/activities/phaseCycleFit";
@@ -491,11 +492,12 @@ const SHEET_FRAMES: readonly SheetFrame[] = ["execution", "phases", "series", "s
 /** Boîte d'un cadre dans le contenu défilant (hôte des panneaux), mesurée par `onLayout`. */
 type FrameBox = { readonly y: number; readonly height: number; readonly width: number };
 /**
- * Message d'ajustement (D-5) : l'Inversion du total garde l'état d'avant pour `Annuler` ;
- * le retrait d'une ligne (story 3.6) n'en garde aucun, `undoRemoval` du Brouillon suffit.
+ * Message d'ajustement (D-5) : le retrait d'une ligne (story 3.6) ou d'une phase s'annule par
+ * `undoRemoval` du Brouillon. [Remplacé le 09/11/2026 (recette PRE-10, d5) : l'Inversion du total ne
+ * produit plus de message d'ajustement (« total », qui gardait l'état d'avant pour `Annuler`) ; une
+ * durée non réalisable demande l'arrondi par une alerte native (`applyRequestedTotalSeconds`).]
  */
 type Adjustment =
-  | { readonly kind: "total"; readonly message: string; readonly previous: ExecutionSheetDraft }
   | { readonly kind: "removal"; readonly message: string }
   /** PRE-5 story 2.8 (FR-8) : « Phase supprimée — Annuler », rendu sous le tableau des phases (`undoRemoval`). */
   | { readonly kind: "phaseRemoval"; readonly message: string };
@@ -1121,7 +1123,7 @@ export function ExecutionParametersSheet({
     }
     setAdjustment(null);
     // PRE-5 story 2.8 (FR-8) : le retrait d'une phase s'annule de même (`undoRemoval`, Q29).
-    setDraft(adjustment.kind === "total" ? adjustment.previous : undoRemoval(draft));
+    setDraft(undoRemoval(draft));
   }
 
   /**
@@ -1407,23 +1409,36 @@ export function ExecutionParametersSheet({
   }
 
   /**
-   * Story 3.7 : Durée de l'exercice demandée → Inversion (`applyRequestedTotal`) et message
-   * d'ajustement. Décision du 06/11/2026 (constat c) : appelée à la sortie du champ clavier (au lieu
-   * du ✓ de la roue remplacée, qui fermait aussi sa surface).
+   * Story 3.7 : Durée de l'exercice demandée → Inversion (`applyRequestedTotal`). Décision du
+   * 06/11/2026 (constat c) : appelée à la sortie du champ clavier (au lieu du ✓ de la roue remplacée,
+   * qui fermait aussi sa surface). Décision de Hermann du 09/11/2026 (recette PRE-10, d5 : « Mettre le
+   * même format de message que pour le phase avec les propositions d'arrondi inférieur et supérieur ») :
+   * une durée réalisable s'applique telle quelle ; sinon une alerte native propose les durées
+   * réalisables inférieure et supérieure, comme `askPhaseRounding` [remplace l'ajustement automatique
+   * au total le plus proche et son message « Durée ajustée à … — Annuler »].
    */
   function applyRequestedTotalSeconds(requestedSeconds: number) {
     setIsTableSelected(false);
-    const applied = applyRequestedTotal(draft, requestedSeconds);
-    if (!applied) return;
-    setDraft(applied.draft);
-    setAdjustment(
-      applied.inversion.adjusted
-        ? {
-            message: t.adjusted.replace("{duration}", formatPhraseDuration(applied.inversion.totalSeconds)),
-            kind: "total",
-            previous: draft,
-          }
-        : null,
+    if (!isRequestedTotalEditable(draft)) return;
+    const roundings = totalDurationRoundings(effectiveParameters(draft), requestedSeconds, draft.inheritedSeriesCount);
+    const applyTotal = (seconds: number) => {
+      setDraft((current) => applyRequestedTotal(current, seconds)?.draft ?? current);
+      setAdjustment(null);
+    };
+    if (roundings.exact !== null) {
+      applyTotal(roundings.exact.totalSeconds);
+      return;
+    }
+    // Durée au-delà du plafond de saisie (99′59″) : seul l'arrondi inférieur est proposé.
+    const choices = [roundings.lower, roundings.upper]
+      .filter((choice) => choice !== null && choice.totalSeconds <= WHEEL_TOTAL_DURATION_SECONDS_MAX)
+      .map((choice) => choice!.totalSeconds);
+    if (choices.length === 0) return;
+    Alert.alert(
+      t.totalRoundTitle,
+      t.totalRoundMessage.replace("{total}", formatPhraseDuration(requestedSeconds)),
+      choices.map((seconds) => ({ text: t.phaseCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)), onPress: () => applyTotal(seconds) })),
+      { cancelable: false },
     );
   }
 
@@ -3103,7 +3118,6 @@ export function ExecutionParametersSheet({
                       )}
                     </Row>
                     )}
-                    {adjustment?.kind === "total" ? adjustmentMessage : null}
                   </>
                   )}
 

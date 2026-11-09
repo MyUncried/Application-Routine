@@ -54,3 +54,10 @@
 
 Voir le commit de livraison (message « feat(composition): durée de série et phases du mouvement (D-514) »).
 - État Git : branche locale `composition-phases-duree` (non poussée), arbre propre après le commit ; `pre10-bmad/dev` inchangée à `d0c4a85a`.
+
+## Recette n° 2 du 09/11/2026 — réponses d5 / d6
+
+- Verdicts (cahier en ligne) : D1–D4 OK sur iPhone ; d6 OK (cartes non marquées, conservé) ; **d5 KO** : « Mettre le même format de message que pour le phase avec les propositions d'arrondi inférieur et supérieur ».
+- Correction (D-515, classe B) : `totalDurationRoundings` (`executionCalculations.ts`) ; `applyRequestedTotalSeconds` (`ExecutionParametersSheet.tsx`) ouvre l'alerte native « Arrondir la durée de l'exercice ? » avec les durées réalisables inférieure et supérieure ; durée réalisable appliquée sans alerte ; ajustement automatique et message « Durée ajustée à … — Annuler » retirés (variante `total` du message d'ajustement supprimée). Libellés `totalRoundTitle`, `totalRoundMessage`. Docs : D-515 (ch07), ch03, ch10, `docs/SOURCE-SAISIE-PARAMETRES-MODALE-2026-10-01.md` annotés.
+- Tests : `executionCalculations` 87 PASS (1 ajouté) ; `ExecutionParametersSheet` + `src/domain/activities` avant amendement : 41 suites / 1 470 tests, 6 échecs attendus (ancien ajustement automatique) ; après amendement, reruns ciblés PASS (`keyboard0611` 13/13, 5 tests amendés de `ExecutionParametersSheet.test`) ; `tsc --noEmit` et `eslint` des fichiers modifiés propres. **Suite complète non terminée** : arrêtée par le système (mémoire insuffisante), à relancer.
+- À vérifier sur iPhone : point E1 du cahier.
