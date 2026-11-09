@@ -16,6 +16,7 @@ Version en ligne, avec les résultats : https://claude.ai/artifact/Mp9Tu1rPiRdfe
 - C4. Exercice suivant pendant une Durée : la confirmation s'ouvre et le chrono s'arrête ; Annuler reprend à la même valeur ; Confirmer passe à l'étape suivante, Exercice « Partielle ».
 - C5. Comptes à rebours : chaque seconde affichée dure une seconde, y compris les 3 dernières.
 - C6. « À suivre » : « Gainage · Série 2/2 · 00:30 » ; avant un Point d'arrêt : « Arrêt de la séance, redémarrage manuel ».
+- C7. Pendant une Durée, fermer l'application dans le sélecteur, attendre 3 minutes, la rouvrir, Reprendre la séance : retour à l'étape interrompue, en pause, qui recommence à sa durée complète ; le « Temps écoulé » ne compte pas les 3 minutes.
 
 ## 0. Séances de recette à préparer
 

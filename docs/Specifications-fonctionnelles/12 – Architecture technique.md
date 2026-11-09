@@ -1687,7 +1687,7 @@ Chaque étape doit être fonctionnelle et testée avant de servir de base à la 
 
 ## 12.33 Réconciliation après interruption technique
 
-Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la fin minimale dans T04 ; la Synthèse appartient à la tranche qui la livre.
+Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la fin minimale dans T04 ; la Synthèse appartient à la tranche qui la livre. [Précisé le 09/11/2026 — recette iPhone PRE-10, décision de Hermann : `Reprendre la séance` ramène l’Exécution à l’étape interrompue, en pause, et le temps passé application fermée n’est pas compté (ni dans l’étape, ni dans la durée de la Séance) ; l’étape interrompue recommence à sa durée initiale à la reprise. Le retour depuis l’arrière-plan, sans fermeture de l’application, reste une reconstitution au temps logique.]
 
 ## Adaptation moteur et persistance
 

@@ -12,8 +12,8 @@ import { executionStrings as t } from "./executionStrings";
  * conception §14.2) : une Exécution non clôturée est détectée au démarrage et au retour au premier plan ;
  * l'utilisateur choisit Reprendre la séance ou Arrêter la séance. Aucune clôture automatique ; tant que le
  * choix n'est pas fait, aucune nouvelle Exécution ne démarre (le service la refuse). Le dialogue ne se ferme
- * que par l'une des deux actions. Reprendre ouvre l'Exécution là où le temps l'a menée (ou, sans continuité
- * temporelle démontrée, à l'étape en cours, en pause — Q6) ; Arrêter la clôt `Interrompue` et ouvre la fin
+ * que par l'une des deux actions. Reprendre ouvre l'Exécution à l'étape interrompue, en pause, sans compter
+ * l'absence (Q6, décision du 09/11/2026) ; Arrêter la clôt `Interrompue` et ouvre la fin
  * minimale.
  */
 export function ExecutionRecoveryGate() {

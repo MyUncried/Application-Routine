@@ -209,3 +209,7 @@ Départ : `7f5e3454` (`pre10-bmad/dev`). Résultats relevés dans le cahier en l
 - **Tests** : `npx jest src/domain/execution src/features/execution` 5 suites / 51 tests PASS (5 nouveaux : Réinitialiser → Annuler sans Pause intercalée, suspension pendant Suivant, Suivant direct en Pause, « À suivre », rafraîchissement) ; `npx jest src/features/sessions src/shared/ui/__tests__/tokensSpecification.test.ts` 117 suites / 1 793 tests PASS ; `tsc` et `eslint` propres. Suite complète non relancée (mémoire insuffisante lors des essais précédents).
 - **À vérifier sur iPhone** : points C1 à C6 du cahier.
 - **Fichiers** : `kernel.ts`, `projection.ts`, `ExecutionScreen.tsx`, `ExecutionDialog.tsx`, `executionStrings.ts`, tests `kernel.libre.pre10`, `ExecutionScreen.pre10` ; ch08, ch10, ch11, ch13 ; spec du lot ; cahier de recette ; ce rapport.
+
+### 9.1 Arbitrages du 09/11/2026 et reprise après fermeture
+
+Réponses de Hermann : « 1. Non, il y a déjà le bouton pause 2. Oui 3. Oui ». Réinitialiser reste indisponible pendant le Compte à rebours ; lot Composition ouvert pour les alertes de durée des phases (hors moteur) ; Reprendre après une fermeture revient à l'étape interrompue, en pause, sans compter l'absence (ch12 §12.33 précisé, conception §14.2 annotée, T09 remplacé). Tests : `npx jest src/domain/execution src/features/execution` 5 suites / 51 tests PASS ; `tsc`, `eslint` propres. À vérifier sur iPhone : point C7 du cahier.

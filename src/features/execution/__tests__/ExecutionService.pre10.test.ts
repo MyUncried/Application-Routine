@@ -150,7 +150,7 @@ describe("PRE-10 ExecutionService", () => {
     await expect(other.start(prepared)).rejects.toBeInstanceOf(ExecutionBlockedError);
   });
 
-  it("T09 : interruption du processus — état candidat, Reprendre continue au temps logique, sans double acquisition", async () => {
+  it("T09 : interruption du processus — état candidat ; Reprendre revient à l'étape interrompue, en pause, sans compter l'absence (décision du 09/11/2026), sans double acquisition", async () => {
     const first = await started();
     await scheduler.runUntil(T0 + 20 * S); // A1 en cours depuis 15 s
     const executionId = first.current()!.executionId;
@@ -160,8 +160,15 @@ describe("PRE-10 ExecutionService", () => {
     const second = service();
     expect(await second.findRecovery()).toEqual({ executionId, sessionName: "Séance de test", continuity: true });
     await second.resumeRecovered(executionId);
-    // 5 + 30 + 10 = 45 → A2 à 45 s, en cours depuis 15 s.
-    expect(second.project()).toMatchObject({ phase: "ACTIVITY", series: { current: 2, total: 2 } });
+    // Les 40 s d'absence ne comptent pas : A1 (en cours depuis 15 s à l'interruption) attend, en pause, relancée.
+    expect(second.project()).toMatchObject({ status: "PAUSED", pauseReason: "RESTORE", phase: "ACTIVITY", series: { current: 1, total: 2 } });
+    expect(second.project()?.timer).toMatchObject({ kind: "COUNTDOWN", remainingMs: 30 * S });
+    const elapsedAtResume = second.project()!.sessionElapsedMs;
+    await second.dispatch({ type: "RESUME" });
+    clock.ms += 10 * S;
+    expect(second.project()!.sessionElapsedMs).toBe(elapsedAtResume + 10 * S);
+    expect(elapsedAtResume).toBeLessThanOrEqual(20 * S);
+    await scheduler.runUntil(clock.ms + 25 * S); // fin de A1 relancée : une seule acquisition de S1
     const rows = await raw.getAllAsync<{ result_key: string }>("SELECT result_key FROM execution_results WHERE execution_id = ?", [executionId]);
     expect(new Set(rows.map((row) => row.result_key)).size).toBe(rows.length);
     expect(rows.filter((row) => row.result_key.endsWith("/s1/NONE"))).toHaveLength(1);

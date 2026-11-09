@@ -16,8 +16,8 @@
  *   rattrapé après une suspension (§14.1). Le son physique ne partage pas la transaction (§16.1).
  * - **Cycle de vie** : retour au premier plan = réconciliation ; l'arrière-plan n'est pas une Pause.
  *   Interruption du processus : état candidat, choix Reprendre / Arrêter (§12.33), aucune nouvelle
- *   Exécution tant qu'il n'est pas traité ; sans continuité temporelle démontrée, reprise en pause à
- *   l'étape en cours (Q6).
+ *   Exécution tant qu'il n'est pas traité ; Reprendre revient à l'étape interrompue, en pause, sans
+ *   compter l'absence (Q6, étendu le 09/11/2026 à toute interruption du processus).
  *
  * Aucune règle métier de parcours ici : elles sont dans le noyau (`@/domain/execution`).
  */
@@ -227,32 +227,30 @@ export class ExecutionService {
     return { executionId: record.id, sessionName: snapshot.name, continuity: this.continuityOf(record.clockWallMs) };
   }
 
-  /** Reprendre la séance (§12.33) : avec continuité, l'Exécution reprend où le temps l'a menée ; sinon Q6. */
+  /**
+   * Reprendre la séance (§12.33) : l'Exécution revient à l'étape interrompue, en pause, et l'absence ne compte
+   * pas — quelle que soit la continuité de l'heure (décision de Hermann, recette PRE-10 du 09/11/2026 :
+   * reprendre après une fermeture « à l'étape interrompue, en pause, sans compter l'absence (comme la règle
+   * Q6) » ; remplace la reprise au temps logique de la conception §14.2 / T09 pour une interruption du
+   * processus). L'arrière-plan sans fermeture reste une réconciliation au temps logique (RM-067).
+   */
   resumeRecovered(executionId: string): Promise<void> {
     return this.enqueue(async () => {
       await this.load(executionId);
       const active = this.active!;
       const record = await this.deps.repository.findById(executionId);
       if (record === null) return;
-      if (!this.continuityOf(record.clockWallMs)) {
-        await this.persist(active, { state: restoreWithoutContinuity(active.state), results: [], effects: [], outcome: "APPLIED" }, record.clockWallMs);
-        return;
-      }
-      await this.process({ event: { type: "TICK" }, readingMs: this.now() });
+      await this.persist(active, { state: restoreWithoutContinuity(active.state), results: [], effects: [], outcome: "APPLIED" }, record.clockWallMs);
     });
   }
 
-  /** Arrêter la séance depuis le dialogue de reprise : clôture `Interrompue` (§12.33). */
+  /** Arrêter la séance depuis le dialogue de reprise : clôture `Interrompue` (§12.33), sans compter l'absence. */
   stopRecovered(executionId: string): Promise<void> {
     return this.enqueue(async () => {
       await this.load(executionId);
       const record = await this.deps.repository.findById(executionId);
-      const continuity = record !== null && this.continuityOf(record.clockWallMs);
-      if (!continuity) {
-        const active = this.active!;
-        await this.persist(active, { state: restoreWithoutContinuity(active.state), results: [], effects: [], outcome: "APPLIED" }, record?.clockWallMs ?? this.now());
-      }
-      if (this.active!.state.status === "RUNNING") await this.process({ event: { type: "PAUSE", reason: "USER" }, readingMs: this.now() });
+      const active = this.active!;
+      await this.persist(active, { state: restoreWithoutContinuity(active.state), results: [], effects: [], outcome: "APPLIED" }, record?.clockWallMs ?? this.now());
       await this.process({ event: { type: "STOP", commandId: `recovery-stop-${executionId}` }, readingMs: this.now() });
     });
   }
