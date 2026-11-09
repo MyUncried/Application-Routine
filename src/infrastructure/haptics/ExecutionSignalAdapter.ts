@@ -10,26 +10,41 @@ import { ExecutionVoice, type VoicePort } from "@/infrastructure/speech/Executio
  *
  * - vibration fonctionnelle (préférence `Vibrations` du Profil) : transition d'étape (impact fort), trois
  *   dernières secondes (impact moyen), bip de cadence et signal minute (impact léger) ;
- * - Sons (lot son et voix, décision de Hermann du 09/11/2026, recette PRE-10 n° 2, `q-son` ; ch08 « Guidage
- *   sonore ») : bip aigu pendant les trois dernières secondes d'une étape chronométrée ; bip grave pour la
- *   cadence et le signal minute ;
- * - Annonces vocales (même décision ; ch08, RM-243) : au début d'un Exercice, son nom, suivi de « côté 1 » /
- *   « côté 2 » pour un Exercice bilatéral ; au début d'une récupération chronométrée, « Récupération ».
+ * - Sons (lot son et voix, décision de Hermann du 09/11/2026, `q-son` ; ch08 « Guidage sonore ») ;
+ * - Annonces vocales (même décision ; ch08, RM-243).
  *
- * Choix provisoires du lot (spec `pre10-son-voix`, À CLARIFIER 1 et 2) : une transition sans annonce vocale
- * (voix coupée, ou étape sans annonce : Compte à rebours initial, Pause entre séries, Fin de séance, Point
- * d'arrêt) donne un bip grave si les Sons sont actifs ; aucun autre bip pendant une Durée. Premier plan
- * seulement (arrière-plan : spike RT-001 / P6). Un échec natif n'interrompt jamais l'Exécution.
+ * Règles (recette « Son et voix » du 09/11/2026, décisions de Hermann sur S2, S3, S5, S6) :
+ * - début d'un Exercice : sifflet, puis annonce du nom (« côté 1 » / « côté 2 » pour un bilatéral) ;
+ * - début d'une récupération (entre côtés, après l'exercice, entre blocs) : « Récupération » ; début d'une
+ *   Pause entre séries : « Pause » ;
+ * - Point d'arrêt : son spécifique (deux notes descendantes), sans annonce ;
+ * - autre début d'étape, ou annonce coupée : bip grave (S5 confirmé) ;
+ * - trois dernières secondes : bip aigu ; cadence : tic et tac alternés ; signal minute : bip grave.
+ *
+ * Le son est joué à l'image suivante, après l'affichage de la seconde qu'il accompagne (S1 : bip perçu en
+ * avance sur l'affichage). Premier plan seulement (S7). Un échec natif n'interrompt jamais l'Exécution.
  */
+export const ANNOUNCEMENT_AFTER_WHISTLE_MS = 450;
+
+type Defer = (run: () => void, delayMs?: number) => void;
+
+const nextFrame: Defer = (run, delayMs = 0) => {
+  if (delayMs > 0) setTimeout(run, delayMs);
+  else if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => run());
+  else setTimeout(run, 0);
+};
+
 export class ExecutionSignalAdapter {
   private vibrationEnabled = true;
   private soundEnabled = true;
   private voiceEnabled = true;
+  private cadenceTick = false;
 
   constructor(
     private readonly haptics: Pick<typeof Haptics, "impactAsync"> = Haptics,
     private readonly beeps: BeepPort = new ExecutionSounds(),
     private readonly voice: VoicePort = new ExecutionVoice(),
+    private readonly defer: Defer = nextFrame,
   ) {}
 
   /** Préférence Vibrations du Profil (vibrations fonctionnelles de séance). */
@@ -41,6 +56,7 @@ export class ExecutionSignalAdapter {
   setAudible(sound: boolean, voice: boolean): void {
     this.soundEnabled = sound;
     this.voiceEnabled = voice;
+    if (voice) this.voice.prepare?.();
   }
 
   get audible(): { readonly sound: boolean; readonly voice: boolean } {
@@ -48,28 +64,49 @@ export class ExecutionSignalAdapter {
   }
 
   play(signal: ExecutionSignal): void {
+    this.defer(() => this.render(signal));
+  }
+
+  private render(signal: ExecutionSignal): void {
     if (this.vibrationEnabled) {
       const style =
         signal.kind === "TRANSITION" ? Haptics.ImpactFeedbackStyle.Heavy : signal.kind === "COUNTDOWN" ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light;
       this.haptics.impactAsync(style).catch(() => undefined);
     }
-    const announcement = signal.kind === "TRANSITION" && this.voiceEnabled ? announcementOf(signal) : null;
-    if (announcement !== null) {
-      this.voice.say(announcement);
+    if (signal.kind !== "TRANSITION") {
+      if (signal.kind !== "CADENCE") this.cadenceTick = false;
+      if (this.soundEnabled) this.beeps.play(this.toneOf(signal));
       return;
     }
-    if (this.soundEnabled) this.beeps.play(toneOf(signal));
+    this.cadenceTick = false;
+    const announcement = this.voiceEnabled ? announcementOf(signal) : null;
+    if (signal.phase === "ACTIVITY") {
+      if (this.soundEnabled) this.beeps.play("WHISTLE");
+      if (announcement !== null) this.defer(() => this.voice.say(announcement), this.soundEnabled ? ANNOUNCEMENT_AFTER_WHISTLE_MS : 0);
+      return;
+    }
+    if (signal.phase === "STOP_POINT") {
+      if (this.soundEnabled) this.beeps.play("STOP_POINT");
+      return;
+    }
+    if (announcement !== null) this.voice.say(announcement);
+    else if (this.soundEnabled) this.beeps.play("LOW");
+  }
+
+  private toneOf(signal: ExecutionSignal): BeepTone {
+    if (signal.kind === "COUNTDOWN") return "HIGH";
+    if (signal.kind === "CADENCE") {
+      this.cadenceTick = !this.cadenceTick;
+      return this.cadenceTick ? "TIC" : "TAC";
+    }
+    return "LOW";
   }
 }
 
 /** Texte annoncé au début d'une étape ; `null` pour une étape sans annonce (ch08 « Guidage sonore »). */
 export function announcementOf(signal: Pick<ExecutionSignal, "phase" | "exerciseName" | "sideRank">): string | null {
-  if (signal.phase === "SIDE_RECOVERY" || signal.phase === "POST_ACTIVITY_RECOVERY") return "Récupération";
+  if (signal.phase === "SIDE_RECOVERY" || signal.phase === "POST_ACTIVITY_RECOVERY" || signal.phase === "BLOCK_REST") return "Récupération";
+  if (signal.phase === "SERIES_PAUSE") return "Pause";
   if (signal.phase !== "ACTIVITY" || signal.exerciseName === null || signal.exerciseName.trim() === "") return null;
   return signal.sideRank === null ? signal.exerciseName : `${signal.exerciseName}, côté ${signal.sideRank}`;
-}
-
-/** Bip aigu : trois dernières secondes ; bip grave : cadence, signal minute, transition sans annonce. */
-function toneOf(signal: ExecutionSignal): BeepTone {
-  return signal.kind === "COUNTDOWN" ? "HIGH" : "LOW";
 }

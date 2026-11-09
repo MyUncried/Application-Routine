@@ -768,6 +768,8 @@ Dans T04, Sons et Annonces vocales sont activés par défaut au début de chaque
 
 Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les Annonces vocales sont actives. Au début d’une phase de récupération chronométrée (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`), l’annonce est `Récupération`. Une annonce de côté désigne « côté 1 » ou « côté 2 », jamais droite ou gauche (RM-243).
 
+[Complété le 09/11/2026 — décisions de Hermann, recette « Son et voix » PRE-10 : au début d’un Exercice, un sifflet aigu est joué à t0, puis le nom est annoncé ; une Pause entre séries est annoncée « Pause », une récupération entre blocs « Récupération » ; le Point d’arrêt a un son spécifique ; le bip de cadence est un tic-tac. Restent à définir dans une tranche ultérieure : la configuration des sons dans le Profil (compte à rebours, fin de séance, départ d’exercice en compte à rebours ou chronomètre, pause, point d’arrêt, récupération, dernier bip, guidage en arrière-plan), éventuellement dans la séance ; l’annonce optionnelle du nombre de répétitions ou de la durée avec le nom de l’exercice (emplacement de l’option non défini) ; le guidage sonore et vocal en arrière-plan selon cette configuration.]
+
 Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
 Répétitions sans bip/À l’échec sans bip : aucun signal de fin de compte à rebours, bip minute. À l’échec avec bip : périodique sans bip minute superposé. Répétitions cadencées : signal périodique maintenu après nominal sans signal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.

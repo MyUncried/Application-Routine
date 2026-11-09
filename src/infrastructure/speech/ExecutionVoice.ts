@@ -1,4 +1,4 @@
-import { ensureExecutionAudioMode, hasNativeModule } from "@/infrastructure/audio/ExecutionSounds";
+import { ensureExecutionAudioMode, hasNativeModule, setExecutionAudioActive } from "@/infrastructure/audio/ExecutionSounds";
 
 /**
  * Lot PRE-10 son et voix (décision de Hermann du 09/11/2026, recette PRE-10 n° 2, `q-son` ; ch08 « Guidage
@@ -6,21 +6,69 @@ import { ensureExecutionAudioMode, hasNativeModule } from "@/infrastructure/audi
  * l'application (lecture en mode silencieux). Une nouvelle annonce remplace celle en cours, sans file
  * d'attente qui la retarderait. Un échec natif est ignoré : il n'interrompt jamais l'Exécution ; module
  * natif absent : aucune annonce, sans charger `expo-speech` (voir `ExecutionSounds`).
+ *
+ * Recette « Son et voix » du 09/11/2026 :
+ * - S2 (voix « très robotique ») : la voix française de meilleure qualité installée sur l'appareil est
+ *   choisie (Améliorée ou Premium avant la voix par défaut) ;
+ * - S2 (début de la première annonce qui « saute ») et S9 (musique non atténuée) : la session audio est
+ *   activée avant de parler, puis libérée à la fin de la dernière annonce pour rendre le volume aux autres
+ *   applications.
  */
-export type VoicePort = { readonly say: (text: string) => void };
+export type VoicePort = { readonly say: (text: string) => void; readonly prepare?: () => void };
 
 export const EXECUTION_VOICE_LANGUAGE = "fr-FR";
 
+type VoiceInfo = { readonly identifier: string; readonly language: string; readonly quality: string };
+
+/** Voix française préférée : qualité Premium, puis Améliorée, puis toute voix fr-FR ; `null` sinon. */
+export function bestFrenchVoice(voices: readonly VoiceInfo[]): string | null {
+  const french = voices.filter((voice) => voice.language.replace("_", "-").toLowerCase() === "fr-fr");
+  const rank = (voice: VoiceInfo) => (/premium/i.test(voice.quality) || /premium/i.test(voice.identifier) ? 2 : /enhanced/i.test(voice.quality) ? 1 : 0);
+  const best = [...french].sort((a, b) => rank(b) - rank(a))[0];
+  return best?.identifier ?? null;
+}
+
 export class ExecutionVoice implements VoicePort {
+  private voiceId: Promise<string | null> | null = null;
+  private generation = 0;
+
+  /** Préparation au début de l'Exécution : session audio et choix de la voix, avant la première annonce. */
+  prepare(): void {
+    if (!hasNativeModule("ExpoSpeech")) return;
+    void ensureExecutionAudioMode();
+    void this.voice().catch(() => null);
+  }
+
   say(text: string): void {
     void this.sayAsync(text).catch(() => undefined);
   }
 
+  private voice(): Promise<string | null> {
+    if (this.voiceId === null) {
+      this.voiceId = import("expo-speech").then(async (Speech) => bestFrenchVoice(await Speech.getAvailableVoicesAsync()));
+    }
+    return this.voiceId;
+  }
+
   private async sayAsync(text: string): Promise<void> {
     if (!hasNativeModule("ExpoSpeech")) return;
-    await ensureExecutionAudioMode();
+    const generation = ++this.generation;
     const Speech = await import("expo-speech");
+    const voice = await this.voice().catch(() => null);
     await Speech.stop();
-    Speech.speak(text, { language: EXECUTION_VOICE_LANGUAGE, useApplicationAudioSession: true });
+    await setExecutionAudioActive(true).catch(() => undefined);
+    const release = () => {
+      // Libère la session seulement si aucune annonce plus récente n'a commencé.
+      setTimeout(() => {
+        if (generation === this.generation) void setExecutionAudioActive(false).catch(() => undefined);
+      }, 200);
+    };
+    Speech.speak(text, {
+      language: EXECUTION_VOICE_LANGUAGE,
+      ...(voice === null ? {} : { voice }),
+      useApplicationAudioSession: true,
+      onDone: release,
+      onError: release,
+    });
   }
 }

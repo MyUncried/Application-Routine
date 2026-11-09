@@ -33,3 +33,32 @@ Recette iPhone PRE-10 n° 2 du 09/11/2026, choix provisoire 6 (`q-son`) : « OK 
 ## Feu vert et réalisation (09/11/2026)
 
 Hermann : « Feu vert pour toutes les étapes ». Les trois choix provisoires À CLARIFIER sont appliqués tels que proposés (non confirmés explicitement ; à confirmer en recette, points S5–S7 du cahier). Réalisé : `npm ci` dans `PRE10-SON` ; `expo-audio` ~57.0.5, `expo-speech` ~57.0.3 ; plugin `expo-audio` non ajouté (documentation v57 : inutile pour la lecture au premier plan ; il ajouterait mode audio d’arrière-plan et permission micro) ; `ExecutionSounds`, `ExecutionVoice`, `ExecutionSignalAdapter` ; tests `ExecutionSignalAdapter.test.ts` ; ch12 §12.11 (note d’implémentation, classe D). Classe des comportements : A (ch08 « Guidage sonore », RM-243) et C pour les trois choix provisoires.
+
+
+## Recette « Son et voix » du 09/11/2026 — retours et suite
+
+Notes de Hermann (cahier en ligne, recopiées textuellement) :
+
+- S1 (KO) : « Impression d’un très léger décalage entre le bip et le tempo, le bip en avance, peut être dû à la durée du bip. »
+- S2 : « Voix très robotique, qui saute un peu au début du premier. Un bip aigu comme un sifflet doit être entendu au démarrage à t0 »
+- S3 (KO) : « Il faut annoncer les pauses et les récupération aussi. Annoncer le nombre de rep ou la durée avec le nom de l’exercice, en option (je n’ai pas défini où gérer l’option du nom de l’exercice). Il faut un bip, et qu’il soit spécifique, pour le pour d’arrêt »
+- S6 (OK) : « La définition des sons doit se faire dans le profil (compte à rebours / fin de séance, départ d’exercice en compte à rebours / chronomètre, pause, point d’arrêt, récupération, dernier bip, activation guidage d’arrière plan ou pas). Cadence : le bip doit être comme un tic tac »
+- S7 (OK) : « Je n’entends pas d’annonce ni de bip lorsque l’application tourne en arrière plan. Bip / voix d’arrière plan doivent être possible en fonction de la configuration dans le profil, voir dans la séance. »
+- S9 (KO) : « La musique ne baisse pas de volume »
+- S0, S4, S5, S8 : OK. S5 confirme le bip grave au début d’une étape sans annonce.
+
+Réalisé sans nouveau build (JavaScript et sons seulement), classe B pour les règles et D pour la technique :
+
+- S2 : sifflet à t0 au début de chaque Exercice, annonce du nom 450 ms après. La voix française de meilleure qualité installée est choisie (Premium, puis Améliorée). La session audio et la voix sont préparées au début de l’Exécution, et la session est activée avant de parler.
+- S3 : « Pause » au début d’une Pause entre séries ; « Récupération » aussi entre blocs (`BLOCK_REST`) ; son spécifique au Point d’arrêt (deux notes descendantes).
+- S6 : cadence en tic et tac alternés.
+- S1 : son et vibration joués à l’image suivante, après l’affichage de la seconde. Cause **non démontrée** (écart estimé d’une à trois images).
+- S9 : la session audio est désactivée après sa configuration, activée avant une annonce et libérée à la fin de la dernière. iOS n’applique `duckOthers` qu’à l’activation. Cause **plausible, non démontrée sur l’iPhone**.
+
+À CLARIFIER / tranche ultérieure, sans rien bloquer d’autre :
+
+1. Configuration des sons dans le Profil (S6) : écran et contenu à concevoir (Figma).
+2. Annonce optionnelle des répétitions ou de la durée (S3) : emplacement de l’option non défini.
+3. Guidage en arrière-plan (S7) : nécessite le mode audio d’arrière-plan (plugin `expo-audio`, `UIBackgroundModes`), donc un nouveau build. Il dépend aussi de la configuration du point 1.
+
+Documents : ch08 « Guidage sonore » (complément daté).
