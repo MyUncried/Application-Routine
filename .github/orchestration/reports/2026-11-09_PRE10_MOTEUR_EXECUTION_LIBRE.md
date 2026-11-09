@@ -195,4 +195,6 @@ Environnement : `node_modules` du worktree = jonction vers `C:\Dev\KODJO-BMAD-PR
 
 ## Fichiers modifiés, commit final et état Git
 
-(complété à la livraison)
+- Commits (branche `pre10-bmad/dev`, base `901d7b4c`) : `955e1e00` noyau (PRE-10.1) ; `244b85f0` runtime et persistance (PRE-10.2) ; `445efe7f` Exécution Libre (PRE-10.3) ; `59bae2a8` rapport et spec ; puis le commit documentaire qui contient cette section.
+- Fichiers : voir §3 ; tests modifiés : `configurationValidity.d4`, `formatCapabilities.d3`, `copiesAndSnapshots.story13` (AC9 amendée), `executionParametersV3.roundTrip`, `migrateDatabase`, `migration012` à `migration023` (version alignée sur `DATABASE_VERSION`).
+- État Git : arbre propre après le dernier commit ; **non poussé** (aucune instruction de publication) ; aucune PR ouverte ; `main` et la branche de recette PRE-9 inchangées.
