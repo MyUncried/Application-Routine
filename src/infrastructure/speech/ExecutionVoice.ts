@@ -1,4 +1,4 @@
-import { ensureExecutionAudioMode, hasNativeModule, setExecutionAudioActive } from "@/infrastructure/audio/ExecutionSounds";
+import { duckOthersForVoice, hasNativeModule, releaseOthersAfterVoice, startExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
 
 /**
  * Lot PRE-10 son et voix (décision de Hermann du 09/11/2026, recette PRE-10 n° 2, `q-son` ; ch08 « Guidage
@@ -35,7 +35,7 @@ export class ExecutionVoice implements VoicePort {
   /** Préparation au début de l'Exécution : session audio et choix de la voix, avant la première annonce. */
   prepare(): void {
     if (!hasNativeModule("ExpoSpeech")) return;
-    void ensureExecutionAudioMode();
+    void startExecutionAudio();
     void this.voice().catch(() => null);
   }
 
@@ -56,11 +56,11 @@ export class ExecutionVoice implements VoicePort {
     const Speech = await import("expo-speech");
     const voice = await this.voice().catch(() => null);
     await Speech.stop();
-    await setExecutionAudioActive(true).catch(() => undefined);
+    await duckOthersForVoice();
     const release = () => {
       // Libère la session seulement si aucune annonce plus récente n'a commencé.
       setTimeout(() => {
-        if (generation === this.generation) void setExecutionAudioActive(false).catch(() => undefined);
+        if (generation === this.generation) void releaseOthersAfterVoice();
       }, 200);
     };
     Speech.speak(text, {

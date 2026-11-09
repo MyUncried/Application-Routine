@@ -34,7 +34,7 @@ describe("ExecutionSignalAdapter — sons et annonces vocales", () => {
     adapter.play(signal({ exerciseName: "Fente", sideRank: 2 }));
     expect(said).toEqual(["Gainage", "Fente, côté 2"]);
     expect(beeps).toEqual(["WHISTLE", "WHISTLE"]);
-    expect(delays).toEqual([0, 450, 0, 450]);
+    expect(delays).toEqual([500, 500]);
   });
 
   it("récupérations : « Récupération » ; Pause entre séries : « Pause » ; Point d'arrêt : son spécifique ; autres : bip grave (S3, S5)", () => {
@@ -44,18 +44,19 @@ describe("ExecutionSignalAdapter — sons et annonces vocales", () => {
     adapter.play(signal({ phase: "BLOCK_REST", exerciseName: null }));
     adapter.play(signal({ phase: "SERIES_PAUSE", exerciseName: null }));
     adapter.play(signal({ phase: "STOP_POINT", exerciseName: null }));
-    for (const phase of ["INITIAL_COUNTDOWN", "SESSION_END"] as const) adapter.play(signal({ phase, exerciseName: null }));
-    expect(said).toEqual(["Récupération", "Récupération", "Récupération", "Pause"]);
-    expect(beeps).toEqual(["STOP_POINT", "LOW", "LOW"]);
+    adapter.play(signal({ phase: "INITIAL_COUNTDOWN", exerciseName: null }));
+    adapter.play(signal({ phase: "SESSION_END", exerciseName: null }));
+    expect(said).toEqual(["Récupération", "Récupération", "Récupération", "Pause", "Préparez-vous"]);
+    expect(beeps).toEqual(["STOP_POINT", "LOW"]);
   });
 
-  it("trois dernières secondes : bip aigu ; cadence : tic et tac alternés ; minute : bip grave ; jamais d'annonce (S6)", () => {
+  it("trois dernières secondes : bip aigu ; cadence : un seul son grave (« tac ») ; minute : bip grave ; jamais d'annonce (S6)", () => {
     const { adapter, beeps, said } = setup();
     adapter.play(signal({ kind: "COUNTDOWN" }));
     for (let i = 0; i < 3; i += 1) adapter.play(signal({ kind: "CADENCE" }));
     adapter.play(signal({ kind: "MINUTE" }));
     adapter.play(signal({ kind: "CADENCE" }));
-    expect(beeps).toEqual(["HIGH", "TIC", "TAC", "TIC", "LOW", "TIC"]);
+    expect(beeps).toEqual(["HIGH", "TAC", "TAC", "TAC", "LOW", "TAC"]);
     expect(said).toEqual([]);
   });
 
@@ -73,7 +74,7 @@ describe("ExecutionSignalAdapter — sons et annonces vocales", () => {
     adapter.play(signal({ phase: "STOP_POINT" }));
     expect(beeps).toEqual(["WHISTLE", "LOW"]);
     expect(said).toEqual(["Gainage"]);
-    expect(delays).toEqual([0, 0, 0, 0]);
+    expect(delays).toEqual([0]);
     adapter.setAudible(false, false);
     adapter.play(signal({}));
     expect(impactAsync).toHaveBeenCalledTimes(6);

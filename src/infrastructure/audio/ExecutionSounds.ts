@@ -4,18 +4,20 @@ import type { AudioPlayer } from "expo-audio";
 /**
  * Lot PRE-10 son et voix (décision de Hermann du 09/11/2026, recette PRE-10 n° 2, `q-son` ; ch08 « Guidage
  * sonore » ; ch12 §12.11) : sons de guidage par `expo-audio`, au premier plan seulement (arrière-plan : spike
- * RT-001 / P6). Un lecteur par son, créé au premier usage et rejoué depuis le début. Un échec natif est
- * ignoré : il n'interrompt jamais l'Exécution. Module natif absent (application installée avant ce lot) :
- * aucun son, et le module JavaScript n'est pas chargé, car son chargement lève une erreur fatale affichée à
- * l'écran (recette du 09/11/2026, « Cannot find native module 'ExpoAudio' »).
+ * RT-001 / P6). Un échec natif est ignoré : il n'interrompt jamais l'Exécution. Module natif absent
+ * (application installée avant ce lot) : aucun son, et le module JavaScript n'est pas chargé, car son
+ * chargement lève une erreur fatale affichée à l'écran (recette du 09/11/2026, « Cannot find native module
+ * 'ExpoAudio' »).
  *
- * Sons (recette « Son et voix » du 09/11/2026, S2, S3, S6) : bip aigu (trois dernières secondes), bip grave
- * (signal minute, début d'étape sans annonce), sifflet (départ d'un Exercice), deux notes descendantes (Point
- * d'arrêt), tic et tac alternés (cadence).
+ * Session audio (recettes « Son et voix » du 09/11/2026 : S9 musique non atténuée, puis bips « très en
+ * retard » et sifflet absent) : la session est activée une fois au début de l'Exécution, en mélange avec les
+ * autres applications, et les sons sont chargés d'avance ; elle reste active entre deux sons, pour qu'un son
+ * parte sans délai. Pour une annonce vocale seulement, elle passe en atténuation des autres sons (iOS ne
+ * l'applique qu'à l'activation), puis revient en mélange : la musique reprend son volume.
  */
-export type BeepTone = "HIGH" | "LOW" | "WHISTLE" | "STOP_POINT" | "TIC" | "TAC";
+export type BeepTone = "HIGH" | "LOW" | "WHISTLE" | "STOP_POINT" | "TAC";
 
-export type BeepPort = { readonly play: (tone: BeepTone) => void };
+export type BeepPort = { readonly play: (tone: BeepTone) => void; readonly prepare?: () => void };
 
 /** Vrai si le module natif est présent dans l'application installée. */
 export function hasNativeModule(name: string): boolean {
@@ -26,33 +28,47 @@ export function hasNativeModule(name: string): boolean {
   }
 }
 
-let audioModeReady: Promise<void> | null = null;
+// Opérations de session sérialisées : une activation ne doit pas croiser une désactivation.
+let sessionQueue: Promise<void> = Promise.resolve();
 
-/**
- * Session audio commune aux sons et aux annonces vocales, configurée une fois : lecture en mode silencieux,
- * autres sons atténués (`duckOthers`). La session est ensuite désactivée : iOS n'applique l'atténuation qu'à
- * l'activation suivante (recette S9 du 09/11/2026 : la musique ne baissait pas).
- */
-export function ensureExecutionAudioMode(): Promise<void> {
+function enqueue(operation: (audio: typeof import("expo-audio")) => Promise<void>): Promise<void> {
   if (!hasNativeModule("ExpoAudio")) return Promise.resolve();
-  if (audioModeReady === null) {
-    audioModeReady = (async () => {
-      const { setAudioModeAsync, setIsAudioActiveAsync } = await import("expo-audio");
-      await setAudioModeAsync({ playsInSilentMode: true, interruptionMode: "duckOthers", shouldPlayInBackground: false });
-      await setIsAudioActiveAsync(false).catch(() => undefined);
-    })().catch(() => {
-      audioModeReady = null;
-    });
-  }
-  return audioModeReady;
+  const next = sessionQueue.then(async () => operation(await import("expo-audio"))).catch(() => undefined);
+  sessionQueue = next;
+  return next;
 }
 
-/** Active (atténuation des autres sons) ou libère (retour de leur volume) la session audio. */
-export async function setExecutionAudioActive(active: boolean): Promise<void> {
-  if (!hasNativeModule("ExpoAudio")) return;
-  await ensureExecutionAudioMode();
-  const { setIsAudioActiveAsync } = await import("expo-audio");
-  await setIsAudioActiveAsync(active);
+const mode = (duck: boolean) => ({ playsInSilentMode: true, interruptionMode: duck ? ("duckOthers" as const) : ("mixWithOthers" as const), shouldPlayInBackground: false });
+
+let sessionStarted = false;
+
+/** Début d'Exécution : session active, en mélange avec les autres sons. */
+export function startExecutionAudio(): Promise<void> {
+  if (sessionStarted) return sessionQueue;
+  sessionStarted = true;
+  return enqueue(async (audio) => {
+    await audio.setAudioModeAsync(mode(false));
+    await audio.setIsAudioActiveAsync(true);
+  });
+}
+
+/** Avant une annonce : atténuation des autres sons (réactivation nécessaire sous iOS). */
+export function duckOthersForVoice(): Promise<void> {
+  sessionStarted = true;
+  return enqueue(async (audio) => {
+    await audio.setIsAudioActiveAsync(false).catch(() => undefined);
+    await audio.setAudioModeAsync(mode(true));
+    await audio.setIsAudioActiveAsync(true);
+  });
+}
+
+/** Après la dernière annonce : les autres sons reprennent leur volume ; la session reste prête pour les sons. */
+export function releaseOthersAfterVoice(): Promise<void> {
+  return enqueue(async (audio) => {
+    await audio.setIsAudioActiveAsync(false).catch(() => undefined);
+    await audio.setAudioModeAsync(mode(false));
+    await audio.setIsAudioActiveAsync(true);
+  });
 }
 
 // Ressources audio empaquetées par Metro.
@@ -61,26 +77,43 @@ const SOURCES: Record<BeepTone, number> = {
   LOW: require("../../../assets/sounds/beep-low.wav"),
   WHISTLE: require("../../../assets/sounds/whistle.wav"),
   STOP_POINT: require("../../../assets/sounds/stop-point.wav"),
-  TIC: require("../../../assets/sounds/tic.wav"),
   TAC: require("../../../assets/sounds/tac.wav"),
 };
 
+/** Volume relatif ; cadence plus discrète (recette du 09/11/2026 : « réduire le son »). */
+const VOLUME: Record<BeepTone, number> = { HIGH: 1, LOW: 1, WHISTLE: 1, STOP_POINT: 1, TAC: 0.35 };
+
 export class ExecutionSounds implements BeepPort {
   private readonly players: Partial<Record<BeepTone, AudioPlayer>> = {};
+
+  /** Début d'Exécution : session active et lecteurs chargés, pour qu'aucun son ne parte en retard. */
+  prepare(): void {
+    if (!hasNativeModule("ExpoAudio")) return;
+    void startExecutionAudio();
+    void (async () => {
+      for (const tone of Object.keys(SOURCES) as BeepTone[]) await this.player(tone);
+    })().catch(() => undefined);
+  }
 
   play(tone: BeepTone): void {
     void this.playAsync(tone).catch(() => undefined);
   }
 
-  private async playAsync(tone: BeepTone): Promise<void> {
-    if (!hasNativeModule("ExpoAudio")) return;
-    await ensureExecutionAudioMode();
+  private async player(tone: BeepTone): Promise<AudioPlayer> {
     let player = this.players[tone];
     if (player === undefined) {
       const { createAudioPlayer } = await import("expo-audio");
-      player = createAudioPlayer(SOURCES[tone]);
+      player = createAudioPlayer(SOURCES[tone], { keepAudioSessionActive: true });
+      player.volume = VOLUME[tone];
       this.players[tone] = player;
     }
+    return player;
+  }
+
+  private async playAsync(tone: BeepTone): Promise<void> {
+    if (!hasNativeModule("ExpoAudio")) return;
+    if (!sessionStarted) void startExecutionAudio();
+    const player = await this.player(tone);
     await player.seekTo(0);
     player.play();
   }
