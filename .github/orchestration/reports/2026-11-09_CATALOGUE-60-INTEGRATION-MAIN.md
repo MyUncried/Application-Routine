@@ -162,3 +162,10 @@ Correction (classe D, technique, sans effet sur règle ou contrat) : relecture d
 Tests : `tsc` et eslint propres ; 22 suites / 277 tests (import, commande, Catalogue, repository Mouvement, familles, durées de phase, migrations, schéma) verts. PRE-10 (`origin/pre10-bmad/dev` `9aa90d5f`, `composition-phases-duree` `eb06ac60`) ne modifie pas `SqliteMovementRepository.ts`.
 
 Non démontré : la correction n'est vérifiée sur iPhone qu'après une nouvelle build (OTA désactivées), soumise à l'accord de Hermann. La base de « Routine Catalogue » contient déjà les 60 fiches : une vérification exigerait une réinstallation propre ou une création manuelle de Mouvements.
+
+### 10.5 Build de vérification de la correction et PR #436 (9/11)
+
+Décisions de Hermann : valider la correction sur iPhone avant fusion (« 1. Oui ») ; fusionner seulement la correction de relecture (« Ok pour la fusion telle que tu le préconises ») ; données de catalogue à gérer à part et à charger à la demande (options A–D présentées, option A recommandée, non engagée).
+
+- Build EAS `6987d086-3456-4775-8d2b-9b89c1f3b99c` : **FINISHED** (22:27 UTC), commit `2631c322` (CI `42617296949` success), profil `catalogue-recette`, `com.ankusha.kodjo.catalogue`. Page : https://expo.dev/accounts/ankushas-team/projects/routine/builds/6987d086-3456-4775-8d2b-9b89c1f3b99c (expire le 23/11/2026). Non installée par Claude.
+- PR #436 (`fix/movement-create-readback-20261109`, commit `4f48d9c0`, depuis `origin/main` `901d7b4c`, worktree `C:/Dev/KODJO-MOVFIX`) : correction seule + test dédié (échoue sans, passe avec) + rapport `2026-11-09_MOVEMENT-CREATE-READBACK-FIX.md`. **Non fusionnée** : en attente de la validation iPhone (réinstallation propre, import unique « 60 ajouté(s) », réimport « 0 / 60 »).
