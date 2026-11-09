@@ -166,7 +166,7 @@ Commandes exécutées : voir « Tests » ci-dessous.
 ## 6. Hypothèses non démontrées et vérifications restantes sur iPhone
 
 - **Non démontré sur appareil** : exactitude des transitions en arrière-plan et écran verrouillé (JavaScript suspendu : la réconciliation se fait au retour, aucune transition ni vibration pendant la suspension) ; détection d'un redémarrage du téléphone ou d'une avance manuelle de l'heure (seul un recul est détecté — P5/P6) ; vibrations ; tenue de l'écran allumé pendant une séance (aucune bibliothèque `keep-awake` installée).
-- **À vérifier sur iPhone** (aucun test exécuté sur appareil dans cette mission) : Démarrer depuis une carte ; compte à rebours puis enchaînement ; Pause / Reprendre / Arrêter ; Réinitialiser (Série, côté, récupération) ; Suivant avec et sans confirmation ; Point d'arrêt puis Continuer ; verrouillage pendant une Durée puis retour ; fermeture forcée puis relance (dialogue Reprendre / Arrêter) ; fin minimale ; rendu de l'écran face aux nœuds Figma `1992:8132/8530/8626` et dialogues `1992:8224/8326/8428`.
+- **À vérifier sur iPhone** (aucun test exécuté sur appareil dans cette mission) : Démarrer depuis une carte ; compte à rebours puis enchaînement ; Pause / Reprendre / Arrêter ; Réinitialiser (Série, côté, récupération) ; Suivant avec et sans confirmation ; Point d'arrêt puis Continuer ; verrouillage pendant une Durée puis retour ; fermeture forcée puis relance (dialogue Reprendre / Arrêter) ; fin minimale ; rendu de l'écran face aux nœuds Figma `1992:8132/8530/8626` et dialogues `1992:8224/8326/8428`. Cahier de recette détaillé (24 cas, Séances à préparer) : `_bmad-output/pre10/implementation-artifacts/recette-iphone-pre10.md`.
 
 ## 7. Éléments non corrigés ou hors périmètre
 
@@ -197,4 +197,4 @@ Environnement : `node_modules` du worktree = jonction vers `C:\Dev\KODJO-BMAD-PR
 
 - Commits (branche `pre10-bmad/dev`, base `901d7b4c`) : `955e1e00` noyau (PRE-10.1) ; `244b85f0` runtime et persistance (PRE-10.2) ; `445efe7f` Exécution Libre (PRE-10.3) ; `59bae2a8` rapport et spec ; puis le commit documentaire qui contient cette section.
 - Fichiers : voir §3 ; tests modifiés : `configurationValidity.d4`, `formatCapabilities.d3`, `copiesAndSnapshots.story13` (AC9 amendée), `executionParametersV3.roundTrip`, `migrateDatabase`, `migration012` à `migration023` (version alignée sur `DATABASE_VERSION`).
-- État Git : arbre propre après le dernier commit ; **non poussé** (aucune instruction de publication) ; aucune PR ouverte ; `main` et la branche de recette PRE-9 inchangées.
+- État Git : arbre propre après le dernier commit ; poussé sur `origin/pre10-bmad/dev` le 09/11/2026 à la demande de Hermann (tête distante `9aa90d5f` au moment du push) ; aucune PR ouverte ; `main` et la branche de recette PRE-9 inchangées.
