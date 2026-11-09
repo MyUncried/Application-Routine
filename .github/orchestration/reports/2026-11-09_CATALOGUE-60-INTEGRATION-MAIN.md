@@ -96,4 +96,9 @@ Installation à côté des autres apps ; Catalogue › Mouvements : commande vis
 
 Fichiers : `.github/workflows/kodjo-catalogue-import-recette.yml` (nouveau), `app.config.js`, `eas.json`, `package.json`, `package-lock.json`, `catalogue/pilote/mouvements-60-candidats.json` (nouveau), `catalogue/referentiels/preclassement-60-candidats-v0.json` (nouveau), `src/features/activities/pilotMovementImport.ts` (nouveau), `src/features/activities/PilotMovementImportCommand.tsx` (nouveau), `src/features/activities/__tests__/pilotMovementImport.test.ts` (nouveau), `src/features/activities/__tests__/pilotMovementImport.sqlite.test.ts` (nouveau), `src/features/activities/__tests__/PilotMovementImportCommand.test.tsx` (nouveau), `src/features/sessions/CatalogueScreen.tsx`, `docs/KODJO-Import-catalogue-admin-vers-mobile-2026-11-07.md` (nouveau sur `main`), ce rapport.
 
-Commit, état Git, CI distante et contrôle de fusion avec PRE-10 : complétés ci-dessous après commit.
+- Commit de code, tests, configuration et rapport : `d989313ec7bd63e88e245c7a763cd97f1881fe7f` (parent `901d7b4c`) ; ce paragraphe est ajouté par le commit documentaire qui le suit directement.
+- Branche poussée : `origin/catalogue/integration-60-main-20261109`. Aucune PR, aucune fusion dans `main`.
+- CI GitHub : run `42599908263` « KODJO catalogue import recette » — **success** (installation, typecheck, tests d'import, non-régression Catalogue) sur Node 22. Le workflow VNext (`42599908280`) est `skipped` pour ce push.
+- Fusion simulée en mémoire (`git merge-tree`, aucune référence modifiée) avec `origin/pre10-bmad/dev` (`9aa90d5f`) et `pre10-bmad/dev` local (`5f80c443`) : **sans conflit**.
+- `catalogue/chargement-60-recette-20261109` poussée (`b0c0adb4`).
+- Worktrees : `C:/Dev/KODJO-CAT60` (`catalogue/chargement-60-recette-20261109`, propre) et `C:/Dev/KODJO-CAT60-MAIN` (cette branche, propre après commit) ; `C:/Dev/PRE10` non modifié.
