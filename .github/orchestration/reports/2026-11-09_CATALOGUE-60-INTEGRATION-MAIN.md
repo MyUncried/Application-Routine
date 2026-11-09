@@ -102,3 +102,15 @@ Fichiers : `.github/workflows/kodjo-catalogue-import-recette.yml` (nouveau), `ap
 - Fusion simulée en mémoire (`git merge-tree`, aucune référence modifiée) avec `origin/pre10-bmad/dev` (`9aa90d5f`) et `pre10-bmad/dev` local (`5f80c443`) : **sans conflit**.
 - `catalogue/chargement-60-recette-20261109` poussée (`b0c0adb4`).
 - Worktrees : `C:/Dev/KODJO-CAT60` (`catalogue/chargement-60-recette-20261109`, propre) et `C:/Dev/KODJO-CAT60-MAIN` (cette branche, propre après commit) ; `C:/Dev/PRE10` non modifié.
+
+## 10. Build `catalogue-recette` — état au 9/11 (bloqué avant lancement)
+
+Autorisation de Hermann (9/11) : lancer uniquement la build iOS interne `catalogue-recette` depuis cette branche, après vérification du HEAD et de la CI ; identifiant `com.ankusha.kodjo.catalogue`, isolation SQLite et OTA désactivées impératifs ; ni installation, ni App Store, ni fusion ; préciser toute action Apple nouvelle avant de poursuivre.
+
+Vérifications faites :
+
+- HEAD local = distant = `d87d0fe38e7566bcd8f0a4b55bc2605cfe1ca2b6`, arbre propre ; CI « KODJO catalogue import recette » **success** sur ce HEAD (run `42600249733`).
+- Variables d'environnement serveur EAS (`development`, `preview`, `production`) : aucune — rien ne peut écraser `APP_VARIANT` ni réactiver les OTA.
+- Identifiants iOS du projet `@ankushas-team/routine` (API EAS, lecture seule) : équipe Apple `RC8F846A68` (ANKUSHA) ; profils ad hoc actifs jusqu'au 29/08/2027 pour `com.ankusha.kodjo`, `.dev`, `.bmad` (certificat de distribution `2638F145…`, commun) ; **aucun identifiant pour `com.ankusha.kodjo.catalogue`** ; **aucune clé API App Store Connect** enregistrée sur le compte.
+
+Conséquence : la création de l'App ID et du profil ad hoc exige une connexion Apple interactive (identifiant Apple + 2FA), impossible depuis la session Claude (sans entrée interactive). **Build non lancée** ; action requise de Hermann (voir compte rendu de session). Aucune écriture effectuée chez Apple ni chez EAS.
