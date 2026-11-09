@@ -1,0 +1,467 @@
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { AppState, BackHandler, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import type { ExecutionProjection, NextView } from "@/domain/execution/projection";
+import { useProfileService } from "@/features/preferences/ProfileServiceContext";
+import { colors, layout, spacing, type } from "@/shared/ui/tokens";
+
+import { ExecutionDialog } from "./ExecutionDialog";
+import { ExecutionBlockedError, type PreparedExecution } from "./ExecutionService";
+import { useExecution } from "./ExecutionServiceContext";
+import { executionStrings as t, formatClock } from "./executionStrings";
+
+/**
+ * PRE-10.3 — écran d'Exécution d'une Séance Libre (CE-EXEC-SESSION-01 ; ch08 « Exécution » ; conception
+ * §16.2). L'écran est une projection : temps, phase, commandes autorisées et progression viennent du
+ * moteur (`ExecutionService.project`), jamais d'un compteur React. Le rafraîchissement (250 ms) ne sert qu'à
+ * l'affichage et à la demande des signaux récents.
+ *
+ * - Ouverture : n'exécute rien ; « Démarrer » crée l'Exécution (instantané figé) puis le Compte à rebours.
+ * - Commandes : Réinitialiser (confirmation ; l'Exécution est suspendue pendant la modale), Pause (modale
+ *   Reprendre / Arrêter, seule voie d'arrêt), Exercice suivant (confirmation avant le terme d'une étape
+ *   chronométrée, `Partielle`) ; Continuer sur un Point d'arrêt. Aucun retour vers un Exercice passé.
+ * - Fin : fin minimale (statut, Exercices exécutés) ; la Synthèse appartient à une tranche ultérieure.
+ * - Retour système et geste de retour inactifs pendant l'Exécution : aucun abandon silencieux du moteur.
+ *
+ * Rendu : hiérarchie et commandes du contrat ; la conformité visuelle aux nœuds Figma (Roboto Condensed,
+ * chrono circulaire, progression segmentée par Tours) reste à qualifier sur iPhone.
+ */
+
+type Dialog = { readonly kind: "RESET"; readonly target: string } | { readonly kind: "NEXT"; readonly target: string } | null;
+
+export function ExecutionScreen({ sessionId }: { readonly sessionId: string | null }) {
+  const { service, signals } = useExecution();
+  const profileService = useProfileService();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const [, refresh] = useReducer((value: number) => value + 1, 0);
+  const [prepared, setPrepared] = useState<PreparedExecution | null>(null);
+  const [blocked, setBlocked] = useState(false);
+  const [dialog, setDialog] = useState<Dialog>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const starting = useRef(false);
+
+  useEffect(() => service.subscribe(refresh), [service]);
+
+  // Préférence Vibrations (fonctionnelles de séance) ; Sons et Annonces actifs au début de chaque Exécution (ch08).
+  useEffect(() => {
+    let cancelled = false;
+    profileService
+      .getProfile()
+      .then((profile) => {
+        if (!cancelled) signals.setVibrationEnabled(profile.vibrationEnabled);
+      })
+      .catch(() => undefined);
+    signals.setAudible(true, true);
+    return () => {
+      cancelled = true;
+    };
+  }, [profileService, signals]);
+
+  const active = service.current();
+  useEffect(() => {
+    if (active !== null || sessionId === null) return;
+    let cancelled = false;
+    service.prepare(sessionId).then((result) => {
+      if (!cancelled) setPrepared(result);
+    }, () => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [active, service, sessionId]);
+
+  // Rafraîchissement d'affichage et signaux récents ; retour au premier plan : réconciliation (RM-067).
+  const running = active !== null && active.state.status !== "FINISHED";
+  useEffect(() => {
+    if (!running) return;
+    const timer = setInterval(() => {
+      service.pulse();
+      refresh();
+    }, 250);
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") void service.onForeground();
+    });
+    return () => {
+      clearInterval(timer);
+      subscription.remove();
+    };
+  }, [running, service]);
+
+  useEffect(() => {
+    if (!running) return;
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => true);
+    return () => subscription.remove();
+  }, [running]);
+
+  const projection = active === null ? null : service.project();
+
+  const start = useCallback(async () => {
+    if (prepared?.status !== "ready" || starting.current) return;
+    starting.current = true;
+    try {
+      await service.start(prepared);
+    } catch (error) {
+      if (error instanceof ExecutionBlockedError) setBlocked(true);
+    } finally {
+      starting.current = false;
+    }
+  }, [prepared, service]);
+
+  const close = useCallback(() => {
+    service.release();
+    if (router.canGoBack()) router.back();
+    else router.replace("/");
+  }, [router, service]);
+
+  const onReset = useCallback(async () => {
+    const step = projection?.target;
+    if (typeof step !== "string") return;
+    // L'Exécution est suspendue pendant l'affichage de la modale (CE Réinitialisation).
+    setDialog({ kind: "RESET", target: step });
+    await service.dispatch({ type: "PAUSE", reason: "DIALOG" }, step);
+  }, [projection?.target, service]);
+
+  const onNext = useCallback(() => {
+    if (projection === null || typeof projection.target !== "string") return;
+    if (projection.commands.nextNeedsConfirmation) setDialog({ kind: "NEXT", target: projection.target });
+    else void service.dispatch({ type: "NEXT" }, projection.target);
+  }, [projection, service]);
+
+  const toggleSound = () => {
+    signals.setAudible(!soundEnabled, voiceEnabled);
+    setSoundEnabled(!soundEnabled);
+  };
+  const toggleVoice = () => {
+    signals.setAudible(soundEnabled, !voiceEnabled);
+    setVoiceEnabled(!voiceEnabled);
+  };
+
+  const paddings = useMemo(() => ({ paddingTop: insets.top + spacing[8], paddingBottom: insets.bottom + spacing[16] }), [insets.bottom, insets.top]);
+
+  // —————————————————————————————— avant le démarrage
+  if (active === null) {
+    const name = prepared?.status === "ready" ? prepared.plan.sessionName : "";
+    return (
+      <View style={[styles.screen, paddings]} testID="execution-screen">
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t.back} hitSlop={12} testID="execution-back">
+            <Text style={styles.headerAction}>{t.back}</Text>
+          </Pressable>
+          <Text style={styles.sessionName} numberOfLines={1}>
+            {name}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.center}>
+          {prepared?.status === "not-launchable" ? (
+            <Text style={styles.notice} testID="execution-not-launchable">
+              {prepared.launchability.status === "engine-unavailable" ? t.notLaunchableFormats : t.notLaunchableInvalid}
+            </Text>
+          ) : null}
+          {blocked ? (
+            <Text style={styles.notice} testID="execution-blocked">
+              {t.blocked}
+            </Text>
+          ) : null}
+          {prepared?.status === "ready" && !blocked ? (
+            <Pressable onPress={start} accessibilityRole="button" accessibilityLabel={t.start} style={styles.startButton} testID="execution-start">
+              <Text style={styles.startLabel}>{t.start}</Text>
+            </Pressable>
+          ) : null}
+          {prepared?.status === "ready" ? <Text style={styles.estimate}>{estimateLabel(prepared.projection)}</Text> : null}
+        </View>
+      </View>
+    );
+  }
+
+  // —————————————————————————————— fin minimale
+  if (projection === null || projection.status === "FINISHED") {
+    const status = active.businessStatus ?? "INTERRUPTED";
+    const occurrences = service.occurrences();
+    return (
+      <View style={[styles.screen, paddings]} testID="execution-end">
+        <Text style={styles.sessionName}>{active.plan.sessionName}</Text>
+        <Text style={styles.endTitle} accessibilityRole="header" testID="execution-end-status">
+          {t.end[status]}
+        </Text>
+        <Text style={styles.endElapsed}>
+          {t.elapsed} {formatClock(projection?.sessionElapsedMs ?? 0)}
+        </Text>
+        <ScrollView style={styles.endList} contentContainerStyle={styles.endListContent}>
+          {occurrences.map((occurrence) => (
+            <View key={occurrence.occurrenceKey} style={styles.endRow} testID={`execution-end-row-${occurrence.occurrenceKey}`}>
+              <Text style={styles.endRowName} numberOfLines={1}>
+                {active.plan.exercises[occurrence.exerciseId]?.name ?? ""}
+                {occurrence.context?.circuit ? ` · ${t.tour} ${occurrence.context.circuit.tour}` : ""}
+              </Text>
+              <Text style={styles.endRowStatus}>
+                {occurrence.status === "PARTIAL" ? t.end.exercisePartial : t.end.exerciseCompleted} · {formatClock(occurrence.activeMs)}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+        <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={t.close} style={styles.startButton} testID="execution-close">
+          <Text style={styles.startLabel}>{t.close}</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  // —————————————————————————————— en cours
+  const phaseLabel = projection.phase === null ? "" : t.phases[projection.phase];
+  const title = projection.phase === "ACTIVITY" ? (projection.exerciseName ?? "") : phaseLabel;
+  // Toute suspension sans dialogue ouvert présente la modale de Pause (une suspension de confirmation relue après une
+  // interruption du processus ne laisse jamais l'écran bloqué).
+  const showPauseModal = projection.status === "PAUSED" && dialog === null;
+
+  return (
+    <View style={[styles.screen, paddings]} testID="execution-running">
+      <View style={styles.header}>
+        <Pressable onPress={toggleVoice} accessibilityRole="switch" accessibilityState={{ checked: voiceEnabled }} accessibilityLabel={voiceEnabled ? t.voiceOn : t.voiceOff} hitSlop={8} testID="execution-voice">
+          <Text style={[styles.toggle, voiceEnabled ? null : styles.toggleOff]}>{voiceEnabled ? "Voix" : "Voix off"}</Text>
+        </Pressable>
+        <Text style={styles.sessionName} numberOfLines={1}>
+          {projection.sessionName}
+        </Text>
+        <Pressable onPress={toggleSound} accessibilityRole="switch" accessibilityState={{ checked: soundEnabled }} accessibilityLabel={soundEnabled ? t.soundOn : t.soundOff} hitSlop={8} testID="execution-sound">
+          <Text style={[styles.toggle, soundEnabled ? null : styles.toggleOff]}>{soundEnabled ? "Sons" : "Sons off"}</Text>
+        </Pressable>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.content} bounces={false}>
+        <Text style={styles.exerciseName} accessibilityRole="header" accessibilityLiveRegion="polite" numberOfLines={2} testID="execution-title">
+          {title}
+        </Text>
+        {projection.phase !== "ACTIVITY" && projection.exerciseName !== null ? <Text style={styles.context}>{projection.exerciseName}</Text> : null}
+        {projection.sideRank !== null ? (
+          <Text style={styles.side} testID="execution-side">
+            {t.side(projection.sideRank)}
+          </Text>
+        ) : null}
+        <Text style={styles.timer} accessibilityLabel={timerAccessibility(projection)} testID="execution-timer">
+          {timerText(projection)}
+        </Text>
+        {targetText(projection) !== null ? <Text style={styles.target}>{targetText(projection)}</Text> : null}
+        {projection.guidance !== null ? (
+          <Text style={styles.guidance} testID="execution-guidance">
+            {projection.guidance.label} · {formatClock(projection.guidance.remainingMs, true)}
+          </Text>
+        ) : null}
+        <View style={styles.seriesTour}>
+          <Text style={styles.seriesTourText} testID="execution-series">
+            {projection.series !== null ? `${t.series} ${projection.series.current}/${projection.series.total}` : ""}
+          </Text>
+          <View style={styles.seriesTourDivider} />
+          <Text style={[styles.seriesTourText, styles.right]} testID="execution-tour">
+            {projection.tour !== null ? `${t.tour} ${projection.tour.current}/${projection.tour.total}` : ""}
+          </Text>
+        </View>
+        {projection.next !== null ? (
+          <View style={styles.next} testID="execution-next">
+            <Text style={styles.nextLabel}>{t.next}</Text>
+            <Text style={styles.nextValue} numberOfLines={1}>
+              {nextText(projection.next)}
+            </Text>
+          </View>
+        ) : null}
+        {active.saveError ? (
+          <Pressable onPress={() => void service.retry()} accessibilityRole="button" style={styles.saveError} testID="execution-save-error">
+            <Text style={styles.saveErrorText}>
+              {t.saveError} {t.retry}
+            </Text>
+          </Pressable>
+        ) : null}
+      </ScrollView>
+
+      <View style={styles.commands}>
+        <CommandButton
+          label={projection.commands.resetScope === "RECOVERY" ? t.commands.resetRecovery : t.commands.resetExercise}
+          disabled={!projection.commands.reset}
+          onPress={onReset}
+          testID="execution-reset"
+        />
+        <CommandButton label={t.commands.pause} disabled={!projection.commands.pause} onPress={() => void service.dispatch({ type: "PAUSE", reason: "USER" })} primary testID="execution-pause" />
+        <CommandButton label={projection.commands.isContinue ? t.commands.continue : t.commands.next} disabled={!projection.commands.next} onPress={onNext} testID="execution-next-command" />
+      </View>
+
+      <View style={styles.total}>
+        <Text style={styles.totalText} testID="execution-elapsed">
+          {formatClock(projection.sessionElapsedMs)} / {estimateLabel(projection)}
+        </Text>
+        <View style={styles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(projection.progress * 100) }}>
+          <View style={[styles.progressFill, { width: `${Math.round(projection.progress * 1000) / 10}%` }]} testID="execution-progress" />
+        </View>
+      </View>
+
+      {dialog?.kind === "RESET" ? (
+        <ExecutionDialog
+          title={t.resetDialog.title}
+          message={t.resetDialog.message}
+          testID="execution-reset-dialog"
+          actions={[
+            {
+              label: t.resetDialog.cancel,
+              tone: "neutral",
+              testID: "execution-reset-cancel",
+              onPress: () => {
+                setDialog(null);
+                void service.dispatch({ type: "RESUME" });
+              },
+            },
+            {
+              label: t.resetDialog.confirm,
+              tone: "primary",
+              testID: "execution-reset-confirm",
+              onPress: () => {
+                const target = dialog.target;
+                setDialog(null);
+                void service.dispatch({ type: "RESET" }, target).then(() => service.dispatch({ type: "RESUME" }));
+              },
+            },
+          ]}
+        />
+      ) : null}
+      {dialog?.kind === "NEXT" ? (
+        <ExecutionDialog
+          title={t.nextDialog.title}
+          message={t.nextDialog.message}
+          testID="execution-next-dialog"
+          actions={[
+            { label: t.nextDialog.cancel, tone: "neutral", testID: "execution-next-cancel", onPress: () => setDialog(null) },
+            {
+              label: t.nextDialog.confirm,
+              tone: "primary",
+              testID: "execution-next-confirm",
+              onPress: () => {
+                const target = dialog.target;
+                setDialog(null);
+                // Confirmation rattachée à l'étape affichée : sans effet si elle s'est terminée entre-temps.
+                void service.dispatch({ type: "NEXT", confirmed: true }, target);
+              },
+            },
+          ]}
+        />
+      ) : null}
+      {showPauseModal ? (
+        <ExecutionDialog
+          title={t.pauseDialog.title}
+          message={
+            projection.pauseReason === "SAFETY" ? `${t.safetyPause}\n${t.pauseDialog.message(projection.exerciseName)}` : projection.pauseReason === "RESTORE" ? `${t.restorePause}\n${t.pauseDialog.message(projection.exerciseName)}` : t.pauseDialog.message(projection.exerciseName)
+          }
+          testID="execution-pause-dialog"
+          actions={[
+            { label: t.pauseDialog.resume, tone: "primary", testID: "execution-pause-resume", onPress: () => void service.dispatch({ type: "RESUME" }) },
+            { label: t.pauseDialog.stop, tone: "danger", testID: "execution-pause-stop", onPress: () => void service.dispatch({ type: "STOP" }) },
+          ]}
+        />
+      ) : null}
+    </View>
+  );
+}
+
+function CommandButton({ label, disabled, onPress, primary = false, testID }: { label: string; disabled: boolean; onPress: () => void; primary?: boolean; testID: string }) {
+  return (
+    <Pressable
+      onPress={disabled ? undefined : onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      style={[styles.command, primary ? styles.commandPrimary : null, disabled ? styles.commandDisabled : null]}
+      testID={testID}
+    >
+      <Text style={[styles.commandLabel, primary ? styles.commandPrimaryLabel : null]} numberOfLines={2}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function timerText(projection: ExecutionProjection): string {
+  switch (projection.timer.kind) {
+    case "COUNTDOWN":
+      return formatClock(projection.timer.remainingMs, true);
+    case "STOPWATCH":
+      return formatClock(projection.timer.elapsedMs);
+    case "NONE":
+      return "";
+    default: {
+      const unreachable: never = projection.timer;
+      return unreachable;
+    }
+  }
+}
+
+function timerAccessibility(projection: ExecutionProjection): string {
+  return projection.timer.kind === "COUNTDOWN" ? `${timerText(projection)} restantes` : timerText(projection);
+}
+
+function targetText(projection: ExecutionProjection): string | null {
+  if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null) return null;
+  const target = projection.seriesTarget;
+  const value = target.kind === "FAILURE" ? t.failure : target.kind === "NUMBER" ? (projection.mode === "REPETITIONS" ? t.repetitions(target.value) : formatClock(target.value * 1000)) : null;
+  if (value === null) return null;
+  return [`${t.target} ${value}`, projection.loadKg !== null ? t.load(projection.loadKg) : null].filter((part) => part !== null).join(" · ");
+}
+
+function nextText(next: NextView): string {
+  const name = next.kind === "ACTIVITY" ? (next.name ?? "") : t.phases[next.kind];
+  if (next.kind === "ACTIVITY" && next.mode === "REPETITIONS" && next.target?.kind === "NUMBER") return `${name} · ${t.repetitions(next.target.value)}`;
+  if (next.kind === "ACTIVITY" && next.target?.kind === "FAILURE") return `${name} · ${t.failure}`;
+  return next.plannedMs !== null && next.kind !== "STOP_POINT" ? `${name} · ${formatClock(next.plannedMs)}` : name;
+}
+
+function estimateLabel(projection: ExecutionProjection): string {
+  const prefix = projection.estimated.kind === "estimated" ? "≈ " : projection.estimated.kind === "lowerBound" ? "≥ " : "";
+  return `${prefix}${formatClock(projection.estimated.ms)}`;
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background, paddingHorizontal: layout.screenGutter },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44, gap: spacing[8] },
+  headerAction: { ...type.label, color: colors.primary },
+  headerSpacer: { width: 48 },
+  sessionName: { ...type.screenHeaderTitle, color: colors.textPrimary, flexShrink: 1, textAlign: "center" },
+  toggle: { ...type.supporting, color: colors.primary, minWidth: 48, textAlign: "center" },
+  toggleOff: { color: colors.textSecondary },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing[16] },
+  notice: { ...type.body, color: colors.textSecondary, textAlign: "center" },
+  startButton: { minHeight: 48, minWidth: 200, borderRadius: 24, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", paddingHorizontal: spacing[24], alignSelf: "center" },
+  startLabel: { ...type.button, color: colors.background },
+  estimate: { ...type.supporting, color: colors.textSecondary },
+  content: { alignItems: "center", paddingTop: spacing[24], gap: spacing[12] },
+  exerciseName: { ...type.activityTitle, color: colors.textPrimary, textAlign: "center" },
+  context: { ...type.contextLine, color: colors.textSecondary },
+  side: { ...type.label, color: colors.primary },
+  timer: { fontFamily: type.activityTitle.fontFamily, fontSize: 72, lineHeight: 84, color: colors.textPrimary, fontVariant: ["tabular-nums"] },
+  target: { ...type.label, color: colors.textSecondary },
+  guidance: { ...type.label, color: colors.primary },
+  seriesTour: { flexDirection: "row", alignSelf: "stretch", alignItems: "center", marginTop: spacing[8] },
+  seriesTourText: { ...type.metricPrimary, color: colors.textPrimary, flex: 1 },
+  seriesTourDivider: { width: 24 },
+  right: { textAlign: "right" },
+  next: { alignSelf: "stretch", paddingVertical: spacing[12], borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.divider, gap: spacing[4] },
+  nextLabel: { ...type.supporting, color: colors.textSecondary },
+  nextValue: { ...type.label, color: colors.textPrimary },
+  saveError: { padding: spacing[12], backgroundColor: colors.dangerSurface, borderRadius: 12 },
+  saveErrorText: { ...type.body, color: colors.danger },
+  commands: { flexDirection: "row", gap: spacing[8], paddingVertical: spacing[12] },
+  command: { flex: 1, minHeight: 56, borderRadius: 16, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center", paddingHorizontal: spacing[6] },
+  commandPrimary: { backgroundColor: colors.primary },
+  commandDisabled: { opacity: 0.4 },
+  commandLabel: { ...type.button, color: colors.textPrimary, textAlign: "center" },
+  commandPrimaryLabel: { color: colors.background },
+  total: { gap: spacing[8] },
+  totalText: { ...type.supporting, color: colors.textSecondary, textAlign: "center" },
+  progressTrack: { height: 6, borderRadius: 3, backgroundColor: colors.surface, overflow: "hidden" },
+  progressFill: { height: 6, backgroundColor: colors.primary },
+  endTitle: { ...type.activityTitle, color: colors.textPrimary, textAlign: "center", marginTop: spacing[32] },
+  endElapsed: { ...type.body, color: colors.textSecondary, textAlign: "center", marginTop: spacing[8] },
+  endList: { flex: 1, marginTop: spacing[24] },
+  endListContent: { gap: spacing[8], paddingBottom: spacing[16] },
+  endRow: { paddingVertical: spacing[8], borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
+  endRowName: { ...type.label, color: colors.textPrimary },
+  endRowStatus: { ...type.supporting, color: colors.textSecondary },
+});

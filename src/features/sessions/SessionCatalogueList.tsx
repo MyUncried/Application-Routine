@@ -37,8 +37,9 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * toucher reste neutre.
  *
  * D-504 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : photo → modification ;
- * Démarrer → exécution (aucune Exécution livrée : Démarrer reste présent et indisponible, aucun
- * `onStart` transmis, CE-T03-01) ; chevron et toute la zone centrale → déployer/replier ; zone
+ * Démarrer → exécution [« aucune Exécution livrée : Démarrer reste présent et indisponible, aucun `onStart`
+ * transmis » — remplacé par PRE-10 (09/11/2026) : `onStart` ouvre l'écran d'Exécution quand `onStartSession`
+ * est fourni ; D-506 « Démarrer reste désactivé tant que l'écran d'Exécution n'existe pas »] ; chevron et toute la zone centrale → déployer/replier ; zone
  * déployée → modification. Cibles distinctes ; carte ouverte par le glissé : tout toucher reste neutre.
  *
  * E.5 (spécification §5, CE-T03-01 révisé) : glissé sur toute la carte, repliée ou déployée, par le
@@ -80,6 +81,7 @@ export function SessionCatalogueList({
   resetToken = 0,
   topInset,
   onOpenSession,
+  onStartSession,
   onChanged,
 }: {
   readonly sessions: readonly SessionCatalogueProjection[];
@@ -90,6 +92,8 @@ export function SessionCatalogueList({
   /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
   readonly topInset?: number;
   readonly onOpenSession: (sessionId: string) => void;
+  /** PRE-10 : Démarrer exécute la Séance (D-504, D-506) ; absent, Démarrer reste présent et indisponible. */
+  readonly onStartSession?: (sessionId: string) => void;
   /** Relecture du Catalogue après une action. */
   readonly onChanged?: () => void;
 }) {
@@ -244,7 +248,13 @@ export function SessionCatalogueList({
                   actionsHeight={SESSION_CARD_HEADER_HEIGHT}
                   testID={`session-card-${projection.id}-swipe`}
                 >
-                  <SessionCard projection={projection} expanded={isExpanded} onToggleExpanded={() => toggle(projection.id)} onOpen={open}>
+                  <SessionCard
+                    projection={projection}
+                    expanded={isExpanded}
+                    onToggleExpanded={() => toggle(projection.id)}
+                    onOpen={open}
+                    {...(onStartSession !== undefined && projection.status !== "ARCHIVED" ? { onStart: () => onStartSession(projection.id) } : {})}
+                  >
                     <SessionCompositionTree tree={projection.tree} testID={`session-card-${projection.id}-composition`} />
                   </SessionCard>
                 </SwipeActionsRow>

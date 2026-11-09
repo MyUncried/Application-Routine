@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
 import { movementRouteOptions } from "@/features/activities/movementRoutePresentation";
+import { ExecutionRecoveryGate } from "@/features/execution/ExecutionRecoveryGate";
 import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
 import { CreationDraftProviders } from "@/features/sessions/CreationDraftProviders";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
@@ -163,10 +164,14 @@ export default function RootLayout() {
               <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
               <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
               <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet", gestureEnabled: false }} />
+              {/* PRE-10.3 (CE-EXEC-SESSION-01) : Exécution plein écran, sans geste de retour (aucun abandon silencieux du moteur). */}
+              <Stack.Screen name="execution" options={{ gestureEnabled: false, animation: "fade" }} />
             </Stack>
             </CreationDraftProviders>
           ) : null}
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}
+          {/* PRE-10.2 (ch12 §12.33) : Exécution interrompue détectée au démarrage → Reprendre / Arrêter la séance. */}
+          {fontsSettled && databaseReady && !showAppSplash ? <ExecutionRecoveryGate /> : null}
           {showAppSplash ? (
             <KodjoSplash opacity={splashOpacity} onLayout={handleSplashLayout} />
           ) : null}
