@@ -230,3 +230,4 @@ Constat de Hermann : « Régression : appuyer sur suivant fait apparaître une f
 - Correction (classe D) : `ExecutionScreen` mémorise le dernier dialogue affiché (`lastShown`) et le garde comme contenu pendant le fondu de fermeture.
 - Test : `ExecutionScreen.pre10` — après Confirmer, le Modal fermé porte `execution-next-dialog` (échoue sans la correction : `execution-pause-dialog`). `npx jest src/domain/execution src/features/execution` 52 PASS ; `tsc`, `eslint` propres.
 - À vérifier sur iPhone : point E3 du cahier.
+- Vérifié sur iPhone le 09/11/2026 à 18 h 12 : E3 OK ; constat de régression retiré par Hermann. Cahier en ligne : tous les points OK (C1–C7, D1–D6, E1–E3, sections 0 à 7).
