@@ -1,6 +1,6 @@
-import { describe, expect, it, jest } from "@jest/globals";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
+import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { Alert, StyleSheet } from "react-native";
 
 import {
   failureTarget,
@@ -521,21 +521,27 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(seriesDurationText()).toBe("6″");
     expect(seriesDurationPill().props.accessibilityHint).toBeUndefined();
     enterDuration(2, "3");
-    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
+    // [Remplacé le 09/11/2026 — décision de Hermann (recette PRE-10, constat d) : une durée de série inférieure à
+    // la durée des phases (6″ < 9″) bloque ✓, avec un message ; auparavant ✓ redevenait disponible (D-446).]
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(get("execution-sheet-phase-cycle-below")).toBeTruthy();
     expect(seriesDurationText()).toBe("6″");
+    enterDuration(2, "0");
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
   it("PRE5-2.8/AC7 (FR-9, QN-3) — ✓ avec [6 « », 3 « Maintien »] : phases « Phase 1 » 6″ et « Maintien » 3″ ; PRE-7 (D-446) : cible 6″ inchangée", () => {
-    const { onApply } = renderSheet(params(numberTarget(6)));
+    // Décision du 09/11/2026 (recette PRE-10, constat d) : durée de série multiple du motif (18″ = 2 × 9″).
+    const { onApply } = renderSheet(params(numberTarget(18)));
     fireEvent.press(get(WITH));
     // Q5 : la première durée est saisie (plus de préremplissage par la Cible).
     enterDuration(1, "6");
     enterDuration(2, "3");
     enterLabel(2, "Maintien");
-    expect(seriesDurationText()).toBe("6″");
+    expect(seriesDurationText()).toBe("18″");
     validate();
     const series = applied(onApply).series;
-    expect(series).toMatchObject({ kind: "UNIFORM", target: numberTarget(6) });
+    expect(series).toMatchObject({ kind: "UNIFORM", target: numberTarget(18) });
     expect(series.kind === "UNIFORM" ? series.workPhases.map(({ label: phaseLabel, durationSeconds }) => [phaseLabel, durationSeconds]) : null).toEqual([
       ["Phase 1", 6],
       ["Maintien", 3],
@@ -1046,5 +1052,63 @@ describe("Hermann, 01/11/2026 — tableau des phases replié à l'ouverture s'il
     expect(query(TABLE)).toBeNull();
     expect(chevronIcon()).toEqual(DOWN);
     expect(countText()).toBe("2 phases");
+  });
+});
+
+describe("ExecutionParametersSheet — durée de série et durée des phases (décision du 09/11/2026, recette PRE-10)", () => {
+  type AlertButton = { text?: string; onPress?: () => void };
+  function spyAlert() {
+    return jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+  }
+  const buttonsOf = (spy: ReturnType<typeof spyAlert>) => (spy.mock.calls.at(-1)?.[2] ?? []) as AlertButton[];
+  const choose = (spy: ReturnType<typeof spyAlert>, index: number) => act(() => buttonsOf(spy)[index]!.onPress!());
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("durée saisie non multiple du motif : alerte native, arrondi inférieur ou supérieur ; le choix s'applique", () => {
+    const alert = spyAlert();
+    const { onApply } = renderSheet(withPhases([["A", 6], ["B", 3]])); // motif 9″, durée 9″
+    enterExecutionSheetValue("execution-sheet-target", 20);
+    expect(alert).toHaveBeenCalledTimes(1);
+    expect(alert.mock.calls[0]?.[0]).toBe(t.phaseCycleRoundTitle);
+    expect(buttonsOf(alert).map((button) => button.text)).toEqual(["Arrondir à 18″", "Arrondir à 27″"]);
+    choose(alert, 1);
+    expect(seriesDurationText()).toBe("27″");
+    validate();
+    expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: numberTarget(27) });
+  });
+
+  it("durée multiple du motif : aucune alerte", () => {
+    const alert = spyAlert();
+    renderSheet(withPhases([["A", 6], ["B", 3]]));
+    enterExecutionSheetValue("execution-sheet-target", 27);
+    expect(alert).not.toHaveBeenCalled();
+  });
+
+  it("durée inférieure au motif : message, durée en rouge, ✓ indisponible (alerte bloquante)", () => {
+    const alert = spyAlert();
+    const { onApply } = renderSheet(withPhases([["A", 6], ["B", 3]]));
+    enterExecutionSheetValue("execution-sheet-target", 5);
+    expect(alert).not.toHaveBeenCalled();
+    expect(String(get("execution-sheet-phase-cycle-below").props.children)).toBe(t.phaseCycleBelow.replace("{cycle}", "9″"));
+    expect(styleOf("execution-sheet-target").backgroundColor).toBe(colors.dangerSurface);
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    validate();
+    expect(onApply).not.toHaveBeenCalled();
+  });
+
+  it("phase modifiée après la saisie : ✓ demande l'arrondi avant d'enregistrer", () => {
+    const alert = spyAlert();
+    const { onApply } = renderSheet(params(numberTarget(18), { series: { kind: "UNIFORM", count: 3, target: numberTarget(18), pauseSeconds: 15, loadKg: 0, workPhases: [{ id: 1, label: "A", durationSeconds: 6 }, { id: 2, label: "B", durationSeconds: 3 }] } }));
+    unfoldPhases();
+    enterDuration(2, "4"); // motif 10″ ; 18″ n'en est pas un multiple
+    expect(alert).not.toHaveBeenCalled();
+    validate();
+    expect(onApply).not.toHaveBeenCalled();
+    expect(buttonsOf(alert).map((button) => button.text)).toEqual(["Arrondir à 10″", "Arrondir à 20″"]);
+    choose(alert, 0);
+    validate();
+    expect(applied(onApply).series).toMatchObject({ target: numberTarget(10) });
   });
 });

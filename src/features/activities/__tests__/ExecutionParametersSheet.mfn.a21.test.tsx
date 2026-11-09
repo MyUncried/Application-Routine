@@ -71,11 +71,16 @@ function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionPar
 }
 
 /** Paramètres résolus à phases ; une durée 0 représente une durée non renseignée (frère incomplet, Cible `UNSET`). */
-function withPhases(phases: readonly (readonly [number, string, number])[]): ExecutionParametersInput {
+/**
+ * `targetSeconds` : durée de série imposée. Décision de Hermann du 09/11/2026 (recette PRE-10, constat d) :
+ * une durée de série doit être un multiple de la durée des phases ; les tests qui modifient les phases
+ * prennent une durée multiple du motif obtenu, pour garder leur objet.
+ */
+function withPhases(phases: readonly (readonly [number, string, number])[], targetSeconds?: number): ExecutionParametersInput {
   const workPhases: WorkPhase[] = phases.map(([id, phaseLabel, seconds]) => ({ id, label: phaseLabel, durationSeconds: seconds }));
   const incomplete = phases.some(([, , seconds]) => seconds < 1);
   const sum = phases.reduce((total, [, , seconds]) => total + seconds, 0);
-  const target = incomplete ? unsetTarget() : numberTarget(sum);
+  const target = incomplete ? unsetTarget() : numberTarget(targetSeconds ?? sum);
   return params({ series: { kind: "UNIFORM", count: 3, target, pauseSeconds: 15, loadKg: 0, workPhases } });
 }
 
@@ -218,7 +223,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : durée manquante (D-43
 
 describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée d'une occurrence (D-438, MFN-09, MFN/AC28)", () => {
   it("avec phases : Sans, nombre, croix, poignées et libellés indisponibles ; chevron actif ; durées modifiables, D inchangée (D-446)", () => {
-    const { onApply } = renderSheet(withPhases([[1, "Descente", 6], [2, "Maintien", 3]]), { phaseStructureLocked: true });
+    const { onApply } = renderSheet(withPhases([[1, "Descente", 6], [2, "Maintien", 3]], 22), { phaseStructureLocked: true });
     unfoldPhases();
     expect(stateOf(WITHOUT).disabled).toBe(true);
     fireEvent.press(get(WITHOUT));
@@ -253,11 +258,11 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
     expect(phaseRows()).toHaveLength(2);
     // Durées modifiables ; PRE-7 (D-446) : D inchangée.
     enterDuration(1, "8");
-    expect(seriesDurationText()).toBe("9″");
+    expect(seriesDurationText()).toBe("22″");
     validate();
     expect(applied(onApply).series).toMatchObject({
       kind: "UNIFORM",
-      target: numberTarget(9),
+      target: numberTarget(22),
       workPhases: [
         { id: 1, label: "Descente", durationSeconds: 8 },
         { id: 2, label: "Maintien", durationSeconds: 3 },
@@ -276,14 +281,14 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
   });
 
   it("avec phases, re-choisir Avec pendant une saisie de durée : la saisie est appliquée, aucune surface ne reste ouverte (aucun réglage du nombre)", () => {
-    const { onApply } = renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]), { phaseStructureLocked: true });
+    const { onApply } = renderSheet(withPhases([[1, "A", 6], [2, "B", 3]], 22), { phaseStructureLocked: true });
     unfoldPhases();
     fireEvent(get(`${duration(2)}-input`), "focus");
     typeInExecutionSheetCell(duration(2), "5");
     fireEvent.press(get(WITH));
     // PRE-7 (D-446) : D inchangée ; la saisie appliquée au Brouillon se lit ci-dessous, dans les
     // paramètres validés (le focus natif simulé n'est pas rendu par Jest).
-    expect(seriesDurationText()).toBe("9″");
+    expect(seriesDurationText()).toBe("22″");
     expect(phaseRows()).toHaveLength(2);
     // Aucune surface cachée : le premier toucher d'une autre durée ouvre directement sa saisie.
     fireEvent(get(`${duration(1)}-input`), "focus");
@@ -291,7 +296,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
     fireEvent(get(`${duration(1)}-input`), "blur");
     validate();
     expect(applied(onApply).series).toMatchObject({
-      target: numberTarget(9),
+      target: numberTarget(22),
       workPhases: [
         { id: 1, label: "A", durationSeconds: 6 },
         { id: 2, label: "B", durationSeconds: 5 },
@@ -324,7 +329,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
 
 describe("ExecutionParametersSheet — PRE-7 story A2.1 : compteur de phase du Mouvement (MFN-02, MFN/AC30)", () => {
   it("structure [1, 2, 3], compteur 5 : retrait de 3, ✓, réouverture, + → nouvelle phase d'identité 5", () => {
-    const parent = withPhases([[1, "A", 6], [2, "B", 3], [3, "C", 5]]);
+    const parent = withPhases([[1, "A", 6], [2, "B", 3], [3, "C", 5]], 36);
     const first = renderSheet(parent, { nextPhaseId: 5 });
     unfoldPhases();
     fireEvent.press(get(remove(3)));
@@ -339,7 +344,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : compteur de phase du M
   });
 
   it("sans compteur : max + 1 (comportement antérieur)", () => {
-    const { onApply } = renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]));
+    const { onApply } = renderSheet(withPhases([[1, "A", 6], [2, "B", 3]], 36));
     enterPhaseCount(3);
     validate();
     const series = applied(onApply).series;
