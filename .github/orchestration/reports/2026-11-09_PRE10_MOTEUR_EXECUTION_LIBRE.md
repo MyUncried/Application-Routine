@@ -221,3 +221,12 @@ Verdicts relevés dans le cahier en ligne (section 7) : q-compte, q-pause, q-alt
 - Tests : `npx jest src/domain/execution src/features/execution` 5 suites / 52 tests PASS (nouveau test Point d'arrêt) ; suite complète : voir le rapport `2026-11-09_COMPOSITION_PHASES_DUREE.md` § Recette n° 2.
 - À vérifier sur iPhone : point E2 du cahier.
 - Commit : voir le commit « fix(pre10): l'attente au Point d'arrêt ne compte pas dans le temps écoulé », sur `composition-phases-duree` et reporté sur `pre10-bmad/dev`.
+
+### 9.3 Recette iPhone n° 2 — régression « Suivant »
+
+Constat de Hermann : « Régression : appuyer sur suivant fait apparaître une fenêtre « séance interrompue » qui s'efface immédiatement après, l'exercice suivant est activé correctement ». E1, E2 et tous les autres points : OK.
+
+- Cause (**démontrée en test**, attribution à l'observation iPhone **plausible**) : introduite par `5f80c443` (un seul `Modal` toujours monté). À la fermeture d'un dialogue, `visible` passe à faux et le Modal s'efface en fondu ; pendant ce fondu son contenu retombait sur celui de la Pause (`dialogView ?? pauseView`), dont les boutons « Reprendre la séance / Arrêter la séance » sont ceux du dialogue « Séance interrompue ».
+- Correction (classe D) : `ExecutionScreen` mémorise le dernier dialogue affiché (`lastShown`) et le garde comme contenu pendant le fondu de fermeture.
+- Test : `ExecutionScreen.pre10` — après Confirmer, le Modal fermé porte `execution-next-dialog` (échoue sans la correction : `execution-pause-dialog`). `npx jest src/domain/execution src/features/execution` 52 PASS ; `tsc`, `eslint` propres.
+- À vérifier sur iPhone : point E3 du cahier.

@@ -17,6 +17,7 @@ import { ProfileServiceContext } from "@/features/preferences/ProfileServiceCont
 import { SessionService } from "@/features/sessions/SessionService";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
+import { ExecutionDialog } from "../ExecutionDialog";
 import { ExecutionScreen, refreshDelayMs } from "../ExecutionScreen";
 import { ExecutionService } from "../ExecutionService";
 import { ExecutionServiceContext } from "../ExecutionServiceContext";
@@ -254,6 +255,11 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await press("execution-next-confirm");
     expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
+    // Recette n° 2 du 09/11/2026 : pendant son fondu de fermeture, le Modal garde le contenu du dialogue Suivant
+    // (jamais celui de la Pause, « Reprendre la séance / Arrêter la séance »).
+    const closing = view.UNSAFE_getByType(ExecutionDialog);
+    expect(closing.props.visible).toBe(false);
+    expect(closing.props.testID).toBe("execution-next-dialog");
     view.unmount();
   });
 
