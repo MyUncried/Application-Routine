@@ -139,7 +139,11 @@ export const DATABASE_NAME = "kodjo.db";
  * Exercices EMOM d'un Circuit alterné ou d'un Circuit porteur EMOM ramenée à 0 s — reprise de données, aucun
  * changement de schéma. 001..022 inchangées. [A.5, non autorisée, prendra la prochaine version disponible.]
  */
-export const DATABASE_VERSION = 23;
+/**
+ * **PRE-10 (version 24, `migration024`, moteur d'exécution)** : tables additives `executions` (instantané,
+ * checkpoint révisé, statuts) et `execution_results` (résultats idempotents par clé). 001..023 inchangées.
+ */
+export const DATABASE_VERSION = 24;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

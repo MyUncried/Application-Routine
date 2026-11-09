@@ -179,7 +179,7 @@ async function seededVersion17(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvement)", () => {
   it("version courante 19 (018 puis 019) ; bornes figées de la 018 égales à celles des phases (1..3535 s)", () => {
-    expect(DATABASE_VERSION).toBe(23);
+    expect(DATABASE_VERSION).toBe(24);
     expect(MIGRATION_018_PHASE_DURATION_BOUNDS).toEqual(WORK_PATTERN_DURATION_BOUNDS);
   });
 
@@ -230,7 +230,7 @@ describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvem
   it("une erreur après l'ajout de la colonne annule tout et laisse la base au schéma 017 ; le démarrage suivant migre", async () => {
     let database = await seededVersion17();
     const before = await snapshot(database);
-    const failing = failOnExec(database, /^PRAGMA user_version = 23/);
+    const failing = failOnExec(database, new RegExp(`^PRAGMA user_version = ${DATABASE_VERSION}`));
     await expect(migrateDatabase(failing.database, () => T)).rejects.toThrow("Injected failure");
     // L'ajout de la colonne avait bien été exécuté dans la transaction.
     expect(failing.executed.some((source) => source.startsWith("ALTER TABLE movement_phases ADD COLUMN duration_seconds"))).toBe(true);

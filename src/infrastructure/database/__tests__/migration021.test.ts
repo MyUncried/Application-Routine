@@ -184,7 +184,7 @@ async function seededVersion20(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 A.3 — migration 021 (suppression des anciennes définitions du Catalogue)", () => {
   it("version courante 21", () => {
-    expect(DATABASE_VERSION).toBe(23);
+    expect(DATABASE_VERSION).toBe(24);
   });
 
   it("supprime toutes les définitions ; table et colonnes conservées ; Mouvements, médias, Séances, Exercices, avis intacts ; aucun avis ajouté", async () => {
@@ -195,7 +195,7 @@ describe("PRE-9 A.3 — migration 021 (suppression des anciennes définitions du
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(23);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await definitionCount(database)).toBe(0);
     // A.5 non autorisée : la table et ses colonnes restent.
     expect(await columns(database, "activity_definitions")).toEqual(definitionColumns);
@@ -211,7 +211,7 @@ describe("PRE-9 A.3 — migration 021 (suppression des anciennes définitions du
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(23);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await kept(database)).toEqual(after);
 
     await database.withExclusiveTransactionAsync((transaction) => applyMigration021(transaction));
@@ -222,7 +222,7 @@ describe("PRE-9 A.3 — migration 021 (suppression des anciennes définitions du
   it("une erreur après la suppression annule tout : définitions conservées, base au schéma 020 ; le démarrage suivant migre", async () => {
     let database = await seededVersion20();
     const before = await kept(database);
-    const failing = failOnExec(database, /^PRAGMA user_version = 23/);
+    const failing = failOnExec(database, new RegExp(`^PRAGMA user_version = ${DATABASE_VERSION}`));
     await expect(migrateDatabase(failing.database, () => T)).rejects.toThrow("Injected failure");
     expect(failing.executed).toContain("DELETE FROM activity_definitions");
     database = reopen(database);
@@ -232,7 +232,7 @@ describe("PRE-9 A.3 — migration 021 (suppression des anciennes définitions du
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(23);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await definitionCount(database)).toBe(0);
     expect(await kept(database)).toEqual(before);
   });
@@ -247,7 +247,7 @@ describe("PRE-9 A.3 — migration 021 (suppression des anciennes définitions du
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(23);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await definitionCount(database)).toBe(0);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual(violationsBefore);
   });
@@ -256,7 +256,7 @@ describe("PRE-9 A.3 — migration 021 (suppression des anciennes définitions du
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(23);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await columns(database, "activity_definitions")).toEqual(
       expect.arrayContaining(["id", "movement_id", "execution_parameters", "created_at", "updated_at", "phases_to_verify"]),
     );

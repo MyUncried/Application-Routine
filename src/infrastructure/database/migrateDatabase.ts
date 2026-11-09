@@ -25,6 +25,7 @@ import { applyMigration020 } from "./migrations/migration020";
 import { applyMigration021 } from "./migrations/migration021";
 import { applyMigration022 } from "./migrations/migration022";
 import { applyMigration023 } from "./migrations/migration023";
+import { applyMigration024 } from "./migrations/migration024";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -279,6 +280,12 @@ export async function migrateDatabase(
     if (pending(22)) {
       await applyMigration023(transaction);
       version = 23;
+    }
+
+    // PRE-10 (moteur d'exécution) : tables additives `executions` et `execution_results`. Un échec laisse `user_version` à 23.
+    if (pending(23)) {
+      await applyMigration024(transaction);
+      version = 24;
     }
 
     if (version !== targetVersion) {
