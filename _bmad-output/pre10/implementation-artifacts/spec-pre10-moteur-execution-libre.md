@@ -63,3 +63,15 @@ Réponses textuelles : « 1. Non, il y a déjà le bouton pause 2. Oui 3. Oui »
 - **7 — Réinitialiser pendant le Compte à rebours** : « Non, il y a déjà le bouton pause ». Réinitialiser reste indisponible pendant le Compte à rebours initial (choix provisoire 2 confirmé sur ce point). Aucun changement.
 - **8 — Alertes de durée des phases** : « Oui » à l'ouverture d'un lot Composition. Lot ouvert : `_bmad-output/composition-phases-duree/spec-composition-phases-duree.md`.
 - **9 — Reprise après fermeture** : « Oui » à « après une fermeture de l'application, reprendre à l'étape interrompue, en pause, sans compter l'absence (comme la règle Q6) ». Implémenté : `resumeRecovered` et `stopRecovered` appliquent `restoreWithoutContinuity` quelle que soit la continuité de l'heure ; l'étape interrompue recommence à sa durée initiale à la reprise ; l'arrière-plan sans fermeture reste une réconciliation au temps logique (RM-067). Classe **B** : ch12 §12.33 précisé, conception consolidée §14.2 annotée (« Précisé le 09/11/2026 »). Test T09 remplacé en conséquence (`ExecutionService.pre10`).
+
+### Recette iPhone n° 2 du 09/11/2026 — choix provisoires 1 à 6 (cahier en ligne, section 7)
+
+Verdicts relevés le 09/11/2026 sur https://claude.ai/artifact/Mp9Tu1rPiRdfebmKfpf8Tq (OK = on garde ; KO = note).
+
+- **1 — Suivant pendant le Compte à rebours et la Fin de séance** (q-compte) : OK, conservé.
+- **2 — Réinitialiser pendant une Pause entre séries** (q-pause) : OK, conservé.
+- **3 — Bilatéral alterné par série** (q-alterne) : OK, conservé.
+- **4 — Attente d'un Point d'arrêt** (q-attente) : KO, note : « Non l'attente au point d'arrêt ne compte pas dans le temps écoulé ». Implémenté : le chronomètre de Séance est suspendu pendant l'attente d'un Point d'arrêt (y compris après une Pause pendant cette attente) et repart à Continuer (`setSessionRunning`, noyau). Classe **B** : ch09 « Durée réelle », ch11 API-EXE-08, ch13 « temps total écoulé » annotés (« Remplacé le 09/11/2026 »). Test : `kernel.libre.pre10` (Point d'arrêt).
+- **5 — Fin minimale** (q-fin) : OK, libellés conservés.
+- **6 — Son et voix** (q-son) : OK = « ajouter expo-audio / expo-speech maintenant (nouvelle version native) ». Décision enregistrée ; **non implémentée dans cette livraison** : un module natif absent de la version installée sur l'iPhone ferait échouer l'application servie par Metro. Préparée comme lot distinct (installation des deux bibliothèques, restitution des signaux déjà planifiés par `signals.ts` dans `ExecutionSignalAdapter`, puis build EAS `development-bmad`), à lancer avec l'accord de Hermann pour le build.
+- Observations (section 6) : o-figma, o-sons, o-lisible, o-libelle OK (libellé « l'exercice suivante » conservé tel que le contrat d'écran).

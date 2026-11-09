@@ -213,3 +213,11 @@ Départ : `7f5e3454` (`pre10-bmad/dev`). Résultats relevés dans le cahier en l
 ### 9.1 Arbitrages du 09/11/2026 et reprise après fermeture
 
 Réponses de Hermann : « 1. Non, il y a déjà le bouton pause 2. Oui 3. Oui ». Réinitialiser reste indisponible pendant le Compte à rebours ; lot Composition ouvert pour les alertes de durée des phases (hors moteur) ; Reprendre après une fermeture revient à l'étape interrompue, en pause, sans compter l'absence (ch12 §12.33 précisé, conception §14.2 annotée, T09 remplacé). Tests : `npx jest src/domain/execution src/features/execution` 5 suites / 51 tests PASS ; `tsc`, `eslint` propres. À vérifier sur iPhone : point C7 du cahier.
+
+### 9.2 Recette iPhone n° 2 (09/11/2026) — choix provisoires
+
+Verdicts relevés dans le cahier en ligne (section 7) : q-compte, q-pause, q-alterne, q-fin OK (conservés) ; **q-attente KO** (« Non l'attente au point d'arrêt ne compte pas dans le temps écoulé ») : corrigé — chronomètre de Séance suspendu pendant l'attente d'un Point d'arrêt, y compris après une Pause pendant cette attente (`kernel.ts`, `setSessionRunning`) ; classe B : ch09 « Durée réelle », ch11 API-EXE-08, ch13 annotés. **q-son OK** (« ajouter expo-audio / expo-speech maintenant ») : décision enregistrée dans la spec, non implémentée ici — un module natif absent de la version installée sur l'iPhone ferait échouer l'application servie par Metro ; lot distinct à lancer avec un build EAS `development-bmad` soumis à l'accord de Hermann. Corrections C1–C7 du cahier : OK sur iPhone.
+
+- Tests : `npx jest src/domain/execution src/features/execution` 5 suites / 52 tests PASS (nouveau test Point d'arrêt) ; suite complète : voir le rapport `2026-11-09_COMPOSITION_PHASES_DUREE.md` § Recette n° 2.
+- À vérifier sur iPhone : point E2 du cahier.
+- Commit : voir le commit « fix(pre10): l'attente au Point d'arrêt ne compte pas dans le temps écoulé », sur `composition-phases-duree` et reporté sur `pre10-bmad/dev`.

@@ -92,3 +92,8 @@ Spec `spec-pre10-moteur-execution-libre.md` § À CLARIFIER :
 4. L'attente au Point d'arrêt compte dans le « Temps écoulé » (cas 8, 24).
 5. Libellés de la fin minimale (cas 10, 17, 18).
 6. Son et voix : ajout de `expo-audio` / `expo-speech` maintenant (nouvelle version native) ou après le spike arrière-plan.
+
+## Corrections de la recette n° 2 (09/11/2026) — à tester
+
+- **E1 (d5)** — Exercice en Durée, 30″ par série, Pause 10″ : saisir 1′40″ comme Durée de l'exercice → alerte « Arrondir la durée de l'exercice ? », « 1′40″ ne correspond pas à un nombre entier de séries. », choix « Arrondir à 1′20″ » / « Arrondir à 2′00″ » ; le choix s'applique, sans message « Durée ajustée ». 1′20″ : appliqué sans alerte. (Branche `composition-phases-duree`.)
+- **E2 (q-attente)** — Recette A : attendre 1 minute au Point d'arrêt, puis Continuer : le « Temps écoulé » n'avance pas pendant l'attente, y compris avec une Pause pendant l'attente.
