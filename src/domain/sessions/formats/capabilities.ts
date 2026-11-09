@@ -85,7 +85,8 @@ export type FormatCapabilityDescriptor = {
   readonly results: readonly CapabilityResult[];
   /** Points non définis propres au modèle (en plus de `onExpiry`), avec leur question. */
   readonly undefinedAspects: readonly Undefined[];
-  readonly executionAvailable: false;
+  /** PRE-10 : vrai pour les éléments libres et préconfigurations ; faux pour les Formats spécialisés (PRE-11). */
+  readonly executionAvailable: boolean;
   /**
    * Mise à jour consolidée des écrans Formats du 04/11/2026 (§6 bis 2, §6 quater bis) — besoins de configuration
    * que le moteur PRE-10/11 devra lire (descriptif, aucune exécution) : Rôles admis dans le Circuit porteur
@@ -134,7 +135,8 @@ const freeModel = (model: CapabilityModelKey): FormatCapabilityDescriptor => ({
   progression: "FIXED",
   results: GENERIC_RESULTS,
   undefinedAspects: [],
-  executionAvailable: false,
+  // PRE-10 (09/11/2026) : le moteur commun exécute les éléments libres et préconfigurations standards.
+  executionAvailable: true,
   sources: ["FMT-28", "ch08 l.504-560", "recherche/03-formats §1.4"],
 });
 

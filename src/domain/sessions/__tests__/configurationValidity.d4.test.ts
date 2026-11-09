@@ -140,9 +140,9 @@ describe("PRE-9 D.4 — validité de configuration", () => {
     });
   });
 
-  it("disponibilité du moteur distincte de la validité : aucune en PRE-9, même pour une configuration valide (ARB-21)", () => {
+  it("disponibilité du moteur distincte de la validité : Formats spécialisés indisponibles, éléments libres disponibles depuis PRE-10 (ARB-21)", () => {
     expect(configurationValidity(of([{ kind: "EXERCISE", exercise: exercise("a") }])).status).toBe("valid");
     expect(engineAvailability({ key: "EMOM", settings: { intervalSeconds: 60 } })).toBe(false);
-    expect(engineAvailability(null)).toBe(false);
+    expect(engineAvailability(null)).toBe(true);
   });
 });
