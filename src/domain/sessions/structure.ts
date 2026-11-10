@@ -409,6 +409,11 @@ export function legacyFromStructure<E, P extends StructureStopPointLocation>(
   if (structure.elements.some((element) => element.kind === "CIRCUIT" && (element.circuit.originModel ?? null) !== null)) {
     return null;
   }
+  // Recette du 10/11/2026 (constat A) : les options du Circuit unique permettent de le renommer ; l'ancien modèle n'en
+  // porte pas le nom, qui serait perdu — un Circuit nommé reste dans la structure générale.
+  if (structure.elements.some((element) => element.kind === "CIRCUIT" && (element.circuit.name ?? null) !== null)) {
+    return null;
+  }
   if (circuitIndexes.length === 0) {
     if (structure.stopPoints.some((point) => point.circuitId !== null)) {
       return null;

@@ -417,3 +417,25 @@ Suite, demande de Hermann recopiée : « Sauf compte à rebours et fin de séanc
 Décision de Hermann, recopiée : « C’était juste un essai. Mettons cette liste de côté et continuons le développement ».
 
 L’ffichage de la liste est retiré de l’\écran d’xécution. Le calcul `projection.outline`, son test et le résultat de l’ssai (ce document) sont conservés comme base pour le Figma cible. Aucune règle n’st créée.
+
+## Constat A du 10/11/2026 : options du Circuit absentes (Composition)
+
+Constat de Hermann, recopié : « Régression constatée : Recette A, les options du circuit ne s’affichent pas. Pas si j’ajoute un deuxième circuit avec exercice libre ou un cycle, les options marchent pour les deux circuits ou pour le circuit. » Décision : « Enquête sans attendre ».
+
+Analyse (enquête en lecture seule, historique Git) :
+
+- Une Séance qui a un seul Circuit composé à la main (sans Format, sans modèle d'origine, sans Cycle) relève de l'ancien modèle (`legacyFromStructure`), avec le rendu historique de la Composition.
+- Les options du Circuit replié (Renommer, Modifier le format, Dupliquer, Supprimer ; MAJ des écrans Formats du 04/11/2026, §6 quinquies) n'ont été branchées, par fc1061d0 (04/11/2026), que sur la disposition générale (`LayoutCircuitBlock`). Son test le dit : « l'ancien modèle à Circuit unique n'a pas d'en-tête repliable par Circuit ». Cette prémisse était fausse depuis 2c835755 (29/10/2026), qui avait rendu ce Circuit repliable.
+- Attribution :
+  - le défaut est **démontré** dans le code ;
+  - « régression » au sens strict : **indéterminée**. Aucun commit n'a retiré ces options. Recette A est probablement passée à un seul Circuit composé à la main.
+- Ce lot (son et voix) ne touche pas la Composition.
+
+Correctif (classe A, conformité à la MAJ du 04/11/2026 §6 quinquies) :
+
+- Le Circuit unique de l'ancien modèle reçoit, une fois replié, les options Renommer, Dupliquer et Supprimer. « Modifier le format » est absent : un Circuit issu d'un modèle relève déjà de la disposition générale.
+- Un Circuit nommé quitte l'ancien modèle (`legacyFromStructure` renvoie null), comme un Circuit issu d'un modèle : l'ancien modèle n'en porte pas le nom, qui serait perdu à l'enregistrement. Choix technique, classe D.
+- Tests : `CompositionScreen.circuitActions0411.test.tsx`, trois cas sur un Circuit unique :
+  - options au repli seulement ;
+  - Renommer enregistre le nom et passe à la disposition générale ;
+  - Dupliquer, puis Supprimer avec confirmation.
