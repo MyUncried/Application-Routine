@@ -1555,3 +1555,7 @@ Le tableau représente la prescription effective des séries. L’EMOM n’a auc
 | Signalement/décision de modération | Révision ou média ciblé, motif, décision, date, acteur, état de neutralisation. |
 
 Les paramètres propres aux Exercices restent indépendants des permissions sur la fiche. **Raccordement non réalisé :** le pilote de provenance et de catalogue autonome sur la branche catalogue/integration-60-main-20261109 conserve actuellement authors[] et des choix de refus/conflits à l'import ; ces contrats pilotes ne sont pas le modèle validé de diffusion entre utilisateurs et doivent être rapprochés sans migration implicite. [Conception et réserves](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+### KIN-01 — Frontière du modèle professionnel
+
+Les tables logiques de droit d'accès **par Bibliothèque** décrivent la diffusion de Bibliothèques, notamment celles des coachs. Pour la transmission kinésithérapeute → patient, prévoir seulement une **capacité logique de relation individuelle dans l'Espace professionnel** et une livraison de **fiches Mouvements** ; le schéma exact des relations, autorisations et consentements est **À CLARIFIER**. Ne pas créer de `library_id` artificiel pour une prescription, ni de table de prescription numérique d'Exercice/Séance à ce stade. Les relations de suivi clinique ne sont pas incluses dans ce lot. [Conception pour revue Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
