@@ -6,7 +6,7 @@
 > **Complément validé F4-A à F4-F — 10/11/2026 :** les questions de mise à jour de composition, de conservation locale, d'accès par Bibliothèque, d'archivage et d'arrêt du partage ont été arbitrées après la présente version. Consulter les [parcours consolidés](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) et le [dossier d'architecture soumis à Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md). Les anciennes interrogations du §7 sur ces points sont supersédées ; les points commerciaux et de conflit de versions restent ouverts.
   
 **Autorité :** décisions BIB-01 à BIB-18 ci-dessous ; registre au chapitre 07.  
-**Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
+**Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. **Précision KIN-01 :** le parcours kiné-patient transmet le Mouvement dans l'Espace professionnel en étoile, sans prescription numérique d'Exercice/Séance ; l'exécution est expliquée oralement. Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
 
 ## 1. Concepts et identités
 
@@ -18,7 +18,7 @@
 - **Bibliothèque** : collection identifiée de références vers des Mouvements, et non ensemble de copies physiques. Elle possède notamment un propriétaire, un nom, une description et une composition ordonnée. Une même fiche peut être référencée dans plusieurs Bibliothèques.
 - **Installation** : matérialisation locale d'une fiche et de sa révision d'origine ; elle ne transfère ni auteur, ni propriété, ni permissions de redistribution.
 
-La provenance, l'identité de source, l'historique des révisions et les permissions sont conservés à travers les copies et les installations. Le pilote existant de 60 fiches peut garder un auteur ou un propriétaire « inconnu » sans les inventer ; aucune diffusion d'une fiche dont les droits nécessaires ne sont pas établis.
+La provenance, l'identité de source, l'historique des révisions et les permissions sont conservés à travers les copies et les installations. Un **coach** peut distribuer une Bibliothèque ; un **kinésithérapeute** transmet ses Mouvements dans la relation individuelle au patient, au sein de son Espace professionnel, et non par une Bibliothèque prescrite. Le pilote existant de 60 fiches peut garder un auteur ou un propriétaire « inconnu » sans les inventer ; aucune diffusion d'une fiche dont les droits nécessaires ne sont pas établis.
 
 ## 2. Décisions fonctionnelles validées
 
