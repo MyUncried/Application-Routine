@@ -30,6 +30,17 @@
 
 La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, indépendamment de la condition d'accès **gratuite ou payante**. La gestion commerciale est un chantier séparé.
 
+### Raccordement des arbitrages F4 validés
+
+| Arbitrage | Application aux parcours |
+|---|---|
+| **F4-A** | Mise à jour de la Bibliothèque sur action explicite, jamais automatique (PU-10). |
+| **F4-B** | Mouvement retiré d'une version reçue conservé localement et dans les Séances (PU-10/12). |
+| **F4-C** | Accès attribué au niveau Bibliothèque ; retrait du Mouvement n'annule pas l'usage déjà reçu (PU-08/12). |
+| **F4-D** | Un seul « Mettre à jour » installe composition et nouvelles révisions sans écraser les adaptations (PU-10). |
+| **F4-E** | Archivage du propriétaire sans effet pour les destinataires (PU-13). |
+| **F4-F** | Arrêt explicite du partage : pas de nouveaux destinataires, aucune nouvelle MAJ, installations existantes conservées (PU-14). |
+
 ## 2. Parcours détaillés
 
 ### PU-01 — Créer une Bibliothèque personnelle
