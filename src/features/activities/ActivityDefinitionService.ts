@@ -28,6 +28,11 @@ import type {
 } from "@/domain/media/ActivityMediaImportService";
 import type { MediaRepository } from "@/domain/media/MediaRepository";
 
+/** Lecture fraîche (transaction) du repository de Mouvements — `SqliteMovementRepository.readFresh`. */
+export type FreshMovementReader = {
+  readFresh<T>(read: (repository: MovementRepository) => Promise<T>): Promise<T>;
+};
+
 /**
  * PRE-3 (D-333/D-334/D-335) — adaptateurs médias injectés par
  * `SessionServiceProvider` sur la MÊME connexion SQLite (lecture des
@@ -135,6 +140,15 @@ export class ActivityDefinitionService {
    */
   get movementCatalogue(): MovementCatalogueService | null {
     return this.movementRepository ? new MovementCatalogueService(this.movementRepository) : null;
+  }
+
+  /**
+   * Catalogue autonome (CA-4) : lecture fraîche du Catalogue des Mouvements, dans une transaction
+   * du MÊME repository (aucune seconde composition SQLite). `null` si le repository ne la permet pas.
+   */
+  get freshMovementReader(): FreshMovementReader | null {
+    const repository = this.movementRepository as Partial<FreshMovementReader> | undefined;
+    return repository && typeof repository.readFresh === "function" ? (repository as FreshMovementReader) : null;
   }
 
   /**

@@ -11,7 +11,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
 import { MovementCounterToggles } from "@/features/activities/MovementCounterToggles";
-import { PILOT_IMPORT_ENABLED, PilotMovementImportCommand } from "@/features/activities/PilotMovementImportCommand";
+import { CATALOGUE_LOAD_ENABLED, CatalogueLoadCommand } from "@/features/catalogue/CatalogueLoadCommand";
 import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
 import {
@@ -391,10 +391,9 @@ export function CatalogueScreen() {
             onCreate={handleCreatePress}
           />
         ) : null}
-        {/* Outil de recette interne (PR #434), absent sans EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT=1. */}
-        {PILOT_IMPORT_ENABLED && activeSegment === "movements" ? (
-          <PilotMovementImportCommand onImported={() => setMovementsReloadToken((current) => current + 1)} />
-        ) : null}
+        {/* Outil de recette interne (CA-4, remplace « Importer 60 fiches » de la PR #434), absent sans
+            EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT=1 ; le retour sur le Catalogue recharge les Mouvements. */}
+        {CATALOGUE_LOAD_ENABLED && activeSegment === "movements" ? <CatalogueLoadCommand /> : null}
         {activeSegment === "sessions" ? (
           <SessionCommandRow
             view={sessionView}

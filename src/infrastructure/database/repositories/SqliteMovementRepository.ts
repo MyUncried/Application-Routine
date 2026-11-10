@@ -502,6 +502,20 @@ export class SqliteMovementRepository implements MovementRepository {
     return created;
   }
 
+  /**
+   * Lecture dans une transaction, sur la connexion de la transaction (catalogue autonome, CA-3/CA-4) :
+   * juste après une écriture, la connexion principale peut relire un instantané antérieur (même
+   * incident que `create`). Lecture seule ; aucune écriture n'est faite par `read`.
+   */
+  async readFresh<T>(read: (repository: MovementRepository) => Promise<T>): Promise<T> {
+    let result: { value: T } | null = null;
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      result = { value: await read(new SqliteMovementRepository(transaction, this.uuidFactory, this.now)) };
+    });
+    if (result === null) throw new Error("Movement fresh read did not complete.");
+    return (result as { value: T }).value;
+  }
+
   async findById(id: string): Promise<Movement | null> {
     const records = await readMovementRecords(this.database, [id]);
     return records.get(id)?.movement ?? null;

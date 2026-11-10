@@ -193,3 +193,34 @@ Les autres propriétés restent dans la fiche éditoriale, sans être ajoutées 
 - Une décision est recalculée sur l'état actuel au moment où elle est prise, jamais sur un plan ancien.
 - Une fiche absente du fichier n'est jamais supprimée localement.
 
+### 9.5 Écran de recette « Charger un catalogue » (CA-4)
+
+**Code** :
+- `src/features/catalogue/CatalogueLoadScreen.tsx` (route `app/catalogue-load.tsx`) ;
+- `CatalogueLoadCommand.tsx` ;
+- `catalogueLoadPresentation.ts`.
+
+Outil de recette interne, hors MVP et **sans référence Figma**. Comme l'outil qu'il remplace (« Importer 60 fiches », PR #434), il n'est affiché que dans une build construite avec `EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT=1` (variante « Routine Catalogue »). Ailleurs, la route affiche « indisponible ».
+
+**Parcours**
+
+1. **Choisir un fichier catalogue** (sélecteur de documents du téléphone, JSON, 24 Mo au plus).
+   - Si le fichier est invalide, il est refusé en entier, avec la liste des problèmes ; rien n'est écrit.
+2. **Liste des fiches**, groupées par état. Les fiches qui attendent une décision viennent d'abord.
+   - Chaque fiche porte une ligne courte : conflits, changements du Mouvement, report, blocage.
+   - Les signalements du fichier sont affichés, par exemple « Propriétaire inconnu : chargement privé possible, aucune publication ».
+   - Une reprise après interruption est annoncée.
+3. **Fiche**, qui présente toujours :
+   - le **résumé systématique** (§ 9.3) ;
+   - la **comparaison détaillée** à la demande : toutes les propriétés éditoriales, avec les valeurs installée, nouvelle et sur ce téléphone.
+   - Les **conflits sont toujours visibles**. Chacun porte un sélecteur segmenté natif iOS (« Garder ma valeur » / « Prendre la nouvelle »), **sans valeur par défaut**.
+   - « Accepter » reste inactif tant qu'un conflit n'est pas tranché ou qu'un empêchement existe.
+4. **Décisions** :
+   - **Accepter** : confirmation qui reprend le résumé, puis compte rendu ;
+   - **Reporter** : immédiat, la révision sera reproposée ;
+   - **Refuser** : confirmation, la révision ne sera plus proposée.
+   - Après chaque décision, le plan est recalculé sur l'état réel.
+5. **Rattachement groupé** des seules fiches « déjà présentes, identiques », après confirmation : aucun Mouvement n'est modifié, seul l'historique d'installation est enregistré. [Choix d'ergonomie de recette, soumis à validation : voir le rapport CA-4.]
+
+De retour sur le Catalogue des Mouvements, la liste est relue au retour sur l'écran (mécanisme existant).
+

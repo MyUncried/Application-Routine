@@ -49,7 +49,7 @@ async function serviceOn(options: { mainDb?: Database; registry?: SqliteCatalogu
   const service = new CatalogueLoadService({
     registry,
     movements: movementsOn(db),
-    readLocalMovements: freshLocalMovementReader(db),
+    readLocalMovements: freshLocalMovementReader(new SqliteMovementRepository(db)),
     listReferentials: async () => ({
       categoryIds: new Set((await new SqliteCategoryRepository(db).listAll()).map((category) => category.id)),
       bodyZoneIds: new Set((await new SqliteBodyZoneRepository(db).listAll()).map((zone) => zone.id)),
@@ -295,7 +295,7 @@ describe("CA-3 — chargement d'un catalogue sur SQLite réelle (base principale
     const failing = movementsOn(main);
     failing.createIndependent = async () => { throw new Error("Arrêt de l'application"); };
     const service = new CatalogueLoadService({
-      registry, movements: failing, readLocalMovements: freshLocalMovementReader(main), newMovementId: () => "uuid-x",
+      registry, movements: failing, readLocalMovements: freshLocalMovementReader(new SqliteMovementRepository(main)), newMovementId: () => "uuid-x",
       listReferentials: async () => ({
         categoryIds: new Set((await new SqliteCategoryRepository(main).listAll()).map((c) => c.id)),
         bodyZoneIds: new Set((await new SqliteBodyZoneRepository(main).listAll()).map((z) => z.id)),
