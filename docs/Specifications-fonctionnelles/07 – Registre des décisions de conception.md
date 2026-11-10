@@ -2530,6 +2530,10 @@ Constat de Hermann, recopié textuellement :
 - **Correction.** `dragElevated` à 3 ; le cadre d'enveloppe d'un Circuit (niveau Séance, dans un Cycle, ancien modèle) porte le premier plan de l'élément saisi qu'il contient ; la liste des cartes d'un Circuit passe au-dessus de son en-tête quand l'une de ses cartes est saisie. Au repos, aucun changement (en-têtes collés au-dessus du contenu). Tests `recette2composition` « premier plan de la carte saisie au-dessus des en-têtes » (échouent sans, passent avec) ; 4 attentes de `CompositionScreen.test` portées de 1 à 3 (annotées).
 - À vérifier sur iPhone : sortir un mouvement d'un Circuit (au niveau Séance et dans un Cycle) et d'un Cycle : il passe au-dessus des lignes d'en-tête.
 
+## Arbitrages confirmés — Mouvement, auteur et médias (11/11/2026)
+
+**MOUV-D1 à MOUV-D4 — règle applicable.** Auteur unique `author: ActorRef | null` (pas de `authors[]`) ; métadonnées médias conservées, référence distante, chargement à la demande/cache local, téléchargement hors ligne explicite reporté, aucune diffusion sans droits confirmés ; **fiche importée non modifiable et non duplicable**, redistribution seulement si autorisée dans un futur lot ; paramètres des Exercices restent personnalisables. Les adaptations historiques des 60 fiches sont préservées pour la reprise CA-3. Les modes anciens BIB-06/BIB-07/BIB-08 permettant une modification ou copie des **fiches importées** sont supersédés sur cette portée. [Contrat de l'étape 2](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
 ## Fiche Mouvement — raccordement du chantier de développement (11/11/2026)
 
 [Consolidation documentaire et mandat pour Claude](../KODJO-Fiche-Mouvement-Contrat-consolide-et-handoff-2026-11-11.md) : séparation Mouvement d'usage / fiche éditoriale ; modèle complet CA-1 et CA-3 ; lacunes de projection des médias, homonymes et désaccord auteur unique / `authors[]`. Cette matrice classe les écarts et ne les arbitre pas silencieusement. **Aucun nouvel arbitrage de produit, aucun code modifié** : les règles BIB-19–23 et le plan en six étapes restent applicables.
