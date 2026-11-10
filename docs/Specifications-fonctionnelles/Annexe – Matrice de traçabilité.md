@@ -902,3 +902,19 @@ CE-FMT-05 (chapitre 13) : actions du Circuit et réédition. Décisions : chapit
 ## Création et Formats — 5 novembre
 
 CE-CREATION-01 : modale commune et destinations Catalogue/Composition ; CE-CIR-03 retiré. CE-FMT-02/04/05 : tableaux, charges, Death by et réouverture. Règles et décisions : chapitres 10 et 07, ancre creation-formats-20261105. FMT-20/28/29/33 actualisées ; données/API/architecture aux chapitres 09/11/12. Les scénarios de la source finale sont prescrits, non exécutés sur application.
+
+## Complément de traçabilité — Bibliothèques et Mouvements distribués (post-MVP)
+
+**Référence :** [Parcours PU-01 à PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) et [dossier technique pour revue Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md). Statut de cette matrice : **conception cible**, ni code livré ni écran Figma validé. Les scénarios et lots identifient des exigences à développer et vérifier.
+
+| Décisions | Parcours | Données | Comportement observable | Lot cible |
+|---|---|---|---|---|
+| BIB-01 à 05 | PU-01, PU-02, PU-08/09 | Bibliothèque / Mouvement / provenance | Création, composition, réception | L1, L4 |
+| BIB-06 à 08 | PU-03/04/05/06 | Révision / permissions / copie | Publication initiale, édition, redistribution | L2, L3 |
+| BIB-09 à 11 | PU-05/08 | Composition / filtrage | Bibliothèque reçue en lecture seule | L4 |
+| BIB-12/13, F4-A/D/G | PU-10/11 | Révision active unique / release de composition | Pastille, aperçu des Bibliothèques impactées, « Mettre à jour » | L5 |
+| F4-B/C | PU-08/12 | Accès Bibliothèque / preuve de réception | Conservation après retrait, droits d'accès | L4/L5 |
+| F4-E/F | PU-13/14 | Archive / distribution | Archivage sans effet, arrêt du partage | L1/L4 |
+| BIB-14 à 17 | PU-07/15 | Validation / média / modération | Contrôle et suspension prioritaires | L3 |
+| KIN-01 | PU-17 | Relation individuelle / transmission | Espace en étoile, sans rôle professionnel | L4-T |
+| BIB-18 | PU-16 | SQLite / moteur local | Exécution hors ligne inchangée | Tous |
