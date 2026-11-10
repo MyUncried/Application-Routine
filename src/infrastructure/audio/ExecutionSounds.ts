@@ -19,7 +19,7 @@ import type { AudioPlayer } from "expo-audio";
  * Sons retenus par Hermann (formulaire « Guidage sonore KODJO », 10/11/2026) ; fichiers produits avec les
  * recettes du formulaire (`assets/sounds`).
  */
-export type BeepTone = "BIP_GRAVE" | "BIP_DOUBLE" | "BIP_LONG" | "SIFFLET_ROULE" | "SIFFLET_PUR" | "DING" | "CLIC_DOUX";
+export type BeepTone = "BIP_GRAVE" | "BIP_DOUBLE" | "BIP_LONG" | "SIFFLET_ROULE" | "SIFFLET_PUR" | "SIFFLET_COURT" | "FANFARE_COURTE" | "DING" | "CLIC_DOUX";
 
 export type BeepPort = { readonly play: (tone: BeepTone, volume?: number) => void; readonly prepare?: () => void };
 
@@ -82,12 +82,18 @@ const SOURCES: Record<BeepTone, number> = {
   BIP_LONG: require("../../../assets/sounds/bip-long.wav"),
   SIFFLET_ROULE: require("../../../assets/sounds/sifflet-roule.wav"),
   SIFFLET_PUR: require("../../../assets/sounds/sifflet-pur.wav"),
+  SIFFLET_COURT: require("../../../assets/sounds/sifflet-court.wav"),
+  FANFARE_COURTE: require("../../../assets/sounds/fanfare-courte.wav"),
   DING: require("../../../assets/sounds/ding.wav"),
   CLIC_DOUX: require("../../../assets/sounds/clic-doux.wav"),
 };
 
+// Un seul lecteur par son pour toute l'application : deux instances ne peuvent jamais jouer le même son en
+// double, légèrement décalé (recette du 10/11/2026, G2, G3, G6 : « un autre son en même temps »).
+const sharedPlayers: Partial<Record<BeepTone, AudioPlayer>> = {};
+
 export class ExecutionSounds implements BeepPort {
-  private readonly players: Partial<Record<BeepTone, AudioPlayer>> = {};
+  private readonly players = sharedPlayers;
 
   /** Début d'Exécution : session active et lecteurs chargés, pour qu'aucun son ne parte en retard. */
   prepare(): void {

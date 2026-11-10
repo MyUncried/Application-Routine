@@ -41,6 +41,7 @@ import {
 import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
 import { projectExecution, type ExecutionProjection } from "@/domain/execution/projection";
 import { businessStatusOf, occurrenceResults, type BusinessStatus, type OccurrenceResult } from "@/domain/execution/results";
+import type { ExecutionMode, SeriesTarget } from "@/domain/activities/ExecutionParameters";
 import { dedupe, stepSignalsBetween, type PlannedSignal, type SignalKind } from "@/domain/execution/signals";
 import type { StructuredSession } from "@/domain/sessions/SessionRepository";
 import { createSessionSnapshot, SESSION_SNAPSHOT_VERSION, type SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
@@ -54,8 +55,12 @@ export type Scheduler = {
 };
 
 /** Signal demandé aux adaptateurs (son, voix, haptique) ; jamais une source de temps. */
+/** Objectif d'une Série (mode et cible), annoncé avec le nom de l'exercice (recette du 10/11/2026, G8). */
+export type SignalObjective = { readonly mode: ExecutionMode | null; readonly target: SeriesTarget | null };
+
 export type ExecutionSignal = {
-  readonly kind: SignalKind;
+  /** `FINISH` : achèvement normal de la Séance (fin de la Fin de séance), son d'arrivée (recette du 10/11/2026, G10). */
+  readonly kind: SignalKind | "FINISH";
   readonly atMs: number;
   readonly phase: LeafKind | null;
   readonly exerciseName: string | null;
@@ -63,7 +68,9 @@ export type ExecutionSignal = {
   /** Étape chronométrée (compte à rebours) ; faux pour un chronomètre ou une attente. */
   readonly timed?: boolean;
   /** Étape suivante au même niveau du plan (annonce « Prochain exercice », guidage sonore du 10/11/2026). */
-  readonly next?: { readonly phase: LeafKind; readonly exerciseName: string | null } | null;
+  readonly next?: { readonly phase: LeafKind; readonly exerciseName: string | null; readonly objective?: SignalObjective } | null;
+  /** Objectif de l'étape courante. */
+  readonly objective?: SignalObjective;
 };
 
 export type ExecutionServiceDeps = {
@@ -355,11 +362,14 @@ export class ExecutionService {
     }
     // Au plus un signal de transition par instant (fin de phase et bip coïncidents : un seul signal, T07).
     for (const signal of dedupe(transitions).slice(-1)) this.emitSignal(signal);
+    for (const effect of result.effects) {
+      if (effect.type === "FINISHED" && effect.reason === "COMPLETED" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "FINISH", atMs: effect.atMs });
+    }
     this.schedule();
     this.notify();
   }
 
-  private emitSignal(signal: PlannedSignal) {
+  private emitSignal(signal: PlannedSignal | { readonly kind: "FINISH"; readonly atMs: number }) {
     const projection = this.project(signal.atMs);
     this.deps.onSignal?.({
       kind: signal.kind,
@@ -368,7 +378,8 @@ export class ExecutionService {
       exerciseName: projection?.exerciseName ?? null,
       sideRank: projection?.sideRank ?? null,
       timed: projection?.timer.kind === "COUNTDOWN",
-      next: projection?.next == null ? null : { phase: projection.next.kind, exerciseName: projection.next.name },
+      next: projection?.next == null ? null : { phase: projection.next.kind, exerciseName: projection.next.name, objective: { mode: projection.next.mode ?? null, target: projection.next.target } },
+      objective: { mode: projection?.mode ?? null, target: projection?.seriesTarget ?? null },
     });
   }
 

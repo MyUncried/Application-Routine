@@ -136,3 +136,48 @@ Réponses de Hermann, recopiées :
 3. Lot suivant : « Oui, prépare la spec ». La spec est rédigée dans `spec-guidage-reglages.md` et attend sa validation.
 
 ch08 « Guidage sonore » est complété par une annotation datée (classe B).
+
+
+## Recette iPhone du 10/11/2026 « Guidage sonore — définition » et choix du formulaire
+
+Résultats de Hermann, recopiés (cahier, collection `results`) :
+
+- G1 Compte à rebours, G4 départ en Répétitions, G5 bilatéral, G9 Point d'arrêt : OK.
+- G2 dernières secondes : KO, « Le bip grave est la, mais il y a un autre son ne même temps, le son n'est pas pur. »
+- G3 départ en Durée : KO, « Le sifflet roulé est la, mais il y a un autre son ne même temps, le son n'est pas pur. »
+- G6 cadence : KO, « Le clic doux est la, mais il y a un autre son ne même temps, le son n'est pas pur. »
+- G7 signal minute : KO, « Il n'y a pas de bip à la minute d'un exercice en répétition, et augmenter le son à 50% ».
+- G8 Pause : OK, avec la note « A corriger : annoncer l'objectif (nombre de répétition, durée) avec le nom du mouvement. »
+- G10 fin de séance : KO, « je n'ai rien entendu ».
+- Constat : « Bilatéralité : annoncer "changez de côté" plutôt que "côté 1". et "premier côté" à la place de "côté 1" ».
+
+Choix enregistrés dans le formulaire après l'application du 10/11 (base `definition`, lue le 10/11/2026) :
+
+- annonce du prochain exercice : « À suivre : {prochain} » ;
+- départ en Durée : sifflet roulé à 55 %, annonce « {exercice} » ;
+- départ en Répétitions : sifflet pur à 85 %, annonce « {exercice} {répétitions} » ;
+- changement de côté : sifflet court à 55 % ;
+- zéro : bip grave à 100 %, sans vibration ;
+- fin de séance : fanfare courte (raccourcie le 10/11) à 60 %, vibration moyenne.
+
+Traitement (classe B, ch08 annoté) :
+
+- Annonces :
+  - « À suivre : {exercice}, {objectif} » au Compte à rebours, à la Pause ou à la récupération qui précède un autre exercice ;
+  - objectif annoncé avec le nom au départ quand le nom n'a pas été annoncé avant ;
+  - format de l'objectif : spec des réglages §7.3. Une plage de répétitions n'existe pas dans le modèle de cible actuel, rien n'est donc annoncé pour ce cas.
+  - L'option d'annonce de l'objectif (Profil) reste dans le lot des réglages. D'ici là, l'objectif est toujours annoncé, comme demandé par la note G8.
+- Bilatéral : « Premier côté » au départ, « Changez de côté » au changement de côté. Le constat prévaut sur l'annonce « {exercice}, côté {côté} » du formulaire.
+- Zéro : bip grave quand l'étape qui commence n'a pas son propre son. Quand elle a un sifflet, seul le sifflet sonne (un signal par instant, T07).
+- G10 :
+  - le son de fin de séance est joué à l'achèvement de la Séance, nouveau signal `FINISH` du service d'exécution ;
+  - avant cette correction, le bip long était joué au début de la Fin de séance seulement ;
+  - le début de la Fin de séance reçoit le bip grave du zéro ou de la règle S5.
+- G7 : ding porté à 50 %. Cause probable : le ding à 15 % était inaudible.
+  - Le signal minute reste réservé aux Séries sans bip de cadence (ch08, `signals.ts`).
+  - Si l'exercice testé avait un bip de cadence, c'est la règle actuelle. À confirmer par la recette h6.
+- G2, G3, G6 : cause non démontrée. Les fichiers WAV sont propres (aucun écrêtage, un seul son). Deux hypothèses :
+  - (a) la vibration, simultanée et audible ;
+  - (b) le même son joué deux fois par deux instances.
+
+  Correctif de sûreté contre (b) : un seul lecteur par son pour toute l'application, et un même signal n'est jamais restitué deux fois. Diagnostic demandé dans la recette h1 : rejouer avec Vibrations désactivé.

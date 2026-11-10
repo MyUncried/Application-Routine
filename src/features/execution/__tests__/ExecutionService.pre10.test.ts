@@ -132,6 +132,8 @@ describe("PRE-10 ExecutionService", () => {
     const active = run.current()!;
     expect(active.state.status).toBe("FINISHED");
     expect(active.businessStatus).toBe("COMPLETED");
+    // Recette du 10/11/2026 (G10) : l'achèvement normal émet un signal d'arrivée, une seule fois.
+    expect(signals.filter((signal) => signal.kind === "FINISH")).toHaveLength(1);
     const stored = await new SqliteExecutionRepository(raw).findById(active.executionId);
     expect(stored).toMatchObject({ businessStatus: "COMPLETED", state: { status: "FINISHED" } });
     const occurrences = run.occurrences();

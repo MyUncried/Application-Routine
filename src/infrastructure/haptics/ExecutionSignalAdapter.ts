@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 
-import type { ExecutionSignal } from "@/features/execution/ExecutionService";
+import type { ExecutionSignal, SignalObjective } from "@/features/execution/ExecutionService";
 import { ExecutionSounds, type BeepPort, type BeepTone } from "@/infrastructure/audio/ExecutionSounds";
 import { ExecutionVoice, type VoicePort } from "@/infrastructure/speech/ExecutionVoice";
 
@@ -9,12 +9,18 @@ import { ExecutionVoice, type VoicePort } from "@/infrastructure/speech/Executio
  * le restitue sur trois canaux indépendants : vibration (préférence `Vibrations` du Profil), Sons et Annonces
  * vocales (interrupteurs de l'Exécution ; ch08 « Guidage sonore »).
  *
- * Table de guidage : définition de Hermann du 10/11/2026 (formulaire « Guidage sonore KODJO », recopiée dans
- * ch08 et la spec `pre10-son-voix`). Le nom de l'exercice est annoncé avant son départ, au début du Compte à
- * rebours initial ou de la récupération qui le précède (« Prochain exercice : … ») ; au départ, seulement le
- * son, sauf si le nom n'a pas été annoncé avant. Une étape sans son défini et dont l'annonce est coupée
- * reçoit un bip grave (S5). Premier plan seulement (arrière-plan : tranche suivante). Un échec natif
- * n'interrompt jamais l'Exécution.
+ * Table de guidage : définition de Hermann du 10/11/2026 (formulaire « Guidage sonore KODJO »), mise à jour
+ * avec ses choix suivants dans le formulaire et la recette du 10/11/2026 (G2 à G10, constats). Recopiée dans
+ * ch08 et la spec `pre10-son-voix`.
+ * - Le prochain exercice est annoncé avant son départ (« À suivre : Pompes, 12 répétitions »), au début du
+ *   Compte à rebours initial, de la Pause ou de la récupération qui le précède ; au départ, seulement le son,
+ *   sauf si le nom n'a pas été annoncé avant.
+ * - Bilatéral : « premier côté » au départ, « Changez de côté » au changement de côté.
+ * - Zéro d'une étape chronométrée : bip grave, sauf si l'étape suivante a son propre son (un seul signal par
+ *   instant, T07).
+ * - Achèvement de la Séance : fanfare courte.
+ * - Une étape sans son défini et dont l'annonce est coupée reçoit un bip grave (S5).
+ * Premier plan seulement (arrière-plan : tranche suivante). Un échec natif n'interrompt jamais l'Exécution.
  */
 export type Vibration = "NONE" | "LIGHT" | "MEDIUM" | "HEAVY";
 export type Cue = { readonly sound: BeepTone | null; readonly volume: number; readonly vibration: Vibration };
@@ -22,19 +28,21 @@ export type Cue = { readonly sound: BeepTone | null; readonly volume: number; re
 export const GUIDANCE = {
   countdownStart: { sound: null, volume: 1, vibration: "HEAVY" },
   lastSeconds: { sound: "BIP_GRAVE", volume: 1, vibration: "MEDIUM" },
-  startTimed: { sound: "SIFFLET_ROULE", volume: 1, vibration: "HEAVY" },
-  startStopwatch: { sound: "SIFFLET_PUR", volume: 0.55, vibration: "HEAVY" },
-  sideChange: { sound: "BIP_DOUBLE", volume: 0.55, vibration: "HEAVY" },
+  zero: { sound: "BIP_GRAVE", volume: 1, vibration: "NONE" },
+  startTimed: { sound: "SIFFLET_ROULE", volume: 0.55, vibration: "HEAVY" },
+  startStopwatch: { sound: "SIFFLET_PUR", volume: 0.85, vibration: "HEAVY" },
+  sideChange: { sound: "SIFFLET_COURT", volume: 0.55, vibration: "HEAVY" },
   cadence: { sound: "CLIC_DOUX", volume: 0.35, vibration: "LIGHT" },
-  minute: { sound: "DING", volume: 0.15, vibration: "LIGHT" },
+  minute: { sound: "DING", volume: 0.5, vibration: "LIGHT" },
   seriesPause: { sound: null, volume: 1, vibration: "HEAVY" },
   recovery: { sound: null, volume: 1, vibration: "HEAVY" },
   stopPoint: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
-  sessionEnd: { sound: "BIP_LONG", volume: 1, vibration: "MEDIUM" },
+  sessionEnd: { sound: null, volume: 1, vibration: "MEDIUM" },
+  finish: { sound: "FANFARE_COURTE", volume: 0.6, vibration: "MEDIUM" },
   other: { sound: "BIP_GRAVE", volume: 1, vibration: "HEAVY" },
 } as const satisfies Record<string, Cue>;
 
-/** Délai entre le son de départ et l'annonce, pour ne pas les superposer. */
+/** Délai entre le son et l'annonce, pour ne pas les superposer. */
 export const ANNOUNCEMENT_AFTER_SOUND_MS = 500;
 
 const IMPACT: Record<Exclude<Vibration, "NONE">, Haptics.ImpactFeedbackStyle> = {
@@ -56,8 +64,12 @@ export class ExecutionSignalAdapter {
   private vibrationEnabled = true;
   private soundEnabled = true;
   private voiceEnabled = true;
-  /** Nom déjà annoncé comme « Prochain exercice », pour ne pas le répéter au départ. */
+  /** Nom déjà annoncé comme « À suivre », pour ne pas le répéter au départ. */
   private announcedNext: string | null = null;
+  /** L'étape qui se termine était chronométrée : son zéro est marqué (bip grave). */
+  private previousTimed = false;
+  /** Dernier signal joué, pour ne jamais restituer deux fois le même. */
+  private lastKey: string | null = null;
 
   constructor(
     private readonly haptics: Pick<typeof Haptics, "impactAsync"> = Haptics,
@@ -84,20 +96,34 @@ export class ExecutionSignalAdapter {
   }
 
   play(signal: ExecutionSignal): void {
+    const key = `${signal.kind}@${signal.atMs}`;
+    if (key === this.lastKey) return;
+    this.lastKey = key;
     const { cue, announcement } = this.guidance(signal);
     if (this.vibrationEnabled && cue.vibration !== "NONE") this.haptics.impactAsync(IMPACT[cue.vibration]).catch(() => undefined);
     const spoken = this.voiceEnabled ? announcement : null;
-    const sound = cue.sound ?? (signal.kind === "TRANSITION" && spoken === null ? GUIDANCE.other.sound : null);
-    const played = this.soundEnabled && sound !== null;
-    if (played) this.beeps.play(sound, cue.sound === null ? GUIDANCE.other.volume : cue.volume);
+    const fallback = signal.kind === "TRANSITION" && spoken === null ? GUIDANCE.other : null;
+    const sounding = cue.sound !== null ? cue : fallback;
+    const played = this.soundEnabled && sounding !== null && sounding.sound !== null;
+    if (played) this.beeps.play(sounding.sound!, sounding.volume);
     if (spoken !== null) this.defer(() => this.voice.say(spoken), played ? ANNOUNCEMENT_AFTER_SOUND_MS : 0);
   }
 
-  /** Son, vibration et annonce d'un signal ; tient compte du « Prochain exercice » déjà annoncé. */
+  /** Son, vibration et annonce d'un signal ; tient compte du « À suivre » déjà annoncé et de l'étape précédente. */
   guidance(signal: ExecutionSignal): Guidance {
     if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null };
     if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null };
     if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null };
+    if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: null };
+    const previousTimed = this.previousTimed;
+    this.previousTimed = signal.timed === true;
+    const { cue, announcement } = this.transition(signal);
+    // Zéro de l'étape chronométrée qui se termine : bip grave, si l'étape qui commence n'a pas son propre son.
+    if (cue.sound === null && previousTimed) return { cue: { ...GUIDANCE.zero, vibration: cue.vibration }, announcement };
+    return { cue, announcement };
+  }
+
+  private transition(signal: ExecutionSignal): Guidance {
     const name = cleanName(signal.exerciseName);
     switch (signal.phase) {
       case "INITIAL_COUNTDOWN":
@@ -115,29 +141,56 @@ export class ExecutionSignalAdapter {
       case "ACTIVITY": {
         const alreadyAnnounced = name !== null && this.announcedNext === name;
         this.announcedNext = null;
-        if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: name === null ? "Côté 2" : `${name}, côté 2` };
+        if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: "Changez de côté" };
         const cue = signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed;
-        const side = signal.sideRank === 1 ? "côté 1" : null;
-        if (alreadyAnnounced) return { cue, announcement: side === null ? null : "Côté 1" };
-        return { cue, announcement: name === null ? null : side === null ? name : `${name}, ${side}` };
+        const firstSide = signal.sideRank === 1;
+        if (alreadyAnnounced) return { cue, announcement: firstSide ? "Premier côté" : null };
+        if (name === null) return { cue, announcement: firstSide ? "Premier côté" : null };
+        const named = withObjective(name, signal.objective);
+        return { cue, announcement: firstSide ? `${named}, premier côté` : named };
       }
       default:
         return { cue: GUIDANCE.other, announcement: null };
     }
   }
 
-  /** « Récupération. Prochain exercice : Fente » lorsque l'étape suivante est un autre exercice. */
+  /** « Récupération. À suivre : Fente, 12 répétitions » lorsque l'étape suivante est un autre exercice. */
   private withNext(text: string, signal: ExecutionSignal): string {
     const next = signal.next;
     const nextName = next?.phase === "ACTIVITY" ? cleanName(next.exerciseName) : null;
     if (nextName === null || nextName === cleanName(signal.exerciseName)) return text;
     if (this.voiceEnabled) this.announcedNext = nextName;
-    return `${text}. Prochain exercice : ${nextName}`;
+    return `${text}. À suivre : ${withObjective(nextName, next?.objective)}`;
   }
 }
 
 function cleanName(name: string | null | undefined): string | null {
   return name === null || name === undefined || name.trim() === "" ? null : name.trim();
+}
+
+function withObjective(name: string, objective: SignalObjective | undefined): string {
+  const detail = objectiveText(objective);
+  return detail === null ? name : `${name}, ${detail}`;
+}
+
+/** Objectif annoncé avec le nom (recette du 10/11/2026, G8 ; spec `spec-guidage-reglages` §7.3). */
+export function objectiveText(objective: SignalObjective | undefined): string | null {
+  const target = objective?.target;
+  if (target === undefined || target === null) return null;
+  if (target.kind === "FAILURE") return "jusqu'à l'échec";
+  if (target.kind !== "NUMBER" || target.value <= 0) return null;
+  if (objective?.mode === "REPETITIONS") return target.value === 1 ? "1 répétition" : `${target.value} répétitions`;
+  if (objective?.mode === "DURATION") return durationWords(target.value);
+  return null;
+}
+
+function durationWords(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const rest = Math.round(seconds % 60);
+  const unit = (n: number, word: string) => (n === 1 ? `1 ${word}` : `${n} ${word}s`);
+  if (minutes === 0) return unit(rest, "seconde");
+  if (rest === 0) return unit(minutes, "minute");
+  return `${unit(minutes, "minute")} ${rest}`;
 }
 
 /** Texte annoncé au début d'une étape, sans contexte d'enchaînement (ch08 « Guidage sonore »). */
