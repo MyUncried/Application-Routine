@@ -1,5 +1,10 @@
 # Vision et glossaire
 
+## Bibliothèques KODJO — portée du premier lot (BIB-19 à BIB-23)
+
+Les Bibliothèques génériques proposées et maintenues par KODJO (Fitness, Hyrox, Pilates, Yoga : exemples) sont sélectionnées, installées et mises à jour volontairement depuis le Profil ; le Catalogue reste la surface des Mouvements, Séances et Programmes. Les Bibliothèques personnelles, de coach et partagées sont reportées après ce premier lot, sans supprimer leur conception cible. Bibliothèque et Catégorie du Catalogue sont deux notions distinctes. Voir le registre BIB-19 à BIB-23.
+
+
 ## Composition — actualisation du 28/10/2026
 
 Le Cycle est un conteneur visible de circuits et d’exercices directs ; le Circuit a pour natures Séries groupées et Séries alternées. Tour désigne un passage de circuit, répétition le compte du cycle. Les valeurs de séries identiques/variables sont un autre axe. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
