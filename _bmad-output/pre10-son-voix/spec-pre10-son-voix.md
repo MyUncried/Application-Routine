@@ -284,3 +284,7 @@ Conclusion :
   - fin de 50 ms.
 - `assets/sounds/bip-grave.wav` régénéré depuis le formulaire.
 - Le formulaire ne produit plus de son sur l'iPhone de Hermann (signalé le 10/11/2026) : cause non recherchée.
+
+Suite du diagnostic (10/11/2026) : avec le bip adouci, Hermann note « le click est tjour sla, moins fort ».
+
+Le défaut suit donc le niveau du son. Deuxième correctif (classe D) : note du bip grave portée de 660 à 784 Hz, qui reste plus grave que le double bip (1000 Hz), avec une montée de 20 ms et une fin de 60 ms. Un son trop grave pour le haut-parleur de l'iPhone le fait saturer. Cause probable, non démontrée.
