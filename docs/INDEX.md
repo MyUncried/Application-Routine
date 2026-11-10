@@ -1,16 +1,15 @@
 # Documentation de KODJO
 
-## Bibliothèques et partage de Mouvements — conception du 10 novembre 2026
+## Bibliothèques et partage de Mouvements — conception cible
 
-**KIN-01 — séparation métier validée :** coach = partage de Bibliothèque ; kinésithérapeute = transmission de Mouvements au patient via l'Espace professionnel en étoile, consignes d'exécution orales dans la première tranche. [Parcours PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) ; [dossier de revue Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
+Les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 couvrent : Bibliothèques par références, identité source stable malgré les homonymes, **révision active unique par Mouvement**, propagation aux Bibliothèques qui le référencent après mise à jour volontaire, première publication distincte de la redistribution, permissions des destinataires, archivage, arrêt de partage, modération et Espace en étoile générique.
 
-- [Parcours utilisateurs cibles PU-01 à PU-16 — F4-A à F4-F](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) : comportements métier consolidés, détails UX ouverts.
-- [Conception fonctionnelle, technique et données — revue Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md) : architecture proposée, schéma de données, API, sécurité, mise à jour, modération et points à clarifier.
+- [Parcours fonctionnels PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) — référence des interactions attendues, sans interface Figma encore validée.
+- [Conception fonctionnelle et droits](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md) — règles produit post-MVP et points réellement ouverts.
+- [Architecture, modèle de données et axes de simplification pour Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md) — proposition technique à examiner, notamment la migration `normalized_name UNIQUE` et la cohérence des mises à jour sur deux bases.
+- [Registre des décisions](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) ; [données](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md), [API](Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md), [architecture](Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md).
 
-- [Conception des Bibliothèques, permissions, mises à jour et modération](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md) — décisions BIB-01 à BIB-18 validées, cible post-MVP ; points non tranchés classés « À CLARIFIER ».
-- [Registre des décisions — BIB-01 à BIB-18](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) ; [modèle de données](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md), [API](Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md), [architecture](Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md).
-- **Figma** : des actions « Partager » sont visibles dans le Prototype MVP, mais aucun écran complet de Bibliothèques et de modération n'est considéré validé par ce contrôle documentaire.
-
+**Périmètre :** post-MVP, aucune réalisation de réseau ou de modération centrale revendiquée. La page « Prototype MVP » de Figma comporte des actions « Partager », pas des parcours complets de Bibliothèques ou de modération validés.
 
 ## Formats — base de reprise actualisée le 5 novembre 2026
 
