@@ -1,5 +1,9 @@
 # Conception fonctionnelle par fonctionnalité
 
+## Arbitrages confirmés — Mouvement, auteur et médias (11/11/2026)
+
+**MOUV-D1 à MOUV-D4 — règle applicable.** Auteur unique `author: ActorRef | null` (pas de `authors[]`) ; métadonnées médias conservées, référence distante, chargement à la demande/cache local, téléchargement hors ligne explicite reporté, aucune diffusion sans droits confirmés ; **fiche importée non modifiable et non duplicable**, redistribution seulement si autorisée dans un futur lot ; paramètres des Exercices restent personnalisables. Les adaptations historiques des 60 fiches sont préservées pour la reprise CA-3. Les modes anciens BIB-06/BIB-07/BIB-08 permettant une modification ou copie des **fiches importées** sont supersédés sur cette portée. [Contrat de l'étape 2](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
 ## Conception fonctionnelle — responsabilité des trois surfaces
 
 **Catalogue mobile :** recherche, consultation, création/édition de Mouvements personnels et usage dans les Séances/Programmes. **Profil :** sources, Bibliothèques génériques KODJO, état installé, provenance, accès à l'import et lancement volontaire de mise à jour ; aucun éditeur concurrent de fiches. **Administration Web KODJO :** création/édition de fiches éditoriales complètes, médias et révisions, export compatible ; capacités conservées malgré le report du partage. **Services CA-3 partagés :** validation du fichier, identité, comparaison des révisions, import/export, réconciliation des 60 fiches, reprise des mises à jour. Les parcours de création de Bibliothèques personnelles/coachs et de distribution communautaire demeurent différés. Figma `1992:778` montre les entrées futures « Mes bibliothèques » et « Bibliothèques partagées » : leur état actif avant livraison reste À CLARIFIER.
