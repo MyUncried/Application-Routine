@@ -342,3 +342,26 @@ Traitement (classe B, ch08 annoté) :
 - `ExecutionVoice` : plus d'atténuation par annonce.
 - Signal `PREPARE` retiré.
 - Écran de diagnostic conservé, en développement seulement (accès depuis le Profil).
+
+
+## Cause racine du click, démontrée le 10/11/2026 (écran de diagnostic)
+
+Essais de Hermann (écran `Profil › Diagnostic des sons`, écouteurs, sans musique), recopiés :
+
+- A à E, en mélange puis en atténuation : « il n'y a de click dans aucun scénario ».
+- F (annonce vocale, puis le même lecteur rejoué trois fois) : « Double bip / sifflet roulé / Sifflet pur / Bip grave + Attenuation / Mélange + F -> click à partir du deuxième bip seulement ».
+- H et I : « H pas de click, I clicks ».
+  - H : après une annonce, un lecteur neuf à chaque son.
+  - I : annonce dans sa propre session.
+
+Cause démontrée :
+
+- après une annonce de la synthèse vocale, un même lecteur rembobiné puis rejoué produit un click à partir du deuxième son ;
+- c'est vrai quel que soit le son et quel que soit le mode de session ;
+- un lecteur neuf à chaque son ne claque pas.
+- Attribution historique : la première livraison (b362aa34) rejouait déjà le même lecteur, mais ses annonces étaient rares. Le click est devenu audible avec les annonces fréquentes (« À suivre », « Pause », objectif) et les sons rejoués toutes les secondes.
+- Les hypothèses précédentes sont réfutées comme causes du click : vibration, reconfiguration de la session, saturation du haut-parleur.
+
+Correctif (classe D, choix technique) : `ExecutionSounds` joue chaque son avec un lecteur neuf, préparé à l'avance (un prêt par son), et le libère 3 s après. La voix n'est pas modifiée.
+
+La décision 1.A (musique atténuée toute la séance) reste en vigueur. Elle supprime en plus les bips décalés ou manquants causés par les reconfigurations.

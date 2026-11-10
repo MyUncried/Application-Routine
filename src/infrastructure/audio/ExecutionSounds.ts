@@ -63,49 +63,64 @@ export const SOURCES: Record<BeepTone, number> = {
   CLIC_DOUX: require("../../../assets/sounds/clic-doux.wav"),
 };
 
-// Un seul lecteur par son pour toute l'application : deux instances ne peuvent jamais jouer le même son en
-// double, légèrement décalé.
-const sharedPlayers: Partial<Record<BeepTone, AudioPlayer>> = {};
+/**
+ * Un lecteur neuf par son joué, préparé à l'avance — cause racine du click démontrée le 10/11/2026 sur l'écran
+ * de diagnostic des sons : après une annonce vocale, un même lecteur rembobiné et rejoué claque à partir du
+ * deuxième son (essai F), quel que soit le son ou le mode de session ; un lecteur neuf à chaque son ne claque
+ * jamais (essai H). Chaque son joue donc un lecteur jamais utilisé, chargé d'avance ; il est libéré peu après.
+ */
+const ready: Partial<Record<BeepTone, Promise<AudioPlayer>>> = {};
+
+/** Délai avant de libérer un lecteur joué (plus long que le plus long des sons). */
+const RELEASE_AFTER_MS = 3000;
+
+async function load(tone: BeepTone): Promise<AudioPlayer> {
+  const { createAudioPlayer } = await import("expo-audio");
+  return createAudioPlayer(SOURCES[tone], { keepAudioSessionActive: true });
+}
+
+/** Lecteur prêt pour ce son ; le suivant est aussitôt préparé. */
+function take(tone: BeepTone): Promise<AudioPlayer> {
+  const player = ready[tone] ?? load(tone);
+  ready[tone] = load(tone);
+  ready[tone]!.catch(() => {
+    ready[tone] = undefined;
+  });
+  return player;
+}
 
 export class ExecutionSounds implements BeepPort {
-  private readonly players = sharedPlayers;
-
-  /** Début d'Exécution : session active et lecteurs chargés, pour qu'aucun son ne parte en retard. */
+  /** Début d'Exécution : session active et un lecteur prêt par son, pour qu'aucun son ne parte en retard. */
   prepare(): void {
     if (!hasNativeModule("ExpoAudio")) return;
     void startExecutionAudio();
-    void (async () => {
-      for (const tone of Object.keys(SOURCES) as BeepTone[]) await this.player(tone);
-    })().catch(() => undefined);
+    for (const tone of Object.keys(SOURCES) as BeepTone[]) {
+      if (ready[tone] === undefined) {
+        ready[tone] = load(tone);
+        ready[tone]!.catch(() => {
+          ready[tone] = undefined;
+        });
+      }
+    }
   }
 
   play(tone: BeepTone, volume = 1): void {
     void this.playAsync(tone, volume).catch(() => undefined);
   }
 
-  private async player(tone: BeepTone): Promise<AudioPlayer> {
-    let player = this.players[tone];
-    if (player === undefined) {
-      const { createAudioPlayer } = await import("expo-audio");
-      const created = createAudioPlayer(SOURCES[tone], { keepAudioSessionActive: true });
-      // Recette du 10/11/2026 (k5 : clic « légèrement après le tempo ») : le lecteur revient au début dès la
-      // fin du son, pour que le suivant parte sans attendre un repositionnement.
-      created.addListener("playbackStatusUpdate", (status) => {
-        if (status.didJustFinish) void created.seekTo(0).catch(() => undefined);
-      });
-      player = created;
-      this.players[tone] = player;
-    }
-    return player;
-  }
-
   private async playAsync(tone: BeepTone, volume: number): Promise<void> {
     if (!hasNativeModule("ExpoAudio")) return;
     void startExecutionAudio();
-    const player = await this.player(tone);
+    const player = await take(tone);
     player.volume = volume;
-    if (player.playing || player.currentTime > 0.01) await player.seekTo(0);
     player.play();
     if (__DEV__) console.log(`[guidage] son ${tone} ${Date.now()}`);
+    setTimeout(() => {
+      try {
+        player.remove();
+      } catch {
+        // Lecteur déjà libéré.
+      }
+    }, RELEASE_AFTER_MS);
   }
 }
