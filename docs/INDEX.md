@@ -1,5 +1,9 @@
 # Documentation de KODJO
 
+## Fiche Mouvement — contrat consolidé pour développement (11/11/2026)
+
+[Contrat de la fiche Mouvement, matrice de couverture et mandat Claude](KODJO-Fiche-Mouvement-Contrat-consolide-et-handoff-2026-11-11.md) — étude ciblée du fichier autonome CA-1, de la provenance, du chargement CA-3, du modèle local et des écarts avant évolution de la persistance. **Aucune modification du moteur ni validation de tests**. Les fichiers CA-1/CA-3 analysés proviennent d'une branche pilote distincte, non fusionnée automatiquement.
+
 ## Pilotage du catalogue autonome — six étapes confirmées le 11/11/2026
 
 **Référence de réalisation :** [plan en six étapes au registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md). Conception exhaustive de la fiche Mouvement ; consolidation CA-1/CA-2/CA-3 et données/révisions sans migration concurrente PRE-10 ; Figma Profil ; services communs indépendants des interfaces ; administration Web existante (Node.js local et OVH, création du 61e Mouvement, export compatible) ; puis intégration mobile et réconciliation des 60 Mouvements déjà installés. **Les décisions BIB-19–23 restreignent les Bibliothèques visibles aux collections génériques KODJO, sans reporter le socle éditorial.** Le plan L1–L6 de distribution communautaire est remplacé pour le pilotage de ce chantier. Figma Profil vérifié : [écran `1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778). Fonctions personnelles et partagées figurant dans la maquette : futures, comportement actuel à clarifier.
