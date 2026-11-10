@@ -25,7 +25,7 @@ const TONES: readonly { readonly tone: BeepTone; readonly label: string; readonl
   { tone: "BIP_GRAVE", label: "Bip grave", volume: 1 },
 ];
 
-type Method = "VOLUME_ONCE" | "VOLUME_EACH" | "FRESH" | "FRESH_NO_VOLUME" | "WITH_VIBRATION" | "AFTER_VOICE" | "ALL_PLAYERS";
+type Method = "VOLUME_ONCE" | "VOLUME_EACH" | "FRESH" | "FRESH_NO_VOLUME" | "WITH_VIBRATION" | "AFTER_VOICE" | "ALL_PLAYERS" | "VOICE_FRESH" | "VOICE_OWN_SESSION";
 
 // A reproduit la première livraison du 09/11/2026 (b362aa34, sans click) ; B la méthode actuelle, où le volume
 // est réglé avant chaque son depuis 9b9339ef (premier click signalé à la recette suivante).
@@ -39,6 +39,9 @@ const METHODS: readonly { readonly method: Method; readonly label: string }[] = 
   // Différences restantes avec l'Exécution (aucun click en A à E, quel que soit le mode de session).
   { method: "AFTER_VOICE", label: "F — Comme B, après une annonce vocale" },
   { method: "ALL_PLAYERS", label: "G — Comme B, avec les 9 sons chargés comme en séance" },
+  // F a montré le click après une annonce, à partir du deuxième son : deux corrections possibles.
+  { method: "VOICE_FRESH", label: "H — Après une annonce, lecteur neuf à chaque son" },
+  { method: "VOICE_OWN_SESSION", label: "I — Comme F, annonce dans sa propre session audio" },
 ];
 
 const REPEAT = 3;
@@ -91,12 +94,12 @@ export function SoundDiagnosticScreen() {
       note(`session : ${SESSION_MODES.find((m) => m.mode === sessionMode)!.label}`);
       await wait(500);
       const { tone, volume } = selected;
-      if (method === "AFTER_VOICE") {
+      if (method === "AFTER_VOICE" || method === "VOICE_FRESH" || method === "VOICE_OWN_SESSION") {
         // Même réglage que les annonces de la séance (ExecutionVoice).
         const Speech = await import("expo-speech");
         const voice = bestFrenchVoice(await Speech.getAvailableVoicesAsync());
         await new Promise<void>((resolve) => {
-          Speech.speak("Préparez-vous. À suivre : Pompes", { language: EXECUTION_VOICE_LANGUAGE, ...(voice === null ? {} : { voice }), useApplicationAudioSession: true, onDone: () => resolve(), onError: () => resolve(), onStopped: () => resolve() });
+          Speech.speak("Préparez-vous. À suivre : Pompes", { language: EXECUTION_VOICE_LANGUAGE, ...(voice === null ? {} : { voice }), useApplicationAudioSession: method !== "VOICE_OWN_SESSION", onDone: () => resolve(), onError: () => resolve(), onStopped: () => resolve() });
         });
         note("annonce terminée");
         await wait(1000);
@@ -105,7 +108,7 @@ export function SoundDiagnosticScreen() {
         for (const other of Object.keys(SOURCES) as BeepTone[]) if (other !== tone) await create(other);
         note("9 sons chargés");
       }
-      if (method === "VOLUME_ONCE" || method === "VOLUME_EACH" || method === "WITH_VIBRATION" || method === "AFTER_VOICE" || method === "ALL_PLAYERS") {
+      if (method === "VOLUME_ONCE" || method === "VOLUME_EACH" || method === "WITH_VIBRATION" || method === "AFTER_VOICE" || method === "ALL_PLAYERS" || method === "VOICE_OWN_SESSION") {
         const player = await create(tone);
         if (method === "VOLUME_ONCE") player.volume = volume;
         else {
@@ -128,7 +131,7 @@ export function SoundDiagnosticScreen() {
         await wait(500);
         for (let i = 1; i <= REPEAT; i += 1) {
           const player = next;
-          if (method === "FRESH") player.volume = volume;
+          if (method !== "FRESH_NO_VOLUME") player.volume = volume;
           player.play();
           note(`son ${i}`);
           await wait(INTERVAL_MS / 2);
