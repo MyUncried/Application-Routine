@@ -552,3 +552,9 @@ La configuration, les données, la Composition et la réédition concernent PRE-
 ## Création et Formats — état final du 5 novembre 2026
 
 **Création et Formats — décisions du 5 novembre 2026.** Modale de création commune au Catalogue et à la Composition, nouveau brouillon prérempli à l’arrivée, sauvegarde uniquement dans la Composition ; fermeture vers le point de départ sans mutation. Menu à trois options, œil et CE-CIR-03 retirés ; photo de l’Exercice ouvrant une fiche en lecture seule avec « Dans cette séance ». Superset alterné trois tours ; EMOM prescrit par série ; Death by en Durée avec avertissement au seul premier rang impossible et arrêt avant un rang incompatible. Règles complètes dans la référence Formats actualisée, §§7/7.6/7.7/9.4/10/12. Configuration et Composition : PRE-9 ; consommation par le moteur spécialisé : PRE-10/11. Cette mise à jour documentaire ne vaut pas développement ni qualification.
+
+## Évolution post-MVP — Distribution des Bibliothèques de Mouvements
+
+**Cible BIB-01 à BIB-18.** Bibliothèques personnelles constituées par références, bibliothèque reçue en lecture seule, redistribution sélective selon les permissions des fiches, copie sans relâchement des restrictions, visibilités personnelle/partagée/publique et accès gratuit/payant. Les mises à jour éditoriales sont proposées par pastille et appliquées par « Mettre à jour » uniquement sur demande ; avant diffusion, validation centrale, avec intervention humaine pour première publication publique/payante. Signalement et suspension de contenu possibles après publication.
+
+Comptes, stockage central, diffusion professionnelle ou communautaire, accès payants et modération ne sont **pas ajoutés au MVP local**. La répartition entre versions futures et le statut des Bibliothèques archivées restent à arbitrer. Le pilote d'import des 60 fiches ne certifie pas ces fonctions de partage. [Référence](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
