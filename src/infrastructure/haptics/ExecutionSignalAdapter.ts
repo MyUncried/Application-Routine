@@ -110,7 +110,7 @@ export class ExecutionSignalAdapter {
     if (key === this.lastKey) return;
     this.lastKey = key;
     if (signal.kind === "CADENCE" && this.lastSoundAtMs !== null && signal.atMs >= this.lastSoundAtMs && signal.atMs - this.lastSoundAtMs < CADENCE_QUIET_AFTER_SOUND_MS) return;
-    if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"}`);
+    if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"} sons=${this.soundEnabled ? "oui" : "non"} voix=${this.voiceEnabled ? "oui" : "non"} objectif=${this.announceObjective ? "oui" : "non"}`);
     const { cue, announcement } = this.guidance(signal);
     if (this.vibrationEnabled && cue.vibration !== "NONE") this.vibrator.vibrate(cue.vibration);
     const spoken = this.voiceEnabled ? announcement : null;
@@ -119,6 +119,7 @@ export class ExecutionSignalAdapter {
     const played = this.soundEnabled && sounding !== null && sounding.sound !== null;
     if (played) this.beeps.play(sounding.sound!, sounding.volume);
     if (played && signal.kind !== "CADENCE") this.lastSoundAtMs = signal.atMs;
+    if (spoken !== null && __DEV__) console.log(`[guidage] annonce « ${spoken} »`);
     if (spoken !== null) this.defer(() => this.voice.say(spoken), played ? ANNOUNCEMENT_AFTER_SOUND_MS : 0);
   }
 
