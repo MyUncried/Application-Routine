@@ -1,4 +1,4 @@
-# KODJO — Revue indépendante : Mouvements, Bibliothèques, droits, mises à jour, modération, Espaces professionnels
+# KODJO — Revue indépendante : Mouvements, Bibliothèques, droits, mises à jour, modération, transmission individuelle
 
 **Date :** 10 novembre 2026 · **Nature :** audit exclusivement (aucun développement, aucune correction de spécification, aucune modification Figma, aucune fusion).
 **Destinataire :** ChatGPT (consolidation, arbitrages avec Hermann, corrections documentaires).
@@ -17,7 +17,7 @@
 **Lus par différentiel ciblé (changements de la branche) :** registre 07, chapitres 05, 09, 10, 11, 12 ; recherche transversale de BIB/F4/KIN-01 dans PRODUCT, INDEX, chapitres 01 à 13 et annexes. Les chapitres 02, 03, 04, 08, 13 n'ont été contrôlés que par recherche de termes (pas de relecture intégrale) : **partiellement vérifié**.
 **Code lu :** `MovementEditorialProvenance.ts`, `MovementCatalogueFile.ts` (extraits), `catalogueLoadPlan.ts`, `CatalogueLoadService.ts` (extraits), `SqliteCatalogueRegistry.ts` (branche catalogue) ; migrations 012/013 et constantes de base (main). Corpus `kodjo-pilote-60.catalogue.json` analysé.
 **Non exécuté :** les tests Jest des deux branches (dépendances non installées). Aucune affirmation « le test passe » n'est faite ; statut NON VÉRIFIABLE là où la preuve serait un test.
-**Vérifications externes (obligations) :** Apple App Review Guidelines (1.2, 5.1.1(v)) ; politique Google Play « User Generated Content » ; DSA article 19 ; HDS (article L.1111-8 CSP, esante.gouv.fr). Sources en annexe. Chaque point est classé *obligation vérifiée* ou *recommandation de conception*.
+**Vérifications externes (obligations) :** Apple App Review Guidelines (1.2, 5.1.1(v)) ; politique Google Play « User Generated Content » ; DSA article 19. Sources en annexe. Chaque point est classé *obligation vérifiée* ou *recommandation de conception*.
 
 Légende gravité : **Bloquant** = à lever avant de démarrer le développement du lot indiqué (pas forcément de tout le projet) ; **Important** = à corriger avant la fin de conception, sans arrêter un lot ; **Amélioration** = utile, différable.
 
@@ -39,11 +39,11 @@ Légende gravité : **Bloquant** = à lever avant de démarrer le développement
 2. **Les permissions Modifier/Redistribuer n'ont aucun support local** : ni dans `main`, ni dans le format pilote (qui ne porte qu'une `license`). Sans point d'application local unique, « Protégé » n'est pas garanti (C-03), et leur portée (fiche ou révision, défaut, changement) n'est pas arbitrée (C-04).
 3. **Collision de noms** entre fiches de sources différentes : contrainte d'unicité de `main` structurante, pas de politique d'installation (C-02).
 4. **Schéma cible surdimensionné** : 3 tables locales et 3 tables serveur sans nécessité démontrée (C-17) ; groupes exigés (F4-C, T-06) mais non modélisés (C-08).
-5. **Kiné-patient** : concept juste, modèle minimal absent (relation, consentement, transfert) ; **données de santé / HDS non analysées** (C-10, C-11).
+5. **Transmission individuelle (KIN-01)** : le vocabulaire « Espace professionnel » est sans objet (l'application ne connaît aucun rôle professionnel) ; modèle minimal absent (relation, consentement, transfert) (C-10).
 6. **Obligations des stores et DSA** (blocage d'utilisateur, contact, suppression de compte, notification-et-action) non reprises (C-12).
 7. **Propagation documentaire incomplète** : règles obsolètes subsistant en ch. 05/10 ; décisions absentes des annexes d'identifiants et de traçabilité (C-15).
 
-**Décompte :** 4 bloquants, 13 importants, 11 améliorations (dont 5 constats CONFORME) = **28 constats**. Détail en fin de document (§H).
+**Décompte :** 4 bloquants, 12 importants, 12 améliorations (dont 6 constats CONFORME) = **28 constats**. Détail en fin de document (§H).
 
 **Conséquence pratique.** Les Bibliothèques **locales personnelles** (PU-01, 02, 13) peuvent démarrer sans attendre, sous réserve de C-06 (placement des tables) et de C-16 (retirer la « copie à permissions héritées » du lot L1). Tout ce qui touche à la réception, aux droits, à la mise à jour et au kiné est conditionné par les arbitrages du §E.
 
@@ -126,23 +126,25 @@ Alternative déconseillée : index unique `(normalized_name, source)` (migration
 **Constat.** Le format pilote porte un statut de droits **par média** (`rightsStatus` : `UNVERIFIED`, `PERMISSION_CONFIRMED`, `RESTRICTED`, `MovementCatalogueFile` l. 32, 65, 561-564). La conception ne relie ni ce statut ni la permission de fiche à la distribution des médias : seul le retrait par modération est traité. Une fiche « Libre » peut contenir un média `RESTRICTED`.
 **Correction proposée.** Règle minimale, sans nouvelle permission : un média n'est distribué que si la fiche est redistribuable **et** son `rightsStatus` vaut `PERMISSION_CONFIRMED` (ou média créé par l'auteur) ; sinon la fiche est distribuée **sans ce média**, comme pour un retrait de modération. À valider (§E-5).
 
-### C-10 — KIN-01 : besoins réels non modélisés (relation, consentement, transfert)
-**Axe :** Coach et kinésithérapeute (2) · **Gravité :** Important · **Statut :** PARTIELLEMENT CONFORME · **Arbitrage :** Oui
-**Constat.** La distinction coach/kiné est claire et correcte (pas de `library_id` fictif, pas de prescription). Mais aucune entité ne représente l'Espace, la relation patient, le consentement ni l'acte de transmission, alors que PU-17 et T-19 les supposent. « Étoile » est une topologie, pas une table.
-**Évidence.** PU-17 (l. 160-166), Conception §0 et §2 « Distinction professionnelle », §5.1 (aucune table), T-19 (l. 379).
+### C-10 — Transmission individuelle (KIN-01, PU-17) : relation et transfert non modélisés ; « professionnel » sans objet
+**Axe :** Coach et kinésithérapeute (2) · **Gravité :** Important · **Statut :** PARTIELLEMENT CONFORME · **Arbitrage nécessaire :** Oui
+**Constat.** La séparation Bibliothèque (diffusion) / transmission individuelle (un ou plusieurs Mouvements à une personne) est claire et correcte : pas de `library_id` fictif, pas de prescription. Deux écarts : (1) KIN-01 et PU-17 parlent d'« Espace **professionnel** » alors que l'application ne connaît aucun rôle professionnel (BIB-05 exclut déjà tout type structurel Coach ou Kiné) ; « kiné » et « coach » sont des usages, pas des objets du modèle ; (2) aucune entité ne représente la relation, le consentement ni l'acte de transmission, alors que PU-17 et T-19 les supposent. « Étoile » est une topologie, pas une table.
+**Évidence.** PU-17 (l. 160-166), Conception §0 et §2 « Distinction professionnelle », §5.1 (aucune table), T-19 (l. 379), BIB-05.
 **Besoins réellement indispensables (et rien de plus) :**
-1. Un **Espace** appartenant à un professionnel (identité vérifiée selon la politique à définir).
-2. Une **relation individuelle** Espace ↔ patient : invitation par le kiné (code), acceptation par le patient (consentement explicite horodaté), statut (invité / actif / terminé).
-3. Un **transfert** = (expéditeur, destinataire, fiche, révision, horodatage). Il emprunte la **même chaîne** que la distribution de Bibliothèque : droit « Redistribuer » de la fiche (ou fiche propre du kiné), validation centrale, projection sans médias interdits, installation locale, mêmes règles de mise à jour et de modération.
-4. **Fin de relation :** le patient conserve ce qui est installé (cohérent avec F4-B/F4-C) ; le kiné ne peut plus transmettre.
-5. **Mises à jour :** pas de canal automatique ; le kiné peut **re-transmettre** une nouvelle révision, que le patient installe par une action explicite (cohérent avec PU-11).
-**Mutualisation minimale.** Service commun `deliver(révisions approuvées, destinataire)`, deux « portes d'entrée » : `release + library_recipient` (coach) et `transfer` (kiné). Même `local_installation`. Rien d'autre n'est partagé : pas de grant par Bibliothèque pour le kiné.
-**Correction proposée.** Ajouter au modèle cible `workspace`, `workspace_member` et `transfer` (§D). Une table `workspace_member` suffit pour représenter l'étoile : plusieurs lignes pour un même `workspace_id`, sans visibilité croisée (critère 16).
+1. Une **relation individuelle orientée** (propriétaire → membre) : invitation par le propriétaire, acceptation explicite du destinataire (horodatée), statut invité / actif / terminé. L'étoile en découle : plusieurs relations d'un même propriétaire, **sans visibilité croisée** entre membres (critère 16).
+2. Un **transfert** = (expéditeur, destinataire, fiche, révision, horodatage). Il emprunte la **même chaîne** que la distribution de Bibliothèque : droit « Redistribuer » de la fiche (ou fiche propre de l'expéditeur), validation centrale, projection sans média interdit, installation locale, mêmes règles de mise à jour et de modération. Il suppose une relation active.
+3. **Fin de relation :** le destinataire conserve ce qui est installé (cohérent avec F4-B/F4-C) ; l'expéditeur ne peut plus transmettre.
+4. **Mises à jour :** pas de canal automatique ; l'expéditeur **re-transmet** une nouvelle révision, que le destinataire installe par une action explicite (cohérent avec PU-11).
+5. **Refus et blocage :** le destinataire peut refuser un envoi et bloquer un expéditeur (exigence des stores, C-12).
+**Mutualisation minimale.** Service commun `deliver(révisions approuvées, destinataire)`, deux « portes d'entrée » : `release + library_recipient` (Bibliothèque) et `transfer` (transmission). Même installation locale. Rien d'autre n'est partagé : pas de grant par Bibliothèque pour la transmission.
+**Correction proposée.** Ajouter au modèle cible `transmission_link` et `transfer` (§D) ; retirer la notion de « professionnel » de KIN-01, PU-17 et des chapitres concernés (§F). Arbitrage : relation orientée propre à la transmission ou réemploi du lien « Ami » de la Communauté (recommandé : relation orientée, §E-7).
 
-### C-11 — Données de santé : analyse RGPD / HDS absente pour la relation kiné-patient
-**Axe :** Sécurité / conformité (6) · **Gravité :** Important · **Statut :** À CLARIFIER · **Arbitrage :** Oui
-**Constat.** Le dossier demande de « ne pas propager les données de santé » mais ne dit pas ce que le serveur stockera. Le seul lien (kiné X → patient Y → Mouvement Z) révèle une relation de soins. **Obligation vérifiée :** l'hébergement de données de santé recueillies lors d'activités de prévention, de diagnostic, de soins ou de suivi, pour le compte des professionnels ou des patients, exige un hébergeur certifié HDS (article L.1111-8 du Code de la santé publique, esante.gouv.fr). **Non vérifié :** si une simple transmission de fiches Mouvements dans un Espace tombe sous ce régime ; l'ANS indique qu'il faut l'apprécier au cas par cas. Supabase / PostgreSQL « non décidés » (§4) : le choix d'hébergeur dépend de cette réponse.
-**Correction proposée.** (i) Minimiser : le serveur ne stocke que acteur kiné, acteur patient, fiche, révision, horodatage — pas de texte libre, pas de consignes, pas de résultats. (ii) Obtenir un **avis juridique avant le lot kiné** (RGPD art. 9, HDS, rôle responsable de traitement / sous-traitant). (iii) Ne pas bloquer L1 à L5 (coach et Bibliothèques) par cette question.
+### C-11 — Neutralité vis-à-vis des données de santé : contrainte de conception à conserver
+**Axe :** Sécurité / conformité (6) · **Gravité :** Amélioration · **Statut :** CONFORME · **Arbitrage nécessaire :** Non
+**Constat.** L'application n'est pas médicale : aucun rôle professionnel, aucune prescription numérique, aucun texte de consigne, aucun résultat. Le serveur ne voit que « utilisateur A transmet la fiche X à l'utilisateur B », comme pour tout partage ; rien ne désigne une relation de soins. Les régimes propres aux données de santé (catégorie particulière du RGPD, hébergement certifié) ne sont donc pas déclenchés par la conception telle que documentée.
+**Évidence.** PU-17, KIN-01, BIB-05, Conception §9 (« minimisation »).
+**Conséquence.** La conformité tient à une limite de conception, pas à un dispositif technique : elle disparaîtrait si le modèle recevait un rôle professionnel, une spécialité, un champ clinique ou une note associée à un destinataire.
+**Correction proposée.** Consigner explicitement cette limite : ne jamais introduire dans le modèle de rôle ou spécialité professionnelle, de champ clinique, de note ni de résultat associés à une relation ou à un transfert ; retirer « consentement et données de santé » des points à clarifier de PU-17. Contrainte de conception, non avis juridique.
 
 ### C-12 — Obligations des stores, DSA et suppression de compte non reprises dans les exigences
 **Axe :** Sécurité, droits, modération (6) · **Gravité :** Important · **Statut :** PARTIELLEMENT CONFORME · **Arbitrage :** Oui (suppression de compte)
@@ -185,10 +187,10 @@ Impact **mesuré sur le corpus** `kodjo-pilote-60.catalogue.json` : 60 fiches, `
 - PU-08 : « pas systématiquement plusieurs Mouvement locaux » (ambigu, cf. C-01).
 **Correction proposée.** Voir plan §F. Décision à prendre : attribuer des D-xxx aux décisions BIB/F4/KIN-01 (recommandé, pour la traçabilité existante) ou étendre les annexes aux préfixes BIB/F4/KIN.
 
-### C-16 — Plan de lots : copie à permissions héritées en L1, absence de lot kiné et de lot identité
+### C-16 — Plan de lots : copie à permissions héritées en L1, absence de lot transmission et de lot identité
 **Axe :** Compatibilité / planification (7) · **Gravité :** Important · **Statut :** PARTIELLEMENT CONFORME · **Arbitrage :** Non
-**Constat.** L1 inclut « copie avec permissions héritées » alors que le modèle de permissions n'existe qu'en L2 (C-03/C-04) : la copie locale d'un Mouvement n'a aucun droit à hériter. Aucun lot ne couvre l'identité (comptes, authentification, suppression de compte, C-12) ni le transfert kiné (PU-17). L3 conditionne L4 sans lister les exigences des stores.
-**Correction proposée.** Voir plan §G : L1 réduit à PU-01, 02, 13 (références, archivage local) ; copie à permissions héritées déplacée en L2 ; identité intégrée à L2 ; lot kiné « L4-K » après avis juridique (C-11) ; exigences de stores listées en L3.
+**Constat.** L1 inclut « copie avec permissions héritées » alors que le modèle de permissions n'existe qu'en L2 (C-03/C-04) : la copie locale d'un Mouvement n'a aucun droit à hériter. Aucun lot ne couvre l'identité (comptes, authentification, suppression de compte, C-12) ni la transmission individuelle (PU-17). L3 conditionne L4 sans lister les exigences des stores.
+**Correction proposée.** Voir plan §G : L1 réduit à PU-01, 02, 13 (références, archivage local) ; copie à permissions héritées déplacée en L2 ; identité intégrée à L2 ; lot « L4-T » (transmission individuelle) ; exigences de stores listées en L3.
 
 ### C-17 — Surcomplexité du schéma proposé
 **Axe :** Architecture / modèle de données (3, 4) · **Gravité :** Important · **Statut :** PARTIELLEMENT CONFORME · **Arbitrage :** Non
@@ -202,7 +204,7 @@ Impact **mesuré sur le corpus** `kodjo-pilote-60.catalogue.json` : 60 fiches, `
 | `local_sheet_revision_cache` | **Retirer** | Voir C-01 (option A). |
 | `local_access_receipt` | **Différer** | Utile seulement pour l'expiration d'un accès payant (A1/A9, chantier commercial) ; F4-B suffit tant que rien n'expire. |
 | `local_moderation_registry` | **Conserver**, sous le nom `moderation_block` | Voir C-05. |
-Résultat : 14 tables serveur proposées → 12 (dont une vue d'état de modération), plus 3 pour l'Espace et le transfert ; 7 tables locales proposées → 4 nouvelles (cf. §D).
+Résultat : 14 tables serveur proposées → 12 (dont une vue d'état de modération), plus 2 pour la relation et le transfert ; 7 tables locales proposées → 4 nouvelles (cf. §D).
 
 ### C-18 — Terminologie « Catalogue / catalogue / Bibliothèque » et écran Profil
 **Axe :** Cohérence fonctionnelle / Figma (1) · **Gravité :** Amélioration · **Statut :** À CLARIFIER · **Arbitrage :** Oui
@@ -262,7 +264,7 @@ Rien n'impose de modifier PRE-10 : références Séances → Mouvement inchangé
 | BIB-02 | PU-03 | `sheet.author/owner/rights_holder` nullables | catalogue éditorial | — | PARTIELLEMENT CONFORME | C-13 (`authors[]`) |
 | BIB-03 | PU-02 | `library_member`, `library_release_member` | client / serveur | T-01, T-02 | CONFORME | C-24 |
 | BIB-04 | PU-01, 02, 08 | `library_member` → Mouvement local | client | T-01 | PARTIELLEMENT CONFORME | C-01, C-02 (mélange de sources) |
-| BIB-05 | PU-01, 05, 09, 17 | `library.visibility/access_class` ; kiné hors Bibliothèque | serveur | — | PARTIELLEMENT CONFORME | C-07 |
+| BIB-05 | PU-01, 05, 09, 17 | `library.visibility/access_class` ; transmission individuelle hors Bibliothèque | serveur | — | PARTIELLEMENT CONFORME | C-07 |
 | BIB-06 | PU-03, 04 | `sheet_revision.can_edit/can_redistribute` | garde local + serveur | T-03 | NON CONFORME | C-03, C-04 |
 | BIB-07 | PU-04 | `upstream`, droits hérités | client | T-03 | PARTIELLEMENT CONFORME | copie de Mouvement à permissions non vérifiée (C-03) |
 | BIB-08 | PU-02, 03 | `activity_definitions.execution_parameters` indépendants | client | critère 13 | CONFORME | schéma `main` |
@@ -282,7 +284,7 @@ Rien n'impose de modifier PRE-10 : références Séances → Mouvement inchangé
 | F4-D | PU-10 | plan par fiche (pilote) + pointeur en dernier | client | T-09, T-11 | PARTIELLEMENT CONFORME | C-14 |
 | F4-E | PU-13 | `library.archived_at` local | client | T-13 | CONFORME | C-26 |
 | F4-F | PU-14 | `library.distribution_state`, `library_recipient` | serveur | T-14 | CONFORME (règle) | C-07, C-22 |
-| KIN-01 | PU-17 | `workspace`, `workspace_member`, `transfer` | serveur + client | T-19 | PARTIELLEMENT CONFORME | C-10, C-11 |
+| KIN-01 | PU-17 | `transmission_link`, `transfer` | serveur + client | T-19 | PARTIELLEMENT CONFORME | C-10, C-11 |
 
 ---
 
@@ -295,7 +297,7 @@ Rien n'impose de modifier PRE-10 : références Séances → Mouvement inchangé
 | R3 | Collision de noms bloquant l'installation (C-02) | Élevée / moyen | Suffixe numéroté automatique (faible) ; index composite (forte) | Suffixe numéroté |
 | R4 | Intégrité multi-bases (C-06) | Moyenne / moyen | Pointeur en dernier + plan recalculable (faible) ; fusion des bases (moyenne) | Pointeur en dernier ; fusion à réévaluer après PRE-10 |
 | R5 | Neutralisation inapplicable localement (C-05) | Moyenne / fort (conformité) | Drapeau en mémoire au démarrage (faible) ; colonne en base (moyenne) | Drapeau chargé au démarrage |
-| R6 | Données de santé / HDS (C-11) | Moyenne / fort (juridique) | Minimisation + avis ; hébergeur certifié (moyenne à forte) | Avis avant lot kiné |
+| R6 | Dérive vers des données de santé (C-11) | Faible / moyen | Ne jamais introduire de rôle, de champ clinique ni de note (faible) | Conserver la contrainte |
 | R7 | Rejet des stores faute de blocage/contact/suppression de compte (C-12) | Moyenne / fort | Fonctions minimales dans L3 (moyenne) | Inclure dans L3 |
 | R8 | Fuite d'inventaire interdit par canal secondaire (C-21) | Faible-moyenne / fort | Projection serveur + manifeste sans comptage (faible) | Appliquer C-21 |
 | R9 | Révocation impossible sur copies hors ligne iOS | Certaine / limité | Neutralisation au démarrage et à la synchronisation (faible) | Déjà bien décrit (§7.2) ; ne rien promettre |
@@ -305,9 +307,9 @@ Rien n'impose de modifier PRE-10 : références Séances → Mouvement inchangé
 ## D. Modèle cible recommandé (sans développement)
 
 ### D.1 Principes
-Un backend modulaire unique ; cinq domaines logiques conservés. Une seule révision active par fiche et par appareil. Droits portés par la **révision**. Distribution et modération mutualisées entre coach (Bibliothèque) et kiné (transfert).
+Un backend modulaire unique ; cinq domaines logiques conservés. Une seule révision active par fiche et par appareil. Droits portés par la **révision**. Distribution et modération mutualisées entre Bibliothèque et transmission individuelle (transfert).
 
-### D.2 Serveur (12 tables + 3 pour l'Espace)
+### D.2 Serveur (12 tables + 2 pour la transmission)
 | Table | Colonnes essentielles | Contraintes / index |
 |---|---|---|
 | `actor` | `actor_id`, `kind` (USER/ORGANIZATION/PLATFORM), `display_name`, `deleted_at` | PK `actor_id` |
@@ -322,9 +324,8 @@ Un backend modulaire unique ; cinq domaines logiques conservés. Une seule révi
 | `review_case` | `case_id`, `kind` (PUBLICATION/REPORT), `target_type`, `target_id`, `state`, `reporter_actor_id NULL`, `opened_at` | index `(target_type, target_id, state)` |
 | `review_decision` | `decision_id`, `case_id`, `outcome`, `actor_id`, `statement_of_reasons`, `decided_at` | historique non modifiable |
 | `moderation_state` (vue ou colonne) | état courant par cible, version de décision | sert à synchroniser `moderation_block` |
-| *(Espace)* `workspace` | `workspace_id`, `owner_actor_id`, `kind` (PRO) | — |
-| *(Espace)* `workspace_member` | `workspace_id`, `member_actor_id`, `status` (INVITED/ACTIVE/ENDED), `consent_at`, `ended_at` | PK `(workspace_id, member_actor_id)` ; pas de lecture croisée entre membres |
-| *(Espace)* `transfer` | `transfer_id`, `sender_actor_id`, `recipient_actor_id`, `workspace_id`, `sheet_id`, `revision_id`, `created_at`, `state` | contrôle : fiche redistribuable, approuvée, relation ACTIVE |
+| *(Transmission)* `transmission_link` | `owner_actor_id`, `member_actor_id`, `status` (INVITED/ACTIVE/ENDED), `consent_at`, `ended_at` | PK `(owner_actor_id, member_actor_id)` ; pas de lecture croisée entre membres |
+| *(Transmission)* `transfer` | `transfer_id`, `sender_actor_id`, `recipient_actor_id`, `sheet_id`, `revision_id`, `created_at`, `state` | contrôle : fiche redistribuable et approuvée, relation ACTIVE |
 
 ### D.3 Client
 - **Base principale (migration 024, `DATABASE_VERSION` 24) :** `library(id, name, description, source_library_id NULL, read_only, archived_at, created_at)` ; `library_member(library_id FK CASCADE, movement_id FK CASCADE, position)`, PK `(library_id, movement_id)`.
@@ -334,8 +335,8 @@ Un backend modulaire unique ; cinq domaines logiques conservés. Une seule révi
 ```text
 Actor 1─N Library 1─N LibraryRelease 1─N ReleaseMember N─1 SheetRevision N─1 Sheet
 Library 1─N LibraryRecipient N─1 Actor              (via INVITE | PUBLIC | PURCHASE)
-Actor(kiné) 1─N Workspace 1─N WorkspaceMember N─1 Actor(patient)
-Workspace 1─N Transfer N─1 SheetRevision
+Actor 1─N TransmissionLink N─1 Actor                (relation orientée ; l'étoile en découle)
+TransmissionLink 1─N Transfer N─1 SheetRevision
 Sheet 1─N SheetRevision N─N MediaAsset
 ReviewCase 1─N ReviewDecision                       (cible : révision, média ou Bibliothèque)
 Client : Movement 1─0..1 InstalledSheet ; Library N─N Movement (library_member) ; InstalledLibrary 1─1 Library
@@ -354,7 +355,7 @@ Client : Movement 1─0..1 InstalledSheet ; Library N─N Movement (library_memb
 4. **Permissions (C-04).** Portées par la révision ; défaut à la création « Libre localement » ; un retrait de « Redistribuer » ne vaut que pour les futures diffusions. *Recommandé : oui.*
 5. **Médias (C-09).** Un média n'est redistribué que si ses droits sont confirmés, sinon la fiche part sans média. *Recommandé : oui.*
 6. **Suppression du compte d'un propriétaire (C-12).** Les copies déjà installées restent chez les destinataires, l'auteur apparaît comme supprimé. *Recommandé : oui.*
-7. **Kiné (C-10, C-11).** (a) Le kiné ne transmet que des fiches dont la redistribution est permise ou qu'il a créées ; (b) l'invitation vient du kiné, le patient consent explicitement ; (c) à la fin de la relation le patient conserve ; (d) pas de canal de mise à jour automatique : re-transmission explicite. *Recommandé : oui aux quatre.* **Préalable non décisionnel :** avis juridique sur HDS / RGPD avant tout développement du lot kiné.
+7. **Transmission individuelle (C-10).** (a) L'expéditeur ne transmet que des fiches dont la redistribution est permise ou qu'il a créées ; (b) relation **orientée** propre à la transmission (j'envoie, tu reçois), distincte du lien « Ami » de la Communauté, avec consentement explicite du destinataire ; (c) à la fin de la relation le destinataire conserve ; (d) pas de mise à jour automatique : re-transmission explicite. *Recommandé : oui aux quatre.*
 8. **Vocabulaire (C-18).** « Bibliothèques » pour la composition cible ; le canal de recette (fichier / administration locale) ne porte pas ce mot.
 9. *(Différable)* Déclaration de titularité des 60 fiches pour la Bibliothèque officielle KODJO (C-23).
 
@@ -371,18 +372,19 @@ Les autres points « À CLARIFIER » du dossier (accès payant expiré, retransm
 | 1 | `KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md` | §5.1, §5.2, §5.3 | Remplacer par le modèle §D de ce rapport ; retirer `library_draft_member`, `local_update_journal`, `local_sheet_revision_cache`, `local_access_receipt` (différé) ; fusionner grant + distribution ; fusionner soumission + dossier de modération ; ajouter Espace/transfert |
 | 2 | idem | §6.2 | Remplacer le pointeur par Bibliothèque par la règle « une révision active par fiche » selon arbitrage E-1 ; ajuster T-12 |
 | 3 | idem | §1.1 F4-C, §12 T-06, §13 A7 | « utilisateurs (groupes ultérieurement) » selon E-3 |
-| 4 | idem | §11 | Lots révisés (§G) ; copie à permissions héritées déplacée de L1 à L2 ; lot identité ; lot kiné |
-| 5 | idem | §9 | Ajouter exigences des stores / DSA / suppression de compte (C-12) et minimisation kiné (C-11) |
-| 6 | `KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md` | PU-04, PU-08, PU-10, PU-11, PU-17, §5 | « jamais plusieurs Mouvements locaux pour une même fiche source » ; aperçu de mise à jour des fiches partagées ; précision des conflits ; relation kiné (E-7) ; retirer de §5 les points résolus |
+| 4 | idem | §11 | Lots révisés (§G) ; copie à permissions héritées déplacée de L1 à L2 ; lot identité ; lot transmission |
+| 5 | idem | §9 | Ajouter exigences des stores / DSA / suppression de compte (C-12) et neutralité vis-à-vis des données de santé (C-11) |
+| 6 | `KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md` | PU-04, PU-08, PU-10, PU-11, PU-17, §5 | « jamais plusieurs Mouvements locaux pour une même fiche source » ; aperçu de mise à jour des fiches partagées ; précision des conflits ; « Espace en étoile » sans notion de professionnel (E-7) ; retirer de §5 les points résolus |
 | 7 | `KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md` | §2.1, §5, §7 | Portée des permissions (E-4) ; nettoyer les interrogations supersédées (§7) ; mention du canal de recette |
 | 8 | `Specifications-fonctionnelles/07 – Registre des décisions de conception.md` | sections « Décisions validées le 10/11/2026 », KIN-01 | Décider de la numérotation (D-xxx ou préfixes référencés) ; consigner E-1 à E-7 |
 | 9 | `10 – Processus métier…` | l. 2757 | Retirer l'« À CLARIFIER » résolu par F4-B/E/F ; garder paiement et droits distribués |
 | 10 | `05 – Versions du produit.md` | l. 562 | Retirer « statut des Bibliothèques archivées » (F4-E) |
-| 11 | `09`, `11`, `12` | sections ajoutées le 10/11 | Aligner sur le modèle §D (révision, `library_recipient`, Espace, transfert) |
+| 11 | `09`, `11`, `12` | sections ajoutées le 10/11 | Aligner sur le modèle §D (révision, `library_recipient`, relation, transfert) |
 | 12 | `13 – Contrats d'écran`, `06 – Écrans…`, `01 – Vision Générale` | occurrences BIB/F4/KIN-01 | Vérifier la cohérence et ajouter la mention « pas d'écran validé » |
 | 13 | Annexes (Index des identifiants, Matrice de traçabilité, Correspondance des sections, Historique des consolidations) | — | Ajouter BIB-01 à 18, F4-A à F, KIN-01 |
 | 14 | `PRODUCT.md`, `INDEX.md` | références | Mettre à jour après 1-13 |
 | 15 | Documents de la branche catalogue (Provenance, Format v1) | — | Ne pas modifier avant décision : documenter la correspondance du C-13 |
+| 16 | Registre 07 (KIN-01), PU-17, ch. 02, 03, 04, 05, 08 à 12, PRODUCT, INDEX | occurrences « Espace professionnel » | Réécrire en « Espace en étoile » (relation individuelle, transmission de Mouvements) ; supprimer toute notion de rôle professionnel ; consigner la limite de C-11 |
 
 **Propagation transverse nécessaire :** toute modification des permissions (E-4), du modèle de destinataires (C-07) et de la règle de révision active (E-1) doit être répercutée dans conception, parcours, registre, ch. 09, 10, 11, 12 et annexes en une seule passe.
 
@@ -398,7 +400,7 @@ Les autres points « À CLARIFIER » du dossier (accès payant expiré, retransm
 | **L2 — Identité et droits** | Comptes (création, connexion, **suppression**), acteurs, `sheet`, `sheet_revision` avec droits, copie à permissions héritées, garde `isMovementEditable` | E-4 ; avis juridique de base | choix d'hébergeur (C-11) | groupes |
 | **L3 — Validation et modération** | Stockage privé, `review_case/decision`, contrôles automatiques, file humaine, signalement, **blocage d'utilisateur**, coordonnées, conditions acceptées | L2 ; C-12 | exigences des stores | recours détaillés |
 | **L4 — Réception** | `library_release`, `library_recipient`, installation en lecture seule, homonymes (E-2), médias | L2 + L3 ; E-1, E-2, E-3, E-5 | aucun autre | achats, groupes |
-| **L4-K — Transmission kiné** | `workspace`, `workspace_member`, `transfer` | L2 + L3 ; avis HDS/RGPD ; E-7 | **avis juridique** | notifications évoluées |
+| **L4-T — Transmission individuelle** | `transmission_link`, `transfer`, refus et blocage | L2 + L3 ; E-7 | aucun | notifications évoluées |
 | **L5 — Mises à jour** | Pastille, aperçu (fiches partagées), « Mettre à jour » global, reprise, retirés conservés, `moderation_block` synchronisé | L4 ; E-1 | PRE-10 (tolérance neutralisation, exigence) | — |
 | **L6 — Publique / payante** | Découverte, droits commerciaux (raccordement `via = PURCHASE`) | L3 à L5 ; chantier commercial ; C-23 | commerce | tout le lot |
 
@@ -412,11 +414,11 @@ Les autres points « À CLARIFIER » du dossier (accès payant expiré, retransm
 | Gravité | Nombre | Constats |
 |---|---|---|
 | Bloquant | 4 | C-01, C-02, C-03, C-04 |
-| Important | 13 | C-05, C-06, C-07, C-08, C-09, C-10, C-11, C-12, C-13, C-14, C-15, C-16, C-17 |
-| Amélioration | 11 | C-18 à C-28 (dont 5 CONFORME : C-24, C-25, C-26, C-27, C-28) |
+| Important | 12 | C-05, C-06, C-07, C-08, C-09, C-10, C-12, C-13, C-14, C-15, C-16, C-17 |
+| Amélioration | 12 | C-11, C-18 à C-28 (dont 6 CONFORME : C-11, C-24, C-25, C-26, C-27, C-28) |
 | **Total** | **28** | |
 
-**Recommandation finale : À CORRIGER AVANT DÉVELOPPEMENT.** La conception est cohérente dans ses principes ; les corrections sont localisées (modèle local, droits, versions concurrentes, kiné, conformité). Le lot L1 peut démarrer dès L0 partiel ; les lots L2 et suivants sont conditionnés par les arbitrages.
+**Recommandation finale : À CORRIGER AVANT DÉVELOPPEMENT.** La conception est cohérente dans ses principes ; les corrections sont localisées (modèle local, droits, versions concurrentes, transmission individuelle, conformité). Le lot L1 peut démarrer dès L0 partiel ; les lots L2 et suivants sont conditionnés par les arbitrages.
 
 ---
 
@@ -425,6 +427,5 @@ Les autres points « À CLARIFIER » du dossier (accès payant expiré, retransm
 - Apple, App Review Guidelines (1.2, 5.1.1(v)) : https://developer.apple.com/app-store/review/guidelines/
 - Google Play, politique « User Generated Content » : https://support.google.com/googleplay/android-developer/answer/9876937
 - DSA, article 19 (exemption section 3 pour micro et petites plateformes) : https://presencis.com/regulations/dsa/article-19/ — la page ne détaille pas les articles 16-17 ; à confirmer par l'avis juridique.
-- ANS / esante.gouv.fr, champ d'application de l'hébergement de données de santé (article L.1111-8 CSP) : https://esante.gouv.fr/faq/quel-est-le-champ-dapplication-de-la-legislation-relative-lhebergement-de-donnees-de-sante-caractere-personnel
 
 **Limites de la revue.** Tests non exécutés ; chapitres 02, 03, 04, 08, 13 contrôlés par recherche de termes ; aucune vérification juridique n'a valeur d'avis ; aucune modification de Figma, de code, de spécification ni de la branche audité.
