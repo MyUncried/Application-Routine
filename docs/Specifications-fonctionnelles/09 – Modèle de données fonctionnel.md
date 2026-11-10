@@ -1,5 +1,9 @@
 # Modèle de données fonctionnel
 
+## Arbitrages confirmés — Mouvement, auteur et médias (11/11/2026)
+
+**MOUV-D1 à MOUV-D4 — règle applicable.** Auteur unique `author: ActorRef | null` (pas de `authors[]`) ; métadonnées médias conservées, référence distante, chargement à la demande/cache local, téléchargement hors ligne explicite reporté, aucune diffusion sans droits confirmés ; **fiche importée non modifiable et non duplicable**, redistribution seulement si autorisée dans un futur lot ; paramètres des Exercices restent personnalisables. Les adaptations historiques des 60 fiches sont préservées pour la reprise CA-3. Les modes anciens BIB-06/BIB-07/BIB-08 permettant une modification ou copie des **fiches importées** sont supersédés sur cette portée. [Contrat de l'étape 2](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
 ## Données du chantier CA-1/CA-2/CA-3 — premier périmètre
 
 Persister **sans migration destructive** l'identifiant local stable du Mouvement, les attributs d'usage, la fiche éditoriale complète et ses médias, identité/provenance d'éditeur, empreinte/révision et informations de droits de source. Représenter les Bibliothèques génériques KODJO et leur composition **par références** distinctes des catégories du Catalogue, l'état d'installation et les révisions utilisables. **Ne pas créer maintenant les comptes destinataires, groupes, preuves de partage ni entités commerciales** pour la seule mise à jour des Bibliothèques KODJO. Réemployer provisoirement le registre SQLite distinct des imports CA-3, éviter une migration concurrente avec PRE-10 : numéro attribué à l'intégration, pas « 024 » réservé. La reprise des 60 Mouvements conserve les `Movement.id` et les références des Séances. Unicité des homonymes et conflits à tester avant migration.
