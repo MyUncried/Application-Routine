@@ -149,7 +149,7 @@ Pour chaque fiche du fichier, comparée au registre et au Mouvement local :
 | **CA-3 Registre + moteur** | Base distincte ; classement du § 6 ; application des `NEW` et des adoptions ; décisions accepter / refuser / reporter | Mouvements via le service existant ; registre |
 | **CA-4 Écran de recette** | Remplace « Importer 60 fiches » par « Charger un catalogue » : sélecteur de fichier, récapitulatif par cas, liste des révisions avec décision par fiche. Outil interne sans référence Figma, visible seulement avec `EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT=1`. | — |
 | **CA-5 Retrait du corpus embarqué** | Suppression des `import` JSON de `src/` ; anciens tests convertis sur le nouveau format | Code |
-| **CA-6 Recette iPhone** | Build `catalogue-recette` (sur accord) ; chargement du fichier pilote sur la base qui contient les 60 : **60 adoptés, 0 ajouté, 0 doublon** | Appareil de recette uniquement |
+| **CA-6 Recette iPhone** | Build `catalogue-recette` (sur accord), puis trois chargements de fichiers **produits par le générateur (CA-2)** : (1) fichier pilote sur la base qui contient les 60 : **60 adoptés, 0 ajouté, 0 doublon** ; (2) même fichier rechargé : aucune écriture ; (3) fichier régénéré après modification d'une fiche existante et ajout d'une fiche : **1 nouvelle installée, 1 révision proposée**, testée en accepter, refuser et reporter, avec une adaptation locale préservée | Appareil de recette uniquement |
 
 ### Futur, préparé par le format mais non développé
 
@@ -177,7 +177,8 @@ Pour chaque fiche du fichier, comparée au registre et au Mouvement local :
   - interruption puis reprise ;
   - registre perdu puis reconstruit.
 - Double de base « connexion en retard » (déjà en place) appliqué au moteur.
-- Générateur : le fichier pilote produit installe exactement les mêmes 60 contenus que l'ancien importeur.
+- Générateur : le fichier pilote produit installe exactement les mêmes 60 contenus que l'ancien importeur ; une modification de fiche dans les brouillons produit une révision (`revision` + 1, nouvelle empreinte), un ajout produit une nouvelle fiche, un rechargement sans modification ne change ni révision ni empreinte.
+- Chaîne complète en test automatisé : générateur → fichier → moteur → SQLite réelle, pour les trois chargements de CA-6, avant la recette sur iPhone.
 - `tsc`, eslint, CI de branche. Simulation de fusion avec `main` et PRE-10 : aucun fichier de migration touché.
 
 ## 9. Risques et points à arbitrer
