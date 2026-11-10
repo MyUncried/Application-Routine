@@ -447,7 +447,7 @@ Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé 
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; il n'y a pas de propagation de copies entre ces objets locaux. La diffusion entre utilisateurs suit au contraire la mise à jour manuelle BIB-12. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
@@ -464,3 +464,17 @@ Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.
 ## Création et Formats — état final du 5 novembre 2026
 
 Exercice libre : entrée de création d’un Exercice sans préconfiguration de modèle ; distinct d’un Format nommé Libre. Rang Death by : fenêtre à tenter, distincte des rangs acquis. « Limite de l’intervalle atteinte » décrit l’arrêt avant un rang impossible, sans tentative fictive.
+
+## Glossaire cible — Bibliothèques et Mouvements distribués (post-MVP)
+
+Les définitions ci-dessous décrivent la **distribution entre utilisateurs**, distincte de la référence au même Mouvement local par plusieurs Exercices/Séances. Voir [conception validée](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+- **Fiche éditoriale de Mouvement** : contenu identifié par une origine et une révision, distinct de l'identifiant local du Mouvement.
+- **Auteur de la fiche** : une seule personne identifiée, ou inconnu lorsque la provenance ne permet pas de l'établir.
+- **Propriétaire administratif** : personne ou organisation contrôlant la gestion et la diffusion d'une fiche ; créateur original par défaut, sauf attribution explicite ; ne prouve pas le droit d'auteur.
+- **Bibliothèque de Mouvements** : collection ordonnée de références vers des fiches ; associer une fiche à une Bibliothèque n'en crée pas une copie.
+- **Bibliothèque personnelle** : composition que l'utilisateur peut librement gérer, avec des fiches de toutes provenances.
+- **Bibliothèque reçue** : composition diffusée par un tiers et non modifiable localement.
+- **Redistribution** : nouvelle diffusion d'une fiche à un tiers, distincte de la copie pour usage personnel et du référencement.
+- **Révision éditoriale distribuée** : état contrôlé d'une fiche, pouvant être proposé par pastille puis installé via « Mettre à jour ».
+- **Suspension de modération** : interdiction centrale d'accès à un contenu problématique, distincte d'une actualisation ordinaire.
