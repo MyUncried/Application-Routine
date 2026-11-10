@@ -2530,41 +2530,31 @@ Constat de Hermann, recopié textuellement :
 - **Correction.** `dragElevated` à 3 ; le cadre d'enveloppe d'un Circuit (niveau Séance, dans un Cycle, ancien modèle) porte le premier plan de l'élément saisi qu'il contient ; la liste des cartes d'un Circuit passe au-dessus de son en-tête quand l'une de ses cartes est saisie. Au repos, aucun changement (en-têtes collés au-dessus du contenu). Tests `recette2composition` « premier plan de la carte saisie au-dessus des en-têtes » (échouent sans, passent avec) ; 4 attentes de `CompositionScreen.test` portées de 1 à 3 (annotées).
 - À vérifier sur iPhone : sortir un mouvement d'un Circuit (au niveau Séance et dans un Cycle) et d'un Cycle : il passe au-dessus des lignes d'en-tête.
 
-## Décisions validées le 10/11/2026 — Bibliothèques et distribution des Mouvements
+## Décisions validées — Bibliothèques et distribution des Mouvements
 
-**Référence normative :** [Conception des Bibliothèques et du partage](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md). Décisions BIB-01 à BIB-18 validées par le propriétaire du produit, **cible post-MVP** ; leur inscription ne signifie pas qu'elles sont développées. Identifiants BIB propres à cet axe, sans appropriation de numéros D-xxx.
+**Périmètre cible post-MVP** ; ces décisions ne certifient ni livraison du code ni écrans Figma. [Règles fonctionnelles](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md) ; [parcours PU-01 à PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) ; [conception technique proposée](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
 
-| Décision | Règle |
+| ID | Règle applicable |
 |---|---|
-| BIB-01 à 02 | Tout utilisateur peut créer des Mouvements et des Bibliothèques ; un seul auteur par fiche, gestionnaire distinct possible par attribution explicite. |
-| BIB-03 à 04 | Composition par références sans copie ; Bibliothèque personnelle mélangeant Mouvements propres et provenant d'autres Bibliothèques. |
-| BIB-05 | Visibilité personnelle/partagée/publique, accès gratuit/payant indépendants ; même modèle structurel de Bibliothèque lorsqu'ils en créent, **distinct du parcours kiné/Espace** (KIN-01). |
-| BIB-06 | Permissions indépendantes Modifier et Redistribuer : Protégé (non/non), Libre localement (oui/non), Partageable à l'identique (non/oui), Libre (oui/oui). |
-| BIB-07 à 08 | Copie personnelle toujours possible, permissions/provenance inchangées ; les paramètres propres aux Exercices ne sont pas verrouillés. |
-| BIB-09 à 11 | Bibliothèque reçue en lecture seule ; réutilisation personnelle par référence ; diffusion filtrée des seules fiches redistribuables, sans exposer les autres. |
-| BIB-12 à 13 | Nouvelle révision ordinaire indiquée par pastille ; l'utilisateur va dans sa Bibliothèque et choisit « Mettre à jour » ; sans action, aucune mise à jour ; variantes personnelles protégées. |
-| BIB-14 à 15 | Contrôle central avant première diffusion d'une révision ; automatique si partage privé sans anomalie, validation humaine initiale pour public/payant et cas suspects. |
-| BIB-16 à 17 | Signalement et suspension de modération prioritaires, traçables ; références conservées, neutralisation à la synchronisation, aucune garantie de retrait immédiat hors ligne. |
-| BIB-18 | Partage, modération centrale, paiements et comptes **hors périmètre MVP**. |
+| BIB-01/02 | Tout utilisateur peut créer des Mouvements/Bibliothèques ; un auteur au maximum par fiche, distinct du propriétaire administratif si attribution explicite. |
+| BIB-03/04 | Composition de Bibliothèque par références sans copies ; provenances mélangées. |
+| BIB-05 | Visibilités personnelle/partagée/publique et accès gratuit/payant indépendants ; aucun type Bibliothèque « coach »/« kiné » ni rôle professionnel dans le modèle. |
+| BIB-06 | Quatre modes des **destinataires** : Protégé (modifier non, redistribuer non), Libre localement (oui/non), Partageable à l'identique (non/oui), Libre (oui/oui). Le propriétaire habilité **publie sa propre fiche**, même si elle est Protégée pour ses destinataires. Une création originale locale est modifiable par son créateur et non redistribuable par un tiers par défaut ; le propriétaire choisit les droits des destinataires à la première diffusion. |
+| BIB-07/08 | Copier pour usage personnel reste possible avec permissions/provenance conservées ; réglages d'exécution des Exercices non verrouillés. |
+| BIB-09 à 11 | Bibliothèque reçue en lecture seule sur sa composition ; elle ne diffuse aux tiers que les fiches dont l'émetteur est habilité à autoriser la diffusion initiale ou la redistribution. Fiches tierces interdites totalement invisibles. |
+| BIB-12/13 | Révision éditoriale signalée par pastille ; appliquée uniquement sur « Mettre à jour », sans écraser les adaptations personnelles. |
+| BIB-14/15 | Validation centrale préalable des révisions diffusées ; privé sans anomalie contrôlable automatiquement, première publication publique/payante et doute avec examen humain. |
+| BIB-16/17 | Signalement, suspension et neutralisation prioritaire de média ou fiche ; références conservées autant que possible, limites d'exécution iOS hors ligne explicites. |
+| BIB-18 | Comptes, distribution et modération centrale post-MVP ; moteur local indépendant. |
+| F4-A | La composition reçue ne change pas sans demande explicite de mise à jour. |
+| F4-B | Les Mouvements déjà reçus et retirés de la Bibliothèque source restent localement utilisables, sous réserve des droits et de la modération ; les Séances ne sont pas détruites. |
+| F4-C | L'accès aux Mouvements d'une Bibliothèque est accordé **au niveau de la Bibliothèque**, distinct de leurs permissions éditoriales. La transmission individuelle par Espace n'impose aucune Bibliothèque fictive. |
+| F4-D | Une seule action « Mettre à jour » applique la nouvelle composition de la Bibliothèque choisie et les révisions de fiches disponibles ; adaptations conservées. |
+| F4-E | Archivage d'une Bibliothèque sans effet sur ses destinataires et ses mises à jour. |
+| F4-F | Arrêt du partage : plus de nouveaux destinataires ou nouvelles mises à jour ; installations existantes conservées. |
+| **F4-G** | **Une seule révision active par fiche source sur l'appareil** ; mise à jour volontaire depuis une Bibliothèque répercutée dans toutes les Bibliothèques qui référencent le même Mouvement, après aperçu des impacts. Leurs compositions restent inchangées. |
+| **KIN-01** | **Espace en étoile générique** : relation individuelle orientée entre utilisateurs, invitation acceptée, refus/blocage possibles, transmission de fiches Mouvements. Usage kiné-patient : consignes d'exécution orales, sans prescription numérique ; aucun rôle professionnel ni champ clinique imposé au modèle. |
 
-**Supersession des propositions de cette conception :** suppression de la permission séparée Copier, du mode Personnalisé, de la mise à jour ordinaire automatique et des choix imposés Accepter/Refuser/Reporter ; pas de cycle « Brouillon/Active/Inactive » validé pour une Bibliothèque. **Résolu par F4-A à F4-F :** archivage et diffusion, retrait d'un membre de la composition reçue, conservation locale. **Restent À CLARIFIER :** droits payants expirés, défaut de permission, changement ultérieur des permissions, versions concurrentes et conflits locaux. La mise à jour directe d'un Mouvement *au sein de la même installation* et les choix de refus du pilote CA-3 ne constituent pas une politique de diffusion entre utilisateurs.
+**Identité et homonymes — cible distincte du MVP actuel :** le nom affiché ne porte pas l'identité. Deux fiches de **sources distinctes** peuvent s'appeler « Squat ». Un identifiant source stable, indépendant du nom, permet le référencement ; la migration depuis la contrainte globale `normalized_name UNIQUE` est à concevoir, sans modifier les `Movement.id` existants. La règle d'unicité du nom de D-445 C01 reste applicable au schéma *actuellement livré* tant que cette évolution n'est pas développée. Le besoin d'unicité parmi les créations originales d'un même utilisateur reste ouvert.
 
-### Complément F4-A à F4-F — décisions du 10/11/2026
-
-| Décision | Comportement validé |
-|---|---|
-| F4-A | Mise à jour de la Bibliothèque reçue exclusivement sur action explicite après pastille. |
-| F4-B | Les Mouvements précédemment téléchargés et retirés de la Bibliothèque source restent dans le Catalogue local et les Séances. |
-| F4-C | L'accès est accordé au niveau Bibliothèque aux utilisateurs/groupes et hérité par ses membres ; retirer un membre ne révoque pas son usage déjà accordé. |
-| F4-D | Une seule commande « Mettre à jour » actualise composition et révisions des Mouvements sans écraser les adaptations personnelles. |
-| F4-E | Archiver une Bibliothèque ne change rien chez ses destinataires ni leurs mises à jour. |
-| F4-F | Arrêter le partage empêche les nouveaux téléchargements et les nouvelles mises à jour, tout en conservant les installations des destinataires existants. |
-
-Les autorisations d'accès par Bibliothèque sont distinctes des permissions de modification/redistribution propres à chaque fiche. Commerce/expiration : chantier séparé ; modération : priorité. [Parcours cibles](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md), [dossier pour Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
-
-### KIN-01 — Parcours kinésithérapeute en Espace professionnel (10/11/2026)
-
-**Décision fonctionnelle validée, cible post-MVP, non développée :** contrairement au **coach** qui peut diffuser une Bibliothèque, le **kinésithérapeute** transmet au patient **un ou plusieurs Mouvements** dans son **Espace professionnel organisé en étoile** (kiné au centre, relations individuelles par patient). À ce stade, les instructions d'exécution sont **données oralement**, sans création ni partage numérique d'Exercice, de Séance, de routine ou de programme prescrits. Les autres patients ne deviennent pas destinataires. Les permissions de fiche et la validation centrale restent applicables.
-
-**Précision F4-C :** le droit d'accès accordé au niveau de la Bibliothèque vise les Bibliothèques distribuées (notamment coach), non la transmission kiné-patient, dont le modèle d'autorisation est à concevoir. Les ambitions plus larges de prescription numérique déjà mentionnées en V3 restent hors du premier lot KIN-01. **À CLARIFIER :** organisation et cycle de vie de l'Espace, association patient, consentement, permissions relationnelles, UI et mise à jour des fiches transmises. [Parcours PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) ; [architecture pour Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
-
+**Limites restantes :** droits d'accès payants et expiration ; changement rétroactif de permissions déjà distribuées ; politique de conflits locaux ; reprise cohérente d'une mise à jour multi-fiches ; phasage des groupes ; détails de l'Espace et des médias ; obligations juridiques et UX futurs. Les décisions de refus/acceptation fiche par fiche du **pilote d'import de catalogue** ne définissent pas le futur partage de Bibliothèques.
