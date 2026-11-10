@@ -2,6 +2,9 @@
 
 ## Bibliothèques et partage de Mouvements — conception du 10 novembre 2026
 
+- [Parcours utilisateurs cibles PU-01 à PU-16 — F4-A à F4-F](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) : comportements métier consolidés, détails UX ouverts.
+- [Conception fonctionnelle, technique et données — revue Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md) : architecture proposée, schéma de données, API, sécurité, mise à jour, modération et points à clarifier.
+
 - [Conception des Bibliothèques, permissions, mises à jour et modération](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md) — décisions BIB-01 à BIB-18 validées, cible post-MVP ; points non tranchés classés « À CLARIFIER ».
 - [Registre des décisions — BIB-01 à BIB-18](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) ; [modèle de données](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md), [API](Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md), [architecture](Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md).
 - **Figma** : des actions « Partager » sont visibles dans le Prototype MVP, mais aucun écran complet de Bibliothèques et de modération n'est considéré validé par ce contrôle documentaire.
