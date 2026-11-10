@@ -1208,7 +1208,7 @@ Nom requis et unique ; catégorie et zones selon validations existantes. Paramè
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; aucune propagation entre copies d'objets locaux n’est nécessaire. La distribution entre utilisateurs est régie par BIB-12 : pas de nouvelle révision sans action « Mettre à jour ». Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
@@ -6115,3 +6115,9 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 ### Écart visuel restant — Death by, contrôle du 5 novembre
 
 **PARTIELLEMENT CONFORME visuel.** Le récapitulatif `11376:20189` représente bien des membres en Répétitions et en Durée ; l’accroche reste formulée en répétitions et minutes. Elle doit couvrir les deux modes et l’intervalle configurable, selon le complément §13. Aucun nouveau texte graphique n’est arbitré ici. Les captures montrent l’état courant ; aucune modification Figma ni recette de l’application n’est déclarée.
+
+## Parcours UX à concevoir — Bibliothèques et partage (post-MVP)
+
+Les exigences validées BIB-01 à BIB-18 prévoient des Bibliothèques personnelles composables, des Bibliothèques reçues en lecture seule, le filtrage invisible des fiches non redistribuables, les quatre modes de droits, une pastille d'alerte et l'action « Mettre à jour », ainsi que les états de validation, signalement et suspension. **Ce complément n'invente pas de composants, dispositions ou contrats d'écran définitifs.**
+
+**Contrôle direct Figma au 10/11/2026** : page « Prototype MVP » 510:101 du fichier G6RY5Ebhgwb4AHIOYDwwvg ; deux actions glissées « Partager » repérées 10501:23846 et 10579:21622. Le contrôle ne démontre pas l'existence d'écrans complets de Bibliothèques, révisions ou modération. Avant développement du partage, concevoir les états et vérifier les nouveaux contrats dans Figma ; conserver les règles d'interaction dans la [conception fonctionnelle](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
