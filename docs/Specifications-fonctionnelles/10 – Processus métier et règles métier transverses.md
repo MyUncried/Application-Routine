@@ -1,5 +1,9 @@
 # Règles métier et calculs
 
+## Arbitrages confirmés — Mouvement, auteur et médias (11/11/2026)
+
+**MOUV-D1 à MOUV-D4 — règle applicable.** Auteur unique `author: ActorRef | null` (pas de `authors[]`) ; métadonnées médias conservées, référence distante, chargement à la demande/cache local, téléchargement hors ligne explicite reporté, aucune diffusion sans droits confirmés ; **fiche importée non modifiable et non duplicable**, redistribution seulement si autorisée dans un futur lot ; paramètres des Exercices restent personnalisables. Les adaptations historiques des 60 fiches sont préservées pour la reprise CA-3. Les modes anciens BIB-06/BIB-07/BIB-08 permettant une modification ou copie des **fiches importées** sont supersédés sur cette portée. [Contrat de l'étape 2](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
 ## Processus transverse — catalogue autonome et Bibliothèques KODJO
 
 **Administration et services :** fiche complète créée/éditée dans l'administration Web ; fichier exporté via contrats communs ; services CA-3 valident source, identité, provenance, médias et révision ; l'import compare les éléments et réconcilie les 60 Mouvements existants sans doublon, perte ni rupture des Séances. **Utilisateur :** Profil sélectionne/installe les Bibliothèques génériques puis propose la mise à jour **volontaire** ; Catalogue expose les Mouvements et contenus propres. Édition locale et adaptation d'une fiche installée ne doivent pas modifier la source publiée. **Canaux distincts :** accepter/refuser/reporter une fiche dans le pilote de recette ne crée pas des actions accepter/refuser/reporter pour la mise à jour utilisateur de Bibliothèque. Garanties de reprise et conflits à tester. Le partage entre utilisateurs et les permissions de destinataires sont reportés, mais pas la conservation des permissions éditoriales/de médias des fiches. Phasage en six étapes au registre.
