@@ -25,6 +25,7 @@ import {
   invertTotalDuration,
   isTotalDurationInvertible,
   totalDurationRange,
+  totalDurationRoundings,
   type ExerciseDurationResult,
 } from "@/domain/activities/executionCalculations";
 import { moveRow, openSheetDraft, effectiveParameters, setMode } from "@/domain/activities/ExecutionParametersDraft";
@@ -355,6 +356,13 @@ describe("P3-14/inverse-enumeration et P3-14/inverse-explicit — inversion Dur�
   it("cas 6423:9953 : 3 × 1′30″, Pause 15″ → 5′15″ sans ajustement", () => {
     const parameters = uniform30({ series: { kind: "UNIFORM", count: 1, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } });
     expect(invertTotalDuration(parameters, 315)).toEqual({ seriesCount: 3, totalSeconds: 315, adjusted: false });
+  });
+
+  it("arrondi demandé (recette PRE-10 d5, 09/11/2026) : 100 → 1′20″ (N=2) / 2′00″ (N=3) ; 80 exact ; sous N=1 seul le supérieur ; au-delà de N=99 seul l’inférieur", () => {
+    expect(totalDurationRoundings(uniform30(), 100)).toEqual({ exact: null, lower: { seriesCount: 2, totalSeconds: 80 }, upper: { seriesCount: 3, totalSeconds: 120 } });
+    expect(totalDurationRoundings(uniform30(), 80)).toEqual({ exact: { seriesCount: 2, totalSeconds: 80 }, lower: { seriesCount: 1, totalSeconds: 40 }, upper: { seriesCount: 3, totalSeconds: 120 } });
+    expect(totalDurationRoundings(uniform30(), 10)).toMatchObject({ exact: null, lower: null, upper: { seriesCount: 1 } });
+    expect(totalDurationRoundings(uniform30(), 99 * 40 + 1)).toMatchObject({ exact: null, lower: { seriesCount: 99 }, upper: null });
   });
 });
 

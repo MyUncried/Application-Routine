@@ -1498,8 +1498,12 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     expect(isStructureLocked()).toBe(true);
     expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBe(false);
     fireEvent(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "focus");
-    fireEvent.changeText(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "8");
+    // Décision de Hermann du 09/11/2026 (recette PRE-10, constat d) : durée de série multiple de la durée des phases : 1″ + 2″ = 3″, diviseur de 9″.
+    fireEvent.changeText(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "1");
     fireEvent(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "blur");
+    fireEvent(screen.getByTestId("execution-sheet-phase-row-2-duration-input"), "focus");
+    fireEvent.changeText(screen.getByTestId("execution-sheet-phase-row-2-duration-input"), "2");
+    fireEvent(screen.getByTestId("execution-sheet-phase-row-2-duration-input"), "blur");
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     const finished = (updateDraft.mock.calls[0]![0] as Partial<SessionDraftContextValue["draft"]>).exercises![0]!;
@@ -1508,8 +1512,8 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
       // PRE-7 (D-446) : la durée de série (9 s) n'est plus redérivée de la somme des phases.
       target: { kind: "NUMBER", value: 9 },
       workPhases: [
-        { id: 1, label: "Descente", durationSeconds: 8 },
-        { id: 2, label: "Maintien", durationSeconds: 3 },
+        { id: 1, label: "Descente", durationSeconds: 1 },
+        { id: 2, label: "Maintien", durationSeconds: 2 },
       ],
     });
     expect(finished.sourceMovementId).toBe("mov-1");

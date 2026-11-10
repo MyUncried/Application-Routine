@@ -427,6 +427,35 @@ export function invertTotalDuration(
   };
 }
 
+export type TotalDurationChoice = { readonly seriesCount: number; readonly totalSeconds: number };
+
+/**
+ * Décision de Hermann du 09/11/2026 (recette PRE-10, d5 : « Mettre le même format de message que pour
+ * le phase avec les propositions d'arrondi inférieur et supérieur ») : Durée de l'exercice demandée →
+ * total réalisable égal (`exact`), sinon totaux réalisables immédiatement inférieur et supérieur
+ * (`null` hors de N = 1..99).
+ */
+export function totalDurationRoundings(
+  parameters: ExecutionParametersInput,
+  requestedSeconds: number,
+  inheritedSeriesCount: boolean = false,
+): { readonly exact: TotalDurationChoice | null; readonly lower: TotalDurationChoice | null; readonly upper: TotalDurationChoice | null } {
+  if (inheritedSeriesCount || !isTotalDurationInvertible(parameters)) {
+    throw new Error("Total duration rounding is reserved to uniform Duration mode without inherited count.");
+  }
+  let exact: TotalDurationChoice | null = null;
+  let lower: TotalDurationChoice | null = null;
+  let upper: TotalDurationChoice | null = null;
+  for (let count = INVERSION_SERIES_MIN; count <= INVERSION_SERIES_MAX; count += 1) {
+    const totalSeconds = totalDurationForSeriesCount(parameters, count);
+    const choice = { seriesCount: count, totalSeconds };
+    if (totalSeconds === requestedSeconds) exact = choice;
+    else if (totalSeconds < requestedSeconds && (lower === null || totalSeconds >= lower.totalSeconds)) lower = choice;
+    else if (totalSeconds > requestedSeconds && (upper === null || totalSeconds < upper.totalSeconds)) upper = choice;
+  }
+  return { exact, lower, upper };
+}
+
 /** Bornes du sélecteur de total : extrêmes réalisables (N=1 et N=99). */
 export function totalDurationRange(parameters: ExecutionParametersInput): { readonly min: number; readonly max: number } {
   const values = [INVERSION_SERIES_MIN, INVERSION_SERIES_MAX].map((count) =>

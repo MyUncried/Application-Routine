@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import {
+  Alert,
   Animated,
   Easing,
   Modal,
@@ -58,6 +59,7 @@ import {
   setSideOrder,
   setSideRecovery,
   setStopCondition,
+  setRowTarget,
   setUniformPause,
   setUniformTarget,
   setVariable,
@@ -74,8 +76,10 @@ import {
   isCalculable,
   isWorkEstimable,
   totalDurationRange,
+  totalDurationRoundings,
 } from "@/domain/activities/executionCalculations";
 import { formatPhraseDuration, spokenDurations } from "@/domain/activities/durationFormat";
+import { phaseCycleIssues, type PhaseCycleIssues } from "@/domain/activities/phaseCycleFit";
 import { formatLoadKg } from "@/domain/activities/exerciseLoad";
 import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import { AnchoredPanel } from "@/features/activities/AnchoredPanel";
@@ -488,11 +492,12 @@ const SHEET_FRAMES: readonly SheetFrame[] = ["execution", "phases", "series", "s
 /** Boîte d'un cadre dans le contenu défilant (hôte des panneaux), mesurée par `onLayout`. */
 type FrameBox = { readonly y: number; readonly height: number; readonly width: number };
 /**
- * Message d'ajustement (D-5) : l'Inversion du total garde l'état d'avant pour `Annuler` ;
- * le retrait d'une ligne (story 3.6) n'en garde aucun, `undoRemoval` du Brouillon suffit.
+ * Message d'ajustement (D-5) : le retrait d'une ligne (story 3.6) ou d'une phase s'annule par
+ * `undoRemoval` du Brouillon. [Remplacé le 09/11/2026 (recette PRE-10, d5) : l'Inversion du total ne
+ * produit plus de message d'ajustement (« total », qui gardait l'état d'avant pour `Annuler`) ; une
+ * durée non réalisable demande l'arrondi par une alerte native (`applyRequestedTotalSeconds`).]
  */
 type Adjustment =
-  | { readonly kind: "total"; readonly message: string; readonly previous: ExecutionSheetDraft }
   | { readonly kind: "removal"; readonly message: string }
   /** PRE-5 story 2.8 (FR-8) : « Phase supprimée — Annuler », rendu sous le tableau des phases (`undoRemoval`). */
   | { readonly kind: "phaseRemoval"; readonly message: string };
@@ -737,8 +742,39 @@ export function ExecutionParametersSheet({
    * PRE-5 story 2.2 : application d'une saisie au clavier (mise à jour fonctionnelle du
    * Brouillon) ; un changement retire le message d'ajustement, comme `update`.
    */
+  /**
+   * Décision de Hermann du 09/11/2026 (recette PRE-10, constat d ; arbitrages « À la saisie »,
+   * « Inférieur / Supérieur ») : une durée de série qui n'est pas un multiple de la durée des phases du
+   * mouvement demande, par une alerte native, l'arrondi au multiple inférieur ou supérieur.
+   */
+  function askPhaseRounding(entry: PhaseCycleIssues["notMultiple"][number], cycleSeconds: number, variable: boolean) {
+    const message = (variable ? t.phaseCycleRoundMessageRow.replace("{n}", String(entry.rank + 1)) : t.phaseCycleRoundMessage)
+      .replace("{target}", formatPhraseDuration(entry.targetSeconds))
+      .replace("{cycle}", formatPhraseDuration(cycleSeconds));
+    const roundTo = (seconds: number) => () =>
+      setDraft((current) => (current.variable ? setRowTarget(current, entry.rank, numberTarget(seconds)) : setUniformTarget(current, numberTarget(seconds))));
+    // Multiple supérieur au-delà de la borne de la cible (58′55″) : seul l'arrondi inférieur est proposé.
+    const choices = [entry.lowerSeconds, entry.upperSeconds].filter((seconds): seconds is number => seconds !== null);
+    Alert.alert(
+      t.phaseCycleRoundTitle,
+      message,
+      choices.map((seconds) => ({ text: t.phaseCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)), onPress: roundTo(seconds) })),
+      { cancelable: false },
+    );
+  }
+
   function commitKeyboard(apply: (current: ExecutionSheetDraft) => ExecutionSheetDraft) {
     const next = apply(draft);
+    // Durée de série saisie : contrôle immédiat de l'arrondi au motif des phases (voir `askPhaseRounding`).
+    if (next !== draft) {
+      const after = phaseCycleIssues(effectiveParameters(next));
+      const previousRows = seriesRowsOf(effectiveParameters(draft));
+      const entered = after.notMultiple.find((entry) => {
+        const previous = previousRows[entry.rank]?.target;
+        return previous?.kind !== "NUMBER" || previous.value !== entry.targetSeconds;
+      });
+      if (entered !== undefined && after.cycleSeconds !== null) askPhaseRounding(entered, after.cycleSeconds, next.variable);
+    }
     // Décision du 06/11/2026 : un nombre de phases réduit au clavier retire la dernière phase comme le
     // − du stepper remplacé (`setWorkPhaseCount`) — même message « Phase supprimée — Annuler » (FR-8).
     if (next !== draft) {
@@ -817,6 +853,10 @@ export function ExecutionParametersSheet({
   }, [adjustment]);
 
   const effective = effectiveParameters(draft);
+  // Décision du 09/11/2026 (constat d) : durée de série inférieure au motif des phases → alerte bloquante.
+  const phaseIssues = phaseCycleIssues(effective);
+  const phaseBelow = phaseIssues.belowRanks.length > 0;
+  const phaseBelowRankSet = new Set(phaseIssues.belowRanks);
   const effectiveFirst = seriesRowsOf(effective)[0] ?? { target: unsetTarget(), pauseSeconds: 0, loadKg: 0 };
   const single = isSingleSeries(draft);
   const bilateral = isBilateral(draft.sideMode);
@@ -1083,7 +1123,7 @@ export function ExecutionParametersSheet({
     }
     setAdjustment(null);
     // PRE-5 story 2.8 (FR-8) : le retrait d'une phase s'annule de même (`undoRemoval`, Q29).
-    setDraft(adjustment.kind === "total" ? adjustment.previous : undoRemoval(draft));
+    setDraft(undoRemoval(draft));
   }
 
   /**
@@ -1342,7 +1382,13 @@ export function ExecutionParametersSheet({
 
   function handleValidate() {
     if (absorbSheetCommand()) return;
-    if (validation.ok && !emomOverflow) {
+    // ✓ : une durée restée non multiple du motif (phase modifiée depuis la saisie) demande l'arrondi.
+    const pendingRounding = phaseIssues.notMultiple[0];
+    if (validation.ok && pendingRounding !== undefined && phaseIssues.cycleSeconds !== null) {
+      askPhaseRounding(pendingRounding, phaseIssues.cycleSeconds, draft.variable);
+      return;
+    }
+    if (validation.ok && !emomOverflow && !phaseBelow) {
       const value = validation.value;
       // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : Récupération absente (alternance, dans chaque intervalle) — 0 s appliqué.
       const appliedRecovery = recoveryShown && !recoveryLocked ? recoverySeconds : 0;
@@ -1363,23 +1409,36 @@ export function ExecutionParametersSheet({
   }
 
   /**
-   * Story 3.7 : Durée de l'exercice demandée → Inversion (`applyRequestedTotal`) et message
-   * d'ajustement. Décision du 06/11/2026 (constat c) : appelée à la sortie du champ clavier (au lieu
-   * du ✓ de la roue remplacée, qui fermait aussi sa surface).
+   * Story 3.7 : Durée de l'exercice demandée → Inversion (`applyRequestedTotal`). Décision du
+   * 06/11/2026 (constat c) : appelée à la sortie du champ clavier (au lieu du ✓ de la roue remplacée,
+   * qui fermait aussi sa surface). Décision de Hermann du 09/11/2026 (recette PRE-10, d5 : « Mettre le
+   * même format de message que pour le phase avec les propositions d'arrondi inférieur et supérieur ») :
+   * une durée réalisable s'applique telle quelle ; sinon une alerte native propose les durées
+   * réalisables inférieure et supérieure, comme `askPhaseRounding` [remplace l'ajustement automatique
+   * au total le plus proche et son message « Durée ajustée à … — Annuler »].
    */
   function applyRequestedTotalSeconds(requestedSeconds: number) {
     setIsTableSelected(false);
-    const applied = applyRequestedTotal(draft, requestedSeconds);
-    if (!applied) return;
-    setDraft(applied.draft);
-    setAdjustment(
-      applied.inversion.adjusted
-        ? {
-            message: t.adjusted.replace("{duration}", formatPhraseDuration(applied.inversion.totalSeconds)),
-            kind: "total",
-            previous: draft,
-          }
-        : null,
+    if (!isRequestedTotalEditable(draft)) return;
+    const roundings = totalDurationRoundings(effectiveParameters(draft), requestedSeconds, draft.inheritedSeriesCount);
+    const applyTotal = (seconds: number) => {
+      setDraft((current) => applyRequestedTotal(current, seconds)?.draft ?? current);
+      setAdjustment(null);
+    };
+    if (roundings.exact !== null) {
+      applyTotal(roundings.exact.totalSeconds);
+      return;
+    }
+    // Durée au-delà du plafond de saisie (99′59″) : seul l'arrondi inférieur est proposé.
+    const choices = [roundings.lower, roundings.upper]
+      .filter((choice) => choice !== null && choice.totalSeconds <= WHEEL_TOTAL_DURATION_SECONDS_MAX)
+      .map((choice) => choice!.totalSeconds);
+    if (choices.length === 0) return;
+    Alert.alert(
+      t.totalRoundTitle,
+      t.totalRoundMessage.replace("{total}", formatPhraseDuration(requestedSeconds)),
+      choices.map((seconds) => ({ text: t.phaseCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)), onPress: () => applyTotal(seconds) })),
+      { cancelable: false },
     );
   }
 
@@ -1392,7 +1451,7 @@ export function ExecutionParametersSheet({
   const emomOverflow = emomOverflowDetail.ranks.length > 0;
   // Recette du 08/11/2026 : valeurs à modifier en fond rouge (cibles des séries en dépassement).
   const emomOverflowRankSet = new Set(emomOverflowDetail.ranks);
-  const validateDisabled = (!validation.ok || emomOverflow) && !sheetCommandsAbsorbed(surface);
+  const validateDisabled = (!validation.ok || emomOverflow || phaseBelow) && !sheetCommandsAbsorbed(surface);
   const validateLabel = validation.ok
     ? t.validateAccessibilityLabel
     : `${t.validateAccessibilityLabel}, ${t.validateUnavailableSuffix}`;
@@ -2118,7 +2177,7 @@ export function ExecutionParametersSheet({
     display: uniformTargetText,
     accessibilityLabel: effective.mode === "REPETITIONS" ? t.repetitionsTarget : t.durationGoal,
     // Recette du 08/11/2026 au soir : Cible commune en fond rouge si une série dépasse l'intervalle EMOM.
-    invalid: uniformTargetInvalid || emomOverflow,
+    invalid: uniformTargetInvalid || emomOverflow || phaseBelow,
     invalidHint: uniformTargetHint,
     testID: "execution-sheet-target",
   });
@@ -2356,7 +2415,7 @@ export function ExecutionParametersSheet({
           // Story 3.8 (AC2) : une Cible « — » est annoncée « aucune valeur », jamais « tiret ».
           spokenDisplayValue={spokenValue(text)}
           // Recette du 08/11/2026 au soir : cible d'une série en dépassement EMOM en fond rouge.
-          invalid={hint !== undefined || emomOverflowRankSet.has(index)}
+          invalid={hint !== undefined || emomOverflowRankSet.has(index) || phaseBelowRankSet.has(index)}
           accessibilityHint={hint}
           accessibilityLabel={t.rowTarget.replace("{n}", String(number)).replace("{field}", t.columns[mode])}
           testID={`${prefix}-target`}
@@ -2930,6 +2989,12 @@ export function ExecutionParametersSheet({
                     {emomOverflowDetail.alone ? formatT.emomSeriesOverflow : strings.screens.composition.emomOverflow}
                   </Text>
                 ) : null}
+                {/* Décision du 09/11/2026 (recette PRE-10, constat d) : même place et même style que le message EMOM. */}
+                {phaseBelow && phaseIssues.cycleSeconds !== null ? (
+                  <Text style={styles.emomOverflowAlert} accessibilityRole="alert" testID="execution-sheet-phase-cycle-below">
+                    {t.phaseCycleBelow.replace("{cycle}", formatPhraseDuration(phaseIssues.cycleSeconds))}
+                  </Text>
+                ) : null}
 
                 {/* Cadre Côtés : Changement de côté (portant l'Enchainement, RC-6), Pause entre
                     les côtés. PRE-5 story 2.5 (AC1, AC2 ; Figma `9230:19534`) : lignes non
@@ -3053,7 +3118,6 @@ export function ExecutionParametersSheet({
                       )}
                     </Row>
                     )}
-                    {adjustment?.kind === "total" ? adjustmentMessage : null}
                   </>
                   )}
 

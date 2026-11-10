@@ -151,6 +151,14 @@ const executionParameters = {
     phaseMoveHandle: "Déplacer la phase {n}",
     removePhase: "Supprimer la phase {n}",
     phaseRemoved: "Phase supprimée",
+    // Décision de Hermann du 09/11/2026 (recette PRE-10, constat d) : durée de série et phases du mouvement.
+    phaseCycleBelow: "La durée de la série est inférieure à la durée des phases du mouvement ({cycle}).",
+    phaseCycleRoundTitle: "Arrondir la durée de la série ?",
+    phaseCycleRoundMessage: "{target} n’est pas un multiple de la durée des phases du mouvement ({cycle}).",
+    phaseCycleRoundMessageRow: "Série {n} : {target} n’est pas un multiple de la durée des phases du mouvement ({cycle}).",
+    phaseCycleRoundTo: "Arrondir à {duration}",
+    totalRoundTitle: "Arrondir la durée de l’exercice ?",
+    totalRoundMessage: "{total} ne correspond pas à un nombre entier de séries.",
     removePhaseClosesFieldHint: "Ferme d’abord le champ ouvert, sans supprimer la phase",
     // PRE-5 story 2.5 (FR-15, FR-16, FR-44) : ligne « Changement de côté », segmenté « Avec | Sans »,
     // sans désignation anatomique. Les libellés anatomiques (`sideModes`, `sideModeOptions`) sont
