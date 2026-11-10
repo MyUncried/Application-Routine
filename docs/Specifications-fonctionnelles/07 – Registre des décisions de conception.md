@@ -2547,4 +2547,17 @@ Constat de Hermann, recopié textuellement :
 | BIB-16 à 17 | Signalement et suspension de modération prioritaires, traçables ; références conservées, neutralisation à la synchronisation, aucune garantie de retrait immédiat hors ligne. |
 | BIB-18 | Partage, modération centrale, paiements et comptes **hors périmètre MVP**. |
 
-**Supersession des propositions de cette conception :** suppression de la permission séparée Copier, du mode Personnalisé, de la mise à jour ordinaire automatique et des choix imposés Accepter/Refuser/Reporter ; pas de cycle « Brouillon/Active/Inactive » validé pour une Bibliothèque. **À CLARIFIER :** statut archivé, retrait de membres dans une version reçue, expiration des droits payants, défaut de permission initial, révocation des droits déjà distribués, résolution des conflits locaux. La mise à jour directe d'un Mouvement *au sein de la même installation* et les choix de refus du pilote CA-3 ne constituent pas une politique de diffusion entre utilisateurs.
+**Supersession des propositions de cette conception :** suppression de la permission séparée Copier, du mode Personnalisé, de la mise à jour ordinaire automatique et des choix imposés Accepter/Refuser/Reporter ; pas de cycle « Brouillon/Active/Inactive » validé pour une Bibliothèque. **Résolu par F4-A à F4-F :** archivage et diffusion, retrait d'un membre de la composition reçue, conservation locale. **Restent À CLARIFIER :** droits payants expirés, défaut de permission, changement ultérieur des permissions, versions concurrentes et conflits locaux. La mise à jour directe d'un Mouvement *au sein de la même installation* et les choix de refus du pilote CA-3 ne constituent pas une politique de diffusion entre utilisateurs.
+
+### Complément F4-A à F4-F — décisions du 10/11/2026
+
+| Décision | Comportement validé |
+|---|---|
+| F4-A | Mise à jour de la Bibliothèque reçue exclusivement sur action explicite après pastille. |
+| F4-B | Les Mouvements précédemment téléchargés et retirés de la Bibliothèque source restent dans le Catalogue local et les Séances. |
+| F4-C | L'accès est accordé au niveau Bibliothèque aux utilisateurs/groupes et hérité par ses membres ; retirer un membre ne révoque pas son usage déjà accordé. |
+| F4-D | Une seule commande « Mettre à jour » actualise composition et révisions des Mouvements sans écraser les adaptations personnelles. |
+| F4-E | Archiver une Bibliothèque ne change rien chez ses destinataires ni leurs mises à jour. |
+| F4-F | Arrêter le partage empêche les nouveaux téléchargements et les nouvelles mises à jour, tout en conservant les installations des destinataires existants. |
+
+Les autorisations d'accès par Bibliothèque sont distinctes des permissions de modification/redistribution propres à chaque fiche. Commerce/expiration : chantier séparé ; modération : priorité. [Parcours cibles](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md), [dossier pour Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
