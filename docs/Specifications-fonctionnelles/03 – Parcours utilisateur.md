@@ -699,7 +699,21 @@ Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. To
 
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
 
-## Parcours post-MVP — Bibliothèques personnelles, reçues et mises à jour
+## Décision de périmètre — Bibliothèques génériques KODJO (10/11/2026)
+
+**Décision validée par Hermann — BIB-19 à BIB-23.** Ce cadrage remplace, pour le **premier lot Bibliothèques**, les parcours de création/partage personnel qui étaient auparavant envisagés en premier ; les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 ne sont maintenues que comme **cible ultérieure**, lorsqu'elles concernent des éditeurs tiers, le partage ou la distribution.
+
+- **BIB-19 — Premier lot :** Bibliothèques génériques éditées et maintenues par KODJO (exemples : Fitness, Hyrox, Pilates, Yoga). Ces libellés sont des exemples de Bibliothèques et ne doivent pas être confondus avec les catégories/filtres existants du Catalogue.
+- **BIB-20 — Rôles des écrans :** le **Catalogue** reste l'accès aux Mouvements, Séances et Programmes, ainsi qu'à leurs créations/personnalisations locales. Dans le **Profil**, un accès « Mes bibliothèques » permet de sélectionner, installer et mettre à jour les Bibliothèques KODJO. Le bloc « Mes données » (Mouvements, Séances, Programmes) est supprimé du Profil car redondant avec le Catalogue. Le détail graphique et les états Figma restent à concevoir : aucune maquette n'est déclarée modifiée ni validée.
+- **BIB-21 — Protection du contenu publié :** l'utilisateur ne modifie pas directement la composition et les fiches publiées d'une Bibliothèque KODJO. Il peut continuer à créer et personnaliser ses contenus propres dans le Catalogue, sans muter la source publiée. Le traitement exact d'une adaptation locale d'une fiche installée reste à spécifier avant implémentation.
+- **BIB-22 — Mise à jour volontaire :** les nouvelles révisions sont proposées et appliquées sur action explicite « Mettre à jour » ; aucune modification silencieuse du contenu installé. Préserver les Séances et les contenus locaux existants ; définir le traitement des conflits et du retrait/désinstallation avant le lot concerné.
+- **BIB-23 — Report explicite :** Bibliothèques personnelles, de coachs ou d'autres éditeurs ; composition/publication par utilisateur, relations, groupes, partage, transmission, gestion des permissions de destinataires, modération centrale liée à la diffusion et commerce sont **hors premier périmètre Bibliothèques**. Préserver l'extensibilité de l'identité et de la composition, sans implémenter maintenant cet écosystème.
+
+**Plan de lots révisé :** L1 — définition minimale, catalogue de Bibliothèques génériques KODJO, sélection et installation vers le Catalogue ; L2 — contrôle des nouvelles révisions et mise à jour volontaire, reprises/conflits/retraits à préciser ; **lots ultérieurs** — création personnelle, coachs, partage, droits, relations, modération et commerce. La catégorisation préexistante du Catalogue ne doit pas être transformée implicitement en Bibliothèque ni supprimée.
+
+**Limites de validation :** aucune conception d'écran Bibliothèques n'est validée dans Figma ; les conditions de désinstallation, les adaptations locales et les éventuelles exceptions aux contenus protégés restent **À CLARIFIER**. Cette décision documentaire ne constitue pas une livraison fonctionnelle.
+
+## Parcours ultérieurs — Bibliothèques personnelles, reçues et mises à jour
 
 1. L'utilisateur crée une Bibliothèque personnelle et y **référence** les Mouvements de son Catalogue, sans duplication ni déplacement des sources.
 2. Il peut publier ses propres fiches, y compris en mode destinataire Protégé, ou redistribuer des fiches tierces seulement avec leur permission. Les éléments interdits restent invisibles chez les destinataires ; la modération centrale contrôle la révision avant diffusion.
