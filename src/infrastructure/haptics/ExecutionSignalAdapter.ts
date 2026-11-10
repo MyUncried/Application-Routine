@@ -61,12 +61,32 @@ const later: Defer = (run, delayMs = 0) => {
 
 export type Guidance = { readonly cue: Cue; readonly announcement: string | null };
 
+/**
+ * Catégories d'annonces vocales, réglées séparément dans le Profil — décision de Hermann du 10/11/2026 (« Il faut
+ * séparer : noms d'exercices ; pauses / récupérations / point d'arrêt ; début / fin de séance ; changements de
+ * côté », plus les répétitions ou la durée). L'interrupteur Voix de la séance coupe toutes les annonces.
+ */
+export type Announcements = {
+  /** Nom de l'exercice au départ et « À suivre : … ». */
+  readonly names: boolean;
+  /** Répétitions, durée, « jusqu'à l'échec ». */
+  readonly objective: boolean;
+  /** « Pause », « Récupération » (et le Point d'arrêt, sans annonce aujourd'hui). */
+  readonly pauses: boolean;
+  /** « Préparez-vous » (et la fin de séance, sans annonce aujourd'hui). */
+  readonly session: boolean;
+  /** « Premier côté », « Changez de côté ». */
+  readonly sides: boolean;
+};
+
+export const ALL_ANNOUNCEMENTS: Announcements = { names: true, objective: true, pauses: true, session: true, sides: true };
+
 export class ExecutionSignalAdapter {
   private vibrationEnabled = true;
   private soundEnabled = true;
   private voiceEnabled = true;
-  /** Préférence du Profil « Annoncer les répétitions ou la durée » (groupe Guidage). */
-  private announceObjective = true;
+  /** Catégories d'annonces du Profil (groupe Guidage). */
+  private announce: Announcements = ALL_ANNOUNCEMENTS;
   /** Nom déjà annoncé comme « À suivre », pour ne pas le répéter au départ. */
   private announcedNext: string | null = null;
   /** L'étape qui se termine était chronométrée : son zéro est marqué (bip grave). */
@@ -88,9 +108,9 @@ export class ExecutionSignalAdapter {
     this.vibrationEnabled = enabled;
   }
 
-  /** Préférence du Profil « Annoncer les répétitions ou la durée » (spec `spec-guidage-reglages` §3.1). */
-  setAnnounceObjective(enabled: boolean): void {
-    this.announceObjective = enabled;
+  /** Catégories d'annonces du Profil (spec `spec-guidage-reglages` §3.1, décision du 10/11/2026). */
+  setAnnouncements(announcements: Announcements): void {
+    this.announce = announcements;
   }
 
   /** Sons et Annonces vocales : état initial selon le Profil (groupe Guidage), modifiables pendant (ch08). */
@@ -110,7 +130,7 @@ export class ExecutionSignalAdapter {
     if (key === this.lastKey) return;
     this.lastKey = key;
     if (signal.kind === "CADENCE" && this.lastSoundAtMs !== null && signal.atMs >= this.lastSoundAtMs && signal.atMs - this.lastSoundAtMs < CADENCE_QUIET_AFTER_SOUND_MS) return;
-    if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"} sons=${this.soundEnabled ? "oui" : "non"} voix=${this.voiceEnabled ? "oui" : "non"} objectif=${this.announceObjective ? "oui" : "non"}`);
+    if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"} sons=${this.soundEnabled ? "oui" : "non"} voix=${this.voiceEnabled ? "oui" : "non"} annonces=${JSON.stringify(this.announce)}`);
     const { cue, announcement } = this.guidance(signal);
     if (this.vibrationEnabled && cue.vibration !== "NONE") this.vibrator.vibrate(cue.vibration);
     const spoken = this.voiceEnabled ? announcement : null;
@@ -147,13 +167,13 @@ export class ExecutionSignalAdapter {
     const name = cleanName(signal.exerciseName);
     switch (signal.phase) {
       case "INITIAL_COUNTDOWN":
-        return { cue: GUIDANCE.countdownStart, announcement: this.withNext("Préparez-vous", signal) };
+        return { cue: GUIDANCE.countdownStart, announcement: sentences(this.announce.session ? "Préparez-vous" : null, this.nextPart(signal)) };
       case "SERIES_PAUSE":
-        return { cue: GUIDANCE.seriesPause, announcement: this.withNext("Pause", signal) };
+        return { cue: GUIDANCE.seriesPause, announcement: sentences(this.announce.pauses ? "Pause" : null, this.nextPart(signal)) };
       case "SIDE_RECOVERY":
       case "POST_ACTIVITY_RECOVERY":
       case "BLOCK_REST":
-        return { cue: GUIDANCE.recovery, announcement: this.withNext("Récupération", signal) };
+        return { cue: GUIDANCE.recovery, announcement: sentences(this.announce.pauses ? "Récupération" : null, this.nextPart(signal)) };
       case "STOP_POINT":
         return { cue: GUIDANCE.stopPoint, announcement: null };
       case "SESSION_END":
@@ -161,10 +181,14 @@ export class ExecutionSignalAdapter {
       case "ACTIVITY": {
         const alreadyAnnounced = name !== null && this.announcedNext === name;
         this.announcedNext = null;
-        if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: "Changez de côté" };
+        if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: this.announce.sides ? "Changez de côté" : null };
         const cue = signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed;
         // Après le sifflet : nom (s'il n'a pas été annoncé avant), côté, puis objectif (recette h4, constat c).
-        const parts = [alreadyAnnounced ? null : name, signal.sideRank === 1 ? "premier côté" : null, this.announceObjective ? objectiveText(signal.objective) : null].filter((part): part is string => part !== null);
+        const parts = [
+          this.announce.names && !alreadyAnnounced ? name : null,
+          this.announce.sides && signal.sideRank === 1 ? "premier côté" : null,
+          this.announce.objective ? objectiveText(signal.objective) : null,
+        ].filter((part): part is string => part !== null);
         return { cue, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
       }
       default:
@@ -172,14 +196,20 @@ export class ExecutionSignalAdapter {
     }
   }
 
-  /** « Récupération. À suivre : Fente » lorsque l'étape suivante est un autre exercice. */
-  private withNext(text: string, signal: ExecutionSignal): string {
+  /** « À suivre : Fente » lorsque l'étape suivante est un autre exercice et que les noms sont annoncés. */
+  private nextPart(signal: ExecutionSignal): string | null {
     const next = signal.next;
     const nextName = next?.phase === "ACTIVITY" ? cleanName(next.exerciseName) : null;
-    if (nextName === null || nextName === cleanName(signal.exerciseName)) return text;
+    if (!this.announce.names || nextName === null || nextName === cleanName(signal.exerciseName)) return null;
     if (this.voiceEnabled) this.announcedNext = nextName;
-    return `${text}. À suivre : ${nextName}`;
+    return `À suivre : ${nextName}`;
   }
+}
+
+/** Phrases d'une annonce, dans l'ordre ; `null` si aucune. */
+function sentences(...parts: readonly (string | null)[]): string | null {
+  const kept = parts.filter((part): part is string => part !== null);
+  return kept.length === 0 ? null : kept.join(". ");
 }
 
 function cleanName(name: string | null | undefined): string | null {

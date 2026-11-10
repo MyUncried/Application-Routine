@@ -50,8 +50,11 @@ describe("strings", () => {
   it("exposes the Profile's four preference switch labels (CE-UI-07 L2515/L2519/L2573)", () => {
     expect(strings.screens.profile.preferencesSwitches).toEqual({
       sounds: "Sons",
-      voiceAnnouncements: "Annonces vocales",
+      voiceAnnouncements: "Annoncer le nom des exercices",
       announceObjective: "Annoncer les répétitions ou la durée",
+      announcePauses: "Annoncer les pauses et récupérations",
+      announceSession: "Annoncer le début et la fin de séance",
+      announceSides: "Annoncer les changements de côté",
       vibration: "Vibration",
       notifications: "Notifications",
     });

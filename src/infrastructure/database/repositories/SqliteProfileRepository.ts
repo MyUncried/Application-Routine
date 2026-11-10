@@ -1,4 +1,11 @@
-import { DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED, type Profile, type ProfileDurationSetting } from "@/domain/preferences/Profile";
+import {
+  DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED,
+  DEFAULT_ANNOUNCE_PAUSES_ENABLED,
+  DEFAULT_ANNOUNCE_SESSION_ENABLED,
+  DEFAULT_ANNOUNCE_SIDES_ENABLED,
+  type Profile,
+  type ProfileDurationSetting,
+} from "@/domain/preferences/Profile";
 import type {
   ProfileIdentityInput,
   ProfilePreference,
@@ -14,6 +21,9 @@ const SELECT_COLUMNS = `
   p.session_initial_countdown_seconds_default, p.session_final_phase_seconds_default,
   p.sounds_enabled, p.voice_announcements_enabled, p.vibration_enabled, p.notifications_enabled,
   COALESCE(g.announce_objective_enabled, ${DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED ? 1 : 0}) AS announce_objective_enabled,
+  COALESCE(g.announce_pauses_enabled, ${DEFAULT_ANNOUNCE_PAUSES_ENABLED ? 1 : 0}) AS announce_pauses_enabled,
+  COALESCE(g.announce_session_enabled, ${DEFAULT_ANNOUNCE_SESSION_ENABLED ? 1 : 0}) AS announce_session_enabled,
+  COALESCE(g.announce_sides_enabled, ${DEFAULT_ANNOUNCE_SIDES_ENABLED ? 1 : 0}) AS announce_sides_enabled,
   p.display_name, p.photo_uri, p.silhouette, p.updated_at
 `;
 
@@ -39,9 +49,12 @@ const PREFERENCE_COLUMNS: Readonly<Record<Exclude<ProfilePreference, GuidancePre
 };
 
 /** Préférences rangées dans `guidance_preferences` (suite PRE-10 son et voix, `migration025`). */
-type GuidancePreference = "announceObjectiveEnabled";
+type GuidancePreference = "announceObjectiveEnabled" | "announcePausesEnabled" | "announceSessionEnabled" | "announceSidesEnabled";
 const GUIDANCE_COLUMNS: Readonly<Record<GuidancePreference, string>> = {
   announceObjectiveEnabled: "announce_objective_enabled",
+  announcePausesEnabled: "announce_pauses_enabled",
+  announceSessionEnabled: "announce_session_enabled",
+  announceSidesEnabled: "announce_sides_enabled",
 };
 
 function isGuidancePreference(preference: ProfilePreference): preference is GuidancePreference {
@@ -127,6 +140,9 @@ export function mapProfileRow(row: ProfileRow): Profile {
     vibrationEnabled: row.vibration_enabled === 1,
     notificationsEnabled: row.notifications_enabled === 1,
     announceObjectiveEnabled: row.announce_objective_enabled === 1,
+    announcePausesEnabled: row.announce_pauses_enabled === 1,
+    announceSessionEnabled: row.announce_session_enabled === 1,
+    announceSidesEnabled: row.announce_sides_enabled === 1,
     displayName: row.display_name,
     photoUri: row.photo_uri,
     silhouette: row.silhouette,

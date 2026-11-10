@@ -38,7 +38,15 @@ const SESSION_SETTINGS: readonly ProfileDurationSetting[] = [
 
 type PreferenceRow = {
   readonly preference: ProfilePreference;
-  readonly labelKey: "sounds" | "voiceAnnouncements" | "announceObjective" | "vibration" | "notifications";
+  readonly labelKey:
+    | "sounds"
+    | "voiceAnnouncements"
+    | "announceObjective"
+    | "announcePauses"
+    | "announceSession"
+    | "announceSides"
+    | "vibration"
+    | "notifications";
 };
 
 /**
@@ -50,6 +58,10 @@ const GUIDANCE_ROWS: readonly PreferenceRow[] = [
   { preference: "soundsEnabled", labelKey: "sounds" },
   { preference: "voiceAnnouncementsEnabled", labelKey: "voiceAnnouncements" },
   { preference: "announceObjectiveEnabled", labelKey: "announceObjective" },
+  // Catégories d'annonces séparées (décision de Hermann du 10/11/2026).
+  { preference: "announcePausesEnabled", labelKey: "announcePauses" },
+  { preference: "announceSessionEnabled", labelKey: "announceSession" },
+  { preference: "announceSidesEnabled", labelKey: "announceSides" },
 ];
 
 const PREFERENCE_ROWS: readonly PreferenceRow[] = [

@@ -5,7 +5,7 @@ import type { BeepTone } from "@/infrastructure/audio/ExecutionSounds";
 import { bestFrenchVoice } from "@/infrastructure/speech/ExecutionVoice";
 
 import type { VibrationLevel } from "../ExecutionVibration";
-import { announcementOf, ExecutionSignalAdapter, objectiveText } from "../ExecutionSignalAdapter";
+import { ALL_ANNOUNCEMENTS, announcementOf, ExecutionSignalAdapter, objectiveText } from "../ExecutionSignalAdapter";
 
 /**
  * Guidage sonore défini par Hermann le 10/11/2026 (formulaire « Guidage sonore KODJO »), mis à jour après la
@@ -161,13 +161,34 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(vibrate).toHaveBeenCalledTimes(2);
   });
 
-  it("préférence du Profil : sans annonce de l'objectif, seul le nom (ou le côté) est annoncé après le sifflet", () => {
+  it("catégories séparées : sans l'objectif, le nom et le côté restent annoncés", () => {
     const { adapter, play, said } = setup();
-    adapter.setAnnounceObjective(false);
+    adapter.setAnnouncements({ ...ALL_ANNOUNCEMENTS, objective: false });
     play({ objective: reps(10), timed: false });
     play({ phase: "SERIES_PAUSE", next: nextExercise("Gainage") });
     play({ exerciseName: "Gainage", sideRank: 1, objective: reps(10), timed: false });
     expect(said).toEqual(["Gainage", "Pause", "Gainage, premier côté"]);
+  });
+
+  it("catégories séparées : sans les noms, l'objectif, les pauses et le début de séance restent annoncés (KO p3)", () => {
+    const { adapter, play, said } = setup();
+    adapter.setAnnouncements({ ...ALL_ANNOUNCEMENTS, names: false });
+    play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, timed: true, next: nextExercise("Pompes") });
+    play({ exerciseName: "Pompes", objective: reps(12), timed: false });
+    play({ phase: "POST_ACTIVITY_RECOVERY", exerciseName: "Pompes", next: nextExercise("Gainage") });
+    expect(said).toEqual(["Préparez-vous", "12 répétitions", "Récupération"]);
+  });
+
+  it("catégories séparées : pauses, début de séance et côtés coupés indépendamment", () => {
+    const { adapter, play, said, beeps } = setup();
+    adapter.setAnnouncements({ ...ALL_ANNOUNCEMENTS, pauses: false, session: false, sides: false });
+    play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, timed: false, next: nextExercise("Fente") });
+    play({ exerciseName: "Fente", sideRank: 1, objective: reps(8), timed: false });
+    play({ phase: "SIDE_RECOVERY", exerciseName: "Fente", timed: false, next: nextExercise("Fente") });
+    play({ exerciseName: "Fente", sideRank: 2, timed: false });
+    expect(said).toEqual(["À suivre : Fente", "8 répétitions"]);
+    // Changement de côté sans annonce : son propre son (sifflet court), pas de bip de repli.
+    expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["BIP_DOUBLE", 1], ["SIFFLET_COURT", 0.55]]);
   });
 
   it("objectif annoncé : répétitions, durée en minutes, À l'échec ; rien sans cible", () => {

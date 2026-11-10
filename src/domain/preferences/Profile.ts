@@ -33,6 +33,14 @@ export const DEFAULT_NOTIFICATIONS_ENABLED = false as const;
  * recette du 10/11/2026 (G8) et validé ensuite (h4, k6).
  */
 export const DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED = true as const;
+/**
+ * Catégories d'annonces séparées — décision de Hermann du 10/11/2026 (« Il faut séparer : noms d'exercices ;
+ * pauses / récupérations / point d'arrêt ; début / fin de séance ; changements de côté »). Activées par défaut,
+ * comme avant la séparation. Le nom des exercices reste porté par `voiceAnnouncementsEnabled`.
+ */
+export const DEFAULT_ANNOUNCE_PAUSES_ENABLED = true as const;
+export const DEFAULT_ANNOUNCE_SESSION_ENABLED = true as const;
+export const DEFAULT_ANNOUNCE_SIDES_ENABLED = true as const;
 
 export type Silhouette = "homme" | "femme";
 
@@ -58,6 +66,12 @@ export type Profile = {
   readonly notificationsEnabled: boolean;
   /** Annonce des répétitions ou de la durée de l'exercice (groupe Guidage). */
   readonly announceObjectiveEnabled: boolean;
+  /** Annonce des pauses, récupérations et Points d'arrêt. */
+  readonly announcePausesEnabled: boolean;
+  /** Annonce du début et de la fin de séance. */
+  readonly announceSessionEnabled: boolean;
+  /** Annonce des changements de côté. */
+  readonly announceSidesEnabled: boolean;
   /** Nullable tant que jamais renseigné (T8) ; 1..80 points de code à l'enregistrement. */
   readonly displayName: string | null;
   /** URI locale persistante de la copie de la photo ; `null` si aucune. */
@@ -82,6 +96,9 @@ export function createDefaultProfile(id: string, updatedAt: string): Profile {
     vibrationEnabled: DEFAULT_VIBRATION_ENABLED,
     notificationsEnabled: DEFAULT_NOTIFICATIONS_ENABLED,
     announceObjectiveEnabled: DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED,
+    announcePausesEnabled: DEFAULT_ANNOUNCE_PAUSES_ENABLED,
+    announceSessionEnabled: DEFAULT_ANNOUNCE_SESSION_ENABLED,
+    announceSidesEnabled: DEFAULT_ANNOUNCE_SIDES_ENABLED,
     displayName: null,
     photoUri: null,
     silhouette: null,

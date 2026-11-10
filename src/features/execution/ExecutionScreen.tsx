@@ -95,10 +95,20 @@ export function ExecutionScreen({
       .then((profile) => {
         if (cancelled) return;
         signals.setVibrationEnabled(profile.vibrationEnabled);
-        signals.setAnnounceObjective(profile.announceObjectiveEnabled);
-        signals.setAudible(profile.soundsEnabled, profile.voiceAnnouncementsEnabled);
+        // Catégories d'annonces séparées (décision de Hermann du 10/11/2026) ; l'interrupteur Voix de la séance,
+        // qui coupe toutes les annonces, démarre actif si au moins une catégorie est annoncée.
+        const announcements = {
+          names: profile.voiceAnnouncementsEnabled,
+          objective: profile.announceObjectiveEnabled,
+          pauses: profile.announcePausesEnabled,
+          session: profile.announceSessionEnabled,
+          sides: profile.announceSidesEnabled,
+        };
+        const anyVoice = Object.values(announcements).some(Boolean);
+        signals.setAnnouncements(announcements);
+        signals.setAudible(profile.soundsEnabled, anyVoice);
         setSoundEnabled(profile.soundsEnabled);
-        setVoiceEnabled(profile.voiceAnnouncementsEnabled);
+        setVoiceEnabled(anyVoice);
       })
       .catch(() => undefined);
     return () => {

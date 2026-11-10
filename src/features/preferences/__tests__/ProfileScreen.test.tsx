@@ -276,11 +276,11 @@ describe("ProfileScreen", () => {
   it("renders a separator between each pair of consecutive rows, never before the first or after the last", async () => {
     await renderScreen();
 
-    // Exercice/Séance : 3 lignes → 2 séparateurs. Guidage : 3 lignes → 2 séparateurs (suite PRE-10 son et voix). Préférences : 2 lignes → 1 séparateur.
+    // Exercice/Séance : 3 lignes → 2 séparateurs. Guidage : 6 lignes → 5 séparateurs (suite PRE-10 son et voix, catégories d’annonces). Préférences : 2 lignes → 1 séparateur.
     const expectedDividerCountByGroup: Record<string, number> = {
       "profile-group-exercise": 2,
       "profile-group-session": 2,
-      "profile-group-guidance": 2,
+      "profile-group-guidance": 5,
       "profile-group-preferences": 1,
     };
     for (const [groupTestID, dividerCount] of Object.entries(expectedDividerCountByGroup)) {

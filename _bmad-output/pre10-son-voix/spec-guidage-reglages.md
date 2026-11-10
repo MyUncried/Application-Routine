@@ -212,3 +212,31 @@ Restent :
 - étape 3 : réglage de Séance, élément Guidage de la Composition ;
 - étape 5 : arrière-plan, avec la nouvelle version native ;
 - §8 : bibliothèque dédiée aux sons courts.
+
+
+## 10. Catégories d'annonces séparées (10/11/2026)
+
+Recette p3 KO, recopiée : « Annonce vocale coupée, annonce objectif activé : il annonce toujours le nom du mouvement ».
+
+Précision de Hermann, recopiée : « Je m’attends à ce que que l’annonce vocale n’arrête que l’annonce des noms de mouvements, et que l’annonce de répétitions durée n’arrête que l’annonce de la répétition et de la durée mais pas l’annonce du nom. On est d’accord ? »
+
+Réponses, recopiées :
+
+- autres annonces : « Il faut séparer : noms d’exercices ; pauses / récupérations / point d’arrêt ; début / fin de séance ; changements de cote » ;
+- interrupteur Voix de la séance : « Oui, toute la voix ».
+
+Analyse : le comportement constaté était conforme au code (Annonces vocales coupait toute la voix), mais pas à l'attente de Hermann. Il s'agit d'une évolution validée (classe B), pas d'une anomalie.
+
+Réalisé :
+
+- Cinq catégories, chacune activée par défaut :
+  - nom des exercices (`voiceAnnouncementsEnabled`, renommé « Annoncer le nom des exercices ») ;
+  - répétitions ou durée ;
+  - pauses et récupérations ;
+  - début et fin de séance ;
+  - changements de côté.
+- `migration026` (version 26) : trois colonnes sur `guidance_preferences`.
+- `ExecutionSignalAdapter.setAnnouncements` : chaque partie de l'annonce suit sa catégorie, par exemple « Récupération » et « À suivre : X ».
+- Interrupteur Voix : coupe tout ; il démarre actif si au moins une catégorie est active.
+- Le Point d'arrêt et la fin de séance n'ont pas d'annonce vocale aujourd'hui ; leurs bascules ne coupent rien de plus pour l'instant.
+- Documents : ch08, ch09, ch13 (CE-UI-07).
