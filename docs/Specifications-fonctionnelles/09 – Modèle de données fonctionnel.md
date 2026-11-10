@@ -1542,20 +1542,19 @@ Le tableau représente la prescription effective des séries. L’EMOM n’a auc
 
 ## Modèle de données cible — Bibliothèques, révisions et modération (post-MVP)
 
-| Objet fonctionnel | Invariants |
+| Concept | Règle de données |
 |---|---|
-| Fiche éditoriale | Identité de source distincte du Mouvement local ; auteur **unique ou inconnu**, propriétaire administratif, droits déclarés, permissions Modifier/Redistribuer, provenance. |
-| Révision de fiche | Identifiant de fiche, révision, contenu, empreinte, état de validation ; autorisation centrale attachée à cette révision. |
-| Média | Type, stockage, empreinte, résultat de contrôle et accès éventuellement suspendu. |
-| Bibliothèque | Identifiant, propriétaire, nom, description, visibilité personnelle/partagée/publique, accès gratuit ou payant. |
-| Appartenance | Association ordonnée de la Bibliothèque à l'identité d'une fiche, **sans copie**. |
-| Révision de Bibliothèque | Version de composition, indépendante de la révision des fiches membres. |
-| Installation | Association source/révision/identifiant local, et références de Bibliothèques reçues ; copie volontaire distincte et restrictions héritées. |
-| Autorisation de distribution et droit commercial | Destinataire/groupe, droits d'accès et d'utilisation ; ne peut élargir les permissions de la source. |
-| Signalement/décision de modération | Révision ou média ciblé, motif, décision, date, acteur, état de neutralisation. |
+| Fiche éditoriale | `source_namespace` + `sheet_id` stable, auteur unique ou inconnu, propriétaire administratif ; **nom affiché non identifiant**, homonymes inter-sources admis. |
+| Révision | Révision et empreinte de contenu, permissions destinataires Modifier/Redistribuer, état de validation ; une seule **révision active locale** par fiche source. |
+| Mouvement local | `Movement.id` conservé, correspondant à l'identité source ; les Exercices/Séances le référencent sans renumérotation. |
+| Bibliothèque / composition | Identité, propriétaire, membres ordonnés **par références** ; versions de composition indépendantes de la révision active des fiches. |
+| Accès/livraison | Droit accordé au niveau Bibliothèque et preuve de réception ; ne pas confondre publication initiale par propriétaire et redistribution par destinataire. |
+| Espace en étoile | Relation individuelle générique orientée et transmission de fiches approuvées, sans rôle professionnel ni objet de prescription numérique. |
+| Média | Référence de média, empreinte, droits propres, statut d'accès/modération. |
+| Modération | Décision sur média/fiche/révision, motif et version de suspension synchronisée. |
 
-Les paramètres propres aux Exercices restent indépendants des permissions sur la fiche. **Raccordement non réalisé :** le pilote de provenance et de catalogue autonome sur la branche catalogue/integration-60-main-20261109 conserve actuellement authors[] et des choix de refus/conflits à l'import ; ces contrats pilotes ne sont pas le modèle validé de diffusion entre utilisateurs et doivent être rapprochés sans migration implicite. [Conception et réserves](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+**Cible SQLite minimale :** associations de Bibliothèques dans la base principale ; identité/révision du Mouvement reçu réutilisant le registre pilote si compatible. Pas de table de versions **actives** par Bibliothèque. Une mise à jour globale doit rester cohérente et reprenable ; le journal par fiche existant ne prouve pas à lui seul cette propriété.
 
-### KIN-01 — Frontière du modèle professionnel
+**Migration :** `movements.normalized_name UNIQUE` (migration 013) empêche aujourd'hui les homonymes. La nouvelle règle inter-sources exige une migration contrôlée de cet index, **sans modifier les `Movement.id` existants**. La forme de l'index et le contrôle des doublons créés localement restent à instruire. `authors[]` du pilote doit être rapproché de l'auteur unique, sans modifier silencieusement le format déjà présent sur une branche distincte.
 
-Les tables logiques de droit d'accès **par Bibliothèque** décrivent la diffusion de Bibliothèques, notamment celles des coachs. Pour la transmission kinésithérapeute → patient, prévoir seulement une **capacité logique de relation individuelle dans l'Espace professionnel** et une livraison de **fiches Mouvements** ; le schéma exact des relations, autorisations et consentements est **À CLARIFIER**. Ne pas créer de `library_id` artificiel pour une prescription, ni de table de prescription numérique d'Exercice/Séance à ce stade. Les relations de suivi clinique ne sont pas incluses dans ce lot. [Conception pour revue Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
+**Choix de tables physiques non figés :** fusion ou séparation accès/preuve, soumission/modération, emplacement de l'état de suspension. [Conception à revoir par Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
