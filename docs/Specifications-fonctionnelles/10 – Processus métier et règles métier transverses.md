@@ -2743,3 +2743,15 @@ La règle « présent dans les deux natures » et la grille des volumes (S1…Sn
 12. Propager les changements au registre, glossaire/modèle, périmètre, règles, données, API, architecture, contrats, index et plan PRE-9 selon leurs dépendances réelles. Actualiser la conception du moteur pour les prescriptions variables EMOM, l’AMRAP dégressif et le Death by en Durée, sans lancer son développement dans cette revue. Ne pas modifier les archives OpenSpec.
 
 **Scénarios de contrôle :** annuler depuis chacun des deux points d’entrée ; Progression 10/12/14 conservée ; échelle For time conservée ; AMRAP 5/3/1/1 ; charges Avec→Sans→Avec dans le même brouillon ; sauvegarde puis nouvelle ouverture de l’état effectif ; Superset rouvert avec trois membres et une cible manquante ; EMOM commun 30 s + 30 s pour 60 s bloqué ; EMOM bilatéral dépassant sa fenêtre bloqué ; Death by dont le premier rang dépasse l’intervalle, averti mais enregistrable ; Death by 10 s + 10 s par minute arrêté avant le rang 6, résultat 5 rangs et « limite de l’intervalle atteinte » ; Superset rouvert avec trois membres, récupération lue et écrite sur le troisième.
+
+## Règles transverses — Bibliothèques et partage de Mouvements (post-MVP)
+
+1. **Référencement :** une Bibliothèque référence des fiches ; ajouter un Mouvement ne le copie ni ne le retire d'une autre Bibliothèque. La composition d'une Bibliothèque reçue n'est pas modifiable localement.
+2. **Droits :** Modifier et Redistribuer sont deux permissions distinctes ; quatre modes Protégé, Libre localement, Partageable à l'identique et Libre. La copie personnelle est toujours possible, sans extension des permissions ni perte de provenance.
+3. **Diffusion sélective :** une Bibliothèque partagée n'expose à ses destinataires que les fiches réellement redistribuables ; les fiches interdites sont absentes, sans placeholder ni divulgation de leurs métadonnées.
+4. **Publication :** une révision nouvelle doit être contrôlée centralement avant diffusion ; partage privé sans anomalie autorisable automatiquement ; première publication publique/payante et anomalie soumises à revue humaine.
+5. **Révision éditoriale :** alerte par pastille, visite de la Bibliothèque et action « Mettre à jour » ; en l'absence d'action, aucun changement. Ne jamais écraser silencieusement une variante personnelle.
+6. **Modération prioritaire :** KODJO peut suspendre un média ou une fiche diffusés sans accord du destinataire ; références et historiques conservés autant que possible, application lors de la prochaine synchronisation possible et non garantie immédiate sur iPhone fermé/hors ligne.
+7. **Périmètre :** aucune dépendance réseau nouvelle pour l'Exécution et le Catalogue du MVP.
+
+**À CLARIFIER :** archivage et suspension d'une Bibliothèque, retrait d'un Mouvement de la composition source, paiement expiré, droits déjà distribués. [Règles complètes](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
