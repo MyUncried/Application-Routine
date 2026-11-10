@@ -411,3 +411,5 @@ Réalisé (classe C, essai non normatif ; aucune règle ni aucun contrat d'écra
 Suite, demande de Hermann recopiée : « Faire apparaître les pauses, etc. ».
 
 La liste passe des exercices aux étapes : une ligne par étape du plan, avec le nom, la Série et le côté d'un Exercice, ou la phase et sa durée prévue. L'étape en cours est en gras ; la précédente est grise puis retirée. Il s'agit toujours de l'essai de classe C.
+
+Suite, demande de Hermann recopiée : « Sauf compte à rebours et fin de séance ». Le Compte à rebours initial et la Fin de séance sont retirés de la liste.

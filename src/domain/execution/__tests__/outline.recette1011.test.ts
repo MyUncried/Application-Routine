@@ -7,7 +7,7 @@ import { exerciseActivity, planOf, Simulation, structuredSession } from "../test
 
 /**
  * Essai du 10/11/2026 (besoins de Hermann) : liste des étapes pendant l'Exécution — séries, pauses,
- * récupérations, Compte à rebours, Fin de séance ; en cours en gras, la précédente en gris, puis effacée.
+ * récupérations, sans Compte à rebours ni Fin de séance ; en cours en gras, la précédente en gris, puis effacée.
  */
 function session() {
   return structuredSession(
@@ -29,13 +29,11 @@ describe("liste des étapes pendant l'Exécution (essai du 10/11/2026)", () => {
     const outline = () => projectExecution(plan, sim.state, sim.now).outline.map((item) => [item.kind, item.name, item.series?.current ?? null, item.status]);
     sim.send({ type: "START" }, 0);
     expect(outline()).toEqual([
-      ["INITIAL_COUNTDOWN", null, null, "current"],
       ["ACTIVITY", "Mouvement A", 1, "upcoming"],
       ["SERIES_PAUSE", "Mouvement A", null, "upcoming"],
       ["ACTIVITY", "Mouvement A", 2, "upcoming"],
       ["POST_ACTIVITY_RECOVERY", "Mouvement A", null, "upcoming"],
       ["ACTIVITY", "Mouvement B", null, "upcoming"],
-      ["SESSION_END", null, null, "upcoming"],
     ]);
     sim.at(35); // Pause entre séries de A
     expect(outline().slice(0, 3)).toEqual([
@@ -48,7 +46,6 @@ describe("liste des étapes pendant l'Exécution (essai du 10/11/2026)", () => {
       ["ACTIVITY", "Mouvement A", 2, "past"],
       ["POST_ACTIVITY_RECOVERY", "Mouvement A", null, "current"],
       ["ACTIVITY", "Mouvement B", null, "upcoming"],
-      ["SESSION_END", null, null, "upcoming"],
     ]);
     const recovery = projectExecution(plan, sim.state, sim.now).outline[1]!;
     expect(recovery.plannedMs).toBe(30_000);

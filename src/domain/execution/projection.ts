@@ -34,8 +34,9 @@ export type NextView = {
 /**
  * Liste des étapes de la Séance pendant l'Exécution — essai demandé par Hermann le 10/11/2026 (« besoin à
  * suivre » : en cours en gras, passé en gris puis effacé ; puis « Faire apparaître les pauses, etc. »), avant le
- * Figma cible. Une ligne par étape du plan (séries, pauses, récupérations, Point d'arrêt, Compte à rebours, Fin
- * de séance) ; les étapes antérieures à la précédente sont retirées ; la précédente est « passée ».
+ * Figma cible. Une ligne par étape du plan (séries, pauses, récupérations, Point d'arrêt), sans le Compte à rebours
+ * initial ni la Fin de séance (« Sauf compte à rebours et fin de séance ») ; les étapes antérieures à la
+ * précédente sont retirées ; la précédente est « passée ».
  */
 export type OutlineItem = {
   readonly key: string;
@@ -207,6 +208,7 @@ function outlineOf(plan: ExecutablePlan, state: EngineState): readonly OutlineIt
   return plan.items.flatMap((item, index): OutlineItem[] => {
     if (item.type !== "LEAF" || index < at - 1) return [];
     const spec = item.leaf;
+    if (spec.kind === "INITIAL_COUNTDOWN" || spec.kind === "SESSION_END") return [];
     const circuit = spec.context?.circuit ?? null;
     return [
       {
