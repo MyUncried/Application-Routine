@@ -6,6 +6,10 @@
 **Source de décisions :** BIB-01 à BIB-18, F4-A à F4-G, précision KIN-01 et règles de première publication et d'identité de source ; [conception initiale](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).  
 **Périmètre :** parcours de partage futurs, reportés après les Bibliothèques génériques KODJO (BIB-19 à BIB-23).
 
+## Parcours courants et parcours futurs — réconciliation du 11/11/2026
+
+**Parcours courant :** administration KODJO de la fiche éditoriale et de ses révisions, export du catalogue autonome ; validation/identité/import/réconciliation par les services CA-3 ; sélection, installation et mise à jour volontaire des Bibliothèques génériques depuis Profil ; consultation et édition des contenus propres depuis Catalogue ; conservation des **60 Mouvements déjà installés**, des identités et des usages en Exercices/Séances. **Parcours PU-01/02/05/06/07/13/17 de création et diffusion par les utilisateurs : reportés.** Les autres parcours de Bibliothèques reçues doivent être lus pour les Bibliothèques KODJO uniquement dans le premier périmètre : aucune fonction de partage entre personnes n'en découle. Le canal pilote d'import par fiche et ses actions de recette ne doivent pas être confondus avec l'action globale « Mettre à jour ». Tous les détails d'écrans non présents dans Figma restent à spécifier.
+
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
 Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. Voir le registre BIB-19 à BIB-23.
