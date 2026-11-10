@@ -159,7 +159,7 @@ const SOURCES: Record<BeepTone, number> = {
 // Durée des fichiers (ms), pour ne jamais couper un son en reconfigurant la session.
 const DURATION_MS: Record<BeepTone, number> = {
   BIP_GRAVE: 200,
-  BIP_DOUBLE: 250,
+  BIP_DOUBLE: 260,
   BIP_LONG: 620,
   SIFFLET_ROULE: 440,
   SIFFLET_PUR: 420,
