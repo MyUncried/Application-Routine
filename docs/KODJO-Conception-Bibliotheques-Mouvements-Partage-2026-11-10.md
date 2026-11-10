@@ -3,10 +3,10 @@
 **Date :** 10 novembre 2026.  
 **Statut :** conception fonctionnelle cible arbitrée avec le propriétaire du produit ; réalisation post-MVP, sauf composants déjà présents explicitement identifiés ailleurs.
 
-> **Complément validé F4-A à F4-F — 10/11/2026 :** les questions de mise à jour de composition, de conservation locale, d'accès par Bibliothèque, d'archivage et d'arrêt du partage ont été arbitrées après la présente version. Consulter les [parcours consolidés](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) et le [dossier d'architecture soumis à Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md). Les anciennes interrogations du §7 sur ces points sont supersédées ; les points commerciaux et de conflit de versions restent ouverts.
+**Parcours normatifs :** [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md). **Conception technique pour revue :** [architecture et données](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
   
 **Autorité :** décisions BIB-01 à BIB-18 ci-dessous ; registre au chapitre 07.  
-**Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. **Précision KIN-01 :** le parcours kiné-patient transmet le Mouvement dans l'Espace professionnel en étoile, sans prescription numérique d'Exercice/Séance ; l'exécution est expliquée oralement. Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
+**Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. **KIN-01 :** la transmission individuelle s'effectue dans un **Espace en étoile générique**, sans rôle professionnel dans le modèle. Dans l'usage kiné-patient, les consignes d'exécution sont orales, sans prescription numérique. Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
 
 ## 1. Concepts et identités
 
@@ -18,7 +18,7 @@
 - **Bibliothèque** : collection identifiée de références vers des Mouvements, et non ensemble de copies physiques. Elle possède notamment un propriétaire, un nom, une description et une composition ordonnée. Une même fiche peut être référencée dans plusieurs Bibliothèques.
 - **Installation** : matérialisation locale d'une fiche et de sa révision d'origine ; elle ne transfère ni auteur, ni propriété, ni permissions de redistribution.
 
-La provenance, l'identité de source, l'historique des révisions et les permissions sont conservés à travers les copies et les installations. Un **coach** peut distribuer une Bibliothèque ; un **kinésithérapeute** transmet ses Mouvements dans la relation individuelle au patient, au sein de son Espace professionnel, et non par une Bibliothèque prescrite. Le pilote existant de 60 fiches peut garder un auteur ou un propriétaire « inconnu » sans les inventer ; aucune diffusion d'une fiche dont les droits nécessaires ne sont pas établis.
+La provenance, l'identité de source, l'historique des révisions et les permissions sont conservés à travers les copies et les installations. Une Bibliothèque peut être distribuée par tout utilisateur ; une transmission individuelle est distinctement possible dans une relation de l'Espace en étoile, sans Bibliothèque fictive ni prescription numérique. Le pilote existant de 60 fiches peut garder un auteur ou un propriétaire « inconnu » sans les inventer ; aucune diffusion d'une fiche dont les droits nécessaires ne sont pas établis.
 
 ## 2. Décisions fonctionnelles validées
 
@@ -33,7 +33,7 @@ La provenance, l'identité de source, l'historique des révisions et les permiss
 | **BIB-07** | **Copier** est toujours possible pour l'usage personnel et n'est pas une permission. Toute copie conserve obligatoirement les permissions et la provenance de la source ; les copies successives ne peuvent élargir les droits. Copier n'efface ni n'affecte la fiche source. |
 | **BIB-08** | Les restrictions sur la fiche ne verrouillent pas les paramètres d'exécution propres aux Exercices et aux Séances. |
 | **BIB-09** | Une Bibliothèque reçue/téléchargée est en lecture seule sur sa composition locale : ni ajout, ni retrait, ni réordonnancement. Le destinataire peut créer ses propres Bibliothèques et y référencer les Mouvements reçus, sans les retirer de la Bibliothèque source ni les copier. |
-| **BIB-10** | Lorsqu'une Bibliothèque personnelle est partagée, **seuls** les Mouvements autorisés à la redistribution sont visibles et récupérables par le destinataire ; aucun élément interdit n'est exposé, même verrouillé. Filtrage automatique ; composition de l'émetteur inchangée. |
+| **BIB-10** | Une Bibliothèque partagée contient les fiches que le propriétaire est habilité à **publier pour la première fois** et les fiches tierces dont il possède le droit de **redistribution**. Les autres fiches tierces sont intégralement exclues pour le destinataire ; aucune métadonnée interdite n'est exposée. La composition personnelle de l'émetteur reste inchangée. |
 | **BIB-11** | Une fiche « Partageable à l'identique » conserve son contenu, sa provenance et ses restrictions lors de la redistribution ; les copies autorisées à la redistribution ne gagnent pas le droit de modification. |
 | **BIB-12** | Une nouvelle révision éditoriale d'un Mouvement distribué n'est **jamais installée automatiquement** : pastille d'alerte chez le destinataire, accès à la Bibliothèque et action **« Mettre à jour »**. Sans action de l'utilisateur, sa version reste inchangée. |
 | **BIB-13** | Une adaptation locale autorisée ne modifie jamais la fiche source ni les autres installations. Une révision distante ne doit pas écraser silencieusement une adaptation personnelle. |
@@ -52,17 +52,17 @@ La provenance, l'identité de source, l'historique des révisions et les permiss
 | Partageable à l'identique | Non | Oui, sans changement de contenu | Oui, si droit d'accès valide |
 | Libre | Oui | Oui | Oui, si droit d'accès valide |
 
-Les droits s'appliquent à la fiche éditoriale, pas à l'insertion ou aux paramètres d'un Exercice. L'installation technique ou l'association à une Bibliothèque ne constitue pas une redistribution. Le mode et le titulaire de droit restent attachés à la source et ne sont pas redéfinis par le simple copieur.
+Les droits s'appliquent à la fiche éditoriale **reçue**, pas à l'insertion ou aux paramètres d'un Exercice. Le propriétaire habilité peut publier sa propre fiche avec des permissions destinataires Protégé ; un destinataire ne peut pas redistribuer une telle fiche. La création originale locale est modifiable et non redistribuable par des tiers avant choix explicite de droits à la première diffusion. L'installation technique ou l'association à une Bibliothèque ne constitue pas une redistribution. Le mode et le titulaire de droit restent attachés à la source et ne sont pas redéfinis par le simple copieur.
 
 ### 2.2 Distribution sélective d'une Bibliothèque
 
-La composition personnelle peut inclure six Mouvements dont seulement trois sont redistribuables. La version reçue n'expose que les trois fiches autorisées : aucune donnée de la fiche interdite, pas même son titre ou un emplacement bloqué. Les Mouvements reçus gardent leurs restrictions ; le destinataire ne peut ni réorganiser la Bibliothèque reçue ni faire apparaître les éléments non autorisés.
+La composition personnelle peut inclure des fiches propres Protégées et des fiches tierces non redistribuables. La version reçue n'expose que les fiches que l'émetteur a le droit de publier ou redistribuer : aucune donnée des fiches tierces interdites, pas même un titre ou un emplacement bloqué. Les Mouvements reçus gardent leurs restrictions ; le destinataire ne peut ni réorganiser la Bibliothèque reçue ni faire apparaître les éléments non autorisés.
 
 Un changement de permission ne doit jamais révéler rétroactivement un contenu avant autorisation centrale et contrôle de droits. Le devenir d'une ancienne version déjà téléchargée après modification de droits ou de composition est à préciser (§ 7).
 
 ## 3. Révisions, alerte et intervention de modération
 
-**Révision ordinaire :** l'auteur/propriétaire habilité prépare une nouvelle version ; elle reçoit sa propre identité de révision et repasse par la validation avant diffusion. Le destinataire voit une pastille dans le parcours Bibliothèques et peut choisir « Mettre à jour ». Aucune nouvelle version n'est appliquée tant qu'il ne demande pas l'opération. Ne pas réintroduire « Accepter / Refuser / Reporter » comme obligation ou contrôle bloquant de la mise à jour distribuée. La composition de Bibliothèque fait l'objet d'une version propre à la Bibliothèque, distincte des révisions des fiches.
+**Révision ordinaire :** le propriétaire habilité prépare une nouvelle version de la fiche et de ses permissions destinataires ; cette révision contrôlée reçoit son propre identifiant et repasse par la validation avant diffusion. Le destinataire voit une pastille dans le parcours Bibliothèques et peut choisir « Mettre à jour ». Aucune nouvelle version n'est appliquée tant qu'il ne demande pas l'opération. Ne pas réintroduire « Accepter / Refuser / Reporter » comme obligation ou contrôle bloquant de la mise à jour distribuée. Une Bibliothèque possède sa version de **composition** ; une fiche source ne possède qu'une **révision active sur l'appareil**, même lorsqu'elle est référencée dans plusieurs Bibliothèques. Une mise à jour volontaire de la fiche la rend visible dans toutes ses Bibliothèques référentes, avec information préalable des effets transversaux ; les autres compositions ne changent pas.
 
 **Mesure de modération :** si un média ou une fiche est illicite, obscène ou dangereux, KODJO peut suspendre immédiatement sa distribution centrale, puis demander la neutralisation des installations à la prochaine synchronisation. La révocation est indépendante de la mise à jour éditoriale volontaire et ne requiert pas le bouton « Mettre à jour ». Lorsque seule une vidéo pose problème, la fiche et les associations peuvent rester accessibles avec ce média bloqué. Une mesure grave peut rendre toute la fiche inaccessible.
 
@@ -71,26 +71,25 @@ Un changement de permission ne doit jamais révéler rétroactivement un contenu
 ## 4. Parcours cible
 
 1. Création d'un Mouvement et de sa Bibliothèque personnelle : fonctionnement local immédiat, sans contrôle central tant que rien n'est partagé.
-2. L'utilisateur sélectionne une fiche ou une Bibliothèque à partager ; KODJO calcule la liste des fiches redistribuables, sans révéler celles qui ne le sont pas.
+2. L'utilisateur sélectionne une fiche ou une Bibliothèque à partager ; KODJO conserve ses propres fiches publiables et les fiches tierces redistribuables, sans exposer celles dont la redistribution est interdite.
 3. Pour chaque révision non encore approuvée : transfert sécurisé de la fiche et de ses médias vers un espace privé, contrôle automatique, escalade humaine selon type de publication ou anomalie.
 4. Une fois approuvées et après contrôle des droits d'accès, les fiches sont distribuables aux destinataires ; les références non redistribuables sont exclues.
 5. Le destinataire installe ou consulte la Bibliothèque en lecture seule ; il peut référencer les Mouvements dans ses Bibliothèques personnelles sans copier les fiches.
 6. Lorsqu'une nouvelle révision est approuvée, pastille d'alerte ; « Mettre à jour » déclenche la mise à jour demandée et les contrôles de cohérence. Rien n'est modifié sans action.
 7. Lors d'un signalement, l'équipe de modération peut bloquer la distribution ou neutraliser un média, informer les acteurs concernés et tracer la décision.
 
-## 5. Conception logique minimale — cible, pas schéma SQL imposé
+## 5. Modèle logique minimal — cible de conception
 
-- **MovementEditorialSheet** : identité éditoriale de source, auteur unique optionnel, propriétaire administratif, titulaire déclaré des droits, permissions, état de diffusion et origine. La fiche locale Movement conserve son identifiant et ses relations actuelles avec Exercices/Séances.
-- **MovementRevision** : identifiant de fiche, numéro de révision, empreinte du contenu, contenu éditorial, références médias, horodatage, état de validation.
-- **MovementMedia** : identifiant, type, emplacement privé, empreinte, statut d'analyse, statut d'accès.
-- **Library** : identité, propriétaire, nom, description, visibilité, conditions d'accès (gratuit/payant), statut d'archivage éventuel à arbitrer.
-- **LibraryMembership** : couple (Bibliothèque, fiche), position, sans copie du contenu.
-- **LibraryRevision** : état publié de la composition et historique ; politique de retrait/synchronisation des membres à préciser.
-- **DistributionGrant / Entitlement** : destinataire ou groupe, mode de visibilité, preuve du droit d'accès et, si payant, droit commercial valide ; ne doit jamais élargir les permissions de la fiche.
-- **LocalInstallation / SourceLink** : correspondance entre fiche/révision source et fiche locale, Bibliothèque reçue, dernière révision installée et éventuelles adaptations locales.
-- **ModerationCase / Decision / Report** : cible et révision, motif, auteur du signalement, contrôles, décision, horodatage, acteur et état de notification.
+- **Fiche source :** identité stable (`source_namespace`, `sheet_id`), auteur unique nullable, propriétaire administratif, provenance et historique des révisions ; nom affiché non unique globalement.
+- **Révision :** contenu et médias référencés, empreinte, permissions des destinataires Modifier/Redistribuer et décision d'approbation. La première publication par le propriétaire habilité ne dépend pas du droit de redistribution accordé aux destinataires.
+- **Mouvement local :** identité `Movement.id` existante et **une seule version active** par fiche source. Les Bibliothèques le référencent, sans duplication.
+- **Bibliothèque :** identité, propriétaire, composition ordonnée par références, version publiée, visibilité et accès. La version de composition n'impose pas une version active distincte de la fiche chez le destinataire.
+- **Accès et preuve :** droit attribué au niveau Bibliothèque et preuve de livraison, conservés dans la mesure nécessaire à l'usage acquis après retrait d'une fiche.
+- **Espace en étoile :** relation individuelle générique et transmission de fiches, sans entité de prescription, de profil clinique ou de rôle professionnel.
+- **Modération :** approbation de révision, contrôles de médias et état de suspension prioritaire.
+- **Commerce :** contrat indépendant, sans prix ou transaction dans la fiche ni la composition.
 
-Les champs et opérations réels doivent être reconciliés avec la provenance préparatoire et le format de catalogue pilote présents sur la branche catalogue/integration-60-main-20261109. Ces sources ne sont pas fusionnées dans la baseline main au 10/11/2026 ; notamment le tableau authors[] du pilote est à adapter à la décision d'auteur unique et le refus de révision du chargement pilote ne décrit pas le partage futur.
+La cible technique cherche à réutiliser la base locale opérationnelle et le registre d'installation du pilote. Les homonymes de sources différentes nécessitent d'adapter l'unicité globale de `normalized_name` (migration 013), sans modifier `Movement.id`. Les groupes et conditions d'accès payantes sont différables ; les tables exactes, la cohérence multi-fiches et le journal de reprise doivent être audités par Claude.
 
 ## 6. Architecture technique cible — choix de réalisation non figés
 
@@ -106,15 +105,16 @@ Les champs et opérations réels doivent être reconciliés avec la provenance p
 
 ## 7. Points restant À CLARIFIER
 
-1. **F4-E/F4-F VALIDÉS :** l'archivage masque localement sans affecter les destinataires, tandis que l'arrêt du partage interdit les nouvelles distributions et mises à jour sans révoquer les installations existantes. Les états « Brouillon / Active / Inactive » ne sont pas retenus. Détails et exceptions : parcours consolidés.
-2. **F4-A à F4-D VALIDÉS :** pastille puis mise à jour manuelle globale (composition + révisions). Un Mouvement précédemment installé et retiré de la Bibliothèque source reste dans le Catalogue local, les Bibliothèques personnelles et Séances. Accès accordé au niveau Bibliothèque ; le cas des révisions divergentes d'une même fiche dans plusieurs Bibliothèques reste À CLARIFIER.
-3. **Accès payant :** achat définitif contre abonnement, suspension d'utilisation lorsque le droit commercial expire, droits sur les données déjà téléchargées, et statut « actif » d'un Mouvement dans une Bibliothèque.
-4. **Valeur initiale des permissions** lors d'une première création ou d'un premier partage : quatre modes validés, mais défaut non explicitement arbitré.
-5. **Gestion de conflits** lors d'une mise à jour manuelle d'une fiche dont une variante locale a été personnalisée ; pas d'écrasement implicite, modalités de rapprochement encore à définir.
-6. **Révocation de redistribution** d'une fiche déjà reçue/repartagée, gestion des droits acquis et exigences contractuelles/licences : règles commerciales et juridiques à préciser.
-7. **Critères d'approbation et recours :** catégories interdites, seuils de contrôle, délai de revue, traitement des infractions graves, déclaration des droits et procédure de contestation.
-8. **Parcours UX/Figma :** pastille, écran Bibliothèques, commandes de mise à jour, création/partage et modération non représentés dans la conception UI MVP vérifiée ; contrats d'écran à produire avant développement.
-9. **Identités locales homonymes :** collisions de noms entre fiches de sources distinctes ; raccordement au catalogue de Mouvements actuel à concevoir.
+1. **Commerce :** achat définitif, abonnement, expiration, récupération après changement d'appareil et droits acquis associés.
+2. **Permissions ultérieures :** effet d'une restriction de modification/redistribution sur des installations ou redistributions déjà réalisées ; droits et licences des médias.
+3. **Conflits locaux :** modalités lorsque le contenu d'une fiche reçue a été adapté localement, hors variante indépendante ; pas de fusion silencieuse.
+4. **Cohérence des lots :** mécanisme technique minimal de mise à jour globale et reprise après interruption avec deux bases SQLite.
+5. **Homonymes :** forme exacte de l'index et contrôle des doublons parmi les fiches originales d'un même utilisateur.
+6. **Groupes et Espace :** phasage des groupes, fin de relation individuelle, notifications et confidentialité.
+7. **Modération :** critères de contrôle, délais, contestations et droit applicable selon les données effectivement traitées.
+8. **UX / Figma :** écrans Bibliothèques, aperçu de propagation vers d'autres Bibliothèques, commandes de partage, mise à jour et signalement, non validés visuellement à ce stade.
+
+**Déjà définis et non ouverts :** une seule révision active par fiche source et par appareil ; propagation de son actualisation à toutes les Bibliothèques référentes ; compositions des autres Bibliothèques inchangées ; copie sans élargissement des permissions ; archivage indépendant de la diffusion ; arrêt du partage sans suppression des installations existantes.
 
 ## 8. Périmètre et traçabilité
 
