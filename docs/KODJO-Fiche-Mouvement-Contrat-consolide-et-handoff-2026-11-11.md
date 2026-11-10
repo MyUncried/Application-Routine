@@ -4,6 +4,10 @@
 
 **Baseline documentaire :** branche `docs/bibliotheques-generiques-cadrage-20261110` (11/11) ; **travaux techniques examinés séparément, non fusionnés** : branche `catalogue/integration-60-main-20261109`, fichier `docs/KODJO-Format-catalogue-mouvements-v1.md`, `docs/KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md`, code CA-1/CA-2/CA-3/CA-4. Le code consulté sur la branche documentaire est distinct de celui de la branche pilote. Ce document ne déclare **aucun test exécuté** ni conformité de branche fusionnée.
 
+## Décisions postérieures à cet audit — 11/11/2026
+
+**Les points « auteur unique », « médias » et « copie/édition des importées » ci-dessous ont été arbitrés après cet audit et ne sont plus des questions ouvertes.** La cible est désormais : `author: ActorRef | null`, médias distants avec métadonnées conservées et cache à la demande, fiches importées non modifiables et non duplicables ; modifications d'Exercice toujours autorisées. Les passages de ce rapport qui les qualifient « À CLARIFIER » restent des **constats datés de la situation antérieure**, non la règle actuelle. [Spécification normative de l'étape 2](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
 ## 1. Décisions et responsabilité des objets
 
 1. **Mouvement local `Movement` :** objet effectivement utilisé par les Exercices et Séances dans KODJO ; `Movement.id` est stable. Il comprend le contenu utilisable dans une Séance. Ne pas intégrer la totalité des informations éditoriales dans les paramètres d'exécution.
