@@ -115,7 +115,7 @@ Après une perte, ces Mouvements sont présentés comme **« à rapprocher »** 
 |---|---|---|
 | **CA-1 Format** | Report du modèle `MovementEditorialProvenance` (+ tests) ; types du format v1 ; validateur pur (structure, unicité, références, médias, provenance, contrat `Movement` de la projection) ; projection Mouvement ; empreinte de fiche ; spécification documentaire ; contrôle en test de tout fichier versionné | **Autorisé** |
 | **CA-2 Conversion initiale** | Conversion à usage unique corpus + préclassement + brouillons d'administration → fichier pilote versionné hors de `src/` ; preuve de reproductibilité ; projection identique à l'importeur actuel pour les 60 fiches (E8) ; brouillons, médias, glossaire et référentiels d'administration préservés | **Autorisé** |
-| CA-3 Registre + moteur | Base distincte provisoire ; classement du § 5 ; décisions | Non développé |
+| CA-3 Registre + moteur | Base distincte provisoire ; classement du § 5 ; décisions | Non développé — conception détaillée préparée le 10/11 (`2026-11-10_CATALOGUE-AUTONOME-PROVENANCE-CA3-PREPARATION.md`), en attente de validation |
 | CA-4 Écran de recette | « Charger un catalogue » remplaçant « Importer 60 fiches » | Non développé |
 | CA-5 Retrait du corpus embarqué | Suppression des imports JSON de `src/` | Non développé |
 | CA-6 Recette iPhone | Trois chargements : (1) fichier pilote sur la base contenant les 60 → 60 adoptés, 0 ajouté ; (2) rechargement → aucune écriture ; (3) fichier **édité** (une fiche modifiée, une fiche **créée directement dans le fichier**) → 1 nouvelle installée, 1 révision proposée, testée en accepter / refuser / reporter, modification personnelle préservée | Non développé |
@@ -148,7 +148,7 @@ Après une perte, ces Mouvements sont présentés comme **« à rapprocher »** 
 
 ## 8. Points ouverts
 
-1. **Propriétaire obligatoire** : `validateMovementEditorialProvenance` exige `owner` ; le corpus interdit toute attribution par déduction. Le format v1 admet un propriétaire **inconnu** (`null`) et le signale. Déclarer un propriétaire du catalogue pilote est une décision de Hermann.
+1. **Propriétaire obligatoire** : `validateMovementEditorialProvenance` exige `owner` ; le corpus interdit toute attribution par déduction. Le format v1 admet un propriétaire **inconnu** (`null`) et le signale. Déclarer un propriétaire du catalogue pilote est une décision de Hermann. [Résolu le 10/11/2026 — décision de Hermann : propriétaire inconnu conservé pour les 60 fiches, formalisé dans `MovementEditorialProvenance` (`owner: null`, interdit à la diffusion et à la publication) ; ANKUSHA gestionnaire administratif du catalogue (`catalogue.manager`), ni propriétaire ni ayant droit ; `EXTERNAL_IMPORTED` depuis le classeur du 27/10/2026 validé. Voir `2026-11-10_CATALOGUE-AUTONOME-PROVENANCE-CA3-PREPARATION.md`.]
 2. **Homonymie** (spécification A1) : l'unicité des noms de `Movement` demeure ; conflit de nom = fiche écartée.
 3. **Référentiels inconnus du téléphone** : fiche écartée, sans création implicite.
 4. **Registre** : base distincte provisoire ; destination définitive à arbitrer après PRE-10.

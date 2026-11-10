@@ -96,6 +96,7 @@ function catalogue(sheets: unknown[] = [handWrittenSheet()]): Mutable<MovementCa
       title: "Catalogue de test",
       revision: "1",
       owner: { kind: "PERSON", id: "coach-martin" },
+      manager: null,
       publisher: null,
       publicationAllowed: false,
       notes: [],
@@ -193,6 +194,43 @@ describe("format KODJO_MOVEMENT_CATALOGUE v1 — validation", () => {
     sheet.provenance.owner = null;
     const result = parseMovementCatalogueFile(catalogue([sheet]));
     expect(result).toMatchObject({ ok: true, warnings: [{ path: "sheets[0].provenance.owner", code: "UNKNOWN_OWNER" }] });
+  });
+
+  it("propriétaire inconnu (décision du 10/11) : jamais publiable ni diffusable, champ obligatoirement déclaré", () => {
+    const published = handWrittenSheet();
+    published.provenance.owner = null;
+    published.validation.publicationAllowed = true;
+    expect(codes(catalogue([published]))).toContain("sheets[0].validation.publicationAllowed:INCONSISTENT");
+
+    const diffused = handWrittenSheet();
+    diffused.provenance.owner = null;
+    diffused.provenance.visibility = "UNLISTED";
+    expect(codes(catalogue([diffused]))).toContain("sheets[0].provenance.owner:INCONSISTENT");
+
+    const omitted = handWrittenSheet() as unknown as { provenance: Record<string, unknown> };
+    delete omitted.provenance.owner;
+    expect(codes(catalogue([omitted]))).toContain("sheets[0].provenance.owner:REQUIRED");
+
+    const header = catalogue([]);
+    header.catalogue.owner = null;
+    header.catalogue.publicationAllowed = true;
+    expect(codes(header)).toContain("catalogue.publicationAllowed:INCONSISTENT");
+  });
+
+  it("gestionnaire administratif du catalogue : déclaré, distinct du propriétaire", () => {
+    const managed = catalogue([]);
+    managed.glossary = [];
+    managed.catalogue.owner = null;
+    managed.catalogue.manager = { kind: "ORGANIZATION", id: "ankusha" };
+    expect(parseMovementCatalogueFile(managed)).toMatchObject({
+      ok: true,
+      warnings: [{ path: "catalogue.owner", code: "UNKNOWN_OWNER" }],
+    });
+    const missing = catalogue([]) as unknown as { catalogue: Record<string, unknown> };
+    delete missing.catalogue.manager;
+    expect(codes(missing)).toContain("catalogue.manager:REQUIRED");
+    managed.catalogue.manager = { kind: "ORGANIZATION", id: " " };
+    expect(codes(managed)).toContain("catalogue.manager.id:REQUIRED");
   });
 
   it("homonymie (spécification A1 ouverte) : signalée, non bloquante", () => {

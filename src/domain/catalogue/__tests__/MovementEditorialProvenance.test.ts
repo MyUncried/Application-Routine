@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 
 import {
+  hasUnknownOwner,
   validateMovementEditorialProvenance,
   type MovementEditorialProvenance,
 } from "../MovementEditorialProvenance";
@@ -98,6 +99,18 @@ describe("MovementEditorialProvenance (catalogue indépendant du moteur)", () =>
         original({ authors: [], rightsHolder: null, publisher: null }),
       ),
     ).toEqual([]);
+  });
+
+  it("propriétaire inconnu déclaré (null) : admis en privé, sans identité fictive, refusé à la diffusion", () => {
+    const unknown = original({ owner: null, origin: "EXTERNAL_IMPORTED", upstream: { catalogueId: "xlsx:pilote", sheetId: "REED-001", revision: "2026-10-27" } });
+    expect(validateMovementEditorialProvenance(unknown)).toEqual([]);
+    expect(hasUnknownOwner(unknown)).toBe(true);
+    expect(hasUnknownOwner(original())).toBe(false);
+    for (const visibility of ["UNLISTED", "PUBLIC"] as const) {
+      expect(validateMovementEditorialProvenance({ ...unknown, visibility })).toEqual([{ field: "owner", code: "INCONSISTENT" }]);
+    }
+    const omitted = { ...unknown, owner: undefined } as unknown as MovementEditorialProvenance;
+    expect(validateMovementEditorialProvenance(omitted)).toEqual([{ field: "owner", code: "REQUIRED" }]);
   });
 
   it("refuse les identifiants et les états invalides", () => {

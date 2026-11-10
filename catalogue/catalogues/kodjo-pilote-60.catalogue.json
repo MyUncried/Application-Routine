@@ -6,6 +6,10 @@
     "title": "Catalogue pilote KODJO — 60 fiches de test",
     "revision": "1",
     "owner": null,
+    "manager": {
+      "kind": "ORGANIZATION",
+      "id": "ankusha"
+    },
     "publisher": null,
     "publicationAllowed": false,
     "notes": [

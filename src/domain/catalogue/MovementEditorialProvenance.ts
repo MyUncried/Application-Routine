@@ -43,8 +43,13 @@ export type MovementEditorialProvenance = {
   readonly origin: MovementEditorialOrigin;
   /** Null uniquement pour une création originale non dérivée. */
   readonly upstream: MovementUpstream | null;
-  /** Responsable administratif de la fiche, pas preuve de titularité juridique. */
-  readonly owner: EditorialActorRef;
+  /**
+   * Responsable administratif de la fiche, pas preuve de titularité juridique.
+   * `null` = propriétaire **inconnu**, déclaré explicitement (décision du 10/11/2026) :
+   * aucune identité fictive n'est attribuée. Admis pour une fiche privée ; toute
+   * diffusion (`visibility` autre que PRIVATE) exige un propriétaire identifié.
+   */
+  readonly owner: EditorialActorRef | null;
   /** Auteurs connus, [] = non renseigné ; aucune attribution implicite. */
   readonly authors: readonly EditorialActorRef[];
   /** Diffuseur éventuel, distinct de l'auteur et du propriétaire. */
@@ -58,6 +63,11 @@ export type MovementEditorialProvenance = {
   /** Indication seulement ; aucune action réseau ou autorisation implicite. */
   readonly visibility: EditorialVisibility;
 };
+
+/** Propriétaire inconnu déclaré (aucune identité fictive) : bloque toute publication. */
+export function hasUnknownOwner(record: Pick<MovementEditorialProvenance, "owner">): boolean {
+  return record.owner === null;
+}
 
 export type MovementEditorialIssue = {
   readonly field: string;
@@ -136,7 +146,14 @@ export function validateMovementEditorialProvenance(
   if (record.license !== null && !present(record.license)) {
     issues.push({ field: "license", code: "REQUIRED" });
   }
-  validateActor(record.owner, "owner", issues, true);
+  if (record.owner === undefined) {
+    // Le champ doit être déclaré : `null` (inconnu) n'est pas une omission.
+    issues.push({ field: "owner", code: "REQUIRED" });
+  } else if (record.owner === null) {
+    if (record.visibility !== "PRIVATE") issues.push({ field: "owner", code: "INCONSISTENT" });
+  } else {
+    validateActor(record.owner, "owner", issues, true);
+  }
   validateActor(record.publisher, "publisher", issues, false);
   validateActor(record.rightsHolder, "rightsHolder", issues, false);
 

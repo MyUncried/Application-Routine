@@ -36,7 +36,7 @@ Une fiche `sheetId` possède une identité immuable, distincte de son titre. Plu
 | `localMovementId` | 0..1 | Correspondance facultative avec un Mouvement dans une base locale ; aucune écriture dans la fiche source. |
 | `origin` | 1 | `LOCAL_CREATED`, `CATALOGUE_INSTALLED`, `SHARED_IMPORTED`, `EXTERNAL_IMPORTED` ou `LOCAL_DERIVED`. |
 | `upstream` | 0..1 | `catalogueId`, `sheetId`, `revision` de la fiche source ; exigée sauf création originale. |
-| `owner` | 1 | Référence stable de l'entité qui contrôle la fiche ; une installation locale peut employer l'identifiant interne d'utilisateur. |
+| `owner` | 1 [10/11/2026 : 1, valeur `null` admise = propriétaire **inconnu** déclaré, voir § 7 bis] | Référence stable de l'entité qui contrôle la fiche ; une installation locale peut employer l'identifiant interne d'utilisateur. |
 | `authors` | 0..n | Références des auteurs connus ; l'absence signifie inconnu, pas propriété implicite de KODJO. |
 | `publisher` | 0..1 | Diffuseur de la fiche, s'il existe. |
 | `rightsHolder` | 0..1 | Titulaire déclaré des droits sur le contenu, **non vérifié automatiquement**. |
@@ -95,6 +95,25 @@ L'objet de domaine préparatoire `MovementEditorialProvenance` est indépendant 
 - **A5 — Cycle de vie local :** règles exactes pour retrait d'un paquet, archive et copies conservées.
 - **A6 — Interfaces :** administration Web locale à concevoir ; application/Figma inchangés à ce stade.
 - **A7 — MVP :** cible préparatoire, non ajout automatique du partage au périmètre du moteur ou du MVP.
+
+## 7 bis. Propriétaire inconnu et gestionnaire administratif — décision du 10/11/2026
+
+[Ajout du 10/11/2026 — décision de Hermann, catalogue autonome, fiches pilotes.]
+
+> « Propriétaire : conserver « Inconnu » pour les 60 fiches. ANKUSHA peut être identifié comme gestionnaire administratif du catalogue pilote, mais pas comme propriétaire ou titulaire des droits des fiches sans justification. L'absence de propriétaire reste non bloquante pour les tests privés, mais doit être signalée et prise en compte avant toute publication. Formalise explicitement ce cas dans le modèle de provenance, sans attribuer d'identité fictive. »
+> « Provenance : je valide EXTERNAL_IMPORTED, avec le classeur Excel du 27/10/2026 comme source d'import. Conserve également les références documentaires originales de chaque fiche, distinctes de la source d'import et des informations de propriété intellectuelle. Les 60 fiches restent PRIVATE et DRAFT, sans autorisation de publication. »
+
+1. `owner` doit toujours être **déclaré** ; la valeur `null` signifie *propriétaire inconnu*. Aucune identité fictive ou déduite n'est inscrite. Un champ omis reste une erreur.
+2. Un propriétaire inconnu est **admis** pour une fiche `visibility=PRIVATE` et **signalé** (avertissement non bloquant).
+3. Il **interdit** toute diffusion (`visibility` `UNLISTED` ou `PUBLIC`) et toute autorisation de publication (`publicationAllowed=true`, au niveau de la fiche comme du catalogue).
+4. Le **gestionnaire administratif** d'un catalogue (`catalogue.manager`) tient le fichier et ses révisions. Il n'est ni propriétaire ni titulaire des droits des fiches et ne remplace pas `owner`. Pour le catalogue pilote : ANKUSHA (`ORGANIZATION:ankusha`).
+5. Trois informations restent distinctes :
+   - la **source d'import** (`upstream` : classeur Excel du 27/10/2026, fiche d'origine) ;
+   - la **référence documentaire originale** de chaque fiche (source, section, URL, conditions d'usage) ;
+   - les informations de **propriété intellectuelle** (`owner`, `authors`, `rightsHolder`, `license`, statuts de droits et de licence).
+6. Les 60 fiches pilotes : `EXTERNAL_IMPORTED`, `PRIVATE`, `DRAFT`, publication non autorisée.
+
+Implémentation : `src/domain/catalogue/MovementEditorialProvenance.ts` (`owner: EditorialActorRef | null`, `hasUnknownOwner`) ; contrôles du format : `docs/KODJO-Format-catalogue-mouvements-v1.md`.
 
 ## 8. Traçabilité et documents dépendants
 

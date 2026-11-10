@@ -138,7 +138,11 @@ export type CatalogueSheetClassification = {
 };
 
 export type CatalogueSheetSources = {
-  /** Source documentaire (distincte de la fiche source d'un import). */
+  /**
+   * Référence documentaire originale de la fiche (sourceId, section, URL, conditions d'usage).
+   * Distincte de la source d'import (`provenance.upstream`) et des informations de propriété
+   * intellectuelle (`provenance.owner`, `rightsHolder`, `license`, `validation.rights`, `licensing`).
+   */
   readonly documentary: {
     readonly sourceId: string | null;
     readonly section: string | null;
@@ -181,8 +185,15 @@ export type MovementCatalogueFile = {
     readonly id: string;
     readonly title: string;
     readonly revision: string;
+    /** Propriétaire du catalogue ; `null` = inconnu déclaré (aucune identité fictive). */
     readonly owner: EditorialActorRef | null;
+    /**
+     * Gestionnaire administratif du fichier (tenue, révisions, diffusion interne).
+     * Ni propriétaire ni ayant droit des fiches : n'emporte aucun droit sur leur contenu.
+     */
+    readonly manager: EditorialActorRef | null;
     readonly publisher: EditorialActorRef | null;
+    /** `true` interdit tant que `owner` est inconnu. */
     readonly publicationAllowed: boolean;
     readonly notes: readonly string[];
   };
@@ -323,10 +334,15 @@ function validateCatalogueHeader(value: unknown, issue: IssueSink, warnings: Cat
   for (const field of ["id", "title", "revision"] as const) {
     if (!present(value[field])) issue("catalogue." + field, "REQUIRED");
   }
-  validateActor(value.owner, "catalogue.owner", issue);
-  validateActor(value.publisher, "catalogue.publisher", issue);
+  for (const field of ["owner", "manager", "publisher"] as const) {
+    if (value[field] === undefined) issue("catalogue." + field, "REQUIRED");
+    else validateActor(value[field], "catalogue." + field, issue);
+  }
   if (value.owner === null) warnings.push({ path: "catalogue.owner", code: "UNKNOWN_OWNER" });
   if (typeof value.publicationAllowed !== "boolean") issue("catalogue.publicationAllowed", "REQUIRED");
+  if (value.owner === null && value.publicationAllowed === true) {
+    issue("catalogue.publicationAllowed", "INCONSISTENT", "UNKNOWN_OWNER");
+  }
   if (!isStrings(value.notes)) issue("catalogue.notes", "INVALID");
 }
 
@@ -383,8 +399,11 @@ function validateSheet(
     } as unknown as Parameters<typeof validateMovementEditorialProvenance>[0];
     for (const found of validateMovementEditorialProvenance(record)) {
       if (found.field === "sheetId" || found.field === "revision") continue; // signalés ci-dessus
-      if (found.field === "owner" && found.code === "REQUIRED" && provenance.owner === null) continue;
       issue(path + ".provenance." + found.field, found.code);
+    }
+    // Propriétaire inconnu : admis en privé, jamais publiable (décision du 10/11/2026).
+    if (provenance.owner === null && isObject(sheet.validation) && sheet.validation.publicationAllowed === true) {
+      issue(path + ".validation.publicationAllowed", "INCONSISTENT", "UNKNOWN_OWNER");
     }
   }
 

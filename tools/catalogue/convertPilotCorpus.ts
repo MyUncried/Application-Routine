@@ -25,6 +25,8 @@ import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 
 export const PILOT_CATALOGUE_ID = "kodjo.pilote-60";
 export const PILOT_CATALOGUE_PATH = "catalogue/catalogues/kodjo-pilote-60.catalogue.json";
+/** Gestionnaire administratif du catalogue pilote (décision du 10/11/2026) — ni propriétaire ni ayant droit des fiches. */
+export const PILOT_CATALOGUE_MANAGER = { kind: "ORGANIZATION", id: "ankusha" } as const;
 
 type Json = Record<string, unknown>;
 
@@ -316,6 +318,8 @@ export function convertPilotCorpus(sources: PilotSources): MovementCatalogueFile
       title: "Catalogue pilote KODJO — 60 fiches de test",
       revision: "1",
       owner: null,
+      // Décision du 10/11/2026 : ANKUSHA gère le fichier pilote, sans propriété ni droits sur les fiches.
+      manager: PILOT_CATALOGUE_MANAGER,
       publisher: null,
       publicationAllowed: false,
       notes: [

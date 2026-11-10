@@ -26,7 +26,7 @@ Le fichier pilote `catalogue/catalogues/kodjo-pilote-60.catalogue.json` provient
 
 ```text
 format = "KODJO_MOVEMENT_CATALOGUE", formatVersion = "1.0.0"
-catalogue    { id, title, revision, owner|null, publisher|null, publicationAllowed, notes[] }
+catalogue    { id, title, revision, owner|null, manager|null, publisher|null, publicationAllowed, notes[] }
 references   { categories[], bodyZones[], specialties[], gesturalFamilies[], clinicalProblems[], anatomicalTargets[] }
                entrée { id, label, kind|null, status|null } — ordre = ordre d'affichage
 glossary[]   { id, term, definition, synonyms[], relatedSheetIds[] } — ordonné
@@ -39,6 +39,7 @@ sheets[]     fiche éditoriale complète :
   classification { categoryId, bodyZoneIds[], specialtyIds[], gesturalFamilyIds[], clinicalProblemIds[],
                  anatomicalTargetIds[] (ensembles), basis, review|null, original{}, originalProposedSpecialties[] }
   sources      { documentary { sourceId, section, url, usageStatement }|null, prescriptionContext{} }
+               ← référence documentaire originale, distincte de upstream (source d'import) et des droits
   validation   { classification, clinical, rights, corpusReview, licensing, clinicalValidation, publicationAllowed }
   media[]      (ordonnés) { id, kind PHOTO|VIDEO, storage EMBEDDED|REMOTE, url, fileName, caption, alt,
                  sourceUrl, attribution, license, rightsStatus }  ← modèle de l'administration Web
@@ -65,11 +66,22 @@ sheets[]     fiche éditoriale complète :
   - source obligatoire pour un média distant ;
   - attribution et licence obligatoires lorsque les droits sont déclarés confirmés.
 - **Projection Mouvement** : conforme au contrat `Movement` actuel (`validateMovement`).
+- **Propriétaire inconnu** (décision du 10/11/2026, spécification de provenance § 7 bis) :
+  - `owner` est toujours déclaré ; `null` = inconnu, jamais une identité fictive ; un champ omis est refusé (`REQUIRED`) ;
+  - admis pour une fiche `PRIVATE`, avec le signalement `UNKNOWN_OWNER` ;
+  - refusé (`INCONSISTENT`) avec `visibility` `UNLISTED` ou `PUBLIC`, ou avec `publicationAllowed: true` (fiche ou catalogue).
+- **Gestionnaire administratif** : `catalogue.manager` est toujours déclaré (`null` admis). Il tient le fichier ; il n'est ni propriétaire ni ayant droit des fiches.
 - **Signalements non bloquants** :
-  - propriétaire inconnu (`UNKNOWN_OWNER`) : aucune attribution par déduction ;
+  - propriétaire inconnu (`UNKNOWN_OWNER`) : aucune attribution par déduction ; à lever avant toute publication ;
   - homonymie (`DUPLICATE_NAME`) : la question A1 de la spécification de provenance reste ouverte.
 
 Le validateur ne lit aucune base locale. La correspondance des Catégories et des Zones avec celles du téléphone relève du chargement (CA-3).
+
+### Catalogue pilote — décisions du 10/11/2026
+
+- `catalogue.owner` : `null` (inconnu) ; `catalogue.manager` : ANKUSHA (`ORGANIZATION:ankusha`) ; `publicationAllowed: false`.
+- 60 fiches : `origin: EXTERNAL_IMPORTED` ; `upstream` = classeur `KODJO_Catalogue_reeducation_fitness_60_fiches.xlsx`, fiche d'origine, révision `2026-10-27` ; `owner`, `rightsHolder` et `license` inconnus ; `PRIVATE`, `DRAFT`, publication non autorisée.
+- Références documentaires originales conservées par fiche dans `sources.documentary`.
 
 ## 5. Projection Mouvement
 

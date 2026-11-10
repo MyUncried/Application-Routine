@@ -124,6 +124,35 @@ describe("CA-2 — conversion initiale du catalogue pilote", () => {
     expect(converted.catalogue.id).toBe("kodjo.pilote-60");
   });
 
+  it("décisions du 10/11 : propriétaire inconnu, ANKUSHA gestionnaire, import Excel du 27/10, références documentaires distinctes, privé et brouillon", () => {
+    expect(converted.catalogue).toMatchObject({
+      owner: null,
+      manager: { kind: "ORGANIZATION", id: "ankusha" },
+      publisher: null,
+      publicationAllowed: false,
+    });
+    converted.sheets.forEach((sheet, index) => {
+      expect(sheet.provenance).toMatchObject({
+        origin: "EXTERNAL_IMPORTED",
+        owner: null,
+        rightsHolder: null,
+        license: null,
+        visibility: "PRIVATE",
+        reviewStatus: "DRAFT",
+      });
+      expect(sheet.provenance.upstream).toEqual({
+        catalogueId: "xlsx:KODJO_Catalogue_reeducation_fitness_60_fiches.xlsx",
+        sheetId: sheet.sheetId,
+        revision: "2026-10-27",
+      });
+      // Référence documentaire originale : conservée, et distincte de la source d'import.
+      expect(sheet.sources.documentary).toEqual((corpus.records as Record<string, unknown>[])[index]!.evidence);
+      expect(sheet.sources.documentary?.url?.startsWith("https://")).toBe(true);
+      expect(sheet.sources.documentary?.sourceId).not.toBe(sheet.provenance.upstream?.catalogueId);
+      expect(sheet.validation.publicationAllowed).toBe(false);
+    });
+  });
+
   it("E8 : la projection des 60 fiches égale les Mouvements de l'importeur actuel, identifiants pilot:* compris", () => {
     const legacy = preparePilotMovementImport(emptyDrafts()).movements;
     expect(converted.sheets.map((sheet) => projectSheetToMovement(sheet, sheet.install.knownLocalMovementIds[0]!))).toEqual(legacy);
