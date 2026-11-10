@@ -1,3 +1,4 @@
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -23,7 +24,7 @@ const TONES: readonly { readonly tone: BeepTone; readonly label: string; readonl
   { tone: "BIP_GRAVE", label: "Bip grave", volume: 1 },
 ];
 
-type Method = "VOLUME_ONCE" | "VOLUME_EACH" | "FRESH" | "FRESH_NO_VOLUME";
+type Method = "VOLUME_ONCE" | "VOLUME_EACH" | "FRESH" | "FRESH_NO_VOLUME" | "WITH_VIBRATION";
 
 // A reproduit la première livraison du 09/11/2026 (b362aa34, sans click) ; B la méthode actuelle, où le volume
 // est réglé avant chaque son depuis 9b9339ef (premier click signalé à la recette suivante).
@@ -32,6 +33,8 @@ const METHODS: readonly { readonly method: Method; readonly label: string }[] = 
   { method: "VOLUME_EACH", label: "B — Comme aujourd'hui : volume réglé avant chaque son" },
   { method: "FRESH", label: "C — Lecteur neuf à chaque son" },
   { method: "FRESH_NO_VOLUME", label: "D — Lecteur neuf, volume non modifié" },
+  // Seule différence restante avec l'Exécution (recette du 10/11/2026, après la suppression des reconfigurations).
+  { method: "WITH_VIBRATION", label: "E — Comme B, avec la vibration moyenne de la séance" },
 ];
 
 const REPEAT = 3;
@@ -68,7 +71,7 @@ export function SoundDiagnosticScreen() {
     try {
       await startExecutionAudio();
       const { tone, volume } = selected;
-      if (method === "VOLUME_ONCE" || method === "VOLUME_EACH") {
+      if (method === "VOLUME_ONCE" || method === "VOLUME_EACH" || method === "WITH_VIBRATION") {
         const player = await create(tone);
         if (method === "VOLUME_ONCE") player.volume = volume;
         else {
@@ -78,7 +81,8 @@ export function SoundDiagnosticScreen() {
         }
         await wait(500);
         for (let i = 1; i <= REPEAT; i += 1) {
-          if (method === "VOLUME_EACH") player.volume = volume;
+          if (method !== "VOLUME_ONCE") player.volume = volume;
+          if (method === "WITH_VIBRATION") void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
           if (method === "VOLUME_ONCE" || player.playing || player.currentTime > 0.01) await player.seekTo(0);
           player.play();
           note(`son ${i}`);
