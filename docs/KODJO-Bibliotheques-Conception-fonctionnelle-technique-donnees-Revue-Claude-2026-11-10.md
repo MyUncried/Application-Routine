@@ -12,13 +12,13 @@
 
 ## 0. Résumé architectural et périmètre
 
-KODJO doit permettre à un utilisateur de créer/organiser localement des Bibliothèques de Mouvements, puis à terme de partager ses Bibliothèques, en recevoir, acheter éventuellement des accès et recevoir des mises à jour **sur demande**. Les Bibliothèques possèdent leur composition, les Mouvements possèdent leurs fiches et permissions. Le droit d'**accéder** aux Mouvements est transmis **par la Bibliothèque** ; les permissions **Modifier/Redistribuer** restent attachées **à chaque fiche**.
+KODJO doit permettre à un utilisateur de créer/organiser localement des Bibliothèques de Mouvements, puis à terme de partager ses Bibliothèques, en recevoir, acheter éventuellement des accès et recevoir des mises à jour **sur demande**. Les Bibliothèques possèdent leur composition, les Mouvements possèdent leurs fiches et permissions. Dans le parcours **Bibliothèque** (notamment coach), le droit d'**accéder** aux Mouvements est transmis **par la Bibliothèque** ; le kinésithérapeute transmet au patient des Mouvements dans son Espace professionnel en étoile, sans Bibliothèque prescrite ; les permissions **Modifier/Redistribuer** restent attachées **à chaque fiche**.
 
 La cible vise une **séparation logique** simple, pas un ensemble de microservices dès le départ :
 
 1. **Domaine Mouvements** : identité éditoriale, provenance, révisions, droits de modification/redistribution, médias.
 2. **Domaine Bibliothèques** : composition par référence, version de composition, visibilité, archivage, partage et arrêt de diffusion.
-3. **Domaine Accès** : autorisation d'utiliser les Mouvements reçus via une Bibliothèque (individu/groupe), preuve locale d'installation et conservation des droits après retrait d'un membre.
+3. **Domaine Accès** : autorisation d'utiliser les Mouvements reçus via une Bibliothèque (individu/groupe) ou transmis dans une relation kiné-patient au sein de l'Espace professionnel (règles exactes de cette relation à définir) ; preuve locale d'installation et conservation des droits après retrait d'un membre.
 4. **Domaine Distribution et modération** : demande de diffusion, contrôle d'une révision, publication, signalements et retraits prioritaires.
 5. **Domaine Commerce** : **hors périmètre de cette conception** ; il pourra fournir plus tard la validité d'un accès payant au domaine Accès sans modifier les fiches ni la composition.
 
@@ -41,10 +41,11 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 | BIB-18 | Partage, comptes, modération centrale, monétisation hors MVP local. |
 | F4-A | La mise à jour d'une Bibliothèque reçue est **manuelle** avec pastille. |
 | F4-B | Un Mouvement retiré d'une Bibliothèque source et précédemment installé reste **dans le Catalogue local** de l'utilisateur ; ses références dans les Séances/Bibliothèques personnelles restent. |
-| F4-C | Le propriétaire coach/kiné attribue le droit d'accès **au niveau Bibliothèque**, et les membres en bénéficient. Le retrait d'un membre **ne révoque pas** son usage local déjà acquis ; commerce et modération sont des exceptions à spécifier séparément. |
+| F4-C | Pour un **partage de Bibliothèque** (notamment coach), le propriétaire attribue le droit d'accès au niveau Bibliothèque ; le retrait d'un membre ne révoque pas l'usage local déjà acquis. Ce modèle de Bibliothèque **ne constitue pas le parcours de transmission kiné-patient** (KIN-01) ; commerce et modération restent séparés. |
 | F4-D | Un seul « Mettre à jour » installe la nouvelle **composition ET les nouvelles révisions de Mouvements**, sans supprimer les Mouvements retirés ni écraser les adaptations personnelles. |
 | F4-E | Archiver une Bibliothèque est personnel/local et n'a **aucun effet sur les destinataires** ni sur leurs mises à jour. |
-| F4-F | Arrêter le partage bloque les **nouvelles distributions** ; les destinataires existants conservent leurs installations, n'obtiennent **plus de nouvelles mises à jour** tant que le partage reste arrêté. |
+| F4-F | Arrêter le partage d'une Bibliothèque bloque les **nouvelles distributions** ; les destinataires existants conservent leurs installations, n'obtiennent **plus de nouvelles mises à jour** tant que le partage reste arrêté. |
+| KIN-01 | Le kiné transmet au patient **un ou plusieurs Mouvements** dans son **Espace professionnel en étoile** ; les consignes d'exécution sont **orales**. Aucun Exercice, Séance ou programme prescrit numériquement dans ce premier lot. |
 
 **Arbitrages explicitement non faits :** détails des offres et paiements, expiration d'accès, retransmission d'une installation sur un nouvel appareil après arrêt du partage, modification postérieure de permissions, règles de groupe, gestion des conflits complexes et emplacement UX des commandes.
 
@@ -53,11 +54,11 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 - **Figma** : rendu visuel et états existants du Prototype MVP ; les nouveaux parcours de Bibliothèques/partage/modération ne sont pas des écrans validés. Actions « Partager » observées dans le prototype (nœuds 10501:23846, 10579:21622).
 - **Documentation fonctionnelle** : comportements et résultat observable ; les deux documents de conception du 10/11 sont des compléments cibles.
 - **Documentation technique** : schémas et mécanismes proposés sous réserve de revue Claude.
-- **Registre des décisions** : BIB-01–18 validés ; F4-A–F4-F validés dans la conversation, **non encore propagés au registre** au moment de la rédaction de ce dossier. Ne pas les attribuer fictivement à un numéro D-xxx.
+- **Registre des décisions** : BIB-01–18, F4-A–F4-F et KIN-01 documentés sur la présente branche ; aucun nouveau numéro D-xxx n'est attribué fictivement.
 
 ## 2. Parcours utilisateur à implémenter
 
-La source détaillée est [PU-01 à PU-16](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md), à lire avant toute conception d'API ou d'écran.
+La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md), à lire avant toute conception d'API ou d'écran.
 
 | Parcours | Émetteur / destinataire | Résultat obligatoire |
 |---|---|---|
@@ -72,13 +73,22 @@ La source détaillée est [PU-01 à PU-16](KODJO-Bibliotheques-Parcours-utilisat
 | PU-14 | Propriétaire | Arrêt de diffusion sans révocation des usages acquis ; plus de nouvelles mises à jour. |
 | PU-15 | Utilisateur / KODJO | Signalement et retrait de modération prioritaire. |
 | PU-16 | Utilisateur | Utilisation locale hors ligne, reprise après interruption d'installation. |
+| PU-17 | Kiné / patient | Transmission individuelle de Mouvements par Espace professionnel en étoile ; consignes d'exécution orales, sans prescription numérique d'Exercice ou de Séance. |
+
+### Distinction professionnelle : Bibliothèque du coach et Espace du kiné
+
+**Coach :** partage une Bibliothèque de Mouvements. Les droits d'accès sont attribués au niveau Bibliothèque et les fiches membres conservent leurs permissions Modifier/Redistribuer.
+
+**Kinésithérapeute (KIN-01) :** transmet un ou plusieurs Mouvements à un patient dans son **Espace professionnel organisé en étoile** autour du professionnel, avec une relation individuelle par patient. Les instructions d'exécution (quantité, durée, fréquence, consignes) sont **données oralement**. À ce stade, KODJO ne crée aucune prescription numérique d'Exercice, de Séance, de routine ou de suivi clinique. Les fiches restent soumises aux permissions et à la validation centrale avant diffusion.
+
+**Conséquence technique :** la distribution d'une **fiche Mouvement** doit être mutualisable entre parcours, sans faire passer artificiellement une prescription de kinésithérapie par un `library_access_grant`. Le modèle relationnel propre à l'Espace, ses autorisations, consentements et notifications restent **À CLARIFIER** ; ne pas inventer de tables cliniques ni de modèle de Séance prescrite pour ce lot.
 
 ## 3. Architecture fonctionnelle — invariants
 
 ### 3.1 Trois notions de droits à ne pas mélanger
 
 - **Permission éditoriale de la fiche** : booléens \`canEdit\` et \`canRedistribute\`. Quatre modes affichables. Les copies personnelles ne les amplifient pas.
-- **Droit d'accès à la Bibliothèque** : accord du propriétaire à un individu/groupe ; ouvre l'usage de ses membres reçus. Une preuve de cet accès accompagne l'installation. Retirer un membre de la source ne supprime pas la preuve d'installation antérieure.
+- **Droit d'accès à la Bibliothèque** : accord du propriétaire à un individu/groupe ; ouvre l'usage de ses membres reçus. La transmission kiné-patient dans l'Espace relève d'une autorisation relationnelle **distincte**, dont le contrat détaillé reste à concevoir. Une preuve de cet accès accompagne l'installation. Retirer un membre de la source ne supprime pas la preuve d'installation antérieure.
 - **État de modération** : peut bloquer temporairement ou définitivement une fiche/média même si accès et permissions seraient par ailleurs suffisants.
 
 Une future acquisition payante pourra contribuer à la validité du **droit d'accès** ; elle ne transforme ni la permission éditoriale ni le statut de modération.
@@ -151,7 +161,7 @@ KODJO iPhone (Expo / RN)
 | \`library_draft_member\` | \`library_id FK\`, \`sheet_id FK\`, \`position\` | Composition mutable du propriétaire ; aucun duplicata de fiche. |
 | \`library_release\` | \`release_id\`, \`library_id FK\`, \`release_no\`, \`published_at\`, \`digest\` | Publication versionnée de composition, immutable. |
 | \`library_release_member\` | \`release_id FK\`, \`sheet_id FK\`, \`source_revision_id FK\`, \`position\` | Références aux fiches/révisions ; projection serveur filtrée selon redistribution et autorisation de publication. |
-| \`library_access_grant\` | \`grant_id\`, \`library_id FK\`, \`recipient_actor_id / group_id\`, \`issued_at\`, \`grant_kind\`, \`status\` | Droit octroyé **au niveau Bibliothèque** ; ne confère pas \`can_redistribute\` sur les fiches. |
+| \`library_access_grant\` | \`grant_id\`, \`library_id FK\`, \`recipient_actor_id / group_id\`, \`issued_at\`, \`grant_kind\`, \`status\` | Droit octroyé **au niveau Bibliothèque**, notamment par un coach ; ne confère pas \`can_redistribute\` sur les fiches. **Pas un mécanisme de prescription kiné-patient.** |
 | \`distribution_record\` | \`record_id\`, \`library_id/release_id\`, \`recipient_id\`, \`delivered_at\`, \`grant_id\` | Évidence de livraison / téléchargement, pour conservation locale et audit. |
 | \`publication_submission\` | \`submission_id\`, \`target_revision_id\`, \`scope\`, \`submitted_at\`, \`state\` | Contrôle automatique ou humain par révision avant diffusion. |
 | \`moderation_case\` | \`case_id\`, \`target_type\`, \`target_id\`, \`reason\`, \`state\`, \`reported_at\` | Peut viser fiche, révision, média ou publication. |
@@ -366,6 +376,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 | T-16 | Coupure pendant mise à jour de Bibliothèque | Reprise idempotente, état cohérent, aucune perte des Mouvements/Séances. |
 | T-17 | Deux fiches source ont le même titre normalisé | Aucun écrasement ; situation traitée explicitement, selon arbitrage à obtenir. |
 | T-18 | Client hors ligne exécute une Séance déjà présente | Moteur disponible, pas d'exigence de connexion sauf limitations connues de modération/droits. |
+| T-19 | Un kiné transmet un Mouvement dans l'Espace d'un patient | Le patient reçoit le Mouvement, aucun Exercice/Séance ni paramètres d'exécution prescrits numériquement ne sont créés ; les autres patients ne sont pas destinataires. |
 
 ## 13. Points À CLARIFIER — arbitrages métier / conception à ne pas inventer
 
@@ -376,7 +387,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 - A4. Permissions par défaut lors de création/partage ; les quatre modes sont validés, le défaut ne l'est pas.
 - A5. Insertion de nouveaux membres dans une Bibliothèque reçue si l'abonné ne demande pas de mise à jour (règle générale : aucun changement ; confirmer cas d'accès).
 - A6. Choix du comportement lorsque deux Bibliothèques référencent la même fiche avec révisions différentes.
-- A7. Gouvernance des groupes, confidentialité, accès professionnel et preuve des droits d'utilisation.
+- A7. Gouvernance des groupes, confidentialité, accès professionnel et preuve des droits d'utilisation ; topologie **Espace kiné en étoile** et contrôle d'accès individuel par patient.
 - A8. Interface de partage d'une fiche seule, gestion d'une Bibliothèque de diffusion « zéro contenu ».
 - A9. Sémantique de la conservation locale après retrait pour contenus restreints à un contrat de durée.
 
@@ -391,9 +402,9 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 
 **Mission : AUDIT ET PROPOSITION DE CORRECTIONS — AUCUN DÉVELOPPEMENT, AUCUNE MODIFICATION Figma ni fusion** sans instruction explicite.
 
-1. Lire entièrement les deux documents cibles et la conception initiale ; comparer avec les chapitres 01–13, PRODUCT.md, INDEX.md et le registre, en conservant la distinction BIB-01–18 / F4-A–F.
+1. Lire entièrement les deux documents cibles et la conception initiale ; comparer avec les chapitres 01–13, PRODUCT.md, INDEX.md et le registre, en conservant la distinction BIB-01–18 / F4-A–F / KIN-01.
 2. Analyser le **code existant réellement dans les branches pertinentes** (main et pilote catalogue) avant de proposer migrations ou services ; ne pas reconstituer l'état du dépôt à partir d'un souvenir.
-3. Vérifier la cohérence des 16 parcours et la traçabilité de chaque décision avec preuves, identifier toute nouvelle règle non validée.
+3. Vérifier la cohérence des 17 parcours et la traçabilité de chaque décision avec preuves, identifier toute nouvelle règle non validée.
 4. Auditer en priorité : accès hérités de la Bibliothèque, conservation après retrait, mise à jour globale reprenable, versions d'une même fiche dans plusieurs Bibliothèques, héritage des permissions sur copies, arrêt/archivage, modération et droits commerciaux isolés.
 5. Fournir une architecture **minimale** et une alternative si le choix proposé est complexe ; chiffrer en complexité (faible/moyen/fort) sans inventer de coût ni imposer une technologie.
 6. Détailler les relations et index des tables qui seraient réellement nécessaires, ainsi que contraintes référentielles, migrations, stratégie de cache et transactions.
@@ -402,7 +413,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 9. Rendre **par axe** statut CONFORME / PARTIELLEMENT CONFORME / NON CONFORME / NON VÉRIFIABLE / À CLARIFIER, preuves de code/docs, contradictions et corrections proposées.
 10. Classer chaque recommandation en **obligatoire pour la cohérence**, **utile mais différable** ou **surcomplexité à éviter**. Ne proposer ni microservices, ni synchronisation automatique, ni nouveaux contrôles bloquants sans justification.
 
-**Livrables attendus de Claude :** rapport de revue contradictoire, schéma de données cible minimal corrigé, matrice décision→parcours→composants→tests, liste réduite d'arbitrages à prendre avant développement, et plan de lots réaliste. Ne pas déclarer un parcours Figma validé sans identification d'écrans/nœuds probants.
+**Livrables attendus de Claude :** distinguer explicitement l'architecture Bibliothèque/coach de la transmission de Mouvement kiné/Espace (sans prescription numérique) et proposer leur mutualisation minimale pour la diffusion/modération ; rapport de revue contradictoire, schéma de données cible minimal corrigé, matrice décision→parcours→composants→tests, liste réduite d'arbitrages à prendre avant développement, et plan de lots réaliste. Ne pas déclarer un parcours Figma validé sans identification d'écrans/nœuds probants.
 
 ---
 
