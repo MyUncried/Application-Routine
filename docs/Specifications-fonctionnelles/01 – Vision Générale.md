@@ -467,14 +467,18 @@ Exercice libre : entrée de création d’un Exercice sans préconfiguration de 
 
 ## Glossaire cible — Bibliothèques et Mouvements distribués (post-MVP)
 
-Les définitions ci-dessous décrivent la **distribution entre utilisateurs**, distincte de la référence au même Mouvement local par plusieurs Exercices/Séances. Voir [conception validée](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+Ces termes décrivent la **diffusion entre utilisateurs** et ne changent pas le modèle opérationnel actuel avant migration. [Conception fonctionnelle](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
 
-- **Fiche éditoriale de Mouvement** : contenu identifié par une origine et une révision, distinct de l'identifiant local du Mouvement.
-- **Auteur de la fiche** : une seule personne identifiée, ou inconnu lorsque la provenance ne permet pas de l'établir.
-- **Propriétaire administratif** : personne ou organisation contrôlant la gestion et la diffusion d'une fiche ; créateur original par défaut, sauf attribution explicite ; ne prouve pas le droit d'auteur.
-- **Bibliothèque de Mouvements** : collection ordonnée de références vers des fiches ; associer une fiche à une Bibliothèque n'en crée pas une copie.
-- **Bibliothèque personnelle** : composition que l'utilisateur peut librement gérer, avec des fiches de toutes provenances.
-- **Bibliothèque reçue** : composition diffusée par un tiers et non modifiable localement.
-- **Redistribution** : nouvelle diffusion d'une fiche à un tiers, distincte de la copie pour usage personnel et du référencement.
-- **Révision éditoriale distribuée** : état contrôlé d'une fiche, pouvant être proposé par pastille puis installé via « Mettre à jour ».
-- **Suspension de modération** : interdiction centrale d'accès à un contenu problématique, distincte d'une actualisation ordinaire.
+- **Fiche source** : identité éditoriale stable (espace de noms de source + identifiant de fiche), indépendante du nom affiché, de l'auteur et des Bibliothèques.
+- **Mouvement local** : objet possédant son `Movement.id`, déjà référencé par les Exercices et Séances ; une seule révision active par fiche source sur un appareil.
+- **Auteur** : un auteur unique connu, ou inconnu ; distinct du responsable administratif et du titulaire déclaré des droits.
+- **Bibliothèque** : composition ordonnée de références vers des Mouvements ; un même Mouvement peut appartenir à plusieurs Bibliothèques sans copie.
+- **Bibliothèque personnelle** : composition modifiable par son propriétaire. **Bibliothèque reçue** : composition non modifiable localement par le destinataire.
+- **Copie personnelle** : nouvelle identité locale avec provenance et permissions conservées ; distincte du simple référencement.
+- **Publier** : première diffusion par le propriétaire habilité. **Redistribuer** : transmission ultérieure par un destinataire lorsque sa permission l'autorise.
+- **Permissions de fiche** : Modifier et Redistribuer (quatre modes), sans effet sur les paramètres propres aux Exercices.
+- **Révision active** : version utilisée partout où la même identité source est référencée. Une mise à jour volontaire depuis une Bibliothèque la propage à toutes ses références locales, sans modifier leur composition.
+- **Espace en étoile** : relations individuelles orientées entre utilisateurs, sans rôle « professionnel » dans le modèle et sans prescription numérique dans ce premier lot.
+- **Modération** : suspension prioritaire de fiche ou média, distincte d'une mise à jour volontaire.
+
+La règle du MVP actuel d'un nom de Mouvement unique (`normalized_name`, D-445 C01) reste applicable au code actuel ; **la cible distribuée accepte les homonymes de sources différentes**, après migration de cette contrainte.
