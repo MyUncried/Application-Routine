@@ -365,3 +365,11 @@ Cause démontrée :
 Correctif (classe D, choix technique) : `ExecutionSounds` joue chaque son avec un lecteur neuf, préparé à l'avance (un prêt par son), et le libère 3 s après. La voix n'est pas modifiée.
 
 La décision 1.A (musique atténuée toute la séance) reste en vigueur. Elle supprime en plus les bips décalés ou manquants causés par les reconfigurations.
+
+Suite du 10/11/2026 :
+
+- Recette en séance du lecteur neuf par son : « il n'y a plus de click ».
+- Question de Hermann : « est ce que c'est une solutino dison optimale d'ouvrire et de fermer un lecteur neuf pour chaque son ? »
+- Essai J (même lecteur, fichier rechargé après chaque lecture) : « pas de click ».
+
+Correctif retenu (classe D) : un lecteur par son, dont le fichier est rechargé dès la fin de chaque lecture. Cette méthode est plus économe qu'un lecteur neuf par son. Un son redemandé avant le rechargement déclenche aussitôt ce rechargement.
