@@ -1,5 +1,9 @@
 # API fonctionnelles
 
+## Arbitrages confirmés — Mouvement, auteur et médias (11/11/2026)
+
+**MOUV-D1 à MOUV-D4 — règle applicable.** Auteur unique `author: ActorRef | null` (pas de `authors[]`) ; métadonnées médias conservées, référence distante, chargement à la demande/cache local, téléchargement hors ligne explicite reporté, aucune diffusion sans droits confirmés ; **fiche importée non modifiable et non duplicable**, redistribution seulement si autorisée dans un futur lot ; paramètres des Exercices restent personnalisables. Les adaptations historiques des 60 fiches sont préservées pour la reprise CA-3. Les modes anciens BIB-06/BIB-07/BIB-08 permettant une modification ou copie des **fiches importées** sont supersédés sur cette portée. [Contrat de l'étape 2](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
 ## Contrats fonctionnels communs CA-3 — premier chantier
 
 Les services doivent couvrir **lecture du fichier catalogue autonome**, validation de toutes les propriétés éditoriales (y compris médias/droits de source), identité stable de fiche et provenance, comparaison de révisions, import/export, installation, détection de conflits, reprise et réconciliation des **60 Mouvements déjà installés**. Leur contrat est indépendant de l'administration Web Node.js/OVH et de l'UI mobile. Le Profil utilise découverte/sélection/installation et commande volontaire de mise à jour des **Bibliothèques génériques KODJO** ; l'éditeur courant des Mouvements reste dans le Catalogue. Le canal pilote d'import par fiche conserve ses options de recette distinctes de la mise à jour globale utilisateur. Les services d'abonnement, publication par coach, relations, groupes et permissions destinataires sont **hors premier lot**, sans supprimer les champs éditoriaux nécessaires aux exports. Contrats d'erreurs et reprises à finaliser avant implémentation, sans endpoints réseau inventés.
