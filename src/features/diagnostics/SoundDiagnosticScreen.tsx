@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { hasNativeModule, SOURCES, startExecutionAudio, type BeepTone } from "@/infrastructure/audio/ExecutionSounds";
+import { bestFrenchVoice, EXECUTION_VOICE_LANGUAGE } from "@/infrastructure/speech/ExecutionVoice";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -24,7 +25,7 @@ const TONES: readonly { readonly tone: BeepTone; readonly label: string; readonl
   { tone: "BIP_GRAVE", label: "Bip grave", volume: 1 },
 ];
 
-type Method = "VOLUME_ONCE" | "VOLUME_EACH" | "FRESH" | "FRESH_NO_VOLUME" | "WITH_VIBRATION";
+type Method = "VOLUME_ONCE" | "VOLUME_EACH" | "FRESH" | "FRESH_NO_VOLUME" | "WITH_VIBRATION" | "AFTER_VOICE" | "ALL_PLAYERS";
 
 // A reproduit la première livraison du 09/11/2026 (b362aa34, sans click) ; B la méthode actuelle, où le volume
 // est réglé avant chaque son depuis 9b9339ef (premier click signalé à la recette suivante).
@@ -35,6 +36,9 @@ const METHODS: readonly { readonly method: Method; readonly label: string }[] = 
   { method: "FRESH_NO_VOLUME", label: "D — Lecteur neuf, volume non modifié" },
   // Seule différence restante avec l'Exécution (recette du 10/11/2026, après la suppression des reconfigurations).
   { method: "WITH_VIBRATION", label: "E — Comme B, avec la vibration moyenne de la séance" },
+  // Différences restantes avec l'Exécution (aucun click en A à E, quel que soit le mode de session).
+  { method: "AFTER_VOICE", label: "F — Comme B, après une annonce vocale" },
+  { method: "ALL_PLAYERS", label: "G — Comme B, avec les 9 sons chargés comme en séance" },
 ];
 
 const REPEAT = 3;
@@ -87,7 +91,21 @@ export function SoundDiagnosticScreen() {
       note(`session : ${SESSION_MODES.find((m) => m.mode === sessionMode)!.label}`);
       await wait(500);
       const { tone, volume } = selected;
-      if (method === "VOLUME_ONCE" || method === "VOLUME_EACH" || method === "WITH_VIBRATION") {
+      if (method === "AFTER_VOICE") {
+        // Même réglage que les annonces de la séance (ExecutionVoice).
+        const Speech = await import("expo-speech");
+        const voice = bestFrenchVoice(await Speech.getAvailableVoicesAsync());
+        await new Promise<void>((resolve) => {
+          Speech.speak("Préparez-vous. À suivre : Pompes", { language: EXECUTION_VOICE_LANGUAGE, ...(voice === null ? {} : { voice }), useApplicationAudioSession: true, onDone: () => resolve(), onError: () => resolve(), onStopped: () => resolve() });
+        });
+        note("annonce terminée");
+        await wait(1000);
+      }
+      if (method === "ALL_PLAYERS") {
+        for (const other of Object.keys(SOURCES) as BeepTone[]) if (other !== tone) await create(other);
+        note("9 sons chargés");
+      }
+      if (method === "VOLUME_ONCE" || method === "VOLUME_EACH" || method === "WITH_VIBRATION" || method === "AFTER_VOICE" || method === "ALL_PLAYERS") {
         const player = await create(tone);
         if (method === "VOLUME_ONCE") player.volume = volume;
         else {
