@@ -1,196 +1,159 @@
-# 2026-11-10 — CATALOGUE-AUTONOME — Plan d'évolution minimal
+# 2026-11-10 — CATALOGUE-AUTONOME — Plan d'évolution minimal (révision 2)
 
-**Statut :** `PLAN_READY_FOR_REVIEW` — aucune modification de code, aucune build, OTA ni fusion avant validation.
-**Branche de départ :** `catalogue/integration-60-main-20261109`, commit `c14704ae` (worktree `C:/Dev/KODJO-CAT60-MAIN`).
-**Décision de Hermann (10/11) :** option A, catalogue autonome, avec une architecture permettant ensuite l'option B (téléchargement depuis OVH) sans changer le modèle de données. Huit précisions (§ 1).
+**Statut :** plan **partiellement validé** par Hermann (10/11) ; révision 2 intégrant ses quatre corrections. Exécution autorisée : **CA-1 et CA-2 seulement**, avec tests et contrôles documentaires. CA-3 à CA-6 non développés.
+**Branche :** `catalogue/integration-60-main-20261109` (worktree `C:/Dev/KODJO-CAT60-MAIN`) ; révision 1 au commit `5956e52f` (complétée en `ccd7febc`).
+**Interdits maintenus :** aucune modification de PRE-10, aucune build, aucune OTA, aucune fusion dans `main`.
 
-## 1. Exigences reçues
+## 0. Décisions de Hermann (10/11)
 
-| # | Exigence (Hermann, 10/11) | Classement |
+- Option A retenue : catalogue autonome, architecture compatible avec une option B (téléchargement depuis OVH) **sans changer le modèle de données**.
+- Architecture générale et découpage CA-1 à CA-6 **approuvés**.
+- Registre dans une base SQLite distincte : **accepté provisoirement** pour éviter les conflits avec PRE-10, **pas un choix définitif**.
+- Quatre corrections, reprises textuellement :
+  1. **Autonomie réelle** : « Le générateur fondé sur les 60 fiches existantes est une solution de conversion initiale, pas le mécanisme permanent de gestion du catalogue. Le fichier autonome doit ensuite constituer une source éditable permettant de créer de nouvelles fiches, sans modification du code ni nouvelle build. »
+  2. **Identités distinctes** : « Conserver la séparation déjà documentée entre l'identifiant de fiche éditoriale (sheetId), son catalogue d'origine et le Movement.id local. Préserver la reconnaissance des 60 identifiants pilot:* déjà installés. »
+  3. **Révisions et modifications locales** : « Le suivi des révisions doit couvrir la fiche éditoriale complète, pas seulement les propriétés importées dans Movement. Conserver les modifications personnelles et ne jamais les écraser automatiquement. Clarifier les cas de conflit et corriger l'affirmation selon laquelle le registre serait entièrement reconstructible après sa perte. »
+  4. **Exhaustivité du modèle** : « Reprendre toutes les propriétés déjà définies dans les spécifications éditoriales et l'administration : contenus, classifications, médias et métadonnées, propriété, auteurs, droits, sources et révisions. Conserver les étapes structurées dans le contenu descriptif et non dans les classifications. Respecter l'ordre des données lorsque celui-ci a une signification fonctionnelle. »
+- « Privilégie systématiquement le réemploi des modèles et mécanismes existants. Pas d'infrastructure supplémentaire sans nécessité démontrée. »
+
+## 1. Exigences
+
+| # | Exigence | Classement |
 |---|---|---|
-| E1 | Fichier autonome : toutes les fiches et propriétés (classifications, identifiants, provenance, révisions) ; plus aucune dépendance aux 60 fiches embarquées | Indispensable |
-| E2 | Fonctionner avec un catalogue vide ; ne jamais supprimer les Mouvements de l'utilisateur ni les données présentes | Indispensable |
-| E3 | Chargement idempotent ; reconnaître l'installé ; distinguer nouvelles fiches et nouvelles révisions | Indispensable |
-| E4 | Aucune mise à jour silencieuse : accepter, refuser ou reporter ; préserver les adaptations locales | Indispensable |
-| E5 | Partage futur entre utilisateurs (particuliers, coachs, kinés) : auteur, source, révisions | **Format** indispensable, **fonction** future |
-| E6 | Médias et métadonnées préservés dans le modèle cible ; transport physique dans une tranche séparée | **Métadonnées** indispensables, **transport** futur |
-| E7 | Compatible avec le SQLite actuel ; indépendant du moteur d'exécution PRE-10 | Indispensable |
-| E8 | Conserver les 60 Mouvements déjà importés dans la build de recette, sans suppression ni doublon | Indispensable |
+| E1 | Fichier autonome et **éditable** : toutes les fiches et propriétés ; création de nouvelles fiches sans code ni build ; plus aucune dépendance aux 60 fiches embarquées | Indispensable |
+| E2 | Catalogue initialement vide possible ; aucune suppression de Mouvement utilisateur ni de donnée présente | Indispensable |
+| E3 | Chargement idempotent ; reconnaissance de l'installé ; nouvelles fiches distinguées des nouvelles révisions | Indispensable |
+| E4 | Aucune mise à jour silencieuse ; accepter / refuser / reporter ; modifications personnelles jamais écrasées automatiquement | Indispensable |
+| E5 | Partage futur (particuliers, coachs, kinés) : auteur, source, révisions | **Format** indispensable ; **fonction** future |
+| E6 | Médias et métadonnées préservés ; transport physique séparé | **Données** indispensables ; **transport** futur |
+| E7 | Compatible avec le SQLite actuel ; indépendant du moteur PRE-10 | Indispensable |
+| E8 | 60 Mouvements `pilot:*` de la build de recette conservés, ni supprimés ni dupliqués | Indispensable |
 
-## 2. État actuel (constaté dans le code)
+## 2. Sources réemployées (constat)
 
-- `pilotMovementImport.ts` importe statiquement `catalogue/pilote/mouvements-60-candidats.json` et `preclassement-60-candidats-v0.json`. Le JSON d'administration ne fait que **modifier** ces 60 fiches. Toute fiche nouvelle exige une build : contraire à E1.
-- Identifiants de Mouvement installés : `pilot:<originalId>` (`pilot:REED-001` … `pilot:FIT-STR-010`).
-- Modèle `Movement` (SQLite v23 sur `main`) :
-  - colonnes : `id`, `name`, `normalized_name`, `description`, `category_id`, `next_phase_id`, `level_group_id`, `level_sort_key`, `archived_at`, horodatages ;
-  - tables liées : `movement_aliases`, `movement_body_zones`, `movement_phases`, `movement_media` → `media_assets`.
-  - Aucune colonne de provenance, d'auteur ni de révision.
-- Catégories et Zones : tables `categories` et `body_zones` préremplies par migration (identifiants stables).
-- Réimport : un Mouvement présent mais différent **bloque tout** l'import (« contenu différent »). Il n'existe ni décision par fiche, ni mémoire de ce qui a été installé.
-- **Contrainte de migration** : `DATABASE_VERSION` vaut 23 sur `main` et **24 sur PRE-10** (`origin/pre10-bmad/dev`). `migrateDatabase` applique les versions dans l'ordre et refuse une base plus récente que le code.
-  - Si la build de recette recevait une migration catalogue numérotée 24, la base de « Routine Catalogue » serait ensuite incompatible avec la migration 24 de PRE-10.
-  - Toute migration du schéma principal par la branche catalogue est donc à proscrire tant que PRE-10 n'est pas fusionné.
-
-## 3. Principe retenu
-
-Trois couches séparées, aucune modification du schéma principal :
-
-1. **Fichier catalogue** (donnée, hors code) : format versionné `KODJO_MOVEMENT_CATALOGUE`, autonome. Le même fichier sert pour l'import local (A) et plus tard pour le téléchargement (B).
-2. **Registre d'installation** (mémoire locale de ce qui vient d'un catalogue) : dans une **base SQLite distincte** (`kodjo-catalogue-registry.db`), avec ses propres versions. Elle ne touche ni `DATABASE_VERSION` ni les migrations PRE-10 (E7).
-3. **Moteur de chargement** (code, sans donnée) :
-   - il compare le fichier, le registre et les Mouvements réels, puis produit un plan de chargement ;
-   - il n'écrit que ce qui est sans ambiguïté (nouvelles fiches) ;
-   - toute modification d'un Mouvement existant attend une décision.
-   - Il passe exclusivement par `MovementCatalogueService` et le repository existants, sans contournement de validation.
-
-Les Mouvements installés restent des Mouvements KODJO ordinaires : l'exécution, les Séances et PRE-10 n'en savent rien.
-
-## 4. Format de fichier `KODJO_MOVEMENT_CATALOGUE` v1 (proposition)
-
-```jsonc
-{
-  "format": "KODJO_MOVEMENT_CATALOGUE",
-  "formatVersion": "1.0.0",
-  "catalogue": {
-    "id": "kodjo.pilot",                 // identifiant global stable du catalogue
-    "title": "Catalogue pilote KODJO",
-    "revision": "2026-11-10.1",          // révision du fichier
-    "generatedAt": "2026-11-10T10:00:00Z",
-    "publisher": { "id": "ankusha", "name": "…", "role": "EDITOR" },
-    "publicationStatus": "TEST",         // TEST | DRAFT | PUBLISHED (frontière de provenance)
-    "source": { "kind": "FILE" }          // FILE (A) ; plus tard URL (B), avec empreinte
-  },
-  "references": {                        // vocabulaires utilisés par les fiches
-    "categories": [{ "id": "cardio", "label": "…" }],
-    "bodyZones":  [{ "id": "cuisses", "label": "…" }],
-    "specialties": [], "gesturalFamilies": [], "anatomicalTargets": [], "clinicalProblems": []
-  },
-  "movements": [{
-    "entryId": "pilot:REED-001",         // identifiant global stable de la fiche = id du Mouvement installé
-    "revision": 1,                       // entier croissant par fiche
-    "contentHash": "sha256:…",           // empreinte canonique de "content"
-    "content": {                         // strictement le contrat Movement actuel
-      "name": "…", "description": "…", "aliases": [], "categoryId": "…",
-      "bodyZoneIds": [], "phases": [], "nextPhaseId": 1
-    },
-    "classifications": { "specialties": [], "gesturalFamilies": [], "anatomicalTargets": [], "clinicalProblems": [], "original": {} },
-    "provenance": {
-      "authors": [{ "id": "…", "name": "…", "role": "AUTHOR|COACH|PHYSIOTHERAPIST|EDITOR" }],
-      "source": { "id": "PIL-ANY", "url": "…", "section": "…" },
-      "derivedFrom": null,               // { entryId, revision } — partage et adaptation, futur
-      "validation": { "classification": "PENDING", "clinical": "NOT_ASSESSED", "rights": "PENDING" }
-    },
-    "media": [{                          // métadonnées complètes ; transport futur
-      "id": "…", "kind": "PHOTO|VIDEO", "mimeType": "…", "sha256": "…", "bytes": 0,
-      "location": null,                  // futur : URL ou chemin relatif dans un paquet
-      "caption": "", "alt": "", "attribution": "", "license": "", "rightsStatus": "UNVERIFIED"
-    }],
-    "history": [{ "revision": 1, "date": "…", "author": "…", "summary": "…" }]
-  }]
-}
-```
-
-Règles :
-
-- `content` ne contient que ce que le modèle `Movement` sait stocker. Classifications, provenance, médias et historique sont **conservés tels quels** dans le registre, sans être ajoutés artificiellement au modèle `Movement` (règle déjà actée du pilote).
-- `entryId` est l'identifiant du Mouvement installé. Pour le pilote, il reste `pilot:<id>`, ce qui permet de reconnaître les 60 Mouvements déjà présents (E8). Les catalogues futurs utiliseront `<éditeur>:<id>`.
-- Les références de Catégorie et de Zone doivent exister localement. Une fiche qui en cite une inconnue est **écartée et signalée**, sans création implicite de Catégorie.
-- Aucune valeur par défaut n'est cachée dans le code : le préclassement de recette devient une donnée du fichier.
-- Taille : les médias ne sont pas intégrés en base64 dans le fichier, donc la limite de 24 Mo n'est plus contraignante pour les métadonnées.
-
-## 5. Registre d'installation (base distincte)
-
-Une ligne par fiche installée ou connue :
-
-| Champ | Rôle |
-|---|---|
-| `entry_id` | Identifiant de la fiche = `movements.id` |
-| `catalogue_id` | Catalogue d'origine |
-| `installed_revision`, `installed_hash` | Révision et empreinte du contenu **tel qu'installé** |
-| `entry_snapshot` | JSON complet de la fiche installée (classifications, provenance, médias, historique) — E5, E6 |
-| `pending_revision`, `pending_snapshot` | Révision proposée en attente de décision (report) |
-| `decision` | `NONE` / `DEFERRED` / `REFUSED` (avec révision refusée) |
-| `installed_at`, `updated_at` | Horodatages |
-
-Le registre ne modifie jamais un Mouvement. Il est **reconstructible** : en l'absence de ligne, un Mouvement de même identifiant et de contenu équivalent est « adopté » (cas des 60 fiches de recette, ou d'une interruption entre l'écriture du Mouvement et celle du registre). Il n'y a donc pas besoin de transaction commune aux deux bases.
-
-## 6. Classement d'une fiche au chargement (E3, E4, E8)
-
-Pour chaque fiche du fichier, comparée au registre et au Mouvement local :
-
-| Cas | Condition | Action par défaut |
+| Source | Emplacement | Réemploi |
 |---|---|---|
-| `NEW` | Ni Mouvement ni registre, nom libre | **Installée** (après confirmation globale) |
-| `NAME_CONFLICT` | Nom normalisé déjà pris par un autre Mouvement | Écartée et signalée ; rien n'est écrit pour cette fiche seule (les autres continuent) |
-| `UNCHANGED` | Même révision, Mouvement identique à l'installé | Rien |
-| `ADOPTABLE` | Mouvement présent, pas de registre, contenu équivalent | Inscription au registre seulement (**les 60 de recette**) |
-| `LOCAL_ONLY_DIFF` | Mouvement présent, pas de registre, contenu différent | Inscription « adaptation locale », aucune écriture sur le Mouvement |
-| `REVISION_CLEAN` | Révision plus récente, Mouvement non modifié localement | **Proposée** : accepter / refuser / reporter |
-| `REVISION_ON_ADAPTED` | Révision plus récente, Mouvement modifié localement | Proposée avec avertissement ; par défaut adaptation conservée |
-| `LOCALLY_ADAPTED` | Même révision, Mouvement modifié localement | Rien (adaptation préservée) |
-| `LOCALLY_REMOVED` | Registre présent, Mouvement supprimé ou archivé | Non réinstallée ; signalée |
-| `REFUSED` | Révision déjà refusée | Rien tant qu'une révision supérieure n'arrive pas |
-| `INVALID` | Échec de `validateMovement` ou référence inconnue | Écartée et signalée |
+| Spécification provenance et propriété (06/11, décisions validées) | `docs/KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md` (pile catalogue historique, absente de `main`) | Termes, identités (`sheetId` ≠ `Movement.id`), `origin`, `upstream`, `owner`, `authors`, `publisher`, `rightsHolder`, `license`, `revision`, `reviewStatus`, `visibility`, cycle de vie § 4 |
+| Modèle de domaine `MovementEditorialProvenance` + validateur + tests | `src/domain/catalogue/` (même pile) | **Reporté tel quel**, réutilisé par le validateur du fichier |
+| Administration OVH (brouillons `KODJO_ADMIN_DRAFTS`) | `tools/catalogue-admin/static-ovh/index.html` (PR #432) | Propriétés de fiche éditées (nom, étapes ordonnées, alias, notes, Catégorie, Zones, quatre axes de taxonomie, propriétaire, auteurs, statut éditorial, médias ordonnés), modèle de média (types, stockage, droits, attribution, licence, texte alternatif, légende, limites), référentiels ajoutés ou renommés, glossaire |
+| Corpus pilote `KODJO_EDITORIAL_CANDIDATE_CORPUS` | `catalogue/pilote/mouvements-60-candidats.json` | Identifiants d'origine, position de départ, matériel, étapes, consignes de sécurité, classification d'origine, contexte de prescription, source documentaire, statuts de validation |
+| Préclassement `KODJO_CLASSIFICATION_PROPOSALS` v0 (non approuvé) | `catalogue/referentiels/preclassement-60-candidats-v0.json` | Catégorie, Zones et taxonomie proposées, revue, licence, validation clinique |
+| Contrat `Movement`, `encodeInstructionSteps`, `validateMovement`, `normalizeMovementName` | `src/domain/activities/` (`main`) | Projection fiche → Mouvement inchangée |
+| Jest, CI de branche | existants | Validation du fichier versionné et reproductibilité de la conversion |
 
-- Les fiches absentes du nouveau fichier ne sont **jamais supprimées** localement (E2).
-- Un catalogue vide est valide : 0 fiche, aucune écriture.
-- Accepter une révision fait passer le Mouvement par `MovementCatalogueService.update`, en conservant son identifiant, donc ses usages dans les Séances.
-- Refuser enregistre la révision refusée. Reporter enregistre la révision en attente, qui sera reproposée.
-- Idempotence : recharger le même fichier n'écrit rien et ne repropose que les révisions reportées.
+Contrainte de migration : `DATABASE_VERSION` vaut 23 sur `main` et **24 sur PRE-10** ; aucune migration du schéma principal par la branche catalogue.
 
-## 7. Découpage — indispensable / futur
+## 3. Principe
 
-### Indispensable au catalogue autonome (tranches proposées)
+1. **Fichier catalogue** `KODJO_MOVEMENT_CATALOGUE` : **la source de vérité éditable** du catalogue, versionnée hors de `src/`. Les nouvelles fiches s'y ajoutent directement (ou, plus tard, par l'administration Web ou un téléchargement), sans code ni build. Le même fichier sert pour A et B.
+2. **Conversion initiale (CA-2)** : outil **à usage unique** qui produit le fichier pilote à partir du corpus, du préclassement et d'un export de brouillons. Après conversion, le fichier fait foi ; l'outil ne fait pas partie du cycle de gestion.
+3. **Registre d'installation** (CA-3, base SQLite distincte, provisoire) et **moteur de chargement** (CA-3) : inchangés dans leur principe, précisés aux § 5 et 6.
 
-| Tranche | Contenu | Écritures |
+## 4. Modèle du fichier — format v1
+
+Spécification normative détaillée : `docs/KODJO-Format-catalogue-mouvements-v1.md` (livrée avec CA-1). Résumé :
+
+**Identités (correction 2).**
+
+| Identité | Portée | Exemple pilote |
 |---|---|---|
-| **CA-1 Format** | Schéma `KODJO_MOVEMENT_CATALOGUE` v1 ; validateur pur ; empreinte canonique ; tests | Code pur, aucune donnée de l'appareil |
-| **CA-2 Générateur** | Script PC (`tools/catalogue/`) qui produit le fichier à partir du corpus actuel, du préclassement et d'un export de brouillons OVH (lecture seule, aucune modification d'OVH). Le fichier pilote est versionné hors de `src/`. | Fichier de données |
-| **CA-3 Registre + moteur** | Base distincte ; classement du § 6 ; application des `NEW` et des adoptions ; décisions accepter / refuser / reporter | Mouvements via le service existant ; registre |
-| **CA-4 Écran de recette** | Remplace « Importer 60 fiches » par « Charger un catalogue » : sélecteur de fichier, récapitulatif par cas, liste des révisions avec décision par fiche. Outil interne sans référence Figma, visible seulement avec `EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT=1`. | — |
-| **CA-5 Retrait du corpus embarqué** | Suppression des `import` JSON de `src/` ; anciens tests convertis sur le nouveau format | Code |
-| **CA-6 Recette iPhone** | Build `catalogue-recette` (sur accord), puis trois chargements de fichiers **produits par le générateur (CA-2)** : (1) fichier pilote sur la base qui contient les 60 : **60 adoptés, 0 ajouté, 0 doublon** ; (2) même fichier rechargé : aucune écriture ; (3) fichier régénéré après modification d'une fiche existante et ajout d'une fiche : **1 nouvelle installée, 1 révision proposée**, testée en accepter, refuser et reporter, avec une adaptation locale préservée | Appareil de recette uniquement |
+| `catalogue.id` | Catalogue d'origine | `kodjo.pilote-60` |
+| `sheetId` | Fiche éditoriale, unique dans son catalogue, immuable ; identité globale = (`catalogue.id`, `sheetId`) | `REED-001` |
+| `Movement.id` | Mouvement local, attribué à l'installation ; **jamais** porté comme identité par le fichier | `pilot:REED-001` |
+| `install.knownLocalMovementIds` | Données de rapprochement : identifiants locaux sous lesquels la fiche a déjà pu être installée (anciens importeurs) | `["pilot:REED-001"]` |
 
-### Futur, préparé par le format mais non développé
+Le rapprochement des 60 Mouvements `pilot:*` est donc une **donnée du fichier**, pas une règle codée.
 
-- Option B : téléchargement depuis OVH (URL, empreinte et signature, contrôle de révision, cache).
-- Transport des médias (paquet ou URL, vérification `sha256`, stockage, affichage).
-- Partage entre utilisateurs : export d'un Mouvement local au même format, `derivedFrom`, identités d'auteurs vérifiées, droits.
-- Fusion assistée champ par champ d'une révision et d'une adaptation locale ; historique consultable.
-- Synchronisation ; catalogue éditorial publié ; validation clinique.
-- Intégration éventuelle du registre dans le schéma principal (après PRE-10, numéro de migration coordonné).
+**Fiche éditoriale complète (correction 4)** : `sheetId`, `revision`, `history[]`, `provenance` (modèle `MovementEditorialProvenance` sans `sheetId`, `localMovementId` ni `revision`, portés ailleurs), `content` (nom, alias **ordonnés**, position de départ, matériel, **étapes structurées ordonnées**, consignes de sécurité, notes), `classification` (Catégorie, Zones, spécialités, familles gestuelles, problèmes cliniques, cibles anatomiques, base de proposition, revue, classification d'origine), `sources` (source documentaire, contexte de prescription d'origine, transcription), `validation` (classification, clinique, droits, relecture du corpus, publication), `media[]` **ordonnés** (modèle de l'administration, intégralement conservé), `install`.
+Niveau catalogue : propriétaire et diffuseur éventuels, statut de publication, notes, sources, **référentiels ordonnés** (Catégories, Zones, quatre axes), glossaire ordonné.
 
-## 8. Preuves prévues
+**Ordre** : significatif pour étapes, alias, médias, historique, référentiels et glossaire ; **ensemble** (ordre indifférent) pour Zones et identifiants de taxonomie.
 
-- Tests purs : validation du format, empreinte stable (ordre des clés, des alias et des Zones), refus des formats étrangers.
-- Tests SQLite réels (`node:sqlite`) avec le repository existant :
-  - catalogue vide ;
-  - 60 nouvelles fiches ;
-  - rechargement identique sans écriture ;
-  - **base remplie par l'ancien importeur → 60 adoptés, 0 écriture sur `movements`** (E8) ;
-  - nouvelle fiche plus révision dans le même fichier ;
-  - adaptation locale préservée ;
-  - accepter / refuser / reporter ;
-  - fiche supprimée localement non réinstallée ;
-  - conflit de nom isolé ;
-  - Mouvements utilisateur et tables hors Mouvement inchangés (instantané complet) ;
-  - interruption puis reprise ;
-  - registre perdu puis reconstruit.
-- Double de base « connexion en retard » (déjà en place) appliqué au moteur.
-- Générateur : le fichier pilote produit installe exactement les mêmes 60 contenus que l'ancien importeur ; une modification de fiche dans les brouillons produit une révision (`revision` + 1, nouvelle empreinte), un ajout produit une nouvelle fiche, un rechargement sans modification ne change ni révision ni empreinte.
-- Chaîne complète en test automatisé : générateur → fichier → moteur → SQLite réelle, pour les trois chargements de CA-6, avant la recette sur iPhone.
-- `tsc`, eslint, CI de branche. Simulation de fusion avec `main` et PRE-10 : aucun fichier de migration touché.
+**Aucune attribution par déduction** : propriétaire, auteurs, ayant droit et licence restent vides s'ils ne sont pas déclarés (règle du corpus et spécification § 4.8). Écart avec le validateur existant, qui exige `owner` : voir § 8, point 1.
 
-## 9. Risques et points à arbitrer
+## 5. Révisions, modifications locales et conflits (correction 3)
 
-1. **Base distincte plutôt que migration** : elle préserve PRE-10 et `DATABASE_VERSION`, au prix d'une cohérence par réconciliation et non par transaction. À valider.
-2. **`description`** : le modèle stocke un texte unique. Le format porte `content.description` tel quel ; les étapes structurées restent dans `classifications.original` tant que le modèle ne les distingue pas.
-3. **Catégories et Zones inconnues** : la fiche est écartée (pas de création implicite). La création de référentiels par catalogue est une décision future.
-4. **Statut `TEST`** : le fichier pilote reste marqué `publicationStatus: TEST`. Le chargement ne vaut pas validation éditoriale ni clinique.
-5. **Destination de l'outil** : tout reste sur la branche catalogue. Son entrée dans `main` (sans aucune donnée de test) sera une décision séparée.
-6. **PR #436** : indépendante, en attente de la validation iPhone de la build `6987d086`.
+**Révision de fiche** : identifiant `revision` (chaîne, comme dans `MovementEditorialProvenance`) et historique `history[]` ordonné du plus ancien au plus récent. Une **empreinte de fiche** canonique (CA-1) couvre la fiche éditoriale complète — contenu, classifications, sources, validation, provenance, médias et leurs métadonnées — à l'exclusion de `revision`, `history` et `install`. Toute modification d'une propriété quelconque change l'empreinte, même sans effet sur le Mouvement.
 
-## 10. État Git et suite
+**Projection Mouvement** : sous-ensemble installé dans `Movement` (nom, alias, description encodée à partir des étapes, Catégorie, Zones), identique à l'importeur actuel.
 
-- Ce document seul est ajouté (aucun fichier applicatif modifié) sur `catalogue/integration-60-main-20261109`.
-- Attendu de Hermann : validation, modification ou refus du plan (en particulier § 9.1 à 9.3) avant toute écriture de code.
+Au chargement (CA-3), comparaison à trois termes : **B** = fiche installée (instantané du registre), **L** = Mouvement local actuel, **R** = fiche du fichier.
+
+| Cas | Condition | Traitement |
+|---|---|---|
+| Fiche nouvelle | Aucun registre ni Mouvement rapprochable | Installée après confirmation |
+| Identique | `R.revision = B.revision`, même empreinte | Rien |
+| Révision incohérente | Même `revision`, empreinte différente | Refusée et signalée (révision non incrémentée dans le fichier) |
+| Révision antérieure | `R.revision` présente dans l'historique avant `B.revision` | Ignorée |
+| Nouvelle révision, éditoriale seulement | Projection(R) = Projection(B) | Proposée ; acceptation = mise à jour du registre seul, **aucune écriture sur le Mouvement** |
+| Nouvelle révision, Mouvement non modifié localement | L = Projection(B) ≠ Projection(R) | Proposée : accepter (mise à jour du Mouvement), refuser, reporter |
+| **Conflit** | L ≠ Projection(B) et Projection(R) ≠ Projection(B), sur au moins un même champ | Proposée **champ par champ**, valeur locale conservée par défaut ; l'écrasement d'une modification personnelle n'est possible que par choix explicite, après sauvegarde de la valeur locale dans le registre |
+| Modification locale sans révision | L ≠ Projection(B), R inchangée | Rien ; modification personnelle préservée |
+| Convergence | L = Projection(R) | Registre mis à jour, aucune écriture sur le Mouvement |
+| Fiche retirée localement | Registre présent, Mouvement supprimé ou archivé | Non réinstallée, signalée |
+| Révision refusée | Révision déjà refusée | Rien jusqu'à une révision ultérieure |
+| Révision reportée | Révision en attente | Reproposée à chaque chargement |
+| Conflit de nom | Nom normalisé pris par un autre Mouvement | Fiche écartée et signalée, les autres continuent |
+| Fiche invalide | Format ou contrat `Movement` non respecté, référence inconnue | Écartée et signalée |
+
+Une fiche absente du fichier n'est jamais supprimée localement. Un catalogue vide est valide.
+
+**Perte du registre — correction de la révision 1.** Le registre **n'est pas entièrement reconstructible**. Seuls se retrouvent les Mouvements dont l'identifiant figure dans `install.knownLocalMovementIds` ou dans la projection de la révision courante, et dont le contenu égale cette projection. Sont **perdus** :
+- la révision installée lorsqu'elle diffère de la révision courante ;
+- l'instantané éditorial installé (classifications, sources, médias, provenance) ;
+- les décisions de refus et de report ;
+- les valeurs locales sauvegardées ;
+- la distinction entre une modification personnelle et une révision plus ancienne.
+
+Après une perte, ces Mouvements sont présentés comme **« à rapprocher »** et ne sont jamais modifiés sans décision. Le registre suit le cycle de vie de la base de l'application ; sa sauvegarde et son export relèvent d'une tranche future.
+
+## 6. Découpage — indispensable / futur
+
+### Indispensable
+
+| Tranche | Contenu | État |
+|---|---|---|
+| **CA-1 Format** | Report du modèle `MovementEditorialProvenance` (+ tests) ; types du format v1 ; validateur pur (structure, unicité, références, médias, provenance, contrat `Movement` de la projection) ; projection Mouvement ; empreinte de fiche ; spécification documentaire ; contrôle en test de tout fichier versionné | **Autorisé** |
+| **CA-2 Conversion initiale** | Conversion à usage unique corpus + préclassement + brouillons d'administration → fichier pilote versionné hors de `src/` ; preuve de reproductibilité ; projection identique à l'importeur actuel pour les 60 fiches (E8) ; brouillons, médias, glossaire et référentiels d'administration préservés | **Autorisé** |
+| CA-3 Registre + moteur | Base distincte provisoire ; classement du § 5 ; décisions | Non développé |
+| CA-4 Écran de recette | « Charger un catalogue » remplaçant « Importer 60 fiches » | Non développé |
+| CA-5 Retrait du corpus embarqué | Suppression des imports JSON de `src/` | Non développé |
+| CA-6 Recette iPhone | Trois chargements : (1) fichier pilote sur la base contenant les 60 → 60 adoptés, 0 ajouté ; (2) rechargement → aucune écriture ; (3) fichier **édité** (une fiche modifiée, une fiche **créée directement dans le fichier**) → 1 nouvelle installée, 1 révision proposée, testée en accepter / refuser / reporter, modification personnelle préservée | Non développé |
+
+### Futur (format prêt, non développé)
+
+- Option B : téléchargement depuis OVH.
+- Transport des médias.
+- Partage entre utilisateurs (`SHARED_IMPORTED`, `LOCAL_DERIVED`, `upstream`).
+- Fusion assistée.
+- Synchronisation.
+- Édition du fichier par l'administration Web (aujourd'hui, l'administration produit des brouillons sur le corpus figé).
+- Intégration du registre dans le schéma principal, après PRE-10.
+
+## 7. Preuves prévues
+
+- **CA-1** :
+  - validation des cas valides et invalides (format, version, identités, doublons, références, médias, provenance, projection `Movement`) ;
+  - empreinte sensible à toute propriété éditoriale et à l'ordre des étapes, des alias et des médias, insensible à l'ordre des Zones et taxonomies, à `revision` et `history` ;
+  - fiche créée à la main dans un fichier : valide sans code ;
+  - catalogue vide valide ;
+  - tout fichier de `catalogue/catalogues/` valide.
+- **CA-2** :
+  - fichier versionné strictement égal à la conversion ;
+  - projection des 60 fiches = Mouvements de l'importeur actuel ;
+  - identifiants `pilot:*` rapprochables ;
+  - brouillons édités, médias, glossaire et référentiels d'administration conservés sans perte ni réordonnancement.
+- `tsc`, eslint, CI de branche ; aucun fichier de migration ni de PRE-10 touché.
+- CA-3 à CA-6 : tests prévus en révision 1 (SQLite réelle, connexion en retard, interruption, perte du registre).
+
+## 8. Points ouverts
+
+1. **Propriétaire obligatoire** : `validateMovementEditorialProvenance` exige `owner` ; le corpus interdit toute attribution par déduction. Le format v1 admet un propriétaire **inconnu** (`null`) et le signale. Déclarer un propriétaire du catalogue pilote est une décision de Hermann.
+2. **Homonymie** (spécification A1) : l'unicité des noms de `Movement` demeure ; conflit de nom = fiche écartée.
+3. **Référentiels inconnus du téléphone** : fiche écartée, sans création implicite.
+4. **Registre** : base distincte provisoire ; destination définitive à arbitrer après PRE-10.
+5. **Statut** : le fichier pilote reste non publiable (`publicationAllowed: false`) ; le chargement ne vaut ni validation éditoriale ni validation clinique.
+
+## 9. État Git
+
+Révision 2 du plan, livrée avec CA-1 et CA-2 ; compte rendu d'exécution : `2026-11-10_CATALOGUE-AUTONOME-CA1-CA2.md`.

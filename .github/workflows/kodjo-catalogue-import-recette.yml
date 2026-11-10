@@ -33,6 +33,11 @@ jobs:
           src/features/activities/__tests__/pilotMovementImport.test.ts
           src/features/activities/__tests__/pilotMovementImport.sqlite.test.ts
           src/features/activities/__tests__/PilotMovementImportCommand.test.tsx
+      - name: Autonomous catalogue format and initial conversion (CA-1, CA-2)
+        run: >-
+          npx jest --runInBand
+          src/domain/catalogue
+          tools/catalogue
       - name: Catalogue non-regression
         run: >-
           npx jest --runInBand
