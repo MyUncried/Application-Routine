@@ -2,6 +2,8 @@
 
 ## Vision post-MVP — Bibliothèques et diffusion contrôlée des Mouvements (10/11/2026)
 
+**F4-A à F4-F validées :** droit d'accès attribué par Bibliothèque ; mise à jour manuelle globale des compositions et fiches ; conservation locale des Mouvements retirés et des adaptations ; archivage sans effet pour les destinataires ; arrêt du partage sans révocation des installations, mais sans nouvelles mises à jour. Commerce isolé et modération prioritaire. [Parcours](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) et [architecture proposée pour revue](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
+
 **Décisions BIB-01 à BIB-18 validées :** Bibliothèques composées par références, Mouvements de toutes provenances, Bibliothèques reçues en lecture seule ; visibilités personnelle/partagée/publique et accès gratuit/payant ; quatre modes des permissions Modifier/Redistribuer, copies personnelles sans extension des droits et filtrage automatique de la redistribution. Les révisions ordinaires sont signalées par pastille et installées uniquement via « Mettre à jour ». Avant diffusion : autorisation centrale de la révision, validation automatique possible pour un partage privé sans anomalie et revue humaine initiale pour public/payant. Signalement et suspension de contenu litigieux restent possibles après diffusion.
 
 **Statut : cible post-MVP, non réalisation actuelle.** Le MVP local/SQLite et son moteur d'Exécution ne sont pas modifiés par cette conception. [Référence normative et questions À CLARIFIER](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
