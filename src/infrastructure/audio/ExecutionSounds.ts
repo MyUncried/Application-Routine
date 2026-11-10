@@ -65,9 +65,20 @@ export function startExecutionAudio(): Promise<void> {
 // Reconfigurations de session en cours : un son demandé pendant ce temps partirait en retard.
 let reconfiguring = 0;
 
+// Fin prévue du dernier son lancé (horloge murale, ms).
+let soundingUntil = 0;
+
+/** Marge après la fin d'un son avant de désactiver la session. */
+const AFTER_SOUND_MARGIN_MS = 40;
+
 function reconfigure(duck: boolean): Promise<void> {
   reconfiguring += 1;
   return enqueue(async (audio) => {
+    // Recette du 10/11/2026 (click sur la Pause et les sifflets) : désactiver la session arrête net le son en
+    // cours, ce qui produit un click. La reconfiguration attend donc la fin du son.
+    const wait = soundingUntil + AFTER_SOUND_MARGIN_MS - Date.now();
+    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+    if (__DEV__) console.log(`[guidage] session ${duck ? "atténuation" : "retour du volume"} ${Date.now()}`);
     await audio.setIsAudioActiveAsync(false).catch(() => undefined);
     await audio.setAudioModeAsync(mode(duck));
     await audio.setIsAudioActiveAsync(true);
@@ -145,6 +156,19 @@ const SOURCES: Record<BeepTone, number> = {
   CLIC_DOUX: require("../../../assets/sounds/clic-doux.wav"),
 };
 
+// Durée des fichiers (ms), pour ne jamais couper un son en reconfigurant la session.
+const DURATION_MS: Record<BeepTone, number> = {
+  BIP_GRAVE: 200,
+  BIP_DOUBLE: 250,
+  BIP_LONG: 620,
+  SIFFLET_ROULE: 440,
+  SIFFLET_PUR: 420,
+  SIFFLET_COURT: 240,
+  FANFARE_COURTE: 640,
+  DING: 1220,
+  CLIC_DOUX: 45,
+};
+
 // Un seul lecteur par son pour toute l'application : deux instances ne peuvent jamais jouer le même son en
 // double, légèrement décalé (recette du 10/11/2026, G2, G3, G6 : « un autre son en même temps »).
 const sharedPlayers: Partial<Record<BeepTone, AudioPlayer>> = {};
@@ -198,6 +222,8 @@ export class ExecutionSounds implements BeepPort {
     player.volume = volume;
     if (player.playing || player.currentTime > 0.01) await player.seekTo(0);
     player.play();
+    soundingUntil = Math.max(soundingUntil, Date.now() + DURATION_MS[tone]);
+    if (__DEV__) console.log(`[guidage] son ${tone} ${Date.now()}`);
     if (ducking) releaseOthersLater();
   }
 }

@@ -288,3 +288,14 @@ Conclusion :
 Suite du diagnostic (10/11/2026) : avec le bip adouci, Hermann note « le click est tjour sla, moins fort ».
 
 Le défaut suit donc le niveau du son. Deuxième correctif (classe D) : note du bip grave portée de 660 à 784 Hz, qui reste plus grave que le double bip (1000 Hz), avec une montée de 20 ms et une fin de 60 ms. Un son trop grave pour le haut-parleur de l'iPhone le fait saturer. Cause probable, non démontrée.
+
+Suite du diagnostic (10/11/2026) : avec le bip grave à 784 Hz, Hermann note « le click bip a disparu des bips, mais est toujours présent pour Pause, le sifflet roulé et continu ».
+
+Analyse :
+
+- Dans le journal Metro, la Pause (1794318058391) tombe 16 ms après l'échéance du retour du volume de la musique, planifié 1,5 s après le sifflet (1794318056875).
+- Pour changer l'atténuation, la session audio est désactivée puis réactivée. Cette désactivation arrête net tout son en cours, d'où le click.
+- Les sifflets, plus longs, sont exposés de la même façon quand une annonce ou le retour du volume tombe pendant leur lecture.
+- Mécanisme probable, non démontré sur appareil.
+
+Correctif (classe D) : une reconfiguration de la session attend la fin du son en cours (durée de chaque fichier, plus 40 ms). Des journaux \`[guidage] son …\` et \`[guidage] session …\` sont ajoutés en développement pour confirmer à la prochaine écoute.
