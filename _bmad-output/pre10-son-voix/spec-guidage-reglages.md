@@ -167,3 +167,19 @@ Périmètre :
 Sons : les fichiers et les choix du formulaire sont conservés tels quels ; rien n'est à revoir.
 
 Ordre conseillé : avant PRE-11. Les Formats à fenêtres et à échéance (EMOM, Tabata, AMRAP) enchaînent de nombreux bips sur le tempo.
+
+### 8.1 Essai : musique modulée dans les silences (accord de Hermann du 10/11/2026, « ok »)
+
+Constat : iOS n'atténue ou ne rend le volume des autres applications qu'en désactivant puis réactivant la session audio de KODJO. Avec la musique modulée, cela a produit :
+
+- des bips décalés et deux bips manquants (journal du 10/11/2026, observé) ;
+- probablement des sons coupés net, non démontré.
+
+D'où la décision 1.A : musique atténuée toute la séance.
+
+Essai à mener dans le spike de la bibliothèque dédiée :
+
+- les sons étant programmés à l'avance, ne reconfigurer la session que dans une fenêtre sans son prévu, par exemple au début d'une récupération ;
+- objectif : musique atténuée pendant l'effort et rendue pendant les récupérations, sans click ni décalage.
+
+Si l'essai réussit, le choix sera soumis de nouveau à Hermann. Sinon, 1.A reste en vigueur.
