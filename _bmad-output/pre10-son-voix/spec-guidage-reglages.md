@@ -138,3 +138,32 @@ Pour chaque étape : tests Jest du domaine et des services, recette iPhone via l
 4. Arrière-plan désactivé : « Continue sans son (Recommandé) ». Le temps continue sans son ni annonce, et le guidage reprend au retour.
 
 Les quatre points À CLARIFIER du §6 sont résolus.
+
+## 8. Ajout du 10/11/2026 : bibliothèque dédiée aux sons courts
+
+Décision de Hermann, recopiée :
+
+- « la gestion des sons est importante pour Kodjo, le respect du tempo aussi, sasn décalage. que coute vraiment de créer une bibliothèque dédiée aux sons courts ? faut-il revoir tous les sons déjà choisis ? »
+- « ok, faisons comme cela » : elle est ajoutée à ce lot, avant PRE-11.
+
+Contexte :
+
+- \`expo-audio\` lit les sons avec un lecteur prévu pour la musique et la vidéo.
+- Après une annonce vocale, rejouer un même lecteur claque. C'est démontré le 10/11/2026 sur l'écran de diagnostic des sons. Le correctif actuel crée un lecteur neuf par son.
+- Chaque son part 25 à 40 ms après sa demande, avec une petite variation.
+
+Périmètre :
+
+1. Spike sur l'écran de diagnostic, dans la nouvelle version native déjà requise par le guidage en arrière-plan. Une bibliothèque de sons courts compatible avec Expo SDK 57 est à choisir ; la compatibilité est à vérifier, rien n'est supposé. Critères :
+   - aucun click, y compris après une annonce ;
+   - sons programmés à l'avance sur l'horloge audio : bips de fin et cadence à l'instant exact ;
+   - mode silencieux ;
+   - cohabitation avec \`expo-speech\` et avec la musique atténuée toute la séance (décision 1.A) ;
+   - arrière-plan.
+2. Remplacement de l'implémentation de \`BeepPort\` (\`ExecutionSounds\`). Le moteur, la table de guidage, la voix et les vibrations ne changent pas.
+3. Les signaux de cadence et de fin d'étape sont programmés à l'avance, à partir du temps actif de l'étape, au lieu d'être joués à leur instant.
+4. Recette du guidage sonore sur iPhone.
+
+Sons : les fichiers et les choix du formulaire sont conservés tels quels ; rien n'est à revoir.
+
+Ordre conseillé : avant PRE-11. Les Formats à fenêtres et à échéance (EMOM, Tabata, AMRAP) enchaînent de nombreux bips sur le tempo.
