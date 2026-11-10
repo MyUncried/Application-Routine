@@ -682,7 +682,7 @@ Composition → menu Créer → Utiliser un format d’entraînement → fenêtr
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; il n'y a pas de propagation de copies entre ces objets locaux. La diffusion entre utilisateurs suit au contraire la mise à jour manuelle BIB-12. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
@@ -699,3 +699,14 @@ Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. To
 
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
 
+## Parcours post-MVP — Bibliothèques personnelles, reçues et mises à jour
+
+1. L'utilisateur crée un Mouvement et une Bibliothèque personnelle, utilisables immédiatement en local.
+2. Il y référence librement des Mouvements propres ou provenant de Bibliothèques reçues, sans copie et sans déplacement des sources.
+3. Lors d'un partage, KODJO exclut les Mouvements qui ne peuvent pas être redistribués ; leurs métadonnées ne sont pas exposées au destinataire.
+4. Les révisions à diffuser sont contrôlées centralement avant publication : contrôle automatique pour un partage privé sans anomalie, revue humaine initiale pour public/payant ou anomalie.
+5. Le destinataire reçoit une Bibliothèque à composition verrouillée ; il peut en réutiliser les Mouvements dans ses propres Bibliothèques.
+6. Une nouvelle révision approuvée produit une pastille d'alerte ; le destinataire ouvre sa Bibliothèque et choisit « Mettre à jour ». L'absence d'action conserve sa révision courante.
+7. Une suspension de modération est distincte de ce parcours et peut rendre un média ou un Mouvement inaccessible au prochain contrôle réseau.
+
+Les règles de révision de **composition** d'une Bibliothèque et de droits payants expirés sont encore à arbitrer. [Conception détaillée](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
