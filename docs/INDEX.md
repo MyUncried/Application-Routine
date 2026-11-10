@@ -2,6 +2,8 @@
 
 ## Bibliothèques et partage de Mouvements — conception du 10 novembre 2026
 
+**KIN-01 — séparation métier validée :** coach = partage de Bibliothèque ; kinésithérapeute = transmission de Mouvements au patient via l'Espace professionnel en étoile, consignes d'exécution orales dans la première tranche. [Parcours PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) ; [dossier de revue Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
+
 - [Parcours utilisateurs cibles PU-01 à PU-16 — F4-A à F4-F](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) : comportements métier consolidés, détails UX ouverts.
 - [Conception fonctionnelle, technique et données — revue Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md) : architecture proposée, schéma de données, API, sécurité, mise à jour, modération et points à clarifier.
 
