@@ -2746,16 +2746,15 @@ La règle « présent dans les deux natures » et la grille des volumes (S1…Sn
 
 ## Règles transverses — Bibliothèques et partage de Mouvements (post-MVP)
 
-1. **Référencement :** une Bibliothèque référence des fiches ; ajouter un Mouvement ne le copie ni ne le retire d'une autre Bibliothèque. La composition d'une Bibliothèque reçue n'est pas modifiable localement.
-2. **Droits :** Modifier et Redistribuer sont deux permissions distinctes ; quatre modes Protégé, Libre localement, Partageable à l'identique et Libre. La copie personnelle est toujours possible, sans extension des permissions ni perte de provenance.
-3. **Diffusion sélective :** une Bibliothèque partagée n'expose à ses destinataires que les fiches réellement redistribuables ; les fiches interdites sont absentes, sans placeholder ni divulgation de leurs métadonnées.
-4. **Publication :** une révision nouvelle doit être contrôlée centralement avant diffusion ; partage privé sans anomalie autorisable automatiquement ; première publication publique/payante et anomalie soumises à revue humaine.
-5. **Révision éditoriale :** alerte par pastille, visite de la Bibliothèque et action « Mettre à jour » ; en l'absence d'action, aucun changement. Ne jamais écraser silencieusement une variante personnelle.
-6. **Modération prioritaire :** KODJO peut suspendre un média ou une fiche diffusés sans accord du destinataire ; références et historiques conservés autant que possible, application lors de la prochaine synchronisation possible et non garantie immédiate sur iPhone fermé/hors ligne.
-7. **Périmètre :** aucune dépendance réseau nouvelle pour l'Exécution et le Catalogue du MVP.
+1. **Référencement sans copie :** les Bibliothèques personnelles référencent des Mouvements de toute provenance ; leur affectation, ordre et retrait d'association n'écrivent pas la fiche source. Les Bibliothèques reçues ne sont pas modifiables dans leur composition.
+2. **Identité :** deux fiches de sources distinctes peuvent porter le même nom affiché. La fiche source conserve un identifiant stable indépendant du nom et du propriétaire administratif.
+3. **Permissions :** Modifier/Redistribuer indépendants (quatre modes destinataires). Le propriétaire habilité peut **publier une première fois** sa fiche Protégée ; un destinataire ne peut pas la redistribuer. La copie personnelle conserve les droits. Les paramètres d'Exercice restent indépendants.
+4. **Distribution :** le partage de Bibliothèque comprend les fiches propres publiables et les fiches tierces redistribuables, après autorisation centrale. Aucun élément interdit n'est exposé.
+5. **Version active unique (F4-G) :** une seule version de chaque fiche source sur l'appareil. « Mettre à jour » depuis une Bibliothèque actualise cette fiche **dans toutes ses Bibliothèques référentes**, après information préalable ; les compositions des autres ne changent pas.
+6. **Composition reçue (F4-A à F4-D) :** mise à jour globale volontaire, comprenant composition et révisions ; Mouvements retirés et adaptations personnelles conservés, aucun écrasement silencieux. L'intégrité du lot doit être assurée et vérifiée.
+7. **Archivage et arrêt (F4-E/F4-F) :** archive locale sans effet pour les destinataires ; arrêt de partage sans nouvelles livraisons ni mises à jour, installations existantes conservées.
+8. **Espace en étoile :** relation individuelle générique et transmission d'un ou plusieurs Mouvements ; aucune prescription numérique dans ce premier lot, ni rôle professionnel dans le modèle.
+9. **Modération :** blocage prioritaire d'un média ou d'une fiche, indépendant de l'action « Mettre à jour » ; iOS hors ligne ne garantit pas le retrait immédiat.
+10. **Périmètre :** aucun changement imposé au moteur local MVP ; paiements et commerce restent séparés.
 
-**À CLARIFIER :** archivage et suspension d'une Bibliothèque, retrait d'un Mouvement de la composition source, paiement expiré, droits déjà distribués. [Règles complètes](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
-
-### KIN-01 — Partage dans un Espace kinésithérapeute
-
-La règle F4-C d'accès hérité d'une Bibliothèque vaut pour les **Bibliothèques partagées**, notamment par un coach. Un kinésithérapeute transmet à un patient, depuis son **Espace professionnel en étoile**, un ou plusieurs **Mouvements** sans Bibliothèque prescrite ; les consignes d'exécution sont **orales**. Aucun Exercice ni Séance ne sont prescrits sous forme numérique dans cette première tranche. La transmission reste soumise aux permissions du Mouvement et à la validation centrale. Le contrat d'accès par relation kiné-patient reste **À CLARIFIER**. [PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+**Restent À CLARIFIER :** conflits de données modifiées localement, restriction de droits ultérieure, expiration commerciale, groupes, gestion détaillée de l'Espace, migration de l'index global des noms et intégrité multi-bases. [Conception fonctionnelle](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
