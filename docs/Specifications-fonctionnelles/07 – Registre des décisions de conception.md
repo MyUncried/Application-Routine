@@ -2530,6 +2530,10 @@ Constat de Hermann, recopié textuellement :
 - **Correction.** `dragElevated` à 3 ; le cadre d'enveloppe d'un Circuit (niveau Séance, dans un Cycle, ancien modèle) porte le premier plan de l'élément saisi qu'il contient ; la liste des cartes d'un Circuit passe au-dessus de son en-tête quand l'une de ses cartes est saisie. Au repos, aucun changement (en-têtes collés au-dessus du contenu). Tests `recette2composition` « premier plan de la carte saisie au-dessus des en-têtes » (échouent sans, passent avec) ; 4 attentes de `CompositionScreen.test` portées de 1 à 3 (annotées).
 - À vérifier sur iPhone : sortir un mouvement d'un Circuit (au niveau Séance et dans un Cycle) et d'un Cycle : il passe au-dessus des lignes d'en-tête.
 
+## Fiche Mouvement — raccordement du chantier de développement (11/11/2026)
+
+[Consolidation documentaire et mandat pour Claude](../KODJO-Fiche-Mouvement-Contrat-consolide-et-handoff-2026-11-11.md) : séparation Mouvement d'usage / fiche éditoriale ; modèle complet CA-1 et CA-3 ; lacunes de projection des médias, homonymes et désaccord auteur unique / `authors[]`. Cette matrice classe les écarts et ne les arbitre pas silencieusement. **Aucun nouvel arbitrage de produit, aucun code modifié** : les règles BIB-19–23 et le plan en six étapes restent applicables.
+
 ## Réconciliation du plan Catalogue autonome / Bibliothèques — 11 novembre 2026
 
 **Plan de réalisation de référence confirmé par Hermann.** Ce plan **en six étapes** prévaut sur le découpage L1–L6 antérieur propre au partage, ainsi que sur le raccourci L1/L2 « Bibliothèques génériques », lorsqu'ils sont interprétés comme une séquence de développement complète. BIB-19 à BIB-23 limitent l'usage des Bibliothèques au premier périmètre générique KODJO, **sans réduire le socle éditorial**.
