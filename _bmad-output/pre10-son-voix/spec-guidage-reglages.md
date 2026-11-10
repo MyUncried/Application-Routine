@@ -240,3 +240,14 @@ Réalisé :
 - Interrupteur Voix : coupe tout ; il démarre actif si au moins une catégorie est active.
 - Le Point d'arrêt et la fin de séance n'ont pas d'annonce vocale aujourd'hui ; leurs bascules ne coupent rien de plus pour l'instant.
 - Documents : ch08, ch09, ch13 (CE-UI-07).
+
+Recette « Annonces par catégorie » (10/11/2026) : a2, a3, a4 et p3 OK.
+
+a1 KO, recopié : « Annoncer le début de séance (préparez vous) est toujours actif malgré l’interrupteur inactif (on n’annonce la fin de séance actuellement, il faut ajouter une annonce après le son « Bravo, séance terminée ») ».
+
+- Analyse :
+  - dans le journal, une séance a démarré avec `session:true` et a annoncé « Préparez-vous » ; la suivante, avec `session:false`, n'a rien annoncé ;
+  - cause probable : les catégories n'étaient lues qu'à l'ouverture de l'écran d'Exécution, donc une modification du Profil faite pendant que l'écran restait ouvert n'était pas prise en compte. Non démontré.
+- Correctifs :
+  - les catégories sont relues au retour sur l'écran d'Exécution ;
+  - « Bravo, séance terminée » est annoncé 0,8 s après la fanfare d'achèvement (catégorie début et fin de séance ; classe B, ch08 annoté).

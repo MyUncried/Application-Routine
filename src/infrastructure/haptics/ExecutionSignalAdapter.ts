@@ -18,7 +18,8 @@ import { deviceVibration, type VibrationPort } from "./ExecutionVibration";
  * - Bilatéral : « premier côté » au départ, « Changez de côté » au changement de côté.
  * - Zéro d'une étape chronométrée : double bip, sauf si l'étape suivante a son propre son (un seul signal par
  *   instant, T07 ; recette h2). Arrivée sur une Pause ou une récupération : double bip (recette k3).
- * - Pause demandée par l'utilisateur : double bip (constat a). Achèvement de la Séance : fanfare courte.
+ * - Pause demandée par l'utilisateur : double bip (constat a). Achèvement de la Séance : fanfare courte, puis
+ *   « Bravo, séance terminée » (recette a1, catégorie début et fin de séance).
  * - Aucun bip de cadence juste après un autre son (recette h2 : sifflet et clic ensemble).
  * - Une étape sans son défini et dont l'annonce est coupée reçoit un bip grave (S5).
  * Premier plan seulement (arrière-plan : tranche suivante). Un échec natif n'interrompt jamais l'Exécution.
@@ -47,6 +48,9 @@ export const GUIDANCE = {
 
 /** Délai entre le son et l'annonce, pour ne pas les superposer. */
 export const ANNOUNCEMENT_AFTER_SOUND_MS = 500;
+
+/** Délai entre la fanfare de fin (0,64 s) et « Bravo, séance terminée ». */
+export const ANNOUNCEMENT_AFTER_FINISH_MS = 800;
 
 /** Pas de bip de cadence moins de ce délai après un autre son (sifflet, bips de fin, double bip). */
 export const CADENCE_QUIET_AFTER_SOUND_MS = 700;
@@ -140,7 +144,8 @@ export class ExecutionSignalAdapter {
     if (played) this.beeps.play(sounding.sound!, sounding.volume);
     if (played && signal.kind !== "CADENCE") this.lastSoundAtMs = signal.atMs;
     if (spoken !== null && __DEV__) console.log(`[guidage] annonce « ${spoken} »`);
-    if (spoken !== null) this.defer(() => this.voice.say(spoken), played ? ANNOUNCEMENT_AFTER_SOUND_MS : 0);
+    const after = signal.kind === "FINISH" ? ANNOUNCEMENT_AFTER_FINISH_MS : ANNOUNCEMENT_AFTER_SOUND_MS;
+    if (spoken !== null) this.defer(() => this.voice.say(spoken), played ? after : 0);
   }
 
   /** Son, vibration et annonce d'un signal ; tient compte du « À suivre » déjà annoncé et de l'étape précédente. */
@@ -148,7 +153,8 @@ export class ExecutionSignalAdapter {
     if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null };
     if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null };
     if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null };
-    if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: null };
+    // Recette du 10/11/2026 (a1) : « Bravo, séance terminée » après la fanfare, catégorie début et fin de séance.
+    if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: this.announce.session ? "Bravo, séance terminée" : null };
     if (signal.kind === "PAUSE") return { cue: GUIDANCE.userPause, announcement: null };
     if (signal.phase === "INITIAL_COUNTDOWN") {
       // Nouvelle Exécution : rien n'est hérité de la précédente (recette du 10/11/2026, constat f).

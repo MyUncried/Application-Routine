@@ -80,7 +80,7 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     play({ phase: "STOP_POINT", exerciseName: null, timed: false });
     play({ kind: "FINISH", phase: null, exerciseName: null });
     expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["DING", 0.15], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
-    expect(said).toEqual([]);
+    expect(said).toEqual(["Bravo, séance terminée"]);
     expect(vibrate.mock.calls.map(([style]) => style)).toEqual([
       "MEDIUM",
       "LIGHT",
@@ -189,6 +189,17 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(said).toEqual(["À suivre : Fente", "8 répétitions"]);
     // Changement de côté sans annonce : son propre son (sifflet court), pas de bip de repli.
     expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["BIP_DOUBLE", 1], ["SIFFLET_COURT", 0.55]]);
+  });
+
+  it("fin de séance : fanfare, puis « Bravo, séance terminée » ; rien si le début et la fin de séance sont coupés (a1)", () => {
+    const { adapter, play, said, delays } = setup();
+    play({ kind: "FINISH", phase: null, exerciseName: null });
+    expect(said).toEqual(["Bravo, séance terminée"]);
+    expect(delays).toEqual([800]);
+    adapter.setAnnouncements({ ...ALL_ANNOUNCEMENTS, session: false });
+    play({ kind: "FINISH", phase: null, exerciseName: null });
+    play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, timed: true, next: null });
+    expect(said).toEqual(["Bravo, séance terminée"]);
   });
 
   it("objectif annoncé : répétitions, durée en minutes, À l'échec ; rien sans cible", () => {

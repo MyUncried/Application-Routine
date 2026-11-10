@@ -23,7 +23,9 @@ import type {
   ExecutionProjection,
   NextView,
 } from "@/domain/execution/projection";
+import type { Profile } from "@/domain/preferences/Profile";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
+import type { Announcements } from "@/infrastructure/haptics/ExecutionSignalAdapter";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 import { ExecutionDialog } from "./ExecutionDialog";
@@ -97,13 +99,7 @@ export function ExecutionScreen({
         signals.setVibrationEnabled(profile.vibrationEnabled);
         // Catégories d'annonces séparées (décision de Hermann du 10/11/2026) ; l'interrupteur Voix de la séance,
         // qui coupe toutes les annonces, démarre actif si au moins une catégorie est annoncée.
-        const announcements = {
-          names: profile.voiceAnnouncementsEnabled,
-          objective: profile.announceObjectiveEnabled,
-          pauses: profile.announcePausesEnabled,
-          session: profile.announceSessionEnabled,
-          sides: profile.announceSidesEnabled,
-        };
+        const announcements = announcementsOf(profile);
         const anyVoice = Object.values(announcements).some(Boolean);
         signals.setAnnouncements(announcements);
         signals.setAudible(profile.soundsEnabled, anyVoice);
@@ -116,15 +112,17 @@ export function ExecutionScreen({
     };
   }, [profileService, signals]);
 
-  // Recette du 10/11/2026 (h1) : une modification de Vibrations dans le Profil pendant une séance s'applique au
-  // retour sur l'écran d'Exécution.
+  // Recette du 10/11/2026 (h1, a1) : une modification de Vibrations ou des catégories d'annonces dans le Profil
+  // pendant une séance s'applique au retour sur l'écran d'Exécution (l'interrupteur Voix de la séance est conservé).
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
       profileService
         .getProfile()
         .then((profile) => {
-          if (!cancelled) signals.setVibrationEnabled(profile.vibrationEnabled);
+          if (cancelled) return;
+          signals.setVibrationEnabled(profile.vibrationEnabled);
+          signals.setAnnouncements(announcementsOf(profile));
         })
         .catch(() => undefined);
       return () => {
@@ -909,3 +907,14 @@ const styles = StyleSheet.create({
   endRowName: { ...type.label, color: colors.textPrimary },
   endRowStatus: { ...type.supporting, color: colors.textSecondary },
 });
+
+/** Catégories d'annonces du Profil (groupe Guidage ; décision de Hermann du 10/11/2026). */
+function announcementsOf(profile: Profile): Announcements {
+  return {
+    names: profile.voiceAnnouncementsEnabled,
+    objective: profile.announceObjectiveEnabled,
+    pauses: profile.announcePausesEnabled,
+    session: profile.announceSessionEnabled,
+    sides: profile.announceSidesEnabled,
+  };
+}
