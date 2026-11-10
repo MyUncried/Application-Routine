@@ -263,3 +263,24 @@ Traitement (classe B, ch08 annoté) :
   - Cela remplace le choix A du 10/11/2026.
 - k5 : le lecteur revient au début dès la fin du son, donc le son suivant part sans repositionnement.
 - h1, m1 : la préférence Vibrations est relue au retour sur l'écran d'Exécution.
+
+
+## Diagnostic du « click » du 10/11/2026 (conversation)
+
+Messages de Hermann, recopiés :
+
+- « j'arrête de suite les tests, j'ai toujours le bip et le click en même temps, ce n'est pas le même son que le click doux de la cadence » ;
+- « dans réglages, j'ai mis Vibration à "Ne jamais vibrer", sur le même écran Vibrations du système est toujours activé. Même résultat (à noter que le click apparaît parfois seulement à partir du deuxième bip) » ;
+- « j'ai désactivé les vibration du système aussi, pas de changement » ;
+- « que le bip grave ».
+
+Conclusion :
+
+- La vibration n'est pas en cause (hypothèse retirée).
+- Le click n'accompagne que le bip grave, joué à 100 %. C'est un son grave, avec un niveau élevé et une montée de 5 ms : cause probable, le haut-parleur de l'iPhone qui claque. Non démontré.
+- Correctif (classe D, son choisi inchangé) : recette du bip grave adoucie dans le formulaire et dans l'application :
+  - niveau 0,55 au lieu de 0,8 ;
+  - montée de 15 ms ;
+  - fin de 50 ms.
+- `assets/sounds/bip-grave.wav` régénéré depuis le formulaire.
+- Le formulaire ne produit plus de son sur l'iPhone de Hermann (signalé le 10/11/2026) : cause non recherchée.
