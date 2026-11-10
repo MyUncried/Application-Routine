@@ -25,7 +25,7 @@ const TONES: readonly { readonly tone: BeepTone; readonly label: string; readonl
   { tone: "BIP_GRAVE", label: "Bip grave", volume: 1 },
 ];
 
-type Method = "VOLUME_ONCE" | "VOLUME_EACH" | "FRESH" | "FRESH_NO_VOLUME" | "WITH_VIBRATION" | "AFTER_VOICE" | "ALL_PLAYERS" | "VOICE_FRESH" | "VOICE_OWN_SESSION";
+type Method = "VOLUME_ONCE" | "VOLUME_EACH" | "FRESH" | "FRESH_NO_VOLUME" | "WITH_VIBRATION" | "AFTER_VOICE" | "ALL_PLAYERS" | "VOICE_FRESH" | "VOICE_OWN_SESSION" | "VOICE_REPLACE";
 
 // A reproduit la première livraison du 09/11/2026 (b362aa34, sans click) ; B la méthode actuelle, où le volume
 // est réglé avant chaque son depuis 9b9339ef (premier click signalé à la recette suivante).
@@ -42,6 +42,8 @@ const METHODS: readonly { readonly method: Method; readonly label: string }[] = 
   // F a montré le click après une annonce, à partir du deuxième son : deux corrections possibles.
   { method: "VOICE_FRESH", label: "H — Après une annonce, lecteur neuf à chaque son" },
   { method: "VOICE_OWN_SESSION", label: "I — Comme F, annonce dans sa propre session audio" },
+  // Alternative au lecteur neuf (correctif retenu, H) : un seul lecteur, fichier rechargé après chaque son.
+  { method: "VOICE_REPLACE", label: "J — Après une annonce, même lecteur, son rechargé après chaque lecture" },
 ];
 
 const REPEAT = 3;
@@ -94,7 +96,7 @@ export function SoundDiagnosticScreen() {
       note(`session : ${SESSION_MODES.find((m) => m.mode === sessionMode)!.label}`);
       await wait(500);
       const { tone, volume } = selected;
-      if (method === "AFTER_VOICE" || method === "VOICE_FRESH" || method === "VOICE_OWN_SESSION") {
+      if (method === "AFTER_VOICE" || method === "VOICE_FRESH" || method === "VOICE_OWN_SESSION" || method === "VOICE_REPLACE") {
         // Même réglage que les annonces de la séance (ExecutionVoice).
         const Speech = await import("expo-speech");
         const voice = bestFrenchVoice(await Speech.getAvailableVoicesAsync());
@@ -108,7 +110,19 @@ export function SoundDiagnosticScreen() {
         for (const other of Object.keys(SOURCES) as BeepTone[]) if (other !== tone) await create(other);
         note("9 sons chargés");
       }
-      if (method === "VOLUME_ONCE" || method === "VOLUME_EACH" || method === "WITH_VIBRATION" || method === "AFTER_VOICE" || method === "ALL_PLAYERS" || method === "VOICE_OWN_SESSION") {
+      if (method === "VOICE_REPLACE") {
+        const player = await create(tone);
+        await wait(500);
+        for (let i = 1; i <= REPEAT; i += 1) {
+          player.volume = volume;
+          player.play();
+          note(`son ${i}`);
+          await wait(INTERVAL_MS / 2);
+          // Rechargé une demi-seconde avant le son suivant, comme le ferait la séance.
+          player.replace(SOURCES[tone]);
+          await wait(INTERVAL_MS / 2);
+        }
+      } else if (method === "VOLUME_ONCE" || method === "VOLUME_EACH" || method === "WITH_VIBRATION" || method === "AFTER_VOICE" || method === "ALL_PLAYERS" || method === "VOICE_OWN_SESSION") {
         const player = await create(tone);
         if (method === "VOLUME_ONCE") player.volume = volume;
         else {
