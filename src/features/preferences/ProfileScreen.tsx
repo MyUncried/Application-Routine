@@ -262,6 +262,13 @@ export function ProfileScreen() {
               }),
             )}
           </View>
+          {__DEV__ ? (
+            // Recette PRE-10 du 10/11/2026 : accès technique au diagnostic des sons, en développement seulement
+            // (le lien routine://diagnostic-sons ouvre une autre application installée).
+            <Pressable onPress={() => router.push("/diagnostic-sons")} accessibilityRole="button" style={styles.identityEditAction} testID="profile-dev-sound-diagnostic">
+              <Text style={styles.identityEditLabel}>Diagnostic des sons (développement)</Text>
+            </Pressable>
+          ) : null}
         </ScrollView>
       ) : null}
     </ScreenShell>
