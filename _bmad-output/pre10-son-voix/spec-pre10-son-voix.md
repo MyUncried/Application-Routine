@@ -385,3 +385,25 @@ Correctif retenu (classe D) : un lecteur par son, dont le fichier est rechargé 
   - moyenne = trois tapotements rapprochés (90 ms) ;
   - légère = un tapotement.
 - Traitement (classe B, ch08 annoté) : `ExecutionVibration` (`VibrationPort`), branché dans `ExecutionSignalAdapter`.
+
+
+## Essai : liste des exercices pendant l'Exécution (10/11/2026)
+
+Messages de Hermann, recopiés :
+
+- « il y a besoin que tu n'as pas intégré : la liste des activités de la séance qui défile sur l'écran au fur et à mesure de l'exécution de la séance, à moins que ce soit prévu pour après » ;
+- « Oui » puis « Maintenant ».
+
+Le besoin d'origine est noté plus haut, au 10/11/2026, comme « À suivre » : un essai avant le Figma cible.
+
+Réalisé (classe C, essai non normatif ; aucune règle ni aucun contrat d'écran modifiés) :
+
+- `projection.outline` : une ligne par occurrence d'Exercice, dans l'ordre du plan, avec le tour du Circuit.
+  - « en cours » pendant l'Exercice et ses pauses ;
+  - « passé » pendant la récupération ou le Point d'arrêt qui suit, puis retiré au départ de l'Exercice suivant.
+- `ExecutionScreen` affiche une liste « Séance » sous « À suivre » : en cours en gras, passé en gris (`colors.disabled`).
+- Limites :
+  - Formats (SCOPE) non couverts, PRE-11 ;
+  - liste complète, défilante avec l'écran.
+
+À CLARIFIER après la recette l1 à l5 : rendu cible (Figma) et règle fonctionnelle, avant toute écriture dans ch08 ou ch13.

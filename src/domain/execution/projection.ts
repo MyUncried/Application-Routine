@@ -31,6 +31,19 @@ export type NextView = {
   readonly series: { readonly current: number; readonly total: number } | null;
 };
 
+/**
+ * Liste des exercices de la Séance pendant l'Exécution — essai demandé par Hermann le 10/11/2026 (« besoin à
+ * suivre » : exercice en cours en gras, exercice passé en gris puis effacé), avant le Figma cible. Une ligne
+ * par occurrence d'Exercice, dans l'ordre du plan ; les occurrences antérieures à la dernière commencée sont
+ * retirées ; celle-ci est « passée » pendant la récupération ou le Point d'arrêt qui la suit.
+ */
+export type OutlineItem = {
+  readonly key: string;
+  readonly name: string;
+  readonly tour: { readonly current: number; readonly total: number } | null;
+  readonly status: "past" | "current" | "upcoming";
+};
+
 export type EstimatedDuration = { readonly kind: "exact" | "estimated" | "lowerBound"; readonly ms: Ms };
 
 export type ExecutionProjection = {
@@ -53,6 +66,7 @@ export type ExecutionProjection = {
   /** Phase guidée courante (motif de phases, D-446) ; `null` sans motif. */
   readonly guidance: { readonly label: string; readonly remainingMs: Ms } | null;
   readonly next: NextView | null;
+  readonly outline: readonly OutlineItem[];
   readonly sessionElapsedMs: Ms;
   readonly estimated: EstimatedDuration;
   /** 0..1 (RM-077). */
@@ -181,6 +195,39 @@ function nextOf(plan: ExecutablePlan, state: EngineState): NextView | null {
   };
 }
 
+/** Phases qui appartiennent à l'occurrence en cours (l'exercice reste « en cours » pendant ses pauses). */
+const IN_OCCURRENCE: ReadonlySet<LeafSpec["kind"]> = new Set(["ACTIVITY", "SERIES_PAUSE", "SIDE_RECOVERY"]);
+
+function outlineOf(plan: ExecutablePlan, state: EngineState): readonly OutlineItem[] {
+  if (state.status === "FINISHED") return [];
+  const occurrences: (Omit<OutlineItem, "status"> & { readonly firstIndex: number })[] = [];
+  plan.items.forEach((item, index) => {
+    if (item.type !== "LEAF") return;
+    const spec = item.leaf;
+    if (spec.kind !== "ACTIVITY" || spec.occurrenceKey === undefined || spec.exerciseId === undefined) return;
+    if (occurrences.some((occurrence) => occurrence.key === spec.occurrenceKey)) return;
+    const circuit = spec.context?.circuit ?? null;
+    occurrences.push({
+      key: spec.occurrenceKey,
+      name: plan.exercises[spec.exerciseId]?.name ?? "",
+      tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
+      firstIndex: index,
+    });
+  });
+  const at = state.status === "READY" ? -1 : rootIndex(state);
+  const spec = state.leaf?.spec ?? null;
+  const currentKey = spec !== null && IN_OCCURRENCE.has(spec.kind) ? spec.occurrenceKey : undefined;
+  let last = -1;
+  occurrences.forEach((occurrence, index) => {
+    if (occurrence.firstIndex <= at) last = index;
+  });
+  return occurrences.flatMap(({ firstIndex: _firstIndex, ...occurrence }, index): OutlineItem[] => {
+    if (index < last) return [];
+    if (index === last) return [{ ...occurrence, status: occurrence.key === currentKey ? "current" : "past" }];
+    return [{ ...occurrence, status: "upcoming" }];
+  });
+}
+
 function timerOf(state: EngineState, atMs: Ms): TimerView {
   const leaf = state.leaf;
   if (leaf === null || leaf.spec.end === "WAIT" || leaf.spec.end === "INTERACTION") return { kind: "NONE" };
@@ -226,6 +273,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     timer: timerOf(state, atMs),
     guidance: guidanceOf(plan, state, atMs),
     next: nextOf(plan, state),
+    outline: outlineOf(plan, state),
     sessionElapsedMs: stopwatch === null ? 0 : runningMs(stopwatch, atMs),
     estimated: estimatedDuration(plan),
     progress: progressOf(plan, state, atMs),

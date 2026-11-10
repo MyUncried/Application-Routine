@@ -536,6 +536,22 @@ export function ExecutionScreen({
             </Text>
           </View>
         ) : null}
+        {projection.outline.length > 0 ? (
+          // Essai du 10/11/2026 (besoin de Hermann) : liste des exercices, en cours en gras, passé en gris puis effacé.
+          <View style={styles.outline} testID="execution-outline">
+            <Text style={styles.nextLabel}>{t.outline}</Text>
+            {projection.outline.map((item) => (
+              <Text
+                key={item.key}
+                style={[styles.outlineItem, item.status === "current" && styles.outlineCurrent, item.status === "past" && styles.outlinePast]}
+                numberOfLines={1}
+                testID={`execution-outline-${item.status}`}
+              >
+                {item.tour === null ? item.name : `${item.name} · ${t.outlineTour(item.tour.current, item.tour.total)}`}
+              </Text>
+            ))}
+          </View>
+        ) : null}
         {active.saveError ? (
           <Pressable
             onPress={() => void service.retry()}
@@ -828,6 +844,16 @@ const styles = StyleSheet.create({
     gap: spacing[4],
   },
   nextLabel: { ...type.supporting, color: colors.textSecondary },
+  outline: {
+    alignSelf: "stretch",
+    paddingVertical: spacing[12],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.divider,
+    gap: spacing[4],
+  },
+  outlineItem: { ...type.body, color: colors.textPrimary },
+  outlineCurrent: { fontWeight: "700" },
+  outlinePast: { color: colors.disabled },
   nextValue: { ...type.label, color: colors.textPrimary },
   saveError: {
     padding: spacing[12],
