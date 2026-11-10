@@ -1,5 +1,12 @@
 # Documentation de KODJO
 
+## Bibliothèques et partage de Mouvements — conception du 10 novembre 2026
+
+- [Conception des Bibliothèques, permissions, mises à jour et modération](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md) — décisions BIB-01 à BIB-18 validées, cible post-MVP ; points non tranchés classés « À CLARIFIER ».
+- [Registre des décisions — BIB-01 à BIB-18](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) ; [modèle de données](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md), [API](Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md), [architecture](Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md).
+- **Figma** : des actions « Partager » sont visibles dans le Prototype MVP, mais aucun écran complet de Bibliothèques et de modération n'est considéré validé par ce contrôle documentaire.
+
+
 ## Formats — base de reprise actualisée le 5 novembre 2026
 
 **D-499 — précision validée par Hermann le 06/11/2026 :** « Valider les paramètres » apparaît uniquement lorsqu’une seconde étape est nécessaire et ouvre le récapitulatif sans enregistrer dans la séance. Dans ce cas, la coche du questionnaire reste grise et inactive. Sans seconde étape, la coche enregistre dans la séance lorsque les données sont complètes et cohérentes. Dans le récapitulatif, elle devient bleue et active lorsque les données sont complètes et cohérentes, puis enregistre dans la séance. Death by à un mouvement : questionnaire → coche → Composition, sans récapitulatif ; à deux mouvements : questionnaire → « Valider les paramètres » → récapitulatif → coche → Composition. L’enregistrement reste un ajout au brouillon de Composition, sans sauvegarde définitive de la Séance. Cette précision supersède la suppression générale du bouton dans les questionnaires ; les autres validations par coche restent applicables.
@@ -97,7 +104,7 @@ Huit points clos : C01–C07 et C09. C08 seul reste différé sur le périmètre
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; aucune propagation entre copies d'objets locaux n’est nécessaire. La diffusion entre utilisateurs suit BIB-12 et n'actualise une révision ordinaire qu'après l'action « Mettre à jour ». Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
