@@ -616,3 +616,20 @@ Le parcours de création conserve le point de départ et un brouillon local jusq
 **Superset — cible du 5 novembre.** Exactement deux mouvements à la création, trois tours alternés par défaut, Circuit standard ; chaque membre porte N séries, séquence A1/B1 puis A2/B2, sans rejouer N séries à chaque tour. Réouverture avec les membres actuels, y compris un troisième ; au moins deux, Ajouter désactivé, validation soumise à complétude/cohérence. [08/11/2026 (demande de Hermann, Superset limité, registre ch07) : un troisième Exercice ne peut plus être ajouté depuis la Composition ; la réouverture avec trois membres ne concerne qu'un Superset antérieur à cette règle (À CLARIFIER).] [08/11/2026, réponse de Hermann (« Superset : dans la composition on limite à deux exercices aussi. », registre ch07) : exactement deux Exercices dans la Composition aussi — aucun membre ne sort ni ne se supprime d'un Superset à deux ; un Superset antérieur à trois membres reste tel quel et se réduit jusqu'à deux (tranché).] Tableau Unité | Tour 1…n ; Récupération après le tour lit/écrit le dernier Exercice actuel, sans transfert depuis l’ancien dernier et sans effacer les récupérations intermédiaires ; valeur absente à renseigner, zéro explicite conservé.
 
 **Death by — cible du 5 novembre.** Répétitions ou Durée, Objectif de départ et Incrément ≥ +1 dans l’unité. Seul un premier rang dont le travail connu atteint ou dépasse l’intervalle déclenche un avertissement non bloquant ; sauvegarde autorisée si les autres champs sont valides. À l’exécution, ne pas lancer un rang dont ce travail atteint ou dépasse la fenêtre : arrêt après le précédent, résultat « limite de l’intervalle atteinte », aucun échec ni tentative fictifs. En Durée : deux côtés et pause applicable, somme des membres en fenêtre commune ou intervalle du membre en alternance. Rangs acquis et rang courant distincts ; durée partielle renseignée seulement pour une fenêtre réellement tentée et non tenue. Les autres règles de fin et d’achèvement Death by restent applicables ; aucune fenêtre prolongée. Exemple 10 s puis +10 s / 60 s : cinq rangs réussis, arrêt avant le rang 6. La progression future compatible au départ ne déclenche pas d’avertissement.
+
+## Contrats fonctionnels futurs — Diffusion et modération des Mouvements
+
+Les opérations ci-dessous sont des **capacités cibles post-MVP**, non des endpoints développés ; les noms techniques restent à définir.
+
+| Opération | Contrôle / résultat observable |
+|---|---|
+| Composer Bibliothèque personnelle | Ajouter, retirer, ordonner des références ; aucun déplacement ni copie des fiches sources. |
+| Préparer distribution | Calculer la projection distribuable ; supprimer de la réponse destinataire toutes les fiches sans droit Redistribuer. |
+| Soumettre révision | Conserver fiche et médias dans un espace privé ; identifier révision/empreinte ; déclencher contrôles. |
+| Décider publication | Valider automatiquement un privé sans anomalie ou acheminer à l'examen humain selon le risque ; persister la décision. |
+| Consulter / installer Bibliothèque reçue | Vérifier droit d'accès, fournir une composition en lecture seule, préserver provenances et permissions. |
+| Lister révisions disponibles | Renvoyer les mises à jour approuvées sans les appliquer ; alimenter la pastille d'alerte. |
+| Mettre à jour | N'appliquer la révision éditoriale qu'après action explicite « Mettre à jour » ; protéger variantes locales. |
+| Signaler, suspendre ou retirer | Tracer le motif et neutraliser la distribution centrale ; transmettre la décision aux installations à leur prochain contact. |
+
+Règles exactes des droits payants, du retrait d'une fiche de la version publiée d'une Bibliothèque et des conflits locaux : **À CLARIFIER**. [Contrat fonctionnel de référence](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
