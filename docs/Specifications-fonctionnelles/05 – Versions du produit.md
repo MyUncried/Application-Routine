@@ -205,6 +205,8 @@ Faire évoluer l’application personnelle vers un service synchronisé permetta
 - transmettre un retour simple sur la douleur, la difficulté ou la fatigue ;
 - conserver l’historique des versions prescrites.
 
+**Précision KIN-01 (10/11/2026) :** la première tranche de transmission kiné-patient porte sur **un ou plusieurs Mouvements via l'Espace professionnel en étoile**, avec modalités d'exécution **données oralement**. Les fonctions de prescription numérique de Séances/routines, suivi ou remontée de résultats déjà envisagées ci-dessus restent des évolutions ultérieures, **hors de ce premier lot**. [Parcours PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+
 Les modalités précises d’accès aux données, de consentement et de confidentialité devront être définies avant le développement de cette version.
 
 ---
