@@ -1,7 +1,10 @@
 # KODJO — Conception des Bibliothèques et du partage des Mouvements
 
 **Date :** 10 novembre 2026.  
-**Statut :** conception fonctionnelle cible arbitrée avec le propriétaire du produit ; réalisation post-MVP, sauf composants déjà présents explicitement identifiés ailleurs.  
+**Statut :** conception fonctionnelle cible arbitrée avec le propriétaire du produit ; réalisation post-MVP, sauf composants déjà présents explicitement identifiés ailleurs.
+
+> **Complément validé F4-A à F4-F — 10/11/2026 :** les questions de mise à jour de composition, de conservation locale, d'accès par Bibliothèque, d'archivage et d'arrêt du partage ont été arbitrées après la présente version. Consulter les [parcours consolidés](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) et le [dossier d'architecture soumis à Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md). Les anciennes interrogations du §7 sur ces points sont supersédées ; les points commerciaux et de conflit de versions restent ouverts.
+  
 **Autorité :** décisions BIB-01 à BIB-18 ci-dessous ; registre au chapitre 07.  
 **Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
 
@@ -103,8 +106,8 @@ Les champs et opérations réels doivent être reconciliés avec la provenance p
 
 ## 7. Points restant À CLARIFIER
 
-1. **Cycle de vie et archivage des Bibliothèques :** conditions exactes de mise à l'écart, restauration, maintien ou suspension d'une diffusion existante. Les états « Brouillon / Active / Inactive » ne sont pas retenus comme cycle de vie validé.
-2. **Composition des Bibliothèques déjà reçues :** effet de l'acceptation d'une révision de composition lorsque le propriétaire a retiré un Mouvement. La réutilisation dans une Bibliothèque personnelle ne le retire jamais de sa Bibliothèque source ; la politique après retrait à la source n'est pas arbitrée.
+1. **F4-E/F4-F VALIDÉS :** l'archivage masque localement sans affecter les destinataires, tandis que l'arrêt du partage interdit les nouvelles distributions et mises à jour sans révoquer les installations existantes. Les états « Brouillon / Active / Inactive » ne sont pas retenus. Détails et exceptions : parcours consolidés.
+2. **F4-A à F4-D VALIDÉS :** pastille puis mise à jour manuelle globale (composition + révisions). Un Mouvement précédemment installé et retiré de la Bibliothèque source reste dans le Catalogue local, les Bibliothèques personnelles et Séances. Accès accordé au niveau Bibliothèque ; le cas des révisions divergentes d'une même fiche dans plusieurs Bibliothèques reste À CLARIFIER.
 3. **Accès payant :** achat définitif contre abonnement, suspension d'utilisation lorsque le droit commercial expire, droits sur les données déjà téléchargées, et statut « actif » d'un Mouvement dans une Bibliothèque.
 4. **Valeur initiale des permissions** lors d'une première création ou d'un premier partage : quatre modes validés, mais défaut non explicitement arbitré.
 5. **Gestion de conflits** lors d'une mise à jour manuelle d'une fiche dont une variante locale a été personnalisée ; pas d'écrasement implicite, modalités de rapprochement encore à définir.
