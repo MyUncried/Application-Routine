@@ -12,13 +12,13 @@
 
 ## 0. Résumé architectural et périmètre
 
-KODJO doit permettre à un utilisateur de créer/organiser localement des Bibliothèques de Mouvements, puis à terme de partager ses Bibliothèques, en recevoir, acheter éventuellement des accès et recevoir des mises à jour **sur demande**. Les Bibliothèques possèdent leur composition, les Mouvements possèdent leurs fiches et permissions. Dans le parcours **Bibliothèque** (notamment coach), le droit d'**accéder** aux Mouvements est transmis **par la Bibliothèque** ; le kinésithérapeute transmet au patient des Mouvements dans son Espace professionnel en étoile, sans Bibliothèque prescrite ; les permissions **Modifier/Redistribuer** restent attachées **à chaque fiche**.
+KODJO doit permettre à un utilisateur de créer/organiser localement des Bibliothèques de Mouvements, puis à terme de partager ses Bibliothèques, en recevoir, acheter éventuellement des accès et recevoir des mises à jour **sur demande**. Les Bibliothèques possèdent leur composition, les Mouvements possèdent leurs fiches et permissions. Dans le parcours **Bibliothèque**, l'accès aux Mouvements est transmis **par la Bibliothèque** ; dans l'**Espace en étoile** générique, un utilisateur transmet directement des Mouvements à un autre utilisateur, sans Bibliothèque fictive ni rôle professionnel dans le modèle ; les permissions **Modifier/Redistribuer** restent attachées **à chaque fiche**.
 
 La cible vise une **séparation logique** simple, pas un ensemble de microservices dès le départ :
 
 1. **Domaine Mouvements** : identité éditoriale, provenance, révisions, droits de modification/redistribution, médias.
 2. **Domaine Bibliothèques** : composition par référence, version de composition, visibilité, archivage, partage et arrêt de diffusion.
-3. **Domaine Accès** : autorisation d'utiliser les Mouvements reçus via une Bibliothèque (individu/groupe) ou transmis dans une relation kiné-patient au sein de l'Espace professionnel (règles exactes de cette relation à définir) ; preuve locale d'installation et conservation des droits après retrait d'un membre.
+3. **Domaine Accès** : autorisation d'utiliser les Mouvements reçus via une Bibliothèque (individu/groupe) ou transmis individuellement au sein de l'Espace en étoile (modalités relationnelles à préciser) ; preuve locale d'installation et conservation des droits après retrait d'un membre.
 4. **Domaine Distribution et modération** : demande de diffusion, contrôle d'une révision, publication, signalements et retraits prioritaires.
 5. **Domaine Commerce** : **hors périmètre de cette conception** ; il pourra fournir plus tard la validité d'un accès payant au domaine Accès sans modifier les fiches ni la composition.
 
@@ -45,7 +45,8 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 | F4-D | Un seul « Mettre à jour » installe la nouvelle **composition ET les nouvelles révisions de Mouvements**, sans supprimer les Mouvements retirés ni écraser les adaptations personnelles. |
 | F4-E | Archiver une Bibliothèque est personnel/local et n'a **aucun effet sur les destinataires** ni sur leurs mises à jour. |
 | F4-F | Arrêter le partage d'une Bibliothèque bloque les **nouvelles distributions** ; les destinataires existants conservent leurs installations, n'obtiennent **plus de nouvelles mises à jour** tant que le partage reste arrêté. |
-| KIN-01 | Le kiné transmet au patient **un ou plusieurs Mouvements** dans son **Espace professionnel en étoile** ; les consignes d'exécution sont **orales**. Aucun Exercice, Séance ou programme prescrit numériquement dans ce premier lot. |
+| **F4-G — validé** | Une seule révision active par fiche source et par appareil : une mise à jour volontaire depuis une Bibliothèque actualise la même fiche partout où elle est référencée ; aucune autre composition n'est modifiée, l'utilisateur est averti de l'impact transversal. |
+| KIN-01 | L'Espace en étoile est une **relation individuelle générique** ; transmission de Mouvements sans rôle professionnel ou prescription numérique. Dans l'usage kiné-patient, les consignes d'exécution sont orales. Invitation acceptée et possibilité de refuser ou bloquer le partageur. |
 
 **Arbitrages explicitement non faits :** détails des offres et paiements, expiration d'accès, retransmission d'une installation sur un nouvel appareil après arrêt du partage, modification postérieure de permissions, règles de groupe, gestion des conflits complexes et emplacement UX des commandes.
 
@@ -75,19 +76,19 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 | PU-16 | Utilisateur | Utilisation locale hors ligne, reprise après interruption d'installation. |
 | PU-17 | Kiné / patient | Transmission individuelle de Mouvements par Espace professionnel en étoile ; consignes d'exécution orales, sans prescription numérique d'Exercice ou de Séance. |
 
-### Distinction professionnelle : Bibliothèque du coach et Espace du kiné
+### Deux modes de partage sans rôles professionnels
 
-**Coach :** partage une Bibliothèque de Mouvements. Les droits d'accès sont attribués au niveau Bibliothèque et les fiches membres conservent leurs permissions Modifier/Redistribuer.
+**Bibliothèque :** un utilisateur, par exemple un coach, diffuse une Bibliothèque dont les Mouvements conservent leurs permissions. L'accès est attribué au niveau Bibliothèque.
 
-**Kinésithérapeute (KIN-01) :** transmet un ou plusieurs Mouvements à un patient dans son **Espace professionnel organisé en étoile** autour du professionnel, avec une relation individuelle par patient. Les instructions d'exécution (quantité, durée, fréquence, consignes) sont **données oralement**. À ce stade, KODJO ne crée aucune prescription numérique d'Exercice, de Séance, de routine ou de suivi clinique. Les fiches restent soumises aux permissions et à la validation centrale avant diffusion.
+**Espace en étoile :** relation individuelle orientée d'un utilisateur vers un autre, invitation acceptée, possibilité de refus et de blocage. Exemple d'usage : un kinésithérapeute transmet un Mouvement au patient et explique oralement l'exécution. Aucun rôle métier « kiné » ou « coach », ni prescription numérique d'Exercice/Séance dans le modèle.
 
-**Conséquence technique :** la distribution d'une **fiche Mouvement** doit être mutualisable entre parcours, sans faire passer artificiellement une prescription de kinésithérapie par un `library_access_grant`. Le modèle relationnel propre à l'Espace, ses autorisations, consentements et notifications restent **À CLARIFIER** ; ne pas inventer de tables cliniques ni de modèle de Séance prescrite pour ce lot.
+**Mutualisation :** contrôles de fiches, médias, révisions, modération et installation identiques, sans Bibliothèque fictive. Les modalités restantes de la relation sont à détailler.
 
 ## 3. Architecture fonctionnelle — invariants
 
 ### 3.1 Trois notions de droits à ne pas mélanger
 
-- **Permission éditoriale de la fiche** : booléens \`canEdit\` et \`canRedistribute\`. Quatre modes affichables. Les copies personnelles ne les amplifient pas.
+- **Permission éditoriale de la fiche** : Modifier et Redistribuer, quatre modes. Une création locale originale est modifiable et non redistribuable **par un tiers** par défaut ; lors de sa première diffusion, le propriétaire habilité choisit les droits des destinataires. **Publier son contenu initialement ≠ redistribuer le contenu d'autrui**. Les copies ne peuvent amplifier les droits.
 - **Droit d'accès à la Bibliothèque** : accord du propriétaire à un individu/groupe ; ouvre l'usage de ses membres reçus. La transmission kiné-patient dans l'Espace relève d'une autorisation relationnelle **distincte**, dont le contrat détaillé reste à concevoir. Une preuve de cet accès accompagne l'installation. Retirer un membre de la source ne supprime pas la preuve d'installation antérieure.
 - **État de modération** : peut bloquer temporairement ou définitivement une fiche/média même si accès et permissions seraient par ailleurs suffisants.
 
@@ -99,8 +100,9 @@ Le créateur de la fiche originale devient auteur unique et propriétaire admini
 
 ### 3.3 Règles de version
 
-- **Révision de Mouvement** : version éditoriale du texte, médias, description, taxonomie et provenance contrôlée ; identité immuable + empreinte de contenu.
+- **Révision de Mouvement** : état versionné du texte, des médias, de la classification, des permissions destinataires et de la provenance ; identité source immuable indépendante du nom, empreinte de contenu.
 - **Révision de Bibliothèque** : version de la **composition ordonnée** (et de ses attributs éditoriaux distribués), indépendante des révisions des fiches.
+- Une seule **révision active par identité de fiche source** existe sur l'appareil. Plusieurs Bibliothèques peuvent la référencer. Une mise à jour volontaire depuis l'une d'elles actualise la fiche partout où elle apparaît, **sans modifier les compositions** des autres Bibliothèques. L'aperçu préalable signale les Bibliothèques également concernées.
 - Une proposition de mise à jour peut contenir des différences de composition, de fiches ou les deux.
 - L'action unique « Mettre à jour » doit conduire à un état cohérent correspondant à la version choisie et aux révisions approuvées ; l'absence d'action conserve l'état installé.
 - Des fiches exclues par droits de redistribution ne doivent pas fuiter dans la projection distribuée.
@@ -143,6 +145,22 @@ KODJO iPhone (Expo / RN)
 \`\`\`
 
 **Proposition de simplicité :** un backend modulaire unique avec base relationnelle, plutôt que cinq microservices. Les traitements vidéo/IA pouvant être asynchrones, une file de travaux ne devient nécessaire que si la charge ou la fiabilité le justifie.
+
+### Axes de simplification à vérifier avec Claude
+
+| Axe | Orientation | Limite / contrôle |
+|---|---|---|
+| **S-01 — Révisions locales** | **Validé :** un Mouvement par identité de source, une version active, plusieurs Bibliothèques référentes. Écarter le cache des versions actives par Bibliothèque. | Aperçu préalable de l'impact transverse ; conserver les historiques d'exécution. |
+| **S-02 — Identité** | Identifiant source stable indépendant du nom ; des fiches distinctes peuvent s'appeler « Squat ». | Migration de l'unicité globale `normalized_name` ; décision technique sur l'index, sans modifier `Movement.id`. |
+| **S-03 — Bibliothèques locales** | Une table Bibliothèque et une table d'associations vers les Mouvements existants. | Contrôles de lecture seule sur les Bibliothèques reçues. |
+| **S-04 — Registre** | Réemployer `installed_sheets` du pilote pour provenance/révision/droits, sans second registre parallèle. | Respect de la base SQLite provisoire distincte. |
+| **S-05 — Mises à jour** | Réutiliser les opérations du pilote par fiche ; un mécanisme de cohérence globale seulement si nécessaire. | Une reprise par fiche ne prouve pas l'atomicité observable du lot. Tester les coupures entre fiches. |
+| **S-06 — Diffusion** | Pipeline commun fiche/révision/média pour Bibliothèques et Espace individuel. | Publication du propriétaire ≠ redistribution du destinataire. |
+| **S-07 — Accès** | Droit au niveau Bibliothèque ; transfert individuel via relation générique ; commerce séparé. | Conserver la preuve des droits acquis après retrait du membre. |
+| **S-08 — Modération** | Un contrôle central partagé, état de blocage local consultable. | Peut bloquer le média, la fiche ou son affichage ; aucune révocation instantanée garantie hors ligne. |
+| **S-09 — Groupes** | Réception nominative envisageable en premier ; groupe reportable. | Phasage non validé ; ne pas supprimer la fonctionnalité cible. |
+
+Les orientations S-02 à S-09 sont des **candidats techniques**, à confronter au code. Les fusions de tables proposées par Claude (C-07/C-17) ne sont pas imposées : deux faits métier distincts ne doivent pas être fusionnés sans justification.
 
 **Choix non décidés :** Supabase/PostgreSQL, service de stockage objet, fournisseur d'authentification, API de modération (texte/image/vidéo), dispositif de notifications et hébergement. Les citer dans ce dossier ne les rend pas obligatoires.
 
