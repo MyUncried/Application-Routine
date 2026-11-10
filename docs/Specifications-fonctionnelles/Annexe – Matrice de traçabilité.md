@@ -912,7 +912,7 @@ CE-CREATION-01 : modale commune et destinations Catalogue/Composition ; CE-CIR-0
 | BIB-01 à 05 | PU-01, PU-02, PU-08/09 | Bibliothèque / Mouvement / provenance | Création, composition, réception | L1, L4 |
 | BIB-06 à 08 | PU-03/04/05/06 | Révision / permissions / copie | Publication initiale, édition, redistribution | L2, L3 |
 | BIB-09 à 11 | PU-05/08 | Composition / filtrage | Bibliothèque reçue en lecture seule | L4 |
-| BIB-12/13, F4-A/D/G | PU-10/11 | Révision active unique / release de composition | Pastille, aperçu des Bibliothèques impactées, « Mettre à jour » | L5 |
+| BIB-12/13, F4-A, F4-D, **F4-G** | PU-10/11 | Révision active unique / release de composition | Pastille, aperçu des Bibliothèques impactées, « Mettre à jour » | L5 |
 | F4-B/C | PU-08/12 | Accès Bibliothèque / preuve de réception | Conservation après retrait, droits d'accès | L4/L5 |
 | F4-E/F | PU-13/14 | Archive / distribution | Archivage sans effet, arrêt du partage | L1/L4 |
 | BIB-14 à 17 | PU-07/15 | Validation / média / modération | Contrôle et suspension prioritaires | L3 |
