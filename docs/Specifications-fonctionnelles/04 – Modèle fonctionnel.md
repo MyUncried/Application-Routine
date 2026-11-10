@@ -1,5 +1,9 @@
 # Modèle fonctionnel
 
+## Arbitrages confirmés — Mouvement, auteur et médias (11/11/2026)
+
+**MOUV-D1 à MOUV-D4 — règle applicable.** Auteur unique `author: ActorRef | null` (pas de `authors[]`) ; métadonnées médias conservées, référence distante, chargement à la demande/cache local, téléchargement hors ligne explicite reporté, aucune diffusion sans droits confirmés ; **fiche importée non modifiable et non duplicable**, redistribution seulement si autorisée dans un futur lot ; paramètres des Exercices restent personnalisables. Les adaptations historiques des 60 fiches sont préservées pour la reprise CA-3. Les modes anciens BIB-06/BIB-07/BIB-08 permettant une modification ou copie des **fiches importées** sont supersédés sur cette portée. [Contrat de l'étape 2](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
 ## Modèle — socle éditorial du catalogue autonome (six étapes)
 
 Le **Mouvement utilisable** par les Exercices/Séances conserve son identifiant local et ses propriétés d'usage. La **fiche éditoriale** conserve séparément ses métadonnées, références/médias, identité source stable, provenance, révision et droits de source ; ce sont des exigences du chantier CA-1/CA-2/CA-3, **non reportées** avec le partage. La **Bibliothèque KODJO** est une collection identifiée de références vers des fiches, indépendante des catégories Fitness/Hyrox/Pilates existantes ; l'installation/mise à jour ne modifie pas directement les fiches publiées. Les copies ou adaptations de l'utilisateur ne doivent pas muter la source ; détails des conflits restent À CLARIFIER. Services d'import/export et administration Web concourent au même contrat de fiche. Les Bibliothèques de coachs, personnelles et les droits d'accès des destinataires sont hors premier lot.
