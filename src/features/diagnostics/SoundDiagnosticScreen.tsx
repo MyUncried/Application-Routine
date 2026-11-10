@@ -23,11 +23,13 @@ const TONES: readonly { readonly tone: BeepTone; readonly label: string; readonl
   { tone: "BIP_GRAVE", label: "Bip grave", volume: 1 },
 ];
 
-type Method = "REWIND_BEFORE" | "REWIND_AFTER" | "FRESH" | "FRESH_NO_VOLUME";
+type Method = "VOLUME_ONCE" | "VOLUME_EACH" | "FRESH" | "FRESH_NO_VOLUME";
 
+// A reproduit la première livraison du 09/11/2026 (b362aa34, sans click) ; B la méthode actuelle, où le volume
+// est réglé avant chaque son depuis 9b9339ef (premier click signalé à la recette suivante).
 const METHODS: readonly { readonly method: Method; readonly label: string }[] = [
-  { method: "REWIND_BEFORE", label: "A — Même lecteur, rembobiné juste avant" },
-  { method: "REWIND_AFTER", label: "B — Même lecteur, rembobiné à la fin (méthode actuelle)" },
+  { method: "VOLUME_ONCE", label: "A — Comme la première version : volume réglé une seule fois" },
+  { method: "VOLUME_EACH", label: "B — Comme aujourd'hui : volume réglé avant chaque son" },
   { method: "FRESH", label: "C — Lecteur neuf à chaque son" },
   { method: "FRESH_NO_VOLUME", label: "D — Lecteur neuf, volume non modifié" },
 ];
@@ -66,17 +68,18 @@ export function SoundDiagnosticScreen() {
     try {
       await startExecutionAudio();
       const { tone, volume } = selected;
-      if (method === "REWIND_BEFORE" || method === "REWIND_AFTER") {
+      if (method === "VOLUME_ONCE" || method === "VOLUME_EACH") {
         const player = await create(tone);
-        if (method === "REWIND_AFTER") {
+        if (method === "VOLUME_ONCE") player.volume = volume;
+        else {
           player.addListener("playbackStatusUpdate", (status) => {
             if (status.didJustFinish) void player.seekTo(0).catch(() => undefined);
           });
         }
         await wait(500);
         for (let i = 1; i <= REPEAT; i += 1) {
-          player.volume = volume;
-          if (method === "REWIND_BEFORE" || player.currentTime > 0.01) await player.seekTo(0);
+          if (method === "VOLUME_EACH") player.volume = volume;
+          if (method === "VOLUME_ONCE" || player.playing || player.currentTime > 0.01) await player.seekTo(0);
           player.play();
           note(`son ${i}`);
           await wait(INTERVAL_MS);
