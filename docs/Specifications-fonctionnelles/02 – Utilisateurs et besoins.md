@@ -262,3 +262,9 @@ Contenu identique à la section [« Conception de planification »](03%20%E2%80%
 ## Besoins couverts par les formats
 
 Composer un protocole sans ressaisir ses constantes ; choisir l’organisation lorsqu’elle est autorisée ; connaître la durée calculable avant départ ; conserver un résultat fidèle aux conditions réellement exécutées. Une séance libre reste libre, y compris après préremplissage. Le Death by restitue tours acquis et répétitions partielles ; aucune comparaison entre individus ni aucun classement n’est ajouté.
+
+## Besoins post-MVP — Bibliothèques et partage de Mouvements
+
+Le particulier, le coach et le kinésithérapeute peuvent créer leurs Mouvements et Bibliothèques personnelles, y mélanger des fiches provenant de Bibliothèques tierces, puis en partager les seuls Mouvements autorisés à la redistribution. La Bibliothèque téléchargée reste non modifiable dans sa composition ; les Mouvements reçus peuvent être utilisés par référence dans une Bibliothèque personnelle. L'utilisateur voit une pastille lorsqu'une révision est disponible et décide lui-même de « Mettre à jour » ; sans action, rien ne change. Tout contenu destiné à la diffusion doit être préalablement autorisé par KODJO selon les contrôles adaptés, et reste signalable après publication.
+
+Ces besoins ne sont pas ajoutés au MVP local sans comptes ni partage. Les modalités de paiement, d'archivage et des droits après expiration restent **À CLARIFIER**. [Conception BIB-01 à BIB-18](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
