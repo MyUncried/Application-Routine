@@ -1,4 +1,9 @@
 # KODJO — Dossier de conception pour revue indépendante Claude
+
+## Mise à jour du cadrage après seconde revue — 10/11/2026
+
+**Supersession de périmètre par BIB-19 à BIB-23 :** la conception de distribution et de partage détaillée dans ce dossier n'est **pas** le périmètre de L1/L2. L1 couvre Bibliothèques génériques KODJO, découverte/sélection/installation depuis le Profil ; L2 leur mise à jour volontaire et la reprise. Les créations personnelles, Bibliothèques de coachs, permissions destinataires, diffusion, modération et commerce sont reportées. Le Catalogue conserve ses contenus personnalisables ; la composition et les fiches publiées par KODJO ne sont pas directement modifiables. La distinction Bibliothèque / Catégorie est impérative. Aucune migration « 024 » réservée : numéro défini lors de l'intégration dans la branche cible, après les autres migrations. Les sections de lots et d'architecture ci-dessous constituent une **conception historique de la cible étendue**, non une instruction de développement du premier lot ; le phasage antérieur L1–L5 est supersédé sur ce point. L'état Figma n'est pas validé.
+
 ## Bibliothèques de Mouvements, droits, distribution, mises à jour et modération
 
 **Date :** 10 novembre 2026  
