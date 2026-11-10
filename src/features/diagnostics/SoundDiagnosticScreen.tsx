@@ -42,10 +42,19 @@ const INTERVAL_MS = 1000;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Mode de la session audio (recette du 10/11/2026 : premier essai sans click en « mélange », clicks depuis
+// le passage en « atténuation » de toute la séance).
+type SessionMode = "mixWithOthers" | "duckOthers";
+const SESSION_MODES: readonly { readonly mode: SessionMode; readonly label: string }[] = [
+  { mode: "mixWithOthers", label: "Mélange (musique non baissée)" },
+  { mode: "duckOthers", label: "Atténuation (musique baissée)" },
+];
+
 export function SoundDiagnosticScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [toneIndex, setToneIndex] = useState(0);
+  const [sessionMode, setSessionMode] = useState<SessionMode>("mixWithOthers");
   const [running, setRunning] = useState(false);
   const [journal, setJournal] = useState<readonly string[]>([]);
   const toDispose = useRef<AudioPlayer[]>([]);
@@ -70,6 +79,13 @@ export function SoundDiagnosticScreen() {
     note(`${METHODS.find((m) => m.method === method)!.label} · ${selected.label}`);
     try {
       await startExecutionAudio();
+      // Session réglée dans le mode choisi avant l'essai, puis laissée stable pendant les trois sons.
+      const audio = await import("expo-audio");
+      await audio.setIsAudioActiveAsync(false).catch(() => undefined);
+      await audio.setAudioModeAsync({ playsInSilentMode: true, interruptionMode: sessionMode, shouldPlayInBackground: false });
+      await audio.setIsAudioActiveAsync(true);
+      note(`session : ${SESSION_MODES.find((m) => m.mode === sessionMode)!.label}`);
+      await wait(500);
       const { tone, volume } = selected;
       if (method === "VOLUME_ONCE" || method === "VOLUME_EACH" || method === "WITH_VIBRATION") {
         const player = await create(tone);
@@ -133,6 +149,14 @@ export function SoundDiagnosticScreen() {
           {TONES.map((entry, index) => (
             <Pressable key={entry.tone} onPress={() => setToneIndex(index)} accessibilityRole="button" accessibilityState={{ selected: index === toneIndex }} style={[styles.chip, index === toneIndex && styles.chipSelected]}>
               <Text style={[styles.chipText, index === toneIndex && styles.chipTextSelected]}>{entry.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.section}>Session audio</Text>
+        <View style={styles.row}>
+          {SESSION_MODES.map((entry) => (
+            <Pressable key={entry.mode} onPress={() => setSessionMode(entry.mode)} accessibilityRole="button" accessibilityState={{ selected: entry.mode === sessionMode }} style={[styles.chip, entry.mode === sessionMode && styles.chipSelected]}>
+              <Text style={[styles.chipText, entry.mode === sessionMode && styles.chipTextSelected]}>{entry.label}</Text>
             </Pressable>
           ))}
         </View>
