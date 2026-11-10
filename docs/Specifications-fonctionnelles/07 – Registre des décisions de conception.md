@@ -2561,3 +2561,10 @@ Constat de Hermann, recopié textuellement :
 | F4-F | Arrêter le partage empêche les nouveaux téléchargements et les nouvelles mises à jour, tout en conservant les installations des destinataires existants. |
 
 Les autorisations d'accès par Bibliothèque sont distinctes des permissions de modification/redistribution propres à chaque fiche. Commerce/expiration : chantier séparé ; modération : priorité. [Parcours cibles](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md), [dossier pour Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
+
+### KIN-01 — Parcours kinésithérapeute en Espace professionnel (10/11/2026)
+
+**Décision fonctionnelle validée, cible post-MVP, non développée :** contrairement au **coach** qui peut diffuser une Bibliothèque, le **kinésithérapeute** transmet au patient **un ou plusieurs Mouvements** dans son **Espace professionnel organisé en étoile** (kiné au centre, relations individuelles par patient). À ce stade, les instructions d'exécution sont **données oralement**, sans création ni partage numérique d'Exercice, de Séance, de routine ou de programme prescrits. Les autres patients ne deviennent pas destinataires. Les permissions de fiche et la validation centrale restent applicables.
+
+**Précision F4-C :** le droit d'accès accordé au niveau de la Bibliothèque vise les Bibliothèques distribuées (notamment coach), non la transmission kiné-patient, dont le modèle d'autorisation est à concevoir. Les ambitions plus larges de prescription numérique déjà mentionnées en V3 restent hors du premier lot KIN-01. **À CLARIFIER :** organisation et cycle de vie de l'Espace, association patient, consentement, permissions relationnelles, UI et mise à jour des fiches transmises. [Parcours PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) ; [architecture pour Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
+
