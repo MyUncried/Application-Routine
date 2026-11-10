@@ -373,3 +373,15 @@ Suite du 10/11/2026 :
 - Essai J (même lecteur, fichier rechargé après chaque lecture) : « pas de click ».
 
 Correctif retenu (classe D) : un lecteur par son, dont le fichier est rechargé dès la fin de chaque lecture. Cette méthode est plus économe qu'un lecteur neuf par son. Un son redemandé avant le rechargement déclenche aussitôt ce rechargement.
+
+
+## Vibrations de séance (10/11/2026)
+
+- Résultat k4, recopié : « Il n'y a pas de vibration ».
+- Échanges, recopiés : « non, il y a erreur, les vibrations n'ont jamais marchées » ; « Oui, un petit tapotement ».
+- Constat : l'adaptateur appelait `Haptics.impactAsync`, qui produit un tapotement bref, et non une vibration.
+- Décision de Hermann (« Mélange ») :
+  - forte = vibration classique (`Vibration.vibrate()` de React Native, environ 0,4 s) ;
+  - moyenne = trois tapotements rapprochés (90 ms) ;
+  - légère = un tapotement.
+- Traitement (classe B, ch08 annoté) : `ExecutionVibration` (`VibrationPort`), branché dans `ExecutionSignalAdapter`.

@@ -799,6 +799,8 @@ Réglages généraux choisis : nom de l’exercice annoncé avant son départ, p
 
 [Remplacé le 10/11/2026 — décision de Hermann (« 1.A ») : la musique d’une autre application est atténuée pendant toute l’Exécution, et non plus seulement pendant certains sons ou annonces. Raison : iOS n’applique l’atténuation qu’en coupant puis rétablissant la sortie audio de l’application, ce qui produisait des clicks et des bips décalés ou manquants, même sans musique. Les sons choisis par Hermann dans le formulaire sont rétablis tels quels (« 2.A »).]
 
+[Complété le 10/11/2026 — décision de Hermann (« Mélange ») sur le rendu des vibrations de séance, qui n’étaient que de petits tapotements à peine perceptibles : vibration forte = vibration classique de l’iPhone (environ 0,4 s, ni force ni durée réglables sous iOS) ; vibration moyenne = trois tapotements rapprochés ; vibration légère = un tapotement. La répartition forte, moyenne, légère par moment reste celle de la table ci-dessus.]
+
 Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
 Répétitions sans bip/À l’échec sans bip : aucun signal de fin de compte à rebours, bip minute. À l’échec avec bip : périodique sans bip minute superposé. Répétitions cadencées : signal périodique maintenu après nominal sans signal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.

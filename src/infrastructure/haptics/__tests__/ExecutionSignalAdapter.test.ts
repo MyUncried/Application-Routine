@@ -1,10 +1,10 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import * as Haptics from "expo-haptics";
 
 import type { ExecutionSignal, SignalObjective } from "@/features/execution/ExecutionService";
 import type { BeepTone } from "@/infrastructure/audio/ExecutionSounds";
 import { bestFrenchVoice } from "@/infrastructure/speech/ExecutionVoice";
 
+import type { VibrationLevel } from "../ExecutionVibration";
 import { announcementOf, ExecutionSignalAdapter, objectiveText } from "../ExecutionSignalAdapter";
 
 /**
@@ -16,9 +16,9 @@ function setup() {
   const beeps: [BeepTone, number][] = [];
   const said: string[] = [];
   const delays: number[] = [];
-  const impactAsync = jest.fn(async (_style?: Haptics.ImpactFeedbackStyle) => undefined);
+  const vibrate = jest.fn((_level: VibrationLevel) => undefined);
   const adapter = new ExecutionSignalAdapter(
-    { impactAsync },
+    { vibrate },
     { play: (tone, volume = 1) => beeps.push([tone, volume]) },
     { say: (text) => said.push(text) },
     (run, delayMs = 0) => {
@@ -28,7 +28,7 @@ function setup() {
   );
   let clock = 0;
   const play = (overrides: Partial<ExecutionSignal>) => adapter.play(signal({ atMs: (clock += 1000), ...overrides }));
-  return { adapter, play, beeps, said, delays, impactAsync };
+  return { adapter, play, beeps, said, delays, vibrate };
 }
 
 const reps = (value: number) => ({ mode: "REPETITIONS" as const, target: { kind: "NUMBER" as const, value } });
@@ -37,12 +37,12 @@ const nextExercise = (exerciseName: string, objective: SignalObjective = reps(12
 
 describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
   it("Compte à rebours : « Préparez-vous. À suivre : … » ; au départ, sifflet roulé à 55 %, puis l'objectif", () => {
-    const { play, beeps, said, impactAsync } = setup();
+    const { play, beeps, said, vibrate } = setup();
     play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, timed: true, next: nextExercise("Gainage", { mode: "DURATION", target: { kind: "NUMBER", value: 45 } }) });
     play({ objective: { mode: "DURATION", target: { kind: "NUMBER", value: 45 } } });
     expect(said).toEqual(["Préparez-vous. À suivre : Gainage", "45 secondes"]);
     expect(beeps).toEqual([["SIFFLET_ROULE", 0.55]]);
-    expect(impactAsync).toHaveBeenNthCalledWith(1, Haptics.ImpactFeedbackStyle.Heavy);
+    expect(vibrate).toHaveBeenNthCalledWith(1, "HEAVY");
   });
 
   it("récupération après une étape chronométrée : double bip au zéro puis annonce ; départ en chronomètre : sifflet pur à 55 %", () => {
@@ -73,7 +73,7 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
   });
 
   it("dernières secondes : bip grave ; cadence : clic doux à 35 % ; minute : ding à 15 % ; Point d'arrêt et Pause : double bip ; achèvement : fanfare courte à 60 %", () => {
-    const { play, beeps, said, impactAsync } = setup();
+    const { play, beeps, said, vibrate } = setup();
     play({ kind: "COUNTDOWN" });
     play({ kind: "CADENCE" });
     play({ kind: "MINUTE" });
@@ -81,12 +81,12 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     play({ kind: "FINISH", phase: null, exerciseName: null });
     expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["DING", 0.15], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
     expect(said).toEqual([]);
-    expect(impactAsync.mock.calls.map(([style]) => style)).toEqual([
-      Haptics.ImpactFeedbackStyle.Medium,
-      Haptics.ImpactFeedbackStyle.Light,
-      Haptics.ImpactFeedbackStyle.Light,
-      Haptics.ImpactFeedbackStyle.Heavy,
-      Haptics.ImpactFeedbackStyle.Medium,
+    expect(vibrate.mock.calls.map(([style]) => style)).toEqual([
+      "MEDIUM",
+      "LIGHT",
+      "LIGHT",
+      "HEAVY",
+      "MEDIUM",
     ]);
   });
 
@@ -108,11 +108,11 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
   });
 
   it("Pause demandée par l'utilisateur : double bip et vibration forte, sans annonce", () => {
-    const { play, beeps, said, impactAsync } = setup();
+    const { play, beeps, said, vibrate } = setup();
     play({ kind: "PAUSE" });
     expect(beeps).toEqual([["BIP_DOUBLE", 1]]);
     expect(said).toEqual([]);
-    expect(impactAsync).toHaveBeenCalledWith(Haptics.ImpactFeedbackStyle.Heavy);
+    expect(vibrate).toHaveBeenCalledWith("HEAVY");
   });
 
   it("nouvelle Exécution : aucun bip au début du Compte à rebours, même après une étape chronométrée de la précédente", () => {
@@ -131,11 +131,11 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
   });
 
   it("un même signal reçu deux fois n'est restitué qu'une fois", () => {
-    const { adapter, beeps, impactAsync } = setup();
+    const { adapter, beeps, vibrate } = setup();
     adapter.play(signal({ kind: "COUNTDOWN", atMs: 5000 }));
     adapter.play(signal({ kind: "COUNTDOWN", atMs: 5000 }));
     expect(beeps).toEqual([["BIP_GRAVE", 1]]);
-    expect(impactAsync).toHaveBeenCalledTimes(1);
+    expect(vibrate).toHaveBeenCalledTimes(1);
   });
 
   it("voix coupée : une étape sans son défini reçoit un bip grave (S5) ; le nom n'est pas tenu pour annoncé", () => {
@@ -149,7 +149,7 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
   });
 
   it("sons coupés : annonce immédiate, aucun son ; vibration indépendante", () => {
-    const { adapter, play, beeps, said, delays, impactAsync } = setup();
+    const { adapter, play, beeps, said, delays, vibrate } = setup();
     adapter.setAudible(false, true);
     play({ kind: "COUNTDOWN" });
     play({});
@@ -158,7 +158,7 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(delays).toEqual([0]);
     adapter.setVibrationEnabled(false);
     play({});
-    expect(impactAsync).toHaveBeenCalledTimes(2);
+    expect(vibrate).toHaveBeenCalledTimes(2);
   });
 
   it("objectif annoncé : répétitions, durée en minutes, À l'échec ; rien sans cible", () => {

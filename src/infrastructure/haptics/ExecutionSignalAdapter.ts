@@ -1,8 +1,8 @@
-import * as Haptics from "expo-haptics";
-
 import type { ExecutionSignal, SignalObjective } from "@/features/execution/ExecutionService";
 import { ExecutionSounds, type BeepPort, type BeepTone } from "@/infrastructure/audio/ExecutionSounds";
 import { ExecutionVoice, type VoicePort } from "@/infrastructure/speech/ExecutionVoice";
+
+import { deviceVibration, type VibrationPort } from "./ExecutionVibration";
 
 /**
  * PRE-10.2 — signaux d'exécution (ch12 §12.11 ; conception §16.1). Le moteur demande un signal ; cet adaptateur
@@ -51,11 +51,6 @@ export const ANNOUNCEMENT_AFTER_SOUND_MS = 500;
 /** Pas de bip de cadence moins de ce délai après un autre son (sifflet, bips de fin, double bip). */
 export const CADENCE_QUIET_AFTER_SOUND_MS = 700;
 
-const IMPACT: Record<Exclude<Vibration, "NONE">, Haptics.ImpactFeedbackStyle> = {
-  LIGHT: Haptics.ImpactFeedbackStyle.Light,
-  MEDIUM: Haptics.ImpactFeedbackStyle.Medium,
-  HEAVY: Haptics.ImpactFeedbackStyle.Heavy,
-};
 
 type Defer = (run: () => void, delayMs?: number) => void;
 
@@ -80,7 +75,7 @@ export class ExecutionSignalAdapter {
   private lastSoundAtMs: number | null = null;
 
   constructor(
-    private readonly haptics: Pick<typeof Haptics, "impactAsync"> = Haptics,
+    private readonly vibrator: VibrationPort = deviceVibration(),
     private readonly beeps: BeepPort = new ExecutionSounds(),
     private readonly voice: VoicePort = new ExecutionVoice(),
     private readonly defer: Defer = later,
@@ -110,7 +105,7 @@ export class ExecutionSignalAdapter {
     if (signal.kind === "CADENCE" && this.lastSoundAtMs !== null && signal.atMs >= this.lastSoundAtMs && signal.atMs - this.lastSoundAtMs < CADENCE_QUIET_AFTER_SOUND_MS) return;
     if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"}`);
     const { cue, announcement } = this.guidance(signal);
-    if (this.vibrationEnabled && cue.vibration !== "NONE") this.haptics.impactAsync(IMPACT[cue.vibration]).catch(() => undefined);
+    if (this.vibrationEnabled && cue.vibration !== "NONE") this.vibrator.vibrate(cue.vibration);
     const spoken = this.voiceEnabled ? announcement : null;
     const fallback = signal.kind === "TRANSITION" && spoken === null ? GUIDANCE.other : null;
     const sounding = cue.sound !== null ? cue : fallback;
@@ -209,6 +204,6 @@ function durationWords(seconds: number): string {
 
 /** Texte annoncé au début d'une étape, sans contexte d'enchaînement (ch08 « Guidage sonore »). */
 export function announcementOf(signal: Pick<ExecutionSignal, "phase" | "exerciseName" | "sideRank">): string | null {
-  const silent = new ExecutionSignalAdapter({ impactAsync: async () => undefined }, { play: () => undefined }, { say: () => undefined });
+  const silent = new ExecutionSignalAdapter({ vibrate: () => undefined }, { play: () => undefined }, { say: () => undefined });
   return silent.guidance({ kind: "TRANSITION", atMs: 0, ...signal }).announcement;
 }
