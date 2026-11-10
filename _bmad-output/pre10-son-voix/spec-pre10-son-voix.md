@@ -181,3 +181,51 @@ Traitement (classe B, ch08 annoté) :
   - (b) le même son joué deux fois par deux instances.
 
   Correctif de sûreté contre (b) : un seul lecteur par son pour toute l'application, et un même signal n'est jamais restitué deux fois. Diagnostic demandé dans la recette h1 : rejouer avec Vibrations désactivé.
+
+
+## Recette iPhone du 10/11/2026 « Guidage sonore — 2 »
+
+Résultats et constats de Hermann, recopiés (cahier, collection `results`) :
+
+- h1 : KO, « le son "click" est toujours la pendant les 3 bips, pas pendant la cadence, ni pour le point final ou le sifflet. enlever la vibration ne change rien. »
+- h2 : KO, « J'entends le sifflet et le click de la cadence en même temps il faut retirer le click de la cadence quand 'il y a un sifflet / Au zéro, mettre le son de la "Pause" / du "Point d'arrêt" (double bip) ».
+- h3 : OK, « régler le sifflet pur à la même force que le sifflet roulé (55%) ».
+- h4 : OK, « Modifier : Découper le message des exercices en deux : le nom du mouvement tel qu'il est annoncé actuellement, le nombre de répétition ou la durée après le coup de sifflet. »
+- h5 et h7 : OK.
+- h6 : KO, « Je n'entends pas de signal à la minute, avec ou sans bip de cadence. »
+- G7 : « A corriger : mettre le bip à la minute d'un exercice en répétition avec cadence aussi ; mettre son à 30% ».
+- G8 et G10 : OK.
+- t1 : KO, « Après avoir appuyé sur pause, puis reprendre la séance, le bip est décalé par rapport au temps. »
+- Constats :
+  - a) « Quand on appuie sur pause, il faut le son "Pause" / "Point d'arrêt" » ;
+  - b) « Encore des problèmes de décalage entre les bips et le chrono, souvent après une pause et une reprise, dès fois deux clics très rapprochés notamment juste après une annonce. » ;
+  - c) « Découper le message des exercices en deux : le nom du mouvement tel qu'il est annoncé actuellement, le nombre de répétition ou la durée après le coup de sifflet. » ;
+  - d) « encore des problème d'annonce, mot qui premier saute ou avec première syllabe coupée » ;
+  - f) « retirer le bip du démarrage du compte à rebours ».
+
+Causes et traitement (classe B, ch08 annoté) :
+
+- h1, cause démontrée par le code :
+  - un exercice en Durée avec bip de cadence jouait ses clics jusqu'au zéro, en plus des trois bips graves ;
+  - « son pas pur » de G2 n'est donc pas la vibration (confirmé par Hermann).
+  - Correctif : plus de clic de cadence dans les trois dernières secondes d'une étape chronométrée (`signals.ts`).
+- h2 :
+  - pas de clic de cadence moins de 700 ms après un autre son (`ExecutionSignalAdapter`) ;
+  - zéro : double bip.
+- t1 et b :
+  - cause démontrée par le code : après une Pause, les clics étaient ancrés sur l'instant de la reprise (§13 « premier nouveau bip après un intervalle complet »), donc décalés du chronomètre, qui affiche le temps actif.
+  - Correctif : clics calés sur le temps actif. Le décompte des intervalles acquis (T04) n'est pas modifié.
+  - Deux clics rapprochés après une annonce : cause probable, un clic retardé pendant la reconfiguration de la session audio, suivi du clic suivant à l'heure. Correctif : un clic demandé pendant une reconfiguration est omis plutôt que joué en retard. Cause non démontrée.
+- a) : signal `PAUSE` émis par le service d'exécution pour une Pause de l'utilisateur. Il joue le double bip, avec une vibration forte.
+- c) et h4 :
+  - avant le départ : « À suivre : {exercice} » ;
+  - après le sifflet : l'objectif, précédé de « premier côté », ou du nom s'il n'a pas été annoncé avant.
+- d) : la parole attend 180 ms après la réactivation de la session audio (`VOICE_START_DELAY_MS`). Cause probable, non démontrée.
+- f) : l'état de l'adaptateur (étape précédente chronométrée) n'est plus hérité de l'Exécution précédente. Cause démontrée par le code.
+- G7 et h6 :
+  - signal minute pour toute Série en Répétitions ou À l'échec, cadence comprise, prioritaire sur le clic au même instant ;
+  - ding à 30 % ;
+  - le test unitaire confirme l'émission à 60 s et 120 s.
+  - Cause de l'absence sur iPhone non démontrée.
+  - Un journal `[guidage]` (mode développement) est ajouté dans la console Metro pour la diagnostiquer à la prochaine recette.
+- h3 : sifflet pur à 55 %.

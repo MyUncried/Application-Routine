@@ -59,8 +59,11 @@ export type Scheduler = {
 export type SignalObjective = { readonly mode: ExecutionMode | null; readonly target: SeriesTarget | null };
 
 export type ExecutionSignal = {
-  /** `FINISH` : achèvement normal de la Séance (fin de la Fin de séance), son d'arrivée (recette du 10/11/2026, G10). */
-  readonly kind: SignalKind | "FINISH";
+  /**
+   * `FINISH` : achèvement normal de la Séance (fin de la Fin de séance), son d'arrivée (recette du 10/11/2026, G10).
+   * `PAUSE` : Pause demandée par l'utilisateur (recette du 10/11/2026, constat a).
+   */
+  readonly kind: SignalKind | "FINISH" | "PAUSE";
   readonly atMs: number;
   readonly phase: LeafKind | null;
   readonly exerciseName: string | null;
@@ -364,12 +367,13 @@ export class ExecutionService {
     for (const signal of dedupe(transitions).slice(-1)) this.emitSignal(signal);
     for (const effect of result.effects) {
       if (effect.type === "FINISHED" && effect.reason === "COMPLETED" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "FINISH", atMs: effect.atMs });
+      if (effect.type === "PAUSED" && effect.reason === "USER" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "PAUSE", atMs: effect.atMs });
     }
     this.schedule();
     this.notify();
   }
 
-  private emitSignal(signal: PlannedSignal | { readonly kind: "FINISH"; readonly atMs: number }) {
+  private emitSignal(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE"; readonly atMs: number }) {
     const projection = this.project(signal.atMs);
     this.deps.onSignal?.({
       kind: signal.kind,

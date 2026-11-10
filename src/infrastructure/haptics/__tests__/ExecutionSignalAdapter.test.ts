@@ -36,22 +36,22 @@ const signal = (overrides: Partial<ExecutionSignal>): ExecutionSignal => ({ kind
 const nextExercise = (exerciseName: string, objective: SignalObjective = reps(12)) => ({ phase: "ACTIVITY" as const, exerciseName, objective });
 
 describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
-  it("Compte à rebours : « Préparez-vous. À suivre : … » avec l'objectif ; au départ, sifflet roulé à 55 % seul", () => {
+  it("Compte à rebours : « Préparez-vous. À suivre : … » ; au départ, sifflet roulé à 55 %, puis l'objectif", () => {
     const { play, beeps, said, impactAsync } = setup();
     play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, timed: true, next: nextExercise("Gainage", { mode: "DURATION", target: { kind: "NUMBER", value: 45 } }) });
-    play({});
-    expect(said).toEqual(["Préparez-vous. À suivre : Gainage, 45 secondes"]);
+    play({ objective: { mode: "DURATION", target: { kind: "NUMBER", value: 45 } } });
+    expect(said).toEqual(["Préparez-vous. À suivre : Gainage", "45 secondes"]);
     expect(beeps).toEqual([["SIFFLET_ROULE", 0.55]]);
     expect(impactAsync).toHaveBeenNthCalledWith(1, Haptics.ImpactFeedbackStyle.Heavy);
   });
 
-  it("récupération après une étape chronométrée : bip grave au zéro puis annonce ; départ en chronomètre : sifflet pur à 85 %", () => {
+  it("récupération après une étape chronométrée : double bip au zéro puis annonce ; départ en chronomètre : sifflet pur à 55 %", () => {
     const { play, beeps, said, delays } = setup();
     play({ exerciseName: "Gainage", timed: true });
     play({ phase: "POST_ACTIVITY_RECOVERY", exerciseName: "Gainage", next: nextExercise("Pompes") });
     play({ exerciseName: "Pompes", timed: false });
-    expect(said).toEqual(["Gainage", "Récupération. À suivre : Pompes, 12 répétitions"]);
-    expect(beeps).toEqual([["SIFFLET_ROULE", 0.55], ["BIP_GRAVE", 1], ["SIFFLET_PUR", 0.85]]);
+    expect(said).toEqual(["Gainage", "Récupération. À suivre : Pompes"]);
+    expect(beeps).toEqual([["SIFFLET_ROULE", 0.55], ["BIP_DOUBLE", 1], ["SIFFLET_PUR", 0.55]]);
     expect(delays).toEqual([500, 500]);
   });
 
@@ -62,24 +62,24 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(said).toEqual(["Gainage, 10 répétitions", "Pause"]);
   });
 
-  it("bilatéral : « premier côté » au départ, sifflet court à 55 % et « Changez de côté » au changement", () => {
+  it("bilatéral : « Premier côté, 12 répétitions » au départ, sifflet court à 55 % et « Changez de côté » au changement", () => {
     const { play, beeps, said } = setup();
     play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, timed: false, next: nextExercise("Fente") });
-    play({ exerciseName: "Fente", sideRank: 1, timed: false });
+    play({ exerciseName: "Fente", sideRank: 1, timed: false, objective: reps(12) });
     play({ phase: "SIDE_RECOVERY", exerciseName: "Fente", timed: false, next: nextExercise("Fente") });
     play({ exerciseName: "Fente", sideRank: 2, timed: false });
-    expect(said).toEqual(["Préparez-vous. À suivre : Fente, 12 répétitions", "Premier côté", "Récupération", "Changez de côté"]);
-    expect(beeps).toEqual([["SIFFLET_PUR", 0.85], ["SIFFLET_COURT", 0.55]]);
+    expect(said).toEqual(["Préparez-vous. À suivre : Fente", "Premier côté, 12 répétitions", "Récupération", "Changez de côté"]);
+    expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["SIFFLET_COURT", 0.55]]);
   });
 
-  it("dernières secondes : bip grave ; cadence : clic doux à 35 % ; minute : ding à 50 % ; Point d'arrêt : double bip ; achèvement : fanfare courte à 60 %", () => {
+  it("dernières secondes : bip grave ; cadence : clic doux à 35 % ; minute : ding à 30 % ; Point d'arrêt et Pause : double bip ; achèvement : fanfare courte à 60 %", () => {
     const { play, beeps, said, impactAsync } = setup();
     play({ kind: "COUNTDOWN" });
     play({ kind: "CADENCE" });
     play({ kind: "MINUTE" });
     play({ phase: "STOP_POINT", exerciseName: null, timed: false });
     play({ kind: "FINISH", phase: null, exerciseName: null });
-    expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["DING", 0.5], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
+    expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["DING", 0.3], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
     expect(said).toEqual([]);
     expect(impactAsync.mock.calls.map(([style]) => style)).toEqual([
       Haptics.ImpactFeedbackStyle.Medium,
@@ -90,12 +90,35 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     ]);
   });
 
-  it("Fin de séance après une étape chronométrée : bip grave au zéro, puis fanfare à l'achèvement", () => {
+  it("Fin de séance après une étape chronométrée : double bip au zéro, puis fanfare à l'achèvement", () => {
     const { play, beeps } = setup();
     play({ timed: true });
     play({ phase: "SESSION_END", exerciseName: null, timed: true });
     play({ kind: "FINISH", phase: null, exerciseName: null });
-    expect(beeps).toEqual([["SIFFLET_ROULE", 0.55], ["BIP_GRAVE", 1], ["FANFARE_COURTE", 0.6]]);
+    expect(beeps).toEqual([["SIFFLET_ROULE", 0.55], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
+  });
+
+  it("Pause demandée par l'utilisateur : double bip et vibration forte, sans annonce", () => {
+    const { play, beeps, said, impactAsync } = setup();
+    play({ kind: "PAUSE" });
+    expect(beeps).toEqual([["BIP_DOUBLE", 1]]);
+    expect(said).toEqual([]);
+    expect(impactAsync).toHaveBeenCalledWith(Haptics.ImpactFeedbackStyle.Heavy);
+  });
+
+  it("nouvelle Exécution : aucun bip au début du Compte à rebours, même après une étape chronométrée de la précédente", () => {
+    const { play, beeps } = setup();
+    play({ phase: "SESSION_END", exerciseName: null, timed: true });
+    play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, timed: true, next: nextExercise("Gainage") });
+    expect(beeps).toEqual([["BIP_GRAVE", 1]]);
+  });
+
+  it("pas de clic de cadence juste après un autre son ; ensuite, le clic reprend", () => {
+    const { adapter, beeps } = setup();
+    adapter.play(signal({ atMs: 10_000, timed: false }));
+    adapter.play(signal({ kind: "CADENCE", atMs: 10_300 }));
+    adapter.play(signal({ kind: "CADENCE", atMs: 11_300 }));
+    expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["CLIC_DOUX", 0.35]]);
   });
 
   it("un même signal reçu deux fois n'est restitué qu'une fois", () => {

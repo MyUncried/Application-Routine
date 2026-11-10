@@ -6,9 +6,11 @@
  * - `TRANSITION` : début d'une étape (annonce du nom, « Récupération », côté 1 / côté 2) — produit par
  *   l'effet `STEP_STARTED` du noyau, à son instant logique.
  * - `COUNTDOWN` : bip aigu pendant les trois dernières secondes d'une étape chronométrée.
- * - `CADENCE` : bip périodique d'une Série cadencée, ancré sur le début de la Série et, après une Pause, sur
- *   la reprise (premier nouveau bip après un intervalle complet, §13).
- * - `MINUTE` : signal minute d'une Série sans bip, en Répétitions ou À l'échec (ch08).
+ * - `CADENCE` : bip périodique d'une Série cadencée, calé sur le temps actif de l'étape (recette du
+ *   10/11/2026 : remplace l'ancrage sur la reprise après une Pause, §13) ; aucun pendant les trois dernières
+ *   secondes d'une étape chronométrée.
+ * - `MINUTE` : signal minute d'une Série en Répétitions ou À l'échec, avec ou sans bip de cadence (recette du
+ *   10/11/2026 ; ch08) ; il l'emporte sur un bip de cadence au même instant.
  *
  * Règles : signal de transition prioritaire sur un bip coïncident, sans double signal (ACQUIS §10, T07) ; à
  * un même instant, un seul signal ; aucun signal pendant une Pause ; aucun rattrapage de signaux périmés
@@ -22,7 +24,10 @@ export type PlannedSignal = { readonly kind: SignalKind; readonly atMs: Ms };
 
 const S = 1000;
 const MINUTE = 60 * S;
-const PRIORITY: Record<SignalKind, number> = { TRANSITION: 3, COUNTDOWN: 2, CADENCE: 1, MINUTE: 0 };
+/** Marge sans bip de cadence avant le compte à rebours de fin d'étape. */
+const CADENCE_MARGIN_MS = 250;
+// Recette du 10/11/2026 (G7) : le signal minute l'emporte sur un bip de cadence au même instant.
+const PRIORITY: Record<SignalKind, number> = { TRANSITION: 3, COUNTDOWN: 2, MINUTE: 1, CADENCE: 0 };
 
 /** Signaux de l'étape courante dus dans `]fromMs, toMs]`, hors transition (portée par l'effet du noyau). */
 export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms): readonly PlannedSignal[] {
@@ -44,23 +49,25 @@ export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms): re
     }
   }
   if (spec.kind === "ACTIVITY") {
-    if (spec.cadenceMs !== undefined && leaf.cadenceAnchorMs !== null) {
-      const first = Math.max(1, Math.ceil((fromMs - leaf.cadenceAnchorMs) / spec.cadenceMs));
-      for (let k = first; ; k += 1) {
-        const at = leaf.cadenceAnchorMs + k * spec.cadenceMs;
+    // Temps actif de l'étape au début de l'intervalle observé (hors Pause).
+    const elapsedFrom = fromMs <= ref.anchorMs ? ref.accumulatedMs : ref.accumulatedMs + (fromMs - ref.anchorMs);
+    const every = (periodMs: Ms, kind: SignalKind) => {
+      for (let k = Math.max(1, Math.ceil(elapsedFrom / periodMs)); ; k += 1) {
+        const at = wallAt(k * periodMs);
         if (at > toMs) break;
-        push("CADENCE", at);
+        push(kind, at);
       }
-    } else if (spec.end === "MANUAL") {
-      const elapsedFrom = Math.max(0, ref.accumulatedMs + (fromMs - ref.anchorMs));
-      for (let k = Math.max(1, Math.ceil(elapsedFrom / MINUTE)); ; k += 1) {
-        const at = wallAt(k * MINUTE);
-        if (at > toMs) break;
-        push("MINUTE", at);
-      }
-    }
+    };
+    // Recette du 10/11/2026 (t1, constat b) : bips de cadence calés sur le temps actif de l'étape, comme le
+    // chronomètre affiché, y compris après une Pause (remplace l'ancrage sur la reprise, §13).
+    if (spec.cadenceMs !== undefined && leaf.cadenceAnchorMs !== null) every(spec.cadenceMs, "CADENCE");
+    // Recette du 10/11/2026 (G7) : signal minute de toute Série en Répétitions ou À l'échec, avec ou sans cadence.
+    if (spec.end === "MANUAL") every(MINUTE, "MINUTE");
   }
-  return dedupe(signals.filter((signal) => endWall === null || signal.atMs < endWall));
+  // Recette du 10/11/2026 (h1) : pas de bip de cadence pendant les trois dernières secondes d'une étape
+  // chronométrée, qui ont leurs propres bips.
+  const countdownFrom = endWall === null ? null : endWall - 3 * S - CADENCE_MARGIN_MS;
+  return dedupe(signals.filter((signal) => (endWall === null || signal.atMs < endWall) && !(signal.kind === "CADENCE" && countdownFrom !== null && signal.atMs > countdownFrom)));
 }
 
 /** Un seul signal par instant, le plus prioritaire (transition > compte à rebours > cadence > minute). */

@@ -56,24 +56,36 @@ export function startExecutionAudio(): Promise<void> {
   });
 }
 
+// Reconfigurations de session en cours : un son demandé pendant ce temps partirait en retard.
+let reconfiguring = 0;
+
+function reconfigure(duck: boolean): Promise<void> {
+  reconfiguring += 1;
+  return enqueue(async (audio) => {
+    await audio.setIsAudioActiveAsync(false).catch(() => undefined);
+    await audio.setAudioModeAsync(mode(duck));
+    await audio.setIsAudioActiveAsync(true);
+  }).finally(() => {
+    reconfiguring -= 1;
+  });
+}
+
 /** Avant une annonce : atténuation des autres sons (réactivation nécessaire sous iOS). */
 export function duckOthersForVoice(): Promise<void> {
   sessionStarted = true;
-  return enqueue(async (audio) => {
-    await audio.setIsAudioActiveAsync(false).catch(() => undefined);
-    await audio.setAudioModeAsync(mode(true));
-    await audio.setIsAudioActiveAsync(true);
-  });
+  return reconfigure(true);
 }
 
 /** Après la dernière annonce : les autres sons reprennent leur volume ; la session reste prête pour les sons. */
 export function releaseOthersAfterVoice(): Promise<void> {
-  return enqueue(async (audio) => {
-    await audio.setIsAudioActiveAsync(false).catch(() => undefined);
-    await audio.setAudioModeAsync(mode(false));
-    await audio.setIsAudioActiveAsync(true);
-  });
+  return reconfigure(false);
 }
+
+/**
+ * Sons qu'il vaut mieux omettre que jouer en retard pendant une reconfiguration de session (recette du
+ * 10/11/2026, constat b : « deux clics très rapprochés juste après une annonce »).
+ */
+const SKIPPABLE_WHILE_RECONFIGURING: ReadonlySet<BeepTone> = new Set(["CLIC_DOUX"]);
 
 // Ressources audio empaquetées par Metro.
 const SOURCES: Record<BeepTone, number> = {
@@ -121,6 +133,7 @@ export class ExecutionSounds implements BeepPort {
   private async playAsync(tone: BeepTone, volume: number): Promise<void> {
     if (!hasNativeModule("ExpoAudio")) return;
     if (!sessionStarted) void startExecutionAudio();
+    if (reconfiguring > 0 && SKIPPABLE_WHILE_RECONFIGURING.has(tone)) return;
     const player = await this.player(tone);
     player.volume = volume;
     await player.seekTo(0);

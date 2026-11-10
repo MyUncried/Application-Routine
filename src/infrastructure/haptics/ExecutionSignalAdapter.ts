@@ -12,13 +12,14 @@ import { ExecutionVoice, type VoicePort } from "@/infrastructure/speech/Executio
  * Table de guidage : définition de Hermann du 10/11/2026 (formulaire « Guidage sonore KODJO »), mise à jour
  * avec ses choix suivants dans le formulaire et la recette du 10/11/2026 (G2 à G10, constats). Recopiée dans
  * ch08 et la spec `pre10-son-voix`.
- * - Le prochain exercice est annoncé avant son départ (« À suivre : Pompes, 12 répétitions »), au début du
- *   Compte à rebours initial, de la Pause ou de la récupération qui le précède ; au départ, seulement le son,
- *   sauf si le nom n'a pas été annoncé avant.
+ * - Le prochain exercice est annoncé avant son départ (« À suivre : Pompes »), au début du Compte à rebours
+ *   initial, de la Pause ou de la récupération qui le précède ; au départ, après le sifflet, son objectif
+ *   (« 12 répétitions »), précédé du nom s'il n'a pas été annoncé avant (recette h4, constat c).
  * - Bilatéral : « premier côté » au départ, « Changez de côté » au changement de côté.
- * - Zéro d'une étape chronométrée : bip grave, sauf si l'étape suivante a son propre son (un seul signal par
- *   instant, T07).
- * - Achèvement de la Séance : fanfare courte.
+ * - Zéro d'une étape chronométrée : double bip, sauf si l'étape suivante a son propre son (un seul signal par
+ *   instant, T07 ; recette h2).
+ * - Pause demandée par l'utilisateur : double bip (constat a). Achèvement de la Séance : fanfare courte.
+ * - Aucun bip de cadence juste après un autre son (recette h2 : sifflet et clic ensemble).
  * - Une étape sans son défini et dont l'annonce est coupée reçoit un bip grave (S5).
  * Premier plan seulement (arrière-plan : tranche suivante). Un échec natif n'interrompt jamais l'Exécution.
  */
@@ -28,15 +29,16 @@ export type Cue = { readonly sound: BeepTone | null; readonly volume: number; re
 export const GUIDANCE = {
   countdownStart: { sound: null, volume: 1, vibration: "HEAVY" },
   lastSeconds: { sound: "BIP_GRAVE", volume: 1, vibration: "MEDIUM" },
-  zero: { sound: "BIP_GRAVE", volume: 1, vibration: "NONE" },
+  zero: { sound: "BIP_DOUBLE", volume: 1, vibration: "NONE" },
   startTimed: { sound: "SIFFLET_ROULE", volume: 0.55, vibration: "HEAVY" },
-  startStopwatch: { sound: "SIFFLET_PUR", volume: 0.85, vibration: "HEAVY" },
+  startStopwatch: { sound: "SIFFLET_PUR", volume: 0.55, vibration: "HEAVY" },
   sideChange: { sound: "SIFFLET_COURT", volume: 0.55, vibration: "HEAVY" },
   cadence: { sound: "CLIC_DOUX", volume: 0.35, vibration: "LIGHT" },
-  minute: { sound: "DING", volume: 0.5, vibration: "LIGHT" },
+  minute: { sound: "DING", volume: 0.3, vibration: "LIGHT" },
   seriesPause: { sound: null, volume: 1, vibration: "HEAVY" },
   recovery: { sound: null, volume: 1, vibration: "HEAVY" },
   stopPoint: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
+  userPause: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
   sessionEnd: { sound: null, volume: 1, vibration: "MEDIUM" },
   finish: { sound: "FANFARE_COURTE", volume: 0.6, vibration: "MEDIUM" },
   other: { sound: "BIP_GRAVE", volume: 1, vibration: "HEAVY" },
@@ -44,6 +46,9 @@ export const GUIDANCE = {
 
 /** Délai entre le son et l'annonce, pour ne pas les superposer. */
 export const ANNOUNCEMENT_AFTER_SOUND_MS = 500;
+
+/** Pas de bip de cadence moins de ce délai après un autre son (sifflet, bips de fin, double bip). */
+export const CADENCE_QUIET_AFTER_SOUND_MS = 700;
 
 const IMPACT: Record<Exclude<Vibration, "NONE">, Haptics.ImpactFeedbackStyle> = {
   LIGHT: Haptics.ImpactFeedbackStyle.Light,
@@ -70,6 +75,8 @@ export class ExecutionSignalAdapter {
   private previousTimed = false;
   /** Dernier signal joué, pour ne jamais restituer deux fois le même. */
   private lastKey: string | null = null;
+  /** Instant logique du dernier son autre qu'un bip de cadence. */
+  private lastSoundAtMs: number | null = null;
 
   constructor(
     private readonly haptics: Pick<typeof Haptics, "impactAsync"> = Haptics,
@@ -99,6 +106,8 @@ export class ExecutionSignalAdapter {
     const key = `${signal.kind}@${signal.atMs}`;
     if (key === this.lastKey) return;
     this.lastKey = key;
+    if (signal.kind === "CADENCE" && this.lastSoundAtMs !== null && signal.atMs >= this.lastSoundAtMs && signal.atMs - this.lastSoundAtMs < CADENCE_QUIET_AFTER_SOUND_MS) return;
+    if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs}`);
     const { cue, announcement } = this.guidance(signal);
     if (this.vibrationEnabled && cue.vibration !== "NONE") this.haptics.impactAsync(IMPACT[cue.vibration]).catch(() => undefined);
     const spoken = this.voiceEnabled ? announcement : null;
@@ -106,6 +115,7 @@ export class ExecutionSignalAdapter {
     const sounding = cue.sound !== null ? cue : fallback;
     const played = this.soundEnabled && sounding !== null && sounding.sound !== null;
     if (played) this.beeps.play(sounding.sound!, sounding.volume);
+    if (played && signal.kind !== "CADENCE") this.lastSoundAtMs = signal.atMs;
     if (spoken !== null) this.defer(() => this.voice.say(spoken), played ? ANNOUNCEMENT_AFTER_SOUND_MS : 0);
   }
 
@@ -115,6 +125,12 @@ export class ExecutionSignalAdapter {
     if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null };
     if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null };
     if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: null };
+    if (signal.kind === "PAUSE") return { cue: GUIDANCE.userPause, announcement: null };
+    if (signal.phase === "INITIAL_COUNTDOWN") {
+      // Nouvelle Exécution : rien n'est hérité de la précédente (recette du 10/11/2026, constat f).
+      this.announcedNext = null;
+      this.previousTimed = false;
+    }
     const previousTimed = this.previousTimed;
     this.previousTimed = signal.timed === true;
     const { cue, announcement } = this.transition(signal);
@@ -143,24 +159,22 @@ export class ExecutionSignalAdapter {
         this.announcedNext = null;
         if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: "Changez de côté" };
         const cue = signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed;
-        const firstSide = signal.sideRank === 1;
-        if (alreadyAnnounced) return { cue, announcement: firstSide ? "Premier côté" : null };
-        if (name === null) return { cue, announcement: firstSide ? "Premier côté" : null };
-        const named = withObjective(name, signal.objective);
-        return { cue, announcement: firstSide ? `${named}, premier côté` : named };
+        // Après le sifflet : nom (s'il n'a pas été annoncé avant), côté, puis objectif (recette h4, constat c).
+        const parts = [alreadyAnnounced ? null : name, signal.sideRank === 1 ? "premier côté" : null, objectiveText(signal.objective)].filter((part): part is string => part !== null);
+        return { cue, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
       }
       default:
         return { cue: GUIDANCE.other, announcement: null };
     }
   }
 
-  /** « Récupération. À suivre : Fente, 12 répétitions » lorsque l'étape suivante est un autre exercice. */
+  /** « Récupération. À suivre : Fente » lorsque l'étape suivante est un autre exercice. */
   private withNext(text: string, signal: ExecutionSignal): string {
     const next = signal.next;
     const nextName = next?.phase === "ACTIVITY" ? cleanName(next.exerciseName) : null;
     if (nextName === null || nextName === cleanName(signal.exerciseName)) return text;
     if (this.voiceEnabled) this.announcedNext = nextName;
-    return `${text}. À suivre : ${withObjective(nextName, next?.objective)}`;
+    return `${text}. À suivre : ${nextName}`;
   }
 }
 
@@ -168,9 +182,8 @@ function cleanName(name: string | null | undefined): string | null {
   return name === null || name === undefined || name.trim() === "" ? null : name.trim();
 }
 
-function withObjective(name: string, objective: SignalObjective | undefined): string {
-  const detail = objectiveText(objective);
-  return detail === null ? name : `${name}, ${detail}`;
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 /** Objectif annoncé avec le nom (recette du 10/11/2026, G8 ; spec `spec-guidage-reglages` §7.3). */

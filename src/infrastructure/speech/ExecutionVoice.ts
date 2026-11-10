@@ -18,6 +18,9 @@ export type VoicePort = { readonly say: (text: string) => void; readonly prepare
 
 export const EXECUTION_VOICE_LANGUAGE = "fr-FR";
 
+/** Attente entre l'activation de la session audio et le début de la parole. */
+export const VOICE_START_DELAY_MS = 180;
+
 type VoiceInfo = { readonly identifier: string; readonly language: string; readonly quality: string };
 
 /** Voix française préférée : qualité Premium, puis Améliorée, puis toute voix fr-FR ; `null` sinon. */
@@ -57,6 +60,10 @@ export class ExecutionVoice implements VoicePort {
     const voice = await this.voice().catch(() => null);
     await Speech.stop();
     await duckOthersForVoice();
+    // Recette du 10/11/2026 (constat d) : premier mot ou première syllabe coupés. La sortie audio n'est pas
+    // encore prête juste après la réactivation de la session : la parole attend un court instant.
+    await new Promise((resolve) => setTimeout(resolve, VOICE_START_DELAY_MS));
+    if (generation !== this.generation) return;
     const release = () => {
       // Libère la session seulement si aucune annonce plus récente n'a commencé.
       setTimeout(() => {
