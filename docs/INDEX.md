@@ -1,5 +1,9 @@
 # Documentation de KODJO
 
+## Pilotage du catalogue autonome — six étapes confirmées le 11/11/2026
+
+**Référence de réalisation :** [plan en six étapes au registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md). Conception exhaustive de la fiche Mouvement ; consolidation CA-1/CA-2/CA-3 et données/révisions sans migration concurrente PRE-10 ; Figma Profil ; services communs indépendants des interfaces ; administration Web existante (Node.js local et OVH, création du 61e Mouvement, export compatible) ; puis intégration mobile et réconciliation des 60 Mouvements déjà installés. **Les décisions BIB-19–23 restreignent les Bibliothèques visibles aux collections génériques KODJO, sans reporter le socle éditorial.** Le plan L1–L6 de distribution communautaire est remplacé pour le pilotage de ce chantier. Figma Profil vérifié : [écran `1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778). Fonctions personnelles et partagées figurant dans la maquette : futures, comportement actuel à clarifier.
+
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
 Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. Voir le registre BIB-19 à BIB-23.
