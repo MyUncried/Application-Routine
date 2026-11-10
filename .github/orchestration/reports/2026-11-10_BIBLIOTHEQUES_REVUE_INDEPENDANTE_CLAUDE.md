@@ -69,7 +69,7 @@ Légende gravité : **Bloquant** = à lever avant de démarrer le développement
 **Constat.** `movements.normalized_name` est unique (migration013 l. 102). Deux sources proposant « Squat » ne peuvent coexister. Le dossier (§5.4, T-17) interdit l'écrasement et la renumérotation cachée mais ne donne pas de règle. Le pilote bloque déjà (`NAME_CONFLICT`, `TO_RECONCILE`, catalogueLoadPlan l. 147, 370, 404-408) : c'est une **règle de développement du pilote, non une règle produit**.
 **Évidence.** Conception §5.4 (l. 214), T-17 (l. 377), PU-04 « Réserve » ; catalogueLoadPlan l. 366-372.
 **Conséquence.** Sans règle, une Bibliothèque reçue contenant « Squat » ne peut s'installer si l'utilisateur en possède un : blocage de PU-08 pour un cas banal (les coachs nomment leurs fiches comme les autres).
-**Correction proposée.** Conserver l'index unique (pas de migration d'une contrainte transversale). À l'installation, **proposer** un nom local suffixé par la source (« Squat — Marie Dupont ») que l'utilisateur confirme ou modifie ; le nom reste un champ modifiable localement (le mécanisme « modifié localement » du pilote le protège ensuite des mises à jour). Aucune installation silencieuse tant que l'utilisateur n'a pas confirmé. Complexité : faible.
+**Correction proposée.** Conserver l'index unique (pas de migration d'une contrainte transversale). À l'installation, attribuer automatiquement un **suffixe numéroté** au nom local (« Squat (2) »), sans confirmation, selon la convention déjà utilisée pour « (copie) ». Le numéro est attribué une fois et ne change plus. Le nom reste modifiable localement ; traité comme champ modifié localement, il n'est pas écrasé par une mise à jour (seul ce champ est reporté si la source le renomme). La source reste visible dans la provenance de la fiche. Complexité : faible.
 Alternative déconseillée : index unique `(normalized_name, source)` (migration d'une contrainte utilisée par création, copie, import et recherche ; complexité forte).
 
 ### C-03 — Permissions Modifier / Redistribuer sans support local ni point d'application
@@ -292,7 +292,7 @@ Rien n'impose de modifier PRE-10 : références Séances → Mouvement inchangé
 |---|---|---|---|---|
 | R1 | Versions divergentes d'une fiche partagée (C-01) | Élevée / fort | A : une révision active + avertissement (faible) ; B : report par fiche (moyenne) ; C : plusieurs Mouvements (forte) | A, B si Hermann refuse l'avancement croisé |
 | R2 | Permissions non appliquées localement (C-03/C-04) | Élevée / fort (droits) | Garde unique `isMovementEditable` (faible-moyenne) ; ligne de permissions par table (moyenne) | Garde unique + droits dans l'instantané |
-| R3 | Collision de noms bloquant l'installation (C-02) | Élevée / moyen | Nom suggéré à confirmer (faible) ; index composite (forte) | Nom suggéré |
+| R3 | Collision de noms bloquant l'installation (C-02) | Élevée / moyen | Suffixe numéroté automatique (faible) ; index composite (forte) | Suffixe numéroté |
 | R4 | Intégrité multi-bases (C-06) | Moyenne / moyen | Pointeur en dernier + plan recalculable (faible) ; fusion des bases (moyenne) | Pointeur en dernier ; fusion à réévaluer après PRE-10 |
 | R5 | Neutralisation inapplicable localement (C-05) | Moyenne / fort (conformité) | Drapeau en mémoire au démarrage (faible) ; colonne en base (moyenne) | Drapeau chargé au démarrage |
 | R6 | Données de santé / HDS (C-11) | Moyenne / fort (juridique) | Minimisation + avis ; hébergeur certifié (moyenne à forte) | Avis avant lot kiné |
@@ -349,7 +349,7 @@ Client : Movement 1─0..1 InstalledSheet ; Library N─N Movement (library_memb
 ## E. Arbitrages à soumettre à Hermann (décisions fonctionnelles réellement manquantes)
 
 1. **Versions divergentes (C-01).** Quand je mets à jour la Bibliothèque A, une fiche qu'elle partage avec B peut-elle passer à la nouvelle révision (avec avertissement explicite dans l'aperçu) ? *Recommandé : oui.* Sinon la fiche reste à l'ancienne révision tant que B n'est pas à jour.
-2. **Homonymes (C-02).** À l'installation d'une fiche dont le nom existe déjà chez l'utilisateur, accepte-t-on un nom local proposé et confirmé (« Squat — Marie Dupont ») ? *Recommandé : oui.*
+2. **Homonymes (C-02).** À l'installation d'une fiche dont le nom existe déjà chez l'utilisateur, accepte-t-on un suffixe numéroté automatique (« Squat (2) »), sans confirmation, renommable ensuite ? *Recommandé : oui.*
 3. **Groupes (C-08).** Pour la première version de partage : destinataires nominatifs ou par lien d'invitation seulement, groupes plus tard ? *Recommandé : oui.*
 4. **Permissions (C-04).** Portées par la révision ; défaut à la création « Libre localement » ; un retrait de « Redistribuer » ne vaut que pour les futures diffusions. *Recommandé : oui.*
 5. **Médias (C-09).** Un média n'est redistribué que si ses droits sont confirmés, sinon la fiche part sans média. *Recommandé : oui.*
