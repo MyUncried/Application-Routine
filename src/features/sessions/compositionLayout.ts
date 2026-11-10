@@ -141,3 +141,19 @@ export type RichLayoutInsertion = Pick<SessionDraft, "exercises" | "structure"> 
   readonly targetCount: number;
   readonly enteringCount: number;
 };
+
+/**
+ * Recette du 10/11/2026 (c1, « Maximum update depth exceeded » à l'ajout d'un Circuit ; incident analogue du 01/11,
+ * 8e45fcd8) : une rafale de mesures (`onLayout`) appliquées l'une dans l'autre dépasse la limite de React. Au-delà de
+ * `MEASURE_BURST_LIMIT` mesures en `MEASURE_BURST_WINDOW_MS`, les suivantes sont reportées à l'image suivante : la
+ * chaîne de mises à jour imbriquées est rompue, la dernière mesure est tout de même appliquée.
+ */
+export const MEASURE_BURST_LIMIT = 8;
+export const MEASURE_BURST_WINDOW_MS = 32;
+
+export type MeasureBurst = { readonly since: number; readonly count: number };
+
+export function measureDelivery(burst: MeasureBurst, nowMs: number): { readonly burst: MeasureBurst; readonly defer: boolean } {
+  const next = nowMs - burst.since > MEASURE_BURST_WINDOW_MS ? { since: nowMs, count: 1 } : { since: burst.since, count: burst.count + 1 };
+  return { burst: next, defer: next.count > MEASURE_BURST_LIMIT };
+}

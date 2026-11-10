@@ -439,3 +439,26 @@ Correctif (classe A, conformité à la MAJ du 04/11/2026 §6 quinquies) :
   - options au repli seulement ;
   - Renommer enregistre le nom et passe à la disposition générale ;
   - Dupliquer, puis Supprimer avec confirmation.
+
+### Suite du constat A : recette c1 KO et décision (10/11/2026)
+
+Résultat c1, recopié : « les cadres des options ne sont pas de la même hauteur que le cadre du circuit. le cadre du circuit ne glisse pas vers la droite (comment ce fait-il qu'on régresse sur des sujets de format et de comportement déjà validés plusieurs fois, tu n'utilises pas des composants réutilisables ?) […] j'ai un message "Maximum update depth exceed. this can..." […] ».
+
+Analyse :
+
+- Le correctif 7bd5555b plaçait le composant d'options autour de l'en-tête de l'ancien affichage, sans la géométrie du cadre ni la translation partagée de la disposition générale. C'était une copie partielle au lieu de la réutilisation du bloc validé. Erreur de réalisation, reconnue.
+- « Maximum update depth exceeded » : journal Metro, `useMeasuredFrame` (mesure du cadre de `LayoutCircuitBlock`), au passage à la disposition générale. Même famille que l'incident du 01/11 (8e45fcd8), qui n'était corrigé qu'en partie. Attribution plausible.
+
+Décisions de Hermann, recopiées : « Un seul affichage (Recommandé) » ; boucle : « Oui, maintenant (Recommandé) ».
+
+Réalisé et constaté :
+
+- La copie partielle est retirée de `CompositionScreen` ; le fichier de test revient à son état antérieur.
+- Essai « un seul affichage » (tout Circuit dans la disposition générale) : 19 tests de Composition échouent. Les comportements de la Séance à Circuit unique changent :
+  - place d'insertion des Exercices ;
+  - « Ajouter un arrêt » (début et fin du Circuit) ;
+  - mode enveloppe (« Confirmer le circuit », « Ajouter un cycle ») ;
+  - apparition du Circuit.
+- C'est un changement de comportement de la Composition, hors périmètre d'un correctif local (Change Control, SCOPE_EXPANSION_REQUIRED). L'essai est annulé. Une mission Composition dédiée est proposée à Hermann.
+- La règle « Circuit nommé hors de l'ancien modèle » (`structure.ts`, 7bd5555b) est conservée : elle évite la perte d'un nom.
+- Boucle de mesure : au-delà de 8 mesures en 32 ms, les suivantes sont reportées à l'image suivante (`measureDelivery`, `compositionLayout.ts`). La chaîne de mises à jour imbriquées est rompue, et la dernière mesure est appliquée. Test : `compositionLayout.measureBurst.test.ts`. Correctif de sûreté, plausible ; la cause de l'oscillation n'est pas démontrée.

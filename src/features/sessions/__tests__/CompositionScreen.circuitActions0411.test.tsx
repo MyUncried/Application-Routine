@@ -86,18 +86,6 @@ function draftOf(originModel: "TABATA" | null): SessionDraft {
   return withLocalMovements({ name: "Séance", labelId: null, initialCountdownSeconds: 10, finalPhaseSeconds: 5, exercises: ["e0", "a1", "a2", "b1"].map(exercise), structure });
 }
 
-/** Recette du 10/11/2026 (constat A) : un seul Circuit, composé à la main — ancien modèle (rendu historique). */
-function singleCircuitDraft(): SessionDraft {
-  const structure: SessionStructure<string, StructureStopPointLocation> = {
-    elements: [
-      { kind: "EXERCISE", exercise: "e0" },
-      { kind: "CIRCUIT", circuit: { id: "ca", repeatCount: 3, nature: "TOURS", exercises: ["a1", "a2"] } },
-    ],
-    stopPoints: [],
-  };
-  return withLocalMovements({ name: "Recette A", labelId: null, initialCountdownSeconds: 10, finalPhaseSeconds: 5, exercises: [exercise("e0"), { ...exercise("a1"), structuralPosition: "IN_TOUR" as const }, { ...exercise("a2"), structuralPosition: "IN_TOUR" as const }], structure });
-}
-
 async function renderComposition(draft: SessionDraft) {
   render(
     <TestSafeAreaProvider>
@@ -268,46 +256,3 @@ describe("Recette iPhone du 04/11/2026 — Circuit replié glissé", () => {
   });
 });
 
-describe("Circuit unique de l'ancien modèle — options (recette du 10/11/2026, constat A)", () => {
-  const singleAction = (name: string) =>
-    act(async () => {
-      fireEvent(screen.getByTestId("composition-circuit-header-swipe-card"), "accessibilityAction", { nativeEvent: { actionName: name } });
-    });
-
-  it("déplié : aucune option ; replié : Renommer, Dupliquer, Supprimer", async () => {
-    await renderComposition(singleCircuitDraft());
-    expect(screen.queryByTestId("composition-layout-circuit-ca-swipe-card")).toBeNull();
-    expect(screen.getByTestId("composition-circuit-header-swipe-card").props.accessibilityActions).toEqual([]);
-    fireEvent.press(screen.getByTestId("composition-circuit-header-collapse"));
-    const actions = screen.getByTestId("composition-circuit-header-swipe-card").props.accessibilityActions.map((item: { name: string }) => item.name);
-    expect(actions).toEqual(["rename", "duplicate", "delete"]);
-  });
-
-  it("Renommer : le nom est enregistré et le Circuit passe dans la disposition générale, qui l'affiche", async () => {
-    await renderComposition(singleCircuitDraft());
-    fireEvent.press(screen.getByTestId("composition-circuit-header-collapse"));
-    await singleAction("rename");
-    const field = screen.getByTestId("composition-circuit-header-rename");
-    fireEvent.changeText(field, "Finisher");
-    await act(async () => {
-      fireEvent(field, "submitEditing");
-    });
-    expect(structureCircuits(probe.draft!.structure!)[0]!.name).toBe("Finisher");
-    expect(screen.getByTestId("composition-layout-circuit-ca-header-title")).toHaveTextContent("Finisher");
-  });
-
-  it("Dupliquer : deux Circuits, disposition générale ; Supprimer : confirmation puis Circuit retiré", async () => {
-    await renderComposition(singleCircuitDraft());
-    fireEvent.press(screen.getByTestId("composition-circuit-header-collapse"));
-    await singleAction("duplicate");
-    expect(structureCircuits(probe.draft!.structure!)).toHaveLength(2);
-    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
-    await renderComposition(singleCircuitDraft());
-    fireEvent.press(screen.getAllByTestId("composition-circuit-header-collapse").at(-1)!);
-    await act(async () => {
-      fireEvent(screen.getAllByTestId("composition-circuit-header-swipe-card").at(-1)!, "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-    });
-    expect(alert).toHaveBeenCalledWith("Supprimer ce circuit ?", "Le circuit et ses 2 exercices seront supprimés de la séance.", expect.any(Array));
-    alert.mockRestore();
-  });
-});

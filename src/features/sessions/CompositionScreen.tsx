@@ -166,7 +166,7 @@ import {
   type CircuitCardsReveal,
 } from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
-import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
+import { formatLayoutDuration, measureDelivery, resolveRichLayout, type MeasureBurst, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
 import { configurationValidity } from "@/domain/sessions/configurationValidity";
 import { CardMotionBlock, useBlockDragGesture, VanishingBlock, type CardMotionMode } from "@/features/sessions/LayoutDragParts";
 import {
@@ -2112,18 +2112,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const [vanishing, setVanishing] = useState<readonly VanishingContainer[]>([]);
   const isVanishing = vanishing.length > 0;
   const richLayout = useMemo(() => resolveRichLayout(draft, isVanishing), [draft, isVanishing]);
-  /**
-   * Recette du 10/11/2026 (constat A, « les options du circuit ne s'affichent pas ») : le Circuit unique de l'ancien
-   * modèle reçoit les mêmes options que dans la disposition générale (fc1061d0 ne les avait branchées que là).
-   */
-  const legacyCircuit = useMemo(
-    () => {
-      if (richLayout !== null) return null;
-      const resolved = resolveRichLayout({ structure: currentDraftLayout(draft, () => "legacy-circuit"), exercises: draft.exercises }, true);
-      return resolved === null ? null : (structureCircuits(resolved)[0] ?? null);
-    },
-    [draft, richLayout],
-  );
   /**
    * Contre-recette du 30/10 : Cycles posés à l'instant (absents avant « Confirmer le cycle »).
    * L'apparition (`entering`) ne joue qu'au montage du Cycle ; la demande est levée à l'entrée
@@ -5223,8 +5211,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             }}
             testID="composition-circuit-header-sticky"
           >
-          {(() => {
-          const legacyHeader = (
           <CircuitHeader
             nature={circuitNature}
             count={tourRepeatCount}
@@ -5265,45 +5251,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               const { height } = event.nativeEvent.layout;
               setCircuitHeaderRowHeight((current) => (current === height ? current : height));
             }}
-            {...(legacyCircuit !== null && renamingCircuitId === legacyCircuit.id
-              ? { rename: { initial: circuitDisplayTitle(legacyCircuit) ?? strings.screens.composition.circuit.title, onSubmit: (name: string) => circuitActions.onSubmitName(legacyCircuit.id, name) } }
-              : {})}
             testID="composition-circuit-header"
           />
-          );
-          if (legacyCircuit === null) return legacyHeader;
-          // Mêmes options que la disposition générale (LayoutCircuitBlock), sans « Modifier le format » : un Circuit
-          // issu d'un modèle relève toujours de la disposition générale. Un Circuit renommé ou dupliqué y passe aussi.
-          const tc = strings.screens.composition.circuitActions;
-          const legacySwipeEnabled = isCircuitCollapsed && !isPlacementActive && renamingCircuitId !== legacyCircuit.id;
-          return (
-            <SwipeActionsRow
-              actions={[
-                { key: "rename", label: tc.rename, backgroundColor: colors.primary, onPress: () => circuitActions.onRename(legacyCircuit) },
-                { key: "duplicate", label: tc.duplicate, backgroundColor: "#8E93A0", onPress: () => circuitActions.onDuplicate(legacyCircuit) },
-                { key: "delete", label: tc.delete, backgroundColor: colors.danger, onPress: () => circuitActions.onDelete(legacyCircuit) },
-              ]}
-              passive={!legacySwipeEnabled}
-              actionWidth={CIRCUIT_SWIPE_ACTION_WIDTH}
-              actionsRadius={CIRCUIT_RADIUS}
-              slideActions
-              revealed={legacySwipeEnabled && revealedCircuitId === legacyCircuit.id}
-              onReveal={() => setRevealedCircuitId(legacyCircuit.id)}
-              onHide={() => setRevealedCircuitId(null)}
-              onPress={() => {
-                if (revealedCircuitId === legacyCircuit.id) setRevealedCircuitId(null);
-                else {
-                  alignStuckHeader(stickyScroll, legacyStickyRange, isCircuitCollapsed);
-                  toggleCircuitCollapsed();
-                }
-              }}
-              accessibilityLabel={circuitDisplayTitle(legacyCircuit) ?? strings.screens.composition.circuit.title}
-              testID="composition-circuit-header-swipe"
-            >
-              {legacyHeader}
-            </SwipeActionsRow>
-          );
-          })()}
           </StickyHeaderFrame>
           {/*
            * PRE-9 B.1a (référence §4) : Circuit replié — ses cartes et ses points sont masqués.
@@ -8267,11 +8216,16 @@ function sameMeasure(a: number, b: number): boolean {
 /** Applique une mise à jour de mesure : aussitôt pendant le glisser, en transition au repos. */
 function useMeasureUpdate(urgent: boolean): (update: () => void) => void {
   const urgentRef = useRef(urgent);
+  const burstRef = useRef<MeasureBurst>({ since: 0, count: 0 });
   useLayoutEffect(() => {
     urgentRef.current = urgent;
   });
   return useCallback((update: () => void) => {
-    if (urgentRef.current) update();
+    // Recette du 10/11/2026 (c1) : rafale de mesures reportée à l'image suivante (voir `measureDelivery`).
+    const delivery = measureDelivery(burstRef.current, Date.now());
+    burstRef.current = delivery.burst;
+    if (delivery.defer) requestAnimationFrame(() => startTransition(update));
+    else if (urgentRef.current) update();
     else startTransition(update);
   }, []);
 }
