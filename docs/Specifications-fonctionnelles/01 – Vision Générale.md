@@ -1,5 +1,9 @@
 # Vision et glossaire
 
+## Chantier Catalogue autonome / Bibliothèques — plan de référence
+
+**Six étapes sans changement de périmètre éditorial :** concevoir la fiche Mouvement et séparer ses propriétés d'usage/éditoriales ; consolider CA-1/CA-2/CA-3 et le stockage des identités, médias, provenances et révisions compatible PRE-10 ; concevoir Figma Profil ; développer services communs de gestion des fiches ; finaliser l'administration Web Node.js/OVH ; intégrer l'application et réconcilier les 60 Mouvements existants. L'édition, l'import/export et les droits de source sont conservés ; seuls les usages personnels/coachs et le partage entre utilisateurs sont reportés. Voir BIB-19–23 et le plan au registre.
+
 ## Bibliothèques KODJO — portée du premier lot (BIB-19 à BIB-23)
 
 Les Bibliothèques génériques proposées et maintenues par KODJO (Fitness, Hyrox, Pilates, Yoga : exemples) sont sélectionnées, installées et mises à jour volontairement depuis le Profil ; le Catalogue reste la surface des Mouvements, Séances et Programmes. Les Bibliothèques personnelles, de coach et partagées sont reportées après ce premier lot, sans supprimer leur conception cible. Bibliothèque et Catégorie du Catalogue sont deux notions distinctes. Voir le registre BIB-19 à BIB-23.
