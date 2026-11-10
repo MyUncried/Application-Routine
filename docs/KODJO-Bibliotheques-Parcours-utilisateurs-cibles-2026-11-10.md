@@ -3,7 +3,7 @@
 **Date :** 10 novembre 2026  
 **État :** consolidation fonctionnelle des décisions déjà validées ; **parcours cibles stabilisés au niveau métier**, détails UX non représentés dans Figma à arbitrer avant développement.  
 **Usage :** base fonctionnelle du dossier d'architecture soumis à Claude. Aucune modification Figma ni déclaration de fonctionnalité livrée.  
-**Source de décisions :** BIB-01 à BIB-18, F4-A à F4-F et précisions successives de Hermann ; [conception initiale](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).  
+**Source de décisions :** BIB-01 à BIB-18, F4-A à F4-F, et précision KIN-01 (périmètre kinésithérapeute), et autres précisions successives de Hermann ; [conception initiale](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).  
 **Périmètre :** futur partage des Bibliothèques de Mouvements, hors MVP local.
 
 ## 1. Définitions et règles communes
@@ -104,7 +104,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 
 **Acteur :** utilisateur.  
 **Déroulement :** découverte de la Bibliothèque officielle, vérification du droit d'accès, installation selon PU-08.  
-**Résultat :** même modèle technique qu'une Bibliothèque de coach/kiné. Le volet « gratuit/payant » ne change pas la composition ni les permissions de chaque fiche.  
+**Résultat :** même modèle de Bibliothèque distribuée que celui d'un coach ; le parcours du kinésithérapeute vers son patient relève de l'Espace professionnel (PU-17), et non du partage de Bibliothèque. Le volet « gratuit/payant » ne change pas la composition ni les permissions de chaque fiche.  
 **À CLARIFIER, chantier commercial distinct :** paiement, abonnements, remboursement, expiration, restauration d'achat, offres et distribution en boutique.
 
 ### PU-10 — Recevoir une mise à jour globale
@@ -157,6 +157,13 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 **Déroulement :** consultation, composition et Exécution sur des données locales déjà installées ; mise à jour réseau reportée si indisponible.  
 **Résultat :** l'Exécution MVP ne dépend pas du service distant. Les mutations locales sont reprises de manière idempotente ; une panne au milieu de l'installation d'une Bibliothèque ne doit ni laisser de références cassées ni dupliquer des fiches. Les décisions de modération sont rattrapées à la prochaine connexion exploitable.
 
+### PU-17 — Kinésithérapeute : transmettre un Mouvement à un patient dans l'Espace professionnel
+
+**Acteurs :** kinésithérapeute et patient concerné. **Périmètre de la première étape :** transmission d'un ou plusieurs Mouvements uniquement.  
+**Déroulement :** le kinésithérapeute, depuis son Espace professionnel organisé **en étoile** autour de lui, sélectionne le patient concerné, puis transmet le ou les Mouvements choisis dans le cadre de cette relation. Les modalités d'exécution (consignes, répétitions, durée, fréquence, etc.) sont **données oralement** au patient ; aucun objet KODJO de prescription d'Exercice, de Séance ou de programme n'est créé automatiquement.  
+**Résultat :** le patient reçoit et peut utiliser les Mouvements concernés dans son Catalogue, selon les permissions et le contrôle central de diffusion applicables aux fiches. La relation avec chaque patient est distincte ; cette topologie ne constitue ni un groupe de patients ni une Bibliothèque partagée. Le Mouvement peut ensuite être référencé dans les Bibliothèques personnelles du patient, sans copier la fiche.  
+**À CLARIFIER :** identité et cycle de vie de l'Espace, invitation/association et fin de relation, droits de consultation/écriture, éventuel statut de prescription, révisions/notifications dans l'Espace, consentement et données de santé. La prescription numérique de l'exécution est reportée à un autre chantier ; aucune planification ou remontée de résultats cliniques n'est impliquée ici.
+
 ## 3. États métier — distinction indispensable
 
 | Objet | États/niveaux pertinents | Nature |
@@ -187,10 +194,13 @@ Ne pas introduire un cycle universel « Brouillon → Active → Inactive » pou
 12. Une suspension de modération bloque l'accès réseau et est prise en compte lors d'un contact ultérieur de l'application, sans attendre une mise à jour éditoriale.
 13. Les préférences ou paramètres d'Exercice ne deviennent pas verrouillés du seul fait qu'une fiche Mouvement est Protégée.
 14. Hors connexion, l'Exécution des données locales reste disponible sous réserve des restrictions déjà connues.
+15. Le kinésithérapeute transmet un Mouvement à un patient par son Espace professionnel ; aucune Séance, Exercice ou exécution prescrite n'est créée automatiquement. Les consignes d'exécution restent orales.
+16. Le patient A ne reçoit pas par cette transmission la liste ou les données du patient B relié au même kinésithérapeute.
 
 ## 5. À CLARIFIER — ne pas transformer en décisions
 
 - Parcours visuels exacts, navigation, libellés secondaires, emplacement de la pastille et des actions : **Figma reste à concevoir**.
+- Espace kinésithérapeute en étoile : modélisation des relations individuelles, cycle de vie, permissions et consentement à préciser. Aucune prescription d'exécution numérisée dans le périmètre actuel.
 - Politique de conflit pour une fiche source actualisée quand plusieurs Bibliothèques la fournissent, notamment versions différentes.
 - Défaut de permission d'une fiche à la création et au partage.
 - Conséquences d'un changement ultérieur de permission et d'une révocation de redistribution.
