@@ -35,6 +35,8 @@ export const GUIDANCE = {
   startStopwatch: { sound: "SIFFLET_PUR", volume: 0.55, vibration: "HEAVY" },
   sideChange: { sound: "SIFFLET_COURT", volume: 0.55, vibration: "HEAVY" },
   cadence: { sound: "CLIC_DOUX", volume: 0.35, vibration: "LIGHT" },
+  // Recette du 10/11/2026 (constat B ; choix « Bip et nom de la phase ») : son provisoire, à choisir dans le formulaire.
+  phase: { sound: "BIP_COURT", volume: 0.5, vibration: "LIGHT" },
   minute: { sound: "DING", volume: 0.15, vibration: "LIGHT" },
   // Recette du 10/11/2026 (k3) : double bip à l'arrivée sur une Pause ou une récupération, au zéro comme après Suivant.
   seriesPause: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
@@ -81,9 +83,11 @@ export type Announcements = {
   readonly session: boolean;
   /** « Premier côté », « Changez de côté ». */
   readonly sides: boolean;
+  /** Nom de chaque phase du mouvement (« Descente », « Montée »…). */
+  readonly phases: boolean;
 };
 
-export const ALL_ANNOUNCEMENTS: Announcements = { names: true, objective: true, pauses: true, session: true, sides: true };
+export const ALL_ANNOUNCEMENTS: Announcements = { names: true, objective: true, pauses: true, session: true, sides: true, phases: true };
 
 export class ExecutionSignalAdapter {
   private vibrationEnabled = true;
@@ -153,6 +157,7 @@ export class ExecutionSignalAdapter {
     if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null };
     if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null };
     if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null };
+    if (signal.kind === "PHASE") return { cue: GUIDANCE.phase, announcement: this.announce.phases ? cleanName(signal.phaseLabel) : null };
     // Recette du 10/11/2026 (a1) : « Bravo, séance terminée » après la fanfare, catégorie début et fin de séance.
     if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: this.announce.session ? "Bravo, séance terminée" : null };
     if (signal.kind === "PAUSE") return { cue: GUIDANCE.userPause, announcement: null };

@@ -251,3 +251,22 @@ a1 KO, recopié : « Annoncer le début de séance (préparez vous) est toujours
 - Correctifs :
   - les catégories sont relues au retour sur l'écran d'Exécution ;
   - « Bravo, séance terminée » est annoncé 0,8 s après la fanfare d'achèvement (catégorie début et fin de séance ; classe B, ch08 annoté).
+
+
+## 11. Phases du mouvement (constat B du 10/11/2026)
+
+Constat de Hermann, recopié : « Il manque l’annonce des phases de l’exercice, et le bip des phases de l’exercice. »
+
+Choix de Hermann, recopié : « Bip et nom de la phase (Recommandé) ».
+
+Réalisé (classe B, ch08, ch09 et ch13 annotés) :
+
+- Signal `PHASE` (`signals.ts`) au début de chaque phase du motif D-446 :
+  - sauf à l'instant 0 (départ de l'exercice) ;
+  - jusqu'à la limite du guidage (`nominalGuidanceSeconds`) ;
+  - jamais dans les trois dernières secondes d'une étape chronométrée ;
+  - priorité : après le compte à rebours, avant le signal minute et la cadence.
+- `ExecutionService` transmet le motif de l'exercice en cours et le nom de la phase (`phaseLabel`).
+- `ExecutionSignalAdapter` : bip court à 50 %, vibration légère, puis le nom de la phase si la catégorie « phases » est active.
+- Profil : bascule « Annoncer les phases du mouvement », `migration027` (version 27).
+- Son : « Bip court » de la bibliothèque du formulaire, **provisoire**. Hermann peut en choisir un autre dans le formulaire.

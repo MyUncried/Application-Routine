@@ -4949,6 +4949,8 @@ Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; group
 
 [Remplacé le 10/11/2026 — décision de Hermann « Il faut séparer : noms d’exercices ; pauses / récupérations / point d’arrêt ; début / fin de séance ; changements de cote » : le groupe Guidage contient Sons, Annoncer le nom des exercices (ancien libellé Annonces vocales), Annoncer les répétitions ou la durée, Annoncer les pauses et récupérations, Annoncer le début et la fin de séance, Annoncer les changements de côté. Chaque bascule ne coupe que sa catégorie d’annonces. L’interrupteur Voix de l’Exécution coupe toutes les annonces ; il démarre actif si au moins une catégorie est annoncée.]
 
+[Complété le 10/11/2026 — constat B : septième bascule du groupe Guidage, « Annoncer les phases du mouvement ».]
+
 Le défaut de Récupération du Profil initialise uniquement un nouvel Exercice ; le réglage est ensuite local et indépendant. La valeur apparaît dans un cadre orange dans Paramètres d’exécution avant premier ✓.
 
 #### 6. Classification des valeurs Figma

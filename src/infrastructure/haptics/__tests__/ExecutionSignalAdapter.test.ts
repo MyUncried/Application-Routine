@@ -202,6 +202,16 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(said).toEqual(["Bravo, séance terminée"]);
   });
 
+  it("phase du mouvement (constat B) : bip court à 50 % et nom de la phase ; nom coupé avec sa catégorie", () => {
+    const { adapter, play, beeps, said, vibrate } = setup();
+    play({ kind: "PHASE", phaseLabel: "Descente" });
+    adapter.setAnnouncements({ ...ALL_ANNOUNCEMENTS, phases: false });
+    play({ kind: "PHASE", phaseLabel: "Montée" });
+    expect(beeps).toEqual([["BIP_COURT", 0.5], ["BIP_COURT", 0.5]]);
+    expect(said).toEqual(["Descente"]);
+    expect(vibrate).toHaveBeenCalledWith("LIGHT");
+  });
+
   it("objectif annoncé : répétitions, durée en minutes, À l'échec ; rien sans cible", () => {
     expect(objectiveText(reps(1))).toBe("1 répétition");
     expect(objectiveText({ mode: "DURATION", target: { kind: "NUMBER", value: 90 } })).toBe("1 minute 30");

@@ -41,6 +41,8 @@ export const DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED = true as const;
 export const DEFAULT_ANNOUNCE_PAUSES_ENABLED = true as const;
 export const DEFAULT_ANNOUNCE_SESSION_ENABLED = true as const;
 export const DEFAULT_ANNOUNCE_SIDES_ENABLED = true as const;
+/** Recette du 10/11/2026 (constat B) : annonce du nom des phases du mouvement, activée par défaut. */
+export const DEFAULT_ANNOUNCE_PHASES_ENABLED = true as const;
 
 export type Silhouette = "homme" | "femme";
 
@@ -72,6 +74,8 @@ export type Profile = {
   readonly announceSessionEnabled: boolean;
   /** Annonce des changements de côté. */
   readonly announceSidesEnabled: boolean;
+  /** Annonce du nom des phases du mouvement. */
+  readonly announcePhasesEnabled: boolean;
   /** Nullable tant que jamais renseigné (T8) ; 1..80 points de code à l'enregistrement. */
   readonly displayName: string | null;
   /** URI locale persistante de la copie de la photo ; `null` si aucune. */
@@ -99,6 +103,7 @@ export function createDefaultProfile(id: string, updatedAt: string): Profile {
     announcePausesEnabled: DEFAULT_ANNOUNCE_PAUSES_ENABLED,
     announceSessionEnabled: DEFAULT_ANNOUNCE_SESSION_ENABLED,
     announceSidesEnabled: DEFAULT_ANNOUNCE_SIDES_ENABLED,
+    announcePhasesEnabled: DEFAULT_ANNOUNCE_PHASES_ENABLED,
     displayName: null,
     photoUri: null,
     silhouette: null,

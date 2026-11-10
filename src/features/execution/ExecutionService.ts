@@ -42,7 +42,8 @@ import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, launchabilityOf, type E
 import { projectExecution, type ExecutionProjection } from "@/domain/execution/projection";
 import { businessStatusOf, occurrenceResults, type BusinessStatus, type OccurrenceResult } from "@/domain/execution/results";
 import type { ExecutionMode, SeriesTarget } from "@/domain/activities/ExecutionParameters";
-import { dedupe, stepSignalsBetween, type PlannedSignal, type SignalKind } from "@/domain/execution/signals";
+import { nominalGuidanceSeconds, workPhasesCycleSeconds } from "@/domain/activities/phaseGuidance";
+import { dedupe, stepSignalsBetween, type PhasePattern, type PlannedSignal, type SignalKind } from "@/domain/execution/signals";
 import type { StructuredSession } from "@/domain/sessions/SessionRepository";
 import { createSessionSnapshot, SESSION_SNAPSHOT_VERSION, type SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 
@@ -74,6 +75,8 @@ export type ExecutionSignal = {
   readonly next?: { readonly phase: LeafKind; readonly exerciseName: string | null; readonly objective?: SignalObjective } | null;
   /** Objectif de l'étape courante. */
   readonly objective?: SignalObjective;
+  /** Phase du mouvement qui commence (signal `PHASE`, recette du 10/11/2026, constat B). */
+  readonly phaseLabel?: string | null;
 };
 
 export type ExecutionServiceDeps = {
@@ -227,7 +230,7 @@ export class ExecutionService {
     const from = this.lastSignalCheckMs;
     this.lastSignalCheckMs = atMs;
     if (from === null || atMs - from > SIGNAL_FRESHNESS_MS) return [];
-    const signals = stepSignalsBetween(active.state, from, atMs);
+    const signals = stepSignalsBetween(active.state, from, atMs, phasePatternOf(active.plan, active.state));
     for (const signal of signals) this.emitSignal(signal);
     return signals;
   }
@@ -384,6 +387,7 @@ export class ExecutionService {
       timed: projection?.timer.kind === "COUNTDOWN",
       next: projection?.next == null ? null : { phase: projection.next.kind, exerciseName: projection.next.name, objective: objectiveOf(projection.next.mode, projection.next.target) },
       objective: projection === null ? undefined : objectiveOf(projection.mode, projection.seriesTarget),
+      phaseLabel: projection?.guidance?.label ?? null,
     });
   }
 
@@ -415,4 +419,14 @@ export class ExecutionService {
 /** Objectif d'une étape : absent sans Cible de Série (AD-1 : une Cible n'est jamais comparée à null). */
 function objectiveOf(mode: ExecutionMode | null | undefined, seriesTarget: SeriesTarget | null): SignalObjective | undefined {
   return seriesTarget === null ? undefined : { mode: mode ?? null, target: seriesTarget };
+}
+
+/** Motif de phases de l'exercice en cours (D-446), pour les signaux de changement de phase (constat B du 10/11/2026). */
+function phasePatternOf(plan: ExecutablePlan, state: EngineState): PhasePattern | null {
+  const spec = state.leaf?.spec;
+  if (spec === undefined || spec.kind !== "ACTIVITY" || spec.exerciseId === undefined) return null;
+  const phases = plan.exercises[spec.exerciseId]?.workPhases ?? [];
+  if (workPhasesCycleSeconds(phases) === null) return null;
+  const limit = spec.target === undefined ? null : nominalGuidanceSeconds(spec.mode ?? null, spec.target, phases);
+  return { durationsMs: phases.map((phase) => phase.durationSeconds * 1000), limitMs: limit === null ? null : limit * 1000 };
 }

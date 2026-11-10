@@ -166,7 +166,7 @@ async function seededVersion18(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 recette n° 2, constat e — migration 019 (marque « Paramètre à vérifier »)", () => {
   it("version courante 19 ; tables de la 019 : occurrences de Séance et Exercices du Catalogue", () => {
-    expect(DATABASE_VERSION).toBe(26);
+    expect(DATABASE_VERSION).toBe(27);
     expect(MIGRATION_019_TABLES).toEqual(["activities", "activity_definitions"]);
   });
 

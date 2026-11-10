@@ -44,4 +44,20 @@ describe("signaux — recette du 10/11/2026", () => {
     const without = run(repetitionParameters(20));
     expect(kinds(stepSignalsBetween(without.state, 0, 121 * S), "MINUTE")).toEqual([60 * S, 120 * S]);
   });
+
+  it("phases du mouvement (constat B) : un signal au début de chaque phase, sauf au départ, jusqu'à la limite du guidage", () => {
+    const sim = run(repetitionParameters(2));
+    // Motif 2 s + 1 s, deux répétitions : limite 6 s ; débuts de phase à 2, 3 et 5 s (0 : départ, 6 : limite).
+    const signals = stepSignalsBetween(sim.state, 0, 10 * S, { durationsMs: [2 * S, 1 * S], limitMs: 6 * S });
+    expect(kinds(signals, "PHASE")).toEqual([2 * S, 3 * S, 5 * S]);
+    // À l'échec (aucune limite) : le motif boucle.
+    expect(kinds(stepSignalsBetween(sim.state, 0, 7 * S, { durationsMs: [2 * S, 1 * S], limitMs: null }), "PHASE")).toEqual([2 * S, 3 * S, 5 * S, 6 * S]);
+  });
+
+  it("phases en Durée : aucun changement de phase pendant les trois dernières secondes, qui gardent leurs bips", () => {
+    const sim = run(durationParameters(10));
+    const signals = stepSignalsBetween(sim.state, 0, 10 * S, { durationsMs: [2 * S, 2 * S], limitMs: 10 * S });
+    expect(kinds(signals, "PHASE")).toEqual([2 * S, 4 * S, 6 * S]);
+    expect(kinds(signals, "COUNTDOWN")).toEqual([7 * S, 8 * S, 9 * S]);
+  });
 });

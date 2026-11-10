@@ -20,7 +20,7 @@ import type { AudioPlayer } from "expo-audio";
  * Sons retenus par Hermann (formulaire « Guidage sonore KODJO », 10/11/2026) ; fichiers produits avec les
  * recettes du formulaire (`assets/sounds`).
  */
-export type BeepTone = "BIP_GRAVE" | "BIP_DOUBLE" | "BIP_LONG" | "SIFFLET_ROULE" | "SIFFLET_PUR" | "SIFFLET_COURT" | "FANFARE_COURTE" | "DING" | "CLIC_DOUX";
+export type BeepTone = "BIP_COURT" | "BIP_GRAVE" | "BIP_DOUBLE" | "BIP_LONG" | "SIFFLET_ROULE" | "SIFFLET_PUR" | "SIFFLET_COURT" | "FANFARE_COURTE" | "DING" | "CLIC_DOUX";
 
 export type BeepPort = { readonly play: (tone: BeepTone, volume?: number) => void; readonly prepare?: () => void };
 
@@ -52,6 +52,7 @@ export function startExecutionAudio(): Promise<void> {
 
 // Ressources audio empaquetées par Metro (exportées pour l'écran de diagnostic des sons).
 export const SOURCES: Record<BeepTone, number> = {
+  BIP_COURT: require("../../../assets/sounds/bip-court.wav"),
   BIP_GRAVE: require("../../../assets/sounds/bip-grave.wav"),
   BIP_DOUBLE: require("../../../assets/sounds/bip-double.wav"),
   BIP_LONG: require("../../../assets/sounds/bip-long.wav"),

@@ -9,7 +9,8 @@ export type ProfilePreference =
   | "announceObjectiveEnabled"
   | "announcePausesEnabled"
   | "announceSessionEnabled"
-  | "announceSidesEnabled";
+  | "announceSidesEnabled"
+  | "announcePhasesEnabled";
 
 /** Identité modifiable depuis Modifier le profil (CE-UI-01) — toujours les trois ensemble, atomiquement. */
 export type ProfileIdentityInput = {

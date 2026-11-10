@@ -1536,6 +1536,7 @@ export const fr = {
         announcePauses: "Annoncer les pauses et récupérations",
         announceSession: "Annoncer le début et la fin de séance",
         announceSides: "Annoncer les changements de côté",
+        announcePhases: "Annoncer les phases du mouvement",
         vibration: "Vibration",
         notifications: "Notifications",
       },

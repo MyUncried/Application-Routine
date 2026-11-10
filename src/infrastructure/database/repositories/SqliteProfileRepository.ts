@@ -1,6 +1,7 @@
 import {
   DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED,
   DEFAULT_ANNOUNCE_PAUSES_ENABLED,
+  DEFAULT_ANNOUNCE_PHASES_ENABLED,
   DEFAULT_ANNOUNCE_SESSION_ENABLED,
   DEFAULT_ANNOUNCE_SIDES_ENABLED,
   type Profile,
@@ -24,6 +25,7 @@ const SELECT_COLUMNS = `
   COALESCE(g.announce_pauses_enabled, ${DEFAULT_ANNOUNCE_PAUSES_ENABLED ? 1 : 0}) AS announce_pauses_enabled,
   COALESCE(g.announce_session_enabled, ${DEFAULT_ANNOUNCE_SESSION_ENABLED ? 1 : 0}) AS announce_session_enabled,
   COALESCE(g.announce_sides_enabled, ${DEFAULT_ANNOUNCE_SIDES_ENABLED ? 1 : 0}) AS announce_sides_enabled,
+  COALESCE(g.announce_phases_enabled, ${DEFAULT_ANNOUNCE_PHASES_ENABLED ? 1 : 0}) AS announce_phases_enabled,
   p.display_name, p.photo_uri, p.silhouette, p.updated_at
 `;
 
@@ -49,12 +51,13 @@ const PREFERENCE_COLUMNS: Readonly<Record<Exclude<ProfilePreference, GuidancePre
 };
 
 /** Préférences rangées dans `guidance_preferences` (suite PRE-10 son et voix, `migration025`). */
-type GuidancePreference = "announceObjectiveEnabled" | "announcePausesEnabled" | "announceSessionEnabled" | "announceSidesEnabled";
+type GuidancePreference = "announceObjectiveEnabled" | "announcePausesEnabled" | "announceSessionEnabled" | "announceSidesEnabled" | "announcePhasesEnabled";
 const GUIDANCE_COLUMNS: Readonly<Record<GuidancePreference, string>> = {
   announceObjectiveEnabled: "announce_objective_enabled",
   announcePausesEnabled: "announce_pauses_enabled",
   announceSessionEnabled: "announce_session_enabled",
   announceSidesEnabled: "announce_sides_enabled",
+  announcePhasesEnabled: "announce_phases_enabled",
 };
 
 function isGuidancePreference(preference: ProfilePreference): preference is GuidancePreference {
@@ -143,6 +146,7 @@ export function mapProfileRow(row: ProfileRow): Profile {
     announcePausesEnabled: row.announce_pauses_enabled === 1,
     announceSessionEnabled: row.announce_session_enabled === 1,
     announceSidesEnabled: row.announce_sides_enabled === 1,
+    announcePhasesEnabled: row.announce_phases_enabled === 1,
     displayName: row.display_name,
     photoUri: row.photo_uri,
     silhouette: row.silhouette,

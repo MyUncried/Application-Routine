@@ -916,5 +916,6 @@ function announcementsOf(profile: Profile): Announcements {
     pauses: profile.announcePausesEnabled,
     session: profile.announceSessionEnabled,
     sides: profile.announceSidesEnabled,
+    phases: profile.announcePhasesEnabled,
   };
 }

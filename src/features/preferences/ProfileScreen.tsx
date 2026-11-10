@@ -45,6 +45,7 @@ type PreferenceRow = {
     | "announcePauses"
     | "announceSession"
     | "announceSides"
+    | "announcePhases"
     | "vibration"
     | "notifications";
 };
@@ -62,6 +63,8 @@ const GUIDANCE_ROWS: readonly PreferenceRow[] = [
   { preference: "announcePausesEnabled", labelKey: "announcePauses" },
   { preference: "announceSessionEnabled", labelKey: "announceSession" },
   { preference: "announceSidesEnabled", labelKey: "announceSides" },
+  // Recette du 10/11/2026 (constat B) : phases du mouvement.
+  { preference: "announcePhasesEnabled", labelKey: "announcePhases" },
 ];
 
 const PREFERENCE_ROWS: readonly PreferenceRow[] = [
