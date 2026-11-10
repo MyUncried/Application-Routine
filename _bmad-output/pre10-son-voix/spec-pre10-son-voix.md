@@ -106,3 +106,23 @@ Réalisé (JavaScript et sons, sans nouveau build) :
    - réglages du Profil et de la séance ;
    - option d'annonce des répétitions ou de la durée ;
    - guidage en arrière-plan.
+
+## Demandes du 10/11/2026 (après application de la définition)
+
+Texte de Hermann, recopié :
+
+> Peux tu ajouter au formulaire :
+>  - la possibilité de renseigner le texte vocal avant le prochain exercice
+>  - l’enregistrement du besoin suivant. A suivre : mettre en ligne la liste des exercices de la séance et afficher au fur et à mesure 1. l’exercice en cours (gras), mettre l’exercice passé en gris puis qui disparaît. C’est une tentative pour voir ce que cela apporterait avant de faire le Figma cible
+
+Traitement :
+
+- Formulaire « Guidage sonore KODJO » (version 3) : nouvelle fiche « Annonce du prochain exercice ». Texte proposé : « Prochain exercice : {prochain} », comme dans l'application aujourd'hui. Le texte retenu sera appliqué après lecture de la base. Aucun changement de code pour l'instant.
+- Section « Besoins à suivre » ajoutée au formulaire. Le besoin ci-dessus y est enregistré (base, document `definition/besoins`).
+
+À SUIVRE (non arbitré, aucune règle créée, classe C) : un essai de liste des exercices de la séance pendant l'Exécution :
+
+- l'exercice en cours en gras ;
+- l'exercice passé en gris, puis il disparaît.
+
+Cet essai sert à juger l'apport avant le Figma cible. Il n'est ni spécifié ni planifié. Le Figma cible reste la référence du rendu.
