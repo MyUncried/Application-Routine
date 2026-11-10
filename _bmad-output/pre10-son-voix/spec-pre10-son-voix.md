@@ -299,3 +299,14 @@ Analyse :
 - Mécanisme probable, non démontré sur appareil.
 
 Correctif (classe D) : une reconfiguration de la session attend la fin du son en cours (durée de chaque fichier, plus 40 ms). Des journaux \`[guidage] son …\` et \`[guidage] session …\` sont ajoutés en développement pour confirmer à la prochaine écoute.
+
+Suite du diagnostic (10/11/2026) : « le click reste sur le sifflet roulé, et le point d'arrêt, et la pause ».
+
+Dans le journal, le double bip du Point d'arrêt (1794318401860) est joué sans reconfiguration de session à moins de 1,5 s. Le click vient donc du son lui-même, comme pour le bip grave.
+
+Correctif (classe D, sons choisis inchangés) :
+
+- double bip : niveau 0,55, montée de 20 ms, fin de 40 ms, chaque bip passant à 90 ms ;
+- sifflet roulé : niveau 0,6, montée de 25 ms, fin de 60 ms.
+
+Fichiers régénérés depuis le formulaire (version 10).
