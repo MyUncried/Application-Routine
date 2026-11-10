@@ -185,7 +185,7 @@ function capitalize(text: string): string {
 /** Objectif annoncé avec le nom (recette du 10/11/2026, G8 ; spec `spec-guidage-reglages` §7.3). */
 export function objectiveText(objective: SignalObjective | undefined): string | null {
   const target = objective?.target;
-  if (target === undefined || target === null) return null;
+  if (target === undefined) return null;
   if (target.kind === "FAILURE") return "jusqu'à l'échec";
   if (target.kind !== "NUMBER" || target.value <= 0) return null;
   if (objective?.mode === "REPETITIONS") return target.value === 1 ? "1 répétition" : `${target.value} répétitions`;

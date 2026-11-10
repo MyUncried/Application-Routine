@@ -56,7 +56,7 @@ export type Scheduler = {
 
 /** Signal demandé aux adaptateurs (son, voix, haptique) ; jamais une source de temps. */
 /** Objectif d'une Série (mode et cible), annoncé avec le nom de l'exercice (recette du 10/11/2026, G8). */
-export type SignalObjective = { readonly mode: ExecutionMode | null; readonly target: SeriesTarget | null };
+export type SignalObjective = { readonly mode: ExecutionMode | null; readonly target: SeriesTarget };
 
 export type ExecutionSignal = {
   /**
@@ -382,8 +382,8 @@ export class ExecutionService {
       exerciseName: projection?.exerciseName ?? null,
       sideRank: projection?.sideRank ?? null,
       timed: projection?.timer.kind === "COUNTDOWN",
-      next: projection?.next == null ? null : { phase: projection.next.kind, exerciseName: projection.next.name, objective: { mode: projection.next.mode ?? null, target: projection.next.target } },
-      objective: { mode: projection?.mode ?? null, target: projection?.seriesTarget ?? null },
+      next: projection?.next == null ? null : { phase: projection.next.kind, exerciseName: projection.next.name, objective: objectiveOf(projection.next.mode, projection.next.target) },
+      objective: projection === null ? undefined : objectiveOf(projection.mode, projection.seriesTarget),
     });
   }
 
@@ -410,4 +410,9 @@ export class ExecutionService {
   private notify() {
     for (const listener of this.listeners) listener();
   }
+}
+
+/** Objectif d'une étape : absent sans Cible de Série (AD-1 : une Cible n'est jamais comparée à null). */
+function objectiveOf(mode: ExecutionMode | null | undefined, seriesTarget: SeriesTarget | null): SignalObjective | undefined {
+  return seriesTarget === null ? undefined : { mode: mode ?? null, target: seriesTarget };
 }
