@@ -1,5 +1,19 @@
 # Documentation de KODJO
 
+## Décision de périmètre — Bibliothèques génériques KODJO (10/11/2026)
+
+**Décision validée par Hermann — BIB-19 à BIB-23.** Ce cadrage remplace, pour le **premier lot Bibliothèques**, les parcours de création/partage personnel qui étaient auparavant envisagés en premier ; les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 ne sont maintenues que comme **cible ultérieure**, lorsqu'elles concernent des éditeurs tiers, le partage ou la distribution.
+
+- **BIB-19 — Premier lot :** Bibliothèques génériques éditées et maintenues par KODJO (exemples : Fitness, Hyrox, Pilates, Yoga). Ces libellés sont des exemples de Bibliothèques et ne doivent pas être confondus avec les catégories/filtres existants du Catalogue.
+- **BIB-20 — Rôles des écrans :** le **Catalogue** reste l'accès aux Mouvements, Séances et Programmes, ainsi qu'à leurs créations/personnalisations locales. Dans le **Profil**, un accès « Mes bibliothèques » permet de sélectionner, installer et mettre à jour les Bibliothèques KODJO. Le bloc « Mes données » (Mouvements, Séances, Programmes) est supprimé du Profil car redondant avec le Catalogue. Le détail graphique et les états Figma restent à concevoir : aucune maquette n'est déclarée modifiée ni validée.
+- **BIB-21 — Protection du contenu publié :** l'utilisateur ne modifie pas directement la composition et les fiches publiées d'une Bibliothèque KODJO. Il peut continuer à créer et personnaliser ses contenus propres dans le Catalogue, sans muter la source publiée. Le traitement exact d'une adaptation locale d'une fiche installée reste à spécifier avant implémentation.
+- **BIB-22 — Mise à jour volontaire :** les nouvelles révisions sont proposées et appliquées sur action explicite « Mettre à jour » ; aucune modification silencieuse du contenu installé. Préserver les Séances et les contenus locaux existants ; définir le traitement des conflits et du retrait/désinstallation avant le lot concerné.
+- **BIB-23 — Report explicite :** Bibliothèques personnelles, de coachs ou d'autres éditeurs ; composition/publication par utilisateur, relations, groupes, partage, transmission, gestion des permissions de destinataires, modération centrale liée à la diffusion et commerce sont **hors premier périmètre Bibliothèques**. Préserver l'extensibilité de l'identité et de la composition, sans implémenter maintenant cet écosystème.
+
+**Plan de lots révisé :** L1 — définition minimale, catalogue de Bibliothèques génériques KODJO, sélection et installation vers le Catalogue ; L2 — contrôle des nouvelles révisions et mise à jour volontaire, reprises/conflits/retraits à préciser ; **lots ultérieurs** — création personnelle, coachs, partage, droits, relations, modération et commerce. La catégorisation préexistante du Catalogue ne doit pas être transformée implicitement en Bibliothèque ni supprimée.
+
+**Limites de validation :** aucune conception d'écran Bibliothèques n'est validée dans Figma ; les conditions de désinstallation, les adaptations locales et les éventuelles exceptions aux contenus protégés restent **À CLARIFIER**. Cette décision documentaire ne constitue pas une livraison fonctionnelle.
+
 ## Bibliothèques et partage de Mouvements — conception cible
 
 Les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 couvrent : Bibliothèques par références, identité source stable malgré les homonymes, **révision active unique par Mouvement**, propagation aux Bibliothèques qui le référencent après mise à jour volontaire, première publication distincte de la redistribution, permissions des destinataires, archivage, arrêt de partage, modération et Espace en étoile générique.
@@ -9,7 +23,7 @@ Les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 couvrent : Bibliothèque
 - [Architecture, modèle de données et axes de simplification pour Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md) — proposition technique à examiner, notamment la migration `normalized_name UNIQUE` et la cohérence des mises à jour sur deux bases.
 - [Registre des décisions](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) ; [données](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md), [API](Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md), [architecture](Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md).
 
-**Périmètre :** post-MVP, aucune réalisation de réseau ou de modération centrale revendiquée. La page « Prototype MVP » de Figma comporte des actions « Partager », pas des parcours complets de Bibliothèques ou de modération validés.
+**Périmètre :** premier lot Bibliothèques génériques KODJO distinct du MVP local ; partage et modération centrale reportés. Aucune réalisation de réseau ou de modération centrale revendiquée. La page « Prototype MVP » de Figma comporte des actions « Partager », pas des parcours complets de Bibliothèques ou de modération validés.
 
 ## Formats — base de reprise actualisée le 5 novembre 2026
 
