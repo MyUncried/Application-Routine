@@ -74,7 +74,7 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 | PU-14 | Propriétaire | Arrêt de diffusion sans révocation des usages acquis ; plus de nouvelles mises à jour. |
 | PU-15 | Utilisateur / KODJO | Signalement et retrait de modération prioritaire. |
 | PU-16 | Utilisateur | Utilisation locale hors ligne, reprise après interruption d'installation. |
-| PU-17 | Kiné / patient | Transmission individuelle de Mouvements par Espace professionnel en étoile ; consignes d'exécution orales, sans prescription numérique d'Exercice ou de Séance. |
+| PU-17 | Utilisateur émetteur / destinataire | Transmission dans un Espace en étoile générique, sans rôle professionnel ni prescription numérique ; usage kiné-patient : consignes orales. |
 
 ### Deux modes de partage sans rôles professionnels
 
@@ -128,7 +128,7 @@ KODJO iPhone (Expo / RN)
                  │ HTTPS authentifié, à développer
                  ▼
        Backend KODJO (modulaire)
-  ├─ Identité, utilisateurs et groupes
+  ├─ Identité et relations individuelles (groupes à arbitrer)
   ├─ Catalogue éditorial : fiches, révisions, médias
   ├─ Bibliothèques : compositions et révisions
   ├─ Droits d'accès par Bibliothèque et droits éditoriaux par fiche
@@ -359,10 +359,10 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 
 | Lot | Contenu | Conditions préalables |
 |---|---|---|
-| **L1 — Bibliothèques locales** | Références, création, composition, archives, copie avec permissions héritées | Parcours PU-01 à PU-04 et compatibilité Mouvement local |
-| **L2 — Identités et droits** | Fiches éditoriales, provenance/révisions, grants d'accès au niveau Bibliothèque, backend central minimal | Revue schéma et migrations |
+| **L1 — Bibliothèques locales** | Création, composition par références, archives et restauration ; copie à permissions héritées après raccordement des droits | PU-01/02/13 et compatibilité locale |
+| **L2 — Identités et droits** | Identité de source, provenance, droits par révision, copie avec permissions héritées, comptes et autorisations de Bibliothèque | Revue du schéma, migration homonymes et gardes |
 | **L3 — Validation de diffusion** | Stockage privé, soumission, contrôles automatiques, file humaine initiale, retrait d'accès | L2 ; exigences de modération opérationnelles **avant** partage utilisateur |
-| **L4 — Partage et réception** | Bibliothèques reçues, filtrage strict, accès particuliers/groupes, installation locale | L2 + L3 ; droits, tests sécurité |
+| **L4 — Partage et réception** | Bibliothèques reçues, filtrage strict, accès individuels ; groupes selon phasage validé | L2 + L3 ; permissions serveur, installation et tests |
 | **L5 — Mises à jour** | Pastille, preview, « Mettre à jour » global, conservation des retirés et variantes, reprise et modération synchronisée | L4 et arbitrage sur versions concurrentes |
 | **L6 — Publication publique / payante** | Découverte, droits commerciaux raccordables, volumétrie/modération renforcée | L3-L5 + chantier commercial distinct |
 
@@ -375,7 +375,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 | T-01 | Associer un Mouvement à deux Bibliothèques | Deux références, pas de copie source. |
 | T-02 | Retirer l'association d'une Bibliothèque personnelle | L'autre Bibliothèque et les Séances ne changent pas. |
 | T-03 | Copier une fiche Protégée | Nouvelle identité locale, permissions inchangées, modification refusée. |
-| T-04 | Redistribuer Bibliothèque mêlant contenu Libre/Protégé | Seules les fiches redistribuables et leurs métadonnées sont visibles chez le destinataire. |
+| T-04 | Propriétaire publie sa Bibliothèque mêlant ses propres fiches Protégées et des fiches tierces non redistribuables | Le propriétaire peut publier ses propres fiches avec droits destinataires Protégé ; les fiches tierces interdites ne sont jamais exposées. |
 | T-05 | Destinataire tente d'ajouter/retraiter un membre à la Bibliothèque reçue | Mutation interdite ; Bibliothèque personnelle modifiable. |
 | T-06 | Coach accorde la Bibliothèque à un groupe | Les membres autorisés peuvent utiliser les fiches éligibles sans grants individuels par fiche. |
 | T-07 | Publication d'une révision non approuvée | Distribution impossible, médias non servis. |
@@ -383,12 +383,12 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 | T-09 | Mise à jour globale avec ajout/retrait/édition | Composition et révisions cohérentes ; retrait conserve le Mouvement dans le Catalogue local. |
 | T-10 | Séance référence un Mouvement retiré | Séance et historique intacts, Mouvement local toujours utilisable sous réserve de droit/modération. |
 | T-11 | Adaptation personnelle et mise à jour source | Adaptation inchangée, aucune fusion silencieuse. |
-| T-12 | Deux Bibliothèques reçoivent une même fiche source en révisions différentes | Aucun changement silencieux dans la Bibliothèque non mise à jour. |
+| T-12 | Même fiche source dans deux Bibliothèques : mise à jour depuis A | Aperçu signale B ; la révision active locale se propage à A et B ; composition de B inchangée ; pas de confirmation supplémentaire. |
 | T-13 | Archivage par l'émetteur | Destinataire et capacité de recevoir les nouvelles mises à jour inchangés. |
 | T-14 | Arrêt de diffusion | Nouvelle installation interdite ; utilisateurs existants gardent les installations et ne reçoivent plus de MAJ. |
 | T-15 | Modération bloque une vidéo distribuée | Serveur bloque immédiatement nouvelles consultations ; client bloque à prochaine synchronisation réalisable ; références préservées. |
 | T-16 | Coupure pendant mise à jour de Bibliothèque | Reprise idempotente, état cohérent, aucune perte des Mouvements/Séances. |
-| T-17 | Deux fiches source ont le même titre normalisé | Aucun écrasement ; situation traitée explicitement, selon arbitrage à obtenir. |
+| T-17 | Deux fiches de sources distinctes intitulées « Squat » | Deux Mouvements coexistent avec noms affichés identiques, identités sources distinctes et provenance consultable ; aucune fusion ni suffixe imposé. |
 | T-18 | Client hors ligne exécute une Séance déjà présente | Moteur disponible, pas d'exigence de connexion sauf limitations connues de modération/droits. |
 | T-19 | Un kiné transmet un Mouvement dans l'Espace d'un patient | Le patient reçoit le Mouvement, aucun Exercice/Séance ni paramètres d'exécution prescrits numériquement ne sont créés ; les autres patients ne sont pas destinataires. |
 
@@ -398,10 +398,10 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 - A1. Politique d'accès payant après expiration, retour/remboursement et changement d'appareil.
 - A2. Possibilité de reprendre la diffusion après un arrêt et sort des destinataires existants lors de cette reprise.
 - A3. Modifications ultérieures des permissions (retrait du droit de redistribuer) sur des copies déjà installées.
-- A4. Permissions par défaut lors de création/partage ; les quatre modes sont validés, le défaut ne l'est pas.
+- A4. **Précisé** : création originale modifiable localement et non redistribuable par des tiers par défaut ; le propriétaire choisit les droits des destinataires à la première publication. Modalité de restriction ultérieure encore ouverte.
 - A5. Insertion de nouveaux membres dans une Bibliothèque reçue si l'abonné ne demande pas de mise à jour (règle générale : aucun changement ; confirmer cas d'accès).
-- A6. Choix du comportement lorsque deux Bibliothèques référencent la même fiche avec révisions différentes.
-- A7. Gouvernance des groupes, confidentialité, accès professionnel et preuve des droits d'utilisation ; topologie **Espace kiné en étoile** et contrôle d'accès individuel par patient.
+- A6. **Résolu par F4-G** : révision active unique, propagation transversale et aperçu préalable des Bibliothèques concernées. Cohérence multi-fiches à vérifier techniquement.
+- A7. Gouvernance des groupes, confidentialité et preuve des droits ; **Espace en étoile générique**, sans rôle professionnel, invitation acceptée, possibilité de refus/blocage. Détails relationnels encore ouverts.
 - A8. Interface de partage d'une fiche seule, gestion d'une Bibliothèque de diffusion « zéro contenu ».
 - A9. Sémantique de la conservation locale après retrait pour contenus restreints à un contrat de durée.
 
