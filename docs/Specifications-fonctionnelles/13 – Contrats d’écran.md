@@ -1,5 +1,9 @@
 # Contrats d’écran
 
+### Plan de raccordement écran — Profil Bibliothèques (11/11/2026)
+
+**Étape 3 :** spécifier dans Figma l'écran de gestion des sources/Bibliothèques, l'import, la provenance, les versions, l'installation et la mise à jour volontaire ; les services de catalogue CA-3 (étape 4) sont indépendants du rendu. **Étape 6 :** raccorder l'écran Profil aux services puis contrôler le chargement des 60 Mouvements et la conservation de leurs références. **Aucun second éditeur de Mouvement dans Profil** : le Catalogue conserve création/édition courantes, l'administration Web l'édition complète de la fiche source. Référence Figma vérifiée : [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778). La commande « Mettre à jour » de Pilates y est visible ; l'état des entrées personnelles/partagées avant développement reste **À CLARIFIER**. Un fichier catalogue autonome importé dans la recette est distinct d'une Bibliothèque choisie par l'utilisateur. Valeurs « 14 mouvements » et « 8 mouvements » : exemples affichés, non règles de cardinalité.
+
 ### Contrôle Figma du 10/11/2026 — Profil et Bibliothèques
 
 **Évidence directe :** page Prototype MVP `510:101`, écran [P-Profil — Modifier le profil — MVP, `1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778). L'écran représente « Bibliothèques » avec « Mes bibliothèques » (« Celles que je crée et rends disponibles »), « Bibliothèques partagées » (« Celles que je peux importer »), puis « Bibliothèques installées » : Fitness (« 14 mouvements · à jour ») et Pilates (« 8 mouvements », action « Mettre à jour »). L'écran « Profil — Préférences » `1992:684` est distinct.
