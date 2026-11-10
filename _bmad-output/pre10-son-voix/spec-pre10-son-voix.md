@@ -413,3 +413,7 @@ Suite, demande de Hermann recopiée : « Faire apparaître les pauses, etc. ».
 La liste passe des exercices aux étapes : une ligne par étape du plan, avec le nom, la Série et le côté d'un Exercice, ou la phase et sa durée prévue. L'étape en cours est en gras ; la précédente est grise puis retirée. Il s'agit toujours de l'essai de classe C.
 
 Suite, demande de Hermann recopiée : « Sauf compte à rebours et fin de séance ». Le Compte à rebours initial et la Fin de séance sont retirés de la liste.
+
+Décision de Hermann, recopiée : « C’était juste un essai. Mettons cette liste de côté et continuons le développement ».
+
+L’ffichage de la liste est retiré de l’\écran d’xécution. Le calcul `projection.outline`, son test et le résultat de l’ssai (ce document) sont conservés comme base pour le Figma cible. Aucune règle n’st créée.

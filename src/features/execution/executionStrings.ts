@@ -14,9 +14,6 @@ export const executionStrings = {
   tour: "Tour",
   side: (rank: 1 | 2) => `Côté ${rank}`,
   next: "À suivre",
-  /** Liste des exercices de la Séance (essai du 10/11/2026). */
-  outline: "Séance",
-  outlineTour: (current: number, total: number) => `Tour ${current}/${total}`,
   /** « À suivre » d'un Point d'arrêt (recette PRE-10 du 09/11/2026, Hermann). */
   nextStopPoint: "Arrêt de la séance, redémarrage manuel",
   seriesShort: (current: number, total: number) => `Série ${current}/${total}`,
