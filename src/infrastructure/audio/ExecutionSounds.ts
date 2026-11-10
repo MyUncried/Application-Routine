@@ -64,61 +64,44 @@ export const SOURCES: Record<BeepTone, number> = {
 };
 
 /**
- * Un lecteur par son, rechargé après chaque lecture — cause racine du click démontrée le 10/11/2026 sur l'écran
+ * Un lecteur neuf par son joué, préparé à l'avance — cause racine du click démontrée le 10/11/2026 sur l'écran
  * de diagnostic des sons : après une annonce vocale, un même lecteur rembobiné et rejoué claque à partir du
- * deuxième son (essai F), quel que soit le son ou le mode de session. Un lecteur neuf à chaque son (essai H) ou
- * un lecteur dont le fichier est rechargé après chaque lecture (essai J, retenu car plus économe) ne claquent
- * pas. Le fichier est rechargé dès la fin du son ; un son redemandé avant ce rechargement le déclenche aussitôt.
+ * deuxième son (essai F), quel que soit le son ou le mode de session ; un lecteur neuf à chaque son ne claque
+ * jamais (essai H). Chaque son joue donc un lecteur jamais utilisé, chargé d'avance ; il est libéré peu après.
  */
-const players: Partial<Record<BeepTone, Promise<AudioPlayer>>> = {};
-const reloads: Partial<Record<BeepTone, ReturnType<typeof setTimeout>>> = {};
+const ready: Partial<Record<BeepTone, Promise<AudioPlayer>>> = {};
 
-// Durée des fichiers (ms) : le rechargement attend la fin du son.
-const DURATION_MS: Record<BeepTone, number> = {
-  BIP_GRAVE: 200,
-  BIP_DOUBLE: 250,
-  BIP_LONG: 620,
-  SIFFLET_ROULE: 440,
-  SIFFLET_PUR: 420,
-  SIFFLET_COURT: 240,
-  FANFARE_COURTE: 640,
-  DING: 1220,
-  CLIC_DOUX: 45,
-};
+/** Délai avant de libérer un lecteur joué (plus long que le plus long des sons). */
+const RELEASE_AFTER_MS = 3000;
 
-/** Marge après la fin d'un son avant de recharger son fichier. */
-const RELOAD_MARGIN_MS = 100;
-
-function player(tone: BeepTone): Promise<AudioPlayer> {
-  let loaded = players[tone];
-  if (loaded === undefined) {
-    loaded = (async () => {
-      const { createAudioPlayer } = await import("expo-audio");
-      return createAudioPlayer(SOURCES[tone], { keepAudioSessionActive: true });
-    })();
-    players[tone] = loaded;
-    loaded.catch(() => {
-      players[tone] = undefined;
-    });
-  }
-  return loaded;
+async function load(tone: BeepTone): Promise<AudioPlayer> {
+  const { createAudioPlayer } = await import("expo-audio");
+  return createAudioPlayer(SOURCES[tone], { keepAudioSessionActive: true });
 }
 
-/** Rechargement en attente : fait tout de suite, avant de rejouer le son. */
-function reloadNow(tone: BeepTone, target: AudioPlayer): void {
-  const pending = reloads[tone];
-  if (pending === undefined) return;
-  clearTimeout(pending);
-  reloads[tone] = undefined;
-  target.replace(SOURCES[tone]);
+/** Lecteur prêt pour ce son ; le suivant est aussitôt préparé. */
+function take(tone: BeepTone): Promise<AudioPlayer> {
+  const player = ready[tone] ?? load(tone);
+  ready[tone] = load(tone);
+  ready[tone]!.catch(() => {
+    ready[tone] = undefined;
+  });
+  return player;
 }
 
 export class ExecutionSounds implements BeepPort {
-  /** Début d'Exécution : session active et lecteurs chargés, pour qu'aucun son ne parte en retard. */
+  /** Début d'Exécution : session active et un lecteur prêt par son, pour qu'aucun son ne parte en retard. */
   prepare(): void {
     if (!hasNativeModule("ExpoAudio")) return;
     void startExecutionAudio();
-    for (const tone of Object.keys(SOURCES) as BeepTone[]) void player(tone).catch(() => undefined);
+    for (const tone of Object.keys(SOURCES) as BeepTone[]) {
+      if (ready[tone] === undefined) {
+        ready[tone] = load(tone);
+        ready[tone]!.catch(() => {
+          ready[tone] = undefined;
+        });
+      }
+    }
   }
 
   play(tone: BeepTone, volume = 1): void {
@@ -128,14 +111,16 @@ export class ExecutionSounds implements BeepPort {
   private async playAsync(tone: BeepTone, volume: number): Promise<void> {
     if (!hasNativeModule("ExpoAudio")) return;
     void startExecutionAudio();
-    const target = await player(tone);
-    reloadNow(tone, target);
-    target.volume = volume;
-    target.play();
+    const player = await take(tone);
+    player.volume = volume;
+    player.play();
     if (__DEV__) console.log(`[guidage] son ${tone} ${Date.now()}`);
-    reloads[tone] = setTimeout(() => {
-      reloads[tone] = undefined;
-      target.replace(SOURCES[tone]);
-    }, DURATION_MS[tone] + RELOAD_MARGIN_MS);
+    setTimeout(() => {
+      try {
+        player.remove();
+      } catch {
+        // Lecteur déjà libéré.
+      }
+    }, RELEASE_AFTER_MS);
   }
 }
