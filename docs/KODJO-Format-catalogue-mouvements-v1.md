@@ -114,9 +114,82 @@ Les autres propriétés restent dans la fiche éditoriale, sans être ajoutées 
 
 ## 8. Hors format v1 (prévu, non développé)
 
-- Chargement et registre d'installation (CA-3, base SQLite distincte provisoire).
+- [10/11/2026 : développés en CA-3, voir § 9] Chargement et registre d'installation (CA-3, base SQLite distincte provisoire).
 - Écran de recette (CA-4).
 - Téléchargement (option B).
 - Transport physique des médias.
 - Partage entre utilisateurs et filiation (`LOCAL_DERIVED`, `SHARED_IMPORTED`).
 - Validation éditoriale et clinique.
+
+## 9. Chargement d'un catalogue (CA-3)
+
+**Décision de Hermann du 10/11/2026**, verbatim :
+> « 1. Base SQLite : conserver provisoirement kodjo-catalogue-registry.db, indépendante de la base principale. Son intégration éventuelle sera réévaluée après PRE-10, sans engagement automatique. Garantir la cohérence et la reprise après interruption, sans complexité excessive.
+> 2. Conflits : conserver systématiquement les modifications locales et reporter la nouvelle révision. Aucun écrasement, refus ou remplacement automatique. La décision appartient au destinataire.
+> 3. Acceptation : procéder fiche par fiche. Présenter systématiquement un résumé des changements avant acceptation, y compris lorsqu'il n'existe aucun conflit. La comparaison détaillée champ par champ doit être accessible à la demande et permettre d'identifier précisément les conflits.
+> Le suivi doit couvrir toutes les propriétés éditoriales, pas uniquement les champs de Movement. […] Ne pas ajouter de mécanisme de fusion automatique. »
+
+**Code** : `src/domain/catalogue/catalogueLoadPlan.ts` (classification pure), `src/infrastructure/catalogue/SqliteCatalogueRegistry.ts` (registre), `src/features/catalogue/CatalogueLoadService.ts` (services). Interface : CA-4.
+
+### 9.1 Registre (`kodjo-catalogue-registry.db`, provisoire)
+
+- Base distincte de `kodjo.db`. Elle n'entraîne aucune migration du schéma principal. Son schéma est versionné par `PRAGMA user_version` (version 1), et une version plus récente est refusée.
+- Le registre contient quatre tables :
+  - `installed_sheets` : instantané éditorial **complet** installé (B), révision, empreinte et Mouvement rattaché (un Mouvement par fiche) ;
+  - `pending_operations` : écriture de Mouvement en cours ;
+  - `sheet_decisions` : refus ou report, par révision ;
+  - `saved_local_values` : valeur personnelle sauvegardée avant d'être remplacée par choix explicite.
+- Une écriture de Mouvement suit toujours la même séquence, et une interruption entre deux étapes est reprise au chargement suivant :
+  1. l'opération est inscrite comme en cours ;
+  2. le Mouvement est écrit par le service Catalogue existant ;
+  3. la confirmation est faite en une seule transaction du registre.
+- Reprise au chargement suivant :
+  - écriture faite → confirmée ;
+  - écriture non faite → abandonnée, la fiche est reproposée ;
+  - aucune écriture de Mouvement pendant la reprise.
+- Les lectures, du registre comme des Mouvements locaux, se font dans une transaction : c'est la leçon de l'incident du 9/11.
+
+### 9.2 États d'une fiche
+
+| État | Signification | Décisions possibles |
+|---|---|---|
+| `NEW` | Aucune trace locale | Accepter (installation), reporter, refuser |
+| `ADOPTABLE` | Mouvement déjà présent sous un identifiant de `install.knownLocalMovementIds`, identique | Accepter (registre seul), reporter, refuser |
+| `TO_RECONCILE` | Mouvement probable (identifiant connu ou même nom) sans base fiable ; toute différence est un conflit | Accepter avec choix par champ, reporter, refuser |
+| `UP_TO_DATE` | Même révision, même empreinte (une modification locale est signalée et conservée) | — |
+| `NEW_REVISION` | Révision plus récente (filiation par `history`) | Accepter (choix par champ si conflit), reporter, refuser |
+| `OLDER_REVISION` | Révision antérieure à l'installée | — |
+| `INCOHERENT_REVISION` | Même révision, empreinte différente ; ou filiation rompue | — |
+| `REFUSED_REVISION` | Révision déjà refusée | — (une révision ultérieure est reproposée) |
+| `WITHDRAWN_LOCALLY` | Mouvement supprimé ou archivé localement | — (jamais réinstallé ni modifié) |
+| `INTERRUPTED` | Opération en cours non reprise | — |
+
+**Empêchements** (`blockers`) :
+- Catégorie ou Zone absente du téléphone (`LOCAL_REFERENCE_MISSING`), sans création implicite ;
+- nom pris par un autre Mouvement (`NAME_CONFLICT`).
+
+### 9.3 Résumé et comparaison
+
+- Chaque fiche porte un **résumé systématique**, y compris sans conflit :
+  - nombre de champs modifiés, par section (provenance, contenu, classification, sources, validation, médias) ;
+  - champs du Mouvement qui seraient modifiés ;
+  - conflits ;
+  - modifications locales conservées ;
+  - indication « purement éditorial ».
+- La **comparaison détaillée** est disponible à la demande. Elle couvre **toutes** les propriétés éditoriales de la fiche, avec pour chaque champ :
+  - les valeurs installée, entrante et, pour les champs projetés, locale ;
+  - les indicateurs « modifié par le fichier », « modifié localement » et « conflit ».
+- Seuls cinq champs sont projetés sur le Mouvement et peuvent entrer en conflit : nom, alias, étapes, Catégorie, Zones. Un **conflit** est un champ modifié localement **et** dans la nouvelle révision, avec des valeurs différentes. Une modification locale égale à la nouvelle valeur n'est pas un conflit.
+
+### 9.4 Décisions (aucune fusion automatique)
+
+- Fiche par fiche : `accept`, `defer`, `refuse`. Aucune décision n'est prise sans le destinataire ; en cas de conflit, la proposition par défaut est `DEFER`.
+- **Accepter en cas de conflit** exige, pour **chaque** champ en conflit, un choix explicite : `KEEP_LOCAL` ou `TAKE_INCOMING`. Sans ce choix, rien n'est écrit (`RESOLUTION_REQUIRED`). Une valeur locale remplacée est d'abord sauvegardée au registre.
+- **Accepter sans conflit** :
+  - un champ modifié par le fichier et non localement prend la nouvelle valeur ;
+  - un champ modifié localement garde la valeur locale ;
+  - les propriétés hors Mouvement entrent dans l'instantané du registre.
+- Le Mouvement n'est écrit que si un champ projeté change, et toujours par le service Catalogue existant. Médias, phases, famille et archivage locaux ne sont jamais modifiés.
+- Une décision est recalculée sur l'état actuel au moment où elle est prise, jamais sur un plan ancien.
+- Une fiche absente du fichier n'est jamais supprimée localement.
+

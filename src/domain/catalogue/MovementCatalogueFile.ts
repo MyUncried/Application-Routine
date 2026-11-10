@@ -634,7 +634,8 @@ export function sheetFingerprint(sheet: CatalogueSheet): string {
   return canonicalJson(editorial, null);
 }
 
-function canonicalJson(value: unknown, key: string | null): string {
+/** JSON canonique (clés triées, ensembles triés) : base commune de l'empreinte et des comparaisons de chargement. */
+export function canonicalJson(value: unknown, key: string | null): string {
   if (Array.isArray(value)) {
     const items = value.map((item) => canonicalJson(item, null));
     if (key !== null && SET_FIELDS.has(key)) items.sort();
