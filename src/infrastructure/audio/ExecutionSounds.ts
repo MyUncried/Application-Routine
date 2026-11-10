@@ -143,8 +143,8 @@ export function releaseOthersAfterVoice(): void {
  */
 const SKIPPABLE_WHILE_RECONFIGURING: ReadonlySet<BeepTone> = new Set(["CLIC_DOUX"]);
 
-// Ressources audio empaquetées par Metro.
-const SOURCES: Record<BeepTone, number> = {
+// Ressources audio empaquetées par Metro (exportées pour l'écran de diagnostic des sons).
+export const SOURCES: Record<BeepTone, number> = {
   BIP_GRAVE: require("../../../assets/sounds/bip-grave.wav"),
   BIP_DOUBLE: require("../../../assets/sounds/bip-double.wav"),
   BIP_LONG: require("../../../assets/sounds/bip-long.wav"),
