@@ -789,6 +789,8 @@ Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les An
 
 Réglages généraux choisis : nom de l’exercice annoncé avant son départ, pendant le Compte à rebours ou la récupération qui précède (« Prochain exercice : … ») ; sons et annonces audibles en mode silencieux ; sons et annonces maintenus en arrière-plan ; annonce des répétitions ou de la durée selon une option ; musique d’une autre application atténuée pendant les annonces et les sons. Réglage : « Les trois » (interprétation à confirmer : Profil, modification pour une séance, interrupteurs pendant l’Exécution).
 
+[Remplacé et complété le 10/11/2026 — réponses de Hermann : la musique d’une autre application est atténuée pendant les annonces vocales seulement, pas pendant les sons (choix A, qui remplace « pendant les annonces et les sons ») ; « Les trois » est confirmé : réglage dans le Profil, modifiable pour une Séance, interrupteurs Sons et Voix pendant l’Exécution. Spécification des réglages en cours : `_bmad-output/pre10-son-voix/spec-guidage-reglages.md`.]
+
 Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
 Répétitions sans bip/À l’échec sans bip : aucun signal de fin de compte à rebours, bip minute. À l’échec avec bip : périodique sans bip minute superposé. Répétitions cadencées : signal périodique maintenu après nominal sans signal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.

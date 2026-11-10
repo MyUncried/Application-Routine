@@ -126,3 +126,13 @@ Traitement :
 - l'exercice passé en gris, puis il disparaît.
 
 Cet essai sert à juger l'apport avant le Figma cible. Il n'est ni spécifié ni planifié. Le Figma cible reste la référence du rendu.
+
+## Réponses du 10/11/2026 aux trois points À CLARIFIER
+
+Réponses de Hermann, recopiées :
+
+1. Musique : « A — Annonces seulement (Recommandé) ». La musique baisse pendant les annonces vocales seulement. C'est déjà le cas dans l'application, aucun changement de code. Cette réponse remplace « tout ». Point 1 résolu.
+2. « Les trois » : « Oui, les trois ». Réglage dans le Profil, modifiable pour une Séance, interrupteurs Sons et Voix pendant l'Exécution. Point 2 résolu.
+3. Lot suivant : « Oui, prépare la spec ». La spec est rédigée dans `spec-guidage-reglages.md` et attend sa validation.
+
+ch08 « Guidage sonore » est complété par une annotation datée (classe B).
