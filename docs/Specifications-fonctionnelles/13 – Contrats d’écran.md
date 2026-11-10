@@ -1,5 +1,10 @@
 # Contrats d’écran
 
+## Contrat cible — Profil / Mes bibliothèques (BIB-19 à BIB-23)
+
+Le Profil doit proposer l'accès « Mes bibliothèques » pour découvrir, sélectionner et installer les Bibliothèques génériques KODJO et déclencher volontairement « Mettre à jour » lorsqu'une nouvelle révision est proposée. Le bloc « Mes données » (Mouvements, Séances, Programmes) est supprimé du Profil : ces contenus sont accessibles depuis le Catalogue. Les contenus des Bibliothèques publiées ne sont pas éditables directement. **Contrat fonctionnel cible, pas contrat graphique Figma validé** ; affichages, confirmations, désinstallation et erreurs restent à préciser avant développement. La création de Bibliothèques personnelles, les Bibliothèques de coachs et le partage sont reportés. Voir BIB-19 à BIB-23.
+
+
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
 ## Récupération de l’Exercice et défauts du Profil
