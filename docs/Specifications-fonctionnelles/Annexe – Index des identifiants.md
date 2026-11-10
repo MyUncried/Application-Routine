@@ -1170,3 +1170,38 @@ CE-FMT-05 (chapitre 13) : actions du Circuit et réédition. Décisions : chapit
 ## Création et Formats — 5 novembre
 
 CE-CREATION-01 : modale commune et destinations Catalogue/Composition ; CE-CIR-03 retiré. CE-FMT-02/04/05 : tableaux, charges, Death by et réouverture. Règles et décisions : chapitres 10 et 07, ancre creation-formats-20261105. FMT-20/28/29/33 actualisées ; données/API/architecture aux chapitres 09/11/12. Les scénarios de la source finale sont prescrits, non exécutés sur application.
+
+## Complément manuel — décisions de Bibliothèques (post-MVP)
+
+Les identifiants ci-dessous appartiennent au registre fonctionnel. Ce complément ne prétend pas régénérer le tableau historique de l'annexe et ne transforme pas des fonctionnalités cibles en code livré.
+
+| Identifiant | Source de définition | Portée |
+|---|---|---|
+| BIB-01 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-02 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-03 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-04 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-05 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-06 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-07 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-08 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-09 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-10 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-11 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-12 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-13 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-14 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-15 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-16 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-17 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-18 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| F4-A | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
+| F4-B | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
+| F4-C | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
+| F4-D | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
+| F4-E | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
+| F4-F | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
+| F4-G | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Version active unique et propagation aux Bibliothèques |
+| KIN-01 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Transmission individuelle dans l'Espace en étoile |
+
+[Parcours](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) · [Architecture et modèles proposés](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
