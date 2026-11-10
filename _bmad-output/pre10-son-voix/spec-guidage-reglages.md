@@ -1,6 +1,6 @@
 # Spec — Réglages du guidage sonore, annonce du détail, guidage en arrière-plan
 
-Lot : suite de PRE-10 son et voix (branche `pre10-son-voix`). Statut : **brouillon à valider par Hermann avant tout code**. Rédigée le 10/11/2026.
+Lot : suite de PRE-10 son et voix (branche `pre10-son-voix`). Statut : **validée par Hermann le 10/11/2026** (réponses au §7). Rédigée le 10/11/2026.
 
 ## 1. Décisions sources (recopiées)
 
@@ -126,3 +126,15 @@ Pour chaque étape : tests Jest du domaine et des services, recette iPhone via l
    - À l'échec : rien, ou « jusqu'à l'échec » ;
    - durée en minutes : « 1 minute 30 ».
 4. **Arrière-plan désactivé** : quand l'application passe en arrière-plan, l'Exécution continue sans son, ou se met en pause ?
+
+## 7. Réponses du 10/11/2026 (recopiées)
+
+1. Profil : « A — Bascules générales (Recommandé) ». Le Profil a quatre bascules. La table par moment reste fixe.
+2. Séance : « Élément Guidage (Recommandé) ». Un élément « Guidage » dans la Composition, près du Compte à rebours initial. Claude propose l'écran sans maquette Figma préalable.
+3. Détail : « Proposition (Recommandé) ». Les textes sont :
+   - « 8 à 12 répétitions » ;
+   - « jusqu'à l'échec » ;
+   - « 1 minute 30 ».
+4. Arrière-plan désactivé : « Continue sans son (Recommandé) ». Le temps continue sans son ni annonce, et le guidage reprend au retour.
+
+Les quatre points À CLARIFIER du §6 sont résolus.
