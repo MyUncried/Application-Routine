@@ -797,6 +797,8 @@ Réglages généraux choisis : nom de l’exercice annoncé avant son départ, p
 
 [Remplacé et complété le 10/11/2026 — recette iPhone « Guidage sonore — 3 » de Hermann : arrivée sur une Pause entre séries ou une récupération, double bip, que l’étape précédente se termine au zéro ou par Suivant ; signal minute à 15 % ; musique d’une autre application atténuée pendant les annonces, les bips de fin d’étape, les sifflets, les doubles bips, le bip de départ et la fanfare, jamais pendant les bips de cadence ni le signal minute (remplace le choix A « annonces seulement » du 10/11/2026), l’atténuation étant demandée avant les bips de fin pour qu’ils restent à l’heure ; la préférence Vibrations du Profil s’applique au retour sur l’Exécution.]
 
+[Remplacé le 10/11/2026 — décision de Hermann (« 1.A ») : la musique d’une autre application est atténuée pendant toute l’Exécution, et non plus seulement pendant certains sons ou annonces. Raison : iOS n’applique l’atténuation qu’en coupant puis rétablissant la sortie audio de l’application, ce qui produisait des clicks et des bips décalés ou manquants, même sans musique. Les sons choisis par Hermann dans le formulaire sont rétablis tels quels (« 2.A »).]
+
 Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
 Répétitions sans bip/À l’échec sans bip : aucun signal de fin de compte à rebours, bip minute. À l’échec avec bip : périodique sans bip minute superposé. Répétitions cadencées : signal périodique maintenu après nominal sans signal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.

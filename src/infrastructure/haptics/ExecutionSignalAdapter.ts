@@ -43,7 +43,6 @@ export const GUIDANCE = {
   sessionEnd: { sound: null, volume: 1, vibration: "MEDIUM" },
   finish: { sound: "FANFARE_COURTE", volume: 0.6, vibration: "MEDIUM" },
   other: { sound: "BIP_GRAVE", volume: 1, vibration: "HEAVY" },
-  silent: { sound: null, volume: 1, vibration: "NONE" },
 } as const satisfies Record<string, Cue>;
 
 /** Délai entre le son et l'annonce, pour ne pas les superposer. */
@@ -108,11 +107,6 @@ export class ExecutionSignalAdapter {
     const key = `${signal.kind}@${signal.atMs}`;
     if (key === this.lastKey) return;
     this.lastKey = key;
-    if (signal.kind === "PREPARE") {
-      // Avant les bips de fin : la musique est baissée à l'avance (recette du 10/11/2026, t7).
-      if (this.soundEnabled) this.beeps.duckAhead?.();
-      return;
-    }
     if (signal.kind === "CADENCE" && this.lastSoundAtMs !== null && signal.atMs >= this.lastSoundAtMs && signal.atMs - this.lastSoundAtMs < CADENCE_QUIET_AFTER_SOUND_MS) return;
     if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"}`);
     const { cue, announcement } = this.guidance(signal);
@@ -128,7 +122,6 @@ export class ExecutionSignalAdapter {
 
   /** Son, vibration et annonce d'un signal ; tient compte du « À suivre » déjà annoncé et de l'étape précédente. */
   guidance(signal: ExecutionSignal): Guidance {
-    if (signal.kind === "PREPARE") return { cue: GUIDANCE.silent, announcement: null };
     if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null };
     if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null };
     if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null };

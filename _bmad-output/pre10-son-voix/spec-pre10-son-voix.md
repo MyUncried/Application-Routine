@@ -310,3 +310,35 @@ Correctif (classe D, sons choisis inchangés) :
 - sifflet roulé : niveau 0,6, montée de 25 ms, fin de 60 ms.
 
 Fichiers régénérés depuis le formulaire (version 10).
+
+
+## Cause racine du click et décision du 10/11/2026
+
+Preuves recueillies avec Hermann, sans musique :
+
+- le click s'entend aussi avec des écouteurs, il est donc dans le signal ;
+- avec les vibrations du système coupées, le click reste ;
+- sur l'écran de diagnostic `routine://diagnostic-sons`, qui ne reconfigure jamais la session audio, le double bip ne fait aucun click (« Double bip: A, B, C, et D, je n'entends pas le click ») :
+  - même lecteur, avec le volume réglé une fois ou avant chaque son ;
+  - lecteur neuf, avec ou sans réglage du volume.
+- En Exécution, avec les mêmes fichiers, le click est présent.
+- Remarque de Hermann : « ce click n'existait pas je pense à la première liuvraison de l'exécution ». La première livraison (b362aa34) réglait la session une seule fois, en `duckOthers`, sans jamais la désactiver.
+
+Cause racine, attribution plausible et fortement étayée :
+
+- la désactivation et la réactivation de la session audio pendant l'Exécution, pour atténuer la musique par moments, coupaient net le son en cours ;
+- ce mécanisme a été introduit par 9af6fdc5 et cee722ad (atténuation pour les annonces), puis étendu par ae8a7a51 (sons) ;
+- il explique aussi les bips décalés ou manquants.
+- Les adoucissements des sons (923b0ff7, ecd20f31, be7addf2) n'étaient que des contournements.
+
+Décision de Hermann, recopiée : « 1.A. Mais peut-on modifier le son de la musique en cour d'exercice ? 2.A »
+
+- 1.A : musique atténuée pendant toute l'Exécution. La session est réglée une fois et n'est plus jamais désactivée pendant la séance.
+- 2.A : retour aux sons choisis dans le formulaire. Les fichiers sont identiques à ceux de 9b9339ef.
+
+Traitement (classe B, ch08 annoté) :
+
+- `ExecutionSounds` : suppression de toute reconfiguration.
+- `ExecutionVoice` : plus d'atténuation par annonce.
+- Signal `PREPARE` retiré.
+- Écran de diagnostic conservé, en développement seulement (accès depuis le Profil).

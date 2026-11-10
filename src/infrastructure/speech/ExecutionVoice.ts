@@ -1,6 +1,4 @@
-import { duckOthersForVoice, hasNativeModule, releaseOthersAfterVoice, startExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
-
-// Atténuation de la musique pendant les annonces, les bips de fin et les sifflets : voir `ExecutionSounds`.
+import { hasNativeModule, startExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
 
 /**
  * Lot PRE-10 son et voix (décision de Hermann du 09/11/2026, recette PRE-10 n° 2, `q-son` ; ch08 « Guidage
@@ -13,8 +11,8 @@ import { duckOthersForVoice, hasNativeModule, releaseOthersAfterVoice, startExec
  * - S2 (voix « très robotique ») : la voix française de meilleure qualité installée sur l'appareil est
  *   choisie (Améliorée ou Premium avant la voix par défaut) ;
  * - S2 (début de la première annonce qui « saute ») et S9 (musique non atténuée) : la session audio est
- *   activée avant de parler, puis libérée à la fin de la dernière annonce pour rendre le volume aux autres
- *   applications.
+ *   active avant la première annonce. Depuis la décision du 10/11/2026 (« 1.A »), elle reste active et
+ *   atténue la musique pendant toute l'Exécution (voir `ExecutionSounds`).
  */
 export type VoicePort = { readonly say: (text: string) => void; readonly prepare?: () => void };
 
@@ -61,28 +59,15 @@ export class ExecutionVoice implements VoicePort {
     const Speech = await import("expo-speech");
     const voice = await this.voice().catch(() => null);
     await Speech.stop();
-    await duckOthersForVoice();
-    // Chaque annonce libère une seule fois l'atténuation qu'elle a demandée.
-    let released = false;
-    const release = () => {
-      if (released) return;
-      released = true;
-      releaseOthersAfterVoice();
-    };
-    // Recette du 10/11/2026 (constat d) : premier mot ou première syllabe coupés. La sortie audio n'est pas
-    // encore prête juste après la réactivation de la session : la parole attend un court instant.
+    await startExecutionAudio();
+    // Recette du 10/11/2026 (constat d) : premier mot ou première syllabe coupés ; la parole attend un court
+    // instant que la synthèse soit prête.
     await new Promise((resolve) => setTimeout(resolve, VOICE_START_DELAY_MS));
-    if (generation !== this.generation) {
-      release();
-      return;
-    }
+    if (generation !== this.generation) return;
     Speech.speak(text, {
       language: EXECUTION_VOICE_LANGUAGE,
       ...(voice === null ? {} : { voice }),
       useApplicationAudioSession: true,
-      onDone: release,
-      onStopped: release,
-      onError: release,
     });
   }
 }

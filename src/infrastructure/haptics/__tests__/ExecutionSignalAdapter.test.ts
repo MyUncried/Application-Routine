@@ -107,19 +107,6 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(delays).toEqual([500, 500]);
   });
 
-  it("avant les bips de fin : atténuation anticipée de la musique, sans son ni vibration ; rien si les sons sont coupés", () => {
-    const duckAhead = jest.fn();
-    const beeps: BeepTone[] = [];
-    const impactAsync = jest.fn(async () => undefined);
-    const adapter = new ExecutionSignalAdapter({ impactAsync }, { play: (tone) => beeps.push(tone), duckAhead }, { say: () => undefined });
-    adapter.play(signal({ kind: "PREPARE", atMs: 1000 }));
-    adapter.setAudible(false, true);
-    adapter.play(signal({ kind: "PREPARE", atMs: 2000 }));
-    expect(duckAhead).toHaveBeenCalledTimes(1);
-    expect(beeps).toEqual([]);
-    expect(impactAsync).not.toHaveBeenCalled();
-  });
-
   it("Pause demandée par l'utilisateur : double bip et vibration forte, sans annonce", () => {
     const { play, beeps, said, impactAsync } = setup();
     play({ kind: "PAUSE" });
