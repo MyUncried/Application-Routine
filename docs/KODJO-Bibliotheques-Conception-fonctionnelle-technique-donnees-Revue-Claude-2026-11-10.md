@@ -1,19 +1,14 @@
 # KODJO — Dossier de conception pour revue indépendante Claude
 
-## Mise à jour du cadrage après seconde revue — 10/11/2026
+## Réconciliation du plan de réalisation — 11/11/2026
 
-**Supersession de périmètre par BIB-19 à BIB-23 :** la conception de distribution et de partage détaillée dans ce dossier n'est **pas** le périmètre de L1/L2. L1 couvre Bibliothèques génériques KODJO, découverte/sélection/installation depuis le Profil ; L2 leur mise à jour volontaire et la reprise. Les créations personnelles, Bibliothèques de coachs, permissions destinataires, diffusion, modération et commerce sont reportées. Le Catalogue conserve ses contenus personnalisables ; la composition et les fiches publiées par KODJO ne sont pas directement modifiables. La distinction Bibliothèque / Catégorie est impérative. Aucune migration « 024 » réservée : numéro défini lors de l'intégration dans la branche cible, après les autres migrations. Les sections de lots et d'architecture ci-dessous constituent une **conception historique de la cible étendue**, non une instruction de développement du premier lot ; le phasage antérieur L1–L5 est supersédé sur ce point. L'état Figma n'est pas validé.
+Ce dossier est la **conception cible étendue**. Le **plan normatif d'exécution reste celui des six étapes** rappelé au [registre des décisions](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md), et non l'ancien découpage L1–L6 orienté partage. BIB-19 à BIB-23 limitent les Bibliothèques du premier lot à celles éditées par KODJO ; ils **n'écartent pas CA-1/CA-2/CA-3, la fiche éditoriale, le modèle de données complet, les imports/exports, les révisions, les droits de source, l'administration Web Node.js/OVH ni la réconciliation des 60 Mouvements installés**.
 
-## Bibliothèques de Mouvements, droits, distribution, mises à jour et modération
+**Ordre confirmé :** (1) conception exhaustive de la fiche Mouvement et séparation propriétés de contenu/métadonnées éditoriales ; (2) consolidation du modèle et des migrations coordonnées avec PRE-10, registre SQLite séparé conservable ; (3) conception Figma du Profil et des sources/Bibliothèques ; (4) services communs CA-3 de validation, identité, import/export, installation, comparaison, versionnement et conflits ; (5) administration Web : création d'un 61e Mouvement, édition complète, médias, révisions, export compatible — en parallèle du (4) une fois les contrats stabilisés ; (6) raccordement mobile et reprise des 60 Mouvements **sans perte, écrasement ou duplication**.
 
-**Date :** 10 novembre 2026  
-**Statut :** **PROPOSITION DE CONCEPTION POUR REVUE**, non approuvée techniquement ni développée ; décisions métier existantes respectées, options techniques et questions ouvertes explicitement séparées.  
-**Dépôt :** MyUncried/Application-Routine.  
-**Branche de travail :** docs/conception-bibliotheques-partage-moderation-20261110, non fusionnée dans main.  
-**Source métier principale :** [Parcours utilisateurs cibles](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md), décisions BIB-01–18 et F4-A–F4-F.  
-**Cadre :** ne pas changer silencieusement le MVP local, le moteur PRE-10, les familles/niveaux, la structure des Séances ou Figma. Cette spécification n'autorise pas le développement sans revue et arbitrages des points bloquants.
+**Frontière de périmètre :** les mécanismes de publication par les utilisateurs, Bibliothèques personnelles ou de coachs, permissions destinataires, transmissions, groupes et commerce sont des évolutions ultérieures. L'édition des fiches par l'**administrateur KODJO** et la gestion locale d'identité/provenance/version restent nécessaires **dès maintenant** ; ne pas assimiler « droits de source » à « gestion communautaire des droits ». Ne pas assimiler fichier catalogue autonome (canal d'administration et de recette) à Bibliothèque générique choisie par l'utilisateur. Le Catalogue est l'éditeur courant des contenus personnels ; le Profil gère sources, installations et mises à jour, sans éditeur concurrent.
 
----
+**Compatibilité :** ne pas figer la migration 024 (occupée par PRE-10) ; attribuer la suivante lors de l'intégration. Le pilote des 60 fiches et ses opérations par fiche constituent un acquis à réemployer, pas une architecture à reconstruire. Le registre SQLite pilote reste provisoirement distinct ; aucune fusion imposée. Tests Jest et intégration PRE-10 non exécutés dans cette consolidation. Les sections détaillant des fonctionnalités de partage restent documentées comme **cible future**, sans constituer un prérequis au chantier courant.
 
 ## 0. Résumé architectural et périmètre
 
@@ -362,14 +357,16 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 
 ## 11. Proposition de découpage de réalisation
 
-| Lot | Contenu | Conditions préalables |
+| Étape de référence | Chantier | Condition / maintien |
 |---|---|---|
-| **L1 — Bibliothèques locales** | Création, composition par références, archives et restauration ; copie à permissions héritées après raccordement des droits | PU-01/02/13 et compatibilité locale |
-| **L2 — Identités et droits** | Identité de source, provenance, droits par révision, copie avec permissions héritées, comptes et autorisations de Bibliothèque | Revue du schéma, migration homonymes et gardes |
-| **L3 — Validation de diffusion** | Stockage privé, soumission, contrôles automatiques, file humaine initiale, retrait d'accès | L2 ; exigences de modération opérationnelles **avant** partage utilisateur |
-| **L4 — Partage et réception** | Bibliothèques reçues, filtrage strict, accès individuels ; groupes selon phasage validé | L2 + L3 ; permissions serveur, installation et tests |
-| **L5 — Mises à jour** | Pastille, preview, « Mettre à jour » global, conservation des retirés et variantes, reprise et modération synchronisée | L4 et arbitrage sur versions concurrentes |
-| **L6 — Publication publique / payante** | Découverte, droits commerciaux raccordables, volumétrie/modération renforcée | L3-L5 + chantier commercial distinct |
+| 1 | Fiche Mouvement normative complète (attributs et métadonnées séparés) | Arbitrages documentés |
+| 2 | Données / CA-1, CA-2, préparation CA-3 ; révisions, droits de source, migrations compatibles PRE-10 | Pas de migration concurrente |
+| 3 | Figma — gestion des sources et Bibliothèques dans Profil | Figma avant développement mobile |
+| 4 | Services communs CA-3 : validation, import/export, installation, mises à jour et conflits | Contrats indépendants des interfaces |
+| 5 | Administration Web locale Node.js / OVH, création du 61e Mouvement, édition complète, médias et export | Parallélisable à 4 sur contrats stabilisés |
+| 6 | Intégration mobile et réconciliation des 60 Mouvements sans duplication | Vérifier Exercices, Séances, adaptations et PRE-10 |
+
+Les anciens lots L1–L6 centrés sur la distribution communautaire sont **supersédés en tant que plan d'exécution** ; leurs concepts restent des cibles postérieures et ne conditionnent ni CA-3 ni l'administration Web. Les Bibliothèques génériques KODJO sont le seul premier parcours utilisateur. La numérotation de migration sera attribuée à l'intégration.
 
 **Non inclus :** paiement réel, monétisation, abonnement, moteur d'Exécution, collaboration clinique détaillée, écrans Figma non validés.
 
