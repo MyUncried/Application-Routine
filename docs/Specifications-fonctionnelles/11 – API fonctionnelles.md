@@ -633,3 +633,7 @@ Les opérations ci-dessous sont des **capacités cibles post-MVP**, non des endp
 | Signaler, suspendre ou retirer | Tracer le motif et neutraliser la distribution centrale ; transmettre la décision aux installations à leur prochain contact. |
 
 Règles exactes des droits payants, du retrait d'une fiche de la version publiée d'une Bibliothèque et des conflits locaux : **À CLARIFIER**. [Contrat fonctionnel de référence](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+### Services futurs — Relation kiné-patient, périmètre KIN-01
+
+Le partage d'une **Bibliothèque** conserve son contrat d'accès au niveau Bibliothèque. La transmission par un **kinésithérapeute** utilise une autre entrée fonctionnelle : vérifier la relation individuelle au patient dans l'Espace professionnel, vérifier les droits de diffusion et le statut de validation de chaque **fiche Mouvement**, puis transmettre cette fiche au seul patient concerné. **Aucune opération de prescription d'Exercice, Séance ou paramètres d'exécution numériques** n'est requise dans ce lot ; ces consignes sont orales. Le contrat exact des relations et autorisations, et les endpoints éventuels, restent **À CLARIFIER**. [Parcours PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
