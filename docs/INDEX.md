@@ -1,5 +1,9 @@
 # Documentation de KODJO
 
+## Étape 2 — modèle cible de la fiche Mouvement
+
+[Spécification de développement : auteur unique, médias hybrides, fiches importées protégées et migrations](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Décisions MOUV-D1 à D4 confirmées ; développement non exécuté. Le dossier précédent d'audit mentionne des divergences désormais arbitrées : ces mentions sont **historiques** sur la cardinalité de l'auteur et la lecture seule des importées.
+
 ## Fiche Mouvement — contrat consolidé pour développement (11/11/2026)
 
 [Contrat de la fiche Mouvement, matrice de couverture et mandat Claude](KODJO-Fiche-Mouvement-Contrat-consolide-et-handoff-2026-11-11.md) — étude ciblée du fichier autonome CA-1, de la provenance, du chargement CA-3, du modèle local et des écarts avant évolution de la persistance. **Aucune modification du moteur ni validation de tests**. Les fichiers CA-1/CA-3 analysés proviennent d'une branche pilote distincte, non fusionnée automatiquement.
