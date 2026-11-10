@@ -407,3 +407,7 @@ Réalisé (classe C, essai non normatif ; aucune règle ni aucun contrat d'écra
   - liste complète, défilante avec l'écran.
 
 À CLARIFIER après la recette l1 à l5 : rendu cible (Figma) et règle fonctionnelle, avant toute écriture dans ch08 ou ch13.
+
+Suite, demande de Hermann recopiée : « Faire apparaître les pauses, etc. ».
+
+La liste passe des exercices aux étapes : une ligne par étape du plan, avec le nom, la Série et le côté d'un Exercice, ou la phase et sa durée prévue. L'étape en cours est en gras ; la précédente est grise puis retirée. Il s'agit toujours de l'essai de classe C.

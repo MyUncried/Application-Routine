@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type {
   ExecutionProjection,
   NextView,
+  OutlineItem,
 } from "@/domain/execution/projection";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
@@ -547,7 +548,7 @@ export function ExecutionScreen({
                 numberOfLines={1}
                 testID={`execution-outline-${item.status}`}
               >
-                {item.tour === null ? item.name : `${item.name} · ${t.outlineTour(item.tour.current, item.tour.total)}`}
+                {outlineText(item)}
               </Text>
             ))}
           </View>
@@ -710,6 +711,16 @@ function targetText(projection: ExecutionProjection): string | null {
   ]
     .filter((part) => part !== null)
     .join(" · ");
+}
+
+/** Ligne de la liste des étapes (essai du 10/11/2026) : exercice, série, côté, tour ; pause ou récupération et sa durée. */
+function outlineText(item: OutlineItem): string {
+  const parts =
+    item.kind === "ACTIVITY"
+      ? [item.name ?? "", item.series !== null ? t.seriesShort(item.series.current, item.series.total) : null, item.sideRank !== null ? t.side(item.sideRank) : null]
+      : [t.phases[item.kind], item.plannedMs !== null && item.plannedMs > 0 ? formatClock(item.plannedMs) : null];
+  if (item.tour !== null) parts.push(t.outlineTour(item.tour.current, item.tour.total));
+  return parts.filter((part): part is string => part !== null && part !== "").join(" · ");
 }
 
 /** « À suivre » : nom, puis Série (recette PRE-10 du 09/11/2026), puis cible ou durée. */
