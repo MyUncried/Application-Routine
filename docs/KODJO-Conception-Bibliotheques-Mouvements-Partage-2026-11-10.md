@@ -1,12 +1,26 @@
 # KODJO — Conception des Bibliothèques et du partage des Mouvements
 
 **Date :** 10 novembre 2026.  
-**Statut :** conception fonctionnelle cible arbitrée avec le propriétaire du produit ; réalisation post-MVP, sauf composants déjà présents explicitement identifiés ailleurs.
+**Statut :** conception fonctionnelle cible ultérieure du partage ; premier lot limité aux Bibliothèques génériques KODJO (BIB-19 à BIB-23).
 
 **Parcours normatifs :** [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md). **Conception technique pour revue :** [architecture et données](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
   
 **Autorité :** décisions BIB-01 à BIB-18 ci-dessous ; registre au chapitre 07.  
 **Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. **KIN-01 :** la transmission individuelle s'effectue dans un **Espace en étoile générique**, sans rôle professionnel dans le modèle. Dans l'usage kiné-patient, les consignes d'exécution sont orales, sans prescription numérique. Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
+
+## Décision de périmètre — Bibliothèques génériques KODJO (10/11/2026)
+
+**Décision validée par Hermann — BIB-19 à BIB-23.** Ce cadrage remplace, pour le **premier lot Bibliothèques**, les parcours de création/partage personnel qui étaient auparavant envisagés en premier ; les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 ne sont maintenues que comme **cible ultérieure**, lorsqu'elles concernent des éditeurs tiers, le partage ou la distribution.
+
+- **BIB-19 — Premier lot :** Bibliothèques génériques éditées et maintenues par KODJO (exemples : Fitness, Hyrox, Pilates, Yoga). Ces libellés sont des exemples de Bibliothèques et ne doivent pas être confondus avec les catégories/filtres existants du Catalogue.
+- **BIB-20 — Rôles des écrans :** le **Catalogue** reste l'accès aux Mouvements, Séances et Programmes, ainsi qu'à leurs créations/personnalisations locales. Dans le **Profil**, un accès « Mes bibliothèques » permet de sélectionner, installer et mettre à jour les Bibliothèques KODJO. Le bloc « Mes données » (Mouvements, Séances, Programmes) est supprimé du Profil car redondant avec le Catalogue. Le détail graphique et les états Figma restent à concevoir : aucune maquette n'est déclarée modifiée ni validée.
+- **BIB-21 — Protection du contenu publié :** l'utilisateur ne modifie pas directement la composition et les fiches publiées d'une Bibliothèque KODJO. Il peut continuer à créer et personnaliser ses contenus propres dans le Catalogue, sans muter la source publiée. Le traitement exact d'une adaptation locale d'une fiche installée reste à spécifier avant implémentation.
+- **BIB-22 — Mise à jour volontaire :** les nouvelles révisions sont proposées et appliquées sur action explicite « Mettre à jour » ; aucune modification silencieuse du contenu installé. Préserver les Séances et les contenus locaux existants ; définir le traitement des conflits et du retrait/désinstallation avant le lot concerné.
+- **BIB-23 — Report explicite :** Bibliothèques personnelles, de coachs ou d'autres éditeurs ; composition/publication par utilisateur, relations, groupes, partage, transmission, gestion des permissions de destinataires, modération centrale liée à la diffusion et commerce sont **hors premier périmètre Bibliothèques**. Préserver l'extensibilité de l'identité et de la composition, sans implémenter maintenant cet écosystème.
+
+**Plan de lots révisé :** L1 — définition minimale, catalogue de Bibliothèques génériques KODJO, sélection et installation vers le Catalogue ; L2 — contrôle des nouvelles révisions et mise à jour volontaire, reprises/conflits/retraits à préciser ; **lots ultérieurs** — création personnelle, coachs, partage, droits, relations, modération et commerce. La catégorisation préexistante du Catalogue ne doit pas être transformée implicitement en Bibliothèque ni supprimée.
+
+**Limites de validation :** aucune conception d'écran Bibliothèques n'est validée dans Figma ; les conditions de désinstallation, les adaptations locales et les éventuelles exceptions aux contenus protégés restent **À CLARIFIER**. Cette décision documentaire ne constitue pas une livraison fonctionnelle.
 
 ## 1. Concepts et identités
 
