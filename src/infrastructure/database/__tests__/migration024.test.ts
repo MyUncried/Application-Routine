@@ -13,8 +13,8 @@ describe("migration024 — persistance des Exécutions", () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database, undefined, 23);
     const before = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name");
-    await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(24);
+    await migrateDatabase(database, undefined, 24);
+    expect(DATABASE_VERSION).toBe(25); // version courante ; la 024 est vérifiée à sa propre version
     expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 24 });
     const after = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name");
     expect(after.map((row) => row.name).filter((name) => !before.some((row) => row.name === name))).toEqual(["execution_results", "executions"]);

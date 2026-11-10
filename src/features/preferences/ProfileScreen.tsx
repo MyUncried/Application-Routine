@@ -36,12 +36,23 @@ const SESSION_SETTINGS: readonly ProfileDurationSetting[] = [
   "sessionFinalPhaseSecondsDefault",
 ];
 
-const PREFERENCE_ROWS: readonly {
+type PreferenceRow = {
   readonly preference: ProfilePreference;
-  readonly labelKey: "sounds" | "voiceAnnouncements" | "vibration" | "notifications";
-}[] = [
+  readonly labelKey: "sounds" | "voiceAnnouncements" | "announceObjective" | "vibration" | "notifications";
+};
+
+/**
+ * Groupe Guidage (suite PRE-10 son et voix, spec `spec-guidage-reglages` §3.1, décisions de Hermann du
+ * 10/11/2026) : Sons et Annonces vocales y passent depuis les Préférences ; ils donnent l'état initial des
+ * interrupteurs de l'Exécution. Guidage écran verrouillé : avec la nouvelle version native (§3.5).
+ */
+const GUIDANCE_ROWS: readonly PreferenceRow[] = [
   { preference: "soundsEnabled", labelKey: "sounds" },
   { preference: "voiceAnnouncementsEnabled", labelKey: "voiceAnnouncements" },
+  { preference: "announceObjectiveEnabled", labelKey: "announceObjective" },
+];
+
+const PREFERENCE_ROWS: readonly PreferenceRow[] = [
   { preference: "vibrationEnabled", labelKey: "vibration" },
   { preference: "notificationsEnabled", labelKey: "notifications" },
 ];
@@ -147,6 +158,49 @@ export function ProfileScreen() {
 
   const hasPhoto = profile !== null && profilePhotoFileExists(profile.photoUri);
 
+  function renderPreferenceRow({ preference, labelKey }: PreferenceRow) {
+    if (profile === null) return null;
+    const label = t.preferencesSwitches[labelKey];
+    const rawValue = profile[preference];
+    // T7 : un état de permission refusé n'affiche jamais Notifications actif.
+    const displayedValue =
+      preference === "notificationsEnabled"
+        ? rawValue && !isNotificationPermissionDenied(permissionStatus)
+        : rawValue;
+    return (
+      // R10 : la ligne forme un SEUL élément accessible de rôle
+      // interrupteur (nom + état) — le libellé et le `Switch`
+      // natif internes sont retirés de l'arbre d'accessibilité
+      // (`importantForAccessibility`/`accessibilityElementsHidden`),
+      // jamais deux nœuds superposés.
+      <Pressable
+        key={preference}
+        onPress={() => commitPreference(preference, !displayedValue)}
+        accessibilityRole="switch"
+        accessibilityState={{ checked: displayedValue }}
+        accessibilityLabel={label}
+        style={styles.switchRow}
+        testID={`profile-preference-${preference}`}
+      >
+        <Text
+          style={styles.label}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
+        >
+          {label}
+        </Text>
+        <Switch
+          {...switchOffColors}
+          value={displayedValue}
+          onValueChange={(next) => commitPreference(preference, next)}
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
+          testID={`profile-preference-${preference}-switch`}
+        />
+      </Pressable>
+    );
+  }
+
   return (
     <ScreenShell>
       <FixedHeader title={t.title} />
@@ -215,51 +269,15 @@ export function ProfileScreen() {
             <Text style={styles.groupTitle}>{t.groups.session}</Text>
             {withSeparators("profile-group-session", SESSION_SETTINGS.map(renderDurationRow))}
           </View>
+          <View style={styles.group} testID="profile-group-guidance">
+            <Text style={styles.groupTitle}>{t.groups.guidance}</Text>
+            {withSeparators("profile-group-guidance", GUIDANCE_ROWS.map(renderPreferenceRow))}
+          </View>
           <View style={styles.group} testID="profile-group-preferences">
             <Text style={styles.groupTitle}>{t.groups.preferences}</Text>
             {withSeparators(
               "profile-group-preferences",
-              PREFERENCE_ROWS.map(({ preference, labelKey }) => {
-                const label = t.preferencesSwitches[labelKey];
-                const rawValue = profile[preference];
-                // T7 : un état de permission refusé n'affiche jamais Notifications actif.
-                const displayedValue =
-                  preference === "notificationsEnabled"
-                    ? rawValue && !isNotificationPermissionDenied(permissionStatus)
-                    : rawValue;
-                return (
-                  // R10 : la ligne forme un SEUL élément accessible de rôle
-                  // interrupteur (nom + état) — le libellé et le `Switch`
-                  // natif internes sont retirés de l'arbre d'accessibilité
-                  // (`importantForAccessibility`/`accessibilityElementsHidden`),
-                  // jamais deux nœuds superposés.
-                  <Pressable
-                    key={preference}
-                    onPress={() => commitPreference(preference, !displayedValue)}
-                    accessibilityRole="switch"
-                    accessibilityState={{ checked: displayedValue }}
-                    accessibilityLabel={label}
-                    style={styles.switchRow}
-                    testID={`profile-preference-${preference}`}
-                  >
-                    <Text
-                      style={styles.label}
-                      importantForAccessibility="no-hide-descendants"
-                      accessibilityElementsHidden
-                    >
-                      {label}
-                    </Text>
-                    <Switch
-                      {...switchOffColors}
-                      value={displayedValue}
-                      onValueChange={(next) => commitPreference(preference, next)}
-                      importantForAccessibility="no-hide-descendants"
-                      accessibilityElementsHidden
-                      testID={`profile-preference-${preference}-switch`}
-                    />
-                  </Pressable>
-                );
-              }),
+              PREFERENCE_ROWS.map(renderPreferenceRow),
             )}
           </View>
           {__DEV__ ? (

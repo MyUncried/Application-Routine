@@ -5,7 +5,8 @@ export type ProfilePreference =
   | "soundsEnabled"
   | "voiceAnnouncementsEnabled"
   | "vibrationEnabled"
-  | "notificationsEnabled";
+  | "notificationsEnabled"
+  | "announceObjectiveEnabled";
 
 /** Identité modifiable depuis Modifier le profil (CE-UI-01) — toujours les trois ensemble, atomiquement. */
 export type ProfileIdentityInput = {

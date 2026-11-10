@@ -119,7 +119,7 @@ describe("migration023 — Récupération des EMOM alternés et « dans chaque i
   it("installation neuve : version 23", async () => {
     const database = memory();
     await migrateDatabase(database, () => T);
-    expect(DATABASE_VERSION).toBe(24);
+    expect(DATABASE_VERSION).toBe(25);
     expect(await version(database)).toBe(DATABASE_VERSION);
   });
 });

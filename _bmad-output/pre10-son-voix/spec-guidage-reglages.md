@@ -183,3 +183,32 @@ Essai à mener dans le spike de la bibliothèque dédiée :
 - objectif : musique atténuée pendant l'effort et rendue pendant les récupérations, sans click ni décalage.
 
 Si l'essai réussit, le choix sera soumis de nouveau à Hermann. Sinon, 1.A reste en vigueur.
+
+
+## 9. Réalisation de l'étape 2 (10/11/2026) : groupe Guidage du Profil
+
+Demande de Hermann, recopiée : « C’était juste un essai. Mettons cette liste de côté et continuons le développement ».
+
+Réalisé :
+
+- Profil :
+  - préférence `announceObjectiveEnabled`, dans la table singleton `guidance_preferences` (`migration025`, version 25) ;
+  - `profiles` reste inchangée ;
+  - la table accueillera « Guidage écran verrouillé ».
+- Écran Profil : groupe **Guidage** (Sons, Annonces vocales, Annoncer les répétitions ou la durée), placé entre Séance et Préférences. Le groupe Préférences garde Vibration et Notifications.
+- Exécution :
+  - état initial des interrupteurs Sons et Voix selon le Profil ;
+  - annonce de l'objectif selon la préférence (`ExecutionSignalAdapter.setAnnounceObjective`).
+- Documents : ch08 (remplacement daté), ch09 (attribut), ch13 CE-UI-07 (groupe Guidage).
+
+Écart au §3.1 :
+
+- La bascule « Annoncer les répétitions ou la durée » est **activée** par défaut, et non désactivée comme prévu au §3.1.
+- Raison : Hermann a demandé ensuite d'annoncer l'objectif (G8, « A corriger : annoncer l'objectif »), puis a validé ce comportement (h4, k6).
+- À confirmer par Hermann.
+
+Restent :
+
+- étape 3 : réglage de Séance, élément Guidage de la Composition ;
+- étape 5 : arrière-plan, avec la nouvelle version native ;
+- §8 : bibliothèque dédiée aux sons courts.

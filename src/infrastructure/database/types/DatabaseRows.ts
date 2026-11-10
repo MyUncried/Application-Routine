@@ -229,6 +229,7 @@ export type ProfileRow = {
   voice_announcements_enabled: 0 | 1;
   vibration_enabled: 0 | 1;
   notifications_enabled: 0 | 1;
+  announce_objective_enabled: 0 | 1;
   display_name: string | null;
   photo_uri: string | null;
   silhouette: "homme" | "femme" | null;

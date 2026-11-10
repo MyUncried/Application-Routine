@@ -65,6 +65,8 @@ export class ExecutionSignalAdapter {
   private vibrationEnabled = true;
   private soundEnabled = true;
   private voiceEnabled = true;
+  /** Préférence du Profil « Annoncer les répétitions ou la durée » (groupe Guidage). */
+  private announceObjective = true;
   /** Nom déjà annoncé comme « À suivre », pour ne pas le répéter au départ. */
   private announcedNext: string | null = null;
   /** L'étape qui se termine était chronométrée : son zéro est marqué (bip grave). */
@@ -86,7 +88,12 @@ export class ExecutionSignalAdapter {
     this.vibrationEnabled = enabled;
   }
 
-  /** Sons et Annonces vocales : actifs au début de chaque Exécution, modifiables pendant (ch08). */
+  /** Préférence du Profil « Annoncer les répétitions ou la durée » (spec `spec-guidage-reglages` §3.1). */
+  setAnnounceObjective(enabled: boolean): void {
+    this.announceObjective = enabled;
+  }
+
+  /** Sons et Annonces vocales : état initial selon le Profil (groupe Guidage), modifiables pendant (ch08). */
   setAudible(sound: boolean, voice: boolean): void {
     this.soundEnabled = sound;
     this.voiceEnabled = voice;
@@ -156,7 +163,7 @@ export class ExecutionSignalAdapter {
         if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: "Changez de côté" };
         const cue = signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed;
         // Après le sifflet : nom (s'il n'a pas été annoncé avant), côté, puis objectif (recette h4, constat c).
-        const parts = [alreadyAnnounced ? null : name, signal.sideRank === 1 ? "premier côté" : null, objectiveText(signal.objective)].filter((part): part is string => part !== null);
+        const parts = [alreadyAnnounced ? null : name, signal.sideRank === 1 ? "premier côté" : null, this.announceObjective ? objectiveText(signal.objective) : null].filter((part): part is string => part !== null);
         return { cue, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
       }
       default:

@@ -27,6 +27,12 @@ export const DEFAULT_SOUNDS_ENABLED = true as const;
 export const DEFAULT_VOICE_ANNOUNCEMENTS_ENABLED = true as const;
 export const DEFAULT_VIBRATION_ENABLED = true as const;
 export const DEFAULT_NOTIFICATIONS_ENABLED = false as const;
+/**
+ * Suite PRE-10 son et voix (spec `spec-guidage-reglages` §3.1, décisions de Hermann du 10/11/2026) : annonce de
+ * l'objectif (répétitions ou durée) avec le nom de l'exercice. Activée par défaut : comportement demandé à la
+ * recette du 10/11/2026 (G8) et validé ensuite (h4, k6).
+ */
+export const DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED = true as const;
 
 export type Silhouette = "homme" | "femme";
 
@@ -50,6 +56,8 @@ export type Profile = {
   readonly vibrationEnabled: boolean;
   /** Désactivée par défaut ; aucune demande de permission système n'est faite depuis le Profil (T7). */
   readonly notificationsEnabled: boolean;
+  /** Annonce des répétitions ou de la durée de l'exercice (groupe Guidage). */
+  readonly announceObjectiveEnabled: boolean;
   /** Nullable tant que jamais renseigné (T8) ; 1..80 points de code à l'enregistrement. */
   readonly displayName: string | null;
   /** URI locale persistante de la copie de la photo ; `null` si aucune. */
@@ -73,6 +81,7 @@ export function createDefaultProfile(id: string, updatedAt: string): Profile {
     voiceAnnouncementsEnabled: DEFAULT_VOICE_ANNOUNCEMENTS_ENABLED,
     vibrationEnabled: DEFAULT_VIBRATION_ENABLED,
     notificationsEnabled: DEFAULT_NOTIFICATIONS_ENABLED,
+    announceObjectiveEnabled: DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED,
     displayName: null,
     photoUri: null,
     silhouette: null,

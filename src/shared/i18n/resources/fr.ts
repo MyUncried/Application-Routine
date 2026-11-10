@@ -1506,6 +1506,7 @@ export const fr = {
         exercise: "Exercice",
         session: "Séance",
         preferences: "Préférences",
+        guidance: "Guidage",
       },
       settings: {
         sideChangeRecovery: { label: "Pause entre les côtés", unit: "s" },
@@ -1531,6 +1532,7 @@ export const fr = {
       preferencesSwitches: {
         sounds: "Sons",
         voiceAnnouncements: "Annonces vocales",
+        announceObjective: "Annoncer les répétitions ou la durée",
         vibration: "Vibration",
         notifications: "Notifications",
       },

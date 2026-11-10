@@ -84,16 +84,23 @@ export function ExecutionScreen({
 
   useEffect(() => service.subscribe(refresh), [service]);
 
-  // Préférence Vibrations (fonctionnelles de séance) ; Sons et Annonces actifs au début de chaque Exécution (ch08).
+  // Préférence Vibrations (fonctionnelles de séance). Groupe Guidage du Profil (suite PRE-10 son et voix, spec
+  // `spec-guidage-reglages` §3.1 et §3.3) : Sons et Annonces vocales donnent l'état initial des interrupteurs de
+  // l'Exécution, modifiables ensuite sans être enregistrés ; annonce de l'objectif selon le Profil.
   useEffect(() => {
     let cancelled = false;
+    signals.setAudible(true, true);
     profileService
       .getProfile()
       .then((profile) => {
-        if (!cancelled) signals.setVibrationEnabled(profile.vibrationEnabled);
+        if (cancelled) return;
+        signals.setVibrationEnabled(profile.vibrationEnabled);
+        signals.setAnnounceObjective(profile.announceObjectiveEnabled);
+        signals.setAudible(profile.soundsEnabled, profile.voiceAnnouncementsEnabled);
+        setSoundEnabled(profile.soundsEnabled);
+        setVoiceEnabled(profile.voiceAnnouncementsEnabled);
       })
       .catch(() => undefined);
-    signals.setAudible(true, true);
     return () => {
       cancelled = true;
     };

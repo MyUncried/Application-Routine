@@ -4945,6 +4945,8 @@ Modifier → CE-UI-01 ; navigation basse vers les trois autres destinations ; un
 
 Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’un exercice (D-266), Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
 
+[Complété le 10/11/2026 — suite PRE-10 son et voix (spec `spec-guidage-reglages` §3.1, décisions de Hermann : « Les trois », bascules générales) : nouveau groupe **Guidage**, entre Séance et Préférences, avec Sons, Annonces vocales et Annoncer les répétitions ou la durée ; Sons et Annonces vocales quittent le groupe Préférences, qui garde Vibration et Notifications. Enregistrement immédiat, comme les autres préférences. Sons et Annonces vocales donnent l’état initial des interrupteurs de l’Exécution. Guidage écran verrouillé : ajouté avec la nouvelle version native (spec §3.5). Pas de maquette Figma à ce jour (rendu des groupes existants).]
+
 Le défaut de Récupération du Profil initialise uniquement un nouvel Exercice ; le réglage est ensuite local et indépendant. La valeur apparaît dans un cadre orange dans Paramètres d’exécution avant premier ✓.
 
 #### 6. Classification des valeurs Figma

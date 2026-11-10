@@ -26,6 +26,7 @@ import { applyMigration021 } from "./migrations/migration021";
 import { applyMigration022 } from "./migrations/migration022";
 import { applyMigration023 } from "./migrations/migration023";
 import { applyMigration024 } from "./migrations/migration024";
+import { applyMigration025 } from "./migrations/migration025";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -286,6 +287,12 @@ export async function migrateDatabase(
     if (pending(23)) {
       await applyMigration024(transaction);
       version = 24;
+    }
+
+    // Suite PRE-10 son et voix : préférence « Annoncer les répétitions ou la durée ». Un échec laisse `user_version` à 24.
+    if (pending(24)) {
+      await applyMigration025(transaction);
+      version = 25;
     }
 
     if (version !== targetVersion) {

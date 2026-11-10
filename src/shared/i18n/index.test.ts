@@ -36,6 +36,7 @@ describe("strings", () => {
       exercise: "Exercice",
       session: "Séance",
       preferences: "Préférences",
+      guidance: "Guidage",
     });
     expect(strings.screens.profile.settings.sideChangeRecovery).toEqual({
       label: "Pause entre les côtés",
@@ -50,6 +51,7 @@ describe("strings", () => {
     expect(strings.screens.profile.preferencesSwitches).toEqual({
       sounds: "Sons",
       voiceAnnouncements: "Annonces vocales",
+      announceObjective: "Annoncer les répétitions ou la durée",
       vibration: "Vibration",
       notifications: "Notifications",
     });

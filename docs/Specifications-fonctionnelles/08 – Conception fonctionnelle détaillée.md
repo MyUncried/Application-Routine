@@ -764,7 +764,7 @@ L’utilisateur ne peut pas sélectionner librement un autre Exercice ni revenir
 
 ### Exécution — séance ou exercice — Guidage sonore
 
-Dans T04, Sons et Annonces vocales sont activés par défaut au début de chaque Exécution. Leur état peut être changé pendant l’Exécution, mais cette tranche ne lit ni n’enregistre encore de préférence utilisateur correspondante ; leur configuration depuis le Profil appartient à une tranche ultérieure.
+Dans T04, Sons et Annonces vocales sont activés par défaut au début de chaque Exécution. Leur état peut être changé pendant l’Exécution, mais cette tranche ne lit ni n’enregistre encore de préférence utilisateur correspondante ; leur configuration depuis le Profil appartient à une tranche ultérieure. [Remplacé le 10/11/2026 — suite PRE-10 son et voix (spec `spec-guidage-reglages` §3.1 et §3.3) : au début de chaque Exécution, Sons et Annonces vocales prennent l’état des préférences du Profil (groupe Guidage) ; les interrupteurs restent modifiables pendant l’Exécution sans être enregistrés. L’annonce de l’objectif suit la préférence « Annoncer les répétitions ou la durée », activée par défaut. La modification pour une Séance (élément Guidage de la Composition) reste à réaliser.]
 
 Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les Annonces vocales sont actives. Au début d’une phase de récupération chronométrée (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`), l’annonce est `Récupération`. Une annonce de côté désigne « côté 1 » ou « côté 2 », jamais droite ou gauche (RM-243).
 

@@ -161,6 +161,15 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(vibrate).toHaveBeenCalledTimes(2);
   });
 
+  it("préférence du Profil : sans annonce de l'objectif, seul le nom (ou le côté) est annoncé après le sifflet", () => {
+    const { adapter, play, said } = setup();
+    adapter.setAnnounceObjective(false);
+    play({ objective: reps(10), timed: false });
+    play({ phase: "SERIES_PAUSE", next: nextExercise("Gainage") });
+    play({ exerciseName: "Gainage", sideRank: 1, objective: reps(10), timed: false });
+    expect(said).toEqual(["Gainage", "Pause", "Gainage, premier côté"]);
+  });
+
   it("objectif annoncé : répétitions, durée en minutes, À l'échec ; rien sans cible", () => {
     expect(objectiveText(reps(1))).toBe("1 répétition");
     expect(objectiveText({ mode: "DURATION", target: { kind: "NUMBER", value: 90 } })).toBe("1 minute 30");

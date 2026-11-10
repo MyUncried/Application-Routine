@@ -143,7 +143,11 @@ export const DATABASE_NAME = "kodjo.db";
  * **PRE-10 (version 24, `migration024`, moteur d'exécution)** : tables additives `executions` (instantané,
  * checkpoint révisé, statuts) et `execution_results` (résultats idempotents par clé). 001..023 inchangées.
  */
-export const DATABASE_VERSION = 24;
+/**
+ * **Suite PRE-10 son et voix (version 25, `migration025`)** : table additive `guidance_preferences` (singleton,
+ * préférence « Annoncer les répétitions ou la durée », activée par défaut). 001..024 inchangées.
+ */
+export const DATABASE_VERSION = 25;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;
