@@ -1,5 +1,12 @@
 # PRODUCT — KODJO
 
+## Vision post-MVP — Bibliothèques et diffusion contrôlée des Mouvements (10/11/2026)
+
+**Décisions BIB-01 à BIB-18 validées :** Bibliothèques composées par références, Mouvements de toutes provenances, Bibliothèques reçues en lecture seule ; visibilités personnelle/partagée/publique et accès gratuit/payant ; quatre modes des permissions Modifier/Redistribuer, copies personnelles sans extension des droits et filtrage automatique de la redistribution. Les révisions ordinaires sont signalées par pastille et installées uniquement via « Mettre à jour ». Avant diffusion : autorisation centrale de la révision, validation automatique possible pour un partage privé sans anomalie et revue humaine initiale pour public/payant. Signalement et suspension de contenu litigieux restent possibles après diffusion.
+
+**Statut : cible post-MVP, non réalisation actuelle.** Le MVP local/SQLite et son moteur d'Exécution ne sont pas modifiés par cette conception. [Référence normative et questions À CLARIFIER](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+
 > **Composition actualisée — 28/10/2026 :** [référence consolidée](KODJO-Composition-conteneurs-2026-10-28.md), [analyse critique et réserves](REVUE-COMPOSITION-2026-10-28.md). D-451 : cycles visibles avec exercices directs et multi-circuit dans le MVP ; création par enveloppe, séries groupées/alternées, zéro intentionnel, en-têtes et défilement. Les maquettes de composition ont été vérifiées ; réalisation non qualifiée.
 
 > **Évolution fonctionnelle validée — D-449 (26/10/2026)** : [Séance comme objet unique, six décisions closes](KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Cette cible remplace la dualité Exercice autonome/Séance, le cycle technique unique et les catalogues séparés par nature. Elle conserve Mouvement et Exercice comme composant de séance ; plusieurs cycles successifs sans imbrication ; lancement de toute la séance ; catalogue unique à vues filtrées. Le code PRE-7 et les visuels existants restent l’état livré antérieur sur ces points.
@@ -574,7 +581,7 @@ Huit points clos : C01–C07 et C09. C08 seul reste différé sur le périmètre
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; aucune propagation entre copies d'objets locaux n’est nécessaire. La diffusion entre utilisateurs suit BIB-12 et n'actualise une révision ordinaire qu'après l'action « Mettre à jour ». Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
