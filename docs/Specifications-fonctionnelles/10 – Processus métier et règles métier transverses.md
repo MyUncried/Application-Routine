@@ -2755,3 +2755,7 @@ La règle « présent dans les deux natures » et la grille des volumes (S1…Sn
 7. **Périmètre :** aucune dépendance réseau nouvelle pour l'Exécution et le Catalogue du MVP.
 
 **À CLARIFIER :** archivage et suspension d'une Bibliothèque, retrait d'un Mouvement de la composition source, paiement expiré, droits déjà distribués. [Règles complètes](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+### KIN-01 — Partage dans un Espace kinésithérapeute
+
+La règle F4-C d'accès hérité d'une Bibliothèque vaut pour les **Bibliothèques partagées**, notamment par un coach. Un kinésithérapeute transmet à un patient, depuis son **Espace professionnel en étoile**, un ou plusieurs **Mouvements** sans Bibliothèque prescrite ; les consignes d'exécution sont **orales**. Aucun Exercice ni Séance ne sont prescrits sous forme numérique dans cette première tranche. La transmission reste soumise aux permissions du Mouvement et à la validation centrale. Le contrat d'accès par relation kiné-patient reste **À CLARIFIER**. [PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
