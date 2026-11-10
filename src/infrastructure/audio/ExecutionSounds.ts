@@ -12,8 +12,9 @@ import type { AudioPlayer } from "expo-audio";
  * Session audio (recettes « Son et voix » du 09/11/2026 : S9 musique non atténuée, puis bips « très en
  * retard » et sifflet absent) : la session est activée une fois au début de l'Exécution, en mélange avec les
  * autres applications, et les sons sont chargés d'avance ; elle reste active entre deux sons, pour qu'un son
- * parte sans délai. Pour une annonce vocale seulement, elle passe en atténuation des autres sons (iOS ne
- * l'applique qu'à l'activation), puis revient en mélange : la musique reprend son volume.
+ * parte sans délai. Pour une annonce, les bips de fin, les sifflets et les bips de départ et d'arrêt, elle
+ * passe en atténuation des autres sons (iOS ne l'applique qu'à l'activation), puis revient en mélange : la
+ * musique reprend son volume (recette du 10/11/2026, t7 ; voir `duckOthers`).
  */
 /**
  * Sons retenus par Hermann (formulaire « Guidage sonore KODJO », 10/11/2026) ; fichiers produits avec les
@@ -21,7 +22,12 @@ import type { AudioPlayer } from "expo-audio";
  */
 export type BeepTone = "BIP_GRAVE" | "BIP_DOUBLE" | "BIP_LONG" | "SIFFLET_ROULE" | "SIFFLET_PUR" | "SIFFLET_COURT" | "FANFARE_COURTE" | "DING" | "CLIC_DOUX";
 
-export type BeepPort = { readonly play: (tone: BeepTone, volume?: number) => void; readonly prepare?: () => void };
+export type BeepPort = {
+  readonly play: (tone: BeepTone, volume?: number) => void;
+  readonly prepare?: () => void;
+  /** Atténuation anticipée de la musique, avant des bips à l'heure (signal `PREPARE`). */
+  readonly duckAhead?: () => void;
+};
 
 /** Vrai si le module natif est présent dans l'application installée. */
 export function hasNativeModule(name: string): boolean {
@@ -70,15 +76,54 @@ function reconfigure(duck: boolean): Promise<void> {
   });
 }
 
-/** Avant une annonce : atténuation des autres sons (réactivation nécessaire sous iOS). */
-export function duckOthersForVoice(): Promise<void> {
+// Atténuation des autres applications (musique) — recette du 10/11/2026 (t7) : pendant les annonces, les bips
+// de fin, les sifflets et les bips de départ et d'arrêt, jamais pour la cadence ni le signal minute. iOS ne
+// l'applique qu'en réactivant la session, ce qui retarde un son : elle est donc demandée à l'avance avant les
+// bips de fin (signal `PREPARE`) et maintenue entre deux sons rapprochés.
+let ducked = false;
+let duckHolds = 0;
+let releaseTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Délai sans son ni annonce atténuant avant que la musique reprenne son volume. */
+export const DUCK_RELEASE_AFTER_MS = 1500;
+
+/** Maintien de l'atténuation anticipée, jusqu'au premier des bips de fin. */
+const DUCK_AHEAD_HOLD_MS = 2000;
+
+/** Sons qui n'atténuent pas la musique. */
+const NOT_DUCKING: ReadonlySet<BeepTone> = new Set(["CLIC_DOUX", "DING"]);
+
+/** Atténue les autres sons ; immédiat si c'est déjà le cas. */
+export function duckOthers(): Promise<void> {
   sessionStarted = true;
+  if (releaseTimer !== null) clearTimeout(releaseTimer);
+  releaseTimer = null;
+  if (ducked) return sessionQueue;
+  ducked = true;
   return reconfigure(true);
 }
 
-/** Après la dernière annonce : les autres sons reprennent leur volume ; la session reste prête pour les sons. */
-export function releaseOthersAfterVoice(): Promise<void> {
-  return reconfigure(false);
+/** Les autres sons reprennent leur volume après `afterMs` sans son ni annonce atténuant. */
+export function releaseOthersLater(afterMs: number = DUCK_RELEASE_AFTER_MS): void {
+  if (releaseTimer !== null) clearTimeout(releaseTimer);
+  releaseTimer = setTimeout(() => {
+    releaseTimer = null;
+    if (duckHolds > 0 || !ducked) return;
+    ducked = false;
+    void reconfigure(false);
+  }, afterMs);
+}
+
+/** Avant une annonce : atténuation des autres sons, maintenue jusqu'à la fin de l'annonce. */
+export async function duckOthersForVoice(): Promise<void> {
+  duckHolds += 1;
+  await duckOthers();
+}
+
+/** Fin d'une annonce (terminée, interrompue ou en échec). */
+export function releaseOthersAfterVoice(): void {
+  duckHolds = Math.max(0, duckHolds - 1);
+  releaseOthersLater();
 }
 
 /**
@@ -120,11 +165,24 @@ export class ExecutionSounds implements BeepPort {
     void this.playAsync(tone, volume).catch(() => undefined);
   }
 
+  /** Atténuation anticipée : la musique est déjà baissée quand les bips de fin arrivent. */
+  duckAhead(): void {
+    if (!hasNativeModule("ExpoAudio")) return;
+    void duckOthers();
+    releaseOthersLater(DUCK_AHEAD_HOLD_MS);
+  }
+
   private async player(tone: BeepTone): Promise<AudioPlayer> {
     let player = this.players[tone];
     if (player === undefined) {
       const { createAudioPlayer } = await import("expo-audio");
-      player = createAudioPlayer(SOURCES[tone], { keepAudioSessionActive: true });
+      const created = createAudioPlayer(SOURCES[tone], { keepAudioSessionActive: true });
+      // Recette du 10/11/2026 (k5 : clic « légèrement après le tempo ») : le lecteur revient au début dès la
+      // fin du son, pour que le suivant parte sans attendre un repositionnement.
+      created.addListener("playbackStatusUpdate", (status) => {
+        if (status.didJustFinish) void created.seekTo(0).catch(() => undefined);
+      });
+      player = created;
       this.players[tone] = player;
     }
     return player;
@@ -134,9 +192,12 @@ export class ExecutionSounds implements BeepPort {
     if (!hasNativeModule("ExpoAudio")) return;
     if (!sessionStarted) void startExecutionAudio();
     if (reconfiguring > 0 && SKIPPABLE_WHILE_RECONFIGURING.has(tone)) return;
+    const ducking = !NOT_DUCKING.has(tone);
+    if (ducking) await duckOthers();
     const player = await this.player(tone);
     player.volume = volume;
-    await player.seekTo(0);
+    if (player.playing || player.currentTime > 0.01) await player.seekTo(0);
     player.play();
+    if (ducking) releaseOthersLater();
   }
 }

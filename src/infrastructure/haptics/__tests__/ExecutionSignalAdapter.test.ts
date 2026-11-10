@@ -69,17 +69,17 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     play({ phase: "SIDE_RECOVERY", exerciseName: "Fente", timed: false, next: nextExercise("Fente") });
     play({ exerciseName: "Fente", sideRank: 2, timed: false });
     expect(said).toEqual(["Préparez-vous. À suivre : Fente", "Premier côté, 12 répétitions", "Récupération", "Changez de côté"]);
-    expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["SIFFLET_COURT", 0.55]]);
+    expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["BIP_DOUBLE", 1], ["SIFFLET_COURT", 0.55]]);
   });
 
-  it("dernières secondes : bip grave ; cadence : clic doux à 35 % ; minute : ding à 30 % ; Point d'arrêt et Pause : double bip ; achèvement : fanfare courte à 60 %", () => {
+  it("dernières secondes : bip grave ; cadence : clic doux à 35 % ; minute : ding à 15 % ; Point d'arrêt et Pause : double bip ; achèvement : fanfare courte à 60 %", () => {
     const { play, beeps, said, impactAsync } = setup();
     play({ kind: "COUNTDOWN" });
     play({ kind: "CADENCE" });
     play({ kind: "MINUTE" });
     play({ phase: "STOP_POINT", exerciseName: null, timed: false });
     play({ kind: "FINISH", phase: null, exerciseName: null });
-    expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["DING", 0.3], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
+    expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["DING", 0.15], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
     expect(said).toEqual([]);
     expect(impactAsync.mock.calls.map(([style]) => style)).toEqual([
       Haptics.ImpactFeedbackStyle.Medium,
@@ -96,6 +96,28 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     play({ phase: "SESSION_END", exerciseName: null, timed: true });
     play({ kind: "FINISH", phase: null, exerciseName: null });
     expect(beeps).toEqual([["SIFFLET_ROULE", 0.55], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
+  });
+
+  it("arrivée sur une Pause après Suivant (étape non chronométrée) : double bip, puis l'annonce", () => {
+    const { play, beeps, said, delays } = setup();
+    play({ timed: false });
+    play({ phase: "SERIES_PAUSE", next: nextExercise("Gainage") });
+    expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["BIP_DOUBLE", 1]]);
+    expect(said).toEqual(["Gainage", "Pause"]);
+    expect(delays).toEqual([500, 500]);
+  });
+
+  it("avant les bips de fin : atténuation anticipée de la musique, sans son ni vibration ; rien si les sons sont coupés", () => {
+    const duckAhead = jest.fn();
+    const beeps: BeepTone[] = [];
+    const impactAsync = jest.fn(async () => undefined);
+    const adapter = new ExecutionSignalAdapter({ impactAsync }, { play: (tone) => beeps.push(tone), duckAhead }, { say: () => undefined });
+    adapter.play(signal({ kind: "PREPARE", atMs: 1000 }));
+    adapter.setAudible(false, true);
+    adapter.play(signal({ kind: "PREPARE", atMs: 2000 }));
+    expect(duckAhead).toHaveBeenCalledTimes(1);
+    expect(beeps).toEqual([]);
+    expect(impactAsync).not.toHaveBeenCalled();
   });
 
   it("Pause demandée par l'utilisateur : double bip et vibration forte, sans annonce", () => {

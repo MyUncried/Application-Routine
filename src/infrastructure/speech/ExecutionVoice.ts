@@ -1,5 +1,7 @@
 import { duckOthersForVoice, hasNativeModule, releaseOthersAfterVoice, startExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
 
+// Atténuation de la musique pendant les annonces, les bips de fin et les sifflets : voir `ExecutionSounds`.
+
 /**
  * Lot PRE-10 son et voix (décision de Hermann du 09/11/2026, recette PRE-10 n° 2, `q-son` ; ch08 « Guidage
  * sonore » ; ch12 §12.11) : annonces vocales en français par `expo-speech`, dans la session audio de
@@ -60,21 +62,26 @@ export class ExecutionVoice implements VoicePort {
     const voice = await this.voice().catch(() => null);
     await Speech.stop();
     await duckOthersForVoice();
+    // Chaque annonce libère une seule fois l'atténuation qu'elle a demandée.
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      releaseOthersAfterVoice();
+    };
     // Recette du 10/11/2026 (constat d) : premier mot ou première syllabe coupés. La sortie audio n'est pas
     // encore prête juste après la réactivation de la session : la parole attend un court instant.
     await new Promise((resolve) => setTimeout(resolve, VOICE_START_DELAY_MS));
-    if (generation !== this.generation) return;
-    const release = () => {
-      // Libère la session seulement si aucune annonce plus récente n'a commencé.
-      setTimeout(() => {
-        if (generation === this.generation) void releaseOthersAfterVoice();
-      }, 200);
-    };
+    if (generation !== this.generation) {
+      release();
+      return;
+    }
     Speech.speak(text, {
       language: EXECUTION_VOICE_LANGUAGE,
       ...(voice === null ? {} : { voice }),
       useApplicationAudioSession: true,
       onDone: release,
+      onStopped: release,
       onError: release,
     });
   }

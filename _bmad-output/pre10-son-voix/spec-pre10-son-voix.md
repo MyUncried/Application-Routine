@@ -229,3 +229,37 @@ Causes et traitement (classe B, ch08 annoté) :
   - Cause de l'absence sur iPhone non démontrée.
   - Un journal `[guidage]` (mode développement) est ajouté dans la console Metro pour la diagnostiquer à la prochaine recette.
 - h3 : sifflet pur à 55 %.
+
+
+## Recette iPhone du 10/11/2026 « Guidage sonore — 3 »
+
+Résultats et constats de Hermann, recopiés :
+
+- k1 : KO, « je les entends encore pendant le compte à rebours ».
+- k2 : KO, « je l'entends toujours ».
+- k3 : OK, « a modifier : si on appui sur suivant et qu'on arrive sur une pause / une récupération, alors on doit entendre le double bip ».
+- k4 : KO, « Il n'y a pas de vibration, mais un click en plus sur double bip et le haptique du click ».
+- k5 : OK, « Mais à corriger : pas spécifiquement après pause ou répétition, le click doux tombe je pense légèrement après le tempo, d'ailleurs je note que lorsque ce click tombe en même temps que les 3 derniers bips, il y a un décalage (le click arrive après le bip) ».
+- k6, k7 : OK.
+- G7 : « J'entends le ding, mettre le son à 15% ».
+- t7 : KO, « Le son baisse pendant les annoncent, il faut qu'il baisse aussi pendant les comptes à rebours, les sifflets et les bit de départ et d'arrêt, pas sur les cadences. Lorsqu'il y a de la musique (a priori) les deux premiers bips du compte à rebours sont très rapprochés ».
+- Constat b) maintenu.
+
+Analyse :
+
+- Le journal `[guidage]` de Metro, pendant l'essai, montre qu'aucun bip de cadence n'est joué pendant les trois derniers bips. Le correctif `signals.ts` est donc effectif.
+- Le « click » entendu avec les bips, le sifflet et le double bip accompagne la vibration : c'est le choc du vibreur de l'iPhone (impact), qui s'entend. C'est l'hypothèse la plus probable, non démontrée.
+- L'essai « enlever la vibration ne change rien » (h1) n'était pas probant : la préférence Vibrations n'était lue qu'à l'ouverture de l'écran d'Exécution.
+- Le diagnostic est demandé en m1. Selon sa réponse, un choix de Hermann sera nécessaire (vibration sur les moments sonores ou non). À CLARIFIER après m1.
+
+Traitement (classe B, ch08 annoté) :
+
+- k3 : double bip à l'arrivée sur une Pause ou une récupération, dans tous les cas.
+- G7 : ding à 15 %.
+- t7 :
+  - musique atténuée pendant les annonces, les bips de fin, les sifflets, les doubles bips, le bip de départ et la fanfare, pas pendant la cadence ni le ding ;
+  - nouveau signal `PREPARE`, sans son, 0,7 s avant le premier bip de fin : l'atténuation est demandée à l'avance, pour que les bips restent à l'heure ;
+  - l'atténuation est maintenue 1,5 s après le dernier son atténuant.
+  - Cela remplace le choix A du 10/11/2026.
+- k5 : le lecteur revient au début dès la fin du son, donc le son suivant part sans repositionnement.
+- h1, m1 : la préférence Vibrations est relue au retour sur l'écran d'Exécution.

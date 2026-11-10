@@ -19,15 +19,20 @@
 
 import { leafStepRef, type EngineState, type Ms } from "./kernel";
 
-export type SignalKind = "TRANSITION" | "COUNTDOWN" | "CADENCE" | "MINUTE";
+export type SignalKind = "TRANSITION" | "COUNTDOWN" | "CADENCE" | "MINUTE" | "PREPARE";
 export type PlannedSignal = { readonly kind: SignalKind; readonly atMs: Ms };
 
 const S = 1000;
 const MINUTE = 60 * S;
 /** Marge sans bip de cadence avant le compte à rebours de fin d'étape. */
 const CADENCE_MARGIN_MS = 250;
+/**
+ * `PREPARE` : avance sur le premier bip de fin d'une étape chronométrée, sans son ; il laisse au runtime le
+ * temps de baisser la musique avant les bips (recette du 10/11/2026, t7).
+ */
+export const PREPARE_AHEAD_MS = 700;
 // Recette du 10/11/2026 (G7) : le signal minute l'emporte sur un bip de cadence au même instant.
-const PRIORITY: Record<SignalKind, number> = { TRANSITION: 3, COUNTDOWN: 2, MINUTE: 1, CADENCE: 0 };
+const PRIORITY: Record<SignalKind, number> = { TRANSITION: 3, COUNTDOWN: 2, MINUTE: 1, CADENCE: 0, PREPARE: -1 };
 
 /** Signaux de l'étape courante dus dans `]fromMs, toMs]`, hors transition (portée par l'effet du noyau). */
 export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms): readonly PlannedSignal[] {
@@ -47,6 +52,8 @@ export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms): re
       const active = (spec.plannedMs ?? 0) - before * S;
       if (active > 0) push("COUNTDOWN", wallAt(active));
     }
+    const prepare = (spec.plannedMs ?? 0) - 3 * S - PREPARE_AHEAD_MS;
+    if (prepare > 0) push("PREPARE", wallAt(prepare));
   }
   if (spec.kind === "ACTIVITY") {
     // Temps actif de l'étape au début de l'intervalle observé (hors Pause).

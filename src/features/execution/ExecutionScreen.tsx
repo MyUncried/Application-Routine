@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import {
   useCallback,
   useEffect,
@@ -98,6 +98,23 @@ export function ExecutionScreen({
       cancelled = true;
     };
   }, [profileService, signals]);
+
+  // Recette du 10/11/2026 (h1) : une modification de Vibrations dans le Profil pendant une séance s'applique au
+  // retour sur l'écran d'Exécution.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      profileService
+        .getProfile()
+        .then((profile) => {
+          if (!cancelled) signals.setVibrationEnabled(profile.vibrationEnabled);
+        })
+        .catch(() => undefined);
+      return () => {
+        cancelled = true;
+      };
+    }, [profileService, signals]),
+  );
 
   const active = service.current();
   useEffect(() => {

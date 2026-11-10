@@ -17,7 +17,7 @@ import { ExecutionVoice, type VoicePort } from "@/infrastructure/speech/Executio
  *   (« 12 répétitions »), précédé du nom s'il n'a pas été annoncé avant (recette h4, constat c).
  * - Bilatéral : « premier côté » au départ, « Changez de côté » au changement de côté.
  * - Zéro d'une étape chronométrée : double bip, sauf si l'étape suivante a son propre son (un seul signal par
- *   instant, T07 ; recette h2).
+ *   instant, T07 ; recette h2). Arrivée sur une Pause ou une récupération : double bip (recette k3).
  * - Pause demandée par l'utilisateur : double bip (constat a). Achèvement de la Séance : fanfare courte.
  * - Aucun bip de cadence juste après un autre son (recette h2 : sifflet et clic ensemble).
  * - Une étape sans son défini et dont l'annonce est coupée reçoit un bip grave (S5).
@@ -34,14 +34,16 @@ export const GUIDANCE = {
   startStopwatch: { sound: "SIFFLET_PUR", volume: 0.55, vibration: "HEAVY" },
   sideChange: { sound: "SIFFLET_COURT", volume: 0.55, vibration: "HEAVY" },
   cadence: { sound: "CLIC_DOUX", volume: 0.35, vibration: "LIGHT" },
-  minute: { sound: "DING", volume: 0.3, vibration: "LIGHT" },
-  seriesPause: { sound: null, volume: 1, vibration: "HEAVY" },
-  recovery: { sound: null, volume: 1, vibration: "HEAVY" },
+  minute: { sound: "DING", volume: 0.15, vibration: "LIGHT" },
+  // Recette du 10/11/2026 (k3) : double bip à l'arrivée sur une Pause ou une récupération, au zéro comme après Suivant.
+  seriesPause: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
+  recovery: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
   stopPoint: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
   userPause: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
   sessionEnd: { sound: null, volume: 1, vibration: "MEDIUM" },
   finish: { sound: "FANFARE_COURTE", volume: 0.6, vibration: "MEDIUM" },
   other: { sound: "BIP_GRAVE", volume: 1, vibration: "HEAVY" },
+  silent: { sound: null, volume: 1, vibration: "NONE" },
 } as const satisfies Record<string, Cue>;
 
 /** Délai entre le son et l'annonce, pour ne pas les superposer. */
@@ -106,8 +108,13 @@ export class ExecutionSignalAdapter {
     const key = `${signal.kind}@${signal.atMs}`;
     if (key === this.lastKey) return;
     this.lastKey = key;
+    if (signal.kind === "PREPARE") {
+      // Avant les bips de fin : la musique est baissée à l'avance (recette du 10/11/2026, t7).
+      if (this.soundEnabled) this.beeps.duckAhead?.();
+      return;
+    }
     if (signal.kind === "CADENCE" && this.lastSoundAtMs !== null && signal.atMs >= this.lastSoundAtMs && signal.atMs - this.lastSoundAtMs < CADENCE_QUIET_AFTER_SOUND_MS) return;
-    if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs}`);
+    if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"}`);
     const { cue, announcement } = this.guidance(signal);
     if (this.vibrationEnabled && cue.vibration !== "NONE") this.haptics.impactAsync(IMPACT[cue.vibration]).catch(() => undefined);
     const spoken = this.voiceEnabled ? announcement : null;
@@ -121,6 +128,7 @@ export class ExecutionSignalAdapter {
 
   /** Son, vibration et annonce d'un signal ; tient compte du « À suivre » déjà annoncé et de l'étape précédente. */
   guidance(signal: ExecutionSignal): Guidance {
+    if (signal.kind === "PREPARE") return { cue: GUIDANCE.silent, announcement: null };
     if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null };
     if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null };
     if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null };

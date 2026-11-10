@@ -30,7 +30,11 @@ import { ExecutionServiceContext } from "../ExecutionServiceContext";
  */
 
 const mockBack = jest.fn();
-jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn(), push: jest.fn() }) }));
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn(), push: jest.fn() }),
+  // Écran toujours au premier plan dans ces tests.
+  useFocusEffect: (effect: () => void | (() => void)) => jest.requireActual<typeof import("react")>("react").useEffect(effect, [effect]),
+}));
 jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve()), ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" } }));
 jest.mock("expo-crypto", () => ({
   // eslint-disable-next-line @typescript-eslint/no-require-imports

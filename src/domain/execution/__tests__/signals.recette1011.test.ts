@@ -27,6 +27,8 @@ describe("signaux — recette du 10/11/2026", () => {
     const signals = stepSignalsBetween(sim.state, 0, 10 * S);
     expect(kinds(signals, "COUNTDOWN")).toEqual([7 * S, 8 * S, 9 * S]);
     expect(kinds(signals, "CADENCE")).toEqual([1 * S, 2 * S, 3 * S, 4 * S, 5 * S, 6 * S]);
+    // t7 : signal sans son 0,7 s avant le premier bip de fin, pour baisser la musique à l'avance.
+    expect(kinds(signals, "PREPARE")).toEqual([6.3 * S]);
   });
 
   it("après une Pause, les clics restent calés sur le temps actif affiché par le chronomètre", () => {
