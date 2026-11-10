@@ -1,5 +1,9 @@
 # PRODUCT — KODJO
 
+## Décisions Mouvement confirmées — étape 2 (11/11/2026)
+
+**Auteur unique** par fiche (`author: ActorRef | null`, pas de multi-auteurs), médias de référence distants avec métadonnées complètes et cache à la demande, téléchargement explicite hors ligne reporté. **Mouvement importé en lecture seule et non duplicable** ; paramètres des Exercices indépendants et modifiables ; redistribution conditionnée par autorisation, hors premier périmètre. Préserver le rapprochement des 60 Mouvements anciens et les mécanismes de reprise CA-3. Cette règle supersède les anciennes possibilités de modification/copie des fiches importées ; les autres règles de provenance, propriétaire, droits et versionnement restent valides. [Spécification étape 2](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
 ## Catalogue autonome — plan confirmé en six étapes (11/11/2026)
 
 La réalisation suit **six étapes**, qui ne sont pas remplacées par le phasage court BIB-19–23 : **(1)** fiche Mouvement normative (propriétés d'usage versus propriétés éditoriales) ; **(2)** consolidation CA-1/CA-2 et préparation CA-3, identités, provenance, droits de source, révisions et migrations coordonnées avec PRE-10 ; **(3)** Figma Profil pour sources et Bibliothèques ; **(4)** services CA-3 de lecture, validation, import/export, installation, comparaison, mise à jour et conflits ; **(5)** administration Web Node.js/OVH capable de créer un 61e Mouvement, éditer intégralement et exporter un fichier compatible ; **(6)** intégration mobile et reprise des **60 Mouvements existants sans perte ni duplication**, avec non-régression des Séances et du moteur. Étapes 4 et 5 parallélisables après stabilisation des contrats.
