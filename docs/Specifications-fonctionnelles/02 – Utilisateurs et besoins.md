@@ -1,5 +1,10 @@
 # Utilisateurs et besoins
 
+## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
+
+Le **premier lot Bibliothèques** couvre exclusivement les collections génériques éditées par KODJO (ex. Fitness, Hyrox, Pilates, Yoga) : découverte, sélection et installation depuis le **Profil**, puis contrôle et application volontaire de leurs mises à jour. Les Mouvements, Séances et Programmes restent accessibles et personnalisables dans le **Catalogue** ; le bloc redondant « Mes données » du Profil est à supprimer. Les compositions et fiches publiées par KODJO ne sont pas directement modifiables. Une Bibliothèque conserve une identité distincte des catégories du Catalogue. La création de Bibliothèques personnelles/de coach, la publication, le partage, les droits de destinataires, l'Espace en étoile, la modération de diffusion et le commerce sont des **évolutions ultérieures**, non le premier lot. Conserver les données et relations nécessaires à l'extensibilité sans introduire maintenant les mécanismes serveur de partage. La désinstallation et les adaptations locales des fiches installées restent **À CLARIFIER** ; aucun écran Figma n'est déclaré validé par cette décision. Voir [registre BIB-19 à BIB-23](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md).
+
+
 ## Composition — actualisation du 28/10/2026
 
 Le besoin de répéter une mobilisation avec plusieurs blocs est couvert par un exercice directement membre du cycle, sans imposer un circuit artificiel. Le besoin de séance simple reste couvert sans conteneur. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
