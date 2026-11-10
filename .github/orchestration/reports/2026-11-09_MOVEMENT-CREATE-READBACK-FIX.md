@@ -36,11 +36,12 @@ Synchronisation code / documentation : classe **D** (technique, sans effet sur u
 
 ## Hypothèses non démontrées
 
-- La cause (instantané WAL en retard sur la connexion principale) reste une hypothèse plausible ; le double de test la modélise, il ne la prouve pas sur l'appareil.
+- La cause (instantané WAL en retard sur la connexion principale) reste une hypothèse plausible ; le double de test la modélise. La correction est validée sur iPhone (10/11), ce qui confirme son efficacité sans prouver à elle seule le mécanisme exact.
 
 ## Vérifications sur appareil réel
 
 - Build `catalogue-recette` `6987d086` (commit `2631c322` de la branche catalogue, qui contient la même correction) : après réinstallation propre de « Routine Catalogue », un import unique doit donner « 60 ajouté(s) » sans interruption, puis « 0 ajouté(s), 60 déjà identique(s) ». **Préalable à la fusion.**
+- **Résultat (Hermann, 10/11/2026) : OK.** « j'ai réinstallé RoutineCatalogue et relancé l'import, 60 mouvements importés avec succès » ; puis « test réalisé, message 0 mouvements ajoutés, tous identiques ». La recette du 9/11 s'interrompait après 31 puis 7 insertions. Fusion dans `main` autorisée conditionnellement par Hermann (« Ok pour la fusion telle que tu le préconises »), condition remplie.
 
 ## Hors périmètre
 
@@ -54,4 +55,4 @@ Synchronisation code / documentation : classe **D** (technique, sans effet sur u
 
 ## Commit final et état Git
 
-Voir le commit qui contient ce rapport sur `fix/movement-create-readback-20261109` ; état communiqué dans le compte rendu de session. Non fusionné à la rédaction.
+Voir le commit qui contient ce rapport sur `fix/movement-create-readback-20261109` ; état communiqué dans le compte rendu de session. Validé sur iPhone le 10/11, puis fusionné dans `main` par la PR #436 (merge commit communiqué dans le compte rendu de session).
