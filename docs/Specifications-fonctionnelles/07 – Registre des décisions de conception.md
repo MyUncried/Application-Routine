@@ -2538,7 +2538,7 @@ Constat de Hermann, recopié textuellement :
 |---|---|
 | BIB-01 à 02 | Tout utilisateur peut créer des Mouvements et des Bibliothèques ; un seul auteur par fiche, gestionnaire distinct possible par attribution explicite. |
 | BIB-03 à 04 | Composition par références sans copie ; Bibliothèque personnelle mélangeant Mouvements propres et provenant d'autres Bibliothèques. |
-| BIB-05 | Visibilité personnelle/partagée/publique, accès gratuit/payant indépendants ; même modèle pour particuliers, coachs, kinés et KODJO. |
+| BIB-05 | Visibilité personnelle/partagée/publique, accès gratuit/payant indépendants ; même modèle structurel de Bibliothèque lorsqu'ils en créent, **distinct du parcours kiné/Espace** (KIN-01). |
 | BIB-06 | Permissions indépendantes Modifier et Redistribuer : Protégé (non/non), Libre localement (oui/non), Partageable à l'identique (non/oui), Libre (oui/oui). |
 | BIB-07 à 08 | Copie personnelle toujours possible, permissions/provenance inchangées ; les paramètres propres aux Exercices ne sont pas verrouillés. |
 | BIB-09 à 11 | Bibliothèque reçue en lecture seule ; réutilisation personnelle par référence ; diffusion filtrée des seules fiches redistribuables, sans exposer les autres. |
