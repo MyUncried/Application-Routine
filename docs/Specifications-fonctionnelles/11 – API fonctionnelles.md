@@ -619,21 +619,20 @@ Le parcours de création conserve le point de départ et un brouillon local jusq
 
 ## Contrats fonctionnels futurs — Diffusion et modération des Mouvements
 
-Les opérations ci-dessous sont des **capacités cibles post-MVP**, non des endpoints développés ; les noms techniques restent à définir.
+Les opérations ci-dessous sont **fonctionnelles et post-MVP** ; les endpoints et noms de services techniques ne sont pas décidés.
 
-| Opération | Contrôle / résultat observable |
+| Opération | Contrat attendu |
 |---|---|
-| Composer Bibliothèque personnelle | Ajouter, retirer, ordonner des références ; aucun déplacement ni copie des fiches sources. |
-| Préparer distribution | Calculer la projection distribuable ; supprimer de la réponse destinataire toutes les fiches sans droit Redistribuer. |
-| Soumettre révision | Conserver fiche et médias dans un espace privé ; identifier révision/empreinte ; déclencher contrôles. |
-| Décider publication | Valider automatiquement un privé sans anomalie ou acheminer à l'examen humain selon le risque ; persister la décision. |
-| Consulter / installer Bibliothèque reçue | Vérifier droit d'accès, fournir une composition en lecture seule, préserver provenances et permissions. |
-| Lister révisions disponibles | Renvoyer les mises à jour approuvées sans les appliquer ; alimenter la pastille d'alerte. |
-| Mettre à jour | N'appliquer la révision éditoriale qu'après action explicite « Mettre à jour » ; protéger variantes locales. |
-| Signaler, suspendre ou retirer | Tracer le motif et neutraliser la distribution centrale ; transmettre la décision aux installations à leur prochain contact. |
+| Composer une Bibliothèque personnelle | Gérer des associations ordonnées vers des `Movement.id` existants, **sans copie**. |
+| Publier sa propre fiche | Autoriser le propriétaire habilité à diffuser sa révision approuvée en définissant les permissions des destinataires, même lorsqu'elles valent « Protégé ». |
+| Redistribuer une fiche tierce | Exiger le droit Redistribuer de la révision ; aucune donnée interdite dans la projection de Bibliothèque. |
+| Approuver une révision | Associer la décision et le statut des médias à une empreinte/révision immuable, avant livraison. |
+| Accorder l'accès à une Bibliothèque | Destinataire ou groupe habilité ; transmission directe d'une fiche dans une relation individuelle distincte. |
+| Installer un Mouvement | Identifier la fiche par `(source_namespace, sheet_id)`, indépendamment du nom affiché ; une seule correspondance `Movement.id` locale. Deux « Squat » de sources distinctes ne fusionnent pas. |
+| Lister des mises à jour | Fournir les changements approuvés sans les appliquer et **les autres Bibliothèques qui référencent les fiches à actualiser**, pour l'aperçu préalable. |
+| Mettre à jour la Bibliothèque choisie | Après action volontaire, actualiser sa composition et les révisions des Mouvements concernés ; leur nouvelle fiche active apparaît dans **toutes leurs Bibliothèques référentes**, sans changer les autres compositions ; opération cohérente et reprenable. |
+| Contrôler les médias | Vérifier leurs droits propres indépendamment des permissions de fiche ; ne pas diffuser un média non autorisé. |
+| Signaler et neutraliser | Permettre le blocage d'un média ou de la fiche ; neutralisation prioritaire et synchronisation sans suppression des références historiques. |
+| Relation et transmission dans l'Espace | Invitation/acceptation/refus/blocage ; transfert individuel de fiches, sans rôle professionnel ni création de prescription numérique. |
 
-Règles exactes des droits payants, du retrait d'une fiche de la version publiée d'une Bibliothèque et des conflits locaux : **À CLARIFIER**. [Contrat fonctionnel de référence](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
-
-### Services futurs — Relation kiné-patient, périmètre KIN-01
-
-Le partage d'une **Bibliothèque** conserve son contrat d'accès au niveau Bibliothèque. La transmission par un **kinésithérapeute** utilise une autre entrée fonctionnelle : vérifier la relation individuelle au patient dans l'Espace professionnel, vérifier les droits de diffusion et le statut de validation de chaque **fiche Mouvement**, puis transmettre cette fiche au seul patient concerné. **Aucune opération de prescription d'Exercice, Séance ou paramètres d'exécution numériques** n'est requise dans ce lot ; ces consignes sont orales. Le contrat exact des relations et autorisations, et les endpoints éventuels, restent **À CLARIFIER**. [Parcours PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+Les détails d'accès payant, les restrictions de droits ultérieures et les conflits locaux restent à arbitrer. Les requêtes doivent vérifier droits/permissions et approbation **côté serveur**, non via l'affichage des boutons. [Parcours](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
