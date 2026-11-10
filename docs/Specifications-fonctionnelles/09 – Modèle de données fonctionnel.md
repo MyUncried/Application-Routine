@@ -1539,3 +1539,19 @@ Les unités proposées restent limitées par le modèle et le contexte de l’Ex
 **Death by — cible du 5 novembre.** Répétitions ou Durée, Objectif de départ et Incrément ≥ +1 dans l’unité. Seul un premier rang dont le travail connu atteint ou dépasse l’intervalle déclenche un avertissement non bloquant ; sauvegarde autorisée si les autres champs sont valides. À l’exécution, ne pas lancer un rang dont ce travail atteint ou dépasse la fenêtre : arrêt après le précédent, résultat « limite de l’intervalle atteinte », aucun échec ni tentative fictifs. En Durée : deux côtés et pause applicable, somme des membres en fenêtre commune ou intervalle du membre en alternance. Rangs acquis et rang courant distincts ; durée partielle renseignée seulement pour une fenêtre réellement tentée et non tenue. Les autres règles de fin et d’achèvement Death by restent applicables ; aucune fenêtre prolongée. Exemple 10 s puis +10 s / 60 s : cinq rangs réussis, arrêt avant le rang 6. La progression future compatible au départ ne déclenche pas d’avertissement.
 
 Le tableau représente la prescription effective des séries. L’EMOM n’a aucun incrément de charge concurrent. L’incrément AMRAP est signé ; Death by conserve unité et incrément positif. Les résultats réellement acquis restent distincts du rang non lancé. Les instantanés déjà figés ne sont pas réécrits.
+
+## Modèle de données cible — Bibliothèques, révisions et modération (post-MVP)
+
+| Objet fonctionnel | Invariants |
+|---|---|
+| Fiche éditoriale | Identité de source distincte du Mouvement local ; auteur **unique ou inconnu**, propriétaire administratif, droits déclarés, permissions Modifier/Redistribuer, provenance. |
+| Révision de fiche | Identifiant de fiche, révision, contenu, empreinte, état de validation ; autorisation centrale attachée à cette révision. |
+| Média | Type, stockage, empreinte, résultat de contrôle et accès éventuellement suspendu. |
+| Bibliothèque | Identifiant, propriétaire, nom, description, visibilité personnelle/partagée/publique, accès gratuit ou payant. |
+| Appartenance | Association ordonnée de la Bibliothèque à l'identité d'une fiche, **sans copie**. |
+| Révision de Bibliothèque | Version de composition, indépendante de la révision des fiches membres. |
+| Installation | Association source/révision/identifiant local, et références de Bibliothèques reçues ; copie volontaire distincte et restrictions héritées. |
+| Autorisation de distribution et droit commercial | Destinataire/groupe, droits d'accès et d'utilisation ; ne peut élargir les permissions de la source. |
+| Signalement/décision de modération | Révision ou média ciblé, motif, décision, date, acteur, état de neutralisation. |
+
+Les paramètres propres aux Exercices restent indépendants des permissions sur la fiche. **Raccordement non réalisé :** le pilote de provenance et de catalogue autonome sur la branche catalogue/integration-60-main-20261109 conserve actuellement authors[] et des choix de refus/conflits à l'import ; ces contrats pilotes ne sont pas le modèle validé de diffusion entre utilisateurs et doivent être rapprochés sans migration implicite. [Conception et réserves](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
