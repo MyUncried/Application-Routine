@@ -1,5 +1,14 @@
 # Contrats d’écran
 
+### Contrôle Figma du 10/11/2026 — Profil et Bibliothèques
+
+**Évidence directe :** page Prototype MVP `510:101`, écran [P-Profil — Modifier le profil — MVP, `1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778). L'écran représente « Bibliothèques » avec « Mes bibliothèques » (« Celles que je crée et rends disponibles »), « Bibliothèques partagées » (« Celles que je peux importer »), puis « Bibliothèques installées » : Fitness (« 14 mouvements · à jour ») et Pilates (« 8 mouvements », action « Mettre à jour »). L'écran « Profil — Préférences » `1992:684` est distinct.
+
+**Confrontation avec BIB-19 à BIB-23 :** les états installés et l'action « Mettre à jour » illustrent le premier lot. Les entrées « Mes bibliothèques » et « Bibliothèques partagées » et leurs sous-titres évoquent des capacités **reportées** (création et publication personnelles, partage et import depuis des tiers). Leur présence graphique dans Figma **ne réintègre pas ces fonctions au premier lot**. Le fonctionnement de ces entrées avant livraison des fonctions futures (masquées, désactivées, ou autre) reste **À CLARIFIER** ; ne pas déduire de comportement des seuls libellés. Les quantités 14 et 8 sont des valeurs illustratives d'écran, non des cardinalités métier.
+
+**État :** Figma contrôlé en lecture, non modifié dans cette opération. Contrat fonctionnel en cours de convergence ; pas de déclaration de conformité UX complète.
+
+
 ## Contrat cible — Profil / Mes bibliothèques (BIB-19 à BIB-23)
 
 Le Profil doit proposer l'accès « Mes bibliothèques » pour découvrir, sélectionner et installer les Bibliothèques génériques KODJO et déclencher volontairement « Mettre à jour » lorsqu'une nouvelle révision est proposée. Le bloc « Mes données » (Mouvements, Séances, Programmes) est supprimé du Profil : ces contenus sont accessibles depuis le Catalogue. Les contenus des Bibliothèques publiées ne sont pas éditables directement. **Contrat fonctionnel cible, pas contrat graphique Figma validé** ; affichages, confirmations, désinstallation et erreurs restent à préciser avant développement. La création de Bibliothèques personnelles, les Bibliothèques de coachs et le partage sont reportés. Voir BIB-19 à BIB-23.
