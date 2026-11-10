@@ -1,5 +1,11 @@
 # PRODUCT — KODJO
 
+## Catalogue autonome — plan confirmé en six étapes (11/11/2026)
+
+La réalisation suit **six étapes**, qui ne sont pas remplacées par le phasage court BIB-19–23 : **(1)** fiche Mouvement normative (propriétés d'usage versus propriétés éditoriales) ; **(2)** consolidation CA-1/CA-2 et préparation CA-3, identités, provenance, droits de source, révisions et migrations coordonnées avec PRE-10 ; **(3)** Figma Profil pour sources et Bibliothèques ; **(4)** services CA-3 de lecture, validation, import/export, installation, comparaison, mise à jour et conflits ; **(5)** administration Web Node.js/OVH capable de créer un 61e Mouvement, éditer intégralement et exporter un fichier compatible ; **(6)** intégration mobile et reprise des **60 Mouvements existants sans perte ni duplication**, avec non-régression des Séances et du moteur. Étapes 4 et 5 parallélisables après stabilisation des contrats.
+
+**BIB-19–23** ne reportent que les Bibliothèques personnelles/coachs, leur publication, partage, droits destinataires et commerce ; ils ne reportent pas les propriétés éditoriales de fiches, la provenance, les révisions, les imports, les contrôles de droits des médias ou l'administration KODJO. **Profil** = gestion des sources/Bibliothèques, **Catalogue** = édition et usage des contenus ; un fichier catalogue autonome n'est pas une Bibliothèque. [Plan normatif](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md).
+
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
 Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. Voir le registre BIB-19 à BIB-23.
