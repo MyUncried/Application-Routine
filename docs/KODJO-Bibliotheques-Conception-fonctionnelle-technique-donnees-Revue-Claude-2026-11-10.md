@@ -94,7 +94,7 @@ Le créateur de la fiche originale devient auteur unique et propriétaire admini
 - Une proposition de mise à jour peut contenir des différences de composition, de fiches ou les deux.
 - L'action unique « Mettre à jour » doit conduire à un état cohérent correspondant à la version choisie et aux révisions approuvées ; l'absence d'action conserve l'état installé.
 - Des fiches exclues par droits de redistribution ne doivent pas fuiter dans la projection distribuée.
-- **Modération** : traitement hors cycle de mise à jour volontaire, pouvant invalid er l'accès à une version déjà installée après synchronisation.
+- **Modération** : traitement hors cycle de mise à jour volontaire, pouvant invalider l'accès à une version déjà installée après synchronisation.
 
 ### 3.4 Cycle de vie de la Bibliothèque
 
