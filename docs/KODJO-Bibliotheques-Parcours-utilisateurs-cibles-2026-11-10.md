@@ -3,17 +3,17 @@
 **Date :** 10 novembre 2026  
 **État :** consolidation fonctionnelle des décisions déjà validées ; **parcours cibles stabilisés au niveau métier**, détails UX non représentés dans Figma à arbitrer avant développement.  
 **Usage :** base fonctionnelle du dossier d'architecture soumis à Claude. Aucune modification Figma ni déclaration de fonctionnalité livrée.  
-**Source de décisions :** BIB-01 à BIB-18, F4-A à F4-F, et précision KIN-01 (périmètre kinésithérapeute), et autres précisions successives de Hermann ; [conception initiale](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).  
+**Source de décisions :** BIB-01 à BIB-18, F4-A à F4-G, précision KIN-01 et règles de première publication et d'identité de source ; [conception initiale](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).  
 **Périmètre :** futur partage des Bibliothèques de Mouvements, hors MVP local.
 
 ## 1. Définitions et règles communes
 
-- Une **fiche Mouvement** possède une identité éditoriale source (distincte de son identifiant local), une révision, **un auteur au maximum**, un propriétaire administratif, des permissions et une provenance.
+- Une **fiche Mouvement** possède une identité éditoriale source **stable et indépendante du nom**, une révision active locale, **un auteur au maximum**, un propriétaire administratif, des permissions et une provenance. Des fiches de sources distinctes peuvent avoir exactement le même nom visible.
 - Une **Bibliothèque personnelle** est créée/administrée par un utilisateur ; elle est immédiatement utilisable et peut référencer des Mouvements de toute provenance.
 - Une **Bibliothèque reçue** représente la composition publiée par son propriétaire, dans la version acceptée par le destinataire ; elle est **en lecture seule sur sa composition**.
-- **Référencer** un Mouvement dans une Bibliothèque n'est **pas copier** le Mouvement. Un même Mouvement peut appartenir à plusieurs Bibliothèques.
+- **Référencer** un Mouvement dans une Bibliothèque n'est **pas copier** le Mouvement. Un même Mouvement source a **une seule version active sur l'appareil**, référencée dans plusieurs Bibliothèques ; sa mise à jour volontaire est visible dans toutes, sans changer leur composition.
 - **Copier** est toujours possible pour un usage personnel ; la copie a une identité locale propre, garde la provenance et **exactement les permissions de la source**. Une succession de copies ne desserre jamais les droits.
-- Permissions du contenu de la fiche : **Modifier** et **Redistribuer**, indépendantes. Elles ne verrouillent ni les paramètres d'Exercice ni la réutilisation dans les Séances.
+- Permissions accordées aux **destinataires** : **Modifier** et **Redistribuer**, indépendantes. Une fiche personnelle originale est modifiable par son créateur et non redistribuable par des tiers par défaut ; le propriétaire choisit les permissions des destinataires lors de la première publication. Celle-ci n'est **pas** conditionnée par leur droit de redistribuer. Les paramètres d'Exercice restent indépendants.
 - **Accès à une Bibliothèque** : accordé par son propriétaire à un utilisateur/groupe ; les Mouvements présents en bénéficient pour l'utilisation. Ceci ne change pas leurs permissions de modification et redistribution.
 - Un Mouvement précédemment téléchargé reste localement disponible s'il est ultérieurement retiré de la Bibliothèque source, sous réserve des conditions commerciales non arbitrées et des mesures de modération.
 - Une **révision ordinaire** ne s'applique jamais automatiquement ; une **mesure de modération** peut au contraire restreindre un contenu sans attendre l'action du destinataire.
@@ -40,6 +40,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 | **F4-D** | Un seul « Mettre à jour » installe composition et nouvelles révisions sans écraser les adaptations (PU-10). |
 | **F4-E** | Archivage du propriétaire sans effet pour les destinataires (PU-13). |
 | **F4-F** | Arrêt explicite du partage : pas de nouveaux destinataires, aucune nouvelle MAJ, installations existantes conservées (PU-14). |
+| **F4-G** | Mise à jour d'une fiche source : une seule version active, propagée à toutes ses références de Bibliothèques, avec aperçu préalable des impacts (PU-10/11). |
 
 ## 2. Parcours détaillés
 
@@ -69,20 +70,20 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 **Acteur :** utilisateur ayant installé la fiche.  
 **Déroulement :** demande de copie pour son Catalogue personnel.  
 **Résultat :** nouvelle identité locale, provenance et permissions héritées intégralement. Une copie Protégée demeure non modifiable ; une copie Libre localement demeure non redistribuable. Les références de l'original sont conservées.  
-**Réserve :** résolution des noms homonymes à concevoir avec l'actuelle contrainte d'unicité du Catalogue.
+**Résultat sur les homonymes :** les fiches de sources différentes conservent leurs noms visibles, même identiques. Leur identité source reste distincte ; la migration de l'index global du Catalogue est à concevoir. L'attribution d'un suffixe n'est pas un effet obligatoire de la réception.
 
 ### PU-05 — Préparer le partage d'une Bibliothèque personnelle
 
 **Acteur :** propriétaire/diffuseur.  
-**Déroulement :** choix des destinataires (personne/groupe ou publication publique) et de la Bibliothèque ; KODJO calcule les seules fiches **redistribuables** et présente le résultat exploitable. Les fiches interdites restent dans la Bibliothèque personnelle de l'émetteur.  
+**Déroulement :** choix des destinataires et de la Bibliothèque. KODJO inclut les fiches que l'émetteur est habilité à publier **en tant que propriétaire** ainsi que les fiches tierces dont la **redistribution** est autorisée ; il exclut les fiches tierces dont la redistribution est interdite. Les fiches exclues restent dans sa Bibliothèque personnelle.  
 **Résultat :** demande de diffusion d'une composition filtrée ; les destinataires ne reçoivent **ni contenu ni métadonnées** des fiches exclues.  
-**Précondition :** propriétaire habilité à redistribuer chaque fiche retenue ; droits et validation vérifiés côté serveur.  
+**Précondition :** propriétaire habilité à effectuer la première diffusion de ses propres fiches, ou destinataire habilité à redistribuer les fiches d'autrui ; les permissions accordées aux nouveaux destinataires sont conservées et la validation centrale est vérifiée côté serveur.  
 **Non tranché :** forme du résumé avant soumission et choix exact des destinataires.
 
 ### PU-06 — Partager un Mouvement seul
 
 **Acteur :** utilisateur autorisé à redistribuer le Mouvement, ou propriétaire publiant sa fiche.  
-**Déroulement :** action « Partager » sur la fiche ; même contrôle central que pour une fiche incluse dans une Bibliothèque, sans obligation métier de créer une Bibliothèque persistante.  
+**Déroulement :** action « Partager » sur la fiche ; le propriétaire habilité peut publier sa propre fiche même en mode destinataire « Protégé ». Un destinataire ne peut retransmettre une fiche tierce que si le droit Redistribuer l'autorise. Même contrôle central, sans Bibliothèque fictive.  
 **Résultat :** distribution de la révision approuvée aux destinataires habilités avec ses permissions et sa provenance.  
 **Technique à examiner :** mutualiser le service de partage sans imposer un objet Bibliothèque fictif.
 
@@ -97,24 +98,24 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 
 **Acteur :** destinataire habilité par le propriétaire de la Bibliothèque.  
 **Déroulement :** consultation des éléments éligibles ; installation de la composition proposée et des fiches/révisions autorisées.  
-**Résultat :** Bibliothèque reçue en **lecture seule** sur sa composition ; Mouvements disponibles dans le Catalogue local pour création d'Exercices, de Séances et de Bibliothèques personnelles. Une même fiche source installée via plusieurs Bibliothèques ne crée pas systématiquement plusieurs Mouvement locaux.  
+**Résultat :** Bibliothèque reçue en **lecture seule** sur sa composition ; Mouvements disponibles dans le Catalogue local pour créer Exercices, Séances et Bibliothèques personnelles. **Une même identité source est rattachée à un seul Mouvement local et à une seule révision active**, même lorsqu'elle provient de plusieurs Bibliothèques.  
 **Contrôle :** auteur, permissions, source et version conservés ; le droit d'accès vient de la Bibliothèque, sans élargir la redistribution.
 
 ### PU-09 — Télécharger une Bibliothèque KODJO gratuite ou payante
 
 **Acteur :** utilisateur.  
 **Déroulement :** découverte de la Bibliothèque officielle, vérification du droit d'accès, installation selon PU-08.  
-**Résultat :** même modèle de Bibliothèque distribuée que celui d'un coach ; le parcours du kinésithérapeute vers son patient relève de l'Espace professionnel (PU-17), et non du partage de Bibliothèque. Le volet « gratuit/payant » ne change pas la composition ni les permissions de chaque fiche.  
+**Résultat :** même modèle de Bibliothèque distribuée que celui d'un coach ; la transmission individuelle d'un Mouvement utilise l'Espace en étoile générique (PU-17), et non une Bibliothèque artificielle. Le volet « gratuit/payant » ne change pas la composition ni les permissions de chaque fiche.  
 **À CLARIFIER, chantier commercial distinct :** paiement, abonnements, remboursement, expiration, restauration d'achat, offres et distribution en boutique.
 
 ### PU-10 — Recevoir une mise à jour globale
 
 **Acteur :** destinataire d'une Bibliothèque distribuée.  
-**Déroulement :** nouvelle composition et/ou nouvelles révisions approuvées disponibles → **pastille d'alerte** → ouverture de la Bibliothèque et consultation des changements (ajouts, retraits, fiches actualisées) → action unique **« Mettre à jour »**.  
-**Résultat si action confirmée :** nouvelle composition installée **et** nouvelles révisions éligibles des fiches appliquées comme une opération cohérente ; les Mouvements retirés restent dans le Catalogue local et dans les Séances/Bibliothèques personnelles les référençant ; les adaptations personnelles ne sont jamais écrasées.  
+**Déroulement :** nouvelle composition et/ou révisions approuvées disponibles → **pastille d'alerte** → ouverture de la Bibliothèque, détail des ajouts/retraits/actualisations et **indication des autres Bibliothèques qui référencent les mêmes fiches** → action unique **« Mettre à jour »**.  
+**Résultat si action confirmée :** nouvelle composition installée et nouvelles révisions appliquées de manière cohérente ; chaque Mouvement actualisé apparaît dans **toutes les Bibliothèques** qui le référencent, sans changer la composition des autres. Les Mouvements retirés restent dans le Catalogue local et les Séances/Bibliothèques personnelles ; adaptations et historiques préservés.  
 **Résultat sans action :** aucune modification de la version installée. Une mesure de modération demeure prioritaire.  
 **Exigence technique :** détection de préconditions et reprise idempotente en cas d'interruption ; ne pas prétendre à une transaction SQL couvrant deux bases SQLite distinctes sans mécanisme adapté.  
-**Point de revue Claude :** gestion des conflits et fiches installées via plusieurs Bibliothèques, sans réintroduire une fusion automatique.
+**Point de revue Claude :** démontrer la cohérence du lot et des conflits sans fusion automatique ; **ne pas** réintroduire de révision active propre à chaque Bibliothèque.
 
 ### PU-11 — Mettre à jour un Mouvement reçu hors Bibliothèque
 
@@ -157,12 +158,12 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 **Déroulement :** consultation, composition et Exécution sur des données locales déjà installées ; mise à jour réseau reportée si indisponible.  
 **Résultat :** l'Exécution MVP ne dépend pas du service distant. Les mutations locales sont reprises de manière idempotente ; une panne au milieu de l'installation d'une Bibliothèque ne doit ni laisser de références cassées ni dupliquer des fiches. Les décisions de modération sont rattrapées à la prochaine connexion exploitable.
 
-### PU-17 — Kinésithérapeute : transmettre un Mouvement à un patient dans l'Espace professionnel
+### PU-17 — Transmission individuelle d'un Mouvement dans un Espace en étoile
 
-**Acteurs :** kinésithérapeute et patient concerné. **Périmètre de la première étape :** transmission d'un ou plusieurs Mouvements uniquement.  
-**Déroulement :** le kinésithérapeute, depuis son Espace professionnel organisé **en étoile** autour de lui, sélectionne le patient concerné, puis transmet le ou les Mouvements choisis dans le cadre de cette relation. Les modalités d'exécution (consignes, répétitions, durée, fréquence, etc.) sont **données oralement** au patient ; aucun objet KODJO de prescription d'Exercice, de Séance ou de programme n'est créé automatiquement.  
+**Acteurs :** utilisateur émetteur et destinataire lié individuellement. **Exemple d'usage :** kinésithérapeute transmettant un Mouvement à son patient, avec consignes d'exécution orales.  
+**Déroulement :** l'émetteur invite une autre personne dans une relation individuelle en étoile ; le destinataire accepte ou refuse et peut bloquer l'émetteur. L'émetteur sélectionne ensuite le destinataire et transmet un ou plusieurs Mouvements autorisés. Pour l'usage kiné-patient, les paramètres d'exécution sont donnés **oralement**, sans créer de prescription numérique d'Exercice, Séance ou programme.  
 **Résultat :** le patient reçoit et peut utiliser les Mouvements concernés dans son Catalogue, selon les permissions et le contrôle central de diffusion applicables aux fiches. La relation avec chaque patient est distincte ; cette topologie ne constitue ni un groupe de patients ni une Bibliothèque partagée. Le Mouvement peut ensuite être référencé dans les Bibliothèques personnelles du patient, sans copier la fiche.  
-**À CLARIFIER :** identité et cycle de vie de l'Espace, invitation/association et fin de relation, droits de consultation/écriture, éventuel statut de prescription, révisions/notifications dans l'Espace, consentement et données de santé. La prescription numérique de l'exécution est reportée à un autre chantier ; aucune planification ou remontée de résultats cliniques n'est impliquée ici.
+**À CLARIFIER :** durée et fin de relation, notifications, conservation après fin du lien, contrôle d'accès, minimisation des données et obligations juridiques applicables au contexte d'utilisation. Aucun rôle professionnel, champ clinique ou prescription numérique dans le modèle cible de ce lot.
 
 ## 3. États métier — distinction indispensable
 
@@ -194,19 +195,19 @@ Ne pas introduire un cycle universel « Brouillon → Active → Inactive » pou
 12. Une suspension de modération bloque l'accès réseau et est prise en compte lors d'un contact ultérieur de l'application, sans attendre une mise à jour éditoriale.
 13. Les préférences ou paramètres d'Exercice ne deviennent pas verrouillés du seul fait qu'une fiche Mouvement est Protégée.
 14. Hors connexion, l'Exécution des données locales reste disponible sous réserve des restrictions déjà connues.
-15. Le kinésithérapeute transmet un Mouvement à un patient par son Espace professionnel ; aucune Séance, Exercice ou exécution prescrite n'est créée automatiquement. Les consignes d'exécution restent orales.
+15. Un utilisateur transmet un Mouvement dans une relation individuelle de l'Espace en étoile, sans prescription numérique ; dans l'usage kiné-patient, les consignes d'exécution restent orales.
 16. Le patient A ne reçoit pas par cette transmission la liste ou les données du patient B relié au même kinésithérapeute.
 
 ## 5. À CLARIFIER — ne pas transformer en décisions
 
 - Parcours visuels exacts, navigation, libellés secondaires, emplacement de la pastille et des actions : **Figma reste à concevoir**.
-- Espace kinésithérapeute en étoile : modélisation des relations individuelles, cycle de vie, permissions et consentement à préciser. Aucune prescription d'exécution numérisée dans le périmètre actuel.
-- Politique de conflit pour une fiche source actualisée quand plusieurs Bibliothèques la fournissent, notamment versions différentes.
-- Défaut de permission d'une fiche à la création et au partage.
+- Espace en étoile **générique** : relation individuelle orientée, invitation acceptée, refus et blocage. Les détails de cycle de vie, les autorisations et la confidentialité restent à préciser.
+- **Résolu :** version active unique d'une fiche source, propagée à toutes les Bibliothèques qui la référencent après confirmation volontaire. Restent la protection des adaptations et la reprise technique d'un lot interrompu.
+- **Précisé :** création locale modifiable et non redistribuable par un tiers par défaut ; le propriétaire choisit les droits des destinataires lors de la première publication. Effet des restrictions futures à préciser.
 - Conséquences d'un changement ultérieur de permission et d'une révocation de redistribution.
 - Droits commerciaux, achats/abonnements/expiration, accès après changement d'appareil.
 - Groupes : gouvernance de l'appartenance, invitation, révocation et confidentialité.
-- Collision de noms de Mouvements provenant de différentes sources.
+- **Objectif retenu :** noms affichés identiques admis pour des fiches de sources différentes ; la migration technique de la contrainte d'unicité globale reste à concevoir.
 - Définition précise du terme « propriétaire » lorsque droits d'auteur et gestion administrative diffèrent.
 - Gestion de la première diffusion d'une Bibliothèque dont zéro Mouvement est redistribuable.
 - Destinataires d'une Bibliothèque publique après arrêt de diffusion.
