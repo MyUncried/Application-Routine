@@ -166,70 +166,62 @@ Les orientations S-02 à S-09 sont des **candidats techniques**, à confronter a
 
 ## 5. Modèle de données fonctionnel / relationnel cible
 
-### 5.1 Référentiel central — proposition de tables
+### 5.1 Modèle de données central — proposition minimale à auditer
 
-| Table logique | Clé et champs principaux | Relations et contraintes |
+La cible sépare les **identités de fiches**, leurs **révisions approuvées**, les **Bibliothèques publiées** et les **droits d'accès**, puis réutilise les mêmes fiches pour la transmission individuelle et la modération. Les tables physiques et les éventuelles fusions ne sont pas arbitrées.
+
+| Ensemble | Données indispensables | Invariant |
 |---|---|---|
-| \`actor\` | \`actor_id\`, \`kind\` (USER, ORGANIZATION, PLATFORM), \`display_name\` | Identité de gestion ; ne constitue pas preuve de propriété intellectuelle. |
-| \`editorial_sheet\` | \`sheet_id\`, \`source_namespace\`, \`author_actor_id NULL\`, \`owner_actor_id NULL\`, \`rights_holder_actor_id NULL\`, \`can_edit\`, \`can_redistribute\`, \`origin\`, \`upstream_sheet_id NULL\` | Identité stable. Auteur unique ; provenance et permissions de copie héritées. \`owner_actor_id NULL\` possible sur import privé inconnu, diffusion interdite jusqu'à vérification. |
-| \`sheet_revision\` | \`revision_id\`, \`sheet_id FK\`, \`revision_number\`, \`digest\`, \`content_json\`, \`created_at\`, \`review_status\` | Unicité (\`sheet_id\`, \`revision_number\`) ; contenu et empreinte immuables après soumission. |
-| \`media_asset\` | \`media_id\`, \`digest\`, \`type\`, \`storage_key\`, \`moderation_status\` | Stockage privé ; pas d'URL publique permanente ; références depuis les révisions. |
-| \`sheet_revision_media\` | \`revision_id FK\`, \`media_id FK\`, \`position\` | Référence explicite du média approuvé dans une version. |
-| \`library\` | \`library_id\`, \`owner_actor_id FK\`, \`title\`, \`description\`, \`visibility\`, \`access_class\`, \`distribution_state\` | \`access_class\` = FREE / CONTROLLED ; prix et abonnements **hors de cette table**. Archivage propre à chaque compte, ne bloque pas distribution. |
-| \`library_draft_member\` | \`library_id FK\`, \`sheet_id FK\`, \`position\` | Composition mutable du propriétaire ; aucun duplicata de fiche. |
-| \`library_release\` | \`release_id\`, \`library_id FK\`, \`release_no\`, \`published_at\`, \`digest\` | Publication versionnée de composition, immutable. |
-| \`library_release_member\` | \`release_id FK\`, \`sheet_id FK\`, \`source_revision_id FK\`, \`position\` | Références aux fiches/révisions ; projection serveur filtrée selon redistribution et autorisation de publication. |
-| \`library_access_grant\` | \`grant_id\`, \`library_id FK\`, \`recipient_actor_id / group_id\`, \`issued_at\`, \`grant_kind\`, \`status\` | Droit octroyé **au niveau Bibliothèque**, notamment par un coach ; ne confère pas \`can_redistribute\` sur les fiches. **Pas un mécanisme de prescription kiné-patient.** |
-| \`distribution_record\` | \`record_id\`, \`library_id/release_id\`, \`recipient_id\`, \`delivered_at\`, \`grant_id\` | Évidence de livraison / téléchargement, pour conservation locale et audit. |
-| \`publication_submission\` | \`submission_id\`, \`target_revision_id\`, \`scope\`, \`submitted_at\`, \`state\` | Contrôle automatique ou humain par révision avant diffusion. |
-| \`moderation_case\` | \`case_id\`, \`target_type\`, \`target_id\`, \`reason\`, \`state\`, \`reported_at\` | Peut viser fiche, révision, média ou publication. |
-| \`moderation_decision\` | \`decision_id\`, \`case_id FK\`, \`outcome\`, \`actor_id\`, \`decided_at\`, \`reason\` | Historique traçable ; suspension séparée d'une révision. |
+| Identité utilisateur/organisation | \`actor_id\`, gestionnaire et état du compte | **Aucun rôle « coach » ou « kiné »** dans le modèle |
+| Fiche source | \`source_namespace\`, \`sheet_id\`, auteur unique nullable, propriétaire administratif, provenance | Identité stable indépendante du nom et des Bibliothèques |
+| Révision de fiche | \`revision_id\`, contenu/digest, droits Modifier/Redistribuer des destinataires, état de validation | Une révision approuvée est identifiable ; la première diffusion par le propriétaire habilité ne requiert pas le droit de redistribution des destinataires |
+| Médias liés à une révision | Média, empreinte, droits sur le média, position, statut de modération | Les droits d'une fiche ne suffisent pas à publier une vidéo tierce |
+| Bibliothèque et version publiée | \`library_id\`, propriétaire, visibilité, diffusion, \`release_id\`, composition ordonnée par références | Le brouillon peut rester local ; pas de copie des fiches membres |
+| Autorisation et preuve de réception | Bibliothèque, destinataire, droit d'accès et preuve de livraison | Deux faits à distinguer même si une seule table suffit techniquement |
+| Relation et transfert individuels | lien orienté entre utilisateurs, transmission d'une révision approuvée | Espace en étoile générique ; pas de Bibliothèque artificielle ni de prescription numérique |
+| Modération et décisions | contrôle de publication, signalement, décisions et état courant | Les contrôles initiaux et les incidents ultérieurs peuvent partager une infrastructure, pas nécessairement tous les mêmes états |
 
-**Notes d'implémentation :**
-- \`library_draft_member\` et \`library_release_member\` sont des associations, pas des copies de contenu.
-- La version distribuée est identifiée par un \`release_id\` immuable et les références de versions validées des fiches.
-- Les accès se calculent à partir de la Bibliothèque et des autorisations octroyées ; les permissions éditoriales se calculent au niveau de chaque fiche.
-- La projection distribuée ne doit pas rendre l'inventaire interdit visible par un canal secondaire (recherche, nombre de membres, API, cache, miniatures ou notification).
-- Les groupes et leur historique d'appartenance ne sont qu'une **interface d'extension** : leur modèle complet est à spécifier si nécessaire.
-- Les colonnes SQL et types sont **proposés**, pas un schéma exécuté.
+**Simplifications candidates :** ne pas maintenir \`library_draft_member\` sur le serveur si l'édition de composition reste locale ; ne pas stocker de pointeur de révision active par Bibliothèque ; ne pas créer de tables spécifiques à un profil professionnel ; ne pas intégrer les achats aux fiches. Claude doit vérifier si la fusion d'un contrôle préalable et d'un signalement reste traçable et si le suivi des droits acquis nécessite une preuve distincte de l'accès actuel.
 
-### 5.2 Stockage local SQLite — proposition de tables additionnelles
+### 5.2 Stockage SQLite — réemploi et séparation des responsabilités
 
-| Table logique | Champs essentiels | Rôle |
+| Stockage | Modèle à privilégier | Point de contrôle |
 |---|---|---|
-| \`local_library\` | \`local_library_id\`, \`source_library_id NULL\`, \`owner_kind\`, \`title\`, \`archived_at NULL\`, \`installed_release_id NULL\`, \`read_only\` | Bibliothèque personnelle ou reçue. L'archive locale ne touche pas le serveur. |
-| \`local_library_member\` | \`local_library_id\`, \`source_sheet_id/local_sheet_id\`, \`position\`, \`source_revision_id NULL\` | Association par référence ; pour reçue, état provenant du manifeste installé seulement. |
-| \`local_sheet_installation\` | \`source_namespace\`, \`source_sheet_id\`, \`local_movement_id\`, \`installed_revision_id\`, \`provenance_json\`, \`permissions_snapshot\` | Correspondance source ↔ Mouvement opérationnel ; pas de duplicata par Bibliothèque. |
-| \`local_sheet_revision_cache\` | \`source_sheet_id\`, \`revision_id\`, \`digest\`, \`payload_json\` | Révisions immuables localement, nécessaire si plusieurs Bibliothèques utilisent des versions distinctes. |
-| \`local_access_receipt\` | \`receipt_id\`, \`grant_id/library_id\`, \`source_sheet_id\`, \`received_at\`, \`access_state\` | Preuve que le Mouvement fut reçu légalement via une Bibliothèque ; survit à son retrait de composition. |
-| \`local_update_journal\` | \`operation_id\`, \`library_id\`, \`target_release_id\`, \`state\`, \`checkpoint\`, \`created_at\` | Reprise idempotente d'installation/mise à jour, notamment si plusieurs bases sont conservées. |
-| \`local_moderation_registry\` | \`target_type\`, \`target_id\`, \`decision_version\`, \`blocked\`, \`synced_at\` | Empêche le rendu/l'utilisation des contenus connus comme suspendus ; rattrapage après reconnexion. |
+| Base principale \`kodjo.db\` | Tables additionnelles **Bibliothèque** et **association ordonnée vers \`Movement.id\`** ; réutilisation du Mouvement et des FK existants vers Exercices/Séances | Aucune duplication à l'affectation ; Bibliothèques reçues en lecture seule |
+| Registre provisoire \`kodjo-catalogue-registry.db\` | Réutiliser \`installed_sheets\`, l'identité de source, la révision active, les empreintes et les contrôles \`pending_operations\` du pilote | Ne pas créer une deuxième table d'installation sans besoin non couvert |
+| État local de Bibliothèque reçue | Identité source de Bibliothèque, \`release_id\` installé et état de réception | Version de **composition** uniquement, pas version active propre à chaque Bibliothèque pour un Mouvement partagé |
+| État de modération | Cibles neutralisées et version de décision, accessible à l'affichage et aux services de lecture | État appliqué sans supprimer les références des Séances |
+| Reprise de lot | Réutilisation du journal par fiche, **plus petit mécanisme supplémentaire si nécessaire** pour une mise à jour globale cohérente | Une reprise fiche par fiche ne garantit pas à elle seule une visibilité atomique sur l'ensemble de la Bibliothèque |
 
-**Important :** ces noms sont illustratifs ; il est interdit d'introduire des tables concurrentes au registre déjà existant sans analyse de son schéma et de sa migration. Une Bibliothèque personnelle et une Bibliothèque reçue peuvent utiliser le même stockage mais des commandes différentes ; \`read_only\` ne doit pas être le seul verrou de sécurité des données distantes.
+**Écart technique actuel :** la migration 013 de \`main\` impose \`movements.normalized_name UNIQUE\`. Accepter des fiches de **sources différentes** portant exactement le nom « Squat » exige une migration ciblée de cette contrainte. Conserver \`Movement.id\` pour les Exercices et les Séances. Une identité d'auteur/publisher ne remplace pas un identifiant source stable ; un renommage ou transfert de gestion ne doit pas changer l'identité. Le comportement des homonymes créés dans le même espace personnel est distinct et reste à arbitrer.
 
-### 5.3 Relations cardinales — cible
+### 5.3 Cardinalités logiques
 
 \`\`\`text
-Actor 1 ─────── N Library
-Actor 1 ─────── N EditorialSheet (propriétaire administratif)
-EditorialSheet 1 ─── N SheetRevision
-SheetRevision N ─── N MediaAsset
-Library 1 ───────── N LibraryRelease
-LibraryRelease 1 ─── N LibraryReleaseMember ─── 1 EditorialSheet
-Library 1 ───────── N LibraryAccessGrant ───────── 1 Recipient/Group
-LibraryRelease 1 ─── N DistributionRecord (par destinataire)
-EditorialSheet 1 ─── N LocalSheetInstallation (par appareil/utilisateur)
-LocalLibrary N ───── N LocalSheetInstallation (association)
-SheetRevision / MediaAsset 1 ─── N ModerationDecision (historique)
+Actor 1 ─── N Sheet 1 ─── N SheetRevision
+SheetRevision N ─── N Media
+Actor 1 ─── N Library 1 ─── N LibraryRelease
+LibraryRelease 1 ─── N MemberRef ─── 1 Sheet
+Library ─── N accès destinataires et N preuves de réception
+Actor ─── N relations individuelles orientées ─── Actor
+Relation 1 ─── N transmissions ─── SheetRevision
+SheetRevision/Media ─── N décisions de modération
+Client : (source_namespace, sheet_id) ─── 1 Movement.id local / 1 révision active
+Client : Bibliothèque N ─── N Mouvement par associations de membres
+Client : Exercices et Séances ─── Movement.id inchangé
 \`\`\`
 
-### 5.4 Trois distinctions d'identité indispensables
+Les noms de tables exacts et la nécessité d'une table distincte pour chaque fait sont des propositions pour la revue technique, **pas des décisions figées**.
 
-1. \`Movement.id\` **local** : identifiant du Mouvement opérationnel actuel, déjà référencé dans les Exercices et les Séances.
-2. \`sheet_id\` + \`source_namespace\` : identité éditoriale externe stable ; plusieurs Bibliothèques peuvent la référencer.
-3. \`revision_id\` : état éditorial précis, validé et historisé.
+### 5.4 Identités et homonymes
 
-**Le problème des homonymes locaux est ouvert.** Le catalogue actuel impose l'unicité normalisée des noms ; des sources distinctes peuvent proposer « Squat ». Ne pas résoudre ceci par écrasement, renumérotation sémantique cachée ou fusion non approuvée.
+1. **\`Movement.id\` local** : identifiant opérationnel existant et stable pour toutes les références d'Exercices/Séances.
+2. **\`(source_namespace, sheet_id)\`** : identité éditoriale stable de la fiche indépendante du nom, de l'auteur, du propriétaire administratif et de toute Bibliothèque. Un créateur local hors ligne utilise un espace de noms local persistant, non affiché.
+3. **\`revision_id\`** : version éditoriale d'une fiche source ; une seule version **active** sur l'appareil, avec conservation possible de l'historique éditorial au serveur.
+
+Plusieurs fiches distinctes peuvent porter le même nom visible « Squat ». Leur provenance ou un indicateur de source permet de les distinguer dans le Catalogue. La proposition initiale d'index utilisateur + nom peut aider au contrôle local de doublons, **mais ne remplace pas l'identité immuable d'une fiche**. Claude doit concevoir la migration de l'index global \`normalized_name\` et mesurer ses effets sur recherche, niveaux, copies et import sans casser les identifiants existants.
+
+**Décision métier :** homonymes de **sources distinctes** admis ; aucun suffixe numéroté imposé lors de l'installation. **Ouvert :** contrôler ou non des noms identiques parmi les créations originales du même utilisateur.
 
 ## 6. Mises à jour et cohérence transactionnelle
 
@@ -237,7 +229,7 @@ SheetRevision / MediaAsset 1 ─── N ModerationDecision (historique)
 
 1. Consulter les nouvelles révisions **approuvées** de Bibliothèque/fiches ; ne pas les appliquer.
 2. Calculer un **aperçu des différences** : ajouts, retraits, changements de fiches et conflits locaux ; pastille visible.
-3. Sur « Mettre à jour », figer la cible : \`target_release_id\` et manifeste d'empreintes des fiches.
+3. Sur « Mettre à jour », figer la cible : \`target_release_id\`, manifeste d'empreintes et liste des autres Bibliothèques utilisant les fiches modifiées, communiquée avant confirmation.
 4. Vérifier les permissions et la distribution encore ouverte, ainsi que l'absence de suspension de modération.
 5. Préparer localement les contenus et références nécessaires sans modifier la version affichée.
 6. Appliquer la nouvelle composition et les versions de fiches autorisées de manière **cohérente et reprenable**.
@@ -247,13 +239,17 @@ SheetRevision / MediaAsset 1 ─── N ModerationDecision (historique)
 
 **Invariants de sûreté :** pas de membre pointant vers une fiche absente, pas de perte de version antérieure avant confirmation, pas de double installation sur retry, pas de « mise à jour partielle » présentée comme réussie.
 
-### 6.2 Risque majeur à auditer : une même fiche dans plusieurs Bibliothèques
+### 6.2 Une révision active unique — propagation validée
 
-Si deux Bibliothèques reçues référencent **la même fiche source** mais sont restées sur des versions différentes, une mise à jour de l'une **ne doit pas mettre à jour silencieusement la version de l'autre**.
+Le Mouvement source `coachA:mvt-001` peut figurer dans plusieurs Bibliothèques. L'utilisateur dispose **d'une seule fiche locale active**, identifiée par la source et son identifiant, et non d'une version différente dans chaque Bibliothèque.
 
-**Option de conception proposée à Claude :** conserver en cache plusieurs révisions immuables par \`sheet_id\`, avec un pointeur de version **par Bibliothèque reçue** ; une projection opérationnelle locale du Mouvement reste à résoudre, sans créer des copies inutiles ni altérer les Séances.
+- Avant « Mettre à jour » une Bibliothèque, l'aperçu indique les Mouvements modifiés et les **autres Bibliothèques qui les référencent**.
+- L'action explicite de l'utilisateur installe la nouvelle révision approuvée de ces fiches. Elle apparaît alors dans **toutes les Bibliothèques** qui référencent les mêmes `Movement.id`, sans deuxième validation.
+- Seule la **composition de la Bibliothèque mise à jour** peut changer de membres ou d'ordre. Les autres Bibliothèques conservent leur composition et leur propre version de composition installée.
+- Les copies/adaptations personnelles distinctes et les instantanés des exécutions passées ne changent pas.
+- Le client **ne maintient aucun pointeur de version active par Bibliothèque**. Une release serveur peut conserver ses références historiques de versions pour la preuve de publication, sans forcer l'affichage de cette révision historique dans les autres Bibliothèques locales.
 
-**À CLARIFIER avant implémentation :** une seule révision « active » par identité de source sur l'appareil peut-elle être admise ? Si oui, comment informer l'utilisateur lorsque la mise à jour d'une Bibliothèque affecte la lecture d'une autre ? Sinon, quel plus petit mécanisme de projection permet de préserver les versions distinctes ? **Claude doit proposer des alternatives chiffrées en complexité, pas choisir silencieusement.**
+**Arbitrage clos** : la gestion de révisions actives distinctes d'une même fiche par Bibliothèque n'est plus recherchée. Le point qui reste technique est la cohérence de la mise à jour globale avec un stockage réparti entre deux bases et la protection des modifications personnelles.
 
 ### 6.3 Conflits et adaptations
 
@@ -264,7 +260,7 @@ Si deux Bibliothèques reçues référencent **la même fiche source** mais sont
 
 ### 6.4 Intégrité sur plusieurs bases SQLite
 
-Le pilote \`catalogue/integration-60-main-20261109\` utilise provisoirement une base \`kodjo-catalogue-registry.db\` séparée de la base opérationnelle et un journal \`pending_operations\`. Si cette séparation persiste, une transaction SQL locale ne couvre pas magiquement les deux connexions/bases. Claude doit examiner :
+Le pilote \`catalogue/integration-60-main-20261109\` utilise provisoirement une base \`kodjo-catalogue-registry.db\` séparée de la base opérationnelle et un journal \`pending_operations\` **par fiche**. Une mise à jour de Bibliothèque concerne potentiellement **plusieurs fiches** et la composition : le simple fait d'écrire le pointeur de release en dernier ne garantit pas à lui seul qu'une coupure ne laisse aucune fiche partiellement actualisée. Claude doit vérifier le comportement réel sous interruption, avant de supprimer ou d'ajouter un mécanisme de reprise de lot :
 - réutilisation du protocole journal → écriture Mouvement → confirmation registre ;
 - idempotence, relecture dans la transaction et reprise après interruption ;
 - possibilité de réunification ultérieure **uniquement si son coût et ses migrations le justifient**.
