@@ -2529,3 +2529,22 @@ Constat de Hermann, recopié textuellement :
 - **Cause (A).** L'élément saisi était au premier plan 1, sous les en-têtes de Circuit et de Cycle (2, posés pour l'en-tête collé pendant le défilement). Depuis t-depli (`5d5a5ec0`), chaque Circuit est aussi dans les vues de son cadre d'enveloppe : le premier plan posé sur le bloc restait sous les voisins du cadre.
 - **Correction.** `dragElevated` à 3 ; le cadre d'enveloppe d'un Circuit (niveau Séance, dans un Cycle, ancien modèle) porte le premier plan de l'élément saisi qu'il contient ; la liste des cartes d'un Circuit passe au-dessus de son en-tête quand l'une de ses cartes est saisie. Au repos, aucun changement (en-têtes collés au-dessus du contenu). Tests `recette2composition` « premier plan de la carte saisie au-dessus des en-têtes » (échouent sans, passent avec) ; 4 attentes de `CompositionScreen.test` portées de 1 à 3 (annotées).
 - À vérifier sur iPhone : sortir un mouvement d'un Circuit (au niveau Séance et dans un Cycle) et d'un Cycle : il passe au-dessus des lignes d'en-tête.
+
+## Décisions validées le 10/11/2026 — Bibliothèques et distribution des Mouvements
+
+**Référence normative :** [Conception des Bibliothèques et du partage](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md). Décisions BIB-01 à BIB-18 validées par le propriétaire du produit, **cible post-MVP** ; leur inscription ne signifie pas qu'elles sont développées. Identifiants BIB propres à cet axe, sans appropriation de numéros D-xxx.
+
+| Décision | Règle |
+|---|---|
+| BIB-01 à 02 | Tout utilisateur peut créer des Mouvements et des Bibliothèques ; un seul auteur par fiche, gestionnaire distinct possible par attribution explicite. |
+| BIB-03 à 04 | Composition par références sans copie ; Bibliothèque personnelle mélangeant Mouvements propres et provenant d'autres Bibliothèques. |
+| BIB-05 | Visibilité personnelle/partagée/publique, accès gratuit/payant indépendants ; même modèle pour particuliers, coachs, kinés et KODJO. |
+| BIB-06 | Permissions indépendantes Modifier et Redistribuer : Protégé (non/non), Libre localement (oui/non), Partageable à l'identique (non/oui), Libre (oui/oui). |
+| BIB-07 à 08 | Copie personnelle toujours possible, permissions/provenance inchangées ; les paramètres propres aux Exercices ne sont pas verrouillés. |
+| BIB-09 à 11 | Bibliothèque reçue en lecture seule ; réutilisation personnelle par référence ; diffusion filtrée des seules fiches redistribuables, sans exposer les autres. |
+| BIB-12 à 13 | Nouvelle révision ordinaire indiquée par pastille ; l'utilisateur va dans sa Bibliothèque et choisit « Mettre à jour » ; sans action, aucune mise à jour ; variantes personnelles protégées. |
+| BIB-14 à 15 | Contrôle central avant première diffusion d'une révision ; automatique si partage privé sans anomalie, validation humaine initiale pour public/payant et cas suspects. |
+| BIB-16 à 17 | Signalement et suspension de modération prioritaires, traçables ; références conservées, neutralisation à la synchronisation, aucune garantie de retrait immédiat hors ligne. |
+| BIB-18 | Partage, modération centrale, paiements et comptes **hors périmètre MVP**. |
+
+**Supersession des propositions de cette conception :** suppression de la permission séparée Copier, du mode Personnalisé, de la mise à jour ordinaire automatique et des choix imposés Accepter/Refuser/Reporter ; pas de cycle « Brouillon/Active/Inactive » validé pour une Bibliothèque. **À CLARIFIER :** statut archivé, retrait de membres dans une version reçue, expiration des droits payants, défaut de permission initial, révocation des droits déjà distribués, résolution des conflits locaux. La mise à jour directe d'un Mouvement *au sein de la même installation* et les choix de refus du pilote CA-3 ne constituent pas une politique de diffusion entre utilisateurs.
