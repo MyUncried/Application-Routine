@@ -1,5 +1,9 @@
 # Interface : navigation, écrans et conventions communes
 
+### Raccordement au plan en six étapes — écrans Profil (11/11/2026)
+
+La conception Figma (étape **3**) précède le développement mobile (étape **6**). Référence vérifiée : [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778) ; « Bibliothèques installées » affiche Fitness à jour et Pilates avec « Mettre à jour ». **Profil** est l'espace de sélection des sources, d'installation, de consultation de provenance et des versions de Bibliothèques, pas un éditeur concurrent. L'édition courante des Mouvements reste au **Catalogue** ; l'édition exhaustive des fiches éditoriales et export est assurée par l'**administration Web** (étape 5), après contrats des services CA-3 (étape 4). Les entrées visibles « Mes bibliothèques » et « Bibliothèques partagées » évoquent des parcours **futurs** ; leur fonctionnement immédiat reste À CLARIFIER. L'import technique par fichier et les parcours utilisateurs des Bibliothèques sont distincts. Aucun comportement ou capture Figma nouveau n'est inventé.
+
 ### Contrôle Figma du 10/11/2026 — Profil et Bibliothèques
 
 **Évidence directe :** page Prototype MVP `510:101`, écran [P-Profil — Modifier le profil — MVP, `1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778). L'écran représente « Bibliothèques » avec « Mes bibliothèques » (« Celles que je crée et rends disponibles »), « Bibliothèques partagées » (« Celles que je peux importer »), puis « Bibliothèques installées » : Fitness (« 14 mouvements · à jour ») et Pilates (« 8 mouvements », action « Mettre à jour »). L'écran « Profil — Préférences » `1992:684` est distinct.
