@@ -701,6 +701,8 @@ Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-
 
 ## Parcours post-MVP — Bibliothèques personnelles, reçues et mises à jour
 
+**Périmètre :** parcours Bibliothèque (notamment coach), distinct de la transmission kiné-patient par Espace professionnel décrite ci-après.
+
 1. L'utilisateur crée un Mouvement et une Bibliothèque personnelle, utilisables immédiatement en local.
 2. Il y référence librement des Mouvements propres ou provenant de Bibliothèques reçues, sans copie et sans déplacement des sources.
 3. Lors d'un partage, KODJO exclut les Mouvements qui ne peuvent pas être redistribués ; leurs métadonnées ne sont pas exposées au destinataire.
@@ -709,4 +711,11 @@ Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-
 6. Une nouvelle révision approuvée produit une pastille d'alerte ; le destinataire ouvre sa Bibliothèque et choisit « Mettre à jour ». L'absence d'action conserve sa révision courante.
 7. Une suspension de modération est distincte de ce parcours et peut rendre un média ou un Mouvement inaccessible au prochain contrôle réseau.
 
-Les règles de révision de **composition** d'une Bibliothèque et de droits payants expirés sont encore à arbitrer. [Conception détaillée](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+Les règles de révision de composition des Bibliothèques F4-A à F4-F sont désormais validées ; les droits payants expirés restent à arbitrer. [Conception détaillée](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+## Parcours kiné-patient — transmission d'un Mouvement dans l'Espace professionnel (KIN-01)
+
+Le kinésithérapeute travaille dans un **Espace professionnel en étoile**, organisé autour de lui avec une relation distincte par patient. Il transmet au patient sélectionné un ou plusieurs **Mouvements**. À ce stade, il lui donne **oralement** les modalités d'exécution : aucune prescription numérique d'Exercice, Séance, routine ni programme n'est créée automatiquement. Le patient reçoit les Mouvements et peut les utiliser ou les référencer dans ses propres Bibliothèques. La transmission respecte les permissions de fiche et la validation centrale avant diffusion.
+
+Le cycle de vie de l'Espace, l'association kiné-patient, les droits d'accès et consentements sont **À CLARIFIER** ; aucune interface Figma de ce parcours n'est réputée validée. [PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+
