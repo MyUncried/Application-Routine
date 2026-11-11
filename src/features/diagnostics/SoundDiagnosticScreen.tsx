@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { hasNativeModule, SOURCES, startExecutionAudio, type BeepTone } from "@/infrastructure/audio/ExecutionSounds";
+import { hasScheduledSounds, ScheduledSounds, type SessionPolicy } from "@/infrastructure/audio/ScheduledSounds";
 import { bestFrenchVoice, EXECUTION_VOICE_LANGUAGE } from "@/infrastructure/speech/ExecutionVoice";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
@@ -46,6 +47,25 @@ const METHODS: readonly { readonly method: Method; readonly label: string }[] = 
   { method: "VOICE_REPLACE", label: "J — Après une annonce, même lecteur, son rechargé après chaque lecture" },
 ];
 
+/**
+ * Fin de PRE-10 — spike de la bibliothèque de sons courts (spec `spec-guidage-reglages` §8, §8.1 et §3.5). Critères :
+ * aucun click, même après une annonce ; sons à l'instant exact (programmés sur l'horloge audio) ; mode silencieux ;
+ * musique ; arrière-plan. Version de l'application construite le 11/11/2026 (build `2e47648d`) seulement.
+ */
+type Spike = "K1" | "K2" | "K3" | "K4" | "K5" | "K6";
+const SPIKES: readonly { readonly spike: Spike; readonly label: string }[] = [
+  { spike: "K1", label: "K1 — Après une annonce : 3 bips graves puis double bip, programmés à 1 s d'intervalle" },
+  { spike: "K2", label: "K2 — Cadence : 10 clics programmés chaque seconde, annonce vocale au milieu" },
+  { spike: "K3", label: "K3 — Tempo : 10 clics avec la méthode actuelle, puis 10 clics programmés" },
+  { spike: "K4", label: "K4 — Arrière-plan : un bip toutes les 5 s pendant 60 s, tous programmés d'avance (verrouillez l'écran)" },
+  { spike: "K5", label: "K5 — Arrière-plan : un bip toutes les 5 s pendant 60 s, programmés au fil de l'eau (verrouillez l'écran)" },
+  { spike: "K6", label: "K6 — Musique modulée : 10 s d'effort (clics, musique baissée), 10 s de récupération (musique rendue), deux fois" },
+];
+const SPIKE_POLICIES: readonly { readonly policy: SessionPolicy; readonly label: string }[] = [
+  { policy: "LIBRARY_DUCK", label: "Musique baissée" },
+  { policy: "LIBRARY_MIX", label: "Musique non baissée" },
+];
+
 const REPEAT = 3;
 const INTERVAL_MS = 1000;
 
@@ -68,6 +88,7 @@ export function SoundDiagnosticScreen() {
   const [journal, setJournal] = useState<readonly string[]>([]);
   const toDispose = useRef<AudioPlayer[]>([]);
   const selected = TONES[toneIndex]!;
+  const [spikePolicy, setSpikePolicy] = useState<SessionPolicy>("LIBRARY_DUCK");
 
   const note = (line: string) => setJournal((lines) => [`${new Date().toLocaleTimeString("fr-FR")} ${line}`, ...lines].slice(0, 40));
 
@@ -169,6 +190,110 @@ export function SoundDiagnosticScreen() {
     }
   }
 
+  async function announce(text: string) {
+    const Speech = await import("expo-speech");
+    const voice = bestFrenchVoice(await Speech.getAvailableVoicesAsync());
+    await new Promise<void>((resolve) => {
+      Speech.speak(text, { language: EXECUTION_VOICE_LANGUAGE, ...(voice === null ? {} : { voice }), useApplicationAudioSession: true, onDone: () => resolve(), onError: () => resolve(), onStopped: () => resolve() });
+    });
+  }
+
+  async function runSpike(spike: Spike) {
+    if (running) return;
+    if (!hasScheduledSounds()) {
+      note("Bibliothèque de sons courts absente de cette version de l'application : installez la version du 11/11/2026.");
+      return;
+    }
+    setRunning(true);
+    note(`${SPIKES.find((entry) => entry.spike === spike)!.label} · ${SPIKE_POLICIES.find((entry) => entry.policy === spikePolicy)!.label}`);
+    const sounds = new ScheduledSounds();
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    try {
+      await sounds.start(spikePolicy);
+      await sounds.preload(["BIP_GRAVE", "BIP_DOUBLE", "CLIC_DOUX", "SIFFLET_ROULE"]);
+      note("sons décodés");
+      const at = (offsetSeconds: number) => (sounds.now() ?? 0) + offsetSeconds;
+      if (spike === "K1") {
+        await announce("Préparez-vous. À suivre : Pompes");
+        note("annonce terminée");
+        const t0 = at(1);
+        for (let i = 0; i < 3; i += 1) await sounds.schedule("BIP_GRAVE", 1, t0 + i);
+        await sounds.schedule("BIP_DOUBLE", 1, t0 + 3);
+        note("4 sons programmés");
+        await wait(5000);
+      } else if (spike === "K2") {
+        const t0 = at(0.5);
+        for (let i = 0; i < 10; i += 1) await sounds.schedule("CLIC_DOUX", 0.35, t0 + i);
+        note("10 clics programmés");
+        await wait(3500);
+        await announce("Pompes, 12 répétitions");
+        note("annonce terminée");
+        await wait(7000);
+      } else if (spike === "K3") {
+        note("méthode actuelle (lecteur neuf, joué par le JavaScript)");
+        const { createAudioPlayer } = await import("expo-audio");
+        for (let i = 0; i < 10; i += 1) {
+          const player = createAudioPlayer(SOURCES.CLIC_DOUX, { keepAudioSessionActive: true });
+          toDispose.current.push(player);
+          await wait(i === 0 ? 300 : 1000 - 300);
+          player.volume = 0.35;
+          player.play();
+          await wait(300);
+        }
+        await wait(1500);
+        note("méthode programmée");
+        const t0 = at(0.5);
+        for (let i = 0; i < 10; i += 1) await sounds.schedule("CLIC_DOUX", 0.35, t0 + i);
+        await wait(11000);
+      } else if (spike === "K4") {
+        const t0 = at(5);
+        for (let i = 0; i < 12; i += 1) await sounds.schedule("BIP_GRAVE", 1, t0 + i * 5);
+        note("12 bips programmés : verrouillez l'écran maintenant");
+        await wait(65000);
+      } else if (spike === "K5") {
+        note("verrouillez l'écran maintenant");
+        for (let i = 1; i <= 12; i += 1) {
+          await wait(5000);
+          await sounds.schedule("BIP_GRAVE", 1);
+          note(`bip ${i} demandé par le JavaScript`);
+        }
+        await wait(1000);
+      } else {
+        // §8.1 : session reconfigurée seulement dans une fenêtre sans son prévu (début de la récupération).
+        const { AudioManager } = await import("react-native-audio-api");
+        for (let round = 1; round <= 2; round += 1) {
+          AudioManager.setSystemOptions({ ios: { category: "playback", mode: "default", options: ["duckOthers"] } });
+          await AudioManager.setAudioSessionActivity(true);
+          const t0 = at(0.5);
+          for (let i = 0; i < 10; i += 1) await sounds.schedule("CLIC_DOUX", 0.35, t0 + i);
+          note(`effort ${round} : musique baissée, 10 clics`);
+          await wait(10600);
+          AudioManager.setSystemOptions({ ios: { category: "playback", mode: "default", options: ["mixWithOthers"] } });
+          await AudioManager.setAudioSessionActivity(false).catch(() => undefined);
+          await AudioManager.setAudioSessionActivity(true);
+          note(`récupération ${round} : musique rendue`);
+          await wait(10000);
+          await sounds.schedule("SIFFLET_ROULE", 0.55);
+        }
+        await wait(1500);
+      }
+      note("fin");
+    } catch (error) {
+      note(`Erreur : ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      for (const timer of timers) clearTimeout(timer);
+      await sounds.stop();
+      for (const player of toDispose.current.splice(0)) {
+        try {
+          player.remove();
+        } catch {
+          // Lecteur déjà libéré.
+        }
+      }
+      setRunning(false);
+    }
+  }
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -198,6 +323,20 @@ export function SoundDiagnosticScreen() {
         <Text style={styles.section}>Essais</Text>
         {METHODS.map((entry) => (
           <Pressable key={entry.method} onPress={() => void run(entry.method)} disabled={running} accessibilityRole="button" style={[styles.button, running && styles.buttonDisabled]}>
+            <Text style={styles.buttonText}>{entry.label}</Text>
+          </Pressable>
+        ))}
+        <Text style={styles.section}>Bibliothèque de sons courts (version du 11/11/2026)</Text>
+        <Text style={styles.text}>Pour chaque essai : click (oui ou non, sur quel son), régularité, et pour K4 et K5 si les bips continuent écran verrouillé. Mettez une musique pour K6.</Text>
+        <View style={styles.row}>
+          {SPIKE_POLICIES.map((entry) => (
+            <Pressable key={entry.policy} onPress={() => setSpikePolicy(entry.policy)} accessibilityRole="button" accessibilityState={{ selected: entry.policy === spikePolicy }} style={[styles.chip, entry.policy === spikePolicy && styles.chipSelected]}>
+              <Text style={[styles.chipText, entry.policy === spikePolicy && styles.chipTextSelected]}>{entry.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+        {SPIKES.map((entry) => (
+          <Pressable key={entry.spike} onPress={() => void runSpike(entry.spike)} disabled={running} accessibilityRole="button" style={[styles.button, running && styles.buttonDisabled]} testID={`sound-spike-${entry.spike}`}>
             <Text style={styles.buttonText}>{entry.label}</Text>
           </Pressable>
         ))}
