@@ -35,7 +35,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 | **F4-A** | Mise à jour de la Bibliothèque sur action explicite, jamais automatique (PU-10). |
 | **F4-B** | Mouvement retiré d'une version reçue conservé localement et dans les Séances (PU-10/12). |
 | **F4-C** | Accès attribué au niveau Bibliothèque ; retrait du Mouvement n'annule pas l'usage déjà reçu (PU-08/12). |
-| **F4-D** | Un seul « Mettre à jour » installe composition et nouvelles révisions sans écraser les Mouvements personnels distincts (PU-10). |
+| **F4-D** | Un seul « Mettre à jour » installe composition et nouvelles révisions sans écraser les Mouvements personnels originaux distincts (PU-10). |
 | **F4-E** | Archivage du propriétaire sans effet pour les destinataires (PU-13). |
 | **F4-F** | Arrêt explicite du partage : pas de nouveaux destinataires, aucune nouvelle MAJ, installations existantes conservées (PU-14). |
 | **F4-G** | Mise à jour d'une fiche source : une seule version active, propagée à toutes ses références de Bibliothèques, avec aperçu préalable des impacts (PU-10/11). |
