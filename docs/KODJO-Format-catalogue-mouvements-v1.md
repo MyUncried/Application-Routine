@@ -283,3 +283,96 @@ Le fichier `kodjo-pilote-60.catalogue.json` est régénéré en v2 par la conver
 
 Les identités `(kodjo.pilote-60, sheetId)` sont inchangées.
 
+## 11. Administration locale du format v2 (W1, 11/11/2026)
+
+**Code :** `src/domain/catalogue/catalogueEditing.ts` (édition, révisions) ; outil `tools/catalogue-admin/` (serveur Node local, page, README).
+**Décisions appliquées :** A-1, A-2, MOUV-D1 (11/11/2026) ; propriétaire inconnu → privé, jamais publiable (10/11/2026).
+
+### 11.1 Rôle
+
+- L'administration locale Node **édite directement** les fichiers `catalogue/catalogues/*.catalogue.json`, sur le PC uniquement.
+- Elle valide avec **le même code** que l'application : les modules du domaine (`MovementCatalogueFile.ts`, `catalogueEditing.ts`, `MovementInbox.ts` et leurs dépendances) sont transpilés tels quels (`tools/catalogue-admin/build-domain.mjs`) et utilisés par le serveur **et** par la page. Aucun second validateur.
+- La page statique OVH (`tools/catalogue-admin/static-ovh/`) reste la variante historique de l'éditeur de brouillons v0 : conservée, non déployée par nous ; la page en ligne n'est pas modifiée.
+
+### 11.2 Création d'une fiche
+
+Une fiche créée dans l'administration reçoit :
+- un `sheetId` unique, jamais réutilisé (fourni ou dérivé du nom : `fiche-<nom>`, suffixe `-2`, `-3`… en cas de collision) ;
+- `revision: "1"` et une entrée d'historique ;
+- `origin: LOCAL_CREATED`, `upstream: null`, `visibility: PRIVATE`, `reviewStatus: DRAFT`, `validation.publicationAllowed: false` ;
+- propriétaire et auteur **tels que déclarés, sinon `null`** (aucune identité inventée) ;
+- `install.knownLocalMovementIds: []`, sauf rapprochement explicite.
+
+Catégorie et au moins une Zone restent obligatoires (contrat `Movement`, § 4).
+
+### 11.3 Révisions
+
+- Une révision n'est créée que sur un **changement effectif** :
+  - fiche : empreinte éditoriale (`sheetFingerprint`, hors `revision`, `history`, `install`) ;
+  - Bibliothèque : tout sauf `revision` et `history` (en-tête et membres ordonnés).
+- Réenregistrer sans changement : aucune révision, aucune écriture.
+- Le rapprochement (`install.knownLocalMovementIds`) ne crée **pas** de révision de fiche.
+- La révision du catalogue (`catalogue.revision`) avance dès que le fichier change, rapprochement compris.
+- Règle de la révision suivante :
+  - entier → entier suivant (`"4"` → `"5"`) ;
+  - suffixe pointé → suffixe suivant (`"2026-10-27.1"` → `"2026-10-27.2"`) ;
+  - autre → `.1` ajouté (`"2026-10-27"` → `"2026-10-27.1"`) ;
+  - jamais une révision déjà présente dans l'historique.
+- Les révisions sont calculées **par le serveur**, à partir du fichier sur disque (`applyFileEdit`). Une révision ou un historique envoyés par la page sont ignorés.
+- Refusés : suppression d'une fiche ou d'une Bibliothèque, changement de `catalogue.id`.
+
+### 11.4 Enregistrement
+
+1. Contrôle de révision optimiste (empreinte SHA-256 des octets lus ; sinon `409`).
+2. Validation par `parseMovementCatalogueFile` (sinon `422` avec la liste des problèmes).
+3. Calcul des révisions, puis revalidation.
+4. Écriture atomique de `serializeMovementCatalogueFile` (fichier temporaire puis renommage).
+
+Un fichier v1 est relu en v2 ; il n'est réécrit qu'au premier enregistrement effectif, en v2. L'export renvoie les octets du fichier enregistré.
+
+## 12. Transport Wi-Fi et boîte d'arrivée (W2, 11/11/2026)
+
+**Code :** `src/domain/catalogue/MovementInbox.ts` (contrat partagé) ; `tools/catalogue-admin/server.mjs` et `phone.mjs`.
+**Décision appliquée :** A-6 — le Wi-Fi n'est qu'un **canal de transport** du même format et des mêmes validateurs.
+
+### 12.1 Canal
+
+- Option `--lan` du serveur local : second port (4739) sur le réseau local, qui n'expose que l'API du téléphone (`/phone/*`). L'administration reste sur 127.0.0.1.
+- Appairage par code à 6 chiffres (5 minutes, usage unique), jeton de 32 octets valable 12 heures, révocable.
+- Aucune exposition Internet, aucun CORS ouvert.
+
+### 12.2 Du PC vers le téléphone
+
+- `GET /phone/v1/libraries` liste les Bibliothèques des fichiers valides : `catalogueId`, `libraryId`, titre, description, révision, nombre de fiches, révision du fichier.
+- `GET /phone/v1/catalogues/:catalogueId` renvoie **les octets du fichier v2** (sérialisation de référence, validée avant envoi) : le même contenu qu'un import de fichier, relu par le même `parseMovementCatalogueFile`.
+- Un fichier invalide n'est pas servi. Un `catalogueId` porté par plusieurs fichiers est ambigu et n'est pas servi.
+
+### 12.3 Du téléphone vers le PC : boîte d'arrivée
+
+Enveloppe `KODJO_MOVEMENT_INBOX` 1.0.0 :
+
+```text
+{ format, formatVersion: "1.0.0", sentAt (ISO 8601), device { name },
+  movements[] { movementId, name, aliases[], steps[], categoryId, categoryLabel,
+                bodyZoneIds[], bodyZoneLabels[], mediaCount } }
+```
+
+- **Limites :**
+  - 1 à 200 Mouvements par envoi ;
+  - nom de 1 à 80 points de code ;
+  - au plus 20 alias valides et distincts ;
+  - étapes non vides, 1 000 points de code au total une fois encodées (contrat du Mouvement, QN-1) ; aucune borne par étape [11/11/2026 : remplace « au plus 20 étapes, chacune d'au plus 65 points de code », qui aurait refusé des Mouvements valides du téléphone] ;
+  - Catégorie et au moins une Zone, libellés alignés sur les identifiants.
+- Toute anomalie refuse l'envoi entier.
+- Doublons dans un envoi : identiques → fusionnés ; contenus différents pour un même `movementId` → refus.
+- **Idempotence :** un Mouvement déjà reçu avec le même contenu n'est pas réenregistré.
+- Stockage : un fichier par envoi, écrit atomiquement (`catalogue/admin/inbox/`, non versionné).
+
+**Décisions de l'administrateur (jamais automatiques) :**
+- **Ajouter au catalogue** : fiche créée selon le § 11.2, contenu projeté (nom, alias, étapes), Catégorie et Zones choisies dans les référentiels du catalogue (proposées par identifiant puis par libellé, jamais inventées), `install.knownLocalMovementIds: [movementId]`, ajout facultatif à une Bibliothèque. Refusé si le Mouvement est déjà rapproché d'une fiche.
+- **Rapprocher** : ajoute le `movementId` à une fiche existante, après confirmation ; aucune révision de la fiche, révision du catalogue.
+- **Ignorer**.
+
+Collisions signalées : même nom normalisé (nom ou alias d'une fiche), ou identifiant déjà rapproché.
+
+**Limite de ce lot :** les médias des Mouvements personnels ne sont pas transférés ; seul leur nombre (`mediaCount`) l'est.

@@ -1228,3 +1228,23 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
     }
   });
 });
+
+describe("A-2 (11/11/2026, Figma 12119:25304) — Mouvement importé d'une Bibliothèque", () => {
+  it("s'ouvre en consultation même avec `mode=edit` : provenance à la place du crayon, nom non modifiable", async () => {
+    const imported = jest.requireMock("@/features/catalogue/importedMovements") as { importedMovementLabel: (id: string) => Promise<string | null> };
+    const previous = imported.importedMovementLabel;
+    imported.importedMovementLabel = async (id) => (id === "m1" ? "Fitness · rév. 2" : null);
+    try {
+      await movements().create(movement("m1", "Squats sautés"));
+      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+      expect(screen.getByText(t.titles.consult)).toBeTruthy();
+      expect(screen.getByText("Fitness · rév. 2")).toBeTruthy();
+      expect(screen.getByTestId("movement-imported-badge", anyNode).props.accessibilityLabel).toBe("Importé de la bibliothèque Fitness · rév. 2, lecture seule");
+      expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
+      expect(screen.queryByTestId("screen-header-validate", anyNode)).toBeNull();
+      expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
+    } finally {
+      imported.importedMovementLabel = previous;
+    }
+  });
+});

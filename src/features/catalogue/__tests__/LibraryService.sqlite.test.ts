@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 import { encodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import {
@@ -318,5 +318,50 @@ describe("A-2 — garde métier des Mouvements importés (service, pas seulement
     expect(own.status).toBe("SAVED");
     expect(await guarded.isImported("perso-2")).toBe(false);
     expect((await guarded.update({ ...imported, id: "perso-2", name: "Mon mouvement modifié", aliases: [] })).status).toBe("SAVED");
+  });
+});
+
+describe("A2 — aller-retour : envoi d'un Mouvement personnel, ajout au catalogue, rechargement", () => {
+  it("le Mouvement personnel est reconnu par son identifiant : ni doublon, ni écrasement, ni verrouillage implicite", async () => {
+    const { buildMovementInbox } = jest.requireActual("@/features/catalogue/movementInboxBuilder") as typeof import("@/features/catalogue/movementInboxBuilder");
+    const { createSheet, addLibraryMember, replaceLibrary } = jest.requireActual("@/domain/catalogue/catalogueEditing") as typeof import("@/domain/catalogue/catalogueEditing");
+    const { parseMovementCatalogueFile } = jest.requireActual("@/domain/catalogue/MovementCatalogueFile") as typeof import("@/domain/catalogue/MovementCatalogueFile");
+    await installPilot60();
+    const { libraries, registry } = await servicesOn();
+    await libraries.apply(pilot, PILOT);
+    const own = movementsOn(main);
+    const base = pilot.sheets[0]!.classification;
+    expect((await own.createIndependent({
+      id: "perso-9", name: "Fente bulgare maison", aliases: [], description: encodeInstructionSteps(["Pied arrière sur le banc.", "Descendez."]),
+      categoryId: base.categoryId!, bodyZoneIds: [...base.bodyZoneIds], media: [], phases: [], nextPhaseId: 1, levelGroup: null,
+    })).status).toBe("SAVED");
+
+    // Téléphone : envoi validé par le contrat partagé.
+    const personal = (await own.findMovement("perso-9"))!;
+    const sent = buildMovementInbox({ movements: [personal], categoryLabels: new Map(), bodyZoneLabels: new Map(), deviceName: "iPhone", sentAt: NOW });
+    if (!sent.ok) throw new Error(JSON.stringify(sent.issues));
+    const received = sent.envelope.movements[0]!;
+    expect(received).toMatchObject({ movementId: "perso-9", steps: ["Pied arrière sur le banc.", "Descendez."], mediaCount: 0 });
+
+    // Administration : « Ajouter au catalogue » (fiche LOCAL_CREATED, rapprochée du Mouvement d'origine).
+    const meta = { date: NOW, author: null, summary: "Ajout depuis la boîte d'arrivée" };
+    const created = createSheet(pilot, {
+      name: received.name, aliases: received.aliases, steps: received.steps,
+      categoryId: received.categoryId, bodyZoneIds: received.bodyZoneIds, knownLocalMovementIds: [received.movementId],
+    } as Parameters<typeof createSheet>[1], meta);
+    const withMember = replaceLibrary(created.file, addLibraryMember(created.file.libraries[0]!, { catalogueId: PILOT, sheetId: created.sheet.sheetId }));
+    const parsed = parseMovementCatalogueFile(withMember);
+    if (!parsed.ok) throw new Error(JSON.stringify(parsed.issues));
+    expect(created.sheet.install.knownLocalMovementIds).toEqual(["perso-9"]);
+
+    // Téléphone : rechargement — reconnu, aucun doublon ; transition de statut non arbitrée → non rattaché.
+    const before = await dump();
+    const preview = await libraries.preview(parsed.file, PILOT);
+    expect(preview!.added).toHaveLength(0);
+    expect(preview!.toReview).toEqual([expect.objectContaining({ reason: "PERSONAL_ORIGIN" })]);
+    await libraries.apply(parsed.file, PILOT);
+    expect(await dump()).toEqual(before);
+    expect(await registry.isInstalledMovement("perso-9")).toBe(false);
+    expect((await own.update({ ...personal, name: "Fente bulgare modifiée" })).status).toBe("SAVED");
   });
 });

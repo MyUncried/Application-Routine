@@ -33,7 +33,7 @@ import type {
 import type {
   InstalledSheetRecord,
   PendingOperation,
-  RegistrySnapshot,
+  RegistryState,
   SavedLocalValue,
   SheetDecision,
   SheetDecisionRecord,
@@ -185,8 +185,8 @@ export class SqliteCatalogueRegistry {
   }
 
   /** Instantané complet d'un catalogue, lu dans une transaction (lecture fraîche). */
-  async snapshot(catalogueId: string): Promise<RegistrySnapshot> {
-    let result: RegistrySnapshot = { installed: [], pending: [], decisions: [] };
+  async state(catalogueId: string): Promise<RegistryState> {
+    let result: RegistryState = { installed: [], pending: [], decisions: [] };
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
       const installed = await transaction.getAllAsync<InstalledRow>(
         "SELECT * FROM installed_sheets WHERE catalogue_id = ? ORDER BY sheet_id", [catalogueId]);

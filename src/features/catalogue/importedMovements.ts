@@ -29,3 +29,16 @@ export function sharedCatalogueRegistry(): Promise<SqliteCatalogueRegistry> {
 
 export const isImportedMovement: ImportedMovementCheck = async (movementId) =>
   (await sharedCatalogueRegistry()).isInstalledMovement(movementId);
+
+/**
+ * Provenance affichée sur la fiche d'un Mouvement importé (Figma 12119:25304 : « Fitness · rév. 2 ») :
+ * Bibliothèque installée qui référence la fiche et révision active. `null` pour un Mouvement personnel.
+ */
+export async function importedMovementLabel(movementId: string): Promise<string | null> {
+  const registry = await sharedCatalogueRegistry();
+  const record = await registry.installedSheetOfMovement(movementId);
+  if (!record) return null;
+  const library = (await registry.installedLibraries()).find((entry) =>
+    entry.library.members.some((member) => member.catalogueId === record.catalogueId && member.sheetId === record.sheetId));
+  return (library ? library.library.title + " · " : "") + "rév. " + record.revision;
+}
