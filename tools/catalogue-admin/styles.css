@@ -46,3 +46,4 @@ fieldset.section{border:1px solid var(--line);border-radius:10px;padding:14px;ma
 .media-status.error{background:#fdecea;color:#8a1c12}
 .media-status.ok{background:#e7f4ef;color:#155c3b}
 .media-current-file,.media-rights-hint{display:block;margin:-4px 0 8px;color:#596273}
+.rights-block{display:flex;flex-direction:column;gap:6px}.rights-toggle{border:1px solid #bdc9dc;background:#fff;border-radius:20px;padding:8px 14px;font-weight:600;cursor:pointer}.rights-toggle[aria-pressed=true]{background:#e7f4ef;border-color:#2f8a5f;color:#155c3b}.rights-toggle.restrict[aria-pressed=true]{background:#fdecea;border-color:#c0392b;color:#8a1c12}

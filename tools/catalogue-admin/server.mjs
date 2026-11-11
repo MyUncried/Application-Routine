@@ -494,22 +494,46 @@ export async function createAdminApp({
       const entry = index.get(catalogueId);
       if (entry === null) throw new HttpError(409, "AMBIGUOUS_CATALOGUE");
       // Validation stricte avant envoi : seule la sérialisation de référence d'un fichier valide part.
-      const bytes = Buffer.from(entry.canonical, "utf8");
       const check = parseMovementCatalogueFile(JSON.parse(entry.canonical));
       if (!check.ok) throw new HttpError(503, "CATALOGUE_INVALID");
-      // MOUV-D2 (11/11/2026) : aucun transfert d'un média dont les droits ne sont pas confirmés. Le fichier est
-      // refusé en entier plutôt que filtré : un filtrage changerait l'empreinte des fiches sans nouvelle révision.
-      const withheld = check.file.sheets
-        .filter((sheet) => sheet.media.some((media) => media.rightsStatus !== "PERMISSION_CONFIRMED"))
-        .map((sheet) => sheet.sheetId);
-      if (withheld.length > 0) throw new HttpError(409, "MEDIA_RIGHTS_UNCONFIRMED", { sheets: withheld });
+      // MOUV-D2 (11/11/2026) : aucun transfert d'un média dont les droits ne sont pas confirmés.
+      // Décision de Hermann du 11/11/2026 (recette) : « Refuse uniquement la fiche, il faut en donner le nom ».
+      // Les fiches concernées sont retirées du fichier envoyé (fiches, membres des Bibliothèques, renvois du
+      // glossaire) ; les autres fiches partent inchangées. Leurs noms sont donnés dans l'en-tête
+      // `X-Kodjo-Withheld-Sheets` (JSON encodé). Si le fichier filtré n'est pas valide, refus du fichier entier.
+      const withheldSheets = check.file.sheets
+        .filter((sheet) => sheet.media.some((media) => media.rightsStatus !== "PERMISSION_CONFIRMED"));
+      let bytes = Buffer.from(entry.canonical, "utf8");
+      const headers = {};
+      if (withheldSheets.length > 0) {
+        const ids = new Set(withheldSheets.map((sheet) => sheet.sheetId));
+        const ownId = check.file.catalogue.id;
+        const filtered = {
+          ...check.file,
+          sheets: check.file.sheets.filter((sheet) => !ids.has(sheet.sheetId)),
+          libraries: check.file.libraries.map((library) => ({
+            ...library,
+            members: library.members.filter((member) => member.catalogueId !== ownId || !ids.has(member.sheetId)),
+          })),
+          glossary: check.file.glossary.map((term) => ({
+            ...term, relatedSheetIds: term.relatedSheetIds.filter((sheetId) => !ids.has(sheetId)),
+          })),
+        };
+        const recheck = parseMovementCatalogueFile(JSON.parse(JSON.stringify(filtered)));
+        if (!recheck.ok) {
+          throw new HttpError(409, "MEDIA_RIGHTS_UNCONFIRMED", { sheets: withheldSheets.map((sheet) => sheet.sheetId) });
+        }
+        bytes = Buffer.from(serializeMovementCatalogueFile(recheck.file), "utf8");
+        headers["X-Kodjo-Withheld-Sheets"] = encodeURIComponent(JSON.stringify(
+          withheldSheets.map((sheet) => ({ sheetId: sheet.sheetId, name: sheet.content.name }))));
+      }
       const etag = '"' + digest(bytes) + '"';
       if (request.headers["if-none-match"] === etag) {
         response.writeHead(304, { ETag: etag });
         return response.end();
       }
       return sendBytes(response, 200, bytes, "application/json; charset=utf-8", {
-        ETag: etag, "X-Kodjo-Catalogue-Revision": encodeURIComponent(entry.parsed.file.catalogue.revision),
+        ETag: etag, "X-Kodjo-Catalogue-Revision": encodeURIComponent(entry.parsed.file.catalogue.revision), ...headers,
       });
     }
     if (method === "POST" && route === "/phone/v1/inbox") {

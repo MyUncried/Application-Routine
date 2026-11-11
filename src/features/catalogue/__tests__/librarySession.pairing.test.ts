@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it } from "@jest/globals";
+
 import { librarySession } from "@/features/catalogue/librarySession";
 
 /** Recette du 11/11 : l'appairage survit à la sortie de l'écran, jusqu'à l'expiration du jeton du PC. */

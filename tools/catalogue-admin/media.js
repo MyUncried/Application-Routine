@@ -11,6 +11,20 @@
  */
 const MAX_PHOTO_SOURCE_BYTES = 8 * 1024 * 1024;
 const RIGHTS_LABELS = { UNVERIFIED: "Non vérifiés", PERMISSION_CONFIRMED: "Autorisation déclarée", RESTRICTED: "Utilisation interdite" };
+/**
+ * Recette du 11/11 (Hermann : « qu'est-ce qu'on y écrit, c'est vraiment du texte libre ? ») : la licence se choisit
+ * dans une liste des cas courants, avec « Autre (préciser) » ; l'autorisation se déclare par un bouton. La règle
+ * du format est inchangée : des droits confirmés exigent l'auteur / crédit et la licence.
+ */
+const LICENCE_OTHER = "__autre__";
+const LICENCE_CHOICES = [
+  "Œuvre personnelle (je suis l'auteur)",
+  "Autorisation écrite de l'auteur",
+  "Creative Commons CC BY 4.0",
+  "Creative Commons CC BY-SA 4.0",
+  "Creative Commons CC0 (domaine public)",
+  "Banque d'images sous licence",
+];
 
 const el = (tag, className = "", text) => {
   const node = document.createElement(tag);
@@ -101,8 +115,23 @@ export function mountMediaEditor(container, options) {
   for (const [value, text] of [["PHOTO_FILE", "Photo depuis ce PC"], ["PHOTO_URL", "Photo par lien HTTPS"], ["VIDEO_URL", "Vidéo par lien HTTPS"]]) {
     typeSelect.append(new Option(text, value));
   }
-  const rights = el("select", "input");
-  for (const [value, text] of Object.entries(RIGHTS_LABELS)) rights.append(new Option(text, value));
+  // Droits d'utilisation : deux boutons bascule ; aucun enfoncé = « Non vérifiés ».
+  let rightsValue = "UNVERIFIED";
+  const confirmButton = el("button", "rights-toggle", "Autorisation déclarée");
+  confirmButton.type = "button";
+  const restrictButton = el("button", "rights-toggle restrict", "Utilisation interdite");
+  restrictButton.type = "button";
+  const rightsState = el("small", "media-rights-hint");
+  const setRights = (value) => {
+    rightsValue = value;
+    confirmButton.setAttribute("aria-pressed", String(value === "PERMISSION_CONFIRMED"));
+    restrictButton.setAttribute("aria-pressed", String(value === "RESTRICTED"));
+    rightsState.textContent = "Statut : " + RIGHTS_LABELS[value] +
+      (value === "PERMISSION_CONFIRMED" ? " — l'auteur / crédit et la licence sont obligatoires." : "");
+  };
+  confirmButton.addEventListener("click", () => setRights(rightsValue === "PERMISSION_CONFIRMED" ? "UNVERIFIED" : "PERMISSION_CONFIRMED"));
+  restrictButton.addEventListener("click", () => setRights(rightsValue === "RESTRICTED" ? "UNVERIFIED" : "RESTRICTED"));
+  const rights = { get value() { return rightsValue; }, set value(next) { setRights(next); } };
   const fileInput = el("input", "input");
   fileInput.type = "file";
   fileInput.accept = "image/jpeg,image/png,image/webp";
@@ -118,9 +147,31 @@ export function mountMediaEditor(container, options) {
   };
   const sourceUrl = field(2048, "https://… (justificatif, si disponible)");
   const attribution = field(160, "Auteur ou fournisseur, si connu");
-  const license = field(160, "Licence ou autorisation écrite");
+  const licenseSelect = el("select", "input");
+  licenseSelect.append(new Option("— Choisir —", ""));
+  for (const text of LICENCE_CHOICES) licenseSelect.append(new Option(text, text));
+  licenseSelect.append(new Option("Autre (préciser)", LICENCE_OTHER));
+  const licenseOther = field(160, "Préciser la licence ou l'autorisation (ex. lien vers l'accord écrit)");
+  const licenseOtherGroup = el("label", "hidden", "Licence : préciser");
+  licenseOtherGroup.append(licenseOther);
+  const syncLicense = () => licenseOtherGroup.classList.toggle("hidden", licenseSelect.value !== LICENCE_OTHER);
+  licenseSelect.addEventListener("change", syncLicense);
+  const license = {
+    get value() { return licenseSelect.value === LICENCE_OTHER ? licenseOther.value : licenseSelect.value; },
+    set value(next) {
+      const text = (next ?? "").trim();
+      if (!text) { licenseSelect.value = ""; licenseOther.value = ""; }
+      else if (LICENCE_CHOICES.includes(text)) { licenseSelect.value = text; licenseOther.value = ""; }
+      else { licenseSelect.value = LICENCE_OTHER; licenseOther.value = text; }
+      syncLicense();
+    },
+  };
   const alt = field(180, "Décrire l'image (obligatoire pour une photo)");
   const caption = field(180, "Ex. position de départ");
+  const rightsBlock = el("div", "rights-block");
+  const rightsButtons = el("div", "split");
+  rightsButtons.append(confirmButton, restrictButton);
+  rightsBlock.append(el("span", "label", "Droits d'utilisation"), rightsButtons, rightsState);
   const fileGroup = input("Fichier photo", fileInput);
   const urlGroup = input("URL HTTPS du média", urlInput);
   const submit = el("button", "primary", "Ajouter à la galerie");
@@ -145,11 +196,12 @@ export function mountMediaEditor(container, options) {
     status.className = "media-status " + kind;
   };
   editor.append(
-    grid(input("Mode d'ajout", typeSelect), input("Statut des droits", rights)),
-    el("small", "media-rights-hint", "« Autorisation déclarée » exige l'auteur / crédit et la licence / conditions d'utilisation."),
+    input("Mode d'ajout", typeSelect),
     fileGroup, currentFile, urlGroup,
     grid(input("Source originale / justificatif (URL)", sourceUrl), input("Auteur / fournisseur / crédit", attribution)),
-    grid(input("Licence / conditions d'utilisation", license), input("Texte alternatif de la photo", alt)),
+    grid(input("Licence / base d'utilisation", licenseSelect), input("Texte alternatif de la photo", alt)),
+    licenseOtherGroup,
+    rightsBlock,
     input("Légende / position dans l'exercice", caption),
     actions,
     status,

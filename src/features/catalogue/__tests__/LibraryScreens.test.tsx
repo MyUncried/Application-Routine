@@ -127,13 +127,14 @@ function revisedPilot(): MovementCatalogueFile {
 }
 
 /** Administration simulée : ping, appairage (code 482913), liste et fichier. */
-function fakeAdmin(file: MovementCatalogueFile, options: { reachable?: boolean; mediaWithheld?: boolean } = {}) {
+function fakeAdmin(file: MovementCatalogueFile, options: { reachable?: boolean; mediaWithheld?: boolean; heldSheets?: readonly { sheetId: string; name: string }[] } = {}) {
   const fetchImpl: FetchLike = async (url, init) => {
-    const reply = (status: number, body: unknown) => ({
+    const reply = (status: number, body: unknown, headers: Record<string, string> = {}) => ({
       ok: status >= 200 && status < 300,
       status,
       json: async () => body,
       text: async () => JSON.stringify(body),
+      headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
     });
     if (options.reachable === false) throw new Error("injoignable");
     const path = new URL(url).pathname;
@@ -150,7 +151,10 @@ function fakeAdmin(file: MovementCatalogueFile, options: { reachable?: boolean; 
       })) });
     }
     if (path === "/phone/v1/catalogues/" + encodeURIComponent(file.catalogue.id)) {
-      return options.mediaWithheld ? reply(409, { error: "MEDIA_RIGHTS_UNCONFIRMED", sheets: ["X"] }) : reply(200, file);
+      if (options.mediaWithheld) return reply(409, { error: "MEDIA_RIGHTS_UNCONFIRMED", sheets: ["X"] });
+      return options.heldSheets
+        ? reply(200, file, { "x-kodjo-withheld-sheets": encodeURIComponent(JSON.stringify(options.heldSheets)) })
+        : reply(200, file);
     }
     return reply(404, {});
   };
@@ -313,6 +317,18 @@ describe("A1 — Profil → Bibliothèques", () => {
     expect(screen.getByText("Bibliothèques non transférées")).toBeTruthy();
     expect(screen.queryByText("Liste indisponible")).toBeNull();
     expect(screen.getByTestId("library-available-empty")).toBeTruthy();
+  });
+
+  it("MOUV-D2 (décision du 11/11) : seule la fiche retenue est signalée, par son nom ; la Bibliothèque reste proposée", async () => {
+    const client = fakeAdmin(pilot, { heldSheets: [{ sheetId: "fiche-squat-test-recette", name: "Squat test recette" }] });
+    const session = await client.pair({ host: "192.168.1.20", port: 4739, name: "PC-Hermann" }, "482913", "iPhone");
+    librarySession.setSource({ kind: "ADMIN", session, entries: [], refreshedAt: 0 });
+    renderWith(<LibraryAvailableScreen client={client} />);
+    await settle();
+    expect(screen.getByText("Fiche non transférée")).toBeTruthy();
+    expect(screen.getByText(/« Squat test recette » : un média n'a pas de droits confirmés/)).toBeTruthy();
+    expect(screen.queryByText("Bibliothèques non transférées")).toBeNull();
+    expect(screen.getByText("60 fiches · non installée")).toBeTruthy();
   });
 
   it("connexion : PC introuvable sur le Wi-Fi, avec repli « Importer depuis un fichier »", async () => {

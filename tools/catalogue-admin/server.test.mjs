@@ -94,7 +94,8 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
     clock = Date.parse("2026-11-11T09:00:00Z");
     folder = await mkdtemp(path.join(tmpdir(), "kodjo-admin-v2-"));
     await mkdir(path.join(folder, "catalogue/catalogues"), { recursive: true });
-    await copyFile(path.join(root, "catalogue/catalogues", PILOT), path.join(folder, "catalogue/catalogues", PILOT));
+    // KODJO_TEST_PILOT : fichier pilote de référence quand celui du dépôt porte des données de recette.
+    await copyFile(process.env.KODJO_TEST_PILOT ?? path.join(root, "catalogue/catalogues", PILOT), path.join(folder, "catalogue/catalogues", PILOT));
     await startApp();
   });
   after(async () => {
@@ -357,7 +358,7 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       await rm(path.join(folder, "catalogue/catalogues/casse.catalogue.json"));
     });
 
-    it("MOUV-D2 : un fichier contenant un média aux droits non confirmés n'est pas transféré au téléphone", async () => {
+    it("MOUV-D2 (décision du 11/11) : seule la fiche dont un média n'a pas de droits confirmés est retenue, avec son nom", async () => {
       const { token } = await pairPhone();
       const withMedia = JSON.parse(await readFile(path.join(folder, "catalogue/catalogues", PILOT), "utf8"));
       withMedia.catalogue.id = "kodjo.medias";
@@ -367,10 +368,17 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
         caption: "", alt: "Position", sourceUrl: "https://exemple.fr/source", attribution: "", license: "", rightsStatus: "UNVERIFIED",
       }];
       await writeFile(path.join(folder, "catalogue/catalogues/medias.catalogue.json"), JSON.stringify(withMedia));
-      const refused = await phoneCall("GET", "/phone/v1/catalogues/kodjo.medias", { token });
-      assert.equal(refused.status, 409);
-      assert.equal(refused.body.error, "MEDIA_RIGHTS_UNCONFIRMED");
-      assert.deepEqual(refused.body.sheets, [withMedia.sheets[0].sheetId]);
+      const served = await phoneCall("GET", "/phone/v1/catalogues/kodjo.medias", { token });
+      assert.equal(served.status, 200);
+      const held = withMedia.sheets[0];
+      assert.equal(served.body.sheets.length, withMedia.sheets.length - 1);
+      assert(!served.body.sheets.some((sheet) => sheet.sheetId === held.sheetId));
+      assert(!served.body.libraries[0].members.some((member) => member.sheetId === held.sheetId));
+      assert(!JSON.stringify(served.body).includes("exemple.fr/photo.webp"));
+      assert.deepEqual(JSON.parse(decodeURIComponent(served.headers.get("x-kodjo-withheld-sheets"))),
+        [{ sheetId: held.sheetId, name: held.content.name }]);
+      // Les autres fiches partent inchangées.
+      assert.deepEqual(served.body.sheets[0], withMedia.sheets[1]);
       await rm(path.join(folder, "catalogue/catalogues/medias.catalogue.json"));
     });
 

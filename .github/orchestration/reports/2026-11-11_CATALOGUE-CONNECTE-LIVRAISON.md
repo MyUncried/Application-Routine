@@ -190,3 +190,14 @@ Aucun SVG identique n'existait déjà. Ces fichiers ne contiennent aucune URL Fi
 | « · PROPOSED » après les noms du référentiel dans l'interface Web | Statut technique accolé au nom (`app.js`). Le serveur ouvert tournait depuis `KODJO-CAT-ADMIN` (ancienne branche W1/W2), d'où l'absence de la correction. | `7765c325` ; statut en info-bulle. Cahier : chemin exact du dossier à utiliser. | A |
 
 Tests : `npx jest --maxWorkers=4` sur le fichier pilote versionné, 348 suites et 5 847 tests verts (+ `librarySession.pairing.test.ts`) ; `tsc` 0 erreur ; eslint des fichiers modifiés 0 problème ; `node --test tools/catalogue-admin/server.test.mjs` 24 verts. Les données de recette (61 fiches, « Recette Hyrox ») ont été recopiées de `KODJO-CAT-ADMIN` dans le dossier d'intégration, sans commit.
+
+### Suite de la recette (11/11, après-midi)
+
+| Constat / décision de Hermann | Correction | Classe |
+|---|---|---|
+| « Autorisation déclarée » puis Enregistrer ne change rien | Refus (auteur et licence requis) affiché sous le formulaire ; fichier actuel indiqué en modification (`a3b4611a`). | A |
+| « Refuse uniquement la fiche, il faut en donner le nom » | Serveur : fiches au média non confirmé retirées du fichier envoyé (fiches, membres, glossaire), nommées dans `X-Kodjo-Withheld-Sheets` ; téléphone : encart « Fiche non transférée » avec le nom. Le client transmet désormais les en-têtes de réponse (défaut trouvé par le test). | B |
+| « il faut le choix entre un bouton pour l'autorisation et le champ de texte de licence (…) c'est vraiment du texte libre ? » | Licence choisie dans une liste de cas courants + « Autre (préciser) » ; boutons bascule « Autorisation déclarée » / « Utilisation interdite ». Règle du format inchangée. | B |
+| « ma fiche a disparu » | **Incident causé par la session** : pour lancer les tests, le fichier pilote du dossier d'intégration (lu par le serveur d'administration en marche) a été remplacé trois fois quelques minutes par la version versionnée, puis rétabli. Vérification : fichier actuel = copie de recette (61 fiches, fiche `fiche-squat-test-recette` rév. 4) ; aucune écriture perdue (le dernier enregistrement de Hermann était refusé par la validation). Désormais les tests de l'administration lisent `KODJO_TEST_PILOT` et le fichier de recette n'est plus touché. | — |
+
+Tests : Jest complet sur le fichier pilote versionné, 349 suites et 5 850 tests verts ; `node --test tools/catalogue-admin/server.test.mjs` (avec `KODJO_TEST_PILOT`) 24 verts ; éditeur de médias vérifié dans jsdom (refus sans licence, confirmation avec licence, photo conservée) ; `tsc` 0 erreur.

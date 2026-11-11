@@ -61,7 +61,26 @@ export type FetchLike = (url: string, init?: {
   headers?: Record<string, string>;
   body?: string;
   signal?: AbortSignal;
-}) => Promise<{ ok: boolean; status: number; json(): Promise<unknown>; text(): Promise<string> }>;
+}) => Promise<{ ok: boolean; status: number; json(): Promise<unknown>; text(): Promise<string>; headers?: { get(name: string): string | null } }>;
+
+/** MOUV-D2 (décision du 11/11/2026) : fiche retenue sur le PC, un média n'ayant pas de droits confirmés. */
+export type WithheldSheet = { readonly sheetId: string; readonly name: string };
+
+function withheldSheets(header: string | null | undefined): readonly WithheldSheet[] {
+  if (!header) return [];
+  try {
+    const value = JSON.parse(decodeURIComponent(header)) as unknown;
+    if (!Array.isArray(value)) return [];
+    return value.flatMap((item: unknown) => {
+      const entry = item as Partial<WithheldSheet> | null;
+      return entry && typeof entry.sheetId === "string"
+        ? [{ sheetId: entry.sheetId, name: typeof entry.name === "string" && entry.name ? entry.name : entry.sheetId }]
+        : [];
+    });
+  } catch {
+    return [];
+  }
+}
 
 export type AdminClientDependencies = {
   readonly fetch?: FetchLike;
@@ -185,8 +204,11 @@ export class AdminClient {
     });
   }
 
-  /** Fichier catalogue complet (même format que l'import par fichier), non validé ici. */
-  async catalogue(session: AdminSession, catalogueId: string): Promise<unknown> {
+  /**
+   * Fichier catalogue (même format que l'import par fichier), non validé ici, et fiches retenues sur le PC
+   * (MOUV-D2 : un média sans droits confirmés ; décision du 11/11/2026 « Refuse uniquement la fiche »).
+   */
+  async catalogue(session: AdminSession, catalogueId: string): Promise<{ readonly raw: unknown; readonly withheld: readonly WithheldSheet[] }> {
     const path = "/phone/v1/catalogues/" + encodeURIComponent(catalogueId);
     const raw = await this.request(session, session.token, "GET", path);
     if (raw.status === 409) {
@@ -196,8 +218,9 @@ export class AdminClient {
     const response = raw.status === 409 ? await this.authorized(session, "GET", path) : raw;
     if (response.status === 401 || response.status === 403) throw new AdminClientError("UNAUTHORIZED");
     if (!response.ok) throw new AdminClientError("SERVER", "HTTP " + response.status);
+    const withheld = withheldSheets(response.headers?.get("X-Kodjo-Withheld-Sheets"));
     try {
-      return JSON.parse(await response.text()) as unknown;
+      return { raw: JSON.parse(await response.text()) as unknown, withheld };
     } catch {
       throw new AdminClientError("SERVER", "fichier illisible");
     }
@@ -233,6 +256,7 @@ export class AdminClient {
         return {
           ok: response.ok,
           status: response.status,
+          headers: response.headers,
           text: async () => text,
           json: async () => JSON.parse(text) as unknown,
         };

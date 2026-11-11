@@ -357,7 +357,7 @@ const codeStyles = StyleSheet.create({
 
 type AvailablePhase =
   | { readonly kind: "loading" }
-  | { readonly kind: "ready"; readonly previews: readonly LibraryPreview[]; readonly origin: string; readonly refreshedAt: number; readonly withheld?: readonly string[] }
+  | { readonly kind: "ready"; readonly previews: readonly LibraryPreview[]; readonly origin: string; readonly refreshedAt: number; readonly withheld?: readonly string[]; readonly withheldSheets?: readonly string[] }
   | { readonly kind: "error"; readonly message: string; readonly unauthorized: boolean };
 
 export function LibraryAvailableScreen({ client = defaultClient, pickFile = pickCatalogueFile }: LibraryScreenDependencies) {
@@ -385,10 +385,13 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
       const entries = await client.libraries(source.session);
       const previews: LibraryPreview[] = [];
       const withheld: string[] = [];
+      const withheldSheets: string[] = [];
       for (const catalogueId of [...new Set(entries.map((entry) => entry.catalogueId))]) {
         let raw: unknown;
         try {
-          raw = await client.catalogue(source.session, catalogueId);
+          const received = await client.catalogue(source.session, catalogueId);
+          raw = received.raw;
+          withheldSheets.push(...received.withheld.map((sheet) => sheet.name));
         } catch (reason) {
           if (!(reason instanceof AdminClientError && reason.code === "MEDIA_RIGHTS")) throw reason;
           withheld.push(...entries.filter((entry) => entry.catalogueId === catalogueId).map((entry) => entry.title));
@@ -405,7 +408,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
       }
       librarySession.rememberPreviews(previews);
       librarySession.setSource({ ...source, entries, refreshedAt: Date.now() });
-      setPhase({ kind: "ready", previews, origin: `Reçues de l'administration · ${source.session.name}`, refreshedAt: Date.now(), withheld });
+      setPhase({ kind: "ready", previews, origin: `Reçues de l'administration · ${source.session.name}`, refreshedAt: Date.now(), withheld, withheldSheets });
     } catch (reason) {
       const unauthorized = reason instanceof AdminClientError && reason.code === "UNAUTHORIZED";
       if (unauthorized) forgetStoredPairing();
@@ -447,10 +450,21 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
   let body: React.ReactNode;
   let primary: Parameters<typeof LibraryScreen>[0]["primary"] = null;
   let secondary: Parameters<typeof LibraryScreen>[0]["secondary"] = [];
-  const withheldNotice = phase.kind === "ready" && (phase.withheld?.length ?? 0) > 0 ? (
-    <Notice tone="warning" title="Bibliothèques non transférées" testID="library-available-withheld">
-      {`${phase.withheld!.join(", ")} : un média n'a pas de droits confirmés. Confirmez ses droits dans l'administration du PC, puis actualisez.`}
-    </Notice>
+  // MOUV-D2 ; décision de Hermann du 11/11/2026 : « Refuse uniquement la fiche, il faut en donner le nom ».
+  const heldSheets = phase.kind === "ready" ? phase.withheldSheets ?? [] : [];
+  const withheldNotice = phase.kind === "ready" && ((phase.withheld?.length ?? 0) > 0 || heldSheets.length > 0) ? (
+    <>
+      {heldSheets.length > 0 ? (
+        <Notice tone="warning" title={heldSheets.length > 1 ? "Fiches non transférées" : "Fiche non transférée"} testID="library-available-withheld-sheets">
+          {`${heldSheets.map((name) => `« ${name} »`).join(", ")} : un média n'a pas de droits confirmés. Confirmez ses droits dans l'administration du PC, puis actualisez.`}
+        </Notice>
+      ) : null}
+      {(phase.withheld?.length ?? 0) > 0 ? (
+        <Notice tone="warning" title="Bibliothèques non transférées" testID="library-available-withheld">
+          {`${phase.withheld!.join(", ")} : un média n'a pas de droits confirmés. Confirmez ses droits dans l'administration du PC, puis actualisez.`}
+        </Notice>
+      ) : null}
+    </>
   ) : null;
   if (phase.kind === "loading") {
     body = (

@@ -90,7 +90,7 @@ La page OVH en ligne reste inchangée.
   - jeton de 12 h, révocable.
 - Bibliothèques et fichier v2 servis à l'octet près.
 - Boîte d'arrivée `KODJO_MOVEMENT_INBOX`.
-- MOUV-D2 : un fichier contenant un média aux droits non confirmés n'est pas transféré (409 `MEDIA_RIGHTS_UNCONFIRMED`).
+- MOUV-D2 : un fichier contenant un média aux droits non confirmés n'est pas transféré (409 `MEDIA_RIGHTS_UNCONFIRMED`). [Remplacé le 11/11/2026, décision de Hermann pendant la recette : « Refuse uniquement la fiche, il faut en donner le nom ». Seule la fiche concernée est retirée du transfert et nommée sur le téléphone (« Fiche non transférée ») ; refus du fichier entier seulement si le fichier filtré n'est pas valide.]
 
 **Critères d'acceptation** : appairage et transferts dans les deux sens, testés et sécurisés.
 
@@ -163,6 +163,8 @@ Cahier : `_bmad-output/catalogue-connecte/implementation-artifacts/recette-iphon
 | Administration v2 et Wi-Fi | B (A-6) et D | format § 11 et § 12, README de l'outil |
 | Boîte d'arrivée : bornes du contrat du Mouvement (QN-1) | A | format § 12 (borne 20/65 remplacée, annotée) |
 | Transfert Wi-Fi refusé si un média a des droits non confirmés | A (MOUV-D2) | format § 12, rapport de livraison |
+| Seule la fiche au média non confirmé est retenue, et nommée (décision du 11/11, recette) | B | format § 12.2 ; spec (W2) |
+| Licence choisie dans une liste, autorisation déclarée par un bouton (administration) | B (demande de Hermann du 11/11) ; règle du format inchangée | format § 12.2 |
 | Premier lot du Profil : Ajouter, Envoyer, Installées (A-4) | B | ch. 06, 08, 13 |
 | Mise en page Figma des écrans Bibliothèques (correction du 11/11 : cartes, intitulés au-dessus, icônes et chevrons SVG, pastilles, encarts, états centrés) | A (conformité aux maquettes 510:101) | aucun ; écarts restants dans le rapport de livraison, section « Correction du 11/11 » |
 

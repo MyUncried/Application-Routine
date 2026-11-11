@@ -353,6 +353,8 @@ Un fichier v1 est relu en v2 ; il n'est réécrit qu'au premier enregistrement e
 - `GET /phone/v1/libraries` liste les Bibliothèques des fichiers valides : `catalogueId`, `libraryId`, titre, description, révision, nombre de fiches, révision du fichier.
 - `GET /phone/v1/catalogues/:catalogueId` renvoie **les octets du fichier v2** (sérialisation de référence, validée avant envoi) : le même contenu qu'un import de fichier, relu par le même `parseMovementCatalogueFile`.
 - Un fichier invalide n'est pas servi. Un `catalogueId` porté par plusieurs fichiers est ambigu et n'est pas servi.
+- **MOUV-D2 — média sans droits confirmés.** Décision de Hermann du 11/11/2026 (recette) : « Refuse uniquement la fiche, il faut en donner le nom ». Une fiche dont un média n'est pas en `PERMISSION_CONFIRMED` est retirée du fichier envoyé (fiche, membres des Bibliothèques, renvois du glossaire) ; les autres fiches partent inchangées. L'en-tête `X-Kodjo-Withheld-Sheets` (JSON encodé : `sheetId`, nom) les nomme, et le téléphone affiche « Fiche non transférée ». Si le fichier ainsi filtré n'est pas valide, tout le fichier est refusé (`409 MEDIA_RIGHTS_UNCONFIRMED`). [Remplace le refus du fichier entier livré le 11/11 au matin.]
+- Administration : la licence se choisit dans une liste (œuvre personnelle, autorisation écrite de l'auteur, Creative Commons CC BY / BY-SA / CC0, banque d'images sous licence, « Autre (préciser) ») et l'autorisation se déclare par un bouton. La règle du format reste : des droits confirmés exigent l'auteur / crédit et la licence.
 
 ### 12.3 Du téléphone vers le PC : boîte d'arrivée
 
