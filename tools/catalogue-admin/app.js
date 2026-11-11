@@ -202,7 +202,9 @@ function chips(entries, get, set) {
       set(node.checked ? [...current, entry.id] : current.filter((id) => id !== entry.id));
       changed();
     });
-    label.append(node, document.createTextNode(entry.label + (entry.status ? " · " + entry.status : "")));
+    // Recette du 11/11 : le statut technique (ex. PROPOSED) n'est plus accolé au nom ; il reste en info-bulle.
+    label.append(node, document.createTextNode(entry.label));
+    if (entry.status) label.title = "Statut : " + entry.status;
     box.append(label);
   }
   // Valeurs présentes mais absentes du référentiel : affichées pour être retirées.
