@@ -2,7 +2,7 @@
 
 ## Bibliothèques et partage de Mouvements — conception cible
 
-Les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 couvrent : Bibliothèques par références, identité source stable malgré les homonymes, **révision active unique par Mouvement**, propagation aux Bibliothèques qui le référencent après mise à jour volontaire, première publication distincte de la redistribution, permissions des destinataires, archivage, arrêt de partage, modération et Espace en étoile générique.
+Les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 couvrent : Bibliothèques par références, identité source stable malgré les homonymes, **révision active unique par Mouvement**, propagation aux Bibliothèques qui le référencent après mise à jour volontaire, première publication distincte de la redistribution, fiches reçues non modifiables et non duplicables, redistribution à l'identique uniquement si autorisée, archivage, arrêt de partage, modération et Espace en étoile générique.
 
 - [Parcours fonctionnels PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) — référence des interactions attendues, sans interface Figma encore validée.
 - [Conception fonctionnelle et droits](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md) — règles produit post-MVP et points réellement ouverts.
