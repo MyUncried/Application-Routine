@@ -5,6 +5,7 @@ import { GUIDANCE_EVENTS, type GuidanceEvent, type SoundChoice } from "@/domain/
 import { FilterSheetFrame } from "@/features/activities/FilterSheetPrimitives";
 import { SoundChoiceList } from "@/features/preferences/GuidanceSettingsForm";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
+import { PICKER_CONTENT_INSET } from "@/features/sessions/SessionGuidanceSheet";
 import { strings } from "@/shared/i18n";
 import { useTitleCappedSheetDetent } from "@/shared/ui/nativeSheet";
 
@@ -52,6 +53,7 @@ export default function ProfileSoundRoute() {
         closeLabel={t.close}
         applyLabel={t.validate}
         onClose={() => router.back()}
+        contentInset={PICKER_CONTENT_INSET}
         onApply={() => {
           if (choice === null) {
             router.back();

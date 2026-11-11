@@ -530,6 +530,9 @@ export function ProfileStepper({
   const atMin = working <= min;
   const atMax = working >= max;
   const valueLabel = `${working} ${unit}`;
+  // Profil › Préférences (Figma `1992:684`, recette du 11/11/2026) : valeur affichée « 10″ » (secondes), comme partout
+  // ailleurs (« 1″ », Hermann, 08/11/2026) ; l'annonce VoiceOver garde l'unité en toutes lettres. [« 10 s » — remplacé.]
+  const valueText = unit === "s" ? `${working}″` : valueLabel;
   // CE-UI-07 L2569 : la valeur annonce, en TOUTE position (mi-course, borne
   // basse, borne haute), sa valeur, son unité ET les bornes du réglage —
   // jamais seulement au bouton désactivé à la limite.
@@ -549,7 +552,7 @@ export function ProfileStepper({
       >
         <Text style={styles.label}>{label}</Text>
         <Text style={styles.closedValue} testID={`${testID}-value`}>
-          {valueLabel}
+          {valueText}
         </Text>
       </Pressable>
     );
@@ -583,7 +586,7 @@ export function ProfileStepper({
             accessibilityValue={{ min, max, now: working }}
             testID={`${testID}-value`}
           >
-            {valueLabel}
+            {valueText}
           </Text>
           <Pressable
             disabled={atMax}
@@ -614,12 +617,12 @@ export function ProfileStepper({
 }
 
 const styles = StyleSheet.create({
+  // Figma `1992:684` : ligne de 42 (`size-control-height`). [minTouchTarget et marges de 8 — remplacés le 11/11/2026.]
   closedRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    minHeight: minTouchTarget,
-    paddingVertical: spacing[8],
+    minHeight: 42,
   },
   // Alignement DSF 07/10 : le stepper ouvert remplace la valeur SUR LA MÊME
   // LIGNE que le libellé (`Profil — Stepper Pause changement de côté`,
@@ -635,8 +638,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing[8],
   },
+  // Figma `1992:684` : libellé Inter Medium 14. [Inter Regular 14 — remplacé le 11/11/2026.]
   label: {
-    ...type.body,
+    ...type.label,
     flexShrink: 1,
     color: colors.textPrimary,
   },

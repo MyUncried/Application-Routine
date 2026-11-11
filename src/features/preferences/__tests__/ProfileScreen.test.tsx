@@ -72,40 +72,36 @@ async function renderScreen(service: ProfileService = fakeProfileService()) {
 const t = strings.screens.profile;
 
 describe("ProfileScreen", () => {
-  it("shows the six settings, unmodified, at their exact canonical values, grouped Exercice/Séance (CE-UI-07 L2515, L2519)", async () => {
+  // Recette du 11/11/2026 (Hermann : « ni le contenu des préférences ou je vois encore des anciennes entrées ») :
+  // Figma `1992:684` — Notifications, Séance (deux réglages) ; plus de bloc identité ni de groupe Exercice.
+  // [Remplacé — six réglages, groupes Exercice / Séance.]
+  it("Préférences du Figma : Notifications puis Séance (deux réglages, valeurs « 10″ » et « 5″ ») ; anciennes entrées absentes", async () => {
     await renderScreen();
 
-    const exerciseGroup = screen.getByTestId("profile-group-exercise");
-    const sessionGroup = screen.getByTestId("profile-group-session");
+    expect(screen.getByTestId("profile-group-notifications")).toBeTruthy();
+    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value").props.children).toBe("10″");
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children).toBe("5″");
+    for (const absent of [
+      "profile-group-exercise",
+      "profile-setting-sideChangeRecoverySecondsDefault",
+      "profile-setting-exerciseCountdownSecondsDefault",
+      "profile-setting-exerciseEndSecondsDefault",
+      "profile-setting-postActivityRecoverySecondsDefault",
+      "profile-identity-row",
+      "profile-preference-soundsEnabled",
+      "profile-preference-vibrationEnabled",
+    ]) {
+      expect(screen.queryByTestId(absent)).toBeNull();
+    }
+  });
 
-    expect(screen.getByTestId("profile-setting-sideChangeRecoverySecondsDefault-value").props.children).toBe(
-      "10 s",
-    );
-    expect(
-      screen.getByTestId("profile-setting-exerciseCountdownSecondsDefault-value").props.children,
-    ).toBe("10 s");
-    expect(screen.getByTestId("profile-setting-exerciseEndSecondsDefault-value").props.children).toBe(
-      "5 s",
-    );
-    expect(
-      screen.getByTestId("profile-setting-postActivityRecoverySecondsDefault-value").props.children,
-    ).toBe("30 s");
-    expect(
-      screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value").props.children,
-    ).toBe("10 s");
-    expect(
-      screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children,
-    ).toBe("5 s");
+  it("en-tête du Figma : onglets Profil, Préférences (sélectionné), Communauté (indisponible)", async () => {
+    await renderScreen();
 
-    // Le groupe Exercice porte Pause entre les côtés/Compte à rebours
-    // d'exercice/Fin d'exercice ; le groupe Séance porte Récupération après
-    // exercice/Compte à rebours initial/Fin de séance — jamais mélangés.
-    expect(
-      exerciseGroup.findByProps({ testID: "profile-setting-sideChangeRecoverySecondsDefault" }),
-    ).toBeTruthy();
-    expect(
-      sessionGroup.findByProps({ testID: "profile-setting-postActivityRecoverySecondsDefault" }),
-    ).toBeTruthy();
+    expect(screen.getByTestId("profile-tabs-preferences").props.accessibilityState).toEqual({ selected: true, disabled: false });
+    expect(screen.getByTestId("profile-tabs-community").props.accessibilityState).toEqual({ selected: false, disabled: true });
+    fireEvent.press(screen.getByTestId("profile-tabs-community"));
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   // Profil › Préférences (Figma `1992:684`, `12093:25010` ; documentation de main `ebe72f76`) : six annonces vocales
@@ -154,72 +150,45 @@ describe("ProfileScreen", () => {
   it("keeps only one stepper open at a time", async () => {
     await renderScreen();
 
-    fireEvent.press(screen.getByTestId("profile-setting-sideChangeRecoverySecondsDefault"));
-    expect(screen.getByTestId("profile-setting-sideChangeRecoverySecondsDefault-increment")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault"));
+    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-increment")).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId("profile-setting-exerciseCountdownSecondsDefault"));
-    expect(
-      screen.queryByTestId("profile-setting-sideChangeRecoverySecondsDefault-increment"),
-    ).toBeNull();
-    expect(screen.getByTestId("profile-setting-exerciseCountdownSecondsDefault-increment")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault"));
+    expect(screen.queryByTestId("profile-setting-sessionInitialCountdownSecondsDefault-increment")).toBeNull();
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-increment")).toBeTruthy();
   });
 
-  it("persists a stepper change immediately via ProfileService.setDefault, leaving the five other values unchanged (CE-UI-07 L2545, L2557, L2561)", async () => {
-    const updated = aProfile({ exerciseCountdownSecondsDefault: 11 });
+  it("persists a stepper change immediately via ProfileService.setDefault, leaving the other value unchanged (CE-UI-07 L2545, L2557, L2561)", async () => {
+    const updated = aProfile({ sessionInitialCountdownSecondsDefault: 11 });
     const setDefault = jest.fn(async () => updated);
     await renderScreen(fakeProfileService({ setDefault: setDefault as unknown as ProfileService["setDefault"] }));
 
-    fireEvent.press(screen.getByTestId("profile-setting-exerciseCountdownSecondsDefault"));
-    const incrementButton = screen.getByTestId(
-      "profile-setting-exerciseCountdownSecondsDefault-increment",
-    );
+    fireEvent.press(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault"));
+    const incrementButton = screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-increment");
     fireEvent(incrementButton, "pressIn");
     await act(async () => {
       fireEvent(incrementButton, "pressOut");
     });
 
-    await waitFor(() => expect(setDefault).toHaveBeenCalledWith("exerciseCountdownSecondsDefault", 11));
-    expect(
-      screen.getByTestId("profile-setting-sideChangeRecoverySecondsDefault-value").props.children,
-    ).toBe("10 s");
+    await waitFor(() => expect(setDefault).toHaveBeenCalledWith("sessionInitialCountdownSecondsDefault", 11));
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children).toBe("5″");
   });
 
   it("re-reads the Profile after a reopen (relecture après réouverture, useFocusEffect)", async () => {
     const getProfile = jest
       .fn<ProfileService["getProfile"]>()
       .mockResolvedValueOnce(aProfile())
-      .mockResolvedValueOnce(aProfile({ exerciseEndSecondsDefault: 9 }));
+      .mockResolvedValueOnce(aProfile({ sessionFinalPhaseSecondsDefault: 9 }));
     await renderScreen(fakeProfileService({ getProfile }));
 
-    expect(screen.getByTestId("profile-setting-exerciseEndSecondsDefault-value").props.children).toBe(
-      "5 s",
-    );
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children).toBe("5″");
 
     await act(async () => {
       focusEffectHarness.effect?.();
     });
 
     await waitFor(() =>
-      expect(screen.getByTestId("profile-setting-exerciseEndSecondsDefault-value").props.children).toBe(
-        "9 s",
-      ),
-    );
-  });
-
-  it("toggles a preference immediately via ProfileService.setPreference", async () => {
-    const updated = aProfile({ announceSidesEnabled: false });
-    const setPreference = jest.fn(async () => updated);
-    await renderScreen(
-      fakeProfileService({ setPreference: setPreference as unknown as ProfileService["setPreference"] }),
-    );
-
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("profile-guidance-announcement-sides"));
-    });
-
-    expect(setPreference).toHaveBeenCalledWith("announceSidesEnabled", false);
-    await waitFor(() =>
-      expect(screen.getByTestId("profile-guidance-announcement-sides").props.accessibilityState).toEqual({ checked: false }),
+      expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children).toBe("9″"),
     );
   });
 
@@ -256,41 +225,23 @@ describe("ProfileScreen", () => {
     expect(screen.queryByTestId("profile-guidance-announcement-names-switch")).toBeNull();
   });
 
-  it("navigates to Modifier le profil", async () => {
+  // Section Profil non développée (Hermann, 11/11/2026) : l'onglet Profil ouvre l'écran existant Modifier le profil.
+  // [Remplacé — bloc Identité et action Modifier le profil en tête de l'écran.]
+  it("onglet Profil : ouvre Modifier le profil", async () => {
     await renderScreen();
 
-    fireEvent.press(screen.getByLabelText(t.editProfileAction));
+    fireEvent.press(screen.getByTestId("profile-tabs-profile"));
 
     expect(mockPush).toHaveBeenCalledWith("/profile-edit");
-  });
-
-  /** R1 (CE-UI-07 L2522) : bloc Identité en tête — initiales de repli, nom non renseigné, action Modifier. */
-  it("shows an identity block (initials fallback + unset-name label) before the groups, with the edit action", async () => {
-    await renderScreen(fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Ada Lovelace" })) }));
-
-    expect(screen.getByTestId("profile-identity-avatar-initials").props.children).toBe("AL");
-    expect(screen.getByTestId("profile-identity-name").props.children).toBe("Ada Lovelace");
-    expect(screen.queryByTestId("profile-identity-avatar-image")).toBeNull();
-    expect(screen.getByTestId("profile-identity-edit-action")).toBeTruthy();
-  });
-
-  it("shows the unset-display-name placeholder when no name was ever saved (T8)", async () => {
-    await renderScreen();
-
-    expect(screen.getByTestId("profile-identity-name").props.children).toBe(
-      t.identity.unsetDisplayNameAccessibilityLabel,
-    );
   });
 
   /** D-267 (CE-UI-07 L2532) : un séparateur entre deux lignes consécutives d'un même groupe, jamais avant la première ni après la dernière. */
   it("renders a separator between each pair of consecutive rows, never before the first or after the last", async () => {
     await renderScreen();
 
-    // Exercice/Séance : 3 lignes → 2 séparateurs. [Groupes Guidage et Préférences remplacés le 11/11/2026 par les
-    // sections Annonces vocales et Sons et vibrations (`GuidanceSettingsForm`).]
+    // Séance : 2 lignes → 1 séparateur (Figma `1992:684`). [Exercice/Séance : 3 lignes — remplacé le 11/11/2026.]
     const expectedDividerCountByGroup: Record<string, number> = {
-      "profile-group-exercise": 2,
-      "profile-group-session": 2,
+      "profile-group-session": 1,
     };
     for (const [groupTestID, dividerCount] of Object.entries(expectedDividerCountByGroup)) {
       expect(screen.queryByTestId(`${groupTestID}-divider-0`)).toBeNull();
@@ -328,7 +279,7 @@ describe("ProfileScreen", () => {
 
     expect(
       screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children,
-    ).toBe("70 s");
+    ).toBe("70″");
 
     fireEvent.press(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault"));
     expect(

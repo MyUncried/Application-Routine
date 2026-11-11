@@ -318,3 +318,10 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - Constat b : « Première annonce d'exercices, dire "Premier exercice" s'il y en a plus d'un, et sinon "A suivre" comme maintenant. » Classe B.
 - Spike : K1, K2, K4 OK ; K3 et K5 non renseignés ; K6 KO, constaté sur une séance (musique Spotify non baissée au retour), pas sur l’essai K6 de l’écran de diagnostic. Le remplacement de `BeepPort` attend K3, K5 et K6.
 - À CLARIFIER : groupe Exercice et Récupération après exercice conservés dans les Préférences ; sons du système du design ; moment du signal Mi-temps ; verrouillage de l’écran et Pause.
+
+### 12.3 Retour du 11/11/2026 sur l’alignement Figma
+
+- Hermann, recopié : « tu n'as pas utilisé la référence Figma pour le layout / La charte graphique, ni le contenu des préférences ou je vois encore des anciennes entrées. A corriger avec que je ne continue les tests ». Classe B.
+- Préférences : en-tête à onglets du Figma (composant des Catalogues), Notifications, Séance (deux réglages), Annonces vocales, Sons et vibrations ; bloc Identité, groupe Exercice et Récupération après exercice retirés de l’écran (valeurs conservées et appliquées).
+- Modale et Choix d’un son : présentation du Figma (groupes bordés, lignes de 40, valeur Regular 12, petit chevron ; lignes de 44, coche bleue).
+- Restent À CLARIFIER : sons du système, Mi-temps, verrouillage de l’écran.

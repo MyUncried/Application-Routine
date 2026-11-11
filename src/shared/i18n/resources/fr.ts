@@ -1616,6 +1616,13 @@ export const fr = {
         vibration: "Vibration",
         notifications: "Notifications",
       },
+      // Figma `1992:684` : onglets de l'en-tête ; Communauté hors MVP.
+      tabs: {
+        profile: "Profil",
+        preferences: "Préférences",
+        community: "Communauté",
+        communityUnavailable: "Communauté, indisponible",
+      },
       // Figma `1992:684` : section Notifications.
       notifications: {
         label: "Autoriser les notifications",

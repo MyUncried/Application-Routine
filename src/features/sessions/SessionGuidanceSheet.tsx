@@ -22,6 +22,10 @@ import { strings } from "@/shared/i18n";
  * [Remplacé le 11/11/2026 — feuille « Guidage de la séance » (Sons, Annonces vocales, objectif, « Comme le Profil ») :
  * texte par-dessus l'en-tête, ✕ et ✓ sans effet (recette w2).]
  */
+/** Figma `12132:27436` : contenu à 16 des bords, 8 sous l'en-tête ; `12068:25044` : 16, 13 sous l'en-tête. */
+const SHEET_CONTENT_INSET = { horizontal: 16, top: 8 } as const;
+export const PICKER_CONTENT_INSET = { horizontal: 16, top: 13 } as const;
+
 export function SessionGuidanceSheet({
   initial,
   onApply,
@@ -62,6 +66,7 @@ export function SessionGuidanceSheet({
         closeLabel={t.close}
         applyLabel={t.validate}
         onClose={() => setChoosing(null)}
+        contentInset={PICKER_CONTENT_INSET}
         onApply={() => {
           setSettings({
             ...settings,
@@ -88,6 +93,7 @@ export function SessionGuidanceSheet({
       closeLabel={t.close}
       applyLabel={t.validate}
       onClose={onClose}
+      contentInset={SHEET_CONTENT_INSET}
       onApply={() => {
         if (settings !== null) onApply(settings);
         else onClose();
@@ -105,6 +111,7 @@ export function SessionGuidanceSheet({
           }
           onOpenSound={(event) => setChoosing({ event, sound: settings.events[event].sound })}
           testIDPrefix="session-guidance"
+          variant="sheet"
         />
       )}
     </FilterSheetFrame>

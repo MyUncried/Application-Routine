@@ -1132,6 +1132,32 @@
       "usage": [
         "Profil › Préférences et modale Guidage sonore — colonne Son, accès à « Choix d’un son »"
       ]
+    },
+    {
+      "key": "lists.chevronAllerModale",
+      "file": "icon-chevron-aller-modale",
+      "figmaNodeId": "12175:25830",
+      "figmaName": "Chevron — Aller",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12132:27436",
+      "width": 5.50003,
+      "height": 11.5001,
+      "usage": [
+        "Modale Guidage sonore — colonne Son, accès à « Choix d’un son »"
+      ]
+    },
+    {
+      "key": "lists.checkSoundChosen",
+      "file": "icon-coche-son-choisi",
+      "figmaNodeId": "12068:25151",
+      "figmaName": "Coche — Son choisi",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12068:25044",
+      "width": 17.2,
+      "height": 13.2,
+      "usage": [
+        "Choix d’un son — son choisi"
+      ]
     }
   ],
   "branding": {
