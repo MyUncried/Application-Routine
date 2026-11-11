@@ -43,7 +43,8 @@ const button = (text, action, { primary = false, disabled = false } = {}) => {
 };
 
 const ACTOR_KINDS = [["", "Inconnu (null)"], ["LOCAL_USER", "Utilisateur local"], ["PERSON", "Personne"], ["ORGANIZATION", "Organisation"], ["PLATFORM", "Plateforme"]];
-const ORIGINS = ["LOCAL_CREATED", "CATALOGUE_INSTALLED", "SHARED_IMPORTED", "EXTERNAL_IMPORTED"];
+const ORIGIN_LABELS = { LOCAL_CREATED: "Créée localement", CATALOGUE_INSTALLED: "Installée depuis un catalogue", SHARED_IMPORTED: "Importée d'un partage", EXTERNAL_IMPORTED: "Importée d'une source externe" };
+const VISIBILITY_LABELS = { PRIVATE: "Privée", UNLISTED: "Non répertoriée", PUBLIC: "Publique" };
 const REVIEW_STATUSES = ["DRAFT", "IN_REVIEW", "APPROVED", "RETIRED"];
 const VISIBILITIES = ["PRIVATE", "UNLISTED", "PUBLIC"];
 const AXES = [
@@ -269,6 +270,10 @@ function grid(...children) {
 function readonly(text) {
   return el("div", "readonly", text);
 }
+/** Valeur affichée sans modification possible (tableau de Hermann du 11/11/2026 : n° 11, 17, 23, 27). */
+function shown(label, text) {
+  return labeled(label, readonly(text));
+}
 
 // ---------- Fichiers ----------
 
@@ -489,21 +494,7 @@ function renderSheetForm(panel) {
     labeled("Notes éditoriales", textInput(() => c.notes, (x) => { c.notes = x; }, { multiline: true })),
   ));
 
-  const review = el("div", "fields");
-  const renderReview = () => {
-    review.replaceChildren(checkbox("Revue de classification renseignée", () => k.review !== null, (on) => {
-      k.review = on ? { status: "PENDING", needsReview: true, flags: [], note: null } : null;
-      renderReview();
-    }));
-    if (k.review) {
-      const r = k.review;
-      review.append(grid(labeled("Statut de revue", textInput(() => r.status, (x) => { r.status = x; })),
-        checkbox("Revue nécessaire", () => r.needsReview, (x) => { r.needsReview = x; })),
-      grid(labeled("Indicateurs (un par ligne)", linesInput(() => r.flags, (x) => { r.flags = x; }, 2)),
-        labeled("Note", textInput(() => r.note, (x) => { r.note = x; }, { nullable: true }))));
-    }
-  };
-  renderReview();
+  // Tableau de Hermann du 11/11/2026 : n° 6 à 9 (fondement, revue, classification et spécialités d'origine) retirés.
   const classification = section("Classification",
     labeled("Catégorie", selectInput(refs.categories.map((e) => [e.id, e.label]), () => k.categoryId, (x) => { k.categoryId = x; }, { nullable: true })),
   );
@@ -511,9 +502,6 @@ function renderSheetForm(panel) {
     if (!field) continue;
     classification.append(section(label, chips(refs[axis], () => k[field], (x) => { k[field] = x; })));
   }
-  classification.append(labeled("Fondement des valeurs", textInput(() => k.basis, (x) => { k.basis = x; })), review,
-    labeled("Classification d'origine (lecture seule)", readonly(Object.entries(k.original).map(([a, b]) => a + " : " + b).join("\n") || "—")),
-    labeled("Spécialités proposées à l'origine (lecture seule)", readonly(k.originalProposedSpecialties.join(", ") || "—")));
   fields.append(classification);
 
   const upstream = el("div", "fields");
@@ -532,8 +520,7 @@ function renderSheetForm(panel) {
   };
   renderUpstream();
   fields.append(section("Provenance",
-    grid(labeled("Identifiant de geste", textInput(() => p.gestureId, (x) => { p.gestureId = x; }, { nullable: true })),
-      labeled("Origine", selectInput(ORIGINS, () => p.origin, (x) => { p.origin = x; }), "LOCAL_DERIVED n'est plus admis (A-2)."),),
+    shown("Origine", ORIGIN_LABELS[p.origin] ?? p.origin),
     upstream,
     grid(labeled("Propriétaire", actorInput(() => p.owner, (x) => { p.owner = x; }), "Inconnu = privé, jamais publiable."),
       labeled("Auteur (unique)", actorInput(() => p.author, (x) => { p.author = x; }))),
@@ -541,7 +528,7 @@ function renderSheetForm(panel) {
       labeled("Ayant droit", actorInput(() => p.rightsHolder, (x) => { p.rightsHolder = x; }))),
     grid(labeled("Licence", textInput(() => p.license, (x) => { p.license = x; }, { nullable: true })),
       labeled("Statut éditorial", selectInput(REVIEW_STATUSES, () => p.reviewStatus, (x) => { p.reviewStatus = x; }))),
-    labeled("Visibilité", selectInput(VISIBILITIES, () => p.visibility, (x) => { p.visibility = x; })),
+    shown("Visibilité", VISIBILITY_LABELS[p.visibility] ?? p.visibility),
   ));
 
   const documentary = el("div", "fields");
@@ -587,9 +574,6 @@ function renderSheetForm(panel) {
     maxEmbeddedChars: CATALOGUE_MAX_EMBEDDED_PHOTO_CHARS,
   });
 
-  fields.append(section("Installation (lecture seule)",
-    readonly(sheet.install.knownLocalMovementIds.join("\n") || "Aucun Mouvement local rapproché."),
-    el("small", "info", "Rapprochements gérés depuis la boîte d'arrivée ; ils ne créent pas de révision éditoriale.")));
   fields.append(section("Historique des révisions (lecture seule)",
     readonly(sheet.history.map((h) => "Révision " + h.revision + " · " + h.date + " · " +
       (h.author ? h.author.kind + ":" + h.author.id : "auteur inconnu") + " — " + h.summary).join("\n"))));
@@ -658,7 +642,7 @@ function renderLibraries(views) {
     grid(labeled("Éditeur (composition)", actorInput(() => library.editor, (x) => { library.editor = x; })),
       labeled("Propriétaire", actorInput(() => library.owner, (x) => { library.owner = x; }), "Inconnu = privée et non publiable.")),
     grid(labeled("Visibilité", selectInput(VISIBILITIES, () => library.visibility, (x) => { library.visibility = x; })),
-      checkbox("Publication autorisée (chaque fiche doit être publiable)", () => library.publicationAllowed, (x) => { library.publicationAllowed = x; })),
+      shown("Publication autorisée", library.publicationAllowed ? "Oui" : "Non")),
   ));
   const sheetsById = new Map(state.working.sheets.map((sheet) => [sheet.sheetId, sheet]));
   const members = el("div", "members");
@@ -805,23 +789,30 @@ function renderGlossary(views) {
 
 // --- En-tête du catalogue ---
 
+/** N° 29 : empreinte et version lue, repliées (identifier le fichier effectivement lu). */
+function technicalDetails() {
+  const details = el("details", "source");
+  details.append(el("summary", "", "Détails techniques"),
+    readonly("Empreinte du fichier (révision optimiste) : " + state.etag.slice(0, 16) + "…" +
+      "\nVersion lue : " + state.sourceFormatVersion + (state.canonical ? "" : "\nForme non canonique sur disque : réécrite en sérialisation de référence au prochain enregistrement effectif.")));
+  return details;
+}
+
 function renderCatalogue(views) {
   const panel = el("section", "panel");
   panel.style.margin = "0 clamp(16px,3.6vw,48px) 36px";
   const header = state.working.catalogue;
   panel.append(el("h2", "", "Catalogue"),
     section("Fichier",
-      readonly("Fichier : " + state.fileName + "\nIdentifiant : " + header.id + "\nRévision : " + header.revision +
-        "\nEmpreinte du fichier (révision optimiste) : " + state.etag.slice(0, 16) + "…" +
-        "\nVersion lue : " + state.sourceFormatVersion + (state.canonical ? "" : "\nForme non canonique sur disque : réécrite en sérialisation de référence au prochain enregistrement effectif.")),
+      readonly("Fichier : " + state.fileName + "\nIdentifiant : " + header.id + "\nRévision : " + header.revision),
+      technicalDetails(),
       readonly(state.warnings.length ? state.warnings.map((w) => w.code + " — " + w.path).join("\n") : "Aucun signalement.")),
     section("En-tête",
       labeled("Titre", textInput(() => header.title, (x) => { header.title = x; }, { maxLength: 200 })),
       grid(labeled("Propriétaire", actorInput(() => header.owner, (x) => { header.owner = x; }), "Inconnu = aucune publication."),
         labeled("Gestionnaire administratif", actorInput(() => header.manager, (x) => { header.manager = x; }))),
       grid(labeled("Diffuseur", actorInput(() => header.publisher, (x) => { header.publisher = x; })),
-        checkbox("Publication autorisée", () => header.publicationAllowed, (x) => { header.publicationAllowed = x; })),
-      labeled("Notes (une par ligne)", linesInput(() => header.notes, (x) => { header.notes = x; }, 8))));
+        shown("Publication autorisée", header.publicationAllowed ? "Oui" : "Non"))));
   views.append(panel);
 }
 

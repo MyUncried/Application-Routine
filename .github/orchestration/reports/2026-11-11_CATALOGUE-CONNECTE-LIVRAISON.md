@@ -201,3 +201,13 @@ Tests : `npx jest --maxWorkers=4` sur le fichier pilote versionné, 348 suites e
 | « ma fiche a disparu » | **Incident causé par la session** : pour lancer les tests, le fichier pilote du dossier d'intégration (lu par le serveur d'administration en marche) a été remplacé trois fois quelques minutes par la version versionnée, puis rétabli. Vérification : fichier actuel = copie de recette (61 fiches, fiche `fiche-squat-test-recette` rév. 4) ; aucune écriture perdue (le dernier enregistrement de Hermann était refusé par la validation). Désormais les tests de l'administration lisent `KODJO_TEST_PILOT` et le fichier de recette n'est plus touché. | — |
 
 Tests : Jest complet sur le fichier pilote versionné, 349 suites et 5 850 tests verts ; `node --test tools/catalogue-admin/server.test.mjs` (avec `KODJO_TEST_PILOT`) 24 verts ; éditeur de médias vérifié dans jsdom (refus sans licence, confirmation avec licence, photo conservée) ; `tsc` 0 erreur.
+
+### Champs de l'administration (11/11, tableau de Hermann)
+
+Un premier retrait trop large (`304aa1da`, classification comprise) a été poussé avant la lecture des messages de Hermann (« on garde les éléments de classification zone anatomique, etc bien évidemment » ; « fais moi d'abord la liste de ce que tu vas supprimer ») ; il a été annulé par `cdf1c18b`. Hermann a ensuite tranché champ par champ (30 lignes) ; appliqué tel quel :
+- retirés : n° 6 fondement des valeurs, 7 revue de classification, 8 classification d'origine, 9 spécialités proposées à l'origine, 10 saisie de l'identifiant de geste, 19 Installation, 28 notes du catalogue ;
+- lecture seule : n° 11 origine (libellé français), 17 visibilité de la fiche, 23 publication de la Bibliothèque, 27 publication du catalogue ;
+- n° 29 : empreinte et version lue dans « Détails techniques » repliés ;
+- tous les autres champs gardés et modifiables (alias, position de départ, matériel, consignes, notes éditoriales, classification complète, provenance, sources, historiques, glossaire, référentiels).
+
+Données : aucune valeur modifiée ni supprimée du fichier. Tests : `node --test tools/catalogue-admin/server.test.mjs` 24 verts ; eslint `app.js` 0 problème.
