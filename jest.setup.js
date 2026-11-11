@@ -27,6 +27,7 @@ require("react-native-gesture-handler/jestSetup");
 jest.mock("@/features/catalogue/importedMovements", () => ({
   isImportedMovement: async () => false,
   importedMovementLabel: async () => null,
+  importedMovementInfo: async () => null,
   sharedCatalogueRegistry: async () => {
     throw new Error("Registre natif indisponible sous Jest : injecter un registre.");
   },

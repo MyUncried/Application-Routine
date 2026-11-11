@@ -20,8 +20,8 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
-import { ImportedMovementBadge } from "@/features/catalogue/ImportedMovementBadge";
-import { importedMovementLabel } from "@/features/catalogue/importedMovements";
+import { ImportedMovementAction, ImportedMovementInfoPanel } from "@/features/catalogue/ImportedMovementBadge";
+import { importedMovementInfo, type ImportedMovementInfo } from "@/features/catalogue/importedMovements";
 import type { MovementChoice, MovementLevels } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { EditorLevel } from "@/features/activities/MovementLevelMenu";
@@ -303,7 +303,9 @@ export function MovementSheet({
   const [isArchived, setIsArchived] = useState(false);
   // A-2 (11/11/2026, Figma 12119:25304) : Mouvement importé d’une Bibliothèque — lecture seule, ni crayon ni
   // duplication ; sa provenance (« Bibliothèque · rév. N ») remplace le crayon. Les Exercices restent réglables.
-  const [importedFrom, setImportedFrom] = useState<string | null>(null);
+  const [importedFrom, setImportedFrom] = useState<ImportedMovementInfo | null>(null);
+  // Recette du 11/11/2026 (a1-lecture-seule) : fenêtre d'information de la fiche importée, ouverte et fermée d'un appui.
+  const [importedInfoOpen, setImportedInfoOpen] = useState(false);
   const [bodyZonesToken, setBodyZonesToken] = useState(0);
   const bodyZones = useBodyZones(bodyZonesToken);
   const { categories, reload: reloadCategories } = useCategories();
@@ -322,7 +324,7 @@ export function MovementSheet({
         catalogue.findMovement(targetId),
         service.supportsMovementLevels ? service.getMovementLevels(targetId) : null,
         movementId !== null ? catalogue.isArchived(movementId) : false,
-        movementId !== null ? importedMovementLabel(movementId).catch(() => null) : null,
+        movementId !== null ? importedMovementInfo(movementId).catch(() => null) : null,
       ])
         .then(([movement, movementLevels, archived, imported]) => {
           if (isCancelled()) return;
@@ -641,7 +643,7 @@ export function MovementSheet({
         {...(overlay !== undefined ? { backIcon: true } : {})}
         trailing={
           loadState === "ready" && importedFrom !== null
-            ? <ImportedMovementBadge label={importedFrom} />
+            ? <ImportedMovementAction open={importedInfoOpen} onPress={() => setImportedInfoOpen((open) => !open)} />
             : loadState === "ready" && mode === "consult" && !isArchived && !readOnly ? <EditMovementAction onPress={() => setMode("edit")} /> : null
         }
         {...(readOnly || inSheet ? { topInset: 0 } : {})}
@@ -664,6 +666,9 @@ export function MovementSheet({
               }
             : {})}
       />
+      {loadState === "ready" && importedFrom !== null && importedInfoOpen ? (
+        <ImportedMovementInfoPanel info={importedFrom} onClose={() => setImportedInfoOpen(false)} />
+      ) : null}
       {loadState === "error" ? (
         <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="movement-load-error">
           <Text style={styles.loadErrorMessage}>{t.loadError}</Text>

@@ -211,3 +211,13 @@ Un premier retrait trop large (`304aa1da`, classification comprise) a été pous
 - tous les autres champs gardés et modifiables (alias, position de départ, matériel, consignes, notes éditoriales, classification complète, provenance, sources, historiques, glossaire, référentiels).
 
 Données : aucune valeur modifiée ni supprimée du fichier. Tests : `node --test tools/catalogue-admin/server.test.mjs` 24 verts ; eslint `app.js` 0 problème.
+
+### Recette du 11/11, résultats de 14 h 18
+
+| Point | Constat de Hermann | Analyse et correction | Classe |
+|---|---|---|---|
+| a1-medias (KO) | Une bibliothèque avec une fiche non transférable bloque toutes les bibliothèques ; les retirer des bibliothèques ne suffit pas | Le serveur d'administration tournait depuis 13 h 35, avant la correction `cd83ddd1` (vers 13 h 58) : ancien comportement (refus du fichier entier). Vérifié sur une copie de son fichier avec le code actuel : une fiche au média non confirmé → HTTP 200, 63 fiches sur 64 envoyées, fiche nommée, les trois Bibliothèques transmises. Action : redémarrer le serveur. | — (déjà corrigé) |
+| a1-lecture-seule (KO) | « Ne laisser que le symbole, dans un cadre tel que celui de l'édition. A l'appui, affichage des information complémentaires de la fiche (source, propriétaire, auteur, éditeur, version, etc.) Réappuyer sur la fiche ferme la fenêtre d'information. » | `ImportedMovementAction` (cadre du crayon, icône livre) et `ImportedMovementInfoPanel` (bibliothèque, catalogue, source, propriétaire, auteur, éditeur, ayant droit, licence, version) ; lecture `importedMovementInfo` dans le registre. | B |
+| a1-reseau | non testé | — | — |
+
+Tests : test d'intégration A-2 de `MovementScreen` mis à jour (ouverture et fermeture) ; suite complète : 342 suites vertes, les 7 suites qui lisent le fichier pilote du dossier échouent à cause des données de recette (61+ fiches) et sont rejouées sur le fichier versionné dans un dossier de travail séparé (voir ci-dessous).

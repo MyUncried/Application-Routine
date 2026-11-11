@@ -1230,21 +1230,31 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
 });
 
 describe("A-2 (11/11/2026, Figma 12119:25304) — Mouvement importé d'une Bibliothèque", () => {
-  it("s'ouvre en consultation même avec `mode=edit` : provenance à la place du crayon, nom non modifiable", async () => {
-    const imported = jest.requireMock("@/features/catalogue/importedMovements") as { importedMovementLabel: (id: string) => Promise<string | null> };
-    const previous = imported.importedMovementLabel;
-    imported.importedMovementLabel = async (id) => (id === "m1" ? "Fitness · rév. 2" : null);
+  it("s'ouvre en consultation même avec `mode=edit` : symbole à la place du crayon, informations d'un appui, nom non modifiable", async () => {
+    const imported = jest.requireMock("@/features/catalogue/importedMovements") as { importedMovementInfo: (id: string) => Promise<unknown> };
+    const previous = imported.importedMovementInfo;
+    imported.importedMovementInfo = async (id) => (id === "m1" ? {
+      libraries: ["Fitness"], catalogueId: "kodjo.pilote-60", sheetId: "s1", revision: "2",
+      installedAt: "2026-11-11T10:00:00.000Z", updatedAt: "2026-11-11T10:00:00.000Z", origin: "EXTERNAL_IMPORTED",
+      upstream: null, owner: null, author: "hermann", publisher: null, editors: [], rightsHolder: null, license: null,
+    } : null);
     try {
       await movements().create(movement("m1", "Squats sautés"));
       await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
       expect(screen.getByText(t.titles.consult)).toBeTruthy();
-      expect(screen.getByText("Fitness · rév. 2")).toBeTruthy();
-      expect(screen.getByTestId("movement-imported-badge", anyNode).props.accessibilityLabel).toBe("Importé de la bibliothèque Fitness · rév. 2, lecture seule");
+      // Recette du 11/11 (a1-lecture-seule) : le symbole seul ; un appui ouvre les informations, un nouvel appui les ferme.
+      expect(screen.queryByTestId("movement-imported-info", anyNode)).toBeNull();
+      fireEvent.press(screen.getByTestId("movement-imported-badge", anyNode));
+      expect(screen.getByTestId("movement-imported-info", anyNode)).toBeTruthy();
+      expect(screen.getByText("Fitness")).toBeTruthy();
+      expect(screen.getByText("hermann")).toBeTruthy();
+      fireEvent.press(screen.getByTestId("movement-imported-badge", anyNode));
+      expect(screen.queryByTestId("movement-imported-info", anyNode)).toBeNull();
       expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
       expect(screen.queryByTestId("screen-header-validate", anyNode)).toBeNull();
       expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
     } finally {
-      imported.importedMovementLabel = previous;
+      imported.importedMovementInfo = previous;
     }
   });
 });
