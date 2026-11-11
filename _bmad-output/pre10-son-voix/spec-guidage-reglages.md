@@ -292,3 +292,19 @@ Choix techniques (classe D) :
 Classe A, hors de cette spec : écran maintenu actif pendant l'exécution (ch09 Profil, « Écran maintenu actif »). Aucune bascule du Profil n'est réalisée : aucun contrat d'écran ne la décrit (non arbitré, À CLARIFIER si elle est voulue).
 
 Restent : étape 1 (spike arrière-plan) et étape 5 (arrière-plan), §8 (bibliothèque de sons courts) et §8.1 (modulation de la musique). Toutes demandent une nouvelle version native (build EAS).
+
+### 12.1 Nouvelle version native et spike (11/11/2026)
+
+Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Oui, relance Metro ».
+
+- Build EAS `development-bmad` `2e47648d` (commit `bfe40729`) : `react-native-audio-api`, plugin `expo-audio` (arrière-plan, sans micro), `react-native-svg`.
+- Spike (§8, étape 1) : écran de diagnostic, essais K1 à K6 :
+  - click après annonce ;
+  - cadence avec annonce ;
+  - tempo actuel contre programmé ;
+  - arrière-plan programmé d'avance ou au fil de l'eau ;
+  - musique modulée (§8.1).
+- Le remplacement de `BeepPort` (§8, étapes 2 et 3) et le guidage en arrière-plan (étape 5) attendent les résultats du spike sur iPhone.
+- Écran d'Exécution (CE-EXEC-SESSION-01) :
+  - réalisés : Roboto Condensed, chrono circulaire, piste par Tours ;
+  - À CLARIFIER : sens de remplissage de l'anneau. Choix provisoire : il se remplit avec le temps écoulé.

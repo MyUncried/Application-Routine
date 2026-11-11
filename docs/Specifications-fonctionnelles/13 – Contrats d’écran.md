@@ -3397,6 +3397,8 @@ Noms/durées/compteurs calculés ; valeurs Figma démonstratives. Circuit=groupe
 
 Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté distinct ; charge de la série courante selon RM-241 ; chrono/Série/Tour/progression ; commandes ; état média conditionnel.
 
+[Complété le 11/11/2026 — fin de PRE-10, conformité aux nœuds `1992:8132`, `1992:8530`, `1992:8626` : police Roboto Condensed (nom de l’Exercice SemiBold 30, côté Medium 24 `#8F8F94`, chrono Bold 100 interlettrage −1,5, Série et Tour Bold 30) ; chrono circulaire de 288 (anneau de fond `#E8E8ED` de 12, repère de départ en haut, repères des quarts et intermédiaires tous les 18°, anneau de progression `#8283F2` à embouts arrondis et pastille blanche de position), côté et chrono centrés dedans ; piste de progression structurée par Tours (un segment par Tour du Circuit en cours, 9 de haut, rayon 4,5, écart 3, légende « Tour »), avancement global inchangé (RM-077). Interprétation à valider en recette : l’anneau se remplit avec le temps écoulé de l’étape (compte à rebours), un tour par minute sans fin nominale (ch08), part de la fin nominale avec cadence. Le reste de la mise en page n’est pas modifié.]
+
 #### 8. Éléments obligatoires
 
 Phase courante identifiable, temps et progression, commandes Réinitialiser/Pause/Suivant/sons/vocal ; Tour seulement dans contexte de Circuit ; aucune interface de bilatéralité Circuit.

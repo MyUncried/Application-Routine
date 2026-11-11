@@ -25,6 +25,8 @@ import type {
 } from "@/domain/execution/projection";
 import type { Profile } from "@/domain/preferences/Profile";
 import { effectiveSetting, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
+import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
+import { ringFraction } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import type { Announcements } from "@/infrastructure/haptics/ExecutionSignalAdapter";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
@@ -535,13 +537,16 @@ export function ExecutionScreen({
             {t.side(projection.sideRank)}
           </Text>
         ) : null}
-        <Text
-          style={styles.timer}
-          accessibilityLabel={timerAccessibility(projection)}
-          testID="execution-timer"
-        >
-          {timerText(projection)}
-        </Text>
+        {/* Fin de PRE-10 : chrono circulaire (Figma `1992:8132`), côté et chrono centrés dans l'anneau. */}
+        <ExecutionTimerRing fraction={ringFraction(projection.timer)} testID="execution-ring">
+          <Text
+            style={styles.timer}
+            accessibilityLabel={timerAccessibility(projection)}
+            testID="execution-timer"
+          >
+            {timerText(projection)}
+          </Text>
+        </ExecutionTimerRing>
         {targetText(projection) !== null ? (
           <Text style={styles.target}>{targetText(projection)}</Text>
         ) : null}
@@ -626,6 +631,8 @@ export function ExecutionScreen({
           {formatClock(projection.sessionElapsedMs)} /{" "}
           {estimateLabel(projection)}
         </Text>
+        {/* Fin de PRE-10 : piste structurée par Tours (Figma « DSF / Controls / Progression par tours », ch10 RM-077 :
+            repères de lecture seulement, l'avancement reste global et continu). */}
         <View
           style={styles.progressTrack}
           accessibilityRole="progressbar"
@@ -634,15 +641,18 @@ export function ExecutionScreen({
             max: 100,
             now: Math.round(projection.progress * 100),
           }}
+          testID="execution-progress-track"
         >
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${Math.round(projection.progress * 1000) / 10}%` },
-            ]}
-            testID="execution-progress"
-          />
+          {tourSegments(projection).map((fill, index) => (
+            <View key={index} style={styles.progressSegment} testID={`execution-progress-segment-${index}`}>
+              <View
+                style={[styles.progressFill, { width: `${Math.round(fill * 1000) / 10}%` }]}
+                testID={index === 0 ? "execution-progress" : undefined}
+              />
+            </View>
+          ))}
         </View>
+        {projection.tour !== null ? <Text style={styles.progressCaption}>{t.tour}</Text> : null}
       </View>
 
       {/* Un seul Modal, toujours monté pendant l'Exécution (voir ExecutionDialog, recette du 09/11/2026). */}
@@ -786,6 +796,15 @@ function estimateLabel(projection: ExecutionProjection): string {
   return `${prefix}${formatClock(projection.estimated.ms)}`;
 }
 
+/** Couleurs et styles de texte du Figma `1992:8132` propres à l'écran d'Exécution. */
+const executionColors = { side: "#8F8F94", track: "#E0E3E8", progress: "#8283F2", caption: "#7A7A80" } as const;
+const executionType = {
+  title: { fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", fontSize: 30 },
+  side: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 24 },
+  timer: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 100, letterSpacing: -1.5 },
+  metric: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 30 },
+} as const;
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -834,19 +853,19 @@ const styles = StyleSheet.create({
   startLabel: { ...type.button, color: colors.background },
   estimate: { ...type.supporting, color: colors.textSecondary },
   content: { alignItems: "center", paddingTop: spacing[24], gap: spacing[12] },
+  // Fin de PRE-10 : typographie du Figma `1992:8132` (Roboto Condensed).
   exerciseName: {
-    ...type.activityTitle,
+    ...executionType.title,
     color: colors.textPrimary,
     textAlign: "center",
   },
   context: { ...type.contextLine, color: colors.textSecondary },
-  side: { ...type.label, color: colors.primary },
+  side: { ...executionType.side, color: executionColors.side },
   timer: {
-    fontFamily: type.activityTitle.fontFamily,
-    fontSize: 72,
-    lineHeight: 84,
+    ...executionType.timer,
     color: colors.textPrimary,
     fontVariant: ["tabular-nums"],
+    textAlign: "center",
   },
   target: { ...type.label, color: colors.textSecondary },
   guidance: { ...type.label, color: colors.primary },
@@ -856,7 +875,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: spacing[8],
   },
-  seriesTourText: { ...type.metricPrimary, color: colors.textPrimary, flex: 1 },
+  seriesTourText: { ...executionType.metric, color: colors.textPrimary, flex: 1 },
   seriesTourDivider: { width: 24 },
   right: { textAlign: "right" },
   next: {
@@ -902,13 +921,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: "center",
   },
-  progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.surface,
-    overflow: "hidden",
-  },
-  progressFill: { height: 6, backgroundColor: colors.primary },
+  progressTrack: { flexDirection: "row", gap: 3, height: 9 },
+  progressSegment: { flex: 1, height: 9, borderRadius: 4.5, backgroundColor: executionColors.track, overflow: "hidden" },
+  progressFill: { height: 9, borderRadius: 4.5, backgroundColor: executionColors.progress },
+  progressCaption: { ...type.caption, fontSize: 10, color: executionColors.caption },
   endTitle: {
     ...type.activityTitle,
     color: colors.textPrimary,
@@ -943,4 +959,13 @@ function announcementsOf(profile: Profile, guidance?: SessionGuidance): Announce
     sides: profile.announceSidesEnabled,
     phases: profile.announcePhasesEnabled,
   };
+}
+
+/**
+ * Fin de PRE-10 — remplissage de chaque segment de la piste : un segment par Tour du Circuit en cours (un seul sans Circuit),
+ * l'avancement global (RM-077) réparti dans l'ordre. Repères de lecture seulement (ch10).
+ */
+export function tourSegments(projection: Pick<ExecutionProjection, "progress" | "tour">): readonly number[] {
+  const count = Math.max(1, Math.min(projection.tour?.total ?? 1, 12));
+  return Array.from({ length: count }, (_, index) => Math.min(1, Math.max(0, projection.progress * count - index)));
 }

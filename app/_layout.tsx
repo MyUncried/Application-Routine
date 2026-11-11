@@ -4,6 +4,9 @@ import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
 import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
 import { useFonts } from "@expo-google-fonts/inter/useFonts";
 import { Mali_500Medium_Italic } from "@expo-google-fonts/mali/500Medium_Italic";
+import { RobotoCondensed_500Medium } from "@expo-google-fonts/roboto-condensed/500Medium";
+import { RobotoCondensed_600SemiBold } from "@expo-google-fonts/roboto-condensed/600SemiBold";
+import { RobotoCondensed_700Bold } from "@expo-google-fonts/roboto-condensed/700Bold";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
@@ -85,6 +88,10 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
     Mali_500Medium_Italic,
+    // Fin de PRE-10 : police de l'écran d'Exécution (Figma `1992:8132`, styles « KODJO / Texte / Roboto Condensed … »).
+    RobotoCondensed_500Medium,
+    RobotoCondensed_600SemiBold,
+    RobotoCondensed_700Bold,
   });
   const [databaseReady, setDatabaseReady] = useState(false);
   const [rootError, setRootError] = useState<Error | null>(null);
