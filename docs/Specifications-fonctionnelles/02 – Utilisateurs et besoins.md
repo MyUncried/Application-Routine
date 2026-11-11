@@ -137,8 +137,8 @@ Une personne utilisant des contenus préparés ou transmis par un autre utilisat
 
 - **B-049** — Recevoir un contenu préparé par un tiers lorsque le partage sera développé ; aucune duplication d'une fiche Mouvement importée (MOUV-D3).
 - **B-050** — Retrouver des consignes et éventuellement un média associé à chaque Exercice.
-- **B-051** — Partager volontairement certaines informations d’Exécution.
-- **B-052** — Comprendre les versions successives d’une Séance.
+- **B-051** — Recevoir ou transmettre volontairement des Mouvements autorisés dans une relation générique ; aucun suivi d'exécution ni partage de données de patients (KIN-01).
+- **B-052** — Comprendre les révisions successives des Mouvements reçus et choisir explicitement leur mise à jour.
 
 Ces fonctions de réception et de partage ne font pas partie du MVP.
 
