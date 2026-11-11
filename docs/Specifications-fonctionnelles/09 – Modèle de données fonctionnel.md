@@ -173,7 +173,7 @@ Un Tour est un passage développé du circuit, pas un nouveau conteneur de compo
 - Le cycle et le Circuit ne peuvent pas être supprimés.
 - Le nombre de répétitions du Cycle vaut toujours 1 dans le MVP. Le nombre de Tours du Circuit est compris entre 1 et 99.
 - Les exercices peuvent être ajoutées, modifiées, déplacées, dupliquées ou supprimées.
-- Les sons et les annonces vocales ne sont pas enregistrés dans la séance ; ils proviennent des préférences globales.
+- Le Profil porte les préférences de guidage sonore. Les valeurs validées dans la modale de Composition s’appliquent uniquement à la séance en cours. Les préférences du Profil se modifient depuis le Profil.
 - La Durée estimée d’exécution, la Durée synthétique des Exercices, le Nombre d’Exercices de la Composition et le Nombre total d’Exercices à exécuter sont recalculés après toute modification influençant leur périmètre.
 - Une Séance ou une `ActivityDefinition` peut exister sans Routine et sans avoir jamais été exécutée.
 - Le compte à rebours initial et la Fin de séance sont toujours présents dans la structure d'une séance et ne constituent pas des Exercices.
@@ -1163,10 +1163,10 @@ Elles ne contiennent pas directement :
 
 | Attribut                                           | Description                                                                |  Caractère  | Règle principale                                                         |
 | -------------------------------------------------- | -------------------------------------------------------------------------- | :---------: | ------------------------------------------------------------------------ |
-| Sons activés                                       | Active les signaux sonores                                                 | Obligatoire | Préférence globale                                                       |
-| Annonces vocales                                   | Active les annonces vocales                                                | Obligatoire | Préférence globale                                                       |
+| Son par événement                                       | Son choisi pour chacun des neuf événements                                                 | Obligatoire | Préférence globale                                                       |
+| Annonces vocales                                   | Activation de chacune des six annonces                                                | Obligatoire | Préférence globale                                                       |
 | Notifications                                      | Autorisation effective des rappels locaux                                  | Obligatoire | Non autorisées par défaut ; demande système lors de la première activation d’un rappel |
-| Vibration                                          | Active les vibrations fonctionnelles de séance                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
+| Vibration                                          | Activation de la vibration par événement                             | Facultatif  | Trois vibrations prédéfinies ; n’affecte pas le feedback haptique systématique des roulettes numériques |
 | Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement                                           |
 | Durée par défaut d'un exercice Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
 | Pause entre les côtés par défaut              | Valeur globale du Profil utilisée pour initialiser `sideRecoverySeconds` lors de l’activation du changement de côté (Avec) d’un Exercice | Facultatif | `10 s` dans le Figma de référence ; valeur proposée à la création/activation bilatérale puis modifiable dans l’éditeur |

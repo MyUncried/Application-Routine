@@ -238,10 +238,10 @@ Le guidage comprend :
 - les sons prévus pendant les Exercices chronométrés, dont le bip grave de rythme ;
 - le signal des trois dernières secondes ;
 - le guidage de cadence pendant l’Exécution (D-378) ;
-- un réglage global des sons dans le MVP ;
+- un choix de son pour chacun des neuf événements ;
 - un réglage séparé des annonces vocales ;
 - les vibrations fonctionnelles de séance selon les préférences définies ;
-- un feedback haptique léger et systématique à chaque changement effectif de valeur d’une roulette numérique, indépendant du réglage `Vibrations`.
+- un feedback haptique léger et systématique à chaque changement effectif de valeur d’une roulette numérique, indépendant des réglages de vibration par événement.
 
 La désactivation spécifique du bip grave est reportée à une version ultérieure.
 
@@ -285,7 +285,7 @@ Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` du Suivi restent visibles
 
 Les Préférences globales définissent notamment les valeurs par défaut du Compte à rebours initial et de la Fin de séance, les sons, les annonces vocales, les vibrations fonctionnelles de séance et l’activation des notifications.
 
-Les valeurs initiales sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. Le réglage `Vibration` ne pilote pas le feedback haptique des roulettes numériques, qui reste systématique.
+Les valeurs initiales sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance. Les réglages de vibration par événement ne pilotent pas le feedback haptique des roulettes numériques, qui reste systématique.
 
 Les notifications ne sont pas autorisées par défaut. La demande d’autorisation système est déclenchée dans le contexte de la première activation d’un rappel pendant une planification. En cas de refus, le rappel reste désactivé.
 

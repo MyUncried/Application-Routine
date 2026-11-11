@@ -112,9 +112,9 @@ Décrire plusieurs actions successives, par exemple 6 s puis 3 s, au sein d’un
 
 #### Régler l’application
 
-- **B-044** — Modifier séparément Sons, Annonces vocales et Vibration.
+- **B-044** — Configurer les annonces vocales et régler le son et la vibration par événement.
 - **B-045** — Définir les valeurs globales du Compte à rebours initial et de la Fin de séance pour les nouvelles Séances.
-- **B-046** — Comprendre que le feedback haptique des roulettes reste indépendant de `Vibration`.
+- **B-046** — Comprendre que le feedback haptique des roulettes reste indépendant des vibrations par événement.
 - **B-047** — Modifier la photo et le nom d’affichage du Profil.
 - **B-048** — Retrouver une interface en français, cohérente et compatible avec les Safe Areas du téléphone.
 
