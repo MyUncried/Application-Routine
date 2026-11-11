@@ -42,7 +42,7 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 | F4-A | La mise à jour d'une Bibliothèque reçue est **manuelle** avec pastille. |
 | F4-B | Un Mouvement retiré d'une Bibliothèque source et précédemment installé reste **dans le Catalogue local** de l'utilisateur ; ses références dans les Séances/Bibliothèques personnelles restent. |
 | F4-C | Pour un **partage de Bibliothèque** (notamment coach), le propriétaire attribue le droit d'accès au niveau Bibliothèque ; le retrait d'un membre ne révoque pas l'usage local déjà acquis. Ce modèle de Bibliothèque **ne constitue pas le parcours de transmission kiné-patient** (KIN-01) ; commerce et modération restent séparés. |
-| F4-D | Un seul « Mettre à jour » installe la nouvelle **composition ET les nouvelles révisions de Mouvements**, sans supprimer les Mouvements retirés ni écraser les adaptations personnelles. |
+| F4-D | Un seul « Mettre à jour » installe la nouvelle **composition ET les nouvelles révisions de Mouvements**, sans supprimer les Mouvements retirés ni écraser les Mouvements personnels distincts. |
 | F4-E | Archiver une Bibliothèque est personnel/local et n'a **aucun effet sur les destinataires** ni sur leurs mises à jour. |
 | F4-F | Arrêter le partage d'une Bibliothèque bloque les **nouvelles distributions** ; les destinataires existants conservent leurs installations, n'obtiennent **plus de nouvelles mises à jour** tant que le partage reste arrêté. |
 | **F4-G — validé** | Une seule révision active par fiche source et par appareil : une mise à jour volontaire depuis une Bibliothèque actualise la même fiche partout où elle est référencée ; aucune autre composition n'est modifiée, l'utilisateur est averti de l'impact transversal. |
@@ -174,7 +174,7 @@ La cible sépare les **identités de fiches**, leurs **révisions approuvées**,
 |---|---|---|
 | Identité utilisateur/organisation | \`actor_id\`, gestionnaire et état du compte | **Aucun rôle « coach » ou « kiné »** dans le modèle |
 | Fiche source | \`source_namespace\`, \`sheet_id\`, auteur unique nullable, propriétaire administratif, provenance | Identité stable indépendante du nom et des Bibliothèques |
-| Révision de fiche | \`revision_id\`, contenu/digest, droits Modifier/Redistribuer des destinataires, état de validation | Une révision approuvée est identifiable ; la première diffusion par le propriétaire habilité ne requiert pas le droit de redistribution des destinataires |
+| Révision de fiche | \`revision_id\`, contenu/digest, droit de redistribution à l'identique des destinataires (sans modification ni duplication), état de validation | Une révision approuvée est identifiable ; la première diffusion par le propriétaire habilité ne requiert pas le droit de redistribution des destinataires |
 | Médias liés à une révision | Média, empreinte, droits sur le média, position, statut de modération | Les droits d'une fiche ne suffisent pas à publier une vidéo tierce |
 | Bibliothèque et version publiée | \`library_id\`, propriétaire, visibilité, diffusion, \`release_id\`, composition ordonnée par références | Le brouillon peut rester local ; pas de copie des fiches membres |
 | Autorisation et preuve de réception | Bibliothèque, destinataire, droit d'accès et preuve de livraison | Deux faits à distinguer même si une seule table suffit techniquement |
@@ -235,7 +235,7 @@ Plusieurs fiches distinctes peuvent porter le même nom visible « Squat ». Leu
 6. Appliquer la nouvelle composition et les versions de fiches autorisées de manière **cohérente et reprenable**.
 7. Mettre à jour le pointeur de version installée seulement quand tous les composants nécessaires sont disponibles.
 8. Garder les Mouvements retirés dans le Catalogue local, leurs éventuels accès acquis et leurs références vers Séances/Bibliothèques personnelles.
-9. Ne jamais écraser les adaptations locales ; si la mise à jour ne peut être appliquée proprement, signaler et préserver l'état antérieur.
+9. Ne jamais écraser les Mouvements personnels distincts ; une fiche reçue ne peut pas être adaptée. Si la mise à jour ne peut être appliquée proprement, signaler et préserver l'état antérieur.
 
 **Invariants de sûreté :** pas de membre pointant vers une fiche absente, pas de perte de version antérieure avant confirmation, pas de double installation sur retry, pas de « mise à jour partielle » présentée comme réussie.
 
@@ -246,7 +246,7 @@ Le Mouvement source `coachA:mvt-001` peut figurer dans plusieurs Bibliothèques.
 - Avant « Mettre à jour » une Bibliothèque, l'aperçu indique les Mouvements modifiés et les **autres Bibliothèques qui les référencent**.
 - L'action explicite de l'utilisateur installe la nouvelle révision approuvée de ces fiches. Elle apparaît alors dans **toutes les Bibliothèques** qui référencent les mêmes `Movement.id`, sans deuxième validation.
 - Seule la **composition de la Bibliothèque mise à jour** peut changer de membres ou d'ordre. Les autres Bibliothèques conservent leur composition et leur propre version de composition installée.
-- Les copies/adaptations personnelles distinctes et les instantanés des exécutions passées ne changent pas.
+- Les Mouvements personnels originaux distincts et les instantanés des exécutions passées ne changent pas ; aucune copie/adaptation de fiche reçue n'est créée.
 - Le client **ne maintient aucun pointeur de version active par Bibliothèque**. Une release serveur peut conserver ses références historiques de versions pour la preuve de publication, sans forcer l'affichage de cette révision historique dans les autres Bibliothèques locales.
 
 **Arbitrage clos** : la gestion de révisions actives distinctes d'une même fiche par Bibliothèque n'est plus recherchée. Le point qui reste technique est la cohérence de la mise à jour globale avec un stockage réparti entre deux bases et la protection des modifications personnelles.
@@ -359,8 +359,8 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 
 | Lot | Contenu | Conditions préalables |
 |---|---|---|
-| **L1 — Bibliothèques locales** | Création, composition par références, archives et restauration ; copie à permissions héritées après raccordement des droits | PU-01/02/13 et compatibilité locale |
-| **L2 — Identités et droits** | Identité de source, provenance, droits par révision, copie avec permissions héritées, comptes et autorisations de Bibliothèque | Revue du schéma, migration homonymes et gardes |
+| **L1 — Bibliothèques locales** | Création, composition par références, archives et restauration ; référencement sans copie, fiches reçues en lecture seule | PU-01/02/13 et compatibilité locale |
+| **L2 — Identités et droits** | Identité de source, provenance, droits par révision, redistribution à l'identique si autorisée, interdiction de copie/édition, comptes et autorisations de Bibliothèque | Revue du schéma, migration homonymes et gardes |
 | **L3 — Validation de diffusion** | Stockage privé, soumission, contrôles automatiques, file humaine initiale, retrait d'accès | L2 ; exigences de modération opérationnelles **avant** partage utilisateur |
 | **L4 — Partage et réception** | Bibliothèques reçues, filtrage strict, accès individuels ; groupes selon phasage validé | L2 + L3 ; permissions serveur, installation et tests |
 | **L5 — Mises à jour** | Pastille, preview, « Mettre à jour » global, conservation des retirés et variantes, reprise et modération synchronisée | L4 et arbitrage sur versions concurrentes |
