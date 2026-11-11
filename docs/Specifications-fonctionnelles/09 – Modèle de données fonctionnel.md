@@ -1,5 +1,22 @@
 # Modèle de données fonctionnel
 
+## Arbitrages confirmés — Mouvement, auteur et médias (11/11/2026)
+
+**MOUV-D1 à MOUV-D4 — règle applicable.** Auteur unique `author: ActorRef | null` (pas de `authors[]`) ; métadonnées médias conservées, référence distante, chargement à la demande/cache local, téléchargement hors ligne explicite reporté, aucune diffusion sans droits confirmés ; **fiche importée non modifiable et non duplicable**, redistribution seulement si autorisée dans un futur lot ; paramètres des Exercices restent personnalisables. Les adaptations historiques des 60 fiches sont préservées pour la reprise CA-3. Les anciennes dispositions **BIB-06/BIB-07** autorisant modification ou copie des **fiches importées** sont supersédées sur cette portée ; **BIB-08 reste applicable** aux paramètres d'Exercice. [Contrat de l'étape 2](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
+### Sources médias et stockage hybride — MOUV-D2
+
+La fiche éditoriale conserve les métadonnées complètes de chaque média (identité, ordre, source, licence, droits) ; le format d'échange CA-1 historique peut encore porter `EMBEDDED` ou `REMOTE`. Pour la **distribution cible**, l'application référence une source distante et charge à la demande dans un cache local distinct des médias personnels. Une absence de réseau/cache rend le média indisponible sans supprimer la fiche. Aucun lien distant exploitable ni droit de diffusion ne doit être déduit d'une image embarquée du corpus privé.
+
+## Données du chantier CA-1/CA-2/CA-3 — premier périmètre
+
+Persister **sans migration destructive** l'identifiant local stable du Mouvement, les attributs d'usage, la fiche éditoriale complète et ses médias, identité/provenance d'éditeur, empreinte/révision et informations de droits de source. Représenter les Bibliothèques génériques KODJO et leur composition **par références** distinctes des catégories du Catalogue, l'état d'installation et les révisions utilisables. **Ne pas créer maintenant les comptes destinataires, groupes, preuves de partage ni entités commerciales** pour la seule mise à jour des Bibliothèques KODJO. Réemployer provisoirement le registre SQLite distinct des imports CA-3, éviter une migration concurrente avec PRE-10 : numéro attribué à l'intégration, pas « 024 » réservé. [Précision du 11/11/2026 : 024 (`composition-phases-duree`) et 025 à 027 (`pre10-son-voix`) sont déjà utilisées ; la migration additive des homonymes `movements.normalized_name` portera un numéro ≥ 028, à coordonner avec PRE-10 (À CLARIFIER au registre). Le registre `kodjo-catalogue-registry.db` v2 reste une base séparée, sans migration PRE-10.] La reprise des 60 Mouvements conserve les `Movement.id` et les références des Séances. Unicité des homonymes et conflits à tester avant migration.
+
+## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
+
+Le **premier lot Bibliothèques** couvre exclusivement les collections génériques éditées par KODJO (ex. Fitness, Hyrox, Pilates, Yoga) : découverte, sélection et installation depuis le **Profil**, puis contrôle et application volontaire de leurs mises à jour. Les Mouvements, Séances et Programmes restent accessibles et personnalisables dans le **Catalogue** ; le bloc redondant « Mes données » du Profil est à supprimer. Les compositions et fiches publiées par KODJO ne sont pas directement modifiables. Une Bibliothèque conserve une identité distincte des catégories du Catalogue. La création de Bibliothèques personnelles/de coach, la publication, le partage, les droits de destinataires, l'Espace en étoile, la modération de diffusion et le commerce sont des **évolutions ultérieures**, non le premier lot. Conserver les données et relations nécessaires à l'extensibilité sans introduire maintenant les mécanismes serveur de partage. La désinstallation et les adaptations locales des fiches installées restent **À CLARIFIER** ; aucun écran Figma n'est déclaré validé par cette décision. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir [registre BIB-19 à BIB-23](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md).
+
+
 > **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
 
 <a id="recuperation-exercice-et-defauts-profil"></a>
@@ -1441,7 +1458,7 @@ Les cardinalités représentées correspondent aux règles fonctionnelles du MVP
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances d'une même installation, sont visibles à la prochaine lecture ; aucune propagation de copies entre ces objets locaux n’est nécessaire. Pour une fiche distribuée entre utilisateurs, la révision reste non appliquée tant que le destinataire n'a pas choisi « Mettre à jour » (BIB-12). Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
@@ -1539,3 +1556,22 @@ Les unités proposées restent limitées par le modèle et le contexte de l’Ex
 **Death by — cible du 5 novembre.** Répétitions ou Durée, Objectif de départ et Incrément ≥ +1 dans l’unité. Seul un premier rang dont le travail connu atteint ou dépasse l’intervalle déclenche un avertissement non bloquant ; sauvegarde autorisée si les autres champs sont valides. À l’exécution, ne pas lancer un rang dont ce travail atteint ou dépasse la fenêtre : arrêt après le précédent, résultat « limite de l’intervalle atteinte », aucun échec ni tentative fictifs. En Durée : deux côtés et pause applicable, somme des membres en fenêtre commune ou intervalle du membre en alternance. Rangs acquis et rang courant distincts ; durée partielle renseignée seulement pour une fenêtre réellement tentée et non tenue. Les autres règles de fin et d’achèvement Death by restent applicables ; aucune fenêtre prolongée. Exemple 10 s puis +10 s / 60 s : cinq rangs réussis, arrêt avant le rang 6. La progression future compatible au départ ne déclenche pas d’avertissement.
 
 Le tableau représente la prescription effective des séries. L’EMOM n’a aucun incrément de charge concurrent. L’incrément AMRAP est signé ; Death by conserve unité et incrément positif. Les résultats réellement acquis restent distincts du rang non lancé. Les instantanés déjà figés ne sont pas réécrits.
+
+## Modèle de données cible — Bibliothèques, révisions et modération (post-MVP)
+
+| Concept | Règle de données |
+|---|---|
+| Fiche éditoriale | `source_namespace` + `sheet_id` stable, auteur unique ou inconnu, propriétaire administratif ; **nom affiché non identifiant**, homonymes inter-sources admis. |
+| Révision | Révision et empreinte de contenu, droit de redistribution à l'identique du destinataire (oui/non), état de validation ; toute fiche reçue est non modifiable et non duplicable, avec une seule **révision active locale** par fiche source. |
+| Mouvement local | `Movement.id` conservé, correspondant à l'identité source ; les Exercices/Séances le référencent sans renumérotation. |
+| Bibliothèque / composition | Identité, propriétaire, membres ordonnés **par références** ; versions de composition indépendantes de la révision active des fiches. |
+| Accès/livraison | Droit accordé au niveau Bibliothèque et preuve de réception ; ne pas confondre publication initiale par propriétaire et redistribution par destinataire. |
+| Espace en étoile | Relation individuelle générique orientée et transmission de fiches approuvées, sans rôle professionnel ni objet de prescription numérique. |
+| Média | Référence de média, empreinte, droits propres, statut d'accès/modération. |
+| Modération | Décision sur média/fiche/révision, motif et version de suspension synchronisée. |
+
+**Cible SQLite minimale :** associations de Bibliothèques dans la base principale ; identité/révision du Mouvement reçu réutilisant le registre pilote si compatible. Pas de table de versions **actives** par Bibliothèque. Une mise à jour globale doit rester cohérente et reprenable ; le journal par fiche existant ne prouve pas à lui seul cette propriété.
+
+**Migration :** `movements.normalized_name UNIQUE` (migration 013) empêche aujourd'hui les homonymes. La nouvelle règle inter-sources exige une migration contrôlée de cet index, **sans modifier les `Movement.id` existants**. La forme de l'index et le contrôle des doublons créés localement restent à instruire. Le champ historique `authors[]` de CA-1 doit être remplacé par **`author: ActorRef | null`** selon MOUV-D1 ; conversion sans perte des anciennes fiches et refus explicite si plusieurs auteurs existent. La branche pilote sera adaptée lors du développement.
+
+**Choix de tables physiques non figés :** fusion ou séparation accès/preuve, soumission/modération, emplacement de l'état de suspension. [Conception à revoir par Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).

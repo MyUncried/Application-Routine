@@ -902,3 +902,26 @@ CE-FMT-05 (chapitre 13) : actions du Circuit et réédition. Décisions : chapit
 ## Création et Formats — 5 novembre
 
 CE-CREATION-01 : modale commune et destinations Catalogue/Composition ; CE-CIR-03 retiré. CE-FMT-02/04/05 : tableaux, charges, Death by et réouverture. Règles et décisions : chapitres 10 et 07, ancre creation-formats-20261105. FMT-20/28/29/33 actualisées ; données/API/architecture aux chapitres 09/11/12. Les scénarios de la source finale sont prescrits, non exécutés sur application.
+
+## Matrice de traçabilité — Catalogue autonome, Bibliothèques et partage ultérieur
+
+**Source courante :** [plan en six étapes et décisions](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md), [étape 2 — modèle cible](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md), [parcours futurs](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md). Le tableau ancien L1–L5 n'est plus le plan de réalisation.
+
+| Décisions | Domaine / parcours | Comportement vérifiable attendu | Étape du plan en six étapes |
+|---|---|---|---|
+| BIB-02, MOUV-D1 | Fiche éditoriale, CA-1 | `author: ActorRef \| null`, jamais de multi-auteurs ; historiques migrés sans perte | 1–2 ; administration 5 |
+| MOUV-D2 | Médias de fiche, CA-1/CA-3 | Métadonnées conservées, source distante, chargement à la demande/cache, aucun média distribué sans droit confirmé | 2 et 4, puis 5–6 |
+| MOUV-D3, BIB-06/07/08 | Catalogue et service métier | Aucune édition, copie ni duplication d'une fiche importée (révision du 11/11/2026, A-2) ; paramètres d'Exercice libres ; redistribution future à l'identique seulement sur autorisation | 2, 4 et 6 |
+| MOUV-D4, BIB-12/13, F4-A, F4-D, F4-G | Révisions / CA-3 | Mise à jour volontaire, une seule révision locale, réconciliation conservatrice des 60 fiches historiques | 2, 4 et 6 |
+| BIB-19 à 23 | Profil — Bibliothèques génériques | Sélection/installation/mise à jour KODJO ; Catalogue pour contenus ; partage personnel/coach reporté | 3 puis 6 |
+| A-1 | Modèle Bibliothèque / format catalogue v2 | Collection logique de références `(catalogueId, sheetId)`, fiche non dupliquée entre Bibliothèques, corpus pilote des 60 privé | 2, 4 |
+| A-2, MOUV-D3, BIB-06/07/11/13 | Catalogue, services CA-3, format v2 | Lecture seule des fiches importées (garde service), `LOCAL_DERIVED` refusé, redistribution à l'identique si autorisée ; transition « Mouvement personnel envoyé puis catalogué » À CLARIFIER | 2, 4 et 6 |
+| A-4 | Profil — Bibliothèques (Figma `12119:25611`) | Premier lot sans « Mes bibliothèques », « Bibliothèques partagées » ni désinstallation ; Profil sans édition de Mouvement | 3 puis 6 |
+| A-6 | Transport Wi-Fi | Même format et mêmes validations ; appairage temporaire, autorisation, erreurs réseau, sécurité | 4 puis 6 |
+| BIB-03/04/05 et BIB-09 à 11 | Bibliothèques personnelles et reçues | Composition par références, droits d'accès/partage : **cible future**, non prérequis CA-3 | Postérieur aux six étapes |
+| BIB-14 à 18, F4-B/C/E/F | Distribution/modération serveur | Contrôles, retraits, destinataires : **cible future** | Postérieur aux six étapes |
+| KIN-01 | Espace individuel | Transmission générique, sans prescription numérique, patientèle ni suivi clinique | Cible future |
+| BIB-20, Figma `1992:778` | Profil — état des entrées | Entrées personnelles/partagées visibles, fonctionnalité du premier lot non démontrée ; **À CLARIFIER** | Étape 3 |
+| Plan CA-1/CA-2/CA-3 | Administration/chargement | 61e fiche éditable et export compatible ; 60 anciennes fiches conservées sans duplication | 1–6 |
+
+**Règles de lecture :** les anciennes descriptions et lots liés aux parcours PU de partage ne doivent pas être traités comme instructions de développement actif. Les tests indiqués sont à exécuter, sans présumer de leur succès.

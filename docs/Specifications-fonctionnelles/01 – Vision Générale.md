@@ -1,5 +1,14 @@
 # Vision et glossaire
 
+## Chantier Catalogue autonome / Bibliothèques — plan de référence
+
+**Six étapes sans changement de périmètre éditorial :** concevoir la fiche Mouvement et séparer ses propriétés d'usage/éditoriales ; consolider CA-1/CA-2/CA-3 et le stockage des identités, médias, provenances et révisions compatible PRE-10 ; concevoir Figma Profil ; développer services communs de gestion des fiches ; finaliser l'administration Web Node.js/OVH ; intégrer l'application et réconcilier les 60 Mouvements existants. L'édition, l'import/export et les droits de source sont conservés ; seuls les usages personnels/coachs et le partage entre utilisateurs sont reportés. Voir BIB-19–23 et le plan au registre.
+
+## Bibliothèques KODJO — portée du premier lot (BIB-19 à BIB-23)
+
+Les Bibliothèques génériques proposées et maintenues par KODJO (Fitness, Hyrox, Pilates, Yoga : exemples) sont sélectionnées, installées et mises à jour volontairement depuis le Profil ; le Catalogue reste la surface des Mouvements, Séances et Programmes. Les Bibliothèques personnelles, de coach et partagées sont reportées après ce premier lot, sans supprimer leur conception cible. Bibliothèque et Catégorie du Catalogue sont deux notions distinctes. Voir le registre BIB-19 à BIB-23.
+
+
 ## Composition — actualisation du 28/10/2026
 
 Le Cycle est un conteneur visible de circuits et d’exercices directs ; le Circuit a pour natures Séries groupées et Séries alternées. Tour désigne un passage de circuit, répétition le compte du cycle. Les valeurs de séries identiques/variables sont un autre axe. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
@@ -447,7 +456,7 @@ Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé 
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; il n'y a pas de propagation de copies entre ces objets locaux. La diffusion entre utilisateurs suit au contraire la mise à jour manuelle BIB-12. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
@@ -464,3 +473,21 @@ Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.
 ## Création et Formats — état final du 5 novembre 2026
 
 Exercice libre : entrée de création d’un Exercice sans préconfiguration de modèle ; distinct d’un Format nommé Libre. Rang Death by : fenêtre à tenter, distincte des rangs acquis. « Limite de l’intervalle atteinte » décrit l’arrêt avant un rang impossible, sans tentative fictive.
+
+## Glossaire cible — Bibliothèques et Mouvements distribués (post-MVP)
+
+Ces termes décrivent la **diffusion entre utilisateurs** et ne changent pas le modèle opérationnel actuel avant migration. [Conception fonctionnelle](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+- **Fiche source** : identité éditoriale stable (espace de noms de source + identifiant de fiche), indépendante du nom affiché, de l'auteur et des Bibliothèques.
+- **Mouvement local** : objet possédant son `Movement.id`, déjà référencé par les Exercices et Séances ; une seule révision active par fiche source sur un appareil.
+- **Auteur** : un auteur unique connu, ou inconnu ; distinct du responsable administratif et du titulaire déclaré des droits.
+- **Bibliothèque** : composition ordonnée de références vers des Mouvements ; un même Mouvement peut appartenir à plusieurs Bibliothèques sans copie. Collection logique identifiable, non définie par un fichier physique (A-1, 11/11/2026).
+- **Bibliothèque personnelle** : composition modifiable par son propriétaire. **Bibliothèque reçue** : composition non modifiable localement par le destinataire.
+- **Copie personnelle** : [Supersédée le 11/11/2026 par MOUV-D3 et A-2 : une fiche importée ne peut être ni copiée, ni dupliquée, ni modifiée, même pour créer une version personnelle ; seul le référencement est possible. Texte d'origine : « nouvelle identité locale avec provenance et permissions conservées ; distincte du simple référencement. »]
+- **Publier** : première diffusion par le propriétaire habilité. **Redistribuer** : transmission ultérieure par un destinataire lorsque sa permission l'autorise.
+- **Permissions de fiche (MOUV-D3)** : les fiches importées sont non modifiables et non duplicables ; leur éventuelle redistribution exige l'autorisation de la source. Les Mouvements créés personnellement restent modifiables/duplicables ; les paramètres des Exercices demeurent indépendants.
+- **Révision active** : version utilisée partout où la même identité source est référencée. Une mise à jour volontaire depuis une Bibliothèque la propage à toutes ses références locales, sans modifier leur composition.
+- **Espace en étoile** : relations individuelles orientées entre utilisateurs, sans rôle « professionnel » dans le modèle et sans prescription numérique dans ce premier lot.
+- **Modération** : suspension prioritaire de fiche ou média, distincte d'une mise à jour volontaire.
+
+La règle du MVP actuel d'un nom de Mouvement unique (`normalized_name`, D-445 C01) reste applicable au code actuel ; **la cible distribuée accepte les homonymes de sources différentes**, après migration de cette contrainte.
