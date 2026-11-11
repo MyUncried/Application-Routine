@@ -409,7 +409,7 @@ sans modifier les règles métier ni coupler le domaine à SQLite ou à un fourn
 
 La technologie cloud et la stratégie précise de synchronisation ne sont pas choisies dans le MVP. Elles seront définies lorsqu’une version nécessitera effectivement des données partagées ou multi-appareils.
 
-Après le MVP, les médias ne seront pas stockés comme blobs dans SQLite : la base conservera leurs métadonnées et leurs références locales ou distantes.
+Après le MVP, les médias ne seront pas stockés comme blobs dans SQLite : la base conservera leurs métadonnées et leurs références locales ou distantes. **MOUV-D2** : les médias éditoriaux importés utilisent une source distante, un chargement à la demande et un cache local effaçable ; ne pas confondre ces copies avec les médias personnels persistants ni avec les photos `EMBEDDED` du format d'échange historique. Hors ligne sans cache, média indisponible sans supprimer la fiche.
 
 ### Évolution des paramètres canoniques pour les phases
 
@@ -2022,7 +2022,7 @@ Le premier lot est limité aux Bibliothèques génériques éditées par KODJO :
 
 **Diffusion :** backend modulaire minimal ; identités de fiches/révisions, accès au niveau Bibliothèque, contrôle des permissions des destinataires, médias privés et modération centrale. Première publication de ses propres fiches par le propriétaire habilité distincte de la redistribution d'une fiche tierce. L'Espace en étoile est une relation individuelle générique réutilisant la distribution/validation de fiches, sans rôle professionnel ni prescription numérique. Les groupes peuvent être différés par décision de phasage.
 
-**Permissions et médias :** droits Modifier/Redistribuer liés à une révision, applicables dans les services locaux et côté serveur ; droits des médias vérifiés séparément. Blocage local d'une fiche ou d'un média reçu comme décision de modération, prioritaire sur les révisions volontaires. Notifications silencieuses iOS facultatives sans garantie de révocation immédiate d'une copie hors ligne.
+**Permissions et médias (MOUV-D3) :** les fiches importées restent non modifiables et non duplicables dans l'application et dans les services. La redistribution éventuelle est soumise à autorisation de source et relève du serveur futur ; droits des médias vérifiés séparément. Blocage local d'une fiche ou d'un média reçu comme décision de modération, prioritaire sur les révisions volontaires. Notifications silencieuses iOS facultatives sans garantie de révocation immédiate d'une copie hors ligne.
 
 **Prestataires non décidés :** PostgreSQL/Supabase, stockage privé, traitement vidéo ou API texte/image, interface d'administration. L'administration Node/OVH du pilote de 60 fiches demeure un outil de recette, sans contournement des contrôles de diffusion du futur produit.
 
