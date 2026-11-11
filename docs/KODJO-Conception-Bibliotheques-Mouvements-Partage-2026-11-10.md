@@ -50,7 +50,7 @@ La provenance, l'identité de source, l'historique des révisions et les droits 
 | Non autorisée | Non | Non | Oui, si droit d'accès valide |
 | Autorisée | Non | Oui, sans changement de contenu ni de provenance | Oui, si droit d'accès valide |
 
-Les droits s'appliquent à la fiche éditoriale **reçue**, pas à l'insertion ou aux paramètres d'un Exercice. Le propriétaire habilité peut publier sa propre fiche avec des permissions destinataires Protégé ; un destinataire ne peut pas redistribuer une telle fiche. La création originale locale est modifiable et non redistribuable par des tiers avant choix explicite de droits à la première diffusion. L'installation technique ou l'association à une Bibliothèque ne constitue pas une redistribution. Les droits et le titulaire restent attachés à la source. Référencer une fiche ne constitue ni une duplication ni une redistribution.
+Les droits s'appliquent à la fiche éditoriale **reçue**, pas à l'insertion ou aux paramètres d'un Exercice. Le propriétaire habilité peut publier sa propre fiche sans octroyer le droit de redistribution ; un destinataire ne peut pas redistribuer une fiche non autorisée. La création originale locale est modifiable et non redistribuable par des tiers avant choix explicite de droits à la première diffusion. L'installation technique ou l'association à une Bibliothèque ne constitue pas une redistribution. Les droits et le titulaire restent attachés à la source. Référencer une fiche ne constitue ni une duplication ni une redistribution.
 
 ### 2.2 Distribution sélective d'une Bibliothèque
 
