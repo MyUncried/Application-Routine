@@ -6,6 +6,7 @@ import { describe, expect, it } from "@jest/globals";
 import {
   parseMovementCatalogueFile,
   projectSheetToMovement,
+  serializeMovementCatalogueFile,
   sheetFingerprint,
   type CatalogueSheet,
   type MovementCatalogueFile,
@@ -43,7 +44,7 @@ function handWrittenSheet(): Mutable<CatalogueSheet> {
       origin: "LOCAL_CREATED",
       upstream: null,
       owner: { kind: "PERSON", id: "coach-martin" },
-      authors: [{ kind: "PERSON", id: "coach-martin" }],
+      author: { kind: "PERSON", id: "coach-martin" },
       publisher: null,
       rightsHolder: null,
       license: null,
@@ -90,7 +91,7 @@ function catalogue(sheets: unknown[] = [handWrittenSheet()]): Mutable<MovementCa
   const ref = (id: string) => ({ id, label: id, kind: null, status: null });
   return JSON.parse(JSON.stringify({
     format: "KODJO_MOVEMENT_CATALOGUE",
-    formatVersion: "1.0.0",
+    formatVersion: "2.0.0",
     catalogue: {
       id: "coach-martin.perso",
       title: "Catalogue de test",
@@ -110,6 +111,20 @@ function catalogue(sheets: unknown[] = [handWrittenSheet()]): Mutable<MovementCa
       anatomicalTargets: [ref("quadriceps")],
     },
     glossary: [{ id: "g-1", term: "Gobelet", definition: "Charge tenue contre la poitrine.", synonyms: [], relatedSheetIds: ["LOCAL-001"] }],
+    libraries: [{
+      libraryId: "perso",
+      title: "Ma bibliothèque",
+      description: null,
+      revision: "1",
+      history: [],
+      editor: { kind: "PERSON", id: "coach-martin" },
+      owner: { kind: "PERSON", id: "coach-martin" },
+      visibility: "PRIVATE",
+      publicationAllowed: false,
+      members: sheets
+        .filter((sheet): sheet is { sheetId: string } => typeof (sheet as { sheetId?: unknown })?.sheetId === "string")
+        .map((sheet) => ({ catalogueId: "coach-martin.perso", sheetId: sheet.sheetId })),
+    }],
     sheets,
   }));
 }
@@ -119,7 +134,7 @@ const codes = (raw: unknown) => {
   return result.ok ? [] : result.issues.map((issue) => issue.path + ":" + issue.code);
 };
 
-describe("format KODJO_MOVEMENT_CATALOGUE v1 — validation", () => {
+describe("format KODJO_MOVEMENT_CATALOGUE v2 — validation", () => {
   it("accepte une fiche rédigée à la main dans le fichier, sans aucun code", () => {
     const result = parseMovementCatalogueFile(catalogue());
     expect(result).toMatchObject({ ok: true, warnings: [] });
@@ -133,7 +148,7 @@ describe("format KODJO_MOVEMENT_CATALOGUE v1 — validation", () => {
 
   it("refuse un format ou une version étrangers", () => {
     expect(codes({ ...catalogue(), format: "KODJO_ADMIN_DRAFTS" })).toEqual(["format:UNRECOGNIZED"]);
-    expect(codes({ ...catalogue(), formatVersion: "2.0.0" })).toEqual(["formatVersion:UNRECOGNIZED"]);
+    expect(codes({ ...catalogue(), formatVersion: "3.0.0" })).toEqual(["formatVersion:UNRECOGNIZED"]);
     expect(codes(null)).toEqual([":INVALID"]);
   });
 
@@ -185,8 +200,8 @@ describe("format KODJO_MOVEMENT_CATALOGUE v1 — validation", () => {
     sheet.provenance.origin = "CATALOGUE_INSTALLED";
     expect(codes(catalogue([sheet]))).toContain("sheets[0].provenance.upstream:REQUIRED");
     sheet.provenance.origin = "LOCAL_CREATED";
-    sheet.provenance.authors = [{ kind: "PERSON", id: "a" }, { kind: "PERSON", id: "a" }];
-    expect(codes(catalogue([sheet]))).toContain("sheets[0].provenance.authors:DUPLICATE");
+    (sheet.provenance as { author: unknown }).author = [{ kind: "PERSON", id: "a" }];
+    expect(codes(catalogue([sheet]))).toContain("sheets[0].provenance.author:UNRECOGNIZED");
   });
 
   it("propriétaire inconnu : accepté et signalé, jamais attribué par déduction", () => {
@@ -273,6 +288,105 @@ describe("format KODJO_MOVEMENT_CATALOGUE v1 — validation", () => {
   });
 });
 
+describe("format v2 — P0 (11/11/2026) : auteur unique, Bibliothèques, relecture v1, aller-retour", () => {
+  /** Fichier v1 tel que produit par CA-1 : `authors[]`, aucune Bibliothèque. */
+  function v1(authors: unknown[]): Record<string, unknown> {
+    const file = catalogue() as unknown as Record<string, unknown>;
+    const sheets = (file.sheets as Record<string, unknown>[]).map((sheet) => {
+      const { author: _author, ...provenance } = sheet.provenance as Record<string, unknown>;
+      void _author;
+      return { ...sheet, provenance: { ...provenance, authors } };
+    });
+    const { libraries: _libraries, ...rest } = file;
+    void _libraries;
+    return { ...rest, formatVersion: "1.0.0", sheets };
+  }
+
+  it("relit un fichier v1 : 0 auteur → null, 1 auteur → auteur, Bibliothèque implicite de toutes les fiches", () => {
+    const none = parseMovementCatalogueFile(v1([]));
+    expect(none.ok && none.file.sheets[0].provenance.author).toBeNull();
+    const one = parseMovementCatalogueFile(v1([{ kind: "PERSON", id: "coach-martin" }]));
+    if (!one.ok) throw new Error("v1 refusé");
+    expect(one.sourceFormatVersion).toBe("1.0.0");
+    expect(one.file.formatVersion).toBe("2.0.0");
+    expect(one.file.sheets[0].provenance.author).toEqual({ kind: "PERSON", id: "coach-martin" });
+    expect("authors" in one.file.sheets[0].provenance).toBe(false);
+    expect(one.file.libraries).toEqual([expect.objectContaining({
+      libraryId: "coach-martin.perso",
+      title: "Catalogue de test",
+      visibility: "PRIVATE",
+      publicationAllowed: false,
+      members: [{ catalogueId: "coach-martin.perso", sheetId: "LOCAL-001" }],
+    })]);
+    expect(one.warnings).toContainEqual({ path: "formatVersion", code: "CONVERTED_FROM_V1" });
+  });
+
+  it("v1 à plusieurs auteurs : refus explicite, jamais de choix arbitraire (MOUV-D1)", () => {
+    expect(codes(v1([{ kind: "PERSON", id: "a" }, { kind: "PERSON", id: "b" }])))
+      .toEqual(["sheets[0].provenance.authors:INCONSISTENT"]);
+  });
+
+  it("refuse une fiche d’origine LOCAL_DERIVED (A-2 : aucune copie ni dérivation locale)", () => {
+    const sheet = handWrittenSheet();
+    sheet.provenance.origin = "LOCAL_DERIVED";
+    sheet.provenance.upstream = { catalogueId: "kodjo", sheetId: "S", revision: "1" };
+    expect(codes(catalogue([sheet]))).toContain("sheets[0].provenance.origin:INCONSISTENT");
+  });
+
+  it("une même fiche dans plusieurs Bibliothèques, sans copie ; fiche d’une autre source référencée et signalée", () => {
+    const file = catalogue();
+    const base = file.libraries[0];
+    file.libraries = [
+      base,
+      { ...base, libraryId: "force", title: "Force", members: [
+        { catalogueId: "coach-martin.perso", sheetId: "LOCAL-001" },
+        { catalogueId: "kodjo.fitness", sheetId: "SQUAT" },
+      ] },
+    ] as never;
+    const result = parseMovementCatalogueFile(file);
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    expect(result.file.sheets).toHaveLength(1);
+    expect(result.warnings).toContainEqual({ path: "libraries[1].members[1]", code: "EXTERNAL_MEMBER" });
+  });
+
+  it("valide les Bibliothèques : identité, doublons, fiche inconnue, propriétaire inconnu, diffusion sans droits", () => {
+    const file = catalogue();
+    const base = file.libraries[0];
+    file.libraries = [
+      { ...base, members: [...base.members, ...base.members, { catalogueId: "coach-martin.perso", sheetId: "ABSENTE" }] },
+      { ...base },
+      { ...base, libraryId: "Pas Valide" },
+      { ...base, libraryId: "inconnu", owner: null, visibility: "PUBLIC", publicationAllowed: true },
+      { ...base, libraryId: "publique", visibility: "PUBLIC", publicationAllowed: true },
+    ] as never;
+    expect(codes(file)).toEqual(expect.arrayContaining([
+      "libraries[0].members[1]:DUPLICATE",
+      "libraries[0].members[2].sheetId:UNKNOWN_REFERENCE",
+      "libraries[1].libraryId:DUPLICATE",
+      "libraries[2].libraryId:INVALID",
+      "libraries[3].publicationAllowed:INCONSISTENT",
+      "libraries[3].visibility:INCONSISTENT",
+      "libraries[4].members[0]:INCONSISTENT",
+    ]));
+    const missing = catalogue() as unknown as Record<string, unknown>;
+    delete missing.libraries;
+    expect(codes(missing)).toContain("libraries:REQUIRED");
+  });
+
+  it("aller-retour : sérialiser puis relire redonne le même fichier, au caractère près", () => {
+    const file = catalogue();
+    file.sheets[0].media = [photo as never];
+    const first = parseMovementCatalogueFile(file);
+    if (!first.ok) throw new Error("refus");
+    const text = serializeMovementCatalogueFile(first.file);
+    const again = parseMovementCatalogueFile(JSON.parse(text));
+    if (!again.ok) throw new Error("relecture refusée");
+    expect(again.file).toEqual(first.file);
+    expect(serializeMovementCatalogueFile(again.file)).toBe(text);
+    expect(text.endsWith("}\n")).toBe(true);
+  });
+});
+
 describe("projection Mouvement", () => {
   it("étapes encodées dans la description, ordre des alias conservé, identifiant fourni par l'installation", () => {
     const movement = projectSheetToMovement(handWrittenSheet() as CatalogueSheet, "local-42");
@@ -308,7 +422,7 @@ describe("empreinte de fiche éditoriale complète", () => {
     ["classification d'origine", (s: Mutable<CatalogueSheet>) => { s.classification.original = { zone: "Jambes" }; }],
     ["source documentaire", (s: Mutable<CatalogueSheet>) => { s.sources.documentary = { sourceId: "S", section: null, url: null, usageStatement: null }; }],
     ["statut de validation clinique", (s: Mutable<CatalogueSheet>) => { s.validation.clinical = "APPROVED"; }],
-    ["auteurs", (s: Mutable<CatalogueSheet>) => { s.provenance.authors = []; }],
+    ["auteur", (s: Mutable<CatalogueSheet>) => { s.provenance.author = null; }],
     ["spécialités", (s: Mutable<CatalogueSheet>) => { s.classification.specialtyIds = []; }],
   ])("change avec : %s", (_label, change) => {
     expect(variant(change)).not.toBe(base);

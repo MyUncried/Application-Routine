@@ -2,6 +2,7 @@
 
 **Date :** 10 novembre 2026. **Statut :** format de données technique (tranche CA-1) ; aucun chargement dans l'application à ce stade (CA-3 à CA-6 non développés).
 **Décision :** Hermann, 10/11/2026 — catalogue autonome (option A), compatible avec un futur téléchargement depuis OVH (option B) sans changer le modèle de données ; plan `.github/orchestration/reports/2026-11-10_CATALOGUE-AUTONOME-PLAN.md` (révision 2).
+**[11/11/2026 — version courante : v2 `2.0.0`, voir § 10. La v1 décrite ci-dessous reste relue et convertie ; le nom du fichier de spécification est conservé pour préserver les liens.]**
 **Code :** `src/domain/catalogue/MovementCatalogueFile.ts` (types, validateur, projection, empreinte) ; modèle de provenance réemployé `src/domain/catalogue/MovementEditorialProvenance.ts` ; spécification de provenance `docs/KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md`.
 
 ## 1. Rôle
@@ -25,14 +26,14 @@ Le fichier pilote `catalogue/catalogues/kodjo-pilote-60.catalogue.json` provient
 ## 3. Structure
 
 ```text
-format = "KODJO_MOVEMENT_CATALOGUE", formatVersion = "1.0.0"
+format = "KODJO_MOVEMENT_CATALOGUE", formatVersion = "1.0.0"   [11/11/2026 : v2 "2.0.0" ajoute libraries[], § 10]
 catalogue    { id, title, revision, owner|null, manager|null, publisher|null, publicationAllowed, notes[] }
 references   { categories[], bodyZones[], specialties[], gesturalFamilies[], clinicalProblems[], anatomicalTargets[] }
                entrée { id, label, kind|null, status|null } — ordre = ordre d'affichage
 glossary[]   { id, term, definition, synonyms[], relatedSheetIds[] } — ordonné
 sheets[]     fiche éditoriale complète :
   sheetId, revision, history[] { revision, date, author|null, summary }
-  provenance   { gestureId, origin, upstream, owner|null, authors[], publisher, rightsHolder, license,
+  provenance   { gestureId, origin, upstream, owner|null, authors[], publisher, rightsHolder, license,   [v2 : author|null, MOUV-D1]
                  reviewStatus, visibility }                       ← MovementEditorialProvenance
   content      { name, aliases[] (ordonnés), startingPosition, equipment, steps[] (ordonnées),
                  safetyNotes, notes }
@@ -52,12 +53,12 @@ sheets[]     fiche éditoriale complète :
 
 ## 4. Règles de validation (`parseMovementCatalogueFile`)
 
-- **Format** : format et version exacts ; tout autre fichier est refusé, y compris un export « brouillons ».
+- **Format** : format et version exacts ; tout autre fichier est refusé, y compris un export « brouillons ». [11/11/2026 : versions relues `1.0.0` et `2.0.0`, la v1 étant convertie (§ 10).]
 - **Identités** : `sheetId` uniques, et identifiants locaux connus uniques dans tout le fichier.
 - **Unicité dans les listes** : identifiants uniques dans chaque référentiel et dans le glossaire.
 - **Références** : Catégorie, Zones et taxonomie présentes dans `references` ; fiches citées par le glossaire présentes dans le fichier.
 - **Révisions** : historique non vide, révisions uniques, la dernière entrée portant la `revision` de la fiche, dates ISO.
-- **Provenance** : contrôlée par `validateMovementEditorialProvenance`. Une source (`upstream`) est exigée hors création originale ; les auteurs en double sont refusés.
+- **Provenance** : contrôlée par `validateMovementEditorialProvenance`. Une source (`upstream`) est exigée hors création originale ; les auteurs en double sont refusés. [11/11/2026, MOUV-D1 : auteur unique `author|null` ; une liste est refusée.]
 - **Médias** : règles de l'administration Web.
   - 30 au plus par fiche ;
   - liens HTTPS uniquement ;
@@ -118,7 +119,7 @@ Les autres propriétés restent dans la fiche éditoriale, sans être ajoutées 
 - Écran de recette (CA-4).
 - Téléchargement (option B).
 - Transport physique des médias.
-- Partage entre utilisateurs et filiation (`LOCAL_DERIVED`, `SHARED_IMPORTED`).
+- Partage entre utilisateurs et filiation (`LOCAL_DERIVED`, `SHARED_IMPORTED`). [11/11/2026, A-2 : `LOCAL_DERIVED` est **refusé** par le format v2 — aucune copie, duplication ni dérivation locale d’une fiche importée. `SHARED_IMPORTED` reste hors périmètre (partage reporté, BIB-23).]
 - Validation éditoriale et clinique.
 
 ## 9. Chargement d'un catalogue (CA-3)
@@ -223,4 +224,62 @@ Outil de recette interne, hors MVP et **sans référence Figma**. Comme l'outil 
 5. **Rattachement groupé** des seules fiches « déjà présentes, identiques », après confirmation : aucun Mouvement n'est modifié, seul l'historique d'installation est enregistré. [Choix d'ergonomie de recette, soumis à validation : voir le rapport CA-4.]
 
 De retour sur le Catalogue des Mouvements, la liste est relue au retour sur l'écran (mécanisme existant).
+
+## 10. Format v2 `2.0.0` (P0, 11/11/2026)
+
+**Décisions appliquées :** MOUV-D1 (auteur unique), A-1 et A-2 du 11/11/2026 (Hermann), BIB-03/04 et F4-G (registre des décisions).
+
+### 10.1 Changements par rapport à la v1
+
+| Élément | v1 | v2 |
+|---|---|---|
+| `formatVersion` | `1.0.0` | `2.0.0` ; la v1 reste lisible |
+| Auteur de la fiche | `provenance.authors[]` | `provenance.author: ActorRef | null` (MOUV-D1) ; distinct de `history[].author` (auteur d’une révision) |
+| Bibliothèques | absentes | `libraries[]` obligatoire (vide admis) |
+| `LOCAL_DERIVED` | accepté structurellement | **refusé** (`INCONSISTENT`) : aucune copie ni dérivation (A-2) |
+
+### 10.2 Bibliothèques (A-1)
+
+```text
+libraries[] { libraryId, title, description|null, revision, history[] (vide admis), editor|null, owner|null,
+              visibility PRIVATE|UNLISTED|PUBLIC, publicationAllowed, members[] { catalogueId, sheetId } (ordonnés) }
+```
+
+- Une Bibliothèque est une **collection logique** identifiée par `(catalogue.id, libraryId)`. Le fichier n’est qu’une unité de stockage et de transport : il peut contenir zéro, une ou plusieurs Bibliothèques, et des fiches qui n’appartiennent à aucune.
+- Un membre est une **référence** à l’identité d’une fiche `(catalogueId, sheetId)`, jamais une copie. Une même fiche peut figurer dans plusieurs Bibliothèques.
+- Un membre d’une autre source (`catalogueId` ≠ `catalogue.id`) est admis et signalé (`EXTERNAL_MEMBER`). Il est résolu à l’installation s’il est déjà présent sur l’appareil.
+- Aucune restriction sur le nombre, la nature, la spécialité ou l’éditeur des fiches.
+- **Contrôles :**
+  - `libraryId` unique au format `^[a-z0-9][a-z0-9.-]{1,63}$` ;
+  - membres sans doublon ;
+  - membre interne présent dans `sheets` (sinon `UNKNOWN_REFERENCE`) ;
+  - `editor` et `owner` déclarés (`null` admis) ;
+  - propriétaire inconnu → `PRIVATE` et `publicationAllowed: false` obligatoires ;
+  - Bibliothèque publiable → chaque fiche interne doit être publiable (`MEMBER_NOT_PUBLISHABLE` sinon : aucune diffusion d’une fiche dont les droits ne sont pas établis).
+- La révision d’une Bibliothèque porte sur sa **composition**. Les fiches gardent leur propre révision. Une fiche installée n’a qu’une révision active sur l’appareil, quelle que soit la Bibliothèque qui l’a apportée (F4-G).
+
+### 10.3 Lecture d’un fichier v1 (conversion déterministe, sans perte)
+
+- `authors[]` est converti : 0 auteur → `null`, 1 auteur → cet auteur, plusieurs → **refus explicite** (`INCONSISTENT`, `MULTIPLE_AUTHORS`), jamais de choix arbitraire.
+- Une **Bibliothèque implicite** est créée :
+  - `libraryId` = `catalogue.id` ;
+  - titre, révision, propriétaire et autorisation repris de l’en-tête ;
+  - éditeur = `catalogue.publisher` ;
+  - `PRIVATE` si la publication n’est pas autorisée ;
+  - toutes les fiches dans l’ordre du fichier.
+- Le résultat est un fichier v2 ; le signalement `CONVERTED_FROM_V1` l’indique. Aucun fichier n’est réécrit en v1.
+
+### 10.4 Écriture et aller-retour
+
+- `serializeMovementCatalogueFile(file)` est la sérialisation de référence, utilisée par l’administration, l’export et le Wi-Fi : JSON indenté de 2 espaces, ordre des clés conservé, fin de ligne finale.
+- **Aller-retour garanti et testé :** `parse(serialize(f))` redonne `f`, et une seconde sérialisation est identique au caractère près.
+- Le même format sert pour le fichier et pour le Wi-Fi : aucun second modèle.
+
+### 10.5 Fichier pilote
+
+Le fichier `kodjo-pilote-60.catalogue.json` est régénéré en v2 par la conversion reproductible (`KODJO_WRITE_CATALOGUE=1 npx jest tools/catalogue`) :
+- 60 fiches avec `author: null` ;
+- une Bibliothèque privée de recette `kodjo.pilote-60` (« Pilote KODJO — 60 mouvements (recette) »), propriétaire inconnu, non publiable, qui référence les 60 fiches.
+
+Les identités `(kodjo.pilote-60, sheetId)` sont inchangées.
 

@@ -1,5 +1,12 @@
 /**
- * Format de fichier catalogue autonome `KODJO_MOVEMENT_CATALOGUE` v1 (CA-1, 10/11/2026).
+ * Format de fichier catalogue autonome `KODJO_MOVEMENT_CATALOGUE` v2 (P0, 11/11/2026), qui relit
+ * la v1 (CA-1, 10/11/2026) par conversion déterministe.
+ *
+ * v2 : auteur unique `provenance.author` (MOUV-D1), Bibliothèques `libraries[]` distinctes du fichier
+ * (A-1 du 11/11/2026 : une Bibliothèque est une collection logique de références vers des fiches, sans
+ * copie ; une fiche peut appartenir à plusieurs Bibliothèques), refus de l'origine `LOCAL_DERIVED` (A-2).
+ * Le fichier n'est qu'une unité de stockage et de transport ; `catalogue.id` est l'espace d'identité
+ * des fiches qu'il définit : identité d'une fiche = `(catalogue.id, sheetId)`.
  *
  * Le fichier est la source éditable du catalogue : il contient la fiche éditoriale complète
  * (contenu, classifications, sources, validation, provenance, médias, révisions) et ne dépend
@@ -24,7 +31,9 @@ import {
 } from "@/domain/catalogue/MovementEditorialProvenance";
 
 export const MOVEMENT_CATALOGUE_FORMAT = "KODJO_MOVEMENT_CATALOGUE";
-export const MOVEMENT_CATALOGUE_FORMAT_VERSION = "1.0.0";
+export const MOVEMENT_CATALOGUE_FORMAT_VERSION = "2.0.0";
+/** Versions relues : la v1 est convertie en v2 à la lecture (aucune écriture v1). */
+export const MOVEMENT_CATALOGUE_READABLE_VERSIONS = ["1.0.0", "2.0.0"] as const;
 
 /** Limites reprises de l'administration Web (`tools/catalogue-admin/static-ovh`). */
 export const CATALOGUE_MAX_MEDIA_PER_SHEET = 30;
@@ -91,7 +100,8 @@ export type CatalogueSheetProvenance = {
   readonly origin: MovementEditorialOrigin;
   readonly upstream: MovementUpstream | null;
   readonly owner: EditorialActorRef | null;
-  readonly authors: readonly EditorialActorRef[];
+  /** Auteur unique (MOUV-D1) ; `null` = inconnu. v1 `authors[]` convertie : 0 → null, 1 → auteur, 2+ → refus. */
+  readonly author: EditorialActorRef | null;
   readonly publisher: EditorialActorRef | null;
   readonly rightsHolder: EditorialActorRef | null;
   readonly license: string | null;
@@ -178,6 +188,35 @@ export type CatalogueSheet = {
   readonly install: { readonly knownLocalMovementIds: readonly string[] };
 };
 
+/** Référence d'une fiche par son identité éditoriale ; jamais une copie (A-1). */
+export type CatalogueLibraryMember = {
+  /** Espace d'identité de la fiche : ce fichier (`catalogue.id`) ou une autre source. */
+  readonly catalogueId: string;
+  readonly sheetId: string;
+};
+
+/**
+ * Bibliothèque (A-1, BIB-03/04) : collection logique identifiée par `(catalogue.id, libraryId)`,
+ * composée de références ordonnées vers des fiches ; aucune restriction sur leur nombre, leur
+ * nature ni leur source. Sa révision est indépendante de celles des fiches.
+ */
+export type CatalogueLibrary = {
+  readonly libraryId: string;
+  readonly title: string;
+  readonly description: string | null;
+  readonly revision: string;
+  /** Du plus ancien au plus récent ; vide admis, sinon la dernière entrée porte `revision`. */
+  readonly history: readonly CatalogueSheetRevision[];
+  /** Éditeur de la Bibliothèque (composition) ; `null` = inconnu. */
+  readonly editor: EditorialActorRef | null;
+  /** Propriétaire ; `null` = inconnu, alors privée et non publiable. */
+  readonly owner: EditorialActorRef | null;
+  readonly visibility: EditorialVisibility;
+  readonly publicationAllowed: boolean;
+  /** Ordonnés (ordre d'affichage) ; sans doublon. */
+  readonly members: readonly CatalogueLibraryMember[];
+};
+
 export type MovementCatalogueFile = {
   readonly format: typeof MOVEMENT_CATALOGUE_FORMAT;
   readonly formatVersion: typeof MOVEMENT_CATALOGUE_FORMAT_VERSION;
@@ -199,6 +238,7 @@ export type MovementCatalogueFile = {
   };
   readonly references: CatalogueReferences;
   readonly glossary: readonly CatalogueGlossaryEntry[];
+  readonly libraries: readonly CatalogueLibrary[];
   readonly sheets: readonly CatalogueSheet[];
 };
 
@@ -216,11 +256,17 @@ export type CatalogueIssue = { readonly path: string; readonly code: CatalogueIs
 /** Signalements non bloquants (spécification provenance : inconnu ≠ erreur ; homonymie A1 ouverte). */
 export type CatalogueWarning = {
   readonly path: string;
-  readonly code: "UNKNOWN_OWNER" | "DUPLICATE_NAME";
+  readonly code: "UNKNOWN_OWNER" | "DUPLICATE_NAME" | "EXTERNAL_MEMBER" | "CONVERTED_FROM_V1";
 };
 
 export type CatalogueParseResult =
-  | { readonly ok: true; readonly file: MovementCatalogueFile; readonly warnings: readonly CatalogueWarning[] }
+  | {
+      readonly ok: true;
+      /** Toujours au format courant (v2), y compris pour un fichier v1 relu. */
+      readonly file: MovementCatalogueFile;
+      readonly warnings: readonly CatalogueWarning[];
+      readonly sourceFormatVersion: (typeof MOVEMENT_CATALOGUE_READABLE_VERSIONS)[number];
+    }
   | { readonly ok: false; readonly issues: readonly CatalogueIssue[] };
 
 const REFERENCE_AXES = [
@@ -264,16 +310,27 @@ const isSecureUrl = (value: unknown): boolean => {
  * Valide la structure complète d'un fichier catalogue. Ne lit aucune base locale : la
  * correspondance des Catégories et Zones avec celles du téléphone relève du chargement (CA-3).
  */
-export function parseMovementCatalogueFile(raw: unknown): CatalogueParseResult {
+export function parseMovementCatalogueFile(input: unknown): CatalogueParseResult {
   const issues: CatalogueIssue[] = [];
   const warnings: CatalogueWarning[] = [];
   const issue = (path: string, code: CatalogueIssueCode, detail?: string) =>
     issues.push(detail === undefined ? { path, code } : { path, code, detail });
 
-  if (!isObject(raw)) return { ok: false, issues: [{ path: "", code: "INVALID" }] };
+  if (!isObject(input)) return { ok: false, issues: [{ path: "", code: "INVALID" }] };
+  let raw: Raw = input;
   if (raw.format !== MOVEMENT_CATALOGUE_FORMAT) issue("format", "UNRECOGNIZED");
-  if (raw.formatVersion !== MOVEMENT_CATALOGUE_FORMAT_VERSION) issue("formatVersion", "UNRECOGNIZED");
+  const sourceFormatVersion = raw.formatVersion;
+  if (!(MOVEMENT_CATALOGUE_READABLE_VERSIONS as readonly unknown[]).includes(sourceFormatVersion)) {
+    issue("formatVersion", "UNRECOGNIZED");
+  }
   if (issues.length > 0) return { ok: false, issues };
+  if (sourceFormatVersion === "1.0.0") {
+    raw = upgradeV1(raw, issue);
+    warnings.push({ path: "formatVersion", code: "CONVERTED_FROM_V1" });
+    if (issues.length > 0) return { ok: false, issues };
+  } else if (!Array.isArray(raw.libraries)) {
+    issue("libraries", "REQUIRED");
+  }
 
   validateCatalogueHeader(raw.catalogue, issue, warnings);
   const referenceIds = validateReferences(raw.references, issue);
@@ -310,9 +367,141 @@ export function parseMovementCatalogueFile(raw: unknown): CatalogueParseResult {
   });
 
   validateGlossary(raw.glossary, sheetIds, issue);
+  validateLibraries(raw, sheetIds, issue, warnings);
 
   if (issues.length > 0) return { ok: false, issues };
-  return { ok: true, file: raw as unknown as MovementCatalogueFile, warnings };
+  return {
+    ok: true,
+    file: raw as unknown as MovementCatalogueFile,
+    warnings,
+    sourceFormatVersion: sourceFormatVersion as (typeof MOVEMENT_CATALOGUE_READABLE_VERSIONS)[number],
+  };
+}
+
+/**
+ * Conversion déterministe v1 → v2, sans perte : `authors[]` → `author` (0 → null, 1 → l'auteur ;
+ * plusieurs → refus explicite, jamais de choix arbitraire), et Bibliothèque implicite reprenant
+ * l'en-tête et toutes les fiches dans l'ordre du fichier. Les autres propriétés sont recopiées.
+ */
+function upgradeV1(raw: Raw, issue: IssueSink): Raw {
+  const sheets = Array.isArray(raw.sheets) ? raw.sheets : null;
+  const upgradedSheets = sheets?.map((sheet, index) => {
+    if (!isObject(sheet) || !isObject(sheet.provenance)) return sheet;
+    const { authors, ...provenance } = sheet.provenance;
+    let author: unknown = null;
+    if (!Array.isArray(authors)) {
+      issue("sheets[" + index + "].provenance.authors", "INVALID");
+    } else if (authors.length > 1) {
+      issue("sheets[" + index + "].provenance.authors", "INCONSISTENT", "MULTIPLE_AUTHORS");
+    } else if (authors.length === 1) {
+      author = authors[0];
+    }
+    return { ...sheet, provenance: { ...provenance, author } };
+  });
+  const header = isObject(raw.catalogue) ? raw.catalogue : null;
+  const libraries = header === null ? [] : [{
+    libraryId: header.id,
+    title: header.title,
+    description: null,
+    revision: header.revision,
+    history: [],
+    editor: header.publisher ?? null,
+    owner: header.owner ?? null,
+    visibility: header.publicationAllowed === true ? "PUBLIC" : "PRIVATE",
+    publicationAllowed: header.publicationAllowed,
+    members: (sheets ?? []).filter(isObject).filter((sheet) => present(sheet.sheetId))
+      .map((sheet) => ({ catalogueId: header.id, sheetId: sheet.sheetId })),
+  }];
+  const { sheets: _sheets, ...rest } = raw;
+  void _sheets;
+  return {
+    ...rest,
+    formatVersion: MOVEMENT_CATALOGUE_FORMAT_VERSION,
+    libraries,
+    ...(upgradedSheets === undefined ? {} : { sheets: upgradedSheets }),
+  };
+}
+
+const LIBRARY_ID = /^[a-z0-9][a-z0-9.-]{1,63}$/;
+const VISIBILITIES: readonly unknown[] = ["PRIVATE", "UNLISTED", "PUBLIC"];
+
+function validateLibraries(raw: Raw, sheetIds: ReadonlySet<string>, issue: IssueSink, warnings: CatalogueWarning[]): void {
+  const libraries = raw.libraries;
+  if (!Array.isArray(libraries)) return; // signalé à l'entrée
+  const catalogueId = isObject(raw.catalogue) ? raw.catalogue.id : undefined;
+  const publishable = new Map<string, boolean>();
+  if (Array.isArray(raw.sheets)) {
+    for (const sheet of raw.sheets) {
+      if (isObject(sheet) && present(sheet.sheetId) && isObject(sheet.validation)) {
+        publishable.set(sheet.sheetId, sheet.validation.publicationAllowed === true);
+      }
+    }
+  }
+  const ids = new Set<string>();
+  libraries.forEach((library, index) => {
+    const path = "libraries[" + index + "]";
+    if (!isObject(library)) {
+      issue(path, "INVALID");
+      return;
+    }
+    if (!isString(library.libraryId) || !LIBRARY_ID.test(library.libraryId)) {
+      issue(path + ".libraryId", "INVALID");
+    } else {
+      if (ids.has(library.libraryId)) issue(path + ".libraryId", "DUPLICATE", library.libraryId);
+      ids.add(library.libraryId);
+    }
+    if (!present(library.title)) issue(path + ".title", "REQUIRED");
+    if (!isStringOrNull(library.description)) issue(path + ".description", "INVALID");
+    if (!present(library.revision)) issue(path + ".revision", "REQUIRED");
+    if (!Array.isArray(library.history)) issue(path + ".history", "REQUIRED");
+    else if (library.history.length > 0) validateHistory(library.history, library.revision, path, issue);
+    for (const field of ["editor", "owner"] as const) {
+      if (library[field] === undefined) issue(path + "." + field, "REQUIRED");
+      else validateActor(library[field], path + "." + field, issue);
+    }
+    if (!VISIBILITIES.includes(library.visibility)) issue(path + ".visibility", "UNRECOGNIZED");
+    if (typeof library.publicationAllowed !== "boolean") issue(path + ".publicationAllowed", "REQUIRED");
+    if (library.owner === null) {
+      warnings.push({ path: path + ".owner", code: "UNKNOWN_OWNER" });
+      if (library.publicationAllowed === true) issue(path + ".publicationAllowed", "INCONSISTENT", "UNKNOWN_OWNER");
+      if (library.visibility !== "PRIVATE") issue(path + ".visibility", "INCONSISTENT", "UNKNOWN_OWNER");
+    }
+    if (!Array.isArray(library.members)) {
+      issue(path + ".members", "REQUIRED");
+      return;
+    }
+    const seen = new Set<string>();
+    library.members.forEach((member, memberIndex) => {
+      const at = path + ".members[" + memberIndex + "]";
+      if (!isObject(member) || !present(member.catalogueId) || !present(member.sheetId)) {
+        issue(at, "INVALID");
+        return;
+      }
+      const key = member.catalogueId + "/" + member.sheetId;
+      if (seen.has(key)) issue(at, "DUPLICATE", member.sheetId);
+      seen.add(key);
+      if (member.catalogueId !== catalogueId) {
+        // Fiche d'une autre source : référencée sans copie ; résolue à l'installation si présente.
+        warnings.push({ path: at, code: "EXTERNAL_MEMBER" });
+        return;
+      }
+      if (!sheetIds.has(member.sheetId)) {
+        issue(at + ".sheetId", "UNKNOWN_REFERENCE", member.sheetId);
+      } else if (library.publicationAllowed === true && publishable.get(member.sheetId) !== true) {
+        // Aucune diffusion d'une fiche dont les droits ne sont pas établis.
+        issue(at, "INCONSISTENT", "MEMBER_NOT_PUBLISHABLE");
+      }
+    });
+  });
+}
+
+/**
+ * Sérialisation de référence du format courant (administration, export, Wi-Fi) : JSON indenté,
+ * ordre des clés conservé, fin de ligne finale. `parseMovementCatalogueFile` relit le résultat
+ * à l'identique (aller-retour sans perte).
+ */
+export function serializeMovementCatalogueFile(file: MovementCatalogueFile): string {
+  return JSON.stringify(file, null, 2) + "\n";
 }
 
 type IssueSink = (path: string, code: CatalogueIssueCode, detail?: string) => void;
@@ -391,6 +580,8 @@ function validateSheet(
     issue(path + ".provenance", "REQUIRED");
   } else {
     if (provenance.owner === null) warnings.push({ path: path + ".provenance.owner", code: "UNKNOWN_OWNER" });
+    // A-2 (11/11/2026) : aucune copie ni dérivation locale d'une fiche ; l'origine historique est refusée.
+    if (provenance.origin === "LOCAL_DERIVED") issue(path + ".provenance.origin", "INCONSISTENT", "LOCAL_DERIVED");
     const record = {
       ...(provenance as object),
       sheetId: sheet.sheetId,

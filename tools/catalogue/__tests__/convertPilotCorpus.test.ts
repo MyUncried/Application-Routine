@@ -59,7 +59,7 @@ function editedDrafts() {
     clinicalProblemIds: ["knee-strength-deficit"],
     anatomicalTargetIds: ["quadriceps"],
     owner: { kind: "ORGANIZATION", id: "ankusha" },
-    authors: [{ kind: "PERSON", id: "kine-1" }, { kind: "PERSON", id: "kine-2" }],
+    authors: [{ kind: "PERSON", id: "kine-1" }],
     notes: "Revoir la consigne de respiration.",
     editorialStatus: "IN_REVIEW",
     media: [media("media-bbbbbb"), media("media-aaaaaa", "RESTRICTED")],
@@ -105,7 +105,12 @@ describe("CA-2 — conversion initiale du catalogue pilote", () => {
     if (!result.ok) return;
     expect(result.file.sheets).toHaveLength(60);
     expect(new Set(result.warnings.map((warning) => warning.code))).toEqual(new Set(["UNKNOWN_OWNER"]));
-    expect(result.warnings).toHaveLength(61);
+    // 60 fiches + en-tête + Bibliothèque de recette (A-1), toutes à propriétaire inconnu.
+    expect(result.warnings).toHaveLength(62);
+    expect(result.file.libraries).toEqual([expect.objectContaining({
+      libraryId: "kodjo.pilote-60", visibility: "PRIVATE", publicationAllowed: false, owner: null,
+    })]);
+    expect(result.file.libraries[0]!.members).toHaveLength(60);
   });
 
   it("identités distinctes : sheetId d'origine, catalogue d'origine, identifiant local pilot:* en rapprochement", () => {
@@ -118,7 +123,7 @@ describe("CA-2 — conversion initiale du catalogue pilote", () => {
         origin: "EXTERNAL_IMPORTED",
         upstream: { catalogueId: "xlsx:KODJO_Catalogue_reeducation_fitness_60_fiches.xlsx", sheetId: record.originalId, revision: "2026-10-27" },
         owner: null,
-        authors: [],
+        author: null,
       });
     });
     expect(converted.catalogue.id).toBe("kodjo.pilote-60");
@@ -232,7 +237,7 @@ describe("CA-2 — conversion initiale du catalogue pilote", () => {
     });
     expect(sheet.provenance).toMatchObject({
       owner: { kind: "ORGANIZATION", id: "ankusha" },
-      authors: [{ kind: "PERSON", id: "kine-1" }, { kind: "PERSON", id: "kine-2" }],
+      author: { kind: "PERSON", id: "kine-1" },
       reviewStatus: "IN_REVIEW",
     });
     expect(sheet.media.map((item) => item.id)).toEqual(["media-bbbbbb", "media-aaaaaa"]);
@@ -253,5 +258,10 @@ describe("CA-2 — conversion initiale du catalogue pilote", () => {
     foreign.movementEdits["pilot:INCONNU"] = {};
     expect(() => convert(foreign)).toThrow(/fiche étrangère/);
     expect(() => convert({ ...emptyDrafts(), kind: "AUTRE" })).toThrow(/KODJO_ADMIN_DRAFTS/);
+    // MOUV-D1 : plusieurs auteurs dans un brouillon → refus explicite, jamais de choix arbitraire.
+    const twoAuthors = editedDrafts();
+    (twoAuthors.movementEdits[records[0]!.candidateId] as Record<string, unknown>).authors =
+      [{ kind: "PERSON", id: "kine-1" }, { kind: "PERSON", id: "kine-2" }];
+    expect(() => convert(twoAuthors)).toThrow(/plusieurs auteurs/);
   });
 });

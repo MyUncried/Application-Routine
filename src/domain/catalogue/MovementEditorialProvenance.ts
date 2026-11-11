@@ -21,6 +21,11 @@ export type MovementEditorialOrigin =
   | "CATALOGUE_INSTALLED"
   | "SHARED_IMPORTED"
   | "EXTERNAL_IMPORTED"
+  /**
+   * Valeur historique du modèle du 06/11, conservée pour relire d'anciennes données.
+   * **Interdite pour toute fiche importée ou diffusée** (A-2 du 11/11/2026 : aucune copie, dérivation
+   * ni modification d'une fiche importée) : le format catalogue v2 la refuse.
+   */
   | "LOCAL_DERIVED";
 
 export type MovementUpstream = {
@@ -50,8 +55,11 @@ export type MovementEditorialProvenance = {
    * diffusion (`visibility` autre que PRIVATE) exige un propriétaire identifié.
    */
   readonly owner: EditorialActorRef | null;
-  /** Auteurs connus, [] = non renseigné ; aucune attribution implicite. */
-  readonly authors: readonly EditorialActorRef[];
+  /**
+   * Auteur unique de la fiche (MOUV-D1, BIB-02 ; 11/11/2026) ; `null` = inconnu, sans auteur fictif.
+   * Distinct de l'auteur d'une révision (`history[].author`), du propriétaire et du diffuseur.
+   */
+  readonly author: EditorialActorRef | null;
   /** Diffuseur éventuel, distinct de l'auteur et du propriétaire. */
   readonly publisher: EditorialActorRef | null;
   /** Ayant droit déclaré, éventuellement inconnu. */
@@ -97,10 +105,6 @@ const VISIBILITIES: readonly EditorialVisibility[] = ["PRIVATE", "UNLISTED", "PU
 
 function present(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
-}
-
-function actorKey(actor: EditorialActorRef): string {
-  return actor.kind + ":" + actor.id;
 }
 
 function validateActor(
@@ -157,24 +161,8 @@ export function validateMovementEditorialProvenance(
   validateActor(record.publisher, "publisher", issues, false);
   validateActor(record.rightsHolder, "rightsHolder", issues, false);
 
-  if (!Array.isArray(record.authors)) {
-    issues.push({ field: "authors", code: "UNRECOGNIZED" });
-  } else {
-    const authors = new Set<string>();
-    record.authors.forEach((author, i) => {
-      validateActor(author, "authors[" + i + "]", issues, true);
-      if (
-        author !== null &&
-        typeof author === "object" &&
-        ACTOR_KINDS.includes(author.kind) &&
-        present(author.id)
-      ) {
-        const key = actorKey(author);
-        if (authors.has(key)) issues.push({ field: "authors", code: "DUPLICATE" });
-        authors.add(key);
-      }
-    });
-  }
+  if (record.author === undefined) issues.push({ field: "author", code: "REQUIRED" });
+  else validateActor(record.author, "author", issues, false);
 
   if (record.origin === "LOCAL_CREATED") {
     if (record.upstream !== null) {

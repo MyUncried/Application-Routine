@@ -154,7 +154,7 @@ describe("CA-4 — écran « Charger un catalogue »", () => {
     const before = await dump();
     await press("catalogue-load-pick");
     expect(screen.getByText("Déjà présente, identique (60)")).toBeTruthy();
-    expect(screen.getByText(/Propriétaire inconnu \(61\) : chargement privé possible, aucune publication/)).toBeTruthy();
+    expect(screen.getByText(/Propriétaire inconnu \(62\) : chargement privé possible, aucune publication/)).toBeTruthy();
     await press("catalogue-load-adopt-all");
     expect(alerts.at(-1)!.title).toBe("Rattacher 60 fiche(s) identique(s) ?");
     expect(alerts.at(-1)!.message).toMatch(/aucun mouvement ne sera modifié/);
@@ -264,14 +264,16 @@ describe("CA-4 — écran « Charger un catalogue »", () => {
   });
 
   it("fiche créée dans le fichier : installée après résumé et confirmation", async () => {
-    const file = clone(pilot) as unknown as { sheets: Record<string, any>[] };  
+    const file = clone(pilot) as unknown as { sheets: Record<string, any>[]; libraries: Record<string, any>[] };  
     const created = clone(file.sheets[1]!);
     created.sheetId = "LOCAL-001";
     created.content.name = "Squat au mur créé dans le fichier";
     created.content.aliases = [];
     created.provenance = { ...created.provenance, origin: "LOCAL_CREATED", upstream: null };
     created.install = { knownLocalMovementIds: [] };
-    renderScreen(async () => ({ ...file, sheets: [created] }));
+    // Format v2 : la Bibliothèque ne référence que les fiches présentes dans le fichier.
+    const libraries = [{ ...file.libraries[0]!, members: [{ catalogueId: "kodjo.pilote-60", sheetId: "LOCAL-001" }] }];
+    renderScreen(async () => ({ ...file, libraries, sheets: [created] }));
     await settle();
     await press("catalogue-load-pick");
     await press("catalogue-load-item-LOCAL-001");

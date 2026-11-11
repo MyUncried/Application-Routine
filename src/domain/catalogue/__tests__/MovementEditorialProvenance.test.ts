@@ -19,7 +19,7 @@ function original(
     origin: "LOCAL_CREATED",
     upstream: null,
     owner: local,
-    authors: [local],
+    author: local,
     publisher: null,
     rightsHolder: null,
     license: null,
@@ -42,7 +42,7 @@ describe("MovementEditorialProvenance (catalogue indépendant du moteur)", () =>
           sheetId: "local-copy-coach-1",
           origin: "SHARED_IMPORTED",
           upstream: { catalogueId: "coach-martin", sheetId: "sheet-squat", revision: "2.1" },
-          authors: [coach],
+          author: coach,
           owner: local,
           publisher: coach,
         }),
@@ -79,24 +79,28 @@ describe("MovementEditorialProvenance (catalogue indépendant du moteur)", () =>
     expect(validateMovementEditorialProvenance(b)).toEqual([]);
   });
 
-  it("refuse les auteurs dupliqués et les références source incomplètes", () => {
+  it("auteur unique (MOUV-D1) : déclaré, null admis, liste refusée, référence source incomplète refusée", () => {
     const bad = original({
-      origin: "LOCAL_DERIVED",
+      origin: "EXTERNAL_IMPORTED",
       upstream: { catalogueId: "coach-martin", sheetId: "sheet", revision: "" },
-      authors: [coach, coach],
+      author: { kind: "PERSON", id: "" },
     });
     expect(validateMovementEditorialProvenance(bad)).toEqual(
       expect.arrayContaining([
-        { field: "authors", code: "DUPLICATE" },
+        { field: "author.id", code: "REQUIRED" },
         { field: "upstream.revision", code: "REQUIRED" },
       ]),
     );
+    const list = original({ author: [coach] as unknown as MovementEditorialProvenance["author"] });
+    expect(validateMovementEditorialProvenance(list)).toContainEqual({ field: "author", code: "UNRECOGNIZED" });
+    const omitted = { ...original(), author: undefined } as unknown as MovementEditorialProvenance;
+    expect(validateMovementEditorialProvenance(omitted)).toContainEqual({ field: "author", code: "REQUIRED" });
   });
 
   it("ne suppose pas un auteur ni un ayant droit pour une fiche d'origine inconnue", () => {
     expect(
       validateMovementEditorialProvenance(
-        original({ authors: [], rightsHolder: null, publisher: null }),
+        original({ author: null, rightsHolder: null, publisher: null }),
       ),
     ).toEqual([]);
   });

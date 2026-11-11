@@ -227,8 +227,11 @@ export function convertPilotCorpus(sources: PilotSources): MovementCatalogueFile
       ...Object.fromEntries(EDIT_AXES.map(([field]) => [field, listOr(edit?.[field], proposal[field], candidateId + "." + field)])),
     } as { categoryId: string | null; bodyZoneIds: string[]; specialtyIds: string[]; gesturalFamilyIds: string[]; clinicalProblemIds: string[]; anatomicalTargetIds: string[] };
 
+    // MOUV-D1 : auteur unique ; plusieurs auteurs dans un brouillon → refus explicite, jamais de choix.
     const authors = edit?.authors === undefined ? [] : (edit.authors as unknown[]).map((value, index) =>
       actor(value, candidateId + ".authors[" + index + "]") as EditorialActorRef);
+    if (authors.length > 1) fail(candidateId + " : plusieurs auteurs (MOUV-D1 : un auteur au maximum)");
+    const author = authors[0] ?? null;
 
     return {
       sheetId,
@@ -245,7 +248,7 @@ export function convertPilotCorpus(sources: PilotSources): MovementCatalogueFile
         origin: "EXTERNAL_IMPORTED",
         upstream: { catalogueId: "xlsx:" + workbook, sheetId, revision: referenceDate },
         owner: actor(edit?.owner, candidateId + ".owner"),
-        authors,
+        author,
         publisher: null,
         rightsHolder: null,
         license: null,
@@ -332,6 +335,19 @@ export function convertPilotCorpus(sources: PilotSources): MovementCatalogueFile
     },
     references: references(taxonomy, drafts.additions, drafts.labels),
     glossary,
+    // A-1 : Bibliothèque de recette privée, référençant les 60 fiches sans copie.
+    libraries: [{
+      libraryId: PILOT_CATALOGUE_ID,
+      title: "Pilote KODJO — 60 mouvements (recette)",
+      description: "Bibliothèque privée de recette : 60 fiches à propriétaire inconnu, non publiables.",
+      revision: "1",
+      history: [],
+      editor: null,
+      owner: null,
+      visibility: "PRIVATE",
+      publicationAllowed: false,
+      members: sheets.map((sheet) => ({ catalogueId: PILOT_CATALOGUE_ID, sheetId: sheet.sheetId })),
+    }],
     sheets,
   };
 }
