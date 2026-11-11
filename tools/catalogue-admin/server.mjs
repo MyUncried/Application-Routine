@@ -486,6 +486,12 @@ export async function createAdminApp({
       const bytes = Buffer.from(entry.canonical, "utf8");
       const check = parseMovementCatalogueFile(JSON.parse(entry.canonical));
       if (!check.ok) throw new HttpError(503, "CATALOGUE_INVALID");
+      // MOUV-D2 (11/11/2026) : aucun transfert d'un média dont les droits ne sont pas confirmés. Le fichier est
+      // refusé en entier plutôt que filtré : un filtrage changerait l'empreinte des fiches sans nouvelle révision.
+      const withheld = check.file.sheets
+        .filter((sheet) => sheet.media.some((media) => media.rightsStatus !== "PERMISSION_CONFIRMED"))
+        .map((sheet) => sheet.sheetId);
+      if (withheld.length > 0) throw new HttpError(409, "MEDIA_RIGHTS_UNCONFIRMED", { sheets: withheld });
       const etag = '"' + digest(bytes) + '"';
       if (request.headers["if-none-match"] === etag) {
         response.writeHead(304, { ETag: etag });

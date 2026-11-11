@@ -357,6 +357,23 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       await rm(path.join(folder, "catalogue/catalogues/casse.catalogue.json"));
     });
 
+    it("MOUV-D2 : un fichier contenant un média aux droits non confirmés n'est pas transféré au téléphone", async () => {
+      const { token } = await pairPhone();
+      const withMedia = JSON.parse(await readFile(path.join(folder, "catalogue/catalogues", PILOT), "utf8"));
+      withMedia.catalogue.id = "kodjo.medias";
+      withMedia.libraries[0].members = withMedia.libraries[0].members.map((m) => ({ ...m, catalogueId: "kodjo.medias" }));
+      withMedia.sheets[0].media = [{
+        id: "media-000001", kind: "PHOTO", storage: "REMOTE", url: "https://exemple.fr/photo.webp", fileName: "photo.webp",
+        caption: "", alt: "Position", sourceUrl: "https://exemple.fr/source", attribution: "", license: "", rightsStatus: "UNVERIFIED",
+      }];
+      await writeFile(path.join(folder, "catalogue/catalogues/medias.catalogue.json"), JSON.stringify(withMedia));
+      const refused = await phoneCall("GET", "/phone/v1/catalogues/kodjo.medias", { token });
+      assert.equal(refused.status, 409);
+      assert.equal(refused.body.error, "MEDIA_RIGHTS_UNCONFIRMED");
+      assert.deepEqual(refused.body.sheets, [withMedia.sheets[0].sheetId]);
+      await rm(path.join(folder, "catalogue/catalogues/medias.catalogue.json"));
+    });
+
     it("révocation : le jeton est refusé ensuite ; expiration après 12 h", async () => {
       const { token, deviceId } = await pairPhone("À révoquer");
       assert.equal((await phoneCall("GET", "/phone/v1/libraries", { token })).status, 200);

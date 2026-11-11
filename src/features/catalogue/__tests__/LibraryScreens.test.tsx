@@ -21,6 +21,7 @@ import {
   LibraryInvalidScreen,
   LibraryPreviewScreen,
   LibraryResumeScreen,
+  LibrarySendScreen,
 } from "@/features/catalogue/LibraryScreens";
 import { librarySession } from "@/features/catalogue/librarySession";
 import { ProfileLibrariesSection } from "@/features/catalogue/ProfileLibrariesSection";
@@ -319,5 +320,58 @@ describe("A1 — Profil → Bibliothèques", () => {
     await press("library-resume-continue");
     expect(await movementCount()).toBe(60);
     expect(await opened.libraryOperations()).toEqual([]);
+  });
+});
+
+describe("A2 — Envoyer mes mouvements", () => {
+  it("sans appairage : connexion d’abord ; puis seuls les Mouvements personnels sont proposés et envoyés, sans modification locale", async () => {
+    renderWith(<LibrarySendScreen deviceName="iPhone de test" />);
+    await settle();
+    await press("library-send-connect");
+    expect(mockReplace).toHaveBeenCalledWith({ pathname: "/library-connect", params: { next: "send" } });
+    screen.unmount();
+
+    await installPilot60();
+    const own = new MovementCatalogueService(movementRepository());
+    const zone = pilot.sheets[0]!.classification;
+    await own.createIndependent({
+      id: "perso-1", name: "Gainage maison", aliases: [], description: null, categoryId: zone.categoryId!,
+      bodyZoneIds: [...zone.bodyZoneIds], media: [], phases: [], nextPhaseId: 1, levelGroup: null,
+    });
+    // Les 60 sont importés (Bibliothèque installée) : ils ne sont pas proposés à l’envoi.
+    const opened = await mockRegistry;
+    const load = new CatalogueLoadService({
+      registry: opened,
+      movements: own,
+      readLocalMovements: freshLocalMovementReader(new SqliteMovementRepository(main)),
+      listReferentials: async () => ({
+        categoryIds: new Set((await new SqliteCategoryRepository(main).listAll()).map((category) => category.id)),
+        bodyZoneIds: new Set((await new SqliteBodyZoneRepository(main).listAll()).map((entry) => entry.id)),
+      }),
+      newMovementId: () => "uuid-x",
+    });
+    await new LibraryService({ registry: opened, load }).apply(pilot, PILOT);
+    const before = await main.getAllAsync("SELECT * FROM movements ORDER BY id");
+
+    let posted: { movements: { movementId: string; name: string }[] } | null = null;
+    const client = new AdminClient({
+      localAddress: async () => null,
+      fetch: async (_url, init) => {
+        posted = JSON.parse(init!.body!);
+        return { ok: true, status: 200, json: async () => ({ received: 1, stored: 1, duplicates: 0 }), text: async () => "" };
+      },
+    });
+    librarySession.setSource({ kind: "ADMIN", session: { host: "192.168.1.20", port: 4739, name: "PC-Hermann", token: "t".repeat(43), expiresAt: null }, entries: [], refreshedAt: 0 });
+    renderWith(<LibrarySendScreen client={client} deviceName="iPhone de test" />);
+    await settle();
+    expect(screen.getByText("Vers l’administration · PC-Hermann".replace("’", "'"))).toBeTruthy();
+    expect(screen.getByTestId("library-send-item-perso-1")).toBeTruthy();
+    expect(screen.queryByTestId(`library-send-item-${pilot.sheets[0]!.install.knownLocalMovementIds[0]}`)).toBeNull();
+    expect(screen.getByTestId("library-send-submit").props.accessibilityState.disabled).toBe(true);
+    await press("library-send-item-perso-1");
+    await press("library-send-submit");
+    expect(posted!.movements.map((movement) => movement.movementId)).toEqual(["perso-1"]);
+    expect(screen.getByText("1 mouvement envoyé à « PC-Hermann »")).toBeTruthy();
+    expect(await main.getAllAsync("SELECT * FROM movements ORDER BY id")).toEqual(before);
   });
 });

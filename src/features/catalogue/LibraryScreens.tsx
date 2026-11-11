@@ -15,12 +15,15 @@
  */
 import * as Device from "expo-device";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+
+import type { Movement } from "@/domain/activities/Movement";
 
 import type { MovementCatalogueFile } from "@/domain/catalogue/MovementCatalogueFile";
 import type { SheetLoadItem } from "@/domain/catalogue/catalogueLoadPlan";
 import type { InstalledLibraryRecord, LibraryPreview } from "@/domain/catalogue/libraryPlan";
+import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { AdminClient, AdminClientError, type AdminEndpoint, type AdminSession } from "@/features/catalogue/adminClient";
 import { referenceLabels } from "@/features/catalogue/catalogueLoadPresentation";
 import type { LibraryApplyReport, LibraryProgress } from "@/features/catalogue/LibraryService";
@@ -35,9 +38,10 @@ import {
   sheetName,
 } from "@/features/catalogue/libraryPresentation";
 import { Busy, Card, Divider, LibraryScreen, Notice, Paragraph, Pill, Row, SectionTitle } from "@/features/catalogue/libraryUi";
+import { buildMovementInbox } from "@/features/catalogue/movementInboxBuilder";
 import { pickCatalogueFile } from "@/features/catalogue/pickCatalogueFile";
 import { useLibraryServices, type LibraryServices } from "@/features/catalogue/useLibraryServices";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /** Dépendances remplaçables (tests). */
 export type LibraryScreenDependencies = {
@@ -874,6 +878,161 @@ export function LibraryInstalledScreen() {
   );
 }
 
+// ——— A2 : Envoyer mes mouvements (entrée Profil Figma 12119:25611 ; écran non représenté dans Figma) ———
+
+type SendPhase =
+  | { readonly kind: "loading" }
+  | { readonly kind: "ready" }
+  | { readonly kind: "sending" }
+  | { readonly kind: "sent"; readonly received: number; readonly duplicates: number }
+  | { readonly kind: "error"; readonly message: string; readonly reconnect: boolean };
+
+/**
+ * Mouvements personnels (jamais les Mouvements importés, A-2) choisis un par un, envoyés à la boîte
+ * d'arrivée de l'administration appairée. Aucun Mouvement n'est modifié sur le téléphone ; leur
+ * rattachement ultérieur à une fiche reste une décision de l'administrateur, puis du destinataire.
+ */
+export function LibrarySendScreen({ client = defaultClient, deviceName }: LibraryScreenDependencies) {
+  const router = useRouter();
+  const services = useServicesOrMessage();
+  const activity = useContext(ActivityDefinitionServiceContext);
+  const session = librarySession.adminSession();
+  const [phase, setPhase] = useState<SendPhase>({ kind: "loading" });
+  const [movements, setMovements] = useState<readonly Movement[]>([]);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  const name = deviceName ?? Device.deviceName ?? "iPhone";
+
+  useEffect(() => {
+    if (!services || !activity || !session) return;
+    let cancelled = false;
+    void (async () => {
+      const entries = (await activity.movementCatalogue?.listEntries()) ?? [];
+      const personal: Movement[] = [];
+      for (const entry of entries) {
+        if (entry.archived) continue;
+        if (!(await services.registry.isInstalledMovement(entry.movement.id))) personal.push(entry.movement);
+      }
+      if (!cancelled) {
+        setMovements(personal.sort((a, b) => a.name.localeCompare(b.name, "fr")));
+        setPhase({ kind: "ready" });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [services, activity, session]);
+
+  const send = useCallback(async () => {
+    if (!activity || !session) return;
+    setPhase({ kind: "sending" });
+    const categories = await activity.listCategories();
+    const zones = await activity.listBodyZones();
+    const built = buildMovementInbox({
+      movements: movements.filter((movement) => selected.has(movement.id)),
+      categoryLabels: new Map(categories.map((category) => [category.id, category.name])),
+      bodyZoneLabels: new Map(zones.map((zone) => [zone.id, zone.name])),
+      deviceName: name,
+      sentAt: new Date().toISOString(),
+    });
+    if (!built.ok) {
+      setPhase({
+        kind: "error",
+        reconnect: false,
+        message: "Un mouvement choisi ne peut pas être envoyé (" + built.issues.map((issue) => issue.path).join(", ") + "). Rien n'a été envoyé.",
+      });
+      return;
+    }
+    try {
+      const result = await client.sendMovements(session, built.envelope);
+      setPhase({ kind: "sent", received: result.received, duplicates: result.duplicates });
+    } catch (reason) {
+      const unauthorized = reason instanceof AdminClientError && reason.code === "UNAUTHORIZED";
+      setPhase({
+        kind: "error",
+        reconnect: unauthorized,
+        message: unauthorized
+          ? "L'appairage a expiré ou a été révoqué sur votre PC. Connectez-vous de nouveau."
+          : "L'envoi n'a pas abouti : vérifiez le Wi-Fi puis réessayez. Rien n'a été modifié sur ce téléphone.",
+      });
+    }
+  }, [activity, session, movements, selected, client, name]);
+
+  if (!session) {
+    return (
+      <LibraryScreen
+        title="Envoyer mes mouvements"
+        testID="library-send"
+        primary={{ label: "Se connecter à l'administration", onPress: () => router.replace({ pathname: "/library-connect", params: { next: "send" } }), testID: "library-send-connect" }}
+      >
+        <Paragraph>Connectez-vous d&apos;abord à l&apos;administration KODJO de votre PC, sur le même Wi-Fi.</Paragraph>
+      </LibraryScreen>
+    );
+  }
+  if (phase.kind === "loading" || phase.kind === "sending") {
+    return (
+      <LibraryScreen title="Envoyer mes mouvements" testID="library-send">
+        <Busy label={phase.kind === "sending" ? "Envoi en cours…" : "Chargement de vos mouvements…"} testID="library-send-busy" />
+      </LibraryScreen>
+    );
+  }
+  if (phase.kind === "sent") {
+    return (
+      <LibraryScreen title="Envoyer mes mouvements" testID="library-send" primary={{ label: "Terminer", onPress: () => router.dismissTo("/profile-edit"), testID: "library-send-finish" }}>
+        <Notice tone="positive" title={`${plural(phase.received, "mouvement envoyé", "mouvements envoyés")} à « ${session.name} »`} testID="library-send-done">
+          {phase.duplicates > 0
+            ? `${plural(phase.duplicates, "était déjà reçu", "étaient déjà reçus")}, sans doublon. Vos mouvements restent inchangés sur ce téléphone.`
+            : "Vos mouvements restent inchangés sur ce téléphone."}
+        </Notice>
+      </LibraryScreen>
+    );
+  }
+  const count = selected.size;
+  return (
+    <LibraryScreen
+      title="Envoyer mes mouvements"
+      testID="library-send"
+      primary={phase.kind === "error" && phase.reconnect
+        ? { label: "Se reconnecter", onPress: () => router.replace({ pathname: "/library-connect", params: { next: "send" } }), testID: "library-send-reconnect" }
+        : { label: count > 0 ? `Envoyer (${count})` : "Envoyer", onPress: () => void send(), disabled: count === 0, testID: "library-send-submit" }}
+    >
+      <Paragraph tone="secondary">{`Vers l'administration · ${session.name}`}</Paragraph>
+      {phase.kind === "error" ? <Notice tone="danger" title="Envoi impossible" testID="library-send-error">{phase.message}</Notice> : null}
+      {movements.length === 0 ? (
+        <Paragraph testID="library-send-empty">Aucun mouvement personnel à envoyer. Les mouvements importés d&apos;une bibliothèque ne sont pas envoyés.</Paragraph>
+      ) : (
+        <Card testID="library-send-list">
+          {movements.map((movement, index) => {
+            const on = selected.has(movement.id);
+            const toggle = () => setSelected((current) => {
+              const next = new Set(current);
+              if (next.has(movement.id)) next.delete(movement.id);
+              else next.add(movement.id);
+              return next;
+            });
+            return (
+              <View key={movement.id}>
+                {index > 0 ? <Divider /> : null}
+                <Pressable
+                  onPress={toggle}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: on }}
+                  accessibilityLabel={movement.name}
+                  style={screenStyles.switchRow}
+                  testID={`library-send-item-${movement.id}`}
+                >
+                  <Text style={screenStyles.switchLabel} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+                    {movement.name}
+                  </Text>
+                  <Switch value={on} onValueChange={toggle} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden />
+                </Pressable>
+              </View>
+            );
+          })}
+        </Card>
+      )}
+      <Paragraph tone="secondary">Les photos et vidéos ne sont pas envoyées dans cette version.</Paragraph>
+    </LibraryScreen>
+  );
+}
+
 const screenStyles = StyleSheet.create({
   empty: { alignItems: "center", gap: spacing[8], paddingVertical: spacing[24] },
   counters: { flexDirection: "row", gap: spacing[8] },
@@ -882,4 +1041,6 @@ const screenStyles = StyleSheet.create({
   counterLabel: { ...type.supporting, color: colors.textSecondary },
   progressTrack: { height: 8, borderRadius: 4, backgroundColor: colors.surface, overflow: "hidden" },
   progressFill: { height: 8, borderRadius: 4, backgroundColor: colors.primary },
+  switchRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: minTouchTarget, paddingVertical: spacing[8], gap: spacing[8] },
+  switchLabel: { ...type.label, color: colors.textPrimary, flex: 1 },
 });

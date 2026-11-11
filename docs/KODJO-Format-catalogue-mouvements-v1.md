@@ -361,7 +361,7 @@ Enveloppe `KODJO_MOVEMENT_INBOX` 1.0.0 :
   - 1 à 200 Mouvements par envoi ;
   - nom de 1 à 80 points de code ;
   - au plus 20 alias valides et distincts ;
-  - au plus 20 étapes, chacune non vide et d'au plus 65 points de code, 1 000 au total ;
+  - étapes non vides, 1 000 points de code au total une fois encodées (contrat du Mouvement, QN-1) ; aucune borne par étape [11/11/2026 : remplace « au plus 20 étapes, chacune d'au plus 65 points de code », qui aurait refusé des Mouvements valides du téléphone] ;
   - Catégorie et au moins une Zone, libellés alignés sur les identifiants.
 - Toute anomalie refuse l'envoi entier.
 - Doublons dans un envoi : identiques → fusionnés ; contenus différents pour un même `movementId` → refus.

@@ -72,12 +72,11 @@ describe("parseMovementInbox", () => {
     expect(parseMovementInbox(envelope(many))).toMatchObject({ ok: false, issues: [{ path: "movements", code: "TOO_MANY" }] });
   });
 
-  it("applique les limites du Mouvement : nom ≤ 80, ≤ 20 étapes de ≤ 65 points de code, Zones obligatoires", () => {
+  it("applique les limites du Mouvement : nom ≤ 80, étapes ≤ 1 000 points de code encodés (QN-1), Zones obligatoires", () => {
     const cases: [Record<string, unknown>, string, string][] = [
       [{ name: "x".repeat(81) }, "movements[0].name", "TOO_LONG"],
       [{ name: "  " }, "movements[0].name", "REQUIRED"],
-      [{ steps: Array.from({ length: 21 }, () => "Étape") }, "movements[0].steps", "TOO_MANY"],
-      [{ steps: ["é".repeat(66)] }, "movements[0].steps", "TOO_LONG"],
+      [{ steps: ["é".repeat(1001)] }, "movements[0].steps", "TOO_LONG"],
       [{ steps: ["Ligne\nsuivante"] }, "movements[0].steps", "INVALID"],
       [{ bodyZoneIds: [] , bodyZoneLabels: [] }, "movements[0].bodyZoneIds", "INVALID"],
       [{ bodyZoneLabels: ["Bras"] }, "movements[0].bodyZoneLabels", "INVALID"],
@@ -89,8 +88,9 @@ describe("parseMovementInbox", () => {
     for (const [override, path, code] of cases) {
       expect(parseMovementInbox(envelope([movement(override)]))).toEqual({ ok: false, issues: [{ path, code }] });
     }
-    // 65 points de code exactement : admis (emoji = 1 point de code, 2 unités UTF-16).
-    expect(parseMovementInbox(envelope([movement({ steps: ["😀".repeat(65)] })])).ok).toBe(true);
+    // Contrat du téléphone : 21 étapes, ou une étape de 120 points de code, sont admises (aucune borne par étape).
+    expect(parseMovementInbox(envelope([movement({ steps: Array.from({ length: 21 }, () => "Étape") })])).ok).toBe(true);
+    expect(parseMovementInbox(envelope([movement({ steps: ["😀".repeat(120)] })])).ok).toBe(true);
   });
 
   it("déduplique par movementId : doublon exact fusionné, contenus divergents refusés", () => {

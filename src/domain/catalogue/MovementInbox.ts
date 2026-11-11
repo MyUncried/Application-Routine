@@ -26,9 +26,12 @@ export const MOVEMENT_INBOX_FORMAT = "KODJO_MOVEMENT_INBOX";
 export const MOVEMENT_INBOX_FORMAT_VERSION = "1.0.0";
 /** Mouvements par envoi. */
 export const MOVEMENT_INBOX_MAX_MOVEMENTS = 200;
-/** Étapes : au plus 20, chacune d'au plus 65 points de code (règles de l'administration Web). */
-export const MOVEMENT_INBOX_MAX_STEPS = 20;
-export const MOVEMENT_INBOX_MAX_STEP_LENGTH = 65;
+/**
+ * Étapes : contrat du Mouvement de l'application (QN-1, 19/10/2026) — total encodé ≤ 1 000 points de code,
+ * aucune borne par étape ni par nombre d'étapes, afin qu'aucun Mouvement valide du téléphone ne soit refusé.
+ * [11/11/2026 : bornes « 20 étapes de 65 points de code » de l'administration Web retirées de la boîte d'arrivée ;
+ * elles restent des repères éditoriaux de l'administration.]
+ */
 export const MOVEMENT_INBOX_MAX_ALIASES = 20;
 export const MOVEMENT_INBOX_MAX_ID_LENGTH = 128;
 export const MOVEMENT_INBOX_MAX_LABEL_LENGTH = 80;
@@ -191,17 +194,11 @@ function parseMovement(
   const steps: string[] = [];
   if (!Array.isArray(item.steps) || !item.steps.every((step) => typeof step === "string")) {
     flag("steps", "INVALID");
-  } else if (item.steps.length > MOVEMENT_INBOX_MAX_STEPS) {
-    flag("steps", "TOO_MANY");
   } else {
     for (const step of item.steps as string[]) {
       const trimmed = step.trim();
       if (trimmed === "" || /[\r\n]/.test(trimmed)) {
         flag("steps", "INVALID");
-        break;
-      }
-      if (codePointLength(trimmed) > MOVEMENT_INBOX_MAX_STEP_LENGTH) {
-        flag("steps", "TOO_LONG");
         break;
       }
       steps.push(trimmed);
