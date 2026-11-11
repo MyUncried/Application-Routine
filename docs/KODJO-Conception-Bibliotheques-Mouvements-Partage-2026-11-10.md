@@ -14,7 +14,7 @@ BIB-19 à BIB-23 limitent **l'offre de Bibliothèques proposée à l'utilisateur
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
-Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. Voir le registre BIB-19 à BIB-23.
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
 
 ## 1. Concepts et identités
 
@@ -65,7 +65,7 @@ Les droits s'appliquent à la fiche éditoriale **reçue**, pas à l'insertion o
 
 ### 2.2 Distribution sélective d'une Bibliothèque
 
-La composition personnelle peut inclure des fiches propres Protégées et des fiches tierces non redistribuables. La version reçue n'expose que les fiches que l'émetteur a le droit de publier ou redistribuer : aucune donnée des fiches tierces interdites, pas même un titre ou un emplacement bloqué. Les Mouvements reçus gardent leurs restrictions ; le destinataire ne peut ni réorganiser la Bibliothèque reçue ni faire apparaître les éléments non autorisés.
+La composition personnelle peut inclure des fiches propres dont la redistribution n'est pas accordée aux destinataires et des fiches tierces non redistribuables [texte d'origine : « des fiches propres Protégées » — remplacé le 11/11/2026]. La version reçue n'expose que les fiches que l'émetteur a le droit de publier ou redistribuer : aucune donnée des fiches tierces interdites, pas même un titre ou un emplacement bloqué. Les Mouvements reçus gardent leurs restrictions ; le destinataire ne peut ni réorganiser la Bibliothèque reçue ni faire apparaître les éléments non autorisés.
 
 Un changement de permission ne doit jamais révéler rétroactivement un contenu avant autorisation centrale et contrôle de droits. Le devenir d'une ancienne version déjà téléchargée après modification de droits ou de composition est à préciser (§ 7).
 

@@ -1,5 +1,9 @@
 # Documentation de KODJO
 
+## Décisions A-1 à A-6 — reprise du chantier Catalogue autonome (11/11/2026)
+
+[Registre, section « Décisions A-1 à A-6 »](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) : Bibliothèque = collection logique de références (A-1) ; fiche importée ni copiée, ni dupliquée, ni modifiée (A-2) ; branche d'intégration `catalogue/integration-pre10-20261111` (A-3) ; écrans Figma, report de « Mes bibliothèques », « Bibliothèques partagées » et de la désinstallation (A-4) ; réemploi sélectif des PR #421 à #434 (A-5) ; Wi-Fi = simple canal de transport (A-6). Choix techniques P0 et points À CLARIFIER au registre.
+
 ## Étape 2 — modèle cible de la fiche Mouvement
 
 [Spécification de développement : auteur unique, médias hybrides, fiches importées protégées et migrations](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Décisions MOUV-D1 à D4 confirmées ; développement non exécuté. Le dossier précédent d'audit mentionne des divergences désormais arbitrées : ces mentions sont **historiques** sur la cardinalité de l'auteur et la lecture seule des importées.
@@ -14,7 +18,7 @@
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
-Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. Voir le registre BIB-19 à BIB-23.
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
 
 ## Bibliothèques et partage de Mouvements — conception cible
 

@@ -2545,7 +2545,7 @@ Constat de Hermann, recopié textuellement :
 | Étape | Contenu à réaliser | Livrable / dépendance |
 |---|---|---|
 | **1 — Fiche Mouvement, conception normative** | Attributs, cardinalités, référentiels, validation, identité source, provenance, médias, révisions, droits éditoriaux, création/édition/duplication ; distinguer contenu de Mouvement réutilisable dans les Séances et métadonnées de fiche ; décrire les contrats futurs de partage sans les développer | Fiche normative et arbitrages ouverts |
-| **2 — Modèle de données** | Consolider **CA-1/CA-2** et la préparation **CA-3**, sans reconstruire ; persister les propriétés complètes, identité, provenance, révisions, médias et droits de source nécessaires ; conserver provisoirement le registre SQLite distinct | Schéma/migrations compatibles avec PRE-10 ; **migration numérotée à l'intégration**, jamais 024 réservée |
+| **2 — Modèle de données** | Consolider **CA-1/CA-2** et la préparation **CA-3**, sans reconstruire ; persister les propriétés complètes, identité, provenance, révisions, médias et droits de source nécessaires ; conserver provisoirement le registre SQLite distinct | Schéma/migrations compatibles avec PRE-10 ; **migration numérotée à l'intégration**, jamais 024 réservée [précision du 11/11/2026 : 024 à 027 sont déjà utilisées par les lignes PRE-10 ; une nouvelle migration PRE-10 portera un numéro ≥ 028, à coordonner] |
 | **3 — Conception Figma Profil** | Gestion des sources, Bibliothèques génériques, import, informations de provenance, mises à jour ; le Catalogue conserve la création/édition de Mouvement ; les parcours de partage personnels/coach restent hors premier lot | Écrans et interactions à stabiliser avant développement mobile ; écran `1992:778` déjà contrôlé, comportements non représentés à préciser |
 | **4 — Services communs CA-3** | Lecture du fichier catalogue autonome, validation, identification, comparaison de révisions, import/export, installation, mise à jour, conflits et réconciliation, indépendamment des interfaces | Contrats communs utilisés par KODJO et administration Web ; conserver les décisions accepter/refuser/reporter du **canal de recette** sans les confondre avec la mise à jour utilisateur des Bibliothèques |
 | **5 — Administration Web** | Faire évoluer l'administration existante pour créer un **61e Mouvement**, éditer toutes les propriétés, médias et révisions, puis exporter un fichier intégralement compatible ; préciser responsabilités **Node.js local / OVH**, éviter deux logiques métier | Peut progresser en parallèle de l'étape 4 après stabilisation des contrats ; **ne pas confondre** console éditoriale et futur serveur de partage/modération |
@@ -2555,21 +2555,84 @@ Constat de Hermann, recopié textuellement :
 
 **Responsabilités :** Catalogue = création/édition et usage des Mouvements, Séances, Programmes ; Profil = sources et Bibliothèques, installation, versions et mises à jour ; services communs = données éditoriales, import/export, versions, conflits et réconciliation. **Profil n'est pas un second éditeur de Mouvement.**
 
-**Points ouverts :** désinstallation, traitement exact d'une fiche installée adaptée localement, comportement des entrées Figma « Mes bibliothèques » / « Bibliothèques partagées » tant que leurs fonctions sont reportées ; modalités détaillées d'import/export depuis Profil. À ne pas inventer. L'import fichier du pilote et le parcours utilisateur « Mettre à jour » ne sont pas synonymes.
+**Points ouverts :** désinstallation, traitement exact d'une fiche installée adaptée localement, comportement des entrées Figma « Mes bibliothèques » / « Bibliothèques partagées » tant que leurs fonctions sont reportées ; modalités détaillées d'import/export depuis Profil. [Mis à jour le 11/11/2026 : désinstallation et entrées « Mes bibliothèques » / « Bibliothèques partagées » **reportées hors du premier lot** (A-4, premier lot conforme à la variante Figma `12119:25611` sans toast de désinstallation) ; aucune adaptation locale d'une fiche importée n'est autorisée (A-2), seules les adaptations historiques des 60 Mouvements relèvent de la réconciliation CA-3. Reste ouvert : modalités détaillées d'import/export depuis Profil.] À ne pas inventer. L'import fichier du pilote et le parcours utilisateur « Mettre à jour » ne sont pas synonymes.
+
+## Décisions A-1 à A-6 — reprise du chantier Catalogue autonome (11/11/2026)
+
+**Décisions de Hermann du 11/11/2026**, recopiées dans leurs parties normatives. Elles complètent MOUV-D1 à MOUV-D4, BIB-19 à BIB-23 et le plan en six étapes ci-dessus ; elles ne valident aucun écran ni aucune livraison fonctionnelle. Classe **B** (évolution validée) pour A-1, A-2, A-4 et A-6 ; A-3 et A-5 sont des décisions d'organisation du chantier (sans effet sur une règle métier).
+
+### A-1 — Une Bibliothèque est une collection logique
+
+« Une Bibliothèque n'est pas définie par un fichier physique. Une Bibliothèque est une collection logique identifiable de références vers des fiches Mouvement. Elle possède sa propre identité, sa composition et les métadonnées nécessaires à sa gestion. »
+
+- **Aucune restriction fonctionnelle** n'est posée par le modèle sur : les spécialités ou catégories couvertes ; le nombre ou la nature des Mouvements ; l'éditeur ou le propriétaire ; l'appartenance d'une même fiche à plusieurs Bibliothèques ; le mode de stockage et de distribution. (Le **premier lot** reste limité aux Bibliothèques génériques éditées par KODJO par BIB-19 : c'est une limite de périmètre, pas une restriction du modèle.)
+- Une fiche référencée par plusieurs Bibliothèques **n'est pas dupliquée**.
+- **Ne pas confondre** : Bibliothèque / catégorie ou spécialité / fiche éditoriale / Mouvement local / fichier catalogue / éditeur ou source. Un fichier catalogue est un **moyen de transport** pouvant contenir une ou plusieurs Bibliothèques ; il ne les définit pas.
+- Le **corpus pilote des 60 Mouvements** reste **privé et non publié**.
+
+### A-2 — Fiche Mouvement importée en lecture seule
+
+« une fiche Mouvement importée ne peut être ni copiée, ni dupliquée, ni modifiée, même pour créer une version personnelle » — afin de garantir la cohérence entre propriétés, consignes, phases, photos et vidéos.
+
+- Fiche importée **entièrement en lecture seule** dans KODJO ; **aucune copie personnelle ni dérivation locale**.
+- Le référencement dans plusieurs Bibliothèques **ne crée aucune copie**.
+- **Redistribution à l'identique** seulement si elle est explicitement autorisée, en préservant identité, contenu, provenance et restrictions.
+- Les **paramètres d'exécution des Exercices** restent indépendants et modifiables (BIB-08).
+- Les **Mouvements personnels originaux** restent modifiables par leur créateur.
+- Le rattachement des **60 Mouvements existants** à leurs fiches ne doit supprimer ni leurs identités ni leurs références dans les Exercices et les Séances.
+- **Ne pas réintroduire** : les quatre anciens modes de permission (Protégé, Libre localement, Partageable à l'identique, Libre), une permission de copie, ni `LOCAL_DERIVED` comme mécanisme de copie.
+- **Mouvement personnel envoyé à l'administrateur puis rattaché à une fiche publiée** : son identité et ses données sont préservées ; la transition de statut **n'est pas définie** → **À CLARIFIER** (aucune règle inventée).
+
+Cette décision confirme et étend MOUV-D3 ; elle fonde la révision du 11/11/2026 de BIB-06, BIB-07, BIB-11 et BIB-13 (ci-dessous et dans les documents Bibliothèques).
+
+### A-3 — Branche d'intégration
+
+La branche d'intégration est construite à partir de la ligne PRE-10 la plus avancée, stable et qualifiée. Vérification : `composition-phases-duree` (`f5bb4316`, recette iPhone n° 2 entièrement OK) est retenue ; `pre10-son-voix` existe uniquement en local (non poussée, en cours) et un `merge-tree` avec elle est propre. Branche d'intégration : `catalogue/integration-pre10-20261111`.
+
+### A-4 — Écrans Figma, Profil et Catalogue
+
+- Les écrans Figma existent (fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page `510:101`) : `12098:115`, `12116:25015`, `12116:25073`, `12116:25103`, `12116:25138`, `12116:25175`, `12116:25200`, `12116:25238`, `12118:25124`, `12118:25170`, `12118:25220`, `12118:25251`, `12118:25316`, `12118:25370`, `12119:25162`, `12119:25204`, `12119:25245`, `12119:25277`, `12119:25304`, `12119:25493`, `12119:25611`. Leur existence ne vaut pas validation UX complète.
+- **« Mes bibliothèques »** et **« Bibliothèques partagées »** sont **reportées hors du premier lot** ; la **désinstallation** est reportée hors du premier lot. Leurs écrans Figma sont **conservés** (report traçable).
+- La **création et l'édition de Mouvement restent dans le Catalogue** ; le **Profil** est l'entrée d'administration des Bibliothèques, **pas un second éditeur de Mouvement**.
+- **Résout l'« À CLARIFIER » sur les deux entrées du Profil** (axe G de la réconciliation A–H) : elles ne font pas partie du premier lot. Deux variantes du Profil coexistent dans Figma : `12116:25015` présente encore les entrées reportées ; `12119:25611` présente « Ajouter une bibliothèque » et « Envoyer mes mouvements ». **Le premier lot suit `12119:25611`, sans le toast de désinstallation.**
+
+### A-5 — Réemploi des PR #421 à #434
+
+Les apports des PR #421 à #434 sont réemployés **sélectivement**. Aucune de ces PR n'est fermée tant que son remplacement n'a pas été vérifié.
+
+### A-6 — Wi-Fi : canal de transport
+
+Le Wi-Fi n'est qu'un **canal de transport** du même format de catalogue autonome et des mêmes validations, **pas un second modèle**. Il couvre : appairage temporaire, autorisation, validation stricte, téléchargement de Bibliothèques, réception des Mouvements envoyés, erreurs réseau et reconnexion, sécurité.
+
+### Choix techniques réalisés en P0 (classe D — techniques, pas de nouvelle règle métier)
+
+Ces choix mettent en œuvre A-1 et A-2 ; ils ne créent aucune règle métier.
+
+- **Format de fichier catalogue v2 `2.0.0`** : auteur unique `author` (MOUV-D1) ; `libraries[]` dont les membres sont des **références** `(catalogueId, sheetId)` (A-1) ; un fichier v1 reste lisible et est converti ; `LOCAL_DERIVED` est **refusé** (A-2).
+- **Registre `kodjo-catalogue-registry.db`, schéma v2** : tables `installed_libraries`, `library_operations`, `library_decisions` ; base **séparée**, **aucune migration PRE-10**.
+- **Garde de lecture seule au niveau service** : la modification ou la duplication d'une fiche importée est refusée même par appel direct du service (A-2, MOUV-D3).
+- Document de référence : `docs/KODJO-Format-catalogue-mouvements-v1.md` § 10, présent sur la branche `catalogue/connecte-dev-20261111` (non recopié ici ; ce fichier n'existe pas sur la présente branche documentaire).
+
+### Points À CLARIFIER (non décidés)
+
+1. **Mouvement personnel envoyé à l'administrateur puis catalogué** (A-2) : transition de statut non définie ; identité et données préservées en attendant.
+2. **Ajout d'un niveau (famille) à côté d'un Mouvement importé** : crée un nouveau Mouvement personnel et modifie le regroupement local de la famille, pas le contenu de la fiche. Actuellement permis dans le code ; **à confirmer**.
+3. **Choix fiche par fiche en cas de conflit avec une adaptation historique pendant la mise à jour d'une Bibliothèque** : non représenté dans Figma ; traité pour l'instant par le canal existant de revue fiche par fiche.
+4. **Migration des homonymes de `movements.normalized_name`** : migration additive à coordonner avec PRE-10 ; numéro **≥ 028**, les numéros 024 (ligne `composition-phases-duree`) et 025 à 027 (`pre10-son-voix`) étant déjà utilisés.
 
 ## Décision de périmètre — Bibliothèques génériques KODJO (10/11/2026)
 
 **Décision validée par Hermann — BIB-19 à BIB-23.** Ce cadrage remplace, pour le **premier lot Bibliothèques**, les parcours de création/partage personnel qui étaient auparavant envisagés en premier ; les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 ne sont maintenues que comme **cible ultérieure**, lorsqu'elles concernent des éditeurs tiers, le partage ou la distribution.
 
 - **BIB-19 — Premier lot :** Bibliothèques génériques éditées et maintenues par KODJO (exemples : Fitness, Hyrox, Pilates, Yoga). Ces libellés sont des exemples de Bibliothèques et ne doivent pas être confondus avec les catégories/filtres existants du Catalogue.
-- **BIB-20 — Rôles des écrans :** le **Catalogue** reste l'accès aux Mouvements, Séances et Programmes, ainsi qu'à leurs créations/personnalisations locales. Dans le **Profil**, la gestion des Bibliothèques permet de sélectionner, installer et mettre à jour les Bibliothèques KODJO. Le libellé Figma « Mes bibliothèques » désigne actuellement celles que l'utilisateur crée et rend disponibles : ne pas le réaffecter aux Bibliothèques génériques sans décision UX. Le bloc « Mes données » (Mouvements, Séances, Programmes) est supprimé du Profil car redondant avec le Catalogue. Le détail graphique et les états Figma restent à concevoir : aucune maquette n'est déclarée modifiée ni validée.
-- **BIB-21 — Protection du contenu publié :** l'utilisateur ne modifie pas directement la composition et les fiches publiées d'une Bibliothèque KODJO. Il peut continuer à créer et personnaliser ses contenus propres dans le Catalogue, sans muter la source publiée. Le traitement exact d'une adaptation locale d'une fiche installée reste à spécifier avant implémentation.
+- **BIB-20 — Rôles des écrans :** le **Catalogue** reste l'accès aux Mouvements, Séances et Programmes, ainsi qu'à leurs créations/personnalisations locales. Dans le **Profil**, la gestion des Bibliothèques permet de sélectionner, installer et mettre à jour les Bibliothèques KODJO. Le libellé Figma « Mes bibliothèques » désigne actuellement celles que l'utilisateur crée et rend disponibles : ne pas le réaffecter aux Bibliothèques génériques sans décision UX. [11/11/2026, A-4 : « Mes bibliothèques » est reporté hors du premier lot ; ses écrans Figma sont conservés.] Le bloc « Mes données » (Mouvements, Séances, Programmes) est supprimé du Profil car redondant avec le Catalogue. Le détail graphique et les états Figma restent à concevoir : aucune maquette n'est déclarée modifiée ni validée.
+- **BIB-21 — Protection du contenu publié :** l'utilisateur ne modifie pas directement la composition et les fiches publiées d'une Bibliothèque KODJO. Il peut continuer à créer et personnaliser ses contenus propres dans le Catalogue, sans muter la source publiée. Le traitement exact d'une adaptation locale d'une fiche installée reste à spécifier avant implémentation. [Tranché le 11/11/2026 par A-2 : une fiche importée ne peut être ni copiée, ni dupliquée, ni modifiée, même pour créer une version personnelle ; seules les adaptations historiques des 60 Mouvements sont réconciliées par CA-3.]
 - **BIB-22 — Mise à jour volontaire :** les nouvelles révisions sont proposées et appliquées sur action explicite « Mettre à jour » ; aucune modification silencieuse du contenu installé. Préserver les Séances et les contenus locaux existants ; définir le traitement des conflits et du retrait/désinstallation avant le lot concerné.
 - **BIB-23 — Report explicite :** Bibliothèques personnelles, de coachs ou d'autres éditeurs ; composition/publication par utilisateur, relations, groupes, partage, transmission, gestion des permissions de destinataires, modération centrale liée à la diffusion et commerce sont **hors premier périmètre Bibliothèques**. Préserver l'extensibilité de l'identité et de la composition, sans implémenter maintenant cet écosystème.
 
 **Phasage fonctionnel des Bibliothèques (distinct du plan de réalisation)** : les Bibliothèques génériques KODJO et leurs mises à jour sont prioritaires ; les créations personnelles/coachs, droits destinataires, partage, relations, modération communautaire et commerce sont reportés. Le **seul plan de réalisation actif** est celui en six étapes ci-dessus ; aucune séquence concurrente « L1/L2 » n'est prescrite. La catégorisation préexistante du Catalogue ne doit pas être transformée implicitement en Bibliothèque ni supprimée.
 
-**Limites de validation :** aucune conception d'écran Bibliothèques n'est validée dans Figma ; les conditions de désinstallation, les adaptations locales et les éventuelles exceptions aux contenus protégés restent **À CLARIFIER**. Cette décision documentaire ne constitue pas une livraison fonctionnelle.
+**Limites de validation :** aucune conception d'écran Bibliothèques n'est validée dans Figma ; les conditions de désinstallation, les adaptations locales et les éventuelles exceptions aux contenus protégés restent **À CLARIFIER**. [11/11/2026 : écrans Figma existants listés par A-4 (sans validation UX complète) ; désinstallation reportée hors du premier lot (A-4) ; aucune adaptation ni exception de copie/modification pour une fiche importée (A-2).] Cette décision documentaire ne constitue pas une livraison fonctionnelle.
 
 ## Décisions validées — Bibliothèques et distribution des Mouvements
 

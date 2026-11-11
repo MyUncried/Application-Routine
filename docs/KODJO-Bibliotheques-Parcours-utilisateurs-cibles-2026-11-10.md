@@ -12,7 +12,7 @@
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
-Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. Voir le registre BIB-19 à BIB-23.
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
 
 ## 1. Définitions et règles communes
 
@@ -90,7 +90,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 ### PU-06 — Partager un Mouvement seul
 
 **Acteur :** utilisateur autorisé à redistribuer le Mouvement, ou propriétaire publiant sa fiche.  
-**Déroulement :** action « Partager » sur la fiche ; le propriétaire habilité peut publier sa propre fiche même en mode destinataire « Protégé ». Un destinataire ne peut retransmettre une fiche tierce que si le droit Redistribuer l'autorise. Même contrôle central, sans Bibliothèque fictive.  
+**Déroulement :** action « Partager » sur la fiche ; le propriétaire habilité peut publier sa propre fiche même sans accorder à ses destinataires le droit de la redistribuer [texte d'origine : « même en mode destinataire « Protégé » » — remplacé le 11/11/2026]. Un destinataire ne peut retransmettre une fiche tierce que si le droit Redistribuer l'autorise. Même contrôle central, sans Bibliothèque fictive.  
 **Résultat :** distribution de la révision approuvée aux destinataires habilités avec ses permissions et sa provenance.  
 **Technique à examiner :** mutualiser le service de partage sans imposer un objet Bibliothèque fictif.
 
@@ -200,7 +200,7 @@ Ne pas introduire un cycle universel « Brouillon → Active → Inactive » pou
 10. Le propriétaire arrête la diffusion ; les nouveaux destinataires n'installent plus et les destinataires existants ne reçoivent plus de mises à jour.
 11. Une révision non approuvée n'est pas distribuée ; une révision approuvée et inchangée n'est pas revalidée pour chaque Bibliothèque.
 12. Une suspension de modération bloque l'accès réseau et est prise en compte lors d'un contact ultérieur de l'application, sans attendre une mise à jour éditoriale.
-13. Les préférences ou paramètres d'Exercice ne deviennent pas verrouillés du seul fait qu'une fiche Mouvement est Protégée.
+13. Les préférences ou paramètres d'Exercice ne deviennent pas verrouillés du seul fait qu'une fiche Mouvement est reçue/importée en lecture seule [texte d'origine : « est Protégée » — remplacé le 11/11/2026].
 14. Hors connexion, l'Exécution des données locales reste disponible sous réserve des restrictions déjà connues.
 15. Un utilisateur transmet un Mouvement dans une relation individuelle de l'Espace en étoile, sans prescription numérique ; dans l'usage kiné-patient, les consignes d'exécution restent orales.
 16. Le patient A ne reçoit pas par cette transmission la liste ou les données du patient B relié au même kinésithérapeute.

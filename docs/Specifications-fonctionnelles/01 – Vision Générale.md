@@ -481,9 +481,9 @@ Ces termes décrivent la **diffusion entre utilisateurs** et ne changent pas le 
 - **Fiche source** : identité éditoriale stable (espace de noms de source + identifiant de fiche), indépendante du nom affiché, de l'auteur et des Bibliothèques.
 - **Mouvement local** : objet possédant son `Movement.id`, déjà référencé par les Exercices et Séances ; une seule révision active par fiche source sur un appareil.
 - **Auteur** : un auteur unique connu, ou inconnu ; distinct du responsable administratif et du titulaire déclaré des droits.
-- **Bibliothèque** : composition ordonnée de références vers des Mouvements ; un même Mouvement peut appartenir à plusieurs Bibliothèques sans copie.
+- **Bibliothèque** : composition ordonnée de références vers des Mouvements ; un même Mouvement peut appartenir à plusieurs Bibliothèques sans copie. Collection logique identifiable, non définie par un fichier physique (A-1, 11/11/2026).
 - **Bibliothèque personnelle** : composition modifiable par son propriétaire. **Bibliothèque reçue** : composition non modifiable localement par le destinataire.
-- **Copie personnelle** : nouvelle identité locale avec provenance et permissions conservées ; distincte du simple référencement.
+- **Copie personnelle** : [Supersédée le 11/11/2026 par MOUV-D3 et A-2 : une fiche importée ne peut être ni copiée, ni dupliquée, ni modifiée, même pour créer une version personnelle ; seul le référencement est possible. Texte d'origine : « nouvelle identité locale avec provenance et permissions conservées ; distincte du simple référencement. »]
 - **Publier** : première diffusion par le propriétaire habilité. **Redistribuer** : transmission ultérieure par un destinataire lorsque sa permission l'autorise.
 - **Permissions de fiche (MOUV-D3)** : les fiches importées sont non modifiables et non duplicables ; leur éventuelle redistribution exige l'autorisation de la source. Les Mouvements créés personnellement restent modifiables/duplicables ; les paramètres des Exercices demeurent indépendants.
 - **Révision active** : version utilisée partout où la même identité source est référencée. Une mise à jour volontaire depuis une Bibliothèque la propage à toutes ses références locales, sans modifier leur composition.

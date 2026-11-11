@@ -8,7 +8,7 @@ Ce dossier est la **conception cible étendue**. Le **plan normatif d'exécution
 
 **Frontière de périmètre :** les mécanismes de publication par les utilisateurs, Bibliothèques personnelles ou de coachs, permissions destinataires, transmissions, groupes et commerce sont des évolutions ultérieures. L'édition des fiches par l'**administrateur KODJO** et la gestion locale d'identité/provenance/version restent nécessaires **dès maintenant** ; ne pas assimiler « droits de source » à « gestion communautaire des droits ». Ne pas assimiler fichier catalogue autonome (canal d'administration et de recette) à Bibliothèque générique choisie par l'utilisateur. Le Catalogue est l'éditeur courant des contenus personnels ; le Profil gère sources, installations et mises à jour, sans éditeur concurrent.
 
-**Compatibilité :** ne pas figer la migration 024 (occupée par PRE-10) ; attribuer la suivante lors de l'intégration. Le pilote des 60 fiches et ses opérations par fiche constituent un acquis à réemployer, pas une architecture à reconstruire. Le registre SQLite pilote reste provisoirement distinct ; aucune fusion imposée. Tests Jest et intégration PRE-10 non exécutés dans cette consolidation. Les sections détaillant des fonctionnalités de partage restent documentées comme **cible future**, sans constituer un prérequis au chantier courant.
+**Compatibilité :** ne pas figer la migration 024 (occupée par PRE-10) ; attribuer la suivante lors de l'intégration. [Précision du 11/11/2026 : 024 à 027 sont désormais utilisées par les lignes PRE-10 (`composition-phases-duree`, `pre10-son-voix`) ; numéro ≥ 028.] Le pilote des 60 fiches et ses opérations par fiche constituent un acquis à réemployer, pas une architecture à reconstruire. Le registre SQLite pilote reste provisoirement distinct ; aucune fusion imposée. Tests Jest et intégration PRE-10 non exécutés dans cette consolidation. Les sections détaillant des fonctionnalités de partage restent documentées comme **cible future**, sans constituer un prérequis au chantier courant.
 
 ## 0. Résumé architectural et périmètre
 
@@ -343,7 +343,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
   - \`src/domain/catalogue/catalogueLoadPlan.ts\` ;
   - \`src/infrastructure/catalogue/SqliteCatalogueRegistry.ts\` ;
   - \`src/features/catalogue/CatalogueLoadService.ts\`.
-- Le format du pilote emploie encore **\`authors[]\`** (non conforme à l'arbitrage d'auteur unique si plusieurs auteurs sont acceptés) ; le registre d'import dispose d'états/choix \`NEW\`, \`ADOPTABLE\`, \`NEW_REVISION\`, \`TO_RECONCILE\`, \`refuse\`, \`defer\` et d'une résolution manuelle des conflits.
+- Le format du pilote emploie encore **\`authors[]\`** (non conforme à l'arbitrage d'auteur unique si plusieurs auteurs sont acceptés) [constat historique ; tranché par MOUV-D1, cible `author` unique mise en œuvre par le format catalogue v2 `2.0.0` en P0 le 11/11/2026] ; le registre d'import dispose d'états/choix \`NEW\`, \`ADOPTABLE\`, \`NEW_REVISION\`, \`TO_RECONCILE\`, \`refuse\`, \`defer\` et d'une résolution manuelle des conflits.
 - Ces règles du **pilote de chargement local** n'implémentent pas un partage multi-utilisateur et ne doivent pas être réinterprétées comme telles. La branche pilote ne doit pas être fusionnée ni reconstruite silencieusement.
 
 ### 10.2 Migration et contrat attendu de Claude
@@ -377,7 +377,7 @@ Les anciens lots L1–L6 centrés sur la distribution communautaire sont **super
 | T-01 | Associer un Mouvement à deux Bibliothèques | Deux références, pas de copie source. |
 | T-02 | Retirer l'association d'une Bibliothèque personnelle | L'autre Bibliothèque et les Séances ne changent pas. |
 | T-03 | Tenter de copier, dupliquer ou modifier une fiche reçue/importée, quel que soit son ancien mode | **Refus systématique**, identité et source inchangées (MOUV-D3, A-2) ; référencement dans plusieurs Bibliothèques autorisé sans nouvelle fiche. |
-| T-04 | Propriétaire publie sa Bibliothèque mêlant ses propres fiches Protégées et des fiches tierces non redistribuables | Le propriétaire peut publier ses propres fiches avec droits destinataires Protégé ; les fiches tierces interdites ne sont jamais exposées. |
+| T-04 | Propriétaire publie sa Bibliothèque mêlant ses propres fiches non redistribuables par ses destinataires et des fiches tierces non redistribuables | Le propriétaire peut publier ses propres fiches sans accorder la redistribution ; les fiches tierces interdites ne sont jamais exposées. [Libellé d'origine fondé sur le mode « Protégé », remplacé le 11/11/2026 (MOUV-D3, A-2).] |
 | T-05 | Destinataire tente d'ajouter/retraiter un membre à la Bibliothèque reçue | Mutation interdite ; Bibliothèque personnelle modifiable. |
 | T-06 | Coach accorde la Bibliothèque à un groupe | Les membres autorisés peuvent utiliser les fiches éligibles sans grants individuels par fiche. |
 | T-07 | Publication d'une révision non approuvée | Distribution impossible, médias non servis. |

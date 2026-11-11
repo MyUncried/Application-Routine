@@ -1182,8 +1182,8 @@ Les identifiants ci-dessous appartiennent au registre fonctionnel. Ce complémen
 | BIB-03 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-04 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-05 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
-| BIB-06 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | **Supersédée pour les fiches importées par MOUV-D3** ; distribution future |
-| BIB-07 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | **Supersédée pour la copie des fiches importées par MOUV-D3** |
+| BIB-06 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | **Révisée le 11/11/2026 (MOUV-D3, A-2)** : fiche reçue/importée non modifiable ; seul le droit de redistribuer à l'identique peut être accordé ; quatre modes supersédés [libellé antérieur : « Supersédée pour les fiches importées par MOUV-D3 ; distribution future »] |
+| BIB-07 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | **Révisée le 11/11/2026 (MOUV-D3, A-2)** : aucune copie, duplication ni dérivation d'une fiche reçue/importée ; référencement multiple sans copie [libellé antérieur : « Supersédée pour la copie des fiches importées par MOUV-D3 »] |
 | BIB-08 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-09 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-10 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
@@ -1204,6 +1204,12 @@ Les identifiants ci-dessous appartiennent au registre fonctionnel. Ce complémen
 | MOUV-D2 | [Registre et contrat](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Médias distants avec cache à la demande |
 | MOUV-D3 | [Registre et contrat](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Fiche importée non modifiable et non duplicable |
 | MOUV-D4 | [Registre et contrat](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Révisions volontaires ; réconciliation historique des 60 |
+| A-1 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Bibliothèque = collection logique de références, non définie par un fichier (11/11/2026) |
+| A-2 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Fiche importée ni copiée, ni dupliquée, ni modifiée ; redistribution à l'identique si autorisée (11/11/2026) |
+| A-3 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Branche d'intégration `catalogue/integration-pre10-20261111` depuis `composition-phases-duree` (11/11/2026) |
+| A-4 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Écrans Figma Bibliothèques ; « Mes bibliothèques », « Bibliothèques partagées » et désinstallation reportées ; Profil n'édite pas les Mouvements (11/11/2026) |
+| A-5 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Réemploi sélectif des PR #421 à #434, fermeture après vérification du remplacement (11/11/2026) |
+| A-6 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Wi-Fi = canal de transport du même format catalogue, pas un second modèle (11/11/2026) |
 | F4-A | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
 | F4-B | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
 | F4-C | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
