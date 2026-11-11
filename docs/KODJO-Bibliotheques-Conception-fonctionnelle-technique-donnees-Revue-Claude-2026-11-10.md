@@ -16,7 +16,7 @@ KODJO doit permettre à un utilisateur de créer/organiser localement des Biblio
 
 La cible vise une **séparation logique** simple, pas un ensemble de microservices dès le départ :
 
-1. **Domaine Mouvements** : identité éditoriale, provenance, révisions, droits de modification/redistribution, médias.
+1. **Domaine Mouvements** : identité éditoriale, provenance, révisions, édition réservée à l'auteur/propriétaire habilité, redistribution conditionnelle des fiches reçues, médias.
 2. **Domaine Bibliothèques** : composition par référence, version de composition, visibilité, archivage, partage et arrêt de diffusion.
 3. **Domaine Accès** : autorisation d'utiliser les Mouvements reçus via une Bibliothèque (individu/groupe) ou transmis individuellement au sein de l'Espace en étoile (modalités relationnelles à préciser) ; preuve locale d'installation et conservation des droits après retrait d'un membre.
 4. **Domaine Distribution et modération** : demande de diffusion, contrôle d'une révision, publication, signalements et retraits prioritaires.
@@ -397,7 +397,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 **Métier / produit :**
 - A1. Politique d'accès payant après expiration, retour/remboursement et changement d'appareil.
 - A2. Possibilité de reprendre la diffusion après un arrêt et sort des destinataires existants lors de cette reprise.
-- A3. Modifications ultérieures des permissions (retrait du droit de redistribuer) sur des copies déjà installées.
+- A3. Modifications ultérieures des permissions (retrait du droit de redistribuer) sur des fiches déjà installées.
 - A4. **Précisé** : création originale modifiable localement et non redistribuable par des tiers par défaut ; le propriétaire choisit les droits des destinataires à la première publication. Modalité de restriction ultérieure encore ouverte.
 - A5. Insertion de nouveaux membres dans une Bibliothèque reçue si l'abonné ne demande pas de mise à jour (règle générale : aucun changement ; confirmer cas d'accès).
 - A6. **Résolu par F4-G** : révision active unique, propagation transversale et aperçu préalable des Bibliothèques concernées. Cohérence multi-fiches à vérifier techniquement.
@@ -419,7 +419,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 1. Lire entièrement les deux documents cibles et la conception initiale ; comparer avec les chapitres 01–13, PRODUCT.md, INDEX.md et le registre, en conservant la distinction BIB-01–18 / F4-A–F / KIN-01.
 2. Analyser le **code existant réellement dans les branches pertinentes** (main et pilote catalogue) avant de proposer migrations ou services ; ne pas reconstituer l'état du dépôt à partir d'un souvenir.
 3. Vérifier la cohérence des 17 parcours et la traçabilité de chaque décision avec preuves, identifier toute nouvelle règle non validée.
-4. Auditer en priorité : accès hérités de la Bibliothèque, conservation après retrait, mise à jour globale reprenable, versions d'une même fiche dans plusieurs Bibliothèques, héritage des permissions sur copies, arrêt/archivage, modération et droits commerciaux isolés.
+4. Auditer en priorité : accès hérités de la Bibliothèque, conservation après retrait, mise à jour globale reprenable, versions d'une même fiche dans plusieurs Bibliothèques, interdiction de duplication des fiches reçues et droits de redistribution attachés à la source, arrêt/archivage, modération et droits commerciaux isolés.
 5. Fournir une architecture **minimale** et une alternative si le choix proposé est complexe ; chiffrer en complexité (faible/moyen/fort) sans inventer de coût ni imposer une technologie.
 6. Détailler les relations et index des tables qui seraient réellement nécessaires, ainsi que contraintes référentielles, migrations, stratégie de cache et transactions.
 7. Auditer sécurité des droits côté serveur, confidentialité, accès média, signalements et capacité réelle de neutralisation iOS ; signaler les limites.
