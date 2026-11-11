@@ -625,10 +625,10 @@ Les opérations ci-dessous sont **fonctionnelles et post-MVP** ; les endpoints e
 |---|---|
 | Composer une Bibliothèque personnelle | Gérer des associations ordonnées vers des `Movement.id` existants, **sans copie**. |
 | Publier sa propre fiche | Autoriser le propriétaire habilité à diffuser sa révision approuvée en définissant les permissions des destinataires, même lorsqu'elles valent « Protégé ». |
-| Redistribuer une fiche tierce | Exiger le droit Redistribuer de la révision ; aucune donnée interdite dans la projection de Bibliothèque. |
+| Redistribuer une fiche tierce | Exiger le droit Redistribuer de la révision et transmettre la fiche à l'identique ; aucune modification, copie éditoriale ou donnée interdite dans la projection de Bibliothèque. |
 | Approuver une révision | Associer la décision et le statut des médias à une empreinte/révision immuable, avant livraison. |
 | Accorder l'accès à une Bibliothèque | Destinataire ou groupe habilité ; transmission directe d'une fiche dans une relation individuelle distincte. |
-| Installer un Mouvement | Identifier la fiche par `(source_namespace, sheet_id)`, indépendamment du nom affiché ; une seule correspondance `Movement.id` locale. Deux « Squat » de sources distinctes ne fusionnent pas. |
+| Installer un Mouvement | Identifier la fiche par `(source_namespace, sheet_id)`, indépendamment du nom affiché ; une seule correspondance `Movement.id` locale. Deux « Squat » de sources distinctes ne fusionnent pas. La fiche reçue n'est ni modifiable ni duplicable ; sa référence depuis une autre Bibliothèque ne crée pas une seconde fiche. |
 | Lister des mises à jour | Fournir les changements approuvés sans les appliquer et **les autres Bibliothèques qui référencent les fiches à actualiser**, pour l'aperçu préalable. |
 | Mettre à jour la Bibliothèque choisie | Après action volontaire, actualiser sa composition et les révisions des Mouvements concernés ; leur nouvelle fiche active apparaît dans **toutes leurs Bibliothèques référentes**, sans changer les autres compositions ; opération cohérente et reprenable. |
 | Contrôler les médias | Vérifier leurs droits propres indépendamment des permissions de fiche ; ne pas diffuser un média non autorisé. |
