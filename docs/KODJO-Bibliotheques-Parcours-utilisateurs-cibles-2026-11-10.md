@@ -20,21 +20,19 @@ Le premier lot est limité aux Bibliothèques génériques éditées par KODJO :
 - Une **Bibliothèque personnelle** est créée/administrée par un utilisateur ; elle est immédiatement utilisable et peut référencer des Mouvements de toute provenance.
 - Une **Bibliothèque reçue** représente la composition publiée par son propriétaire, dans la version acceptée par le destinataire ; elle est **en lecture seule sur sa composition**.
 - **Référencer** un Mouvement dans une Bibliothèque n'est **pas copier** le Mouvement. Un même Mouvement source a **une seule version active sur l'appareil**, référencée dans plusieurs Bibliothèques ; sa mise à jour volontaire est visible dans toutes, sans changer leur composition.
-- **Copier** est toujours possible pour un usage personnel ; la copie a une identité locale propre, garde la provenance et **exactement les permissions de la source**. Une succession de copies ne desserre jamais les droits.
-- Permissions accordées aux **destinataires** : **Modifier** et **Redistribuer**, indépendantes. Une fiche personnelle originale est modifiable par son créateur et non redistribuable par des tiers par défaut ; le propriétaire choisit les permissions des destinataires lors de la première publication. Celle-ci n'est **pas** conditionnée par leur droit de redistribuer. Les paramètres d'Exercice restent indépendants.
+- **Copier ou modifier une fiche importée est interdit** (MOUV-D3), indépendamment d'un éventuel droit futur de redistribution. Un Mouvement personnel créé localement reste duplicable et éditable selon les règles locales.
+- **Droits des fiches reçues/importées :** consultation et utilisation autorisées selon l'accès ; édition et duplication interdites. La redistribution demeure un droit distinct, vérifié auprès de la source dans un lot futur. Une fiche personnelle originale reste modifiable par son créateur ; les paramètres d'Exercice sont indépendants et personnalisables.
 - **Accès à une Bibliothèque** : accordé par son propriétaire à un utilisateur/groupe ; les Mouvements présents en bénéficient pour l'utilisation. Ceci ne change pas leurs permissions de modification et redistribution.
 - Un Mouvement précédemment téléchargé reste localement disponible s'il est ultérieurement retiré de la Bibliothèque source, sous réserve des conditions commerciales non arbitrées et des mesures de modération.
 - Une **révision ordinaire** ne s'applique jamais automatiquement ; une **mesure de modération** peut au contraire restreindre un contenu sans attendre l'action du destinataire.
 - Tout partage effectif d'une **nouvelle révision** requiert une validation centrale : automatique possible pour le privé sans anomalie ; contrôle humain initial pour la publication publique/payante et pour les anomalies.
 
-### Matrice des modes de fiche
+### Matrice applicable après supersession de BIB-06/07
 
-| Mode | Modifier le contenu | Redistribuer | Copier pour usage personnel |
+| Origine | Modifier la fiche | Dupliquer la fiche | Redistribuer |
 |---|---|---|---|
-| Protégé | Non | Non | Oui, permissions conservées |
-| Libre localement | Oui | Non | Oui, permissions conservées |
-| Partageable à l'identique | Non | Oui, à l'identique | Oui, permissions conservées |
-| Libre | Oui | Oui | Oui, permissions conservées |
+| Création personnelle | Oui | Oui | Publication future sous contrôle des droits |
+| Fiche importée | **Non** | **Non** | Si permission expresse de la source, fonctionnalité future |
 
 La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, indépendamment de la condition d'accès **gratuite ou payante**. La gestion commerciale est un chantier séparé.
 
@@ -69,15 +67,15 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 ### PU-03 — Créer ou corriger une fiche personnelle
 
 **Acteur :** utilisateur auteur de la fiche.  
-**Déroulement :** création locale, rédaction de la fiche, ajout éventuel de médias, sauvegarde. Les corrections d'une fiche reçue ne sont possibles que lorsque « Modifier » est autorisé ; elles ne remontent jamais à la source.  
-**Résultat :** fiche originale sans diffusion implicite, ou adaptation personnelle distincte. Le créateur original reste l'auteur de sa fiche ; aucune fonction de coauteurs.  
+**Déroulement :** création locale, rédaction de la fiche, ajout éventuel de médias et sauvegarde d'une **fiche personnelle**. Une fiche reçue/importée n'est jamais éditable par l'utilisateur, même si sa redistribution est permise (MOUV-D3).  
+**Résultat :** fiche personnelle originale sans diffusion implicite. Les adaptations historiques de fiches importées sont uniquement traitées dans la réconciliation CA-3. Le créateur original reste l'auteur de sa fiche ; aucune fonction de coauteurs.  
 **Réserve :** les parcours « Ajouter un niveau » et l'édition locale existants gardent leurs règles propres ; ne pas assimiler « niveau » et « copie ».
 
-### PU-04 — Copier un Mouvement
+### PU-04 — Dupliquer un Mouvement personnel (parcours futur de partage non requis)
 
-**Acteur :** utilisateur ayant installé la fiche.  
-**Déroulement :** demande de copie pour son Catalogue personnel.  
-**Résultat :** nouvelle identité locale, provenance et permissions héritées intégralement. Une copie Protégée demeure non modifiable ; une copie Libre localement demeure non redistribuable. Les références de l'original sont conservées.  
+**Acteur :** utilisateur ayant créé personnellement le Mouvement.  
+**Déroulement :** demande de duplication de son propre Mouvement dans le Catalogue.  
+**Résultat :** nouvelle identité locale sans modification de l'original. **Tout Mouvement importé est exclu de la duplication** (MOUV-D3).  
 **Résultat sur les homonymes :** les fiches de sources différentes conservent leurs noms visibles, même identiques. Leur identité source reste distincte ; la migration de l'index global du Catalogue est à concevoir. L'attribution d'un suffixe n'est pas un effet obligatoire de la réception.
 
 ### PU-05 — Préparer le partage d'une Bibliothèque personnelle
@@ -193,7 +191,7 @@ Ne pas introduire un cycle universel « Brouillon → Active → Inactive » pou
 2. Retirer cette association de l'une des Bibliothèques n'affecte ni l'autre Bibliothèque ni les Séances.
 3. Le destinataire ne peut jamais changer la composition d'une Bibliothèque reçue.
 4. L'écran d'une Bibliothèque redistribuée ne révèle aucun élément non redistribuable, même sous forme verrouillée.
-5. Une copie d'un Mouvement Protégé reste Protégée ; une copie d'un Mouvement non redistribuable reste non redistribuable.
+5. Aucune fiche Mouvement importée ne peut être modifiée ou copiée par le destinataire ; ses paramètres d'Exercice restent modifiables (MOUV-D3).
 6. Deux utilisateurs autorisés par le même coach reçoivent les Mouvements de sa Bibliothèque sans droits individuels attribués fiche par fiche.
 7. Sans action « Mettre à jour », aucune nouvelle version éditoriale ni composition n'est installée.
 8. Une action « Mettre à jour » actualise composition et révisions, préserve les variantes personnelles et garde en local les Mouvements retirés de la composition.
