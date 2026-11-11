@@ -1545,7 +1545,7 @@ Le tableau représente la prescription effective des séries. L’EMOM n’a auc
 | Concept | Règle de données |
 |---|---|
 | Fiche éditoriale | `source_namespace` + `sheet_id` stable, auteur unique ou inconnu, propriétaire administratif ; **nom affiché non identifiant**, homonymes inter-sources admis. |
-| Révision | Révision et empreinte de contenu, permissions destinataires Modifier/Redistribuer, état de validation ; une seule **révision active locale** par fiche source. |
+| Révision | Révision et empreinte de contenu, droit de redistribution à l'identique du destinataire (oui/non), état de validation ; toute fiche reçue est non modifiable et non duplicable, avec une seule **révision active locale** par fiche source. |
 | Mouvement local | `Movement.id` conservé, correspondant à l'identité source ; les Exercices/Séances le référencent sans renumérotation. |
 | Bibliothèque / composition | Identité, propriétaire, membres ordonnés **par références** ; versions de composition indépendantes de la révision active des fiches. |
 | Accès/livraison | Droit accordé au niveau Bibliothèque et preuve de réception ; ne pas confondre publication initiale par propriétaire et redistribution par destinataire. |
