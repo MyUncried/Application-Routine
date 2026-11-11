@@ -575,6 +575,8 @@ export function MovementSheet({
     // membre, ajouter un niveau) ; une édition entrée par le crayon le garde fermé, comme avant.
     if (origin === null) return { position: levels.position, menu: null };
     if (readOnly) return { position: displayedLevelPosition(levels, origin.id), menu: null };
+    // A-2 (11/11/2026) : Mouvement importé en lecture seule — ni nouveau niveau dérivé de lui, ni réordonnancement.
+    if (importedFrom !== null) return { position: displayedLevelPosition(levels, origin.id), menu: null };
     if (mode === "edit" && !openInEdit) return { position: displayedLevelPosition(levels, origin.id), menu: null };
     const total = levels.position?.total ?? 0;
     return {
@@ -612,7 +614,7 @@ export function MovementSheet({
         },
       },
     };
-  }, [variant, mode, levels, origin, router, isArchived, openInEdit, readOnly]);
+  }, [variant, mode, levels, origin, router, isArchived, openInEdit, readOnly, importedFrom]);
 
   // Ordre de Hermann du 01/11/2026 (ch13 CE-T03-08 « Menu Créer — état cible », l.5269) : ouverte par
   // « Créer un exercice » de la Composition (contexte Séance), la fiche porte ce titre et sa

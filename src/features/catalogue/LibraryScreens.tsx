@@ -208,9 +208,13 @@ export function LibraryConnectScreen({ client = defaultClient, pickFile = pickCa
       break;
     case "connected":
       body = (
-        <Notice tone="positive" title={`Connecté à « ${phase.session.name} »`} testID="library-connect-connected">
-          Votre PC est prêt à envoyer les bibliothèques disponibles.
-        </Notice>
+        <>
+          <Notice tone="positive" title={`Connecté à « ${phase.session.name} »`} testID="library-connect-connected">
+            Votre PC est prêt à envoyer les bibliothèques disponibles.
+          </Notice>
+          {/* Revue du 11/11 : sur un Wi-Fi partagé, vérifier que l'adresse est bien celle de votre PC. */}
+          <Paragraph tone="secondary" testID="library-connect-address">{`Adresse du PC : ${phase.session.host}`}</Paragraph>
+        </>
       );
       primary = params.next === "send"
         ? { label: "Choisir les mouvements à envoyer", onPress: () => void showLibraries(phase.session), testID: "library-connect-continue" }
@@ -279,7 +283,7 @@ const codeStyles = StyleSheet.create({
 
 type AvailablePhase =
   | { readonly kind: "loading" }
-  | { readonly kind: "ready"; readonly previews: readonly LibraryPreview[]; readonly origin: string; readonly refreshedAt: number }
+  | { readonly kind: "ready"; readonly previews: readonly LibraryPreview[]; readonly origin: string; readonly refreshedAt: number; readonly withheld?: readonly string[] }
   | { readonly kind: "error"; readonly message: string; readonly unauthorized: boolean };
 
 export function LibraryAvailableScreen({ client = defaultClient, pickFile = pickCatalogueFile }: LibraryScreenDependencies) {
@@ -306,8 +310,16 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
     try {
       const entries = await client.libraries(source.session);
       const previews: LibraryPreview[] = [];
+      const withheld: string[] = [];
       for (const catalogueId of [...new Set(entries.map((entry) => entry.catalogueId))]) {
-        const raw = await client.catalogue(source.session, catalogueId);
+        let raw: unknown;
+        try {
+          raw = await client.catalogue(source.session, catalogueId);
+        } catch (reason) {
+          if (!(reason instanceof AdminClientError && reason.code === "MEDIA_RIGHTS")) throw reason;
+          withheld.push(...entries.filter((entry) => entry.catalogueId === catalogueId).map((entry) => entry.title));
+          continue;
+        }
         const available = await services.libraries.available(raw);
         if (!available.ok) {
           librarySession.setInvalid({ issues: available.issues, raw });
@@ -319,7 +331,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
       }
       librarySession.rememberPreviews(previews);
       librarySession.setSource({ ...source, entries, refreshedAt: Date.now() });
-      setPhase({ kind: "ready", previews, origin: `Reçues de l'administration · ${source.session.name}`, refreshedAt: Date.now() });
+      setPhase({ kind: "ready", previews, origin: `Reçues de l'administration · ${source.session.name}`, refreshedAt: Date.now(), withheld });
     } catch (reason) {
       const unauthorized = reason instanceof AdminClientError && reason.code === "UNAUTHORIZED";
       setPhase({
@@ -338,6 +350,11 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
   let body: React.ReactNode;
   let primary: Parameters<typeof LibraryScreen>[0]["primary"] = null;
   let secondary: Parameters<typeof LibraryScreen>[0]["secondary"] = [];
+  const withheldNotice = phase.kind === "ready" && (phase.withheld?.length ?? 0) > 0 ? (
+    <Notice tone="warning" title="Bibliothèques non transférées" testID="library-available-withheld">
+      {`${phase.withheld!.join(", ")} : un média n'a pas de droits confirmés. Confirmez ses droits dans l'administration du PC, puis actualisez.`}
+    </Notice>
+  ) : null;
   if (phase.kind === "loading") {
     body = <Busy label="Chargement de la liste…" testID="library-available-loading" />;
   } else if (phase.kind === "error") {
@@ -391,6 +408,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
   }
   return (
     <LibraryScreen title="Bibliothèques disponibles" testID="library-available" primary={primary} secondary={secondary}>
+      {withheldNotice}
       {body}
       {fileImport.error ? <Notice tone="danger" title="Fichier illisible">{fileImport.error}</Notice> : null}
     </LibraryScreen>
@@ -906,15 +924,19 @@ export function LibrarySendScreen({ client = defaultClient, deviceName }: Librar
     if (!services || !activity || !session) return;
     let cancelled = false;
     void (async () => {
-      const entries = (await activity.movementCatalogue?.listEntries()) ?? [];
-      const personal: Movement[] = [];
-      for (const entry of entries) {
-        if (entry.archived) continue;
-        if (!(await services.registry.isInstalledMovement(entry.movement.id))) personal.push(entry.movement);
-      }
-      if (!cancelled) {
-        setMovements(personal.sort((a, b) => a.name.localeCompare(b.name, "fr")));
-        setPhase({ kind: "ready" });
+      try {
+        const entries = (await activity.movementCatalogue?.listEntries()) ?? [];
+        const personal: Movement[] = [];
+        for (const entry of entries) {
+          if (entry.archived) continue;
+          if (!(await services.registry.isInstalledMovement(entry.movement.id))) personal.push(entry.movement);
+        }
+        if (!cancelled) {
+          setMovements(personal.sort((a, b) => a.name.localeCompare(b.name, "fr")));
+          setPhase({ kind: "ready" });
+        }
+      } catch {
+        if (!cancelled) setPhase({ kind: "error", reconnect: false, message: "Vos mouvements n'ont pas pu être lus. Réessayez." });
       }
     })();
     return () => { cancelled = true; };
@@ -923,8 +945,15 @@ export function LibrarySendScreen({ client = defaultClient, deviceName }: Librar
   const send = useCallback(async () => {
     if (!activity || !session) return;
     setPhase({ kind: "sending" });
-    const categories = await activity.listCategories();
-    const zones = await activity.listBodyZones();
+    let categories: Awaited<ReturnType<typeof activity.listCategories>>;
+    let zones: Awaited<ReturnType<typeof activity.listBodyZones>>;
+    try {
+      categories = await activity.listCategories();
+      zones = await activity.listBodyZones();
+    } catch {
+      setPhase({ kind: "error", reconnect: false, message: "Les catégories et zones n'ont pas pu être lues. Rien n'a été envoyé." });
+      return;
+    }
     const built = buildMovementInbox({
       movements: movements.filter((movement) => selected.has(movement.id)),
       categoryLabels: new Map(categories.map((category) => [category.id, category.name])),

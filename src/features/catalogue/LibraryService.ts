@@ -178,7 +178,14 @@ export class LibraryService {
     ];
     for (const [items, counter] of steps) {
       for (const item of items) {
-        const outcome = await this.deps.load.accept(file, item.sheetId);
+        let outcome: AcceptOutcome;
+        try {
+          outcome = await this.deps.load.accept(file, item.sheetId);
+        } catch (error) {
+          // Revue du 11/11 : une erreur déterministe sur une fiche ne bloque pas toute la Bibliothèque. Le protocole
+          // CA-3 laisse l'opération de la fiche en attente ; elle est reprise ou abandonnée au prochain chargement.
+          outcome = { status: "MOVEMENT_REFUSED", reason: error instanceof Error ? error.message : String(error) };
+        }
         if (outcome.status === "INSTALLED" || outcome.status === "ADOPTED" || outcome.status === "UPDATED" ||
             outcome.status === "REGISTERED") {
           counts[counter] += 1;

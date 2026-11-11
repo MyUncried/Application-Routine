@@ -127,7 +127,7 @@ function revisedPilot(): MovementCatalogueFile {
 }
 
 /** Administration simulée : ping, appairage (code 482913), liste et fichier. */
-function fakeAdmin(file: MovementCatalogueFile, options: { reachable?: boolean } = {}) {
+function fakeAdmin(file: MovementCatalogueFile, options: { reachable?: boolean; mediaWithheld?: boolean } = {}) {
   const fetchImpl: FetchLike = async (url, init) => {
     const reply = (status: number, body: unknown) => ({
       ok: status >= 200 && status < 300,
@@ -149,7 +149,9 @@ function fakeAdmin(file: MovementCatalogueFile, options: { reachable?: boolean }
         description: library.description, revision: library.revision, memberCount: library.members.length,
       })) });
     }
-    if (path === "/phone/v1/catalogues/" + encodeURIComponent(file.catalogue.id)) return reply(200, file);
+    if (path === "/phone/v1/catalogues/" + encodeURIComponent(file.catalogue.id)) {
+      return options.mediaWithheld ? reply(409, { error: "MEDIA_RIGHTS_UNCONFIRMED", sheets: ["X"] }) : reply(200, file);
+    }
     return reply(404, {});
   };
   return new AdminClient({ fetch: fetchImpl, localAddress: async () => "192.168.1.10" });
@@ -297,6 +299,17 @@ describe("A1 — Profil → Bibliothèques", () => {
     expect(screen.getByText("Actualisée à l'instant")).toBeTruthy();
   });
 
+  it("MOUV-D2 : Bibliothèque non transférée (média aux droits non confirmés) signalée, sans « connexion perdue »", async () => {
+    const client = fakeAdmin(pilot, { mediaWithheld: true });
+    const session = await client.pair({ host: "192.168.1.20", port: 4739, name: "PC-Hermann" }, "482913", "iPhone");
+    librarySession.setSource({ kind: "ADMIN", session, entries: [], refreshedAt: 0 });
+    renderWith(<LibraryAvailableScreen client={client} />);
+    await settle();
+    expect(screen.getByText("Bibliothèques non transférées")).toBeTruthy();
+    expect(screen.queryByText("Liste indisponible")).toBeNull();
+    expect(screen.getByTestId("library-available-empty")).toBeTruthy();
+  });
+
   it("connexion : PC introuvable sur le Wi-Fi, avec repli « Importer depuis un fichier »", async () => {
     renderWith(<LibraryConnectScreen client={fakeAdmin(pilot, { reachable: false })} deviceName="iPhone de test" />);
     await settle();
@@ -358,7 +371,8 @@ describe("A2 — Envoyer mes mouvements", () => {
       localAddress: async () => null,
       fetch: async (_url, init) => {
         posted = JSON.parse(init!.body!);
-        return { ok: true, status: 200, json: async () => ({ received: 1, stored: 1, duplicates: 0 }), text: async () => "" };
+        const reply = { received: 1, stored: 1, duplicates: 0 };
+        return { ok: true, status: 200, json: async () => reply, text: async () => JSON.stringify(reply) };
       },
     });
     librarySession.setSource({ kind: "ADMIN", session: { host: "192.168.1.20", port: 4739, name: "PC-Hermann", token: "t".repeat(43), expiresAt: null }, entries: [], refreshedAt: 0 });

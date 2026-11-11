@@ -43,7 +43,9 @@ export type AdminError =
   /** Réponse invalide ou erreur du PC. */
   | "SERVER"
   /** Connexion perdue ou délai dépassé. */
-  | "NETWORK";
+  | "NETWORK"
+  /** MOUV-D2 : fichier non transféré, un média n'a pas de droits confirmés (`MEDIA_RIGHTS_UNCONFIRMED`). */
+  | "MEDIA_RIGHTS";
 
 export class AdminClientError extends Error {
   readonly code: AdminError;
@@ -185,7 +187,15 @@ export class AdminClient {
 
   /** Fichier catalogue complet (même format que l'import par fichier), non validé ici. */
   async catalogue(session: AdminSession, catalogueId: string): Promise<unknown> {
-    const response = await this.authorized(session, "GET", "/phone/v1/catalogues/" + encodeURIComponent(catalogueId));
+    const path = "/phone/v1/catalogues/" + encodeURIComponent(catalogueId);
+    const raw = await this.request(session, session.token, "GET", path);
+    if (raw.status === 409) {
+      const body = await raw.json().catch(() => ({})) as { error?: unknown };
+      if (body.error === "MEDIA_RIGHTS_UNCONFIRMED") throw new AdminClientError("MEDIA_RIGHTS");
+    }
+    const response = raw.status === 409 ? await this.authorized(session, "GET", path) : raw;
+    if (response.status === 401 || response.status === 403) throw new AdminClientError("UNAUTHORIZED");
+    if (!response.ok) throw new AdminClientError("SERVER", "HTTP " + response.status);
     try {
       return JSON.parse(await response.text()) as unknown;
     } catch {
@@ -213,10 +223,20 @@ export class AdminClient {
     if (body !== undefined) headers["Content-Type"] = "application/json";
     if (token) headers.Authorization = "Bearer " + token;
     try {
-      return await withTimeout(REQUEST_TIMEOUT_MS, (signal) => this.fetchImpl(
-        `http://${endpoint.host}:${endpoint.port}${path}`,
-        { method, headers, signal, ...(body === undefined ? {} : { body: JSON.stringify(body) }) },
-      ));
+      // Revue du 11/11 : le délai couvre aussi la lecture du corps (jusqu'à 24 Mo), lu entièrement ici.
+      return await withTimeout(REQUEST_TIMEOUT_MS, async (signal) => {
+        const response = await this.fetchImpl(
+          `http://${endpoint.host}:${endpoint.port}${path}`,
+          { method, headers, signal, ...(body === undefined ? {} : { body: JSON.stringify(body) }) },
+        );
+        const text = await response.text();
+        return {
+          ok: response.ok,
+          status: response.status,
+          text: async () => text,
+          json: async () => JSON.parse(text) as unknown,
+        };
+      });
     } catch {
       throw new AdminClientError("NETWORK");
     }

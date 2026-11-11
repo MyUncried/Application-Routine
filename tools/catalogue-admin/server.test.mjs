@@ -427,6 +427,8 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       assert.equal(sheet.provenance.visibility, "PRIVATE");
       assert.equal(sheet.validation.publicationAllowed, false);
       assert.deepEqual(sheet.install.knownLocalMovementIds, ["mv-perso-1"]);
+      // Revue du 11/11 : Mouvement personnel marqué, rattachement non appliqué sur le téléphone (règle à arbitrer).
+      assert.deepEqual(sheet.install.personalMovementIds, ["mv-perso-1"]);
       assert(reread.file.libraries.find((l) => l.libraryId === "bib-recette").members.some((m) => m.sheetId === sheet.sheetId));
       const processed = (await adminCall("GET", "/api/inbox")).body.items.find((i) => i.itemId === item.itemId);
       assert.equal(processed.status, "ADDED");
@@ -451,6 +453,7 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       const after = reread.file.sheets.find((s) => s.sheetId === "REED-001");
       assert.equal(after.revision, before.revision);
       assert.deepEqual(after.install.knownLocalMovementIds, [...before.install.knownLocalMovementIds, "mv-perso-2"]);
+      assert.deepEqual(after.install.personalMovementIds, ["mv-perso-2"]);
       assert.notEqual(reread.file.catalogue.revision, opened.file.catalogue.revision);
       const dismissed = (await adminCall("GET", "/api/inbox")).body.items.find((i) => i.status === "PENDING");
       assert.equal((await adminCall("POST", "/api/inbox/" + dismissed.itemId + "/dismiss", {})).body.item.status, "DISMISSED");

@@ -25,6 +25,7 @@ import {
 } from "@/domain/catalogue/MovementCatalogueFile";
 import {
   PROJECTED_FIELDS,
+  isPendingPersonalAttachment,
   localValueOf,
   planCatalogueLoad,
   withProjectedValue,
@@ -79,7 +80,9 @@ export type AcceptOutcome =
   | { readonly status: "BLOCKED"; readonly blockers: readonly SheetBlocker[] }
   | { readonly status: "NOT_APPLICABLE"; readonly state: SheetLoadState }
   | { readonly status: "MOVEMENT_REFUSED"; readonly reason: string }
-  | { readonly status: "UNKNOWN_SHEET" };
+  | { readonly status: "UNKNOWN_SHEET" }
+  /** A-2 : rattachement d'un Mouvement personnel non arbitré — rien n'est écrit. */
+  | { readonly status: "PERSONAL_RULE_PENDING"; readonly movementId: string };
 
 export type DecisionOutcome =
   | { readonly status: "RECORDED" }
@@ -144,6 +147,7 @@ export class CatalogueLoadService {
     if (!found) return { status: "UNKNOWN_SHEET" };
     const { item, sheet, local, referentials } = found;
     const key = { catalogueId: item.catalogueId, sheetId };
+    if (isPendingPersonalAttachment(sheet, item)) return { status: "PERSONAL_RULE_PENDING", movementId: item.movementId as string };
 
     switch (item.state) {
       case "ADOPTABLE":

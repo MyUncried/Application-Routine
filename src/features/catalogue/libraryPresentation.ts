@@ -22,7 +22,7 @@ export function availableLine(preview: LibraryPreview): { readonly subtitle: str
 
 export const REVIEW_REASON_LABELS: Readonly<Record<ReviewReason, string>> = {
   TO_RECONCILE: "Modifiée sur ce téléphone : à examiner fiche par fiche, rien n'est écrasé.",
-  PERSONAL_ORIGIN: "Mouvement personnel envoyé à l'administration : rattachement en attente de règle.",
+  PERSONAL_ORIGIN: "Mouvement personnel : rattachement en attente de règle, rien n'est modifié.",
   NOT_APPLICABLE: "Non appliquée (révision incohérente ou refusée, ou mouvement retiré de ce téléphone).",
   BLOCKED: "Bloquée : Catégorie, Zone ou nom incompatible avec ce téléphone.",
 };

@@ -22,7 +22,13 @@ import {
   type CatalogueLibraryMember,
   type MovementCatalogueFile,
 } from "@/domain/catalogue/MovementCatalogueFile";
-import type { CatalogueLoadPlan, InstalledSheetRecord, SheetDecision, SheetLoadItem } from "@/domain/catalogue/catalogueLoadPlan";
+import {
+  isPendingPersonalAttachment,
+  type CatalogueLoadPlan,
+  type InstalledSheetRecord,
+  type SheetDecision,
+  type SheetLoadItem,
+} from "@/domain/catalogue/catalogueLoadPlan";
 
 export type LibraryKey = { readonly catalogueId: string; readonly libraryId: string };
 
@@ -155,6 +161,11 @@ export function planLibrary(file: MovementCatalogueFile, library: CatalogueLibra
     }
     const item = items.get(member.sheetId);
     if (!item) continue; // le validateur garantit la présence des membres internes
+    const sheet = sheets.get(member.sheetId);
+    if (sheet && isPendingPersonalAttachment(sheet, item)) {
+      toReview.push({ item, reason: "PERSONAL_ORIGIN" });
+      continue;
+    }
     if (item.blockers.length > 0) {
       toReview.push({ item, reason: "BLOCKED" });
       continue;
@@ -164,8 +175,7 @@ export function planLibrary(file: MovementCatalogueFile, library: CatalogueLibra
         added.push(item);
         break;
       case "ADOPTABLE":
-        if (sheets.get(member.sheetId)?.provenance.origin === "LOCAL_CREATED") toReview.push({ item, reason: "PERSONAL_ORIGIN" });
-        else attached.push(item);
+        attached.push(item);
         break;
       case "NEW_REVISION":
         if (item.summary.conflicts.length > 0) toReview.push({ item, reason: "TO_RECONCILE" });

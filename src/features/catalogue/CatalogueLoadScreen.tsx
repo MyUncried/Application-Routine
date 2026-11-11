@@ -79,6 +79,7 @@ function outcomeMessage(outcome: AcceptOutcome): { title: string; message: strin
     case "NOT_APPLICABLE": return { title: "Aucune action", message: "L'état de la fiche a changé : " + STATE_LABELS[outcome.state] + "." };
     case "MOVEMENT_REFUSED": return { title: "Mouvement refusé", message: "Le Catalogue a refusé l'écriture (" + outcome.reason + "). Rien n'a été écrit." };
     case "UNKNOWN_SHEET": return { title: "Fiche introuvable", message: "La fiche n'est plus dans le fichier." };
+    case "PERSONAL_RULE_PENDING": return { title: "Rattachement en attente", message: "Ce mouvement personnel n'est pas rattaché à la fiche tant que la règle n'est pas arbitrée. Rien n'a été écrit." };
   }
 }
 

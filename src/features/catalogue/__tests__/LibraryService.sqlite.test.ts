@@ -258,12 +258,14 @@ describe("Bibliothèques — installation et mise à jour volontaires", () => {
   it("interruption au milieu de l'installation : progression affichée, reprise sans doublon", async () => {
     const { libraries: healthy, load } = await servicesOn();
     let calls = 0;
-    const { libraries: failing } = await servicesOn(async (file, sheetId, resolutions) => {
+    // Arrêt de l'application simulé : la 4e fiche ne revient jamais (aucune exception, aucune confirmation).
+    const { libraries: killed } = await servicesOn(async (file, sheetId, resolutions) => {
       calls += 1;
-      if (calls === 4) throw new Error("Interruption simulée");
+      if (calls === 4) return new Promise<never>(() => {});
       return load.accept(file, sheetId, resolutions);
     });
-    await expect(failing.apply(pilot, PILOT)).rejects.toThrow("Interruption simulée");
+    void killed.apply(pilot, PILOT);
+    for (let i = 0; i < 200 && calls < 4; i++) await new Promise((resolve) => setImmediate(resolve));
     const [progress] = await healthy.interrupted();
     expect(progress).toMatchObject({ libraryId: PILOT, kind: "INSTALL", applied: 3, total: 60 });
     expect((await healthy.preview(pilot, PILOT))!.status).toBe("INTERRUPTED");
@@ -297,6 +299,20 @@ describe("Bibliothèques — installation et mise à jour volontaires", () => {
     expect(preview!.attached).toHaveLength(0);
     await libraries.apply(file as MovementCatalogueFile, PILOT);
     expect(await dump()).toEqual(before);
+  });
+});
+
+describe("robustesse (revue du 11/11)", () => {
+  it("une erreur sur une fiche n'immobilise pas la Bibliothèque : fiche signalée, les autres installées", async () => {
+    const { load } = await servicesOn();
+    const { libraries } = await servicesOn(async (file, sheetId, resolutions) => {
+      if (sheetId === pilot.sheets[1]!.sheetId) throw new Error("contrainte SQLite");
+      return load.accept(file, sheetId, resolutions);
+    });
+    const report = await libraries.apply(pilot, PILOT);
+    expect(report!.added).toBe(59);
+    expect(report!.failed).toEqual([{ sheetId: pilot.sheets[1]!.sheetId, outcome: { status: "MOVEMENT_REFUSED", reason: "contrainte SQLite" } }]);
+    expect(await libraries.interrupted()).toEqual([]);
   });
 });
 

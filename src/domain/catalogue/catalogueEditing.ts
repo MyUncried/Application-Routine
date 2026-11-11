@@ -538,7 +538,12 @@ export function replaceLibrary(file: MovementCatalogueFile, library: CatalogueLi
  * empreinte) ; la révision du catalogue avancera à l'enregistrement. Refus si l'identifiant
  * est déjà rattaché à une autre fiche ; sans effet s'il l'est déjà à cette fiche.
  */
-export function linkLocalMovement(file: MovementCatalogueFile, sheetId: string, movementId: string): MovementCatalogueFile {
+/**
+ * Rapprochement d'un Mouvement local. `personal` : Mouvement personnel reçu d'un téléphone (A2) — inscrit aussi
+ * dans `install.personalMovementIds` pour que le téléphone n'applique pas le rattachement tant que la règle
+ * de transition n'est pas arbitrée.
+ */
+export function linkLocalMovement(file: MovementCatalogueFile, sheetId: string, movementId: string, personal = false): MovementCatalogueFile {
   if (typeof movementId !== "string" || movementId.trim() === "") throw new CatalogueEditError("INVALID_LOCAL_ID", movementId);
   const target = file.sheets.find((sheet) => sheet.sheetId === sheetId);
   if (target === undefined) throw new CatalogueEditError("UNKNOWN_SHEET", sheetId);
@@ -546,12 +551,19 @@ export function linkLocalMovement(file: MovementCatalogueFile, sheetId: string, 
   if (holder !== undefined && holder.sheetId !== sheetId) {
     throw new CatalogueEditError("LOCAL_ID_ALREADY_LINKED", holder.sheetId);
   }
-  if (holder !== undefined) return file;
+  const withPersonal = (install: CatalogueSheet["install"]): CatalogueSheet["install"] => {
+    if (!personal || (install.personalMovementIds ?? []).includes(movementId)) return install;
+    return { ...install, personalMovementIds: [...(install.personalMovementIds ?? []), movementId] };
+  };
+  if (holder !== undefined) {
+    if (!personal) return file;
+    return { ...file, sheets: file.sheets.map((sheet) => (sheet.sheetId === sheetId ? { ...sheet, install: withPersonal(sheet.install) } : sheet)) };
+  }
   return {
     ...file,
     sheets: file.sheets.map((sheet) =>
       sheet.sheetId === sheetId
-        ? { ...sheet, install: { knownLocalMovementIds: [...sheet.install.knownLocalMovementIds, movementId] } }
+        ? { ...sheet, install: withPersonal({ ...sheet.install, knownLocalMovementIds: [...sheet.install.knownLocalMovementIds, movementId] }) }
         : sheet,
     ),
   };

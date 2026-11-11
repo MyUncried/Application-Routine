@@ -321,6 +321,15 @@ describe("format v2 — P0 (11/11/2026) : auteur unique, Bibliothèques, relectu
     expect(one.warnings).toContainEqual({ path: "formatVersion", code: "CONVERTED_FROM_V1" });
   });
 
+  it("v1 : identifiant de catalogue quelconque et en-tête publiable acceptés ; Bibliothèque implicite privée", () => {
+    const raw = v1([]) as Record<string, Record<string, unknown>>;
+    raw.catalogue!.id = "Coach_Martin Perso";
+    raw.catalogue!.publicationAllowed = true;
+    const result = parseMovementCatalogueFile(raw);
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    expect(result.file.libraries[0]).toMatchObject({ libraryId: "coach-martin-perso", visibility: "PRIVATE", publicationAllowed: false });
+  });
+
   it("v1 à plusieurs auteurs : refus explicite, jamais de choix arbitraire (MOUV-D1)", () => {
     expect(codes(v1([{ kind: "PERSON", id: "a" }, { kind: "PERSON", id: "b" }])))
       .toEqual(["sheets[0].provenance.authors:INCONSISTENT"]);
