@@ -4,7 +4,7 @@ Version en ligne, avec enregistrement des résultats : https://claude.ai/artifac
 
 Branche `catalogue/integration-pre10-20261111` ; spécification `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md`.
 
-**Prérequis.** Il faut une **build de développement** de Routine qui embarque `expo-network` et l'autorisation d'accès au réseau local. Une OTA ne suffit pas : ce sont des modules natifs. **Cette build n'a pas été lancée** et attend ton autorisation. Variante proposée : « Routine Catalogue » (`APP_VARIANT=catalogue`, base distincte, OTA désactivée), pour ne pas toucher à ta base principale.
+**Prérequis.** Application **Routine Catalogue** (client de développement, base distincte), build EAS `development-catalogue` `b509f0aa` lancée le 11/11/2026 sur accord de Hermann (« ok pour routine catalogue ») : https://expo.dev/accounts/ankushas-team/projects/routine/builds/b509f0aa-206f-4f27-8ccb-5a7fcd3788a8. L'installer depuis ce lien. Elle est servie par un Metro dédié au chantier, `http://192.168.0.16:8082` (dossier `KODJO-CAT-INTEG`). Routine BMAD reste l'application de PRE-10 et n'est pas touchée. Au premier lancement, choisir ce serveur dans le lanceur ; si la liste est vide, saisir l'adresse à la main.
 
 Pour chaque point, note **OK**, ou **KO** avec ce que tu vois (une capture aide).
 
