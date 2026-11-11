@@ -754,6 +754,23 @@ export const fr = {
       countdown: {
         label: "Compte à rebours initial",
       },
+      // Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : guidage propre à la Séance, sinon le Profil.
+      guidance: {
+        label: "Guidage",
+        followsProfile: "Comme le Profil",
+        own: "Propre à la séance",
+        accessibilityHint: "Ouvre les réglages de guidage de la séance",
+        sheetTitle: "Guidage de la séance",
+        intro: "Ces réglages remplacent ceux du Profil pour cette séance. Pendant la séance, les interrupteurs Sons et Voix restent modifiables.",
+        sounds: "Sons",
+        voice: "Annonces vocales",
+        objective: "Annoncer les répétitions ou la durée",
+        rowFollowsProfile: "Comme le Profil",
+        rowOwn: "Propre à la séance",
+        resetToProfile: "Revenir au Profil",
+        cancel: "Fermer sans enregistrer",
+        validate: "Appliquer à la séance",
+      },
       finalPhase: {
         label: "Fin de séance",
       },

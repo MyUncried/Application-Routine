@@ -329,3 +329,22 @@ describe("contre-recette du 30/10 — second appui sur « Ajouter un arrêt »",
     expect(probe.draft).toBe(before);
   });
 });
+
+/** Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) — élément Guidage de la Composition, au-dessus du Compte à rebours. */
+describe("fin de PRE-10 — élément Guidage de la Composition", () => {
+  const g = strings.screens.composition.guidance;
+
+  it("Séance comme le Profil : « Guidage — Comme le Profil » ; le toucher ouvre la feuille du guidage", async () => {
+    await renderComposition(flatDraft());
+    const row = screen.getByTestId("composition-guidance");
+    expect(row.props.accessibilityLabel).toBe(g.label);
+    expect(row.props.accessibilityValue).toEqual({ text: g.followsProfile });
+    fireEvent.press(row);
+    expect(mockPush).toHaveBeenCalledWith("/session-guidance");
+  });
+
+  it("Séance à réglage propre : « Propre à la séance »", async () => {
+    await renderComposition({ ...flatDraft(), guidance: { soundsEnabled: false, voiceEnabled: null, announceObjective: null } });
+    expect(screen.getByTestId("composition-guidance").props.accessibilityValue).toEqual({ text: g.own });
+  });
+});

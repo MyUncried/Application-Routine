@@ -270,3 +270,25 @@ Réalisé (classe B, ch08, ch09 et ch13 annotés) :
 - `ExecutionSignalAdapter` : bip court à 50 %, vibration légère, puis le nom de la phase si la catégorie « phases » est active.
 - Profil : bascule « Annoncer les phases du mouvement », `migration027` (version 27).
 - Son : « Bip court » de la bibliothèque du formulaire, **provisoire**. Hermann peut en choisir un autre dans le formulaire.
+
+## 12. Fin de PRE-10 — étapes 3 et 4 réalisées (11/11/2026)
+
+Demande de Hermann, recopiée : « lance le développement pour terminer PRE-10 ».
+
+Étape 3, Séance (§3.2 et §3.3, réponse 2 du §7 « Élément Guidage (Recommandé) ») :
+
+- trois réglages nullables sur la Séance : Sons, Annonces vocales, Annoncer les répétitions ou la durée ; `null` = comme le Profil ;
+- `migration028` (version 28) ; Séances existantes inchangées ;
+- élément « Guidage » de la Composition, au-dessus du Compte à rebours initial, et feuille « Guidage de la séance » (✕, ✓, trois bascules avec leur origine, « Revenir au Profil ») ; écran proposé sans maquette Figma, à valider en recette ;
+- copie dans l'instantané d'Exécution ; au démarrage, interrupteurs Sons et Voix selon la Séance, sinon le Profil ; annonce de l'objectif selon la Séance quand elle a son réglage.
+
+Choix techniques (classe D) :
+
+- l'interrupteur Voix de la Séance porte toutes les annonces, comme celui de l'Exécution (décision « Oui, toute la voix ») ;
+- les autres catégories d'annonces restent des préférences du Profil seulement.
+
+Étape 4, annonce du détail (§3.4, réponse 3) : déjà conforme. « jusqu'à l'échec » et « 1 minute 30 » sont produits par `objectiveText`. « 8 à 12 répétitions » est sans objet : le modèle n'a pas de plage de répétitions (cible : nombre, échec ou non renseignée).
+
+Classe A, hors de cette spec : écran maintenu actif pendant l'exécution (ch09 Profil, « Écran maintenu actif »). Aucune bascule du Profil n'est réalisée : aucun contrat d'écran ne la décrit (non arbitré, À CLARIFIER si elle est voulue).
+
+Restent : étape 1 (spike arrière-plan) et étape 5 (arrière-plan), §8 (bibliothèque de sons courts) et §8.1 (modulation de la musique). Toutes demandent une nouvelle version native (build EAS).

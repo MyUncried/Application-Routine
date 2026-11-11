@@ -155,7 +155,11 @@ export const DATABASE_NAME = "kodjo.db";
  * **Suite PRE-10 son et voix (version 27, `migration027`)** : colonne additive `guidance_preferences.announce_phases_enabled`.
  * 001..026 inchangées.
  */
-export const DATABASE_VERSION = 27;
+/**
+ * **Fin de PRE-10 (version 28, `migration028`)** : colonnes additives nullables `sessions.guidance_*` (guidage propre
+ * à une Séance). 001..027 inchangées.
+ */
+export const DATABASE_VERSION = 28;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createEmptyDraft, createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import type { SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
@@ -51,7 +52,7 @@ const exercise = (id: string, name: string, structuralPosition: SessionDraftExer
   executionParameters,
 });
 
-async function setup() {
+async function setup(guidance?: SessionGuidance) {
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   const sessionService = new SessionService(new SqliteSessionRepository(database), new SqliteCategoryRepository(database));
@@ -70,6 +71,7 @@ async function setup() {
         exercise("ex-c", "Gainage", "AFTER_TOUR", durationParameters(10, 1, 0)),
       ],
       stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
+      ...(guidance !== undefined ? { guidance } : {}),
     }),
   );
   if (!created.ok) throw new Error(`seed failed: ${JSON.stringify(created.violations)}`);
@@ -211,6 +213,30 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     await press("execution-pause-stop");
     expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance interrompue");
     expect(await database.getFirstAsync("SELECT business_status FROM executions")).toEqual({ business_status: "INTERRUPTED" });
+    view.unmount();
+  });
+});
+
+/** Fin de PRE-10 (spec `spec-guidage-reglages` §3.3) — guidage propre à la Séance, sinon le Profil. */
+describe("fin de PRE-10 — guidage de la Séance", () => {
+  const label = (testID: string) => screen.getByTestId(testID).props.accessibilityState;
+
+  it("sans réglage propre : interrupteurs selon le Profil (Sons et Voix actifs par défaut)", async () => {
+    const { view } = await setup();
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    expect(label("execution-sound")).toEqual({ checked: true });
+    expect(label("execution-voice")).toEqual({ checked: true });
+    view.unmount();
+  });
+
+  it("Sons coupés et Voix coupée par la Séance : interrupteurs off au démarrage, modifiables pendant la séance", async () => {
+    const { view } = await setup({ soundsEnabled: false, voiceEnabled: false, announceObjective: null });
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    expect(label("execution-sound")).toEqual({ checked: false });
+    expect(label("execution-voice")).toEqual({ checked: false });
+    await press("execution-sound");
+    expect(label("execution-sound")).toEqual({ checked: true });
+    expect(label("execution-voice")).toEqual({ checked: false });
     view.unmount();
   });
 });

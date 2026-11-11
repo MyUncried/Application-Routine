@@ -29,6 +29,7 @@ import { applyMigration024 } from "./migrations/migration024";
 import { applyMigration025 } from "./migrations/migration025";
 import { applyMigration026 } from "./migrations/migration026";
 import { applyMigration027 } from "./migrations/migration027";
+import { applyMigration028 } from "./migrations/migration028";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -307,6 +308,12 @@ export async function migrateDatabase(
     if (pending(26)) {
       await applyMigration027(transaction);
       version = 27;
+    }
+
+    // Fin de PRE-10 : guidage propre à une Séance. Un échec laisse `user_version` à 27.
+    if (pending(27)) {
+      await applyMigration028(transaction);
+      version = 28;
     }
 
     if (version !== targetVersion) {

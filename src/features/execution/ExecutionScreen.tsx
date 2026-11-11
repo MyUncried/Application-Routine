@@ -24,6 +24,7 @@ import type {
   NextView,
 } from "@/domain/execution/projection";
 import type { Profile } from "@/domain/preferences/Profile";
+import { effectiveSetting, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import type { Announcements } from "@/infrastructure/haptics/ExecutionSignalAdapter";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
@@ -80,8 +81,9 @@ export function ExecutionScreen({
   const [lastShown, setLastShown] = useState<NonNullable<Dialog> | "PAUSE">(
     "PAUSE",
   );
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  // Choix fait pendant la séance avec les interrupteurs Sons et Voix ; `null` : état initial (Séance, sinon Profil).
+  const [soundChoice, setSoundChoice] = useState<boolean | null>(null);
+  const [voiceChoice, setVoiceChoice] = useState<boolean | null>(null);
   const starting = useRef(false);
 
   useEffect(() => service.subscribe(refresh), [service]);
@@ -89,28 +91,48 @@ export function ExecutionScreen({
   // Préférence Vibrations (fonctionnelles de séance). Groupe Guidage du Profil (suite PRE-10 son et voix, spec
   // `spec-guidage-reglages` §3.1 et §3.3) : Sons et Annonces vocales donnent l'état initial des interrupteurs de
   // l'Exécution, modifiables ensuite sans être enregistrés ; annonce de l'objectif selon le Profil.
+  const [profile, setProfile] = useState<Profile | null>(null);
   useEffect(() => {
     let cancelled = false;
     signals.setAudible(true, true);
     profileService
       .getProfile()
-      .then((profile) => {
+      .then((loaded) => {
         if (cancelled) return;
-        signals.setVibrationEnabled(profile.vibrationEnabled);
-        // Catégories d'annonces séparées (décision de Hermann du 10/11/2026) ; l'interrupteur Voix de la séance,
-        // qui coupe toutes les annonces, démarre actif si au moins une catégorie est annoncée.
-        const announcements = announcementsOf(profile);
-        const anyVoice = Object.values(announcements).some(Boolean);
-        signals.setAnnouncements(announcements);
-        signals.setAudible(profile.soundsEnabled, anyVoice);
-        setSoundEnabled(profile.soundsEnabled);
-        setVoiceEnabled(anyVoice);
+        signals.setVibrationEnabled(loaded.vibrationEnabled);
+        setProfile(loaded);
       })
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
   }, [profileService, signals]);
+
+  // Fin de PRE-10 (spec `spec-guidage-reglages` §3.3) : guidage propre à la Séance (Composition, élément Guidage),
+  // sinon le Profil. Lu dans le plan figé : Séance préparée, ou Exécution reprise.
+  const current = service.current();
+  const sessionGuidance = current?.plan.guidance ?? (prepared?.status === "ready" ? prepared.plan.guidance : undefined);
+  const guidanceKey = sessionGuidance === undefined ? "profile" : JSON.stringify(sessionGuidance);
+  const guidance = useMemo((): SessionGuidance | undefined => (guidanceKey === "profile" ? undefined : (JSON.parse(guidanceKey) as SessionGuidance)), [guidanceKey]);
+  // Catégories d'annonces séparées (décision de Hermann du 10/11/2026) ; l'interrupteur Voix de la séance,
+  // qui coupe toutes les annonces, démarre actif si au moins une catégorie est annoncée, sauf réglage de la Séance.
+  const initial = useMemo(() => {
+    if (profile === null) return { sounds: true, voice: true, announcements: null };
+    const announcements = announcementsOf(profile, guidance);
+    return {
+      sounds: effectiveSetting(guidance?.soundsEnabled, profile.soundsEnabled),
+      voice: effectiveSetting(guidance?.voiceEnabled, Object.values(announcements).some(Boolean)),
+      announcements,
+    };
+  }, [profile, guidance]);
+  const soundEnabled = soundChoice ?? initial.sounds;
+  const voiceEnabled = voiceChoice ?? initial.voice;
+  useEffect(() => {
+    if (initial.announcements !== null) signals.setAnnouncements(initial.announcements);
+  }, [initial, signals]);
+  useEffect(() => {
+    signals.setAudible(soundEnabled, voiceEnabled);
+  }, [soundEnabled, voiceEnabled, signals]);
 
   // Recette du 10/11/2026 (h1, a1) : une modification de Vibrations ou des catégories d'annonces dans le Profil
   // pendant une séance s'applique au retour sur l'écran d'Exécution (l'interrupteur Voix de la séance est conservé).
@@ -122,13 +144,13 @@ export function ExecutionScreen({
         .then((profile) => {
           if (cancelled) return;
           signals.setVibrationEnabled(profile.vibrationEnabled);
-          signals.setAnnouncements(announcementsOf(profile));
+          signals.setAnnouncements(announcementsOf(profile, guidance));
         })
         .catch(() => undefined);
       return () => {
         cancelled = true;
       };
-    }, [profileService, signals]),
+    }, [guidance, profileService, signals]),
   );
 
   const active = service.current();
@@ -242,14 +264,8 @@ export function ExecutionScreen({
     else void service.dispatch({ type: "NEXT" }, projection.target);
   }, [openDialog, projection, service]);
 
-  const toggleSound = () => {
-    signals.setAudible(!soundEnabled, voiceEnabled);
-    setSoundEnabled(!soundEnabled);
-  };
-  const toggleVoice = () => {
-    signals.setAudible(soundEnabled, !voiceEnabled);
-    setVoiceEnabled(!voiceEnabled);
-  };
+  const toggleSound = () => setSoundChoice(!soundEnabled);
+  const toggleVoice = () => setVoiceChoice(!voiceEnabled);
 
   const paddings = useMemo(
     () => ({
@@ -917,10 +933,11 @@ const styles = StyleSheet.create({
 });
 
 /** Catégories d'annonces du Profil (groupe Guidage ; décision de Hermann du 10/11/2026). */
-function announcementsOf(profile: Profile): Announcements {
+/** Catégories du Profil ; l'annonce de l'objectif suit la Séance quand elle a son propre réglage (fin de PRE-10). */
+function announcementsOf(profile: Profile, guidance?: SessionGuidance): Announcements {
   return {
     names: profile.voiceAnnouncementsEnabled,
-    objective: profile.announceObjectiveEnabled,
+    objective: effectiveSetting(guidance?.announceObjective, profile.announceObjectiveEnabled),
     pauses: profile.announcePausesEnabled,
     session: profile.announceSessionEnabled,
     sides: profile.announceSidesEnabled,

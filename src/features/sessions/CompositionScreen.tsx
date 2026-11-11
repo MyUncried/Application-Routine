@@ -31,6 +31,7 @@ import type { Label } from "@/domain/labels/Label";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
 import type { MovementLevelPosition } from "@/domain/activities/movementSuggestion";
+import { followsProfile } from "@/domain/sessions/sessionGuidance";
 import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
 import {
@@ -280,7 +281,7 @@ import {
 import {
   BOUNDARY_RING_TOP,
   BoundaryRail,
-  BoundaryStep,
+  BoundaryStep, GuidanceRow,
   RAIL_RING_DIAMETER,
   RailDot,
   RailLink,
@@ -4963,6 +4964,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         {/* Revue 5.2 : anneau et queue de la borne hors de l'atténuation du placement (opacité
             uniforme du rail), posés sur la rangée. */}
         {/* Story 7.8 (D-443) : cadre aligné à droite sur le bord droit des cartes d'Exercice. */}
+        {/* Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : élément Guidage, au-dessus du Compte à rebours initial. */}
+        <View style={styles.boundaryTrailingOutset} testID="composition-guidance-step">
+          <PlacementAttenuation active={isPlacementActive || isEnvelopeActive} testID="composition-guidance-placement">
+            <GuidanceRow
+              label={composition.guidance.label}
+              value={followsProfile(draft.guidance) ? composition.guidance.followsProfile : composition.guidance.own}
+              accessibilityHint={composition.guidance.accessibilityHint}
+              onPress={() => router.push("/session-guidance")}
+              railCenterX={RAIL_CENTER_X_IN_COLUMN}
+              testID="composition-guidance"
+            />
+          </PlacementAttenuation>
+        </View>
         <View style={styles.boundaryTrailingOutset} testID="composition-boundary-countdown-step">
           <PlacementAttenuation active={isPlacementActive || isEnvelopeActive} testID="composition-boundary-countdown-placement">
             <BoundaryStep

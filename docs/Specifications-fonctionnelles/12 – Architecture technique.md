@@ -2009,3 +2009,9 @@ Décision de Hermann du 10/11/2026 (constat A, recette c1), recopiée : « fais 
 - Stockage inchangé : `legacyFromStructure` décide toujours de la forme enregistrée (`structuredInput.ts`, `SqliteSessionRepository`). Aucune migration, aucun changement d’API.
 - Le rendu de l’ancien Circuit unique (`composition-tour-section`) n’est plus atteint par une Séance qui a un Circuit ; son retrait du code est un nettoyage séparé, non fait dans ce lot.
 - Classement : A (options de tout Circuit, MAJ des écrans Formats du 04/11/2026 §6 quinquies) et D (un seul modèle d’édition). Aucune règle fonctionnelle nouvelle.
+
+## Fin de PRE-10 — guidage de la Séance et écran maintenu actif (11/11/2026)
+
+- Guidage de la Séance : `SessionGuidance` (`src/domain/sessions/sessionGuidance.ts`), trois booléens nullables (`null` = comme le Profil), forme normalisée absente quand la Séance suit le Profil. Colonnes nullables `sessions.guidance_sounds_enabled`, `guidance_voice_enabled`, `guidance_announce_objective` (`migration028`, version 28, Séances existantes inchangées). Chemin : brouillon (`SessionDraft.guidance`, comparé par `sessionDraftsEqual`) → `StructuredSessionInput` → `SqliteSessionRepository` → `Session.guidance` → instantané d’Exécution (champ facultatif, version d’instantané inchangée) → `ExecutablePlan.guidance`. L’écran d’Exécution dérive l’état initial des interrupteurs (Séance, sinon Profil) ; le choix fait pendant la séance n’est pas enregistré.
+- Composition : `GuidanceRow` (`CompositionSequence.tsx`) et feuille native `app/(creation)/session-guidance.tsx` (`SessionGuidanceSheet`), même présentation que les autres feuilles de la Composition.
+- Écran maintenu actif : `expo-keep-awake` (SDK 57, module natif déjà présent via `expo`), adaptateur `ScreenAwakePort` (`src/infrastructure/device/ScreenAwake.ts`) fourni par `SessionServiceProvider` ; actif de Démarrer à la fin de séance ; sans module natif, aucune action.

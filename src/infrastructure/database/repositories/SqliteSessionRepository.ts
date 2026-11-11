@@ -1,4 +1,5 @@
 import * as Crypto from "expo-crypto";
+import { guidanceColumns, guidanceFromColumns } from "@/domain/sessions/sessionGuidance";
 
 import {
   ACTIVITY_STORAGE_BOUNDS,
@@ -356,8 +357,9 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
         `INSERT INTO sessions (
           id, owner_id, name, label_id, status,
           initial_countdown_seconds, final_phase_seconds,
-          created_at, updated_at, origin
-        ) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?)`,
+          created_at, updated_at, origin,
+          guidance_sounds_enabled, guidance_voice_enabled, guidance_announce_objective
+        ) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           sessionId,
           user.id,
@@ -369,6 +371,8 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
           timestamp,
           // PRE-9 (C.1, FMT-02) : origine écrite à la création seulement, jamais modifiée.
           input.origin ?? null,
+          // Fin de PRE-10 : guidage propre à la Séance (`NULL` = comme le Profil).
+          ...guidanceColumns(input.guidance),
         ],
       );
       await writeSessionMovements(transaction, input.movements ?? [], timestamp, this.uuidFactory);
@@ -469,13 +473,15 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
       await assertLabelAssignable(transaction, input.labelId ?? null, header.label_id);
       const sessionUpdate = await transaction.runAsync(
         `UPDATE sessions SET name = ?, label_id = ?, initial_countdown_seconds = ?,
-           final_phase_seconds = ?, updated_at = ?
+           final_phase_seconds = ?, guidance_sounds_enabled = ?, guidance_voice_enabled = ?,
+           guidance_announce_objective = ?, updated_at = ?
          WHERE id = ? AND owner_id = ?`,
         [
           input.name,
           input.labelId ?? null,
           input.initialCountdownSeconds,
           input.finalPhaseSeconds,
+          ...guidanceColumns(input.guidance),
           timestamp,
           sessionId,
           user.id,
@@ -1218,7 +1224,10 @@ SELECT
   sessions.final_phase_seconds,
   sessions.created_at AS session_created_at,
   sessions.updated_at AS session_updated_at,
-  sessions.origin
+  sessions.origin,
+  sessions.guidance_sounds_enabled,
+  sessions.guidance_voice_enabled,
+  sessions.guidance_announce_objective
 FROM sessions
 LEFT JOIN labels ON labels.id = sessions.label_id`;
 
@@ -1530,6 +1539,8 @@ function sessionBase(header: SessionHeaderRow) {
     updatedAt: header.session_updated_at,
     // PRE-9 (C.1, FMT-02) : origine de création, absente si inconnue ; valeur hors liste → contrat rompu.
     ...originField(header.origin ?? null),
+    // Fin de PRE-10 : guidage propre à la Séance, absent quand elle suit le Profil.
+    ...guidanceFieldOf(header),
   };
 }
 
@@ -1809,4 +1820,10 @@ export function assertActivityRow(row: ActivityRow): void {
     throw contractError();
   }
   assertActivityColumns({ ...row, activity_type: row.type });
+}
+
+/** Fin de PRE-10 (`migration028`) : guidage propre à la Séance, absent quand les trois colonnes sont `NULL`. */
+function guidanceFieldOf(header: SessionHeaderRow) {
+  const guidance = guidanceFromColumns(header.guidance_sounds_enabled ?? null, header.guidance_voice_enabled ?? null, header.guidance_announce_objective ?? null);
+  return guidance === undefined ? {} : { guidance };
 }

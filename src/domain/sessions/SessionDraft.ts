@@ -20,6 +20,7 @@
  * l'origine de l'entrée. Elle ne lève jamais d'exception.
  */
 
+import { guidanceEqual, normalizedGuidance, type SessionGuidance } from "./sessionGuidance";
 import {
   cloneExecutionParameters,
   EXECUTION_PARAMETERS_VERSION,
@@ -272,6 +273,8 @@ export type SessionDraft = {
   readonly color?: string;
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
+  /** Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : guidage propre à la Séance ; absent = comme le Profil. */
+  readonly guidance?: SessionGuidance;
   /**
    * T01-S10 (D-058) : répétition du Circuit, entier `1..99`. Champ optionnel
    * de transition — `createEmptyDraft` le fixe à `DEFAULT_TOUR_REPEAT_COUNT`
@@ -452,6 +455,7 @@ export function toSessionDraft(session: Session | StructuredSession): SessionDra
     // est réenregistrée à 60 s au prochain enregistrement.
     initialCountdownSeconds: clampSessionBoundarySeconds(session.initialCountdownSeconds),
     finalPhaseSeconds: clampSessionBoundarySeconds(session.finalPhaseSeconds),
+    ...(normalizedGuidance(session.guidance) !== undefined ? { guidance: normalizedGuidance(session.guidance)! } : {}),
     ...(session.origin !== undefined && session.origin !== null ? { origin: session.origin } : {}),
   };
   const legacy = isEditedAsLegacy(structure) ? legacyFromStructure(structure) : null;
@@ -872,6 +876,7 @@ export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
     a.labelId === b.labelId &&
     a.initialCountdownSeconds === b.initialCountdownSeconds &&
     a.finalPhaseSeconds === b.finalPhaseSeconds &&
+    guidanceEqual(a.guidance, b.guidance) &&
     (a.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) ===
       (b.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) &&
     // PRE-6 (story 1.1) : un changement de nature seul rend le brouillon modifié.
@@ -1061,6 +1066,7 @@ export function toStructuredSessionInput(
     ...(draft.origin !== undefined && draft.origin !== null ? { origin: draft.origin } : {}),
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
+    ...(normalizedGuidance(draft.guidance) !== undefined ? { guidance: normalizedGuidance(draft.guidance)! } : {}),
     structure,
     movements: toSessionMovementInputs(draft),
   });

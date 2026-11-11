@@ -115,7 +115,7 @@ async function snapshot(database: Database): Promise<Record<string, unknown>> {
     result[table] = rows.map((row) =>
       // [Recette iPhone n° 2 du 31/10/2026 : `phases_to_verify` (019) ajoutée au démarrage, ignorée ici.]
       Object.fromEntries(
-        Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && !(table === "movement_phases" && ADDED.has(column)) && column !== "phases_to_verify" && column !== "origin_model"),
+        Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && !(table === "sessions" && column.startsWith("guidance_")) /* migration028 (fin de PRE-10) */ && !(table === "movement_phases" && ADDED.has(column)) && column !== "phases_to_verify" && column !== "origin_model"),
       ),
     );
   }
@@ -179,7 +179,7 @@ async function seededVersion17(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvement)", () => {
   it("version courante 19 (018 puis 019) ; bornes figées de la 018 égales à celles des phases (1..3535 s)", () => {
-    expect(DATABASE_VERSION).toBe(27);
+    expect(DATABASE_VERSION).toBe(28);
     expect(MIGRATION_018_PHASE_DURATION_BOUNDS).toEqual(WORK_PATTERN_DURATION_BOUNDS);
   });
 

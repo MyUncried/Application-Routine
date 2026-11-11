@@ -29,6 +29,10 @@ export type SessionHeaderRow = {
   session_updated_at: string;
   /** PRE-9 (C.1, `migration017`) : origine de création, `NULL` si inconnue ; absente des fixtures antérieures. */
   origin?: string | null;
+  /** Fin de PRE-10 (`migration028`) : guidage propre à la Séance, 0/1 ou `NULL` (comme le Profil) ; absent des fixtures antérieures. */
+  guidance_sounds_enabled?: number | null;
+  guidance_voice_enabled?: number | null;
+  guidance_announce_objective?: number | null;
 };
 
 /** PRE-8 (A.4) : Cycle utilisateur ; `position` = rang au niveau principal ; `repeat_count ≥ 1`. */

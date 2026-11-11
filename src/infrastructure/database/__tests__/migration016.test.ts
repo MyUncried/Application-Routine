@@ -92,7 +92,7 @@ async function snapshot(database: Database): Promise<Record<string, unknown>> {
     // PRE-9 (C.1) : la 017, jouée ensuite au démarrage, ajoute `sessions.origin` et le Format des
     // Circuits (NULL) ; elle est éprouvée par `migration017.test.ts`. Comparaison sur les colonnes d'avant.
     const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1`);
-    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && !MIGRATION_017_COLUMNS.has(column))));
+    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && !(table === "sessions" && column.startsWith("guidance_")) /* migration028 (fin de PRE-10) */ && !MIGRATION_017_COLUMNS.has(column))));
   }
   result.activities = await database.getAllAsync(ACTIVITY_SNAPSHOT);
   result.stopPoints = await database.getAllAsync(STOP_POINT_SNAPSHOT);
@@ -175,7 +175,7 @@ async function seededVersion15(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un Cycle)", () => {
   it("version courante 19 (016 à 019, PRE-9 C.1, A.2b et recette n° 2 constat e)", () => {
-    expect(DATABASE_VERSION).toBe(27);
+    expect(DATABASE_VERSION).toBe(28);
   });
 
   it("reconstruit activities et session_stop_points sans perte : lignes identiques, cycle_id NULL, aucune autre table touchée", async () => {

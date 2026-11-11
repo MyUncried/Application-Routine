@@ -26,6 +26,7 @@ import { buildExecutionLedger, type LedgerEvent, type LedgerSide } from "@/domai
 import { seriesRowsOf, type ExecutionMode, type SeriesTarget, type WorkPhase } from "@/domain/activities/ExecutionParameters";
 import { configurationValidity, engineAvailability, type ConfigurationIssue } from "@/domain/sessions/configurationValidity";
 import { expandStructure, type PlanContext, type PlanStep } from "@/domain/sessions/planExpansion";
+import type { SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import type { SessionSnapshot, SessionSnapshotExercise } from "@/domain/sessions/sessionSnapshot";
 import { structureCircuits, structureExercises } from "@/domain/sessions/structure";
 
@@ -109,6 +110,8 @@ export type ExecutablePlan = {
   readonly sessionName: string;
   readonly items: readonly ChildSpec[];
   readonly exercises: Readonly<Record<string, PlanExerciseInfo>>;
+  /** Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : guidage propre à la Séance ; absent = comme le Profil. État initial des interrupteurs Sons et Voix et de l'annonce de l'objectif. */
+  readonly guidance?: SessionGuidance;
 };
 
 export type Launchability =
@@ -303,7 +306,14 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
       workPhases: exercise.executionParameters.series.workPhases,
     };
   }
-  return { planVersion: EXECUTABLE_PLAN_VERSION, sessionId: snapshot.sessionId, sessionName: snapshot.name, items, exercises: infos };
+  return {
+    planVersion: EXECUTABLE_PLAN_VERSION,
+    sessionId: snapshot.sessionId,
+    sessionName: snapshot.name,
+    items,
+    exercises: infos,
+    ...(snapshot.guidance !== undefined ? { guidance: snapshot.guidance } : {}),
+  };
 }
 
 /**

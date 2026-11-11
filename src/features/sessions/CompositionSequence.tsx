@@ -1,7 +1,10 @@
 import { useMemo, type ReactNode, type Ref } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
+import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+
+/** Fin de PRE-10 : hauteur de la rangée Guidage, cible tactile minimale. */
+export const GUIDANCE_ROW_HEIGHT = minTouchTarget;
 
 /**
  * Séquence de la Composition (PRE-6 story 2.1, AD-41 ; PRE-6 story 5.2, D-435, CE-T03-08 ch13
@@ -283,6 +286,48 @@ export function BoundaryStep({
 }
 
 /**
+ * Fin de PRE-10 — élément « Guidage » de la Composition (spec `spec-guidage-reglages` §3.2 ; Hermann, 10/11/2026 :
+ * « Élément Guidage (Recommandé) », écran proposé par Claude sans maquette Figma). Posé au-dessus du Compte à rebours
+ * initial, même libellé et même pastille de valeur que les bornes, sans anneau ni rail : ce n'est pas une étape de la
+ * Séance. Le toucher de la rangée ouvre la feuille « Guidage de la séance ».
+ */
+export function GuidanceRow({
+  label,
+  value,
+  accessibilityHint,
+  onPress,
+  railCenterX,
+  testID,
+}: {
+  label: string;
+  value: string;
+  accessibilityHint: string;
+  onPress: () => void;
+  railCenterX: number;
+  testID: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityValue={{ text: value }}
+      accessibilityHint={accessibilityHint}
+      style={[styles.boundary, styles.guidanceRow]}
+      testID={testID}
+    >
+      <View style={{ width: railCenterX + RAIL_RING_DIAMETER / 2 }} />
+      <Text style={styles.boundaryLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      <View style={styles.valuePill} testID={`${testID}-value`}>
+        <Text style={styles.valueText}>{value}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+/**
  * Rail d'une borne, posé par l'écran sur la rangée (même repère, hors atténuation) : anneau centré
  * sur le contenu de 24 et, pour le Compte à rebours, queue du bas de l'anneau au bas de la rangée.
  */
@@ -328,6 +373,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: BOUNDARY_LABEL_GAP,
+  },
+  guidanceRow: {
+    minHeight: GUIDANCE_ROW_HEIGHT,
   },
   boundaryLabel: {
     ...type.label,

@@ -121,7 +121,7 @@ async function kept(database: Database): Promise<Record<string, unknown>> {
   for (const table of KEPT) {
     const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1, 2`);
     // Reprise Formats du 04/11/2026 : `tours.name` (migration 022) ignorée de la comparaison.
-    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "tours" && column === "name"))));
+    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && !(table === "sessions" && column.startsWith("guidance_")) /* migration028 (fin de PRE-10) */)));
   }
   return result;
 }
@@ -184,7 +184,7 @@ async function seededVersion20(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 A.3 — migration 021 (suppression des anciennes définitions du Catalogue)", () => {
   it("version courante 21", () => {
-    expect(DATABASE_VERSION).toBe(27);
+    expect(DATABASE_VERSION).toBe(28);
   });
 
   it("supprime toutes les définitions ; table et colonnes conservées ; Mouvements, médias, Séances, Exercices, avis intacts ; aucun avis ajouté", async () => {
