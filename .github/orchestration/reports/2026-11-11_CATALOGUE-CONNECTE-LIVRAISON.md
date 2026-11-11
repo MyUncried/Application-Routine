@@ -201,3 +201,14 @@ Tests : `npx jest --maxWorkers=4` sur le fichier pilote versionné, 348 suites e
 | « ma fiche a disparu » | **Incident causé par la session** : pour lancer les tests, le fichier pilote du dossier d'intégration (lu par le serveur d'administration en marche) a été remplacé trois fois quelques minutes par la version versionnée, puis rétabli. Vérification : fichier actuel = copie de recette (61 fiches, fiche `fiche-squat-test-recette` rév. 4) ; aucune écriture perdue (le dernier enregistrement de Hermann était refusé par la validation). Désormais les tests de l'administration lisent `KODJO_TEST_PILOT` et le fichier de recette n'est plus touché. | — |
 
 Tests : Jest complet sur le fichier pilote versionné, 349 suites et 5 850 tests verts ; `node --test tools/catalogue-admin/server.test.mjs` (avec `KODJO_TEST_PILOT`) 24 verts ; éditeur de médias vérifié dans jsdom (refus sans licence, confirmation avec licence, photo conservée) ; `tsc` 0 erreur.
+
+### Administration réduite au nécessaire (11/11, décision de Hermann)
+
+« tu me retires tout ce qui n'est pas légalement nécessaire, ni explicitement demandé, ni strictement nécessaire à l'usage, l'utilisation ou l'exploitation de la plateforme et de ses contenus ».
+
+- Conservé dans l'écran d'une fiche : nom, étapes (contenu d'un Mouvement, registre ch. 07), catégorie et zones (utilisées par l'application), propriétaire et auteur (décision du 10/11 et MOUV-D1), médias et leurs droits (diffusion légale, MOUV-D2), Bibliothèques contenant la fiche.
+- Retiré de l'écran : alias (« aucune saisie d'alias », 27/10), position de départ, matériel, consignes de sécurité, notes éditoriales, spécialités, familles gestuelles, problèmes traités, cibles anatomiques, fondement, revue de classification, classification et spécialités d'origine, identifiant de geste, origine, amont, diffuseur, ayant droit, licence de la fiche, statut éditorial, visibilité, sources, validation, installation, historique.
+- Bibliothèque : titre, description, propriétaire et fiches (éditeur, visibilité, publication, historique retirés). Catalogue : nom du fichier, signalements, titre, propriétaire (gestionnaire, diffuseur, publication, notes retirés). Onglets « Référentiels » et « Glossaire » retirés.
+- Les valeurs existantes restent dans le fichier et dans le format ; aucun changement du téléphone ni des règles de validation.
+
+Tests : `node --test tools/catalogue-admin/server.test.mjs` (fichier pilote de référence) 24 verts ; eslint de `app.js` 0 problème.

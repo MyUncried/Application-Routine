@@ -164,6 +164,7 @@ Cahier : `_bmad-output/catalogue-connecte/implementation-artifacts/recette-iphon
 | Boîte d'arrivée : bornes du contrat du Mouvement (QN-1) | A | format § 12 (borne 20/65 remplacée, annotée) |
 | Transfert Wi-Fi refusé si un média a des droits non confirmés | A (MOUV-D2) | format § 12, rapport de livraison |
 | Seule la fiche au média non confirmé est retenue, et nommée (décision du 11/11, recette) | B | format § 12.2 ; spec (W2) |
+| Administration réduite au nécessaire (décision du 11/11 : « tu me retires tout ce qui n'est pas légalement nécessaire, ni explicitement demandé, ni strictement nécessaire à l'usage ») : fiche = nom, étapes, catégorie, zones, propriétaire, auteur, médias (et leurs droits), Bibliothèques ; Bibliothèque = titre, description, propriétaire, fiches ; catalogue = titre, propriétaire ; onglets Référentiels et Glossaire retirés. Données conservées dans le fichier, sans affichage. | B | format § 11 (inchangé : le format garde ces champs) |
 | Licence choisie dans une liste, autorisation déclarée par un bouton (administration) | B (demande de Hermann du 11/11) ; règle du format inchangée | format § 12.2 |
 | Premier lot du Profil : Ajouter, Envoyer, Installées (A-4) | B | ch. 06, 08, 13 |
 | Mise en page Figma des écrans Bibliothèques (correction du 11/11 : cartes, intitulés au-dessus, icônes et chevrons SVG, pastilles, encarts, états centrés) | A (conformité aux maquettes 510:101) | aucun ; écarts restants dans le rapport de livraison, section « Correction du 11/11 » |
