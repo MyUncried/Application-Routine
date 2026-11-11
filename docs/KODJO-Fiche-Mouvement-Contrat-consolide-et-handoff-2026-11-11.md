@@ -31,7 +31,7 @@
 | `glossary[]` | `id,term,definition,synonyms[],relatedSheetIds[]` | Glossaire et liens vers les fiches |
 | `CatalogueSheet` | `sheetId,revision,history[],provenance,content,classification,sources,validation,media[],install` | Identité et version de la fiche |
 | `history[]` | `revision,date,author,summary` | Historique éditorial ordonné |
-| `provenance` | `gestureId,origin,upstream,owner,authors[],publisher,rightsHolder,license,reviewStatus,visibility` | Provenance et droits déclarés |
+| `provenance` | **Format historique CA-1 :** `gestureId,origin,upstream,owner,authors[],publisher,rightsHolder,license,reviewStatus,visibility` ; **cible :** `author: ActorRef | null` à la place de `authors[]` | Provenance conservée, aucun multi-auteur cible |
 | `content` | `name,aliases[],startingPosition,equipment,steps[],safetyNotes,notes` | Contenu descriptif, étapes et alias ordonnés |
 | `classification` | `categoryId,bodyZoneIds[],specialtyIds[],gesturalFamilyIds[],clinicalProblemIds[],anatomicalTargetIds[],basis,review,original,originalProposedSpecialties[]` | Classements internes et informations d'origine |
 | `sources` | `documentary` (`sourceId,section,url,usageStatement`) ou null ; `prescriptionContext{}` | Sources documentaires et contexte conservé, distinct de l'identité upstream |
@@ -87,7 +87,7 @@
 3. **Phases et familles** : propriétés locales d'exercice/mouvement préexistantes, actuellement non modifiées par CA-3. Les importer depuis la fiche exige une règle explicite de mapping et de préservation des personnalisations.
 4. **Homonymes** : index unique partiel proposé par revue Claude (créations locales `origin_namespace IS NULL`) mais non testé en exécution ; vérifier aussi toutes les gardes de saisie.
 5. **Attributs éditoriaux dans le mobile** : seul Figma valide la présentation. Les `startingPosition`, `equipment`, `safetyNotes`, spécialités, autres axes, provenance détaillée ne deviennent pas automatiquement des champs modifiables dans `MovementScreen`.
-6. **Pilote privé vs Bibliothèques génériques diffusables** : les 60 fiches à propriétaire inconnu sont non publiables ; obtenir les droits et métadonnées d'une version publique sans supposer que la reprise locale vaut autorisation de diffusion.
+6. **Pilote privé vs Bibliothèques génériques diffusables** : les 60 fiches à propriétaire inconnu sont non publiables ; obtenir les droits et métadonnées d'une version publique sans supposer que la reprise locale vaut autorisation de diffusion. MOUV-D2 n'autorise pas la redistribution d'un média sans droits confirmés.
 7. **Historique et protections** : aucune copie/édition pour les nouvelles fiches importées (MOUV-D3). Seule la réconciliation des adaptations historiques des 60 Mouvements conserve son circuit de conflits CA-3, sans écraser la source.
 
 Ces points ne bloquent **pas** la lecture/validation/stockage sans perte du contrat existant ; ils bloquent seulement les mutations de données ou règles nouvelles qui en dépendent.
