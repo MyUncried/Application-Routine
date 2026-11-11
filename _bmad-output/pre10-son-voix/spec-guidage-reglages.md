@@ -334,3 +334,9 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - Sons et vibrations (Préférences et modale) : « Toutes les minutes », « Aucun », colonne Son à largeur fixe (112 / 104) à 20 de l’interrupteur, titre centré.
 - Choix d’un son : indication retirée ; « Par défaut » coche aussi le son par défaut de l’événement.
 - Documents : ch13 (CE-UI-07, Guidage sonore) annoté. Classe D : aucune.
+
+### 12.5 Retour du 11/11/2026 (récapitulatif Tabata)
+
+- Hermann, recopié : « C’est un règle stupide que je n’ai jamais édictée et qu’il faut supprimer. » Classe B.
+- Règle visée : « sauf le récapitulatif Tabata » (ch06 Guidage sonore, ch13 CE-UI Guidage sonore), introduite par le commit documentaire 935b6a5d du 11/11/2026. Exception supprimée, texte d’origine conservé et annoté.
+- Code : aucun changement (le bouton reste dans l’en-tête de la Composition ; les écrans du questionnaire et du récapitulatif de Format n’en ont jamais eu). Cahier : essai z5 retiré.
