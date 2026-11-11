@@ -156,6 +156,12 @@ const sources = {
   "library-warning": require("../../../assets/icons/icon-bibliotheque-avertissement.svg"),
   "library-wifi-off": require("../../../assets/icons/icon-bibliotheque-wifi.svg"),
   "library-resume": require("../../../assets/icons/icon-bibliotheque-reprise.svg"),
+  // Modifier le profil aligné sur Figma `12119:25611` (11/11/2026) : fond de l'avatar sans photo, pastille
+  // appareil photo, tracés des silhouettes homme/femme (teintés selon la sélection par l'écran).
+  "profile-avatar-initials": require("../../../assets/icons/icon-profil-avatar-initiales.svg"),
+  "profile-photo-camera": require("../../../assets/icons/icon-profil-appareil-photo.svg"),
+  "profile-silhouette-homme": require("../../../assets/icons/icon-profil-silhouette-homme.svg"),
+  "profile-silhouette-femme": require("../../../assets/icons/icon-profil-silhouette-femme.svg"),
 } as const;
 
 const sizes = {
@@ -322,6 +328,10 @@ const sizes = {
   "library-warning": [17.5, 15.5],
   "library-wifi-off": [18, 16],
   "library-resume": [13.5002, 13.5002],
+  "profile-avatar-initials": [64, 64],
+  "profile-photo-camera": [16, 16],
+  "profile-silhouette-homme": [9.30769, 27.5],
+  "profile-silhouette-femme": [9.01882, 27.5],
 } as const;
 
 /**

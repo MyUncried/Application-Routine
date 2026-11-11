@@ -1303,6 +1303,62 @@
         "Reprise après interruption — pastille de la carte (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
       ],
       "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "profile.avatarInitials",
+      "file": "icon-profil-avatar-initiales",
+      "figmaNodeId": "12119:25615",
+      "figmaName": "Avatar — Initiales",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25611",
+      "width": 64,
+      "height": 64,
+      "usage": [
+        "Modifier le profil — fond de l’avatar sans photo (alignement Figma du 11/11/2026)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "profile.photoCamera",
+      "file": "icon-profil-appareil-photo",
+      "figmaNodeId": "12119:25618",
+      "figmaName": "Icône appareil photo",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25611",
+      "width": 16,
+      "height": 16,
+      "usage": [
+        "Modifier le profil — pastille « Modifier la photo » (alignement Figma du 11/11/2026)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "profile.silhouetteMale",
+      "file": "icon-profil-silhouette-homme",
+      "figmaNodeId": "12119:25625",
+      "figmaName": "Tracé — silhouette homme",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25611",
+      "width": 9.30769,
+      "height": 27.5,
+      "usage": [
+        "Modifier le profil — choix de silhouette homme, teinté selon la sélection (alignement Figma du 11/11/2026)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "profile.silhouetteFemale",
+      "file": "icon-profil-silhouette-femme",
+      "figmaNodeId": "12119:25627",
+      "figmaName": "Tracé — silhouette femme",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25611",
+      "width": 9.01882,
+      "height": 27.5,
+      "usage": [
+        "Modifier le profil — choix de silhouette femme, teinté selon la sélection (alignement Figma du 11/11/2026)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
     }
   ],
   "branding": {

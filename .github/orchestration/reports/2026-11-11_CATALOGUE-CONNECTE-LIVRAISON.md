@@ -221,3 +221,32 @@ Données : aucune valeur modifiée ni supprimée du fichier. Tests : `node --tes
 | a1-reseau | non testé | — | — |
 
 Tests : test d'intégration A-2 de `MovementScreen` mis à jour (ouverture et fermeture) ; suite complète : 342 suites vertes, les 7 suites qui lisent le fichier pilote du dossier échouent à cause des données de recette (61+ fiches) et sont rejouées sur le fichier versionné dans un dossier de travail séparé (voir ci-dessous).
+
+### Écran Profil aligné sur Figma (11/11)
+
+Demande de Hermann : « Tu dois encore modifier l'écran de Profil pour qu'il corresponde à Figma […] Ça concerne les trois onglets, la couleur, la disposition de la photo, du nom et du pseudo, enfin de toute la partie au dessus de la section bibliothèque. » Cible : Figma `G6RY5Ebhgwb4AHIOYDwwvg`, nœud `12119:25611`, partie au-dessus de « Bibliothèques » (lecture seule MCP, `get_design_context`). Départ : `ccb32a1f`, branche `catalogue/integration-pre10-20261111`.
+
+Repris (`src/features/preferences/ProfileEditScreen.tsx`, route `app/profile-edit.tsx`) :
+- fond d'écran #F7F7FF (`color/catalogue/seances/background`) ; zone « Enregistrer » fondue vers ce fond ;
+- en-tête : trois onglets « Profil » (sélectionné, Bold 17, forme d'onglet #EAEAFF), « Préférences », « Communauté » (Regular 17 #595E66), composant existant `CatalogueNavigation` (même tracé que l'asset `Onglet sélectionné` 12119:25663, déjà validé sur les Catalogues) ; bande 14 pt #EAEAFF → #F7F7FF dessous (12119:25662) ; titre « Modifier le profil », Retour et trait gris retirés comme sur la maquette ;
+- intitulé « Profil » (Regular 11 #595E66) au-dessus d'une carte identique à celles des Bibliothèques (`libraryUi` `Section`/`Card`) ;
+- avatar 64 (asset `Avatar — Initiales`, #1A1C26) avec initiales blanches Semi Bold 22, ou la photo ; pastille bleue 30 avec icône appareil photo à (40, 40) de l'avatar (même action que le libellé, masquée de VoiceOver pour ne pas doubler le bouton) ; « Modifier la photo » Medium 13 bleu dessous ;
+- à droite (x = 152 de la carte) : ligne « Nom » (Regular 13, 66 pt) et sa valeur éditable en Regular 14 (`TextInput` natif conservé, sans cadre) ; messages d'erreur dessous ;
+- séparateur #E0E3E8 puis silhouettes dans des cercles blancs de 40 centrés, écart 15 : choisie liseré #0508E5 1,25 et tracé bleu, non choisie liseré #CCD1E0 0,625 et tracé #9499A8.
+
+Comportement inchangé : brouillon, validation du nom (1..80), photo (choix, annulation, erreur, suppression de l'ancienne copie après enregistrement), silhouette par défaut homme, « Enregistrer », garde d'abandon ; testID existants conservés. Section Bibliothèques non modifiée (seul l'écart vertical entre sections passe de 24 à 16, valeur de la maquette).
+
+Données ou écrans absents — rien d'inventé (À CLARIFIER n° 7 de la spec) :
+- **Pseudo** (« @hermann ») : aucun champ dans le Profil, ni dans le registre ni dans les ch. 09/13 ; ligne non affichée, aucun champ ni migration ;
+- **« Compte gratuit »** : aucun type de compte ; pastille non affichée ;
+- **onglet « Préférences »** : pas d'écran de ce nom ; l'appui ramène à l'écran Profil de la barre basse, qui porte les réglages et préférences, avec la même garde d'abandon que l'ancien Retour (interprétation la moins inventive qui garde un retour visible) ;
+- **onglet « Communauté »** : visible et désactivé (« Communauté — indisponible »), comme dans la navigation basse (E01).
+Point à arbitrer : faut-il un pseudo et un type de compte (donnée, règles, migration ≥ 029) ? « Préférences » doit-il devenir un écran distinct, et l'écran Profil de la barre basse prendre les mêmes onglets ?
+
+Icônes ajoutées (exports MCP de 12119:25611, attributs racine nettoyés, `manifest.json` et `KodjoIcon`) : `icon-profil-avatar-initiales` (12119:25615, 64 × 64), `icon-profil-appareil-photo` (12119:25618, 16 × 16), `icon-profil-silhouette-homme` (12119:25625, 9,31 × 27,5), `icon-profil-silhouette-femme` (12119:25627, 9,02 × 27,5). Les silhouettes existantes `body-zone-*` (24 × 24, trait 0,8 #5C636E) n'étaient pas identiques (trait et couleur) ; elles restent utilisées ailleurs. L'onglet sélectionné réutilise `CatalogueNavigation` plutôt qu'un nouvel SVG.
+
+Écarts restants : l'onglet sélectionné repose sur le bas de l'en-tête (94 pt de la maquette au lieu de 93), la bande le recouvre ; sur un écran plus étroit que 402 pt, les onglets se répartissent au tiers de la largeur (règle des Catalogues). Toast « Pilates désinstallée » et désinstallation : hors périmètre (A-4). Aucun contrôle visuel sur iPhone n'a été fait : à vérifier en recette.
+
+Classe : A (conformité à la maquette) ; interprétations listées ci-dessus, sans règle créée. Documents : spec (Synchronisation, À CLARIFIER n° 7) et ce rapport.
+
+Tests : `ProfileEditScreen.test.tsx` 20 verts (6 nouveaux : onglets et retour par « Préférences », garde d'abandon par l'onglet, carte Profil sans pseudo ni type de compte, pastille appareil photo, silhouettes 40 teintées, fond #F7F7FF) ; `npx jest src/features/preferences app` 9 suites, 70 tests verts (avant ajout des nouveaux tests) ; suite complète `npx jest --maxWorkers=4` : 342 suites et 5 838 tests verts, 7 suites (18 tests) en échec — les 7 suites attendues qui lisent le fichier pilote de recette du dossier (LibraryScreens, CatalogueLoadScreen, LibraryService.sqlite, CatalogueLoadService.sqlite, catalogueEditing, convertPilotCorpus, catalogueLoadPlan) ; `tsc --noEmit` 0 erreur ; eslint 0 problème sur les fichiers modifiés. Fichier `catalogue/catalogues/kodjo-pilote-60.catalogue.json` non touché.
