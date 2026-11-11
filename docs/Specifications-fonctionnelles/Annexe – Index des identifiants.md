@@ -1182,8 +1182,8 @@ Les identifiants ci-dessous appartiennent au registre fonctionnel. Ce complémen
 | BIB-03 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-04 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-05 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
-| BIB-06 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
-| BIB-07 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-06 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | **Supersédée pour les fiches importées par MOUV-D3** ; distribution future |
+| BIB-07 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | **Supersédée pour la copie des fiches importées par MOUV-D3** |
 | BIB-08 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-09 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-10 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
@@ -1195,6 +1195,15 @@ Les identifiants ci-dessous appartiennent au registre fonctionnel. Ce complémen
 | BIB-16 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-17 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-18 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-19 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Bibliothèques KODJO génériques, premier périmètre ; fonctions personnelles/coachs reportées |
+| BIB-20 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Bibliothèques KODJO génériques, premier périmètre ; fonctions personnelles/coachs reportées |
+| BIB-21 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Bibliothèques KODJO génériques, premier périmètre ; fonctions personnelles/coachs reportées |
+| BIB-22 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Bibliothèques KODJO génériques, premier périmètre ; fonctions personnelles/coachs reportées |
+| BIB-23 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Bibliothèques KODJO génériques, premier périmètre ; fonctions personnelles/coachs reportées |
+| MOUV-D1 | [Registre et contrat](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Auteur unique et nullable |
+| MOUV-D2 | [Registre et contrat](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Médias distants avec cache à la demande |
+| MOUV-D3 | [Registre et contrat](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Fiche importée non modifiable et non duplicable |
+| MOUV-D4 | [Registre et contrat](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Révisions volontaires ; réconciliation historique des 60 |
 | F4-A | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
 | F4-B | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
 | F4-C | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Cycle de vie, droits et mises à jour |
