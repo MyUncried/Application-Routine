@@ -10,7 +10,7 @@ Pour chaque point, note **OK**, ou **KO** avec ce que tu vois (une capture aide)
 
 ## 0. Préparation sur le PC
 
-1. Dans le dossier `C:DevKODJO-CAT-INTEG` (branche d'intégration ; pas `KODJO-CAT-ADMIN`) : `node tools/catalogue-admin/server.mjs --lan`. La console affiche l'adresse locale `http://127.0.0.1:4738` et le port téléphone `4739`.
+1. Dans le dossier `C:\Dev\KODJO-CAT-INTEG` (branche d'intégration ; pas `KODJO-CAT-ADMIN`) : `node tools/catalogue-admin/server.mjs --lan`. La console affiche l'adresse locale `http://127.0.0.1:4738` et le port téléphone `4739`.
 2. Ouvre `http://127.0.0.1:4738` dans le navigateur du PC : l'administration s'ouvre sur « Catalogue pilote KODJO — 60 fiches de test ».
 3. Au premier lancement en `--lan`, Windows propose d'autoriser Node.js. Coche **Réseaux privés uniquement**.
 4. Relève l'adresse IP du PC (`ipconfig` → « Adresse IPv4 », par exemple `192.168.1.20`).
