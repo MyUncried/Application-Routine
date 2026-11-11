@@ -185,7 +185,15 @@ export type CatalogueSheet = {
   readonly validation: CatalogueSheetValidation;
   /** Ordonnés. */
   readonly media: readonly CatalogueMedia[];
-  readonly install: { readonly knownLocalMovementIds: readonly string[] };
+  readonly install: {
+    readonly knownLocalMovementIds: readonly string[];
+    /**
+     * Sous-ensemble de `knownLocalMovementIds` : Mouvements **personnels** envoyés par un téléphone (A2) puis
+     * ajoutés ou rapprochés par l'administration. Leur rattachement n'est pas appliqué tant que la règle de
+     * transition n'est pas arbitrée (A-2 du 11/11/2026). Facultatif ; absent = aucun.
+     */
+    readonly personalMovementIds?: readonly string[];
+  };
 };
 
 /** Référence d'une fiche par son identité éditoriale ; jamais une copie (A-1). */
@@ -399,16 +407,18 @@ function upgradeV1(raw: Raw, issue: IssueSink): Raw {
     return { ...sheet, provenance: { ...provenance, author } };
   });
   const header = isObject(raw.catalogue) ? raw.catalogue : null;
+  // Bibliothèque implicite : identifiant dérivé valide, privée et non publiable — la conversion n'accorde
+  // aucune diffusion (revue du 11/11 : un en-tête v1 publiable ne doit pas faire refuser le fichier).
   const libraries = header === null ? [] : [{
-    libraryId: header.id,
+    libraryId: implicitLibraryId(header.id),
     title: header.title,
     description: null,
     revision: header.revision,
     history: [],
     editor: header.publisher ?? null,
     owner: header.owner ?? null,
-    visibility: header.publicationAllowed === true ? "PUBLIC" : "PRIVATE",
-    publicationAllowed: header.publicationAllowed,
+    visibility: "PRIVATE",
+    publicationAllowed: false,
     members: (sheets ?? []).filter(isObject).filter((sheet) => present(sheet.sheetId))
       .map((sheet) => ({ catalogueId: header.id, sheetId: sheet.sheetId })),
   }];
@@ -423,6 +433,14 @@ function upgradeV1(raw: Raw, issue: IssueSink): Raw {
 }
 
 const LIBRARY_ID = /^[a-z0-9][a-z0-9.-]{1,63}$/;
+
+/** Identifiant de Bibliothèque dérivé d'un identifiant de catalogue v1 quelconque (déterministe). */
+function implicitLibraryId(catalogueId: unknown): string {
+  const slug = (typeof catalogueId === "string" ? catalogueId : "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+    .replace(/[^a-z0-9.-]+/g, "-").replace(/^[^a-z0-9]+/, "").slice(0, 64).replace(/[-.]+$/, "");
+  return LIBRARY_ID.test(slug) ? slug : "bibliotheque";
+}
 const VISIBILITIES: readonly unknown[] = ["PRIVATE", "UNLISTED", "PUBLIC"];
 
 function validateLibraries(raw: Raw, sheetIds: ReadonlySet<string>, issue: IssueSink, warnings: CatalogueWarning[]): void {
@@ -689,6 +707,12 @@ function validateSheet(
       !install.knownLocalMovementIds.every(present) ||
       new Set(install.knownLocalMovementIds).size !== install.knownLocalMovementIds.length) {
     issue(path + ".install.knownLocalMovementIds", "INVALID");
+  } else if (install.personalMovementIds !== undefined) {
+    const personal = install.personalMovementIds;
+    if (!isStrings(personal) || new Set(personal).size !== personal.length ||
+        !personal.every((id) => (install.knownLocalMovementIds as string[]).includes(id))) {
+      issue(path + ".install.personalMovementIds", "INVALID");
+    }
   }
 
   // Projection Mouvement : contrat `Movement` actuel (nom, étapes encodées, Catégorie, Zones).

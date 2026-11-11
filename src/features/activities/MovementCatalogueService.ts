@@ -233,6 +233,8 @@ export class MovementCatalogueService {
 
   /** Variante explicitement choisie, insérée avant (plus facile) ou après (plus difficile) l'origine. */
   async createVariant(movement: Movement, originId: string, difficulty: VariantDifficulty): Promise<MovementWriteResult> {
+    // A-2 (11/11/2026) : aucun niveau dérivé d'un Mouvement importé (le niveau rejoindrait sa famille).
+    if (await this.importedCheck(originId)) return { status: "PROTECTED" };
     if (!validateMovement({ ...movement, levelGroup: null }).ok) {
       return { status: "INVALID" };
     }

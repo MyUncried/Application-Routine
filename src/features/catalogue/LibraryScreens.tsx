@@ -208,9 +208,13 @@ export function LibraryConnectScreen({ client = defaultClient, pickFile = pickCa
       break;
     case "connected":
       body = (
-        <Notice tone="positive" title={`Connecté à « ${phase.session.name} »`} testID="library-connect-connected">
-          Votre PC est prêt à envoyer les bibliothèques disponibles.
-        </Notice>
+        <>
+          <Notice tone="positive" title={`Connecté à « ${phase.session.name} »`} testID="library-connect-connected">
+            Votre PC est prêt à envoyer les bibliothèques disponibles.
+          </Notice>
+          {/* Revue du 11/11 : sur un Wi-Fi partagé, vérifier que l'adresse est bien celle de votre PC. */}
+          <Paragraph tone="secondary" testID="library-connect-address">{`Adresse du PC : ${phase.session.host}`}</Paragraph>
+        </>
       );
       primary = params.next === "send"
         ? { label: "Choisir les mouvements à envoyer", onPress: () => void showLibraries(phase.session), testID: "library-connect-continue" }
@@ -920,15 +924,19 @@ export function LibrarySendScreen({ client = defaultClient, deviceName }: Librar
     if (!services || !activity || !session) return;
     let cancelled = false;
     void (async () => {
-      const entries = (await activity.movementCatalogue?.listEntries()) ?? [];
-      const personal: Movement[] = [];
-      for (const entry of entries) {
-        if (entry.archived) continue;
-        if (!(await services.registry.isInstalledMovement(entry.movement.id))) personal.push(entry.movement);
-      }
-      if (!cancelled) {
-        setMovements(personal.sort((a, b) => a.name.localeCompare(b.name, "fr")));
-        setPhase({ kind: "ready" });
+      try {
+        const entries = (await activity.movementCatalogue?.listEntries()) ?? [];
+        const personal: Movement[] = [];
+        for (const entry of entries) {
+          if (entry.archived) continue;
+          if (!(await services.registry.isInstalledMovement(entry.movement.id))) personal.push(entry.movement);
+        }
+        if (!cancelled) {
+          setMovements(personal.sort((a, b) => a.name.localeCompare(b.name, "fr")));
+          setPhase({ kind: "ready" });
+        }
+      } catch {
+        if (!cancelled) setPhase({ kind: "error", reconnect: false, message: "Vos mouvements n'ont pas pu être lus. Réessayez." });
       }
     })();
     return () => { cancelled = true; };
@@ -937,8 +945,15 @@ export function LibrarySendScreen({ client = defaultClient, deviceName }: Librar
   const send = useCallback(async () => {
     if (!activity || !session) return;
     setPhase({ kind: "sending" });
-    const categories = await activity.listCategories();
-    const zones = await activity.listBodyZones();
+    let categories: Awaited<ReturnType<typeof activity.listCategories>>;
+    let zones: Awaited<ReturnType<typeof activity.listBodyZones>>;
+    try {
+      categories = await activity.listCategories();
+      zones = await activity.listBodyZones();
+    } catch {
+      setPhase({ kind: "error", reconnect: false, message: "Les catégories et zones n'ont pas pu être lues. Rien n'a été envoyé." });
+      return;
+    }
     const built = buildMovementInbox({
       movements: movements.filter((movement) => selected.has(movement.id)),
       categoryLabels: new Map(categories.map((category) => [category.id, category.name])),

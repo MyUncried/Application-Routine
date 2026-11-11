@@ -232,8 +232,10 @@ export async function createAdminApp({
    * file d'écriture : contrôle de révision optimiste, validation partagée, calcul des révisions,
    * revalidation, écriture atomique de la sérialisation de référence.
    */
-  function saveCatalogue(fileName, expectedEtag, mutate, meta, afterWrite) {
+  function saveCatalogue(fileName, expectedEtag, mutate, meta, afterWrite, precheck) {
     return serialize(async () => {
+      // Contrôle dans la file d'écriture (revue du 11/11) : aucune décision concurrente sur le même élément.
+      if (precheck) await precheck();
       const current = await readCatalogue(fileName);
       if (typeof expectedEtag !== "string" || expectedEtag !== current.etag) {
         throw new HttpError(409, "STALE_REVISION", { etag: current.etag });
@@ -359,8 +361,15 @@ export async function createAdminApp({
       if (!item) throw new HttpError(404, "UNKNOWN_INBOX_ITEM");
       if (item.status !== "PENDING") throw new HttpError(409, "ALREADY_PROCESSED", { status: item.status });
       const action = parts[2];
+      const stillPending = async () => {
+        const fresh = await inbox.get(item.itemId);
+        if (!fresh || fresh.status !== "PENDING") throw new HttpError(409, "ALREADY_PROCESSED", { status: fresh?.status ?? null });
+      };
       if (action === "dismiss") {
-        const marked = await serialize(() => inbox.mark(item.itemId, "DISMISSED", null));
+        const marked = await serialize(async () => {
+          await stillPending();
+          return inbox.mark(item.itemId, "DISMISSED", null);
+        });
         return sendJson(response, 200, { item: marked });
       }
       if (action !== "add" && action !== "link") throw new HttpError(404, "NOT_FOUND");
@@ -383,25 +392,27 @@ export async function createAdminApp({
             categoryId: body.categoryId, bodyZoneIds: body.bodyZoneIds,
           }), meta);
           createdId = created.sheet.sheetId;
-          if (!body.libraryId) return created.file;
-          const library = created.file.libraries.find((entry) => entry.libraryId === body.libraryId);
+          // A2 : Mouvement personnel — rattachement non appliqué sur le téléphone tant que la règle n'est pas arbitrée.
+          const marked = editing.linkLocalMovement(created.file, createdId, movement.movementId, true);
+          if (!body.libraryId) return marked;
+          const library = marked.libraries.find((entry) => entry.libraryId === body.libraryId);
           if (!library) throw new HttpError(422, "UNKNOWN_LIBRARY");
-          return editing.replaceLibrary(created.file, editing.addLibraryMember(library, {
-            catalogueId: created.file.catalogue.id, sheetId: created.sheet.sheetId,
+          return editing.replaceLibrary(marked, editing.addLibraryMember(library, {
+            catalogueId: marked.catalogue.id, sheetId: createdId,
           }));
         }, meta, async (file) => inbox.mark(item.itemId, "ADDED", {
           fileName: body.fileName, catalogueId: file.catalogue.id, sheetId: createdId, libraryId: body.libraryId ?? null,
-        }));
+        }), stillPending);
         return sendJson(response, 200, { ...outcome, sheetId: createdId });
       }
       // Rapprochement explicite : installation seulement (aucune révision éditoriale de la fiche).
       if (typeof body.sheetId !== "string") throw new HttpError(422, "UNKNOWN_SHEET");
       const meta = editMeta(body, now, "Rapprochement d'un Mouvement du téléphone");
       const outcome = await saveCatalogue(body.fileName, body.etag,
-        (file) => editing.linkLocalMovement(file, body.sheetId, movement.movementId), meta,
+        (file) => editing.linkLocalMovement(file, body.sheetId, movement.movementId, true), meta,
         async (file) => inbox.mark(item.itemId, "LINKED", {
           fileName: body.fileName, catalogueId: file.catalogue.id, sheetId: body.sheetId,
-        }));
+        }), stillPending);
       return sendJson(response, 200, outcome);
     }
     if (method === "POST" && route === "/api/pairing") {

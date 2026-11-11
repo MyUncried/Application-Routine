@@ -262,10 +262,10 @@ libraries[] { libraryId, title, description|null, revision, history[] (vide admi
 
 - `authors[]` est converti : 0 auteur → `null`, 1 auteur → cet auteur, plusieurs → **refus explicite** (`INCONSISTENT`, `MULTIPLE_AUTHORS`), jamais de choix arbitraire.
 - Une **Bibliothèque implicite** est créée :
-  - `libraryId` = `catalogue.id` ;
-  - titre, révision, propriétaire et autorisation repris de l’en-tête ;
+  - `libraryId` dérivé de `catalogue.id` (minuscules, caractères non admis remplacés par « - », 64 au plus ; sinon `bibliotheque`) ;
+  - titre, révision et propriétaire repris de l’en-tête ;
   - éditeur = `catalogue.publisher` ;
-  - `PRIVATE` si la publication n’est pas autorisée ;
+  - toujours `PRIVATE` et non publiable : la conversion n’accorde aucune diffusion [revue du 11/11/2026 : remplace « `PRIVATE` si la publication n’est pas autorisée »] ;
   - toutes les fiches dans l’ordre du fichier.
 - Le résultat est un fichier v2 ; le signalement `CONVERTED_FROM_V1` l’indique. Aucun fichier n’est réécrit en v1.
 

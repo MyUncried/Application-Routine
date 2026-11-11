@@ -223,10 +223,20 @@ export class AdminClient {
     if (body !== undefined) headers["Content-Type"] = "application/json";
     if (token) headers.Authorization = "Bearer " + token;
     try {
-      return await withTimeout(REQUEST_TIMEOUT_MS, (signal) => this.fetchImpl(
-        `http://${endpoint.host}:${endpoint.port}${path}`,
-        { method, headers, signal, ...(body === undefined ? {} : { body: JSON.stringify(body) }) },
-      ));
+      // Revue du 11/11 : le délai couvre aussi la lecture du corps (jusqu'à 24 Mo), lu entièrement ici.
+      return await withTimeout(REQUEST_TIMEOUT_MS, async (signal) => {
+        const response = await this.fetchImpl(
+          `http://${endpoint.host}:${endpoint.port}${path}`,
+          { method, headers, signal, ...(body === undefined ? {} : { body: JSON.stringify(body) }) },
+        );
+        const text = await response.text();
+        return {
+          ok: response.ok,
+          status: response.status,
+          text: async () => text,
+          json: async () => JSON.parse(text) as unknown,
+        };
+      });
     } catch {
       throw new AdminClientError("NETWORK");
     }

@@ -371,7 +371,8 @@ describe("A2 — Envoyer mes mouvements", () => {
       localAddress: async () => null,
       fetch: async (_url, init) => {
         posted = JSON.parse(init!.body!);
-        return { ok: true, status: 200, json: async () => ({ received: 1, stored: 1, duplicates: 0 }), text: async () => "" };
+        const reply = { received: 1, stored: 1, duplicates: 0 };
+        return { ok: true, status: 200, json: async () => reply, text: async () => JSON.stringify(reply) };
       },
     });
     librarySession.setSource({ kind: "ADMIN", session: { host: "192.168.1.20", port: 4739, name: "PC-Hermann", token: "t".repeat(43), expiresAt: null }, entries: [], refreshedAt: 0 });

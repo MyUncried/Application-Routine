@@ -142,6 +142,17 @@ export type SheetLoadState =
   /** Opération interrompue non reprise (voir `recoverInterrupted`). */
   | "INTERRUPTED";
 
+/**
+ * A-2 (11/11/2026) : rattacher un Mouvement **personnel** à une fiche (création éditoriale `LOCAL_CREATED`, ou
+ * Mouvement envoyé par le téléphone puis rapproché : `install.personalMovementIds`) le rendrait importé, donc
+ * verrouillé. Cette transition n'est pas arbitrée : elle n'est jamais appliquée (ni rattachement, ni rapprochement).
+ * Les 60 Mouvements du pilote (fiches `EXTERNAL_IMPORTED`) ne sont pas concernés (A-2, point 8).
+ */
+export function isPendingPersonalAttachment(sheet: CatalogueSheet, item: Pick<SheetLoadItem, "state" | "movementId">): boolean {
+  if (item.movementId === null || (item.state !== "ADOPTABLE" && item.state !== "TO_RECONCILE")) return false;
+  return sheet.provenance.origin === "LOCAL_CREATED" || (sheet.install.personalMovementIds ?? []).includes(item.movementId);
+}
+
 export type SheetBlocker =
   | { readonly code: "LOCAL_REFERENCE_MISSING"; readonly field: "categoryId" | "bodyZoneIds"; readonly ids: readonly string[] }
   | { readonly code: "NAME_CONFLICT"; readonly movementId: string };
