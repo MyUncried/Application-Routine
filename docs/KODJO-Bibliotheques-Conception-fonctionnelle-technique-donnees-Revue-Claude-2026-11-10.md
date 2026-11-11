@@ -12,7 +12,7 @@
 
 ## 0. Résumé architectural et périmètre
 
-KODJO doit permettre à un utilisateur de créer/organiser localement des Bibliothèques de Mouvements, puis à terme de partager ses Bibliothèques, en recevoir, acheter éventuellement des accès et recevoir des mises à jour **sur demande**. Les Bibliothèques possèdent leur composition, les Mouvements possèdent leurs fiches et permissions. Dans le parcours **Bibliothèque**, l'accès aux Mouvements est transmis **par la Bibliothèque** ; dans l'**Espace en étoile** générique, un utilisateur transmet directement des Mouvements à un autre utilisateur, sans Bibliothèque fictive ni rôle professionnel dans le modèle ; les permissions **Modifier/Redistribuer** restent attachées **à chaque fiche**.
+KODJO doit permettre à un utilisateur de créer/organiser localement des Bibliothèques de Mouvements, puis à terme de partager ses Bibliothèques, en recevoir, acheter éventuellement des accès et recevoir des mises à jour **sur demande**. Les Bibliothèques possèdent leur composition, les Mouvements possèdent leurs fiches et permissions. Dans le parcours **Bibliothèque**, l'accès aux Mouvements est transmis **par la Bibliothèque** ; dans l'**Espace en étoile** générique, un utilisateur transmet directement des Mouvements à un autre utilisateur, sans Bibliothèque fictive ni rôle professionnel dans le modèle ; le droit de **redistribution à l'identique** reste attaché **à chaque fiche reçue**, sans modification ni duplication par le destinataire.
 
 La cible vise une **séparation logique** simple, pas un ensemble de microservices dès le départ :
 
@@ -34,9 +34,9 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 |---|---|
 | BIB-01–05 | Tous profils peuvent créer des Bibliothèques ; composition par références, provenances mélangées, visibilités personnelle/partagée/publique et gratuit/payant distincts. |
 | BIB-02 | Une fiche Mouvement a **un auteur maximum** et un propriétaire administratif éventuellement distinct. Auteur inconnu permis pour des imports privés à source inconnue ; pas de propriété fictive. |
-| BIB-06–08 | Modifier et Redistribuer indépendants (quatre modes). Copier localement est toujours possible **sans changer les permissions**. Les paramètres d'Exercice restent indépendants. |
+| BIB-06–08 | Les fiches reçues/importées sont non modifiables et non duplicables ; redistribution à l'identique seulement si autorisée. Le référencement dans plusieurs Bibliothèques n'est pas une copie. Les paramètres d'Exercice restent indépendants. |
 | BIB-09–11 | Bibliothèque reçue **non modifiable dans sa composition** ; redistribution **sélective** des seules fiches redistribuables, sans exposition des fiches interdites. |
-| BIB-12–13 | Révision ordinaire appliquée seulement sur commande « Mettre à jour » ; adaptations personnelles non écrasées. |
+| BIB-12–13 | Révision ordinaire appliquée seulement sur commande « Mettre à jour » ; Mouvements personnels distincts préservés, aucune adaptation d'une fiche importée. |
 | BIB-14–17 | Validation centrale des révisions avant toute diffusion ; privé sans anomalie = automatique possible ; premier public/payant = humain ; modération prioritaire après publication et signalement. |
 | BIB-18 | Partage, comptes, modération centrale, monétisation hors MVP local. |
 | F4-A | La mise à jour d'une Bibliothèque reçue est **manuelle** avec pastille. |
@@ -64,11 +64,11 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 | Parcours | Émetteur / destinataire | Résultat obligatoire |
 |---|---|---|
 | PU-01/02 | Propriétaire | Créer et composer ses Bibliothèques localement ; **associations sans copies**. |
-| PU-03/04 | Auteur / détenteur local | Créer/corriger selon droits, copier en héritant strictement des permissions. |
+| PU-03/04 | Auteur original / destinataire | Créer ou corriger sa fiche personnelle originale ; référencer une fiche reçue sans la copier, la modifier ou la dériver. |
 | PU-05/06 | Diffuseur | Partager Bibliothèque ou Mouvement seul ; aucun élément non redistribuable exposé. |
 | PU-07 | Plateforme | Autorisation centrale par révision ; échec ou attente bloque publication. |
 | PU-08/09 | Destinataire | Installer Bibliothèque reçue en lecture seule et référencer ses fiches dans des Bibliothèques personnelles. |
-| PU-10/11 | Destinataire | Pastille puis **un clic volontaire** ; actualiser composition et révisions, conserver les mouvements retirés et adaptations locales. |
+| PU-10/11 | Destinataire | Pastille puis **un clic volontaire** ; actualiser composition et révisions, conserver les mouvements retirés et Mouvements personnels distincts. |
 | PU-12 | Propriétaire | Retrait d'un Mouvement lors d'une révision sans destruction des installations et Séances préexistantes. |
 | PU-13 | Propriétaire / destinataire | Archivage/restauration sans effet sur les droits ou la diffusion. |
 | PU-14 | Propriétaire | Arrêt de diffusion sans révocation des usages acquis ; plus de nouvelles mises à jour. |
@@ -88,7 +88,7 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 
 ### 3.1 Trois notions de droits à ne pas mélanger
 
-- **Permission éditoriale de la fiche** : Modifier et Redistribuer, quatre modes. Une création locale originale est modifiable et non redistribuable **par un tiers** par défaut ; lors de sa première diffusion, le propriétaire habilité choisit les droits des destinataires. **Publier son contenu initialement ≠ redistribuer le contenu d'autrui**. Les copies ne peuvent amplifier les droits.
+- **Droits sur la fiche** : le créateur/propriétaire habilité peut modifier sa fiche originale. Le destinataire d'une fiche reçue/importée ne peut ni modifier, ni copier, ni dériver cette fiche ; il peut seulement la redistribuer à l'identique si le droit **Redistribuer** le permet. Une création locale originale n'est pas redistribuable par un tiers par défaut ; le propriétaire choisit le droit des destinataires à la première diffusion. **Publier son contenu initialement ≠ redistribuer le contenu d'autrui**.
 - **Droit d'accès à la Bibliothèque** : accord du propriétaire à un individu/groupe ; ouvre l'usage de ses membres reçus. La transmission kiné-patient dans l'Espace relève d'une autorisation relationnelle **distincte**, dont le contrat détaillé reste à concevoir. Une preuve de cet accès accompagne l'installation. Retirer un membre de la source ne supprime pas la preuve d'installation antérieure.
 - **État de modération** : peut bloquer temporairement ou définitivement une fiche/média même si accès et permissions seraient par ailleurs suffisants.
 
@@ -374,7 +374,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 |---|---|---|
 | T-01 | Associer un Mouvement à deux Bibliothèques | Deux références, pas de copie source. |
 | T-02 | Retirer l'association d'une Bibliothèque personnelle | L'autre Bibliothèque et les Séances ne changent pas. |
-| T-03 | Copier une fiche Protégée | Nouvelle identité locale, permissions inchangées, modification refusée. |
+| T-03 | Tenter de copier, dupliquer ou modifier une fiche reçue | Opération refusée ; référencement dans plusieurs Bibliothèques autorisé sans nouvelle fiche. |
 | T-04 | Propriétaire publie sa Bibliothèque mêlant ses propres fiches Protégées et des fiches tierces non redistribuables | Le propriétaire peut publier ses propres fiches avec droits destinataires Protégé ; les fiches tierces interdites ne sont jamais exposées. |
 | T-05 | Destinataire tente d'ajouter/retraiter un membre à la Bibliothèque reçue | Mutation interdite ; Bibliothèque personnelle modifiable. |
 | T-06 | Coach accorde la Bibliothèque à un groupe | Les membres autorisés peuvent utiliser les fiches éligibles sans grants individuels par fiche. |
@@ -382,7 +382,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 | T-08 | Révision disponible mais aucune action utilisateur | Version installée inchangée ; pastille visible. |
 | T-09 | Mise à jour globale avec ajout/retrait/édition | Composition et révisions cohérentes ; retrait conserve le Mouvement dans le Catalogue local. |
 | T-10 | Séance référence un Mouvement retiré | Séance et historique intacts, Mouvement local toujours utilisable sous réserve de droit/modération. |
-| T-11 | Adaptation personnelle et mise à jour source | Adaptation inchangée, aucune fusion silencieuse. |
+| T-11 | Mise à jour source et présence d'un Mouvement personnel distinct | La mise à jour volontaire ne crée aucune adaptation, conserve le Mouvement personnel et ne provoque aucune fusion silencieuse. |
 | T-12 | Même fiche source dans deux Bibliothèques : mise à jour depuis A | Aperçu signale B ; la révision active locale se propage à A et B ; composition de B inchangée ; pas de confirmation supplémentaire. |
 | T-13 | Archivage par l'émetteur | Destinataire et capacité de recevoir les nouvelles mises à jour inchangés. |
 | T-14 | Arrêt de diffusion | Nouvelle installation interdite ; utilisateurs existants gardent les installations et ne reçoivent plus de MAJ. |
