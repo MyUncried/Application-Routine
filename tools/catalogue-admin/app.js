@@ -43,6 +43,20 @@ const button = (text, action, { primary = false, disabled = false } = {}) => {
 };
 
 const ACTOR_KINDS = [["", "Inconnu (null)"], ["LOCAL_USER", "Utilisateur local"], ["PERSON", "Personne"], ["ORGANIZATION", "Organisation"], ["PLATFORM", "Plateforme"]];
+const ORIGINS = ["LOCAL_CREATED", "CATALOGUE_INSTALLED", "SHARED_IMPORTED", "EXTERNAL_IMPORTED"];
+const REVIEW_STATUSES = ["DRAFT", "IN_REVIEW", "APPROVED", "RETIRED"];
+const VISIBILITIES = ["PRIVATE", "UNLISTED", "PUBLIC"];
+const AXES = [
+  ["categories", "Catégories", null],
+  ["bodyZones", "Zones corporelles", "bodyZoneIds"],
+  ["specialties", "Spécialités", "specialtyIds"],
+  ["gesturalFamilies", "Familles gestuelles", "gesturalFamilyIds"],
+  ["clinicalProblems", "Problèmes traités", "clinicalProblemIds"],
+  ["anatomicalTargets", "Cibles anatomiques", "anatomicalTargetIds"],
+];
+/** Catégories et Zones : référentiels de l'application (identifiants partagés avec le téléphone). */
+const APP_AXES = new Set(["categories", "bodyZones"]);
+
 const state = {
   files: [], fileName: null, etag: null, original: null, working: null, warnings: [], sourceFormatVersion: null,
   canonical: true, issues: [], tab: "sheets", sheetId: null, libraryId: null, glossaryId: null, query: "",
@@ -163,6 +177,18 @@ function selectInput(options, get, set, { nullable = false, nullLabel = "Aucune 
   });
   return node;
 }
+function checkbox(text, get, set) {
+  const label = el("label", "inline");
+  const node = el("input");
+  node.type = "checkbox";
+  node.checked = get() === true;
+  node.addEventListener("change", () => {
+    set(node.checked);
+    changed();
+  });
+  label.append(node, document.createTextNode(text));
+  return label;
+}
 function chips(entries, get, set) {
   const box = el("div", "chips");
   const selected = new Set(get());
@@ -213,6 +239,22 @@ function actorInput(get, set) {
   id.addEventListener("input", update);
   box.append(kind, id);
   return box;
+}
+function recordInput(get, set) {
+  const node = el("textarea", "input");
+  node.rows = 3;
+  node.value = Object.entries(get() ?? {}).map(([key, value]) => key + " = " + value).join("\n");
+  node.placeholder = "clé = valeur (une par ligne)";
+  node.addEventListener("input", () => {
+    const record = {};
+    for (const line of lines(node.value)) {
+      const at = line.indexOf("=");
+      if (at > 0) record[line.slice(0, at).trim()] = line.slice(at + 1).trim();
+    }
+    set(record);
+    changed();
+  });
+  return node;
 }
 function section(title, ...children) {
   const box = el("fieldset", "section");
@@ -307,7 +349,7 @@ function renderTab() {
   state.poll = null;
   const views = $("#views");
   views.replaceChildren();
-  const renderers = { sheets: renderSheets, libraries: renderLibraries, 
+  const renderers = { sheets: renderSheets, libraries: renderLibraries, references: renderReferences, glossary: renderGlossary,
     catalogue: renderCatalogue, inbox: renderInbox, phones: renderPhones };
   if (!state.working && !["inbox", "phones"].includes(state.tab)) {
     views.append(el("p", "empty", "Aucun fichier catalogue valide ouvert."));
@@ -435,26 +477,90 @@ function renderSheetForm(panel) {
   title.append(el("p", "eyebrow", "Fiche éditoriale"), el("h2", "", sheet.content.name || "(sans nom)"));
   head.append(title, el("span", "code", sheet.sheetId + " · révision " + sheet.revision));
   const fields = el("div", "fields");
-  // Décision de Hermann du 11/11/2026 : « tu me retires tout ce qui n'est pas légalement nécessaire, ni explicitement demandé, ni strictement nécessaire à l'usage » ; les valeurs restent dans le fichier, sans affichage.
-  // Contenu d'un Mouvement (registre ch. 07) : nom, description (étapes), médias, catégorie, zones ; alias non saisis
-  // (décision du 27/10). Auteur et propriétaire : MOUV-D1 et décision du 10/11 sur le propriétaire inconnu.
-  const c = sheet.content, k = sheet.classification, p = sheet.provenance;
+  const c = sheet.content, k = sheet.classification, p = sheet.provenance, s = sheet.sources;
 
   fields.append(section("Contenu",
     labeled("Nom du mouvement", textInput(() => c.name, (x) => { c.name = x; }, { maxLength: 80 }), "80 caractères au plus (contrat Mouvement)."),
+    labeled("Alias (un par ligne, ordonnés)", linesInput(() => c.aliases, (x) => { c.aliases = x; }, 2)),
+    grid(labeled("Position de départ", textInput(() => c.startingPosition, (x) => { c.startingPosition = x; }, { nullable: true })),
+      labeled("Matériel", textInput(() => c.equipment, (x) => { c.equipment = x; }, { nullable: true }))),
     labeled("Étapes (une par ligne, ordonnées)", linesInput(() => c.steps, (x) => { c.steps = x; }, 5), "1 000 caractères au total, séparateurs compris (contrat Mouvement)."),
+    labeled("Consignes de sécurité", textInput(() => c.safetyNotes, (x) => { c.safetyNotes = x; }, { nullable: true, multiline: true })),
+    labeled("Notes éditoriales", textInput(() => c.notes, (x) => { c.notes = x; }, { multiline: true })),
   ));
 
+  const review = el("div", "fields");
+  const renderReview = () => {
+    review.replaceChildren(checkbox("Revue de classification renseignée", () => k.review !== null, (on) => {
+      k.review = on ? { status: "PENDING", needsReview: true, flags: [], note: null } : null;
+      renderReview();
+    }));
+    if (k.review) {
+      const r = k.review;
+      review.append(grid(labeled("Statut de revue", textInput(() => r.status, (x) => { r.status = x; })),
+        checkbox("Revue nécessaire", () => r.needsReview, (x) => { r.needsReview = x; })),
+      grid(labeled("Indicateurs (un par ligne)", linesInput(() => r.flags, (x) => { r.flags = x; }, 2)),
+        labeled("Note", textInput(() => r.note, (x) => { r.note = x; }, { nullable: true }))));
+    }
+  };
+  renderReview();
   const classification = section("Classification",
     labeled("Catégorie", selectInput(refs.categories.map((e) => [e.id, e.label]), () => k.categoryId, (x) => { k.categoryId = x; }, { nullable: true })),
-    section("Zones corporelles", chips(refs.bodyZones, () => k.bodyZoneIds, (x) => { k.bodyZoneIds = x; })),
   );
+  for (const [axis, label, field] of AXES) {
+    if (!field) continue;
+    classification.append(section(label, chips(refs[axis], () => k[field], (x) => { k[field] = x; })));
+  }
+  classification.append(labeled("Fondement des valeurs", textInput(() => k.basis, (x) => { k.basis = x; })), review,
+    labeled("Classification d'origine (lecture seule)", readonly(Object.entries(k.original).map(([a, b]) => a + " : " + b).join("\n") || "—")),
+    labeled("Spécialités proposées à l'origine (lecture seule)", readonly(k.originalProposedSpecialties.join(", ") || "—")));
   fields.append(classification);
 
+  const upstream = el("div", "fields");
+  const renderUpstream = () => {
+    upstream.replaceChildren(checkbox("Amont renseigné (obligatoire sauf création locale)", () => p.upstream !== null, (on) => {
+      p.upstream = on ? { catalogueId: "", sheetId: "", revision: "" } : null;
+      renderUpstream();
+    }));
+    if (p.upstream) {
+      const u = p.upstream;
+      upstream.append(el("div", "three"));
+      upstream.lastChild.append(labeled("Catalogue amont", textInput(() => u.catalogueId, (x) => { u.catalogueId = x; })),
+        labeled("Fiche amont", textInput(() => u.sheetId, (x) => { u.sheetId = x; })),
+        labeled("Révision amont", textInput(() => u.revision, (x) => { u.revision = x; })));
+    }
+  };
+  renderUpstream();
   fields.append(section("Provenance",
+    grid(labeled("Identifiant de geste", textInput(() => p.gestureId, (x) => { p.gestureId = x; }, { nullable: true })),
+      labeled("Origine", selectInput(ORIGINS, () => p.origin, (x) => { p.origin = x; }), "LOCAL_DERIVED n'est plus admis (A-2)."),),
+    upstream,
     grid(labeled("Propriétaire", actorInput(() => p.owner, (x) => { p.owner = x; }), "Inconnu = privé, jamais publiable."),
       labeled("Auteur (unique)", actorInput(() => p.author, (x) => { p.author = x; }))),
+    grid(labeled("Diffuseur", actorInput(() => p.publisher, (x) => { p.publisher = x; })),
+      labeled("Ayant droit", actorInput(() => p.rightsHolder, (x) => { p.rightsHolder = x; }))),
+    grid(labeled("Licence", textInput(() => p.license, (x) => { p.license = x; }, { nullable: true })),
+      labeled("Statut éditorial", selectInput(REVIEW_STATUSES, () => p.reviewStatus, (x) => { p.reviewStatus = x; }))),
+    labeled("Visibilité", selectInput(VISIBILITIES, () => p.visibility, (x) => { p.visibility = x; })),
   ));
+
+  const documentary = el("div", "fields");
+  const renderDocumentary = () => {
+    documentary.replaceChildren(checkbox("Référence documentaire renseignée", () => s.documentary !== null, (on) => {
+      s.documentary = on ? { sourceId: null, section: null, url: null, usageStatement: null } : null;
+      renderDocumentary();
+    }));
+    if (s.documentary) {
+      const d = s.documentary;
+      documentary.append(grid(labeled("Identifiant de source", textInput(() => d.sourceId, (x) => { d.sourceId = x; }, { nullable: true })),
+        labeled("Section", textInput(() => d.section, (x) => { d.section = x; }, { nullable: true }))),
+      grid(labeled("URL", textInput(() => d.url, (x) => { d.url = x; }, { nullable: true })),
+        labeled("Conditions d'usage", textInput(() => d.usageStatement, (x) => { d.usageStatement = x; }, { nullable: true }))));
+    }
+  };
+  renderDocumentary();
+  fields.append(section("Sources", documentary,
+    labeled("Contexte de prescription d'origine (non normatif)", recordInput(() => s.prescriptionContext, (x) => { s.prescriptionContext = x; }))));
 
   // Section « Validation » retirée (Hermann, 11/11/2026 : « je n'ai exprimé aucun besoin, alors pourquoi les
   // développer s'ils ne sont pas nécessaires »). Les valeurs existantes restent dans le fichier, inchangées.
@@ -481,7 +587,12 @@ function renderSheetForm(panel) {
     maxEmbeddedChars: CATALOGUE_MAX_EMBEDDED_PHOTO_CHARS,
   });
 
-
+  fields.append(section("Installation (lecture seule)",
+    readonly(sheet.install.knownLocalMovementIds.join("\n") || "Aucun Mouvement local rapproché."),
+    el("small", "info", "Rapprochements gérés depuis la boîte d'arrivée ; ils ne créent pas de révision éditoriale.")));
+  fields.append(section("Historique des révisions (lecture seule)",
+    readonly(sheet.history.map((h) => "Révision " + h.revision + " · " + h.date + " · " +
+      (h.author ? h.author.kind + ":" + h.author.id : "auteur inconnu") + " — " + h.summary).join("\n"))));
   const libraries = state.working.libraries.filter((library) =>
     library.members.some((m) => m.catalogueId === state.working.catalogue.id && m.sheetId === sheet.sheetId));
   fields.append(section("Bibliothèques contenant cette fiche",
@@ -544,7 +655,10 @@ function renderLibraries(views) {
   fields.append(section("En-tête",
     labeled("Titre", textInput(() => library.title, (x) => { library.title = x; }, { maxLength: 200 })),
     labeled("Description", textInput(() => library.description, (x) => { library.description = x; }, { nullable: true, multiline: true })),
-    labeled("Propriétaire", actorInput(() => library.owner, (x) => { library.owner = x; }), "Inconnu = privée et non publiable."),
+    grid(labeled("Éditeur (composition)", actorInput(() => library.editor, (x) => { library.editor = x; })),
+      labeled("Propriétaire", actorInput(() => library.owner, (x) => { library.owner = x; }), "Inconnu = privée et non publiable.")),
+    grid(labeled("Visibilité", selectInput(VISIBILITIES, () => library.visibility, (x) => { library.visibility = x; })),
+      checkbox("Publication autorisée (chaque fiche doit être publiable)", () => library.publicationAllowed, (x) => { library.publicationAllowed = x; })),
   ));
   const sheetsById = new Map(state.working.sheets.map((sheet) => [sheet.sheetId, sheet]));
   const members = el("div", "members");
@@ -581,8 +695,112 @@ function renderLibraries(views) {
   };
   pickerSearch.addEventListener("input", renderPicker);
   renderPicker();
-  fields.append(section("Fiches (ordonnées) — " + library.members.length, members), section("Ajouter des fiches", pickerSearch, picker));
+  fields.append(section("Fiches (ordonnées) — " + library.members.length, members), section("Ajouter des fiches", pickerSearch, picker),
+    section("Historique (lecture seule)", readonly(library.history.map((h) => "Révision " + h.revision + " · " + h.date + " — " + h.summary).join("\n") ||
+      "Aucune entrée (Bibliothèque issue de la conversion v1 ou du fichier initial).")));
   panel.append(head, fields);
+}
+
+// --- Référentiels ---
+
+function renderReferences(views) {
+  const panel = el("section", "panel");
+  panel.style.margin = "0 clamp(16px,3.6vw,48px) 36px";
+  panel.append(el("h2", "", "Référentiels du catalogue"),
+    el("p", "tip", "Catégories et Zones : identifiants partagés avec l'application (lecture seule ici). Les autres axes sont des propositions éditoriales ; retirer une valeur encore utilisée par une fiche est signalé par le validateur."));
+  for (const [axis, label] of AXES) {
+    const entries = state.working.references[axis];
+    const box = section(label + " (" + entries.length + ")");
+    entries.forEach((entry, index) => {
+      const row = el("div", "refrow");
+      row.append(el("code", "", entry.id));
+      if (APP_AXES.has(axis)) {
+        row.append(el("span", "", entry.label), el("span"));
+      } else {
+        const fieldsRow = el("div", "grid");
+        fieldsRow.append(textInput(() => entry.label, (x) => { entry.label = x; }, { maxLength: 100 }),
+          textInput(() => entry.status, (x) => { entry.status = x; }, { nullable: true, placeholder: "Statut (ex. PROPOSED)" }));
+        row.append(fieldsRow, button("Retirer", () => {
+          entries.splice(index, 1);
+          changed();
+          renderTab();
+        }));
+      }
+      box.append(row);
+    });
+    if (!APP_AXES.has(axis)) {
+      const id = el("input", "input");
+      id.placeholder = "identifiant-stable";
+      id.maxLength = 64;
+      const text = el("input", "input");
+      text.placeholder = "Libellé";
+      text.maxLength = 100;
+      const kind = el("input", "input");
+      kind.placeholder = "Nature (facultatif)";
+      box.append(grid(labeled("Identifiant", id), labeled("Libellé", text)), grid(labeled("Nature", kind),
+        el("div", "split")));
+      box.lastChild.lastChild.append(button("Ajouter (PROPOSED)", () => {
+        if (!/^[a-z][a-z0-9-]{1,63}$/.test(id.value.trim()) || !text.value.trim()) {
+          return notify("Identifiant (minuscules, chiffres, tirets) et libellé requis.", "error");
+        }
+        entries.push({ id: id.value.trim(), label: text.value.trim(), kind: kind.value.trim() || null, status: "PROPOSED" });
+        changed();
+        renderTab();
+      }));
+    }
+    panel.append(box);
+  }
+  views.append(panel);
+}
+
+// --- Glossaire ---
+
+function renderGlossary(views) {
+  const panel = el("section", "panel");
+  panel.style.margin = "0 clamp(16px,3.6vw,48px) 36px";
+  const glossary = state.working.glossary;
+  panel.append(el("h2", "", "Glossaire sportif et anatomique"),
+    el("p", "tip", "Distinct des alias des mouvements. Les fiches associées sont désignées par leur identifiant de fiche."));
+  const list = el("div", "list");
+  for (const entry of glossary) {
+    const item = el("button", "item" + (entry.id === state.glossaryId ? " selected" : ""));
+    item.type = "button";
+    item.append(el("strong", "", entry.term), el("small", "", entry.id));
+    item.addEventListener("click", () => {
+      state.glossaryId = entry.id;
+      renderTab();
+    });
+    list.append(item);
+  }
+  if (!glossary.length) list.append(el("p", "info", "Aucun terme."));
+  const id = el("input", "input");
+  id.placeholder = "identifiant-stable";
+  const add = el("div", "split");
+  add.append(id, button("Nouveau terme", () => {
+    if (!/^[a-z][a-z0-9-]{1,63}$/.test(id.value.trim())) return notify("Identifiant invalide (minuscules, chiffres, tirets).", "error");
+    if (glossary.some((entry) => entry.id === id.value.trim())) return notify("Identifiant déjà utilisé.", "error");
+    glossary.push({ id: id.value.trim(), term: id.value.trim(), definition: "", synonyms: [], relatedSheetIds: [] });
+    state.glossaryId = id.value.trim();
+    changed();
+    renderTab();
+  }));
+  panel.append(add, list);
+  const entry = glossary.find((candidate) => candidate.id === state.glossaryId);
+  if (entry) {
+    panel.append(section("Terme « " + entry.id + " »",
+      labeled("Terme", textInput(() => entry.term, (x) => { entry.term = x; }, { maxLength: 100 })),
+      labeled("Définition", textInput(() => entry.definition, (x) => { entry.definition = x; }, { multiline: true, maxLength: 1000 })),
+      labeled("Synonymes (un par ligne)", linesInput(() => entry.synonyms, (x) => { entry.synonyms = x; }, 2)),
+      labeled("Fiches associées (identifiants, un par ligne)", linesInput(() => entry.relatedSheetIds, (x) => { entry.relatedSheetIds = x; }, 3)),
+      button("Retirer ce terme", () => {
+        if (!confirm("Retirer ce terme du glossaire ?")) return;
+        glossary.splice(glossary.indexOf(entry), 1);
+        state.glossaryId = null;
+        changed();
+        renderTab();
+      })));
+  }
+  views.append(panel);
 }
 
 // --- En-tête du catalogue ---
@@ -593,11 +811,17 @@ function renderCatalogue(views) {
   const header = state.working.catalogue;
   panel.append(el("h2", "", "Catalogue"),
     section("Fichier",
-      readonly("Fichier : " + state.fileName),
+      readonly("Fichier : " + state.fileName + "\nIdentifiant : " + header.id + "\nRévision : " + header.revision +
+        "\nEmpreinte du fichier (révision optimiste) : " + state.etag.slice(0, 16) + "…" +
+        "\nVersion lue : " + state.sourceFormatVersion + (state.canonical ? "" : "\nForme non canonique sur disque : réécrite en sérialisation de référence au prochain enregistrement effectif.")),
       readonly(state.warnings.length ? state.warnings.map((w) => w.code + " — " + w.path).join("\n") : "Aucun signalement.")),
     section("En-tête",
       labeled("Titre", textInput(() => header.title, (x) => { header.title = x; }, { maxLength: 200 })),
-      labeled("Propriétaire", actorInput(() => header.owner, (x) => { header.owner = x; }), "Inconnu = aucune publication.")));
+      grid(labeled("Propriétaire", actorInput(() => header.owner, (x) => { header.owner = x; }), "Inconnu = aucune publication."),
+        labeled("Gestionnaire administratif", actorInput(() => header.manager, (x) => { header.manager = x; }))),
+      grid(labeled("Diffuseur", actorInput(() => header.publisher, (x) => { header.publisher = x; })),
+        checkbox("Publication autorisée", () => header.publicationAllowed, (x) => { header.publicationAllowed = x; })),
+      labeled("Notes (une par ligne)", linesInput(() => header.notes, (x) => { header.notes = x; }, 8))));
   views.append(panel);
 }
 
