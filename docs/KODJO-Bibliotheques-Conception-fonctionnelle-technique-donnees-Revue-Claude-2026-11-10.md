@@ -34,7 +34,7 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 |---|---|
 | BIB-01–05 | Tous profils peuvent créer des Bibliothèques ; composition par références, provenances mélangées, visibilités personnelle/partagée/publique et gratuit/payant distincts. |
 | BIB-02 | Une fiche Mouvement a **un auteur maximum** et un propriétaire administratif éventuellement distinct. Auteur inconnu permis pour des imports privés à source inconnue ; pas de propriété fictive. |
-| BIB-06–08 | Modifier et Redistribuer indépendants (quatre modes). Copier localement est toujours possible **sans changer les permissions**. Les paramètres d'Exercice restent indépendants. |
+| BIB-06–08 | **Supersédées sur les fiches importées par MOUV-D3** : ni modification ni duplication, redistribution possible seulement sous autorisation de la source dans un lot futur. Paramètres d'Exercice indépendants. |
 | BIB-09–11 | Bibliothèque reçue **non modifiable dans sa composition** ; redistribution **sélective** des seules fiches redistribuables, sans exposition des fiches interdites. |
 | BIB-12–13 | Révision ordinaire appliquée seulement sur commande « Mettre à jour » ; adaptations personnelles non écrasées. |
 | BIB-14–17 | Validation centrale des révisions avant toute diffusion ; privé sans anomalie = automatique possible ; premier public/payant = humain ; modération prioritaire après publication et signalement. |
@@ -64,7 +64,7 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 | Parcours | Émetteur / destinataire | Résultat obligatoire |
 |---|---|---|
 | PU-01/02 | Propriétaire | Créer et composer ses Bibliothèques localement ; **associations sans copies**. |
-| PU-03/04 | Auteur / détenteur local | Créer/corriger selon droits, copier en héritant strictement des permissions. |
+| PU-03/04 | Auteur / détenteur local | Créer et dupliquer ses Mouvements personnels ; aucune correction/duplication d'une fiche importée. |
 | PU-05/06 | Diffuseur | Partager Bibliothèque ou Mouvement seul ; aucun élément non redistribuable exposé. |
 | PU-07 | Plateforme | Autorisation centrale par révision ; échec ou attente bloque publication. |
 | PU-08/09 | Destinataire | Installer Bibliothèque reçue en lecture seule et référencer ses fiches dans des Bibliothèques personnelles. |
@@ -88,7 +88,7 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 
 ### 3.1 Trois notions de droits à ne pas mélanger
 
-- **Permission éditoriale de la fiche** : Modifier et Redistribuer, quatre modes. Une création locale originale est modifiable et non redistribuable **par un tiers** par défaut ; lors de sa première diffusion, le propriétaire habilité choisit les droits des destinataires. **Publier son contenu initialement ≠ redistribuer le contenu d'autrui**. Les copies ne peuvent amplifier les droits.
+- **Permission éditoriale de la fiche** : une création personnelle est modifiable/duplicable ; une **fiche importée n'est jamais modifiable ni duplicable** par son destinataire (MOUV-D3). Le droit futur de redistribution est indépendant de l'édition ; publier initialement son contenu n'est pas redistribuer le contenu d'autrui.
 - **Droit d'accès à la Bibliothèque** : accord du propriétaire à un individu/groupe ; ouvre l'usage de ses membres reçus. La transmission kiné-patient dans l'Espace relève d'une autorisation relationnelle **distincte**, dont le contrat détaillé reste à concevoir. Une preuve de cet accès accompagne l'installation. Retirer un membre de la source ne supprime pas la preuve d'installation antérieure.
 - **État de modération** : peut bloquer temporairement ou définitivement une fiche/média même si accès et permissions seraient par ailleurs suffisants.
 
@@ -216,7 +216,7 @@ Les noms de tables exacts et la nécessité d'une table distincte pour chaque fa
 ### 5.4 Identités et homonymes
 
 1. **\`Movement.id\` local** : identifiant opérationnel existant et stable pour toutes les références d'Exercices/Séances.
-2. **\`(source_namespace, sheet_id)\`** : identité éditoriale stable de la fiche indépendante du nom, de l'auteur, du propriétaire administratif et de toute Bibliothèque. Un créateur local hors ligne utilise un espace de noms local persistant, non affiché.
+2. **\`(source_namespace, sheet_id)\`** : identité éditoriale stable de la fiche indépendante du nom, de l'auteur, du propriétaire administratif et de toute Bibliothèque. Une création locale non publiée ne requiert pas un espace de noms source persistant supplémentaire. À sa première publication, le serveur attribue un `source_namespace` opaque et `sheet_id` reprend le `Movement.id` d'origine (proposition technique issue de la seconde revue, à valider en tests).
 3. **\`revision_id\`** : version éditoriale d'une fiche source ; une seule version **active** sur l'appareil, avec conservation possible de l'historique éditorial au serveur.
 
 Plusieurs fiches distinctes peuvent porter le même nom visible « Squat ». Leur provenance ou un indicateur de source permet de les distinguer dans le Catalogue. La proposition initiale d'index utilisateur + nom peut aider au contrôle local de doublons, **mais ne remplace pas l'identité immuable d'une fiche**. Claude doit concevoir la migration de l'index global \`normalized_name\` et mesurer ses effets sur recherche, niveaux, copies et import sans casser les identifiants existants.
@@ -254,7 +254,7 @@ Le Mouvement source `coachA:mvt-001` peut figurer dans plusieurs Bibliothèques.
 ### 6.3 Conflits et adaptations
 
 - **Variante personnelle** : identité locale distincte, jamais écrasée.
-- **Fiche modifiable corrigée localement sans variante** : le pilote actuel sait conserver des valeurs locales et résoudre certains conflits ; **ne pas imposer une fusion automatique** ni perdre les modifications.
+- **Réconciliation des fiches historiques préexistantes** : le pilote CA-3 conserve les modifications locales antérieures des 60 fiches et traite les conflits sans fusion automatique ; les **nouvelles fiches importées** sont désormais non modifiables et non duplicables (MOUV-D3).
 - **Une seule action de mise à jour** ne signifie pas nécessairement que chaque conflit peut être résolu automatiquement : si le cas n'est pas résoluble sans décision supplémentaire, préserver l'état courant et l'expliquer à l'utilisateur.
 - **Refus/report de l'import pilote CA-3** : différent du mécanisme de distribution. Ne pas le supprimer sans revue des tests existants.
 
@@ -323,7 +323,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 
 ## 9. Sécurité, confidentialité et qualité
 
-- Minimisation : ne pas exposer aux destinataires les fiches non redistribuables ; pas de propagation implicite des informations personnelles ou données de santé associées à un coach/kiné.
+- Minimisation : ne pas exposer aux destinataires les fiches non redistribuables ; aucune remontée de données d'exécution ou de santé liée à une relation entre utilisateurs n'est prévue (KIN-01).
 - Médias privés avant approbation et accès contrôlé après publication ; URLs temporaires lorsqu'approprié, expiration et révocation côté serveur.
 - Frontières serveur : authentification, contrôle d'autorisation systématique, prévention d'accès à des bibliothèques d'autres utilisateurs, journaux de modération protégés.
 - Données personnelles, droit d'auteur, Apple/Google et DSA : à confirmer dans la revue juridique dédiée ; ne pas présenter la modération automatique comme certification juridique ou médicale.
@@ -350,7 +350,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 
 1. Inventorier les tables/types existants réellement présents sur la baseline Git demandée pour le développement.
 2. Identifier ce qui peut être réutilisé (identité éditoriale, historique, registre d'installation, reprises après interruption) **sans nouveaux registres redondants**.
-3. Décider comment porter l'auteur unique sans perdre les fiches avec propriétaire inconnu ; ne jamais convertir « inconnu » en KODJO par défaut.
+3. **Décision close (MOUV-D1)** : porter `author: EditorialActorRef | null` ; aucune gestion multi-auteurs, ne jamais convertir « inconnu » en KODJO par défaut. Convertir les données `authors[]` historiques de façon sûre, en signalant tout cas supérieur à un auteur.
 4. Concevoir le rattachement sans migration destructive des \`Movement.id\` déjà référencés par des Séances et leurs historiques.
 5. Examiner les migrations SQLite/serveur, la stratégie de tests, les droits/revocations, les collisions de noms et les doubles installations.
 6. Conserver les noms de fichiers et références Unicode originaux ; ne pas ajouter silencieusement des documents Git hors du périmètre cible d'un ZIP.
@@ -376,7 +376,7 @@ Les anciens lots L1–L6 centrés sur la distribution communautaire sont **super
 |---|---|---|
 | T-01 | Associer un Mouvement à deux Bibliothèques | Deux références, pas de copie source. |
 | T-02 | Retirer l'association d'une Bibliothèque personnelle | L'autre Bibliothèque et les Séances ne changent pas. |
-| T-03 | Copier une fiche Protégée | Nouvelle identité locale, permissions inchangées, modification refusée. |
+| T-03 | Tentative de copie d'une fiche importée, quel que soit son ancien mode | **Refus systématique**, identité et source inchangées (MOUV-D3). |
 | T-04 | Propriétaire publie sa Bibliothèque mêlant ses propres fiches Protégées et des fiches tierces non redistribuables | Le propriétaire peut publier ses propres fiches avec droits destinataires Protégé ; les fiches tierces interdites ne sont jamais exposées. |
 | T-05 | Destinataire tente d'ajouter/retraiter un membre à la Bibliothèque reçue | Mutation interdite ; Bibliothèque personnelle modifiable. |
 | T-06 | Coach accorde la Bibliothèque à un groupe | Les membres autorisés peuvent utiliser les fiches éligibles sans grants individuels par fiche. |
