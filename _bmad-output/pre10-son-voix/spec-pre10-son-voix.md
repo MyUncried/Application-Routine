@@ -484,3 +484,21 @@ Réalisé :
 - Classe A (MAJ des écrans Formats du 04/11/2026 §6 quinquies) et D (modèle d'édition ; note ch12). Aucun document fonctionnel ne décrivait deux modèles : rien d'autre à remplacer.
 - Non fait : retrait du rendu mort de l'ancien Circuit unique dans `CompositionScreen` (nettoyage séparé).
 - À vérifier sur iPhone : Circuit unique composé à la main, puis glissement, options, Points d'arrêt et encadrement Cycle.
+
+## Clôture du lot (11/11/2026)
+
+Demande de Hermann, recopiée : « termines ce lot, je peux arrêter metro ».
+
+Lot clos. La recette iPhone est entièrement OK.
+
+Les points ouverts sont repris dans `spec-guidage-reglages.md` :
+
+- Guidage dans la Composition ;
+- guidage en arrière-plan ;
+- bibliothèque de sons courts ;
+- modulation de la musique ;
+- son du bip de phase.
+
+Le retrait du rendu mort de l'ancien Circuit unique est un nettoyage séparé.
+
+Rapport : `.github/orchestration/reports/2026-11-09_PRE10_SON_VOIX.md`.
