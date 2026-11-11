@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import type { ReactElement } from "react";
 
 import type { CatalogueLibrary, CatalogueSheet, MovementCatalogueFile } from "@/domain/catalogue/MovementCatalogueFile";
@@ -207,7 +207,8 @@ describe("A1 — Profil → Bibliothèques", () => {
     mockParams = { catalogueId: PILOT, libraryId: PILOT };
     renderWith(<LibraryPreviewScreen />);
     await settle();
-    expect(screen.getByText("60 fiches dans cette bibliothèque")).toBeTruthy();
+    // Mise en page Figma 12118:25170 (11/11) : grand compteur « 60 fiches » et « dans cette bibliothèque » à côté.
+    expect(screen.getByTestId("library-preview-count")).toHaveTextContent(/^60 fiches\s*dans cette bibliothèque$/);
     expect(screen.getByText("0 nouvelle")).toBeTruthy();
     expect(screen.getByText("60 déjà présentes")).toBeTruthy();
     expect(screen.getByText("rattachées à vos mouvements, sans doublon")).toBeTruthy();
@@ -271,7 +272,11 @@ describe("A1 — Profil → Bibliothèques", () => {
     expect(screen.getByText("Fichier refusé en entier")).toBeTruthy();
     expect(screen.getByText("Aucune fiche n'a été importée. Corrigez le fichier, puis réessayez.")).toBeTruthy();
     expect(screen.getByText(/^Problèmes détectés \(\d+\)$/)).toBeTruthy();
-    expect(screen.getByText(new RegExp(`^Fiche 12 « ${(pilot.sheets[11] as CatalogueSheet).content.name.replace(/[()]/g, ".")} » — Zones : référence inconnue`))).toBeTruthy();
+    // Mise en page Figma 12119:25186 (11/11) : la fiche en titre, le problème dessous.
+    const fiche12 = `Fiche 12 « ${(pilot.sheets[11] as CatalogueSheet).content.name} »`;
+    expect(screen.getByText(fiche12)).toBeTruthy();
+    const issue = screen.getAllByTestId(/^library-invalid-issue-/).find((row) => within(row).queryByText(fiche12) !== null)!;
+    expect(within(issue).getByText(/^Zones : référence inconnue/)).toBeTruthy();
     expect(await movementCount()).toBe(0);
   });
 

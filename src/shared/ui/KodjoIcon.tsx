@@ -129,6 +129,33 @@ const sources = {
   // trait bleu KODJO de l’action « Modifier le geste » (`9952:44374`). Export SVG de l’outil MCP
   // Figma en lecture seule, attributs racine preserveAspectRatio/overflow/style retirés.
   "edit-movement": require("../../../assets/icons/icon-modifier.svg"),
+  // Catalogue connecté A1 (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques, page
+  // 510:101) : exports SVG de l'outil MCP Figma en lecture seule, attributs racine
+  // preserveAspectRatio/overflow/style retirés, identifiant doublement encodé réparé ; tracés inchangés.
+  // Chevron — Aller du Profil (12119:25649) et de Bibliothèque installée (12105:165).
+  "library-chevron-go": require("../../../assets/icons/icon-bibliotheque-chevron-aller.svg"),
+  // Chevron — Aller des cartes d'Ajouter une bibliothèque (12116:25097).
+  "library-chevron-go-small": require("../../../assets/icons/icon-bibliotheque-chevron-aller-petit.svg"),
+  // Icône — Ajouter (12119:25658) et Icône — Envoyer (12119:25659) du Profil.
+  "library-add": require("../../../assets/icons/icon-bibliotheque-ajouter.svg"),
+  "library-send": require("../../../assets/icons/icon-bibliotheque-envoyer.svg"),
+  // Livre d'une bibliothèque : Profil (12119:25646, trait #595966), Bibliothèques disponibles
+  // (12118:25145, trait #595E66), liste vide (12119:25297, trait 2), pastille de provenance d'un
+  // Mouvement importé (12119:25409, trait bleu).
+  "library-book-profile": require("../../../assets/icons/icon-bibliotheque-livre-profil.svg"),
+  "library-book": require("../../../assets/icons/icon-bibliotheque-livre.svg"),
+  "library-book-empty": require("../../../assets/icons/icon-bibliotheque-livre-vide.svg"),
+  "library-book-source": require("../../../assets/icons/icon-bibliotheque-source.svg"),
+  // Ajouter une bibliothèque : Depuis un fichier (12116:25094), Depuis l'administration (12116:25099).
+  "library-file": require("../../../assets/icons/icon-bibliotheque-fichier.svg"),
+  "library-computer": require("../../../assets/icons/icon-bibliotheque-pc.svg"),
+  // Coche — Succès (12116:25195), Icône — Erreur (12116:25233), Icône — Avertissement (12118:25201),
+  // Icône — Wi-Fi (12116:25258), Icône — Reprise (12119:25266).
+  "library-success": require("../../../assets/icons/icon-bibliotheque-succes.svg"),
+  "library-error": require("../../../assets/icons/icon-bibliotheque-erreur.svg"),
+  "library-warning": require("../../../assets/icons/icon-bibliotheque-avertissement.svg"),
+  "library-wifi-off": require("../../../assets/icons/icon-bibliotheque-wifi.svg"),
+  "library-resume": require("../../../assets/icons/icon-bibliotheque-reprise.svg"),
 } as const;
 
 const sizes = {
@@ -278,6 +305,23 @@ const sizes = {
   "card-side-change": [16, 16],
   // Cadre 20 × 20 de l’instance (`9952:44375`), tracé débordant de 3,75 % de chaque côté : 21,5.
   "edit-movement": [21.5, 21.5],
+  // Catalogue connecté A1 : boîtes intrinsèques des exports (le tracé y déborde de la boîte Figma
+  // de la demi-épaisseur du trait) ; rendues à cette taille, centrées dans leur emplacement.
+  "library-chevron-go": [7.8, 13.8],
+  "library-chevron-go-small": [5.50003, 11.5001],
+  "library-add": [14.5, 14.5],
+  "library-send": [15.5, 15.5],
+  "library-book-profile": [18.5, 14.5984],
+  "library-book": [18.5, 14.5984],
+  "library-book-empty": [19, 15.0984],
+  "library-book-source": [17.4, 14.3997],
+  "library-file": [13.5, 17.5],
+  "library-computer": [17.5, 13.5],
+  "library-success": [21.0001, 18.0001],
+  "library-error": [17.5, 15.5],
+  "library-warning": [17.5, 15.5],
+  "library-wifi-off": [18, 16],
+  "library-resume": [13.5002, 13.5002],
 } as const;
 
 /**

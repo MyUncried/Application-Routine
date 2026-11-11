@@ -12,6 +12,9 @@
  *
  * Aucune édition de Mouvement ici (Profil n'est pas un second éditeur). Les fiches à examiner
  * (adaptation historique, règle non arbitrée) sont signalées et ne sont jamais écrasées.
+ *
+ * Correction du 11/11/2026 : mise en page reprise des maquettes (cartes, intitulés de section, icônes,
+ * pastilles, encarts, états centrés, boutons secondaires) ; logique, navigation, textes et testID inchangés.
  */
 import * as Device from "expo-device";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -37,11 +40,29 @@ import {
   sheetDetail,
   sheetName,
 } from "@/features/catalogue/libraryPresentation";
-import { Busy, Card, Divider, LibraryScreen, Notice, Paragraph, Pill, Row, SectionTitle } from "@/features/catalogue/libraryUi";
+import {
+  BulletRow,
+  Busy,
+  Card,
+  Divider,
+  LIBRARY_CARD,
+  LIBRARY_COLORS,
+  LIBRARY_TEXT,
+  LibraryScreen,
+  Notice,
+  Paragraph,
+  Pill,
+  Row,
+  Section,
+  SkeletonList,
+  StatusHero,
+  TextLink,
+} from "@/features/catalogue/libraryUi";
 import { buildMovementInbox } from "@/features/catalogue/movementInboxBuilder";
 import { pickCatalogueFile } from "@/features/catalogue/pickCatalogueFile";
 import { useLibraryServices, type LibraryServices } from "@/features/catalogue/useLibraryServices";
-import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { KodjoIcon, type KodjoIconName } from "@/shared/ui/KodjoIcon";
+import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /** Dépendances remplaçables (tests). */
 export type LibraryScreenDependencies = {
@@ -93,23 +114,42 @@ export function LibraryAddScreen({ pickFile = pickCatalogueFile }: LibraryScreen
   return (
     <LibraryScreen title="Ajouter une bibliothèque" testID="library-add">
       <Paragraph>Choisissez d&apos;où provient la bibliothèque à ajouter.</Paragraph>
-      <Card>
-        <Row
+      <View style={screenStyles.sourceCards}>
+        <SourceCard
+          icon="library-file"
           title="Depuis un fichier"
           subtitle="Importer un fichier de bibliothèque enregistré sur ce téléphone."
           onPress={() => void fileImport.run()}
           testID="library-add-file"
         />
-        <Divider />
-        <Row
+        <SourceCard
+          icon="library-computer"
           title="Depuis l'administration (PC)"
           subtitle="Se connecter à l'administration KODJO de votre PC, sur le même Wi-Fi."
           onPress={() => router.push("/library-connect")}
           testID="library-add-admin"
         />
-      </Card>
+      </View>
       {fileImport.error ? <Notice tone="danger" title="Fichier illisible" testID="library-add-error">{fileImport.error}</Notice> : null}
     </LibraryScreen>
+  );
+}
+
+/** Carte de provenance (12116:25093, 12116:25098) : icône, titre Medium 15, texte 12, petit chevron. */
+function SourceCard({ icon, title, subtitle, onPress, testID }: { readonly icon: KodjoIconName; readonly title: string; readonly subtitle: string; readonly onPress: () => void; readonly testID: string }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={title + ", " + subtitle} style={screenStyles.sourceCard} testID={testID}>
+      <View style={screenStyles.sourceIcon}>
+        <KodjoIcon name={icon} />
+      </View>
+      <View style={screenStyles.sourceText}>
+        <Text style={LIBRARY_TEXT.medium15}>{title}</Text>
+        <Text style={LIBRARY_TEXT.note}>{subtitle}</Text>
+      </View>
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <KodjoIcon name="library-chevron-go-small" />
+      </View>
+    </Pressable>
   );
 }
 
@@ -189,7 +229,7 @@ export function LibraryConnectScreen({ client = defaultClient, pickFile = pickCa
               L&apos;appairage est momentanément bloqué sur votre PC. Affichez un nouveau code dans quelques minutes.
             </Notice>
           ) : null}
-          <Paragraph tone="secondary">Le téléphone et le PC doivent être sur le même Wi-Fi.</Paragraph>
+          <Paragraph tone="note">Le téléphone et le PC doivent être sur le même Wi-Fi.</Paragraph>
         </>
       );
       primary = phase.kind === "entry"
@@ -209,11 +249,14 @@ export function LibraryConnectScreen({ client = defaultClient, pickFile = pickCa
     case "connected":
       body = (
         <>
-          <Notice tone="positive" title={`Connecté à « ${phase.session.name} »`} testID="library-connect-connected">
-            Votre PC est prêt à envoyer les bibliothèques disponibles.
-          </Notice>
+          <StatusHero
+            tone="success"
+            title={`Connecté à « ${phase.session.name} »`}
+            message="Votre PC est prêt à envoyer les bibliothèques disponibles."
+            testID="library-connect-connected"
+          />
           {/* Revue du 11/11 : sur un Wi-Fi partagé, vérifier que l'adresse est bien celle de votre PC. */}
-          <Paragraph tone="secondary" testID="library-connect-address">{`Adresse du PC : ${phase.session.host}`}</Paragraph>
+          <Paragraph tone="note" align="center" testID="library-connect-address">{`Adresse du PC : ${phase.session.host}`}</Paragraph>
         </>
       );
       primary = params.next === "send"
@@ -222,9 +265,14 @@ export function LibraryConnectScreen({ client = defaultClient, pickFile = pickCa
       break;
     case "notFound":
       body = (
-        <Notice tone="warning" title="PC introuvable sur le Wi-Fi" testID="library-connect-not-found">
-          {"• Le PC est allumé et l'administration KODJO est ouverte.\n• Le téléphone et le PC sont sur le même Wi-Fi.\n• Aucun pare-feu ne bloque la connexion."}
-        </Notice>
+        <View style={screenStyles.heroBlock} testID="library-connect-not-found">
+          <StatusHero tone="notFound" title="PC introuvable sur le Wi-Fi" />
+          <Card>
+            <BulletRow title="Le PC est allumé et l'administration KODJO est ouverte." />
+            <BulletRow title="Le téléphone et le PC sont sur le même Wi-Fi." />
+            <BulletRow title="Aucun pare-feu ne bloque la connexion." />
+          </Card>
+        </View>
       );
       secondary = params.next === "send" ? [] : [{ label: "Importer depuis un fichier", onPress: () => void fileImport.run(), testID: "library-connect-file" }];
       primary = { label: "Réessayer", onPress: () => void connect(), testID: "library-connect-retry" };
@@ -261,8 +309,8 @@ function CodeBoxes({ value, onChange, error = false, disabled = false }: { reado
       />
       <View style={codeStyles.row} onTouchEnd={() => input.current?.focus()} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {Array.from({ length: 6 }, (_, index) => (
-          <View key={index} style={[codeStyles.box, error ? codeStyles.boxError : null, disabled ? codeStyles.boxDisabled : null]}>
-            <Text style={codeStyles.digit}>{value[index] ?? ""}</Text>
+          <View key={index} style={[codeStyles.box, error ? codeStyles.boxError : null]}>
+            <Text style={[codeStyles.digit, disabled ? codeStyles.digitDisabled : null]}>{value[index] ?? ""}</Text>
           </View>
         ))}
       </View>
@@ -270,13 +318,24 @@ function CodeBoxes({ value, onChange, error = false, disabled = false }: { reado
   );
 }
 
+/** Cases du code (12116:25123…) : 48 × 56, rayon 10, liseré #C7CCD6 (rouge #D11F1F 1,5 si refusé), écart 8, centrées. */
 const codeStyles = StyleSheet.create({
   hidden: { position: "absolute", opacity: 0, width: 1, height: 1 },
-  row: { flexDirection: "row", justifyContent: "space-between", gap: spacing[8] },
-  box: { flex: 1, aspectRatio: 0.85, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
-  boxError: { borderColor: colors.danger },
-  boxDisabled: { opacity: 0.5 },
+  row: { flexDirection: "row", justifyContent: "center", gap: spacing[8], paddingVertical: spacing[16] },
+  box: {
+    flex: 1,
+    maxWidth: 48,
+    aspectRatio: 48 / 56,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: LIBRARY_COLORS.codeBorder,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+  },
+  boxError: { borderColor: LIBRARY_COLORS.dangerText, borderWidth: 1.5 },
   digit: { ...type.metricPrimary, color: colors.textPrimary },
+  digitDisabled: { color: LIBRARY_COLORS.muted },
 });
 
 // ——— Bibliothèques disponibles (12118:25124, 12119:25204, 12119:25277) ———
@@ -356,7 +415,12 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
     </Notice>
   ) : null;
   if (phase.kind === "loading") {
-    body = <Busy label="Chargement de la liste…" testID="library-available-loading" />;
+    body = (
+      <>
+        <Busy label="Chargement de la liste…" compact testID="library-available-loading" />
+        <SkeletonList />
+      </>
+    );
   } else if (phase.kind === "error") {
     body = <Notice tone="danger" title="Liste indisponible" testID="library-available-error">{phase.message}</Notice>;
     primary = phase.unauthorized
@@ -364,27 +428,33 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
       : { label: "Actualiser", onPress: () => void refresh(), testID: "library-available-refresh" };
   } else if (phase.previews.length === 0) {
     body = (
-      <View style={screenStyles.empty} testID="library-available-empty">
-        <SectionTitle>Aucune bibliothèque disponible</SectionTitle>
-        <Paragraph tone="secondary">L&apos;administration n&apos;a publié aucune bibliothèque pour ce téléphone pour le moment.</Paragraph>
-      </View>
+      <StatusHero
+        tone="empty"
+        title="Aucune bibliothèque disponible"
+        message="L'administration n'a publié aucune bibliothèque pour ce téléphone pour le moment."
+        testID="library-available-empty"
+      />
     );
     secondary = [{ label: "Importer depuis un fichier", onPress: () => void fileImport.run(), testID: "library-available-file" }];
     primary = isAdmin ? { label: "Actualiser", onPress: () => void refresh(), testID: "library-available-refresh" } : null;
   } else {
     body = (
       <>
-        <Paragraph tone="secondary">{phase.origin}</Paragraph>
+        <Paragraph>{phase.origin}</Paragraph>
         <Card testID="library-available-list">
           {phase.previews.map((preview, index) => {
             const line = availableLine(preview);
             return (
               <View key={preview.catalogueId + "/" + preview.libraryId}>
                 {index > 0 ? <Divider /> : null}
+                {/* 12118:25145… : livre, nom Medium 15, ligne 12, pastille ; la ligne entière s'ouvre (sans chevron). */}
                 <Row
+                  icon="library-book"
                   title={preview.title}
                   subtitle={line.subtitle}
                   pill={<Pill label={line.pill} tone={line.tone} />}
+                  chevron={false}
+                  spacious
                   onPress={() => router.push({
                     pathname: preview.status === "INTERRUPTED" ? "/library-resume" : "/library-preview",
                     params: { catalogueId: preview.catalogueId, libraryId: preview.libraryId },
@@ -396,12 +466,10 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
           })}
         </Card>
         {isAdmin ? (
-          <Row
-            title="Actualisée à l'instant"
-            subtitle="Actualiser"
-            onPress={() => void refresh()}
-            testID="library-available-refresh-row"
-          />
+          <View style={screenStyles.refreshLine}>
+            <Text style={LIBRARY_TEXT.note}>Actualisée à l&apos;instant</Text>
+            <TextLink label="Actualiser" onPress={() => void refresh()} testID="library-available-refresh-row" />
+          </View>
         ) : null}
       </>
     );
@@ -482,11 +550,14 @@ export function LibraryPreviewScreen() {
   if (phase.kind === "decided") {
     return (
       <LibraryScreen title={`Mise à jour de ${phase.preview.title}`} testID="library-preview" primary={{ label: "Terminer", onPress: () => router.back(), testID: "library-preview-finish" }}>
-        <Notice tone="positive" title={phase.decision === "DEFERRED" ? "Mise à jour reportée" : "Mise à jour refusée"} testID="library-preview-decided">
-          {phase.decision === "DEFERRED"
+        <StatusHero
+          tone="success"
+          title={phase.decision === "DEFERRED" ? "Mise à jour reportée" : "Mise à jour refusée"}
+          message={phase.decision === "DEFERRED"
             ? "Aucun mouvement n'a été modifié. La mise à jour reste proposée."
             : "Aucun mouvement n'a été modifié. Cette révision ne sera plus proposée ; une révision ultérieure le sera."}
-        </Notice>
+          testID="library-preview-decided"
+        />
       </LibraryScreen>
     );
   }
@@ -496,17 +567,22 @@ export function LibraryPreviewScreen() {
   const isUpdate = preview.installedRevision !== null;
   const applicable = preview.added.length + preview.attached.length + preview.modified.length;
   const toReview = preview.toReview.length > 0 ? (
-    <>
-      <SectionTitle>{`À examiner (${preview.toReview.length})`}</SectionTitle>
+    <Section label={`À examiner (${preview.toReview.length})`}>
       <Card testID="library-preview-review">
         {preview.toReview.map((entry, index) => (
           <View key={entry.item.sheetId}>
             {index > 0 ? <Divider /> : null}
-            <Row title={entry.item.name} subtitle={REVIEW_REASON_LABELS[entry.reason]} testID={`library-preview-review-${entry.item.sheetId}`} />
+            <Row
+              title={entry.item.name}
+              titleVariant="semibold"
+              subtitle={REVIEW_REASON_LABELS[entry.reason]}
+              subtitleTone="secondary"
+              testID={`library-preview-review-${entry.item.sheetId}`}
+            />
           </View>
         ))}
       </Card>
-    </>
+    </Section>
   ) : null;
   const ownerWarning = preview.unknownOwner ? (
     <Notice tone="warning" title="Propriétaire inconnu : usage privé" testID="library-preview-unknown-owner">
@@ -522,27 +598,42 @@ export function LibraryPreviewScreen() {
         testID="library-preview"
         primary={{ label: `Installer (${plural(preview.memberCount, "fiche", "fiches")})`, onPress: () => void apply(preview, source), testID: "library-preview-install" }}
       >
-        <Paragraph testID="library-preview-count">{`${plural(preview.memberCount, "fiche", "fiches")} dans cette bibliothèque`}</Paragraph>
-        <Card>
-          <Row title={`${preview.added.length} ${preview.added.length > 1 ? "nouvelles" : "nouvelle"}`} subtitle="ajoutées à votre Catalogue" testID="library-preview-added" />
+        {/* 12118:25189 : grand compteur, puces bleue (nouvelles) et verte (déjà présentes), note. */}
+        <Card style={screenStyles.summaryCard}>
+          <View style={screenStyles.bigCountLine} testID="library-preview-count" accessible>
+            <Text style={screenStyles.bigCount}>{plural(preview.memberCount, "fiche", "fiches")}</Text>
+            <Text style={LIBRARY_TEXT.note}>dans cette bibliothèque</Text>
+          </View>
           <Divider />
-          <Row title={`${preview.attached.length} déjà ${preview.attached.length > 1 ? "présentes" : "présente"}`} subtitle="rattachées à vos mouvements, sans doublon" testID="library-preview-attached" />
+          <SummaryLine
+            dot={colors.primary}
+            title={`${preview.added.length} ${preview.added.length > 1 ? "nouvelles" : "nouvelle"}`}
+            subtitle="ajoutées à votre Catalogue"
+            testID="library-preview-added"
+          />
+          <SummaryLine
+            dot={LIBRARY_COLORS.positiveText}
+            title={`${preview.attached.length} déjà ${preview.attached.length > 1 ? "présentes" : "présente"}`}
+            subtitle="rattachées à vos mouvements, sans doublon"
+            testID="library-preview-attached"
+          />
+          <Text style={LIBRARY_TEXT.captionMuted}>Vos mouvements existants ne sont ni copiés, ni modifiés.</Text>
         </Card>
-        <Paragraph tone="secondary">Vos mouvements existants ne sont ni copiés, ni modifiés.</Paragraph>
         {ownerWarning}
         {preview.added.length > 0 ? (
-          <>
-            <SectionTitle>Nouvelles fiches</SectionTitle>
+          <Section label="Nouvelles fiches">
             <Card testID="library-preview-new-list">
               {preview.added.slice(0, 3).map((item, index) => (
                 <View key={item.sheetId}>
                   {index > 0 ? <Divider /> : null}
-                  <Row title={item.name} pill={<Pill label="Nouvelle" tone="action" />} testID={`library-preview-new-${item.sheetId}`} />
+                  <Row title={item.name} titleVariant="regular" pill={<Pill label="Nouvelle" tone="positive" />} testID={`library-preview-new-${item.sheetId}`} />
                 </View>
               ))}
+              {preview.added.length > 3 ? (
+                <Text style={[LIBRARY_TEXT.note, screenStyles.moreLine]}>{`et ${plural(preview.added.length - 3, "autre fiche nouvelle", "autres fiches nouvelles")}`}</Text>
+              ) : null}
             </Card>
-            {preview.added.length > 3 ? <Paragraph tone="secondary">{`et ${plural(preview.added.length - 3, "autre fiche nouvelle", "autres fiches nouvelles")}`}</Paragraph> : null}
-          </>
+          </Section>
         ) : null}
         {toReview}
         {preview.missingExternal.length > 0 ? (
@@ -566,49 +657,85 @@ export function LibraryPreviewScreen() {
       ]}
       primary={{ label: "Mettre à jour", onPress: () => void apply(preview, source), disabled: applicable === 0 && preview.removed.length === 0 && preview.status === "UP_TO_DATE", testID: "library-preview-update" }}
     >
-      <View style={screenStyles.counters} testID="library-preview-counters">
+      {/* 12118:25270 : une carte, trois compteurs. */}
+      <Card style={screenStyles.counters} testID="library-preview-counters">
         <Counter value={preview.modified.length} label={preview.modified.length > 1 ? "Modifiées" : "Modifiée"} />
         <Counter value={preview.added.length + preview.attached.length} label={preview.added.length + preview.attached.length > 1 ? "Nouvelles" : "Nouvelle"} />
         <Counter value={preview.removed.length} label={preview.removed.length > 1 ? "Retirées" : "Retirée"} />
-      </View>
-      <SectionTitle>
-        {preview.installedRevision === preview.targetRevision
+      </Card>
+      <Section
+        label={preview.installedRevision === preview.targetRevision
           ? "Fiches révisées · détail par fiche"
           : `Révision ${preview.installedRevision} → ${preview.targetRevision} · détail par fiche`}
-      </SectionTitle>
-      <Card testID="library-preview-sheets">
-        {preview.modified.map((item, index) => (
-          <View key={item.sheetId}>
-            {index > 0 ? <Divider /> : null}
-            <Row
-              title={item.name}
-              subtitle={modifiedLine(item, labels)}
-              pill={<Pill label="Modifiée" tone="warning" />}
-              onPress={() => router.push({ pathname: "/library-sheet", params: { catalogueId: preview.catalogueId, libraryId: preview.libraryId, sheetId: item.sheetId } })}
-              testID={`library-preview-modified-${item.sheetId}`}
-            />
-            {(preview.alsoIn[preview.catalogueId + "/" + item.sheetId] ?? []).map((title) => (
-              <Paragraph key={title} tone="secondary">{`Aussi dans ${title} : mise à jour appliquée là aussi.`}</Paragraph>
-            ))}
-          </View>
-        ))}
-        {[...preview.added, ...preview.attached].map((item, index) => (
-          <View key={item.sheetId}>
-            {preview.modified.length + index > 0 ? <Divider /> : null}
-            <Row title={item.name} subtitle="Ajoutée à la bibliothèque et à votre Catalogue" pill={<Pill label="Nouvelle" tone="action" />} testID={`library-preview-new-${item.sheetId}`} />
-          </View>
-        ))}
-        {removedNames.map((entry, index) => (
-          <View key={entry.key}>
-            {preview.modified.length + preview.added.length + preview.attached.length + index > 0 ? <Divider /> : null}
-            <Row title={entry.name} subtitle="Retirée de la bibliothèque · reste dans le Catalogue" pill={<Pill label="Retirée" />} testID={`library-preview-removed-${entry.key}`} />
-          </View>
-        ))}
-      </Card>
-      <Paragraph tone="secondary">Les fiches modifiées sont mises à jour dans toutes vos bibliothèques qui les contiennent. La composition de vos autres bibliothèques ne change pas.</Paragraph>
+      >
+        <Card testID="library-preview-sheets">
+          {preview.modified.map((item, index) => {
+            const alsoIn = preview.alsoIn[preview.catalogueId + "/" + item.sheetId] ?? [];
+            return (
+              <View key={item.sheetId}>
+                {index > 0 ? <Divider /> : null}
+                <Row
+                  title={item.name}
+                  titleVariant="semibold"
+                  subtitle={modifiedLine(item, labels)}
+                  subtitleTone="secondary"
+                  detail={alsoIn.length > 0 ? alsoIn.map((title) => `Aussi dans ${title} : mise à jour appliquée là aussi.`).join("\n") : null}
+                  pill={<Pill label="Modifiée" tone="action" />}
+                  pillOnTitle
+                  link="Voir le détail"
+                  onPress={() => router.push({ pathname: "/library-sheet", params: { catalogueId: preview.catalogueId, libraryId: preview.libraryId, sheetId: item.sheetId } })}
+                  testID={`library-preview-modified-${item.sheetId}`}
+                />
+              </View>
+            );
+          })}
+          {[...preview.added, ...preview.attached].map((item, index) => (
+            <View key={item.sheetId}>
+              {preview.modified.length + index > 0 ? <Divider /> : null}
+              <Row
+                title={item.name}
+                titleVariant="semibold"
+                subtitle="Ajoutée à la bibliothèque et à votre Catalogue"
+                subtitleTone="secondary"
+                pill={<Pill label="Nouvelle" tone="positive" />}
+                pillOnTitle
+                testID={`library-preview-new-${item.sheetId}`}
+              />
+            </View>
+          ))}
+          {removedNames.map((entry, index) => (
+            <View key={entry.key}>
+              {preview.modified.length + preview.added.length + preview.attached.length + index > 0 ? <Divider /> : null}
+              <Row
+                title={entry.name}
+                titleVariant="semibold"
+                subtitle="Retirée de la bibliothèque · reste dans le Catalogue"
+                subtitleTone="secondary"
+                pill={<Pill label="Retirée" />}
+                pillOnTitle
+                testID={`library-preview-removed-${entry.key}`}
+              />
+            </View>
+          ))}
+        </Card>
+      </Section>
+      <Paragraph tone="note">Les fiches modifiées sont mises à jour dans toutes vos bibliothèques qui les contiennent. La composition de vos autres bibliothèques ne change pas.</Paragraph>
       {ownerWarning}
       {toReview}
     </LibraryScreen>
+  );
+}
+
+/** Ligne de résumé à puce colorée de 8 (12118:25193, 12118:25196). */
+function SummaryLine({ dot, title, subtitle, testID }: { readonly dot: string; readonly title: string; readonly subtitle: string; readonly testID: string }) {
+  return (
+    <View style={screenStyles.summaryLine} testID={testID}>
+      <View style={[screenStyles.summaryDot, { backgroundColor: dot }]} />
+      <View style={screenStyles.summaryText}>
+        <Text style={LIBRARY_TEXT.semibold14}>{title}</Text>
+        <Text style={LIBRARY_TEXT.note}>{subtitle}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -616,7 +743,7 @@ function Counter({ value, label }: { readonly value: number; readonly label: str
   return (
     <View style={screenStyles.counter}>
       <Text style={screenStyles.counterValue}>{value}</Text>
-      <Text style={screenStyles.counterLabel}>{label}</Text>
+      <Text style={LIBRARY_TEXT.captionMuted}>{label}</Text>
     </View>
   );
 }
@@ -631,13 +758,14 @@ function LibraryResult({ report, preview }: { readonly report: LibraryApplyRepor
         title={report.title}
         testID="library-result"
         secondary={[{ label: "Terminer", onPress: () => router.dismissTo("/profile-edit"), testID: "library-result-finish" }]}
+        secondaryBelow
         primary={{ label: "Voir dans le Catalogue", onPress: () => router.dismissTo("/"), testID: "library-result-catalogue" }}
       >
-        <Notice tone="positive" title={`${report.title} est installée`} testID="library-result-installed">Les fiches sont disponibles dans votre Catalogue.</Notice>
+        <StatusHero tone="success" title={`${report.title} est installée`} message="Les fiches sont disponibles dans votre Catalogue." testID="library-result-installed" />
         <Card>
-          <Row title={`${plural(report.added, "fiche ajoutée", "fiches ajoutées")}`} testID="library-result-added" />
+          <Row title={`${plural(report.added, "fiche ajoutée", "fiches ajoutées")}`} titleVariant="semibold" testID="library-result-added" />
           <Divider />
-          <Row title={`${plural(report.attached, "fiche rattachée", "fiches rattachées")}, sans doublon`} testID="library-result-attached" />
+          <Row title={`${plural(report.attached, "fiche rattachée", "fiches rattachées")}, sans doublon`} titleVariant="semibold" testID="library-result-attached" />
         </Card>
         <ResultWarnings report={report} preview={preview} />
       </LibraryScreen>
@@ -649,17 +777,18 @@ function LibraryResult({ report, preview }: { readonly report: LibraryApplyRepor
       testID="library-result"
       primary={{ label: "Terminer", onPress: () => router.dismissTo("/profile-edit"), testID: "library-result-finish" }}
     >
-      <Notice tone="positive" title={`${report.title} est à jour`} testID="library-result-updated">{`Révision ${report.revision}`}</Notice>
+      <StatusHero tone="success" title={`${report.title} est à jour`} message={`Révision ${report.revision}`} testID="library-result-updated" />
       <Card>
         <Row
           title={plural(report.updated, "fiche mise à jour", "fiches mises à jour")}
+          titleVariant="semibold"
           subtitle={alsoIn.length > 0 ? `dont ${alsoIn.length} aussi dans ${[...new Set(alsoIn)].join(", ")}` : null}
           testID="library-result-modified"
         />
         <Divider />
-        <Row title={plural(report.added + report.attached, "fiche ajoutée", "fiches ajoutées")} subtitle={`au Catalogue et à ${report.title}`} testID="library-result-added" />
+        <Row title={plural(report.added + report.attached, "fiche ajoutée", "fiches ajoutées")} titleVariant="semibold" subtitle={`au Catalogue et à ${report.title}`} testID="library-result-added" />
         <Divider />
-        <Row title={plural(report.removed, `fiche retirée de ${report.title}`, `fiches retirées de ${report.title}`)} subtitle="elles restent dans le Catalogue" testID="library-result-removed" />
+        <Row title={plural(report.removed, `fiche retirée de ${report.title}`, `fiches retirées de ${report.title}`)} titleVariant="semibold" subtitle="elles restent dans le Catalogue" testID="library-result-removed" />
       </Card>
       <ResultWarnings report={report} preview={preview} />
     </LibraryScreen>
@@ -712,13 +841,24 @@ export function LibrarySheetDetailScreen() {
       <Paragraph testID="library-sheet-summary">
         {`Révision ${item.installedRevision ?? "—"} → ${item.revision} · ${plural(detail.changed.length, "champ modifié", "champs modifiés")}, ${plural(detail.unchanged.length, "inchangé", "inchangés")}`}
       </Paragraph>
+      {/* 12118:25336… : une carte par champ — intitulé 11 et pastille, colonnes « Actuelle » | « Nouvelle ». */}
       {detail.changed.map((row) => (
-        <Card key={row.path} testID={`library-sheet-field-${row.path}`}>
-          <Row title={row.label} pill={<Pill label={row.conflict ? "Modifiée sur ce téléphone" : "Modifiée"} tone="warning" />} testID={`library-sheet-label-${row.path}`} />
-          <Paragraph tone="secondary">Actuelle</Paragraph>
-          <Paragraph>{row.current}</Paragraph>
-          <Paragraph tone="secondary">Nouvelle</Paragraph>
-          <Paragraph>{row.next}</Paragraph>
+        <Card key={row.path} style={screenStyles.fieldCard} testID={`library-sheet-field-${row.path}`}>
+          <View style={screenStyles.fieldHeader} testID={`library-sheet-label-${row.path}`}>
+            <Text style={[LIBRARY_TEXT.caption, screenStyles.flex]}>{row.label}</Text>
+            <Pill label={row.conflict ? "Modifiée sur ce téléphone" : "Modifiée"} tone={row.conflict ? "warning" : "action"} />
+          </View>
+          <View style={screenStyles.fieldColumns}>
+            <View style={screenStyles.fieldColumn}>
+              <Text style={LIBRARY_TEXT.captionMuted}>Actuelle</Text>
+              <Text style={LIBRARY_TEXT.medium14}>{row.current}</Text>
+            </View>
+            <View style={screenStyles.fieldSeparator} />
+            <View style={screenStyles.fieldColumn}>
+              <Text style={LIBRARY_TEXT.captionMuted}>Nouvelle</Text>
+              <Text style={LIBRARY_TEXT.medium14}>{row.next}</Text>
+            </View>
+          </View>
         </Card>
       ))}
       {detail.unchanged.length > 0 ? (
@@ -727,12 +867,14 @@ export function LibrarySheetDetailScreen() {
             {detail.unchanged.map((row, index) => (
               <View key={row.path}>
                 {index > 0 ? <Divider /> : null}
-                <Row title={row.label} subtitle={row.next} testID={`library-sheet-unchanged-${row.path}`} />
+                <Row title={row.label} titleVariant="medium14" subtitle={row.next} testID={`library-sheet-unchanged-${row.path}`} />
               </View>
             ))}
           </Card>
         ) : (
-          <Row title={`Voir les champs inchangés (${detail.unchanged.length})`} onPress={() => setShowUnchanged(true)} testID="library-sheet-show-unchanged" />
+          <View style={screenStyles.linkLine}>
+            <TextLink label={`Voir les champs inchangés (${detail.unchanged.length})`} onPress={() => setShowUnchanged(true)} testID="library-sheet-show-unchanged" />
+          </View>
         )
       ) : null}
     </LibraryScreen>
@@ -775,7 +917,7 @@ export function LibraryResumeScreen() {
     if (preview) return <LibraryResult report={report} preview={preview} />;
     return (
       <LibraryScreen title={progress.title} testID="library-resume" primary={{ label: "Terminer", onPress: () => router.dismissTo("/profile-edit"), testID: "library-resume-finish" }}>
-        <Notice tone="positive" title={`${progress.title} est à jour`} testID="library-resume-done">{`Révision ${progress.revision}`}</Notice>
+        <StatusHero tone="success" title={`${progress.title} est à jour`} message={`Révision ${progress.revision}`} testID="library-resume-done" />
       </LibraryScreen>
     );
   }
@@ -783,7 +925,7 @@ export function LibraryResumeScreen() {
     return <LibraryScreen title={progress?.title ?? "Bibliothèque"} testID="library-resume"><Busy label={state === "running" ? "Reprise en cours…" : "Chargement…"} /></LibraryScreen>;
   }
   if (!progress) {
-    return <LibraryScreen title="Bibliothèque" testID="library-resume"><Notice tone="positive" title="Aucune opération interrompue">Rien n&apos;est à reprendre.</Notice></LibraryScreen>;
+    return <LibraryScreen title="Bibliothèque" testID="library-resume"><StatusHero tone="success" title="Aucune opération interrompue" message="Rien n'est à reprendre." /></LibraryScreen>;
   }
   const isUpdate = progress.kind === "UPDATE";
   const ratio = progress.total === 0 ? 0 : progress.applied / progress.total;
@@ -794,14 +936,25 @@ export function LibraryResumeScreen() {
       secondary={[{ label: "Plus tard", onPress: () => router.back(), testID: "library-resume-later" }]}
       primary={{ label: isUpdate ? "Reprendre la mise à jour" : "Reprendre l'installation", onPress: () => void resume(), testID: "library-resume-continue" }}
     >
-      <Notice tone="warning" title={isUpdate ? "Mise à jour interrompue" : "Installation interrompue"} testID="library-resume-card">
-        {`${isUpdate ? "La mise à jour" : "L'installation"} de ${progress.title} (révision ${progress.revision}) s'est arrêtée avant la fin.`}
-      </Notice>
-      <View style={screenStyles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: progress.total, now: progress.applied }}>
-        <View style={[screenStyles.progressFill, { width: `${Math.round(ratio * 100)}%` }]} />
-      </View>
-      <Paragraph testID="library-resume-progress">{`${progress.applied} fiches sur ${progress.total} déjà appliquées`}</Paragraph>
-      <Paragraph tone="secondary">Rien n&apos;est perdu : les fiches déjà appliquées sont conservées, la reprise continue là où elle s&apos;est arrêtée.</Paragraph>
+      {/* 12119:25264 : pastille Reprise, titre, texte, barre de progression et décompte dans une carte. */}
+      <Card style={screenStyles.resumeCard} testID="library-resume-card">
+        <View style={screenStyles.resumeHeader}>
+          <View style={screenStyles.resumeBadge}>
+            <KodjoIcon name="library-resume" />
+          </View>
+          <View style={screenStyles.summaryText}>
+            <Text style={screenStyles.resumeTitle}>{isUpdate ? "Mise à jour interrompue" : "Installation interrompue"}</Text>
+            <Text style={screenStyles.resumeText}>
+              {`${isUpdate ? "La mise à jour" : "L'installation"} de ${progress.title} (révision ${progress.revision}) s'est arrêtée avant la fin.`}
+            </Text>
+          </View>
+        </View>
+        <View style={screenStyles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: progress.total, now: progress.applied }}>
+          <View style={[screenStyles.progressFill, { width: `${Math.round(ratio * 100)}%` }]} />
+        </View>
+        <Text style={LIBRARY_TEXT.note} testID="library-resume-progress">{`${progress.applied} fiches sur ${progress.total} déjà appliquées`}</Text>
+      </Card>
+      <Paragraph tone="note">Rien n&apos;est perdu : les fiches déjà appliquées sont conservées, la reprise continue là où elle s&apos;est arrêtée.</Paragraph>
     </LibraryScreen>
   );
 }
@@ -818,19 +971,29 @@ export function LibraryInvalidScreen({ pickFile = pickCatalogueFile }: LibrarySc
       testID="library-invalid"
       primary={{ label: "Choisir un autre fichier", onPress: () => void fileImport.run(), testID: "library-invalid-pick" }}
     >
-      <Notice tone="danger" title="Fichier refusé en entier" testID="library-invalid-notice">
+      <Notice tone="danger" large title="Fichier refusé en entier" testID="library-invalid-notice">
         Aucune fiche n&apos;a été importée. Corrigez le fichier, puis réessayez.
       </Notice>
-      <SectionTitle>{`Problèmes détectés (${lines.length})`}</SectionTitle>
-      <Card testID="library-invalid-issues">
-        {lines.slice(0, 50).map((line, index) => (
-          <View key={index}>
-            {index > 0 ? <Divider /> : null}
-            <Row title={line} testID={`library-invalid-issue-${index}`} />
-          </View>
-        ))}
-      </Card>
-      {lines.length > 50 ? <Paragraph tone="secondary">{`et ${lines.length - 50} autres problèmes`}</Paragraph> : null}
+      {/* 12119:25186 : puce rouge, élément en Semi Bold 13 (« Fiche 12 « Burpee » »), problème en 12 dessous. */}
+      <Section label={`Problèmes détectés (${lines.length})`}>
+        <Card testID="library-invalid-issues">
+          {lines.slice(0, 50).map((line, index) => {
+            const cut = line.indexOf(" — ");
+            return (
+              <View key={index}>
+                {index > 0 ? <Divider /> : null}
+                <BulletRow
+                  tone="danger"
+                  title={cut < 0 ? line : line.slice(0, cut)}
+                  detail={cut < 0 ? null : line.slice(cut + 3)}
+                  testID={`library-invalid-issue-${index}`}
+                />
+              </View>
+            );
+          })}
+        </Card>
+      </Section>
+      {lines.length > 50 ? <Paragraph tone="note">{`et ${lines.length - 50} autres problèmes`}</Paragraph> : null}
     </LibraryScreen>
   );
 }
@@ -871,20 +1034,29 @@ export function LibraryInstalledScreen() {
   if (!library) return <LibraryScreen title="Bibliothèque" testID="library-installed"><Busy label="Chargement…" /></LibraryScreen>;
   const preview = librarySession.preview(library.catalogueId, library.libraryId);
   const updateAvailable = preview?.status === "UPDATE_AVAILABLE";
+  const openUpdate = () => router.push({ pathname: "/library-preview", params: { catalogueId: library.catalogueId, libraryId: library.libraryId } });
+  // 12098:115 : pastille « Mettre à jour » en face du titre, état en 13 gris dessous, carte des mouvements
+  // (nom Medium 14, zones 12, chevron). Sans « Désinstaller la bibliothèque » ni sa note (A-4, reporté).
   return (
-    <LibraryScreen title={library.library.title} testID="library-installed">
-      <Row
-        title={`${plural(library.library.members.length, "mouvement", "mouvements")} · ${updateAvailable ? "mise à jour disponible" : "à jour"}`}
-        pill={updateAvailable ? <Pill label="Mettre à jour" tone="action" /> : undefined}
-        onPress={updateAvailable ? () => router.push({ pathname: "/library-preview", params: { catalogueId: library.catalogueId, libraryId: library.libraryId } }) : undefined}
-        testID="library-installed-status"
-      />
+    <LibraryScreen
+      title={library.library.title}
+      testID="library-installed"
+      headerTrailing={updateAvailable ? (
+        <Pressable onPress={openUpdate} accessibilityRole="button" accessibilityLabel="Mettre à jour la bibliothèque" hitSlop={spacing[12]} testID="library-installed-update">
+          <Pill label="Mettre à jour" tone="action" />
+        </Pressable>
+      ) : null}
+    >
+      <Text style={screenStyles.installedStatus} testID="library-installed-status">
+        {`${plural(library.library.members.length, "mouvement", "mouvements")} · ${updateAvailable ? "mise à jour disponible" : "à jour"}`}
+      </Text>
       <Card testID="library-installed-members">
         {members.map((member, index) => (
           <View key={member.key}>
             {index > 0 ? <Divider /> : null}
             <Row
               title={member.name}
+              titleVariant="medium14"
               subtitle={member.zones || null}
               onPress={member.movementId ? () => router.push({ pathname: "/movement", params: { movementId: member.movementId! } }) : undefined}
               testID={`library-installed-member-${member.key}`}
@@ -1005,11 +1177,14 @@ export function LibrarySendScreen({ client = defaultClient, deviceName }: Librar
   if (phase.kind === "sent") {
     return (
       <LibraryScreen title="Envoyer mes mouvements" testID="library-send" primary={{ label: "Terminer", onPress: () => router.dismissTo("/profile-edit"), testID: "library-send-finish" }}>
-        <Notice tone="positive" title={`${plural(phase.received, "mouvement envoyé", "mouvements envoyés")} à « ${session.name} »`} testID="library-send-done">
-          {phase.duplicates > 0
+        <StatusHero
+          tone="success"
+          title={`${plural(phase.received, "mouvement envoyé", "mouvements envoyés")} à « ${session.name} »`}
+          message={phase.duplicates > 0
             ? `${plural(phase.duplicates, "était déjà reçu", "étaient déjà reçus")}, sans doublon. Vos mouvements restent inchangés sur ce téléphone.`
             : "Vos mouvements restent inchangés sur ce téléphone."}
-        </Notice>
+          testID="library-send-done"
+        />
       </LibraryScreen>
     );
   }
@@ -1022,10 +1197,16 @@ export function LibrarySendScreen({ client = defaultClient, deviceName }: Librar
         ? { label: "Se reconnecter", onPress: () => router.replace({ pathname: "/library-connect", params: { next: "send" } }), testID: "library-send-reconnect" }
         : { label: count > 0 ? `Envoyer (${count})` : "Envoyer", onPress: () => void send(), disabled: count === 0, testID: "library-send-submit" }}
     >
-      <Paragraph tone="secondary">{`Vers l'administration · ${session.name}`}</Paragraph>
+      {/* Sans maquette : aligné sur les autres écrans (introduction 13, carte, note 12). */}
+      <Paragraph>{`Vers l'administration · ${session.name}`}</Paragraph>
       {phase.kind === "error" ? <Notice tone="danger" title="Envoi impossible" testID="library-send-error">{phase.message}</Notice> : null}
       {movements.length === 0 ? (
-        <Paragraph testID="library-send-empty">Aucun mouvement personnel à envoyer. Les mouvements importés d&apos;une bibliothèque ne sont pas envoyés.</Paragraph>
+        <StatusHero
+          tone="empty"
+          title="Aucun mouvement personnel à envoyer"
+          message="Les mouvements importés d'une bibliothèque ne sont pas envoyés."
+          testID="library-send-empty"
+        />
       ) : (
         <Card testID="library-send-list">
           {movements.map((movement, index) => {
@@ -1057,19 +1238,58 @@ export function LibrarySendScreen({ client = defaultClient, deviceName }: Librar
           })}
         </Card>
       )}
-      <Paragraph tone="secondary">Les photos et vidéos ne sont pas envoyées dans cette version.</Paragraph>
+      <Paragraph tone="note">Les photos et vidéos ne sont pas envoyées dans cette version.</Paragraph>
     </LibraryScreen>
   );
 }
 
 const screenStyles = StyleSheet.create({
-  empty: { alignItems: "center", gap: spacing[8], paddingVertical: spacing[24] },
-  counters: { flexDirection: "row", gap: spacing[8] },
-  counter: { flex: 1, alignItems: "center", paddingVertical: spacing[12], borderRadius: 12, backgroundColor: colors.surface },
-  counterValue: { ...type.metricPrimary, color: colors.textPrimary },
-  counterLabel: { ...type.supporting, color: colors.textSecondary },
-  progressTrack: { height: 8, borderRadius: 4, backgroundColor: colors.surface, overflow: "hidden" },
+  flex: { flex: 1 },
+  // Ajouter une bibliothèque : deux cartes séparées de 12, icône dans une colonne de 34, chevron à 18 du bord.
+  sourceCards: { gap: spacing[12] },
+  sourceCard: {
+    ...LIBRARY_CARD,
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 84,
+    paddingVertical: spacing[16],
+    paddingLeft: 18,
+    paddingRight: 18,
+  },
+  sourceIcon: { width: 34, alignItems: "flex-start" },
+  sourceText: { flex: 1, gap: spacing[4], paddingRight: spacing[16] },
+  heroBlock: { gap: spacing[24] },
+  refreshLine: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  // Aperçu avant installation (12118:25189).
+  summaryCard: { paddingVertical: spacing[16], gap: spacing[12] },
+  bigCountLine: { flexDirection: "row", alignItems: "baseline", gap: spacing[14], paddingBottom: spacing[2] },
+  bigCount: { ...type.metricPrimary, color: colors.textPrimary },
+  summaryLine: { flexDirection: "row", alignItems: "flex-start", gap: spacing[10] },
+  summaryDot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },
+  summaryText: { flex: 1, gap: spacing[4] },
+  moreLine: { paddingTop: spacing[4], paddingBottom: spacing[16] },
+  // Aperçu d'une mise à jour (12118:25270).
+  counters: { flexDirection: "row", paddingVertical: spacing[12] },
+  counter: { flex: 1, alignItems: "center", gap: spacing[6] },
+  counterValue: { ...type.screenTitle, color: colors.textPrimary },
+  // Détail d'une fiche (12118:25336).
+  fieldCard: { paddingVertical: spacing[12], gap: spacing[8] },
+  fieldHeader: { flexDirection: "row", alignItems: "center", gap: spacing[8] },
+  fieldColumns: { flexDirection: "row", gap: spacing[12], paddingBottom: spacing[12] },
+  fieldColumn: { flex: 1, gap: spacing[6] },
+  fieldSeparator: { width: 1, backgroundColor: colors.divider },
+  linkLine: { flexDirection: "row" },
+  // Reprise après interruption (12119:25264).
+  resumeCard: { paddingVertical: spacing[16], gap: spacing[12] },
+  resumeHeader: { flexDirection: "row", alignItems: "flex-start", gap: spacing[12], paddingBottom: spacing[12] },
+  resumeBadge: { width: 36, height: 36, borderRadius: 18, backgroundColor: LIBRARY_COLORS.actionSurface, alignItems: "center", justifyContent: "center" },
+  resumeTitle: { ...type.listCardTitle, color: colors.textPrimary },
+  resumeText: { ...type.supporting, color: colors.textSecondary },
+  progressTrack: { height: 8, borderRadius: 4, backgroundColor: LIBRARY_COLORS.skeleton, overflow: "hidden" },
   progressFill: { height: 8, borderRadius: 4, backgroundColor: colors.primary },
-  switchRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: minTouchTarget, paddingVertical: spacing[8], gap: spacing[8] },
-  switchLabel: { ...type.label, color: colors.textPrimary, flex: 1 },
+  // Bibliothèque installée (12098:212) : état 13 #7A7A80.
+  installedStatus: { ...LIBRARY_TEXT.intro, color: LIBRARY_COLORS.muted },
+  // Envoyer mes mouvements (sans maquette) : lignes Medium 15 à interrupteur natif.
+  switchRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 52, paddingVertical: spacing[8], gap: spacing[8] },
+  switchLabel: { ...LIBRARY_TEXT.medium15, flex: 1 },
 });

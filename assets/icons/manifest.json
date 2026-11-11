@@ -1093,6 +1093,216 @@
       "usage": [
         "Carte Mouvement en sélection pour une Séance — case vide (D-508)"
       ]
+    },
+    {
+      "key": "library.chevron.go",
+      "file": "icon-bibliotheque-chevron-aller",
+      "figmaNodeId": "12119:25649",
+      "figmaName": "Chevron — Aller",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25611",
+      "width": 7.8,
+      "height": 13.8,
+      "usage": [
+        "Profil — lignes Bibliothèques (Ajouter, Envoyer, bibliothèque installée) ; Bibliothèque installée — lignes Mouvement (12098:115) (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.chevron.goSmall",
+      "file": "icon-bibliotheque-chevron-aller-petit",
+      "figmaNodeId": "12116:25097",
+      "figmaName": "Chevron — Aller",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12116:25073",
+      "width": 5.50003,
+      "height": 11.5001,
+      "usage": [
+        "Ajouter une bibliothèque — cartes Depuis un fichier / Depuis l'administration (PC) (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.add",
+      "file": "icon-bibliotheque-ajouter",
+      "figmaNodeId": "12119:25658",
+      "figmaName": "Icône — Ajouter",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25611",
+      "width": 14.5,
+      "height": 14.5,
+      "usage": [
+        "Profil — ligne « Ajouter une bibliothèque » (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.send",
+      "file": "icon-bibliotheque-envoyer",
+      "figmaNodeId": "12119:25659",
+      "figmaName": "Icône — Envoyer",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25611",
+      "width": 15.5,
+      "height": 15.5,
+      "usage": [
+        "Profil — ligne « Envoyer mes mouvements » (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.book.profile",
+      "file": "icon-bibliotheque-livre-profil",
+      "figmaNodeId": "12119:25646",
+      "figmaName": "Icône — Fitness",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25611",
+      "width": 18.5,
+      "height": 14.5984,
+      "usage": [
+        "Profil — ligne d'une bibliothèque installée (trait #595966) (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.book",
+      "file": "icon-bibliotheque-livre",
+      "figmaNodeId": "12118:25145",
+      "figmaName": "Icône — Fitness",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12118:25124",
+      "width": 18.5,
+      "height": 14.5984,
+      "usage": [
+        "Bibliothèques disponibles — icône de chaque bibliothèque (trait #595E66) (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.book.empty",
+      "file": "icon-bibliotheque-livre-vide",
+      "figmaNodeId": "12119:25297",
+      "figmaName": "Icône — Bibliothèque",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25277",
+      "width": 19,
+      "height": 15.0984,
+      "usage": [
+        "Bibliothèques disponibles — liste vide (pastille) (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.book.source",
+      "file": "icon-bibliotheque-source",
+      "figmaNodeId": "12119:25409",
+      "figmaName": "Icône — Bibliothèque",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25304",
+      "width": 17.4,
+      "height": 14.3997,
+      "usage": [
+        "Mouvement importé — pastille « Bibliothèque · rév. N » (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.file",
+      "file": "icon-bibliotheque-fichier",
+      "figmaNodeId": "12116:25094",
+      "figmaName": "Icône — Depuis un fichier",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12116:25073",
+      "width": 13.5,
+      "height": 17.5,
+      "usage": [
+        "Ajouter une bibliothèque — Depuis un fichier (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.computer",
+      "file": "icon-bibliotheque-pc",
+      "figmaNodeId": "12116:25099",
+      "figmaName": "Icône — Depuis l’administration (PC)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12116:25073",
+      "width": 17.5,
+      "height": 13.5,
+      "usage": [
+        "Ajouter une bibliothèque — Depuis l'administration (PC) (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.success",
+      "file": "icon-bibliotheque-succes",
+      "figmaNodeId": "12116:25195",
+      "figmaName": "Coche — Succès",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12116:25175",
+      "width": 21.0001,
+      "height": 18.0001,
+      "usage": [
+        "Connecté, Installation terminée (12118:25220), Mise à jour appliquée (12118:25370), envoi réussi (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.error",
+      "file": "icon-bibliotheque-erreur",
+      "figmaNodeId": "12116:25233",
+      "figmaName": "Icône — Erreur",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12116:25200",
+      "width": 17.5,
+      "height": 15.5,
+      "usage": [
+        "Encarts d'erreur : Code refusé, Fichier invalide (12119:25182) (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.warning",
+      "file": "icon-bibliotheque-avertissement",
+      "figmaNodeId": "12118:25201",
+      "figmaName": "Icône — Avertissement",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12118:25170",
+      "width": 17.5,
+      "height": 15.5,
+      "usage": [
+        "Encarts d'avertissement : Propriétaire inconnu (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.wifiOff",
+      "file": "icon-bibliotheque-wifi",
+      "figmaNodeId": "12116:25258",
+      "figmaName": "Icône — Wi-Fi",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12116:25238",
+      "width": 18,
+      "height": 16,
+      "usage": [
+        "Connexion — PC introuvable sur le Wi-Fi (pastille) (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.resume",
+      "file": "icon-bibliotheque-reprise",
+      "figmaNodeId": "12119:25266",
+      "figmaName": "Icône — Reprise",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12119:25245",
+      "width": 13.5002,
+      "height": 13.5002,
+      "usage": [
+        "Reprise après interruption — pastille de la carte (correction du 11/11/2026, mise en page Figma des écrans Bibliothèques)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
     }
   ],
   "branding": {
