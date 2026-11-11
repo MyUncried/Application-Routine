@@ -130,7 +130,7 @@ Le MVP permet à l'utilisateur :
 Le MVP ne prend pas encore en charge :
 - le partage ou la collaboration ;
 - les comptes utilisateurs et la synchronisation entre appareils ;
-- l'interaction avec un professionnel de santé ou un coach ;
+- l'échange générique entre utilisateurs, sans rôle professionnel ni prescription numérique ;
 - les bibliothèques de séances partagées ;
 - l'assistance par intelligence artificielle ;
 - les tableaux de bord et graphiques avancés ;
@@ -568,12 +568,11 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 - gérer les droits de consultation et de modification ;
 - conserver des copies personnelles indépendantes des séances partagées.
 
-#### Professionnels de santé et coachs
+#### Accompagnement et transmission génériques — évolution ultérieure
 
-- recevoir une séance créée par un professionnel ;
-- permettre à un professionnel de créer, mettre à jour et partager des séances ;
-- suivre l'exécution des séances réalisées par un patient ou un client ;
-- gérer plusieurs patients ou clients au sein d'une même interface.
+- recevoir des Mouvements transmis par un autre utilisateur, lorsque le partage sera développé ;
+- permettre à un émetteur de transmettre des contenus autorisés, sans rôle professionnel imposé ;
+- ne pas introduire de suivi d'exécution de patients, de gestion de patientèle, ni de prescription numérique (KIN-01).
 
 #### Synchronisation
 
