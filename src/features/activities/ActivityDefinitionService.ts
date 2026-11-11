@@ -15,6 +15,7 @@ import type { Movement } from "@/domain/activities/Movement";
 import { movementLevelPosition, type MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import type { MovementRepository } from "@/domain/activities/MovementRepository";
 import { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
+import { isImportedMovement } from "@/features/catalogue/importedMovements";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
@@ -139,7 +140,10 @@ export class ActivityDefinitionService {
    * composition SQLite. `null` sans `MovementRepository` (doublures antérieures à MFN).
    */
   get movementCatalogue(): MovementCatalogueService | null {
-    return this.movementRepository ? new MovementCatalogueService(this.movementRepository) : null;
+    // A-2 (11/11/2026) : Mouvements importés en lecture seule, garde métier du registre des catalogues.
+    return this.movementRepository
+      ? new MovementCatalogueService(this.movementRepository, undefined, isImportedMovement)
+      : null;
   }
 
   /**

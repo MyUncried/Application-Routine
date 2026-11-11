@@ -43,7 +43,7 @@ import type { SqliteCatalogueRegistry } from "@/infrastructure/catalogue/SqliteC
 export type CatalogueLoadDependencies = {
   readonly registry: Pick<SqliteCatalogueRegistry, "snapshot" | "beginPending" | "abandonPending" | "commit" | "recordDecision">;
   /** Écritures par le service Catalogue existant (mêmes validations que les écrans). */
-  readonly movements: Pick<MovementCatalogueService, "createIndependent" | "update">;
+  readonly movements: Pick<MovementCatalogueService, "createIndependent" | "updateFromSource">;
   /** Mouvements locaux, archivés compris, lus de façon fraîche (`freshLocalMovementReader`). */
   readonly readLocalMovements: () => Promise<readonly LocalMovement[]>;
   /** Catégories et Zones présentes sur le téléphone (aucune création implicite). */
@@ -250,7 +250,7 @@ export class CatalogueLoadService {
     // Une exception laisse l'opération en cours : `recoverInterrupted` la confirmera ou l'abandonnera.
     const result = kind === "INSTALL"
       ? await this.deps.movements.createIndependent(movement)
-      : await this.deps.movements.update(movement);
+      : await this.deps.movements.updateFromSource(movement);
     if (result.status !== "SAVED") {
       await this.deps.registry.abandonPending(key);
       return { status: "MOVEMENT_REFUSED", reason: result.status };

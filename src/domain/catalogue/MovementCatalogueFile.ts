@@ -496,6 +496,20 @@ function validateLibraries(raw: Raw, sheetIds: ReadonlySet<string>, issue: Issue
 }
 
 /**
+ * Fiche installée lue dans un stockage antérieur au format v2 (`provenance.authors[]`) :
+ * conversion identique à la lecture d’un fichier v1 (0 → null, 1 → l’auteur). Une liste de
+ * plusieurs auteurs est laissée intacte (aucun choix arbitraire) : son empreinte diffère alors et
+ * le chargement la signale comme révision incohérente.
+ */
+export function normalizeStoredSheet(sheet: CatalogueSheet): CatalogueSheet {
+  const provenance = sheet.provenance as unknown as Raw;
+  if (!isObject(provenance) || !("authors" in provenance)) return sheet;
+  const { authors, ...rest } = provenance;
+  if (!Array.isArray(authors) || authors.length > 1) return sheet;
+  return { ...sheet, provenance: { ...rest, author: authors[0] ?? null } as unknown as CatalogueSheetProvenance };
+}
+
+/**
  * Sérialisation de référence du format courant (administration, export, Wi-Fi) : JSON indenté,
  * ordre des clés conservé, fin de ligne finale. `parseMovementCatalogueFile` relit le résultat
  * à l'identique (aller-retour sans perte).
