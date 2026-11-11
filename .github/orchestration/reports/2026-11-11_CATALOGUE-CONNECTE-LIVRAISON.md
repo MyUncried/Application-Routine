@@ -250,3 +250,44 @@ Icônes ajoutées (exports MCP de 12119:25611, attributs racine nettoyés, `mani
 Classe : A (conformité à la maquette) ; interprétations listées ci-dessus, sans règle créée. Documents : spec (Synchronisation, À CLARIFIER n° 7) et ce rapport.
 
 Tests : `ProfileEditScreen.test.tsx` 20 verts (6 nouveaux : onglets et retour par « Préférences », garde d'abandon par l'onglet, carte Profil sans pseudo ni type de compte, pastille appareil photo, silhouettes 40 teintées, fond #F7F7FF) ; `npx jest src/features/preferences app` 9 suites, 70 tests verts (avant ajout des nouveaux tests) ; suite complète `npx jest --maxWorkers=4` : 342 suites et 5 838 tests verts, 7 suites (18 tests) en échec — les 7 suites attendues qui lisent le fichier pilote de recette du dossier (LibraryScreens, CatalogueLoadScreen, LibraryService.sqlite, CatalogueLoadService.sqlite, catalogueEditing, convertPilotCorpus, catalogueLoadPlan) ; `tsc --noEmit` 0 erreur ; eslint 0 problème sur les fichiers modifiés. Fichier `catalogue/catalogues/kodjo-pilote-60.catalogue.json` non touché.
+
+## Familles de niveaux des fiches (11/11)
+
+Demande de Hermann : « Implémente la gestion des familles de niveaux dans les fiches Mouvement du catalogue, depuis l'administration web jusqu'à l'import d'une Bibliothèque sur le téléphone », avec le patch `KODJO-familles-niveaux.patch` (conception validée). Départ : `b1b70890`, branche `catalogue/integration-pre10-20261111`. Demande ajoutée en cours : « Peux tu aussi retirer le bouton "Charger un catalogue (test local)" qui se trouve sur le catalogue des mouvements. »
+
+Documentation : le commit `1b83b07d` n'existe pas dans ce dépôt ; aucun des quatre documents n'était à jour sur la branche. Le patch s'applique sans conflit (`git apply --check`) et a été appliqué tel quel (ch. 07, conception du partage, parcours cibles, format). Le format retenu est ajouté au document de format (§ « Familles de niveaux des fiches — format retenu ») ; la phrase « Le lecteur actuel initialise encore `levelGroup` à `null` » est annotée comme remplacée.
+
+Réalisé :
+- **Format** (`MovementCatalogueFile.ts`) : propriété facultative `levelGroup: { groupId, sortKey }` de la fiche ; validation (`INVALID`, `DUPLICATE` pour deux fiches à la même position d'une famille) ; empreinte éditoriale sensible à l'appartenance et à la position, inchangée pour une fiche sans famille ; anciens fichiers lisibles. Section « famille de niveaux » dans le résumé des changements du téléphone.
+- **Administration** (`catalogueEditing.ts`, `app.js`) : section « Famille de niveaux » de la fiche, par les noms (« Niveau n — Nom »). Rattacher à une famille existante ou créer une famille avec un mouvement sans famille (C1), réordonner (↑ ↓, seules deux fiches révisées), détacher (dissolution du dernier couple, D2), changement de famille seulement après détachement (C6). Identifiants générés par l'application, clés jamais saisies. Révision de chaque fiche dont la famille change effectivement, par le mécanisme existant (`applyFileEdit`). Ordre des Bibliothèques inchangé et indépendant.
+- **Téléphone** (`catalogueFamilies.ts`, `CatalogueLoadService`, `MovementRepository.setFamilyOrder`) : après chaque fiche acceptée, le Mouvement est placé dans le groupe `catalogue:<catalogue.id>#<groupId>` (pas de fusion entre catalogues, même famille au réimport) ; membres importés rangés par la clé de leur fiche, membres locaux à leur place ; import partiel limité aux fiches reçues ; adaptations locales conservées (appartenance changée sur le téléphone depuis l'installation, ou Mouvement existant d'une autre famille). Médias, phases et archivage toujours intouchés. `gestureId` et familles gestuelles non utilisés.
+- **Bouton retiré** : « Charger un catalogue (test local) » n'est plus affiché sur le Catalogue des mouvements (`CatalogueScreen.tsx`). La route `catalogue-load` et son écran restent, sans point d'entrée.
+
+Hypothèse et limite : une interruption entre la confirmation d'une fiche et son placement dans la famille laisse le Mouvement sans famille jusqu'à la révision suivante de la fiche (documenté dans le format). Le parcours « Changer de niveau » sur un Mouvement importé (lecture seule, A-2) n'a pas été vérifié sur iPhone.
+
+Classe : B (décision explicite de Hermann et patch validé) ; documents : patch appliqué, format (format retenu), spec (Synchronisation). Bouton : B, aucun document.
+
+## Messages des droits et propriétaire par défaut (11/11, soir)
+
+Question de Hermann sur l'aperçu « Mise à jour de Course à pied » : « La gestion des droits sur les fiches est assez incompréhensible. Les règles ne sont expliquées nulle part. […] Que veulent dire ces deux messages ? » Proposition acceptée (« Ok »), puis : « Il faut mettre mon compte / mon nom pour toutes les fiches de test par défaut. »
+
+Réalisé :
+- **Cause précise d'une fiche non appliquée** (`libraryPresentation.reviewLabel`) : archivée ou supprimée sur ce téléphone (restaurer depuis le Catalogue), révision incohérente (rien n'est modifié ; une nouvelle modification dans l'administration la repropose), révision refusée (la suivante sera proposée), installation interrompue. Remplace la phrase qui regroupait trois causes.
+- **Bandeau « Propriétaire inconnu »** : nomme la cause (Bibliothèque sans propriétaire, fiches sans propriétaire avec leurs noms, trois au plus puis « et n autres »), rappelle la conséquence (utilisable sur le téléphone, ni partage ni redistribution) et comment la lever. `LibraryPreview` porte `ownerlessLibrary` et `ownerlessSheets`.
+- **Propriétaire par défaut** : une nouvelle fiche ou Bibliothèque reprend le propriétaire déclaré du catalogue (`createSheet`, `createLibrary`), sauf déclaration explicite. Aide sous chaque « Propriétaire » de l'administration : déclaratif, non vérifié, aucun compte dans le MVP.
+- **Données de recette** (`kodjo-pilote-60.catalogue.json`, non versionné) : propriétaire du catalogue, des 64 fiches et des 3 Bibliothèques mis à `LOCAL_USER` « hermann Adjou Moumouni » (valeur saisie par Hermann sur sa fiche), par l'API du serveur d'administration en marche (révision du catalogue 27 → 28 ; 63 fiches et 2 Bibliothèques révisées). **Incident :** l'écriture a remplacé toutes les valeurs, pas seulement les vides ; deux Bibliothèques (pilote et Recette Hyrox, modifiées par Hermann à 21:15) et une fiche avaient un autre propriétaire non vide, désormais perdu. Le fichier versionné du pilote n'est pas modifié.
+
+Réponse sur le champ Propriétaire : les cinq choix (inconnu, utilisateur local, personne, organisation, plateforme) viennent du document validé du 06/11 (« Provenance, propriété et fiches éditoriales »). Sans comptes (hors MVP), la valeur est une déclaration non vérifiable ; elle ne devient contraignante qu'avec une authentification (règle 7 de ce document : aucune publication sans authentification ni vérification des permissions). Son seul effet actuel : « inconnu » rend le contenu privé.
+
+Classe : B (textes et valeur par défaut demandés) ; règles fonctionnelles inchangées.
+
+Puis, demande de Hermann : « Et met mon prénom en tant que propriétaire de toutes les fiches du catalogue actuel. » Les 64 fiches portent `LOCAL_USER` « Hermann » (même voie, révision du catalogue 31). Le propriétaire du catalogue (valeur par défaut des nouvelles fiches) et ceux des Bibliothèques, que Hermann a lui-même ressaisis entre-temps, restent « hermann Adjou Moumouni ».
+
+### Tests (familles de niveaux, messages, propriétaire par défaut, bouton retiré)
+
+- Nouveaux : `catalogueFamilies.test.ts` (11 : format, validation, édition C1/C6/D2, placement), `catalogueFamilies.sqlite.test.ts` (10, deux bases SQLite réelles : progression mur → genoux → sol transmise par une Bibliothèque en ordre inverse, réimport sans doublon, réordonnancement, détachement, dissolution D2, import partiel puis complément, deux catalogues sans fusion, adaptation locale conservée, ancien catalogue sans famille), `libraryPresentation.owner.test.ts` (8).
+- Suite complète dans un dossier de travail séparé (même diff, fichier pilote versionné, jonction `node_modules`) : `npx jest` 352 suites, 5 885 tests verts ; `node --test tools/catalogue-admin/server.test.mjs` 24 verts.
+- `tsc --noEmit` 0 erreur ; eslint 0 problème sur les fichiers modifiés.
+- Dans le dossier du chantier, les suites qui lisent le fichier pilote échouent toujours à cause des données de recette (non versionnées, inchangées par les tests).
+
+Vérifications restant à faire sur iPhone : cahier de recette, section 8 « Familles de niveaux » (fn1 à fn14). Le serveur d'administration doit être redémarré depuis `C:\Dev\KODJO-CAT-INTEG` (le domaine partagé est régénéré au démarrage).

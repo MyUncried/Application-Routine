@@ -18,9 +18,14 @@ import {
   addLibraryMember,
   createLibrary,
   createSheet,
+  familyOfSheet,
+  joinSheetFamily,
+  leaveSheetFamily,
   libraryFingerprint,
   moveLibraryMember,
+  moveSheetInFamily,
   removeLibraryMember,
+  sheetFamilies,
 } from "/domain/src/domain/catalogue/catalogueEditing.js";
 import { findInboxCollisions, proposedClassification } from "/domain/src/domain/catalogue/MovementInbox.js";
 import { mountMediaEditor } from "./media.js";
@@ -440,7 +445,7 @@ function showNewSheet(panel) {
   panel.replaceChildren();
   const box = el("div", "dialog");
   box.append(el("h2", "", "Nouvelle fiche"),
-    el("p", "info", "Origine LOCAL_CREATED, privée, brouillon, non publiable ; propriétaire et auteur inconnus tant que tu ne les renseignes pas. Révision 1 attribuée par le serveur à l'enregistrement."));
+    el("p", "info", "Origine LOCAL_CREATED, privée, brouillon, non publiable ; propriétaire : celui du catalogue (onglet Catalogue), auteur inconnu tant que tu ne le renseignes pas. Révision 1 attribuée par le serveur à l'enregistrement."));
   const name = el("input", "input");
   name.maxLength = 80;
   const sheetId = el("input", "input");
@@ -503,6 +508,7 @@ function renderSheetForm(panel) {
     classification.append(section(label, chips(refs[axis], () => k[field], (x) => { k[field] = x; })));
   }
   fields.append(classification);
+  fields.append(familySection(sheet));
 
   const upstream = el("div", "fields");
   const renderUpstream = () => {
@@ -522,7 +528,7 @@ function renderSheetForm(panel) {
   fields.append(section("Provenance",
     shown("Origine", ORIGIN_LABELS[p.origin] ?? p.origin),
     upstream,
-    grid(labeled("Propriétaire", actorInput(() => p.owner, (x) => { p.owner = x; }), "Inconnu = privé, jamais publiable."),
+    grid(labeled("Propriétaire", actorInput(() => p.owner, (x) => { p.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : utilisable sur les téléphones, mais jamais partageable ni publiable."),
       labeled("Auteur (unique)", actorInput(() => p.author, (x) => { p.author = x; }))),
     grid(labeled("Diffuseur", actorInput(() => p.publisher, (x) => { p.publisher = x; })),
       labeled("Ayant droit", actorInput(() => p.rightsHolder, (x) => { p.rightsHolder = x; }))),
@@ -584,6 +590,62 @@ function renderSheetForm(panel) {
   panel.append(head, fields);
 }
 
+/**
+ * Famille de niveaux de la fiche (décision de Hermann du 11/11/2026, MFN-05 / D-439, règles A à D du 28/10) :
+ * mouvements présentés par leur nom ; identifiants et clés de tri gérés par l'application. Niveau 1 en premier.
+ */
+function familySection(sheet) {
+  const apply = (edit) => {
+    try {
+      state.working = edit();
+    } catch (error) {
+      notify(error instanceof Error ? error.message : String(error), "error");
+      return;
+    }
+    changed();
+    renderTab();
+  };
+  const nameOf = (entry) => entry.content.name || "(sans nom)";
+  const family = familyOfSheet(state.working, sheet.sheetId);
+  const box = section("Famille de niveaux");
+  if (family) {
+    const list = el("div", "members");
+    family.sheets.forEach((member, at) => {
+      const row = el("div", "member");
+      const mine = member.sheetId === sheet.sheetId;
+      row.append(el("span", mine ? "name" : "", "Niveau " + (at + 1) + " — " + nameOf(member) + (mine ? " (cette fiche)" : "")));
+      const actions = el("div", "media-actions");
+      const down = button("↑", () => apply(() => moveSheetInFamily(state.working, member.sheetId, -1)), { disabled: at === 0 });
+      down.title = "Niveau inférieur";
+      const up = button("↓", () => apply(() => moveSheetInFamily(state.working, member.sheetId, 1)), { disabled: at === family.sheets.length - 1 });
+      up.title = "Niveau supérieur";
+      actions.append(down, up, button("Détacher", () => apply(() => leaveSheetFamily(state.working, member.sheetId))));
+      row.append(actions);
+      list.append(row);
+    });
+    box.append(list, el("p", "info", "Niveau 1 = le plus facile. Cette progression vaut pour toutes les Bibliothèques ; " +
+      "chaque Bibliothèque garde son propre ordre de présentation. Détacher l'avant-dernier membre dissout la famille."));
+    return box;
+  }
+  const families = sheetFamilies(state.working);
+  const options = [
+    ...families.map((entry) => [entry.sheets[0].sheetId, "Famille : " + entry.sheets.map(nameOf).join(" → ")]),
+    ...state.working.sheets
+      .filter((entry) => entry.sheetId !== sheet.sheetId && !entry.levelGroup)
+      .map((entry) => [entry.sheetId, "Nouvelle famille avec « " + nameOf(entry) + " »"]),
+  ].sort((a, b) => a[1].localeCompare(b[1], "fr"));
+  let target = null;
+  const picker = selectInput(options, () => target, (value) => { target = value; }, { nullable: true, nullLabel: "Choisir une famille ou un mouvement…" });
+  const newGroupId = () => (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : "famille-" + Date.now().toString(36));
+  box.append(el("p", "info", "Cette fiche n'appartient à aucune famille."), picker,
+    button("Rattacher", () => {
+      if (!target) return notify("Choisis une famille ou un mouvement.", "error");
+      apply(() => joinSheetFamily(state.working, sheet.sheetId, target, newGroupId()));
+    }),
+    el("p", "info", "Rattachée à une famille, la fiche prend le niveau le plus élevé ; réordonne ensuite avec les flèches."));
+  return box;
+}
+
 // --- Bibliothèques ---
 
 function renderLibraries(views) {
@@ -640,7 +702,7 @@ function renderLibraries(views) {
     labeled("Titre", textInput(() => library.title, (x) => { library.title = x; }, { maxLength: 200 })),
     labeled("Description", textInput(() => library.description, (x) => { library.description = x; }, { nullable: true, multiline: true })),
     grid(labeled("Éditeur (composition)", actorInput(() => library.editor, (x) => { library.editor = x; })),
-      labeled("Propriétaire", actorInput(() => library.owner, (x) => { library.owner = x; }), "Inconnu = privée et non publiable.")),
+      labeled("Propriétaire", actorInput(() => library.owner, (x) => { library.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : utilisable sur les téléphones, mais jamais partageable ni publiable.")),
     grid(labeled("Visibilité", selectInput(VISIBILITIES, () => library.visibility, (x) => { library.visibility = x; })),
       shown("Publication autorisée", library.publicationAllowed ? "Oui" : "Non")),
   ));
@@ -809,7 +871,7 @@ function renderCatalogue(views) {
       readonly(state.warnings.length ? state.warnings.map((w) => w.code + " — " + w.path).join("\n") : "Aucun signalement.")),
     section("En-tête",
       labeled("Titre", textInput(() => header.title, (x) => { header.title = x; }, { maxLength: 200 })),
-      grid(labeled("Propriétaire", actorInput(() => header.owner, (x) => { header.owner = x; }), "Inconnu = aucune publication."),
+      grid(labeled("Propriétaire", actorInput(() => header.owner, (x) => { header.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Propriétaire par défaut des nouvelles fiches et Bibliothèques. Inconnu : aucune publication."),
         labeled("Gestionnaire administratif", actorInput(() => header.manager, (x) => { header.manager = x; }))),
       grid(labeled("Diffuseur", actorInput(() => header.publisher, (x) => { header.publisher = x; })),
         shown("Publication autorisée", header.publicationAllowed ? "Oui" : "Non"))));

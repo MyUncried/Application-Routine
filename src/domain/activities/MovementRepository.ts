@@ -102,6 +102,13 @@ export interface MovementRepository {
   /** Réordonne le groupe : `orderedIds` doit être une permutation exacte de ses membres. */
   reorder(groupId: string, orderedIds: readonly string[]): Promise<MovementGroupOutcome>;
   /**
+   * Familles des fiches importées (11/11/2026) : écrit le groupe `groupId` dans l'ordre `orderedIds`
+   * (membres actuels, archivés compris, et Mouvements sans groupe qui y entrent), dans une transaction.
+   * `INVALID_ORDER` si un membre actuel manque ou en double ; `ALREADY_IN_GROUP` si un Mouvement est dans
+   * un autre groupe ; `NOT_FOUND` si un Mouvement est introuvable. Rien n'est écrit en cas de refus.
+   */
+  setFamilyOrder(groupId: string, orderedIds: readonly string[]): Promise<MovementGroupOutcome>;
+  /**
    * Retire le Mouvement de son groupe ; les autres membres gardent leur contenu
    * et leur identité, le groupe garde son identifiant (singleton compris).
    */

@@ -52,7 +52,11 @@ export type CatalogueEditErrorCode =
   | "UNKNOWN_MEMBER"
   | "LOCAL_ID_ALREADY_LINKED"
   | "INVALID_LOCAL_ID"
-  | "INVALID_INPUT";
+  | "INVALID_INPUT"
+  /** Familles de niveaux (11/11/2026) : la fiche est déjà dans une famille (règle C6 : la quitter d'abord). */
+  | "ALREADY_IN_FAMILY"
+  /** La fiche n'appartient à aucune famille. */
+  | "NOT_IN_FAMILY";
 
 export class CatalogueEditError extends Error {
   readonly code: CatalogueEditErrorCode;
@@ -162,6 +166,7 @@ function orderedSheet(sheet: CatalogueSheet): CatalogueSheet {
     sources: sheet.sources,
     validation: sheet.validation,
     media: sheet.media,
+    ...(sheet.levelGroup ? { levelGroup: sheet.levelGroup } : {}),
     install: sheet.install,
   };
 }
@@ -240,7 +245,8 @@ export function createSheet(
       gestureId: null,
       origin: "LOCAL_CREATED",
       upstream: null,
-      owner: input.owner ?? null,
+      // Décision de Hermann du 11/11/2026 : par défaut, le propriétaire déclaré du catalogue.
+      owner: input.owner !== undefined ? input.owner : file.catalogue.owner,
       author: input.author ?? null,
       publisher: null,
       rightsHolder: null,
@@ -477,7 +483,8 @@ export function createLibrary(
     revision: "1",
     history: [historyEntry("1", meta, "Création de la Bibliothèque")],
     editor: input.editor ?? null,
-    owner: input.owner ?? null,
+    // Décision de Hermann du 11/11/2026 : par défaut, le propriétaire déclaré du catalogue.
+    owner: input.owner !== undefined ? input.owner : file.catalogue.owner,
     visibility: "PRIVATE",
     publicationAllowed: false,
     members: [],
@@ -567,4 +574,101 @@ export function linkLocalMovement(file: MovementCatalogueFile, sheetId: string, 
         : sheet,
     ),
   };
+}
+
+// ——— Familles de niveaux des fiches (décision de Hermann du 11/11/2026) ———
+//
+// Règles KODJO réemployées (MFN-05 / D-439, règles A à D du 28/10/2026) : une fiche appartient à zéro ou une
+// famille ; le rang est donné par l'ordre des clés (croissant = niveau croissant) ; changer de famille suppose de
+// quitter la sienne (C6) ; la sortie du dernier couple efface les deux appartenances (D2). L'ordre de présentation
+// d'une Bibliothèque reste indépendant. Seules les fiches dont la famille change réellement reçoivent une
+// révision (empreinte), à l'enregistrement.
+
+export type SheetFamily = { readonly groupId: string; readonly sheets: readonly CatalogueSheet[] };
+
+/** Familles du fichier, membres rangés par clé croissante (niveau 1 en premier). */
+export function sheetFamilies(file: MovementCatalogueFile): readonly SheetFamily[] {
+  const groups = new Map<string, CatalogueSheet[]>();
+  for (const sheet of file.sheets) {
+    const level = sheet.levelGroup ?? null;
+    if (level === null) continue;
+    const members = groups.get(level.groupId) ?? [];
+    members.push(sheet);
+    groups.set(level.groupId, members);
+  }
+  return [...groups].map(([groupId, sheets]) => ({
+    groupId,
+    sheets: [...sheets].sort((a, b) => a.levelGroup!.sortKey - b.levelGroup!.sortKey || a.sheetId.localeCompare(b.sheetId)),
+  }));
+}
+
+/** Famille d'une fiche, `null` si elle n'en a pas. */
+export function familyOfSheet(file: MovementCatalogueFile, sheetId: string): SheetFamily | null {
+  const sheet = file.sheets.find((entry) => entry.sheetId === sheetId);
+  const groupId = sheet?.levelGroup?.groupId;
+  return groupId === undefined ? null : sheetFamilies(file).find((family) => family.groupId === groupId) ?? null;
+}
+
+const withLevels = (file: MovementCatalogueFile, levels: ReadonlyMap<string, CatalogueSheet["levelGroup"]>): MovementCatalogueFile => ({
+  ...file,
+  sheets: file.sheets.map((sheet) => {
+    if (!levels.has(sheet.sheetId)) return sheet;
+    const level = levels.get(sheet.sheetId) ?? null;
+    const { levelGroup: _previous, ...rest } = sheet;
+    void _previous;
+    return level === null ? rest : { ...rest, levelGroup: level };
+  }),
+});
+
+const sheetOf = (file: MovementCatalogueFile, sheetId: string): CatalogueSheet => {
+  const sheet = file.sheets.find((entry) => entry.sheetId === sheetId);
+  if (!sheet) throw new CatalogueEditError("UNKNOWN_SHEET", sheetId);
+  return sheet;
+};
+
+/**
+ * Rattache `sheetId` à la famille de `targetSheetId`, au niveau le plus élevé ; si la cible n'a pas de
+ * famille, une famille `newGroupId` est créée (cible au niveau 1, fiche au niveau 2, règle C1).
+ */
+export function joinSheetFamily(file: MovementCatalogueFile, sheetId: string, targetSheetId: string, newGroupId: string): MovementCatalogueFile {
+  const sheet = sheetOf(file, sheetId);
+  const target = sheetOf(file, targetSheetId);
+  if (sheetId === targetSheetId) throw new CatalogueEditError("INVALID_INPUT", sheetId);
+  if (sheet.levelGroup) throw new CatalogueEditError("ALREADY_IN_FAMILY", sheetId);
+  if (target.levelGroup) {
+    const family = familyOfSheet(file, targetSheetId)!;
+    const top = family.sheets[family.sheets.length - 1]!.levelGroup!.sortKey;
+    return withLevels(file, new Map([[sheetId, { groupId: family.groupId, sortKey: Math.floor(top) + 1 }]]));
+  }
+  if (typeof newGroupId !== "string" || newGroupId.trim() === "" ||
+      file.sheets.some((entry) => entry.levelGroup?.groupId === newGroupId)) {
+    throw new CatalogueEditError("INVALID_INPUT", "groupId");
+  }
+  return withLevels(file, new Map([
+    [targetSheetId, { groupId: newGroupId, sortKey: 0 }],
+    [sheetId, { groupId: newGroupId, sortKey: 1 }],
+  ]));
+}
+
+/** Échange la fiche avec sa voisine dans la famille (`-1` : niveau inférieur, `+1` : supérieur) ; seules deux clés changent. */
+export function moveSheetInFamily(file: MovementCatalogueFile, sheetId: string, direction: -1 | 1): MovementCatalogueFile {
+  const family = familyOfSheet(file, sheetId);
+  if (!family) throw new CatalogueEditError("NOT_IN_FAMILY", sheetId);
+  const at = family.sheets.findIndex((entry) => entry.sheetId === sheetId);
+  const other = family.sheets[at + direction];
+  if (!other) return file;
+  const mine = family.sheets[at]!.levelGroup!;
+  const theirs = other.levelGroup!;
+  return withLevels(file, new Map([
+    [sheetId, { groupId: family.groupId, sortKey: theirs.sortKey }],
+    [other.sheetId, { groupId: family.groupId, sortKey: mine.sortKey }],
+  ]));
+}
+
+/** Détache la fiche de sa famille ; si un seul membre reste, son appartenance est effacée aussi (D2). */
+export function leaveSheetFamily(file: MovementCatalogueFile, sheetId: string): MovementCatalogueFile {
+  const family = familyOfSheet(file, sheetId);
+  if (!family) throw new CatalogueEditError("NOT_IN_FAMILY", sheetId);
+  const cleared = family.sheets.length <= 2 ? family.sheets.map((entry) => entry.sheetId) : [sheetId];
+  return withLevels(file, new Map(cleared.map((id) => [id, null])));
 }

@@ -3,7 +3,7 @@
  */
 import type { CatalogueIssue, MovementCatalogueFile } from "@/domain/catalogue/MovementCatalogueFile";
 import type { FieldComparison, SheetLoadItem } from "@/domain/catalogue/catalogueLoadPlan";
-import type { LibraryPreview, ReviewReason } from "@/domain/catalogue/libraryPlan";
+import type { LibraryPreview, LibraryReviewItem, ReviewReason } from "@/domain/catalogue/libraryPlan";
 import { fieldLabel, formatValue } from "@/features/catalogue/catalogueLoadPresentation";
 
 export const plural = (count: number, singular: string, pluralForm: string) => `${count} ${count > 1 ? pluralForm : singular}`;
@@ -26,6 +26,38 @@ export const REVIEW_REASON_LABELS: Readonly<Record<ReviewReason, string>> = {
   NOT_APPLICABLE: "Non appliquée (révision incohérente ou refusée, ou mouvement retiré de ce téléphone).",
   BLOCKED: "Bloquée : Catégorie, Zone ou nom incompatible avec ce téléphone.",
 };
+
+/**
+ * Demande de Hermann du 11/11/2026 (« Que veulent dire ces deux messages ? ») : la cause réelle d'une fiche non
+ * appliquée, et ce qu'on peut faire, à la place d'une phrase qui regroupait trois causes.
+ */
+const NOT_APPLICABLE_LABELS: Readonly<Record<string, string>> = {
+  WITHDRAWN_LOCALLY: "Archivé ou supprimé sur ce téléphone : il n'est ni réinstallé ni modifié. S'il est archivé, restaurez-le depuis le Catalogue pour recevoir ses mises à jour.",
+  INCOHERENT_REVISION: "Révision incohérente : la version reçue ne prolonge pas celle installée sur ce téléphone (même numéro pour un contenu différent, ou historique sans la révision installée). Rien n'est modifié ; enregistrer une nouvelle modification de la fiche dans l'administration la propose de nouveau.",
+  REFUSED_REVISION: "Révision refusée sur ce téléphone : elle n'est plus proposée. La prochaine révision de la fiche le sera.",
+  INTERRUPTED: "Installation de cette fiche interrompue : elle sera reprise au prochain chargement.",
+};
+
+/** Libellé d'une fiche non appliquée par l'action groupée, avec sa cause précise. */
+export function reviewLabel(entry: LibraryReviewItem): string {
+  if (entry.reason === "NOT_APPLICABLE") return NOT_APPLICABLE_LABELS[entry.item.state] ?? REVIEW_REASON_LABELS.NOT_APPLICABLE;
+  return REVIEW_REASON_LABELS[entry.reason];
+}
+
+/** Bandeau « Propriétaire inconnu » : ce qui le déclenche (Bibliothèque, fiches nommées) et sa conséquence. */
+export function unknownOwnerText(preview: LibraryPreview): string {
+  const causes: string[] = [];
+  if (preview.ownerlessLibrary) causes.push("la bibliothèque n'a pas de propriétaire déclaré");
+  const sheets = preview.ownerlessSheets;
+  if (sheets.length > 0) {
+    const shown = sheets.slice(0, 3).map((name) => `« ${name} »`).join(", ");
+    const more = sheets.length > 3 ? ` et ${plural(sheets.length - 3, "autre", "autres")}` : "";
+    causes.push(`${plural(sheets.length, "fiche", "fiches")} sans propriétaire déclaré (${shown}${more})`);
+  }
+  const cause = causes.length > 0 ? causes.join(" ; ") : "propriétaire non déclaré";
+  return `Cause : ${cause}. Ces fiches s'utilisent normalement sur ce téléphone, mais ne peuvent être ni partagées, ni redistribuées. ` +
+    "Pour lever cette restriction, renseignez le propriétaire dans l'administration.";
+}
 
 const PROJECTED_ORDER = ["content.name", "content.steps", "content.aliases", "classification.categoryId", "classification.bodyZoneIds"];
 

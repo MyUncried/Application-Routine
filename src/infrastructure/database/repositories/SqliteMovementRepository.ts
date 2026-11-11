@@ -686,6 +686,35 @@ export class SqliteMovementRepository implements MovementRepository {
     return outcome;
   }
 
+  async setFamilyOrder(groupId: string, orderedIds: readonly string[]): Promise<MovementGroupOutcome> {
+    let outcome: MovementGroupOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      if (orderedIds.length === 0 || new Set(orderedIds).size !== orderedIds.length) {
+        outcome = { status: "INVALID_ORDER" };
+        return;
+      }
+      for (const id of orderedIds) {
+        const row = await transaction.getFirstAsync<{ level_group_id: string | null }>(
+          "SELECT level_group_id FROM movements WHERE id = ?",
+          [id],
+        );
+        if (!row) return;
+        if (row.level_group_id !== null && row.level_group_id !== groupId) {
+          outcome = { status: "ALREADY_IN_GROUP" };
+          return;
+        }
+      }
+      const listed = new Set(orderedIds);
+      if ((await groupMemberIds(transaction, groupId)).some((id) => !listed.has(id))) {
+        outcome = { status: "INVALID_ORDER" };
+        return;
+      }
+      await writeGroupOrder(transaction, groupId, orderedIds, this.now());
+      outcome = { status: "OK", members: await this.readGroup(transaction, groupId) };
+    });
+    return outcome;
+  }
+
   async detachFromGroup(movementId: string): Promise<MovementGroupOutcome> {
     let outcome: MovementGroupOutcome = { status: "NOT_FOUND" };
     await this.database.withExclusiveTransactionAsync(async (transaction) => {

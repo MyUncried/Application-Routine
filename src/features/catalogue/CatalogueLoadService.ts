@@ -11,9 +11,14 @@
  * registre). Les Mouvements sont écrits par le service Catalogue existant (mêmes validations que
  * les écrans) ; médias, phases, famille et archivage locaux ne sont jamais modifiés.
  *
+ * [Famille de niveaux — décision de Hermann du 11/11/2026 : la famille portée par la fiche est appliquée
+ * après l'acceptation (`catalogueFamilies.ts`), sauf si l'appartenance a été modifiée sur le téléphone
+ * depuis l'installation ; médias, phases et archivage locaux restent intouchés.]
+ *
  * L'interface utilisateur relève de CA-4.
  */
 import type { Movement } from "@/domain/activities/Movement";
+import { catalogueFamilyAction, orderedCatalogueFamily, type FamilySlot } from "@/domain/catalogue/catalogueFamilies";
 import {
   parseMovementCatalogueFile,
   projectSheetToMovement,
@@ -51,6 +56,8 @@ export type CatalogueLoadDependencies = {
   readonly listReferentials: () => Promise<LocalReferentials>;
   /** Identifiant d'un Mouvement nouvellement installé (application : `Crypto.randomUUID`). */
   readonly newMovementId: () => string;
+  /** Familles de niveaux des fiches (11/11/2026) ; absent : les familles ne sont pas appliquées. */
+  readonly families?: Pick<MovementCatalogueService, "findMovement" | "listFamilyMembers" | "setFamilyOrder" | "leaveFamily">;
 };
 
 export type RecoveryReport = {
@@ -145,6 +152,22 @@ export class CatalogueLoadService {
   async accept(file: MovementCatalogueFile, sheetId: string, resolutions: ConflictResolutions = {}): Promise<AcceptOutcome> {
     const found = await this.freshItem(file, sheetId);
     if (!found) return { status: "UNKNOWN_SHEET" };
+    const outcome = await this.acceptItem(file, sheetId, resolutions, found);
+    if (outcome.status === "INSTALLED" || outcome.status === "ADOPTED" || outcome.status === "UPDATED" ||
+        outcome.status === "REGISTERED") {
+      // Base : famille de la fiche installée avant cette acceptation (`undefined` : jamais installée).
+      const base = found.installed === null ? undefined : found.installed.levelGroup ?? null;
+      await this.applyFamily(file, found.sheet, outcome.movementId, outcome.status === "INSTALLED" ? undefined : base);
+    }
+    return outcome;
+  }
+
+  private async acceptItem(
+    file: MovementCatalogueFile,
+    sheetId: string,
+    resolutions: ConflictResolutions,
+    found: NonNullable<Awaited<ReturnType<CatalogueLoadService["freshItem"]>>>,
+  ): Promise<AcceptOutcome> {
     const { item, sheet, local, referentials } = found;
     const key = { catalogueId: item.catalogueId, sheetId };
     if (isPendingPersonalAttachment(sheet, item)) return { status: "PERSONAL_RULE_PENDING", movementId: item.movementId as string };
@@ -222,6 +245,7 @@ export class CatalogueLoadService {
   /** Recalcule l'état de la fiche à partir des données actuelles (jamais d'un plan ancien). */
   private async freshItem(file: MovementCatalogueFile, sheetId: string): Promise<{
     item: SheetLoadItem; sheet: CatalogueSheet; local: Movement | null; referentials: LocalReferentials;
+    installed: CatalogueSheet | null;
   } | null> {
     const sheet = file.sheets.find((candidate) => candidate.sheetId === sheetId);
     if (!sheet) return null;
@@ -238,7 +262,51 @@ export class CatalogueLoadService {
     );
     const item = plan.items[0] as SheetLoadItem;
     const local = entries.find((entry) => entry.movement.id === item.movementId)?.movement ?? null;
-    return { item, sheet, local, referentials };
+    const installed = registry.installed.find((record) => record.sheetId === sheetId)?.sheet ?? null;
+    return { item, sheet, local, referentials, installed };
+  }
+
+  /**
+   * Famille de niveaux de la fiche (décision du 11/11/2026) : identifiant propre au catalogue, membres
+   * importés rangés par la clé de leur fiche, appartenance modifiée localement conservée. Une erreur ici
+   * n'annule pas l'acceptation déjà confirmée ; la famille sera réappliquée à la prochaine révision.
+   */
+  private async applyFamily(
+    file: MovementCatalogueFile,
+    sheet: CatalogueSheet,
+    movementId: string,
+    base: CatalogueSheet["levelGroup"] | undefined,
+  ): Promise<void> {
+    const families = this.deps.families;
+    if (!families) return;
+    try {
+      const movement = await families.findMovement(movementId);
+      if (!movement) return;
+      const incoming = sheet.levelGroup ?? null;
+      const action = catalogueFamilyAction({
+        catalogueId: file.catalogue.id,
+        base: base === undefined ? undefined : base ?? null,
+        incoming,
+        localGroupId: movement.levelGroup?.groupId ?? null,
+      });
+      if (action.kind === "NONE" || action.kind === "KEEP_LOCAL") return;
+      if (action.kind === "LEAVE" || action.leaveFirst) await families.leaveFamily(movementId);
+      if (action.kind === "LEAVE" || incoming === null) return;
+      // Clé de fiche de chaque membre importé de la même famille : fichier courant, sinon fiche installée.
+      const installed = (await this.deps.registry.state(file.catalogue.id)).installed;
+      const sheets = new Map(file.sheets.map((entry) => [entry.sheetId, entry]));
+      const keyOf = (memberId: string): number | null => {
+        const record = installed.find((entry) => entry.movementId === memberId);
+        if (!record) return null;
+        const group = (sheets.get(record.sheetId) ?? record.sheet).levelGroup ?? null;
+        return group !== null && group.groupId === incoming.groupId ? group.sortKey : null;
+      };
+      const members = await families.listFamilyMembers(action.groupId);
+      const slots: FamilySlot[] = members.map((member) => ({ movementId: member.id, sortKey: keyOf(member.id) }));
+      await families.setFamilyOrder(action.groupId, orderedCatalogueFamily(slots, movementId, incoming.sortKey));
+    } catch {
+      // Voir ci-dessus : l'acceptation reste acquise.
+    }
   }
 
   /** Intention durable → écriture du Mouvement → confirmation atomique du registre. */

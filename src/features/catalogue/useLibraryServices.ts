@@ -48,6 +48,7 @@ export function useLibraryServices(): { readonly services: LibraryServices | nul
         bodyZoneIds: new Set((await activityDefinitionService.listBodyZones()).map((zone) => zone.id)),
       }),
       newMovementId: Crypto.randomUUID,
+      families: movements,
     });
     return { load, libraries: new LibraryService({ registry, load }), registry };
   }, [registry, activityDefinitionService]);

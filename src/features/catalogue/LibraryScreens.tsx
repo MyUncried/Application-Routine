@@ -33,7 +33,8 @@ import type { LibraryApplyReport, LibraryProgress } from "@/features/catalogue/L
 import { librarySession } from "@/features/catalogue/librarySession";
 import { currentPairing, forgetStoredPairing, storePairing } from "@/features/catalogue/pairingStore";
 import {
-  REVIEW_REASON_LABELS,
+  reviewLabel,
+  unknownOwnerText,
   availableLine,
   issueLine,
   modifiedLine,
@@ -627,7 +628,7 @@ export function LibraryPreviewScreen() {
             <Row
               title={entry.item.name}
               titleVariant="semibold"
-              subtitle={REVIEW_REASON_LABELS[entry.reason]}
+              subtitle={reviewLabel(entry)}
               subtitleTone="secondary"
               testID={`library-preview-review-${entry.item.sheetId}`}
             />
@@ -638,7 +639,7 @@ export function LibraryPreviewScreen() {
   ) : null;
   const ownerWarning = preview.unknownOwner ? (
     <Notice tone="warning" title="Propriétaire inconnu : usage privé" testID="library-preview-unknown-owner">
-      Ces fiches restent sur ce téléphone : elles ne peuvent être ni partagées, ni redistribuées.
+      {unknownOwnerText(preview)}
     </Notice>
   ) : null;
 
@@ -852,7 +853,7 @@ function ResultWarnings({ report, preview }: { readonly report: LibraryApplyRepo
     <>
       {report.toReview > 0 ? (
         <Notice tone="warning" title={plural(report.toReview, "fiche à examiner", "fiches à examiner")} testID="library-result-review">
-          {preview.toReview.map((entry) => `• ${entry.item.name} — ${REVIEW_REASON_LABELS[entry.reason]}`).join("\n")}
+          {preview.toReview.map((entry) => `• ${entry.item.name} — ${reviewLabel(entry)}`).join("\n")}
         </Notice>
       ) : null}
       {report.failed.length > 0 ? (

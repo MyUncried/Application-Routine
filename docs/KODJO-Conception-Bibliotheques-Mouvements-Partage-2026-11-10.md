@@ -130,3 +130,11 @@ La cible technique cherche à réutiliser la base locale opérationnelle et le r
 Les décisions ci-dessus concernent la conception cible au-delà du MVP local. Elles ne modifient pas la création locale déjà livrée, les règles d'Exécution, les calculs des formats, les familles de niveaux ni les écrans Figma MVP. Les structures post-MVP doivent être ajoutées sans migration destructive des Mouvements, des Séances ou de leurs historiques.
 
 **Références :** chapitres 02 à 05, 07 à 12 des Spécifications fonctionnelles ; PRODUCT.md ; INDEX.md ; documents de pilote de la branche catalogue/integration-60-main-20261109 (non fusionnés dans main au 10/11/2026).
+
+## Famille de niveaux d’une fiche partagée — décision du 11 novembre 2026
+
+Dans l’administration, l’administrateur peut rattacher une fiche Mouvement à une famille de niveaux et régler sa position. La progression appartient aux fiches : une même fiche référencée par plusieurs Bibliothèques conserve la même appartenance et la même position. L’ordre des membres choisi par l’éditeur de la Bibliothèque reste indépendant.
+
+Le destinataire retrouve sur le téléphone la progression des fiches effectivement reçues. L’appartenance à une famille ne donne aucun accès supplémentaire à ses autres membres. Les règles locales de famille, de rang et d’affichage continuent de s’appliquer. Les familles gestuelles du classement et l’identifiant de concept gestuel n’interviennent pas dans ce parcours.
+
+Contrat de transfert et recette : [Format du catalogue, familles de niveaux](KODJO-Format-catalogue-mouvements-v1.md).

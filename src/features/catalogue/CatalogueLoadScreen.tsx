@@ -127,6 +127,7 @@ export function CatalogueLoadScreen({
         bodyZoneIds: new Set((await activityDefinitionService.listBodyZones()).map((zone) => zone.id)),
       }),
       newMovementId,
+      families: movements,
     });
   }, [registry, activityDefinitionService, newMovementId]);
 

@@ -173,6 +173,17 @@ export type CatalogueSheetValidation = {
   readonly publicationAllowed: boolean;
 };
 
+/**
+ * Famille de niveaux d'une fiche (décision de Hermann du 11/11/2026, extension de MFN-05 / D-439) :
+ * même forme que `Movement.levelGroup`. `groupId` est propre au catalogue (espace d'identité
+ * `catalogue.id`) ; `sortKey` croissante = niveau croissant (rang 1 = premier). Rang et nombre de
+ * niveaux sont dérivés. Distincte des familles gestuelles (`classification.gesturalFamilyIds`).
+ */
+export type CatalogueLevelGroup = {
+  readonly groupId: string;
+  readonly sortKey: number;
+};
+
 export type CatalogueSheet = {
   readonly sheetId: string;
   readonly revision: string;
@@ -185,6 +196,8 @@ export type CatalogueSheet = {
   readonly validation: CatalogueSheetValidation;
   /** Ordonnés. */
   readonly media: readonly CatalogueMedia[];
+  /** Famille de niveaux ; facultative (absente ou `null` = aucune famille, anciens fichiers compris). */
+  readonly levelGroup?: CatalogueLevelGroup | null;
   readonly install: {
     readonly knownLocalMovementIds: readonly string[];
     /**
@@ -347,6 +360,7 @@ export function parseMovementCatalogueFile(input: unknown): CatalogueParseResult
 
   const sheetIds = new Set<string>();
   const localIds = new Set<string>();
+  const levelKeys = new Set<string>();
   const names = new Map<string, string>();
   (sheets ?? []).forEach((sheet, index) => {
     const path = "sheets[" + index + "]";
@@ -358,6 +372,13 @@ export function parseMovementCatalogueFile(input: unknown): CatalogueParseResult
     if (present(sheet.sheetId)) {
       if (sheetIds.has(sheet.sheetId)) issue(path + ".sheetId", "DUPLICATE", sheet.sheetId);
       sheetIds.add(sheet.sheetId);
+    }
+    // Deux fiches d'une même famille ne partagent pas une clé de tri (ordre ambigu).
+    const level = sheet.levelGroup;
+    if (isObject(level) && present(level.groupId) && typeof level.sortKey === "number") {
+      const levelKey = level.groupId + "\u0000" + level.sortKey;
+      if (levelKeys.has(levelKey)) issue(path + ".levelGroup.sortKey", "DUPLICATE", level.groupId);
+      levelKeys.add(levelKey);
     }
     const known = isObject(sheet.install) ? sheet.install.knownLocalMovementIds : undefined;
     if (isStrings(known)) {
@@ -702,6 +723,13 @@ function validateSheet(
 
   validateMediaList(sheet.media, path + ".media", issue);
 
+  const levelGroup = sheet.levelGroup;
+  if (levelGroup !== undefined && levelGroup !== null &&
+      (!isObject(levelGroup) || !present(levelGroup.groupId) || typeof levelGroup.sortKey !== "number" ||
+       !Number.isFinite(levelGroup.sortKey))) {
+    issue(path + ".levelGroup", "INVALID");
+  }
+
   const install = sheet.install;
   if (!isObject(install) || !isStrings(install.knownLocalMovementIds) ||
       !install.knownLocalMovementIds.every(present) ||
@@ -822,6 +850,8 @@ function validateGlossary(value: unknown, sheetIds: ReadonlySet<string>, issue: 
  * médias non transportés, structure par défaut. L'identifiant local est fourni par l'installation.
  */
 export function projectSheetToMovement(sheet: CatalogueSheet, movementId: string): Movement {
+  // La famille n'est pas projetée ici : son identifiant local dépend du catalogue et des membres déjà
+  // présents sur le téléphone (`catalogueFamilies.ts`, appliqué après l'écriture du Mouvement).
   return {
     id: movementId,
     name: sheet.content.name,
@@ -859,6 +889,8 @@ export function sheetFingerprint(sheet: CatalogueSheet): string {
     sources: sheet.sources,
     validation: sheet.validation,
     media: sheet.media,
+    // Absente ou `null` : omise, l'empreinte des fiches sans famille est inchangée.
+    levelGroup: sheet.levelGroup ?? undefined,
   };
   return canonicalJson(editorial, null);
 }

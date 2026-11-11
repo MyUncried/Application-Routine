@@ -50,10 +50,14 @@ const SECTION_LABELS: Readonly<Record<EditorialSection, string>> = {
   sources: "sources",
   validation: "validation",
   media: "médias",
+  levelGroup: "famille de niveaux",
 };
 
 const FIELD_LABELS: Readonly<Record<string, string>> = {
   "content.name": "Nom",
+  levelGroup: "Famille de niveaux",
+  "levelGroup.groupId": "Famille de niveaux",
+  "levelGroup.sortKey": "Position dans la famille",
   "content.aliases": "Alias",
   "content.steps": "Étapes",
   "content.startingPosition": "Position de départ",

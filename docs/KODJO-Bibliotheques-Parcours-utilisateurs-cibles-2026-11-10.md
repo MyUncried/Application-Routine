@@ -221,3 +221,7 @@ Ne pas introduire un cycle universel « Brouillon → Active → Inactive » pou
 - Garantie d'intégrité lorsque le pilote existant emploie plusieurs bases SQLite.
 
 **Statut des parcours :** les comportements explicitement décidés sont consolidés ; les points de conception détaillée ci-dessus attendent une décision ou une revue. La présente description ne constitue ni maquette Figma, ni preuve d'implémentation.
+
+### Transmettre une progression de niveaux
+
+L’administrateur rattache les fiches à une même famille et en règle l’ordre. L’éditeur peut sélectionner ces fiches dans sa Bibliothèque et les présenter dans un autre ordre. Après import, l’utilisateur retrouve les niveaux des mouvements reçus dans la progression définie par l’administrateur. Voir la [conception du partage](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).

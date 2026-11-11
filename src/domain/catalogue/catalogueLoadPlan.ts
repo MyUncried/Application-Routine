@@ -85,7 +85,7 @@ export const PROJECTED_FIELDS = [
 ] as const;
 export type ProjectedField = (typeof PROJECTED_FIELDS)[number];
 
-export type EditorialSection = "provenance" | "content" | "classification" | "sources" | "validation" | "media";
+export type EditorialSection = "provenance" | "content" | "classification" | "sources" | "validation" | "media" | "levelGroup";
 
 export type FieldComparison = {
   /** Chemin dans la fiche, ex. `content.steps`, `provenance.owner`, `classification.original.Objectif`. */
@@ -183,7 +183,7 @@ export type CatalogueLoadPlan = {
 
 // ——— Implémentation ———
 
-const SECTIONS: readonly EditorialSection[] = ["provenance", "content", "classification", "sources", "validation", "media"];
+const SECTIONS: readonly EditorialSection[] = ["provenance", "content", "classification", "sources", "validation", "media", "levelGroup"];
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);

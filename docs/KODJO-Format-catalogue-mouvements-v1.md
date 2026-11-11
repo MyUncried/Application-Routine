@@ -92,7 +92,7 @@ Le validateur ne lit aucune base locale. La correspondance des Catégories et de
 - étapes encodées dans `description` par `encodeInstructionSteps` ;
 - Catégorie et Zones ;
 - aucun média transporté ;
-- structure par défaut (`phases: []`, `nextPhaseId: 1`, `levelGroup: null`).
+- projection actuellement livrée : `phases: []`, `nextPhaseId: 1`, `levelGroup: null`. La cible pour les fiches portant une famille est décrite ci-dessous. [11/11/2026 : livrée ; la famille est appliquée après l'écriture du Mouvement, voir « Familles de niveaux des fiches — format retenu ».]
 
 Les autres propriétés restent dans la fiche éditoriale, sans être ajoutées au modèle `Movement`.
 
@@ -385,3 +385,40 @@ Enveloppe `KODJO_MOVEMENT_INBOX` 1.0.0 :
 Collisions signalées : même nom normalisé (nom ou alias d'une fiche), ou identifiant déjà rapproché.
 
 **Limite de ce lot :** les médias des Mouvements personnels ne sont pas transférés ; seul leur nombre (`mediaCount`) l'est.
+
+## Familles de niveaux des fiches — cible validée le 11 novembre 2026
+
+La fiche éditoriale peut porter une appartenance à une famille de niveaux et une clé de tri dans cette famille. Ces deux valeurs vont ensemble, conformément au modèle Mouvement (`levelGroup`, composé de `groupId` et `sortKey`). Le rang affiché et le nombre de niveaux sont dérivés. Les anciens fichiers et les fiches sans famille restent lisibles avec une appartenance absente.
+
+L’export et le transfert d’une Bibliothèque préservent cette information pour chaque fiche transmise. À l’import, la projection mobile restitue la famille et l’ordre relatif des mouvements reçus. Un second import retrouve les mêmes fiches et la même famille. Deux sources indépendantes utilisant une même clé de groupe ne doivent pas fusionner accidentellement. Un changement d’appartenance ou d’ordre constitue une modification éditoriale de la fiche. Les règles existantes de traitement des révisions et de protection des adaptations locales s’appliquent.
+
+Contrôles de recette cibles : transmettre deux fiches de la même famille dans un ordre de Bibliothèque inverse à leur progression ; vérifier sur le téléphone leur appartenance et leur ordre de niveau. Réimporter, vérifier l’absence de doublon. Charger une ancienne fiche sans famille. Pour une sélection partielle, vérifier que seuls les membres sélectionnés et autorisés sont transmis.
+
+La représentation sérialisée précise et le traitement des conflits entre une progression locale et une révision source relèvent de la conception d’implémentation. Le lecteur actuel initialise encore `levelGroup` à `null`. [Remplacé le 11/11/2026 par le format retenu ci-dessous.]
+
+### Familles de niveaux des fiches — format retenu (implémentation du 11/11/2026)
+
+**Sérialisation.** Propriété facultative de la fiche, au même niveau que `media` et `install` :
+
+```json
+"levelGroup": { "groupId": "3f0c…", "sortKey": 1 }
+```
+
+- Absente (ou `null`) : aucune famille. Les anciens fichiers restent lisibles, et l'empreinte d'une fiche sans famille est inchangée (la propriété absente n'entre pas dans `sheetFingerprint`).
+- `groupId` : identifiant opaque, généré par l'administration à la création de la famille, propre au catalogue (`catalogue.id`). `sortKey` : nombre fini ; ordre croissant = niveau croissant (niveau 1 = le plus facile). Rang et nombre de niveaux sont dérivés.
+- Le validateur refuse une `levelGroup` mal formée (`INVALID`) et deux fiches d'une même famille à la même clé (`DUPLICATE`).
+- L'appartenance et la clé entrent dans l'empreinte éditoriale : les modifier crée une révision de la fiche à l'enregistrement. Le résumé des changements les classe dans la section « famille de niveaux ».
+
+**Administration (`catalogueEditing.ts`).**
+- `joinSheetFamily` rattache une fiche à la famille d'une autre, au niveau le plus élevé ; si la cible n'a pas de famille, une famille est créée (cible niveau 1, fiche niveau 2, règle C1). Une fiche déjà dans une famille doit d'abord la quitter (règle C6).
+- `moveSheetInFamily` échange deux positions voisines : seules ces deux fiches sont révisées.
+- `leaveSheetFamily` détache la fiche ; s'il ne reste qu'un membre, son appartenance est effacée aussi (règle D2).
+- L'écran « Fiches » présente la famille par les noms des mouvements (« Niveau n — Nom »), avec les flèches de réordonnancement et « Détacher » ; identifiants et clés ne sont jamais saisis. L'ordre des membres d'une Bibliothèque reste indépendant.
+
+**Téléphone (`catalogueFamilies.ts`, `CatalogueLoadService`).**
+- La famille d'une fiche de catalogue `C` devient sur le téléphone le groupe `catalogue:<C>#<groupId>` : deux catalogues indépendants ne fusionnent jamais, et un réimport retrouve la même famille.
+- Après chaque fiche acceptée (installée, rattachée, mise à jour ou enregistrée), le Mouvement est placé dans ce groupe. Les membres importés de la famille occupent leurs emplacements dans l'ordre des clés de leurs fiches ; un Mouvement local que l'utilisateur y aurait placé garde son emplacement. Les groupes existants sont écrits dans une transaction (`MovementRepository.setFamilyOrder`).
+- Une sélection partielle ne crée que la famille des fiches reçues ; un membre reçu plus tard s'insère à sa place.
+- Protection des adaptations locales : une fiche dont la famille n'a pas changé depuis l'installation ne touche à rien ; si l'appartenance du Mouvement a été modifiée sur le téléphone depuis l'installation, elle est conservée. Un Mouvement existant rattaché à une autre famille locale la garde.
+- Une fiche qui quitte sa famille fait sortir le Mouvement (`leaveFamily`, dissolution du dernier couple).
+- Limite connue : une interruption entre la confirmation de la fiche et le placement dans la famille laisse le Mouvement sans famille jusqu'à la révision suivante de la fiche.

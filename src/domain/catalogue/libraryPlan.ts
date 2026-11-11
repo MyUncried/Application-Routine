@@ -96,6 +96,10 @@ export type LibraryPreview = LibraryKey & {
   readonly alsoIn: Readonly<Record<string, readonly string[]>>;
   /** Propriétaire inconnu : usage privé, aucune redistribution. */
   readonly unknownOwner: boolean;
+  /** La Bibliothèque n'a pas de propriétaire déclaré (une des causes de `unknownOwner`). */
+  readonly ownerlessLibrary: boolean;
+  /** Noms des fiches de la Bibliothèque sans propriétaire déclaré (autre cause de `unknownOwner`). */
+  readonly ownerlessSheets: readonly string[];
 };
 
 const memberKey = (member: CatalogueLibraryMember) => member.catalogueId + "/" + member.sheetId;
@@ -205,6 +209,10 @@ export function planLibrary(file: MovementCatalogueFile, library: CatalogueLibra
     if (titles.length > 0) alsoIn[sheetKey] = titles;
   }
 
+  const ownerlessSheets = file.sheets
+    .filter((sheet) => next.has(file.catalogue.id + "/" + sheet.sheetId) && sheet.provenance.owner === null)
+    .map((sheet) => sheet.content.name);
+
   let status: LibraryStatus;
   if (context.operations.some(same)) status = "INTERRUPTED";
   else if (installed === null) status = "NOT_INSTALLED";
@@ -229,7 +237,8 @@ export function planLibrary(file: MovementCatalogueFile, library: CatalogueLibra
     removed,
     missingExternal,
     alsoIn,
-    unknownOwner: library.owner === null || file.sheets.some((sheet) =>
-      next.has(file.catalogue.id + "/" + sheet.sheetId) && sheet.provenance.owner === null),
+    unknownOwner: library.owner === null || ownerlessSheets.length > 0,
+    ownerlessLibrary: library.owner === null,
+    ownerlessSheets,
   };
 }

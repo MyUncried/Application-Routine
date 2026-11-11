@@ -182,6 +182,19 @@ export class MovementCatalogueService {
     return this.movements.placeInFamily(movementId, anchorId, side);
   }
 
+  /** Membres d'un groupe de niveaux, dans l'ordre (archivés compris). */
+  listFamilyMembers(groupId: string): Promise<readonly Movement[]> {
+    return this.movements.listGroup(groupId);
+  }
+
+  /**
+   * Familles des fiches importées (11/11/2026) : écrit l'ordre complet d'un groupe, Mouvements entrants
+   * compris (`MovementRepository.setFamilyOrder`). Réservé au chargement des Bibliothèques.
+   */
+  async setFamilyOrder(groupId: string, orderedIds: readonly string[]): Promise<boolean> {
+    return (await this.movements.setFamilyOrder(groupId, orderedIds)).status === "OK";
+  }
+
   /** PRE-8, familles (règles B et D) : sortie d'une famille ; dissolution du dernier couple. */
   leaveFamily(movementId: string): Promise<MovementFamilyOutcome> {
     return this.movements.leaveFamily(movementId);
