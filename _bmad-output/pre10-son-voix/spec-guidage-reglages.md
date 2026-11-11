@@ -359,3 +359,5 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - Colonne Son, Hermann : « L’espace est trop réduit pour le coup ». Valeur à 7 du chevron (au lieu de 4), toujours alignée à droite ; colonne à 10 de l’interrupteur.
 
 - Hermann : « "phase" ne peut pas s’afficher ? » — « Changement de phase » était tronqué. Colonne Son réduite à la plus longue valeur : 96 (Préférences, au lieu de 112) et 90 (modale, au lieu de 104). Classe D. Tests : 52/52.
+
+- Hermann : « Centrer vibration du l’interrupteur ». Titre « Vibration » centré, à la largeur mesurée de l’interrupteur (au lieu d’aligné à droite sur 51). Classe B. Tests : tsc, 52/52.

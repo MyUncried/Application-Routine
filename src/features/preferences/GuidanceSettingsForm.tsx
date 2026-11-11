@@ -1,4 +1,4 @@
-import { Fragment, useRef, type ReactNode } from "react";
+import { Fragment, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 
 import {
@@ -55,6 +55,9 @@ export function GuidanceSettingsForm({
 }) {
   const t = strings.screens.soundGuidance;
   const v = variants[variant];
+  // « Centrer vibration du l’interrupteur » (Hermann) : le titre « Vibration » prend la largeur réelle de l’interrupteur
+  // (mesurée sur les lignes ; iOS 26 dessine un interrupteur plus large que 51) et s’y centre. [Aligné à droite sur 51 — remplacé.]
+  const [switchWidth, setSwitchWidth] = useState<number | null>(null);
   return (
     <View style={v.form}>
       <GuidanceSection title={t.announcementsTitle} variant={variant} testID={`${testIDPrefix}-announcements`}>
@@ -75,7 +78,7 @@ export function GuidanceSettingsForm({
         <View style={[styles.row, styles.columnsRow]} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
           <View style={styles.labelBlock} />
           <Text style={[styles.column, styles.soundCell, v.soundCell]}>{t.soundColumn}</Text>
-          <Text style={[styles.column, styles.vibrationColumn]}>{t.vibrationColumn}</Text>
+          <Text style={[styles.column, styles.vibrationColumn, switchWidth === null ? null : { width: switchWidth }]}>{t.vibrationColumn}</Text>
         </View>
         {GUIDANCE_EVENTS.map((event) => {
           const setting = settings.events[event];
@@ -106,6 +109,10 @@ export function GuidanceSettingsForm({
                 <Switch
                   {...switchOffColors}
                   style={styles.switchNudge}
+                  onLayout={(e) => {
+                    const width = e.nativeEvent.layout.width;
+                    if (width > 0 && width !== switchWidth) setSwitchWidth(width);
+                  }}
                   value={setting.vibration}
                   onValueChange={(value) => onVibrationChange(event, value)}
                   accessibilityLabel={t.vibrationLabel.replace("{event}", label)}
@@ -330,7 +337,7 @@ const styles = StyleSheet.create({
   },
   vibrationColumn: {
     width: 51,
-    textAlign: "right",
+    textAlign: "center",
   },
   // Recette du 11/11/2026 (Hermann, y3) : « Décaler plus à droite les clamps de la colonne "Son", centrer le titre de la colonne » Chevrons alignés au bord droit de la colonne, valeur
   // centrée dans la place restante, titre « Son » centré sur la colonne. [Valeur et chevron centrés ensemble — remplacé.]
