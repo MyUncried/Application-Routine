@@ -94,7 +94,7 @@ Voir la spec `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md` (§ St
 1. Mouvement personnel envoyé puis catalogué : la transition de statut n'est pas arbitrée. Il est isolé (`PERSONAL_ORIGIN`), sans perte.
 2. Ajouter un niveau à côté d'un Mouvement importé : permis, à confirmer.
 3. Conflit d'une adaptation historique lors d'une mise à jour de Bibliothèque : laissé à examiner, sans choix fiche par fiche (Figma).
-4. Homonymes de sources distinctes : migration additive ≥ 028 à coordonner avec la clôture de PRE-10. Non développée ; une fiche homonyme est bloquée et laissée à examiner.
+4. Homonymes de sources distinctes : migration additive ≥ 029 (028 prise par `pre10-fin`) à coordonner avec la clôture de PRE-10. Non développée ; une fiche homonyme est bloquée et laissée à examiner.
 5. Désinstallation, « Mes bibliothèques », « Bibliothèques partagées » : reportées (A-4).
 6. Conflit documentaire prévisible au chapitre 12 lors de la fusion avec `pre10-son-voix` : deux sections ajoutées en fin de chapitre, à garder toutes les deux.
 7. Fermeture des PR #421 à #434 : à faire après la fusion de l'intégration.

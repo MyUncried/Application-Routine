@@ -42,6 +42,17 @@
         "EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT": "1"
       }
     },
+    "development-catalogue": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      },
+      "env": {
+        "APP_VARIANT": "catalogue",
+        "EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT": "1"
+      }
+    },
     "review": {
       "developmentClient": false,
       "distribution": "internal",
