@@ -12,11 +12,11 @@ Ce dossier est la **conception cible étendue**. Le **plan normatif d'exécution
 
 ## 0. Résumé architectural et périmètre
 
-KODJO doit permettre à un utilisateur de créer/organiser localement des Bibliothèques de Mouvements, puis à terme de partager ses Bibliothèques, en recevoir, acheter éventuellement des accès et recevoir des mises à jour **sur demande**. Les Bibliothèques possèdent leur composition, les Mouvements possèdent leurs fiches et permissions. Dans le parcours **Bibliothèque**, l'accès aux Mouvements est transmis **par la Bibliothèque** ; dans l'**Espace en étoile** générique, un utilisateur transmet directement des Mouvements à un autre utilisateur, sans Bibliothèque fictive ni rôle professionnel dans le modèle ; les permissions **Modifier/Redistribuer** restent attachées **à chaque fiche**.
+KODJO doit permettre à un utilisateur de créer/organiser localement des Bibliothèques de Mouvements, puis à terme de partager ses Bibliothèques, en recevoir, acheter éventuellement des accès et recevoir des mises à jour **sur demande**. Les Bibliothèques possèdent leur composition, les Mouvements possèdent leurs fiches et permissions. Dans le parcours **Bibliothèque**, l'accès aux Mouvements est transmis **par la Bibliothèque** ; dans l'**Espace en étoile** générique, un utilisateur transmet directement des Mouvements à un autre utilisateur, sans Bibliothèque fictive ni rôle professionnel dans le modèle ; le droit de **redistribution à l'identique** reste attaché **à chaque fiche reçue**, sans modification ni duplication par le destinataire.
 
 La cible vise une **séparation logique** simple, pas un ensemble de microservices dès le départ :
 
-1. **Domaine Mouvements** : identité éditoriale, provenance, révisions, droits de modification/redistribution, médias.
+1. **Domaine Mouvements** : identité éditoriale, provenance, révisions, édition réservée à l'auteur/propriétaire habilité, redistribution conditionnelle des fiches reçues, médias.
 2. **Domaine Bibliothèques** : composition par référence, version de composition, visibilité, archivage, partage et arrêt de diffusion.
 3. **Domaine Accès** : autorisation d'utiliser les Mouvements reçus via une Bibliothèque (individu/groupe) ou transmis individuellement au sein de l'Espace en étoile (modalités relationnelles à préciser) ; preuve locale d'installation et conservation des droits après retrait d'un membre.
 4. **Domaine Distribution et modération** : demande de diffusion, contrôle d'une révision, publication, signalements et retraits prioritaires.
@@ -34,15 +34,15 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 |---|---|
 | BIB-01–05 | Tous profils peuvent créer des Bibliothèques ; composition par références, provenances mélangées, visibilités personnelle/partagée/publique et gratuit/payant distincts. |
 | BIB-02 | Une fiche Mouvement a **un auteur maximum** et un propriétaire administratif éventuellement distinct. Auteur inconnu permis pour des imports privés à source inconnue ; pas de propriété fictive. |
-| BIB-06–08 | **Supersédées sur les fiches importées par MOUV-D3** : ni modification ni duplication, redistribution possible seulement sous autorisation de la source dans un lot futur. Paramètres d'Exercice indépendants. |
+| BIB-06–08 | **Règle révisée le 11/11/2026 (MOUV-D3, A-2)** : les fiches reçues/importées sont non modifiables, non copiables et non duplicables, même pour un usage personnel ; redistribution à l'identique seulement si elle est explicitement autorisée (lot de partage futur). Le référencement dans plusieurs Bibliothèques n'est pas une copie. Les paramètres d'Exercice restent indépendants. [Texte d'origine : « Modifier et Redistribuer indépendants (quatre modes). Copier localement est toujours possible sans changer les permissions. » — remplacé le 11/11/2026.] |
 | BIB-09–11 | Bibliothèque reçue **non modifiable dans sa composition** ; redistribution **sélective** des seules fiches redistribuables, sans exposition des fiches interdites. |
-| BIB-12–13 | Révision ordinaire appliquée seulement sur commande « Mettre à jour » ; adaptations personnelles non écrasées. |
+| BIB-12–13 | Révision ordinaire appliquée seulement sur commande « Mettre à jour » ; Mouvements personnels distincts préservés, aucune adaptation d'une fiche importée. |
 | BIB-14–17 | Validation centrale des révisions avant toute diffusion ; privé sans anomalie = automatique possible ; premier public/payant = humain ; modération prioritaire après publication et signalement. |
 | BIB-18 | Partage, comptes, modération centrale, monétisation hors MVP local. |
 | F4-A | La mise à jour d'une Bibliothèque reçue est **manuelle** avec pastille. |
 | F4-B | Un Mouvement retiré d'une Bibliothèque source et précédemment installé reste **dans le Catalogue local** de l'utilisateur ; ses références dans les Séances/Bibliothèques personnelles restent. |
 | F4-C | Pour un **partage de Bibliothèque** (notamment coach), le propriétaire attribue le droit d'accès au niveau Bibliothèque ; le retrait d'un membre ne révoque pas l'usage local déjà acquis. Ce modèle de Bibliothèque **ne constitue pas le parcours de transmission kiné-patient** (KIN-01) ; commerce et modération restent séparés. |
-| F4-D | Un seul « Mettre à jour » installe la nouvelle **composition ET les nouvelles révisions de Mouvements**, sans supprimer les Mouvements retirés ni écraser les adaptations personnelles. |
+| F4-D | Un seul « Mettre à jour » installe la nouvelle **composition ET les nouvelles révisions de Mouvements**, sans supprimer les Mouvements retirés ni écraser les Mouvements personnels distincts. |
 | F4-E | Archiver une Bibliothèque est personnel/local et n'a **aucun effet sur les destinataires** ni sur leurs mises à jour. |
 | F4-F | Arrêter le partage d'une Bibliothèque bloque les **nouvelles distributions** ; les destinataires existants conservent leurs installations, n'obtiennent **plus de nouvelles mises à jour** tant que le partage reste arrêté. |
 | **F4-G — validé** | Une seule révision active par fiche source et par appareil : une mise à jour volontaire depuis une Bibliothèque actualise la même fiche partout où elle est référencée ; aucune autre composition n'est modifiée, l'utilisateur est averti de l'impact transversal. |
@@ -64,11 +64,11 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 | Parcours | Émetteur / destinataire | Résultat obligatoire |
 |---|---|---|
 | PU-01/02 | Propriétaire | Créer et composer ses Bibliothèques localement ; **associations sans copies**. |
-| PU-03/04 | Auteur / détenteur local | Créer et dupliquer ses Mouvements personnels ; aucune correction/duplication d'une fiche importée. |
+| PU-03/04 | Auteur original / destinataire | Créer, corriger ou dupliquer sa fiche personnelle originale ; référencer une fiche reçue sans la copier, la modifier ni la dériver (MOUV-D3, A-2). |
 | PU-05/06 | Diffuseur | Partager Bibliothèque ou Mouvement seul ; aucun élément non redistribuable exposé. |
 | PU-07 | Plateforme | Autorisation centrale par révision ; échec ou attente bloque publication. |
 | PU-08/09 | Destinataire | Installer Bibliothèque reçue en lecture seule et référencer ses fiches dans des Bibliothèques personnelles. |
-| PU-10/11 | Destinataire | Pastille puis **un clic volontaire** ; actualiser composition et révisions, conserver les mouvements retirés et adaptations locales. |
+| PU-10/11 | Destinataire | Pastille puis **un clic volontaire** ; actualiser composition et révisions, conserver les mouvements retirés et Mouvements personnels distincts. |
 | PU-12 | Propriétaire | Retrait d'un Mouvement lors d'une révision sans destruction des installations et Séances préexistantes. |
 | PU-13 | Propriétaire / destinataire | Archivage/restauration sans effet sur les droits ou la diffusion. |
 | PU-14 | Propriétaire | Arrêt de diffusion sans révocation des usages acquis ; plus de nouvelles mises à jour. |
@@ -88,7 +88,7 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 
 ### 3.1 Trois notions de droits à ne pas mélanger
 
-- **Permission éditoriale de la fiche** : une création personnelle est modifiable/duplicable ; une **fiche importée n'est jamais modifiable ni duplicable** par son destinataire (MOUV-D3). Le droit futur de redistribution est indépendant de l'édition ; publier initialement son contenu n'est pas redistribuer le contenu d'autrui.
+- **Droits sur la fiche** : le créateur/propriétaire habilité peut modifier sa fiche personnelle originale. Le destinataire d'une fiche reçue/importée ne peut ni la modifier, ni la copier, ni la dupliquer, ni la dériver (MOUV-D3, A-2) ; il peut seulement la redistribuer à l'identique si le droit **Redistribuer** le permet, dans un lot de partage futur. Une création locale originale n'est pas redistribuable par un tiers par défaut ; le propriétaire choisit le droit des destinataires à la première diffusion. **Publier son contenu initialement ≠ redistribuer le contenu d'autrui**.
 - **Droit d'accès à la Bibliothèque** : accord du propriétaire à un individu/groupe ; ouvre l'usage de ses membres reçus. La transmission kiné-patient dans l'Espace relève d'une autorisation relationnelle **distincte**, dont le contrat détaillé reste à concevoir. Une preuve de cet accès accompagne l'installation. Retirer un membre de la source ne supprime pas la preuve d'installation antérieure.
 - **État de modération** : peut bloquer temporairement ou définitivement une fiche/média même si accès et permissions seraient par ailleurs suffisants.
 
@@ -174,7 +174,7 @@ La cible sépare les **identités de fiches**, leurs **révisions approuvées**,
 |---|---|---|
 | Identité utilisateur/organisation | \`actor_id\`, gestionnaire et état du compte | **Aucun rôle « coach » ou « kiné »** dans le modèle |
 | Fiche source | \`source_namespace\`, \`sheet_id\`, auteur unique nullable, propriétaire administratif, provenance | Identité stable indépendante du nom et des Bibliothèques |
-| Révision de fiche | \`revision_id\`, contenu/digest, droits Modifier/Redistribuer des destinataires, état de validation | Une révision approuvée est identifiable ; la première diffusion par le propriétaire habilité ne requiert pas le droit de redistribution des destinataires |
+| Révision de fiche | \`revision_id\`, contenu/digest, droit de redistribution à l'identique des destinataires (sans modification ni duplication), état de validation | Une révision approuvée est identifiable ; la première diffusion par le propriétaire habilité ne requiert pas le droit de redistribution des destinataires |
 | Médias liés à une révision | Média, empreinte, droits sur le média, position, statut de modération | Les droits d'une fiche ne suffisent pas à publier une vidéo tierce |
 | Bibliothèque et version publiée | \`library_id\`, propriétaire, visibilité, diffusion, \`release_id\`, composition ordonnée par références | Le brouillon peut rester local ; pas de copie des fiches membres |
 | Autorisation et preuve de réception | Bibliothèque, destinataire, droit d'accès et preuve de livraison | Deux faits à distinguer même si une seule table suffit techniquement |
@@ -235,7 +235,7 @@ Plusieurs fiches distinctes peuvent porter le même nom visible « Squat ». Leu
 6. Appliquer la nouvelle composition et les versions de fiches autorisées de manière **cohérente et reprenable**.
 7. Mettre à jour le pointeur de version installée seulement quand tous les composants nécessaires sont disponibles.
 8. Garder les Mouvements retirés dans le Catalogue local, leurs éventuels accès acquis et leurs références vers Séances/Bibliothèques personnelles.
-9. Ne jamais écraser les adaptations locales ; si la mise à jour ne peut être appliquée proprement, signaler et préserver l'état antérieur.
+9. Ne jamais écraser les Mouvements personnels distincts ; une fiche reçue ne peut pas être adaptée. Si la mise à jour ne peut être appliquée proprement, signaler et préserver l'état antérieur.
 
 **Invariants de sûreté :** pas de membre pointant vers une fiche absente, pas de perte de version antérieure avant confirmation, pas de double installation sur retry, pas de « mise à jour partielle » présentée comme réussie.
 
@@ -246,7 +246,7 @@ Le Mouvement source `coachA:mvt-001` peut figurer dans plusieurs Bibliothèques.
 - Avant « Mettre à jour » une Bibliothèque, l'aperçu indique les Mouvements modifiés et les **autres Bibliothèques qui les référencent**.
 - L'action explicite de l'utilisateur installe la nouvelle révision approuvée de ces fiches. Elle apparaît alors dans **toutes les Bibliothèques** qui référencent les mêmes `Movement.id`, sans deuxième validation.
 - Seule la **composition de la Bibliothèque mise à jour** peut changer de membres ou d'ordre. Les autres Bibliothèques conservent leur composition et leur propre version de composition installée.
-- Les copies/adaptations personnelles distinctes et les instantanés des exécutions passées ne changent pas.
+- Les Mouvements personnels originaux distincts et les instantanés des exécutions passées ne changent pas ; aucune copie/adaptation de fiche reçue n'est créée.
 - Le client **ne maintient aucun pointeur de version active par Bibliothèque**. Une release serveur peut conserver ses références historiques de versions pour la preuve de publication, sans forcer l'affichage de cette révision historique dans les autres Bibliothèques locales.
 
 **Arbitrage clos** : la gestion de révisions actives distinctes d'une même fiche par Bibliothèque n'est plus recherchée. Le point qui reste technique est la cohérence de la mise à jour globale avec un stockage réparti entre deux bases et la protection des modifications personnelles.
@@ -366,7 +366,7 @@ Les noms HTTP suivants sont **illustratifs**, non arbitrés ; découper en servi
 | 5 | Administration Web locale Node.js / OVH, création du 61e Mouvement, édition complète, médias et export | Parallélisable à 4 sur contrats stabilisés |
 | 6 | Intégration mobile et réconciliation des 60 Mouvements sans duplication | Vérifier Exercices, Séances, adaptations et PRE-10 |
 
-Les anciens lots L1–L6 centrés sur la distribution communautaire sont **supersédés en tant que plan d'exécution** ; leurs concepts restent des cibles postérieures et ne conditionnent ni CA-3 ni l'administration Web. Les Bibliothèques génériques KODJO sont le seul premier parcours utilisateur. La numérotation de migration sera attribuée à l'intégration.
+Les anciens lots L1–L6 centrés sur la distribution communautaire sont **supersédés en tant que plan d'exécution** ; leurs concepts restent des cibles postérieures et ne conditionnent ni CA-3 ni l'administration Web. Les Bibliothèques génériques KODJO sont le seul premier parcours utilisateur. La numérotation de migration sera attribuée à l'intégration. Lorsque ces concepts seront repris, ils suivent la règle révisée du 11/11/2026 : référencement sans copie, fiches reçues en lecture seule, redistribution à l'identique seulement si autorisée, interdiction de copie et d'édition des fiches reçues.
 
 **Non inclus :** paiement réel, monétisation, abonnement, moteur d'Exécution, collaboration clinique détaillée, écrans Figma non validés.
 
@@ -376,7 +376,7 @@ Les anciens lots L1–L6 centrés sur la distribution communautaire sont **super
 |---|---|---|
 | T-01 | Associer un Mouvement à deux Bibliothèques | Deux références, pas de copie source. |
 | T-02 | Retirer l'association d'une Bibliothèque personnelle | L'autre Bibliothèque et les Séances ne changent pas. |
-| T-03 | Tentative de copie d'une fiche importée, quel que soit son ancien mode | **Refus systématique**, identité et source inchangées (MOUV-D3). |
+| T-03 | Tenter de copier, dupliquer ou modifier une fiche reçue/importée, quel que soit son ancien mode | **Refus systématique**, identité et source inchangées (MOUV-D3, A-2) ; référencement dans plusieurs Bibliothèques autorisé sans nouvelle fiche. |
 | T-04 | Propriétaire publie sa Bibliothèque mêlant ses propres fiches Protégées et des fiches tierces non redistribuables | Le propriétaire peut publier ses propres fiches avec droits destinataires Protégé ; les fiches tierces interdites ne sont jamais exposées. |
 | T-05 | Destinataire tente d'ajouter/retraiter un membre à la Bibliothèque reçue | Mutation interdite ; Bibliothèque personnelle modifiable. |
 | T-06 | Coach accorde la Bibliothèque à un groupe | Les membres autorisés peuvent utiliser les fiches éligibles sans grants individuels par fiche. |
@@ -384,7 +384,7 @@ Les anciens lots L1–L6 centrés sur la distribution communautaire sont **super
 | T-08 | Révision disponible mais aucune action utilisateur | Version installée inchangée ; pastille visible. |
 | T-09 | Mise à jour globale avec ajout/retrait/édition | Composition et révisions cohérentes ; retrait conserve le Mouvement dans le Catalogue local. |
 | T-10 | Séance référence un Mouvement retiré | Séance et historique intacts, Mouvement local toujours utilisable sous réserve de droit/modération. |
-| T-11 | Adaptation personnelle et mise à jour source | Adaptation inchangée, aucune fusion silencieuse. |
+| T-11 | Mise à jour source et présence d'un Mouvement personnel distinct | La mise à jour volontaire ne crée aucune adaptation, conserve le Mouvement personnel et ne provoque aucune fusion silencieuse. |
 | T-12 | Même fiche source dans deux Bibliothèques : mise à jour depuis A | Aperçu signale B ; la révision active locale se propage à A et B ; composition de B inchangée ; pas de confirmation supplémentaire. |
 | T-13 | Archivage par l'émetteur | Destinataire et capacité de recevoir les nouvelles mises à jour inchangés. |
 | T-14 | Arrêt de diffusion | Nouvelle installation interdite ; utilisateurs existants gardent les installations et ne reçoivent plus de MAJ. |
@@ -399,7 +399,7 @@ Les anciens lots L1–L6 centrés sur la distribution communautaire sont **super
 **Métier / produit :**
 - A1. Politique d'accès payant après expiration, retour/remboursement et changement d'appareil.
 - A2. Possibilité de reprendre la diffusion après un arrêt et sort des destinataires existants lors de cette reprise.
-- A3. Modifications ultérieures des permissions (retrait du droit de redistribuer) sur des copies déjà installées.
+- A3. Modifications ultérieures des permissions (retrait du droit de redistribuer) sur des fiches déjà installées.
 - A4. **Précisé** : création originale modifiable localement et non redistribuable par des tiers par défaut ; le propriétaire choisit les droits des destinataires à la première publication. Modalité de restriction ultérieure encore ouverte.
 - A5. Insertion de nouveaux membres dans une Bibliothèque reçue si l'abonné ne demande pas de mise à jour (règle générale : aucun changement ; confirmer cas d'accès).
 - A6. **Résolu par F4-G** : révision active unique, propagation transversale et aperçu préalable des Bibliothèques concernées. Cohérence multi-fiches à vérifier techniquement.
@@ -421,7 +421,7 @@ Les anciens lots L1–L6 centrés sur la distribution communautaire sont **super
 1. Lire entièrement les deux documents cibles et la conception initiale ; comparer avec les chapitres 01–13, PRODUCT.md, INDEX.md et le registre, en conservant la distinction BIB-01–18 / F4-A–F / KIN-01.
 2. Analyser le **code existant réellement dans les branches pertinentes** (main et pilote catalogue) avant de proposer migrations ou services ; ne pas reconstituer l'état du dépôt à partir d'un souvenir.
 3. Vérifier la cohérence des 17 parcours et la traçabilité de chaque décision avec preuves, identifier toute nouvelle règle non validée.
-4. Auditer en priorité : accès hérités de la Bibliothèque, conservation après retrait, mise à jour globale reprenable, versions d'une même fiche dans plusieurs Bibliothèques, héritage des permissions sur copies, arrêt/archivage, modération et droits commerciaux isolés.
+4. Auditer en priorité : accès hérités de la Bibliothèque, conservation après retrait, mise à jour globale reprenable, versions d'une même fiche dans plusieurs Bibliothèques, interdiction de duplication des fiches reçues et droits de redistribution attachés à la source, arrêt/archivage, modération et droits commerciaux isolés.
 5. Fournir une architecture **minimale** et une alternative si le choix proposé est complexe ; chiffrer en complexité (faible/moyen/fort) sans inventer de coût ni imposer une technologie.
 6. Détailler les relations et index des tables qui seraient réellement nécessaires, ainsi que contraintes référentielles, migrations, stratégie de cache et transactions.
 7. Auditer sécurité des droits côté serveur, confidentialité, accès média, signalements et capacité réelle de neutralisation iOS ; signaler les limites.
