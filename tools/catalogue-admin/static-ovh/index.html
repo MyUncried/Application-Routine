@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>KODJO | Administration des mouvements</title>
+<style>
+:root{color-scheme:light;--navy:#10203c;--blue:#2754dd;--ink:#1d293c;--muted:#69758a;--line:#dce3ef;--bg:#f5f7fb;--soft:#edf2ff;--red:#a72d4a;--green:#146a55;--radius:13px}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.42}button,input,textarea,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:8px;padding:9px 13px;background:white;color:var(--ink);font-weight:600}button:hover{border-color:#9eafe0}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}button.primary{background:var(--blue);color:white;border-color:var(--blue)}button.primary:hover{background:#1639ae}button:disabled{opacity:.55;cursor:not-allowed}
+.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;background:var(--navy);color:white;padding:21px clamp(16px,3.6vw,48px)}.eyebrow{font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:.12em;margin:0 0 3px;color:#aec1f2}.header h1{margin:0;font-size:25px;letter-spacing:-.7px;font-weight:700}.header small{color:#c3cdec}.header .badge{background:#243659;border:1px solid #455476;color:white;border-radius:30px;padding:7px 12px;font-size:12px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:white;padding:12px clamp(16px,3.6vw,48px);border-bottom:1px solid var(--line)}.tabs,.actionbuttons{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tabs button{font-size:13px}.tabs button.active{border-color:#b9c9f6;background:var(--soft);color:#2548a6}.filelabel{display:inline-flex;align-items:center;font-size:13px;font-weight:700;gap:6px;border-radius:8px;border:1px solid #cad5ea;padding:10px 13px;cursor:pointer;background:#f8faff}.filelabel:hover{background:#edf2ff}.filelabel input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.notice{margin:16px clamp(16px,3.6vw,48px);background:#e9f0ff;border-left:3px solid #648ee7;color:#2b477d;padding:11px 14px;border-radius:8px;font-size:13px}.notice.error{background:#fff0f2;color:var(--red);border-color:var(--red)}.notice.ok{background:#e6f7ef;color:#15634d;border-color:#43a183}
+.layout{display:grid;grid-template-columns:minmax(250px,310px) minmax(0,1fr);gap:16px;margin:0 clamp(16px,3.6vw,48px) 36px}.panel{background:white;border:1px solid var(--line);border-radius:var(--radius);padding:21px;min-width:0}.aside{align-self:start;position:sticky;top:12px;max-height:calc(100vh - 24px);display:flex;flex-direction:column;gap:12px}.aside .topline{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.aside .counter{font-weight:800;font-size:24px;letter-spacing:-.6px}.label{display:block;font-weight:600;font-size:13px;margin-bottom:5px}.input,textarea,select{width:100%;padding:10px 11px;border:1px solid #bdc9dc;border-radius:8px;background:#fff;color:var(--ink);font-size:14px}textarea{resize:vertical;min-height:75px}.list{overflow:auto;min-height:120px;display:flex;flex-direction:column;gap:5px}.item{display:flex;flex-direction:column;gap:3px;padding:10px 11px;text-align:left;width:100%;font-size:13px;border-radius:9px}.item.selected{background:var(--soft);border-color:#91aaec}.item strong{font-weight:650}.item small{color:var(--muted);font-size:11px}.item .edited{color:var(--green);font-weight:700}.rightheader{display:flex;justify-content:space-between;gap:10px;align-items:start;flex-wrap:wrap}.rightheader h2{margin:0;font-size:21px;letter-spacing:-.4px}.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#f0f3f9;padding:5px 7px;border-radius:6px;font-size:12px}.subnote{padding:10px 12px;background:#f7f9fc;border-left:3px solid #b5bfd3;border-radius:6px;color:#536176;font-size:12px;margin:14px 0 20px}.fields{display:flex;flex-direction:column;gap:17px}.fields label{display:block;font-weight:650;font-size:13px}.fields label input,.fields label textarea,.fields label select{display:block;margin-top:5px}.fields label small{display:block;font-weight:400;color:var(--muted);font-size:12px;padding-top:3px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.checkset{border:1px solid var(--line);border-radius:9px;padding:11px;min-width:0;margin:0}.checkset legend{padding:0 6px;font-weight:700;font-size:13px}.chips{display:flex;gap:6px;flex-wrap:wrap;max-height:170px;overflow:auto}.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;background:#f7f9fd;border:1px solid var(--line);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer}.chip:has(input:checked){background:#eaf0ff;border-color:#8faaf1;color:#143a9d}.chip input{accent-color:var(--blue)}.footactions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.split{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.source{margin-top:22px;border:1px solid var(--line);border-radius:8px;padding:13px}.source summary{cursor:pointer;font-weight:650}.source pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#f4f6fa;border-radius:7px;padding:10px}.empty{color:var(--muted);text-align:center;padding:25px 10px}.hidden{display:none!important}.full{grid-column:1/-1}.refrow{display:grid;grid-template-columns:minmax(125px,200px) minmax(150px,1fr) auto;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:9px 0}.refrow code{font-size:12px;overflow-wrap:anywhere;color:var(--muted)}.refrow input{min-width:0}.refrow button{font-size:12px}.info{color:var(--muted);font-size:13px}.table{width:100%;border-collapse:collapse}.table td,.table th{padding:10px;text-align:left;border-bottom:1px solid var(--line);font-size:13px}.table th{font-size:12px;color:var(--muted)}footer{text-align:center;padding:5px 14px 28px;color:var(--muted);font-size:12px}.info-tile{border:1px solid var(--line);padding:14px;border-radius:10px;background:#fbfcff}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.name{font-weight:700}.tag{display:inline-block;color:#4362a1;background:#ecf1ff;padding:3px 8px;border-radius:20px;font-size:11px}.small{font-size:12px}.warning{color:var(--red)}.tip{padding:11px;background:#f7faff;border-radius:8px;margin:14px 0;font-size:13px;color:#47556b}
+@media(max-width:810px){.layout{grid-template-columns:1fr}.aside{position:static;max-height:370px}.grid{grid-template-columns:1fr}.three{grid-template-columns:1fr}.refrow{grid-template-columns:1fr auto}.refrow code{grid-column:1/-1}.header h1{font-size:21px}}
+
+.media-section{margin:4px 0;border:1px solid #cbd7eb;border-radius:12px;padding:16px;background:#fbfcff}
+.media-section legend{font-size:14px;font-weight:750;padding:0 6px}
+.media-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:14px 0}
+.media-card{background:white;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+.media-visual{height:165px;background:#eef2fa;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;overflow:hidden}
+.media-visual img,.media-visual video{width:100%;height:100%;object-fit:contain}
+.media-visual a{color:#214c9d;overflow-wrap:anywhere;font-size:12px}
+.media-symbol{font-weight:700;letter-spacing:.1em;color:#62738e}
+.media-info{display:flex;flex-direction:column;gap:4px;padding:11px}
+.media-info strong{overflow-wrap:anywhere}
+.media-info small{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.media-info .media-rights{color:#9d5634}.media-info .media-rights.confirmed{color:var(--green)}
+.media-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.media-actions button{padding:5px 8px;font-size:12px}
+.media-editor{border-top:1px solid var(--line);padding-top:14px;margin-top:10px}
+.media-editor .media-hint{font-size:12px;color:var(--muted);margin:5px 0 12px}
+.media-broken::after{content:'Aperçu indisponible';font-size:12px;color:var(--red)}
+.media-section .media-header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+<header class="header"><div><p class="eyebrow">KODJO · Catalogue</p><h1>Administration des mouvements</h1><small>Prototype Web statique, indépendant du moteur d'exécution</small></div><span class="badge">Mode privé dans le navigateur · Aucun envoi de données</span></header>
+<div class="toolbar"><nav class="tabs" aria-label="Sections"><button type="button" class="active" data-tab="movements">Mouvements</button><button type="button" data-tab="references">Référentiels</button><button type="button" data-tab="glossary">Glossaire</button></nav><div class="actionbuttons"><label class="filelabel">Importer un catalogue JSON<input type="file" id="importCatalog" accept=".json,application/json"></label><label class="filelabel">Reprendre des brouillons<input type="file" id="importDrafts" accept=".json,application/json"></label><button type="button" id="export" class="primary">Exporter les brouillons</button></div></div>
+<div class="notice" id="notice" role="status" aria-live="polite">Version de démonstration. Importe ton catalogue JSON pour les 60 fiches. Photos locales et vidéos sous forme de liens possibles, sans publication des contenus.</div>
+<main>
+<div class="layout" id="movementsView">
+<aside class="panel aside"><div class="topline"><span class="counter" id="counter">0 / 0</span><span class="small info" id="datasetStatus">Démonstration</span></div><label><span class="label">Rechercher par nom ou identifiant</span><input class="input" id="query" type="search" placeholder="Squat, yoga, REED…"></label><label><span class="label">Spécialité</span><select id="filterSpecialty" class="input"><option value="">Toutes les spécialités</option></select></label><div class="list" id="movementList" role="listbox" aria-label="Liste des mouvements"></div></aside>
+<section class="panel"><div class="rightheader"><div><p class="eyebrow" style="color:var(--muted)">Fiche éditoriale</p><h2 id="movementTitle">Sélectionne un mouvement</h2></div><span class="code" id="movementId"></span></div><p class="subnote">Les modifications restent dans cette fenêtre tant que tu ne les exportes pas. Elles ne sont jamais envoyées sur l'hébergement OVH.</p><form id="movementForm" class="fields hidden"><label>Nom du mouvement<input class="input" id="name" maxlength="80" required></label><label>Consignes (une étape par ligne)<textarea id="steps" rows="5" required></textarea><small>65 caractères maximum par étape · 1 000 caractères au total</small></label><label>Alias (un par ligne)<textarea id="aliases" rows="2"></textarea></label><div class="grid"><label>Catégorie KODJO<select id="category" class="input"></select></label><fieldset class="checkset"><legend>Zones corporelles</legend><div id="zones" class="chips"></div></fieldset></div><div class="grid" id="axisGroups"></div><div class="grid"><label>Propriétaire (type)<select class="input" id="ownerKind"><option value="">Non renseigné</option><option value="LOCAL_USER">Utilisateur local</option><option value="PERSON">Personne / coach</option><option value="ORGANIZATION">Organisation</option><option value="PLATFORM">Plateforme</option></select></label><label>Propriétaire (identifiant stable)<input class="input" id="ownerId" placeholder="ex. coach-martin" maxlength="128"></label></div><label>Auteurs (un par ligne : TYPE:identifiant)<textarea id="authors" rows="2" placeholder="PERSON:coach-martin"></textarea></label>
+<fieldset class="media-section" id="mediaSection"><legend>Photos et vidéos — facultatif</legend>
+<div class="media-header"><strong>Galerie de la fiche</strong><span id="mediaCount" class="info">0 média</span></div>
+<p class="tip">Photos JPEG, PNG ou WebP optimisées et conservées dans le JSON exporté (jamais téléversées sur OVH). Vidéos : lien HTTPS uniquement. Aucune utilisation commerciale ou publication sans autorisation vérifiée.</p>
+<div id="mediaGallery" class="media-gallery" aria-live="polite"></div>
+<div class="media-editor">
+<div class="grid"><label>Mode d'ajout<select id="mediaInputType" class="input"><option value="PHOTO_FILE">Photo depuis ce PC ou téléphone</option><option value="PHOTO_URL">Photo par lien HTTPS</option><option value="VIDEO_URL">Vidéo par lien HTTPS</option></select></label><label>Statut des droits<select id="mediaRights" class="input"><option value="UNVERIFIED">Non vérifiés</option><option value="PERMISSION_CONFIRMED">Autorisation déclarée</option><option value="RESTRICTED">Utilisation interdite</option></select></label></div>
+<div id="mediaFileGroup"><label>Fichier photo<input id="mediaPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" class="input"></label></div>
+<div id="mediaUrlGroup" class="hidden"><label><span id="mediaUrlLabel">URL HTTPS de la photo</span><input id="mediaUrl" class="input" type="url" maxlength="2048" placeholder="https://..." autocomplete="off"></label></div>
+<div class="grid"><label>Source originale / justificatif (URL, si disponible)<input id="mediaSourceUrl" class="input" maxlength="2048" placeholder="https://..."></label><label>Auteur / fournisseur / crédit<input id="mediaAttribution" class="input" maxlength="160" placeholder="Auteur ou fournisseur, si connu"></label></div>
+<div class="grid"><label>Licence / conditions d'utilisation<input id="mediaLicense" class="input" maxlength="160" placeholder="Ex. licence ou autorisation écrite"></label><label>Texte alternatif de la photo<input id="mediaAlt" class="input" maxlength="180" placeholder="Décrire l'image (obligatoire pour photo)"></label></div>
+<label>Légende / position dans l'exercice<input id="mediaCaption" class="input" maxlength="180" placeholder="Ex. Position de départ"></label>
+<p class="media-hint">Le statut « Autorisation déclarée » ne vérifie pas juridiquement la licence. Les vidéos restent chez leur fournisseur et ne sont pas intégrées au fichier JSON.</p>
+<div class="split"><button type="button" id="mediaSubmit" class="primary">Ajouter à la galerie</button><button type="button" id="mediaCancelEdit" class="hidden">Annuler la modification</button></div>
+</div>
+</fieldset>
+<label>Notes éditoriales<textarea id="notes" rows="3" maxlength="2000"></textarea></label><div class="footactions"><button type="submit" class="primary">Conserver en brouillon</button><button type="button" id="resetMovement">Rétablir la fiche d'origine</button></div></form><details class="source hidden" id="sourcePanel"><summary>Classification et source d'origine</summary><pre id="sourceData"></pre></details></section>
+</div>
+<section class="panel hidden" id="referencesView" style="margin:0 clamp(16px,3.6vw,48px) 36px"><h2>Référentiels proposés</h2><p class="tip">Les Catégories et Zones KODJO sont réutilisées telles quelles. Les spécialités et autres axes sont proposés et non validés pour publication.</p><label style="display:block;max-width:350px"><span class="label">Axe</span><select id="referenceAxis" class="input"><option value="specialties">Spécialités</option><option value="gesturalFamilies">Familles gestuelles</option><option value="clinicalProblems">Problèmes traités</option><option value="anatomicalTargets">Cibles anatomiques</option></select></label><div id="referenceList" style="margin:15px 0"></div><div class="info-tile"><h3>Ajouter une valeur de référence (proposition)</h3><form id="addReference" class="grid"><label>Identifiant<input class="input" id="newRefId" pattern="[a-z][a-z0-9-]{1,63}" required placeholder="ex. gymnastique"></label><label>Libellé<input class="input" id="newRefLabel" maxlength="100" required></label><label>Nature (si nécessaire)<select class="input" id="newRefKind"><option value="">Aucune</option></select></label><div style="display:flex;align-items:end"><button type="submit" class="primary">Ajouter au brouillon</button></div></form></div></section>
+<section class="panel hidden" id="glossaryView" style="margin:0 clamp(16px,3.6vw,48px) 36px"><h2>Glossaire sportif et anatomique</h2><p class="tip">Le glossaire des contenus est distinct des alias des mouvements et du glossaire fonctionnel KODJO.</p><div id="glossaryList"></div><div class="info-tile" style="margin-top:15px"><h3 id="glossaryTitle">Ajouter un terme</h3><form id="glossaryForm" class="fields"><div class="grid"><label>ID stable<input class="input" id="glossaryId" pattern="[a-z][a-z0-9-]{1,63}" required></label><label>Terme<input class="input" id="glossaryTerm" maxlength="100" required></label></div><label>Définition<textarea id="glossaryDefinition" rows="3" maxlength="1000" required></textarea></label><label>Synonymes, un par ligne<textarea id="glossarySynonyms" rows="2"></textarea></label><label>ID de mouvements associés, un par ligne<textarea id="glossaryMovementIds" rows="2" placeholder="pilot:FIT-CRO-001"></textarea></label><div class="split"><button type="submit" class="primary">Conserver dans le brouillon</button><button type="button" id="glossaryNew">Nouveau terme</button></div></form></div></section>
+</main><footer>Prototype statique · Galerie médias facultative · Photos exportées dans les brouillons JSON · Vidéos par liens HTTPS · Aucune publication</footer>
+<script>
+'use strict';
+const $=(s,p=document)=>p.querySelector(s),$$=(s,p=document)=>[...p.querySelectorAll(s)];
+const clone=x=>JSON.parse(JSON.stringify(x));
+const lines=s=>s.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+const key=s=>s.trim().toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+const axes={specialties:{title:'Spécialités',field:'specialtyIds'},gesturalFamilies:{title:'Familles gestuelles',field:'gesturalFamilyIds'},clinicalProblems:{title:'Problèmes traités (à valider)',field:'clinicalProblemIds'},anatomicalTargets:{title:'Cibles anatomiques',field:'anatomicalTargetIds'}};
+const cats=[['renforcement','Renforcement'],['cardio','Cardio'],['mobilite','Mobilité'],['etirements','Étirements'],['equilibre','Équilibre'],['coordination','Coordination'],['recuperation','Récupération'],['respiration','Respiration'],['meditation','Méditation'],['autre','Autre']];
+const zoneList=[['cou','Cou'],['epaules','Épaules'],['bras','Bras'],['poignets-mains','Poignets et mains'],['dos','Dos'],['hanches-bassin','Hanches et bassin'],['cuisses','Cuisses'],['genoux','Genoux'],['jambes','Jambes'],['chevilles-pieds','Chevilles et pieds']];
+const tax={specialties:[['reeducation','Rééducation / kinésithérapie'],['crossfit','CrossFit'],['hyrox','HYROX'],['pilates','Pilates'],['yoga','Yoga'],['stretching','Stretching']],gesturalFamilies:[['squat','Squat'],['hip-hinge','Charnière de hanche'],['push','Poussée'],['pull','Tirage'],['jump','Saut / réception'],['locomotion','Locomotion'],['carry','Portage'],['cardio-ergometer','Ergomètre'],['lunge','Fente'],['balance','Équilibre'],['core-stabilization','Stabilisation du tronc'],['mobility','Mobilisation articulaire'],['stretch','Étirement'],['posture','Posture statique'],['breathing','Respiration'],['combined','Enchaînement combiné'],['leg-raise','Élévation de jambe'],['step-up','Montée sur plateforme'],['bridge','Pont / extension des hanches']],clinicalProblems:[['knee-strength-deficit','Déficit de force du genou'],['shoulder-stiffness','Raideur de l’épaule'],['elbow-tendinopathy','Tendinopathie du coude'],['ankle-instability','Instabilité de cheville'],['lumbar-pain','Lombalgie'],['balance-deficit','Déficit d’équilibre']],anatomicalTargets:[['quadriceps','Quadriceps'],['gluteus-maximus','Grand fessier'],['hamstrings','Ischio-jambiers'],['scapular-stabilizers','Stabilisateurs scapulaires'],['abdominal-wall','Sangle abdominale'],['gastrocnemius','Gastrocnémien'],['ankle-joint','Articulation de la cheville'],['lumbar-spine','Rachis lombaire'],['triceps-surae','Triceps sural']]};
+const makeDemo=(id,name,steps,cat,zone,specialty)=>({candidateId:id,originalId:id.replace('demo:',''),name,description:{steps},originalClassification:{usage:'EXEMPLE DE DEMONSTRATION'},evidence:{url:null},demo:{cat,zone,specialty}});
+const demo=[makeDemo('demo:AIR-SQUAT','Air squat',['Tenez-vous debout, pieds écartés.','Fléchissez les genoux en reculant les hanches.','Redressez-vous sans décoller les talons.'],'renforcement',['cuisses','hanches-bassin'],['crossfit','hyrox']),makeDemo('demo:BIRD-DOG','Bird-dog',['Placez-vous à quatre pattes.','Tendez le bras et la jambe opposés.','Revenez, puis alternez les côtés.'],'equilibre',['dos','hanches-bassin'],['pilates','reeducation']),makeDemo('demo:SHOULDER','Pendulaire d’épaule',['Inclinez légèrement le buste.','Laissez le bras détendu, sans forcer.','Effectuez de petits mouvements pendulaires.'],'mobilite',['epaules'],['reeducation'])];
+function newDraft(){return{schemaVersion:'0.1.0',kind:'KODJO_ADMIN_DRAFTS',publicationAllowed:false,movementEdits:{},referenceAdditions:{specialties:[],gesturalFamilies:[],clinicalProblems:[],anatomicalTargets:[]},referenceLabels:{specialties:{},gesturalFamilies:{},clinicalProblems:{},anatomicalTargets:{}},glossary:[]}};
+let records=demo,draft=newDraft(),selected=null,demoMode=true,activeTab='movements',dirty=false,glossaryEditing=null;
+function notify(m,kind=''){const el=$('#notice');el.textContent=m;el.className='notice '+kind;}
+function updateTabs(tab){activeTab=tab; $$('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab)); for(const [t,selector] of [['movements','#movementsView'],['references','#referencesView'],['glossary','#glossaryView']])$(selector).classList.toggle('hidden',t!==tab);if(tab==='references')renderReferences();if(tab==='glossary')renderGlossary();}
+function actualValues(axis){const base=tax[axis].map(([id,label])=>({id,label:draft.referenceLabels[axis]?.[id]||label,kind:null}));return base.concat(draft.referenceAdditions[axis]||[]);}
+function makeDraft(r){return{name:r.name,steps:[...r.description.steps],aliases:[],categoryId:null,bodyZoneIds:[],specialtyIds:[],gesturalFamilyIds:[],clinicalProblemIds:[],anatomicalTargetIds:[],owner:null,authors:[],notes:'',editorialStatus:'DRAFT',media:[]};}
+function candidate(id){return records.find(x=>x.candidateId===id);}
+function getEdit(id){const r=candidate(id);return draft.movementEdits[id]||makeDraft(r);}
+function element(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+function checked(container,options,selection){container.replaceChildren();for(const [id,label] of options){const wrap=element('label','chip');const check=document.createElement('input');check.type='checkbox';check.value=id;check.checked=(selection||[]).includes(id);wrap.append(check,element('span','',label));container.append(wrap);}}
+function selectedValues(container){return $$('input:checked',container).map(x=>x.value);}
+function renderList(){const q=key($('#query').value),sp=$('#filterSpecialty').value;const list=$('#movementList');list.replaceChildren();const filtered=records.filter(r=>{const e=draft.movementEdits[r.candidateId];const hay=key([r.name,r.originalId,e?.name,...(e?.aliases||[])].filter(Boolean).join(' '));const specialties=e?.specialtyIds?.length?e.specialtyIds:(r.demo?.specialty||[r.originalId.startsWith('FIT-CRO')?'crossfit':r.originalId.startsWith('FIT-HYR')?'hyrox':r.originalId.startsWith('FIT-PIL')?'pilates':r.originalId.startsWith('FIT-YOG')?'yoga':r.originalId.startsWith('FIT-STR')?'stretching':r.originalId.startsWith('REED-')?'reeducation':'']);return hay.includes(q)&&(!sp||specialties.includes(sp));});$('#counter').textContent=`${filtered.length} / ${records.length}`;$('#datasetStatus').textContent=demoMode?'Démonstration':'Catalogue importé';for(const r of filtered){const b=element('button','item'+(selected===r.candidateId?' selected':''));b.type='button';b.setAttribute('role','option');b.setAttribute('aria-selected',selected===r.candidateId?'true':'false');b.append(element('strong','',getEdit(r.candidateId).name),element('small','',r.originalId));if(draft.movementEdits[r.candidateId])b.append(element('small','edited','Brouillon modifié'));b.addEventListener('click',()=>choose(r.candidateId));list.append(b)}if(!filtered.length)list.append(element('div','empty','Aucun mouvement trouvé.'));}
+function renderFilters(){const sp=$('#filterSpecialty'),val=sp.value;sp.replaceChildren(new Option('Toutes les spécialités',''));for(const r of actualValues('specialties'))sp.add(new Option(r.label,r.id));sp.value=val;}
+function choose(id){if(!candidate(id))return;if(selected!==id&&dirty&&!saveCurrent())return;selected=id;const r=candidate(id),d=getEdit(id);$('#movementTitle').textContent=d.name;$('#movementId').textContent=id;$('#name').value=d.name;$('#steps').value=d.steps.join('\n');$('#aliases').value=d.aliases.join('\n');$('#notes').value=d.notes||'';$('#ownerKind').value=d.owner?.kind||'';$('#ownerId').value=d.owner?.id||'';$('#authors').value=(d.authors||[]).map(a=>a.kind+':'+a.id).join('\n');const cat=$('#category');cat.replaceChildren(new Option('Non attribuée',''));for(const [cid,label] of cats)cat.add(new Option(label,cid));cat.value=d.categoryId||'';checked($('#zones'),zoneList,d.bodyZoneIds);const areas=$('#axisGroups');areas.replaceChildren();for(const [axis,a] of Object.entries(axes)){const f=element('fieldset','checkset'),legend=element('legend','',a.title),chips=element('div','chips');checked(chips,actualValues(axis).map(x=>[x.id,x.label]),d[a.field]);f.dataset.axis=axis;f.append(legend,chips);areas.append(f)}currentMedia=clone(d.media||[]);clearMediaEditor();renderMediaGallery();$('#sourceData').textContent=JSON.stringify({name:r.name,classification:r.originalClassification,source:r.evidence},null,2);$('#movementForm').classList.remove('hidden');$('#sourcePanel').classList.remove('hidden');dirty=false;renderList();}
+function saveCurrent(){if(!selected||!dirty)return true;const r=candidate(selected);if(!r)return true;const st=lines($('#steps').value),ali=lines($('#aliases').value),n=$('#name').value.trim(),authors=lines($('#authors').value);if(!n||n.length>80||!st.length||st.length>20||st.some(x=>[...x].length>65)||st.join('\n').length>1000){notify('Corrige le nom ou les étapes (65 caractères par étape, 1 000 au total).','error');return false;}if(ali.some(x=>x.length>80)||new Set(ali.map(key)).size!==ali.length){notify('Alias trop long ou répété.','error');return false;}const own=$('#ownerKind').value,oid=$('#ownerId').value.trim();if(Boolean(own)!==Boolean(oid)){notify('Renseigne à la fois le type et l’identifiant du propriétaire.','error');return false;}const parsed=[];for(const s of authors){const at=s.indexOf(':');if(at<=0||at===s.length-1||!['LOCAL_USER','PERSON','ORGANIZATION','PLATFORM'].includes(s.slice(0,at))){notify('Auteur invalide : utilise TYPE:identifiant.','error');return false;}parsed.push({kind:s.slice(0,at),id:s.slice(at+1)});}const edit={name:n,steps:st,aliases:ali,categoryId:$('#category').value||null,bodyZoneIds:selectedValues($('#zones')),specialtyIds:selectedValues($('[data-axis="specialties"] .chips')),gesturalFamilyIds:selectedValues($('[data-axis="gesturalFamilies"] .chips')),clinicalProblemIds:selectedValues($('[data-axis="clinicalProblems"] .chips')),anatomicalTargetIds:selectedValues($('[data-axis="anatomicalTargets"] .chips')),owner:own?{kind:own,id:oid}:null,authors:parsed,notes:$('#notes').value,editorialStatus:'DRAFT',media:clone(currentMedia)};if(mediaCollectionError(edit.media)){notify('Média invalide : '+mediaCollectionError(edit.media),'error');return false;}if(JSON.stringify(edit)===JSON.stringify(makeDraft(r)))delete draft.movementEdits[selected];else draft.movementEdits[selected]=edit;dirty=false;$('#movementTitle').textContent=n;renderList();notify('Fiche conservée en mémoire. Exporte les brouillons pour conserver ton travail.','ok');return true;}
+function renderReferences(){const axis=$('#referenceAxis').value,container=$('#referenceList');container.replaceChildren();for(const rec of actualValues(axis)){const row=element('div','refrow'),id=element('code','',rec.id),input=element('input','input'),save=element('button','', 'Conserver');input.value=rec.label;input.maxLength=100;input.setAttribute('aria-label','Libellé de '+rec.id);save.addEventListener('click',()=>{const label=input.value.trim(),refs=actualValues(axis).filter(x=>x.id!==rec.id);if(!label||refs.some(x=>key(x.label)===key(label))){notify('Libellé vide ou déjà existant.','error');return;}if(tax[axis].some(x=>x[0]===rec.id))draft.referenceLabels[axis][rec.id]=label;else draft.referenceAdditions[axis].find(x=>x.id===rec.id).label=label;notify('Libellé proposé conservé. Exporte les brouillons.','ok');renderReferences();renderFilters();});row.append(id,input,save);container.append(row)}const kinds=$('#newRefKind');kinds.replaceChildren(new Option('Non applicable',''));const kk=axis==='clinicalProblems'?['DIAGNOSIS','SYMPTOM','FUNCTIONAL_DEFICIT']:axis==='anatomicalTargets'?['MUSCLE','MUSCLE_GROUP','JOINT','ANATOMICAL_STRUCTURE']:[];for(const v of kk)kinds.add(new Option(v,v));}
+function renderGlossary(){const box=$('#glossaryList');box.replaceChildren();for(const d of draft.glossary){const row=element('div','refrow'),b=element('button','','Modifier'),del=element('button','','Retirer');b.addEventListener('click',()=>chooseGlossary(d.id));del.addEventListener('click',()=>{if(confirm('Retirer le terme du brouillon ?')){draft.glossary=draft.glossary.filter(x=>x.id!==d.id);if(glossaryEditing===d.id)newGlossary();renderGlossary();}});row.append(element('strong','',d.term),element('small','',d.definition),b,del);box.append(row)}if(!draft.glossary.length)box.append(element('p','info','Aucun terme de glossaire.'));}
+function newGlossary(){glossaryEditing=null;$('#glossaryForm').reset();$('#glossaryId').readOnly=false;$('#glossaryTitle').textContent='Ajouter un terme';}
+function chooseGlossary(id){const e=draft.glossary.find(x=>x.id===id);if(!e)return;glossaryEditing=id;$('#glossaryId').value=e.id;$('#glossaryId').readOnly=true;$('#glossaryTerm').value=e.term;$('#glossaryDefinition').value=e.definition;$('#glossarySynonyms').value=e.synonyms.join('\n');$('#glossaryMovementIds').value=e.relatedCandidateIds.join('\n');$('#glossaryTitle').textContent='Modifier un terme';}
+function validateDraft(){if(draft.publicationAllowed!==false||draft.kind!=='KODJO_ADMIN_DRAFTS')return 'Format de brouillon non autorisé';const ids=new Set(records.map(x=>x.candidateId));for(const [id,e] of Object.entries(draft.movementEdits)){if(!ids.has(id))return 'Une fiche du brouillon n’existe pas dans le catalogue importé : '+id;if(!e||!e.name||!Array.isArray(e.steps))return 'Fiche invalide : '+id;for(const [axis,a] of Object.entries(axes)){if((e[a.field]||[]).some(v=>!actualValues(axis).some(x=>x.id===v)))return 'Référence absente dans '+id+': '+axis;}const issue=mediaCollectionError(e.media);if(issue)return 'Média invalide pour '+id+': '+issue;}for(const g of draft.glossary)if(g.relatedCandidateIds.some(id=>!ids.has(id)))return 'Glossaire : mouvement associé introuvable : '+g.term;return null;}
+function exportJson(value,file){const data=JSON.stringify(value,null,2)+'\n';if(new Blob([data]).size>MAX_DRAFT_JSON_BYTES){notify('Brouillons trop volumineux pour un export JSON (24 Mo max). Réduis le nombre de photos.','error');return false;}const blob=new Blob([data],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=file;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);return true;}
+async function importFile(input,kind){const f=input.files[0];input.value='';if(!f)return;if(f.size>MAX_DRAFT_JSON_BYTES){notify('Fichier trop volumineux (limite 24 Mo).','error');return;}try{const d=JSON.parse(await f.text());if(kind==='catalog'){if(d.kind!=='KODJO_EDITORIAL_CANDIDATE_CORPUS'||d.publicationAllowed!==false||!Array.isArray(d.records)||!d.records.length||d.records.some(x=>!x.candidateId||!x.name||!Array.isArray(x.description?.steps))){throw Error('Le fichier doit être un corpus pilote non publiable.');}if(d.records.length!==new Set(d.records.map(x=>x.candidateId)).size)throw Error('Identifiants du catalogue dupliqués.');if(!confirm('Charger '+d.records.length+' mouvements dans ce navigateur ? Cela remplacera les brouillons en mémoire.'))return;records=d.records;demoMode=false;draft=newDraft();selected=null;dirty=false;}else{if(d.kind!=='KODJO_ADMIN_DRAFTS'||d.publicationAllowed!==false||d.schemaVersion!=='0.1.0'||!d.referenceAdditions||!d.referenceLabels||!d.movementEdits||!Array.isArray(d.glossary))throw Error('Format de brouillons invalide.');for(const a of Object.keys(axes))if(!Array.isArray(d.referenceAdditions[a])||typeof d.referenceLabels[a]!=='object')throw Error('Référentiel manquant : '+a);if(!confirm('Remplacer les brouillons en mémoire ?'))return;const old=draft;draft=d;const error=validateDraft();if(error){draft=old;throw Error(error);}}renderFilters();renderList();choose(records[0].candidateId);notify(kind==='catalog'?records.length+' fiches chargées uniquement dans le navigateur. Aucune donnée transmise au serveur.':'Brouillons chargés uniquement dans le navigateur.','ok');}catch(e){notify('Import refusé : '+e.message,'error');}}
+// Médias éditoriaux facultatifs : uniquement dans les brouillons locaux.
+// Aucune transmission au serveur OVH ; les images compactées sont intégrées au JSON exporté.
+let currentMedia = [];
+let editedMediaId = null;
+const MEDIA_RIGHTS = ['UNVERIFIED', 'PERMISSION_CONFIRMED', 'RESTRICTED'];
+const MAX_PHOTO_SOURCE_BYTES = 8 * 1024 * 1024;
+const MAX_EMBEDDED_PHOTO_CHARS = 580000;
+const MAX_DRAFT_JSON_BYTES = 24 * 1024 * 1024;
+function isSecureUrl(value) {
+  if (typeof value !== 'string' || value.length > 2048) return false;
+  try { const u = new URL(value); return u.protocol === 'https:' && !!u.hostname && !u.username && !u.password; }
+  catch { return false; }
+}
+function mediaError(media) {
+  if (!media || typeof media !== 'object' || Array.isArray(media)) return 'média invalide';
+  if (typeof media.id !== 'string' || !/^media-[a-z0-9-]{6,70}$/i.test(media.id)) return 'identifiant média invalide';
+  if (!['PHOTO','VIDEO'].includes(media.kind)) return 'type de média inconnu';
+  if (!['EMBEDDED','REMOTE'].includes(media.storage)) return 'origine technique inconnue';
+  if (media.storage === 'EMBEDDED') {
+    if (media.kind !== 'PHOTO' || typeof media.url !== 'string' || media.url.length > MAX_EMBEDDED_PHOTO_CHARS ||
+        !/^data:image\/(?:jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/.test(media.url)) return 'photo locale invalide ou trop volumineuse';
+  } else if (!isSecureUrl(media.url)) return 'lien média HTTPS invalide';
+  if (media.sourceUrl !== null && !isSecureUrl(media.sourceUrl)) return 'URL de provenance invalide';
+  if (media.storage === 'REMOTE' && !media.sourceUrl) return 'source obligatoire pour un média distant';
+  for (const [field, max] of [['caption',180],['alt',180],['attribution',160],['license',160]]) {
+    if (typeof media[field] !== 'string' || media[field].length > max) return field + ' absent ou trop long';
+  }
+  if (typeof media.fileName !== 'string' || media.fileName.length > 180) return 'nom de fichier invalide';
+  if (media.kind === 'PHOTO' && !media.alt.trim()) return 'description accessible obligatoire pour une photo';
+  if (!MEDIA_RIGHTS.includes(media.rightsStatus)) return 'statut des droits invalide';
+  if (media.rightsStatus === 'PERMISSION_CONFIRMED' && (!media.license.trim() || !media.attribution.trim()))
+    return 'préciser attribution et licence pour confirmer les droits';
+  return null;
+}
+function mediaCollectionError(items) {
+  if (items === undefined) return null; // compatibilité avec les anciens brouillons
+  if (!Array.isArray(items) || items.length > 30) return 'liste de médias invalide (maximum 30 par fiche)';
+  const ids = new Set();
+  for (const item of items) {
+    const issue = mediaError(item);
+    if (issue) return issue;
+    if (ids.has(item.id)) return 'identifiant média dupliqué';
+    ids.add(item.id);
+  }
+  return null;
+}
+function freshMediaId() {
+  const bytes = new Uint8Array(12); crypto.getRandomValues(bytes);
+  return 'media-' + [...bytes].map(n => n.toString(16).padStart(2,'0')).join('');
+}
+function showMediaSourceFields() {
+  const type = $('#mediaInputType').value;
+  $('#mediaFileGroup').classList.toggle('hidden', type !== 'PHOTO_FILE');
+  $('#mediaUrlGroup').classList.toggle('hidden', type === 'PHOTO_FILE');
+  $('#mediaUrlLabel').textContent = type === 'VIDEO_URL' ? 'URL HTTPS de la vidéo' : 'URL HTTPS de la photo';
+}
+function clearMediaEditor() {
+  editedMediaId = null;
+  $('#mediaInputType').value = 'PHOTO_FILE';
+  $('#mediaPhotoFile').value = '';
+  for (const id of ['mediaUrl','mediaSourceUrl','mediaAttribution','mediaLicense','mediaAlt','mediaCaption']) $('#'+id).value = '';
+  $('#mediaRights').value = 'UNVERIFIED';
+  $('#mediaSubmit').textContent = 'Ajouter à la galerie';
+  $('#mediaCancelEdit').classList.add('hidden');
+  showMediaSourceFields();
+}
+function mediaPreview(item) {
+  const wrap = element('div','media-visual');
+  if (item.kind === 'PHOTO') {
+    const img = document.createElement('img');
+    img.src = item.url; img.alt = item.alt; img.loading = 'lazy'; img.referrerPolicy = 'no-referrer';
+    img.addEventListener('error', () => wrap.classList.add('media-broken'));
+    wrap.append(img);
+  } else {
+    const label = element('span','media-symbol','VIDÉO');
+    const link = document.createElement('a'); link.href = item.url; link.target = '_blank';
+    link.rel = 'noopener noreferrer'; link.referrerPolicy = 'no-referrer';
+    link.textContent = 'Ouvrir la vidéo source';
+    wrap.append(label,link);
+    if (/\.(?:mp4|webm)(?:[?#]|$)/i.test(item.url)) {
+      const video = document.createElement('video'); video.src = item.url; video.controls = true;
+      video.preload = 'none'; video.setAttribute('playsinline','');
+      wrap.prepend(video);
+    }
+  }
+  return wrap;
+}
+function renderMediaGallery() {
+  const area = $('#mediaGallery'); area.replaceChildren();
+  $('#mediaCount').textContent = currentMedia.length + (currentMedia.length > 1 ? ' médias' : ' média');
+  if (!currentMedia.length) {
+    area.append(element('p','info','Aucun média pour cette fiche. Les médias sont facultatifs.'));
+    return;
+  }
+  currentMedia.forEach((item,i) => {
+    const card = element('article','media-card');
+    card.append(mediaPreview(item));
+    const info = element('div','media-info');
+    info.append(element('strong','',`${i + 1}. ${item.caption || (item.kind === 'PHOTO' ? 'Photo' : 'Vidéo')}`));
+    info.append(element('small','',item.kind === 'PHOTO' ? 'Photo' : 'Vidéo'));
+    info.append(element('small','',`Origine : ${item.storage === 'EMBEDDED' ? 'fichier local intégré au JSON' : 'URL externe'}`));
+    info.append(element('small','',`Auteur/source : ${item.attribution || 'Non renseigné'}`));
+    info.append(element('small','',`Licence : ${item.license || 'Non renseignée'}`));
+    info.append(element('small','media-rights'+(item.rightsStatus==='PERMISSION_CONFIRMED'?' confirmed':''),
+      'Droits : ' + ({UNVERIFIED:'Non vérifiés',PERMISSION_CONFIRMED:'Permission déclarée',RESTRICTED:'Utilisation interdite'}[item.rightsStatus] || 'Non vérifiés'));
+    const actions = element('div','media-actions');
+    const btn = (label,action,disabled=false) => {
+      const b = element('button','',label); b.type = 'button'; b.disabled = disabled;
+      b.addEventListener('click', action); return b;
+    };
+    actions.append(btn('↑',()=>moveMedia(i,-1),i===0));
+    actions.append(btn('↓',()=>moveMedia(i,1),i===currentMedia.length-1));
+    actions.append(btn('Modifier',()=>editMedia(item)));
+    actions.append(btn('Retirer',()=>removeMedia(i)));
+    info.append(actions);card.append(info);area.append(card);
+  });
+}
+function moveMedia(index,step) {
+  const target = index + step;
+  if (target < 0 || target >= currentMedia.length) return;
+  [currentMedia[index], currentMedia[target]] = [currentMedia[target],currentMedia[index]];
+  dirty = true; renderMediaGallery();
+}
+function removeMedia(index) {
+  const item = currentMedia[index];
+  if (!confirm(`Retirer « ${item.caption || item.kind} » de cette fiche ?`)) return;
+  if (editedMediaId === item.id) clearMediaEditor();
+  currentMedia.splice(index,1); dirty = true; renderMediaGallery();
+}
+function editMedia(item) {
+  editedMediaId = item.id;
+  $('#mediaInputType').value = item.storage==='EMBEDDED' ? 'PHOTO_FILE' : item.kind==='VIDEO'?'VIDEO_URL':'PHOTO_URL';
+  $('#mediaPhotoFile').value = '';
+  $('#mediaUrl').value = item.storage==='REMOTE'?item.url:'';
+  $('#mediaSourceUrl').value = item.sourceUrl||'';
+  $('#mediaAttribution').value = item.attribution;
+  $('#mediaLicense').value = item.license;
+  $('#mediaRights').value = item.rightsStatus;
+  $('#mediaAlt').value = item.alt;
+  $('#mediaCaption').value = item.caption;
+  $('#mediaSubmit').textContent = 'Enregistrer ce média';
+  $('#mediaCancelEdit').classList.remove('hidden');
+  showMediaSourceFields();
+  $('#mediaInputType').focus();
+}
+async function compactLocalPhoto(file) {
+  if (!file || !['image/png','image/jpeg','image/webp'].includes(file.type)) throw Error('Choisis un JPEG, PNG ou WebP.');
+  if (file.size > MAX_PHOTO_SOURCE_BYTES) throw Error('Photo supérieure à 8 Mo. Réduis-la avant import.');
+  const u = URL.createObjectURL(file);
+  try {
+    const image = new Image(); image.src = u;
+    await image.decode();
+    const scale = Math.min(1, 1050/Math.max(image.naturalWidth,image.naturalHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(image.naturalWidth*scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight*scale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw Error('Traitement de l’image indisponible.');
+    ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    // Conversion retirant les métadonnées EXIF (y compris GPS) de la photographie.
+    for (const q of [0.78,0.62,0.44]) {
+      const data = canvas.toDataURL('image/webp',q);
+      if (/^data:image\/(?:webp|png);base64,/.test(data) && data.length <= MAX_EMBEDDED_PHOTO_CHARS) return data;
+    }
+    throw Error('Image encore trop volumineuse après optimisation.');
+  } finally { URL.revokeObjectURL(u); }
+}
+async function addOrUpdateMedia() {
+  if (!selected) return;
+  if (currentMedia.length >= 30 && !editedMediaId) return notify('Maximum de 30 médias par fiche.','error');
+  const type = $('#mediaInputType').value;
+  let kind = type==='VIDEO_URL'?'VIDEO':'PHOTO', storage = type==='PHOTO_FILE'?'EMBEDDED':'REMOTE';
+  const old = editedMediaId ? currentMedia.find(m => m.id === editedMediaId) : null;
+  let url = '';
+  if (storage==='EMBEDDED') {
+    const file = $('#mediaPhotoFile').files[0];
+    if (file) {
+      try { url = await compactLocalPhoto(file); }
+      catch(e) { notify(e.message,'error'); return; }
+    } else if (old?.storage==='EMBEDDED') url = old.url;
+    else return notify('Choisis d’abord un fichier photo.','error');
+  } else url = $('#mediaUrl').value.trim();
+  const originUrl = $('#mediaSourceUrl').value.trim();
+  const item = {
+    id: old?.id || freshMediaId(), kind, storage, url,
+    fileName: storage==='EMBEDDED'?($('#mediaPhotoFile').files[0]?.name||old?.fileName||'image'): '',
+    caption:$('#mediaCaption').value.trim(), alt:$('#mediaAlt').value.trim(),
+    sourceUrl:originUrl || (storage==='REMOTE'?url:null),
+    attribution:$('#mediaAttribution').value.trim(),license:$('#mediaLicense').value.trim(),
+    rightsStatus:$('#mediaRights').value,
+  };
+  const issue = mediaError(item);
+  if (issue) return notify('Média non ajouté : '+issue+'.','error');
+  if (old) currentMedia.splice(currentMedia.findIndex(x=>x.id===old.id),1,item);
+  else currentMedia.push(item);
+  dirty = true; clearMediaEditor(); renderMediaGallery();
+  notify('Média ajouté au brouillon de cette fiche. Exporte les brouillons pour le conserver.','ok');
+}
+
+$('#mediaInputType').addEventListener('change',showMediaSourceFields);$('#mediaSubmit').addEventListener('click',addOrUpdateMedia);$('#mediaCancelEdit').addEventListener('click',clearMediaEditor);
+$$('.tabs button').forEach(b=>b.addEventListener('click',()=>{if(dirty&&!saveCurrent())return;updateTabs(b.dataset.tab)}));$('#query').addEventListener('input',renderList);$('#filterSpecialty').addEventListener('change',renderList);$('#movementForm').addEventListener('input',()=>{dirty=true});$('#movementForm').addEventListener('change',()=>{dirty=true});$('#movementForm').addEventListener('submit',e=>{e.preventDefault();saveCurrent()});$('#resetMovement').addEventListener('click',()=>{if(!selected||!confirm('Annuler les modifications de cette fiche ?'))return;delete draft.movementEdits[selected];dirty=false;choose(selected);notify('Fiche rétablie dans le brouillon.','ok')});$('#importCatalog').addEventListener('change',e=>importFile(e.target,'catalog'));$('#importDrafts').addEventListener('change',e=>importFile(e.target,'drafts'));$('#export').addEventListener('click',()=>{if(!saveCurrent())return;const err=validateDraft();if(err){notify('Export refusé : '+err,'error');return;}if(exportJson(draft,'kodjo-admin-brouillons.json'))notify('Brouillons exportés sur cet appareil, photos incluses. Aucun envoi vers OVH.','ok')});$('#referenceAxis').addEventListener('change',renderReferences);$('#addReference').addEventListener('submit',e=>{e.preventDefault();const axis=$('#referenceAxis').value,id=$('#newRefId').value.trim(),label=$('#newRefLabel').value.trim(),kind=$('#newRefKind').value;if(!/^[a-z][a-z0-9-]{1,63}$/.test(id)||!label||actualValues(axis).some(x=>x.id===id||key(x.label)===key(label))){notify('ID ou libellé invalide / déjà utilisé.','error');return;}const extra={id,label,status:'PROPOSED'};if(axis==='clinicalProblems'){if(!kind)return notify('Choisis la nature du problème traité.','error');extra.kind=kind;extra.requiresClinicalValidation=true;}if(axis==='anatomicalTargets'){if(!kind)return notify('Choisis la nature de la cible anatomique.','error');extra.kind=kind;}draft.referenceAdditions[axis].push(extra);$('#addReference').reset();renderReferences();renderFilters();notify('Nouvelle valeur proposée conservée en mémoire.','ok')});$('#glossaryForm').addEventListener('submit',e=>{e.preventDefault();const d={id:$('#glossaryId').value.trim(),term:$('#glossaryTerm').value.trim(),definition:$('#glossaryDefinition').value.trim(),synonyms:lines($('#glossarySynonyms').value),relatedCandidateIds:lines($('#glossaryMovementIds').value)};if(!/^[a-z][a-z0-9-]{1,63}$/.test(d.id)||!d.term||!d.definition||d.relatedCandidateIds.some(id=>!candidate(id))||(draft.glossary.some(g=>g.id===d.id&&g.id!==glossaryEditing))){notify('Terme invalide, ID dupliqué ou mouvements associés inconnus.','error');return;}if(glossaryEditing)draft.glossary.splice(draft.glossary.findIndex(g=>g.id===glossaryEditing),1,d);else draft.glossary.push(d);newGlossary();renderGlossary();notify('Terme du glossaire conservé en mémoire.','ok')});$('#glossaryNew').addEventListener('click',newGlossary);window.addEventListener('beforeunload',e=>{if(dirty||Object.keys(draft.movementEdits).length||draft.glossary.length){e.preventDefault();e.returnValue='';}});
+renderFilters();renderList();choose(records[0].candidateId);
+</script>
+</body>
+</html>
