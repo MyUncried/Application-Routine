@@ -322,8 +322,10 @@ const styles = StyleSheet.create({
     lineHeight: 13,
     color: SECONDARY_TEXT,
   },
+  // Recette du 11/11/2026 (Hermann) : « Décaler un peu plus les chevrons à droite, et les textes aussi en réduisant
+  // l’espace avec les chevrons ». [Colonne à 20 de l’interrupteur, valeur centrée à 7 du chevron — remplacé.]
   soundCell: {
-    marginRight: 20,
+    marginRight: 10,
     textAlign: "center",
   },
   vibrationColumn: {
@@ -336,12 +338,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
-    gap: 7,
+    gap: 4,
     alignSelf: "stretch",
   },
   soundValueText: {
     flex: 1,
-    textAlign: "center",
+    textAlign: "right",
   },
   pickerSection: {
     ...inter.semiBold,

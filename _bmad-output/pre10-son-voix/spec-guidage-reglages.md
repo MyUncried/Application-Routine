@@ -353,3 +353,5 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - w3 : essai devenu sans objet (rangée Guidage de la Composition retirée, z1) ; retiré du cahier. x4 : KO sans note, texte de l’essai mis à jour (un tour par minute, avec ou sans cadence), à refaire.
 
 - z2, précisé par Hermann : « les interrupteurs sont trop hauts ». Interrupteurs des Préférences et de la modale abaissés de 2 (correction visuelle, classe D) ; valeur à ajuster sur constat.
+
+- Colonne Son, précisé par Hermann : « Décaler un peu plus les chevrons à droite, et les textes aussi en réduisant l’espace avec les chevrons ». Colonne à 10 de l’interrupteur (au lieu de 20), valeur alignée à droite à 4 du chevron (au lieu de centrée à 7). Classe B.
