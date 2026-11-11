@@ -325,3 +325,12 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - Préférences : en-tête à onglets du Figma (composant des Catalogues), Notifications, Séance (deux réglages), Annonces vocales, Sons et vibrations ; bloc Identité, groupe Exercice et Récupération après exercice retirés de l’écran (valeurs conservées et appliquées).
 - Modale et Choix d’un son : présentation du Figma (groupes bordés, lignes de 40, valeur Regular 12, petit chevron ; lignes de 44, coche bleue).
 - Restent À CLARIFIER : sons du système, Mi-temps, verrouillage de l’écran.
+
+### 12.4 Retour du 11/11/2026 après-midi (cahier, y1 et y3)
+
+- Hermann, recopié (y1) : « Supprimer le titre de section "Diagnostic des sons..." / Eloigner plus à gauche la colonne "Son", centrer le titre de la colonne / Compte à rebours et la fin de séance : utiliser le clavier et non pas le stepper / Remplacer "Toutes les X minutes" par "Toutes les minutes" (dans la modale et les préférences) ». Classe B.
+- Hermann, recopié (y3) : « Quand "Aucun" est sélectionné, son nom doit être "Aucun" dans la liste des préférences, et non pas "Non". / Dans la modale : / - Supprimer le texte "Toucher un son..." / - quand "Par défaut" est sélectionné, le son par défaut de l'application doit aussi être coché en même temps, cela permet de savoir lequel c'est. ». Classe B.
+- Préférences : Compte à rebours de la séance et Fin de séance au clavier numérique (`ProfileNumberField`), bornes inchangées (0 à 60 s), valeur hors bornes ramenée à la borne ; lien de diagnostic retiré de l’écran (l’écran de diagnostic reste dans le code, sans accès depuis les Préférences).
+- Sons et vibrations (Préférences et modale) : « Toutes les minutes », « Aucun », colonne Son à largeur fixe (112 / 104) à 20 de l’interrupteur, titre centré.
+- Choix d’un son : indication retirée ; « Par défaut » coche aussi le son par défaut de l’événement.
+- Documents : ch13 (CE-UI-07, Guidage sonore) annoté. Classe D : aucune.

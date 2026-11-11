@@ -2,6 +2,7 @@ import { Fragment, useRef, type ReactNode } from "react";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 
 import {
+  DEFAULT_EVENT_SOUNDS,
   GUIDANCE_EVENTS,
   LIBRARY_SOUNDS,
   soundOf,
@@ -71,8 +72,9 @@ export function GuidanceSettingsForm({
         ))}
       </GuidanceSection>
       <GuidanceSection title={t.eventsTitle} variant={variant} testID={`${testIDPrefix}-events`}>
-        <View style={styles.columnsRow} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-          <Text style={[styles.column, v.soundColumn]}>{t.soundColumn}</Text>
+        <View style={[styles.row, styles.columnsRow]} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+          <View style={styles.labelBlock} />
+          <Text style={[styles.column, styles.soundCell, v.soundCell]}>{t.soundColumn}</Text>
           <Text style={[styles.column, styles.vibrationColumn]}>{t.vibrationColumn}</Text>
         </View>
         {GUIDANCE_EVENTS.map((event) => {
@@ -83,7 +85,7 @@ export function GuidanceSettingsForm({
             <Fragment key={event}>
               <View style={styles.divider} />
               <View style={[styles.row, v.row]} testID={`${testIDPrefix}-event-${event}`}>
-                <Text style={styles.label} numberOfLines={1} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+                <Text style={[styles.label, styles.labelBlock]} numberOfLines={1} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
                   {label}
                 </Text>
                 <Pressable
@@ -92,8 +94,8 @@ export function GuidanceSettingsForm({
                   accessibilityLabel={t.soundLabel.replace("{event}", label)}
                   accessibilityValue={{ text: soundValue }}
                   accessibilityHint={t.soundHint}
-                  hitSlop={{ top: 8, bottom: 8, left: 8 }}
-                  style={styles.soundButton}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={[styles.soundButton, styles.soundCell, v.soundCell]}
                   testID={`${testIDPrefix}-event-${event}-sound`}
                 >
                   <Text style={v.soundValue} numberOfLines={1}>
@@ -184,14 +186,17 @@ export function GuidanceSwitchRow({
   );
 }
 
-/** Valeur affichée dans la colonne Son : « Par défaut », « Non » (Figma) ou le nom du son choisi. */
+/**
+ * Valeur affichée dans la colonne Son : « Par défaut », « Aucun » ou le nom du son choisi.
+ * [« Non » (Figma) — remplacé le 11/11/2026, retour de Hermann (y3) : « son nom doit être "Aucun" ».]
+ */
 export function soundChoiceLabel(choice: SoundChoice): string {
   const t = strings.screens.soundGuidance;
   if (choice === "DEFAULT" || choice === "NONE") return t.soundValue[choice];
   return t.librarySounds[choice];
 }
 
-/** Écoute d'un son de la liste (« Touchez un son pour l'écouter », Figma `12068:25044`). */
+/** Écoute d'un son de la liste (toucher un son le fait entendre, Figma `12068:25044`). */
 export function useSoundPreview(): (sound: LibrarySound) => void {
   const player = useRef<ExecutionSounds | null>(null);
   return (sound) => {
@@ -207,6 +212,9 @@ export function useSoundPreview(): (sound: LibrarySound) => void {
  * événements, y compris « Mi-temps » ») suit « Par défaut », même style. Toucher un son le coche et le fait entendre.
  * [À CLARIFIER : le design liste des « Sons du système » (Aurore, Bambou…) ; iOS ne donne pas accès à ses sons d'alerte
  * aux applications : la liste propose les sons de KODJO.]
+ * Retour de Hermann du 11/11/2026 (cahier, y3) : « Supprimer le texte "Toucher un son..." » ; « quand "Par défaut" est
+ * sélectionné, le son par défaut de l'application doit aussi être coché en même temps, cela permet de savoir lequel
+ * c'est. » [Indication « Touchez un son pour l'écouter. » en tête de liste — retirée.]
  */
 export function SoundChoiceList({
   event,
@@ -226,23 +234,24 @@ export function SoundChoiceList({
     const sound = soundOf(event, { sound: choice, vibration: false });
     if (sound !== null) preview(sound);
   };
+  // « Par défaut » choisi : le son par défaut de l'événement est coché lui aussi (y3).
+  const isChecked = (choice: SoundChoice) => value === choice || (value === "DEFAULT" && choice === DEFAULT_EVENT_SOUNDS[event]);
   const option = (choice: SoundChoice, label: string, emphasized: boolean) => (
     <Pressable
       key={choice}
       onPress={() => choose(choice)}
       accessibilityRole="radio"
-      accessibilityState={{ checked: value === choice }}
+      accessibilityState={{ checked: isChecked(choice) }}
       accessibilityLabel={label}
       style={styles.choiceRow}
       testID={`${testIDPrefix}-choice-${choice}`}
     >
       <Text style={emphasized ? styles.choiceLabelEmphasized : styles.choiceLabel}>{label}</Text>
-      {value === choice ? <KodjoIcon name="check-sound-chosen" testID={`${testIDPrefix}-choice-${choice}-check`} /> : null}
+      {isChecked(choice) ? <KodjoIcon name="check-sound-chosen" testID={`${testIDPrefix}-choice-${choice}-check`} /> : null}
     </Pressable>
   );
   return (
     <View testID={`${testIDPrefix}-choices`}>
-      <Text style={styles.pickerHint}>{t.picker.hint}</Text>
       {option("DEFAULT", t.picker.default, true)}
       <View style={styles.divider} />
       {option("NONE", t.picker.none, true)}
@@ -293,34 +302,31 @@ const styles = StyleSheet.create({
     lineHeight: 13,
     color: colors.textSecondary,
   },
+  // Retour de Hermann du 11/11/2026 (y1) : colonne « Son » éloignée de l'interrupteur, titre centré sur la colonne.
+  // [Valeurs alignées à droite contre l'interrupteur, titre « Son » posé à 80 / 75 du bord — remplacé.]
   columnsRow: {
     height: 32,
   },
   column: {
     ...inter.medium,
-    position: "absolute",
-    top: 9,
     fontSize: 11,
     lineHeight: 13,
     color: SECONDARY_TEXT,
   },
+  soundCell: {
+    marginRight: 20,
+    textAlign: "center",
+  },
   vibrationColumn: {
-    right: 0,
+    width: 51,
+    textAlign: "right",
   },
   soundButton: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     gap: 7,
     alignSelf: "stretch",
-  },
-  pickerHint: {
-    ...inter.regular,
-    fontSize: 13,
-    lineHeight: 16,
-    color: SECONDARY_TEXT,
-    marginBottom: 6,
   },
   pickerSection: {
     ...inter.semiBold,
@@ -368,8 +374,7 @@ const variants = {
       elevation: 2,
     },
     row: { height: 42 },
-    // « Son » centré au-dessus de la colonne des valeurs (Figma : x 247,5 dans un groupe de 370).
-    soundColumn: { right: 80 },
+    soundCell: { width: 112 },
     soundValue: { ...inter.medium, fontSize: 13, lineHeight: 16, color: SECONDARY_TEXT },
   }),
   sheet: StyleSheet.create({
@@ -384,8 +389,7 @@ const variants = {
       paddingHorizontal: 12,
     },
     row: { height: 40 },
-    // Figma : x 253,5 dans la modale (groupe à 16).
-    soundColumn: { right: 75 },
+    soundCell: { width: 104 },
     soundValue: { ...inter.regular, fontSize: 12, lineHeight: 15, color: SECONDARY_TEXT },
   }),
 } as const;

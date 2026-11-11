@@ -55,7 +55,7 @@ describe("modale Guidage sonore de la Composition", () => {
     expect(checked("session-guidance-announcement-sides")).toBe(false);
     expect(checked("session-guidance-announcement-names")).toBe(true);
     expect(soundValue("CADENCE")).toBe("Ding");
-    expect(soundValue("EVERY_MINUTES")).toBe("Non");
+    expect(soundValue("EVERY_MINUTES")).toBe("Aucun");
     expect(screen.getByTestId("session-guidance-event-CADENCE-vibration").props.value).toBe(true);
   });
 
@@ -65,9 +65,15 @@ describe("modale Guidage sonore de la Composition", () => {
     fireEvent.press(screen.getByTestId("session-guidance-event-HALF_TIME-sound"));
     expect(screen.getByTestId("session-guidance-sound-choices")).toBeTruthy();
     expect(checked("session-guidance-sound-choice-DEFAULT")).toBe(true);
+    // Recette du 11/11/2026 (Hermann, y3) : « Par défaut » coche aussi le son par défaut de l'événement (Bip long).
+    expect(checked("session-guidance-sound-choice-BIP_LONG")).toBe(true);
+    expect(screen.getByTestId("session-guidance-sound-choice-BIP_LONG-check")).toBeTruthy();
+    expect(checked("session-guidance-sound-choice-DING")).toBe(false);
+    expect(screen.queryByText("Touchez un son pour l’écouter.")).toBeNull();
     fireEvent.press(screen.getByTestId("session-guidance-sound-choice-NONE"));
+    expect(checked("session-guidance-sound-choice-BIP_LONG")).toBe(false);
     fireEvent.press(screen.getByTestId("session-guidance-sound-apply"));
-    expect(soundValue("HALF_TIME")).toBe("Non");
+    expect(soundValue("HALF_TIME")).toBe("Aucun");
     expect(screen.getByTestId("session-guidance-event-HALF_TIME-vibration").props.value).toBe(true);
     fireEvent.press(screen.getByTestId("session-guidance-apply"));
     expect(onApply).toHaveBeenCalledTimes(1);
@@ -83,7 +89,7 @@ describe("modale Guidage sonore de la Composition", () => {
       events: { ...DEFAULT_GUIDANCE_EVENTS, HALF_TIME: { sound: "NONE", vibration: true } },
     };
     const { onApply, onClose } = await renderSheet(own);
-    expect(soundValue("HALF_TIME")).toBe("Non");
+    expect(soundValue("HALF_TIME")).toBe("Aucun");
     fireEvent.press(screen.getByTestId("session-guidance-announcement-pauses"));
     expect(checked("session-guidance-announcement-pauses")).toBe(false);
     fireEvent.press(screen.getByTestId("session-guidance-close"));

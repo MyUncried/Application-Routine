@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { Fragment, useCallback, useState, type ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 
 import type { GuidanceEvent, VoiceAnnouncement } from "@/domain/preferences/guidanceSettings";
 import { profileDurationBounds, profileGuidance, type Profile, type ProfileDurationSetting } from "@/domain/preferences/Profile";
@@ -16,9 +16,9 @@ import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
 import { strings } from "@/shared/i18n";
 import { catalogueColors } from "@/shared/ui/catalogueContext";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
-import { ProfileStepper } from "@/shared/ui/ProfileStepper";
+import { ProfileNumberField } from "@/shared/ui/ProfileNumberField";
 import { FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
-import { colors, layout, spacing, type } from "@/shared/ui/tokens";
+import { layout, spacing } from "@/shared/ui/tokens";
 
 /**
  * Profil › Préférences — Figma `1992:684` et `12093:25010` (deux positions de défilement), documentation publiée sur
@@ -36,6 +36,10 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  * [Remplacé le 11/11/2026 — bloc Identité en tête, groupes Exercice (Pause entre les côtés, Compte à rebours d'un
  * exercice, Fin d'exercice), Récupération après exercice, Guidage et Préférences (Sons, Vibration) : retirés de l'écran
  * (« anciennes entrées »). Les valeurs déjà enregistrées restent utilisées pour les nouveaux exercices.]
+ * Retour de Hermann du 11/11/2026, 13 h 29 (cahier, y1) : « Supprimer le titre de section "Diagnostic des sons..." / Eloigner plus à gauche la colonne "Son", centrer le titre de la colonne / Compte à rebours et la fin de séance : utiliser le clavier et non pas le stepper / Remplacer "Toutes les X minutes" par "Toutes les minutes" (dans la modale et les préférences) »
+ * - Compte à rebours de la séance et Fin de séance : saisie au clavier numérique (`ProfileNumberField`).
+ *   [Stepper ouvert en place, un seul à la fois (D-227) — remplacé le 11/11/2026.]
+ * - [Lien « Diagnostic des sons (développement) » en bas de l'écran — retiré le 11/11/2026.]
  */
 const SESSION_SETTINGS: readonly ProfileDurationSetting[] = ["sessionInitialCountdownSecondsDefault", "sessionFinalPhaseSecondsDefault"];
 
@@ -60,7 +64,6 @@ export function ProfileScreen() {
   const profileService = useProfileService();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus>("undetermined");
-  const [openStepper, setOpenStepper] = useState<ProfileDurationSetting | null>(null);
   const t = strings.screens.profile;
   const palette = catalogueColors("sessions");
 
@@ -118,15 +121,12 @@ export function ProfileScreen() {
     const bounds = profileDurationBounds(setting);
     const label = setting === "sessionInitialCountdownSecondsDefault" ? t.settings.sessionInitialCountdown : t.settings.sessionFinalPhase;
     return (
-      <ProfileStepper
+      <ProfileNumberField
         key={setting}
         label={label.label}
-        unit={label.unit}
         value={profile[setting]}
         min={bounds.min}
         max={bounds.max}
-        isOpen={openStepper === setting}
-        onToggle={() => setOpenStepper((current) => (current === setting ? null : setting))}
         onCommit={(value) => commitSetting(setting, value)}
         testID={`profile-setting-${setting}`}
       />
@@ -170,6 +170,7 @@ export function ProfileScreen() {
           // navigation + 16 (même formule que `CatalogueScreen`).
           contentContainerStyle={[styles.bodyContent, { paddingBottom: navigationBarTotalHeight() + spacing[16] }]}
           showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
           testID="profile-screen-body"
         >
           <GuidanceSection title={t.groups.notifications} variant="screen" testID="profile-group-notifications">
@@ -194,12 +195,6 @@ export function ProfileScreen() {
             testIDPrefix="profile-guidance"
             variant="screen"
           />
-          {__DEV__ ? (
-            // Recette PRE-10 : accès technique au diagnostic des sons, en développement seulement (essais K3, K5, K6).
-            <Pressable onPress={() => router.push("/diagnostic-sons")} accessibilityRole="button" style={styles.devLink} testID="profile-dev-sound-diagnostic">
-              <Text style={styles.devLinkLabel}>Diagnostic des sons (développement)</Text>
-            </Pressable>
-          ) : null}
         </ScrollView>
       ) : null}
     </ScreenShell>
@@ -243,13 +238,5 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#E0E3E8",
-  },
-  devLink: {
-    alignSelf: "flex-start",
-    paddingVertical: spacing[8],
-  },
-  devLinkLabel: {
-    ...type.supporting,
-    color: colors.textSecondary,
   },
 });

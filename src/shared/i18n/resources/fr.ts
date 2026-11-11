@@ -1543,20 +1543,21 @@ export const fr = {
         PHASE_CHANGE: "Changement de phase",
         SIDE_CHANGE: "Changement de côté",
         CADENCE: "Cadence",
-        EVERY_MINUTES: "Toutes les X minutes",
+        // Recette du 11/11/2026 (Hermann, y1). [« Toutes les X minutes » — remplacé.]
+        EVERY_MINUTES: "Toutes les minutes",
         HALF_TIME: "Mi-temps",
         STOP_POINT: "Point d’arrêt",
         SESSION_END: "Fin de séance",
       },
       soundValue: {
         DEFAULT: "Par défaut",
-        NONE: "Non",
+        // Recette du 11/11/2026 (Hermann, y3 : « son nom doit être "Aucun" […] et non pas "Non" »). [« Non » — remplacé.]
+        NONE: "Aucun",
       },
       soundHint: "Ouvre le choix du son",
       soundLabel: "Son, {event}",
       vibrationLabel: "Vibration, {event}",
       picker: {
-        hint: "Touchez un son pour l’écouter.",
         default: "Par défaut",
         none: "Aucun",
         librarySection: "Sons de l’application",

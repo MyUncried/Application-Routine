@@ -79,8 +79,8 @@ describe("ProfileScreen", () => {
     await renderScreen();
 
     expect(screen.getByTestId("profile-group-notifications")).toBeTruthy();
-    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value").props.children).toBe("10″");
-    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children).toBe("5″");
+    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value").props.value).toBe("10″");
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value).toBe("5″");
     for (const absent of [
       "profile-group-exercise",
       "profile-setting-sideChangeRecoverySecondsDefault",
@@ -114,7 +114,7 @@ describe("ProfileScreen", () => {
       expect(screen.getByTestId(`profile-guidance-announcement-${announcement}`).props.accessibilityState).toEqual({ checked: true });
     }
     expect(screen.getByTestId("profile-guidance-event-COUNTDOWN-sound").props.accessibilityValue).toEqual({ text: "Par défaut" });
-    expect(screen.getByTestId("profile-guidance-event-EVERY_MINUTES-sound").props.accessibilityValue).toEqual({ text: "Non" });
+    expect(screen.getByTestId("profile-guidance-event-EVERY_MINUTES-sound").props.accessibilityValue).toEqual({ text: "Aucun" });
     expect(screen.getByTestId("profile-guidance-event-CADENCE-vibration").props.value).toBe(false);
     expect(screen.getByTestId("profile-guidance-event-HALF_TIME-vibration").props.value).toBe(true);
     expect(
@@ -138,40 +138,35 @@ describe("ProfileScreen", () => {
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/profile-sound", params: { event: "HALF_TIME" } });
   });
 
-  it("never renders an Exercise wheel picker (DurationWheelPicker/NumberWheelPicker) — every duration uses ProfileStepper (CE-UI-07 L2533)", async () => {
+  // [« every duration uses ProfileStepper » — remplacé le 11/11/2026 (Hermann, y1) : saisie au clavier numérique.]
+  it("never renders an Exercise wheel picker (DurationWheelPicker/NumberWheelPicker) — the Session durations are typed on the number pad", async () => {
     await renderScreen();
 
     expect(screen.queryByTestId("duration-wheel-minutes")).toBeNull();
     expect(screen.queryByTestId("duration-wheel-seconds")).toBeNull();
-    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault")).toBeTruthy();
-  });
-
-  /** D-227 : un seul stepper ouvert à la fois. */
-  it("keeps only one stepper open at a time", async () => {
-    await renderScreen();
-
-    fireEvent.press(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault"));
-    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-increment")).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault"));
+    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value").props.keyboardType).toBe("number-pad");
     expect(screen.queryByTestId("profile-setting-sessionInitialCountdownSecondsDefault-increment")).toBeNull();
-    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-increment")).toBeTruthy();
   });
 
-  it("persists a stepper change immediately via ProfileService.setDefault, leaving the other value unchanged (CE-UI-07 L2545, L2557, L2561)", async () => {
-    const updated = aProfile({ sessionInitialCountdownSecondsDefault: 11 });
+  // Recette du 11/11/2026 (Hermann, y1 : « utiliser le clavier et non pas le stepper »).
+  // [D-227 « un seul stepper ouvert à la fois » et l'écriture au relâchement du stepper — remplacés.]
+  it("clavier : la saisie remplace la valeur et n'est enregistrée qu'à la fermeture du clavier, l'autre valeur inchangée", async () => {
+    const updated = aProfile({ sessionInitialCountdownSecondsDefault: 15 });
     const setDefault = jest.fn(async () => updated);
     await renderScreen(fakeProfileService({ setDefault: setDefault as unknown as ProfileService["setDefault"] }));
 
-    fireEvent.press(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault"));
-    const incrementButton = screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-increment");
-    fireEvent(incrementButton, "pressIn");
+    const field = screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value");
+    fireEvent(field, "focus");
+    expect(field.props.value).toBe("");
+    fireEvent.changeText(field, "15");
+    expect(setDefault).not.toHaveBeenCalled();
     await act(async () => {
-      fireEvent(incrementButton, "pressOut");
+      fireEvent(field, "blur");
     });
 
-    await waitFor(() => expect(setDefault).toHaveBeenCalledWith("sessionInitialCountdownSecondsDefault", 11));
-    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children).toBe("5″");
+    await waitFor(() => expect(setDefault).toHaveBeenCalledWith("sessionInitialCountdownSecondsDefault", 15));
+    expect(setDefault).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value).toBe("5″");
   });
 
   it("re-reads the Profile after a reopen (relecture après réouverture, useFocusEffect)", async () => {
@@ -181,14 +176,14 @@ describe("ProfileScreen", () => {
       .mockResolvedValueOnce(aProfile({ sessionFinalPhaseSecondsDefault: 9 }));
     await renderScreen(fakeProfileService({ getProfile }));
 
-    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children).toBe("5″");
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value).toBe("5″");
 
     await act(async () => {
       focusEffectHarness.effect?.();
     });
 
     await waitFor(() =>
-      expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children).toBe("9″"),
+      expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value).toBe("9″"),
     );
   });
 
@@ -268,7 +263,8 @@ describe("ProfileScreen", () => {
    * séance déjà enregistrée au-delà de 60 s est affichée et conservée
    * exacte ; `+` est inactif ; `−` la ramène d'abord à 60 s.
    */
-  it("displays a stored Session default above 60 s exactly, disables +, and steps − down to 60 first (D-265)", async () => {
+  // [« disables +, and steps − down to 60 first » — remplacé le 11/11/2026 (y1) : une saisie au-delà de la borne y est ramenée.]
+  it("displays a stored Session default above 60 s exactly; a typed value above the maximum is brought back to it (D-265)", async () => {
     const setDefault = jest.fn(async () => aProfile({ sessionFinalPhaseSecondsDefault: 60 }));
     await renderScreen(
       fakeProfileService({
@@ -278,21 +274,14 @@ describe("ProfileScreen", () => {
     );
 
     expect(
-      screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children,
+      screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value,
     ).toBe("70″");
 
-    fireEvent.press(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault"));
-    expect(
-      screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-increment").props
-        .accessibilityState,
-    ).toEqual({ disabled: true });
-
-    const decrementButton = screen.getByTestId(
-      "profile-setting-sessionFinalPhaseSecondsDefault-decrement",
-    );
-    fireEvent(decrementButton, "pressIn");
+    const field = screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value");
+    fireEvent(field, "focus");
+    fireEvent.changeText(field, "99");
     await act(async () => {
-      fireEvent(decrementButton, "pressOut");
+      fireEvent(field, "blur");
     });
 
     await waitFor(() =>
