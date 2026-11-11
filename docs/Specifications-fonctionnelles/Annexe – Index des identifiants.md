@@ -1178,7 +1178,7 @@ Les identifiants ci-dessous appartiennent au registre fonctionnel. Ce complémen
 | Identifiant | Source de définition | Portée |
 |---|---|---|
 | BIB-01 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
-| BIB-02 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
+| BIB-02 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Auteur unique **applicable dès CA-1**, confirmé par MOUV-D1 ; Bibliothèques communautaires différées |
 | BIB-03 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-04 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
 | BIB-05 | [Registre actuel](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) | Distribution des fiches et Bibliothèques — cible post-MVP |
