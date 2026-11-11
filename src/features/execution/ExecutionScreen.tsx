@@ -30,7 +30,7 @@ import { effectiveGuidance, type SessionGuidance } from "@/domain/sessions/sessi
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
 import { ringMotion } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
-import { reclaimExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
+import { reclaimExecutionAudio, releaseExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 import { ExecutionDialog } from "./ExecutionDialog";
@@ -195,7 +195,11 @@ export function ExecutionScreen({
       // autre application, il faut une interruption de la séance, par défaut ») : la séance passe en Pause dès que
       // l'application quitte le premier plan. [À CLARIFIER : iOS ne distingue pas le verrouillage de l'écran, qui met
       // aussi la séance en Pause ; la poursuite explicite en arrière-plan (petit écran flottant) reste à définir.]
-      if (state === "background") void service.dispatch({ type: "PAUSE", reason: "USER" }).catch(() => undefined);
+      if (state === "background") {
+        void service.dispatch({ type: "PAUSE", reason: "USER" }).catch(() => undefined);
+        // Recette du 11/11/2026 (Hermann, m2, second essai) : hors de la séance, la musique retrouve son volume.
+        releaseExecutionAudio();
+      }
     });
     return () => {
       if (timer !== null) clearTimeout(timer);

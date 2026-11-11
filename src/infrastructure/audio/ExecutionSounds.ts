@@ -150,6 +150,19 @@ export function reclaimExecutionAudio(): void {
   });
 }
 
+/**
+ * Recette du 11/11/2026, second essai m2 (Hermann) : « Lance d'une séance > lancement de spotify > retour sur la séance > Reprendre la séance : La musique baisse > retour sur spotify : la musique ne redevient pas au volume initial > retour sur la séance : le son augmente et diminue de suite > Reprendre la séance : le volume reste diminué. » Application quittée pendant une Exécution : la session
+ * audio est rendue, la musique retrouve son volume ; elle est reprise au retour (`reclaimExecutionAudio`).
+ */
+export function releaseExecutionAudio(): void {
+  if (library !== null) {
+    void library.release().catch(() => undefined);
+    return;
+  }
+  if (session === null || !hasNativeModule("ExpoAudio")) return;
+  void import("expo-audio").then((audio) => audio.setIsAudioActiveAsync(false)).catch(() => undefined);
+}
+
 export class ExecutionSounds implements BeepPort {
   /** Début d'Exécution : session active et un lecteur prêt par son, pour qu'aucun son ne parte en retard. */
   prepare(): void {

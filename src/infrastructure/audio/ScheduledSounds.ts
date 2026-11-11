@@ -35,6 +35,7 @@ function api(): AudioApi {
 export class ScheduledSounds {
   private context: Context | null = null;
   private policy: SessionPolicy = "LIBRARY_DUCK";
+  private released = false;
   private readonly buffers = new Map<BeepTone, Promise<Buffer>>();
 
   /** Session audio de l'application, réglée par la bibliothèque : lecture, mode silencieux ignoré, autres sons atténués ou mélangés. */
@@ -55,8 +56,20 @@ export class ScheduledSounds {
    */
   async reclaim(): Promise<void> {
     if (this.context === null || !hasScheduledSounds()) return;
-    await api().AudioManager.setAudioSessionActivity(false).catch(() => undefined);
+    // Recette du 11/11/2026, second essai m2 (Hermann) : « Lance d'une séance > lancement de spotify > retour sur la séance > Reprendre la séance : La musique baisse > retour sur spotify : la musique ne redevient pas au volume initial > retour sur la séance : le son augmente et diminue de suite > Reprendre la séance : le volume reste diminué. » La session est rendue quand l'application quitte le
+    // premier plan (`release`) : la musique retrouve son volume hors de la séance ; au retour, la session est seulement
+    // réactivée, sans remontée passagère. [Désactivation puis réactivation au retour — remplacé, sauf si la session
+    // n'a pas pu être rendue.]
+    if (!this.released) await api().AudioManager.setAudioSessionActivity(false).catch(() => undefined);
+    this.released = false;
     await this.start(this.policy);
+  }
+
+  /** Application quittée pendant l'Exécution : session rendue, la musique des autres applications retrouve son volume. */
+  async release(): Promise<void> {
+    if (this.context === null || !hasScheduledSounds()) return;
+    await api().AudioManager.setAudioSessionActivity(false);
+    this.released = true;
   }
 
   /** Décode tous les sons à l'avance (aucun chargement au moment de jouer). */
