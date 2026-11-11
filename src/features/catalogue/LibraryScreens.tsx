@@ -31,6 +31,7 @@ import { AdminClient, AdminClientError, type AdminEndpoint, type AdminSession } 
 import { referenceLabels } from "@/features/catalogue/catalogueLoadPresentation";
 import type { LibraryApplyReport, LibraryProgress } from "@/features/catalogue/LibraryService";
 import { librarySession } from "@/features/catalogue/librarySession";
+import { currentPairing, forgetStoredPairing, storePairing } from "@/features/catalogue/pairingStore";
 import {
   REVIEW_REASON_LABELS,
   availableLine,
@@ -72,6 +73,8 @@ export type LibraryScreenDependencies = {
 };
 
 const defaultClient = new AdminClient();
+/** Pas de rechargement automatique de la liste dans les 2 s qui suivent le précédent (recette du 11/11). */
+const AUTO_REFRESH_PAUSE_MS = 2_000;
 
 function useServicesOrMessage(): LibraryServices | null {
   return useLibraryServices().services;
@@ -173,6 +176,16 @@ export function LibraryConnectScreen({ client = defaultClient, pickFile = pickCa
   const fileImport = useFileImport(pickFile);
   const name = deviceName ?? Device.deviceName ?? "iPhone";
 
+  // Recette du 11/11 : un appairage encore valide (jeton du PC non expiré) est repris tel quel,
+  // sans redemander de code — écran « Connecté » (12116:25175).
+  useEffect(() => {
+    let active = true;
+    void currentPairing().then((session) => {
+      if (active && session) setPhase((current) => (current.kind === "entry" ? { kind: "connected", session } : current));
+    });
+    return () => { active = false; };
+  }, []);
+
   const connect = useCallback(async () => {
     cancelled.current = false;
     setPhase({ kind: "connecting" });
@@ -186,6 +199,8 @@ export function LibraryConnectScreen({ client = defaultClient, pickFile = pickCa
     if (cancelled.current) return;
     try {
       const session = await client.pair(endpoint, code, name);
+      librarySession.restorePairing(session);
+      storePairing(session);
       if (!cancelled.current) setPhase({ kind: "connected", session });
     } catch (reason) {
       if (cancelled.current) return;
@@ -358,7 +373,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
       setPhase({ kind: "ready", previews: [], origin: "", refreshedAt: Date.now() });
       return;
     }
-    setPhase({ kind: "loading" });
+    setPhase((current) => (current.kind === "loading" ? current : { kind: "loading" }));
     if (source.kind === "FILE") {
       const available = await services.libraries.available(source.file);
       const previews = available.ok ? available.previews : [];
@@ -393,6 +408,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
       setPhase({ kind: "ready", previews, origin: `Reçues de l'administration · ${source.session.name}`, refreshedAt: Date.now(), withheld });
     } catch (reason) {
       const unauthorized = reason instanceof AdminClientError && reason.code === "UNAUTHORIZED";
+      if (unauthorized) forgetStoredPairing();
       setPhase({
         kind: "error",
         unauthorized,
@@ -403,7 +419,29 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
     }
   }, [services, client]);
 
-  useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
+  // Recette du 11/11 (« Maximum update depth exceeded », liste qui clignote) : sur l'iPhone, le rappel
+  // de focus était relancé à chaque rendu, et `refresh` repasse l'écran en chargement, d'où un
+  // nouveau rendu. Le rappel ne dépend plus que de la disponibilité des services, lit la dernière
+  // version de `refresh` dans une référence, et ne relance rien pendant un chargement ni juste après.
+  const refreshRef = useRef(refresh);
+  useEffect(() => { refreshRef.current = refresh; }, [refresh]);
+  const inFlight = useRef(false);
+  const lastRefresh = useRef(0);
+  const runRefresh = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    try {
+      await refreshRef.current();
+    } finally {
+      inFlight.current = false;
+      lastRefresh.current = Date.now();
+    }
+  }, []);
+  const servicesReady = services !== null;
+  useFocusEffect(useCallback(() => {
+    if (!servicesReady || inFlight.current || Date.now() - lastRefresh.current < AUTO_REFRESH_PAUSE_MS) return;
+    void runRefresh();
+  }, [servicesReady, runRefresh]));
 
   const isAdmin = librarySession.source()?.kind === "ADMIN";
   let body: React.ReactNode;
@@ -425,7 +463,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
     body = <Notice tone="danger" title="Liste indisponible" testID="library-available-error">{phase.message}</Notice>;
     primary = phase.unauthorized
       ? { label: "Se reconnecter", onPress: () => router.replace("/library-connect"), testID: "library-available-reconnect" }
-      : { label: "Actualiser", onPress: () => void refresh(), testID: "library-available-refresh" };
+      : { label: "Actualiser", onPress: () => void runRefresh(), testID: "library-available-refresh" };
   } else if (phase.previews.length === 0) {
     body = (
       <StatusHero
@@ -436,7 +474,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
       />
     );
     secondary = [{ label: "Importer depuis un fichier", onPress: () => void fileImport.run(), testID: "library-available-file" }];
-    primary = isAdmin ? { label: "Actualiser", onPress: () => void refresh(), testID: "library-available-refresh" } : null;
+    primary = isAdmin ? { label: "Actualiser", onPress: () => void runRefresh(), testID: "library-available-refresh" } : null;
   } else {
     body = (
       <>
@@ -468,7 +506,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
         {isAdmin ? (
           <View style={screenStyles.refreshLine}>
             <Text style={LIBRARY_TEXT.note}>Actualisée à l&apos;instant</Text>
-            <TextLink label="Actualiser" onPress={() => void refresh()} testID="library-available-refresh-row" />
+            <TextLink label="Actualiser" onPress={() => void runRefresh()} testID="library-available-refresh-row" />
           </View>
         ) : null}
       </>
@@ -1146,6 +1184,7 @@ export function LibrarySendScreen({ client = defaultClient, deviceName }: Librar
       setPhase({ kind: "sent", received: result.received, duplicates: result.duplicates });
     } catch (reason) {
       const unauthorized = reason instanceof AdminClientError && reason.code === "UNAUTHORIZED";
+      if (unauthorized) forgetStoredPairing();
       setPhase({
         kind: "error",
         reconnect: unauthorized,

@@ -180,3 +180,13 @@ Aucun SVG identique n'existait déjà. Ces fichiers ne contiennent aucune URL Fi
 - Deux assertions de `LibraryScreens.test.tsx` vérifiaient l'ancienne structure visuelle : une seule chaîne pour le compteur et pour un problème de fichier. Elles vérifient maintenant le même contenu dans la nouvelle structure (compteur par testID, problème « Fiche 12 » et sa raison dans la même ligne).
 
 **Synchronisation code / documentation.** Classe A (conformité aux maquettes). Une ligne a été ajoutée à la spec, section Synchronisation.
+
+## Corrections de la recette du 11/11 (après-midi)
+
+| Constat de Hermann | Cause | Correction | Classe |
+|---|---|---|---|
+| « Bibliothèques disponibles » clignote entre « Chargement » et la liste, « Maximum update depth exceeded » | Pile Metro : `refresh` relancé par le rappel de focus à chaque rendu (`LibraryScreens.tsx`, `setPhase` chargement). | Rappel de focus indépendant de l'identité de `refresh` (référence), aucun rechargement automatique pendant un chargement ni dans les 2 s suivantes, pas de nouvel état « chargement » s'il l'est déjà. | A |
+| « L'appairage […] s'arrête dès que je sors de l'écran » | L'appairage n'était qu'une source en mémoire, et l'écran Connexion redemandait toujours le code. | `librarySession.pairing` (jeton valide jusqu'à son expiration, marge 60 s) ; `pairingStore.ts` le garde dans le dossier de l'application ; Connexion reprend l'appairage (écran « Connecté ») ; jeton refusé par le PC → oublié. Durée : celle du PC, **12 h** (spec W2), pas 24 h. | A (W2 : « jeton de 12 h, révocable ») ; stockage D |
+| « · PROPOSED » après les noms du référentiel dans l'interface Web | Statut technique accolé au nom (`app.js`). Le serveur ouvert tournait depuis `KODJO-CAT-ADMIN` (ancienne branche W1/W2), d'où l'absence de la correction. | `7765c325` ; statut en info-bulle. Cahier : chemin exact du dossier à utiliser. | A |
+
+Tests : `npx jest --maxWorkers=4` sur le fichier pilote versionné, 348 suites et 5 847 tests verts (+ `librarySession.pairing.test.ts`) ; `tsc` 0 erreur ; eslint des fichiers modifiés 0 problème ; `node --test tools/catalogue-admin/server.test.mjs` 24 verts. Les données de recette (61 fiches, « Recette Hyrox ») ont été recopiées de `KODJO-CAT-ADMIN` dans le dossier d'intégration, sans commit.
