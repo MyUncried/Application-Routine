@@ -357,3 +357,5 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - Colonne Son, précisé par Hermann : « Décaler un peu plus les chevrons à droite, et les textes aussi en réduisant l’espace avec les chevrons ». Colonne à 10 de l’interrupteur (au lieu de 20), valeur alignée à droite à 4 du chevron (au lieu de centrée à 7). Classe B.
 
 - Colonne Son, Hermann : « L’espace est trop réduit pour le coup ». Valeur à 7 du chevron (au lieu de 4), toujours alignée à droite ; colonne à 10 de l’interrupteur.
+
+- Hermann : « "phase" ne peut pas s’afficher ? » — « Changement de phase » était tronqué. Colonne Son réduite à la plus longue valeur : 96 (Préférences, au lieu de 112) et 90 (modale, au lieu de 104). Classe D. Tests : 52/52.

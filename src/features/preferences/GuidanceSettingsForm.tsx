@@ -392,7 +392,9 @@ const variants = {
       elevation: 2,
     },
     row: { height: 42 },
-    soundCell: { width: 112 },
+    // « "phase" ne peut pas s’afficher ? » (Hermann) : colonne Son ramenée à la plus longue valeur (« Sifflet roulé » + chevron)
+    // pour que « Changement de phase » tienne en entier. [112 — remplacé.]
+    soundCell: { width: 96 },
     soundValue: { ...inter.medium, fontSize: 13, lineHeight: 16, color: SECONDARY_TEXT },
   }),
   sheet: StyleSheet.create({
@@ -407,7 +409,7 @@ const variants = {
       paddingHorizontal: 12,
     },
     row: { height: 40 },
-    soundCell: { width: 104 },
+    soundCell: { width: 90 }, // [104 — remplacé, même raison.]
     soundValue: { ...inter.regular, fontSize: 12, lineHeight: 15, color: SECONDARY_TEXT },
   }),
 } as const;
