@@ -485,7 +485,7 @@ Ces termes décrivent la **diffusion entre utilisateurs** et ne changent pas le 
 - **Bibliothèque personnelle** : composition modifiable par son propriétaire. **Bibliothèque reçue** : composition non modifiable localement par le destinataire.
 - **Copie personnelle** : nouvelle identité locale avec provenance et permissions conservées ; distincte du simple référencement.
 - **Publier** : première diffusion par le propriétaire habilité. **Redistribuer** : transmission ultérieure par un destinataire lorsque sa permission l'autorise.
-- **Permissions de fiche** : Modifier et Redistribuer (quatre modes), sans effet sur les paramètres propres aux Exercices.
+- **Permissions de fiche (MOUV-D3)** : les fiches importées sont non modifiables et non duplicables ; leur éventuelle redistribution exige l'autorisation de la source. Les Mouvements créés personnellement restent modifiables/duplicables ; les paramètres des Exercices demeurent indépendants.
 - **Révision active** : version utilisée partout où la même identité source est référencée. Une mise à jour volontaire depuis une Bibliothèque la propage à toutes ses références locales, sans modifier leur composition.
 - **Espace en étoile** : relations individuelles orientées entre utilisateurs, sans rôle « professionnel » dans le modèle et sans prescription numérique dans ce premier lot.
 - **Modération** : suspension prioritaire de fiche ou média, distincte d'une mise à jour volontaire.
