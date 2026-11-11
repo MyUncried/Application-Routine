@@ -164,6 +164,7 @@ Cahier : `_bmad-output/catalogue-connecte/implementation-artifacts/recette-iphon
 | Boîte d'arrivée : bornes du contrat du Mouvement (QN-1) | A | format § 12 (borne 20/65 remplacée, annotée) |
 | Transfert Wi-Fi refusé si un média a des droits non confirmés | A (MOUV-D2) | format § 12, rapport de livraison |
 | Premier lot du Profil : Ajouter, Envoyer, Installées (A-4) | B | ch. 06, 08, 13 |
+| Mise en page Figma des écrans Bibliothèques (correction du 11/11 : cartes, intitulés au-dessus, icônes et chevrons SVG, pastilles, encarts, états centrés) | A (conformité aux maquettes 510:101) | aucun ; écarts restants dans le rapport de livraison, section « Correction du 11/11 » |
 
 ## À CLARIFIER
 

@@ -126,3 +126,57 @@ Commit de ce rapport sur `catalogue/integration-pre10-20261111`, poussé ; hash 
 - Figma non modifié.
 - OVH non modifié.
 - PRE-10 non modifié : aucune écriture dans `C:/Dev/PRE10` ni `C:/Dev/PRE10-SON`.
+
+## Correction du 11/11 : mise en page Figma des écrans Bibliothèques
+
+**Constat (recette iPhone).** Les écrans A1 reprenaient les textes et les états des maquettes, pas leur mise en page : titres de section dans les cartes, aucune icône de ligne, chevron dessiné avec le caractère « › » (interdit par `assets/icons/manifest.json`), encarts et pastilles génériques.
+
+**Méthode.** Lecture seule Figma (`G6RY5Ebhgwb4AHIOYDwwvg`, page 510:101), skill `figma-design-to-code`, `get_design_context` sur chaque nœud (captures prises comme cible). Aucune modification Figma. Positions absolues converties en flex, largeur variable. Comportement inchangé : logique, navigation, services, textes, testID.
+
+**Écrans repris.**
+- Profil, sections Bibliothèques (12119:25611) : intitulés 11 px #595E66 au-dessus des cartes, icônes Ajouter / Envoyer / livre, chevron SVG.
+- Ajouter une bibliothèque (12116:25073) : deux cartes séparées, icônes fichier et PC, petit chevron.
+- Connexion (12116:25103, 25138, 25175, 25200, 25238) : cases 48 × 56 centrées, liseré #C7CCD6 ou rouge 1,5 ; chiffres gris pendant la connexion ; état connecté centré (pastille verte, coche) ; encart rouge avec icône pour le code refusé ; PC introuvable centré (pastille rouge, Wi-Fi) et carte de trois conseils à puce bleue ; bouton secondaire gris « Annuler » ou « Importer depuis un fichier ».
+- Bibliothèques disponibles (12118:25124, 12119:25204, 12119:25277) : icône livre, nom Medium 15, pastilles bleue, verte ou grise ; ligne « Actualisée à l'instant · Actualiser » ; chargement avec squelette ; liste vide centrée.
+- Aperçu avant installation (12118:25170) : grand compteur « N fiches / dans cette bibliothèque », puces bleue et verte, note dans la carte ; encart jaune avec triangle ; section « Nouvelles fiches » avec pastilles vertes et « et N autres fiches nouvelles ».
+- Installation terminée (12118:25220) et mise à jour appliquée (12118:25370) : état centré et carte de résumé ; « Voir dans le Catalogue » au-dessus, « Terminer » en gris dessous.
+- Aperçu d'une mise à jour (12118:25251) : trois compteurs dans une carte, intitulé de révision au-dessus, pastilles Modifiée (bleue), Nouvelle (verte), Retirée (grise), lien « Voir le détail », « Aussi dans … » ; Reporter et Refuser côte à côte.
+- Détail d'une fiche (12118:25316) : une carte par champ, colonnes Actuelle | Nouvelle ; lien « Voir les champs inchangés ».
+- Fichier invalide (12119:25162) : encart rouge ; problèmes à puce rouge, la fiche en titre et le problème dessous.
+- Reprise après interruption (12119:25245) : carte avec pastille Reprise, barre de progression et décompte ; « Plus tard » en gris.
+- Bibliothèque installée (12098:115), sans « Désinstaller » : pastille « Mettre à jour » dans l'en-tête, état en 13 gris, carte des mouvements avec chevrons.
+- Pastille du Mouvement importé (12119:25304, `ImportedMovementBadge`) : fond #EAEAFF, hauteur 28, icône livre Figma bleue, libellé Semi Bold 12 bleu. Elle remplace le symbole système `book.closed`, dont le dessin est différent.
+- « Envoyer mes mouvements » (sans maquette) : aligné sur ces écrans (introduction, carte, interrupteurs natifs conservés, états centrés).
+
+**Icônes ajoutées.** 15 exports SVG MCP (`MCP_VECTOR_EXPORT`), inscrits dans `KodjoIcon.tsx` et `manifest.json` :
+- `icon-bibliotheque-chevron-aller` (12119:25649) et `-chevron-aller-petit` (12116:25097) ;
+- `-ajouter` (12119:25658) et `-envoyer` (12119:25659) ;
+- `-livre-profil` (12119:25646), `-livre` (12118:25145), `-livre-vide` (12119:25297) et `-source` (12119:25409) ;
+- `-fichier` (12116:25094) et `-pc` (12116:25099) ;
+- `-succes` (12116:25195), `-erreur` (12116:25233), `-avertissement` (12118:25201), `-wifi` (12116:25258) et `-reprise` (12119:25266).
+
+Aucun SVG identique n'existait déjà. Ces fichiers ne contiennent aucune URL Figma temporaire.
+
+**Écarts restants (non tranchés).**
+1. Marges latérales de 16 (`layout.screenGutter`, arbitrage A01 du 27/10) au lieu de 24 sur les maquettes.
+2. En-tête : `FixedHeader` partagé, baseline gelée non modifiée. Le cercle Retour est #E5F0FF au lieu du halo blanc Figma.
+3. Indicateur de chargement : `ActivityIndicator` natif au lieu de l'illustration statique de la maquette (primitive native).
+4. Bibliothèque installée : la maquette la place dans les onglets du Profil (Profil / Préférences / Communauté, retour « ‹ » en ligne). L'application ouvre un écran empilé. La note sur la désinstallation est omise (désinstallation reportée).
+5. Reste de l'écran Profil, hors périmètre : fond blanc et écart de 24 au lieu de #F7F7FF et 16.
+6. Pictogrammes des pastilles rondes (Wi-Fi, coche) : centrés, alors que la maquette les décale.
+7. Séparateur vertical Actuelle | Nouvelle : appliqué à toutes les cartes, alors que la maquette ne le montre que sur la première.
+8. Rendu non contrôlé sur appareil (20 nœuds Figma lus) : à vérifier à la recette iPhone.
+
+**La maquette contredit le comportement actuel (signalé, non tranché).**
+- **Aperçu d'une mise à jour.** « Voir le détail » ne figure que sur la première fiche modifiée. Le code ouvre le détail depuis toute fiche modifiée.
+- **Code refusé.** La note « Le téléphone et le PC doivent être sur le même Wi-Fi. » est absente de la maquette, mais conservée.
+- **Connecté.** La ligne « Adresse du PC : … » (revue du 11/11) est absente de la maquette, mais conservée.
+- **États sans maquette.** Les pastilles « Reprendre » (jaune) et « Refusée » (grise) n'ont pas de maquette. La ligne d'opération interrompue du Profil n'en a pas non plus.
+- **Envoi sans mouvement personnel.** Le message est désormais présenté en titre + texte.
+
+**Tests.**
+- `npx jest src/features/catalogue src/features/preferences src/features/activities app` : PASS.
+- Suite complète `npx jest --maxWorkers=4` : 348 suites, 5847 tests, tous PASS. `npx tsc --noEmit` : aucune erreur. `npx eslint` des fichiers modifiés : aucune erreur ni avertissement.
+- Deux assertions de `LibraryScreens.test.tsx` vérifiaient l'ancienne structure visuelle : une seule chaîne pour le compteur et pour un problème de fichier. Elles vérifient maintenant le même contenu dans la nouvelle structure (compteur par testID, problème « Fiche 12 » et sa raison dans la même ligne).
+
+**Synchronisation code / documentation.** Classe A (conformité aux maquettes). Une ligne a été ajoutée à la spec, section Synchronisation.
