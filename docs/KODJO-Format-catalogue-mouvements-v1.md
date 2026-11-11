@@ -269,6 +269,13 @@ libraries[] { libraryId, title, description|null, revision, history[] (vide admi
   - toutes les fiches dans l’ordre du fichier.
 - Le résultat est un fichier v2 ; le signalement `CONVERTED_FROM_V1` l’indique. Aucun fichier n’est réécrit en v1.
 
+### 10.3 bis Mouvements personnels rattachés (revue du 11/11/2026)
+
+- `install.personalMovementIds` est facultatif. C'est un sous-ensemble de `knownLocalMovementIds` : les Mouvements **personnels** envoyés par un téléphone (A2), puis ajoutés au catalogue ou rapprochés d'une fiche par l'administration.
+- Sur le téléphone, le rattachement d'un tel Mouvement n'est **jamais appliqué**. Il en va de même pour un rapprochement avec une fiche `LOCAL_CREATED`. Le service répond `PERSONAL_RULE_PENDING` et l'aperçu de la Bibliothèque affiche « à examiner ». En effet, ce rattachement rendrait le Mouvement importé et verrouillé (A-2), alors que la règle de transition n'est pas arbitrée.
+- Les 60 Mouvements du pilote (`EXTERNAL_IMPORTED`, `pilot:*`) ne sont pas concernés.
+- Champ hors empreinte, comme tout `install`.
+
 ### 10.4 Écriture et aller-retour
 
 - `serializeMovementCatalogueFile(file)` est la sérialisation de référence, utilisée par l’administration, l’export et le Wi-Fi : JSON indenté de 2 espaces, ordre des clés conservé, fin de ligne finale.

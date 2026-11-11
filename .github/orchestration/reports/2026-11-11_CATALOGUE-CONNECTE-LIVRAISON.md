@@ -57,8 +57,27 @@
 | `node --test tools/catalogue-admin/server.test.mjs scripts/catalogue/__tests__/static-ovh-medias.test.mjs` | dev | **29 PASS** |
 | `npx jest src/features/catalogue/__tests__/LibraryScreens.test.tsx` | dev, `f2ffc3e6` | 9 PASS |
 | `npx tsc --noEmit -p .` ; `npx eslint` (fichiers modifiés) | dev | 0 erreur |
-| Suite Jest complète | intégration | RESULTAT_INTEGRATION |
-| Revue indépendante (agent distinct, diff `24c99bed..a210683f`) | dev | RESULTAT_REVUE |
+| Suite Jest complète `npx jest` | intégration `80158876` (après corrections) | **348 suites, 5 847 tests PASS** |
+| Suite Jest complète, avant corrections de revue | intégration `fe21e66c` | 347 suites, 5 843 tests PASS |
+| `node --test tools/catalogue-admin/server.test.mjs scripts/catalogue/__tests__/static-ovh-medias.test.mjs` | intégration | **29 PASS** |
+| `npx tsc --noEmit -p .` | intégration | 0 erreur |
+| `npx eslint` sur les fichiers ajoutés ou modifiés par le chantier | intégration | 0 problème |
+| `npx eslint src app tools/catalogue-admin` (tout le dépôt) | intégration | 21 erreurs et 9 avertissements, **tous dans des fichiers PRE-10 non touchés par ce chantier** (`CompositionScreen.tsx`, `StickyHeader.tsx`, `formatTimeline.ts`, tests de sessions). Non corrigés (hors périmètre, PRE-10). |
+| Revue indépendante (agent distinct, lecture seule, diff `24c99bed..a210683f`) | dev | **9 constats, tous corrigés** dans `0579b4ac` (détail ci-dessous) |
+
+## Revue indépendante : constats et corrections
+
+| # | Gravité | Constat | Correction |
+|---|---|---|---|
+| 1 | Haute | A-2 contourné par la Séance : le crayon de l'éditeur d'Exercice déverrouillait le contenu du Mouvement importé ; `updateMovementContent` l'écrivait sans passer par la garde, et « Créer un nouveau mouvement » le copiait. | — Crayon masqué pour un Mouvement importé (`ExerciseScreen`).<br>— `SessionService` refuse une correction `EDITED` d'un Mouvement importé.<br>— Test `SessionService.importedMovements.test.ts`. |
+| 2 | Moyenne | « Ajouter un niveau » et le réordonnancement restaient proposés sur la fiche importée ; le nouveau niveau était partiellement dérivé. | — Menu Niveau retiré pour un importé.<br>— `createVariant` refusé (`PROTECTED`).<br>— Point maintenu À CLARIFIER. |
+| 3 | Moyenne | L'isolement d'un Mouvement personnel ne valait que pour ADOPTABLE ; « Rapprocher » d'une fiche existante le verrouillait sans signalement. | — Marqueur `install.personalMovementIds` (format § 10.3 bis), posé par l'administration.<br>— Isolement quel que soit l'état.<br>— Refus par `CatalogueLoadService.accept` (`PERSONAL_RULE_PENDING`). |
+| 4 | Basse à moyenne | Lecture v1 : `libraryId` invalide ou en-tête publiable faisaient refuser des fichiers v1 valides. | Identifiant dérivé ; Bibliothèque implicite privée et non publiable. |
+| 5 | Basse | Une exception sur une fiche immobilisait la Bibliothèque en « interrompue ». | L'erreur est rangée dans les échecs ; les autres fiches sont appliquées. |
+| 6 | Basse | Course sur la boîte d'arrivée (décisions concurrentes). | Statut contrôlé dans la file d'écriture. |
+| 7 | Basse | Délai du client Wi-Fi sans la lecture du corps. | Le corps est lu dans le délai. |
+| 8 | Basse | Découverte non authentifiée sur le Wi-Fi (usurpation possible). | L'adresse du PC est affichée après connexion. Limite inhérente au HTTP local, documentée. |
+| 9 | Basse | Écran d'envoi bloqué sur erreur de lecture. | Erreurs gérées. |
 
 ## Hypothèses non démontrées
 
@@ -101,7 +120,7 @@ Voir la spec `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md` (§ St
 
 ## Commit final et état Git
 
-Communiqué dans le compte rendu de session.
+Commit de ce rapport sur `catalogue/integration-pre10-20261111`, poussé ; hash communiqué dans le compte rendu de session. PR de développement en brouillon vers `composition-phases-duree`, **pas** vers `main`.
 - Aucune fusion dans `main`.
 - Aucune build, aucune OTA.
 - Figma non modifié.

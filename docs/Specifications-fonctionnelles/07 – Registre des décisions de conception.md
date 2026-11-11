@@ -2617,8 +2617,8 @@ Ces choix mettent en œuvre A-1 et A-2 ; ils ne créent aucune règle métier.
 
 ### Points À CLARIFIER (non décidés)
 
-1. **Mouvement personnel envoyé à l'administrateur puis catalogué** (A-2) : transition de statut non définie ; identité et données préservées en attendant.
-2. **Ajout d'un niveau (famille) à côté d'un Mouvement importé** : crée un nouveau Mouvement personnel et modifie le regroupement local de la famille, pas le contenu de la fiche. Actuellement permis dans le code ; **à confirmer**.
+1. **Mouvement personnel envoyé à l'administrateur puis catalogué** (A-2) : transition de statut non définie ; identité et données préservées en attendant. [11/11/2026 : marqueur `install.personalMovementIds` posé par l'administration (Ajouter au catalogue, Rapprocher) ; le téléphone n'applique jamais ce rattachement.]
+2. **Ajout d'un niveau (famille) à côté d'un Mouvement importé** : crée un nouveau Mouvement personnel et modifie le regroupement local de la famille, pas le contenu de la fiche. Actuellement permis dans le code ; **à confirmer**. [11/11/2026, revue indépendante : par prudence au titre de A-2 (dérivation partielle), « Ajouter un niveau » et le réordonnancement sont retirés de la fiche d'un Mouvement importé et `createVariant` est refusé par le service ; le regroupement par glissement dans le Catalogue reste permis. Toujours **à confirmer**.]
 3. **Choix fiche par fiche en cas de conflit avec une adaptation historique pendant la mise à jour d'une Bibliothèque** : non représenté dans Figma ; traité pour l'instant par le canal existant de revue fiche par fiche.
 4. **Migration des homonymes de `movements.normalized_name`** : migration additive à coordonner avec PRE-10 ; numéro **≥ 028**, les numéros 024 (ligne `composition-phases-duree`) et 025 à 027 (`pre10-son-voix`) étant déjà utilisés.
 

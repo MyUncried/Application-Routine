@@ -169,8 +169,8 @@ Cahier : `_bmad-output/catalogue-connecte/implementation-artifacts/recette-iphon
 
 Points restants, sans décision inventée :
 
-1. **Mouvement personnel envoyé puis catalogué (A2).** On ignore s'il devient une fiche importée en lecture seule une fois rattaché. Il est préservé, reconnu sans doublon, mais **non rattaché** (`PERSONAL_ORIGIN`). Seule cette opération est bloquée.
-2. **Ajouter un niveau à côté d'un Mouvement importé.** L'action crée un Mouvement personnel et regroupe la famille localement, sans modifier la fiche. Elle est permise par le code ; à confirmer.
+1. **Mouvement personnel envoyé puis catalogué ou rapproché (A2).** On ignore s'il devient une fiche importée en lecture seule une fois rattaché. Il est préservé, reconnu sans doublon, mais **non rattaché** : marqueur `install.personalMovementIds` posé par l'administration, aperçu « à examiner », service `PERSONAL_RULE_PENDING`. Seule cette opération est bloquée.
+2. **Familles de niveaux autour d'un Mouvement importé.** Après la revue indépendante, une prudence au titre de A-2 a été retenue, car le niveau créé serait une dérivation partielle (nom, Catégorie, Zones repris). Depuis la fiche, ni « Ajouter un niveau » ni réordonnancement ; `createVariant` est refusé dans le service. Le regroupement par glissement dans le Catalogue (`placeInFamily`, `leaveFamily`) reste permis : organisation locale, pas le contenu de la fiche. **À confirmer** : faut-il admettre ou exclure les familles autour d'un Mouvement importé ?
 3. **Conflit d'une adaptation historique des 60 pendant une mise à jour de Bibliothèque.** Figma ne montre pas de choix fiche par fiche. La fiche est laissée « à examiner » (canal CA-3/CA-4), jamais écrasée.
 4. **Homonymes de sources distinctes.** Ils exigent une migration additive de `movements.normalized_name`. Son numéro doit être ≥ 028 (`pre10-son-voix` utilise 025 à 027), à coordonner avec la clôture de PRE-10. Non développée. En attendant, une fiche homonyme est « bloquée » et laissée à examiner.
 5. **Désinstallation, « Mes bibliothèques », « Bibliothèques partagées »** : reportées (A-4) ; les écrans Figma sont conservés.
