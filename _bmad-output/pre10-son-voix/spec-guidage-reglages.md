@@ -351,3 +351,5 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - y3 (classe B) : « Décaler plus à droite les clamps de la colonne "Son", centrer le titre de la colonne » : chevrons au bord droit de la colonne, valeur centrée dans la place restante, titre centré.
 - z2 : « interrupteurs ne sont pas centrés verticalement sur leur ligne » — non corrigé : la mise en page centre déjà l’interrupteur (mesure native de React Native) ; capture d’écran demandée pour mesurer l’écart.
 - w3 : essai devenu sans objet (rangée Guidage de la Composition retirée, z1) ; retiré du cahier. x4 : KO sans note, texte de l’essai mis à jour (un tour par minute, avec ou sans cadence), à refaire.
+
+- z2, précisé par Hermann : « les interrupteurs sont trop hauts ». Interrupteurs des Préférences et de la modale abaissés de 2 (correction visuelle, classe D) ; valeur à ajuster sur constat.

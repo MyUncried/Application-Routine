@@ -105,6 +105,7 @@ export function GuidanceSettingsForm({
                 </Pressable>
                 <Switch
                   {...switchOffColors}
+                  style={styles.switchNudge}
                   value={setting.vibration}
                   onValueChange={(value) => onVibrationChange(event, value)}
                   accessibilityLabel={t.vibrationLabel.replace("{event}", label)}
@@ -176,6 +177,7 @@ export function GuidanceSwitchRow({
       </View>
       <Switch
         {...switchOffColors}
+        style={styles.switchNudge}
         value={value}
         onValueChange={onChange}
         importantForAccessibility="no-hide-descendants"
@@ -279,6 +281,12 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: BORDER,
+  },
+  // Recette du 11/11/2026 (Hermann, z2 : « interrupteurs ne sont pas centrés verticalement sur leur ligne » ; puis
+  // « les interrupteurs sont trop hauts ») : la mise en page centre le cadre mesuré de l’interrupteur iOS, mais son dessin
+  // apparaît plus haut sur l’iPhone ; correction visuelle de 2 vers le bas (à ajuster sur constat).
+  switchNudge: {
+    transform: [{ translateY: 2 }],
   },
   row: {
     flexDirection: "row",
