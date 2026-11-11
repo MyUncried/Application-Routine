@@ -154,7 +154,27 @@ export function reclaimExecutionAudio(): void {
  * Recette du 11/11/2026, second essai m2 (Hermann) : « Lance d'une séance > lancement de spotify > retour sur la séance > Reprendre la séance : La musique baisse > retour sur spotify : la musique ne redevient pas au volume initial > retour sur la séance : le son augmente et diminue de suite > Reprendre la séance : le volume reste diminué. » Application quittée pendant une Exécution : la session
  * audio est rendue, la musique retrouve son volume ; elle est reprise au retour (`reclaimExecutionAudio`).
  */
-export function releaseExecutionAudio(): void {
+let releaseTimer: ReturnType<typeof setTimeout> | null = null;
+
+function cancelRelease(): void {
+  if (releaseTimer !== null) clearTimeout(releaseTimer);
+  releaseTimer = null;
+}
+
+/**
+ * Recette du 11/11/2026, troisième essai m2 (Hermann) : « Dernier écart : lorsque la séance est terminée et que je reste sur l'applciation le volume doit revenir à l'original, et notamment lorsque je retrouve sur Spotify. » Fin de l'Exécution, ou sortie de son écran : la session
+ * audio est rendue après `delayMs` (fanfare et annonce de fin terminées), la musique retrouve son volume. Une
+ * nouvelle Exécution qui démarre avant annule ce délai et reprend la session (`prepare`).
+ */
+export function releaseExecutionAudio(delayMs = 0): void {
+  cancelRelease();
+  if (delayMs > 0) {
+    releaseTimer = setTimeout(() => {
+      releaseTimer = null;
+      releaseExecutionAudio();
+    }, delayMs);
+    return;
+  }
   if (library !== null) {
     void library.release().catch(() => undefined);
     return;
@@ -166,8 +186,11 @@ export function releaseExecutionAudio(): void {
 export class ExecutionSounds implements BeepPort {
   /** Début d'Exécution : session active et un lecteur prêt par son, pour qu'aucun son ne parte en retard. */
   prepare(): void {
+    cancelRelease();
     if (hasLibraryModule()) {
-      void scheduledLibrary();
+      // Session rendue à la fin d'une Exécution précédente (recette m2) : reprise pour la nouvelle.
+      if (library !== null && library.isReleased) void library.reclaim().catch(() => undefined);
+      else void scheduledLibrary();
       return;
     }
     if (!hasNativeModule("ExpoAudio")) return;

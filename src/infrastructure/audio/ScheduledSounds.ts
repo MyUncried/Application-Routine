@@ -65,6 +65,11 @@ export class ScheduledSounds {
     await this.start(this.policy);
   }
 
+  /** Session rendue (`release`) et pas encore reprise. */
+  get isReleased(): boolean {
+    return this.released;
+  }
+
   /** Application quittée pendant l'Exécution : session rendue, la musique des autres applications retrouve son volume. */
   async release(): Promise<void> {
     if (this.context === null || !hasScheduledSounds()) return;

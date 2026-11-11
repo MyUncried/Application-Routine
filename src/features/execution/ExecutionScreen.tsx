@@ -41,6 +41,9 @@ import {
 import { useExecution } from "./ExecutionServiceContext";
 import { executionStrings as t, formatClock } from "./executionStrings";
 
+/** Délai avant de rendre la session audio en fin de séance : fanfare puis « Bravo, séance terminée ». */
+const RELEASE_AUDIO_AFTER_END_MS = 4000;
+
 /**
  * PRE-10.3 — écran d'Exécution d'une Séance Libre (CE-EXEC-SESSION-01 ; ch08 « Exécution » ; conception
  * §16.2). L'écran est une projection : temps, phase, commandes autorisées et progression viennent du
@@ -206,6 +209,13 @@ export function ExecutionScreen({
       subscription.remove();
     };
   }, [running, service]);
+
+  // Recette du 11/11/2026 (Hermann, m2) : « Dernier écart : lorsque la séance est terminée et que je reste sur l'applciation le volume doit revenir à l'original, et notamment lorsque je retrouve sur Spotify. » Séance terminée ou écran quitté : la musique retrouve son volume,
+  // après la fanfare et l'annonce de fin.
+  useEffect(() => {
+    if (!running) return;
+    return () => releaseExecutionAudio(RELEASE_AUDIO_AFTER_END_MS);
+  }, [running]);
 
   // ch09 Profil, « Écran maintenu actif » : pas de mise en veille pendant l'exécution, y compris en pause ;
   // la veille revient à la fin de la séance ou à la sortie de l'écran (fin de PRE-10, 11/11/2026).
