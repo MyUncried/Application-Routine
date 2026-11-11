@@ -555,7 +555,7 @@ Ils prennent en charge :
 
 Le moteur d’exécution demande le déclenchement d’un événement sans dépendre directement de l’API native utilisée.
 
-Le feedback haptique des roulettes numériques relève de l’interface et non du moteur d’Exécution. Le composant de roulette déclenche un retour haptique léger et bref à chaque changement effectif de valeur, une seule fois par cran. Ce déclenchement est systématique et ne consulte pas la préférence `Vibrations`, réservée aux vibrations fonctionnelles de séance. L’implémentation reste isolée derrière l’adaptateur haptique natif afin de conserver un comportement cohérent sur iOS et Android.
+Le feedback haptique des roulettes numériques relève de l’interface et non du moteur d’Exécution. Le composant de roulette déclenche un retour haptique léger et bref à chaque changement effectif de valeur, une seule fois par cran. Ce déclenchement est systématique et ne consulte pas les réglages des vibrations fonctionnelles de séance. L’implémentation reste isolée derrière l’adaptateur haptique natif afin de conserver un comportement cohérent sur iOS et Android.
 
 Cette abstraction permet de gérer les différences entre iOS et Android.
 
@@ -2017,3 +2017,9 @@ Décision de Hermann du 10/11/2026 (constat A, recette c1), recopiée : « fais 
 - Écran maintenu actif : `expo-keep-awake` (SDK 57, module natif déjà présent via `expo`), adaptateur `ScreenAwakePort` (`src/infrastructure/device/ScreenAwake.ts`) fourni par `SessionServiceProvider` ; actif de Démarrer à la fin de séance ; sans module natif, aucune action.
 
 - Nouvelle version native (build EAS `2e47648d`, 11/11/2026, accord de Hermann « Oui, un seul build ») : `react-native-audio-api` 1.0.0 (sons courts programmés sur l’horloge audio, `ScheduledSounds`), plugin `expo-audio` (mode d’arrière-plan `audio`, sans permission micro), `react-native-svg` 15.15.4 (chrono circulaire, `ExecutionTimerRing`). Chaque module est chargé seulement si son module natif est présent (`AudioAPIModule`, `RNSVGSvgViewModule`), pour que la version précédente servie par Metro continue de fonctionner. Police Roboto Condensed par `@expo-google-fonts/roboto-condensed` (sans module natif nouveau).
+
+## DSF — Actions de la Composition et interrupteurs
+
+Dans « Design system — Fondations », « DSF V2 / Actions » présente « Fiche / Édition » et « Fiche / Guidage sonore ». [DSF / Actions / Édition](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12153-27697) fournit le crayon bleu de la fiche Mouvement. [DSF / Actions / Guidage sonore](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12145-2108) utilise le même bouton de 40 × 32 px, rayon 10 px, fond gris clair sans contour. Dans l’en-tête de Composition, son bord droit est à 24 px du bord de l’écran. Le symbole bleu Phosphor « faders » est light en État=Normal et fill en État=Activé. Le fond est identique. Le DS définit « Bouton secondaire » comme composant commun aux actions Édition et Guidage sonore. Les deux composants d’action spécifient leur symbole. Guidage sonore utilise la variante Activé uniquement lorsque la modale est ouverte.
+
+[DSF / Controls / Interrupteur](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5544-4632) utilise le vert #34C759 en État=Actif et le gris en État=Inactif dans toute l’application. Les instances de « Profil — Préférences » et « Préférences — Choix d’un son (modale) » héritent de ces couleurs.

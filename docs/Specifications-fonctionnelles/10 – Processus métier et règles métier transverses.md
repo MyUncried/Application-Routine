@@ -2253,12 +2253,12 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 
 | ID | Règle |
 | --- | --- |
-| RM-085 | Les Préférences MVP sont Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications, ainsi que les valeurs par défaut Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice et Récupération après exercice (D-240). |
+| RM-085 | Les Préférences MVP sont Annonces vocales, sons et vibrations par événement, Compte à rebours initial, Fin de séance et Notifications, ainsi que les valeurs par défaut Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice et Récupération après exercice (D-240). |
 | RM-086 | Les Préférences sont sauvegardées immédiatement. |
-| RM-087 | Sons, Annonces vocales et Vibrations fonctionnelles sont indépendants. |
+| RM-087 | Le Profil propose six interrupteurs d’annonce et, pour neuf événements, un choix de son et un interrupteur de vibration. Chaque réglage est indépendant. La liste de chaque son inclut « Aucun », qui désactive uniquement ce son. La validation depuis la Composition porte uniquement sur la séance en cours. |
 | RM-088 | La voix utilisée est celle du système et son volume dépend du téléphone. |
-| RM-089 | La valeur initiale de `Vibration` est activée. |
-| RM-090 | Le feedback haptique léger émis à chaque changement effectif de valeur d’une roulette est systématique dans le MVP et indépendant de `Vibration`. |
+| RM-089 | La valeur initiale des vibrations par événement est activée. |
+| RM-090 | Le feedback haptique léger émis à chaque changement effectif de valeur d’une roulette est systématique dans le MVP et indépendant des vibrations par événement. |
 
 ### Profil — Règles fonctionnelles
 
@@ -2267,9 +2267,9 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | Sauvegarde               | Toute modification est enregistrée immédiatement.                                                                                        |
 | Paramètres par défaut    | Les valeurs définies ici sont utilisées lors de la création d'une nouvelle séance.                                                       |
 | Surcharge                | Une séance peut remplacer les valeurs par défaut (compte à rebours initial et fin de séance).                                            |
-| Sons                     | Désactive tous les bips de l'application.                                                                                                |
-| Annonces vocales         | Désactive toutes les annonces vocales sans modifier les bips.                                                                            |
-| Vibration                | Active ou désactive les vibrations fonctionnelles de séance. Ce réglage n'affecte pas le feedback haptique des roulettes numériques.     |
+| Sons                     | Permet de choisir un son pour chacun des neuf événements.                                                                                                |
+| Annonces vocales         | Un interrupteur pour chacune des six annonces.                                                                            |
+| Vibration                | Active ou désactive la vibration de chaque événement. Ce réglage n'affecte pas le feedback haptique des roulettes numériques.     |
 | Compte à rebours initial | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s rend la phase instantanée sans la supprimer de la structure. |
 | Fin de séance            | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s rend la phase instantanée sans la supprimer de la structure.            |
 | Langue du MVP            | Le MVP est disponible uniquement en français. Tous les textes utilisateur, pluriels, variables, formats locaux, notifications et libellés d’accessibilité utilisent des clés de traduction centralisées afin de permettre l’ajout d’autres langues sans modifier les composants. |
@@ -2555,7 +2555,7 @@ Les écrans de création ou les modales comportant une action explicite ne valid
 
 ### Composer une séance / Modifier une séance — Retour haptique des roulettes
 
-Toute roulette numérique de l’application produit un retour haptique léger et bref à chaque franchissement effectif d’un cran, c’est-à-dire à chaque changement de la valeur sélectionnée. Un seul retour haptique est déclenché par changement de valeur. Ce retour est systématique et indépendant du réglage `Vibration` du Profil, qui ne pilote que les vibrations fonctionnelles de séance.
+Toute roulette numérique de l’application produit un retour haptique léger et bref à chaque franchissement effectif d’un cran, c’est-à-dire à chaque changement de la valeur sélectionnée. Un seul retour haptique est déclenché par changement de valeur. Ce retour est systématique et indépendant des réglages de vibration par événement du Profil, qui ne pilote que les vibrations fonctionnelles de séance.
 
 ## Sujets transverses
 

@@ -375,7 +375,7 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 | Médias                    | Zone média | Selon état | Non | Vide | Le média associé est présenté dans la gouttière permanente de 64 px de la carte Catalogue ; aucun déploiement de carte d’Exercice n’est accessible au MVP (D-260/D-261) ; l’import/ajout local est inclus au MVP dans PRE-3 (D-333), sans activation implicite de la caméra | Exercice | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si exercice invalide | Nom, une Catégorie, au moins une Zone et un mode obligatoires ; cible valide selon le mode (D-211 ; bornes conservées par D-232 ; une valeur héritée hors bornes, non modifiée, peut être conservée, D-383) | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
-**Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
+**Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant des vibrations par événement du Profil.
 
 <a id="parametres-execution-etat-cible"></a>
 
@@ -667,7 +667,7 @@ Le guidage sonore peut comprendre :
 - un bip grave pendant les exercices chronométrés ;
 - un bip aigu pendant les trois dernières secondes de toute étape chronométrée.
 
-Les annonces vocales, les bips et les vibrations fonctionnelles de séance peuvent être activés ou désactivés indépendamment selon les préférences de l'utilisateur. Le retour haptique d'interface produit par les roulettes numériques est distinct : il est systématique et n'est pas piloté par la préférence `Vibrations`.
+Les annonces vocales, les bips et les vibrations fonctionnelles de séance peuvent être activés ou désactivés indépendamment selon les préférences de l'utilisateur. Le retour haptique d'interface produit par les roulettes numériques est distinct : il est systématique et n'est pas piloté par les réglages de vibration par événement.
 
 ### Navigation principale et articulation des écrans — Navigation pendant une Exécution
 

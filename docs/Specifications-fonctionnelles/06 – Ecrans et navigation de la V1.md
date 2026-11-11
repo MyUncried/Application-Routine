@@ -318,14 +318,6 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 #### Vues principales et états intégrés
 
-##### Profil — Vue d'ensemble - Vibration désactivée
-
-[Source Figma — `1992:375`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-375)
-
-![Navigation — écran 1992:375](images/navigation-2026-10-27/1992-375.png)
-
-
-
 ##### Profil — Stepper Pause changement de côté
 
 [Source Figma — `1992:474`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-474)
@@ -342,13 +334,9 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 État courant du stepper Récupération après exercice
 
-##### Profil — Vue d'ensemble - Vibration activée
+##### Profil — Préférences
 
-[Source Figma — `1992:684`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684)
-
-![Navigation — écran 1992:684](images/navigation-2026-10-27/1992-684.png)
-
-Valeur initiale fonctionnelle de la préférence `Vibration`
+[Profil — Préférences](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684) présente les six annonces vocales. [Profil — Préférences (suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12093-25010) présente les neuf événements de Sons et vibrations. Les chevrons de la colonne Son donnent accès à [Préférences — Choix d’un son (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12068-25044).
 
 ##### Profil — Modifier le profil — MVP
 
@@ -3541,3 +3529,7 @@ Nœud [11762:23747](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 - [P-Composition séance — Placement d'un point d'arrêt](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29270) : nom courant de 8328:29270 ; bandeau « Confirmer N points d'arrêt ajoutés ». L’ancien nom Placement d’une pause est supersédé. [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
 
 Les anciennes captures restent datées ; aucun réexport dans cette mission. Le déploiement de 120 instances sur 37 écrans est une information fournie par Hermann, non recomptée ici. Règles : [spec §11](../KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement).
+
+### Composition séance — Guidage sonore
+
+Dans l’en-tête des écrans de Composition, sauf le récapitulatif Tabata, le bouton Guidage sonore ouvre une seule modale défilante. [Composition séance — Guidage sonore (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12132-27436) et [Composition séance — Guidage sonore (modale, suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12175-25882) en montrent respectivement le haut et le bas. L’en-tête fixe réunit Fermer, le titre et Valider. Le bouton affiche son symbole plein pendant l’ouverture de la modale et retrouve son symbole fin à la fermeture, y compris après validation de réglages propres à la séance.

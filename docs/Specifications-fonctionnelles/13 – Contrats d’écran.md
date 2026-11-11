@@ -520,7 +520,7 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 
 | Frame Figma | Capture principale | Contrat de référence | Réserve |
 |---|---|---|---|
-| [`1992:375`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-375) | Profil — Vue d'ensemble - Vibration désactivée | `CE-UI-07` | — |
+| [Profil — Préférences](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684) et [Profil — Préférences (suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12093-25010) | Profil — Préférences | `CE-UI-07` | Guidage sonore |
 | [`1992:469`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-469) | Splash — Kodjo | `CE-UI-06` | — |
 | [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778) | Profil — Modifier le profil — MVP | `CE-UI-01` | — |
 | [`1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101) | Calendrier — Semaine | `CE-UI-03` | — |
@@ -4928,7 +4928,7 @@ Nom 1/80/vide/81, photo absente/présente/indisponible ; silhouette absente→ho
 
 #### 1. Identification
 
-Profil principal 1992:375/474/579/684 et 2139:86 ; modification identité CE-UI-01.2139:86 est un doublon visuel, pas un parcours autonome.
+Profil — Préférences et Profil — Préférences (suite), steppers 1992:474/579 et 2139:86 ; modification identité CE-UI-01.2139:86 est un doublon visuel, pas un parcours autonome.
 
 Règles applicables : RM-031, RM-032, RM-051, RM-052, RM-085, RM-086, RM-089, RM-090, RM-209, RM-212, RM-217, RM-242 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
@@ -4946,7 +4946,7 @@ Modifier → CE-UI-01 ; navigation basse vers les trois autres destinations ; un
 
 #### 5. Données affichées et source de vérité
 
-Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’un exercice (D-266), Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
+Préférences locales : Annonces vocales, sons et vibrations par événement, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’un exercice (D-266), Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
 
 [Complété le 10/11/2026 — suite PRE-10 son et voix (spec `spec-guidage-reglages` §3.1, décisions de Hermann : « Les trois », bascules générales) : nouveau groupe **Guidage**, entre Séance et Préférences, avec Sons, Annonces vocales et Annoncer les répétitions ou la durée ; Sons et Annonces vocales quittent le groupe Préférences, qui garde Vibration et Notifications. Enregistrement immédiat, comme les autres préférences. Sons et Annonces vocales donnent l’état initial des interrupteurs de l’Exécution. Guidage écran verrouillé : ajouté avec la nouvelle version native (spec §3.5). Pas de maquette Figma à ce jour (rendu des groupes existants).]
 
@@ -4958,7 +4958,7 @@ Le défaut de Récupération du Profil initialise uniquement un nouvel Exercice 
 
 #### 6. Classification des valeurs Figma
 
-Labels statiques ; valeurs locales dynamiques. Défauts actés : côté 10 s, récupération après exercice 30 s, comptes à rebours 10 s, fins 5 s, Vibration activée. L’état vibration désactivée est un exemple utilisateur.
+Labels statiques ; valeurs locales dynamiques. Défauts actés : côté 10 s, récupération après exercice 30 s, comptes à rebours 10 s, fins 5 s.
 
 #### 7. Structure de l’écran
 
@@ -5031,9 +5031,7 @@ Permettre à l’utilisateur de consulter les informations générales de son co
 L’écran comporte notamment :
 
 - l’avatar ou les initiales, le nom d’affichage et l’action `Modifier` ;
-- `Sons` ;
-- `Annonces vocales` ;
-- `Vibration` ;
+- « Annonces vocales » et « Sons et vibrations » ;
 - la durée par défaut du `Compte à rebours initial` ;
 - la durée par défaut de la `Fin de séance` ;
 - le `Compte à rebours d’exercice` ;
@@ -5042,9 +5040,9 @@ L’écran comporte notamment :
 
 Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance. Les lignes `Compte à rebours d’exercice` (ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit) et `Fin d’exercice` (ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit) sont des contrôles intégrés à cet écran Profil, pas des écrans distincts ; leurs valeurs sont proposées à la création d’un Exercice et restent modifiables dans chaque Exercice.
 
-Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. L’état désactivé montré dans le parcours Figma illustre une modification utilisateur et ne définit pas la valeur initiale.
+Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance.
 
-Le feedback haptique des roulettes est systématique dans le MVP et reste indépendant de la préférence `Vibration`, réservée aux vibrations fonctionnelles de séance.
+Le feedback haptique des roulettes est systématique dans le MVP et reste indépendant des réglages de vibration par événement.
 
 Le MVP est disponible uniquement en français et n’affiche aucun sélecteur de langue. Tous les textes destinés à l’utilisateur sont référencés par des clés de traduction centralisées, sans texte fonctionnel codé directement dans les écrans. Les traductions futures peuvent ainsi être ajoutées sans modifier les composants. Les pluriels, variables, dates, heures, nombres, notifications et libellés d’accessibilité utilisent également ce mécanisme d’internationalisation.
 
@@ -5063,9 +5061,8 @@ Les notifications ne sont pas autorisées par défaut. La demande d’autorisati
 | Avatar                              | Icône           | Toujours |         Oui | Initiales de l'utilisateur | Image personnalisée en V2       | Profil      | Modifier le profil   |                                                      |
 | Nom                                 | Texte           | Toujours |         Oui | Nom de l'utilisateur       | 1 à 80 caractères               | Profil      | Modifier le profil   |                                                      |
 | Action `Modifier`                   | Bouton          | Toujours |         Oui | Visible                    | Photo et nom d’affichage         | Profil      | Ouvrir l'édition     | Active dans le MVP                                   |
-| Sons                                | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Valeur par défaut des séances                        |
-| Annonces vocales                    | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Utilise la voix système                              |
-| Vibration                           | Interrupteur    | Toujours |         Oui | Activée                    | Booléen                         | Préférences | Activer / Désactiver | Vibrations fonctionnelles de séance uniquement       |
+| Annonces vocales | Six interrupteurs | Toujours | Oui | Voir démonstration | Un par annonce | Préférences | Activer / Désactiver | Voix système |
+| Sons et vibrations | Tableau de neuf événements | Toujours | Oui | Voir démonstration | Son et vibration par événement | Préférences | Choisir le son ou basculer la vibration | Chevron dans la colonne Son |
 | Compte à rebours initial par défaut | Sélecteur durée | Toujours |         Oui | 10 s                       | 0 à 60 s, pas 1 s (D-265)       | Préférences | Modifier             | Valeur utilisée à la création d'une séance (D-089)   |
 | Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 5 s                        | 0 à 60 s, pas 1 s (D-265)       | Préférences | Modifier             | 0 s = phase instantanée (D-089)                      |
 | Notifications                       | Interrupteur    | Toujours |         Oui | Non autorisées             | Booléen                         | Préférences | Activer / Désactiver | Demande système lors de la première activation d’un rappel |
@@ -6126,3 +6123,32 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 ### Écart visuel restant — Death by, contrôle du 5 novembre
 
 **PARTIELLEMENT CONFORME visuel.** Le récapitulatif `11376:20189` représente bien des membres en Répétitions et en Durée ; l’accroche reste formulée en répétitions et minutes. Elle doit couvrir les deux modes et l’intervalle configurable, selon le complément §13. Aucun nouveau texte graphique n’est arbitré ici. Les captures montrent l’état courant ; aucune modification Figma ni recette de l’application n’est déclarée.
+
+### Guidage sonore en Composition et dans le Profil
+
+[Composition séance — Guidage sonore (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12132-27436) et [Composition séance — Guidage sonore (modale, suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12175-25882) représentent les deux positions de défilement d’une modale unique. Le bouton de l’en-tête de Composition y donne accès, sauf sur le récapitulatif Tabata. Fermer, le titre et Valider restent fixes. Valider applique les réglages uniquement à la séance en cours. Le bouton de Composition prend la variante Activé uniquement pendant l’ouverture de la modale. Le prototype Figma présente ces écrans sans liaison interactive entre le bouton et la modale ni entre les chevrons et le choix du son. [Profil — Préférences](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684) et [Profil — Préférences (suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12093-25010) présentent les mêmes réglages.
+
+**Annonces vocales** propose un interrupteur pour chacune des six annonces.
+
+- Début et fin de séance
+- Nom des exercices
+- Nom des phases
+- Objectifs de durée et de répétition
+- Pauses, récupérations et points d’arrêt
+- Changements de côté
+
+**Sons et vibrations** présente une valeur et un chevron dans la colonne Son et un interrupteur dans la colonne Vibration. Valeurs illustrées dans le Profil (les six annonces sont actives) :
+
+| Événement | Son | Vibration |
+|---|---|---|
+| Compte à rebours | Par défaut | Active |
+| Début d’exercice | Par défaut | Active |
+| Changement de phase | Par défaut | Active |
+| Changement de côté | Par défaut | Active |
+| Cadence | Par défaut | Inactive |
+| Toutes les X minutes | Non | Inactive |
+| Mi-temps | Par défaut | Active |
+| Point d’arrêt | Par défaut | Active |
+| Fin de séance | Par défaut | Active |
+
+La ligne sonore « Point d’arrêt » regroupe pauses, récupérations et points d’arrêt. Pour chacun des neuf événements, la colonne Son indique le son utilisé. Choisir « Aucun » coupe uniquement le son de cet événement, y compris pour Mi-temps. Chaque annonce, chaque son et chaque vibration se règle indépendamment. Le choix du son ouvre [Préférences — Choix d’un son (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12068-25044).

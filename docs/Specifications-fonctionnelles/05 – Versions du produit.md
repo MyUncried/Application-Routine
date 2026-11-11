@@ -91,7 +91,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
 - émettre un bip aigu pendant chacune des trois dernières secondes de toute étape chronométrée ;
 - remplacer, pendant les trois dernières secondes d’un exercice, le bip grave par le bip aigu ;
 - passer automatiquement à l’étape suivante à la fin d’une étape chronométrée ;
-- permettre d’activer ou de désactiver globalement les sons de l’application ; dans le MVP, ce réglage agit sur l’ensemble des bips sonores et ne permet pas de désactiver séparément le bip grave de rythme ;
+- proposer un choix de son et une activation de la vibration pour chacun des neuf événements ;
 - permettre d’activer ou de désactiver séparément les annonces vocales ;
 - afficher clairement l’exercice en cours, son type ou son libellé, l’étape suivante et la progression dans la séance ;
 - utiliser une minuterie pour les exercices définis par une durée ;
@@ -381,9 +381,9 @@ Une Séance peut être planifiée une seule fois ou périodiquement. Le Calendri
 
 ## Périmètre fonctionnel du MVP — Profil et Préférences
 
-Le Profil MVP permet de gérer une photo et un nom d’affichage. Les Préférences sont : Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications.
+Le Profil MVP permet de gérer une photo et un nom d’affichage. Les Préférences sont : Annonces vocales, sons et vibrations par événement, Compte à rebours initial, Fin de séance et Notifications.
 
-Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendants. Le feedback haptique léger des roulettes numériques reste systématique dans le MVP et n’est pas piloté par le réglage `Vibration`.
+Le Profil propose six annonces vocales et règle les sons et vibrations par événement. Le feedback haptique léger des roulettes numériques reste systématique dans le MVP et n’est pas piloté par les réglages de vibration par événement.
 
 ## Cible fonctionnelle confirmée — Catalogue multi-type
 
