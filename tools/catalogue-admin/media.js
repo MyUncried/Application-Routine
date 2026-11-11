@@ -135,19 +135,31 @@ export function mountMediaEditor(container, options) {
   };
   const actions = el("div", "split");
   actions.append(submit, cancel);
+  const status = el("p", "media-status hidden");
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
+  const currentFile = el("small", "media-current-file hidden");
+  const notify = (message, kind = "") => {
+    options.notify(message, kind);
+    status.textContent = message;
+    status.className = "media-status " + kind;
+  };
   editor.append(
     grid(input("Mode d'ajout", typeSelect), input("Statut des droits", rights)),
-    fileGroup, urlGroup,
+    el("small", "media-rights-hint", "« Autorisation déclarée » exige l'auteur / crédit et la licence / conditions d'utilisation."),
+    fileGroup, currentFile, urlGroup,
     grid(input("Source originale / justificatif (URL)", sourceUrl), input("Auteur / fournisseur / crédit", attribution)),
     grid(input("Licence / conditions d'utilisation", license), input("Texte alternatif de la photo", alt)),
     input("Légende / position dans l'exercice", caption),
     actions,
+    status,
   );
   section.append(editor);
   container.append(section);
 
   const showSourceFields = () => {
     fileGroup.classList.toggle("hidden", typeSelect.value !== "PHOTO_FILE");
+    currentFile.classList.toggle("hidden", typeSelect.value !== "PHOTO_FILE" || !currentFile.textContent);
     urlGroup.classList.toggle("hidden", typeSelect.value === "PHOTO_FILE");
   };
   const clearEditor = () => {
@@ -156,6 +168,7 @@ export function mountMediaEditor(container, options) {
     fileInput.value = "";
     for (const node of [urlInput, sourceUrl, attribution, license, alt, caption]) node.value = "";
     rights.value = "UNVERIFIED";
+    currentFile.textContent = "";
     submit.textContent = "Ajouter à la galerie";
     cancel.classList.add("hidden");
     showSourceFields();
@@ -203,12 +216,12 @@ export function mountMediaEditor(container, options) {
   const commit = (next, message) => {
     const problem = options.validate(next);
     if (problem) {
-      options.notify("Média non enregistré : " + problem + ".", "error");
+      notify("Média non enregistré : " + problem + ".", "error");
       return false;
     }
     options.setMedia(next);
     render();
-    if (message) options.notify(message, "ok");
+    if (message) notify(message, "ok");
     return true;
   };
   const move = (index, step) => {
@@ -234,6 +247,10 @@ export function mountMediaEditor(container, options) {
     attribution.value = item.attribution;
     license.value = item.license;
     rights.value = item.rightsStatus;
+    currentFile.textContent = item.storage === "EMBEDDED"
+      ? "Fichier actuel : " + (item.fileName || "photo intégrée") + " — conservé si aucun nouveau fichier n'est choisi."
+      : "";
+    status.className = "media-status hidden";
     alt.value = item.alt;
     caption.value = item.caption;
     submit.textContent = "Enregistrer ce média";
@@ -244,7 +261,7 @@ export function mountMediaEditor(container, options) {
 
   submit.addEventListener("click", async () => {
     const media = [...options.getMedia()];
-    if (media.length >= options.maxMedia && !editedId) return options.notify("Maximum de " + options.maxMedia + " médias par fiche.", "error");
+    if (media.length >= options.maxMedia && !editedId) return notify("Maximum de " + options.maxMedia + " médias par fiche.", "error");
     const type = typeSelect.value;
     const kind = type === "VIDEO_URL" ? "VIDEO" : "PHOTO";
     const storage = type === "PHOTO_FILE" ? "EMBEDDED" : "REMOTE";
@@ -256,12 +273,12 @@ export function mountMediaEditor(container, options) {
         try {
           url = await compactLocalPhoto(file, options.maxEmbeddedChars);
         } catch (error) {
-          return options.notify(error.message, "error");
+          return notify(error.message, "error");
         }
       } else if (old?.storage === "EMBEDDED") {
         url = old.url;
       } else {
-        return options.notify("Choisis d’abord un fichier photo.", "error");
+        return notify("Choisis d’abord un fichier photo.", "error");
       }
     } else {
       url = urlInput.value.trim();
