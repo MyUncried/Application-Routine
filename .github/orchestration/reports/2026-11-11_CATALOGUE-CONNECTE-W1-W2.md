@@ -82,7 +82,11 @@ Couverture du test serveur : interface et domaine servis (liste blanche), ouvert
 
 ### 6 bis. Suite jest complète
 
-RESULTAT_SUITE_COMPLETE
+`npx jest` exécuté deux fois sur `bca74dd1` :
+- 1er passage : 337 suites, 5 761 tests — **5 759 PASS, 2 FAIL** (sortie tronquée, noms non conservés) ;
+- 2e passage (`npx jest --silent`) : **5 760 PASS, 1 FAIL** — `src/infrastructure/database/__tests__/copiesAndSnapshots.story13.test.ts` › « PRE4-1.3/AC9 — aucun chemin de production n'écrit ni ne stocke d'Instantané ».
+
+Cet échec est **antérieur à cette branche et hors périmètre** : le test interdit le mot « snapshot » dans `src/infrastructure/`, or `src/infrastructure/catalogue/SqliteCatalogueRegistry.ts` (présent au commit de départ `b8da709b`, zone de la session concurrente) le contient ; cette livraison ne modifie ni `src/infrastructure/` ni `app/` (`git diff --stat b8da709b HEAD -- src/infrastructure app` vide). Le second échec du premier passage, absent du second, n'est pas identifié (instabilité probable) ; vérification ciblée proposée : relancer `npx jest` sur la branche de base.
 
 ## 7. Hypothèses non démontrées
 
@@ -126,6 +130,6 @@ En cas d'échec en 1 : pare-feu, réseau invité / isolation des clients, ou mau
 
 ## 11. Commits et état Git
 
-- Commit de livraison (code, tests, documentation) : `COMMIT_LIVRAISON`.
+- Commit de livraison (code, tests, documentation) : `bca74dd1` (poussé). Premier commit du rapport : `c031a698` (gabarit incomplet), complété par le commit suivant.
 - Commit documentaire de ce rapport : voir le message de commit qui le contient (rattaché au commit ci-dessus).
 - Poussée : `git push -u origin catalogue/connecte-admin-20261111`. Aucune fusion vers `main`, aucun déploiement, aucune écriture OVH, aucune modification Figma.
