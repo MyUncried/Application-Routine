@@ -37,12 +37,12 @@ La provenance, l'identité de source, l'historique des révisions et les permiss
 | **BIB-03** | Affecter un Mouvement à une Bibliothèque ajoute une référence, sans copie ; le même Mouvement peut appartenir à plusieurs Bibliothèques. |
 | **BIB-04** | Une Bibliothèque personnelle peut mélanger librement des Mouvements propres, reçus d'un utilisateur, d'un coach, d'un kinésithérapeute ou de KODJO. |
 | **BIB-05** | Visibilité indépendante des conditions d'accès : personnelle, partagée avec des destinataires nommés ou des groupes, publique ; accès gratuit ou payant. Il n'existe pas de type structurel séparé « Coach », « Kiné » ou « KODJO » **pour les Bibliothèques qu'ils créent**. Cela ne fait pas d'une Bibliothèque le support du parcours de transmission kiné-patient (KIN-01). |
-| **BIB-06** | Deux seules permissions de fiche : **Modifier** et **Redistribuer**, indépendantes. Quatre modes : Protégé (non/non), Libre localement (oui/non), Partageable à l'identique (non/oui), Libre (oui/oui). |
-| **BIB-07** | **Copier** est toujours possible pour l'usage personnel et n'est pas une permission. Toute copie conserve obligatoirement les permissions et la provenance de la source ; les copies successives ne peuvent élargir les droits. Copier n'efface ni n'affecte la fiche source. |
+| **BIB-06** | **Supersédée par MOUV-D3 pour toute fiche importée** : aucune modification ni duplication ; seul le droit de redistribuer reste pertinent pour une future diffusion autorisée. Les quatre modes ci-dessous ne constituent plus une règle applicable aux fiches importées. |
+| **BIB-07** | **Supersédée par MOUV-D3 pour toute fiche importée** : la copie de Mouvement importé est interdite, même pour usage personnel. La duplication des Mouvements créés personnellement reste possible suivant les règles locales. |
 | **BIB-08** | Les restrictions sur la fiche ne verrouillent pas les paramètres d'exécution propres aux Exercices et aux Séances. |
 | **BIB-09** | Une Bibliothèque reçue/téléchargée est en lecture seule sur sa composition locale : ni ajout, ni retrait, ni réordonnancement. Le destinataire peut créer ses propres Bibliothèques et y référencer les Mouvements reçus, sans les retirer de la Bibliothèque source ni les copier. |
 | **BIB-10** | Une Bibliothèque partagée contient les fiches que le propriétaire est habilité à **publier pour la première fois** et les fiches tierces dont il possède le droit de **redistribution**. Les autres fiches tierces sont intégralement exclues pour le destinataire ; aucune métadonnée interdite n'est exposée. La composition personnelle de l'émetteur reste inchangée. |
-| **BIB-11** | Une fiche « Partageable à l'identique » conserve son contenu, sa provenance et ses restrictions lors de la redistribution ; les copies autorisées à la redistribution ne gagnent pas le droit de modification. |
+| **BIB-11** | Dans une future redistribution autorisée, la fiche importée est transmise **à l'identique**, sans droit de modification ni copie personnelle. Les anciens modes de permission éditoriale sont supersédés pour les fiches importées (MOUV-D3). |
 | **BIB-12** | Une nouvelle révision éditoriale d'un Mouvement distribué n'est **jamais installée automatiquement** : pastille d'alerte chez le destinataire, accès à la Bibliothèque et action **« Mettre à jour »**. Sans action de l'utilisateur, sa version reste inchangée. |
 | **BIB-13** | Une adaptation locale autorisée ne modifie jamais la fiche source ni les autres installations. Une révision distante ne doit pas écraser silencieusement une adaptation personnelle. |
 | **BIB-14** | Le premier partage d'une révision exige une autorisation centrale KODJO. Pour un partage privé sans anomalie : contrôles automatiques suffisants ; un doute conduit à revue humaine. |
@@ -51,16 +51,16 @@ La provenance, l'identité de source, l'historique des révisions et les permiss
 | **BIB-17** | Un retrait de modération neutralise autant que possible le contenu litigieux, sans détruire inutilement les références de la fiche dans les Bibliothèques, Exercices, Séances ou historiques ; le blocage distant est effectif dès la prochaine synchronisation capable de l'appliquer. |
 | **BIB-18** | Les fonctions de diffusion, comptes, paiements, contrôle central et modération appartiennent à la cible **post-MVP** ; le MVP local et son moteur d'exécution ne sont pas rendus dépendants d'un serveur. |
 
-### 2.1 Matrice des permissions
+### 2.1 Permissions applicables après MOUV-D3
 
-| Mode | Modifier la fiche ou une copie personnelle | Redistribuer la fiche ou une copie autorisée | Utiliser dans ses Exercices/Séances |
+| Origine de la fiche | Modifier / dupliquer la fiche | Redistribuer | Utiliser dans des Exercices/Séances |
 |---|---|---|---|
-| Protégé | Non | Non | Oui, si droit d'accès valide |
-| Libre localement | Oui | Non | Oui, si droit d'accès valide |
-| Partageable à l'identique | Non | Oui, sans changement de contenu | Oui, si droit d'accès valide |
-| Libre | Oui | Oui | Oui, si droit d'accès valide |
+| Création personnelle | Oui, dans le Catalogue selon règles locales | Sous autorisation applicable à la publication future | Oui |
+| Fiche importée | **Non / Non** | Seulement si la source l'autorise, dans un lot futur | Oui, selon droit d'accès |
 
-Les droits s'appliquent à la fiche éditoriale **reçue**, pas à l'insertion ou aux paramètres d'un Exercice. Le propriétaire habilité peut publier sa propre fiche avec des permissions destinataires Protégé ; un destinataire ne peut pas redistribuer une telle fiche. La création originale locale est modifiable et non redistribuable par des tiers avant choix explicite de droits à la première diffusion. L'installation technique ou l'association à une Bibliothèque ne constitue pas une redistribution. Le mode et le titulaire de droit restent attachés à la source et ne sont pas redéfinis par le simple copieur.
+L'ancienne matrice à quatre modes BIB-06 est **supersédée** pour les fiches importées ; le droit de redistribution ne donne jamais un droit d'édition ou de copie.
+
+Les droits s'appliquent à la fiche éditoriale **reçue**, pas à l'insertion ou aux paramètres d'un Exercice. Le propriétaire habilité peut publier sa propre fiche avec des permissions destinataires Protégé ; un destinataire ne peut pas redistribuer une telle fiche. La création originale locale est modifiable et non redistribuable par des tiers avant choix explicite de droits à la première diffusion. L'installation technique ou l'association à une Bibliothèque ne constitue pas une redistribution. Le titulaire et les droits de la fiche restent attachés à la source ; aucune opération de copie d'une fiche importée n'est permise.
 
 ### 2.2 Distribution sélective d'une Bibliothèque
 
@@ -115,14 +115,14 @@ La cible technique cherche à réutiliser la base locale opérationnelle et le r
 
 1. **Commerce :** achat définitif, abonnement, expiration, récupération après changement d'appareil et droits acquis associés.
 2. **Permissions ultérieures :** effet d'une restriction de modification/redistribution sur des installations ou redistributions déjà réalisées ; droits et licences des médias.
-3. **Conflits locaux :** modalités lorsque le contenu d'une fiche reçue a été adapté localement, hors variante indépendante ; pas de fusion silencieuse.
+3. **Réconciliation historique :** les anciennes adaptations éventuelles des 60 fiches déjà installées sont conservées et rapprochées par CA-3 sans fusion ni écrasement silencieux ; les nouvelles fiches importées sont en lecture seule (MOUV-D3).
 4. **Cohérence des lots :** mécanisme technique minimal de mise à jour globale et reprise après interruption avec deux bases SQLite.
 5. **Homonymes :** forme exacte de l'index et contrôle des doublons parmi les fiches originales d'un même utilisateur.
 6. **Groupes et Espace :** phasage des groupes, fin de relation individuelle, notifications et confidentialité.
 7. **Modération :** critères de contrôle, délais, contestations et droit applicable selon les données effectivement traitées.
 8. **UX / Figma :** écrans Bibliothèques, aperçu de propagation vers d'autres Bibliothèques, commandes de partage, mise à jour et signalement, non validés visuellement à ce stade.
 
-**Déjà définis et non ouverts :** une seule révision active par fiche source et par appareil ; propagation de son actualisation à toutes les Bibliothèques référentes ; compositions des autres Bibliothèques inchangées ; copie sans élargissement des permissions ; archivage indépendant de la diffusion ; arrêt du partage sans suppression des installations existantes.
+**Déjà définis et non ouverts :** une seule révision active par fiche source et par appareil ; propagation de son actualisation à toutes les Bibliothèques référentes ; compositions des autres Bibliothèques inchangées ; **aucune copie ou édition des fiches importées (MOUV-D3)** ; archivage indépendant de la diffusion ; arrêt du partage sans suppression des installations existantes.
 
 ## 8. Périmètre et traçabilité
 
