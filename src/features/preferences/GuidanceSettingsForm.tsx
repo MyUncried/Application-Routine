@@ -338,7 +338,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
-    gap: 4,
+    // « L’espace est trop réduit pour le coup » (Hermann) : 7 entre la valeur et le chevron. [4 — remplacé.]
+    gap: 7,
     alignSelf: "stretch",
   },
   soundValueText: {
