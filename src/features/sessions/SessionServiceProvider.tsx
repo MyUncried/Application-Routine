@@ -14,6 +14,7 @@ import { SqliteMovementRepository } from "@/infrastructure/database/repositories
 import { SqliteProfileRepository } from "@/infrastructure/database/repositories/SqliteProfileRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { SqliteExecutionRepository } from "@/infrastructure/database/repositories/SqliteExecutionRepository";
+import { deviceScreenAwake } from "@/infrastructure/device/ScreenAwake";
 import { ExecutionSignalAdapter } from "@/infrastructure/haptics/ExecutionSignalAdapter";
 import { systemClock, systemScheduler } from "@/infrastructure/time/systemClock";
 import { ExecutionService } from "@/features/execution/ExecutionService";
@@ -189,7 +190,7 @@ function SessionServiceInitializer({
       loadSession: (sessionId) => sessionService.getSessionForConsultation(sessionId),
       onSignal: (signal) => signals.play(signal),
     });
-    return { service, signals };
+    return { service, signals, screenAwake: deviceScreenAwake() };
   }, [nativeDatabase, sessionService]);
 
   useEffect(() => {

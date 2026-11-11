@@ -96,7 +96,8 @@ async function setup() {
     loadSession: (sessionId) => sessionService.getSessionForConsultation(sessionId),
   });
   const profileService = new ProfileService(new SqliteProfileRepository(database));
-  const value = { service, signals: new ExecutionSignalAdapter() };
+  const awake: boolean[] = [];
+  const value = { service, signals: new ExecutionSignalAdapter(), screenAwake: { keepAwake: (active: boolean) => void awake.push(active) } };
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -129,7 +130,7 @@ async function setup() {
   }
 
   const view = render(<ExecutionScreen sessionId={created.value.id} />, { wrapper: Wrapper });
-  return { service, at, view, database };
+  return { service, at, view, database, awake };
 }
 
 async function press(testID: string) {
@@ -211,6 +212,32 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance interrompue");
     expect(await database.getFirstAsync("SELECT business_status FROM executions")).toEqual({ business_status: "INTERRUPTED" });
     view.unmount();
+  });
+});
+
+/** Fin de PRE-10 (11/11/2026) — ch09 Profil, « Écran maintenu actif » : pendant l'exécution uniquement. */
+describe("fin de PRE-10 — écran maintenu actif", () => {
+  it("maintenu actif pendant l'exécution et en pause ; rendu à la fin", async () => {
+    const { at, view, awake } = await setup();
+    expect(await screen.findByTestId("execution-start")).toBeTruthy();
+    expect(awake).toEqual([]);
+    await press("execution-start");
+    expect(awake).toEqual([true]);
+    await at(10);
+    await press("execution-pause");
+    expect(awake).toEqual([true]);
+    await press("execution-pause-stop");
+    expect(screen.getByTestId("execution-end-status")).toBeTruthy();
+    expect(awake).toEqual([true, false]);
+    view.unmount();
+    expect(awake).toEqual([true, false]);
+  });
+
+  it("sortie de l'écran pendant l'exécution : veille rendue", async () => {
+    const { view, awake } = await setup();
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    view.unmount();
+    expect(awake).toEqual([true, false]);
   });
 });
 

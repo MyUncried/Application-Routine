@@ -64,7 +64,7 @@ export function ExecutionScreen({
 }: {
   readonly sessionId: string | null;
 }) {
-  const { service, signals } = useExecution();
+  const { service, signals, screenAwake } = useExecution();
   const profileService = useProfileService();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -168,6 +168,14 @@ export function ExecutionScreen({
       subscription.remove();
     };
   }, [running, service]);
+
+  // ch09 Profil, « Écran maintenu actif » : pas de mise en veille pendant l'exécution, y compris en pause ;
+  // la veille revient à la fin de la séance ou à la sortie de l'écran (fin de PRE-10, 11/11/2026).
+  useEffect(() => {
+    if (!running || screenAwake === undefined) return;
+    screenAwake.keepAwake(true);
+    return () => screenAwake.keepAwake(false);
+  }, [running, screenAwake]);
 
   useEffect(() => {
     if (!running) return;
