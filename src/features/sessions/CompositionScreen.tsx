@@ -10706,8 +10706,11 @@ const styles = StyleSheet.create({
   },
   // Recette 3 (T-49, EXT-R3-2) : effets de la zone de contexte, découpés à la bande.
   // Bouton Guidage sonore : bord droit à 24 du bord de l'écran (en-tête à 16, plus 8).
+  // Recette du 11/11/2026 (Hermann, z1) : « A corriger : Mettre le bouton gris clair à 17 du bord, c’est la marge dans le développement, vérifie. » Marge vérifiée : celle de l'en-tête est
+  // `layout.screenGutter` (16), celle du bouton Fermer à gauche ; le bouton s'y aligne.
+  // [Bord droit à 24 du bord de l'écran (ch12, DSF Actions) — remplacé.]
   guidanceAction: {
-    marginRight: 24 - layout.screenGutter,
+    marginRight: 0,
   },
   contextBandEffects: {
     position: "absolute",

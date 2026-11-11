@@ -340,3 +340,14 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - Hermann, recopié : « C’est un règle stupide que je n’ai jamais édictée et qu’il faut supprimer. » Classe B.
 - Règle visée : « sauf le récapitulatif Tabata » (ch06 Guidage sonore, ch13 CE-UI Guidage sonore), introduite par le commit documentaire 935b6a5d du 11/11/2026. Exception supprimée, texte d’origine conservé et annoté.
 - Code : aucun changement (le bouton reste dans l’en-tête de la Composition ; les écrans du questionnaire et du récapitulatif de Format n’en ont jamais eu). Cahier : essai z5 retiré.
+
+### 12.6 Recette du 11/11/2026 au soir (cahier)
+
+- r2, x2 (classe B) : « La règle à suivre est exactement l’inverse. L’anneau ne doit PAS tourner pendant le compte à rebours et la fin de séance. » ; « il ne faut pas de mouvement circulaire pendant le compte à rebours et la fin de séance » Anneau vide et immobile pendant le Compte à rebours initial et la Fin de séance (`ringMotion(…, still)`). ch13 CE-EXEC-SESSION-01 annoté.
+- Constat de position (classe B) : « Entre deux exercices d’une séance, le chronomètre et les autres éléments affichés ne doivent jamais changer de position sur l’écran (à corriger : le chronomètre est plus haut ou plus bas en fonction des informations affichées). » Hauteurs fixes pour le titre (2 lignes), le contexte, le côté, l’objectif et le guidage. ch13 annoté.
+- y5 (classe B) : « Le signal de mi temps est réservé aux exercice en durée définie, uniquement. On exclut les le compte à rebours, la fin de seance, les pauses et récupérations. » Signal `HALF_TIME` (événement Mi-temps, Bip long par défaut) à la moitié d’un exercice en Durée ; jamais en Répétitions, À l’échec, Compte à rebours, Fin de séance, Pauses ni récupérations ; aucun dans les trois dernières secondes. ch13 (À CLARIFIER résolu).
+- Constat cadence (classe D) : « Le bip de cadence est en retard par rapport au chronomètre » K3, K5, K6 OK : `BeepPort` passe par la bibliothèque de sons courts quand le module natif est présent. ch12 annoté. À vérifier sur iPhone.
+- z1 (classe B) : « A corriger : Mettre le bouton gris clair à 17 du bord, c’est la marge dans le développement, vérifie. » Marge vérifiée : 16 (`layout.screenGutter`, celle du bouton Fermer) ; bouton aligné dessus. ch12 annoté.
+- y3 (classe B) : « Décaler plus à droite les clamps de la colonne "Son", centrer le titre de la colonne » : chevrons au bord droit de la colonne, valeur centrée dans la place restante, titre centré.
+- z2 : « interrupteurs ne sont pas centrés verticalement sur leur ligne » — non corrigé : la mise en page centre déjà l’interrupteur (mesure native de React Native) ; capture d’écran demandée pour mesurer l’écart.
+- w3 : essai devenu sans objet (rangée Guidage de la Composition retirée, z1) ; retiré du cahier. x4 : KO sans note, texte de l’essai mis à jour (un tour par minute, avec ou sans cadence), à refaire.

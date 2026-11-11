@@ -12,6 +12,9 @@
  * - `MINUTE` : signal minute d'une Série en Répétitions ou À l'échec, avec ou sans bip de cadence (recette du
  *   10/11/2026 ; ch08) ; il l'emporte sur un bip de cadence au même instant.
  *
+ * - `HALF_TIME` : mi-temps d'un exercice en Durée définie, seulement (recette du 11/11/2026, Hermann, y5 :
+ *   « Le signal de mi temps est réservé aux exercice en durée définie, uniquement. On exclut les le compte à rebours, la fin de seance, les pauses et récupérations. ») ; aucun pendant les trois dernières secondes.
+ *
  * Règles : signal de transition prioritaire sur un bip coïncident, sans double signal (ACQUIS §10, T07) ; à
  * un même instant, un seul signal ; aucun signal pendant une Pause ; aucun rattrapage de signaux périmés
  * (§14.1) — le runtime ne demande que l'intervalle récent.
@@ -19,7 +22,7 @@
 
 import { leafStepRef, type EngineState, type Ms } from "./kernel";
 
-export type SignalKind = "TRANSITION" | "COUNTDOWN" | "CADENCE" | "MINUTE" | "PHASE";
+export type SignalKind = "TRANSITION" | "COUNTDOWN" | "CADENCE" | "MINUTE" | "PHASE" | "HALF_TIME";
 
 /**
  * Motif de phases de l'exercice en cours (D-446) : durées des phases en ms et limite du guidage (durée nominale :
@@ -34,7 +37,7 @@ const MINUTE = 60 * S;
 const CADENCE_MARGIN_MS = 250;
 // Recette du 10/11/2026 (G7) : le signal minute l'emporte sur un bip de cadence au même instant.
 // Recette du 10/11/2026 (constat B) : changement de phase après le compte à rebours, avant le signal minute et la cadence.
-const PRIORITY: Record<SignalKind, number> = { TRANSITION: 3, COUNTDOWN: 2, PHASE: 1.5, MINUTE: 1, CADENCE: 0 };
+const PRIORITY: Record<SignalKind, number> = { TRANSITION: 3, COUNTDOWN: 2, HALF_TIME: 1.8, PHASE: 1.5, MINUTE: 1, CADENCE: 0 };
 
 /** Signaux de l'étape courante dus dans `]fromMs, toMs]`, hors transition (portée par l'effet du noyau). */
 export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms, phases: PhasePattern | null = null): readonly PlannedSignal[] {
@@ -70,6 +73,9 @@ export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms, pha
     if (spec.cadenceMs !== undefined && leaf.cadenceAnchorMs !== null) every(spec.cadenceMs, "CADENCE");
     // Recette du 10/11/2026 (G7) : signal minute de toute Série en Répétitions ou À l'échec, avec ou sans cadence.
     if (spec.end === "MANUAL") every(MINUTE, "MINUTE");
+    // Recette du 11/11/2026 (y5) : mi-temps des seuls exercices en Durée définie (ni Compte à rebours, ni Fin de
+    // séance, ni Pauses ou récupérations : ce ne sont pas des étapes ACTIVITY).
+    if (spec.end === "TIMED" && (spec.plannedMs ?? 0) > 0) push("HALF_TIME", wallAt((spec.plannedMs ?? 0) / 2));
     // Recette du 10/11/2026 (constat B, « Il manque l'annonce des phases de l'exercice, et le bip des phases ») :
     // début de chaque phase du motif, sauf l'instant 0 (départ de l'exercice) ; le motif boucle jusqu'à la limite du
     // guidage (D-446 Q4 : après le nombre cible, plus de signal).
@@ -95,7 +101,7 @@ export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms, pha
   // chronométrée, qui ont leurs propres bips.
   const countdownFrom = endWall === null ? null : endWall - 3 * S - CADENCE_MARGIN_MS;
   // Recette du 10/11/2026 (constat B) : ni cadence ni changement de phase pendant les trois dernières secondes.
-  return dedupe(signals.filter((signal) => (endWall === null || signal.atMs < endWall) && !((signal.kind === "CADENCE" || signal.kind === "PHASE") && countdownFrom !== null && signal.atMs > countdownFrom)));
+  return dedupe(signals.filter((signal) => (endWall === null || signal.atMs < endWall) && !((signal.kind === "CADENCE" || signal.kind === "PHASE" || signal.kind === "HALF_TIME") && countdownFrom !== null && signal.atMs > countdownFrom)));
 }
 
 /** Un seul signal par instant, le plus prioritaire (transition > compte à rebours > cadence > minute). */

@@ -39,6 +39,8 @@ export const GUIDANCE = {
   // Recette du 10/11/2026 (constat B ; choix « Bip et nom de la phase ») : son provisoire, à choisir dans le formulaire.
   phase: { sound: "BIP_COURT", volume: 0.5, vibration: "LIGHT" },
   minute: { sound: "DING", volume: 0.15, vibration: "LIGHT" },
+  // Recette du 11/11/2026 (y5) : mi-temps d'un exercice en Durée définie ; son par défaut de l'événement (Bip long).
+  halfTime: { sound: "BIP_LONG", volume: 0.6, vibration: "MEDIUM" },
   // Recette du 10/11/2026 (k3) : double bip à l'arrivée sur une Pause ou une récupération, au zéro comme après Suivant.
   seriesPause: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
   recovery: { sound: "BIP_DOUBLE", volume: 1, vibration: "HEAVY" },
@@ -188,6 +190,7 @@ export class ExecutionSignalAdapter {
     if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null, event: "COUNTDOWN" };
     if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null, event: "CADENCE" };
     if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null, event: "EVERY_MINUTES" };
+    if (signal.kind === "HALF_TIME") return { cue: GUIDANCE.halfTime, announcement: null, event: "HALF_TIME" };
     if (signal.kind === "PHASE") return { cue: GUIDANCE.phase, announcement: this.announce.phases ? cleanName(signal.phaseLabel) : null, event: "PHASE_CHANGE" };
     // Recette du 10/11/2026 (a1) : « Bravo, séance terminée » après la fanfare, catégorie début et fin de séance.
     if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: this.announce.session ? "Bravo, séance terminée" : null, event: "SESSION_END" };

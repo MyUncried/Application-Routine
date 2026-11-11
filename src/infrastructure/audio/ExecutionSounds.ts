@@ -1,5 +1,8 @@
 import { requireOptionalNativeModule } from "expo";
+import { TurboModuleRegistry } from "react-native";
 import type { AudioPlayer } from "expo-audio";
+
+import type { ScheduledSounds } from "@/infrastructure/audio/ScheduledSounds";
 
 /**
  * Lot PRE-10 son et voix (décision de Hermann du 09/11/2026, recette PRE-10 n° 2, `q-son` ; ch08 « Guidage
@@ -90,9 +93,51 @@ function take(tone: BeepTone): Promise<AudioPlayer> {
   return player;
 }
 
+/**
+ * Recette du 11/11/2026 (Hermann, constat : « Le bip de cadence est en retard par rapport au chronomètre » ; essais
+ * K3, K5 et K6 OK — K3 : « La première série est irrégulière […] La seconde est régulière. ») : quand le module natif
+ * de la bibliothèque de sons courts est présent (`react-native-audio-api`, build `2e47648d`), les sons de l'Exécution
+ * sont joués par elle (sons décodés d'avance, départ sur l'horloge audio, musique atténuée — K6), comme annoncé dans la
+ * spec `spec-guidage-reglages` (« Le remplacement de `BeepPort` attend K3, K5 et K6 »). Sans ce module, `expo-audio`
+ * reste utilisé. [Lecteur `expo-audio` neuf à chaque son, seule voie — remplacé quand la bibliothèque est présente.]
+ */
+let library: ScheduledSounds | null = null;
+let libraryReady: Promise<ScheduledSounds | null> | null = null;
+
+/** Module natif de la bibliothèque présent (même contrôle que `hasScheduledSounds`). */
+function hasLibraryModule(): boolean {
+  try {
+    return TurboModuleRegistry.get("AudioAPIModule") != null;
+  } catch {
+    return false;
+  }
+}
+
+function scheduledLibrary(): Promise<ScheduledSounds | null> {
+  if (libraryReady !== null) return libraryReady;
+  // Chargé à la demande : `ScheduledSounds` importe `SOURCES` de ce module (pas de cycle au chargement).
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const scheduled = require("@/infrastructure/audio/ScheduledSounds") as typeof import("@/infrastructure/audio/ScheduledSounds");
+  if (!scheduled.hasScheduledSounds()) return (libraryReady = Promise.resolve(null));
+  const sounds = new scheduled.ScheduledSounds();
+  libraryReady = sounds
+    .start("LIBRARY_DUCK")
+    .then(() => sounds.preload())
+    .then(() => (library = sounds))
+    .catch(() => {
+      libraryReady = null;
+      return null;
+    });
+  return libraryReady;
+}
+
 export class ExecutionSounds implements BeepPort {
   /** Début d'Exécution : session active et un lecteur prêt par son, pour qu'aucun son ne parte en retard. */
   prepare(): void {
+    if (hasLibraryModule()) {
+      void scheduledLibrary();
+      return;
+    }
     if (!hasNativeModule("ExpoAudio")) return;
     void startExecutionAudio();
     for (const tone of Object.keys(SOURCES) as BeepTone[]) {
@@ -110,6 +155,14 @@ export class ExecutionSounds implements BeepPort {
   }
 
   private async playAsync(tone: BeepTone, volume: number): Promise<void> {
+    if (hasLibraryModule()) {
+      const sounds = library ?? (await scheduledLibrary());
+      if (sounds !== null) {
+        await sounds.schedule(tone, volume);
+        if (__DEV__) console.log(`[guidage] son ${tone} ${Date.now()} (bibliothèque)`);
+        return;
+      }
+    }
     if (!hasNativeModule("ExpoAudio")) return;
     void startExecutionAudio();
     const player = await take(tone);

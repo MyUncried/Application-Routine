@@ -525,25 +525,43 @@ export function ExecutionScreen({
       </View>
 
       <ScrollView contentContainerStyle={styles.content} bounces={false}>
-        <Text
-          style={styles.exerciseName}
-          accessibilityRole="header"
-          accessibilityLiveRegion="polite"
-          numberOfLines={2}
-          testID="execution-title"
-        >
-          {title}
-        </Text>
-        {projection.phase !== "ACTIVITY" && projection.exerciseName !== null ? (
-          <Text style={styles.context}>{projection.exerciseName}</Text>
-        ) : null}
-        {projection.sideRank !== null ? (
-          <Text style={styles.side} testID="execution-side">
-            {t.side(projection.sideRank)}
+        {/*
+          Recette du 11/11/2026 (Hermann, constat) : « Entre deux exercices d'une séance, le chronomètre et les autres
+          éléments affichés ne doivent jamais changer de position sur l'écran ». Titre (deux lignes), contexte et côté
+          occupent toujours la même hauteur, qu'ils soient affichés ou non. [Lignes présentes seulement si renseignées — remplacé.]
+        */}
+        <View style={styles.titleSlot}>
+          <Text
+            style={styles.exerciseName}
+            accessibilityRole="header"
+            accessibilityLiveRegion="polite"
+            numberOfLines={2}
+            testID="execution-title"
+          >
+            {title}
           </Text>
-        ) : null}
+        </View>
+        <View style={styles.contextSlot}>
+          {projection.phase !== "ACTIVITY" && projection.exerciseName !== null ? (
+            <Text style={styles.context} numberOfLines={1}>{projection.exerciseName}</Text>
+          ) : null}
+        </View>
+        <View style={styles.sideSlot}>
+          {projection.sideRank !== null ? (
+            <Text style={styles.side} numberOfLines={1} testID="execution-side">
+              {t.side(projection.sideRank)}
+            </Text>
+          ) : null}
+        </View>
         {/* Fin de PRE-10 : chrono circulaire (Figma `1992:8132`), côté et chrono centrés dans l'anneau. */}
-        <ExecutionTimerRing motion={ringMotion(projection.timer, projection.status === "RUNNING")} testID="execution-ring">
+        <ExecutionTimerRing
+          motion={ringMotion(
+            projection.timer,
+            projection.status === "RUNNING",
+            projection.phase === "INITIAL_COUNTDOWN" || projection.phase === "SESSION_END",
+          )}
+          testID="execution-ring"
+        >
           <Text
             style={styles.timer}
             accessibilityLabel={timerAccessibility(projection)}
@@ -552,15 +570,20 @@ export function ExecutionScreen({
             {timerText(projection)}
           </Text>
         </ExecutionTimerRing>
-        {targetText(projection) !== null ? (
-          <Text style={styles.target}>{targetText(projection)}</Text>
-        ) : null}
-        {projection.guidance !== null ? (
-          <Text style={styles.guidance} testID="execution-guidance">
-            {projection.guidance.label} ·{" "}
-            {formatClock(projection.guidance.remainingMs, true)}
-          </Text>
-        ) : null}
+        {/* Recette du 11/11/2026 : objectif et guidage gardent leur place, affichés ou non (positions fixes). */}
+        <View style={styles.lineSlot}>
+          {targetText(projection) !== null ? (
+            <Text style={styles.target} numberOfLines={1}>{targetText(projection)}</Text>
+          ) : null}
+        </View>
+        <View style={styles.lineSlot}>
+          {projection.guidance !== null ? (
+            <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
+              {projection.guidance.label} ·{" "}
+              {formatClock(projection.guidance.remainingMs, true)}
+            </Text>
+          ) : null}
+        </View>
         <View style={styles.seriesTour}>
           <Text style={styles.seriesTourText} testID="execution-series">
             {projection.series !== null
@@ -804,8 +827,8 @@ function estimateLabel(projection: ExecutionProjection): string {
 /** Couleurs et styles de texte du Figma `1992:8132` propres à l'écran d'Exécution. */
 const executionColors = { side: "#8F8F94", track: "#E0E3E8", progress: "#8283F2", caption: "#7A7A80" } as const;
 const executionType = {
-  title: { fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", fontSize: 30 },
-  side: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 24 },
+  title: { fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", fontSize: 30, lineHeight: 36 },
+  side: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 24, lineHeight: 29 },
   timer: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 100, letterSpacing: -1.5 },
   metric: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 30 },
 } as const;
@@ -859,6 +882,10 @@ const styles = StyleSheet.create({
   estimate: { ...type.supporting, color: colors.textSecondary },
   content: { alignItems: "center", paddingTop: spacing[24], gap: spacing[12] },
   // Fin de PRE-10 : typographie du Figma `1992:8132` (Roboto Condensed).
+  titleSlot: { height: 72, alignSelf: "stretch", justifyContent: "center" },
+  contextSlot: { height: 17, justifyContent: "center" },
+  sideSlot: { height: 29, justifyContent: "center" },
+  lineSlot: { height: 20, justifyContent: "center" },
   exerciseName: {
     ...executionType.title,
     color: colors.textPrimary,

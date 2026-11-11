@@ -34,6 +34,13 @@ describe("fin de PRE-10 — chrono circulaire", () => {
     expect(displayedFraction(1.5, false)).toBe(1);
   });
 
+  // Recette du 11/11/2026 (Hermann, x2 et r2) : « L’anneau ne doit PAS tourner pendant le compte à rebours et la fin de séance ».
+  it("Compte à rebours initial et Fin de séance : anneau vide et immobile", () => {
+    const timer = { kind: "COUNTDOWN", remainingMs: 4000, totalMs: 10000, elapsedMs: 6000 } as const;
+    expect(ringMotion(timer, true, true)).toEqual({ turns: 0, ratePerMs: 0, wrap: false });
+    expect(ringMotion(timer, true).turns).toBeCloseTo(0.6);
+  });
+
   it("géométrie : départ en haut, sens horaire ; repères tous les 18°, quarts à part", () => {
     expect(pointAt(0, 100, 150)).toEqual({ x: 150, y: 50 });
     const quarter = pointAt(0.25, 100, 150);

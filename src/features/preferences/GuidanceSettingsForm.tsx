@@ -98,7 +98,7 @@ export function GuidanceSettingsForm({
                   style={[styles.soundButton, styles.soundCell, v.soundCell]}
                   testID={`${testIDPrefix}-event-${event}-sound`}
                 >
-                  <Text style={v.soundValue} numberOfLines={1}>
+                  <Text style={[v.soundValue, styles.soundValueText]} numberOfLines={1}>
                     {soundValue}
                   </Text>
                   <KodjoIcon name={variant === "sheet" ? "chevron-aller-modale" : "chevron-aller"} />
@@ -321,12 +321,18 @@ const styles = StyleSheet.create({
     width: 51,
     textAlign: "right",
   },
+  // Recette du 11/11/2026 (Hermann, y3) : « Décaler plus à droite les clamps de la colonne "Son", centrer le titre de la colonne » Chevrons alignés au bord droit de la colonne, valeur
+  // centrée dans la place restante, titre « Son » centré sur la colonne. [Valeur et chevron centrés ensemble — remplacé.]
   soundButton: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-end",
     gap: 7,
     alignSelf: "stretch",
+  },
+  soundValueText: {
+    flex: 1,
+    textAlign: "center",
   },
   pickerSection: {
     ...inter.semiBold,

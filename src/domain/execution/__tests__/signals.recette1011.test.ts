@@ -26,7 +26,23 @@ describe("signaux — recette du 10/11/2026", () => {
     const sim = run(durationParameters(10, 1, 0, { cadenceBeepIntervalSeconds: 1 }));
     const signals = stepSignalsBetween(sim.state, 0, 10 * S);
     expect(kinds(signals, "COUNTDOWN")).toEqual([7 * S, 8 * S, 9 * S]);
-    expect(kinds(signals, "CADENCE")).toEqual([1 * S, 2 * S, 3 * S, 4 * S, 5 * S, 6 * S]);
+    // Recette du 11/11/2026 (y5) : à 5 s, la mi-temps l’emporte sur le clic (un seul signal par instant).
+    // [Clic de cadence à 5 s — remplacé.]
+    expect(kinds(signals, "CADENCE")).toEqual([1 * S, 2 * S, 3 * S, 4 * S, 6 * S]);
+    expect(kinds(signals, "HALF_TIME")).toEqual([5 * S]);
+  });
+
+  // Recette du 11/11/2026 (Hermann, y5) : « Le signal de mi temps est réservé aux exercice en durée définie, uniquement. »
+  it("mi-temps : seulement pour un exercice en Durée définie, jamais en Répétitions", () => {
+    const timed = run(durationParameters(30, 1, 0));
+    expect(kinds(stepSignalsBetween(timed.state, 0, 30 * S), "HALF_TIME")).toEqual([15 * S]);
+    const reps = run(repetitionParameters(20, 1, 0, { cadenceBeepIntervalSeconds: 2 }));
+    expect(kinds(stepSignalsBetween(reps.state, 0, 120 * S), "HALF_TIME")).toEqual([]);
+  });
+
+  it("mi-temps : aucune pendant les trois dernières secondes (exercice très court)", () => {
+    const short = run(durationParameters(5, 1, 0));
+    expect(kinds(stepSignalsBetween(short.state, 0, 5 * S), "HALF_TIME")).toEqual([]);
   });
 
   it("après une Pause, les clics restent calés sur le temps actif affiché par le chronomètre", () => {

@@ -5,11 +5,11 @@ import type { TimerView } from "@/domain/execution/projection";
  * `1992:8626` : « Minuteur — fond », « Chronomètre — anneau de progression (avec embouts) », repères).
  *
  * Part de l'anneau, de 0 à 1, dans le sens horaire depuis le haut :
- * - compte à rebours (Durée, pauses, récupérations, Compte à rebours initial, Fin de séance) : part écoulée de
+ * - compte à rebours (Durée, pauses, récupérations) : part écoulée de
  *   l'étape ; l'anneau se remplit avec le temps écoulé (recette x3 du 11/11/2026 : OK) ;
  * - chronomètre (Répétitions, avec ou sans cadence, À l'échec) : un tour par minute, puis recommence (ch08 ; recette x4
  *   du 11/11/2026, Hermann : « Il faut que ce soit la même chose avec cadence, un tour par minute puis recommence ») ;
- * - sans chrono (Point d'arrêt) : 0.
+ * - sans chrono (Point d'arrêt), Compte à rebours initial et Fin de séance : 0, immobile (recette x2, r2).
  * [Remplacé le 11/11/2026 — chronomètre avec fin nominale : part de la fin nominale, bornée à 1.]
  */
 export function ringFraction(timer: TimerView): number {
@@ -27,7 +27,14 @@ export type RingMotion = { readonly turns: number; readonly ratePerMs: number; r
 
 export const MINUTE_MS = 60_000;
 
-export function ringMotion(timer: TimerView, running: boolean): RingMotion {
+/**
+ * Recette du 11/11/2026 (Hermann, x2 : « il ne faut pas de mouvement circulaire pendant le compte à rebours et la fin
+ * de séance » ; r2 : « L'anneau ne doit PAS tourner pendant le compte à rebours et la fin de séance ») : `still`
+ * immobilise l'anneau, vide, pendant le Compte à rebours initial et la Fin de séance.
+ * [Anneau rempli avec le temps écoulé pendant ces deux étapes — remplacé.]
+ */
+export function ringMotion(timer: TimerView, running: boolean, still = false): RingMotion {
+  if (still) return { turns: 0, ratePerMs: 0, wrap: false };
   switch (timer.kind) {
     case "COUNTDOWN":
       if (timer.totalMs <= 0) return { turns: 0, ratePerMs: 0, wrap: false };
