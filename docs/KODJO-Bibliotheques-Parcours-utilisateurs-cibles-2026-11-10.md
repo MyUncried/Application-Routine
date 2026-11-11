@@ -61,7 +61,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 
 **Acteur :** propriétaire de la Bibliothèque.  
 **Déroulement :** recherche/sélection d'un Mouvement déjà présent dans le Catalogue local ; ajout par référence, réordonnancement ou retrait de cette Bibliothèque.  
-**Résultat :** seule l'association (et l'ordre éventuel) change ; aucun Mouvement source n'est créé, modifié, supprimé ni retiré d'une autre Bibliothèque. Le propriétaire peut associer plusieurs provenances et des copies personnelles explicites.  
+**Résultat :** seule l'association (et l'ordre éventuel) change ; aucun Mouvement source n'est créé, modifié, supprimé ni retiré d'une autre Bibliothèque. Le propriétaire peut référencer des Mouvements de plusieurs provenances ; il ne peut pas créer de copies d'une fiche importée (MOUV-D3).  
 **Contrôle :** « ajouter » ne doit pas être transformé en « copier ». Les permissions de la fiche ne conditionnent pas le référencement local.
 
 ### PU-03 — Créer ou corriger une fiche personnelle
