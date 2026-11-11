@@ -284,9 +284,10 @@ const styles = StyleSheet.create({
   },
   // Recette du 11/11/2026 (Hermann, z2 : « interrupteurs ne sont pas centrés verticalement sur leur ligne » ; puis
   // « les interrupteurs sont trop hauts ») : la mise en page centre le cadre mesuré de l’interrupteur iOS, mais son dessin
-  // apparaît plus haut sur l’iPhone ; correction visuelle de 2 vers le bas (à ajuster sur constat).
+  // apparaît plus haut sur l’iPhone ; correction visuelle vers le bas. Capture de Hermann (21 h 46, avec 2) : centre de
+  // l’interrupteur encore environ 5 au-dessus du centre de la ligne, d’où 7. [2 — remplacé.]
   switchNudge: {
-    transform: [{ translateY: 2 }],
+    transform: [{ translateY: 7 }],
   },
   row: {
     flexDirection: "row",
