@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactNode } from "react";
+import { AppState, type AppStateStatus } from "react-native";
 
 import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createEmptyDraft, createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { GUIDANCE_EVENTS, type GuidanceEvents } from "@/domain/preferences/guidanceSettings";
 import type { SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -229,8 +231,11 @@ describe("fin de PRE-10 — guidage de la Séance", () => {
     view.unmount();
   });
 
-  it("Sons coupés et Voix coupée par la Séance : interrupteurs off au démarrage, modifiables pendant la séance", async () => {
-    const { view } = await setup({ soundsEnabled: false, voiceEnabled: false, announceObjective: null });
+  // Guidage sonore validé pour la Séance (modale de Composition, documentation de main `ebe72f76`) : aucun son ni
+  // aucune annonce réglés → interrupteurs Sons et Voix inactifs au démarrage.
+  it("aucun son ni aucune annonce réglés pour la Séance : interrupteurs off au démarrage, modifiables pendant la séance", async () => {
+    const silent = Object.fromEntries(GUIDANCE_EVENTS.map((event) => [event, { sound: "NONE", vibration: true }])) as unknown as GuidanceEvents;
+    const { view } = await setup({ announcements: { session: false, names: false, phases: false, objective: false, pauses: false, sides: false }, events: silent });
     await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
     expect(label("execution-sound")).toEqual({ checked: false });
     expect(label("execution-voice")).toEqual({ checked: false });
@@ -351,5 +356,32 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     expect(refreshDelayMs(countdown(2600))).toBe(250);
     expect(refreshDelayMs(countdown(2200))).toBe(220);
     expect(refreshDelayMs({ timer: { kind: "STOPWATCH", elapsedMs: 4900, nominalMs: null } } as unknown as Parameters<typeof refreshDelayMs>[0])).toBe(120);
+  });
+});
+
+/**
+ * Recette du 11/11/2026, constat a (Hermann : « Pendant un appel vidéo ou téléphonique, ou l'utilisation d'une autre
+ * application, il faut une interruption de la séance, par défaut ») : la séance passe en Pause à l'arrière-plan.
+ */
+describe("recette du 11/11/2026 — interruption de la séance à l'arrière-plan", () => {
+  it("l'application quitte le premier plan : la séance est en Pause au retour", async () => {
+    const listeners: ((state: AppStateStatus) => void)[] = [];
+    const spy = jest.spyOn(AppState, "addEventListener").mockImplementation((_type, listener) => {
+      listeners.push(listener as (state: AppStateStatus) => void);
+      return { remove: () => undefined } as ReturnType<typeof AppState.addEventListener>;
+    });
+    const { at, view } = await setup();
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    await at(5);
+    expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
+    await act(async () => {
+      for (const listener of listeners) listener("background");
+    });
+    await act(async () => {
+      for (const listener of listeners) listener("active");
+    });
+    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
+    spy.mockRestore();
+    view.unmount();
   });
 });

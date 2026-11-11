@@ -25,7 +25,22 @@ class FakeProfileRepository implements ProfileRepository {
     this.profile = { ...this.profile, ...input };
     return this.profile;
   });
+  updateGuidanceEvent = jest.fn(async (...[event, setting]: Parameters<ProfileRepository["updateGuidanceEvent"]>) => {
+    this.profile = { ...this.profile, guidanceEvents: { ...this.profile.guidanceEvents, [event]: setting } };
+    return this.profile;
+  });
 }
+
+describe("ProfileService.setGuidanceEvent (guidage sonore, RM-087)", () => {
+  it("enregistre le son et la vibration d'un seul événement", async () => {
+    const repository = new FakeProfileRepository();
+    const service = new ProfileService(repository);
+    const next = await service.setGuidanceEvent("HALF_TIME", { sound: "NONE", vibration: true });
+    expect(repository.updateGuidanceEvent).toHaveBeenCalledWith("HALF_TIME", { sound: "NONE", vibration: true });
+    expect(next.guidanceEvents.HALF_TIME).toEqual({ sound: "NONE", vibration: true });
+    expect(next.guidanceEvents.COUNTDOWN).toEqual({ sound: "DEFAULT", vibration: true });
+  });
+});
 
 describe("ProfileService.getProfile", () => {
   it("delegates straight to the Repository", async () => {

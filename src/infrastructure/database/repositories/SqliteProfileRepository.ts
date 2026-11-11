@@ -1,3 +1,4 @@
+import { parseGuidanceEvents, serializeGuidanceEvents, type EventGuidance, type GuidanceEvent } from "@/domain/preferences/guidanceSettings";
 import {
   DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED,
   DEFAULT_ANNOUNCE_PAUSES_ENABLED,
@@ -26,6 +27,7 @@ const SELECT_COLUMNS = `
   COALESCE(g.announce_session_enabled, ${DEFAULT_ANNOUNCE_SESSION_ENABLED ? 1 : 0}) AS announce_session_enabled,
   COALESCE(g.announce_sides_enabled, ${DEFAULT_ANNOUNCE_SIDES_ENABLED ? 1 : 0}) AS announce_sides_enabled,
   COALESCE(g.announce_phases_enabled, ${DEFAULT_ANNOUNCE_PHASES_ENABLED ? 1 : 0}) AS announce_phases_enabled,
+  g.events_json AS guidance_events_json,
   p.display_name, p.photo_uri, p.silhouette, p.updated_at
 `;
 
@@ -119,6 +121,18 @@ export class SqliteProfileRepository implements ProfileRepository {
     return this.get();
   }
 
+  /** Son et vibration d'un événement (`migration029`) ; les huit autres restent inchangés. */
+  async updateGuidanceEvent(event: GuidanceEvent, setting: EventGuidance): Promise<Profile> {
+    const current = await this.get();
+    const events = serializeGuidanceEvents({ ...current.guidanceEvents, [event]: { sound: setting.sound, vibration: setting.vibration } });
+    await this.database.runAsync(
+      `INSERT INTO guidance_preferences (singleton_key, events_json, updated_at) VALUES (?, ?, ?)
+       ON CONFLICT(singleton_key) DO UPDATE SET events_json = excluded.events_json, updated_at = excluded.updated_at`,
+      [LOCAL_PROFILE_SINGLETON_KEY, events, this.now()],
+    );
+    return this.get();
+  }
+
   async updateIdentity(input: ProfileIdentityInput): Promise<Profile> {
     const timestamp = this.now();
     await this.database.runAsync(
@@ -147,6 +161,7 @@ export function mapProfileRow(row: ProfileRow): Profile {
     announceSessionEnabled: row.announce_session_enabled === 1,
     announceSidesEnabled: row.announce_sides_enabled === 1,
     announcePhasesEnabled: row.announce_phases_enabled === 1,
+    guidanceEvents: parseGuidanceEvents(row.guidance_events_json),
     displayName: row.display_name,
     photoUri: row.photo_uri,
     silhouette: row.silhouette,

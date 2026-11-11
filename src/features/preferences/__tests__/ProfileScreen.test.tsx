@@ -108,26 +108,38 @@ describe("ProfileScreen", () => {
     ).toBeTruthy();
   });
 
-  it("defaults Sons/Annonces vocales/Vibration to active and Notifications to inactive, each independent (CE-UI-07 L2515, L2519, L2573)", async () => {
+  // Profil › Préférences (Figma `1992:684`, `12093:25010` ; documentation de main `ebe72f76`) : six annonces vocales
+  // actives, Sons et vibrations aux valeurs du design, Notifications inactive.
+  // [Remplacé le 11/11/2026 — interrupteurs Sons, Annonces vocales et Vibration.]
+  it("Préférences : sections du design, annonces actives, sons et vibrations par défaut, Notifications inactive", async () => {
     await renderScreen();
 
-    // R10 : le `Switch` natif est retiré de l'arbre d'accessibilité (la ligne
-    // elle-même, un `Pressable` de rôle `switch`, porte le nom et l'état) —
-    // `hidden: true` l'inclut néanmoins dans cette requête technique directe.
-    expect(
-      screen.getByTestId("profile-preference-soundsEnabled-switch", { hidden: true }).props.value,
-    ).toBe(true);
-    expect(
-      screen.getByTestId("profile-preference-voiceAnnouncementsEnabled-switch", { hidden: true })
-        .props.value,
-    ).toBe(true);
-    expect(
-      screen.getByTestId("profile-preference-vibrationEnabled-switch", { hidden: true }).props.value,
-    ).toBe(true);
+    for (const announcement of ["session", "names", "phases", "objective", "pauses", "sides"]) {
+      expect(screen.getByTestId(`profile-guidance-announcement-${announcement}`).props.accessibilityState).toEqual({ checked: true });
+    }
+    expect(screen.getByTestId("profile-guidance-event-COUNTDOWN-sound").props.accessibilityValue).toEqual({ text: "Par défaut" });
+    expect(screen.getByTestId("profile-guidance-event-EVERY_MINUTES-sound").props.accessibilityValue).toEqual({ text: "Non" });
+    expect(screen.getByTestId("profile-guidance-event-CADENCE-vibration").props.value).toBe(false);
+    expect(screen.getByTestId("profile-guidance-event-HALF_TIME-vibration").props.value).toBe(true);
     expect(
       screen.getByTestId("profile-preference-notificationsEnabled-switch", { hidden: true }).props
         .value,
     ).toBe(false);
+    expect(screen.queryByTestId("profile-preference-soundsEnabled")).toBeNull();
+    expect(screen.queryByTestId("profile-preference-vibrationEnabled")).toBeNull();
+  });
+
+  it("vibration d'un événement enregistrée immédiatement ; le chevron du son ouvre « Choix d'un son »", async () => {
+    const setGuidanceEvent = jest.fn(async () => aProfile());
+    await renderScreen(fakeProfileService({ setGuidanceEvent: setGuidanceEvent as unknown as ProfileService["setGuidanceEvent"] }));
+
+    await act(async () => {
+      fireEvent(screen.getByTestId("profile-guidance-event-HALF_TIME-vibration"), "valueChange", false);
+    });
+    expect(setGuidanceEvent).toHaveBeenCalledWith("HALF_TIME", { sound: "DEFAULT", vibration: false });
+
+    fireEvent.press(screen.getByTestId("profile-guidance-event-HALF_TIME-sound"));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/profile-sound", params: { event: "HALF_TIME" } });
   });
 
   it("never renders an Exercise wheel picker (DurationWheelPicker/NumberWheelPicker) — every duration uses ProfileStepper (CE-UI-07 L2533)", async () => {
@@ -195,25 +207,19 @@ describe("ProfileScreen", () => {
   });
 
   it("toggles a preference immediately via ProfileService.setPreference", async () => {
-    const updated = aProfile({ vibrationEnabled: false });
+    const updated = aProfile({ announceSidesEnabled: false });
     const setPreference = jest.fn(async () => updated);
     await renderScreen(
       fakeProfileService({ setPreference: setPreference as unknown as ProfileService["setPreference"] }),
     );
 
     await act(async () => {
-      fireEvent(
-        screen.getByTestId("profile-preference-vibrationEnabled-switch", { hidden: true }),
-        "valueChange",
-        false,
-      );
+      fireEvent.press(screen.getByTestId("profile-guidance-announcement-sides"));
     });
 
-    expect(setPreference).toHaveBeenCalledWith("vibrationEnabled", false);
+    expect(setPreference).toHaveBeenCalledWith("announceSidesEnabled", false);
     await waitFor(() =>
-      expect(
-        screen.getByTestId("profile-preference-vibrationEnabled-switch", { hidden: true }).props.value,
-      ).toBe(false),
+      expect(screen.getByTestId("profile-guidance-announcement-sides").props.accessibilityState).toEqual({ checked: false }),
     );
   });
 
@@ -235,15 +241,19 @@ describe("ProfileScreen", () => {
   it("exposes each preference row as a single accessible switch element (name + checked state)", async () => {
     await renderScreen();
 
-    const row = screen.getByTestId("profile-preference-vibrationEnabled");
+    const row = screen.getByTestId("profile-preference-notificationsEnabled");
     expect(row.props.accessibilityRole).toBe("switch");
-    expect(row.props.accessibilityState).toEqual({ checked: true });
-    expect(row.props.accessibilityLabel).toBe(t.preferencesSwitches.vibration);
+    expect(row.props.accessibilityState).toEqual({ checked: false });
+    expect(row.props.accessibilityLabel).toBe(t.notifications.label);
+    const announcement = screen.getByTestId("profile-guidance-announcement-names");
+    expect(announcement.props.accessibilityRole).toBe("switch");
+    expect(announcement.props.accessibilityLabel).toBe(strings.screens.soundGuidance.announcements.names);
 
     // Le `Switch` natif et son libellé texte sont retirés de l'arbre
     // d'accessibilité par défaut — la requête standard (sans `hidden: true`)
     // ne doit donc plus les exposer comme des éléments distincts.
-    expect(screen.queryByTestId("profile-preference-vibrationEnabled-switch")).toBeNull();
+    expect(screen.queryByTestId("profile-preference-notificationsEnabled-switch")).toBeNull();
+    expect(screen.queryByTestId("profile-guidance-announcement-names-switch")).toBeNull();
   });
 
   it("navigates to Modifier le profil", async () => {
@@ -276,12 +286,11 @@ describe("ProfileScreen", () => {
   it("renders a separator between each pair of consecutive rows, never before the first or after the last", async () => {
     await renderScreen();
 
-    // Exercice/Séance : 3 lignes → 2 séparateurs. Guidage : 7 lignes → 6 séparateurs (suite PRE-10 son et voix, catégories d’annonces). Préférences : 2 lignes → 1 séparateur.
+    // Exercice/Séance : 3 lignes → 2 séparateurs. [Groupes Guidage et Préférences remplacés le 11/11/2026 par les
+    // sections Annonces vocales et Sons et vibrations (`GuidanceSettingsForm`).]
     const expectedDividerCountByGroup: Record<string, number> = {
       "profile-group-exercise": 2,
       "profile-group-session": 2,
-      "profile-group-guidance": 6,
-      "profile-group-preferences": 1,
     };
     for (const [groupTestID, dividerCount] of Object.entries(expectedDividerCountByGroup)) {
       expect(screen.queryByTestId(`${groupTestID}-divider-0`)).toBeNull();

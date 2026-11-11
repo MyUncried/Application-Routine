@@ -24,11 +24,12 @@ import type {
   NextView,
 } from "@/domain/execution/projection";
 import type { Profile } from "@/domain/preferences/Profile";
-import { effectiveSetting, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
+import { profileGuidance } from "@/domain/preferences/Profile";
+import { parseGuidanceSettings } from "@/domain/preferences/guidanceSettings";
+import { effectiveGuidance, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
-import { ringFraction } from "@/features/execution/timerRing";
+import { ringMotion } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
-import type { Announcements } from "@/infrastructure/haptics/ExecutionSignalAdapter";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 import { ExecutionDialog } from "./ExecutionDialog";
@@ -101,7 +102,6 @@ export function ExecutionScreen({
       .getProfile()
       .then((loaded) => {
         if (cancelled) return;
-        signals.setVibrationEnabled(loaded.vibrationEnabled);
         setProfile(loaded);
       })
       .catch(() => undefined);
@@ -115,29 +115,30 @@ export function ExecutionScreen({
   const current = service.current();
   const sessionGuidance = current?.plan.guidance ?? (prepared?.status === "ready" ? prepared.plan.guidance : undefined);
   const guidanceKey = sessionGuidance === undefined ? "profile" : JSON.stringify(sessionGuidance);
-  const guidance = useMemo((): SessionGuidance | undefined => (guidanceKey === "profile" ? undefined : (JSON.parse(guidanceKey) as SessionGuidance)), [guidanceKey]);
-  // Catégories d'annonces séparées (décision de Hermann du 10/11/2026) ; l'interrupteur Voix de la séance,
-  // qui coupe toutes les annonces, démarre actif si au moins une catégorie est annoncée, sauf réglage de la Séance.
+  // Une Exécution reprise d'avant la modale Guidage sonore (ancienne forme, sans événements) suit le Profil.
+  const guidance = useMemo((): SessionGuidance | undefined => (guidanceKey === "profile" || !guidanceKey.includes("\"events\"") ? undefined : parseGuidanceSettings(guidanceKey)), [guidanceKey]);
+  // Guidage sonore effectif (documentation de main `ebe72f76`) : réglages validés pour la Séance, sinon le Profil.
+  // Les interrupteurs Sons et Voix de la séance démarrent actifs si au moins un son, ou une annonce, est réglé.
   const initial = useMemo(() => {
-    if (profile === null) return { sounds: true, voice: true, announcements: null };
-    const announcements = announcementsOf(profile, guidance);
+    if (profile === null) return { sounds: true, voice: true, settings: null };
+    const settings = effectiveGuidance(guidance, profileGuidance(profile));
     return {
-      sounds: effectiveSetting(guidance?.soundsEnabled, profile.soundsEnabled),
-      voice: effectiveSetting(guidance?.voiceEnabled, Object.values(announcements).some(Boolean)),
-      announcements,
+      sounds: Object.values(settings.events).some((event) => event.sound !== "NONE"),
+      voice: Object.values(settings.announcements).some(Boolean),
+      settings,
     };
   }, [profile, guidance]);
   const soundEnabled = soundChoice ?? initial.sounds;
   const voiceEnabled = voiceChoice ?? initial.voice;
   useEffect(() => {
-    if (initial.announcements !== null) signals.setAnnouncements(initial.announcements);
+    if (initial.settings !== null) signals.setGuidance(initial.settings);
   }, [initial, signals]);
   useEffect(() => {
     signals.setAudible(soundEnabled, voiceEnabled);
   }, [soundEnabled, voiceEnabled, signals]);
 
-  // Recette du 10/11/2026 (h1, a1) : une modification de Vibrations ou des catégories d'annonces dans le Profil
-  // pendant une séance s'applique au retour sur l'écran d'Exécution (l'interrupteur Voix de la séance est conservé).
+  // Recette du 10/11/2026 (h1, a1) : une modification du guidage du Profil pendant une séance s'applique au retour sur
+  // l'écran d'Exécution (interrupteurs Sons et Voix de la séance conservés), sauf réglages propres à la Séance.
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
@@ -145,8 +146,7 @@ export function ExecutionScreen({
         .getProfile()
         .then((profile) => {
           if (cancelled) return;
-          signals.setVibrationEnabled(profile.vibrationEnabled);
-          signals.setAnnouncements(announcementsOf(profile, guidance));
+          signals.setGuidance(effectiveGuidance(guidance, profileGuidance(profile)));
         })
         .catch(() => undefined);
       return () => {
@@ -186,6 +186,11 @@ export function ExecutionScreen({
     timer = setTimeout(tick, refreshDelayMs(service.project()));
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "active") void service.onForeground();
+      // Recette du 11/11/2026 (constat a, Hermann : « Pendant un appel vidéo ou téléphonique, ou l'utilisation d'une
+      // autre application, il faut une interruption de la séance, par défaut ») : la séance passe en Pause dès que
+      // l'application quitte le premier plan. [À CLARIFIER : iOS ne distingue pas le verrouillage de l'écran, qui met
+      // aussi la séance en Pause ; la poursuite explicite en arrière-plan (petit écran flottant) reste à définir.]
+      if (state === "background") void service.dispatch({ type: "PAUSE", reason: "USER" }).catch(() => undefined);
     });
     return () => {
       if (timer !== null) clearTimeout(timer);
@@ -538,7 +543,7 @@ export function ExecutionScreen({
           </Text>
         ) : null}
         {/* Fin de PRE-10 : chrono circulaire (Figma `1992:8132`), côté et chrono centrés dans l'anneau. */}
-        <ExecutionTimerRing fraction={ringFraction(projection.timer)} testID="execution-ring">
+        <ExecutionTimerRing motion={ringMotion(projection.timer, projection.status === "RUNNING")} testID="execution-ring">
           <Text
             style={styles.timer}
             accessibilityLabel={timerAccessibility(projection)}
@@ -947,19 +952,6 @@ const styles = StyleSheet.create({
   endRowName: { ...type.label, color: colors.textPrimary },
   endRowStatus: { ...type.supporting, color: colors.textSecondary },
 });
-
-/** Catégories d'annonces du Profil (groupe Guidage ; décision de Hermann du 10/11/2026). */
-/** Catégories du Profil ; l'annonce de l'objectif suit la Séance quand elle a son propre réglage (fin de PRE-10). */
-function announcementsOf(profile: Profile, guidance?: SessionGuidance): Announcements {
-  return {
-    names: profile.voiceAnnouncementsEnabled,
-    objective: effectiveSetting(guidance?.announceObjective, profile.announceObjectiveEnabled),
-    pauses: profile.announcePausesEnabled,
-    session: profile.announceSessionEnabled,
-    sides: profile.announceSidesEnabled,
-    phases: profile.announcePhasesEnabled,
-  };
-}
 
 /**
  * Fin de PRE-10 — remplissage de chaque segment de la piste : un segment par Tour du Circuit en cours (un seul sans Circuit),

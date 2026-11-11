@@ -6,10 +6,13 @@ import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-nat
 import {
   isGridBasedSetting,
   profileDurationBounds,
+  profileGuidance,
   type Profile,
   type ProfileDurationSetting,
 } from "@/domain/preferences/Profile";
 import type { ProfilePreference } from "@/domain/preferences/ProfileRepository";
+import type { GuidanceEvent, VoiceAnnouncement } from "@/domain/preferences/guidanceSettings";
+import { GuidanceSettingsForm } from "@/features/preferences/GuidanceSettingsForm";
 import { computeInitials } from "@/features/preferences/ProfileEditScreen";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import {
@@ -24,53 +27,39 @@ import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ProfileStepper } from "@/shared/ui/ProfileStepper";
 import { colors, layout, minTouchTarget, spacing, switchOffColors, type } from "@/shared/ui/tokens";
 
+/**
+ * Profil › Préférences (Figma `1992:684` et `12093:25010`, documentation de main `ebe72f76`, CE-UI-07 ; demande de
+ * Hermann du 11/11/2026, cahier, constat d — « ne développe pas … Profil (section), mais uniquement … Préférences ») :
+ * sections Notifications, Séance, Annonces vocales, Sons et vibrations. Le groupe Exercice et la Récupération après
+ * exercice, absents des deux vues Figma mais exigés par CE-UI-07 (« Six défauts distincts »), sont conservés
+ * [À CLARIFIER]. Le bloc Identité n'est pas modifié.
+ */
 const EXERCISE_SETTINGS: readonly ProfileDurationSetting[] = [
   "sideChangeRecoverySecondsDefault",
   "exerciseCountdownSecondsDefault",
   "exerciseEndSecondsDefault",
 ];
 
+// Figma : « Compte à rebours de la séance » puis « Fin de séance » ; Récupération après exercice conservée à la suite.
 const SESSION_SETTINGS: readonly ProfileDurationSetting[] = [
-  "postActivityRecoverySecondsDefault",
   "sessionInitialCountdownSecondsDefault",
   "sessionFinalPhaseSecondsDefault",
+  "postActivityRecoverySecondsDefault",
 ];
-
-type PreferenceRow = {
-  readonly preference: ProfilePreference;
-  readonly labelKey:
-    | "sounds"
-    | "voiceAnnouncements"
-    | "announceObjective"
-    | "announcePauses"
-    | "announceSession"
-    | "announceSides"
-    | "announcePhases"
-    | "vibration"
-    | "notifications";
-};
 
 /**
- * Groupe Guidage (suite PRE-10 son et voix, spec `spec-guidage-reglages` §3.1, décisions de Hermann du
- * 10/11/2026) : Sons et Annonces vocales y passent depuis les Préférences ; ils donnent l'état initial des
- * interrupteurs de l'Exécution. Guidage écran verrouillé : avec la nouvelle version native (§3.5).
+ * Les six annonces vocales reprennent les bascules déjà enregistrées du Profil (documentation de main `ebe72f76`).
+ * [Remplacé le 11/11/2026 — groupes Guidage (Sons, sept annonces) et Préférences (Vibration, Notifications) : Sons et
+ * Vibration deviennent le son et la vibration de chaque événement.]
  */
-const GUIDANCE_ROWS: readonly PreferenceRow[] = [
-  { preference: "soundsEnabled", labelKey: "sounds" },
-  { preference: "voiceAnnouncementsEnabled", labelKey: "voiceAnnouncements" },
-  { preference: "announceObjectiveEnabled", labelKey: "announceObjective" },
-  // Catégories d'annonces séparées (décision de Hermann du 10/11/2026).
-  { preference: "announcePausesEnabled", labelKey: "announcePauses" },
-  { preference: "announceSessionEnabled", labelKey: "announceSession" },
-  { preference: "announceSidesEnabled", labelKey: "announceSides" },
-  // Recette du 10/11/2026 (constat B) : phases du mouvement.
-  { preference: "announcePhasesEnabled", labelKey: "announcePhases" },
-];
-
-const PREFERENCE_ROWS: readonly PreferenceRow[] = [
-  { preference: "vibrationEnabled", labelKey: "vibration" },
-  { preference: "notificationsEnabled", labelKey: "notifications" },
-];
+const ANNOUNCEMENT_PREFERENCES: Readonly<Record<VoiceAnnouncement, ProfilePreference>> = {
+  session: "announceSessionEnabled",
+  names: "voiceAnnouncementsEnabled",
+  phases: "announcePhasesEnabled",
+  objective: "announceObjectiveEnabled",
+  pauses: "announcePausesEnabled",
+  sides: "announceSidesEnabled",
+};
 
 /**
  * Écran Profil (V2-PRE-2, plan §6.5, CE-UI-07 L2495-2583) : six réglages
@@ -173,15 +162,24 @@ export function ProfileScreen() {
 
   const hasPhoto = profile !== null && profilePhotoFileExists(profile.photoUri);
 
-  function renderPreferenceRow({ preference, labelKey }: PreferenceRow) {
+  async function commitVibration(event: GuidanceEvent, vibration: boolean) {
+    if (!profile) return;
+    const setting = { ...profile.guidanceEvents[event], vibration };
+    setProfile({ ...profile, guidanceEvents: { ...profile.guidanceEvents, [event]: setting } });
+    try {
+      setProfile(await profileService.setGuidanceEvent(event, setting));
+    } catch (error) {
+      console.error("La vibration n'a pas pu être enregistrée.", error);
+      reload();
+    }
+  }
+
+  function renderNotificationsRow() {
     if (profile === null) return null;
-    const label = t.preferencesSwitches[labelKey];
-    const rawValue = profile[preference];
+    const preference = "notificationsEnabled";
+    const label = t.notifications.label;
     // T7 : un état de permission refusé n'affiche jamais Notifications actif.
-    const displayedValue =
-      preference === "notificationsEnabled"
-        ? rawValue && !isNotificationPermissionDenied(permissionStatus)
-        : rawValue;
+    const displayedValue = profile.notificationsEnabled && !isNotificationPermissionDenied(permissionStatus);
     return (
       // R10 : la ligne forme un SEUL élément accessible de rôle
       // interrupteur (nom + état) — le libellé et le `Switch`
@@ -194,16 +192,14 @@ export function ProfileScreen() {
         accessibilityRole="switch"
         accessibilityState={{ checked: displayedValue }}
         accessibilityLabel={label}
+        accessibilityHint={t.notifications.subtitle}
         style={styles.switchRow}
         testID={`profile-preference-${preference}`}
       >
-        <Text
-          style={styles.label}
-          importantForAccessibility="no-hide-descendants"
-          accessibilityElementsHidden
-        >
-          {label}
-        </Text>
+        <View style={styles.labelBlock} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+          <Text style={styles.label}>{label}</Text>
+          <Text style={styles.subtitle}>{t.notifications.subtitle}</Text>
+        </View>
         <Switch
           {...switchOffColors}
           value={displayedValue}
@@ -276,25 +272,25 @@ export function ProfileScreen() {
             </Pressable>
           </View>
 
-          <View style={styles.group} testID="profile-group-exercise">
-            <Text style={styles.groupTitle}>{t.groups.exercise}</Text>
-            {withSeparators("profile-group-exercise", EXERCISE_SETTINGS.map(renderDurationRow))}
+          <View style={styles.section} testID="profile-group-notifications">
+            <Text style={styles.groupTitle} accessibilityRole="header">{t.groups.notifications}</Text>
+            <View style={styles.group}>{renderNotificationsRow()}</View>
           </View>
-          <View style={styles.group} testID="profile-group-session">
-            <Text style={styles.groupTitle}>{t.groups.session}</Text>
-            {withSeparators("profile-group-session", SESSION_SETTINGS.map(renderDurationRow))}
+          <View style={styles.section} testID="profile-group-session">
+            <Text style={styles.groupTitle} accessibilityRole="header">{t.groups.session}</Text>
+            <View style={styles.group}>{withSeparators("profile-group-session", SESSION_SETTINGS.map(renderDurationRow))}</View>
           </View>
-          <View style={styles.group} testID="profile-group-guidance">
-            <Text style={styles.groupTitle}>{t.groups.guidance}</Text>
-            {withSeparators("profile-group-guidance", GUIDANCE_ROWS.map(renderPreferenceRow))}
+          <View style={styles.section} testID="profile-group-exercise">
+            <Text style={styles.groupTitle} accessibilityRole="header">{t.groups.exercise}</Text>
+            <View style={styles.group}>{withSeparators("profile-group-exercise", EXERCISE_SETTINGS.map(renderDurationRow))}</View>
           </View>
-          <View style={styles.group} testID="profile-group-preferences">
-            <Text style={styles.groupTitle}>{t.groups.preferences}</Text>
-            {withSeparators(
-              "profile-group-preferences",
-              PREFERENCE_ROWS.map(renderPreferenceRow),
-            )}
-          </View>
+          <GuidanceSettingsForm
+            settings={profileGuidance(profile)}
+            onAnnouncementChange={(announcement, value) => commitPreference(ANNOUNCEMENT_PREFERENCES[announcement], value)}
+            onVibrationChange={(event, value) => void commitVibration(event, value)}
+            onOpenSound={(event) => router.push({ pathname: "/profile-sound", params: { event } })}
+            testIDPrefix="profile-guidance"
+          />
           {__DEV__ ? (
             // Recette PRE-10 du 10/11/2026 : accès technique au diagnostic des sons, en développement seulement
             // (le lien routine://diagnostic-sons ouvre une autre application installée).
@@ -386,12 +382,16 @@ const styles = StyleSheet.create({
   // le bord 0,5/rayon 8 de DSF-CARTES L30, qui ne concerne que les cartes).
   // Alignement DSF 07/10 (annexe F) : `#FCFCFE` est ramené au token
   // canonique le plus proche, `surfaceSubtle` (`#F9FAFC`).
+  // Figma `1992:684` : titre de section au-dessus de son groupe.
+  section: {
+    gap: spacing[16],
+  },
   group: {
     backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
     borderColor: colors.background,
     borderRadius: 12,
-    padding: spacing[16],
+    paddingHorizontal: 12,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -401,7 +401,16 @@ const styles = StyleSheet.create({
   groupTitle: {
     ...type.sectionTitle,
     color: colors.textPrimary,
-    marginBottom: spacing[8],
+  },
+  labelBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  subtitle: {
+    ...type.body,
+    fontSize: 11,
+    lineHeight: 13,
+    color: colors.textSecondary,
   },
   // D-267 (CE-UI-07 L2532) : séparateur entre deux lignes consécutives d'un
   // même groupe — jamais avant la première ni après la dernière.
@@ -410,7 +419,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.divider,
   },
   label: {
-    ...type.body,
+    ...type.label,
     color: colors.textPrimary,
   },
   switchRow: {

@@ -5,25 +5,45 @@ import type { TimerView } from "@/domain/execution/projection";
  * `1992:8626` : « Minuteur — fond », « Chronomètre — anneau de progression (avec embouts) », repères).
  *
  * Part de l'anneau, de 0 à 1, dans le sens horaire depuis le haut :
- * - compte à rebours (Durée, pauses, récupérations) : part écoulée de l'étape ;
- * - chronomètre sans fin nominale (Répétitions sans cadence, À l'échec) : un tour par minute, puis recommence
- *   (ch08 « Exercice défini par un nombre de répétitions ») ;
- * - chronomètre avec fin nominale (Répétitions cadencées, Ri×Ci) : part de la fin nominale, bornée à 1 ;
+ * - compte à rebours (Durée, pauses, récupérations, Compte à rebours initial, Fin de séance) : part écoulée de
+ *   l'étape ; l'anneau se remplit avec le temps écoulé (recette x3 du 11/11/2026 : OK) ;
+ * - chronomètre (Répétitions, avec ou sans cadence, À l'échec) : un tour par minute, puis recommence (ch08 ; recette x4
+ *   du 11/11/2026, Hermann : « Il faut que ce soit la même chose avec cadence, un tour par minute puis recommence ») ;
  * - sans chrono (Point d'arrêt) : 0.
- *
- * [Interprétation du Figma, à valider en recette : l'anneau se remplit avec le temps écoulé (il ne se vide pas avec le
- * temps restant).]
+ * [Remplacé le 11/11/2026 — chronomètre avec fin nominale : part de la fin nominale, bornée à 1.]
  */
 export function ringFraction(timer: TimerView): number {
+  const motion = ringMotion(timer, false);
+  return displayedFraction(motion.turns, motion.wrap);
+}
+
+/**
+ * Mouvement continu de l'anneau (recette x2 du 11/11/2026, Hermann : « le mouvement circulaire est saccadé, il doit
+ * être fluide et continu quelque soit la durée ») : position en tours au moment de la projection, vitesse en tours
+ * par milliseconde pendant que l'Exécution avance (0 en pause), et retour au départ à chaque tour (chronomètre).
+ * L'anneau est animé entre deux rafraîchissements de l'écran, sans attendre le changement de seconde.
+ */
+export type RingMotion = { readonly turns: number; readonly ratePerMs: number; readonly wrap: boolean };
+
+export const MINUTE_MS = 60_000;
+
+export function ringMotion(timer: TimerView, running: boolean): RingMotion {
   switch (timer.kind) {
     case "COUNTDOWN":
-      return timer.totalMs <= 0 ? 0 : clamp(timer.elapsedMs / timer.totalMs);
+      if (timer.totalMs <= 0) return { turns: 0, ratePerMs: 0, wrap: false };
+      return { turns: clamp(timer.elapsedMs / timer.totalMs), ratePerMs: running && timer.remainingMs > 0 ? 1 / timer.totalMs : 0, wrap: false };
     case "STOPWATCH":
-      if (timer.nominalMs !== null && timer.nominalMs > 0) return clamp(timer.elapsedMs / timer.nominalMs);
-      return (timer.elapsedMs % 60_000) / 60_000;
+      return { turns: timer.elapsedMs / MINUTE_MS, ratePerMs: running ? 1 / MINUTE_MS : 0, wrap: true };
     case "NONE":
-      return 0;
+      return { turns: 0, ratePerMs: 0, wrap: false };
   }
+}
+
+/** Part dessinée : partie fractionnaire du tour (chronomètre), sinon bornée à 1. */
+export function displayedFraction(turns: number, wrap: boolean): number {
+  "worklet";
+  if (wrap) return turns - Math.floor(turns);
+  return Math.min(1, Math.max(0, turns));
 }
 
 function clamp(value: number): number {
@@ -54,6 +74,7 @@ export const RING = {
 
 /** Point à `fraction` du tour (0 = haut, sens horaire), au rayon `radius`, autour de (`center`, `center`). */
 export function pointAt(fraction: number, radius: number, center: number): { readonly x: number; readonly y: number } {
+  "worklet";
   const angle = fraction * 2 * Math.PI;
   return { x: center + radius * Math.sin(angle), y: center - radius * Math.cos(angle) };
 }

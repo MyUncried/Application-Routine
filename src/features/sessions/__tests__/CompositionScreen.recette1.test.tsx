@@ -21,6 +21,7 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { DEFAULT_GUIDANCE_EVENTS } from "@/domain/preferences/guidanceSettings";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
@@ -330,21 +331,29 @@ describe("contre-recette du 30/10 — second appui sur « Ajouter un arrêt »",
   });
 });
 
-/** Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) — élément Guidage de la Composition, au-dessus du Compte à rebours. */
-describe("fin de PRE-10 — élément Guidage de la Composition", () => {
-  const g = strings.screens.composition.guidance;
+/**
+ * Bouton Guidage sonore de l'en-tête de Composition (documentation de main `ebe72f76`, ch12 « DSF — Actions », ch13 ;
+ * demande de Hermann du 11/11/2026, cahier, constat d). [Remplacé le 11/11/2026 — élément Guidage au-dessus du Compte à
+ * rebours, retiré avec l'espace qu'il occupait.]
+ */
+describe("bouton Guidage sonore de l'en-tête de Composition", () => {
+  const g = strings.screens.soundGuidance;
 
-  it("Séance comme le Profil : « Guidage — Comme le Profil » ; le toucher ouvre la feuille du guidage", async () => {
+  it("dans l'en-tête, libellé « Guidage sonore », symbole fin ; ouvre la modale ; plus d'élément Guidage dans la séquence", async () => {
     await renderComposition(flatDraft());
-    const row = screen.getByTestId("composition-guidance");
-    expect(row.props.accessibilityLabel).toBe(g.label);
-    expect(row.props.accessibilityValue).toEqual({ text: g.followsProfile });
-    fireEvent.press(row);
+    expect(screen.queryByTestId("composition-guidance")).toBeNull();
+    expect(screen.queryByTestId("composition-guidance-step")).toBeNull();
+    const button = screen.getByTestId("composition-guidance-action");
+    expect(button.props.accessibilityLabel).toBe(g.buttonLabel);
+    expect(screen.getByTestId("composition-guidance-icon-light")).toBeTruthy();
+    fireEvent.press(button);
     expect(mockPush).toHaveBeenCalledWith("/session-guidance");
+    expect(screen.getByTestId("composition-guidance-icon-fill")).toBeTruthy();
   });
 
-  it("Séance à réglage propre : « Propre à la séance »", async () => {
-    await renderComposition({ ...flatDraft(), guidance: { soundsEnabled: false, voiceEnabled: null, announceObjective: null } });
-    expect(screen.getByTestId("composition-guidance").props.accessibilityValue).toEqual({ text: g.own });
+  it("une Séance à réglages propres garde le symbole fin tant que la modale est fermée", async () => {
+    await renderComposition({ ...flatDraft(), guidance: { announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: false }, events: DEFAULT_GUIDANCE_EVENTS } });
+    expect(screen.getByTestId("composition-guidance-icon-light")).toBeTruthy();
+    expect(screen.queryByTestId("composition-guidance-icon-fill")).toBeNull();
   });
 });

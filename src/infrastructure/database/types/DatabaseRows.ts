@@ -33,6 +33,8 @@ export type SessionHeaderRow = {
   guidance_sounds_enabled?: number | null;
   guidance_voice_enabled?: number | null;
   guidance_announce_objective?: number | null;
+  /** `migration029` : réglages de guidage validés pour la Séance (JSON), `NULL` = comme le Profil. */
+  guidance_settings?: string | null;
 };
 
 /** PRE-8 (A.4) : Cycle utilisateur ; `position` = rang au niveau principal ; `repeat_count ≥ 1`. */
@@ -238,6 +240,8 @@ export type ProfileRow = {
   announce_session_enabled: 0 | 1;
   announce_sides_enabled: 0 | 1;
   announce_phases_enabled: 0 | 1;
+  /** `migration029` : son et vibration des neuf événements (JSON), `NULL` = valeurs par défaut. */
+  guidance_events_json?: string | null;
   display_name: string | null;
   photo_uri: string | null;
   silhouette: "homme" | "femme" | null;

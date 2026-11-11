@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { tourSegments } from "@/features/execution/ExecutionScreen";
-import { arcPath, MINOR_MARKS, pointAt, QUARTER_MARKS, ringFraction } from "@/features/execution/timerRing";
+import { arcPath, displayedFraction, MINOR_MARKS, pointAt, QUARTER_MARKS, ringFraction, ringMotion } from "@/features/execution/timerRing";
 
 /** Fin de PRE-10 — chrono circulaire et piste par Tours de l'écran d'Exécution (Figma `1992:8132`, ch08, ch10 RM-077). */
 describe("fin de PRE-10 — chrono circulaire", () => {
@@ -15,10 +15,23 @@ describe("fin de PRE-10 — chrono circulaire", () => {
     expect(ringFraction({ kind: "STOPWATCH", elapsedMs: 61_000, nominalMs: null })).toBeCloseTo(1 / 60);
   });
 
-  it("chronomètre avec fin nominale : part de la fin nominale, bornée à 1 ; sans chrono : 0", () => {
-    expect(ringFraction({ kind: "STOPWATCH", elapsedMs: 20_000, nominalMs: 40_000 })).toBe(0.5);
-    expect(ringFraction({ kind: "STOPWATCH", elapsedMs: 90_000, nominalMs: 40_000 })).toBe(1);
+  // Recette x4 du 11/11/2026 (Hermann : « Il faut que ce soit la même chose avec cadence, un tour par minute puis
+  // recommence »). [Remplacé : part de la fin nominale, bornée à 1.]
+  it("chronomètre avec cadence : un tour par minute, puis recommence ; sans chrono : 0", () => {
+    expect(ringFraction({ kind: "STOPWATCH", elapsedMs: 20_000, nominalMs: 40_000 })).toBeCloseTo(1 / 3);
+    expect(ringFraction({ kind: "STOPWATCH", elapsedMs: 90_000, nominalMs: 40_000 })).toBeCloseTo(0.5);
     expect(ringFraction({ kind: "NONE" })).toBe(0);
+  });
+
+  // Recette x2 du 11/11/2026 : « le mouvement circulaire est saccadé, il doit être fluide et continu quelque soit la durée ».
+  it("mouvement continu : vitesse constante pendant l'avancée, immobile en pause ; compte à rebours borné, chronomètre recommencé", () => {
+    const countdown = { kind: "COUNTDOWN", remainingMs: 7_500, totalMs: 10_000, elapsedMs: 2_500 } as const;
+    expect(ringMotion(countdown, true)).toEqual({ turns: 0.25, ratePerMs: 1 / 10_000, wrap: false });
+    expect(ringMotion(countdown, false).ratePerMs).toBe(0);
+    expect(ringMotion({ kind: "COUNTDOWN", remainingMs: 0, totalMs: 10_000, elapsedMs: 10_000 }, true).ratePerMs).toBe(0);
+    expect(ringMotion({ kind: "STOPWATCH", elapsedMs: 90_000, nominalMs: null }, true)).toEqual({ turns: 1.5, ratePerMs: 1 / 60_000, wrap: true });
+    expect(displayedFraction(1.5, true)).toBeCloseTo(0.5);
+    expect(displayedFraction(1.5, false)).toBe(1);
   });
 
   it("géométrie : départ en haut, sens horaire ; repères tous les 18°, quarts à part", () => {

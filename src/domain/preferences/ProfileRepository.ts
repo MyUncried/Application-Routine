@@ -1,3 +1,4 @@
+import type { EventGuidance, GuidanceEvent } from "./guidanceSettings";
 import type { ProfileDurationSetting, Profile, Silhouette } from "./Profile";
 
 /** Préférences locales à bascule indépendante (CE-UI-07 L2515/L2519/L2573). */
@@ -26,6 +27,8 @@ export interface ProfileRepository {
   updateDefault(setting: ProfileDurationSetting, value: number): Promise<Profile>;
   /** Bascule une seule préférence, atomiquement — les trois autres restent inchangées. */
   updatePreference(preference: ProfilePreference, value: boolean): Promise<Profile>;
+  /** Son et vibration d'un des neuf événements (RM-087), atomiquement — les autres restent inchangés. */
+  updateGuidanceEvent(event: GuidanceEvent, setting: EventGuidance): Promise<Profile>;
   /** Enregistre nom, photo et silhouette ensemble, atomiquement (CE-UI-01 L1981/L2025/L2033). */
   updateIdentity(input: ProfileIdentityInput): Promise<Profile>;
 }

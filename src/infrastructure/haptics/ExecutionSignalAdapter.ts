@@ -1,3 +1,4 @@
+import { DEFAULT_GUIDANCE_EVENTS, type GuidanceEvent, type GuidanceEvents, type GuidanceSettings } from "@/domain/preferences/guidanceSettings";
 import type { ExecutionSignal, SignalObjective } from "@/features/execution/ExecutionService";
 import { ExecutionSounds, type BeepPort, type BeepTone } from "@/infrastructure/audio/ExecutionSounds";
 import { ExecutionVoice, type VoicePort } from "@/infrastructure/speech/ExecutionVoice";
@@ -65,7 +66,14 @@ const later: Defer = (run, delayMs = 0) => {
   else run();
 };
 
-export type Guidance = { readonly cue: Cue; readonly announcement: string | null };
+/**
+ * Guidance d'un signal : son, vibration, annonce et événement du guidage sonore (documentation de main `ebe72f76`,
+ * RM-087) dont le réglage Son et Vibration s'applique ; `null` pour une étape qui n'en relève d'aucun.
+ */
+export type Guidance = { readonly cue: Cue; readonly announcement: string | null; readonly event?: GuidanceEvent | null };
+
+/** Volume d'un son choisi pour un événement qui n'en avait pas par défaut. */
+const CHOSEN_SOUND_VOLUME = 0.6;
 
 /**
  * Catégories d'annonces vocales, réglées séparément dans le Profil — décision de Hermann du 10/11/2026 (« Il faut
@@ -95,6 +103,8 @@ export class ExecutionSignalAdapter {
   private voiceEnabled = true;
   /** Catégories d'annonces du Profil (groupe Guidage). */
   private announce: Announcements = ALL_ANNOUNCEMENTS;
+  /** Son et vibration des neuf événements (Profil ou Séance). */
+  private events: GuidanceEvents = DEFAULT_GUIDANCE_EVENTS;
   /** Nom déjà annoncé comme « À suivre », pour ne pas le répéter au départ. */
   private announcedNext: string | null = null;
   /** L'étape qui se termine était chronométrée : son zéro est marqué (bip grave). */
@@ -121,6 +131,15 @@ export class ExecutionSignalAdapter {
     this.announce = announcements;
   }
 
+  /**
+   * Réglages du guidage sonore effectifs pour la Séance (Profil, ou modale de Composition validée) : six annonces
+   * vocales, son et vibration des neuf événements (RM-087).
+   */
+  setGuidance(settings: GuidanceSettings): void {
+    this.announce = { ...settings.announcements };
+    this.events = settings.events;
+  }
+
   /** Sons et Annonces vocales : état initial selon le Profil (groupe Guidage), modifiables pendant (ch08). */
   setAudible(sound: boolean, voice: boolean): void {
     this.soundEnabled = sound;
@@ -139,13 +158,25 @@ export class ExecutionSignalAdapter {
     this.lastKey = key;
     if (signal.kind === "CADENCE" && this.lastSoundAtMs !== null && signal.atMs >= this.lastSoundAtMs && signal.atMs - this.lastSoundAtMs < CADENCE_QUIET_AFTER_SOUND_MS) return;
     if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"} sons=${this.soundEnabled ? "oui" : "non"} voix=${this.voiceEnabled ? "oui" : "non"} annonces=${JSON.stringify(this.announce)}`);
-    const { cue, announcement } = this.guidance(signal);
-    if (this.vibrationEnabled && cue.vibration !== "NONE") this.vibrator.vibrate(cue.vibration);
+    const { cue, announcement, event } = this.guidance(signal);
+    const setting = event == null ? null : this.events[event];
+    const vibrates = setting === null || setting.vibration;
+    if (this.vibrationEnabled && vibrates && cue.vibration !== "NONE") this.vibrator.vibrate(cue.vibration);
     const spoken = this.voiceEnabled ? announcement : null;
-    const fallback = signal.kind === "TRANSITION" && spoken === null ? GUIDANCE.other : null;
-    const sounding = cue.sound !== null ? cue : fallback;
-    const played = this.soundEnabled && sounding !== null && sounding.sound !== null;
-    if (played) this.beeps.play(sounding.sound!, sounding.volume);
+    // « Aucun » coupe uniquement le son de l'événement, sans bip de remplacement (RM-087).
+    const muted = setting !== null && setting.sound === "NONE";
+    const fallback = signal.kind === "TRANSITION" && spoken === null && !muted ? GUIDANCE.other : null;
+    const base = cue.sound !== null ? cue : fallback;
+    const chosen = setting !== null && setting.sound !== "DEFAULT" && setting.sound !== "NONE" ? setting.sound : null;
+    const sounding: { readonly sound: BeepTone; readonly volume: number } | null = muted
+      ? null
+      : chosen !== null
+        ? { sound: chosen, volume: base?.volume ?? CHOSEN_SOUND_VOLUME }
+        : base !== null && base.sound !== null
+          ? { sound: base.sound, volume: base.volume }
+          : null;
+    const played = this.soundEnabled && sounding !== null;
+    if (played) this.beeps.play(sounding.sound, sounding.volume);
     if (played && signal.kind !== "CADENCE") this.lastSoundAtMs = signal.atMs;
     if (spoken !== null && __DEV__) console.log(`[guidage] annonce « ${spoken} »`);
     const after = signal.kind === "FINISH" ? ANNOUNCEMENT_AFTER_FINISH_MS : ANNOUNCEMENT_AFTER_SOUND_MS;
@@ -154,13 +185,13 @@ export class ExecutionSignalAdapter {
 
   /** Son, vibration et annonce d'un signal ; tient compte du « À suivre » déjà annoncé et de l'étape précédente. */
   guidance(signal: ExecutionSignal): Guidance {
-    if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null };
-    if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null };
-    if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null };
-    if (signal.kind === "PHASE") return { cue: GUIDANCE.phase, announcement: this.announce.phases ? cleanName(signal.phaseLabel) : null };
+    if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null, event: "COUNTDOWN" };
+    if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null, event: "CADENCE" };
+    if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null, event: "EVERY_MINUTES" };
+    if (signal.kind === "PHASE") return { cue: GUIDANCE.phase, announcement: this.announce.phases ? cleanName(signal.phaseLabel) : null, event: "PHASE_CHANGE" };
     // Recette du 10/11/2026 (a1) : « Bravo, séance terminée » après la fanfare, catégorie début et fin de séance.
-    if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: this.announce.session ? "Bravo, séance terminée" : null };
-    if (signal.kind === "PAUSE") return { cue: GUIDANCE.userPause, announcement: null };
+    if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: this.announce.session ? "Bravo, séance terminée" : null, event: "SESSION_END" };
+    if (signal.kind === "PAUSE") return { cue: GUIDANCE.userPause, announcement: null, event: "STOP_POINT" };
     if (signal.phase === "INITIAL_COUNTDOWN") {
       // Nouvelle Exécution : rien n'est hérité de la précédente (recette du 10/11/2026, constat f).
       this.announcedNext = null;
@@ -169,9 +200,11 @@ export class ExecutionSignalAdapter {
     const previousTimed = this.previousTimed;
     this.previousTimed = signal.timed === true;
     const { cue, announcement } = this.transition(signal);
-    // Zéro de l'étape chronométrée qui se termine : bip grave, si l'étape qui commence n'a pas son propre son.
-    if (cue.sound === null && previousTimed) return { cue: { ...GUIDANCE.zero, vibration: cue.vibration }, announcement };
-    return { cue, announcement };
+    const event = transitionEvent(signal);
+    // Zéro de l'étape chronométrée qui se termine : double bip (événement Compte à rebours), si l'étape qui commence
+    // n'a pas son propre son.
+    if (cue.sound === null && previousTimed) return { cue: { ...GUIDANCE.zero, vibration: cue.vibration }, announcement, event: event === "SESSION_END" ? "COUNTDOWN" : event };
+    return { cue, announcement, event };
   }
 
   private transition(signal: ExecutionSignal): Guidance {
@@ -207,13 +240,39 @@ export class ExecutionSignalAdapter {
     }
   }
 
-  /** « À suivre : Fente » lorsque l'étape suivante est un autre exercice et que les noms sont annoncés. */
+  /**
+   * « À suivre : Fente » lorsque l'étape suivante est un autre exercice et que les noms sont annoncés. Pendant le
+   * Compte à rebours initial d'une Séance de plusieurs Exercices : « Premier exercice : Fente » (recette du 11/11/2026,
+   * constat b, Hermann : « Première annonce d'exercices, dire "Premier exercice" s'il y en a plus d'un, et sinon "A
+   * suivre" comme maintenant »).
+   */
   private nextPart(signal: ExecutionSignal): string | null {
     const next = signal.next;
     const nextName = next?.phase === "ACTIVITY" ? cleanName(next.exerciseName) : null;
     if (!this.announce.names || nextName === null || nextName === cleanName(signal.exerciseName)) return null;
     if (this.voiceEnabled) this.announcedNext = nextName;
-    return `À suivre : ${nextName}`;
+    const first = signal.phase === "INITIAL_COUNTDOWN" && (signal.exerciseCount ?? 0) > 1;
+    return first ? `Premier exercice : ${nextName}` : `À suivre : ${nextName}`;
+  }
+}
+
+/** Événement du guidage sonore d'une transition (ch13 : « Point d’arrêt » regroupe pauses, récupérations et points d’arrêt). */
+function transitionEvent(signal: ExecutionSignal): GuidanceEvent | null {
+  switch (signal.phase) {
+    case "INITIAL_COUNTDOWN":
+      return "COUNTDOWN";
+    case "SERIES_PAUSE":
+    case "SIDE_RECOVERY":
+    case "POST_ACTIVITY_RECOVERY":
+    case "BLOCK_REST":
+    case "STOP_POINT":
+      return "STOP_POINT";
+    case "SESSION_END":
+      return "SESSION_END";
+    case "ACTIVITY":
+      return signal.sideRank === 2 ? "SIDE_CHANGE" : "EXERCISE_START";
+    default:
+      return null;
   }
 }
 

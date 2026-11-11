@@ -162,6 +162,8 @@ export default function RootLayout() {
               <Stack.Screen name="movement" options={({ route }) => movementRouteOptions(route.params)} />
               {/* Même demande : Filtres des Catalogues (Mouvements, Séances) en feuille native iOS. */}
               <Stack.Screen name="catalogue-filters" options={NATIVE_SHEET_OPTIONS} />
+              {/* Profil › Préférences : « Choix d’un son » (Figma `12068:25044`), feuille native iOS. */}
+              <Stack.Screen name="profile-sound" options={NATIVE_SHEET_OPTIONS} />
               {/* Règle de Hermann du 06/11/2026 (registre ch07 : « Je veux qu’on suive l’ordre des écrans et des modèles lorsqu’on les
                   ouvre et qu’on les ferme en fonction des décisions qu’ils ont prises ») : modale « Créer un exercice » (feuille native
                   ajustée à son contenu), questionnaire et récapitulatif d'un Format, fiche d'un mouvement en lecture seule — feuilles

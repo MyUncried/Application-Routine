@@ -1,11 +1,17 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { StyleSheet, TurboModuleRegistry, View } from "react-native";
+import Reanimated, { cancelAnimation, Easing, useAnimatedProps, useSharedValue, withTiming } from "react-native-reanimated";
 
-import { arcPath, MINOR_MARKS, pointAt, QUARTER_MARKS, RING } from "@/features/execution/timerRing";
+import { displayedFraction, MINOR_MARKS, pointAt, QUARTER_MARKS, RING, type RingMotion } from "@/features/execution/timerRing";
 
 /**
  * Fin de PRE-10 — chrono circulaire (Figma `1992:8132`) : anneau de fond, repères, anneau de progression à embouts
  * arrondis et pastille de position, dessinés avec `react-native-svg` ; le contenu (côté, chrono) est centré dedans.
+ *
+ * Recette x2 du 11/11/2026 (« le mouvement circulaire est saccadé, il doit être fluide et continu quelque soit la
+ * durée ») : l'avancée est animée sur le fil d'affichage (Reanimated), à vitesse constante, entre deux projections ;
+ * une projection ne relance l'animation que si l'anneau s'est écarté de la position réelle (Suivant, reprise, pause).
+ * [Remplacé le 11/11/2026 — anneau redessiné à chaque rafraîchissement de l'écran, environ une fois par seconde.]
  *
  * `react-native-svg` vérifie son module natif dès son import : il n'est chargé que si la version installée de
  * l'application le contient (build du 11/11/2026). Sinon, le contenu est rendu seul, comme avant.
@@ -18,18 +24,71 @@ export function hasSvg(): boolean {
   }
 }
 
-export function ExecutionTimerRing({ fraction, children, testID }: { readonly fraction: number; readonly children: ReactNode; readonly testID?: string }) {
+/** Écart (en tours) au-delà duquel l'anneau est recalé sur la position réelle : un peu plus d'un degré. */
+const RESYNC_TURNS = 0.004;
+/** Horizon d'une animation de chronomètre : une heure, relancée bien avant son terme par les projections. */
+const STOPWATCH_HORIZON_MS = 3_600_000;
+
+type SvgModule = typeof import("react-native-svg");
+function createAnimatedSvg(svg: SvgModule) {
+  return { svg, Circle: Reanimated.createAnimatedComponent(svg.Circle) };
+}
+let animated: ReturnType<typeof createAnimatedSvg> | null = null;
+
+function animatedSvg(): ReturnType<typeof createAnimatedSvg> {
+  if (animated === null) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    animated = createAnimatedSvg(require("react-native-svg") as SvgModule);
+  }
+  return animated;
+}
+
+export function ExecutionTimerRing({ motion, children, testID }: { readonly motion: RingMotion; readonly children: ReactNode; readonly testID?: string }) {
   if (!hasSvg()) return <View testID={testID === undefined ? undefined : `${testID}-plain`}>{children}</View>;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const Svg = require("react-native-svg") as typeof import("react-native-svg");
+  return (
+    <AnimatedRing motion={motion} testID={testID}>
+      {children}
+    </AnimatedRing>
+  );
+}
+
+function AnimatedRing({ motion, children, testID }: { readonly motion: RingMotion; readonly children: ReactNode; readonly testID?: string | undefined }) {
+  const { svg: Svg, Circle: AnimatedCircle } = animatedSvg();
   const canvas = RING.size + 2 * RING.outset;
   const center = canvas / 2;
+  const circumference = 2 * Math.PI * RING.progressRadius;
+  const turns = useSharedValue(motion.turns);
+  const wrap = motion.wrap;
+  // Vitesse et mode de l'animation en cours (`null` : immobile).
+  const runningKey = useRef<string | null>(null);
+
+  useEffect(() => {
+    const key = motion.ratePerMs > 0 ? `${wrap}:${motion.ratePerMs}` : null;
+    if (key !== null && key === runningKey.current && Math.abs(turns.value - motion.turns) < RESYNC_TURNS) return;
+    cancelAnimation(turns);
+    turns.value = motion.turns;
+    runningKey.current = key;
+    if (key === null) return;
+    const target = wrap ? motion.turns + STOPWATCH_HORIZON_MS * motion.ratePerMs : 1;
+    const duration = Math.max(0, (target - motion.turns) / motion.ratePerMs);
+    turns.value = withTiming(target, { duration, easing: Easing.linear });
+  }, [motion.turns, motion.ratePerMs, wrap, turns]);
+
+  const arcProps = useAnimatedProps(() => {
+    const fraction = displayedFraction(turns.value, wrap);
+    return { strokeDashoffset: circumference * (1 - fraction), strokeOpacity: fraction > 0.0005 ? 1 : 0 };
+  });
+  const knobProps = useAnimatedProps(() => {
+    const point = pointAt(displayedFraction(turns.value, wrap), RING.progressRadius, center);
+    return { cx: point.x, cy: point.y };
+  });
+
   const radial = (fraction: number, inner: number, outer: number) => {
     const from = pointAt(fraction, inner, center);
     const to = pointAt(fraction, outer, center);
     return { x1: from.x, y1: from.y, x2: to.x, y2: to.y };
   };
-  const knob = pointAt(fraction, RING.progressRadius, center);
+  const start = pointAt(0, RING.progressRadius, center);
   return (
     <View style={[styles.frame, { width: canvas, height: canvas }]} testID={testID}>
       <Svg.default width={canvas} height={canvas} style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -41,12 +100,21 @@ export function ExecutionTimerRing({ fraction, children, testID }: { readonly fr
           <Svg.Line key={mark} {...radial(mark, RING.quarterMark.inner, RING.quarterMark.outer)} stroke={RING.quarterMark.color} strokeWidth={RING.quarterMark.width} strokeLinecap="round" />
         ))}
         <Svg.Line {...radial(0, RING.startMark.inner, RING.startMark.outer)} stroke={RING.startMark.color} strokeWidth={RING.startMark.width} strokeLinecap="round" />
-        {fraction >= 0.9999 ? (
-          <Svg.Circle cx={center} cy={center} r={RING.progressRadius} stroke={RING.progressColor} strokeWidth={RING.progressWidth} fill="none" />
-        ) : fraction > 0 ? (
-          <Svg.Path d={arcPath(fraction, RING.progressRadius, center)} stroke={RING.progressColor} strokeWidth={RING.progressWidth} strokeLinecap="round" fill="none" />
-        ) : null}
-        <Svg.Circle cx={knob.x} cy={knob.y} r={RING.knobRadius} fill={RING.progressColor} stroke="#FFFFFF" strokeWidth={RING.knobStroke} />
+        {/* Anneau de progression : cercle tracé depuis le haut, dans le sens horaire, longueur animée. */}
+        <AnimatedCircle
+          cx={center}
+          cy={center}
+          r={RING.progressRadius}
+          stroke={RING.progressColor}
+          strokeWidth={RING.progressWidth}
+          strokeLinecap="round"
+          strokeDasharray={`${circumference} ${circumference}`}
+          fill="none"
+          rotation={-90}
+          origin={`${center}, ${center}`}
+          animatedProps={arcProps}
+        />
+        <AnimatedCircle cx={start.x} cy={start.y} r={RING.knobRadius} fill={RING.progressColor} stroke="#FFFFFF" strokeWidth={RING.knobStroke} animatedProps={knobProps} />
       </Svg.default>
       <View style={styles.content}>{children}</View>
     </View>

@@ -11,6 +11,8 @@
  * lit pour semer le Profil (PRESERVE, boundary contract).
  */
 
+import { DEFAULT_GUIDANCE_EVENTS, type GuidanceEvents, type GuidanceSettings } from "./guidanceSettings";
+
 export const DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS = 10 as const;
 export const DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS = 30 as const;
 /** Décision D-240 : compte à rebours d'Exercice par défaut. */
@@ -76,6 +78,11 @@ export type Profile = {
   readonly announceSidesEnabled: boolean;
   /** Annonce du nom des phases du mouvement. */
   readonly announcePhasesEnabled: boolean;
+  /**
+   * Son et vibration des neuf événements (documentation de main `ebe72f76`, RM-087 ; `migration029`). Remplace, pour
+   * l'Exécution, les anciennes bascules générales Sons et Vibration, qui ne sont plus affichées.
+   */
+  readonly guidanceEvents: GuidanceEvents;
   /** Nullable tant que jamais renseigné (T8) ; 1..80 points de code à l'enregistrement. */
   readonly displayName: string | null;
   /** URI locale persistante de la copie de la photo ; `null` si aucune. */
@@ -104,10 +111,29 @@ export function createDefaultProfile(id: string, updatedAt: string): Profile {
     announceSessionEnabled: DEFAULT_ANNOUNCE_SESSION_ENABLED,
     announceSidesEnabled: DEFAULT_ANNOUNCE_SIDES_ENABLED,
     announcePhasesEnabled: DEFAULT_ANNOUNCE_PHASES_ENABLED,
+    guidanceEvents: DEFAULT_GUIDANCE_EVENTS,
     displayName: null,
     photoUri: null,
     silhouette: null,
     updatedAt,
+  };
+}
+
+/**
+ * Réglages de guidage du Profil, sous la forme commune au Profil et à la modale de Composition. Les six annonces
+ * vocales reprennent les bascules déjà enregistrées (« Nom des exercices » = ancienne bascule Annonces vocales).
+ */
+export function profileGuidance(profile: Profile): GuidanceSettings {
+  return {
+    announcements: {
+      session: profile.announceSessionEnabled,
+      names: profile.voiceAnnouncementsEnabled,
+      phases: profile.announcePhasesEnabled,
+      objective: profile.announceObjectiveEnabled,
+      pauses: profile.announcePausesEnabled,
+      sides: profile.announceSidesEnabled,
+    },
+    events: profile.guidanceEvents,
   };
 }
 

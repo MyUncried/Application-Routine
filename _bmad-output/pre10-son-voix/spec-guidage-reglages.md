@@ -308,3 +308,13 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - Écran d'Exécution (CE-EXEC-SESSION-01) :
   - réalisés : Roboto Condensed, chrono circulaire, piste par Tours ;
   - À CLARIFIER : sens de remplissage de l'anneau. Choix provisoire : il se remplit avec le temps écoulé.
+
+### 12.2 Recette du 11/11/2026 (cahier) — décisions recopiées et traitement
+
+- Constat d (demande de Hermann, texte complet dans le cahier) : « Modifie le développement actuel pour aligner le Profil, ses Préférences et le guidage sonore de la Composition de séance sur le design validé. […] Récupère la documentation publiée sur main au commit ebe72f76 et conserve les évolutions déjà présentes sur ta branche. » Précision ultérieure : « Pour être clair, ne développe pas l'écran Profil (navigation) - Profil (section), mais uniquement les écrans Profil (navigation) - Préférences ». Classe B. Remplace §3.2 et §3.3 (élément Guidage, trois réglages nullables).
+- w1, w2, w3 (élément et feuille Guidage) : remplacés par la modale Guidage sonore.
+- x2 : « le mouvement circulaire est saccadé, il doit être fluide et continu quelque soit la durée. » ; « pas de mouvement circulaire pendant le compte à rebours et la fin de séance ». x3 : OK (sens validé). x4 : « Il faut que ce soit la même chose avec cadence, un tour par minute puis recommence. » Classe B.
+- Constat a : « Pendant un appel vidéo ou téléphonique, ou l'utilisation d'une autre application, il faut une interruption de la séance, par défaut. » Classe B ; À CLARIFIER : verrouillage de l’écran.
+- Constat b : « Première annonce d'exercices, dire "Premier exercice" s'il y en a plus d'un, et sinon "A suivre" comme maintenant. » Classe B.
+- Spike : K1, K2, K4 OK ; K3 et K5 non renseignés ; K6 KO, constaté sur une séance (musique Spotify non baissée au retour), pas sur l’essai K6 de l’écran de diagnostic. Le remplacement de `BeepPort` attend K3, K5 et K6.
+- À CLARIFIER : groupe Exercice et Récupération après exercice conservés dans les Préférences ; sons du système du design ; moment du signal Mi-temps ; verrouillage de l’écran et Pause.

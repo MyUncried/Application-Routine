@@ -1517,6 +1517,63 @@ export const fr = {
     // quatre préférences locales, accès à Modifier le profil. `placeholder`
     // (ancien écran d'attente) est retiré : cet écran porte désormais une
     // UI réelle (même patron que `sessions`/`activities` en leur temps).
+    // Guidage sonore — Profil › Préférences et modale de Composition (documentation de main `ebe72f76`, ch13 « Guidage
+    // sonore en Composition et dans le Profil » ; Figma 1992:684, 12093:25010, 12132:27436, 12175:25882, 12068:25044).
+    soundGuidance: {
+      title: "Guidage sonore",
+      buttonLabel: "Guidage sonore",
+      buttonHint: "Ouvre les réglages du guidage sonore de cette séance",
+      close: "Fermer",
+      validate: "Valider",
+      announcementsTitle: "Annonces vocales",
+      eventsTitle: "Sons et vibrations",
+      soundColumn: "Son",
+      vibrationColumn: "Vibration",
+      announcements: {
+        session: "Début et fin de séance",
+        names: "Nom des exercices",
+        phases: "Nom des phases",
+        objective: "Objectifs de durée et de répétition",
+        pauses: "Pauses, récupérations et points d’arrêt",
+        sides: "Changements de côté",
+      },
+      events: {
+        COUNTDOWN: "Compte à rebours",
+        EXERCISE_START: "Début d’exercice",
+        PHASE_CHANGE: "Changement de phase",
+        SIDE_CHANGE: "Changement de côté",
+        CADENCE: "Cadence",
+        EVERY_MINUTES: "Toutes les X minutes",
+        HALF_TIME: "Mi-temps",
+        STOP_POINT: "Point d’arrêt",
+        SESSION_END: "Fin de séance",
+      },
+      soundValue: {
+        DEFAULT: "Par défaut",
+        NONE: "Non",
+      },
+      soundHint: "Ouvre le choix du son",
+      soundLabel: "Son, {event}",
+      vibrationLabel: "Vibration, {event}",
+      picker: {
+        hint: "Touchez un son pour l’écouter.",
+        default: "Par défaut",
+        none: "Aucun",
+        librarySection: "Sons de l’application",
+      },
+      librarySounds: {
+        BIP_COURT: "Bip court",
+        BIP_GRAVE: "Bip grave",
+        BIP_DOUBLE: "Double bip",
+        BIP_LONG: "Bip long",
+        SIFFLET_ROULE: "Sifflet roulé",
+        SIFFLET_PUR: "Sifflet pur",
+        SIFFLET_COURT: "Sifflet court",
+        FANFARE_COURTE: "Fanfare",
+        DING: "Ding",
+        CLIC_DOUX: "Clic doux",
+      },
+    },
     profile: {
       title: "Profil",
       groups: {
@@ -1524,13 +1581,15 @@ export const fr = {
         session: "Séance",
         preferences: "Préférences",
         guidance: "Guidage",
+        notifications: "Notifications",
       },
       settings: {
         sideChangeRecovery: { label: "Pause entre les côtés", unit: "s" },
         exerciseCountdown: { label: "Compte à rebours d’un exercice", unit: "s" },
         exerciseEnd: { label: "Fin d’exercice", unit: "s" },
         postActivityRecovery: { label: "Récupération après exercice", unit: "s" },
-        sessionInitialCountdown: { label: "Compte à rebours initial", unit: "s" },
+        // Figma `1992:684` (documentation de main `ebe72f76`).
+        sessionInitialCountdown: { label: "Compte à rebours de la séance", unit: "s" },
         sessionFinalPhase: { label: "Fin de séance", unit: "s" },
       },
       stepper: {
@@ -1556,6 +1615,11 @@ export const fr = {
         announcePhases: "Annoncer les phases du mouvement",
         vibration: "Vibration",
         notifications: "Notifications",
+      },
+      // Figma `1992:684` : section Notifications.
+      notifications: {
+        label: "Autoriser les notifications",
+        subtitle: "Rappels des séances planifiées",
       },
       editProfileAction: "Modifier le profil",
       identity: {

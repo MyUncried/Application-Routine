@@ -37,13 +37,15 @@ describe("strings", () => {
       session: "Séance",
       preferences: "Préférences",
       guidance: "Guidage",
+      notifications: "Notifications",
     });
     expect(strings.screens.profile.settings.sideChangeRecovery).toEqual({
       label: "Pause entre les côtés",
       unit: "s",
     });
+    // Figma `1992:684` (documentation de main `ebe72f76`). [Remplacé le 11/11/2026 : « Compte à rebours initial ».]
     expect(strings.screens.profile.settings.sessionInitialCountdown.label).toBe(
-      "Compte à rebours initial",
+      "Compte à rebours de la séance",
     );
   });
 

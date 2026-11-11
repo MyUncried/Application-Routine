@@ -1,6 +1,7 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
+import { DEFAULT_GUIDANCE_EVENTS, type GuidanceSettings } from "@/domain/preferences/guidanceSettings";
 import type { SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
@@ -8,64 +9,93 @@ import { SessionGuidanceSheet } from "@/features/sessions/SessionGuidanceSheet";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteProfileRepository } from "@/infrastructure/database/repositories/SqliteProfileRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import { strings } from "@/shared/i18n";
+import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+
+jest.mock("@/infrastructure/audio/ExecutionSounds", () => ({
+  ExecutionSounds: class {
+    play() {}
+  },
+}));
 
 /**
- * Fin de PRE-10 — feuille « Guidage de la séance » (spec `spec-guidage-reglages` §3.2) : valeur effective (Séance, sinon
- * Profil) et origine de chaque réglage ; ✓ applique la forme normalisée, « Revenir au Profil » efface tout.
+ * Modale « Guidage sonore » de la Composition (documentation de main `ebe72f76`, Figma `12132:27436`, `12175:25882` ;
+ * demande de Hermann du 11/11/2026, cahier, constat d) : réglages effectifs à l'ouverture, « Fermer » abandonne,
+ * « Valider » applique à la séance seulement, « Choix d'un son » dans la même feuille.
+ * [Remplacé le 11/11/2026 — feuille « Guidage de la séance » (Sons, Voix, objectif, « Comme le Profil »).]
  */
-const t = strings.screens.composition.guidance;
-
-async function renderSheet(initial: SessionGuidance | undefined, profilePatch: Record<string, boolean> = {}) {
+async function renderSheet(initial: SessionGuidance | undefined, prepare?: (repository: SqliteProfileRepository) => Promise<void>) {
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   const repository = new SqliteProfileRepository(database);
-  for (const [key, value] of Object.entries(profilePatch)) await repository.updatePreference(key as never, value as never);
-  const onApply = jest.fn<(guidance: SessionGuidance | undefined) => void>();
+  await prepare?.(repository);
+  const onApply = jest.fn<(guidance: SessionGuidance) => void>();
   const onClose = jest.fn();
-  render(
+  const view = render(
+    <TestSafeAreaProvider>
     <ProfileServiceContext.Provider value={new ProfileService(repository)}>
       <SessionGuidanceSheet initial={initial} onApply={onApply} onClose={onClose} />
-    </ProfileServiceContext.Provider>,
+    </ProfileServiceContext.Provider>
+    </TestSafeAreaProvider>,
   );
   await act(async () => undefined);
-  return { onApply, onClose };
+  return { onApply, onClose, repository, view };
 }
 
-const checked = (setting: string) => screen.getByTestId(`session-guidance-${setting}`).props.accessibilityState.checked as boolean;
-const origin = (setting: string) => screen.getByTestId(`session-guidance-${setting}-origin`, { includeHiddenElements: true }).props.children as string;
+const checked = (testID: string) => screen.getByTestId(testID).props.accessibilityState.checked as boolean;
+const soundValue = (event: string) => screen.getByTestId(`session-guidance-event-${event}-sound`).props.accessibilityValue.text as string;
 
-describe("fin de PRE-10 — feuille Guidage de la séance", () => {
-  it("Séance comme le Profil : valeurs du Profil, origine « Comme le Profil », « Revenir au Profil » inactif", async () => {
-    const { onApply } = await renderSheet(undefined, { soundsEnabled: false });
-    expect(checked("soundsEnabled")).toBe(false);
-    expect(checked("voiceEnabled")).toBe(true);
-    expect(checked("announceObjective")).toBe(true);
-    expect(origin("soundsEnabled")).toBe(t.rowFollowsProfile);
-    expect(screen.getByTestId("session-guidance-reset").props.accessibilityState).toEqual({ disabled: true });
-    fireEvent.press(screen.getByTestId("session-guidance-validate"));
-    expect(onApply).toHaveBeenCalledWith(undefined);
+describe("modale Guidage sonore de la Composition", () => {
+  it("Séance sans réglage propre : réglages du Profil à l'ouverture ; les deux groupes du design", async () => {
+    await renderSheet(undefined, async (repository) => {
+      await repository.updatePreference("announceSidesEnabled", false);
+      await repository.updateGuidanceEvent("CADENCE", { sound: "DING", vibration: true });
+    });
+    expect(screen.getByTestId("session-guidance-announcements")).toBeTruthy();
+    expect(screen.getByTestId("session-guidance-events")).toBeTruthy();
+    expect(checked("session-guidance-announcement-sides")).toBe(false);
+    expect(checked("session-guidance-announcement-names")).toBe(true);
+    expect(soundValue("CADENCE")).toBe("Ding");
+    expect(soundValue("EVERY_MINUTES")).toBe("Non");
+    expect(screen.getByTestId("session-guidance-event-CADENCE-vibration").props.value).toBe(true);
   });
 
-  it("toucher un réglage le rend propre à la Séance ; ✓ applique seulement ce réglage", async () => {
-    const { onApply } = await renderSheet(undefined);
-    fireEvent.press(screen.getByTestId("session-guidance-announceObjective"));
-    expect(checked("announceObjective")).toBe(false);
-    expect(origin("announceObjective")).toBe(t.rowOwn);
-    expect(origin("soundsEnabled")).toBe(t.rowFollowsProfile);
-    fireEvent.press(screen.getByTestId("session-guidance-validate"));
-    expect(onApply).toHaveBeenCalledWith({ soundsEnabled: null, voiceEnabled: null, announceObjective: false });
+  it("scénario de Hermann : « Aucun » pour Mi-temps, vibration laissée active, Valider ; le Profil reste inchangé", async () => {
+    const { onApply, repository } = await renderSheet(undefined);
+    const profileBefore = await repository.get();
+    fireEvent.press(screen.getByTestId("session-guidance-event-HALF_TIME-sound"));
+    expect(screen.getByTestId("session-guidance-sound-choices")).toBeTruthy();
+    expect(checked("session-guidance-sound-choice-DEFAULT")).toBe(true);
+    fireEvent.press(screen.getByTestId("session-guidance-sound-choice-NONE"));
+    fireEvent.press(screen.getByTestId("session-guidance-sound-apply"));
+    expect(soundValue("HALF_TIME")).toBe("Non");
+    expect(screen.getByTestId("session-guidance-event-HALF_TIME-vibration").props.value).toBe(true);
+    fireEvent.press(screen.getByTestId("session-guidance-apply"));
+    expect(onApply).toHaveBeenCalledTimes(1);
+    const applied = onApply.mock.calls[0]![0];
+    expect(applied.events.HALF_TIME).toEqual({ sound: "NONE", vibration: true });
+    expect(applied.events.COUNTDOWN).toEqual(DEFAULT_GUIDANCE_EVENTS.COUNTDOWN);
+    expect(await repository.get()).toEqual(profileBefore);
   });
 
-  it("« Revenir au Profil » efface les réglages propres ; ✕ ferme sans rien appliquer", async () => {
-    const { onApply, onClose } = await renderSheet({ soundsEnabled: false, voiceEnabled: false, announceObjective: null });
-    expect(checked("soundsEnabled")).toBe(false);
-    expect(origin("voiceEnabled")).toBe(t.rowOwn);
-    fireEvent.press(screen.getByTestId("session-guidance-reset"));
-    expect(checked("soundsEnabled")).toBe(true);
-    expect(origin("voiceEnabled")).toBe(t.rowFollowsProfile);
-    fireEvent.press(screen.getByTestId("session-guidance-cancel"));
-    expect(onClose).toHaveBeenCalled();
+  it("réouverture : valeurs validées pour la séance ; « Fermer » abandonne les changements", async () => {
+    const own: GuidanceSettings = {
+      announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: true },
+      events: { ...DEFAULT_GUIDANCE_EVENTS, HALF_TIME: { sound: "NONE", vibration: true } },
+    };
+    const { onApply, onClose } = await renderSheet(own);
+    expect(soundValue("HALF_TIME")).toBe("Non");
+    fireEvent.press(screen.getByTestId("session-guidance-announcement-pauses"));
+    expect(checked("session-guidance-announcement-pauses")).toBe(false);
+    fireEvent.press(screen.getByTestId("session-guidance-close"));
+    expect(onClose).toHaveBeenCalledTimes(1);
     expect(onApply).not.toHaveBeenCalled();
+  });
+
+  it("Choix d'un son : ✕ revient sans changer le son", async () => {
+    await renderSheet(undefined);
+    fireEvent.press(screen.getByTestId("session-guidance-event-COUNTDOWN-sound"));
+    fireEvent.press(screen.getByTestId("session-guidance-sound-choice-BIP_LONG"));
+    fireEvent.press(screen.getByTestId("session-guidance-sound-close"));
+    expect(soundValue("COUNTDOWN")).toBe("Par défaut");
   });
 });

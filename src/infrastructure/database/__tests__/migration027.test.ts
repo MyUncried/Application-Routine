@@ -12,8 +12,8 @@ describe("migration027 — annonce des phases", () => {
     await migrateDatabase(database, undefined, 26);
     await database.runAsync("INSERT INTO guidance_preferences (singleton_key, announce_sides_enabled, updated_at) VALUES (1, 0, 't')");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(28);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 28 });
+    expect(DATABASE_VERSION).toBe(29);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 29 });
     const profiles = new SqliteProfileRepository(database);
     expect(await profiles.get()).toMatchObject({ announceSidesEnabled: false, announcePhasesEnabled: true });
     expect((await profiles.updatePreference("announcePhasesEnabled", false)).announcePhasesEnabled).toBe(false);

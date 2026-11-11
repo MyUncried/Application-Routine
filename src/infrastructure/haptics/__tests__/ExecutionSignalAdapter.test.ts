@@ -1,6 +1,7 @@
 import { describe, expect, it, jest } from "@jest/globals";
 
 import type { ExecutionSignal, SignalObjective } from "@/features/execution/ExecutionService";
+import { DEFAULT_GUIDANCE_EVENTS } from "@/domain/preferences/guidanceSettings";
 import type { BeepTone } from "@/infrastructure/audio/ExecutionSounds";
 import { bestFrenchVoice } from "@/infrastructure/speech/ExecutionVoice";
 
@@ -72,22 +73,56 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["BIP_DOUBLE", 1], ["SIFFLET_COURT", 0.55]]);
   });
 
-  it("dernières secondes : bip grave ; cadence : clic doux à 35 % ; minute : ding à 15 % ; Point d'arrêt et Pause : double bip ; achèvement : fanfare courte à 60 %", () => {
+  // Valeurs par défaut du guidage sonore (documentation de main `ebe72f76`, ch13) : Cadence sans vibration, Toutes les X
+  // minutes sans son ni vibration. [Remplacé le 11/11/2026 : ding à 15 % et vibrations légères de la cadence et de la minute.]
+  it("dernières secondes : bip grave ; cadence : clic doux à 35 % ; minute : rien par défaut ; Point d'arrêt et Pause : double bip ; achèvement : fanfare courte à 60 %", () => {
     const { play, beeps, said, vibrate } = setup();
     play({ kind: "COUNTDOWN" });
     play({ kind: "CADENCE" });
     play({ kind: "MINUTE" });
     play({ phase: "STOP_POINT", exerciseName: null, timed: false });
     play({ kind: "FINISH", phase: null, exerciseName: null });
-    expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["DING", 0.15], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
+    expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
     expect(said).toEqual(["Bravo, séance terminée"]);
-    expect(vibrate.mock.calls.map(([style]) => style)).toEqual([
-      "MEDIUM",
-      "LIGHT",
-      "LIGHT",
-      "HEAVY",
-      "MEDIUM",
-    ]);
+    expect(vibrate.mock.calls.map(([style]) => style)).toEqual(["MEDIUM", "HEAVY", "MEDIUM"]);
+  });
+
+  it("guidage sonore par événement : « Aucun » coupe seulement le son ; un son choisi remplace celui par défaut ; vibration réglée à part", () => {
+    const { adapter, play, beeps, said, vibrate } = setup();
+    adapter.setGuidance({
+      announcements: { ...ALL_ANNOUNCEMENTS },
+      events: {
+        ...DEFAULT_GUIDANCE_EVENTS,
+        STOP_POINT: { sound: "NONE", vibration: true },
+        EXERCISE_START: { sound: "DING", vibration: false },
+        EVERY_MINUTES: { sound: "BIP_COURT", vibration: true },
+      },
+    });
+    play({ phase: "SERIES_PAUSE", timed: false });
+    play({ timed: true, objective: reps(10) });
+    play({ kind: "MINUTE" });
+    expect(beeps).toEqual([["DING", 0.55], ["BIP_COURT", 0.15]]);
+    expect(said).toEqual(["Pause", "Gainage, 10 répétitions"]);
+    expect(vibrate.mock.calls.map(([style]) => style)).toEqual(["HEAVY", "LIGHT"]);
+  });
+
+  it("les six annonces : chacune se coupe seule", () => {
+    const { adapter, play, said } = setup();
+    adapter.setGuidance({ announcements: { ...ALL_ANNOUNCEMENTS, pauses: false, objective: false }, events: DEFAULT_GUIDANCE_EVENTS });
+    play({ phase: "SERIES_PAUSE", timed: false, next: nextExercise("Pompes") });
+    play({ exerciseName: "Pompes", objective: reps(10) });
+    expect(said).toEqual(["À suivre : Pompes"]);
+  });
+
+  // Recette du 11/11/2026, constat b (Hermann : « Première annonce d'exercices, dire "Premier exercice" s'il y en a plus
+  // d'un, et sinon "A suivre" comme maintenant »).
+  it("Compte à rebours initial : « Premier exercice : … » si la Séance a plusieurs Exercices, sinon « À suivre : … »", () => {
+    const several = setup();
+    several.play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, next: nextExercise("Pompes"), exerciseCount: 3 });
+    expect(several.said).toEqual(["Préparez-vous. Premier exercice : Pompes"]);
+    const single = setup();
+    single.play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, next: nextExercise("Pompes"), exerciseCount: 1 });
+    expect(single.said).toEqual(["Préparez-vous. À suivre : Pompes"]);
   });
 
   it("Fin de séance après une étape chronométrée : double bip au zéro, puis fanfare à l'achèvement", () => {
