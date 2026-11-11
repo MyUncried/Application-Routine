@@ -65,7 +65,7 @@ import type { StructuredSession } from "./SessionRepository";
 import type { SideMode } from "./sideMode";
 import { stopPointKey, type StopPoint } from "./StopPoint";
 import {
-  legacyFromStructure,
+  isEditedAsLegacy, legacyFromStructure,
   mapStructure,
   NO_CIRCUIT_ID,
   structureExercises,
@@ -454,7 +454,7 @@ export function toSessionDraft(session: Session | StructuredSession): SessionDra
     finalPhaseSeconds: clampSessionBoundarySeconds(session.finalPhaseSeconds),
     ...(session.origin !== undefined && session.origin !== null ? { origin: session.origin } : {}),
   };
-  const legacy = legacyFromStructure(structure);
+  const legacy = isEditedAsLegacy(structure) ? legacyFromStructure(structure) : null;
   if (legacy === null) {
     // Structure plus riche que l'ancien modèle (Cycles, plusieurs Circuits) : la disposition fait
     // foi ; la Composition actuelle n'en reçoit que la liste des Exercices (B.1 la rendra).
@@ -891,7 +891,7 @@ export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
  * modèle (les champs de l'ancien modèle sont alors comparés).
  */
 function richLayoutSignature(layout: SessionDraft["structure"]): string {
-  if (layout === undefined || legacyFromStructure(layout) !== null) {
+  if (layout === undefined || isEditedAsLegacy(layout)) {
     return "";
   }
   // Réalignement du 02/11/2026 : le Format d'origine et les réglages d'un Circuit porteur comptent.
@@ -1030,7 +1030,7 @@ export function toStructuredSessionInput(
     draft.exercises.map((exercise) => [exercise.id, { id: exercise.id, ...toDraftActivityParameters(exercise) }]),
   );
   const layout = draft.structure;
-  const legacyLayout = layout === undefined ? null : legacyFromStructure(layout);
+  const legacyLayout = layout === undefined || !isEditedAsLegacy(layout) ? null : legacyFromStructure(layout);
   let structure: SessionStructure<StructureExerciseInput, StructureStopPointLocation>;
   if (layout === undefined || legacyLayout !== null) {
     const zone = (position: StructuralPosition) =>

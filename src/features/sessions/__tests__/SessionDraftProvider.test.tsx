@@ -235,7 +235,8 @@ describe("SessionDraftProvider — mode modification (T01-S10)", () => {
 
     await waitFor(() => expect(captured.editStatus).toBe("ready"));
     expect(captured.draft.sourceSessionId).toBe("session-42");
-    expect(captured.draft.tourRepeatCount).toBe(3);
+    // Modèle unique des Circuits (10/11/2026) : le compte du Circuit est relu dans la structure générale.
+    expect(captured.draft.structure?.elements.find((element) => element.kind === "CIRCUIT")).toMatchObject({ circuit: { repeatCount: 3 } });
     expect(captured.draft.exercises.map((e) => e.id)).toEqual(["act-1"]);
     expect(getSessionForEdit).toHaveBeenCalledWith("session-42");
     // T01-S10 (CE-T01-S10-06) : le brouillon réhydraté sert de référence à

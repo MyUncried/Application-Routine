@@ -9,7 +9,7 @@
 
 import type { CircuitLoss } from "@/domain/sessions/circuit";
 import { circuitOfExercise, insertExerciseInLayout, settleLayoutCircuitMembership } from "@/domain/sessions/layoutOperations";
-import { legacyFromStructure, computeStructureDuration, structureExercises, type SessionStructure, type StructureCircuit, type StructureCycleMember, type StructureElement, type StructureStopPointLocation } from "@/domain/sessions/structure";
+import { isEditedAsLegacy, computeStructureDuration, structureExercises, type SessionStructure, type StructureCircuit, type StructureCycleMember, type StructureElement, type StructureStopPointLocation } from "@/domain/sessions/structure";
 import type { SessionDraft, SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { formatSessionDurationEstimate } from "@/features/sessions/compositionPresentation";
 
@@ -30,7 +30,7 @@ export type ResolvedLayoutElement = StructureElement<SessionDraftExercise>;
  */
 export function resolveRichLayout(draft: Pick<SessionDraft, "structure" | "exercises">, force = false): ResolvedLayout | null {
   const layout = draft.structure;
-  if (layout === undefined || (!force && legacyFromStructure(layout) !== null)) {
+  if (layout === undefined || (!force && isEditedAsLegacy(layout))) {
     return null;
   }
   const byId = new Map(draft.exercises.map((exercise) => [exercise.id, exercise]));

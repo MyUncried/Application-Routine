@@ -224,13 +224,10 @@ describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un C
       ["i2", "IN_TOUR"],
       ["a1", "AFTER_TOUR"],
     ]);
-    expect(draft.tourRepeatCount).toBe(3);
-    expect(draft.circuitNature).toBe("SERIES");
-    expect(draft.stopPoints).toEqual([
-      { id: "stop-b", scope: "BEFORE_TOUR", position: 1 },
-      { id: "stop-i", scope: "IN_TOUR", position: 1 },
-      { id: "stop-a", scope: "AFTER_TOUR", position: 0 },
-    ]);
+    // Modèle unique des Circuits (10/11/2026) : compte, nature et Points relus dans la structure générale.
+    const circuit = draft.structure?.elements.find((element) => element.kind === "CIRCUIT");
+    expect(circuit).toMatchObject({ circuit: { repeatCount: 3, nature: "SERIES" } });
+    expect(draft.structure?.stopPoints.map((point) => (point as { readonly id?: string }).id).sort()).toEqual(["stop-a", "stop-b", "stop-i"]);
 
     const rowsBefore = await database.getAllAsync(
       "SELECT id, tour_id, cycle_id, position, execution_parameters, source_movement_id, copy_number, created_at FROM activities ORDER BY id",

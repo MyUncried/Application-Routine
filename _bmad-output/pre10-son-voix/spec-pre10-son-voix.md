@@ -462,3 +462,25 @@ Réalisé et constaté :
 - C'est un changement de comportement de la Composition, hors périmètre d'un correctif local (Change Control, SCOPE_EXPANSION_REQUIRED). L'essai est annulé. Une mission Composition dédiée est proposée à Hermann.
 - La règle « Circuit nommé hors de l'ancien modèle » (`structure.ts`, 7bd5555b) est conservée : elle évite la perte d'un nom.
 - Boucle de mesure : au-delà de 8 mesures en 32 ms, les suivantes sont reportées à l'image suivante (`measureDelivery`, `compositionLayout.ts`). La chaîne de mises à jour imbriquées est rompue, et la dernière mesure est appliquée. Test : `compositionLayout.measureBurst.test.ts`. Correctif de sûreté, plausible ; la cause de l'oscillation n'est pas démontrée.
+
+### Suite du constat A : modèle unique des Circuits (10/11/2026)
+
+Décision de Hermann, recopiée : « fais les modifications qu'il y a faire pour homogénéiser les circuits et corriger cet écart. Il n'y avait aucun raison d'avoir deux modèles de circuit coexistants. » Sur les Séances existantes : « ce sont des données de test sans importance ».
+
+[Remplacé le 10/11/2026 : « L'essai est annulé. Une mission Composition dédiée est proposée à Hermann » — la décision ci-dessus la lance dans ce lot.]
+
+Réalisé :
+
+- `isEditedAsLegacy` (`structure.ts`) : l'ancien modèle n'est plus utilisé pour l'affichage et l'édition que si la Séance n'a aucun Circuit. Tout Circuit, même unique et composé à la main, est un bloc de la disposition générale (options au glissement, hauteur du cadre, translation validées).
+- Branché dans `compositionLayout`, `layoutOperations`, `SessionDraft`, `sessionDuplication` et `CompositionScreen` (`isGeneralLayout`, emplacements des Points d'arrêt).
+- L'enregistrement garde `legacyFromStructure` : forme stockée inchangée, sans migration.
+- Effets attendus de la Séance à Circuit unique :
+  - mêmes options que les autres Circuits (correctif du constat A) ;
+  - Points d'arrêt de la structure générale ;
+  - insertion et mode enveloppe de la disposition générale ;
+  - apparition du Circuit comme un second Circuit.
+- Repli à l'entrée du mode Cycle (t-depli du 06/11/2026) : il se conserve maintenant après Confirmer, comme pour tout Circuit de la disposition générale. Avant, le repli de l'ancien modèle était perdu au passage au Cycle.
+- Tests : 33 tests adaptés (attentes de l'ancien modèle remplacées, annotations datées), dont `CompositionScreen.b1b`, `b2`, `b4b`, `recette1`, `CompositionPausesFlow`, et les tests domaine et base de données.
+- Classe A (MAJ des écrans Formats du 04/11/2026 §6 quinquies) et D (modèle d'édition ; note ch12). Aucun document fonctionnel ne décrivait deux modèles : rien d'autre à remplacer.
+- Non fait : retrait du rendu mort de l'ancien Circuit unique dans `CompositionScreen` (nettoyage séparé).
+- À vérifier sur iPhone : Circuit unique composé à la main, puis glissement, options, Points d'arrêt et encadrement Cycle.

@@ -243,18 +243,16 @@ describe("PRE-9 B.3 — déplacement vers un Circuit (COMP §6 ; geste en B.4)",
   it("refus sans altération : Exercice ou Circuit inconnu ; Séance portant des Points d'arrêt : appliqué (B.6, D-442)", () => {
     expect(moveExerciseToCircuit(twoNatures(), "absent", "ca", 0, newId)).toEqual({ status: "REFUSED", reason: "NOT_FOUND" });
     expect(moveExerciseToCircuit(twoNatures(), "e0", "absent", 0, newId)).toEqual({ status: "REFUSED", reason: "NOT_FOUND" });
+    // Modèle unique des Circuits (10/11/2026) : les Points d'une Séance à un Circuit sont ceux de sa structure générale.
     const legacyWithPoint: SessionDraft = {
       ...createEmptyDraft(),
-      exercises: [{ ...exercise("p"), structuralPosition: "BEFORE_TOUR" }, { ...exercise("q"), structuralPosition: "IN_TOUR" }],
-      circuitNature: "SERIES",
-      tourRepeatCount: 3,
-      stopPoints: [{ id: "s1", scope: "BEFORE_TOUR", position: 1 }],
+      exercises: [exercise("p"), exercise("q")],
       structure: {
         elements: [
           { kind: "EXERCISE", exercise: "p" },
           { kind: "CIRCUIT", circuit: { id: "t", repeatCount: 3, nature: "SERIES", exercises: ["q"] } },
         ],
-        stopPoints: [],
+        stopPoints: [{ id: "s1", circuitId: null, position: 1 } as never],
       },
     };
     const outcome = moveExerciseToCircuit(legacyWithPoint, "p", "t", 0, newId);

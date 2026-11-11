@@ -96,7 +96,7 @@ import {
   type LayoutPlacementStopPointOutcome,
 } from "@/domain/sessions/layoutPlacement";
 import { layoutStopPointId, sameStopPointContainer, stopPointContainerOf, stopPointLocationIn, type StopPointContainer } from "@/domain/sessions/layoutStopPoints";
-import { legacyFromStructure, structureCircuits, type StructureCircuit, type StructureCycle, type StructureCycleMember } from "@/domain/sessions/structure";
+import { isEditedAsLegacy, structureCircuits, type StructureCircuit, type StructureCycle, type StructureCycleMember } from "@/domain/sessions/structure";
 import {
   STRUCTURAL_ZONES,
   duplicateOccurrence,
@@ -1685,7 +1685,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * générale — le placement s'y applique sur tous les niveaux (`layoutPlacement.ts`), mêmes règles,
    * même sous-brouillon, même barre ; sinon le placement de l'ancien modèle, inchangé.
    */
-  const isGeneralLayout = draft.structure !== undefined && legacyFromStructure(draft.structure) === null;
+  // Modèle unique des Circuits (10/11/2026) : tout Circuit relève de la disposition générale (voir `isEditedAsLegacy`).
+  const isGeneralLayout = draft.structure !== undefined && !isEditedAsLegacy(draft.structure);
   /** Story 6.3 : nature de « Confirmer » (libellé, disponibilité) ; `null` hors placement. */
   const confirmation = useMemo(
     () =>

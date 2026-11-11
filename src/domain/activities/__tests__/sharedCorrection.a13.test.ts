@@ -421,8 +421,9 @@ describe("PRE-7 A1.3 — filiation des duplications (MFN-03, MFN-09, MFN/AC32, M
     expect(draft).not.toHaveProperty("persistedExerciseIds");
     expect(draft.name).toBe("Jambes (copie 2)");
     expect(draft.labelId).toBe("lab-1");
-    expect(draft.tourRepeatCount).toBe(2);
-    expect(draft.stopPoints).toEqual([{ id: "sp-1", scope: "SESSION", position: 1 }]);
+    // Modèle unique des Circuits (10/11/2026) : compte et Points relus dans la structure générale de la copie.
+    expect(draft.structure?.elements[0]).toMatchObject({ kind: "CIRCUIT", circuit: { repeatCount: 2 } });
+    expect(draft.structure?.stopPoints).toHaveLength(1);
     expect(draft.exercises.map((exercise) => [exercise.id, exercise.sourceMovementId])).toEqual([
       ["new-1", "mov-a"],
       ["new-2", "mov-b"],

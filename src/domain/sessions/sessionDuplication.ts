@@ -26,7 +26,7 @@ import type { Session } from "./Session";
 import { toSessionDraft, type SessionDraft } from "./SessionDraft";
 import type { StructuredSession } from "./SessionRepository";
 import {
-  legacyFromStructure,
+  isEditedAsLegacy,
   mapStructure,
   type SessionStructure,
   type StructureCircuit,
@@ -41,7 +41,7 @@ export function toDuplicateSessionDraft(
   // PRE-9 (C.1) : l'origine de création n'est pas recopiée (la copie n'est pas créée depuis la grille ; À CLARIFIER, spec C.1).
   const { persistedExerciseIds: _persisted, structure: layout, origin: _origin, ...draft } = toSessionDraft(session);
   const exerciseIds = new Map(draft.exercises.map((exercise) => [exercise.id, newActivityId()]));
-  const copiedLayout = layout === undefined || legacyFromStructure(layout) !== null ? undefined : renewIdentities(layout, exerciseIds, newActivityId);
+  const copiedLayout = layout === undefined || isEditedAsLegacy(layout) ? undefined : renewIdentities(layout, exerciseIds, newActivityId);
   return {
     ...draft,
     // Création : aucune Séance source, aucune occurrence tenue pour existante.

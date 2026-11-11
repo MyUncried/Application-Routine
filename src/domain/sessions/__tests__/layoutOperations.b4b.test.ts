@@ -148,13 +148,8 @@ describe("B.4b — périmètre ajustable (traits haut et bas)", () => {
       { kind: "CIRCUIT", circuit: { id: "n3", repeatCount: 1, nature: "TOURS", exercises: ["a", "b", "c"] } },
       { kind: "EXERCISE", exercise: "d" },
     ]);
-    // Un Circuit unique : ancien modèle, zones réécrites ; l'enregistrement garde l'identité du Circuit.
-    expect(result.exercises.map((item) => [item.id, item.structuralPosition])).toEqual([
-      ["a", "IN_TOUR"],
-      ["b", "IN_TOUR"],
-      ["c", "IN_TOUR"],
-      ["d", "AFTER_TOUR"],
-    ]);
+    // [Remplacé le 10/11/2026 — modèle unique des Circuits : un Circuit unique reste dans la structure générale (ci-dessus),
+    // plus de zones réécrites.] L'enregistrement garde l'identité du Circuit.
     const saved = toStructuredSessionInput(withLocalMovements(result), ids);
     if (!saved.ok) throw new Error(JSON.stringify(saved.violations));
     expect(saved.value.structure.elements[0]).toMatchObject({ kind: "CIRCUIT", circuit: { id: "n3" } });
@@ -226,12 +221,13 @@ describe("B.4b — périmètre ajustable (traits haut et bas)", () => {
       end: 0,
     });
     expect(adjustEnvelopeSpan(draft, "CIRCUIT", span(ex("a")), "BOTTOM", 1).members).toEqual([ex("a"), ex("b")]);
-    // [a, b, P, c] → [Circuit k [a, b], P, c] : P après le Circuit (ancien modèle : AFTER_TOUR 0).
+    // [a, b, P, c] → [Circuit k [a, b], P, c] : P après le Circuit (modèle unique, 10/11/2026 : Point de la structure).
+    const points = (draftAfter: SessionDraft) => draftAfter.structure?.stopPoints.map(({ circuitId, position }) => ({ circuitId, position }));
     const after = wrapSpansInContainers(draft, [span(ex("a"), ex("b"))], "CIRCUIT", () => "k");
-    expect(after.stopPoints).toEqual([{ id: "p", scope: "AFTER_TOUR", position: 0 }]);
+    expect(points(after)).toEqual([{ circuitId: null, position: 1 }]);
     // [a, b, P, c] → [Circuit k [b, P, c]] … ici [b, c] réunis : P entre eux, dans le Circuit.
     const inside = wrapSpansInContainers(draft, [span(ex("b"), ex("c"))], "CIRCUIT", () => "k");
-    expect(inside.stopPoints).toEqual([{ id: "p", scope: "IN_TOUR", position: 1 }]);
+    expect(points(inside)).toEqual([{ circuitId: "k", position: 1 }]);
   });
 
   it("brouillon de l'ancien modèle jamais enregistré : le Circuit unique est désigné par son identifiant provisoire", () => {

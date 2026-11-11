@@ -239,13 +239,13 @@ describe("PRE-9 A.1 — brouillon porteur de la disposition générale", () => {
     ]);
   });
 
-  it("duplication d'une Séance de l'ancien modèle : aucune disposition reprise (Circuit neuf à l'enregistrement)", () => {
+  // [Remplacé le 10/11/2026 — modèle unique des Circuits : la copie reprend la structure générale, identifiants renouvelés.]
+  it("duplication d'une Séance à un Circuit : structure reprise, identifiants renouvelés, compte conservé", () => {
     const legacy: Session = {
       ...HEADER,
       cycle: { id: "s1", position: 1, repeatCount: 1, tour: { id: "tour-1", position: 1, repeatCount: 2, exercises: [activity("x", "IN_TOUR")] } },
     };
     const copy = toDuplicateSessionDraft(legacy, () => "n1", []);
-    expect(copy.structure).toBeUndefined();
-    expect(copy.tourRepeatCount).toBe(2);
+    expect(copy.structure?.elements).toEqual([{ kind: "CIRCUIT", circuit: { id: "n1", repeatCount: 2, nature: "TOURS", exercises: ["n1"] } }]);
   });
 });

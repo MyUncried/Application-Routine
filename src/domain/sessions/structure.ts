@@ -389,6 +389,16 @@ export const NO_CIRCUIT_ID = "";
  * un Circuit au niveau principal (seule forme produite par l'ancien modèle). PRE-9 (B.2) : sans
  * Circuit, tous les Exercices sont avant un Circuit vide d'identifiant `NO_CIRCUIT_ID`.
  */
+/**
+ * Composition (rendu et édition) — décision de Hermann du 10/11/2026 (recette c1, « fais le maintenant ») : tout Circuit,
+ * même unique et composé à la main, est rendu et édité dans la structure générale (un seul rendu des Circuits : options,
+ * nom, cadre, glissement). L'ancien modèle ne sert plus à la Composition que pour une Séance sans Circuit.
+ * L'enregistrement n'est pas concerné : il garde `legacyFromStructure` (format de stockage inchangé).
+ */
+export function isEditedAsLegacy<E, P extends StructureStopPointLocation>(structure: SessionStructure<E, P>): boolean {
+  return !structure.elements.some((element) => element.kind === "CIRCUIT") && legacyFromStructure(structure) !== null;
+}
+
 export function legacyFromStructure<E, P extends StructureStopPointLocation>(
   structure: SessionStructure<E, P>,
 ): { readonly composition: LegacyComposition<E>; readonly stopPoints: readonly (Omit<P, "circuitId" | "cycleId" | "position"> & LegacyStopPointLocation)[] } | null {
