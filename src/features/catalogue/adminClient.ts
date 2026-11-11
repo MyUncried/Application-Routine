@@ -43,7 +43,9 @@ export type AdminError =
   /** Réponse invalide ou erreur du PC. */
   | "SERVER"
   /** Connexion perdue ou délai dépassé. */
-  | "NETWORK";
+  | "NETWORK"
+  /** MOUV-D2 : fichier non transféré, un média n'a pas de droits confirmés (`MEDIA_RIGHTS_UNCONFIRMED`). */
+  | "MEDIA_RIGHTS";
 
 export class AdminClientError extends Error {
   readonly code: AdminError;
@@ -185,7 +187,15 @@ export class AdminClient {
 
   /** Fichier catalogue complet (même format que l'import par fichier), non validé ici. */
   async catalogue(session: AdminSession, catalogueId: string): Promise<unknown> {
-    const response = await this.authorized(session, "GET", "/phone/v1/catalogues/" + encodeURIComponent(catalogueId));
+    const path = "/phone/v1/catalogues/" + encodeURIComponent(catalogueId);
+    const raw = await this.request(session, session.token, "GET", path);
+    if (raw.status === 409) {
+      const body = await raw.json().catch(() => ({})) as { error?: unknown };
+      if (body.error === "MEDIA_RIGHTS_UNCONFIRMED") throw new AdminClientError("MEDIA_RIGHTS");
+    }
+    const response = raw.status === 409 ? await this.authorized(session, "GET", path) : raw;
+    if (response.status === 401 || response.status === 403) throw new AdminClientError("UNAUTHORIZED");
+    if (!response.ok) throw new AdminClientError("SERVER", "HTTP " + response.status);
     try {
       return JSON.parse(await response.text()) as unknown;
     } catch {

@@ -279,7 +279,7 @@ const codeStyles = StyleSheet.create({
 
 type AvailablePhase =
   | { readonly kind: "loading" }
-  | { readonly kind: "ready"; readonly previews: readonly LibraryPreview[]; readonly origin: string; readonly refreshedAt: number }
+  | { readonly kind: "ready"; readonly previews: readonly LibraryPreview[]; readonly origin: string; readonly refreshedAt: number; readonly withheld?: readonly string[] }
   | { readonly kind: "error"; readonly message: string; readonly unauthorized: boolean };
 
 export function LibraryAvailableScreen({ client = defaultClient, pickFile = pickCatalogueFile }: LibraryScreenDependencies) {
@@ -306,8 +306,16 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
     try {
       const entries = await client.libraries(source.session);
       const previews: LibraryPreview[] = [];
+      const withheld: string[] = [];
       for (const catalogueId of [...new Set(entries.map((entry) => entry.catalogueId))]) {
-        const raw = await client.catalogue(source.session, catalogueId);
+        let raw: unknown;
+        try {
+          raw = await client.catalogue(source.session, catalogueId);
+        } catch (reason) {
+          if (!(reason instanceof AdminClientError && reason.code === "MEDIA_RIGHTS")) throw reason;
+          withheld.push(...entries.filter((entry) => entry.catalogueId === catalogueId).map((entry) => entry.title));
+          continue;
+        }
         const available = await services.libraries.available(raw);
         if (!available.ok) {
           librarySession.setInvalid({ issues: available.issues, raw });
@@ -319,7 +327,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
       }
       librarySession.rememberPreviews(previews);
       librarySession.setSource({ ...source, entries, refreshedAt: Date.now() });
-      setPhase({ kind: "ready", previews, origin: `Reçues de l'administration · ${source.session.name}`, refreshedAt: Date.now() });
+      setPhase({ kind: "ready", previews, origin: `Reçues de l'administration · ${source.session.name}`, refreshedAt: Date.now(), withheld });
     } catch (reason) {
       const unauthorized = reason instanceof AdminClientError && reason.code === "UNAUTHORIZED";
       setPhase({
@@ -338,6 +346,11 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
   let body: React.ReactNode;
   let primary: Parameters<typeof LibraryScreen>[0]["primary"] = null;
   let secondary: Parameters<typeof LibraryScreen>[0]["secondary"] = [];
+  const withheldNotice = phase.kind === "ready" && (phase.withheld?.length ?? 0) > 0 ? (
+    <Notice tone="warning" title="Bibliothèques non transférées" testID="library-available-withheld">
+      {`${phase.withheld!.join(", ")} : un média n'a pas de droits confirmés. Confirmez ses droits dans l'administration du PC, puis actualisez.`}
+    </Notice>
+  ) : null;
   if (phase.kind === "loading") {
     body = <Busy label="Chargement de la liste…" testID="library-available-loading" />;
   } else if (phase.kind === "error") {
@@ -391,6 +404,7 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
   }
   return (
     <LibraryScreen title="Bibliothèques disponibles" testID="library-available" primary={primary} secondary={secondary}>
+      {withheldNotice}
       {body}
       {fileImport.error ? <Notice tone="danger" title="Fichier illisible">{fileImport.error}</Notice> : null}
     </LibraryScreen>
