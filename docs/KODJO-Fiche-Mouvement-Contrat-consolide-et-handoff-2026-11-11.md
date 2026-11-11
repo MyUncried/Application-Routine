@@ -53,7 +53,7 @@
 | Projection vers le Mouvement | `PROJECTED_FIELDS` : nom, alias, étapes, catégorie, zones | **PARTIELLEMENT CONFORME** : média non transporté et structure de phases/familles non importée ; définir précisément les règles avant d'étendre la projection |
 | Médias | Description et droits dans `CatalogueSheet.media` ; `Movement.media` utilise des ressources locales | **PARTIELLEMENT CONFORME** : transport physique, import, gestion d'actifs, nettoyage et droits à spécifier séparément |
 | Homonymie | Index global `movements(normalized_name)` et gardes dépôt/domaine/UI/pilote | **NON CONFORME à la cible multi-sources** : migration/index partiel + gardes homogènes nécessaires avant imports avec homonymes |
-| Auteur | Format v1 et provenance pilote : `authors[]` ; conception BIB-02 : **au plus un auteur** | **NON CONFORME entre sources** : arbitrage sur la représentation ou adaptation du format nécessaire avant code |
+| Auteur | Format CA-1 historique : `authors[]` ; règle fonctionnelle BIB-02 : un auteur au maximum | **NON CONFORME au contrat cible** tant que le code n'utilise pas `author: ActorRef | null` ; décision **MOUV-D1 close**, correction de code et tests restant à réaliser |
 | Référentiels | Catégorie et Zones du téléphone sont nécessaires ; autres axes éditoriaux dans le fichier | **PARTIELLEMENT CONFORME** : définir mapping, non-création implicite, signalement des valeurs manquantes |
 | Administration Web | Brouillons et propriétés existent ; CA-1 annonce format compatible cible | **À VÉRIFIER** : capacité réelle à ouvrir/créer une 61e fiche, éditer tous les champs, réviser, puis exporter v1 |
 | Réconciliation 60 fiches | `install.knownLocalMovementIds`, `ADOPTABLE`, `TO_RECONCILE`, registre pilote | **PARTIELLEMENT CONFORME** : garantir rapprochement sans perte ni duplication avec tests réels |
@@ -70,7 +70,7 @@
 
 **Tranche MOUV-2 — persistance de fiche et import, après résolution des divergences indispensables.**
 - Utiliser les tables/services existants et, si nécessaire, ajouter **une migration additive** de la base principale ; numéro déterminé au moment du développement/assemblage réel, **aucun numéro prédéfini**. Le registre séparé `kodjo-catalogue-registry.db` reste acceptable provisoirement.
-- Conserver identité locale et identité éditoriale séparées ; provenance et permissions éditoriales y compris pour une copie, sans mutation de la source. Ne pas faire porter à `origin_namespace=NULL` seul la provenance d'une copie : garder une filiation dédiée.
+- Conserver identité locale et identité éditoriale séparées ; aucune copie ni édition d'une fiche importée (MOUV-D3). La filiation d'éventuelles copies historiques doit être préservée sans mutation de la source. Ne pas faire porter à `origin_namespace=NULL` seul la provenance d'une copie : garder une filiation dédiée.
 - Modifier l'unicité des noms globalement de façon **cohérente** : SQLite, dépôt, domaine, écran et planificateur du pilote. Maintenir la protection contre deux créations locales homonymes ; accepter plusieurs sources installées homonymes ; afficher l'origine selon le contrat UX s'il existe.
 - Préserver le protocole CA-3 : intention durable → écriture du Mouvement → confirmation du registre ; reprise idempotente. Test de migration sur base peuplée obligatoire.
 
@@ -82,13 +82,13 @@
 
 ## 5. Points à arbitrer ou clarifier avant écriture irréversible
 
-1. **Auteur unique** : BIB-02 limite à un auteur, tandis que CA-1 conserve `authors[]` (0..n) ; conserver les données actuelles et **ne pas supprimer d'auteur à la migration**. Demander la représentation normative (champ unique ou tableau borné à 1), plutôt que trancher implicitement.
+1. **Auteur unique — décision close MOUV-D1** : remplacer `authors[]` par `author: ActorRef | null` dans le modèle cible et ses validateurs, sans inventer d'auteur. Migration sûre : 0 auteur → null, 1 auteur → auteur, plus d'un → erreur explicite sans perte ; aucune gestion multi-auteurs.
 2. **Projection médias** : le format les décrit, mais leur transfert vers les actifs locaux n'est pas réalisé ; ne pas inventer une installation de média sans droits, source exploitable et stratégie de stockage.
 3. **Phases et familles** : propriétés locales d'exercice/mouvement préexistantes, actuellement non modifiées par CA-3. Les importer depuis la fiche exige une règle explicite de mapping et de préservation des personnalisations.
 4. **Homonymes** : index unique partiel proposé par revue Claude (créations locales `origin_namespace IS NULL`) mais non testé en exécution ; vérifier aussi toutes les gardes de saisie.
 5. **Attributs éditoriaux dans le mobile** : seul Figma valide la présentation. Les `startingPosition`, `equipment`, `safetyNotes`, spécialités, autres axes, provenance détaillée ne deviennent pas automatiquement des champs modifiables dans `MovementScreen`.
 6. **Pilote privé vs Bibliothèques génériques diffusables** : les 60 fiches à propriétaire inconnu sont non publiables ; obtenir les droits et métadonnées d'une version publique sans supposer que la reprise locale vaut autorisation de diffusion.
-7. **Règles de copies et adaptations** : assurer identité et filiation sans écraser la source ; le traitement des conflits éditoriaux locaux reste à préciser par canal.
+7. **Historique et protections** : aucune copie/édition pour les nouvelles fiches importées (MOUV-D3). Seule la réconciliation des adaptations historiques des 60 Mouvements conserve son circuit de conflits CA-3, sans écraser la source.
 
 Ces points ne bloquent **pas** la lecture/validation/stockage sans perte du contrat existant ; ils bloquent seulement les mutations de données ou règles nouvelles qui en dépendent.
 
@@ -110,7 +110,7 @@ Ces points ne bloquent **pas** la lecture/validation/stockage sans perte du cont
 >
 > Priorité 1 : produire l'inventaire complet et différentiel des propriétés de fiche, du validateur, de la projection, de la persistance, de l'administration Web et des écrans mobiles ; classer les divergences avec évidences. Préserver la séparation `Movement.id` / `(catalogue.id,sheetId)`.
 >
-> Priorité 2 : proposer puis implémenter les corrections **déjà arbitrées** du contrat et de la persistance, en réemployant CA-1/CA-2/CA-3 ; migration additive si nécessaire, numéro attribué au moment de l'intégration, tests de conservation et de non-régression. Pour les points non tranchés (auteur, projection des médias, phases/familles, UI non représentée), ne rien inventer : documenter la décision nécessaire et isoler les travaux indépendants.
+> Priorité 2 : proposer puis implémenter les corrections **déjà arbitrées** du contrat et de la persistance, en réemployant CA-1/CA-2/CA-3 ; migration additive si nécessaire, numéro attribué au moment de l'intégration, tests de conservation et de non-régression. Pour les points de réalisation non résolus (projection technique des médias selon MOUV-D2, phases/familles, UI non représentée), ne rien inventer : documenter la décision nécessaire et isoler les travaux indépendants.
 >
 > Priorité 3 : préparer l'évolution de la fiche Mouvement existante dans le **Catalogue**, sans déplacer l'édition vers Profil. Établir la matrice `propriété ↔ Figma ↔ contrat d'écran ↔ état mobile` et modifier uniquement les champs dont l'UX est déjà validée. Préparer les interfaces de service communes avec l'administration Web, sans dupliquer les règles.
 >
