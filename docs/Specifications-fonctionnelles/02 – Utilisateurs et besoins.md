@@ -131,11 +131,11 @@ Décrire plusieurs actions successives, par exemple 6 s puis 3 s, au sein d’un
 
 ### Profil
 
-Une personne à laquelle un kinésithérapeute, un coach, un professionnel de santé ou un autre accompagnant transmet une Séance à réaliser de manière autonome.
+Une personne utilisant des contenus préparés ou transmis par un autre utilisateur, sans prescription numérique, suivi de patient ni rôle professionnel intégré au modèle KODJO (KIN-01).
 
 ### Besoins futurs
 
-- **B-049** — Recevoir ou copier une Séance préparée par un tiers.
+- **B-049** — Recevoir un contenu préparé par un tiers lorsque le partage sera développé ; aucune duplication d'une fiche Mouvement importée (MOUV-D3).
 - **B-050** — Retrouver des consignes et éventuellement un média associé à chaque Exercice.
 - **B-051** — Partager volontairement certaines informations d’Exécution.
 - **B-052** — Comprendre les versions successives d’une Séance.
