@@ -60,7 +60,7 @@ export type SheetDecisionRecord = SheetKey & {
   readonly decidedAt: string;
 };
 
-export type RegistrySnapshot = {
+export type RegistryState = {
   readonly installed: readonly InstalledSheetRecord[];
   readonly pending: readonly PendingOperation[];
   readonly decisions: readonly SheetDecisionRecord[];
@@ -323,7 +323,7 @@ const keyOf = (key: SheetKey) => key.catalogueId + "\u0000" + key.sheetId;
  */
 export function planCatalogueLoad(
   file: MovementCatalogueFile,
-  registry: RegistrySnapshot,
+  registry: RegistryState,
   localMovements: readonly LocalMovement[],
   referentials: LocalReferentials,
 ): CatalogueLoadPlan {

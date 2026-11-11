@@ -9,6 +9,7 @@ import {
   pickAndCopyProfilePhoto,
   profilePhotoFileExists,
 } from "@/features/preferences/profilePhoto";
+import { ProfileLibrariesSection } from "@/features/catalogue/ProfileLibrariesSection";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -276,6 +277,9 @@ export function ProfileEditScreen() {
               </Pressable>
             </View>
           </View>
+
+          {/* A1 (A-4 du 11/11/2026, Figma 12119:25611) : Bibliothèques du premier lot. */}
+          <ProfileLibrariesSection />
         </ScrollView>
       ) : null}
 

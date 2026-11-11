@@ -16,7 +16,7 @@ import {
   type InstalledSheetRecord,
   type LocalMovement,
   type LocalReferentials,
-  type RegistrySnapshot,
+  type RegistryState,
   type SheetLoadItem,
 } from "@/domain/catalogue/catalogueLoadPlan";
 
@@ -35,7 +35,7 @@ const referentials: LocalReferentials = {
   categoryIds: new Set(pilot.references.categories.map((entry) => entry.id)),
   bodyZoneIds: new Set(pilot.references.bodyZones.map((entry) => entry.id)),
 };
-const EMPTY: RegistrySnapshot = { installed: [], pending: [], decisions: [] };
+const EMPTY: RegistryState = { installed: [], pending: [], decisions: [] };
 
 const sheetA = () => clone(pilot.sheets[0]!);
 const sheetB = () => clone(pilot.sheets[1]!);
@@ -56,7 +56,7 @@ function revise(sheet: CatalogueSheet, change: (draft: Mutable) => void): Catalo
 }
 type Mutable = { -readonly [K in keyof CatalogueSheet]: any };
 
-function only(file: MovementCatalogueFile, registry: RegistrySnapshot, locals: LocalMovement[]): SheetLoadItem {
+function only(file: MovementCatalogueFile, registry: RegistryState, locals: LocalMovement[]): SheetLoadItem {
   const plan = planCatalogueLoad(file, registry, locals, referentials);
   expect(plan.items).toHaveLength(file.sheets.length);
   return plan.items[0]!;

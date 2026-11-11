@@ -41,7 +41,7 @@ import type { MovementCatalogueService } from "@/features/activities/MovementCat
 import type { SqliteCatalogueRegistry } from "@/infrastructure/catalogue/SqliteCatalogueRegistry";
 
 export type CatalogueLoadDependencies = {
-  readonly registry: Pick<SqliteCatalogueRegistry, "snapshot" | "beginPending" | "abandonPending" | "commit" | "recordDecision">;
+  readonly registry: Pick<SqliteCatalogueRegistry, "state" | "beginPending" | "abandonPending" | "commit" | "recordDecision">;
   /** Écritures par le service Catalogue existant (mêmes validations que les écrans). */
   readonly movements: Pick<MovementCatalogueService, "createIndependent" | "updateFromSource">;
   /** Mouvements locaux, archivés compris, lus de façon fraîche (`freshLocalMovementReader`). */
@@ -112,7 +112,7 @@ export class CatalogueLoadService {
    * confirme ce qui a été écrit, abandonne ce qui ne l'a pas été. Aucune écriture de Mouvement.
    */
   async recoverInterrupted(catalogueId: string): Promise<RecoveryReport> {
-    const snapshot = await this.deps.registry.snapshot(catalogueId);
+    const snapshot = await this.deps.registry.state(catalogueId);
     if (snapshot.pending.length === 0) return { completed: [], abandoned: [] };
     const local = new Map((await this.deps.readLocalMovements()).map((entry) => [entry.movement.id, entry.movement]));
     const completed: string[] = [];
@@ -208,7 +208,7 @@ export class CatalogueLoadService {
 
   private async plan(file: MovementCatalogueFile): Promise<CatalogueLoadPlan> {
     const [registry, entries, referentials] = await Promise.all([
-      this.deps.registry.snapshot(file.catalogue.id),
+      this.deps.registry.state(file.catalogue.id),
       this.deps.readLocalMovements(),
       this.deps.listReferentials(),
     ]);
@@ -222,7 +222,7 @@ export class CatalogueLoadService {
     const sheet = file.sheets.find((candidate) => candidate.sheetId === sheetId);
     if (!sheet) return null;
     const [registry, entries, referentials] = await Promise.all([
-      this.deps.registry.snapshot(file.catalogue.id),
+      this.deps.registry.state(file.catalogue.id),
       this.deps.readLocalMovements(),
       this.deps.listReferentials(),
     ]);

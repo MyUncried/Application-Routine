@@ -199,7 +199,7 @@ describe("CA-3 — chargement d'un catalogue sur SQLite réelle (base principale
     expect(await service.accept(third, revision.sheetId)).toEqual({ status: "UPDATED", movementId: pilotId });
     const updated = await movementsOn(main).findMovement(pilotId);
     expect(decodeInstructionSteps(updated!.description).at(-1)).toBe("Revenir lentement");
-    expect((await registry.snapshot(pilot.catalogue.id)).decisions).toEqual([]);
+    expect((await registry.state(pilot.catalogue.id)).decisions).toEqual([]);
     const final = await service.prepare(third);
     expect(final.ok && final.plan.items.every((item) => item.state === "UP_TO_DATE")).toBe(true);
   });
@@ -284,7 +284,7 @@ describe("CA-3 — chargement d'un catalogue sur SQLite réelle (base principale
     const { service } = await serviceOn({ registry: crashing });
     const file = editedFile();
     await expect(service.accept(file, "LOCAL-001")).rejects.toThrow("Interruption simulée");
-    expect((await registry.snapshot(pilot.catalogue.id)).pending).toHaveLength(1);
+    expect((await registry.state(pilot.catalogue.id)).pending).toHaveLength(1);
 
     const prepared = await service.prepare(file);
     if (!prepared.ok) throw new Error("refusé");

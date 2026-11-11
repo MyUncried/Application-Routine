@@ -26,6 +26,7 @@ require("react-native-gesture-handler/jestSetup");
 // garde inactive par défaut. Les tests de la garde injectent un registre SQLite réel.
 jest.mock("@/features/catalogue/importedMovements", () => ({
   isImportedMovement: async () => false,
+  importedMovementLabel: async () => null,
   sharedCatalogueRegistry: async () => {
     throw new Error("Registre natif indisponible sous Jest : injecter un registre.");
   },
