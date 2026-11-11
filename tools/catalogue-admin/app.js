@@ -477,7 +477,7 @@ function renderSheetForm(panel) {
   title.append(el("p", "eyebrow", "Fiche éditoriale"), el("h2", "", sheet.content.name || "(sans nom)"));
   head.append(title, el("span", "code", sheet.sheetId + " · révision " + sheet.revision));
   const fields = el("div", "fields");
-  const c = sheet.content, k = sheet.classification, p = sheet.provenance, s = sheet.sources, v = sheet.validation;
+  const c = sheet.content, k = sheet.classification, p = sheet.provenance, s = sheet.sources;
 
   fields.append(section("Contenu",
     labeled("Nom du mouvement", textInput(() => c.name, (x) => { c.name = x; }, { maxLength: 80 }), "80 caractères au plus (contrat Mouvement)."),
@@ -562,18 +562,8 @@ function renderSheetForm(panel) {
   fields.append(section("Sources", documentary,
     labeled("Contexte de prescription d'origine (non normatif)", recordInput(() => s.prescriptionContext, (x) => { s.prescriptionContext = x; }))));
 
-  fields.append(section("Validation",
-    el("div", "three"),
-    el("div", "three"),
-    checkbox("Publication autorisée (exige un propriétaire identifié)", () => v.publicationAllowed, (x) => { v.publicationAllowed = x; }),
-  ));
-  const [firstRow, secondRow] = fields.lastChild.querySelectorAll(".three");
-  firstRow.append(labeled("Classification", textInput(() => v.classification, (x) => { v.classification = x; })),
-    labeled("Clinique", textInput(() => v.clinical, (x) => { v.clinical = x; })),
-    labeled("Droits", textInput(() => v.rights, (x) => { v.rights = x; })));
-  secondRow.append(labeled("Revue du corpus", textInput(() => v.corpusReview, (x) => { v.corpusReview = x; }, { nullable: true })),
-    labeled("Licences", textInput(() => v.licensing, (x) => { v.licensing = x; }, { nullable: true })),
-    labeled("Validation clinique", textInput(() => v.clinicalValidation, (x) => { v.clinicalValidation = x; }, { nullable: true })));
+  // Section « Validation » retirée (Hermann, 11/11/2026 : « je n'ai exprimé aucun besoin, alors pourquoi les
+  // développer s'ils ne sont pas nécessaires »). Les valeurs existantes restent dans le fichier, inchangées.
 
   const mediaBox = el("div");
   fields.append(mediaBox);
