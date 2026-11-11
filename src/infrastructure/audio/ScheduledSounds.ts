@@ -34,16 +34,29 @@ function api(): AudioApi {
 
 export class ScheduledSounds {
   private context: Context | null = null;
+  private policy: SessionPolicy = "LIBRARY_DUCK";
   private readonly buffers = new Map<BeepTone, Promise<Buffer>>();
 
   /** Session audio de l'application, réglée par la bibliothèque : lecture, mode silencieux ignoré, autres sons atténués ou mélangés. */
   async start(policy: SessionPolicy = "LIBRARY_DUCK"): Promise<void> {
     if (!hasScheduledSounds()) return;
     const { AudioManager, AudioContext } = api();
+    this.policy = policy;
     AudioManager.setSystemOptions({ ios: { category: "playback", mode: "default", options: [policy === "LIBRARY_DUCK" ? "duckOthers" : "mixWithOthers"] } });
     await AudioManager.setAudioSessionActivity(true);
     if (this.context === null) this.context = new AudioContext();
     await this.context.resume();
+  }
+
+  /**
+   * Recette du 11/11/2026 (Hermann, m2) : « Lance d'une séance > lancement de spotify > retour sur la séance > Reprendre la séance : La musique ne baisse à aucun moment lors de la séance. » iOS n'atténue que la musique déjà en cours au moment où la session
+   * de l'application est activée ; une musique lancée ensuite (séance quittée, Spotify ouvert) reste à plein volume.
+   * Au retour dans l'application, la session est donc désactivée puis réactivée, ce qui atténue de nouveau la musique.
+   */
+  async reclaim(): Promise<void> {
+    if (this.context === null || !hasScheduledSounds()) return;
+    await api().AudioManager.setAudioSessionActivity(false).catch(() => undefined);
+    await this.start(this.policy);
   }
 
   /** Décode tous les sons à l'avance (aucun chargement au moment de jouer). */

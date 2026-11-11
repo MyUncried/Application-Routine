@@ -361,3 +361,5 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - Hermann : « "phase" ne peut pas s’afficher ? » — « Changement de phase » était tronqué. Colonne Son réduite à la plus longue valeur : 96 (Préférences, au lieu de 112) et 90 (modale, au lieu de 104). Classe D. Tests : 52/52.
 
 - Hermann : « Centrer vibration du l’interrupteur ». Titre « Vibration » centré, à la largeur mesurée de l’interrupteur (au lieu d’aligné à droite sur 51). Classe B. Tests : tsc, 52/52.
+
+- m2 (classe A, décision 1.A du 10/11/2026 : musique atténuée pendant toute l’Exécution), Hermann : « Lance d'une séance > lancement de spotify > retour sur la séance > Reprendre la séance : La musique ne baisse à aucun moment lors de la séance. » iOS n’atténue que la musique déjà en cours à l’activation de la session ; au retour de l’application au premier plan pendant une Exécution, la session est désactivée puis réactivée (`reclaimExecutionAudio`). À vérifier sur iPhone.

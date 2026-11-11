@@ -131,6 +131,25 @@ function scheduledLibrary(): Promise<ScheduledSounds | null> {
   return libraryReady;
 }
 
+/**
+ * Recette du 11/11/2026 (Hermann, m2) : « Lance d'une séance > lancement de spotify > retour sur la séance > Reprendre la séance : La musique ne baisse à aucun moment lors de la séance. » Retour de l'application au premier plan pendant une Exécution : la
+ * session audio est réactivée pour atténuer la musique lancée entre-temps (voir `ScheduledSounds.reclaim`).
+ */
+export function reclaimExecutionAudio(): void {
+  if (library !== null) {
+    void library.reclaim().catch(() => undefined);
+    return;
+  }
+  if (session === null || !hasNativeModule("ExpoAudio")) return;
+  session = (async () => {
+    const audio = await import("expo-audio");
+    await audio.setIsAudioActiveAsync(false).catch(() => undefined);
+    await audio.setIsAudioActiveAsync(true);
+  })().catch(() => {
+    session = null;
+  });
+}
+
 export class ExecutionSounds implements BeepPort {
   /** Début d'Exécution : session active et un lecteur prêt par son, pour qu'aucun son ne parte en retard. */
   prepare(): void {
