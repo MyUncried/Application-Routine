@@ -321,3 +321,12 @@ KO saisis entre 22 h 37 et 22 h 49 le 11/11, restés sans traitement pendant le 
 Fichiers : `src/features/preferences/ProfileEditScreen.tsx`, `src/features/preferences/__tests__/ProfileEditScreen.test.tsx` (test « recette c1/c2 du 11/11 », pastille 22 sans libellé).
 
 Tests : `tsc --noEmit` 0 erreur ; eslint 0 problème ; `npx jest --maxWorkers=2 src/features/preferences app` 9 suites, 77 tests verts. Suite complète non relancée (mémoire du PC). Aucun contrôle visuel sur iPhone.
+
+## Message « Média non enregistré » explicite (recette du 12/11)
+
+Question de Hermann : « sheets[67].media[0] n'est pas explicite. Est-ce le "Texte alternatif de la photo" qui est obligatoire ? » Oui : règle du fichier catalogue (`MovementCatalogueFile.ts`, photo sans texte alternatif refusée), inchangée.
+
+- Correction : `tools/catalogue-admin/app.js`, l'administration nomme le champ à remplir et le média (« … : remplir « Texte alternatif de la photo » (média n° 1 de cette fiche) ») au lieu du chemin technique. Les autres erreurs de média gardent leur libellé, avec la position du média.
+- Classe B (demande explicite de Hermann sur un message affiché ; aucune spécification ne fixait ce libellé, aucun document dépendant à mettre à jour). La règle « texte alternatif obligatoire pour une photo » n'est pas modifiée.
+- Cahier de recette : ligne x-media-message ajoutée (section 9).
+- Tests : sortie de la fonction vérifiée sur deux cas (texte alternatif manquant, autre champ) ; eslint 0 problème. Aucun test automatisé de l'interface d'administration n'existe pour ce message.

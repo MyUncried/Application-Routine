@@ -558,6 +558,17 @@ function renderSheetForm(panel) {
   // Section « Validation » retirée (Hermann, 11/11/2026 : « je n'ai exprimé aucun besoin, alors pourquoi les
   // développer s'ils ne sont pas nécessaires »). Les valeurs existantes restent dans le fichier, inchangées.
 
+  // Recette du 12/11 (Hermann) : « sheets[67].media[0] n'est pas explicite ».
+  // Le message nomme le champ à remplir et le média concerné, sans chemin technique.
+  // [Avant : détail + « (sheets[i].media[j]) » — remplacé]
+  const describeMediaIssue = (issue) => {
+    const detail = issue.detail ?? issue.code;
+    const hint = detail === "description accessible obligatoire pour une photo"
+      ? "remplir « Texte alternatif de la photo »"
+      : null;
+    const position = /\.media\[(\d+)\]/.exec(issue.path);
+    return detail + (hint ? " : " + hint : "") + (position ? " (média n° " + (Number(position[1]) + 1) + " de cette fiche)" : "");
+  };
   const mediaBox = el("div");
   fields.append(mediaBox);
   mountMediaEditor(mediaBox, {
@@ -573,7 +584,7 @@ function renderSheetForm(panel) {
       if (result.ok) return null;
       const prefix = "sheets[" + index + "].media";
       const found = result.issues.find((issue) => issue.path.startsWith(prefix));
-      return found ? (found.detail ?? found.code) + " (" + found.path + ")" : null;
+      return found ? describeMediaIssue(found) : null;
     },
     notify,
     maxMedia: CATALOGUE_MAX_MEDIA_PER_SHEET,
