@@ -76,7 +76,8 @@ export const RING = {
   /** Repères des quarts : 3 × 6. */
   quarterMark: { inner: 151, outer: 157, width: 3, color: "#BEC2CC" },
   /** Repères intermédiaires tous les 18°, hors quarts : trait de 1,2 à 40 %. */
-  minorMark: { inner: 151, outer: 155, width: 1.2, color: "#BEC2CC", opacity: 0.4 },
+  // Recette du 12/11/2026 (Hermann : « Foncer un peu les 16 barres autour du cercle ») : 70 %. [40 % (Figma) — remplacé.]
+  minorMark: { inner: 151, outer: 155, width: 1.2, color: "#BEC2CC", opacity: 0.7 },
 } as const;
 
 /** Point à `fraction` du tour (0 = haut, sens horaire), au rayon `radius`, autour de (`center`, `center`). */
