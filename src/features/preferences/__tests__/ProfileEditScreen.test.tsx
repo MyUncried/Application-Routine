@@ -7,6 +7,7 @@ import { ProfileEditScreen } from "@/features/preferences/ProfileEditScreen";
 import type { SaveIdentityResult, ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { strings } from "@/shared/i18n";
+import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 
 /**
  * Écran Modifier le profil (V2-PRE-2, plan §6.5, CE-UI-01 L1965-2051).
@@ -385,7 +386,7 @@ describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
     expect(screen.getByText(t.abandonModal.title)).toBeTruthy();
   });
 
-  it("lays out the Profil card: section label, initials on the dark avatar, camera badge, « Modifier la photo », Nom row", async () => {
+  it("lays out the Profil card: section label, initials on the dark avatar, camera badge (no label, no frame), Nom row", async () => {
     await renderScreen(fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Hermann Adjo" })) }));
 
     expect(within(screen.getByTestId("profile-edit-identity")).getByText(t.sectionLabel)).toBeTruthy();
@@ -393,12 +394,13 @@ describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
     const initials = screen.getByTestId("profile-edit-avatar-initials");
     expect(initials.props.children).toBe("HA");
     expect(StyleSheet.flatten(initials.props.style)).toMatchObject({ fontSize: 22, color: "#FFFFFF" });
-    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-photo-badge", { includeHiddenElements: true }).props.style)).toMatchObject({
-      width: 30,
-      height: 30,
+    // Recette c2 du 11/11 : pastille réduite (22), seule commande de la photo ; plus de libellé « Modifier la photo ».
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-photo-action").props.style)).toMatchObject({
+      width: 22,
+      height: 22,
       backgroundColor: "#0508E5",
     });
-    expect(screen.getByText(t.photo.editLabel)).toBeTruthy();
+    expect(screen.queryByText(t.photo.editLabel)).toBeNull();
     expect(screen.getByTestId("profile-edit-photo-action").props.accessibilityLabel).toBe(t.photo.addAccessibilityLabel);
     expect(screen.getByText(t.name.label)).toBeTruthy();
     // Aucune donnée « pseudo » ni « type de compte » dans le Profil : rien n'est inventé.
@@ -406,12 +408,12 @@ describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
     expect(screen.queryByText("Compte gratuit")).toBeNull();
   });
 
-  it("opens the photo picker from the camera badge too", async () => {
+  it("opens the photo picker from the camera badge", async () => {
     mockPickAndCopyProfilePhoto.mockResolvedValue({ status: "CANCELED" });
     await renderScreen();
 
     await act(async () => {
-      fireEvent.press(screen.getByTestId("profile-edit-photo-badge", { includeHiddenElements: true }));
+      fireEvent.press(screen.getByTestId("profile-edit-photo-action"));
     });
     expect(mockPickAndCopyProfilePhoto).toHaveBeenCalledTimes(1);
   });
@@ -435,5 +437,19 @@ describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
 
     expect(StyleSheet.flatten(screen.getByTestId("screen-shell").props.style)).toMatchObject({ backgroundColor: "#F7F7FF" });
     expect(screen.getByTestId("profile-edit-tab-band")).toBeTruthy();
+  });
+
+  it("recette c1/c2 du 11/11 : zone de contexte fondue vers la transparence, corps dessous ; zone Profil sans cadre", async () => {
+    await renderScreen();
+
+    const band = StyleSheet.flatten(screen.getByTestId("profile-edit-tab-band").props.style) as { height: number; experimental_backgroundImage: string };
+    expect(band.height).toBe(14 + CONTEXT_BAND_FADE_HEIGHT);
+    expect(band.experimental_backgroundImage).toMatch(/#EAEAFF00 100%\)$/);
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-body").props.style)).toMatchObject({ marginTop: -CONTEXT_BAND_FADE_HEIGHT });
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-identity-card").props.style)).toMatchObject({
+      backgroundColor: "transparent",
+      borderWidth: 0,
+      shadowOpacity: 0,
+    });
   });
 });

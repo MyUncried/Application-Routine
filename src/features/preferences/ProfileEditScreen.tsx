@@ -18,7 +18,7 @@ import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitG
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
-import { FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { CONTEXT_BAND_FADE_HEIGHT, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 type ProfileTab = "profile" | "preferences" | "community";
@@ -31,7 +31,12 @@ const PROFILE_BACKGROUND = colors.catalogueSessionsBackground;
 const PROFILE_TAB_CONTEXT = colors.catalogueSessionsContext;
 const TAB_BAND_HEIGHT = 14;
 const AVATAR_SIZE = 64;
-const PHOTO_BADGE_SIZE = 30;
+/**
+ * Recette c2 du 11/11 (Hermann : « faire l'icône de la photo plus petit ») : pastille 22 et icône 12.
+ * [Avant : Figma 12119:25611, pastille 30 et icône 16 — remplacé.]
+ */
+const PHOTO_BADGE_SIZE = 22;
+const PHOTO_BADGE_ICON = 12;
 const SILHOUETTE_CIRCLE = 40;
 /** Figma : tracé de la silhouette non choisie (#9499A8), cercle non choisi #CCD1E0. */
 const SILHOUETTE_UNSELECTED = "#9499A8";
@@ -239,7 +244,7 @@ export function ProfileEditScreen() {
           testID="profile-edit-body"
         >
           {/* Figma 12119:25611 : intitulé « Profil » au-dessus d'une carte (même carte que les Bibliothèques) —
-              avatar 64 et pastille appareil photo, « Modifier la photo » dessous ; à droite, la ligne « Nom » ;
+              avatar 64 et pastille appareil photo (recette c2 : sans libellé ni cadre) ; à droite, la ligne « Nom » ;
               séparateur ; silhouettes centrées en bas. Pseudo et type de compte : sans donnée, non affichés. */}
           <Section label={t.sectionLabel} testID="profile-edit-identity">
             <Card style={styles.identityCard} testID="profile-edit-identity-card">
@@ -268,32 +273,20 @@ export function ProfileEditScreen() {
                         </>
                       )}
                     </View>
-                    {/* Pastille bleue 30 de Figma (« Action — Modifier la photo ») : même action que le libellé
-                        dessous, masquée de l'accessibilité pour ne pas annoncer deux fois le même bouton. */}
+                    {/* Pastille bleue (« Action — Modifier la photo ») : seule commande de la photo depuis la recette
+                        c2 du 11/11 (Hermann : « retirer le texte Modifier la photo »), d'où son nom accessible.
+                        [Avant : libellé « Modifier la photo » sous l'avatar, pastille masquée de VoiceOver — remplacé.] */}
                     <Pressable
                       onPress={handlePickPhoto}
-                      accessible={false}
-                      importantForAccessibility="no-hide-descendants"
-                      accessibilityElementsHidden
+                      accessibilityRole="button"
+                      accessibilityLabel={photoAccessibilityLabel}
                       hitSlop={(minTouchTarget - PHOTO_BADGE_SIZE) / 2}
                       style={styles.photoBadge}
-                      testID="profile-edit-photo-badge"
+                      testID="profile-edit-photo-action"
                     >
-                      <KodjoIcon name="profile-photo-camera" />
+                      <KodjoIcon name="profile-photo-camera" size={PHOTO_BADGE_ICON} />
                     </Pressable>
                   </View>
-                  <Pressable
-                    onPress={handlePickPhoto}
-                    accessibilityRole="button"
-                    accessibilityLabel={photoAccessibilityLabel}
-                    hitSlop={{ top: 8, bottom: 8 }}
-                    style={styles.photoAction}
-                    testID="profile-edit-photo-action"
-                  >
-                    <Text style={styles.photoActionLabel} numberOfLines={1}>
-                      {t.photo.editLabel}
-                    </Text>
-                  </Pressable>
                 </View>
 
                 <View style={styles.fieldsColumn}>
@@ -406,6 +399,8 @@ export function ProfileEditScreen() {
 const styles = StyleSheet.create({
   body: {
     flex: 1,
+    // Recette c1 : le corps remonte sous la part fondue de la zone de contexte et défile derrière elle.
+    marginTop: -CONTEXT_BAND_FADE_HEIGHT,
   },
   // Figma 12119:25611 — les onglets occupent toute la hauteur de l'en-tête et reposent sur son bord bas
   // (même patron que le Catalogue, `CatalogueScreen.headerNavigation`).
@@ -413,23 +408,34 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: "stretch",
   },
-  // « Bande — Onglets » (12119:25662) : 14 pt, #EAEAFF opaque jusqu'à 80 % puis fondu vers le fond ; elle
-  // recouvre les 2 derniers points de l'en-tête, comme sur la maquette (y 92 → 106).
+  // « Bande — Onglets » (12119:25662) : 14 pt #EAEAFF ; elle recouvre les 2 derniers points de l'en-tête
+  // (y 92 → 106). Recette c1 du 11/11 (Hermann : « Il manque la zone de contexte avec dégradé vers la couleur
+  // de l'écran ») : zone de contexte des Catalogues (D-224) — la couleur pleine est suivie d'une part fondue
+  // vers la transparence (`CONTEXT_BAND_FADE_HEIGHT`), posée au-dessus du corps qui défile derrière.
+  // [Avant : fondu sur les 20 % inférieurs des seuls 14 pt, à peine visible — remplacé.]
   tabBand: {
-    height: TAB_BAND_HEIGHT,
+    height: TAB_BAND_HEIGHT + CONTEXT_BAND_FADE_HEIGHT,
     marginTop: -2,
-    experimental_backgroundImage: `linear-gradient(to bottom, ${PROFILE_TAB_CONTEXT} 0%, ${PROFILE_TAB_CONTEXT} 80%, ${PROFILE_BACKGROUND} 100%)`,
+    zIndex: 1,
+    experimental_backgroundImage: `linear-gradient(to bottom, ${PROFILE_TAB_CONTEXT} 0%, ${PROFILE_TAB_CONTEXT} ${Math.round((TAB_BAND_HEIGHT / (TAB_BAND_HEIGHT + CONTEXT_BAND_FADE_HEIGHT)) * 100)}%, ${PROFILE_TAB_CONTEXT}00 100%)`,
   },
   bodyContent: {
     // A01 (recette PRE-8 A/B) : marge standard partagée.
     paddingHorizontal: layout.screenGutter,
     // Figma : intitulé « Profil » 9 pt sous la bande ; 16 pt entre la carte et la section suivante.
-    paddingTop: 9,
+    paddingTop: 9 + CONTEXT_BAND_FADE_HEIGHT,
     gap: spacing[16],
   },
+  // Recette c2 du 11/11 (Hermann : « zone de profil, pas de cadre ») : ni fond, ni contour, ni ombre ; le
+  // contenu s'aligne sur la marge de l'écran. [Avant : carte des Bibliothèques (`LIBRARY_CARD`) — remplacé.]
   identityCard: {
-    paddingTop: spacing[16],
-    paddingBottom: spacing[12],
+    paddingTop: spacing[8],
+    paddingBottom: spacing[4],
+    paddingHorizontal: 0,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   identityTop: {
     flexDirection: "row",
@@ -467,29 +473,17 @@ const styles = StyleSheet.create({
     ...type.metricPrimary,
     color: colors.background,
   },
-  // Figma : pastille 30 bleue, à (40, 40) de l'avatar ; icône 16 centrée.
+  // Pastille bleue en bas à droite de l'avatar, débordant de 6 pt comme sur Figma ; icône centrée.
   photoBadge: {
     position: "absolute",
-    left: 40,
-    top: 40,
+    left: AVATAR_SIZE + 6 - PHOTO_BADGE_SIZE,
+    top: AVATAR_SIZE + 6 - PHOTO_BADGE_SIZE,
     width: PHOTO_BADGE_SIZE,
     height: PHOTO_BADGE_SIZE,
     borderRadius: PHOTO_BADGE_SIZE / 2,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-  },
-  photoAction: {
-    marginTop: spacing[8],
-  },
-  // Figma : « Modifier la photo » Inter Medium 13, bleu.
-  photoActionLabel: {
-    ...type.body,
-    fontFamily: "Inter_500Medium",
-    fontWeight: "500",
-    fontSize: 13,
-    lineHeight: 16,
-    color: colors.primary,
   },
   // Figma : colonne des champs à x = 152 de la carte.
   fieldsColumn: {
@@ -523,7 +517,7 @@ const styles = StyleSheet.create({
     ...type.caption,
     color: colors.danger,
   },
-  // Figma : séparateur à 14 pt sous le libellé « Modifier la photo », silhouettes 7 pt dessous.
+  // Figma : séparateur à 14 pt sous la colonne de la photo, silhouettes 7 pt dessous.
   // [CE-UI-01 L2001 : cercles de 64, contour 2, écart 24 — remplacé par la maquette 12119:25611 : cercles
   // de 40 sur fond blanc, écart 15, choisie contour #0508E5 1,25, non choisie contour #CCD1E0 0,625.]
   identityDivider: {

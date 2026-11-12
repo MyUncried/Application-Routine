@@ -304,3 +304,20 @@ Résultats saisis par Hermann dans le cahier (section 8) : fn1 à fn12 OK ; fn13
 - **Erreur de typage découverte** : `libraryPresentation.owner.test.ts` (commit ef1241bd) ne passait pas `tsc` (tuple `as const` en lecture seule dans `it.each`) ; l'annonce « tsc 0 erreur » du 11/11 était inexacte. Corrigé (type explicite du tableau).
 
 Tests (12/11) : `tsc --noEmit` 0 erreur ; eslint 0 problème sur les fichiers modifiés ; Jest ciblé (`MovementLevelMenu`, `MovementScreen*`, `MovementLevelsScreen*`, `ExerciseScreen*`, `libraryPresentation*`) 12 suites, 182 tests verts. Suite complète non relancée : la passe Mouvements + Séances a été arrêtée par le système faute de mémoire (Metro 8082 arrêté par la même cause).
+
+## KO restants de la recette du 11/11 (traités le 12/11)
+
+KO saisis entre 22 h 37 et 22 h 49 le 11/11, restés sans traitement pendant le chantier des familles (commit 22 h 50).
+
+| Point | Constat de Hermann | Analyse / correction | Classe |
+|---|---|---|---|
+| c1-profil-haut | « Il manque la zone de contexte avec dégradé vers la couleur de l'écran. » | La bande de 14 pt ne fondait que sur ses 20 % inférieurs (≈ 3 pt). Bande suivie d'une part fondue `CONTEXT_BAND_FADE_HEIGHT` (#EAEAFF → transparent), au-dessus du corps qui remonte d'autant et défile derrière (patron des Catalogues, D-224). | B |
+| c2-profil-carte | « retirer le texte Modifier la photo », « faire l'icône de la photo plus petit », « zone de profil, pas de cadre », « Je ne vois pas le champ pour le pseudo » | Libellé retiré ; pastille 30 → 22, icône 16 → 12, devenue la commande accessible (`profile-edit-photo-action`) ; zone Profil sans fond, contour ni ombre. Pseudo : aucune donnée (À CLARIFIER n° 7) — non créé, question posée à Hermann. | B |
+| e3-doublon / e4-ajouter | « je ne vois pas la fiche locale dans la liste du catalogue web » | Pas d'anomalie : la soumission « Mvt Hermann » (22 h 23) est dans `catalogue/admin/inbox`, statut PENDING, une seule fois. Un mouvement envoyé arrive dans l'onglet « Boîte d'arrivée » et n'entre dans les Fiches qu'après « Ajouter au catalogue ». Consignes du cahier réécrites. | — |
+| f1-fichier / f2-invalide | « Je ne sais pas comment faire ce test. » | Consignes réécrites (Exporter, transfert vers l'iPhone, Depuis un fichier). Fichier invalide préparé hors dépôt : `C:UsershadjoDownloadskodjo-test-INVALIDE.catalogue.json` (REED-001 sans nom) ; `parseMovementCatalogueFile` le refuse (`sheets[0].content.name REQUIRED`). | — |
+| c12-admin-biblio | « je ne sais pas comment tester ça » | Consigne réécrite ; elle disait à tort la Visibilité de la Bibliothèque en lecture seule (le tableau de Hermann : seule la publication l'est, n° 23). | — |
+| a1-medias | KO du 11/11 à 14 h 18 | Déjà expliqué (serveur antérieur à `cd83ddd1`) ; à rejouer avec le serveur redémarré. | — |
+
+Fichiers : `src/features/preferences/ProfileEditScreen.tsx`, `src/features/preferences/__tests__/ProfileEditScreen.test.tsx` (test « recette c1/c2 du 11/11 », pastille 22 sans libellé).
+
+Tests : `tsc --noEmit` 0 erreur ; eslint 0 problème ; `npx jest --maxWorkers=2 src/features/preferences app` 9 suites, 77 tests verts. Suite complète non relancée (mémoire du PC). Aucun contrôle visuel sur iPhone.
