@@ -557,6 +557,48 @@ export function serializeMovementCatalogueFile(file: MovementCatalogueFile): str
   return JSON.stringify(file, null, 2) + "\n";
 }
 
+/** Fiche retirée d'une diffusion parce qu'un de ses médias n'a pas de droits confirmés (MOUV-D2). */
+export type UndiffusableSheet = { readonly sheetId: string; readonly name: string };
+
+export type DiffusableCatalogueResult =
+  | { readonly ok: true; readonly file: MovementCatalogueFile; readonly withheld: readonly UndiffusableSheet[] }
+  | { readonly ok: false; readonly withheld: readonly UndiffusableSheet[]; readonly issues: readonly CatalogueIssue[] };
+
+/** Fiches dont au moins un média n'est pas en `PERMISSION_CONFIRMED` (MOUV-D2). */
+export function undiffusableSheets(file: MovementCatalogueFile): readonly UndiffusableSheet[] {
+  return file.sheets
+    .filter((sheet) => sheet.media.some((media) => media.rightsStatus !== "PERMISSION_CONFIRMED"))
+    .map((sheet) => ({ sheetId: sheet.sheetId, name: sheet.content.name }));
+}
+
+/**
+ * MOUV-D2 — version diffusable d'un catalogue : retire les fiches dont un média n'a pas de droits
+ * confirmés (fiches, membres des Bibliothèques du même catalogue, renvois du glossaire) ; les autres
+ * fiches sont inchangées. Le résultat est revalidé ; s'il n'est pas valide, `ok: false`.
+ * Seule règle de filtrage : transfert Wi-Fi et export de l'administration, import d'un fichier sur
+ * l'iPhone (décision de Hermann du 12/11/2026 : export filtré « pour que à la source, toute diffusion
+ * non autorisée ne puisse arriver », et filtrage à l'import).
+ */
+export function diffusableCatalogue(file: MovementCatalogueFile): DiffusableCatalogueResult {
+  const withheld = undiffusableSheets(file);
+  if (withheld.length === 0) return { ok: true, file, withheld };
+  const ids = new Set(withheld.map((sheet) => sheet.sheetId));
+  const ownId = file.catalogue.id;
+  const filtered = {
+    ...file,
+    sheets: file.sheets.filter((sheet) => !ids.has(sheet.sheetId)),
+    libraries: file.libraries.map((library) => ({
+      ...library,
+      members: library.members.filter((member) => member.catalogueId !== ownId || !ids.has(member.sheetId)),
+    })),
+    glossary: file.glossary.map((term) => ({
+      ...term, relatedSheetIds: term.relatedSheetIds.filter((sheetId) => !ids.has(sheetId)),
+    })),
+  };
+  const recheck = parseMovementCatalogueFile(JSON.parse(JSON.stringify(filtered)));
+  return recheck.ok ? { ok: true, file: recheck.file, withheld } : { ok: false, withheld, issues: recheck.issues };
+}
+
 type IssueSink = (path: string, code: CatalogueIssueCode, detail?: string) => void;
 
 function validateActor(value: unknown, path: string, issue: IssueSink): void {

@@ -13,6 +13,7 @@ import {
   CATALOGUE_MAX_MEDIA_PER_SHEET,
   parseMovementCatalogueFile,
   sheetFingerprint,
+  undiffusableSheets,
 } from "/domain/src/domain/catalogue/MovementCatalogueFile.js";
 import {
   addLibraryMember,
@@ -111,6 +112,7 @@ function validate() {
   if (state.tab === "sheets") renderSheetList();
 }
 function renderIssues() {
+  renderDiffusion();
   const box = $("#issues");
   box.classList.remove("hidden");
   box.replaceChildren();
@@ -128,6 +130,31 @@ function renderIssues() {
     const item = el("li");
     item.append(el("code", "", issue.path || "(fichier)"), document.createTextNode(" — " + issue.code + (issue.detail ? " (" + issue.detail + ")" : "")));
     list.append(item);
+  }
+  box.append(list);
+}
+// MOUV-D2, décision de Hermann du 12/11/2026 : « L'utilisateur n'a pas besoin de savoir qu'une fiche a été
+// retenue, c'est le problème de l'expéditeur. » L'administration (l'expéditeur) signale en permanence, quel que
+// soit l'onglet, les fiches qui ne partent ni vers l'iPhone ni dans le fichier exporté.
+function renderDiffusion() {
+  const box = $("#diffusion");
+  box.replaceChildren();
+  const file = state.working;
+  const held = file && Array.isArray(file.sheets) ? undiffusableSheets(file) : [];
+  if (held.length === 0) {
+    box.className = "diffusion hidden";
+    return;
+  }
+  box.className = "diffusion";
+  box.append(el("strong", "", held.length === 1 ? "1 fiche non diffusable" : held.length + " fiches non diffusables"));
+  box.append(el("p", "", "Un de leurs médias n'a pas de droits confirmés : elles ne partent ni vers l'iPhone ni dans le fichier exporté. "
+    + "Ouvrez la fiche, puis « Autorisation déclarée » sur le média (ou retirez le média)."));
+  const list = el("ul");
+  for (const sheet of held) {
+    const libraries = (file.libraries ?? [])
+      .filter((library) => (library.members ?? []).some((member) => member.catalogueId === file.catalogue?.id && member.sheetId === sheet.sheetId))
+      .map((library) => library.title);
+    list.append(el("li", "", "« " + sheet.name + " »" + (libraries.length ? " — Bibliothèque" + (libraries.length > 1 ? "s " : " ") + libraries.join(", ") : "")));
   }
   box.append(list);
 }

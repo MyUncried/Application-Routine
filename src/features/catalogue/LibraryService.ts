@@ -15,7 +15,13 @@
  *
  * Hors premier lot (A-4) : désinstallation, Bibliothèques personnelles et partagées.
  */
-import type { CatalogueIssue, CatalogueLibrary, MovementCatalogueFile } from "@/domain/catalogue/MovementCatalogueFile";
+import {
+  diffusableCatalogue,
+  parseMovementCatalogueFile,
+  type CatalogueIssue,
+  type CatalogueLibrary,
+  type MovementCatalogueFile,
+} from "@/domain/catalogue/MovementCatalogueFile";
 import {
   libraryTargetKey,
   planLibrary,
@@ -87,7 +93,17 @@ export class LibraryService {
 
   /** Bibliothèques d'un fichier, avec leur état et leur aperçu. Aucune écriture de Mouvement. */
   async available(raw: unknown): Promise<AvailableLibraries> {
-    const prepared = await this.deps.load.prepare(raw);
+    // MOUV-D2, décision de Hermann du 12/11/2026 : un fichier ne diffuse aucune fiche dont un média n'a
+    // pas de droits confirmés, quelle que soit son origine. Ces fiches sont retirées sans message
+    // (« L'utilisateur n'a pas besoin de savoir qu'une fiche a été retenue, c'est le problème de l'expéditeur »).
+    let source: unknown = raw;
+    const parsed = parseMovementCatalogueFile(raw);
+    if (parsed.ok) {
+      const diffusable = diffusableCatalogue(parsed.file);
+      if (!diffusable.ok) return { ok: false, issues: diffusable.issues };
+      if (diffusable.withheld.length > 0) source = diffusable.file;
+    }
+    const prepared = await this.deps.load.prepare(source);
     if (!prepared.ok) return { ok: false, issues: prepared.issues };
     const context = await this.context(prepared.plan);
     return {

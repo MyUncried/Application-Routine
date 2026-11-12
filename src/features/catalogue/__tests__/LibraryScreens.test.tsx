@@ -319,14 +319,16 @@ describe("A1 — Profil → Bibliothèques", () => {
     expect(screen.getByTestId("library-available-empty")).toBeTruthy();
   });
 
-  it("MOUV-D2 (décision du 11/11) : seule la fiche retenue est signalée, par son nom ; la Bibliothèque reste proposée", async () => {
+  // [Avant (11/11) : la fiche retenue était nommée dans un encadré « Fiche non transférée » — remplacé le 12/11 :
+  // « L'utilisateur n'a pas besoin de savoir qu'une fiche a été retenue, c'est le problème de l'expéditeur ».]
+  it("MOUV-D2 (décision du 12/11) : fiche retenue par le PC, aucun encadré sur l'iPhone ; la Bibliothèque reste proposée", async () => {
     const client = fakeAdmin(pilot, { heldSheets: [{ sheetId: "fiche-squat-test-recette", name: "Squat test recette" }] });
     const session = await client.pair({ host: "192.168.1.20", port: 4739, name: "PC-Hermann" }, "482913", "iPhone");
     librarySession.setSource({ kind: "ADMIN", session, entries: [], refreshedAt: 0 });
     renderWith(<LibraryAvailableScreen client={client} />);
     await settle();
-    expect(screen.getByText("Fiche non transférée")).toBeTruthy();
-    expect(screen.getByText(/« Squat test recette » : un média n'a pas de droits confirmés/)).toBeTruthy();
+    expect(screen.queryByText("Fiche non transférée")).toBeNull();
+    expect(screen.queryByText(/Squat test recette/)).toBeNull();
     expect(screen.queryByText("Bibliothèques non transférées")).toBeNull();
     expect(screen.getByText("60 fiches · non installée")).toBeTruthy();
   });

@@ -183,6 +183,23 @@ describe("Bibliothèques — installation et mise à jour volontaires", () => {
     expect(await dump()).toEqual(before);
   });
 
+  it("MOUV-D2 (décision du 12/11) : un fichier importé ne diffuse pas la fiche dont un média n'a pas de droits confirmés", async () => {
+    const withMedia = clone(pilot) as Writable<MovementCatalogueFile>;
+    const held = withMedia.sheets[0]!;
+    (held as { media: unknown }).media = [{
+      id: "media-000001", kind: "PHOTO", storage: "REMOTE", url: "https://exemple.fr/photo.webp", fileName: "photo.webp",
+      caption: "", alt: "Position", sourceUrl: "https://exemple.fr/source", attribution: "", license: "", rightsStatus: "UNVERIFIED",
+    }];
+    const { libraries } = await servicesOn();
+    const available = await libraries.available(withMedia);
+    if (!available.ok) throw new Error("fichier refusé");
+    expect(available.file.sheets).toHaveLength(pilot.sheets.length - 1);
+    expect(available.file.sheets.some((sheet) => sheet.sheetId === held.sheetId)).toBe(false);
+    expect(available.file.libraries[0]!.members.some((member) => member.sheetId === held.sheetId)).toBe(false);
+    const report = await libraries.apply(available.file, PILOT);
+    expect(report).toMatchObject({ added: pilot.sheets.length - 1, failed: [] });
+  });
+
   it("base vide : 60 nouvelles fiches ajoutées au Catalogue", async () => {
     const { libraries } = await servicesOn();
     const report = await libraries.apply(pilot, PILOT);

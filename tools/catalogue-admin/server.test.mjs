@@ -379,6 +379,14 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
         [{ sheetId: held.sheetId, name: held.content.name }]);
       // Les autres fiches partent inchangées.
       assert.deepEqual(served.body.sheets[0], withMedia.sheets[1]);
+      // Décision du 12/11 : l'export de l'administration applique le même filtre (« à la source »).
+      const exported = await fetch(admin + "/api/catalogues/medias.catalogue.json/export");
+      assert.equal(exported.status, 200);
+      const exportedFile = JSON.parse(await exported.text());
+      assert.equal(exportedFile.sheets.length, withMedia.sheets.length - 1);
+      assert(!exportedFile.sheets.some((sheet) => sheet.sheetId === held.sheetId));
+      assert(!exportedFile.libraries[0].members.some((member) => member.sheetId === held.sheetId));
+      assert(!JSON.stringify(exportedFile).includes("exemple.fr/photo.webp"));
       await rm(path.join(folder, "catalogue/catalogues/medias.catalogue.json"));
     });
 

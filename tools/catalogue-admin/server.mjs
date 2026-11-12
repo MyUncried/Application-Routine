@@ -340,9 +340,19 @@ export async function createAdminApp({
       if (method === "GET" && parts.length === 3 && parts[2] === "export") {
         const entry = await readCatalogue(fileName);
         if (!entry.parsed.ok) throw new HttpError(422, "INVALID_CATALOGUE", { issues: entry.parsed.issues });
-        return sendBytes(response, 200, Buffer.from(entry.canonical, "utf8"), "application/json; charset=utf-8", {
+        // MOUV-D2, décision de Hermann du 12/11/2026 : l'export retire aussi les fiches dont un média n'a pas
+        // de droits confirmés, « pour que à la source, toute diffusion non autorisée ne puisse arriver ».
+        // [Avant : export du catalogue complet — remplacé]
+        const diffusable = catalogueDomain.diffusableCatalogue(entry.parsed.file);
+        if (!diffusable.ok) {
+          throw new HttpError(409, "MEDIA_RIGHTS_UNCONFIRMED", { sheets: diffusable.withheld.map((sheet) => sheet.sheetId) });
+        }
+        const exported = diffusable.withheld.length === 0
+          ? Buffer.from(entry.canonical, "utf8")
+          : Buffer.from(serializeMovementCatalogueFile(diffusable.file), "utf8");
+        return sendBytes(response, 200, exported, "application/json; charset=utf-8", {
           "Content-Disposition": 'attachment; filename="' + fileName + '"',
-          ETag: '"' + digest(Buffer.from(entry.canonical, "utf8")) + '"',
+          ETag: '"' + digest(exported) + '"',
         });
       }
       if (method === "PUT" && parts.length === 2) {
@@ -501,31 +511,15 @@ export async function createAdminApp({
       // Les fiches concernées sont retirées du fichier envoyé (fiches, membres des Bibliothèques, renvois du
       // glossaire) ; les autres fiches partent inchangées. Leurs noms sont donnés dans l'en-tête
       // `X-Kodjo-Withheld-Sheets` (JSON encodé). Si le fichier filtré n'est pas valide, refus du fichier entier.
-      const withheldSheets = check.file.sheets
-        .filter((sheet) => sheet.media.some((media) => media.rightsStatus !== "PERMISSION_CONFIRMED"));
+      const diffusable = catalogueDomain.diffusableCatalogue(check.file);
+      if (!diffusable.ok) {
+        throw new HttpError(409, "MEDIA_RIGHTS_UNCONFIRMED", { sheets: diffusable.withheld.map((sheet) => sheet.sheetId) });
+      }
       let bytes = Buffer.from(entry.canonical, "utf8");
       const headers = {};
-      if (withheldSheets.length > 0) {
-        const ids = new Set(withheldSheets.map((sheet) => sheet.sheetId));
-        const ownId = check.file.catalogue.id;
-        const filtered = {
-          ...check.file,
-          sheets: check.file.sheets.filter((sheet) => !ids.has(sheet.sheetId)),
-          libraries: check.file.libraries.map((library) => ({
-            ...library,
-            members: library.members.filter((member) => member.catalogueId !== ownId || !ids.has(member.sheetId)),
-          })),
-          glossary: check.file.glossary.map((term) => ({
-            ...term, relatedSheetIds: term.relatedSheetIds.filter((sheetId) => !ids.has(sheetId)),
-          })),
-        };
-        const recheck = parseMovementCatalogueFile(JSON.parse(JSON.stringify(filtered)));
-        if (!recheck.ok) {
-          throw new HttpError(409, "MEDIA_RIGHTS_UNCONFIRMED", { sheets: withheldSheets.map((sheet) => sheet.sheetId) });
-        }
-        bytes = Buffer.from(serializeMovementCatalogueFile(recheck.file), "utf8");
-        headers["X-Kodjo-Withheld-Sheets"] = encodeURIComponent(JSON.stringify(
-          withheldSheets.map((sheet) => ({ sheetId: sheet.sheetId, name: sheet.content.name }))));
+      if (diffusable.withheld.length > 0) {
+        bytes = Buffer.from(serializeMovementCatalogueFile(diffusable.file), "utf8");
+        headers["X-Kodjo-Withheld-Sheets"] = encodeURIComponent(JSON.stringify(diffusable.withheld));
       }
       const etag = '"' + digest(bytes) + '"';
       if (request.headers["if-none-match"] === etag) {

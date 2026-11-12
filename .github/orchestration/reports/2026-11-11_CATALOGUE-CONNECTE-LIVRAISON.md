@@ -330,3 +330,19 @@ Question de Hermann : « sheets[67].media[0] n'est pas explicite. Est-ce le "Tex
 - Classe B (demande explicite de Hermann sur un message affiché ; aucune spécification ne fixait ce libellé, aucun document dépendant à mettre à jour). La règle « texte alternatif obligatoire pour une photo » n'est pas modifiée.
 - Cahier de recette : ligne x-media-message ajoutée (section 9).
 - Tests : sortie de la fonction vérifiée sur deux cas (texte alternatif manquant, autre champ) ; eslint 0 problème. Aucun test automatisé de l'interface d'administration n'existe pour ce message.
+
+## MOUV-D2 : filtre à la source et signalement à l'expéditeur (12/11)
+
+Constat de Hermann : statuts différents selon la source (PC : « Famille Gainage » À jour + « Fiche non transférée » ; fichier : révision 5 disponible). Cause : le transfert Wi-Fi retirait « Gainage 1 » (média non confirmé), l'export non.
+
+Décisions de Hermann (classe B) : « J'aurais proposé l'option B, pour que à la source, toute diffusion non autorisée ne puisse arriver » ; « L'utilisateur n'a pas besoin de savoir qu'une fiche a été retenue, c'est le problème de l'expéditeur » ; « Je confirme les trois points ».
+
+| Point | Réalisation |
+|---|---|
+| a. Export filtré (B) + import filtré (A) | Fonction unique `diffusableCatalogue` (`src/domain/catalogue/MovementCatalogueFile.ts`), utilisée par le transfert Wi-Fi et l'export (`tools/catalogue-admin/server.mjs`) et par `LibraryService.available` (tout fichier importé sur l'iPhone). |
+| b. Plus d'encadré sur l'iPhone | « Fiche non transférée » retiré de `LibraryScreens.tsx`. Conservé : « Bibliothèques non transférées » (Bibliothèque entièrement refusée), sinon elle disparaîtrait sans explication. |
+| c. Signalement à l'expéditeur | Encadré permanent en haut de l'administration (tous onglets) : « N fiche(s) non diffusable(s) », nom et Bibliothèques. Emplacement choisi par Claude (Hermann n'a pas précisé). Il suit l'état en cours d'édition. |
+
+Documents : `docs/KODJO-Format-catalogue-mouvements-v1.md` (MOUV-D2, formulation du 11/11 annotée comme remplacée), `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md`.
+
+Tests (copie de travail temporaire, sans le fichier de recette modifié) : `npx jest --maxWorkers=2 src/features/catalogue src/domain/catalogue` 14 suites, 164 tests verts (nouveau : import filtré ; encadré absent) ; `node --test tools/catalogue-admin/server.test.mjs` 24 tests verts (nouveau : export filtré) ; `tsc --noEmit` 0 erreur ; eslint 0 problème. Encadré de l'administration : pas de test automatisé d'interface. Aucun contrôle sur iPhone. Le serveur d'administration doit être redémarré pour prendre le nouveau code.
