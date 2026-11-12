@@ -4958,6 +4958,8 @@ Préférences locales : Annonces vocales, sons et vibrations par événement, No
 
 [Complété le 10/11/2026 — constat B : septième bascule du groupe Guidage, « Annoncer les phases du mouvement ».]
 
+[Remplacé le 11/11/2026 par la documentation publiée sur main `ebe72f76` (Profil › Préférences : Annonces vocales, Sons et vibrations) ; texte de PRE-10 conservé.]
+
 Le défaut de Récupération du Profil initialise uniquement un nouvel Exercice ; le réglage est ensuite local et indépendant. La valeur apparaît dans un cadre orange dans Paramètres d’exécution avant premier ✓.
 
 #### 6. Classification des valeurs Figma
