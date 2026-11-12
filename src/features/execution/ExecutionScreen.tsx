@@ -1066,10 +1066,12 @@ const styles = StyleSheet.create({
   // Contenu de l'anneau (288) : côté centré à 45,5 du haut, chrono centré, objectif et guidage dessous.
   // Recette e1g : haut — côté (24) puis phase ; chrono ; bas — objectif puis charge, plus grands et écartés du chrono.
   ringContent: { width: 252, height: 288, alignItems: "center" },
-  sideSlot: { height: 30, marginTop: 24, justifyContent: "center" },
+  // Recette du 12/11/2026 (Hermann : « Le chrono n'est plus centré verticalement dans son cercle ») : zones symétriques
+  // autour du chrono (30 + 30 + 22 + 8 au-dessus, 8 + 26 + 26 + 30 en dessous) → chrono de 90 à 198, centre 144 = 288 / 2.
+  sideSlot: { height: 30, marginTop: 30, justifyContent: "center" },
   phaseSlot: { height: 22, justifyContent: "center" },
-  timerSlot: { height: 108, marginTop: 4, alignSelf: "stretch", justifyContent: "center" },
-  objectiveSlot: { height: 26, marginTop: 6, justifyContent: "center" },
+  timerSlot: { height: 108, marginTop: 8, alignSelf: "stretch", justifyContent: "center" },
+  objectiveSlot: { height: 26, marginTop: 8, justifyContent: "center" },
   loadSlot: { height: 26, justifyContent: "center" },
   side: { ...executionType.side, color: executionColors.side },
   timer: {
