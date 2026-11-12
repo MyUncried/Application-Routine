@@ -1004,7 +1004,9 @@ function estimateLabel(projection: ExecutionProjection): string {
 }
 
 /** Couleurs et styles de texte du Figma `1992:8132` propres à l'écran d'Exécution. */
-const executionColors = { side: "#8F8F94", track: "#E0E3E8", progress: "#8283F2", caption: "#7A7A80", zone: "#F6F6FA", card: "#FAFAFE" } as const;
+const executionColors = { side: "#8F8F94", track: "#E0E3E8", progress: "#8283F2", caption: "#7A7A80", zone: "#F6F6FA", card: "#FFFFFF" } as const;
+// Recette du 13/11/2026 (Hermann : « Éclaircir le cadre du temps écoulé pour améliorer le contraste ») : cadre blanc sur
+// la zone #F6F6FA. [#FAFAFE (Figma) — remplacé.]
 const executionType = {
   title: { fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", fontSize: 30, lineHeight: 36 },
   side: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 24, lineHeight: 29 },
