@@ -29,6 +29,8 @@ export type NextView = {
   readonly mode: LeafSpec["mode"] | null;
   /** Série de l'étape suivante, affichée après le nom (recette PRE-10 du 09/11/2026). */
   readonly series: { readonly current: number; readonly total: number } | null;
+  /** Côté de l'étape suivante (Série suivante du même côté : écran sans fondu, recette du 13/11/2026). */
+  readonly sideRank: 1 | 2 | null;
 };
 
 /**
@@ -252,6 +254,7 @@ function nextViewOf(plan: ExecutablePlan, spec: LeafSpec): NextView {
     target: spec.target === undefined ? null : spec.target,
     mode: spec.mode ?? null,
     series: spec.kind === "ACTIVITY" && spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+    sideRank: spec.sideRank ?? null,
   };
 }
 

@@ -90,7 +90,7 @@ export function ExecutionScreen({
   // s'efface immédiatement ») : dernier dialogue affiché, conservé pendant le fondu de fermeture du Modal.
   const [lastShown, setLastShown] = useState<NonNullable<Dialog>>({ kind: "RESET", target: "" });
   // Étape affichée et provenance du dernier changement d'étape (fondus du départ, recette du 13/11/2026).
-  const [stepView, setStepView] = useState<StepView>({ step: "", ahead: false, countdown: false, fromAhead: false, fromCountdown: false });
+  const [stepView, setStepView] = useState<StepView>({ step: "", ahead: false, countdown: false, continues: false, fromAhead: false, fromCountdown: false, fromSame: false });
   // Choix fait pendant la séance avec les interrupteurs Sons et Voix ; `null` : état initial (Séance, sinon Profil).
   const [soundChoice, setSoundChoice] = useState<boolean | null>(null);
   const [voiceChoice, setVoiceChoice] = useState<boolean | null>(null);
@@ -520,12 +520,24 @@ export function ExecutionScreen({
   // pendant le Compte à rebours et au Point d'arrêt ; il ne s'efface ni ne réapparaît au départ de cet exercice. Le titre
   // « Préparez-vous » s'efface pendant que le nom de l'exercice apparaît (fondu enchaîné).
   const countdownNow = projection.phase === "INITIAL_COUNTDOWN";
+  // Recette du 13/11/2026 (Hermann : « Entre deux séries, même côté, les informations à l'intérieur du cercle
+  // disparaissent et les nouvelles apparaissent, cela fait un effet flash qu'il faut supprimer, comme pour le nom de
+  // l'exercice ») : la Série suivante du même exercice, du même côté et sans Pause entre elles, remplace les textes sur
+  // place, sans fondu ; seul l'anneau de couleur s'efface et repart de zéro.
+  const continues =
+    projection.phase === "ACTIVITY" &&
+    projection.next !== null &&
+    projection.next.kind === "ACTIVITY" &&
+    projection.next.name === projection.exerciseName &&
+    projection.next.sideRank === projection.sideRank;
   if (stepView.step !== stepKey)
-    setStepView({ step: stepKey, ahead: ahead !== null, countdown: countdownNow, fromAhead: stepView.ahead, fromCountdown: stepView.countdown });
-  else if (stepView.ahead !== (ahead !== null) || stepView.countdown !== countdownNow)
-    setStepView({ ...stepView, ahead: ahead !== null, countdown: countdownNow });
-  const zoneOut = fadingOut && ahead === null;
-  const titleOut = fadingOut && !countdownNow;
+    setStepView({ step: stepKey, ahead: ahead !== null, countdown: countdownNow, continues, fromAhead: stepView.ahead, fromCountdown: stepView.countdown, fromSame: stepView.continues });
+  else if (stepView.ahead !== (ahead !== null) || stepView.countdown !== countdownNow || stepView.continues !== continues)
+    setStepView({ ...stepView, ahead: ahead !== null, countdown: countdownNow, continues });
+  const textOut = fadingOut && !continues;
+  const zoneOut = textOut && ahead === null;
+  const titleOut = textOut && !countdownNow;
+  const same = stepView.fromSame;
   const dialogView: DialogView | null =
     shownNow === null ? null : viewOf(shownNow);
   // Arrêt définitif : depuis la Pause, ou depuis le Point d'arrêt (suspendu d'abord, l'arrêt n'existant que depuis la
@@ -553,7 +565,7 @@ export function ExecutionScreen({
           toujours la même hauteur, qu'ils soient affichés ou non.
         */}
         <View style={styles.titleSlot}>
-          <Fade stepKey={stepKey} out={titleOut} style={styles.titleFill}>
+          <Fade stepKey={stepKey} out={titleOut} still={same} style={styles.titleFill}>
             <Text
               style={styles.exerciseName}
               accessibilityRole="header"
@@ -568,7 +580,7 @@ export function ExecutionScreen({
           </Fade>
           <Ghost trigger={stepKey} text={stepView.fromCountdown ? t.phases.INITIAL_COUNTDOWN : null} textStyle={styles.exerciseName} />
         </View>
-        <Fade stepKey={stepKey} out={fadingOut} style={styles.contextSlot}>
+        <Fade stepKey={stepKey} out={textOut} still={same} style={styles.contextSlot}>
           <Text style={styles.context} numberOfLines={1} testID="execution-context">
             {/* Recette du 12/11/2026 (Hermann : « Retirer le nom de la séance de l’écran ») : la ligne ne montre plus que l’exercice
                 en cours pendant une récupération ou une pause ; sa place reste réservée. [Nom de la séance — remplacé.] */}
@@ -588,7 +600,7 @@ export function ExecutionScreen({
             Recette du 12/11/2026 (Hermann, e1g : « en haut le guidage : Côté, puis Phase ; en bas les objectifs : nombre
             de répétitions, puis Charge ») ; chaque ligne garde sa place, affichée ou non (positions fixes).
           */}
-          <Fade stepKey={stepKey} out={fadingOut} style={styles.ringContent}>
+          <Fade stepKey={stepKey} out={textOut} still={same} style={styles.ringContent}>
             <View style={styles.sideSlot}>
               {waiting !== null ? (
                 <Text style={styles.pressStart} numberOfLines={1} testID="execution-press-start">
@@ -651,7 +663,7 @@ export function ExecutionScreen({
 
       {/* Figma `5041:6048` « Zone — Progression et suite ». */}
       <View style={styles.zone}>
-        <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead} style={styles.seriesTour}>
+        <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead || same} style={styles.seriesTour}>
           <Text style={[styles.seriesTourText, styles.right]} numberOfLines={1} testID="execution-series">
             {series.series !== null
               ? `${t.series} ${series.series.current}/${series.series.total}`
@@ -701,7 +713,7 @@ export function ExecutionScreen({
             </Text>
           </View>
           <View style={styles.cardDivider} />
-          <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead} style={styles.next} testID="execution-next">
+          <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead || same} style={styles.next} testID="execution-next">
             <Text style={styles.nextLabel}>{next !== null ? t.next : ""}</Text>
             <View style={styles.nextRow}>
               <Text style={styles.nextName} numberOfLines={1} testID="execution-next-name">
@@ -875,7 +887,7 @@ function Ghost({ trigger, text, textStyle }: { trigger: string; text: string | n
   );
 }
 
-type StepView = { step: string; ahead: boolean; countdown: boolean; fromAhead: boolean; fromCountdown: boolean };
+type StepView = { step: string; ahead: boolean; countdown: boolean; continues: boolean; fromAhead: boolean; fromCountdown: boolean; fromSame: boolean };
 
 /** Opacité d'un contenu qui apparaît en fondu à chaque changement de `value` (pas au premier affichage). */
 function useFadeIn(value: unknown): Animated.Value {
