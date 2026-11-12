@@ -25,7 +25,8 @@ export const executionStrings = {
   repetitions: (value: number) => `${value} rép.`,
   failure: "À l'échec",
   phases: {
-    INITIAL_COUNTDOWN: "Compte à rebours",
+    // Recette du 12/11/2026 (Hermann : « Remplacer le texte compte à rebours, par Préparez vous »). [« Compte à rebours » — remplacé.]
+    INITIAL_COUNTDOWN: "Préparez-vous",
     ACTIVITY: "",
     SERIES_PAUSE: "Pause",
     SIDE_RECOVERY: "Pause entre les côtés",

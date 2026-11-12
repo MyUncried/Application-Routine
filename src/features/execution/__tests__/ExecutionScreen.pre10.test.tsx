@@ -162,7 +162,7 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // L'ouverture de l'écran ne démarre rien : aucune Exécution persistée.
     expect(await database.getAllAsync("SELECT id FROM executions")).toHaveLength(0);
     await press("execution-start");
-    expect(screen.getByTestId("execution-title").props.children).toBe("Compte à rebours");
+    expect(screen.getByTestId("execution-title").props.children).toBe("Préparez-vous");
     // Recette e1 (b) : 3, 2, 1 sans 0 ; Série et Tour du premier exercice dès le Compte à rebours.
     expect(screen.getByTestId("execution-timer").props.children).toBe("3");
     expect(screen.getByTestId("execution-series").props.children).toBe("Série 1/2");
