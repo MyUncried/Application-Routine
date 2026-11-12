@@ -89,6 +89,8 @@ export function ExecutionScreen({
   // Recette iPhone n° 2 du 09/11/2026 (« appuyer sur suivant fait apparaître une fenêtre « séance interrompue » qui
   // s'efface immédiatement ») : dernier dialogue affiché, conservé pendant le fondu de fermeture du Modal.
   const [lastShown, setLastShown] = useState<NonNullable<Dialog>>({ kind: "RESET", target: "" });
+  // Étape affichée et provenance du dernier changement d'étape (fondus du départ, recette du 13/11/2026).
+  const [stepView, setStepView] = useState<StepView>({ step: "", ahead: false, countdown: false, fromAhead: false, fromCountdown: false });
   // Choix fait pendant la séance avec les interrupteurs Sons et Voix ; `null` : état initial (Séance, sinon Profil).
   const [soundChoice, setSoundChoice] = useState<boolean | null>(null);
   const [voiceChoice, setVoiceChoice] = useState<boolean | null>(null);
@@ -512,6 +514,18 @@ export function ExecutionScreen({
   const objective = waiting !== null ? null : objectiveText(projection);
   const load = waiting !== null || projection.phase !== "ACTIVITY" || projection.loadKg === null ? null : t.load(projection.loadKg);
   if (shownNow !== null && shownNow !== lastShown) setLastShown(shownNow);
+  // Recette du 13/11/2026 (Hermann : « Après le compte à rebours, au départ du premier exercice, toutes les informations
+  // du cadre (sauf le temps total) disparaissent et réapparaissent. Elles ne doivent pas disparaître. » ; « qu'il n'y ait
+  // pas de blanc entre Préparez-vous et le nom de l'exercice qui arrive ») : le cadre montre déjà l'exercice à venir
+  // pendant le Compte à rebours et au Point d'arrêt ; il ne s'efface ni ne réapparaît au départ de cet exercice. Le titre
+  // « Préparez-vous » s'efface pendant que le nom de l'exercice apparaît (fondu enchaîné).
+  const countdownNow = projection.phase === "INITIAL_COUNTDOWN";
+  if (stepView.step !== stepKey)
+    setStepView({ step: stepKey, ahead: ahead !== null, countdown: countdownNow, fromAhead: stepView.ahead, fromCountdown: stepView.countdown });
+  else if (stepView.ahead !== (ahead !== null) || stepView.countdown !== countdownNow)
+    setStepView({ ...stepView, ahead: ahead !== null, countdown: countdownNow });
+  const zoneOut = fadingOut && ahead === null;
+  const titleOut = fadingOut && !countdownNow;
   const dialogView: DialogView | null =
     shownNow === null ? null : viewOf(shownNow);
   // Arrêt définitif : depuis la Pause, ou depuis le Point d'arrêt (suspendu d'abord, l'arrêt n'existant que depuis la
@@ -538,19 +552,22 @@ export function ExecutionScreen({
           éléments affichés ne doivent jamais changer de position sur l'écran ». Titre, contexte et côté occupent
           toujours la même hauteur, qu'ils soient affichés ou non.
         */}
-        <Fade stepKey={stepKey} out={fadingOut} style={styles.titleSlot}>
-          <Text
-            style={styles.exerciseName}
-            accessibilityRole="header"
-            accessibilityLiveRegion="polite"
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.6}
-            testID="execution-title"
-          >
-            {shownTitle}
-          </Text>
-        </Fade>
+        <View style={styles.titleSlot}>
+          <Fade stepKey={stepKey} out={titleOut} style={styles.titleFill}>
+            <Text
+              style={styles.exerciseName}
+              accessibilityRole="header"
+              accessibilityLiveRegion="polite"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+              testID="execution-title"
+            >
+              {shownTitle}
+            </Text>
+          </Fade>
+          <Ghost trigger={stepKey} text={stepView.fromCountdown ? t.phases.INITIAL_COUNTDOWN : null} textStyle={styles.exerciseName} />
+        </View>
         <Fade stepKey={stepKey} out={fadingOut} style={styles.contextSlot}>
           <Text style={styles.context} numberOfLines={1} testID="execution-context">
             {/* Recette du 12/11/2026 (Hermann : « Retirer le nom de la séance de l’écran ») : la ligne ne montre plus que l’exercice
@@ -634,7 +651,7 @@ export function ExecutionScreen({
 
       {/* Figma `5041:6048` « Zone — Progression et suite ». */}
       <View style={styles.zone}>
-        <Fade stepKey={stepKey} out={fadingOut} style={styles.seriesTour}>
+        <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead} style={styles.seriesTour}>
           <Text style={[styles.seriesTourText, styles.right]} numberOfLines={1} testID="execution-series">
             {series.series !== null
               ? `${t.series} ${series.series.current}/${series.series.total}`
@@ -684,7 +701,7 @@ export function ExecutionScreen({
             </Text>
           </View>
           <View style={styles.cardDivider} />
-          <Fade stepKey={stepKey} out={fadingOut} style={styles.next} testID="execution-next">
+          <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead} style={styles.next} testID="execution-next">
             <Text style={styles.nextLabel}>{next !== null ? t.next : ""}</Text>
             <View style={styles.nextRow}>
               <Text style={styles.nextName} numberOfLines={1} testID="execution-next-name">
@@ -805,12 +822,15 @@ const FADE_IN_MS = 500;
 function Fade({
   stepKey,
   out,
+  still = false,
   style,
   testID,
   children,
 }: {
   stepKey: string;
   out: boolean;
+  /** Changement d'étape sans fondu : le contenu montrait déjà l'étape qui commence (recette du 13/11/2026). */
+  still?: boolean;
   style?: object;
   testID?: string;
   children: ReactNode;
@@ -820,18 +840,42 @@ function Fade({
   useEffect(() => {
     if (shownKey.current !== stepKey) {
       shownKey.current = stepKey;
+      if (still) {
+        opacity.setValue(1);
+        return;
+      }
       opacity.setValue(0);
       Animated.timing(opacity, { toValue: 1, duration: FADE_IN_MS, useNativeDriver: true }).start();
       return;
     }
     Animated.timing(opacity, { toValue: out ? 0 : 1, duration: out ? FADE_OUT_MS - 50 : FADE_IN_MS, useNativeDriver: true }).start();
-  }, [stepKey, out, opacity]);
+  }, [stepKey, out, still, opacity]);
   return (
     <Animated.View style={[style, { opacity }]} testID={testID}>
       {children}
     </Animated.View>
   );
 }
+
+/** Fondu enchaîné : l'ancien texte s'efface par-dessus le nouveau, qui apparaît (recette du 13/11/2026). */
+function Ghost({ trigger, text, textStyle }: { trigger: string; text: string | null; textStyle: object }) {
+  const [opacity] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (text === null) return;
+    opacity.setValue(1);
+    Animated.timing(opacity, { toValue: 0, duration: FADE_IN_MS, useNativeDriver: true }).start();
+  }, [trigger, text, opacity]);
+  if (text === null) return null;
+  return (
+    <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { justifyContent: "center", opacity }]}>
+      <Text style={textStyle} numberOfLines={1}>
+        {text}
+      </Text>
+    </Animated.View>
+  );
+}
+
+type StepView = { step: string; ahead: boolean; countdown: boolean; fromAhead: boolean; fromCountdown: boolean };
 
 /** Opacité d'un contenu qui apparaît en fondu à chaque changement de `value` (pas au premier affichage). */
 function useFadeIn(value: unknown): Animated.Value {
@@ -1052,6 +1096,7 @@ const styles = StyleSheet.create({
   top: { flexGrow: 0, flexShrink: 0 },
   content: { alignItems: "center", paddingHorizontal: layout.screenGutter },
   // Titre à 20 sous la barre d'état (Figma : 56), contexte dessous (92), anneau à 14 du contexte (122).
+  titleFill: { flex: 1, alignSelf: "stretch", justifyContent: "center" },
   titleSlot: { height: 36, marginTop: spacing[16], alignSelf: "stretch", justifyContent: "center" },
   // Recette du 12/11/2026 (Hermann : « c’est le cercle qu’il faut centrer verticalement ») : le cercle (repères compris)
   // est centré entre le titre et le cadre gris : 16 + 6 au-dessus (ligne de contexte comprise), 22 en dessous.
