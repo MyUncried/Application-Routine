@@ -1092,7 +1092,9 @@ const styles = StyleSheet.create({
   pressStart: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.primary },
   waitClock: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.textPrimary, fontVariant: ["tabular-nums"] },
   timerWaiting: { color: "#4A4A50" },
-  guidance: { ...type.label, color: colors.primary },
+  // Recette du 12/11/2026 (Hermann : « Le texte des phases doit être de la même police que Côté et le reste des textes ») :
+  // Roboto Condensed Medium, 18 (hauteur de sa ligne, 22). [Inter Medium 14 — remplacé.]
+  guidance: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 18, lineHeight: 22, color: colors.primary },
   // Figma `5041:6048` : fond #F6F6FA, 13 sous l'anneau. Recette e1/e2 du 12/11/2026 (Hermann : « mettre les 4 coins
   // du cadre gris arrondis ; laisser une marge à gauche et à droite entre le fond gris clair et le bord de l'écran »).
   // [Coins supérieurs seuls, pleine largeur — remplacé.]
