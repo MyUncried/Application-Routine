@@ -40,6 +40,9 @@ export const executionStrings = {
     pause: "Pause",
     next: "Exercice suivant",
     continue: "Continuer",
+    /** Recette e1 du 12/11/2026 (e) : boutons de la Pause, sans fenêtre. */
+    resume: "Reprendre la séance",
+    stop: "Arrêter la séance",
   },
   resetDialog: {
     title: "Réinitialiser l’exercice ?",
@@ -53,15 +56,6 @@ export const executionStrings = {
     cancel: "Annuler",
     confirm: "Confirmer",
   },
-  pauseDialog: {
-    title: "Séance en pause",
-    message: (name: string | null) =>
-      name === null ? "La séance est suspendue.\nLe chronomètre reprendra là où il s’est arrêté." : `L’exercice « ${name} » est suspendue.\nLe chronomètre reprendra là où il s’est arrêté.`,
-    resume: "Reprendre la séance",
-    stop: "Arrêter la séance",
-  },
-  safetyPause: "Séance mise en pause faute d’interaction.",
-  restorePause: "La séance a été remise à l’étape en cours.",
   recoveryDialog: {
     title: "Séance interrompue",
     message: (name: string) => `La séance « ${name} » n’a pas été terminée.`,

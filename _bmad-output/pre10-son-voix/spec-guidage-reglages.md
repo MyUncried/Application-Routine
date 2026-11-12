@@ -410,3 +410,19 @@ Choix soumis à Hermann ; rien n’est développé avant sa décision. [Complét
 
 « Ok » : fin de séance minimale conservée dans PRE-10 ; la Synthèse (Ressenti, Commentaire) relève d’une tranche ultérieure.
 
+### 13.5 Recette e1 à e5 du 12/11/2026 — décisions de Hermann (classe B)
+
+Notes de Hermann dans le cahier en ligne (e1 « Haut de l'écran », e2 « Zone Progression et suite »), recopiées :
+
+- e1 a) « Arrondir les coins bas gauche et droite du cadre gris » ; e2 : « mettre les 4 coins du cadre gris arrondis ; laisser une marge à gauche et à droite en le fond gris clair et le bord de l'écran. » → zone à quatre coins de 24, marges latérales de la gouttière d’écran. Réalisé.
+- b) « compte à rebours initial : montrer 3, 2, 1 puis ne pas montrer 0 et rapidement ; apparition du nombre de séries et de tours dès le début avec les autres information du cadre, commencer à 1/X pour les deux. » → secondes seules, jamais 0 ; Série et Tour du premier exercice dès le Compte à rebours. Réalisé. [Interprétation technique : le nombre seul (« 3 ») remplace « 00:03 » pendant tout le Compte à rebours initial.]
+- c) « Disparition et apparition de tous les textes et symboles ou contrôles en fondu moyennement lent. Disparition à la fin du temps / Apparition en début du suivant. » → fondu de 0,5 s : effacement pendant la dernière demi-seconde d’un compte à rebours, apparition au début de l’étape suivante ; un bouton qui en remplace un autre apparaît en fondu. Positions inchangées. Réalisé.
+- d) « Phases : montrer le texte le nombre de minutes / secondes, mais pas le décompte. » → « Contracter · 2 s ». Réalisé.
+- e) « Appui sur pause : pendant une annonce > Elle se termine plutôt que de s'arrêter net. On supprime la fenêtre de dialogue […] » → plus de modale de Pause : Pause devient Démarrer (bleu), Réinitialiser devient Arrêt définitif (carré blanc sur rouge), sans texte (ch13 annoté). Réalisé. Annonce coupée net à la Pause : aucune commande d’arrêt de la voix à la Pause dans le code ; cause non démontrée, à observer sur iPhone sans la modale.
+- f) « Au point d'arrêt : le bouton pause doit se transformer en bouton démarrer, appuyer dessus doit relancer l'exercice (les deux sont à corriger) ; Un chronomètre se déclenche, couleur gris clair du cercle » → Démarrer vaut Continuer ; chronomètre de l’attente (projection : Point d’arrêt chronométré), anneau gris clair. Réalisé. Le temps de Séance n’inclut toujours pas cette attente (arbitrage du 09/11).
+- g) « Supprimer le texte "sur XX" sous le compte à rebours. » → la durée visée n’est plus répétée sous un compte à rebours ; « Sur 12 rép. » reste sous le chronomètre des Répétitions. Réalisé.
+- h) « le bord du cercle tout en bas est rogné par le cadre gris, ainsi que la petite barre verticale qu'on ne voit pas. » → le haut de l’écran ne rétrécit plus ; l’écart au-dessus du cadre À suivre se resserre (40 → 12 au plus) quand la hauteur manque. Réalisé.
+- i) « la voix n'est pas parfaitement claires […] ce n'était pas prioritaire. » → non traité (à instruire).
+- e3 (KO) : « le bouton son ne coupe pas le son, alors que le bouton voix coupe les annonces et le son, à corriger ». Journal Metro de la recette : Son coupé → aucun son joué ni programmé (« sons=non »), annonces seules ; Voix coupée → sons programmés et joués (« sons=oui voix=non »). Écart non reproduit dans le journal : question posée à Hermann (ce qu’il entend, Son coupé).
+- p4 : « Je ne comprends pas ce test » → reformulé dans le cahier.
+

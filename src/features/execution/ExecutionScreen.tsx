@@ -8,8 +8,10 @@ import {
   useRef,
   useState,
   type ComponentProps,
+  type ReactNode,
 } from "react";
 import {
+  Animated,
   AppState,
   BackHandler,
   Pressable,
@@ -86,9 +88,7 @@ export function ExecutionScreen({
   const [dialogBusy, setDialogBusy] = useState(false);
   // Recette iPhone n° 2 du 09/11/2026 (« appuyer sur suivant fait apparaître une fenêtre « séance interrompue » qui
   // s'efface immédiatement ») : dernier dialogue affiché, conservé pendant le fondu de fermeture du Modal.
-  const [lastShown, setLastShown] = useState<NonNullable<Dialog> | "PAUSE">(
-    "PAUSE",
-  );
+  const [lastShown, setLastShown] = useState<NonNullable<Dialog>>({ kind: "RESET", target: "" });
   // Choix fait pendant la séance avec les interrupteurs Sons et Voix ; `null` : état initial (Séance, sinon Profil).
   const [soundChoice, setSoundChoice] = useState<boolean | null>(null);
   const [voiceChoice, setVoiceChoice] = useState<boolean | null>(null);
@@ -418,36 +418,8 @@ export function ExecutionScreen({
     projection.phase === "ACTIVITY"
       ? (projection.exerciseName ?? "")
       : phaseLabel;
-  // Toute suspension sans dialogue ouvert présente la modale de Pause (une suspension de confirmation relue après une
-  // interruption du processus ne laisse jamais l'écran bloqué).
-  const pauseView: DialogView = {
-    title: t.pauseDialog.title,
-    message:
-      projection.pauseReason === "SAFETY"
-        ? `${t.safetyPause}\n${t.pauseDialog.message(projection.exerciseName)}`
-        : projection.pauseReason === "RESTORE"
-          ? `${t.restorePause}\n${t.pauseDialog.message(projection.exerciseName)}`
-          : t.pauseDialog.message(projection.exerciseName),
-    testID: "execution-pause-dialog",
-    actions: [
-      {
-        label: t.pauseDialog.resume,
-        tone: "primary",
-        testID: "execution-pause-resume",
-        onPress: () => void service.dispatch({ type: "RESUME" }),
-      },
-      {
-        label: t.pauseDialog.stop,
-        tone: "danger",
-        testID: "execution-pause-stop",
-        onPress: () => void service.dispatch({ type: "STOP" }),
-      },
-    ],
-  };
-  const viewOf = (dialog: NonNullable<Dialog> | "PAUSE"): DialogView =>
-    dialog === "PAUSE"
-      ? pauseView
-      : dialog.kind === "RESET"
+  const viewOf = (dialog: NonNullable<Dialog>): DialogView =>
+    dialog.kind === "RESET"
         ? {
             title: t.resetDialog.title,
             message: t.resetDialog.message,
@@ -504,10 +476,18 @@ export function ExecutionScreen({
               },
             ],
           };
-  // Toute suspension sans dialogue ouvert présente la Pause (une suspension de confirmation relue après une
-  // interruption du processus ne laisse jamais l'écran bloqué).
-  const shownNow: NonNullable<Dialog> | "PAUSE" | null =
-    dialog ?? (projection.status === "PAUSED" ? "PAUSE" : null);
+  // Recette e1 du 12/11/2026 (Hermann, e : « on supprime la fenêtre de dialogue, à la place : le bouton pause se
+  // transforme en bouton Démarrer (couleur bleue) ; le bouton réinitialiser se transforme en bouton Arrêt définitif
+  // (symbole carré plein blanc sur fond rouge) ; aucun texte explicatif ») : la Pause n'ouvre plus de modale ; seules
+  // les confirmations Réinitialiser et Suivant en gardent une. [Modale « Séance en pause » — remplacée.]
+  const shownNow: NonNullable<Dialog> | null = dialog;
+  const paused = projection.status === "PAUSED";
+  // Recette e1 (f : « Au point d'arrêt : le bouton pause doit se transformer en bouton démarrer, appuyer dessus doit
+  // relancer l'exercice ») : au Point d'arrêt, Démarrer vaut Continuer.
+  const atStopPoint = projection.status === "RUNNING" && projection.phase === "STOP_POINT";
+  const stepKey = projection.target ?? "";
+  const fadingOut = projection.status === "RUNNING" && projection.timer.kind === "COUNTDOWN" && projection.timer.remainingMs <= FADE_OUT_MS;
+  const series = projection.phase === "INITIAL_COUNTDOWN" ? firstSeriesAndTour(projection) : { series: projection.series, tour: projection.tour };
   if (shownNow !== null && shownNow !== lastShown) setLastShown(shownNow);
   const dialogView: DialogView | null =
     shownNow === null ? null : viewOf(shownNow);
@@ -527,7 +507,7 @@ export function ExecutionScreen({
           éléments affichés ne doivent jamais changer de position sur l'écran ». Titre, contexte et côté occupent
           toujours la même hauteur, qu'ils soient affichés ou non.
         */}
-        <View style={styles.titleSlot}>
+        <Fade stepKey={stepKey} out={fadingOut} style={styles.titleSlot}>
           <Text
             style={styles.exerciseName}
             accessibilityRole="header"
@@ -539,21 +519,22 @@ export function ExecutionScreen({
           >
             {title}
           </Text>
-        </View>
-        <View style={styles.contextSlot}>
+        </Fade>
+        <Fade stepKey={stepKey} out={fadingOut} style={styles.contextSlot}>
           <Text style={styles.context} numberOfLines={1} testID="execution-context">
             {projection.phase !== "ACTIVITY" && projection.exerciseName !== null ? projection.exerciseName : projection.sessionName}
           </Text>
-        </View>
+        </Fade>
         <ExecutionTimerRing
           motion={ringMotion(
             projection.timer,
             projection.status === "RUNNING",
             projection.phase === "INITIAL_COUNTDOWN" || projection.phase === "SESSION_END",
           )}
+          muted={projection.phase === "STOP_POINT"}
           testID="execution-ring"
         >
-          <View style={styles.ringContent}>
+          <Fade stepKey={stepKey} out={fadingOut} style={styles.ringContent}>
             <View style={styles.sideSlot}>
               {projection.sideRank !== null ? (
                 <Text style={styles.side} numberOfLines={1} testID="execution-side">
@@ -581,12 +562,11 @@ export function ExecutionScreen({
             <View style={styles.lineSlot}>
               {projection.guidance !== null ? (
                 <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
-                  {projection.guidance.label} ·{" "}
-                  {formatClock(projection.guidance.remainingMs, true)}
+                  {projection.guidance.label} · {phaseDuration(projection.guidance.phaseMs)}
                 </Text>
               ) : null}
             </View>
-          </View>
+          </Fade>
         </ExecutionTimerRing>
         {active.saveError ? (
           <Pressable
@@ -604,19 +584,19 @@ export function ExecutionScreen({
 
       {/* Figma `5041:6048` « Zone — Progression et suite ». */}
       <View style={styles.zone}>
-        <View style={styles.seriesTour}>
+        <Fade stepKey={stepKey} out={fadingOut} style={styles.seriesTour}>
           <Text style={[styles.seriesTourText, styles.right]} numberOfLines={1} testID="execution-series">
-            {projection.series !== null
-              ? `${t.series} ${projection.series.current}/${projection.series.total}`
+            {series.series !== null
+              ? `${t.series} ${series.series.current}/${series.series.total}`
               : ""}
           </Text>
-          <Text style={styles.seriesTourDot}>{projection.series !== null && projection.tour !== null ? "•" : ""}</Text>
+          <Text style={styles.seriesTourDot}>{series.series !== null && series.tour !== null ? "•" : ""}</Text>
           <Text style={styles.seriesTourText} numberOfLines={1} testID="execution-tour">
-            {projection.tour !== null
-              ? `${t.tour} ${projection.tour.current}/${projection.tour.total}`
+            {series.tour !== null
+              ? `${t.tour} ${series.tour.current}/${series.tour.total}`
               : ""}
           </Text>
-        </View>
+        </Fade>
         {/* Piste structurée par Tours (Figma « DSF / Controls / Progression par tours », ch10 RM-077 : repères de
             lecture seulement, l'avancement reste global et continu). */}
         <View
@@ -638,7 +618,8 @@ export function ExecutionScreen({
             </View>
           ))}
         </View>
-        <Text style={styles.progressCaption}>{projection.tour !== null ? t.tour : ""}</Text>
+        <Text style={styles.progressCaption}>{series.tour !== null ? t.tour : ""}</Text>
+        <View style={styles.cardGap} />
         {/* Figma `4790:6204` « Cadre — Informations secondaires — À suivre + Temps écoulé ». */}
         <View style={styles.card}>
           <View style={styles.elapsedRow}>
@@ -648,7 +629,7 @@ export function ExecutionScreen({
             </Text>
           </View>
           <View style={styles.cardDivider} />
-          <View style={styles.next} testID="execution-next">
+          <Fade stepKey={stepKey} out={fadingOut} style={styles.next} testID="execution-next">
             <Text style={styles.nextLabel}>{next !== null ? t.next : ""}</Text>
             <View style={styles.nextRow}>
               <Text style={styles.nextName} numberOfLines={1} testID="execution-next-name">
@@ -658,7 +639,7 @@ export function ExecutionScreen({
                 {next?.value ?? ""}
               </Text>
             </View>
-          </View>
+          </Fade>
         </View>
       </View>
 
@@ -675,29 +656,53 @@ export function ExecutionScreen({
         >
           <Image source={soundEnabled ? ICONS.soundOn : ICONS.soundOff} style={styles.toggleIcon} contentFit="contain" />
         </Pressable>
-        <IconCommand
-          label={
-            projection.commands.resetScope === "RECOVERY"
-              ? t.commands.resetRecovery
-              : t.commands.resetExercise
-          }
-          icon={ICONS.reset}
-          size={48}
-          disabled={!projection.commands.reset}
-          onPress={onReset}
-          testID="execution-reset"
-        />
-        <IconCommand
-          label={t.commands.pause}
-          icon={ICONS.pause}
-          size={72}
-          disabled={!projection.commands.pause}
-          onPress={() =>
-            void service.dispatch({ type: "PAUSE", reason: "USER" })
-          }
-          style={styles.pauseCommand}
-          testID="execution-pause"
-        />
+        {paused ? (
+          <IconCommand
+            label={t.commands.stop}
+            icon={ICONS.stop}
+            size={48}
+            disabled={false}
+            onPress={() => void service.dispatch({ type: "STOP" })}
+            testID="execution-stop"
+          />
+        ) : (
+          <IconCommand
+            label={
+              projection.commands.resetScope === "RECOVERY"
+                ? t.commands.resetRecovery
+                : t.commands.resetExercise
+            }
+            icon={ICONS.reset}
+            size={48}
+            disabled={!projection.commands.reset}
+            onPress={onReset}
+            testID="execution-reset"
+          />
+        )}
+        {paused || atStopPoint ? (
+          <IconCommand
+            label={paused ? t.commands.resume : t.commands.continue}
+            icon={ICONS.start}
+            size={72}
+            disabled={false}
+            onPress={paused ? () => void service.dispatch({ type: "RESUME" }) : onNext}
+            style={styles.pauseCommand}
+            testID={paused ? "execution-resume" : "execution-continue"}
+          />
+        ) : (
+          <IconCommand
+            label={t.commands.pause}
+            icon={ICONS.pause}
+            size={72}
+            shadowed
+            disabled={!projection.commands.pause}
+            onPress={() =>
+              void service.dispatch({ type: "PAUSE", reason: "USER" })
+            }
+            style={styles.pauseCommand}
+            testID="execution-pause"
+          />
+        )}
         <IconCommand
           label={
             projection.commands.isContinue
@@ -732,12 +737,88 @@ export function ExecutionScreen({
   );
 }
 
+/**
+ * Recette e1 du 12/11/2026 (Hermann, c : « Disparition et apparition de tous les textes et symboles ou contrôles en
+ * fondu moyennement lent. Disparition à la fin du temps / Apparition en début du suivant. ») : les textes d'une étape
+ * s'effacent pendant la dernière demi-seconde d'un compte à rebours et apparaissent en fondu au début de l'étape
+ * suivante (et à chaque reprise d'une étape réinitialisée). Les positions ne changent pas.
+ */
+export const FADE_OUT_MS = 500;
+const FADE_IN_MS = 500;
+
+function Fade({
+  stepKey,
+  out,
+  style,
+  testID,
+  children,
+}: {
+  stepKey: string;
+  out: boolean;
+  style?: object;
+  testID?: string;
+  children: ReactNode;
+}) {
+  const [opacity] = useState(() => new Animated.Value(1));
+  const shownKey = useRef(stepKey);
+  useEffect(() => {
+    if (shownKey.current !== stepKey) {
+      shownKey.current = stepKey;
+      opacity.setValue(0);
+      Animated.timing(opacity, { toValue: 1, duration: FADE_IN_MS, useNativeDriver: true }).start();
+      return;
+    }
+    Animated.timing(opacity, { toValue: out ? 0 : 1, duration: out ? FADE_OUT_MS - 50 : FADE_IN_MS, useNativeDriver: true }).start();
+  }, [stepKey, out, opacity]);
+  return (
+    <Animated.View style={[style, { opacity }]} testID={testID}>
+      {children}
+    </Animated.View>
+  );
+}
+
+/** Opacité d'un contenu qui apparaît en fondu à chaque changement de `value` (pas au premier affichage). */
+function useFadeIn(value: unknown): Animated.Value {
+  const [opacity] = useState(() => new Animated.Value(1));
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    opacity.setValue(0);
+    Animated.timing(opacity, { toValue: 1, duration: FADE_IN_MS, useNativeDriver: true }).start();
+  }, [value, opacity]);
+  return opacity;
+}
+
+/**
+ * Recette e1 du 12/11/2026 (Hermann, b : « apparition du nombre de séries et de tours dès le début avec les autres
+ * information du cadre, commencer à 1/X pour les deux ») : pendant le Compte à rebours initial, Série et Tour du
+ * premier exercice.
+ */
+function firstSeriesAndTour(projection: ExecutionProjection): Pick<ExecutionProjection, "series" | "tour"> {
+  const first = projection.outline.find((item) => item.kind === "ACTIVITY");
+  return { series: first?.series ?? null, tour: first?.tour ?? null };
+}
+
+/** Durée d'une phase guidée : « 2 s », « 1 min », « 1 min 30 s » (recette e1, d). */
+function phaseDuration(ms: number): string {
+  const seconds = Math.round(ms / 1000);
+  if (seconds < 60) return `${seconds} s`;
+  const rest = seconds % 60;
+  return rest === 0 ? `${Math.floor(seconds / 60)} min` : `${Math.floor(seconds / 60)} min ${rest} s`;
+}
+
 /** Icônes exportées du Figma `1992:8132` (« Mettre en pause », « Activité suivante », « Réinitialiser la séance —
  * confirmation ») et des composants « DSF / Controls / Son » (`5544:4770`) et « DSF / Controls / Voix » (`5544:4790`). */
 const ICONS = {
   pause: require("../../../assets/icons/execution-pause.svg"),
   next: require("../../../assets/icons/execution-suivant.svg"),
   reset: require("../../../assets/icons/execution-reinitialiser.svg"),
+  // Recette e1 du 12/11/2026 (Hermann, e) : Démarrer (bleu) et Arrêt définitif (carré plein blanc sur fond rouge).
+  start: require("../../../assets/icons/execution-demarrer.svg"),
+  stop: require("../../../assets/icons/execution-arret.svg"),
   soundOn: require("../../../assets/icons/execution-son-active.svg"),
   soundOff: require("../../../assets/icons/execution-son-desactive.svg"),
   voiceOn: require("../../../assets/icons/execution-voix-activee.svg"),
@@ -751,6 +832,7 @@ function IconCommand({
   size,
   disabled,
   onPress,
+  shadowed = false,
   style,
   testID,
 }: {
@@ -759,11 +841,13 @@ function IconCommand({
   size: number;
   disabled: boolean;
   onPress: () => void;
+  /** « Mettre en pause » est exporté avec son ombre portée : 92 × 92 pour un bouton de 72 (débord de 10 et 8 à 12). */
+  shadowed?: boolean;
   style?: object;
   testID: string;
 }) {
-  // « Mettre en pause » est exporté avec son ombre portée : 92 × 92 pour un bouton de 72 (débord de 10 et 8 à 12).
-  const shadowed = size === 72;
+  // Recette e1 (c) : un bouton qui en remplace un autre (Pause, Démarrer, Arrêt) apparaît en fondu.
+  const opacity = useFadeIn(icon);
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}
@@ -774,11 +858,13 @@ function IconCommand({
       style={[{ width: size, height: size }, style, disabled ? styles.commandDisabled : null]}
       testID={testID}
     >
-      <Image
-        source={icon}
-        style={shadowed ? styles.pauseIcon : { width: size, height: size }}
-        contentFit="contain"
-      />
+      <Animated.View style={{ opacity }}>
+        <Image
+          source={icon}
+          style={shadowed ? styles.pauseIcon : { width: size, height: size }}
+          contentFit="contain"
+        />
+      </Animated.View>
     </Pressable>
   );
 }
@@ -804,6 +890,10 @@ function nextParts(next: NextView): { readonly name: string; readonly value: str
 }
 
 function timerText(projection: ExecutionProjection): string {
+  // Recette e1 du 12/11/2026 (Hermann, b : « compte à rebours initial : montrer 3, 2, 1 puis ne pas montrer 0 ») :
+  // secondes seules, jamais 0. [« 00:03 » … « 00:00 » — remplacé.]
+  if (projection.phase === "INITIAL_COUNTDOWN" && projection.timer.kind === "COUNTDOWN")
+    return String(Math.max(1, Math.ceil(projection.timer.remainingMs / 1000 - 1e-9)));
   switch (projection.timer.kind) {
     case "COUNTDOWN":
       return formatClock(projection.timer.remainingMs, true);
@@ -828,17 +918,20 @@ function targetText(projection: ExecutionProjection): string | null {
   if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null)
     return null;
   const target = projection.seriesTarget;
-  const value =
-    target.kind === "FAILURE"
+  // Recette e1 du 12/11/2026 (Hermann, g : « Supprimer le texte "sur XX" sous le compte à rebours ») : la durée visée
+  // n'est plus répétée sous le compte à rebours ; la charge reste affichée.
+  const value = projection.timer.kind === "COUNTDOWN"
+    ? null
+    : target.kind === "FAILURE"
       ? t.failure
       : target.kind === "NUMBER"
         ? projection.mode === "REPETITIONS"
           ? t.repetitions(target.value)
           : formatClock(target.value * 1000)
         : null;
-  if (value === null) return null;
+  if (value === null && projection.loadKg === null) return null;
   return [
-    `${t.target} ${value}`,
+    value === null ? null : `${t.target} ${value}`,
     projection.loadKg !== null ? t.load(projection.loadKg) : null,
   ]
     .filter((part) => part !== null)
@@ -920,7 +1013,9 @@ const styles = StyleSheet.create({
   estimate: { ...type.supporting, color: colors.textSecondary },
   // Recette r6 : positions du Figma `1992:8132` (écran de 402 × 874, barre d'état de 36).
   runningScreen: { flex: 1, backgroundColor: colors.background },
-  top: { flexGrow: 0, flexShrink: 1 },
+  // Recette e1 (h : « le bord du cercle tout en bas est rogné par le cadre gris ») : le haut ne rétrécit plus ; c'est
+  // l'espace au-dessus du cadre À suivre qui se resserre sur un écran plus petit.
+  top: { flexGrow: 0, flexShrink: 0 },
   content: { alignItems: "center", paddingHorizontal: layout.screenGutter },
   // Titre à 20 sous la barre d'état (Figma : 56), contexte dessous (92), anneau à 14 du contexte (122).
   titleSlot: { height: 36, marginTop: spacing[16], alignSelf: "stretch", justifyContent: "center" },
@@ -945,12 +1040,15 @@ const styles = StyleSheet.create({
   },
   target: { ...type.label, color: colors.textSecondary },
   guidance: { ...type.label, color: colors.primary },
-  // Figma `5041:6048` : fond #F6F6FA, coins supérieurs de 24, 13 sous l'anneau.
+  // Figma `5041:6048` : fond #F6F6FA, 13 sous l'anneau. Recette e1/e2 du 12/11/2026 (Hermann : « mettre les 4 coins
+  // du cadre gris arrondis ; laisser une marge à gauche et à droite entre le fond gris clair et le bord de l'écran »).
+  // [Coins supérieurs seuls, pleine largeur — remplacé.]
   zone: {
     marginTop: 13,
+    marginHorizontal: layout.screenGutter,
+    flexShrink: 1,
     backgroundColor: executionColors.zone,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderRadius: 24,
     paddingTop: 30,
     paddingBottom: spacing[16],
     paddingHorizontal: layout.screenGutter,
@@ -965,7 +1063,8 @@ const styles = StyleSheet.create({
   progressFill: { height: 9, borderRadius: 4.5, backgroundColor: executionColors.progress },
   progressCaption: { ...type.caption, fontSize: 10, lineHeight: 12, marginTop: 4, color: executionColors.caption },
   // Figma `4790:6204` : cadre 370 × 132, fond #FAFAFE, rayon 12, 40 sous la légende de la piste.
-  card: { marginTop: 40, height: 132, borderRadius: 12, backgroundColor: executionColors.card, paddingLeft: 16, paddingRight: 32, paddingTop: 21 },
+  cardGap: { height: 40, minHeight: 12, flexShrink: 1 },
+  card: { height: 132, borderRadius: 12, backgroundColor: executionColors.card, paddingLeft: 16, paddingRight: 32, paddingTop: 21 },
   elapsedRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", height: 32, gap: spacing[8] },
   elapsedLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, color: colors.textPrimary, marginBottom: 3 },
   elapsedValue: { ...executionType.metric, color: colors.textPrimary, flexShrink: 1, textAlign: "right" },

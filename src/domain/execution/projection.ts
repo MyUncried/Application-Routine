@@ -69,8 +69,12 @@ export type ExecutionProjection = {
   readonly seriesTarget: SeriesTarget | null;
   readonly loadKg: number | null;
   readonly timer: TimerView;
-  /** Phase guidée courante (motif de phases, D-446) ; `null` sans motif. */
-  readonly guidance: { readonly label: string; readonly remainingMs: Ms } | null;
+  /**
+   * Phase guidée courante (motif de phases, D-446) ; `null` sans motif. `phaseMs` : durée de la phase, affichée
+   * à la place de son décompte (recette e1 du 12/11/2026, Hermann : « Phases : montrer le texte le nombre de minutes /
+   * secondes, mais pas le décompte »).
+   */
+  readonly guidance: { readonly label: string; readonly remainingMs: Ms; readonly phaseMs: Ms } | null;
   readonly next: NextView | null;
   readonly outline: readonly OutlineItem[];
   readonly sessionElapsedMs: Ms;
@@ -227,8 +231,11 @@ function outlineOf(plan: ExecutablePlan, state: EngineState): readonly OutlineIt
 
 function timerOf(state: EngineState, atMs: Ms): TimerView {
   const leaf = state.leaf;
-  if (leaf === null || leaf.spec.end === "WAIT" || leaf.spec.end === "INTERACTION") return { kind: "NONE" };
+  if (leaf === null || leaf.spec.end === "INTERACTION") return { kind: "NONE" };
   const elapsedMs = leafElapsedMs(state, atMs);
+  // Recette e1 du 12/11/2026 (Hermann, f : « Au point d'arrêt […] Un chronomètre se déclenche ») : l'attente d'un
+  // Point d'arrêt est chronométrée à l'écran. [Point d'arrêt sans chrono — remplacé.]
+  if (leaf.spec.end === "WAIT") return { kind: "STOPWATCH", elapsedMs, nominalMs: null };
   if (leaf.spec.end === "TIMED") {
     const totalMs = leaf.spec.plannedMs ?? 0;
     return { kind: "COUNTDOWN", remainingMs: Math.max(0, totalMs - elapsedMs), totalMs, elapsedMs };
@@ -243,7 +250,8 @@ function guidanceOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): Executi
   if (phases.length === 0 || workPhasesCycleSeconds(phases) === null) return null;
   const limit = leaf.spec.end === "TIMED" ? (leaf.spec.plannedMs ?? 0) / 1000 : null;
   const at = phaseGuidanceAt(phases, leafElapsedMs(state, atMs) / 1000, limit);
-  return { label: phases[at.phaseIndex]!.label, remainingMs: at.phaseRemainingSeconds * 1000 };
+  const phase = phases[at.phaseIndex]!;
+  return { label: phase.label, remainingMs: at.phaseRemainingSeconds * 1000, phaseMs: phase.durationSeconds * 1000 };
 }
 
 export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs: Ms): ExecutionProjection {

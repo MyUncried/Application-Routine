@@ -163,8 +163,13 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(await database.getAllAsync("SELECT id FROM executions")).toHaveLength(0);
     await press("execution-start");
     expect(screen.getByTestId("execution-title").props.children).toBe("Compte à rebours");
+    // Recette e1 (b) : 3, 2, 1 sans 0 ; Série et Tour du premier exercice dès le Compte à rebours.
+    expect(screen.getByTestId("execution-timer").props.children).toBe("3");
+    expect(screen.getByTestId("execution-series").props.children).toBe("Série 1/2");
 
     await at(3);
+    // Recette e1 (g) : pas de « Sur 00:20 » sous le compte à rebours.
+    expect(screen.queryByText(/^Sur /)).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Squat");
     expect(screen.getByTestId("execution-series").props.children).toBe("Série 1/2");
     expect(nextShown()).toBe("Pause · 00:05");
@@ -172,9 +177,9 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // Pause de 10 s pendant la Série 1 : temps restant conservé.
     await at(8);
     await press("execution-pause");
-    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
+    expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
     await at(18);
-    await press("execution-pause-resume");
+    await press("execution-resume");
     expect(screen.getByTestId("execution-timer").props.children).toBe("00:15");
 
     // Réinitialiser : confirmation, l'Exécution est suspendue pendant la modale, la Série recommence.
@@ -192,7 +197,10 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-title").props.children).toBe("Point d'arrêt");
     await at(400);
     expect(screen.getByTestId("execution-title").props.children).toBe("Point d'arrêt");
-    await press("execution-next-command"); // Continuer
+    // Recette e1 (f) : chronomètre de l'attente ; Démarrer remplace la Pause et relance la séance.
+    expect(screen.getByTestId("execution-timer").props.children).toBe("00:00"); // rendu à l'entrée au Point d'arrêt (le rafraîchissement de l'écran n'est pas simulé ici)
+    expect(screen.queryByTestId("execution-pause")).toBeNull();
+    await press("execution-continue");
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
     expect(screen.getByTestId("execution-side").props.children).toBe("Côté 1");
     expect(screen.getByTestId("execution-tour").props.children).toBe("Tour 1/2");
@@ -219,7 +227,7 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
     await at(10);
     await press("execution-pause");
-    await press("execution-pause-stop");
+    await press("execution-stop");
     expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance interrompue");
     expect(await database.getFirstAsync("SELECT business_status FROM executions")).toEqual({ business_status: "INTERRUPTED" });
     view.unmount();
@@ -264,7 +272,7 @@ describe("fin de PRE-10 — écran maintenu actif", () => {
     await at(10);
     await press("execution-pause");
     expect(awake).toEqual([true]);
-    await press("execution-pause-stop");
+    await press("execution-stop");
     expect(screen.getByTestId("execution-end-status")).toBeTruthy();
     expect(awake).toEqual([true, false]);
     view.unmount();
@@ -300,8 +308,8 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await at(9);
     expect(service.project()?.timer).toMatchObject({ kind: "COUNTDOWN", remainingMs: 14 * S });
     await press("execution-pause");
-    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
-    await press("execution-pause-resume");
+    expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
+    await press("execution-resume");
     expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
     view.unmount();
   });
@@ -387,7 +395,7 @@ describe("recette du 11/11/2026 — interruption de la séance à l'arrière-pla
     await act(async () => {
       for (const listener of listeners) listener("active");
     });
-    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
+    expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
     spy.mockRestore();
     view.unmount();
   });
