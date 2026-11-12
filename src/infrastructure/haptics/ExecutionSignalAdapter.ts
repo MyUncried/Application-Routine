@@ -115,6 +115,10 @@ export class ExecutionSignalAdapter {
   private lastKey: string | null = null;
   /** Instant logique du dernier son autre qu'un bip de cadence. */
   private lastSoundAtMs: number | null = null;
+  /** Signaux dont le son est déjà programmé sur l'horloge audio (§8, étape 3) : à leur instant, ni rejoué ni doublé. */
+  private readonly scheduled = new Set<string>();
+  /** Instant du dernier son programmé autre qu'un bip de cadence (oublié à l'annulation). */
+  private lastScheduledSoundAtMs: number | null = null;
 
   constructor(
     private readonly vibrator: VibrationPort = deviceVibration(),
@@ -146,6 +150,7 @@ export class ExecutionSignalAdapter {
   setAudible(sound: boolean, voice: boolean): void {
     this.soundEnabled = sound;
     this.voiceEnabled = voice;
+    if (!sound) this.cancelScheduled();
     if (sound) this.beeps.prepare?.();
     if (voice) this.voice.prepare?.();
   }
@@ -154,35 +159,70 @@ export class ExecutionSignalAdapter {
     return { sound: this.soundEnabled, voice: this.voiceEnabled };
   }
 
+  /**
+   * Fin de PRE-10, sons programmés à l'avance (spec `spec-guidage-reglages` §8, étape 3 ; Hermann, 12/11/2026 : « Sons
+   * programmés à l’avance ») : le son d'un signal de l'étape (cadence, dernières secondes, minute, mi-temps, phase) est
+   * programmé sur l'horloge audio `delayMs` avant son instant, pour tomber à l'heure exacte. À son instant, `play`
+   * restitue la vibration et l'annonce, sans rejouer le son. Bibliothèque indisponible : rien n'est programmé, le son
+   * est joué à son instant comme avant.
+   */
+  schedule(signal: ExecutionSignal, delayMs: number): void {
+    if (!this.soundEnabled || this.beeps.schedule === undefined || signal.kind === "TRANSITION") return;
+    const key = signalKey(signal);
+    if (this.scheduled.has(key) || key === this.lastKey || this.quietCadence(signal)) return;
+    const sounding = this.soundOf(signal, this.guidance(signal));
+    if (sounding === null || !this.beeps.schedule(sounding.sound, sounding.volume, delayMs)) return;
+    this.scheduled.add(key);
+    if (signal.kind !== "CADENCE") this.lastScheduledSoundAtMs = Math.max(this.lastScheduledSoundAtMs ?? signal.atMs, signal.atMs);
+  }
+
+  /** Les sons programmés ne tomberont plus (Pause, étape suivante, Sons coupés…). */
+  cancelScheduled(): void {
+    this.scheduled.clear();
+    this.lastScheduledSoundAtMs = null;
+    this.beeps.cancelScheduled?.();
+  }
+
   play(signal: ExecutionSignal): void {
-    const key = `${signal.kind}@${signal.atMs}`;
+    const key = signalKey(signal);
     if (key === this.lastKey) return;
     this.lastKey = key;
-    if (signal.kind === "CADENCE" && this.lastSoundAtMs !== null && signal.atMs >= this.lastSoundAtMs && signal.atMs - this.lastSoundAtMs < CADENCE_QUIET_AFTER_SOUND_MS) return;
+    const preScheduled = this.scheduled.delete(key);
+    if (!preScheduled && this.quietCadence(signal)) return;
     if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"} sons=${this.soundEnabled ? "oui" : "non"} voix=${this.voiceEnabled ? "oui" : "non"} annonces=${JSON.stringify(this.announce)}`);
-    const { cue, announcement, event } = this.guidance(signal);
+    const guidance = this.guidance(signal);
+    const { cue, announcement, event } = guidance;
     const setting = event == null ? null : this.events[event];
     const vibrates = setting === null || setting.vibration;
     if (this.vibrationEnabled && vibrates && cue.vibration !== "NONE") this.vibrator.vibrate(cue.vibration);
+    const spoken = this.voiceEnabled ? announcement : null;
+    const sounding = this.soundOf(signal, guidance);
+    const played = this.soundEnabled && sounding !== null;
+    if (played && !preScheduled) this.beeps.play(sounding.sound, sounding.volume);
+    if (played && signal.kind !== "CADENCE") this.lastSoundAtMs = signal.atMs;
+    if (spoken !== null && __DEV__) console.log(`[guidage] annonce « ${spoken} »`);
+    const after = signal.kind === "FINISH" ? ANNOUNCEMENT_AFTER_FINISH_MS : ANNOUNCEMENT_AFTER_SOUND_MS;
+    if (spoken !== null) this.defer(() => this.voice.say(spoken), played ? after : 0);
+  }
+
+  /** Pas de bip de cadence juste après un autre son (recette h2). */
+  private quietCadence(signal: ExecutionSignal): boolean {
+    if (signal.kind !== "CADENCE") return false;
+    return [this.lastSoundAtMs, this.lastScheduledSoundAtMs].some((at) => at !== null && signal.atMs >= at && signal.atMs - at < CADENCE_QUIET_AFTER_SOUND_MS);
+  }
+
+  /** Son restitué pour un signal, selon la table de guidage et le réglage Son de son événement (RM-087). */
+  private soundOf(signal: ExecutionSignal, { cue, announcement, event }: Guidance): { readonly sound: BeepTone; readonly volume: number } | null {
+    const setting = event == null ? null : this.events[event];
     const spoken = this.voiceEnabled ? announcement : null;
     // « Aucun » coupe uniquement le son de l'événement, sans bip de remplacement (RM-087).
     const muted = setting !== null && setting.sound === "NONE";
     const fallback = signal.kind === "TRANSITION" && spoken === null && !muted ? GUIDANCE.other : null;
     const base = cue.sound !== null ? cue : fallback;
     const chosen = setting !== null && setting.sound !== "DEFAULT" && setting.sound !== "NONE" ? setting.sound : null;
-    const sounding: { readonly sound: BeepTone; readonly volume: number } | null = muted
-      ? null
-      : chosen !== null
-        ? { sound: chosen, volume: base?.volume ?? CHOSEN_SOUND_VOLUME }
-        : base !== null && base.sound !== null
-          ? { sound: base.sound, volume: base.volume }
-          : null;
-    const played = this.soundEnabled && sounding !== null;
-    if (played) this.beeps.play(sounding.sound, sounding.volume);
-    if (played && signal.kind !== "CADENCE") this.lastSoundAtMs = signal.atMs;
-    if (spoken !== null && __DEV__) console.log(`[guidage] annonce « ${spoken} »`);
-    const after = signal.kind === "FINISH" ? ANNOUNCEMENT_AFTER_FINISH_MS : ANNOUNCEMENT_AFTER_SOUND_MS;
-    if (spoken !== null) this.defer(() => this.voice.say(spoken), played ? after : 0);
+    if (muted) return null;
+    if (chosen !== null) return { sound: chosen, volume: base?.volume ?? CHOSEN_SOUND_VOLUME };
+    return base !== null && base.sound !== null ? { sound: base.sound, volume: base.volume } : null;
   }
 
   /** Son, vibration et annonce d'un signal ; tient compte du « À suivre » déjà annoncé et de l'étape précédente. */
@@ -257,6 +297,10 @@ export class ExecutionSignalAdapter {
     const first = signal.phase === "INITIAL_COUNTDOWN" && (signal.exerciseCount ?? 0) > 1;
     return first ? `Premier exercice : ${nextName}` : `À suivre : ${nextName}`;
   }
+}
+
+function signalKey(signal: Pick<ExecutionSignal, "kind" | "atMs">): string {
+  return `${signal.kind}@${signal.atMs}`;
 }
 
 /** Événement du guidage sonore d'une transition (ch13 : « Point d’arrêt » regroupe pauses, récupérations et points d’arrêt). */

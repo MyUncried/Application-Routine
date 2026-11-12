@@ -25,7 +25,18 @@ import type { ScheduledSounds } from "@/infrastructure/audio/ScheduledSounds";
  */
 export type BeepTone = "BIP_COURT" | "BIP_GRAVE" | "BIP_DOUBLE" | "BIP_LONG" | "SIFFLET_ROULE" | "SIFFLET_PUR" | "SIFFLET_COURT" | "FANFARE_COURTE" | "DING" | "CLIC_DOUX";
 
-export type BeepPort = { readonly play: (tone: BeepTone, volume?: number) => void; readonly prepare?: () => void };
+export type BeepPort = {
+  readonly play: (tone: BeepTone, volume?: number) => void;
+  readonly prepare?: () => void;
+  /**
+   * Fin de PRE-10, sons programmés à l'avance (spec `spec-guidage-reglages` §8, étape 3) : joue `tone` dans
+   * `delayMs` sur l'horloge audio. Faux si la bibliothèque de sons courts n'est pas prête : le son sera joué à son
+   * instant par `play`.
+   */
+  readonly schedule?: (tone: BeepTone, volume: number, delayMs: number) => boolean;
+  /** Annule les sons programmés pas encore partis. */
+  readonly cancelScheduled?: () => void;
+};
 
 /** Vrai si le module natif est présent dans l'application installée. */
 export function hasNativeModule(name: string): boolean {
@@ -207,6 +218,17 @@ export class ExecutionSounds implements BeepPort {
 
   play(tone: BeepTone, volume = 1): void {
     void this.playAsync(tone, volume).catch(() => undefined);
+  }
+
+  schedule(tone: BeepTone, volume: number, delayMs: number): boolean {
+    if (library === null || library.isReleased) return false;
+    const scheduled = library.scheduleIn(tone, volume, delayMs / 1000);
+    if (scheduled && __DEV__) console.log(`[guidage] son ${tone} programmé dans ${Math.round(delayMs)} ms (${Date.now()})`);
+    return scheduled;
+  }
+
+  cancelScheduled(): void {
+    library?.cancelScheduled();
   }
 
   private async playAsync(tone: BeepTone, volume: number): Promise<void> {

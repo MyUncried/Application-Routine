@@ -367,3 +367,46 @@ Décision de Hermann, recopiée : « Oui, un seul build (Recommandé) » ; « Ou
 - m2, second essai (classe A, décision 1.A : musique atténuée pendant l’Exécution, donc pas hors de l’application), Hermann : « Lance d'une séance > lancement de spotify > retour sur la séance > Reprendre la séance : La musique baisse > retour sur spotify : la musique ne redevient pas au volume initial > retour sur la séance : le son augmente et diminue de suite > Reprendre la séance : le volume reste diminué. » Session audio rendue quand l’application passe en arrière-plan (`releaseExecutionAudio`) ; au retour, simple réactivation, sans remontée passagère. [Désactivation puis réactivation au retour — remplacé.] À vérifier sur iPhone.
 
 - m2, troisième essai (classe B, précision de la décision 1.A), Hermann : « Dernier écart : lorsque la séance est terminée et que je reste sur l'applciation le volume doit revenir à l'original, et notamment lorsque je retrouve sur Spotify. » Séance terminée, ou écran d’Exécution quitté : session audio rendue 4 s après (fanfare et annonce de fin jouées), la musique retrouve son volume ; une nouvelle Exécution reprend la session. À vérifier sur iPhone.
+
+## 13. Suite du guidage (12/11/2026)
+
+Demande de Hermann, recopiée (réponse à la liste « reste à faire » de PRE-10 : 1 sons programmés à l’avance, 2 guidage en arrière-plan, 3 écran de séance conforme à Figma, 4 fin de séance) :
+
+« Le développement des bibliothèques prends plus de temps. En parallèle continuons le développement du guidage :
+
+  1. Sons programmés à l’avance
+  2. Guidage en arrière-plan : on a déjà un écran flottant conçu dans Figma " P-Exécution d'un exercice — Média plein écran" qu'on peut réutiliser dans le contexte d'une autre application ouverte, d'un appel, etc.
+  3. Oui pour l'écran d'exécution de séance.
+  4. Ok »
+
+### 13.1 Sons programmés à l’avance (§8, étape 3) — réalisé
+
+Classe A : le code rejoint la règle déjà écrite au §8, étape 3 (« Les signaux de cadence et de fin d'étape sont programmés à l'avance, à partir du temps actif de l'étape, au lieu d'être joués à leur instant »).
+
+- `ExecutionService` : à chaque rafraîchissement et après chaque transition, les signaux de l’étape en cours (cadence, trois dernières secondes, minute, mi-temps, phases) des 1,5 s suivantes sont remis à `onScheduleSignal` avec leur délai, une seule fois chacun. Tout changement de génération de l’état (Pause, étape suivante, Suivant, Réinitialiser, fin) les annule (`onCancelScheduled`).
+- `ExecutionSignalAdapter.schedule` : même son, même volume et même règle « pas de cadence juste après un autre son » qu’à l’instant ; à son instant, le signal donne la vibration et l’annonce, sans rejouer le son.
+- `ScheduledSounds.scheduleIn` / `cancelScheduled` : départ sur l’horloge audio, lu au moment de la demande ; un son déjà commencé n’est jamais coupé.
+- Inchangés : les transitions (zéro, sifflets, double bip, fanfare) restent jouées à leur instant, avec leur annonce ; sans la bibliothèque de sons courts (ancienne version de l’application, ou session rendue hors de l’application), le son est joué à son instant comme avant.
+- À vérifier sur iPhone : cadence et bips des dernières secondes à l’heure ; aucun bip après une Pause, Suivant ou Réinitialiser.
+
+### 13.2 Guidage en arrière-plan — écran flottant (ARBITRAGE en cours)
+
+Référence Figma citée par Hermann : « Exécution d'un exercice — Média plein écran » (`5009:6069`, CE-MEDIA-EXEC-02).
+
+Recherche technique (12/11/2026, sources dans le rapport de mission) :
+
+- Fenêtre flottante iOS au-dessus des autres applications = Picture in Picture (`AVPictureInPictureController`, contenu dessiné image par image, iOS 15+). Aucune bibliothèque React Native maintenue ne le fait pour un contenu non vidéo : module natif Swift à écrire (Expo Modules API), nouveau build EAS.
+- Contraintes Apple : le PiP ne démarre que sur une action de l’utilisateur (ou automatiquement à la sortie de l’application si l’écran est « en lecture ») ; impossible pendant qu’un appel FaceTime affiche sa propre fenêtre ; risque de revue App Store pour une application qui n’est pas une vidéo (précédent : minuteur refusé puis accepté).
+- Alternative native : Live Activity (écran verrouillé et Dynamic Island) avec `expo-widgets` (SDK 57), chrono qui défile sans le JavaScript ; ce n’est pas une fenêtre libre.
+- Non démontré : le JavaScript continue-t-il entre deux sons en arrière-plan (session audio active) ; les sons programmés d’avance (K5) tombent écran verrouillé.
+
+Choix soumis à Hermann ; rien n’est développé avant sa décision.
+
+### 13.3 Écran d’Exécution conforme à Figma (r6)
+
+« Oui pour l'écran d'exécution de séance » : positions des éléments de l’écran d’Exécution de séance alignées sur Figma (CE-EXEC-SESSION-01). En cours.
+
+### 13.4 Fin de séance
+
+« Ok » : fin de séance minimale conservée dans PRE-10 ; la Synthèse (Ressenti, Commentaire) relève d’une tranche ultérieure.
+

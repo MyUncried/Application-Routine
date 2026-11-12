@@ -88,6 +88,14 @@ export type ExecutionServiceDeps = {
   readonly newId: () => string;
   readonly loadSession: (sessionId: string) => Promise<StructuredSession | null>;
   readonly onSignal?: (signal: ExecutionSignal) => void;
+  /**
+   * Fin de PRE-10, sons programmés à l'avance (spec `spec-guidage-reglages` §8, étape 3 ; Hermann, 12/11/2026 :
+   * « Sons programmés à l’avance ») : signal de l'étape en cours qui tombera dans `delayMs`, à programmer sur l'horloge
+   * audio. Le même signal est encore remis à `onSignal` à son instant (vibration, annonce).
+   */
+  readonly onScheduleSignal?: (signal: ExecutionSignal, delayMs: number) => void;
+  /** Les signaux programmés d'avance ne tomberont plus (Pause, changement d'étape, Suivant, Réinitialiser, fin). */
+  readonly onCancelScheduled?: () => void;
 };
 
 export type PreparedExecution =
@@ -112,6 +120,8 @@ export type DispatchOutcome = { readonly outcome: TransitionResult["outcome"] | 
 const CONTINUITY_TOLERANCE_MS = 2000;
 /** Signaux joués seulement s'ils sont récents (aucun rattrapage après suspension). */
 const SIGNAL_FRESHNESS_MS = 1500;
+/** Horizon des signaux de l'étape programmés à l'avance (§8, étape 3). */
+export const SIGNAL_LOOKAHEAD_MS = 1500;
 
 export class ExecutionBlockedError extends Error {}
 
@@ -125,6 +135,8 @@ export class ExecutionService {
   private wakeup: { handle: unknown; generation: number } | null = null;
   private pending: Pending | null = null;
   private lastSignalCheckMs: number | null = null;
+  /** Génération de l'état pour laquelle des signaux sont programmés, et jusqu'à quel instant. */
+  private ahead: { generation: number; untilMs: number } | null = null;
   private commandCounter = 0;
 
   constructor(private readonly deps: ExecutionServiceDeps) {}
@@ -234,7 +246,32 @@ export class ExecutionService {
     if (from === null || atMs - from > SIGNAL_FRESHNESS_MS) return [];
     const signals = stepSignalsBetween(active.state, from, atMs, phasePatternOf(active.plan, active.state));
     for (const signal of signals) this.emitSignal(signal);
+    this.scheduleAhead(atMs);
     return signals;
+  }
+
+  /**
+   * Programme d'avance les signaux de l'étape en cours jusqu'à `atMs + SIGNAL_LOOKAHEAD_MS` (§8, étape 3) : cadence,
+   * bips des dernières secondes, minute, mi-temps, phases. Chacun n'est programmé qu'une fois ; tout changement de
+   * génération (Pause, étape suivante, Réinitialiser…) annule ceux qui ne sont pas encore tombés.
+   */
+  private scheduleAhead(atMs: number) {
+    const active = this.active;
+    if (this.deps.onScheduleSignal === undefined || active === null) return;
+    this.cancelStaleAhead();
+    if (active.state.status !== "RUNNING") return;
+    const from = Math.max(this.ahead?.untilMs ?? atMs, atMs);
+    const until = atMs + SIGNAL_LOOKAHEAD_MS;
+    this.ahead = { generation: active.state.generation, untilMs: Math.max(until, this.ahead?.untilMs ?? until) };
+    const signals = [...stepSignalsBetween(active.state, from, until, phasePatternOf(active.plan, active.state))].sort((a, b) => a.atMs - b.atMs);
+    for (const signal of signals) this.deps.onScheduleSignal(this.signalOf(signal), signal.atMs - atMs);
+  }
+
+  /** Annule les signaux programmés pour une génération dépassée. */
+  private cancelStaleAhead() {
+    if (this.ahead === null || this.active?.state.generation === this.ahead.generation) return;
+    this.ahead = null;
+    this.deps.onCancelScheduled?.();
   }
 
   // —————————————————————————————————————————— reprise après interruption du processus
@@ -374,13 +411,19 @@ export class ExecutionService {
       if (effect.type === "FINISHED" && effect.reason === "COMPLETED" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "FINISH", atMs: effect.atMs });
       if (effect.type === "PAUSED" && effect.reason === "USER" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "PAUSE", atMs: effect.atMs });
     }
+    this.cancelStaleAhead();
+    if (this.lastSignalCheckMs !== null) this.scheduleAhead(now);
     this.schedule();
     this.notify();
   }
 
   private emitSignal(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE"; readonly atMs: number }) {
+    this.deps.onSignal?.(this.signalOf(signal));
+  }
+
+  private signalOf(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE"; readonly atMs: number }): ExecutionSignal {
     const projection = this.project(signal.atMs);
-    this.deps.onSignal?.({
+    return {
       kind: signal.kind,
       atMs: signal.atMs,
       phase: projection?.phase ?? null,
@@ -391,7 +434,7 @@ export class ExecutionService {
       objective: projection === null ? undefined : objectiveOf(projection.mode, projection.seriesTarget),
       phaseLabel: projection?.guidance?.label ?? null,
       exerciseCount: this.active === null ? 0 : Object.keys(this.active.plan.exercises).length,
-    });
+    };
   }
 
   private clearWakeup() {
