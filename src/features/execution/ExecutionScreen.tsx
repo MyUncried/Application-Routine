@@ -593,7 +593,9 @@ export function ExecutionScreen({
             projection.status === "RUNNING",
             projection.phase === "INITIAL_COUNTDOWN" || projection.phase === "SESSION_END" || waiting !== null,
           )}
-          fading={fadingOut}
+          // Recette du 13/11/2026 (Hermann : « Après le compte à rebours, au démarrage de l’exercice, le cercle guide de
+          // couleur disparaît et réapparaît ») : l’anneau, vide pendant le Compte à rebours, ne s’efface pas à sa fin.
+          fading={fadingOut && !countdownNow}
           testID="execution-ring"
         >
           {/*
