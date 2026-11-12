@@ -589,7 +589,8 @@ export function ExecutionScreen({
             </View>
             <View style={styles.timerSlot}>
               <Text
-                style={styles.timer}
+                // Recette du 12/11/2026 (Hermann : « le chrono à l’arrêt est en gris, le petit chrono qui tourne est en noir »).
+                style={waiting !== null ? [styles.timer, styles.timerWaiting] : styles.timer}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 accessibilityLabel={waiting !== null ? undefined : timerAccessibility(projection)}
@@ -1081,9 +1082,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   objective: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.textSecondary },
-  // Point d'arrêt (e1f) : invitation en bleu, chronomètre de l'attente en gris foncé.
+  // Point d'arrêt (e1f) : invitation en bleu, chronomètre de l'attente en noir, chrono à l'arrêt en gris foncé.
   pressStart: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.primary },
-  waitClock: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: "#4A4A50", fontVariant: ["tabular-nums"] },
+  waitClock: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.textPrimary, fontVariant: ["tabular-nums"] },
+  timerWaiting: { color: "#4A4A50" },
   guidance: { ...type.label, color: colors.primary },
   // Figma `5041:6048` : fond #F6F6FA, 13 sous l'anneau. Recette e1/e2 du 12/11/2026 (Hermann : « mettre les 4 coins
   // du cadre gris arrondis ; laisser une marge à gauche et à droite entre le fond gris clair et le bord de l'écran »).
