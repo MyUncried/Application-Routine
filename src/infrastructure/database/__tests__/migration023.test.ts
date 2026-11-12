@@ -97,7 +97,7 @@ describe("migration023 — Récupération des EMOM alternés et « dans chaque i
   it("schéma 022 → 023 : EMOM alterné et EMOM membre d'un Circuit porteur EMOM à 0 s ; À la suite, hors Circuit et Exercice libre intacts", async () => {
     const database = await seededVersion22();
     await migrateDatabase(database, () => T);
-    expect(await version(database)).toBe(23);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await recoveries(database)).toEqual({
       "emom-alt": ZERO,
       "emom-porteur": ZERO,
@@ -119,7 +119,7 @@ describe("migration023 — Récupération des EMOM alternés et « dans chaque i
   it("installation neuve : version 23", async () => {
     const database = memory();
     await migrateDatabase(database, () => T);
-    expect(DATABASE_VERSION).toBe(23);
-    expect(await version(database)).toBe(23);
+    expect(DATABASE_VERSION).toBe(29);
+    expect(await version(database)).toBe(DATABASE_VERSION);
   });
 });

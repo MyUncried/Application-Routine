@@ -486,8 +486,15 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(users.filter((file) => /\b(serializeExerciseSnapshot|parseExerciseSnapshot)\b/.test(file.code)).map((file) => file.path)).toEqual([
       "src/domain/activities/exerciseSnapshot.ts",
     ]);
-    // Aucun repository, aucune migration, aucun SQL ne mentionne un Instantané.
-    expect(production.filter((file) => file.path.startsWith("src/infrastructure/") && /snapshot/i.test(file.code)).map((file) => file.path)).toEqual([]);
+    // Aucun repository, aucune migration, aucun SQL ne mentionne un Instantané. [Remplacé par PRE-10 (09/11/2026) : seule
+    // la persistance de l'Exécution stocke l'instantané de Séance, en JSON immuable écrit une seule fois à la création
+    // (ch09 « Instantané de source », ch12 §12.15) — jamais une enveloppe d'Exercice v1, jamais réécrit.]
+    expect(production.filter((file) => file.path.startsWith("src/infrastructure/") && /snapshot/i.test(file.code)).map((file) => file.path).sort()).toEqual([
+      "src/infrastructure/database/migrations/migration024.ts",
+      "src/infrastructure/database/repositories/SqliteExecutionRepository.ts",
+    ]);
+    const repository = production.find((file) => file.path === "src/infrastructure/database/repositories/SqliteExecutionRepository.ts")!;
+    expect(repository.code).not.toMatch(/UPDATE executions SET[^`]*snapshot_json/);
   });
 
   it("PRE4-1.3/AC10 — Instantané d'une Copie relue : version courante (v3 depuis PRE-5), Cibles typées et Médias ordonnés par référence ; une modification ultérieure de la Copie ne l'atteint pas", async () => {

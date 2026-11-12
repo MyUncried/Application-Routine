@@ -1093,6 +1093,71 @@
       "usage": [
         "Carte Mouvement en sélection pour une Séance — case vide (D-508)"
       ]
+    },
+    {
+      "key": "actions.guidanceSound.normal",
+      "file": "icon-guidage-sonore-light",
+      "figmaNodeId": "12161:27703",
+      "figmaName": "icon/guidage-sonore (ph:faders-light)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12145:2108",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Composition — bouton Guidage sonore de l’en-tête, État=Normal (documentation de main ebe72f76)"
+      ]
+    },
+    {
+      "key": "actions.guidanceSound.active",
+      "file": "icon-guidage-sonore-fill",
+      "figmaNodeId": "12161:27705",
+      "figmaName": "icon/guidage-sonore (ph:faders-fill)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12145:2108",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Composition — bouton Guidage sonore pendant l’ouverture de la modale, État=Activé"
+      ]
+    },
+    {
+      "key": "lists.chevronAller",
+      "file": "icon-chevron-aller",
+      "figmaNodeId": "12177:25960",
+      "figmaName": "Chevron — Aller",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12093:25010",
+      "width": 7.8,
+      "height": 13.8,
+      "usage": [
+        "Profil › Préférences et modale Guidage sonore — colonne Son, accès à « Choix d’un son »"
+      ]
+    },
+    {
+      "key": "lists.chevronAllerModale",
+      "file": "icon-chevron-aller-modale",
+      "figmaNodeId": "12175:25830",
+      "figmaName": "Chevron — Aller",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12132:27436",
+      "width": 5.50003,
+      "height": 11.5001,
+      "usage": [
+        "Modale Guidage sonore — colonne Son, accès à « Choix d’un son »"
+      ]
+    },
+    {
+      "key": "lists.checkSoundChosen",
+      "file": "icon-coche-son-choisi",
+      "figmaNodeId": "12068:25151",
+      "figmaName": "Coche — Son choisi",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12068:25044",
+      "width": 17.2,
+      "height": 13.2,
+      "usage": [
+        "Choix d’un son — son choisi"
+      ]
     }
   ],
   "branding": {

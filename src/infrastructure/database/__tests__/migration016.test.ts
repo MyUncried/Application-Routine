@@ -92,7 +92,7 @@ async function snapshot(database: Database): Promise<Record<string, unknown>> {
     // PRE-9 (C.1) : la 017, jouée ensuite au démarrage, ajoute `sessions.origin` et le Format des
     // Circuits (NULL) ; elle est éprouvée par `migration017.test.ts`. Comparaison sur les colonnes d'avant.
     const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1`);
-    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && !MIGRATION_017_COLUMNS.has(column))));
+    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && !(table === "sessions" && column.startsWith("guidance_")) /* migration028 (fin de PRE-10) */ && !MIGRATION_017_COLUMNS.has(column))));
   }
   result.activities = await database.getAllAsync(ACTIVITY_SNAPSHOT);
   result.stopPoints = await database.getAllAsync(STOP_POINT_SNAPSHOT);
@@ -175,7 +175,7 @@ async function seededVersion15(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un Cycle)", () => {
   it("version courante 19 (016 à 019, PRE-9 C.1, A.2b et recette n° 2 constat e)", () => {
-    expect(DATABASE_VERSION).toBe(23);
+    expect(DATABASE_VERSION).toBe(29);
   });
 
   it("reconstruit activities et session_stop_points sans perte : lignes identiques, cycle_id NULL, aucune autre table touchée", async () => {
@@ -224,13 +224,10 @@ describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un C
       ["i2", "IN_TOUR"],
       ["a1", "AFTER_TOUR"],
     ]);
-    expect(draft.tourRepeatCount).toBe(3);
-    expect(draft.circuitNature).toBe("SERIES");
-    expect(draft.stopPoints).toEqual([
-      { id: "stop-b", scope: "BEFORE_TOUR", position: 1 },
-      { id: "stop-i", scope: "IN_TOUR", position: 1 },
-      { id: "stop-a", scope: "AFTER_TOUR", position: 0 },
-    ]);
+    // Modèle unique des Circuits (10/11/2026) : compte, nature et Points relus dans la structure générale.
+    const circuit = draft.structure?.elements.find((element) => element.kind === "CIRCUIT");
+    expect(circuit).toMatchObject({ circuit: { repeatCount: 3, nature: "SERIES" } });
+    expect(draft.structure?.stopPoints.map((point) => (point as { readonly id?: string }).id).sort()).toEqual(["stop-a", "stop-b", "stop-i"]);
 
     const rowsBefore = await database.getAllAsync(
       "SELECT id, tour_id, cycle_id, position, execution_parameters, source_movement_id, copy_number, created_at FROM activities ORDER BY id",

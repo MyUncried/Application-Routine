@@ -4,12 +4,16 @@ import { Inter_600SemiBold } from "@expo-google-fonts/inter/600SemiBold";
 import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
 import { useFonts } from "@expo-google-fonts/inter/useFonts";
 import { Mali_500Medium_Italic } from "@expo-google-fonts/mali/500Medium_Italic";
+import { RobotoCondensed_500Medium } from "@expo-google-fonts/roboto-condensed/500Medium";
+import { RobotoCondensed_600SemiBold } from "@expo-google-fonts/roboto-condensed/600SemiBold";
+import { RobotoCondensed_700Bold } from "@expo-google-fonts/roboto-condensed/700Bold";
 import { Stack } from "expo-router/stack";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
 import { movementRouteOptions } from "@/features/activities/movementRoutePresentation";
+import { ExecutionRecoveryGate } from "@/features/execution/ExecutionRecoveryGate";
 import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
 import { CreationDraftProviders } from "@/features/sessions/CreationDraftProviders";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
@@ -18,10 +22,12 @@ import { NATIVE_SHEET_OPTIONS } from "@/shared/ui/nativeSheet";
 import { RootErrorBoundary } from "@/shared/ui/RootErrorBoundary";
 import { RootErrorFallback } from "@/shared/ui/RootErrorFallback";
 import { installDevPerformanceGuard } from "@/shared/utils/devPerformanceGuard";
+import { installDevSoundDiagnosticMenu } from "@/shared/utils/devSoundDiagnosticMenu";
 
 // Recette PRE-8 A/B : garde de développement contre l’échec natif de la mesure de rendu de React
 // (écran de démarrage bloqué au rechargement) ; sans effet hors __DEV__.
 installDevPerformanceGuard();
+installDevSoundDiagnosticMenu();
 
 void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
   console.warn("Impossible de conserver le splash natif affiché.", error);
@@ -84,6 +90,10 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
     Mali_500Medium_Italic,
+    // Fin de PRE-10 : police de l'écran d'Exécution (Figma `1992:8132`, styles « KODJO / Texte / Roboto Condensed … »).
+    RobotoCondensed_500Medium,
+    RobotoCondensed_600SemiBold,
+    RobotoCondensed_700Bold,
   });
   const [databaseReady, setDatabaseReady] = useState(false);
   const [rootError, setRootError] = useState<Error | null>(null);
@@ -154,6 +164,8 @@ export default function RootLayout() {
               <Stack.Screen name="movement" options={({ route }) => movementRouteOptions(route.params)} />
               {/* Même demande : Filtres des Catalogues (Mouvements, Séances) en feuille native iOS. */}
               <Stack.Screen name="catalogue-filters" options={NATIVE_SHEET_OPTIONS} />
+              {/* Profil › Préférences : « Choix d’un son » (Figma `12068:25044`), feuille native iOS. */}
+              <Stack.Screen name="profile-sound" options={NATIVE_SHEET_OPTIONS} />
               {/* Règle de Hermann du 06/11/2026 (registre ch07 : « Je veux qu’on suive l’ordre des écrans et des modèles lorsqu’on les
                   ouvre et qu’on les ferme en fonction des décisions qu’ils ont prises ») : modale « Créer un exercice » (feuille native
                   ajustée à son contenu), questionnaire et récapitulatif d'un Format, fiche d'un mouvement en lecture seule — feuilles
@@ -163,10 +175,14 @@ export default function RootLayout() {
               <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
               <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
               <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet", gestureEnabled: false }} />
+              {/* PRE-10.3 (CE-EXEC-SESSION-01) : Exécution plein écran, sans geste de retour (aucun abandon silencieux du moteur). */}
+              <Stack.Screen name="execution" options={{ gestureEnabled: false, animation: "fade" }} />
             </Stack>
             </CreationDraftProviders>
           ) : null}
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}
+          {/* PRE-10.2 (ch12 §12.33) : Exécution interrompue détectée au démarrage → Reprendre / Arrêter la séance. */}
+          {fontsSettled && databaseReady && !showAppSplash ? <ExecutionRecoveryGate /> : null}
           {showAppSplash ? (
             <KodjoSplash opacity={splashOpacity} onLayout={handleSplashLayout} />
           ) : null}

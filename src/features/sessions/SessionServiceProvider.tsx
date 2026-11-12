@@ -13,6 +13,12 @@ import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repos
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteProfileRepository } from "@/infrastructure/database/repositories/SqliteProfileRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { SqliteExecutionRepository } from "@/infrastructure/database/repositories/SqliteExecutionRepository";
+import { deviceScreenAwake } from "@/infrastructure/device/ScreenAwake";
+import { ExecutionSignalAdapter } from "@/infrastructure/haptics/ExecutionSignalAdapter";
+import { systemClock, systemScheduler } from "@/infrastructure/time/systemClock";
+import { ExecutionService } from "@/features/execution/ExecutionService";
+import { ExecutionServiceContext, type ExecutionContextValue } from "@/features/execution/ExecutionServiceContext";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
 import { ProfileService } from "@/features/preferences/ProfileService";
@@ -95,6 +101,8 @@ type SessionServiceInitializerProps = {
   onReferentialServiceReady: (service: ReferentialService) => void;
   /** PRE-4 (story 1.1, AD-12) : remonte le repository des avis de migration, même connexion SQLite. */
   onMigrationNoticeRepositoryReady: (repository: MigrationNoticeRepository) => void;
+  /** PRE-10 : remonte le service d'Exécution et son adaptateur de signaux, même connexion SQLite. */
+  onExecutionReady: (value: ExecutionContextValue) => void;
 };
 
 /**
@@ -112,6 +120,7 @@ function SessionServiceInitializer({
   onProfileServiceReady,
   onReferentialServiceReady,
   onMigrationNoticeRepositoryReady,
+  onExecutionReady,
 }: SessionServiceInitializerProps) {
   const nativeDatabase = useSQLiteContext();
 
@@ -169,6 +178,25 @@ function SessionServiceInitializer({
     [nativeDatabase],
   );
 
+  // PRE-10 (ch12 §12.9) : `ExecutionService` sur la même connexion ; la Séance est relue une seule fois au
+  // lancement pour être figée (instantané D.2), jamais pendant l'Exécution.
+  const execution = useMemo((): ExecutionContextValue => {
+    const signals = new ExecutionSignalAdapter();
+    const service = new ExecutionService({
+      repository: new SqliteExecutionRepository(new ExpoDatabase(nativeDatabase)),
+      clock: systemClock,
+      scheduler: systemScheduler,
+      newId: () => Crypto.randomUUID(),
+      loadSession: (sessionId) => sessionService.getSessionForConsultation(sessionId),
+      onSignal: (signal) => signals.play(signal),
+    });
+    return { service, signals, screenAwake: deviceScreenAwake() };
+  }, [nativeDatabase, sessionService]);
+
+  useEffect(() => {
+    onExecutionReady(execution);
+  }, [execution, onExecutionReady]);
+
   useEffect(() => {
     onServiceReady(sessionService);
   }, [sessionService, onServiceReady]);
@@ -213,6 +241,7 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
   // pour cette même lecture (`console.error`, jamais un blocage indéfini de
   // l'ouverture de l'application).
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+  const [execution, setExecution] = useState<ExecutionContextValue | null>(null);
 
   const handleServiceReady = useCallback((service: SessionService) => {
     setSessionService(service);
@@ -263,6 +292,7 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
           onProfileServiceReady={handleProfileServiceReady}
           onReferentialServiceReady={handleReferentialServiceReady}
           onMigrationNoticeRepositoryReady={handleMigrationNoticeRepositoryReady}
+          onExecutionReady={setExecution}
         />
       </SQLiteProvider>
       <SessionServiceContext.Provider value={sessionService}>
@@ -270,7 +300,7 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
           <ProfileServiceContext.Provider value={profileService}>
             <ReferentialServiceContext.Provider value={referentialService}>
               <MigrationNoticeRepositoryContext.Provider value={migrationNoticeRepository}>
-                {children}
+                <ExecutionServiceContext.Provider value={execution}>{children}</ExecutionServiceContext.Provider>
               </MigrationNoticeRepositoryContext.Provider>
             </ReferentialServiceContext.Provider>
           </ProfileServiceContext.Provider>

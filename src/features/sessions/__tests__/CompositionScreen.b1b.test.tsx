@@ -376,16 +376,16 @@ describe("B.1b — rendu d'une disposition générale", () => {
     expect(text("composition-layout-circuit-k3-header-title")).toBe("Circuit");
   });
 
-  it("disposition de l'ancien modèle (Circuit unique) : rendu historique inchangé", async () => {
-    const legacy = draftOf(
+  // [« disposition de l'ancien modèle (Circuit unique) : rendu historique inchangé » — remplacé le 10/11/2026 :
+  // modèle unique des Circuits (décision de Hermann : « Il n'y avait aucune raison d'avoir deux modèles de circuit
+  // coexistants »). Un Circuit unique est rendu et édité comme tout Circuit de la disposition générale.]
+  it("Circuit unique : même bloc de Circuit que la disposition générale (options, encadrement)", async () => {
+    const single = draftOf(
       { elements: [{ kind: "EXERCISE", exercise: "e0" }, { kind: "CIRCUIT", circuit: circuit("only", ["a1"], 2) }], stopPoints: [] },
       [exercise("e0"), { ...exercise("a1"), structuralPosition: "IN_TOUR" }],
     );
-    await renderComposition({ ...legacy, tourRepeatCount: 2 });
-    expect(screen.getByTestId("composition-tour-section", hidden)).toBeTruthy();
-    expect(text("composition-circuit-header-title")).toBe("Circuit");
-    expect(screen.queryByTestId(/^composition-layout-/, hidden)).toBeNull();
-    // Gestes historiques présents.
-    expect(screen.getByTestId("composition-exercise-row-a1").props.accessibilityActions.length).toBeGreaterThan(0);
+    await renderComposition(single);
+    expect(screen.queryByTestId("composition-tour-section", hidden)).toBeNull();
+    expect(text("composition-layout-circuit-only-header-title")).toBe("Circuit");
   });
 });

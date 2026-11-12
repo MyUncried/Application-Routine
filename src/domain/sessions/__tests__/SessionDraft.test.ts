@@ -39,6 +39,7 @@ import {
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { duplicateActivity } from "@/domain/sessions/composition";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
+import { structureCircuits } from "../structure";
 
 describe("createEmptyDraft", () => {
   it("initializes every field from the canonical defaults, with no Activity and no Category yet", () => {
@@ -668,7 +669,9 @@ describe("toSessionDraft — Récupération, positions structurelles et répéti
 
     const draft = toSessionDraft(session);
     expect(draft.sourceSessionId).toBe("session-1");
-    expect(draft.tourRepeatCount).toBe(4);
+    // Modèle unique des Circuits (décision de Hermann du 10/11/2026) : le Circuit, son compte, sa nature et ses Points
+    // sont relus dans la structure générale du brouillon, plus dans les champs de l'ancien modèle.
+    expect(structureCircuits(draft.structure!)[0]?.repeatCount).toBe(4);
     expect(draft.exercises.map((exercise) => exercise.id)).toEqual(["warmup", "core", "rec"]);
     expect(draft.exercises.map((exercise) => exercise.structuralPosition)).toEqual([
       "BEFORE_TOUR",
@@ -1194,7 +1197,9 @@ describe("PRE6-1.1 — nature du Circuit et récupération nullable dans le brou
   });
 
   it("toSessionDraft relit la nature ; sans nature (fixture antérieure), le brouillon reste en Tours implicite", () => {
-    expect(toSessionDraft(sessionWith(anActivity(), "SERIES")).circuitNature).toBe("SERIES");
+    // Modèle unique des Circuits (décision de Hermann du 10/11/2026) : le Circuit, son compte, sa nature et ses Points
+    // sont relus dans la structure générale du brouillon, plus dans les champs de l'ancien modèle.
+    expect(structureCircuits(toSessionDraft(sessionWith(anActivity(), "SERIES")).structure!)[0]?.nature).toBe("SERIES");
     const legacy = toSessionDraft(sessionWith(anActivity()));
     expect(legacy.circuitNature).toBeUndefined();
     expect(sessionDraftsEqual(legacy, { ...legacy, circuitNature: "TOURS" })).toBe(true);
@@ -1303,8 +1308,9 @@ describe("PRE6-1.2 — Points d'arrêt portés par le brouillon", () => {
       },
     } as Session;
     const draft = toSessionDraft(session);
-    expect(draft.stopPoints).toEqual([{ id: "p1", scope: "IN_TOUR", position: 1 }]);
-    expect(draft.stopPoints?.[0]).not.toBe(session.stopPoints?.[0]);
+    // Modèle unique des Circuits (décision de Hermann du 10/11/2026) : le Circuit, son compte, sa nature et ses Points
+    // sont relus dans la structure générale du brouillon, plus dans les champs de l'ancien modèle.
+    expect(draft.structure?.stopPoints).toEqual([{ id: "p1", circuitId: "tour-1", position: 1 }]);
     const { stopPoints: _omitted, ...withoutPoints } = session;
     expect("stopPoints" in toSessionDraft(withoutPoints as Session)).toBe(false);
   });

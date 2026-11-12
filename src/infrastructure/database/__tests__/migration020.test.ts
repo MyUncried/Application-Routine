@@ -99,7 +99,7 @@ async function snapshot(database: Database): Promise<Record<string, unknown>> {
   const result: Record<string, unknown> = {};
   for (const table of TABLES) {
     const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1`);
-    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && column !== "origin_model")));
+    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "tours" && column === "name") && !(table === "sessions" && column.startsWith("guidance_")) /* migration028 (fin de PRE-10) */ && column !== "origin_model")));
   }
   return result;
 }
@@ -174,7 +174,7 @@ const tabataInput = (): StructuredSessionInput => ({
 
 describe("PRE-9 recette n° 3 — migration 020 (modèle d'origine d'un Circuit)", () => {
   it("version courante 20 ; clés figées = les dix modèles de la fenêtre Formats", () => {
-    expect(DATABASE_VERSION).toBe(23);
+    expect(DATABASE_VERSION).toBe(29);
     expect([...MIGRATION_020_MODEL_KEYS].sort()).toEqual([...FORMAT_MODEL_KEYS].sort());
   });
 
@@ -212,7 +212,7 @@ describe("PRE-9 recette n° 3 — migration 020 (modèle d'origine d'un Circuit)
   it("une erreur après l'ajout de la colonne annule tout et laisse la base au schéma 019 ; le démarrage suivant migre", async () => {
     let database = await seededVersion19();
     const before = await snapshot(database);
-    const failing = failOnExec(database, /^PRAGMA user_version = 23/);
+    const failing = failOnExec(database, new RegExp(`^PRAGMA user_version = ${DATABASE_VERSION}`));
     await expect(migrateDatabase(failing.database, () => T)).rejects.toThrow("Injected failure");
     expect(failing.executed.some((source) => source.startsWith("ALTER TABLE tours ADD COLUMN origin_model"))).toBe(true);
     database = reopen(database);

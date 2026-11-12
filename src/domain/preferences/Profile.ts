@@ -11,6 +11,8 @@
  * lit pour semer le Profil (PRESERVE, boundary contract).
  */
 
+import { DEFAULT_GUIDANCE_EVENTS, type GuidanceEvents, type GuidanceSettings } from "./guidanceSettings";
+
 export const DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS = 10 as const;
 export const DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS = 30 as const;
 /** Décision D-240 : compte à rebours d'Exercice par défaut. */
@@ -27,6 +29,22 @@ export const DEFAULT_SOUNDS_ENABLED = true as const;
 export const DEFAULT_VOICE_ANNOUNCEMENTS_ENABLED = true as const;
 export const DEFAULT_VIBRATION_ENABLED = true as const;
 export const DEFAULT_NOTIFICATIONS_ENABLED = false as const;
+/**
+ * Suite PRE-10 son et voix (spec `spec-guidage-reglages` §3.1, décisions de Hermann du 10/11/2026) : annonce de
+ * l'objectif (répétitions ou durée) avec le nom de l'exercice. Activée par défaut : comportement demandé à la
+ * recette du 10/11/2026 (G8) et validé ensuite (h4, k6).
+ */
+export const DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED = true as const;
+/**
+ * Catégories d'annonces séparées — décision de Hermann du 10/11/2026 (« Il faut séparer : noms d'exercices ;
+ * pauses / récupérations / point d'arrêt ; début / fin de séance ; changements de côté »). Activées par défaut,
+ * comme avant la séparation. Le nom des exercices reste porté par `voiceAnnouncementsEnabled`.
+ */
+export const DEFAULT_ANNOUNCE_PAUSES_ENABLED = true as const;
+export const DEFAULT_ANNOUNCE_SESSION_ENABLED = true as const;
+export const DEFAULT_ANNOUNCE_SIDES_ENABLED = true as const;
+/** Recette du 10/11/2026 (constat B) : annonce du nom des phases du mouvement, activée par défaut. */
+export const DEFAULT_ANNOUNCE_PHASES_ENABLED = true as const;
 
 export type Silhouette = "homme" | "femme";
 
@@ -50,6 +68,21 @@ export type Profile = {
   readonly vibrationEnabled: boolean;
   /** Désactivée par défaut ; aucune demande de permission système n'est faite depuis le Profil (T7). */
   readonly notificationsEnabled: boolean;
+  /** Annonce des répétitions ou de la durée de l'exercice (groupe Guidage). */
+  readonly announceObjectiveEnabled: boolean;
+  /** Annonce des pauses, récupérations et Points d'arrêt. */
+  readonly announcePausesEnabled: boolean;
+  /** Annonce du début et de la fin de séance. */
+  readonly announceSessionEnabled: boolean;
+  /** Annonce des changements de côté. */
+  readonly announceSidesEnabled: boolean;
+  /** Annonce du nom des phases du mouvement. */
+  readonly announcePhasesEnabled: boolean;
+  /**
+   * Son et vibration des neuf événements (documentation de main `ebe72f76`, RM-087 ; `migration029`). Remplace, pour
+   * l'Exécution, les anciennes bascules générales Sons et Vibration, qui ne sont plus affichées.
+   */
+  readonly guidanceEvents: GuidanceEvents;
   /** Nullable tant que jamais renseigné (T8) ; 1..80 points de code à l'enregistrement. */
   readonly displayName: string | null;
   /** URI locale persistante de la copie de la photo ; `null` si aucune. */
@@ -73,10 +106,34 @@ export function createDefaultProfile(id: string, updatedAt: string): Profile {
     voiceAnnouncementsEnabled: DEFAULT_VOICE_ANNOUNCEMENTS_ENABLED,
     vibrationEnabled: DEFAULT_VIBRATION_ENABLED,
     notificationsEnabled: DEFAULT_NOTIFICATIONS_ENABLED,
+    announceObjectiveEnabled: DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED,
+    announcePausesEnabled: DEFAULT_ANNOUNCE_PAUSES_ENABLED,
+    announceSessionEnabled: DEFAULT_ANNOUNCE_SESSION_ENABLED,
+    announceSidesEnabled: DEFAULT_ANNOUNCE_SIDES_ENABLED,
+    announcePhasesEnabled: DEFAULT_ANNOUNCE_PHASES_ENABLED,
+    guidanceEvents: DEFAULT_GUIDANCE_EVENTS,
     displayName: null,
     photoUri: null,
     silhouette: null,
     updatedAt,
+  };
+}
+
+/**
+ * Réglages de guidage du Profil, sous la forme commune au Profil et à la modale de Composition. Les six annonces
+ * vocales reprennent les bascules déjà enregistrées (« Nom des exercices » = ancienne bascule Annonces vocales).
+ */
+export function profileGuidance(profile: Profile): GuidanceSettings {
+  return {
+    announcements: {
+      session: profile.announceSessionEnabled,
+      names: profile.voiceAnnouncementsEnabled,
+      phases: profile.announcePhasesEnabled,
+      objective: profile.announceObjectiveEnabled,
+      pauses: profile.announcePausesEnabled,
+      sides: profile.announceSidesEnabled,
+    },
+    events: profile.guidanceEvents,
   };
 }
 

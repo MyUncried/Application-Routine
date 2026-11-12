@@ -69,7 +69,7 @@ Autre écran modifié : **« Modal — Confirmer la suppression d'une séance ar
 
 **Stepper animé (écran 5).** Le stepper « Séries » est interactif : « + » passe à la valeur suivante et « − » à la valeur précédente, de 1 à 10 séries, avec une animation de 0,12 s. Les autres steppers sont statiques. Il s'agit d'un composant propre au prototype (« Stepper — Séries (interactif) », `6426:10149`).
 
-**Message temporaire (écran 12).** Quand la durée totale est ajustée, un message s'affiche **juste sous la ligne « Durée totale »** : « Durée ajustée à 5 min pour respecter un nombre entier de séries. » La feuille grandit vers le haut de 62 px pour libérer la place ; les lignes du bas ne bougent pas.
+**Message temporaire (écran 12).** Quand la durée totale est ajustée, un message s'affiche **juste sous la ligne « Durée totale »** : « Durée ajustée à 5 min pour respecter un nombre entier de séries. » La feuille grandit vers le haut de 62 px pour libérer la place ; les lignes du bas ne bougent pas. [Remplacé le 09/11/2026 — D-515 (Hermann, recette PRE-10, d5) : une Durée de l’exercice saisie qui ne correspond à aucun nombre entier de séries n’est plus ajustée automatiquement ; une alerte native « Arrondir la durée de l’exercice ? » propose « Arrondir à » la durée réalisable inférieure ou supérieure, et le choix s’applique sans message d’ajustement.]
 
 ## 4. Présentation de la modale
 

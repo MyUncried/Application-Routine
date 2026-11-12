@@ -19,7 +19,7 @@ describe("ProfileStepper — closed state (D-227)", () => {
         testID="stepper"
       />,
     );
-    expect(screen.getByTestId("stepper-value").props.children).toBe("10 s");
+    expect(screen.getByTestId("stepper-value").props.children).toBe("10″");
   });
 
   it("opens on press (only one stepper open at a time, controlled by the caller)", () => {
@@ -164,7 +164,7 @@ describe("ProfileStepper — interaction (T5/T6, CE-UI-07 L2549/L2545/L2557/L256
     const increment = screen.getByTestId("stepper-increment");
 
     fireEvent(increment, "pressIn");
-    expect(screen.getByTestId("stepper-value").props.children).toBe("11 s");
+    expect(screen.getByTestId("stepper-value").props.children).toBe("11″");
 
     await act(async () => {
       fireEvent(increment, "pressOut");
@@ -195,22 +195,22 @@ describe("ProfileStepper — interaction (T5/T6, CE-UI-07 L2549/L2545/L2557/L256
     const increment = screen.getByTestId("stepper-increment");
 
     fireEvent(increment, "pressIn");
-    expect(screen.getByTestId("stepper-value").props.children).toBe("11 s");
+    expect(screen.getByTestId("stepper-value").props.children).toBe("11″");
 
     act(() => {
       jest.advanceTimersByTime(450);
     });
-    expect(screen.getByTestId("stepper-value").props.children).toBe("12 s");
+    expect(screen.getByTestId("stepper-value").props.children).toBe("12″");
 
     act(() => {
       jest.advanceTimersByTime(150);
     });
-    expect(screen.getByTestId("stepper-value").props.children).toBe("13 s");
+    expect(screen.getByTestId("stepper-value").props.children).toBe("13″");
 
     act(() => {
       jest.advanceTimersByTime(150);
     });
-    expect(screen.getByTestId("stepper-value").props.children).toBe("14 s");
+    expect(screen.getByTestId("stepper-value").props.children).toBe("14″");
 
     await act(async () => {
       fireEvent(increment, "pressOut");
@@ -224,7 +224,7 @@ describe("ProfileStepper — interaction (T5/T6, CE-UI-07 L2549/L2545/L2557/L256
     act(() => {
       jest.advanceTimersByTime(1000);
     });
-    expect(screen.getByTestId("stepper-value").props.children).toBe("14 s");
+    expect(screen.getByTestId("stepper-value").props.children).toBe("14″");
     jest.useRealTimers();
   });
 
@@ -251,7 +251,7 @@ describe("ProfileStepper — interaction (T5/T6, CE-UI-07 L2549/L2545/L2557/L256
       await Promise.resolve();
     });
 
-    expect(screen.getByTestId("stepper-value").props.children).toBe("10 s");
+    expect(screen.getByTestId("stepper-value").props.children).toBe("10″");
     expect(screen.getByTestId("stepper-error")).toBeTruthy();
   });
 
@@ -271,7 +271,7 @@ describe("ProfileStepper — interaction (T5/T6, CE-UI-07 L2549/L2545/L2557/L256
       />,
     );
     fireEvent(screen.getByTestId("stepper-increment"), "pressIn");
-    expect(screen.getByTestId("stepper-value").props.children).toBe("10 s");
+    expect(screen.getByTestId("stepper-value").props.children).toBe("10″");
   });
 });
 

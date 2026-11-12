@@ -435,7 +435,7 @@ describe("PRE4-4.1/AC4 — Modifier une Copie en Séance", () => {
     // Revue 6.2 : sous Jest, `onLayout` ne se déclenche pas ; l'écran refuse un soulèvement sans
     // géométrie complète — chaque rangée affichée reçoit une mesure factice.
     screen
-      .queryAllByTestId(/^composition-(activity-|stop-point-row-)/u, { includeHiddenElements: true })
+      .queryAllByTestId(/^composition-(activity-|stop-point-row-|layout-)/u, { includeHiddenElements: true })
       .filter((node) => typeof node.props.onLayout === "function")
       .forEach((row, index) =>
         fireEvent(row, "layout", { nativeEvent: { layout: { x: 0, y: index * 100, width: 354, height: 80 } } }),

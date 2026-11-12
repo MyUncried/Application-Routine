@@ -1,0 +1,79 @@
+import { describe, expect, it } from "@jest/globals";
+
+import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
+
+import { stepSignalsBetween } from "../signals";
+import { exerciseActivity, planOf, Simulation, structuredSession } from "../testing/simulation";
+
+/**
+ * Recette iPhone du 10/11/2026 (« Guidage sonore — 2 ») : cadence calée sur le temps actif (t1, constat b),
+ * aucun clic pendant les trois dernières secondes (h1), signal minute avec ou sans cadence (G7, h6).
+ */
+
+const S = 1000;
+
+function run(parameters: Parameters<typeof exerciseActivity>[1]) {
+  const session = structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("A", parameters) }], stopPoints: [] });
+  const sim = Simulation.libre(planOf(session));
+  sim.send({ type: "START" }, 0);
+  return sim;
+}
+
+const kinds = (signals: readonly { kind: string; atMs: number }[], kind: string) => signals.filter((signal) => signal.kind === kind).map((signal) => signal.atMs);
+
+describe("signaux — recette du 10/11/2026", () => {
+  it("exercice en Durée avec cadence : aucun clic pendant les trois dernières secondes, qui gardent leurs bips", () => {
+    const sim = run(durationParameters(10, 1, 0, { cadenceBeepIntervalSeconds: 1 }));
+    const signals = stepSignalsBetween(sim.state, 0, 10 * S);
+    expect(kinds(signals, "COUNTDOWN")).toEqual([7 * S, 8 * S, 9 * S]);
+    // Recette du 11/11/2026 (y5) : à 5 s, la mi-temps l’emporte sur le clic (un seul signal par instant).
+    // [Clic de cadence à 5 s — remplacé.]
+    expect(kinds(signals, "CADENCE")).toEqual([1 * S, 2 * S, 3 * S, 4 * S, 6 * S]);
+    expect(kinds(signals, "HALF_TIME")).toEqual([5 * S]);
+  });
+
+  // Recette du 11/11/2026 (Hermann, y5) : « Le signal de mi temps est réservé aux exercice en durée définie, uniquement. »
+  it("mi-temps : seulement pour un exercice en Durée définie, jamais en Répétitions", () => {
+    const timed = run(durationParameters(30, 1, 0));
+    expect(kinds(stepSignalsBetween(timed.state, 0, 30 * S), "HALF_TIME")).toEqual([15 * S]);
+    const reps = run(repetitionParameters(20, 1, 0, { cadenceBeepIntervalSeconds: 2 }));
+    expect(kinds(stepSignalsBetween(reps.state, 0, 120 * S), "HALF_TIME")).toEqual([]);
+  });
+
+  it("mi-temps : aucune pendant les trois dernières secondes (exercice très court)", () => {
+    const short = run(durationParameters(5, 1, 0));
+    expect(kinds(stepSignalsBetween(short.state, 0, 5 * S), "HALF_TIME")).toEqual([]);
+  });
+
+  it("après une Pause, les clics restent calés sur le temps actif affiché par le chronomètre", () => {
+    const sim = run(repetitionParameters(20, 1, 0, { cadenceBeepIntervalSeconds: 2 }));
+    sim.send({ type: "PAUSE" }, 3.4 * S);
+    sim.send({ type: "RESUME" }, 10 * S);
+    // Temps actif 3,4 s à la reprise : prochains clics à 4 s et 6 s de temps actif, soit 10,6 s et 12,6 s.
+    expect(kinds(stepSignalsBetween(sim.state, 10 * S, 13 * S), "CADENCE")).toEqual([10.6 * S, 12.6 * S]);
+  });
+
+  it("signal minute d'une Série en Répétitions, avec cadence (il remplace le clic de cet instant) ou sans", () => {
+    const withCadence = run(repetitionParameters(20, 1, 0, { cadenceBeepIntervalSeconds: 2 }));
+    const signals = stepSignalsBetween(withCadence.state, 59 * S, 61 * S);
+    expect(signals.map((signal) => [signal.kind, signal.atMs])).toEqual([["MINUTE", 60 * S]]);
+    const without = run(repetitionParameters(20));
+    expect(kinds(stepSignalsBetween(without.state, 0, 121 * S), "MINUTE")).toEqual([60 * S, 120 * S]);
+  });
+
+  it("phases du mouvement (constat B) : un signal au début de chaque phase, sauf au départ, jusqu'à la limite du guidage", () => {
+    const sim = run(repetitionParameters(2));
+    // Motif 2 s + 1 s, deux répétitions : limite 6 s ; débuts de phase à 2, 3 et 5 s (0 : départ, 6 : limite).
+    const signals = stepSignalsBetween(sim.state, 0, 10 * S, { durationsMs: [2 * S, 1 * S], limitMs: 6 * S });
+    expect(kinds(signals, "PHASE")).toEqual([2 * S, 3 * S, 5 * S]);
+    // À l'échec (aucune limite) : le motif boucle.
+    expect(kinds(stepSignalsBetween(sim.state, 0, 7 * S, { durationsMs: [2 * S, 1 * S], limitMs: null }), "PHASE")).toEqual([2 * S, 3 * S, 5 * S, 6 * S]);
+  });
+
+  it("phases en Durée : aucun changement de phase pendant les trois dernières secondes, qui gardent leurs bips", () => {
+    const sim = run(durationParameters(10));
+    const signals = stepSignalsBetween(sim.state, 0, 10 * S, { durationsMs: [2 * S, 2 * S], limitMs: 10 * S });
+    expect(kinds(signals, "PHASE")).toEqual([2 * S, 4 * S, 6 * S]);
+    expect(kinds(signals, "COUNTDOWN")).toEqual([7 * S, 8 * S, 9 * S]);
+  });
+});

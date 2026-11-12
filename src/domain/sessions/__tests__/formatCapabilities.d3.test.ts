@@ -23,13 +23,14 @@ import {
 const MODELS: readonly CapabilityModelKey[] = [...ELEMENT_FORMAT_KEYS, ...PRECONFIGURATION_KEYS, "FREE"];
 
 describe("PRE-9 D.3 — descripteurs de capacités par Format", () => {
-  it("un descripteur par modèle (4 Formats, 6 préconfigurations, Libre : 11) ; aucun moteur disponible en PRE-9", () => {
+  it("un descripteur par modèle (4 Formats, 6 préconfigurations, Libre : 11) ; moteur disponible pour les seuls éléments libres depuis PRE-10", () => {
     expect(MODELS).toHaveLength(11);
     expect(Object.keys(FORMAT_CAPABILITIES).sort()).toEqual([...MODELS].sort());
     expect(FORMAT_CAPABILITIES).not.toHaveProperty("CORE_MOBILITY");
     for (const model of MODELS) {
       expect(FORMAT_CAPABILITIES[model].model).toBe(model);
-      expect(FORMAT_CAPABILITIES[model].executionAvailable).toBe(false);
+      // PRE-10 (09/11/2026) : éléments libres et préconfigurations exécutables ; Formats spécialisés : PRE-11.
+      expect(FORMAT_CAPABILITIES[model].executionAvailable).toBe(FORMAT_CAPABILITIES[model].carrier === "FREE_ELEMENTS");
       expect(FORMAT_CAPABILITIES[model].sources.length).toBeGreaterThan(0);
     }
   });

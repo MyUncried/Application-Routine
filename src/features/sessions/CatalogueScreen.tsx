@@ -455,6 +455,7 @@ export function CatalogueScreen() {
                 onOpenSession={(sessionId) =>
                   router.push({ pathname: "/composition", params: { sessionId } })
                 }
+                onStartSession={(sessionId) => router.push({ pathname: "/execution", params: { sessionId } })}
                 onChanged={reloadSessions}
               />
             ) : null}
@@ -582,6 +583,7 @@ function ReadyBody({
   resetToken,
   topInset,
   onOpenSession,
+  onStartSession,
   onChanged,
 }: {
   /** PRE-9 CAT.1 : liste déjà dérivée (`sessionCatalogueContext` : filtres, recherche et vue). */
@@ -590,6 +592,8 @@ function ReadyBody({
   resetToken: number;
   topInset: number;
   onOpenSession: (sessionId: string) => void;
+  /** PRE-10 : Démarrer exécute la Séance (D-504). */
+  onStartSession: (sessionId: string) => void;
   onChanged: () => void;
 }) {
   // PRE-8 (E.2) : carte unique ; Statut Actives par défaut (CE-T03-01 révisé), filtres en E.6.
@@ -602,6 +606,7 @@ function ReadyBody({
       resetToken={resetToken}
       topInset={topInset}
       onOpenSession={onOpenSession}
+      onStartSession={onStartSession}
       onChanged={onChanged}
     />
   );

@@ -25,6 +25,12 @@ import { applyMigration020 } from "./migrations/migration020";
 import { applyMigration021 } from "./migrations/migration021";
 import { applyMigration022 } from "./migrations/migration022";
 import { applyMigration023 } from "./migrations/migration023";
+import { applyMigration024 } from "./migrations/migration024";
+import { applyMigration025 } from "./migrations/migration025";
+import { applyMigration026 } from "./migrations/migration026";
+import { applyMigration027 } from "./migrations/migration027";
+import { applyMigration028 } from "./migrations/migration028";
+import { applyMigration029 } from "./migrations/migration029";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -279,6 +285,42 @@ export async function migrateDatabase(
     if (pending(22)) {
       await applyMigration023(transaction);
       version = 23;
+    }
+
+    // PRE-10 (moteur d'exécution) : tables additives `executions` et `execution_results`. Un échec laisse `user_version` à 23.
+    if (pending(23)) {
+      await applyMigration024(transaction);
+      version = 24;
+    }
+
+    // Suite PRE-10 son et voix : préférence « Annoncer les répétitions ou la durée ». Un échec laisse `user_version` à 24.
+    if (pending(24)) {
+      await applyMigration025(transaction);
+      version = 25;
+    }
+
+    // Suite PRE-10 son et voix : catégories d'annonces séparées. Un échec laisse `user_version` à 25.
+    if (pending(25)) {
+      await applyMigration026(transaction);
+      version = 26;
+    }
+
+    // Suite PRE-10 son et voix : annonce des phases du mouvement. Un échec laisse `user_version` à 26.
+    if (pending(26)) {
+      await applyMigration027(transaction);
+      version = 27;
+    }
+
+    // Fin de PRE-10 : guidage propre à une Séance. Un échec laisse `user_version` à 27.
+    if (pending(27)) {
+      await applyMigration028(transaction);
+      version = 28;
+    }
+
+    // Guidage sonore par événement (Profil et Séance). Un échec laisse `user_version` à 28.
+    if (pending(28)) {
+      await applyMigration029(transaction);
+      version = 29;
     }
 
     if (version !== targetVersion) {

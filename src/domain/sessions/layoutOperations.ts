@@ -63,7 +63,7 @@ import type { StopPoint, TourBoundaryChoice } from "./StopPoint";
 import {
   CYCLE_REPEAT_COUNT_MAX,
   CYCLE_REPEAT_COUNT_MIN,
-  legacyFromStructure,
+  isEditedAsLegacy, legacyFromStructure,
   NO_CIRCUIT_ID,
   structureCircuits,
   structureFromLegacy,
@@ -373,10 +373,10 @@ function cycleCountChanged(draft: SessionDraft, cycleId: string, requested: numb
  */
 export function currentLayout(draft: SessionDraft, newContainerId: () => string): Layout {
   const layout = draft.structure;
-  const legacy = layout === undefined ? null : legacyFromStructure(layout);
-  if (layout !== undefined && legacy === null) {
+  if (layout !== undefined && !isEditedAsLegacy(layout)) {
     return layout;
   }
+  const legacy = layout === undefined ? null : legacyFromStructure(layout);
   const zone = (position: StructuralPosition) => draft.exercises.filter((exercise) => exercise.structuralPosition === position).map((exercise) => exercise.id);
   const tour = legacy?.composition.tour;
   const structure = structureFromLegacy(
@@ -401,7 +401,7 @@ export function currentLayout(draft: SessionDraft, newContainerId: () => string)
  * disposition fait foi (les champs de l'ancien modèle ne sont plus lus).
  */
 export function withLayout(draft: SessionDraft, layout: Layout): SessionDraft {
-  const legacy = legacyFromStructure(layout);
+  const legacy = isEditedAsLegacy(layout) ? legacyFromStructure(layout) : null;
   if (legacy === null) {
     // PRE-9 B.6 : les Points sont ceux de la disposition ; les Points de l'ancien modèle ne sont plus lus.
     return { ...draft, structure: layout, ...(draft.stopPoints !== undefined && draft.stopPoints.length > 0 ? { stopPoints: [] } : {}) };
@@ -889,7 +889,7 @@ export function insertExerciseInLayout(
   after: string | { readonly kind: "CIRCUIT"; readonly id: string } | null,
 ): SessionDraft {
   const layout = draft.structure;
-  if (layout === undefined || legacyFromStructure(layout) !== null) {
+  if (layout === undefined || isEditedAsLegacy(layout)) {
     return { ...draft, exercises: [...draft.exercises, exercise] };
   }
   const anchor = after === null ? null : layoutItemLocation(layout, typeof after === "string" ? { kind: "EXERCISE", id: after } : after);

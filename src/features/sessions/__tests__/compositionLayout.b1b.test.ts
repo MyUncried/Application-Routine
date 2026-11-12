@@ -24,14 +24,16 @@ const twoCircuits: Layout = {
 };
 
 describe("resolveRichLayout", () => {
-  it("ancien modèle (Circuit unique) ou brouillon sans structure : null", () => {
+  it("brouillon sans structure ou sans Circuit : null ; Circuit unique composé à la main : disposition générale (10/11/2026)", () => {
     expect(resolveRichLayout({ exercises: [exercise("a")] })).toBeNull();
+    expect(resolveRichLayout({ exercises: [exercise("a")], structure: { elements: [{ kind: "EXERCISE", exercise: "a" }], stopPoints: [] } })).toBeNull();
+    // Décision de Hermann du 10/11/2026 : un seul rendu des Circuits (options, cadre, glissement identiques).
     expect(
       resolveRichLayout({
         exercises: [exercise("a")],
         structure: { elements: [{ kind: "CIRCUIT", circuit: { id: "c", repeatCount: 1, nature: "TOURS", exercises: ["a"] } }], stopPoints: [] },
-      }),
-    ).toBeNull();
+      })?.elements.map((element) => element.kind),
+    ).toEqual(["CIRCUIT"]);
   });
 
   it("identifiant absent du brouillon ignoré ; Exercice ajouté rendu à la fin, au niveau de la Séance", () => {

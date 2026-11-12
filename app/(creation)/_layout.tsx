@@ -101,6 +101,8 @@ export default function CreationLayout() {
             mouvements ouvert par Créer (`movement-selection`), même feuille native que dans le Catalogue (cohérence).
             [Modale React Native dessinée — voile en fondu, montée par translation, poignée — remplacée.] */}
         <Stack.Screen name="selection-filters" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
+        {/* Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : « Guidage de la séance », ouverte par l'élément Guidage de la Composition. */}
+        <Stack.Screen name="session-guidance" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: SHEET_CONTENT }} />
       </Stack>
   );
 }

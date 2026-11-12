@@ -139,7 +139,31 @@ export const DATABASE_NAME = "kodjo.db";
  * Exercices EMOM d'un Circuit alterné ou d'un Circuit porteur EMOM ramenée à 0 s — reprise de données, aucun
  * changement de schéma. 001..022 inchangées. [A.5, non autorisée, prendra la prochaine version disponible.]
  */
-export const DATABASE_VERSION = 23;
+/**
+ * **PRE-10 (version 24, `migration024`, moteur d'exécution)** : tables additives `executions` (instantané,
+ * checkpoint révisé, statuts) et `execution_results` (résultats idempotents par clé). 001..023 inchangées.
+ */
+/**
+ * **Suite PRE-10 son et voix (version 25, `migration025`)** : table additive `guidance_preferences` (singleton,
+ * préférence « Annoncer les répétitions ou la durée », activée par défaut). 001..024 inchangées.
+ */
+/**
+ * **Suite PRE-10 son et voix (version 26, `migration026`)** : colonnes additives `guidance_preferences`
+ * (annonces des pauses, du début et de la fin de séance, des changements de côté). 001..025 inchangées.
+ */
+/**
+ * **Suite PRE-10 son et voix (version 27, `migration027`)** : colonne additive `guidance_preferences.announce_phases_enabled`.
+ * 001..026 inchangées.
+ */
+/**
+ * **Fin de PRE-10 (version 28, `migration028`)** : colonnes additives nullables `sessions.guidance_*` (guidage propre
+ * à une Séance). 001..027 inchangées.
+ */
+/**
+ * **Guidage sonore par événement (version 29, `migration029`)** : `guidance_preferences.events_json` et
+ * `sessions.guidance_settings`, colonnes additives nullables. 001..028 inchangées.
+ */
+export const DATABASE_VERSION = 29;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

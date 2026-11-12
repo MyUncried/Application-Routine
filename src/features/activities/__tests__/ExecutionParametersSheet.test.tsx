@@ -1,7 +1,7 @@
 import { Host, Menu, Popover, RNHostView } from "@expo/ui/swift-ui";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
-import { AccessibilityInfo, Alert, Keyboard, Modal, Platform, StyleSheet, Switch, TextInput } from "react-native";
+import { AccessibilityInfo, Alert, Keyboard, Modal, Platform, StyleSheet, Switch, TextInput, type AlertButton } from "react-native";
 
 import { formatPhraseDuration, spokenDuration } from "@/domain/activities/durationFormat";
 import {
@@ -319,6 +319,26 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
+/**
+ * Décision de Hermann du 09/11/2026 (recette PRE-10, d5) : Durée de l'exercice saisie ; si elle n'est pas
+ * réalisable, l'alerte native d'arrondi est relevée et le choix `choice` (libellé exact) appliqué.
+ */
+function enterTotalAndRound(seconds: number, choice?: string): { title: string; message: string; choices: string[] } | null {
+  const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+  try {
+    enterExecutionSheetValue("execution-sheet-total", seconds);
+    if (alert.mock.calls.length === 0) return null;
+    const [title, message, buttons] = alert.mock.calls[0]! as [string, string, AlertButton[]];
+    if (choice !== undefined) {
+      const button = buttons.find((candidate) => candidate.text === choice)!;
+      act(() => button.onPress!());
+    }
+    return { title, message, choices: buttons.map((button) => button.text!) };
+  } finally {
+    alert.mockRestore();
+  }
+}
+
 /** Q41 : mise en page simulée d'un élément (position verticale et hauteur, dans son parent). */
 const layoutOf = (testID: string, y: number, height: number) =>
   fireEvent(screen.getByTestId(testID), "layout", { nativeEvent: { layout: { x: 0, y, width: 330, height } } });
@@ -511,15 +531,19 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(2);
   });
 
-  it("P3-14/inverse-enumeration — total demandé 1′40″ : N=3 retenu (égalité vers le plus grand), message d'ajustement 2′00″ ; 1′20″ exact sans message", () => {
+  it("P3-14/inverse-enumeration — total demandé 1′40″ : alerte d'arrondi 1′20″ / 2′00″, 2′00″ choisi → N=3 ; 1′20″ exact sans alerte", () => {
     renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-    // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
-    enterExecutionSheetValue("execution-sheet-total", 100);
+    // [Amendé le 09/11/2026 — décision de Hermann (recette PRE-10, d5) : une Durée de l'exercice non réalisable demande l'arrondi inférieur ou supérieur par une alerte native ; plus d'ajustement automatique ni de message « Durée ajustée à … — Annuler ».]
+    expect(enterTotalAndRound(100, "Arrondir à 2′00″")).toEqual({
+      title: "Arrondir la durée de l’exercice ?",
+      message: "1′40″ ne correspond pas à un nombre entier de séries.",
+      choices: ["Arrondir à 1′20″", "Arrondir à 2′00″"],
+    });
     expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
-    expect(screen.getByText("Durée ajustée à 2′00″ pour respecter un nombre entier de séries.")).toBeTruthy();
+    expect(screen.queryByText(/Durée ajustée/)).toBeNull();
 
     // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
-    enterExecutionSheetValue("execution-sheet-total", 80);
+    expect(enterTotalAndRound(80)).toBeNull();
     expect(valueOf("execution-sheet-series")).toBe("2 séries identiques");
     expect(screen.queryByText(/Durée ajustée/)).toBeNull();
   });
@@ -832,22 +856,16 @@ describe("ExecutionParametersSheet — correction revue 1", () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
-  it("REV-02 — tableau variable ramené à N=1 : total éditable ET appliqué (inversion), message d'ajustement sous la ligne, Annuler restitue ; ✓ uniforme", () => {
+  it("REV-02 — tableau variable ramené à N=1 : total éditable ET appliqué (inversion, après le choix d'arrondi) ; ✓ uniforme", () => {
     const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [60, 20]]) }));
     tap("execution-sheet-series-decrement");
     expect(text("execution-sheet-total")).toBe("40″");
-    // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
-    enterExecutionSheetValue("execution-sheet-total", 100);
-    // 100 s demandés sur 30 s + 10 s : N=2 → 80 s, N=3 → 120 s, égalité → N le plus grand.
+    // [Amendé le 09/11/2026 — décision de Hermann (recette PRE-10, d5) : une Durée de l'exercice non réalisable demande l'arrondi inférieur ou supérieur par une alerte native ; plus d'ajustement automatique ni de message « Durée ajustée à … — Annuler ».]
+    // 100 s demandés sur 30 s + 10 s : N=2 → 80 s, N=3 → 120 s ; 2′00″ choisi.
+    expect(enterTotalAndRound(100, "Arrondir à 2′00″")?.choices).toEqual(["Arrondir à 1′20″", "Arrondir à 2′00″"]);
     expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
     expect(text("execution-sheet-total")).toBe("2′00″");
-    // PRE-5 story 2.5 (AC4) : déplier la Durée de l'exercice ne retire pas le message.
-    showSignals();
-    const json = JSON.stringify(screen.toJSON());
-    expect(json.indexOf('"execution-sheet-row-total"')).toBeLessThan(json.indexOf('"execution-sheet-adjusted"'));
-    expect(json.indexOf('"execution-sheet-adjusted"')).toBeLessThan(json.indexOf('"execution-sheet-row-countdown"'));
-    fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
-    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
+    expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
     enterExecutionSheetValue("execution-sheet-total", 80);
     expect(valueOf("execution-sheet-series")).toBe("2 séries identiques");
@@ -1110,15 +1128,12 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
     }));
 
   it("D-5 — message d’ajustement : Annuler encadré (cadre clair) restaure ; toucher le reste du message le ferme sans annuler", () => {
-    const { onApply } = renderSheet(params({ series: { kind: "UNIFORM", count: 1, target: numberTarget(30), pauseSeconds: 10, loadKg: 0, workPhases: [] } }));
-    // Total demandé 1 min 40 s : N=3 retenu, message d’ajustement (même geste que P3-14/inverse-enumeration).
-    const adjust = () => {
-      // [Roue de la Durée de l'exercice — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
-      enterExecutionSheetValue("execution-sheet-total", 100);
-    };
-    // Annuler encadré : restaure les valeurs précédant l’ajustement (1 série).
+    const { onApply } = renderSheet(params({ series: variableRows([[30, 10], [45, 20], [60, 30]]) }));
+    // [Amendé le 09/11/2026 — décision de Hermann (recette PRE-10, d5) : une Durée de l'exercice non réalisable demande l'arrondi inférieur ou supérieur par une alerte native ; plus d'ajustement automatique ni de message « Durée ajustée à … — Annuler ».] Le message est désormais produit par le retrait d'une Série (« Série supprimée — Annuler »).
+    const adjust = () => fireEvent.press(screen.getByTestId("execution-sheet-table-row-3-remove"));
+    // Annuler encadré : restaure les valeurs précédant le retrait (3 séries).
     adjust();
-    expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
+    expect(valueOf("execution-sheet-series")).toBe("2 séries variables");
     // Recette 2 (T-58, 12/10) remplace le cadre blanc de D-5 : capsule sans contour,
     // blanc transparent à 90 %, demi-cercles, marges droite/haut/bas égales.
     const capsule = StyleSheet.flatten(screen.getByTestId("execution-sheet-adjusted-undo").props.style);
@@ -1130,14 +1145,14 @@ describe("ExecutionParametersSheet — décisions du propriétaire (12/10)", () 
     expect(screen.getByTestId("execution-sheet-adjusted").props.accessible).toBe(false);
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
-    expect(valueOf("execution-sheet-series")).toBe("1 série identique");
-    // Toucher le reste du message : fermé, ajustement conservé (3 séries).
+    expect(valueOf("execution-sheet-series")).toBe("3 séries variables");
+    // Toucher le reste du message : fermé, retrait conservé (2 séries).
     adjust();
     fireEvent.press(screen.getByTestId("execution-sheet-adjusted"));
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
-    expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
+    expect(valueOf("execution-sheet-series")).toBe("2 séries variables");
     validate();
-    expect(applied(onApply).series).toMatchObject({ count: 3 });
+    expect(applied(onApply).series).toMatchObject({ kind: "VARIABLE", rows: [{ target: numberTarget(30) }, { target: numberTarget(45) }] });
   });
 });
 
@@ -2167,10 +2182,11 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       closeExecutionSheetField("execution-sheet-total");
       expect(text("execution-sheet-total")).toBe("40″");
       expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
-      // Total demandé 1 min 40 s → inversion (N = 3) et message d'ajustement.
-      enterExecutionSheetValue("execution-sheet-total", 100);
+      // Total demandé 1 min 40 s → alerte d'arrondi, 2′00″ choisi : inversion (N = 3).
+      // [Amendé le 09/11/2026 — décision de Hermann (recette PRE-10, d5) : une Durée de l'exercice non réalisable demande l'arrondi inférieur ou supérieur par une alerte native ; plus d'ajustement automatique ni de message « Durée ajustée à … — Annuler ».]
+      expect(enterTotalAndRound(100, "Arrondir à 2′00″")).not.toBeNull();
       expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
-      expect(screen.getByTestId("execution-sheet-adjusted")).toBeTruthy();
+      expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     }));
 
   it("PRE4-Q41 — iOS : un seul panneau à la fois ; la sélection suit le panneau ouvert ; le tableau n'est plus sélectionné par un choix hors tableau ; Mode, Changement de côté et Enchainement n'ouvrent ni panneau ni popover", () =>
@@ -3817,31 +3833,18 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     withPlatform("ios", () => {
       const { onApply } = renderSheet(ac4Exercise());
       // [Roue de la Durée de l'exercice — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
-      const adjustTo180 = () => enterExecutionSheetValue("execution-sheet-total", 180);
-      adjustTo180();
-      // Candidats N = 4 (160 s) et N = 5 (200 s), à 20 s chacun de 180 s : N = 5 retenu.
-      expect(Math.abs(4 * 40 - 180)).toBe(Math.abs(5 * 40 - 180));
+      // [Amendé le 09/11/2026 — décision de Hermann (recette PRE-10, d5) : une Durée de l'exercice non réalisable demande l'arrondi inférieur ou supérieur par une alerte native ; plus d'ajustement automatique ni de message « Durée ajustée à … — Annuler ».]
+      // Candidats N = 4 (160 s) et N = 5 (200 s) : les deux sont proposés ; 3′20″ choisi → N = 5.
+      expect(enterTotalAndRound(180, "Arrondir à 3′20″")?.choices).toEqual(["Arrondir à 2′40″", "Arrondir à 3′20″"]);
       expect(valueOf("execution-sheet-series")).toBe("5 séries identiques");
       expect(text("execution-sheet-total")).toBe(formatPhraseDuration(5 * 40));
-      expect(text("execution-sheet-total")).toBe("3′20″");
-      expect(screen.getByText("Durée ajustée à 3′20″ pour respecter un nombre entier de séries.")).toBeTruthy();
-      expect(screen.getByTestId("execution-sheet-adjusted-undo").props.accessibilityLabel).toBe("Annuler");
-      // Capsule déjà livrée (recette 2, T-58) : sans contour, blanc à 10 % d'opacité, demi-cercles.
-      const capsule = StyleSheet.flatten(screen.getByTestId("execution-sheet-adjusted-undo").props.style);
-      expect(capsule).toMatchObject({ borderRadius: 999, backgroundColor: "rgba(255, 255, 255, 0.1)" });
-      expect(capsule.borderWidth).toBeUndefined();
-      // `Annuler` : N et total d'avant l'ajustement.
-      fireEvent.press(screen.getByTestId("execution-sheet-adjusted-undo"));
       expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
+      // 2′30″ demandé : 2′00″ et 2′40″ proposés ; arrondi inférieur choisi → N = 3.
+      expect(enterTotalAndRound(150, "Arrondir à 2′00″")?.choices).toEqual(["Arrondir à 2′00″", "Arrondir à 2′40″"]);
       expect(valueOf("execution-sheet-series")).toBe("3 séries identiques");
-      expect(text("execution-sheet-total")).toBe(formatPhraseDuration(3 * 40));
-      // Toucher le reste du message : fermé, ajustement conservé.
-      adjustTo180();
-      fireEvent.press(screen.getByTestId("execution-sheet-adjusted"));
-      expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
-      expect(valueOf("execution-sheet-series")).toBe("5 séries identiques");
+      expect(text("execution-sheet-total")).toBe("2′00″");
       validate();
-      expect(applied(onApply).series).toMatchObject({ count: 5, target: numberTarget(30) });
+      expect(applied(onApply).series).toMatchObject({ count: 3, target: numberTarget(30) });
     }));
 
   it("PRE4-3.7/AC7 — VoiceOver : ≈ « estimation », ≥ « total prévisionnel partiel », lecture seule « non modifiable », jamais un symbole ni un tiret ; état non transmis par le gris seul ; textes du lexique", () => {

@@ -54,6 +54,14 @@ const sources = {
   "wheel-action-cancel": require("../../../assets/icons/wheel-action-cancel.svg"),
   "wheel-action-validate": require("../../../assets/icons/wheel-action-validate.svg"),
   "select-field-chevron": require("../../../assets/icons/select-field-chevron.svg"),
+  // Guidage sonore (DSF / Actions / Guidage sonore `12145:2108`, Phosphor « faders » light / fill ; chevron « Aller »
+  // de la liste Sons et vibrations `12093:25010`) : exports SVG exacts.
+  "guidance-sound-light": require("../../../assets/icons/icon-guidage-sonore-light.svg"),
+  "guidance-sound-fill": require("../../../assets/icons/icon-guidage-sonore-fill.svg"),
+  "chevron-aller": require("../../../assets/icons/icon-chevron-aller.svg"),
+  // Modale Guidage sonore `12132:27436` (chevron 4 × 10) et Choix d'un son `12068:25044` (« Coche — Son choisi »).
+  "chevron-aller-modale": require("../../../assets/icons/icon-chevron-aller-modale.svg"),
+  "check-sound-chosen": require("../../../assets/icons/icon-coche-son-choisi.svg"),
   // V2-PRE-1 (#287, masters Figma `6322:10874`/`6322:10877`) ; V2-PRE-2
   // (plan §6.5, T13) : silhouette de Zone corporelle — variante homme/femme,
   // affichée dans Modifier le profil (choix) et la modale Zones (icône
@@ -241,6 +249,11 @@ const sizes = {
   // générique entre familles d'icônes (voir `2026-09-04_repetition-pull-
   // down-canonical-icon.md`, § « Contrôle des icônes similaires »).
   "select-field-chevron": [14, 14],
+  "guidance-sound-light": [20, 20],
+  "guidance-sound-fill": [20, 20],
+  "chevron-aller": [7.8, 13.8],
+  "chevron-aller-modale": [5.50003, 11.5001],
+  "check-sound-chosen": [17.2, 13.2],
   // V2-PRE-1/#287, V2-PRE-2 (T13) : glyphe intrinsèque `24×24` (export SVG
   // exact) — taille d'affichage par défaut (`BodyZoneIcon.tsx`, modale
   // Zones) ; `ProfileEditScreen.tsx` passe `size={44}` explicitement pour

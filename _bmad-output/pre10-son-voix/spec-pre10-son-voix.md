@@ -1,0 +1,504 @@
+# Lot PRE-10 — Son et annonces vocales de l'Exécution
+
+## Origine
+
+Recette iPhone PRE-10 n° 2 du 09/11/2026, choix provisoire 6 (`q-son`) : « OK = ajouter expo-audio / expo-speech maintenant (nouvelle version native) ». Hermann, même jour : « Oui » à la préparation du lot ; installation et build EAS soumis à son feu vert.
+
+## Règles applicables (classe A, rien à décider)
+
+- ch08 « Guidage sonore » : Sons et Annonces vocales actifs au début de chaque Exécution, modifiables pendant (interrupteurs déjà livrés) ; annonce vocale du nom de l'Exercice à son début ; « Récupération » au début de `SIDE_RECOVERY` / `POST_ACTIVITY_RECOVERY` ; côté annoncé « côté 1 » / « côté 2 », jamais droite / gauche (RM-243) ; bip aigu pendant les trois dernières secondes de toute étape chronométrée ; Répétitions sans bip et À l'échec sans bip : bip minute ; cadence : signal périodique, sans signal final distinct.
+- ch08 « Arrière-plan et verrouillage » : sons et annonces maintenus « dans la mesure permise par iOS et Android » ; comportement précis renvoyé au spike (RT-001 / P6).
+- Signaux déjà planifiés par le moteur (`signals.ts`, `ExecutionService.emitSignal`) : `TRANSITION` (phase, nom d'Exercice, côté), `COUNTDOWN`, `CADENCE`, `MINUTE`. Aucune modification du moteur.
+
+## Réalisation prévue
+
+1. Espace de travail séparé (`C:\Dev\PRE10-SON`, branche `pre10-son-voix` depuis `pre10-bmad/dev`) avec son propre `node_modules` : celui de PRE10 est une jonction vers `KODJO-BMAD-PRE8`, qu'une installation modifierait.
+2. `npx expo install expo-audio expo-speech` (versions du SDK 57) ; plugin `expo-audio` dans la configuration si la documentation v57 l'exige.
+3. Deux sons courts générés (bip aigu, bip grave ; WAV mono, quelques ko) dans `assets/sounds/`.
+4. `ExecutionSignalAdapter` : restitution par canal, chacun indépendant et sans effet sur l'Exécution en cas d'échec natif :
+   - vibration : inchangée ;
+   - son (`soundEnabled`) : `COUNTDOWN` → bip aigu ; `CADENCE`, `MINUTE` → bip grave ;
+   - voix (`voiceEnabled`, français) : `TRANSITION` d'un Exercice → nom, suivi de « côté 1 » / « côté 2 » pour un Exercice avec changement de côté ; `TRANSITION` de récupération → « Récupération ».
+   - Session audio : lecture même en mode silencieux, les autres sons (musique) atténués pendant un bip ou une annonce puis rétablis.
+5. Tests : choix du son / du texte par signal, interrupteurs, échec natif sans effet ; modules natifs simulés dans Jest.
+6. Documentation : ch12 §12.11 (choix technique, classe D) ; spec PRE-10 et rapport.
+7. Build EAS `development-bmad` (iOS), après feu vert ; installation sur l'iPhone ; Metro servi depuis `PRE10-SON`.
+
+## À CLARIFIER (n'empêchent que le point concerné ; choix provisoires proposés)
+
+1. **Son de transition** : ch08 ne prévoit qu'une annonce vocale au début d'une étape. Proposé : avec la voix coupée et le son actif, un bip grave au début de chaque étape ; aucune annonce pour Compte à rebours initial, Pause entre séries et Fin de séance.
+2. **« Bip grave pendant les exercices chronométrés »** (ch08, liste du guidage) : sens non précisé (bip de cadence ? battement régulier ?). Proposé : bip grave réservé à la cadence et au signal minute ; rien de plus pendant une Durée.
+3. **Arrière-plan / écran verrouillé** : non traité dans ce lot (spike RT-001 / P6) ; sons et annonces au premier plan seulement.
+
+## Feu vert et réalisation (09/11/2026)
+
+Hermann : « Feu vert pour toutes les étapes ». Les trois choix provisoires À CLARIFIER sont appliqués tels que proposés (non confirmés explicitement ; à confirmer en recette, points S5–S7 du cahier). Réalisé : `npm ci` dans `PRE10-SON` ; `expo-audio` ~57.0.5, `expo-speech` ~57.0.3 ; plugin `expo-audio` non ajouté (documentation v57 : inutile pour la lecture au premier plan ; il ajouterait mode audio d’arrière-plan et permission micro) ; `ExecutionSounds`, `ExecutionVoice`, `ExecutionSignalAdapter` ; tests `ExecutionSignalAdapter.test.ts` ; ch12 §12.11 (note d’implémentation, classe D). Classe des comportements : A (ch08 « Guidage sonore », RM-243) et C pour les trois choix provisoires.
+
+
+## Recette « Son et voix » du 09/11/2026 — retours et suite
+
+Notes de Hermann (cahier en ligne, recopiées textuellement) :
+
+- S1 (KO) : « Impression d’un très léger décalage entre le bip et le tempo, le bip en avance, peut être dû à la durée du bip. »
+- S2 : « Voix très robotique, qui saute un peu au début du premier. Un bip aigu comme un sifflet doit être entendu au démarrage à t0 »
+- S3 (KO) : « Il faut annoncer les pauses et les récupération aussi. Annoncer le nombre de rep ou la durée avec le nom de l’exercice, en option (je n’ai pas défini où gérer l’option du nom de l’exercice). Il faut un bip, et qu’il soit spécifique, pour le pour d’arrêt »
+- S6 (OK) : « La définition des sons doit se faire dans le profil (compte à rebours / fin de séance, départ d’exercice en compte à rebours / chronomètre, pause, point d’arrêt, récupération, dernier bip, activation guidage d’arrière plan ou pas). Cadence : le bip doit être comme un tic tac »
+- S7 (OK) : « Je n’entends pas d’annonce ni de bip lorsque l’application tourne en arrière plan. Bip / voix d’arrière plan doivent être possible en fonction de la configuration dans le profil, voir dans la séance. »
+- S9 (KO) : « La musique ne baisse pas de volume »
+- S0, S4, S5, S8 : OK. S5 confirme le bip grave au début d’une étape sans annonce.
+
+Réalisé sans nouveau build (JavaScript et sons seulement), classe B pour les règles et D pour la technique :
+
+- S2 : sifflet à t0 au début de chaque Exercice, annonce du nom 450 ms après. La voix française de meilleure qualité installée est choisie (Premium, puis Améliorée). La session audio et la voix sont préparées au début de l’Exécution, et la session est activée avant de parler.
+- S3 : « Pause » au début d’une Pause entre séries ; « Récupération » aussi entre blocs (`BLOCK_REST`) ; son spécifique au Point d’arrêt (deux notes descendantes).
+- S6 : cadence en tic et tac alternés.
+- S1 : son et vibration joués à l’image suivante, après l’affichage de la seconde. Cause **non démontrée** (écart estimé d’une à trois images).
+- S9 : la session audio est désactivée après sa configuration, activée avant une annonce et libérée à la fin de la dernière. iOS n’applique `duckOthers` qu’à l’activation. Cause **plausible, non démontrée sur l’iPhone**.
+
+À CLARIFIER / tranche ultérieure, sans rien bloquer d’autre :
+
+1. Configuration des sons dans le Profil (S6) : écran et contenu à concevoir (Figma).
+2. Annonce optionnelle des répétitions ou de la durée (S3) : emplacement de l’option non défini.
+3. Guidage en arrière-plan (S7) : nécessite le mode audio d’arrière-plan (plugin `expo-audio`, `UIBackgroundModes`), donc un nouveau build. Il dépend aussi de la configuration du point 1.
+
+Documents : ch08 « Guidage sonore » (complément daté).
+
+
+## Définition complète du 10/11/2026 (formulaire « Guidage sonore KODJO »)
+
+Source : base du formulaire https://claude.ai/artifact/68bqRRkmsuP9qKABnhr5BR, collection `definition`, lue le 10/11/2026. Hermann a laissé certains moments sans modification, ce qui vaut acceptation de la valeur proposée. La table est recopiée dans ch08 « Guidage sonore ».
+
+- Moments modifiés :
+  - dernières secondes : bip grave, 3 s, vibration moyenne ;
+  - zéro : rien ;
+  - départ en Répétitions : sifflet pur à 55 % ;
+  - changement de côté : double bip à 55 % ;
+  - cadence : clic doux à 35 % ;
+  - signal minute : ding à 15 % ;
+  - Point d'arrêt : double bip à 100 % ;
+  - fin de séance : bip long, vibration moyenne.
+- Moments acceptés tels que proposés :
+  - Compte à rebours : « Préparez-vous » ;
+  - départ en Durée : sifflet roulé ;
+  - Pause entre séries : « Pause » ;
+  - récupérations : « Récupération ».
+- Réglages généraux :
+  - musique : « tout » (atténuée pendant les annonces et les sons) ;
+  - mode silencieux : audible ;
+  - arrière-plan : oui ;
+  - moment de l'annonce du nom : avant ;
+  - détail des répétitions ou de la durée : selon une option ;
+  - réglage : non coché, remarque « Les trois ».
+
+Réalisé (JavaScript et sons, sans nouveau build) :
+
+- Table appliquée : sons, volumes, vibrations par moment.
+- « Prochain exercice : … » ajouté à l'annonce du Compte à rebours, de la Pause ou de la récupération qui précède un autre exercice. Au départ, le son seul, ou « Côté 1 » ; le nom n'est annoncé au départ que s'il ne l'a pas été avant.
+
+À CLARIFIER (n'empêchent que le point concerné) :
+
+1. **Musique « tout »** : atténuer la musique pendant chaque son oblige iOS à réactiver la session audio à chaque bip. C'est la cause probable des bips « très en retard » du 2e passage. Choix possibles :
+   - (A) atténuer pendant les annonces seulement (appliqué en attendant) ;
+   - (B) atténuer pendant toute l'Exécution ;
+   - (C) atténuer à chaque son, en acceptant un retard.
+2. **« Les trois »** : interprétation retenue, à confirmer : réglage dans le Profil, modification possible pour une séance, et interrupteurs Sons et Voix pendant l'Exécution.
+3. **Tranche suivante**, qui demande un nouveau build et des écrans à concevoir :
+   - réglages du Profil et de la séance ;
+   - option d'annonce des répétitions ou de la durée ;
+   - guidage en arrière-plan.
+
+## Demandes du 10/11/2026 (après application de la définition)
+
+Texte de Hermann, recopié :
+
+> Peux tu ajouter au formulaire :
+>  - la possibilité de renseigner le texte vocal avant le prochain exercice
+>  - l’enregistrement du besoin suivant. A suivre : mettre en ligne la liste des exercices de la séance et afficher au fur et à mesure 1. l’exercice en cours (gras), mettre l’exercice passé en gris puis qui disparaît. C’est une tentative pour voir ce que cela apporterait avant de faire le Figma cible
+
+Traitement :
+
+- Formulaire « Guidage sonore KODJO » (version 3) : nouvelle fiche « Annonce du prochain exercice ». Texte proposé : « Prochain exercice : {prochain} », comme dans l'application aujourd'hui. Le texte retenu sera appliqué après lecture de la base. Aucun changement de code pour l'instant.
+- Section « Besoins à suivre » ajoutée au formulaire. Le besoin ci-dessus y est enregistré (base, document `definition/besoins`).
+
+À SUIVRE (non arbitré, aucune règle créée, classe C) : un essai de liste des exercices de la séance pendant l'Exécution :
+
+- l'exercice en cours en gras ;
+- l'exercice passé en gris, puis il disparaît.
+
+Cet essai sert à juger l'apport avant le Figma cible. Il n'est ni spécifié ni planifié. Le Figma cible reste la référence du rendu.
+
+## Réponses du 10/11/2026 aux trois points À CLARIFIER
+
+Réponses de Hermann, recopiées :
+
+1. Musique : « A — Annonces seulement (Recommandé) ». La musique baisse pendant les annonces vocales seulement. C'est déjà le cas dans l'application, aucun changement de code. Cette réponse remplace « tout ». Point 1 résolu.
+2. « Les trois » : « Oui, les trois ». Réglage dans le Profil, modifiable pour une Séance, interrupteurs Sons et Voix pendant l'Exécution. Point 2 résolu.
+3. Lot suivant : « Oui, prépare la spec ». La spec est rédigée dans `spec-guidage-reglages.md` et attend sa validation.
+
+ch08 « Guidage sonore » est complété par une annotation datée (classe B).
+
+
+## Recette iPhone du 10/11/2026 « Guidage sonore — définition » et choix du formulaire
+
+Résultats de Hermann, recopiés (cahier, collection `results`) :
+
+- G1 Compte à rebours, G4 départ en Répétitions, G5 bilatéral, G9 Point d'arrêt : OK.
+- G2 dernières secondes : KO, « Le bip grave est la, mais il y a un autre son ne même temps, le son n'est pas pur. »
+- G3 départ en Durée : KO, « Le sifflet roulé est la, mais il y a un autre son ne même temps, le son n'est pas pur. »
+- G6 cadence : KO, « Le clic doux est la, mais il y a un autre son ne même temps, le son n'est pas pur. »
+- G7 signal minute : KO, « Il n'y a pas de bip à la minute d'un exercice en répétition, et augmenter le son à 50% ».
+- G8 Pause : OK, avec la note « A corriger : annoncer l'objectif (nombre de répétition, durée) avec le nom du mouvement. »
+- G10 fin de séance : KO, « je n'ai rien entendu ».
+- Constat : « Bilatéralité : annoncer "changez de côté" plutôt que "côté 1". et "premier côté" à la place de "côté 1" ».
+
+Choix enregistrés dans le formulaire après l'application du 10/11 (base `definition`, lue le 10/11/2026) :
+
+- annonce du prochain exercice : « À suivre : {prochain} » ;
+- départ en Durée : sifflet roulé à 55 %, annonce « {exercice} » ;
+- départ en Répétitions : sifflet pur à 85 %, annonce « {exercice} {répétitions} » ;
+- changement de côté : sifflet court à 55 % ;
+- zéro : bip grave à 100 %, sans vibration ;
+- fin de séance : fanfare courte (raccourcie le 10/11) à 60 %, vibration moyenne.
+
+Traitement (classe B, ch08 annoté) :
+
+- Annonces :
+  - « À suivre : {exercice}, {objectif} » au Compte à rebours, à la Pause ou à la récupération qui précède un autre exercice ;
+  - objectif annoncé avec le nom au départ quand le nom n'a pas été annoncé avant ;
+  - format de l'objectif : spec des réglages §7.3. Une plage de répétitions n'existe pas dans le modèle de cible actuel, rien n'est donc annoncé pour ce cas.
+  - L'option d'annonce de l'objectif (Profil) reste dans le lot des réglages. D'ici là, l'objectif est toujours annoncé, comme demandé par la note G8.
+- Bilatéral : « Premier côté » au départ, « Changez de côté » au changement de côté. Le constat prévaut sur l'annonce « {exercice}, côté {côté} » du formulaire.
+- Zéro : bip grave quand l'étape qui commence n'a pas son propre son. Quand elle a un sifflet, seul le sifflet sonne (un signal par instant, T07).
+- G10 :
+  - le son de fin de séance est joué à l'achèvement de la Séance, nouveau signal `FINISH` du service d'exécution ;
+  - avant cette correction, le bip long était joué au début de la Fin de séance seulement ;
+  - le début de la Fin de séance reçoit le bip grave du zéro ou de la règle S5.
+- G7 : ding porté à 50 %. Cause probable : le ding à 15 % était inaudible.
+  - Le signal minute reste réservé aux Séries sans bip de cadence (ch08, `signals.ts`).
+  - Si l'exercice testé avait un bip de cadence, c'est la règle actuelle. À confirmer par la recette h6.
+- G2, G3, G6 : cause non démontrée. Les fichiers WAV sont propres (aucun écrêtage, un seul son). Deux hypothèses :
+  - (a) la vibration, simultanée et audible ;
+  - (b) le même son joué deux fois par deux instances.
+
+  Correctif de sûreté contre (b) : un seul lecteur par son pour toute l'application, et un même signal n'est jamais restitué deux fois. Diagnostic demandé dans la recette h1 : rejouer avec Vibrations désactivé.
+
+
+## Recette iPhone du 10/11/2026 « Guidage sonore — 2 »
+
+Résultats et constats de Hermann, recopiés (cahier, collection `results`) :
+
+- h1 : KO, « le son "click" est toujours la pendant les 3 bips, pas pendant la cadence, ni pour le point final ou le sifflet. enlever la vibration ne change rien. »
+- h2 : KO, « J'entends le sifflet et le click de la cadence en même temps il faut retirer le click de la cadence quand 'il y a un sifflet / Au zéro, mettre le son de la "Pause" / du "Point d'arrêt" (double bip) ».
+- h3 : OK, « régler le sifflet pur à la même force que le sifflet roulé (55%) ».
+- h4 : OK, « Modifier : Découper le message des exercices en deux : le nom du mouvement tel qu'il est annoncé actuellement, le nombre de répétition ou la durée après le coup de sifflet. »
+- h5 et h7 : OK.
+- h6 : KO, « Je n'entends pas de signal à la minute, avec ou sans bip de cadence. »
+- G7 : « A corriger : mettre le bip à la minute d'un exercice en répétition avec cadence aussi ; mettre son à 30% ».
+- G8 et G10 : OK.
+- t1 : KO, « Après avoir appuyé sur pause, puis reprendre la séance, le bip est décalé par rapport au temps. »
+- Constats :
+  - a) « Quand on appuie sur pause, il faut le son "Pause" / "Point d'arrêt" » ;
+  - b) « Encore des problèmes de décalage entre les bips et le chrono, souvent après une pause et une reprise, dès fois deux clics très rapprochés notamment juste après une annonce. » ;
+  - c) « Découper le message des exercices en deux : le nom du mouvement tel qu'il est annoncé actuellement, le nombre de répétition ou la durée après le coup de sifflet. » ;
+  - d) « encore des problème d'annonce, mot qui premier saute ou avec première syllabe coupée » ;
+  - f) « retirer le bip du démarrage du compte à rebours ».
+
+Causes et traitement (classe B, ch08 annoté) :
+
+- h1, cause démontrée par le code :
+  - un exercice en Durée avec bip de cadence jouait ses clics jusqu'au zéro, en plus des trois bips graves ;
+  - « son pas pur » de G2 n'est donc pas la vibration (confirmé par Hermann).
+  - Correctif : plus de clic de cadence dans les trois dernières secondes d'une étape chronométrée (`signals.ts`).
+- h2 :
+  - pas de clic de cadence moins de 700 ms après un autre son (`ExecutionSignalAdapter`) ;
+  - zéro : double bip.
+- t1 et b :
+  - cause démontrée par le code : après une Pause, les clics étaient ancrés sur l'instant de la reprise (§13 « premier nouveau bip après un intervalle complet »), donc décalés du chronomètre, qui affiche le temps actif.
+  - Correctif : clics calés sur le temps actif. Le décompte des intervalles acquis (T04) n'est pas modifié.
+  - Deux clics rapprochés après une annonce : cause probable, un clic retardé pendant la reconfiguration de la session audio, suivi du clic suivant à l'heure. Correctif : un clic demandé pendant une reconfiguration est omis plutôt que joué en retard. Cause non démontrée.
+- a) : signal `PAUSE` émis par le service d'exécution pour une Pause de l'utilisateur. Il joue le double bip, avec une vibration forte.
+- c) et h4 :
+  - avant le départ : « À suivre : {exercice} » ;
+  - après le sifflet : l'objectif, précédé de « premier côté », ou du nom s'il n'a pas été annoncé avant.
+- d) : la parole attend 180 ms après la réactivation de la session audio (`VOICE_START_DELAY_MS`). Cause probable, non démontrée.
+- f) : l'état de l'adaptateur (étape précédente chronométrée) n'est plus hérité de l'Exécution précédente. Cause démontrée par le code.
+- G7 et h6 :
+  - signal minute pour toute Série en Répétitions ou À l'échec, cadence comprise, prioritaire sur le clic au même instant ;
+  - ding à 30 % ;
+  - le test unitaire confirme l'émission à 60 s et 120 s.
+  - Cause de l'absence sur iPhone non démontrée.
+  - Un journal `[guidage]` (mode développement) est ajouté dans la console Metro pour la diagnostiquer à la prochaine recette.
+- h3 : sifflet pur à 55 %.
+
+
+## Recette iPhone du 10/11/2026 « Guidage sonore — 3 »
+
+Résultats et constats de Hermann, recopiés :
+
+- k1 : KO, « je les entends encore pendant le compte à rebours ».
+- k2 : KO, « je l'entends toujours ».
+- k3 : OK, « a modifier : si on appui sur suivant et qu'on arrive sur une pause / une récupération, alors on doit entendre le double bip ».
+- k4 : KO, « Il n'y a pas de vibration, mais un click en plus sur double bip et le haptique du click ».
+- k5 : OK, « Mais à corriger : pas spécifiquement après pause ou répétition, le click doux tombe je pense légèrement après le tempo, d'ailleurs je note que lorsque ce click tombe en même temps que les 3 derniers bips, il y a un décalage (le click arrive après le bip) ».
+- k6, k7 : OK.
+- G7 : « J'entends le ding, mettre le son à 15% ».
+- t7 : KO, « Le son baisse pendant les annoncent, il faut qu'il baisse aussi pendant les comptes à rebours, les sifflets et les bit de départ et d'arrêt, pas sur les cadences. Lorsqu'il y a de la musique (a priori) les deux premiers bips du compte à rebours sont très rapprochés ».
+- Constat b) maintenu.
+
+Analyse :
+
+- Le journal `[guidage]` de Metro, pendant l'essai, montre qu'aucun bip de cadence n'est joué pendant les trois derniers bips. Le correctif `signals.ts` est donc effectif.
+- Le « click » entendu avec les bips, le sifflet et le double bip accompagne la vibration : c'est le choc du vibreur de l'iPhone (impact), qui s'entend. C'est l'hypothèse la plus probable, non démontrée.
+- L'essai « enlever la vibration ne change rien » (h1) n'était pas probant : la préférence Vibrations n'était lue qu'à l'ouverture de l'écran d'Exécution.
+- Le diagnostic est demandé en m1. Selon sa réponse, un choix de Hermann sera nécessaire (vibration sur les moments sonores ou non). À CLARIFIER après m1.
+
+Traitement (classe B, ch08 annoté) :
+
+- k3 : double bip à l'arrivée sur une Pause ou une récupération, dans tous les cas.
+- G7 : ding à 15 %.
+- t7 :
+  - musique atténuée pendant les annonces, les bips de fin, les sifflets, les doubles bips, le bip de départ et la fanfare, pas pendant la cadence ni le ding ;
+  - nouveau signal `PREPARE`, sans son, 0,7 s avant le premier bip de fin : l'atténuation est demandée à l'avance, pour que les bips restent à l'heure ;
+  - l'atténuation est maintenue 1,5 s après le dernier son atténuant.
+  - Cela remplace le choix A du 10/11/2026.
+- k5 : le lecteur revient au début dès la fin du son, donc le son suivant part sans repositionnement.
+- h1, m1 : la préférence Vibrations est relue au retour sur l'écran d'Exécution.
+
+
+## Diagnostic du « click » du 10/11/2026 (conversation)
+
+Messages de Hermann, recopiés :
+
+- « j'arrête de suite les tests, j'ai toujours le bip et le click en même temps, ce n'est pas le même son que le click doux de la cadence » ;
+- « dans réglages, j'ai mis Vibration à "Ne jamais vibrer", sur le même écran Vibrations du système est toujours activé. Même résultat (à noter que le click apparaît parfois seulement à partir du deuxième bip) » ;
+- « j'ai désactivé les vibration du système aussi, pas de changement » ;
+- « que le bip grave ».
+
+Conclusion :
+
+- La vibration n'est pas en cause (hypothèse retirée).
+- Le click n'accompagne que le bip grave, joué à 100 %. C'est un son grave, avec un niveau élevé et une montée de 5 ms : cause probable, le haut-parleur de l'iPhone qui claque. Non démontré.
+- Correctif (classe D, son choisi inchangé) : recette du bip grave adoucie dans le formulaire et dans l'application :
+  - niveau 0,55 au lieu de 0,8 ;
+  - montée de 15 ms ;
+  - fin de 50 ms.
+- `assets/sounds/bip-grave.wav` régénéré depuis le formulaire.
+- Le formulaire ne produit plus de son sur l'iPhone de Hermann (signalé le 10/11/2026) : cause non recherchée.
+
+Suite du diagnostic (10/11/2026) : avec le bip adouci, Hermann note « le click est tjour sla, moins fort ».
+
+Le défaut suit donc le niveau du son. Deuxième correctif (classe D) : note du bip grave portée de 660 à 784 Hz, qui reste plus grave que le double bip (1000 Hz), avec une montée de 20 ms et une fin de 60 ms. Un son trop grave pour le haut-parleur de l'iPhone le fait saturer. Cause probable, non démontrée.
+
+Suite du diagnostic (10/11/2026) : avec le bip grave à 784 Hz, Hermann note « le click bip a disparu des bips, mais est toujours présent pour Pause, le sifflet roulé et continu ».
+
+Analyse :
+
+- Dans le journal Metro, la Pause (1794318058391) tombe 16 ms après l'échéance du retour du volume de la musique, planifié 1,5 s après le sifflet (1794318056875).
+- Pour changer l'atténuation, la session audio est désactivée puis réactivée. Cette désactivation arrête net tout son en cours, d'où le click.
+- Les sifflets, plus longs, sont exposés de la même façon quand une annonce ou le retour du volume tombe pendant leur lecture.
+- Mécanisme probable, non démontré sur appareil.
+
+Correctif (classe D) : une reconfiguration de la session attend la fin du son en cours (durée de chaque fichier, plus 40 ms). Des journaux \`[guidage] son …\` et \`[guidage] session …\` sont ajoutés en développement pour confirmer à la prochaine écoute.
+
+Suite du diagnostic (10/11/2026) : « le click reste sur le sifflet roulé, et le point d'arrêt, et la pause ».
+
+Dans le journal, le double bip du Point d'arrêt (1794318401860) est joué sans reconfiguration de session à moins de 1,5 s. Le click vient donc du son lui-même, comme pour le bip grave.
+
+Correctif (classe D, sons choisis inchangés) :
+
+- double bip : niveau 0,55, montée de 20 ms, fin de 40 ms, chaque bip passant à 90 ms ;
+- sifflet roulé : niveau 0,6, montée de 25 ms, fin de 60 ms.
+
+Fichiers régénérés depuis le formulaire (version 10).
+
+
+## Cause racine du click et décision du 10/11/2026
+
+Preuves recueillies avec Hermann, sans musique :
+
+- le click s'entend aussi avec des écouteurs, il est donc dans le signal ;
+- avec les vibrations du système coupées, le click reste ;
+- sur l'écran de diagnostic `routine://diagnostic-sons`, qui ne reconfigure jamais la session audio, le double bip ne fait aucun click (« Double bip: A, B, C, et D, je n'entends pas le click ») :
+  - même lecteur, avec le volume réglé une fois ou avant chaque son ;
+  - lecteur neuf, avec ou sans réglage du volume.
+- En Exécution, avec les mêmes fichiers, le click est présent.
+- Remarque de Hermann : « ce click n'existait pas je pense à la première liuvraison de l'exécution ». La première livraison (b362aa34) réglait la session une seule fois, en `duckOthers`, sans jamais la désactiver.
+
+Cause racine, attribution plausible et fortement étayée :
+
+- la désactivation et la réactivation de la session audio pendant l'Exécution, pour atténuer la musique par moments, coupaient net le son en cours ;
+- ce mécanisme a été introduit par 9af6fdc5 et cee722ad (atténuation pour les annonces), puis étendu par ae8a7a51 (sons) ;
+- il explique aussi les bips décalés ou manquants.
+- Les adoucissements des sons (923b0ff7, ecd20f31, be7addf2) n'étaient que des contournements.
+
+Décision de Hermann, recopiée : « 1.A. Mais peut-on modifier le son de la musique en cour d'exercice ? 2.A »
+
+- 1.A : musique atténuée pendant toute l'Exécution. La session est réglée une fois et n'est plus jamais désactivée pendant la séance.
+- 2.A : retour aux sons choisis dans le formulaire. Les fichiers sont identiques à ceux de 9b9339ef.
+
+Traitement (classe B, ch08 annoté) :
+
+- `ExecutionSounds` : suppression de toute reconfiguration.
+- `ExecutionVoice` : plus d'atténuation par annonce.
+- Signal `PREPARE` retiré.
+- Écran de diagnostic conservé, en développement seulement (accès depuis le Profil).
+
+
+## Cause racine du click, démontrée le 10/11/2026 (écran de diagnostic)
+
+Essais de Hermann (écran `Profil › Diagnostic des sons`, écouteurs, sans musique), recopiés :
+
+- A à E, en mélange puis en atténuation : « il n'y a de click dans aucun scénario ».
+- F (annonce vocale, puis le même lecteur rejoué trois fois) : « Double bip / sifflet roulé / Sifflet pur / Bip grave + Attenuation / Mélange + F -> click à partir du deuxième bip seulement ».
+- H et I : « H pas de click, I clicks ».
+  - H : après une annonce, un lecteur neuf à chaque son.
+  - I : annonce dans sa propre session.
+
+Cause démontrée :
+
+- après une annonce de la synthèse vocale, un même lecteur rembobiné puis rejoué produit un click à partir du deuxième son ;
+- c'est vrai quel que soit le son et quel que soit le mode de session ;
+- un lecteur neuf à chaque son ne claque pas.
+- Attribution historique : la première livraison (b362aa34) rejouait déjà le même lecteur, mais ses annonces étaient rares. Le click est devenu audible avec les annonces fréquentes (« À suivre », « Pause », objectif) et les sons rejoués toutes les secondes.
+- Les hypothèses précédentes sont réfutées comme causes du click : vibration, reconfiguration de la session, saturation du haut-parleur.
+
+Correctif (classe D, choix technique) : `ExecutionSounds` joue chaque son avec un lecteur neuf, préparé à l'avance (un prêt par son), et le libère 3 s après. La voix n'est pas modifiée.
+
+La décision 1.A (musique atténuée toute la séance) reste en vigueur. Elle supprime en plus les bips décalés ou manquants causés par les reconfigurations.
+
+Suite du 10/11/2026 :
+
+- Recette en séance du lecteur neuf par son : « il n'y a plus de click ».
+- Question de Hermann : « est ce que c'est une solutino dison optimale d'ouvrire et de fermer un lecteur neuf pour chaque son ? »
+- Essai J (même lecteur, fichier rechargé après chaque lecture) : « pas de click ».
+
+Correctif retenu (classe D) : un lecteur par son, dont le fichier est rechargé dès la fin de chaque lecture. Cette méthode est plus économe qu'un lecteur neuf par son. Un son redemandé avant le rechargement déclenche aussitôt ce rechargement.
+
+
+## Vibrations de séance (10/11/2026)
+
+- Résultat k4, recopié : « Il n'y a pas de vibration ».
+- Échanges, recopiés : « non, il y a erreur, les vibrations n'ont jamais marchées » ; « Oui, un petit tapotement ».
+- Constat : l'adaptateur appelait `Haptics.impactAsync`, qui produit un tapotement bref, et non une vibration.
+- Décision de Hermann (« Mélange ») :
+  - forte = vibration classique (`Vibration.vibrate()` de React Native, environ 0,4 s) ;
+  - moyenne = trois tapotements rapprochés (90 ms) ;
+  - légère = un tapotement.
+- Traitement (classe B, ch08 annoté) : `ExecutionVibration` (`VibrationPort`), branché dans `ExecutionSignalAdapter`.
+
+
+## Essai : liste des exercices pendant l'Exécution (10/11/2026)
+
+Messages de Hermann, recopiés :
+
+- « il y a besoin que tu n'as pas intégré : la liste des activités de la séance qui défile sur l'écran au fur et à mesure de l'exécution de la séance, à moins que ce soit prévu pour après » ;
+- « Oui » puis « Maintenant ».
+
+Le besoin d'origine est noté plus haut, au 10/11/2026, comme « À suivre » : un essai avant le Figma cible.
+
+Réalisé (classe C, essai non normatif ; aucune règle ni aucun contrat d'écran modifiés) :
+
+- `projection.outline` : une ligne par occurrence d'Exercice, dans l'ordre du plan, avec le tour du Circuit.
+  - « en cours » pendant l'Exercice et ses pauses ;
+  - « passé » pendant la récupération ou le Point d'arrêt qui suit, puis retiré au départ de l'Exercice suivant.
+- `ExecutionScreen` affiche une liste « Séance » sous « À suivre » : en cours en gras, passé en gris (`colors.disabled`).
+- Limites :
+  - Formats (SCOPE) non couverts, PRE-11 ;
+  - liste complète, défilante avec l'écran.
+
+À CLARIFIER après la recette l1 à l5 : rendu cible (Figma) et règle fonctionnelle, avant toute écriture dans ch08 ou ch13.
+
+Suite, demande de Hermann recopiée : « Faire apparaître les pauses, etc. ».
+
+La liste passe des exercices aux étapes : une ligne par étape du plan, avec le nom, la Série et le côté d'un Exercice, ou la phase et sa durée prévue. L'étape en cours est en gras ; la précédente est grise puis retirée. Il s'agit toujours de l'essai de classe C.
+
+Suite, demande de Hermann recopiée : « Sauf compte à rebours et fin de séance ». Le Compte à rebours initial et la Fin de séance sont retirés de la liste.
+
+Décision de Hermann, recopiée : « C’était juste un essai. Mettons cette liste de côté et continuons le développement ».
+
+L’ffichage de la liste est retiré de l’\écran d’xécution. Le calcul `projection.outline`, son test et le résultat de l’ssai (ce document) sont conservés comme base pour le Figma cible. Aucune règle n’st créée.
+
+## Constat A du 10/11/2026 : options du Circuit absentes (Composition)
+
+Constat de Hermann, recopié : « Régression constatée : Recette A, les options du circuit ne s’affichent pas. Pas si j’ajoute un deuxième circuit avec exercice libre ou un cycle, les options marchent pour les deux circuits ou pour le circuit. » Décision : « Enquête sans attendre ».
+
+Analyse (enquête en lecture seule, historique Git) :
+
+- Une Séance qui a un seul Circuit composé à la main (sans Format, sans modèle d'origine, sans Cycle) relève de l'ancien modèle (`legacyFromStructure`), avec le rendu historique de la Composition.
+- Les options du Circuit replié (Renommer, Modifier le format, Dupliquer, Supprimer ; MAJ des écrans Formats du 04/11/2026, §6 quinquies) n'ont été branchées, par fc1061d0 (04/11/2026), que sur la disposition générale (`LayoutCircuitBlock`). Son test le dit : « l'ancien modèle à Circuit unique n'a pas d'en-tête repliable par Circuit ». Cette prémisse était fausse depuis 2c835755 (29/10/2026), qui avait rendu ce Circuit repliable.
+- Attribution :
+  - le défaut est **démontré** dans le code ;
+  - « régression » au sens strict : **indéterminée**. Aucun commit n'a retiré ces options. Recette A est probablement passée à un seul Circuit composé à la main.
+- Ce lot (son et voix) ne touche pas la Composition.
+
+Correctif (classe A, conformité à la MAJ du 04/11/2026 §6 quinquies) :
+
+- Le Circuit unique de l'ancien modèle reçoit, une fois replié, les options Renommer, Dupliquer et Supprimer. « Modifier le format » est absent : un Circuit issu d'un modèle relève déjà de la disposition générale.
+- Un Circuit nommé quitte l'ancien modèle (`legacyFromStructure` renvoie null), comme un Circuit issu d'un modèle : l'ancien modèle n'en porte pas le nom, qui serait perdu à l'enregistrement. Choix technique, classe D.
+- Tests : `CompositionScreen.circuitActions0411.test.tsx`, trois cas sur un Circuit unique :
+  - options au repli seulement ;
+  - Renommer enregistre le nom et passe à la disposition générale ;
+  - Dupliquer, puis Supprimer avec confirmation.
+
+### Suite du constat A : recette c1 KO et décision (10/11/2026)
+
+Résultat c1, recopié : « les cadres des options ne sont pas de la même hauteur que le cadre du circuit. le cadre du circuit ne glisse pas vers la droite (comment ce fait-il qu'on régresse sur des sujets de format et de comportement déjà validés plusieurs fois, tu n'utilises pas des composants réutilisables ?) […] j'ai un message "Maximum update depth exceed. this can..." […] ».
+
+Analyse :
+
+- Le correctif 7bd5555b plaçait le composant d'options autour de l'en-tête de l'ancien affichage, sans la géométrie du cadre ni la translation partagée de la disposition générale. C'était une copie partielle au lieu de la réutilisation du bloc validé. Erreur de réalisation, reconnue.
+- « Maximum update depth exceeded » : journal Metro, `useMeasuredFrame` (mesure du cadre de `LayoutCircuitBlock`), au passage à la disposition générale. Même famille que l'incident du 01/11 (8e45fcd8), qui n'était corrigé qu'en partie. Attribution plausible.
+
+Décisions de Hermann, recopiées : « Un seul affichage (Recommandé) » ; boucle : « Oui, maintenant (Recommandé) ».
+
+Réalisé et constaté :
+
+- La copie partielle est retirée de `CompositionScreen` ; le fichier de test revient à son état antérieur.
+- Essai « un seul affichage » (tout Circuit dans la disposition générale) : 19 tests de Composition échouent. Les comportements de la Séance à Circuit unique changent :
+  - place d'insertion des Exercices ;
+  - « Ajouter un arrêt » (début et fin du Circuit) ;
+  - mode enveloppe (« Confirmer le circuit », « Ajouter un cycle ») ;
+  - apparition du Circuit.
+- C'est un changement de comportement de la Composition, hors périmètre d'un correctif local (Change Control, SCOPE_EXPANSION_REQUIRED). L'essai est annulé. Une mission Composition dédiée est proposée à Hermann.
+- La règle « Circuit nommé hors de l'ancien modèle » (`structure.ts`, 7bd5555b) est conservée : elle évite la perte d'un nom.
+- Boucle de mesure : au-delà de 8 mesures en 32 ms, les suivantes sont reportées à l'image suivante (`measureDelivery`, `compositionLayout.ts`). La chaîne de mises à jour imbriquées est rompue, et la dernière mesure est appliquée. Test : `compositionLayout.measureBurst.test.ts`. Correctif de sûreté, plausible ; la cause de l'oscillation n'est pas démontrée.
+
+### Suite du constat A : modèle unique des Circuits (10/11/2026)
+
+Décision de Hermann, recopiée : « fais les modifications qu'il y a faire pour homogénéiser les circuits et corriger cet écart. Il n'y avait aucun raison d'avoir deux modèles de circuit coexistants. » Sur les Séances existantes : « ce sont des données de test sans importance ».
+
+[Remplacé le 10/11/2026 : « L'essai est annulé. Une mission Composition dédiée est proposée à Hermann » — la décision ci-dessus la lance dans ce lot.]
+
+Réalisé :
+
+- `isEditedAsLegacy` (`structure.ts`) : l'ancien modèle n'est plus utilisé pour l'affichage et l'édition que si la Séance n'a aucun Circuit. Tout Circuit, même unique et composé à la main, est un bloc de la disposition générale (options au glissement, hauteur du cadre, translation validées).
+- Branché dans `compositionLayout`, `layoutOperations`, `SessionDraft`, `sessionDuplication` et `CompositionScreen` (`isGeneralLayout`, emplacements des Points d'arrêt).
+- L'enregistrement garde `legacyFromStructure` : forme stockée inchangée, sans migration.
+- Effets attendus de la Séance à Circuit unique :
+  - mêmes options que les autres Circuits (correctif du constat A) ;
+  - Points d'arrêt de la structure générale ;
+  - insertion et mode enveloppe de la disposition générale ;
+  - apparition du Circuit comme un second Circuit.
+- Repli à l'entrée du mode Cycle (t-depli du 06/11/2026) : il se conserve maintenant après Confirmer, comme pour tout Circuit de la disposition générale. Avant, le repli de l'ancien modèle était perdu au passage au Cycle.
+- Tests : 33 tests adaptés (attentes de l'ancien modèle remplacées, annotations datées), dont `CompositionScreen.b1b`, `b2`, `b4b`, `recette1`, `CompositionPausesFlow`, et les tests domaine et base de données.
+- Classe A (MAJ des écrans Formats du 04/11/2026 §6 quinquies) et D (modèle d'édition ; note ch12). Aucun document fonctionnel ne décrivait deux modèles : rien d'autre à remplacer.
+- Non fait : retrait du rendu mort de l'ancien Circuit unique dans `CompositionScreen` (nettoyage séparé).
+- À vérifier sur iPhone : Circuit unique composé à la main, puis glissement, options, Points d'arrêt et encadrement Cycle.
+
+## Clôture du lot (11/11/2026)
+
+Demande de Hermann, recopiée : « termines ce lot, je peux arrêter metro ».
+
+Lot clos. La recette iPhone est entièrement OK.
+
+Les points ouverts sont repris dans `spec-guidage-reglages.md` :
+
+- Guidage dans la Composition ;
+- guidage en arrière-plan ;
+- bibliothèque de sons courts ;
+- modulation de la musique ;
+- son du bip de phase.
+
+Le retrait du rendu mort de l'ancien Circuit unique est un nettoyage séparé.
+
+Rapport : `.github/orchestration/reports/2026-11-09_PRE10_SON_VOIX.md`.

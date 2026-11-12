@@ -66,6 +66,7 @@ import {
   sessionDraftsEqual,
   toCreateSessionInput,
   toSessionDraft,
+  toStructuredSessionInput,
   toUpdateSessionInput,
   withDraftMovement,
   type DraftMovement,
@@ -1025,11 +1026,12 @@ describe("SqliteSessionRepository", () => {
       });
 
       const reopened = await repository.findById(created.id);
-      const draft: SessionDraft = { ...toSessionDraft(reopened!), name: "Renommée" };
-      const input = toUpdateSessionInput(draft);
+      // Modèle unique des Circuits (10/11/2026) : enregistrement par le chemin structuré de l'application (SessionService).
+      const draft: SessionDraft = withLocalMovements({ ...toSessionDraft(reopened!), name: "Renommée" });
+      const input = toStructuredSessionInput(draft, randomUUID);
       expect(input.ok).toBe(true);
       if (!input.ok) return;
-      await repository.update(created.id, input.value);
+      await repository.updateStructured(created.id, { ...input.value, persistedActivityIds: draft.persistedExerciseIds ?? [] });
 
       const reread = await repository.findById(created.id);
       expect(reread?.name).toBe("Renommée");
@@ -2972,9 +2974,9 @@ describe("SqliteSessionRepository — PRE6-1.1 nature du Circuit et récupérati
     expect(reread?.cycle.tour.nature).toBe("SERIES");
     expect(reread?.cycle.tour.repeatCount).toBe(4);
     expect(await database.getAllAsync("SELECT nature, repeat_count FROM tours")).toEqual([{ nature: "SERIES", repeat_count: 4 }]);
+    // Modèle unique des Circuits (10/11/2026) : le brouillon relu porte le Circuit dans sa structure générale.
     const redrafted = toSessionDraft(reread!);
-    expect(redrafted.circuitNature).toBe("SERIES");
-    expect(sessionDraftsEqual(redrafted, withLocalMovements(draft([null], { circuitNature: "SERIES" })))).toBe(true);
+    expect(redrafted.structure?.elements.find((element) => element.kind === "CIRCUIT")).toMatchObject({ circuit: { nature: "SERIES", repeatCount: 4 } });
   });
 
   it("sans nature explicite, la Séance est un Circuit de Tours", async () => {

@@ -306,7 +306,8 @@ describe("PRE-7 R-6 — occurrence de Séance : commande Niveau (C09, MFN-09)", 
     expect(finishDisabled()).toBe(true);
 
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
-    enterExecutionSheetCell("execution-sheet-phase-row-3-duration", "4");
+    // Décision de Hermann du 09/11/2026 (recette PRE-10, constat d) : durée de série multiple de la durée des phases (45″ = 5 × 9″).
+    enterExecutionSheetCell("execution-sheet-phase-row-3-duration", "2");
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     expect(screen.queryByText(incomplete)).toBeNull();
     expect(finishDisabled()).toBe(false);
@@ -316,7 +317,7 @@ describe("PRE-7 R-6 — occurrence de Séance : commande Niveau (C09, MFN-09)", 
     expect(replaced.executionParameters.series.workPhases.map((phase) => [phase.label, phase.durationSeconds])).toEqual([
       ["Élan", 5],
       ["Saut", 2],
-      ["Réception", 4],
+      ["Réception", 2],
     ]);
   });
 
@@ -382,14 +383,14 @@ describe("PRE-7 R-6 — occurrence de Séance : commande Niveau (C09, MFN-09)", 
 // [PRE-9 A.3 du 04/11/2026 : « reprise au Catalogue : commande Niveau » retiré avec les anciennes définitions du Catalogue.]
 
 /**
- * Feuille : durées des `durations.length` premières phases, durée de série 9 s, changement de côté
+ * Feuille : durées des `durations.length` premières phases, durée de série 26 s (Décision de Hermann du 09/11/2026 (recette PRE-10, constat d) : durée de série multiple de la durée des phases ; 9 s auparavant), changement de côté
  * Sans, puis ✓ (même saisie que les tests A2.2 et R-5).
  */
 function fillParameters(durations: readonly string[]) {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   durations.forEach((duration, index) => enterExecutionSheetCell(`execution-sheet-phase-row-${index + 1}-duration`, duration));
   // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
-  enterExecutionSheetValue("execution-sheet-target", 9);
+  enterExecutionSheetValue("execution-sheet-target", 26);
   chooseExecutionSide("Sans");
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   expect(screen.queryByTestId("execution-sheet")).toBeNull();

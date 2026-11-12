@@ -36,20 +36,28 @@ describe("strings", () => {
       exercise: "Exercice",
       session: "Séance",
       preferences: "Préférences",
+      guidance: "Guidage",
+      notifications: "Notifications",
     });
     expect(strings.screens.profile.settings.sideChangeRecovery).toEqual({
       label: "Pause entre les côtés",
       unit: "s",
     });
+    // Figma `1992:684` (documentation de main `ebe72f76`). [Remplacé le 11/11/2026 : « Compte à rebours initial ».]
     expect(strings.screens.profile.settings.sessionInitialCountdown.label).toBe(
-      "Compte à rebours initial",
+      "Compte à rebours de la séance",
     );
   });
 
   it("exposes the Profile's four preference switch labels (CE-UI-07 L2515/L2519/L2573)", () => {
     expect(strings.screens.profile.preferencesSwitches).toEqual({
       sounds: "Sons",
-      voiceAnnouncements: "Annonces vocales",
+      voiceAnnouncements: "Annoncer le nom des exercices",
+      announceObjective: "Annoncer les répétitions ou la durée",
+      announcePauses: "Annoncer les pauses et récupérations",
+      announceSession: "Annoncer le début et la fin de séance",
+      announceSides: "Annoncer les changements de côté",
+      announcePhases: "Annoncer les phases du mouvement",
       vibration: "Vibration",
       notifications: "Notifications",
     });
