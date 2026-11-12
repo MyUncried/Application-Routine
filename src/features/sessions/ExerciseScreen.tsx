@@ -57,6 +57,7 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
+import { isImportedMovement } from "@/features/catalogue/importedMovements";
 import type { ActivityDefinitionService, MovementLevels } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { EditorLevel, MovementLevelMenuModel } from "@/features/activities/MovementLevelMenu";
@@ -649,9 +650,26 @@ function CompositionExerciseEditor() {
   // Service sans `MovementRepository` (doublures antérieures à MFN) : aucun crayon.
   // PRE-7 (R-6) : après un changement de niveau, plus de crayon jusqu'à `Terminer` — une correction
   // du mouvement choisi ne se mêle pas au remplacement de l'occurrence (option conservatrice).
+  // A-2 (11/11/2026) : Mouvement importé d'une Bibliothèque — ni correction ni copie depuis la Séance ;
+  // seuls les paramètres d'exécution de l'Exercice restent réglables (BIB-08).
+  const sourceMovementId = initialSnapshot.sourceMovementId ?? null;
+  const [importedSource, setImportedSource] = useState<{ readonly id: string; readonly imported: boolean } | null>(null);
+  useEffect(() => {
+    if (sourceMovementId === null) return;
+    let cancelled = false;
+    isImportedMovement(sourceMovementId).then(
+      (imported) => { if (!cancelled) setImportedSource({ id: sourceMovementId, imported }); },
+      // Registre illisible : prudence, le contenu reste verrouillé.
+      () => { if (!cancelled) setImportedSource({ id: sourceMovementId, imported: true }); },
+    );
+    return () => { cancelled = true; };
+  }, [sourceMovementId]);
+  const sourceIsImported = sourceMovementId !== null &&
+    (importedSource?.id !== sourceMovementId || importedSource.imported);
   const canUnlockMovement =
     isEditingExisting &&
     movementLocked &&
+    !sourceIsImported &&
     activityDefinitionService.supportsSharedCorrection === true &&
     (local?.sourceMovementId ?? "") === (initialSnapshot.sourceMovementId ?? "");
 

@@ -15,6 +15,7 @@ import type { Movement } from "@/domain/activities/Movement";
 import { movementLevelPosition, type MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import type { MovementRepository } from "@/domain/activities/MovementRepository";
 import { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
+import { isImportedMovement } from "@/features/catalogue/importedMovements";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
@@ -27,6 +28,11 @@ import type {
   ImportResult,
 } from "@/domain/media/ActivityMediaImportService";
 import type { MediaRepository } from "@/domain/media/MediaRepository";
+
+/** Lecture fraîche (transaction) du repository de Mouvements — `SqliteMovementRepository.readFresh`. */
+export type FreshMovementReader = {
+  readFresh<T>(read: (repository: MovementRepository) => Promise<T>): Promise<T>;
+};
 
 /**
  * PRE-3 (D-333/D-334/D-335) — adaptateurs médias injectés par
@@ -134,7 +140,19 @@ export class ActivityDefinitionService {
    * composition SQLite. `null` sans `MovementRepository` (doublures antérieures à MFN).
    */
   get movementCatalogue(): MovementCatalogueService | null {
-    return this.movementRepository ? new MovementCatalogueService(this.movementRepository) : null;
+    // A-2 (11/11/2026) : Mouvements importés en lecture seule, garde métier du registre des catalogues.
+    return this.movementRepository
+      ? new MovementCatalogueService(this.movementRepository, undefined, isImportedMovement)
+      : null;
+  }
+
+  /**
+   * Catalogue autonome (CA-4) : lecture fraîche du Catalogue des Mouvements, dans une transaction
+   * du MÊME repository (aucune seconde composition SQLite). `null` si le repository ne la permet pas.
+   */
+  get freshMovementReader(): FreshMovementReader | null {
+    const repository = this.movementRepository as Partial<FreshMovementReader> | undefined;
+    return repository && typeof repository.readFresh === "function" ? (repository as FreshMovementReader) : null;
   }
 
   /**

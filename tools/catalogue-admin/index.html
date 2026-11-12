@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>KODJO | Administration locale du catalogue</title>
+<link rel="stylesheet" href="/styles.css">
+<script type="module" src="/app.js"></script>
+</head>
+<body>
+<header class="header">
+  <div><p class="eyebrow">KODJO · Catalogue v2</p><h1>Administration locale du catalogue</h1>
+  <small>Édite directement les fichiers <code>catalogue/catalogues/*.catalogue.json</code> avec le validateur de l'application</small></div>
+  <span class="badge" id="lanBadge">PC uniquement · aucun envoi sur Internet</span>
+</header>
+<div class="toolbar">
+  <div class="filebar">
+    <label>Fichier catalogue<select id="fileSelect" class="input"></select></label>
+    <button type="button" id="reload">Recharger</button>
+    <button type="button" id="export">Exporter</button>
+    <button type="button" id="save" class="primary">Enregistrer</button>
+    <span id="dirtyState" class="info"></span>
+  </div>
+  <nav class="tabs" aria-label="Sections">
+    <button type="button" class="active" data-tab="sheets">Fiches</button>
+    <button type="button" data-tab="libraries">Bibliothèques</button>
+    <button type="button" data-tab="references">Référentiels</button>
+    <button type="button" data-tab="glossary">Glossaire</button>
+    <button type="button" data-tab="catalogue">Catalogue</button>
+    <button type="button" data-tab="inbox">Boîte d'arrivée</button>
+    <button type="button" data-tab="phones">Téléphones</button>
+  </nav>
+</div>
+<div class="revisionbar">
+  <label>Auteur de la révision (type)<select id="revAuthorKind" class="input">
+    <option value="">Inconnu</option><option value="LOCAL_USER">Utilisateur local</option><option value="PERSON">Personne</option>
+    <option value="ORGANIZATION">Organisation</option><option value="PLATFORM">Plateforme</option></select></label>
+  <label>Identifiant stable<input id="revAuthorId" class="input" maxlength="128" placeholder="ex. hermann"></label>
+  <label class="grow">Résumé de la révision<input id="revSummary" class="input" maxlength="300" placeholder="Ce qui change (facultatif)"></label>
+  <span class="info">Les révisions sont calculées par le serveur, uniquement sur changement effectif.</span>
+</div>
+<div class="notice" id="notice" role="status" aria-live="polite">Chargement…</div>
+<div class="diffusion hidden" id="diffusion" role="status" aria-live="polite"></div>
+<div class="issues hidden" id="issues" aria-live="polite"></div>
+<main id="views"></main>
+<footer>Administration locale · format KODJO_MOVEMENT_CATALOGUE v2 · validation partagée avec l'application · aucune publication</footer>
+</body>
+</html>

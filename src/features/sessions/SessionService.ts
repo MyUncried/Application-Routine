@@ -31,6 +31,7 @@ import {
 } from "@/domain/sessions/SessionRepository";
 import { toDuplicateSessionDraft } from "@/domain/sessions/sessionDuplication";
 import { markMovementCreated } from "@/features/activities/newMovementMarks";
+import { isImportedMovement } from "@/features/catalogue/importedMovements";
 
 /**
  * Résultat de la création d'une Séance : succès avec la Séance persistée,
@@ -74,6 +75,23 @@ export type DuplicateSessionResult =
   | { readonly status: "DUPLICATED"; readonly session: StructuredSession }
   | { readonly status: "NOT_FOUND" }
   | { readonly status: "INVALID"; readonly violations: readonly ValidationViolation[] };
+
+/**
+ * A-2 (11/11/2026) : une fiche Mouvement importée n'est jamais modifiée depuis une Séance. Une
+ * correction (`EDITED`) d'un Mouvement rattaché à une fiche installée est refusée en entier, avant
+ * toute écriture ; les paramètres d'exécution des Exercices restent libres (BIB-08).
+ */
+export async function importedMovementViolations(
+  movements: readonly { readonly id: string; readonly change: "NEW" | "EDITED" }[] | undefined,
+): Promise<ValidationViolation[]> {
+  const violations: ValidationViolation[] = [];
+  for (const movement of movements ?? []) {
+    if (movement.change === "EDITED" && (await isImportedMovement(movement.id))) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "movement.id" });
+    }
+  }
+  return violations;
+}
 
 export class SessionService {
   /**
@@ -122,6 +140,8 @@ export class SessionService {
     if (!validated.ok) {
       return validated;
     }
+    const protectedViolations = await importedMovementViolations(validated.value.movements);
+    if (protectedViolations.length > 0) return { ok: false, violations: protectedViolations };
 
     const session = await this.structuredRepository().createStructured(validated.value);
     markDraftMovementsCreated(draft);
@@ -144,6 +164,8 @@ export class SessionService {
     if (!validated.ok) {
       return { status: "INVALID", violations: validated.violations };
     }
+    const protectedViolations = await importedMovementViolations(validated.value.movements);
+    if (protectedViolations.length > 0) return { status: "INVALID", violations: protectedViolations };
 
     const outcome = await this.structuredRepository().updateStructured(sessionId, {
       ...validated.value,

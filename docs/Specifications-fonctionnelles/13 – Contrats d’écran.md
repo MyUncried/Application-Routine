@@ -1,5 +1,23 @@
 # Contrats d’écran
 
+### Plan de raccordement écran — Profil Bibliothèques (11/11/2026)
+
+**Étape 3 :** spécifier dans Figma l'écran de gestion des sources/Bibliothèques, l'import, la provenance, les versions, l'installation et la mise à jour volontaire ; les services de catalogue CA-3 (étape 4) sont indépendants du rendu. **Étape 6 :** raccorder l'écran Profil aux services puis contrôler le chargement des 60 Mouvements et la conservation de leurs références. **Aucun second éditeur de Mouvement dans Profil** : le Catalogue conserve création/édition courantes, l'administration Web l'édition complète de la fiche source. Référence Figma vérifiée : [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778). La commande « Mettre à jour » de Pilates y est visible ; l'état des entrées personnelles/partagées avant développement reste **À CLARIFIER**. [Résolu le 11/11/2026 par A-4 (registre, chapitre 07) : « Mes bibliothèques » et « Bibliothèques partagées » sont **reportées hors du premier lot**, leurs écrans Figma conservés. Deux variantes du Profil coexistent : `12116:25015` présente encore ces entrées ; `12119:25611` présente « Ajouter une bibliothèque » et « Envoyer mes mouvements ». Le premier lot suit `12119:25611`, sans le toast de désinstallation (désinstallation reportée).] Un fichier catalogue autonome importé dans la recette est distinct d'une Bibliothèque choisie par l'utilisateur. Valeurs « 14 mouvements » et « 8 mouvements » : exemples affichés, non règles de cardinalité.
+
+### Contrôle Figma du 10/11/2026 — Profil et Bibliothèques
+
+**Évidence directe :** page Prototype MVP `510:101`, écran [P-Profil — Modifier le profil — MVP, `1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778). L'écran représente « Bibliothèques » avec « Mes bibliothèques » (« Celles que je crée et rends disponibles »), « Bibliothèques partagées » (« Celles que je peux importer »), puis « Bibliothèques installées » : Fitness (« 14 mouvements · à jour ») et Pilates (« 8 mouvements », action « Mettre à jour »). L'écran « Profil — Préférences » `1992:684` est distinct.
+
+**Confrontation avec BIB-19 à BIB-23 :** les états installés et l'action « Mettre à jour » illustrent le premier lot. Les entrées « Mes bibliothèques » et « Bibliothèques partagées » et leurs sous-titres évoquent des capacités **reportées** (création et publication personnelles, partage et import depuis des tiers). Leur présence graphique dans Figma **ne réintègre pas ces fonctions au premier lot**. Le comportement des entrées « Mes bibliothèques » et « Bibliothèques partagées » avant leur développement est **À CLARIFIER** : masquage, désactivation ou autre navigation exigent un arbitrage UX. [Résolu le 11/11/2026 par A-4 (registre, chapitre 07) : « Mes bibliothèques » et « Bibliothèques partagées » sont **reportées hors du premier lot**, leurs écrans Figma conservés. Deux variantes du Profil coexistent : `12116:25015` présente encore ces entrées ; `12119:25611` présente « Ajouter une bibliothèque » et « Envoyer mes mouvements ». Le premier lot suit `12119:25611`, sans le toast de désinstallation (désinstallation reportée).] Le rendu Figma n'implique pas une action de création/partage dans le premier lot et « Mes bibliothèques » n'est pas le libellé des génériques KODJO. Les quantités 14 et 8 sont des valeurs illustratives d'écran, non des cardinalités métier.
+
+**État :** Figma contrôlé en lecture, non modifié dans cette opération. Contrat fonctionnel en cours de convergence ; pas de déclaration de conformité UX complète.
+
+
+## Contrat cible — Profil / Gestion des Bibliothèques (BIB-19 à BIB-23)
+
+Le Profil doit proposer un parcours de gestion des Bibliothèques permettant de découvrir, sélectionner et installer les Bibliothèques génériques KODJO et déclencher volontairement « Mettre à jour » lorsqu'une nouvelle révision est proposée. Le bloc « Mes données » (Mouvements, Séances, Programmes) est supprimé du Profil : ces contenus sont accessibles depuis le Catalogue. Les contenus des Bibliothèques publiées ne sont pas éditables directement. **Contrat fonctionnel cible, pas contrat graphique Figma validé** ; affichages, confirmations, désinstallation et erreurs restent à préciser avant développement. La création de Bibliothèques personnelles, les Bibliothèques de coachs et le partage sont reportés. Voir BIB-19 à BIB-23.
+
+
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
 ## Récupération de l’Exercice et défauts du Profil
@@ -1208,7 +1226,7 @@ Nom requis et unique ; catégorie et zones selon validations existantes. Paramè
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; aucune propagation entre copies d'objets locaux n’est nécessaire. La distribution entre utilisateurs est régie par BIB-12 : pas de nouvelle révision sans action « Mettre à jour ». Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
@@ -6117,3 +6135,13 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 ### Écart visuel restant — Death by, contrôle du 5 novembre
 
 **PARTIELLEMENT CONFORME visuel.** Le récapitulatif `11376:20189` représente bien des membres en Répétitions et en Durée ; l’accroche reste formulée en répétitions et minutes. Elle doit couvrir les deux modes et l’intervalle configurable, selon le complément §13. Aucun nouveau texte graphique n’est arbitré ici. Les captures montrent l’état courant ; aucune modification Figma ni recette de l’application n’est déclarée.
+
+## Parcours UX à concevoir — Bibliothèques et partage (post-MVP)
+
+Écrans et états **fonctionnels à concevoir**, sans contrat visuel Figma validé à cette date [11/11/2026 : écrans existants listés par A-4, sans validation UX complète ; « Mes bibliothèques » et désinstallation reportées hors du premier lot] : **Mes Bibliothèques**, **Bibliothèque personnelle (composition modifiable)**, **Bibliothèque reçue (composition non modifiable)**, **Partage d'une fiche ou Bibliothèque**, **Mise à jour disponible / détail des changements**, **Espace en étoile / transmission individuelle** et **Signalement / contenu suspendu**.
+
+L'écran **« Mise à jour disponible »** doit signaler, avant « Mettre à jour », la nouvelle composition éventuelle et les fiches révisées, **dont celles référencées dans d'autres Bibliothèques**. Une seule validation actualise ces fiches dans toutes leurs références, sans changer les compositions des autres Bibliothèques. Les homonymes de sources différentes doivent rester identifiables par leur provenance, sans suffixes arbitraires imposés. Le propriétaire habilité peut publier initialement sa fiche sans accorder la redistribution à ses destinataires. [Texte d'origine : « Le mode « Protégé » n'empêche pas la première publication d'une fiche par son propriétaire. » — remplacé le 11/11/2026, les quatre modes étant supersédés par MOUV-D3/A-2.]
+
+La distribution dans l'Espace en étoile reste individuelle, avec invitation acceptée, refus et blocage ; aucun rôle professionnel ni prescription d'exécution numérique à représenter dans ce lot.
+
+**Évidence Figma limitée :** fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP `510:101` ; actions glissées « Partager » connues `10501:23846` et `10579:21622`. Ces actions ne prouvent pas l'existence d'écrans de Bibliothèques, de contrôle central, de versions ni de modération. N'inventer aucune taille, couleur ou interaction visuelle ; confronter les contrats à Figma après conception. [Parcours cibles](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).

@@ -7,6 +7,7 @@ import { ProfileEditScreen } from "@/features/preferences/ProfileEditScreen";
 import type { SaveIdentityResult, ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { strings } from "@/shared/i18n";
+import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 
 /**
  * Écran Modifier le profil (V2-PRE-2, plan §6.5, CE-UI-01 L1965-2051).
@@ -341,5 +342,114 @@ describe("ProfileEditScreen", () => {
     testRouter.back();
     expect(router.getPathname()).toBe("/profile-edit");
     expect(screen.getByText(t.abandonModal.title)).toBeTruthy();
+  });
+});
+
+/**
+ * Écran Profil aligné sur Figma 12119:25611 (11/11/2026) : en-tête à trois onglets à la place du titre et du
+ * Retour, carte « Profil » (avatar 64 + pastille appareil photo, ligne « Nom », silhouettes 40), fond #F7F7FF.
+ */
+describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
+  beforeEach(() => {
+    mockPickAndCopyProfilePhoto.mockReset();
+    mockPhotoExists = false;
+  });
+
+  it("shows the three tabs: Profil selected, Préférences returns to the Profil screen, Communauté disabled", async () => {
+    const router = await renderScreen();
+
+    expect(screen.queryByTestId("screen-header-back")).toBeNull();
+    const profileTab = screen.getByTestId("profile-edit-tabs-profile");
+    expect(profileTab.props.accessibilityState).toMatchObject({ selected: true, disabled: false });
+    expect(screen.getByTestId("profile-edit-tabs-profile-shape", { includeHiddenElements: true })).toBeTruthy();
+    const community = screen.getByTestId("profile-edit-tabs-community");
+    expect(community.props.accessibilityState).toMatchObject({ selected: false, disabled: true });
+    expect(community.props.accessibilityLabel).toBe(t.tabs.communityUnavailableAccessibilityLabel);
+
+    fireEvent.press(community);
+    expect(router.getPathname()).toBe("/profile-edit");
+
+    act(() => {
+      fireEvent.press(screen.getByTestId("profile-edit-tabs-preferences"));
+    });
+    await waitFor(() => expect(router.getPathname()).toBe("/"));
+  });
+
+  it("guards the Préférences tab like the former Retour when the draft has changed", async () => {
+    const router = await renderScreen();
+    fireEvent.changeText(screen.getByTestId("profile-edit-name-input"), "Changed");
+
+    act(() => {
+      fireEvent.press(screen.getByTestId("profile-edit-tabs-preferences"));
+    });
+    expect(router.getPathname()).toBe("/profile-edit");
+    expect(screen.getByText(t.abandonModal.title)).toBeTruthy();
+  });
+
+  it("lays out the Profil card: section label, initials on the dark avatar, camera badge (no label, no frame), Nom row", async () => {
+    await renderScreen(fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Hermann Adjo" })) }));
+
+    expect(within(screen.getByTestId("profile-edit-identity")).getByText(t.sectionLabel)).toBeTruthy();
+    expect(screen.getByTestId("profile-edit-avatar-background")).toBeTruthy();
+    const initials = screen.getByTestId("profile-edit-avatar-initials");
+    expect(initials.props.children).toBe("HA");
+    expect(StyleSheet.flatten(initials.props.style)).toMatchObject({ fontSize: 22, color: "#FFFFFF" });
+    // Recette c2 du 11/11 : pastille réduite (22), seule commande de la photo ; plus de libellé « Modifier la photo ».
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-photo-action").props.style)).toMatchObject({
+      width: 22,
+      height: 22,
+      backgroundColor: "#0508E5",
+    });
+    expect(screen.queryByText(t.photo.editLabel)).toBeNull();
+    expect(screen.getByTestId("profile-edit-photo-action").props.accessibilityLabel).toBe(t.photo.addAccessibilityLabel);
+    expect(screen.getByText(t.name.label)).toBeTruthy();
+    // Aucune donnée « pseudo » ni « type de compte » dans le Profil : rien n'est inventé.
+    expect(screen.queryByText("Pseudo")).toBeNull();
+    expect(screen.queryByText("Compte gratuit")).toBeNull();
+  });
+
+  it("opens the photo picker from the camera badge", async () => {
+    mockPickAndCopyProfilePhoto.mockResolvedValue({ status: "CANCELED" });
+    await renderScreen();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("profile-edit-photo-action"));
+    });
+    expect(mockPickAndCopyProfilePhoto).toHaveBeenCalledTimes(1);
+  });
+
+  it("draws the silhouettes in 40-pt circles, the chosen one outlined and tinted blue", async () => {
+    await renderScreen();
+
+    const homme = screen.getByTestId("profile-edit-silhouette-homme");
+    const femme = screen.getByTestId("profile-edit-silhouette-femme");
+    expect(StyleSheet.flatten(homme.props.style)).toMatchObject({ width: 40, height: 40, borderWidth: 1.25, borderColor: "#0508E5" });
+    expect(StyleSheet.flatten(femme.props.style)).toMatchObject({ width: 40, height: 40, borderWidth: 0.625, borderColor: "#CCD1E0" });
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-silhouette-homme-icon").props.style)).toMatchObject({ tintColor: "#0508E5" });
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-silhouette-femme-icon").props.style)).toMatchObject({ tintColor: "#9499A8" });
+
+    fireEvent.press(femme);
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-silhouette-femme-icon").props.style)).toMatchObject({ tintColor: "#0508E5" });
+  });
+
+  it("paints the screen #F7F7FF and the action zone fades to it", async () => {
+    await renderScreen();
+
+    expect(StyleSheet.flatten(screen.getByTestId("screen-shell").props.style)).toMatchObject({ backgroundColor: "#F7F7FF" });
+    expect(screen.getByTestId("profile-edit-tab-band")).toBeTruthy();
+  });
+
+  it("recette c1/c2 du 11/11 : zone de contexte fondue vers la transparence, corps dessous ; zone Profil sans cadre", async () => {
+    await renderScreen();
+
+    const band = StyleSheet.flatten(screen.getByTestId("profile-edit-tab-band").props.style) as { height: number; experimental_backgroundImage: string };
+    expect(band.height).toBe(14 + CONTEXT_BAND_FADE_HEIGHT);
+    expect(band.experimental_backgroundImage).toMatch(/#EAEAFF00 100%\)$/);
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-body").props.style)).toMatchObject({ marginTop: -CONTEXT_BAND_FADE_HEIGHT });
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-identity-card").props.style)).toMatchObject({
+      backgroundColor: "transparent",
+      borderWidth: 0,
+      shadowOpacity: 0,
+    });
   });
 });

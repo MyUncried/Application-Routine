@@ -1700,6 +1700,16 @@ export const fr = {
     profileEdit: {
       title: "Modifier le profil",
       backAccessibilityLabel: "Retour",
+      // Écran Profil aligné sur Figma 12119:25611 (11/11/2026) : en-tête à trois onglets. « Préférences »
+      // ramène à l'écran Profil, qui porte les réglages et préférences ; « Communauté » visible et
+      // désactivée, sans écran (même règle que la navigation basse, E01).
+      tabs: {
+        profile: "Profil",
+        preferences: "Préférences",
+        community: "Communauté",
+        communityUnavailableAccessibilityLabel: "Communauté — indisponible",
+      },
+      sectionLabel: "Profil",
       name: {
         label: "Nom",
         placeholder: "Nom",
@@ -1710,6 +1720,7 @@ export const fr = {
         addAccessibilityLabel: "Ajouter une photo",
         changeAccessibilityLabel: "Changer la photo",
         initialsAccessibilityLabel: "Initiales du profil",
+        editLabel: "Modifier la photo",
         errorMessage: "La photo n’a pas pu être ajoutée. Réessayez.",
       },
       silhouette: {

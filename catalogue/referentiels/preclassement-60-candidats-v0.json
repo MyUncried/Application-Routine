@@ -1,0 +1,1787 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "KODJO_CLASSIFICATION_PROPOSALS",
+  "sourceCandidateCount": 60,
+  "publicationAllowed": false,
+  "status": "PROPOSED_NOT_APPROVED",
+  "notes": [
+    "Propositions de préclassement, jamais une règle officielle.",
+    "La Catégorie KODJO est l'objectif principal; aucun autre Objectif n'est créé.",
+    "Les problèmes traités restent vides : revue clinique nécessaire avant toute indication.",
+    "Les médias et les brouillons utilisateurs ne font pas partie de ce fichier."
+  ],
+  "records": [
+    {
+      "candidateId": "pilot:REED-001",
+      "originalId": "REED-001",
+      "name": "Élévation de jambe tendue",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "genoux"
+      ],
+      "gesturalFamilyIds": [
+        "leg-raise"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps"
+      ],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:REED-002",
+      "originalId": "REED-002",
+      "name": "Demi-squat",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "genoux",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "squat"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps",
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:REED-003",
+      "originalId": "REED-003",
+      "name": "Pendulaire d’épaule",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "epaules"
+      ],
+      "gesturalFamilyIds": [
+        "mobility"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:REED-004",
+      "originalId": "REED-004",
+      "name": "Placement des omoplates",
+      "categoryId": "coordination",
+      "bodyZoneIds": [
+        "epaules",
+        "dos"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization"
+      ],
+      "anatomicalTargetIds": [
+        "scapular-stabilizers"
+      ],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [
+          "OBJECTIF_A_CONFIRMER"
+        ],
+        "note": "Contrôle scapulaire : arbitrer Coordination vs Renforcement"
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:REED-005",
+      "originalId": "REED-005",
+      "name": "Étirement des extenseurs du poignet",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "bras",
+        "poignets-mains"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:REED-006",
+      "originalId": "REED-006",
+      "name": "Descente excentrique du poignet",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "bras",
+        "poignets-mains"
+      ],
+      "gesturalFamilyIds": [
+        "mobility"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [
+          "FAMILLE_GESTUELLE_INCOHERENTE"
+        ],
+        "note": "Travail excentrique de poignet classé « mobilisation » : famille à requalifier"
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:REED-007",
+      "originalId": "REED-007",
+      "name": "Flexion dorsale de cheville à l’élastique",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "chevilles-pieds",
+        "jambes"
+      ],
+      "gesturalFamilyIds": [
+        "mobility"
+      ],
+      "anatomicalTargetIds": [
+        "ankle-joint"
+      ],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [
+          "FAMILLE_GESTUELLE_INCOHERENTE"
+        ],
+        "note": "Dorsiflexion de cheville à l'élastique : renforcer plutôt que mobilité ; revoir famille gestuelle"
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:REED-008",
+      "originalId": "REED-008",
+      "name": "Équilibre sur un pied",
+      "categoryId": "equilibre",
+      "bodyZoneIds": [
+        "chevilles-pieds",
+        "jambes"
+      ],
+      "gesturalFamilyIds": [
+        "balance"
+      ],
+      "anatomicalTargetIds": [
+        "ankle-joint"
+      ],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:REED-009",
+      "originalId": "REED-009",
+      "name": "Genou vers poitrine",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "mobility",
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "lumbar-spine"
+      ],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:REED-010",
+      "originalId": "REED-010",
+      "name": "Bird-dog (bras-jambe opposés)",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization"
+      ],
+      "anatomicalTargetIds": [
+        "abdominal-wall"
+      ],
+      "specialtyIds": [
+        "reeducation"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-001",
+      "originalId": "FIT-CRO-001",
+      "name": "Air squat",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin",
+        "genoux"
+      ],
+      "gesturalFamilyIds": [
+        "squat"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps",
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-002",
+      "originalId": "FIT-CRO-002",
+      "name": "Front squat",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin",
+        "dos"
+      ],
+      "gesturalFamilyIds": [
+        "squat"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps",
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-003",
+      "originalId": "FIT-CRO-003",
+      "name": "Deadlift (soulevé de terre)",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "hip-hinge"
+      ],
+      "anatomicalTargetIds": [
+        "gluteus-maximus",
+        "hamstrings"
+      ],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-004",
+      "originalId": "FIT-CRO-004",
+      "name": "Shoulder press",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "epaules",
+        "bras"
+      ],
+      "gesturalFamilyIds": [
+        "push"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-005",
+      "originalId": "FIT-CRO-005",
+      "name": "Push press",
+      "categoryId": "coordination",
+      "bodyZoneIds": [
+        "epaules",
+        "bras",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "push",
+        "combined"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-006",
+      "originalId": "FIT-CRO-006",
+      "name": "Thruster",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin",
+        "epaules",
+        "bras"
+      ],
+      "gesturalFamilyIds": [
+        "squat",
+        "push",
+        "combined"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps"
+      ],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-007",
+      "originalId": "FIT-CRO-007",
+      "name": "Burpee",
+      "categoryId": "cardio",
+      "bodyZoneIds": [
+        "cuisses",
+        "bras",
+        "epaules"
+      ],
+      "gesturalFamilyIds": [
+        "combined"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-008",
+      "originalId": "FIT-CRO-008",
+      "name": "Box jump",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "jambes",
+        "genoux"
+      ],
+      "gesturalFamilyIds": [
+        "jump"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps"
+      ],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [
+          "OBJECTIF_A_CONFIRMER"
+        ],
+        "note": "Box jump : Renforcement vs Coordination/Puissance non représentée comme catégorie"
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-009",
+      "originalId": "FIT-CRO-009",
+      "name": "Kettlebell swing",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "hanches-bassin",
+        "dos",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "hip-hinge"
+      ],
+      "anatomicalTargetIds": [
+        "gluteus-maximus",
+        "hamstrings"
+      ],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-010",
+      "originalId": "FIT-CRO-010",
+      "name": "Strict pull-up (traction stricte)",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "dos",
+        "bras",
+        "epaules"
+      ],
+      "gesturalFamilyIds": [
+        "pull"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "crossfit"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-001",
+      "originalId": "FIT-HYR-001",
+      "name": "SkiErg",
+      "categoryId": "cardio",
+      "bodyZoneIds": [
+        "bras",
+        "dos",
+        "epaules"
+      ],
+      "gesturalFamilyIds": [
+        "cardio-ergometer",
+        "pull"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-002",
+      "originalId": "FIT-HYR-002",
+      "name": "Sled push",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin",
+        "dos"
+      ],
+      "gesturalFamilyIds": [
+        "push",
+        "locomotion"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps",
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-003",
+      "originalId": "FIT-HYR-003",
+      "name": "Sled pull",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "dos",
+        "bras",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "pull"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-004",
+      "originalId": "FIT-HYR-004",
+      "name": "Burpee broad jump",
+      "categoryId": "cardio",
+      "bodyZoneIds": [
+        "cuisses",
+        "jambes",
+        "bras",
+        "epaules"
+      ],
+      "gesturalFamilyIds": [
+        "jump",
+        "combined",
+        "locomotion"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-005",
+      "originalId": "FIT-HYR-005",
+      "name": "Rowing (rameur)",
+      "categoryId": "cardio",
+      "bodyZoneIds": [
+        "bras",
+        "dos",
+        "jambes"
+      ],
+      "gesturalFamilyIds": [
+        "cardio-ergometer",
+        "pull"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-006",
+      "originalId": "FIT-HYR-006",
+      "name": "Farmers carry",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "bras",
+        "dos",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "carry",
+        "locomotion"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-007",
+      "originalId": "FIT-HYR-007",
+      "name": "Sandbag walking lunges",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin",
+        "jambes"
+      ],
+      "gesturalFamilyIds": [
+        "lunge",
+        "carry",
+        "locomotion"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps",
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-008",
+      "originalId": "FIT-HYR-008",
+      "name": "Wall balls",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin",
+        "epaules",
+        "bras"
+      ],
+      "gesturalFamilyIds": [
+        "squat",
+        "push",
+        "combined"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps"
+      ],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [
+          "OBJECTIF_A_CONFIRMER"
+        ],
+        "note": "Wall balls : Renforcement vs Cardio selon le contexte et la règle d'objectif unique"
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-009",
+      "originalId": "FIT-HYR-009",
+      "name": "Course à pied (segment 1 km)",
+      "categoryId": "cardio",
+      "bodyZoneIds": [
+        "jambes",
+        "cuisses",
+        "chevilles-pieds"
+      ],
+      "gesturalFamilyIds": [
+        "locomotion"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-010",
+      "originalId": "FIT-HYR-010",
+      "name": "Step-up sur plateforme",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "cuisses",
+        "jambes",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "step-up"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps",
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "hyrox"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [
+          "SPECIALITE_A_VERIFIER"
+        ],
+        "note": "Step-up proposé sous HYROX, exercice de préparation non officiel dans la source"
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-001",
+      "originalId": "FIT-PIL-001",
+      "name": "The Hundred",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "dos",
+        "bras"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization",
+        "breathing"
+      ],
+      "anatomicalTargetIds": [
+        "abdominal-wall"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-002",
+      "originalId": "FIT-PIL-002",
+      "name": "Roll Up",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization",
+        "mobility"
+      ],
+      "anatomicalTargetIds": [
+        "abdominal-wall"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [
+          "OBJECTIF_A_CONFIRMER"
+        ],
+        "note": "Roll Up : Mobilité vs Renforcement/Contrôle du tronc"
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-003",
+      "originalId": "FIT-PIL-003",
+      "name": "Single Leg Circle",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "hanches-bassin",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "mobility",
+        "core-stabilization"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-004",
+      "originalId": "FIT-PIL-004",
+      "name": "Rolling Like a Ball",
+      "categoryId": "equilibre",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "balance",
+        "core-stabilization"
+      ],
+      "anatomicalTargetIds": [
+        "abdominal-wall"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-005",
+      "originalId": "FIT-PIL-005",
+      "name": "Single Leg Stretch",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization"
+      ],
+      "anatomicalTargetIds": [
+        "abdominal-wall"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-006",
+      "originalId": "FIT-PIL-006",
+      "name": "Double Leg Stretch",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization"
+      ],
+      "anatomicalTargetIds": [
+        "abdominal-wall"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-007",
+      "originalId": "FIT-PIL-007",
+      "name": "Spine Stretch Forward",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "dos"
+      ],
+      "gesturalFamilyIds": [
+        "mobility",
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "lumbar-spine"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-008",
+      "originalId": "FIT-PIL-008",
+      "name": "Shoulder Bridge",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "hanches-bassin",
+        "dos"
+      ],
+      "gesturalFamilyIds": [
+        "bridge",
+        "core-stabilization"
+      ],
+      "anatomicalTargetIds": [
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-009",
+      "originalId": "FIT-PIL-009",
+      "name": "Swimming",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "core-stabilization",
+        "leg-raise"
+      ],
+      "anatomicalTargetIds": [
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-010",
+      "originalId": "FIT-PIL-010",
+      "name": "Side Kick",
+      "categoryId": "renforcement",
+      "bodyZoneIds": [
+        "hanches-bassin",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "leg-raise",
+        "core-stabilization"
+      ],
+      "anatomicalTargetIds": [
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "pilates"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-001",
+      "originalId": "FIT-YOG-001",
+      "name": "Tadasana (montagne)",
+      "categoryId": "equilibre",
+      "bodyZoneIds": [
+        "jambes",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "posture",
+        "balance"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [
+          "OBJECTIF_A_CONFIRMER"
+        ],
+        "note": "Tadasana : Équilibre vs posture statique, vérifier priorité"
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-002",
+      "originalId": "FIT-YOG-002",
+      "name": "Adho Mukha Svanasana (chien tête en bas)",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "dos",
+        "epaules",
+        "jambes"
+      ],
+      "gesturalFamilyIds": [
+        "posture",
+        "stretch"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-003",
+      "originalId": "FIT-YOG-003",
+      "name": "Balasana (posture de l’enfant)",
+      "categoryId": "recuperation",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "posture",
+        "stretch"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-004",
+      "originalId": "FIT-YOG-004",
+      "name": "Marjaryasana (chat)",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "dos"
+      ],
+      "gesturalFamilyIds": [
+        "mobility",
+        "posture"
+      ],
+      "anatomicalTargetIds": [
+        "lumbar-spine"
+      ],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-005",
+      "originalId": "FIT-YOG-005",
+      "name": "Bitilasana (vache)",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "dos"
+      ],
+      "gesturalFamilyIds": [
+        "mobility",
+        "posture"
+      ],
+      "anatomicalTargetIds": [
+        "lumbar-spine"
+      ],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-006",
+      "originalId": "FIT-YOG-006",
+      "name": "Bhujangasana (cobra)",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "dos",
+        "epaules"
+      ],
+      "gesturalFamilyIds": [
+        "posture",
+        "mobility"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-007",
+      "originalId": "FIT-YOG-007",
+      "name": "Virabhadrasana II (guerrier II)",
+      "categoryId": "equilibre",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin",
+        "jambes"
+      ],
+      "gesturalFamilyIds": [
+        "posture",
+        "lunge"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-008",
+      "originalId": "FIT-YOG-008",
+      "name": "Vrksasana (arbre)",
+      "categoryId": "equilibre",
+      "bodyZoneIds": [
+        "jambes",
+        "chevilles-pieds"
+      ],
+      "gesturalFamilyIds": [
+        "balance",
+        "posture"
+      ],
+      "anatomicalTargetIds": [
+        "ankle-joint"
+      ],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-009",
+      "originalId": "FIT-YOG-009",
+      "name": "Trikonasana (triangle)",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "hanches-bassin",
+        "dos",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "posture",
+        "stretch"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-010",
+      "originalId": "FIT-YOG-010",
+      "name": "Setu Bandha (pont)",
+      "categoryId": "mobilite",
+      "bodyZoneIds": [
+        "dos",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "bridge",
+        "posture"
+      ],
+      "anatomicalTargetIds": [
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "yoga"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [
+          "OBJECTIF_A_CONFIRMER"
+        ],
+        "note": "Pont yoga : Mobilité vs Renforcement"
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-001",
+      "originalId": "FIT-STR-001",
+      "name": "Étirement du mollet — gastrocnémien",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "jambes",
+        "chevilles-pieds"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "gastrocnemius"
+      ],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-002",
+      "originalId": "FIT-STR-002",
+      "name": "Étirement du soléaire",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "jambes",
+        "chevilles-pieds"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "triceps-surae"
+      ],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-003",
+      "originalId": "FIT-STR-003",
+      "name": "Étirement des ischio-jambiers allongé",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "hamstrings"
+      ],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-004",
+      "originalId": "FIT-STR-004",
+      "name": "Étirement du quadriceps sur le côté",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "cuisses",
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "quadriceps"
+      ],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-005",
+      "originalId": "FIT-STR-005",
+      "name": "Étirement fessier en figure quatre",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "hanches-bassin"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "gluteus-maximus"
+      ],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-006",
+      "originalId": "FIT-STR-006",
+      "name": "Papillon (adducteurs)",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "hanches-bassin",
+        "cuisses"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-007",
+      "originalId": "FIT-STR-007",
+      "name": "Ouverture des pectoraux assis",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "epaules",
+        "dos"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-008",
+      "originalId": "FIT-STR-008",
+      "name": "Étirement du haut du dos",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "dos",
+        "epaules"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [
+        "scapular-stabilizers"
+      ],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-009",
+      "originalId": "FIT-STR-009",
+      "name": "Étirement du triceps au-dessus de la tête",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "bras",
+        "epaules"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    },
+    {
+      "candidateId": "pilot:FIT-STR-010",
+      "originalId": "FIT-STR-010",
+      "name": "Inclinaison latérale de la nuque",
+      "categoryId": "etirements",
+      "bodyZoneIds": [
+        "cou"
+      ],
+      "gesturalFamilyIds": [
+        "stretch"
+      ],
+      "anatomicalTargetIds": [],
+      "specialtyIds": [
+        "stretching"
+      ],
+      "clinicalProblemIds": [],
+      "review": {
+        "status": "PENDING",
+        "needsReview": true,
+        "flags": [],
+        "note": null
+      },
+      "licensing": "UNVERIFIED",
+      "clinicalValidation": "NOT_APPROVED",
+      "publicationAllowed": false
+    }
+  ]
+}

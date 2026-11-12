@@ -55,7 +55,9 @@ export type MovementWriteResult =
   | { readonly status: "SAVED"; readonly movement: Movement }
   | { readonly status: "DUPLICATE_NAME" }
   | { readonly status: "INVALID" }
-  | { readonly status: "NOT_FOUND" };
+  | { readonly status: "NOT_FOUND" }
+  /** A-2 (11/11/2026) : Mouvement importé d’une Bibliothèque, ni modifiable ni duplicable ; rien n’est écrit. */
+  | { readonly status: "PROTECTED" };
 
 export type MovementSaveAssessment =
   | { readonly status: "ASSESSED"; readonly decision: MovementSaveDecision; readonly executionCount: number }
@@ -79,11 +81,28 @@ export type MovementExecutionCounter = (movementId: string) => Promise<number>;
 
 const NO_EXECUTIONS: MovementExecutionCounter = async () => 0;
 
+/**
+ * A-2 (11/11/2026) : vrai si le Mouvement est rattaché à une fiche importée (registre des
+ * catalogues). Par défaut, aucun Mouvement n’est importé (doublures et tests antérieurs).
+ */
+export type ImportedMovementCheck = (movementId: string) => Promise<boolean>;
+
+const NOTHING_IMPORTED: ImportedMovementCheck = async () => false;
+
 export class MovementCatalogueService {
   constructor(
     private readonly movements: MovementRepository,
     private readonly countExecutions: MovementExecutionCounter = NO_EXECUTIONS,
+    private readonly importedCheck: ImportedMovementCheck = NOTHING_IMPORTED,
   ) {}
+
+  /**
+   * A-2 : Mouvement importé d’une Bibliothèque (lecture seule, ni copie ni duplication). Les
+   * paramètres des Exercices qui l’utilisent restent modifiables (BIB-08).
+   */
+  isImported(movementId: string): Promise<boolean> {
+    return this.importedCheck(movementId);
+  }
 
   /** Mouvement par identifiant (fiche), `null` s'il est inconnu. */
   findMovement(movementId: string): Promise<Movement | null> {
@@ -163,6 +182,19 @@ export class MovementCatalogueService {
     return this.movements.placeInFamily(movementId, anchorId, side);
   }
 
+  /** Membres d'un groupe de niveaux, dans l'ordre (archivés compris). */
+  listFamilyMembers(groupId: string): Promise<readonly Movement[]> {
+    return this.movements.listGroup(groupId);
+  }
+
+  /**
+   * Familles des fiches importées (11/11/2026) : écrit l'ordre complet d'un groupe, Mouvements entrants
+   * compris (`MovementRepository.setFamilyOrder`). Réservé au chargement des Bibliothèques.
+   */
+  async setFamilyOrder(groupId: string, orderedIds: readonly string[]): Promise<boolean> {
+    return (await this.movements.setFamilyOrder(groupId, orderedIds)).status === "OK";
+  }
+
   /** PRE-8, familles (règles B et D) : sortie d'une famille ; dissolution du dernier couple. */
   leaveFamily(movementId: string): Promise<MovementFamilyOutcome> {
     return this.movements.leaveFamily(movementId);
@@ -214,6 +246,8 @@ export class MovementCatalogueService {
 
   /** Variante explicitement choisie, insérée avant (plus facile) ou après (plus difficile) l'origine. */
   async createVariant(movement: Movement, originId: string, difficulty: VariantDifficulty): Promise<MovementWriteResult> {
+    // A-2 (11/11/2026) : aucun niveau dérivé d'un Mouvement importé (le niveau rejoindrait sa famille).
+    if (await this.importedCheck(originId)) return { status: "PROTECTED" };
     if (!validateMovement({ ...movement, levelGroup: null }).ok) {
       return { status: "INVALID" };
     }
@@ -251,6 +285,16 @@ export class MovementCatalogueService {
 
   /** « Mettre à jour ce mouvement » (ou mise à jour silencieuse) : même identité, groupe conservé. */
   async update(movement: Movement): Promise<MovementWriteResult> {
+    // A-2 : garde métier, pas seulement visuelle.
+    if (await this.importedCheck(movement.id)) return { status: "PROTECTED" };
+    return this.write(() => this.movements.update(movement), movement);
+  }
+
+  /**
+   * Révision appliquée par sa source (chargement CA-3, « Mettre à jour » d’une Bibliothèque) : seul
+   * canal autorisé à modifier un Mouvement importé (MOUV-D4), après décision explicite du destinataire.
+   */
+  async updateFromSource(movement: Movement): Promise<MovementWriteResult> {
     return this.write(() => this.movements.update(movement), movement);
   }
 
@@ -259,6 +303,8 @@ export class MovementCatalogueService {
    * groupe ; l'original et ses Exercices restent inchangés.
    */
   async createAsNew(movement: Movement, newId: string): Promise<MovementWriteResult> {
+    // A-2 : aucune duplication d’un Mouvement importé, même pour une version personnelle.
+    if (await this.importedCheck(movement.id)) return { status: "PROTECTED" };
     return this.createIndependent({ ...movement, id: newId, levelGroup: null });
   }
 

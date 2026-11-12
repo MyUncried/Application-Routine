@@ -20,6 +20,8 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
+import { ImportedMovementAction, ImportedMovementInfoPanel } from "@/features/catalogue/ImportedMovementBadge";
+import { importedMovementInfo, type ImportedMovementInfo } from "@/features/catalogue/importedMovements";
 import type { MovementChoice, MovementLevels } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { EditorLevel } from "@/features/activities/MovementLevelMenu";
@@ -299,6 +301,11 @@ export function MovementSheet({
   // PRE-8 (B.8) : un Mouvement archivé s'ouvre en consultation seule (ni crayon, ni ajout de niveau),
   // comme une Séance archivée ; il se restaure depuis les Archives du Catalogue.
   const [isArchived, setIsArchived] = useState(false);
+  // A-2 (11/11/2026, Figma 12119:25304) : Mouvement importé d’une Bibliothèque — lecture seule, ni crayon ni
+  // duplication ; sa provenance (« Bibliothèque · rév. N ») remplace le crayon. Les Exercices restent réglables.
+  const [importedFrom, setImportedFrom] = useState<ImportedMovementInfo | null>(null);
+  // Recette du 11/11/2026 (a1-lecture-seule) : fenêtre d'information de la fiche importée, ouverte et fermée d'un appui.
+  const [importedInfoOpen, setImportedInfoOpen] = useState(false);
   const [bodyZonesToken, setBodyZonesToken] = useState(0);
   const bodyZones = useBodyZones(bodyZonesToken);
   const { categories, reload: reloadCategories } = useCategories();
@@ -317,8 +324,9 @@ export function MovementSheet({
         catalogue.findMovement(targetId),
         service.supportsMovementLevels ? service.getMovementLevels(targetId) : null,
         movementId !== null ? catalogue.isArchived(movementId) : false,
+        movementId !== null ? importedMovementInfo(movementId).catch(() => null) : null,
       ])
-        .then(([movement, movementLevels, archived]) => {
+        .then(([movement, movementLevels, archived, imported]) => {
           if (isCancelled()) return;
           if (!movement) {
             setLoadState("error");
@@ -331,8 +339,10 @@ export function MovementSheet({
             setDraft(loaded);
             setLevels(movementLevels);
             setIsArchived(archived);
-            // F07 : le Catalogue ouvre la fiche en édition ; un Mouvement archivé reste en consultation (B.8).
-            if (openInEdit && !archived) setMode("edit");
+            setImportedFrom(imported);
+            // F07 : le Catalogue ouvre la fiche en édition ; un Mouvement archivé reste en consultation (B.8),
+            // un Mouvement importé aussi (A-2).
+            if (openInEdit && !archived && imported === null) setMode("edit");
           } else {
             // Variante (« Ajouter un niveau ») : Catégorie, Zones et nom commencé seulement.
             const started: Draft = { ...EMPTY_DRAFT, name: movement.name, categoryId: movement.categoryId, bodyZoneIds: [...movement.bodyZoneIds] };
@@ -567,6 +577,9 @@ export function MovementSheet({
     // membre, ajouter un niveau) ; une édition entrée par le crayon le garde fermé, comme avant.
     if (origin === null) return { position: levels.position, menu: null };
     if (readOnly) return { position: displayedLevelPosition(levels, origin.id), menu: null };
+    // A-2 (11/11/2026) : Mouvement importé en lecture seule — ni nouveau niveau dérivé de lui, ni
+    // réordonnancement (entrées grisées) ; consulter un autre niveau reste permis (recette fn6, 12/11).
+    const imported = importedFrom !== null;
     if (mode === "edit" && !openInEdit) return { position: displayedLevelPosition(levels, origin.id), menu: null };
     const total = levels.position?.total ?? 0;
     return {
@@ -591,8 +604,8 @@ export function MovementSheet({
         compact: true,
         onChangeLevel: () => undefined,
         // « Ajouter un niveau » : variante explicite de ce mouvement, avant ou après lui.
-        onAddLevel: isArchived ? null : (placement) => router.push({ pathname: "/movement", params: { variantOf: origin.id, placement, returnDepth: "2" } }),
-        onReorderLevels: () => setIsLevelsScreenOpen(true),
+        onAddLevel: isArchived || imported ? null : (placement) => router.push({ pathname: "/movement", params: { variantOf: origin.id, placement, returnDepth: "2" } }),
+        onReorderLevels: imported ? null : () => setIsLevelsScreenOpen(true),
         movementChoice: {
           currentMovementId: origin.id,
           // « Changer de niveau » : consulter un autre membre, sans reclassement.
@@ -604,7 +617,7 @@ export function MovementSheet({
         },
       },
     };
-  }, [variant, mode, levels, origin, router, isArchived, openInEdit, readOnly]);
+  }, [variant, mode, levels, origin, router, isArchived, openInEdit, readOnly, importedFrom]);
 
   // Ordre de Hermann du 01/11/2026 (ch13 CE-T03-08 « Menu Créer — état cible », l.5269) : ouverte par
   // « Créer un exercice » de la Composition (contexte Séance), la fiche porte ce titre et sa
@@ -629,7 +642,11 @@ export function MovementSheet({
         // t-fiche-choix, t-cat-choix (06/11/2026) : « que la Croix se transforme en bouton retour » — fiche d'un mouvement choisi.
         accessibilityLabel={overlay !== undefined ? t.back : t.close}
         {...(overlay !== undefined ? { backIcon: true } : {})}
-        trailing={loadState === "ready" && mode === "consult" && !isArchived && !readOnly ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
+        trailing={
+          loadState === "ready" && importedFrom !== null
+            ? <ImportedMovementAction open={importedInfoOpen} onPress={() => setImportedInfoOpen((open) => !open)} />
+            : loadState === "ready" && mode === "consult" && !isArchived && !readOnly ? <EditMovementAction onPress={() => setMode("edit")} /> : null
+        }
         {...(readOnly || inSheet ? { topInset: 0 } : {})}
         // Demande de Hermann du 05/11/2026 (soir) : « fiche modifier un mouvement : retirer le bouton d'action en bas, mettre un
         // bouton d'action standard Valider en haut à droite » — coche d'en-tête (§18–§19), même règle d'activation que « Terminer ».
@@ -650,6 +667,9 @@ export function MovementSheet({
               }
             : {})}
       />
+      {loadState === "ready" && importedFrom !== null && importedInfoOpen ? (
+        <ImportedMovementInfoPanel info={importedFrom} onClose={() => setImportedInfoOpen(false)} />
+      ) : null}
       {loadState === "error" ? (
         <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="movement-load-error">
           <Text style={styles.loadErrorMessage}>{t.loadError}</Text>

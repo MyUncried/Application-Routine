@@ -103,8 +103,11 @@ export type MovementLevelMenuModel = {
   readonly onChangeLevel: (definitionId: string) => void;
   /** PRE-7 (R-6, MFN-07) : sens choisi, avant / après l'origine ; `null` : « Ajouter » indisponible. */
   readonly onAddLevel: ((placement: VariantPlacement) => void) | null;
-  /** PRE-7 (A3.2) : ouverture de l'écran de consultation et de réordonnancement des niveaux. */
-  readonly onReorderLevels: () => void;
+  /**
+   * PRE-7 (A3.2) : ouverture de l'écran de consultation et de réordonnancement des niveaux ;
+   * `null` (Mouvement importé, A-2) : entrée grisée.
+   */
+  readonly onReorderLevels: (() => void) | null;
   readonly movementChoice?: LevelMovementChoice;
   /**
    * Recette A/B B.10 (b2-8) : intitulé du sous-menu des niveaux propre à l'appelant (fiche Mouvement :
@@ -322,7 +325,7 @@ export function MovementLevelMenu({
             <SwiftUIButton
               label={t.reorderLevels}
               modifiers={[
-                swiftUIDisabled(!canChangeLevel(menu)),
+                swiftUIDisabled(!canChangeLevel(menu) || menu.onReorderLevels === null),
                 // Entrée toujours présente à la racine du menu : son apparition marque l'ouverture.
                 ...(onNativeMenuVisibilityChange
                   ? [
@@ -331,7 +334,7 @@ export function MovementLevelMenu({
                     ]
                   : []),
               ]}
-              onPress={menu.onReorderLevels}
+              onPress={() => menu.onReorderLevels?.()}
               testID={`${testID}-reorder`}
             />
           </Menu>
@@ -469,10 +472,10 @@ export function MovementLevelPanel({ menu, placement, onDismiss, testID }: Movem
       {
         id: "reorder",
         label: t.reorderLevels,
-        disabled: !canChangeLevel(menu),
+        disabled: !canChangeLevel(menu) || menu.onReorderLevels === null,
         onPress: () => {
           onDismiss();
-          menu.onReorderLevels();
+          menu.onReorderLevels?.();
         },
       },
     ];

@@ -130,7 +130,7 @@ Le MVP permet à l'utilisateur :
 Le MVP ne prend pas encore en charge :
 - le partage ou la collaboration ;
 - les comptes utilisateurs et la synchronisation entre appareils ;
-- l'interaction avec un professionnel de santé ou un coach ;
+- l'échange générique entre utilisateurs, sans rôle professionnel ni prescription numérique ;
 - les bibliothèques de séances partagées ;
 - l'assistance par intelligence artificielle ;
 - les tableaux de bord et graphiques avancés ;
@@ -568,12 +568,11 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 - gérer les droits de consultation et de modification ;
 - conserver des copies personnelles indépendantes des séances partagées.
 
-#### Professionnels de santé et coachs
+#### Accompagnement et transmission génériques — évolution ultérieure
 
-- recevoir une séance créée par un professionnel ;
-- permettre à un professionnel de créer, mettre à jour et partager des séances ;
-- suivre l'exécution des séances réalisées par un patient ou un client ;
-- gérer plusieurs patients ou clients au sein d'une même interface.
+- recevoir des Mouvements transmis par un autre utilisateur, lorsque le partage sera développé ;
+- permettre à un émetteur de transmettre des contenus autorisés, sans rôle professionnel imposé ;
+- ne pas introduire de suivi d'exécution de patients, de gestion de patientèle, ni de prescription numérique (KIN-01).
 
 #### Synchronisation
 
@@ -682,7 +681,7 @@ Composition → menu Créer → Utiliser un format d’entraînement → fenêtr
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; il n'y a pas de propagation de copies entre ces objets locaux. La diffusion entre utilisateurs suit au contraire la mise à jour manuelle BIB-12. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
@@ -699,3 +698,26 @@ Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. To
 
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
 
+## Parcours courant du Catalogue autonome — six étapes
+
+Le **gestionnaire KODJO** crée ou édite une fiche éditoriale complète dans l'administration Web (dont médias et révision) et exporte un fichier catalogue valide. Les **services CA-3** identifient sa source, comparent révisions/provenance et installent ou rapprochent les fiches. L'utilisateur sélectionne une **Bibliothèque générique KODJO** depuis Profil, l'installe puis lance volontairement « Mettre à jour » lorsqu'une nouvelle publication existe. Il consulte, crée et modifie **ses propres** Mouvements, Séances et Programmes depuis le Catalogue. La reprise des **60 Mouvements déjà installés** conserve leurs identités locales et leurs usages dans les Séances, sans copie ni écrasement indésirable. Le canal technique de recette par fichier peut conserver accepter/refuser/reporter **par fiche** ; il est distinct de la commande unique utilisateur de mise à jour d'une Bibliothèque. Les parcours PU-01 à PU-17 de partage entre utilisateurs sont des évolutions ultérieures, non des prérequis. Détails d'interaction non représentés dans Figma : À CLARIFIER.
+
+## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
+
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
+
+## Parcours ultérieurs — Bibliothèques personnelles, reçues et mises à jour
+
+1. L'utilisateur crée une Bibliothèque personnelle et y **référence** les Mouvements de son Catalogue, sans duplication ni déplacement des sources.
+2. Il peut publier ses propres fiches, y compris sans accorder la redistribution à ses destinataires, ou redistribuer à l'identique des fiches tierces seulement avec leur permission, sans jamais les modifier ni les copier (MOUV-D3, A-2) [texte d'origine : « y compris en mode destinataire Protégé » — remplacé le 11/11/2026]. Les éléments interdits restent invisibles chez les destinataires ; la modération centrale contrôle la révision avant diffusion.
+3. Une Bibliothèque reçue reste en lecture seule sur sa composition. Les fiches issues de plusieurs sources peuvent partager le même nom affiché tout en conservant des identités éditoriales distinctes.
+4. Une pastille signale une nouvelle version ; dans l'écran **Bibliothèque reçue**, le détail des changements et des autres Bibliothèques référant les mêmes fiches précède l'action unique **« Mettre à jour »**.
+5. La mise à jour volontaire change la composition de la Bibliothèque choisie et la révision active des Mouvements concernés. Ces fiches sont alors actualisées dans toutes les Bibliothèques qui les référencent ; **les compositions des autres Bibliothèques ne changent pas**.
+6. Les Mouvements retirés d'une Bibliothèque source restent disponibles dans le Catalogue et les Séances existantes ; l'archivage ne change rien pour les destinataires, l'arrêt du partage interdit les nouvelles livraisons et mises à jour.
+7. Une suspension de modération demeure prioritaire et s'applique au prochain contrôle réseau possible, sans attendre l'action « Mettre à jour ».
+
+## Parcours post-MVP — Transmission dans un Espace en étoile (KIN-01)
+
+L'Espace en étoile relie individuellement un utilisateur émetteur à des destinataires. L'invitation est acceptée ou refusée ; le destinataire peut bloquer l'émetteur. La transmission porte sur un ou plusieurs **Mouvements**, sans Bibliothèque fictive, ni rôle professionnel dans les données. Dans l'usage kiné-patient, les consignes d'exécution sont orales ; ni Exercice ni Séance ne sont prescrits numériquement dans ce lot.
+
+Les modalités détaillées de relation, confidentialité, avis de mise à jour et UI restent à concevoir ; ne pas inférer des maquettes Figma inexistantes. [PU-01 à PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).

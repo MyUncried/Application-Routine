@@ -13,7 +13,7 @@ Les cycles visibles avec compte propre, exercices directs de cycle et circuits m
 - [V2 – Réutilisation avancée des séances](#v2--réutilisation-avancée-des-séances)
   - [Objectif](#objectif-1)
   - [Fonctionnalités](#fonctionnalités-1)
-- [V3 – Synchronisation et relation avec un kinésithérapeute](#v3--synchronisation-et-relation-avec-un-kinésithérapeute)
+- [V3 – Synchronisation et transmission entre utilisateurs](#v3--synchronisation-et-transmission-entre-utilisateurs)
   - [Objectif](#objectif-2)
   - [Fonctionnalités](#fonctionnalités-2)
 - [V4 – Extension de la vision](#v4--extension-de-la-vision)
@@ -178,7 +178,7 @@ La structure d'une séance pourra être étendue afin de permettre :
  
  Cette évolution ne rend pas les Cycles, Circuits ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Exercices du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
 
-## V3 – Synchronisation et relation avec un kinésithérapeute
+## V3 – Synchronisation et transmission entre utilisateurs (cible à réviser)
 
 ### Objectif
 
@@ -194,16 +194,17 @@ Faire évoluer l’application personnelle vers un service synchronisé permetta
 - retrouver ses données sur plusieurs appareils ;
 - sauvegarder et restaurer ses données.
 
-#### Relation avec un kinésithérapeute
+#### Transmission individuelle générique — fonctionnalités futures
 
-- associer un utilisateur à un kinésithérapeute ;
-- permettre au kinésithérapeute de créer ou prescrire une séance ;
-- transmettre des exercices, des consignes, des photos et des vidéos ;
-- faire évoluer une routine prescrite ;
-- distinguer les séances personnelles des routines prescrites ;
-- partager avec le kinésithérapeute les séances réalisées ;
-- transmettre un retour simple sur la douleur, la difficulté ou la fatigue ;
-- conserver l’historique des versions prescrites.
+- relier individuellement un émetteur à un destinataire avec acceptation, refus et blocage ;
+- transmettre un ou plusieurs Mouvements autorisés, avec leurs consignes/médias autorisés ;
+- conserver la provenance et l'identité de source sans prescription de Séance ;
+- ne pas remonter les Exécutions, douleurs, résultats ou informations relatives à des patients ;
+- conserver les règles de versionnement et de mise à jour volontaire des fiches reçues.
+
+Cette évolution ne crée aucun rôle professionnel, prescription numérique, patientèle ou suivi clinique (KIN-01).
+
+**Périmètre KIN-01 :** la première tranche de transmission individuelle porte sur **un ou plusieurs Mouvements via une relation de l'Espace en étoile générique**, sans rôle « kiné » ni « coach » dans le modèle. Dans l'usage kiné-patient, les modalités d'exécution sont **données oralement**. Les fonctions futures de prescription numérique, suivi ou remontée de résultats restent **hors de ce premier lot**. [Parcours PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
 
 Les modalités précises d’accès aux données, de consentement et de confidentialité devront être définies avant le développement de cette version.
 
@@ -435,7 +436,7 @@ Ne sont pas inclus dans le MVP :
 - partage ;
 - communautés ;
 - comptes multi-utilisateurs ;
-- relation avec un professionnel de santé ;
+- échange générique de Mouvements entre utilisateurs (postérieur au premier lot Bibliothèques) ;
 - exceptions de planification ;
 - notifications avancées ;
 - intelligence artificielle ;
@@ -552,3 +553,19 @@ La configuration, les données, la Composition et la réédition concernent PRE-
 ## Création et Formats — état final du 5 novembre 2026
 
 **Création et Formats — décisions du 5 novembre 2026.** Modale de création commune au Catalogue et à la Composition, nouveau brouillon prérempli à l’arrivée, sauvegarde uniquement dans la Composition ; fermeture vers le point de départ sans mutation. Menu à trois options, œil et CE-CIR-03 retirés ; photo de l’Exercice ouvrant une fiche en lecture seule avec « Dans cette séance ». Superset alterné trois tours ; EMOM prescrit par série ; Death by en Durée avec avertissement au seul premier rang impossible et arrêt avant un rang incompatible. Règles complètes dans la référence Formats actualisée, §§7/7.6/7.7/9.4/10/12. Configuration et Composition : PRE-9 ; consommation par le moteur spécialisé : PRE-10/11. Cette mise à jour documentaire ne vaut pas développement ni qualification.
+
+## Priorité de réalisation — six étapes Catalogue autonome
+
+Le chantier suit la conception normative des fiches, la consolidation de données **CA-1/CA-2/CA-3** compatible avec PRE-10, la conception Figma Profil, les **services communs** (validation, import/export, mise à jour, conflits), la **finalisation de l'administration Web** Node.js/OVH puis l'**intégration avec reprise des 60 Mouvements déjà installés** sans perte ni duplication. L'administration Web peut progresser parallèlement aux services une fois les contrats stabilisés. Le premier périmètre utilisateur **n'inclut que les Bibliothèques génériques KODJO** ; la gestion des fiches, des révisions, des médias et des droits de source est nécessaire à ce périmètre et **n'est pas reportée**. Les fonctions personnelles/coachs/partage demeurent futures. Les termes « lot L1/L2 » de travaux communautaires antérieurs ne constituent pas le plan d'exécution courant.
+
+## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
+
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
+
+## Évolution ultérieure — Distribution des Bibliothèques de Mouvements
+
+La cible prévoit des Bibliothèques personnelles constituées par références, des Bibliothèques reçues non modifiables dans leur composition et une diffusion soumise à validation centrale. Les fiches de sources différentes peuvent porter le même nom, grâce à une identité éditoriale indépendante du libellé ; une seule révision est active localement et se répercute dans toutes les Bibliothèques qui la référencent après mise à jour volontaire.
+
+Le partage en Bibliothèque attribue l'accès au niveau de la collection ; la publication initiale d'une fiche par son propriétaire est distincte de la redistribution par un destinataire. Les anciens quatre modes de modification/redistribution sont **supersédés** (MOUV-D3, A-2 du 11/11/2026) : les fiches reçues/importées sont non modifiables, non copiables et non duplicables ; leur redistribution à l'identique est autorisée seulement si la source accorde ce droit, dans un lot futur. L'Espace en étoile assure séparément la transmission individuelle de Mouvements, sans rôle professionnel ni prescription numérique ; dans l'usage kiné-patient les consignes d'exécution restent orales dans ce premier lot.
+
+L'archivage est indépendant de la diffusion ; l'arrêt du partage ne supprime pas les installations reçues. La gestion des comptes, du partage réseau, de la modération et des offres commerciales reste **post-MVP** ; son ordonnancement exact entre versions futures n'est pas arrêté. L'import pilote des 60 fiches et le moteur d'Exécution local n'impliquent aucune livraison de ces fonctions. [Parcours](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).

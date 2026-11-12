@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { Keyboard, StyleSheet, TextInput } from "react-native";
 
+import { disabled as swiftUIDisabled } from "@expo/ui/swift-ui/modifiers";
 import type { Movement } from "@/domain/activities/Movement";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { Category } from "@/domain/categories/Category";
@@ -1225,6 +1226,58 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
       expect(mockBack).toHaveBeenCalled();
     } finally {
       errors.mockRestore();
+    }
+  });
+});
+
+describe("A-2 (11/11/2026, Figma 12119:25304) — Mouvement importé d'une Bibliothèque", () => {
+  it("s'ouvre en consultation même avec `mode=edit` : symbole à la place du crayon, informations d'un appui, nom non modifiable", async () => {
+    const imported = jest.requireMock("@/features/catalogue/importedMovements") as { importedMovementInfo: (id: string) => Promise<unknown> };
+    const previous = imported.importedMovementInfo;
+    imported.importedMovementInfo = async (id) => (id === "m1" ? {
+      libraries: ["Fitness"], catalogueId: "kodjo.pilote-60", sheetId: "s1", revision: "2",
+      installedAt: "2026-11-11T10:00:00.000Z", updatedAt: "2026-11-11T10:00:00.000Z", origin: "EXTERNAL_IMPORTED",
+      upstream: null, owner: null, author: "hermann", publisher: null, editors: [], rightsHolder: null, license: null,
+    } : null);
+    try {
+      await movements().create(movement("m1", "Squats sautés"));
+      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+      expect(screen.getByText(t.titles.consult)).toBeTruthy();
+      // Recette du 11/11 (a1-lecture-seule) : le symbole seul ; un appui ouvre les informations, un nouvel appui les ferme.
+      expect(screen.queryByTestId("movement-imported-info", anyNode)).toBeNull();
+      fireEvent.press(screen.getByTestId("movement-imported-badge", anyNode));
+      expect(screen.getByTestId("movement-imported-info", anyNode)).toBeTruthy();
+      expect(screen.getByText("Fitness")).toBeTruthy();
+      expect(screen.getByText("hermann")).toBeTruthy();
+      fireEvent.press(screen.getByTestId("movement-imported-badge", anyNode));
+      expect(screen.queryByTestId("movement-imported-info", anyNode)).toBeNull();
+      expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
+      expect(screen.queryByTestId("screen-header-validate", anyNode)).toBeNull();
+      expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
+    } finally {
+      imported.importedMovementInfo = previous;
+    }
+  });
+
+  it("recette fn6 (12/11) : la famille reste consultable — « Ouvrir un autre niveau » actif, « Ajouter un niveau » et « Réordonner les niveaux » grisés", async () => {
+    const imported = jest.requireMock("@/features/catalogue/importedMovements") as { importedMovementInfo: (id: string) => Promise<unknown> };
+    const previous = imported.importedMovementInfo;
+    imported.importedMovementInfo = async (id) => (id === "p1" || id === "p2" ? {
+      libraries: ["Pompes"], catalogueId: "kodjo.pilote-60", sheetId: id, revision: "1",
+      installedAt: "2026-11-11T10:00:00.000Z", updatedAt: "2026-11-11T10:00:00.000Z", origin: "EXTERNAL_IMPORTED",
+      upstream: null, owner: null, author: null, publisher: null, editors: [], rightsHolder: null, license: null,
+    } : null);
+    try {
+      await movements().create(movement("p1", "Pompes au mur", { levelGroup: { groupId: "catalogue:kodjo.pilote-60#pompes", sortKey: 0 } }));
+      await movements().create(movement("p2", "Pompes sur les genoux", { levelGroup: { groupId: "catalogue:kodjo.pilote-60#pompes", sortKey: 1 } }));
+      await renderSheet({ movementId: "p2" });
+      const disabledOf = (testID: string) => JSON.stringify(screen.getByTestId(testID, anyNode).props.modifiers ?? []).includes(JSON.stringify(swiftUIDisabled(true)));
+      expect(screen.getByTestId("activity-editor-level-change", anyNode).props.label).toBe(strings.screens.activities.editor.levelMenu.openOtherLevel);
+      expect(disabledOf("activity-editor-level-change")).toBe(false);
+      expect(disabledOf("activity-editor-level-add")).toBe(true);
+      expect(disabledOf("activity-editor-level-reorder")).toBe(true);
+    } finally {
+      imported.importedMovementInfo = previous;
     }
   });
 });

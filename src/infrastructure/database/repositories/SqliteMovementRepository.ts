@@ -484,14 +484,36 @@ export class SqliteMovementRepository implements MovementRepository {
 
   async create(movement: Movement): Promise<Movement> {
     const timestamp = this.now();
+    let created: Movement | null = null;
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
       await insertMovement(transaction, movement, timestamp, () => this.uuidFactory());
+      // Relecture sur la connexion de l'écriture, avant validation (même motif que la création de
+      // Séance). Avec expo-sqlite, la transaction exclusive utilise une connexion distincte : relue
+      // après coup sur la connexion principale (WAL), la ligne validée n'était pas toujours visible
+      // (recette iPhone du 9/11 : « could not be read back » à l'import des 60 Mouvements).
+      created = (await readMovementRecords(transaction, [movement.id])).get(movement.id)?.movement ?? null;
+      if (!created) {
+        throw new Error("The created movement could not be read back.");
+      }
     });
-    const created = await this.findById(movement.id);
     if (!created) {
       throw new Error("The created movement could not be read back.");
     }
     return created;
+  }
+
+  /**
+   * Lecture dans une transaction, sur la connexion de la transaction (catalogue autonome, CA-3/CA-4) :
+   * juste après une écriture, la connexion principale peut relire un instantané antérieur (même
+   * incident que `create`). Lecture seule ; aucune écriture n'est faite par `read`.
+   */
+  async readFresh<T>(read: (repository: MovementRepository) => Promise<T>): Promise<T> {
+    let result: { value: T } | null = null;
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      result = { value: await read(new SqliteMovementRepository(transaction, this.uuidFactory, this.now)) };
+    });
+    if (result === null) throw new Error("Movement fresh read did not complete.");
+    return (result as { value: T }).value;
   }
 
   async findById(id: string): Promise<Movement | null> {
@@ -655,6 +677,35 @@ export class SqliteMovementRepository implements MovementRepository {
       }
       const expected = new Set(members);
       if (orderedIds.length !== members.length || new Set(orderedIds).size !== members.length || orderedIds.some((id) => !expected.has(id))) {
+        outcome = { status: "INVALID_ORDER" };
+        return;
+      }
+      await writeGroupOrder(transaction, groupId, orderedIds, this.now());
+      outcome = { status: "OK", members: await this.readGroup(transaction, groupId) };
+    });
+    return outcome;
+  }
+
+  async setFamilyOrder(groupId: string, orderedIds: readonly string[]): Promise<MovementGroupOutcome> {
+    let outcome: MovementGroupOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      if (orderedIds.length === 0 || new Set(orderedIds).size !== orderedIds.length) {
+        outcome = { status: "INVALID_ORDER" };
+        return;
+      }
+      for (const id of orderedIds) {
+        const row = await transaction.getFirstAsync<{ level_group_id: string | null }>(
+          "SELECT level_group_id FROM movements WHERE id = ?",
+          [id],
+        );
+        if (!row) return;
+        if (row.level_group_id !== null && row.level_group_id !== groupId) {
+          outcome = { status: "ALREADY_IN_GROUP" };
+          return;
+        }
+      }
+      const listed = new Set(orderedIds);
+      if ((await groupMemberIds(transaction, groupId)).some((id) => !listed.has(id))) {
         outcome = { status: "INVALID_ORDER" };
         return;
       }
