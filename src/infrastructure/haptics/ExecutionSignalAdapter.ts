@@ -259,7 +259,10 @@ export class ExecutionSignalAdapter {
 
   /** Son, vibration et annonce d'un signal ; tient compte du « À suivre » déjà annoncé et de l'étape précédente. */
   guidance(signal: ExecutionSignal): Guidance {
-    if (signal.kind === "COUNTDOWN") return { cue: GUIDANCE.lastSeconds, announcement: null, event: "COUNTDOWN" };
+    // Recette du 13/11/2026 (Hermann : « Annoncer les changements de phase jusqu'à la fin, oui ») : un bip des dernières
+    // secondes qui tombe sur un changement de phase annonce aussi la phase.
+    if (signal.kind === "COUNTDOWN")
+      return { cue: GUIDANCE.lastSeconds, announcement: signal.phaseChange === true && this.announce.phases ? cleanName(signal.phaseLabel) : null, event: "COUNTDOWN" };
     if (signal.kind === "CADENCE") return { cue: GUIDANCE.cadence, announcement: null, event: "CADENCE" };
     if (signal.kind === "MINUTE") return { cue: GUIDANCE.minute, announcement: null, event: "EVERY_MINUTES" };
     if (signal.kind === "HALF_TIME") return { cue: GUIDANCE.halfTime, announcement: null, event: "HALF_TIME" };

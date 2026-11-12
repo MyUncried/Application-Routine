@@ -77,6 +77,8 @@ export type ExecutionSignal = {
   readonly objective?: SignalObjective;
   /** Phase du mouvement qui commence (signal `PHASE`, recette du 10/11/2026, constat B). */
   readonly phaseLabel?: string | null;
+  /** Bip des dernières secondes qui tombe sur un changement de phase : la phase est annoncée (recette du 13/11/2026). */
+  readonly phaseChange?: boolean;
   /** Nombre d'Exercices de la Séance (recette du 11/11/2026, constat b : « Premier exercice » s'il y en a plus d'un). */
   readonly exerciseCount?: number;
 };
@@ -433,6 +435,7 @@ export class ExecutionService {
       next: projection?.next == null ? null : { phase: projection.next.kind, exerciseName: projection.next.name, objective: objectiveOf(projection.next.mode, projection.next.target) },
       objective: projection === null ? undefined : objectiveOf(projection.mode, projection.seriesTarget),
       phaseLabel: projection?.guidance?.label ?? null,
+      phaseChange: "phaseChange" in signal && signal.phaseChange === true,
       exerciseCount: this.active === null ? 0 : Object.keys(this.active.plan.exercises).length,
     };
   }
