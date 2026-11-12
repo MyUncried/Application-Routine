@@ -409,3 +409,13 @@ Modifications (non committées) :
 Tests (worktree temporaire sans le fichier de recette, supprimé ensuite) : `tsc --noEmit` 0 erreur ; ESLint `src/features/catalogue src/domain/catalogue` 0 problème ; Jest `src/features/catalogue src/domain/catalogue src/features/preferences` 18 suites, 223 tests verts.
 
 Non vérifié : aucun contrôle sur l’iPhone (Reload nécessaire ; lignes x-d-* et x-c2-sections). « Créer une bibliothèque » n’ouvre rien tant que la spec des Bibliothèques personnelles n’est pas validée. x-media-message : le code exige toujours un texte alternatif pour une photo (`MovementCatalogueFile.ts`), alors que la note dit le champ facultatif ; règle non modifiée.
+
+## « Envoyer mes mouvements » retiré du Profil (12/11) — code NON committé
+
+Décision de Hermann : « on retire "Envoyer mes mouvements" il n'y a pas de scénario pour cela. On partage une bibliothèque de mouvements, pas des mouvements individuels. » Classe B.
+
+Modifications : `ProfileLibrariesSection.tsx` (ligne retirée ; « Mes bibliothèques » ne contient plus que « Créer une bibliothèque ») ; test `LibraryScreens.test.tsx` (absence vérifiée). Spec : ligne « Sections du Profil » mise à jour, story A2 annotée « retirée » (texte conservé), À CLARIFIER n° 8 résolu. Cahier v18 : a1-profil et section 6 (A2) marquées remplacées ; x-c2-sections corrigée.
+
+Non traité, à décider par Hermann : l'écran d'envoi (`/library-send`), sa route, `movementInboxBuilder.ts` et la Boîte d'arrivée du PC restent dans le code sans point d'entrée côté iPhone.
+
+Tests (worktree temporaire, supprimé ensuite) : `tsc --noEmit` 0 erreur ; ESLint `src/features/catalogue` 0 problème ; Jest `src/features/catalogue src/features/preferences` 12 suites, 123 tests verts. Non vérifié sur iPhone (Reload, ligne x-c2-sections).
