@@ -177,6 +177,15 @@ Cahier : `_bmad-output/catalogue-connecte/implementation-artifacts/recette-iphon
 | Fiche d'un Mouvement importé en famille : le menu Niveau reste affiché, « Ouvrir un autre niveau » actif ; « Ajouter un niveau » et « Réordonner les niveaux » grisés (recette fn6 du 12/11 : « changer de niveau n'est pas proposé dans les fiches ») | A (A-2 n'interdit que la modification ; consulter un autre niveau n'en est pas une ; point 2 « Depuis la fiche, ni « Ajouter un niveau » ni réordonnancement » respecté) | aucun |
 | Écran Profil, recette c1/c2 du 11/11 (Hermann : « Il manque la zone de contexte avec dégradé vers la couleur de l'écran » ; « retirer le texte Modifier la photo », « faire l'icône de la photo plus petit », « zone de profil, pas de cadre ») : bande des onglets suivie d'une part fondue vers la transparence (D-224), corps défilant derrière ; libellé « Modifier la photo » retiré, pastille 22 / icône 12 devenue la commande accessible de la photo ; zone Profil sans fond, contour ni ombre | B (demande explicite ; écarts à Figma 12119:25611 voulus) | aucun document fonctionnel ; Pseudo toujours absent (À CLARIFIER n° 7, non traité) |
 
+## Élargissement demandé le 12/11/2026 : Bibliothèques personnelles partagées (analyse, non développé)
+
+Décision de Hermann du 12/11/2026, en réponse à « Si tu veux qu'un mouvement puisse être partagé depuis une Bibliothèque de l'iPhone dès maintenant, il faut élargir le périmètre de ce lot » : « oui, et une bibliothèque créée localement et partagée identifie son auteur, deux bibliothèques peuvent avoir le même nom mais avec des auteurs différents. Deux bibliothèques d'un même auteur ne peuvent avoir un même nom. Regardes ce qu'il faut faire sur l'iphone et sur l'interface. »
+
+- Remplace partiellement A-4 (« Mes bibliothèques » reportée hors du premier lot) : la création locale et l'envoi au PC entrent dans le lot ; partage entre utilisateurs, permissions, modération centrale et Espace en étoile restent hors lot.
+- Règles retenues : la Bibliothèque partagée porte son auteur ; unicité du nom par auteur ; homonymes admis entre auteurs différents. Le référencement d'un Mouvement importé n'en crée aucune copie (A-2, MOUV-D3, PU-02).
+- Figma : seule la section « Mes bibliothèques » du Profil existe (12119:25611) ; aucun écran de création, de composition ni d'envoi (« Figma reste à concevoir », parcours cibles § 5).
+- Plan et questions ouvertes : rapport de livraison, section « Élargissement : Bibliothèques personnelles partagées (12/11) ». Aucun code avant les réponses de Hermann.
+
 ## À CLARIFIER
 
 Points restants, sans décision inventée :
