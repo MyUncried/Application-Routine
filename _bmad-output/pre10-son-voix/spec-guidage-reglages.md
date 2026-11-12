@@ -447,3 +447,4 @@ OK : e1a, e1c, e1d, e1e-pause, e1h, e3b (Son et Voix séparés), p4. Notes recop
 - Retour du soir (repères) : « Foncer un peu les 16 barres autour du cercle » → repères intermédiaires à 70 % d'opacité (au lieu de 40 %, Figma), couleur et taille inchangées. Réalisé.
 - Retour du 13/11 (cadre Temps écoulé) : « Éclaircir le cadre du temps écoulé pour améliorer le contraste » → fond du cadre blanc (#FFFFFF au lieu de #FAFAFE, Figma) sur la zone #F6F6FA. Réalisé.
 - Retour du 13/11 (À suivre) : « Enlever l'information série dans le "A suivre" » → À suivre : nom de l'exercice suivant et sa valeur (durée, répétitions ou À l'échec), sans « Série n/N ». Réalisé.
+- Retour du 13/11 (textes du cadre) : « Augmenter un peu la taille de mes trois textes du cadre temps écoulé. Pas les valeurs » → « Temps écoulé » 18 (au lieu de 16), « À suivre » 12 (au lieu de 10), nom de l'exercice suivant 18 (au lieu de 16) ; valeurs inchangées. Réalisé.

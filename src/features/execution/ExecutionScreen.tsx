@@ -1120,13 +1120,15 @@ const styles = StyleSheet.create({
   // marge à droite qu'il n'en a à gauche ») : marges égales. [Marge droite de 32 relevée dans Figma — remplacé.]
   card: { height: 124, borderRadius: 12, backgroundColor: executionColors.card, paddingHorizontal: 16, paddingTop: 13 },
   elapsedRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", height: 32, gap: spacing[8] },
-  elapsedLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, color: colors.textPrimary, marginBottom: 3 },
+  // Recette du 13/11/2026 (Hermann : « Augmenter un peu la taille de mes trois textes du cadre temps écoulé. Pas les
+  // valeurs ») : Temps écoulé 18, À suivre 12, nom suivant 18. [16, 10, 16 — remplacé.]
+  elapsedLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 18, color: colors.textPrimary, marginBottom: 3 },
   elapsedValue: { ...executionType.metric, color: colors.textPrimary, flexShrink: 1, textAlign: "right" },
   cardDivider: { height: 1, backgroundColor: executionColors.track, marginTop: 12 },
   next: { marginTop: 9 },
-  nextLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 10, lineHeight: 16, color: colors.primary },
+  nextLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, lineHeight: 16, color: colors.primary },
   nextRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 28, gap: spacing[8] },
-  nextName: { fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", fontSize: 16, lineHeight: 22, color: colors.textSecondary, flexShrink: 1 },
+  nextName: { fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", fontSize: 18, lineHeight: 24, color: colors.textSecondary, flexShrink: 1 },
   nextValue: { ...executionType.metric, color: colors.textSecondary, textAlign: "right" },
   saveError: {
     padding: spacing[12],
