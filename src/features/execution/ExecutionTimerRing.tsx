@@ -43,16 +43,44 @@ function animatedSvg(): ReturnType<typeof createAnimatedSvg> {
   return animated;
 }
 
-export function ExecutionTimerRing({ motion, children, testID }: { readonly motion: RingMotion; readonly children: ReactNode; readonly testID?: string }) {
+/** Fondu de l'anneau de couleur : celui des textes de l'écran (`FADE_OUT_MS` - 50). */
+const ARC_FADE_MS = 450;
+
+/**
+ * Recette du 12/11/2026 (Hermann : « Entre deux exercices le cercle gris disparaît aussi, il ne faut pas, seul le cercle
+ * de couleur doit disparaître ») : `fading` efface l'anneau de couleur et sa pastille pendant la dernière demi-seconde
+ * d'une étape, en même temps que les textes ; l'anneau gris et les repères restent affichés.
+ */
+export function ExecutionTimerRing({
+  motion,
+  fading = false,
+  children,
+  testID,
+}: {
+  readonly motion: RingMotion;
+  readonly fading?: boolean;
+  readonly children: ReactNode;
+  readonly testID?: string;
+}) {
   if (!hasSvg()) return <View testID={testID === undefined ? undefined : `${testID}-plain`}>{children}</View>;
   return (
-    <AnimatedRing motion={motion} testID={testID}>
+    <AnimatedRing motion={motion} fading={fading} testID={testID}>
       {children}
     </AnimatedRing>
   );
 }
 
-function AnimatedRing({ motion, children, testID }: { readonly motion: RingMotion; readonly children: ReactNode; readonly testID?: string | undefined }) {
+function AnimatedRing({
+  motion,
+  fading,
+  children,
+  testID,
+}: {
+  readonly motion: RingMotion;
+  readonly fading: boolean;
+  readonly children: ReactNode;
+  readonly testID?: string | undefined;
+}) {
   const { svg: Svg, Circle: AnimatedCircle } = animatedSvg();
   const canvas = RING.size + 2 * RING.outset;
   const center = canvas / 2;
@@ -61,6 +89,12 @@ function AnimatedRing({ motion, children, testID }: { readonly motion: RingMotio
   const wrap = motion.wrap;
   // Vitesse et mode de l'animation en cours (`null` : immobile).
   const runningKey = useRef<string | null>(null);
+  // Opacité de l'anneau de couleur : fondu à la fin d'une étape, retour immédiat à l'étape suivante (anneau vide).
+  const arcOpacity = useSharedValue(1);
+  useEffect(() => {
+    cancelAnimation(arcOpacity);
+    arcOpacity.value = fading ? withTiming(0, { duration: ARC_FADE_MS }) : 1;
+  }, [fading, arcOpacity]);
 
   useEffect(() => {
     const key = motion.ratePerMs > 0 ? `${wrap}:${motion.ratePerMs}` : null;
@@ -76,11 +110,11 @@ function AnimatedRing({ motion, children, testID }: { readonly motion: RingMotio
 
   const arcProps = useAnimatedProps(() => {
     const fraction = displayedFraction(turns.value, wrap);
-    return { strokeDashoffset: circumference * (1 - fraction), strokeOpacity: fraction > 0.0005 ? 1 : 0 };
+    return { strokeDashoffset: circumference * (1 - fraction), strokeOpacity: fraction > 0.0005 ? arcOpacity.value : 0 };
   });
   const knobProps = useAnimatedProps(() => {
     const point = pointAt(displayedFraction(turns.value, wrap), RING.progressRadius, center);
-    return { cx: point.x, cy: point.y };
+    return { cx: point.x, cy: point.y, opacity: arcOpacity.value };
   });
 
   const radial = (fraction: number, inner: number, outer: number) => {

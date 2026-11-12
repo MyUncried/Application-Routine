@@ -562,6 +562,7 @@ export function ExecutionScreen({
             projection.status === "RUNNING",
             projection.phase === "INITIAL_COUNTDOWN" || projection.phase === "SESSION_END" || waiting !== null,
           )}
+          fading={fadingOut}
           testID="execution-ring"
         >
           {/*
