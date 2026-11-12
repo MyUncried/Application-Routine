@@ -387,3 +387,25 @@ Points présentés à Hermann pour arbitrage : défaut des champs Auteur/Diffuse
 Contre-recette du 12/11 (capture iPhone ; Hermann : « corrige la zone de contexte, tu vois bien qu’elle n’est pas conforme », « il faut remonter la photo, le nom, mettre le pseudo », « UTILISE LES COMPOSANTS STANDARDS TOUT LE TEMPS ») : la bande du Profil dessinée à la main (dégradé CSS, contenu centré) est remplacée par le composant canonique `ContextBand` des Catalogues (fondu par couches D-224, géométrie CE-CAT-CTX-01, couleur de l’onglet) ; photo et nom remontés (retrait de la liste des Catalogues), nom centré sur la photo. Tests : tsc 0, ESLint 0, Jest `src/features/preferences src/features/catalogue` 12 suites / 120 tests verts (worktree temporaire supprimé). Pseudo NON développé : le Profil est dans la base principale (`profiles`, migration 007) ; l’ajout exige une migration de la base principale concurrente de PRE-10 (≥ 029), soumise à autorisation explicite, et l’unicité reste à définir. Toujours non committé côté code.
 
 Pseudo (12/11) : migration de la base principale autorisée par Hermann ; `pre10-fin` occupe déjà les versions 025 à 029, une version 025 « Pseudo » sur cette branche entrerait en collision à la fusion. Décision de Hermann : ajout « après la fusion » (migration n° 30). Aucun code écrit pour le Pseudo.
+
+## Recette du 12/11 au soir : besoin d) (aperçus de Bibliothèque) et sections du Profil — code NON committé
+
+Départ : `d20ae34d` (code des missions précédentes toujours non committé, sur demande de Hermann). Écarts relus dans le cahier (base `results`) : besoin « d) » des Autres remarques ; note c2 mise à jour (« se référer à Figma, écran P-Profil — Modifier le profil — Sections sans bibliothèque ») ; a1-medias (déjà corrigé le 12/11, encadré « Fiche non transférée » retiré) ; x-media-message (question restée ouverte).
+
+Constats (diagnostic d’abord, comme demandé) :
+- Compteurs « 0 nouvelle · 0 déjà présente » : les fiches déjà installées par une autre Bibliothèque sont dans l’état « à jour » (`UP_TO_DATE`) et n’étaient comptées ni en « nouvelles » ni en « déjà présentes » (seul `ADOPTABLE` comptait). Ni ordre de chargement ni clé de rapprochement en cause : la clé est `catalogueId/sheetId`.
+- Mise à jour « 0 / 0 / 0 » : même famille. Une fiche entrant dans la Bibliothèque mais déjà au Catalogue n’était pas comptée ; une révision sans écart (titre, description) proposait quand même l’écran.
+- Titre « Bibliothèque publiable » : le code affiche déjà le nom de la Bibliothèque. « Bibliothèque publiable » est le nom réel d’une Bibliothèque du fichier de recette (6 fiches dont une retenue pour média, d’où 5). Aucun changement de code.
+- Avertissement « Propriétaire inconnu » : affiché aussi pour des fiches sans propriétaire dans une Bibliothèque qui en a un (texte « Cause : … », recette fn14 du 11/11).
+
+Modifications (non committées) :
+- `src/domain/catalogue/libraryPlan.ts` : `presentCount`/`newCount` (présence au Catalogue, invariant nouvelles + déjà présentes = total) ; `joined` (fiches qui entrent dans la Bibliothèque) ; statut « à jour » si aucun écart réel.
+- `src/features/catalogue/LibraryScreens.tsx` : compteurs de l’aperçu avant installation ; avertissement seulement si la Bibliothèque n’a pas de propriétaire, texte de Figma ; mise à jour : « Révision N → M · détail par fiche », « Nouvelle(s) » = `joined`, « Reporter » supprimé, « Refuser » seul au-dessus de « Mettre à jour ».
+- `src/features/catalogue/libraryPresentation.ts` : `unknownOwnerText` remplacé par `UNKNOWN_LIBRARY_OWNER_TEXT`.
+- `src/features/catalogue/ProfileLibrariesSection.tsx` : « Mes bibliothèques » (Créer une bibliothèque, inactive ; Envoyer mes mouvements, place provisoire) puis « Bibliothèques installées » toujours affichée (Ajouter une bibliothèque en première ligne).
+- Tests : `LibraryService.sqlite.test.ts` (4 cas), `LibraryScreens.test.tsx`, `libraryPresentation.owner.test.ts`.
+- Documentation (classe B) : spec du lot (deux lignes ; « avec Reporter et Refuser » annoté remplacé ; À CLARIFIER n° 8). Cahier v17 : x-d-compteurs, x-d-proprietaire, x-d-maj, x-d-sans-ecart, x-c2-sections ; m3 et fn14 réécrites.
+
+Tests (worktree temporaire sans le fichier de recette, supprimé ensuite) : `tsc --noEmit` 0 erreur ; ESLint `src/features/catalogue src/domain/catalogue` 0 problème ; Jest `src/features/catalogue src/domain/catalogue src/features/preferences` 18 suites, 223 tests verts.
+
+Non vérifié : aucun contrôle sur l’iPhone (Reload nécessaire ; lignes x-d-* et x-c2-sections). « Créer une bibliothèque » n’ouvre rien tant que la spec des Bibliothèques personnelles n’est pas validée. x-media-message : le code exige toujours un texte alternatif pour une photo (`MovementCatalogueFile.ts`), alors que la note dit le champ facultatif ; règle non modifiée.
