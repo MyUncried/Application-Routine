@@ -3496,7 +3496,7 @@ Le Compte à rebours initial est alors exécuté s’il est configuré avec une 
 
 L’écran affiche, de haut en bas :
 
-- ~~le nom de la Séance~~ [retiré le 12/11/2026 — classe B, Hermann : « Retirer le nom de la séance de l’écran » ; la ligne de contexte ne montre plus que le nom de l’Exercice pendant une Pause ou une récupération] ;
+- ~~le nom de la Séance~~ [retiré le 12/11/2026 — classe B, Hermann : « Retirer le nom de la séance de l’écran » ; la ligne de contexte ne montre plus que le nom de l’Exercice pendant une Pause ou une récupération ; complété le 13/11/2026, Hermann : « Lors d’une pause ou une pause entre les côtés, retirer le sous-titre, et n’écrire que Pause » — titre « Pause » pour la Pause entre séries et la Pause entre les côtés, sans sous-titre ; le nom de l’Exercice reste sous « Récupération »] ;
 - l’état des sons / annonces vocales ;
 - le nom de l’Exercice en cours ;
 - le compteur de Série lorsque l’élément exécuté est un Exercice ;

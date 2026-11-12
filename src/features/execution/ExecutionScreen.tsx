@@ -428,10 +428,15 @@ export function ExecutionScreen({
   // —————————————————————————————— en cours
   const phaseLabel =
     projection.phase === null ? "" : t.phases[projection.phase];
+  // Recette du 13/11/2026 (Hermann : « Lors d’une pause ou une pause entre les côtés, retirer le sous-titre, et n’écrire
+  // que Pause ») : titre « Pause » pour les deux, sans le nom de l’exercice dessous. [« Pause entre les côtés » — remplacé.]
+  const pauseLike = projection.phase === "SERIES_PAUSE" || projection.phase === "SIDE_RECOVERY";
   const title =
     projection.phase === "ACTIVITY"
       ? (projection.exerciseName ?? "")
-      : phaseLabel;
+      : pauseLike
+        ? t.phases.SERIES_PAUSE
+        : phaseLabel;
   const viewOf = (dialog: NonNullable<Dialog>): DialogView =>
     dialog.kind === "RESET"
         ? {
@@ -584,7 +589,7 @@ export function ExecutionScreen({
           <Text style={styles.context} numberOfLines={1} testID="execution-context">
             {/* Recette du 12/11/2026 (Hermann : « Retirer le nom de la séance de l’écran ») : la ligne ne montre plus que l’exercice
                 en cours pendant une récupération ou une pause ; sa place reste réservée. [Nom de la séance — remplacé.] */}
-            {projection.phase !== "ACTIVITY" && waiting === null && projection.exerciseName !== null ? projection.exerciseName : ""}
+            {projection.phase !== "ACTIVITY" && !pauseLike && waiting === null && projection.exerciseName !== null ? projection.exerciseName : ""}
           </Text>
         </Fade>
         <ExecutionTimerRing
