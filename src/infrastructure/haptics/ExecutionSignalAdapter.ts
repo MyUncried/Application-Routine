@@ -119,6 +119,12 @@ export class ExecutionSignalAdapter {
   private readonly scheduled = new Set<string>();
   /** Instant du dernier son programmé autre qu'un bip de cadence (oublié à l'annulation). */
   private lastScheduledSoundAtMs: number | null = null;
+  /** Annonces différées : une Pause invalide celles demandées avant elle. */
+  private voiceEpoch = 0;
+  /** Annonce coupée par la Pause, et l'étape où elle l'a été. */
+  private interrupted: { readonly text: string; readonly target: string | null } | null = null;
+  /** Étape en cours à la dernière Pause. */
+  private pausedTarget: string | null = null;
 
   constructor(
     private readonly vibrator: VibrationPort = deviceVibration(),
@@ -202,7 +208,33 @@ export class ExecutionSignalAdapter {
     if (played && signal.kind !== "CADENCE") this.lastSoundAtMs = signal.atMs;
     if (spoken !== null && __DEV__) console.log(`[guidage] annonce « ${spoken} »`);
     const after = signal.kind === "FINISH" ? ANNOUNCEMENT_AFTER_FINISH_MS : ANNOUNCEMENT_AFTER_SOUND_MS;
-    if (spoken !== null) this.defer(() => this.voice.say(spoken), played ? after : 0);
+    if (spoken !== null) {
+      const epoch = this.voiceEpoch;
+      this.defer(() => {
+        // Coupée par une Pause survenue avant son départ : elle reprendra au début avec l'étape.
+        if (epoch !== this.voiceEpoch) this.interrupted = { text: spoken, target: this.pausedTarget };
+        else this.voice.say(spoken);
+      }, played ? after : 0);
+    }
+  }
+
+  /**
+   * Recette du 12/11/2026 (Hermann, e1e : « L'annonce doit s'arrêter net à la pause, et reprendre au début lorsqu'on
+   * recommence l'exercice ») : la Pause coupe l'annonce en cours ; la reprise de la même étape la redit depuis le
+   * début. Une autre étape à la reprise (Réinitialiser, Suivant) ne la redit pas : elle a sa propre annonce.
+   * [Annonce poursuivie pendant la Pause — remplacé.]
+   */
+  pauseVoice(target: string | null): void {
+    this.voiceEpoch += 1;
+    this.pausedTarget = target;
+    const text = this.voice.interrupt?.() ?? null;
+    if (text !== null) this.interrupted = { text, target };
+  }
+
+  resumeVoice(target: string | null): void {
+    const interrupted = this.interrupted;
+    this.interrupted = null;
+    if (interrupted !== null && interrupted.target === target && this.voiceEnabled) this.voice.say(interrupted.text);
   }
 
   /** Pas de bip de cadence juste après un autre son (recette h2). */

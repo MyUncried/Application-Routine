@@ -9,8 +9,7 @@ import type { TimerView } from "@/domain/execution/projection";
  *   l'étape ; l'anneau se remplit avec le temps écoulé (recette x3 du 11/11/2026 : OK) ;
  * - chronomètre (Répétitions, avec ou sans cadence, À l'échec) : un tour par minute, puis recommence (ch08 ; recette x4
  *   du 11/11/2026, Hermann : « Il faut que ce soit la même chose avec cadence, un tour par minute puis recommence ») ;
- * - Point d'arrêt : chronomètre de l'attente, en gris clair (recette e1 du 12/11/2026) ;
- * - Compte à rebours initial et Fin de séance : 0, immobile (recette x2, r2).
+ * - sans chrono (Point d'arrêt), Compte à rebours initial et Fin de séance : 0, immobile (recette x2, r2).
  * [Remplacé le 11/11/2026 — chronomètre avec fin nominale : part de la fin nominale, bornée à 1.]
  */
 export function ringFraction(timer: TimerView): number {
@@ -70,8 +69,6 @@ export const RING = {
   progressRadius: 136.29,
   progressWidth: 15.43,
   progressColor: "#8283F2",
-  /** Recette e1 du 12/11/2026 (Hermann, f : « Un chronomètre se déclenche, couleur gris clair du cercle ») : Point d'arrêt. */
-  mutedColor: "#C4C7CF",
   knobRadius: 9.14,
   knobStroke: 3,
   /** Repère de départ (haut) : 3 × 8, primaire atténué à 72 %. */

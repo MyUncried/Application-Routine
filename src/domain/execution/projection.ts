@@ -52,6 +52,25 @@ export type OutlineItem = {
 
 export type EstimatedDuration = { readonly kind: "exact" | "estimated" | "lowerBound"; readonly ms: Ms };
 
+/**
+ * Recette du 12/11/2026 (Hermann, e1b : « Il faut que les deux présentent le nombre de séries et de tours de l'exercice
+ * à venir » ; e1f : « le titre de l'écran et l'écran entier, n'est pas point d'arrêt, mais l'exercice qui suit ») :
+ * exercice à venir pendant le Compte à rebours initial et au Point d'arrêt ; `null` ailleurs. `after` : l'étape qui
+ * le suit (« À suivre » au Point d'arrêt).
+ */
+export type UpcomingActivity = {
+  readonly name: string | null;
+  readonly series: { readonly current: number; readonly total: number } | null;
+  readonly tour: { readonly current: number; readonly total: number } | null;
+  readonly sideRank: 1 | 2 | null;
+  readonly mode: LeafSpec["mode"] | null;
+  readonly target: SeriesTarget | null;
+  readonly loadKg: number | null;
+  /** Durée d'une étape chronométrée (compte à rebours) ; `null` sinon. */
+  readonly timedMs: Ms | null;
+  readonly after: NextView | null;
+};
+
 export type ExecutionProjection = {
   readonly status: EngineState["status"];
   readonly pauseReason: PauseReason | null;
@@ -76,6 +95,7 @@ export type ExecutionProjection = {
    */
   readonly guidance: { readonly label: string; readonly remainingMs: Ms; readonly phaseMs: Ms } | null;
   readonly next: NextView | null;
+  readonly upcoming: UpcomingActivity | null;
   readonly outline: readonly OutlineItem[];
   readonly sessionElapsedMs: Ms;
   readonly estimated: EstimatedDuration;
@@ -194,7 +214,37 @@ function nextOf(plan: ExecutablePlan, state: EngineState): NextView | null {
   if (state.frames.length !== 1) return null;
   const item = plan.items[rootIndex(state) + 1];
   if (item === undefined || item.type !== "LEAF" || item.leaf.kind === "SESSION_END") return null;
-  const spec = item.leaf;
+  return nextViewOf(plan, item.leaf);
+}
+
+function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity | null {
+  const kind = state.leaf?.spec.kind;
+  if (state.frames.length !== 1 || (kind !== "INITIAL_COUNTDOWN" && kind !== "STOP_POINT")) return null;
+  const from = rootIndex(state) + 1;
+  for (let index = from; index < plan.items.length; index += 1) {
+    const item = plan.items[index]!;
+    if (item.type !== "LEAF") return null;
+    const spec = item.leaf;
+    if (spec.kind === "SESSION_END") return null;
+    if (spec.kind !== "ACTIVITY") continue;
+    const following = plan.items[index + 1];
+    const circuit = spec.context?.circuit ?? null;
+    return {
+      name: spec.exerciseId === undefined ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
+      series: spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+      tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
+      sideRank: spec.sideRank ?? null,
+      mode: spec.mode ?? null,
+      target: spec.target === undefined ? null : spec.target,
+      loadKg: spec.loadKg ?? null,
+      timedMs: spec.end === "TIMED" ? (spec.plannedMs ?? 0) : null,
+      after: following === undefined || following.type !== "LEAF" || following.leaf.kind === "SESSION_END" ? null : nextViewOf(plan, following.leaf),
+    };
+  }
+  return null;
+}
+
+function nextViewOf(plan: ExecutablePlan, spec: LeafSpec): NextView {
   return {
     kind: spec.kind,
     name: spec.exerciseId === undefined ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
@@ -278,6 +328,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     timer: timerOf(state, atMs),
     guidance: guidanceOf(plan, state, atMs),
     next: nextOf(plan, state),
+    upcoming: upcomingOf(plan, state),
     outline: outlineOf(plan, state),
     sessionElapsedMs: stopwatch === null ? 0 : runningMs(stopwatch, atMs),
     estimated: estimatedDuration(plan),

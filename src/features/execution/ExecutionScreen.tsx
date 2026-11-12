@@ -237,6 +237,18 @@ export function ExecutionScreen({
 
   const projection = active === null ? null : service.project();
 
+  // Recette du 12/11/2026 (Hermann, e1e : « L'annonce doit s'arrêter net à la pause, et reprendre au début lorsqu'on
+  // recommence l'exercice »).
+  const voiceStatus = useRef<string | null>(null);
+  const status = projection?.status ?? null;
+  const voiceTarget = typeof projection?.target === "string" ? projection.target : null;
+  useEffect(() => {
+    const previous = voiceStatus.current;
+    voiceStatus.current = status;
+    if (previous === "RUNNING" && status === "PAUSED") signals.pauseVoice(voiceTarget);
+    else if (previous === "PAUSED" && status === "RUNNING") signals.resumeVoice(voiceTarget);
+  }, [status, voiceTarget, signals]);
+
   const start = useCallback(async () => {
     if (prepared?.status !== "ready" || starting.current) return;
     starting.current = true;
@@ -487,10 +499,28 @@ export function ExecutionScreen({
   const atStopPoint = projection.status === "RUNNING" && projection.phase === "STOP_POINT";
   const stepKey = typeof projection.target === "string" ? projection.target : "";
   const fadingOut = projection.status === "RUNNING" && projection.timer.kind === "COUNTDOWN" && projection.timer.remainingMs <= FADE_OUT_MS;
-  const series = projection.phase === "INITIAL_COUNTDOWN" ? firstSeriesAndTour(projection) : { series: projection.series, tour: projection.tour };
+  // Recette du 12/11/2026 (Hermann, e1f) : au Point d'arrêt, l'écran présente l'exercice qui suit, en attente :
+  // chrono à son départ, « Appuyer sur démarrer » en haut de l'anneau, chronomètre de l'attente en bas.
+  // [Titre « Point d'arrêt », anneau gris en mouvement — remplacé.]
+  const upcoming = projection.upcoming;
+  const waiting = atStopPoint && upcoming !== null ? upcoming : null;
+  // e1b : pendant le Compte à rebours, Série, Tour et piste de l'exercice à venir, sans progression.
+  const ahead = projection.phase === "INITIAL_COUNTDOWN" || waiting !== null ? upcoming : null;
+  const series = ahead !== null ? { series: ahead.series, tour: ahead.tour } : { series: projection.series, tour: projection.tour };
+  const progress = projection.phase === "INITIAL_COUNTDOWN" ? 0 : projection.progress;
+  const shownTitle = waiting !== null ? (waiting.name ?? "") : title;
+  const objective = waiting !== null ? null : objectiveText(projection);
+  const load = waiting !== null || projection.phase !== "ACTIVITY" || projection.loadKg === null ? null : t.load(projection.loadKg);
   if (shownNow !== null && shownNow !== lastShown) setLastShown(shownNow);
   const dialogView: DialogView | null =
     shownNow === null ? null : viewOf(shownNow);
+  // Arrêt définitif : depuis la Pause, ou depuis le Point d'arrêt (suspendu d'abord, l'arrêt n'existant que depuis la
+  // Pause).
+  const stopSession = async () => {
+    if (projection.status === "RUNNING" && typeof projection.target === "string")
+      await service.dispatch({ type: "PAUSE", reason: "DIALOG" }, projection.target);
+    await service.dispatch({ type: "STOP" });
+  };
 
   // Recette r6 (11/11/2026, Hermann : « Ok, il faudra ensuite se référer à Figma pour la position exacte des différents
   // éléments de l'écran. » ; 12/11/2026 : « Oui pour l'écran d'exécution de séance ») : disposition du Figma
@@ -498,7 +528,8 @@ export function ExecutionScreen({
   // de l'anneau), zone « Progression et suite » (Série • Tour, piste par Tours, cadre Temps écoulé / À suivre), barre
   // de commandes à icônes (Son, Réinitialiser, Pause, Suivant, Voix). [Son et Voix en en-tête, commandes en texte,
   // temps total sous les commandes — remplacé.]
-  const next = projection.next === null ? null : nextParts(projection.next);
+  const nextView = waiting !== null ? waiting.after : projection.next;
+  const next = nextView === null ? null : nextParts(nextView);
   return (
     <View style={[styles.runningScreen, { paddingTop: insets.top + spacing[4], paddingBottom: Math.max(insets.bottom - 10, spacing[12]) }]} testID="execution-running">
       <ScrollView style={styles.top} contentContainerStyle={styles.content} bounces={false}>
@@ -517,28 +548,42 @@ export function ExecutionScreen({
             minimumFontScale={0.6}
             testID="execution-title"
           >
-            {title}
+            {shownTitle}
           </Text>
         </Fade>
         <Fade stepKey={stepKey} out={fadingOut} style={styles.contextSlot}>
           <Text style={styles.context} numberOfLines={1} testID="execution-context">
-            {projection.phase !== "ACTIVITY" && projection.exerciseName !== null ? projection.exerciseName : projection.sessionName}
+            {projection.phase !== "ACTIVITY" && waiting === null && projection.exerciseName !== null ? projection.exerciseName : projection.sessionName}
           </Text>
         </Fade>
         <ExecutionTimerRing
           motion={ringMotion(
             projection.timer,
             projection.status === "RUNNING",
-            projection.phase === "INITIAL_COUNTDOWN" || projection.phase === "SESSION_END",
+            projection.phase === "INITIAL_COUNTDOWN" || projection.phase === "SESSION_END" || waiting !== null,
           )}
-          muted={projection.phase === "STOP_POINT"}
           testID="execution-ring"
         >
+          {/*
+            Recette du 12/11/2026 (Hermann, e1g : « en haut le guidage : Côté, puis Phase ; en bas les objectifs : nombre
+            de répétitions, puis Charge ») ; chaque ligne garde sa place, affichée ou non (positions fixes).
+          */}
           <Fade stepKey={stepKey} out={fadingOut} style={styles.ringContent}>
             <View style={styles.sideSlot}>
-              {projection.sideRank !== null ? (
+              {waiting !== null ? (
+                <Text style={styles.pressStart} numberOfLines={1} testID="execution-press-start">
+                  {t.pressStart}
+                </Text>
+              ) : projection.sideRank !== null ? (
                 <Text style={styles.side} numberOfLines={1} testID="execution-side">
                   {t.side(projection.sideRank)}
+                </Text>
+              ) : null}
+            </View>
+            <View style={styles.phaseSlot}>
+              {waiting === null && projection.guidance !== null ? (
+                <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
+                  {projection.guidance.label} · {phaseDuration(projection.guidance.phaseMs)}
                 </Text>
               ) : null}
             </View>
@@ -547,23 +592,24 @@ export function ExecutionScreen({
                 style={styles.timer}
                 numberOfLines={1}
                 adjustsFontSizeToFit
-                accessibilityLabel={timerAccessibility(projection)}
+                accessibilityLabel={waiting !== null ? undefined : timerAccessibility(projection)}
                 testID="execution-timer"
               >
-                {timerText(projection)}
+                {waiting !== null ? formatClock(waiting.timedMs ?? 0) : timerText(projection)}
               </Text>
             </View>
-            {/* Recette du 11/11/2026 : objectif et guidage gardent leur place, affichés ou non (positions fixes). */}
-            <View style={styles.lineSlot}>
-              {targetText(projection) !== null ? (
-                <Text style={styles.target} numberOfLines={1}>{targetText(projection)}</Text>
+            <View style={styles.objectiveSlot}>
+              {waiting !== null ? (
+                <Text style={styles.waitClock} numberOfLines={1} testID="execution-wait">
+                  {projection.timer.kind === "STOPWATCH" ? formatClock(projection.timer.elapsedMs) : ""}
+                </Text>
+              ) : objective !== null ? (
+                <Text style={styles.objective} numberOfLines={1} testID="execution-objective">{objective}</Text>
               ) : null}
             </View>
-            <View style={styles.lineSlot}>
-              {projection.guidance !== null ? (
-                <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
-                  {projection.guidance.label} · {phaseDuration(projection.guidance.phaseMs)}
-                </Text>
+            <View style={styles.loadSlot}>
+              {load !== null ? (
+                <Text style={styles.objective} numberOfLines={1} testID="execution-load">{load}</Text>
               ) : null}
             </View>
           </Fade>
@@ -605,11 +651,11 @@ export function ExecutionScreen({
           accessibilityValue={{
             min: 0,
             max: 100,
-            now: Math.round(projection.progress * 100),
+            now: Math.round(progress * 100),
           }}
           testID="execution-progress-track"
         >
-          {tourSegments(projection).map((fill, index) => (
+          {tourSegments({ progress, tour: series.tour }).map((fill, index) => (
             <View key={index} style={styles.progressSegment} testID={`execution-progress-segment-${index}`}>
               <View
                 style={[styles.progressFill, { width: `${Math.round(fill * 1000) / 10}%` }]}
@@ -618,14 +664,19 @@ export function ExecutionScreen({
             </View>
           ))}
         </View>
-        <Text style={styles.progressCaption}>{series.tour !== null ? t.tour : ""}</Text>
+        {/* Recette du 12/11/2026 (Hermann, e1-haut h et e1b) : temps total retiré de la ligne Temps écoulé, placé sous
+            la piste, à droite, à hauteur de « Tour » ; même taille, un peu plus grande. */}
+        <View style={styles.captionRow}>
+          <Text style={styles.progressCaption}>{series.tour !== null ? t.tour : ""}</Text>
+          <Text style={styles.progressCaption} testID="execution-estimate">{estimateLabel(projection)}</Text>
+        </View>
         <View style={styles.cardGap} />
         {/* Figma `4790:6204` « Cadre — Informations secondaires — À suivre + Temps écoulé ». */}
         <View style={styles.card}>
           <View style={styles.elapsedRow}>
             <Text style={styles.elapsedLabel} numberOfLines={1}>{t.elapsed}</Text>
             <Text style={styles.elapsedValue} numberOfLines={1} adjustsFontSizeToFit testID="execution-elapsed">
-              {formatClock(projection.sessionElapsedMs)} / {estimateLabel(projection)}
+              {formatClock(projection.sessionElapsedMs)}
             </Text>
           </View>
           <View style={styles.cardDivider} />
@@ -656,13 +707,13 @@ export function ExecutionScreen({
         >
           <Image source={soundEnabled ? ICONS.soundOn : ICONS.soundOff} style={styles.toggleIcon} contentFit="contain" />
         </Pressable>
-        {paused ? (
+        {paused || atStopPoint ? (
           <IconCommand
             label={t.commands.stop}
             icon={ICONS.stop}
             size={48}
             disabled={false}
-            onPress={() => void service.dispatch({ type: "STOP" })}
+            onPress={() => void stopSession()}
             testID="execution-stop"
           />
         ) : (
@@ -711,7 +762,8 @@ export function ExecutionScreen({
           }
           icon={ICONS.next}
           size={48}
-          disabled={!projection.commands.next}
+          // Recette du 12/11/2026 (Hermann, e1f : « le bouton Suivant doit être désactivé » au Point d'arrêt).
+          disabled={!projection.commands.next || atStopPoint}
           onPress={onNext}
           testID="execution-next-command"
         />
@@ -790,16 +842,6 @@ function useFadeIn(value: unknown): Animated.Value {
     Animated.timing(opacity, { toValue: 1, duration: FADE_IN_MS, useNativeDriver: true }).start();
   }, [value, opacity]);
   return opacity;
-}
-
-/**
- * Recette e1 du 12/11/2026 (Hermann, b : « apparition du nombre de séries et de tours dès le début avec les autres
- * information du cadre, commencer à 1/X pour les deux ») : pendant le Compte à rebours initial, Série et Tour du
- * premier exercice.
- */
-function firstSeriesAndTour(projection: ExecutionProjection): Pick<ExecutionProjection, "series" | "tour"> {
-  const first = projection.outline.find((item) => item.kind === "ACTIVITY");
-  return { series: first?.series ?? null, tour: first?.tour ?? null };
 }
 
 /** Durée d'une phase guidée : « 2 s », « 1 min », « 1 min 30 s » (recette e1, d). */
@@ -914,7 +956,8 @@ function timerAccessibility(projection: ExecutionProjection): string {
     : timerText(projection);
 }
 
-function targetText(projection: ExecutionProjection): string | null {
+/** Objectif de la série, sans la charge (affichée sur sa propre ligne, recette e1g). */
+function objectiveText(projection: ExecutionProjection): string | null {
   if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null)
     return null;
   const target = projection.seriesTarget;
@@ -929,13 +972,7 @@ function targetText(projection: ExecutionProjection): string | null {
           ? t.repetitions(target.value)
           : formatClock(target.value * 1000)
         : null;
-  if (value === null && projection.loadKg === null) return null;
-  return [
-    value === null ? null : `${t.target} ${value}`,
-    projection.loadKg !== null ? t.load(projection.loadKg) : null,
-  ]
-    .filter((part) => part !== null)
-    .join(" · ");
+  return value === null ? null : `${t.target} ${value}`;
 }
 
 /**
@@ -1027,10 +1064,13 @@ const styles = StyleSheet.create({
   },
   context: { ...type.caption, fontSize: 13, lineHeight: 16, color: executionColors.caption, textAlign: "center" },
   // Contenu de l'anneau (288) : côté centré à 45,5 du haut, chrono centré, objectif et guidage dessous.
+  // Recette e1g : haut — côté (24) puis phase ; chrono ; bas — objectif puis charge, plus grands et écartés du chrono.
   ringContent: { width: 252, height: 288, alignItems: "center" },
-  sideSlot: { height: 30, marginTop: 30, justifyContent: "center" },
-  timerSlot: { height: 108, marginTop: 31, alignSelf: "stretch", justifyContent: "center" },
-  lineSlot: { height: 20, justifyContent: "center" },
+  sideSlot: { height: 30, marginTop: 24, justifyContent: "center" },
+  phaseSlot: { height: 22, justifyContent: "center" },
+  timerSlot: { height: 108, marginTop: 4, alignSelf: "stretch", justifyContent: "center" },
+  objectiveSlot: { height: 26, marginTop: 6, justifyContent: "center" },
+  loadSlot: { height: 26, justifyContent: "center" },
   side: { ...executionType.side, color: executionColors.side },
   timer: {
     ...executionType.timer,
@@ -1038,7 +1078,10 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
     textAlign: "center",
   },
-  target: { ...type.label, color: colors.textSecondary },
+  objective: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.textSecondary },
+  // Point d'arrêt (e1f) : invitation en bleu, chronomètre de l'attente en gris foncé.
+  pressStart: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.primary },
+  waitClock: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: "#4A4A50", fontVariant: ["tabular-nums"] },
   guidance: { ...type.label, color: colors.primary },
   // Figma `5041:6048` : fond #F6F6FA, 13 sous l'anneau. Recette e1/e2 du 12/11/2026 (Hermann : « mettre les 4 coins
   // du cadre gris arrondis ; laisser une marge à gauche et à droite entre le fond gris clair et le bord de l'écran »).
@@ -1061,7 +1104,8 @@ const styles = StyleSheet.create({
   progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 20 },
   progressSegment: { flex: 1, height: 9, borderRadius: 4.5, backgroundColor: executionColors.track, overflow: "hidden" },
   progressFill: { height: 9, borderRadius: 4.5, backgroundColor: executionColors.progress },
-  progressCaption: { ...type.caption, fontSize: 10, lineHeight: 12, marginTop: 4, color: executionColors.caption },
+  captionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
+  progressCaption: { ...type.caption, fontSize: 13, lineHeight: 16, color: executionColors.caption },
   // Figma `4790:6204` : cadre 370 × 132, fond #FAFAFE, rayon 12, 40 sous la légende de la piste.
   cardGap: { height: 40, minHeight: 12, flexShrink: 1 },
   card: { height: 132, borderRadius: 12, backgroundColor: executionColors.card, paddingLeft: 16, paddingRight: 32, paddingTop: 21 },

@@ -43,16 +43,16 @@ function animatedSvg(): ReturnType<typeof createAnimatedSvg> {
   return animated;
 }
 
-export function ExecutionTimerRing({ motion, muted = false, children, testID }: { readonly motion: RingMotion; readonly muted?: boolean; readonly children: ReactNode; readonly testID?: string }) {
+export function ExecutionTimerRing({ motion, children, testID }: { readonly motion: RingMotion; readonly children: ReactNode; readonly testID?: string }) {
   if (!hasSvg()) return <View testID={testID === undefined ? undefined : `${testID}-plain`}>{children}</View>;
   return (
-    <AnimatedRing motion={motion} color={muted ? RING.mutedColor : RING.progressColor} testID={testID}>
+    <AnimatedRing motion={motion} testID={testID}>
       {children}
     </AnimatedRing>
   );
 }
 
-function AnimatedRing({ motion, color, children, testID }: { readonly motion: RingMotion; readonly color: string; readonly children: ReactNode; readonly testID?: string | undefined }) {
+function AnimatedRing({ motion, children, testID }: { readonly motion: RingMotion; readonly children: ReactNode; readonly testID?: string | undefined }) {
   const { svg: Svg, Circle: AnimatedCircle } = animatedSvg();
   const canvas = RING.size + 2 * RING.outset;
   const center = canvas / 2;
@@ -105,7 +105,7 @@ function AnimatedRing({ motion, color, children, testID }: { readonly motion: Ri
           cx={center}
           cy={center}
           r={RING.progressRadius}
-          stroke={color}
+          stroke={RING.progressColor}
           strokeWidth={RING.progressWidth}
           strokeLinecap="round"
           strokeDasharray={`${circumference} ${circumference}`}
@@ -114,7 +114,7 @@ function AnimatedRing({ motion, color, children, testID }: { readonly motion: Ri
           origin={`${center}, ${center}`}
           animatedProps={arcProps}
         />
-        <AnimatedCircle cx={start.x} cy={start.y} r={RING.knobRadius} fill={color} stroke="#FFFFFF" strokeWidth={RING.knobStroke} animatedProps={knobProps} />
+        <AnimatedCircle cx={start.x} cy={start.y} r={RING.knobRadius} fill={RING.progressColor} stroke="#FFFFFF" strokeWidth={RING.knobStroke} animatedProps={knobProps} />
       </Svg.default>
       <View style={styles.content}>{children}</View>
     </View>

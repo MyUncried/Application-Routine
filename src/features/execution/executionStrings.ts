@@ -14,6 +14,8 @@ export const executionStrings = {
   tour: "Tour",
   side: (rank: 1 | 2) => `Côté ${rank}`,
   next: "À suivre",
+  /** Point d'arrêt (recette du 12/11/2026, Hermann, e1f). */
+  pressStart: "Appuyer sur démarrer",
   /** « À suivre » d'un Point d'arrêt (recette PRE-10 du 09/11/2026, Hermann). */
   nextStopPoint: "Arrêt de la séance, redémarrage manuel",
   seriesShort: (current: number, total: number) => `Série ${current}/${total}`,

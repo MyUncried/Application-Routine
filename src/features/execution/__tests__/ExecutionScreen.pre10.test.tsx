@@ -193,12 +193,17 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // Point d'arrêt (aucune échéance).
     await at(74);
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
+    // Recette du 12/11/2026 (e1f) : le Point d'arrêt présente l'exercice qui suit (Fente, en Répétitions : 00:00), en
+    // attente de Démarrer ; Réinitialiser devient Arrêt, Suivant est désactivé.
     await at(75);
-    expect(screen.getByTestId("execution-title").props.children).toBe("Point d'arrêt");
+    expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
+    expect(screen.getByTestId("execution-timer").props.children).toBe("00:00");
+    expect(screen.getByTestId("execution-press-start")).toBeTruthy();
+    expect(screen.getByTestId("execution-wait")).toBeTruthy();
+    expect(screen.getByTestId("execution-stop")).toBeTruthy();
+    expect(screen.getByTestId("execution-next-command").props.accessibilityState).toMatchObject({ disabled: true });
     await at(400);
-    expect(screen.getByTestId("execution-title").props.children).toBe("Point d'arrêt");
-    // Recette e1 (f) : chronomètre de l'attente ; Démarrer remplace la Pause et relance la séance.
-    expect(screen.getByTestId("execution-timer").props.children).toBe("00:00"); // rendu à l'entrée au Point d'arrêt (le rafraîchissement de l'écran n'est pas simulé ici)
+    expect(screen.getByTestId("execution-tour").props.children).toBe("Tour 1/2");
     expect(screen.queryByTestId("execution-pause")).toBeNull();
     await press("execution-continue");
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
