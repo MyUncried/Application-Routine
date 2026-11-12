@@ -1113,7 +1113,9 @@ const styles = StyleSheet.create({
   progressCaption: { ...type.caption, fontSize: 13, lineHeight: 16, color: executionColors.caption },
   // Figma `4790:6204` : cadre 370 × 132, fond #FAFAFE, rayon 12, 40 sous la légende de la piste.
   cardGap: { height: 40, minHeight: 12, flexShrink: 1 },
-  card: { height: 132, borderRadius: 12, backgroundColor: executionColors.card, paddingLeft: 16, paddingRight: 32, paddingTop: 21 },
+  // Recette du 12/11/2026 (Hermann : « Le temps écoulé, la ligne de séparation et le nombre de répétitions ont plus de
+  // marge à droite qu'il n'en a à gauche ») : marges égales. [Marge droite de 32 relevée dans Figma — remplacé.]
+  card: { height: 132, borderRadius: 12, backgroundColor: executionColors.card, paddingHorizontal: 16, paddingTop: 21 },
   elapsedRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", height: 32, gap: spacing[8] },
   elapsedLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, color: colors.textPrimary, marginBottom: 3 },
   elapsedValue: { ...executionType.metric, color: colors.textPrimary, flexShrink: 1, textAlign: "right" },
