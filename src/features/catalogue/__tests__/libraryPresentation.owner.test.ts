@@ -19,7 +19,7 @@ describe("fiche non appliquée : cause précise", () => {
     ["INCOHERENT_REVISION", /Révision incohérente/],
     ["REFUSED_REVISION", /Révision refusée sur ce téléphone/],
     ["INTERRUPTED", /interrompue/],
-  ] as const)("%s", (state, text) => {
+  ] as [SheetLoadItem["state"], RegExp][])("%s", (state, text) => {
     expect(reviewLabel({ item: item(state), reason: "NOT_APPLICABLE" })).toMatch(text);
   });
 

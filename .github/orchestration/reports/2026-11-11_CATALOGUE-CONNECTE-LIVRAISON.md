@@ -291,3 +291,16 @@ Puis, demande de Hermann : « Et met mon prénom en tant que propriétaire de to
 - Dans le dossier du chantier, les suites qui lisent le fichier pilote échouent toujours à cause des données de recette (non versionnées, inchangées par les tests).
 
 Vérifications restant à faire sur iPhone : cahier de recette, section 8 « Familles de niveaux » (fn1 à fn14). Le serveur d'administration doit être redémarré depuis `C:\Dev\KODJO-CAT-INTEG` (le domaine partagé est régénéré au démarrage).
+
+## Recette des familles de niveaux (12/11)
+
+Résultats saisis par Hermann dans le cahier (section 8) : fn1 à fn12 OK ; fn13 non joué ; fn14 « je ne comprends pas le test ».
+
+- **fn1** : le libellé supposait des fiches « Pompes » déjà présentes ; corrigé (étape de création explicite). Aucune anomalie du code.
+- **fn6** : OK avec la remarque « changer de niveau n'est pas proposé dans les fiches ». Cause : sur un Mouvement importé, la fiche supprimait tout le menu Niveau (`menu: null`), consultation comprise, alors que A-2 n'interdit que la modification. Correction : menu conservé, « Ouvrir un autre niveau » actif, « Ajouter un niveau » et « Réordonner les niveaux » grisés (`onReorderLevels` accepte `null`). Classe A. Fichiers : `src/features/activities/MovementLevelMenu.tsx`, `src/features/activities/MovementScreen.tsx`, test `MovementScreen.b2.integration.test.tsx` (« recette fn6 (12/11) »). Nouveau test iPhone fn6b.
+- **fn14** : libellé réécrit en étapes numérotées avec le critère OK.
+- **fn13** : à jouer.
+
+- **Erreur de typage découverte** : `libraryPresentation.owner.test.ts` (commit ef1241bd) ne passait pas `tsc` (tuple `as const` en lecture seule dans `it.each`) ; l'annonce « tsc 0 erreur » du 11/11 était inexacte. Corrigé (type explicite du tableau).
+
+Tests (12/11) : `tsc --noEmit` 0 erreur ; eslint 0 problème sur les fichiers modifiés ; Jest ciblé (`MovementLevelMenu`, `MovementScreen*`, `MovementLevelsScreen*`, `ExerciseScreen*`, `libraryPresentation*`) 12 suites, 182 tests verts. Suite complète non relancée : la passe Mouvements + Séances a été arrêtée par le système faute de mémoire (Metro 8082 arrêté par la même cause).
