@@ -3397,7 +3397,7 @@ Noms/durées/compteurs calculés ; valeurs Figma démonstratives. Circuit=groupe
 
 Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté distinct ; charge de la série courante selon RM-241 ; chrono/Série/Tour/progression ; commandes ; état média conditionnel.
 
-[Complété le 12/11/2026 — réalisation PRE-10, recette r6, classe A ; Hermann : « Ok, il faudra ensuite se référer à Figma pour la position exacte des différents éléments de l’écran. », puis « Oui pour l’écran d’exécution de séance ». Disposition de `1992:8132` : titre, ligne de contexte (nom de la Séance ; nom de l’Exercice pendant une Pause ou une récupération), côté en haut de l’anneau, chrono au centre, objectif et guidage de phase sous le chrono ; zone « Progression et suite » (Série • Tour, piste par Tours, cadre Temps écoulé / À suivre) ; barre Son, Réinitialiser, Pause, Suivant, Voix (icônes Figma, libellés en accessibilité). Catégorie non affichée : absente de l’instantané d’Exécution. Boutons « Basculer le côté » de la maquette non réalisés (comportement non décrit).]
+[Complété le 12/11/2026 — réalisation PRE-10, recette r6, classe A ; Hermann : « Ok, il faudra ensuite se référer à Figma pour la position exacte des différents éléments de l’écran. », puis « Oui pour l’écran d’exécution de séance ». Disposition de `1992:8132` : titre, ligne de contexte (nom de la Séance [retiré le 12/11/2026, Hermann] ; nom de l’Exercice pendant une Pause ou une récupération), côté en haut de l’anneau, chrono au centre, objectif et guidage de phase sous le chrono ; zone « Progression et suite » (Série • Tour, piste par Tours, cadre Temps écoulé / À suivre) ; barre Son, Réinitialiser, Pause, Suivant, Voix (icônes Figma, libellés en accessibilité). Catégorie non affichée : absente de l’instantané d’Exécution. Boutons « Basculer le côté » de la maquette non réalisés (comportement non décrit).]
 
 [Complété le 11/11/2026 — fin de PRE-10, conformité aux nœuds `1992:8132`, `1992:8530`, `1992:8626` : police Roboto Condensed (nom de l’Exercice SemiBold 30, côté Medium 24 `#8F8F94`, chrono Bold 100 interlettrage −1,5, Série et Tour Bold 30) ; chrono circulaire de 288 (anneau de fond `#E8E8ED` de 12, repère de départ en haut, repères des quarts et intermédiaires tous les 18°, anneau de progression `#8283F2` à embouts arrondis et pastille blanche de position), côté et chrono centrés dedans ; piste de progression structurée par Tours (un segment par Tour du Circuit en cours, 9 de haut, rayon 4,5, écart 3, légende « Tour »), avancement global inchangé (RM-077). Interprétation à valider en recette : l’anneau se remplit avec le temps écoulé de l’étape (compte à rebours), un tour par minute sans fin nominale (ch08), part de la fin nominale avec cadence. Le reste de la mise en page n’est pas modifié.]
 
@@ -3496,7 +3496,7 @@ Le Compte à rebours initial est alors exécuté s’il est configuré avec une 
 
 L’écran affiche, de haut en bas :
 
-- le nom de la Séance ;
+- ~~le nom de la Séance~~ [retiré le 12/11/2026 — classe B, Hermann : « Retirer le nom de la séance de l’écran » ; la ligne de contexte ne montre plus que le nom de l’Exercice pendant une Pause ou une récupération] ;
 - l’état des sons / annonces vocales ;
 - le nom de l’Exercice en cours ;
 - le compteur de Série lorsque l’élément exécuté est un Exercice ;
