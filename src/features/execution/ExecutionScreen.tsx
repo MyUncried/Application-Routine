@@ -485,7 +485,7 @@ export function ExecutionScreen({
   // Recette e1 (f : « Au point d'arrêt : le bouton pause doit se transformer en bouton démarrer, appuyer dessus doit
   // relancer l'exercice ») : au Point d'arrêt, Démarrer vaut Continuer.
   const atStopPoint = projection.status === "RUNNING" && projection.phase === "STOP_POINT";
-  const stepKey = projection.target ?? "";
+  const stepKey = typeof projection.target === "string" ? projection.target : "";
   const fadingOut = projection.status === "RUNNING" && projection.timer.kind === "COUNTDOWN" && projection.timer.remainingMs <= FADE_OUT_MS;
   const series = projection.phase === "INITIAL_COUNTDOWN" ? firstSeriesAndTour(projection) : { series: projection.series, tour: projection.tour };
   if (shownNow !== null && shownNow !== lastShown) setLastShown(shownNow);
