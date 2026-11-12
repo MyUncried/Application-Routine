@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import {
   useCallback,
@@ -511,68 +512,39 @@ export function ExecutionScreen({
   const dialogView: DialogView | null =
     shownNow === null ? null : viewOf(shownNow);
 
+  // Recette r6 (11/11/2026, Hermann : « Ok, il faudra ensuite se référer à Figma pour la position exacte des différents
+  // éléments de l'écran. » ; 12/11/2026 : « Oui pour l'écran d'exécution de séance ») : disposition du Figma
+  // `1992:8132` « P-Exécution d'une séance — Démarrée » — titre et ligne de contexte, chrono circulaire (côté en haut
+  // de l'anneau), zone « Progression et suite » (Série • Tour, piste par Tours, cadre Temps écoulé / À suivre), barre
+  // de commandes à icônes (Son, Réinitialiser, Pause, Suivant, Voix). [Son et Voix en en-tête, commandes en texte,
+  // temps total sous les commandes — remplacé.]
+  const next = projection.next === null ? null : nextParts(projection.next);
   return (
-    <View style={[styles.screen, paddings]} testID="execution-running">
-      <View style={styles.header}>
-        <Pressable
-          onPress={toggleVoice}
-          accessibilityRole="switch"
-          accessibilityState={{ checked: voiceEnabled }}
-          accessibilityLabel={voiceEnabled ? t.voiceOn : t.voiceOff}
-          hitSlop={8}
-          testID="execution-voice"
-        >
-          <Text style={[styles.toggle, voiceEnabled ? null : styles.toggleOff]}>
-            {voiceEnabled ? "Voix" : "Voix off"}
-          </Text>
-        </Pressable>
-        <Text style={styles.sessionName} numberOfLines={1}>
-          {projection.sessionName}
-        </Text>
-        <Pressable
-          onPress={toggleSound}
-          accessibilityRole="switch"
-          accessibilityState={{ checked: soundEnabled }}
-          accessibilityLabel={soundEnabled ? t.soundOn : t.soundOff}
-          hitSlop={8}
-          testID="execution-sound"
-        >
-          <Text style={[styles.toggle, soundEnabled ? null : styles.toggleOff]}>
-            {soundEnabled ? "Sons" : "Sons off"}
-          </Text>
-        </Pressable>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content} bounces={false}>
+    <View style={[styles.runningScreen, { paddingTop: insets.top + spacing[4], paddingBottom: Math.max(insets.bottom - 10, spacing[12]) }]} testID="execution-running">
+      <ScrollView style={styles.top} contentContainerStyle={styles.content} bounces={false}>
         {/*
           Recette du 11/11/2026 (Hermann, constat) : « Entre deux exercices d'une séance, le chronomètre et les autres
-          éléments affichés ne doivent jamais changer de position sur l'écran ». Titre (deux lignes), contexte et côté
-          occupent toujours la même hauteur, qu'ils soient affichés ou non. [Lignes présentes seulement si renseignées — remplacé.]
+          éléments affichés ne doivent jamais changer de position sur l'écran ». Titre, contexte et côté occupent
+          toujours la même hauteur, qu'ils soient affichés ou non.
         */}
         <View style={styles.titleSlot}>
           <Text
             style={styles.exerciseName}
             accessibilityRole="header"
             accessibilityLiveRegion="polite"
-            numberOfLines={2}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
             testID="execution-title"
           >
             {title}
           </Text>
         </View>
         <View style={styles.contextSlot}>
-          {projection.phase !== "ACTIVITY" && projection.exerciseName !== null ? (
-            <Text style={styles.context} numberOfLines={1}>{projection.exerciseName}</Text>
-          ) : null}
+          <Text style={styles.context} numberOfLines={1} testID="execution-context">
+            {projection.phase !== "ACTIVITY" && projection.exerciseName !== null ? projection.exerciseName : projection.sessionName}
+          </Text>
         </View>
-        <View style={styles.sideSlot}>
-          {projection.sideRank !== null ? (
-            <Text style={styles.side} numberOfLines={1} testID="execution-side">
-              {t.side(projection.sideRank)}
-            </Text>
-          ) : null}
-        </View>
-        {/* Fin de PRE-10 : chrono circulaire (Figma `1992:8132`), côté et chrono centrés dans l'anneau. */}
         <ExecutionTimerRing
           motion={ringMotion(
             projection.timer,
@@ -581,52 +553,41 @@ export function ExecutionScreen({
           )}
           testID="execution-ring"
         >
-          <Text
-            style={styles.timer}
-            accessibilityLabel={timerAccessibility(projection)}
-            testID="execution-timer"
-          >
-            {timerText(projection)}
-          </Text>
-        </ExecutionTimerRing>
-        {/* Recette du 11/11/2026 : objectif et guidage gardent leur place, affichés ou non (positions fixes). */}
-        <View style={styles.lineSlot}>
-          {targetText(projection) !== null ? (
-            <Text style={styles.target} numberOfLines={1}>{targetText(projection)}</Text>
-          ) : null}
-        </View>
-        <View style={styles.lineSlot}>
-          {projection.guidance !== null ? (
-            <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
-              {projection.guidance.label} ·{" "}
-              {formatClock(projection.guidance.remainingMs, true)}
-            </Text>
-          ) : null}
-        </View>
-        <View style={styles.seriesTour}>
-          <Text style={styles.seriesTourText} testID="execution-series">
-            {projection.series !== null
-              ? `${t.series} ${projection.series.current}/${projection.series.total}`
-              : ""}
-          </Text>
-          <View style={styles.seriesTourDivider} />
-          <Text
-            style={[styles.seriesTourText, styles.right]}
-            testID="execution-tour"
-          >
-            {projection.tour !== null
-              ? `${t.tour} ${projection.tour.current}/${projection.tour.total}`
-              : ""}
-          </Text>
-        </View>
-        {projection.next !== null ? (
-          <View style={styles.next} testID="execution-next">
-            <Text style={styles.nextLabel}>{t.next}</Text>
-            <Text style={styles.nextValue} numberOfLines={1}>
-              {nextText(projection.next)}
-            </Text>
+          <View style={styles.ringContent}>
+            <View style={styles.sideSlot}>
+              {projection.sideRank !== null ? (
+                <Text style={styles.side} numberOfLines={1} testID="execution-side">
+                  {t.side(projection.sideRank)}
+                </Text>
+              ) : null}
+            </View>
+            <View style={styles.timerSlot}>
+              <Text
+                style={styles.timer}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                accessibilityLabel={timerAccessibility(projection)}
+                testID="execution-timer"
+              >
+                {timerText(projection)}
+              </Text>
+            </View>
+            {/* Recette du 11/11/2026 : objectif et guidage gardent leur place, affichés ou non (positions fixes). */}
+            <View style={styles.lineSlot}>
+              {targetText(projection) !== null ? (
+                <Text style={styles.target} numberOfLines={1}>{targetText(projection)}</Text>
+              ) : null}
+            </View>
+            <View style={styles.lineSlot}>
+              {projection.guidance !== null ? (
+                <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
+                  {projection.guidance.label} ·{" "}
+                  {formatClock(projection.guidance.remainingMs, true)}
+                </Text>
+              ) : null}
+            </View>
           </View>
-        ) : null}
+        </ExecutionTimerRing>
         {active.saveError ? (
           <Pressable
             onPress={() => void service.retry()}
@@ -641,45 +602,23 @@ export function ExecutionScreen({
         ) : null}
       </ScrollView>
 
-      <View style={styles.commands}>
-        <CommandButton
-          label={
-            projection.commands.resetScope === "RECOVERY"
-              ? t.commands.resetRecovery
-              : t.commands.resetExercise
-          }
-          disabled={!projection.commands.reset}
-          onPress={onReset}
-          testID="execution-reset"
-        />
-        <CommandButton
-          label={t.commands.pause}
-          disabled={!projection.commands.pause}
-          onPress={() =>
-            void service.dispatch({ type: "PAUSE", reason: "USER" })
-          }
-          primary
-          testID="execution-pause"
-        />
-        <CommandButton
-          label={
-            projection.commands.isContinue
-              ? t.commands.continue
-              : t.commands.next
-          }
-          disabled={!projection.commands.next}
-          onPress={onNext}
-          testID="execution-next-command"
-        />
-      </View>
-
-      <View style={styles.total}>
-        <Text style={styles.totalText} testID="execution-elapsed">
-          {formatClock(projection.sessionElapsedMs)} /{" "}
-          {estimateLabel(projection)}
-        </Text>
-        {/* Fin de PRE-10 : piste structurée par Tours (Figma « DSF / Controls / Progression par tours », ch10 RM-077 :
-            repères de lecture seulement, l'avancement reste global et continu). */}
+      {/* Figma `5041:6048` « Zone — Progression et suite ». */}
+      <View style={styles.zone}>
+        <View style={styles.seriesTour}>
+          <Text style={[styles.seriesTourText, styles.right]} numberOfLines={1} testID="execution-series">
+            {projection.series !== null
+              ? `${t.series} ${projection.series.current}/${projection.series.total}`
+              : ""}
+          </Text>
+          <Text style={styles.seriesTourDot}>{projection.series !== null && projection.tour !== null ? "•" : ""}</Text>
+          <Text style={styles.seriesTourText} numberOfLines={1} testID="execution-tour">
+            {projection.tour !== null
+              ? `${t.tour} ${projection.tour.current}/${projection.tour.total}`
+              : ""}
+          </Text>
+        </View>
+        {/* Piste structurée par Tours (Figma « DSF / Controls / Progression par tours », ch10 RM-077 : repères de
+            lecture seulement, l'avancement reste global et continu). */}
         <View
           style={styles.progressTrack}
           accessibilityRole="progressbar"
@@ -699,7 +638,89 @@ export function ExecutionScreen({
             </View>
           ))}
         </View>
-        {projection.tour !== null ? <Text style={styles.progressCaption}>{t.tour}</Text> : null}
+        <Text style={styles.progressCaption}>{projection.tour !== null ? t.tour : ""}</Text>
+        {/* Figma `4790:6204` « Cadre — Informations secondaires — À suivre + Temps écoulé ». */}
+        <View style={styles.card}>
+          <View style={styles.elapsedRow}>
+            <Text style={styles.elapsedLabel} numberOfLines={1}>{t.elapsed}</Text>
+            <Text style={styles.elapsedValue} numberOfLines={1} adjustsFontSizeToFit testID="execution-elapsed">
+              {formatClock(projection.sessionElapsedMs)} / {estimateLabel(projection)}
+            </Text>
+          </View>
+          <View style={styles.cardDivider} />
+          <View style={styles.next} testID="execution-next">
+            <Text style={styles.nextLabel}>{next !== null ? t.next : ""}</Text>
+            <View style={styles.nextRow}>
+              <Text style={styles.nextName} numberOfLines={1} testID="execution-next-name">
+                {next?.name ?? ""}
+              </Text>
+              <Text style={styles.nextValue} numberOfLines={1} adjustsFontSizeToFit testID="execution-next-value">
+                {next?.value ?? ""}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Barre de commandes du Figma `1992:8132` : Son, Réinitialiser, Mettre en pause, Activité suivante, Voix. */}
+      <View style={styles.commands}>
+        <Pressable
+          onPress={toggleSound}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: soundEnabled }}
+          accessibilityLabel={soundEnabled ? t.soundOn : t.soundOff}
+          hitSlop={12}
+          style={styles.toggle}
+          testID="execution-sound"
+        >
+          <Image source={soundEnabled ? ICONS.soundOn : ICONS.soundOff} style={styles.toggleIcon} contentFit="contain" />
+        </Pressable>
+        <IconCommand
+          label={
+            projection.commands.resetScope === "RECOVERY"
+              ? t.commands.resetRecovery
+              : t.commands.resetExercise
+          }
+          icon={ICONS.reset}
+          size={48}
+          disabled={!projection.commands.reset}
+          onPress={onReset}
+          testID="execution-reset"
+        />
+        <IconCommand
+          label={t.commands.pause}
+          icon={ICONS.pause}
+          size={72}
+          disabled={!projection.commands.pause}
+          onPress={() =>
+            void service.dispatch({ type: "PAUSE", reason: "USER" })
+          }
+          style={styles.pauseCommand}
+          testID="execution-pause"
+        />
+        <IconCommand
+          label={
+            projection.commands.isContinue
+              ? t.commands.continue
+              : t.commands.next
+          }
+          icon={ICONS.next}
+          size={48}
+          disabled={!projection.commands.next}
+          onPress={onNext}
+          testID="execution-next-command"
+        />
+        <Pressable
+          onPress={toggleVoice}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: voiceEnabled }}
+          accessibilityLabel={voiceEnabled ? t.voiceOn : t.voiceOff}
+          hitSlop={12}
+          style={styles.toggle}
+          testID="execution-voice"
+        >
+          <Image source={voiceEnabled ? ICONS.voiceOn : ICONS.voiceOff} style={styles.toggleIcon} contentFit="contain" />
+        </Pressable>
       </View>
 
       {/* Un seul Modal, toujours monté pendant l'Exécution (voir ExecutionDialog, recette du 09/11/2026). */}
@@ -711,43 +732,75 @@ export function ExecutionScreen({
   );
 }
 
-function CommandButton({
+/** Icônes exportées du Figma `1992:8132` (« Mettre en pause », « Activité suivante », « Réinitialiser la séance —
+ * confirmation ») et des composants « DSF / Controls / Son » (`5544:4770`) et « DSF / Controls / Voix » (`5544:4790`). */
+const ICONS = {
+  pause: require("../../../assets/icons/execution-pause.svg"),
+  next: require("../../../assets/icons/execution-suivant.svg"),
+  reset: require("../../../assets/icons/execution-reinitialiser.svg"),
+  soundOn: require("../../../assets/icons/execution-son-active.svg"),
+  soundOff: require("../../../assets/icons/execution-son-desactive.svg"),
+  voiceOn: require("../../../assets/icons/execution-voix-activee.svg"),
+  voiceOff: require("../../../assets/icons/execution-voix-desactivee.svg"),
+} as const;
+
+/** Bouton rond de la barre de commandes ; libellé porté par l'accessibilité. */
+function IconCommand({
   label,
+  icon,
+  size,
   disabled,
   onPress,
-  primary = false,
+  style,
   testID,
 }: {
   label: string;
+  icon: number;
+  size: number;
   disabled: boolean;
   onPress: () => void;
-  primary?: boolean;
+  style?: object;
   testID: string;
 }) {
+  // « Mettre en pause » est exporté avec son ombre portée : 92 × 92 pour un bouton de 72 (débord de 10 et 8 à 12).
+  const shadowed = size === 72;
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled }}
-      style={[
-        styles.command,
-        primary ? styles.commandPrimary : null,
-        disabled ? styles.commandDisabled : null,
-      ]}
+      hitSlop={8}
+      style={[{ width: size, height: size }, style, disabled ? styles.commandDisabled : null]}
       testID={testID}
     >
-      <Text
-        style={[
-          styles.commandLabel,
-          primary ? styles.commandPrimaryLabel : null,
-        ]}
-        numberOfLines={2}
-      >
-        {label}
-      </Text>
+      <Image
+        source={icon}
+        style={shadowed ? styles.pauseIcon : { width: size, height: size }}
+        contentFit="contain"
+      />
     </Pressable>
   );
+}
+
+/** « À suivre » : nom (puis Série, recette PRE-10 du 09/11/2026) à gauche, cible ou durée à droite (Figma `4790:6206`, `4790:6207`). */
+function nextParts(next: NextView): { readonly name: string; readonly value: string | null } {
+  if (next.kind === "STOP_POINT") return { name: t.nextStopPoint, value: null };
+  const name =
+    next.kind === "ACTIVITY"
+      ? [
+          next.name ?? "",
+          next.series !== null
+            ? t.seriesShort(next.series.current, next.series.total)
+            : null,
+        ]
+          .filter((part) => part !== null)
+          .join(" · ")
+      : t.phases[next.kind];
+  if (next.kind === "ACTIVITY" && next.mode === "REPETITIONS" && next.target?.kind === "NUMBER")
+    return { name, value: t.repetitions(next.target.value) };
+  if (next.kind === "ACTIVITY" && next.target?.kind === "FAILURE") return { name, value: t.failure };
+  return { name, value: next.plannedMs !== null ? formatClock(next.plannedMs) : null };
 }
 
 function timerText(projection: ExecutionProjection): string {
@@ -792,33 +845,6 @@ function targetText(projection: ExecutionProjection): string | null {
     .join(" · ");
 }
 
-/** « À suivre » : nom, puis Série (recette PRE-10 du 09/11/2026), puis cible ou durée. */
-function nextText(next: NextView): string {
-  if (next.kind === "STOP_POINT") return t.nextStopPoint;
-  const name =
-    next.kind === "ACTIVITY"
-      ? [
-          next.name ?? "",
-          next.series !== null
-            ? t.seriesShort(next.series.current, next.series.total)
-            : null,
-        ]
-          .filter((part) => part !== null)
-          .join(" · ")
-      : t.phases[next.kind];
-  if (
-    next.kind === "ACTIVITY" &&
-    next.mode === "REPETITIONS" &&
-    next.target?.kind === "NUMBER"
-  )
-    return `${name} · ${t.repetitions(next.target.value)}`;
-  if (next.kind === "ACTIVITY" && next.target?.kind === "FAILURE")
-    return `${name} · ${t.failure}`;
-  return next.plannedMs !== null
-    ? `${name} · ${formatClock(next.plannedMs)}`
-    : name;
-}
-
 /**
  * Délai jusqu'au prochain changement de seconde affichée (compte à rebours arrondi au supérieur, chronomètre
  * arrondi à l'inférieur), plus une marge de 20 ms ; borné à [16, 250] ms pour la demande des signaux.
@@ -844,7 +870,7 @@ function estimateLabel(projection: ExecutionProjection): string {
 }
 
 /** Couleurs et styles de texte du Figma `1992:8132` propres à l'écran d'Exécution. */
-const executionColors = { side: "#8F8F94", track: "#E0E3E8", progress: "#8283F2", caption: "#7A7A80" } as const;
+const executionColors = { side: "#8F8F94", track: "#E0E3E8", progress: "#8283F2", caption: "#7A7A80", zone: "#F6F6FA", card: "#FAFAFE" } as const;
 const executionType = {
   title: { fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", fontSize: 30, lineHeight: 36 },
   side: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 24, lineHeight: 29 },
@@ -873,13 +899,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     textAlign: "center",
   },
-  toggle: {
-    ...type.supporting,
-    color: colors.primary,
-    minWidth: 48,
-    textAlign: "center",
-  },
-  toggleOff: { color: colors.textSecondary },
   center: {
     flex: 1,
     alignItems: "center",
@@ -899,18 +918,24 @@ const styles = StyleSheet.create({
   },
   startLabel: { ...type.button, color: colors.background },
   estimate: { ...type.supporting, color: colors.textSecondary },
-  content: { alignItems: "center", paddingTop: spacing[24], gap: spacing[12] },
-  // Fin de PRE-10 : typographie du Figma `1992:8132` (Roboto Condensed).
-  titleSlot: { height: 72, alignSelf: "stretch", justifyContent: "center" },
-  contextSlot: { height: 17, justifyContent: "center" },
-  sideSlot: { height: 29, justifyContent: "center" },
-  lineSlot: { height: 20, justifyContent: "center" },
+  // Recette r6 : positions du Figma `1992:8132` (écran de 402 × 874, barre d'état de 36).
+  runningScreen: { flex: 1, backgroundColor: colors.background },
+  top: { flexGrow: 0, flexShrink: 1 },
+  content: { alignItems: "center", paddingHorizontal: layout.screenGutter },
+  // Titre à 20 sous la barre d'état (Figma : 56), contexte dessous (92), anneau à 14 du contexte (122).
+  titleSlot: { height: 36, marginTop: spacing[16], alignSelf: "stretch", justifyContent: "center" },
+  contextSlot: { height: 16, alignSelf: "stretch", justifyContent: "center", marginBottom: 14 },
   exerciseName: {
     ...executionType.title,
     color: colors.textPrimary,
     textAlign: "center",
   },
-  context: { ...type.contextLine, color: colors.textSecondary },
+  context: { ...type.caption, fontSize: 13, lineHeight: 16, color: executionColors.caption, textAlign: "center" },
+  // Contenu de l'anneau (288) : côté centré à 45,5 du haut, chrono centré, objectif et guidage dessous.
+  ringContent: { width: 252, height: 288, alignItems: "center" },
+  sideSlot: { height: 30, marginTop: 30, justifyContent: "center" },
+  timerSlot: { height: 108, marginTop: 31, alignSelf: "stretch", justifyContent: "center" },
+  lineSlot: { height: 20, justifyContent: "center" },
   side: { ...executionType.side, color: executionColors.side },
   timer: {
     ...executionType.timer,
@@ -920,62 +945,50 @@ const styles = StyleSheet.create({
   },
   target: { ...type.label, color: colors.textSecondary },
   guidance: { ...type.label, color: colors.primary },
-  seriesTour: {
-    flexDirection: "row",
-    alignSelf: "stretch",
-    alignItems: "center",
-    marginTop: spacing[8],
+  // Figma `5041:6048` : fond #F6F6FA, coins supérieurs de 24, 13 sous l'anneau.
+  zone: {
+    marginTop: 13,
+    backgroundColor: executionColors.zone,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 30,
+    paddingBottom: spacing[16],
+    paddingHorizontal: layout.screenGutter,
   },
+  // « Série 2/3 • Tour 1/3 » : texte de gauche aligné à droite jusqu'à 29 du centre, point centré, texte de droite à 29.
+  seriesTour: { flexDirection: "row", alignItems: "center", height: 30 },
   seriesTourText: { ...executionType.metric, color: colors.textPrimary, flex: 1 },
-  seriesTourDivider: { width: 24 },
+  seriesTourDot: { ...executionType.metric, fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", width: 58, textAlign: "center", color: colors.textPrimary },
   right: { textAlign: "right" },
-  next: {
-    alignSelf: "stretch",
-    paddingVertical: spacing[12],
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-    gap: spacing[4],
-  },
-  nextLabel: { ...type.supporting, color: colors.textSecondary },
-  nextValue: { ...type.label, color: colors.textPrimary },
+  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 20 },
+  progressSegment: { flex: 1, height: 9, borderRadius: 4.5, backgroundColor: executionColors.track, overflow: "hidden" },
+  progressFill: { height: 9, borderRadius: 4.5, backgroundColor: executionColors.progress },
+  progressCaption: { ...type.caption, fontSize: 10, lineHeight: 12, marginTop: 4, color: executionColors.caption },
+  // Figma `4790:6204` : cadre 370 × 132, fond #FAFAFE, rayon 12, 40 sous la légende de la piste.
+  card: { marginTop: 40, height: 132, borderRadius: 12, backgroundColor: executionColors.card, paddingLeft: 16, paddingRight: 32, paddingTop: 21 },
+  elapsedRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", height: 32, gap: spacing[8] },
+  elapsedLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, color: colors.textPrimary, marginBottom: 3 },
+  elapsedValue: { ...executionType.metric, color: colors.textPrimary, flexShrink: 1, textAlign: "right" },
+  cardDivider: { height: 1, backgroundColor: executionColors.track, marginTop: 12 },
+  next: { marginTop: 9 },
+  nextLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 10, lineHeight: 16, color: colors.primary },
+  nextRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 28, gap: spacing[8] },
+  nextName: { fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", fontSize: 16, lineHeight: 22, color: colors.textSecondary, flexShrink: 1 },
+  nextValue: { ...executionType.metric, color: colors.textSecondary, textAlign: "right" },
   saveError: {
     padding: spacing[12],
     backgroundColor: colors.dangerSurface,
     borderRadius: 12,
+    marginTop: spacing[8],
   },
   saveErrorText: { ...type.body, color: colors.danger },
-  commands: {
-    flexDirection: "row",
-    gap: spacing[8],
-    paddingVertical: spacing[12],
-  },
-  command: {
-    flex: 1,
-    minHeight: 56,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: spacing[6],
-  },
-  commandPrimary: { backgroundColor: colors.primary },
+  // Barre de commandes : Son (24) 30 Réinitialiser (48) 37 Pause (72) 37 Suivant (48) 30 Voix (24), 24 sous la zone.
+  commands: { flexDirection: "row", alignItems: "center", justifyContent: "center", height: 72, marginTop: 24, gap: 30 },
+  toggle: { width: 24, height: 24 },
+  toggleIcon: { width: 24, height: 24 },
+  pauseCommand: { marginHorizontal: 7 },
+  pauseIcon: { width: 92, height: 92, marginLeft: -10, marginTop: -8 },
   commandDisabled: { opacity: 0.4 },
-  commandLabel: {
-    ...type.button,
-    color: colors.textPrimary,
-    textAlign: "center",
-  },
-  commandPrimaryLabel: { color: colors.background },
-  total: { gap: spacing[8] },
-  totalText: {
-    ...type.supporting,
-    color: colors.textSecondary,
-    textAlign: "center",
-  },
-  progressTrack: { flexDirection: "row", gap: 3, height: 9 },
-  progressSegment: { flex: 1, height: 9, borderRadius: 4.5, backgroundColor: executionColors.track, overflow: "hidden" },
-  progressFill: { height: 9, borderRadius: 4.5, backgroundColor: executionColors.progress },
-  progressCaption: { ...type.caption, fontSize: 10, color: executionColors.caption },
   endTitle: {
     ...type.activityTitle,
     color: colors.textPrimary,

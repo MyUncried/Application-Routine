@@ -144,6 +144,13 @@ async function press(testID: string) {
   });
 }
 
+
+/** « À suivre » (Figma `1992:8132`, recette r6) : nom à gauche, cible ou durée à droite. */
+function nextShown(): string {
+  const name = screen.getByTestId("execution-next-name").props.children as string;
+  const value = screen.getByTestId("execution-next-value").props.children as string;
+  return [name, value].filter((part) => part !== "").join(" · ");
+}
 describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
   afterEach(() => {
     mockBack.mockReset();
@@ -160,7 +167,7 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     await at(3);
     expect(screen.getByTestId("execution-title").props.children).toBe("Squat");
     expect(screen.getByTestId("execution-series").props.children).toBe("Série 1/2");
-    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Pause · 00:05");
+    expect(nextShown()).toBe("Pause · 00:05");
 
     // Pause de 10 s pendant la Série 1 : temps restant conservé.
     await at(8);
@@ -343,10 +350,10 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await screen.findByTestId("execution-start");
     await press("execution-start");
     await at(24); // Pause après S1 : à suivre Squat S2
-    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Squat · Série 2/2 · 00:20");
+    expect(nextShown()).toBe("Squat · Série 2/2 · 00:20");
     await at(50); // Pause finale : à suivre le Point d'arrêt
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
-    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Arrêt de la séance, redémarrage manuel");
+    expect(nextShown()).toBe("Arrêt de la séance, redémarrage manuel");
     view.unmount();
   });
 

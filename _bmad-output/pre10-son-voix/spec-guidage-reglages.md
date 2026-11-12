@@ -404,7 +404,7 @@ Choix soumis à Hermann ; rien n’est développé avant sa décision.
 
 ### 13.3 Écran d’Exécution conforme à Figma (r6)
 
-« Oui pour l'écran d'exécution de séance » : positions des éléments de l’écran d’Exécution de séance alignées sur Figma (CE-EXEC-SESSION-01). En cours.
+« Oui pour l'écran d'exécution de séance » : positions des éléments de l’écran d’Exécution de séance alignées sur Figma (CE-EXEC-SESSION-01). Réalisé (classe A, contrat CE-EXEC-SESSION-01 §7 complété) : disposition de `1992:8132`, icônes Figma (`assets/icons/execution-*.svg`). Écarts assumés : marges verticales réduites de 12 sous le titre et sous le cadre pour tenir dans la hauteur réelle (barre d’état de l’iPhone plus haute que celle de la maquette) ; formats de durée inchangés (« 00:05 ») ; boutons « Basculer le côté » non réalisés. À vérifier sur iPhone.
 
 ### 13.4 Fin de séance
 
