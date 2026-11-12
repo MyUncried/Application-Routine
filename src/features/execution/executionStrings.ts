@@ -18,7 +18,6 @@ export const executionStrings = {
   pressStart: "Appuyer sur démarrer",
   /** « À suivre » d'un Point d'arrêt (recette PRE-10 du 09/11/2026, Hermann). */
   nextStopPoint: "Arrêt de la séance, redémarrage manuel",
-  seriesShort: (current: number, total: number) => `Série ${current}/${total}`,
   elapsed: "Temps écoulé",
   load: (kg: number) => `${kg.toLocaleString("fr-FR")} kg`,
   target: "Sur",

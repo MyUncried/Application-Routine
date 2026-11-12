@@ -363,7 +363,7 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await screen.findByTestId("execution-start");
     await press("execution-start");
     await at(24); // Pause après S1 : à suivre Squat S2
-    expect(nextShown()).toBe("Squat · Série 2/2 · 00:20");
+    expect(nextShown()).toBe("Squat · 00:20");
     await at(50); // Pause finale : à suivre le Point d'arrêt
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
     expect(nextShown()).toBe("Arrêt de la séance, redémarrage manuel");

@@ -918,17 +918,8 @@ function IconCommand({
 /** « À suivre » : nom (puis Série, recette PRE-10 du 09/11/2026) à gauche, cible ou durée à droite (Figma `4790:6206`, `4790:6207`). */
 function nextParts(next: NextView): { readonly name: string; readonly value: string | null } {
   if (next.kind === "STOP_POINT") return { name: t.nextStopPoint, value: null };
-  const name =
-    next.kind === "ACTIVITY"
-      ? [
-          next.name ?? "",
-          next.series !== null
-            ? t.seriesShort(next.series.current, next.series.total)
-            : null,
-        ]
-          .filter((part) => part !== null)
-          .join(" · ")
-      : t.phases[next.kind];
+  // Recette du 13/11/2026 (Hermann : « Enlever l’information série dans le "À suivre" »). [« Nom · Série n/N » — remplacé.]
+  const name = next.kind === "ACTIVITY" ? (next.name ?? "") : t.phases[next.kind];
   if (next.kind === "ACTIVITY" && next.mode === "REPETITIONS" && next.target?.kind === "NUMBER")
     return { name, value: t.repetitions(next.target.value) };
   if (next.kind === "ACTIVITY" && next.target?.kind === "FAILURE") return { name, value: t.failure };
