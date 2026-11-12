@@ -1117,10 +1117,13 @@ const styles = StyleSheet.create({
   captionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
   progressCaption: { ...type.caption, fontSize: 13, lineHeight: 16, color: executionColors.caption },
   // Figma `4790:6204` : cadre 370 × 132, fond #FAFAFE, rayon 12, 40 sous la légende de la piste.
-  cardGap: { height: 40, minHeight: 12, flexShrink: 1 },
+  // Recette du 12/11/2026 (Hermann : « Abaisser un peu le bord haut du cadre du temps écoulé pour que la marge intérieure
+  // en haut soit égale à la marge en bas ») : bord haut abaissé de 8 (cadre 124, marge haute 13), bas inchangé.
+  // [Écart 40, cadre 132, marge haute 21 — remplacé.]
+  cardGap: { height: 48, minHeight: 12, flexShrink: 1 },
   // Recette du 12/11/2026 (Hermann : « Le temps écoulé, la ligne de séparation et le nombre de répétitions ont plus de
   // marge à droite qu'il n'en a à gauche ») : marges égales. [Marge droite de 32 relevée dans Figma — remplacé.]
-  card: { height: 132, borderRadius: 12, backgroundColor: executionColors.card, paddingHorizontal: 16, paddingTop: 21 },
+  card: { height: 124, borderRadius: 12, backgroundColor: executionColors.card, paddingHorizontal: 16, paddingTop: 13 },
   elapsedRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", height: 32, gap: spacing[8] },
   elapsedLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, color: colors.textPrimary, marginBottom: 3 },
   elapsedValue: { ...executionType.metric, color: colors.textPrimary, flexShrink: 1, textAlign: "right" },
