@@ -553,7 +553,9 @@ export function ExecutionScreen({
         </Fade>
         <Fade stepKey={stepKey} out={fadingOut} style={styles.contextSlot}>
           <Text style={styles.context} numberOfLines={1} testID="execution-context">
-            {projection.phase !== "ACTIVITY" && waiting === null && projection.exerciseName !== null ? projection.exerciseName : projection.sessionName}
+            {/* Recette du 12/11/2026 (Hermann : « Retirer le nom de la séance de l’écran ») : la ligne ne montre plus que l’exercice
+                en cours pendant une récupération ou une pause ; sa place reste réservée. [Nom de la séance — remplacé.] */}
+            {projection.phase !== "ACTIVITY" && waiting === null && projection.exerciseName !== null ? projection.exerciseName : ""}
           </Text>
         </Fade>
         <ExecutionTimerRing
