@@ -185,6 +185,13 @@ Décision de Hermann du 12/11/2026, en réponse à « Si tu veux qu'un mouvement
 - Règles retenues : la Bibliothèque partagée porte son auteur ; unicité du nom par auteur ; homonymes admis entre auteurs différents. Le référencement d'un Mouvement importé n'en crée aucune copie (A-2, MOUV-D3, PU-02).
 - Figma : seule la section « Mes bibliothèques » du Profil existe (12119:25611) ; aucun écran de création, de composition ni d'envoi (« Figma reste à concevoir », parcours cibles § 5).
 - Plan et questions ouvertes : rapport de livraison, section « Élargissement : Bibliothèques personnelles partagées (12/11) ». Aucun code avant les réponses de Hermann.
+- Réponses de Hermann du 12/11/2026 (classe B) :
+  - Présentation du Profil : « Deux sections : 1. Bibliothèques devient : "Mes bibliothèques" avec en dessous une ligne "Créer une Bibliothèque" et dessous la liste des bibliothèques de l'utilisateur. 2. Bibliothèques installées reste comme elle est, avec en première ligne "Ajouter une bibliothèque" qui est la ligne qui est actuellement sous Bibliothèque. »
+  - Retour de sa propre Bibliothèque : « Oui il faut que l'iPhone la reconnaisse » (pas de seconde installation).
+  - Tables additives dans la base du registre catalogue de l'iPhone : « je l'autorise ».
+  - Écrans : « Quels écrans doivent être créés, fais moi une spécification à partager » → spécification partagée « Bibliothèques personnelles — spécification des écrans » (https://claude.ai/artifact/NGm95S1vjAqdzLVr5SefHF), à valider avant code.
+  - Identité de l'auteur : non tranchée. Hermann : « Si on choisi le Pseudo L'auteur peux changer, or il devrait être clairement identifiable, j'aurais choisi le nom du Profil (qui vient du compte lorsqu'il sera créé) ». Proposition en attente de confirmation : identifiant stable créé sur l'iPhone (puis celui du compte), Nom du Profil comme nom affiché.
+- À CLARIFIER (bloque seulement le développement de ce lot) : place de la ligne « Envoyer mes mouvements », absente de la présentation retenue ; avertissement éventuel à la suppression d'un Mouvement personnel présent dans une Bibliothèque.
 
 ## À CLARIFIER
 
