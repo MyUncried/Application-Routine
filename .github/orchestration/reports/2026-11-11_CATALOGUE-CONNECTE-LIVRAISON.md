@@ -346,3 +346,9 @@ Décisions de Hermann (classe B) : « J'aurais proposé l'option B, pour que à 
 Documents : `docs/KODJO-Format-catalogue-mouvements-v1.md` (MOUV-D2, formulation du 11/11 annotée comme remplacée), `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md`.
 
 Tests (copie de travail temporaire, sans le fichier de recette modifié) : `npx jest --maxWorkers=2 src/features/catalogue src/domain/catalogue` 14 suites, 164 tests verts (nouveau : import filtré ; encadré absent) ; `node --test tools/catalogue-admin/server.test.mjs` 24 tests verts (nouveau : export filtré) ; `tsc --noEmit` 0 erreur ; eslint 0 problème. Encadré de l'administration : pas de test automatisé d'interface. Aucun contrôle sur iPhone. Le serveur d'administration doit être redémarré pour prendre le nouveau code.
+
+## Statut des cartes de la Boîte d'arrivée en français (12/11)
+
+Remarque de Hermann (e4) : « Je ne comprends pas où voir le statut ADDED ». Le code brut figurait en fin de la ligne d'information de la carte. Correction (`tools/catalogue-admin/app.js`, classe B, aucun document dépendant) : étiquette « Statut : … » en tête de carte — En attente, Ajouté au catalogue, Rapproché d'une fiche existante, Écarté. Eslint 0 problème ; pas de test automatisé d'interface ; non vu dans le navigateur.
+
+Question associée (pas de modification) : la Bibliothèque d'une fiche reçue est choisie sur le PC ; l'iPhone envoie des Mouvements personnels, pas des Bibliothèques (Bibliothèques personnelles hors premier lot, chapitres 02/03/04).

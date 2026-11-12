@@ -937,11 +937,20 @@ async function renderInbox(views) {
   panel.append(cards);
 }
 
+// Recette du 12/11 (Hermann) : « Je ne comprends pas où voir le statut ADDED ». Le statut est affiché en
+// français, en tête de carte. [Avant : code brut en fin de ligne (« · statut ADDED ») — remplacé]
+const INBOX_STATUS_LABELS = {
+  PENDING: "En attente",
+  ADDED: "Ajouté au catalogue",
+  LINKED: "Rapproché d'une fiche existante",
+  DISMISSED: "Écarté",
+};
 function inboxCard(item, blocked) {
   const m = item.movement;
   const card = el("article", "inbox-card" + (item.status === "PENDING" ? "" : " done"));
+  card.append(el("span", "tag", "Statut : " + (INBOX_STATUS_LABELS[item.status] ?? item.status)));
   card.append(el("strong", "", m.name), el("small", "info", "Mouvement " + m.movementId + " · reçu le " +
-    new Date(item.receivedAt).toLocaleString("fr-FR") + " de « " + item.device.pairedName + " » · statut " + item.status));
+    new Date(item.receivedAt).toLocaleString("fr-FR") + " de « " + item.device.pairedName + " »"));
   if (m.aliases.length) card.append(el("small", "", "Alias : " + m.aliases.join(", ")));
   card.append(el("small", "", "Catégorie (téléphone) : " + m.categoryLabel + " · Zones : " + m.bodyZoneLabels.join(", ") +
     " · Médias non transférés : " + m.mediaCount));
