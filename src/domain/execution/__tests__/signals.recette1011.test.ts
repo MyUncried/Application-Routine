@@ -76,4 +76,13 @@ describe("signaux — recette du 10/11/2026", () => {
     expect(kinds(signals, "PHASE")).toEqual([2 * S, 4 * S, 6 * S]);
     expect(kinds(signals, "COUNTDOWN")).toEqual([7 * S, 8 * S, 9 * S]);
   });
+
+  // Recette du 13/11/2026 (Hermann : « Les phases sont annoncées aléatoirement… ») : « Rotule dos assis », 16 s,
+  // Contracter 6 s puis Relâcher 2 s ; le changement de phase à 8 s tombait à la mi-temps et était effacé.
+  it("un changement de phase à la mi-temps l’emporte sur elle", () => {
+    const sim = run(durationParameters(16));
+    const signals = stepSignalsBetween(sim.state, 0, 16 * S, { durationsMs: [6 * S, 2 * S], limitMs: 16 * S });
+    expect(kinds(signals, "PHASE")).toEqual([6 * S, 8 * S]);
+    expect(kinds(signals, "HALF_TIME")).toEqual([]);
+  });
 });

@@ -37,7 +37,9 @@ const MINUTE = 60 * S;
 const CADENCE_MARGIN_MS = 250;
 // Recette du 10/11/2026 (G7) : le signal minute l'emporte sur un bip de cadence au même instant.
 // Recette du 10/11/2026 (constat B) : changement de phase après le compte à rebours, avant le signal minute et la cadence.
-const PRIORITY: Record<SignalKind, number> = { TRANSITION: 3, COUNTDOWN: 2, HALF_TIME: 1.8, PHASE: 1.5, MINUTE: 1, CADENCE: 0 };
+// Recette du 13/11/2026 (Hermann : « Les phases sont annoncées aléatoirement… ») : un changement de phase qui tombe à la
+// mi-temps l’emporte sur elle (il était effacé : « Contracter » à 8 s d’un exercice de 16 s). [Mi-temps avant phase — remplacé.]
+const PRIORITY: Record<SignalKind, number> = { TRANSITION: 3, COUNTDOWN: 2, PHASE: 1.9, HALF_TIME: 1.8, MINUTE: 1, CADENCE: 0 };
 
 /** Signaux de l'étape courante dus dans `]fromMs, toMs]`, hors transition (portée par l'effet du noyau). */
 export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms, phases: PhasePattern | null = null): readonly PlannedSignal[] {
