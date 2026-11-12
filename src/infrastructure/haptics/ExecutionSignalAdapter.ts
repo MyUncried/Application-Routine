@@ -111,6 +111,8 @@ export class ExecutionSignalAdapter {
   private announcedNext: string | null = null;
   /** L'étape qui se termine était chronométrée : son zéro est marqué (bip grave). */
   private previousTimed = false;
+  /** Dernier exercice commencé : seul ce qui change est annoncé à la Série suivante (recette du 13/11/2026). */
+  private lastActivity: { readonly name: string | null; readonly sideRank: 1 | 2 | null; readonly series: number | null; readonly objective: string | null } | null = null;
   /** Dernier signal joué, pour ne jamais restituer deux fois le même. */
   private lastKey: string | null = null;
   /** Instant logique du dernier son autre qu'un bip de cadence. */
@@ -274,6 +276,7 @@ export class ExecutionSignalAdapter {
       // Nouvelle Exécution : rien n'est hérité de la précédente (recette du 10/11/2026, constat f).
       this.announcedNext = null;
       this.previousTimed = false;
+      this.lastActivity = null;
     }
     const previousTimed = this.previousTimed;
     this.previousTimed = signal.timed === true;
@@ -303,6 +306,25 @@ export class ExecutionSignalAdapter {
       case "ACTIVITY": {
         const alreadyAnnounced = name !== null && this.announcedNext === name;
         this.announcedNext = null;
+        const previous = this.lastActivity;
+        const objective = objectiveText(signal.objective);
+        const series = signal.series ?? null;
+        this.lastActivity = { name, sideRank: signal.sideRank, series: series?.current ?? null, objective };
+        // Recette du 13/11/2026 (Hermann : « ne pas répéter ce qui ne change pas (le nom de l'exercice, le côté) ;
+        // annoncer deuxième série, troisième série, etc. ») : Série suivante du même exercice, seul ce qui change est
+        // annoncé. Même Série et même côté (Réinitialiser) : annonce complète, comme avant.
+        const continuing = previous !== null && previous.name === name && (previous.series !== (series?.current ?? null) || (previous.sideRank !== null && signal.sideRank !== null && previous.sideRank !== signal.sideRank));
+        if (continuing) {
+          const sideChanged = previous.sideRank !== signal.sideRank;
+          const seriesPart = series !== null && series.total > 1 && previous.series !== series.current ? `${ordinal(series.current)} série` : null;
+          const objectivePart = this.announce.objective && objective !== previous.objective ? objective : null;
+          if (sideChanged && signal.sideRank === 2) {
+            const parts = [this.announce.sides ? "Changez de côté" : null, seriesPart, objectivePart].filter((part): part is string => part !== null);
+            return { cue: GUIDANCE.sideChange, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
+          }
+          const parts = [this.announce.sides && sideChanged && signal.sideRank === 1 ? "premier côté" : null, seriesPart, objectivePart].filter((part): part is string => part !== null);
+          return { cue: signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
+        }
         if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: this.announce.sides ? "Changez de côté" : null };
         const cue = signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed;
         // Après le sifflet : nom (s'il n'a pas été annoncé avant), côté, puis objectif (recette h4, constat c).
@@ -332,6 +354,12 @@ export class ExecutionSignalAdapter {
     const first = signal.phase === "INITIAL_COUNTDOWN" && (signal.exerciseCount ?? 0) > 1;
     return first ? `Premier exercice : ${nextName}` : `À suivre : ${nextName}`;
   }
+}
+
+/** « Première », « Deuxième »… (annonce des Séries, recette du 13/11/2026). */
+function ordinal(rank: number): string {
+  const words = ["première", "deuxième", "troisième", "quatrième", "cinquième", "sixième", "septième", "huitième", "neuvième", "dixième"];
+  return words[rank - 1] ?? `${rank}e`;
 }
 
 function signalKey(signal: Pick<ExecutionSignal, "kind" | "atMs">): string {
