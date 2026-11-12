@@ -1060,7 +1060,10 @@ const styles = StyleSheet.create({
   content: { alignItems: "center", paddingHorizontal: layout.screenGutter },
   // Titre à 20 sous la barre d'état (Figma : 56), contexte dessous (92), anneau à 14 du contexte (122).
   titleSlot: { height: 36, marginTop: spacing[16], alignSelf: "stretch", justifyContent: "center" },
-  contextSlot: { height: 16, alignSelf: "stretch", justifyContent: "center", marginBottom: 14 },
+  // Recette du 12/11/2026 (Hermann : « c’est le cercle qu’il faut centrer verticalement ») : le cercle (repères compris)
+  // est centré entre le titre et le cadre gris : 16 + 6 au-dessus (ligne de contexte comprise), 22 en dessous.
+  // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
+  contextSlot: { height: 16, alignSelf: "stretch", justifyContent: "center", marginBottom: 6 },
   exerciseName: {
     ...executionType.title,
     color: colors.textPrimary,
@@ -1094,7 +1097,7 @@ const styles = StyleSheet.create({
   // du cadre gris arrondis ; laisser une marge à gauche et à droite entre le fond gris clair et le bord de l'écran »).
   // [Coins supérieurs seuls, pleine largeur — remplacé.]
   zone: {
-    marginTop: 13,
+    marginTop: 22,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
