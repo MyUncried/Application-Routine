@@ -16,6 +16,13 @@ function setup(ready = true) {
   const cancel = jest.fn(() => undefined);
   const vibrate = jest.fn((_level: VibrationLevel) => undefined);
   const said: string[] = [];
+  const timers = new Map<number, { run: () => void; delayMs: number }>();
+  let nextHandle = 0;
+  const fire = () => {
+    const due = [...timers.values()];
+    timers.clear();
+    for (const timer of due) timer.run();
+  };
   const adapter = new ExecutionSignalAdapter(
     { vibrate },
     {
@@ -28,8 +35,16 @@ function setup(ready = true) {
     },
     { say: (text) => said.push(text) },
     (run) => run(),
+    {
+      set: (run, delayMs) => {
+        nextHandle += 1;
+        timers.set(nextHandle, { run, delayMs });
+        return nextHandle;
+      },
+      clear: (handle) => void timers.delete(handle as number),
+    },
   );
-  return { adapter, played, scheduled, cancel, vibrate, said };
+  return { adapter, played, scheduled, cancel, vibrate, said, timers, fire };
 }
 
 const at = (kind: ExecutionSignal["kind"], atMs: number, overrides: Partial<ExecutionSignal> = {}): ExecutionSignal => ({
@@ -55,16 +70,37 @@ describe("ExecutionSignalAdapter — sons programmés à l'avance", () => {
     expect(vibrate).not.toHaveBeenCalled(); // cadence : sans vibration par défaut
   });
 
-  it("bips des dernières secondes et phase : son programmé ; vibration et annonce de la phase à leur instant", () => {
-    const { adapter, played, scheduled, said, vibrate } = setup();
+  it("bips des dernières secondes et phase : son et vibration programmés ensemble ; annonce de la phase à son instant", () => {
+    const { adapter, played, scheduled, said, vibrate, timers, fire } = setup();
     adapter.schedule(at("COUNTDOWN", 3000), 1000);
     adapter.schedule(at("PHASE", 4000, { phaseLabel: "Descente" }), 1400);
     expect(scheduled.map(([tone]) => tone)).toEqual(["BIP_GRAVE", "BIP_COURT"]);
+    // Recette du 13/11/2026 (« Les vibrations sont légèrement en retard par rapport au bip ») : même délai que le son.
+    expect([...timers.values()].map((timer) => timer.delayMs)).toEqual([1000, 1400]);
+    fire();
+    expect(vibrate.mock.calls).toEqual([["MEDIUM"], ["LIGHT"]]);
     adapter.play(at("COUNTDOWN", 3000));
     adapter.play(at("PHASE", 4000, { phaseLabel: "Descente" }));
     expect(played).toEqual([]);
     expect(said).toEqual(["Descente"]);
-    expect(vibrate).toHaveBeenNthCalledWith(1, "MEDIUM");
+    expect(vibrate).toHaveBeenCalledTimes(2); // pas de seconde vibration à l'instant du signal
+  });
+
+  it("annulation : les vibrations programmées ne tombent pas ; le signal rejoué vibre à son instant", () => {
+    const { adapter, vibrate, timers } = setup();
+    adapter.schedule(at("COUNTDOWN", 3000), 1000);
+    adapter.cancelScheduled();
+    expect(timers.size).toBe(0);
+    adapter.play(at("COUNTDOWN", 3000));
+    expect(vibrate.mock.calls).toEqual([["MEDIUM"]]);
+  });
+
+  it("Vibrations coupées entre-temps : la vibration programmée ne vibre pas", () => {
+    const { adapter, vibrate, fire } = setup();
+    adapter.schedule(at("COUNTDOWN", 3000), 1000);
+    adapter.setVibrationEnabled(false);
+    fire();
+    expect(vibrate).not.toHaveBeenCalled();
   });
 
   it("bibliothèque non prête : rien de programmé, le son est joué à son instant comme avant", () => {

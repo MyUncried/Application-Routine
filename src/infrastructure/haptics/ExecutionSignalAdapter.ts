@@ -63,6 +63,14 @@ export const CADENCE_QUIET_AFTER_SOUND_MS = 700;
 
 type Defer = (run: () => void, delayMs?: number) => void;
 
+/** Minuterie annulable des vibrations programmées d'avance (recette du 13/11/2026). */
+export type VibrationTimer = { readonly set: (run: () => void, delayMs: number) => unknown; readonly clear: (handle: unknown) => void };
+
+const jsTimer: VibrationTimer = {
+  set: (run, delayMs) => setTimeout(run, delayMs),
+  clear: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
+};
+
 const later: Defer = (run, delayMs = 0) => {
   if (delayMs > 0) setTimeout(run, delayMs);
   else run();
@@ -119,6 +127,11 @@ export class ExecutionSignalAdapter {
   private lastSoundAtMs: number | null = null;
   /** Signaux dont le son est déjà programmé sur l'horloge audio (§8, étape 3) : à leur instant, ni rejoué ni doublé. */
   private readonly scheduled = new Set<string>();
+  /**
+   * Vibrations programmées avec leur son (recette du 13/11/2026, Hermann : « Les vibrations sont légèrement en retard
+   * par rapport au bip ») : à leur instant, `play` ne vibre plus.
+   */
+  private readonly scheduledVibrations = new Map<string, unknown>();
   /** Instant du dernier son programmé autre qu'un bip de cadence (oublié à l'annulation). */
   private lastScheduledSoundAtMs: number | null = null;
   /** Annonces différées : une Pause invalide celles demandées avant elle. */
@@ -133,6 +146,7 @@ export class ExecutionSignalAdapter {
     private readonly beeps: BeepPort = new ExecutionSounds(),
     private readonly voice: VoicePort = new ExecutionVoice(),
     private readonly defer: Defer = later,
+    private readonly timer: VibrationTimer = jsTimer,
   ) {}
 
   /** Préférence Vibrations du Profil (vibrations fonctionnelles de séance). */
@@ -178,17 +192,38 @@ export class ExecutionSignalAdapter {
     if (!this.soundEnabled || this.beeps.schedule === undefined || signal.kind === "TRANSITION") return;
     const key = signalKey(signal);
     if (this.scheduled.has(key) || key === this.lastKey || this.quietCadence(signal)) return;
-    const sounding = this.soundOf(signal, this.guidance(signal));
+    const guidance = this.guidance(signal);
+    const sounding = this.soundOf(signal, guidance);
     if (sounding === null || !this.beeps.schedule(sounding.sound, sounding.volume, delayMs)) return;
     this.scheduled.add(key);
+    // Recette du 13/11/2026 : la vibration part de sa propre minuterie, réglée sur l'instant du son, au lieu d'attendre
+    // que le signal soit traité à son instant (traitement qui la retardait par rapport au bip).
+    const level = this.vibrationOf(guidance);
+    if (level !== null) {
+      const handle = this.timer.set(() => {
+        if (this.scheduledVibrations.get(key) !== handle) return;
+        if (this.vibrationEnabled) this.vibrator.vibrate(level);
+      }, delayMs);
+      this.scheduledVibrations.set(key, handle);
+    }
     if (signal.kind !== "CADENCE") this.lastScheduledSoundAtMs = Math.max(this.lastScheduledSoundAtMs ?? signal.atMs, signal.atMs);
   }
 
   /** Les sons programmés ne tomberont plus (Pause, étape suivante, Sons coupés…). */
   cancelScheduled(): void {
     this.scheduled.clear();
+    for (const handle of this.scheduledVibrations.values()) this.timer.clear(handle);
+    this.scheduledVibrations.clear();
     this.lastScheduledSoundAtMs = null;
     this.beeps.cancelScheduled?.();
+  }
+
+  /** Vibration d'un signal selon les préférences (Vibrations du Profil, réglage de l'événement), `null` sans vibration. */
+  private vibrationOf(guidance: { readonly cue: Cue; readonly event?: string | null }): Exclude<Vibration, "NONE"> | null {
+    const { cue, event } = guidance;
+    const setting = event == null ? null : this.events[event as keyof GuidanceEvents];
+    const vibrates = setting === null || setting === undefined || setting.vibration;
+    return this.vibrationEnabled && vibrates && cue.vibration !== "NONE" ? cue.vibration : null;
   }
 
   play(signal: ExecutionSignal): void {
@@ -196,13 +231,13 @@ export class ExecutionSignalAdapter {
     if (key === this.lastKey) return;
     this.lastKey = key;
     const preScheduled = this.scheduled.delete(key);
+    const vibrationScheduled = this.scheduledVibrations.delete(key);
     if (!preScheduled && this.quietCadence(signal)) return;
     if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"} sons=${this.soundEnabled ? "oui" : "non"} voix=${this.voiceEnabled ? "oui" : "non"} annonces=${JSON.stringify(this.announce)}`);
     const guidance = this.guidance(signal);
-    const { cue, announcement, event } = guidance;
-    const setting = event == null ? null : this.events[event];
-    const vibrates = setting === null || setting.vibration;
-    if (this.vibrationEnabled && vibrates && cue.vibration !== "NONE") this.vibrator.vibrate(cue.vibration);
+    const { announcement } = guidance;
+    const level = vibrationScheduled ? null : this.vibrationOf(guidance);
+    if (level !== null) this.vibrator.vibrate(level);
     const spoken = this.voiceEnabled ? announcement : null;
     const sounding = this.soundOf(signal, guidance);
     const played = this.soundEnabled && sounding !== null;
