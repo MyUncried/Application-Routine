@@ -22,9 +22,10 @@ export const BADGE = {
   above: 28,
   /**
    * Écart entre le bord intérieur et les repères de l'anneau. Recette du 13/11/2026 (Hermann : « il faut éloigner la
-   * courbure du cercle, que cela fasse plus aéré et plus triangle ») : 18. [6 — remplacé.]
+   * courbure du cercle, que cela fasse plus aéré et plus triangle ») : 18 ; puis « éloigner encore un peu plus du cercle » : 26.
+   * [6, puis 18 — remplacés.]
    */
-  clearance: 18,
+  clearance: 26,
   /** Rayon des arrondis (moitié de l'épaisseur du contour). */
   round: 6,
   color: "#F0F1F5",
@@ -92,14 +93,17 @@ export function ExecutionCornerBadge({
           <Path d={path} fill={BADGE.color} stroke={BADGE.color} strokeWidth={BADGE.round * 2} strokeLinejoin="round" />
         </G>
       </Svg>
-      <View style={[styles.value, flipY ? styles.valueBottom : styles.valueTop]}>{children}</View>
+      {/* Valeur décalée vers l’angle extérieur, où la forme est la plus épaisse. */}
+      <View style={[styles.value, flipY ? styles.valueBottom : styles.valueTop, flipX ? styles.valueRight : styles.valueLeft]}>{children}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   corner: { position: "absolute", width: BADGE.size, height: BADGE.size },
-  value: { position: "absolute", left: 0, right: 0, height: BADGE.arm, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
+  value: { position: "absolute", left: 0, right: 0, height: BADGE.arm, alignItems: "center", justifyContent: "center" },
+  valueLeft: { paddingLeft: 4, paddingRight: 16 },
+  valueRight: { paddingLeft: 16, paddingRight: 4 },
   valueTop: { top: BADGE.round / 2 },
   valueBottom: { bottom: BADGE.round / 2 },
   fallback: {

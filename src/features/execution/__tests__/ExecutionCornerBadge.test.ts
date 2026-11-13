@@ -7,7 +7,7 @@ import { RING } from "../timerRing";
 describe("cadre en coin", () => {
   const centerY = RING.size / 2 + RING.outset + BADGE.above;
 
-  it.each([343, 370, 398])("zone de %i : bras horizontal en haut, bord intérieur qui suit le cercle", (width) => {
+  it.each([370, 398])("zone de %i : bras horizontal en haut, bord intérieur qui suit le cercle", (width) => {
     const path = cornerPath(width / 2, centerY);
     expect(path).not.toBeNull();
     const match = /V ([\d.]+) A ([\d.]+) [\d.]+ 0 0 0 ([\d.]+) /.exec(path!)!;
@@ -17,6 +17,10 @@ describe("cadre en coin", () => {
     expect(radius - BADGE.round).toBeGreaterThanOrEqual(RING.size / 2 + RING.outset + BADGE.clearance);
     expect(bottomX).toBeGreaterThan(BADGE.round);
     expect(bottomX).toBeLessThan(BADGE.size - BADGE.round);
+  });
+
+  it("zone étroite (iPhone de 375) : la forme ne peut plus porter la valeur, cadre rectangulaire", () => {
+    expect(cornerPath(343 / 2, centerY)).toBeNull();
   });
 
   it("zone trop large : pas de tracé (cadre rectangulaire)", () => {
