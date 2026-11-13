@@ -901,7 +901,9 @@ function Fade({
 
 /** Compteur Série, Tour ou Cycle : libellé centré au-dessus de la valeur ; sans valeur, libellé et « – » en gris clair. */
 function Counter({ label, value, testID }: { label: string; value: { readonly current: number; readonly total: number } | null; testID: string }) {
-  const absent = value === null;
+  // Projection d’une version précédente encore en mémoire après une mise à jour à chaud (journal Metro du 13/11/2026) :
+  // valeur absente.
+  const absent = value === null || value === undefined;
   return (
     <View style={styles.seriesTourColumn}>
       <View style={styles.seriesTourPair}>
