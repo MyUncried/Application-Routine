@@ -505,3 +505,20 @@ Tests (worktree temporaire sans le fichier de recette) : `jest src/features/pref
 Incident : Metro (8082), orphelin depuis la fin de la session précédente, ne pouvait plus lancer de processus (manifeste en 500, code 0xC0000142) ; redémarré avec l'accord de Hermann, même commande.
 
 Non vérifié : rendu sur l'iPhone.
+
+## Écarts de la recette du 13/11 au soir — code NON committé
+
+Demande : « corriger les quelques écarts constatés lors du test ». Notes lues dans le cahier (base partagée) : bp-creer-vide, bp-creer-selection, bp-tout-selectionner, x-d-maj, x-d-compteurs, a1-medias. Également pendant cette séance : silhouette du Profil (pastille transparente, 64 pt, liseré bleu, silhouette pleine bleue de 48 pt — icône `body-zone-<silhouette>-plein` réutilisée, le tracé du Profil n'étant qu'un contour).
+
+Corrections :
+- Créer / Modifier / Ma bibliothèque : zone de contexte du Catalogue (`ContextBand` lilas #EAEAFF fondu vers la transparence, Figma 12206:26333), liste de Ma bibliothèque sous la part fondue ; soulignement bleu du nom retiré.
+- Bibliothèques disponibles : « N fiches · mise à jour disponible » / « … mise à jour refusée » au lieu du numéro de révision.
+- Refuser une mise à jour : retour immédiat à l'écran précédent.
+- Bibliothèque refusée par le PC (MOUV-D2) : plus d'encadré « Bibliothèques non transférées » sur l'iPhone.
+- x-d-compteurs : pas de défaut de code — la bibliothèque testée était déjà installée (écran de mise à jour, sans « Installer ») ; ligne réécrite pas à pas avec une bibliothèque neuve.
+
+Synchronisation code / documentation : spec du lot, quatre lignes (A pour la zone de contexte, B pour le reste). Cahier v25 : lignes bp-zone-contexte, bp-trait-nom, x-d-libelle, x-d-refuser, a1-pas-de-message ; x-d-compteurs réécrite.
+
+Tests (worktree temporaire sans le fichier de recette) : suite complète 354 suites — 353 vertes au premier passage, `PersonalLibraryScreens.test.tsx` (2 tests nouveaux, doublure de `ContextBand` à compléter) corrigé puis vert seul (9/9) ; `tsc --noEmit` 0 ; ESLint 0 sur les 13 fichiers touchés.
+
+Non vérifié : rendu et comportement sur l'iPhone.
