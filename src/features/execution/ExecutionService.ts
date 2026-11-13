@@ -37,7 +37,7 @@ import {
   type StepResult,
   type TransitionResult,
 } from "@/domain/execution/kernel";
-import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
+import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, guidedPhases, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
 import { projectExecution, type ExecutionProjection } from "@/domain/execution/projection";
 import { executionEnv } from "@/domain/execution/policies";
 import { businessStatusOf, occurrenceResults, type BusinessStatus, type OccurrenceResult } from "@/domain/execution/results";
@@ -477,7 +477,8 @@ function objectiveOf(mode: ExecutionMode | null | undefined, seriesTarget: Serie
 function phasePatternOf(plan: ExecutablePlan, state: EngineState): PhasePattern | null {
   const spec = state.leaf?.spec;
   if (spec === undefined || spec.kind !== "ACTIVITY" || spec.exerciseId === undefined) return null;
-  const phases = plan.exercises[spec.exerciseId]?.workPhases ?? [];
+  // PRE-11 (13/11/2026) : Rôle Tour d'un For time, aucun bip ni annonce de phase (`guidedPhases`).
+  const phases = guidedPhases(plan, spec);
   if (workPhasesCycleSeconds(phases) === null) return null;
   // Recette du 13/11/2026 (Hermann : « Oui il faut continuer le guidage, c'est à l'utilisateur d'arrêter ») : en
   // Répétitions, les phases continuent au-delà du nombre prévu, jusqu'à Suivant ; seule une étape chronométrée borne le

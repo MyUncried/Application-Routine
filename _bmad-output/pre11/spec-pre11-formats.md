@@ -36,6 +36,7 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 1. Ordre : « For time d'abord (Recommandé) » → T1 = socle + For time, puis EMOM, AMRAP, Death by.
 2. Écran de Clôture : « Réutiliser « Résultat de série » (Recommandé) » → la modale existante « Résultat de série » (Figma `8937:35362`), avec les champs du Format ; pas de maquette préalable.
 3. Chronomètre du For time : « Temps écoulé. La borne peut apparaître dans le triangle du haut à gauche » → le grand chrono compte le temps écoulé ; la borne, si elle existe, s'affiche dans le coin du haut à gauche du cercle (celui des répétitions dans un exercice libre).
+4. Phases en For time : « Rôle « Tour » en For time : Aucun affichage de phase, aucun bip, aucune annonce vocale de phase » (réponse « 2 c'est une règle à appliquer ») → `LeafSpec.phasesSilenced` sur les Séries des membres de Rôle Tour d'un Circuit For time ; buy-in, buy-out et Exercice For time autonome (sans Rôle) inchangés. ch10 (FMT-32) complété.
 
 ## 6. Contradictions relevées entre sources (à trancher dans la tranche concernée)
 

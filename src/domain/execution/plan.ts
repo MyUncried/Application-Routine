@@ -34,6 +34,7 @@ import type { ElementFormat } from "@/domain/sessions/formats";
 import { expandStructure, type PlanContext, type PlanStep } from "@/domain/sessions/planExpansion";
 import type { SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import type { SessionSnapshot, SessionSnapshotExercise } from "@/domain/sessions/sessionSnapshot";
+import { circuitRoleOf } from "@/domain/sessions/formats";
 import { structureCircuits, structureExercises } from "@/domain/sessions/structure";
 
 export const EXECUTABLE_PLAN_VERSION = 1 as const;
@@ -95,6 +96,11 @@ export type LeafSpec = {
   readonly context?: LeafContext;
   /** Étape où recommence Réinitialiser (D-029, D-150, RM-062) : la même, ou la première Série du côté courant. */
   readonly resetToKey?: string;
+  /**
+   * PRE-11 — décision de Hermann du 13/11/2026 (« Rôle « Tour » en For time : Aucun affichage de phase, aucun bip, aucune
+   * annonce vocale de phase ») : Série d'un membre de Rôle Tour d'un Circuit For time, sans guidage des phases.
+   */
+  readonly phasesSilenced?: true;
 };
 
 export type ScopeSpec = { readonly pilot: string; readonly key: string; readonly config: unknown };
@@ -253,7 +259,11 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
   // PRE-11 (T1) : étapes d'un élément For time en cours de regroupement (voir l'en-tête).
   const forTime = forTimeElements(snapshot);
   let group: { readonly key: string; readonly element: ForTimeElement; readonly cycle: number | null; readonly tour: number | null; readonly items: ChildSpec[] } | null = null;
-  const leaf = (spec: LeafSpec) => (group === null ? items : group.items).push({ type: "LEAF", leaf: spec });
+  const silenced = forTimeTourMembers(snapshot);
+  const leaf = (raw: LeafSpec) => {
+    const spec: LeafSpec = raw.kind === "ACTIVITY" && raw.exerciseId !== undefined && silenced.has(raw.exerciseId) ? { ...raw, phasesSilenced: true } : raw;
+    (group === null ? items : group.items).push({ type: "LEAF", leaf: spec });
+  };
   const flush = () => {
     if (group === null) return;
     const closing = group;
@@ -380,6 +390,24 @@ export type ForTimeScopeConfig = {
 function capSecondsOf(format: ElementFormat): number | null {
   const value = format.settings.timeCapSeconds;
   return typeof value === "number" && value > 0 ? value : null;
+}
+
+/** Membres de Rôle Tour des Circuits For time (phases sans guidage, décision de Hermann du 13/11/2026). */
+function forTimeTourMembers(snapshot: SessionSnapshot): ReadonlySet<string> {
+  const members = new Set<string>();
+  for (const circuit of structureCircuits(snapshot.structure)) {
+    if (circuit.format?.key !== "FOR_TIME") continue;
+    circuit.exercises.forEach((exercise, index) => {
+      if (circuitRoleOf(exercise.format, index) === "TOUR") members.add(exercise.id);
+    });
+  }
+  return members;
+}
+
+/** Phases guidées d'une étape : celles de l'Exercice, sauf guidage retiré (`phasesSilenced`). */
+export function guidedPhases(plan: ExecutablePlan, spec: LeafSpec): readonly WorkPhase[] {
+  if (spec.phasesSilenced === true || spec.exerciseId === undefined) return [];
+  return plan.exercises[spec.exerciseId]?.workPhases ?? [];
 }
 
 /** Éléments For time de l'instantané (Exercices autonomes et Circuits porteurs), par identifiant. */

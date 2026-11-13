@@ -1393,7 +1393,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-32"></a>
 #### RM-FMT-32
 
-**FMT-32.** For time : travail fixé, temps mesuré ; borne temporelle optionnelle, Sans limite au questionnaire/récapitulatif, Aucune sur la durée maximum autonome. La borne héritée est rappelée grisée au membre. À l’atteinte, résultat incomplet sans fin forcée de toute la Séance. La phrase suit les valeurs effectives (3×21 ne devient pas 21-15-9).
+**FMT-32.** For time : travail fixé, temps mesuré ; borne temporelle optionnelle, Sans limite au questionnaire/récapitulatif, Aucune sur la durée maximum autonome. La borne héritée est rappelée grisée au membre. À l’atteinte, résultat incomplet sans fin forcée de toute la Séance. La phrase suit les valeurs effectives (3×21 ne devient pas 21-15-9). [Complété le 13/11/2026 — décision de Hermann (PRE-11) : « Rôle « Tour » en For time : Aucun affichage de phase, aucun bip, aucune annonce vocale de phase ». Les membres de Rôle Tour d'un Circuit For time sont exécutés sans guidage des phases ; buy-in et buy-out gardent leur guidage.]
 
 <a id="fmt-33"></a>
 #### RM-FMT-33

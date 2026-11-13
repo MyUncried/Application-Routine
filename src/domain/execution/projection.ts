@@ -14,7 +14,7 @@ import { phaseGuidanceAt, workPhasesCycleSeconds } from "@/domain/activities/pha
 import type { SeriesTarget } from "@/domain/activities/ExecutionParameters";
 
 import { leafElapsedMs, leafTarget, needsNextConfirmation, resettable, runningMs, sessionStopwatch, type EngineState, type FinishReason, type Ms, type PauseReason } from "./kernel";
-import type { ChildSpec, ExecutablePlan, ForTimeScopeConfig, LeafKind, LeafSpec } from "./plan";
+import { guidedPhases, type ChildSpec, type ExecutablePlan, type ForTimeScopeConfig, type LeafKind, type LeafSpec } from "./plan";
 import { activityCount, FOR_TIME_PILOT, type ForTimeLocal } from "./policies/forTime";
 
 export type TimerView =
@@ -366,7 +366,7 @@ function nextHighlightedOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): 
   // démarré, la Pause ne lui retire pas sa couleur.
   const elapsed = leafElapsedMs(state, atMs);
   if (elapsed <= 0) return false;
-  const phases = spec.exerciseId === undefined ? [] : (plan.exercises[spec.exerciseId]?.workPhases ?? []);
+  const phases = guidedPhases(plan, spec);
   const cycle = workPhasesCycleSeconds(phases);
   const periodMs = cycle !== null && cycle > 0 ? cycle * 1000 : spec.cadenceMs !== undefined && spec.cadenceMs > 0 ? spec.cadenceMs : null;
   if (periodMs === null) return true;
@@ -379,7 +379,7 @@ function nextHighlightedOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): 
 function autoRepetitionsOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): number | null {
   const spec = state.leaf?.spec;
   if (spec === undefined || spec.kind !== "ACTIVITY" || spec.mode !== "REPETITIONS" || spec.exerciseId === undefined) return null;
-  const cycle = workPhasesCycleSeconds(plan.exercises[spec.exerciseId]?.workPhases ?? []);
+  const cycle = workPhasesCycleSeconds(guidedPhases(plan, spec));
   if (cycle === null || cycle <= 0) return null;
   return Math.floor(leafElapsedMs(state, atMs) / (cycle * 1000) + 1e-9);
 }
@@ -474,7 +474,7 @@ function timerOf(state: EngineState, atMs: Ms, format: FormatView | null): Timer
 function guidanceOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): ExecutionProjection["guidance"] {
   const leaf = state.leaf;
   if (leaf === null || leaf.spec.kind !== "ACTIVITY" || leaf.spec.exerciseId === undefined) return null;
-  const phases = plan.exercises[leaf.spec.exerciseId]?.workPhases ?? [];
+  const phases = guidedPhases(plan, leaf.spec);
   if (phases.length === 0 || workPhasesCycleSeconds(phases) === null) return null;
   const limit = leaf.spec.end === "TIMED" ? (leaf.spec.plannedMs ?? 0) / 1000 : null;
   const at = phaseGuidanceAt(phases, leafElapsedMs(state, atMs) / 1000, limit);

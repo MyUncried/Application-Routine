@@ -1,9 +1,9 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { durationParameters, repetitionParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createSessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 
-import { launchabilityOf } from "../plan";
+import { guidedPhases, launchabilityOf } from "../plan";
 import { executionEnv } from "../policies";
 import type { ForTimeResult } from "../policies/forTime";
 import { projectExecution } from "../projection";
@@ -122,5 +122,40 @@ describe("PRE-11 T1 — For time", () => {
     expect(sim.state.refs.some((ref) => ref.name === "cap")).toBe(false);
     sim.at(3600);
     expect(sim.state.leaf?.spec).toMatchObject({ kind: "ACTIVITY", series: 1 });
+  });
+});
+
+describe("PRE-11 — Rôle Tour d'un For time sans guidage des phases (Hermann, 13/11/2026)", () => {
+  const phases = [
+    { id: 1, label: "Contracter", durationSeconds: 6 },
+    { id: 2, label: "Relâcher", durationSeconds: 2 },
+  ];
+  const member = (id: string, role: number | null) =>
+    exerciseActivity(id, uniformParameters({ mode: "REPETITIONS", count: 2, target: 10, workPhases: phases }), {
+      format: { key: "FOR_TIME", settings: role === null ? {} : { circuitRole: role } },
+    });
+
+  it("buy-in guidé ; membre Tour : ni phase affichée, ni motif de signaux ; Exercice libre inchangé", () => {
+    const session = structuredSession({
+      elements: [
+        { kind: "CIRCUIT", circuit: { id: "c", repeatCount: 2, nature: "SERIES", format: { key: "FOR_TIME", settings: { restBetweenRoundsSeconds: 0 } }, exercises: [member("in", 1), member("t", null)] } },
+      ],
+      stopPoints: [],
+    });
+    const launch = launchabilityOf(createSessionSnapshot(session));
+    expect(launch).toEqual({ status: "launchable" });
+    const plan = planOf(session);
+    const sim = new Simulation(executionEnv(plan));
+    sim.send({ type: "START" }, 0);
+    expect(sim.state.leaf?.spec).toMatchObject({ exerciseId: "in" });
+    expect(sim.state.leaf?.spec.phasesSilenced).toBeUndefined();
+    expect(projectExecution(plan, sim.state, 1_000).guidance?.label).toBe("Contracter");
+    sim.send({ type: "NEXT", target: sim.target }, 5 * S); // buy-in : deux Séries
+    sim.send({ type: "NEXT", target: sim.target }, 10 * S);
+    expect(sim.state.leaf?.spec).toMatchObject({ exerciseId: "t", phasesSilenced: true });
+    const tour = projectExecution(plan, sim.state, 11 * S);
+    expect(tour.guidance).toBeNull();
+    expect(tour.autoRepetitions).toBeNull();
+    expect(guidedPhases(plan, sim.state.leaf!.spec)).toEqual([]);
   });
 });
