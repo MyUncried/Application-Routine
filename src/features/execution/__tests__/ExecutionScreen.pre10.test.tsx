@@ -193,6 +193,8 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // Point d'arrêt (aucune échéance).
     await at(74);
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
+    // Recette du 13/11/2026 : pendant la Pause, Série de l’exercice qui vient de s’exécuter (Squat, Série 2/2).
+    expect(screen.getByTestId("execution-series").props.children).toBe("2/2");
     // Recette du 12/11/2026 (e1f) : le Point d'arrêt présente l'exercice qui suit (Fente, en Répétitions : 00:00), en
     // attente de Démarrer ; Réinitialiser devient Arrêt, Suivant est désactivé.
     await at(75);
@@ -203,11 +205,8 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-stop")).toBeTruthy();
     expect(screen.getByTestId("execution-next-command").props.accessibilityState).toMatchObject({ disabled: true });
     await at(400);
-    // Recette du 13/11/2026 (Hermann : « Lorsqu’on a atteint une pause, une récupération ou un point d’arrêt, le nombre de
-    // séries, de tours et de cycles ne doit pas changer ») : compteurs du Squat qui vient de se terminer (Série 2/2, hors
-    // Circuit). [Tour 1/2 de la Fente à venir — remplacé.]
-    expect(screen.getByTestId("execution-series").props.children).toBe("2/2");
-    expect(screen.getByTestId("execution-tour").props.children).toBe("–");
+    // Recette du 13/11/2026 (Hermann : « Pour le point d’arrêt : exercice qui suit ») : Tour 1/2 de la Fente à venir.
+    expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
     // Recette du 13/11/2026 : Cycle toujours affiché, « – » en gris sans Cycle.
     expect(screen.getByTestId("execution-cycle").props.children).toBe("–");
     expect(screen.queryByTestId("execution-pause")).toBeNull();

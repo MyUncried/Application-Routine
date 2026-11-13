@@ -518,10 +518,11 @@ export function ExecutionScreen({
   const ahead = projection.phase === "INITIAL_COUNTDOWN" || waiting !== null ? upcoming : null;
   // Recette du 13/11/2026 (Hermann : « Lorsqu'on a atteint une pause, une récupération ou un point d'arrêt, le nombre de
   // séries, de tours et de cycles ne doit pas changer ») : compteurs de l'exercice qui vient de se terminer ; pendant le
-  // Compte à rebours initial, ceux de l'exercice à venir. [Point d'arrêt : compteurs de l'exercice qui suit (e1f) — remplacé.]
+  // Compte à rebours initial, ceux de l'exercice à venir. Puis (Hermann, 13/11/2026 : « Pour le point d'arrêt : exercice qui
+  // suit. Pour la pause et récupération, l'exercice qui vient de s'exécuter ») : au Point d'arrêt, l'exercice qui suit (e1f).
   const previous = projection.previousCounters ?? null;
   const series =
-    projection.phase === "INITIAL_COUNTDOWN" && ahead !== null
+    ahead !== null
       ? { series: ahead.series, tour: ahead.tour, cycle: ahead.cycle }
       : previous !== null
         ? previous
