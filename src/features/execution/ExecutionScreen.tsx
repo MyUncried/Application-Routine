@@ -1162,9 +1162,12 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
   // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
   // cadre gris est inchangé (12 + 12). [Cadres à −12 hors de la zone — remplacé.]
-  ringArea: { alignSelf: "stretch", alignItems: "center", paddingBottom: 12 },
+  // Recette du 13/11/2026 (Hermann : « Même taille de cadre, texte centré à l’intérieur. Mettre les deux cadres en haut et non
+  // en bas ») : cadres de 92 × 40 en haut à gauche et à droite du cercle, 12 au-dessus de l’anneau (dans l’écart sous le côté).
+  // [Cadres en bas, largeur selon le texte — remplacé.]
+  ringArea: { alignSelf: "stretch", alignItems: "center" },
   // Cadres gris clair en bas du cercle : répétitions à gauche, charge à droite (recette du 13/11/2026).
-  pill: { position: "absolute", bottom: 0, height: 40, minWidth: 64, maxWidth: 92, paddingHorizontal: 12, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
+  pill: { position: "absolute", top: -12, height: 40, width: 92, paddingHorizontal: 8, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
   pillLeft: { left: 0 },
   pillRight: { right: 0 },
   // Recette du 13/11/2026 : texte gris foncé sur le gris clair du cadre ; unité en 18. [Noir, unité en 24 — remplacé.]
@@ -1210,7 +1213,7 @@ const styles = StyleSheet.create({
     // de 20 (cercle +10, écart +10), libellés +8, valeurs +4 ; piste et cadre blanc inchangés.
     // Recette du 13/11/2026 (Hermann : « On doit pouvoir abaisser encore le cadre gris ») : bord haut encore abaissé de 10
     // (cercle +5, écart +5), contenu de la zone à la même place.
-    marginTop: 27,
+    marginTop: 39,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
