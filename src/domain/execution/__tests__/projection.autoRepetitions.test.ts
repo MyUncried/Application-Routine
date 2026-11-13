@@ -55,7 +55,9 @@ describe("compteur automatique des répétitions", () => {
     const bare = planOf(structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("b", uniformParameters({ mode: "REPETITIONS", count: 1, target: 12 })) }], stopPoints: [] }));
     const sim = Simulation.libre(bare);
     sim.send({ type: "START" }, 0);
-    expect(projectExecution(bare, sim.state, 0).nextHighlighted).toBe(true);
+    // Recette du 13/11/2026 : blanc tant que l’exercice n’a pas démarré.
+    expect(projectExecution(bare, sim.state, 0).nextHighlighted).toBe(false);
+    expect(projectExecution(bare, sim.state, 100).nextHighlighted).toBe(true);
     const { plan, sim: timed } = run("DURATION");
     expect(projectExecution(plan, timed.state, 1_000).nextHighlighted).toBe(false);
   });

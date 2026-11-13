@@ -270,14 +270,18 @@ function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity 
 /** Suivant mis en avant en Répétitions (recette du 13/11/2026). */
 function nextHighlightedOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): boolean {
   const spec = state.leaf?.spec;
-  if (state.status !== "RUNNING" || spec === undefined || spec.kind !== "ACTIVITY" || spec.mode !== "REPETITIONS") return false;
+  if ((state.status !== "RUNNING" && state.status !== "PAUSED") || spec === undefined || spec.kind !== "ACTIVITY" || spec.mode !== "REPETITIONS") return false;
+  // Recette du 13/11/2026 (Hermann : « Tant que l’exercice n’a pas démarré au début, il reste en fond blanc ») ; une fois
+  // démarré, la Pause ne lui retire pas sa couleur.
+  const elapsed = leafElapsedMs(state, atMs);
+  if (elapsed <= 0) return false;
   const phases = spec.exerciseId === undefined ? [] : (plan.exercises[spec.exerciseId]?.workPhases ?? []);
   const cycle = workPhasesCycleSeconds(phases);
   const periodMs = cycle !== null && cycle > 0 ? cycle * 1000 : spec.cadenceMs !== undefined && spec.cadenceMs > 0 ? spec.cadenceMs : null;
   if (periodMs === null) return true;
   const goal = spec.target !== undefined && spec.target.kind === "NUMBER" ? spec.target.value : null;
   if (goal === null) return false;
-  return Math.floor(leafElapsedMs(state, atMs) / periodMs + 1e-9) >= goal;
+  return Math.floor(elapsed / periodMs + 1e-9) >= goal;
 }
 
 /** Répétitions faites d'après le guidage des phases : cycles complets du motif depuis le début de la Série. */
