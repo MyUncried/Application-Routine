@@ -1,5 +1,7 @@
 # Versions et périmètre
 
+> **Périmètre — provenance éditoriale, décision du 06/11/2026.** La [préparation des fiches attribuées et versionnées](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) est un chantier de référentiel, **non une fonctionnalité de partage livrée au MVP**. Elle n'est ni un prérequis ni un lot du moteur d'exécution ; comptes distants, partage et synchronisation restent hors périmètre immédiat.
+
 ## Composition — actualisation du 28/10/2026
 
 Les cycles visibles avec compte propre, exercices directs de cycle et circuits multiples entrent dans la cible MVP. Cette intégration documentaire ne prouve aucune réalisation et ne modifie aucune préparation figée. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
