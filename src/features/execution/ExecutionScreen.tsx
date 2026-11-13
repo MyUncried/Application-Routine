@@ -1198,8 +1198,10 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 (Hermann : « Augmenter la taille des valeurs ») : valeurs et point médian 30 → 36.
   // Libellé centré sur sa valeur, 8 au-dessus ; trait vertical blanc entre Série et Tour (recette du 13/11/2026).
   seriesTour: { flexDirection: "row", alignItems: "center", height: 70 },
-  seriesTourColumn: { flex: 1, alignItems: "flex-start" },
-  seriesTourColumnLeft: { alignItems: "flex-end" },
+  // Recette du 13/11/2026 (Hermann : « Centrer horizontalement série et tour dans leur espace respectif »).
+  // [Série calée à droite, Tour à gauche, contre le trait — remplacé.]
+  seriesTourColumn: { flex: 1, alignItems: "center" },
+  seriesTourColumnLeft: {},
   seriesTourPair: { alignItems: "center" },
   seriesTourDivider: { width: 58, alignItems: "center", justifyContent: "center" },
   seriesTourLine: { width: 2, height: 52, borderRadius: 1, backgroundColor: "#FFFFFF" },
