@@ -516,7 +516,11 @@ export function ExecutionScreen({
   const series = ahead !== null ? { series: ahead.series, tour: ahead.tour } : { series: projection.series, tour: projection.tour };
   const progress = projection.phase === "INITIAL_COUNTDOWN" ? 0 : projection.progress;
   const shownTitle = waiting !== null ? (waiting.name ?? "") : title;
-  const objective = waiting !== null ? null : objectiveText(projection);
+  // Recette du 13/11/2026 (Hermann : « un cadre gris léger en bas à gauche du cercle pour accueillir le nombre de
+  // répétitions s'il existe ; le même cadre à droite pour la charge si elle existe. Pas de cadre si l'information
+  // n'existe pas ») : objectif (répétitions, ou À l'échec) et charge sortent du cercle.
+  const repetitions = waiting !== null ? null : repetitionsText(projection);
+  const shownSide = waiting !== null ? waiting.sideRank : projection.phase === "ACTIVITY" ? projection.sideRank : null;
   const load = waiting !== null || projection.phase !== "ACTIVITY" || projection.loadKg === null ? null : t.load(projection.loadKg);
   if (shownNow !== null && shownNow !== lastShown) setLastShown(shownNow);
   // Recette du 13/11/2026 (Hermann : « Après le compte à rebours, au départ du premier exercice, toutes les informations
@@ -586,12 +590,21 @@ export function ExecutionScreen({
           <Ghost trigger={stepKey} text={stepView.fromCountdown ? t.phases.INITIAL_COUNTDOWN : null} textStyle={styles.exerciseName} />
         </View>
         <Fade stepKey={stepKey} out={textOut} still={same} style={styles.contextSlot}>
-          <Text style={styles.context} numberOfLines={1} testID="execution-context">
-            {/* Recette du 12/11/2026 (Hermann : « Retirer le nom de la séance de l’écran ») : la ligne ne montre plus que l’exercice
-                en cours pendant une récupération ou une pause ; sa place reste réservée. [Nom de la séance — remplacé.] */}
-            {projection.phase !== "ACTIVITY" && !pauseLike && waiting === null && projection.exerciseName !== null ? projection.exerciseName : ""}
-          </Text>
+          {/* Recette du 13/11/2026 (Hermann : « Positionner l'information de côté sous le nom de l'exercice, qu'on peut
+              remonter un peu sur l'écran ») : « Côté 1 » sous le titre. [Côté en haut de l'anneau — remplacé.] */}
+          {shownSide !== null ? (
+            <Text style={styles.sideLine} numberOfLines={1} testID="execution-side">
+              {t.side(shownSide)}
+            </Text>
+          ) : (
+            <Text style={styles.context} numberOfLines={1} testID="execution-context">
+              {/* Recette du 12/11/2026 (Hermann : « Retirer le nom de la séance de l’écran ») : la ligne ne montre plus que l’exercice
+                  en cours pendant une récupération ; sa place reste réservée. [Nom de la séance — remplacé.] */}
+              {projection.phase !== "ACTIVITY" && !pauseLike && waiting === null && projection.exerciseName !== null ? projection.exerciseName : ""}
+            </Text>
+          )}
         </Fade>
+        <View style={styles.ringArea}>
         <ExecutionTimerRing
           motion={ringMotion(
             projection.timer,
@@ -612,10 +625,6 @@ export function ExecutionScreen({
               {waiting !== null ? (
                 <Text style={styles.pressStart} numberOfLines={1} testID="execution-press-start">
                   {t.pressStart}
-                </Text>
-              ) : projection.sideRank !== null ? (
-                <Text style={styles.side} numberOfLines={1} testID="execution-side">
-                  {t.side(projection.sideRank)}
                 </Text>
               ) : null}
             </View>
@@ -643,17 +652,26 @@ export function ExecutionScreen({
                 <Text style={styles.waitClock} numberOfLines={1} testID="execution-wait">
                   {projection.timer.kind === "STOPWATCH" ? formatClock(projection.timer.elapsedMs) : ""}
                 </Text>
-              ) : objective !== null ? (
-                <Text style={styles.objective} numberOfLines={1} testID="execution-objective">{objective}</Text>
               ) : null}
             </View>
-            <View style={styles.loadSlot}>
-              {load !== null ? (
-                <Text style={styles.objective} numberOfLines={1} testID="execution-load">{load}</Text>
-              ) : null}
-            </View>
+            <View style={styles.loadSlot} />
           </Fade>
         </ExecutionTimerRing>
+        {repetitions !== null ? (
+          <Fade stepKey={stepKey} out={textOut} still={same} style={[styles.pill, styles.pillLeft]}>
+            <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-objective">
+              {repetitions}
+            </Text>
+          </Fade>
+        ) : null}
+        {load !== null ? (
+          <Fade stepKey={stepKey} out={textOut} still={same} style={[styles.pill, styles.pillRight]}>
+            <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-load">
+              {load}
+            </Text>
+          </Fade>
+        ) : null}
+        </View>
         {active.saveError ? (
           <Pressable
             onPress={() => void service.retry()}
@@ -1014,23 +1032,12 @@ function timerAccessibility(projection: ExecutionProjection): string {
     : timerText(projection);
 }
 
-/** Objectif de la série, sans la charge (affichée sur sa propre ligne, recette e1g). */
-function objectiveText(projection: ExecutionProjection): string | null {
-  if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null)
-    return null;
+/** Nombre de répétitions de la Série (ou À l'échec), pour le cadre en bas à gauche du cercle (recette du 13/11/2026). */
+function repetitionsText(projection: ExecutionProjection): string | null {
+  if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null || projection.mode === "DURATION") return null;
   const target = projection.seriesTarget;
-  // Recette e1 du 12/11/2026 (Hermann, g : « Supprimer le texte "sur XX" sous le compte à rebours ») : la durée visée
-  // n'est plus répétée sous le compte à rebours ; la charge reste affichée.
-  const value = projection.timer.kind === "COUNTDOWN"
-    ? null
-    : target.kind === "FAILURE"
-      ? t.failure
-      : target.kind === "NUMBER"
-        ? projection.mode === "REPETITIONS"
-          ? t.repetitions(target.value)
-          : formatClock(target.value * 1000)
-        : null;
-  return value === null ? null : `${t.target} ${value}`;
+  if (target.kind === "FAILURE") return t.failure;
+  return target.kind === "NUMBER" ? t.repetitions(target.value) : null;
 }
 
 /**
@@ -1116,11 +1123,20 @@ const styles = StyleSheet.create({
   content: { alignItems: "center", paddingHorizontal: layout.screenGutter },
   // Titre à 20 sous la barre d'état (Figma : 56), contexte dessous (92), anneau à 14 du contexte (122).
   titleFill: { flex: 1, alignSelf: "stretch", justifyContent: "center" },
-  titleSlot: { height: 36, marginTop: spacing[16], alignSelf: "stretch", justifyContent: "center" },
+  // Recette du 13/11/2026 : titre remonté (16 → 8), côté dessous.
+  titleSlot: { height: 36, marginTop: spacing[8], alignSelf: "stretch", justifyContent: "center" },
   // Recette du 12/11/2026 (Hermann : « c’est le cercle qu’il faut centrer verticalement ») : le cercle (repères compris)
   // est centré entre le titre et le cadre gris : 16 + 6 au-dessus (ligne de contexte comprise), 22 en dessous.
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
-  contextSlot: { height: 16, alignSelf: "stretch", justifyContent: "center", marginBottom: 6 },
+  // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
+  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 0 },
+  sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
+  ringArea: { alignSelf: "stretch", alignItems: "center" },
+  // Cadres gris clair en bas du cercle : répétitions à gauche, charge à droite (recette du 13/11/2026).
+  pill: { position: "absolute", bottom: -12, height: 40, minWidth: 64, maxWidth: 92, paddingHorizontal: 12, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
+  pillLeft: { left: 0 },
+  pillRight: { right: 0 },
+  pillText: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 24, lineHeight: 28, color: colors.textPrimary, textAlign: "center" },
   exerciseName: {
     ...executionType.title,
     color: colors.textPrimary,
@@ -1156,7 +1172,7 @@ const styles = StyleSheet.create({
   // du cadre gris arrondis ; laisser une marge à gauche et à droite entre le fond gris clair et le bord de l'écran »).
   // [Coins supérieurs seuls, pleine largeur — remplacé.]
   zone: {
-    marginTop: 22,
+    marginTop: 24,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
