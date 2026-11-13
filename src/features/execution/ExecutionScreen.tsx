@@ -1159,8 +1159,11 @@ const COMMANDS_HEIGHT = 72;
 /**
  * Haut de l'invitation du Point d'arrêt sous la marge haute : titre (4 + 36), ligne sous le titre (24 + 3), anneau
  * (contenu de 288 centré dans 314 : 13), ligne du haut de l'anneau (30, centrée à 58), deux lignes de 24 centrées : 67 + 34.
+ * Recette du 13/11/2026 (Hermann : « Baisser le texte Appuyer sur démarrer pour qu'il soit mieux positionné par rapport
+ * au bord du cercle dont il est trop proche ») : 8 de plus, le bas du texte reste à 9 environ au-dessus des chiffres du
+ * chronomètre (créneau de 108 à partir de 148, corps 100). [101 — remplacé.]
  */
-const PRESS_START_TOP = 101;
+const PRESS_START_TOP = 109;
 /** Haut du chronomètre de l'attente : ligne du bas de l'anneau (13 + 30 + 30 + 22 + 8 + 108 + 30 = 241) sous 67. */
 const WAIT_CLOCK_TOP = 308;
 /** Fondu rapide du voile (recette du 13/11/2026). */
