@@ -189,6 +189,9 @@ function SessionServiceInitializer({
       newId: () => Crypto.randomUUID(),
       loadSession: (sessionId) => sessionService.getSessionForConsultation(sessionId),
       onSignal: (signal) => signals.play(signal),
+      // Sons programmés à l'avance (spec `spec-guidage-reglages` §8, étape 3).
+      onScheduleSignal: (signal, delayMs) => signals.schedule(signal, delayMs),
+      onCancelScheduled: () => signals.cancelScheduled(),
     });
     return { service, signals, screenAwake: deviceScreenAwake() };
   }, [nativeDatabase, sessionService]);

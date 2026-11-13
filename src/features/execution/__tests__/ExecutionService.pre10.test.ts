@@ -254,4 +254,34 @@ describe("PRE-10 ExecutionService", () => {
     expect(atEnd[0]!.kind).toBe("TRANSITION");
     expect(signals.filter((signal) => signal.kind === "COUNTDOWN").map((signal) => signal.atMs - T0)).toEqual([32 * S, 33 * S, 34 * S]);
   });
+  it("sons programmés à l’avance (spec §8, étape 3) : bips des dernières secondes programmés une fois, plus d’une seconde avant ; Pause : annulation", async () => {
+    const scheduled: { kind: string; atMs: number; delayMs: number }[] = [];
+    let cancels = 0;
+    const run = await started(
+      new ExecutionService({
+        repository: new SqliteExecutionRepository(raw),
+        clock,
+        scheduler,
+        newId: () => `exec-${(ids += 1)}`,
+        loadSession: async () => session(),
+        onSignal: (signal) => signals.push(signal),
+        onScheduleSignal: (signal, delayMs) => scheduled.push({ kind: signal.kind, atMs: signal.atMs, delayMs }),
+        onCancelScheduled: () => (cancels += 1),
+      }),
+    );
+    await scheduler.runUntil(T0 + 30 * S);
+    for (let at = T0 + 30 * S; at <= T0 + 33 * S; at += 250) {
+      clock.ms = at;
+      run.pulse(at);
+      await scheduler.runUntil(at);
+    }
+    const countdown = scheduled.filter((item) => item.kind === "COUNTDOWN");
+    expect(countdown.map((item) => item.atMs - T0)).toEqual([32 * S, 33 * S, 34 * S]);
+    for (const item of countdown) expect(item.delayMs).toBeGreaterThan(1000);
+    // Compte à rebours initial puis exercice : une annulation au changement d’étape ; la Pause en ajoute une.
+    const before = cancels;
+    expect(before).toBe(1);
+    await run.dispatch({ type: "PAUSE" });
+    expect(cancels).toBe(before + 1);
+  });
 });

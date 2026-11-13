@@ -37,6 +37,14 @@ describe("vibrations de séance", () => {
     expect(vibrate).not.toHaveBeenCalled();
   });
 
+  it("tapotement fort : un seul tapotement, au plus fort (dernières secondes, recette du 13/11/2026)", () => {
+    const { port, impacts, delays, vibrate } = setup();
+    port.vibrate("TAP");
+    expect(impacts).toEqual([Haptics.ImpactFeedbackStyle.Heavy]);
+    expect(delays).toEqual([]);
+    expect(vibrate).not.toHaveBeenCalled();
+  });
+
   it("légère : un tapotement", () => {
     const { port, impacts, vibrate } = setup();
     port.vibrate("LIGHT");

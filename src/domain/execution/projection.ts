@@ -29,6 +29,8 @@ export type NextView = {
   readonly mode: LeafSpec["mode"] | null;
   /** Série de l'étape suivante, affichée après le nom (recette PRE-10 du 09/11/2026). */
   readonly series: { readonly current: number; readonly total: number } | null;
+  /** Côté de l'étape suivante (Série suivante du même côté : écran sans fondu, recette du 13/11/2026). */
+  readonly sideRank: 1 | 2 | null;
 };
 
 /**
@@ -52,6 +54,33 @@ export type OutlineItem = {
 
 export type EstimatedDuration = { readonly kind: "exact" | "estimated" | "lowerBound"; readonly ms: Ms };
 
+/**
+ * Recette du 12/11/2026 (Hermann, e1b : « Il faut que les deux présentent le nombre de séries et de tours de l'exercice
+ * à venir » ; e1f : « le titre de l'écran et l'écran entier, n'est pas point d'arrêt, mais l'exercice qui suit ») :
+ * exercice à venir pendant le Compte à rebours initial et au Point d'arrêt ; `null` ailleurs. `after` : l'étape qui
+ * le suit (« À suivre » au Point d'arrêt).
+ */
+export type UpcomingActivity = {
+  readonly name: string | null;
+  readonly series: { readonly current: number; readonly total: number } | null;
+  readonly tour: { readonly current: number; readonly total: number } | null;
+  /** Répétition du Cycle (D-451) ; `null` hors Cycle (recette du 13/11/2026). */
+  readonly cycle: { readonly current: number; readonly total: number } | null;
+  readonly sideRank: 1 | 2 | null;
+  readonly mode: LeafSpec["mode"] | null;
+  readonly target: SeriesTarget | null;
+  readonly loadKg: number | null;
+  /** Durée d'une étape chronométrée (compte à rebours) ; `null` sinon. */
+  readonly timedMs: Ms | null;
+  readonly after: NextView | null;
+};
+
+export type Counters = {
+  readonly series: { readonly current: number; readonly total: number } | null;
+  readonly tour: { readonly current: number; readonly total: number } | null;
+  readonly cycle: { readonly current: number; readonly total: number } | null;
+};
+
 export type ExecutionProjection = {
   readonly status: EngineState["status"];
   readonly pauseReason: PauseReason | null;
@@ -63,15 +92,45 @@ export type ExecutionProjection = {
   readonly exerciseName: string | null;
   readonly series: { readonly current: number; readonly total: number } | null;
   readonly tour: { readonly current: number; readonly total: number } | null;
+  /**
+   * Répétition du Cycle en cours (D-451) ; `null` hors Cycle. Recette du 13/11/2026 (Hermann : « Il faut ajouter le
+   * cycle et donc séparer le cadre en trois »).
+   */
+  readonly cycle: { readonly current: number; readonly total: number } | null;
+  /**
+   * Compteur automatique des répétitions faites en suivant le guidage des phases (cycles complets du motif) ; `null`
+   * hors Répétitions guidées. Recette du 13/11/2026 (Hermann : « on peut ajouter un compteur automatique dans ce cas
+   * puisqu'on est supposé suivre ce guidage »).
+   */
+  readonly autoRepetitions: number | null;
+  /**
+   * Recette du 13/11/2026 (Hermann : « En mode répétition, le bouton suivant doit être en fond bleu KODJO (symbole blanc)
+   * dès le début de l'exercice, ou dès que l'objectif est atteint lorsqu'il y a des phases cadencées ou une cadence de
+   * bip. Il reste toujours actif quelle que soit sa couleur. ») : Suivant mis en avant. Répétitions sans phases ni bip de
+   * cadence : dès le début ; avec phases (ou bip de cadence) : dès que les répétitions guidées atteignent la cible chiffrée.
+   */
+  readonly nextHighlighted: boolean;
+  /**
+   * Recette du 13/11/2026 (Hermann : « Lorsqu'on a atteint une pause, une récupération ou un point d'arrêt, le nombre de
+   * séries, de tours et de cycles ne doit pas changer, on reste exactement sur les valeurs qui existaient à l'issue de
+   * l'exercice précédent ») : Série, Tour et Cycle de l'exercice qui vient de se terminer, pendant une pause, une
+   * récupération, un repos ou au Point d'arrêt ; `null` ailleurs.
+   */
+  readonly previousCounters: Counters | null;
   /** Côté 1 ou côté 2 (RM-243) ; `null` sans changement de côté. */
   readonly sideRank: 1 | 2 | null;
   readonly mode: LeafSpec["mode"] | null;
   readonly seriesTarget: SeriesTarget | null;
   readonly loadKg: number | null;
   readonly timer: TimerView;
-  /** Phase guidée courante (motif de phases, D-446) ; `null` sans motif. */
-  readonly guidance: { readonly label: string; readonly remainingMs: Ms } | null;
+  /**
+   * Phase guidée courante (motif de phases, D-446) ; `null` sans motif. `phaseMs` : durée de la phase, affichée
+   * à la place de son décompte (recette e1 du 12/11/2026, Hermann : « Phases : montrer le texte le nombre de minutes /
+   * secondes, mais pas le décompte »).
+   */
+  readonly guidance: { readonly label: string; readonly remainingMs: Ms; readonly phaseMs: Ms } | null;
   readonly next: NextView | null;
+  readonly upcoming: UpcomingActivity | null;
   readonly outline: readonly OutlineItem[];
   readonly sessionElapsedMs: Ms;
   readonly estimated: EstimatedDuration;
@@ -190,7 +249,89 @@ function nextOf(plan: ExecutablePlan, state: EngineState): NextView | null {
   if (state.frames.length !== 1) return null;
   const item = plan.items[rootIndex(state) + 1];
   if (item === undefined || item.type !== "LEAF" || item.leaf.kind === "SESSION_END") return null;
-  const spec = item.leaf;
+  return nextViewOf(plan, item.leaf);
+}
+
+/** Compteurs du dernier exercice joué, pendant l'étape qui le suit (recette du 13/11/2026). */
+function previousCountersOf(plan: ExecutablePlan, state: EngineState): Counters | null {
+  const kind = state.leaf?.spec.kind;
+  if (kind === undefined || kind === "ACTIVITY" || kind === "INITIAL_COUNTDOWN" || kind === "SESSION_END" || state.frames.length !== 1) return null;
+  for (let index = rootIndex(state) - 1; index >= 0; index -= 1) {
+    const item = plan.items[index]!;
+    if (item.type !== "LEAF") return null;
+    const spec = item.leaf;
+    if (spec.kind !== "ACTIVITY") continue;
+    const circuit = spec.context?.circuit ?? null;
+    return {
+      series: spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+      tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
+      cycle: cycleOf(spec),
+    };
+  }
+  return null;
+}
+
+function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity | null {
+  const kind = state.leaf?.spec.kind;
+  if (state.frames.length !== 1 || (kind !== "INITIAL_COUNTDOWN" && kind !== "STOP_POINT")) return null;
+  const from = rootIndex(state) + 1;
+  for (let index = from; index < plan.items.length; index += 1) {
+    const item = plan.items[index]!;
+    if (item.type !== "LEAF") return null;
+    const spec = item.leaf;
+    if (spec.kind === "SESSION_END") return null;
+    if (spec.kind !== "ACTIVITY") continue;
+    const following = plan.items[index + 1];
+    const circuit = spec.context?.circuit ?? null;
+    return {
+      name: spec.exerciseId === undefined ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
+      series: spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+      tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
+      cycle: cycleOf(spec),
+      sideRank: spec.sideRank ?? null,
+      mode: spec.mode ?? null,
+      target: spec.target === undefined ? null : spec.target,
+      loadKg: spec.loadKg ?? null,
+      timedMs: spec.end === "TIMED" ? (spec.plannedMs ?? 0) : null,
+      after: following === undefined || following.type !== "LEAF" || following.leaf.kind === "SESSION_END" ? null : nextViewOf(plan, following.leaf),
+    };
+  }
+  return null;
+}
+
+/** Suivant mis en avant en Répétitions (recette du 13/11/2026). */
+function nextHighlightedOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): boolean {
+  const spec = state.leaf?.spec;
+  if ((state.status !== "RUNNING" && state.status !== "PAUSED") || spec === undefined || spec.kind !== "ACTIVITY" || spec.mode !== "REPETITIONS") return false;
+  // Recette du 13/11/2026 (Hermann : « Tant que l’exercice n’a pas démarré au début, il reste en fond blanc ») ; une fois
+  // démarré, la Pause ne lui retire pas sa couleur.
+  const elapsed = leafElapsedMs(state, atMs);
+  if (elapsed <= 0) return false;
+  const phases = spec.exerciseId === undefined ? [] : (plan.exercises[spec.exerciseId]?.workPhases ?? []);
+  const cycle = workPhasesCycleSeconds(phases);
+  const periodMs = cycle !== null && cycle > 0 ? cycle * 1000 : spec.cadenceMs !== undefined && spec.cadenceMs > 0 ? spec.cadenceMs : null;
+  if (periodMs === null) return true;
+  const goal = spec.target !== undefined && spec.target.kind === "NUMBER" ? spec.target.value : null;
+  if (goal === null) return false;
+  return Math.floor(elapsed / periodMs + 1e-9) >= goal;
+}
+
+/** Répétitions faites d'après le guidage des phases : cycles complets du motif depuis le début de la Série. */
+function autoRepetitionsOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): number | null {
+  const spec = state.leaf?.spec;
+  if (spec === undefined || spec.kind !== "ACTIVITY" || spec.mode !== "REPETITIONS" || spec.exerciseId === undefined) return null;
+  const cycle = workPhasesCycleSeconds(plan.exercises[spec.exerciseId]?.workPhases ?? []);
+  if (cycle === null || cycle <= 0) return null;
+  return Math.floor(leafElapsedMs(state, atMs) / (cycle * 1000) + 1e-9);
+}
+
+/** Répétition du Cycle d'une étape (D-451) ; `null` hors Cycle. */
+function cycleOf(spec: LeafSpec): { readonly current: number; readonly total: number } | null {
+  const cycle = spec.context?.cycle ?? null;
+  return cycle === null ? null : { current: cycle.repetition, total: cycle.count };
+}
+
+function nextViewOf(plan: ExecutablePlan, spec: LeafSpec): NextView {
   return {
     kind: spec.kind,
     name: spec.exerciseId === undefined ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
@@ -198,6 +339,7 @@ function nextOf(plan: ExecutablePlan, state: EngineState): NextView | null {
     target: spec.target === undefined ? null : spec.target,
     mode: spec.mode ?? null,
     series: spec.kind === "ACTIVITY" && spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+    sideRank: spec.sideRank ?? null,
   };
 }
 
@@ -227,8 +369,11 @@ function outlineOf(plan: ExecutablePlan, state: EngineState): readonly OutlineIt
 
 function timerOf(state: EngineState, atMs: Ms): TimerView {
   const leaf = state.leaf;
-  if (leaf === null || leaf.spec.end === "WAIT" || leaf.spec.end === "INTERACTION") return { kind: "NONE" };
+  if (leaf === null || leaf.spec.end === "INTERACTION") return { kind: "NONE" };
   const elapsedMs = leafElapsedMs(state, atMs);
+  // Recette e1 du 12/11/2026 (Hermann, f : « Au point d'arrêt […] Un chronomètre se déclenche ») : l'attente d'un
+  // Point d'arrêt est chronométrée à l'écran. [Point d'arrêt sans chrono — remplacé.]
+  if (leaf.spec.end === "WAIT") return { kind: "STOPWATCH", elapsedMs, nominalMs: null };
   if (leaf.spec.end === "TIMED") {
     const totalMs = leaf.spec.plannedMs ?? 0;
     return { kind: "COUNTDOWN", remainingMs: Math.max(0, totalMs - elapsedMs), totalMs, elapsedMs };
@@ -243,7 +388,8 @@ function guidanceOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): Executi
   if (phases.length === 0 || workPhasesCycleSeconds(phases) === null) return null;
   const limit = leaf.spec.end === "TIMED" ? (leaf.spec.plannedMs ?? 0) / 1000 : null;
   const at = phaseGuidanceAt(phases, leafElapsedMs(state, atMs) / 1000, limit);
-  return { label: phases[at.phaseIndex]!.label, remainingMs: at.phaseRemainingSeconds * 1000 };
+  const phase = phases[at.phaseIndex]!;
+  return { label: phase.label, remainingMs: at.phaseRemainingSeconds * 1000, phaseMs: phase.durationSeconds * 1000 };
 }
 
 export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs: Ms): ExecutionProjection {
@@ -263,6 +409,9 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     exerciseName: spec?.exerciseId === undefined || spec === null ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
     series: spec?.kind === "ACTIVITY" && spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
     tour: spec?.context?.circuit === null || spec?.context?.circuit === undefined ? null : { current: spec.context.circuit.tour, total: spec.context.circuit.count },
+    cycle: spec === null ? null : cycleOf(spec),
+    autoRepetitions: autoRepetitionsOf(plan, state, atMs),
+    nextHighlighted: nextHighlightedOf(plan, state, atMs),
     sideRank: spec?.sideRank ?? null,
     mode: spec?.mode ?? null,
     seriesTarget: spec === null || spec.target === undefined ? null : spec.target,
@@ -270,6 +419,8 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     timer: timerOf(state, atMs),
     guidance: guidanceOf(plan, state, atMs),
     next: nextOf(plan, state),
+    upcoming: upcomingOf(plan, state),
+    previousCounters: previousCountersOf(plan, state),
     outline: outlineOf(plan, state),
     sessionElapsedMs: stopwatch === null ? 0 : runningMs(stopwatch, atMs),
     estimated: estimatedDuration(plan),

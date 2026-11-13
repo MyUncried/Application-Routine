@@ -70,10 +70,25 @@ describe("signaux — recette du 10/11/2026", () => {
     expect(kinds(stepSignalsBetween(sim.state, 0, 7 * S, { durationsMs: [2 * S, 1 * S], limitMs: null }), "PHASE")).toEqual([2 * S, 3 * S, 5 * S, 6 * S]);
   });
 
-  it("phases en Durée : aucun changement de phase pendant les trois dernières secondes, qui gardent leurs bips", () => {
+  // Recette du 13/11/2026 (Hermann : « Annoncer les changements de phase jusqu'à la fin, oui »). [Aucun changement de
+  // phase pendant les trois dernières secondes — remplacé.]
+  it("phases en Durée : changements de phase jusqu'à la fin ; sur un bip des dernières secondes, le bip annonce la phase", () => {
     const sim = run(durationParameters(10));
     const signals = stepSignalsBetween(sim.state, 0, 10 * S, { durationsMs: [2 * S, 2 * S], limitMs: 10 * S });
     expect(kinds(signals, "PHASE")).toEqual([2 * S, 4 * S, 6 * S]);
     expect(kinds(signals, "COUNTDOWN")).toEqual([7 * S, 8 * S, 9 * S]);
+    expect(signals.filter((signal) => signal.phaseChange === true).map((signal) => signal.atMs)).toEqual([8 * S]);
+    const rotule = run(durationParameters(16));
+    const end = stepSignalsBetween(rotule.state, 0, 16 * S, { durationsMs: [6 * S, 2 * S], limitMs: 16 * S });
+    expect(end.find((signal) => signal.atMs === 14 * S)).toEqual({ kind: "COUNTDOWN", atMs: 14 * S, phaseChange: true });
+  });
+
+  // Recette du 13/11/2026 (Hermann : « Les phases sont annoncées aléatoirement… ») : « Rotule dos assis », 16 s,
+  // Contracter 6 s puis Relâcher 2 s ; le changement de phase à 8 s tombait à la mi-temps et était effacé.
+  it("un changement de phase à la mi-temps l’emporte sur elle", () => {
+    const sim = run(durationParameters(16));
+    const signals = stepSignalsBetween(sim.state, 0, 16 * S, { durationsMs: [6 * S, 2 * S], limitMs: 16 * S });
+    expect(kinds(signals, "PHASE")).toEqual([6 * S, 8 * S]);
+    expect(kinds(signals, "HALF_TIME")).toEqual([]);
   });
 });
