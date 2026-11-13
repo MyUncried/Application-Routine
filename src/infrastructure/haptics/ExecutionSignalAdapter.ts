@@ -16,7 +16,7 @@ import { deviceVibration, type VibrationPort } from "./ExecutionVibration";
  * - Le prochain exercice est annoncé avant son départ (« À suivre : Pompes »), au début du Compte à rebours
  *   initial, de la Pause ou de la récupération qui le précède ; au départ, après le sifflet, son objectif
  *   (« 12 répétitions »), précédé du nom s'il n'a pas été annoncé avant (recette h4, constat c).
- * - Bilatéral : « premier côté » au départ, « Changez de côté » au changement de côté.
+ * - Bilatéral : « premier côté » au départ, « Second côté » au changement de côté (recette du 13/11/2026, Hermann : « Changer l'annonce "changer de coté" par "second coté" » ; [« Changez de côté » — remplacé]).
  * - Zéro d'une étape chronométrée : double bip, sauf si l'étape suivante a son propre son (un seul signal par
  *   instant, T07 ; recette h2). Arrivée sur une Pause ou une récupération : double bip (recette k3).
  * - Pause demandée par l'utilisateur : double bip (constat a). Achèvement de la Séance : fanfare courte, puis
@@ -91,7 +91,7 @@ export type Announcements = {
   readonly pauses: boolean;
   /** « Préparez-vous » (et la fin de séance, sans annonce aujourd'hui). */
   readonly session: boolean;
-  /** « Premier côté », « Changez de côté ». */
+  /** « Premier côté », « Second côté » (recette du 13/11/2026). */
   readonly sides: boolean;
   /** Nom de chaque phase du mouvement (« Descente », « Montée »…). */
   readonly phases: boolean;
@@ -319,13 +319,13 @@ export class ExecutionSignalAdapter {
           const seriesPart = series !== null && series.total > 1 && previous.series !== series.current ? `${ordinal(series.current)} série` : null;
           const objectivePart = this.announce.objective && objective !== previous.objective ? objective : null;
           if (sideChanged && signal.sideRank === 2) {
-            const parts = [this.announce.sides ? "Changez de côté" : null, seriesPart, objectivePart].filter((part): part is string => part !== null);
+            const parts = [this.announce.sides ? "Second côté" : null, seriesPart, objectivePart].filter((part): part is string => part !== null);
             return { cue: GUIDANCE.sideChange, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
           }
           const parts = [this.announce.sides && sideChanged && signal.sideRank === 1 ? "premier côté" : null, seriesPart, objectivePart].filter((part): part is string => part !== null);
           return { cue: signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
         }
-        if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: this.announce.sides ? "Changez de côté" : null };
+        if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: this.announce.sides ? "Second côté" : null };
         const cue = signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed;
         // Après le sifflet : nom (s'il n'a pas été annoncé avant), côté, puis objectif (recette h4, constat c).
         const parts = [

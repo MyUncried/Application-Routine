@@ -37,7 +37,7 @@ describe("ExecutionSignalAdapter — Séries suivantes d'un même exercice", () 
         { side: 2, series: 1 },
         { side: 2, series: 2 },
       ]),
-    ).toEqual(["Rotule dos assis, premier côté, 16 secondes", "Deuxième série", "Changez de côté, première série", "Deuxième série"]);
+    ).toEqual(["Rotule dos assis, premier côté, 16 secondes", "Deuxième série", "Second côté, première série", "Deuxième série"]);
   });
 
   it("en alternance : changement de côté sans Série, puis premier côté et Série suivante", () => {
@@ -47,7 +47,7 @@ describe("ExecutionSignalAdapter — Séries suivantes d'un même exercice", () 
         { side: 2, series: 1 },
         { side: 1, series: 2 },
       ]),
-    ).toEqual(["Rotule dos assis, premier côté, 16 secondes", "Changez de côté", "Premier côté, deuxième série"]);
+    ).toEqual(["Rotule dos assis, premier côté, 16 secondes", "Second côté", "Premier côté, deuxième série"]);
   });
 
   it("troisième Série et au-delà", () => {
