@@ -1142,7 +1142,7 @@ const styles = StyleSheet.create({
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
   // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
   // Recette du 13/11/2026 (cadre gris abaissé de 20) : cercle descendu de 10, toujours centré (34 au-dessus et en dessous).
-  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 10 },
+  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 15 },
   sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
   // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
   // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
@@ -1191,7 +1191,9 @@ const styles = StyleSheet.create({
     // Recette du 13/11/2026 (Hermann : « Abaisser les chiffres série et tour de quelques points, les textes un peu plus pour
     // resserrer un peu, et beaucoup plus pour le cadre gris (il y a trop d’espace avec le bord haut) ») : bord haut abaissé
     // de 20 (cercle +10, écart +10), libellés +8, valeurs +4 ; piste et cadre blanc inchangés.
-    marginTop: 22,
+    // Recette du 13/11/2026 (Hermann : « On doit pouvoir abaisser encore le cadre gris ») : bord haut encore abaissé de 10
+    // (cercle +5, écart +5), contenu de la zone à la même place.
+    marginTop: 27,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
@@ -1199,7 +1201,7 @@ const styles = StyleSheet.create({
     // Recette du 13/11/2026 (Hermann : « le cadre blanc s’est abaissé et a perdu sa marge en bas avec le cadre gris. Le
     // restaurer. ») : la zone ne tenait plus (elle rétrécit, le cadre blanc débordait). Place reprise en haut de l’écran
     // (titre −8), sous la zone (commandes à 12 au lieu de 24, marge basse −6) et sur l’écart minimal du cadre (10).
-    paddingTop: 22,
+    paddingTop: 12,
     paddingBottom: spacing[16],
     paddingHorizontal: layout.screenGutter,
   },
