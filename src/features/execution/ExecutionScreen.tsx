@@ -1130,7 +1130,8 @@ const executionColors = { side: "#8F8F94", track: "#E0E3E8", progress: "#8283F2"
 // la zone #F6F6FA. [#FAFAFE (Figma) — remplacé.]
 const executionType = {
   title: { fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", fontSize: 30, lineHeight: 36 },
-  side: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 24, lineHeight: 29 },
+  // Recette du 13/11/2026 (Hermann : « Réduire un peu les deux tailles ») : côté et phase 24 → 21.
+  side: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 21, lineHeight: 25 },
   timer: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 100, letterSpacing: -1.5 },
   metric: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 30 },
 } as const;
