@@ -661,9 +661,12 @@ export function ExecutionScreen({
           <Fade stepKey={stepKey} out={textOut} still={same} style={styles.ringContent}>
             <View style={styles.sideSlot}>
               {waiting !== null ? null : shownSide !== null ? (
-                <Text style={styles.side} numberOfLines={1} testID="execution-side">
-                  {t.side(shownSide)}
-                </Text>
+                // Recette du 13/11/2026 : suffixe ordinal en exposant (« 1er », « 2d »), aligné en haut du rang.
+                <View style={styles.sideRow} accessible accessibilityLabel={t.side(shownSide).spoken} testID="execution-side">
+                  <Text style={styles.side}>{t.side(shownSide).rank}</Text>
+                  <Text style={[styles.side, styles.sideSuffix]}>{t.side(shownSide).suffix}</Text>
+                  <Text style={styles.side}>{` ${t.side(shownSide).label}`}</Text>
+                </View>
               ) : null}
             </View>
             <View style={styles.phaseSlot} />
@@ -1326,6 +1329,9 @@ const styles = StyleSheet.create({
   // Recette du 12/11/2026 (Hermann : « Le chrono n'est plus centré verticalement dans son cercle ») : zones symétriques
   // autour du chrono (30 + 30 + 22 + 8 au-dessus, 8 + 26 + 26 + 30 en dessous) → chrono de 90 à 198, centre 144 = 288 / 2.
   sideSlot: { height: 30, marginTop: 30, justifyContent: "center" },
+  sideRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center" },
+  // Exposant : 60 % du corps, haut aligné sur celui des chiffres.
+  sideSuffix: { fontSize: 13, lineHeight: 17 },
   phaseSlot: { height: 22, justifyContent: "center" },
   timerSlot: { height: 108, marginTop: 8, alignSelf: "stretch", justifyContent: "center" },
   // Recette du 13/11/2026 (Hermann : « Abaisser un peu la phase dans le cercle 2/3 1/3 ») : bas des chiffres du chrono à
