@@ -43,4 +43,20 @@ describe("compteur automatique des répétitions", () => {
     const { plan, sim } = run("DURATION");
     expect(projectExecution(plan, sim.state, 10_000).autoRepetitions).toBeNull();
   });
+
+  // Recette du 13/11/2026 : Suivant mis en avant en Répétitions.
+  it("Suivant mis en avant : avec phases, dès que l’objectif est atteint", () => {
+    const { plan, sim } = run("REPETITIONS");
+    expect(projectExecution(plan, sim.state, 95_999).nextHighlighted).toBe(false);
+    expect(projectExecution(plan, sim.state, 96_000).nextHighlighted).toBe(true);
+  });
+
+  it("Suivant mis en avant : sans phases ni cadence, dès le début ; jamais en Durée", () => {
+    const bare = planOf(structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("b", uniformParameters({ mode: "REPETITIONS", count: 1, target: 12 })) }], stopPoints: [] }));
+    const sim = Simulation.libre(bare);
+    sim.send({ type: "START" }, 0);
+    expect(projectExecution(bare, sim.state, 0).nextHighlighted).toBe(true);
+    const { plan, sim: timed } = run("DURATION");
+    expect(projectExecution(plan, timed.state, 1_000).nextHighlighted).toBe(false);
+  });
 });

@@ -97,6 +97,13 @@ export type ExecutionProjection = {
    * puisqu'on est supposé suivre ce guidage »).
    */
   readonly autoRepetitions: number | null;
+  /**
+   * Recette du 13/11/2026 (Hermann : « En mode répétition, le bouton suivant doit être en fond bleu KODJO (symbole blanc)
+   * dès le début de l'exercice, ou dès que l'objectif est atteint lorsqu'il y a des phases cadencées ou une cadence de
+   * bip. Il reste toujours actif quelle que soit sa couleur. ») : Suivant mis en avant. Répétitions sans phases ni bip de
+   * cadence : dès le début ; avec phases (ou bip de cadence) : dès que les répétitions guidées atteignent la cible chiffrée.
+   */
+  readonly nextHighlighted: boolean;
   /** Côté 1 ou côté 2 (RM-243) ; `null` sans changement de côté. */
   readonly sideRank: 1 | 2 | null;
   readonly mode: LeafSpec["mode"] | null;
@@ -260,6 +267,19 @@ function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity 
   return null;
 }
 
+/** Suivant mis en avant en Répétitions (recette du 13/11/2026). */
+function nextHighlightedOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): boolean {
+  const spec = state.leaf?.spec;
+  if (state.status !== "RUNNING" || spec === undefined || spec.kind !== "ACTIVITY" || spec.mode !== "REPETITIONS") return false;
+  const phases = spec.exerciseId === undefined ? [] : (plan.exercises[spec.exerciseId]?.workPhases ?? []);
+  const cycle = workPhasesCycleSeconds(phases);
+  const periodMs = cycle !== null && cycle > 0 ? cycle * 1000 : spec.cadenceMs !== undefined && spec.cadenceMs > 0 ? spec.cadenceMs : null;
+  if (periodMs === null) return true;
+  const goal = spec.target !== undefined && spec.target.kind === "NUMBER" ? spec.target.value : null;
+  if (goal === null) return false;
+  return Math.floor(leafElapsedMs(state, atMs) / periodMs + 1e-9) >= goal;
+}
+
 /** Répétitions faites d'après le guidage des phases : cycles complets du motif depuis le début de la Série. */
 function autoRepetitionsOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): number | null {
   const spec = state.leaf?.spec;
@@ -355,6 +375,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     tour: spec?.context?.circuit === null || spec?.context?.circuit === undefined ? null : { current: spec.context.circuit.tour, total: spec.context.circuit.count },
     cycle: spec === null ? null : cycleOf(spec),
     autoRepetitions: autoRepetitionsOf(plan, state, atMs),
+    nextHighlighted: nextHighlightedOf(plan, state, atMs),
     sideRank: spec?.sideRank ?? null,
     mode: spec?.mode ?? null,
     seriesTarget: spec === null || spec.target === undefined ? null : spec.target,

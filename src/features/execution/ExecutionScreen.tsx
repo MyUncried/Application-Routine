@@ -856,7 +856,10 @@ export function ExecutionScreen({
               ? t.commands.continue
               : t.commands.next
           }
-          icon={ICONS.next}
+          // Recette du 13/11/2026 (Hermann : « En mode répétition, le bouton suivant doit être en fond bleu KODJO (symbole
+          // blanc) dès le début de l'exercice, ou dès que l'objectif est atteint lorsqu'il y a des phases cadencées ou une
+          // cadence de bip. Il reste toujours actif quelle que soit sa couleur. »)
+          icon={projection.nextHighlighted === true && !atStopPoint ? ICONS.nextActive : ICONS.next}
           size={48}
           // Recette du 12/11/2026 (Hermann, e1f : « le bouton Suivant doit être désactivé » au Point d'arrêt).
           disabled={!projection.commands.next || atStopPoint}
@@ -999,6 +1002,8 @@ function phaseDuration(ms: number): string {
 const ICONS = {
   pause: require("../../../assets/icons/execution-pause.svg"),
   next: require("../../../assets/icons/execution-suivant.svg"),
+  // Recette du 13/11/2026 : Suivant mis en avant (fond bleu KODJO, symbole blanc).
+  nextActive: require("../../../assets/icons/execution-suivant-actif.svg"),
   reset: require("../../../assets/icons/execution-reinitialiser.svg"),
   // Recette e1 du 12/11/2026 (Hermann, e) : Démarrer (bleu) et Arrêt définitif (carré plein blanc sur fond rouge).
   start: require("../../../assets/icons/execution-demarrer.svg"),
