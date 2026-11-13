@@ -524,6 +524,10 @@ export function ExecutionScreen({
   // n'existe pas ») : objectif (répétitions, ou À l'échec) et charge sortent du cercle.
   const repetitions = waiting !== null ? null : repetitionsText(projection);
   const autoCount = waiting !== null || projection.guidance === null ? null : projection.autoRepetitions;
+  // Recette du 13/11/2026 (Hermann : « Lorsque le compteur de mouvement dépasse l'objectif du nombre de répétitions faire
+  // passer la couleur de fond du mouvement en vert ») : vert dès que l'objectif est atteint.
+  const goalReps = projection.seriesTarget !== null && projection.seriesTarget.kind === "NUMBER" ? projection.seriesTarget.value : null;
+  const goalReached = autoCount !== null && autoCount !== undefined && goalReps !== null && autoCount >= goalReps;
   const shownSide = waiting !== null ? waiting.sideRank : projection.phase === "ACTIVITY" ? projection.sideRank : null;
   const load = waiting !== null || projection.phase !== "ACTIVITY" || projection.loadKg === null ? null : t.load(projection.loadKg);
   if (shownNow !== null && shownNow !== lastShown) setLastShown(shownNow);
@@ -676,15 +680,15 @@ export function ExecutionScreen({
             suivre ce guidage. Il serait posé dans un triangle en bas à droite. ») : répétitions faites d'après les phases. */}
         {autoCount !== null && ringAreaWidth !== null ? (
           <View style={styles.badgeLayer}>
-            <ExecutionCornerBadge side="right" vertical="bottom" areaWidth={ringAreaWidth}>
+            <ExecutionCornerBadge side="right" vertical="bottom" areaWidth={ringAreaWidth} color={goalReached ? GOAL_GREEN : undefined}>
               {/* Recette du 13/11/2026 (Hermann : « Il faut écrire 2 tours dans le triangle, éventuellement sur deux lignes, 2
                   au-dessus »). [Nombre seul — remplacé.] */}
               <View style={styles.autoCount}>
-                <Text style={styles.pillText} numberOfLines={1} testID="execution-auto-count">
+                <Text style={[styles.pillText, goalReached ? styles.goalText : null]} numberOfLines={1} testID="execution-auto-count">
                   {autoCount}
                 </Text>
                 {/* « mouv. » (Hermann, 13/11/2026), à la taille de « rép. » et « kg ». [« tours », « mouvements » — remplacés.] */}
-                <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
+                <Text style={[styles.pillText, styles.autoCountUnit, goalReached ? styles.goalText : null]} numberOfLines={1}>
                   {t.movements()}
                 </Text>
               </View>
@@ -1090,6 +1094,9 @@ function timerAccessibility(projection: ExecutionProjection): string {
  * Valeur d'un cadre : chiffres à la taille du cadre, unité (« rép. », « kg ») plus petite (recette du 13/11/2026,
  * Hermann : « rép et kg peuvent être un peu plus petits (conserver la taille des chiffres) et gris foncé sur gris clair »).
  */
+/** Vert du compteur automatique, objectif atteint (vert système d'iOS). */
+const GOAL_GREEN = "#34C759";
+
 function PillValue({ text }: { text: string }) {
   const match = /^([\d\s.,]+)\s(\S.*)$/.exec(text);
   if (match === null) return <>{text}</>;
@@ -1222,6 +1229,7 @@ const styles = StyleSheet.create({
   autoCount: { alignItems: "flex-end", alignSelf: "stretch" },
   // Recette du 13/11/2026 (Hermann : « Tour de la même taille que kg et rép ») : 18, comme les unités des autres coins.
   autoCountUnit: { fontSize: 18, lineHeight: 20 },
+  goalText: { color: "#FFFFFF" },
   exerciseName: {
     ...executionType.title,
     color: colors.textPrimary,

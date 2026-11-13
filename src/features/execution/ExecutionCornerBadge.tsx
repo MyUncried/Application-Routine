@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { hasSvg } from "@/features/execution/ExecutionTimerRing";
@@ -62,8 +62,11 @@ export function ExecutionCornerBadge({
   side,
   vertical = "top",
   areaWidth,
+  color = BADGE.color,
   children,
 }: {
+  /** Fond du coin (vert quand le compteur automatique atteint l'objectif, recette du 13/11/2026). */
+  readonly color?: string;
   readonly side: "left" | "right";
   /** Coin du haut (répétitions, charge) ou du bas (compteur automatique), symétrique par rapport au centre de l'anneau. */
   readonly vertical?: "top" | "bottom";
@@ -81,24 +84,34 @@ export function ExecutionCornerBadge({
   const flipY = vertical === "bottom";
   if (path === null) {
     return (
-      <View style={[styles.fallback, position]}>
+      <View style={[styles.fallback, position, { backgroundColor: color }]}>
         {children}
       </View>
     );
   }
-  const { default: Svg, Path, G } = svg();
   return (
     <View style={[styles.corner, position]} pointerEvents="none">
-      <Svg width={BADGE.size} height={BADGE.size} style={StyleSheet.absoluteFill}>
-        <G transform={flipX || flipY ? `translate(${flipX ? BADGE.size : 0}, ${flipY ? BADGE.size : 0}) scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})` : undefined}>
-          <Path d={path} fill={BADGE.color} stroke={BADGE.color} strokeWidth={BADGE.round * 2} strokeLinejoin="round" />
-        </G>
-      </Svg>
+      <CornerShape path={path} flipX={flipX} flipY={flipY} color={color} />
       {/* Valeur décalée vers l’angle extérieur, où la forme est la plus épaisse. */}
       <View style={[styles.value, flipX ? styles.valueRight : styles.valueLeft, flipY ? styles.valueBottom : styles.valueTop]}>{children}</View>
     </View>
   );
 }
+
+/**
+ * Forme du coin, redessinée seulement si elle change (recette du 13/11/2026, Hermann : « À chaque incrément, le compteur
+ * a un effet flash lent ») : le changement de la valeur ne redessine pas la forme.
+ */
+const CornerShape = memo(function CornerShape({ path, flipX, flipY, color }: { path: string; flipX: boolean; flipY: boolean; color: string }) {
+  const { default: Svg, Path, G } = svg();
+  return (
+    <Svg width={BADGE.size} height={BADGE.size} style={StyleSheet.absoluteFill}>
+      <G transform={flipX || flipY ? `translate(${flipX ? BADGE.size : 0}, ${flipY ? BADGE.size : 0}) scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})` : undefined}>
+        <Path d={path} fill={color} stroke={color} strokeWidth={BADGE.round * 2} strokeLinejoin="round" />
+      </G>
+    </Svg>
+  );
+});
 
 const styles = StyleSheet.create({
   corner: { position: "absolute", width: BADGE.size, height: BADGE.size },
