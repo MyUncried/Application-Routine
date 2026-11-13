@@ -1218,7 +1218,7 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 : texte gris foncé sur le gris clair du cadre ; unité en 18. [Noir, unité en 24 — remplacé.]
   pillText: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 24, lineHeight: 28, color: "#3C3C43", textAlign: "center" },
   pillUnit: { fontSize: 18 },
-  autoCount: { alignItems: "center" },
+  autoCount: { alignItems: "flex-end" },
   // Recette du 13/11/2026 (Hermann : « Tour de la même taille que kg et rép ») : 18, comme les unités des autres coins.
   autoCountUnit: { fontSize: 18, lineHeight: 20 },
   exerciseName: {

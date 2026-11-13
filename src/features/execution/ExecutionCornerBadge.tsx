@@ -95,7 +95,7 @@ export function ExecutionCornerBadge({
         </G>
       </Svg>
       {/* Valeur décalée vers l’angle extérieur, où la forme est la plus épaisse. */}
-      <View style={[styles.value, flipY ? styles.valueBottom : styles.valueTop, flipX ? styles.valueRight : styles.valueLeft]}>{children}</View>
+      <View style={[styles.value, flipX ? styles.valueRight : styles.valueLeft, flipY ? styles.valueBottom : styles.valueTop]}>{children}</View>
     </View>
   );
 }
@@ -107,7 +107,9 @@ const styles = StyleSheet.create({
   valueRight: { paddingLeft: 16, paddingRight: 4 },
   valueTop: { top: BADGE.round / 2 },
   // Coin du bas : valeur sur deux lignes (compteur automatique, « 2 » au-dessus de « tours »).
-  valueBottom: { bottom: BADGE.round / 2, height: BADGE.arm + 10 },
+  // Recette du 13/11/2026 (Hermann : « Alignés à droite, assurer assez de marge entre le texte et le bas du cadre ») :
+  // valeur calée à droite, 12 au-dessus du bas du coin et 12 du bord droit.
+  valueBottom: { bottom: 12, height: BADGE.arm + 10, alignItems: "flex-end", paddingLeft: 4, paddingRight: 12 },
   fallback: {
     position: "absolute",
     height: BADGE.arm,
