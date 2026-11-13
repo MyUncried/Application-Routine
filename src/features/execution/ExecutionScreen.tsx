@@ -683,9 +683,9 @@ export function ExecutionScreen({
                 <Text style={styles.pillText} numberOfLines={1} testID="execution-auto-count">
                   {autoCount}
                 </Text>
-                {/* « mouvements » ne tient pas en 18 dans le coin : réduit au besoin (jusqu’à 75 %). [« tours » — remplacé.] */}
-                <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
-                  {t.movements(autoCount)}
+                {/* « mouv. » (Hermann, 13/11/2026), à la taille de « rép. » et « kg ». [« tours », « mouvements » — remplacés.] */}
+                <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
+                  {t.movements()}
                 </Text>
               </View>
             </ExecutionCornerBadge>
@@ -1310,7 +1310,8 @@ const styles = StyleSheet.create({
   seriesTourText: { ...executionType.metric, fontSize: 40, lineHeight: 45, color: colors.textPrimary },
   right: { textAlign: "right" },
   // Recette du 13/11/2026 (Hermann : « Abaisser la barre de progression ») : 20 → 26 sous les valeurs.
-  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 20 },
+  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 30 },
+  // Puis « C’est d’abord la barre de progression qu’il faut abaisser, il y a trop d’espace avec le cadre blanc » : 20 → 30.
   // Recette du 13/11/2026 (Hermann : « Abaisser un peu la barre de progression, et tout ce qui va avec ») : 14 → 20 sous
   // Série / Tour / Cycle ; légende et cadre blanc suivent (l’écart au-dessus du cadre blanc se resserre d’autant).
   progressSegment: { flex: 1, height: 9, borderRadius: 4.5, backgroundColor: executionColors.track, overflow: "hidden" },

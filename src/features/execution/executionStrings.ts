@@ -17,7 +17,8 @@ export const executionStrings = {
   /** Compteur automatique (recette du 13/11/2026) : « tour » jusqu’à 1, « tours » au-delà. */
   tours: (count: number) => (count > 1 ? "tours" : "tour"),
   /** Recette du 13/11/2026 (Hermann : « Remplacer tour par mouvements ») : « mouvement » jusqu’à 1, « mouvements » au-delà. */
-  movements: (count: number) => (count > 1 ? "mouvements" : "mouvement"),
+  // Puis « Ok pour mouv. » : abréviation à la taille de « rép. » et « kg ». [« mouvement(s) » — remplacé.]
+  movements: () => "mouv.",
   /** Recette du 13/11/2026 (Hermann : « Changer le texte Côté 1 et Côté 2 par 1er côté et 2ème côté »). [« Côté n » — remplacé.] */
   side: (rank: 1 | 2) => (rank === 1 ? "1er côté" : "2ème côté"),
   next: "À suivre",
