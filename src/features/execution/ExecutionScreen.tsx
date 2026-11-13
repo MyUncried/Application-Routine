@@ -683,8 +683,9 @@ export function ExecutionScreen({
                 <Text style={styles.pillText} numberOfLines={1} testID="execution-auto-count">
                   {autoCount}
                 </Text>
-                <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
-                  {t.tours(autoCount)}
+                {/* « mouvements » ne tient pas en 18 dans le coin : réduit au besoin (jusqu’à 75 %). [« tours » — remplacé.] */}
+                <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+                  {t.movements(autoCount)}
                 </Text>
               </View>
             </ExecutionCornerBadge>
@@ -1218,7 +1219,7 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 : texte gris foncé sur le gris clair du cadre ; unité en 18. [Noir, unité en 24 — remplacé.]
   pillText: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 24, lineHeight: 28, color: "#3C3C43", textAlign: "center" },
   pillUnit: { fontSize: 18 },
-  autoCount: { alignItems: "flex-end" },
+  autoCount: { alignItems: "flex-end", alignSelf: "stretch" },
   // Recette du 13/11/2026 (Hermann : « Tour de la même taille que kg et rép ») : 18, comme les unités des autres coins.
   autoCountUnit: { fontSize: 18, lineHeight: 20 },
   exerciseName: {
