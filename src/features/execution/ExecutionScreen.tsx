@@ -1168,7 +1168,8 @@ const styles = StyleSheet.create({
   ringArea: { alignSelf: "stretch", alignItems: "center" },
   // Cadres gris clair en bas du cercle : répétitions à gauche, charge à droite (recette du 13/11/2026).
   // Recette du 13/11/2026 (Hermann : « Remonter un peu les deux cadres sur les côtés ») : 20 au-dessus de l’anneau (au lieu de 12).
-  pill: { position: "absolute", top: -20, height: 40, width: 92, paddingHorizontal: 8, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
+  // Puis « Remonter un peu les deux cadres » : 28 au-dessus de l’anneau.
+  pill: { position: "absolute", top: -28, height: 40, width: 92, paddingHorizontal: 8, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
   pillLeft: { left: 0 },
   pillRight: { right: 0 },
   // Recette du 13/11/2026 : texte gris foncé sur le gris clair du cadre ; unité en 18. [Noir, unité en 24 — remplacé.]
