@@ -166,6 +166,8 @@ export function ExecutionScreen({
   );
 
   const active = service.current();
+  // Voile du Point d'arrêt, en fondu (recette du 13/11/2026).
+  const veil = useVeil(active !== null && active.state.status === "RUNNING" && active.state.leaf?.spec.kind === "STOP_POINT");
   useEffect(() => {
     if (active !== null || sessionId === null) return;
     let cancelled = false;
@@ -660,11 +662,7 @@ export function ExecutionScreen({
               </Text>
             </View>
             <View style={styles.objectiveSlot}>
-              {waiting !== null ? (
-                <Text style={styles.waitClock} numberOfLines={1} testID="execution-wait">
-                  {projection.timer.kind === "STOPWATCH" ? formatClock(projection.timer.elapsedMs) : ""}
-                </Text>
-              ) : projection.guidance !== null ? (
+              {waiting !== null ? null : projection.guidance !== null ? (
                 <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
                   {projection.guidance.label} · {phaseDuration(projection.guidance.phaseMs)}
                 </Text>
@@ -804,20 +802,29 @@ export function ExecutionScreen({
         de la zone du bas ; la barre de commandes a son propre voile, sous Démarrer et Arrêt. L'invitation est dessinée
         au-dessus du voile, à la place qu'elle occupait en haut de l'anneau.
       */}
+      {/* Recette du 13/11/2026 (Hermann : « Le voile apparaît en fondu rapide, et disparaît de la même manière quand on
+          appuie sur un bouton. Le chronomètre qui tourne doit aussi être dessus. ») */}
+      {veil.mounted ? (
+        <Animated.View pointerEvents="none" style={[styles.veil, { opacity: veil.opacity, bottom: Math.max(insets.bottom - 16, spacing[8]) + COMMANDS_HEIGHT }]} testID="execution-stop-veil" />
+      ) : null}
       {atStopPoint ? (
         <>
-          <View pointerEvents="none" style={[styles.veil, { bottom: Math.max(insets.bottom - 16, spacing[8]) + COMMANDS_HEIGHT }]} testID="execution-stop-veil" />
           <View pointerEvents="none" style={[styles.pressStartLayer, { top: insets.top + PRESS_START_TOP }]}>
             <Text style={styles.pressStart} numberOfLines={2} testID="execution-press-start">
               {t.pressStartLines}
+            </Text>
+          </View>
+          <View pointerEvents="none" style={[styles.waitLayer, { top: insets.top + WAIT_CLOCK_TOP }]}>
+            <Text style={styles.waitClock} numberOfLines={1} testID="execution-wait">
+              {projection.timer.kind === "STOPWATCH" ? formatClock(projection.timer.elapsedMs) : ""}
             </Text>
           </View>
         </>
       ) : null}
 
       {/* Barre de commandes du Figma `1992:8132` : Son, Réinitialiser, Mettre en pause, Activité suivante, Voix. */}
-      <View style={[styles.commands, atStopPoint ? styles.commandsAboveVeil : null]}>
-        {atStopPoint ? <View pointerEvents="none" style={[styles.commandsVeil, { bottom: -Math.max(insets.bottom - 16, spacing[8]) }]} /> : null}
+      <View style={[styles.commands, veil.mounted ? styles.commandsAboveVeil : null]}>
+        {veil.mounted ? <Animated.View pointerEvents="none" style={[styles.commandsVeil, { opacity: veil.opacity, bottom: -Math.max(insets.bottom - 16, spacing[8]) }]} /> : null}
         <Pressable
           onPress={toggleSound}
           accessibilityRole="switch"
@@ -836,7 +843,7 @@ export function ExecutionScreen({
             size={48}
             disabled={false}
             onPress={() => void stopSession()}
-            style={atStopPoint ? styles.aboveVeil : undefined}
+            style={veil.mounted ? styles.aboveVeil : undefined}
             testID="execution-stop"
           />
         ) : (
@@ -860,7 +867,7 @@ export function ExecutionScreen({
             size={72}
             disabled={false}
             onPress={paused ? () => void service.dispatch({ type: "RESUME" }) : onNext}
-            style={atStopPoint ? [styles.pauseCommand, styles.aboveVeil] : styles.pauseCommand}
+            style={veil.mounted ? [styles.pauseCommand, styles.aboveVeil] : styles.pauseCommand}
             testID={paused ? "execution-resume" : "execution-continue"}
           />
         ) : (
@@ -1133,6 +1140,23 @@ const COMMANDS_HEIGHT = 72;
  * (contenu de 288 centré dans 314 : 13), ligne du haut de l'anneau (30, centrée à 58), deux lignes de 24 centrées : 67 + 34.
  */
 const PRESS_START_TOP = 101;
+/** Haut du chronomètre de l'attente : ligne du bas de l'anneau (13 + 30 + 30 + 22 + 8 + 108 + 30 = 241) sous 67. */
+const WAIT_CLOCK_TOP = 308;
+/** Fondu rapide du voile (recette du 13/11/2026). */
+const VEIL_FADE_MS = 250;
+
+/** Voile du Point d'arrêt : monté pendant son fondu d'entrée et de sortie. */
+function useVeil(visible: boolean): { readonly opacity: Animated.Value; readonly mounted: boolean } {
+  const [opacity] = useState(() => new Animated.Value(0));
+  const [mounted, setMounted] = useState(visible);
+  if (visible && !mounted) setMounted(true);
+  useEffect(() => {
+    Animated.timing(opacity, { toValue: visible ? 1 : 0, duration: VEIL_FADE_MS, useNativeDriver: true }).start(({ finished }) => {
+      if (finished && !visible) setMounted(false);
+    });
+  }, [visible, opacity]);
+  return { opacity, mounted };
+}
 /** Voile du Point d'arrêt. */
 const STOP_VEIL = "rgba(255, 149, 0, 0.28)";
 
@@ -1405,6 +1429,7 @@ const styles = StyleSheet.create({
   commandsAboveVeil: { zIndex: 2 },
   commandsVeil: { position: "absolute", top: 0, left: 0, right: 0, backgroundColor: STOP_VEIL, zIndex: 1 },
   aboveVeil: { zIndex: 2 },
+  waitLayer: { position: "absolute", left: 0, right: 0, height: 30, alignItems: "center", justifyContent: "center", zIndex: 3 },
   pressStartLayer: { position: "absolute", left: 0, right: 0, height: 48, alignItems: "center", justifyContent: "center", zIndex: 3 },
   toggle: { width: 24, height: 24 },
   toggleIcon: { width: 24, height: 24 },

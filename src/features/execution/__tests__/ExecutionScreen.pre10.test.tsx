@@ -214,7 +214,9 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-cycle").props.children).toBe("–");
     expect(screen.queryByTestId("execution-pause")).toBeNull();
     await press("execution-continue");
-    expect(screen.queryByTestId("execution-stop-veil")).toBeNull();
+    // Le voile s’efface en fondu (250 ms) ; l’invitation et le chronomètre de l’attente disparaissent tout de suite.
+    expect(screen.queryByTestId("execution-press-start")).toBeNull();
+    expect(screen.queryByTestId("execution-wait")).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
     expect(screen.getByTestId("execution-side").props.children).toBe("1er côté");
     expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
