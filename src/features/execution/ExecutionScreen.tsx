@@ -207,7 +207,11 @@ export function ExecutionScreen({
       // l'application quitte le premier plan. [À CLARIFIER : iOS ne distingue pas le verrouillage de l'écran, qui met
       // aussi la séance en Pause ; la poursuite explicite en arrière-plan (petit écran flottant) reste à définir.]
       if (state === "background") {
-        void service.dispatch({ type: "PAUSE", reason: "USER" }).catch(() => undefined);
+        // Recette du 13/11/2026 (Hermann : « Au point d’arrêt sortir de l’application met la séance en pause ; mais quand on
+        // revient on a un écran sans voile et d’autres valeurs, il faut réappuyer sur démarrer pour atteindre le point
+        // d’arrêt de nouveau ») : le Point d’arrêt attend déjà ; il n’est pas mis en Pause.
+        const leaf = service.current()?.state.leaf?.spec.kind;
+        if (leaf !== "STOP_POINT") void service.dispatch({ type: "PAUSE", reason: "USER" }).catch(() => undefined);
         // Recette du 11/11/2026 (Hermann, m2, second essai) : hors de la séance, la musique retrouve son volume.
         releaseExecutionAudio();
       }
@@ -217,6 +221,14 @@ export function ExecutionScreen({
       subscription.remove();
     };
   }, [running, service]);
+
+  // Recette du 13/11/2026 : une Exécution retrouvée en Pause sur un Point d’arrêt (Pause d’arrière-plan antérieure,
+  // reprise après fermeture) revient à l’attente du Point d’arrêt. L’Arrêt (Pause « dialogue » puis Arrêt) n’est pas visé.
+  const pausedAtStopPoint =
+    active !== null && active.state.status === "PAUSED" && active.state.leaf?.spec.kind === "STOP_POINT" && active.state.pause?.reason !== "DIALOG";
+  useEffect(() => {
+    if (pausedAtStopPoint) void service.dispatch({ type: "RESUME" }).catch(() => undefined);
+  }, [pausedAtStopPoint, service]);
 
   // Recette du 11/11/2026 (Hermann, m2) : « Dernier écart : lorsque la séance est terminée et que je reste sur l'applciation le volume doit revenir à l'original, et notamment lorsque je retrouve sur Spotify. » Séance terminée ou écran quitté : la musique retrouve son volume,
   // après la fanfare et l'annonce de fin.
