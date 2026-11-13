@@ -781,7 +781,7 @@ Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les An
 | Moment | Son | Volume | Annonce vocale | Vibration |
 | --- | --- | --- | --- | --- |
 | Début du Compte à rebours initial | aucun | — | « Préparez-vous », suivi de « Prochain exercice : {exercice} » | forte |
-| Dernières secondes d’une étape chronométrée (3 s) | bip grave | 100 % | — | moyenne |
+| Dernières secondes d’une étape chronométrée (3 s) | bip grave | 100 % | — | moyenne [remplacé le 13/11/2026 par « tapotement fort » (un seul tapotement, au plus fort) — mesure sur iPhone : vibration à l’heure, les trois tapotements traînaient après le bip bref ; choix de Hermann : « Un seul tapotement fort »] |
 | Fin d’une étape chronométrée (zéro) | aucun | — | — | aucune |
 | Départ d’un exercice en Durée | sifflet roulé | 100 % | {exercice} (voir moment de l’annonce) | forte |
 | Départ d’un exercice en Répétitions ou À l’échec | sifflet pur | 55 % | {exercice} (voir moment de l’annonce) | forte |

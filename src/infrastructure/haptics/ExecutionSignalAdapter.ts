@@ -25,12 +25,14 @@ import { deviceVibration, type VibrationPort } from "./ExecutionVibration";
  * - Une étape sans son défini et dont l'annonce est coupée reçoit un bip grave (S5).
  * Premier plan seulement (arrière-plan : tranche suivante). Un échec natif n'interrompt jamais l'Exécution.
  */
-export type Vibration = "NONE" | "LIGHT" | "MEDIUM" | "HEAVY";
+export type Vibration = "NONE" | "LIGHT" | "TAP" | "MEDIUM" | "HEAVY";
 export type Cue = { readonly sound: BeepTone | null; readonly volume: number; readonly vibration: Vibration };
 
 export const GUIDANCE = {
   countdownStart: { sound: null, volume: 1, vibration: "HEAVY" },
-  lastSeconds: { sound: "BIP_GRAVE", volume: 1, vibration: "MEDIUM" },
+  // Recette du 13/11/2026 (mesure : vibration à l'heure, mais trois tapotements traînant après le bip ; choix de Hermann
+  // « Un seul tapotement fort »). [« MEDIUM » (trois tapotements) — remplacé.]
+  lastSeconds: { sound: "BIP_GRAVE", volume: 1, vibration: "TAP" },
   zero: { sound: "BIP_DOUBLE", volume: 1, vibration: "NONE" },
   startTimed: { sound: "SIFFLET_ROULE", volume: 0.55, vibration: "HEAVY" },
   startStopwatch: { sound: "SIFFLET_PUR", volume: 0.55, vibration: "HEAVY" },
@@ -201,11 +203,7 @@ export class ExecutionSignalAdapter {
     if (level !== null) {
       const handle = this.timer.set(() => {
         if (this.scheduledVibrations.get(key) !== handle) return;
-        if (this.vibrationEnabled) {
-          this.vibrator.vibrate(level);
-          // Mesure du retard réel de la vibration programmée (recette du 13/11/2026, comptes à rebours).
-          if (__DEV__) console.log(`[guidage] vibration ${level} programmée, écart ${Date.now() - signal.atMs} ms (${signal.kind} ${signal.phase ?? "-"})`);
-        }
+        if (this.vibrationEnabled) this.vibrator.vibrate(level);
       }, delayMs);
       this.scheduledVibrations.set(key, handle);
     }
@@ -244,10 +242,7 @@ export class ExecutionSignalAdapter {
     const guidance = this.guidance(signal);
     const { announcement } = guidance;
     const level = vibrationScheduled ? null : this.vibrationOf(guidance);
-    if (level !== null) {
-      this.vibrator.vibrate(level);
-      if (__DEV__) console.log(`[guidage] vibration ${level} à l'instant du signal, écart ${Date.now() - signal.atMs} ms (${signal.kind} ${signal.phase ?? "-"})`);
-    }
+    if (level !== null) this.vibrator.vibrate(level);
     const spoken = this.voiceEnabled ? announcement : null;
     const sounding = this.soundOf(signal, guidance);
     const played = this.soundEnabled && sounding !== null;

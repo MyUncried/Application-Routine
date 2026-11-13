@@ -78,7 +78,7 @@ describe("ExecutionSignalAdapter — sons programmés à l'avance", () => {
     // Recette du 13/11/2026 (« Les vibrations sont légèrement en retard par rapport au bip ») : même délai que le son.
     expect([...timers.values()].map((timer) => timer.delayMs)).toEqual([1000, 1400]);
     fire();
-    expect(vibrate.mock.calls).toEqual([["MEDIUM"], ["LIGHT"]]);
+    expect(vibrate.mock.calls).toEqual([["TAP"], ["LIGHT"]]);
     adapter.play(at("COUNTDOWN", 3000));
     adapter.play(at("PHASE", 4000, { phaseLabel: "Descente" }));
     expect(played).toEqual([]);
@@ -92,7 +92,7 @@ describe("ExecutionSignalAdapter — sons programmés à l'avance", () => {
     adapter.cancelScheduled();
     expect(timers.size).toBe(0);
     adapter.play(at("COUNTDOWN", 3000));
-    expect(vibrate.mock.calls).toEqual([["MEDIUM"]]);
+    expect(vibrate.mock.calls).toEqual([["TAP"]]);
   });
 
   it("Sons coupés ou bibliothèque non prête : la vibration est quand même programmée à son instant (recette du 13/11/2026)", () => {
@@ -104,7 +104,7 @@ describe("ExecutionSignalAdapter — sons programmés à l'avance", () => {
       expect(scheduled).toEqual([]);
       expect([...timers.values()].map((timer) => timer.delayMs)).toEqual([1000, 2000]);
       fire();
-      expect(vibrate.mock.calls).toEqual([["MEDIUM"], ["LIGHT"]]);
+      expect(vibrate.mock.calls).toEqual([["TAP"], ["LIGHT"]]);
       adapter.play(at("COUNTDOWN", 3000));
       adapter.play(at("PHASE", 4000, { phaseLabel: "Montée" }));
       expect(vibrate).toHaveBeenCalledTimes(2);

@@ -84,7 +84,7 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     play({ kind: "FINISH", phase: null, exerciseName: null });
     expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
     expect(said).toEqual(["Bravo, séance terminée"]);
-    expect(vibrate.mock.calls.map(([style]) => style)).toEqual(["MEDIUM", "HEAVY", "MEDIUM"]);
+    expect(vibrate.mock.calls.map(([style]) => style)).toEqual(["TAP", "HEAVY", "MEDIUM"]);
   });
 
   it("guidage sonore par événement : « Aucun » coupe seulement le son ; un son choisi remplace celui par défaut ; vibration réglée à part", () => {
