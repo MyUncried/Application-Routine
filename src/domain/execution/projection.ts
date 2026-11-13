@@ -91,6 +91,12 @@ export type ExecutionProjection = {
    * cycle et donc séparer le cadre en trois »).
    */
   readonly cycle: { readonly current: number; readonly total: number } | null;
+  /**
+   * Compteur automatique des répétitions faites en suivant le guidage des phases (cycles complets du motif) ; `null`
+   * hors Répétitions guidées. Recette du 13/11/2026 (Hermann : « on peut ajouter un compteur automatique dans ce cas
+   * puisqu'on est supposé suivre ce guidage »).
+   */
+  readonly autoRepetitions: number | null;
   /** Côté 1 ou côté 2 (RM-243) ; `null` sans changement de côté. */
   readonly sideRank: 1 | 2 | null;
   readonly mode: LeafSpec["mode"] | null;
@@ -254,6 +260,15 @@ function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity 
   return null;
 }
 
+/** Répétitions faites d'après le guidage des phases : cycles complets du motif depuis le début de la Série. */
+function autoRepetitionsOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): number | null {
+  const spec = state.leaf?.spec;
+  if (spec === undefined || spec.kind !== "ACTIVITY" || spec.mode !== "REPETITIONS" || spec.exerciseId === undefined) return null;
+  const cycle = workPhasesCycleSeconds(plan.exercises[spec.exerciseId]?.workPhases ?? []);
+  if (cycle === null || cycle <= 0) return null;
+  return Math.floor(leafElapsedMs(state, atMs) / (cycle * 1000) + 1e-9);
+}
+
 /** Répétition du Cycle d'une étape (D-451) ; `null` hors Cycle. */
 function cycleOf(spec: LeafSpec): { readonly current: number; readonly total: number } | null {
   const cycle = spec.context?.cycle ?? null;
@@ -339,6 +354,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     series: spec?.kind === "ACTIVITY" && spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
     tour: spec?.context?.circuit === null || spec?.context?.circuit === undefined ? null : { current: spec.context.circuit.tour, total: spec.context.circuit.count },
     cycle: spec === null ? null : cycleOf(spec),
+    autoRepetitions: autoRepetitionsOf(plan, state, atMs),
     sideRank: spec?.sideRank ?? null,
     mode: spec?.mode ?? null,
     seriesTarget: spec === null || spec.target === undefined ? null : spec.target,

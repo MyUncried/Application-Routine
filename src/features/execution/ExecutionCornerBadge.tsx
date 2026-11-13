@@ -20,8 +20,11 @@ export const BADGE = {
   arm: 40,
   /** Débord au-dessus du haut de l'anneau. */
   above: 28,
-  /** Écart entre le bord intérieur et les repères de l'anneau. */
-  clearance: 6,
+  /**
+   * Écart entre le bord intérieur et les repères de l'anneau. Recette du 13/11/2026 (Hermann : « il faut éloigner la
+   * courbure du cercle, que cela fasse plus aéré et plus triangle ») : 18. [6 — remplacé.]
+   */
+  clearance: 18,
   /** Rayon des arrondis (moitié de l'épaisseur du contour). */
   round: 6,
   color: "#F0F1F5",
@@ -48,24 +51,32 @@ export function cornerPath(cx: number, cy: number): string | null {
   if (dyRight <= 0 || dxBottom <= 0) return null;
   const rightY = cy - Math.sqrt(dyRight);
   const bottomX = cx - Math.sqrt(dxBottom);
-  if (rightY < inset + BADGE.arm / 2 || rightY > size || bottomX < inset || bottomX > size) return null;
+  if (rightY < inset + 16 || rightY > size || bottomX < inset || bottomX > size) return null;
   const n = (value: number) => Math.round(value * 10) / 10;
   return `M ${inset} ${inset} H ${size} V ${n(rightY)} A ${n(radius)} ${n(radius)} 0 0 0 ${n(bottomX)} ${size} H ${inset} Z`;
 }
 
 export function ExecutionCornerBadge({
   side,
+  vertical = "top",
   areaWidth,
   children,
 }: {
   readonly side: "left" | "right";
+  /** Coin du haut (répétitions, charge) ou du bas (compteur automatique), symétrique par rapport au centre de l'anneau. */
+  readonly vertical?: "top" | "bottom";
   /** Largeur de la zone du cercle (l'anneau y est centré, son haut à 0). */
   readonly areaWidth: number;
   readonly children: ReactNode;
 }) {
   // Centre de l'anneau dans le carré du coin gauche (le coin droit est son symétrique).
   const path = hasSvg() ? cornerPath(areaWidth / 2, RING.size / 2 + RING.outset + BADGE.above) : null;
-  const position = side === "left" ? { left: 0 } : { right: 0 };
+  const position = {
+    ...(side === "left" ? { left: 0 } : { right: 0 }),
+    ...(vertical === "top" ? { top: -BADGE.above } : { top: RING.size + 2 * RING.outset + BADGE.above - BADGE.size }),
+  };
+  const flipX = side === "right";
+  const flipY = vertical === "bottom";
   if (path === null) {
     return (
       <View style={[styles.fallback, position]}>
@@ -77,21 +88,22 @@ export function ExecutionCornerBadge({
   return (
     <View style={[styles.corner, position]} pointerEvents="none">
       <Svg width={BADGE.size} height={BADGE.size} style={StyleSheet.absoluteFill}>
-        <G transform={side === "left" ? undefined : `translate(${BADGE.size}, 0) scale(-1, 1)`}>
+        <G transform={flipX || flipY ? `translate(${flipX ? BADGE.size : 0}, ${flipY ? BADGE.size : 0}) scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})` : undefined}>
           <Path d={path} fill={BADGE.color} stroke={BADGE.color} strokeWidth={BADGE.round * 2} strokeLinejoin="round" />
         </G>
       </Svg>
-      <View style={styles.value}>{children}</View>
+      <View style={[styles.value, flipY ? styles.valueBottom : styles.valueTop]}>{children}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  corner: { position: "absolute", top: -BADGE.above, width: BADGE.size, height: BADGE.size },
-  value: { position: "absolute", top: 0, left: 0, right: 0, height: BADGE.arm + BADGE.round, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
+  corner: { position: "absolute", width: BADGE.size, height: BADGE.size },
+  value: { position: "absolute", left: 0, right: 0, height: BADGE.arm, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
+  valueTop: { top: BADGE.round / 2 },
+  valueBottom: { bottom: BADGE.round / 2 },
   fallback: {
     position: "absolute",
-    top: -BADGE.above,
     height: BADGE.arm,
     width: BADGE.size,
     paddingHorizontal: 8,

@@ -479,6 +479,9 @@ function phasePatternOf(plan: ExecutablePlan, state: EngineState): PhasePattern 
   if (spec === undefined || spec.kind !== "ACTIVITY" || spec.exerciseId === undefined) return null;
   const phases = plan.exercises[spec.exerciseId]?.workPhases ?? [];
   if (workPhasesCycleSeconds(phases) === null) return null;
-  const limit = spec.target === undefined ? null : nominalGuidanceSeconds(spec.mode ?? null, spec.target, phases);
+  // Recette du 13/11/2026 (Hermann : « Oui il faut continuer le guidage, c'est à l'utilisateur d'arrêter ») : en
+  // Répétitions, les phases continuent au-delà du nombre prévu, jusqu'à Suivant ; seule une étape chronométrée borne le
+  // guidage. [D-446 Q4 « après le nombre cible, plus de signal » — remplacé pour les Répétitions.]
+  const limit = spec.target === undefined || spec.end !== "TIMED" ? null : nominalGuidanceSeconds(spec.mode ?? null, spec.target, phases);
   return { durationsMs: phases.map((phase) => phase.durationSeconds * 1000), limitMs: limit === null ? null : limit * 1000 };
 }

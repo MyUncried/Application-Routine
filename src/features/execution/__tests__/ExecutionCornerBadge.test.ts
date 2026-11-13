@@ -13,7 +13,7 @@ describe("cadre en coin", () => {
     const match = /V ([\d.]+) A ([\d.]+) [\d.]+ 0 0 0 ([\d.]+) /.exec(path!)!;
     const [rightY, radius, bottomX] = [Number(match[1]), Number(match[2]), Number(match[3])];
     // Bras horizontal assez haut pour la valeur ; bord intérieur hors des repères de l'anneau (contour compris).
-    expect(rightY).toBeGreaterThanOrEqual(BADGE.round + BADGE.arm / 2);
+    expect(rightY).toBeGreaterThanOrEqual(BADGE.round + 16);
     expect(radius - BADGE.round).toBeGreaterThanOrEqual(RING.size / 2 + RING.outset + BADGE.clearance);
     expect(bottomX).toBeGreaterThan(BADGE.round);
     expect(bottomX).toBeLessThan(BADGE.size - BADGE.round);

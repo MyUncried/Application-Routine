@@ -523,6 +523,7 @@ export function ExecutionScreen({
   // répétitions s'il existe ; le même cadre à droite pour la charge si elle existe. Pas de cadre si l'information
   // n'existe pas ») : objectif (répétitions, ou À l'échec) et charge sortent du cercle.
   const repetitions = waiting !== null ? null : repetitionsText(projection);
+  const autoCount = waiting !== null || projection.guidance === null ? null : projection.autoRepetitions;
   const shownSide = waiting !== null ? waiting.sideRank : projection.phase === "ACTIVITY" ? projection.sideRank : null;
   const load = waiting !== null || projection.phase !== "ACTIVITY" || projection.loadKg === null ? null : t.load(projection.loadKg);
   if (shownNow !== null && shownNow !== lastShown) setLastShown(shownNow);
@@ -670,6 +671,17 @@ export function ExecutionScreen({
               </Text>
             </ExecutionCornerBadge>
           </Fade>
+        ) : null}
+        {/* Recette du 13/11/2026 (Hermann : « on peut ajouter un compteur automatique dans ce cas puisqu'on est supposé
+            suivre ce guidage. Il serait posé dans un triangle en bas à droite. ») : répétitions faites d'après les phases. */}
+        {autoCount !== null && ringAreaWidth !== null ? (
+          <View style={styles.badgeLayer}>
+            <ExecutionCornerBadge side="right" vertical="bottom" areaWidth={ringAreaWidth}>
+              <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-auto-count">
+                {autoCount}
+              </Text>
+            </ExecutionCornerBadge>
+          </View>
         ) : null}
         {load !== null && ringAreaWidth !== null ? (
           <Fade stepKey={stepKey} out={textOut} still={same} style={styles.badgeLayer}>
@@ -1186,7 +1198,8 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 (Hermann : « Même taille de cadre, texte centré à l’intérieur. Mettre les deux cadres en haut et non
   // en bas ») : cadres de 92 × 40 en haut à gauche et à droite du cercle, 12 au-dessus de l’anneau (dans l’écart sous le côté).
   // [Cadres en bas, largeur selon le texte — remplacé.]
-  ringArea: { alignSelf: "stretch", alignItems: "center" },
+  // Coin du bas (compteur automatique) : 28 sous l'anneau, compris dans la zone ; l'écart jusqu'au cadre gris est inchangé.
+  ringArea: { alignSelf: "stretch", alignItems: "center", paddingBottom: 28 },
   // Cadres gris clair en bas du cercle : répétitions à gauche, charge à droite (recette du 13/11/2026).
   // Recette du 13/11/2026 (Hermann : « Remonter un peu les deux cadres sur les côtés ») : 20 au-dessus de l’anneau (au lieu de 12).
   // Puis « Remonter un peu les deux cadres » : 28 au-dessus de l’anneau.
@@ -1246,7 +1259,7 @@ const styles = StyleSheet.create({
     // démarrer ») : cadre gris remonté de 8 (cercle −4, écart 35 / 35), commandes à 20 sous le cadre (au lieu de 12).
     // Recette du 13/11/2026 (Hermann : « Abaisser de 6 px le cercle ») : cercle +6 (41 au-dessus, 29 en dessous), cadre gris
     // à la même place.
-    marginTop: 29,
+    marginTop: 1,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
