@@ -165,13 +165,13 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-title").props.children).toBe("Préparez-vous");
     // Recette e1 (b) : 3, 2, 1 sans 0 ; Série et Tour du premier exercice dès le Compte à rebours.
     expect(screen.getByTestId("execution-timer").props.children).toBe("3");
-    expect(screen.getByTestId("execution-series").props.children).toBe("Série 1/2");
+    expect(screen.getByTestId("execution-series").props.children).toBe("1/2");
 
     await at(3);
     // Recette e1 (g) : pas de « Sur 00:20 » sous le compte à rebours.
     expect(screen.queryByText(/^Sur /)).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Squat");
-    expect(screen.getByTestId("execution-series").props.children).toBe("Série 1/2");
+    expect(screen.getByTestId("execution-series").props.children).toBe("1/2");
     expect(nextShown()).toBe("Pause · 00:05");
 
     // Pause de 10 s pendant la Série 1 : temps restant conservé.
@@ -203,12 +203,12 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-stop")).toBeTruthy();
     expect(screen.getByTestId("execution-next-command").props.accessibilityState).toMatchObject({ disabled: true });
     await at(400);
-    expect(screen.getByTestId("execution-tour").props.children).toBe("Tour 1/2");
+    expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
     expect(screen.queryByTestId("execution-pause")).toBeNull();
     await press("execution-continue");
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
     expect(screen.getByTestId("execution-side").props.children).toBe("Côté 1");
-    expect(screen.getByTestId("execution-tour").props.children).toBe("Tour 1/2");
+    expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
 
     // Répétitions : Suivant sans confirmation, côté 2 puis Tour 2.
     for (let i = 0; i < 4; i += 1) await press("execution-next-command");
@@ -354,7 +354,7 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await press("execution-next-command");
     expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Squat");
-    expect(screen.getByTestId("execution-series").props.children).toBe("Série 2/2");
+    expect(screen.getByTestId("execution-series").props.children).toBe("2/2");
     view.unmount();
   });
 

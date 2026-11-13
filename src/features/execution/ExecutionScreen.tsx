@@ -689,17 +689,21 @@ export function ExecutionScreen({
       {/* Figma `5041:6048` « Zone — Progression et suite ». */}
       <View style={styles.zone}>
         <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead || same} style={styles.seriesTour}>
-          <Text style={[styles.seriesTourText, styles.right]} numberOfLines={1} testID="execution-series">
-            {series.series !== null
-              ? `${t.series} ${series.series.current}/${series.series.total}`
-              : ""}
-          </Text>
+          {/* Recette du 13/11/2026 (Hermann : « réduire la taille de Série et de Tour, garder la taille des valeurs, et les
+              mettre sur deux lignes (texte en haut, valeur en dessous) »). [« Série 1/2 • Tour 1/2 » sur une ligne — remplacé.] */}
+          <View style={styles.seriesTourColumn}>
+            <Text style={[styles.seriesTourLabel, styles.right]} numberOfLines={1}>{series.series !== null ? t.series : ""}</Text>
+            <Text style={[styles.seriesTourText, styles.right]} numberOfLines={1} testID="execution-series">
+              {series.series !== null ? `${series.series.current}/${series.series.total}` : ""}
+            </Text>
+          </View>
           <Text style={styles.seriesTourDot}>{series.series !== null && series.tour !== null ? "•" : ""}</Text>
-          <Text style={styles.seriesTourText} numberOfLines={1} testID="execution-tour">
-            {series.tour !== null
-              ? `${t.tour} ${series.tour.current}/${series.tour.total}`
-              : ""}
-          </Text>
+          <View style={styles.seriesTourColumn}>
+            <Text style={styles.seriesTourLabel} numberOfLines={1}>{series.tour !== null ? t.tour : ""}</Text>
+            <Text style={styles.seriesTourText} numberOfLines={1} testID="execution-tour">
+              {series.tour !== null ? `${series.tour.current}/${series.tour.total}` : ""}
+            </Text>
+          </View>
         </Fade>
         {/* Piste structurée par Tours (Figma « DSF / Controls / Progression par tours », ch10 RM-077 : repères de
             lecture seulement, l'avancement reste global et continu). */}
@@ -1182,11 +1186,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenGutter,
   },
   // « Série 2/3 • Tour 1/3 » : texte de gauche aligné à droite jusqu'à 29 du centre, point centré, texte de droite à 29.
-  seriesTour: { flexDirection: "row", alignItems: "center", height: 30 },
-  seriesTourText: { ...executionType.metric, color: colors.textPrimary, flex: 1 },
+  // Recette du 13/11/2026 : libellé (16) au-dessus de la valeur (30, inchangée) ; point médian au niveau des valeurs.
+  seriesTour: { flexDirection: "row", alignItems: "flex-end", height: 54 },
+  seriesTourColumn: { flex: 1 },
+  seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, lineHeight: 19, color: executionColors.caption },
+  seriesTourText: { ...executionType.metric, color: colors.textPrimary },
   seriesTourDot: { ...executionType.metric, fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", width: 58, textAlign: "center", color: colors.textPrimary },
   right: { textAlign: "right" },
-  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 20 },
+  // Recette du 13/11/2026 (Hermann : « Abaisser la barre de progression ») : 20 → 26 sous les valeurs.
+  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 26 },
   progressSegment: { flex: 1, height: 9, borderRadius: 4.5, backgroundColor: executionColors.track, overflow: "hidden" },
   progressFill: { height: 9, borderRadius: 4.5, backgroundColor: executionColors.progress },
   captionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
