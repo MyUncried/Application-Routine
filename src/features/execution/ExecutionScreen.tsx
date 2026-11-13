@@ -1157,7 +1157,7 @@ const styles = StyleSheet.create({
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
   // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
   // Recette du 13/11/2026 (cadre gris abaissé de 20) : cercle descendu de 10, toujours centré (34 au-dessus et en dessous).
-  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 11 },
+  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 17 },
   sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
   // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
   // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
@@ -1221,7 +1221,9 @@ const styles = StyleSheet.create({
     // exercice).
     // Recette du 13/11/2026 (Hermann : « Remonter un peu le grand cadre gris pour respecter la marge avec le bouton
     // démarrer ») : cadre gris remonté de 8 (cercle −4, écart 35 / 35), commandes à 20 sous le cadre (au lieu de 12).
-    marginTop: 35,
+    // Recette du 13/11/2026 (Hermann : « Abaisser de 6 px le cercle ») : cercle +6 (41 au-dessus, 29 en dessous), cadre gris
+    // à la même place.
+    marginTop: 29,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
