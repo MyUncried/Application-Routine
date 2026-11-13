@@ -640,11 +640,7 @@ export function ExecutionScreen({
           */}
           <Fade stepKey={stepKey} out={textOut} still={same} style={styles.ringContent}>
             <View style={styles.sideSlot}>
-              {waiting !== null ? (
-                <Text style={styles.pressStart} numberOfLines={1} testID="execution-press-start">
-                  {t.pressStart}
-                </Text>
-              ) : shownSide !== null ? (
+              {waiting !== null ? null : shownSide !== null ? (
                 <Text style={styles.side} numberOfLines={1} testID="execution-side">
                   {t.side(shownSide)}
                 </Text>
@@ -802,8 +798,26 @@ export function ExecutionScreen({
         </View>
       </View>
 
+      {/*
+        Recette du 13/11/2026 (Hermann : « Au point d'arrêt : texte Appuyer sur démarrer sur deux lignes ; voile orange sur
+        tout l'écran sauf le texte Appuyer, le bouton démarrer et le bouton arrêt ») : voile au-dessus du haut de l'écran et
+        de la zone du bas ; la barre de commandes a son propre voile, sous Démarrer et Arrêt. L'invitation est dessinée
+        au-dessus du voile, à la place qu'elle occupait en haut de l'anneau.
+      */}
+      {atStopPoint ? (
+        <>
+          <View pointerEvents="none" style={[styles.veil, { bottom: Math.max(insets.bottom - 16, spacing[8]) + COMMANDS_HEIGHT }]} testID="execution-stop-veil" />
+          <View pointerEvents="none" style={[styles.pressStartLayer, { top: insets.top + PRESS_START_TOP }]}>
+            <Text style={styles.pressStart} numberOfLines={2} testID="execution-press-start">
+              {t.pressStartLines}
+            </Text>
+          </View>
+        </>
+      ) : null}
+
       {/* Barre de commandes du Figma `1992:8132` : Son, Réinitialiser, Mettre en pause, Activité suivante, Voix. */}
-      <View style={styles.commands}>
+      <View style={[styles.commands, atStopPoint ? styles.commandsAboveVeil : null]}>
+        {atStopPoint ? <View pointerEvents="none" style={[styles.commandsVeil, { bottom: -Math.max(insets.bottom - 16, spacing[8]) }]} /> : null}
         <Pressable
           onPress={toggleSound}
           accessibilityRole="switch"
@@ -822,6 +836,7 @@ export function ExecutionScreen({
             size={48}
             disabled={false}
             onPress={() => void stopSession()}
+            style={atStopPoint ? styles.aboveVeil : undefined}
             testID="execution-stop"
           />
         ) : (
@@ -845,7 +860,7 @@ export function ExecutionScreen({
             size={72}
             disabled={false}
             onPress={paused ? () => void service.dispatch({ type: "RESUME" }) : onNext}
-            style={styles.pauseCommand}
+            style={atStopPoint ? [styles.pauseCommand, styles.aboveVeil] : styles.pauseCommand}
             testID={paused ? "execution-resume" : "execution-continue"}
           />
         ) : (
@@ -1111,6 +1126,16 @@ function timerAccessibility(projection: ExecutionProjection): string {
  * Valeur d'un cadre : chiffres à la taille du cadre, unité (« rép. », « kg ») plus petite (recette du 13/11/2026,
  * Hermann : « rép et kg peuvent être un peu plus petits (conserver la taille des chiffres) et gris foncé sur gris clair »).
  */
+/** Hauteur de la barre de commandes (voile du Point d'arrêt). */
+const COMMANDS_HEIGHT = 72;
+/**
+ * Haut de l'invitation du Point d'arrêt sous la marge haute : titre (4 + 36), ligne sous le titre (24 + 3), anneau
+ * (contenu de 288 centré dans 314 : 13), ligne du haut de l'anneau (30, centrée à 58), deux lignes de 24 centrées : 67 + 34.
+ */
+const PRESS_START_TOP = 101;
+/** Voile du Point d'arrêt. */
+const STOP_VEIL = "rgba(255, 149, 0, 0.28)";
+
 /** Vert du compteur automatique, objectif atteint (vert système d'iOS). */
 const GOAL_GREEN = "#34C759";
 
@@ -1274,7 +1299,7 @@ const styles = StyleSheet.create({
   },
   objective: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.textSecondary },
   // Point d'arrêt (e1f) : invitation en bleu, chronomètre de l'attente en noir, chrono à l'arrêt en gris foncé.
-  pressStart: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.primary },
+  pressStart: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.primary, textAlign: "center" },
   waitClock: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: colors.textPrimary, fontVariant: ["tabular-nums"] },
   timerWaiting: { color: "#4A4A50" },
   // Recette du 12/11/2026 (Hermann : « Le texte des phases doit être de la même police que Côté et le reste des textes ») :
@@ -1374,7 +1399,13 @@ const styles = StyleSheet.create({
   },
   saveErrorText: { ...type.body, color: colors.danger },
   // Barre de commandes : Son (24) 30 Réinitialiser (48) 37 Pause (72) 37 Suivant (48) 30 Voix (24), 24 sous la zone.
-  commands: { flexDirection: "row", alignItems: "center", justifyContent: "center", height: 72, marginTop: 18, gap: 30 },
+  commands: { flexDirection: "row", alignItems: "center", justifyContent: "center", height: COMMANDS_HEIGHT, marginTop: 18, gap: 30 },
+  // Voile du Point d'arrêt (recette du 13/11/2026).
+  veil: { position: "absolute", top: 0, left: 0, right: 0, backgroundColor: STOP_VEIL, zIndex: 1 },
+  commandsAboveVeil: { zIndex: 2 },
+  commandsVeil: { position: "absolute", top: 0, left: 0, right: 0, backgroundColor: STOP_VEIL, zIndex: 1 },
+  aboveVeil: { zIndex: 2 },
+  pressStartLayer: { position: "absolute", left: 0, right: 0, height: 48, alignItems: "center", justifyContent: "center", zIndex: 3 },
   toggle: { width: 24, height: 24 },
   toggleIcon: { width: 24, height: 24 },
   pauseCommand: { marginHorizontal: 7 },

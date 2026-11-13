@@ -201,6 +201,9 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
     expect(screen.getByTestId("execution-timer").props.children).toBe("00:00");
     expect(screen.getByTestId("execution-press-start")).toBeTruthy();
+    // Recette du 13/11/2026 : voile orange au Point d’arrêt, invitation sur deux lignes.
+    expect(screen.getByTestId("execution-stop-veil")).toBeTruthy();
+    expect(screen.getByTestId("execution-press-start").props.children).toBe("Appuyer sur\ndémarrer");
     expect(screen.getByTestId("execution-wait")).toBeTruthy();
     expect(screen.getByTestId("execution-stop")).toBeTruthy();
     expect(screen.getByTestId("execution-next-command").props.accessibilityState).toMatchObject({ disabled: true });
@@ -211,6 +214,7 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-cycle").props.children).toBe("–");
     expect(screen.queryByTestId("execution-pause")).toBeNull();
     await press("execution-continue");
+    expect(screen.queryByTestId("execution-stop-veil")).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
     expect(screen.getByTestId("execution-side").props.children).toBe("1er côté");
     expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");

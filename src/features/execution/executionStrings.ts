@@ -24,6 +24,8 @@ export const executionStrings = {
   next: "À suivre",
   /** Point d'arrêt (recette du 12/11/2026, Hermann, e1f). */
   pressStart: "Appuyer sur démarrer",
+  /** Sur deux lignes (recette du 13/11/2026, Hermann : « texte Appuyer sur démarrer sur deux lignes »). */
+  pressStartLines: "Appuyer sur\ndémarrer",
   /** « À suivre » d'un Point d'arrêt (recette PRE-10 du 09/11/2026, Hermann). */
   nextStopPoint: "Arrêt de la séance, redémarrage manuel",
   elapsed: "Temps écoulé",
