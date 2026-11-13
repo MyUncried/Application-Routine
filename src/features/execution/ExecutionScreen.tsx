@@ -1157,7 +1157,7 @@ const styles = StyleSheet.create({
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
   // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
   // Recette du 13/11/2026 (cadre gris abaissé de 20) : cercle descendu de 10, toujours centré (34 au-dessus et en dessous).
-  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 15 },
+  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 27 },
   sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
   // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
   // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
@@ -1213,7 +1213,9 @@ const styles = StyleSheet.create({
     // de 20 (cercle +10, écart +10), libellés +8, valeurs +4 ; piste et cadre blanc inchangés.
     // Recette du 13/11/2026 (Hermann : « On doit pouvoir abaisser encore le cadre gris ») : bord haut encore abaissé de 10
     // (cercle +5, écart +5), contenu de la zone à la même place.
-    marginTop: 39,
+    // Recette du 13/11/2026 (Hermann : « Le cercle peut être recentré verticalement ») : cercle centré entre la ligne du
+    // côté et le cadre gris, 27 de part et d’autre. [Centré entre le titre et le cadre gris (39 / 39) — remplacé.]
+    marginTop: 27,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
