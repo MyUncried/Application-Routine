@@ -1143,9 +1143,12 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
   contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 0 },
   sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
-  ringArea: { alignSelf: "stretch", alignItems: "center" },
+  // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
+  // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
+  // cadre gris est inchangé (12 + 12). [Cadres à −12 hors de la zone — remplacé.]
+  ringArea: { alignSelf: "stretch", alignItems: "center", paddingBottom: 12 },
   // Cadres gris clair en bas du cercle : répétitions à gauche, charge à droite (recette du 13/11/2026).
-  pill: { position: "absolute", bottom: -12, height: 40, minWidth: 64, maxWidth: 92, paddingHorizontal: 12, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
+  pill: { position: "absolute", bottom: 0, height: 40, minWidth: 64, maxWidth: 92, paddingHorizontal: 12, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
   pillLeft: { left: 0 },
   pillRight: { right: 0 },
   pillText: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 24, lineHeight: 28, color: colors.textPrimary, textAlign: "center" },
@@ -1184,7 +1187,7 @@ const styles = StyleSheet.create({
   // du cadre gris arrondis ; laisser une marge à gauche et à droite entre le fond gris clair et le bord de l'écran »).
   // [Coins supérieurs seuls, pleine largeur — remplacé.]
   zone: {
-    marginTop: 24,
+    marginTop: 12,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
