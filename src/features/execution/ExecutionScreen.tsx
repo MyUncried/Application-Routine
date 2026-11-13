@@ -1275,8 +1275,9 @@ const styles = StyleSheet.create({
     // Recette du 13/11/2026 (Hermann : « Remonter un peu le cercle, je dois trouver un moyen de préserver une marge entre le
     // triangle du bas et le cadre. Il faut rogner un peu partout équitablement. ») : 12 sous le coin du bas ; place prise
     // au-dessus du cercle (−8), sur Série / Tour / Cycle (−4), le cadre blanc (−4), les commandes (−2) et l’écart minimal
-    // au-dessus du cadre blanc (−2). [1 — remplacé.]
-    marginTop: 12,
+    // au-dessus du cadre blanc (−2). [1 — remplacé.] Puis (Hermann : « Abaisser un peu la barre de progression, les lignes
+    // série tour et cycle ; et le cadre ») : cadre gris et son contenu abaissés de 6 (18 sous le coin du bas).
+    marginTop: 18,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
