@@ -459,3 +459,19 @@ Tests (worktree temporaire sans le fichier de recette, supprimé ensuite) : `jes
 Non vérifié : l'alerte sur l'iPhone (Reload nécessaire).
 
 Fichiers (non committés) : `src/features/activities/MovementCatalogueService.ts`, `src/features/activities/MovementCatalogueList.tsx`, `src/features/activities/__tests__/MovementCatalogueService.b1.test.ts`, `src/features/activities/__tests__/MovementCatalogueList.b5.test.tsx`, `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md`.
+
+## Désinstallation d'une Bibliothèque, ajoutée au lot (13/11) — code NON committé
+
+Demande : « Oui ajoute la désinstallation à ce lot » (Hermann, 13/11). Point non couvert par Figma, arbitré le même jour : un Mouvement aussi présent dans une Bibliothèque personnelle « reste ». Départ : HEAD `a2a956fa`.
+
+Périmètre traité : écran « Bibliothèque installée » (Figma 12098:115) avec la carte « Désinstaller la bibliothèque » (rouge) et sa note ; confirmation native chiffrée (« N mouvements quitteront votre Catalogue. » / « M mouvements restent : … ») ; retour au Profil. Service `LibraryService.uninstallPreview` / `uninstall` ; registre `uninstallLibrary` (aucun changement de schéma) ; `MovementCatalogueService.removeForUninstall` (seul canal qui retire un Mouvement importé) et `sessionUseCount` ; `Row` partagé gagne `titleTone="danger"`.
+
+Règle appliquée : restent au Catalogue, toujours importés et protégés (A-2), les Mouvements utilisés dans une Séance, une autre Bibliothèque installée ou une Bibliothèque personnelle ; les autres, actifs ou archivés, le quittent. Choix technique (D) : Mouvements supprimés avant l'écriture du registre ; une interruption laisse la Bibliothèque installée et la désinstallation se rejoue (test dédié). Écart assumé à Figma : la note dit « dans une autre bibliothèque » (sans « installée »), puisque la règle couvre aussi les Bibliothèques personnelles.
+
+Synchronisation code / documentation : classe B. Spec du lot : nouvelle ligne au tableau, ligne « suppression d'un Mouvement importé » annotée. Registre chapitre 07 : A-4 (« la désinstallation est reportée hors du premier lot ») et « Limites de validation » annotés, texte d'origine conservé. Cahier v21 : lignes `bp-desinstaller-ecran` et `bp-desinstaller-effet`.
+
+Tests (worktree temporaire sans le fichier de recette, supprimé ensuite) : suite complète 354 suites, 5910 tests verts (nouveaux : désinstallation complète avec séance, autre bibliothèque et bibliothèque personnelle, puis réinstallation ; reprise après interruption ; écran et confirmation) ; `tsc --noEmit` 0 erreur ; ESLint 0 problème sur les 9 fichiers touchés.
+
+Non vérifié : aucun contrôle sur l'iPhone (Reload nécessaire). Le cas « utilisé dans une Séance » est testé avec une doublure du refus de la base (le refus lui-même est couvert par les tests du dépôt des Mouvements).
+
+Fichiers (non committés) : `src/features/catalogue/LibraryService.ts`, `src/features/catalogue/LibraryScreens.tsx`, `src/features/catalogue/libraryUi.tsx`, `src/features/catalogue/useLibraryServices.ts`, `src/infrastructure/catalogue/SqliteCatalogueRegistry.ts`, `src/features/activities/MovementCatalogueService.ts`, tests `LibraryService.sqlite.test.ts` et `LibraryScreens.test.tsx`, `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md`, `docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md`.
