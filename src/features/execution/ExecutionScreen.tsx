@@ -1226,7 +1226,7 @@ const styles = StyleSheet.create({
   timerSlot: { height: 108, marginTop: 8, alignSelf: "stretch", justifyContent: "center" },
   // Recette du 13/11/2026 (Hermann : « Abaisser un peu la phase dans le cercle 2/3 1/3 ») : bas des chiffres du chrono à
   // 178, bord intérieur de l’anneau à 276 ; la phase est centrée aux deux tiers (243). [Juste sous le chrono — remplacé.]
-  objectiveSlot: { height: 26, marginTop: 32, justifyContent: "center" },
+  objectiveSlot: { height: 30, marginTop: 30, justifyContent: "center" },
   loadSlot: { height: 0 },
   side: { ...executionType.side, color: executionColors.side },
   timer: {
@@ -1242,7 +1242,9 @@ const styles = StyleSheet.create({
   timerWaiting: { color: "#4A4A50" },
   // Recette du 12/11/2026 (Hermann : « Le texte des phases doit être de la même police que Côté et le reste des textes ») :
   // Roboto Condensed Medium, 18 (hauteur de sa ligne, 22). [Inter Medium 14 — remplacé.]
-  guidance: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 18, lineHeight: 22, color: colors.primary },
+  // Recette du 13/11/2026 (Hermann : « Le texte relâcher a une taille différente de côté, il faut harmoniser les deux
+  // tailles ») : phase à la taille du côté (24). [18 — remplacé.]
+  guidance: { ...executionType.side, color: colors.primary },
   // Figma `5041:6048` : fond #F6F6FA, 13 sous l'anneau. Recette e1/e2 du 12/11/2026 (Hermann : « mettre les 4 coins
   // du cadre gris arrondis ; laisser une marge à gauche et à droite entre le fond gris clair et le bord de l'écran »).
   // [Coins supérieurs seuls, pleine largeur — remplacé.]
