@@ -1187,11 +1187,12 @@ const styles = StyleSheet.create({
   },
   // « Série 2/3 • Tour 1/3 » : texte de gauche aligné à droite jusqu'à 29 du centre, point centré, texte de droite à 29.
   // Recette du 13/11/2026 : libellé (16) au-dessus de la valeur (30, inchangée) ; point médian au niveau des valeurs.
-  seriesTour: { flexDirection: "row", alignItems: "flex-end", height: 54 },
+  // Recette du 13/11/2026 (Hermann : « Augmenter la taille des valeurs ») : valeurs et point médian 30 → 36.
+  seriesTour: { flexDirection: "row", alignItems: "flex-end", height: 62 },
   seriesTourColumn: { flex: 1 },
   seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, lineHeight: 19, color: executionColors.caption },
-  seriesTourText: { ...executionType.metric, color: colors.textPrimary },
-  seriesTourDot: { ...executionType.metric, fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", width: 58, textAlign: "center", color: colors.textPrimary },
+  seriesTourText: { ...executionType.metric, fontSize: 36, lineHeight: 43, color: colors.textPrimary },
+  seriesTourDot: { ...executionType.metric, fontSize: 36, lineHeight: 43, fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", width: 58, textAlign: "center", color: colors.textPrimary },
   right: { textAlign: "right" },
   // Recette du 13/11/2026 (Hermann : « Abaisser la barre de progression ») : 20 → 26 sous les valeurs.
   progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 26 },
