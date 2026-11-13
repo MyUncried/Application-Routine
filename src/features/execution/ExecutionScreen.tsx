@@ -1141,7 +1141,8 @@ const styles = StyleSheet.create({
   // est centré entre le titre et le cadre gris : 16 + 6 au-dessus (ligne de contexte comprise), 22 en dessous.
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
   // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
-  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 0 },
+  // Recette du 13/11/2026 (cadre gris abaissé de 20) : cercle descendu de 10, toujours centré (34 au-dessus et en dessous).
+  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 10 },
   sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
   // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
   // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
@@ -1187,7 +1188,10 @@ const styles = StyleSheet.create({
   // du cadre gris arrondis ; laisser une marge à gauche et à droite entre le fond gris clair et le bord de l'écran »).
   // [Coins supérieurs seuls, pleine largeur — remplacé.]
   zone: {
-    marginTop: 12,
+    // Recette du 13/11/2026 (Hermann : « Abaisser les chiffres série et tour de quelques points, les textes un peu plus pour
+    // resserrer un peu, et beaucoup plus pour le cadre gris (il y a trop d’espace avec le bord haut) ») : bord haut abaissé
+    // de 20 (cercle +10, écart +10), libellés +8, valeurs +4 ; piste et cadre blanc inchangés.
+    marginTop: 22,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
@@ -1195,7 +1199,7 @@ const styles = StyleSheet.create({
     // Recette du 13/11/2026 (Hermann : « le cadre blanc s’est abaissé et a perdu sa marge en bas avec le cadre gris. Le
     // restaurer. ») : la zone ne tenait plus (elle rétrécit, le cadre blanc débordait). Place reprise en haut de l’écran
     // (titre −8), sous la zone (commandes à 12 au lieu de 24, marge basse −6) et sur l’écart minimal du cadre (10).
-    paddingTop: 34,
+    paddingTop: 22,
     paddingBottom: spacing[16],
     paddingHorizontal: layout.screenGutter,
   },
@@ -1206,7 +1210,7 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 (Hermann : « Augmenter légèrement la taille des valeurs, du texte série et tour aussi (même
   // taille que temps écoulé). Rabaisser un peu la ligne Série / Tour et leurs valeurs, abaisser le cadre gris. ») :
   // libellés 18, valeurs 40, ligne de 76 ; zone à 34 du haut du cadre gris.
-  seriesTour: { flexDirection: "row", alignItems: "center", height: 76 },
+  seriesTour: { flexDirection: "row", alignItems: "center", height: 72 },
   // Recette du 13/11/2026 (Hermann : « Centrer horizontalement série et tour dans leur espace respectif »).
   // [Série calée à droite, Tour à gauche, contre le trait — remplacé.]
   seriesTourColumn: { flex: 1, alignItems: "center" },
@@ -1214,11 +1218,11 @@ const styles = StyleSheet.create({
   seriesTourPair: { alignItems: "center" },
   seriesTourDivider: { width: 58, alignItems: "center", justifyContent: "center" },
   seriesTourLine: { width: 2, height: 52, borderRadius: 1, backgroundColor: "#FFFFFF" },
-  seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 18, lineHeight: 21, marginBottom: 8, color: executionColors.caption },
+  seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 18, lineHeight: 21, marginBottom: 4, color: executionColors.caption },
   seriesTourText: { ...executionType.metric, fontSize: 40, lineHeight: 47, color: colors.textPrimary },
   right: { textAlign: "right" },
   // Recette du 13/11/2026 (Hermann : « Abaisser la barre de progression ») : 20 → 26 sous les valeurs.
-  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 18 },
+  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 14 },
   progressSegment: { flex: 1, height: 9, borderRadius: 4.5, backgroundColor: executionColors.track, overflow: "hidden" },
   progressFill: { height: 9, borderRadius: 4.5, backgroundColor: executionColors.progress },
   captionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 2 },
