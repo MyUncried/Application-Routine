@@ -203,7 +203,11 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-stop")).toBeTruthy();
     expect(screen.getByTestId("execution-next-command").props.accessibilityState).toMatchObject({ disabled: true });
     await at(400);
-    expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
+    // Recette du 13/11/2026 (Hermann : « Lorsqu’on a atteint une pause, une récupération ou un point d’arrêt, le nombre de
+    // séries, de tours et de cycles ne doit pas changer ») : compteurs du Squat qui vient de se terminer (Série 2/2, hors
+    // Circuit). [Tour 1/2 de la Fente à venir — remplacé.]
+    expect(screen.getByTestId("execution-series").props.children).toBe("2/2");
+    expect(screen.getByTestId("execution-tour").props.children).toBe("–");
     // Recette du 13/11/2026 : Cycle toujours affiché, « – » en gris sans Cycle.
     expect(screen.getByTestId("execution-cycle").props.children).toBe("–");
     expect(screen.queryByTestId("execution-pause")).toBeNull();

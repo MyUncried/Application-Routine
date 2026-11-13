@@ -75,6 +75,12 @@ export type UpcomingActivity = {
   readonly after: NextView | null;
 };
 
+export type Counters = {
+  readonly series: { readonly current: number; readonly total: number } | null;
+  readonly tour: { readonly current: number; readonly total: number } | null;
+  readonly cycle: { readonly current: number; readonly total: number } | null;
+};
+
 export type ExecutionProjection = {
   readonly status: EngineState["status"];
   readonly pauseReason: PauseReason | null;
@@ -104,6 +110,13 @@ export type ExecutionProjection = {
    * cadence : dès le début ; avec phases (ou bip de cadence) : dès que les répétitions guidées atteignent la cible chiffrée.
    */
   readonly nextHighlighted: boolean;
+  /**
+   * Recette du 13/11/2026 (Hermann : « Lorsqu'on a atteint une pause, une récupération ou un point d'arrêt, le nombre de
+   * séries, de tours et de cycles ne doit pas changer, on reste exactement sur les valeurs qui existaient à l'issue de
+   * l'exercice précédent ») : Série, Tour et Cycle de l'exercice qui vient de se terminer, pendant une pause, une
+   * récupération, un repos ou au Point d'arrêt ; `null` ailleurs.
+   */
+  readonly previousCounters: Counters | null;
   /** Côté 1 ou côté 2 (RM-243) ; `null` sans changement de côté. */
   readonly sideRank: 1 | 2 | null;
   readonly mode: LeafSpec["mode"] | null;
@@ -237,6 +250,25 @@ function nextOf(plan: ExecutablePlan, state: EngineState): NextView | null {
   const item = plan.items[rootIndex(state) + 1];
   if (item === undefined || item.type !== "LEAF" || item.leaf.kind === "SESSION_END") return null;
   return nextViewOf(plan, item.leaf);
+}
+
+/** Compteurs du dernier exercice joué, pendant l'étape qui le suit (recette du 13/11/2026). */
+function previousCountersOf(plan: ExecutablePlan, state: EngineState): Counters | null {
+  const kind = state.leaf?.spec.kind;
+  if (kind === undefined || kind === "ACTIVITY" || kind === "INITIAL_COUNTDOWN" || kind === "SESSION_END" || state.frames.length !== 1) return null;
+  for (let index = rootIndex(state) - 1; index >= 0; index -= 1) {
+    const item = plan.items[index]!;
+    if (item.type !== "LEAF") return null;
+    const spec = item.leaf;
+    if (spec.kind !== "ACTIVITY") continue;
+    const circuit = spec.context?.circuit ?? null;
+    return {
+      series: spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+      tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
+      cycle: cycleOf(spec),
+    };
+  }
+  return null;
 }
 
 function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity | null {
@@ -388,6 +420,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     guidance: guidanceOf(plan, state, atMs),
     next: nextOf(plan, state),
     upcoming: upcomingOf(plan, state),
+    previousCounters: previousCountersOf(plan, state),
     outline: outlineOf(plan, state),
     sessionElapsedMs: stopwatch === null ? 0 : runningMs(stopwatch, atMs),
     estimated: estimatedDuration(plan),

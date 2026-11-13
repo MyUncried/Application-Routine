@@ -516,7 +516,16 @@ export function ExecutionScreen({
   const waiting = atStopPoint && upcoming !== null ? upcoming : null;
   // e1b : pendant le Compte à rebours, Série, Tour et piste de l'exercice à venir, sans progression.
   const ahead = projection.phase === "INITIAL_COUNTDOWN" || waiting !== null ? upcoming : null;
-  const series = ahead !== null ? { series: ahead.series, tour: ahead.tour, cycle: ahead.cycle } : { series: projection.series, tour: projection.tour, cycle: projection.cycle };
+  // Recette du 13/11/2026 (Hermann : « Lorsqu'on a atteint une pause, une récupération ou un point d'arrêt, le nombre de
+  // séries, de tours et de cycles ne doit pas changer ») : compteurs de l'exercice qui vient de se terminer ; pendant le
+  // Compte à rebours initial, ceux de l'exercice à venir. [Point d'arrêt : compteurs de l'exercice qui suit (e1f) — remplacé.]
+  const previous = projection.previousCounters ?? null;
+  const series =
+    projection.phase === "INITIAL_COUNTDOWN" && ahead !== null
+      ? { series: ahead.series, tour: ahead.tour, cycle: ahead.cycle }
+      : previous !== null
+        ? previous
+        : { series: projection.series, tour: projection.tour, cycle: projection.cycle };
   const progress = projection.phase === "INITIAL_COUNTDOWN" ? 0 : projection.progress;
   const shownTitle = waiting !== null ? (waiting.name ?? "") : title;
   // Recette du 13/11/2026 (Hermann : « un cadre gris léger en bas à gauche du cercle pour accueillir le nombre de
@@ -552,7 +561,9 @@ export function ExecutionScreen({
   else if (stepView.ahead !== (ahead !== null) || stepView.countdown !== countdownNow || stepView.continues !== continues)
     setStepView({ ...stepView, ahead: ahead !== null, countdown: countdownNow, continues });
   const textOut = fadingOut && !continues;
-  const zoneOut = textOut && ahead === null;
+  // Recette du 13/11/2026 (Hermann : « Au passage entre les pauses et les exercices, les données à l’intérieur du grand
+  // cadre disparaissent et réapparaissent. Il ne faut pas. ») : la zone du bas ne s’efface plus à aucun changement d’étape ;
+  // ses valeurs changent sur place. [Fondus de la zone, sauf départ et Série suivante — remplacé.]
   const titleOut = textOut && !countdownNow;
   const same = stepView.fromSame;
   const dialogView: DialogView | null =
@@ -721,7 +732,7 @@ export function ExecutionScreen({
 
       {/* Figma `5041:6048` « Zone — Progression et suite ». */}
       <View style={styles.zone}>
-        <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead || same} style={styles.seriesTour}>
+        <Fade stepKey={stepKey} out={false} still style={styles.seriesTour}>
           {/* Recette du 13/11/2026 (Hermann : « réduire la taille de Série et de Tour, garder la taille des valeurs, et les
               mettre sur deux lignes (texte en haut, valeur en dessous) »). [« Série 1/2 • Tour 1/2 » sur une ligne — remplacé.] */}
           {/* Recette du 13/11/2026 (Hermann : « Centrer Série et Tour sur leur valeur. Mettre un trait vertical blanc de
@@ -776,7 +787,7 @@ export function ExecutionScreen({
             </Text>
           </View>
           <View style={styles.cardDivider} />
-          <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead || same} style={styles.next} testID="execution-next">
+          <Fade stepKey={stepKey} out={false} still style={styles.next} testID="execution-next">
             <Text style={styles.nextLabel}>{next !== null ? t.next : ""}</Text>
             <View style={styles.nextRow}>
               <Text style={styles.nextName} numberOfLines={1} testID="execution-next-name">
