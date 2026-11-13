@@ -60,3 +60,7 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 ## 8. Suivi des tranches
 
 (À compléter au fil de l'implémentation.)
+
+### T1 — Socle + For time (13/11/2026)
+
+Réalisé, à vérifier sur iPhone. Classe B (décisions du §5) et A (§12.3 de la conception consolidée). Détail dans le rapport `.github/orchestration/reports/2026-11-13_PRE11_FORMATS.md`. Écarts au Figma de la Clôture : pas de ✕ (bloquante) ; rangée de nombres à toucher au lieu d'une roulette horizontale (aucune primitive native horizontale).

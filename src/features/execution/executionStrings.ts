@@ -96,9 +96,18 @@ export const executionStrings = {
     exerciseCompleted: "Terminée",
   },
   notLaunchable: "Cette séance ne peut pas encore être exécutée.",
-  notLaunchableFormats: "Les Formats AMRAP, EMOM, For time et Death by seront exécutables dans une prochaine version.",
+  // PRE-11 (T1, 13/11/2026) : For time exécutable. [« Les Formats AMRAP, EMOM, For time et Death by… » — remplacé.]
+  notLaunchableFormats: "Les Formats AMRAP, EMOM et Death by seront exécutables dans une prochaine version.",
   notLaunchableInvalid: "Cette séance comporte des paramètres à compléter.",
   blocked: "Une séance interrompue doit d’abord être reprise ou arrêtée.",
+  // PRE-11 (T1) — For time : borne dans le coin du haut à gauche (Hermann, 13/11/2026), Clôture « Vos résultats »
+  // (modale « Résultat de série », Figma 8937:35362).
+  capUnit: "max",
+  forTime: "For time",
+  closureTitle: "Vos résultats",
+  closureCapReached: "Limite atteinte",
+  closurePartial: (name: string | null) => (name === null || name === "" ? "Répétitions faites" : `Répétitions faites — ${name}`),
+  validate: "Valider",
 };
 
 /** `m:ss`, ou `h:mm:ss` au-delà d'une heure ; secondes entières, arrondi supérieur pour un compte à rebours. */

@@ -31,6 +31,7 @@ import { profileGuidance } from "@/domain/preferences/Profile";
 import { parseGuidanceSettings } from "@/domain/preferences/guidanceSettings";
 import { effectiveGuidance, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { ExecutionCornerBadge } from "@/features/execution/ExecutionCornerBadge";
+import { ExecutionClosureSheet } from "@/features/execution/ExecutionClosureSheet";
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
 import { ringColorOf, ringMotion } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
@@ -464,7 +465,10 @@ export function ExecutionScreen({
     dialog.kind === "RESET"
         ? {
             title: t.resetDialog.title,
-            message: t.resetDialog.message,
+            // Recette du 13/11/2026 (Hermann : « supprimer le texte sous le titre de la modale » ; « doubler la hauteur des
+            // deux boutons d'action »).
+            message: "",
+            tallActions: true,
             testID: "execution-reset-dialog",
             actions: [
               {
@@ -523,7 +527,9 @@ export function ExecutionScreen({
   // (symbole carré plein blanc sur fond rouge) ; aucun texte explicatif ») : la Pause n'ouvre plus de modale ; seules
   // les confirmations Réinitialiser et Suivant en gardent une. [Modale « Séance en pause » — remplacée.]
   const shownNow: NonNullable<Dialog> | null = dialog;
-  const paused = projection.status === "PAUSED";
+  // Recette du 13/11/2026 (Hermann, Réinitialiser : « les boutons d'action ne doivent pas changer ») : la suspension pendant
+  // une fenêtre de confirmation (raison DIALOG) ne transforme pas la barre de commandes en Démarrer / Arrêt.
+  const paused = projection.status === "PAUSED" && projection.pauseReason !== "DIALOG";
   // Recette e1 (f : « Au point d'arrêt : le bouton pause doit se transformer en bouton démarrer, appuyer dessus doit
   // relancer l'exercice ») : au Point d'arrêt, Démarrer vaut Continuer.
   const atStopPoint = projection.status === "RUNNING" && projection.phase === "STOP_POINT";
@@ -553,6 +559,12 @@ export function ExecutionScreen({
   // répétitions s'il existe ; le même cadre à droite pour la charge si elle existe. Pas de cadre si l'information
   // n'existe pas ») : objectif (répétitions, ou À l'échec) et charge sortent du cercle.
   const repetitions = waiting !== null ? null : repetitionsText(projection);
+  // PRE-11 (T1) — For time, décision de Hermann du 13/11/2026 (« Temps écoulé. La borne peut apparaître dans le triangle du
+  // haut à gauche ») : la borne occupe le coin du haut à gauche pendant le travail ; l'objectif de la Série passe alors
+  // sous le chrono, dans le cercle.
+  const forTimeCap =
+    waiting === null && projection.format?.kind === "FOR_TIME" && projection.format.phase === "WORK" && projection.format.capMs !== null ? projection.format.capMs : null;
+  const objectiveInRing = forTimeCap !== null && repetitions !== null && projection.guidance === null ? repetitions : null;
   const autoCount = waiting !== null || projection.guidance === null ? null : projection.autoRepetitions;
   // Recette du 13/11/2026 (Hermann : « Lorsque le compteur de mouvement dépasse l'objectif du nombre de répétitions faire
   // passer la couleur de fond du mouvement en vert ») : vert dès que l'objectif est atteint.
@@ -642,7 +654,7 @@ export function ExecutionScreen({
             </Text>
           )}
         </Fade>
-        <View style={styles.ringArea} onLayout={(event) => setRingAreaWidth(event.nativeEvent.layout.width)}>
+        <View style={styles.ringArea} testID="execution-ring-area" onLayout={(event) => setRingAreaWidth(event.nativeEvent.layout.width)}>
         <ExecutionTimerRing
           motion={ringMotion(
             projection.timer,
@@ -688,6 +700,10 @@ export function ExecutionScreen({
                 <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
                   {projection.guidance.label} · {phaseDuration(projection.guidance.phaseMs)}
                 </Text>
+              ) : objectiveInRing !== null ? (
+                <Text style={styles.guidance} numberOfLines={1} testID="execution-objective">
+                  {objectiveInRing}
+                </Text>
               ) : null}
             </View>
             <View style={styles.loadSlot} />
@@ -695,7 +711,16 @@ export function ExecutionScreen({
         </ExecutionTimerRing>
         {/* Recette du 13/11/2026 (Hermann : cadres en coin « dans l'esprit Apple Watch ») : voir ExecutionCornerBadge.
             [Cadres rectangulaires — remplacé.] */}
-        {repetitions !== null && ringAreaWidth !== null ? (
+        {forTimeCap !== null && ringAreaWidth !== null ? (
+          <View style={styles.badgeLayer}>
+            <ExecutionCornerBadge side="left" areaWidth={ringAreaWidth}>
+              <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-cap">
+                {formatClock(forTimeCap)}
+                <Text style={styles.pillUnit}> {t.capUnit}</Text>
+              </Text>
+            </ExecutionCornerBadge>
+          </View>
+        ) : repetitions !== null && ringAreaWidth !== null ? (
           <Fade stepKey={stepKey} out={textOut} still={same} style={styles.badgeLayer}>
             <ExecutionCornerBadge side="left" areaWidth={ringAreaWidth}>
               <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-objective">
@@ -934,6 +959,16 @@ export function ExecutionScreen({
           <Image source={voiceEnabled ? ICONS.voiceOn : ICONS.voiceOff} style={styles.toggleIcon} contentFit="contain" />
         </Pressable>
       </View>
+
+      {/* PRE-11 (T1) : Clôture bloquante d'un élément formaté (D3), modèle « Résultat de série » (Figma 8937:35362). */}
+      {projection.phase === "CLOSURE" && projection.format !== null ? (
+        <ExecutionClosureSheet
+          key={projection.target ?? "closure"}
+          format={projection.format}
+          bottomInset={insets.bottom}
+          onSubmit={(payload) => void service.dispatch({ type: "SUBMIT", payload }, projection.target ?? undefined)}
+        />
+      ) : null}
 
       {/* Un seul Modal, toujours monté pendant l'Exécution (voir ExecutionDialog, recette du 09/11/2026). */}
       <ExecutionDialog

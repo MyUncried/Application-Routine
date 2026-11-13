@@ -3546,12 +3546,14 @@ L’Exécution est suspendue pendant l’affichage de la modale.
 
 **Message**
 
-> L’exercice en cours recommencera depuis le début. La progression de la séance sera conservée.
+> L’exercice en cours recommencera depuis le début. La progression de la séance sera conservée. [Remplacé le 13/11/2026 — recette PRE-10, Hermann : « supprimer le texte sous le titre de la modale » : aucun message sous le titre.]
 
 **Actions**
 
 - `Annuler`, action neutre grise ;
 - `Confirmer`, action primaire bleue.
+
+[Complété le 13/11/2026 — recette PRE-10, Hermann : « doubler la hauteur des deux boutons d'action » (96 au lieu de 48) ; « les boutons d'action ne doivent pas changer » : pendant la confirmation, la barre de commandes garde Réinitialiser et Pause (la suspension de confirmation ne les transforme pas en Arrêt et Démarrer).]
 
 #### Comportement
 

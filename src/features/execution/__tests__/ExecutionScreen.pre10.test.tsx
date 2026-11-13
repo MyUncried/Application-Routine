@@ -187,6 +187,11 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // Réinitialiser : confirmation, l'Exécution est suspendue pendant la modale, la Série recommence.
     await press("execution-reset");
     expect(screen.getByTestId("execution-reset-dialog")).toBeTruthy();
+    // Recette du 13/11/2026 (Hermann : « les boutons d'action ne doivent pas changer ») : pendant la confirmation, la barre
+    // garde Réinitialiser et Pause (ni Arrêt ni Démarrer).
+    expect(screen.getByTestId("execution-reset")).toBeTruthy();
+    expect(screen.getByTestId("execution-pause")).toBeTruthy();
+    expect(screen.queryByTestId("execution-stop")).toBeNull();
     await at(25);
     await press("execution-reset-confirm");
     expect(screen.getByTestId("execution-timer").props.children).toBe("00:20");
