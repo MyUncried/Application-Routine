@@ -566,7 +566,7 @@ export function ExecutionScreen({
   const nextView = waiting !== null ? waiting.after : projection.next;
   const next = nextView === null ? null : nextParts(nextView);
   return (
-    <View style={[styles.runningScreen, { paddingTop: insets.top + spacing[4], paddingBottom: Math.max(insets.bottom - 10, spacing[12]) }]} testID="execution-running">
+    <View style={[styles.runningScreen, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom - 16, spacing[8]) }]} testID="execution-running">
       <ScrollView style={styles.top} contentContainerStyle={styles.content} bounces={false}>
         {/*
           Recette du 11/11/2026 (Hermann, constat) : « Entre deux exercices d'une séance, le chronomètre et les autres
@@ -1136,7 +1136,7 @@ const styles = StyleSheet.create({
   // Titre à 20 sous la barre d'état (Figma : 56), contexte dessous (92), anneau à 14 du contexte (122).
   titleFill: { flex: 1, alignSelf: "stretch", justifyContent: "center" },
   // Recette du 13/11/2026 : titre remonté (16 → 8), côté dessous.
-  titleSlot: { height: 36, marginTop: spacing[8], alignSelf: "stretch", justifyContent: "center" },
+  titleSlot: { height: 36, marginTop: 4, alignSelf: "stretch", justifyContent: "center" },
   // Recette du 12/11/2026 (Hermann : « c’est le cercle qu’il faut centrer verticalement ») : le cercle (repères compris)
   // est centré entre le titre et le cadre gris : 16 + 6 au-dessus (ligne de contexte comprise), 22 en dessous.
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
@@ -1189,7 +1189,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     backgroundColor: executionColors.zone,
     borderRadius: 24,
-    paddingTop: 30,
+    // Recette du 13/11/2026 (Hermann : « le cadre blanc s’est abaissé et a perdu sa marge en bas avec le cadre gris. Le
+    // restaurer. ») : la zone ne tenait plus (elle rétrécit, le cadre blanc débordait). Place reprise en haut de l’écran
+    // (titre −8), sous la zone (commandes à 12 au lieu de 24, marge basse −6) et sur l’écart minimal du cadre (10).
+    paddingTop: 34,
     paddingBottom: spacing[16],
     paddingHorizontal: layout.screenGutter,
   },
@@ -1197,7 +1200,10 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 : libellé (16) au-dessus de la valeur (30, inchangée) ; point médian au niveau des valeurs.
   // Recette du 13/11/2026 (Hermann : « Augmenter la taille des valeurs ») : valeurs et point médian 30 → 36.
   // Libellé centré sur sa valeur, 8 au-dessus ; trait vertical blanc entre Série et Tour (recette du 13/11/2026).
-  seriesTour: { flexDirection: "row", alignItems: "center", height: 70 },
+  // Recette du 13/11/2026 (Hermann : « Augmenter légèrement la taille des valeurs, du texte série et tour aussi (même
+  // taille que temps écoulé). Rabaisser un peu la ligne Série / Tour et leurs valeurs, abaisser le cadre gris. ») :
+  // libellés 18, valeurs 40, ligne de 76 ; zone à 34 du haut du cadre gris.
+  seriesTour: { flexDirection: "row", alignItems: "center", height: 76 },
   // Recette du 13/11/2026 (Hermann : « Centrer horizontalement série et tour dans leur espace respectif »).
   // [Série calée à droite, Tour à gauche, contre le trait — remplacé.]
   seriesTourColumn: { flex: 1, alignItems: "center" },
@@ -1205,20 +1211,20 @@ const styles = StyleSheet.create({
   seriesTourPair: { alignItems: "center" },
   seriesTourDivider: { width: 58, alignItems: "center", justifyContent: "center" },
   seriesTourLine: { width: 2, height: 52, borderRadius: 1, backgroundColor: "#FFFFFF" },
-  seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, lineHeight: 19, marginBottom: 8, color: executionColors.caption },
-  seriesTourText: { ...executionType.metric, fontSize: 36, lineHeight: 43, color: colors.textPrimary },
+  seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 18, lineHeight: 21, marginBottom: 8, color: executionColors.caption },
+  seriesTourText: { ...executionType.metric, fontSize: 40, lineHeight: 47, color: colors.textPrimary },
   right: { textAlign: "right" },
   // Recette du 13/11/2026 (Hermann : « Abaisser la barre de progression ») : 20 → 26 sous les valeurs.
-  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 26 },
+  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 18 },
   progressSegment: { flex: 1, height: 9, borderRadius: 4.5, backgroundColor: executionColors.track, overflow: "hidden" },
   progressFill: { height: 9, borderRadius: 4.5, backgroundColor: executionColors.progress },
-  captionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
+  captionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 2 },
   progressCaption: { ...type.caption, fontSize: 13, lineHeight: 16, color: executionColors.caption },
   // Figma `4790:6204` : cadre 370 × 132, fond #FAFAFE, rayon 12, 40 sous la légende de la piste.
   // Recette du 12/11/2026 (Hermann : « Abaisser un peu le bord haut du cadre du temps écoulé pour que la marge intérieure
   // en haut soit égale à la marge en bas ») : bord haut abaissé de 8 (cadre 124, marge haute 13), bas inchangé.
   // [Écart 40, cadre 132, marge haute 21 — remplacé.]
-  cardGap: { height: 48, minHeight: 12, flexShrink: 1 },
+  cardGap: { height: 48, minHeight: 10, flexShrink: 1 },
   // Recette du 12/11/2026 (Hermann : « Le temps écoulé, la ligne de séparation et le nombre de répétitions ont plus de
   // marge à droite qu'il n'en a à gauche ») : marges égales. [Marge droite de 32 relevée dans Figma — remplacé.]
   card: { height: 124, borderRadius: 12, backgroundColor: executionColors.card, paddingHorizontal: 16, paddingTop: 13 },
@@ -1241,7 +1247,7 @@ const styles = StyleSheet.create({
   },
   saveErrorText: { ...type.body, color: colors.danger },
   // Barre de commandes : Son (24) 30 Réinitialiser (48) 37 Pause (72) 37 Suivant (48) 30 Voix (24), 24 sous la zone.
-  commands: { flexDirection: "row", alignItems: "center", justifyContent: "center", height: 72, marginTop: 24, gap: 30 },
+  commands: { flexDirection: "row", alignItems: "center", justifyContent: "center", height: 72, marginTop: 12, gap: 30 },
   toggle: { width: 24, height: 24 },
   toggleIcon: { width: 24, height: 24 },
   pauseCommand: { marginHorizontal: 7 },
