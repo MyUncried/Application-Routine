@@ -30,6 +30,7 @@ import type { Profile } from "@/domain/preferences/Profile";
 import { profileGuidance } from "@/domain/preferences/Profile";
 import { parseGuidanceSettings } from "@/domain/preferences/guidanceSettings";
 import { effectiveGuidance, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
+import { ExecutionCornerBadge } from "@/features/execution/ExecutionCornerBadge";
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
 import { ringMotion } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
@@ -90,6 +91,8 @@ export function ExecutionScreen({
   // s'efface immédiatement ») : dernier dialogue affiché, conservé pendant le fondu de fermeture du Modal.
   const [lastShown, setLastShown] = useState<NonNullable<Dialog>>({ kind: "RESET", target: "" });
   // Étape affichée et provenance du dernier changement d'étape (fondus du départ, recette du 13/11/2026).
+  // Largeur de la zone du cercle, pour les cadres en coin (recette du 13/11/2026).
+  const [ringAreaWidth, setRingAreaWidth] = useState<number | null>(null);
   const [stepView, setStepView] = useState<StepView>({ step: "", ahead: false, countdown: false, continues: false, fromAhead: false, fromCountdown: false, fromSame: false });
   // Choix fait pendant la séance avec les interrupteurs Sons et Voix ; `null` : état initial (Séance, sinon Profil).
   const [soundChoice, setSoundChoice] = useState<boolean | null>(null);
@@ -602,7 +605,7 @@ export function ExecutionScreen({
             </Text>
           )}
         </Fade>
-        <View style={styles.ringArea}>
+        <View style={styles.ringArea} onLayout={(event) => setRingAreaWidth(event.nativeEvent.layout.width)}>
         <ExecutionTimerRing
           motion={ringMotion(
             projection.timer,
@@ -657,18 +660,24 @@ export function ExecutionScreen({
             <View style={styles.loadSlot} />
           </Fade>
         </ExecutionTimerRing>
-        {repetitions !== null ? (
-          <Fade stepKey={stepKey} out={textOut} still={same} style={[styles.pill, styles.pillLeft]}>
-            <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-objective">
-              <PillValue text={repetitions} />
-            </Text>
+        {/* Recette du 13/11/2026 (Hermann : cadres en coin « dans l'esprit Apple Watch ») : voir ExecutionCornerBadge.
+            [Cadres rectangulaires — remplacé.] */}
+        {repetitions !== null && ringAreaWidth !== null ? (
+          <Fade stepKey={stepKey} out={textOut} still={same} style={styles.badgeLayer}>
+            <ExecutionCornerBadge side="left" areaWidth={ringAreaWidth}>
+              <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-objective">
+                <PillValue text={repetitions} />
+              </Text>
+            </ExecutionCornerBadge>
           </Fade>
         ) : null}
-        {load !== null ? (
-          <Fade stepKey={stepKey} out={textOut} still={same} style={[styles.pill, styles.pillRight]}>
-            <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-load">
-              <PillValue text={load} />
-            </Text>
+        {load !== null && ringAreaWidth !== null ? (
+          <Fade stepKey={stepKey} out={textOut} still={same} style={styles.badgeLayer}>
+            <ExecutionCornerBadge side="right" areaWidth={ringAreaWidth}>
+              <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-load">
+                <PillValue text={load} />
+              </Text>
+            </ExecutionCornerBadge>
           </Fade>
         ) : null}
         </View>
@@ -1183,6 +1192,7 @@ const styles = StyleSheet.create({
   // Puis « Remonter un peu les deux cadres » : 28 au-dessus de l’anneau.
   pill: { position: "absolute", top: -28, height: 40, width: 92, paddingHorizontal: 8, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
   pillLeft: { left: 0 },
+  badgeLayer: { position: "absolute", top: 0, left: 0, right: 0, height: 0 },
   pillRight: { right: 0 },
   // Recette du 13/11/2026 : texte gris foncé sur le gris clair du cadre ; unité en 18. [Noir, unité en 24 — remplacé.]
   pillText: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 24, lineHeight: 28, color: "#3C3C43", textAlign: "center" },
