@@ -80,6 +80,20 @@ export const RING = {
   minorMark: { inner: 151, outer: 155, width: 1.2, color: "#BEC2CC", opacity: 0.7 },
 } as const;
 
+/** Orange des pauses et récupérations (orange système d'iOS, celui du voile du Point d'arrêt). */
+export const REST_RING_COLOR = "#FF9500";
+
+/**
+ * Couleur de l'anneau qui tourne et de sa trace — recette du 13/11/2026 (Hermann : « Le cercle qui tourne et la trace
+ * doivent être orange lorsque c'est la pause, ou une récupération ») : orange pendant les pauses entre séries, entre les
+ * côtés, les récupérations et les repos ; violet (Figma) ailleurs.
+ */
+export function ringColorOf(phase: string | null): string {
+  return phase === "SERIES_PAUSE" || phase === "SIDE_RECOVERY" || phase === "POST_ACTIVITY_RECOVERY" || phase === "BLOCK_REST" || phase === "WINDOW_REST"
+    ? REST_RING_COLOR
+    : RING.progressColor;
+}
+
 /** Point à `fraction` du tour (0 = haut, sens horaire), au rayon `radius`, autour de (`center`, `center`). */
 export function pointAt(fraction: number, radius: number, center: number): { readonly x: number; readonly y: number } {
   "worklet";

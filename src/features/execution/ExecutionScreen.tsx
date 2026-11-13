@@ -32,7 +32,7 @@ import { parseGuidanceSettings } from "@/domain/preferences/guidanceSettings";
 import { effectiveGuidance, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { ExecutionCornerBadge } from "@/features/execution/ExecutionCornerBadge";
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
-import { ringMotion } from "@/features/execution/timerRing";
+import { ringColorOf, ringMotion } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { reclaimExecutionAudio, releaseExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
@@ -652,6 +652,7 @@ export function ExecutionScreen({
           // Recette du 13/11/2026 (Hermann : « Après le compte à rebours, au démarrage de l’exercice, le cercle guide de
           // couleur disparaît et réapparaît ») : l’anneau, vide pendant le Compte à rebours, ne s’efface pas à sa fin.
           fading={fadingOut && !countdownNow}
+          color={ringColorOf(projection.phase)}
           testID="execution-ring"
         >
           {/*

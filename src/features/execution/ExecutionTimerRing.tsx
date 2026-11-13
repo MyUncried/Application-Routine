@@ -54,17 +54,20 @@ const ARC_FADE_MS = 450;
 export function ExecutionTimerRing({
   motion,
   fading = false,
+  color = RING.progressColor,
   children,
   testID,
 }: {
   readonly motion: RingMotion;
   readonly fading?: boolean;
+  /** Couleur de l'anneau qui tourne et de sa trace (recette du 13/11/2026, `ringColorOf`). */
+  readonly color?: string;
   readonly children: ReactNode;
   readonly testID?: string;
 }) {
   if (!hasSvg()) return <View testID={testID === undefined ? undefined : `${testID}-plain`}>{children}</View>;
   return (
-    <AnimatedRing motion={motion} fading={fading} testID={testID}>
+    <AnimatedRing motion={motion} fading={fading} color={color} testID={testID}>
       {children}
     </AnimatedRing>
   );
@@ -73,11 +76,14 @@ export function ExecutionTimerRing({
 function AnimatedRing({
   motion,
   fading,
+  color = RING.progressColor,
   children,
   testID,
 }: {
   readonly motion: RingMotion;
   readonly fading: boolean;
+  /** Couleur de l'anneau qui tourne et de sa trace (`ringColorOf`). */
+  readonly color?: string;
   readonly children: ReactNode;
   readonly testID?: string | undefined;
 }) {
@@ -139,7 +145,7 @@ function AnimatedRing({
           cx={center}
           cy={center}
           r={RING.progressRadius}
-          stroke={RING.progressColor}
+          stroke={color}
           strokeWidth={RING.progressWidth}
           strokeLinecap="round"
           strokeDasharray={`${circumference} ${circumference}`}
@@ -148,7 +154,7 @@ function AnimatedRing({
           origin={`${center}, ${center}`}
           animatedProps={arcProps}
         />
-        <AnimatedCircle cx={start.x} cy={start.y} r={RING.knobRadius} fill={RING.progressColor} stroke="#FFFFFF" strokeWidth={RING.knobStroke} animatedProps={knobProps} />
+        <AnimatedCircle cx={start.x} cy={start.y} r={RING.knobRadius} fill={color} stroke="#FFFFFF" strokeWidth={RING.knobStroke} animatedProps={knobProps} />
       </Svg.default>
       <View style={styles.content}>{children}</View>
     </View>
