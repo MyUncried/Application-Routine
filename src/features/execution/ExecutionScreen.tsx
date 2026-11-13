@@ -1298,7 +1298,9 @@ const styles = StyleSheet.create({
   seriesTourText: { ...executionType.metric, fontSize: 40, lineHeight: 45, color: colors.textPrimary },
   right: { textAlign: "right" },
   // Recette du 13/11/2026 (Hermann : « Abaisser la barre de progression ») : 20 → 26 sous les valeurs.
-  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 14 },
+  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 20 },
+  // Recette du 13/11/2026 (Hermann : « Abaisser un peu la barre de progression, et tout ce qui va avec ») : 14 → 20 sous
+  // Série / Tour / Cycle ; légende et cadre blanc suivent (l’écart au-dessus du cadre blanc se resserre d’autant).
   progressSegment: { flex: 1, height: 9, borderRadius: 4.5, backgroundColor: executionColors.track, overflow: "hidden" },
   progressFill: { height: 9, borderRadius: 4.5, backgroundColor: executionColors.progress },
   captionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 2 },
