@@ -443,3 +443,19 @@ Tests (worktree temporaire sans le fichier de recette, supprimé ensuite) : `tsc
 Non vérifié : aucun contrôle sur l'iPhone (Reload nécessaire ; lignes bp-* du cahier v19). Rendu du menu natif « … » et de la confirmation de suppression vérifiables seulement sur appareil.
 
 Fichiers (non committés) : `src/domain/catalogue/personalLibrary.ts` (nouveau), `src/features/catalogue/PersonalLibraryService.ts` (nouveau), `src/features/catalogue/PersonalLibraryScreens.tsx` (nouveau), `app/library-edit.tsx`, `app/library-mine.tsx`, `app/library-share.tsx` (nouveaux), 7 SVG `assets/icons/icon-bibliotheque-*.svg` / `icon-menu-ecran-*.svg` (nouveaux), `assets/icons/manifest.json`, `src/infrastructure/catalogue/SqliteCatalogueRegistry.ts`, `src/features/catalogue/useLibraryServices.ts`, `src/features/catalogue/ProfileLibrariesSection.tsx`, `src/features/catalogue/importedMovements.ts`, `src/features/activities/MovementCatalogueList.tsx`, `src/shared/ui/CatalogueCommands.tsx`, `src/shared/ui/CatalogueContextZone.tsx`, `src/shared/ui/KodjoIcon.tsx`, `jest.setup.js`, tests (`PersonalLibraries.sqlite.test.ts`, `PersonalLibraryScreens.test.tsx` nouveaux ; `LibraryService.sqlite.test.ts`, `CatalogueLoadService.sqlite.test.ts`, `MovementCatalogueList.b5.test.tsx`), spec du lot. Le fichier de recette `kodjo-pilote-60.catalogue.json` reste modifié et non committé, intact.
+
+## Suppression d'un Mouvement importé interdite (13/11) — code NON committé
+
+Demande : « suppression d'un mouvement importé : l'interdire, garder l'archivage, et s'en défaire en désinstallant la bibliothèque. » (Hermann, 13/11, réponse à l'arbitrage ouvert le 12/11). Départ : HEAD `e1570e4b`, branche `catalogue/integration-pre10-20261111`.
+
+Modifications : `MovementCatalogueService.deleteArchived` refuse un Mouvement importé (nouveau statut `PROTECTED`, rien n'est écrit) ; `MovementCatalogueList` : « Supprimer » d'un Mouvement importé archivé affiche une alerte native « Suppression impossible » nommant la ou les Bibliothèques, sans ouvrir la confirmation. L'archivage et la restauration sont inchangés.
+
+Non traité : la désinstallation d'une Bibliothèque reste hors premier lot (A-4) ; tant qu'elle n'existe pas, un Mouvement importé archivé ne peut pas quitter le Catalogue. À arbitrer : l'intégrer au lot ou non.
+
+Synchronisation code / documentation : classe B, une ligne ajoutée au tableau de la spec du lot ; point ouvert du 12/11 annoté résolu. Cahier : ligne `bp-suppr-importe` (section 10).
+
+Tests (worktree temporaire sans le fichier de recette, supprimé ensuite) : `jest src/features/activities src/features/catalogue` 63 suites, 1014 tests verts (dont 2 nouveaux : service et liste) ; `tsc --noEmit` 0 erreur ; ESLint 0 problème sur les 4 fichiers modifiés.
+
+Non vérifié : l'alerte sur l'iPhone (Reload nécessaire).
+
+Fichiers (non committés) : `src/features/activities/MovementCatalogueService.ts`, `src/features/activities/MovementCatalogueList.tsx`, `src/features/activities/__tests__/MovementCatalogueService.b1.test.ts`, `src/features/activities/__tests__/MovementCatalogueList.b5.test.tsx`, `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md`.
