@@ -491,3 +491,17 @@ Tests (worktree temporaire sans le fichier de recette, supprimé ensuite) : suit
 Non vérifié : aucun contrôle sur l'iPhone (Reload nécessaire), dont la disparition de la barre bleue.
 
 Fichiers (non committés) : `src/features/preferences/ProfileEditScreen.tsx`, `src/features/preferences/ProfileService.ts`, `src/domain/preferences/ProfileRepository.ts`, tests `ProfileEditScreen.test.tsx` et `ProfileService.test.ts`, `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md`, `docs/Specifications-fonctionnelles/13 – Contrats d’écran.md`.
+
+## Écran Profil : photo, nom et silhouette dans la zone de contexte (13/11) — code NON committé
+
+Écart non traité jusque-là : note KO `c2-profil-carte` du 13/11 (« la photo et le nom ne sont pas dans la zone de contexte » ; « se référer à Figma, écran "P-Profil — Modifier le profil — Sections sans bibliothèque" »), relevée seulement quand Hermann l'a signalée de nouveau. Arbitrage du jour : la maquette 12116:25015 est le modèle, « Compte gratuit » y est retiré. Demandes suivantes sur la pastille de silhouette : fond transparent ; tracé bleu et intérieur blanc (icône non teintée) ; agrandie à la taille de la photo (64) ; liseré bleu (après un essai en blanc).
+
+Réalisé : `ProfileEditScreen` — dans la `ContextBand` standard, une ligne photo (pastille 22 conservée, recette du 11/11), nom, rond unique de la silhouette choisie (un appui en change) ; corps : messages d'erreur éventuels puis Bibliothèques ; libellé d'aide `silhouette.toggleHint` ajouté. Pseudo non affiché (après la fusion de PRE-10).
+
+Synchronisation code / documentation : classe B (rendu), ligne ajoutée à la spec du lot ; aucun document fonctionnel. Cahier v23 : ligne `pr-zone-profil` ; `c2-profil-carte`, `c5-profil-biblio`, `x-c2-zone`, `x-c2-profil` marquées remplacées ; `x-c2-sections` et `pr-enregistrement` reformulées.
+
+Tests (worktree temporaire sans le fichier de recette) : `jest src/features/preferences src/shared/i18n BodyZoneIcon` 6 suites, 118 tests verts ; `tsc --noEmit` 0 ; ESLint 0. Suite complète non relancée après ce dernier changement (5911 verts juste avant, sur l'enregistrement immédiat).
+
+Incident : Metro (8082), orphelin depuis la fin de la session précédente, ne pouvait plus lancer de processus (manifeste en 500, code 0xC0000142) ; redémarré avec l'accord de Hermann, même commande.
+
+Non vérifié : rendu sur l'iPhone.
