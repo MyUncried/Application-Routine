@@ -1286,7 +1286,9 @@ const styles = StyleSheet.create({
     // Recette du 13/11/2026 (Hermann : « le cadre blanc s’est abaissé et a perdu sa marge en bas avec le cadre gris. Le
     // restaurer. ») : la zone ne tenait plus (elle rétrécit, le cadre blanc débordait). Place reprise en haut de l’écran
     // (titre −8), sous la zone (commandes à 12 au lieu de 24, marge basse −6) et sur l’écart minimal du cadre (10).
-    paddingTop: 12,
+    // Recette du 13/11/2026 (Hermann : « abaisser la première ligne dans le cadre en respectant les marges ») : Série /
+    // Tour / Cycle 8 plus bas (12 → 20) ; la piste remonte d’autant (30 → 22) pour garder sa place et l’écart au cadre blanc.
+    paddingTop: 20,
     paddingBottom: spacing[16],
     paddingHorizontal: layout.screenGutter,
   },
@@ -1310,7 +1312,7 @@ const styles = StyleSheet.create({
   seriesTourText: { ...executionType.metric, fontSize: 40, lineHeight: 45, color: colors.textPrimary },
   right: { textAlign: "right" },
   // Recette du 13/11/2026 (Hermann : « Abaisser la barre de progression ») : 20 → 26 sous les valeurs.
-  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 30 },
+  progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 22 },
   // Puis « C’est d’abord la barre de progression qu’il faut abaisser, il y a trop d’espace avec le cadre blanc » : 20 → 30.
   // Recette du 13/11/2026 (Hermann : « Abaisser un peu la barre de progression, et tout ce qui va avec ») : 14 → 20 sous
   // Série / Tour / Cycle ; légende et cadre blanc suivent (l’écart au-dessus du cadre blanc se resserre d’autant).
