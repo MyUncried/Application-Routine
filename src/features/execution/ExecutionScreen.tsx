@@ -513,7 +513,7 @@ export function ExecutionScreen({
   const waiting = atStopPoint && upcoming !== null ? upcoming : null;
   // e1b : pendant le Compte à rebours, Série, Tour et piste de l'exercice à venir, sans progression.
   const ahead = projection.phase === "INITIAL_COUNTDOWN" || waiting !== null ? upcoming : null;
-  const series = ahead !== null ? { series: ahead.series, tour: ahead.tour } : { series: projection.series, tour: projection.tour };
+  const series = ahead !== null ? { series: ahead.series, tour: ahead.tour, cycle: ahead.cycle } : { series: projection.series, tour: projection.tour, cycle: projection.cycle };
   const progress = projection.phase === "INITIAL_COUNTDOWN" ? 0 : projection.progress;
   const shownTitle = waiting !== null ? (waiting.name ?? "") : title;
   // Recette du 13/11/2026 (Hermann : « un cadre gris léger en bas à gauche du cercle pour accueillir le nombre de
@@ -693,25 +693,18 @@ export function ExecutionScreen({
               mettre sur deux lignes (texte en haut, valeur en dessous) »). [« Série 1/2 • Tour 1/2 » sur une ligne — remplacé.] */}
           {/* Recette du 13/11/2026 (Hermann : « Centrer Série et Tour sur leur valeur. Mettre un trait vertical blanc de
               séparation à la place du point. Mettre plus d'espace entre le texte et sa valeur. »). */}
-          <View style={[styles.seriesTourColumn, styles.seriesTourColumnLeft]}>
-            <View style={styles.seriesTourPair}>
-              <Text style={styles.seriesTourLabel} numberOfLines={1}>{series.series !== null ? t.series : ""}</Text>
-              <Text style={styles.seriesTourText} numberOfLines={1} testID="execution-series">
-                {series.series !== null ? `${series.series.current}/${series.series.total}` : ""}
-              </Text>
-            </View>
-          </View>
+          {/* Recette du 13/11/2026 (Hermann : « Il faut ajouter le cycle et donc séparer le cadre en trois. Lorsqu'il n'y a pas
+              de cycle / tour / série, alors le texte et les valeurs sont écrits en gris ») : Série | Tour | Cycle, toujours
+              affichés ; sans valeur, libellé et « – » en gris clair. [Série et Tour seuls, masqués sans valeur — remplacé.] */}
+          <Counter label={t.series} value={series.series} testID="execution-series" />
           <View style={styles.seriesTourDivider}>
-            {series.series !== null && series.tour !== null ? <View style={styles.seriesTourLine} /> : null}
+            <View style={styles.seriesTourLine} />
           </View>
-          <View style={styles.seriesTourColumn}>
-            <View style={styles.seriesTourPair}>
-              <Text style={styles.seriesTourLabel} numberOfLines={1}>{series.tour !== null ? t.tour : ""}</Text>
-              <Text style={styles.seriesTourText} numberOfLines={1} testID="execution-tour">
-                {series.tour !== null ? `${series.tour.current}/${series.tour.total}` : ""}
-              </Text>
-            </View>
+          <Counter label={t.tour} value={series.tour} testID="execution-tour" />
+          <View style={styles.seriesTourDivider}>
+            <View style={styles.seriesTourLine} />
           </View>
+          <Counter label={t.cycle} value={series.cycle} testID="execution-cycle" />
         </Fade>
         {/* Piste structurée par Tours (Figma « DSF / Controls / Progression par tours », ch10 RM-077 : repères de
             lecture seulement, l'avancement reste global et continu). */}
@@ -903,6 +896,23 @@ function Fade({
     <Animated.View style={[style, { opacity }]} testID={testID}>
       {children}
     </Animated.View>
+  );
+}
+
+/** Compteur Série, Tour ou Cycle : libellé centré au-dessus de la valeur ; sans valeur, libellé et « – » en gris clair. */
+function Counter({ label, value, testID }: { label: string; value: { readonly current: number; readonly total: number } | null; testID: string }) {
+  const absent = value === null;
+  return (
+    <View style={styles.seriesTourColumn}>
+      <View style={styles.seriesTourPair}>
+        <Text style={[styles.seriesTourLabel, absent ? styles.counterAbsent : null]} numberOfLines={1}>
+          {label}
+        </Text>
+        <Text style={[styles.seriesTourText, absent ? styles.counterAbsent : null]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID={testID}>
+          {absent ? "–" : `${value.current}/${value.total}`}
+        </Text>
+      </View>
+    </View>
   );
 }
 
@@ -1248,8 +1258,9 @@ const styles = StyleSheet.create({
   // [Série calée à droite, Tour à gauche, contre le trait — remplacé.]
   seriesTourColumn: { flex: 1, alignItems: "center" },
   seriesTourColumnLeft: {},
-  seriesTourPair: { alignItems: "center" },
-  seriesTourDivider: { width: 58, alignItems: "center", justifyContent: "center" },
+  seriesTourPair: { alignItems: "center", alignSelf: "stretch" },
+  seriesTourDivider: { width: 14, alignItems: "center", justifyContent: "center" },
+  counterAbsent: { color: "#C4C6CE" },
   seriesTourLine: { width: 2, height: 52, borderRadius: 1, backgroundColor: "#FFFFFF" },
   seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 18, lineHeight: 21, marginBottom: 4, color: executionColors.caption },
   seriesTourText: { ...executionType.metric, fontSize: 40, lineHeight: 47, color: colors.textPrimary },

@@ -64,6 +64,8 @@ export type UpcomingActivity = {
   readonly name: string | null;
   readonly series: { readonly current: number; readonly total: number } | null;
   readonly tour: { readonly current: number; readonly total: number } | null;
+  /** Répétition du Cycle (D-451) ; `null` hors Cycle (recette du 13/11/2026). */
+  readonly cycle: { readonly current: number; readonly total: number } | null;
   readonly sideRank: 1 | 2 | null;
   readonly mode: LeafSpec["mode"] | null;
   readonly target: SeriesTarget | null;
@@ -84,6 +86,11 @@ export type ExecutionProjection = {
   readonly exerciseName: string | null;
   readonly series: { readonly current: number; readonly total: number } | null;
   readonly tour: { readonly current: number; readonly total: number } | null;
+  /**
+   * Répétition du Cycle en cours (D-451) ; `null` hors Cycle. Recette du 13/11/2026 (Hermann : « Il faut ajouter le
+   * cycle et donc séparer le cadre en trois »).
+   */
+  readonly cycle: { readonly current: number; readonly total: number } | null;
   /** Côté 1 ou côté 2 (RM-243) ; `null` sans changement de côté. */
   readonly sideRank: 1 | 2 | null;
   readonly mode: LeafSpec["mode"] | null;
@@ -235,6 +242,7 @@ function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity 
       name: spec.exerciseId === undefined ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
       series: spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
       tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
+      cycle: cycleOf(spec),
       sideRank: spec.sideRank ?? null,
       mode: spec.mode ?? null,
       target: spec.target === undefined ? null : spec.target,
@@ -244,6 +252,12 @@ function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity 
     };
   }
   return null;
+}
+
+/** Répétition du Cycle d'une étape (D-451) ; `null` hors Cycle. */
+function cycleOf(spec: LeafSpec): { readonly current: number; readonly total: number } | null {
+  const cycle = spec.context?.cycle ?? null;
+  return cycle === null ? null : { current: cycle.repetition, total: cycle.count };
 }
 
 function nextViewOf(plan: ExecutablePlan, spec: LeafSpec): NextView {
@@ -324,6 +338,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     exerciseName: spec?.exerciseId === undefined || spec === null ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
     series: spec?.kind === "ACTIVITY" && spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
     tour: spec?.context?.circuit === null || spec?.context?.circuit === undefined ? null : { current: spec.context.circuit.tour, total: spec.context.circuit.count },
+    cycle: spec === null ? null : cycleOf(spec),
     sideRank: spec?.sideRank ?? null,
     mode: spec?.mode ?? null,
     seriesTarget: spec === null || spec.target === undefined ? null : spec.target,

@@ -204,6 +204,8 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.getByTestId("execution-next-command").props.accessibilityState).toMatchObject({ disabled: true });
     await at(400);
     expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
+    // Recette du 13/11/2026 : Cycle toujours affiché, « – » en gris sans Cycle.
+    expect(screen.getByTestId("execution-cycle").props.children).toBe("–");
     expect(screen.queryByTestId("execution-pause")).toBeNull();
     await press("execution-continue");
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");

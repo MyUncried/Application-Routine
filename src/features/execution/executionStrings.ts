@@ -12,6 +12,8 @@ export const executionStrings = {
   voiceOff: "Annonces vocales désactivées",
   series: "Série",
   tour: "Tour",
+  /** Recette du 13/11/2026 (Hermann : « Il faut ajouter le cycle »). */
+  cycle: "Cycle",
   side: (rank: 1 | 2) => `Côté ${rank}`,
   next: "À suivre",
   /** Point d'arrêt (recette du 12/11/2026, Hermann, e1f). */
