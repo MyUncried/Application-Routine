@@ -592,11 +592,9 @@ export function ExecutionScreen({
         <Fade stepKey={stepKey} out={textOut} still={same} style={styles.contextSlot}>
           {/* Recette du 13/11/2026 (Hermann : « Positionner l'information de côté sous le nom de l'exercice, qu'on peut
               remonter un peu sur l'écran ») : « Côté 1 » sous le titre. [Côté en haut de l'anneau — remplacé.] */}
-          {shownSide !== null ? (
-            <Text style={styles.sideLine} numberOfLines={1} testID="execution-side">
-              {t.side(shownSide)}
-            </Text>
-          ) : (
+          {/* Recette du 13/11/2026 (Hermann : « Côté 1 peut retourner dans le cercle en haut et la phase dans le cercle en
+              bas ») : la ligne sous le titre ne porte plus le côté. [« Côté n » sous le titre — remplacé.] */}
+          {(
             <Text style={styles.context} numberOfLines={1} testID="execution-context">
               {/* Recette du 12/11/2026 (Hermann : « Retirer le nom de la séance de l’écran ») : la ligne ne montre plus que l’exercice
                   en cours pendant une récupération ; sa place reste réservée. [Nom de la séance — remplacé.] */}
@@ -626,15 +624,13 @@ export function ExecutionScreen({
                 <Text style={styles.pressStart} numberOfLines={1} testID="execution-press-start">
                   {t.pressStart}
                 </Text>
-              ) : null}
-            </View>
-            <View style={styles.phaseSlot}>
-              {waiting === null && projection.guidance !== null ? (
-                <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
-                  {projection.guidance.label} · {phaseDuration(projection.guidance.phaseMs)}
+              ) : shownSide !== null ? (
+                <Text style={styles.side} numberOfLines={1} testID="execution-side">
+                  {t.side(shownSide)}
                 </Text>
               ) : null}
             </View>
+            <View style={styles.phaseSlot} />
             <View style={styles.timerSlot}>
               <Text
                 // Recette du 12/11/2026 (Hermann : « le chrono à l’arrêt est en gris, le petit chrono qui tourne est en noir »).
@@ -651,6 +647,10 @@ export function ExecutionScreen({
               {waiting !== null ? (
                 <Text style={styles.waitClock} numberOfLines={1} testID="execution-wait">
                   {projection.timer.kind === "STOPWATCH" ? formatClock(projection.timer.elapsedMs) : ""}
+                </Text>
+              ) : projection.guidance !== null ? (
+                <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
+                  {projection.guidance.label} · {phaseDuration(projection.guidance.phaseMs)}
                 </Text>
               ) : null}
             </View>
@@ -1157,7 +1157,7 @@ const styles = StyleSheet.create({
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
   // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
   // Recette du 13/11/2026 (cadre gris abaissé de 20) : cercle descendu de 10, toujours centré (34 au-dessus et en dessous).
-  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 27 },
+  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 15 },
   sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
   // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
   // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
@@ -1213,9 +1213,10 @@ const styles = StyleSheet.create({
     // de 20 (cercle +10, écart +10), libellés +8, valeurs +4 ; piste et cadre blanc inchangés.
     // Recette du 13/11/2026 (Hermann : « On doit pouvoir abaisser encore le cadre gris ») : bord haut encore abaissé de 10
     // (cercle +5, écart +5), contenu de la zone à la même place.
-    // Recette du 13/11/2026 (Hermann : « Le cercle peut être recentré verticalement ») : cercle centré entre la ligne du
-    // côté et le cadre gris, 27 de part et d’autre. [Centré entre le titre et le cadre gris (39 / 39) — remplacé.]
-    marginTop: 27,
+    // Recette du 13/11/2026 (Hermann : « Le cercle peut être recentré verticalement ») puis côté revenu dans le cercle :
+    // cercle centré entre le titre et le cadre gris, 39 de part et d'autre (ligne sous le titre comprise, vide pendant un
+    // exercice).
+    marginTop: 39,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
