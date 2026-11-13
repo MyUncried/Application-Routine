@@ -691,18 +691,26 @@ export function ExecutionScreen({
         <Fade stepKey={stepKey} out={zoneOut} still={stepView.fromAhead || same} style={styles.seriesTour}>
           {/* Recette du 13/11/2026 (Hermann : « réduire la taille de Série et de Tour, garder la taille des valeurs, et les
               mettre sur deux lignes (texte en haut, valeur en dessous) »). [« Série 1/2 • Tour 1/2 » sur une ligne — remplacé.] */}
-          <View style={styles.seriesTourColumn}>
-            <Text style={[styles.seriesTourLabel, styles.right]} numberOfLines={1}>{series.series !== null ? t.series : ""}</Text>
-            <Text style={[styles.seriesTourText, styles.right]} numberOfLines={1} testID="execution-series">
-              {series.series !== null ? `${series.series.current}/${series.series.total}` : ""}
-            </Text>
+          {/* Recette du 13/11/2026 (Hermann : « Centrer Série et Tour sur leur valeur. Mettre un trait vertical blanc de
+              séparation à la place du point. Mettre plus d'espace entre le texte et sa valeur. »). */}
+          <View style={[styles.seriesTourColumn, styles.seriesTourColumnLeft]}>
+            <View style={styles.seriesTourPair}>
+              <Text style={styles.seriesTourLabel} numberOfLines={1}>{series.series !== null ? t.series : ""}</Text>
+              <Text style={styles.seriesTourText} numberOfLines={1} testID="execution-series">
+                {series.series !== null ? `${series.series.current}/${series.series.total}` : ""}
+              </Text>
+            </View>
           </View>
-          <Text style={styles.seriesTourDot}>{series.series !== null && series.tour !== null ? "•" : ""}</Text>
+          <View style={styles.seriesTourDivider}>
+            {series.series !== null && series.tour !== null ? <View style={styles.seriesTourLine} /> : null}
+          </View>
           <View style={styles.seriesTourColumn}>
-            <Text style={styles.seriesTourLabel} numberOfLines={1}>{series.tour !== null ? t.tour : ""}</Text>
-            <Text style={styles.seriesTourText} numberOfLines={1} testID="execution-tour">
-              {series.tour !== null ? `${series.tour.current}/${series.tour.total}` : ""}
-            </Text>
+            <View style={styles.seriesTourPair}>
+              <Text style={styles.seriesTourLabel} numberOfLines={1}>{series.tour !== null ? t.tour : ""}</Text>
+              <Text style={styles.seriesTourText} numberOfLines={1} testID="execution-tour">
+                {series.tour !== null ? `${series.tour.current}/${series.tour.total}` : ""}
+              </Text>
+            </View>
           </View>
         </Fade>
         {/* Piste structurée par Tours (Figma « DSF / Controls / Progression par tours », ch10 RM-077 : repères de
@@ -1188,11 +1196,15 @@ const styles = StyleSheet.create({
   // « Série 2/3 • Tour 1/3 » : texte de gauche aligné à droite jusqu'à 29 du centre, point centré, texte de droite à 29.
   // Recette du 13/11/2026 : libellé (16) au-dessus de la valeur (30, inchangée) ; point médian au niveau des valeurs.
   // Recette du 13/11/2026 (Hermann : « Augmenter la taille des valeurs ») : valeurs et point médian 30 → 36.
-  seriesTour: { flexDirection: "row", alignItems: "flex-end", height: 62 },
-  seriesTourColumn: { flex: 1 },
-  seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, lineHeight: 19, color: executionColors.caption },
+  // Libellé centré sur sa valeur, 8 au-dessus ; trait vertical blanc entre Série et Tour (recette du 13/11/2026).
+  seriesTour: { flexDirection: "row", alignItems: "center", height: 70 },
+  seriesTourColumn: { flex: 1, alignItems: "flex-start" },
+  seriesTourColumnLeft: { alignItems: "flex-end" },
+  seriesTourPair: { alignItems: "center" },
+  seriesTourDivider: { width: 58, alignItems: "center", justifyContent: "center" },
+  seriesTourLine: { width: 2, height: 52, borderRadius: 1, backgroundColor: "#FFFFFF" },
+  seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 16, lineHeight: 19, marginBottom: 8, color: executionColors.caption },
   seriesTourText: { ...executionType.metric, fontSize: 36, lineHeight: 43, color: colors.textPrimary },
-  seriesTourDot: { ...executionType.metric, fontSize: 36, lineHeight: 43, fontFamily: "RobotoCondensed_600SemiBold", fontWeight: "600", width: 58, textAlign: "center", color: colors.textPrimary },
   right: { textAlign: "right" },
   // Recette du 13/11/2026 (Hermann : « Abaisser la barre de progression ») : 20 → 26 sous les valeurs.
   progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 26 },
