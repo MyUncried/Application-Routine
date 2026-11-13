@@ -163,7 +163,12 @@ export const DATABASE_NAME = "kodjo.db";
  * **Guidage sonore par événement (version 29, `migration029`)** : `guidance_preferences.events_json` et
  * `sessions.guidance_settings`, colonnes additives nullables. 001..028 inchangées.
  */
-export const DATABASE_VERSION = 29;
+/**
+ * **Planification (version 30, `migration030`)** : tables additives `routines`, `routine_entries` et
+ * `routine_exclusions` (Routine multi-contenus, Calendrier Semaine). 001..029 inchangées. [Le chantier « catalogue
+ * connecté » prévoyait une migration « ≥ 029 » non développée : elle prendra la prochaine version disponible.]
+ */
+export const DATABASE_VERSION = 30;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

@@ -31,6 +31,7 @@ import { applyMigration026 } from "./migrations/migration026";
 import { applyMigration027 } from "./migrations/migration027";
 import { applyMigration028 } from "./migrations/migration028";
 import { applyMigration029 } from "./migrations/migration029";
+import { applyMigration030 } from "./migrations/migration030";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -321,6 +322,11 @@ export async function migrateDatabase(
     if (pending(28)) {
       await applyMigration029(transaction);
       version = 29;
+    }
+
+    if (pending(29)) {
+      await applyMigration030(transaction);
+      version = 30;
     }
 
     if (version !== targetVersion) {

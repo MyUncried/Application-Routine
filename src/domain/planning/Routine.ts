@@ -1,0 +1,189 @@
+/**
+ * Planification — modèle de domaine de la Routine (créneau + liste ordonnée de contenus).
+ *
+ * Sources : chapitre 04 « Routine », chapitre 09 « Entité Routine » et « Règles de planification »,
+ * chapitre 10 RM-043 à RM-050, D-328 à D-331, D-244 ; D-449 (26/10/2026) : la Séance est le seul contenu
+ * planifiable — chaque entrée référence donc une Séance (`sessionId`).
+ *
+ * Invariant (chapitre 04) : le créneau produit les occurrences ; un contenu ne fait que les filtrer.
+ *
+ * Unités livrées : créneau unique (répétition désactivée) et unité Semaine (RM-047 : ancrage sur la semaine
+ * contenant le début, multiplicateur 1..12 — D-244 —, jours sélectionnés, bornes inclusives). Les unités Jour et
+ * Mois existent dans la conception (D-330) mais leurs bornes et règles (fin de mois, rangée des jours) restent
+ * ouvertes (chapitre 05, « Limites de spécification ») : elles ne sont pas acceptées par ce modèle.
+ *
+ * Dates : date civile locale `AAAA-MM-JJ`, heure locale `HH:MM` ; aucune conversion de fuseau.
+ */
+
+/** Date civile locale, `AAAA-MM-JJ`. */
+export type LocalDate = string;
+/** Heure locale, `HH:MM` (24 h). */
+export type LocalTime = string;
+/** Jour de la semaine, lundi = 1 … dimanche = 7 (rangée L M M J V S D). */
+export type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export const WEEKDAYS: readonly Weekday[] = [1, 2, 3, 4, 5, 6, 7];
+
+/** D-244 : fréquence hebdomadaire entière de 1 à 12 semaines incluses. */
+export const WEEK_MULTIPLIER_MIN = 1;
+export const WEEK_MULTIPLIER_MAX = 12;
+
+/**
+ * D-331 : borne de fin — `UNTIL` (« jusqu'au », une date incluse) ou `FOR` (« pendant », un nombre d'unités de
+ * l'unité de récurrence, comptées depuis la semaine d'ancrage). La conversion entre les deux formes à la bascule
+ * reste ouverte (point ouvert 4) : aucune conversion n'est faite.
+ */
+export type RoutineEnd = { readonly kind: "UNTIL"; readonly date: LocalDate } | { readonly kind: "FOR"; readonly count: number };
+
+export type RoutineRepetition = {
+  readonly unit: "WEEK";
+  /** Toutes les N semaines (1..12). */
+  readonly every: number;
+  /** Jours retenus, au moins un, ordre croissant. */
+  readonly weekdays: readonly Weekday[];
+  readonly end: RoutineEnd;
+};
+
+/**
+ * D-329 : fréquence d'un contenu « x fois sur n », sans unité ; `positions` = rangs retenus parmi 1..n.
+ * Valeur initiale « à chaque fois » (x = n = 1).
+ */
+export type ContentFrequency = { readonly x: number; readonly n: number; readonly positions: readonly number[] };
+
+export const EVERY_TIME: ContentFrequency = { x: 1, n: 1, positions: [1] };
+
+export type RoutineEntry = {
+  readonly id: string;
+  /** D-449 : la Séance est le seul contenu planifiable. */
+  readonly sessionId: string;
+  readonly frequency: ContentFrequency;
+};
+
+export type Routine = {
+  readonly id: string;
+  /** Début le (date incluse). */
+  readonly startDate: LocalDate;
+  /** Une seule heure par créneau (chapitre 09). */
+  readonly time: LocalTime;
+  /** `null` : répétition désactivée — créneau unique. */
+  readonly repetition: RoutineRepetition | null;
+  /** Liste ordonnée, au moins une entrée (RM-043). */
+  readonly entries: readonly RoutineEntry[];
+  /**
+   * R-04 (CE-UI-03 §15) : occurrences retirées une à une (« Seulement cette occurrence »), identifiées par leur
+   * date/heure d'origine `AAAA-MM-JJTHH:MM`.
+   */
+  readonly exclusions: readonly string[];
+  readonly createdAt: string;
+  readonly updatedAt: string;
+};
+
+/** Brouillon du formulaire de planification (CE-UI-05) : la Routine sans identité ni horodatage. */
+export type RoutineDraft = Omit<Routine, "id" | "createdAt" | "updatedAt" | "exclusions"> & {
+  readonly exclusions?: readonly string[];
+};
+
+export type RoutineValidationIssue =
+  | "NO_CONTENT"
+  | "INVALID_DATE"
+  | "INVALID_TIME"
+  | "INVALID_MULTIPLIER"
+  | "NO_WEEKDAY"
+  | "INVALID_END"
+  | "END_BEFORE_START"
+  | "INVALID_FREQUENCY";
+
+const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+export function isLocalDate(value: string): boolean {
+  const match = DATE_PATTERN.exec(value);
+  if (match === null) return false;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+export function isLocalTime(value: string): boolean {
+  return TIME_PATTERN.test(value);
+}
+
+export function isValidFrequency(frequency: ContentFrequency): boolean {
+  const { x, n, positions } = frequency;
+  if (!Number.isInteger(n) || n < 1 || !Number.isInteger(x) || x < 1 || x > n) return false;
+  if (positions.length !== x) return false;
+  const unique = new Set(positions);
+  return unique.size === positions.length && positions.every((position) => Number.isInteger(position) && position >= 1 && position <= n);
+}
+
+/** CE-UI-05 §14 : validations à l'enregistrement. Liste vide = brouillon enregistrable. */
+export function validateRoutineDraft(draft: RoutineDraft): readonly RoutineValidationIssue[] {
+  const issues: RoutineValidationIssue[] = [];
+  if (draft.entries.length === 0) issues.push("NO_CONTENT");
+  if (!isLocalDate(draft.startDate)) issues.push("INVALID_DATE");
+  if (!isLocalTime(draft.time)) issues.push("INVALID_TIME");
+  if (draft.entries.some((entry) => !isValidFrequency(entry.frequency))) issues.push("INVALID_FREQUENCY");
+  const repetition = draft.repetition;
+  if (repetition !== null) {
+    if (!Number.isInteger(repetition.every) || repetition.every < WEEK_MULTIPLIER_MIN || repetition.every > WEEK_MULTIPLIER_MAX) {
+      issues.push("INVALID_MULTIPLIER");
+    }
+    if (repetition.weekdays.length === 0) issues.push("NO_WEEKDAY");
+    if (repetition.end.kind === "UNTIL") {
+      if (!isLocalDate(repetition.end.date)) issues.push("INVALID_END");
+      else if (isLocalDate(draft.startDate) && repetition.end.date < draft.startDate) issues.push("END_BEFORE_START");
+    } else if (!Number.isInteger(repetition.end.count) || repetition.end.count < 1) {
+      issues.push("INVALID_END");
+    }
+  }
+  return issues;
+}
+
+// ——— Arithmétique de dates civiles locales ———
+
+export function parseLocalDate(value: LocalDate): Date {
+  const match = DATE_PATTERN.exec(value);
+  if (match === null) throw new Error(`Date locale invalide : ${value}`);
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+export function formatLocalDate(date: Date): LocalDate {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+export function addDays(value: LocalDate, days: number): LocalDate {
+  const date = parseLocalDate(value);
+  // Construction par composantes civiles : un changement d'heure ne décale jamais la date.
+  return formatLocalDate(new Date(date.getFullYear(), date.getMonth(), date.getDate() + days));
+}
+
+/** Lundi = 1 … dimanche = 7. */
+export function weekdayOf(value: LocalDate): Weekday {
+  const day = parseLocalDate(value).getDay();
+  return (day === 0 ? 7 : day) as Weekday;
+}
+
+/** Lundi de la semaine contenant `value`. */
+export function mondayOf(value: LocalDate): LocalDate {
+  return addDays(value, 1 - weekdayOf(value));
+}
+
+/** Nombre de jours civils de `from` à `to` (négatif si `to` précède). */
+export function daysBetween(from: LocalDate, to: LocalDate): number {
+  const a = parseLocalDate(from);
+  const b = parseLocalDate(to);
+  return Math.round((Date.UTC(b.getFullYear(), b.getMonth(), b.getDate()) - Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())) / 86_400_000);
+}
+
+export function occurrenceKey(date: LocalDate, time: LocalTime): string {
+  return `${date}T${time}`;
+}
+
+/** Instant local d'une occurrence (fuseau de l'appareil). */
+export function occurrenceInstant(date: LocalDate, time: LocalTime): Date {
+  const day = parseLocalDate(date);
+  const [hours, minutes] = time.split(":").map(Number);
+  return new Date(day.getFullYear(), day.getMonth(), day.getDate(), hours, minutes);
+}

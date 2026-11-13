@@ -184,7 +184,7 @@ async function seededVersion20(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 A.3 — migration 021 (suppression des anciennes définitions du Catalogue)", () => {
   it("version courante 21", () => {
-    expect(DATABASE_VERSION).toBe(29);
+    expect(DATABASE_VERSION).toBe(30);
   });
 
   it("supprime toutes les définitions ; table et colonnes conservées ; Mouvements, médias, Séances, Exercices, avis intacts ; aucun avis ajouté", async () => {
