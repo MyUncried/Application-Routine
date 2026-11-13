@@ -400,7 +400,7 @@ Recherche technique (12/11/2026, sources dans le rapport de mission) :
 - Alternative native : Live Activity (écran verrouillé et Dynamic Island) avec `expo-widgets` (SDK 57), chrono qui défile sans le JavaScript ; ce n’est pas une fenêtre libre.
 - Non démontré : le JavaScript continue-t-il entre deux sons en arrière-plan (session audio active) ; les sons programmés d’avance (K5) tombent écran verrouillé.
 
-Choix soumis à Hermann ; rien n’est développé avant sa décision. [Complété le 12/11/2026 — décision de Hermann : « On n'a pas besoin de suite de cette écran flottant, il faut qu'on règle les basiques d'abord, donc on met pour plus tard. » Écran flottant (hors de l’application comme dans l’application, CE-MEDIA-EXEC-01/02) reporté à plus tard ; aucun développement.]
+Choix soumis à Hermann ; rien n’est développé avant sa décision. [Complété le 12/11/2026 — décision de Hermann : « On n'a pas besoin de suite de cette écran flottant, il faut qu'on règle les basiques d'abord, donc on met pour plus tard. » Écran flottant (hors de l’application comme dans l’application, CE-MEDIA-EXEC-01/02) reporté à plus tard ; aucun développement.] [Précisé le 13/11/2026, §13.7 : seule la partie hors de KODJO reste reportée ; le média plein écran dans KODJO est dans le périmètre.]
 
 ### 13.3 Écran d’Exécution conforme à Figma (r6)
 
