@@ -1157,7 +1157,7 @@ const styles = StyleSheet.create({
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
   // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
   // Recette du 13/11/2026 (cadre gris abaissé de 20) : cercle descendu de 10, toujours centré (34 au-dessus et en dessous).
-  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 15 },
+  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 11 },
   sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
   // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
   // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
@@ -1167,7 +1167,8 @@ const styles = StyleSheet.create({
   // [Cadres en bas, largeur selon le texte — remplacé.]
   ringArea: { alignSelf: "stretch", alignItems: "center" },
   // Cadres gris clair en bas du cercle : répétitions à gauche, charge à droite (recette du 13/11/2026).
-  pill: { position: "absolute", top: -12, height: 40, width: 92, paddingHorizontal: 8, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
+  // Recette du 13/11/2026 (Hermann : « Remonter un peu les deux cadres sur les côtés ») : 20 au-dessus de l’anneau (au lieu de 12).
+  pill: { position: "absolute", top: -20, height: 40, width: 92, paddingHorizontal: 8, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
   pillLeft: { left: 0 },
   pillRight: { right: 0 },
   // Recette du 13/11/2026 : texte gris foncé sur le gris clair du cadre ; unité en 18. [Noir, unité en 24 — remplacé.]
@@ -1187,8 +1188,10 @@ const styles = StyleSheet.create({
   sideSlot: { height: 30, marginTop: 30, justifyContent: "center" },
   phaseSlot: { height: 22, justifyContent: "center" },
   timerSlot: { height: 108, marginTop: 8, alignSelf: "stretch", justifyContent: "center" },
-  objectiveSlot: { height: 26, marginTop: 8, justifyContent: "center" },
-  loadSlot: { height: 26, justifyContent: "center" },
+  // Recette du 13/11/2026 (Hermann : « Abaisser un peu la phase dans le cercle 2/3 1/3 ») : bas des chiffres du chrono à
+  // 178, bord intérieur de l’anneau à 276 ; la phase est centrée aux deux tiers (243). [Juste sous le chrono — remplacé.]
+  objectiveSlot: { height: 26, marginTop: 32, justifyContent: "center" },
+  loadSlot: { height: 0 },
   side: { ...executionType.side, color: executionColors.side },
   timer: {
     ...executionType.timer,
@@ -1216,7 +1219,9 @@ const styles = StyleSheet.create({
     // Recette du 13/11/2026 (Hermann : « Le cercle peut être recentré verticalement ») puis côté revenu dans le cercle :
     // cercle centré entre le titre et le cadre gris, 39 de part et d'autre (ligne sous le titre comprise, vide pendant un
     // exercice).
-    marginTop: 39,
+    // Recette du 13/11/2026 (Hermann : « Remonter un peu le grand cadre gris pour respecter la marge avec le bouton
+    // démarrer ») : cadre gris remonté de 8 (cercle −4, écart 35 / 35), commandes à 20 sous le cadre (au lieu de 12).
+    marginTop: 35,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
@@ -1279,7 +1284,7 @@ const styles = StyleSheet.create({
   },
   saveErrorText: { ...type.body, color: colors.danger },
   // Barre de commandes : Son (24) 30 Réinitialiser (48) 37 Pause (72) 37 Suivant (48) 30 Voix (24), 24 sous la zone.
-  commands: { flexDirection: "row", alignItems: "center", justifyContent: "center", height: 72, marginTop: 12, gap: 30 },
+  commands: { flexDirection: "row", alignItems: "center", justifyContent: "center", height: 72, marginTop: 20, gap: 30 },
   toggle: { width: 24, height: 24 },
   toggleIcon: { width: 24, height: 24 },
   pauseCommand: { marginHorizontal: 7 },
