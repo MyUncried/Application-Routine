@@ -82,8 +82,11 @@ export function SessionCatalogueList({
   topInset,
   onOpenSession,
   onStartSession,
+  onPlanSession,
   onChanged,
 }: {
+  /** Planification : « Planifier » du glissé ouvre le formulaire, Séance préremplie ; absent, l'action reste grisée. */
+  readonly onPlanSession?: (sessionId: string) => void;
   readonly sessions: readonly SessionCatalogueProjection[];
   /** Q-E6 : message de la liste sans résultat après filtrage ; `null` si la liste n'est pas vide. */
   readonly emptyMessage: string | null;
@@ -195,8 +198,19 @@ export function SessionCatalogueList({
           },
         ]
       : [
-          // Aucun parcours de planification : présent et grisé (CE-T03-01, destination non livrée).
-          { key: "plan", label: tCard.actions.plan, backgroundColor: colors.selection, disabled: true, onPress: () => undefined },
+          // Planification livrée (CE-UI-05 : « Planifier du Catalogue avec contenu prérempli ») ; sans `onPlanSession`,
+          // présent et grisé comme avant.
+          onPlanSession !== undefined
+            ? {
+                key: "plan",
+                label: tCard.actions.plan,
+                backgroundColor: colors.selection,
+                onPress: () => {
+                  setRevealedId(null);
+                  onPlanSession(projection.id);
+                },
+              }
+            : { key: "plan", label: tCard.actions.plan, backgroundColor: colors.selection, disabled: true, onPress: () => undefined },
           { key: "duplicate", label: tCard.actions.duplicate, backgroundColor: colors.movementLevelAction, onPress: () => duplicate(projection.id) },
           { key: "archive", label: tCard.actions.archive, backgroundColor: colors.movementArchiveAction, onPress: () => archive(projection.id) },
         ];

@@ -177,6 +177,11 @@ export default function RootLayout() {
               <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet", gestureEnabled: false }} />
               {/* PRE-10.3 (CE-EXEC-SESSION-01) : Exécution plein écran, sans geste de retour (aucun abandon silencieux du moteur). */}
               <Stack.Screen name="execution" options={{ gestureEnabled: false, animation: "fade" }} />
+              {/* Planification (CE-UI-04/05) : modale plein écran sous la barre d'état, sans geste de retour (abandon par ✕). */}
+              <Stack.Screen name="planning" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
+              {/* Feuilles natives du formulaire : « Fréquence » (CE-UI-11) et « Rappel personnalisé » (Figma 1992:7187). */}
+              <Stack.Screen name="planning-frequency" options={{ ...NATIVE_SHEET_OPTIONS, sheetAllowedDetents: "fitToContents" }} />
+              <Stack.Screen name="planning-reminder" options={{ ...NATIVE_SHEET_OPTIONS, sheetAllowedDetents: "fitToContents" }} />
             </Stack>
             </CreationDraftProviders>
           ) : null}

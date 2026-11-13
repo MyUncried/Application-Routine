@@ -11,6 +11,7 @@ function routine(overrides: Partial<Routine> = {}): Routine {
     repetition: null,
     entries: [{ id: "e1", sessionId: "s1", frequency: EVERY_TIME }],
     exclusions: [],
+    reminderMinutes: null,
     createdAt: "2026-08-01T00:00:00.000Z",
     updatedAt: "2026-08-01T00:00:00.000Z",
     ...overrides,

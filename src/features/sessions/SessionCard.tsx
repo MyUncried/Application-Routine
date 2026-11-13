@@ -61,6 +61,11 @@ export type SessionCardProps = {
   readonly context?: SessionCardContext;
   /** E.3 : composition déployée, rendue sous l'en-tête. */
   readonly children?: ReactNode;
+  /**
+   * Calendrier Semaine (CE-UI-03 §8 : « badge heure 08:00 ») : heure de l'occurrence, en gras devant la ligne de
+   * structure. Absente : rendu inchangé (Catalogue, modales de planification).
+   */
+  readonly timeLabel?: string;
 };
 
 const CHEVRON_ICON = require("../../../assets/icons/icon-catalogue-chevron.svg");
@@ -116,6 +121,7 @@ export function SessionCard({
   onStart,
   context = "catalogue",
   children,
+  timeLabel,
 }: SessionCardProps) {
   const archived = projection.status === "ARCHIVED";
   const incomplete = projection.incomplete;
@@ -186,6 +192,11 @@ export function SessionCard({
                 <Image source={EXERCISES_ICON} style={styles.exercisesIcon} accessible={false} />
               </View>
               <Text style={styles.meta} numberOfLines={1} testID={`session-card-${id}-summary`}>
+                {timeLabel !== undefined ? (
+                  <Text style={styles.time} testID={`session-card-${id}-time`}>
+                    {`${timeLabel}${CATEGORY_SEPARATOR}`}
+                  </Text>
+                ) : null}
                 {formatSessionStructureLine(projection)}
               </Text>
             </View>
@@ -530,6 +541,12 @@ const styles = StyleSheet.create({
     ...type.supporting,
     flexShrink: 1,
     color: colors.textSecondary,
+  },
+  // Calendrier Semaine : heure de l'occurrence en gras (Figma `1992:5101`, « 08:00 »).
+  time: {
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: colors.textPrimary,
   },
   // D-504 : pilule Démarrer — fond `color/catalogue/seances/background`, sans liseré, ombre des
   // actions contextuelles (0 / 2 / 4, noir 14 %), à 12 du bord droit et 8 du bas de l'en-tête.

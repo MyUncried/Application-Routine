@@ -18,14 +18,37 @@ export type SaveRoutineResult =
   | { readonly status: "INVALID"; readonly issues: readonly RoutineValidationIssue[] }
   | { readonly status: "NOT_FOUND" };
 
+/** Rappels locaux (adaptateur `ReminderScheduler`) ; absent : aucun rappel programmé (tests, environnement sans notifications). */
+export type PlanningReminders = { readonly refresh: () => Promise<void>; readonly ensurePermission: () => Promise<boolean> };
+
 export type PlanningServiceDeps = {
   readonly repository: RoutineRepository;
+  readonly reminders?: PlanningReminders;
   readonly newId: () => string;
   readonly now: () => Date;
 };
 
 export class PlanningService {
   constructor(private readonly deps: PlanningServiceDeps) {}
+
+  /** Fenêtre glissante des rappels : après toute écriture et à l'ouverture de l'application (chapitre 12). */
+  refreshReminders(): Promise<void> {
+    const reminders = this.deps.reminders;
+    if (reminders === undefined) return Promise.resolve();
+    return reminders.refresh().catch((error: unknown) => {
+      console.error("Les rappels n'ont pas pu être programmés.", error);
+    });
+  }
+
+  /** RM-052 / RM-053 : autorisation à la première activation d'un rappel. Sans adaptateur : refusée. */
+  ensureReminderPermission(): Promise<boolean> {
+    return this.deps.reminders?.ensurePermission() ?? Promise.resolve(false);
+  }
+
+  private async written<T>(result: T): Promise<T> {
+    await this.refreshReminders();
+    return result;
+  }
 
   listRoutines(): Promise<readonly Routine[]> {
     return this.deps.repository.list();
@@ -46,11 +69,12 @@ export class PlanningService {
       repetition: draft.repetition,
       entries: draft.entries,
       exclusions: [],
+      reminderMinutes: draft.reminderMinutes ?? null,
       createdAt: at,
       updatedAt: at,
     };
     await this.deps.repository.save(routine);
-    return { status: "SAVED", routine };
+    return this.written({ status: "SAVED", routine } as const);
   }
 
   async updateRoutine(routineId: string, draft: RoutineDraft): Promise<SaveRoutineResult> {
@@ -65,18 +89,19 @@ export class PlanningService {
       repetition: draft.repetition,
       entries: draft.entries,
       exclusions: existing.exclusions,
+      reminderMinutes: draft.reminderMinutes ?? null,
       updatedAt: this.deps.now().toISOString(),
     };
     await this.deps.repository.save(routine);
-    return { status: "SAVED", routine };
+    return this.written({ status: "SAVED", routine } as const);
   }
 
-  deleteRoutine(routineId: string): Promise<boolean> {
-    return this.deps.repository.delete(routineId);
+  async deleteRoutine(routineId: string): Promise<boolean> {
+    return this.written(await this.deps.repository.delete(routineId));
   }
 
-  excludeOccurrence(routineId: string, occurrenceKey: string): Promise<boolean> {
-    return this.deps.repository.addExclusion(routineId, occurrenceKey, this.deps.now().toISOString());
+  async excludeOccurrence(routineId: string, occurrenceKey: string): Promise<boolean> {
+    return this.written(await this.deps.repository.addExclusion(routineId, occurrenceKey, this.deps.now().toISOString()));
   }
 
   /** RM-123 : brouillon de duplication — liste ordonnée, motifs et paramètres ; nouvelles identités d'entrée. */
@@ -88,6 +113,7 @@ export class PlanningService {
       time: routine.time,
       repetition: routine.repetition,
       entries: routine.entries.map((entry) => ({ ...entry, id: this.deps.newId() })),
+      reminderMinutes: routine.reminderMinutes,
     };
   }
 

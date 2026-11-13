@@ -28,6 +28,11 @@ export const WEEKDAYS: readonly Weekday[] = [1, 2, 3, 4, 5, 6, 7];
 export const WEEK_MULTIPLIER_MIN = 1;
 export const WEEK_MULTIPLIER_MAX = 12;
 
+/** RM-054a : délais proposés du rappel (5 min, 15 min, 30 min, 1 h) ; « Autre » : délai personnalisé. */
+export const REMINDER_PRESETS = [5, 15, 30, 60] as const;
+/** D-243 : délai maximal du rappel personnalisé, 24 h. */
+export const REMINDER_MAX_MINUTES = 24 * 60;
+
 /**
  * D-331 : borne de fin — `UNTIL` (« jusqu'au », une date incluse) ou `FOR` (« pendant », un nombre d'unités de
  * l'unité de récurrence, comptées depuis la semaine d'ancrage). La conversion entre les deux formes à la bascule
@@ -74,13 +79,16 @@ export type Routine = {
    * date/heure d'origine `AAAA-MM-JJTHH:MM`.
    */
   readonly exclusions: readonly string[];
+  /** D-060 / RM-044 : zéro ou un rappel, en minutes avant l'occurrence ; `null` : interrupteur Rappel sur Non. */
+  readonly reminderMinutes: number | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
 
 /** Brouillon du formulaire de planification (CE-UI-05) : la Routine sans identité ni horodatage. */
-export type RoutineDraft = Omit<Routine, "id" | "createdAt" | "updatedAt" | "exclusions"> & {
+export type RoutineDraft = Omit<Routine, "id" | "createdAt" | "updatedAt" | "exclusions" | "reminderMinutes"> & {
   readonly exclusions?: readonly string[];
+  readonly reminderMinutes?: number | null;
 };
 
 export type RoutineValidationIssue =
@@ -91,7 +99,8 @@ export type RoutineValidationIssue =
   | "NO_WEEKDAY"
   | "INVALID_END"
   | "END_BEFORE_START"
-  | "INVALID_FREQUENCY";
+  | "INVALID_FREQUENCY"
+  | "INVALID_REMINDER";
 
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -123,6 +132,8 @@ export function validateRoutineDraft(draft: RoutineDraft): readonly RoutineValid
   if (!isLocalDate(draft.startDate)) issues.push("INVALID_DATE");
   if (!isLocalTime(draft.time)) issues.push("INVALID_TIME");
   if (draft.entries.some((entry) => !isValidFrequency(entry.frequency))) issues.push("INVALID_FREQUENCY");
+  const reminder = draft.reminderMinutes ?? null;
+  if (reminder !== null && (!Number.isInteger(reminder) || reminder < 1 || reminder > REMINDER_MAX_MINUTES)) issues.push("INVALID_REMINDER");
   const repetition = draft.repetition;
   if (repetition !== null) {
     if (!Number.isInteger(repetition.every) || repetition.every < WEEK_MULTIPLIER_MIN || repetition.every > WEEK_MULTIPLIER_MAX) {

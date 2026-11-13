@@ -46,3 +46,14 @@ export function formatRoutineSummary(draft: Pick<RoutineDraft, "startDate" | "ti
   const days = repetition.weekdays.length > 0 ? `, ${formatWeekdaysPhrase(repetition.weekdays)}` : "";
   return `${every}${days}, ${t.summary.at} ${time}, ${end}.`;
 }
+
+/**
+ * Récurrence d'une carte déployée du Calendrier Semaine (Figma `1992:6389` : « Chaque lundi ») : chaque semaine →
+ * « Chaque lundi et jeudi » ; toutes les N semaines → « Toutes les 2 semaines, lundi et jeudi ».
+ */
+export function formatRecurrence(routine: Pick<RoutineDraft, "repetition">): string {
+  const repetition = routine.repetition;
+  if (repetition === null) return "";
+  const days = joinFrench([...repetition.weekdays].sort((a, b) => a - b).map((day) => t.weekdayNames[day - 1]!.toLowerCase()));
+  return repetition.every === 1 ? `${t.calendar.everyWeekdayPrefix} ${days}` : `${t.summary.everyWeeks.replace("{count}", String(repetition.every))}, ${days}`;
+}

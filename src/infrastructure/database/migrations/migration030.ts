@@ -11,6 +11,7 @@ import type { Database } from "../Database";
  *   Aucune clé étrangère vers `sessions` : supprimer définitivement une Séance archivée ne doit ni échouer ni
  *   modifier silencieusement une Routine à plusieurs contenus (effet « À CLARIFIER », chapitre 09) ; une entrée
  *   dont la Séance n'est plus active est ignorée à la lecture du Calendrier.
+ * - `routines.reminder_minutes` : rappel facultatif (0..1, D-060), délai en minutes, 24 h au plus (D-243).
  * - `routine_exclusions` : occurrences retirées une à une (R-04), par date/heure d'origine.
  * Les occurrences futures ne sont pas stockées (D-013) ; aucune phrase récapitulative n'est stockée.
  */
@@ -26,6 +27,7 @@ export const MIGRATION_030_ROUTINES = [
     end_kind TEXT NULL CHECK (end_kind IN ('UNTIL', 'FOR')),
     end_date TEXT NULL,
     end_count INTEGER NULL CHECK (end_count IS NULL OR end_count >= 1),
+    reminder_minutes INTEGER NULL CHECK (reminder_minutes IS NULL OR reminder_minutes BETWEEN 1 AND 1440),
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     CHECK ((repeat_unit IS NULL AND repeat_every IS NULL AND end_kind IS NULL) OR (repeat_unit IS NOT NULL AND repeat_every IS NOT NULL AND end_kind IS NOT NULL)),

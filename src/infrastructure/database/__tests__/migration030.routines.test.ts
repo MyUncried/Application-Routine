@@ -25,6 +25,7 @@ const weekly: Routine = {
     { id: "e2", sessionId: "s-a", frequency: { x: 2, n: 3, positions: [1, 3] } },
   ],
   exclusions: [],
+  reminderMinutes: 30,
   createdAt: "2026-08-01T10:00:00.000Z",
   updatedAt: "2026-08-01T10:00:00.000Z",
 };

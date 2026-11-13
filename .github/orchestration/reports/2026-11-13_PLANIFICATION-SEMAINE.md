@@ -1,0 +1,136 @@
+# 2026-11-13 — Moteur de planification et Calendrier Semaine
+
+## Identifiant et objectif
+
+- Mission : `PLANIFICATION-SEMAINE` (demande de Hermann du 13/11/2026 : « Développer le moteur de planification et le calendrier à la semaine »), complétée par sa précision du même jour : « Pour le calendrier, pars du nœud 1992:5101 et utilise docs/MATRICE-ECRANS-CARTES-2026-09-30.md pour retrouver les états de la semaine : jour sélectionné, séance déployée, actions glissées et suppression. Pour la création d'un créneau, pars du nœud 1992:6838 et suis docs/MATRICE-PLANIFICATION-2026-10-08.md pour les variantes de sélection, de répétition, de fréquence et de rappel. Lis les écrans actuels dans Figma et utilise la spécification fonctionnelle pour les règles de calcul du moteur. »
+- Objectif : un parcours utilisable de bout en bout — choisir les séances, régler le créneau (répétition, fréquence par contenu, rappel), enregistrer, calculer les occurrences de la semaine, les afficher dans le Calendrier Semaine, les démarrer, les modifier, les dupliquer et les supprimer.
+
+## Branche et commit de départ
+
+- Worktree `C:\Dev\KODJO-PLANIFICATION`, branche `planification/main-20261113`, créée depuis `origin/main` actualisée.
+- Commit de départ : `a2b17131599248980749350c8b6d83c032cb98c2` (fusion #438 `pre10-fin`), puis `16c618d5` (rapport de création du worktree).
+
+## Changements des chantiers parallèles qui touchent la planification
+
+| Chantier | État observé (13/11) | Effet sur la planification |
+|---|---|---|
+| PRE-10 Exécution (`composition-phases-duree`, `pre10-fin`) | Entièrement fusionné dans `main` (#438). | Contrat de démarrage disponible : route `/execution?sessionId=`. Réutilisé tel quel. |
+| PRE-10 son et voix (`pre10-guidage`, worktree `PRE10-SON`) | 76 commits non fusionnés ; seul `ExecutionService.ts` diffère de `main` parmi les fichiers partagés. | Aucun fichier commun. Le retour du statut de réalisation dépendrait de `ExecutionService` : non touché (voir « Raccordements ouverts »). |
+| Bibliothèques / catalogue connecté (`catalogue/connecte-*`, `docs/bibliotheques-*`, `docs/mouvements-*`) | `docs/*`, `revue/*` : documentation seule. `connecte-dev/admin` : `CatalogueScreen.tsx` (+4 lignes) et `SqliteMovementRepository.ts`. | Contenus planifiables = Séances (D-449), identifiants `sessions.id`, lus par `SessionService.listCatalogueSessions`. Aucune modification en cours de leur sélection ou lecture. Conflit trivial possible sur `CatalogueScreen.tsx` (prop `onPlanSession`). |
+| Migrations SQLite | `main` à 29 ; aucune `migration030` ailleurs ; migration « homonymes ≥ 029 » du catalogue connecté non développée. | Cette tranche prend **030**. Les homonymes prendront **031** et porteront les assertions « version courante » des tests de migration à 31. |
+| Dépendances natives | — | Ajout d'`expo-notifications ~57.0.25` (rappels locaux) : **nouvelle build du client de développement nécessaire** pour la recette ; `package.json` / `package-lock.json` à fusionner avec les autres lignes. |
+
+## Périmètre demandé
+
+Cadrage (matrices, spécification, décisions, contrats d'écran, Figma « Prototype MVP »), moteur d'occurrences, création d'un créneau (sélection, répétition, fréquence, rappel), Calendrier Semaine (jour sélectionné, séance déployée, actions glissées, suppression), raccordements Exécution et Bibliothèques, tests. Vues Jour et Mois exclues.
+
+## Sources lues
+
+- Matrices : `docs/MATRICE-PLANIFICATION-2026-10-08.md`, `docs/MATRICE-ECRANS-CARTES-2026-09-30.md` (les codes SEM-01..06 / PLAN-01..05 / SEL-01..05 n'y sont pas définis ailleurs : les états ont été relus dans Figma).
+- Spécification : chapitres 04 (Routine, Planification), 05 (périmètre MVP, points ouverts, limites), 09 (Entité Routine, Règles de planification), 10 (RM-043 à RM-054a, fréquence, répétition, borne), 11 (API-ROU-01 à 09), 12 (Notifications, §12.4), 13 (CE-UI-02 à 05, CE-UI-11, contrôles de planification) ; registre 07 (D-013, D-022, D-023, D-060, D-243, D-244, D-328 à D-332, D-449, D-499, D-506) ; `KODJO-Catalogues-cartes-modales-2026-11-06.md`.
+- Figma `G6RY5Ebhgwb4AHIOYDwwvg`, lus directement le 13/11 : Semaine `1992:5101`, mardi sélectionné `2252:86`, séance déployée `1992:6389`, actions glissées `1992:5962`, suppressions `1992:5365` / `1992:6102` ; création `1992:6838`, date ouverte `1992:6622`, stepper des semaines `1992:7537`, rappel personnalisé ouvert `1992:7187` et sélectionné `1992:7369`, sans répétition `1992:7716`, parcours `7594:34531`, fréquence `7594:34653`, sélection `7599:14197` / `7594:34809` ; icône `icon/planifier` `11004:44092` exportée.
+
+## Cadrage — scénarios, règles, existant, travail
+
+Fréquences de répétition spécifiées pour cette tranche : **créneau unique** et **unité Semaine** (RM-047, D-244, D-331). Jour et Mois : bornes, rangée des jours et fins de mois ouvertes (chapitre 05) → présents, indisponibles. La vue Semaine affiche toute occurrence de la semaine, unique ou répétée.
+
+| Scénario utilisateur | Règle validée et source | Existant réutilisé | Travail de cette tranche |
+|---|---|---|---|
+| Planifier depuis le Calendrier | CE-UI-03/04, D-499, D-449 ; Figma `7594:34809` « Catalogue des séances » | `FixedHeader` « Fermer et valider », `ContextBand` + `SessionCommandRow` (compteurs, Rechercher, Filtre, Tri), `SessionCard` contexte `planning`, feuille `catalogue-filters` | Modale Catalogue des séances à cases ; Créer retiré (prop rendue facultative) |
+| Planifier depuis le Catalogue | CE-UI-05 §3 | Glissé `SessionCatalogueList` | « Planifier » activé, Séance préremplie |
+| Régler le créneau | CE-UI-05 ; ch. 10 « répétition » ; RM-047 ; D-244 ; D-331 ; Figma `1992:6838`, `1992:6622`, `1992:7537` | `DatePicker` natif `@expo/ui`, `Switch` + `switchOffColors`, `SegmentedControl`, `InlineStepper` | Début le, Répétition (interrupteur, chevron, Semaine, [N] semaines — stepper déroulé —, jusqu'au/pendant, L M M J V S D), récapitulatif protégé |
+| Plusieurs séances, ordre | RM-043, D-328, D-223 ; Figma `7594:34531` | Icône `composition-reorder` | Lignes sans titre : poignée (glisser), nom, fréquence ; VoiceOver monter/descendre |
+| Fréquence d'un contenu | D-329, ch. 10 « x fois sur n », CE-UI-11 ; Figma `7594:34653` | `ModalHeader`, `InlineStepper`, feuille native (route `formSheet`) | Feuille « Fréquence » ; filtrage des occurrences par le motif dans le moteur |
+| Rappel | D-060, RM-051 à RM-054a, D-243, ch. 12 « Notifications » ; Figma `1992:6838`, `1992:7187`, `1992:7369` | `DurationWheelPicker` (unités rendues paramétrables, défauts inchangés), feuille native | Interrupteur, 5' 15' 30' 1h Autre, « Rappel personnalisé » heures/minutes, autorisation à la première activation, fenêtre glissante de notifications locales |
+| Enregistrer, rouvrir l'application | D-013 ; CE-UI-05 §15 | `migrateDatabase`, `ExpoDatabase` | `migration030`, `SqliteRoutineRepository` transactionnel, `PlanningService` |
+| Consulter la semaine | CE-UI-03 ; RM-046 ; RM-049 ; Figma `1992:5101`, `2252:86` | `ContextBand` fondu, `SessionCard`, `SessionCompositionTree` | En-tête Jour \| Semaine \| Mois, semaine précédente/suivante, Aujourd'hui, Planifier, barre 7 jours (jour sélectionné, points), sections « N prévue(s) », vide |
+| Séance déployée | CE-UI-03 §12 ; Figma `1992:6389` | `SessionCard` (déploiement) | Récurrence « Chaque lundi » + composition |
+| Démarrer | RM-048, D-057 ; contrat PRE-10 | `/execution?sessionId=` | Démarrer sur chaque carte |
+| Modifier / Dupliquer | D-022 ; RM-123 ; Figma `1992:5962` | `SwipeActionsRow` | Carte → formulaire prérempli ; glissé Dupliquer → brouillon |
+| Supprimer | CE-UI-03 §14 ; RM-050 ; R-04 ; Figma `1992:5365`, `1992:6102` | `DecisionDialog` | Unique : Annuler/Confirmer ; périodique : Seulement cette occurrence / Toutes les occurrences à venir / Annuler |
+| Séance archivée ou supprimée | RM-206 (même règle) ; ch. 09 | — | Ses occurrences et rappels ne sont plus proposés |
+
+## Constats
+
+- Le moteur n'existait pas (`src/features/planning` : un README ; onglet Calendrier : écran d'attente ; aucune table de Routine ; `infrastructure/notifications` : un README, `expo-notifications` absent).
+- D-449 rend la Séance seul contenu planifiable ; CE-UI-04 décrit encore un segment Exercices/Séances. Figma (`7594:34809`) montre désormais le Catalogue des séances en modale : suivi.
+- Figma ne représente pas l'état coché dans la modale de sélection ; CE-UI-04 §8 impose des cases : cases conservées.
+- Les cartes du Calendrier dans Figma gardent l'ancien format (note du 06/11 : « non migrées ») : la carte de séance partagée actuelle est utilisée (règle des composants standards).
+
+## Preuves et tests
+
+Commandes exécutées dans `C:\Dev\KODJO-PLANIFICATION` :
+
+- `npx tsc --noEmit -p .` : aucune erreur.
+- `npx eslint` sur les fichiers créés ou modifiés : aucune erreur.
+- `npx jest src/features/planning src/domain/planning src/infrastructure/database/__tests__/migration030` : 50 tests, tous réussis.
+- `npx jest` (suite complète) : 353 suites, 5 792 tests, tous réussis.
+
+Tests ajoutés :
+
+- `src/domain/planning/__tests__/occurrences.test.ts` — créneau unique ; toutes les 2 semaines lundis et jeudis ; fin « jusqu'au » incluse ; « pendant 3 semaines » ; début en milieu de semaine ; 4 mois consultés semaine par semaine (120 occurrences, aucune en double, heure d'hiver comprise) ; retrait ; liste ordonnée et motif 1 sur 2 ; futures seulement ; validations.
+- `src/features/planning/__tests__/planningSummary.test.ts` — phrases de Figma `1992:7716` et `1992:6838`.
+- `src/features/planning/__tests__/reminders.test.ts` — fenêtre de rappels (15 min avant, passé et retraits exclus, limite), bornes 1 min–24 h, libellés 5' / 1h / 1h20, autorisation demandée une seule fois, refus sans programmation, contenu des notifications.
+- `src/features/planning/__tests__/PlanningFrequencySheet.test.tsx` — à chaque fois ; 2 fois sur 3 positions 1 et 3 ; remise au gris à chaque changement de x ou n ; coche inactive tant que x positions ne sont pas retenues ; récurrence « Chaque lundi ».
+- `src/infrastructure/database/__tests__/migration030.routines.test.ts` — tables additives, contraintes, relecture entière (rappel compris), modification, retrait, suppression en cascade, **fermeture puis réouverture d'une base fichier**.
+- `src/features/planning/__tests__/CalendarWeekScreen.integration.test.tsx` (SQLite réelle) — semaine vide ; créneau unique au bon jour et à la bonne heure ; répétition sur deux jours, semaine suivante, fin, retour ; deux séances dans l'ordre ; Démarrer ; carte → modification ; Dupliquer ; suppression unique annulée puis confirmée (Séance conservée) ; « Seulement cette occurrence » puis « Toutes les occurrences à venir » ; Séance archivée ; jour sélectionné.
+- `src/features/planning/__tests__/PlanningScreen.integration.test.tsx` (SQLite réelle) — depuis le Catalogue ; répétition (stepper déroulé, jusqu'au/pendant) ; aucun jour → coche inactive ; Catalogue des séances à cases, deux séances, réordonnancement par la poignée ; modification (retraits conservés) ; rappel accordé (15 min, 1h, Autre → 1h20) ; rappel refusé (RM-053) ; fréquence 2 fois sur 3 enregistrée ; abandon sans écriture.
+
+Tests existants modifiés : assertions « version courante » des tests de migration 012 à 029 (29 → 30).
+
+## Hypothèses non démontrées
+
+- Rang d'une occurrence pour le motif x/n : compté depuis la première occurrence du créneau, retraits compris (ch. 09 : origine de l'index « à préciser »).
+- « Toutes les occurrences à venir » supprime la Routine : aucune occurrence passée n'est stockée (D-013), Exécutions conservées (RM-050).
+- Rendu, notifications et gestes non vérifiés sur iPhone (aucun appareil dans cette session).
+
+## À CLARIFIER
+
+1. **Carte du Calendrier.** Carte de séance partagée (vignette, Démarrer en pilule, heure en gras devant « N circuits · N exercices ») ; Figma `1992:5101` garde l'ancienne carte (lecture ronde, heure à droite). D-260 et la spécification du 27/10 disent « Calendrier sans visuel », le Figma courant affiche une vignette. *Exemple : « Renforcement du genou, 08:00 » — avec ou sans vignette, Démarrer en pilule ou en rond ?*
+2. **Vue initiale.** RM-045 : l'onglet ouvre la vue Jour ; non livrée, l'onglet ouvre la Semaine.
+3. **Valeurs initiales** (aucune règle) : heure pleine suivante si la date est aujourd'hui, sinon 08:00 ; répétition activée : chaque semaine, le jour de Début le, jusqu'au + 4 semaines ; rappel activé : 15 min (exemple Figma). *Exemple : planifier lundi à 9 h 20 propose 10:00.*
+4. **Ordre initial d'une sélection** (CE-UI-04 §14) : ordre de sélection.
+5. **Titre d'un parcours dans la bande** : « Alpha et Bravo », « Alpha et 2 autres » ; Figma montre un titre libre.
+6. **Archivage d'une séance planifiée** (D-023, modale `4593:6285`) : non développé ; ses occurrences disparaissent simplement et reviennent si elle est restaurée.
+7. **Fréquence, point ouvert 1** (plafond ou mise à jour de x) : non tranché. Comportement provisoire : pastilles libres, coche active seulement à x positions. Borne de n fixée techniquement à 10 (CE-UI-11 §14 : à spécifier). *Exemple : 2 fois sur 3, cocher les trois pastilles laisse la coche grise.*
+8. **Texte de la notification** : titre = nom de la séance (« Alpha et Bravo » pour un parcours), corps « Séance prévue à 8 h. » ; aucune maquette. Fenêtre : 60 rappels sur 35 jours (limite iOS de 64).
+9. Points déjà consignés, non tranchés : conversion jusqu'au ↔ pendant (deux valeurs indépendantes, sans conversion) ; unités Jour et Mois ; Programme (non affiché : écrans à concevoir, non demandé).
+
+## Raccordements restant ouverts
+
+- **Statut de réalisation (RM-048, D-064)** : Démarrer ouvre l'Exécution PRE-10, mais l'Exécution ne porte pas la Routine ni l'occurrence (`executions` sans colonne de Routine ; `ExecutionService.start` sans ce paramètre) ; fichiers en cours de changement sur `pre10-guidage` ; identité des réalisations d'un parcours à spécifier (API-ROU-07). Une occurrence démarrée en avance reste donc proposée à son horaire.
+- **Migration des homonymes** du catalogue connecté : version 31.
+- **Recette iPhone** : base portée en version 30 et nouveau module natif (`expo-notifications`). Ni Routine BMAD ni Routine Catalogue ne doivent servir sans décision (leur ligne ne lirait plus une base en version 30). Variante proposée : `development` (`com.ankusha.kodjo.dev`), à reconstruire avec EAS.
+
+## Synchronisation code / documentation
+
+- **A** (conformité) : comportements livrés, règles citées dans le tableau de cadrage.
+- **C** (non arbitré) : points 1 à 8 ci-dessus, consignés ici ; aucun comportement promu en règle.
+- **D** (technique) : `migration030` (trois tables, `reminder_minutes`, pas de clé étrangère vers `sessions`) ; fenêtre glissante de rappels ; unités paramétrables de `DurationWheelPicker` ; `onCreate` facultatif de `SessionCommandRow`. Décrits dans le code.
+- Documents normatifs modifiés : aucun.
+
+## Vérifications restant à faire sur appareil réel
+
+Parcours court de recette sur iPhone (app à reconstruire, voir ci-dessus) :
+
+1. Catalogue › Séances : glisser une séance › Planifier → « Planifier une séance », séance préremplie, titre à gauche. Régler la date (calendrier natif) et l'heure ; Répétition sur Non : récapitulatif « Planifiée le … à … h, sans répétition. » Coche.
+2. Calendrier : la semaine montre une seule carte au bon jour, heure en gras ; un jour sans séance n'a pas de section.
+3. Icône Planifier › « Catalogue des séances » : compteurs, recherche, filtre ; cocher deux séances › coche › « Planifier un parcours ».
+4. Glisser la poignée de la seconde ligne vers le haut : l'ordre change. Toucher « à chaque fois » › « Fréquence » : 2 fois sur 3, pastilles 1 et 3, coche → la ligne affiche « 2 fois sur 3 ».
+5. Répétition Oui : toucher « 1 » › stepper › 2 ; lundi et jeudi ; jusqu'au dans 5 semaines ; « jusqu'au » ↔ « pendant ». Coche. Dans le Calendrier : cartes lundi et jeudi une semaine sur deux, la seconde séance une occurrence sur trois manquante selon le motif.
+6. Rappel : activer → demande système (première fois) ; accepter → 15' sélectionné ; Autre → roulettes heures/minutes → 0 h 20 → « 20' ». Refuser (nouvelle installation) → l'interrupteur revient à Non avec le message, la planification s'enregistre.
+7. Planifier une séance 20 min plus tard avec rappel 15' : la notification arrive 15 min avant, application ouverte ou fermée.
+8. Chevrons : semaine suivante, après la fin, « Aucune séance planifiée cette semaine. » ; Aujourd'hui revient.
+9. Toucher un jour de la barre : sa section passe en tête ; défiler : le jour en tête devient sélectionné (fond violet).
+10. Chevron d'une carte : récurrence « Chaque lundi » et composition ; toucher la carte : formulaire prérempli ; modifier l'heure.
+11. Glisser une carte › Dupliquer : brouillon ; ✕ : rien de créé. Supprimer (unique) : Annuler puis Confirmer. Supprimer (répétée) : « Seulement cette occurrence » puis « Toutes les occurrences à venir ».
+12. Fermer complètement l'application puis la rouvrir : planifications conservées. Démarrer : l'Exécution s'ouvre.
+13. Texte agrandi : barre des 7 jours lisible à 360 pt, récapitulatif non chevauché.
+
+## Fichiers modifiés
+
+Voir `git show --stat` des commits de livraison.
+
+## Commit final et état Git
+
+Communiqués dans le message de livraison (hash du commit contenant ce rapport, `git status`).
