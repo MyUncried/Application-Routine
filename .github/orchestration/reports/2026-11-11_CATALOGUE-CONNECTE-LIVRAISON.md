@@ -475,3 +475,19 @@ Tests (worktree temporaire sans le fichier de recette, supprimé ensuite) : suit
 Non vérifié : aucun contrôle sur l'iPhone (Reload nécessaire). Le cas « utilisé dans une Séance » est testé avec une doublure du refus de la base (le refus lui-même est couvert par les tests du dépôt des Mouvements).
 
 Fichiers (non committés) : `src/features/catalogue/LibraryService.ts`, `src/features/catalogue/LibraryScreens.tsx`, `src/features/catalogue/libraryUi.tsx`, `src/features/catalogue/useLibraryServices.ts`, `src/infrastructure/catalogue/SqliteCatalogueRegistry.ts`, `src/features/activities/MovementCatalogueService.ts`, tests `LibraryService.sqlite.test.ts` et `LibraryScreens.test.tsx`, `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md`, `docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md`.
+
+## Écran Profil sans « Enregistrer » (13/11) — code NON committé
+
+Demandes de Hermann (13/11) : « Retirer le bouton enregistrer de l'écran d'accueil du profil » et « Retirer la barre horizontale bleue lorsqu'on mets le focus sur la zone du nom ». Point non couvert (mode d'enregistrement sans bouton), arbitré le même jour : « Immédiate ». Départ : HEAD `8cb124f2`.
+
+Périmètre traité : `ProfileEditScreen` (onglet Profil) — zone d'action fixe « Enregistrer » et dialogue « Abandonner les modifications ? » retirés ; photo et silhouette enregistrées dès le choix (nouveau `ProfileService.saveAppearance`, qui reprend le nom enregistré tel quel, même absent ; `ProfileIdentityInput.displayName` accepte `null`), nom enregistré à la fin de la saisie (`saveIdentity` inchangé : vide ou plus de 80 caractères refusé, message sous le champ, l'ancien nom reste) ; écritures en file, chacune repartant du dernier Profil enregistré ; l'ancienne copie de photo n'est supprimée qu'après réussite (D3 conservée).
+
+Barre bleue : aucun style de focus dans le champ du nom. Cause supposée, non démontrée : la zone d'action « Enregistrer » restait visible au-dessus du clavier sur iOS (elle ne se masque que sous Android). Son retrait devrait supprimer la barre ; à confirmer sur l'iPhone (ligne de cahier dédiée).
+
+Synchronisation code / documentation : classe B. Spec du lot : nouvelle ligne au tableau. Chapitre 13 (Modifier le profil) : quatre formulations « Enregistrer » / abandon annotées comme remplacées, texte d'origine conservé. D-444 inchangée (règle générale du bouton d'action). Cahier v22 : lignes `pr-enregistrement` et `pr-barre-bleue` ; `c3-profil-edition` marquée remplacée.
+
+Tests (worktree temporaire sans le fichier de recette, supprimé ensuite) : suite complète 354 suites, 5911 tests verts (tests de l'écran réécrits : nom enregistré en fin de saisie, nom inchangé sans écriture, erreurs sans perte du nom enregistré, silhouette et photo immédiates, échec technique, sortie sans dialogue ; service : `saveAppearance`) ; `tsc --noEmit` 0 erreur ; ESLint 0 problème sur les 5 fichiers touchés.
+
+Non vérifié : aucun contrôle sur l'iPhone (Reload nécessaire), dont la disparition de la barre bleue.
+
+Fichiers (non committés) : `src/features/preferences/ProfileEditScreen.tsx`, `src/features/preferences/ProfileService.ts`, `src/domain/preferences/ProfileRepository.ts`, tests `ProfileEditScreen.test.tsx` et `ProfileService.test.ts`, `_bmad-output/catalogue-connecte/spec-catalogue-connecte.md`, `docs/Specifications-fonctionnelles/13 – Contrats d’écran.md`.
