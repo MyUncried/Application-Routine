@@ -19,13 +19,14 @@ export const BADGE = {
   /** Épaisseur du bras horizontal qui porte la valeur (hauteur du cadre précédent). */
   arm: 40,
   /** Débord au-dessus du haut de l'anneau. */
-  above: 28,
+  above: 18,
   /**
    * Écart entre le bord intérieur et les repères de l'anneau. Recette du 13/11/2026 (Hermann : « il faut éloigner la
    * courbure du cercle, que cela fasse plus aéré et plus triangle ») : 18 ; puis « éloigner encore un peu plus du cercle » : 26.
-   * [6, puis 18 — remplacés.]
+   * [6, puis 18 — remplacés.] Puis « Rapprocher un peu les triangles du cercle permettait de gagner en hauteur des deux
+   * côtés » : 16, débord au-dessus et en dessous de l’anneau 18 (au lieu de 28). [26 — remplacé.]
    */
-  clearance: 26,
+  clearance: 16,
   /** Rayon des arrondis (moitié de l'épaisseur du contour). */
   round: 6,
   color: "#F0F1F5",

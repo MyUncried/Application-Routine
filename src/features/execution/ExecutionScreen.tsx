@@ -1190,7 +1190,7 @@ const styles = StyleSheet.create({
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
   // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
   // Recette du 13/11/2026 (cadre gris abaissé de 20) : cercle descendu de 10, toujours centré (34 au-dessus et en dessous).
-  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 9 },
+  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 3 },
   sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
   // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
   // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
@@ -1198,8 +1198,8 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 (Hermann : « Même taille de cadre, texte centré à l’intérieur. Mettre les deux cadres en haut et non
   // en bas ») : cadres de 92 × 40 en haut à gauche et à droite du cercle, 12 au-dessus de l’anneau (dans l’écart sous le côté).
   // [Cadres en bas, largeur selon le texte — remplacé.]
-  // Coin du bas (compteur automatique) : 28 sous l'anneau, compris dans la zone ; l'écart jusqu'au cadre gris est inchangé.
-  ringArea: { alignSelf: "stretch", alignItems: "center", paddingBottom: 28 },
+  // Coin du bas (compteur automatique) : 18 sous l'anneau (28 avant le 13/11, rapprochement des coins), compris dans la zone ; l'écart jusqu'au cadre gris est inchangé.
+  ringArea: { alignSelf: "stretch", alignItems: "center", paddingBottom: 18 },
   // Cadres gris clair en bas du cercle : répétitions à gauche, charge à droite (recette du 13/11/2026).
   // Recette du 13/11/2026 (Hermann : « Remonter un peu les deux cadres sur les côtés ») : 20 au-dessus de l’anneau (au lieu de 12).
   // Puis « Remonter un peu les deux cadres » : 28 au-dessus de l’anneau.
