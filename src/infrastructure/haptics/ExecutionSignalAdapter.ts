@@ -189,15 +189,14 @@ export class ExecutionSignalAdapter {
    * est joué à son instant comme avant.
    */
   schedule(signal: ExecutionSignal, delayMs: number): void {
-    if (!this.soundEnabled || this.beeps.schedule === undefined || signal.kind === "TRANSITION") return;
+    if (signal.kind === "TRANSITION") return;
     const key = signalKey(signal);
-    if (this.scheduled.has(key) || key === this.lastKey || this.quietCadence(signal)) return;
+    if (key === this.lastKey || this.scheduled.has(key) || this.scheduledVibrations.has(key) || this.quietCadence(signal)) return;
     const guidance = this.guidance(signal);
-    const sounding = this.soundOf(signal, guidance);
-    if (sounding === null || !this.beeps.schedule(sounding.sound, sounding.volume, delayMs)) return;
-    this.scheduled.add(key);
-    // Recette du 13/11/2026 : la vibration part de sa propre minuterie, réglée sur l'instant du son, au lieu d'attendre
-    // que le signal soit traité à son instant (traitement qui la retardait par rapport au bip).
+    // Recette du 13/11/2026 (Hermann : « Les vibrations sont légèrement en retard par rapport au bip », puis « La
+    // correction de la vibration doit être appliquée pour toute vibration, les comptes à rebours, bip de phase, etc ») :
+    // toute vibration d'un signal de l'étape (dernières secondes, phase, cadence, minute, mi-temps) part de sa propre
+    // minuterie réglée sur son instant, avec ou sans son, au lieu d'attendre le rafraîchissement suivant (jusqu'à 250 ms).
     const level = this.vibrationOf(guidance);
     if (level !== null) {
       const handle = this.timer.set(() => {
@@ -206,6 +205,10 @@ export class ExecutionSignalAdapter {
       }, delayMs);
       this.scheduledVibrations.set(key, handle);
     }
+    if (!this.soundEnabled || this.beeps.schedule === undefined) return;
+    const sounding = this.soundOf(signal, guidance);
+    if (sounding === null || !this.beeps.schedule(sounding.sound, sounding.volume, delayMs)) return;
+    this.scheduled.add(key);
     if (signal.kind !== "CADENCE") this.lastScheduledSoundAtMs = Math.max(this.lastScheduledSoundAtMs ?? signal.atMs, signal.atMs);
   }
 
@@ -232,7 +235,7 @@ export class ExecutionSignalAdapter {
     this.lastKey = key;
     const preScheduled = this.scheduled.delete(key);
     const vibrationScheduled = this.scheduledVibrations.delete(key);
-    if (!preScheduled && this.quietCadence(signal)) return;
+    if (!preScheduled && !vibrationScheduled && this.quietCadence(signal)) return;
     if (__DEV__) console.log(`[guidage] ${signal.kind} ${signal.phase ?? "-"} ${signal.atMs} vibration=${this.vibrationEnabled ? "oui" : "non"} sons=${this.soundEnabled ? "oui" : "non"} voix=${this.voiceEnabled ? "oui" : "non"} annonces=${JSON.stringify(this.announce)}`);
     const guidance = this.guidance(signal);
     const { announcement } = guidance;

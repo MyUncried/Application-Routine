@@ -95,6 +95,23 @@ describe("ExecutionSignalAdapter — sons programmés à l'avance", () => {
     expect(vibrate.mock.calls).toEqual([["MEDIUM"]]);
   });
 
+  it("Sons coupés ou bibliothèque non prête : la vibration est quand même programmée à son instant (recette du 13/11/2026)", () => {
+    for (const mode of ["muted", "notReady"] as const) {
+      const { adapter, vibrate, timers, fire, scheduled, played } = setup(mode === "notReady" ? false : true);
+      if (mode === "muted") adapter.setAudible(false, true);
+      adapter.schedule(at("COUNTDOWN", 3000), 1000);
+      adapter.schedule(at("PHASE", 4000, { phaseLabel: "Montée" }), 2000);
+      expect(scheduled).toEqual([]);
+      expect([...timers.values()].map((timer) => timer.delayMs)).toEqual([1000, 2000]);
+      fire();
+      expect(vibrate.mock.calls).toEqual([["MEDIUM"], ["LIGHT"]]);
+      adapter.play(at("COUNTDOWN", 3000));
+      adapter.play(at("PHASE", 4000, { phaseLabel: "Montée" }));
+      expect(vibrate).toHaveBeenCalledTimes(2);
+      expect(played).toEqual(mode === "notReady" ? [["BIP_GRAVE", 1], ["BIP_COURT", 0.5]] : []);
+    }
+  });
+
   it("Vibrations coupées entre-temps : la vibration programmée ne vibre pas", () => {
     const { adapter, vibrate, fire } = setup();
     adapter.schedule(at("COUNTDOWN", 3000), 1000);
