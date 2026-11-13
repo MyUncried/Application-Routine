@@ -677,9 +677,16 @@ export function ExecutionScreen({
         {autoCount !== null && ringAreaWidth !== null ? (
           <View style={styles.badgeLayer}>
             <ExecutionCornerBadge side="right" vertical="bottom" areaWidth={ringAreaWidth}>
-              <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-auto-count">
-                {autoCount}
-              </Text>
+              {/* Recette du 13/11/2026 (Hermann : « Il faut écrire 2 tours dans le triangle, éventuellement sur deux lignes, 2
+                  au-dessus »). [Nombre seul — remplacé.] */}
+              <View style={styles.autoCount}>
+                <Text style={styles.pillText} numberOfLines={1} testID="execution-auto-count">
+                  {autoCount}
+                </Text>
+                <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
+                  {t.tours(autoCount)}
+                </Text>
+              </View>
             </ExecutionCornerBadge>
           </View>
         ) : null}
@@ -1211,6 +1218,8 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 : texte gris foncé sur le gris clair du cadre ; unité en 18. [Noir, unité en 24 — remplacé.]
   pillText: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 24, lineHeight: 28, color: "#3C3C43", textAlign: "center" },
   pillUnit: { fontSize: 18 },
+  autoCount: { alignItems: "center" },
+  autoCountUnit: { fontSize: 15, lineHeight: 17 },
   exerciseName: {
     ...executionType.title,
     color: colors.textPrimary,

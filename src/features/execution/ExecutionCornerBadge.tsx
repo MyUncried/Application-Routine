@@ -106,7 +106,8 @@ const styles = StyleSheet.create({
   valueLeft: { paddingLeft: 4, paddingRight: 16 },
   valueRight: { paddingLeft: 16, paddingRight: 4 },
   valueTop: { top: BADGE.round / 2 },
-  valueBottom: { bottom: BADGE.round / 2 },
+  // Coin du bas : valeur sur deux lignes (compteur automatique, « 2 » au-dessus de « tours »).
+  valueBottom: { bottom: BADGE.round / 2, height: BADGE.arm + 10 },
   fallback: {
     position: "absolute",
     height: BADGE.arm,

@@ -14,6 +14,8 @@ export const executionStrings = {
   tour: "Tour",
   /** Recette du 13/11/2026 (Hermann : « Il faut ajouter le cycle »). */
   cycle: "Cycle",
+  /** Compteur automatique (recette du 13/11/2026) : « tour » jusqu’à 1, « tours » au-delà. */
+  tours: (count: number) => (count > 1 ? "tours" : "tour"),
   side: (rank: 1 | 2) => `Côté ${rank}`,
   next: "À suivre",
   /** Point d'arrêt (recette du 12/11/2026, Hermann, e1f). */
