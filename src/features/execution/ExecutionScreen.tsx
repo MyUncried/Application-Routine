@@ -1312,7 +1312,9 @@ const styles = StyleSheet.create({
   cardGap: { height: 48, minHeight: 8, flexShrink: 1 },
   // Recette du 12/11/2026 (Hermann : « Le temps écoulé, la ligne de séparation et le nombre de répétitions ont plus de
   // marge à droite qu'il n'en a à gauche ») : marges égales. [Marge droite de 32 relevée dans Figma — remplacé.]
-  card: { height: 120, borderRadius: 12, backgroundColor: executionColors.card, paddingHorizontal: 16, paddingTop: 11 },
+  // Recette du 13/11/2026 (Hermann : « Réduire d’autant la hauteur du cadre », après la barre abaissée de 6) : cadre blanc
+  // 120 → 114, marges intérieures 8 en haut et en bas ; l’écart au-dessus du cadre blanc retrouve sa valeur.
+  card: { height: 114, borderRadius: 12, backgroundColor: executionColors.card, paddingHorizontal: 16, paddingTop: 8 },
   elapsedRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", height: 32, gap: spacing[8] },
   // Recette du 13/11/2026 (Hermann : « Augmenter un peu la taille de mes trois textes du cadre temps écoulé. Pas les
   // valeurs ») : Temps écoulé 18, À suivre 12, nom suivant 18. [16, 10, 16 — remplacé.]
