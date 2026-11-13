@@ -660,14 +660,14 @@ export function ExecutionScreen({
         {repetitions !== null ? (
           <Fade stepKey={stepKey} out={textOut} still={same} style={[styles.pill, styles.pillLeft]}>
             <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-objective">
-              {repetitions}
+              <PillValue text={repetitions} />
             </Text>
           </Fade>
         ) : null}
         {load !== null ? (
           <Fade stepKey={stepKey} out={textOut} still={same} style={[styles.pill, styles.pillRight]}>
             <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-load">
-              {load}
+              <PillValue text={load} />
             </Text>
           </Fade>
         ) : null}
@@ -1045,6 +1045,21 @@ function timerAccessibility(projection: ExecutionProjection): string {
 }
 
 /** Nombre de répétitions de la Série (ou À l'échec), pour le cadre en bas à gauche du cercle (recette du 13/11/2026). */
+/**
+ * Valeur d'un cadre : chiffres à la taille du cadre, unité (« rép. », « kg ») plus petite (recette du 13/11/2026,
+ * Hermann : « rép et kg peuvent être un peu plus petits (conserver la taille des chiffres) et gris foncé sur gris clair »).
+ */
+function PillValue({ text }: { text: string }) {
+  const match = /^([\d\s.,]+)\s(\S.*)$/.exec(text);
+  if (match === null) return <>{text}</>;
+  return (
+    <>
+      {match[1]}
+      <Text style={styles.pillUnit}> {match[2]}</Text>
+    </>
+  );
+}
+
 function repetitionsText(projection: ExecutionProjection): string | null {
   if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null || projection.mode === "DURATION") return null;
   const target = projection.seriesTarget;
@@ -1152,7 +1167,9 @@ const styles = StyleSheet.create({
   pill: { position: "absolute", bottom: 0, height: 40, minWidth: 64, maxWidth: 92, paddingHorizontal: 12, borderRadius: 12, backgroundColor: "#F0F1F5", alignItems: "center", justifyContent: "center" },
   pillLeft: { left: 0 },
   pillRight: { right: 0 },
-  pillText: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 24, lineHeight: 28, color: colors.textPrimary, textAlign: "center" },
+  // Recette du 13/11/2026 : texte gris foncé sur le gris clair du cadre ; unité en 18. [Noir, unité en 24 — remplacé.]
+  pillText: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 24, lineHeight: 28, color: "#3C3C43", textAlign: "center" },
+  pillUnit: { fontSize: 18 },
   exerciseName: {
     ...executionType.title,
     color: colors.textPrimary,
