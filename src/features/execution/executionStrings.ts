@@ -16,7 +16,8 @@ export const executionStrings = {
   cycle: "Cycle",
   /** Compteur automatique (recette du 13/11/2026) : « tour » jusqu’à 1, « tours » au-delà. */
   tours: (count: number) => (count > 1 ? "tours" : "tour"),
-  side: (rank: 1 | 2) => `Côté ${rank}`,
+  /** Recette du 13/11/2026 (Hermann : « Changer le texte Côté 1 et Côté 2 par 1er côté et 2ème côté »). [« Côté n » — remplacé.] */
+  side: (rank: 1 | 2) => (rank === 1 ? "1er côté" : "2ème côté"),
   next: "À suivre",
   /** Point d'arrêt (recette du 12/11/2026, Hermann, e1f). */
   pressStart: "Appuyer sur démarrer",

@@ -289,7 +289,7 @@ L’utilisateur démarre une Série sans objectif temporel ni nombre de répéti
 1. Dans l’éditeur d’Exercice, `Changement de côté` propose `Avec` ou `Sans` ; l’utilisateur choisit lui-même le côté par lequel il commence (D-406, RM-242). `Avec` rend disponibles `Enchainement` et `Pause entre les côtés`.
 2. Aucun réglage de côté n’est exposé au niveau du Circuit dans la version actuelle ; le support technique historique est conservé mais reste fixé à `UNILATERAL` et non modifiable.
 3. Une carte d’Exercice bilatéral affiche un indicateur de changement de côté, sans direction, rendu selon Figma (D-407, RM-243) ; elle n’affiche rien sans changement de côté.
-4. À l’Exécution, `Côté 1` ou `Côté 2` apparaît pour le passage concerné, sans compteur `1/2` ou `2/2` (RM-243).
+4. À l’Exécution, `Côté 1` ou `Côté 2` [libellés affichés « 1er côté » / « 2ème côté » depuis le 13/11/2026 — recette PRE-10, Hermann : « Changer le texte Côté 1 et côté 2 par 1er côté, et 2ème côté »] apparaît pour le passage concerné, sans compteur `1/2` ou `2/2` (RM-243).
 5. Un Exercice bilatéral exécute ses Séries selon l’Ordre des côtés (libellé visible `Enchainement`) : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247).
 6. La modale générique de passage à l’Exercice suivant reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.
 

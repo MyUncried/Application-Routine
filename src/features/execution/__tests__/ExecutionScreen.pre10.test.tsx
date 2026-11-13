@@ -209,7 +209,7 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(screen.queryByTestId("execution-pause")).toBeNull();
     await press("execution-continue");
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
-    expect(screen.getByTestId("execution-side").props.children).toBe("Côté 1");
+    expect(screen.getByTestId("execution-side").props.children).toBe("1er côté");
     expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
 
     // Répétitions : Suivant sans confirmation, côté 2 puis Tour 2.
