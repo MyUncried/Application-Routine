@@ -201,7 +201,11 @@ export class ExecutionSignalAdapter {
     if (level !== null) {
       const handle = this.timer.set(() => {
         if (this.scheduledVibrations.get(key) !== handle) return;
-        if (this.vibrationEnabled) this.vibrator.vibrate(level);
+        if (this.vibrationEnabled) {
+          this.vibrator.vibrate(level);
+          // Mesure du retard réel de la vibration programmée (recette du 13/11/2026, comptes à rebours).
+          if (__DEV__) console.log(`[guidage] vibration ${level} programmée, écart ${Date.now() - signal.atMs} ms (${signal.kind} ${signal.phase ?? "-"})`);
+        }
       }, delayMs);
       this.scheduledVibrations.set(key, handle);
     }
@@ -240,7 +244,10 @@ export class ExecutionSignalAdapter {
     const guidance = this.guidance(signal);
     const { announcement } = guidance;
     const level = vibrationScheduled ? null : this.vibrationOf(guidance);
-    if (level !== null) this.vibrator.vibrate(level);
+    if (level !== null) {
+      this.vibrator.vibrate(level);
+      if (__DEV__) console.log(`[guidage] vibration ${level} à l'instant du signal, écart ${Date.now() - signal.atMs} ms (${signal.kind} ${signal.phase ?? "-"})`);
+    }
     const spoken = this.voiceEnabled ? announcement : null;
     const sounding = this.soundOf(signal, guidance);
     const played = this.soundEnabled && sounding !== null;
