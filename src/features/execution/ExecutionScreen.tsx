@@ -167,7 +167,13 @@ export function ExecutionScreen({
 
   const active = service.current();
   // Voile du Point d'arrêt, en fondu (recette du 13/11/2026).
-  const veil = useVeil(active !== null && active.state.status === "RUNNING" && active.state.leaf?.spec.kind === "STOP_POINT");
+  // Recette du 13/11/2026 (Hermann : « Appliquer ce mécanisme dès qu’on appuie aussi sur le bouton pause pour interrompre un
+  // exercice ») : le même voile en Pause (hors Pause des dialogues : Réinitialiser, Arrêt) ; Démarrer et Arrêt au-dessus.
+  const veil = useVeil(
+    active !== null &&
+      ((active.state.status === "RUNNING" && active.state.leaf?.spec.kind === "STOP_POINT") ||
+        (active.state.status === "PAUSED" && active.state.pause?.reason !== "DIALOG")),
+  );
   useEffect(() => {
     if (active !== null || sessionId === null) return;
     let cancelled = false;

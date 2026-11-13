@@ -178,6 +178,8 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     await at(8);
     await press("execution-pause");
     expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
+    // Recette du 13/11/2026 : voile orange aussi en Pause.
+    expect(screen.getByTestId("execution-stop-veil")).toBeTruthy();
     await at(18);
     await press("execution-resume");
     expect(screen.getByTestId("execution-timer").props.children).toBe("00:15");
