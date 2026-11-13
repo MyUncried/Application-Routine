@@ -1190,7 +1190,7 @@ const styles = StyleSheet.create({
   // [Contexte à 14 de l’anneau, cadre à 13 — remplacé.]
   // Recette du 13/11/2026 : ligne du côté (24), cercle toujours centré entre le titre et le cadre gris (24 de part et d'autre).
   // Recette du 13/11/2026 (cadre gris abaissé de 20) : cercle descendu de 10, toujours centré (34 au-dessus et en dessous).
-  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 17 },
+  contextSlot: { height: 24, alignSelf: "stretch", justifyContent: "center", marginBottom: 9 },
   sideLine: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 20, lineHeight: 24, color: executionColors.side, textAlign: "center" },
   // Recette du 13/11/2026 (capture de Hermann : cadres « 12 rép. » / « 15 kg » coupés en bas) : la zone du cercle
   // s’étend de 12 sous l’anneau pour contenir les cadres (le défilement coupait ce qui dépassait) ; l’écart de 24 jusqu’au
@@ -1259,7 +1259,11 @@ const styles = StyleSheet.create({
     // démarrer ») : cadre gris remonté de 8 (cercle −4, écart 35 / 35), commandes à 20 sous le cadre (au lieu de 12).
     // Recette du 13/11/2026 (Hermann : « Abaisser de 6 px le cercle ») : cercle +6 (41 au-dessus, 29 en dessous), cadre gris
     // à la même place.
-    marginTop: 1,
+    // Recette du 13/11/2026 (Hermann : « Remonter un peu le cercle, je dois trouver un moyen de préserver une marge entre le
+    // triangle du bas et le cadre. Il faut rogner un peu partout équitablement. ») : 12 sous le coin du bas ; place prise
+    // au-dessus du cercle (−8), sur Série / Tour / Cycle (−4), le cadre blanc (−4), les commandes (−2) et l’écart minimal
+    // au-dessus du cadre blanc (−2). [1 — remplacé.]
+    marginTop: 12,
     marginHorizontal: layout.screenGutter,
     flexShrink: 1,
     backgroundColor: executionColors.zone,
@@ -1278,7 +1282,7 @@ const styles = StyleSheet.create({
   // Recette du 13/11/2026 (Hermann : « Augmenter légèrement la taille des valeurs, du texte série et tour aussi (même
   // taille que temps écoulé). Rabaisser un peu la ligne Série / Tour et leurs valeurs, abaisser le cadre gris. ») :
   // libellés 18, valeurs 40, ligne de 76 ; zone à 34 du haut du cadre gris.
-  seriesTour: { flexDirection: "row", alignItems: "center", height: 72 },
+  seriesTour: { flexDirection: "row", alignItems: "center", height: 68 },
   // Recette du 13/11/2026 (Hermann : « Centrer horizontalement série et tour dans leur espace respectif »).
   // [Série calée à droite, Tour à gauche, contre le trait — remplacé.]
   seriesTourColumn: { flex: 1, alignItems: "center" },
@@ -1287,8 +1291,8 @@ const styles = StyleSheet.create({
   seriesTourDivider: { width: 14, alignItems: "center", justifyContent: "center" },
   counterAbsent: { color: "#C4C6CE" },
   seriesTourLine: { width: 2, height: 52, borderRadius: 1, backgroundColor: "#FFFFFF" },
-  seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 18, lineHeight: 21, marginBottom: 4, color: executionColors.caption },
-  seriesTourText: { ...executionType.metric, fontSize: 40, lineHeight: 47, color: colors.textPrimary },
+  seriesTourLabel: { fontFamily: "RobotoCondensed_500Medium", fontWeight: "500", fontSize: 18, lineHeight: 21, marginBottom: 2, color: executionColors.caption },
+  seriesTourText: { ...executionType.metric, fontSize: 40, lineHeight: 45, color: colors.textPrimary },
   right: { textAlign: "right" },
   // Recette du 13/11/2026 (Hermann : « Abaisser la barre de progression ») : 20 → 26 sous les valeurs.
   progressTrack: { flexDirection: "row", gap: 3, height: 9, marginTop: 14 },
@@ -1300,10 +1304,10 @@ const styles = StyleSheet.create({
   // Recette du 12/11/2026 (Hermann : « Abaisser un peu le bord haut du cadre du temps écoulé pour que la marge intérieure
   // en haut soit égale à la marge en bas ») : bord haut abaissé de 8 (cadre 124, marge haute 13), bas inchangé.
   // [Écart 40, cadre 132, marge haute 21 — remplacé.]
-  cardGap: { height: 48, minHeight: 10, flexShrink: 1 },
+  cardGap: { height: 48, minHeight: 8, flexShrink: 1 },
   // Recette du 12/11/2026 (Hermann : « Le temps écoulé, la ligne de séparation et le nombre de répétitions ont plus de
   // marge à droite qu'il n'en a à gauche ») : marges égales. [Marge droite de 32 relevée dans Figma — remplacé.]
-  card: { height: 124, borderRadius: 12, backgroundColor: executionColors.card, paddingHorizontal: 16, paddingTop: 13 },
+  card: { height: 120, borderRadius: 12, backgroundColor: executionColors.card, paddingHorizontal: 16, paddingTop: 11 },
   elapsedRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", height: 32, gap: spacing[8] },
   // Recette du 13/11/2026 (Hermann : « Augmenter un peu la taille de mes trois textes du cadre temps écoulé. Pas les
   // valeurs ») : Temps écoulé 18, À suivre 12, nom suivant 18. [16, 10, 16 — remplacé.]
@@ -1323,7 +1327,7 @@ const styles = StyleSheet.create({
   },
   saveErrorText: { ...type.body, color: colors.danger },
   // Barre de commandes : Son (24) 30 Réinitialiser (48) 37 Pause (72) 37 Suivant (48) 30 Voix (24), 24 sous la zone.
-  commands: { flexDirection: "row", alignItems: "center", justifyContent: "center", height: 72, marginTop: 20, gap: 30 },
+  commands: { flexDirection: "row", alignItems: "center", justifyContent: "center", height: 72, marginTop: 18, gap: 30 },
   toggle: { width: 24, height: 24 },
   toggleIcon: { width: 24, height: 24 },
   pauseCommand: { marginHorizontal: 7 },
