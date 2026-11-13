@@ -19,12 +19,18 @@
  * (EMOM, AMRAP, For time, Death by) rend la Séance non lançable dans PRE-10 (disponibilité lue dans le
  * descripteur D.3, distincte de la validité D.4) ; ses politiques relèvent de PRE-11.
  *
+ * PRE-11 (T1, For time) : les étapes d'un élément For time (Exercice autonome, à chaque exécution ; Circuit
+ * porteur, buy-in, tours et buy-out) sont regroupées dans une **portée** pilotée par `FOR_TIME`
+ * (`policies/forTime.ts`) ; les phases qui suivent son dernier travail (récupération de l'Exercice) restent
+ * après la portée : le temps réalisé s'arrête au dernier travail confirmé (§12.3).
+ *
  * Fonctions pures, sans React ni SQLite.
  */
 
 import { buildExecutionLedger, type LedgerEvent, type LedgerSide } from "@/domain/activities/executionCalculations";
 import { seriesRowsOf, type ExecutionMode, type SeriesTarget, type WorkPhase } from "@/domain/activities/ExecutionParameters";
 import { configurationValidity, engineAvailability, type ConfigurationIssue } from "@/domain/sessions/configurationValidity";
+import type { ElementFormat } from "@/domain/sessions/formats";
 import { expandStructure, type PlanContext, type PlanStep } from "@/domain/sessions/planExpansion";
 import type { SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import type { SessionSnapshot, SessionSnapshotExercise } from "@/domain/sessions/sessionSnapshot";
@@ -244,11 +250,52 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
   });
 
   const items: ChildSpec[] = [];
-  const leaf = (spec: LeafSpec) => items.push({ type: "LEAF", leaf: spec });
+  // PRE-11 (T1) : étapes d'un élément For time en cours de regroupement (voir l'en-tête).
+  const forTime = forTimeElements(snapshot);
+  let group: { readonly key: string; readonly element: ForTimeElement; readonly cycle: number | null; readonly tour: number | null; readonly items: ChildSpec[] } | null = null;
+  const leaf = (spec: LeafSpec) => (group === null ? items : group.items).push({ type: "LEAF", leaf: spec });
+  const flush = () => {
+    if (group === null) return;
+    const closing = group;
+    group = null;
+    let last = closing.items.length - 1;
+    while (last >= 0 && !(closing.items[last]!.type === "LEAF" && (closing.items[last] as { leaf: LeafSpec }).leaf.kind === "ACTIVITY")) last -= 1;
+    const work = closing.items.slice(0, last + 1);
+    const after = closing.items.slice(last + 1);
+    if (work.length > 0) {
+      const first = work.find((item): item is { type: "LEAF"; leaf: LeafSpec } => item.type === "LEAF");
+      const config: ForTimeScopeConfig = {
+        format: "FOR_TIME",
+        elementId: closing.element.id,
+        elementKind: closing.element.kind,
+        name: closing.element.name,
+        capMs: closing.element.capSeconds === null ? null : closing.element.capSeconds * MS,
+        items: work,
+        context: first?.leaf.context ?? null,
+      };
+      items.push({ type: "SCOPE", scope: { pilot: "FOR_TIME", key: closing.key, config } });
+    }
+    items.push(...after);
+  };
+  const enter = (context: PlanContext | null) => {
+    const element = context === null || context.formattedElementId === null ? undefined : forTime.get(context.formattedElementId);
+    if (element === undefined || context === null) {
+      flush();
+      return;
+    }
+    const cycle = context.cycle?.repetition ?? null;
+    // Un Exercice For time autonome dans un Circuit standard est rejoué à chaque tour (FMT-30) : une portée par tour.
+    const tour = element.kind === "EXERCISE" ? (context.circuit?.tour ?? null) : null;
+    if (group !== null && group.element.id === element.id && group.cycle === cycle && group.tour === tour) return;
+    flush();
+    const key = `session/for-time:${element.id}${cycle === null ? "" : `#c${cycle}`}${tour === null ? "" : `#t${tour}`}`;
+    group = { key, element, cycle, tour, items: [] };
+  };
 
   let index = 0;
   while (index < steps.length) {
     const step = steps[index]!;
+    enter("context" in step ? step.context : null);
     switch (step.kind) {
       case "COUNTDOWN":
         // Phase de 0 s instantanée (ch08 « Démarrage d'une séance ») : aucune étape.
@@ -294,6 +341,7 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
       }
     }
   }
+  flush();
 
   const infos: Record<string, PlanExerciseInfo> = {};
   for (const [id, exercise] of exercises) {
@@ -314,6 +362,38 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
     exercises: infos,
     ...(snapshot.guidance !== undefined ? { guidance: snapshot.guidance } : {}),
   };
+}
+
+type ForTimeElement = { readonly id: string; readonly kind: "EXERCISE" | "CIRCUIT"; readonly name: string; readonly capSeconds: number | null };
+
+/** Configuration de la portée For time (lue par `policies/forTime.ts`). */
+export type ForTimeScopeConfig = {
+  readonly format: "FOR_TIME";
+  readonly elementId: string;
+  readonly elementKind: "EXERCISE" | "CIRCUIT";
+  readonly name: string;
+  readonly capMs: number | null;
+  readonly items: readonly ChildSpec[];
+  readonly context: LeafContext | null;
+};
+
+function capSecondsOf(format: ElementFormat): number | null {
+  const value = format.settings.timeCapSeconds;
+  return typeof value === "number" && value > 0 ? value : null;
+}
+
+/** Éléments For time de l'instantané (Exercices autonomes et Circuits porteurs), par identifiant. */
+function forTimeElements(snapshot: SessionSnapshot): ReadonlyMap<string, ForTimeElement> {
+  const elements = new Map<string, ForTimeElement>();
+  for (const exercise of structureExercises(snapshot.structure)) {
+    const format = exercise.format ?? null;
+    if (format?.key === "FOR_TIME") elements.set(exercise.id, { id: exercise.id, kind: "EXERCISE", name: exercise.exercise?.name ?? "", capSeconds: capSecondsOf(format) });
+  }
+  for (const circuit of structureCircuits(snapshot.structure)) {
+    const format = circuit.format ?? null;
+    if (format?.key === "FOR_TIME") elements.set(circuit.id, { id: circuit.id, kind: "CIRCUIT", name: circuit.name ?? "For time", capSeconds: capSecondsOf(format) });
+  }
+  return elements;
 }
 
 /**

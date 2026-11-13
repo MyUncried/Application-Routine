@@ -164,7 +164,15 @@ export type TransitionResult = {
 
 // ————————————————————————————————————————————————————————————————— pilotes (§6.4)
 
-export type PilotContext = { readonly nowMs: Ms; readonly env: EngineEnv; readonly scopeKey: string; readonly depth: number; readonly spec: ScopeSpec };
+export type PilotContext = {
+  readonly nowMs: Ms;
+  readonly env: EngineEnv;
+  readonly scopeKey: string;
+  readonly depth: number;
+  readonly spec: ScopeSpec;
+  /** Temps actif d'une référence de la portée (`name`) à `nowMs` ; `null` si elle n'existe pas (PRE-11 : temps réalisé d'un For time). */
+  readonly refMs: (name: string) => Ms | null;
+};
 
 export type NewRef = { readonly name: string; readonly role: Exclude<TimeRole, "SAFETY">; readonly budgetMs: Ms | null };
 
@@ -324,7 +332,12 @@ function pilotOf(env: EngineEnv, spec: ScopeSpec): Pilot {
 
 function ctxFor(draft: Draft, frameIndex: number, nowMs: Ms): PilotContext {
   const frame = draft.state.frames[frameIndex]!;
-  return { nowMs, env: draft.env, scopeKey: frame.spec.key, depth: frame.depth, spec: frame.spec };
+  const refs = draft.state.refs;
+  const refMs = (name: string): Ms | null => {
+    const ref = refs.find((candidate) => candidate.owner === frame.spec.key && candidate.name === name);
+    return ref === undefined ? null : runningMs(ref, nowMs);
+  };
+  return { nowMs, env: draft.env, scopeKey: frame.spec.key, depth: frame.depth, spec: frame.spec, refMs };
 }
 
 /** Une référence englobante (portée de profondeur < `depth`) est-elle échue à `atMs` ? */

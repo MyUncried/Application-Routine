@@ -26,7 +26,6 @@ import type { ExecutionRepository } from "@/domain/execution/ExecutionRepository
 import {
   createInitialState,
   ENGINE_STATE_VERSION,
-  libreEnv,
   nextDueAtMs,
   restoreWithoutContinuity,
   transition,
@@ -40,6 +39,7 @@ import {
 } from "@/domain/execution/kernel";
 import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
 import { projectExecution, type ExecutionProjection } from "@/domain/execution/projection";
+import { executionEnv } from "@/domain/execution/policies";
 import { businessStatusOf, occurrenceResults, type BusinessStatus, type OccurrenceResult } from "@/domain/execution/results";
 import type { ExecutionMode, SeriesTarget } from "@/domain/activities/ExecutionParameters";
 import { nominalGuidanceSeconds, workPhasesCycleSeconds } from "@/domain/activities/phaseGuidance";
@@ -191,7 +191,7 @@ export class ExecutionService {
       if (this.active !== null && this.active.state.status !== "FINISHED") throw new ExecutionBlockedError("An execution is already active.");
       if ((await this.deps.repository.findUnfinished()) !== null) throw new ExecutionBlockedError("An unfinished execution must be resumed or stopped first.");
       const executionId = this.deps.newId();
-      const env = libreEnv(prepared.plan);
+      const env = executionEnv(prepared.plan);
       const reading = this.now();
       const started = transition(env, createInitialState(executionId), { type: "START" }, reading);
       const startedAt = new Date(reading).toISOString();
@@ -346,7 +346,7 @@ export class ExecutionService {
     const results = new Map<string, ResultChange>();
     for (const change of await this.deps.repository.listResults(executionId)) results.set(`${change.type}:${change.key}`, change);
     this.lastReadingMs = Math.max(this.lastReadingMs, record.state.evaluatedAtMs ?? 0);
-    this.active = { executionId, plan, env: libreEnv(plan), state: record.state, revision: record.revision, saveError: false, businessStatus: record.businessStatus, results };
+    this.active = { executionId, plan, env: executionEnv(plan), state: record.state, revision: record.revision, saveError: false, businessStatus: record.businessStatus, results };
   }
 
   private enqueue<T>(task: () => Promise<T>): Promise<T> {

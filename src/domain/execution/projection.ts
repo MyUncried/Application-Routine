@@ -14,7 +14,8 @@ import { phaseGuidanceAt, workPhasesCycleSeconds } from "@/domain/activities/pha
 import type { SeriesTarget } from "@/domain/activities/ExecutionParameters";
 
 import { leafElapsedMs, leafTarget, needsNextConfirmation, resettable, runningMs, sessionStopwatch, type EngineState, type FinishReason, type Ms, type PauseReason } from "./kernel";
-import type { ChildSpec, ExecutablePlan, LeafKind, LeafSpec } from "./plan";
+import type { ChildSpec, ExecutablePlan, ForTimeScopeConfig, LeafKind, LeafSpec } from "./plan";
+import { activityCount, FOR_TIME_PILOT, type ForTimeLocal } from "./policies/forTime";
 
 export type TimerView =
   | { readonly kind: "COUNTDOWN"; readonly remainingMs: Ms; readonly totalMs: Ms; readonly elapsedMs: Ms }
@@ -81,8 +82,27 @@ export type Counters = {
   readonly cycle: { readonly current: number; readonly total: number } | null;
 };
 
+/**
+ * PRE-11 (T1) — élément formaté en cours. For time : temps réalisé (chronomètre de l'élément), borne facultative,
+ * puis Clôture (D3) avec le temps réalisé figé et, si la borne a fermé un travail, ce travail à compléter.
+ */
+export type FormatView = {
+  readonly kind: "FOR_TIME";
+  readonly name: string;
+  readonly phase: "WORK" | "CLOSURE";
+  readonly elapsedMs: Ms;
+  readonly capMs: Ms | null;
+  readonly capReached: boolean;
+  readonly completedActivities: number;
+  readonly totalActivities: number;
+  /** Travail fermé par la borne (Clôture : répétitions faites à déclarer) ; `null` sinon. */
+  readonly interrupted: { readonly name: string | null; readonly target: SeriesTarget | null; readonly mode: LeafSpec["mode"] | null } | null;
+};
+
 export type ExecutionProjection = {
   readonly status: EngineState["status"];
+  /** Élément formaté en cours (PRE-11) ; `null` hors Format. */
+  readonly format: FormatView | null;
   readonly pauseReason: PauseReason | null;
   readonly finishReason: FinishReason | null;
   readonly sessionName: string;
@@ -149,8 +169,52 @@ export type ExecutionProjection = {
   };
 };
 
+/** Étapes d'une liste d'enfants dans l'ordre d'exécution, portées de Format comprises (PRE-11). */
+function childLeaves(items: readonly ChildSpec[]): LeafSpec[] {
+  return items.flatMap((item: ChildSpec) => (item.type === "LEAF" ? [item.leaf] : childLeaves((item.scope.config as { items?: readonly ChildSpec[] } | null)?.items ?? [])));
+}
+
+type PlanIndex = { readonly leaves: readonly LeafSpec[]; readonly index: ReadonlyMap<string, number> };
+
+const LEAVES = new WeakMap<ExecutablePlan, PlanIndex>();
+
+function planIndex(plan: ExecutablePlan): PlanIndex {
+  const known = LEAVES.get(plan);
+  if (known !== undefined) return known;
+  const leaves = childLeaves(plan.items);
+  const computed: PlanIndex = { leaves, index: new Map(leaves.map((leaf, position) => [leaf.key, position] as const)) };
+  LEAVES.set(plan, computed);
+  return computed;
+}
+
 function rootLeaves(plan: ExecutablePlan): readonly LeafSpec[] {
-  return plan.items.flatMap((item: ChildSpec) => (item.type === "LEAF" ? [item.leaf] : []));
+  return planIndex(plan).leaves;
+}
+
+/**
+ * Position de l'étape courante dans les étapes du plan : `index` (étape affichée comme courante) et `passed`
+ * (étapes entièrement passées). Pendant la Clôture d'un Format, l'étape courante est le dernier travail de
+ * l'élément, déjà passé.
+ */
+function positionOf(plan: ExecutablePlan, state: EngineState): { readonly index: number; readonly passed: number } {
+  const { leaves, index } = planIndex(plan);
+  const leaf = state.leaf;
+  if (leaf !== null) {
+    const at = index.get(leaf.spec.key);
+    if (at !== undefined) return { index: at, passed: at };
+    if (leaf.spec.kind === "CLOSURE") {
+      const scope = [...state.frames].reverse().find((frame) => leaf.spec.key === `${frame.spec.key}/closure`);
+      const items = (scope?.spec.config as { items?: readonly ChildSpec[] } | undefined)?.items ?? [];
+      const inner = childLeaves(items);
+      const last = inner.length === 0 ? undefined : index.get(inner[inner.length - 1]!.key);
+      if (last !== undefined) return { index: last, passed: last + 1 };
+    }
+  }
+  // Sans étape (fin) : premier enfant non encore ouvert de la Séance.
+  const root = state.frames[0];
+  const rootPosition = root === undefined ? 0 : ((root.local as { index?: number } | null)?.index ?? 0);
+  const start = childLeaves(plan.items.slice(0, rootPosition)).length;
+  return { index: Math.min(start, Math.max(0, leaves.length - 1)), passed: start };
 }
 
 /** Étape sans durée déterminable : Séries manuelles sans cadence ou À l'échec (R de RM-077). */
@@ -208,11 +272,6 @@ export function estimatedDuration(plan: ExecutablePlan): EstimatedDuration {
   return { kind, ms };
 }
 
-function rootIndex(state: EngineState): number {
-  const root = state.frames[0];
-  return root === undefined ? 0 : ((root.local as { index?: number } | null)?.index ?? 0);
-}
-
 function progressOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): number {
   if (state.status === "FINISHED") return state.finish?.reason === "COMPLETED" ? 1 : progressBefore(plan, state, atMs);
   return progressBefore(plan, state, atMs);
@@ -220,13 +279,13 @@ function progressOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): number 
 
 function progressBefore(plan: ExecutablePlan, state: EngineState, atMs: Ms): number {
   const leaves = rootLeaves(plan);
-  if (leaves.length !== plan.items.length || state.status === "READY") return 0;
+  if (state.status === "READY") return 0;
   const weights = weightsOf(leaves);
-  const index = rootIndex(state);
+  const { passed } = positionOf(plan, state);
   let value = 0;
-  for (let i = 0; i < Math.min(index, leaves.length); i += 1) value += weightOf(leaves[i]!, weights);
+  for (let i = 0; i < Math.min(passed, leaves.length); i += 1) value += weightOf(leaves[i]!, weights);
   const leaf = state.leaf;
-  if (leaf !== null && state.status !== "FINISHED") {
+  if (leaf !== null && state.status !== "FINISHED" && leaf.spec.kind !== "CLOSURE") {
     const weight = weightOf(leaf.spec, weights);
     const planned = temporalMs(leaf.spec);
     if (planned > 0 && !isUntimedSeries(leaf.spec)) {
@@ -246,20 +305,20 @@ function progressBefore(plan: ExecutablePlan, state: EngineState, atMs: Ms): num
 }
 
 function nextOf(plan: ExecutablePlan, state: EngineState): NextView | null {
-  if (state.frames.length !== 1) return null;
-  const item = plan.items[rootIndex(state) + 1];
-  if (item === undefined || item.type !== "LEAF" || item.leaf.kind === "SESSION_END") return null;
-  return nextViewOf(plan, item.leaf);
+  const leaves = rootLeaves(plan);
+  const following = leaves[positionOf(plan, state).index + 1];
+  if (following === undefined || following.kind === "SESSION_END") return null;
+  return nextViewOf(plan, following);
 }
 
 /** Compteurs du dernier exercice joué, pendant l'étape qui le suit (recette du 13/11/2026). */
 function previousCountersOf(plan: ExecutablePlan, state: EngineState): Counters | null {
   const kind = state.leaf?.spec.kind;
-  if (kind === undefined || kind === "ACTIVITY" || kind === "INITIAL_COUNTDOWN" || kind === "SESSION_END" || state.frames.length !== 1) return null;
-  for (let index = rootIndex(state) - 1; index >= 0; index -= 1) {
-    const item = plan.items[index]!;
-    if (item.type !== "LEAF") return null;
-    const spec = item.leaf;
+  if (kind === undefined || kind === "ACTIVITY" || kind === "INITIAL_COUNTDOWN" || kind === "SESSION_END") return null;
+  const leaves = rootLeaves(plan);
+  const { index: at, passed } = positionOf(plan, state);
+  for (let index = Math.min(at, passed) - (passed > at ? 0 : 1); index >= 0; index -= 1) {
+    const spec = leaves[index]!;
     if (spec.kind !== "ACTIVITY") continue;
     const circuit = spec.context?.circuit ?? null;
     return {
@@ -273,15 +332,15 @@ function previousCountersOf(plan: ExecutablePlan, state: EngineState): Counters 
 
 function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity | null {
   const kind = state.leaf?.spec.kind;
-  if (state.frames.length !== 1 || (kind !== "INITIAL_COUNTDOWN" && kind !== "STOP_POINT")) return null;
-  const from = rootIndex(state) + 1;
-  for (let index = from; index < plan.items.length; index += 1) {
-    const item = plan.items[index]!;
-    if (item.type !== "LEAF") return null;
-    const spec = item.leaf;
+  if (kind !== "INITIAL_COUNTDOWN" && kind !== "STOP_POINT") return null;
+  const leaves = rootLeaves(plan);
+  const from = positionOf(plan, state).index + 1;
+  for (let index = from; index < leaves.length; index += 1) {
+    const spec = leaves[index]!;
     if (spec.kind === "SESSION_END") return null;
     if (spec.kind !== "ACTIVITY") continue;
-    const following = plan.items[index + 1];
+    const followingLeaf = leaves[index + 1];
+    const following: ChildSpec | undefined = followingLeaf === undefined ? undefined : { type: "LEAF", leaf: followingLeaf };
     const circuit = spec.context?.circuit ?? null;
     return {
       name: spec.exerciseId === undefined ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
@@ -345,11 +404,10 @@ function nextViewOf(plan: ExecutablePlan, spec: LeafSpec): NextView {
 
 function outlineOf(plan: ExecutablePlan, state: EngineState): readonly OutlineItem[] {
   if (state.status === "FINISHED") return [];
-  const at = state.status === "READY" ? 0 : rootIndex(state);
+  const at = state.status === "READY" ? 0 : positionOf(plan, state).index;
   const current = state.status === "READY" ? -1 : at;
-  return plan.items.flatMap((item, index): OutlineItem[] => {
-    if (item.type !== "LEAF" || index < at - 1) return [];
-    const spec = item.leaf;
+  return rootLeaves(plan).flatMap((spec, index): OutlineItem[] => {
+    if (index < at - 1) return [];
     if (spec.kind === "INITIAL_COUNTDOWN" || spec.kind === "SESSION_END") return [];
     const circuit = spec.context?.circuit ?? null;
     return [
@@ -367,9 +425,41 @@ function outlineOf(plan: ExecutablePlan, state: EngineState): readonly OutlineIt
   });
 }
 
-function timerOf(state: EngineState, atMs: Ms): TimerView {
+/** Élément For time en cours (portée la plus interne pilotée par `FOR_TIME`), `null` sinon. */
+function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatView | null {
+  const frame = [...state.frames].reverse().find((candidate) => candidate.spec.pilot === FOR_TIME_PILOT);
+  if (frame === undefined || frame.local === null) return null;
+  const config = frame.spec.config as ForTimeScopeConfig;
+  const local = frame.local as ForTimeLocal;
+  const stopwatch = state.refs.find((ref) => ref.owner === frame.spec.key && ref.name === "elapsed");
+  const interruptedSpec = local.interruptedKey === null ? undefined : childLeaves(config.items).find((leaf) => leaf.key === local.interruptedKey);
+  return {
+    kind: "FOR_TIME",
+    name: config.name,
+    phase: local.phase,
+    elapsedMs: local.measuredMs ?? (stopwatch === undefined ? 0 : runningMs(stopwatch, atMs)),
+    capMs: config.capMs,
+    capReached: local.capReached,
+    completedActivities: local.doneActivities,
+    totalActivities: activityCount(config),
+    interrupted:
+      interruptedSpec === undefined
+        ? null
+        : {
+            name: interruptedSpec.exerciseId === undefined ? null : (plan.exercises[interruptedSpec.exerciseId]?.name ?? null),
+            target: interruptedSpec.target ?? null,
+            mode: interruptedSpec.mode ?? null,
+          },
+  };
+}
+
+function timerOf(state: EngineState, atMs: Ms, format: FormatView | null): TimerView {
   const leaf = state.leaf;
   if (leaf === null || leaf.spec.end === "INTERACTION") return { kind: "NONE" };
+  // PRE-11 (T1) : pendant un For time, le grand chrono compte le temps réalisé de l'élément ; l'anneau va jusqu'à la
+  // borne s'il y en a une (décision de Hermann du 13/11/2026 : « Temps écoulé. La borne peut apparaître dans le
+  // triangle du haut à gauche »).
+  if (format !== null && format.phase === "WORK") return { kind: "STOPWATCH", elapsedMs: format.elapsedMs, nominalMs: format.capMs };
   const elapsedMs = leafElapsedMs(state, atMs);
   // Recette e1 du 12/11/2026 (Hermann, f : « Au point d'arrêt […] Un chronomètre se déclenche ») : l'attente d'un
   // Point d'arrêt est chronométrée à l'écran. [Point d'arrêt sans chrono — remplacé.]
@@ -399,8 +489,10 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
   const elapsed = leafElapsedMs(state, atMs);
   const stopwatch = sessionStopwatch(state);
   const recoveryLike = spec !== null && spec.kind !== "ACTIVITY";
+  const format = formatOf(plan, state, atMs);
   return {
     status: state.status,
+    format,
     pauseReason: state.pause?.reason ?? null,
     finishReason: state.finish?.reason ?? null,
     sessionName: plan.sessionName,
@@ -416,7 +508,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     mode: spec?.mode ?? null,
     seriesTarget: spec === null || spec.target === undefined ? null : spec.target,
     loadKg: spec?.loadKg ?? null,
-    timer: timerOf(state, atMs),
+    timer: timerOf(state, atMs, format),
     guidance: guidanceOf(plan, state, atMs),
     next: nextOf(plan, state),
     upcoming: upcomingOf(plan, state),
