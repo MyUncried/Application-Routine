@@ -98,12 +98,9 @@ export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCir
     case "FOR_TIME": {
       // Rôle Tour, À l'objectif ; une série par tour ; cible commune chiffrée reprise, sinon à compléter. MAJ 04/11/2026
       // §6 bis 2 : Répétitions ou Durée, le Mode est conservé (sans conversion). [Passage en Répétitions — remplacé.]
-      const rows = Array.from({ length: Math.max(1, circuit.repeatCount) }, () => ({
-        target: numeric,
-        pauseSeconds: 0,
-        loadKg: commonLoad(parameters) ?? 0,
-      }));
-      return withFormat(exercise, { key: "FOR_TIME", settings: {} }, { ...parameters, mode: parameters.mode ?? "REPETITIONS", series: { kind: "VARIABLE", rows, workPhases: parameters.series.workPhases } }, 0);
+      // Règles de Hermann du 14/11/2026, FT-8 : « Un exercice ajouté en rôle Tour est créé avec autant de séries identiques que
+      // de tours. » [Séries Variables de même cible — remplacé.]
+      return withFormat(exercise, { key: "FOR_TIME", settings: {} }, uniform(parameters, parameters.mode ?? "REPETITIONS", Math.max(1, circuit.repeatCount), numeric, 0), 0);
     }
     case "EMOM": {
       // Intervalle et Durée de l'exercice portés par le Circuit ; récupération 0 s. Complément du 5 novembre 2026 (Hermann), §14 : une série par tour (S1…Sn),

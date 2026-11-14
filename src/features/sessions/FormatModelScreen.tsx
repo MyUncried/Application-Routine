@@ -52,6 +52,9 @@ import {
   roleSwitches,
   summaryIssues,
   chargePerSeries,
+  forTimeParameters,
+  forTimeSeriesCount,
+  movementRole,
   deathByFirstRankWarning,
   supersetRecovery,
   withAnswer,
@@ -63,7 +66,8 @@ import {
   type ModelMovement,
   type MovementValues,
 } from "@/domain/sessions/formatModels";
-import { applyModelReedit, modelStateOfCircuit, type ModelReeditState } from "@/domain/sessions/formatReedit";
+import { applyModelReedit, forTimeValuesOf, modelStateOfCircuit, type ModelReeditState } from "@/domain/sessions/formatReedit";
+import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessions/formatTimeline";
 import { currentLayout } from "@/domain/sessions/layoutOperations";
 import { structureCircuits } from "@/domain/sessions/structure";
@@ -511,6 +515,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const params = useLocalSearchParams<{ model?: string; circuitId?: string }>();
   const routeModel: FormatModelKey = isFormatModelKey(params.model) ? params.model : "TABATA";
   const { draft: modelDraft, start, startWith, setAnswers, setMovements } = useFormatModelDraft();
+  // For time (FT-3, 14/11/2026) : rang du mouvement dont la modale des paramètres est ouverte.
+  const [parametersOf, setParametersOf] = useState<number | null>(null);
   const sessionDraft = useSessionDraft();
   /**
    * Mise à jour consolidée du 04/11/2026 (§6 sexies) : « Modifier le format » — récapitulatif du Modèle d'origine
@@ -593,7 +599,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       if (defaults === null || modelDraft === null) return;
       const entries = added.map((movement) => {
         const exercise = exerciseOfMovement(movement, Crypto.randomUUID(), defaults);
-        return { exercise, values: initialMovementValues(model, modelDraft.answers, exercise), movement };
+        // Règles de Hermann du 14/11/2026 (For time, FT-4) : un buy-in ou un buy-out commence à une série.
+        return { exercise, values: initialMovementValues(model, modelDraft.answers, exercise, role === "LOOP" ? "TOUR" : role), movement };
       });
       setMovements((current) => {
         const mapped = entries.map(({ exercise, values }) => ({ exercise, values }));
@@ -1872,11 +1879,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                 cell={cellBinding}
               />
             ) : null}
-            {model === "FOR_TIME" ? (
-              // Recette du 04/11/2026 (f4-modale, For time : « le fond du tableau doit être transparent, seules les zones de
-              // textes doivent avoir un fond blanc ») : zones de saisie blanches. Recette du 05/11/2026 (constat d) : cadre propre.
-              <SeriesTable model="FOR_TIME" bare movements={movements} count={answers.roundCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
-            ) : null}
+            {model === "FOR_TIME" ? forTimeTables() : null}
           </View>
         ) : null}
         {/* Remarque B du 06/11/2026 (Hermann : « le message rouge "les durées atteignent ou dépassent..." doit être juste sous le tableau des
@@ -2032,12 +2035,94 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           sign={signBar}
         />
       ) : null}
+      {forTimeParametersSheet()}
     </View>
     </GestureHandlerRootView>
   );
 
   function updateValues(index: number, values: MovementValues) {
     setMovements((current) => current.map((item, at) => (at === index ? { ...item, values } : item)));
+  }
+
+  /**
+   * For time — recette du 04/11/2026 (f4-modale : fond du tableau transparent, zones de saisie blanches) ; recette du 05/11/2026
+   * (constat d) : cadre propre. Règles de Hermann du 14/11/2026 (FT-4, FT-5, FT-12) : un tableau par zone — buy-in (S1…Sn, ses
+   * propres séries), tours (Tour 1…N), buy-out (S1…Sn) ; chaque ligne montre les séries réelles de l'Exercice. FT-3 : le nom ouvre
+   * la même modale de paramètres que la Composition. [Un tableau unique Tour 1…N, buy-in au premier tour et buy-out au dernier,
+   * une seule case — remplacé.]
+   */
+  function forTimeTables() {
+    const zones = (["BUY_IN", "TOUR", "BUY_OUT"] as const)
+      .map((role) => ({ role, items: movements.map((item, index) => ({ item, index })).filter(({ item }) => movementRole(item) === role) }))
+      .filter((zone) => zone.items.length > 0);
+    const several = zones.length > 1;
+    return zones.map(({ role, items }) => {
+      const first = items[0]!.index;
+      const subset = items.map(({ item }) => item);
+      const rowCount = (item: ModelMovement) => forTimeSeriesCount(answers, item);
+      const count = role === "TOUR" ? (answers.roundCount ?? 1) : Math.max(1, ...subset.map(rowCount));
+      const title = !several ? undefined : role === "BUY_IN" ? t().table.buyInTitle : role === "BUY_OUT" ? t().table.buyOutTitle : undefined;
+      return (
+        <SeriesTable
+          key={role}
+          model="FOR_TIME"
+          bare
+          movements={subset}
+          indexOffset={first}
+          count={count}
+          headingKind={role === "TOUR" ? "round" : "series"}
+          rowCount={rowCount}
+          {...(title !== undefined ? { title } : {})}
+          withLoad={answers.withLoad === true}
+          onChange={updateValues}
+          onAddLoad={addLoad}
+          onOpenParameters={setParametersOf}
+          cell={cellBinding}
+        />
+      );
+    });
+  }
+
+  /** For time (FT-3, 14/11/2026) : modale des paramètres d'exécution d'un mouvement, la même que dans la Composition. */
+  function forTimeParametersSheet() {
+    if (model !== "FOR_TIME" || parametersOf === null) return null;
+    const movement = movements[parametersOf];
+    if (movement === undefined) return null;
+    const index = parametersOf;
+    const role = movementRole(movement);
+    const parent = forTimeParameters(answers, movement, 0, forTimeSeriesCount(answers, movement));
+    const cap = answers.timeCapSeconds;
+    const close = () => setParametersOf(null);
+    return (
+      <ExecutionParametersSheet
+        key={movement.exercise.id}
+        parent={parent}
+        baseline={parent}
+        profileSideRecoverySecondsDefault={(defaults as { readonly sideRecoverySeconds?: number } | null)?.sideRecoverySeconds ?? DOMAIN_DEFAULTS.sideRecoverySeconds}
+        exerciseSignals="absent"
+        // FT-5 : en tour, le nombre de séries est celui des tours, non réglable exercice par exercice ; FT-4 : buy-in et buy-out libres.
+        inheritedSeriesCount={role === "TOUR" && movements.length > 1}
+        presentation="compositionCard"
+        format={{
+          key: "FOR_TIME",
+          rows: movements.length > 1 ? ["inheritedCap", "stopTarget"] : ["stopTarget"],
+          settings: {},
+          ...(movements.length > 1 ? { role: { current: role, admitted: [role], available: [role] } } : {}),
+          inheritedCapText: typeof cap === "number" ? `≤ ${formatPhraseDuration(cap)}` : strings.executionParameters.format.noLimit,
+          onApply: () => undefined,
+        }}
+        onApply={(applied) => {
+          setMovements((current) =>
+            current.map((item, at) =>
+              at === index ? { ...item, exercise: { ...item.exercise, executionParameters: applied, sideMode: applied.sideMode }, values: forTimeValuesOf(applied) } : item,
+            ),
+          );
+          if (applied.loadEnabled === true && answers.withLoad !== true) setAnswers((current) => ({ ...current, withLoad: true }));
+          close();
+        }}
+        onCancel={close}
+      />
+    );
   }
 
   function movementCard(item: ModelMovement, index: number) {

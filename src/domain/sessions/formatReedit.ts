@@ -18,7 +18,7 @@
  * Fonctions pures.
  */
 
-import { seriesRowsOf, type SeriesRow } from "@/domain/activities/ExecutionParameters";
+import { seriesRowsOf, type ExecutionParametersInput, type SeriesRow } from "@/domain/activities/ExecutionParameters";
 
 import { circuitRoleOf } from "./formats";
 import {
@@ -84,12 +84,7 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
     case "DEATH_BY":
       return { mode, start: firstNumber(rows), startIncrement: typeof settings.incrementPerRound === "number" ? settings.incrementPerRound : 1, loadKg: loadOf(loads[0]), ...loadOn };
     case "FOR_TIME":
-      return {
-        mode,
-        volumes: rows.map((row) => (row.target.kind === "NUMBER" ? row.target.value : null)),
-        loads: rows.map((row) => loadOf(row.loadKg)),
-        ...loadOn,
-      };
+      return forTimeValuesOf(parameters);
     case "PROGRESSION":
       return { mode, cells: cells(), ...loadOn };
     case "TABATA":
@@ -102,6 +97,22 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
     default:
       return {};
   }
+}
+
+/**
+ * For time — valeurs du récapitulatif lues dans la configuration d'exécution de l'Exercice (règles de Hermann du 14/11/2026, FT-3,
+ * FT-12) : ses séries réelles, nombre, cibles, charges et type (Identiques / Variables) ; rien n'est déduit du Rôle.
+ */
+export function forTimeValuesOf(parameters: ExecutionParametersInput): MovementValues {
+  const rows = seriesRowsOf(parameters);
+  const loadOf = (load: number | undefined) => (parameters.loadEnabled && load !== undefined && load > 0 ? load : null);
+  return {
+    mode: parameters.mode ?? "REPETITIONS",
+    volumes: rows.map((row) => (row.target.kind === "NUMBER" ? row.target.value : null)),
+    loads: rows.map((row) => loadOf(row.loadKg)),
+    seriesKind: parameters.series.kind,
+    ...(parameters.loadEnabled === true ? { loadOn: true as const } : {}),
+  };
 }
 
 /** Questionnaire et récapitulatif reconstruits depuis l'état actuel du Circuit (§6 sexies.3, §6 sexies.7). */

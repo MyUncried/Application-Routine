@@ -43,6 +43,7 @@ import {
 
 import type { CircuitNature } from "./circuit";
 import { withCircuitRole, type CircuitRole, type ElementFormat, type ElementFormatKey, type PreconfigurationKey } from "./formats";
+import { valuesForRounds } from "./forTimeSeries";
 import { currentLayout, withLayout } from "./layoutOperations";
 import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
 import { computeStructureDuration, type StructureCircuit, type StructureElement } from "./structure";
@@ -260,6 +261,11 @@ export type MovementValues = {
   readonly volumes?: readonly (number | null)[];
   /** For time : charge de chaque tour, `null` = sans charge. */
   readonly loads?: readonly (number | null)[];
+  /**
+   * For time : type des séries de l'Exercice (Identiques / Variables), lu dans sa configuration (règles de Hermann du 14/11/2026,
+   * FT-3, FT-5) ; absent : Variables. Des séries identiques restent Identiques à l'enregistrement.
+   */
+  readonly seriesKind?: "UNIFORM" | "VARIABLE";
   /** Progression, EMOM (S1…Sn), Superset (Tour 1…n) : objectif et charge de chaque série (Complément du 5 novembre 2026 (Hermann), §11, §14, §17). */
   readonly cells?: readonly SeriesCell[];
 };
@@ -317,8 +323,11 @@ function baseTarget(exercise: SessionDraftExercise, mode: ExecutionMode): number
   return (exercise.executionParameters.mode ?? "REPETITIONS") === mode && target !== undefined && target.kind === "NUMBER" ? target.value : null;
 }
 
-/** Valeurs initiales d'un mouvement ajouté (valeurs décidées, sinon celles de l'Exercice de base). */
-export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers, exercise: SessionDraftExercise): MovementValues {
+/**
+ * Valeurs initiales d'un mouvement ajouté (valeurs décidées, sinon celles de l'Exercice de base). For time, buy-in ou buy-out
+ * (`role`) : une série (règles de Hermann du 14/11/2026, FT-4 : nombre de séries propre, indépendant du nombre de tours).
+ */
+export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers, exercise: SessionDraftExercise, role: CircuitRole = "TOUR"): MovementValues {
   switch (key) {
     case "AMRAP":
       return { mode: "REPETITIONS", repetitions: baseTarget(exercise, "REPETITIONS"), max: false, increment: null, loadKg: null };
@@ -334,7 +343,7 @@ export function initialMovementValues(key: FormatModelKey, answers: ModelAnswers
     case "DEATH_BY":
       return { mode: "REPETITIONS", start: answers.startRepetitions ?? 1, startIncrement: answers.increment ?? 1 };
     case "FOR_TIME":
-      return { mode: "REPETITIONS", volumes: resizeList(FOR_TIME_INITIAL, answers.roundCount ?? 3), loads: [] };
+      return { mode: "REPETITIONS", volumes: resizeList(FOR_TIME_INITIAL, role === "TOUR" ? (answers.roundCount ?? 3) : 1), loads: [] };
     case "PROGRESSION":
       return { mode: "REPETITIONS", cells: resizeList(PROGRESSION_INITIAL, answers.seriesCount ?? 3).map((repetitions) => ({ repetitions, loadKg: null })) };
     default:
@@ -543,8 +552,8 @@ export function summaryIssues(key: FormatModelKey, answers: ModelAnswers, moveme
           // Objectif propre au mouvement (tableau) : `null` après un changement d'unité.
           return values.repetitions !== null;
         case "FOR_TIME":
-          // Buy-in et buy-out : une seule exécution (une case).
-          return Array.from({ length: movementRole(movement) === "TOUR" ? (answers.roundCount ?? 1) : 1 }, (_, at) => values.volumes?.[at] ?? null).every((volume) => volume !== null);
+          // Buy-in et buy-out : leurs propres séries (FT-4, 14/11/2026). [Une seule exécution (une case) — remplacé.]
+          return Array.from({ length: forTimeSeriesCount(answers, movement) }, (_, at) => values.volumes?.[at] ?? null).every((volume) => volume !== null);
         case "PROGRESSION":
           return Array.from({ length: answers.seriesCount ?? 1 }, (_, at) => values.cells?.[at] ?? null).every((cell) => cell !== null && cell.repetitions !== null);
         default:
@@ -599,8 +608,23 @@ export function extendList<T>(values: readonly T[], count: number): (T | null)[]
  */
 export function adaptMovementsToAnswers(key: FormatModelKey, answers: ModelAnswers, movements: readonly ModelMovement[]): readonly ModelMovement[] {
   if (key === "FOR_TIME") {
+    // Règles de Hermann du 14/11/2026, FT-7 : les exercices en tour suivent le nombre de tours — complétés avec la dernière valeur
+    // (identiques : valeur répétée), dernières séries supprimées à la diminution ; buy-in et buy-out inchangés (FT-4). [Valeurs
+    // au-delà de N gardées en réserve et lignes ajoutées « à compléter » (contre-recette n° 3 ter du 03/11/2026) — remplacé pour le
+    // For time.]
     const count = answers.roundCount ?? 3;
-    return movements.map((movement) => ({ ...movement, values: { ...movement.values, volumes: extendList(movement.values.volumes ?? [], count) } }));
+    return movements.map((movement) =>
+      movementRole(movement) !== "TOUR"
+        ? movement
+        : {
+            ...movement,
+            values: {
+              ...movement.values,
+              volumes: valuesForRounds(movement.values.volumes ?? [], count),
+              ...(movement.values.loads !== undefined && movement.values.loads.length > 0 ? { loads: valuesForRounds(movement.values.loads, count) } : {}),
+            },
+          },
+    );
   }
   if (key === "PROGRESSION" || key === "EMOM" || key === "SUPERSET") {
     const count = key === "SUPERSET" ? (answers.roundCount ?? 3) : (answers.seriesCount ?? 3);
@@ -873,19 +897,8 @@ export function buildModelElements(
       const rounds = answers.roundCount ?? 1;
       const rest = answers.restBetweenRoundsSeconds ?? 0;
       const cap = answers.timeCapSeconds ?? null;
-      // MAJ 04/11 §6 quater bis : un objectif et une charge par tour (charge facultative), dans l'unité de la ligne. Complément du 5 novembre 2026 (Hermann), §9 :
-      // charge décidée mouvement par mouvement (« (+ kg) »).
-      const parameters = (exercise: SessionDraftExercise, values: MovementValues, pauseSeconds: number, count: number) => {
-        const loads = resizeList(values.loads ?? [], count);
-        const active = chargeActive(answers, values);
-        const rows = resizeList(values.volumes ?? [], count).map((volume, at) => ({
-          target: target(volume ?? null),
-          pauseSeconds,
-          loadKg: active ? (loads[at] ?? 0) : baseRowLoad(exercise, at),
-        }));
-        const anyLoad = active && loads.some((load) => load != null && load > 0);
-        return withLoadSwitch(variable(exercise.executionParameters, values.mode ?? "REPETITIONS", rows), active, anyLoad);
-      };
+      const parameters = (exercise: SessionDraftExercise, values: MovementValues, pauseSeconds: number, count: number) =>
+        forTimeParameters(answers, { exercise, values }, pauseSeconds, count);
       if (!several) {
         const [{ exercise, values }] = movements as [ModelMovement];
         return [
@@ -906,7 +919,9 @@ export function buildModelElements(
       ];
       const members = ordered.map((movement) => {
         const role = movementRole(movement);
-        const count = role === "TOUR" ? rounds : 1;
+        // FT-4, FT-5 (14/11/2026) : en tour, autant de séries que de tours ; buy-in et buy-out, leurs propres séries. [Une seule
+        // exécution pour le buy-in et le buy-out — remplacé.]
+        const count = forTimeSeriesCount(answers, movement);
         return withParameters(movement.exercise, parameters(movement.exercise, movement.values, 0, count), 0, withCircuitRole({ key: "FOR_TIME", settings: {} }, role));
       });
       return [
@@ -925,6 +940,39 @@ export function buildModelElements(
       return unreachable;
     }
   }
+}
+
+/**
+ * For time — nombre de séries d'un mouvement : en tour, le nombre de tours ; buy-in et buy-out, leurs propres séries, au moins une
+ * (règles de Hermann du 14/11/2026, FT-4, FT-5).
+ */
+export function forTimeSeriesCount(answers: ModelAnswers, movement: Pick<ModelMovement, "values" | "buyIn" | "buyOut">): number {
+  const role = movement.buyIn === true ? "BUY_IN" : movement.buyOut === true ? "BUY_OUT" : "TOUR";
+  return role === "TOUR" ? (answers.roundCount ?? 1) : Math.max(1, movement.values.volumes?.length ?? 1);
+}
+
+/**
+ * For time — configuration d'exécution produite pour un mouvement (`count` séries) : un objectif et une charge par série (charge
+ * facultative), dans l'unité de la ligne (MAJ 04/11 §6 quater bis ; Complément du 5 novembre 2026 (Hermann), §9 : charge décidée
+ * mouvement par mouvement). Règles de Hermann du 14/11/2026 (FT-3, FT-5) : des séries Identiques toutes égales restent Identiques.
+ */
+export function forTimeParameters(answers: ModelAnswers, movement: Pick<ModelMovement, "exercise" | "values">, pauseSeconds: number, count: number): ExecutionParametersInput {
+  const { exercise, values } = movement;
+  const loads = resizeList(values.loads ?? [], count);
+  const active = chargeActive(answers, values);
+  const rows = resizeList(values.volumes ?? [], count).map((volume, at) => ({
+    target: target(volume ?? null),
+    pauseSeconds,
+    loadKg: active ? (loads[at] ?? 0) : baseRowLoad(exercise, at),
+  }));
+  const anyLoad = active && loads.some((load) => load != null && load > 0);
+  const mode = values.mode ?? "REPETITIONS";
+  const same = rows.every((row) => JSON.stringify(row) === JSON.stringify(rows[0]));
+  const built: ExecutionParametersInput =
+    values.seriesKind === "UNIFORM" && same && rows[0] !== undefined
+      ? { ...exercise.executionParameters, mode, series: { kind: "UNIFORM", count, target: rows[0].target, pauseSeconds, loadKg: rows[0].loadKg, workPhases: exercise.executionParameters.series.workPhases } }
+      : variable(exercise.executionParameters, mode, rows);
+  return withLoadSwitch(built, active, anyLoad);
 }
 
 /** Charge de la série `at` de l'Exercice de base, conservée sous « Sans » (AD-19). */

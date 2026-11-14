@@ -250,10 +250,17 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
       const once = (role: "BUY_IN" | "BUY_OUT") =>
         indexed
           .filter((item) => item.role === role)
-          .map(({ movement, index }): TimelineBlock => {
-            const value = movement.values.volumes?.[0] ?? null;
-            return { kind: "WORK", movement: index, label: `${value === null ? "—" : objectiveLabel(movement, value)} · ${role === "BUY_IN" ? "buy-in" : "buy-out"}`, weight: 2.5, height: 1, buyIn: true };
-          });
+          // Règles de Hermann du 14/11/2026 (FT-4) : chaque série du buy-in ou du buy-out. [Une seule exécution — remplacé.]
+          .flatMap(({ movement, index }): TimelineBlock[] =>
+            (movement.values.volumes !== undefined && movement.values.volumes.length > 0 ? movement.values.volumes : [null]).map((value) => ({
+              kind: "WORK",
+              movement: index,
+              label: `${value === null ? "—" : objectiveLabel(movement, value)} · ${role === "BUY_IN" ? "buy-in" : "buy-out"}`,
+              weight: 2.5,
+              height: 1,
+              buyIn: true,
+            })),
+          );
       const blocks = [
         ...once("BUY_IN"),
         ...Array.from({ length: rounds }, (_, round) =>

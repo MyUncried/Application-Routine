@@ -198,22 +198,22 @@ describe("For time (§11, A6)", () => {
     expect(modelTimeline("FOR_TIME", answers, movementsOf("FOR_TIME", answers, ["a", "b"])).end).toEqual({ kind: "MEASURED" });
   });
 
-  it("N passé à 4 : 21-15-9-« à compléter » ; à 2 : 21-15 — sans copie, extrapolation ni confirmation", () => {
+  // Règles de Hermann du 14/11/2026, FT-7 : séries variables complétées avec la dernière valeur, dernières séries supprimées à la
+  // diminution. [« 21-15-9-à compléter », valeur du tour 3 gardée en réserve (contre-recette n° 3 ter du 03/11/2026) — remplacé.]
+  it("N passé à 4 : 21-15-9-9 (dernière valeur) ; à 2 : 21-15, dernière série supprimée (FT-7)", () => {
     const movements = movementsOf("FOR_TIME", answers, ["a"]);
     const four = adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 4), movements);
-    expect(four[0]!.values.volumes).toEqual([21, 15, 9, null]);
+    expect(four[0]!.values.volumes).toEqual([21, 15, 9, 9]);
     const [element] = build("FOR_TIME", withAnswer(answers, "roundCount", 4), four);
-    expect(element!.kind === "EXERCISE" && seriesRowsOf(element!.exercise.executionParameters).at(-1)!.target).toEqual({ kind: "UNSET" });
-    // Contre-recette n° 3 ter du 03/11/2026 (f3-fortime) : à 2, la valeur du tour 3 reste en réserve (non construite) ;
-    // repasser à 3 la retrouve.
+    expect(element!.kind === "EXERCISE" && seriesRowsOf(element!.exercise.executionParameters).at(-1)!.target).toEqual({ kind: "NUMBER", value: 9 });
     const two = adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 2), movements);
-    expect(two[0]!.values.volumes).toEqual([21, 15, 9]);
+    expect(two[0]!.values.volumes).toEqual([21, 15]);
     const [built] = build("FOR_TIME", withAnswer(answers, "roundCount", 2), two);
     expect(built!.kind === "EXERCISE" && seriesRowsOf(built!.exercise.executionParameters).map((row) => row.target)).toEqual([
       { kind: "NUMBER", value: 21 },
       { kind: "NUMBER", value: 15 },
     ]);
-    expect(adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 3), two)[0]!.values.volumes).toEqual([21, 15, 9]);
+    expect(adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 3), two)[0]!.values.volumes).toEqual([21, 15, 15]);
   });
 });
 

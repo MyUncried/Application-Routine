@@ -562,6 +562,8 @@ export function ExecutionScreen({
   // PRE-11 (T1) — For time, décision de Hermann du 13/11/2026 (« Temps écoulé. La borne peut apparaître dans le triangle du
   // haut à gauche ») : la borne occupe le coin du haut à gauche pendant le travail ; l'objectif de la Série passe alors
   // sous le chrono, dans le cercle.
+  // Étape de la Clôture (clé de la feuille et destinataire de SUBMIT).
+  const closureStep = projection.target;
   const forTimeCap =
     waiting === null && projection.format?.kind === "FOR_TIME" && projection.format.phase === "WORK" && projection.format.capMs !== null ? projection.format.capMs : null;
   const objectiveInRing = forTimeCap !== null && repetitions !== null && projection.guidance === null ? repetitions : null;
@@ -963,10 +965,10 @@ export function ExecutionScreen({
       {/* PRE-11 (T1) : Clôture bloquante d'un élément formaté (D3), modèle « Résultat de série » (Figma 8937:35362). */}
       {projection.phase === "CLOSURE" && projection.format !== null ? (
         <ExecutionClosureSheet
-          key={projection.target ?? "closure"}
+          key={closureStep ?? "closure"}
           format={projection.format}
           bottomInset={insets.bottom}
-          onSubmit={(payload) => void service.dispatch({ type: "SUBMIT", payload }, projection.target ?? undefined)}
+          onSubmit={(payload) => void service.dispatch({ type: "SUBMIT", payload }, closureStep ?? undefined)}
         />
       ) : null}
 

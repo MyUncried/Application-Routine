@@ -14,6 +14,9 @@
  * - For time : au moins un Exercice de l'ensemble du Circuit en Répétitions (buy-in et buy-out compris).
  * - Changer de rôle ne perd rien : Incrément et Récupération conservés, sans effet hors de la boucle ; For time,
  *   un Exercice à l'échec passé en Buy-in ou Buy-out passe À l'objectif, objectif « à renseigner ».
+ * - For time (règles de Hermann du 14/11/2026, FT-9, FT-10) : Tour → Buy-in ou Buy-out, séries conservées telles quelles,
+ *   propres à l'Exercice ; Buy-in ou Buy-out → Tour, séries ajustées au nombre de tours (`seriesForRounds` : identiques,
+ *   valeur répétée ; variables, tronquées ou complétées avec la dernière valeur).
  *
  * [Passage « Une fois » réservé au premier ou au dernier membre, buy-in unique et non duplicable,
  * réordonnancement par la seule position — remplacés le 04/11/2026.] Fonctions pures.
@@ -22,6 +25,7 @@
 import { unsetTarget } from "@/domain/activities/ExecutionParameters";
 
 import { exitBreaksMemberMinimum } from "./circuitMemberLimit";
+import { seriesForRounds } from "./forTimeSeries";
 import { admittedCircuitRoles, circuitRoleOf, withCircuitRole, type CircuitRole } from "./formats";
 import { structureCircuits, type SessionStructure, type StructureCircuit, type StructureStopPointLocation } from "./structure";
 import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
@@ -128,7 +132,9 @@ export function setMemberRole(draft: SessionDraft, exerciseId: string, role: Cir
         : toTarget && series.kind === "VARIABLE" && series.rows.some((row) => row.target.kind === "FAILURE")
           ? { ...parameters, series: { ...series, rows: series.rows.map((row) => (row.target.kind === "FAILURE" ? { ...row, target: unsetTarget() } : row)) } }
           : parameters;
-    return { ...exercise, format, executionParameters: retargeted };
+    // FT-10 (14/11/2026) : arrivée dans la boucle d'un For time, séries ajustées au nombre de tours.
+    const adjusted = circuit.format?.key === "FOR_TIME" && role === "TOUR" ? seriesForRounds(retargeted, circuit.repeatCount) : retargeted;
+    return { ...exercise, format, executionParameters: adjusted };
   });
   const roles = new Map(circuit.exercises.map((id, index) => [id, id === exerciseId ? role : circuitRoleOf(exerciseById(draft, id)?.format, index)]));
   const others = circuit.exercises.filter((id) => id !== exerciseId);

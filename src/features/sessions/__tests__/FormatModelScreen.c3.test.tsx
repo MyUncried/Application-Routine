@@ -806,11 +806,23 @@ describe("FormatModelScreen", () => {
     await pick("Fen", "mv-fentes", "format-loop");
     expect(within(screen.getByTestId("format-buy-out-cards")).getAllByText("Fentes avant")).toHaveLength(1);
     toSummary();
-    // Buy-in et buy-out : une case (une seule exécution) — buy-in au premier tour, buy-out au dernier (y-format-cadres, 07/11/2026).
+    // Règles de Hermann du 14/11/2026 (FT-4, FT-12) : buy-in et buy-out dans leur propre tableau (S1…Sn), une série à l'ajout.
+    // [Une case, buy-in au premier tour, buy-out au dernier (y-format-cadres, 07/11/2026) — remplacé.]
+    expect(screen.getByTestId("format-for-time-0-name-open")).toBeTruthy();
     fireEvent.changeText(screen.getByTestId("format-for-time-0-0"), "50");
-    expect(screen.queryByTestId("format-for-time-3-0")).toBeNull();
-    fireEvent.changeText(screen.getByTestId("format-for-time-3-2"), "20");
     expect(screen.queryByTestId("format-for-time-0-1")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("format-for-time-3-0"), "20");
+    expect(screen.queryByTestId("format-for-time-3-1")).toBeNull();
+    expect(screen.getByTestId("format-for-time-1-2")).toBeTruthy();
+    // FT-3 : le nom ouvre la même modale de paramètres que la Composition ; buy-in : ligne Séries présente.
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-for-time-0-name-open"));
+    });
+    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+    expect(screen.getByTestId("execution-sheet-row-series-type")).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("execution-sheet-scrim"));
+    });
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });

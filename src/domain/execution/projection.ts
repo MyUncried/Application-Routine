@@ -447,7 +447,7 @@ function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatVie
         ? null
         : {
             name: interruptedSpec.exerciseId === undefined ? null : (plan.exercises[interruptedSpec.exerciseId]?.name ?? null),
-            target: interruptedSpec.target ?? null,
+            target: interruptedSpec.target === undefined ? null : interruptedSpec.target,
             mode: interruptedSpec.mode ?? null,
           },
   };

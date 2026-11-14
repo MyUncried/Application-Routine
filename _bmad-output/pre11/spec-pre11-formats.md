@@ -37,6 +37,15 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 2. Écran de Clôture : « Réutiliser « Résultat de série » (Recommandé) » → la modale existante « Résultat de série » (Figma `8937:35362`), avec les champs du Format ; pas de maquette préalable.
 3. Chronomètre du For time : « Temps écoulé. La borne peut apparaître dans le triangle du haut à gauche » → le grand chrono compte le temps écoulé ; la borne, si elle existe, s'affiche dans le coin du haut à gauche du cercle (celui des répétitions dans un exercice libre).
 4. Phases en For time : « Rôle « Tour » en For time : Aucun affichage de phase, aucun bip, aucune annonce vocale de phase » (réponse « 2 c'est une règle à appliquer ») → `LeafSpec.phasesSilenced` sur les Séries des membres de Rôle Tour d'un Circuit For time ; buy-in, buy-out et Exercice For time autonome (sans Rôle) inchangés. ch10 (FMT-32) complété.
+5. Séries et tours du For time (14/11/2026) — demande de Hermann, recopiée : « Il faut corriger le fonctionnement du For Time : Scénario. Un For time composé d'un buy-in à une série de répétitions et de deux exercices en tours, de répétitions différentes, sur 3 tours au total. Tu échanges les rôles : l'exercice buy-in passe en tour, et le premier exercice en tour passe en buy-in. Constat. Le changement de rôle ne convertit pas la configuration des séries. Composition et récapitulatif se retrouvent avec deux versions différentes de la même donnée. En pièce jointe les règles pour corriger le for Time. » Pièce jointe recopiée mot pour mot : `_bmad-output/pre11/for-time-regles-series-tours-2026-11-14.md` (FT-1 à FT-13, recette 1 à 5). Classe B. Réalisation :
+   - FT-4, FT-5 : buy-in et buy-out, nombre de séries libre (ligne Séries de la modale rétablie, Pause toujours retirée) ; en tour, N = nombre de tours, non réglable dans la modale (`inheritsCircuitSeriesCount`) ;
+   - FT-6 : « À l'échec » grisé dans la modale de tout For time (`stopTarget`) ;
+   - FT-7 : changement du nombre de tours (Composition et questionnaire) : identiques répétées, variables complétées avec la dernière valeur, dernières séries supprimées (`seriesForRounds`, `valuesForRounds`) ; buy-in et buy-out inchangés ;
+   - FT-8 : exercice ajouté en tour, séries Identiques × tours (`enterCarrier`) ;
+   - FT-9, FT-10 : `setMemberRole` — vers buy-in/buy-out, séries conservées ; vers tour, séries ajustées aux tours ;
+   - FT-3, FT-11, FT-12 : récapitulatif lu dans la configuration (`forTimeValuesOf`, type Identiques / Variables compris) ; un tableau par zone (Buy-in S1…Sn, Tours, Buy-out S1…Sn) ; le nom d'un mouvement ouvre la même modale de paramètres que la Composition ; l'enregistrement écrit le nombre réel de séries (`forTimeSeriesCount`, `forTimeParameters`) ;
+   - FT-13 : déjà réalisé (décision 4).
+   Interprétation à confirmer : un For time autonome (un seul mouvement, sans Rôle) suit FT-7 comme un exercice en tour.
 
 ## 6. Contradictions relevées entre sources (à trancher dans la tranche concernée)
 
@@ -64,4 +73,4 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 
 ### T1 — Socle + For time (13/11/2026)
 
-Réalisé, à vérifier sur iPhone. Classe B (décisions du §5) et A (§12.3 de la conception consolidée). Détail dans le rapport `.github/orchestration/reports/2026-11-13_PRE11_FORMATS.md`. Écarts au Figma de la Clôture : pas de ✕ (bloquante) ; rangée de nombres à toucher au lieu d'une roulette horizontale (aucune primitive native horizontale).
+Réalisé, à vérifier sur iPhone. Classe B (décisions du §5) et A (§12.3 de la conception consolidée). Séries et tours (14/11/2026, §5 point 5) : classe B, documents mis à jour — ch10 (FMT-31), référence Formats (§3, §11 A6, tableau), ch13 (copie §3), ch07 (nouvelle entrée). Détail dans le rapport `.github/orchestration/reports/2026-11-13_PRE11_FORMATS.md`. Écarts au Figma de la Clôture : pas de ✕ (bloquante) ; rangée de nombres à toucher au lieu d'une roulette horizontale (aucune primitive native horizontale).

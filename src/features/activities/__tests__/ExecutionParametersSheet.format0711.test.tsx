@@ -262,13 +262,15 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
     expect(onRecovery).toHaveBeenCalledWith(0);
   });
 
-  it("For time : Buy-in et Buy-out sans Séries ni Pause ; Tour les garde", () => {
+  // Règles de Hermann du 14/11/2026 (FT-3, FT-4) : buy-in et buy-out, nombre de séries libre — la ligne Séries revient ; la ligne
+  // Pause reste retirée. [« sans Séries ni Pause » (y-format-cadres, 07/11/2026) — remplacé pour la ligne Séries.]
+  it("For time : Buy-in et Buy-out avec Séries, sans Pause ; Tour garde les deux (FT-4)", () => {
     const forTime = (current: CircuitRole) => ({
       role: { current, admitted: ["BUY_IN", "TOUR", "BUY_OUT"] as CircuitRole[], available: ["BUY_IN", "TOUR", "BUY_OUT"] as CircuitRole[] },
       inheritedCapText: f.noLimit,
     });
     renderWithRecovery("FOR_TIME", ["role", "inheritedCap"], forTime("BUY_OUT"));
-    expect(query("execution-sheet-row-series-type")).toBeNull();
+    expect(query("execution-sheet-row-series-type")).not.toBeNull();
     expect(query("execution-sheet-row-pause")).toBeNull();
     screen.unmount();
     renderWithRecovery("FOR_TIME", ["role", "inheritedCap"], forTime("TOUR"));

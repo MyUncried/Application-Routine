@@ -3,6 +3,7 @@ import { repriseExecutionParameters, type Movement } from "@/domain/activities/M
 import { DEFAULT_CIRCUIT_NATURE } from "@/domain/sessions/circuit";
 import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
+import { circuitRoleOf } from "@/domain/sessions/formats";
 import { createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { structureCircuits } from "@/domain/sessions/structure";
 import { insertIntoRichLayout, resolveRichLayout } from "@/features/sessions/compositionLayout";
@@ -184,8 +185,14 @@ export function inheritsCircuitSeriesCount(
     return structureCircuits(rich).some(
       // Décision de Hermann du 07/11/2026 (EMOM, tableau B, cas 4) : dans un Circuit porteur EMOM « dans chaque intervalle »,
       // N = tours du Circuit, non modifiable dans la modale.
-      (circuit) =>
-        (circuit.nature === "SERIES" || circuit.format?.key === "EMOM") && circuit.exercises.some((member) => member.id === exercise.id),
+      (circuit) => {
+        const index = circuit.exercises.findIndex((member) => member.id === exercise.id);
+        if (index < 0) return false;
+        // Règles de Hermann du 14/11/2026 (For time, FT-4, FT-5) : en tour, N = nombre de tours, non réglable exercice par
+        // exercice ; buy-in et buy-out, nombre de séries libre (au moins 1).
+        if (circuit.format?.key === "FOR_TIME") return circuitRoleOf(circuit.exercises[index]!.format, index) === "TOUR";
+        return circuit.nature === "SERIES" || circuit.format?.key === "EMOM";
+      },
     );
   }
   return exercise.structuralPosition === "IN_TOUR" && (draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES";

@@ -145,17 +145,19 @@ describe("charges des Formats (MAJ 04/11 §6 quater bis)", () => {
 });
 
 describe("Rôle dans le circuit (MAJ 04/11 §6 bis 2)", () => {
-  it("For time : zones buy-in, tour, buy-out ; buy-in et buy-out une seule exécution ; plusieurs par zone", () => {
+  // Règles de Hermann du 14/11/2026, FT-4 : buy-in et buy-out portent leurs propres séries (au moins une), indépendantes du nombre
+  // de tours. [Une seule exécution — remplacé.]
+  it("For time : zones buy-in, tour, buy-out ; buy-in et buy-out avec leurs propres séries ; plusieurs par zone (FT-4)", () => {
     const answers = initialAnswers("FOR_TIME");
     const movements = [
       row("FOR_TIME", answers, "loop"),
-      row("FOR_TIME", answers, "out", {}, { buyOut: true }),
-      row("FOR_TIME", answers, "in1", {}, { buyIn: true }),
+      row("FOR_TIME", answers, "out", { volumes: [30] }, { buyOut: true }),
+      row("FOR_TIME", answers, "in1", { volumes: [10, 8] }, { buyIn: true }),
       row("FOR_TIME", answers, "in2", { mode: "DURATION", volumes: [120] }, { buyIn: true }),
     ];
     const circuit = circuitOf(buildModelElements("FOR_TIME", answers, movements, newId));
     expect(circuit!.exercises.map((exercise, index) => [exercise.id, circuitRoleOf(exercise.format, index), seriesRowsOf(exercise.executionParameters).length])).toEqual([
-      ["in1", "BUY_IN", 1],
+      ["in1", "BUY_IN", 2],
       ["in2", "BUY_IN", 1],
       ["loop", "TOUR", 3],
       ["out", "BUY_OUT", 1],

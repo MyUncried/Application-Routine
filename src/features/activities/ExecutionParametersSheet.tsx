@@ -904,7 +904,10 @@ export function ExecutionParametersSheet({
   // l'exécution) ; ligne Séries « Jusqu'à l'échec » pour l'Exercice autonome, absente dans un Circuit porteur.
   const amrapMemberSheet = format?.key === "AMRAP" && format.rows.includes("role");
   const forTimeOnceSheet = format?.key === "FOR_TIME" && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT");
-  const noSeriesRow = amrapMemberSheet || forTimeOnceSheet;
+  // Règles de Hermann du 14/11/2026 (For time, FT-3, FT-4) : buy-in et buy-out, nombre de séries libre, identiques ou variables —
+  // la ligne Séries revient. [Recette du 07/11/2026 (y-format-cadres) : ligne Séries retirée pour le buy-in et le buy-out — remplacé
+  // le 14/11/2026 ; la ligne Pause reste retirée.]
+  const noSeriesRow = amrapMemberSheet;
   const deathBySeriesRow = deathBySheet ? (format?.rows.includes("seriesUntilFailure") ?? false) : !noSeriesRow;
   // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : EMOM — jamais de Pause (A8 : le repos est le temps restant de l'intervalle) ; Durée de l'exercice hors du
   // cadre Cadence (lecture seule sous l'Intervalle, ou absente) ; Récupération absente en alternance et dans chaque intervalle.
@@ -914,7 +917,7 @@ export function ExecutionParametersSheet({
    * après chaque série et la ligne Séries. » ; AMRAP, rôles Tour et Buy-in : « Lignes à retirer […] « Séries » […] « Pause après
    * chaque série » […] « Durée de l'exercice » ». Valeurs conservées dans le Brouillon, sans ligne.
    */
-  const noPauseRow = deathBySheet || emomSheet || noSeriesRow;
+  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeOnceSheet;
   const noCadenceDuration = deathBySheet || emomSheet || amrapMemberSheet;
   const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false);
   // y-format-cadres (07/11/2026, Hermann, maquette `11264:19453`) : AMRAP, rôle Buy-in — « Récupération grisée, à 0 s, non modifiable ».

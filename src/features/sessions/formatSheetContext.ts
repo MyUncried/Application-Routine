@@ -37,11 +37,12 @@ export function formatSheetContextOf(
       }
       break;
     case "FOR_TIME":
-      if (carrier === undefined) rows.push("timeCap");
+      if (carrier === undefined) rows.push("timeCap", "stopTarget");
       else {
         const choices = roleChoices(draft, draft.structure, exerciseId);
         if (choices !== null) role = choices;
-        rows.push("role", "inheritedCap");
+        // Règles de Hermann du 14/11/2026, FT-6 : « À l'échec » n'est pas proposé en For time (« À l'objectif » seul).
+        rows.push("role", "inheritedCap", "stopTarget");
         const cap = carrier.format?.settings.timeCapSeconds;
         inheritedCapText = typeof cap === "number" ? `≤ ${formatPhraseDuration(cap)}` : strings.executionParameters.format.noLimit;
       }

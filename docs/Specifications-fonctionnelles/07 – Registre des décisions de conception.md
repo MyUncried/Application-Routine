@@ -1756,6 +1756,8 @@ y-format-cadres (KO) :
 
 > For time - exercice de type Buy in / Buy out : retirer la ligne Pause après chaque série et la ligne Séries.
 >
+> [Ligne Séries — remplacé le 14/11/2026 (règles FT-3, FT-4, entrée « For time — séries et tours (14/11/2026) ») : la ligne Séries revient ; la ligne Pause reste retirée.]
+>
 > Récapitulatif : tableau des objectifs, la valeur du buy out doit être placée au dernier tour, pas au premier.
 >
 > Death by : j’accède au format, il manque la valeur initiale de l’objectif, mais ni le circuit, ni l’exercice n’étaient rouge. Paramètres Nombre de répétitions  est mis à l’échec au lieu d’accueillir la valeur Départ du tableau.
@@ -2535,3 +2537,9 @@ Constat de Hermann, recopié textuellement :
 ### Guidage sonore en Composition et dans le Profil (11/11/2026)
 
 La modale de Composition règle uniquement la séance en cours. L’icône pleine signale exclusivement son ouverture. Les six annonces vocales et les réglages Son et Vibration des neuf événements sont indépendants. Chaque liste de sons comprend « Aucun », y compris pour Mi-temps. Le prototype présente les écrans sans liaisons interactives pour ce parcours. Le DS définit « Bouton secondaire » comme base commune aux actions Édition et Guidage sonore.
+
+## For time — séries et tours (14/11/2026)
+
+Demande de Hermann (PRE-11), recopiée : « Il faut corriger le fonctionnement du For Time : Scénario. Un For time composé d'un buy-in à une série de répétitions et de deux exercices en tours, de répétitions différentes, sur 3 tours au total. Tu échanges les rôles : l'exercice buy-in passe en tour, et le premier exercice en tour passe en buy-in. Constat. Le changement de rôle ne convertit pas la configuration des séries. Composition et récapitulatif se retrouvent avec deux versions différentes de la même donnée. En pièce jointe les règles pour corriger le for Time. »
+
+Règles jointes, recopiées mot pour mot : `_bmad-output/pre11/for-time-regles-series-tours-2026-11-14.md` (FT-1 à FT-13). Elles remplacent : buy-in / buy-out à une seule exécution sans ligne Séries (y-format-cadres, 07/11/2026) ; « Changer N … ajoute des cases à compléter » (FMT-31, Formats §11 A6) et la réserve des valeurs au-delà de N du récapitulatif For time (contre-recette n° 3 ter du 03/11/2026) ; le tableau unique du récapitulatif (buy-in au premier tour, buy-out au dernier). Classe B. Détail de la réalisation : spec `_bmad-output/pre11/spec-pre11-formats.md` §5 point 5.

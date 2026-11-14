@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StylePro
 import { formatPrimeDuration } from "@/domain/activities/durationFormat";
 import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
 import {
+  forTimeSeriesCount,
   movementRole,
   withSeriesValue,
   type FormatModelKey,
@@ -200,7 +201,8 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
       case "PROGRESSION": {
         // Objectifs S1 → Sn (ou Tour 1 → n), puis charges, puis ligne suivante (ch13, ordre de Suivant).
         const count =
-          model === "FOR_TIME" ? (movementRole(item) === "TOUR" ? (answers.roundCount ?? 1) : 1) : model === "SUPERSET" ? (answers.roundCount ?? 1) : (answers.seriesCount ?? 1);
+          // Règles de Hermann du 14/11/2026 (For time, FT-4) : buy-in et buy-out, leurs propres séries. [Une case — remplacé.]
+          model === "FOR_TIME" ? forTimeSeriesCount(answers, item) : model === "SUPERSET" ? (answers.roundCount ?? 1) : (answers.seriesCount ?? 1);
         for (let column = 0; column < count; column += 1) order.push(cellKey("obj", row, column));
         if (charged(values)) for (let column = 0; column < count; column += 1) order.push(cellKey("load", row, column));
         return;
@@ -483,12 +485,39 @@ function HeadCell({ label }: { readonly label: string }) {
 }
 
 /** Nom (une ligne, points de suspension) et étiquette sous le nom, à leurs positions fixes (A §4.4, B §4.4). */
-function NameBlock({ name, tag, style, testID }: { readonly name: string; readonly tag: React.ReactNode; readonly style?: StyleProp<ViewStyle>; readonly testID: string }) {
+function NameBlock({
+  name,
+  tag,
+  style,
+  testID,
+  onPress,
+}: {
+  readonly name: string;
+  readonly tag: React.ReactNode;
+  readonly style?: StyleProp<ViewStyle>;
+  readonly testID: string;
+  /** For time (FT-3, 14/11/2026) : le nom ouvre la modale des paramètres d'exécution de l'Exercice. */
+  readonly onPress?: () => void;
+}) {
   return (
     <View style={[styles.nameArea, style]}>
-      <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail" testID={`${testID}-title`}>
-        {name}
-      </Text>
+      {onPress === undefined ? (
+        <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail" testID={`${testID}-title`}>
+          {name}
+        </Text>
+      ) : (
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={t().table.openParameters.replace("{name}", name)}
+          style={styles.namePress}
+          testID={`${testID}-open`}
+        >
+          <Text style={[styles.name, styles.nameLink]} numberOfLines={1} ellipsizeMode="tail" testID={`${testID}-title`}>
+            {name}
+          </Text>
+        </Pressable>
+      )}
       <View style={styles.tag} testID={`${testID}-tag`}>
         {tag}
       </View>
@@ -1046,9 +1075,24 @@ export function SeriesTable({
   onAddLoad = () => undefined,
   overflow = [],
   cell,
+  indexOffset = 0,
+  title,
+  headingKind,
+  rowCount,
+  onOpenParameters,
 }: {
   /** [Variante For time « sans fond » — remplacée par la forme commune ; prop conservée sans effet.] */
   readonly bare?: boolean;
+  /**
+   * For time (règles de Hermann du 14/11/2026, FT-4, FT-12) : un tableau par zone — buy-in, tours, buy-out. `indexOffset` : rang du
+   * premier mouvement dans la liste complète ; `title` : titre de la colonne des noms ; `headingKind` : colonnes « Tour n » ou
+   * « Sn » ; `rowCount` : séries réelles de chaque ligne ; `onOpenParameters` : le nom ouvre la modale des paramètres (FT-3).
+   */
+  readonly indexOffset?: number;
+  readonly title?: string;
+  readonly headingKind?: "round" | "series";
+  readonly rowCount?: (item: ModelMovement) => number;
+  readonly onOpenParameters?: (index: number) => void;
   /**
    * Complément du 5 novembre 2026 (Hermann), §11, §14 : EMOM (S1…Sn) et Superset (Tour 1…n) reprennent ce tableau. [Chaque série préremplie avec la
    * valeur de S1 — remplacé le 06/11/2026 : chaque colonne se saisit à la main.]
@@ -1128,7 +1172,8 @@ export function SeriesTable({
       },
     };
   };
-  const heading = (at: number) => (model === "FOR_TIME" || model === "SUPERSET" ? tt.round : tt.series).replace("{n}", String(at + 1));
+  const heading = (at: number) =>
+    ((headingKind ?? (model === "FOR_TIME" || model === "SUPERSET" ? "round" : "series")) === "round" ? tt.round : tt.series).replace("{n}", String(at + 1));
   const prefix = model === "FOR_TIME" ? "format-for-time" : model === "EMOM" ? "format-emom" : model === "SUPERSET" ? "format-superset" : "format-progression";
   // Valeurs d'une ligne : For time (volumes, loads) ; Progression (cells).
   const objectiveAt = (values: MovementValues, at: number) => (model === "FOR_TIME" ? (values.volumes?.[at] ?? null) : (values.cells?.[at]?.repetitions ?? null));
@@ -1157,16 +1202,19 @@ export function SeriesTable({
         <View style={styles.seriesNamesHeader} testID={`${prefix}-head-zone-outer`}>
           <View style={styles.seriesHeadName} testID={`${prefix}-head-zone`}>
             <Text style={[styles.headText, styles.headName]} numberOfLines={1} testID={`${prefix}-head-name`}>
-              {tt.movement}
+              {title ?? tt.movement}
             </Text>
           </View>
         </View>
-        {movements.map((item, index) => (
+        {movements.map((item, local) => {
+          const index = indexOffset + local;
+          return (
           <View key={item.exercise.id} style={styles.seriesNameLine} testID={`${prefix}-${index}-name`}>
             <NameBlock
               name={rowName(item)}
               style={styles.seriesNameBlock}
               testID={`${prefix}-${index}-name`}
+              {...(onOpenParameters !== undefined ? { onPress: () => onOpenParameters(index) } : {})}
               tag={
                 <UnitTag
                   unit={unitWordOf(item.values.mode, model === "EMOM")}
@@ -1181,7 +1229,8 @@ export function SeriesTable({
             />
             <View style={styles.lineSeparator} pointerEvents="none" />
           </View>
-        ))}
+          );
+        })}
       </View>
       <ScrollView
         ref={scrollRef}
@@ -1201,22 +1250,20 @@ export function SeriesTable({
               <HeadCell key={at} label={heading(at)} />
             ))}
           </View>
-          {movements.map((item, index) => {
+          {movements.map((item, local) => {
+            const index = indexOffset + local;
             const values = item.values;
             const mode = values.mode;
             const loaded = charged(values);
-            // Buy-in / buy-out du For time : une seule exécution — buy-in au premier tour, buy-out au dernier (recette iPhone du
-            // 07/11/2026, y-format-cadres, Hermann : « Récapitulatif : tableau des objectifs, la valeur du buy out doit être placée au
-            // dernier tour, pas au premier. ») ; sa valeur reste la première du mouvement. [Buy-out au premier tour — remplacé.]
-            const role = movementRole(item);
-            const once = model === "FOR_TIME" && role !== "TOUR";
-            const onceAt = role === "BUY_OUT" ? count - 1 : 0;
+            // [Buy-in / buy-out du For time : une seule exécution — buy-in au premier tour, buy-out au dernier (recette iPhone du
+            // 07/11/2026, y-format-cadres) — remplacé le 14/11/2026 (règles de Hermann, FT-4, FT-12) : buy-in et buy-out ont leurs
+            // propres séries, affichées dans leur tableau (S1…Sn) ; une ligne plus courte laisse ses colonnes en trop vides.]
+            const own = rowCount?.(item) ?? count;
             return (
               <View key={item.exercise.id} style={styles.seriesValueLine} testID={`${prefix}-${index}-values`}>
                 {columns.map((at) => {
-                  if (once && at !== onceAt) return <View key={at} style={styles.column} />;
-                  // Rang de la valeur dans les données (buy-in / buy-out : la seule valeur du mouvement).
-                  const slot = once ? 0 : at;
+                  if (at >= own) return <View key={at} style={styles.column} />;
+                  const slot = at;
                   const objective = objectiveAt(values, slot);
                   const label = tt.cellLabel.replace("{movement}", item.exercise.name).replace("{column}", heading(at));
                   return (
@@ -1272,6 +1319,9 @@ const styles = StyleSheet.create({
   // Colonne Mouvement : de x = 16 jusqu'à 12 avant la première colonne de valeurs.
   nameArea: { flex: 1, minWidth: 0, marginRight: TABLE_LAYOUT.nameGap },
   name: { position: "absolute", top: TABLE_LAYOUT.nameTop, left: 0, right: 0, height: 16, fontFamily: "Inter_400Regular", fontSize: 13, lineHeight: 16, color: LABEL },
+  // For time (FT-3, 14/11/2026) : nom touchable, ouvre la modale des paramètres ; zone de la hauteur du nom et de son étiquette.
+  namePress: { position: "absolute", top: 0, left: 0, right: 0, height: TABLE_LAYOUT.tagTop },
+  nameLink: { color: valueFieldColors.editable },
   tag: { position: "absolute", top: TABLE_LAYOUT.tagTop, left: 0, right: 0, height: 13 },
   tagRow: { flexDirection: "row", alignItems: "center", height: 13 },
   // Étiquette : Inter Semi Bold 11 ; parenthèses, virgule et ±kg en bleu, « rép. » / « durée » en gris.

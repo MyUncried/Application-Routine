@@ -657,6 +657,11 @@ export const fr = {
         max: "Max",
         round: "Tour {n}",
         series: "S{n}",
+        // Règles de Hermann du 14/11/2026 (For time, FT-4, FT-12) : séries propres du buy-in et du buy-out, chacun son tableau.
+        buyInTitle: "Buy-in",
+        buyOutTitle: "Buy-out",
+        // FT-3 : les séries se règlent dans la même modale que dans la Composition.
+        openParameters: "Paramètres d’exécution de {name}",
         buyInSuffix: " (buy-in)",
         // Mise à jour consolidée du 04/11/2026 (§4.2 à §4.5, §6 quater, §6 quater bis).
         buyOutSuffix: " (buy-out)",
