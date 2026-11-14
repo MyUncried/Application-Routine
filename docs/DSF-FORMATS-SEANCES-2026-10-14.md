@@ -12,7 +12,7 @@ Pas de visuel de Séance persisté depuis la grille ; les cartes modèles ne rem
 
 Questionnaires : croix, fermeture vers Composition. Tous les récapitulatifs : Retour vers le questionnaire avec réponses conservées et titre inchangé. Fenêtre Formats : croix interne ou voile ferme la fenêtre ; aucune carte Exercice/Séance ou Libre.
 
-Tabata : À la suite ou En alternance ; EMOM et Death by : Dans chaque intervalle, À la suite ou En alternance. For time : aucun choix additionnel d’exécution. Les segmentés reprennent les styles standards et la taille normale des options, sans nouveau contrôle.
+Tabata : À la suite ou En alternance ; EMOM et Death by : Dans chaque intervalle, À la suite ou En alternance. For time : En alternance (défaut) ou À la suite, ligne « Exécution » du récapitulatif affichée dès deux Exercices de rôle Tour ; en À la suite, « Nombre de séries » et « Repos entre les séries » remplacent « Nombre de tours » et « Repos entre les tours ». Les segmentés reprennent les styles standards et la taille normale des options, sans nouveau contrôle.
 
 ## 3. Valeurs modifiables, calculées ou imposées
 

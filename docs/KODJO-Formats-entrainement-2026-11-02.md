@@ -22,7 +22,7 @@ Cas où le circuit porte le format :
 | Format | Cas | Nature du circuit (fixée) | Temps porté par le circuit |
 |---|---|---|---|
 | AMRAP | Plusieurs exercices, plusieurs blocs, buy-in, ou un seul mouvement avec repos après chaque tour > 0 | Groupées | Durée de chaque bloc (saisie) |
-| For time | Plusieurs exercices, ou buy-in / buy-out | Alternées | Temps limite optionnel (section 11) |
+| For time | Plusieurs exercices, ou buy-in / buy-out | Alternées (défaut) ou Groupées (mode « À la suite ») | Temps limite optionnel (section 11) |
 | EMOM | Dans chaque intervalle | Groupées | Durée de chaque tour = intervalle |
 | Death by | Dans chaque intervalle | Groupées | Intervalle commun ; tours « jusqu’à l’échec » |
 | Death by | En alternance | Alternées | Pas de durée dans l’en-tête ; intervalles propres aux Exercices ; tours « jusqu’à l’échec » et arrêt collectif au premier échec |
