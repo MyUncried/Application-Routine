@@ -72,148 +72,118 @@ async function renderScreen(service: ProfileService = fakeProfileService()) {
 const t = strings.screens.profile;
 
 describe("ProfileScreen", () => {
-  it("shows the six settings, unmodified, at their exact canonical values, grouped Exercice/Séance (CE-UI-07 L2515, L2519)", async () => {
+  // Recette du 11/11/2026 (Hermann : « ni le contenu des préférences ou je vois encore des anciennes entrées ») :
+  // Figma `1992:684` — Notifications, Séance (deux réglages) ; plus de bloc identité ni de groupe Exercice.
+  // [Remplacé — six réglages, groupes Exercice / Séance.]
+  it("Préférences du Figma : Notifications puis Séance (deux réglages, valeurs « 10″ » et « 5″ ») ; anciennes entrées absentes", async () => {
     await renderScreen();
 
-    const exerciseGroup = screen.getByTestId("profile-group-exercise");
-    const sessionGroup = screen.getByTestId("profile-group-session");
-
-    expect(screen.getByTestId("profile-setting-sideChangeRecoverySecondsDefault-value").props.children).toBe(
-      "10 s",
-    );
-    expect(
-      screen.getByTestId("profile-setting-exerciseCountdownSecondsDefault-value").props.children,
-    ).toBe("10 s");
-    expect(screen.getByTestId("profile-setting-exerciseEndSecondsDefault-value").props.children).toBe(
-      "5 s",
-    );
-    expect(
-      screen.getByTestId("profile-setting-postActivityRecoverySecondsDefault-value").props.children,
-    ).toBe("30 s");
-    expect(
-      screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value").props.children,
-    ).toBe("10 s");
-    expect(
-      screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children,
-    ).toBe("5 s");
-
-    // Le groupe Exercice porte Pause entre les côtés/Compte à rebours
-    // d'exercice/Fin d'exercice ; le groupe Séance porte Récupération après
-    // exercice/Compte à rebours initial/Fin de séance — jamais mélangés.
-    expect(
-      exerciseGroup.findByProps({ testID: "profile-setting-sideChangeRecoverySecondsDefault" }),
-    ).toBeTruthy();
-    expect(
-      sessionGroup.findByProps({ testID: "profile-setting-postActivityRecoverySecondsDefault" }),
-    ).toBeTruthy();
+    expect(screen.getByTestId("profile-group-notifications")).toBeTruthy();
+    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value").props.value).toBe("10″");
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value).toBe("5″");
+    for (const absent of [
+      "profile-group-exercise",
+      "profile-setting-sideChangeRecoverySecondsDefault",
+      "profile-setting-exerciseCountdownSecondsDefault",
+      "profile-setting-exerciseEndSecondsDefault",
+      "profile-setting-postActivityRecoverySecondsDefault",
+      "profile-identity-row",
+      "profile-preference-soundsEnabled",
+      "profile-preference-vibrationEnabled",
+    ]) {
+      expect(screen.queryByTestId(absent)).toBeNull();
+    }
   });
 
-  it("defaults Sons/Annonces vocales/Vibration to active and Notifications to inactive, each independent (CE-UI-07 L2515, L2519, L2573)", async () => {
+  it("en-tête du Figma : onglets Profil, Préférences (sélectionné), Communauté (indisponible)", async () => {
     await renderScreen();
 
-    // R10 : le `Switch` natif est retiré de l'arbre d'accessibilité (la ligne
-    // elle-même, un `Pressable` de rôle `switch`, porte le nom et l'état) —
-    // `hidden: true` l'inclut néanmoins dans cette requête technique directe.
-    expect(
-      screen.getByTestId("profile-preference-soundsEnabled-switch", { hidden: true }).props.value,
-    ).toBe(true);
-    expect(
-      screen.getByTestId("profile-preference-voiceAnnouncementsEnabled-switch", { hidden: true })
-        .props.value,
-    ).toBe(true);
-    expect(
-      screen.getByTestId("profile-preference-vibrationEnabled-switch", { hidden: true }).props.value,
-    ).toBe(true);
+    expect(screen.getByTestId("profile-tabs-preferences").props.accessibilityState).toEqual({ selected: true, disabled: false });
+    expect(screen.getByTestId("profile-tabs-community").props.accessibilityState).toEqual({ selected: false, disabled: true });
+    fireEvent.press(screen.getByTestId("profile-tabs-community"));
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  // Profil › Préférences (Figma `1992:684`, `12093:25010` ; documentation de main `ebe72f76`) : six annonces vocales
+  // actives, Sons et vibrations aux valeurs du design, Notifications inactive.
+  // [Remplacé le 11/11/2026 — interrupteurs Sons, Annonces vocales et Vibration.]
+  it("Préférences : sections du design, annonces actives, sons et vibrations par défaut, Notifications inactive", async () => {
+    await renderScreen();
+
+    for (const announcement of ["session", "names", "phases", "objective", "pauses", "sides"]) {
+      expect(screen.getByTestId(`profile-guidance-announcement-${announcement}`).props.accessibilityState).toEqual({ checked: true });
+    }
+    expect(screen.getByTestId("profile-guidance-event-COUNTDOWN-sound").props.accessibilityValue).toEqual({ text: "Par défaut" });
+    expect(screen.getByTestId("profile-guidance-event-EVERY_MINUTES-sound").props.accessibilityValue).toEqual({ text: "Aucun" });
+    expect(screen.getByTestId("profile-guidance-event-CADENCE-vibration").props.value).toBe(false);
+    expect(screen.getByTestId("profile-guidance-event-HALF_TIME-vibration").props.value).toBe(true);
     expect(
       screen.getByTestId("profile-preference-notificationsEnabled-switch", { hidden: true }).props
         .value,
     ).toBe(false);
+    expect(screen.queryByTestId("profile-preference-soundsEnabled")).toBeNull();
+    expect(screen.queryByTestId("profile-preference-vibrationEnabled")).toBeNull();
   });
 
-  it("never renders an Exercise wheel picker (DurationWheelPicker/NumberWheelPicker) — every duration uses ProfileStepper (CE-UI-07 L2533)", async () => {
+  it("vibration d'un événement enregistrée immédiatement ; le chevron du son ouvre « Choix d'un son »", async () => {
+    const setGuidanceEvent = jest.fn(async () => aProfile());
+    await renderScreen(fakeProfileService({ setGuidanceEvent: setGuidanceEvent as unknown as ProfileService["setGuidanceEvent"] }));
+
+    await act(async () => {
+      fireEvent(screen.getByTestId("profile-guidance-event-HALF_TIME-vibration"), "valueChange", false);
+    });
+    expect(setGuidanceEvent).toHaveBeenCalledWith("HALF_TIME", { sound: "DEFAULT", vibration: false });
+
+    fireEvent.press(screen.getByTestId("profile-guidance-event-HALF_TIME-sound"));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/profile-sound", params: { event: "HALF_TIME" } });
+  });
+
+  // [« every duration uses ProfileStepper » — remplacé le 11/11/2026 (Hermann, y1) : saisie au clavier numérique.]
+  it("never renders an Exercise wheel picker (DurationWheelPicker/NumberWheelPicker) — the Session durations are typed on the number pad", async () => {
     await renderScreen();
 
     expect(screen.queryByTestId("duration-wheel-minutes")).toBeNull();
     expect(screen.queryByTestId("duration-wheel-seconds")).toBeNull();
-    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault")).toBeTruthy();
+    expect(screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value").props.keyboardType).toBe("number-pad");
+    expect(screen.queryByTestId("profile-setting-sessionInitialCountdownSecondsDefault-increment")).toBeNull();
   });
 
-  /** D-227 : un seul stepper ouvert à la fois. */
-  it("keeps only one stepper open at a time", async () => {
-    await renderScreen();
-
-    fireEvent.press(screen.getByTestId("profile-setting-sideChangeRecoverySecondsDefault"));
-    expect(screen.getByTestId("profile-setting-sideChangeRecoverySecondsDefault-increment")).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId("profile-setting-exerciseCountdownSecondsDefault"));
-    expect(
-      screen.queryByTestId("profile-setting-sideChangeRecoverySecondsDefault-increment"),
-    ).toBeNull();
-    expect(screen.getByTestId("profile-setting-exerciseCountdownSecondsDefault-increment")).toBeTruthy();
-  });
-
-  it("persists a stepper change immediately via ProfileService.setDefault, leaving the five other values unchanged (CE-UI-07 L2545, L2557, L2561)", async () => {
-    const updated = aProfile({ exerciseCountdownSecondsDefault: 11 });
+  // Recette du 11/11/2026 (Hermann, y1 : « utiliser le clavier et non pas le stepper »).
+  // [D-227 « un seul stepper ouvert à la fois » et l'écriture au relâchement du stepper — remplacés.]
+  it("clavier : la saisie remplace la valeur et n'est enregistrée qu'à la fermeture du clavier, l'autre valeur inchangée", async () => {
+    const updated = aProfile({ sessionInitialCountdownSecondsDefault: 15 });
     const setDefault = jest.fn(async () => updated);
     await renderScreen(fakeProfileService({ setDefault: setDefault as unknown as ProfileService["setDefault"] }));
 
-    fireEvent.press(screen.getByTestId("profile-setting-exerciseCountdownSecondsDefault"));
-    const incrementButton = screen.getByTestId(
-      "profile-setting-exerciseCountdownSecondsDefault-increment",
-    );
-    fireEvent(incrementButton, "pressIn");
+    const field = screen.getByTestId("profile-setting-sessionInitialCountdownSecondsDefault-value");
+    fireEvent(field, "focus");
+    expect(field.props.value).toBe("");
+    fireEvent.changeText(field, "15");
+    expect(setDefault).not.toHaveBeenCalled();
     await act(async () => {
-      fireEvent(incrementButton, "pressOut");
+      fireEvent(field, "blur");
     });
 
-    await waitFor(() => expect(setDefault).toHaveBeenCalledWith("exerciseCountdownSecondsDefault", 11));
-    expect(
-      screen.getByTestId("profile-setting-sideChangeRecoverySecondsDefault-value").props.children,
-    ).toBe("10 s");
+    await waitFor(() => expect(setDefault).toHaveBeenCalledWith("sessionInitialCountdownSecondsDefault", 15));
+    expect(setDefault).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value).toBe("5″");
   });
 
   it("re-reads the Profile after a reopen (relecture après réouverture, useFocusEffect)", async () => {
     const getProfile = jest
       .fn<ProfileService["getProfile"]>()
       .mockResolvedValueOnce(aProfile())
-      .mockResolvedValueOnce(aProfile({ exerciseEndSecondsDefault: 9 }));
+      .mockResolvedValueOnce(aProfile({ sessionFinalPhaseSecondsDefault: 9 }));
     await renderScreen(fakeProfileService({ getProfile }));
 
-    expect(screen.getByTestId("profile-setting-exerciseEndSecondsDefault-value").props.children).toBe(
-      "5 s",
-    );
+    expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value).toBe("5″");
 
     await act(async () => {
       focusEffectHarness.effect?.();
     });
 
     await waitFor(() =>
-      expect(screen.getByTestId("profile-setting-exerciseEndSecondsDefault-value").props.children).toBe(
-        "9 s",
-      ),
-    );
-  });
-
-  it("toggles a preference immediately via ProfileService.setPreference", async () => {
-    const updated = aProfile({ vibrationEnabled: false });
-    const setPreference = jest.fn(async () => updated);
-    await renderScreen(
-      fakeProfileService({ setPreference: setPreference as unknown as ProfileService["setPreference"] }),
-    );
-
-    await act(async () => {
-      fireEvent(
-        screen.getByTestId("profile-preference-vibrationEnabled-switch", { hidden: true }),
-        "valueChange",
-        false,
-      );
-    });
-
-    expect(setPreference).toHaveBeenCalledWith("vibrationEnabled", false);
-    await waitFor(() =>
-      expect(
-        screen.getByTestId("profile-preference-vibrationEnabled-switch", { hidden: true }).props.value,
-      ).toBe(false),
+      expect(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value).toBe("9″"),
     );
   });
 
@@ -235,52 +205,38 @@ describe("ProfileScreen", () => {
   it("exposes each preference row as a single accessible switch element (name + checked state)", async () => {
     await renderScreen();
 
-    const row = screen.getByTestId("profile-preference-vibrationEnabled");
+    const row = screen.getByTestId("profile-preference-notificationsEnabled");
     expect(row.props.accessibilityRole).toBe("switch");
-    expect(row.props.accessibilityState).toEqual({ checked: true });
-    expect(row.props.accessibilityLabel).toBe(t.preferencesSwitches.vibration);
+    expect(row.props.accessibilityState).toEqual({ checked: false });
+    expect(row.props.accessibilityLabel).toBe(t.notifications.label);
+    const announcement = screen.getByTestId("profile-guidance-announcement-names");
+    expect(announcement.props.accessibilityRole).toBe("switch");
+    expect(announcement.props.accessibilityLabel).toBe(strings.screens.soundGuidance.announcements.names);
 
     // Le `Switch` natif et son libellé texte sont retirés de l'arbre
     // d'accessibilité par défaut — la requête standard (sans `hidden: true`)
     // ne doit donc plus les exposer comme des éléments distincts.
-    expect(screen.queryByTestId("profile-preference-vibrationEnabled-switch")).toBeNull();
+    expect(screen.queryByTestId("profile-preference-notificationsEnabled-switch")).toBeNull();
+    expect(screen.queryByTestId("profile-guidance-announcement-names-switch")).toBeNull();
   });
 
-  it("navigates to Modifier le profil", async () => {
+  // Section Profil non développée (Hermann, 11/11/2026) : l'onglet Profil ouvre l'écran existant Modifier le profil.
+  // [Remplacé — bloc Identité et action Modifier le profil en tête de l'écran.]
+  it("onglet Profil : ouvre Modifier le profil", async () => {
     await renderScreen();
 
-    fireEvent.press(screen.getByLabelText(t.editProfileAction));
+    fireEvent.press(screen.getByTestId("profile-tabs-profile"));
 
     expect(mockPush).toHaveBeenCalledWith("/profile-edit");
-  });
-
-  /** R1 (CE-UI-07 L2522) : bloc Identité en tête — initiales de repli, nom non renseigné, action Modifier. */
-  it("shows an identity block (initials fallback + unset-name label) before the groups, with the edit action", async () => {
-    await renderScreen(fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Ada Lovelace" })) }));
-
-    expect(screen.getByTestId("profile-identity-avatar-initials").props.children).toBe("AL");
-    expect(screen.getByTestId("profile-identity-name").props.children).toBe("Ada Lovelace");
-    expect(screen.queryByTestId("profile-identity-avatar-image")).toBeNull();
-    expect(screen.getByTestId("profile-identity-edit-action")).toBeTruthy();
-  });
-
-  it("shows the unset-display-name placeholder when no name was ever saved (T8)", async () => {
-    await renderScreen();
-
-    expect(screen.getByTestId("profile-identity-name").props.children).toBe(
-      t.identity.unsetDisplayNameAccessibilityLabel,
-    );
   });
 
   /** D-267 (CE-UI-07 L2532) : un séparateur entre deux lignes consécutives d'un même groupe, jamais avant la première ni après la dernière. */
   it("renders a separator between each pair of consecutive rows, never before the first or after the last", async () => {
     await renderScreen();
 
-    // Exercice/Séance : 3 lignes → 2 séparateurs. Préférences : 4 lignes → 3 séparateurs.
+    // Séance : 2 lignes → 1 séparateur (Figma `1992:684`). [Exercice/Séance : 3 lignes — remplacé le 11/11/2026.]
     const expectedDividerCountByGroup: Record<string, number> = {
-      "profile-group-exercise": 2,
-      "profile-group-session": 2,
-      "profile-group-preferences": 3,
+      "profile-group-session": 1,
     };
     for (const [groupTestID, dividerCount] of Object.entries(expectedDividerCountByGroup)) {
       expect(screen.queryByTestId(`${groupTestID}-divider-0`)).toBeNull();
@@ -307,7 +263,8 @@ describe("ProfileScreen", () => {
    * séance déjà enregistrée au-delà de 60 s est affichée et conservée
    * exacte ; `+` est inactif ; `−` la ramène d'abord à 60 s.
    */
-  it("displays a stored Session default above 60 s exactly, disables +, and steps − down to 60 first (D-265)", async () => {
+  // [« disables +, and steps − down to 60 first » — remplacé le 11/11/2026 (y1) : une saisie au-delà de la borne y est ramenée.]
+  it("displays a stored Session default above 60 s exactly; a typed value above the maximum is brought back to it (D-265)", async () => {
     const setDefault = jest.fn(async () => aProfile({ sessionFinalPhaseSecondsDefault: 60 }));
     await renderScreen(
       fakeProfileService({
@@ -317,21 +274,14 @@ describe("ProfileScreen", () => {
     );
 
     expect(
-      screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.children,
-    ).toBe("70 s");
+      screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value").props.value,
+    ).toBe("70″");
 
-    fireEvent.press(screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault"));
-    expect(
-      screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-increment").props
-        .accessibilityState,
-    ).toEqual({ disabled: true });
-
-    const decrementButton = screen.getByTestId(
-      "profile-setting-sessionFinalPhaseSecondsDefault-decrement",
-    );
-    fireEvent(decrementButton, "pressIn");
+    const field = screen.getByTestId("profile-setting-sessionFinalPhaseSecondsDefault-value");
+    fireEvent(field, "focus");
+    fireEvent.changeText(field, "99");
     await act(async () => {
-      fireEvent(decrementButton, "pressOut");
+      fireEvent(field, "blur");
     });
 
     await waitFor(() =>

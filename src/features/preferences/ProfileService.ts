@@ -1,3 +1,4 @@
+import type { EventGuidance, GuidanceEvent } from "@/domain/preferences/guidanceSettings";
 import {
   profileDurationBounds,
   validateDisplayName,
@@ -47,6 +48,11 @@ export class ProfileService {
 
   async setPreference(preference: ProfilePreference, value: boolean): Promise<Profile> {
     return this.repository.updatePreference(preference, value);
+  }
+
+  /** Son et vibration d'un événement du guidage sonore (RM-087), enregistrés immédiatement (RM-086). */
+  async setGuidanceEvent(event: GuidanceEvent, setting: EventGuidance): Promise<Profile> {
+    return this.repository.updateGuidanceEvent(event, setting);
   }
 
   /**

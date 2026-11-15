@@ -238,7 +238,7 @@ Aucune confirmation d’activation bilatérale du Circuit n’est exposée dans 
 
 Dans une carte d’Exercice, l’indicateur propre signale le changement de côté lorsque l’Exercice est bilatéral, sans direction (D-407, RM-243) ; il est absent avec Sans. La phrase complète de l’éditeur suit [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres)/corpusv15 : cible, Pause, côtés puis total applicable. La carte de Composition utilise son indicateur compact distinct. Les références géométriques suivent le Figma courant. [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
 
-Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté 1` ou `Côté 2` sous son nom (D-407, RM-243). Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Écart Figma relevé le 18/10/2026 : les frames d’Exécution affichent encore `Côté droit` (calque « Côté courant — Côté droit ») ; elles ne sont pas modifiées par cette documentation. Lorsque la charge est active, l’Exécution affiche la charge de la série courante (RM-241) ; aucune frame ne l’illustre encore et son emplacement relève de Figma.
+Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté 1` ou `Côté 2` [libellés affichés « 1er côté » / « 2ème côté » depuis le 13/11/2026 — recette PRE-10, Hermann : « Changer le texte Côté 1 et côté 2 par 1er côté, et 2ème côté »] [« 2ème côté » remplacé le 13/11/2026 par « 2d côté », suffixe ordinal en exposant (« 1ᵉʳ », « 2ᵈ ») — Hermann : « Le "er" de 1er doit être en exposant, pareil pour le "d" de second côté ou le "e" de troisième, quatrième, etc » ; « 2e » (deuxième) quand il y a un troisième] sous son nom (D-407, RM-243). Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Écart Figma relevé le 18/10/2026 : les frames d’Exécution affichent encore `Côté droit` (calque « Côté courant — Côté droit ») ; elles ne sont pas modifiées par cette documentation. Lorsque la charge est active, l’Exécution affiche la charge de la série courante (RM-241) ; aucune frame ne l’illustre encore et son emplacement relève de Figma.
 
 ### Références transverses des cartes et appuis
 Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances portent un visuel au Catalogue depuis le 27/10/2026 ; les autres contextes conservent leurs règles. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
@@ -331,14 +331,6 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 #### Vues principales et états intégrés
 
-##### Profil — Vue d'ensemble - Vibration désactivée
-
-[Source Figma — `1992:375`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-375)
-
-![Navigation — écran 1992:375](images/navigation-2026-10-27/1992-375.png)
-
-
-
 ##### Profil — Stepper Pause changement de côté
 
 [Source Figma — `1992:474`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-474)
@@ -355,13 +347,9 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 État courant du stepper Récupération après exercice
 
-##### Profil — Vue d'ensemble - Vibration activée
+##### Profil — Préférences
 
-[Source Figma — `1992:684`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684)
-
-![Navigation — écran 1992:684](images/navigation-2026-10-27/1992-684.png)
-
-Valeur initiale fonctionnelle de la préférence `Vibration`
+[Profil — Préférences](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684) présente les six annonces vocales. [Profil — Préférences (suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12093-25010) présente les neuf événements de Sons et vibrations. Les chevrons de la colonne Son donnent accès à [Préférences — Choix d’un son (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12068-25044).
 
 ##### Profil — Modifier le profil — MVP
 
@@ -2236,6 +2224,8 @@ Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30255) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
+[Remplacé le 15/11/2026 : écran archivé, plus de questionnaire For time ; la Composition ouvre « For time — Récapitulatif, état vide » (`12377:26300`) — registre ch07, « For time — tableau unique, sans questionnaire (15/11/2026) ».]
+
 ![For time — Questionnaire](images/figma-8624-30255.png)
 
 <a id="format-8624-30306"></a>
@@ -3272,6 +3262,8 @@ Nœud [1992:6622](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=19
 
 ### Formats — questionnaires, récapitulatifs et choix
 
+[Remplacé le 15/11/2026 : les questionnaires et récapitulatifs ci-dessous sont archivés ; chaque Format à tableau ouvre un écran unique depuis la Composition — CE-FMT-02, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) ».]
+
 ##### 30/30 — Questionnaire
 
 Nœud [8656:33799](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33799) · Export du 06/11/2026.
@@ -3564,3 +3556,8 @@ Le premier lot est limité aux Bibliothèques génériques éditées par KODJO :
 **Rendu Figma non validé** [11/11/2026 : écrans Bibliothèques existants listés par A-4, sans validation UX complète ; « Mes bibliothèques » reporté hors du premier lot] : prévoir ultérieurement le parcours « Mes Bibliothèques » et ses états personnelle/reçue, « Partager », « Mise à jour disponible » avec aperçu des autres Bibliothèques utilisant la même fiche, et « Espace en étoile » pour la transmission individuelle. Une seule mise à jour volontaire actualise la version active d'un Mouvement dans toutes ses références, sans modifier les autres compositions. La distinction des homonymes de sources différentes doit rester visible par leur provenance, sans suffixe imposé.
 
 La page Figma « Prototype MVP » `510:101` comporte des actions « Partager » (`10501:23846`, `10579:21622`), mais cela ne prouve pas la représentation des parcours complets futurs. Aucun placement, composant ou état graphique n'est déduit de ces règles. [Parcours](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+
+
+### Composition séance — Guidage sonore
+
+Dans l’en-tête des écrans de Composition, sauf le récapitulatif Tabata, le bouton Guidage sonore ouvre une seule modale défilante. [Remplacé le 11/11/2026 — exception « sauf le récapitulatif Tabata » supprimée, retour de Hermann : « C’est un règle stupide que je n’ai jamais édictée et qu’il faut supprimer. » Le bouton Guidage sonore est celui de l’en-tête de la Composition ; aucune exception propre au Tabata.] [Composition séance — Guidage sonore (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12132-27436) et [Composition séance — Guidage sonore (modale, suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12175-25882) en montrent respectivement le haut et le bas. L’en-tête fixe réunit Fermer, le titre et Valider. Le bouton affiche son symbole plein pendant l’ouverture de la modale et retrouve son symbole fin à la fermeture, y compris après validation de réglages propres à la séance.

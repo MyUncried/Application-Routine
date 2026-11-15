@@ -2,6 +2,15 @@
  * PRE-10.3 — textes de l'écran d'Exécution (CE-EXEC-SESSION-01, ch08, ch12 §12.33). Libellés des
  * dialogues repris tels quels du contrat d'écran (titres, messages, actions).
  */
+/**
+ * Suffixe d'un nombre ordinal abrégé (typographie française), recette du 13/11/2026 : 1er ; 2d (second) quand il n'y en a
+ * que deux, 2e (deuxième) quand il y a un troisième (Hermann : « Le "e" de deuxième (quand il y a un troisième) ») ; 3e, 4e…
+ */
+export function ordinalSuffix(rank: number, total: number): string {
+  if (rank === 1) return "er";
+  return rank === 2 && total === 2 ? "d" : "e";
+}
+
 export const executionStrings = {
   start: "Démarrer",
   back: "Retour",
@@ -12,18 +21,33 @@ export const executionStrings = {
   voiceOff: "Annonces vocales désactivées",
   series: "Série",
   tour: "Tour",
-  side: (rank: 1 | 2) => `Côté ${rank}`,
+  /** Recette du 13/11/2026 (Hermann : « Il faut ajouter le cycle »). */
+  cycle: "Cycle",
+  /** Compteur automatique (recette du 13/11/2026) : « tour » jusqu’à 1, « tours » au-delà. */
+  tours: (count: number) => (count > 1 ? "tours" : "tour"),
+  /** Recette du 13/11/2026 (Hermann : « Remplacer tour par mouvements ») : « mouvement » jusqu’à 1, « mouvements » au-delà. */
+  // Puis « Ok pour mouv. » : abréviation à la taille de « rép. » et « kg ». [« mouvement(s) » — remplacé.]
+  movements: () => "mouv.",
+  /** Recette du 13/11/2026 (Hermann : « Changer le texte Côté 1 et Côté 2 par 1er côté et 2ème côté »). [« Côté n » — remplacé.] */
+  // Puis (Hermann : « Le "er" de 1er doit être en exposant, pareil pour le "d" de second côté ou le "e" de troisième,
+  // quatrième, etc ») : rang, suffixe en exposant, puis « côté ». [« 2ème côté » — remplacé par « 2d côté ».]
+  // Deux côtés au plus : « 2d côté ».
+  side: (rank: number) => ({ rank: String(rank), suffix: ordinalSuffix(rank, 2), label: "côté", spoken: `${rank}${ordinalSuffix(rank, 2)} côté` }),
   next: "À suivre",
+  /** Point d'arrêt (recette du 12/11/2026, Hermann, e1f). */
+  pressStart: "Appuyer sur démarrer",
+  /** Sur deux lignes (recette du 13/11/2026, Hermann : « texte Appuyer sur démarrer sur deux lignes »). */
+  pressStartLines: "Appuyer sur\ndémarrer",
   /** « À suivre » d'un Point d'arrêt (recette PRE-10 du 09/11/2026, Hermann). */
   nextStopPoint: "Arrêt de la séance, redémarrage manuel",
-  seriesShort: (current: number, total: number) => `Série ${current}/${total}`,
   elapsed: "Temps écoulé",
   load: (kg: number) => `${kg.toLocaleString("fr-FR")} kg`,
   target: "Sur",
   repetitions: (value: number) => `${value} rép.`,
   failure: "À l'échec",
   phases: {
-    INITIAL_COUNTDOWN: "Compte à rebours",
+    // Recette du 12/11/2026 (Hermann : « Remplacer le texte compte à rebours, par Préparez vous »). [« Compte à rebours » — remplacé.]
+    INITIAL_COUNTDOWN: "Préparez-vous",
     ACTIVITY: "",
     SERIES_PAUSE: "Pause",
     SIDE_RECOVERY: "Pause entre les côtés",
@@ -40,6 +64,9 @@ export const executionStrings = {
     pause: "Pause",
     next: "Exercice suivant",
     continue: "Continuer",
+    /** Recette e1 du 12/11/2026 (e) : boutons de la Pause, sans fenêtre. */
+    resume: "Reprendre la séance",
+    stop: "Arrêter la séance",
   },
   resetDialog: {
     title: "Réinitialiser l’exercice ?",
@@ -53,15 +80,6 @@ export const executionStrings = {
     cancel: "Annuler",
     confirm: "Confirmer",
   },
-  pauseDialog: {
-    title: "Séance en pause",
-    message: (name: string | null) =>
-      name === null ? "La séance est suspendue.\nLe chronomètre reprendra là où il s’est arrêté." : `L’exercice « ${name} » est suspendue.\nLe chronomètre reprendra là où il s’est arrêté.`,
-    resume: "Reprendre la séance",
-    stop: "Arrêter la séance",
-  },
-  safetyPause: "Séance mise en pause faute d’interaction.",
-  restorePause: "La séance a été remise à l’étape en cours.",
   recoveryDialog: {
     title: "Séance interrompue",
     message: (name: string) => `La séance « ${name} » n’a pas été terminée.`,

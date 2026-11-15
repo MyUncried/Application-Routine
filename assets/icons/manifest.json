@@ -9,7 +9,7 @@
     "raster": "Rendered directly at runtime from the SVG master via expo-image (KodjoIcon.tsx), density-independent — no separate 1x/2x/3x PNG pipeline exists or is required",
     "substitution": "Typography characters and approximate icons are forbidden",
     "systemStatusBar": "Rendered by iOS or Android; not bundled as application assets",
-    "figmaStatus": "EXACT_EXPORT = file content equals the current Figma SVG export (line endings aside); EQUIVALENT_GEOMETRY = same drawing, Figma encodes the path differently; SOURCE_EXISTS = node read in Figma on 2026-10-07, repository drawing kept unchanged (navigation icons: brief E.6); SOURCE_REMOVED = historical node absent from Figma and no current equivalent verified, figmaNodeId is null and historicalFigmaNodeId keeps the trace; MCP_VECTOR_EXPORT = vector layer served by the read-only Figma MCP download_assets tool (svgAssets); geometry and fill unchanged, root attributes preserveAspectRatio/overflow/style removed and a double-encoded group id repaired, line endings aside"
+    "figmaStatus": "EXACT_EXPORT = file content equals the current Figma SVG export (line endings aside); EQUIVALENT_GEOMETRY = same drawing, Figma encodes the path differently; SOURCE_EXISTS = node read in Figma on 2026-10-07, repository drawing kept unchanged (navigation icons: brief E.6); SOURCE_REMOVED = historical node absent from Figma and no current equivalent verified, figmaNodeId is null and historicalFigmaNodeId keeps the trace; MCP_VECTOR_EXPORT = vector layer served by the read-only Figma MCP download_assets tool (svgAssets); geometry and fill unchanged, root attributes preserveAspectRatio/overflow/style removed and a double-encoded group id repaired, line endings aside; PRE10_FIGMA_EXPORT = exporté de Figma pendant PRE-10 (12/11/2026, écran d'Exécution 1992:8132 et composants DSF / Controls), procédé d'export non tracé, géométrie non recontrôlée depuis; DERIVED_DRAWING = dessin fait dans le dépôt sur demande de Hermann en recette, sans nœud Figma propre ; figmaNodeId désigne le contrôle Figma dont il dérive"
   },
   "assets": [
     {
@@ -1457,6 +1457,204 @@
         "Partager — Publique (grisé, opacité 40 % incluse)"
       ],
       "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-12; root attributes preserveAspectRatio/overflow/style and layer ids removed"
+    },
+    {
+      "key": "actions.guidanceSound.normal",
+      "file": "icon-guidage-sonore-light",
+      "figmaNodeId": "12161:27703",
+      "figmaName": "icon/guidage-sonore (ph:faders-light)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12145:2108",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Composition — bouton Guidage sonore de l’en-tête, État=Normal (documentation de main ebe72f76)"
+      ]
+    },
+    {
+      "key": "actions.guidanceSound.active",
+      "file": "icon-guidage-sonore-fill",
+      "figmaNodeId": "12161:27705",
+      "figmaName": "icon/guidage-sonore (ph:faders-fill)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12145:2108",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Composition — bouton Guidage sonore pendant l’ouverture de la modale, État=Activé"
+      ]
+    },
+    {
+      "key": "lists.chevronAller",
+      "file": "icon-chevron-aller",
+      "figmaNodeId": "12177:25960",
+      "figmaName": "Chevron — Aller",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12093:25010",
+      "width": 7.8,
+      "height": 13.8,
+      "usage": [
+        "Profil › Préférences et modale Guidage sonore — colonne Son, accès à « Choix d’un son »"
+      ]
+    },
+    {
+      "key": "lists.chevronAllerModale",
+      "file": "icon-chevron-aller-modale",
+      "figmaNodeId": "12175:25830",
+      "figmaName": "Chevron — Aller",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12132:27436",
+      "width": 5.50003,
+      "height": 11.5001,
+      "usage": [
+        "Modale Guidage sonore — colonne Son, accès à « Choix d’un son »"
+      ]
+    },
+    {
+      "key": "lists.checkSoundChosen",
+      "file": "icon-coche-son-choisi",
+      "figmaNodeId": "12068:25151",
+      "figmaName": "Coche — Son choisi",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12068:25044",
+      "width": 17.2,
+      "height": 13.2,
+      "usage": [
+        "Choix d’un son — son choisi"
+      ]
+    },
+    {
+      "key": "execution.pause",
+      "file": "execution-pause",
+      "figmaNodeId": "1992:8175",
+      "figmaName": "Mettre en pause",
+      "figmaStatus": "PRE10_FIGMA_EXPORT",
+      "sourceComponentNodeId": "1992:8132",
+      "width": 92,
+      "height": 92,
+      "usage": [
+        "Exécution — barre de commandes, Mettre en pause"
+      ]
+    },
+    {
+      "key": "execution.next",
+      "file": "execution-suivant",
+      "figmaNodeId": "1992:8179",
+      "figmaName": "Activité suivante",
+      "figmaStatus": "PRE10_FIGMA_EXPORT",
+      "sourceComponentNodeId": "1992:8132",
+      "width": 48,
+      "height": 48,
+      "usage": [
+        "Exécution — barre de commandes, Activité suivante"
+      ]
+    },
+    {
+      "key": "execution.reset",
+      "file": "execution-reinitialiser",
+      "figmaNodeId": "1992:8184",
+      "figmaName": "Réinitialiser la séance — confirmation",
+      "figmaStatus": "PRE10_FIGMA_EXPORT",
+      "sourceComponentNodeId": "1992:8132",
+      "width": 48,
+      "height": 48,
+      "usage": [
+        "Exécution — barre de commandes, Réinitialiser"
+      ]
+    },
+    {
+      "key": "execution.soundOn",
+      "file": "execution-son-active",
+      "figmaNodeId": "5041:6024",
+      "figmaName": "Bips activés",
+      "figmaStatus": "PRE10_FIGMA_EXPORT",
+      "sourceComponentNodeId": "5544:4770",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Exécution — barre de commandes, Son activé"
+      ]
+    },
+    {
+      "key": "execution.soundOff",
+      "file": "execution-son-desactive",
+      "figmaNodeId": "5544:4770",
+      "figmaName": "DSF / Controls / Son — désactivé",
+      "figmaStatus": "PRE10_FIGMA_EXPORT",
+      "sourceComponentNodeId": "5544:4770",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Exécution — barre de commandes, Son coupé"
+      ]
+    },
+    {
+      "key": "execution.voiceOn",
+      "file": "execution-voix-activee",
+      "figmaNodeId": "5041:6027",
+      "figmaName": "Annonces vocales activées",
+      "figmaStatus": "PRE10_FIGMA_EXPORT",
+      "sourceComponentNodeId": "5544:4790",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Exécution — barre de commandes, Voix activée"
+      ]
+    },
+    {
+      "key": "execution.voiceOff",
+      "file": "execution-voix-desactivee",
+      "figmaNodeId": "5544:4790",
+      "figmaName": "DSF / Controls / Voix — désactivée",
+      "figmaStatus": "PRE10_FIGMA_EXPORT",
+      "sourceComponentNodeId": "5544:4790",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Exécution — barre de commandes, Voix coupée"
+      ]
+    },
+    {
+      "key": "execution.start",
+      "file": "execution-demarrer",
+      "figmaNodeId": "1992:8175",
+      "figmaName": "Dérivé de « Mettre en pause »",
+      "figmaStatus": "DERIVED_DRAWING",
+      "sourceComponentNodeId": "1992:8132",
+      "width": 72,
+      "height": 72,
+      "usage": [
+        "Exécution — Démarrer (Pause et Point d'arrêt)"
+      ],
+      "note": "Recette e1 du 12/11/2026 (Hermann, e) : Démarrer en bleu."
+    },
+    {
+      "key": "execution.stop",
+      "file": "execution-arret",
+      "figmaNodeId": "1992:8184",
+      "figmaName": "Dérivé de « Réinitialiser la séance — confirmation »",
+      "figmaStatus": "DERIVED_DRAWING",
+      "sourceComponentNodeId": "1992:8132",
+      "width": 48,
+      "height": 48,
+      "usage": [
+        "Exécution — Arrêt définitif (Pause et Point d'arrêt)"
+      ],
+      "note": "Recette e1 du 12/11/2026 (Hermann, e) : carré plein blanc sur fond rouge."
+    },
+    {
+      "key": "execution.nextActive",
+      "file": "execution-suivant-actif",
+      "figmaNodeId": "1992:8179",
+      "figmaName": "Dérivé de « Activité suivante »",
+      "figmaStatus": "DERIVED_DRAWING",
+      "sourceComponentNodeId": "1992:8132",
+      "width": 48,
+      "height": 48,
+      "usage": [
+        "Exécution — Suivant mis en avant (Répétitions)"
+      ],
+      "note": "Recette du 13/11/2026 : fond bleu KODJO, symbole blanc."
     }
   ],
   "branding": {

@@ -250,7 +250,9 @@ describe("PRE-9 B.4 — Circuit alterné, Exercices formatés, contrôle avant d
     expect(seen).toEqual(["e0->CIRCUIT"]);
   });
 
-  it("une disposition redevenue représentable dans l'ancien modèle réécrit ses zones", () => {
+  // [Remplacé le 10/11/2026 — modèle unique des Circuits, décision de Hermann : un seul Circuit reste dans la structure
+  // générale ; l'ancien test « réécrit ses zones » vérifiait le retour à l'ancien modèle, supprimé.]
+  it("un seul Circuit restant : la structure générale fait foi ; le Circuit vidé disparaît", () => {
     // Deux Circuits ; le seul membre du second rejoint le premier → un seul Circuit.
     const draft: SessionDraft = {
       ...createEmptyDraft(),
@@ -265,8 +267,10 @@ describe("PRE-9 B.4 — Circuit alterné, Exercices formatés, contrôle avant d
       },
     };
     const next = applied(moveLayoutItem(draft, { kind: "EXERCISE", id: "z" }, circuit("c1", 1), ids));
-    expect(next.exercises.map((item) => `${item.id}:${item.structuralPosition}`)).toEqual(["x:BEFORE_TOUR", "y:IN_TOUR", "z:IN_TOUR"]);
-    expect(next.tourRepeatCount).toBe(2);
+    expect(next.structure?.elements).toEqual([
+      { kind: "EXERCISE", exercise: "x" },
+      { kind: "CIRCUIT", circuit: { id: "c1", repeatCount: 2, nature: "TOURS", exercises: ["y", "z"] } },
+    ]);
   });
 });
 

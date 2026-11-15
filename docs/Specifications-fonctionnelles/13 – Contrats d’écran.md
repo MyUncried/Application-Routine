@@ -538,7 +538,7 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 
 | Frame Figma | Capture principale | Contrat de référence | Réserve |
 |---|---|---|---|
-| [`1992:375`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-375) | Profil — Vue d'ensemble - Vibration désactivée | `CE-UI-07` | — |
+| [Profil — Préférences](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684) et [Profil — Préférences (suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12093-25010) | Profil — Préférences | `CE-UI-07` | Guidage sonore |
 | [`1992:469`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-469) | Splash — Kodjo | `CE-UI-06` | — |
 | [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778) | Profil — Modifier le profil — MVP | `CE-UI-01` | — |
 | [`1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101) | Calendrier — Semaine | `CE-UI-03` | — |
@@ -588,9 +588,27 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | [`8328:39279`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39279) | Création activité — Paramètres (modale) — Séries variables (déplacement) | `CE-UI-10` | — |
 | [`8470:13303`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8470-13303) | Création activité — Paramètres (modale) — Séries variables, cas mixte | `CE-UI-10` | — |
 | [`8598:29271`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29271) | Composition séance — Modèles | `CE-FMT-01` | — |
-| [`8624:29980`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-29980) | Composition séance — Modèles — Tabata (quels exercices) | `CE-FMT-02` | —  [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.] |
+| [`8624:29980`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-29980) | Composition séance — Modèles — Tabata (quels exercices) | `CE-FMT-02` | —  [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.] [Archivé le 15/11/2026 : remplacé par l’écran unique du Format — CE-FMT-02.] |
 | [`8598:29503`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29503) | Composition séance — Modèles — Tabata (sélection des exercices) | `CE-FMT-02` | — |
-| [`8624:30306`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) | Composition séance — Modèles — Tabata (récapitulatif) | `CE-FMT-02` | — |
+| [`8624:30306`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) | Composition séance — Modèles — Tabata (récapitulatif) | `CE-FMT-02` | — [Archivé le 15/11/2026 : remplacé par l’écran unique du Format — CE-FMT-02.] |
+| [`12377:26300`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12377-26300) | For time — Récapitulatif, état vide | `CE-FMT-02` | Écran d’entrée depuis la Composition, sans questionnaire — 15/11/2026 |
+| [`12413:26346`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12413-26346) | For time — Récapitulatif, premier mouvement ajouté | `CE-FMT-02` | Unité à renseigner (rouge), valeur désactivée — 15/11/2026 |
+| [`12341:27002`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12341-27002) | For time — Récapitulatif | `CE-FMT-02` | Tableau unique, En alternance — 15/11/2026 ; remplace `8624:30672` |
+| [`12428:26360`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12428-26360) | For time — Récapitulatif, à la suite | `CE-FMT-02` | Séries, Exécution « À la suite » — 15/11/2026 ; remplace `12340:26219` |
+| [`12439:26393`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12439-26393) | P-Tabata — Récapitulatif, à la suite | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12455:26716`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12455-26716) | P-Tabata — Récapitulatif, en alternance | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12445:26716`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12445-26716) | EMOM — Récapitulatif, en alternance | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12455:26925`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12455-26925) | EMOM — Récapitulatif, à la suite | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12455:27184`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12455-27184) | EMOM — Récapitulatif, dans chaque intervalle | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12445:27394`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12445-27394) | AMRAP — Récapitulatif | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12445:27143`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12445-27143) | Death by — Récapitulatif, en alternance | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12455:27441`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12455-27441) | Death by — Récapitulatif, à la suite | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12455:27671`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12455-27671) | Death by — Récapitulatif, dans chaque intervalle | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12444:26592`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12444-26592) | 30/30 — Récapitulatif | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12444:26782`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12444-26782) | Renforcement — Récapitulatif | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12445:26957`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12445-26957) | Superset — Récapitulatif | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12445:26518`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12445-26518) | Progression — Récapitulatif | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
+| [`12444:26981`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12444-26981) | À l’échec — Récapitulatif | `CE-FMT-02` | Écran unique, sans questionnaire — 15/11/2026 |
 | [`8921:35275`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35275) | Avant la séance — Douleur | `CE-EXEC-SESSION-01` | À CLARIFIER — douleur initiale |
 | [`8921:35340`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35340) | Synthèse de séance — Effort et douleur — Douleur renseignée | `CE-UI-08` | D-427 — parcours enrichi validé |
 | [`8928:15098`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8928-15098) | Modale — Répétitions partielles | `CE-T03-11` | D-428 — règles de saisie validées |
@@ -2103,6 +2121,7 @@ Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écr
 | --- | --- |
 | Nom de la séance | Champ obligatoire de 1 à 80 caractères. Vide, il est signalé par un fond rouge pâle, sans message supplémentaire (D-389). |
 | Étiquette | Facultative ; sa couleur devient la couleur affichée de la Séance. La sélection/création s’effectue dans la modale Étiquettes intégrée à la Composition. |
+| Guidage | [Ajouté le 11/11/2026 — réponse de Hermann du 10/11/2026 à la spec des réglages du guidage : « Élément Guidage (Recommandé) » ; écran proposé par Claude sans maquette Figma préalable, à valider en recette.] Rangée « Guidage » au-dessus du Compte à rebours initial, même libellé et même pastille de valeur que les bornes, sans anneau ni rail ; valeur « Comme le Profil » ou « Propre à la séance ». Le toucher ouvre la feuille native « Guidage de la séance » : ✕ (fermer sans enregistrer) et ✓ (appliquer à la Séance), texte d’introduction, trois bascules (Sons, Annonces vocales, Annoncer les répétitions ou la durée) avec leur origine (« Comme le Profil » ou « Propre à la séance ») et l’action « Revenir au Profil », inactive quand la Séance suit déjà le Profil. Les réglages sont enregistrés avec la Séance. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée (remplacé par D-443 du 23/10/2026 : durée bornée à 0..60 s, pas 1 s, affichée en secondes seulement, sans minutes ; cadre aligné à droite sur le cadre des cartes d’Exercice) ; valeur initiale 10 s. |
 | Circuit | Conteneur facultatif, multiple ; nature séries groupées/alternées, compte 1..99 défaut 1. Nombre → stepper révélé ; adjectif → choix de nature ; unité non interactive ; chevron accolé au nom → repli [08/11/2026 au soir, Hermann : « Circuit : mets le chevron entre le cercle et le nom du circuit » — chevron placé avant le nom, entre l’anneau et le nom] ; durée à droite. Voir la référence Composition du 28/10. |
 | Exercices | D-435 réintroduit uniquement la récupération contextuelle affichable sur la troisième ligne de la carte de Composition v2, sans afficher les Pauses propres aux Séries ; le trait de démarcation conserve les règles de D-303. La donnée `postActivityRecoverySeconds` appartient toujours à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
@@ -2415,6 +2434,10 @@ Modèle choisi ou Retour depuis son récapitulatif.
 
 **D-499 — précision validée par Hermann le 06/11/2026 :** « Valider les paramètres » apparaît uniquement lorsqu’une seconde étape est nécessaire et ouvre le récapitulatif sans enregistrer dans la séance. Dans ce cas, la coche du questionnaire reste grise et inactive. Sans seconde étape, la coche enregistre dans la séance lorsque les données sont complètes et cohérentes. Dans le récapitulatif, elle devient bleue et active lorsque les données sont complètes et cohérentes, puis enregistre dans la séance. Death by à un mouvement : questionnaire → coche → Composition, sans récapitulatif ; à deux mouvements : questionnaire → « Valider les paramètres » → récapitulatif → coche → Composition. L’enregistrement reste un ajout au brouillon de Composition, sans sauvegarde définitive de la Séance. Cette précision supersède la suppression générale du bouton dans les questionnaires ; les autres validations par coche restent applicables.
 
+**For time — sans questionnaire (décision de Hermann du 15/11/2026) :** la carte For time de la Composition ouvre directement « For time — Récapitulatif, état vide » ; il n’y a plus de questionnaire ni de bouton « Valider les paramètres » pour ce Format. La coche de l’en-tête est grise tant que la configuration est incomplète, puis bleue et enregistre dans la séance. Croix ou Retour → Composition, sans ajout.
+
+**Formats à tableau — sans questionnaire (décision de Hermann du 15/11/2026) :** la même règle s’applique à Tabata, 30/30, Renforcement, À l’échec, Progression, EMOM, Superset, Death by et AMRAP : l’entrée depuis la Composition ouvre directement l’écran unique du Format, qui sert aussi à la réouverture (« Retour » vers un questionnaire n’existe plus). Détails au §8 — registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) ».
+
 Questionnaire croix → Composition ; Valider les paramètres → récapitulatif modal sans ajout ; récapitulatif Retour → questionnaire avec réponses conservées ; Enregistrer dans la séance → Composition enrichie. Mode catalogue intégré : Ajouter → sélection appliquée ; Fermer le mode catalogue → saisie sans ajout. Photo → Fiche du mouvement superposée, croix → même état du parcours. [06/11/2026 : enregistrement porté par la coche ; bouton « Valider les paramètres » conservé uniquement si une seconde étape est nécessaire, coche du questionnaire alors grise — D-499 précisée le 06/11/2026.]
 
 #### 5. Données affichées et source de vérité
@@ -2432,6 +2455,26 @@ Modale sur Composition voilée ; en-tête nom du Format, sans bloc ni champ Titr
 #### 8. Éléments obligatoires
 
 Questionnaire Progression : Nombre de séries, Pause, Durée totale ; aucune cible globale sans Mouvement. Récapitulatif : une ligne par mouvement et une colonne par série ; répétitions, charge en dessous si Avec pour cet Exercice ; interrupteur Avec charge au questionnaire, Sans par défaut.
+
+**For time — mode d’exécution :** dès deux Exercices de rôle Tour, le récapitulatif affiche la ligne « Exécution » avec le même champ à liste déroulante que Tabata, EMOM et Death by (valeur « En alternance » par défaut, ou « À la suite »), en dernière ligne de la carte Repos entre les tours / Temps limite ; aucun nouveau contrôle. Avec un seul Exercice de rôle Tour, la ligne n’est pas affichée et le mode reste En alternance. En « À la suite », « Nombre de tours » devient « Nombre de séries » et « Repos entre les tours » devient « Repos entre les séries » ; le Déroulé regroupe les séries de chaque Exercice (21-15-9 de A, puis 21-15-9 de B) au lieu de les alterner. Le nombre de séries de chaque Exercice Tour reste égal à N dans les deux modes ; Buy-in et Buy-out restent exécutés une seule fois. Écrans : « For time — Récapitulatif » et « For time — Récapitulatif, à la suite ».
+
+**For time — tableau unique, sans questionnaire (décision de Hermann du 15/11/2026, registre ch07, « For time — tableau unique, sans questionnaire (15/11/2026) ») :**
+- **Carte des paramètres** (toujours visible, valeurs au clavier) : Nombre de tours, Repos entre les tours, Temps limite, puis Exécution selon la règle ci-dessus ; en « À la suite », Nombre de séries et Repos entre les séries. Le nombre de tours (ou de séries) se règle sur cette ligne dédiée ; il est le même que le nombre de colonnes de la boucle.
+- **Trois blocs** Buy-in, En boucle, Buy-out, séparés d’un espace blanc, titres noirs, pleine largeur sans marge latérale. Chaque en-tête porte « + Ajouter » (ouvre directement le mode catalogue, sélection multiple, D-500 et décision du 08/11/2026). Un bloc vide n’affiche ni colonne ni commande ± ; il n’existe plus d’interrupteurs Buy-in, Buy-out ni Avec charge : un bloc est actif dès qu’il contient un mouvement, et la charge se décide mouvement par mouvement par (+ kg)/(− kg).
+- **Colonnes et ± :** le premier mouvement ajouté fait apparaître S1 (Buy-in, Buy-out) ou Tour 1 (boucle), alignée à droite, avec un « − » à gauche des titres de colonne et un « + » à droite (glyphes discrets ton sur ton, atténués quand l’action est impossible). « + » ajoute une colonne et reste à sa place ; « − » retire la dernière colonne, sans confirmation de perte, et se décale vers la gauche. Aucun plafond de séries pour le Buy-in et le Buy-out ; boucle : tours bornés par la règle existante. Dans chaque bloc, les colonnes qui dépassent défilent horizontalement, signalées par un petit triangle à droite de l’en-tête. Aucune ligne dédiée « Nombre de séries du Buy-in / Buy-out » : le nombre de séries est le nombre de colonnes. Dans la boucle, « − » et « + » modifient le Nombre de tours.
+- **Ligne de mouvement** (48 px, photo 40 px) : nom ; seconde ligne « (rép., ± kg) » où l’unité et la charge, en bleu semi-gras, s’ouvrent au toucher (popover d’unité classique, unité propre à chaque ligne) ; valeurs par colonne, charge en dessous entre parenthèses (« (10 kg) »), même corps de texte. À l’ajout d’une ligne, l’unité est « Unité » en rouge ; les cases de valeur restent désactivées (« – » grisé) tant qu’elle n’est pas renseignée.
+- **Cotes** (référence 402 × 874) : lignes de la carte des paramètres de 31 px, contrôles de 24 px, marges haute et basse de 7 px ; trois blocs séparés de 10 px.
+- **Écrans Figma :** « For time — Récapitulatif, état vide », « … premier mouvement ajouté », « For time — Récapitulatif », « For time — Récapitulatif, à la suite ». L’ancien questionnaire et les anciens récapitulatifs sont conservés dans la section d’archive du fichier.
+
+**Formats à tableau — écran unique, sans redondance (décision de Hermann du 15/11/2026, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) ») :** les cartes de mouvement et le tableau qui reprenait chaque carte ligne par ligne ne coexistent plus ; le tableau est l’unique présentation des mouvements.
+- **Cadre des paramètres** pleine largeur (lignes de 31 px, contrôles de 24 px, marges de 7 px), puis un tableau pleine largeur : en-tête « Mouvements » et « + Ajouter » (AMRAP : un bloc Buy-in et un bloc En boucle, chacun avec son « + Ajouter »), lignes de 48 px, photo de 40 px, nom tronqué sur une ligne. Niveau et zones corporelles ne sont plus affichés.
+- **Seconde ligne de chaque mouvement :** « (unité, charge) », par exemple « (rép., + kg) » ou « (durée, − kg) » ; l’unité et la charge, en bleu, s’ouvrent au toucher. Un espace suffisant sépare la photo (qui ouvre la Fiche du mouvement), l’unité et la charge, pour des zones tactiles distinctes.
+- **Colonnes à dimensions** (inchangées) : Tabata, 30/30, Renforcement, À l’échec : Objectif, Pause, Charge ; Death by : Départ, Incrément, Charge ; AMRAP : Objectif, Par tour, Max. La colonne Charge a deux états : grisée avec un tiret sans charge, active avec la valeur (« 12 kg ») avec charge ; l’activation et le retrait se font depuis la seconde ligne (+ kg / − kg), plus de bouton dans la colonne.
+- **Colonnes de séries ou de tours :** Progression et EMOM (S1 … Sn), Superset (Tour 1 … n) : la colonne Unité est supprimée (l’unité est sur la seconde ligne) ; la ligne « Nombre de séries » (ou « Nombre de tours ») est conservée, et « − » / « + » de l’en-tête du tableau modifient la même valeur ; petit triangle si des colonnes dépassent.
+- **Unité à choisir :** pour les Formats où l’unité de chaque ligne est libre (For time, Progression, EMOM, Superset, AMRAP), « Unité » en rouge à l’ajout et valeurs désactivées jusqu’au choix, comme au For time.
+- **Variantes d’Exécution :** En alternance, À la suite, Dans chaque intervalle changent la valeur de la ligne Exécution, la ligne « Récupération entre les mouvements » (À la suite) et le Déroulé ; le tableau reste le même.
+- **Déroulé :** aucun texte « buy-in » ni « buy-out » dans le cadre d’illustration (frise et légende) ; en AMRAP, le bloc du buy-in affiche son volume seul (« 50 »). [Remplacé le 15/11/2026 : « 50 · buy-in ».]
+- **Écrans Figma :** voir le tableau des écrans Figma ci-dessus (lignes du 15/11/2026). Restent à reprendre dans la nouvelle mise en page : états clavier et ajout de charge de la Progression (`11546:21334`, `11546:21502`, `11546:21672`, `11575:21457`), AMRAP (`11388:22086`, `11488:20964`, `11488:21171`, `11195:19094`, `11564:21558`) et la Fiche du mouvement du Tabata (`11472:20899`), conservés en l’état.
 
 EMOM : tableau Unité | S1…Sn, cible et charge effectives de chaque série, aucune colonne ni formule d’incrément. Avec charge rend les commandes locales (+ kg)/(− kg) disponibles. Pour chaque fenêtre, travail connu des membres en Durée, deux côtés et pause applicable compris ; somme des membres dans l’intervalle commun ou intervalle local du membre. Atteinte ou dépassement bloque la validation ; Répétitions sans durée estimée inventée. Modale et récapitulatif partagent ces données. Death by multi-mouvements : Mouvement | Départ | Incrément juste sous Intervalle, en remplacement des deux lignes communes, valeurs locales et incrément ≥ +1 ; un seul mouvement conserve ses lignes. Aucune ligne Repos · jusqu’à la cadence. Petite carte : zones corporelles avec pastille 12 px gris à la place de la description, toutes variantes.
 
@@ -3414,6 +3457,14 @@ Noms/durées/compteurs calculés ; valeurs Figma démonstratives. Circuit=groupe
 
 Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté distinct ; charge de la série courante selon RM-241 ; chrono/Série/Tour/progression ; commandes ; état média conditionnel.
 
+[Complété le 12/11/2026 — réalisation PRE-10, recette r6, classe A ; Hermann : « Ok, il faudra ensuite se référer à Figma pour la position exacte des différents éléments de l’écran. », puis « Oui pour l’écran d’exécution de séance ». Disposition de `1992:8132` : titre, ligne de contexte (nom de la Séance [retiré le 12/11/2026, Hermann] ; nom de l’Exercice pendant une Pause ou une récupération), côté en haut de l’anneau, chrono au centre, objectif et guidage de phase sous le chrono ; [Remplacé le 13/11/2026 — classe B, Hermann : « un cadre gris léger en bas à gauche du cercle pour accueillir le nombre de répétitions s’il existe ; le même cadre à droite pour la charge si elle existe. Pas de cadre si l’information n’existe pas (bords arrondis, valeur en gras centrée à l’intérieur, taille supérieure à la taille de la charge actuelle). Positionner l’information de côté sous le nom de l’exercice, qu’on peut remonter un peu sur l’écran. » : côté sous le titre ; phase en haut de l’anneau, chrono au centre ; répétitions (ou À l’échec) et charge dans deux cadres gris clair ~~en bas~~ à gauche et à droite du cercle, absents sans valeur ; complété le 13/11/2026, Hermann : « Même taille de cadre, texte centré à l’intérieur. Mettre les deux cadres en haut et non en bas » — cadres de même taille, en haut du cercle ; puis « une forme plus triangulaire à bords ronds, formée par un deuxième rectangle de même taille mais vertical, juxtaposé, les deux étant reliés par une forme arrondie qui épouse la forme circulaire du cercle. Dans l’esprit Apple Watch » — cadres en coin ; puis « Côté 1 peut retourner dans le cercle en haut et la phase dans le cercle en bas » — côté en haut de l’anneau, phase sous le chrono, plus rien sous le titre pendant un exercice.] zone « Progression et suite » (Série • Tour, piste par Tours, cadre Temps écoulé / À suivre) ; barre Son, Réinitialiser, Pause, Suivant, Voix (icônes Figma, libellés en accessibilité). Catégorie non affichée : absente de l’instantané d’Exécution. Boutons « Basculer le côté » de la maquette non réalisés (comportement non décrit).]
+
+[Complété le 11/11/2026 — fin de PRE-10, conformité aux nœuds `1992:8132`, `1992:8530`, `1992:8626` : police Roboto Condensed (nom de l’Exercice SemiBold 30, côté Medium 24 `#8F8F94`, chrono Bold 100 interlettrage −1,5, Série et Tour Bold 30) ; chrono circulaire de 288 (anneau de fond `#E8E8ED` de 12, repère de départ en haut, repères des quarts et intermédiaires tous les 18°, anneau de progression `#8283F2` à embouts arrondis et pastille blanche de position), côté et chrono centrés dedans ; piste de progression structurée par Tours (un segment par Tour du Circuit en cours, 9 de haut, rayon 4,5, écart 3, légende « Tour »), avancement global inchangé (RM-077). Interprétation à valider en recette : l’anneau se remplit avec le temps écoulé de l’étape (compte à rebours), un tour par minute sans fin nominale (ch08), part de la fin nominale avec cadence. Le reste de la mise en page n’est pas modifié.]
+
+[Complété le 11/11/2026 — recette x2, x3, x4 de Hermann. x3 : sens validé (l’anneau se remplit avec le temps écoulé). x4, recopié : « Il faut que ce soit la même chose avec cadence, un tour par minute puis recommence » : tout chronomètre (Répétitions, avec ou sans cadence, À l’échec) fait un tour par minute (remplace « part de la fin nominale avec cadence »). x2, recopié : « le mouvement circulaire est saccadé, il doit être fluide et continu quelque soit la durée. » : l’anneau avance de façon continue, y compris pendant le Compte à rebours initial et la Fin de séance.]
+
+[Complété le 11/11/2026 au soir — recette de Hermann (cahier, x2 et r2) : « il ne faut pas de mouvement circulaire pendant le compte à rebours et la fin de séance » ; « La règle à suivre est exactement l’inverse. L’anneau ne doit PAS tourner pendant le compte à rebours et la fin de séance. » Pendant le Compte à rebours initial et la Fin de séance, l’anneau reste vide et immobile ; il avance seulement pendant les exercices, pauses et récupérations. [Anneau rempli avec le temps écoulé pendant ces deux étapes — remplacé.] Constat de Hermann : « Entre deux exercices d’une séance, le chronomètre et les autres éléments affichés ne doivent jamais changer de position sur l’écran (à corriger : le chronomètre est plus haut ou plus bas en fonction des informations affichées). » Nom de l’Exercice (deux lignes), contexte, côté, objectif et ligne de guidage gardent toujours leur hauteur, affichés ou non : l’anneau et le chrono ne bougent plus d’une étape à l’autre.]
+
 #### 8. Éléments obligatoires
 
 Phase courante identifiable, temps et progression, commandes Réinitialiser/Pause/Suivant/sons/vocal ; Tour seulement dans contexte de Circuit ; aucune interface de bilatéralité Circuit.
@@ -3505,7 +3556,7 @@ Le Compte à rebours initial est alors exécuté s’il est configuré avec une 
 
 L’écran affiche, de haut en bas :
 
-- le nom de la Séance ;
+- ~~le nom de la Séance~~ [retiré le 12/11/2026 — classe B, Hermann : « Retirer le nom de la séance de l’écran » ; la ligne de contexte ne montre plus que le nom de l’Exercice pendant une Pause ou une récupération ; complété le 13/11/2026, Hermann : « Lors d’une pause ou une pause entre les côtés, retirer le sous-titre, et n’écrire que Pause » — titre « Pause » pour la Pause entre séries et la Pause entre les côtés, sans sous-titre ; le nom de l’Exercice reste sous « Récupération »] ;
 - l’état des sons / annonces vocales ;
 - le nom de l’Exercice en cours ;
 - le compteur de Série lorsque l’élément exécuté est un Exercice ;
@@ -3633,7 +3684,7 @@ Suspendre temporairement une Exécution puis permettre soit de la reprendre, soi
 
 #### Ouverture
 
-La modale est affichée après appui sur `Pause`.
+La modale est affichée après appui sur `Pause`. [Remplacé le 12/11/2026 — recette e1 de PRE-10, classe B ; Hermann : « Appui sur pause : […] on supprime la fenêtre de dialogue, à la place : le bouton pause se transforme en bouton Démarrer (couleur bleue) ; le bouton réinitialiser se transforme en bouton Arrêt définitif (symbole carré plein blanc sur fond rouge) ; aucun texte explicatif. » La Pause n’ouvre plus de modale : Démarrer reprend, Arrêt définitif arrête la séance. Voir la spec `spec-guidage-reglages` §13.5.]
 
 L’Exécution est immédiatement suspendue.
 
@@ -3717,7 +3768,8 @@ La notion d'« étape » n'est pas affichée comme indicateur de progression dan
 | Exercice chronométré | Compte à rebours. `Exercice suivant` avant zéro demande confirmation et enregistre l’Exercice comme `Partielle`. |
 | Exercice en Répétitions ou À l’échec | Chronomètre croissant ; sans cadence/À l’échec : rotation et bip minute. Avec cadence : intervalles sans signal nominal final, progression temporelle des seules cibles chiffrées sans fin automatique ; Pause/Reprise sur intervalle complet. Suivant termine normalement dans les deux cas. |
 | Réinitialisation | Demande confirmation et remet à son état initial le périmètre courant (Série courante en unilatéral, bloc du côté courant en bilatéral, phase courante pendant une récupération, D-029) sans revenir à un Exercice antérieur. |
-| Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. |
+| Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. [Remplacé le 12/11/2026 — recette e1 de PRE-10, classe B ; Hermann : « Appui sur pause : […] on supprime la fenêtre de dialogue, à la place : le bouton pause se transforme en bouton Démarrer (couleur bleue) ; le bouton réinitialiser se transforme en bouton Arrêt définitif (symbole carré plein blanc sur fond rouge) ; aucun texte explicatif. » La Pause n’ouvre plus de modale : Démarrer reprend, Arrêt définitif arrête la séance. Voir la spec `spec-guidage-reglages` §13.5.] |
+| Point d’arrêt (recette PRE-10 du 12/11/2026) | [Ajouté le 12/11/2026 — classe B, Hermann (e1f) ; voir la spec `spec-guidage-reglages` §13.6.] L’écran présente l’Exercice qui suit, en attente : titre, Série, Tour, Cycle et À suivre de cet Exercice [confirmé le 13/11/2026, Hermann : « Pour le point d’arrêt : exercice qui suit. Pour la pause et récupération, l’exercice qui vient de s’exécuter » ; un remplacement intermédiaire du même jour, compteurs de l’Exercice terminé au Point d’arrêt, est annulé] ; chrono à son départ (durée de l’Exercice, ou 00:00 en Répétitions), en gris foncé, anneau immobile ; « Appuyer sur démarrer » en bleu en haut de l’anneau ; [complété le 13/11/2026, Hermann : « texte Appuyer sur démarrer sur deux lignes ; voile orange sur tout l’écran sauf le texte Appuyer, le bouton démarrer et le bouton arrêt »] chronomètre de l’attente en noir en bas de l’anneau [chronomètre de l’attente en gris foncé — remplacé le 12/11/2026, Hermann]. Démarrer relance la séance ; Arrêt (carré blanc sur rouge) remplace Réinitialiser ; Suivant est désactivé. |
 | Présentation | Le nouveau layout regroupe chrono circulaire, côté courant, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`. Le contenu d’Exécution utilise Roboto Condensed ; le titre supérieur de Séance et les dialogues utilisent Inter. La charge de la Série courante n’a pas d’emplacement arrêté dans ce layout, notamment pas « à côté de la cible » (RM-241). |
 | Navigation | L’utilisateur ne revient pas à un Exercice déjà exécutée. |
 | Étapes | Aucun compteur d’« étapes » n’est affiché dans le MVP. |
@@ -4943,7 +4995,7 @@ Nom 1/80/vide/81, photo absente/présente/indisponible ; silhouette absente→ho
 
 #### 1. Identification
 
-Profil principal 1992:375/474/579/684 et 2139:86 ; modification identité CE-UI-01.2139:86 est un doublon visuel, pas un parcours autonome.
+Profil — Préférences et Profil — Préférences (suite), steppers 1992:474/579 et 2139:86 ; modification identité CE-UI-01.2139:86 est un doublon visuel, pas un parcours autonome.
 
 Règles applicables : RM-031, RM-032, RM-051, RM-052, RM-085, RM-086, RM-089, RM-090, RM-209, RM-212, RM-217, RM-242 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
@@ -4961,13 +5013,21 @@ Modifier → CE-UI-01 ; navigation basse vers les trois autres destinations ; un
 
 #### 5. Données affichées et source de vérité
 
-Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’un exercice (D-266), Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
+Préférences locales : Annonces vocales, sons et vibrations par événement, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’un exercice (D-266), Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
+
+[Complété le 10/11/2026 — suite PRE-10 son et voix (spec `spec-guidage-reglages` §3.1, décisions de Hermann : « Les trois », bascules générales) : nouveau groupe **Guidage**, entre Séance et Préférences, avec Sons, Annonces vocales et Annoncer les répétitions ou la durée ; Sons et Annonces vocales quittent le groupe Préférences, qui garde Vibration et Notifications. Enregistrement immédiat, comme les autres préférences. Sons et Annonces vocales donnent l’état initial des interrupteurs de l’Exécution. Guidage écran verrouillé : ajouté avec la nouvelle version native (spec §3.5). Pas de maquette Figma à ce jour (rendu des groupes existants).]
+
+[Remplacé le 10/11/2026 — décision de Hermann « Il faut séparer : noms d’exercices ; pauses / récupérations / point d’arrêt ; début / fin de séance ; changements de cote » : le groupe Guidage contient Sons, Annoncer le nom des exercices (ancien libellé Annonces vocales), Annoncer les répétitions ou la durée, Annoncer les pauses et récupérations, Annoncer le début et la fin de séance, Annoncer les changements de côté. Chaque bascule ne coupe que sa catégorie d’annonces. L’interrupteur Voix de l’Exécution coupe toutes les annonces ; il démarre actif si au moins une catégorie est annoncée.]
+
+[Complété le 10/11/2026 — constat B : septième bascule du groupe Guidage, « Annoncer les phases du mouvement ».]
+
+[Remplacé le 11/11/2026 par la documentation publiée sur main `ebe72f76` (Profil › Préférences : Annonces vocales, Sons et vibrations) ; texte de PRE-10 conservé.]
 
 Le défaut de Récupération du Profil initialise uniquement un nouvel Exercice ; le réglage est ensuite local et indépendant. La valeur apparaît dans un cadre orange dans Paramètres d’exécution avant premier ✓.
 
 #### 6. Classification des valeurs Figma
 
-Labels statiques ; valeurs locales dynamiques. Défauts actés : côté 10 s, récupération après exercice 30 s, comptes à rebours 10 s, fins 5 s, Vibration activée. L’état vibration désactivée est un exemple utilisateur.
+Labels statiques ; valeurs locales dynamiques. Défauts actés : côté 10 s, récupération après exercice 30 s, comptes à rebours 10 s, fins 5 s.
 
 #### 7. Structure de l’écran
 
@@ -4975,7 +5035,7 @@ Identité/Modifier, groupes Exercice et Séance de réglages, commandes son/voca
 
 #### 8. Éléments obligatoires
 
-Six défauts distincts ; aucune Pause inter-Séries globale ajoutée. La Pause après chaque série est initialisée à 0 s dans l’éditeur (chapitre 08, paramètres d’exercice, CE-UI-10 §3), sans défaut global du Profil. Silhouette ne se modifie que dans CE-UI-01.
+Six défauts distincts ; aucune Pause inter-Séries globale ajoutée. [Remplacé le 11/11/2026 pour l’affichage — retour de Hermann (« anciennes entrées ») : seuls Compte à rebours de la séance et Fin de séance sont affichés (Figma `1992:684`) ; les quatre autres défauts restent enregistrés et appliqués.] La Pause après chaque série est initialisée à 0 s dans l’éditeur (chapitre 08, paramètres d’exercice, CE-UI-10 §3), sans défaut global du Profil. Silhouette ne se modifie que dans CE-UI-01.
 
 Libellé unique Pause entre les côtés, inchangé (D-406) ; défaut 10 s, proposé lorsqu’un Exercice passe à Changement de côté Avec (RM-212, RM-242) ; pas des pauses selon D-312 (D-386). Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.
 
@@ -4989,7 +5049,7 @@ Zone centrale scrollable, navigation fixe ; texte long/agrandi fait croître lig
 
 #### 11. États de l’écran
 
-Préférences chargées ; steppers actifs/borne ; vibration on/off ; notifications autorisées/refusées ; enregistrement/erreur.
+Préférences chargées ; steppers actifs/borne [Remplacé le 11/11/2026 pour Compte à rebours de la séance et Fin de séance — saisie au clavier numérique, retour de Hermann (y1)] ; vibration on/off ; notifications autorisées/refusées ; enregistrement/erreur.
 
 #### 12. Contrôles et interactions
 
@@ -5040,9 +5100,7 @@ Permettre à l’utilisateur de consulter les informations générales de son co
 L’écran comporte notamment :
 
 - l’avatar ou les initiales, le nom d’affichage et l’action `Modifier` ;
-- `Sons` ;
-- `Annonces vocales` ;
-- `Vibration` ;
+- « Annonces vocales » et « Sons et vibrations » ;
 - la durée par défaut du `Compte à rebours initial` ;
 - la durée par défaut de la `Fin de séance` ;
 - le `Compte à rebours d’exercice` ;
@@ -5051,9 +5109,9 @@ L’écran comporte notamment :
 
 Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance. Les lignes `Compte à rebours d’exercice` (ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit) et `Fin d’exercice` (ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit) sont des contrôles intégrés à cet écran Profil, pas des écrans distincts ; leurs valeurs sont proposées à la création d’un Exercice et restent modifiables dans chaque Exercice.
 
-Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. L’état désactivé montré dans le parcours Figma illustre une modification utilisateur et ne définit pas la valeur initiale.
+Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance.
 
-Le feedback haptique des roulettes est systématique dans le MVP et reste indépendant de la préférence `Vibration`, réservée aux vibrations fonctionnelles de séance.
+Le feedback haptique des roulettes est systématique dans le MVP et reste indépendant des réglages de vibration par événement.
 
 Le MVP est disponible uniquement en français et n’affiche aucun sélecteur de langue. Tous les textes destinés à l’utilisateur sont référencés par des clés de traduction centralisées, sans texte fonctionnel codé directement dans les écrans. Les traductions futures peuvent ainsi être ajoutées sans modifier les composants. Les pluriels, variables, dates, heures, nombres, notifications et libellés d’accessibilité utilisent également ce mécanisme d’internationalisation.
 
@@ -5072,9 +5130,8 @@ Les notifications ne sont pas autorisées par défaut. La demande d’autorisati
 | Avatar                              | Icône           | Toujours |         Oui | Initiales de l'utilisateur | Image personnalisée en V2       | Profil      | Modifier le profil   |                                                      |
 | Nom                                 | Texte           | Toujours |         Oui | Nom de l'utilisateur       | 1 à 80 caractères               | Profil      | Modifier le profil   |                                                      |
 | Action `Modifier`                   | Bouton          | Toujours |         Oui | Visible                    | Photo et nom d’affichage         | Profil      | Ouvrir l'édition     | Active dans le MVP                                   |
-| Sons                                | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Valeur par défaut des séances                        |
-| Annonces vocales                    | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Utilise la voix système                              |
-| Vibration                           | Interrupteur    | Toujours |         Oui | Activée                    | Booléen                         | Préférences | Activer / Désactiver | Vibrations fonctionnelles de séance uniquement       |
+| Annonces vocales | Six interrupteurs | Toujours | Oui | Voir démonstration | Un par annonce | Préférences | Activer / Désactiver | Voix système |
+| Sons et vibrations | Tableau de neuf événements | Toujours | Oui | Voir démonstration | Son et vibration par événement | Préférences | Choisir le son ou basculer la vibration | Chevron dans la colonne Son |
 | Compte à rebours initial par défaut | Sélecteur durée | Toujours |         Oui | 10 s                       | 0 à 60 s, pas 1 s (D-265)       | Préférences | Modifier             | Valeur utilisée à la création d'une séance (D-089)   |
 | Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 5 s                        | 0 à 60 s, pas 1 s (D-265)       | Préférences | Modifier             | 0 s = phase instantanée (D-089)                      |
 | Notifications                       | Interrupteur    | Toujours |         Oui | Non autorisées             | Booléen                         | Préférences | Activer / Désactiver | Demande système lors de la première activation d’un rappel |
@@ -5921,8 +5978,8 @@ Références Figma : `11551:21479`, `11551:21673`, fichier `G6RY5Ebhgwb4AHIOYDww
 
 **EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
 
-**Règle.** Les questionnaires For time, AMRAP et EMOM comportent le même interrupteur **« Avec charge »** que la Progression, **désactivé par défaut** : la charge est souvent prescrite dans ces formats (par exemple Fran, thrusters à 43 kg ; kettlebell en AMRAP ou EMOM). Il n'existe que dans le questionnaire.
-- **Activé, For time** : présentation et fonctionnement identiques à la Progression : colonne Unité, une colonne par tour (Tour 1, Tour 2, Tour 3 ; 4 colonnes visibles au plus, défilement au-delà), **une charge par tour** sous l'objectif (40 / 45 / 50 kg), car elle varie souvent d'un tour à l'autre ; les tours sont préremplis avec la même valeur. Même clavier.
+**Règle.** Les questionnaires For time, AMRAP et EMOM comportent le même interrupteur **« Avec charge »** que la Progression, **désactivé par défaut** : la charge est souvent prescrite dans ces formats (par exemple Fran, thrusters à 43 kg ; kettlebell en AMRAP ou EMOM). Il n'existe que dans le questionnaire. [Remplacé le 15/11/2026 pour le For time : plus de questionnaire ni d’interrupteur ; charge par mouvement par (+ kg)/(− kg) dans le tableau unique — registre ch07, « For time — tableau unique, sans questionnaire (15/11/2026) ».]
+- **Activé, For time** : présentation et fonctionnement identiques à la Progression : colonne Unité, une colonne par tour (Tour 1, Tour 2, Tour 3 ; 4 colonnes visibles au plus, défilement au-delà), **une charge par tour** sous l'objectif (40 / 45 / 50 kg), car elle varie souvent d'un tour à l'autre ; les tours sont préremplis avec la même valeur. Même clavier. [Remplacé le 15/11/2026 pour le For time : plus de questionnaire ni d’interrupteur ; charge par mouvement par (+ kg)/(− kg) dans le tableau unique — registre ch07, « For time — tableau unique, sans questionnaire (15/11/2026) ».]
 - EMOM : tableau Unité | S1…Sn, cible et charge effectives de chaque série, aucune colonne ni formule d’incrément. Avec charge rend les commandes locales (+ kg)/(− kg) disponibles. Pour chaque fenêtre, travail connu des membres en Durée, deux côtés et pause applicable compris ; somme des membres dans l’intervalle commun ou intervalle local du membre. Atteinte ou dépassement bloque la validation ; Répétitions sans durée estimée inventée. Modale et récapitulatif partagent ces données.
 - **Activé, AMRAP** : **charge fixe** (on ne change pas de charge en cours d'AMRAP). Quatrième colonne **Charge** entre Par tour et Max ; colonnes resserrées : Objectif, Par tour, Charge, Max. Une seule valeur d'objectif par mouvement, avec l'unité à côté de la valeur ; même clavier. Max grise l'Objectif et Par tour, **pas la Charge** : un max de répétitions se fait avec une charge.
 - **Charge des modèles — cible du 5 novembre.** Les dix questionnaires proposent Avec charge, Sans par défaut. L’activation globale rend les commandes locales disponibles sans charger tous les mouvements ; (+ kg)/(− kg) pilote chaque Exercice. Charges facultatives : Progression/For time/Superset/EMOM par série ou tour ; autres modèles fixes par mouvement. Affichage entre parenthèses et unité kg. Masquer puis réactiver retrouve états et valeurs dans le même brouillon avant sauvegarde ; vider efface réellement. Une réouverture lit l’état enregistré, sans nouvelle obligation de mémorisation de réponses historiques. Aucun incrément de charge EMOM ; seules les charges effectives par série font référence.
@@ -6049,9 +6106,9 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 - **Données** : « + kg » met la Charge de l'Exercice sur « Avec » ; une ligne vidée la remet sur « Sans ».
 - **Réouverture** (« Modifier le format ») : chaque mouvement affiche son état effectif ; l’interrupteur global suit la règle du §16.
 
-**Interrupteur du questionnaire.** Progression et For time comportent « Avec charge », désactivé par défaut, selon le §16. Son activation rend disponibles les commandes locales ; la charge reste facultative pour chaque mouvement.
+**Interrupteur du questionnaire.** Progression et For time comportent « Avec charge », désactivé par défaut, selon le §16. Son activation rend disponibles les commandes locales ; la charge reste facultative pour chaque mouvement. [Remplacé le 15/11/2026 pour le For time : plus de questionnaire ni d’interrupteur ; charge par mouvement par (+ kg)/(− kg) dans le tableau unique — registre ch07, « For time — tableau unique, sans questionnaire (15/11/2026) ».]
 
-**Écrans Figma :** questionnaires Progression et For time avec interrupteur ; récapitulatifs et états clavier avec « (+ kg) » sur les mouvements sans charge et « (− kg) » sur les mouvements chargés ; « Progression — Récapitulatif, ajout d’une charge (+ kg) ».
+**Écrans Figma :** questionnaires Progression et For time avec interrupteur ; récapitulatifs et états clavier avec « (+ kg) » sur les mouvements sans charge et « (− kg) » sur les mouvements chargés ; « Progression — Récapitulatif, ajout d’une charge (+ kg) ». [Remplacé le 15/11/2026 pour le For time : plus de questionnaire ni d’interrupteur ; charge par mouvement par (+ kg)/(− kg) dans le tableau unique — registre ch07, « For time — tableau unique, sans questionnaire (15/11/2026) ».]
 
 **Documentation :** référence Formats (Progression §9.2–9.3, For time §11), ch13 (tableaux des récapitulatifs).
 
@@ -6145,3 +6202,46 @@ L'écran **« Mise à jour disponible »** doit signaler, avant « Mettre à jou
 La distribution dans l'Espace en étoile reste individuelle, avec invitation acceptée, refus et blocage ; aucun rôle professionnel ni prescription d'exécution numérique à représenter dans ce lot.
 
 **Évidence Figma limitée :** fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP `510:101` ; actions glissées « Partager » connues `10501:23846` et `10579:21622`. Ces actions ne prouvent pas l'existence d'écrans de Bibliothèques, de contrôle central, de versions ni de modération. N'inventer aucune taille, couleur ou interaction visuelle ; confronter les contrats à Figma après conception. [Parcours cibles](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+
+
+### Guidage sonore en Composition et dans le Profil
+
+[Composition séance — Guidage sonore (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12132-27436) et [Composition séance — Guidage sonore (modale, suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12175-25882) représentent les deux positions de défilement d’une modale unique. Le bouton de l’en-tête de Composition y donne accès, sauf sur le récapitulatif Tabata. [Remplacé le 11/11/2026 — exception « sauf sur le récapitulatif Tabata » supprimée, retour de Hermann : « C’est un règle stupide que je n’ai jamais édictée et qu’il faut supprimer. »] Fermer, le titre et Valider restent fixes. Valider applique les réglages uniquement à la séance en cours. Le bouton de Composition prend la variante Activé uniquement pendant l’ouverture de la modale. Le prototype Figma présente ces écrans sans liaison interactive entre le bouton et la modale ni entre les chevrons et le choix du son. [Profil — Préférences](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684) et [Profil — Préférences (suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12093-25010) présentent les mêmes réglages.
+
+**Annonces vocales** propose un interrupteur pour chacune des six annonces.
+
+- Début et fin de séance
+- Nom des exercices
+- Nom des phases
+- Objectifs de durée et de répétition
+- Pauses, récupérations et points d’arrêt
+- Changements de côté
+
+**Sons et vibrations** présente une valeur et un chevron dans la colonne Son et un interrupteur dans la colonne Vibration. Valeurs illustrées dans le Profil (les six annonces sont actives) :
+
+| Événement | Son | Vibration |
+|---|---|---|
+| Compte à rebours | Par défaut | Active |
+| Début d’exercice | Par défaut | Active |
+| Changement de phase | Par défaut | Active |
+| Changement de côté | Par défaut | Active |
+| Cadence | Par défaut | Inactive |
+| Toutes les X minutes | Non | Inactive |
+| Mi-temps | Par défaut | Active |
+| Point d’arrêt | Par défaut | Active |
+| Fin de séance | Par défaut | Active |
+
+La ligne sonore « Point d’arrêt » regroupe pauses, récupérations et points d’arrêt. Pour chacun des neuf événements, la colonne Son indique le son utilisé. Choisir « Aucun » coupe uniquement le son de cet événement, y compris pour Mi-temps. Chaque annonce, chaque son et chaque vibration se règle indépendamment. Le choix du son ouvre [Préférences — Choix d’un son (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12068-25044).
+
+[Complété le 11/11/2026 — réalisation dans l’application (demande de Hermann, cahier, constat d ; précision : « ne développe pas l'écran Profil (navigation) - Profil (section), mais uniquement les écrans Profil (navigation) - Préférences ») :
+- Profil › Préférences : sections Notifications (« Autoriser les notifications », « Rappels des séances planifiées »), Séance (« Compte à rebours de la séance », « Fin de séance »), Annonces vocales, Sons et vibrations ; le bloc Identité et l’accès à Modifier le profil ne sont pas modifiés ; les onglets Profil, Préférences et Communauté du Figma ne sont pas réalisés.
+- À CLARIFIER : le groupe Exercice (Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice) et la Récupération après exercice, absents des deux vues Figma mais exigés par CE-UI-07 (« Six défauts distincts »), sont conservés, après la section Séance. [Remplacé le 11/11/2026, retour de Hermann : « tu n'as pas utilisé la référence Figma pour le layout / La charte graphique, ni le contenu des préférences ou je vois encore des anciennes entrées. A corriger avec que je ne continue les tests » — groupe Exercice et Récupération après exercice retirés de l’écran ; bloc Identité retiré : en-tête à onglets Profil / Préférences / Communauté du Figma, l’onglet Profil ouvrant l’écran existant Modifier le profil, Communauté indisponible (hors MVP). Mise en page et charte relevées dans `1992:684`, `12093:25010`, `12132:27436`, `12068:25044` (fond `#F7F7FF`, groupes, lignes de 42 ou 40, typographies Inter, pastille de valeur « 10″ »). Les valeurs déjà enregistrées de Pause entre les côtés, Compte à rebours et Fin d’exercice, Récupération après exercice restent utilisées pour les nouveaux exercices, sans réglage visible.]
+- Choix d’un son : « Par défaut », « Aucun », puis les sons de l’application. À CLARIFIER : la liste « Sons du système » du design (Aurore, Bambou…) n’est pas proposée, iOS ne donnant pas accès à ses sons d’alerte aux applications.
+- [Complété le 11/11/2026 après-midi — retours de Hermann (cahier, y1) : « Supprimer le titre de section "Diagnostic des sons..." / Eloigner plus à gauche la colonne "Son", centrer le titre de la colonne / Compte à rebours et la fin de séance : utiliser le clavier et non pas le stepper / Remplacer "Toutes les X minutes" par "Toutes les minutes" (dans la modale et les préférences) » ; (y3) : « Quand "Aucun" est sélectionné, son nom doit être "Aucun" dans la liste des préférences, et non pas "Non". / Dans la modale : / - Supprimer le texte "Toucher un son..." / - quand "Par défaut" est sélectionné, le son par défaut de l'application doit aussi être coché en même temps, cela permet de savoir lequel c'est. »
+  - Séance : Compte à rebours de la séance et Fin de séance se saisissent au clavier numérique (valeur « 10″ » touchée, saisie ramenée dans les bornes, enregistrée à la fermeture du clavier). [Stepper — remplacé.]
+  - Libellés : « Toutes les minutes » (modale et Préférences) [« Toutes les X minutes » — remplacé] ; son coupé affiché « Aucun » [« Non » — remplacé].
+  - Colonne Son : décalée vers la gauche, à distance de l’interrupteur, titre « Son » centré sur la colonne.
+  - Choix d’un son : plus d’indication « Touchez un son pour l’écouter. » ; « Par défaut » choisi, le son par défaut de l’événement est coché en même temps.
+  - Le lien technique « Diagnostic des sons (développement) » n’apparaît plus dans les Préférences.]
+- Mi-temps : réglage enregistré et affiché ; À CLARIFIER : aucun signal de mi-temps n’existe encore dans l’Exécution (moment non défini). [Résolu le 11/11/2026 — retour de Hermann (cahier, y5) : « Le signal de mi temps est réservé aux exercice en durée définie, uniquement. On exclut les le compte à rebours, la fin de seance, les pauses et récupérations. » Le signal de mi-temps est joué à la moitié d’un exercice en Durée définie, sauf pendant ses trois dernières secondes ; à l’instant d’un clic de cadence, il le remplace.]
+- Composition : l’élément Guidage ajouté le 11/11/2026 au-dessus du Compte à rebours initial est retiré avec son espace ; bouton Guidage sonore dans l’en-tête, symbole plein seulement pendant l’ouverture de la modale. [La description du composant Figma « Activé = réglages propres à la séance, ou modale ouverte » n’est pas suivie : la décision de Hermann et le registre limitent l’état plein à l’ouverture.]]

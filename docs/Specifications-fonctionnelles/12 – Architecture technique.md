@@ -555,7 +555,7 @@ Ils prennent en charge :
 
 Le moteur d’exécution demande le déclenchement d’un événement sans dépendre directement de l’API native utilisée.
 
-Le feedback haptique des roulettes numériques relève de l’interface et non du moteur d’Exécution. Le composant de roulette déclenche un retour haptique léger et bref à chaque changement effectif de valeur, une seule fois par cran. Ce déclenchement est systématique et ne consulte pas la préférence `Vibrations`, réservée aux vibrations fonctionnelles de séance. L’implémentation reste isolée derrière l’adaptateur haptique natif afin de conserver un comportement cohérent sur iOS et Android.
+Le feedback haptique des roulettes numériques relève de l’interface et non du moteur d’Exécution. Le composant de roulette déclenche un retour haptique léger et bref à chaque changement effectif de valeur, une seule fois par cran. Ce déclenchement est systématique et ne consulte pas les réglages des vibrations fonctionnelles de séance. L’implémentation reste isolée derrière l’adaptateur haptique natif afin de conserver un comportement cohérent sur iOS et Android.
 
 Cette abstraction permet de gérer les différences entre iOS et Android.
 
@@ -565,6 +565,8 @@ Les comportements doivent être testés notamment :
 - application en arrière-plan ;
 - téléphone en mode silencieux ;
 - avec d’autres sources audio actives.
+
+**Note d’implémentation (lot PRE-10 son et voix, 09/11/2026 — choix technique, classe D ; décision de Hermann, recette PRE-10 n° 2 `q-son`).** Bips : `expo-audio` (`src/infrastructure/audio/ExecutionSounds.ts`), deux sons WAV courts empaquetés (`assets/sounds/`), un lecteur par son rejoué depuis le début. Annonces : `expo-speech` en `fr-FR` (`src/infrastructure/speech/ExecutionVoice.ts`), une annonce remplaçant la précédente. Session audio commune : lecture en mode silencieux, autres sources atténuées (`duckOthers`), pas de lecture en arrière-plan ; le plugin de configuration `expo-audio` n’est pas ajouté (il activerait le mode audio d’arrière-plan et la permission micro), l’arrière-plan restant au spike RT-001 / P6. `ExecutionSignalAdapter` choisit le canal par signal ; un échec natif est ignoré. Nouvelle version native requise (build EAS `development-bmad`). [Complété le 11/11/2026 — constat de Hermann : « Le bip de cadence est en retard par rapport au chronomètre » ; essais K3, K5, K6 OK. Quand le module natif `react-native-audio-api` est présent (build `2e47648d`), `ExecutionSounds` joue les sons par la bibliothèque de sons courts (`ScheduledSounds` : sons décodés d’avance, départ sur l’horloge audio, session `duckOthers`) ; sinon `expo-audio` reste utilisé. Classe D.]
 
 ## 12.12 Fonctionnement en arrière-plan
 
@@ -2027,3 +2029,37 @@ Le premier lot est limité aux Bibliothèques génériques éditées par KODJO :
 **Prestataires non décidés :** PostgreSQL/Supabase, stockage privé, traitement vidéo ou API texte/image, interface d'administration. L'administration Node/OVH du pilote de 60 fiches demeure un outil de recette, sans contournement des contrôles de diffusion du futur produit.
 
 **Périmètre :** ne pas modifier le moteur d'Exécution au titre de la distribution. Vérifier toutefois sa compatibilité avec la neutralisation d'une fiche sur la branche `pre10-bmad/dev` ; ce moteur y existe en développement, ce qui rend obsolète l'affirmation selon laquelle PRE-10 ne serait pas développé. [Analyse de simplification](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
+
+
+## Composition — modèle unique d’édition des Circuits (10/11/2026)
+
+Décision de Hermann du 10/11/2026 (constat A, recette c1), recopiée : « fais les modifications qu'il y a faire pour homogénéiser les circuits et corriger cet écart. Il n'y avait aucun raison d'avoir deux modèles de circuit coexistants. »
+
+- Tout Circuit, y compris le Circuit unique composé à la main, est affiché et édité par la disposition générale : bloc `LayoutCircuitBlock`, options au glissement, cadre et translation partagés, Points d’arrêt de la structure (`circuitId`, `position`).
+- Décision d’affichage et d’édition : `isEditedAsLegacy` (`src/domain/sessions/structure.ts`). Elle vaut vrai seulement pour une Séance sans aucun Circuit ; utilisée par `resolveRichLayout`, `layoutOperations`, `SessionDraft` (`toSessionDraft`, `toStructuredSessionInput`, signature), `sessionDuplication` et `CompositionScreen` (`isGeneralLayout`).
+- Stockage inchangé : `legacyFromStructure` décide toujours de la forme enregistrée (`structuredInput.ts`, `SqliteSessionRepository`). Aucune migration, aucun changement d’API.
+- Le rendu de l’ancien Circuit unique (`composition-tour-section`) n’est plus atteint par une Séance qui a un Circuit ; son retrait du code est un nettoyage séparé, non fait dans ce lot.
+- Classement : A (options de tout Circuit, MAJ des écrans Formats du 04/11/2026 §6 quinquies) et D (un seul modèle d’édition). Aucune règle fonctionnelle nouvelle.
+
+## Fin de PRE-10 — guidage de la Séance et écran maintenu actif (11/11/2026)
+
+- Guidage de la Séance : `SessionGuidance` (`src/domain/sessions/sessionGuidance.ts`), trois booléens nullables (`null` = comme le Profil), forme normalisée absente quand la Séance suit le Profil. Colonnes nullables `sessions.guidance_sounds_enabled`, `guidance_voice_enabled`, `guidance_announce_objective` (`migration028`, version 28, Séances existantes inchangées). Chemin : brouillon (`SessionDraft.guidance`, comparé par `sessionDraftsEqual`) → `StructuredSessionInput` → `SqliteSessionRepository` → `Session.guidance` → instantané d’Exécution (champ facultatif, version d’instantané inchangée) → `ExecutablePlan.guidance`. L’écran d’Exécution dérive l’état initial des interrupteurs (Séance, sinon Profil) ; le choix fait pendant la séance n’est pas enregistré.
+- Composition : `GuidanceRow` (`CompositionSequence.tsx`) et feuille native `app/(creation)/session-guidance.tsx` (`SessionGuidanceSheet`), même présentation que les autres feuilles de la Composition.
+- Écran maintenu actif : `expo-keep-awake` (SDK 57, module natif déjà présent via `expo`), adaptateur `ScreenAwakePort` (`src/infrastructure/device/ScreenAwake.ts`) fourni par `SessionServiceProvider` ; actif de Démarrer à la fin de séance ; sans module natif, aucune action.
+
+- Nouvelle version native (build EAS `2e47648d`, 11/11/2026, accord de Hermann « Oui, un seul build ») : `react-native-audio-api` 1.0.0 (sons courts programmés sur l’horloge audio, `ScheduledSounds`), plugin `expo-audio` (mode d’arrière-plan `audio`, sans permission micro), `react-native-svg` 15.15.4 (chrono circulaire, `ExecutionTimerRing`). Chaque module est chargé seulement si son module natif est présent (`AudioAPIModule`, `RNSVGSvgViewModule`), pour que la version précédente servie par Metro continue de fonctionner. Police Roboto Condensed par `@expo-google-fonts/roboto-condensed` (sans module natif nouveau).
+
+- Sons programmés à l’avance (12/11/2026, spec `spec-guidage-reglages` §8 étape 3 et §13.1, classe A) : `ExecutionService` remet les signaux de l’étape des 1,5 s suivantes (`onScheduleSignal`, `SIGNAL_LOOKAHEAD_MS`) et les annule à tout changement de génération (`onCancelScheduled`) ; `ExecutionSignalAdapter.schedule` programme leur son (`ScheduledSounds.scheduleIn`) et, à l’instant du signal, ne restitue que la vibration et l’annonce. Transitions toujours jouées à leur instant.
+
+## DSF — Actions de la Composition et interrupteurs
+
+Dans « Design system — Fondations », « DSF V2 / Actions » présente « Fiche / Édition » et « Fiche / Guidage sonore ». [DSF / Actions / Édition](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12153-27697) fournit le crayon bleu de la fiche Mouvement. [DSF / Actions / Guidage sonore](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12145-2108) utilise le même bouton de 40 × 32 px, rayon 10 px, fond gris clair sans contour. Dans l’en-tête de Composition, son bord droit est à 24 px du bord de l’écran. [Remplacé le 11/11/2026 — retour de Hermann (cahier, z1) : « A corriger : Mettre le bouton gris clair à 17 du bord, c’est la marge dans le développement, vérifie. » Le bouton est aligné sur la marge de l’en-tête (16 px, celle du bouton Fermer).] Le symbole bleu Phosphor « faders » est light en État=Normal et fill en État=Activé. Le fond est identique. Le DS définit « Bouton secondaire » comme composant commun aux actions Édition et Guidage sonore. Les deux composants d’action spécifient leur symbole. Guidage sonore utilise la variante Activé uniquement lorsque la modale est ouverte.
+
+[DSF / Controls / Interrupteur](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5544-4632) utilise le vert #34C759 en État=Actif et le gris en État=Inactif dans toute l’application. Les instances de « Profil — Préférences » et « Préférences — Choix d’un son (modale) » héritent de ces couleurs.
+
+## Guidage sonore par événement — réalisation (11/11/2026)
+
+- Domaine : `src/domain/preferences/guidanceSettings.ts` (six annonces, neuf événements, son `DEFAULT` / `NONE` / son de l’application, vibration) ; `Profile.guidanceEvents`, `profileGuidance` ; `SessionGuidance` = réglages complets validés pour la Séance (absent = comme le Profil).
+- Stockage : `migration029`, version 29 : `guidance_preferences.events_json` (Profil, `NULL` = défauts du design) et `sessions.guidance_settings` (JSON, `NULL` = comme le Profil). Les colonnes `sessions.guidance_*` de `migration028` ne sont plus lues. Les six annonces restent dans leurs colonnes existantes.
+- Interface : `GuidanceSettingsForm` (mêmes contrôles dans Profil › Préférences et dans la modale), `SoundChoiceList` ; modale de Composition sur `FilterSheetFrame` en feuille native de hauteur fixe (en-tête fixe) ; « Choix d’un son » dans la même feuille (Composition) ou route `app/profile-sound.tsx` (Profil) ; `SecondaryActionButton` (« Bouton secondaire » 40 × 32) pour le bouton Guidage sonore ; l’action Édition de la fiche n’y est pas encore rebranchée.
+- Exécution : `ExecutionSignalAdapter.setGuidance` applique son et vibration par événement ; une Exécution reprise avec l’ancienne forme de guidage suit le Profil. Anneau du chrono animé en continu (Reanimated, `ringMotion`). Pause à l’arrière-plan (`AppState`).

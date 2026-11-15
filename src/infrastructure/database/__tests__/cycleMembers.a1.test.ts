@@ -299,11 +299,17 @@ describe("PRE-9 A.1 — service sur le chemin structuré (aucune projection dans
       ["inside-2", "IN_TOUR"],
       ["after", "AFTER_TOUR"],
     ]);
-    expect(reopened.circuitNature).toBe("SERIES");
-    expect(reopened.stopPoints?.map((point) => [point.scope, point.position])).toEqual([["IN_TOUR", 1]]);
+    // Modèle unique des Circuits (10/11/2026) : nature, compte et Points relus dans la structure générale.
+    expect(reopened.structure?.elements[1]).toMatchObject({ kind: "CIRCUIT", circuit: { id: circuitId, nature: "SERIES", repeatCount: 3 } });
+    expect(reopened.structure?.stopPoints.map((point) => [point.circuitId, point.position])).toEqual([[circuitId, 1]]);
 
     // Réenregistrée : le Circuit garde son identité, aucun conteneur créé.
-    expect((await service().updateSession(created.value.id, { ...reopened, tourRepeatCount: 4 })).status).toBe("UPDATED");
+    const structure = reopened.structure!;
+    const withFour = {
+      ...reopened,
+      structure: { ...structure, elements: structure.elements.map((element) => (element.kind === "CIRCUIT" ? { ...element, circuit: { ...element.circuit, repeatCount: 4 } } : element)) },
+    };
+    expect((await service().updateSession(created.value.id, withFour)).status).toBe("UPDATED");
     expect(await database.getAllAsync("SELECT id, repeat_count, nature FROM tours")).toEqual([{ id: circuitId, repeat_count: 4, nature: "SERIES" }]);
   });
 });

@@ -393,7 +393,7 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-073 | Le Nombre total d’Exercices à exécuter est calculé sur les occurrences d’Exercices du plan développé. Les Pauses et phases de Récupération ne sont pas des Exercices et ne sont pas comptées. | **Révisée par D-208** : les deux phases de récupération restent hors compte des Exercices | Oui |
 | D-074 | Le Nombre d’Exercices exécutés correspond au nombre de Résultats d’Exercice exécuté créés ; un Exercice Partielle compte comme exécutée. | Validée | Oui |
 | D-075 | Le calcul des occurrences périodiques utilise la semaine contenant la Date de début comme ancrage ; les bornes Date de début et Date de fin sont inclusives. | Validée | Oui |
-| D-076 | Toute roulette numérique produit un retour haptique léger et bref à chaque changement effectif de valeur, à raison d’un seul retour par cran. Ce feedback haptique d’interface est systématique et indépendant du réglage `Vibrations` du Profil, lequel ne pilote que les vibrations fonctionnelles de séance. | Validée | Oui |
+| D-076 | Toute roulette numérique produit un retour haptique léger et bref à chaque changement effectif de valeur, à raison d’un seul retour par cran. Ce feedback haptique d’interface est systématique et indépendant des réglages de vibration par événement. | Validée | Oui |
 | D-077 | Le terme `Tour` remplace complètement `Set` dans l’interface, le modèle fonctionnel, le modèle de données, les API et le code. | Validée post-Figma ; terminologie fonctionnelle révisée par D-209 (D-387) : le conteneur est le Circuit, un Tour en est une répétition ; identifiants techniques `Tour` non renommés | Oui |
 | D-078 | Le premier Exercice ajouté est placé après le Compte à rebours initial et avant le Circuit. Les Exercices peuvent ensuite être déplacés avant le Circuit, dans le Circuit ou après le Circuit. | Validée post-Figma | Oui |
 | D-079 | Les notifications ne sont pas autorisées par défaut. La demande système intervient lorsque l’utilisateur active pour la première fois un rappel ; en cas de refus, le rappel reste désactivé. | Validée post-Figma | Oui |
@@ -1092,7 +1092,7 @@ Les phases forment un motif cyclique de guidage : un passage complet correspond 
 
 Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. [D-446 du 26/10/2026 (Q8) : une cible plus courte que le motif est permise, sans avertissement] Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
 
-Deux points restent distincts des trois corrections validées : (1) le comportement du guidage entre l’atteinte du nombre cible de répétitions et la validation manuelle Suivant doit être vérifié dans la règle existante, puis précisé si elle ne tranche pas ; ne pas introduire de fin automatique ; (2) « deux séries à la cible, dernière à l’échec » est actuellement représenté par des séries variables. Ne pas autoriser implicitement phases + variables ni inventer un réglage de dernière série. L’arrêt mixte avec paramètres communs demande une spécification séparée. [remplacé par D-446 du 26/10/2026 : point (1) tranché, le motif continue de boucler sans signal jusqu’à Suivant, sans fin automatique ; point (2) clos, les phases sont autorisées avec les séries variables, qui représentent `30 s / 45 s / échec` ou `10 / 12 / échec` sans réglage de dernière série ; libellé « À la cible » devenu « À l’objectif » (D-447)]
+Deux points restent distincts des trois corrections validées : (1) le comportement du guidage entre l’atteinte du nombre cible de répétitions et la validation manuelle Suivant doit être vérifié dans la règle existante, puis précisé si elle ne tranche pas ; ne pas introduire de fin automatique ; (2) « deux séries à la cible, dernière à l’échec » est actuellement représenté par des séries variables. Ne pas autoriser implicitement phases + variables ni inventer un réglage de dernière série. L’arrêt mixte avec paramètres communs demande une spécification séparée. [remplacé par D-446 du 26/10/2026 : point (1) tranché, le motif continue de boucler sans signal jusqu’à Suivant, sans fin automatique ; [« sans signal » remplacé le 13/11/2026 — recette PRE-10, Hermann : « Oui il faut continuer le guidage, c’est à l’utilisateur d’arrêter. Mais on peut ajouter un compteur automatique dans ce cas puisqu’on est supposé suivre ce guidage. Il serait posé dans un triangle en bas à droite. » : en Répétitions, les signaux et annonces de phase continuent au-delà du nombre cible jusqu’à Suivant, toujours sans fin automatique ; un compteur automatique des répétitions faites d’après le motif est affiché en bas à droite du cercle] point (2) clos, les phases sont autorisées avec les séries variables, qui représentent `30 s / 45 s / échec` ou `10 / 12 / échec` sans réglage de dernière série ; libellé « À la cible » devenu « À l’objectif » (D-447)]
 
 Remplace les dispositions contraires D-370/D-372/D-374 et les transferts de durée D-371/D-432/D-438 ; conserve le reste. [Texte normatif et recette](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). D-446 locale à rapprocher, sans numéro réattribué. [rapprochement fait : D-446 ci-dessous, annotation PRE-7 de PHC-20261026, validée par Hermann le 26/10/2026]
 
@@ -2668,3 +2668,39 @@ Ces choix mettent en œuvre A-1 et A-2 ; ils ne créent aucune règle métier.
 ### 11 novembre 2026 — Familles de niveaux des fiches de Bibliothèque
 
 Décision validée : administrer sur la fiche éditoriale son appartenance facultative à une famille de niveaux et sa position ; transmettre ces informations pour retrouver la progression à l’import mobile. L’ordre des références dans la Bibliothèque reste indépendant. Cette extension de MFN-05 / D-439 concerne la conception du partage. [Conception fonctionnelle](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md) · [Format et recette](../KODJO-Format-catalogue-mouvements-v1.md).
+
+
+### Guidage sonore en Composition et dans le Profil (11/11/2026)
+
+La modale de Composition règle uniquement la séance en cours. L’icône pleine signale exclusivement son ouverture. Les six annonces vocales et les réglages Son et Vibration des neuf événements sont indépendants. Chaque liste de sons comprend « Aucun », y compris pour Mi-temps. Le prototype présente les écrans sans liaisons interactives pour ce parcours. Le DS définit « Bouton secondaire » comme base commune aux actions Édition et Guidage sonore.
+
+## For time — tableau unique, sans questionnaire (15/11/2026)
+
+Classe B (évolution validée). Décisions de Hermann, recopiées :
+
+> « Le questionnaire n’est plus nécessaire » — « J’essaye de m’affranchir de la première page de questionnaire. Si j’ai toujours trois lignes visible, « Buy in + Ajouter », « En boucle + Ajouter » et « Buy out + Ajouter » la seule information qui n’est pas encore entrée est le nombre de séries du buy in et du buy out »
+
+> « Je pense qu’il reste intéressant de voir apparaître sur une ligne dédiée, l’information du nombre de tours d’un For Time. »
+
+> « Ma proposition : - le nombre de tours est tour visible, renseigné avec le clavier - initialement les 3 lignes sont vides, pas de S1, Tour 1, S1. - Ajouter un mouvement : S 1 apparaît, aligné à droite, avec à gauche un moins, à droite un plus. - appuyer sur plus et moins ajouter et retire une colonne, le plus à droite ne change jamais de place, le moins de décale à gauche, avec au maximum 3 colonnes. Symbole discret ton sur ton - pas de ligne dédiée « Nombre de séries de buy in / out », ligne dédiée pour le nombre de tours. - sur la valeur durée / re : montrer unité, en rouge, à l’ajout de chaque ligne, les champs de valeur ne sont pas activés tant que l’unité n’est pas renseignée (popover classique) »
+
+> « On garde le triangle et on a le plus et le moins pour les tours aussi » — « Mettre « rép » en modifiable sur chaque lignes, il suffit de cliquer dessus pour définir l’unité de chaque ligne » — « Mette l’option de charge sur le buy in et le buy out »
+
+- **Conséquences.** Plus de questionnaire For time : la Composition ouvre l’écran « état vide » ; plus d’interrupteurs Buy-in, Buy-out ni Avec charge pour ce Format (la charge se décide par mouvement, (+ kg)/(− kg), y compris sur le buy-in et le buy-out). Le nombre de séries du buy-in et du buy-out est le nombre de colonnes, réglé par − / +. Le Nombre de tours reste sur une ligne dédiée, synchrone avec le − / + de la boucle. Tabata, EMOM, Death by et les autres Formats gardent leur questionnaire.
+- **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02 (entrée, tableau unique, charges, écrans Figma) ; chapitre 06 (écran archivé) ; chapitre 10, FMT-32 (annotation). Les règles FMT-30 et FMT-31 ne changent pas.
+- **Précision de Hermann (15/11/2026) :** « Il n’y a pas de plafond de nombre de séries pour le buy in et le buy out » ; le « maximum 3 colonnes » de sa proposition ne vaut que pour les colonnes visibles, au-delà défilement. Les tours de la boucle suivent la borne existante du Nombre de tours.
+
+## Formats à tableau — écran unique, sans redondance (15/11/2026)
+
+Classe B (évolution validée). Décisions de Hermann, recopiées :
+
+> « Tabata, 30/30, renforcement, à l’échec : il y a une redondance » (cartes de mouvement et tableau) — « Oui » (extension aux Formats à tableau et remplacement des écrans de production)
+
+> « À noter que les colonnes des tableaux de type (dimensions en colonne) ne change pas. »
+
+> « Tabata, 30/30, renforcement et à l’échec, remplacer la deuxième ligne des mouvements avec l’unité et la charge » — « Non ne pas supprimer la colonne charge » — « Sur la colonne charge : soit elle est grisée soit elle est active » — « Un seul point à améliorer : il y a peu d’espace entre l’appuie sur la photo, l’unité et la charge »
+
+- **Conséquences.** Aucun questionnaire pour les Formats à tableau ; un seul écran, pour la création et la réouverture. Colonnes à dimensions inchangées ; colonne Charge grisée ou active ; seconde ligne « (unité, charge) ». Progression, EMOM, Superset : colonne Unité supprimée, − / + sur le tableau. Cette décision précise et remplace pour ces Formats la décision du 04/11/2026 (modèles sans récapitulatif, enregistrés depuis le questionnaire).
+- **Interprétation de ma part, à corriger au besoin :** le principe « Unité à choisir, en rouge » du For time est étendu aux Formats dont l’unité est libre par ligne ; les variantes d’Exécution (alternance, à la suite, dans chaque intervalle) reprennent le même tableau.
+- **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02 (§4, §8, tableau des écrans Figma) ; chapitre 06 (écrans archivés). Aucun changement aux règles FMT.
+- **Déroulé de l’AMRAP (15/11/2026).** Décision de Hermann : « Retirer le texte « buy in » et « buy out » du cadre d’illustration ». Le bloc du buy-in affiche son volume seul (« 50 ») ; aucun texte « buy-in » ni « buy-out » dans le Déroulé (For time : déjà aucun). Classe B ; document mis à jour : Formats d’entraînement (libellé du bloc).

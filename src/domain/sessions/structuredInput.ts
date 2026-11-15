@@ -30,6 +30,7 @@ import {
   type StructureViolationCode,
 } from "./structure";
 import type { ValidationErrorCode, ValidationResult, ValidationViolation } from "./errors";
+import { normalizedGuidance, type SessionGuidance } from "./sessionGuidance";
 import type {
   CreateSessionActivityInput,
   CreateSessionInput,
@@ -62,6 +63,8 @@ export type StructuredSessionInput = {
   readonly labelId?: string | null;
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
+  /** Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : guidage propre à la Séance ; absent = comme le Profil. */
+  readonly guidance?: SessionGuidance;
   readonly structure: StructureInput;
   readonly movements?: readonly SessionMovementInput[];
 };
@@ -253,8 +256,15 @@ export function validateStructuredSessionInput(input: StructuredSessionInput): V
       labelId: legacy.value.labelId ?? null,
       initialCountdownSeconds: legacy.value.initialCountdownSeconds,
       finalPhaseSeconds: legacy.value.finalPhaseSeconds,
+      ...guidanceField(input.guidance),
       movements: legacy.value.movements,
       structure: { elements: mapElements(input.structure.elements, normalize), stopPoints: input.structure.stopPoints },
     },
   };
+}
+
+/** Guidage de Séance écrit seulement s'il diffère du Profil (forme normalisée). */
+function guidanceField(guidance: SessionGuidance | undefined): { readonly guidance?: SessionGuidance } {
+  const normalized = normalizedGuidance(guidance);
+  return normalized === undefined ? {} : { guidance: normalized };
 }

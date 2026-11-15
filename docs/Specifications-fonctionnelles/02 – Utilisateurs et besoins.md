@@ -121,9 +121,9 @@ Décrire plusieurs actions successives, par exemple 6 s puis 3 s, au sein d’un
 
 #### Régler l’application
 
-- **B-044** — Modifier séparément Sons, Annonces vocales et Vibration.
+- **B-044** — Configurer les annonces vocales et régler le son et la vibration par événement.
 - **B-045** — Définir les valeurs globales du Compte à rebours initial et de la Fin de séance pour les nouvelles Séances.
-- **B-046** — Comprendre que le feedback haptique des roulettes reste indépendant de `Vibration`.
+- **B-046** — Comprendre que le feedback haptique des roulettes reste indépendant des vibrations par événement.
 - **B-047** — Modifier la photo et le nom d’affichage du Profil.
 - **B-048** — Retrouver une interface en français, cohérente et compatible avec les Safe Areas du téléphone.
 
@@ -215,7 +215,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - *Texte identique à celui de la section [« 8. Besoins validés pour les évolutions »](#8-besoins-validés-pour-les-évolutions) ; il n’est pas recopié ici.*
 - **B-072** — Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.
 - **B-073** — Configurer un Exercice ou un Circuit sans ou avec changement de côté, sans désignation anatomique du côté de départ (D-406) et sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution potentiel, explicitement hors du périmètre actuel, D-209, D-395, RM-146).
-- **B-074** — Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté 1` ou `Côté 2`, sans compteur supplémentaire (D-407).
+- **B-074** — Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté 1` ou `Côté 2` [libellés affichés « 1er côté » / « 2ème côté » depuis le 13/11/2026 — recette PRE-10, Hermann : « Changer le texte Côté 1 et côté 2 par 1er côté, et 2ème côté »] [« 2ème côté » remplacé le 13/11/2026 par « 2d côté », suffixe ordinal en exposant (« 1ᵉʳ », « 2ᵈ ») — Hermann : « Le "er" de 1er doit être en exposant, pareil pour le "d" de second côté ou le "e" de troisième, quatrième, etc » ; « 2e » (deuxième) quand il y a un troisième], sans compteur supplémentaire (D-407).
 - **B-075** — Conserver séparément les résultats du côté 1 et du côté 2, y compris lorsqu’un seul côté est partiellement réalisé.
 - **B-076** — Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit et leur contrôle propre devient unilatéral désactivé (besoin d’évolution potentiel, explicitement hors du périmètre actuel, non validé pour la version actuelle : D-209, D-395, RM-145 à RM-147).
 - **B-092** — Renseigner facultativement, dès le MVP (D-421), une charge informative en kilogrammes pour un Exercice, commune aux Séries identiques ou propre à chaque Série variable, et la retrouver pendant l’Exécution (D-403, RM-235 à RM-241).

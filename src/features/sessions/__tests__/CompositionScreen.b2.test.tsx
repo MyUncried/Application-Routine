@@ -318,21 +318,21 @@ describe("B.2 — mode enveloppe (ARB-06 ; Figma 10819:20344, 10836:20478)", () 
     expect(screen.getByTestId("composition-envelope-bar-confirm").props.accessibilityState).toEqual({ disabled: false });
   });
 
-  it("Confirmer le circuit : le Circuit naît autour de l'Exercice désigné (ancien modèle), zones du brouillon mises à jour", async () => {
+  // [« (ancien modèle), zones du brouillon mises à jour » — remplacé le 10/11/2026 : Modèle unique des Circuits (décision de Hermann du 10/11/2026 : « Il n'y avait aucune raison d'avoir deux modèles de circuit coexistants »).
+  // Le premier Circuit est un bloc de la disposition générale ; plus de zones de l'ancien modèle.]
+  it("Confirmer le circuit : le Circuit naît autour de l'Exercice désigné, bloc de la disposition générale", async () => {
     await renderComposition(flatDraft());
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
 
     expect(screen.queryByTestId("composition-envelope-bar")).toBeNull();
     expect(screen.getByTestId("composition-save-action")).toBeTruthy();
-    const section = screen.getByTestId("composition-tour-section");
-    expect(within(section).getByTestId("composition-circuit-header")).toBeTruthy();
+    expect(screen.queryByTestId("composition-tour-section", hidden)).toBeNull();
+    const circuits = structureCircuits(probe.draft!.structure!);
+    expect(circuits.map((circuit) => [circuit.exercises, circuit.repeatCount, circuit.nature])).toEqual([[["b"], 1, "TOURS"]]);
+    const section = screen.getByTestId(`composition-layout-circuit-${circuits[0]!.id}`);
+    expect(within(section).getByTestId(`composition-layout-circuit-${circuits[0]!.id}-header`)).toBeTruthy();
     expect(within(section).getByTestId("composition-exercise-row-b")).toBeTruthy();
     expect(within(section).queryByTestId("composition-exercise-row-a")).toBeNull();
-    const positions = Object.fromEntries(probe.draft!.exercises.map((item) => [item.id, item.structuralPosition]));
-    expect(positions).toEqual({ a: "BEFORE_TOUR", b: "IN_TOUR", c: "AFTER_TOUR" });
-    expect(probe.draft!.tourRepeatCount).toBe(1);
-    expect(probe.draft!.circuitNature).toBe("TOURS");
-    expect(structureCircuits(probe.draft!.structure!).map((circuit) => circuit.exercises)).toEqual([["b"]]);
   });
 
   it("un second Circuit fait passer la Composition au rendu général : Circuit A et Circuit B", async () => {
@@ -358,7 +358,7 @@ describe("B.2 — mode enveloppe (ARB-06 ; Figma 10819:20344, 10836:20478)", () 
     expect(screen.getByTestId("composition-envelope-bar-confirm").props.accessibilityLabel).toBe(t.confirmCycle);
     expect(screen.getByTestId("composition-envelope-exercise-a-target")).toBeTruthy();
     expect(screen.queryByTestId("composition-envelope-exercise-b-target")).toBeNull();
-    const circuitTarget = screen.getByTestId("composition-envelope-circuit-target");
+    const circuitTarget = screen.getByTestId(/^composition-envelope-circuit-.+-target$/); // modèle unique des Circuits (10/11/2026)
     expect(circuitTarget.props.accessibilityLabel).toBe("Envelopper le circuit dans le cycle");
     fireEvent.press(circuitTarget);
     fireEvent.press(screen.getByTestId("composition-envelope-bar-confirm"));
@@ -370,7 +370,10 @@ describe("B.2 — mode enveloppe (ARB-06 ; Figma 10819:20344, 10836:20478)", () 
     expect(cycle.cycle.repeatCount).toBe(1);
     expect(cycle.cycle.members.map((member) => member.kind)).toEqual(["CIRCUIT"]);
     const block = screen.getByTestId(`composition-layout-cycle-${cycle.cycle.id}`);
-    expect(within(block).getByTestId("composition-exercise-row-b")).toBeTruthy();
+    // Modèle unique des Circuits (10/11/2026) : le Circuit, replié à l'entrée du mode Cycle (t-depli du 06/11/2026), le reste.
+    const inner = cycle.cycle.members[0]!;
+    if (inner.kind !== "CIRCUIT") throw new Error("Circuit absent");
+    expect(within(block).getByTestId(`composition-layout-circuit-${inner.circuit.id}-header-names`)).toBeTruthy();
     expect(within(block).queryByTestId("composition-exercise-row-a")).toBeNull();
   });
 
@@ -420,10 +423,12 @@ describe("contre-recette du 30/10 — cadre du Circuit et apparition du Cycle", 
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
     openMenu();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-cycle"));
-    const frame = StyleSheet.flatten(screen.getByTestId("composition-envelope-circuit-target").props.style);
+    const frame = StyleSheet.flatten(screen.getByTestId(/^composition-envelope-circuit-.+-target$/).props.style); // modèle unique (10/11/2026)
     expect(frame).toMatchObject({ position: "absolute", top: 0, bottom: 0, left: -6, right: -6, borderRadius: 18 });
     // Le Circuit déborde de 6 de sa boîte (16 avant le 08/11/2026 au soir) : même valeur que le cadre. [08/11/2026 au soir — marges des cadres : Circuit à 10 du bord, cartes à 10 du cadre, bas 10 ; Cycle bas 12.]
-    expect(StyleSheet.flatten(screen.getByTestId("composition-tour-section", hidden).props.style)).toMatchObject({ marginHorizontal: -6 });
+    // [« composition-tour-section » (ancien modèle) — remplacé le 10/11/2026 par le bloc de Circuit de la disposition générale.]
+    const [only] = structureCircuits(probe.draft!.structure!);
+    expect(StyleSheet.flatten(screen.getByTestId(`composition-layout-circuit-${only!.id}`, hidden).props.style)).toMatchObject({ marginHorizontal: -6 });
     // Une carte garde le cadre à ses bords (aucun débord).
     expect(StyleSheet.flatten(screen.getByTestId("composition-envelope-exercise-a-target").props.style)).toMatchObject({ left: 0, right: 0 });
   });
@@ -472,38 +477,40 @@ describe("contre-recette du 30/10 — marges basses, apparition du Circuit, cart
   it("obs-3 — Circuit: bottom margin 4 under its cards (14 − 10), top margin 14; Cycle: 14 on top, 4 under its last member", async () => {
     await renderComposition(flatDraft());
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
-    // Circuit de l'ancien modèle : marge 14, la liste des cartes déployées en reprend 6.
-    expect(StyleSheet.flatten(screen.getByTestId("composition-tour-section", hidden).props.style)).toMatchObject({ paddingVertical: 14 });
-    // Marge basse 10 (« Dernière carte → bas du cadre : 10 ») : la liste en reprend 4. [08/11/2026 au soir — marges des cadres : Circuit à 10 du bord, cartes à 10 du cadre, bas 10 ; Cycle bas 12.]
-    expect(StyleSheet.flatten(screen.getByTestId("composition-zone-in-tour", hidden).props.style)).toMatchObject({ marginBottom: -4 });
+    // [« Circuit de l'ancien modèle » — remplacé le 10/11/2026 : modèle unique des Circuits, bloc de la disposition générale.]
+    // Marge 14 ; marge basse 10 (« Dernière carte → bas du cadre : 10 ») : la liste en reprend 4. [08/11/2026 au soir — marges des cadres : Circuit à 10 du bord, cartes à 10 du cadre, bas 10 ; Cycle bas 12.]
+    const alone = `composition-layout-circuit-${circuitIdOf("b")}`;
+    expect(StyleSheet.flatten(screen.getByTestId(alone, hidden).props.style)).toMatchObject({ paddingVertical: 14 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${alone}-exercises`, hidden).props.style)).toMatchObject({ marginBottom: -4 });
 
-    await envelopeAround("CYCLE", "composition-envelope-circuit");
+    await envelopeAround("CYCLE", `composition-envelope-circuit-${circuitIdOf("b")}`);
     const cycle = `composition-layout-cycle-${cycleId()}`;
     expect(StyleSheet.flatten(screen.getByTestId(cycle, hidden).props.style)).toMatchObject({ paddingTop: 14, paddingBottom: 12 }); // « Dernier circuit → bas du cycle : 12 ». [08/11/2026 au soir — marges des cadres : Circuit à 10 du bord, cartes à 10 du cadre, bas 10 ; Cycle bas 12.]
     // Circuit dans le Cycle : 4 sous ses cartes, puis 4 jusqu'au bord du Cycle.
     const circuit = `composition-layout-circuit-${circuitIdOf("b")}`;
     expect(StyleSheet.flatten(screen.getByTestId(circuit, hidden).props.style)).toMatchObject({ paddingVertical: 14 });
+    // Modèle unique (10/11/2026) : replié à l'entrée du mode Cycle (t-depli), on le déplie pour mesurer ses cartes.
+    fireEvent.press(screen.getByTestId(`${circuit}-header-collapse`));
+    await act(async () => undefined);
     expect(StyleSheet.flatten(screen.getByTestId(`${circuit}-exercises`, hidden).props.style)).toMatchObject({ marginBottom: -4 });
   });
 
+  // [Rendu de l'ancien modèle (composition-tour-section-reveal) — remplacé le 10/11/2026 : modèle unique des Circuits ;
+  // le premier Circuit apparaît comme tout Circuit de la disposition générale.]
   it("constat b — the first Circuit posed by « Confirmer le circuit » fades in (surface, ring, header); not once saved and reopened", async () => {
     await renderComposition(flatDraft());
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
-    expect(screen.getByTestId("composition-tour-section-reveal", hidden).props.entering).toBeTruthy();
-    expect(screen.getByTestId("composition-sequence-marker-circuit-reveal", hidden).props.entering).toBeTruthy();
-    expect(screen.getByTestId("composition-circuit-header-reveal", hidden).props.entering).toBeTruthy();
-    // L'aplat (statique tant que le Circuit n'est pas mesuré) est dans la couche qui apparaît.
-    const layer = screen.getByTestId("composition-tour-section-reveal", hidden);
-    expect(StyleSheet.flatten(within(layer).getByTestId("composition-tour-section-static-surface", hidden).props.style)).toMatchObject({
-      backgroundColor: "#EBEDF5",
-      borderRadius: 18,
-    });
+    const posed = `composition-layout-circuit-${circuitIdOf("b")}`;
+    expect(screen.getByTestId(`${posed}-surface`, hidden).props.entering).toBeTruthy();
+    expect(screen.getByTestId(`${posed}-rail-ring-reveal`, hidden).props.entering).toBeTruthy();
+    expect(screen.getByTestId(`${posed}-header-reveal`, hidden).props.entering).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId(`${posed}-surface`, hidden).props.style)).toMatchObject({ backgroundColor: "#EBEDF5", borderRadius: 18 });
 
     const saved = probe.draft!;
     screen.unmount();
     await renderComposition(saved);
-    expect(screen.getByTestId("composition-tour-section-reveal", hidden).props.entering).toBeUndefined();
-    expect(screen.getByTestId("composition-circuit-header-reveal", hidden).props.entering).toBeUndefined();
+    expect(screen.getByTestId(`${posed}-surface`, hidden).props.entering).toBeUndefined();
+    expect(screen.getByTestId(`${posed}-header-reveal`, hidden).props.entering).toBeUndefined();
   });
 
   it("constat b — a second Circuit fades in; the Circuit already there does not", async () => {

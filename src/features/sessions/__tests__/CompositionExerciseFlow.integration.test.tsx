@@ -155,6 +155,9 @@ class NoopProfileRepository implements ProfileRepository {
   updateIdentity(_input: ProfileIdentityInput): Promise<Profile> {
     return Promise.reject(new Error("not used by this navigation test"));
   }
+  updateGuidanceEvent(): Promise<Profile> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
 }
 
 class NoopBodyZoneRepository implements BodyZoneRepository {

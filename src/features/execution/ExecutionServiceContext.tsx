@@ -1,10 +1,16 @@
 import { createContext, useContext } from "react";
 
 import type { ExecutionService } from "@/features/execution/ExecutionService";
+import type { ScreenAwakePort } from "@/infrastructure/device/ScreenAwake";
 import type { ExecutionSignalAdapter } from "@/infrastructure/haptics/ExecutionSignalAdapter";
 
 /** PRE-10 : service d'Exécution et adaptateur de signaux, construits sur la connexion SQLite commune. */
-export type ExecutionContextValue = { readonly service: ExecutionService; readonly signals: ExecutionSignalAdapter };
+export type ExecutionContextValue = {
+  readonly service: ExecutionService;
+  readonly signals: ExecutionSignalAdapter;
+  /** ch09 « Écran maintenu actif » (fin de PRE-10) ; absent : aucune action sur la mise en veille. */
+  readonly screenAwake?: ScreenAwakePort;
+};
 
 export const ExecutionServiceContext = createContext<ExecutionContextValue | null>(null);
 

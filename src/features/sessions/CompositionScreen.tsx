@@ -96,7 +96,7 @@ import {
   type LayoutPlacementStopPointOutcome,
 } from "@/domain/sessions/layoutPlacement";
 import { layoutStopPointId, sameStopPointContainer, stopPointContainerOf, stopPointLocationIn, type StopPointContainer } from "@/domain/sessions/layoutStopPoints";
-import { legacyFromStructure, structureCircuits, type StructureCircuit, type StructureCycle, type StructureCycleMember } from "@/domain/sessions/structure";
+import { isEditedAsLegacy, structureCircuits, type StructureCircuit, type StructureCycle, type StructureCycleMember } from "@/domain/sessions/structure";
 import {
   STRUCTURAL_ZONES,
   duplicateOccurrence,
@@ -166,7 +166,7 @@ import {
   type CircuitCardsReveal,
 } from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
-import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
+import { formatLayoutDuration, measureDelivery, resolveRichLayout, type MeasureBurst, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
 import { configurationValidity } from "@/domain/sessions/configurationValidity";
 import { CardMotionBlock, useBlockDragGesture, VanishingBlock, type CardMotionMode } from "@/features/sessions/LayoutDragParts";
 import {
@@ -329,6 +329,8 @@ import {
   MOTION_SHIFT_DURATION_MS,
 } from "@/features/sessions/compositionMotion";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { SecondaryActionButton } from "@/shared/ui/SecondaryActionButton";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
@@ -966,6 +968,13 @@ export type CompositionScreenProps = {
  */
 export function CompositionScreen({ sessionId = null }: CompositionScreenProps = {}) {
   const router = useRouter();
+  // Guidage sonore : symbole plein pendant l'ouverture de la modale, fin dès qu'elle se ferme (validation comprise).
+  const [guidanceOpen, setGuidanceOpen] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      setGuidanceOpen(false);
+    }, []),
+  );
   const insets = useSafeAreaInsets();
   // PRE-6 story 7.10 (D-444) : zone d'action principale fixe (Continuer / barre de placement) ; le
   // corps défilant réserve sa hauteur en fin de défilement.
@@ -1685,7 +1694,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * générale — le placement s'y applique sur tous les niveaux (`layoutPlacement.ts`), mêmes règles,
    * même sous-brouillon, même barre ; sinon le placement de l'ancien modèle, inchangé.
    */
-  const isGeneralLayout = draft.structure !== undefined && legacyFromStructure(draft.structure) === null;
+  // Modèle unique des Circuits (10/11/2026) : tout Circuit relève de la disposition générale (voir `isEditedAsLegacy`).
+  const isGeneralLayout = draft.structure !== undefined && !isEditedAsLegacy(draft.structure);
   /** Story 6.3 : nature de « Confirmer » (libellé, disponibilité) ; `null` hors placement. */
   const confirmation = useMemo(
     () =>
@@ -4837,6 +4847,26 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) — même action et même
         // garde d’abandon (`useCompositionExitGuard`) que le retour précédent.
         closeIcon
+        // Guidage sonore (documentation de main `ebe72f76`, ch12 « DSF — Actions », ch13) : bouton secondaire de
+        // l'en-tête, bord droit à 24 du bord de l'écran ; symbole plein seulement pendant l'ouverture de la modale.
+        trailing={
+          readOnly ? undefined : (
+            <View style={styles.guidanceAction}>
+              <SecondaryActionButton
+                onPress={() => {
+                  setGuidanceOpen(true);
+                  router.push("/session-guidance");
+                }}
+                accessibilityLabel={strings.screens.soundGuidance.buttonLabel}
+                accessibilityHint={strings.screens.soundGuidance.buttonHint}
+                selected={guidanceOpen}
+                testID="composition-guidance-action"
+              >
+                <KodjoIcon name={guidanceOpen ? "guidance-sound-fill" : "guidance-sound-light"} testID={guidanceOpen ? "composition-guidance-icon-fill" : "composition-guidance-icon-light"} />
+              </SecondaryActionButton>
+            </View>
+          )
+        }
       />
       {/* Recette 3 (T-49, EXT-R3-2, D-353) : plus de trait gris entre l’en-tête et la
           zone de contexte — la courbe blanche sous Retour s’y raccorde directement. */}
@@ -4962,6 +4992,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         {/* Revue 5.2 : anneau et queue de la borne hors de l'atténuation du placement (opacité
             uniforme du rail), posés sur la rangée. */}
         {/* Story 7.8 (D-443) : cadre aligné à droite sur le bord droit des cartes d'Exercice. */}
+        {/* [Retiré le 11/11/2026 — élément Guidage au-dessus du Compte à rebours initial (fin de PRE-10), hors design ;
+            demande de Hermann (cahier, constat d) : « Supprime ces deux éléments et l’espace qu’ils occupaient. » Accès par
+            le bouton Guidage sonore de l'en-tête.] */}
         <View style={styles.boundaryTrailingOutset} testID="composition-boundary-countdown-step">
           <PlacementAttenuation active={isPlacementActive || isEnvelopeActive} testID="composition-boundary-countdown-placement">
             <BoundaryStep
@@ -8216,11 +8249,16 @@ function sameMeasure(a: number, b: number): boolean {
 /** Applique une mise à jour de mesure : aussitôt pendant le glisser, en transition au repos. */
 function useMeasureUpdate(urgent: boolean): (update: () => void) => void {
   const urgentRef = useRef(urgent);
+  const burstRef = useRef<MeasureBurst>({ since: 0, count: 0 });
   useLayoutEffect(() => {
     urgentRef.current = urgent;
   });
   return useCallback((update: () => void) => {
-    if (urgentRef.current) update();
+    // Recette du 10/11/2026 (c1) : rafale de mesures reportée à l'image suivante (voir `measureDelivery`).
+    const delivery = measureDelivery(burstRef.current, Date.now());
+    burstRef.current = delivery.burst;
+    if (delivery.defer) requestAnimationFrame(() => startTransition(update));
+    else if (urgentRef.current) update();
     else startTransition(update);
   }, []);
 }
@@ -10667,6 +10705,13 @@ const styles = StyleSheet.create({
     gap: COMPOSITION_ROW_GAP,
   },
   // Recette 3 (T-49, EXT-R3-2) : effets de la zone de contexte, découpés à la bande.
+  // Bouton Guidage sonore : bord droit à 24 du bord de l'écran (en-tête à 16, plus 8).
+  // Recette du 11/11/2026 (Hermann, z1) : « A corriger : Mettre le bouton gris clair à 17 du bord, c’est la marge dans le développement, vérifie. » Marge vérifiée : celle de l'en-tête est
+  // `layout.screenGutter` (16), celle du bouton Fermer à gauche ; le bouton s'y aligne.
+  // [Bord droit à 24 du bord de l'écran (ch12, DSF Actions) — remplacé.]
+  guidanceAction: {
+    marginRight: 0,
+  },
   contextBandEffects: {
     position: "absolute",
     top: 0,

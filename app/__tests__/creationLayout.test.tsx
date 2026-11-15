@@ -84,6 +84,8 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
       // Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Filtres ») :
       // Filtres du Catalogue des mouvements ouvert par Créer, en feuille native.
       "selection-filters",
+      // Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : « Guidage de la séance », feuille native ouverte par l'élément Guidage.
+      "session-guidance",
     ]);
     // Aucune route ne RÉACTIVE le geste par une option locale : la
     // désactivation héritée reste donc effective partout.

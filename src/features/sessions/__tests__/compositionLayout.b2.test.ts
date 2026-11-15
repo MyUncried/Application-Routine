@@ -35,14 +35,14 @@ const lastInCircuitOfCycle: Layout = {
 };
 
 describe("insertIntoRichLayout", () => {
-  it("ancien modèle (sans structure, ou Circuit unique) : null — l'insertion existante s'applique", () => {
+  it("sans structure : null — l'insertion existante s'applique ; Circuit unique composé à la main : après le dernier Exercice affiché (10/11/2026)", () => {
     expect(insertIntoRichLayout(draftOf(undefined, ["a"]), [exercise("n")])).toBeNull();
-    expect(
-      insertIntoRichLayout(
-        draftOf({ elements: [{ kind: "CIRCUIT", circuit: { id: "c", repeatCount: 1, nature: "TOURS", exercises: ["a"] } }], stopPoints: [] }, ["a"]),
-        [exercise("n")],
-      ),
-    ).toBeNull();
+    const result = insertIntoRichLayout(
+      draftOf({ elements: [{ kind: "CIRCUIT", circuit: { id: "c", repeatCount: 1, nature: "TOURS", exercises: ["a"] } }], stopPoints: [] }, ["a"]),
+      [exercise("n")],
+    );
+    const circuit = result?.structure?.elements[0];
+    expect(circuit?.kind === "CIRCUIT" ? circuit.circuit.exercises : null).toEqual(["a", "n"]);
   });
 
   it("après le dernier Exercice affiché, dans son conteneur (Circuit d'un Cycle)", () => {

@@ -69,7 +69,13 @@ export function FilterSheetFrame({
   children,
   docked,
   native,
+  contentInset,
 }: {
+  /**
+   * Marges du contenu défilant (ajout additif, 11/11/2026 : modale Guidage sonore, Figma `12132:27436` — 16 sur les
+   * côtés, 8 sous l'en-tête). Absent : 24 sur les côtés, 16 en haut, comme avant.
+   */
+  readonly contentInset?: { readonly horizontal: number; readonly top: number };
   /** Haut de la feuille (en points depuis le haut de la fenêtre), montée et descente lentes ; absente : feuille standard. */
   readonly docked?: { readonly top: number };
   /**
@@ -158,7 +164,12 @@ export function FilterSheetFrame({
   const scroll = (
       <ScrollView
         style={native !== undefined ? styles.nativeScroll : styles.scroll}
-        contentContainerStyle={[styles.body, footer ? styles.bodyWithFooter : null, native !== undefined ? { paddingTop: nativeHeaderHeight + spacing[16] } : null]}
+        contentContainerStyle={[
+          styles.body,
+          footer ? styles.bodyWithFooter : null,
+          contentInset === undefined ? null : { paddingHorizontal: contentInset.horizontal, paddingTop: contentInset.top },
+          native !== undefined ? { paddingTop: nativeHeaderHeight + (contentInset?.top ?? spacing[16]) } : null,
+        ]}
         testID={`${testIDPrefix}-scroll`}
         {...(native !== undefined
           ? {

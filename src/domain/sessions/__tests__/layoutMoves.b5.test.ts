@@ -125,7 +125,8 @@ describe("PRE-9 B.5 — suppression d'un Exercice", () => {
     for (const item of out.draft.exercises) expect(item).toBe(before.exercises.find((source) => source.id === item.id));
   });
 
-  it("Séance redevenue représentable dans l'ancien modèle : zones réécrites", () => {
+  // [Remplacé le 10/11/2026 — modèle unique des Circuits, décision de Hermann : plus de retour aux zones de l'ancien modèle.]
+  it("un seul Circuit restant : la structure générale fait foi, le Circuit vidé est retiré", () => {
     // Deux Circuits au niveau Séance : retirer le seul membre du second rend l'ancien modèle.
     const elements: StructureElement<string>[] = [
       { kind: "EXERCISE", exercise: "e0" },
@@ -136,8 +137,11 @@ describe("PRE-9 B.5 — suppression d'un Exercice", () => {
     const draft: SessionDraft = { ...createEmptyDraft(), exercises: ["e0", "a1", "c1", "e9"].map((id) => exercise(id)), structure: { elements, stopPoints: [] } };
     const out = applied(removeLayoutExercise(draft, "c1", ids));
     expect(out.removedContainers).toEqual([{ kind: "CIRCUIT", id: "cc" }]);
-    expect(out.draft.exercises.map((item) => `${item.id}:${item.structuralPosition}`)).toEqual(["e0:BEFORE_TOUR", "a1:IN_TOUR", "e9:AFTER_TOUR"]);
-    expect(out.draft.tourRepeatCount).toBe(2);
+    expect(out.draft.structure?.elements).toEqual([
+      { kind: "EXERCISE", exercise: "e0" },
+      { kind: "CIRCUIT", circuit: { id: "ca", repeatCount: 2, nature: "TOURS", exercises: ["a1"] } },
+      { kind: "EXERCISE", exercise: "e9" },
+    ]);
   });
 
   it("Exercice inconnu : refus", () => {

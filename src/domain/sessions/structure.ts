@@ -389,6 +389,16 @@ export const NO_CIRCUIT_ID = "";
  * un Circuit au niveau principal (seule forme produite par l'ancien modèle). PRE-9 (B.2) : sans
  * Circuit, tous les Exercices sont avant un Circuit vide d'identifiant `NO_CIRCUIT_ID`.
  */
+/**
+ * Composition (rendu et édition) — décision de Hermann du 10/11/2026 (recette c1, « fais le maintenant ») : tout Circuit,
+ * même unique et composé à la main, est rendu et édité dans la structure générale (un seul rendu des Circuits : options,
+ * nom, cadre, glissement). L'ancien modèle ne sert plus à la Composition que pour une Séance sans Circuit.
+ * L'enregistrement n'est pas concerné : il garde `legacyFromStructure` (format de stockage inchangé).
+ */
+export function isEditedAsLegacy<E, P extends StructureStopPointLocation>(structure: SessionStructure<E, P>): boolean {
+  return !structure.elements.some((element) => element.kind === "CIRCUIT") && legacyFromStructure(structure) !== null;
+}
+
 export function legacyFromStructure<E, P extends StructureStopPointLocation>(
   structure: SessionStructure<E, P>,
 ): { readonly composition: LegacyComposition<E>; readonly stopPoints: readonly (Omit<P, "circuitId" | "cycleId" | "position"> & LegacyStopPointLocation)[] } | null {
@@ -407,6 +417,11 @@ export function legacyFromStructure<E, P extends StructureStopPointLocation>(
   // (`tourRepeatCount`, `circuitNature`) ; un Circuit nommé d'après son modèle d'origine y perdrait ce
   // nom — il reste dans la structure générale, comme un Circuit porteur.
   if (structure.elements.some((element) => element.kind === "CIRCUIT" && (element.circuit.originModel ?? null) !== null)) {
+    return null;
+  }
+  // Recette du 10/11/2026 (constat A) : les options du Circuit unique permettent de le renommer ; l'ancien modèle n'en
+  // porte pas le nom, qui serait perdu — un Circuit nommé reste dans la structure générale.
+  if (structure.elements.some((element) => element.kind === "CIRCUIT" && (element.circuit.name ?? null) !== null)) {
     return null;
   }
   if (circuitIndexes.length === 0) {

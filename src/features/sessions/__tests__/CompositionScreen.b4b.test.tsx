@@ -211,13 +211,8 @@ describe("B.4b — périmètre ajustable (traits haut et bas)", () => {
     action(handle("b", "top"), "extend");
     await confirm();
     expect(structureCircuits(probe.draft!.structure!).map((circuit) => circuit.exercises)).toEqual([["a", "b", "c"]]);
-    // Un seul Circuit : ancien modèle, zones du brouillon réécrites.
-    expect(Object.fromEntries(probe.draft!.exercises.map((item) => [item.id, item.structuralPosition]))).toEqual({
-      a: "IN_TOUR",
-      b: "IN_TOUR",
-      c: "IN_TOUR",
-      d: "AFTER_TOUR",
-    });
+    // [« Un seul Circuit : ancien modèle, zones du brouillon réécrites » — remplacé le 10/11/2026 : modèle unique des
+    // Circuits (décision de Hermann) ; le Circuit unique reste dans la structure générale (ci-dessus).]
   });
 
   it("« Réduire » ramène le périmètre, jamais sous un contenu ; toucher un contenu du périmètre le retire entier", async () => {
@@ -268,14 +263,19 @@ describe("B.4b — périmètre ajustable (traits haut et bas)", () => {
       borderRadius: 18,
       borderBottomLeftRadius: 0,
     });
-    expect(screen.getByTestId("composition-envelope-circuit-target").props.accessibilityState).toEqual({ selected: true });
+    // Modèle unique des Circuits (10/11/2026) : cible du Circuit de la disposition générale.
+    expect(screen.getByTestId(/^composition-envelope-circuit-.+-target$/).props.accessibilityState).toEqual({ selected: true });
     await confirm();
     const cycle = probe.draft!.structure!.elements.find((element) => element.kind === "CYCLE");
     if (cycle?.kind !== "CYCLE") throw new Error("Cycle absent");
     expect(cycle.cycle.members.map((member) => member.kind)).toEqual(["EXERCISE", "CIRCUIT"]);
     const block = screen.getByTestId(`composition-layout-cycle-${cycle.cycle.id}`);
     expect(within(block).getByTestId("composition-exercise-row-a")).toBeTruthy();
-    expect(within(block).getByTestId("composition-exercise-row-b")).toBeTruthy();
+    // Modèle unique des Circuits (10/11/2026) : le Circuit, replié à l'entrée du mode Cycle (t-depli du 06/11/2026), garde son
+    // repli après Confirmer — il est dans le Cycle, son Exercice b masqué.
+    const inner = structureCircuits(probe.draft!.structure!)[0]!;
+    expect(within(block).getByTestId(`composition-layout-circuit-${inner.id}-header-names`)).toBeTruthy();
+    expect(inner.exercises).toEqual(["b"]);
     expect(within(block).queryByTestId("composition-exercise-row-c")).toBeNull();
   });
 

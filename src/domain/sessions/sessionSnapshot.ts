@@ -28,6 +28,7 @@ import { cloneExecutionParameters, type ExecutionParameters } from "@/domain/act
 import type { Activity, ActivityType } from "./Session";
 import type { StructuredSession } from "./SessionRepository";
 import { cloneElementFormat, FORMAT_RULES_VERSION, type ElementFormat, type SessionOrigin } from "./formats";
+import { normalizedGuidance, type SessionGuidance } from "./sessionGuidance";
 import { mapStructure, type SessionStructure, type StructureCircuit, type StructureElement } from "./structure";
 
 export const SESSION_SNAPSHOT_VERSION = 1 as const;
@@ -53,6 +54,8 @@ export type SessionSnapshot = {
   readonly origin: SessionOrigin | null;
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
+  /** Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : guidage propre à la Séance ; absent = comme le Profil. Champ facultatif : les instantanés antérieurs restent lisibles (version inchangée). */
+  readonly guidance?: SessionGuidance;
   readonly structure: SessionStructure<SessionSnapshotExercise>;
 };
 
@@ -138,6 +141,7 @@ export function createSessionSnapshot(session: StructuredSession): SessionSnapsh
     origin: session.origin ?? null,
     initialCountdownSeconds: session.initialCountdownSeconds,
     finalPhaseSeconds: session.finalPhaseSeconds,
+    ...(normalizedGuidance(session.guidance) !== undefined ? { guidance: normalizedGuidance(session.guidance)! } : {}),
     structure: { elements, stopPoints: mapped.stopPoints.map((point) => ({ ...point })) },
   });
 }

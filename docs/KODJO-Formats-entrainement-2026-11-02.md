@@ -22,7 +22,7 @@ Cas où le circuit porte le format :
 | Format | Cas | Nature du circuit (fixée) | Temps porté par le circuit |
 |---|---|---|---|
 | AMRAP | Plusieurs exercices, plusieurs blocs, buy-in, ou un seul mouvement avec repos après chaque tour > 0 | Groupées | Durée de chaque bloc (saisie) |
-| For time | Plusieurs exercices, ou buy-in / buy-out | Alternées | Temps limite optionnel (section 11) |
+| For time | Plusieurs exercices, ou buy-in / buy-out | Alternées (défaut) ou Groupées (mode « À la suite ») | Temps limite optionnel (section 11) |
 | EMOM | Dans chaque intervalle | Groupées | Durée de chaque tour = intervalle |
 | Death by | Dans chaque intervalle | Groupées | Intervalle commun ; tours « jusqu’à l’échec » |
 | Death by | En alternance | Alternées | Pas de durée dans l’en-tête ; intervalles propres aux Exercices ; tours « jusqu’à l’échec » et arrêt collectif au premier échec |
@@ -782,7 +782,7 @@ Le déroulé est une illustration dynamique : il n'est pas dessiné à la main m
 
 Pour un AMRAP à plusieurs blocs, le questionnaire représente la séquence des blocs et repos intercalés, avec sa durée totale configurée (3 × 12 min + 2 × 2 min = 40 min). Le déroulé des tours de boucle à l’intérieur d’un bloc reste ouvert et relève des règles suivantes. Ne pas confondre les blocs graphiques élémentaires de la frise et le compteur fonctionnel de blocs AMRAP.
 1. **Un bloc par unité d'exécution** : une série (Tabata, 30/30, Renforcement, À l’échec), un intervalle (EMOM, Death by), un passage de mouvement dans un tour (AMRAP, For time). La représentation d’un For time sans mouvement reste différée avec B10.
-2. **Libellé du bloc**, quand il a un sens : volume (« 10 », « 21 »), « max », « échec », « 50 · buy-in », numéro d'intervalle ou de tour (« 1 », « n »). Pas de libellé quand la largeur ne le permet pas (Tabata, EMOM à plusieurs mouvements).
+2. **Libellé du bloc**, quand il a un sens : volume (« 10 », « 21 »), « max », « échec », « 50 » pour un buy-in [Remplacé le 15/11/2026 : « 50 · buy-in » ; le mot « buy-in » n’apparaît plus dans le Déroulé], numéro d'intervalle ou de tour (« 1 », « n »). Pas de libellé quand la largeur ne le permet pas (Tabata, EMOM à plusieurs mouvements).
 3. **Hauteur** : constante lorsque le volume est constant ; proportionnelle au volume lorsqu’il varie d’un bloc à l’autre (Death by, For time 21-15-9, Progression).
 4. **Couleur** : la représentation sans mouvement reste différée (B10) ; avec des mouvements, une nuance de la couleur du format par mouvement, et une légende dès deux mouvements. Le buy-in est dans une nuance plus foncée, avec texte blanc ; son bloc est plus large.
 5. **Récupération entre mouvements** (exécution à la suite) : bloc neutre, dans la légende.

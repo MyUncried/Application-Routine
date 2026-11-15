@@ -6,6 +6,7 @@ import {
   insertExerciseInLayout,
   wrapInContainer,
 } from "@/domain/sessions/layoutOperations";
+import { removeLayoutExercise } from "@/domain/sessions/layoutMoves";
 import { createEmptyDraft, createExerciseDraft, toStructuredSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import { legacyFromStructure, mapStructure, type StructureElement } from "@/domain/sessions/structure";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
@@ -48,19 +49,24 @@ describe("PRE-9 B.2 — Séance sans Circuit (D-451, COMP §1)", () => {
     });
   });
 
-  it("Circuit vidé : il disparaît à l'enregistrement ; un Point d'après le Circuit recule d'un rang", () => {
-    const draft = withLocalMovements({
-      ...withoutCircuit([{ id: "p", scope: "AFTER_TOUR", position: 0 }]),
-      exercises: [named("a"), named("c", "AFTER_TOUR")],
+  // [Remplacé le 10/11/2026 — modèle unique des Circuits (décision de Hermann) : le Circuit vidé disparaît dès la
+  // suppression de son dernier Exercice (ARB-09), dans la structure générale, plus à l'enregistrement de l'ancien modèle.]
+  it("Circuit vidé : il disparaît ; un Point d'après le Circuit recule d'un rang à l'enregistrement", () => {
+    const start = withLocalMovements({
+      ...withoutCircuit(),
+      exercises: [named("a"), named("b"), named("c")],
       structure: {
         elements: [
           { kind: "EXERCISE", exercise: "a" },
-          { kind: "CIRCUIT", circuit: { id: "old", repeatCount: 2, nature: "TOURS", exercises: [] } },
+          { kind: "CIRCUIT", circuit: { id: "old", repeatCount: 2, nature: "TOURS", exercises: ["b"] } },
           { kind: "EXERCISE", exercise: "c" },
         ],
-        stopPoints: [],
+        stopPoints: [{ circuitId: null, position: 2 }],
       },
     });
+    const removed = removeLayoutExercise(start, "b", newId);
+    if (removed.status !== "APPLIED") throw new Error(removed.status);
+    const draft = removed.draft;
     const result = toStructuredSessionInput(draft, newId);
     if (!result.ok) throw new Error(JSON.stringify(result.violations));
     expect(result.value.structure.elements.map((element) => element.kind)).toEqual(["EXERCISE", "EXERCISE"]);
@@ -69,26 +75,25 @@ describe("PRE-9 B.2 — Séance sans Circuit (D-451, COMP §1)", () => {
 });
 
 describe("PRE-9 B.2 — conteneur posé sur un premier contenu (ARB-06)", () => {
-  it("Circuit posé sur un Exercice d'une Séance sans Circuit : ancien modèle, zones et Points réécrits", () => {
+  // [Remplacé le 10/11/2026 — modèle unique des Circuits (décision de Hermann) : le premier Circuit posé fait passer la
+  // Séance dans la structure générale, avec ses Points ; plus de zones de l'ancien modèle.]
+  it("Circuit posé sur un Exercice d'une Séance sans Circuit : structure générale, Points conservés à leur place", () => {
     const draft = withoutCircuit([
       { id: "p1", scope: "BEFORE_TOUR", position: 1 },
       { id: "p2", scope: "BEFORE_TOUR", position: 2 },
     ]);
     expect(envelopeCandidates(draft, "CIRCUIT").map((target) => target.id)).toEqual(["a", "b", "c"]);
     const wrapped = wrapInContainer(draft, { kind: "EXERCISE", id: "b" }, "CIRCUIT", () => "circuit-b");
-    expect(wrapped.exercises.map((item) => [item.id, item.structuralPosition])).toEqual([
-      ["a", "BEFORE_TOUR"],
-      ["b", "IN_TOUR"],
-      ["c", "AFTER_TOUR"],
+    expect(wrapped.structure?.elements).toEqual([
+      { kind: "EXERCISE", exercise: "a" },
+      { kind: "CIRCUIT", circuit: { id: "circuit-b", repeatCount: 1, nature: "TOURS", exercises: ["b"] } },
+      { kind: "EXERCISE", exercise: "c" },
     ]);
-    expect(wrapped.tourRepeatCount).toBe(1);
-    expect(wrapped.circuitNature).toBe("TOURS");
     // Même séquence : le Point après a reste avant le Circuit, celui après b passe après le Circuit.
-    expect(wrapped.stopPoints).toEqual([
-      { id: "p1", scope: "BEFORE_TOUR", position: 1 },
-      { id: "p2", scope: "AFTER_TOUR", position: 0 },
+    expect(wrapped.structure?.stopPoints.map(({ circuitId, position }) => ({ circuitId, position }))).toEqual([
+      { circuitId: null, position: 1 },
+      { circuitId: null, position: 2 },
     ]);
-    expect(legacyFromStructure(wrapped.structure!)?.composition.tour.id).toBe("circuit-b");
     // L'enregistrement garde l'identité du Circuit créé.
     const saved = toStructuredSessionInput(withLocalMovements(wrapped), newId);
     if (!saved.ok) throw new Error(JSON.stringify(saved.violations));

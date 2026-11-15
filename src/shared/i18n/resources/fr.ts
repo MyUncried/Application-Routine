@@ -754,6 +754,23 @@ export const fr = {
       countdown: {
         label: "Compte à rebours initial",
       },
+      // Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : guidage propre à la Séance, sinon le Profil.
+      guidance: {
+        label: "Guidage",
+        followsProfile: "Comme le Profil",
+        own: "Propre à la séance",
+        accessibilityHint: "Ouvre les réglages de guidage de la séance",
+        sheetTitle: "Guidage de la séance",
+        intro: "Ces réglages remplacent ceux du Profil pour cette séance. Pendant la séance, les interrupteurs Sons et Voix restent modifiables.",
+        sounds: "Sons",
+        voice: "Annonces vocales",
+        objective: "Annoncer les répétitions ou la durée",
+        rowFollowsProfile: "Comme le Profil",
+        rowOwn: "Propre à la séance",
+        resetToProfile: "Revenir au Profil",
+        cancel: "Fermer sans enregistrer",
+        validate: "Appliquer à la séance",
+      },
       finalPhase: {
         label: "Fin de séance",
       },
@@ -1500,19 +1517,80 @@ export const fr = {
     // quatre préférences locales, accès à Modifier le profil. `placeholder`
     // (ancien écran d'attente) est retiré : cet écran porte désormais une
     // UI réelle (même patron que `sessions`/`activities` en leur temps).
+    // Guidage sonore — Profil › Préférences et modale de Composition (documentation de main `ebe72f76`, ch13 « Guidage
+    // sonore en Composition et dans le Profil » ; Figma 1992:684, 12093:25010, 12132:27436, 12175:25882, 12068:25044).
+    soundGuidance: {
+      title: "Guidage sonore",
+      buttonLabel: "Guidage sonore",
+      buttonHint: "Ouvre les réglages du guidage sonore de cette séance",
+      close: "Fermer",
+      validate: "Valider",
+      announcementsTitle: "Annonces vocales",
+      eventsTitle: "Sons et vibrations",
+      soundColumn: "Son",
+      vibrationColumn: "Vibration",
+      announcements: {
+        session: "Début et fin de séance",
+        names: "Nom des exercices",
+        phases: "Nom des phases",
+        objective: "Objectifs de durée et de répétition",
+        pauses: "Pauses, récupérations et points d’arrêt",
+        sides: "Changements de côté",
+      },
+      events: {
+        COUNTDOWN: "Compte à rebours",
+        EXERCISE_START: "Début d’exercice",
+        PHASE_CHANGE: "Changement de phase",
+        SIDE_CHANGE: "Changement de côté",
+        CADENCE: "Cadence",
+        // Recette du 11/11/2026 (Hermann, y1). [« Toutes les X minutes » — remplacé.]
+        EVERY_MINUTES: "Toutes les minutes",
+        HALF_TIME: "Mi-temps",
+        STOP_POINT: "Point d’arrêt",
+        SESSION_END: "Fin de séance",
+      },
+      soundValue: {
+        DEFAULT: "Par défaut",
+        // Recette du 11/11/2026 (Hermann, y3 : « son nom doit être "Aucun" […] et non pas "Non" »). [« Non » — remplacé.]
+        NONE: "Aucun",
+      },
+      soundHint: "Ouvre le choix du son",
+      soundLabel: "Son, {event}",
+      vibrationLabel: "Vibration, {event}",
+      picker: {
+        default: "Par défaut",
+        none: "Aucun",
+        librarySection: "Sons de l’application",
+      },
+      librarySounds: {
+        BIP_COURT: "Bip court",
+        BIP_GRAVE: "Bip grave",
+        BIP_DOUBLE: "Double bip",
+        BIP_LONG: "Bip long",
+        SIFFLET_ROULE: "Sifflet roulé",
+        SIFFLET_PUR: "Sifflet pur",
+        SIFFLET_COURT: "Sifflet court",
+        FANFARE_COURTE: "Fanfare",
+        DING: "Ding",
+        CLIC_DOUX: "Clic doux",
+      },
+    },
     profile: {
       title: "Profil",
       groups: {
         exercise: "Exercice",
         session: "Séance",
         preferences: "Préférences",
+        guidance: "Guidage",
+        notifications: "Notifications",
       },
       settings: {
         sideChangeRecovery: { label: "Pause entre les côtés", unit: "s" },
         exerciseCountdown: { label: "Compte à rebours d’un exercice", unit: "s" },
         exerciseEnd: { label: "Fin d’exercice", unit: "s" },
         postActivityRecovery: { label: "Récupération après exercice", unit: "s" },
-        sessionInitialCountdown: { label: "Compte à rebours initial", unit: "s" },
+        // Figma `1992:684` (documentation de main `ebe72f76`).
+        sessionInitialCountdown: { label: "Compte à rebours de la séance", unit: "s" },
         sessionFinalPhase: { label: "Fin de séance", unit: "s" },
       },
       stepper: {
@@ -1530,9 +1608,26 @@ export const fr = {
       },
       preferencesSwitches: {
         sounds: "Sons",
-        voiceAnnouncements: "Annonces vocales",
+        voiceAnnouncements: "Annoncer le nom des exercices",
+        announceObjective: "Annoncer les répétitions ou la durée",
+        announcePauses: "Annoncer les pauses et récupérations",
+        announceSession: "Annoncer le début et la fin de séance",
+        announceSides: "Annoncer les changements de côté",
+        announcePhases: "Annoncer les phases du mouvement",
         vibration: "Vibration",
         notifications: "Notifications",
+      },
+      // Figma `1992:684` : onglets de l'en-tête ; Communauté hors MVP.
+      tabs: {
+        profile: "Profil",
+        preferences: "Préférences",
+        community: "Communauté",
+        communityUnavailable: "Communauté, indisponible",
+      },
+      // Figma `1992:684` : section Notifications.
+      notifications: {
+        label: "Autoriser les notifications",
+        subtitle: "Rappels des séances planifiées",
       },
       editProfileAction: "Modifier le profil",
       identity: {

@@ -11,6 +11,7 @@ import type { SideMode } from "./sideMode";
 import type { StopPoint } from "./StopPoint";
 import type { CircuitNature } from "./circuit";
 import type { ElementFormat, SessionOrigin } from "./formats";
+import type { SessionGuidance } from "./sessionGuidance";
 import type { SessionStructure } from "./structure";
 
 export const SESSION_COLORS = [
@@ -207,6 +208,8 @@ export type Session = {
   status: "ACTIVE";
   initialCountdownSeconds: number;
   finalPhaseSeconds: number;
+  /** Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : guidage propre à la Séance ; absent = comme le Profil. */
+  guidance?: SessionGuidance;
   /** PRE-9 (C.1, FMT-02) : origine de création (`sessions.origin`) ; absente/`null` = Séance antérieure ou créée hors de la grille. */
   origin?: SessionOrigin | null;
   /**

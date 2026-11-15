@@ -41,7 +41,9 @@ import {
 import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
 import { projectExecution, type ExecutionProjection } from "@/domain/execution/projection";
 import { businessStatusOf, occurrenceResults, type BusinessStatus, type OccurrenceResult } from "@/domain/execution/results";
-import { dedupe, stepSignalsBetween, type PlannedSignal, type SignalKind } from "@/domain/execution/signals";
+import type { ExecutionMode, SeriesTarget } from "@/domain/activities/ExecutionParameters";
+import { nominalGuidanceSeconds, workPhasesCycleSeconds } from "@/domain/activities/phaseGuidance";
+import { dedupe, stepSignalsBetween, type PhasePattern, type PlannedSignal, type SignalKind } from "@/domain/execution/signals";
 import type { StructuredSession } from "@/domain/sessions/SessionRepository";
 import { createSessionSnapshot, SESSION_SNAPSHOT_VERSION, type SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 
@@ -54,12 +56,33 @@ export type Scheduler = {
 };
 
 /** Signal demandé aux adaptateurs (son, voix, haptique) ; jamais une source de temps. */
+/** Objectif d'une Série (mode et cible), annoncé avec le nom de l'exercice (recette du 10/11/2026, G8). */
+export type SignalObjective = { readonly mode: ExecutionMode | null; readonly target: SeriesTarget };
+
 export type ExecutionSignal = {
-  readonly kind: SignalKind;
+  /**
+   * `FINISH` : achèvement normal de la Séance (fin de la Fin de séance), son d'arrivée (recette du 10/11/2026, G10).
+   * `PAUSE` : Pause demandée par l'utilisateur (recette du 10/11/2026, constat a).
+   */
+  readonly kind: SignalKind | "FINISH" | "PAUSE";
   readonly atMs: number;
   readonly phase: LeafKind | null;
   readonly exerciseName: string | null;
   readonly sideRank: 1 | 2 | null;
+  /** Étape chronométrée (compte à rebours) ; faux pour un chronomètre ou une attente. */
+  readonly timed?: boolean;
+  /** Étape suivante au même niveau du plan (annonce « Prochain exercice », guidage sonore du 10/11/2026). */
+  readonly next?: { readonly phase: LeafKind; readonly exerciseName: string | null; readonly objective?: SignalObjective } | null;
+  /** Objectif de l'étape courante. */
+  readonly objective?: SignalObjective;
+  /** Phase du mouvement qui commence (signal `PHASE`, recette du 10/11/2026, constat B). */
+  readonly phaseLabel?: string | null;
+  /** Bip des dernières secondes qui tombe sur un changement de phase : la phase est annoncée (recette du 13/11/2026). */
+  readonly phaseChange?: boolean;
+  /** Série de l'étape courante (annonce « Deuxième série », recette du 13/11/2026). */
+  readonly series?: { readonly current: number; readonly total: number } | null;
+  /** Nombre d'Exercices de la Séance (recette du 11/11/2026, constat b : « Premier exercice » s'il y en a plus d'un). */
+  readonly exerciseCount?: number;
 };
 
 export type ExecutionServiceDeps = {
@@ -69,6 +92,14 @@ export type ExecutionServiceDeps = {
   readonly newId: () => string;
   readonly loadSession: (sessionId: string) => Promise<StructuredSession | null>;
   readonly onSignal?: (signal: ExecutionSignal) => void;
+  /**
+   * Fin de PRE-10, sons programmés à l'avance (spec `spec-guidage-reglages` §8, étape 3 ; Hermann, 12/11/2026 :
+   * « Sons programmés à l’avance ») : signal de l'étape en cours qui tombera dans `delayMs`, à programmer sur l'horloge
+   * audio. Le même signal est encore remis à `onSignal` à son instant (vibration, annonce).
+   */
+  readonly onScheduleSignal?: (signal: ExecutionSignal, delayMs: number) => void;
+  /** Les signaux programmés d'avance ne tomberont plus (Pause, changement d'étape, Suivant, Réinitialiser, fin). */
+  readonly onCancelScheduled?: () => void;
 };
 
 export type PreparedExecution =
@@ -93,6 +124,8 @@ export type DispatchOutcome = { readonly outcome: TransitionResult["outcome"] | 
 const CONTINUITY_TOLERANCE_MS = 2000;
 /** Signaux joués seulement s'ils sont récents (aucun rattrapage après suspension). */
 const SIGNAL_FRESHNESS_MS = 1500;
+/** Horizon des signaux de l'étape programmés à l'avance (§8, étape 3). */
+export const SIGNAL_LOOKAHEAD_MS = 1500;
 
 export class ExecutionBlockedError extends Error {}
 
@@ -106,6 +139,8 @@ export class ExecutionService {
   private wakeup: { handle: unknown; generation: number } | null = null;
   private pending: Pending | null = null;
   private lastSignalCheckMs: number | null = null;
+  /** Génération de l'état pour laquelle des signaux sont programmés, et jusqu'à quel instant. */
+  private ahead: { generation: number; untilMs: number } | null = null;
   private commandCounter = 0;
 
   constructor(private readonly deps: ExecutionServiceDeps) {}
@@ -213,9 +248,34 @@ export class ExecutionService {
     const from = this.lastSignalCheckMs;
     this.lastSignalCheckMs = atMs;
     if (from === null || atMs - from > SIGNAL_FRESHNESS_MS) return [];
-    const signals = stepSignalsBetween(active.state, from, atMs);
+    const signals = stepSignalsBetween(active.state, from, atMs, phasePatternOf(active.plan, active.state));
     for (const signal of signals) this.emitSignal(signal);
+    this.scheduleAhead(atMs);
     return signals;
+  }
+
+  /**
+   * Programme d'avance les signaux de l'étape en cours jusqu'à `atMs + SIGNAL_LOOKAHEAD_MS` (§8, étape 3) : cadence,
+   * bips des dernières secondes, minute, mi-temps, phases. Chacun n'est programmé qu'une fois ; tout changement de
+   * génération (Pause, étape suivante, Réinitialiser…) annule ceux qui ne sont pas encore tombés.
+   */
+  private scheduleAhead(atMs: number) {
+    const active = this.active;
+    if (this.deps.onScheduleSignal === undefined || active === null) return;
+    this.cancelStaleAhead();
+    if (active.state.status !== "RUNNING") return;
+    const from = Math.max(this.ahead?.untilMs ?? atMs, atMs);
+    const until = atMs + SIGNAL_LOOKAHEAD_MS;
+    this.ahead = { generation: active.state.generation, untilMs: Math.max(until, this.ahead?.untilMs ?? until) };
+    const signals = [...stepSignalsBetween(active.state, from, until, phasePatternOf(active.plan, active.state))].sort((a, b) => a.atMs - b.atMs);
+    for (const signal of signals) this.deps.onScheduleSignal(this.signalOf(signal), signal.atMs - atMs);
+  }
+
+  /** Annule les signaux programmés pour une génération dépassée. */
+  private cancelStaleAhead() {
+    if (this.ahead === null || this.active?.state.generation === this.ahead.generation) return;
+    this.ahead = null;
+    this.deps.onCancelScheduled?.();
   }
 
   // —————————————————————————————————————————— reprise après interruption du processus
@@ -351,13 +411,36 @@ export class ExecutionService {
     }
     // Au plus un signal de transition par instant (fin de phase et bip coïncidents : un seul signal, T07).
     for (const signal of dedupe(transitions).slice(-1)) this.emitSignal(signal);
+    for (const effect of result.effects) {
+      if (effect.type === "FINISHED" && effect.reason === "COMPLETED" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "FINISH", atMs: effect.atMs });
+      if (effect.type === "PAUSED" && effect.reason === "USER" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "PAUSE", atMs: effect.atMs });
+    }
+    this.cancelStaleAhead();
+    if (this.lastSignalCheckMs !== null) this.scheduleAhead(now);
     this.schedule();
     this.notify();
   }
 
-  private emitSignal(signal: PlannedSignal) {
+  private emitSignal(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE"; readonly atMs: number }) {
+    this.deps.onSignal?.(this.signalOf(signal));
+  }
+
+  private signalOf(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE"; readonly atMs: number }): ExecutionSignal {
     const projection = this.project(signal.atMs);
-    this.deps.onSignal?.({ kind: signal.kind, atMs: signal.atMs, phase: projection?.phase ?? null, exerciseName: projection?.exerciseName ?? null, sideRank: projection?.sideRank ?? null });
+    return {
+      kind: signal.kind,
+      atMs: signal.atMs,
+      phase: projection?.phase ?? null,
+      exerciseName: projection?.exerciseName ?? null,
+      sideRank: projection?.sideRank ?? null,
+      timed: projection?.timer.kind === "COUNTDOWN",
+      next: projection?.next == null ? null : { phase: projection.next.kind, exerciseName: projection.next.name, objective: objectiveOf(projection.next.mode, projection.next.target) },
+      objective: projection === null ? undefined : objectiveOf(projection.mode, projection.seriesTarget),
+      phaseLabel: projection?.guidance?.label ?? null,
+      phaseChange: "phaseChange" in signal && signal.phaseChange === true,
+      series: projection?.series ?? null,
+      exerciseCount: this.active === null ? 0 : Object.keys(this.active.plan.exercises).length,
+    };
   }
 
   private clearWakeup() {
@@ -383,4 +466,22 @@ export class ExecutionService {
   private notify() {
     for (const listener of this.listeners) listener();
   }
+}
+
+/** Objectif d'une étape : absent sans Cible de Série (AD-1 : une Cible n'est jamais comparée à null). */
+function objectiveOf(mode: ExecutionMode | null | undefined, seriesTarget: SeriesTarget | null): SignalObjective | undefined {
+  return seriesTarget === null ? undefined : { mode: mode ?? null, target: seriesTarget };
+}
+
+/** Motif de phases de l'exercice en cours (D-446), pour les signaux de changement de phase (constat B du 10/11/2026). */
+function phasePatternOf(plan: ExecutablePlan, state: EngineState): PhasePattern | null {
+  const spec = state.leaf?.spec;
+  if (spec === undefined || spec.kind !== "ACTIVITY" || spec.exerciseId === undefined) return null;
+  const phases = plan.exercises[spec.exerciseId]?.workPhases ?? [];
+  if (workPhasesCycleSeconds(phases) === null) return null;
+  // Recette du 13/11/2026 (Hermann : « Oui il faut continuer le guidage, c'est à l'utilisateur d'arrêter ») : en
+  // Répétitions, les phases continuent au-delà du nombre prévu, jusqu'à Suivant ; seule une étape chronométrée borne le
+  // guidage. [D-446 Q4 « après le nombre cible, plus de signal » — remplacé pour les Répétitions.]
+  const limit = spec.target === undefined || spec.end !== "TIMED" ? null : nominalGuidanceSeconds(spec.mode ?? null, spec.target, phases);
+  return { durationsMs: phases.map((phase) => phase.durationSeconds * 1000), limitMs: limit === null ? null : limit * 1000 };
 }

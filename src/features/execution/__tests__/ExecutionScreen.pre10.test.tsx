@@ -1,9 +1,12 @@
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactNode } from "react";
+import { AppState, type AppStateStatus } from "react-native";
 
 import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createEmptyDraft, createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { GUIDANCE_EVENTS, type GuidanceEvents } from "@/domain/preferences/guidanceSettings";
+import type { SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
@@ -30,7 +33,11 @@ import { ExecutionServiceContext } from "../ExecutionServiceContext";
  */
 
 const mockBack = jest.fn();
-jest.mock("expo-router", () => ({ useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn(), push: jest.fn() }) }));
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn(), push: jest.fn() }),
+  // Écran toujours au premier plan dans ces tests.
+  useFocusEffect: (effect: () => void | (() => void)) => jest.requireActual<typeof import("react")>("react").useEffect(effect, [effect]),
+}));
 jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve()), ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" } }));
 jest.mock("expo-crypto", () => ({
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -47,7 +54,7 @@ const exercise = (id: string, name: string, structuralPosition: SessionDraftExer
   executionParameters,
 });
 
-async function setup() {
+async function setup(guidance?: SessionGuidance) {
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   const sessionService = new SessionService(new SqliteSessionRepository(database), new SqliteCategoryRepository(database));
@@ -66,6 +73,7 @@ async function setup() {
         exercise("ex-c", "Gainage", "AFTER_TOUR", durationParameters(10, 1, 0)),
       ],
       stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
+      ...(guidance !== undefined ? { guidance } : {}),
     }),
   );
   if (!created.ok) throw new Error(`seed failed: ${JSON.stringify(created.violations)}`);
@@ -92,7 +100,8 @@ async function setup() {
     loadSession: (sessionId) => sessionService.getSessionForConsultation(sessionId),
   });
   const profileService = new ProfileService(new SqliteProfileRepository(database));
-  const value = { service, signals: new ExecutionSignalAdapter() };
+  const awake: boolean[] = [];
+  const value = { service, signals: new ExecutionSignalAdapter(), screenAwake: { keepAwake: (active: boolean) => void awake.push(active) } };
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -125,7 +134,7 @@ async function setup() {
   }
 
   const view = render(<ExecutionScreen sessionId={created.value.id} />, { wrapper: Wrapper });
-  return { service, at, view, database };
+  return { service, at, view, database, awake };
 }
 
 async function press(testID: string) {
@@ -135,6 +144,13 @@ async function press(testID: string) {
   });
 }
 
+
+/** « À suivre » (Figma `1992:8132`, recette r6) : nom à gauche, cible ou durée à droite. */
+function nextShown(): string {
+  const name = screen.getByTestId("execution-next-name").props.children as string;
+  const value = screen.getByTestId("execution-next-value").props.children as string;
+  return [name, value].filter((part) => part !== "").join(" · ");
+}
 describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
   afterEach(() => {
     mockBack.mockReset();
@@ -146,19 +162,26 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // L'ouverture de l'écran ne démarre rien : aucune Exécution persistée.
     expect(await database.getAllAsync("SELECT id FROM executions")).toHaveLength(0);
     await press("execution-start");
-    expect(screen.getByTestId("execution-title").props.children).toBe("Compte à rebours");
+    expect(screen.getByTestId("execution-title").props.children).toBe("Préparez-vous");
+    // Recette e1 (b) : 3, 2, 1 sans 0 ; Série et Tour du premier exercice dès le Compte à rebours.
+    expect(screen.getByTestId("execution-timer").props.children).toBe("3");
+    expect(screen.getByTestId("execution-series").props.children).toBe("1/2");
 
     await at(3);
+    // Recette e1 (g) : pas de « Sur 00:20 » sous le compte à rebours.
+    expect(screen.queryByText(/^Sur /)).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Squat");
-    expect(screen.getByTestId("execution-series").props.children).toBe("Série 1/2");
-    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Pause · 00:05");
+    expect(screen.getByTestId("execution-series").props.children).toBe("1/2");
+    expect(nextShown()).toBe("Pause · 00:05");
 
     // Pause de 10 s pendant la Série 1 : temps restant conservé.
     await at(8);
     await press("execution-pause");
-    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
+    expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
+    // Recette du 13/11/2026 : voile orange aussi en Pause.
+    expect(screen.getByTestId("execution-stop-veil")).toBeTruthy();
     await at(18);
-    await press("execution-pause-resume");
+    await press("execution-resume");
     expect(screen.getByTestId("execution-timer").props.children).toBe("00:15");
 
     // Réinitialiser : confirmation, l'Exécution est suspendue pendant la modale, la Série recommence.
@@ -172,14 +195,33 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // Point d'arrêt (aucune échéance).
     await at(74);
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
+    // Recette du 13/11/2026 : pendant la Pause, Série de l’exercice qui vient de s’exécuter (Squat, Série 2/2).
+    expect(screen.getByTestId("execution-series").props.children).toBe("2/2");
+    // Recette du 12/11/2026 (e1f) : le Point d'arrêt présente l'exercice qui suit (Fente, en Répétitions : 00:00), en
+    // attente de Démarrer ; Réinitialiser devient Arrêt, Suivant est désactivé.
     await at(75);
-    expect(screen.getByTestId("execution-title").props.children).toBe("Point d'arrêt");
-    await at(400);
-    expect(screen.getByTestId("execution-title").props.children).toBe("Point d'arrêt");
-    await press("execution-next-command"); // Continuer
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
-    expect(screen.getByTestId("execution-side").props.children).toBe("Côté 1");
-    expect(screen.getByTestId("execution-tour").props.children).toBe("Tour 1/2");
+    expect(screen.getByTestId("execution-timer").props.children).toBe("00:00");
+    expect(screen.getByTestId("execution-press-start")).toBeTruthy();
+    // Recette du 13/11/2026 : voile orange au Point d’arrêt, invitation sur deux lignes.
+    expect(screen.getByTestId("execution-stop-veil")).toBeTruthy();
+    expect(screen.getByTestId("execution-press-start").props.children).toBe("Appuyer sur\ndémarrer");
+    expect(screen.getByTestId("execution-wait")).toBeTruthy();
+    expect(screen.getByTestId("execution-stop")).toBeTruthy();
+    expect(screen.getByTestId("execution-next-command").props.accessibilityState).toMatchObject({ disabled: true });
+    await at(400);
+    // Recette du 13/11/2026 (Hermann : « Pour le point d’arrêt : exercice qui suit ») : Tour 1/2 de la Fente à venir.
+    expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
+    // Recette du 13/11/2026 : Cycle toujours affiché, « – » en gris sans Cycle.
+    expect(screen.getByTestId("execution-cycle").props.children).toBe("–");
+    expect(screen.queryByTestId("execution-pause")).toBeNull();
+    await press("execution-continue");
+    // Le voile s’efface en fondu (250 ms) ; l’invitation et le chronomètre de l’attente disparaissent tout de suite.
+    expect(screen.queryByTestId("execution-press-start")).toBeNull();
+    expect(screen.queryByTestId("execution-wait")).toBeNull();
+    expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
+    expect(screen.getByTestId("execution-side").props.accessibilityLabel).toBe("1er côté");
+    expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
 
     // Répétitions : Suivant sans confirmation, côté 2 puis Tour 2.
     for (let i = 0; i < 4; i += 1) await press("execution-next-command");
@@ -203,10 +245,63 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
     await at(10);
     await press("execution-pause");
-    await press("execution-pause-stop");
+    await press("execution-stop");
     expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance interrompue");
     expect(await database.getFirstAsync("SELECT business_status FROM executions")).toEqual({ business_status: "INTERRUPTED" });
     view.unmount();
+  });
+});
+
+/** Fin de PRE-10 (spec `spec-guidage-reglages` §3.3) — guidage propre à la Séance, sinon le Profil. */
+describe("fin de PRE-10 — guidage de la Séance", () => {
+  const label = (testID: string) => screen.getByTestId(testID).props.accessibilityState;
+
+  it("sans réglage propre : interrupteurs selon le Profil (Sons et Voix actifs par défaut)", async () => {
+    const { view } = await setup();
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    expect(label("execution-sound")).toEqual({ checked: true });
+    expect(label("execution-voice")).toEqual({ checked: true });
+    view.unmount();
+  });
+
+  // Guidage sonore validé pour la Séance (modale de Composition, documentation de main `ebe72f76`) : aucun son ni
+  // aucune annonce réglés → interrupteurs Sons et Voix inactifs au démarrage.
+  it("aucun son ni aucune annonce réglés pour la Séance : interrupteurs off au démarrage, modifiables pendant la séance", async () => {
+    const silent = Object.fromEntries(GUIDANCE_EVENTS.map((event) => [event, { sound: "NONE", vibration: true }])) as unknown as GuidanceEvents;
+    const { view } = await setup({ announcements: { session: false, names: false, phases: false, objective: false, pauses: false, sides: false }, events: silent });
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    expect(label("execution-sound")).toEqual({ checked: false });
+    expect(label("execution-voice")).toEqual({ checked: false });
+    await press("execution-sound");
+    expect(label("execution-sound")).toEqual({ checked: true });
+    expect(label("execution-voice")).toEqual({ checked: false });
+    view.unmount();
+  });
+});
+
+/** Fin de PRE-10 (11/11/2026) — ch09 Profil, « Écran maintenu actif » : pendant l'exécution uniquement. */
+describe("fin de PRE-10 — écran maintenu actif", () => {
+  it("maintenu actif pendant l'exécution et en pause ; rendu à la fin", async () => {
+    const { at, view, awake } = await setup();
+    expect(await screen.findByTestId("execution-start")).toBeTruthy();
+    expect(awake).toEqual([]);
+    await press("execution-start");
+    expect(awake).toEqual([true]);
+    await at(10);
+    await press("execution-pause");
+    expect(awake).toEqual([true]);
+    await press("execution-stop");
+    expect(screen.getByTestId("execution-end-status")).toBeTruthy();
+    expect(awake).toEqual([true, false]);
+    view.unmount();
+    expect(awake).toEqual([true, false]);
+  });
+
+  it("sortie de l'écran pendant l'exécution : veille rendue", async () => {
+    const { view, awake } = await setup();
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    view.unmount();
+    expect(awake).toEqual([true, false]);
   });
 });
 
@@ -231,8 +326,8 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await at(9);
     expect(service.project()?.timer).toMatchObject({ kind: "COUNTDOWN", remainingMs: 14 * S });
     await press("execution-pause");
-    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
-    await press("execution-pause-resume");
+    expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
+    await press("execution-resume");
     expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
     view.unmount();
   });
@@ -272,7 +367,7 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await press("execution-next-command");
     expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Squat");
-    expect(screen.getByTestId("execution-series").props.children).toBe("Série 2/2");
+    expect(screen.getByTestId("execution-series").props.children).toBe("2/2");
     view.unmount();
   });
 
@@ -281,10 +376,10 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await screen.findByTestId("execution-start");
     await press("execution-start");
     await at(24); // Pause après S1 : à suivre Squat S2
-    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Squat · Série 2/2 · 00:20");
+    expect(nextShown()).toBe("Squat · 00:20");
     await at(50); // Pause finale : à suivre le Point d'arrêt
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
-    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Arrêt de la séance, redémarrage manuel");
+    expect(nextShown()).toBe("Arrêt de la séance, redémarrage manuel");
     view.unmount();
   });
 
@@ -294,5 +389,32 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     expect(refreshDelayMs(countdown(2600))).toBe(250);
     expect(refreshDelayMs(countdown(2200))).toBe(220);
     expect(refreshDelayMs({ timer: { kind: "STOPWATCH", elapsedMs: 4900, nominalMs: null } } as unknown as Parameters<typeof refreshDelayMs>[0])).toBe(120);
+  });
+});
+
+/**
+ * Recette du 11/11/2026, constat a (Hermann : « Pendant un appel vidéo ou téléphonique, ou l'utilisation d'une autre
+ * application, il faut une interruption de la séance, par défaut ») : la séance passe en Pause à l'arrière-plan.
+ */
+describe("recette du 11/11/2026 — interruption de la séance à l'arrière-plan", () => {
+  it("l'application quitte le premier plan : la séance est en Pause au retour", async () => {
+    const listeners: ((state: AppStateStatus) => void)[] = [];
+    const spy = jest.spyOn(AppState, "addEventListener").mockImplementation((_type, listener) => {
+      listeners.push(listener as (state: AppStateStatus) => void);
+      return { remove: () => undefined } as ReturnType<typeof AppState.addEventListener>;
+    });
+    const { at, view } = await setup();
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    await at(5);
+    expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
+    await act(async () => {
+      for (const listener of listeners) listener("background");
+    });
+    await act(async () => {
+      for (const listener of listeners) listener("active");
+    });
+    expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
+    spy.mockRestore();
+    view.unmount();
   });
 });

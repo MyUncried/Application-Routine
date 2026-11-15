@@ -21,6 +21,7 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { DEFAULT_GUIDANCE_EVENTS } from "@/domain/preferences/guidanceSettings";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
@@ -165,7 +166,8 @@ beforeEach(() => {
   mockExitGuard.mockReturnValue({ isPendingExit: false, cancelExit: jest.fn(), confirmExit: jest.fn() });
 });
 
-describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit (ancien modèle)", () => {
+// [« (ancien modèle) » — remplacé le 10/11/2026 : modèle unique des Circuits, décision de Hermann.]
+describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit", () => {
   it("Séance enregistrée avec un Circuit et des Points d'arrêt, rouverte : rendu historique, « Ajouter un arrêt » disponible ; emplacements du Circuit proposés", async () => {
     const draft = await savedAndReopened({
       ...createEmptyDraft(),
@@ -177,7 +179,8 @@ describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit (ancien
         { id: "p2", scope: "IN_TOUR", position: 1 },
       ],
     });
-    expect(resolveRichLayout(draft)).toBeNull();
+    // Modèle unique des Circuits (10/11/2026) : un Circuit unique relève de la disposition générale.
+    expect(resolveRichLayout(draft)).not.toBeNull();
     await renderComposition(draft);
     expect(addStop().props.accessibilityState).toEqual(enabled);
     fireEvent.press(addStop());
@@ -194,7 +197,8 @@ describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit (ancien
       exercises: [exercise("b", "IN_TOUR"), exercise("c", "IN_TOUR")],
       stopPoints: [{ id: "p1", scope: "IN_TOUR", position: 0 }],
     });
-    expect(resolveRichLayout(draft)).toBeNull();
+    // Modèle unique des Circuits (10/11/2026) : un Circuit unique relève de la disposition générale.
+    expect(resolveRichLayout(draft)).not.toBeNull();
     await renderComposition(draft);
     expect(addStop().props.accessibilityState).toEqual(enabled);
   });
@@ -203,7 +207,7 @@ describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit (ancien
     await renderComposition(flatDraft());
     expect(addStop().props.accessibilityState).toEqual(enabled);
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
-    expect(resolveRichLayout(probe.draft!)).toBeNull();
+    expect(resolveRichLayout(probe.draft!)).not.toBeNull(); // modèle unique des Circuits (10/11/2026)
     expect(addStop().props.accessibilityState).toEqual(enabled);
     fireEvent.press(addStop());
     await act(async () => undefined);
@@ -214,7 +218,8 @@ describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit (ancien
   it("Séance à Point d'arrêt sans Circuit, puis « Ajouter un circuit » : Point conservé, « Ajouter un arrêt » disponible", async () => {
     await renderComposition({ ...flatDraft(), stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }] });
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
-    expect(probe.draft!.stopPoints).toEqual([{ id: "p1", scope: "BEFORE_TOUR", position: 1 }]);
+    // Modèle unique des Circuits (10/11/2026) : le Point est conservé à sa place dans la structure générale.
+    expect(probe.draft!.structure?.stopPoints).toEqual([{ id: "p1", circuitId: null, position: 1 }]);
     expect(addStop().props.accessibilityState).toEqual(enabled);
   });
 
@@ -297,7 +302,7 @@ describe("contre-recette du 30/10 — second appui sur « Ajouter un arrêt »",
   it("in placement the button stays active (selected); pressing it again applies the selection like « Confirmer »", async () => {
     await renderComposition(flatDraft());
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
-    const before = probe.draft!.stopPoints ?? [];
+    const before = probe.draft!.structure?.stopPoints ?? []; // modèle unique des Circuits (10/11/2026)
     fireEvent.press(addStop());
     await act(async () => undefined);
     expect(addStop().props.accessibilityState).toEqual({ selected: true, disabled: false });
@@ -308,7 +313,7 @@ describe("contre-recette du 30/10 — second appui sur « Ajouter un arrêt »",
     await act(async () => undefined);
     // Sélection refermée, Point posé (comme « Confirmer »).
     expect(screen.queryByTestId("composition-placement-bar")).toBeNull();
-    expect(probe.draft!.stopPoints ?? []).toHaveLength(before.length + 1);
+    expect(probe.draft!.structure?.stopPoints ?? []).toHaveLength(before.length + 1);
     expect(addStop().props.accessibilityState).toEqual(enabled);
   });
 
@@ -323,5 +328,32 @@ describe("contre-recette du 30/10 — second appui sur « Ajouter un arrêt »",
     await act(async () => undefined);
     expect(screen.queryByTestId("composition-placement-bar")).toBeNull();
     expect(probe.draft).toBe(before);
+  });
+});
+
+/**
+ * Bouton Guidage sonore de l'en-tête de Composition (documentation de main `ebe72f76`, ch12 « DSF — Actions », ch13 ;
+ * demande de Hermann du 11/11/2026, cahier, constat d). [Remplacé le 11/11/2026 — élément Guidage au-dessus du Compte à
+ * rebours, retiré avec l'espace qu'il occupait.]
+ */
+describe("bouton Guidage sonore de l'en-tête de Composition", () => {
+  const g = strings.screens.soundGuidance;
+
+  it("dans l'en-tête, libellé « Guidage sonore », symbole fin ; ouvre la modale ; plus d'élément Guidage dans la séquence", async () => {
+    await renderComposition(flatDraft());
+    expect(screen.queryByTestId("composition-guidance")).toBeNull();
+    expect(screen.queryByTestId("composition-guidance-step")).toBeNull();
+    const button = screen.getByTestId("composition-guidance-action");
+    expect(button.props.accessibilityLabel).toBe(g.buttonLabel);
+    expect(screen.getByTestId("composition-guidance-icon-light")).toBeTruthy();
+    fireEvent.press(button);
+    expect(mockPush).toHaveBeenCalledWith("/session-guidance");
+    expect(screen.getByTestId("composition-guidance-icon-fill")).toBeTruthy();
+  });
+
+  it("une Séance à réglages propres garde le symbole fin tant que la modale est fermée", async () => {
+    await renderComposition({ ...flatDraft(), guidance: { announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: false }, events: DEFAULT_GUIDANCE_EVENTS } });
+    expect(screen.getByTestId("composition-guidance-icon-light")).toBeTruthy();
+    expect(screen.queryByTestId("composition-guidance-icon-fill")).toBeNull();
   });
 });
