@@ -522,3 +522,76 @@ Synchronisation code / documentation : spec du lot, quatre lignes (A pour la zon
 Tests (worktree temporaire sans le fichier de recette) : suite complète 354 suites — 353 vertes au premier passage, `PersonalLibraryScreens.test.tsx` (2 tests nouveaux, doublure de `ContextBand` à compléter) corrigé puis vert seul (9/9) ; `tsc --noEmit` 0 ; ESLint 0 sur les 13 fichiers touchés.
 
 Non vérifié : rendu et comportement sur l'iPhone.
+
+## Recette du 14 au 16/11 et clôture du développement des Bibliothèques — code committé
+
+Demandes de Hermann :
+- 14/11 : « Ajoute la barre de navigation Kodjo à la page d'accueil du Profil » ;
+- 15/11 : « Mouvement archivé » qui ne s'efface plus, puis « réduire la durée à 2.5 secondes » ;
+- 15/11 : « Maximum update depth exceeded » par intermittence ;
+- 15/11 : « peux-tu corriger les écarts constatés dans le cahier de recette » ;
+- 15/11 : « j'aimerais clôturer ce développement de la gestion des bibliothèques et fusionner avec main ».
+
+Arbitrages du 15/11 :
+- corriger les écarts et continuer de chercher la boucle avant la fusion, Hermann terminant ses tests ;
+- intégration par pull request GitHub, fusionnée par Hermann ;
+- Ma bibliothèque : enregistrement automatique, ouverte en feuille plein écran fermée par ✕ ;
+- menu natif : libellé « Supprimer ».
+
+Corrections, toutes classées dans la spec du lot :
+- **Barre de navigation** sur « Modifier le profil » : route d'onglet masquée `app/(tabs)/profile-edit.tsx`, `href: null`, Profil actif.
+- **« Mouvement archivé »** : affiché 2,5 s (`ARCHIVE_NOTICE_MS`).
+- **Halo de l'action de gauche** : option `backHalo` du composant partagé `ContextBand`, absente par défaut. Utilisée par Créer et par Ma bibliothèque.
+- **Nom de Bibliothèque** : il n'est plus rogné à la hauteur de la ligne de 17.
+- **Ma bibliothèque modifiée sur place** :
+  - nom enregistré à la fin de la saisie ;
+  - « liste + » montre tout le Catalogue dans le même écran ;
+  - chaque Mouvement coché ou décoché est enregistré aussitôt ;
+  - le dernier Mouvement ne peut pas être retiré.
+- **Créer une bibliothèque et Ma bibliothèque** : présentation `fullScreenModal`.
+- **Filtre de Créer** : inactif quand la liste est vide.
+- **Menu** : « Supprimer ».
+- **Profil** : une saisie de nom refusée est abandonnée en quittant l'écran.
+- **« Tout sélectionner » / « Tout désélectionner »** : dans Créer et dans Ma bibliothèque.
+- **Piles** : une pile repliée contenant au moins un Mouvement choisi paraît sélectionnée. Le « au moins un » est une interprétation, signalée à Hermann.
+- **Profil** : statut des Bibliothèques installées relu en silence auprès du PC appairé à chaque affichage. La lecture est partagée avec « Actualiser » (`adminLibraryRefresh.ts`).
+
+Note fn14 : pas de défaut. L'encadré « Propriétaire inconnu » dépend du propriétaire de la Bibliothèque, pas de celui d'une fiche (décision du 12/11).
+
+### « Maximum update depth exceeded » — diagnostic, hypothèse non démontrée
+
+**Mesures**
+- Une sonde temporaire (crochet de validation de React, développement seulement) a montré deux boucles continues :
+  - section Bibliothèques du Profil, environ 90 rendus par seconde ;
+  - liste du Catalogue des Mouvements, environ 40 rendus par seconde.
+- La liste reçoit un service de Catalogue neuf à chaque rendu, d'où relecture, puis nouveau rendu. Pour le minuteur de « Mouvement archivé », la conséquence est qu'il repart sans cesse.
+- La section du Profil reçoit des services neufs à chaque rendu.
+- Chaque boucle a cessé au rechargement du composant concerné.
+- Après un redémarrage propre de l'application, aucune boucle n'a été observée pendant toute la recette du 15/11 au soir : sonde active, plus d'une heure, Profil, Ma bibliothèque, Catalogue, archivage.
+
+**Hypothèse plausible, non démontrée** : un effet du rechargement à chaud de Metro pendant les modifications en direct, et non un défaut de l'application installée.
+
+**Non corrigé** : aucun changement de code ne vise la boucle. Les sondes sont retirées.
+
+**À surveiller** : si le message réapparaît sans modification de code en cours, la piste reste l'identité des services fournis par `ActivityDefinitionServiceContext` et `useLibraryServices`.
+
+### Preuves
+
+Suite complète dans un worktree temporaire, sans le fichier de recette :
+- 354 suites, 5916 tests verts ;
+- `tsc --noEmit` : 0 erreur ;
+- ESLint : 0 erreur sur tous les fichiers touchés.
+
+Recette iPhone de Hermann (cahier v34, base partagée) :
+- toutes les lignes ajoutées sont OK : 11.24 à 11.34, `pr-barre-navigation`, `bp-trait-nom`, `x-d-libelle`, `x-d-refuser`, `a1-pas-de-message` ;
+- les reprises sont OK : bp-creer-vide, bp-ma-bibliotheque, bp-menu, bp-tout-selectionner, bp-zone-contexte, pr-enregistrement, fn14.
+
+### Fichiers
+
+- Ce commit contient tout le travail non committé du lot depuis le 12/11 : sections ci-dessus marquées « code NON committé » et cette section.
+- Exclu : `catalogue/catalogues/kodjo-pilote-60.catalogue.json`, données de recette lues par le serveur d'administration, laissé modifié et non committé.
+
+### Suite
+
+- Intégration de `main` dans la branche : 183 commits de retard au 16/11. Un conflit touchant une règle métier sera soumis à Hermann.
+- Puis nouvelle suite complète, poussée de la branche et pull request vers `main`. La fusion revient à Hermann.

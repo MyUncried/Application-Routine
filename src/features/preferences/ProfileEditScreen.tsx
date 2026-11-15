@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import type { Profile, Silhouette } from "@/domain/preferences/Profile";
@@ -9,16 +9,14 @@ import {
   pickAndCopyProfilePhoto,
   profilePhotoFileExists,
 } from "@/features/preferences/profilePhoto";
-import { Card, Divider, Section } from "@/features/catalogue/libraryUi";
 import { ProfileLibrariesSection } from "@/features/catalogue/ProfileLibrariesSection";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
-import { DecisionDialog } from "@/features/sessions/DecisionDialog";
-import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
-import { CONTEXT_BAND_FADE_HEIGHT, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { CONTEXT_ZONE_GEOMETRY } from "@/shared/ui/catalogueContext";
+import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 type ProfileTab = "profile" | "preferences" | "community";
@@ -29,7 +27,6 @@ type ProfileTab = "profile" | "preferences" | "community";
  */
 const PROFILE_BACKGROUND = colors.catalogueSessionsBackground;
 const PROFILE_TAB_CONTEXT = colors.catalogueSessionsContext;
-const TAB_BAND_HEIGHT = 14;
 const AVATAR_SIZE = 64;
 /**
  * Recette c2 du 11/11 (Hermann : « faire l'icône de la photo plus petit ») : pastille 22 et icône 12.
@@ -37,9 +34,17 @@ const AVATAR_SIZE = 64;
  */
 const PHOTO_BADGE_SIZE = 22;
 const PHOTO_BADGE_ICON = 12;
-const SILHOUETTE_CIRCLE = 40;
-/** Figma : tracé de la silhouette non choisie (#9499A8), cercle non choisi #CCD1E0. */
-const SILHOUETTE_UNSELECTED = "#9499A8";
+/**
+ * 13/11 (Hermann : « grandir le cercle pour qu'il fasse la même taille que celui de la photo ») : taille de la photo.
+ * [Avant : 40 (Figma 12116:25028), puis 48 — remplacés.]
+ */
+const SILHOUETTE_CIRCLE = AVATAR_SIZE;
+/**
+ * 13/11 (Hermann : « agrandir la silhouette dans la pastille », puis « laisser de la marge entre la silhouette et les
+ * bords ») : hauteur du rond moins 8 pt de chaque côté ; `contentFit="contain"` garde les proportions du tracé.
+ * [Avant : 27,5 (Figma), puis 56 — remplacés.]
+ */
+const SILHOUETTE_ICON = SILHOUETTE_CIRCLE - 2 * spacing[8];
 
 type IdentityDraft = {
   readonly displayName: string;
@@ -53,10 +58,6 @@ function toDraft(profile: Profile): IdentityDraft {
     photoUri: profile.photoUri,
     silhouette: profile.silhouette,
   };
-}
-
-function draftsEqual(a: IdentityDraft, b: IdentityDraft): boolean {
-  return a.displayName === b.displayName && a.photoUri === b.photoUri && a.silhouette === b.silhouette;
 }
 
 /**
@@ -74,8 +75,7 @@ export function computeInitials(displayName: string): string {
 
 /**
  * Écran Modifier le profil (V2-PRE-2, plan §6.5, CE-UI-01 L1965-2051) : nom
- * d'affichage, photo locale facultative, silhouette facultative, dans un
- * brouillon enregistré par Enregistrer. La silhouette ne modifie que
+ * d'affichage, photo locale facultative, silhouette facultative. La silhouette ne modifie que
  * l'icône des Zones corporelles (CE-UI-09 L2805) — aucune autre donnée.
  *
  * Alignement Figma `12119:25611` (demande de Hermann du 11/11/2026, partie au-dessus des Bibliothèques) :
@@ -84,21 +84,31 @@ export function computeInitials(displayName: string): string {
  * conservée), « Communauté » visible et désactivée (E01) ; carte « Profil » (avatar, « Modifier la photo »,
  * ligne « Nom », silhouettes). [Avant : titre « Modifier le profil » et Retour — remplacés.] « Pseudo » et la
  * pastille « Compte gratuit » de la maquette ne sont pas affichés : le Profil n'a ni pseudo ni type de compte.
+ *
+ * Recette c1/c2 du 12/11/2026 (Hermann : « la zone de contexte doit avoir la taille standard » ; « Retirer le
+ * titre de section Profil », « remonter la photo et le nom », « retirer "Nom" », « les deux silhouettes doivent
+ * être dans la zone de contexte ») : zone de contexte de hauteur standard (`dimensions.contextBand.height`, comme
+ * les Catalogues) portant les silhouettes ; dessous, photo et nom sans intitulé de section ni libellé.
+ * [Avant : bande de 14 pt + fondu, intitulé « Profil », ligne « Nom », séparateur et silhouettes dans la carte —
+ * remplacés.] Pseudo : en attente de décision (stockage du Profil, unicité).
+ *
+ * Demande de Hermann du 13/11/2026 (« Retirer le bouton enregistrer de l'écran d'accueil du profil », arbitrage
+ * « Immédiate ») : photo et silhouette enregistrées dès le choix, nom à la fin de la saisie ; nom vide ou trop long :
+ * message sous le champ, l'ancien nom reste enregistré. [Avant : brouillon enregistré par « Enregistrer » (zone
+ * d'action fixe, D-444) et dialogue « Abandonner les modifications ? » en quittant (CE-UI-01 L1981) — remplacés.]
  */
 export function ProfileEditScreen() {
   const router = useRouter();
   const profileService = useProfileService();
   const t = strings.screens.profileEdit;
-  const actionZone = usePrimaryActionZone();
-
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [initialSnapshot, setInitialSnapshot] = useState<IdentityDraft | null>(null);
   const [draft, setDraft] = useState<IdentityDraft | null>(null);
   const [nameError, setNameError] = useState<"REQUIRED" | "TOO_LONG" | null>(null);
   const [photoError, setPhotoError] = useState(false);
   const [saveError, setSaveError] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
+  // Enregistrement immédiat (13/11/2026) : chaque écriture part du dernier Profil ENREGISTRÉ (jamais d'un nom en cours
+  // de saisie) et attend la précédente — une photo choisie pendant l'enregistrement du nom ne l'écrase jamais.
+  const savedProfile = useRef<Profile | null>(null);
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
   useEffect(() => {
     let cancelled = false;
@@ -107,10 +117,8 @@ export function ProfileEditScreen() {
         if (cancelled) {
           return;
         }
-        setProfile(loaded);
-        const snapshot = toDraft(loaded);
-        setInitialSnapshot(snapshot);
-        setDraft(snapshot);
+        savedProfile.current = loaded;
+        setDraft(toDraft(loaded));
       },
       (error: unknown) => {
         if (!cancelled) {
@@ -123,32 +131,89 @@ export function ProfileEditScreen() {
     };
   }, [profileService]);
 
-  const shouldBlockExit = draft !== null && initialSnapshot !== null && !draftsEqual(draft, initialSnapshot);
-  // CE-UI-01 L1981 : confirmer l'abandon restaure le brouillon aux valeurs
-  // ENREGISTRÉES avant que la garde ne rejoue la navigation vers Profil —
-  // jamais un no-op (la copie de travail doit refléter l'état persisté,
-  // pas les éditions abandonnées, pour toute consommation ultérieure tant
-  // que ce composant reste monté).
-  const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(shouldBlockExit, () => {
-    if (initialSnapshot) {
-      setDraft(initialSnapshot);
-    }
-  });
-
-  // Un enregistrement réussi met à jour `initialSnapshot`/`draft` ensemble
-  // (brouillon devenu "propre") AVANT de rejouer le retour — jamais
-  // `router.back()` directement depuis `handleSave`, qui serait sinon
-  // intercepté par sa PROPRE garde (`shouldBlockExit` encore vrai sur le
-  // rendu courant). Même patron que `CompositionExerciseEditor`
-  // (`ExerciseScreen.tsx`, `isFinishing`/`shouldBlockExit`).
-  useEffect(() => {
-    if (isExiting && !shouldBlockExit) {
-      router.back();
-    }
-  }, [isExiting, shouldBlockExit, router]);
+  // Recette du 15/11/2026 (pr-enregistrement, Hermann : « quitter et rouvrir après le message « Le nom est obligatoire. »
+  // sous le champ : le nom n'est pas revenu, il est vide ») : l'écran reste monté dans l'onglet Profil (14/11) ; en le
+  // quittant, une saisie refusée est abandonnée — au retour, le champ montre le nom enregistré, sans message.
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        const saved = savedProfile.current;
+        if (saved === null) return;
+        setNameError(null);
+        setDraft((current) => (current ? { ...current, displayName: saved.displayName ?? "" } : current));
+      },
+      [],
+    ),
+  );
 
   function patchDraft(patch: Partial<IdentityDraft>) {
     setDraft((current) => (current ? { ...current, ...patch } : current));
+  }
+
+  /** Met en file une écriture ; `write` reçoit le Profil enregistré et rend le nouveau, ou `null` (rien d'écrit). */
+  function enqueueSave(write: (saved: Profile) => Promise<Profile | null>): Promise<void> {
+    const run = async () => {
+      const saved = savedProfile.current;
+      if (!saved) {
+        return;
+      }
+      setSaveError(false);
+      try {
+        const next = await write(saved);
+        if (!next) {
+          return;
+        }
+        // D3 : l'ancienne copie de la photo n'est supprimée qu'après un enregistrement réussi.
+        if (saved.photoUri && saved.photoUri !== next.photoUri) {
+          deletePreviousProfilePhoto(saved.photoUri);
+        }
+        savedProfile.current = next;
+      } catch (error) {
+        console.error("Le profil n'a pas pu être enregistré.", error);
+        setSaveError(true);
+      }
+    };
+    saveQueue.current = saveQueue.current.then(run);
+    return saveQueue.current;
+  }
+
+  /** Photo et silhouette : enregistrées dès le choix ; le nom enregistré reste tel quel. */
+  function saveAppearance(patch: { readonly photoUri?: string | null; readonly silhouette?: Silhouette }) {
+    return enqueueSave((saved) =>
+      profileService.saveAppearance({
+        photoUri: patch.photoUri !== undefined ? patch.photoUri : saved.photoUri,
+        silhouette: patch.silhouette ?? saved.silhouette,
+      }),
+    );
+  }
+
+  /**
+   * Nom : enregistré à la fin de la saisie. Vide ou trop long : message sous le champ, l'ancien nom reste
+   * enregistré (le champ garde la saisie pour la corriger).
+   */
+  function saveName(displayName: string) {
+    return enqueueSave(async (saved) => {
+      if (displayName === (saved.displayName ?? "")) {
+        setNameError(null);
+        return null;
+      }
+      const result = await profileService.saveIdentity({
+        displayName,
+        photoUri: saved.photoUri,
+        silhouette: saved.silhouette,
+      });
+      if (!result.ok) {
+        setNameError(result.code);
+        return null;
+      }
+      setNameError(null);
+      return result.value;
+    });
+  }
+
+  function selectSilhouette(silhouette: Silhouette) {
+    patchDraft({ silhouette });
+    void saveAppearance({ silhouette });
   }
 
   async function handlePickPhoto() {
@@ -156,46 +221,16 @@ export function ProfileEditScreen() {
     if (result.status === "PICKED") {
       setPhotoError(false);
       patchDraft({ photoUri: result.uri });
+      await saveAppearance({ photoUri: result.uri });
     } else if (result.status === "ERROR") {
       setPhotoError(true);
     }
-    // CANCELED : le brouillon n'est jamais modifié (D-258).
-  }
-
-  async function handleSave() {
-    if (!draft || !profile || isSaving) {
-      return;
-    }
-    setIsSaving(true);
-    setSaveError(false);
-    try {
-      const result = await profileService.saveIdentity({
-        displayName: draft.displayName,
-        photoUri: draft.photoUri,
-        silhouette: draft.silhouette,
-      });
-      if (!result.ok) {
-        setNameError(result.code);
-        setIsSaving(false);
-        return;
-      }
-      // D3 : l'ancienne copie n'est supprimée qu'après un enregistrement réussi.
-      if (profile.photoUri && profile.photoUri !== draft.photoUri) {
-        deletePreviousProfilePhoto(profile.photoUri);
-      }
-      const savedSnapshot = toDraft(result.value);
-      setProfile(result.value);
-      setInitialSnapshot(savedSnapshot);
-      setDraft(savedSnapshot);
-      setIsExiting(true);
-    } catch (error) {
-      console.error("Le profil n'a pas pu être enregistré.", error);
-      setSaveError(true);
-      setIsSaving(false);
-    }
+    // CANCELED : rien n'est modifié (D-258).
   }
 
   const hasPhoto = draft !== null && profilePhotoFileExists(draft.photoUri);
+  // Silhouette affichée : homme par défaut (CE-UI-01 L2029).
+  const currentSilhouette: Silhouette = draft?.silhouette === "femme" ? "femme" : "homme";
   const photoAccessibilityLabel = hasPhoto ? t.photo.changeAccessibilityLabel : t.photo.addAccessibilityLabel;
 
   return (
@@ -218,10 +253,12 @@ export function ProfileEditScreen() {
                 },
               ]}
               value="profile"
-              // « Préférences » ramène à l'écran Profil, qui porte les réglages et préférences (même garde
-              // d'abandon que le Retour qu'il remplace).
+              // « Préférences » ramène à l'écran Profil, qui porte les réglages et préférences (13/11 : plus de garde
+              // d'abandon, tout est déjà enregistré).
               onChange={(tab) => {
-                if (tab === "preferences") router.back();
+                // 14/11 : écran de l'onglet Profil (barre de navigation) — on rejoint Préférences par son adresse, un
+                // retour arrière d'onglet ramènerait au premier onglet. [Avant : router.back() — remplacé.]
+                if (tab === "preferences") router.navigate("/profile");
               }}
               selectedColor={PROFILE_TAB_CONTEXT}
               testID="profile-edit-tabs"
@@ -229,7 +266,94 @@ export function ProfileEditScreen() {
           </View>
         }
       />
-      <View style={styles.tabBand} pointerEvents="none" testID="profile-edit-tab-band" />
+      {/* Zone de contexte canonique des Catalogues (`ContextBand` : fondu par couches D-224, géométrie CE-CAT-CTX-01,
+          hauteur standard), couleur de l'onglet sélectionné (recettes du 12/11 : « UTILISE LES COMPOSANTS STANDARDS »).
+          Recette c2 du 13/11 (Hermann : « la photo et le nom ne sont pas dans la zone de contexte » ; « se référer à
+          Figma, écran "P-Profil — Modifier le profil — Sections sans bibliothèque" », 12116:25015, « J'ai retiré
+          "Compte gratuit" ») : sur une ligne, photo (pastille appareil photo), nom, puis à droite le rond de la
+          silhouette choisie — un appui change de silhouette. Pseudo « @… » de la maquette non affiché : prévu après la
+          fusion de PRE-10 (x-c2-pseudo).
+          [Avant : silhouettes homme et femme côte à côte dans la zone, photo et nom dessous dans le corps — remplacé.] */}
+      <ContextBand
+        fadeToTransparent
+        color={PROFILE_TAB_CONTEXT}
+        padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}
+      >
+        {draft ? (
+          <View pointerEvents="box-none" style={styles.identityRow} testID="profile-edit-identity">
+            <View style={styles.avatarFrame}>
+              <View style={styles.avatar} testID="profile-edit-avatar">
+                {hasPhoto ? (
+                  <Image source={{ uri: draft.photoUri! }} style={styles.avatarImage} testID="profile-edit-avatar-image" />
+                ) : (
+                  <>
+                    <View style={styles.avatarBackground}>
+                      <KodjoIcon name="profile-avatar-initials" testID="profile-edit-avatar-background" />
+                    </View>
+                    <Text
+                      style={styles.avatarInitials}
+                      accessibilityLabel={t.photo.initialsAccessibilityLabel}
+                      testID="profile-edit-avatar-initials"
+                    >
+                      {computeInitials(draft.displayName)}
+                    </Text>
+                  </>
+                )}
+              </View>
+              {/* Pastille bleue (« Action — Modifier la photo ») : seule commande de la photo (recette c2 du 11/11,
+                  « retirer le texte Modifier la photo » ; « faire l'icône de la photo plus petit » : 22 / 12). */}
+              <Pressable
+                onPress={handlePickPhoto}
+                accessibilityRole="button"
+                accessibilityLabel={photoAccessibilityLabel}
+                hitSlop={(minTouchTarget - PHOTO_BADGE_SIZE) / 2}
+                style={styles.photoBadge}
+                testID="profile-edit-photo-action"
+              >
+                <KodjoIcon name="profile-photo-camera" size={PHOTO_BADGE_ICON} />
+              </Pressable>
+            </View>
+
+            {/* Recette c2 du 12/11 : libellé « Nom » retiré ; le nom reste le nom accessible du champ. */}
+            <TextInput
+              value={draft.displayName}
+              onChangeText={(text) => {
+                setNameError(null);
+                patchDraft({ displayName: text });
+              }}
+              onEndEditing={(event) => void saveName(event.nativeEvent.text)}
+              returnKeyType="done"
+              placeholder={t.name.placeholder}
+              placeholderTextColor={colors.textSecondary}
+              accessibilityLabel={t.name.label}
+              style={styles.nameInput}
+              testID="profile-edit-name-input"
+            />
+
+            {/* Figma 12116:25028 « Choix — Silhouette du profil (touchez pour changer) » : un seul rond, la silhouette
+                choisie (homme par défaut), contour et tracé bleus. */}
+            <Pressable
+              onPress={() => selectSilhouette(currentSilhouette === "femme" ? "homme" : "femme")}
+              accessibilityRole="button"
+              accessibilityLabel={t.silhouette[currentSilhouette]}
+              accessibilityHint={t.silhouette.toggleHint}
+              hitSlop={(minTouchTarget - SILHOUETTE_CIRCLE) / 2}
+              style={styles.silhouetteCircle}
+              testID="profile-edit-silhouette"
+            >
+              {/* 13/11 (Hermann : « fond de la silhouette en bleu », « la silhouette est toujours fond transparent ») :
+                  silhouette PLEINE bleue des Zones corporelles (`body-zone-<silhouette>-plein`, même tracé, déjà au
+                  Design System) — le tracé du Profil n'est qu'un contour, sans remplissage à teinter.
+                  [Avant : `profile-silhouette-<silhouette>` (contour seul) — remplacé.] */}
+              <KodjoIcon
+                name={`body-zone-${currentSilhouette}-plein`}
+                size={SILHOUETTE_ICON}
+                testID={`profile-edit-silhouette-${currentSilhouette}-icon`}
+              />
+            </Pressable>
+          </View>
+        ) : null}
+      </ContextBand>
 
       {draft ? (
         // CE-UI-01 L2004 (R1/UI-96E7FD739BF0) : l'écran défile dans les Safe
@@ -237,161 +361,37 @@ export function ProfileEditScreen() {
         // (`ScrollView` + `keyboardShouldPersistTaps="handled"`).
         <ScrollView
           style={styles.body}
-          // PRE-6 story 7.10 (D-444) : réserve de défilement = zone d'action fixe.
-          contentContainerStyle={[styles.bodyContent, { paddingBottom: actionZone.scrollReserve }]}
-          scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
+          // 13/11 : plus de zone d'action fixe ; marge basse = zone protégée + 24.
+          contentContainerStyle={[styles.bodyContent, { paddingBottom: navigationBarTotalHeight() + spacing[16] }]}
           keyboardShouldPersistTaps="handled"
           testID="profile-edit-body"
         >
-          {/* Figma 12119:25611 : intitulé « Profil » au-dessus d'une carte (même carte que les Bibliothèques) —
-              avatar 64 et pastille appareil photo (recette c2 : sans libellé ni cadre) ; à droite, la ligne « Nom » ;
-              séparateur ; silhouettes centrées en bas. Pseudo et type de compte : sans donnée, non affichés. */}
-          <Section label={t.sectionLabel} testID="profile-edit-identity">
-            <Card style={styles.identityCard} testID="profile-edit-identity-card">
-              <View style={styles.identityTop}>
-                <View style={styles.photoColumn} testID="profile-edit-photo-column">
-                  <View style={styles.avatarFrame}>
-                    <View style={styles.avatar} testID="profile-edit-avatar">
-                      {hasPhoto ? (
-                        <Image
-                          source={{ uri: draft.photoUri! }}
-                          style={styles.avatarImage}
-                          testID="profile-edit-avatar-image"
-                        />
-                      ) : (
-                        <>
-                          <View style={styles.avatarBackground}>
-                            <KodjoIcon name="profile-avatar-initials" testID="profile-edit-avatar-background" />
-                          </View>
-                          <Text
-                            style={styles.avatarInitials}
-                            accessibilityLabel={t.photo.initialsAccessibilityLabel}
-                            testID="profile-edit-avatar-initials"
-                          >
-                            {computeInitials(draft.displayName)}
-                          </Text>
-                        </>
-                      )}
-                    </View>
-                    {/* Pastille bleue (« Action — Modifier la photo ») : seule commande de la photo depuis la recette
-                        c2 du 11/11 (Hermann : « retirer le texte Modifier la photo »), d'où son nom accessible.
-                        [Avant : libellé « Modifier la photo » sous l'avatar, pastille masquée de VoiceOver — remplacé.] */}
-                    <Pressable
-                      onPress={handlePickPhoto}
-                      accessibilityRole="button"
-                      accessibilityLabel={photoAccessibilityLabel}
-                      hitSlop={(minTouchTarget - PHOTO_BADGE_SIZE) / 2}
-                      style={styles.photoBadge}
-                      testID="profile-edit-photo-action"
-                    >
-                      <KodjoIcon name="profile-photo-camera" size={PHOTO_BADGE_ICON} />
-                    </Pressable>
-                  </View>
-                </View>
-
-                <View style={styles.fieldsColumn}>
-                  <View style={styles.fieldRow}>
-                    <Text style={styles.fieldLabel}>{t.name.label}</Text>
-                    <TextInput
-                      value={draft.displayName}
-                      onChangeText={(text) => {
-                        setNameError(null);
-                        patchDraft({ displayName: text });
-                      }}
-                      placeholder={t.name.placeholder}
-                      placeholderTextColor={colors.textSecondary}
-                      accessibilityLabel={t.name.label}
-                      style={styles.nameInput}
-                      testID="profile-edit-name-input"
-                    />
-                  </View>
-                  {nameError ? (
-                    <Text style={styles.errorText} testID="profile-edit-name-error">
-                      {nameError === "REQUIRED" ? t.name.errorRequired : t.name.errorTooLong}
-                    </Text>
-                  ) : null}
-                  {photoError ? (
-                    <Text style={styles.errorText} testID="profile-edit-photo-error">
-                      {t.photo.errorMessage}
-                    </Text>
-                  ) : null}
-                </View>
-              </View>
-
-              <View style={styles.identityDivider}>
-                <Divider />
-              </View>
-
-              <View style={styles.silhouetteRow} accessibilityRole="radiogroup" accessibilityLabel={t.silhouette.label}>
-                {(["homme", "femme"] as const).map((silhouette) => {
-                  const selected = silhouette === "femme" ? draft.silhouette === "femme" : draft.silhouette !== "femme";
-                  return (
-                    <Pressable
-                      key={silhouette}
-                      onPress={() => patchDraft({ silhouette })}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected }}
-                      accessibilityLabel={t.silhouette[silhouette]}
-                      hitSlop={(minTouchTarget - SILHOUETTE_CIRCLE) / 2}
-                      style={[styles.silhouetteCircle, selected ? styles.silhouetteCircleSelected : null]}
-                      testID={`profile-edit-silhouette-${silhouette}`}
-                    >
-                      <KodjoIcon
-                        name={`profile-silhouette-${silhouette}`}
-                        tintColor={selected ? colors.primary : SILHOUETTE_UNSELECTED}
-                        testID={`profile-edit-silhouette-${silhouette}-icon`}
-                      />
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </Card>
-          </Section>
+          {nameError || photoError || saveError ? (
+            <View style={styles.messages} testID="profile-edit-messages">
+              {nameError ? (
+                <Text style={styles.errorText} testID="profile-edit-name-error">
+                  {nameError === "REQUIRED" ? t.name.errorRequired : t.name.errorTooLong}
+                </Text>
+              ) : null}
+              {photoError ? (
+                <Text style={styles.errorText} testID="profile-edit-photo-error">
+                  {t.photo.errorMessage}
+                </Text>
+              ) : null}
+              {saveError ? (
+                <Text style={styles.errorText} testID="profile-edit-save-error">
+                  {t.saveError}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
 
           {/* A1 (A-4 du 11/11/2026, Figma 12119:25611) : Bibliothèques du premier lot. */}
           <ProfileLibrariesSection />
         </ScrollView>
       ) : null}
 
-      {/* PRE-6 story 7.10 (D-444) : « Enregistrer » dans la zone d'action principale fixe (format
-          `Terminer`, zone protégée, bouton centré, dégradé) ; le message d'échec au-dessus. */}
-      {draft ? (
-        <PrimaryActionZone
-          onContentHeightChange={actionZone.onContentHeightChange}
-          contentStyle={styles.actionContent}
-          background={PROFILE_BACKGROUND}
-          testID="profile-edit-action-zone"
-        >
-          {saveError ? (
-            <Text style={styles.errorText} testID="profile-edit-save-error">
-              {t.saveError}
-            </Text>
-          ) : null}
-          <PrimaryActionButton
-            label={t.saveAction}
-            onPress={handleSave}
-            disabled={isSaving}
-            testID="profile-edit-save-action"
-          />
-        </PrimaryActionZone>
-      ) : null}
-
-      {isPendingExit ? (
-        <DecisionDialog
-          title={t.abandonModal.title}
-          titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
-          message={t.abandonModal.message}
-          messageStyle={{ ...type.body, color: colors.textSecondary }}
-          cancelLabel={t.abandonModal.continueEditing}
-          cancelLabelStyle={{ ...type.button, color: colors.dialogTitleText }}
-          confirmLabel={t.abandonModal.abandon}
-          confirmLabelStyle={type.button}
-          confirmBordered={false}
-          onCancel={cancelExit}
-          onConfirm={confirmExit}
-          testIDPrefix="profile-edit-exit-confirm"
-        />
-      ) : null}
+      {/* 13/11/2026 : « Enregistrer » et le dialogue d'abandon retirés — tout est enregistré immédiatement. */}
     </ScreenShell>
   );
 }
@@ -408,44 +408,23 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: "stretch",
   },
-  // « Bande — Onglets » (12119:25662) : 14 pt #EAEAFF ; elle recouvre les 2 derniers points de l'en-tête
-  // (y 92 → 106). Recette c1 du 11/11 (Hermann : « Il manque la zone de contexte avec dégradé vers la couleur
-  // de l'écran ») : zone de contexte des Catalogues (D-224) — la couleur pleine est suivie d'une part fondue
-  // vers la transparence (`CONTEXT_BAND_FADE_HEIGHT`), posée au-dessus du corps qui défile derrière.
-  // [Avant : fondu sur les 20 % inférieurs des seuls 14 pt, à peine visible — remplacé.]
-  tabBand: {
-    height: TAB_BAND_HEIGHT + CONTEXT_BAND_FADE_HEIGHT,
-    marginTop: -2,
-    zIndex: 1,
-    experimental_backgroundImage: `linear-gradient(to bottom, ${PROFILE_TAB_CONTEXT} 0%, ${PROFILE_TAB_CONTEXT} ${Math.round((TAB_BAND_HEIGHT / (TAB_BAND_HEIGHT + CONTEXT_BAND_FADE_HEIGHT)) * 100)}%, ${PROFILE_TAB_CONTEXT}00 100%)`,
-  },
   bodyContent: {
     // A01 (recette PRE-8 A/B) : marge standard partagée.
     paddingHorizontal: layout.screenGutter,
-    // Figma : intitulé « Profil » 9 pt sous la bande ; 16 pt entre la carte et la section suivante.
-    paddingTop: 9 + CONTEXT_BAND_FADE_HEIGHT,
+    // Recette du 12/11 (« il faut remonter la photo, le nom ») : même retrait que la liste des Catalogues
+    // (8 sous la part fondue). [Avant : 9 + fondu, puis 8 de marge de carte — remplacé.]
+    paddingTop: spacing[8] + CONTEXT_BAND_FADE_HEIGHT,
     gap: spacing[16],
   },
-  // Recette c2 du 11/11 (Hermann : « zone de profil, pas de cadre ») : ni fond, ni contour, ni ombre ; le
-  // contenu s'aligne sur la marge de l'écran. [Avant : carte des Bibliothèques (`LIBRARY_CARD`) — remplacé.]
-  identityCard: {
-    paddingTop: spacing[8],
-    paddingBottom: spacing[4],
-    paddingHorizontal: 0,
-    backgroundColor: "transparent",
-    borderWidth: 0,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  identityTop: {
+  // Recette c2 du 13/11 (Figma 12116:25015) : photo à 8 de la marge, nom 24 plus loin, rond de silhouette au bord
+  // droit, tous centrés sur la photo.
+  identityRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  // Colonne de l'avatar : centrée sur x = 68 de la carte (avatar 36 → 100, libellé 15 → 121).
-  photoColumn: {
-    width: 108,
-    marginLeft: -2,
     alignItems: "center",
+    paddingLeft: spacing[8],
+  },
+  messages: {
+    gap: spacing[4],
   },
   avatarFrame: {
     width: AVATAR_SIZE,
@@ -485,29 +464,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Figma : colonne des champs à x = 152 de la carte.
-  fieldsColumn: {
-    flex: 1,
-    marginLeft: 30,
-    gap: spacing[4],
-  },
-  // Figma : ligne « Nom » de 31 pt (haut de la carte + 16 → séparateur), libellé Regular 13 sur 66 pt,
-  // valeur Regular 14.
-  fieldRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    minHeight: 31,
-  },
-  fieldLabel: {
-    ...type.body,
-    fontSize: 13,
-    lineHeight: 16,
-    width: 66,
-    color: colors.textPrimary,
-  },
+  // Figma 12116:25038 : nom Inter Regular 14, à 24 de la photo.
   nameInput: {
     ...type.body,
     flex: 1,
+    marginLeft: spacing[24],
+    marginRight: spacing[16],
     color: colors.textPrimary,
     paddingVertical: 0,
     paddingHorizontal: 0,
@@ -517,34 +479,17 @@ const styles = StyleSheet.create({
     ...type.caption,
     color: colors.danger,
   },
-  // Figma : séparateur à 14 pt sous la colonne de la photo, silhouettes 7 pt dessous.
-  // [CE-UI-01 L2001 : cercles de 64, contour 2, écart 24 — remplacé par la maquette 12119:25611 : cercles
-  // de 40 sur fond blanc, écart 15, choisie contour #0508E5 1,25, non choisie contour #CCD1E0 0,625.]
-  identityDivider: {
-    marginTop: 14,
-  },
-  silhouetteRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 15,
-    marginTop: 7,
-  },
+  // Figma 12116:25028 : rond, contour #0508E5 de 1,25. Demandes de Hermann du 13/11 : fond transparent, taille de la
+  // photo ; liseré bleu « remis » après un essai en blanc.
+  // [12/11 : deux ronds côte à côte sur fond blanc, la non choisie en contour #CCD1E0 — remplacé le 13/11.]
   silhouetteCircle: {
     width: SILHOUETTE_CIRCLE,
     height: SILHOUETTE_CIRCLE,
     borderRadius: SILHOUETTE_CIRCLE / 2,
-    borderWidth: 0.625,
-    borderColor: colors.cardsBorder,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  silhouetteCircleSelected: {
     borderWidth: 1.25,
     borderColor: colors.primary,
-  },
-  // PRE-6 story 7.10 : contenu de la zone d'action (message d'échec au-dessus du bouton).
-  actionContent: {
-    gap: spacing[8],
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

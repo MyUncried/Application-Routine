@@ -92,3 +92,14 @@ export async function importedMovementInfo(movementId: string): Promise<Imported
     license: provenance.license,
   };
 }
+
+/**
+ * Bibliothèques personnelles (décision de Hermann du 12/11/2026 : « avant de le supprimer on l'archive, donc il faut
+ * l'annoncer pendant l'archive ») : noms des Bibliothèques personnelles qui contiennent ce Mouvement.
+ */
+export async function personalLibraryTitlesContaining(movementId: string): Promise<readonly string[]> {
+  const registry = await sharedCatalogueRegistry();
+  return (await registry.personalLibraries())
+    .filter((library) => library.movementIds.includes(movementId))
+    .map((library) => library.title);
+}

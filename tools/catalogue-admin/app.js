@@ -29,6 +29,7 @@ import {
   sheetFamilies,
 } from "/domain/src/domain/catalogue/catalogueEditing.js";
 import { findInboxCollisions, proposedClassification } from "/domain/src/domain/catalogue/MovementInbox.js";
+import { ACTOR_MENU, actorFor, describeActor, KEPT } from "./actors.js";
 import { mountMediaEditor } from "./media.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -68,6 +69,7 @@ const state = {
   files: [], fileName: null, etag: null, original: null, working: null, warnings: [], sourceFormatVersion: null,
   canonical: true, issues: [], tab: "sheets", sheetId: null, libraryId: null, glossaryId: null, query: "",
   libraryFilter: "", inbox: [], status: null, pairing: null, devices: [], poll: null,
+  installation: null, // identité « Utilisateur local » de ce PC (/api/status), décision du 12/11/2026
 };
 
 function notify(message, kind = "") {
@@ -271,6 +273,45 @@ function actorInput(get, set) {
   kind.addEventListener("change", update);
   id.addEventListener("input", update);
   box.append(kind, id);
+  return box;
+}
+/**
+ * Acteur d'une fiche ou d'une Bibliothèque (décision du 12/11/2026, voir actors.js) : deux choix,
+ * « Inconnu (null) » ou « Utilisateur local » (identité de ce PC, lecture seule). Une valeur
+ * enregistrée hors de ces choix reste affichée et inchangée, avec un signalement.
+ */
+function localActorInput(get, set) {
+  const box = el("div", "actor-local");
+  const kind = el("select", "input");
+  const detail = el("div");
+  const render = () => {
+    const current = describeActor(get(), state.installation);
+    kind.replaceChildren();
+    for (const [value, text] of ACTOR_MENU) {
+      const option = new Option(text, value);
+      if (value === "LOCAL_USER" && !state.installation) {
+        option.disabled = true;
+        option.text = text + " (identité du PC indisponible)";
+      }
+      kind.append(option);
+    }
+    if (current.choice === KEPT) kind.append(new Option(current.label + " (valeur enregistrée)", KEPT));
+    kind.value = current.choice;
+    detail.replaceChildren();
+    if (current.choice === "LOCAL_USER") {
+      detail.append(el("div", "readonly", current.label + "\nIdentifiant stable : " + current.id + " (généré, non modifiable)"));
+    } else if (current.choice === KEPT) {
+      detail.append(el("p", "warning", current.warning));
+    }
+  };
+  kind.addEventListener("change", () => {
+    if (kind.value === KEPT) return;
+    set(actorFor(kind.value, state.installation));
+    changed();
+    render();
+  });
+  render();
+  box.append(kind, detail);
   return box;
 }
 function recordInput(get, set) {
@@ -486,7 +527,8 @@ function showNewSheet(panel) {
   box.append(el("div", "split"));
   box.lastChild.append(button("Créer la fiche", () => {
     try {
-      const input = { name: name.value, categoryId: category.value, bodyZoneIds: draft.bodyZoneIds };
+      // Décision du 12/11/2026 : propriétaire par défaut d'une fiche créée ici = « Utilisateur local ».
+      const input = { name: name.value, categoryId: category.value, bodyZoneIds: draft.bodyZoneIds, owner: actorFor("LOCAL_USER", state.installation) };
       if (sheetId.value.trim()) input.sheetId = sheetId.value.trim();
       const meta = revisionMeta();
       const result = createSheet(state.working, input, { date: today(), author: meta.author, summary: meta.summary });
@@ -555,10 +597,10 @@ function renderSheetForm(panel) {
   fields.append(section("Provenance",
     shown("Origine", ORIGIN_LABELS[p.origin] ?? p.origin),
     upstream,
-    grid(labeled("Propriétaire", actorInput(() => p.owner, (x) => { p.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : utilisable sur les téléphones, mais jamais partageable ni publiable."),
-      labeled("Auteur (unique)", actorInput(() => p.author, (x) => { p.author = x; }))),
-    grid(labeled("Diffuseur", actorInput(() => p.publisher, (x) => { p.publisher = x; })),
-      labeled("Ayant droit", actorInput(() => p.rightsHolder, (x) => { p.rightsHolder = x; }))),
+    grid(labeled("Propriétaire", localActorInput(() => p.owner, (x) => { p.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : utilisable sur les téléphones, mais jamais partageable ni publiable."),
+      labeled("Auteur (unique)", localActorInput(() => p.author, (x) => { p.author = x; }))),
+    grid(labeled("Diffuseur", localActorInput(() => p.publisher, (x) => { p.publisher = x; })),
+      labeled("Ayant droit", localActorInput(() => p.rightsHolder, (x) => { p.rightsHolder = x; }))),
     grid(labeled("Licence", textInput(() => p.license, (x) => { p.license = x; }, { nullable: true })),
       labeled("Statut éditorial", selectInput(REVIEW_STATUSES, () => p.reviewStatus, (x) => { p.reviewStatus = x; }))),
     shown("Visibilité", VISIBILITY_LABELS[p.visibility] ?? p.visibility),
@@ -695,7 +737,9 @@ function renderLibraries(views) {
     if (!title || !title.trim()) return;
     try {
       const meta = revisionMeta();
-      const result = createLibrary(state.working, { title }, { date: today(), author: meta.author, summary: meta.summary });
+      // Décision du 12/11/2026 : éditeur et propriétaire par défaut = « Utilisateur local » (ce PC).
+      const local = actorFor("LOCAL_USER", state.installation);
+      const result = createLibrary(state.working, { title, editor: local, owner: local }, { date: today(), author: meta.author, summary: meta.summary });
       state.working = result.file;
       state.libraryId = result.library.libraryId;
       changed();
@@ -739,8 +783,8 @@ function renderLibraries(views) {
   fields.append(section("En-tête",
     labeled("Titre", textInput(() => library.title, (x) => { library.title = x; }, { maxLength: 200 })),
     labeled("Description", textInput(() => library.description, (x) => { library.description = x; }, { nullable: true, multiline: true })),
-    grid(labeled("Éditeur (composition)", actorInput(() => library.editor, (x) => { library.editor = x; })),
-      labeled("Propriétaire", actorInput(() => library.owner, (x) => { library.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : utilisable sur les téléphones, mais jamais partageable ni publiable.")),
+    grid(labeled("Éditeur (composition)", localActorInput(() => library.editor, (x) => { library.editor = x; })),
+      labeled("Propriétaire", localActorInput(() => library.owner, (x) => { library.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : utilisable sur les téléphones, mais jamais partageable ni publiable.")),
     grid(labeled("Visibilité", selectInput(VISIBILITIES, () => library.visibility, (x) => { library.visibility = x; })),
       shown("Publication autorisée", library.publicationAllowed ? "Oui" : "Non")),
   ));
@@ -909,7 +953,7 @@ function renderCatalogue(views) {
       readonly(state.warnings.length ? state.warnings.map((w) => w.code + " — " + w.path).join("\n") : "Aucun signalement.")),
     section("En-tête",
       labeled("Titre", textInput(() => header.title, (x) => { header.title = x; }, { maxLength: 200 })),
-      grid(labeled("Propriétaire", actorInput(() => header.owner, (x) => { header.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Propriétaire par défaut des nouvelles fiches et Bibliothèques. Inconnu : aucune publication."),
+      grid(labeled("Propriétaire", actorInput(() => header.owner, (x) => { header.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : aucune publication."),
         labeled("Gestionnaire administratif", actorInput(() => header.manager, (x) => { header.manager = x; }))),
       grid(labeled("Diffuseur", actorInput(() => header.publisher, (x) => { header.publisher = x; })),
         shown("Publication autorisée", header.publicationAllowed ? "Oui" : "Non"))));
@@ -1107,7 +1151,10 @@ window.addEventListener("beforeunload", (event) => {
     event.returnValue = "";
   }
 });
+// L'identité du PC est connue avant le premier affichage d'une fiche ou d'une Bibliothèque.
 api("GET", "/api/status").then(({ data }) => {
+  state.installation = data?.installation ?? null;
   if (data?.lan?.enabled) $("#lanBadge").textContent = "Wi-Fi local actif (port " + data.lan.port + ") · aucun envoi sur Internet";
+}).catch(() => {}).finally(() => {
+  loadFiles().catch(() => notify("Serveur local injoignable.", "error"));
 });
-loadFiles().catch(() => notify("Serveur local injoignable.", "error"));

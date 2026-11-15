@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import type { ReactElement } from "react";
+import { Alert } from "react-native";
 
 import type { CatalogueLibrary, CatalogueSheet, MovementCatalogueFile } from "@/domain/catalogue/MovementCatalogueFile";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -18,6 +19,7 @@ import {
   LibraryAddScreen,
   LibraryAvailableScreen,
   LibraryConnectScreen,
+  LibraryInstalledScreen,
   LibraryInvalidScreen,
   LibraryPreviewScreen,
   LibraryResumeScreen,
@@ -177,15 +179,18 @@ afterEach(() => {
 });
 
 describe("A1 — Profil → Bibliothèques", () => {
-  it("Profil : « Ajouter une bibliothèque » et « Envoyer mes mouvements » ; ni « Mes bibliothèques » ni « Bibliothèques partagées » (A-4)", async () => {
+  it("Profil (décision du 12/11, Figma 12116:25015) : « Mes bibliothèques » (Créer) puis « Bibliothèques installées » (Ajouter en première ligne)", async () => {
     renderWith(<ProfileLibrariesSection />);
     await settle();
-    expect(screen.getByText("Ajouter une bibliothèque")).toBeTruthy();
-    expect(screen.getByText("Depuis un fichier ou l'administration (PC)")).toBeTruthy();
-    expect(screen.getByText("Envoyer mes mouvements")).toBeTruthy();
-    expect(screen.queryByText("Mes bibliothèques")).toBeNull();
+    expect(within(screen.getByTestId("profile-libraries-mine")).getByText("Créer une bibliothèque")).toBeTruthy();
+    // Décision du 12/11 : « on retire "Envoyer mes mouvements" ».
+    expect(screen.queryByText("Envoyer mes mouvements")).toBeNull();
+    expect(screen.queryByTestId("profile-libraries-send")).toBeNull();
+    const installedSection = screen.getByTestId("profile-libraries-installed");
+    expect(within(installedSection).getByText("Ajouter une bibliothèque")).toBeTruthy();
+    expect(within(installedSection).getByText("Depuis un fichier ou l'administration (PC)")).toBeTruthy();
+    expect(screen.getByText("Mes bibliothèques")).toBeTruthy();
     expect(screen.queryByText("Bibliothèques partagées")).toBeNull();
-    expect(screen.queryByTestId("profile-libraries-installed")).toBeNull();
     await press("profile-libraries-add");
     expect(mockPush).toHaveBeenCalledWith("/library-add");
   });
@@ -230,7 +235,7 @@ describe("A1 — Profil → Bibliothèques", () => {
     expect(screen.getByText("60 mouvements · à jour")).toBeTruthy();
   });
 
-  it("mise à jour : aperçu par fiche (Modifiée, résumé), « Reporter » sans écriture", async () => {
+  it("mise à jour : aperçu par fiche (Modifiée, résumé), « Refuser » seul au-dessus de « Mettre à jour », sans écriture", async () => {
     await installPilot60();
     const opened = await mockRegistry;
     const load = new CatalogueLoadService({
@@ -250,16 +255,59 @@ describe("A1 — Profil → Bibliothèques", () => {
     renderWith(<LibraryPreviewScreen />);
     await settle();
     expect(screen.getByText(`Mise à jour de ${pilot.libraries[0]!.title}`)).toBeTruthy();
-    expect(screen.getByText("Fiches révisées · détail par fiche")).toBeTruthy();
+    // Constat d) du 12/11 : « Révision N → M · détail par fiche », compteurs accordés, plus de « Reporter ».
+    expect(screen.getByText("Révision 1 → 1 · détail par fiche")).toBeTruthy();
+    expect(screen.getByTestId("library-preview-counters")).toHaveTextContent(/^1Modifiée0Nouvelle0Retirée$/);
+    expect(screen.queryByTestId("library-preview-defer")).toBeNull();
+    expect(screen.queryByText("Reporter")).toBeNull();
     expect(screen.getByTestId(`library-preview-modified-${pilot.sheets[0]!.sheetId}`)).toBeTruthy();
     expect(screen.getByText(/^Étapes : \d+ étapes? → \d+ étapes · Catégorie inchangée$/)).toBeTruthy();
     expect(screen.getByText("Les fiches modifiées sont mises à jour dans toutes vos bibliothèques qui les contiennent. La composition de vos autres bibliothèques ne change pas.")).toBeTruthy();
     const steps = (await main.getFirstAsync<{ description: string }>("SELECT description FROM movements WHERE id = ?",
       [pilot.sheets[0]!.install.knownLocalMovementIds[0]!]))!.description;
-    await press("library-preview-defer");
-    expect(screen.getByText("Mise à jour reportée")).toBeTruthy();
+    await press("library-preview-refuse");
+    // Recette du 13/11 : retour direct à l'écran précédent, sans écran intermédiaire.
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Mise à jour refusée")).toBeNull();
     expect((await main.getFirstAsync<{ description: string }>("SELECT description FROM movements WHERE id = ?",
       [pilot.sheets[0]!.install.knownLocalMovementIds[0]!]))!.description).toBe(steps);
+  });
+
+  it("désinstallation (13/11, Figma 12098:115) : carte rouge et note, confirmation chiffrée, mouvements retirés, retour", async () => {
+    const opened = await mockRegistry;
+    const load = new CatalogueLoadService({
+      registry: opened,
+      movements: new MovementCatalogueService(movementRepository()),
+      readLocalMovements: freshLocalMovementReader(new SqliteMovementRepository(main)),
+      listReferentials: async () => ({
+        categoryIds: new Set((await new SqliteCategoryRepository(main).listAll()).map((category) => category.id)),
+        bodyZoneIds: new Set((await new SqliteBodyZoneRepository(main).listAll()).map((zone) => zone.id)),
+      }),
+      newMovementId: () => `uuid-${++sequence}`,
+    });
+    await new LibraryService({ registry: opened, load }).apply(pilot, PILOT);
+    expect(await movementCount()).toBe(60);
+    mockParams = { catalogueId: PILOT, libraryId: PILOT };
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    try {
+      renderWith(<LibraryInstalledScreen />);
+      await settle();
+      expect(screen.getByText("Désinstaller la bibliothèque")).toBeTruthy();
+      expect(screen.getByTestId("library-installed-uninstall-note")).toHaveTextContent(
+        "Les mouvements utilisés dans une séance ou dans une autre bibliothèque restent dans le Catalogue.");
+      await press("library-installed-uninstall");
+      const [title, message, buttons] = alert.mock.calls[0] as unknown as [string, string, { text: string; onPress?: () => void }[]];
+      expect(title).toBe(`Désinstaller « ${pilot.libraries[0]!.title} » ?`);
+      expect(message).toBe("60 mouvements quitteront votre Catalogue.");
+      expect(await movementCount()).toBe(60);
+      await act(async () => buttons.find((button) => button.text === "Désinstaller")!.onPress!());
+      await settle();
+      expect(await movementCount()).toBe(0);
+      expect(await opened.installedLibraries()).toHaveLength(0);
+      expect(mockBack).toHaveBeenCalled();
+    } finally {
+      alert.mockRestore();
+    }
   });
 
   it("fichier invalide : refusé en entier, problèmes lisibles, aucune écriture", async () => {
@@ -308,13 +356,15 @@ describe("A1 — Profil → Bibliothèques", () => {
     expect(screen.getByText("Actualisée à l'instant")).toBeTruthy();
   });
 
-  it("MOUV-D2 : Bibliothèque non transférée (média aux droits non confirmés) signalée, sans « connexion perdue »", async () => {
+  // [Avant (12/11) : encadré « Bibliothèques non transférées » — remplacé le 13/11 (a1-medias) : le destinataire n'en sait rien.]
+  it("MOUV-D2 (13/11) : Bibliothèque refusée par le PC (média aux droits non confirmés), rien sur l'iPhone, sans « connexion perdue »", async () => {
     const client = fakeAdmin(pilot, { mediaWithheld: true });
     const session = await client.pair({ host: "192.168.1.20", port: 4739, name: "PC-Hermann" }, "482913", "iPhone");
     librarySession.setSource({ kind: "ADMIN", session, entries: [], refreshedAt: 0 });
     renderWith(<LibraryAvailableScreen client={client} />);
     await settle();
-    expect(screen.getByText("Bibliothèques non transférées")).toBeTruthy();
+    expect(screen.queryByText("Bibliothèques non transférées")).toBeNull();
+    expect(screen.queryByTestId("library-available-withheld")).toBeNull();
     expect(screen.queryByText("Liste indisponible")).toBeNull();
     expect(screen.getByTestId("library-available-empty")).toBeTruthy();
   });

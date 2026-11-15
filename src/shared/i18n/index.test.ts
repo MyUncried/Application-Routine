@@ -62,6 +62,7 @@ describe("strings", () => {
       label: "Silhouette",
       homme: "Silhouette homme",
       femme: "Silhouette femme",
+      toggleHint: "Touchez pour changer de silhouette.",
     });
     expect(strings.screens.profileEdit.abandonModal).toEqual({
       title: "Abandonner les modifications ?",

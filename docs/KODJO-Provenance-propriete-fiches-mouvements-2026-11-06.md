@@ -115,6 +115,21 @@ L'objet de domaine préparatoire `MovementEditorialProvenance` est indépendant 
 
 Implémentation : `src/domain/catalogue/MovementEditorialProvenance.ts` (`owner: EditorialActorRef | null`, `hasUnknownOwner`) ; contrôles du format : `docs/KODJO-Format-catalogue-mouvements-v1.md`.
 
+## 7 ter. Identité des acteurs dans l'administration — décision du 12/11/2026
+
+[Ajout du 12/11/2026 — décision de Hermann (cahier de recette du catalogue connecté). Son texte renvoie à une section 7 ter « branche cat60 » qui n'existe sur aucune branche : la règle est recopiée ici depuis ce texte.]
+
+> « Un acteur n'a de valeur que s'il est une identité stable, unique et traçable. Aucun texte libre. »
+
+1. Champs concernés : en-tête d'une Bibliothèque (« Éditeur (composition) », « Propriétaire ») ; section « Provenance » d'une fiche (« Propriétaire », « Auteur (unique) », « Diffuseur », « Ayant droit »).
+2. Le menu de type ne propose que « Inconnu (null) » et « Utilisateur local » en MVP. « Personne », « Organisation » et « Plateforme » redeviendront disponibles avec les comptes.
+3. « Utilisateur local » est renseigné automatiquement et en lecture seule : identifiant généré une fois pour l'installation PC et conservé de façon persistante, jamais saisi. Nom affiché : « PC Administrateur » (valeur fixe, décidée).
+4. Valeur par défaut d'une nouvelle fiche ou Bibliothèque créée dans l'administration : « Utilisateur local ». « Inconnu (null) » reste un choix explicite ; un champ omis reste une erreur (§ 7 bis, point 1).
+5. Cette identité est propre à l'installation PC, non rattachée au profil d'un téléphone.
+6. Restriction de l'édition seulement : la lecture et la validation des fichiers existants contenant d'autres types d'acteur (dont `catalogue.manager` ORGANIZATION:ankusha et les 60 fiches à propriétaire `null`) sont inchangées ; une valeur « Utilisateur local » saisie autrefois en texte libre reste lisible et est signalée, sans réécriture silencieuse. La règle « propriétaire inconnu = privé uniquement » (§ 7 bis) reste.
+
+Implémentation : `tools/catalogue-admin/actors.js` (menu), `tools/catalogue-admin/installation.mjs` (identité du PC, `catalogue/admin/installation.json`). Modèle `MovementEditorialProvenance` et moteur d'exécution inchangés.
+
 ## 8. Traçabilité et documents dépendants
 
 Décision utilisateur du 6 novembre 2026 : adopter provenance, propriétaire et fiches éditoriales distinctes ; **ne pas faire de cette évolution une dépendance du moteur d'exécution**. Cette règle complète le chantier `Référentiels, Catalogue et Jeux de données` et ne remplace aucune décision d'exécution.

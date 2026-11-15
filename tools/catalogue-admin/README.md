@@ -145,6 +145,15 @@ jeton de 32 octets valable 12 heures ; seule son empreinte SHA-256 est conservé
 (`catalogue/admin/appareils.json`, non versionné). Jetons jamais journalisés. Les appareils
 appairés sont listés et révocables.
 
+### Identité des acteurs (décision du 12/11/2026)
+
+Dans l'en-tête d'une Bibliothèque et la Provenance d'une fiche, chaque acteur vaut « Inconnu (null) »
+ou « Utilisateur local », jamais un texte libre. « Utilisateur local » est l'identité de ce PC,
+affichée « PC Administrateur » : identifiant `pc-<uuid>` généré au premier démarrage du serveur et
+conservé dans `catalogue/admin/installation.json` (non versionné, propre au poste ; un fichier
+illisible n'est jamais remplacé). Les nouvelles fiches et Bibliothèques le reçoivent par défaut. Une
+valeur déjà enregistrée hors de ces deux choix reste affichée telle quelle, avec un signalement.
+
 ### API du téléphone (version 1)
 
 Base : `http://<IP du PC>:4739`. Réponses JSON (`application/json; charset=utf-8`), sauf la page de

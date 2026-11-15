@@ -4,6 +4,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { CatalogueLoadService } from "@/features/catalogue/CatalogueLoadService";
 import { LibraryService } from "@/features/catalogue/LibraryService";
+import { PersonalLibraryService } from "@/features/catalogue/PersonalLibraryService";
 import { sharedCatalogueRegistry } from "@/features/catalogue/importedMovements";
 import { freshLocalMovementReader } from "@/features/catalogue/readLocalMovements";
 import type { SqliteCatalogueRegistry } from "@/infrastructure/catalogue/SqliteCatalogueRegistry";
@@ -12,6 +13,8 @@ export type LibraryServices = {
   readonly libraries: LibraryService;
   readonly load: CatalogueLoadService;
   readonly registry: SqliteCatalogueRegistry;
+  /** Bibliothèques personnelles (12/11/2026). */
+  readonly personal: PersonalLibraryService;
 };
 
 /**
@@ -50,7 +53,12 @@ export function useLibraryServices(): { readonly services: LibraryServices | nul
       newMovementId: Crypto.randomUUID,
       families: movements,
     });
-    return { load, libraries: new LibraryService({ registry, load }), registry };
+    return {
+      load,
+      libraries: new LibraryService({ registry, load, movements }),
+      registry,
+      personal: new PersonalLibraryService({ registry, newId: Crypto.randomUUID }),
+    };
   }, [registry, activityDefinitionService]);
 
   return { services, error };

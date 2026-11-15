@@ -30,7 +30,10 @@ export function CatalogueContextZone({
   createLabel,
   onCreate,
   onCommandRowLayout,
+  trailingCommand,
 }: {
+  /** Bibliothèques personnelles : commande « Ajouter des mouvements » (list-plus) après le Tri, à la place de Créer. */
+  readonly trailingCommand?: ReactNode;
   readonly summary: ReactNode;
   /**
    * « N résultats » ; `null` hors état filtré ou archivé (champ Rechercher pleine largeur) ; chaîne
@@ -75,6 +78,7 @@ export function CatalogueContextZone({
           {createLabel !== undefined && onCreate !== undefined ? (
             <CommandCircle label={createLabel} icon="create" onPress={onCreate} testID="catalogue-create-action" />
           ) : null}
+          {trailingCommand ?? null}
         </View>
       </View>
     </View>

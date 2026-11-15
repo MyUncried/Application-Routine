@@ -164,6 +164,20 @@ describe("PRE-8 B.1 — Mouvement autonome depuis le Catalogue", () => {
   });
 });
 
+describe("Décision du 13/11/2026 : un Mouvement importé ne se supprime pas", () => {
+  it("refuse la suppression d'un Mouvement importé archivé ; un Mouvement personnel archivé reste supprimable", async () => {
+    const guarded = new MovementCatalogueService(repository(), undefined, async (id) => id === "importe");
+    await guarded.createIndependent(movement("importe", "Planche"));
+    await guarded.createIndependent(movement("perso", "Squats"));
+    expect(await guarded.archive("importe")).toEqual({ status: "DONE" });
+    expect(await guarded.archive("perso")).toEqual({ status: "DONE" });
+    expect(await guarded.deleteArchived("importe")).toEqual({ status: "PROTECTED" });
+    expect(await guarded.findMovement("importe")).not.toBeNull();
+    expect(await guarded.deleteArchived("perso")).toEqual({ status: "DONE" });
+    expect(await guarded.findMovement("perso")).toBeNull();
+  });
+});
+
 describe("D-510 (06/11/2026) : une création effective marque la fiche « New »", () => {
   it("bouton + (création indépendante), Ajouter un niveau (variante) et duplication (« Créer un nouveau mouvement ») ; un refus ne marque rien", async () => {
     resetNewMovementMarks();

@@ -187,6 +187,7 @@ export function Row({
   link,
   chevron,
   titleVariant = "medium",
+  titleTone,
   subtitleTone = "muted",
   spacious = false,
   onPress,
@@ -205,6 +206,8 @@ export function Row({
   /** Chevron « Aller » : par défaut, affiché si la ligne s'ouvre et n'a pas de lien. */
   readonly chevron?: boolean;
   readonly titleVariant?: RowTitleVariant;
+  /** Titre rouge #D11F1F (`danger` : « Désinstaller la bibliothèque », 12105:195). */
+  readonly titleTone?: "danger";
   /** Sous-titre #7A7A80 (`muted`, par défaut) ou #595E66 (`secondary`, fiches révisées 12118:25284). */
   readonly subtitleTone?: "muted" | "secondary";
   /** Ligne aérée de 64 (Bibliothèques disponibles 12118:25124) au lieu de 52 (Profil 12119:25611). */
@@ -223,7 +226,7 @@ export function Row({
       ) : null}
       <View style={[styles.rowText, spacious ? styles.rowTextSpacious : null]}>
         <View style={styles.rowLine}>
-          <Text style={[styles.flex, ROW_TITLES[titleVariant]]}>{title}</Text>
+          <Text style={[styles.flex, ROW_TITLES[titleVariant], titleTone === "danger" ? { color: LIBRARY_COLORS.dangerText } : null]}>{title}</Text>
           {pillOnTitle ? (pill ?? null) : null}
         </View>
         {subtitle || link ? (

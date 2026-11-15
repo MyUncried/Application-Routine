@@ -14,8 +14,11 @@ export function availableLine(preview: LibraryPreview): { readonly subtitle: str
   switch (preview.status) {
     case "NOT_INSTALLED": return { subtitle: `${count} · non installée`, pill: "Installer", tone: "action" };
     case "UP_TO_DATE": return { subtitle: `${count} · installée`, pill: "À jour", tone: "positive" };
-    case "UPDATE_AVAILABLE": return { subtitle: `${count} · révision ${preview.targetRevision} disponible`, pill: "Mettre à jour", tone: "action" };
-    case "REFUSED": return { subtitle: `${count} · révision ${preview.targetRevision} refusée`, pill: "Refusée", tone: "neutral" };
+    // Recette du 13/11 (x-d-maj : « L'information 7 fiches · Révision 8 disponible ne veut rien dire » ; x-d-compteurs :
+    // « le texte n'est pas clair ») : même formulation que l'écran d'une Bibliothèque installée.
+    // [Avant : « N fiches · révision R disponible » / « … refusée » — remplacé.]
+    case "UPDATE_AVAILABLE": return { subtitle: `${count} · mise à jour disponible`, pill: "Mettre à jour", tone: "action" };
+    case "REFUSED": return { subtitle: `${count} · mise à jour refusée`, pill: "Refusée", tone: "neutral" };
     case "INTERRUPTED": return { subtitle: `${count} · opération interrompue`, pill: "Reprendre", tone: "warning" };
   }
 }
@@ -44,20 +47,12 @@ export function reviewLabel(entry: LibraryReviewItem): string {
   return REVIEW_REASON_LABELS[entry.reason];
 }
 
-/** Bandeau « Propriétaire inconnu » : ce qui le déclenche (Bibliothèque, fiches nommées) et sa conséquence. */
-export function unknownOwnerText(preview: LibraryPreview): string {
-  const causes: string[] = [];
-  if (preview.ownerlessLibrary) causes.push("la bibliothèque n'a pas de propriétaire déclaré");
-  const sheets = preview.ownerlessSheets;
-  if (sheets.length > 0) {
-    const shown = sheets.slice(0, 3).map((name) => `« ${name} »`).join(", ");
-    const more = sheets.length > 3 ? ` et ${plural(sheets.length - 3, "autre", "autres")}` : "";
-    causes.push(`${plural(sheets.length, "fiche", "fiches")} sans propriétaire déclaré (${shown}${more})`);
-  }
-  const cause = causes.length > 0 ? causes.join(" ; ") : "propriétaire non déclaré";
-  return `Cause : ${cause}. Ces fiches s'utilisent normalement sur ce téléphone, mais ne peuvent être ni partagées, ni redistribuées. ` +
-    "Pour lever cette restriction, renseignez le propriétaire dans l'administration.";
-}
+/**
+ * Bandeau « Propriétaire inconnu » (Figma 12118:25170). Constat d) du 12/11/2026 : affiché uniquement si le
+ * propriétaire de la bibliothèque est inconnu, avec ce texte. [Avant : « Cause : … » nommant aussi les fiches sans
+ * propriétaire (recette fn14 du 11/11) — remplacé.]
+ */
+export const UNKNOWN_LIBRARY_OWNER_TEXT = "Ces fiches restent sur ce téléphone : elles ne peuvent être ni partagées, ni redistribuées.";
 
 const PROJECTED_ORDER = ["content.name", "content.steps", "content.aliases", "classification.categoryId", "classification.bodyZoneIds"];
 

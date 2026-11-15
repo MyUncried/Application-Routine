@@ -2,9 +2,9 @@ import { describe, expect, it } from "@jest/globals";
 
 import { createLibrary, createSheet } from "@/domain/catalogue/catalogueEditing";
 import type { SheetLoadItem } from "@/domain/catalogue/catalogueLoadPlan";
-import type { LibraryPreview } from "@/domain/catalogue/libraryPlan";
 import type { MovementCatalogueFile } from "@/domain/catalogue/MovementCatalogueFile";
-import { reviewLabel, unknownOwnerText } from "@/features/catalogue/libraryPresentation";
+import type { LibraryPreview } from "@/domain/catalogue/libraryPlan";
+import { availableLine, reviewLabel, UNKNOWN_LIBRARY_OWNER_TEXT } from "@/features/catalogue/libraryPresentation";
 
 /**
  * Demande de Hermann du 11/11/2026 : cause réelle d'une fiche non appliquée, raisons du bandeau « Propriétaire
@@ -28,19 +28,9 @@ describe("fiche non appliquée : cause précise", () => {
   });
 });
 
-describe("bandeau « Propriétaire inconnu »", () => {
-  const preview = (ownerlessLibrary: boolean, ownerlessSheets: string[]) =>
-    ({ unknownOwner: true, ownerlessLibrary, ownerlessSheets }) as unknown as LibraryPreview;
-
-  it("nomme la Bibliothèque et les fiches sans propriétaire", () => {
-    const text = unknownOwnerText(preview(true, ["A", "B", "C", "D", "E"]));
-    expect(text).toContain("la bibliothèque n'a pas de propriétaire déclaré");
-    expect(text).toContain("5 fiches sans propriétaire déclaré (« A », « B », « C » et 2 autres)");
-    expect(text).toContain("ni partagées, ni redistribuées");
-  });
-
-  it("une seule fiche", () => {
-    expect(unknownOwnerText(preview(false, ["Fente"]))).toContain("Cause : 1 fiche sans propriétaire déclaré (« Fente »)");
+describe("bandeau « Propriétaire inconnu » (constat d) du 12/11)", () => {
+  it("texte de Figma", () => {
+    expect(UNKNOWN_LIBRARY_OWNER_TEXT).toBe("Ces fiches restent sur ce téléphone : elles ne peuvent être ni partagées, ni redistribuées.");
   });
 });
 
@@ -59,5 +49,15 @@ describe("propriétaire par défaut des nouvelles fiches et Bibliothèques", () 
     expect(createSheet(file, { name: "Gainage", categoryId: "renforcement", bodyZoneIds: ["epaules"] }, meta).sheet.provenance.owner).toEqual(owner);
     expect(createSheet(file, { name: "Gainage", categoryId: "renforcement", bodyZoneIds: ["epaules"], owner: null }, meta).sheet.provenance.owner).toBeNull();
     expect(createLibrary(file, { title: "Pompes" }, meta).library.owner).toEqual(owner);
+  });
+});
+
+/** Recette du 13/11 (x-d-maj, x-d-compteurs) : « 7 fiches · Révision 8 disponible ne veut rien dire ». */
+describe("availableLine — libellés de « Bibliothèques disponibles »", () => {
+  const preview = (status: LibraryPreview["status"]) => ({ status, memberCount: 7, targetRevision: "8" }) as unknown as LibraryPreview;
+  it("mise à jour : « 7 fiches · mise à jour disponible » ; refus : « … mise à jour refusée » ; plus de numéro de révision", () => {
+    expect(availableLine(preview("UPDATE_AVAILABLE")).subtitle).toBe("7 fiches · mise à jour disponible");
+    expect(availableLine(preview("REFUSED")).subtitle).toBe("7 fiches · mise à jour refusée");
+    expect(availableLine(preview("NOT_INSTALLED")).subtitle).toBe("7 fiches · non installée");
   });
 });

@@ -15,6 +15,10 @@
  * Bibliothèque en cours (reprise après interruption), décisions sur une mise à jour de Bibliothèque.
  * Passage v1 → v2 additif : tables ajoutées, fiches déjà installées converties au format v2
  * (`authors[]` → `author`) et empreinte recalculée, sans perte ni changement d'identité.
+ *
+ * Schéma v3 (Bibliothèques personnelles, 12/11/2026) — additif, même base distincte : identité d'auteur locale
+ * (identifiant invisible créé une fois, décision de Hermann du 12/11/2026), Bibliothèques personnelles et leurs
+ * membres ordonnés (références de Mouvements, jamais des copies). Aucune donnée existante modifiée.
  */
 import type { Movement } from "@/domain/activities/Movement";
 import {
@@ -39,10 +43,16 @@ import type {
   SheetDecisionRecord,
   SheetKey,
 } from "@/domain/catalogue/catalogueLoadPlan";
+import {
+  DuplicateLibraryTitleError,
+  libraryTitleKey,
+  normalizeLibraryTitle,
+  type PersonalLibrary,
+} from "@/domain/catalogue/personalLibrary";
 import type { Database } from "@/infrastructure/database/Database";
 
 export const CATALOGUE_REGISTRY_DATABASE_NAME = "kodjo-catalogue-registry.db";
-export const CATALOGUE_REGISTRY_SCHEMA_VERSION = 2;
+export const CATALOGUE_REGISTRY_SCHEMA_VERSION = 3;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS installed_sheets (
@@ -115,6 +125,33 @@ CREATE TABLE IF NOT EXISTS library_decisions (
   PRIMARY KEY (catalogue_id, library_id, target_key)
 );`;
 
+/** v3 : Bibliothèques personnelles. Additif. */
+const SCHEMA_V3 = `
+CREATE TABLE IF NOT EXISTS local_author (
+  singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+  author_id TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS personal_libraries (
+  library_id TEXT PRIMARY KEY,
+  author_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  title_key TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (author_id, title_key)
+);
+CREATE TABLE IF NOT EXISTS personal_library_members (
+  library_id TEXT NOT NULL,
+  movement_id TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  PRIMARY KEY (library_id, movement_id)
+);`;
+
+type PersonalLibraryRow = {
+  library_id: string; author_id: string; title: string; title_key: string; created_at: string; updated_at: string;
+};
+
 type InstalledRow = {
   catalogue_id: string; sheet_id: string; movement_id: string; revision: string; fingerprint: string;
   sheet_json: string; installed_at: string; updated_at: string;
@@ -159,6 +196,7 @@ export class SqliteCatalogueRegistry {
       await database.withExclusiveTransactionAsync(async (transaction) => {
         if (version < 1) await transaction.execAsync(SCHEMA);
         await transaction.execAsync(SCHEMA_V2);
+        await transaction.execAsync(SCHEMA_V3);
         if (version === 1) {
           // Fiches installées et opérations en cours écrites en v1 : conversion sans perte, même identité.
           const installed = await transaction.getAllAsync<{ catalogue_id: string; sheet_id: string; sheet_json: string }>(
@@ -182,6 +220,120 @@ export class SqliteCatalogueRegistry {
       });
     }
     return new SqliteCatalogueRegistry(database, now);
+  }
+
+  /**
+   * Identifiant d'auteur de ce téléphone : créé une seule fois (`create`), puis toujours le même (décision de Hermann
+   * du 12/11/2026). Jamais affiché ; le nom affiché de l'auteur est le Nom du Profil.
+   */
+  async localAuthorId(create: () => string): Promise<string> {
+    let authorId = "";
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const row = await transaction.getFirstAsync<{ author_id: string }>("SELECT author_id FROM local_author WHERE singleton = 1");
+      if (row) {
+        authorId = row.author_id;
+        return;
+      }
+      authorId = create();
+      await transaction.runAsync("INSERT INTO local_author (singleton, author_id, created_at) VALUES (1, ?, ?)", [authorId, this.now()]);
+    });
+    return authorId;
+  }
+
+  /** Bibliothèques personnelles, dans l'ordre de création, avec leurs membres ordonnés. */
+  async personalLibraries(): Promise<readonly PersonalLibrary[]> {
+    let result: PersonalLibrary[] = [];
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const rows = await transaction.getAllAsync<PersonalLibraryRow>(
+        "SELECT * FROM personal_libraries ORDER BY created_at, library_id");
+      const members = await transaction.getAllAsync<{ library_id: string; movement_id: string }>(
+        "SELECT library_id, movement_id FROM personal_library_members ORDER BY library_id, position");
+      result = rows.map((row) => ({
+        libraryId: row.library_id,
+        authorId: row.author_id,
+        title: row.title,
+        movementIds: members.filter((member) => member.library_id === row.library_id).map((member) => member.movement_id),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+    });
+    return result;
+  }
+
+  /**
+   * Crée ou remplace une Bibliothèque personnelle (nom et membres) en une transaction. Refus
+   * `DuplicateLibraryTitleError` si le même auteur a déjà une autre Bibliothèque de ce nom (sans casse).
+   */
+  async savePersonalLibrary(input: {
+    readonly libraryId: string;
+    readonly authorId: string;
+    readonly title: string;
+    readonly movementIds: readonly string[];
+  }): Promise<PersonalLibrary> {
+    const title = normalizeLibraryTitle(input.title);
+    const key = libraryTitleKey(title);
+    const timestamp = this.now();
+    let createdAt = timestamp;
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const taken = await transaction.getFirstAsync<{ library_id: string }>(
+        "SELECT library_id FROM personal_libraries WHERE author_id = ? AND title_key = ? AND library_id <> ?",
+        [input.authorId, key, input.libraryId]);
+      if (taken) throw new DuplicateLibraryTitleError(title);
+      const existing = await transaction.getFirstAsync<{ created_at: string }>(
+        "SELECT created_at FROM personal_libraries WHERE library_id = ?", [input.libraryId]);
+      if (existing) createdAt = existing.created_at;
+      await transaction.runAsync(
+        `INSERT INTO personal_libraries (library_id, author_id, title, title_key, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT (library_id) DO UPDATE SET title = excluded.title, title_key = excluded.title_key,
+           updated_at = excluded.updated_at`,
+        [input.libraryId, input.authorId, title, key, createdAt, timestamp]);
+      await transaction.runAsync("DELETE FROM personal_library_members WHERE library_id = ?", [input.libraryId]);
+      const unique = [...new Set(input.movementIds)];
+      for (const [position, movementId] of unique.entries()) {
+        await transaction.runAsync(
+          "INSERT INTO personal_library_members (library_id, movement_id, position) VALUES (?, ?, ?)",
+          [input.libraryId, movementId, position]);
+      }
+    });
+    return {
+      libraryId: input.libraryId,
+      authorId: input.authorId,
+      title,
+      movementIds: [...new Set(input.movementIds)],
+      createdAt,
+      updatedAt: timestamp,
+    };
+  }
+
+  /** Supprime une Bibliothèque personnelle et sa composition ; aucun Mouvement n'est touché. */
+  async deletePersonalLibrary(libraryId: string): Promise<void> {
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      await transaction.runAsync("DELETE FROM personal_library_members WHERE library_id = ?", [libraryId]);
+      await transaction.runAsync("DELETE FROM personal_libraries WHERE library_id = ?", [libraryId]);
+    });
+  }
+
+  /**
+   * Désinstallation (décisions de Hermann du 13/11/2026) : retire la Bibliothèque, ses opérations et décisions, et les
+   * fiches dont le Mouvement a quitté le Catalogue (`removedSheets`). Les fiches conservées (utilisées dans une Séance,
+   * une autre Bibliothèque installée ou une Bibliothèque personnelle) gardent leur enregistrement : elles restent
+   * importées et protégées (A-2). Appelé APRÈS la suppression des Mouvements : une interruption laisse la Bibliothèque
+   * installée et la désinstallation se rejoue sans dommage.
+   */
+  async uninstallLibrary(key: LibraryKey, removedSheets: readonly SheetKey[]): Promise<void> {
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const params = [key.catalogueId, key.libraryId];
+      await transaction.runAsync("DELETE FROM installed_libraries WHERE catalogue_id = ? AND library_id = ?", params);
+      await transaction.runAsync("DELETE FROM library_operations WHERE catalogue_id = ? AND library_id = ?", params);
+      await transaction.runAsync("DELETE FROM library_decisions WHERE catalogue_id = ? AND library_id = ?", params);
+      for (const sheet of removedSheets) {
+        const sheetParams = [sheet.catalogueId, sheet.sheetId];
+        for (const table of ["installed_sheets", "pending_operations", "sheet_decisions", "saved_local_values"]) {
+          await transaction.runAsync(`DELETE FROM ${table} WHERE catalogue_id = ? AND sheet_id = ?`, sheetParams);
+        }
+      }
+    });
   }
 
   /** Instantané complet d'un catalogue, lu dans une transaction (lecture fraîche). */

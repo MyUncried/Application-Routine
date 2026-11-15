@@ -13,7 +13,11 @@
  * - `resume()` : reprise d'une installation ou d'une mise à jour interrompue (Figma 12119:25245).
  * - `defer` / `refuse` : « Reporter » / « Refuser » une mise à jour de Bibliothèque (Figma 12118:25251).
  *
- * Hors premier lot (A-4) : désinstallation, Bibliothèques personnelles et partagées.
+ * - `uninstallPreview` / `uninstall` : « Désinstaller la bibliothèque » (Figma 12098:115 ; décisions de Hermann du
+ *   13/11/2026, ajoutée au lot). Les Mouvements utilisés dans une Séance, dans une autre Bibliothèque installée ou
+ *   dans une Bibliothèque personnelle restent dans le Catalogue ; les autres le quittent.
+ *
+ * [Remplacé le 13/11/2026 : « Hors premier lot (A-4) : désinstallation, Bibliothèques personnelles et partagées. »]
  */
 import {
   diffusableCatalogue,
@@ -30,6 +34,7 @@ import {
   type LibraryOperation,
   type LibraryPreview,
 } from "@/domain/catalogue/libraryPlan";
+import type { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
 import type { AcceptOutcome, CatalogueLoadService, RecoveryReport } from "@/features/catalogue/CatalogueLoadService";
 import type { SqliteCatalogueRegistry } from "@/infrastructure/catalogue/SqliteCatalogueRegistry";
 
@@ -43,9 +48,25 @@ export type LibraryServiceDependencies = {
     | "beginLibraryOperation"
     | "commitLibrary"
     | "recordLibraryDecision"
-  >;
+  > & Partial<Pick<SqliteCatalogueRegistry, "personalLibraries" | "uninstallLibrary">>;
   readonly load: Pick<CatalogueLoadService, "prepare" | "accept">;
+  /** Désinstallation : absent, `uninstall` est indisponible (doublures antérieures). */
+  readonly movements?: Pick<MovementCatalogueService, "removeForUninstall" | "sessionUseCount">;
 };
+
+/** Pourquoi un Mouvement reste au Catalogue après la désinstallation. */
+export type UninstallKeepReason = "SESSION" | "OTHER_LIBRARY" | "PERSONAL_LIBRARY";
+
+export type UninstallPreview = LibraryKey & {
+  readonly title: string;
+  /** Mouvements qui quitteront le Catalogue. */
+  readonly removed: number;
+  /** Mouvements qui resteront, avec leur raison. */
+  readonly kept: number;
+  readonly keptBy: Readonly<Record<UninstallKeepReason, number>>;
+};
+
+export type UninstallReport = LibraryKey & { readonly title: string; readonly removed: number; readonly kept: number };
 
 export type AvailableLibraries =
   | { readonly ok: false; readonly issues: readonly CatalogueIssue[] }
@@ -170,6 +191,84 @@ export class LibraryService {
   /** « Refuser » : cette mise à jour précise n'est plus proposée ; une révision ultérieure le sera. */
   refuse(file: MovementCatalogueFile, libraryId: string): Promise<void> {
     return this.decide(file, libraryId, "REFUSED");
+  }
+
+  /** Aperçu de « Désinstaller la bibliothèque » (confirmation), sans écriture ; `null` si elle n'est pas installée. */
+  async uninstallPreview(key: LibraryKey): Promise<UninstallPreview | null> {
+    const plan = await this.uninstallPlan(key);
+    if (!plan) return null;
+    const movements = this.requireMovements();
+    const keptBy: Record<UninstallKeepReason, number> = { SESSION: 0, OTHER_LIBRARY: 0, PERSONAL_LIBRARY: 0 };
+    let removed = 0;
+    for (const member of plan.members) {
+      if (member.movementId === null) continue;
+      const reason = member.keep ?? ((await movements.sessionUseCount(member.movementId)) > 0 ? "SESSION" : null);
+      if (reason) keptBy[reason] += 1;
+      else removed += 1;
+    }
+    const kept = keptBy.SESSION + keptBy.OTHER_LIBRARY + keptBy.PERSONAL_LIBRARY;
+    return { ...key, title: plan.title, removed, kept, keptBy };
+  }
+
+  /**
+   * « Désinstaller la bibliothèque » : retire du Catalogue les Mouvements qu'aucune Séance, aucune autre Bibliothèque
+   * installée ni aucune Bibliothèque personnelle n'utilise, puis la Bibliothèque du registre. Rejouable après interruption.
+   */
+  async uninstall(key: LibraryKey): Promise<UninstallReport | null> {
+    const plan = await this.uninstallPlan(key);
+    if (!plan) return null;
+    const movements = this.requireMovements();
+    const uninstallLibrary = this.deps.registry.uninstallLibrary;
+    if (!uninstallLibrary) throw new Error("Désinstallation indisponible : registre incomplet.");
+    const removedSheets: { catalogueId: string; sheetId: string }[] = [];
+    let removed = 0;
+    let kept = 0;
+    for (const member of plan.members) {
+      const sheet = { catalogueId: member.catalogueId, sheetId: member.sheetId };
+      if (member.movementId === null) continue;
+      if (member.keep) {
+        kept += 1;
+        continue;
+      }
+      const outcome = await movements.removeForUninstall(member.movementId);
+      if (outcome.status === "REFERENCED") {
+        kept += 1;
+        continue;
+      }
+      removedSheets.push(sheet);
+      removed += 1;
+    }
+    await uninstallLibrary.call(this.deps.registry, key, removedSheets);
+    return { ...key, title: plan.title, removed, kept };
+  }
+
+  private requireMovements() {
+    if (!this.deps.movements) throw new Error("Désinstallation indisponible : service des Mouvements absent.");
+    return this.deps.movements;
+  }
+
+  /** Membres de la Bibliothèque, leur Mouvement et la raison connue sans la base principale de les garder. */
+  private async uninstallPlan(key: LibraryKey) {
+    const libraries = await this.deps.registry.installedLibraries();
+    const record = libraries.find((entry) => entry.catalogueId === key.catalogueId && entry.libraryId === key.libraryId);
+    if (!record) return null;
+    const sheetKey = (catalogueId: string, sheetId: string) => catalogueId + "/" + sheetId;
+    const movementOf = new Map((await this.deps.registry.allInstalledSheets())
+      .map((sheet) => [sheetKey(sheet.catalogueId, sheet.sheetId), sheet.movementId]));
+    const inOtherLibrary = new Set(libraries
+      .filter((entry) => entry !== record)
+      .flatMap((entry) => entry.library.members.map((member) => sheetKey(member.catalogueId, member.sheetId))));
+    const personal = this.deps.registry.personalLibraries ? await this.deps.registry.personalLibraries.call(this.deps.registry) : [];
+    const inPersonalLibrary = new Set(personal.flatMap((library) => library.movementIds));
+    const members = record.library.members.map((member) => {
+      const key2 = sheetKey(member.catalogueId, member.sheetId);
+      const movementId = movementOf.get(key2) ?? null;
+      const keep: UninstallKeepReason | null = inOtherLibrary.has(key2)
+        ? "OTHER_LIBRARY"
+        : movementId !== null && inPersonalLibrary.has(movementId) ? "PERSONAL_LIBRARY" : null;
+      return { catalogueId: member.catalogueId, sheetId: member.sheetId, movementId, keep };
+    });
+    return { title: record.library.title, members };
   }
 
   private async decide(file: MovementCatalogueFile, libraryId: string, decision: "DEFERRED" | "REFUSED"): Promise<void> {

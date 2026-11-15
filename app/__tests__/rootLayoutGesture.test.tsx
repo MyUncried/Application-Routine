@@ -95,13 +95,13 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
    * natif et la navigation programmatique ; aucune désactivation de geste
    * n'est donc nécessaire ici, contrairement à `(creation)`.
    */
-  it("registers profile-edit as a root stack screen, with the native gesture left enabled (its own exit guard intercepts it)", () => {
+  // [Remplacé le 14/11/2026 : « Modifier le profil » est un écran de l'onglet Profil, sous la barre de navigation
+  // (demande de Hermann : « Ajoute la barre de navigation Kodjo à la page d'accueil du Profil »).]
+  it("no longer registers profile-edit in the root stack: it lives in the Profil tab, under the navigation bar", () => {
     screenCalls.length = 0;
     render(<RootLayout />);
 
-    const profileEdit = screenCalls.find((call) => call.name === "profile-edit");
-    expect(profileEdit).toBeDefined();
-    expect(profileEdit?.options?.gestureEnabled).toBeUndefined();
+    expect(screenCalls.find((call) => call.name === "profile-edit")).toBeUndefined();
   });
 
   /**

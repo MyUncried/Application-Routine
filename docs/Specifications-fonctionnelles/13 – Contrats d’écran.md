@@ -4871,7 +4871,7 @@ Profil > Modifier.
 
 #### 4. Contexte de sortie / destinations
 
-Enregistrer valide/persiste et revient à Profil ; retour avec modification propose abandon, qui restaure les valeurs enregistrées ; annuler abandon conserve le brouillon.
+Enregistrer valide/persiste et revient à Profil ; retour avec modification propose abandon, qui restaure les valeurs enregistrées ; annuler abandon conserve le brouillon. [13/11/2026 — remplacé (demande de Hermann du 13/11/2026 : « Retirer le bouton enregistrer de l'écran d'accueil du profil », arbitrage « Immédiate ») : plus de bouton « Enregistrer » ni de dialogue d'abandon ; photo et silhouette enregistrées dès le choix, nom à la fin de la saisie ; nom vide ou trop long : message sous le champ, l'ancien nom reste enregistré. Texte d'origine conservé.]
 
 #### 5. Données affichées et source de vérité
 
@@ -4903,7 +4903,7 @@ Non renseigné ; homme ; femme ; modification non enregistrée.
 
 #### 12. Contrôles et interactions
 
-Toucher une silhouette change le brouillon ; Enregistrer persiste avec le Profil.
+Toucher une silhouette change le brouillon ; Enregistrer persiste avec le Profil. [13/11/2026 — remplacé : la silhouette est enregistrée dès qu'on la touche, voir ci-dessus.]
 
 #### 13. Gestes
 
@@ -4915,7 +4915,7 @@ Nom d’affichage non vide,1..80 caractères selon conception 08 ; photo et silh
 
 #### 15. Brouillon et persistance
 
-Même brouillon et action Enregistrer que photo/nom. Les profils existants sans valeur restent valides.
+Même brouillon et action Enregistrer que photo/nom. Les profils existants sans valeur restent valides. [13/11/2026 — remplacé : plus de brouillon ni d'action Enregistrer, enregistrement immédiat.]
 
 #### 16. Navigation et conservation d’état
 
@@ -5059,7 +5059,7 @@ Le MVP est disponible uniquement en français et n’affiche aucun sélecteur de
 
 ### Profil — Comportement
 
-Les préférences sont enregistrées immédiatement. L’écran `Modifier le profil — MVP` permet de modifier la photo, le nom d’affichage et la préférence facultative `silhouette`, puis demande une action explicite `Enregistrer`. La préférence est enregistrée avec le Profil. Valeurs : homme/femme ; non renseignée = silhouette homme. Elle ne modifie que l’icône de zone corporelle, sans filtre ni effet sur les données d’exercice.
+Les préférences sont enregistrées immédiatement. L’écran `Modifier le profil — MVP` permet de modifier la photo, le nom d’affichage et la préférence facultative `silhouette`, puis demande une action explicite `Enregistrer`. La préférence est enregistrée avec le Profil. [13/11/2026 — remplacé : plus d'action `Enregistrer`, photo, nom et silhouette sont enregistrés immédiatement (demande de Hermann du 13/11/2026 : « Retirer le bouton enregistrer de l'écran d'accueil du profil », arbitrage « Immédiate »).] Valeurs : homme/femme ; non renseignée = silhouette homme. Elle ne modifie que l’icône de zone corporelle, sans filtre ni effet sur les données d’exercice.
 
 Les préférences ne modifient pas rétroactivement les Séances existantes ni une Exécution déjà en cours.
 

@@ -129,8 +129,9 @@ describe("CA-3 — chargement d'un catalogue sur SQLite réelle (base principale
     expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version)
       .toBe(CATALOGUE_REGISTRY_SCHEMA_VERSION);
     expect(Object.keys(await dump(registryDb))).toEqual([
-      "installed_libraries", "installed_sheets", "library_decisions", "library_operations", "pending_operations",
-      "saved_local_values", "sheet_decisions",
+      // v3 (12/11/2026) : tables additives des Bibliothèques personnelles.
+      "installed_libraries", "installed_sheets", "library_decisions", "library_operations", "local_author", "pending_operations",
+      "personal_libraries", "personal_library_members", "saved_local_values", "sheet_decisions",
     ]);
     expect(await dump()).toEqual(before);
     await registryDb.execAsync("PRAGMA user_version = 99");

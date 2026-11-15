@@ -79,6 +79,18 @@ export type LibraryPreview = LibraryKey & {
   readonly installedRevision: string | null;
   readonly status: LibraryStatus;
   readonly memberCount: number;
+  /**
+   * Constat d) du 12/11/2026 : une fiche est « déjà présente » si elle existe dans le Catalogue de l'utilisateur,
+   * quelle que soit la Bibliothèque (installée ou personnelle) qui l'a apportée ; sinon elle est « nouvelle ».
+   * Invariant : `newCount + presentCount === memberCount`.
+   */
+  readonly presentCount: number;
+  readonly newCount: number;
+  /**
+   * Mise à jour : fiches qui entrent dans la Bibliothèque (absentes de la composition installée, ou pas encore
+   * appliquées), qu'elles soient déjà dans le Catalogue ou non. Vide avant installation.
+   */
+  readonly joined: readonly SheetLoadItem[];
   /** Nouvelles fiches : un Mouvement sera ajouté au Catalogue. */
   readonly added: readonly SheetLoadItem[];
   /** Déjà présentes et identiques : rattachées sans doublon, aucun Mouvement modifié. */
@@ -141,6 +153,14 @@ export type LibraryPlanContext = {
   readonly decisions: readonly LibraryDecisionRecord[];
 };
 
+/**
+ * La fiche a un Mouvement dans le Catalogue de l'utilisateur (installé par une autre Bibliothèque, identique,
+ * ou à rapprocher). Un Mouvement retiré localement, ou une fiche jamais installée, n'y est pas.
+ */
+function isInCatalogue(item: SheetLoadItem): boolean {
+  return item.movementId !== null && item.state !== "WITHDRAWN_LOCALLY";
+}
+
 /** Aperçu avant installation ou mise à jour d'une Bibliothèque du fichier. */
 export function planLibrary(file: MovementCatalogueFile, library: CatalogueLibrary, context: LibraryPlanContext): LibraryPreview {
   const key: LibraryKey = { catalogueId: file.catalogue.id, libraryId: library.libraryId };
@@ -157,14 +177,22 @@ export function planLibrary(file: MovementCatalogueFile, library: CatalogueLibra
   const unchanged: SheetLoadItem[] = [];
   const toReview: LibraryReviewItem[] = [];
   const missingExternal: CatalogueLibraryMember[] = [];
+  const joined: SheetLoadItem[] = [];
+  const installedMembers = new Set(installed ? installed.library.members.map(memberKey) : []);
+  let presentCount = 0;
 
   for (const member of library.members) {
     if (member.catalogueId !== file.catalogue.id) {
-      if (!installedSheetKeys.has(memberKey(member))) missingExternal.push(member);
+      if (installedSheetKeys.has(memberKey(member))) presentCount += 1;
+      else missingExternal.push(member);
       continue;
     }
     const item = items.get(member.sheetId);
     if (!item) continue; // le validateur garantit la présence des membres internes
+    if (isInCatalogue(item)) presentCount += 1;
+    if (installed && (!installedMembers.has(memberKey(member)) || item.state === "NEW" || item.state === "ADOPTABLE")) {
+      joined.push(item);
+    }
     const sheet = sheets.get(member.sheetId);
     if (sheet && isPendingPersonalAttachment(sheet, item)) {
       toReview.push({ item, reason: "PERSONAL_ORIGIN" });
@@ -213,10 +241,17 @@ export function planLibrary(file: MovementCatalogueFile, library: CatalogueLibra
     .filter((sheet) => next.has(file.catalogue.id + "/" + sheet.sheetId) && sheet.provenance.owner === null)
     .map((sheet) => sheet.content.name);
 
+  // Constat d) du 12/11/2026 : « Si une mise à jour ne contient aucun écart réel, ne pas proposer l'écran : la
+  // révision est considérée à jour. » Écart réel : fiche modifiée (ou à examiner pour une nouvelle révision),
+  // fiche entrant dans la Bibliothèque, fiche retirée. [Avant : toute nouvelle cible (révision de la composition,
+  // titre, description) proposait une mise à jour, même sans écart — remplacé.]
+  const realChanges = added.length + attached.length + modified.length + joined.length + removed.length +
+    toReview.filter((entry) => entry.item.state === "NEW_REVISION").length;
+
   let status: LibraryStatus;
   if (context.operations.some(same)) status = "INTERRUPTED";
   else if (installed === null) status = "NOT_INSTALLED";
-  else if (installed.targetKey === targetKey && added.length + attached.length + modified.length === 0) status = "UP_TO_DATE";
+  else if (realChanges === 0) status = "UP_TO_DATE";
   else if (context.decisions.some((decision) => same(decision) && decision.targetKey === targetKey && decision.decision === "REFUSED")) status = "REFUSED";
   else status = "UPDATE_AVAILABLE";
 
@@ -229,6 +264,9 @@ export function planLibrary(file: MovementCatalogueFile, library: CatalogueLibra
     installedRevision: installed?.revision ?? null,
     status,
     memberCount: library.members.length,
+    presentCount,
+    newCount: library.members.length - presentCount,
+    joined,
     added,
     attached,
     modified,

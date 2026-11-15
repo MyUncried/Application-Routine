@@ -1359,6 +1359,104 @@
         "Modifier le profil — choix de silhouette femme, teinté selon la sélection (alignement Figma du 11/11/2026)"
       ],
       "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-11; root attributes preserveAspectRatio/overflow/style removed, double-encoded id repaired"
+    },
+    {
+      "key": "library.listPlus",
+      "file": "icon-bibliotheque-liste-plus",
+      "figmaNodeId": "12214:26126",
+      "figmaName": "Icône — list-plus",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12214:26122",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Ajouter des mouvements (normal) — Bibliothèques personnelles, 12/11/2026"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-12; root attributes preserveAspectRatio/overflow/style and layer ids removed"
+    },
+    {
+      "key": "library.listPlusSelected",
+      "file": "icon-bibliotheque-liste-plus-selection",
+      "figmaNodeId": "12230:26279",
+      "figmaName": "Icône — list-plus",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12230:26277",
+      "width": 20,
+      "height": 20,
+      "usage": [
+        "Ajouter des mouvements (sélectionné) — Bibliothèques personnelles, 12/11/2026"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-12; root attributes preserveAspectRatio/overflow/style and layer ids removed"
+    },
+    {
+      "key": "screen.menuInactive",
+      "file": "icon-menu-ecran-inactif",
+      "figmaNodeId": "12233:26280",
+      "figmaName": "DSF / Actions / Menu de l’écran — Inactif",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12233:26280",
+      "width": 40,
+      "height": 32,
+      "usage": [
+        "Bouton « … » de l’en-tête, inactif (Créer une bibliothèque)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-12; root attributes preserveAspectRatio/overflow/style and layer ids removed"
+    },
+    {
+      "key": "screen.menuActive",
+      "file": "icon-menu-ecran-actif",
+      "figmaNodeId": "12191:2106",
+      "figmaName": "DSF / Actions / Menu de l’écran — Actif",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12191:2106",
+      "width": 40,
+      "height": 32,
+      "usage": [
+        "Bouton « … » de l’en-tête, actif (Ma bibliothèque, Modifier)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-12; root attributes preserveAspectRatio/overflow/style and layer ids removed"
+    },
+    {
+      "key": "library.shareUsers",
+      "file": "icon-bibliotheque-utilisateurs",
+      "figmaNodeId": "12217:26267",
+      "figmaName": "Icône — Personne",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12217:26236",
+      "width": 18,
+      "height": 18,
+      "usage": [
+        "Partager — Vers un ou des utilisateurs (grisé, opacité 40 % incluse)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-12; root attributes preserveAspectRatio/overflow/style and layer ids removed"
+    },
+    {
+      "key": "library.shareSpaces",
+      "file": "icon-bibliotheque-espaces",
+      "figmaNodeId": "12240:26292",
+      "figmaName": "Icône — Personne",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12217:26236",
+      "width": 18,
+      "height": 18,
+      "usage": [
+        "Partager — Vers un ou des espaces (grisé, opacité 40 % incluse)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-12; root attributes preserveAspectRatio/overflow/style and layer ids removed"
+    },
+    {
+      "key": "library.sharePublic",
+      "file": "icon-bibliotheque-publique",
+      "figmaNodeId": "12240:26300",
+      "figmaName": "Icône — Personne",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "12217:26236",
+      "width": 18,
+      "height": 18,
+      "usage": [
+        "Partager — Publique (grisé, opacité 40 % incluse)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context assets (curl) on 2026-11-12; root attributes preserveAspectRatio/overflow/style and layer ids removed"
     }
   ],
   "branding": {

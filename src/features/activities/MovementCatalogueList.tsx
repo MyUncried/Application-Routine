@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Modal,
   Pressable,
@@ -32,6 +33,7 @@ import type { VariantPlacement } from "@/features/activities/MovementResultCard"
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MediaPreview, firstMediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
 import { levelPastilleLabel } from "@/features/activities/MovementLevelMenu";
+import { importedMovementInfo, personalLibraryTitlesContaining } from "@/features/catalogue/importedMovements";
 import {
   familyPositionOf,
   type MovementCatalogueEntry,
@@ -194,6 +196,11 @@ const LEAF_STEP = 6;
 const LEAF_INSET = spacing[8];
 /** Familles, règle E5 du 28/10/2026 : fenêtre d'annulation des changements d'appartenance. */
 const FAMILY_NOTICE_MS = 3000;
+/**
+ * Recette du Catalogue connecté, 15/11/2026 (Hermann : « Mouvement archivé […] réduire la durée à 2.5 secondes ») :
+ * durée d’affichage du message « Mouvement archivé ». [Avant : durée par défaut du message temporaire, 5 s — remplacé.]
+ */
+const ARCHIVE_NOTICE_MS = 2500;
 /** Recette du 28/10 : zone de touche du filet élargie vers la carte (une carte s'ouvrait par mégarde). */
 const COLLAPSE_HIT_EXTRA = 12;
 /** Recette du 28/10 : arrêt sur une famille repliée avant qu'elle se déplie (valeur technique, non spécifiée). */
@@ -228,7 +235,19 @@ export function MovementCatalogueList({
   newMovementIds,
   scrollTarget = null,
   onScrollTargetHandled,
+  onlyIds,
+  readOnly = false,
 }: {
+  /**
+   * Bibliothèques personnelles (12/11/2026, Figma « Ma bibliothèque » 12210:26150) : liste restreinte à ces Mouvements
+   * (membres d'une Bibliothèque), mêmes cartes, piles, recherche et filtres. Absent : tout le Catalogue.
+   */
+  readonly onlyIds?: ReadonlySet<string>;
+  /**
+   * Bibliothèques personnelles : consultation seule — le toucher ouvre la fiche, sans actions glissées, appui long,
+   * réordonnancement ni badge « New ».
+   */
+  readonly readOnly?: boolean;
   readonly reloadToken: number;
   /**
    * D-510 (Hermann, 06/11/2026) : fiches créées depuis la dernière sortie du catalogue des mouvements, badge « New »
@@ -267,6 +286,11 @@ export function MovementCatalogueList({
     readonly inSessionIds?: ReadonlySet<string>;
     readonly onToggle: (movement: MovementCatalogueEntry["movement"]) => void;
     readonly bottomInset: number;
+    /**
+     * Rendu du choix : case (`CHOICE`, D-508, Séance) ou carte sélectionnée (`HIGHLIGHT`, Bibliothèques personnelles,
+     * Figma 12206:26333 : fond #EAEAFF, contour 1,5 bleu Kodjo, sans case). Absent : `CHOICE`.
+     */
+    readonly appearance?: "CHOICE" | "HIGHLIGHT";
   };
 }) {
   const { state, reload, catalogue } = useMovementCatalogue(reloadToken);
@@ -375,7 +399,8 @@ export function MovementCatalogueList({
   const items = useMemo(() => {
     if (state.status !== "ready") return [];
     // PRE-9 CAT.1 : le compteur actif (« familles » / « mouvements ») se cumule à la recherche et aux filtres.
-    const visible = applyMovementCounter(visibleMovementItems(state.entries, query, shownFilters), counter ?? null);
+    const source = onlyIds === undefined ? state.entries : state.entries.filter((entry) => onlyIds.has(entry.movement.id));
+    const visible = applyMovementCounter(visibleMovementItems(source, query, shownFilters), counter ?? null);
     if (override === null || override.entries !== state.entries) return visible;
     return visible.map((item): MovementCatalogueItem => {
       if (item.kind !== "PILE" || item.key !== override.pileKey) return item;
@@ -383,7 +408,7 @@ export function MovementCatalogueList({
       const members = override.ids.map((id) => byId.get(id)).filter((member) => member !== undefined);
       return members.length === item.members.length ? { ...item, members } : item;
     });
-  }, [state, query, shownFilters, override, counter]);
+  }, [state, query, shownFilters, override, counter, onlyIds]);
 
   // Recette iPhone CAT.1 du 30/10/2026 (Hermann, cat-bascule : « appuyer sur mouvements déplie toutes
   // les listes affichées ») : à l'activation du compteur « mouvements », toutes les piles affichées se
@@ -526,11 +551,36 @@ export function MovementCatalogueList({
   const archive = useCallback(
     (movementId: string) => {
       if (!catalogue) return;
-      run(
-        () => catalogue.archive(movementId),
-        () => setNotice({ message: t.archived, undo: () => run(() => catalogue.restore(movementId), () => undefined, "ARCHIVE") }),
-        "ARCHIVE",
-      );
+      const proceed = () =>
+        run(
+          () => catalogue.archive(movementId),
+          () => setNotice({ message: t.archived, durationMs: ARCHIVE_NOTICE_MS, undo: () => run(() => catalogue.restore(movementId), () => undefined, "ARCHIVE") }),
+          "ARCHIVE",
+        );
+      // Bibliothèques personnelles (décision de Hermann du 12/11/2026 : « avant de le supprimer on l'archive, donc il faut
+      // l'annoncer pendant l'archive ») : un Mouvement membre d'une Bibliothèque personnelle est annoncé avant d'être
+      // archivé ; il reste membre, mais n'y apparaît plus tant qu'il est archivé. Registre indisponible : archivage direct.
+      void (async () => {
+        let titles: readonly string[] = [];
+        try {
+          titles = await personalLibraryTitlesContaining(movementId);
+        } catch {
+          titles = [];
+        }
+        if (titles.length === 0) {
+          proceed();
+          return;
+        }
+        const names = titles.map((title) => `« ${title} »`).join(", ");
+        Alert.alert(
+          "Archiver ce mouvement ?",
+          `Il fait partie de ${titles.length > 1 ? "vos bibliothèques" : "votre bibliothèque"} ${names}. Archivé, il n'y apparaîtra plus.`,
+          [
+            { text: "Annuler", style: "cancel" },
+            { text: "Archiver", onPress: proceed },
+          ],
+        );
+      })();
     },
     [catalogue, run],
   );
@@ -546,6 +596,34 @@ export function MovementCatalogueList({
     },
     [catalogue, run],
   );
+
+  /**
+   * Décision de Hermann du 13/11/2026 (suppression d'un Mouvement importé) : « l'interdire, garder l'archivage, et s'en
+   * défaire en désinstallant la bibliothèque ». Un Mouvement importé n'ouvre pas la confirmation de suppression : une
+   * alerte l'explique. Registre indisponible : la confirmation habituelle s'ouvre, le service refuse de toute façon.
+   */
+  const requestDelete = (movementId: string) => {
+    void (async () => {
+      let libraries: readonly string[] | null;
+      try {
+        libraries = (await importedMovementInfo(movementId))?.libraries ?? null;
+      } catch {
+        libraries = null;
+      }
+      if (libraries === null) {
+        setDeleteCandidate(movementId);
+        return;
+      }
+      const names = libraries.map((title) => `« ${title} »`).join(", ");
+      const origin =
+        libraries.length === 0 ? "d'une bibliothèque" : `de ${libraries.length > 1 ? "vos bibliothèques" : "la bibliothèque"} ${names}`;
+      Alert.alert(
+        "Suppression impossible",
+        `Ce mouvement vient ${origin}. Il reste archivé ; seule la désinstallation de la bibliothèque le retirera de votre Catalogue.`,
+        [{ text: "OK" }],
+      );
+    })();
+  };
 
   const confirmDelete = useCallback(() => {
     const movementId = deleteCandidate;
@@ -850,7 +928,7 @@ export function MovementCatalogueList({
             backgroundColor: colors.danger,
             onPress: () => {
               setRevealedId(null);
-              setDeleteCandidate(entry.movement.id);
+              requestDelete(entry.movement.id);
             },
           },
         ]
@@ -883,6 +961,12 @@ export function MovementCatalogueList({
       readonly reorderActions?: readonly SwipeAccessibilityAction[];
       /** D-510 : pile repliée dont un niveau caché est nouveau (« New ↓ » sur la tête). */
       readonly hidesNew?: boolean;
+      /**
+       * Recette du 15/11/2026 (bp-zone-contexte, Hermann : « Les piles ne sont pas identifiées comme sélectionnées, alors que
+       * si on les déplie leurs mouvements le sont. Les piles doivent être sélectionnées aussi, visuellement ») : en sélection
+       * `HIGHLIGHT`, pile repliée dont au moins un Mouvement est choisi — sa carte de tête prend l'apparence sélectionnée.
+       */
+      readonly pileHighlighted?: boolean;
     },
   ) => {
     // PRE-9 A.2 (ARB-22a) : en sélection, une carte (hors pile repliée) se coche au toucher ; ni
@@ -890,7 +974,8 @@ export function MovementCatalogueList({
     const choosing = selection !== undefined && catalogueOptions.pileCount === undefined;
     const onPress = choosing ? () => selection.onToggle(entry.movement) : openOrExpand;
     const options: typeof catalogueOptions =
-      selection === undefined ? catalogueOptions : { pileCount: catalogueOptions.pileCount, swipe: false };
+      selection === undefined && !readOnly ? catalogueOptions : { pileCount: catalogueOptions.pileCount, swipe: false };
+    const highlight = choosing && selection.appearance === "HIGHLIGHT";
     const selected = choosing && selection.selectedIds.has(entry.movement.id);
     const inSession = choosing && (selection.inSessionIds?.has(entry.movement.id) ?? false);
     const id = entry.movement.id;
@@ -899,7 +984,7 @@ export function MovementCatalogueList({
     // D-510 (règles 6 et 9) : « New » sur une fiche nouvelle ; « New ↓ » sur la tête d'une pile repliée dès qu'un niveau caché
     // est nouveau ; jamais en sélection pour une Séance (ni hors de l'onglet Mouvements, où `newMovementIds` est absent).
     const newState: NewState =
-      selection !== undefined ? "NO" : catalogueOptions.hidesNew === true ? "IN_PILE" : (newMovementIds?.has(id) ?? false) ? "YES" : "NO";
+      selection !== undefined || readOnly ? "NO" : catalogueOptions.hidesNew === true ? "IN_PILE" : (newMovementIds?.has(id) ?? false) ? "YES" : "NO";
     // D-510 (accessibilité) : « nouveau » avec le nom ; « contient un niveau nouveau » pour une tête signalant un niveau caché.
     const newAccessibility = newState === "YES" ? t.newAccessibility : newState === "IN_PILE" ? t.newInPileAccessibility : null;
     const label =
@@ -946,7 +1031,8 @@ export function MovementCatalogueList({
           <MovementCatalogueCard
             entry={entry}
             level={level}
-            selection={choosing ? (selected ? "CHECKED" : "EMPTY") : "NONE"}
+            selection={choosing && !highlight ? (selected ? "CHECKED" : "EMPTY") : "NONE"}
+            highlighted={(highlight && selected) || catalogueOptions.pileHighlighted === true}
             inSession={inSession}
             newState={newState}
           />
@@ -1054,6 +1140,8 @@ export function MovementCatalogueList({
                 {
                   pileCount: item.members.length,
                   swipe: false,
+                  pileHighlighted:
+                    selection?.appearance === "HIGHLIGHT" && item.members.some((other) => selection.selectedIds.has(other.movement.id)),
                   hidesNew: item.members.some((other, rank) => rank > 0 && (newMovementIds?.has(other.movement.id) ?? false)),
                   // A3 : appui long sur une pile repliée — elle se déplie, la carte du dessus est portée.
                   onLongPress: member.archived
@@ -1603,9 +1691,12 @@ function MovementCatalogueCard({
   entry,
   level,
   selection = "NONE",
+  highlighted = false,
   inSession = false,
   newState = "NO",
 }: {
+  /** Bibliothèques personnelles : carte sélectionnée (Figma 12206:26333), sans case. */
+  readonly highlighted?: boolean;
   readonly entry: MovementCatalogueEntry;
   readonly level: MovementLevelPosition | null;
   /** D-508 : case de sélection pour une Séance (Figma « Sélection » : Absente / Vide / Cochée). */
@@ -1626,7 +1717,10 @@ function MovementCatalogueCard({
   const levelLabel = level !== null ? levelPastilleLabel(level) : null;
   const badge = newState === "NO" ? null : NEW_BADGES[newState];
   return (
-    <View style={[styles.card, entry.archived ? styles.cardArchived : null]} testID={`movement-card-surface-${movement.id}`}>
+    <View
+      style={[styles.card, entry.archived ? styles.cardArchived : null, highlighted ? styles.cardHighlighted : null]}
+      testID={`movement-card-surface-${movement.id}`}
+    >
       <View style={[styles.thumbnail, entry.archived ? styles.faded : null]}>
         {preview ? (
           <MediaPreview
@@ -1724,6 +1818,7 @@ const FOLDED_CORNER_SIZE = 18;
 /** D-508 : photo à 3,5 dans une bordure de 0,5 — 4 du bord extérieur. [Avant : 8 du bord — remplacé.] */
 const CARD_BORDER = 0.5;
 const CARD_PADDING = spacing[4] - CARD_BORDER;
+const HIGHLIGHT_BORDER = 1.5;
 /** D-508 : liseré existant (`color/cards/border`, #CCD1E0) à 50 % d'opacité, carte et feuilles de pile. */
 const CARD_BORDER_COLOR = "rgba(204, 209, 224, 0.5)";
 /** Figma : filet de 2, à 8 des cartes, du milieu de la première au milieu de la dernière carte. */
@@ -1938,6 +2033,14 @@ const styles = StyleSheet.create({
   cardArchived: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
+  },
+  // Bibliothèques personnelles (Figma 12206:26333, « Carte — Mouvement » sélectionnée) : contour 1,5 bleu Kodjo, fond
+  // #EAEAFF ; marge intérieure réduite d'autant (photo à 4 du bord extérieur, comme la carte normale).
+  cardHighlighted: {
+    borderWidth: HIGHLIGHT_BORDER,
+    borderColor: colors.primary,
+    backgroundColor: colors.contextBand,
+    padding: CARD_PADDING + CARD_BORDER - HIGHLIGHT_BORDER,
   },
   faded: {
     opacity: 0.6,

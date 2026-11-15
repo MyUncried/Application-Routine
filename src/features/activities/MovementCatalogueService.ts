@@ -2,6 +2,7 @@ import { validateMovement, type Movement } from "@/domain/activities/Movement";
 import { markMovementCreated } from "@/features/activities/newMovementMarks";
 import {
   DuplicateMovementNameError,
+  type DeleteMovementOutcome,
   type MovementFamilyOutcome,
   type MovementPriorMemberships,
   type MovementRepository,
@@ -71,7 +72,9 @@ export type MovementSaveAssessment =
 export type MovementLifecycleResult =
   | { readonly status: "DONE" }
   | { readonly status: "REFERENCED"; readonly exerciseCount: number }
-  | { readonly status: "STALE" };
+  | { readonly status: "STALE" }
+  /** Décision de Hermann du 13/11/2026 : un Mouvement importé ne se supprime pas ; rien n’est écrit. */
+  | { readonly status: "PROTECTED" };
 
 /** Difficulté choisie pour une variante (DSF « Variante et niveau »). */
 export type VariantDifficulty = "EASIER" | "HARDER";
@@ -230,6 +233,9 @@ export class MovementCatalogueService {
 
   /** PRE-8 (B.8, Q8) : suppression définitive d'un Mouvement archivé, sans cascade, après confirmation. */
   async deleteArchived(movementId: string): Promise<MovementLifecycleResult> {
+    // Décision de Hermann du 13/11/2026 : suppression d'un Mouvement importé interdite ; on garde l'archivage et on
+    // s'en défait en désinstallant la Bibliothèque.
+    if (await this.importedCheck(movementId)) return { status: "PROTECTED" };
     const outcome = await this.movements.deleteArchived(movementId);
     if (outcome.status === "DELETED") return { status: "DONE" };
     if (outcome.status === "REFERENCED") return { status: "REFERENCED", exerciseCount: outcome.exerciseCount };
@@ -281,6 +287,19 @@ export class MovementCatalogueService {
       decision: decideMovementSave(movementContentOf(current), movementContentOf(draft), await this.countLinkedExercises(draft.id), executionCount),
       executionCount,
     };
+  }
+
+  /**
+   * Désinstallation d'une Bibliothèque (décisions de Hermann du 13/11/2026) : seul canal qui retire un Mouvement importé
+   * du Catalogue, actif ou archivé. Refusé (`REFERENCED`) tant qu'une Séance l'utilise : il reste alors au Catalogue.
+   */
+  removeForUninstall(movementId: string): Promise<DeleteMovementOutcome> {
+    return this.movements.delete(movementId);
+  }
+
+  /** Nombre d'occurrences de Séance qui utilisent le Mouvement (aperçu de la désinstallation). */
+  sessionUseCount(movementId: string): Promise<number> {
+    return this.movements.countOccurrences(movementId);
   }
 
   /** « Mettre à jour ce mouvement » (ou mise à jour silencieuse) : même identité, groupe conservé. */

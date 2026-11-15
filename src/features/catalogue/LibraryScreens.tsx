@@ -19,7 +19,7 @@
 import * as Device from "expo-device";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 
@@ -30,11 +30,12 @@ import { ActivityDefinitionServiceContext } from "@/features/activities/Activity
 import { AdminClient, AdminClientError, type AdminEndpoint, type AdminSession } from "@/features/catalogue/adminClient";
 import { referenceLabels } from "@/features/catalogue/catalogueLoadPresentation";
 import type { LibraryApplyReport, LibraryProgress } from "@/features/catalogue/LibraryService";
+import { fetchAdminPreviews } from "@/features/catalogue/adminLibraryRefresh";
 import { librarySession } from "@/features/catalogue/librarySession";
 import { currentPairing, forgetStoredPairing, storePairing } from "@/features/catalogue/pairingStore";
 import {
   reviewLabel,
-  unknownOwnerText,
+  UNKNOWN_LIBRARY_OWNER_TEXT,
   availableLine,
   issueLine,
   modifiedLine,
@@ -358,7 +359,7 @@ const codeStyles = StyleSheet.create({
 
 type AvailablePhase =
   | { readonly kind: "loading" }
-  | { readonly kind: "ready"; readonly previews: readonly LibraryPreview[]; readonly origin: string; readonly refreshedAt: number; readonly withheld?: readonly string[] }
+  | { readonly kind: "ready"; readonly previews: readonly LibraryPreview[]; readonly origin: string; readonly refreshedAt: number }
   | { readonly kind: "error"; readonly message: string; readonly unauthorized: boolean };
 
 export function LibraryAvailableScreen({ client = defaultClient, pickFile = pickCatalogueFile }: LibraryScreenDependencies) {
@@ -383,31 +384,10 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
       return;
     }
     try {
-      const entries = await client.libraries(source.session);
-      const previews: LibraryPreview[] = [];
-      const withheld: string[] = [];
-      for (const catalogueId of [...new Set(entries.map((entry) => entry.catalogueId))]) {
-        let raw: unknown;
-        try {
-          const received = await client.catalogue(source.session, catalogueId);
-          raw = received.raw;
-        } catch (reason) {
-          if (!(reason instanceof AdminClientError && reason.code === "MEDIA_RIGHTS")) throw reason;
-          withheld.push(...entries.filter((entry) => entry.catalogueId === catalogueId).map((entry) => entry.title));
-          continue;
-        }
-        const available = await services.libraries.available(raw);
-        if (!available.ok) {
-          librarySession.setInvalid({ issues: available.issues, raw });
-          continue;
-        }
-        librarySession.rememberFile(available.file);
-        const published = new Set(entries.filter((entry) => entry.catalogueId === catalogueId).map((entry) => entry.libraryId));
-        previews.push(...available.previews.filter((preview) => published.has(preview.libraryId)));
-      }
-      librarySession.rememberPreviews(previews);
+      // Lecture partagée avec le Profil (mise à jour silencieuse du statut, 15/11/2026) : `fetchAdminPreviews`.
+      const { previews, entries } = await fetchAdminPreviews(client, services, source.session);
       librarySession.setSource({ ...source, entries, refreshedAt: Date.now() });
-      setPhase({ kind: "ready", previews, origin: `Reçues de l'administration · ${source.session.name}`, refreshedAt: Date.now(), withheld });
+      setPhase({ kind: "ready", previews, origin: `Reçues de l'administration · ${source.session.name}`, refreshedAt: Date.now() });
     } catch (reason) {
       const unauthorized = reason instanceof AdminClientError && reason.code === "UNAUTHORIZED";
       if (unauthorized) forgetStoredPairing();
@@ -450,19 +430,11 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
   let primary: Parameters<typeof LibraryScreen>[0]["primary"] = null;
   let secondary: Parameters<typeof LibraryScreen>[0]["secondary"] = [];
   // MOUV-D2. Décision de Hermann du 12/11/2026 : « L'utilisateur n'a pas besoin de savoir qu'une fiche a
-  // été retenue, c'est le problème de l'expéditeur » : plus d'encadré « Fiche non transférée » ; les fiches
-  // retenues sont signalées dans l'administration du PC. [Avant (11/11) : « Refuse uniquement la fiche, il
-  // faut en donner le nom », encadré nommant la fiche — remplacé]. Reste l'encadré d'une Bibliothèque
-  // entièrement refusée (fichier filtré invalide), sans quoi elle disparaîtrait sans explication.
-  const withheldNotice = phase.kind === "ready" && (phase.withheld?.length ?? 0) > 0 ? (
-    <>
-      {(phase.withheld?.length ?? 0) > 0 ? (
-        <Notice tone="warning" title="Bibliothèques non transférées" testID="library-available-withheld">
-          {`${phase.withheld!.join(", ")} : un média n'a pas de droits confirmés. Confirmez ses droits dans l'administration du PC, puis actualisez.`}
-        </Notice>
-      ) : null}
-    </>
-  ) : null;
+  // été retenue, c'est le problème de l'expéditeur » : plus d'encadré « Fiche non transférée ». Recette du 13/11
+  // (a1-medias : « Le destinataire n'a pas à savoir que des fiches ne lui sont pas transférées, c'est à l'expéditeur
+  // de le savoir et de corriger ») : plus d'encadré non plus pour une Bibliothèque entièrement refusée ; l'information
+  // est dans l'administration du PC. [Avant (12/11) : encadré « Bibliothèques non transférées » nommant la
+  // Bibliothèque — remplacé.]
   if (phase.kind === "loading") {
     body = (
       <>
@@ -525,7 +497,6 @@ export function LibraryAvailableScreen({ client = defaultClient, pickFile = pick
   }
   return (
     <LibraryScreen title="Bibliothèques disponibles" testID="library-available" primary={primary} secondary={secondary}>
-      {withheldNotice}
       {body}
       {fileImport.error ? <Notice tone="danger" title="Fichier illisible">{fileImport.error}</Notice> : null}
     </LibraryScreen>
@@ -581,8 +552,15 @@ export function LibraryPreviewScreen() {
     else await services.libraries.refuse(source, preview.libraryId);
     const after = await services.libraries.preview(source, preview.libraryId);
     if (after) librarySession.rememberPreviews([after]);
+    // Recette du 13/11 (x-d-maj : « Bouton refuser : on reste sur l'écran […] Il faudrait directement revenir sur l'écran »)
+    // : un refus ramène à l'écran précédent, où la Bibliothèque porte « Refusée ». [Avant : écran « Mise à jour refusée »
+    // et bouton Terminer — remplacé pour le refus.]
+    if (decision === "REFUSED") {
+      router.back();
+      return;
+    }
     setPhase({ kind: "decided", decision, preview });
-  }, [services]);
+  }, [services, router]);
 
   if (phase.kind === "loading") return <LibraryScreen title="Bibliothèque" testID="library-preview"><Busy label="Préparation de l'aperçu…" /></LibraryScreen>;
   if (phase.kind === "missing") return <LibraryScreen title="Bibliothèque" testID="library-preview"><Notice tone="warning" title="Bibliothèque introuvable">Rechargez la liste des bibliothèques disponibles.</Notice></LibraryScreen>;
@@ -614,7 +592,6 @@ export function LibraryPreviewScreen() {
 
   const { preview, file: source } = phase;
   const isUpdate = preview.installedRevision !== null;
-  const applicable = preview.added.length + preview.attached.length + preview.modified.length;
   const toReview = preview.toReview.length > 0 ? (
     <Section label={`À examiner (${preview.toReview.length})`}>
       <Card testID="library-preview-review">
@@ -633,9 +610,12 @@ export function LibraryPreviewScreen() {
       </Card>
     </Section>
   ) : null;
-  const ownerWarning = preview.unknownOwner ? (
+  // Constat d) du 12/11/2026 : avertissement « uniquement si le propriétaire de la bibliothèque est inconnu »,
+  // texte de Figma. [Avant : aussi pour des fiches sans propriétaire dans une bibliothèque qui en a un, avec
+  // « Cause : … » (fn14) — remplacé. La restriction de ces fiches reste appliquée.]
+  const ownerWarning = preview.ownerlessLibrary ? (
     <Notice tone="warning" title="Propriétaire inconnu : usage privé" testID="library-preview-unknown-owner">
-      {unknownOwnerText(preview)}
+      {UNKNOWN_LIBRARY_OWNER_TEXT}
     </Notice>
   ) : null;
 
@@ -656,13 +636,13 @@ export function LibraryPreviewScreen() {
           <Divider />
           <SummaryLine
             dot={colors.primary}
-            title={`${preview.added.length} ${preview.added.length > 1 ? "nouvelles" : "nouvelle"}`}
+            title={`${preview.newCount} ${preview.newCount > 1 ? "nouvelles" : "nouvelle"}`}
             subtitle="ajoutées à votre Catalogue"
             testID="library-preview-added"
           />
           <SummaryLine
             dot={LIBRARY_COLORS.positiveText}
-            title={`${preview.attached.length} déjà ${preview.attached.length > 1 ? "présentes" : "présente"}`}
+            title={`${preview.presentCount} déjà ${preview.presentCount > 1 ? "présentes" : "présente"}`}
             subtitle="rattachées à vos mouvements, sans doublon"
             testID="library-preview-attached"
           />
@@ -695,28 +675,27 @@ export function LibraryPreviewScreen() {
   }
 
   // Aperçu d'une mise à jour (12118:25251).
+  // Constat d) du 12/11/2026 : « Nouvelles » = fiches qui entrent dans la bibliothèque, qu'elles soient déjà dans le
+  // Catalogue ou non ; « Reporter » supprimé (même effet que le retour) ; « Refuser » pleine largeur au-dessus de
+  // « Mettre à jour ». [Avant : seules les fiches absentes du Catalogue comptaient ; Reporter et Refuser côte à côte — remplacé.]
   const removedNames = preview.removed.map((member) => ({ key: member.catalogueId + "/" + member.sheetId, name: sheetName(source, member.sheetId) }));
+  const joinedCount = preview.joined.length;
   return (
     <LibraryScreen
       title={`Mise à jour de ${preview.title}`}
       testID="library-preview"
       secondary={[
-        { label: "Reporter", onPress: () => void decide(preview, source, "DEFERRED"), testID: "library-preview-defer" },
         { label: "Refuser", onPress: () => void decide(preview, source, "REFUSED"), testID: "library-preview-refuse" },
       ]}
-      primary={{ label: "Mettre à jour", onPress: () => void apply(preview, source), disabled: applicable === 0 && preview.removed.length === 0 && preview.status === "UP_TO_DATE", testID: "library-preview-update" }}
+      primary={{ label: "Mettre à jour", onPress: () => void apply(preview, source), disabled: preview.status === "UP_TO_DATE", testID: "library-preview-update" }}
     >
       {/* 12118:25270 : une carte, trois compteurs. */}
       <Card style={screenStyles.counters} testID="library-preview-counters">
         <Counter value={preview.modified.length} label={preview.modified.length > 1 ? "Modifiées" : "Modifiée"} />
-        <Counter value={preview.added.length + preview.attached.length} label={preview.added.length + preview.attached.length > 1 ? "Nouvelles" : "Nouvelle"} />
+        <Counter value={joinedCount} label={joinedCount > 1 ? "Nouvelles" : "Nouvelle"} />
         <Counter value={preview.removed.length} label={preview.removed.length > 1 ? "Retirées" : "Retirée"} />
       </Card>
-      <Section
-        label={preview.installedRevision === preview.targetRevision
-          ? "Fiches révisées · détail par fiche"
-          : `Révision ${preview.installedRevision} → ${preview.targetRevision} · détail par fiche`}
-      >
+      <Section label={`Révision ${preview.installedRevision} → ${preview.targetRevision} · détail par fiche`}>
         <Card testID="library-preview-sheets">
           {preview.modified.map((item, index) => {
             const alsoIn = preview.alsoIn[preview.catalogueId + "/" + item.sheetId] ?? [];
@@ -738,13 +717,13 @@ export function LibraryPreviewScreen() {
               </View>
             );
           })}
-          {[...preview.added, ...preview.attached].map((item, index) => (
+          {preview.joined.map((item, index) => (
             <View key={item.sheetId}>
               {preview.modified.length + index > 0 ? <Divider /> : null}
               <Row
                 title={item.name}
                 titleVariant="semibold"
-                subtitle="Ajoutée à la bibliothèque et à votre Catalogue"
+                subtitle={item.state === "NEW" ? "Ajoutée à la bibliothèque et à votre Catalogue" : "Ajoutée à la bibliothèque · déjà dans votre Catalogue"}
                 subtitleTone="secondary"
                 pill={<Pill label="Nouvelle" tone="positive" />}
                 pillOnTitle
@@ -754,7 +733,7 @@ export function LibraryPreviewScreen() {
           ))}
           {removedNames.map((entry, index) => (
             <View key={entry.key}>
-              {preview.modified.length + preview.added.length + preview.attached.length + index > 0 ? <Divider /> : null}
+              {preview.modified.length + joinedCount + index > 0 ? <Divider /> : null}
               <Row
                 title={entry.name}
                 titleVariant="semibold"
@@ -1047,7 +1026,7 @@ export function LibraryInvalidScreen({ pickFile = pickCatalogueFile }: LibrarySc
   );
 }
 
-// ——— Bibliothèque installée (12098:115, sans désinstallation : A-4) ———
+// ——— Bibliothèque installée (12098:115 ; désinstallation ajoutée au lot le 13/11/2026) ———
 
 export function LibraryInstalledScreen() {
   const router = useRouter();
@@ -1085,7 +1064,38 @@ export function LibraryInstalledScreen() {
   const updateAvailable = preview?.status === "UPDATE_AVAILABLE";
   const openUpdate = () => router.push({ pathname: "/library-preview", params: { catalogueId: library.catalogueId, libraryId: library.libraryId } });
   // 12098:115 : pastille « Mettre à jour » en face du titre, état en 13 gris dessous, carte des mouvements
-  // (nom Medium 14, zones 12, chevron). Sans « Désinstaller la bibliothèque » ni sa note (A-4, reporté).
+  // (nom Medium 14, zones 12, chevron), carte « Désinstaller la bibliothèque » (Medium 14 rouge) et sa note 12 grise.
+  // [Remplacé le 13/11/2026 : « Sans « Désinstaller la bibliothèque » ni sa note (A-4, reporté). »]
+  const uninstall = () => {
+    if (!services) return;
+    void (async () => {
+      const key = { catalogueId: library.catalogueId, libraryId: library.libraryId };
+      const preview = await services.libraries.uninstallPreview(key);
+      if (!preview) return;
+      const lines = [
+        preview.removed > 0 ? `${plural(preview.removed, "mouvement quittera", "mouvements quitteront")} votre Catalogue.` : null,
+        preview.kept > 0
+          ? `${plural(preview.kept, "mouvement reste : utilisé", "mouvements restent : utilisés")} dans une séance ou dans une autre bibliothèque.`
+          : null,
+      ].filter((line): line is string => line !== null);
+      Alert.alert(`Désinstaller « ${preview.title} » ?`, lines.join("\n"), [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Désinstaller",
+          style: "destructive",
+          onPress: () => {
+            void services.libraries.uninstall(key).then(
+              () => router.back(),
+              (error: unknown) => {
+                console.error("La désinstallation a échoué.", error);
+                Alert.alert("Désinstallation interrompue", "Réessayez : les mouvements déjà retirés ne reviennent pas, la suite reprend.");
+              },
+            );
+          },
+        },
+      ]);
+    })();
+  };
   return (
     <LibraryScreen
       title={library.library.title}
@@ -1113,6 +1123,14 @@ export function LibraryInstalledScreen() {
           </View>
         ))}
       </Card>
+      <View style={screenStyles.uninstallBlock}>
+        <Card>
+          <Row title="Désinstaller la bibliothèque" titleVariant="medium14" titleTone="danger" chevron={false} onPress={uninstall} testID="library-installed-uninstall" />
+        </Card>
+        <Paragraph tone="note" testID="library-installed-uninstall-note">
+          Les mouvements utilisés dans une séance ou dans une autre bibliothèque restent dans le Catalogue.
+        </Paragraph>
+      </View>
     </LibraryScreen>
   );
 }
@@ -1339,6 +1357,7 @@ const screenStyles = StyleSheet.create({
   progressFill: { height: 8, borderRadius: 4, backgroundColor: colors.primary },
   // Bibliothèque installée (12098:212) : état 13 #7A7A80.
   installedStatus: { ...LIBRARY_TEXT.intro, color: LIBRARY_COLORS.muted },
+  uninstallBlock: { gap: spacing[8] },
   // Envoyer mes mouvements (sans maquette) : lignes Medium 15 à interrupteur natif.
   switchRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 52, paddingVertical: spacing[8], gap: spacing[8] },
   switchLabel: { ...LIBRARY_TEXT.medium15, flex: 1 },

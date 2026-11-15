@@ -23,6 +23,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { buildDomain, GENERATED_DIR, generatedModuleUrl } from "./build-domain.mjs";
+import { loadInstallationIdentity } from "./installation.mjs";
 import { atomicWrite, createInboxStore, createPairingStore } from "./phone.mjs";
 
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -66,6 +67,7 @@ const STATIC_ASSETS = {
   "/": ["index.html", "text/html; charset=utf-8"],
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
   "/media.js": ["media.js", "text/javascript; charset=utf-8"],
+  "/actors.js": ["actors.js", "text/javascript; charset=utf-8"],
   "/styles.css": ["styles.css", "text/css; charset=utf-8"],
 };
 const DOMAIN_ASSETS = new Set(DOMAIN_MODULES.map((name) => "/domain/" + name));
@@ -179,6 +181,10 @@ export async function createAdminApp({
   };
   const pairing = await createPairingStore({
     now, serialize, file: persistDevices ? path.join(adminDir, "appareils.json") : null,
+  });
+  // Identité « Utilisateur local » de ce PC (décision du 12/11/2026) : générée une fois, persistante.
+  const installation = await loadInstallationIdentity({
+    file: persistDevices ? path.join(adminDir, "installation.json") : null, now,
   });
   const inbox = createInboxStore({
     dir: path.join(adminDir, "inbox"), now, serialize, fingerprint: inboxDomain.inboxMovementFingerprint,
@@ -321,6 +327,7 @@ export async function createAdminApp({
         name, formatVersion: MOVEMENT_CATALOGUE_FORMAT_VERSION,
         lan: { enabled: lanState.enabled, port: lanState.port, addresses: lanState.enabled ? lanAddresses() : [] },
         pairing: pairing.status(),
+        installation,
       });
     }
     if (method === "GET" && route === "/api/catalogues") {

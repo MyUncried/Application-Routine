@@ -144,10 +144,11 @@ describe("registre v2 (base distincte, sans concurrence avec PRE-10)", () => {
       [PILOT, v2Sheet.sheetId, "pilot:X", "1", "ancienne-empreinte", JSON.stringify(v1Sheet), NOW, NOW]);
 
     const registry = await SqliteCatalogueRegistry.open(registryDb, () => NOW);
-    expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(2);
+    // v3 (12/11/2026) : tables additives des Bibliothèques personnelles. [Avant : version 2 — remplacé.]
+    expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(3);
     expect(Object.keys(await dump(registryDb))).toEqual([
-      "installed_libraries", "installed_sheets", "library_decisions", "library_operations", "pending_operations",
-      "saved_local_values", "sheet_decisions",
+      "installed_libraries", "installed_sheets", "library_decisions", "library_operations", "local_author", "pending_operations",
+      "personal_libraries", "personal_library_members", "saved_local_values", "sheet_decisions",
     ]);
     const [record] = await registry.allInstalledSheets();
     expect(record!.sheet.provenance.author).toBeNull();
@@ -235,6 +236,51 @@ describe("Bibliothèques — installation et mise à jour volontaires", () => {
     const record = (await registry.allInstalledSheets()).find((entry) => entry.sheetId === pilot.sheets[0]!.sheetId);
     expect(record!.revision).toBe("2");
     expect((await libraries.preview(file, PILOT))!.status).toBe("UP_TO_DATE");
+  });
+
+  describe("constat d) du 12/11 : compteurs des aperçus", () => {
+    /** Bibliothèque de `count` fiches du pilote, nommée « Hyrox ». */
+    const hyrox = (count: number, revision = "1", title = "Hyrox"): MovementCatalogueFile => {
+      const file = clone(pilot) as Writable<MovementCatalogueFile>;
+      file.libraries = [...pilot.libraries, { ...pilot.libraries[0]!, libraryId: "hyrox", title, revision,
+        members: pilot.libraries[0]!.members.slice(0, count) }];
+      return file;
+    };
+
+    it("fiches déjà installées par une autre bibliothèque : « 0 nouvelle · 5 déjà présentes » (invariant)", async () => {
+      const { libraries } = await servicesOn();
+      await libraries.apply(pilot, PILOT);
+      const preview = (await libraries.preview(hyrox(5), "hyrox"))!;
+      expect(preview).toMatchObject({ title: "Hyrox", status: "NOT_INSTALLED", memberCount: 5, newCount: 0, presentCount: 5 });
+      expect(preview.newCount + preview.presentCount).toBe(preview.memberCount);
+    });
+
+    it("base vide : toutes nouvelles ; base des 60 : toutes déjà présentes (invariant)", async () => {
+      const empty = await servicesOn();
+      const fresh = (await empty.libraries.preview(hyrox(5), "hyrox"))!;
+      expect(fresh).toMatchObject({ newCount: 5, presentCount: 0 });
+      await installPilot60();
+      const adopted = (await empty.libraries.preview(hyrox(5), "hyrox"))!;
+      expect(adopted).toMatchObject({ newCount: 0, presentCount: 5 });
+    });
+
+    it("mise à jour : une fiche déjà dans le Catalogue qui entre dans la bibliothèque compte comme « Nouvelle »", async () => {
+      const { libraries } = await servicesOn();
+      await libraries.apply(pilot, PILOT);
+      await libraries.apply(hyrox(3), "hyrox");
+      const preview = (await libraries.preview(hyrox(4, "2"), "hyrox"))!;
+      expect(preview).toMatchObject({ status: "UPDATE_AVAILABLE", installedRevision: "1", targetRevision: "2" });
+      expect(preview.joined.map((item) => item.sheetId)).toEqual([pilot.libraries[0]!.members[3]!.sheetId]);
+      expect(preview.modified).toHaveLength(0);
+      expect(preview.removed).toHaveLength(0);
+    });
+
+    it("révision sans écart réel (titre seul) : considérée à jour, aucun écran proposé", async () => {
+      const { libraries } = await servicesOn();
+      await libraries.apply(pilot, PILOT);
+      await libraries.apply(hyrox(3), "hyrox");
+      expect((await libraries.preview(hyrox(3, "2", "Hyrox renommée"), "hyrox"))!.status).toBe("UP_TO_DATE");
+    });
   });
 
   it("adaptation historique d'un des 60 : jamais écrasée, laissée à l'examen fiche par fiche", async () => {
@@ -334,6 +380,66 @@ describe("robustesse (revue du 11/11)", () => {
 });
 
 describe("A-2 — garde métier des Mouvements importés (service, pas seulement l'écran)", () => {
+  it("désinstallation (13/11) : séance, autre bibliothèque et bibliothèque personnelle gardent leurs mouvements ; le reste part", async () => {
+    const { libraries: installer, registry, load } = await servicesOn();
+    await installer.apply(pilot, PILOT);
+    const second = clone(pilot) as Writable<MovementCatalogueFile>;
+    const members = pilot.libraries[0]!.members;
+    second.libraries = [{ ...pilot.libraries[0]!, libraryId: "force", title: "Force", members: [members[0]!, members[1]!] }];
+    await installer.apply(second, "force");
+    const movementOf = new Map((await registry.allInstalledSheets()).map((sheet) => [sheet.sheetId, sheet.movementId]));
+    const personal = movementOf.get(members[2]!.sheetId)!;
+    const inSession = movementOf.get(members[3]!.sheetId)!;
+    await registry.savePersonalLibrary({ libraryId: "p1", authorId: "a", title: "Gainage", movementIds: [personal] });
+    // Une Séance utilise `inSession` : la base refuse sa suppression (`REFERENCED`, couvert par le dépôt).
+    const real = movementsOn(main);
+    const movements = {
+      removeForUninstall: (id: string) => (id === inSession ? Promise.resolve({ status: "REFERENCED" as const, occurrenceCount: 1 }) : real.removeForUninstall(id)),
+      sessionUseCount: async (id: string) => (id === inSession ? 1 : 0),
+    };
+    const libraries = new LibraryService({ registry, load, movements });
+    const key = { catalogueId: PILOT, libraryId: PILOT };
+
+    expect(await libraries.uninstallPreview(key)).toEqual({
+      ...key, title: pilot.libraries[0]!.title, removed: 56, kept: 4, keptBy: { SESSION: 1, OTHER_LIBRARY: 2, PERSONAL_LIBRARY: 1 },
+    });
+    expect(await movementCount()).toBe(60);
+
+    expect(await libraries.uninstall(key)).toEqual({ ...key, title: pilot.libraries[0]!.title, removed: 56, kept: 4 });
+    expect(await movementCount()).toBe(4);
+    expect((await registry.installedLibraries()).map((entry) => entry.libraryId)).toEqual(["force"]);
+    // Les fiches conservées restent importées et protégées (A-2).
+    expect((await registry.allInstalledSheets()).map((sheet) => sheet.movementId).sort())
+      .toEqual([movementOf.get(members[0]!.sheetId)!, movementOf.get(members[1]!.sheetId)!, personal, inSession].sort());
+    expect(await registry.isInstalledMovement(inSession)).toBe(true);
+    expect((await registry.personalLibraries())[0]!.movementIds).toEqual([personal]);
+    expect(await libraries.uninstall(key)).toBeNull();
+
+    // Réinstallation : les 56 reviennent, aucun doublon.
+    expect(await installer.apply(pilot, PILOT)).toMatchObject({ failed: [] });
+    expect(await movementCount()).toBe(60);
+  });
+
+  it("désinstallation interrompue après la suppression des mouvements : rejouée sans dommage", async () => {
+    const { libraries: installer, registry, load } = await servicesOn();
+    await installer.apply(pilot, PILOT);
+    const real = movementsOn(main);
+    const failing = new Proxy(registry, {
+      get(target, property) {
+        if (property === "uninstallLibrary") return async () => { throw new Error("coupure"); };
+        const value = Reflect.get(target, property) as unknown;
+        return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(target) : value;
+      },
+    });
+    const key = { catalogueId: PILOT, libraryId: PILOT };
+    await expect(new LibraryService({ registry: failing, load, movements: real }).uninstall(key)).rejects.toThrow("coupure");
+    expect(await movementCount()).toBe(0);
+    expect(await registry.installedLibraries()).toHaveLength(1);
+    expect(await new LibraryService({ registry, load, movements: real }).uninstall(key)).toMatchObject({ removed: 60, kept: 0 });
+    expect(await registry.installedLibraries()).toHaveLength(0);
+    expect(await registry.allInstalledSheets()).toHaveLength(0);
+  });
+
   it("modification et duplication refusées ; mise à jour par la source admise ; Mouvement personnel libre", async () => {
     await installPilot60();
     const { libraries, registry } = await servicesOn();

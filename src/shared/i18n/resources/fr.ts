@@ -1727,6 +1727,7 @@ export const fr = {
         label: "Silhouette",
         homme: "Silhouette homme",
         femme: "Silhouette femme",
+        toggleHint: "Touchez pour changer de silhouette.",
       },
       saveAction: "Enregistrer",
       saveError: "Le profil n’a pas pu être enregistré. Réessayez.",
