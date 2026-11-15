@@ -2211,6 +2211,8 @@ Nœud [8624:30198](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30255) · Contrat CE-FMT-02 · Export du 05/11/2026.
 
+[Remplacé le 15/11/2026 : écran archivé, plus de questionnaire For time ; la Composition ouvre « For time — Récapitulatif, état vide » (`12377:26300`) — registre ch07, « For time — tableau unique, sans questionnaire (15/11/2026) ».]
+
 ![For time — Questionnaire](images/figma-8624-30255.png)
 
 <a id="format-8624-30306"></a>

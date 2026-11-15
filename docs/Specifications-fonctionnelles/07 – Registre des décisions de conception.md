@@ -2535,3 +2535,19 @@ Constat de Hermann, recopié textuellement :
 ### Guidage sonore en Composition et dans le Profil (11/11/2026)
 
 La modale de Composition règle uniquement la séance en cours. L’icône pleine signale exclusivement son ouverture. Les six annonces vocales et les réglages Son et Vibration des neuf événements sont indépendants. Chaque liste de sons comprend « Aucun », y compris pour Mi-temps. Le prototype présente les écrans sans liaisons interactives pour ce parcours. Le DS définit « Bouton secondaire » comme base commune aux actions Édition et Guidage sonore.
+
+## For time — tableau unique, sans questionnaire (15/11/2026)
+
+Classe B (évolution validée). Décisions de Hermann, recopiées :
+
+> « Le questionnaire n’est plus nécessaire » — « J’essaye de m’affranchir de la première page de questionnaire. Si j’ai toujours trois lignes visible, « Buy in + Ajouter », « En boucle + Ajouter » et « Buy out + Ajouter » la seule information qui n’est pas encore entrée est le nombre de séries du buy in et du buy out »
+
+> « Je pense qu’il reste intéressant de voir apparaître sur une ligne dédiée, l’information du nombre de tours d’un For Time. »
+
+> « Ma proposition : - le nombre de tours est tour visible, renseigné avec le clavier - initialement les 3 lignes sont vides, pas de S1, Tour 1, S1. - Ajouter un mouvement : S 1 apparaît, aligné à droite, avec à gauche un moins, à droite un plus. - appuyer sur plus et moins ajouter et retire une colonne, le plus à droite ne change jamais de place, le moins de décale à gauche, avec au maximum 3 colonnes. Symbole discret ton sur ton - pas de ligne dédiée « Nombre de séries de buy in / out », ligne dédiée pour le nombre de tours. - sur la valeur durée / re : montrer unité, en rouge, à l’ajout de chaque ligne, les champs de valeur ne sont pas activés tant que l’unité n’est pas renseignée (popover classique) »
+
+> « On garde le triangle et on a le plus et le moins pour les tours aussi » — « Mettre « rép » en modifiable sur chaque lignes, il suffit de cliquer dessus pour définir l’unité de chaque ligne » — « Mette l’option de charge sur le buy in et le buy out »
+
+- **Conséquences.** Plus de questionnaire For time : la Composition ouvre l’écran « état vide » ; plus d’interrupteurs Buy-in, Buy-out ni Avec charge pour ce Format (la charge se décide par mouvement, (+ kg)/(− kg), y compris sur le buy-in et le buy-out). Le nombre de séries du buy-in et du buy-out est le nombre de colonnes, réglé par − / +. Le Nombre de tours reste sur une ligne dédiée, synchrone avec le − / + de la boucle. Tabata, EMOM, Death by et les autres Formats gardent leur questionnaire.
+- **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02 (entrée, tableau unique, charges, écrans Figma) ; chapitre 06 (écran archivé) ; chapitre 10, FMT-32 (annotation). Les règles FMT-30 et FMT-31 ne changent pas.
+- **Interprétation à confirmer au besoin :** le plafond de 3 colonnes est appliqué aux séries du buy-in et du buy-out ; les tours de la boucle suivent la borne existante du Nombre de tours.
