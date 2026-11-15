@@ -178,3 +178,16 @@ Tous les points 1 à 7, avec les interprétations listées plus bas. Aucune vér
 - Modification : `Panel` reçoit `forTime` (pleine largeur, rayon 0, retrait 12, marges 4). Le contexte de ligne place les lignes For time à 31, séparateur compris. Les autres Formats sont inchangés.
 - Tests : `src/features/sessions`, 118 suites et 1805 tests verts, dont une assertion ajoutée (style du cadre et hauteur de ligne) ; `tsc` sans erreur.
 - Cahier v115 : ligne `ftu-cadre-largeur`.
+
+## Addendum 3 — recette iPhone du 15/11/2026 : unité d'un buy-in
+
+- Notes de Hermann (recopiées) : « Ajout d'un buy in : mis à jour de l'unité : - seul le nombre de répétition est proposé - lorsque l'unité est choisie l'ecran est figé, aucun bouton ne fonctionne ».
+- **Constat 1** : seule Répétitions était proposée.
+  - **Cause démontrée** : `allowedModes` (FMT-31, « au moins un membre en Répétitions dans l'ensemble du Circuit ») verrouille en Répétitions le seul exercice présent. Un buy-in ajouté seul était donc forcé.
+  - **Correction (classe A)** : tant qu'aucun exercice en tour n'est ajouté, un buy-in ou un buy-out propose Répétitions et Durée. L'exercice en tour ajouté ensuite est verrouillé en Répétitions si tous les autres sont en Durée, donc la règle FMT-31 reste garantie à l'enregistrement. Un exercice en tour seul reste en Répétitions.
+- **Constat 2** : écran figé après le choix de l'unité.
+  - **Cause plausible, non démontrée sur appareil** : le popover natif (`Menu` SwiftUI) était hébergé dans la ligne glissable (`SwipeActionsRow`, `Pressable` React Native). Un menu natif sous un `Pressable` qui détient déjà le toucher peut laisser le système de réponse de React Native bloqué. C'est la seule différence avec le champ Exécution, qui fonctionne, et qui est posé hors de tout `Pressable`.
+  - **Correction (classe D)** : l'étiquette « (unité, ±kg) » est posée au-dessus de la ligne, hors de sa zone touchable, et masquée quand l'action « Supprimer » est révélée.
+  - **À vérifier sur iPhone**, ligne `ftu-unite-fige`. Si le blocage persiste, le diagnostic suivant visera le remontage de l'hôte natif (`key`) pendant la fermeture du menu.
+- Tests : `src/features/sessions`, 118 suites et 1806 tests verts, dont 1 test ajouté ; `tsc` et `eslint` des fichiers touchés sans erreur.
+- Cahier v116 : lignes `ftu-unite-buyin` et `ftu-unite-fige`.
