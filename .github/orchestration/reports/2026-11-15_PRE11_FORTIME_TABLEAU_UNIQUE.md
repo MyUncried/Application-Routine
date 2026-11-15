@@ -166,3 +166,15 @@ Tous les points 1 à 7, avec les interprétations listées plus bas. Aucune vér
 - `npx tsc --noEmit` : aucune erreur.
 - Cahier de recette en ligne : version 114, section « For time : tableau unique, sans questionnaire (décision du 15/11) », lignes `ftu-*` ; elle remplace les lignes `k15-execution-derniere` et `k15-buyin-fermer`.
 - Commit : ce rapport seul, sur `pre11-formats` ; le code reste non commité, dans l'attente de la validation de Hermann.
+
+## Addendum 2 — carte des paramètres pleine largeur (demande de Hermann du 15/11/2026)
+
+- Demande (recopiée) : « For Time - écran questionnaire / Récapitulatif consolidé : le premier cadre des paramètres d'exécution prend aussi toute la largeur, vérifie Figma ».
+- Figma `12341:27052` vérifié (contexte de conception) :
+  - cadre x = 0, largeur 386, fond `#F9FAFC`, sans rayon ;
+  - libellés et pastilles à 12 des bords, séparateurs `#E0E3E8` en retrait de 12 aux y = 34 / 65 / 96 ;
+  - hauteur 131 pour quatre lignes.
+- **Classe A** (CE-FMT-02 §8, cotes : lignes de 31, contrôles de 24 ; Figma).
+- Modification : `Panel` reçoit `forTime` (pleine largeur, rayon 0, retrait 12, marges 4). Le contexte de ligne place les lignes For time à 31, séparateur compris. Les autres Formats sont inchangés.
+- Tests : `src/features/sessions`, 118 suites et 1805 tests verts, dont une assertion ajoutée (style du cadre et hauteur de ligne) ; `tsc` sans erreur.
+- Cahier v115 : ligne `ftu-cadre-largeur`.
