@@ -2551,3 +2551,17 @@ Classe B (évolution validée). Décisions de Hermann, recopiées :
 - **Conséquences.** Plus de questionnaire For time : la Composition ouvre l’écran « état vide » ; plus d’interrupteurs Buy-in, Buy-out ni Avec charge pour ce Format (la charge se décide par mouvement, (+ kg)/(− kg), y compris sur le buy-in et le buy-out). Le nombre de séries du buy-in et du buy-out est le nombre de colonnes, réglé par − / +. Le Nombre de tours reste sur une ligne dédiée, synchrone avec le − / + de la boucle. Tabata, EMOM, Death by et les autres Formats gardent leur questionnaire.
 - **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02 (entrée, tableau unique, charges, écrans Figma) ; chapitre 06 (écran archivé) ; chapitre 10, FMT-32 (annotation). Les règles FMT-30 et FMT-31 ne changent pas.
 - **Précision de Hermann (15/11/2026) :** « Il n’y a pas de plafond de nombre de séries pour le buy in et le buy out » ; le « maximum 3 colonnes » de sa proposition ne vaut que pour les colonnes visibles, au-delà défilement. Les tours de la boucle suivent la borne existante du Nombre de tours.
+
+## Formats à tableau — écran unique, sans redondance (15/11/2026)
+
+Classe B (évolution validée). Décisions de Hermann, recopiées :
+
+> « Tabata, 30/30, renforcement, à l’échec : il y a une redondance » (cartes de mouvement et tableau) — « Oui » (extension aux Formats à tableau et remplacement des écrans de production)
+
+> « À noter que les colonnes des tableaux de type (dimensions en colonne) ne change pas. »
+
+> « Tabata, 30/30, renforcement et à l’échec, remplacer la deuxième ligne des mouvements avec l’unité et la charge » — « Non ne pas supprimer la colonne charge » — « Sur la colonne charge : soit elle est grisée soit elle est active » — « Un seul point à améliorer : il y a peu d’espace entre l’appuie sur la photo, l’unité et la charge »
+
+- **Conséquences.** Aucun questionnaire pour les Formats à tableau ; un seul écran, pour la création et la réouverture. Colonnes à dimensions inchangées ; colonne Charge grisée ou active ; seconde ligne « (unité, charge) ». Progression, EMOM, Superset : colonne Unité supprimée, − / + sur le tableau. Cette décision précise et remplace pour ces Formats la décision du 04/11/2026 (modèles sans récapitulatif, enregistrés depuis le questionnaire).
+- **Interprétation de ma part, à corriger au besoin :** le principe « Unité à choisir, en rouge » du For time est étendu aux Formats dont l’unité est libre par ligne ; les variantes d’Exécution (alternance, à la suite, dans chaque intervalle) reprennent le même tableau.
+- **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02 (§4, §8, tableau des écrans Figma) ; chapitre 06 (écrans archivés). Aucun changement aux règles FMT.

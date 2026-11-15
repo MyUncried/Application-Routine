@@ -3249,6 +3249,8 @@ Nœud [1992:6622](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=19
 
 ### Formats — questionnaires, récapitulatifs et choix
 
+[Remplacé le 15/11/2026 : les questionnaires et récapitulatifs ci-dessous sont archivés ; chaque Format à tableau ouvre un écran unique depuis la Composition — CE-FMT-02, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) ».]
+
 ##### 30/30 — Questionnaire
 
 Nœud [8656:33799](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8656-33799) · Export du 06/11/2026.
