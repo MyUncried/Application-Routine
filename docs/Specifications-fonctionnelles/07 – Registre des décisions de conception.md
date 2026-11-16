@@ -2577,3 +2577,19 @@ Classe B (évolution validée). Décisions de Hermann, recopiées :
 
 - **Conséquences.** Grille de photos à trois colonnes pour les Mouvements, bascule liste / grille mémorisée, pile qui se déploie dans le flux. Les Séances restent en liste (la photo d’une Séance est celle de son premier exercice : elle ne la distingue pas).
 - **Documents mis à jour (classe B).** Chapitre 13, CE-MVT-03 (présentation en grille). États de la grille non dessinés : filtres, archivés, suppression, actions de la pile.
+
+## Formats — saisie par la modale des paramètres d’exécution (16/11/2026)
+
+Classe B (évolution validée). Décisions de Hermann, recopiées :
+
+> « Plutôt que d’avoir sous le nom des zones clickables pour la durée/répétition, la charge, puis chaque zone du tableau, le plus simple est d’avoir sous le nom un texte "Paramètres à compléter" (comme dans la composition de séance) qui ouvre la modale des paramètres d’exécution. […] L’utilisateur peut toujours cliquer sur chaque cellule du tableau si il le souhaite mais l’entrée "standard" est d’ouvrir la modale. »
+
+> « je ne vois que 3 informations utiles à afficher qui sont l’unité (obligatoire), la bilatéral (si activé : "bilatéral", sinon rien), avec / sans charge (pas la valeur). » — « et je pense qu’on n’a pas besoin de "kg", cela se voit sur la ligne… » — « mieux vaut garder répétition qui surcharge un peu la lecture, ou mettre rép. » (retenu : « rép. »)
+
+> « il faut avant retirer les - et les +, c’est à modifier dans la modale. met le triangle à la place du + et un peu plus gros »
+
+> « exercice unique en format, je propose de les modéliser aussi avec un circuit, plutôt que de modifier les options du glisser gauche sur un exercice unique. »
+
+- **Conséquences.** Sous le nom : unité, « bilatéral » si activé, ou « Paramètres à compléter » en rouge ; plus de « − » / « + » ; triangle plus gros ; le nombre de séries et de tours se règle dans la modale. Un exercice qui porte un Format (AMRAP, EMOM, For time, Death by) est toujours dans un Circuit, même seul ; « Modifier le format » reste une action du glissé du Circuit.
+- **À préciser (Hermann).** Un exercice d’un Format porté seul par un Circuit d’un membre compte comme « Un exercice » dans le catalogue des Séances ; les séances existantes sont migrées. Non arbitré à ce jour.
+- **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02 ; règle de portage du Format (Formats d’entraînement §1). Les chapitres 04 et 12 (modèle de données, moteur) ne sont pas mis à jour : à traiter avant le développement.
