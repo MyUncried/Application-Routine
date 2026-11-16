@@ -2591,3 +2591,4 @@ Classe B (évolution validée). Décisions de Hermann, recopiées :
 - **Conséquences.** Sous le nom : unité, « bilatéral » si activé, ou « Paramètres à compléter » en rouge ; plus de « − » / « + » ; triangle plus gros ; le nombre de séries et de tours se règle dans la modale.
 - **Hors décision.** Le portage du Format par un Circuit pour un exercice unique n’est qu’une proposition de Hermann, à étudier avec le cas des Circuits libres : aucune règle modifiée.
 - **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02.
+- **Zone tappable (16/11/2026).** Décision de Hermann : « Toute la zone de texte sur les deux lignes à droite de la photo ouvre la modale. » Classe B ; chapitre 13, CE-FMT-02.
