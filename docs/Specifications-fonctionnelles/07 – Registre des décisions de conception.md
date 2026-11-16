@@ -2588,8 +2588,6 @@ Classe B (évolution validée). Décisions de Hermann, recopiées :
 
 > « il faut avant retirer les - et les +, c’est à modifier dans la modale. met le triangle à la place du + et un peu plus gros »
 
-> « exercice unique en format, je propose de les modéliser aussi avec un circuit, plutôt que de modifier les options du glisser gauche sur un exercice unique. »
-
-- **Conséquences.** Sous le nom : unité, « bilatéral » si activé, ou « Paramètres à compléter » en rouge ; plus de « − » / « + » ; triangle plus gros ; le nombre de séries et de tours se règle dans la modale. Un exercice qui porte un Format (AMRAP, EMOM, For time, Death by) est toujours dans un Circuit, même seul ; « Modifier le format » reste une action du glissé du Circuit.
-- **À préciser (Hermann).** Un exercice d’un Format porté seul par un Circuit d’un membre compte comme « Un exercice » dans le catalogue des Séances ; les séances existantes sont migrées. Non arbitré à ce jour.
-- **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02 ; règle de portage du Format (Formats d’entraînement §1). Les chapitres 04 et 12 (modèle de données, moteur) ne sont pas mis à jour : à traiter avant le développement.
+- **Conséquences.** Sous le nom : unité, « bilatéral » si activé, ou « Paramètres à compléter » en rouge ; plus de « − » / « + » ; triangle plus gros ; le nombre de séries et de tours se règle dans la modale.
+- **Hors décision.** Le portage du Format par un Circuit pour un exercice unique n’est qu’une proposition de Hermann, à étudier avec le cas des Circuits libres : aucune règle modifiée.
+- **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02.

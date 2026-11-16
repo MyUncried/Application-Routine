@@ -14,7 +14,7 @@ Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page « Prototype MVP » (`510:101`). 
 
 Le Format est porté par l’Exercice autonome ou par le Circuit qui porte le temps commun ou coordonne la progression et la fin du défi :
 
-- **un seul exercice** : un exercice qui porte un Format (AMRAP, EMOM, For time, Death by) est toujours dans un Circuit, même d’un seul membre ; le Circuit porte le Format et son glissé propose « Modifier le format ». [Remplacé le 16/11/2026 : « l’Exercice porte le Format. Un AMRAP à un seul mouvement crée toutefois un Circuit si le nombre de blocs dépasse 1, si le repos après chaque tour est supérieur à 0, ou si un buy-in est présent ».]
+- **un exercice autonome** : l’Exercice porte le Format (AMRAP, EMOM, For time, Death by). Un AMRAP à un seul mouvement crée toutefois un Circuit si le nombre de blocs dépasse 1, si le repos après chaque tour est supérieur à 0, ou si un buy-in est présent ;
 - **plusieurs exercices qui partagent un même temps**, ou un Death by coordonné en alternance : le Circuit porte le Format via **Format d’origine**. En Death by alterné, le portage de l’identité et de la fin collective au Circuit ne transfère pas l’intervalle des membres au Circuit.
 
 Cas où le circuit porte le format :
