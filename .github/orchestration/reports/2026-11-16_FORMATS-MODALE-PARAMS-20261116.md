@@ -212,6 +212,18 @@ Résultats relus dans le cahier en ligne (version 122). OK : `mp-rouge`, `mp-ble
 - **Tests après les deux commits :** 366 suites, 5 867 réussis, 32 ignorés, 0 échec. Le premier commit seul n’a pas été testé à part.
 - **Documentation de main :** `…-16f.patch` passe `git apply --cached --check` sur `d108ad2c`.
 
+## Point 14 — Fusion dans main (étape 3, préparée localement)
+
+- **Commit de fusion :** `ed890f6f`, parents `d108ad2c` (main) et `e3836f87` (pre11-formats). Préparé dans un worktree temporaire, puis `pre11-formats` avancé jusqu’à lui (avance rapide). Rien n’est encore poussé.
+- **Code :** aucun conflit ; main n’avait reçu que des commits de documentation depuis la base commune `60395a6a` (19 commits).
+- **Documentation — six fichiers en conflit avec les commits documentaires de main :**
+  - même règle des deux côtés → formulation consolidée de main : DSF Formats l.15, référence Formats (tableau For time), matrice FMT-31, ch10 FMT-31 (deux occurrences) ;
+  - décisions propres à la branche, absentes de main, conservées : ch07, sections « For time — séries et tours (14/11/2026) », « corrections 1 et 2 », « corrections 3 et 4 » et les entrées des recettes du 14 et du 15/11/2026 ; ch10 FMT-32, complément du 13/11/2026 (Rôle Tour sans guidage des phases) ; ch13, rédaction du 14/11/2026 du mode d’exécution (en-tête de Circuit « 3 séries · à la suite »), annotée comme conservée à la fusion.
+  - Avant la résolution, contrôle : aucun de ces textes de la branche n’existait sur main.
+- **Correctif `…-16f.patch`** appliqué en 3-way sur le résultat : un conflit (ch10, FMT-30) résolu en combinant « À la suite » (14/11/2026) et la règle de la boucle en Répétitions (16/11/2026). Contrôle : chaque ligne ajoutée par le correctif est présente une fois dans le document visé.
+- **Tests sur le résultat de la fusion :** 366 suites, 5 867 réussis, 32 ignorés, 0 échec ; `tsc` propre.
+- **Reste à faire :** pousser `pre11-formats`, ouvrir la PR vers main et la fusionner (avec l’accord de Hermann).
+
 ## Hypothèses non démontrées
 
 - La zone tactile du nom (toute la hauteur de la ligne, jusqu'au tableau) n'a pas été vérifiée au doigt. Seul un test sur iPhone peut le confirmer.
