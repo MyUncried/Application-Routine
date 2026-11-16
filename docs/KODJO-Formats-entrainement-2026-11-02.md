@@ -678,7 +678,7 @@ Principe : un volume fixé, le plus vite possible. Résultat : le temps réalis�
 
 Appuyer dans la zone du haut lance l’exercice en durée (après un exercice en répétitions), le met en pause, puis le reprend. À 00:00 l’exercice suivant démarre automatiquement (signal sonore). Un exercice en durée ne se valide pas avant son terme. Sans exercice en durée, l’écran standard du For time reste inchangé.
 
-**À arbitrer** (registre ch07) : démarrage automatique d’un exercice en durée quand le moment est connu ; compte du tour quand l’exercice en durée est le dernier de la boucle.
+**Départ et fin (Hermann, 16/11/2026, registre ch07).** Un exercice en durée démarre seul quand le moment est connu (départ du For time, appui sur « + Tour », fin d’un autre exercice en durée) ; après un exercice en répétitions, il se lance par un appui dans la zone du haut. Un exercice en durée en dernier de la boucle compte le tour à 00:00, sans appui sur « + Tour » ; au dernier tour de la dernière série, le For time se termine à 00:00 et affiche le temps final.
 
 Écrans Figma : « Exécution d’une séance — For time » (`8982:15849`), « … — Exercice en durée — Planche — En cours » (`12514:27223`), « … — En pause » (`12514:27329`), « … — Terminé (exercice suivant) » (`12503:27060`), « … — Sans exercice en durée » (`12519:27177`), « … — Buy-in et buy-out » (`11990:24925`).
 
