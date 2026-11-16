@@ -201,6 +201,17 @@ Résultats relus dans le cahier en ligne (version 122). OK : `mp-rouge`, `mp-ble
 - **Tests :** deux tests de `ExecutionParametersSheet.test.tsx` adaptés (fond rouge au focus, « 0 » reste rouge, « 1,3 » passe au fond actif, plus de cadre rouge). Suite complète : 366 suites, 5 867 réussis, 32 ignorés, 0 échec ; `tsc` propre ; ESLint sans erreur sur les trois fichiers.
 - **Cahier :** version 126, ligne `mq-charge-rouge-2`.
 
+## Point 13 — Fin de recette et commits du code (validation de Hermann)
+
+- **Recette :** n° 20 (`mq-charge-rouge-2`) et n° 21 (`mq-legende-buy`) OK (cahier v128). Toutes les lignes du lot sont OK.
+- **Erreur de lecture corrigée :** une requête du cahier par identifiant (`__name__ in …`) ne trouvait pas ces deux lignes ; elles ont été annoncées à tort comme non jouées. La lecture ligne par ligne a montré qu’elles étaient OK.
+- **Validation de Hermann, recopiée :** « Oui » (commit du code de `pre11-formats`).
+- **Commits :**
+  - `4d08903a` — Formats à tableau, For time et modale des paramètres (code, tests, spec du lot, correctifs documentaires `…-16` à `…-16f`) ;
+  - `88b96618` — écran d’exécution du For time (`src/domain/execution`, `src/features/execution`, icônes).
+- **Tests après les deux commits :** 366 suites, 5 867 réussis, 32 ignorés, 0 échec. Le premier commit seul n’a pas été testé à part.
+- **Documentation de main :** `…-16f.patch` passe `git apply --cached --check` sur `d108ad2c`.
+
 ## Hypothèses non démontrées
 
 - La zone tactile du nom (toute la hauteur de la ligne, jusqu'au tableau) n'a pas été vérifiée au doigt. Seul un test sur iPhone peut le confirmer.
