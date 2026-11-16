@@ -2575,8 +2575,17 @@ Classe B (évolution validée). Décisions de Hermann, recopiées :
 
 > « J’aimerais pouvoir afficher les séances pas seulement sous forme de liste, mais aussi sous forme de catalogue images, comme dans un catalogue de photos, et les mouvements aussi » — « Pour les mouvement je pense qu’on peut avoir trois colonnes » — « On peut dire que cliquer sur la pile déploie les cartes et décale les suivantes » — « Je suis d’accord c’était mon intuition » (grille pour les Mouvements seulement, pas pour les Séances)
 
-- **Conséquences.** Grille de photos à trois colonnes pour les Mouvements, bascule liste / grille mémorisée, pile qui se déploie dans le flux. Les Séances restent en liste (la photo d’une Séance est celle de son premier exercice : elle ne la distingue pas).
+- **Conséquences.** Grille de photos à trois colonnes pour les Mouvements, bascule liste / grille mémorisée, pile qui se déploie dans le flux. [Trois colonnes remplacées par quatre le 16/11/2026, voir la section suivante ; le reste est inchangé.] Les Séances restent en liste (la photo d’une Séance est celle de son premier exercice : elle ne la distingue pas).
 - **Documents mis à jour (classe B).** Chapitre 13, CE-MVT-03 (présentation en grille). États de la grille non dessinés : filtres, archivés, suppression, actions de la pile.
+
+## Catalogue des Mouvements — grille à quatre colonnes (16/11/2026)
+
+Classe B (évolution validée). Décisions de Hermann, recopiées :
+
+> « Fais une version de la vue catalogue des mouvements par cartes, avec 4 colonnes » — « Écrire le texte plus petit » — « Le texte pas en gras » — « Faire plusieurs lignes » — « Retirer le niveau, ne mettre qu’une carte sous la pile » — « Réduire la hauteur pour deux lignes » — « Mettre la coche New sur l’une des piles et sur l’une des cartes » — « L’étiquette doit être posée en bas à droite, comme dans le catalogue liste » — « Ce sont les lignes qu’il faut écarter, pas la distance entre deux cartes d’une même pile »
+
+- **Conséquences.** La grille des Mouvements passe à quatre colonnes (cartes de 86,5 × 112 pt, photo de 70 pt, nom en 10,5 pt Regular sur deux lignes au plus), sans pastille de niveau ; une seule feuille sous la carte de tête d’une pile ; badge « New » en bas à droite de la carte, comme en liste ; 10 pt entre les rangées. Le niveau reste visible en liste et dans la fiche du mouvement.
+- **Documents mis à jour (classe B).** Chapitre 13, CE-MVT-03 (présentation en grille). Chapitres 09 et 12 (dimensions de la carte de grille, composant) à traiter avant le développement. États non dessinés en quatre colonnes : pile déployée, filtres, archivés, suppression.
 
 ## Formats — saisie par la modale des paramètres d’exécution (16/11/2026)
 
