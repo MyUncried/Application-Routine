@@ -155,6 +155,26 @@ Résultats relus dans le cahier en ligne (version 122). OK : `mp-rouge`, `mp-ble
   - `git apply --cached --check` passe sur `origin/main` `baed622f` (main a avancé : `…-16c.patch` n'y passait plus au chapitre 13, conflit résolu en gardant la formulation de `main` pour la zone de texte).
   - Il remplace `…-16c.patch` et couvre : registre ch07 (entrée « Recette de la modale des paramètres », D-514), chapitre 10 (FMT-30 aux deux endroits, RM-249), chapitre 13 (CE-FMT-02, « Boucle du For time ») et le document des Formats (« Boucle du For time »).
 
+## Point 10 — KO resté ouvert : r16b-deroule-hauteur (Déroulé)
+
+- **Constat.** En relisant tout le cahier avant la fusion (ordre décidé par Hermann : terminer la recette, valider, committer, fusionner, puis la mission d), une ligne KO du matin n'avait jamais été traitée. Toutes les autres sections du lot sont OK (Formats à tableau, For time, exécution du For time, corrections 1 à 4).
+- **Note de Hermann, recopiée :** « AMRAP, déroulé : - buy in, la largeur du Buy In doit être identique aux autres cadres - les dernières cases "n" doivent être plus haute que l'avant dernière (idem pour le format à l'échec) ».
+- **Cause.** Le buy-in de l'AMRAP pesait 2,5 cases. Une case « n » sans volume connu gardait la pleine hauteur, comme le plus grand rang chiffré : les deux étaient égales.
+- **Correction (`src/domain/sessions/formatTimeline.ts`) :**
+  - AMRAP : le buy-in pèse une case ;
+  - nombre ouvert qui croît (Death by, AMRAP à volume croissant) : `scaleRepetitions(…, openTop)` ramène les cases chiffrées à 0,8 de leur hauteur et laisse « n » à pleine hauteur ; « n » dépasse donc toujours la case qui la précède.
+- **Interprétations (spec, point 27) :**
+  - « le format à l'échec » est lu comme le Death by ;
+  - l'AMRAP à volume constant garde « n » à la hauteur de son volume ;
+  - le buy-in du For time n'est pas visé.
+- **Tests :** `formatTimeline.recette1611.test.ts` (Death by adapté et marqué remplacé ; nouveau test AMRAP).
+  - Suite complète : 366 suites, 5 866 tests réussis, 32 ignorés, 0 échec ; `tsc` propre.
+  - ESLint : aucune erreur ; un avertissement déjà présent avant le correctif (`openGeneric` inutilisé), laissé tel quel.
+- **Documentation :** `_bmad-output/pre11/integration-documentaire-main-2026-11-16e.patch`, préparé et non appliqué.
+  - `git apply --cached --check` passe sur `baed622f`.
+  - Il reprend `…-16d.patch` et ajoute le registre ch07 « Déroulé de l'AMRAP et du Death by » et une puce CE-FMT-02 au chapitre 13.
+- **Cahier :** version 124, ligne `mq-deroule-n`.
+
 ## Hypothèses non démontrées
 
 - La zone tactile du nom (toute la hauteur de la ligne, jusqu'au tableau) n'a pas été vérifiée au doigt. Seul un test sur iPhone peut le confirmer.
@@ -245,6 +265,7 @@ Cahier en ligne, version 123, section « fmt-modale-1611b » (9 lignes `mq-*`, p
 - `src/shared/i18n/resources/fr.ts`
 - Point 9 : `src/features/activities/KeyboardField.tsx`, `src/features/activities/FormatSettingsFrame.tsx`, `src/domain/sessions/circuitRoles.ts`, `src/domain/sessions/configurationValidity.ts`, `src/domain/activities/phaseCycleFit.ts`, et les tests `src/features/activities/__tests__/ExecutionParametersSheet.phases.test.tsx`, `src/domain/activities/__tests__/phaseCycleFit.test.ts`, `src/domain/sessions/__tests__/formatModels.reprise0411.test.ts`, `src/domain/sessions/__tests__/circuitRoles.reprise0411.test.ts` (en plus des fichiers déjà listés, modifiés de nouveau)
 - `_bmad-output/pre11/integration-documentaire-main-2026-11-16d.patch` (nouveau, point 9 ; remplace `…-16c.patch`)
+- Point 10 : `src/domain/sessions/formatTimeline.ts`, `src/domain/sessions/__tests__/formatTimeline.recette1611.test.ts`, `_bmad-output/pre11/integration-documentaire-main-2026-11-16e.patch` (nouveau ; remplace `…-16d.patch`)
 - `_bmad-output/pre11/spec-pre11-formats.md`
 - `_bmad-output/pre11/integration-documentaire-main-2026-11-16c.patch` (nouveau)
 - `.github/orchestration/reports/2026-11-16_FORMATS-MODALE-PARAMS-20261116.md` (ce rapport)
