@@ -186,6 +186,21 @@ Résultats relus dans le cahier en ligne (version 122). OK : `mp-rouge`, `mp-ble
 - **Documentation (classe B) :** spec, point 28 ; `_bmad-output/pre11/integration-documentaire-main-2026-11-16f.patch`, préparé et non appliqué. `git apply --cached --check` passe sur `baed622f`. Il reprend `…-16e.patch` et ajoute le registre ch07 « Déroulé — couleur de la légende du buy-in et du buy-out » et une puce CE-FMT-02 au chapitre 13.
 - **Cahier :** version 125, ligne `mq-legende-buy`.
 
+## Point 12 — Recette du soir : résultats et KO mq-charge-rouge
+
+- **Résultats du cahier (version 125) :** neuf lignes `mq-*` OK (dont `mq-deroule-n`). Un KO : `mq-charge-rouge`. Aucun résultat n'est enregistré pour `mq-legende-buy`.
+- **KO de Hermann, recopié :** « Activation de Avec Charge : le champ a un fond bleu et un liseré rouge. Il doit avoir un fond rouge et sans liseré ».
+- **Cause.**
+  - Liseré : l'option « Avec » à renseigner (`invalid`) dessinait le cadre rouge commun de `SegmentedControl`.
+  - Fond bleu : pour une saisie décimale, `cellEntryEmpty` ne déclare jamais la saisie vide ; au focus, le fond du champ actif l'emportait donc sur le rouge.
+- **Correction :**
+  - `src/shared/ui/SegmentedControl.tsx` : nouvelle propriété d'option `invalidWithoutFrame` (fond rouge, sans cadre), sans effet sur les autres usages ;
+  - `src/features/activities/ExecutionParametersSheet.tsx` : l'option « Avec » de la charge l'utilise ;
+  - `src/features/activities/KeyboardField.tsx` : avec `invalidWhileEmpty`, le fond rouge reste au focus tant que la saisie est vide ou nulle ; le fond du champ actif revient dès qu'une valeur positive est tapée.
+- **Classe A** (spec, point 29) : les règles existent déjà (« un champ avec un trait horizontal et un fond rouge » ; « Charge avec - pas de liseré rouge »). Aucun document modifié ; le correctif `…-16f.patch` reste valable.
+- **Tests :** deux tests de `ExecutionParametersSheet.test.tsx` adaptés (fond rouge au focus, « 0 » reste rouge, « 1,3 » passe au fond actif, plus de cadre rouge). Suite complète : 366 suites, 5 867 réussis, 32 ignorés, 0 échec ; `tsc` propre ; ESLint sans erreur sur les trois fichiers.
+- **Cahier :** version 126, ligne `mq-charge-rouge-2`.
+
 ## Hypothèses non démontrées
 
 - La zone tactile du nom (toute la hauteur de la ligne, jusqu'au tableau) n'a pas été vérifiée au doigt. Seul un test sur iPhone peut le confirmer.
@@ -278,6 +293,7 @@ Cahier en ligne, version 123, section « fmt-modale-1611b » (9 lignes `mq-*`, p
 - `_bmad-output/pre11/integration-documentaire-main-2026-11-16d.patch` (nouveau, point 9 ; remplace `…-16c.patch`)
 - Point 10 : `src/domain/sessions/formatTimeline.ts`, `src/domain/sessions/__tests__/formatTimeline.recette1611.test.ts`, `_bmad-output/pre11/integration-documentaire-main-2026-11-16e.patch` (nouveau ; remplace `…-16d.patch`)
 - Point 11 : `src/features/sessions/FormatModelScreen.tsx`, `src/features/sessions/__tests__/FormatModelScreen.c3.test.tsx`, `_bmad-output/pre11/spec-pre11-formats.md`, `_bmad-output/pre11/integration-documentaire-main-2026-11-16f.patch` (nouveau ; remplace `…-16e.patch`)
+- Point 12 : `src/shared/ui/SegmentedControl.tsx`, `src/features/activities/ExecutionParametersSheet.tsx`, `src/features/activities/KeyboardField.tsx`, `src/features/activities/__tests__/ExecutionParametersSheet.test.tsx`, `_bmad-output/pre11/spec-pre11-formats.md`
 - `_bmad-output/pre11/spec-pre11-formats.md`
 - `_bmad-output/pre11/integration-documentaire-main-2026-11-16c.patch` (nouveau)
 - `.github/orchestration/reports/2026-11-16_FORMATS-MODALE-PARAMS-20261116.md` (ce rapport)
