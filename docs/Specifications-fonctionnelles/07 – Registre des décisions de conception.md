@@ -2568,3 +2568,12 @@ Classe B (évolution validée). Décisions de Hermann, recopiées :
 - **Déroulé de l’AMRAP (15/11/2026).** Décision de Hermann : « Retirer le texte « buy in » et « buy out » du cadre d’illustration ». Le bloc du buy-in affiche son volume seul (« 50 ») ; aucun texte « buy-in » ni « buy-out » dans le Déroulé (For time : déjà aucun). Classe B ; document mis à jour : Formats d’entraînement (libellé du bloc).
 - **AMRAP — réglages conservés (16/11/2026).** Constat de Hermann : « Nombre de blocs, Repos entre les blocs, Repos de boucle n'ont plus d'écran » ; décision : ils reviennent dans le cadre des paramètres d’exécution (Nombre d’AMRAP ; Repos entre deux AMRAP si plus d’un AMRAP ; Repos après chaque tour de boucle, libellés du questionnaire d’origine). Classe B ; document mis à jour : chapitre 13, CE-FMT-02. Écran Figma « AMRAP — Récapitulatif » (`12445:27394`) mis à jour ; l’écran du cas à plusieurs blocs n’est pas dessiné.
 - **AMRAP — plusieurs AMRAP (16/11/2026).** Décision de Hermann : « chaque bloc répète les mêmes mouvements, ils se traduisent par le nombre de tours de circuit ». Aucun mouvement propre à un bloc ; Déroulé en Bloc 1 … Bloc n. Classe B ; document mis à jour : chapitre 13, CE-FMT-02. Écran Figma `12469:27020` ajouté (remplace la mention « écran non dessiné » ci-dessus).
+
+## Catalogue des Mouvements — présentation en grille (16/11/2026)
+
+Classe B (évolution validée). Décisions de Hermann, recopiées :
+
+> « J’aimerais pouvoir afficher les séances pas seulement sous forme de liste, mais aussi sous forme de catalogue images, comme dans un catalogue de photos, et les mouvements aussi » — « Pour les mouvement je pense qu’on peut avoir trois colonnes » — « On peut dire que cliquer sur la pile déploie les cartes et décale les suivantes » — « Je suis d’accord c’était mon intuition » (grille pour les Mouvements seulement, pas pour les Séances)
+
+- **Conséquences.** Grille de photos à trois colonnes pour les Mouvements, bascule liste / grille mémorisée, pile qui se déploie dans le flux. Les Séances restent en liste (la photo d’une Séance est celle de son premier exercice : elle ne la distingue pas).
+- **Documents mis à jour (classe B).** Chapitre 13, CE-MVT-03 (présentation en grille). États de la grille non dessinés : filtres, archivés, suppression, actions de la pile.

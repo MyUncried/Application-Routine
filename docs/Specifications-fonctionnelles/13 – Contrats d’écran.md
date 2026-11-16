@@ -43,6 +43,13 @@ Toute valeur initialisée depuis un défaut du Profil est présentée dans son c
 
 **Complément du 06/11/2026 (D-510) :** état « fiche nouvelle ». Toute fiche créée (bouton +, Ajouter un niveau, duplication, ajout depuis la Composition) porte le badge « New » au premier affichage du catalogue qui suit ; la carte de tête d’une pile repliée porte « New ↓ » si un niveau caché sous elle est nouveau. Le badge disparaît au changement de vue par les onglets du haut ou la barre du bas, et à la fermeture de l’app ; il n’est pas enregistré. Au retour après création, la liste défile jusqu’à la fiche (ou sa pile, sans la déployer). Écran « Mouvement — Catalogue — Fiche créée » `11762:23747`. Règles complètes : [KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06](../KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06.md).
 
+**Présentation en grille du catalogue des Mouvements (décision de Hermann du 16/11/2026) :** le catalogue des Mouvements, et lui seul, peut s’afficher en liste (présentation d’origine) ou en grille de photos. Les Séances et les Programmes restent en liste.
+- **Bascule :** bouton à deux segments liste / grille à droite de la ligne des compteurs (« 2 familles · 7 mouvements ») ; le choix est mémorisé.
+- **Carte :** trois colonnes sur 386 pt (largeur 123,33 pt, espace de 8 pt), photo de 100 pt en tête, nom sous la photo sur une ou deux lignes (13 pt, semi-gras), pastille blanche « Niveau n » en bleu sur le coin supérieur droit de la photo ; pas de description.
+- **Pile :** même représentation qu’en liste (deux feuilles décalées sous la carte de tête). Un appui sur la pile la déploie : les niveaux prennent leur place dans le flux de la grille, les cartes suivantes se décalent, un liseré bleu sous la rangée relie les niveaux de la famille ; un second appui la referme. Les actions de la liste (glissé, ajout d’un niveau, déplacement, création de famille) ne sont pas redessinées pour la grille.
+- **Hors périmètre :** la grille n’est pas appliquée au catalogue des Séances, faute d’image propre à une Séance ; ni aux états Filtres, Archivés et Suppression, non dessinés en grille.
+- **Écrans Figma :** « Mouvement — Catalogue — Grille » (`12472:27249`), « Mouvement — Catalogue — Grille — Pile déployée » (`12478:26998`).
+
 ### 1. Identification
 
 Contrat du 28/10/2026. Figma Prototype MVP `510:101` : Déplacement `10480:23374`, Création d’une famille `10797:20492`, Message de confirmation `10484:23428`. Trois captures au chapitre 06. Référence normative : [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), MFN-05, D-439, D-445 C08 et D-448 point 9.
