@@ -128,10 +128,37 @@ Avant cette mission, seul le For time ouvrait la modale (FT-3).
   - « tours identiques / variables » s'affiche aussi dans la Composition.
 - **Test ajouté.** For time : passer un exercice de la boucle en Buy-out le déplace dans ce bloc ; une Récupération de 45″ est enregistrée.
 
+## Point 9 — recette iPhone du 16/11/2026 (après-midi) : KO et « Autres constats » a à c
+
+Résultats relus dans le cahier en ligne (version 122). OK : `mp-rouge`, `mp-bleu`, `mp-bilateral`, `mp-zone`, `mp-plus-moins`, `mp-modale-identique`, `mp-buyin-variables`, `mp-boucle-tours`, `mp-objectifs-requis` (interprétation (v) confirmée). KO et constats, recopiés, puis traitement :
+
+| Écart | Note de Hermann (recopiée) | Correction |
+|---|---|---|
+| `mp-charge-vide` | « Charge avec - pas de liseré rouge » | Le champ de la charge commune, placé dans l'option « Avec », n'était pas signalé : sa couleur de champ actif (clavier ouvert dès « Avec ») recouvrait le fond rouge de l'option. Désormais `KeyboardField` garde le rouge (`invalidWhileEmpty`) tant que rien n'est tapé, clavier ouvert compris ; au premier chiffre, couleur du champ actif. « — » en texte primaire. Même règle pour les cases Charge des séries variables. |
+| `mp-charge` | « Incrément :il ne faut pas de valeur par défaut dans la modale » | La Composition provisoire portait l'incrément de repli (Death by + 1, AMRAP 0). Quand l'Incrément est vide au tableau, l'écran du Format retire ce repli et marque la ligne à renseigner (`incrementRequired`) : « — » sur fond rouge, ✓ indisponible jusqu'à la saisie. Défaut trouvé par le test ajouté : une saisie égale au repli (1) n'était pas appliquée ; `scalarValueOf` rend désormais `null` pour un Incrément à renseigner. |
+| `mp-duree-refusee` | « Les mouvements en buy-in et buy out doivent être exclus de cette vérification. Il faut au moins un exercice en répétition sur les exercices en boucle. » | For time comme AMRAP : seuls les exercices de Rôle Tour comptent — écran du Format (`lastRepetitionsLocked`, `allowedModes`), Composition (`isLastRepetitionsMember` : verrou de suppression et de sortie) et validité (`NO_REPETITIONS`). |
+| `mp-triangle` | « Le triangle doit être centré verticalement par rapport au texte, il doit s’inverser et changer de côté (avant la première colonne) quand on arrive à l dernière colonne. » | Triangle centré sur les titres (`top` 9 au lieu de 7,5 ; milieu à 15,5 comme le texte). À la dernière colonne (défilement suivi par `onScroll` et `onContentSizeChange`), le triangle de droite disparaît et un triangle pointant à gauche apparaît avant la première colonne visible. |
+| Constat a (1) | « la condition d'arrêt devrait être "à l'objectif". Alors que la il n'y a qu'un trait horizontal. » | Séries variables sans aucune cible renseignée : « À l'objectif » en lecture seule au lieu de « — », partout où la modale s'ouvre (interprétation (aa)). |
+| Constat a (2) | « Les champs de valeur de la colonne Pause devraient être désactivés, avec un trait horizontal, comme la colonne Charge. » | For time : chaque case Pause du tableau des séries est un tiret gris non saisissable, hors de l'ordre Précédent / Suivant (interprétation (ab) : For time seulement). |
+| Constat a (3) | « Tours identiques : un objectif de durée qui est inférieur à la somme de la durée des phases affiche un texte en rouge, et bloque la validation. Retirer le texte rouge et afficher la même fenêtre de message qui propose un arrondi […] » | `phaseCycleIssues` range une série plus courte que le motif parmi les arrondis à proposer : même alerte native, avec le seul choix « Arrondir à » la durée du motif (aucun multiple inférieur non nul, interprétation (ac)). Plus de message rouge ni de ✓ bloqué. |
+| Constat b | « Progression : appuyer sur le mode d'exécution fait passer la condition d'arrêt à un trait "-" » | Même cause et même correction que le constat a (1) : changer d'unité vide les cibles des séries variables. |
+| Constat c | « Death by - Il faut le même principe d'affichage du texte "Paramètres à compléter" de la modale des paramètres d'exécution. » | Death by : « Paramètres à compléter » en rouge sous le nom tant que le Départ ou l'Incrément manque (`RowKit.parametersMissing`) ; l'unité en bleu ensuite. |
+
+- **Constat d** (mission « écran d'exécution du For time — exercices en durée, « + Tour », Arrêt / Pause désactivé ») : mission distincte, arrêtée à l'étape 1 (état des lieux) comme elle le demande. Rapport : `.github/orchestration/reports/2026-11-16_FORTIME-EXEC-DUREE-20261116.md`.
+- **Tests ajoutés ou adaptés :**
+  - `FormatModelScreen.tableauUnique.test.tsx` : triangle centré et inversé ; Death by « Paramètres à compléter » puis Incrément « — » rouge dans la modale, saisi ; aide `fillTargets` qui renseigne un Incrément vide ;
+  - `FormatModelScreen.c3.test.tsx` : colonne Pause du For time (tirets) et « À l'objectif » ;
+  - `formatModels.reprise0411.test.ts`, `circuitRoles.reprise0411.test.ts` : buy-in et buy-out exclus (écran du Format, Composition, validité) ;
+  - remplacés et marqués comme tels : `ExecutionParametersSheet.test.tsx` (« — » de la condition d'arrêt ; charge « Avec » sans fond), `ExecutionParametersSheet.phases.test.tsx` et `phaseCycleFit.test.ts` (durée plus courte que le motif).
+- **Suite complète** (`npx jest`, après le point 9) : 366 suites, 5 865 tests réussis, 32 ignorés (les mêmes qu'avant), 0 échec ; `tsc --noEmit` propre ; ESLint propre sur les fichiers modifiés au point 9.
+- **Documentation (classe B) :** spec du lot, point 25 du §5 et §7 (aa) à (ad). Sur `main`, correctif préparé, non appliqué : `_bmad-output/pre11/integration-documentaire-main-2026-11-16d.patch`.
+  - `git apply --cached --check` passe sur `origin/main` `baed622f` (main a avancé : `…-16c.patch` n'y passait plus au chapitre 13, conflit résolu en gardant la formulation de `main` pour la zone de texte).
+  - Il remplace `…-16c.patch` et couvre : registre ch07 (entrée « Recette de la modale des paramètres », D-514), chapitre 10 (FMT-30 aux deux endroits, RM-249), chapitre 13 (CE-FMT-02, « Boucle du For time ») et le document des Formats (« Boucle du For time »).
+
 ## Hypothèses non démontrées
 
 - La zone tactile du nom (toute la hauteur de la ligne, jusqu'au tableau) n'a pas été vérifiée au doigt. Seul un test sur iPhone peut le confirmer.
-- La position et la taille du triangle (8 × 13, centré à la place du « + ») ne sont vérifiées que par leurs styles, pas visuellement.
+- La position et la taille du triangle (8 × 13, centré à la place du « + ») ne sont vérifiées que par leurs styles, pas visuellement. Point 9 : la position du triangle inversé (6 à gauche de la première colonne visible) et le suivi du défilement natif ne sont vérifiés que par les tests.
 
 ## Modifications réalisées
 
@@ -185,14 +212,15 @@ Avant cette mission, seul le For time ouvrait la modale (FT-3).
 
 - **Constat a de la seconde recette du 16/11** (rouvrir un Format en exercice unique par glisser gauche) : reporté par Hermann.
 - **Effacement de la charge à la fermeture du clavier.** Le retrait automatique d'une charge vide quand le clavier se ferme (Complément du 5 novembre, §9) est conservé tel quel.
-- **Interprétations à confirmer par Hermann :** spec §7 (v) et (w).
-  - (v) Le ✓ de la modale exige des objectifs complets.
+- **Interprétations à confirmer par Hermann :** spec §7 (w), puis (aa) à (ad) du point 9.
+  - (v) confirmée (cahier, `mp-objectifs-requis` OK).
   - (w) La modale ne masque pas une Durée refusée ; le refus est annoncé par un message.
   - (x) est réglé par le point 7.
+  - (aa) « À l'objectif » sans série renseignée, partout ; (ab) colonne Pause désactivée en For time seulement ; (ac) une durée plus courte que le motif ne propose que l'arrondi au motif ; (ad) l'Incrément de la modale n'est à renseigner que s'il est vide au tableau.
 
 ## Vérifications restant à faire sur l'appareil
 
-Cahier en ligne, version 122, section « fmt-modale-1611 » (13 lignes `mp-*`, dont `mp-charge-vide` pour le point 7 et `mp-modale-identique` pour le point 8, à vérifier aussi dans la Composition et le Catalogue) : https://claude.ai/artifact/Mp9Tu1rPiRdfebmKfpf8Tq
+Cahier en ligne, version 123, section « fmt-modale-1611b » (9 lignes `mq-*`, point 9). Version 122, section « fmt-modale-1611 » (13 lignes `mp-*`, dont `mp-charge-vide` pour le point 7 et `mp-modale-identique` pour le point 8, à vérifier aussi dans la Composition et le Catalogue) : https://claude.ai/artifact/Mp9Tu1rPiRdfebmKfpf8Tq
 
 À tester sur le serveur `http://192.168.0.16:8085`, après « Reload JS ».
 
@@ -215,6 +243,8 @@ Cahier en ligne, version 122, section « fmt-modale-1611 » (13 lignes `mp-*`, d
 - `src/features/sessions/__tests__/FormatModelScreen.tableauUnique.test.tsx`
 - `src/shared/i18n/index.ts`
 - `src/shared/i18n/resources/fr.ts`
+- Point 9 : `src/features/activities/KeyboardField.tsx`, `src/features/activities/FormatSettingsFrame.tsx`, `src/domain/sessions/circuitRoles.ts`, `src/domain/sessions/configurationValidity.ts`, `src/domain/activities/phaseCycleFit.ts`, et les tests `src/features/activities/__tests__/ExecutionParametersSheet.phases.test.tsx`, `src/domain/activities/__tests__/phaseCycleFit.test.ts`, `src/domain/sessions/__tests__/formatModels.reprise0411.test.ts`, `src/domain/sessions/__tests__/circuitRoles.reprise0411.test.ts` (en plus des fichiers déjà listés, modifiés de nouveau)
+- `_bmad-output/pre11/integration-documentaire-main-2026-11-16d.patch` (nouveau, point 9 ; remplace `…-16c.patch`)
 - `_bmad-output/pre11/spec-pre11-formats.md`
 - `_bmad-output/pre11/integration-documentaire-main-2026-11-16c.patch` (nouveau)
 - `.github/orchestration/reports/2026-11-16_FORMATS-MODALE-PARAMS-20261116.md` (ce rapport)
@@ -226,6 +256,6 @@ Cahier en ligne, version 122, section « fmt-modale-1611 » (13 lignes `mp-*`, d
 
 ## État Git
 
-- **Branche :** `pre11-formats`, locale, non poussée. Le commit du rapport suit `08817c92`.
-- **Code non commité :** 109 entrées. Ce sont les livraisons précédentes du lot plus celle-ci. Elles attendent la validation de Hermann.
+- **Branche :** `pre11-formats`, locale, non poussée. Le commit du rapport suit `08817c92` ; point 9 : suit `1971d1c6`.
+- **Code non commité :** 109 entrées avant le point 9, plus les fichiers du point 9. Ce sont les livraisons précédentes du lot plus celle-ci. Elles attendent la validation de Hermann.
 - **Metro LAN `http://192.168.0.16:8085` :** en marche ; il sert le nouveau code.
