@@ -680,6 +680,8 @@ Appuyer dans la zone du haut lance l’exercice en durée (après un exercice en
 
 **Départ et fin (Hermann, 16/11/2026, registre ch07).** Un exercice en durée démarre seul quand le moment est connu (départ du For time, appui sur « + Tour », fin d’un autre exercice en durée) ; après un exercice en répétitions, il se lance par un appui dans la zone du haut. Un exercice en durée en dernier de la boucle compte le tour à 00:00, sans appui sur « + Tour » ; au dernier tour de la dernière série, le For time se termine à 00:00 et affiche le temps final.
 
+**Arrière-plan (Hermann, 16/11/2026, classe A).** Quitter l’écran ou passer l’application en arrière-plan ne met pas le For time en pause et ne l’arrête pas : le chrono continue et le temps est recalculé au retour depuis les horodatages (chapitre 10, « L’Exécution continue à progresser… »). Abandonner reste le rôle du bouton « Arrêt ».
+
 Écrans Figma : « Exécution d’une séance — For time » (`8982:15849`), « … — Exercice en durée — Planche — En cours » (`12514:27223`), « … — En pause » (`12514:27329`), « … — Terminé (exercice suivant) » (`12503:27060`), « … — Sans exercice en durée » (`12519:27177`), « … — Buy-in et buy-out » (`11990:24925`).
 
 ## 12. Application de la règle au Death by
