@@ -1,0 +1,26 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="71.5556" height="71.5556" viewBox="0 0 71.5556 71.5556" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="Mettre en pause">
+<rect width="56" height="56" transform="translate(7.77778 6.22222)" fill="white"/>
+<g id="Vector" filter="url(#filter0_d_0_4)">
+<use xlink:href="#stroke0_0_4" fill="#ED7314"/>
+<mask id="stroke1_0_4" fill="white">
+<use xlink:href="#stroke0_0_4"/>
+</mask>
+<path d="M63.7778 34.2222C63.7778 49.6862 51.2418 62.2222 35.7778 62.2222C20.3138 62.2222 7.77778 49.6862 7.77778 34.2222C7.77778 18.7582 20.3138 6.22222 35.7778 6.22222C51.2418 6.22222 63.7778 18.7582 63.7778 34.2222Z" stroke-width="1.55556" stroke="white" mask="url(#stroke1_0_4)"/>
+</g>
+<path id="Vector_2" d="M31.8889 24.1111H30.3333C29.4742 24.1111 28.7778 24.8076 28.7778 25.6667V42.7778C28.7778 43.6369 29.4742 44.3333 30.3333 44.3333H31.8889C32.748 44.3333 33.4444 43.6369 33.4444 42.7778V25.6667C33.4444 24.8076 32.748 24.1111 31.8889 24.1111Z" fill="#FFF2E0"/>
+<path id="Vector_3" d="M41.2222 24.1111H39.6667C38.8076 24.1111 38.1111 24.8076 38.1111 25.6667V42.7778C38.1111 43.6369 38.8076 44.3333 39.6667 44.3333H41.2222C42.0813 44.3333 42.7778 43.6369 42.7778 42.7778V25.6667C42.7778 24.8076 42.0813 24.1111 41.2222 24.1111Z" fill="#FFF2E0"/>
+</g>
+<defs>
+<filter id="filter0_d_0_4" x="0" y="2.38419e-07" width="71.5556" height="71.5556" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="1.55556"/>
+<feGaussianBlur stdDeviation="3.88889"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0 0.15 0 0 0 0.08 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_4"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_4" result="shape"/>
+</filter>
+<path id="stroke0_0_4" d="M35.7778 62.2222C51.2418 62.2222 63.7778 49.6862 63.7778 34.2222C63.7778 18.7582 51.2418 6.22222 35.7778 6.22222C20.3138 6.22222 7.77778 18.7582 7.77778 34.2222C7.77778 49.6862 20.3138 62.2222 35.7778 62.2222Z"/>
+</defs>
+</svg>

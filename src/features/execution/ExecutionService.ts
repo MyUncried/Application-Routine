@@ -172,6 +172,22 @@ export class ExecutionService {
     return occurrenceResults([...this.active.results.values()].flatMap((change) => (change.type === "STEP" ? [change.result as StepResult] : [])));
   }
 
+  /**
+   * Répétitions saisies pour une série interrompue (Durée maximum atteinte ou Arrêt d'un For time), par clé d'étape. Recette du
+   * 15/11/2026 (Hermann, g7 : « La feuille « séance partiellement exécuté » ne présente pas la valeur saisie dans la modale de
+   * résultat »).
+   */
+  partialRepetitions(): ReadonlyMap<string, number> {
+    const found = new Map<string, number>();
+    if (this.active === null) return found;
+    for (const change of this.active.results.values()) {
+      if (change.type !== "SCOPE") continue;
+      const result = change.result as { readonly format?: string; readonly interruptedKey?: string | null; readonly partialRepetitions?: number | null };
+      if (result.format === "FOR_TIME" && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
+    }
+    return found;
+  }
+
   // —————————————————————————————————————————— préparation et lancement
 
   /** Fige la Séance et compile son plan sans rien persister : l'Exécution n'existe qu'au démarrage (ch09). */

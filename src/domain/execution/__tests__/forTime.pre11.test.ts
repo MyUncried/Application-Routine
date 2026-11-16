@@ -5,7 +5,7 @@ import { createSessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 
 import { guidedPhases, launchabilityOf } from "../plan";
 import { executionEnv } from "../policies";
-import type { ForTimeResult } from "../policies/forTime";
+import { type ForTimeResult } from "../policies/forTime";
 import { projectExecution } from "../projection";
 import { exerciseActivity, planOf, Simulation, structuredSession } from "../testing/simulation";
 
@@ -55,7 +55,11 @@ describe("PRE-11 T1 — For time", () => {
     expect(after?.type === "LEAF" && after.leaf.kind).toBe("POST_ACTIVITY_RECOVERY");
   });
 
-  it("fin normale : temps réalisé lu sur le chronomètre (Pause exclue), Clôture bloquante, puis enchaînement automatique (D3)", () => {
+  // Correction 4 de Hermann du 14/11/2026 : aucune modale de résultat dans le déroulement normal — la fin normale affiche le temps
+  // final (FINAL_TIME_MS), sans saisie, puis enchaîne. [Clôture bloquante en fin normale (D3) — remplacé.]
+  // Recette du 14/11/2026 (Hermann : « Il faut supprimer cette fenêtre résultat, passer directement à la pause » ; « Je ne veux pas
+  // de cet écran ») : plus d'affichage du temps final. [Temps final affiché 3 s — remplacé.]
+  it("fin normale : temps réalisé lu sur le chronomètre (Pause exclue), aucune Clôture, passage direct à la pause", () => {
     const { plan, sim } = simOf(600);
     sim.send({ type: "START" }, 0);
     expect(sim.state.leaf?.spec).toMatchObject({ kind: "ACTIVITY", exerciseId: "F", series: 1 });
@@ -70,18 +74,9 @@ describe("PRE-11 T1 — For time", () => {
     expect(during.format).toMatchObject({ kind: "FOR_TIME", phase: "WORK", capMs: 600 * S, completedActivities: 2, totalActivities: 3 });
     expect(during.timer).toEqual({ kind: "STOPWATCH", elapsedMs: 105 * S, nominalMs: 600 * S });
     sim.send({ type: "NEXT", target: sim.target }, 160 * S); // S3 : fin du travail
-    expect(sim.state.leaf?.spec).toMatchObject({ kind: "CLOSURE", end: "INTERACTION" });
-    // Aucune référence ne court pendant la saisie : rien ne se passe en attendant.
-    sim.at(1000);
-    expect(sim.state.leaf?.spec.kind).toBe("CLOSURE");
-    const closure = projectExecution(plan, sim.state, 1000 * S);
-    expect(closure.format).toMatchObject({ phase: "CLOSURE", elapsedMs: 130 * S, capReached: false, interrupted: null });
-    expect(closure.timer).toEqual({ kind: "NONE" });
-    expect(closure.commands.next).toBe(false);
-    sim.send({ type: "SUBMIT", payload: {} }, 1000 * S);
     // La pause qui suit la dernière Série reste après l'élément (hors temps réalisé), puis l'Exercice suivant.
     expect(sim.state.leaf?.spec).toMatchObject({ kind: "SERIES_PAUSE", exerciseId: "F" });
-    sim.at(1010);
+    sim.at(170);
     expect(sim.state.leaf?.spec).toMatchObject({ kind: "ACTIVITY", exerciseId: "B" });
     expect(forTimeResult(sim)).toMatchObject({ measuredMs: 130 * S, capReached: false, completedActivities: 3, totalActivities: 3, partialRepetitions: null });
   });
@@ -110,8 +105,8 @@ describe("PRE-11 T1 — For time", () => {
     sim.send({ type: "NEXT", target: sim.target }, 25 * S);
     sim.at(35);
     sim.send({ type: "NEXT", target: sim.target }, 40 * S); // pile à la borne : la commande passe avant l'échéance
-    expect(sim.state.leaf?.spec.kind).toBe("CLOSURE");
-    sim.send({ type: "SUBMIT", payload: {} }, 41 * S);
+    // Recette du 14/11/2026 : aucune Clôture, passage direct à la pause. [Temps final affiché ; Clôture validée par SUBMIT — remplacés.]
+    expect(sim.state.leaf?.spec).toMatchObject({ kind: "SERIES_PAUSE" });
     expect(forTimeResult(sim)).toMatchObject({ measuredMs: 40 * S, capReached: false, completedActivities: 3, interruptedKey: null });
   });
 
@@ -157,5 +152,35 @@ describe("PRE-11 — Rôle Tour d'un For time sans guidage des phases (Hermann, 
     expect(tour.guidance).toBeNull();
     expect(tour.autoRepetitions).toBeNull();
     expect(guidedPhases(plan, sim.state.leaf!.spec)).toEqual([]);
+  });
+});
+
+describe("PRE-11 — For time, corrections 3 et 4 (moteur)", () => {
+  const session = (parameters: ReturnType<typeof repetitionParameters>) =>
+    structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("F", parameters, { format: { key: "FOR_TIME", settings: {} } }) }], stopPoints: [] });
+
+  it("✓ (NEXT validé) : une série en Durée passe Terminée avant son terme, sans confirmation ; une pause est passée", () => {
+    // Un For time tout en Durée n’est pas lançable (au moins un exercice en Répétitions) : règle du noyau vérifiée sur un exercice simple.
+    const plan = planOf(structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("F", durationParameters(40, 2, 15)) }], stopPoints: [] }));
+    const sim = new Simulation(executionEnv(plan));
+    sim.send({ type: "START" }, 0);
+    sim.send({ type: "NEXT", validated: true, target: sim.target }, 10 * S);
+    expect(sim.stepResults().find((step) => step.series === 1)?.completion).toBe("COMPLETED");
+    expect(sim.state.leaf?.spec.kind).toBe("SERIES_PAUSE");
+    sim.send({ type: "NEXT", validated: true, target: sim.target }, 12 * S);
+    expect(sim.state.leaf?.spec).toMatchObject({ kind: "ACTIVITY", series: 2 });
+  });
+
+  it("Réinitialiser refusé pendant le travail ; Arrêt : séries terminées et répétitions saisies enregistrées, Pause exclue", () => {
+    const plan = planOf(session(repetitionParameters(10, 2, 0)));
+    const sim = new Simulation(executionEnv(plan));
+    sim.send({ type: "START" }, 0);
+    expect(projectExecution(plan, sim.state, 0).commands.reset).toBe(false);
+    expect(sim.send({ type: "RESET", target: sim.target }, 1 * S).outcome).toBe("REJECTED");
+    sim.send({ type: "NEXT", validated: true, target: sim.target }, 20 * S);
+    sim.send({ type: "PAUSE" }, 30 * S);
+    sim.send({ type: "STOP", payload: { partialRepetitions: 6 } }, 90 * S);
+    expect(sim.state.status).toBe("FINISHED");
+    expect(forTimeResult(sim)).toMatchObject({ measuredMs: 30 * S, completedActivities: 1, totalActivities: 2, partialRepetitions: 6, interruptedKey: expect.any(String) });
   });
 });

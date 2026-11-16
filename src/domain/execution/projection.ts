@@ -97,6 +97,8 @@ export type FormatView = {
   readonly totalActivities: number;
   /** Travail fermé par la borne (Clôture : répétitions faites à déclarer) ; `null` sinon. */
   readonly interrupted: { readonly name: string | null; readonly target: SeriesTarget | null; readonly mode: LeafSpec["mode"] | null } | null;
+  /** Précision FT-15 (14/11/2026) : début de chaque étape en temps réalisé, et sa nature (segments de l'anneau). */
+  readonly phaseStarts: readonly { readonly atMs: Ms; readonly kind: LeafSpec["kind"] }[];
 };
 
 export type ExecutionProjection = {
@@ -222,8 +224,13 @@ function isUntimedSeries(leaf: LeafSpec): boolean {
   return leaf.kind === "ACTIVITY" && leaf.end === "MANUAL" && !(leaf.cadenceMs !== undefined && leaf.target?.kind === "NUMBER" && leaf.plannedMs !== null);
 }
 
+/**
+ * Recette du 14/11/2026 (Hermann : « Barre de progression : elle ne doit pas intégrer le compte à rebours ni la fin de séance ») :
+ * Compte à rebours initial et Fin de séance sans poids — la barre est pleine à la fin du dernier exercice. [Plan complet, Compte
+ * à rebours et `SESSION_END` compris — remplacé.]
+ */
 function temporalMs(leaf: LeafSpec): Ms {
-  if (leaf.kind === "STOP_POINT" || isUntimedSeries(leaf)) return 0;
+  if (leaf.kind === "STOP_POINT" || leaf.kind === "INITIAL_COUNTDOWN" || leaf.kind === "SESSION_END" || isUntimedSeries(leaf)) return 0;
   return leaf.plannedMs ?? 0;
 }
 
@@ -442,6 +449,7 @@ function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatVie
     capReached: local.capReached,
     completedActivities: local.doneActivities,
     totalActivities: activityCount(config),
+    phaseStarts: local.phaseStarts ?? [],
     interrupted:
       interruptedSpec === undefined
         ? null
@@ -460,6 +468,8 @@ function timerOf(state: EngineState, atMs: Ms, format: FormatView | null): Timer
   // borne s'il y en a une (décision de Hermann du 13/11/2026 : « Temps écoulé. La borne peut apparaître dans le
   // triangle du haut à gauche »).
   if (format !== null && format.phase === "WORK") return { kind: "STOPWATCH", elapsedMs: format.elapsedMs, nominalMs: format.capMs };
+  // PRE-11, correction 4 (14/11/2026) : fin normale du For time — le grand chrono montre le temps final, figé, sans saisie.
+  if (format !== null && format.phase === "CLOSURE" && leaf.spec.kind === "CLOSURE") return { kind: "STOPWATCH", elapsedMs: format.elapsedMs, nominalMs: null };
   const elapsedMs = leafElapsedMs(state, atMs);
   // Recette e1 du 12/11/2026 (Hermann, f : « Au point d'arrêt […] Un chronomètre se déclenche ») : l'attente d'un
   // Point d'arrêt est chronométrée à l'écran. [Point d'arrêt sans chrono — remplacé.]
@@ -518,7 +528,8 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     estimated: estimatedDuration(plan),
     progress: progressOf(plan, state, atMs),
     commands: {
-      reset: running && spec !== null && resettable(spec),
+      // PRE-11, correction 3 : Réinitialiser désactivé pendant le travail d'un For time.
+      reset: running && spec !== null && resettable(spec) && !(format?.kind === "FOR_TIME" && format.phase === "WORK"),
       resetScope: recoveryLike ? "RECOVERY" : "EXERCISE",
       pause: running,
       next: running && spec !== null && (spec.end === "MANUAL" || spec.end === "WAIT" || spec.end === "TIMED"),

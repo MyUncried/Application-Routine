@@ -20,7 +20,6 @@ import { ProfileServiceContext } from "@/features/preferences/ProfileServiceCont
 import { SessionService } from "@/features/sessions/SessionService";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
-import { ExecutionDialog } from "../ExecutionDialog";
 import { ExecutionScreen, refreshDelayMs } from "../ExecutionScreen";
 import { ExecutionService } from "../ExecutionService";
 import { ExecutionServiceContext } from "../ExecutionServiceContext";
@@ -38,7 +37,7 @@ jest.mock("expo-router", () => ({
   // Écran toujours au premier plan dans ces tests.
   useFocusEffect: (effect: () => void | (() => void)) => jest.requireActual<typeof import("react")>("react").useEffect(effect, [effect]),
 }));
-jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve()), ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" } }));
+jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve()), selectionAsync: jest.fn(() => Promise.resolve()), ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" } }));
 jest.mock("expo-crypto", () => ({
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   randomUUID: () => (require("node:crypto") as typeof import("node:crypto")).randomUUID(),
@@ -232,10 +231,9 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     for (let i = 0; i < 4; i += 1) await press("execution-next-command");
     expect(screen.getByTestId("execution-title").props.children).toBe("Gainage");
 
-    // Suivant avant le terme d'une Durée : confirmation, puis Partielle.
+    // Suivant avant le terme d'une Durée : passage direct, sans confirmation (recette du 14/11/2026), Partielle.
     await press("execution-next-command");
-    expect(screen.getByTestId("execution-next-dialog")).toBeTruthy();
-    await press("execution-next-confirm");
+    expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
     expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance partiellement exécutée");
     const stored = await database.getFirstAsync<{ status: string; business_status: string }>("SELECT status, business_status FROM executions");
     expect(stored).toEqual({ status: "FINISHED", business_status: "PARTIAL" });
@@ -337,29 +335,18 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     view.unmount();
   });
 
-  it("Suivant pendant une Durée : chrono suspendu pendant la confirmation ; Annuler reprend à la même valeur", async () => {
+  // Recette du 14/11/2026 (Hermann : « exercice en durée : appuyer sur suivant doit mener directement l'exercice suivant, sans
+  // message intermédiaire de confirmation »). [Chrono suspendu pendant la confirmation, Annuler / Confirmer — remplacé.]
+  it("Suivant pendant une Durée : passage direct à l'étape suivante, sans fenêtre de confirmation ; l'Exercice est Partiel", async () => {
     const { service, at, view } = await setup();
     await screen.findByTestId("execution-start");
     await press("execution-start");
     await at(8); // 15 s restantes
     await press("execution-next-command");
-    expect(screen.getByTestId("execution-next-dialog")).toBeTruthy();
-    expect(service.current()?.state.status).toBe("PAUSED");
-    await at(30);
-    await press("execution-next-cancel");
     expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
-    expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
-    expect(screen.getByTestId("execution-timer").props.children).toBe("00:15");
-    // Confirmer : reprise puis passage, l'Exercice est Partiel.
-    await press("execution-next-command");
-    await press("execution-next-confirm");
-    expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
+    expect(service.current()?.state.status).toBe("RUNNING");
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
-    // Recette n° 2 du 09/11/2026 : pendant son fondu de fermeture, le Modal garde le contenu du dialogue Suivant
-    // (jamais celui de la Pause, « Reprendre la séance / Arrêter la séance »).
-    const closing = view.UNSAFE_getByType(ExecutionDialog);
-    expect(closing.props.visible).toBe(false);
-    expect(closing.props.testID).toBe("execution-next-dialog");
+    expect(service.occurrences()[0]?.status).toBe("PARTIAL");
     view.unmount();
   });
 

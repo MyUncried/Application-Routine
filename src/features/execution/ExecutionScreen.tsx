@@ -27,13 +27,15 @@ import type {
   NextView,
 } from "@/domain/execution/projection";
 import type { Profile } from "@/domain/preferences/Profile";
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { profileGuidance } from "@/domain/preferences/Profile";
 import { parseGuidanceSettings } from "@/domain/preferences/guidanceSettings";
 import { effectiveGuidance, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { ExecutionCornerBadge } from "@/features/execution/ExecutionCornerBadge";
 import { ExecutionClosureSheet } from "@/features/execution/ExecutionClosureSheet";
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
-import { ringColorOf, ringMotion } from "@/features/execution/timerRing";
+import { ExecutionPartialRepetitionsSheet } from "@/features/execution/ExecutionPartialRepetitionsSheet";
+import { ringColorOf, ringMotion, ringSegmentsOf } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { reclaimExecutionAudio, releaseExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
@@ -94,6 +96,8 @@ export function ExecutionScreen({
   // Étape affichée et provenance du dernier changement d'étape (fondus du départ, recette du 13/11/2026).
   // Largeur de la zone du cercle, pour les cadres en coin (recette du 13/11/2026).
   const [ringAreaWidth, setRingAreaWidth] = useState<number | null>(null);
+  // PRE-11, correction 3 : modale « Répétitions partielles » de l’arrêt d’un For time.
+  const [partialOpen, setPartialOpen] = useState(false);
   const [stepView, setStepView] = useState<StepView>({ step: "", ahead: false, countdown: false, continues: false, fromAhead: false, fromCountdown: false, fromSame: false });
   // Choix fait pendant la séance avec les interrupteurs Sons et Voix ; `null` : état initial (Séance, sinon Profil).
   const [soundChoice, setSoundChoice] = useState<boolean | null>(null);
@@ -217,8 +221,11 @@ export function ExecutionScreen({
         // Recette du 13/11/2026 (Hermann : « Au point d’arrêt sortir de l’application met la séance en pause ; mais quand on
         // revient on a un écran sans voile et d’autres valeurs, il faut réappuyer sur démarrer pour atteindre le point
         // d’arrêt de nouveau ») : le Point d’arrêt attend déjà ; il n’est pas mis en Pause.
-        const leaf = service.current()?.state.leaf?.spec.kind;
-        if (leaf !== "STOP_POINT") void service.dispatch({ type: "PAUSE", reason: "USER" }).catch(() => undefined);
+        const leaf = service.current()?.state.leaf?.spec;
+        // PRE-11, correction 4 (14/11/2026, modale bloquée) : une saisie de résultat (Clôture) n'est pas mise en Pause — en
+        // Pause, sa validation était refusée en silence (le noyau n'accepte SUBMIT qu'en cours) et la feuille masquait
+        // Redémarrer et Arrêt : plus aucune sortie. Même traitement que le Point d'arrêt.
+        if (leaf?.kind !== "STOP_POINT" && leaf?.end !== "INTERACTION") void service.dispatch({ type: "PAUSE", reason: "USER" }).catch(() => undefined);
         // Recette du 11/11/2026 (Hermann, m2, second essai) : hors de la séance, la musique retrouve son volume.
         releaseExecutionAudio();
       }
@@ -231,8 +238,13 @@ export function ExecutionScreen({
 
   // Recette du 13/11/2026 : une Exécution retrouvée en Pause sur un Point d’arrêt (Pause d’arrière-plan antérieure,
   // reprise après fermeture) revient à l’attente du Point d’arrêt. L’Arrêt (Pause « dialogue » puis Arrêt) n’est pas visé.
+  // PRE-11, correction 4 : de même, une saisie de résultat retrouvée en Pause (Pause d'arrière-plan d'une version antérieure,
+  // reprise après fermeture) reprend, pour que sa validation soit acceptée.
   const pausedAtStopPoint =
-    active !== null && active.state.status === "PAUSED" && active.state.leaf?.spec.kind === "STOP_POINT" && active.state.pause?.reason !== "DIALOG";
+    active !== null &&
+    active.state.status === "PAUSED" &&
+    (active.state.leaf?.spec.kind === "STOP_POINT" || active.state.leaf?.spec.end === "INTERACTION") &&
+    active.state.pause?.reason !== "DIALOG";
   useEffect(() => {
     if (pausedAtStopPoint) void service.dispatch({ type: "RESUME" }).catch(() => undefined);
   }, [pausedAtStopPoint, service]);
@@ -398,6 +410,7 @@ export function ExecutionScreen({
   if (projection === null || projection.status === "FINISHED") {
     const status = active.businessStatus ?? "INTERRUPTED";
     const occurrences = service.occurrences();
+    const partials = service.partialRepetitions();
     return (
       <View style={[styles.screen, paddings]} testID="execution-end">
         <Text style={styles.sessionName}>{active.plan.sessionName}</Text>
@@ -431,6 +444,11 @@ export function ExecutionScreen({
                 {occurrence.status === "PARTIAL"
                   ? t.end.exercisePartial
                   : t.end.exerciseCompleted}{" "}
+                {/* Recette du 15/11/2026 (g7) : répétitions saisies pour la série interrompue. */}
+                {occurrence.series
+                  .flatMap((step) => (partials.has(step.key) ? [partials.get(step.key)!] : []))
+                  .map((count) => `· ${t.repetitions(count)} `)
+                  .join("")}
                 · {formatClock(occurrence.activeMs)}
               </Text>
             </View>
@@ -459,7 +477,8 @@ export function ExecutionScreen({
     projection.phase === "ACTIVITY"
       ? (projection.exerciseName ?? "")
       : pauseLike
-        ? t.phases.SERIES_PAUSE
+        ? // Recette du 14/11/2026 : « Changez de côté » au changement de côté ; « Pause » entre les Séries.
+          t.phases[projection.phase === "SIDE_RECOVERY" ? "SIDE_RECOVERY" : "SERIES_PAUSE"]
         : phaseLabel;
   const viewOf = (dialog: NonNullable<Dialog>): DialogView =>
     dialog.kind === "RESET"
@@ -566,8 +585,10 @@ export function ExecutionScreen({
   const closureStep = projection.target;
   const forTimeCap =
     waiting === null && projection.format?.kind === "FOR_TIME" && projection.format.phase === "WORK" && projection.format.capMs !== null ? projection.format.capMs : null;
-  const objectiveInRing = forTimeCap !== null && repetitions !== null && projection.guidance === null ? repetitions : null;
   const autoCount = waiting !== null || projection.guidance === null ? null : projection.autoRepetitions;
+  // Recette du 15/11/2026 (Hermann, g3 : « L’objectif de la série doit passer dans le triangle du bas à droite ») : avec la borne,
+  // l'objectif occupe le coin du bas à droite (sauf compteur « mouv. » déjà posé là). [Sous le chrono, dans le cercle — remplacé.]
+  const objectiveCorner = forTimeCap !== null && repetitions !== null && autoCount === null ? repetitions : null;
   // Recette du 13/11/2026 (Hermann : « Lorsque le compteur de mouvement dépasse l'objectif du nombre de répétitions faire
   // passer la couleur de fond du mouvement en vert ») : vert dès que l'objectif est atteint.
   const goalReps = projection.seriesTarget !== null && projection.seriesTarget.kind === "NUMBER" ? projection.seriesTarget.value : null;
@@ -605,10 +626,30 @@ export function ExecutionScreen({
     shownNow === null ? null : viewOf(shownNow);
   // Arrêt définitif : depuis la Pause, ou depuis le Point d'arrêt (suspendu d'abord, l'arrêt n'existant que depuis la
   // Pause).
-  const stopSession = async () => {
+  const stopSession = async (payload?: { readonly partialRepetitions: number | null }) => {
     if (projection.status === "RUNNING" && typeof projection.target === "string")
       await service.dispatch({ type: "PAUSE", reason: "DIALOG" }, projection.target);
-    await service.dispatch({ type: "STOP" });
+    await service.dispatch(payload === undefined ? { type: "STOP" } : { type: "STOP", payload });
+  };
+  // PRE-11, corrections 3 et 4 de Hermann du 14/11/2026 : barre propre au For time — en cours, Réinitialiser inactif (48),
+  // Pause orange (56), ✓ bleu (72) qui valide l'étape sans saisie ; en Pause, Arrêt rouge (48), Redémarrer bleu (72), ✓ grisé
+  // inactif (48). L'Arrêt ouvre d'abord la modale « Répétitions partielles » ; sa croix revient à la Pause.
+  const forTimeBar = projection.format?.kind === "FOR_TIME";
+  const forTimeRing =
+    projection.format?.kind === "FOR_TIME" && projection.timer.kind === "STOPWATCH"
+      ? ringSegmentsOf(projection.format.phaseStarts.map((start) => ({ atMs: start.atMs, color: ringColorOf(start.kind) })), projection.timer.elapsedMs).past
+      : null;
+  const forTimeFinal = projection.format?.kind === "FOR_TIME" && projection.format.phase === "CLOSURE" && projection.timer.kind === "STOPWATCH";
+  const inSeries = projection.phase === "ACTIVITY" && projection.mode === "REPETITIONS";
+  const onStop = () => {
+    // Recette du 14/11/2026 (Hermann, arrêt entre deux séries : « Supprimer cette modale, l’arrêt pendant la pause amène
+    // directement à l’écran de fin de séance ») : la modale des répétitions partielles ne s'ouvre que pendant une série en
+    // Répétitions. [Modale « Aucune série en cours » — remplacée.]
+    if (forTimeBar && !atStopPoint && inSeries) setPartialOpen(true);
+    else void stopSession();
+  };
+  const onValidate = () => {
+    if (typeof projection.target === "string") void service.dispatch({ type: "NEXT", validated: true }, projection.target);
   };
 
   // Recette r6 (11/11/2026, Hermann : « Ok, il faudra ensuite se référer à Figma pour la position exacte des différents
@@ -660,13 +701,16 @@ export function ExecutionScreen({
         <ExecutionTimerRing
           motion={ringMotion(
             projection.timer,
-            projection.status === "RUNNING",
+            projection.status === "RUNNING" && !forTimeFinal,
             projection.phase === "INITIAL_COUNTDOWN" || projection.phase === "SESSION_END" || waiting !== null,
           )}
           // Recette du 13/11/2026 (Hermann : « Après le compte à rebours, au démarrage de l’exercice, le cercle guide de
           // couleur disparaît et réapparaît ») : l’anneau, vide pendant le Compte à rebours, ne s’efface pas à sa fin.
           fading={fadingOut && !countdownNow}
           color={ringColorOf(projection.phase)}
+          // PRE-11, précision FT-15 (14/11/2026) : For time, anneau bicolore — chaque portion de la minute garde la couleur de sa
+          // phase ; seule la portion en cours prend la couleur de la phase en cours (et la pastille).
+          {...(forTimeRing !== null ? { segments: forTimeRing } : {})}
           testID="execution-ring"
         >
           {/*
@@ -698,13 +742,13 @@ export function ExecutionScreen({
               </Text>
             </View>
             <View style={styles.objectiveSlot}>
-              {waiting !== null ? null : projection.guidance !== null ? (
+              {forTimeFinal ? (
+                <Text style={styles.guidance} numberOfLines={1} testID="execution-final-time">
+                  {t.forTimeFinal}
+                </Text>
+              ) : waiting !== null ? null : projection.guidance !== null ? (
                 <Text style={styles.guidance} numberOfLines={1} testID="execution-guidance">
                   {projection.guidance.label} · {phaseDuration(projection.guidance.phaseMs)}
-                </Text>
-              ) : objectiveInRing !== null ? (
-                <Text style={styles.guidance} numberOfLines={1} testID="execution-objective">
-                  {objectiveInRing}
                 </Text>
               ) : null}
             </View>
@@ -715,11 +759,20 @@ export function ExecutionScreen({
             [Cadres rectangulaires — remplacé.] */}
         {forTimeCap !== null && ringAreaWidth !== null ? (
           <View style={styles.badgeLayer}>
-            <ExecutionCornerBadge side="left" areaWidth={ringAreaWidth}>
-              <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-cap">
-                {formatClock(forTimeCap)}
-                <Text style={styles.pillUnit}> {t.capUnit}</Text>
-              </Text>
+            <ExecutionCornerBadge side="left" areaWidth={ringAreaWidth} twoLines>
+              {/* Recette du 14/11/2026 (Hermann : « Mettre la Durée maximum sur deux lignes à l’écran : ligne du haut : la durée ;
+                  ligne du bas : « max ». Respecter les tailles de polices comme pour les autres textes des triangles ») : même
+                  disposition que le compteur « mouv. ». [« 1:00 max » sur une ligne — remplacé.] */}
+              <View style={styles.capLines} testID="execution-cap">
+                {/* Recette du 15/11/2026 (ft-k8 : « Le format de la durée doit être sexagésimale ») : format des durées des autres
+                    triangles (« 1′00″ »). [« 01:00 » — remplacé.] */}
+                <Text style={styles.pillText} numberOfLines={1} testID="execution-cap-value">
+                  {formatPhraseDuration(Math.round(forTimeCap / 1000))}
+                </Text>
+                <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
+                  {t.capUnit}
+                </Text>
+              </View>
             </ExecutionCornerBadge>
           </View>
         ) : repetitions !== null && ringAreaWidth !== null ? (
@@ -749,6 +802,15 @@ export function ExecutionScreen({
               </View>
             </ExecutionCornerBadge>
           </View>
+        ) : null}
+        {objectiveCorner !== null && ringAreaWidth !== null ? (
+          <Fade stepKey={stepKey} out={textOut} still={same} style={styles.badgeLayer}>
+            <ExecutionCornerBadge side="right" vertical="bottom" areaWidth={ringAreaWidth}>
+              <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-objective">
+                <PillValue text={objectiveCorner} />
+              </Text>
+            </ExecutionCornerBadge>
+          </Fade>
         ) : null}
         {load !== null && ringAreaWidth !== null ? (
           <Fade stepKey={stepKey} out={textOut} still={same} style={styles.badgeLayer}>
@@ -891,10 +953,12 @@ export function ExecutionScreen({
             icon={ICONS.stop}
             size={48}
             disabled={false}
-            onPress={() => void stopSession()}
+            onPress={onStop}
             style={veil.mounted ? styles.aboveVeil : undefined}
             testID="execution-stop"
           />
+        ) : forTimeBar ? (
+          <IconCommand label={t.commands.resetExercise} icon={ICONS.resetInactive} size={48} disabled dimmed={false} onPress={onReset} testID="execution-reset" />
         ) : (
           <IconCommand
             label={
@@ -919,6 +983,16 @@ export function ExecutionScreen({
             style={veil.mounted ? [styles.pauseCommand, styles.aboveVeil] : styles.pauseCommand}
             testID={paused ? "execution-resume" : "execution-continue"}
           />
+        ) : forTimeBar ? (
+          <IconCommand
+            label={t.commands.pause}
+            icon={ICONS.pauseSmall}
+            size={56}
+            iconStyle={styles.pauseSmallIcon}
+            disabled={!projection.commands.pause}
+            onPress={() => void service.dispatch({ type: "PAUSE", reason: "USER" })}
+            testID="execution-pause"
+          />
         ) : (
           <IconCommand
             label={t.commands.pause}
@@ -933,6 +1007,13 @@ export function ExecutionScreen({
             testID="execution-pause"
           />
         )}
+        {forTimeBar ? (
+          paused ? (
+            <IconCommand label={t.commands.validate} icon={ICONS.successInactive} size={48} disabled dimmed={false} onPress={onValidate} testID="execution-validate" />
+          ) : (
+            <IconCommand label={t.commands.validate} icon={ICONS.success} size={72} disabled={!projection.commands.next} onPress={onValidate} testID="execution-validate" />
+          )
+        ) : (
         <IconCommand
           label={
             projection.commands.isContinue
@@ -949,6 +1030,7 @@ export function ExecutionScreen({
           onPress={onNext}
           testID="execution-next-command"
         />
+        )}
         <Pressable
           onPress={toggleVoice}
           accessibilityRole="switch"
@@ -963,12 +1045,28 @@ export function ExecutionScreen({
       </View>
 
       {/* PRE-11 (T1) : Clôture bloquante d'un élément formaté (D3), modèle « Résultat de série » (Figma 8937:35362). */}
-      {projection.phase === "CLOSURE" && projection.format !== null ? (
+      {/* PRE-11, correction 4 : plus de feuille en fin normale (affichage du temps final) ; seule la borne qui interrompt une
+          série demande ses répétitions. [Clôture « Vos résultats » à chaque fin de For time — remplacé.] */}
+      {projection.phase === "CLOSURE" && projection.format !== null && projection.format.interrupted !== null && !forTimeFinal ? (
         <ExecutionClosureSheet
           key={closureStep ?? "closure"}
           format={projection.format}
           bottomInset={insets.bottom}
           onSubmit={(payload) => void service.dispatch({ type: "SUBMIT", payload }, closureStep ?? undefined)}
+        />
+      ) : null}
+
+      {partialOpen && paused ? (
+        <ExecutionPartialRepetitionsSheet
+          exerciseName={projection.exerciseName}
+          targetRepetitions={projection.seriesTarget?.kind === "NUMBER" ? projection.seriesTarget.value : null}
+          inSeries={inSeries}
+          bottomInset={insets.bottom}
+          onCancel={() => setPartialOpen(false)}
+          onConfirm={(partialRepetitions) => {
+            setPartialOpen(false);
+            void stopSession({ partialRepetitions });
+          }}
         />
       ) : null}
 
@@ -1101,6 +1199,12 @@ const ICONS = {
   // Recette e1 du 12/11/2026 (Hermann, e) : Démarrer (bleu) et Arrêt définitif (carré plein blanc sur fond rouge).
   start: require("../../../assets/icons/execution-demarrer.svg"),
   stop: require("../../../assets/icons/execution-arret.svg"),
+  // PRE-11, correction 3 (Figma « Exécution d'une séance — For time » 8982:15849) : Pause 56, Réinitialiser inactif, ✓ 72 ;
+  // ✓ inactif 48 construit sur le modèle de Réinitialiser inactif (absent du Figma).
+  pauseSmall: require("../../../assets/icons/execution-pause-56.svg"),
+  resetInactive: require("../../../assets/icons/execution-reinitialiser-inactif.svg"),
+  success: require("../../../assets/icons/execution-succes.svg"),
+  successInactive: require("../../../assets/icons/execution-succes-inactif.svg"),
   soundOn: require("../../../assets/icons/execution-son-active.svg"),
   soundOff: require("../../../assets/icons/execution-son-desactive.svg"),
   voiceOn: require("../../../assets/icons/execution-voix-activee.svg"),
@@ -1108,6 +1212,8 @@ const ICONS = {
 } as const;
 
 /** Bouton rond de la barre de commandes ; libellé porté par l'accessibilité. */
+const noop = () => undefined;
+
 function IconCommand({
   label,
   icon,
@@ -1115,6 +1221,8 @@ function IconCommand({
   disabled,
   onPress,
   shadowed = false,
+  iconStyle,
+  dimmed = true,
   style,
   testID,
 }: {
@@ -1125,6 +1233,10 @@ function IconCommand({
   onPress: () => void;
   /** « Mettre en pause » est exporté avec son ombre portée : 92 × 92 pour un bouton de 72 (débord de 10 et 8 à 12). */
   shadowed?: boolean;
+  /** Boîte de l'icône exportée avec son ombre (Pause 56 du For time). */
+  iconStyle?: object;
+  /** Inactif : atténué ; `false` pour une icône déjà grisée par le Figma. */
+  dimmed?: boolean;
   style?: object;
   testID: string;
 }) {
@@ -1132,18 +1244,19 @@ function IconCommand({
   const opacity = useFadeIn(icon);
   return (
     <Pressable
-      onPress={disabled ? undefined : onPress}
+      // Inactif : appui absorbé sur place, jamais transmis à un parent (correction 3, Réinitialiser inerte du For time).
+      onPress={disabled ? noop : onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled }}
       hitSlop={8}
-      style={[{ width: size, height: size }, style, disabled ? styles.commandDisabled : null]}
+      style={[{ width: size, height: size }, style, disabled && dimmed ? styles.commandDisabled : null]}
       testID={testID}
     >
       <Animated.View style={{ opacity }}>
         <Image
           source={icon}
-          style={shadowed ? styles.pauseIcon : { width: size, height: size }}
+          style={iconStyle ?? (shadowed ? styles.pauseIcon : { width: size, height: size })}
           contentFit="contain"
         />
       </Animated.View>
@@ -1237,8 +1350,19 @@ function PillValue({ text }: { text: string }) {
 }
 
 function repetitionsText(projection: ExecutionProjection): string | null {
-  if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null || projection.mode === "DURATION") return null;
+  // Recette du 14/11/2026 (Hermann : « la durée doit apparaître dans le triangle en haut à gauche pendant les pauses et les
+  // récupérations aussi ») : durée prévue de la Pause, de la Pause au changement de côté ou de la Récupération.
+  if (
+    (projection.phase === "SERIES_PAUSE" || projection.phase === "SIDE_RECOVERY" || projection.phase === "POST_ACTIVITY_RECOVERY") &&
+    projection.timer.kind === "COUNTDOWN"
+  )
+    return formatPhraseDuration(Math.round(projection.timer.totalMs / 1000));
+  if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null) return null;
   const target = projection.seriesTarget;
+  // Demande de Hermann du 14/11/2026 (soir) : « Un exercice en durée : il doit avoir dans le triangle haut à gauche la durée cible
+  // de l'exercice » — durée de la Série au format des durées (`formatPhraseDuration`, « M′SS″ » ou « S″ »). [Rien pour un
+  // exercice en Durée — remplacé.]
+  if (projection.mode === "DURATION") return target.kind === "NUMBER" ? formatPhraseDuration(target.value) : null;
   if (target.kind === "FAILURE") return t.failure;
   return target.kind === "NUMBER" ? t.repetitions(target.value) : null;
 }
@@ -1355,6 +1479,8 @@ const styles = StyleSheet.create({
   pillText: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 24, lineHeight: 28, color: "#3C3C43", textAlign: "center" },
   pillUnit: { fontSize: 18 },
   autoCount: { alignItems: "flex-end", alignSelf: "stretch" },
+  // Durée maximum du For time sur deux lignes, calée à gauche (recette du 14/11/2026).
+  capLines: { alignItems: "flex-start", alignSelf: "stretch" },
   // Recette du 13/11/2026 (Hermann : « Tour de la même taille que kg et rép ») : 18, comme les unités des autres coins.
   autoCountUnit: { fontSize: 18, lineHeight: 20 },
   goalText: { color: "#FFFFFF" },
@@ -1500,6 +1626,8 @@ const styles = StyleSheet.create({
   toggleIcon: { width: 24, height: 24 },
   pauseCommand: { marginHorizontal: 7 },
   pauseIcon: { width: 92, height: 92, marginLeft: -10, marginTop: -8 },
+  // Pause 56 du For time : export de 71,56 avec ombre (débord 7,78 à gauche, 6,22 en haut).
+  pauseSmallIcon: { width: 71.5556, height: 71.5556, marginLeft: -7.7778, marginTop: -6.2222 },
   commandDisabled: { opacity: 0.4 },
   endTitle: {
     ...type.activityTitle,

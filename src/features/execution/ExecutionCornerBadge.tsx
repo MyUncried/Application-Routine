@@ -63,8 +63,14 @@ export function ExecutionCornerBadge({
   vertical = "top",
   areaWidth,
   color = BADGE.color,
+  twoLines = false,
   children,
 }: {
+  /**
+   * Coin du haut, valeur sur deux lignes (Durée maximum du For time : durée, puis « max » ; recette du 14/11/2026), calée
+   * contre l'angle extérieur comme le compteur du bas.
+   */
+  readonly twoLines?: boolean;
   /** Fond du coin (vert quand le compteur automatique atteint l'objectif, recette du 13/11/2026). */
   readonly color?: string;
   readonly side: "left" | "right";
@@ -93,7 +99,7 @@ export function ExecutionCornerBadge({
     <View style={[styles.corner, position]} pointerEvents="none">
       <CornerShape path={path} flipX={flipX} flipY={flipY} color={color} />
       {/* Valeur décalée vers l’angle extérieur, où la forme est la plus épaisse. */}
-      <View style={[styles.value, flipX ? styles.valueRight : styles.valueLeft, flipY ? styles.valueBottom : styles.valueTop]}>{children}</View>
+      <View style={[styles.value, flipX ? styles.valueRight : styles.valueLeft, flipY ? styles.valueBottom : twoLines ? styles.valueTopTwoLines : styles.valueTop]}>{children}</View>
     </View>
   );
 }
@@ -119,6 +125,7 @@ const styles = StyleSheet.create({
   valueLeft: { paddingLeft: 4, paddingRight: 16 },
   valueRight: { paddingLeft: 16, paddingRight: 4 },
   valueTop: { top: BADGE.round / 2 },
+  valueTopTwoLines: { top: 10, height: BADGE.arm + 10, alignItems: "flex-start", justifyContent: "flex-start", paddingLeft: 12 },
   // Coin du bas : valeur sur deux lignes (compteur automatique, « 2 » au-dessus de « tours »).
   // Recette du 13/11/2026 (Hermann : « Alignés à droite, assurer assez de marge entre le texte et le bas du cadre ») :
   // valeur calée à droite, 12 au-dessus du bas du coin et 12 du bord droit.
