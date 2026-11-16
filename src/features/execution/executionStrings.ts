@@ -50,7 +50,9 @@ export const executionStrings = {
     INITIAL_COUNTDOWN: "Préparez-vous",
     ACTIVITY: "",
     SERIES_PAUSE: "Pause",
-    SIDE_RECOVERY: "Pause entre les côtés",
+    // Recette du 14/11/2026 (Hermann : « Pause au changement de côté : mettre le titre "Changez de côté" »). [« Pause entre les
+    // côtés », puis « Pause » au titre — remplacé.]
+    SIDE_RECOVERY: "Changez de côté",
     POST_ACTIVITY_RECOVERY: "Récupération",
     STOP_POINT: "Point d'arrêt",
     SESSION_END: "Fin de séance",
@@ -64,6 +66,8 @@ export const executionStrings = {
     pause: "Pause",
     next: "Exercice suivant",
     continue: "Continuer",
+    // PRE-11, correction 3 (For time) : bouton de succès, valide l’étape sans saisie.
+    validate: "Valider et passer à la suite",
     /** Recette e1 du 12/11/2026 (e) : boutons de la Pause, sans fenêtre. */
     resume: "Reprendre la séance",
     stop: "Arrêter la séance",
@@ -96,9 +100,23 @@ export const executionStrings = {
     exerciseCompleted: "Terminée",
   },
   notLaunchable: "Cette séance ne peut pas encore être exécutée.",
-  notLaunchableFormats: "Les Formats AMRAP, EMOM, For time et Death by seront exécutables dans une prochaine version.",
+  // PRE-11 (T1, 13/11/2026) : For time exécutable. [« Les Formats AMRAP, EMOM, For time et Death by… » — remplacé.]
+  notLaunchableFormats: "Les Formats AMRAP, EMOM et Death by seront exécutables dans une prochaine version.",
   notLaunchableInvalid: "Cette séance comporte des paramètres à compléter.",
   blocked: "Une séance interrompue doit d’abord être reprise ou arrêtée.",
+  // PRE-11 (T1) — For time : borne dans le coin du haut à gauche (Hermann, 13/11/2026), Clôture « Vos résultats »
+  // (modale « Résultat de série », Figma 8937:35362).
+  capUnit: "max",
+  forTime: "For time",
+  closureTitle: "Vos résultats",
+  // PRE-11, corrections 3 et 4 : temps final (fin normale, sans saisie) ; modale « Répétitions partielles » de l’arrêt.
+  forTimeFinal: "Temps final",
+  partialConfirm: "Terminer l’exercice",
+  partialClose: "Revenir à la pause",
+  partialNoSeries: "Aucune série en cours.",
+  closureCapReached: "Limite atteinte",
+  closurePartial: (name: string | null) => (name === null || name === "" ? "Répétitions faites" : `Répétitions faites — ${name}`),
+  validate: "Valider",
 };
 
 /** `m:ss`, ou `h:mm:ss` au-delà d'une heure ; secondes entières, arrondi supérieur pour un compte à rebours. */

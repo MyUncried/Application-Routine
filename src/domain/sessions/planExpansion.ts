@@ -281,6 +281,20 @@ export function expandStructure<E extends PlanExercise>(input: PlanExpansionInpu
     const contextAt = (tour: number): PlanContext => ({ cycle, circuit: { id: item.id, tour, count }, formattedElementId: item.id });
     for (const exercise of zone("BUY_IN")) occurrence(exercise, null, `${prefix}/circuit:${item.id}#buy-in`, contextAt(1));
     const tours = zone("TOUR");
+    // Décision de Hermann du 14/11/2026 (« C'est exactement ça, Buy In, tous les tours de A, tous les tours de B..., Buy out ») : séries groupées — chaque exercice en tour joue toutes ses séries, dans l'ordre,
+    // avant le suivant ; la série k porte le tour k. « Correction — For time : ajouter le mode d’exécution « En alternance » / « À la suite » » : « Repos entre les séries » après chaque série, sauf la dernière.
+    if (item.nature === "TOURS") {
+      const played = tours.flatMap((exercise) => Array.from({ length: seriesCount(exercise) }, (_, at) => ({ exercise, tour: at + 1 })));
+      played.forEach(({ exercise, tour }, at) => {
+        const tourPrefix = `${prefix}/circuit:${item.id}#${exercise.id}#${tour}`;
+        occurrence(exercise, tour, tourPrefix, contextAt(Math.min(tour, count)));
+        if (at < played.length - 1 && typeof rest === "number" && rest > 0) {
+          steps.push({ kind: "RECOVERY", stepId: `${tourPrefix}/rest`, exerciseId: item.id, seconds: rest, context: contextAt(Math.min(tour, count)) });
+        }
+      });
+      for (const exercise of zone("BUY_OUT")) occurrence(exercise, null, `${prefix}/circuit:${item.id}#buy-out`, contextAt(count));
+      return;
+    }
     for (let tour = 1; tour <= count; tour += 1) {
       const tourPrefix = `${prefix}/circuit:${item.id}#${tour}`;
       for (const exercise of tours) if (seriesCount(exercise) >= tour) occurrence(exercise, tour, tourPrefix, contextAt(tour));

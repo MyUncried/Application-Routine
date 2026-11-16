@@ -18,7 +18,7 @@
  * Fonctions pures.
  */
 
-import { seriesRowsOf, type SeriesRow } from "@/domain/activities/ExecutionParameters";
+import { seriesRowsOf, type ExecutionParametersInput, type SeriesRow } from "@/domain/activities/ExecutionParameters";
 
 import { circuitRoleOf } from "./formats";
 import {
@@ -84,12 +84,7 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
     case "DEATH_BY":
       return { mode, start: firstNumber(rows), startIncrement: typeof settings.incrementPerRound === "number" ? settings.incrementPerRound : 1, loadKg: loadOf(loads[0]), ...loadOn };
     case "FOR_TIME":
-      return {
-        mode,
-        volumes: rows.map((row) => (row.target.kind === "NUMBER" ? row.target.value : null)),
-        loads: rows.map((row) => loadOf(row.loadKg)),
-        ...loadOn,
-      };
+      return forTimeValuesOf(parameters);
     case "PROGRESSION":
       return { mode, cells: cells(), ...loadOn };
     case "TABATA":
@@ -102,6 +97,65 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
     default:
       return {};
   }
+}
+
+/**
+ * For time — valeurs du récapitulatif lues dans la configuration d'exécution de l'Exercice (règles de Hermann du 14/11/2026, FT-3,
+ * FT-12) : ses séries réelles, nombre, cibles, charges et type (Identiques / Variables) ; rien n'est déduit du Rôle.
+ */
+export function forTimeValuesOf(parameters: ExecutionParametersInput): MovementValues {
+  const rows = seriesRowsOf(parameters);
+  const loadOf = (load: number | undefined) => (parameters.loadEnabled && load !== undefined && load > 0 ? load : null);
+  return {
+    mode: parameters.mode ?? "REPETITIONS",
+    volumes: rows.map((row) => (row.target.kind === "NUMBER" ? row.target.value : null)),
+    loads: rows.map((row) => loadOf(row.loadKg)),
+    seriesKind: parameters.series.kind,
+    ...(parameters.loadEnabled === true ? { loadOn: true as const } : {}),
+  };
+}
+
+/**
+ * Formats — saisie par la modale des paramètres d'exécution (décision de Hermann du 16/11/2026, registre ch07 ; CE-FMT-02 §8) :
+ * valeurs du tableau d'un mouvement après ✓ de la modale, lues dans les paramètres validés (`exercise.executionParameters`), par la
+ * même lecture que la réédition d'un Circuit (`valuesOf`). Objectif et Pause des tableaux à dimensions : repris seulement s'ils
+ * diffèrent de la valeur affichée (`shown`), pour qu'un réglage commun resté commun continue de s'appliquer. La charge retirée garde
+ * sa valeur dans le brouillon (restauration, §16). Incrément (Death by, AMRAP) : celui du tableau, inchangé ici (aucune valeur par
+ * défaut inventée) ; un Incrément modifié dans la modale arrive ensuite par `format.onApply`.
+ */
+export function sheetValuesOf(
+  model: FormatModelKey,
+  previous: MovementValues,
+  exercise: SessionDraftExercise,
+  shown: { readonly objective: number | null; readonly pause: number },
+): MovementValues {
+  const parameters = exercise.executionParameters;
+  const rows = seriesRowsOf(parameters);
+  const read = model === "FOR_TIME" ? forTimeValuesOf(parameters) : valuesOf(model, exercise);
+  const on = parameters.loadEnabled === true;
+  const next: { -readonly [K in keyof MovementValues]: MovementValues[K] } = { ...previous, ...read, loadOn: on };
+  if (!on && previous.loadKg !== undefined) next.loadKg = previous.loadKg;
+  switch (model) {
+    case "TABATA":
+    case "INTERVALS_30_30":
+    case "STRENGTH":
+    case "UNTIL_FAILURE": {
+      const objective = firstNumber(rows);
+      if (model !== "UNTIL_FAILURE" && objective !== shown.objective) next.repetitions = objective;
+      const pause = rows[0]?.pauseSeconds;
+      if (pause !== undefined && pause !== shown.pause) next.pause = pause;
+      break;
+    }
+    case "DEATH_BY":
+      next.startIncrement = previous.startIncrement ?? null;
+      break;
+    case "AMRAP":
+      next.increment = previous.increment ?? null;
+      break;
+    default:
+      break;
+  }
+  return next;
 }
 
 /** Questionnaire et récapitulatif reconstruits depuis l'état actuel du Circuit (§6 sexies.3, §6 sexies.7). */
@@ -166,6 +220,15 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
         format !== null && typeof format.settings.windowSeconds === "number" ? format.settings.windowSeconds : common(exercises.map((exercise) => exercise.format?.settings.intervalSeconds)),
       );
       if (answers.execution === "SEQUENCE" && exercises.length > 1) set("recoveryBetweenSeconds", common(recovery.slice(0, -1)));
+      // Recette du 16/11/2026 (fmt-un-mouvement) : un seul mouvement — Départ et Incrément communs lus dans l'Exercice (sinon les
+      // valeurs initiales 1 / + 1 remplaçaient les valeurs enregistrées).
+      if (exercises.length === 1) {
+        const only = exercises[0]!;
+        const start = firstNumber(rowsOf(only));
+        if (start !== null) answers.startRepetitions = start;
+        const increment = only.format?.settings.incrementPerRound;
+        if (typeof increment === "number") answers.increment = increment;
+      }
       break;
     case "AMRAP":
       if (format !== null) {
@@ -185,6 +248,12 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
       // Interrupteurs Buy-in / Buy-out du questionnaire (recette du 04/11/2026) : déduits des Rôles.
       answers.buyIn = roles.includes("BUY_IN");
       answers.buyOut = roles.includes("BUY_OUT");
+      // Correction 2 du 14/11/2026 : nombre de séries de chaque bloc, lu dans ses exercices (le plus grand si des données
+      // antérieures divergent : rien n'est perdu).
+      for (const [role, key] of [["BUY_IN", "buyInSeriesCount"], ["BUY_OUT", "buyOutSeriesCount"]] as const) {
+        const counts = exercises.filter((_, index) => roles[index] === role).map((exercise) => rowsOf(exercise).length);
+        if (counts.length > 0) answers[key] = Math.max(1, ...counts);
+      }
       answers.withLoad = exercises.some((exercise) => exercise.executionParameters.loadEnabled);
       break;
     default:

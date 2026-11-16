@@ -30,7 +30,8 @@ describe("PRE-9 D.3 — descripteurs de capacités par Format", () => {
     for (const model of MODELS) {
       expect(FORMAT_CAPABILITIES[model].model).toBe(model);
       // PRE-10 (09/11/2026) : éléments libres et préconfigurations exécutables ; Formats spécialisés : PRE-11.
-      expect(FORMAT_CAPABILITIES[model].executionAvailable).toBe(FORMAT_CAPABILITIES[model].carrier === "FREE_ELEMENTS");
+      // PRE-11 (T1, 13/11/2026) : For time exécutable ; AMRAP, EMOM, Death by : tranches suivantes.
+      expect(FORMAT_CAPABILITIES[model].executionAvailable).toBe(FORMAT_CAPABILITIES[model].carrier === "FREE_ELEMENTS" || model === "FOR_TIME");
       expect(FORMAT_CAPABILITIES[model].sources.length).toBeGreaterThan(0);
     }
   });
@@ -56,7 +57,8 @@ describe("PRE-9 D.3 — descripteurs de capacités par Format", () => {
     expect(FORMAT_CAPABILITIES.DEATH_BY.onExpiry).toBe("WINDOW_WITHOUT_TAP_NOT_ACQUIRED");
     expect(FORMAT_CAPABILITIES.DEATH_BY.progression).toBe("DYNAMIC_TARGET");
     // Temps limite facultatif (§11) : l'étape en cours à son échéance n'est pas décrite — question ouverte, aucune valeur supposée.
-    expect(FORMAT_CAPABILITIES.FOR_TIME.onExpiry).toMatchObject({ status: "NON_DEFINI" });
+    // PRE-11 (T1, 13/11/2026) : conception consolidée §12.3 — étape en cours fermée, puis Clôture. [« NON_DEFINI » — remplacé.]
+    expect(FORMAT_CAPABILITIES.FOR_TIME.onExpiry).toBe("DESCENDANTS_CLOSED_THEN_CLOSURE");
     expect(FORMAT_CAPABILITIES.AMRAP.onExpiry).toMatchObject({ status: UNDEFINED_CAPABILITY });
     for (const model of MODELS) {
       for (const aspect of FORMAT_CAPABILITIES[model].undefinedAspects) {

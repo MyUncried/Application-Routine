@@ -523,8 +523,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     enterDuration(2, "3");
     // [Remplacé le 09/11/2026 — décision de Hermann (recette PRE-10, constat d) : une durée de série inférieure à
     // la durée des phases (6″ < 9″) bloque ✓, avec un message ; auparavant ✓ redevenait disponible (D-446).]
-    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(get("execution-sheet-phase-cycle-below")).toBeTruthy();
+    // [Remplacé le 16/11/2026 — recette (Autres constats a) : plus de message rouge ni de ✓ bloqué ; ✓ demande l’arrondi.]
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
+    expect(screen.queryByTestId("execution-sheet-phase-cycle-below")).toBeNull();
     expect(seriesDurationText()).toBe("6″");
     enterDuration(2, "0");
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
@@ -1086,16 +1087,18 @@ describe("ExecutionParametersSheet — durée de série et durée des phases (d�
     expect(alert).not.toHaveBeenCalled();
   });
 
-  it("durée inférieure au motif : message, durée en rouge, ✓ indisponible (alerte bloquante)", () => {
+  // [Message rouge, durée en rouge, ✓ indisponible — remplacé le 16/11/2026 (recette, Autres constats a, Hermann : « Retirer le texte
+  // rouge et afficher la même fenêtre de message qui propose un arrondi […] »).]
+  it("durée inférieure au motif : même fenêtre d’arrondi (au motif), sans message rouge ni ✓ bloqué (16/11/2026)", () => {
     const alert = spyAlert();
     const { onApply } = renderSheet(withPhases([["A", 6], ["B", 3]]));
     enterExecutionSheetValue("execution-sheet-target", 5);
-    expect(alert).not.toHaveBeenCalled();
-    expect(String(get("execution-sheet-phase-cycle-below").props.children)).toBe(t.phaseCycleBelow.replace("{cycle}", "9″"));
-    expect(styleOf("execution-sheet-target").backgroundColor).toBe(colors.dangerSurface);
-    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(buttonsOf(alert).map((button) => button.text)).toEqual(["Arrondir à 9″"]);
+    expect(screen.queryByTestId("execution-sheet-phase-cycle-below")).toBeNull();
+    expect(styleOf("execution-sheet-target").backgroundColor).not.toBe(colors.dangerSurface);
+    choose(alert, 0);
     validate();
-    expect(onApply).not.toHaveBeenCalled();
+    expect(applied(onApply).series).toMatchObject({ target: numberTarget(9) });
   });
 
   it("phase modifiée après la saisie : ✓ demande l'arrondi avant d'enregistrer", () => {

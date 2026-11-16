@@ -167,22 +167,16 @@ describe("PRE-9 (01/11/2026, point 2) — bloc Récupération de Paramètres d'e
 });
 
 describe("PRE-9 (01/11/2026, point 2) — défauts du Profil sur fond orange jusqu'au premier ✓", () => {
-  it("Exercice en attente : la Récupération reprise du Profil est sur fond orange, texte inchangé ; sinon rendu normal", () => {
-    renderSheet({ pending: true });
-    expect(background("execution-sheet-recovery")).toBe(ORANGE);
-    const pendingText = StyleSheet.flatten(get("execution-sheet-recovery-value").props.style);
-    expect(get("execution-sheet-recovery").props.accessibilityHint).toBe(t.profileDefaultHint);
-    screen.unmount();
-    renderSheet({ pending: false });
+  // [« Exercice en attente : la Récupération reprise du Profil est sur fond orange » et « changer la valeur avant ✓ garde
+  // l'orange » — remplacés le 14/11/2026.] Correction de Hermann du 14/11/2026 : « Retirer l'enregistrement par défaut de la
+  // valeur Récupération du Profil dans les paramètres d'exécution (plus de valeur par défaut pour la récupération) ».
+  it("Exercice en attente : la Récupération n'est plus un défaut du Profil — jamais d'orange ni d'indication ; la valeur saisie est appliquée (14/11/2026)", () => {
+    const { onRecovery } = renderSheet({ pending: true, recoverySeconds: null });
+    expect(recoveryText()).toBe(formatPhraseDuration(0));
     expect(background("execution-sheet-recovery")).not.toBe(ORANGE);
     expect(get("execution-sheet-recovery").props.accessibilityHint).toBeUndefined();
-    expect(StyleSheet.flatten(get("execution-sheet-recovery-value").props.style)).toEqual(pendingText);
-  });
-
-  it("changer la valeur avant ✓ garde l'orange (valeur initialisée depuis le Profil jusqu'au premier ✓) ; la valeur appliquée est celle choisie", () => {
-    const { onRecovery } = renderSheet({ pending: true, recoverySeconds: 30 });
     enterRecovery(60);
-    expect(background("execution-sheet-recovery")).toBe(ORANGE);
+    expect(background("execution-sheet-recovery")).not.toBe(ORANGE);
     validate();
     expect(onRecovery).toHaveBeenCalledWith(60);
   });
@@ -214,8 +208,10 @@ describe("PRE-9 (01/11/2026, point 2) — défauts du Profil sur fond orange jus
   });
 
   it("une valeur à renseigner garde son rouge : l'orange n'est jamais posé sur la Cible manquante", () => {
-    renderSheet({ pending: true, parent: params({ series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0, loadKg: 0, workPhases: [] } }) });
-    expect(background("execution-sheet-recovery")).toBe(ORANGE);
+    renderSheet({ pending: true, exerciseSignals: "present", parent: params({ series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0, loadKg: 0, workPhases: [] } }) });
+    // [Témoin : Récupération en orange — remplacé le 14/11/2026 (plus de Récupération par défaut) : Compte à rebours.]
+    showExerciseDurationSignals();
+    expect(background("execution-sheet-countdown")).toBe(ORANGE);
     expect(query("execution-sheet-target") === null || background("execution-sheet-target") !== ORANGE).toBe(true);
   });
 });

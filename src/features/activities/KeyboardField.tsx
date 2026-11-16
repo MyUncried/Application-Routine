@@ -91,6 +91,11 @@ type CellProps = CommonProps & {
    * valeur par défaut du Mouvement) — fond orange pâle (`toVerifyColors.surface`) ; `invalid` prime.
    */
   toVerify?: boolean;
+  /**
+   * Recette du 16/11/2026 (mp-charge-vide, Hermann : « Charge avec - pas de liseré rouge ») : une valeur à renseigner
+   * reste rouge pendant la saisie, tant que rien n'est tapé ; au premier chiffre, couleur du champ actif.
+   */
+  invalidWhileEmpty?: boolean;
   accessibilityHint?: string;
   /** D-434 : génération de la saisie (`useSheetKeyboard.entryGeneration`). */
   entryGeneration?: number;
@@ -174,6 +179,7 @@ function CellEntryField({
   spokenDisplayValue,
   invalid = false,
   toVerify = false,
+  invalidWhileEmpty = false,
   accessibilityHint,
   entryGeneration = 0,
   testID,
@@ -211,7 +217,13 @@ function CellEntryField({
       accessibilityHint={accessibilityHint}
       accessibilityState={{ selected: active }}
       hitSlop={hitSlop}
-      style={[style, active ? styles.active : invalid ? styles.invalid : toVerify ? styles.toVerify : null]}
+      style={[
+        style,
+        // Recette du 16/11/2026 (mq-charge-rouge, Hermann : « Activation de Avec Charge : le champ a un fond bleu et un liseré rouge. Il doit
+        // avoir un fond rouge et sans liseré ») : tant que la valeur reste à renseigner (au focus : saisie vide ou nulle), le fond rouge prime.
+        // [Fond actif au focus dès qu'une saisie décimale existait (« 0 » compris) — remplacé.]
+        active && !(invalid && invalidWhileEmpty && (!focused || !(Number(entry.text.replace(",", ".")) > 0))) ? styles.active : invalid ? styles.invalid : toVerify ? styles.toVerify : null,
+      ]}
       testID={testID}
     >
       <Text style={[valueStyle, empty ? styles.emptyValue : null]} testID={`${testID}-value`}>

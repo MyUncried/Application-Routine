@@ -334,6 +334,7 @@ import { SecondaryActionButton } from "@/shared/ui/SecondaryActionButton";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
+import { SwipeScrollLockContext, useSwipeScrollLock } from "@/shared/ui/swipeScrollLock";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
@@ -1581,6 +1582,20 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * l'écran ; seul le défilement automatique près des bords déplace la liste (`EnvelopeHandle`).
    */
   const [isEnvelopeEdgeDragging, setIsEnvelopeEdgeDragging] = useState(false);
+  /**
+   * Recette iPhone du 16/11/2026 (constat e, Hermann : « Lorsque dans une composition de séance je fais un glisser gauche sur une carte
+   * ou un circuit, la liste ne doit pas défiler et rester stable ») : le glissement engagé d'une carte coupe le défilement — tout de
+   * suite sur la vue native, puis par l'état de l'écran (même procédé que le glisser d'un trait) ; rendu au relâchement.
+   */
+  const [isSwipeScrollLocked, setIsSwipeScrollLocked] = useState(false);
+  const lockSwipeScroll = useCallback((locked: boolean) => {
+    try {
+      bodyScrollRef.current?.setNativeProps({ scrollEnabled: !locked });
+    } catch {
+      // Vue native indisponible (tests, démontage) : l'état de l'écran suffit.
+    }
+    setIsSwipeScrollLocked(locked);
+  }, []);
   const lockBodyScroll = useCallback((locked: boolean) => {
     try {
       bodyScrollRef.current?.setNativeProps({ scrollEnabled: !locked });
@@ -4946,6 +4961,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * qu'aux sélecteurs numériques à roulette).
        */}
       <StickyScrollContext.Provider value={stickyScroll}>
+      <SwipeScrollLockContext.Provider value={lockSwipeScroll}>
       <Animated.ScrollView
         ref={bodyScrollRef}
         style={styles.body}
@@ -4963,7 +4979,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // défilement PAR L'UTILISATEUR est neutralisé — le geste vertical appartient alors
         // exclusivement à la carte soulevée, jamais à la liste. PRE-6 story 7.4 : la liste défile
         // alors seulement d'elle-même, près de ses bords (`useDragAutoScroll`).
-        scrollEnabled={draggedKey === null && draggingSource === null && !isEnvelopeEdgeDragging}
+        scrollEnabled={draggedKey === null && draggingSource === null && !isEnvelopeEdgeDragging && !isSwipeScrollLocked}
         // Story 7.4 : décalage, contenu et zone visible du défilement automatique.
         // PRE-9 B.4c : aussi le décalage des en-têtes collantes (pilote natif).
         onScroll={bodyScrollEvent}
@@ -5504,6 +5520,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         ) : null}
         </ReadOnlyFrame>
       </Animated.ScrollView>
+      </SwipeScrollLockContext.Provider>
       </StickyScrollContext.Provider>
 
       {/*
@@ -7323,17 +7340,20 @@ function CompositionActivityRow({
     return { dx, dy };
   }, []);
 
+  // Recette du 16/11/2026 (constat e) : la liste reste immobile pendant le glissement de la carte.
+  const swipeScrollLock = useSwipeScrollLock();
   /** Applique `dx` à la position de repos, borné à `[-SWIPE_REVEAL_OFFSET, 0]` — la fermeture ne peut donc jamais progresser au-delà de `0`, ni l'ouverture au-delà de `-SWIPE_REVEAL_OFFSET`. */
   const applySwipeMovement = useCallback(
     (dx: number) => {
       isSwipingRef.current = true;
+      swipeScrollLock.hold();
       const x = clampSwipeTranslateX(swipeBaseRef.current + dx, SWIPE_REVEAL_OFFSET);
       setSwipeTranslateX(x);
       // Story 7.7 : la carte suit le doigt (une animation de repos en cours est arrêtée).
       swipeSettleTokenRef.current += 1;
       swipeX.setValue(x);
     },
-    [swipeX],
+    [swipeX, swipeScrollLock],
   );
 
   /**
@@ -7411,6 +7431,7 @@ function CompositionActivityRow({
     // Revue 6.2 : le geste ne se termine qu'au dernier doigt levé.
     if ((event?.nativeEvent.touches?.length ?? 0) > 0) return;
     originRef.current = null;
+    swipeScrollLock.release();
     setDragTranslationY(0);
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
@@ -7433,7 +7454,7 @@ function CompositionActivityRow({
     } else if (!shouldReveal && areActionsRevealed) {
       onHideActions();
     }
-  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, releaseDragY, settleSwipe, swipeTranslateX]);
+  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, releaseDragY, settleSwipe, swipeTranslateX, swipeScrollLock]);
 
   /**
    * **Hérité de T02-S02** — le balayage engagé ne doit pas être perdu si le
@@ -7488,9 +7509,10 @@ function CompositionActivityRow({
   const handleTouchCancel = useCallback(() => {
     originRef.current = null;
     isSwipingRef.current = false;
+    swipeScrollLock.release();
     settleSwipe(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
     handleResponderTerminate();
-  }, [areActionsRevealed, handleResponderTerminate, settleSwipe]);
+  }, [areActionsRevealed, handleResponderTerminate, settleSwipe, swipeScrollLock]);
 
   /**
    * Appui COURT (D-127) : ouvre l'Activité en modification — sauf lorsque
