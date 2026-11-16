@@ -2592,3 +2592,25 @@ Classe B (évolution validée). Décisions de Hermann, recopiées :
 - **Hors décision.** Le portage du Format par un Circuit pour un exercice unique n’est qu’une proposition de Hermann, à étudier avec le cas des Circuits libres : aucune règle modifiée.
 - **Documents mis à jour (classe B).** Chapitre 13, CE-FMT-02.
 - **Zone tappable (16/11/2026).** Décision de Hermann : « Toute la zone de texte sur les deux lignes à droite de la photo ouvre la modale. » Classe B ; chapitre 13, CE-FMT-02.
+
+## For time — exécution : exercices en durée, « + Tour », sans Pause (16/11/2026)
+
+Classe B (évolution validée). Décisions de Hermann, recopiées :
+
+> « Pour le for Time, le bouton Pause ne devrait pas être activé, mais directement remplacé par un bouton d’arrêt. » — « remplacer le bouton réinitialisé par le bouton d’arrêt rouge, désactiver le bouton pause. » — « la logique voudrait que si on interrompt une séance, on l’abandonne forcément. »
+
+> « Bouton "Validé" peut-être le rendre plus explicite et écrire +Tour à l’intérieur ? » — « +Tour sur deux lignes » — « le + plus gros »
+
+> « Pour intégrer un exercice en durée sur un For Time, ou un AMRAP, l’exercice doit être en temps cumulé. » — « Au démarrage du temps en durée, le chrono principal continue de tourner, une seconde jauge / un compte à rebours apparaît pour la durée de l’exercice. » — « Appuyer sur cette partie devient orange : le chrono principal continue de tourner, la jauge / le compte à rebours s’arrête. Il faut rappuyer pour qu’elle / qu’il reprenne. Arrivée à l’objectif on passe à l’exercice suivant. »
+
+> « D’un point de vue pratique : 3 tours trois exercices enchaînés, 15 rep. de squat puis 2 mn de planche puis 10 rép. de pompes. Démarrage > puis il faut lancer l’exercice de planche (pause / reprise manuelle), puis appuyer sur +Tour. »
+
+> « état initial "Exécution d’une séance — For time" : titre Squat, objectif Rep, chrono global, prochain exercice planche. Il faut le texte "Appuyer pour lancer Planche", fond du cercle gris. Le bouton "+Tour" dans ce cas n’est pas activé. » — « Quand on appuie > état planche […] et quand on appuie dans le cercle […] en pause. La couleur du chrono principal doit être estompée, car le principal chrono est le compte à rebours. Je laisserais le fond du cercle gris dans les deux cas, le statut n’est porté que par le compte à rebours du haut à gauche. » [fond du cercle remplacé le 16/11/2026 par Hermann : « remettre le fond du cercle en vert et en orange »] — « Quand le compte à rebours est terminé, on passe à l’exercice suivant automatiquement, objectifs en rép en haut à gauche, cercle fond blanc et chronomètre en noir. » — « s’il n’y a aucun exercice en durée, alors on a simplement l’écran standard »
+
+> « on n’a pas besoin de deux triangles il me semble, l’objectif est à gauche en mode compte à rebours, et comme il décompte il est toujours à jour » — « le texte doit être en vert foncé d’un côté, et orange foncé de l’autre » — « le cercle vert […] doit être à l’intérieur juste à sa bordure » (anneau du compte à rebours, jamais sur l’anneau gris du chrono global), « ses deux bouts doivent être arrondis », « pendant la pause » l’anneau vert reste, figé.
+
+- **Conséquences.** Voir le chapitre 13, CE-EXEC-SESSION-01 (« For time — exercices en durée et + Tour ») et le document Formats §11.1. Les écrans Figma : « Exécution d’une séance — For time » (état initial, exercice en répétitions avant une durée), « … — Exercice en durée — Planche — En cours » et « … — En pause », « … — Terminé (exercice suivant) », « … — Sans exercice en durée », « … — Buy-in et buy-out ».
+- **Périmètre.** For time seulement. L’AMRAP n’est pas arbitré (retrait de Pause et exercices en durée non décidés).
+- **Remplacé pour le For time.** Les commandes Réinitialiser / Pause / Suivant du contrat d’exécution (texte d’origine conservé, annoté au chapitre 13).
+- **À arbitrer (classe C, non décidé).** (1) Démarrage de l’exercice en durée : automatique quand le moment est connu (départ du For time, appui sur « + Tour », fin d’un autre exercice en durée), manuel après un exercice en répétitions ; seul le cas manuel est décidé. (2) Exercice en durée en dernier de la boucle : compte du tour automatique à 00:00 ou appui sur « + Tour ».
+- **Documents mis à jour (classe B).** Chapitre 13 (CE-EXEC-SESSION-01), document Formats §11.1.

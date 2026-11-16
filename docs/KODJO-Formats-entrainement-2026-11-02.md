@@ -661,6 +661,27 @@ Principe : un volume fixé, le plus vite possible. Résultat : le temps réalis�
 Écrans Figma : « For time — Modale exercice, standard », « For time — Séance, circuit avec buy-in et buy-out », « For time — Modale exercice, dans un circuit », « For time — Modale exercice, buy-in ou buy-out ».
 
 
+### 11.1 Exécution du For time — exercices en durée et « + Tour » (16/11/2026)
+
+[Ajouté le 16/11/2026 — classe B, décisions de Hermann recopiées au registre ch07, « For time — exécution : exercices en durée, « + Tour », sans Pause ».]
+
+**Commandes.** Un For time interrompu est abandonné : à gauche, « Arrêt » (rouge) remplace Réinitialiser ; au centre, Pause reste affiché mais désactivé ; à droite, « + Tour » (« + » puis « Tour » sur deux lignes) remplace la coche et compte un tour. « + Tour » est désactivé tant qu’un exercice en durée du tour reste à lancer ou est en cours.
+
+**Exercice en durée.** Dans un For time, un exercice en durée est en temps cumulé : son temps s’ajoute au chrono principal, qui ne s’arrête jamais. Pendant l’exercice, l’objectif en haut à gauche devient le compte à rebours de l’exercice (une seule forme d’angle) ; un anneau fin vert, à l’intérieur de l’anneau gris du chrono global et sans le recouvrir, se vide avec le décompte.
+
+| État | Haut gauche | Fond du cercle | Chrono principal | Mention (cercle) | « + Tour » |
+|---|---|---|---|---|---|
+| Exercice en répétitions avant une durée | Objectif en rép. | Gris | Noir | « Appuyez pour lancer <exercice> » | Désactivé |
+| Durée en cours | Compte à rebours, vert | Vert | Estompé | « Appuyez pour faire pause » (vert foncé) | Désactivé |
+| Durée en pause | Compte à rebours figé, orange | Orange | Estompé, continue | « Appuyez pour repartir » (orange foncé) | Désactivé |
+| Exercice suivant en répétitions | Objectif en rép. | Blanc | Noir | « Appuyez à chaque tour terminé » | Actif |
+
+Appuyer dans la zone du haut lance l’exercice en durée (après un exercice en répétitions), le met en pause, puis le reprend. À 00:00 l’exercice suivant démarre automatiquement (signal sonore). Un exercice en durée ne se valide pas avant son terme. Sans exercice en durée, l’écran standard du For time reste inchangé.
+
+**À arbitrer** (registre ch07) : démarrage automatique d’un exercice en durée quand le moment est connu ; compte du tour quand l’exercice en durée est le dernier de la boucle.
+
+Écrans Figma : « Exécution d’une séance — For time » (`8982:15849`), « … — Exercice en durée — Planche — En cours » (`12514:27223`), « … — En pause » (`12514:27329`), « … — Terminé (exercice suivant) » (`12503:27060`), « … — Sans exercice en durée » (`12519:27177`), « … — Buy-in et buy-out » (`11990:24925`).
+
 ## 12. Application de la règle au Death by
 
 Principe : à chaque intervalle (1 min), le nombre de répétitions augmente (1, 2, 3…) ; on continue tant que l'athlète termine dans l'intervalle. Résultat : la dernière minute réussie (et les répétitions faites dans la minute manquée).
