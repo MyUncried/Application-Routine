@@ -30,6 +30,7 @@
    - (a) un Buy-in peut passer de séries fixes à séries variables ;
    - (b) un exercice en boucle affiche « tours identiques / variables ».
 7. Complément de Hermann pendant la mission, recopié : « La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un trait horizon et un fond rouge » ; portée confirmée par Hermann (question posée) : **partout** où la modale s'ouvre (Formats, Composition, fiche Mouvement du Catalogue).
+8. Seconde précision de Hermann, recopiée : « la modale des paramètres d’exécution doit être la même qu’on l’ouvre de la composition de séance ou de l’écran d’un format, les effets de changement de rôle sont aussi identiques » ; pour la Récupération : « Je parle de la modale des paramètres d’exécution ». Constat d'origine : depuis un For time, la modale n'avait ni la ligne des rôles ni la récupération.
 - **PRESERVE :**
   - le reste des écrans de Formats ;
   - la Composition ;
@@ -92,7 +93,7 @@ Avant cette mission, seul le For time ouvrait la modale (FT-3).
 - **TypeScript :** `npx tsc --noEmit -p .` → 0 erreur.
 - **Lint des fichiers touchés :** aucune nouvelle alerte. Il reste une erreur `react-hooks/refs` à `FormatModelScreen.c3.test.tsx:108`, sur une ligne non modifiée et déjà présente dans `HEAD`.
 - **Tests ciblés :** `FormatModelScreen.tableauUnique.test.tsx`, `FormatModelScreen.c3.test.tsx` et `ExecutionParametersSheet.test.tsx` → 339 réussis, 32 ignorés (déjà ignorés avant), 0 échec.
-- **Suite complète** (`npx jest`, après le point 7) : 366 suites, 5 861 tests réussis, 32 ignorés (les mêmes qu'avant), 0 échec. Avant le point 7, même résultat.
+- **Suite complète** (`npx jest`, après le point 8) : 366 suites, 5 862 tests réussis, 32 ignorés, 0 échec. Après le point 7 : 366 suites, 5 861 tests réussis, 32 ignorés (les mêmes qu'avant), 0 échec. Avant le point 7, même résultat.
 - **Tests adaptés à la nouvelle règle de charge (point 7)** : `exerciseLoad.test.ts`, `ExecutionParametersDraft.test.ts` (6 tests), `useSheetKeyboard.test.ts` et `ExecutionParametersSheet.test.tsx` (7 tests). Ils vérifient :
   - « — » sur fond rouge, dans le champ commun et dans les cellules ;
   - le ✓ indisponible tant que la charge manque ;
@@ -110,6 +111,22 @@ Avant cette mission, seul le For time ouvrait la modale (FT-3).
   - la Durée refusée, avec le message court ;
   - l'enregistrement et la réouverture.
 - **Bundle servi.** Le Metro LAN `http://192.168.0.16:8085` sert le nouveau code : le bundle contient `bilateralSuffix`, `roundCountVariableSingular` et `sheetValuesOf`.
+
+## Point 8 — modale identique à celle de la Composition
+
+- **Cause.** C'était déjà le même composant (`ExecutionParametersSheet`). Mais l'écran du Format lui passait d'autres réglages que la carte de la Composition : pas de ligne Rôle (retirée volontairement), pas de Récupération, un nombre de séries hérité calculé autrement. C'était un choix de ma part, non signalé.
+- **Correction.** L'écran du Format ouvre la modale exactement comme `useMovementExerciseIntake` :
+  - sur l'Exercice produit, placé dans une Composition provisoire ;
+  - `inheritsCircuitSeriesCount`, `formatSheetContextOf` (ligne Rôle comprise), `recovery`, et `seriesWordingOf` (nouvelle fonction commune, utilisée aussi par la Composition).
+- **Au ✓, la Composition provisoire modifiée est relue :**
+  - un Rôle changé déplace le mouvement dans le bloc correspondant (`setMemberRole`, mêmes ajustements de séries et mêmes annonces de pertes) ;
+  - la Récupération saisie devient celle du mouvement (`MovementValues.recovery`), et prime sur celle que le Format calcule (`buildModelElements`) ;
+  - Intervalle, Incrément, Durée et borne For time rejoignent les réglages du Format.
+- **Conséquences visibles :**
+  - Superset et boucle du For time : le nombre de tours est imposé dans la modale, comme dans la Composition ;
+  - un For time à un seul mouvement s'ouvre sur un exercice seul, à une série par tour ;
+  - « tours identiques / variables » s'affiche aussi dans la Composition.
+- **Test ajouté.** For time : passer un exercice de la boucle en Buy-out le déplace dans ce bloc ; une Récupération de 45″ est enregistrée.
 
 ## Hypothèses non démontrées
 
@@ -175,7 +192,7 @@ Avant cette mission, seul le For time ouvrait la modale (FT-3).
 
 ## Vérifications restant à faire sur l'appareil
 
-Cahier en ligne, version 121, section « fmt-modale-1611 » (12 lignes `mp-*`, dont `mp-charge-vide` pour le point 7, à vérifier aussi dans la Composition et le Catalogue) : https://claude.ai/artifact/Mp9Tu1rPiRdfebmKfpf8Tq
+Cahier en ligne, version 122, section « fmt-modale-1611 » (13 lignes `mp-*`, dont `mp-charge-vide` pour le point 7 et `mp-modale-identique` pour le point 8, à vérifier aussi dans la Composition et le Catalogue) : https://claude.ai/artifact/Mp9Tu1rPiRdfebmKfpf8Tq
 
 À tester sur le serveur `http://192.168.0.16:8085`, après « Reload JS ».
 
@@ -187,6 +204,9 @@ Cahier en ligne, version 121, section « fmt-modale-1611 » (12 lignes `mp-*`, d
 - `src/domain/activities/__tests__/ExecutionParametersDraft.test.ts`
 - `src/features/activities/__tests__/useSheetKeyboard.test.ts`
 - `src/domain/sessions/formatReedit.ts`
+- `src/domain/sessions/formatModels.ts` (point 8 : `recovery`)
+- `src/features/sessions/formatSheetContext.ts` (point 8 : `seriesWordingOf`)
+- `src/features/sessions/useMovementExerciseIntake.tsx` (point 8 : décompte en tours dans la Composition)
 - `src/features/activities/ExecutionParametersSheet.tsx`
 - `src/features/activities/__tests__/ExecutionParametersSheet.test.tsx`
 - `src/features/sessions/ForTimeBlocks.tsx`
