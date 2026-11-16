@@ -134,3 +134,10 @@ Voir `git show --stat` des commits de livraison.
 ## Commit final et état Git
 
 Communiqués dans le message de livraison (hash du commit contenant ce rapport, `git status`).
+
+## Complément du 16/11/2026 — build de recette
+
+- Build EAS `development` 0096cd65 (commit db338226) en échec : `XCODE_BUILD_ERROR`, le profil AdHoc de `com.ankusha.kodjo.dev` n'a ni la capacité Push Notifications ni le droit `aps-environment`, ajouté d'office par le plugin d'`expo-notifications`.
+- Correction (classe D, technique) : `app.config.js` retire `aps-environment` ; les rappels sont des notifications locales, sans push. Vérifié par `expo config --type introspect` : droits vides pour `development`, `bmad` et `production`.
+- Effet à vérifier sur iPhone : demande d'autorisation et réception du rappel (cahier, section « Rappel »).
+- Recette : Metro en réseau local `http://192.168.0.16:8083` (le tunnel Expo échoue au démarrage) ; cahier en ligne https://claude.ai/artifact/SbY2Ci9tcqVe3s9AiDBB84.

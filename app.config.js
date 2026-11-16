@@ -34,7 +34,19 @@ function variantConfig() {
   };
 }
 
+// Rappels de la planification : notifications LOCALES seulement (aucun
+// serveur de push). Le plugin d'expo-notifications ajoute toujours le droit
+// `aps-environment`, absent des profils de signature des variantes : la
+// build échoue. On le retire ; les notifications locales n'en ont pas besoin.
+const { withEntitlementsPlist } = require('expo/config-plugins');
+const withoutPushEntitlement = (config) =>
+  withEntitlementsPlist(config, (mod) => {
+    delete mod.modResults['aps-environment'];
+    return mod;
+  });
+
+const expo = variantConfig();
 module.exports = {
   ...base,
-  expo: variantConfig(),
+  expo: { ...expo, plugins: [withoutPushEntitlement, 'expo-notifications', ...(expo.plugins ?? [])] },
 };
