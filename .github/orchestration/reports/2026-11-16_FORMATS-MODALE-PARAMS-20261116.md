@@ -175,6 +175,17 @@ Résultats relus dans le cahier en ligne (version 122). OK : `mp-rouge`, `mp-ble
   - Il reprend `…-16d.patch` et ajoute le registre ch07 « Déroulé de l'AMRAP et du Death by » et une puce CE-FMT-02 au chapitre 13.
 - **Cahier :** version 124, ligne `mq-deroule-n`.
 
+## Point 11 — Déroulé : couleur de la légende du buy-in / buy-out
+
+- **Constat de Hermann, recopié :** « Déroulé (tous formats concernes) : la couleur du cadre de la légende buy In / buy out ne correspond pas a celle du cadre de l'illustration. »
+- **Cause.** Les cadres d'un exercice du buy-in ou du buy-out sont dessinés dans la couleur réservée `BUY_IN_BLOCK`. La légende appliquait à tout exercice la nuance de son rang (`movementShade`).
+- **Correction (`src/features/sessions/FormatModelScreen.tsx`, `TimelineFrame`) :** la pastille prend `BUY_IN_BLOCK` pour tout exercice dont un bloc du Déroulé est marqué `buyIn` (For time : buy-in et buy-out ; AMRAP : buy-in). Les autres pastilles sont inchangées.
+- **Tests :** nouveau test dans `FormatModelScreen.c3.test.tsx` (For time, buy-in + tour + buy-out).
+  - Tests des séances (`src/features/sessions`, `src/domain/sessions`) : 164 suites, 2 728 réussis, 32 ignorés, 0 échec ; `tsc` propre.
+  - ESLint : une erreur `react-hooks/refs` dans le `Harness` de `FormatModelScreen.c3.test.tsx`, présente telle quelle dans la version commitée (HEAD) ; non introduite, laissée.
+- **Documentation (classe B) :** spec, point 28 ; `_bmad-output/pre11/integration-documentaire-main-2026-11-16f.patch`, préparé et non appliqué. `git apply --cached --check` passe sur `baed622f`. Il reprend `…-16e.patch` et ajoute le registre ch07 « Déroulé — couleur de la légende du buy-in et du buy-out » et une puce CE-FMT-02 au chapitre 13.
+- **Cahier :** version 125, ligne `mq-legende-buy`.
+
 ## Hypothèses non démontrées
 
 - La zone tactile du nom (toute la hauteur de la ligne, jusqu'au tableau) n'a pas été vérifiée au doigt. Seul un test sur iPhone peut le confirmer.
@@ -266,6 +277,7 @@ Cahier en ligne, version 123, section « fmt-modale-1611b » (9 lignes `mq-*`, p
 - Point 9 : `src/features/activities/KeyboardField.tsx`, `src/features/activities/FormatSettingsFrame.tsx`, `src/domain/sessions/circuitRoles.ts`, `src/domain/sessions/configurationValidity.ts`, `src/domain/activities/phaseCycleFit.ts`, et les tests `src/features/activities/__tests__/ExecutionParametersSheet.phases.test.tsx`, `src/domain/activities/__tests__/phaseCycleFit.test.ts`, `src/domain/sessions/__tests__/formatModels.reprise0411.test.ts`, `src/domain/sessions/__tests__/circuitRoles.reprise0411.test.ts` (en plus des fichiers déjà listés, modifiés de nouveau)
 - `_bmad-output/pre11/integration-documentaire-main-2026-11-16d.patch` (nouveau, point 9 ; remplace `…-16c.patch`)
 - Point 10 : `src/domain/sessions/formatTimeline.ts`, `src/domain/sessions/__tests__/formatTimeline.recette1611.test.ts`, `_bmad-output/pre11/integration-documentaire-main-2026-11-16e.patch` (nouveau ; remplace `…-16d.patch`)
+- Point 11 : `src/features/sessions/FormatModelScreen.tsx`, `src/features/sessions/__tests__/FormatModelScreen.c3.test.tsx`, `_bmad-output/pre11/spec-pre11-formats.md`, `_bmad-output/pre11/integration-documentaire-main-2026-11-16f.patch` (nouveau ; remplace `…-16e.patch`)
 - `_bmad-output/pre11/spec-pre11-formats.md`
 - `_bmad-output/pre11/integration-documentaire-main-2026-11-16c.patch` (nouveau)
 - `.github/orchestration/reports/2026-11-16_FORMATS-MODALE-PARAMS-20261116.md` (ce rapport)
