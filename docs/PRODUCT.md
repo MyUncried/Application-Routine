@@ -1,5 +1,7 @@
 # PRODUCT — KODJO
 
+> **Référentiel des Mouvements — conception validée le 06/11/2026.** [Provenance, propriété et fiches éditoriales](KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) : des fiches de coachs ou organismes pourront être identifiées et versionnées séparément du geste et du Mouvement local. Le modèle est préparatoire ; il n'étend pas le MVP au partage et ne conditionne pas le moteur d'exécution.
+
 > **Composition actualisée — 28/10/2026 :** [référence consolidée](KODJO-Composition-conteneurs-2026-10-28.md), [analyse critique et réserves](REVUE-COMPOSITION-2026-10-28.md). D-451 : cycles visibles avec exercices directs et multi-circuit dans le MVP ; création par enveloppe, séries groupées/alternées, zéro intentionnel, en-têtes et défilement. Les maquettes de composition ont été vérifiées ; réalisation non qualifiée.
 
 > **Évolution fonctionnelle validée — D-449 (26/10/2026)** : [Séance comme objet unique, six décisions closes](KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Cette cible remplace la dualité Exercice autonome/Séance, le cycle technique unique et les catalogues séparés par nature. Elle conserve Mouvement et Exercice comme composant de séance ; plusieurs cycles successifs sans imbrication ; lancement de toute la séance ; catalogue unique à vues filtrées. Le code PRE-7 et les visuels existants restent l’état livré antérieur sur ces points.

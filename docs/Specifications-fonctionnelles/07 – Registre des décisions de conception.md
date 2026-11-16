@@ -1,5 +1,13 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+## Décision du 06/11/2026 — provenance et propriété des fiches de Mouvements
+
+**Validée :** préparer des fiches éditoriales identifiées indépendamment du Mouvement local, avec origine (création locale, installation, import, dérivation), référence source et révision, auteur(s), propriétaire administratif, éditeur, ayant droit éventuel et visibilité distincte de la publication effective. Plusieurs coachs peuvent publier à terme des fiches différentes décrivant le même geste. **Cette conception ne dépend pas du moteur d'exécution, et le moteur n'en dépend pas non plus.** Le `Movement` courant, la filiation d'exercice `sourceMovementId`, les paramètres et les instantanés restent inchangés ; les nouvelles métadonnées ne doivent pas servir à exécuter.
+
+**Gouvernance :** le propriétaire administratif ne prouve pas la titularité juridique. Partage en réseau, comptes, permissions et synchronisation restent hors MVP ; l'action « Partager » existante demeure désactivée. **À CLARIFIER** avant distribution : homonymie dans la base locale, identité du concept gestuel, droits/licences, politique de mise à jour, retrait d'un paquet et interfaces. Aucun numéro de décision D-xxx nouveau n'est attribué sans contrôle du registre. [Contrat détaillé](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md).
+
+
+
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
 ## Précisions B.7, B.8 et B.9 — décisions du 01/11/2026

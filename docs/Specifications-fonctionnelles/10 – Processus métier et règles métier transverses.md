@@ -1,5 +1,7 @@
 # Règles métier et calculs
 
+> **Règle transverse — fiches éditoriales et exécution.** La [traçabilité de provenance, propriété et versions](../KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md) n'autorise aucune modification automatique du contenu d'un Mouvement utilisé, d'un Exercice, de ses paramètres ou d'un instantané. L'import et le partage restent à concevoir séparément ; l'exécution demeure indépendante de ces métadonnées.
+
 > **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
 
 ### Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026)
