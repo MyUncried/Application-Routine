@@ -66,7 +66,8 @@ function recap(draft: SessionDraft): Record<string, readonly (number | null)[]> 
 }
 
 describe("For time — échange des rôles (scénario de Hermann, FT-9, FT-10, FT-11)", () => {
-  it("buy-in → tour : 3 séries identiques de 50 ; tour → buy-in : 21-15-9 conservées ; composition et récapitulatif identiques", () => {
+  // Correction 1 de Hermann du 14/11/2026 (FT-5) : en tour, une valeur par tour (Variables) ; « Identiques » n'est qu'un raccourci. [3 séries Identiques de 50 — remplacé.]
+  it("buy-in → tour : 50 à chaque tour ; tour → buy-in : 21-15-9 conservées ; composition et récapitulatif identiques", () => {
     const swapped = setMemberRole(setMemberRole(scenario(), "in", "TOUR"), "a", "BUY_IN");
     const circuit = structureCircuits(swapped.structure!)[0]!;
     expect(circuit.exercises.map((id, index) => [id, circuitRoleOf(swapped.exercises.find((item) => item.id === id)!.format, index)])).toEqual([
@@ -74,14 +75,14 @@ describe("For time — échange des rôles (scénario de Hermann, FT-9, FT-10, F
       ["in", "TOUR"],
       ["b", "TOUR"],
     ]);
-    // FT-10 : séries identiques, valeur répétée au nombre de tours.
+    // FT-10 : séries ajustées au nombre de tours, enregistrées tour par tour. // Recette du 15/11/2026 (Hermann, ft-i6 : « La dernière valeur ne doit pas être reprise » ; h1 : « les valeurs des Nouvelles séries doivent être entrée manuellement ») : séries ajoutées à renseigner. [Dernière valeur reprise (FT-7, FT-10) — remplacé.]
     const entered = swapped.exercises.find((item) => item.id === "in")!.executionParameters.series;
-    expect(entered).toMatchObject({ kind: "UNIFORM", count: 3 });
-    expect(targets(swapped, "in")).toEqual([50, 50, 50]);
+    expect(entered.kind).toBe("VARIABLE");
+    expect(targets(swapped, "in")).toEqual([50, "UNSET", "UNSET"]);
     // FT-9 : séries conservées telles quelles.
     expect(targets(swapped, "a")).toEqual([21, 15, 9]);
     // FT-11, FT-12 : le récapitulatif lit les mêmes séries que la Composition.
-    expect(recap(swapped)).toEqual({ a: [21, 15, 9], in: [50, 50, 50], b: [12, 12, 12] });
+    expect(recap(swapped)).toEqual({ a: [21, 15, 9], in: [50, null, null], b: [12, 12, 12] });
   });
 
   it("le récapitulatif enregistré sans modification ne change aucune série (FT-11)", () => {
@@ -104,8 +105,8 @@ describe("For time — échange des rôles (scénario de Hermann, FT-9, FT-10, F
     const built = buildModelElements("FOR_TIME", state.answers, state.movements, () => "x");
     const members = built[0]!.kind === "CIRCUIT" ? built[0]!.circuit.exercises : [];
     expect(seriesRowsOf(members.find((item) => item.id === "in")!.executionParameters)).toHaveLength(3);
-    // Identiques restent Identiques (FT-5).
-    expect(members.find((item) => item.id === "b")!.executionParameters.series.kind).toBe("UNIFORM");
+    // Correction 1 de Hermann du 14/11/2026 (FT-5) : en tour, une valeur par tour (Variables) ; « Identiques » n'est qu'un raccourci. [Identiques restent Identiques — remplacé.]
+    expect(members.find((item) => item.id === "b")!.executionParameters.series.kind).toBe("VARIABLE");
   });
 
   it("à l'échec : un exercice passé en tour n'a aucune série sans objectif ni « à l'échec » (FT-6)", () => {
@@ -118,18 +119,21 @@ describe("For time — échange des rôles (scénario de Hermann, FT-9, FT-10, F
 describe("For time — nombre de tours (FT-7) et ajout en tour (FT-8)", () => {
   it("3 → 4 : identiques répétées, variables complétées avec la dernière valeur ; 4 → 2 : dernières séries supprimées ; buy-in inchangé", () => {
     const four = setLayoutCircuitCount(scenario(), "f", 4);
-    expect(targets(four, "a")).toEqual([21, 15, 9, 9]);
+    // Recette du 15/11/2026 (Hermann, ft-i6 : « La dernière valeur ne doit pas être reprise » ; h1 : « les valeurs des Nouvelles séries doivent être entrée manuellement ») : séries ajoutées à renseigner. [Dernière valeur reprise (FT-7, FT-10) — remplacé.]
+    expect(targets(four, "a")).toEqual([21, 15, 9, "UNSET"]);
     expect(targets(four, "b")).toEqual([12, 12, 12, 12]);
-    expect(four.exercises.find((item) => item.id === "b")!.executionParameters.series.kind).toBe("UNIFORM");
+    // Correction 1 de Hermann du 14/11/2026 (FT-5) : en tour, une valeur par tour (Variables) ; « Identiques » n'est qu'un raccourci. [kind UNIFORM — remplacé.]
+    expect(four.exercises.find((item) => item.id === "b")!.executionParameters.series.kind).toBe("VARIABLE");
     expect(targets(four, "in")).toEqual([50]);
     const two = setLayoutCircuitCount(four, "f", 2);
     expect(targets(two, "a")).toEqual([21, 15]);
     expect(targets(two, "b")).toEqual([12, 12]);
   });
 
-  it("un exercice ajouté en tour reçoit autant de séries identiques que de tours", () => {
+  // Correction 1 de Hermann du 14/11/2026 (FT-5) : en tour, une valeur par tour (Variables) ; « Identiques » n'est qu'un raccourci. [Séries Identiques × tours — remplacé : même cible enregistrée à chaque tour.]
+  it("un exercice ajouté en tour reçoit autant de séries que de tours, même cible à chaque tour", () => {
     const entered = enterCarrier(exercise("n", repetitionParameters(8, 5, 30)), { nature: "SERIES", repeatCount: 3, format: CIRCUIT_FORMAT });
-    expect(entered.executionParameters.series).toMatchObject({ kind: "UNIFORM", count: 3 });
+    expect(entered.executionParameters.series.kind).toBe("VARIABLE");
     expect(seriesRowsOf(entered.executionParameters).map((row) => row.target)).toEqual(Array.from({ length: 3 }, () => ({ kind: "NUMBER", value: 8 })));
   });
 });

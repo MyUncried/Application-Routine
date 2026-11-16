@@ -3,7 +3,7 @@ import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
 import type { Activity } from "@/domain/sessions/Session";
 import type { CatalogueSessionRecord, SessionStatus } from "@/domain/sessions/SessionRepository";
-import { computeStructureDuration, cycleExercises, structureCircuits, structureExercises, type StructureCircuit } from "@/domain/sessions/structure";
+import { computeStructureDuration, cycleExercises, structureCircuits, structureExercises, type StructureCircuit, type StructureElement } from "@/domain/sessions/structure";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { firstMediaPreviewSource, type MediaPreviewSource } from "@/features/activities/MediaPreview";
 import { isDisplayableRecovery } from "@/features/sessions/ActivityRecoveryLine";
@@ -80,6 +80,12 @@ export type SessionCatalogueProjection = {
    */
   readonly shownCircuitCount: number | null;
   readonly duration: SessionDurationResult;
+  /**
+   * Recette du 14/11/2026 (Hermann : « For time, avec ou sans limite : la carte de séance présente " >=0". C'est incorrect » ; « Écrire soit "Sans limite", soit mettre le cap de temps déterminé "<=..." ») : Séance avec un For time — `null` : « Sans limite » (un For time sans Durée
+   * maximum) ; nombre : borne haute en secondes (part connue + Durées maximum). Absent : aucun For time, ou un Death by (durée
+   * non déterminable, emplacement vide).
+   */
+  readonly forTimeBound?: number | null;
   readonly tree: readonly CatalogueTreeLine[];
   /**
    * Contre-recette iPhone du 30/10/2026 (Hermann : « Une séance incomplète doit avoir le même format
@@ -188,12 +194,55 @@ function circuitLines(circuit: StructureCircuit<Activity>, depth: number): Catal
  * règles des durées partielles avec ≥ conservées ») : montant exact, préfixé « ≈ » (estimée) ou « ≥ »
  * (borne minimale), comme la durée de la carte Exercice du Catalogue (`totalClauseAmount`).
  */
-export function formatCatalogueSessionDuration(duration: SessionDurationResult): string {
+export function formatCatalogueSessionDuration(duration: SessionDurationResult, forTimeBound?: number | null): string {
   const amount = formatPhraseDuration(Number.isFinite(duration.seconds) ? Math.max(0, duration.seconds) : 0);
   const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
+  // Recette du 14/11/2026 (Hermann : « For time, avec ou sans limite : la carte de séance présente " >=0". C'est incorrect » ; « Écrire soit "Sans limite", soit mettre le cap de temps déterminé "<=..." »).
+  if (forTimeBound === null) return strings.screens.composition.carrier.noLimit;
+  if (forTimeBound !== undefined) return `${strings.shared.durationNature.upperBoundPrefix}${formatPhraseDuration(forTimeBound)}`;
   if (duration.kind === "estimated") return `${estimatedPrefix}${amount}`;
-  if (duration.kind === "lowerBound") return `${lowerBoundPrefix}${amount}`;
+  // Recette du 14/11/2026 (Hermann : « For time, avec ou sans limite : la carte de séance présente " >=0". C'est incorrect ») :
+  // spécification carte et catalogue §1 — « Pour For time et Death by, où la durée n'est pas déterminable, l'emplacement reste
+  // vide » ; une borne nulle (rien de connu) n'affiche rien. Une borne connue garde « ≥ » (durées partielles, D-391).
+  if (duration.kind === "lowerBound") return duration.seconds > 0 ? `${lowerBoundPrefix}${amount}` : "";
   return amount;
+}
+
+/**
+ * Recette du 14/11/2026 (Hermann : « For time, avec ou sans limite : la carte de séance présente " >=0". C'est incorrect » ; « Écrire soit "Sans limite", soit mettre le cap de temps déterminé "<=..." ») : borne d'une Séance qui contient un For time — `null` dès qu'un For time n'a pas
+ * de Durée maximum (« Sans limite ») ; sinon part connue + somme des Durées maximum, chacune multipliée par ses passages (tours
+ * d'un Circuit standard, passages d'un Cycle). `undefined` sans For time, ou avec un Death by (emplacement vide, spécification
+ * carte et catalogue §1).
+ */
+function forTimeBoundOf(elements: readonly StructureElement<Activity>[], duration: SessionDurationResult): number | null | undefined {
+  const caps: { readonly cap: number | null; readonly times: number }[] = [];
+  let deathBy = false;
+  const capOf = (settings: Readonly<Record<string, unknown>>) => (typeof settings.timeCapSeconds === "number" && settings.timeCapSeconds > 0 ? settings.timeCapSeconds : null);
+  const exercise = (activity: Activity, times: number) => {
+    if (activity.format?.key === "FOR_TIME") caps.push({ cap: capOf(activity.format.settings), times });
+    if (activity.format?.key === "DEATH_BY") deathBy = true;
+  };
+  const circuit = (item: StructureCircuit<Activity>, times: number) => {
+    const format = item.format ?? null;
+    if (format?.key === "FOR_TIME") caps.push({ cap: capOf(format.settings), times });
+    else if (format?.key === "DEATH_BY") deathBy = true;
+    else if (format === null) item.exercises.forEach((member) => exercise(member, times * Math.max(1, item.repeatCount)));
+  };
+  for (const element of elements) {
+    if (element.kind === "EXERCISE") exercise(element.exercise, 1);
+    else if (element.kind === "CIRCUIT") circuit(element.circuit, 1);
+    else {
+      const times = Math.max(1, element.cycle.repeatCount);
+      for (const member of element.cycle.members) {
+        if (member.kind === "EXERCISE") exercise(member.exercise, times);
+        else circuit(member.circuit, times);
+      }
+    }
+  }
+  if (caps.length === 0 || deathBy) return undefined;
+  if (caps.some((item) => item.cap === null)) return null;
+  const known = Number.isFinite(duration.seconds) ? Math.max(0, duration.seconds) : 0;
+  return known + caps.reduce((total, item) => total + (item.cap ?? 0) * item.times, 0);
 }
 
 export function projectSessionTree(record: Pick<CatalogueSessionRecord, "structure">): readonly CatalogueTreeLine[] {
@@ -269,6 +318,8 @@ export function projectSessionForCatalogue(
     formatOccurrenceSummary({ executionParameters: exercise.executionParameters, phasesToVerify: exercise.phasesToVerify }),
   );
   const incomplete = summaries.some(isIncompleteSummary);
+  const duration = computeStructureDuration(record.structure);
+  const forTimeBound = forTimeBoundOf(record.structure.elements, duration);
   return {
     id: record.id,
     name: record.name,
@@ -282,7 +333,8 @@ export function projectSessionForCatalogue(
     format,
     visual,
     shownCircuitCount: shownCircuitCountOf(record.structure),
-    duration: computeStructureDuration(record.structure),
+    duration,
+    ...(forTimeBound !== undefined ? { forTimeBound } : {}),
     tree: projectSessionTree(record),
     incomplete,
     toVerify: !incomplete && summaries.some(isToVerifySummary),

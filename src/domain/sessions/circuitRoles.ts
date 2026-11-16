@@ -17,6 +17,9 @@
  * - For time (règles de Hermann du 14/11/2026, FT-9, FT-10) : Tour → Buy-in ou Buy-out, séries conservées telles quelles,
  *   propres à l'Exercice ; Buy-in ou Buy-out → Tour, séries ajustées au nombre de tours (`seriesForRounds` : identiques,
  *   valeur répétée ; variables, tronquées ou complétées avec la dernière valeur).
+ * - Corrections 1 et 2 du 14/11/2026 (Hermann) : en tour, séries toujours enregistrées tour par tour (`seriesForRounds`) ; vers
+ *   un bloc buy-in ou buy-out déjà occupé, séries ajustées au nombre de séries du bloc (`seriesForBlock`) ; vers un bloc vide,
+ *   conservées telles quelles (le bloc prend leur nombre). Une perte de valeurs est annoncée avant (`forTimeRoleChangeLoss`).
  *
  * [Passage « Une fois » réservé au premier ou au dernier membre, buy-in unique et non duplicable,
  * réordonnancement par la seule position — remplacés le 04/11/2026.] Fonctions pures.
@@ -71,13 +74,17 @@ export function isLastTourMember(draft: Pick<SessionDraft, "exercises">, layout:
 }
 
 /**
- * For time : dernier Exercice en Répétitions de l'ensemble du Circuit (buy-in et buy-out compris) — l'option
- * Durée lui est refusée, comme sa suppression ou sa sortie quand d'autres membres restent.
+ * For time : dernier Exercice en Répétitions de la boucle (exercices en Tour) — l'option Durée lui est refusée, comme sa
+ * suppression ou sa sortie quand d'autres membres restent. Recette du 16/11/2026 (mp-duree-refusee, Hermann : « Les mouvements en buy-in et buy out doivent être exclus de cette vérification. Il faut au moins un exercice en répétition sur les exercices en boucle. »). [Ensemble du Circuit,
+ * buy-in et buy-out compris — remplacé le 16/11/2026.]
  */
 export function isLastRepetitionsMember(draft: Pick<SessionDraft, "exercises">, layout: LayoutLike | undefined, exerciseId: string): boolean {
   const circuit = circuitOf(layout, exerciseId);
   if (circuit === undefined || circuit.format?.key !== "FOR_TIME" || circuit.exercises.length < 2) return false;
-  const inRepetitions = circuit.exercises.filter((id) => (exerciseById(draft, id)?.executionParameters.mode ?? "REPETITIONS") === "REPETITIONS");
+  const roles = memberRoles(draft, circuit);
+  const inRepetitions = circuit.exercises.filter(
+    (id, index) => roles[index] === "TOUR" && (exerciseById(draft, id)?.executionParameters.mode ?? "REPETITIONS") === "REPETITIONS",
+  );
   return inRepetitions.length === 1 && inRepetitions[0] === exerciseId;
 }
 
@@ -133,7 +140,11 @@ export function setMemberRole(draft: SessionDraft, exerciseId: string, role: Cir
           ? { ...parameters, series: { ...series, rows: series.rows.map((row) => (row.target.kind === "FAILURE" ? { ...row, target: unsetTarget() } : row)) } }
           : parameters;
     // FT-10 (14/11/2026) : arrivée dans la boucle d'un For time, séries ajustées au nombre de tours.
-    const adjusted = circuit.format?.key === "FOR_TIME" && role === "TOUR" ? seriesForRounds(retargeted, circuit.repeatCount) : retargeted;
+    // Correction 2, règle 5 : vers un bloc déjà occupé, nombre de séries du bloc ; vers un bloc vide, séries conservées. [Bloc
+    // — remplacé le 14/11/2026, recette m2 et m3 : vers le buy-in ou le buy-out, séries toujours conservées (exercices indépendants).]
+    // Recette du 14/11/2026 (m5 : « Il ne faut pas reprendre automatiquement la valeur de la dernière série ») : séries ajoutées à
+    // renseigner. [Dernière valeur reprise (FT-10) — remplacé.]
+    const adjusted = circuit.format?.key === "FOR_TIME" && role === "TOUR" ? seriesForRounds(retargeted, circuit.repeatCount, "unset") : retargeted;
     return { ...exercise, format, executionParameters: adjusted };
   });
   const roles = new Map(circuit.exercises.map((id, index) => [id, id === exerciseId ? role : circuitRoleOf(exerciseById(draft, id)?.format, index)]));

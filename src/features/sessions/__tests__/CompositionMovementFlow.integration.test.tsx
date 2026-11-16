@@ -231,8 +231,9 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
     // Demande de Hermann du 29/10/2026 : aucune feuille à l'insertion ; carte à compléter (D-389).
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
     expect(cardNames()).toEqual(["Burpees"]);
-    // PRE-9 (01/11/2026, point 2) : Récupération du nouvel Exercice reprise du Profil (30 s par défaut), affichée sur la carte.
-    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1, récupération 30 secondes");
+    // [PRE-9 (01/11/2026, point 2) : Récupération du nouvel Exercice reprise du Profil (30 s par défaut), affichée sur la carte — remplacé.]
+    // Correction de Hermann du 14/11/2026 : plus de Récupération par défaut reprise du Profil : le nouvel Exercice naît sans Récupération.
+    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1");
     expect(screen.getByText(strings.executionParameters.card.incomplete)).toBeTruthy();
     // Toucher la carte à compléter : la feuille de paramètres, par-dessus la Composition, sans l'éditeur.
     await tapCard("Burpees");
@@ -242,7 +243,8 @@ describe("PRE-9 A.2 — « Créer un exercice » [« Créer un nouveau mouvement
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
     // 45 s, avec Compte à rebours et Fin du Profil : durée estimée de l'Exercice.
     // [« 1 min » avant le 01/11/2026 : la Récupération du Profil (30 s) s'ajoute désormais à la durée de l'Exercice.]
-    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1, 2 min, récupération 30 secondes");
+    // [« 2 min, récupération 30 secondes » — remplacé : Correction de Hermann du 14/11/2026 : plus de Récupération par défaut reprise du Profil.]
+    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1, 1 min");
     // [« Paramètres renseignés : la carte ouvre l'éditeur de l'Exercice, comme avant » — remplacé par la
     // recette iPhone n° 2 du 31/10/2026 (constat c) : la carte ouvre la feuille, la photo ouvre l'éditeur.]
     await tapCard("Burpees");
@@ -475,9 +477,10 @@ describe("PRE-9 A.2 — Mouvements existants repris par « Créer un exercice »
     expect(router.getPathname()).toBe("/composition");
     const [abdos, gainage] = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, `));
     // [« 1 min » avant le 01/11/2026 : Récupération du Profil (30 s) reprise par le nouvel Exercice.]
-    expect(String(abdos!.props.accessibilityLabel)).toBe("Exercice, Abdos, 1 sur 2, 2 min, récupération 30 secondes");
+    // [« 2 min, récupération 30 secondes » du 01/11 au 14/11/2026 — Correction de Hermann du 14/11/2026 : plus de Récupération par défaut reprise du Profil.]
+    expect(String(abdos!.props.accessibilityLabel)).toBe("Exercice, Abdos, 1 sur 2, 1 min");
     // Paramètres à compléter : aucune durée annoncée (D-389).
-    expect(String(gainage!.props.accessibilityLabel)).toBe("Exercice, Gainage, 2 sur 2, récupération 30 secondes");
+    expect(String(gainage!.props.accessibilityLabel)).toBe("Exercice, Gainage, 2 sur 2"); // [« , récupération 30 secondes » — remplacé le 14/11/2026.]
     // Aucun Mouvement créé ni modifié par la reprise.
     expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(2);
   }, 40000);

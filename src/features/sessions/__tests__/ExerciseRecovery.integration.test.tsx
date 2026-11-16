@@ -164,6 +164,9 @@ async function tapCard(name: string) {
 const recoveryText = () => String(screen.getByTestId("execution-sheet-recovery-value", hidden).props.children);
 const recoveryBackground = () => StyleSheet.flatten(screen.getByTestId("execution-sheet-recovery", hidden).props.style).backgroundColor;
 
+/** Récupération à 0 dans la feuille (aucune valeur par défaut, 14/11/2026). */
+const RECOVERY_ZERO = "0″";
+
 async function closeSheet(testID: "execution-sheet-validate" | "execution-sheet-cancel") {
   await act(async () => {
     fireEvent.press(screen.getByTestId(testID));
@@ -183,31 +186,36 @@ function setRecoveryOneMinute() {
   enterExecutionSheetValue("execution-sheet-recovery", 60);
 }
 
-describe("PRE-9 (01/11/2026, point 2) — Récupération de l'Exercice et défauts du Profil", () => {
-  it("nouvel Exercice : Récupération du Profil (45″) sur la carte et dans la feuille, orange jusqu'au premier ✓ ; ✕ garde l'attente ; ✓ valide ; modification conservée ; Profil changé ensuite sans effet", async () => {
+// [PRE-9 (01/11/2026, point 2) : le nouvel Exercice reprenait « Récupération après un exercice » du Profil, sur fond orange
+// jusqu'au premier ✓ — remplacé le 14/11/2026.] Correction de Hermann du 14/11/2026 : plus de Récupération par défaut reprise du Profil (« plus de valeur par défaut pour la récupération ») : le nouvel
+// Exercice naît sans Récupération, quelle que soit la valeur enregistrée au Profil ; la ligne Récupération n'est plus un défaut
+// du Profil (pas de fond orange).
+describe("Récupération de l'Exercice : aucune valeur par défaut (14/11/2026)", () => {
+  it("nouvel Exercice : aucune Récupération malgré le Profil (45″) ; feuille à 0, sans orange ; ✓ sans saisie : toujours aucune ; valeur saisie conservée ; Profil changé ensuite sans effet", async () => {
     await profiles().setDefault("postActivityRecoverySecondsDefault", 45);
     await movements().create(movement("abdos", "Abdos"));
     renderApp();
     await settle();
     await useExistingMovement("Abdos", "abdos");
 
-    // La Composition affiche la Récupération de l'Exercice (même valeur que la feuille).
-    expect(cardLabel("Abdos")).toContain(composition.occurrenceCard.accessibilityRecovery.replace("{duration}", "45 secondes"));
+    // La carte n'annonce aucune Récupération.
+    expect(cardLabel("Abdos")).not.toContain("récupération");
 
-    // Ouverture : bloc Récupération, défaut du Profil sur fond orange. ✕ : rien ne change, l'attente reste.
+    // Ouverture : bloc Récupération à 0, sans fond orange. ✕ : rien ne change.
     await tapCard("Abdos");
-    expect(recoveryText()).toBe("45″");
-    expect(recoveryBackground()).toBe(ORANGE);
+    expect(recoveryText()).toBe(RECOVERY_ZERO);
+    expect(recoveryBackground()).not.toBe(ORANGE);
     await closeSheet("execution-sheet-cancel");
+    expect(cardLabel("Abdos")).not.toContain("récupération");
     await tapCard("Abdos");
-    expect(recoveryBackground()).toBe(ORANGE);
+    expect(recoveryBackground()).not.toBe(ORANGE);
 
-    // Premier ✓ (Cible renseignée) : valeurs appliquées, état validé.
+    // Premier ✓ (Cible renseignée, Récupération non touchée) : toujours aucune Récupération.
     setDuration45();
     await closeSheet("execution-sheet-validate");
-    expect(cardLabel("Abdos")).toContain("récupération 45 secondes");
+    expect(cardLabel("Abdos")).not.toContain("récupération");
     await tapCard("Abdos");
-    expect(recoveryText()).toBe("45″");
+    expect(recoveryText()).toBe(RECOVERY_ZERO);
     expect(recoveryBackground()).not.toBe(ORANGE);
 
     // Modification par la feuille (seul accès) : la carte suit exactement la valeur.
@@ -225,7 +233,7 @@ describe("PRE-9 (01/11/2026, point 2) — Récupération de l'Exercice et défau
   }, 60000);
 
   it("le mode Placement (« Ajouter un arrêt ») ne propose aucune zone de récupération et ne modifie pas celle de l'Exercice", async () => {
-    await profiles().setDefault("postActivityRecoverySecondsDefault", 30);
+    // [Récupération de 30 s reprise du Profil — remplacé le 14/11/2026 : saisie dans la feuille.]
     await movements().create(movement("abdos", "Abdos"));
     await movements().create(movement("gainage", "Gainage"));
     renderApp();
@@ -235,6 +243,7 @@ describe("PRE-9 (01/11/2026, point 2) — Récupération de l'Exercice et défau
     for (const name of ["Abdos", "Gainage"]) {
       await tapCard(name);
       setDuration45();
+      enterExecutionSheetValue("execution-sheet-recovery", 30);
       await closeSheet("execution-sheet-validate");
     }
 

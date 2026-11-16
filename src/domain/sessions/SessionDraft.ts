@@ -79,6 +79,7 @@ import {
   type StructureStopPointLocation,
 } from "./structure";
 import { validateStructuredSessionInput, type StructureExerciseInput, type StructuredSessionInput } from "./structuredInput";
+import { withForTimeSeries } from "./forTimeSeries";
 import { cloneElementFormat, elementFormatsEqual, encodeFormatSettings, type ElementFormat, type SessionOrigin } from "./formats";
 import { normalizeInstruction, normalizeName, validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
@@ -442,6 +443,13 @@ export function createExerciseDraft(
  * elle n'est appelée par aucun écran câblé avant cette tranche future.
  */
 export function toSessionDraft(session: Session | StructuredSession): SessionDraft {
+  // PRE-11, corrections 1 et 2 de Hermann du 14/11/2026 : à la lecture, séries des For time remises en règle — un exercice en
+  // tour « identique + une valeur » devient N valeurs égales (N = nombre de tours) ; buy-in et buy-out, nombre commun au bloc.
+  // Brouillon et base de comparaison partagent cette lecture : la Séance n'est pas marquée modifiée.
+  return withForTimeSeries(sessionDraftOf(session));
+}
+
+function sessionDraftOf(session: Session | StructuredSession): SessionDraft {
   // PRE-9 (A.1) : la structure générale fait foi ; une Séance de l'ancien modèle sans structure
   // (fixtures antérieures) en reçoit une, exactement équivalente.
   const structure = session.structure ?? structureOfLegacySession(session as Session);

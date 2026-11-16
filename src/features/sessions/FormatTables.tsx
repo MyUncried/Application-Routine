@@ -6,6 +6,7 @@ import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
 import {
   forTimeSeriesCount,
   movementRole,
+  UNIT_CHOICE_AT_ADD,
   withSeriesValue,
   type FormatModelKey,
   type ModelAnswers,
@@ -175,6 +176,11 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
     switch (model) {
       case "AMRAP": {
         const tour = movementRole(item) === "TOUR";
+        // Unité à choisir (`UNIT_CHOICE_AT_ADD`) : cases désactivées tant que l'unité n'est pas choisie — sautées.
+        if (values.mode === undefined && UNIT_CHOICE_AT_ADD.has(model)) {
+          if (charged(values)) order.push(cellKey("load", row));
+          return;
+        }
         if (values.max !== true) {
           order.push(cellKey("obj", row));
           if (answers.increasingVolume === true && tour) order.push(cellKey("inc", row));
@@ -190,7 +196,7 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
       case "INTERVALS_30_30":
       case "STRENGTH":
       case "UNTIL_FAILURE":
-        if (movements.length < 2) return;
+        // Formats à tableau, écran unique (15/11/2026) : tableau dès un mouvement. [À partir de deux mouvements — remplacé.]
         if (model !== "UNTIL_FAILURE") order.push(cellKey("obj", row));
         order.push(cellKey("pause", row));
         if (charged(values)) order.push(cellKey("load", row));
@@ -203,7 +209,8 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
         const count =
           // Règles de Hermann du 14/11/2026 (For time, FT-4) : buy-in et buy-out, leurs propres séries. [Une case — remplacé.]
           model === "FOR_TIME" ? forTimeSeriesCount(answers, item) : model === "SUPERSET" ? (answers.roundCount ?? 1) : (answers.seriesCount ?? 1);
-        for (let column = 0; column < count; column += 1) order.push(cellKey("obj", row, column));
+        // For time sans questionnaire (15/11/2026) : cases désactivées tant que l'unité n'est pas choisie — sautées.
+        if ((model !== "FOR_TIME" && !UNIT_CHOICE_AT_ADD.has(model)) || values.mode !== undefined) for (let column = 0; column < count; column += 1) order.push(cellKey("obj", row, column));
         if (charged(values)) for (let column = 0; column < count; column += 1) order.push(cellKey("load", row, column));
         return;
       }
@@ -383,7 +390,9 @@ export function TableCell({
     disabled ? (inTable ? styles.tableDisabled : valueFieldStyles.disabled) : null,
     !disabled && pending ? valueFieldStyles.toVerify : null,
     !disabled && missing ? valueFieldStyles.toComplete : null,
-    active || focused ? valueFieldStyles.active : null,
+    // Recette iPhone du 16/11/2026 (r16-charge-orange, Hermann : « +kg sans rien saisir : la charge devient orange puis immédiatement
+    // après bleue ») : une case à vérifier encore vide reste orange pendant la saisie ; le surlignage de saisie revient dès un chiffre.
+    (active || focused) && !(pending && !disabled) ? valueFieldStyles.active : null,
     fit && (active || focused) ? styles.tableChargeFocus : null,
     focused && kind === "duration" && entry.text === "" ? styles.cellGuide : null,
   ];
@@ -594,13 +603,19 @@ function SlotText({ text, style, testID }: { readonly text: string; readonly sty
 }
 
 /** Charge d'une cellule : « (12 kg) », Inter Regular 11, bleu, sans cadre ; atteinte par Précédent / Suivant de la barre du clavier. */
-function ChargeValue({
+export function ChargeValue({
   value,
   onChange,
   binding,
   label,
+  tappable = false,
   testID,
 }: {
+  /**
+   * Colonne « Charge » des Formats à tableau (décision de Hermann du 15/11/2026 : « Sur la colonne charge : soit elle est grisée soit
+   * elle est active ») : la charge active se touche comme une case. Sous une cellule : atteinte par Précédent / Suivant seulement.
+   */
+  readonly tappable?: boolean;
   readonly value: number | null;
   readonly onChange: (value: number | null) => void;
   readonly binding: ReturnType<CellBinding>;
@@ -622,7 +637,7 @@ function ChargeValue({
       fit
       load
       // Recette du 05/11/2026 (e-fortime-charge) : la charge s'atteint par Précédent / Suivant.
-      barOnly
+      barOnly={!tappable}
       onChange={onChange}
       {...binding}
       label={label}
@@ -661,12 +676,12 @@ function MovementLine({ name, tag, children, testID }: { readonly name: string; 
 }
 
 /** Incrément signé (« + 2 », « − 1′00″ ») : écriture inchangée, sans unité (B §4.4). */
-function signedText(value: number, mode: ExecutionMode | undefined): string {
+export function signedText(value: number, mode: ExecutionMode | undefined): string {
   return `${value < 0 ? "−" : "+"} ${mode === "DURATION" ? formatPrimeDuration(Math.abs(value)) : Math.abs(value)}`;
 }
 
 /** Valeur sans unité (« 10 ») ou durée au format M′SS″ (B §4.4). */
-function valueText(value: number, mode: ExecutionMode | undefined): string {
+export function valueText(value: number, mode: ExecutionMode | undefined): string {
   return mode === "DURATION" ? formatPrimeDuration(value) : String(value);
 }
 

@@ -66,6 +66,26 @@ describe("unité de l'objectif (MAJ 04/11 §4.4, §4.5)", () => {
     expect(allowedModes("FOR_TIME", movements, 1)).toEqual(["REPETITIONS"]);
     expect(allowedModes("FOR_TIME", movements, 0)).toEqual(["REPETITIONS", "DURATION"]);
   });
+
+  // Recette du 16/11/2026 (mp-duree-refusee, Hermann : « Les mouvements en buy-in et buy out doivent être exclus de cette
+  // vérification. Il faut au moins un exercice en répétition sur les exercices en boucle. »).
+  it("For time (16/11/2026) : buy-in et buy-out exclus — seul le dernier exercice de la boucle en Répétitions est verrouillé", () => {
+    const answers: ModelAnswers = { ...initialAnswers("FOR_TIME"), buyIn: true, buyOut: true };
+    const movements = [
+      row("FOR_TIME", answers, "in", {}, { buyIn: true }),
+      row("FOR_TIME", answers, "a"),
+      row("FOR_TIME", answers, "b", { mode: "DURATION" }),
+      row("FOR_TIME", answers, "out", {}, { buyOut: true }),
+    ];
+    // Le buy-in et le buy-out en Répétitions ne comptent pas : « a » reste le seul de la boucle en Répétitions.
+    expect(allowedModes("FOR_TIME", movements, 1)).toEqual(["REPETITIONS"]);
+    // Buy-in et buy-out : Durée toujours possible, même si la boucle n'a qu'un exercice en Répétitions.
+    expect(allowedModes("FOR_TIME", movements, 0)).toEqual(["REPETITIONS", "DURATION"]);
+    expect(allowedModes("FOR_TIME", movements, 3)).toEqual(["REPETITIONS", "DURATION"]);
+    // Boucle entièrement en Répétitions avec un buy-in en Durée : chaque exercice de la boucle peut passer en Durée tant qu'un autre reste.
+    const looped = [row("FOR_TIME", answers, "in", { mode: "DURATION" }, { buyIn: true }), row("FOR_TIME", answers, "a"), row("FOR_TIME", answers, "b")];
+    expect(allowedModes("FOR_TIME", looped, 1)).toEqual(["REPETITIONS", "DURATION"]);
+  });
 });
 
 describe("contrôle EMOM des durées — seuil inclusif (décision du 03/11, MAJ 04/11 §4.4)", () => {
@@ -99,6 +119,20 @@ describe("contrôle EMOM des durées — seuil inclusif (décision du 03/11, MAJ
 });
 
 describe("formulaire complet (MAJ 04/11 §4.4) : une charge vide ne bloque pas", () => {
+  it("Death by (recette du 16/11/2026, r16-deathby-depart) : aucun Départ ni Incrément par défaut, à un ou plusieurs mouvements", () => {
+    const answers = initialAnswers("DEATH_BY");
+    const one = row("DEATH_BY", answers, "a");
+    expect(one.values).toMatchObject({ start: null, startIncrement: null });
+    expect(summaryIssues("DEATH_BY", answers, [one])).toEqual([
+      { kind: "MISSING_SETTING", id: "startRepetitions" },
+      { kind: "MISSING_SETTING", id: "increment" },
+    ]);
+    expect(summaryIssues("DEATH_BY", answers, [one, row("DEATH_BY", answers, "b")])).toEqual([
+      { kind: "MISSING", index: 0 },
+      { kind: "MISSING", index: 1 },
+    ]);
+  });
+
   it("Progression avec charge : charges vides admises, objectif manquant bloquant", () => {
     const answers: ModelAnswers = { ...initialAnswers("PROGRESSION"), withLoad: true };
     expect(summaryIssues("PROGRESSION", answers, [row("PROGRESSION", answers, "a")])).toEqual([]);
@@ -108,7 +142,7 @@ describe("formulaire complet (MAJ 04/11 §4.4) : une charge vide ne bloque pas",
 
   it("Death by à plusieurs mouvements : départ et incrément propres, incrément ≥ + 1", () => {
     const answers = initialAnswers("DEATH_BY");
-    const movements = [row("DEATH_BY", answers, "a"), row("DEATH_BY", answers, "b", { start: 2, startIncrement: 0 })];
+    const movements = [row("DEATH_BY", answers, "a", { start: 1, startIncrement: 1 }), row("DEATH_BY", answers, "b", { start: 2, startIncrement: 0 })];
     expect(summaryIssues("DEATH_BY", answers, movements)).toEqual([{ kind: "MISSING", index: 1 }]);
     const built = buildModelElements("DEATH_BY", { ...answers, execution: "EACH_INTERVAL" }, [movements[0]!, { ...movements[1]!, values: { start: 2, startIncrement: 2 } }], newId);
     const circuit = circuitOf(built);
@@ -147,8 +181,10 @@ describe("charges des Formats (MAJ 04/11 §6 quater bis)", () => {
 describe("Rôle dans le circuit (MAJ 04/11 §6 bis 2)", () => {
   // Règles de Hermann du 14/11/2026, FT-4 : buy-in et buy-out portent leurs propres séries (au moins une), indépendantes du nombre
   // de tours. [Une seule exécution — remplacé.]
-  it("For time : zones buy-in, tour, buy-out ; buy-in et buy-out avec leurs propres séries ; plusieurs par zone (FT-4)", () => {
-    const answers = initialAnswers("FOR_TIME");
+  // Correction 2 de Hermann du 14/11/2026 : nombre de séries propre au bloc, commun à ses exercices (ici buy-in 2, buy-out 1).
+  // [FT-4 : nombre de séries propre à chaque exercice du bloc (in1 : 2, in2 : 1) — remplacé.]
+  it("For time : zones buy-in, tour, buy-out ; nombre de séries commun à chaque bloc ; plusieurs par zone (correction 2)", () => {
+    const answers: ModelAnswers = { ...initialAnswers("FOR_TIME"), buyIn: true, buyInSeriesCount: 2, buyOut: true };
     const movements = [
       row("FOR_TIME", answers, "loop"),
       row("FOR_TIME", answers, "out", { volumes: [30] }, { buyOut: true }),
@@ -158,7 +194,7 @@ describe("Rôle dans le circuit (MAJ 04/11 §6 bis 2)", () => {
     const circuit = circuitOf(buildModelElements("FOR_TIME", answers, movements, newId));
     expect(circuit!.exercises.map((exercise, index) => [exercise.id, circuitRoleOf(exercise.format, index), seriesRowsOf(exercise.executionParameters).length])).toEqual([
       ["in1", "BUY_IN", 2],
-      ["in2", "BUY_IN", 1],
+      ["in2", "BUY_IN", 2],
       ["loop", "TOUR", 3],
       ["out", "BUY_OUT", 1],
     ]);

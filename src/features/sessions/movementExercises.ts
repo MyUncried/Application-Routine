@@ -3,8 +3,8 @@ import { repriseExecutionParameters, type Movement } from "@/domain/activities/M
 import { DEFAULT_CIRCUIT_NATURE } from "@/domain/sessions/circuit";
 import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
-import { circuitRoleOf } from "@/domain/sessions/formats";
 import { createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { circuitRoleOf } from "@/domain/sessions/formats";
 import { structureCircuits } from "@/domain/sessions/structure";
 import { insertIntoRichLayout, resolveRichLayout } from "@/features/sessions/compositionLayout";
 import { formatOccurrenceSummary, isIncompleteSummary } from "@/features/sessions/compositionPresentation";
@@ -100,8 +100,7 @@ export function takeMovementsHandedToFormat(): { readonly movements: readonly Mo
 export type MovementExerciseDefaults = {
   readonly countdownSeconds: number;
   readonly endSeconds: number;
-  /** PRE-9 (01/11/2026, point 2) : « Récupération après un exercice » du Profil. */
-  readonly recoverySeconds: number;
+  /** [PRE-9 (01/11/2026, point 2) : « Récupération après un exercice » du Profil — retiré le 14/11/2026.] */
 };
 
 /**
@@ -112,7 +111,8 @@ export type MovementExerciseDefaults = {
  * aucune Récupération automatique (`null`, AD-35) [remplacé le 01/11/2026 (ordre de Hermann, point 2 ;
  * ch07 « Récupération de l'Exercice et défauts du Profil ») : la Récupération de l'Exercice reprend
  * « Récupération après un exercice » du Profil, et les défauts du Profil repris restent « en attente »
- * (`profileDefaultsPending`, fond orange dans la feuille) jusqu'au premier ✓]. Paramètres incomplets tant qu'ils ne sont pas
+ * (`profileDefaultsPending`, fond orange dans la feuille) jusqu'au premier ✓] [Récupération du Profil remplacée le 14/11/2026 —
+ * Correction de Hermann du 14/11/2026 : « Retirer l'enregistrement par défaut de la valeur Récupération du Profil dans les paramètres d'exécution (plus de valeur par défaut pour la récupération) » : de nouveau aucune Récupération (`null`) ; seuls Compte à rebours et Fin restent des défauts du Profil]. Paramètres incomplets tant qu'ils ne sont pas
  * réglés : la Composition le signale et bloque l'enregistrement (D-389).
  * [PRE-9 A.2b, 31/10/2026 — décision de Hermann du 30/10 : « à durées vides » est remplacé par
  * « durées par défaut du Mouvement reprises par identité de phase, vides où le Mouvement n'en a
@@ -124,7 +124,7 @@ export type MovementExerciseDefaults = {
  */
 export function exerciseOfMovement(movement: Movement, id: string, defaults: MovementExerciseDefaults): SessionDraftExercise {
   return {
-    ...createExerciseDraft(id, defaults.recoverySeconds),
+    ...createExerciseDraft(id),
     name: movement.name,
     instruction: movement.description,
     categoryId: movement.categoryId,
@@ -189,8 +189,12 @@ export function inheritsCircuitSeriesCount(
         const index = circuit.exercises.findIndex((member) => member.id === exercise.id);
         if (index < 0) return false;
         // Règles de Hermann du 14/11/2026 (For time, FT-4, FT-5) : en tour, N = nombre de tours, non réglable exercice par
-        // exercice ; buy-in et buy-out, nombre de séries libre (au moins 1).
-        if (circuit.format?.key === "FOR_TIME") return circuitRoleOf(circuit.exercises[index]!.format, index) === "TOUR";
+        // exercice ; buy-in et buy-out, nombre de séries libre (au moins 1). [Buy-in et buy-out réglables dans la modale — remplacé
+        // le 14/11/2026, correction 2 de Hermann : le nombre de séries est propre au bloc, commun à ses exercices, et se choisit
+        // au questionnaire du For time.]
+        // [Tous les membres du For time — remplacé le 14/11/2026.] Demande de Hermann du 14/11/2026 (soir) : « Pour les exercices en buy in et en buy out, je dois pouvoir ajouter ou supprimer des séries dans la composition de séance » : seul l'exercice en tour hérite ; en buy-in et en
+        // buy-out, la modale ajoute ou retire des séries, appliquées à tout le bloc (nombre commun, `withForTimeSeries`).
+        if (circuit.format?.key === "FOR_TIME") return circuitRoleOf(draft.exercises.find((member) => member.id === exercise.id)?.format, index) === "TOUR";
         return circuit.nature === "SERIES" || circuit.format?.key === "EMOM";
       },
     );

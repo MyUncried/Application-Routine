@@ -309,7 +309,8 @@ describe("Composition : déplacement, duplication, compte et nature", () => {
     );
     const four = setLayoutCircuitCount(draft, "f", 4);
     const rows = (d: SessionDraft, id: string) => seriesRowsOf(d.exercises.find((item) => item.id === id)!.executionParameters).map((row) => row.target);
-    expect(rows(four, "a")).toEqual([21, 15, 9, 9].map((value) => ({ kind: "NUMBER", value })));
+    // Recette du 15/11/2026 (Hermann, ft-i6 : « La dernière valeur ne doit pas être reprise » ; h1 : « les valeurs des Nouvelles séries doivent être entrée manuellement ») : séries ajoutées à renseigner. [Dernière valeur reprise (FT-7, FT-10) — remplacé.]
+    expect(rows(four, "a")).toEqual([...[21, 15, 9].map((value) => ({ kind: "NUMBER", value })), { kind: "UNSET" }]);
     expect(rows(four, "out")).toHaveLength(1);
     expect(rows(setLayoutCircuitCount(four, "f", 2), "a")).toEqual([21, 15].map((value) => ({ kind: "NUMBER", value })));
   });

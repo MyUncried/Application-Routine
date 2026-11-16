@@ -12,13 +12,13 @@
  * ceux de la Phrase (AD-32).
  */
 
-import { normalizeEffective, seriesRowsOf, type ExecutionParametersInput, type ExecutionSeries } from "./ExecutionParameters";
+import { normalizeEffective, seriesRowsOf, type ExecutionParametersInput } from "./ExecutionParameters";
 
 /** Pas de la charge, en kg (AD-19). */
 export const LOAD_STEP_KG = 0.25;
 
-/** Charge posée à la réactivation quand aucune valeur positive n'est mémorisée (FR-14). */
-export const REACTIVATED_LOAD_KG = 0.25;
+// [Charge posée à la réactivation quand aucune valeur positive n'est mémorisée (FR-14, `REACTIVATED_LOAD_KG`, 0,25 kg) — remplacée le
+// 16/11/2026 : la charge reste à renseigner (`loadToFill`).]
 
 /**
  * Multiple de 0,25 kg supérieur ou égal (AD-19) : 1,3 → 1,5 ; 0,01 → 0,25 ;
@@ -51,21 +51,21 @@ export function normalizeLoad<T extends ExecutionParametersInput>(parameters: T)
   return { ...parameters, loadEnabled: false };
 }
 
-function withLoad(series: ExecutionSeries, loadKg: number): ExecutionSeries {
-  return series.kind === "UNIFORM"
-    ? { ...series, loadKg }
-    : { ...series, rows: series.rows.map((row) => ({ ...row, loadKg })) };
+/**
+ * Passage à Avec (FR-14, Δ20) : les valeurs conservées sous Sans sont restaurées telles quelles, zéros compris. Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un trait horizontal et un fond rouge » ; portée : partout où la modale s'ouvre) : sans valeur
+ * mémorisée, ou toutes nulles, la charge reste à renseigner (`loadToFill`), sans valeur inventée. [Aucune valeur mémorisée ou
+ * toutes nulles → 0,25 kg sur l'uniforme et sur chaque ligne — remplacé le 16/11/2026.]
+ */
+export function reactivateLoad<T extends ExecutionParametersInput>(parameters: T): T {
+  return { ...parameters, loadEnabled: true };
 }
 
 /**
- * Passage à Avec (FR-14, Δ20) : aucune valeur mémorisée, ou toutes nulles
- * ([0 ; 0 ; 0]) → 0,25 kg sur l'uniforme et sur chaque ligne ; sinon les
- * valeurs conservées sous Sans sont restaurées telles quelles, zéros compris.
+ * Charge à renseigner (Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un trait horizontal et un fond rouge » ; portée : partout où la modale s'ouvre)) : « Avec » sans aucune charge positive. La modale l'affiche « — » sur fond rouge et son ✓ reste
+ * indisponible jusqu'à la saisie. Une ligne à 0 parmi des lignes chargées reste « sans charge » pour cette Série (Δ19).
  */
-export function reactivateLoad<T extends ExecutionParametersInput>(parameters: T): T {
-  const loads = seriesRowsOf(parameters).map((row) => row.loadKg);
-  const series = loads.every((kg) => kg === 0) ? withLoad(parameters.series, REACTIVATED_LOAD_KG) : parameters.series;
-  return { ...parameters, series, loadEnabled: true };
+export function loadToFill(parameters: ExecutionParametersInput): boolean {
+  return parameters.loadEnabled === true && effectiveLoads(parameters).every((kg) => kg <= 0);
 }
 
 /**

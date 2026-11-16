@@ -12,7 +12,7 @@ Pas de visuel de Séance persisté depuis la grille ; les cartes modèles ne rem
 
 Questionnaires : croix, fermeture vers Composition. Tous les récapitulatifs : Retour vers le questionnaire avec réponses conservées et titre inchangé. Fenêtre Formats : croix interne ou voile ferme la fenêtre ; aucune carte Exercice/Séance ou Libre.
 
-Tabata : À la suite ou En alternance ; EMOM et Death by : Dans chaque intervalle, À la suite ou En alternance. For time : aucun choix additionnel d’exécution. Les segmentés reprennent les styles standards et la taille normale des options, sans nouveau contrôle.
+Tabata : À la suite ou En alternance ; EMOM et Death by : Dans chaque intervalle, À la suite ou En alternance. For time : aucun choix additionnel d’exécution. [Remplacé le 14/11/2026 — Décision de Hermann du 14/11/2026 (« C'est exactement ça, Buy In, tous les tours de A, tous les tours de B..., Buy out » ; « Correction — For time : ajouter le mode d’exécution « En alternance » / « À la suite » » ; règle levée) : Exécution « En alternance » (défaut) ou « À la suite », dès deux exercices en tour : en alternance A, B, A, B… par tour ; à la suite toutes les séries de A, puis toutes celles de B ; buy-in et buy-out une seule fois, au début et à la fin ; séries de chaque exercice en tour = nombre de tours (de séries) dans les deux modes ; chrono, pauses exclues, résultat inchangés. Figma « For time — Récapitulatif » `8624:30672`, FT-20 à FT-23.] Les segmentés reprennent les styles standards et la taille normale des options, sans nouveau contrôle.
 
 ## 3. Valeurs modifiables, calculées ou imposées
 

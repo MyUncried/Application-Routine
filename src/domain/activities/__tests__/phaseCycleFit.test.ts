@@ -33,8 +33,12 @@ describe("phaseCycleIssues — séries de l'exercice", () => {
     } as unknown as ExecutionSeries;
     expect(phaseCycleIssues({ mode: "DURATION", series })).toEqual({
       cycleSeconds: 30,
-      belowRanks: [0],
-      notMultiple: [{ rank: 1, targetSeconds: 70, lowerSeconds: 60, upperSeconds: 90 }],
+      // [belowRanks: [0] — remplacé le 16/11/2026 (recette, Autres constats a) : une série plus courte que le motif demande l’arrondi au motif.]
+      belowRanks: [],
+      notMultiple: [
+        { rank: 0, targetSeconds: 20, lowerSeconds: null, upperSeconds: 30 },
+        { rank: 1, targetSeconds: 70, lowerSeconds: 60, upperSeconds: 90 },
+      ],
     });
   });
 

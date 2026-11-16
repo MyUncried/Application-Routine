@@ -92,6 +92,14 @@ describe("Rôle dans le circuit : zones (MAJ 04/11 §6 bis 2)", () => {
     expect(memberRemovalBlock(timed, timed.structure, "b")).toBe("LAST_REPETITIONS");
     expect(memberRemovalBlock(timed, timed.structure, "a")).toBeNull();
   });
+
+  // Recette du 16/11/2026 (mp-duree-refusee) : buy-in et buy-out exclus ; au moins un exercice de la boucle en Répétitions.
+  it("For time (16/11/2026) : un buy-in en Répétitions ne compte pas — le dernier exercice de la boucle en Répétitions reste verrouillé", () => {
+    const draft = draftOf(["i", "a", "b"], [exercise("i", repetitionParameters(10), FOR_TIME({ circuitRole: 1 })), exercise("a", durationParameters(30, 3)), exercise("b")]);
+    expect(circuitRoleOf(draft.exercises.find((item) => item.id === "i")!.format, 0)).toBe("BUY_IN");
+    expect(memberRemovalBlock(draft, draft.structure, "b")).toBe("LAST_REPETITIONS");
+    expect(memberRemovalBlock(draft, draft.structure, "i")).toBeNull();
+  });
 });
 
 describe("D.4 — validité : zones, Répétitions du For time, contrôle EMOM", () => {
@@ -106,6 +114,16 @@ describe("D.4 — validité : zones, Répétitions du For time, contrôle EMOM",
     expect(configurationValidity(of([{ kind: "CIRCUIT", circuit: { id: "f", nature: "SERIES", repeatCount: 3, format: circuitFormat, exercises: misplaced } }]))).toMatchObject({
       issues: expect.arrayContaining([{ elementId: "f", reason: "ROLE_ZONES" }]),
     });
+  });
+
+  it("For time (16/11/2026) : boucle entièrement en Durée avec un buy-in en Répétitions → NO_REPETITIONS ; buy-in seul en Durée → valide", () => {
+    const loopTimed = [exercise("i", repetitionParameters(10), FOR_TIME({ circuitRole: 1 })), exercise("a", durationParameters(30, 3)), exercise("b", durationParameters(30, 3))];
+    expect(configurationValidity(of([{ kind: "CIRCUIT", circuit: { id: "f", nature: "SERIES", repeatCount: 3, format: circuitFormat, exercises: loopTimed } }]))).toMatchObject({
+      issues: expect.arrayContaining([{ elementId: "f", reason: "NO_REPETITIONS" }]),
+    });
+    const inTimed = [exercise("i", durationParameters(30, 1), FOR_TIME({ circuitRole: 1 })), exercise("a")];
+    const result = configurationValidity(of([{ kind: "CIRCUIT", circuit: { id: "f", nature: "SERIES", repeatCount: 3, format: circuitFormat, exercises: inTimed } }]));
+    expect(result.status === "valid" ? [] : result.issues.filter((issue) => issue.reason === "NO_REPETITIONS")).toEqual([]);
   });
 
   it("EMOM : travail prévu ≥ intervalle (seuil inclusif) ; dans chaque intervalle, somme des membres", () => {

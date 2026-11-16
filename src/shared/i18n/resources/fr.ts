@@ -102,6 +102,8 @@ export const fr = {
     durationNature: {
       estimatedPrefix: "≈ ",
       lowerBoundPrefix: "≥ ",
+      // Recette du 14/11/2026 (For time, carte de séance) : borne haute « ≤ ».
+      upperBoundPrefix: "≤ ",
     },
   },
   nav: {
@@ -591,12 +593,16 @@ export const fr = {
       execution: "Exécution",
       executions: { SEQUENCE: "À la suite", ALTERNATED: "En alternance", EACH_INTERVAL: "Dans chaque intervalle" },
       timeline: "Déroulé",
+      // Recette du 16/11/2026 (constat h) : AMRAP répété, à côté de « Déroulé ».
+      timelineRepeat: "({count} fois)",
       recovery: "Récupération",
       untilFailure: "à l’échec",
       measured: "temps mesuré",
       noLimit: "Sans limite",
       untilCadence: "jusqu’à la cadence",
       atFailure: "à l’échec",
+      // Recette iPhone du 16/11/2026 (constat d, Hermann : « Format A l'échec : écrire A l'échec sur deux lignes dans la colonne "Objectif" »).
+      atFailureTwoLines: "À\nl’échec",
       dash: "—",
       save: "Enregistrer dans la séance",
       // Mise à jour consolidée du 04/11/2026 (§6 sexies) : réédition depuis la Composition.
@@ -605,10 +611,21 @@ export const fr = {
       variableConfirmTitle: "Remplacer les valeurs personnalisées ?",
       variableConfirmMessage: "Les exercices ont des valeurs différentes. La nouvelle valeur s’appliquera à tous.",
       supersetLimitTitle: "Deux exercices au maximum",
+      // Recette du 16/11/2026 (fmt-superset, Hermann : « + Ajouter doit se transformer en Modifier ») : Superset complet.
+      supersetEdit: "Modifier",
+      // « Modifier » : le mode catalogue s'ouvre sur les deux mouvements choisis ; ce bouton applique la nouvelle sélection.
+      applyPicked: "Valider la sélection",
       supersetLimitMessage: "Le Superset enchaîne deux exercices. Retirez-en un pour en choisir un autre.",
       supersetLimitAcknowledge: "J’ai compris",
       noSearchResult: "Aucun résultat",
       variableConfirmCancel: "Annuler",
+      // Correction 2 de Hermann du 14/11/2026 (For time) : ligne d'un bloc buy-in ou buy-out, « Sans » ou un nombre de séries.
+      blockNone: "Sans",
+      blockSeriesOne: "{count} série",
+      blockSeriesMany: "{count} séries",
+      blockRemoveTitle: "Retirer le {block} ?",
+      blockRemoveMessage: "Les exercices du {block} seront retirés du For time.",
+      blockRemoveConfirm: "Retirer",
       variableConfirmReplace: "Remplacer",
       // Recette n° 3 du 03/11/2026 : bouton du questionnaire AMRAP (passage au récapitulatif).
       validate: "Valider les paramètres",
@@ -641,6 +658,8 @@ export const fr = {
         supersetRounds: "Circuit",
         timeCapSeconds: "Temps limite",
         restBetweenRoundsSeconds: "Repos entre les tours",
+        // « Correction — For time : ajouter le mode d’exécution « En alternance » / « À la suite » » (FT-20 à FT-23) : For time « À la suite ».
+        restBetweenSeriesSeconds: "Repos entre les séries",
         recoveryBetweenSeconds: "Récupération entre les mouvements",
         // Complément du 5 novembre 2026 (§11) : « Récupération après le tour ». [« … après la paire » — remplacé.]
         recoveryAfterPair: "Récupération après le tour",
@@ -654,6 +673,9 @@ export const fr = {
         movement: "Mouvement",
         repetitions: "Rép.",
         perRound: "Par tour",
+        // Recette du 16/11/2026 (fmt-entree, Hermann : « Changer "Par tour" par "+/- / tour" (plus au dessus du moins) ») : titre de la
+        // colonne de l'AMRAP, comme « ± / série ». « Par tour » reste le nom lu par VoiceOver.
+        perRoundHead: "± / tour",
         max: "Max",
         round: "Tour {n}",
         series: "S{n}",
@@ -685,6 +707,10 @@ export const fr = {
         // rendue à part. [« rép », « +kg) », « −kg) » (recette du 05/11/2026, n-charge-switch) — remplacés le 08/11/2026.]
         repetitionsUnitShort: "rép.",
         durationUnitShort: "durée",
+        // Formats — saisie par la modale des paramètres d’exécution (décision de Hermann du 16/11/2026, CE-FMT-02 §8) : ligne sous le
+        // nom — « Paramètres à compléter » (texte de la Composition, sans point), ou l’unité suivie de « · bilatéral ».
+        parametersToComplete: "Paramètres à compléter",
+        bilateralSuffix: " · bilatéral",
         addLoadShort: "+kg",
         removeLoadShort: "−kg",
         addLoadAccessibility: "ajouter une charge",
@@ -694,6 +720,25 @@ export const fr = {
         cellLabel: "{movement}, {column}, {kind}",
         repetitionsKind: "répétitions",
         loadKind: "charge",
+      },
+      // Décision de Hermann du 15/11/2026 (registre ch07, « For time — tableau unique, sans questionnaire ») : trois blocs, « − » / « + »
+      // des colonnes, unité de chaque ligne au toucher (« Unité » en rouge à l'ajout).
+      forTimeTable: {
+        buyIn: "Buy-in",
+        loop: "En boucle",
+        buyOut: "Buy-out",
+        add: "+ Ajouter",
+        addSeries: "Ajouter une série",
+        removeSeries: "Retirer une série",
+        addRound: "Ajouter un tour",
+        removeRound: "Retirer un tour",
+        unitMissing: "Unité",
+        unitRepetitions: "Répétitions",
+        unitDuration: "Durée",
+        unitAccessibility: "Unité de {name}",
+        unitFirst: "{name}, choisir d’abord l’unité",
+        disabledValue: "–",
+        photo: "Fiche de {name}",
       },
       roundUnit: { one: "tour", many: "tours" },
       repetitionsUnit: "rép.",
@@ -992,6 +1037,9 @@ export const fr = {
       carrier: {
         blockUnit: { singular: "bloc", plural: "blocs" },
         roundUnit: { singular: "tour", plural: "tours" },
+        // « Correction — For time : ajouter le mode d’exécution « En alternance » / « À la suite » » : en-tête d'un For time « À la suite » (« 3 séries · à la suite »).
+        seriesUnit: { singular: "série", plural: "séries" },
+        inSequence: "à la suite",
         untilFailure: "à l’échec",
         noLimit: "Sans limite",
         buyIn: "Buy-in",
