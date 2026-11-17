@@ -88,8 +88,6 @@
 
 ## Non corrigé / hors périmètre
 
-- Metro de Routine BMAD non lancé. Décision de Hermann attendue : arrêter le Metro 8081 de PRE10-SON, ou utiliser un autre port.
-- Ménage final des serveurs, à faire une fois le Metro de la version fusionnée lancé.
 - Fusion de la planification (`planification/main-20261113`) à venir : sa `migration030` devra être renumérotée en `031` (décision D2).
 
 ## Vérifications restant à faire sur appareil réel
@@ -100,6 +98,15 @@
 ## Fichiers modifiés
 
 - `.github/orchestration/reports/2026-11-17_FUSION-BIBLIOTHEQUES-20261117.md` (création).
+
+## Suite : ménage et Metro de Routine BMAD (17/11/2026)
+
+- **Décision de Hermann, recopiée :** « Tout arrêter et relancer sur le port 8081 propre. Conserver routine Dev qui a la planification et qu’on fusionnera après ».
+- **Arrêtés :** Metro 8081 (PRE10-SON, avec son ngrok) et Metro 8082 (Routine Catalogue, `KODJO-CAT-INTEG`).
+- **Conservés :** Metro 8083 et 8084 (planification, `KODJO-PLANIFICATION`, avec le ngrok de 8084). Le serveur d’administration ne tournait pas : rien à préserver.
+- **Lancé :** `APP_VARIANT=bmad npx expo start --dev-client --lan --port 8081 --clear` depuis `C:DevKODJO-MAIN` (`main` @ `91961aa4`), adresse `192.168.0.16:8081`.
+- **Contenu servi vérifié :** le bundle iOS contient `expo-network` et `MovementCatalogueGrid` ; `format-questionnaire` n’y apparaît que dans deux commentaires (écran supprimé).
+- Ports encore ouverts : 8081 (version fusionnée), 8083 et 8084 (planification).
 
 ## Commit final et état Git
 
