@@ -36,10 +36,10 @@
 | `classification` | `categoryId,bodyZoneIds[],specialtyIds[],gesturalFamilyIds[],clinicalProblemIds[],anatomicalTargetIds[],basis,review,original,originalProposedSpecialties[]` | Classements internes et informations d'origine |
 | `sources` | `documentary` (`sourceId,section,url,usageStatement`) ou null ; `prescriptionContext{}` | Sources documentaires et contexte conservé, distinct de l'identité upstream |
 | `validation` | `classification,clinical,rights,corpusReview,licensing,clinicalValidation,publicationAllowed` | États éditoriaux ; aucune validation clinique présumée |
-| `media[]` | `id,kind,storage,url,fileName,caption,alt,sourceUrl,attribution,license,rightsStatus` | Métadonnées des médias ordonnés |
+| `media[]` | `id,kind,storage,url,fileName,caption,sourceUrl,attribution,license,rightsStatus` | Métadonnées des médias ordonnés |
 | `install` | `knownLocalMovementIds[]` | Rapprochement avec des installations antérieures, pas identité éditoriale |
 
-**Cardinalités/règles vérifiées dans CA-1 :** `sheetId` unique au sein du fichier ; `history` non vide, entrée terminale correspondant à la révision ; `media[]` au plus 30 ; droits médias `UNVERIFIED`/`PERMISSION_CONFIRMED`/`RESTRICTED` ; photo intégrée bornée à 580 000 caractères ; URL média HTTPS ; source requise pour média distant ; texte alternatif requis pour photo ; attribution/licence requises lorsque le statut indique des droits confirmés. L'ordre des étapes, alias, médias, historique compte ; ordre des ensembles de classifications non significatif. **Ces limites proviennent du format pilote ; les autres bornes éventuelles doivent être reprises du validateur, pas inventées.**
+**Cardinalités/règles vérifiées dans CA-1 :** `sheetId` unique au sein du fichier ; `history` non vide, entrée terminale correspondant à la révision ; `media[]` au plus 30 ; droits médias `UNVERIFIED`/`PERMISSION_CONFIRMED`/`RESTRICTED` ; photo intégrée bornée à 580 000 caractères ; URL média HTTPS ; source requise pour média distant ; exigence historique de texte alternatif pour photo supersédée par sa suppression (17/11/2026) ; attribution/licence requises lorsque le statut indique des droits confirmés. L'ordre des étapes, alias, médias, historique compte ; ordre des ensembles de classifications non significatif. **Ces limites proviennent du format pilote ; les autres bornes éventuelles doivent être reprises du validateur, pas inventées.**
 
 **Provenance pilote :** `owner: null` signifie inconnu, pas KODJO ou ANKUSHA. `catalogue.manager` peut désigner ANKUSHA sans en faire le titulaire des droits. Les 60 fiches sont `EXTERNAL_IMPORTED` et privées, publication non autorisée en l'absence de droits établis. Ne pas promouvoir automatiquement ces fiches en Bibliothèques publiques KODJO.
 
@@ -119,3 +119,9 @@ Ces points ne bloquent **pas** la lecture/validation/stockage sans perte du cont
 > Travailler sur une **branche distincte**. Ne pas ouvrir de PR ni fusionner `main`. Fournir commits, diff complet, tests exécutés, matrice de conformité et liste courte des arbitrages effectivement bloquants.
 
 **Portée de cette livraison :** document de cadrage et de développement ; la modification de code reste à demander à Claude. Les limitations identifiées sont issues des sources consultées, non de tests d'exécution.
+
+## Réconciliation du 17 novembre 2026
+
+Les constats de cet audit sont datés du 11/11. La cible actuelle supprime le texte alternatif éditorial. Les familles sont décrites dans la section « format retenu » du format catalogue. Le transfert des phases et les filtres mobiles supplémentaires restent ouverts. Les décisions et limites actuelles sont regroupées dans le modèle cible.
+
+[Définition, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
