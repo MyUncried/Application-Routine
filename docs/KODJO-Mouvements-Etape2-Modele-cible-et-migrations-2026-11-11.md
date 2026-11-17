@@ -75,3 +75,58 @@ Livrer sur **branche de développement distincte** :
 ---
 
 **Origine des évidences techniques :** lecture du format `docs/KODJO-Format-catalogue-mouvements-v1.md`, `src/domain/catalogue/MovementCatalogueFile.ts`, `MovementEditorialProvenance.ts`, `catalogueLoadPlan.ts`, `src/features/catalogue/CatalogueLoadService.ts` sur branche CA-3 ; lecture de `Movement.ts` et `migration013.ts`. Ce document fixe les décisions fonctionnelles reçues et propose les contrats de développement ; il ne prouve aucune migration ou exécution de test.
+
+## Réconciliation fonctionnelle du 17 novembre 2026
+
+Cette mise à jour documentaire part de main au commit 91961aa42ad63f9f84be27cda7daa02caa3ab411 (fusion du lot Bibliothèques, PR #437). Les décisions de suppression du texte alternatif et le parcours de partage précisés par Hermann dans les échanges des 12–13 novembre sont reportés ci-dessous. Les critères d'acceptation de développement précédents restent des exigences à vérifier. La présente passe ne certifie pas leur réalisation.
+
+### Fiche complète, stockage et usages
+
+La fiche Mouvement comprend les attributs d'usage portés par `Movement` et, pour une fiche éditoriale installée, les données de `CatalogueSheet` reliées par l'identité source `(catalogueId, sheetId)`. Le registre `installed_sheets` conserve la fiche complète dans `kodjo-catalogue-registry.db`, séparée provisoirement de `kodjo.db`. Les dix champs de `Movement` ne constituent donc pas l'inventaire de toutes les informations conservées pour une fiche.
+
+| Données | Porteur et usage documentés |
+|---|---|
+| Identifiant local, nom, étapes, alias, catégorie, zones, médias, phases et famille | Mouvement utilisé par les Exercices et Séances. |
+| Position de départ, matériel, sécurité, notes | Contenu de la fiche éditoriale. Leur disponibilité dans une consultation mobile doit être vérifiée champ par champ. |
+| Spécialités, familles gestuelles, problèmes cliniques, cibles anatomiques | Identifiants structurés dans la classification éditoriale. Les filtres et tris mobiles supplémentaires restent à arbitrer. |
+| Auteur, provenance, validation, droits et révisions | Métadonnées de la fiche et de ses médias, utilisées pour l'administration et le suivi éditorial. |
+| Composition des Bibliothèques | Références aux fiches, avec un ordre propre à chaque Bibliothèque. |
+| Famille de niveaux | Appartenance et clé de tri propres à la fiche ; rang affiché dérivé, indépendant de l'ordre dans une Bibliothèque. |
+
+Le format catalogue §5 et §9.3 décrit cinq champs projetés pour la réconciliation historique. Les médias et familles suivent les traitements spécifiques documentés dans ce format. La projection de base des phases reste vide dans le contrat actuel ; la gestion et le transfert des phases depuis l'administration constituent un point à clarifier. Une information persistée n'établit pas à elle seule l'existence d'un filtre, d'un tri ou d'un champ d'édition mobile. Le contenu exact accessible par le bouton Livre est à vérifier sur l'interface et son raccordement avant de le déclarer couvert.
+
+### Suppression décidée du texte alternatif saisi pour les photos
+
+Le champ éditorial `media[].alt` et son obligation pour une photo sont supprimés de la cible du modèle, de l'administration et du format d'échange. Cette décision supersède les exigences contraires de CA-1. Les règles d'accessibilité existantes utilisant le nom du mouvement ou de l'exercice comme libellé de vignette restent applicables.
+
+La compatibilité avec les fichiers déjà exportés contenant `alt`, les empreintes et les révisions doit être traitée lors de la correction technique. Le mécanisme précis de migration reste à définir ; aucun rejet des anciennes bibliothèques ni aucune réinitialisation des installations n'est décidé ici. Le code de main consulté conserve encore `CatalogueMedia.alt` dans `MovementCatalogueFile.ts` ; la suppression documentaire ne vaut donc pas suppression du code.
+
+Pour les autres champs proposés au retrait dans l'administration, conserver les décisions établies, y compris celles dont l'usage est reporté. La liste finale de retraits n'est pas déductible de la seule liste de propositions ; elle doit être réconciliée avant toute suppression supplémentaire.
+
+### Partage individuel et personnalisation — cible ultérieure
+
+Le partage d'un mouvement seul est prévu, ainsi que le partage d'une Bibliothèque. Dans le partage standard, les destinataires reçoivent la fiche avec ses médias communs, sous réserve des règles de diffusion existantes.
+
+Parcours personnalisé décrit par Hermann le 13 novembre 2026 :
+1. Sélectionner un mouvement dans le Catalogue et choisir Partager.
+2. Choisir Partage personnalisé.
+3. Joindre une photo ou une vidéo, prise directement ou sélectionnée parmi les médias existants.
+4. Ajouter éventuellement un texte.
+5. Sélectionner la personne destinataire et envoyer.
+
+Le média personnalisé est rattaché au mouvement pour ce destinataire. Il reste distinct des médias communs et des personnalisations destinées à d'autres personnes. Ce rattachement ne confère aucun droit d'édition de la fiche importée. Le texte facultatif supersède l'exclusivité des consignes orales de KIN-01. La fréquence structurée, son éventuel effet sur la planification et le suivi d'exécution partagé restent à arbitrer.
+
+Ce parcours est une cible fonctionnelle ultérieure au lot Bibliothèques fusionné. Les écrans, libellés définitifs, droits de consultation et mécanismes de distribution restent à concevoir ou à vérifier. Aucun état Figma ni développement du partage n'est déclaré validé par cette mise à jour.
+
+### Arbitrages encore ouverts
+
+| Sujet | Décision attendue |
+|---|---|
+| Attributs d'administration | Confirmer la liste finale des champs conservés et retirés, au-delà de la suppression explicite de `alt`. |
+| Filtres et tris | Choisir les axes supplémentaires à rendre utilisables dans le Catalogue mobile et leur périmètre. |
+| Phases | Confirmer leur édition et leur transfert par les fiches administrées, avec le comportement de mise à jour. |
+| Suppression d'une Bibliothèque | Distinguer retrait du regroupement, désinstallation et retrait de la source ; décider de la conservation de la fiche complète, de son utilisabilité et de l'effet sur les Séances. La proposition d'inactivation automatique n'est pas validée. |
+| Espace partagé | Choisir le regroupement des envois par relation et son éventuelle représentation comme Bibliothèque. |
+| Fréquence | Choisir entre un texte facultatif et une fréquence structurée, puis définir l'effet éventuel sur le calendrier. |
+| Historique partagé | Définir les exécutions visibles, leur périmètre et l'autorisation du destinataire. Aucun partage automatique de l'historique n'est décidé. |
+| Médias personnalisés | Définir remplacement, suppression, conservation et devenir après fin de relation. Le choix de stockage/transit reste reporté. |
