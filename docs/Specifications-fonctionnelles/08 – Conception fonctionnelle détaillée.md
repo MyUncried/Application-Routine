@@ -1035,6 +1035,12 @@ Elle propose :
 
 **Dans une Bibliothèque reçue**, la composition est en lecture seule. Lorsque le badge de mise à jour apparaît, le destinataire consulte les ajouts, retraits et nouvelles révisions ainsi que les **autres Bibliothèques utilisant les mêmes fiches**. Un seul « Mettre à jour » actualise la composition choisie et les Mouvements concernés. **Un Mouvement source possède une seule révision active sur l'appareil ; la fiche mise à jour apparaît dans toutes ses Bibliothèques référentes**, sans modifier la composition des autres. Sans action, aucune nouvelle révision éditoriale n'est installée. Les Mouvements personnels originaux distincts, Mouvements retirés et historiques sont préservés ; les adaptations **historiques** éventuelles des 60 Mouvements déjà installés sont préservées lors de la réconciliation CA-3. Les fiches reçues/importées ne sont jamais adaptées ni éditées localement.
 
-**Dans l'Espace en étoile**, la transmission d'une fiche est individuelle, après invitation acceptée, avec refus et blocage possibles ; aucun rôle professionnel ni prescription numérique. Le cas kiné-patient conserve des consignes d'exécution orales. La modération peut suspendre un média ou une fiche indépendamment du bouton de mise à jour.
+**Dans l'Espace en étoile**, la transmission d'une fiche est individuelle, après invitation acceptée, avec refus et blocage possibles ; aucun rôle professionnel ni prescription numérique. Le cas kiné-patient prévoit un texte facultatif au partage personnalisé (17/11/2026). La modération peut suspendre un média ou une fiche indépendamment du bouton de mise à jour.
 
 Le détail du rendu visuel, les conflits de **réconciliation historique** et les droits commerciaux restent à concevoir ; il n'existe pas de conflit de modification locale pour une nouvelle fiche importée protégée. [Parcours PU-01 à PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+
+## Réconciliation de la fiche Mouvement — 17 novembre 2026
+
+La fiche complète comprend les données d'usage et les propriétés éditoriales persistées qui lui sont rattachées. L'accès par le bouton Livre et la couverture de ses champs restent à vérifier. La présence des classifications dans le modèle ne valide pas de nouveaux filtres mobiles.
+
+[Contrat consolidé de données et arbitrages](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
