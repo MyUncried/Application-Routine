@@ -166,3 +166,9 @@ Les relations actives vers le mouvement doivent rester intègres, depuis les dé
 [Conception consolidée du moteur — version actualisée](preparation/moteur-execution/KODJO-Conception-moteur-execution-consolidee-2026-11-02.md) : base documentaire du commit 8855c793, prescriptions du 5 novembre intégrées ; aucun développement du moteur déclaré.
 
 **Composition, 06/11/2026 (D-511 à D-513, classe B)** : [carte d’exercice, en-tête de Circuit et placement](KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement). Placement réservé aux Points d’arrêt ; géométrie de la carte actualisée ; déploiement Figma des en-têtes partiel.
+
+## Réconciliation du 17 novembre 2026
+
+La réconciliation du 17/11/2026 précise la fiche complète et son stockage, supprime le texte alternatif éditorial et décrit le partage individuel personnalisé comme cible ultérieure. Les filtres supplémentaires, phases importées, suppression de Bibliothèque, espace partagé, fréquence structurée et suivi restent ouverts.
+
+[Définition, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
